@@ -57,6 +57,7 @@ static char cvsroot[] = "$Header$";
     char      *typemap_lang = 0;                // Typemap name
     int        type_id = 0;                     // Type identifier
     int        error_count = 0;                 // Error count
+    int        Verbose = 0;
 
 class SwigException {};
 
@@ -181,7 +182,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-E") == 0) {
 	    cpp_only = 1;
 	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-verbose") == 0) || (strcmp(argv[i],"-v") == 0)) {
+	  } else if ((strcmp(argv[i],"-verbose") == 0) ||
+		     (strcmp(argv[i],"-v") == 0)) {
+	      Verbose = 1;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
