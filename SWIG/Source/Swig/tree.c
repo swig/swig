@@ -108,10 +108,13 @@ Swig_emit(DOH *obj, void *clientdata) {
   while (obj) {
     tag = Getattr(obj,"tag");
     actionobj = Getattr(rules,tag);
-    if (!actionobj) return -1;
-    action = (int (*)(DOH *, void *)) Data(actionobj);
-    ret = (*action)(obj,clientdata);
-    if (ret < 0) return -1;
+    if (actionobj) {
+      action = (int (*)(DOH *, void *)) Data(actionobj);
+      ret = (*action)(obj,clientdata);
+      if (ret < 0) return -1;
+    } else {
+      Printf(stderr,"warning: no action defined for '%s'\n", tag);
+    }
     obj = Getattr(obj,"sibling");
   }
   return 0;
