@@ -146,9 +146,10 @@ public:
   virtual void initialize(void) = 0;
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name) = 0;
+  virtual void create_command(char *cname, char *iname);
+
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
-  virtual void create_command(char *cname, char *iname);
 
   virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);

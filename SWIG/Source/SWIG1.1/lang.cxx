@@ -168,9 +168,9 @@ static Parm *nonvoid_parms(Parm *p) {
 
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang,"swig") == 0) {
-    if (strcmp(name,"make_default") == 0) {
+    if ((strcmp(name,"make_default") == 0) || ((strcmp(name,"makedefault") == 0))) {
       GenerateDefault = 1;
-    } else if (strcmp(name,"no_default") == 0) {
+    } else if ((strcmp(name,"no_default") == 0) || ((strcmp(name,"nodefault") == 0))) {
       GenerateDefault = 0;
     } else if (strcmp(name,"readonly") == 0) {
       Status = Status | STAT_READONLY;
@@ -803,7 +803,7 @@ void Language::classDeclaration(Node *n) {
   if (!ImportMode) {
     if (GenerateDefault) {
       CCode = 0;
-      if ((!has_constructor) && (!private_constructor) && (!private_destructor) && (base_default_constructor)) {
+      if ((!has_constructor) && (!private_constructor) && (base_default_constructor)) {
 	/* Generate default constructor */
 	this->cpp_constructor(classname,iname,0);
 	SetInt(n,"default_constructor",1);
@@ -850,14 +850,22 @@ void Language::constructorDeclaration(Node *n) {
   String *code  = Getattr(n,"code");
   CCode = code;
 
+  /* If a class defines a constructor, it overrides any default constructors in the base. 
+     Note: constructors are not inherited  */
+
   base_default_constructor = 0;
+
+  /* Private/protected inheritance check.   We can't generate a constructor
+     in this case, but need to record some information so that derived classes
+     don't try to generate default constructors */
+
   if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
     if (!has_constructor) {
       if (cplus_mode == CPLUS_PRIVATE) {
 	private_constructor = 1;
       } else {
 	/* Protected mode: class has a default constructor, but it's not accessible directly */
-	if (!(nonvoid_parms(parms))) {
+	if (!ParmList_numrequired(parms)) {
 	  has_default_constructor = 1;
 	}
       }
@@ -869,7 +877,10 @@ void Language::constructorDeclaration(Node *n) {
   
   if (ImportMode) return;
   if (Cmp(symname,name) == 0) symname = 0;
-  if (!(AddMethods) && (!(nonvoid_parms(parms)))) {
+
+  /* Check for default constructor.  A class has a default constructor if it 
+     has a constructor that will accept no arguments */
+  if (!(AddMethods) && (ParmList_numrequired(parms) == 0)) {
     has_default_constructor = 1;
   }
   if (!Abstract) {
