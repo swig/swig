@@ -1,6 +1,20 @@
 Version 1.3.20 (In progress)
 ============================
 
+04/02/2003: cheetah (William Fulton)
+            Build improvements for multiple builds. This allows one to build
+            the SWIG executable and runtime libraries for different platforms/compilers 
+            etc by running configure in different directories. This isn't 100% just 
+            yet and won't be until libtool is better configured... a 'configure' and 
+            'make distclean' needs to be run in the root directory before it all works.
+            For example:
+              $ ./configure
+              $ make distclean
+              $ mkdir config1; cd config1; ../configure CC=gcc CXX=g++; make; cd ..
+              $ mkdir config2; cd config2; ../configure CC=cc CXX=c++; make; cd ..
+            
+            To be improved. A 'make check' does not work yet either. 
+
 04/01/2003: beazley
             Fixed template partial specialization argument expansion bug.
             This showed up when trying to use std_vector.i with vectors
