@@ -14,7 +14,7 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
-7/24/2001: cheetah (william fulton)
+7/26/2001: cheetah (william fulton)
 	   * Test-suite added.
 	   * Initial testcases: constant_pointers cpp_enum defines
 	     sizeof_pointers unions virtual_destructor
