@@ -359,11 +359,17 @@ need to carefully check the correct operation of your program after
 it has been wrapped with SWIG.
 
 <p>
-Although the SWIG parser supports the <tt>long long</tt> datatype,
-very few language modules currently support it. This is because
-<tt>long long</tt> usually exceeds the precision available in the
-target language.  This limitation may be eliminated in future SWIG
-releases.
+Although the SWIG parser supports the <tt>long long</tt> datatype, not
+all language modules support it.  This is because <tt>long long</tt>
+usually exceeds the integer precision available in the target
+language.  In certain modules such as Tcl and Perl5, <tt>long
+long</tt> integers are encoded as strings. This allows the full range
+of these numbers to be represented.  However, it does not allow
+<tt>long long</tt> values to be used in arithmetic expressions.  It
+should also be noted that since <tt>long long</tt> support is not part
+of the ANSI C standard, it is not universally supported by all C
+compilers.  Make sure you are using a compiler that supports <tt>long
+long</tt> before trying to this type with SWIG.
 
 <p>
 SWIG recognizes the following floating point types :<p>
@@ -908,7 +914,9 @@ creating a wrapper equivalent to the following:
 
 <p>
 <blockquote><pre>double wrap_dot_product(Vector *a, Vector *b) {
-    return dot_product(*a,*b);
+    Vector x = *a;
+    Vector y = *b;
+    return dot_product(x,y);
 }
 </pre></blockquote>
 
@@ -932,9 +940,11 @@ pointers.  As a result, SWIG creates a wrapper like this:
 
 <p>
 <blockquote><pre>Vector *wrap_cross_product(Vector *v1, Vector *v2) {
+        Vector x = *v1;
+        Vector y = *v2;
         Vector *result;
         result = (Vector *) malloc(sizeof(Vector));
-        *(result) = cross(*v1,*v2);
+        *(result) = cross(x,y);
         return result;
 }
 </pre></blockquote>
@@ -944,7 +954,9 @@ or if SWIG was run with the <tt>-c++</tt> option:<p>
 
 <p>
 <blockquote><pre>Vector *wrap_cross(Vector *v1, Vector *v2) {
-        Vector *result = new Vector(cross(*v1,*v2)); // Uses default copy constructor
+        Vector x = *v1;
+        Vector y = *v2;
+        Vector *result = new Vector(cross(x,y)); // Uses default copy constructor
         return result;
 }
 </pre></blockquote>
@@ -956,6 +968,12 @@ in use. Clearly, this will leak memory if you are unaware of the implicit
 memory allocation and don't take steps to free the result.  That said, it should be
 noted that some language modules can now automatically track newly created objects and
 reclaim memory for you.  Consult the documentation for each language module for more details.
+
+<p>
+It should also be noted that the handling of pass/return by value in
+C++ has some special cases.  For example, the above code fragments
+don't work correctly if <tt>Vector</tt> doesn't define a default
+constructor.  The section on SWIG and C++ has more information about this case.
 
 <h3>Linking to structure variables</h3>
 

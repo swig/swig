@@ -341,6 +341,58 @@ Don't return references to objects allocated as local variables on the
 stack.  SWIG doesn't make a copy of the objects so this will probably
 cause your program to crash.
 
+<h2>Pass and return by value</h2>
+
+Occasionally, a C++ program will pass and return class objects by value.  For example, a function
+like this might appear:
+
+<blockquote>
+<pre>
+Vector cross_product(Vector a, Vector b);
+</pre>
+</blockquote>
+
+If no information is supplied about <tt>Vector</tt>, SWIG creates a wrapper function similar to the
+following:
+
+<blockquote>
+<pre>
+Vector *wrap_cross_product(Vector *a, Vector *b) {
+   Vector x = *a;
+   Vector y = *b;
+   Vector r = cross_product(x,y);
+   return new Vector(r);
+}</pre>
+</blockquote>
+
+In order for the wrapper code to compile, <tt>Vector</tt> must define a copy constructor and have a default
+constructor.
+
+<p>
+If <tt>Vector</tt> is defined as class in the interface, SWIG changes the wrapper code by rewriting the
+arguments as C++ references.  This means that the function is handled as if were declared exactly like this:
+
+<blockquote>
+<pre>
+Vector cross_product(Vector &a, Vector &b);
+</pre>
+</blockquote>
+
+Then, a wrapper such as the following is created:
+
+<blockquote>
+<pre>
+Vector *wrap_cross_product(Vector *a, Vector *b) {
+   Vector r = cross_product(*a,*b);
+   return new Vector(r);
+}
+</pre>
+</blockquote>
+
+This transformation to references is made so that uninitialized
+arguments of type <tt>Vector</tt> do not appear in the wrapper code
+(thus avoiding compiler errors related to missing default constructors).
+
 <h2>Inheritance</h2>
 
 SWIG supports C++ public inheritance of classes and allows both

@@ -214,7 +214,16 @@ This error usually indicates that you forgot to include some object
 files or libraries in the linking of the shared library file.  Make
 sure you compile both the SWIG wrapper file and your original program
 into a shared library file.  Make sure you pass all of the required libraries
-to the linker.
+to the linker.  
+
+<p>
+Sometimes unresolved symbols occur because a wrapper has been created
+for a function that doesn't actually exist in a library.  This usually
+occurs when a header file includes a declaration for a function that
+was never actually implemented or it was removed from a library
+without updating the header file.  To fix this, you can either edit
+the SWIG input file to remove the offending declaration or you can use
+the <tt>%ignore</tt> directive to ignore the declaration.
 
 <p>
 Finally, suppose that your extension module is linked with another library like this:
@@ -1356,7 +1365,7 @@ PyExc_Exception
 </blockquote>
 
 <p>
-<b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the following syntax:
+<b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the older <tt>%except</tt> directive:
 <blockquote>
 <pre>
 %except(python) {
@@ -1371,7 +1380,8 @@ PyExc_Exception
 </pre>
 </blockquote>
 
-This is still supported, but is deprecated.  In may be eliminated in future release.
+This is still supported, but it is deprecated.  The newer <tt>%exception</tt> directive provides the same
+functionality, but it has additional capabilities that make it more powerful.
 
 <h2>Typemaps</h2>
 
@@ -1402,10 +1412,10 @@ extern int fact(int n);
 </pre></blockquote>
 
 <p>
-Typemaps are always defined for some specific aspect of code generation.
-In this case, the "in" parameter refers to the conversion of input arguments
+Typemaps are always associated with some specific aspect of code generation.
+In this case, the "in" method refers to the conversion of input arguments
 to C/C++.  The datatype <tt>int</tt> is the datatype to which the typemap
-will be applied.  The supplied code is used to convert values.  In this
+will be applied.  The supplied C code is used to convert values.  In this
 code a number of special variable prefaced by a <tt>$</tt> are used.  The
 <tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
 The <tt>$input</tt> variable is the input object of type <tt>PyObject *</tt>.
@@ -1470,7 +1480,7 @@ int count(char c, char *str, int len);
 </pre>
 </blockquote>
 
-When a multi-argument typemap is defined, the arguments are handled as a single
+When a multi-argument typemap is defined, the arguments are always handled as a single
 Python object.  This allows the function to be used like this (notice how the length
 parameter is ommitted):
 
@@ -1546,7 +1556,7 @@ Creation of Python constants (init function)
 
 <tt>%typemap(memberin)</tt>
 <blockquote>
-Setting of C++ member data<p>
+Setting of structure/class member data<p>
 </blockquote>
 
 <tt>%typemap(globalin)</tt>
@@ -1574,7 +1584,7 @@ Ignore an argument, but initialize its value.
 Initialize an argument to a value before any conversions occur.
 </blockquote>
 
-Examples of these methods will appear in a moment.
+Examples of these methods will appear shortly.
 
 <h3> Typemap variables</h3>
 
@@ -1600,19 +1610,19 @@ the raw result that's supposed to be returned to Python.
 <p>
 <tt>$result</tt>
 <blockquote>
- A <tt>PyObject *</tt> that holds the result to be returned to Python.
+A <tt>PyObject *</tt> that holds the result to be returned to Python.
 </blockquote>
 <p>
 
 <tt>$1_name</tt>
 <blockquote>
-  The parameter name that was matched.
+The parameter name that was matched. 
 </blockquote>
 <p>
 
 <tt>$1_type</tt>
 <blockquote>
-  The actual C datatype matched by the typemap.
+The actual C datatype matched by the typemap.
 </blockquote>
 <p>
 
@@ -1727,12 +1737,11 @@ write me
 
 <h3>Typemap Examples</h3>
 
-This section includes several examples of writing typemaps.  For even more examples, you
-might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in the SWIG library.
+This section includes a few examples of typemaps.  For more examples, you
+might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
+the SWIG library.
 
-
-
-<h3> Converting  Python list to a char ** </h3>
+<h3>Converting  Python list to a char ** </h3>
 
 A common problem in many C programs is the processing of command line
 arguments, which are usually passed in an array of NULL terminated
@@ -1743,23 +1752,23 @@ object to be used as a <tt>char **</tt> object.<p>
 <blockquote><pre>%module argv
 
 // This tells SWIG to treat char ** as a special case
-%typemap(python,in) char ** {
+%typemap(in) char ** {
   /* Check if is a list */
-  if (PyList_Check($source)) {
-    int size = PyList_Size($source);
+  if (PyList_Check($input)) {
+    int size = PyList_Size($input);
     int i = 0;
-    $target = (char **) malloc((size+1)*sizeof(char *));
+    $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i &lt; size; i++) {
-      PyObject *o = PyList_GetItem($source,i);
+      PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$target[i] = PyString_AsString(PyList_GetItem($source,i));
+	$1[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
 	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($target);
+	free($1);
 	return NULL;
       }
     }
-    $target[i] = 0;
+    $1[i] = 0;
   } else {
     PyErr_SetString(PyExc_TypeError,"not a list");
     return NULL;
@@ -1767,22 +1776,11 @@ object to be used as a <tt>char **</tt> object.<p>
 }
 
 // This cleans up the char ** array we malloc'd before the function call
-%typemap(python,freearg) char ** {
-  free((char *) $source);
+%typemap(freearg) char ** {
+  free((char *) $1);
 }
 
-// This allows a C function to return a char ** as a Python list
-%typemap(python,out) char ** {
-  int len,i;
-  len = 0;
-  while ($source[len]) len++;
-  $target = PyList_New(len);
-  for (i = 0; i &lt; len; i++) {
-    PyList_SetItem($target,i,PyString_FromString($source[i]));
-  }
-}
-
-// Now a few test functions
+// Now a test function
 %inline %{
 int print_args(char **argv) {
     int i = 0;
@@ -1792,17 +1790,10 @@ int print_args(char **argv) {
     }
     return i;
 }
-
-// Returns a char ** list 
-
-char **get_args() {
-    static char *values[] = { "Dave", "Mike", "Susan", "John", "Michelle", 0};
-    return &amp;values[0];
-}
 %}
 
 </pre></blockquote>
-When this module is compiled, our wrapped C functions now operate as
+When this module is compiled, the wrapped C function now operates as
 follows :<p>
 
 <p>
@@ -1814,50 +1805,82 @@ argv[2] = Mary
 argv[3] = Jane
 argv[4] = John
 5
-&gt;&gt;&gt; get_args()
-[`Dave', `Mike', `Susan', `John', `Michelle']
-&gt;&gt;&gt;
-
 </pre></blockquote>
-Our type-mapping makes the Python interface to these functions more
-natural and easy to use.  <p>
 
-<h3> Converting a Python file object to a FILE *</h3>
+In the example, two different typemaps are used.  The "in" typemap is
+used to receive an input argument and convert it to a C array.  Since dynamic
+memory allocation is used to allocate memory for the array, the
+"freearg" typemap is used to later release this memory after the execution of
+the C function. 
 
-In our previous example involving gd-1.2, we had to write wrappers
-around <tt>fopen()</tt> and <tt>fclose()</tt> so that we could provide
-gd with a <tt>FILE *</tt> pointer.  However, we could have used a
-typemap like this instead :<p>
+<h3>Expanding a Python object to multiple arguments</h3>
 
-<p>
-<blockquote><pre>// Type mapping for grabbing a FILE * from Python
+Suppose that you had a collection of C functions with arguments
+such as the following:
 
-%typemap(python,in) FILE * {
-  if (!PyFile_Check($source)) {
-      PyErr_SetString(PyExc_TypeError, "Need a file!");
-      return NULL;
+<blockquote>
+<pre>
+int foo(int argc, char **argv);
+</pre>
+</blockquote>
+
+In the previous example, a typemap was written to pass a Python list as the <tt>char **argv</tt>.  This
+allows the function to be used from Python as follows:
+
+<blockquote>
+<pre>
+>>> foo(4, ["foo","bar","spam","1"])
+</pre>
+</blockquote>
+
+Although this works, it's a little awkward to specify the argument count.  To fix this, a multi-argument
+typemap can be defined.  This is not very difficult--you only have to make slight modifications to the
+previous example:
+
+<blockquote>
+<pre>
+%typemap(in) (int argc, char **argv) {
+  /* Check if is a list */
+  if (PyList_Check($input)) {
+    int i;
+    $1 = PyList_Size($input);
+    $2 = (char **) malloc((size+1)*sizeof(char *));
+    for (i = 0; i &lt; $1; i++) {
+      PyObject *o = PyList_GetItem($input,i);
+      if (PyString_Check(o))
+	$2[i] = PyString_AsString(PyList_GetItem($input,i));
+      else {
+	PyErr_SetString(PyExc_TypeError,"list must contain strings");
+	free($2);
+	return NULL;
+      }
+    }
+    $2[i] = 0;
+  } else {
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
   }
-  $target = PyFile_AsFile($source);
 }
-</pre></blockquote>
+
+%typemap(freearg) (int argc, char **argv) {
+  free((char *) $2);
+}
+</pre>
+</blockquote>
+
+When writing a multiple-argument typemap, each of the types is referenced by a variable such 
+as <tt>$1</tt> or <tt>$2</tt>.   The typemap code simply fills in the appropriate values from
+the supplied Python object.
 
 <p>
-Now, we can rewrite one of our earlier examples like this :<p>
+With the above typemap in place, you will find it no longer necessary
+to supply the argument count.  This is automatically set by the typemap code.  For example:
 
-<p>
-<blockquote><pre># Simple gd program
-
-from gd import *
-
-im = gdImageCreate(64,64)
-black = gdImageColorAllocate(im,0,0,0)
-white = gdImageColorAllocate(im,255,255,255)
-gdImageLine(im,0,0,63,63,white)
-f = open("test.gif","w")               # Create a Python file object
-gdImageGif(im,f)                       # Pass to a C function as FILE *
-f.close()
-gdImageDestroy(im)
-</pre></blockquote>
+<blockquote>
+<pre>
+>>> foo(["foo","bar","spam","1"])
+</pre>
+</blockquote>
 
 <h3> Using typemaps to return arguments</h3>
 
@@ -1874,7 +1897,7 @@ int spam(double a, double b, double *out1, double *out2) {
 };
 
 </pre></blockquote>
-A named typemap can be used to handle this case as follows :<p>
+A typemap can be used to handle this case as follows :<p>
 <p>
 <blockquote><pre>%module outarg
 
@@ -1882,48 +1905,57 @@ A named typemap can be used to handle this case as follows :<p>
 // an output value.  We'll append the value to the current result which 
 // is guaranteed to be a List object by SWIG.
 
-%typemap(python,argout) double *OutValue {
-	PyObject *o;
-	o = PyFloat_FromDouble(*$source);
-	if ((!$target) || ($target == Py_None)) {
-		$target = o;
-	} else {
-		if (!PyList_Check($target)) {
-			PyObject *o2 = $target;
-			$target = PyList_New(0);
-			PyList_Append($target,o2);
-			Py_XDECREF(o2);
-		}
-		PyList_Append($target,o);
-		Py_XDECREF(o);
-	}
+%typemap(argout) double *OutValue {
+    PyObject *o, *o2, *o3;
+    o = PyFloat_FromDouble(*$1);
+    if ((!$result) || ($result == Py_None)) {
+        $result = o;
+    } else {
+        if (!PyTuple_Check($result)) {
+            PyObject *o2 = $result;
+            $result = PyTuple_New(1);
+            PyTuple_SetItem(target,0,o2);
+        }
+        o3 = PyTuple_New(1);
+        PyTuple_SetItem(o3,0,o);
+        o2 = $result;
+        $result = PySequence_Concat(o2,o3);
+        Py_DECREF(o2);
+        Py_DECREF(o3);
+    }
 }
+
 int spam(double a, double b, double *OutValue, double *OutValue);
 
 </pre></blockquote>
 
-With this typemap, we first check to see if any result exists.  If so,
-we turn it into a list and append our new output value to it.  If this
-is the only result, we simply return it normally. For our sample
-function, there are three output values so the function will return a
-list of 3 elements.  As written, our function needs to take 4
-arguments, the last two being pointers to doubles.  We may not want to
-pass anything into these arguments if they are only used to hold
-output values so we could change this as follows :<p>
+The typemap works as follows.  First, a check is made to see if any previous result
+exists.  If so, it is turned into a tuple and the new output value is concatenated to it.
+Otherwise, the result is returned normally.   For the sample function <tt>spam()</tt>, there
+are three output values--meaning that the function will return a 3-tuple of the results.
+
+<p>
+As written, the function must accept 4 arguments as input values,
+last two being pointers to doubles.  If these arguments are only used to hold output values (and have
+no meaningful input value), an additional typemap can be written.  For example:
 
 <blockquote><pre>
-%typemap(python,ignore) double *OutValue(double temp) {
-	$target = &amp;temp;       /* Assign the pointer to a local variable */
+%typemap(ignore) double *OutValue(double temp) {
+    $1 = &amp;temp;
 }
 
 </pre></blockquote>
 
-Now, in a Python script,  we could do this :<p>
+The ignore typemap forces the input value to be ignored.  However, since the argument still has to be set to
+some meaningful value before calling C, it is set to point to a local variable <tt>temp</tt>.  When the function
+stores its output value, it will simply be placed in this local variable.  As a result, the
+function can now be used as follows:
 
 <p>
 <blockquote><pre>&gt;&gt;&gt; a = spam(4,5)
 &gt;&gt;&gt; print a
-[0, 2.45, 5.0]
+(0, 2.45, 5.0)
+&gt;&gt;&gt; x,y,z = spam(4,5)
 &gt;&gt;&gt;
 </pre></blockquote>
 
@@ -1939,14 +1971,14 @@ of numbers as arguments. For example :<p>
 This too, can be handled used typemaps as follows :<p>
 <p>
 <blockquote><pre>// Grab a 4 element array as a Python 4-tuple
-%typemap(python,in) double[4](double temp[4]) {   // temp[4] becomes a local variable
+%typemap(in) double[4](double temp[4]) {   // temp[4] becomes a local variable
   int i;
-  if (PyTuple_Check($source)) {
-    if (!PyArg_ParseTuple($source,"dddd",temp,temp+1,temp+2,temp+3)) {
+  if (PyTuple_Check($input)) {
+    if (!PyArg_ParseTuple($input,"dddd",temp,temp+1,temp+2,temp+3)) {
       PyErr_SetString(PyExc_TypeError,"tuple must have 4 elements");
       return NULL;
     }
-    $target = &amp;temp[0];
+    $1 = &amp;temp[0];
   } else {
     PyErr_SetString(PyExc_TypeError,"expected a tuple.");
     return NULL;
@@ -1965,312 +1997,204 @@ Python as follows :<p>
 
 Since our mapping copies the contents of a Python tuple into a C
 array, such an approach would not be recommended for huge arrays, but
-for small structures, this kind of scheme works fine.<p>
+for small structures, this approach works fine.<p>
 
-<h3> Accessing array structure members</h3>
+<h3>Mapping sequences to C arrays</h3>
+
+Suppose that you wanted to generalize the previous example to handle C
+arrays of different sizes.  To do this, you might write a typemap as follows:
+
+<blockquote><pre>
+// Map a Python sequence into any sized C double array
+%typemap(in) double[ANY](double temp[$1_dim0]) {
+  int i;
+  if (!PySequence_Check($input)) {
+      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+      return NULL;
+  }
+  if (PyObject_Length($input) != $1_dim0) {
+      PyErr_SetString(PyExc_ValueError,"Expecting a sequence with $1_dim0 elements");
+      return NULL;
+  }
+  for (i =0; i < $1_dim0; i++) {
+      PyObject *o = PySequence_GetItem($input,i);
+      if (!PyFloat_Check(o)) {
+         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
+         return NULL;
+      }
+      temp[i] = PyFloat_AsDouble(o);
+  }
+  $1 = &temp[0];
+}
+</pre>
+</blockquote>
+
+In this case, the variable <tt>$1_dim0</tt> is expanded to match the
+array dimensions actually used in the C code. This allows the typemap
+to be applied to types such as:
+
+<blockquote>
+<pre>
+void foo(double x[10]);
+void bar(double a[4], double b[8]);
+</pre>
+</blockquote>
+
+Since the above typemap code gets inserted into every wrapper function where used, it might make sense
+to use a helper function instead.  This will greatly reduce the amount of wrapper code.  For example:
+
+<blockquote>
+<pre>
+%{
+static int convert_darray(PyObject *input, double *ptr, int size) {
+  int i;
+  if (!PySequence_Check(input)) {
+      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+      return 0;
+  }
+  if (PyObject_Length(input) != size) {
+      PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
+      return 0;
+  }
+  for (i =0; i < size; i++) {
+      PyObject *o = PySequence_GetItem(input,i);
+      if (!PyFloat_Check(o)) {
+         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
+         return 0;
+      }
+      ptr[i] = PyFloat_AsDouble(o);
+  }
+  return 1;
+}
+%}
+
+%typemap(in) double [ANY](double temp[$1_dim0]) {
+   if (!convert_darray($input,temp,$1_dim0))) {
+      return NULL;
+   }
+   $1 = &temp[0];
+}
+</pre>
+</blockquote>
+
+<h3>Accessing array structure members</h3>
 
 Consider the following data structure :<p>
 <p>
-<blockquote><pre>#define NAMELEN   32
+<blockquote><pre>#define SIZE  8
 typedef struct {
-	char   name[NAMELEN];
-	...
-} Person;
+    int   values[SIZE];
+    ...
+} Foo;
 
 </pre></blockquote>
 
-By default, SWIG doesn't know how to the handle the name structure
-since it's an array, not a pointer.  In this case, SWIG will make the
-array member readonly.  However, member typemaps can be used to make
-this member writable from Python as follows :<p>
+By default, SWIG doesn't know how to the handle the values structure
+member it's an array, not a pointer.  In this case, SWIG makes the array member
+read-only.   Reading will simply return a pointer to the first item in the array.
+To make the member writable, a "memberin" typemap can be used.
 
 <p>
-<blockquote><pre>%typemap(memberin) char[NAMELEN] {
-	/* Copy at most NAMELEN characters into $target */
-	strncpy($target,$source,NAMELEN);
+<blockquote><pre>%typemap(memberin) int [SIZE] {
+    int i;
+    for (i = 0; i < SIZE; i++) {
+        $1[i] = $input[i];
+    }
 }
 
 </pre></blockquote>
 
-Whenever a <tt>char[NAMELEN]</tt> type is encountered in a structure
+Whenever a <tt>int [SIZE]</tt> member is encountered in a structure
 or class, this typemap provides a safe mechanism for setting its
-value.  An alternative implementation might choose to print an error
-message if the name was too long to fit into the field.<p>
+value.  
+
 <p>
-It should be noted that the <tt>[NAMELEN]</tt> array size is attached
-to the typemap. A datatype involving some other kind of array would
-not be affected.  However, you can write a typemap to match any sized
-array using the <tt>ANY</tt> keyword as follows :<p>
-<p>
-<blockquote><pre>%typemap(memberin) char [ANY] {
-	strncpy($target,$source,$dim0);
+As in the previous example, the typemap can be generalized for any dimension.
+For example:
+
+<blockquote><pre>%typemap(memberin) int [ANY] {
+   int i;
+   for (i = 0; i < $1_dim0; i++) {
+      $1[i] = $input[i];
+   }
 }
 </pre></blockquote>
 
-<p>
-During code generation, <tt>$dim0</tt> will be filled in with the real array dimension.  <p>
+When setting structure members, the input object is always assumed to
+be a C array of values that have already been converted from the
+target language.  Because of this, the <tt>memberin</tt> typemap is
+almost always combined with the use of an "in" typemap.  For example,
+the "in" typemap in the previous section would be used to convert an
+<tt>int[]</tt> array to C whereas the "memberin" typemap would be used
+to copy the converted array into a C data structure.
 
 <h3> Pointer handling</h3>
 
-REWRITE!
-<p>
-
-SWIG pointers are mapped into Python strings containing the
-hexadecimal value and type.  The following functions can be used to
-create and read pointer values.<p>
+Occasionally, it might be necessary to convert pointer values that have
+been stored using the SWIG typed-pointer representation.  Since there are
+several ways in which pointers can be represented, the following two
+functions are used to safely perform this conversion:
 
 <p>
-These functions can be used in typemaps. For example, the following
-typemap makes an argument of "<tt>char *buffer</tt>" accept a pointer
-instead of a NULL-terminated ASCII string.<p>
+<tt>
+int SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)</tt>
+
 <p>
-<blockquote><pre>%typemap(python,in) char *buffer {
-	PyObject *o;
-	char     *str;
-	if (!PyString_Check(o)) {
-		PyErr_SetString(PyExc_TypeError,"not a string");
-		return NULL;
-	}
-	str = PyString_AsString(o);
-	if (SWIG_GetPtr(str, (void **) &amp;$target, "$mangle")) {
-		PyErr_SetString(PyExc_TypeError,"not a pointer");
-		return NULL;
-	}
+<blockquote>
+Converts a Python object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
+into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
+<tt>flags</tt> is used to handle error checking and other aspects of conversion.  If set, 
+the function converts type-errors into a Python <tt>TypeError</tt> exception.  If set to zero, no Python exception
+is raised.  Returns 0 on success and -1 on error.
+</blockquote>
+
+<p>
+<tt>
+PyObject *Swig_NewPointerObj(void *ptr, swig_type_info *ty, int own)</tt>
+<p>
+
+<blockquote>
+Creates a new Python pointer object.  <tt>ptr</tt> is the pointer to convert, <tt>ty</tt> is the SWIG type descriptor structure that
+describes the type, and <tt>own</tt> is a flag that indicates whether or not Python should take ownership of the
+pointer.
+</blockquote>
+
+Both of these functions require the use of a special SWIG
+type-descriptor structure.  This structure contains information about
+the mangled name of the datatype, type-equivalence information, as
+well as information about converting pointer values under C++
+inheritance.   For a type of <tt>Foo *</tt>, the type descriptor structure
+is usually accessed as follows:
+
+<blockquote>
+<pre>
+Foo *f;
+if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, 1) == -1) return NULL;
+
+PyObject *obj;
+obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
+</pre>
+</blockquote>
+
+In a typemap, the type descriptor should always be accessed using the special typemap
+variable <tt>$1_descriptor</tt>.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) Foo * {
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,1)) == -1) return NULL;
 }
+</pre>
+</blockquote>
 
-</pre></blockquote>
+Although the pointer handling functions are primarily intended for
+manipulating low-level pointers, both functions are fully aware of
+Python shadow classes (described shortly).  Specifically,
+<tt>SWIG_ConvertPtr()</tt> will retrieve a pointer from any object
+that has a <tt>this</tt> attribute.  In addition,
+<tt>SWIG_NewPointerObj()</tt> can automatically generate a shadow
+class object (if applicable).
 
-Note that the <tt>$mangle</tt> variable generates the type string
-associated with the datatype used in the typemap.<p>
-<p>
-By now you hopefully have the idea that typemaps are a powerful
-mechanism for building more specialized applications.  While writing
-typemaps can be technical, many have already been written for you.
-See the Typemaps chapter for more information about using library
-files.<p>
-
-<h2> Implementing C callback functions in Python</h2>
-
-Now that you're an expert, we will implement simple C callback
-functions in Python and use them in a C++ code.<p>
-<p>
-Let's say that we wanted to write a simple C++ 2D plotting widget
-layered on top of the gd-1.2 library.  A class definition might look
-like this :<p>
-
-<p>
-<blockquote><pre>// --------------------------------------------------------------------
-// Create a C++ plotting "widget" using the gd-1.2 library by Thomas Boutell
-//  
-// This example primarily illustrates how callback functions can be
-// implemented in Python.
-// --------------------------------------------------------------------
-
-#include &lt;stdio.h&gt;
-extern "C" {
-#include "gd.h"
-}
-
-typedef double (*PLOTFUNC)(double, void *);
-
-class PlotWidget {
-private:
-  double      xmin,ymin,xmax,ymax;         // Plotting range
-  PLOTFUNC    callback;                    // Callback function
-  void       *clientdata;                  // Client data for callback
-  int         npoints;                     // Number of points to plot
-  int         width;                       // Image width
-  int         height;                      // Image height
-  int         black,white;                 // Some colors
-  gdImagePtr  im;                          // Image pointer
-  void        transform(double,double,int&amp;,int&amp;);
-public:
-  PlotWidget(int w, int h,double,double,double,double);
-  ~PlotWidget();
-  void set_method(PLOTFUNC func, void *clientdata);    // Set callback method
-  void set_range(double,double,double,double);         // Set plot range
-  void set_points(int np) {npoints = np;}              // Set number of points
-  void plot();                                         // Make a plot
-  void save(FILE *f);                                  // Save a plot to disk
-};
-
-</pre></blockquote>
-The widget class hides all of the underlying implementation details so
-this could have just as easily been implemented on top of OpenGL, X11
-or some other kind of library.  When used in C++, the widget works
-like this :<p>
-<p>
-<blockquote><pre>// Simple main program to test out our widget
-#include &lt;stdio.h&gt;
-#include "widget.h"
-#include &lt;math.h&gt;
-
-// Callback function
-double my_func(double a, void *clientdata) {
-  return sin(a);
-}
-
-int main(int argc, char **argv) {
-  PlotWidget *w;
-  FILE *f;
-
-  w = new PlotWidget(500,500,-6.3,-1.5,6.3,1.5);
-  w-&gt;set_method(my_func,0);              // Set callback function
-  w-&gt;plot();                             // Make plot
-  f = fopen("plot.gif","w");
-  w-&gt;save(f);
-  fclose(f);
-  printf("wrote plot.gif\n");
-}
-
-</pre></blockquote>
-
-Now suppose that we wanted to use our widget interactively from
-Python.  While possible, it is going to be difficult because we would
-really like to implement the callback function in Python, not C++.  We
-also don't want to go in and hack or C++ code to support this.
-Fortunately, you can do it with SWIG using the following interface
-file :<p>
-
-<p>
-<blockquote><pre>// SWIG interface to our PlotWidget 
-%module plotwidget
-%{
-#include "widget.h"
-%}
-
-// Grab a Python function object as a Python object.
-%typemap(python,in) PyObject *pyfunc {
-  if (!PyCallable_Check($source)) {
-      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return NULL;
-  }
-  $target = $source;
-}
-
-// Type mapping for grabbing a FILE * from Python
-%typemap(python,in) FILE * {
-  if (!PyFile_Check($source)) {
-      PyErr_SetString(PyExc_TypeError, "Need a file!");
-      return NULL;
-  }
-  $target = PyFile_AsFile($source);
-}
-
-// Grab the class definition
-%include widget.h
-
-%{
-/* This function matches the prototype of the normal C callback
-   function for our widget. However, we use the clientdata pointer
-   for holding a reference to a Python callable object. */
-
-static double PythonCallBack(double a, void *clientdata)
-{
-   PyObject *func, *arglist;
-   PyObject *result;
-   double    dres = 0;
-   
-   func = (PyObject *) clientdata;               // Get Python function
-   arglist = Py_BuildValue("(d)",a);             // Build argument list
-   result = PyEval_CallObject(func,arglist);     // Call Python
-   Py_DECREF(arglist);                           // Trash arglist
-   if (result) {                                 // If no errors, return double
-     dres = PyFloat_AsDouble(result);
-   }
-   Py_XDECREF(result);
-   return dres;
-}
-%}
-
-// Attach a new method to our plot widget for adding Python functions
-%addmethods PlotWidget {
-   // Set a Python function object as a callback function
-   // Note : PyObject *pyfunc is remapped with a typempap
-   void set_pymethod(PyObject *pyfunc) {
-     self-&gt;set_method(PythonCallBack, (void *) pyfunc);
-     Py_INCREF(pyfunc);
-   }
-}
-
-</pre></blockquote>
-While this is certainly not a trivial SWIG interface file, the results
-are quite cool.  Let's try out our new Python module :<p>
-<p>
-<blockquote><pre># Now use our plotting widget in variety of ways
-
-from plotwidget import *
-from math import *
-
-# Make a plot using a normal Python function as a callback
-def func1(x):
-	return 0.5*sin(x)+0.25*sin(2*x)+0.125*cos(4*x)
-
-print "Making plot1.gif..."
-# Make a widget and set callback
-w = PlotWidget(500,500,-10,-2,10,2)
-w.set_pymethod(func1)                     # Register our Python function
-w.plot()
-f = open("plot1.gif","w")
-w.save(f)
-f.close()
-
-# Make a plot using an anonymous function
-
-print "Making plot2.gif..."
-w1 = PlotWidget(500,500,-4,-1,4,16)
-w1.set_pymethod(lambda x: x*x)            # Register x^2 as a callback
-w1.plot()
-f = open("plot2.gif","w")
-w1.save(f)
-f.close()
-
-# Make another plot using a built-in function
-
-print "Making plot3.gif..."
-w2 = PlotWidget(500,500,-7,-1.5,7,1.5)
-w2.set_pymethod(sin)                      # Register sin(x) as a callback
-w2.plot()
-f = open("plot3.gif","w")
-w2.save(f)
-f.close()
-</pre></blockquote>
-<p>
-<p>
-
-The "plot" method for each widget is written entirely in C++ and
-assumes that it is calling a callback function written in C/C++.
-Little does it know that we have actually implemented this function in
-Python.  With a little more work, we can even write a simple function
-plotting tool :<p>
-<p>
-<blockquote><pre># Plot a function and spawn xv
-
-import posix
-import sys
-import string
-from plotwidget import *
-from math import *
-
-line = raw_input("Enter a function of x : ")
-ranges = string.split(raw_input("Enter xmin,ymin,xmax,ymax :"),",")
-
-print "Making a plot..."
-w = PlotWidget(500,500,string.atof(ranges[0]),string.atof(ranges[1]),
-               string.atof(ranges[2]),string.atof(ranges[3]))
-
-# Turn user input into a Python function
-code = "def func(x): return " + line
-exec(code)
-
-w.set_pymethod(func)
-w.plot()
-f = open("plot.gif","w")
-w.save(f)
-f.close()
-posix.system("xv plot.gif &amp;")
-
-</pre></blockquote>
 <h2> Other odds and ends</h2>
 
 <h3> Adding native Python functions to a SWIG module</h3>
@@ -2306,7 +2230,6 @@ or<p>
 <p>
 <blockquote><pre>%native(system) extern PyObject *spam_system(PyObject *self, PyObject *args);
 </pre></blockquote>
-
 
 <h2>Python shadow classes</h2>
 
@@ -2978,6 +2901,6 @@ the module you used in the SWIG interface file.<p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : December 21, 2001</address>
+<address>SWIG 1.3 - Last Modified : January 27, 2002</address>
 </body>
 </html>
