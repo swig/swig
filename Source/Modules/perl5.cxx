@@ -1071,10 +1071,13 @@ public:
    * ------------------------------------------------------------ */
   virtual int classDeclaration(Node *n) {
     /* Do some work on the class name */
-    if (blessed) {
-      setclassname(n);
-      Append(classlist,n);
+    if (!Getattr(n,"feature:onlychildren")) {
+      if (blessed) {
+	setclassname(n);
+	Append(classlist,n);
+      }
     }
+    
     return Language::classDeclaration(n);
   }
   
