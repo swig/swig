@@ -2000,7 +2000,7 @@ c_declaration   : c_decl {
    	            }
                 }
                 | c_enum_decl { $$ = $1; }
-
+                           
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
                 | EXTERN string LBRACE interface RBRACE { 
@@ -2170,6 +2170,7 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
                 | cpp_template_decl { $$ = $1; }
                 | cpp_using_decl { $$ = $1; }
                 | cpp_namespace_decl { $$ = $1; }
+                | cpp_catch_decl { $$ = 0; }
                 ;
 
 cpp_class_decl  :
