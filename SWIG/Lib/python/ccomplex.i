@@ -8,7 +8,6 @@
  *  ISO C99:  7.3 Complex arithmetic <complex.h>
  */
 
-%fragment("<complex.h>","header")
 %{
 #include <complex.h>
 %}
