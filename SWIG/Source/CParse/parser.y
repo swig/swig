@@ -853,7 +853,7 @@ Node *Swig_cparse(File *f) {
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <p>        parm valparm rawvalparms valparms valptail ;
-%type <p>        typemap_parm tm_list tm_tail ctor_end;
+%type <p>        typemap_parm tm_list tm_tail ;
 %type <id>       cpptype access_specifier;
 %type <node>     base_specifier
 %type <type>     type rawtype type_right ;
@@ -870,7 +870,7 @@ Node *Swig_cparse(File *f) {
 %type <loc>      includetype;
 %type <type>     pointer primitive_type;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
-%type <decl>     abstract_declarator direct_abstract_declarator;
+%type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
 %type <id>       string stringnum ;
@@ -2132,7 +2132,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			 Otherwise it's an error. */
                     $$ = 0;
 
-                    if ($6) {
+                    if ($6.have_parms) {
                       int err = 1;
 		      if (ParmList_len($4) == 1) {
                          SwigType *ty = Getattr($4,"type");
@@ -2144,9 +2144,9 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                             Setattr($$,"storage",$1);
                             Setattr($$,"name",ty);
                             decl = NewString("");
-                            SwigType_add_function(decl,$6);
+                            SwigType_add_function(decl,$6.parms);
                             Setattr($$,"decl",decl);
-                            Setattr($$,"parms",$6);
+                            Setattr($$,"parms",$6.parms);
 			    if (Len(scanner_ccode)) {
 			      Setattr($$,"code",Copy(scanner_ccode));
 			    }
@@ -3413,8 +3413,7 @@ notso_direct_declarator : idcolon {
                   }
 
 /* This generate a shift-reduce conflict with constructors */
-
-                  | LPAREN idcolon RPAREN {
+                 | LPAREN idcolon RPAREN {
                   $$.id = Char($2);
                   $$.type = 0;
                   $$.parms = 0;
@@ -3977,7 +3976,7 @@ expr           :  exprnum { $$ = $1; }
   		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_INT;
-	       }
+               }
                | exprcompound { $$ = $1; }
                | type {
 		 Node *n;
@@ -4198,10 +4197,10 @@ cpp_const      : type_qualifier {
                | empty { $$ = 0; }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$ = 0; }
-               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$ = 0; }
-               | LPAREN parms RPAREN SEMI { $$ = $2; }
-               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$ = $2; }
+ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$.have_parms = 0; }
+               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$.have_parms = 0; }
+               | LPAREN parms RPAREN SEMI { Clear(scanner_ccode); $$.parms = $2; $$.have_parms = 1; }
+               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$.parms = $2; $$.have_parms = 1; }
                ;
 
 ctor_initializer : COLON mem_initializer_list
