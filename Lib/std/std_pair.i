@@ -33,6 +33,8 @@ namespace std {
     pair(T __a, U __b);
     pair(const pair& __p);
 
+    template <class U1, class U2> pair(const pair<U1, U2> &p);
+
     T first;
     U second;
 
