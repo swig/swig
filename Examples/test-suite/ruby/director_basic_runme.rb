@@ -16,3 +16,10 @@ b = Director_basic::Foo.new
 raise RuntimeError if b.ping != "Foo::ping()"
 raise RuntimeError if b.pong != "Foo::pong();Foo::ping()"
 
+
+a = Director_basic::MyClass.new 
+a = Director_basic::MyClassT_i.new 
+
+
+a = Director_basic::MyClass.new 1
+a = Director_basic::MyClassT_i.new 1
