@@ -392,7 +392,7 @@ void emit_action(Node *n, Wrapper *f) {
 	Printf(f->code,"}\n");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
-		     "No 'throw' typemap defined for exception type '%s'\n", Getattr(ep,"type"));
+		     "No 'throw' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep,"type"),0));
       }
     }
     Printf(f->code,"catch(...) { throw; }\n");
