@@ -139,7 +139,7 @@
 /* Typemap for character array returns */
 
 %typemap(out) char [ANY] {
-	ZVAL_STRING(return_value,$1, 1);
+	ZVAL_STRINGL(return_value,$1, $1_dim0, 1);
 }
 
 /* Typemap for in/argout references
@@ -277,8 +277,7 @@
  MAKE_STD_ZVAL(z_var);
  z_var->type = IS_STRING;
  if($1) {
- 	z_var->value.str.val = estrndup($1, $1_dim0);
-	z_var->value.str.len = strlen($1)+1;
+	ZVAL_STRINGL(z_var,$1, $1_dim0, 1);
  }
  zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void*)&z_var,
  sizeof(zval *), NULL);
@@ -477,7 +476,7 @@
 {
   zval **z_var;
   char *s1;
-
+deliberate error cos this code looks bogus to me
   zend_hash_find(&EG(symbol_table), "$1" ,strlen("$1")+1, (void**)&z_var);
   s1 = Z_STRVAL_PP(z_var);
   if((s1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
