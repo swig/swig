@@ -413,6 +413,7 @@ int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
 <p>
 <ul>
 <li>Input argument conversion ("in" typemap).
+<li>Input argument type checking ("typecheck" typemap).
 <li>Output argument handling ("argout" typemap).
 <li>Input argument value checking ("check" typemap).
 <li>Input argument initialization ("arginit" typemap).
@@ -1653,6 +1654,26 @@ At this time, only zero or one arguments may be converted.
 <b>Compatibility note: </b> Specifying <tt>numinputs=0</tt>
 is the same as the old "ignore" typemap.
 
+<h3>"typecheck" typemap</h3>
+
+The "typecheck" typemap is used to support overloaded functions and methods.  It merely checks an argument
+to see whether or not it matches a specific type.  For example:
+
+<blockquote>
+<pre>
+%typemap(typecheck,precedence=SWIG_TYPECHECK_INTEGER) int {
+   $1 = PyInt_Check($input) ? 1 : 0;
+}
+</pre>
+</blockquote>
+
+For typechecking, the $1 variable is always a simple integer that is set to 1 or 0 depending on whether or not
+the input argument is the correct type.
+
+<p>
+If you define new "in" typemaps <em>and</em> your program uses overloaded methods, you should also define a collection of
+"typecheck" typemaps.  More details about this follow in a later section on "Typemaps and Overloading."
+
 <a name="n27"></a><H3>8.5.2 "out" typemap</H3>
 
 
@@ -2562,6 +2583,289 @@ type-checking.  This code is also included in every generated wrapped file so yo
 probably just look at the output of SWIG to get a better sense for how types are
 managed.
 
+<h2>Typemaps and overloading</h2>
+
+In many target languages, SWIG fully supports C++ overloaded methods and functions.   For example,
+if you have a collection of functions like this:
+
+<blockquote>
+<pre>
+int foo(int x);
+int foo(double x);
+int foo(char *s, int y);
+</pre>
+</blockquote>
+
+You can access the functions in a normal way from the scripting interpreter:
+
+<blockquote>
+<pre>
+# Python
+foo(3)           # foo(int)
+foo(3.5)         # foo(double)
+foo("hello",5)   # foo(char *, int)
+
+# Tcl
+foo 3            # foo(int)
+foo 3.5          # foo(double)
+foo hello 5      # foo(char *, int)
+</pre>
+</blockquote>
+
+To implement overloading, SWIG generates a separate wrapper function for each overloaded method.
+For example, the above functions would produce something roughly like this:
+
+<blockquote>
+<pre>
+// wrapper pseudocode
+_wrap_foo_0(argc, args[]) {       // foo(int)
+   int arg1;
+   int result;
+   ...
+   arg1 = FromInteger(args[0]);
+   result = foo(arg1);
+   return ToInteger(result);
+}
+
+_wrap_foo_1(argc, args[]) {       // foo(double)
+   double arg1;
+   int result;
+   ...
+   arg1 = FromDouble(args[0]);
+   result = foo(arg1);
+   return ToInteger(result);
+}
+
+_wrap_foo_2(argc, args[]) {       // foo(char *, int)
+   char *arg1;
+   int   arg2;
+   int result;
+   ...
+   arg1 = FromString(args[0]);
+   arg2 = FromInteger(args[1]);
+   result = foo(arg1,arg2);
+   return ToInteger(result);
+}
+
+</pre>
+</blockquote>
+
+Next, a dynamic dispatch function is generated:
+
+<blockquote>
+<pre>
+_wrap_foo(argc, args[]) {
+   if (argc == 1) {
+       if (IsInteger(args[0])) {
+           return _wrap_foo_0(argc,args);
+       } 
+       if (IsDouble(args[0])) {
+           return _wrap_foo_1(argc,args);
+       }
+   }
+   if (argc == 2) {
+       if (IsString(args[0]) && IsInteger(args[1])) {
+          return _wrap_foo_2(argc,args);
+       }
+   }
+   error("No matching function!\n");
+}
+</pre>
+</blockquote>
+
+The purpose of the dynamic dispatch function is to select the appropriate C++ function based on 
+argument types---a task that must be performed at runtime in most of SWIG's target languages.
+
+<p>
+The generation of the dynamic dispatch function is a relatively tricky affair.  Not only must input typemaps
+be taken into account (these typemaps can radically change the types of arguments accepted), but overloaded
+methods must also be sorted and checked in a very specific order to resolve potential ambiguity.   A high-level
+overview of this ranking process is found in the "<a href="SWIGPlus.html">SWIG and C++</a>" chapter.    What isn't mentioned in that chapter
+is the mechanism by which it is implemented---as a collection of typemaps.
+
+<p>
+To support dynamic dispatch, SWIG first defines a general purpose type hierarchy as follows:
+
+<blockquote>
+<pre>
+Symbolic Name                   Precedence Value
+------------------------------  ------------------
+SWIG_TYPECHECK_POINTER           0  
+SWIG_TYPECHECK_VOIDPTR           10 
+SWIG_TYPECHECK_BOOL              15 
+SWIG_TYPECHECK_UINT8             20 
+SWIG_TYPECHECK_INT8              25 
+SWIG_TYPECHECK_UINT16            30 
+SWIG_TYPECHECK_INT16             35 
+SWIG_TYPECHECK_UINT32            40 
+SWIG_TYPECHECK_INT32             45 
+SWIG_TYPECHECK_UINT64            50 
+SWIG_TYPECHECK_INT64             55 
+SWIG_TYPECHECK_UINT128           60 
+SWIG_TYPECHECK_INT128            65 
+SWIG_TYPECHECK_INTEGER           70 
+SWIG_TYPECHECK_FLOAT             80 
+SWIG_TYPECHECK_DOUBLE            90 
+SWIG_TYPECHECK_COMPLEX           100 
+SWIG_TYPECHECK_UNICHAR           110 
+SWIG_TYPECHECK_UNISTRING         120 
+SWIG_TYPECHECK_CHAR              130 
+SWIG_TYPECHECK_STRING            140 
+SWIG_TYPECHECK_BOOL_ARRAY        1015 
+SWIG_TYPECHECK_INT8_ARRAY        1025 
+SWIG_TYPECHECK_INT16_ARRAY       1035 
+SWIG_TYPECHECK_INT32_ARRAY       1045 
+SWIG_TYPECHECK_INT64_ARRAY       1055 
+SWIG_TYPECHECK_INT128_ARRAY      1065 
+SWIG_TYPECHECK_FLOAT_ARRAY       1080 
+SWIG_TYPECHECK_DOUBLE_ARRAY      1090 
+SWIG_TYPECHECK_CHAR_ARRAY        1130 
+SWIG_TYPECHECK_STRING_ARRAY      1140 
+</pre>
+</blockquote>
+
+(These precedence levels are defined in <tt>swig.swg</tt>, a library file that's included by all target language modules.)
+
+<p>
+In this table, the precedence-level determines the order in which types are going to be checked.  Low values
+are always checked before higher values.  For example, integers are checked before floats, single values are checked
+before arrays, and so forth.
+
+<p>
+Using the above table as a guide, each target language defines a collection of "typecheck" typemaps. 
+The follow excerpt from the Python module illustrates this:
+
+<blockquote>
+<pre>
+/* Python type checking rules */
+/* Note:  %typecheck(X) is a macro for %typemap(typecheck,precedence=X) */
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE,
+         bool, const bool & 
+{
+  $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+	float, double,
+	const float &, const double &
+{
+  $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_CHAR) char {
+  $1 = (PyString_Check($input) && (PyString_Size($input) == 1)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  $1 = PyString_Check($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, 0, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) PyObject *
+{
+  $1 = ($input != 0);
+}
+</pre>
+</blockquote>
+
+It might take a bit of contemplation, but this code has merely organized all of the basic C++ types, provided some simple type-checking
+code, and assigned each type a precedence value.
+
+<p>
+Finally, to generate the dynamic dispatch function, SWIG uses the following algorithm:
+
+<ul>
+<li>Overloaded methods are first sorted by the number of required arguments.
+<li>Methods with the same number of arguments are then sorted by precedence values of argument types.
+<li>Typecheck typemaps are then emitted to produce a dispatch function that checks arguments in the correct order.
+</ul>
+
+If you haven't written any typemaps of your own, it is unnecessary to worry about the typechecking rules.
+However, if you have written new input typemaps, you might have to supply a typechecking rule as well.
+An easy way to do this is to simply copy one of the existing typechecking rules. 
+Here is an example,
+
+<blockquote>
+<pre>
+// Typemap for a C++ string
+%typemap(in) std::string {
+    if (PyString_Check($input)) {
+         $1 = std::string(PyString_AsString($input));
+     } else {
+         SWIG_exception(SWIG_TypeError, "string expected");
+     }
+}
+// Copy the typecheck code for "char *".  
+%typemap(typecheck) std::string = char *;
+</pre>
+</blockquote>
+
+The bottom line:  If you are writing new typemaps and you are using overloaded methods, you will probably 
+have to write typecheck code or copy existing code.   Since this is a relatively new SWIG feature, there are
+few examples to work with.  However, you might look at some of the existing library files likes 'typemaps.i' for
+a guide.
+
+<p>
+<b>Notes:</b>
+
+<ul>
+<li>Typecheck typemaps are not used for non-overloaded methods.  Because of this, it is
+still always necessary to check types in any "in" typemaps.
+
+<p>
+<li>The dynamic dispatch process is only meant to be a heuristic.  There are many corner
+cases where SWIG simply can't disambiguate types to the same degree as C++.   The only way to
+resolve this ambiguity is to use the %rename directive to rename one of the overloaded methods (effectively
+eliminating overloading).
+
+<p>
+<li>
+Typechecking may be partial.  For example, if working with arrays, the typecheck code might 
+simply check the type of the first array element and use that to dispatch to the correct function.
+Subsequent "in" typemaps would then perform more extensive type-checking.
+
+<p>
+<Li>Make sure you read the section on overloading in the "<a href="SWIGPlus.html">SWIG and C++</a>" chapter.
+</ul>
+
 <a name="n42"></a><H2>8.9 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
@@ -2711,7 +3015,7 @@ convert_float_array(PyObject *input, int size) {
 </pre>
 </blockquote>
 
-<a name="n44"></a><H3>8.10.1 Passing data between typemaps</H3>
+<a name="n44"></a><H2>8.10.1 Passing data between typemaps</H2>
 
 
 <p>
