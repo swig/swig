@@ -1,6 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
 
+09/30/2003: beazley
+            Fixed [ 811518 ] Casting ints to doubles (w/ solution?)
+            Addresses a problem with overloading in the Perl module.
+            Reported by Gerald Dalley.
+
 09/28/2003: mkoeppe
 	    [Guile with -scm option] Fix typo in generated code for
 	    procedures-with-setters.  Reported by John Lenz.
