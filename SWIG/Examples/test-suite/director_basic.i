@@ -45,7 +45,7 @@ struct A{
 
 namespace hi  {
 
-  struct A1 : public A{
+  struct A1 : public A {
     A1(std::complex<int> i, double d=0.0) : A(i, d) {}
     A1(int i, bool j=false) : A(i, j) {}
     
@@ -65,6 +65,10 @@ typedef void NT;
 
 class MyClass {
 public:
+  MyClass(int a = 0) 
+  {
+  }
+  
   virtual void method(NT *)
   {
   }
@@ -75,4 +79,23 @@ public:
   
 };
 
+template<class T>
+class MyClassT {
+public:
+  MyClassT(int a = 0) 
+  {
+  }
+  
+  virtual void method(NT *)
+  {
+  }
+  
+  virtual ~MyClassT()
+  {
+  }
+  
+};
+
 %}
+
+%template(MyClassT_i) MyClassT<int>;
