@@ -11,5 +11,7 @@ check::classes(array(bar));
 // now new vars
 check::globals(array());
 
+$bar=new bar();
+
 check::done();
 ?>
