@@ -42,6 +42,7 @@ void halve_in_place(std::vector<double>& v) {
 
 %}
 
+%template(IntPtrVector) std::vector<int *>;
 
 
 
