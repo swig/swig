@@ -365,7 +365,8 @@ SWIG_GetConstant(const char *key) {
 SWIGRUNTIME(int)
 SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...)
 {
-  int        argno = 0, opt = 0, tempi;
+  int        argno = 0, opt = 0;
+  long       tempi;
   double     tempd;
   const char *c;
   va_list    ap;
@@ -402,7 +403,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
       case 'l': case 'L':
       case 'h': case 'H':
       case 'b': case 'B':
-	if (Tcl_GetIntFromObj(interp,obj,&tempi) != TCL_OK) goto argerror;
+	if (Tcl_GetLongFromObj(interp,obj,&tempi) != TCL_OK) goto argerror;
 	if ((*c == 'i') || (*c == 'I')) *((int *)vptr) = tempi;
 	else if ((*c == 'l') || (*c == 'L')) *((long *)vptr) = tempi;
 	else if ((*c == 'h') || (*c == 'H')) *((short*)vptr) = tempi;
