@@ -7,6 +7,9 @@
 %runtime "rubyhead.swg"
 %runtime "common.swg"
 
+/* Exception handling in wrappers */
+#define SWIG_fail   goto fail
+
 #ifdef SWIG_NOINCLUDE
 %runtime "rubydec.swg"
 #else
