@@ -2556,7 +2556,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Delete(tlist);
 			  Delete(targs);
 			}
-		      }  else {
+		      }  else if ($$) {
 			Setattr($$,"templatetype",nodeType($5));
 			set_nodeType($$,"template");
 			Setattr($$,"templateparms", $3);
