@@ -4,21 +4,21 @@
 
 
 %typemap(javaimports) SWIGTYPE "import java.math.*;";
-%typemap(javacode) Farewell %{
+%typemap(javacode) NS::Farewell %{
   public void saybye(BigDecimal num_times) {
     // BigDecimal requires the java.math library
   }
 %}
-%typemap(javaclassmodifiers) Farewell "public final";
+%typemap(javaclassmodifiers) NS::Farewell "public final";
 
-%typemap(javaimports) Greeting %{
+%typemap(javaimports) NS::Greeting %{
 import java.util.*; // for EventListener
 import java.lang.*; // for Exception
 %};
 
-%typemap(javabase) Greeting "Exception";
-%typemap(javainterfaces) Greeting "EventListener";
-%typemap(javacode) Greeting %{
+%typemap(javabase) NS::Greeting "Exception";
+%typemap(javainterfaces) NS::Greeting "EventListener";
+%typemap(javacode) NS::Greeting %{
   // Pure Java code generated using %typemap(javacode) 
   public void sayhello() {
     hello();
@@ -29,25 +29,27 @@ import java.lang.*; // for Exception
 %}
 
 // Create a new getCPtr() function which takes Java null
-%typemap(javagetcptr) Greeting %{
+%typemap(javagetcptr) NS::Greeting %{
   public static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
-// get rid of the finalize method for Farewell
-%typemap(javafinalize) Farewell "";
+// get rid of the finalize method for NS::Farewell
+%typemap(javafinalize) NS::Farewell "";
 
 // Make the pointer constructor public
-%typemap(javaptrconstructormodifiers) Farewell "public";
+%typemap(javaptrconstructormodifiers) NS::Farewell "public";
 
 
 %inline %{
-class Greeting {
-public:
-    void hello() {}
-    static void ciao(Greeting* g) {}
-};
-class Farewell {
-};
+namespace NS {
+    class Greeting {
+    public:
+        void hello() {}
+        static void ciao(Greeting* g) {}
+    };
+    class Farewell {
+    };
+}
 %}
