@@ -16,7 +16,7 @@ public:
 static File *f_cl=0;
 static File *f_null=0;
 
-char *identifier_converter="identifier-convert-null";
+const char *identifier_converter="identifier-convert-null";
 
 int any_varargs(ParmList *pl) {
   Parm *p;
@@ -206,8 +206,9 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
 	identifier_converter="identifier-convert-null";
       } else {
 	/* Must be user defined */
-        identifier_converter = (char *)malloc(strlen(conv)+1);
-        strcpy(identifier_converter, conv);
+        char *idconv = new char[strlen(conv)+1];
+        strcpy(idconv, conv);
+	identifier_converter=idconv;
       }
     }
 
