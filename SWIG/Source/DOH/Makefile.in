@@ -23,7 +23,7 @@ install:
 	@echo "Installing $(LIB_DIR)/libdoh.a..."
 	@$(INSTALL_DATA) libdoh.a $(LIB_DIR)/libdoh.a
 	@echo "Installing $(INCLUDE_DIR)/doh.h..."
-	@$(INSTALL_DATA) Include/doh.h $(INCLUDE_DIR)/doh.h
+	@$(INSTALL_DATA) $(srcdir)/Include/doh.h $(INCLUDE_DIR)/doh.h
 
 clean:
 	cd Doh; $(MAKE) clean
