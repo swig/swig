@@ -30,66 +30,6 @@ Ocaml Options (available with -ocaml)\n\
 -prefix name    - Set a prefix to be appended to all names\n\
 \n";
 
-static char *mlpreamble = (char *)
-"open Int32\n"
-"open Int64\n";
-
-static char *mltypes = (char *)
-"type c_obj = \n"
-"    C_void\n"
-"  | C_bool of bool\n"
-"  | C_char of char\n"
-"  | C_uchar of char\n"
-"  | C_short of int\n"
-"  | C_ushort of int\n"
-"  | C_int of int\n"
-"  | C_uint of int32\n"
-"  | C_int32 of int32\n"
-"  | C_int64 of int64\n"
-"  | C_float of float\n"
-"  | C_double of float\n"
-"  | C_ptr of int64 * int64\n"
-"  | C_array of c_obj array\n"
-"  | C_list of c_obj list\n"
-"  | C_obj of (string -> c_obj -> c_obj)\n"
-"  | C_string of string\n"
-"  | C_enum of c_enum_tag\n"
-"exception BadArgs of string\n"
-"exception BadMethodName of c_obj * string * string\n"
-"exception NotObject of c_obj\n"
-"exception NotEnumType of c_obj\n"
-"exception LabelNotFromThisEnum of c_obj\n";
-static char *mllib = (char *)
-"let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)\n"
-"let fnhelper fin f arg =\n"
-"  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in\n"
-"  match f args with\n"
-"    [] -> C_void\n"
-"  | [ x ] -> (if fin then Gc.finalise "
-"(fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
-"  | lst -> C_list lst\n"
-"let rec get_int x = \n"
-"  match x with\n"
-"    C_char c\n"
-"  | C_uchar c -> (int_of_char c)\n"
-"  | C_short s\n"
-"  | C_ushort s\n"
-"  | C_int s -> s\n"
-"  | C_uint u\n"
-"  | C_int32 u -> (Int32.to_int u)\n"
-"  | C_int64 u -> (Int64.to_int u)\n"
-"  | C_float f -> (int_of_float f)\n"
-"  | C_double d -> (int_of_float d)\n"
-"  | C_ptr (p,q) -> (Int64.to_int p)\n"
-"  | C_obj o -> (try (get_int (o \"int\" C_void))\n"
-"    with _ -> (get_int (o \"&\" C_void)))\n"
-"  | _ -> raise (Failure \"Can't convert to int\")\n"
-"let addr_of obj = (invoke obj) \"&\" C_void\n"
-"let _ = Callback.register \"caml_obj_ptr\" addr_of\n";
-static char *mlilib = (char *)
-"val invoke : c_obj -> (string -> c_obj -> c_obj)\n"
-"val get_int : c_obj -> int\n"; 
-
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
@@ -212,6 +152,8 @@ public:
     Swig_register_filebyname("header",f_header);
     Swig_register_filebyname("wrapper",f_wrappers);
     Swig_register_filebyname("runtime",f_runtime);
+    Swig_register_filebyname("mli",f_mlibody);
+    Swig_register_filebyname("ml",f_mlbody);
     
     init_func_def = NewString("");
     Swig_register_filebyname("init",init_func_def);
@@ -222,6 +164,9 @@ public:
     Printf(f_runtime, 
 	   "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Printf( f_runtime, "#define SWIG_MODULE \"%s\"\n", module );
+    /* Module name */
+    Printf( f_mlbody, "let module_name = \"%s\"\n", module );
+    Printf( f_mlibody, "val module_name : string\n" );
     Printf( f_enum_to_int, 
 	    "let enum_to_int x v =\n"
 	    "  match v with C_enum y -> (\n"
@@ -256,9 +201,6 @@ public:
     f_mlout = NewFile(mlfile,"w");
     f_mliout = NewFile(mlifile,"w");
 
-    Printv(f_mlout,mlpreamble,NIL);
-    Printv(f_mliout,mlpreamble,NIL);
-
     Language::top(n);
 
     Printf( f_enum_to_int, 
@@ -289,8 +231,6 @@ public:
 
     Dump(f_enumtypes_type,f_mlout);
     Dump(f_enumtypes_value,f_mlout);
-    Printv(f_mlout,mltypes,NIL);
-    Printv(f_mlout,mllib,NIL);
     Dump(f_mlbody,f_mlout);
     Dump(f_enum_to_int,f_mlout);
     Dump(f_int_to_enum,f_mlout);
@@ -303,8 +243,6 @@ public:
 
     Dump(f_enumtypes_type,f_mliout);
     Dump(f_enumtypes_value,f_mliout);
-    Printv(f_mliout,mltypes,NIL);
-    Printv(f_mliout,mlilib,NIL);
     Dump(f_mlibody,f_mliout);
     Close(f_mliout);
     Delete(f_mliout);
