@@ -17,6 +17,32 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 9/27/2001: beazley
+           New directive. %namewarn can be used to issue warning
+           messages for certain declaration names.   The name
+           matching is the same as for the %rename directive.
+           The intent of this directive is to issue warnings for
+           possible namespace conflicts.  For example:
+
+              %namewarn("print is a python keyword") print;
+
+           The name matching algorithm is performed after a name
+           has been resolved using %rename.  Therefore, a
+           declaration like this will not generate a warning:
+
+              %rename("Print") print;
+              ...
+              void print();    /* No warning generated */
+
+           Since the warning mechanism follows %rename semantics, it is
+           also to issue warnings for specific classes or just for
+           certain member function names.
+
+           (Dave - I've been thinking about adding something like this
+           for quite some time.  Just never got around to it)
+           *** NEW FEATURE ***
+
+
+9/27/2001: beazley
            Enhanced the %ignore directive so that warning messages
            can be issued to users.   This is done using %ignorewarn
            like this:
