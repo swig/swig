@@ -1214,23 +1214,225 @@ plenty of opportunities to break the universe here and that accessing locals
 in this manner should probably be avoided.  At the very least, you should make
 sure that the typemaps sharing information have exactly the same types and names.
 
+<h3>Special variables</h3>
+
+Within the code supplied to a typemap, a number of special variable substitutions are made.  This
+table describes these substitutions:
+
 <p>
-<B>HERE</b>
+<center>
+<table border=1>
+<tr><th>Variable</th><th>Meaning</th></tr>
 
-<h3> Special variables</h3>
+<tr>
+<td>$<em>n</em>$</td>
+<td>
+The C local variable corresponding to type <em>n</em> in the typemap
+declaration.
+</td>
 
-The following special variables may be used within a typemap
-conversion code :<p>
+<tr>
+<td>$input</td>
+<td>The input object for an argument in the target language.  This is only
+available in typemaps related to argument conversion.
+</td>
+</tr>
 
-<center><img src="ch6.table.3.png"></center>
+<tr>
+<td>$result</td>
+<td>The output object being returned by a wrapper function.
+</td>
+</tr>
+
+<tr>
+<td>$argnum</td>
+<td>Argument number.  Only available in typemaps related to argument conversion</td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_name</td>
+<td>Argument name</td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_type</td>
+<td>Real C datatype of type <em>n</em>.</td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_ltype</td>
+<td>ltype of type <em>n</em></td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_mangle</td>
+<td>Mangled form of type <em>n</em>.  For example <tt>_p_Foo</tt></td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_descriptor</td>
+<td>Type descriptor structure for type <em>n</em>.  For example
+<tt>SWIGTYPE_p_Foo</tt>.  This is primarily used when interacting with the
+run-time type checker (described later).</td>
+</tr>
+
+
+<tr>
+<td>$*<em>n</em>_type</td>
+<td>Real C datatype of type <em>n</em> with one pointer removed.</td>
+</tr>
+
+<tr>
+<td>$*<em>n</em>_ltype</td>
+<td>ltype of type <em>n</em> with one pointer removed.</td>
+</tr>
+
+<tr>
+<td>$*<em>n</em>_mangle</td>
+<td>Mangled form of type <em>n</em> with one pointer removed. </td>
+</tr>
+
+<tr>
+<td>$*<em>n</em>_descriptor</td>
+<td>Type descriptor structure for type <em>n</em> with one pointer removed.
+</tr>
+
+
+<tr>
+<td>$&<em>n</em>_type</td>
+<td>Real C datatype of type <em>n</em> with one pointer added.</td>
+</tr>
+
+<tr>
+<td>$&<em>n</em>_ltype</td>
+<td>ltype of type <em>n</em> with one pointer added.</td>
+</tr>
+
+<tr>
+<td>$&<em>n</em>_mangle</td>
+<td>Mangled form of type <em>n</em> with one pointer added.</td>
+</tr>
+
+<tr>
+<td>$&<em>n</em>_descriptor</td>
+<td>Type descriptor structure for type <em>n</em> with one pointer added.
+</tr>
+
+<tr>
+<td>$<em>n</em>_basetype</td>
+<td>Base typename with all pointers and qualifiers stripped.
+</td>
+
+</table>
+</center>
+
 <p>
-When found in the conversion code, these variables will be replaced
-with the correct values. Not all values are used in all
-typemaps. Please refer to the SWIG reference manual for the precise
-usage. <p>
+Within the table, $<em>n</em> refers to a specific type within the typemap specification.  For example,
+if you write this
 
-<h2> Typemaps for handling arrays</h2>
+<blockquote>
+<pre>
+%typemap(python,in) int *INPUT {
 
+}
+</pre>
+</blockquote>
+
+then $1 refers to <tt>int *INPUT</tt>.  If you have a typemap like this,
+
+<blockquote>
+<pre>
+%typemap(python,in) (int argc, char *argv[]) {
+  ...
+}
+</pre>
+</blockquote>
+
+then $1 refers to <tt>int argc</tt> and $2 refers to <tt>char *argv[]</tt>.
+
+<p>
+Substitutions related to types and names always fill in values from the actual code that was matched.
+This is useful when a typemap might match multiple C datatype.  For example:
+
+<blockquote>
+<pre>
+%typemap(python,in)  int, short, long {
+   $1 = ($1_ltype) PyInt_AsLong($input);
+}
+</pre>
+</blockquote>
+
+In this case, <tt>$1_ltype</tt> is replaced with the datatype that is actually matched.
+
+<p>
+Variables such as <tt>$&1_type</tt> and <tt>$*1_type</tt> are used to
+safely modify the type by removing or adding pointers.  Although not
+needed in most typemaps, these substitutions are sometimes needed to properly
+work with typemaps that convert values between pointers and values.
+
+<p>
+If necessary, type related substitutions can also be used when declaring locals.  For example:
+
+<blockquote>
+<pre>
+%typemap(python) int * ($*1_type temp) {
+    temp = PyInt_AsLong($input);
+    $1 = &temp;
+}
+</pre>
+</blockquote>
+
+<p>
+<h2>Typemaps for arrays</h2>
+
+A common use of typemaps is to provide support for C arrays appearing both as
+arguments to functions and as member structures.
+
+<p>
+For example, suppose you had a function like this:
+
+<blockquote>
+<pre>
+void set_vector(int type, float value[4]);
+</pre>
+</blockquote>
+
+If you wanted to handle <tt>float value[4]</tt> as a list of floats, you might write a typemap
+like this:
+
+<blockquote>
+<pre>
+%typemap(python,in) float value[4] (float temp[4]) {
+   int i;
+   /* Fill in the temp array */
+   if (!PyList_Check($input)) {
+   
+
+   }
+   for (i = 0; i < 4; i++) {
+      temp[i] = (float) PyFloat_AsDouble(o);
+   }
+   $1 = temp;
+}
+</pre>
+</blockquote>
+
+In this case, the variable <tt>temp</tt> places a small array on the
+stack.  This array is then populated and passed to the underlying C
+function.
+
+If you wanted to generalize the typemap to all arrays, you might write this:
+
+
+<blockquote>
+<pre>
+%typemap(python,in) float [ANY] (float temp[$1_dim0]) {
+     /* Doesn't work. (I don't think) */
+}
+</pre>
+</blockquote>
+
+ 
 One of the most common uses of typemaps is providing some support for
 arrays. Due to the subtle differences between pointers and arrays in
 C, array support is somewhat limited unless you provide additional
