@@ -629,11 +629,6 @@ AC_SUBST(PERL5DYNAMICLINKING)
 AC_SUBST(PERL5LIB)
 AC_SUBST(PERL5CCFLAGS)
 
-# kludges to ease naming conventions conformance.
-( cd $srcdir/Examples ;
-  test -d perl            ||                    ln -s perl5 perl ;
-  test -d test-suite/perl || ( cd test-suite && ln -s perl5 perl ) )
-
 #----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
@@ -970,8 +965,6 @@ fi
 
 AC_SUBST(PHP4INC)
 
-# kludges to ease naming conventions conformance.
-( cd $srcdir/Examples/GIFPlot ; test -d Php4 || ln -s Php Php4 )
 ( cd $srcdir/Examples/php4 ; for dir in `sed '/^#/d' check.list` ; do
     test -f $dir/Makefile || ( cd $dir ; ln -s ../Makefile.php Makefile )
   done )
