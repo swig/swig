@@ -1,5 +1,10 @@
 %module enum_scope
 
+#ifdef SWIGPHP
+// php internal naming conflict
+%rename (chops) chop;
+#endif
+
 %inline %{
 class Tree {
 public:
