@@ -22,6 +22,11 @@ typedef struct swig_object_wrapper {
     void *self;
 } swig_object_wrapper;
 
+#ifdef THIS
+#undef THIS
+#endif
+#define THIS (((swig_object_wrapper *) Pike_fp->current_storage)->self)
+
 #ifdef SWIG_NOINCLUDE
 
 SWIGEXPORT(int)               SWIG_ConvertPtr(struct object *, void **, swig_type_info *, int);

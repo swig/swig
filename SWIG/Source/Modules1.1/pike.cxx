@@ -16,6 +16,7 @@ private:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  String *PrefixPlusUnderscore;
 
 public:
 
@@ -30,6 +31,7 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
+    PrefixPlusUnderscore = 0;
   }
 
   /* ---------------------------------------------------------------------
@@ -129,13 +131,28 @@ public:
   virtual int importDirective(Node *n) {
     return Language::importDirective(n);
   }
+  
+  String *strip(String *name) {
+    String *s = Copy(name);
+    if (Strncmp(name, PrefixPlusUnderscore, Len(PrefixPlusUnderscore)) != 0) {
+      return s;
+    }
+    Replaceall(s, PrefixPlusUnderscore, "");
+    return s;
+  }
 
   /* ------------------------------------------------------------
    * add_method()
    * ------------------------------------------------------------ */
 
   void add_method(Node *n, String *name, String *function, String *description) {
+    if (is_wrapping_class()) {
+      name = strip(name);
+    }
     Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", name, function, description);
+    if (is_wrapping_class()) {
+      Delete(name);
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -175,6 +192,9 @@ public:
     int num_arguments = emit_num_arguments(l);
     int num_required  = emit_num_required(l);
     int varargs = emit_isvarargs(l);
+    
+    /* Which input argument to start with? */
+    int start = is_wrapping_class() ? 1 : 0;
 
     char wname[256];
     strcpy(wname,Char(Swig_name_wrapper(iname)));
@@ -192,29 +212,35 @@ public:
       while (Getattr(p,"tmap:ignore")) {
 	p = Getattr(p,"tmap:ignore:next");
       }
-
+      
       SwigType *pt = Getattr(p,"type");
       String   *pn = Getattr(p,"name");
       String   *ln = Getattr(p,"lname");
-      
-      /* Look for an input typemap */
-      sprintf(source, "sp[%d-args]", i);
-      if ((tm = Getattr(p,"tmap:in"))) {
-        Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", ln);
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", source);
-	Printf(f->code, "%s\n", tm);
-        String *pikedesc = Getattr(p, "tmap:in:pikedesc");
-	if (pikedesc) {
-	  Printv(description, pikedesc, " ", NULL);
+
+      if (i < start) {
+        String *lstr = SwigType_lstr(pt,0);
+        Printf(f->code, "%s = (%s) THIS;\n", ln, lstr);
+	Delete(lstr);
+      } else {      
+	/* Look for an input typemap */
+	sprintf(source, "sp[%d-args]", i-start);
+	if ((tm = Getattr(p,"tmap:in"))) {
+          Replaceall(tm, "$source", source);
+	  Replaceall(tm, "$target", ln);
+	  Replaceall(tm, "$input", source);
+	  Setattr(p, "emit:input", source);
+	  Printf(f->code, "%s\n", tm);
+          String *pikedesc = Getattr(p, "tmap:in:pikedesc");
+	  if (pikedesc) {
+	    Printv(description, pikedesc, " ", NULL);
+	  }
+	  p = Getattr(p,"tmap:in:next");
+	  continue;
+	} else {
+	  Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
+		       "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
+	  break;
 	}
-	p = Getattr(p,"tmap:in:next");
-	continue;
-      } else {
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
-		     "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
-	break;
       }
       p = nextSibling(p);
     }
@@ -438,6 +464,8 @@ public:
     String *symname = Getattr(n, "sym:name");
     if (!addSymbol(symname, n))
       return SWIG_ERROR;
+      
+    PrefixPlusUnderscore = NewStringf("%s_", getClassPrefix());
 
     Printv(f_init, "start_new_program();\n", "ADD_STORAGE(swig_object_wrapper);\n", NULL);
     Language::classHandler(n);
@@ -449,7 +477,9 @@ public:
     String *tm = SwigType_manglestr(tt);
     Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) pr);\n", tm);
     Delete(tm);
-    Delete(tt);    
+    Delete(tt);
+    
+    Delete(PrefixPlusUnderscore); PrefixPlusUnderscore = 0;
 
     return SWIG_OK;
   }
