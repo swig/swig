@@ -1615,11 +1615,13 @@ public:
 	Printf(classname, "SwigDirector_%s", supername);
 
 	/* insert self and disown parameters */
-	Parm *p, *ip;
+	Parm *p, *q, *ip;
 	ParmList *superparms = Getattr(n, "parms");
 	ParmList *parms = CopyParmList(superparms);
 	String *type = NewString("CAML_VALUE");
 	p = NewParm(type, NewString("self"));
+	q = Copy(p);
+	set_nextSibling(q, superparms);
 	set_nextSibling(p, parms);
 	parms = p;
 	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
@@ -1654,12 +1656,15 @@ public:
 	    Delete(target);
 	}
 
+	Setattr(n,"parms",q);
+	Language::classDirectorConstructor(n);
+
 	Delete(sub);
 	Delete(classname);
 	Delete(supername);
-	Delete(parms);
-	
-	return Language::classDirectorConstructor(n);
+	//Delete(parms);	
+
+	return SWIG_OK;
     }
 
     /* ------------------------------------------------------------
@@ -1671,11 +1676,12 @@ public:
 	classname = Swig_class_name(n);
 
 	/* insert self and disown parameters */
-	Parm *p, *ip;
+	Parm *p, *q, *ip;
 	ParmList *superparms = Getattr(n, "parms");
 	ParmList *parms = CopyParmList(superparms);
 	String *type = NewString("CAML_VALUE");
 	p = NewParm(type, NewString("self"));
+	q = Copy(p);
 	set_nextSibling(p, parms);
 	parms = p;
 	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
@@ -1693,6 +1699,7 @@ public:
 	}
 	Printf(f_directors_h, "    SwigDirector_%s(CAML_VALUE self, bool disown = true);\n", classname);
 	Delete(classname);
+	Setattr(n,"parms",q);
 	return Language::classDirectorDefaultConstructor(n);
     }
 
