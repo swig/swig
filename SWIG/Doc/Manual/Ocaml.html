@@ -22,18 +22,19 @@
 <li><a href="#n11">Types</a>
 <li><a href="#n12">Functions</a>
 <li><a href="#n13">Variable Linking</a>
-<li><a href="#n14">Enums</a>
-<li><a href="#n15">C++ Classes</a>
+<li><a href="#n14">Callbacks</a>
+<li><a href="#n15">Enums</a>
+<li><a href="#n16">C++ Classes</a>
 <ul>
-<li><a href="#n16">No flags, function wrapping</a>
-<li><a href="#n17">-objects</a>
-<li><a href="#n18">-objects -onlyobjects</a>
-<li><a href="#n19">-classmod</a>
+<li><a href="#n17">No flags, function wrapping</a>
+<li><a href="#n18">-objects</a>
+<li><a href="#n19">-objects -onlyobjects</a>
+<li><a href="#n20">-classmod</a>
 </ul>
-<li><a href="#n20">Overloaded functions</a>
-<li><a href="#n21">Operator overloading</a>
-<li><a href="#n22">Ocaml typemaps</a>
-<li><a href="#n23">Exceptions</a>
+<li><a href="#n21">Overloaded functions</a>
+<li><a href="#n22">Operator overloading</a>
+<li><a href="#n23">Ocaml typemaps</a>
+<li><a href="#n24">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -343,7 +344,48 @@ else. </p>
 <p> Member variables are accesses in the obvious way through methods of their 
 containing classes. </p>
 
-<a name="n14"></a><H3>15.2.5 Enums</H3>
+<a name="n14"></a><H3>15.2.5 Callbacks</H3>
+
+
+The ocaml SWIG language module allows you to write callbacks that will be
+called from your C code.  Currently, this feature is experimental.  Consider
+the following code:
+
+<blockquote><pre>
+%module error
+%{
+void call_err( void (*errfunc)() ) {
+        errfunc();
+}
+%}
+
+%feature("camlcb") caml_error {caml_error}
+extern void caml_error();
+void call_err( void (*errfunc)() );
+</pre></blockquote>
+
+This code will create a callback function called caml_error, and create
+a function pointer constant that enables you to provide an ocaml function
+to be called.  If no ocaml function is provided using the given name, then
+an exception will be thrown.
+<p>
+
+If this code were built into a toplevel, you could write:
+
+        Objective Caml version 3.04
+
+<blockquote><pre>
+# open Error ;;
+# Callback.register "{caml_error}" (fun unit -> print_endline "hi"; flush stdout) ;;
+- : unit = ()
+# call_err caml_error ;;
+hi
+</pre></blockquote>
+
+As you can see, this enables the C code to call your Ocaml code quite 
+transparently.
+
+<a name="n15"></a><H3>15.2.6 Enums</H3>
 
 
   SWIG will wrap enumerations as polymorphic variants in the output Ocaml
@@ -447,7 +489,7 @@ an bitfield enum for use with a caml match .. with expression. *)<br>
 </table>
 <br>
 
-<a name="n15"></a><H3>15.2.6 C++ Classes</H3>
+<a name="n16"></a><H3>15.2.7 C++ Classes</H3>
 
 
 C++ classes can currently be wrapped in three styles, selectable with the
@@ -474,7 +516,7 @@ public:<br>
 &nbsp;&nbsp;&nbsp; int g( float y );<br>
 };<br>
 
-<a name="n16"></a><H4>15.2.6.1 No flags, function wrapping</H4>
+<a name="n17"></a><H4>15.2.7.1 No flags, function wrapping</H4>
 
 
 <code>&nbsp; type _p_cpp_base<br>
@@ -494,7 +536,7 @@ is the lightest weight in terms of runtime and memory, as well as being uncompli
 by any type inference problems. Use this wherever it is convenient,
 as part of a functor, or where extra performance will be needed.<br>
 
-<a name="n17"></a><H4>15.2.6.2 -objects</H4>
+<a name="n18"></a><H4>15.2.7.2 -objects</H4>
 
 
 <code>class cpp_base : _p_cpp_base -&gt; object<br>
@@ -532,14 +574,14 @@ easy to use a deep C++ inheritance tree without complicated effort, and also
 allows any subtype to fill the role of its parent in an Ocaml expression
 involving objects.
 
-<a name="n18"></a><H4>15.2.6.3 -objects -onlyobjects</H4>
+<a name="n19"></a><H4>15.2.7.3 -objects -onlyobjects</H4>
 
 
 This flag combination outputs only the object definitions into the .mli file.
 &nbsp;It reduces the amount of code emitted to the .mli file in order to
 make link info smaller, and to reduce the size of the interface file.<br>
 
-<a name="n19"></a><H4>15.2.6.4 -classmod</H4>
+<a name="n20"></a><H4>15.2.7.4 -classmod</H4>
 
 
 This flag wraps class, struct, and union code in modules. &nbsp;It may be
@@ -550,7 +592,7 @@ are defined outside at global scope (such as pointer types) since ocaml always
 applies scopes to types. &nbsp;Types such as enums, that are defined in scope
 stay there.<br>
 
-<a name="n20"></a><H3>15.2.7 Overloaded functions</H3>
+<a name="n21"></a><H3>15.2.8 Overloaded functions</H3>
 
 
 Overloaded functions are disambiguated according to a simple naming rule
@@ -558,14 +600,14 @@ which produces a unique, but not necessarily meaningful name. &nbsp;These
 names are always produced in declaration order. &nbsp;If you wish to extract
 and rename certain overloaded methods, use the %rename directive.<br>
 
-<a name="n21"></a><H3>15.2.8 Operator overloading</H3>
+<a name="n22"></a><H3>15.2.9 Operator overloading</H3>
 
 
 Because operators are not polymorphic in Ocaml, operator overloading as used
 in C++ is not available in Ocaml, however, needed operators may be renamed
 with the %rename directive as above.<br>
 
-<a name="n22"></a><H3>15.2.9 Ocaml typemaps</H3>
+<a name="n23"></a><H3>15.2.10 Ocaml typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Ocaml objects
@@ -623,7 +665,7 @@ However, typemaps may not be shareable between the two paradigms.<br>
   </li>
 </ul>
 
-<a name="n23"></a><H3>15.2.10 Exceptions</H3>
+<a name="n24"></a><H3>15.2.11 Exceptions</H3>
 
 
 Please view the "<a
