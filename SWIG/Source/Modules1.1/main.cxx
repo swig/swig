@@ -492,10 +492,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (dump_tags) {
-      Swig_dump_tags(top,0);
+      Swig_print_tags(top,0);
     }
     if (dump_tree) {
-      Swig_dump_tree(top);
+      Swig_print_tree(top);
     }
     if (top) {
       if (!Getattr(top,"name")) {

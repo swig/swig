@@ -177,25 +177,6 @@ class TypePass : public Dispatcher {
 
 public:
 
-#ifdef OLD
-    virtual int emit_one(Node *n) {
-	Symtab *symtab;
-	Symtab *oldsymtab;
-	int     ret;
-
-	symtab = Getattr(n,"symtab");
-	if (symtab) {
-	    oldsymtab = Swig_symbol_current();
-	    Swig_symbol_setscope(symtab);
-	}
-	ret = Dispatcher::emit_one(n);
-	if (symtab) {
-	    Swig_symbol_setscope(oldsymtab);
-	}
-	return ret;
-    }
-#endif
-
     /* ------------------------------------------------------------
      * top()
      * ------------------------------------------------------------ */ 
@@ -320,9 +301,23 @@ public:
 	return SWIG_OK;
     }
 
-
     /* ------------------------------------------------------------
      * namespaceDeclaration()
+     * ------------------------------------------------------------ */ 
+
+  virtual int templateDeclaration(Node *n) {
+    String *name = Getattr(n,"name");
+    String *ttype = Getattr(n,"templatetype");
+    if (Strcmp(ttype,"class") == 0) {
+      SwigType_typedef_class(name);
+    } else if (Strcmp(ttype,"forwardclass") == 0) {
+      SwigType_typedef_class(name);
+    }
+    return SWIG_OK;
+  }
+
+    /* ------------------------------------------------------------
+     * classforwardDeclaration()
      * ------------------------------------------------------------ */ 
 
     virtual int classforwardDeclaration(Node *n) {

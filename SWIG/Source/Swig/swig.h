@@ -323,8 +323,9 @@ extern void Swig_restore(Node **node);
 
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);
-extern void Swig_dump_tags(File *obj, Node *root);
-extern void Swig_dump_tree(File *obj);
+extern void Swig_print_tags(File *obj, Node *root);
+extern void Swig_print_tree(Node *obj);
+extern void Swig_print_node(Node *obj);
 
 /* -- Wrapper function Object */
 

@@ -17,13 +17,13 @@
 static char cvsroot[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
- * Swig_dump_tags()
+ * Swig_print_tags()
  *
  * Dump the tag structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_dump_tags(DOH *obj, DOH *root) {
+Swig_print_tags(DOH *obj, DOH *root) {
   DOH *croot, *newroot;
   DOH *cobj;
 
@@ -35,7 +35,7 @@ Swig_dump_tags(DOH *obj, DOH *root) {
     cobj = firstChild(obj);
     if (cobj) {
       newroot = NewStringf("%s . %s",croot,nodeType(obj));
-      Swig_dump_tags(cobj,newroot);
+      Swig_print_tags(cobj,newroot);
       Delete(newroot);
     }
     obj = nextSibling(obj);
@@ -44,9 +44,8 @@ Swig_dump_tags(DOH *obj, DOH *root) {
     Delete(croot);
 }
 
-
 /* -----------------------------------------------------------------------------
- * Swig_dump_tree()
+ * Swig_print_tree()
  *
  * Dump the tree structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
@@ -64,51 +63,63 @@ static void print_indent(int l) {
   }
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_dump_node(Node *n)
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_print_node(Node *obj) {
+  String *k;
+  Node   *cobj;
+  
+  print_indent(0);
+  Printf(stdout,"+++ %s ----------------------------------------\n", nodeType(obj));
+  k = Firstkey(obj);
+  while (k) {
+    if ((Cmp(k,"nodeType") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
+	(Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) ||
+	(Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
+      /* Do nothing */
+    } else if (Cmp(k,"parms") == 0) {
+      print_indent(2);
+      Printf(stdout,"%-12s - %s\n", k, ParmList_protostr(Getattr(obj,k)));
+    } else {
+      DOH *o;
+      char *trunc = "";
+      print_indent(2);
+      if (DohIsString(Getattr(obj,k))) {
+	o = Str(Getattr(obj,k));
+	if (Len(o) > 40) {
+	  trunc = "...";
+	}
+	Printf(stdout,"%-12s - \"%(escape)-0.40s%s\"\n", k, o, trunc);
+	Delete(o);
+      } else {
+	Printf(stdout,"%-12s - 0x%x\n", k, Getattr(obj,k));
+      }
+    }
+    k = Nextkey(obj);
+  }
+  cobj = firstChild(obj);
+  if (cobj) {
+    indent_level += 6;
+    Printf(stdout,"\n");
+    Swig_print_tree(cobj);
+    indent_level -= 6;
+  } else {
+    print_indent(1);
+    Printf(stdout,"\n");
+  }
+}
+
 void 
-Swig_dump_tree(DOH *obj) {
+Swig_print_tree(DOH *obj) {
   DOH *k;
   DOH *cobj;
 
   while (obj) {
-    print_indent(0);
-    Printf(stdout,"+++ %s ----------------------------------------\n", nodeType(obj));
-      
-    k = Firstkey(obj);
-    while (k) {
-      if ((Cmp(k,"nodeType") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
-	  (Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) ||
-	  (Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
-	/* Do nothing */
-      } else if (Cmp(k,"parms") == 0) {
-	print_indent(2);
-	Printf(stdout,"%-12s - %s\n", k, ParmList_protostr(Getattr(obj,k)));
-      } else {
-	DOH *o;
-	char *trunc = "";
-	print_indent(2);
-	if (DohIsString(Getattr(obj,k))) {
-	  o = Str(Getattr(obj,k));
-	  if (Len(o) > 40) {
-	    trunc = "...";
-	  }
-	  Printf(stdout,"%-12s - \"%(escape)-0.40s%s\"\n", k, o, trunc);
-	  Delete(o);
-	} else {
-	  Printf(stdout,"%-12s - 0x%x\n", k, Getattr(obj,k));
-	}
-      }
-      k = Nextkey(obj);
-    }
-    cobj = firstChild(obj);
-    if (cobj) {
-      indent_level += 6;
-      Printf(stdout,"\n");
-      Swig_dump_tree(cobj);
-      indent_level -= 6;
-    } else {
-      print_indent(1);
-      Printf(stdout,"\n");
-    }
+    Swig_print_node(obj);
     obj = nextSibling(obj);
   }
 }

@@ -2315,7 +2315,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Setattr($$,"templatetype",nodeType($5));
 			  set_nodeType($$,"template");
 			  Setattr($$,"templateparms", $3);
-			  Setattr($$,"sym:typename","1");
+			  if (!Getattr($$,"sym:weak")) {
+			    Setattr($$,"sym:typename","1");
+			  }
 			  add_symbols($$);
 			  /* We also place a fully parameterized version in the symbol table */
 			  {
@@ -2330,29 +2332,26 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 		      }
                 }
                 /* Forward template class declaration */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { 
+/*                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { 
                      $$ = 0; 
-                }
+		     } */
                 ;
 
 cpp_temp_possible:  c_decl {
 		  $$ = $1;
-		  /*		  if ($$) {
-		    Setattr($$,"sym:weak","1");
-		    } */
                 }
                 | cpp_class_decl {
                    $$ = $1;
                 }
                 | cpp_constructor_decl {
                    $$ = $1;
-		   /*		   if ($$) {
-		     Setattr($$,"sym:weak","1");
-		     }*/
                 }
                 | cpp_template_decl {
 		  $$ = 0;
                 }
+                | cpp_forward_class_decl {
+                  $$ = $1;
+                } 
                 ;
 
 template_parms  : rawparms {

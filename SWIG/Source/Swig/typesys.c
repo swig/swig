@@ -570,14 +570,42 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
-      resolved_scope = 0;
-      if (typedef_resolve(current_scope,e)) {
-	/* resolved_scope contains the scope that actually resolved the symbol */
-	String *qname = Getattr(resolved_scope,"qname");
-	if (qname) {
-	  Insert(e,0,"::");
-	  Insert(e,0,qname);
+      if (!SwigType_istemplate(e)) {
+	resolved_scope = 0;
+	if (typedef_resolve(current_scope,e)) {
+	  /* resolved_scope contains the scope that actually resolved the symbol */
+	  String *qname = Getattr(resolved_scope,"qname");
+	  if (qname) {
+	    Insert(e,0,"::");
+	    Insert(e,0,qname);
+	  }
 	}
+      } else {
+	/* Template.  We need to qualify template parameters as well as the template itself */
+	String *tprefix, *qprefix;
+	String *tsuffix;
+	Parm   *p;
+	List *parms = SwigType_parmlist(e);
+	tprefix = SwigType_templateprefix(e);
+	tsuffix = SwigType_templatesuffix(e);
+	qprefix = SwigType_typedef_qualified(tprefix);
+
+	Printf(qprefix,"<(");
+	p = Firstitem(parms);
+	while (p) {
+	  Append(qprefix,SwigType_typedef_qualified(p));
+	  p= Nextitem(parms);
+	  if (p) {
+	    Append(qprefix,",");
+	  }
+	}
+	Append(qprefix,")>");
+	Append(qprefix,tsuffix);
+	Delete(tsuffix);
+	Clear(e);
+	Append(e,qprefix);
+	Delete(tprefix);
+	Delete(qprefix);
       }
       if (Strncmp(e,"::",2) == 0) {
 	Delitem(e,0);
