@@ -3531,7 +3531,7 @@ cpp_protection_decl : PUBLIC COLON {
 
 /* A struct sname { } id;  declaration */
 
-cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
+cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
 	      } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -3558,35 +3558,7 @@ cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; 
 		  }
 		}
 	      }
-/*****
-     This fix derived_nested.i, but it is limited. Anyway, we are
-     waiting for the nested class support.
- *****/
-              | storage_class cpptype declarator COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } SEMI {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (strcmp($2,"class") == 0) {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
-		    /* Generate some code for a new class */
-		  } else if ($3.id) {
-		    /* Generate some code for a new class */
-		    Nested *n = (Nested *) malloc(sizeof(Nested));
-		    n->code = NewString("");
-		    Printv(n->code, "typedef ", $2, " " ,
-			    Char(scanner_ccode), " $classname_", $3.id, ";\n",NIL);
-		    n->name = Swig_copy_string($3.id);
-		    n->line = cparse_start_line;
-		    n->type = NewString("");
-		    n->kind = $2;
-		    SwigType_push(n->type,$3.type);
-		    n->next = 0;
-		    add_nested(n);
-		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
-		  }
-		}
-	      }
+/* A struct { } id;  declaration */
               | storage_class cpptype LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } nested_decl SEMI {
 	        $$ = 0;
@@ -3612,6 +3584,18 @@ cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; 
 		  }
 		}
 	      } 
+/* A  'class name : base_list { };'  declaration, always ignored */
+/*****
+     This fix derived_nested.i, but it adds one shift/reduce. Anyway,
+     we are waiting for the nested class support.
+ *****/
+              | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
+              } SEMI {
+	        $$ = 0;
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
+		}
+	      }
               ;
 
 nested_decl   : declarator { $$ = $1;}
