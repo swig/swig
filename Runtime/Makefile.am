@@ -103,14 +103,14 @@ libswigguile_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUI
 libswigguile_la_CFLAGS  = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_gh.c: $(GUILE_GH_RUNTIME)
-	../preinst-swig -guile -gh -runtime -o libguile_gh.c swigrun.i
+	../preinst-swig -guile -gh -Linkage passive -runtime -o libguile_gh.c swigrun.i
 
 libswigguilescm_la_SOURCES = libguile_scm.c
 libswigguilescm_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
-	../preinst-swig -guile -scm -runtime -o libguile_scm.c swigrun.i
+	../preinst-swig -guile -scm -Linkage passive -runtime -o libguile_scm.c swigrun.i
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
@@ -199,8 +199,10 @@ else
 all-local:
 endif
 
-.libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
-	../preinst-swig -mzscheme -runtime -o libmz.c swigrun.i	
+libmz.c: $(MZSCHEME_RUNTIME)
+	../preinst-swig -mzscheme -runtime -noinit -o libmz.c swigrun.i	
+
+.libs/libswigmz$(RELEASESUFFIX)$(SO): libmz.c
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
 	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
