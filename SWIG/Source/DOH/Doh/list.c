@@ -59,7 +59,7 @@ static DohSequenceMethods ListSeqMethods = {
 
 static DohObjInfo ListType = {
     "List",          /* objname */
-    0,
+    sizeof(List),    /* List size */
     DelList,         /* sm_del */
     CopyList,        /* sm_copy */
     List_clear,      /* sm_clear */
@@ -107,7 +107,7 @@ int
 List_check(DOH *lo) {
     List *l = (List *) lo;
     if (!l) return 0;
-    if (l->magic != DOH_MAGIC) return 0;
+    if (!DohCheck(lo)) return 0;
     if (l->objinfo != &ListType) return 0;
     return 1;
 }
@@ -120,7 +120,7 @@ DOH *
 NewList() {
     List *l;
     int   i;
-    l = (List *) malloc(sizeof(List));
+    l = (List *) DohMalloc(sizeof(List));
     DohInit(l);
     l->objinfo = &ListType;
     l->nitems = 0;
@@ -142,7 +142,7 @@ CopyList(DOH *lo) {
     List *l,*nl;
     int i;
     l = (List *) lo;
-    nl = (List *) malloc(sizeof(List));
+    nl = (List *) DohMalloc(sizeof(List));
     DohInit(nl);
     nl->objinfo = l->objinfo;
     nl->nitems = l->nitems;
@@ -172,7 +172,7 @@ DelList(DOH *lo) {
 	Delete(l->items[i]);
     }
     free(l->items);
-    free(l);
+    DohFree(l);
 }
 
 /* -----------------------------------------------------------------------------

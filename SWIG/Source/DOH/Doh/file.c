@@ -25,6 +25,7 @@
 typedef struct File {
     DOHCOMMON;
     FILE     *filep;       
+    int closeondel;
 } File;
 
 /* Forward references */
@@ -46,7 +47,7 @@ static DohFileMethods FileFileMethods = {
 
 static DohObjInfo FileType = {
     "File",          /* objname */
-    0,
+    sizeof(File),    /* objsize */
     DelFile,         /* sm_del */
     0,               /* sm_copy */
     0,               /* sm_clear */
@@ -79,26 +80,32 @@ NewFile(char *filename, char *mode)
   file = fopen(filename,mode);
   if (!file) return 0;
 
-  f = (File *) malloc(sizeof(File));
+  f = (File *) DohMalloc(sizeof(File));
+  if (!f) {
+    fclose(file);
+    return 0;
+  }
   DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
+  f->closeondel = 1;
   return (DOH *) f;
 }
 
 /* -----------------------------------------------------------------------------
  * NewFileFromFile(FILE *f)
- *
  * ----------------------------------------------------------------------------- */
 
 DOH *
 NewFileFromFile(FILE *file) 
 {
   File *f;
-  f = (File *) malloc(sizeof(File));
+  f = (File *) DohMalloc(sizeof(File));
+  if (!f) return 0;
   DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
+  f->closeondel = 0;
   return (DOH *) f;
 }
 
@@ -109,8 +116,9 @@ void
 DelFile(DOH *so) {
   File *f = (File *) so;
   assert(f->refcount <= 0);
-  fclose(f->filep);
-  free(f);
+  if (f->closeondel)
+    fclose(f->filep);
+  DohFree(f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -119,6 +127,11 @@ DelFile(DOH *so) {
 int
 File_check(DOH *f) 
 {
+  File *df;
+  if (!DohCheck(f)) return 0;
+  
+  df = (File *) f;
+  if (df->objinfo == &FileType) return 1;
   return 0;
 }
 

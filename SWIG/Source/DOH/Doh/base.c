@@ -24,33 +24,29 @@
 #include "doh.h"
 
 static DohObjInfo DohBaseType = {
-  "Base",     /* objname */
-  0,          /* objsize */
-  0,          /* doh_del */
-  0,          /* doh_copy */
-  0,          /* doh_clear */
-  0,          /* doh_str */
-  0,          /* doh_data */
-  0,          /* doh_len */
-  0,          /* doh_hash    */
-  0,          /* doh_cmp */
-  0,          /* doh_mapping */
-  0,          /* doh_sequence */
-  0,          /* doh_file  */
-  0,          /* reserved2 */
-  0,          /* reserved3 */
-  0,          /* reserved4 */
-  { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  "Base",           /* objname */
+  sizeof(DohBase),  /* objsize */
+  0,                /* doh_del */
+  0,                /* doh_copy */
+  0,                /* doh_clear */
+  0,                /* doh_str */
+  0,                /* doh_data */
+  0,                /* doh_len */
+  0,                /* doh_hash    */
+  0,                /* doh_cmp */
+  0,                /* doh_mapping */
+  0,                /* doh_sequence */
+  0,                /* doh_file  */
+  0,                /* reserved2 */
+  0,                /* reserved3 */
+  0,                /* reserved4 */
+  0,                /* reserved5 */
+  0,                /* reserved6 */
+  0,                /* user1 */
+  0,                /* user2 */
+  0,                /* user3 */
+  0,                /* user4 */
 };
-
-/* Check if a Doh object */
-int DohCheck(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  if (!b) return 0;
-  if (b->magic != DOH_MAGIC) return 0;
-  if (!b->objinfo) return 0;
-  return 1;
-}
 
 /* -----------------------------------------------------------------------------
    String objects
@@ -183,7 +179,7 @@ void *DohData(DOH *obj) {
     DohBase *b = (DohBase *) obj;
     c = (char *) obj;
     if (!c) return 0;
-    if (*c == DOH_MAGIC) {
+    if (DohCheck(c)) {
       if (b->objinfo) {
 	if (b->objinfo->doh_data) {
 	  return (b->objinfo->doh_data)(obj);
@@ -648,10 +644,6 @@ void DohInit(DOH *b) {
     DohBase *bs = (DohBase *) b;
     bs->refcount =0;
     bs->objinfo = &DohBaseType;
-    bs->magic = DOH_MAGIC;
-    bs->moremagic[0] = 0;
-    bs->moremagic[1] = 0;
-    bs->moremagic[2] = 0;
     bs->line = 0;
     bs->file = 0;
 }
