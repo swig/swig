@@ -250,11 +250,15 @@ int emit_num_arguments(ParmList *parms) {
     }
   }
 #endif
+
+  /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
+  /*
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
     if (!nextSibling(p)) {
       nargs--;
     }
   }
+  */
   return nargs;
 }
 
@@ -300,12 +304,14 @@ int emit_num_required(ParmList *parms) {
       }
     }
   }
-
+  /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
+  /*
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
     if (!nextSibling(p)) {
       nargs--;
     }
   }
+  */
   return nargs;
 }
 
