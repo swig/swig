@@ -646,7 +646,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
     }
     expand = delta*rcount;     /* Total amount of expansion for the replacement */
     newsize = str->maxsize;
-    while ((str->len + expand) > newsize) newsize *= 2;
+    while ((str->len + expand) >= newsize) newsize *= 2;
 
     ns = (char *) DohMalloc(newsize);
     assert(ns);
