@@ -205,13 +205,17 @@ extern int  Swig_emit(DOH *obj, void *clientdata);
   /* -- Wrapper function Object */
 
 typedef struct {
-  DOHHash   *h;
   DOHHash   *localh;
   DOHString *def;
   DOHString *locals;
   DOHString *code;
 } SwigWrapper;
 
+extern SwigWrapper *NewSwigWrapper();
+extern void         DelSwigWrapper(SwigWrapper *w);
+extern void         SwigWrapper_print(SwigWrapper *w, DOHFile *f);
+extern int          SwigWrapper_add_local(SwigWrapper *w, DOHString_or_char *decl, DOHString_or_char *name);
+extern int          SwigWrapper_check_local(SwigWrapper *w, DOHString_or_char *name);
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
