@@ -92,7 +92,7 @@ libpy.c: $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
 GUILE_INCLUDE = @GUILEINCLUDE@
 GUILE_GH_RUNTIME = $(SWIGLIB)/guile/guile_gh_run.swg
 GUILE_SCM_RUNTIME = $(SWIGLIB)/guile/guile_scm_run.swg
-GUILE_DLNK    = 
+GUILE_DLNK    = $(GUILELINK)
 
 libswigguile_la_SOURCES = libguile_gh.c
 libswigguile_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
@@ -160,14 +160,15 @@ libpike.c: $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
 
 CHICKENOPTS     = @CHICKENOPTS@
 CHICKEN_RUNTIME = $(SWIGLIB)/chicken/chickenrun.swg
-CHICKEN_DLNK    = 
+CHICKEN_DLNK    = @CHICKENSHAREDLIB@
 
 libswigchicken_la_SOURCES = libchicken.c
 libswigchicken_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DLNK)
 libswigchicken_la_CFLAGS  = -DSWIG_GLOBAL $(CHICKEN_INCLUDE)
 
 libchicken.c: $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) > libchicken.c
+	echo '#include "chicken.h"' > libchicken.c
+	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
 
 
 
