@@ -97,19 +97,19 @@
 
      /* Do not check for NULL pointers (override checks). */
 
-     %typemap(check) C_TYPE *VECTORINPUT, 
-		     const C_TYPE *VECTORINPUT,
-		     C_TYPE *LISTINPUT, 
-		     const C_TYPE *LISTINPUT
+     %typemap(check) (int VECTORLENINPUT, C_TYPE *VECTORINPUT),
+                     (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT),
+                     (int LISTLENINPUT, C_TYPE *LISTINPUT),
+                     (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
        "/* no check for NULL pointer */";
 
      /* Discard the temporary array after the call. */
 
-     %typemap(freearg) C_TYPE *VECTORINPUT, 
-		       const C_TYPE *VECTORINPUT,
-		       C_TYPE *LISTINPUT, 
-		       const C_TYPE *LISTINPUT
-       {if ($1!=NULL) SWIG_free($1);}
+     %typemap(freearg) (int VECTORLENINPUT, C_TYPE *VECTORINPUT),
+                     (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT),
+                     (int LISTLENINPUT, C_TYPE *LISTINPUT),
+                     (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
+       {if ($2!=NULL) SWIG_free($2);}
 
 %enddef
 
@@ -217,6 +217,45 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(float, gh_scm2double, gh_double2scm, real);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(double, gh_scm2double, gh_double2scm, real);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, gh_str02scm, string);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string);
+
+/* For the char *, free all strings after converting */
+
+     %typemap(freearg) 
+          (int *VECTORLENOUTPUT, char ***VECTOROUTPUT),
+	  (size_t *VECTORLENOUTPUT, char ***VECTOROUTPUT), 
+	  (int *LISTLENOUTPUT, char ***LISTOUTPUT),
+    (size_t *LISTLENOUTPUT, char ***LISTOUTPUT),
+    (int *VECTORLENOUTPUT, const char ***VECTOROUTPUT),
+    (size_t *VECTORLENOUTPUT, const char ***VECTOROUTPUT), 
+    (int *LISTLENOUTPUT, const char ***LISTOUTPUT),
+    (size_t *LISTLENOUTPUT, const char ***LISTOUTPUT)
+    {
+	 if ((*$2)!=NULL) {
+	     int i;
+	     for (i = 0; i < *$1; i++) {
+		 if ((*$2)[i] != NULL) free((*$2)[i]);
+	     }
+	     free(*$2);
+	 }
+     }
+
+%typemap(freearg) (int VECTORLENINPUT, char **VECTORINPUT),
+    (size_t VECTORLENINPUT, char **VECTORINPUT), 
+    (int LISTLENINPUT, char **LISTINPUT),
+    (size_t LISTLENINPUT, char **LISTINPUT),
+    (int VECTORLENINPUT, const char **VECTORINPUT),
+    (size_t VECTORLENINPUT, const char **VECTORINPUT), 
+    (int LISTLENINPUT, const char **LISTINPUT),
+    (size_t LISTLENINPUT, const char **LISTINPUT)
+{
+    if (($2)!=NULL) {
+	int i;
+	for (i = 0; i< $1; i++)
+	    if (($2)[i] != NULL) free(($2)[i]);
+	free($2);
+    }
+}
+
 
 /* Following is a macro that emits typemaps that are much more
    flexible.  (They are also messier.)  It supports multiple parallel
@@ -428,3 +467,24 @@ TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(double, gh_scm2double, gh_double2scm, 
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, gh_str02scm, string);
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string);
 
+%typemap(freearg) char **PARALLEL_LISTINPUT, char **PARALLEL_VECTORINPUT,
+    const char **PARALLEL_LISTINPUT, const char **PARALLEL_VECTORINPUT
+{
+    if (($1)!=NULL) {
+	int i;
+	for (i = 0; i<*_global_list_length; i++)
+	    if (($1)[i] != NULL) SWIG_free(($1)[i]);
+	SWIG_free($1);
+    }
+}
+
+%typemap(freearg) char ***PARALLEL_LISTOUTPUT, char ***PARALLEL_VECTOROUTPUT,
+    const char ***PARALLEL_LISTOUTPUT, const char ***PARALLEL_VECTOROUTPUT
+{
+    if ((*$1)!=NULL) {
+	int i;
+	for (i = 0; i<_global_arraylentemp; i++)
+	    if ((*$1)[i] != NULL) free((*$1)[i]);
+	free(*$1);
+    }
+}
