@@ -249,6 +249,12 @@ case $host in
    *) TCL_SO=$SO;;
 esac
 
+AC_SUBST(GUILE_SO)
+case $host in
+   *-*-darwin*) GUILE_SO=.so;;
+   *) GUILE_SO=$SO;;
+esac
+
 AC_SUBST(TCL_LDSHARED)
 case $host in
    *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -flat_namespace -undefined suppress";;
