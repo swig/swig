@@ -24,9 +24,9 @@ AR      = ar
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
-LIBOBJS = fio.o memory.o base.o file.o list.o hash.o string.o 
+LIBOBJS = void.o fio.o memory.o base.o file.o list.o hash.o string.o 
 
-LIBSRCS = fio.c memory.c base.c file.c list.c hash.c string.c
+LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
 LIBHEADERS = ../Include/doh.h
 LIB      = ../libdoh.a

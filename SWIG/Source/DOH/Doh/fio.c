@@ -31,7 +31,7 @@
 int
 DohvPrintf(DOH *so, char *format, va_list ap)
 {
-  static char *fmt_codes = "dioxXucsSfeEgGpnbB";
+  static char *fmt_codes = "dioxXucsSfeEgGpn";
   int state = 0;
   char *p = format;
   char  newformat[256];
@@ -46,12 +46,14 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   int   dvalue;
   void  *pvalue;
   char  *stemp;
+  int   nbytes = 0;
 
   while (*p) {
     switch(state) {
     case 0:  /* Ordinary text */
       if (*p != '%') {
 	Putc(*p,so);
+	nbytes++;
       } else{
 	fmt = newformat;
 	widthval = 0;
@@ -81,6 +83,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
       } else if (*p == '%') {
 	Putc(*p,so);
 	fmt = newformat;
+	nbytes++;
 	state = 0;
       } else {
 	*(fmt++) = *p;
@@ -200,7 +203,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  } else {
 	    stemp = (char *) malloc(maxwidth+1);
 	  }
-	  sprintf(stemp,newformat,Data(Sval));
+	  nbytes+=sprintf(stemp,newformat,Data(Sval));
 	  Write(so,stemp,strlen(stemp));
 	  if ((DOH *) Sval != doh) {
 	    Delete(Sval);
@@ -220,7 +223,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  } else {
 	    stemp = (char *) malloc(maxwidth + 1);
 	  }
-	  sprintf(stemp,newformat,doh);
+	  nbytes+=sprintf(stemp,newformat,doh);
 	  Write(so,stemp,strlen(stemp));
 	  if (stemp != obuffer) {
 	    free(stemp);
@@ -247,7 +250,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	case 'X':
 	case 'c':
 	  ivalue = va_arg(ap,int);
-	  sprintf(stemp,newformat,ivalue);
+	  nbytes+=sprintf(stemp,newformat,ivalue);
 	  break;
 	case 'f':
 	case 'g':
@@ -255,11 +258,11 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	case 'E':
 	case 'G':
 	  dvalue = va_arg(ap,double);
-	  sprintf(stemp,newformat,dvalue);
+	  nbytes+=sprintf(stemp,newformat,dvalue);
 	  break;
 	case 'p':
 	  pvalue = va_arg(ap,void *);
-	  sprintf(stemp,newformat,pvalue);	  
+	  nbytes+=sprintf(stemp,newformat,pvalue);	  
 	  break;
 	default:
 	  break;
@@ -274,9 +277,9 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   }
   if (state) {
     *fmt = 0;
-    Write(so,fmt,strlen(fmt));
+    nbytes += Write(so,fmt,strlen(fmt));
   }
-  return 1;
+  return nbytes;
 }
 
 /* Printf */
@@ -288,117 +291,3 @@ int DohPrintf(DOH *obj, char *format, ...) {
   va_end(ap);
   return ret;
 }
-
-#ifdef OLD
-
-/* ----------------------------------------------------------------------
- * int String_scanfv(DOH *doh, char *format, va_list ap)
- *
- * Do a string scanf.  Somewhat broken compared to C scanf.
- * ---------------------------------------------------------------------- */
-
-int String_scanfv(DOH *doh, char *format, va_list ap) {
-  static char *fmt_chars = "diouxcsefgp";
-  String *s;
-  char    newformat[256];
-  char   *fmt;
-  char    *p;
-  int     state;
-  void    *ptr;
-  int     total = 0;
-  int     i;
-
-  s = (String *) doh;
-  state = 0;
-  p = format;
-  while (*p) {
-    switch(state) {
-    case 0:
-      if (*p == '%') {
-	fmt = newformat;
-	*(fmt++) = *p;
-	state = 10;
-      }
-      break;
-    case 10:
-      if (strchr(fmt_chars,*p)) {
-	int len;
-	*(fmt++) = *p;
-	*fmt = 0;
-	ptr = va_arg(ap, void *);
-	len = sscanf(s->str+s->sp,newformat,ptr);
-	for (i = 0; i < len; i++) {
-	  while (s->sp < s->len) {
-	    if (!isspace(s->str[s->sp])) break;
-	    s->sp++;
-	  }
-	  while (s->sp < s->len) {
-	    if (isspace(s->str[s->sp])) break;
-	    s->sp++;
-	  }
-	}
-	total += len;
-	state = 0;
-	fmt = newformat;
-      } else {
-	*(fmt++) = *p;
-      }
-      break;
-    }
-    p++;
-  }
-  return total;
-}      
-
-/* vPrintf */
-int DohvPrintf(DOH *obj, char *format, va_list ap) {
-  int ret;
-  DohBase *b = (DohBase *) obj;
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_printf) {
-      return (b->objinfo->doh_file->doh_printf)(obj,format,ap);
-    }
-    printf("No printf method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    if (!DohCheck(obj)) {
-      DOH  *str;
-      str = NewString("");
-      DohvAppendf(str,format,ap);
-      ret = fprintf((FILE *) obj, "%s", Data(str));
-      Delete(str);
-      return ret;
-    }
-  }
-  return -1;
-}
-
-/* Printf */
-int DohScanf(DOH *obj, char *format, ...) {
-  va_list ap;
-  int ret;
-  DohBase *b = (DohBase *) obj;
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_scanf) {
-      va_start(ap,format);
-      ret = (b->objinfo->doh_file->doh_scanf)(obj,format,ap);
-      va_end(ap);
-      return ret;
-    }
-    printf("No scanf method defined for type '%s'\n", b->objinfo->objname);
-  }
-  return -1;
-}
-
-/* vPrintf */
-int DohvScanf(DOH *obj, char *format, va_list ap) {
-  DohBase *b = (DohBase *) obj;
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_scanf) {
-      return (b->objinfo->doh_file->doh_scanf)(obj,format,ap);
-    }
-    printf("No scanf method defined for type '%s'\n", b->objinfo->objname);
-  }
-  return -1;
-}
-
-#endif

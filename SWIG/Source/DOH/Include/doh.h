@@ -156,8 +156,8 @@ extern int     DohUngetc(int ch, DOH *obj);
 
 extern int     DohPrintf(DOH *obj, char *format, ...);
 extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
-extern int     DohScanf(DOH *obj, char *format, ...);
-extern int     DohvScanf(DOH *obj, char *format, va_list ap);
+/* extern int     DohScanf(DOH *obj, char *format, ...);
+   extern int     DohvScanf(DOH *obj, char *format, va_list ap); */
 
 /* Macros to invoke the above functions.  Includes the location of
    the caller to simplify debugging if something goes wrong */
@@ -201,8 +201,9 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
 #define vPrintf            DohvPrintf
-#define Scanf              DohScanf
-#define vScanf             DohvScanf
+
+/* #define Scanf              DohScanf
+   #define vScanf             DohvScanf*/
 
 /* -----------------------------------------------------------------------------
  * DohBase
@@ -263,8 +264,11 @@ extern DOH   *NewHash();
 extern int    Hash_check(DOH *h);
 extern DOH   *Hash_keys(DOH *);
 
+/* -----------------------------------------------------------------------------
+ * Void
+ * ----------------------------------------------------------------------------- */
 
-
+extern DOH  *NewVoid(void *ptr, void (*del)(void *));
 
 
 

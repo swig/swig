@@ -25,6 +25,7 @@
 typedef struct File {
     DOHCOMMON;
     FILE     *filep;       
+    int       fd;
     int closeondel;
 } File;
 
@@ -95,6 +96,7 @@ NewFile(char *filename, char *mode)
   DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
+  f->fd = fileno(file);
   f->closeondel = 1;
   return (DOH *) f;
 }
@@ -112,6 +114,25 @@ NewFileFromFile(FILE *file)
   DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
+  f->fd = fileno(file);
+  f->closeondel = 0;
+  return (DOH *) f;
+}
+
+/* -----------------------------------------------------------------------------
+ * NewFileFromFd(int fd)
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+NewFileFromFd(int fd)
+{
+  File *f;
+  f = (File *) DohMalloc(sizeof(File));
+  if (!f) return 0;
+  DohInit(f);
+  f->objinfo = &FileType;
+  f->filep = 0;
+  f->fd = fd;
   f->closeondel = 0;
   return (DOH *) f;
 }
