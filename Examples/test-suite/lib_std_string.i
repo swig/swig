@@ -41,6 +41,12 @@ void test_throw() throw(std::string){
   throw x;
 }
 
+void test_const_reference_throw() throw(const std::string &){
+  static std::string x = "x";
+  
+  throw x;
+}
+
 %}
 
 
