@@ -1,5 +1,14 @@
 /***********************************************************************
  * Pike language module for SWIG
+ *
+ * Notes:
+ *
+ * - The current approach used for "out" typemaps is inconsistent with
+ *   how "out" typemaps are handled by other language modules. Instead
+ *   of converting the C/C++ type ($1) to a Pike object type (e.g. a
+ *   struct svalue), we're just calling the appropriate push_XXX
+ *   (e.g. push_int) to push the return value onto the stack.
+ *
  ***********************************************************************/
  
 char cvsroot_pike_cxx[] = "$Header$";
@@ -371,7 +380,7 @@ public:
     } else if (current == DESTRUCTOR) {
       Printv(description, ", tVoid", NIL);
     } else {
-      Wrapper_add_local(f, "resultobj", "struct object *resultobj");
+      // Wrapper_add_local(f, "resultobj", "struct object *resultobj");
       Printv(description, ", ", NIL);
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
 	Replaceall(tm,"$source", "result");
@@ -506,75 +515,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int variableWrapper(Node *n) {
-    // return Language::variableWrapper(n);
-
-    String *name  = Getattr(n,"name");
-    String *iname = Getattr(n,"sym:name");
-    SwigType *t = Getattr(n,"type");
-    
-    String *wname;
-    //   static int have_globals = 0;
-    String  *tm;
-    Wrapper *getf, *setf;
-
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
-
-    getf = NewWrapper();
-    setf = NewWrapper();
-
-    wname = Swig_name_wrapper(iname);
-
-    /* Create a function for setting the value of the variable */
-
-    Printf(setf->def,"static int %s_set(object *_val) {", wname);
-    if (!Getattr(n,"feature:immutable")) {
-      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-	Replaceall(tm,"$source","_val");
-	Replaceall(tm,"$target",name);
-	Replaceall(tm,"$input","_val");
-	Printf(setf->code,"%s\n",tm);
-	Delete(tm);
-      } else {
-	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
-		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
-      }
-      Printf(setf->code,"    return 0;\n");
-    } else {
-      /* Is a readonly variable.  Issue an error */
-
-      Printv(setf->code,
-	     tab4, "Variable $iname is read-only.\n",
-	     tab4, "return 1;\n",
-	     NIL);
-      
-    }
-
-    Printf(setf->code,"}\n");
-    Wrapper_print(setf,f_wrappers);
-
-    /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static object *%s_get() {", wname);
-    Wrapper_add_local(getf,"pikeobj", "object *pyobj");
-    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-      Replaceall(tm,"$source",name);
-      Replaceall(tm,"$target","pikeobj");
-      Replaceall(tm,"$result","pikeobj");
-      Printf(getf->code,"%s\n", tm);
-    } else {
-      Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Unable to link with type %s\n", SwigType_str(t,0));
-    }
-    
-    Printf(getf->code,"    return pikeobj;\n}\n");
-    Wrapper_print(getf,f_wrappers);
-
-    /* Now add this to the variable linking mechanism */
-    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
-
-    DelWrapper(setf);
-    DelWrapper(getf);
-    return SWIG_OK;
-
+    return Language::variableWrapper(n);
   }
 
   /* ------------------------------------------------------------
