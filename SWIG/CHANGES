@@ -14,6 +14,21 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/15/2001: beazley
+           Change to wrapping of multi-dimensional arrays.  Arrays
+           are now properly mapped to a pointer to an array of
+           one less dimension.  For example:
+
+                int [10];              -->  int *
+                int [10][20];          -->  int (*)[20];
+                int [10][20][30];      -->  int (*)[20][30];
+
+           This change may break certain SWIG extensions because
+           older versions simply mapped all arrays into a single
+           pointer such as "int *".   Although possibly unusual, 
+           the new version is correct in terms of the C type system.
+           *** POTENTIAL INCOMPATIBILITY ***
+    
 8/06/2001: cheetah (william fulton)
            * [Java] Array setters generated for struct/class array members.
 
