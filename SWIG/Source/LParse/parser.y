@@ -207,6 +207,11 @@ static int promote(int t1, int t2) {
     DOH   *array;
     DOH   *parms;
   } tmname;
+  struct {
+    DOH   *name;
+    DOH   *array;
+    DOH   *stars;
+  } sdecl;
 };
 
 /* Literals */
@@ -265,6 +270,7 @@ static int promote(int t1, int t2) {
 %type <node>   inherit base_list
 %type <tok>    base_specifier access_specifier cpp_end ctor_end opt_id
 %type <node>   cpp_decl cpp_class cpp_other
+%type <sdecl>  starparm
 
 %%
 
@@ -738,6 +744,33 @@ tm_parm        : type tm_name {
 		  if ($3.parms)
 		    Setattr($$,ATTR_PARMS,$3.parms);
 		}
+                | type LPAREN stars tm_name RPAREN LPAREN parms RPAREN {
+		  $$ = new_node("tmparm", Getfile($4.name),Getline($4.name));
+		  SwigType_add_function($1,$7);
+		  SwigType_push($1,$3);
+		  if ($4.array) {
+		    SwigType_push($1,$4.array);
+		  }
+		  if ($4.name)
+		    Setattr($$,ATTR_NAME,$4.name);
+		  Setattr($$,ATTR_TYPE,$1);
+		  if ($4.parms)
+		    Setattr($$,ATTR_PARMS,$4.parms);
+                }
+                | type stars LPAREN stars tm_name RPAREN LPAREN parms RPAREN {
+		  SwigType_push($1,$2);
+		  $$ = new_node("tmparm", Getfile($5.name),Getline($5.name));
+		  SwigType_add_function($1,$8);
+		  SwigType_push($1,$4);
+		  if ($5.array) {
+		    SwigType_push($1,$5.array);
+		  }
+		  if ($5.name)
+		    Setattr($$,ATTR_NAME,$5.name);
+		  Setattr($$,ATTR_TYPE,$1);
+		  if ($5.parms)
+		    Setattr($$,ATTR_PARMS,$5.parms);
+                }
 		;
 
 tm_name         : ID tm_args {
@@ -1053,29 +1086,34 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 
 /* A rudimentary typedef involving function pointers */
 
-               | TYPEDEF type LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
+               | TYPEDEF type LPAREN starparm RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("c:typedef", $1.filename,$1.line);
-		 SwigType_add_function($2,$8);
-		 SwigType_push($2,$4);
-		 if ($5.array)
-		   SwigType_push($2,$5.array);
-		 Setattr($$,ATTR_NAME,$5.name);
+		 SwigType_add_function($2,$7);
+		 if ($4.stars)
+		   SwigType_push($2,$4.stars);
+		 if ($4.array)
+		   SwigType_push($2,$4.array);
+		 Setattr($$,ATTR_NAME,$4.name);
 		 Setattr($$,ATTR_TYPE,$2);
 	       }
 
 /* A typedef involving function pointers again */
 
-               | TYPEDEF type stars LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
+               | TYPEDEF type stars LPAREN starparm RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("c:typedef", $1.filename,$1.line);
 		 SwigType_push($2,$3);
-		 SwigType_add_function($2,$9);
-		 SwigType_push($2,$5);
-		 if ($6.array)
-		   SwigType_push($2,$6.array);
-		 Setattr($$,ATTR_NAME,$6.name);
+		 SwigType_add_function($2,$8);
+		 if ($5.stars)
+		   SwigType_push($2,$5.stars);
+		 if ($5.array)
+		   SwigType_push($2,$5.array);
+		 Setattr($$,ATTR_NAME,$5.name);
 		 Setattr($$,ATTR_TYPE,$2);
 		 }
                ;
+
+
+
 
 typedeflist   : COMMA declaration typedeflist {
                  DOH *o = NewHash();
@@ -1517,6 +1555,20 @@ declaration    : ID {
                }
                ;
 
+/* Used for typenames with or without pointers */
+
+starparm      : stars pname {
+		 $$.name = $2.name;
+		 $$.array = $2.array;
+		 $$.stars = $1;
+               }
+              | pname {
+                 $$.name = $1.name;          
+		 $$.array = $1.array;
+                 $$.stars = 0;
+              }
+              ;
+               
 stars :          STAR empty { 
                     $$ = NewString("");
 		    SwigType_add_pointer($$);
