@@ -142,7 +142,8 @@ class check {
 
   function fail($pattern) {
     $args=func_get_args();
-    die("Failed on: ".call_user_func_array("sprintf",$args)."\n");
+    print("Failed on: ".call_user_func_array("sprintf",$args)."\n");
+    exit(1);
   }
 
   function done() {

@@ -18,4 +18,10 @@ int incr(int &value) {
   return value++;
 }
 
+typedef int & IntRef;
+// returns old value
+int inctr(IntRef value) {
+  return value++;
+}
+
 %}

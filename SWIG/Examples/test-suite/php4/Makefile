@@ -11,6 +11,9 @@ include ../common.mk
 SWIGOPT    = -I$(TOP)/../Lib -I$(TOP)/$(TEST_SUITE) 
 TARGETPREFIX = php_
 
+runtests:
+	bash -ec 'ls *_runme.php4 | sed -e "s/_runme.php4/.cpptest/" | while read file; do make clean && make $$file; done'
+
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup) \
