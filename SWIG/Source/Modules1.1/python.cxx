@@ -37,6 +37,7 @@ struct DocString {
 
 static   int          doc_index = 0;
 static   DocString   *doc_strings = 0;
+static   String       const_code;
 
 static char *usage = "\
 Python Options (available with -python)\n\
@@ -279,15 +280,15 @@ char *PYTHON::add_docstring(DocEntry *de) {
 void PYTHON::headers(void)
 {
 
-  emit_banner(f_header);
+  emit_banner(f_runtime);
 
-  fprintf(f_header,"/* Implementation : PYTHON */\n\n");
-  fprintf(f_header,"#define SWIGPYTHON\n");
+  fprintf(f_runtime,"/* Implementation : PYTHON */\n\n");
+  fprintf(f_runtime,"#define SWIGPYTHON\n");
 
   if (NoInclude) 
-    fprintf(f_header,"#define SWIG_NOINCLUDE\n");
+    fprintf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
-  if (insert_file("python.swg", f_header) == -1) {
+  if (insert_file("python.swg", f_runtime) == -1) {
     fprintf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
     SWIG_exit(1);
   }
@@ -451,7 +452,10 @@ void PYTHON::close(void)
 // --------------------------------------------------------------------
 void PYTHON::close_cmodule(void)
 {
-  emit_ptr_equivalence(f_init);
+  extern void emit_type_table();
+  emit_type_table();
+  /*  emit_ptr_equivalence(f_init); */
+  fprintf(f_init,"%s\n", const_code.get());
   fprintf(f_init,"}\n");
 }
 
@@ -479,54 +483,19 @@ void
 PYTHON::get_pointer(char *iname, char *srcname, char *src, char *dest,
 		    DataType *t, String &f, char *ret)
 {
-
+  t->remember();
+  
   // Now get the pointer value from the string and save in dest
   
-  f << tab4 << "if (" << src << ") {\n"
-    << tab8 << "if (" << src << " == Py_None) { " << dest << " = NULL; }\n"
-    << tab8 << "else if (SWIG_GetPtrObj(" << src << ",(void **) &" << dest << ",";
+  f << tab4 << "if ((SWIG_ConvertPtr(" << src << ",(void **) &" << dest << ",";
 
   // If we're passing a void pointer, we give the pointer conversion a NULL
   // pointer, otherwise pass in the expected type.
   
-  if (t->type == T_VOID) f << "(char *) 0 )) {\n";
+  if (t->type == T_VOID) f << "0)) == -1) return " << ret << ";\n";
   else
-    f << "\"" << t->print_mangle() << "\")) {\n";
+    f << "SWIGTYPE" << t->print_mangle() << ")) == -1) return " << ret << ";\n";
 
-  // This part handles the type checking according to three different
-  // levels.   0 = no checking, 1 = warning message, 2 = strict.
-
-  switch(TypeStrict) {
-  case 0: // No type checking
-    f << tab8 << "}\n";
-    break;
-
-  case 1: // Warning message only
-
-    // Change this part to how you want to handle a type-mismatch warning.
-    // By default, it will just print to stderr.
-
-    f << tab8 << tab4 << "fprintf(stderr,\"Warning : type mismatch in " << srcname
-	   << " of " << iname << ". Expected " << t->print_mangle()
-	   << ", received %s\\n\"," << src << ");\n"
-	   << tab8 << "}\n";
-
-    break;
-  case 2: // Super strict mode.
-
-    // Change this part to return an error.
-
-    f << tab8 << tab4 << "PyErr_SetString(PyExc_TypeError,\"Type error in " << srcname
-	   << " of " << iname << ". Expected " << t->print_mangle() << ".\");\n"
-	   << tab8 << "return " << ret << ";\n"
-	   << tab8 << "}\n";
-    break;
-    
-  default :
-    fprintf(stderr,"SWIG Error. Unknown strictness level\n");
-    break;
-  }
-  f << tab4 << "}\n";
 }
 
 // ----------------------------------------------------------------------
@@ -923,20 +892,10 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  break;
 	  
 	case T_USER :
-	  
-	  // Return something by value
-	  // We're living dangerously here, but life is short...play hard
-	  
-	  // Oops.  Need another local variable
-	  f.add_local("char","_ptemp[128]");
-	  
+	  d->remember();
 	  d->is_pointer++;
-	  f.code << tab4 << "SWIG_MakePtr(_ptemp, (void *) _result,\""
-		 << d->print_mangle() << "\");\n";
+	  f.code << tab4 << "_resultobj = SWIG_NewPointerObj((void *)_result, SWIGTYPE" << d->print_mangle() << ");\n";
 	  d->is_pointer--;
-	  // Return a character string containing our pointer.
-	  
-	  f.code << tab4 << "_resultobj = Py_BuildValue(\"s\",_ptemp);\n";
 	  break;
 	default :
 	  fprintf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
@@ -956,19 +915,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // If declared as a new object, free the result
 
 	} else {
-	  
 	  // Build a SWIG pointer.
-	  f.add_local("char","_ptemp[128]");
-	  f.code << tab4 << "if (_result) {\n"
-		 << tab8 << "SWIG_MakePtr(_ptemp, (char *) _result,\""
-		 << d->print_mangle() << "\");\n";
-	  
-	  // Return a character string containing our pointer.
-	  f.code << tab8 << "_resultobj = Py_BuildValue(\"s\",_ptemp);\n";
-	  f.code << tab4 << "} else {\n"
-		 << tab8 << "Py_INCREF(Py_None);\n"
-		 << tab8 << "_resultobj = Py_None;\n"
-		 << tab4 << "}\n";
+	  d->remember();
+	  f.code << tab4 << "_resultobj = SWIG_NewPointerObj((void *) _result, SWIGTYPE" << d->print_mangle() << ");\n";
 	}
       }
     } else {
@@ -1275,11 +1224,10 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    break;
 	  case T_USER:
 	    // Hack this into a pointer
-	    getf.add_local("char", "ptemp[128]");
+	    t->remember();
 	    t->is_pointer++;
-	    getf.code << tab4 << "SWIG_MakePtr(ptemp,(char *) &" << name
-		      << "," << quote << t->print_mangle() << quote << ");\n"
-		      << tab4 << "pyobj = PyString_FromString(ptemp);\n";
+	    getf.code << tab4 << "pyobj = SWIG_NewPointerObj((void *) &" << name 
+		      << ", SWIGTYPE" << t->print_mangle() << ");\n";
 	    t->is_pointer--;
 	    break;
 	  default:
@@ -1294,10 +1242,9 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 		      << tab8 << "pyobj = PyString_FromString(" << name << ");\n"
 		      << tab4 << "else pyobj = PyString_FromString(\"(NULL)\");\n";
 	  } else {
-	    getf.add_local("char","ptemp[128]");
-	    getf.code << tab4 << "SWIG_MakePtr(ptemp, (char *) " << name << ",\""
-		      << t->print_mangle() << "\");\n"
-		      << tab4 << "pyobj = PyString_FromString(ptemp);\n";
+	    t->remember();
+	    getf.code << tab4 << "pyobj = SWIG_NewPointerObj((void *)" << name
+		      << ", SWIGTYPE" << t->print_mangle() << ");\n";
 	  }
 	}
       }
@@ -1347,7 +1294,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
   // Make a static python object
 
   if ((tm = typemap_lookup("const","python",type,name,value,name))) {
-    fprintf(f_init,"%s\n",tm);
+    const_code << tm << "\n";
   } else {
 
     if ((type->type == T_USER) && (!type->is_pointer)) {
@@ -1361,14 +1308,14 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       case T_SHORT: case T_SSHORT: case T_USHORT:
       case T_LONG: case T_SLONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR:
-	fprintf(f_init,"\t PyDict_SetItemString(d,\"%s\", PyInt_FromLong((long) %s));\n",name,value);
+	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyInt_FromLong((long)" << value << "));\n";
 	break;
       case T_DOUBLE:
       case T_FLOAT:
-	fprintf(f_init,"\t PyDict_SetItemString(d,\"%s\", PyFloat_FromDouble((double) %s));\n",name,value);
+	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyFloat_FromDouble((double)" << value << "));\n";
 	break;
       case T_CHAR :
-	fprintf(f_init,"\t PyDict_SetItemString(d,\"%s\", PyString_FromString(\"%s\"));\n",name,value);
+	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyString_FromString(\"" << value << "\"));\n";
 	break;
       default:
 	fprintf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
@@ -1376,15 +1323,12 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       }
     } else {
       if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-	fprintf(f_init,"\t PyDict_SetItemString(d,\"%s\", PyString_FromString(\"%s\"));\n",name,value);
+	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyString_FromString(\"" << value << "\"));\n";
       } else {
 	// A funky user-defined type.  We're going to munge it into a string pointer value
-	fprintf(f_init,"\t {\n");
-	fprintf(f_init,"\t\t char %s_char[%d];\n", name, (int) strlen(type->print_mangle()) + 20);
-	fprintf(f_init,"\t\t SWIG_MakePtr(%s_char, (void *) (%s),\"%s\");\n",
-		name, value, type->print_mangle());
-	fprintf(f_init,"\t\t PyDict_SetItemString(d,\"%s\", PyString_FromString(%s_char));\n",name,name);
-	fprintf(f_init,"\t }\n");
+	type->remember();
+	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", SWIG_NewPointerObj((void *) " << value
+		   << ", SWIGTYPE" << type->print_mangle() << "));\n";
       }
     }
   }
