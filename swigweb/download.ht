@@ -38,8 +38,8 @@ with ANSI C++ compilers and will probably generate a lot of compiler
 warnings.  Sorry.
 
 <p>
-<a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG 1.3.6</a>
-is the latest development release (2001/07/10). View the <a href="release.html">release notes</a>. A Macintosh port (macswig-1.3.6) and a Windows executable (swigwin-1.3.6) are also available from the 
+<a href="http://prdownloads.sourceforge.net/swig/swig-1.3.7.tar.gz">SWIG 1.3.7</a>
+is the latest development release (2001/09/03). View the <a href="release.html">release notes</a>. A Macintosh port (macswig-1.3.7) and a Windows executable (swigwin-1.3.7) also may be available from the 
 SourceForge <a href="http://sourceforge.net/project/showfiles.php?group_id=1645">releases</a> area.
 
 <p>

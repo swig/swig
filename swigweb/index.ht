@@ -38,8 +38,15 @@ an abundance of spare time.
 <p>
 <h3>News</h3>
 <p>
+<b>2001/09/03</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.7.tar.gz">SWIG-1.3.7</a> has been
+released. This is one of the most substantial enhancements to SWIG ever released.  Includes a more
+powerful parser, support for C++ templates, simplified wrapping of overloaded methods and more!
+This release also includes some updated documentation on the new features.
+
+<p>
 <b>2001/08/30</b> A precompiled executable of SWIG-1.3.6 for Windows (<a
 href="http://prdownloads.sourceforge.net/swig/swigwin-1.3.6.zip">swigwin-1.3.6</a>) is now available.
+
 
 <p>
 <b>2001/07/16</b> A Macintosh port of SWIG-1.3.6 (<a
