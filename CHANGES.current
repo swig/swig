@@ -1,5 +1,8 @@
 Version 1.3.18 (In progress)
 ============================
+02/10/2003: beazley
+            Fixed subtle preprocessor argument expansion bug. Reported by Marcelo Matus.
+
 02/10/2003: songyanf
             Added -compact option.
             Reduce the lines and size of the wrapper file
