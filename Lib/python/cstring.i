@@ -121,7 +121,7 @@
 %typemap(in) TYPEMAP {
    char *t = PyString_AsString($input);
    int   n = PyString_Size($input);
-   if (PyErr_Occurred()) return SWIG_fail;
+   if (PyErr_Occurred()) SWIG_fail;
    $1 = ($1_ltype) t;
 #if #__VA_ARGS__ == ""
 #if __cplusplus
@@ -166,7 +166,7 @@
 %define %cstring_output_maxsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
    $2 = PyInt_AsLong($input);
-   if (PyErr_Occurred()) return SWIG_fail;
+   if (PyErr_Occurred()) SWIG_fail;
 #ifdef __cplusplus
    $1 = ($1_ltype) new char[$2+1];
 #else
