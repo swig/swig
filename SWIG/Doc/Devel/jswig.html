@@ -508,6 +508,8 @@ Use %name to rename the shadow classes.</li>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</pre>
 <li>
 The %native directive can be used to mix hand written JNI functions with the auto generated functions.
+<li>
+The %except directive can be used to handle exceptions. If there is an exception a <code>return NULL</code> is often used. As some JNI function return types are void, a <code>return</code> is needed instead of a <code>return NULL</code>. This can be solved by using %typemap(java, except) which will use the return type as the basis for overriding the %except directive.
 </ul>
 
 <h2>
