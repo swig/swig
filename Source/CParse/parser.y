@@ -52,6 +52,7 @@ static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
+static int      compact_default_args = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -150,7 +151,7 @@ static Node *copy_node(Node *n) {
  *                              Variables
  * ----------------------------------------------------------------------------- */
 
-      char  *typemap_lang = 0;    /* Current language setting */
+static char  *typemap_lang = 0;    /* Current language setting */
 
 static int cplus_mode  = 0;
 static String  *class_rename = 0;
@@ -163,6 +164,10 @@ static String  *class_rename = 0;
 
 void SWIG_typemap_lang(const char *tm_lang) {
   typemap_lang = Swig_copy_string(tm_lang);
+}
+
+void SWIG_cparse_set_compact_default_args(int defargs) {
+  compact_default_args = defargs;
 }
 
 /* -----------------------------------------------------------------------------
@@ -895,6 +900,18 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
  * The additional functions form a linked list of nodes with the head being the original Node n. */
 static void default_arguments(Node *n) {
   Node *function = n;
+
+  /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
+    (one wrapped method per function irrespective of number of default arguments) */
+  if (function) {
+    if (compact_default_args || !cparse_cplusplus || Getattr(function,"feature:compactdefaultargs") || Getattr(function,"feature:kwargs")) {
+      ParmList *p = Getattr(function,"parms");
+      if (p) 
+        Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
+      function = 0; /* don't add in extra methods */
+    }
+  }
+
   while (function) {
     /* Look for parameters with default arguments */
     ParmList *p = Getattr(function,"parms");
@@ -2267,17 +2284,23 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             }
                           }
                         }
-                        if (templnode && nspace) {
-                          appendChild(nspace_inner,templnode);
-                          templnode = nspace;
-                        }
+
                         /* all the overloaded templated functions are added into a linked list */
-                        if (!linklistend) {
-                          $$ = templnode;
+                        if (nspace) {
+                          /* non-global namespace */
+                          if (templnode) {
+                            appendChild(nspace_inner,templnode);
+                            $$ = nspace;
+                          }
                         } else {
-                          set_nextSibling(linklistend,templnode);
+                          /* global namespace */
+                          if (!linklistend) {
+                            $$ = templnode;
+                          } else {
+                            set_nextSibling(linklistend,templnode);
+                          }
+                          linklistend = templnode;
                         }
-                        linklistend = templnode;
                       }
                       nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
                     }
