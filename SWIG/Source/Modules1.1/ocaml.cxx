@@ -700,6 +700,8 @@ class OCAML : public Language {
     }
 
     void pushNamespace(Node *n) {
+	if( !class_as_module ) return;
+
 	String *ns_name = get_ml_module_name(n);
 	ocaml_namespace_stack *cur = new ocaml_namespace_stack;
 
@@ -736,6 +738,8 @@ class OCAML : public Language {
     }
 
     void popNamespace() {
+	if( !class_as_module ) return;
+
 	ocaml_namespace_stack *cur = ns_stack;
 
 	if( mliout ) 
