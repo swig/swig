@@ -53,8 +53,9 @@
  * ----------------------------------------------------------------------------- */
 
 /* Pointers, references, and arrays */
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+%typemap(out) SWIGTYPE *, SWIGTYPE &
    "$result = SWIG_NewPointerObj((void*)($1), $descriptor, $owner);";
+
 
 %typemap(out) SWIGTYPE* const&
    "$result = SWIG_NewPointerObj((void*)(*$1), $*descriptor, $owner);";
