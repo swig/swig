@@ -11,6 +11,7 @@
 
 #ifdef __cplusplus
 
+#include <assert.h>
 #include <string>
 
 struct swig_body_args
