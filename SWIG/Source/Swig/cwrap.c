@@ -891,8 +891,8 @@ Swig_ConstructorToFunction(Node *n, String *classname,
     if (cplus) {
       /* if a C++ director class exists, create it rather than the original class */
       if (use_director) {
-  	int abstract = Getattr(n, "abstract") != 0;
 	Node *parent = Swig_methodclass(n);
+  	int abstract = Getattr(parent, "abstract") != 0;
 	String *name = Getattr(parent, "sym:name");
         String* directorname = NewStringf("SwigDirector_%s", name);
 	String* action = NewString("");
