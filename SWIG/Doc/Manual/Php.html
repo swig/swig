@@ -140,14 +140,14 @@ For example, with a swig file like this,
 <p>
 you can access from in your php script like this,
 <blockquote><pre>
-<?
+&lt;?
 dl("example.so");	# If extension built as shared object, load it now.
 
 echo "Pi = ", PI, "\n";
 
 echo "E = ", E, "\n";
 
-?>
+?&gt;
 </pre>
 </blockquote>
 
@@ -167,7 +167,7 @@ accessed incorretly in php,
 <p>
 <pre>
 <blockquote>
-<?
+&lt;?
 dl("example.so");	#  If extension built as shared object, load it now.
 
 if(EASY_TO_MISPEL) {
@@ -176,7 +176,7 @@ if(EASY_TO_MISPEL) {
 	....
 }
 
-?>
+?&gt;
 </blockquote>
 </pre>
 <p>
@@ -201,12 +201,12 @@ accessed from PHP,
 <p>
 <pre>
 <blockquote>
-<?
+&lt;?
 dl("example.so");	#  If extension built as shared object, load it now.
 
 echo TEST, Test;
 
-?>
+?&gt;
 </blockquote>
 </pre>
 <p>
