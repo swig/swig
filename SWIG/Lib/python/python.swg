@@ -426,7 +426,7 @@
 	 enum SWIGTYPE,
          bool, const bool & 
 {
-  $1 = PyInt_Check($input) ? 1 : 0;
+  $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
