@@ -176,6 +176,10 @@ defer  ready to go.  The primary obstacle lies in the target language
        basic inheritance relationships wouldn't be true at the Ruby level,
        e.g. Derived#is_a?(Base1) would return true but Derived#is_a?(Base2)
        would return false.
+
+**     Add a warning for uninstantiated templates.  For example, if a function
+       using a template type, but that type hasn't been instantiated using
+       %template.
        
 **     A related suggestion from Brett Williams (and perhaps an alternative
        to the previously described workaround for MI) is to provide a
