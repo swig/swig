@@ -221,8 +221,10 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   if (c) {
     /* Yes. It does.  We *only* support overloaded functions */
     decl = Getdecl(c);
+    ndecl = Getdecl(n);
+
     if (Cmp(nodeType(n),nodeType(c))) return c;
-    if (!SwigType_isfunction(decl)) {
+    if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
       /* Symbol table conflict */
       return c;
     }
@@ -241,7 +243,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     }
 
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
-    ndecl = Getdecl(n);
+
     cn = c;
     while (cn) {
       decl = Getdecl(cn);
