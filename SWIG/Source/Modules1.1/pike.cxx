@@ -118,8 +118,8 @@ public:
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
     
     /* Change naming scheme for constructors and destructors */
-    Swig_name_register((char *)"construct",(char *)"%c_create");
-    Swig_name_register((char *)"destroy",(char *)"%c_destroy");
+    Swig_name_register("construct","%c_create");
+    Swig_name_register("destroy","%c_destroy");
     
     /* Current wrap type */
     current = NO_CPP;
@@ -230,6 +230,9 @@ public:
     /* Which input argument to start with? */
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
 
+    /* Offset to skip over the attribute name */    
+    int offset = (current == MEMBER_VAR) ? 1 : 0;
+    
     String *wname = Swig_name_wrapper(iname);
     if (overname) {
       Append(wname,overname);
@@ -256,7 +259,7 @@ public:
 	Delete(lstr);
       } else {      
 	/* Look for an input typemap */
-	sprintf(source, "sp[%d-args]", i-start);
+	sprintf(source, "sp[%d-args]", i-start+offset);
 	if ((tm = Getattr(p,"tmap:in"))) {
           Replaceall(tm, "$source", source);
 	  Replaceall(tm, "$target", ln);
@@ -558,7 +561,7 @@ public:
       
     PrefixPlusUnderscore = NewStringf("%s_", getClassPrefix());
 
-    Printv(f_init, "start_new_program();\n", "ADD_STORAGE(swig_object_wrapper);\n", NULL);
+    Printf(f_init, "start_new_program();\n");
 
     /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
@@ -578,6 +581,8 @@ public:
 	Delete(basetype);
         base = Nextitem(baselist);
       }
+    } else {
+      Printf(f_init, "ADD_STORAGE(swig_object_wrapper);\n");
     }
         
     Language::classHandler(n);
@@ -651,15 +656,15 @@ public:
     SwigType *type;
     ParmList *parms;
     Node *n;
-    int need_setter;
+    bool need_setter;
     String *funcname;
     
     /* If at least one of them is mutable, we need a setter */
-    need_setter = 0;
+    need_setter = false;
     n = Firstitem(membervariables);
     while (n) {
       if (!Getattr(n, "feature:immutable")) {
-        need_setter = 1;
+        need_setter = true;
 	break;
       }
       n = Nextitem(membervariables);
@@ -679,9 +684,7 @@ public:
 	  name = Getattr(n, "name");
 	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
-	  Printf(wrapper->code, "stack_dup();\n");
-	  Printf(wrapper->code, "stack_unlink(args);\n");
-	  Printf(wrapper->code, "%s(1);\n", funcname);
+	  Printf(wrapper->code, "%s(args);\n", funcname);
 	  Printf(wrapper->code, "return;\n");
 	  Printf(wrapper->code, "}\n");
 	  Delete(funcname);
