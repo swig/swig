@@ -44,6 +44,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	import_nomodule \
+	struct_value \
 	abstract_inherit \
 	abstract_inherit_ok \
 	add_link \
