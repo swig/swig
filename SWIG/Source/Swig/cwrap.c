@@ -85,13 +85,20 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
  * This function only converts user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
+static int varref = 0;
 String *
 Swig_wrapped_var_type(SwigType *t) {
   SwigType *ty;
   ty = Copy(t);
 
   if (SwigType_isclass(t)) {
-    SwigType_add_pointer(ty);
+    if (varref) {
+      SwigType_add_qualifier(ty, "const");
+      SwigType_add_reference(ty);
+    } else {
+      SwigType_add_qualifier(ty, "const");
+      SwigType_add_pointer(ty);
+    }
   }
   return ty;
 }
@@ -108,7 +115,12 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
 static String *
 Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
   if (SwigType_isclass(t)) {
-    return NewStringf("&%s",name);
+    if (varref) {
+      String* ty = SwigType_namestr(t);
+      return NewStringf("(const %s&)%s",ty, name);
+    } else {
+      return NewStringf("&%s",name);
+    }
   } else {
     return SwigType_lcaststr(t,name);
   }
@@ -562,7 +574,8 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self) {
+Swig_cmemberget_call(const String_or_char *name, SwigType *t,
+		     String_or_char *self) {
   String *func;
   if (!self) self = NewString("(this)->");
   else self = NewString(self);
@@ -919,6 +932,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   String   *membername;
   String   *mangled;
   String   *self= 0;
+  varref = flags & CWRAP_VAR_REFERENCE;  
 
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
@@ -964,6 +978,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(membername);
   Delete(mangled);
   Delete(self);
+  varref = 0;
   return SWIG_OK;
 }
 
@@ -983,6 +998,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   String   *membername;
   String   *mangled;
   String   *self = 0;
+  varref = flags & CWRAP_VAR_REFERENCE;  
 
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
@@ -1020,6 +1036,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   Delete(ty);
   Delete(membername);
   Delete(mangled);
+  varref = 0;
   return SWIG_OK;
 }
 
