@@ -20,7 +20,7 @@ static char cvsroot[] = "$Header$";
  *
  * guile.cxx
  *
- * Definitions for adding functions to Guile 3.0
+ * Definitions for adding functions to Guile
  ***********************************************************************/
 
 #include "mod11.h"
@@ -328,11 +328,14 @@ GUILE::close (void)
   Printf (f_init, "}\n\n");
   char module_name[256];
 
-  if (package)
-    sprintf(module_name,"%s/%s", package,module);
-  else
-    strcpy(module_name,module);
-
+  if (!module)
+    sprintf(module_name, "swig");
+  else {
+    if (package)
+      sprintf(module_name,"%s/%s", package,module);
+    else
+      strcpy(module_name,module);
+  }
   emit_linkage (module_name);
 }
 
@@ -785,7 +788,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
 void
 GUILE::usage_var (char *iname, DataType *t, DOHString *usage)
 {
-  
+
   Printv(usage, "(", iname, " [value])", 0);
   if (!((t->type != T_USER) || (t->is_pointer))) {
     Printf(usage," - unsupported");
