@@ -17,6 +17,9 @@ SWIG release.  The guilty parties working on this are:
   -  Loic Dachary (loic@ceic.com)                       (Perl5)
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
 
+*** Disclaimer : The Source directory is a nightmare right now. Please
+pardon our dust.
+
 General overview:
 =================
 The primary goal of future development is to make SWIG more modular,

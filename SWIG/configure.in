@@ -454,4 +454,5 @@ AC_SUBST(PERL5EXT)
 # stuff, we're going to skip it!
 AC_OUTPUT(Makefile Source/Swig/Makefile Source/DOH/Doh/Makefile 
     Source/DOH/Makefile Source/Preprocessor/Makefile Source/SWIG1.1/Makefile
-    Source/Modules1.1/Makefile Source/LParse/Makefile Examples/Makefile)
+    Source/Modules1.1/Makefile Source/LParse/Makefile 
+    Source/Experiment/Makefile Examples/Makefile)
