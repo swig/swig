@@ -21,3 +21,12 @@ pass
 if error == 1:
   raise RuntimeError
 
+# Check the import in subdirectory worked
+if inctest.importtest1(5) != 15:
+  print "import test 1 failed"
+  raise RuntimeError
+
+if inctest.importtest2("black") != "white":
+  print "import test 2 failed"
+  raise RuntimeError
+

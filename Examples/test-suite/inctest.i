@@ -11,5 +11,6 @@
  // including one. This is not right, it must include both,
  // as the well known compilers do.
  //
+ // Also repeats the test for the import directive in subdirectories
 
 %include "testdir/test.i"
