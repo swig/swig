@@ -725,7 +725,7 @@ of consecutive types.  For example, a typemap can be written as follows:
 
 <blockquote>
 <pre>
-%typemap(int) (char *buffer, int len) {
+%typemap(in) (char *buffer, int len) {
    $1 = PyString_AsString($input);
    $2 = PyString_Size($input);
 }
