@@ -266,9 +266,35 @@ void Language::applyDirective(Node *n) {
   String   *name  = Getattr(n,"name");
   Parm     *p     = Getattr(n,"parms");
   Parm     *mtype = Getattr(n,"multitype");
+  if (mtype && (ParmList_len(mtype) == 1)) {
+    type = Getattr(mtype,"type");
+    name = Getattr(mtype,"name");
+  }
   while (p) {
+    SwigType *ptype = Getattr(p,"type");
+    String   *pname = Getattr(p,"name");
+    Parm     *pmulti= Getattr(p,"multitype");
+    if (pmulti && (ParmList_len(pmulti) == 1)) {
+      ptype = Getattr(pmulti,"type");
+      pname = Getattr(pmulti,"name");
+    }
     if (type) {
-      Swig_typemap_apply(type,name,Getattr(p,"type"),Getattr(p,"name"));
+      if (ptype) {
+	Swig_typemap_apply(type,name,ptype, pname);
+      } else {
+	Printf(stderr,"%s:%d. Can't apply a simple typemap to (%s).\n", input_file, line_number, ParmList_str(pmulti));
+      }
+    } else {
+      if (pmulti) {
+	if (ParmList_len(pmulti) != ParmList_len(mtype)) {
+	  Printf(stderr,"%s:%d. Can't apply (%s) to (%s).  Number of arguments don't match.\n",
+		 input_file, line_number, ParmList_str(mtype), ParmList_str(pmulti));
+	} else {
+	  Printf(stderr,"%s:%d. Multi-argument %%apply not implemented.\n", input_file, line_number);
+	}
+      } else {
+	Printf(stderr,"%s:%d. Can't apply a multi-argument typemap to %s.\n", input_file, line_number, SwigType_str(ptype,pname));
+      }
     }
     p = nextSibling(p);
   }
@@ -281,7 +307,16 @@ void Language::applyDirective(Node *n) {
 void Language::clearDirective(Node *n) {
   Parm *p;
   for (p = Getattr(n,"parms"); p; p = nextSibling(p)) {
-    Swig_typemap_clear_apply(Getattr(p,"type"),Getattr(p,"name"));
+    SwigType *type = Getattr(p,"type");
+    String   *name = Getattr(p,"name");
+    if (type) {
+      Swig_typemap_clear_apply(Getattr(p,"type"),Getattr(p,"name"));
+    } else {
+      ParmList *multi = Getattr(p,"multitype");
+      if (multi) {
+	Printf(stderr,"multi-argument clear not supported\n");
+      }
+    }
   }
 }
 
@@ -474,7 +509,9 @@ void Language::typemapcopyDirective(Node *n) {
       SwigType *newtype  = Getattr(items,"type");
       String   *newname  = Getattr(items,"name");
       if (newtype) {
-	Swig_typemap_copy(method,type,name,newtype,newname);
+	if (Swig_typemap_copy(method,type,name,newtype,newname) < 0) {
+	  Printf(stderr,"%s:%d. Can't copy typemap.\n", input_file, line_number);	  
+	}
       } else {
 	Printf(stderr,"%s:%d. Can't copy %s to a multi-valued typemap\n", input_file, line_number,
 	       SwigType_str(type,name));
@@ -484,10 +521,12 @@ void Language::typemapcopyDirective(Node *n) {
   } else {
     /* Multitype */
     while (items) {
-      SwigType *newmtype  = Getattr(items,"multitype");
+      ParmList *newmtype  = Getattr(items,"multitype");
       String   *newname  = Getattr(items,"name");
       if (newmtype) {
-	Printf(stderr,"%s:%d. Multi-valued typemap copy not implemented.\n", input_file, line_number);
+	if (Swig_typemap_copy_multi(method,mtype,newmtype) < 0) {
+	  Printf(stderr,"%s:%d. Can't copy typemap.\n", input_file, line_number);
+	}
       } else {
 	Printf(stderr,"%s:%d. Can't copy (%s) to a single-valued typemap\n", input_file, line_number,
 	       ParmList_str(mtype));
