@@ -346,7 +346,7 @@ void JAVA::parse_args(int argc, char *argv[]) {
 
   // Add a symbol to the parser for conditional compilation
   // cpp::define("SWIGJAVA");
-  add_symbol("SWIGJAVA", 0, 0);
+  SWIG_cpp_define((void *) "SWIGJAVA 1",0);
 
   // Add typemap definitions
   typemap_lang = "java";

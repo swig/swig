@@ -186,8 +186,8 @@ PERL5::parse_args(int argc, char *argv[]) {
   }
   // Add a symbol for this module
 
-  add_symbol("SWIGPERL",0,0);
-  add_symbol("SWIGPERL5",0,0);
+  SWIG_cpp_define((void *) "SWIGPERL 1", 0);
+  SWIG_cpp_define((void *) "SWIGPERL5 1", 0);
 
   // Set name of typemaps
 

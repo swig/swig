@@ -55,7 +55,7 @@ void GUILE::parse_args(int argc, char *argv[]) {
   }
   // Add a symbol for this module
 
-  add_symbol("SWIGGUILE",0,0);
+  SWIG_cpp_define((void *) "SWIGGUILE",0);
 
   // Set name of typemaps
 
