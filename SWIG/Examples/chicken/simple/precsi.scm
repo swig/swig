@@ -17,9 +17,9 @@
 (display "\n")
 
 (display "Scheme Procedures:\n")
-(display "  (example-My-variable) or (example-My-variable %x)\n");
-(display "  (example-fact %n)\n")
-(display "  (example-mod %n %m)\n")
-(display "  (example-my-mod %n %m)\n")
-(display "  (example-get-time)\n")
+(display "  (example:My-variable) or (example:My-variable %x)\n");
+(display "  (example:fact %n)\n")
+(display "  (example:mod %n %m)\n")
+(display "  (example:my-mod %n %m)\n")
+(display "  (example:get-time)\n")
 (display "\n")

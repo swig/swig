@@ -154,9 +154,10 @@
 
 
     <p>
-      SWIG CHICKEN does not use the standard CHICKEN module system;
-      instead, it uses a prefix system.  Specifying the module name as
-      'example' in SWIG CHICKEN can be done using either of:
+      SWIG CHICKEN does not use the standard CHICKEN module system
+      (which has been deprecated); instead, it uses a prefix system.
+      Specifying the module name as 'example' in SWIG CHICKEN can be
+      done using either of:
       <ul>
 	<li>Placing <tt>%module example</tt> in the SWIG interface
 	  file.</li>
@@ -171,7 +172,7 @@
 
       Normally, for a C declaration <tt>Foo_Bar</tt> with a module
       name of 'example', the corresponding CHICKEN identifier will be
-      <tt>example-foo-bar</tt>.  <strong>The module name and a dash is
+      <tt>example:foo-bar</tt>.  <strong>The module name and a colon is
       prefixed to the CHICKEN identifier</strong> (following normal
       naming conventions).
 
@@ -319,7 +320,6 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
 % cd /usr/local/share/chicken
 % chicken /usr/local/share/chicken/src/csi.scm -optimize-level 3 -quiet \
         -include-path /usr/local/share/chicken/src \
-        -postlude "(##csi#run)" \
         -prologue /usr/local/share/chicken/src/build.scm \
         -prelude "(declare (uses posix precsi))" \
         -output-file /home/jonah/examples/csi-example.c

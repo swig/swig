@@ -236,7 +236,7 @@ $1 = *argp; ";
 %typemap(out,chicken_words="SWIG_ALLOCSZ_PACKED_OBJ(sizeof($1_type),$typename)") SWIGTYPE (CLASS::*) "$result = swig_new_packed_obj((void *) &$1, &known_space, sizeof($1_type), $1_descriptor);";
 
 /* Void */
-%typemap(out,chicken_words="VOID") void
+%typemap(out,chicken_words="void") void
 %{
 /*if ONE*/
 $result = C_SCHEME_UNDEFINED;

@@ -10,11 +10,11 @@
 ;; ----- Object creation -----
 
 (display "Creating some objects:\n")
-(define c (make <example-Circle> 10.0))
+(define c (make <example:Circle> 10.0))
 (display "    Created circle ")
 (display c)
 (display "\n")
-(define s (make <example-Square> 10.0))
+(define s (make <example:Square> 10.0))
 (display "    Created square ")
 (display s)
 (display "\n")
@@ -22,7 +22,7 @@
 ;; ----- Access a static member -----
 
 (display "\nA total of ")
-(display (+example-Shape-nshapes+))
+(display (+example:Shape-nshapes+))
 (display " shapes were created\n")
 
 ;; ----- Member data access -----
@@ -71,6 +71,6 @@
 (set! s 88)
 (gc #t)
 
-(display (+example-Shape-nshapes+))
+(display (+example:Shape-nshapes+))
 (display " shapes remain\n")
 (display "Goodbye\n")

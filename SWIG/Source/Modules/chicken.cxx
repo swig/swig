@@ -250,8 +250,8 @@ CHICKEN::top(Node *n)
     if (!prefix) {
       prefix = Copy(module);
     }
-    if (Len(prefix) && ((Char(prefix)) [Len(prefix) - 1] != '-')) {
-      Append(prefix, "-");
+    if (Len(prefix) && ((Char(prefix)) [Len(prefix) - 1] != ':')) {
+      Append(prefix, ":");
     }
   }
     
@@ -538,7 +538,7 @@ CHICKEN::functionWrapper(Node *n)
   for (p = l; p;) {
     if (tm = Getattr(p,"tmap:argout:chicken_words")) {
       Replaceall(tm,"$typename", mangle);
-      if (strcasecmp(Char(tm), "VOID") == 0) continue;
+      if (strcmp(Char(tm), "void") == 0) continue;
       if (strcmp(Char(tm), "0") != 0) will_alloca = 1;
       if (result_list_len) {
 	Printf(known_alloca_plus, " + ");
@@ -555,7 +555,7 @@ CHICKEN::functionWrapper(Node *n)
   if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
     if (am = Getattr(n,"tmap:out:chicken_words")) {
       Replaceall(am,"$typename", mangle);
-      if (strcasecmp(Char(am), "VOID") == 0) {
+      if (strcmp(Char(am), "void") == 0) {
 	has_void_return = 1;
       }
       else {

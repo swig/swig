@@ -29,12 +29,12 @@ class Foo {
       (display "CHICKEN Low-Level Procedures\n")
       (display "----------------------------\n")
       (display "
-  (example-foo %x-int)
-  (example-foo %x-string)
-  (define A-FOO (example-new-Foo))
-  (define ANOTHER-FOO (example-new-Foo %foo)) ;; copy constructor
-  (example-Foo-bar %foo %x-int)
-  (example-Foo-bar %foo %s-string %y-int)
+  (example:foo %x-int)
+  (example:foo %x-string)
+  (define A-FOO (example:new-Foo))
+  (define ANOTHER-FOO (example:new-Foo %foo)) ;; copy constructor
+  (example:Foo-bar %foo %x-int)
+  (example:Foo-bar %foo %s-string %y-int)
 ")
 
       (display "\n")
@@ -47,10 +47,10 @@ class Foo {
   ;; After generic methods are defined, can include TinyCLOS code
   (include \"example_clos\")
 
-  (+example-foo+ %x-int)
-  (+example-foo+ %x-string)
-  (define A-FOO (make <example-Foo>))
-  (define ANOTHER-FOO (make <example-Foo> %fooObject)) ;; copy constructor
+  (+example:foo+ %x-int)
+  (+example:foo+ %x-string)
+  (define A-FOO (make <example:Foo>))
+  (define ANOTHER-FOO (make <example:Foo> %fooObject)) ;; copy constructor
   (-bar- %fooObject %x-int)
   (-bar- %fooObject %s-string %y-int)
 ")
