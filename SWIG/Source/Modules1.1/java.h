@@ -44,7 +44,7 @@ public :
   void SwigToJavaType(SwigType *t, String_or_char *pname, String* java_type, int shadow_flag);
   char *SwigToJavaArrayType(SwigType *t);
   char *JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname);
-  char *makeValidJniName(char *name);
+  char *makeValidJniName(const char *name);
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
   void cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function_name);

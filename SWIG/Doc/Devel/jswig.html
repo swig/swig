@@ -504,11 +504,7 @@ The native library will also not load if there are any unresolved symbols in the
 <br><br>
 Ensure that you are using the correct c/c++ compiler and linker combination and options for successful native library loading. The Examples/Makefile must have these set up correctly for your system. The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
 <br><br>
-Avoid putting underscores in your module name:
-<blockquote> <pre>
-%module this_is_likely_to_cause_linking_problems
-%module ThisWillNotCauseLinkingProblems 
-</pre> </blockquote>
+Linking problems used to occur when there were underscores in the module name or package name. This was fixed in SWIG 1.3.7.
 
 <h2>
 Tips</h2>

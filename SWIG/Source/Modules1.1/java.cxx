@@ -302,8 +302,8 @@ char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname) {
   return strdup(bigbuf);
 }
 
-char *JAVA::makeValidJniName(char *name) {
-  char *c = name;
+char *JAVA::makeValidJniName(const char *name) {
+  const char *c = name;
   char *b = bigbuf;
 
   while(*c) {
@@ -514,10 +514,15 @@ void JAVA::initialize()
     SWIG_exit(1);
   }
 
+  String* wrapper_name = NewString("");
+
   if(package) {
     String *s = NewString(package);
     Replace(s,".","_", DOH_REPLACE_ANY);
-    Append(s,"_");
+    char *jniname = makeValidJniName(Char(s));
+    Clear(s);
+    Printf(s, "%s_", jniname);
+    free(jniname);
     c_pkgstr = Swig_copy_string(Char(s));
     Delete(s);
 
@@ -530,18 +535,16 @@ void JAVA::initialize()
     package = c_pkgstr = jni_pkgstr = (char*)"";
   }
 
-  sprintf(bigbuf, "Java_%s%s", c_pkgstr, module);
-  c_pkgstr = Swig_copy_string(bigbuf);
+  char *jniname = makeValidJniName(module);
+  Printf(wrapper_name, "Java_%s%s_%%f", c_pkgstr, jniname);
+  free(jniname);
 
-  if (strchr(module + strlen(module)-1, '_')) //if module has a '_' as last character
-    sprintf(bigbuf, "%s1_%%f", c_pkgstr); //separate double underscore with 1
-  else
-    sprintf(bigbuf, "%s_%%f", c_pkgstr);
-
-  Swig_name_register((char*)"wrapper", Swig_copy_string(bigbuf));
+  Swig_name_register((char*)"wrapper", Char(wrapper_name));
   Swig_name_register((char*)"set", (char*)"set_%v");
   Swig_name_register((char*)"get", (char*)"get_%v");
   Swig_name_register((char*)"member", (char*)"%c_%m");
+
+  Delete(wrapper_name);
 
   // Generate the java class
   sprintf(bigbuf, "%s.java", module);
@@ -697,7 +700,6 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   // Make a wrapper name for this function
   char *jniname = makeValidJniName(iname);
   String *wname = Swig_name_wrapper(jniname);
-
   free(jniname);
 
   /* Get the java and jni types of the return */
@@ -1380,7 +1382,7 @@ void JAVA::emit_shadow_classdef() {
     "\n",
     "  public long getCPtr() {\n",
     "    return _cPtr;\n",
-    "  };\n",
+    "  }\n",
     "\n", 0);
   Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
 
@@ -1678,7 +1680,7 @@ void JAVA::cpp_destructor(char *name, char *newname) {
     if(!nofinalize) {
       Printf(f_shadow, "  protected void finalize() {\n");
       Printf(f_shadow, "    _delete();\n");
-      Printf(f_shadow, "  };\n\n");
+      Printf(f_shadow, "  }\n\n");
     }
   
     Printf(f_shadow, "  public void _delete() {\n");
