@@ -1489,6 +1489,31 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
 </pre>
 </blockquote>
 
+<h3>Typemap Parameters</h3>
+
+Sometimes, a typemap may take additional parameters that are specific to a certain language
+module.   These are specified in the <tt>%typemap</tt> directive as follows:
+
+<blockquote>
+<pre>
+%typemap(in,<em>name</em>="<em>value</em>",<em>name</em>="<em>value</em>",...) ...
+</pre>
+</blockquote>
+
+A common usage of this is to alter the behavior of documentation strings or usage information.
+For example:
+
+<blockquote>
+<pre>
+%typemap(in,doc="4-tuple") int [4] {
+   ...
+}
+</pre>
+</blockquote>
+
+The set of recognized parameters depends on the target language.  In fact, parameters are
+primarily supported to allow addition typemap-related hints to be propagated to individual modules.
+
 <h2>Typemaps for arrays</h2>
 
 A common use of typemaps is to provide support for C arrays appearing both as
@@ -1653,14 +1678,14 @@ To fix this, you can supply a special "memberin" typemap like this:
 %typemap(memberin) float [ANY] {
   int i;
   for (i = 0; i &lt; $1_dim0; i++) {
-      $1[i] = $minput[i];
+      $1[i] = $input[i];
   }
 }
 </pre></blockquote>
 
 <p>
 The memberin typemap is used to set a structure member from data that has already been converted
-from the target language to C.  In this case, <tt>$minput</tt> is the local variable in which 
+from the target language to C.  In this case, <tt>$input</tt> is the local variable in which 
 converted input data is stored.   This typemap then copies this data into the structure. 
 
 <p>
