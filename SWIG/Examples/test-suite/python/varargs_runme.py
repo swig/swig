@@ -9,3 +9,7 @@ if f.str != "Greetings":
 
 if f.test("Hello") != "Hello":
     raise RuntimeError, "Failed"
+
+
+if varargs.test_def("Hello") != "Hello":
+    raise RuntimeError, "Failed"
