@@ -3448,7 +3448,7 @@ cpp_vend       : cpp_const SEMI {
                ;
 
 
-anonymous_bitfield : storage_class type COLON NUM_INT SEMI { };
+anonymous_bitfield :  storage_class type COLON expr SEMI { };
 
 /* ====================================================================== 
  *                       PRIMITIVES
@@ -3645,7 +3645,7 @@ def_args       : EQUAL definetype {
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 	       }
-               | COLON NUM_INT { 
+               | COLON expr { 
 		 $$.val = 0;
 		 $$.rawval = 0;
 		 $$.type = 0;
