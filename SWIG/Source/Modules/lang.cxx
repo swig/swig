@@ -1358,7 +1358,7 @@ int Language::unrollVirtualMethods(Node *n,
   Node *ni;
   String *type;
   String *nodeType;
-  String *cdecl;
+  String *c_decl;
   String *storage;
   String *classname;
   String *decl;
@@ -1371,7 +1371,7 @@ int Language::unrollVirtualMethods(Node *n,
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     storage = Getattr(ni, "storage");
-    cdecl = Getattr(ni, "cdecl");
+    c_decl = Getattr(ni, "cdecl");
     decl = Getattr(ni, "decl");
     if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
       int is_virtual = storage && !Cmp(storage, "virtual");
@@ -1482,6 +1482,7 @@ int Language::classDirectorConstructors(Node *n) {
   if (!constructor) {
     classDirectorDefaultConstructor(n);
   }
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
@@ -1500,6 +1501,7 @@ int Language::classDirectorMethods(Node *n) {
        Setattr(item, "director", "1");
     }
   }
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
