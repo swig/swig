@@ -11,7 +11,7 @@
 // Here, we identify compilers we now have problems with STL.
 %{
   
-#if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
+#if defined(__SUNPRO_CC) 
 #define SWIG_STD_NOASSIGN_STL
 #endif
 
