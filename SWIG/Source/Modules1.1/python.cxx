@@ -23,7 +23,6 @@ static  String       *module = 0;
 static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 0;
-static  int           have_defarg = 0;
 static  int           have_output;
 static  int           use_kw = 0;
 static  int           noopt = 1;
@@ -343,9 +342,9 @@ PYTHON::create_command(char *cname, char *iname) {
 void
 PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm    *p;
-  int     pcount,i,j;
+  int     i;
   char    wname[256];
-  char    source[64], target[64], argnum[20];
+  char    source[64], target[64];
   char    *usage = 0;
   Wrapper *f;
   String *parse_args;
@@ -356,17 +355,18 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   String *check;
   String *kwargs;
   String *tm;
-  int      numopt = 0;
-  int      numin = 0;
 
+  int     num_required;
+  int     num_arguments;
+  
   f = NewWrapper();
-  parse_args = NewString("");
-  arglist = NewString("");
+  parse_args   = NewString("");
+  arglist      = NewString("");
   get_pointers = NewString("");
-  cleanup = NewString("");
-  outarg = NewString("");
-  check = NewString("");
-  kwargs = NewString("");
+  cleanup      = NewString("");
+  outarg       = NewString("");
+  check        = NewString("");
+  kwargs       = NewString("");
 
   have_output = 0;
 
@@ -386,12 +386,15 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
-  /* Get the function usage string for later use */
+  /* Write code to extract function parameters. */
+  emit_args(d, l, f);
 
+  /* Attach the standard typemaps */
+  emit_attach_parmmaps(l,f);
+
+  /* Create a usage string for later */
   usage = usage_func(iname,d,l);
 
-  /* Write code to extract function parameters. */
-  pcount = emit_args(d, l, f);
   if (!use_kw) {
     Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
   } else {
@@ -399,176 +402,158 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     Printf(arglist,",kwnames");
   }
 
-  i = 0;
-  j = 0;
-  numopt = check_numopt(l);
-  if (numopt) have_defarg = 1;
-  p = l;
-  Printf(kwargs,"{ ");
-  while (p != 0) {
+  /* Get number of required and total arguments */
+  num_arguments = emit_num_arguments(l);
+  num_required  = emit_num_required(l);
+
+  /* Generate code for argument marshalling */
+
+  Printf(kwargs,"{ ");  
+  for (i = 0, p=l; i < num_arguments; i++) {
+    
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *pv = Getattr(p,"value");
     String   *ln = Getattr(p,"lname");
 
     sprintf(source,"obj%d",i);
-    sprintf(target,Char(Getattr(p,"lname")));
-    sprintf(argnum,"%d",j+1);
 
-    if (numin) numin--;
-    if (!numin && !Getattr(p,"ignore")) {
-      Putc(',',arglist);
-      if (j == pcount-numopt) Putc('|',parse_args);   /* Optional argument separator */
-      if (Len(pn)) {
-	Printf(kwargs,"\"%s\",", pn);
-      } else {
-	Printf(kwargs,"\"arg%d\",", j+1);
-      }
-      /*      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {*/
-      if ((tm = Swig_typemap_lookup_multi((char *)"in",p,source,f,&numin))) {
-	Putc('O',parse_args);
-	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
-	Printf(arglist,"&%s",source);
-	if (i >= (pcount-numopt))
-	  Printv(get_pointers, tab4, "if (", source, ")\n", 0);
-	Printv(get_pointers,tm,"\n", 0);
-	Replace(get_pointers,"$argnum", argnum, DOH_REPLACE_ANY);
-	Replace(get_pointers,"$arg",source, DOH_REPLACE_ANY);
-	Delete(tm);
-      } else {
-	int noarg = 0;
+    Putc(',',arglist);
+    if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
 
-	switch(SwigType_type(pt)) {
-	case T_INT : case T_UINT:
-	  Putc('i',parse_args);
-	  break;
-	case T_SHORT: case T_USHORT:
-	  Putc('h',parse_args);
-	  break;
-	case T_LONG : case T_ULONG:
-	  Putc('l',parse_args);
-	  break;
-	case T_SCHAR : case T_UCHAR :
-	  Putc('b',parse_args);
-	  break;
-	case T_CHAR:
-	  Putc('c',parse_args);
-	  break;
-	case T_FLOAT :
-	  Putc('f',parse_args);
-	  break;
-	case T_DOUBLE:
-	  Putc('d',parse_args);
-	  break;
+    /* Keyword argument handling */
+    if (Len(pn)) {
+      Printf(kwargs,"\"%s\",", pn);
+    } else {
+      Printf(kwargs,"\"arg%d\",", i+1);
+    }
 
-	case T_BOOL:
-	  {
-	    char tempb[128];
-	    char tempval[128];
-	    if (pv) {
-	      sprintf(tempval, "(int) %s", Char(pv));
-	    }
-	    sprintf(tempb,"tempbool%d",i);
-	    Putc('i',parse_args);
-	    if (!pv)
-	      Wrapper_add_localv(f,tempb,"int",tempb,0);
-	    else
-	      Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	    Printv(get_pointers, tab4, target, " = (", SwigType_lstr(pt,0), ") ", tempb, ";\n", 0);
-	    Printf(arglist,"&%s",tempb);
-	    noarg = 1;
+    /* Look for an input typemap */
+    if ((tm = Getattr(p,"tmap:in"))) {
+      /*      Printf(stdout,":::\n%s\n:::\n",tm); */
+      Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
+      Replace(tm,"$arg", source, DOH_REPLACE_ANY);
+      Putc('O',parse_args);
+      Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
+      Printf(arglist,"&%s",source);
+      if (i >= num_required)
+	Printv(get_pointers, "if (", source, ")\n", 0);
+      Printv(get_pointers,tm,"\n", 0);
+      p = Getattr(p,"tmap:in:next");
+      continue;
+    } else {
+      int noarg = 0;
+      switch(SwigType_type(pt)) {
+      case T_INT : case T_UINT:
+	Putc('i',parse_args);
+	break;
+      case T_SHORT: case T_USHORT:
+	Putc('h',parse_args);
+	break;
+      case T_LONG : case T_ULONG:
+	Putc('l',parse_args);
+	break;
+      case T_SCHAR : case T_UCHAR :
+	Putc('b',parse_args);
+	break;
+      case T_CHAR:
+	Putc('c',parse_args);
+	break;
+      case T_FLOAT :
+	Putc('f',parse_args);
+	break;
+      case T_DOUBLE:
+	Putc('d',parse_args);
+	break;
+	
+      case T_BOOL:
+	{
+	  char tempb[128];
+	  char tempval[128];
+	  if (pv) {
+	    sprintf(tempval, "(int) %s", Char(pv));
 	  }
-	  break;
-
-	case T_VOID :
+	  sprintf(tempb,"tempbool%d",i);
+	  Putc('i',parse_args);
+	  if (!pv)
+	    Wrapper_add_localv(f,tempb,"int",tempb,0);
+	  else
+	    Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
+	  Printv(get_pointers, tab4, target, " = (", SwigType_lstr(pt,0), ") ", tempb, ";\n", 0);
+	  Printf(arglist,"&%s",tempb);
 	  noarg = 1;
-	  Printf(stdout,"VOID!\n");
-	  break;
-
-	case T_USER:
-
-	  Putc('O',parse_args);
-	  sprintf(source,"argo%d", i);
-	  sprintf(target,Char(Getattr(p,"lname")));
-
-	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	  Printf(arglist,"&%s",source);
-	  SwigType_add_pointer(pt);
-	  get_pointer(source, target, pt, get_pointers, (char*)"NULL");
-	  SwigType_del_pointer(pt);
-	  noarg = 1;
-	  break;
-
-	case T_STRING:
-	  Putc('s',parse_args);
-	  Printf(arglist,"&%s", Getattr(p,"lname"));
-	  noarg = 1;
-	  break;
-
-	case T_POINTER: case T_ARRAY: case T_REFERENCE:
-
-	  /* Have some sort of pointer variable.  Create a temporary local
-	     variable for the string and read the pointer value into it. */
-
-	  Putc('O',parse_args);
-	  sprintf(source,"argo%d", i);
-	  sprintf(target,"%s",Char(Getattr(p,"lname")));
-
-	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	  Printf(arglist,"&%s",source);
-	  get_pointer(source, target, pt, get_pointers, (char*)"NULL");
-	  noarg = 1;
-	  break;
-
-	case T_MPOINTER:
-	  /* Pointer to a member.  Ugh! */
-	  Putc('O',parse_args);
-	  sprintf(source,"arg0%d", i);
-	  sprintf(target,"%s",Char(Getattr(p,"lname")));
-	  Wrapper_add_localv(f,source,"PyObject *", source, "=0",0);
-	  Printf(arglist,"&%s",source);
-	  Printv(get_pointers, "if ((SWIG_ConvertPacked(", source, ", (void *) &", target, ", sizeof(", SwigType_str(pt,0),"),",
-		 "SWIGTYPE", SwigType_manglestr(pt), ",1)) == -1) return NULL;\n", 0);
-	  SwigType_remember(pt);
-	  noarg = 1;
-	  break;
-
-	default :
-	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
-	  break;
 	}
-
-	if (!noarg)
-	  Printf(arglist,"&%s",Getattr(p,"lname"));
+	break;
+	
+      case T_VOID :
+	noarg = 1;
+	break;
+	
+      case T_USER:
+	
+	Putc('O',parse_args);
+	sprintf(source,"argo%d", i);
+	sprintf(target,Char(ln));
+	
+	Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
+	Printf(arglist,"&%s",source);
+	SwigType_add_pointer(pt);
+	get_pointer(source, target, pt, get_pointers, (char*)"NULL");
+	SwigType_del_pointer(pt);
+	noarg = 1;
+	break;
+	
+      case T_STRING:
+	Putc('s',parse_args);
+	Printf(arglist,"&%s", ln);
+	noarg = 1;
+	break;
+	
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	
+	/* Have some sort of pointer variable.  Create a temporary local
+	   variable for the string and read the pointer value into it. */
+	
+	Putc('O',parse_args);
+	sprintf(source,"argo%d", i);
+	sprintf(target,"%s",Char(ln));
+	
+	Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
+	Printf(arglist,"&%s",source);
+	get_pointer(source, target, pt, get_pointers, (char*)"NULL");
+	noarg = 1;
+	break;
+	
+      case T_MPOINTER:
+	/* Pointer to a member.  Ugh! */
+	Putc('O',parse_args);
+	sprintf(source,"arg0%d", i);
+	sprintf(target,"%s",Char(ln));
+	Wrapper_add_localv(f,source,"PyObject *", source, "=0",0);
+	Printf(arglist,"&%s",source);
+	Printv(get_pointers, "if ((SWIG_ConvertPacked(", source, ", (void *) &", target, ", sizeof(", SwigType_str(pt,0),"),",
+	       "SWIGTYPE", SwigType_manglestr(pt), ",1)) == -1) return NULL;\n", 0);
+	SwigType_remember(pt);
+	noarg = 1;
+	break;
+	
+      default :
+	Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+	break;
       }
-      j++;
-    }
-
-    /* Check if there was any constraint code */
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
-      Printf(check,"%s\n",tm);
-      Replace(check,"$argnum", argnum, DOH_REPLACE_ANY);
-      Delete(tm);
-    }
-    /* Check if there was any cleanup code */
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,source,0))) {
-      Printf(cleanup,"%s\n",tm);
-      Replace(cleanup,"$argnum", argnum, DOH_REPLACE_ANY);
-      Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
-      Delete(tm);
-    }
-    /* Check for output arguments */
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"resultobj",0))) {
-      Printf(outarg,"%s\n", tm);
-      Replace(outarg,"$argnum",argnum,DOH_REPLACE_ANY);
-      Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
-      have_output++;
-      Delete(tm);
+      
+      if (!noarg)
+	Printf(arglist,"&%s",Getattr(p,"lname"));
     }
     p = nextSibling(p);
-    i++;
   }
 
+  /* finish argument marshalling */
   Printf(kwargs," NULL }");
   if (use_kw) {
     Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", 0);
@@ -579,11 +564,48 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	 arglist, ")) return NULL;\n",
 	 0);
 
-  /* Now slap the whole first part of the wrapper function together */
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(check,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+  
+  /* Insert cleanup code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* Insert argument output code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replace(tm,"$target","resultobj",DOH_REPLACE_ANY);
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* Now piece together the first part of the wrapper function */
   Printv(f->code, parse_args, get_pointers, check, 0);
 
   /* Emit the function call */
   emit_func_call(name,d,l,f);
+
+
+  /* This part below still needs cleanup */
 
   /* Return the function value */
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char *)"result",(char*)"result",(char*)"resultobj",0))) {
@@ -658,7 +680,8 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   /* Substitute the function name */
-  Replace(f->code,"$name",iname, DOH_REPLACE_ANY);
+  Replace(f->code,"$name",iname, DOH_REPLACE_ANY);    
+  Replace(f->code,"$result","resultobj",DOH_REPLACE_ANY);
 
   /* Dump the function out */
   Wrapper_print(f,f_wrappers);

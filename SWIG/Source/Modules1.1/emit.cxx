@@ -34,46 +34,152 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   int   i;
   String *tm;
   SwigType *pt;
-  DOHString  *pvalue;
-  DOHString  *pname;
-  DOHString  *lname;
 
   /* Emit function arguments */
   Swig_cargs(f, l);
 
+  /* Attach typemaps to parameters */
+  Swig_typemap_attach_parms("ignore",l,f);
+  Swig_typemap_attach_parms("default",l,f);
+  Swig_typemap_attach_parms("arginit",l,f);
+
+  /* Apply the arginit, default, and arginit typemaps */
+
+  p = l;
+  while (p) {
+    tm = Getattr(p,"tmap:arginit");
+    if (tm) {
+      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:arginit:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* Apply the default typemap */
+  p = l;
+  while (p) {
+    tm = Getattr(p,"tmap:default");
+    if (tm) {
+      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:default:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+  
+  /* Apply the ignore typemap */
+  p = l;
+  while (p) {
+    tm = Getattr(p,"tmap:ignore");
+    if (tm) {
+      Parm *np;
+      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      np = Getattr(p,"tmap:default:next");
+
+      /* Deprecate this part later */
+      while (p && (p != np)) {
+	Setattr(p,"ignore","1");
+	p = nextSibling(p);
+      }
+      /* -- end deprecate */
+
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* Hack for compatibility -- Remove later */
   i = 0;
   p = l;
   while (p != 0) {
-    lname  = Getattr(p,"lname");
     pt     = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
-      pname  = Getattr(p,"name");
-      pvalue = Getattr(p,"value");
-      
-      tm = Swig_typemap_lookup((char*)"arginit",pt,pname,lname, (char*)"",lname,f);
-      if (tm) {
-	Printv(f->code,tm,"\n",0);
-	Delete(tm);
-      }
-      /* Check for ignore or default typemaps */
-      tm = Swig_typemap_lookup((char*)"default",pt,pname,lname,(char*)"",lname,f);
-      if (tm) {
-	Printv(f->code,tm,"\n",0);
-	Delete(tm);
-      }
-      tm = Swig_typemap_lookup((char*)"ignore",pt,pname,lname,(char*)"",lname,f);
-      if (tm) {
-	Printv(f->code,tm,"\n",0);
-	Setattr(p,"ignore","1");
-	Delete(tm);
-      }
       i++;
     }
     p = nextSibling(p);
   }
-  return(i);
+  /* End hack */
+  return i;
 }
 
+/* -----------------------------------------------------------------------------
+ * emit_attach_parmmaps()
+ *
+ * Attach the standard parameter related typemaps.
+ * ----------------------------------------------------------------------------- */
+
+void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
+  Swig_typemap_attach_parms("in",l,f);
+  Swig_typemap_attach_parms("argout",l,f);
+  Swig_typemap_attach_parms("check",l,f);
+  Swig_typemap_attach_parms("freearg",l,f);
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_num_arguments()                                         ** new in 1.3.10
+ *
+ * Calculate the total number of arguments.   This function is safe for use
+ * with multi-valued typemaps which may change the number of arguments in
+ * strange ways.
+ * ----------------------------------------------------------------------------- */
+
+int emit_num_arguments(ParmList *parms) {
+  Parm *p = parms;
+  int   nargs = 0;
+
+  while (p) {
+    /* Ignored arguments */
+    if (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    } else {
+      /* Marshalled arguments */
+      nargs++;
+      if (Getattr(p,"tmap:in")) {
+	p = Getattr(p,"tmap:in:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
+  return nargs;
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_num_required()                                          ** new in 1.3.10
+ *
+ * Computes the number of required arguments.  This is function is safe for
+ * use with multi-valued typemaps and knows how to skip over everything
+ * properly.
+ * ----------------------------------------------------------------------------- */
+
+int emit_num_required(ParmList *parms) {
+  Parm *p = parms;
+  int   nargs = 0;
+
+  while (p) {
+    /* Ignored arguments */
+    if (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    } else {
+      if (Getattr(p,"value")) return nargs;
+      if (Getattr(p,"tmap:default")) return nargs;
+      nargs++;
+      if (Getattr(p,"tmap:in")) {
+	p = Getattr(p,"tmap:in:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
+
+  /* Might want an error message if any arguments that follow don't have defaults */
+  return nargs;
+}
+ 
 /* -----------------------------------------------------------------------------
  * int emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper*f)
  *

@@ -539,13 +539,13 @@ void
 PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 {
   Parm *p;
-  int   pcount,i,j;
+  int   i;
   Wrapper *f;
-  char  source[256],target[256],temp[256], argnum[32];
+  char  source[256],target[256],temp[256];
   String  *tm;
   String *cleanup, *outarg;
-  int    numopt = 0;
-  int    need_save, num_saved = 0;
+  int    num_saved = 0;
+  int    num_arguments, num_required;
 
   f       = NewWrapper();
   cleanup = NewString("");
@@ -553,128 +553,138 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
   Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
 
-  pcount = emit_args(d, l, f);
-  numopt = check_numopt(l);
+  emit_args(d, l, f);
+  emit_attach_parmmaps(l,f);
+
+  num_arguments = emit_num_arguments(l);
+  num_required  = emit_num_required(l);
 
   Wrapper_add_local(f,"argvi","int argvi = 0");
 
   /* Check the number of arguments */
 
-  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, ParmList_numarg(l));
+  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", num_required, num_arguments);
   Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(iname,d,l));
 
   /* Write code to extract parameters. */
   i = 0;
-  j = 0;
-  for (p = l; p; p = nextSibling(p)) {
+  for (i = 0, p = l; i < num_arguments; i++) {
+    
+    /* Skip ignored arguments */
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
 
     /* Produce string representation of source and target arguments */
-    sprintf(source,"ST(%d)",j);
-    sprintf(target,"%s", Char(Getattr(p,"lname")));
-    sprintf(argnum,"%d",j+1);
+    sprintf(source,"ST(%d)",i);
+    sprintf(target,"%s", Char(ln));
 
-    /* Check to see if this argument is being ignored */
-    if (!Getattr(p,"ignore")) {
-      /* Check for optional argument */
-      if (j>= (pcount-numopt))
-	Printf(f->code,"    if (items > %d) {\n", j);
-
-      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,ln,source,target,f))) {
-	Printf(f->code,"%s\n",tm);
-	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
-	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
-	Delete(tm);
-      } else {
-	switch(SwigType_type(pt)) {
-	case T_BOOL:
-	case T_INT :
-	case T_SHORT :
-	case T_LONG :
-	case T_SCHAR:
-	case T_UINT:
-	case T_USHORT:
-	case T_ULONG:
-	case T_UCHAR:
-	  Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),j);
-	  break;
-	case T_CHAR :
-
-	  Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
-	  break;
-
-	case T_DOUBLE :
-	case T_FLOAT :
-	  Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), j);
-	  break;
-
-	case T_VOID :
-	  break;
-
-	case T_USER:
-	  SwigType_add_pointer(pt);
-	  sprintf(temp,"argument %d", i+1);
-	  get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
-	  SwigType_del_pointer(pt);
-	  break;
-
-	case T_STRING:
-	  Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", j, target);
-	  Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,j);
-	  break;
-
-	case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	  sprintf(temp,"argument %d", i+1);
-	  get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
-	  break;
-
-	default :
-	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
-	  break;
-	}
-      }
-      /* The source is going to be an array of saved values. */
-      sprintf(temp,"_saved[%d]",num_saved);
-      if (j>= (pcount-numopt))
-	Printf(f->code,"    } \n");
-      j++;
+    if (i >= num_required) {
+      Printf(f->code,"    if (items > %d) {\n", i);
+    }
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replace(tm,"$target",target, DOH_REPLACE_ANY);
+      Replace(tm,"$source",source, DOH_REPLACE_ANY);
+      Replace(tm,"$arg", source, DOH_REPLACE_ANY);
+      Printf(f->code,"%s\n",tm);
+      p = Getattr(p,"tmap:in:next");
     } else {
-      temp[0] = 0;
+      switch(SwigType_type(pt)) {
+      case T_BOOL:
+      case T_INT :
+      case T_SHORT :
+      case T_LONG :
+      case T_SCHAR:
+      case T_UINT:
+      case T_USHORT:
+      case T_ULONG:
+      case T_UCHAR:
+	Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),i);
+	break;
+      case T_CHAR :
+	
+	Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, i);
+	break;
+	
+      case T_DOUBLE :
+      case T_FLOAT :
+	Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), i);
+	break;
+	
+      case T_VOID :
+	break;
+	
+      case T_USER:
+	SwigType_add_pointer(pt);
+	sprintf(temp,"argument %d", i+1);
+	get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
+	SwigType_del_pointer(pt);
+	break;
+	
+      case T_STRING:
+	Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", i, target);
+	Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,i);
+	break;
+	
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	sprintf(temp,"argument %d", i+1);
+	get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
+	break;
+	
+      default :
+	Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+	break;
+      }
+      p = nextSibling(p);
     }
+    if (i >= num_required) {
+      Printf(f->code,"    }\n");
+    }
+  }
 
-    /* Check if there is any constraint code */
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
-      Printf(f->code,"%s\n", tm);
-      Replace(f->code,"$argnum",argnum, DOH_REPLACE_ANY);
-      Delete(tm);
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
     }
-    need_save = 0;
+  }
+  
+  /* Insert cleanup code */
+  for (i = 0, p = l; p; i++) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      sprintf(source,"ST(%d)",i);
+      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
 
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,temp,0))) {
-      Printf(cleanup,"%s\n", tm);
-      Replace(cleanup,"$argnum",argnum,DOH_REPLACE_ANY);
-      Replace(cleanup,"$arg",temp,DOH_REPLACE_ANY);
-      need_save = 1;
-      Delete(tm);
-    }
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"ST(argvi)",0))) {
-      String *tempstr = NewString(tm);
-      Replace(tempstr,"$argnum",argnum, DOH_REPLACE_ANY);
-      Replace(tempstr,"$arg",temp, DOH_REPLACE_ANY);
-      Printf(outarg,"%s\n", tempstr);
-      Delete(tempstr);
-      need_save = 1;
-      Delete(tm);
-    }
-    /* If we need a saved variable, we need to emit to emit some code for that
-       This only applies if the argument actually existed (not ignore) */
-    if ((need_save) && (!Getattr(p,"ignore"))) {
-      Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
+  /* Insert argument output code */
+  num_saved = 0;
+  for (i=0,p = l; p;i++) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replace(tm,"$target","ST(argvi)",DOH_REPLACE_ANY);
+      Replace(tm,"$result","ST(argvi)",DOH_REPLACE_ANY);
+      sprintf(temp,"_saved[%d]", num_saved);
+      Replace(tm,"$arg",temp, DOH_REPLACE_ANY);
+      Printf(f->code,"_saved[%d] = ST(%d);\n", num_saved,i);
       num_saved++;
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
     }
-    i++;
   }
 
   /* If there were any saved arguments, emit a local variable for them */

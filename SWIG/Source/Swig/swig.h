@@ -430,6 +430,8 @@ extern String *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *par
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
+extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f);
+
 /* --- Legacy %except directive API --- */
 
 extern void   Swig_except_register(String_or_char *code);

@@ -161,6 +161,10 @@ extern void   SWIG_config_file(const String_or_char *);
 extern "C" void  SWIG_typemap_lang(const char *);
 extern void   SWIG_library_directory(const char *);
 
+extern int    emit_num_arguments(ParmList *);
+extern int    emit_num_required(ParmList *);
+extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
+
 /* swig11.h ends here */
 
 

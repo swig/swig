@@ -279,12 +279,13 @@ TCL8::create_command(char *cname, char *iname) {
 void
 TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm            *p;
-  int              pcount,i,j;
+  int              i;
   String          *tm;
   Wrapper         *f;
   String          *incode, *cleanup, *outarg, *argstr, *args;
-  int              numopt= 0;
-  int              numin = 0;
+  int              num_arguments = 0;
+  int              num_required = 0;
+  char             source[64], target[64];
 
   incode  = NewString("");
   cleanup = NewString("");
@@ -298,150 +299,129 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	 0);
 
   /* Print out variables for storing arguments. */
-  pcount = emit_args(d, l, f);
-  numopt = check_numopt(l);
+  emit_args(d, l, f);
+  
+  /* Attach standard typemaps */
+  emit_attach_parmmaps(l,f);
 
-  /* Extract parameters. */
-  i = 0;
-  j = 0;
-  p = l;
-  while (p != 0) {
-    char      source[64];
-    char      target[64];
-    char      argnum[64];
+  /* Get number of require and total arguments */
+  num_arguments = emit_num_arguments(l);
+  num_required = emit_num_required(l);
+
+  /* Unmarshal parameters */
+
+  for (i = 0, p = l; i < num_arguments; i++) {
+    
+    /* Skip ignored arguments */
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
 
     /* Produce string representations of the source and target arguments */
-    sprintf(source,"objv[%d]",j+1);
-    sprintf(target,"%s", Char(Getattr(p,"lname")));
-    sprintf(argnum,"%d",j+1);
+    sprintf(source,"objv[%d]",i+1);
+    sprintf(target,"%s",Char(ln));
 
-    if (numin) numin--;
-    /* See if this argument is being ignored */
-    if (!numin && !Getattr(p,"ignore")) {
-      if (j == (pcount-numopt)) Putc('|',argstr);
-      /*      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) { */
-      if ((tm = Swig_typemap_lookup_multi((char *)"in",p,source,f,&numin))) {
-	Putc('o',argstr);
-	Printf(args,",0");
-	Printf(incode,"%s\n", tm);
-	Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
-	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
-	Delete(tm);
-      } else {
-	switch(SwigType_type(pt)) {
-	case T_INT:
-	case T_UINT:
-	  Putc('i', argstr);
-	  Printf(args,",&%s",target);
-	  break;
-
-	case T_BOOL:
-	  Putc('i',argstr);
-	  {
-	    char tb[32];
-	    sprintf(tb,"tempb%d",i);
-	    Wrapper_add_localv(f,tb,"int",tb,0);
-	    Printf(args,",&%s",tb);
-	    Printv(incode, target, " = (bool) ", tb, ";\n", 0);
-	  }
-	  break;
-
-	case T_SHORT:
-	case T_USHORT:
-	  Putc('h',argstr);
-	  Printf(args,",&%s",target);
-	  break;
-
-	case T_LONG:
-	case T_ULONG:
-	  Putc('l',argstr);
-	  Printf(args,",&%s",target);
-	  break;
-
-	case T_SCHAR:
-	case T_UCHAR:
-	  Putc('b',argstr);
-	  Printf(args,",&%s", target);
-	  break;
-
-	case T_FLOAT:
-	  Putc('f',argstr);
-	  Printf(args,",&%s", target);
-	  break;
-
-	case T_DOUBLE:
-	  Putc('d',argstr);
-	  Printf(args,",&%s", target);
-	  break;
-
-	case T_CHAR :
-	  Putc('c',argstr);
-	  Printf(args,",&%s",target);
-	  break;
-
-	case T_VOID :
-	  break;
-
-	case T_USER:
-	  SwigType_add_pointer(pt);
+    if (i == num_required) Putc('|',argstr);
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replace(tm,"$target",ln,DOH_REPLACE_ANY);
+      Replace(tm,"$source",source,DOH_REPLACE_ANY);
+      Replace(tm,"$arg",source,DOH_REPLACE_ANY);
+      Putc('o',argstr);
+      Printf(args,",0");
+      Printf(incode,"%s\n", tm);
+      p = Getattr(p,"tmap:in:next");
+      continue;
+    } else {
+      switch(SwigType_type(pt)) {
+      case T_INT:
+      case T_UINT:
+	Putc('i', argstr);
+	Printf(args,",&%s",target);
+	break;
+	
+      case T_BOOL:
+	Putc('i',argstr);
+	{
+	  char tb[32];
+	  sprintf(tb,"tempb%d",i);
+	  Wrapper_add_localv(f,tb,"int",tb,0);
+	  Printf(args,",&%s",tb);
+	  Printv(incode, target, " = (bool) ", tb, ";\n", 0);
+	}
+	break;
+	
+      case T_SHORT:
+      case T_USHORT:
+	Putc('h',argstr);
+	Printf(args,",&%s",target);
+	break;
+	
+      case T_LONG:
+      case T_ULONG:
+	Putc('l',argstr);
+	Printf(args,",&%s",target);
+	break;
+	
+      case T_SCHAR:
+      case T_UCHAR:
+	Putc('b',argstr);
+	Printf(args,",&%s", target);
+	break;
+	
+      case T_FLOAT:
+	Putc('f',argstr);
+	Printf(args,",&%s", target);
+	break;
+	
+      case T_DOUBLE:
+	Putc('d',argstr);
+	Printf(args,",&%s", target);
+	break;
+	
+      case T_CHAR :
+	Putc('c',argstr);
+	Printf(args,",&%s",target);
+	break;
+	
+      case T_VOID :
+	break;
+	
+      case T_USER:
+	SwigType_add_pointer(pt);
+	SwigType_remember(pt);
+	Putc('p',argstr);
+	Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
+	SwigType_del_pointer(pt);
+	break;
+	
+      case T_STRING:
+	Putc('s',argstr);
+	Printf(args,",&%s",target);
+	break;
+	
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	{
+	  SwigType *lt;
 	  SwigType_remember(pt);
 	  Putc('p',argstr);
-	  Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	  SwigType_del_pointer(pt);
-	  break;
-
-	case T_STRING:
-	  Putc('s',argstr);
-	  Printf(args,",&%s",target);
-	  break;
-
-	case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	  {
-	    SwigType *lt;
-	    SwigType_remember(pt);
-	    Putc('p',argstr);
-	    lt = Swig_clocal_type(pt);
-	    if (Cmp(lt,"p.void") == 0) {
-	      Printv(args, ",&", target, ", 0", 0);
-	    } else {
-	      Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	    }
-	    Delete(lt);
-	    break;
+	  lt = Swig_clocal_type(pt);
+	  if (Cmp(lt,"p.void") == 0) {
+	    Printv(args, ",&", target, ", 0", 0);
+	  } else {
+	    Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
 	  }
-	default :
-	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
-		 input_file, line_number, SwigType_str(pt,0));
+	  Delete(lt);
 	  break;
 	}
+      default :
+	Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
+	       input_file, line_number, SwigType_str(pt,0));
+	break;
       }
-      j++;
     }
-    /* Check to see if there was any sort of a constaint typemap */
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
-      Printf(incode,"%s\n", tm);
-      Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
-      Replace(incode,"$arg",source, DOH_REPLACE_ANY);
-      Delete(tm);
-    }
-    /* Check if there was any cleanup code (save it for later) */
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,(char*)"Tcl_GetObjResult(interp)",0))) {
-       Printf(cleanup,"%s\n", tm);
-      Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
-      Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
-      Delete(tm);
-    }
-    /* Look for output arguments */
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"Tcl_GetObjResult(interp)",0))) {
-      Printf(outarg,"%s\n", tm);
-      Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
-      Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
-      Delete(tm);
-    }
-    i++;
     p = nextSibling(p);
   }
 
@@ -452,8 +432,49 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
   Printv(f->code,incode,0);
 
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+  
+  /* Insert cleanup code */
+  for (i = 0, p = l; p; i++) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      sprintf(source,"objv[%d]",i+1);
+      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* Insert argument output code */
+  for (i=0,p = l; p;i++) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replace(tm,"$target","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
+      Replace(tm,"$result","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
+      sprintf(source,"objv[%d]",i+1);
+      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
   /* Now write code to make the function call */
   emit_func_call(name,d,l,f);
+
+  /* Need to redo all of this code (eventually) */
 
   /* Return value if necessary  */
   if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
