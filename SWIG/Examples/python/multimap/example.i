@@ -7,37 +7,37 @@ extern int    gcd(int x, int y);
 
 %typemap(python,in) (int argc, char *argv[]) {
   int i;
-  if (!PyList_Check($arg)) {
+  if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
     return NULL;
   }
-  $0 = PyList_Size($arg);
-  if ($0 == 0) {
+  $1 = PyList_Size($input);
+  if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
     return NULL;
   }
-  $1 = (char **) malloc(($0+1)*sizeof(char *));
-  for (i = 0; i < $0; i++) {
-    PyObject *s = PyList_GetItem($arg,i);
+  $2 = (char **) malloc(($1+1)*sizeof(char *));
+  for (i = 0; i < $1; i++) {
+    PyObject *s = PyList_GetItem($input,i);
     if (!PyString_Check(s)) {
       SWIG_exception(SWIG_ValueError, "List items must be strings");
-      free($1);
+      free($2);
       return NULL;
     }
-    $1[i] = PyString_AsString(s);
+    $2[i] = PyString_AsString(s);
   }
-  $1[i] = 0;
+  $2[i] = 0;
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(python,in) (char *bytes, int len) {
-  if (!PyString_Check($arg)) {
+  if (!PyString_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
     return NULL;
   }
-  $0 = PyString_AsString($arg);
-  $1 = PyString_Size($arg);
+  $1 = PyString_AsString($input);
+  $2 = PyString_Size($input);
 }
 
 extern int count(char *bytes, int len, char c);
@@ -49,9 +49,9 @@ extern int count(char *bytes, int len, char c);
    so that we don't violate it's mutability */
 
 %typemap(python,in) (char *str, int len) {
-   $1 = PyString_Size($arg);
-   $0 = (char *) malloc($1+1);
-   memmove($0,PyString_AsString($arg),$1);
+   $2 = PyString_Size($input);
+   $1 = (char *) malloc($2+1);
+   memmove($1,PyString_AsString($input),$2);
 }
 
 /* Return the mutated string as a new object.  The t_output_helper
@@ -60,9 +60,9 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(python,argout) (char *str, int len) {
    PyObject *o;
-   o = PyString_FromStringAndSize($0,$1);
+   o = PyString_FromStringAndSize($1,$2);
    $result = t_output_helper($result,o);
-   free($0);
+   free($1);
 }   
 
 extern void capitalize(char *str, int len);
@@ -71,9 +71,9 @@ extern void capitalize(char *str, int len);
    inside the unit circle */
 
 %typemap(check) (double cx, double cy) {
-   double a = $0*$0 + $1*$1;
+   double a = $1*$1 + $2*$2;
    if (a > 1.0) {
-	SWIG_exception(SWIG_ValueError,"$0_name and $1_name must be in unit circle");
+	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
         return NULL;
    }
 }

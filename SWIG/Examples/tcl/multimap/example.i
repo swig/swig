@@ -7,27 +7,27 @@ extern int    gcd(int x, int y);
 %typemap(tcl8,in) (int argc, char *argv[]) {
   Tcl_Obj **listobjv = 0;
   int i;
-  if (Tcl_ListObjGetElements(interp,$arg, &$0, &listobjv) == TCL_ERROR) {
+  if (Tcl_ListObjGetElements(interp,$input, &$1, &listobjv) == TCL_ERROR) {
     SWIG_exception(SWIG_ValueError,"Expected a list");
     return TCL_ERROR;
   }
-  $1 = (char **) malloc(($0+1)*sizeof(char *));
-  for (i = 0; i < $0; i++) {
-    $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
+  $2 = (char **) malloc(($1+1)*sizeof(char *));
+  for (i = 0; i < $1; i++) {
+    $2[i] = Tcl_GetStringFromObj(listobjv[i],0);
   }
-  $1[i] = 0;
+  $2[i] = 0;
 }
 
 %typemap(tcl8,freearg) char *argv[] {
-  if ($0) {
-    free($0);
+  if ($1) {
+    free($1);
   }
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(tcl8,in) (char *bytes, int len) {
-  $0 = Tcl_GetStringFromObj($arg,&$1);
+  $1 = Tcl_GetStringFromObj($input,&$2);
 }
 
 extern int count(char *bytes, int len, char c);
@@ -37,18 +37,18 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(tcl8,in) (char *str, int len) {
   char *temp;
-  temp = Tcl_GetStringFromObj($arg,&$1);
-  $0 = (char *) malloc($1+1);
-  memmove($0,temp,$1);
+  temp = Tcl_GetStringFromObj($input,&$2);
+  $1 = (char *) malloc($2+1);
+  memmove($1,temp,$2);
 }
 
 /* Return the mutated string as a new object.   */
 
 %typemap(tcl8,argout) (char *str, int len) {
  Tcl_Obj *o;
- o = Tcl_NewStringObj($0,$1);
+ o = Tcl_NewStringObj($1,$2);
  Tcl_ListObjAppendElement(interp,$result,o);
- free($0);
+ free($1);
 }   
 
 extern void capitalize(char *str, int len);
@@ -58,9 +58,9 @@ extern void capitalize(char *str, int len);
    inside the unit circle */
 
 %typemap(check) (double cx, double cy) {
-   double a = $0*$0 + $1*$1;
+   double a = $1*$1 + $2*$2;
    if (a > 1.0) {
-	SWIG_exception(SWIG_ValueError,"$0_name and $1_name must be in unit circle");
+	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
         return NULL;
    }
 }

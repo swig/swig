@@ -10,31 +10,31 @@ extern int    gcd(int x, int y);
   SV **tv;
   I32 len;
   int i;
-  if (!SvROK($arg)) {
-    SWIG_exception(SWIG_ValueError,"$arg is not an array.");
+  if (!SvROK($input)) {
+    SWIG_exception(SWIG_ValueError,"$input is not an array.");
   }
-  if (SvTYPE(SvRV($arg)) != SVt_PVAV) {
-    SWIG_exception(SWIG_ValueError,"$arg is not an array.");
+  if (SvTYPE(SvRV($input)) != SVt_PVAV) {
+    SWIG_exception(SWIG_ValueError,"$input is not an array.");
   }
-  tempav = (AV*)SvRV($arg);
+  tempav = (AV*)SvRV($input);
   len = av_len(tempav);
-  $0 = (int) len+1;
-  $1 = (char **) malloc($0*sizeof(char *));
-  for (i = 0; i < $0; i++) {
+  $1 = (int) len+1;
+  $2 = (char **) malloc($1*sizeof(char *));
+  for (i = 0; i < $1; i++) {
     tv = av_fetch(tempav, i, 0);
-    $1[i] = (char *) SvPV(*tv,PL_na);
+    $2[i] = (char *) SvPV(*tv,PL_na);
   }
-  $1[i] = 0;
+  $2[i] = 0;
 }
 
 %typemap(perl5,freearg) (int argc, char *argv[]) {
-  free($1);
+  free($2);
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(perl5,in) (char *bytes, int len) {
-  $0 = (char *) SvPV($arg,$1);
+  $1 = (char *) SvPV($input,$2);
 }
 
 extern int count(char *bytes, int len, char c);
@@ -44,9 +44,9 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(perl5,in) (char *str, int len) {
   char *temp;
-  temp = (char *) SvPV($arg,$1);
-  $0 = (char *) malloc($1+1);
-  memmove($0,temp,$1);
+  temp = (char *) SvPV($input,$2);
+  $1 = (char *) malloc($2+1);
+  memmove($1,temp,$2);
 }
 
 /* Return the mutated string as a new object.  */
@@ -56,8 +56,8 @@ extern int count(char *bytes, int len, char c);
     EXTEND(sp,1);
   }
   $result = sv_newmortal();
-  sv_setpvn((SV*)ST(argvi++),$0,$1);
-  free($0);
+  sv_setpvn((SV*)ST(argvi++),$1,$2);
+  free($1);
 }   
 
 extern void capitalize(char *str, int len);
@@ -66,9 +66,9 @@ extern void capitalize(char *str, int len);
    inside the unit circle */
 
 %typemap(check) (double cx, double cy) {
-   double a = $0*$0 + $1*$1;
+   double a = $1*$1 + $2*$2;
    if (a > 1.0) {
-	SWIG_exception(SWIG_ValueError,"$0_name and $1_name must be in unit circle");
+	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
    }
 }
 
