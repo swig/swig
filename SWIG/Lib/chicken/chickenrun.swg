@@ -27,6 +27,7 @@ extern "C" {
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
 #define swig_barf SWIG_Chicken_Barf
+#define SWIG_ThrowException(val) SWIG_Chicken_ThrowException(val)
 
 #define SWIG_contract_assert(expr, message) if (!(expr)) { \
                                               SWIG_Chicken_Barf(SWIG_BARF1_CONTRACT_ASSERT, C_text(message)); } else
@@ -188,7 +189,7 @@ static void SWIG_Chicken_ThrowException(C_word value)
 
   abort = C_block_item(abort, 0);
   if (C_immediatep(abort))
-    SWIG_Chicken_Panic(C_text("`##sys#abort' is not defiend"));
+    SWIG_Chicken_Panic(C_text("`##sys#abort' is not defined"));
 
   C_save(value);
   C_do_apply(1, abort, C_SCHEME_UNDEFINED);

@@ -23,17 +23,21 @@
 <li><a href="#Chicken_nn7">Modules</a>
 <li><a href="#Chicken_nn8">Constants and Variables</a>
 <li><a href="#Chicken_nn9">Functions</a>
+<li><a href="#Chicken_nn10">Exceptions</a>
 </ul>
-<li><a href="#Chicken_nn10">TinyCLOS</a>
-<li><a href="#Chicken_nn11">Compilation</a>
-<li><a href="#Chicken_nn12">Linkage</a>
+<li><a href="#Chicken_nn11">TinyCLOS</a>
+<li><a href="#Chicken_nn12">Compilation</a>
+<li><a href="#Chicken_nn13">Linkage</a>
 <ul>
-<li><a href="#Chicken_nn13">Shared library</a>
-<li><a href="#Chicken_nn14">Static binary</a>
+<li><a href="#Chicken_nn14">Shared library</a>
+<li><a href="#Chicken_nn15">Static binary</a>
 </ul>
-<li><a href="#Chicken_nn15">Typemaps</a>
-<li><a href="#Chicken_nn16">Pointers</a>
-<li><a href="#Chicken_nn17">Unsupported features and known problems</a>
+<li><a href="#Chicken_nn16">Typemaps</a>
+<li><a href="#Chicken_nn17">Pointers</a>
+<ul>
+<li><a href="#Chicken_nn18">Garbage collection</a>
+</ul>
+<li><a href="#Chicken_nn19">Unsupported features and known problems</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -141,7 +145,6 @@
       So for the C++ mode of SWIG CHICKEN, <tt>example_wrap.cxx</tt>
       and <tt>oexample.c</tt> are the files that must be compiled to
       object files and linked into your project.
-
       </p>
 
 <H2><a name="Chicken_nn5"></a>17.2 Code Generation</H2>
@@ -183,6 +186,7 @@
     <p>
       CHICKEN will be able to access the module using the <code>(declare
 	(uses <i>modulename</i>))</code> CHICKEN Scheme form.
+    </p>
 
 <H3><a name="Chicken_nn8"></a>17.2.3 Constants and Variables</H3>
 
@@ -230,19 +234,55 @@
       parameters).
     </p>
 
-<H2><a name="Chicken_nn10"></a>17.3 TinyCLOS</H2>
+<H3><a name="Chicken_nn10"></a>17.2.5 Exceptions</H3>
+
+
+     <p>The SWIG chicken module has support for exceptions thrown from
+     C or C++ code to be caught in scheme.  
+     See <a href="Customization.html#exception">Exception handling with %exception</a>
+     for more information about declaring exceptions in the interface file.
+     </p>
+
+     <p>Chicken supports both the <code>SWIG_exception(int code, const char *msg)</code> interface
+     as well as a <code>SWIG_ThrowException(C_word val)</code> function for throwing exceptions from
+     inside the %exception blocks.  <code>SWIG_exception</code> will throw a list consiting of the code
+     (as an integer) and the message.  Both of these will throw an exception using <code>(abort)</code>,
+     which can be handled by <code>(handle-exceptions)</code>.  See
+     <a href="http://www.call-with-current-continuation.org/manual/Exceptions.html#Exceptions">Chicken manual on Exceptions</a>
+     and <a href="http://srfi.schemers.org/srfi-12/srfi-12.html">SFRI-12</a>.  Since the exception values are thrown
+     directly, if <code>(condition-case)</code> is used to catch an exception the exception will come through in the <code>val ()</code> case.
+     </p>
+
+     <p>The following simple module</p>
+     
+<div class="code"><pre>
+%module exception_test
+
+%inline %{
+  void test_throw(int i) throws (int) { 
+    if (i == 1) throw 15; 
+  }
+%}
+</pre></div>
+
+     <p>could be run with</p>
+
+<div class="targetlang"><pre>
+(handle-exceptions exvar (if (= exvar 15) (print "Correct!") (print "Threw something else " exvar)) (test-throw 1))
+</pre></div>
+
+
+<H2><a name="Chicken_nn11"></a>17.3 TinyCLOS</H2>
 
 
       <p>
       The author of TinyCLOS, Gregor Kiczales, describes TinyCLOS as:
-      </p>
-      <div class="code">
-	Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
+	"Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
 	metaobject protocol. The implementation is even simpler than
 	the simple CLOS found in `The Art of the Metaobject Protocol,'
 	weighing in at around 850 lines of code, including (some)
-	comments and documentation.
-      </div>
+	comments and documentation."
+      </p>
 
       <p>
       Almost all good Scheme books describe how to use metaobjects and
@@ -275,7 +315,7 @@
       
       </p>
 
-<H2><a name="Chicken_nn11"></a>17.4 Compilation</H2>
+<H2><a name="Chicken_nn12"></a>17.4 Compilation</H2>
 
 
     <p>
@@ -289,7 +329,7 @@
       much simpler <tt>csc</tt> or <tt>csc.bat</tt>.
     </p>
 
-<H2><a name="Chicken_nn12"></a>17.5 Linkage</H2>
+<H2><a name="Chicken_nn13"></a>17.5 Linkage</H2>
 
 
     <p>
@@ -303,7 +343,7 @@
       loadable module.
     </p>
 
-<H3><a name="Chicken_nn13"></a>17.5.1 Shared library</H3>
+<H3><a name="Chicken_nn14"></a>17.5.1 Shared library</H3>
 
 
     <p>
@@ -312,13 +352,13 @@
       in example.i and the C functions being wrapped are in example_impl.c.
     </p>
 
-   <div class="shell">
-   <pre>
-   $ swig -chicken example.i
-   $ csc -svk example.scm example_impl.c example_wrap.c
-   $ csi example.so test_script.scm
-   </pre>
-   </div>
+<div class="shell">
+<pre>
+$ swig -chicken example.i
+$ csc -svk example.scm example_impl.c example_wrap.c
+$ csi example.so test_script.scm
+</pre>
+</div>
 
     <p>
       You must be careful not to name the example_impl.c file example.c because
@@ -331,20 +371,20 @@
       be accessable to the loader.  You might need to set LD_LIBRARY_PATH.
     </p>
 
-<H3><a name="Chicken_nn14"></a>17.5.2 Static binary</H3>
+<H3><a name="Chicken_nn15"></a>17.5.2 Static binary</H3>
 
 
    <p>Again, we can easily use csc to build a binary.</p>
 
-   <div class="shell">
-   <pre>
-   $ swig -chicken example.i
-   $ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
-   $ ./example
-   </pre>
-   </div>
+<div class="shell">
+<pre>
+$ swig -chicken example.i
+$ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
+$ ./example
+</pre>
+</div>
 
-<H2><a name="Chicken_nn15"></a>17.6 Typemaps</H2>
+<H2><a name="Chicken_nn16"></a>17.6 Typemaps</H2>
 
 
     <p>
@@ -353,7 +393,7 @@
       <code>Lib/chicken/chicken.swg</code>.
     </p>
 
-<H2><a name="Chicken_nn16"></a>17.7 Pointers</H2>
+<H2><a name="Chicken_nn17"></a>17.7 Pointers</H2>
 
 
     <p>
@@ -383,17 +423,42 @@
       wrapper code calls the function 
       <code>SWIG_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags)</code>,
       passing a pointer to a struct representing the expected pointer
-      type.
+      type. flags is either zero or SWIG_POINTER_DISOWN (see below).
     </p>
 
-<H2><a name="Chicken_nn17"></a>17.8 Unsupported features and known problems</H2>
+<H3><a name="Chicken_nn18"></a>17.7.1 Garbage collection</H3>
+
+
+  <p>If the owner flag in the SWIG_NewPointerObj is 1, NewPointerObj will add a
+     finalizer to the type which will call the destructor or delete method of
+     that type.  The destructor and delete functions are no longer exported for
+     use in scheme code, instead SWIG and chicken completly manage pointers.
+  </p>
+
+  <p>In situations where SWIG knows that a function is returning a type that should
+  be garbage collected, SWIG will automaticly set the owner flag to 1.  For other functions,
+  The <code>%newobject</code> directive must be specified for functions whose return values
+  should be garbage collected.  See 
+  <a href="Customization.html#ownership">Object ownership and %newobject</a> for more information.
+  </p>
+
+  <p>In situations where a C or C++ function will assume ownership of a pointer, and thus
+  chicken should no longer garbage collect this type, SWIG provides the DISOWN input typemap.
+  After applying this typemap (see the Typemaps chapter for more information on how to apply typemaps),
+  any pointer that gets passed in will no longer be garbage collected.  
+  An object is disowned by passing the SWIG_POINTER_DISOWN flag to SWIG_ConvertPtr.
+  <b>Warning:</b> Since the lifetime of the object is now controlled by the underlying code, the object might
+  get deleted while the scheme code still holds a pointer to it.  Further use of this pointer
+  can lead to a crash.
+  </p>
+
+<H2><a name="Chicken_nn19"></a>17.8 Unsupported features and known problems</H2>
 
 
     <ul>
       <li>No director support.</li>
       <li>No support for c++ standard types like std::vector.</li>
       <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.25) </li>
-      <li>Problems with complicated function overloading. (Planned on fixing for 1.3.25)</li>
     </ul>
 
   </body>
