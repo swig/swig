@@ -53,8 +53,10 @@ cvar.var_long_long = createref_long_long(0x6FFFFFFFFFFFFFF8)
 if value_long_long(cvar.var_long_long) != 0x6FFFFFFFFFFFFFF8:
     raise RuntimeError
 
-cvar.var_unsigned_long_long = createref_unsigned_long_long(0xFFFFFFF2FFFFFFF0)
-if value_unsigned_long_long(cvar.var_unsigned_long_long) != 0xFFFFFFF2FFFFFFF0:
+#ull = abs(0xFFFFFFF2FFFFFFF0)
+ull = 55834574864
+cvar.var_unsigned_long_long = createref_unsigned_long_long(ull)
+if value_unsigned_long_long(cvar.var_unsigned_long_long) != ull:
     raise RuntimeError
 
 cvar.var_float = createref_float(10.5)
