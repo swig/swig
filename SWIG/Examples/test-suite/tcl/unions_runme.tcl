@@ -2,8 +2,8 @@
 # This is the union runtime testcase. It ensures that values within a 
 # union embedded within a struct can be set and read correctly.
 
-if { [ string match $tcl_platform(os) Windows* ] == 1 } {
-    if [ catch { load ./unions.dll unions} err_msg ] {    ;# Windows
+if { [ string match $tcl_platform(platform) "windows" ] == 1 } {
+    if [ catch { load ./unions.dll unions} err_msg ] {
         puts stderr "Could not load dll:\n$err_msg"
     }
 } else {

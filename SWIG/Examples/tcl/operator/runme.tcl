@@ -1,5 +1,7 @@
 # Operator overloading example
-load ./example.so
+
+catch { load ./example.so example}
+catch { load ./example.dll example}    ;# Windows
 
 set a [Complex -args 2 3]
 set b [Complex -args -5 10]
