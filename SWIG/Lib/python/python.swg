@@ -7,6 +7,9 @@
 %insert(runtime) "common.swg";          // Common type-checking code
 %insert(runtime) "pyrun.swg";           // Python run-time code
 
+/* Special directive for shadow code */
+
+#define %shadow  %insert("shadow")
 
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
@@ -63,7 +66,7 @@
 %typemap(out) char          "$result = Py_BuildValue(\"c\",$1);";
 
 /* Pointers, references, and arrays */
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor);";
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
 
 /* Member pointer */
 %typemap(out) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
@@ -80,17 +83,16 @@
 {
   $&1_ltype resultptr;
   resultptr = new $1_ltype($1);
-  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor);
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
 }
 #else
 {
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor);
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
 }
 #endif
-
 
 /* --- Variable input --- */
 
@@ -199,6 +201,33 @@
   $1 = ($1_type) *temp;
 }
 
+/* --- Variable output --- */
+
+%typemap(varout)      int, unsigned int,
+                      short, unsigned short,
+                      long, unsigned long,
+                      signed char, unsigned char, 
+                      bool, enum SWIGTYPE
+       "$result = PyInt_FromLong((long)$1);";
+
+%typemap(varout) float, double "$result = PyFloat_FromDouble($1);";
+%typemap(varout) char *        "$result = PyString_FromString($1);";
+%typemap(varout) char          "$result = Py_BuildValue(\"c\",$1);";
+
+/* Pointers, references, and arrays */
+%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
+
+/* Member pointer */
+%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
+
+/* Void */
+%typemap(varout) void "Py_INCREF(Py_None); $result = Py_None;";
+
+/* Special typemap for character array return values */
+%typemap(varout) char [ANY], const char [ANY] "$target = PyString_FromString($source);";
+
+%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0);";
+
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
@@ -295,6 +324,26 @@ PYKW(return);
 PYKW(try);
 PYKW(while);
 
+
+/* The start of the Python initialization function */
+
+%init %{
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT(void) SWIG_init(void) {
+  static PyObject *SWIG_globals = 0;
+  PyObject *m, *d;
+  int       i;
+  SWIG_globals = SWIG_newvarlink();
+  m = Py_InitModule((char *) SWIG_name, SwigMethods);
+  d = PyModule_GetDict(m);
+
+  for (i = 0; swig_types_initial[i]; i++) {
+    swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+  }
+  SWIG_InstallConstants(d,swig_const_table);
+%}
 
 
 

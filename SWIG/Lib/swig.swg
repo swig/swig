@@ -62,9 +62,9 @@
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
-%typemap(newfree) char * "delete [] $source;";
+%typemap(newfree) char * "delete [] $1;";
 #else
-%typemap(newfree) char * "free($source);";
+%typemap(newfree) char * "free($1);";
 #endif
 
 /* Default typemap for handling char * members */
@@ -72,24 +72,24 @@
 #ifdef __cplusplus
 %typemap(memberin) char * {
   if ($1) delete [] $1;
-  $1 = new char[strlen($minput)+1];
-  strcpy($1,$minput);
+  $1 = new char[strlen($input)+1];
+  strcpy($1,$input);
 }
 %typemap(globalin) char * {
   if ($1) delete [] $1;
-  $1 = new char[strlen($ginput)+1];
-  strcpy($1,$minput);
+  $1 = new char[strlen($input)+1];
+  strcpy($1,$input);
 }
 #else
 %typemap(memberin) char * {
   if ($1) free($1);
-  $1 = (char *) malloc(strlen($minput)+1);
-  strcpy($1,$minput);
+  $1 = (char *) malloc(strlen($input)+1);
+  strcpy($1,$input);
 }
 %typemap(globalin) char * {
   if ($1) free($1);
-  $1 = (char *) malloc(strlen($ginput)+1);
-  strcpy($1,$ginput);
+  $1 = (char *) malloc(strlen($input)+1);
+  strcpy($1,$input);
 }
 #endif
 

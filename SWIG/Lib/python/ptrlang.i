@@ -211,7 +211,7 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
   } 
   /* Create the pointer value */
   
-  obj = SWIG_NewPointerObj(ptr,cast);
+  obj = SWIG_NewPointerObj(ptr,cast,0);
   return obj;
 }
 
@@ -332,7 +332,7 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptradd. Argument is not a valid pointer value.");
     return NULL;
   }
-  obj = SWIG_NewPointerObj(ptr, type);
+  obj = SWIG_NewPointerObj(ptr, type,0);
   return obj;
 }
 

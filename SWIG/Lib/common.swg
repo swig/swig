@@ -59,6 +59,7 @@ SWIGEXPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
 SWIGEXPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
 SWIGEXPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
 SWIGEXPORT(swig_type_info *) SWIG_TypeQuery(const char *);
+SWIGEXPORT(void) SWIG_TypeClientData(swig_type_info *, void *);
 #else
 
 static swig_type_info *swig_type_list = 0;
@@ -147,6 +148,25 @@ SWIG_TypeQuery(const char *name) {
   return 0;
 }
 
+/* Set the clientdata field for a type */
+SWIGRUNTIME(void)
+SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
+  swig_type_info *tc, *equiv;
+  if (ti->clientdata) return;
+  ti->clientdata = clientdata;
+  equiv = ti->next;
+  while (equiv) {
+    if (!equiv->converter) {
+      tc = swig_type_list;
+      while (tc) {
+	if ((strcmp(tc->name, equiv->name) == 0))
+	  SWIG_TypeClientData(tc,clientdata);
+	tc = tc->prev;
+      }
+    }
+    equiv = equiv->next;
+  }
+}
 #endif
 
 #ifdef __cplusplus

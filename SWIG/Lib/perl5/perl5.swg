@@ -135,7 +135,7 @@
     "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
 
 
-/* --- Typemaps for constants --- */
+/* --- Typemaps for constants --- *
 
 /* --- Constants --- */
 
