@@ -12,17 +12,19 @@ top_builddir = @top_builddir@
 CPP_TEST_CASES += \
 	argcargvtest \
 	attributetest \
+	callback \
 	complextest \
 	director_stl \
 	file_test \
 	implicittest \
+	inout \
 	inplaceadd \
 	lib_std_except \
 	lib_std_vectora \
 	lib_std_map \
 	lib_std_wstring \
-	primitive_types \
 	nondynamic \
+	primitive_types \
 	std_containers \
 
 C_TEST_CASES += \
