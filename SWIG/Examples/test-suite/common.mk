@@ -48,8 +48,7 @@ CPP_TEST_BROKEN += \
 	template_default_arg \
 	template_specialization_defarg \
 	template_specialization_enum \
-	using_namespace \
-	valuewrapper_default
+	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += 
@@ -244,6 +243,7 @@ CPP_TEST_CASES += \
 	valuewrapper \
 	valuewrapper_base \
 	valuewrapper_const \
+	valuewrapper_default \
 	varargs \
 	virtual_destructor \
 	voidtest
