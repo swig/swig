@@ -16,19 +16,14 @@ char bigbuf[1024];
 
 static char *usage = (char*)"\
 Java Options\n\
-     -jnic            - use c syntax for JNI calls\n\
-     -jnicpp          - use c++ syntax for JNI calls\n\
      -package <name>  - set name of the package\n\
      -shadow          - generate shadow classes\n\
      -nofinalize      - do not generate finalize methods in shadow classes\n\
      -rn              - generate register natives code\n\n";
 
-static char   *module = 0;          // Name of the module
-static char   *java_path = (char*)"java";
 static char   *package = 0;         // Name of the package
-static char   *c_pkgstr;         // Name of the package
-static char   *jni_pkgstr;         // Name of the package
-static char   *shadow_classname;
+static char   *c_pkgstr = 0;        // Name of the package
+static char   *jni_pkgstr = 0;      // Name of the package
 static FILE   *f_java = 0;
 static FILE   *f_shadow = 0;
 
@@ -42,10 +37,11 @@ static int    shadow = 0;
 #ifdef DEPRECATED
 static Hash   *shadow_classes;
 #endif
-
-static String *shadow_classdef;
-static String *shadow_code;
-static char   *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
+static String *module = 0;          // Name of the module
+static String *shadow_classdef = 0;
+static String *shadow_code = 0;
+static String *shadow_classname = 0;
+static String *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
 static int    classdef_emitted = 0;
 static int    have_default_constructor = 0;
 static int    native_func = 0;     // Set to 1 when wrapping a native function
@@ -53,7 +49,6 @@ static int    enum_flag = 0; // Set to 1 when wrapping an enum
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
-static int    jnic = -1;          // 1: use c syntax jni; 0: use c++ syntax jni
 static int    nofinalize = 0;          // for generating finalize methods
 static int    useRegisterNatives = 0;        // Set to 1 when doing stuff with register natives
 static String *registerNativesList = 0;
@@ -169,27 +164,18 @@ char *JAVA::javaMethodSignature(SwigType *t, int ret, int inShadow) {
   return NULL;
 }
 
-char *JAVA::makeValidJniName(const char *name) {
-  const char *c = name;
-  char *b = bigbuf;
-
-  while(*c) {
-    *b++ = *c;
-    if(*c == '_')
-      *b++ = '1';
-    c++;
-  }
-  *b = '\0';
-
-  return Swig_copy_string(bigbuf);
+String *JAVA::makeValidJniName(const String *name) {
+  String *valid_jni_name = NewString(name);
+  Replace(valid_jni_name,"_","_1", DOH_REPLACE_ANY);
+  return valid_jni_name;
 }
 
 // !! this approach fails for functions without arguments
 char *JAVA::jniCall(String_or_char *func) {
-  if(jnic)
-	sprintf(bigbuf, "(*jenv)->%s(jenv, ", Char(func));
-  else
+  if(CPlusPlus)
 	sprintf(bigbuf, "jenv->%s(", Char(func));
+  else
+	sprintf(bigbuf, "(*jenv)->%s(jenv, ", Char(func));
 
   return Swig_copy_string(bigbuf);
 }
@@ -268,7 +254,8 @@ void JAVA::main(int argc, char *argv[]) {
         shadow = 1;
       } else if (strcmp(argv[i],"-jnic") == 0) {
 	    Swig_mark_arg(i);
-        jnic = 1;
+        Printf(stderr,"Deprecated command line option: -jnic. C JNI calling convention now used when -c++ not specified.\n");
+        SWIG_exit(1);
       } else if (strcmp(argv[i],"-nofinalize") == 0) {
 	    Swig_mark_arg(i);
         nofinalize = 1;
@@ -277,17 +264,12 @@ void JAVA::main(int argc, char *argv[]) {
         useRegisterNatives = 1;
       } else if (strcmp(argv[i],"-jnicpp") == 0) {
         Swig_mark_arg(i);
-	    jnic = 0;
+        Printf(stderr,"Deprecated command line option: -jnicpp. C++ JNI calling convention now used when -c++ specified.\n");
+        SWIG_exit(1);
       } else if (strcmp(argv[i],"-help") == 0) {
 	    Printf(stderr,"%s\n", usage);
       }
     }
-  }
-
-  if(jnic == -1) {
-    if(CPlusPlus)
-	jnic = 0;
-    else jnic = 1;
   }
 
   // Add a symbol to the parser for conditional compilation
@@ -345,18 +327,22 @@ int JAVA::top(Node *n) {
   wrapper_conversion_code = NewString("");
 
   Swig_banner(f_runtime);               // Print the SWIG banner message
-  Printf(f_runtime,"/* Implementation : Java */\n\n");
 
-  set_module(Char(Getattr(n,"name")));
+  if (NoInclude) {
+    Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
+  }
+
+  /* Set module name */
+  module = Copy(Getattr(n,"name"));
 
   String* wrapper_name = NewString("");
 
   if(package) {
     String *s = NewString(package);
-    char *jniname = makeValidJniName(Char(s));
+    String *jniname = makeValidJniName(s);
     Clear(s);
     Printv(s, jniname, NULL);
-    free(jniname);
+    Delete(jniname);
     Replace(s,".","_", DOH_REPLACE_ANY);
     Append(s, "_");
     c_pkgstr = Swig_copy_string(Char(s));
@@ -371,9 +357,9 @@ int JAVA::top(Node *n) {
     package = c_pkgstr = jni_pkgstr = (char*)"";
   }
 
-  char *jniname = makeValidJniName(module);
+  String *jniname = makeValidJniName(module);
   Printf(wrapper_name, "Java_%s%s_%%f", c_pkgstr, jniname);
-  free(jniname);
+  Delete(jniname);
 
   Swig_name_register((char*)"wrapper", Char(wrapper_name));
   Swig_name_register((char*)"set", (char*)"set_%v");
@@ -383,21 +369,20 @@ int JAVA::top(Node *n) {
   Delete(wrapper_name);
 
   // Generate the java class
-  sprintf(bigbuf, "%s.java", module);
+  sprintf(bigbuf, "%s.java", Char(module));
   if((f_java = fopen(bigbuf, "w")) == 0) {
     Printf(stderr,"Unable to open %s\n", bigbuf);
     SWIG_exit(1);
   }
 
-  Printf(f_header, "#define J_CLASSNAME %s\n", module);
-  if(package && *package) {
-    Printf(f_java, "package %s;\n\n", package);
-    Printf(f_header, "#define J_PACKAGE %s\n", package);
-  } else {
-    Printf(f_header, "#define J_PACKAGE\n");
-  }
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"extern \"C\" {\n");
+  Printf(f_wrappers,"#endif\n");
 
-  /* Emit all nodes */
+  if(package && *package)
+    Printf(f_java, "package %s;\n\n", package);
+
+  /* Emit code */
   Language::top(n);
 
   if(!classdef_emitted) emitClassDef();
@@ -417,11 +402,14 @@ int JAVA::top(Node *n) {
   
   if(wrapper_conversion_code)
     Printv(f_wrappers,wrapper_conversion_code,NULL);
-  
+
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"}\n");
+  Printf(f_wrappers,"#endif\n");
+
 #ifdef DEPRECATED
   Delete(shadow_classes); shadow_classes = NULL;
 #endif
-
   Delete(shadow_classdef); shadow_classdef = NULL;
   Delete(shadow_code); shadow_code = NULL;
   Delete(registerNativesList); registerNativesList = NULL;
@@ -451,21 +439,6 @@ int JAVA::top(Node *n) {
   Delete(f_runtime);
   return SWIG_OK;
 }
-
-// ---------------------------------------------------------------------
-// JAVA::set_module(char *mod_name)
-//
-// Sets the module name.  Does nothing if it's already set (so it can
-// be overriddent as a command line option).
-//
-//----------------------------------------------------------------------
-
-void JAVA::set_module(char *mod_name) {
-  if (module) return;
-  module = new char[strlen(mod_name)+1];
-  strcpy(module,mod_name);
-}
-
 
 static void emit_banner(FILE *f) {
   Printf(f, "/* ----------------------------------------------------------------------------\n");
@@ -561,11 +534,12 @@ int JAVA::functionWrapper(Node *n) {
   if(shadow && wrapping_member && !enum_flag) {
     String *member_function_name = NewString("");
     String *java_function_name = NewString(iname);
-    if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name)))) == 0)
+    if(Cmp(iname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
       Printf(member_function_name,"set");
-    else Printf(member_function_name,"get");
-    Putc(toupper((int) *shadow_variable_name), member_function_name);
-    Printf(member_function_name, "%s", shadow_variable_name+1);
+    else 
+      Printf(member_function_name,"get");
+    Putc(toupper((int) *Char(shadow_variable_name)), member_function_name);
+    Printf(member_function_name, "%s", Char(shadow_variable_name)+1);
 
     Setattr(n,"java:shadfuncname", member_function_name);
     Setattr(n,"java:funcname", iname);
@@ -588,9 +562,9 @@ int JAVA::functionWrapper(Node *n) {
   if(!classdef_emitted) emitClassDef();
 
   // Make a wrapper name for this function
-  char *jniname = makeValidJniName(iname);
+  String *jniname = makeValidJniName(iname);
   String *wname = Swig_name_wrapper(jniname);
-  free(jniname);
+  Delete(jniname);
 
   /* Get the jni and java types of the return. 
    * The non-standard typemaps must first be attached to the parameter list. */
@@ -622,8 +596,6 @@ int JAVA::functionWrapper(Node *n) {
   Printf(f_java, "  %s ", module_method_modifiers);
   Printf(f_java, "native %s %s(", javarettype, iname);
 
-  if(!jnic) 
-    Printv(f->def, "extern \"C\"{\n", NULL);
   Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
   // Emit all of the local variables for holding arguments.
@@ -790,8 +762,6 @@ int JAVA::functionWrapper(Node *n) {
 
   if(SwigType_type(t) != T_VOID)
     Printv(f->code, "    return jresult;\n", NULL);
-  if(!jnic)
-    Printf(f->code, "}");
   Printf(f->code, "}\n");
 
   /* Substitute the cleanup code */
@@ -865,14 +835,14 @@ int JAVA::enumDeclaration(Node *n) {
 // ------------------------------------------------------------------------
 
 int JAVA::constantWrapper(Node *n) {
-  char *name      = GetChar(n,"name");
+  String *name    = Getattr(n,"name");
   char *iname     = GetChar(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   char     *value = GetChar(n,"value");
   ParmList  *l    = Getattr(n,"parms");
 
   String *tm;
-  char *jname;
+  String *jname;
   DOH *jout;
   String *constants_code;
   String *java_type = NewString("");
@@ -917,7 +887,7 @@ int JAVA::constantWrapper(Node *n) {
         Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(type,0));
       }
     }
-    if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {
+    if(Cmp(jname, value) == 0 || strstr(value,"::") != NULL) {
       /* 
       We have found an enum.  The enum implementation is done using a public final static int in Java.
       */
@@ -1232,34 +1202,31 @@ void JAVA::emitShadowClassDef(Node *n) {
         "}\n",
         NULL); 
 
-    char *jnimodule    = makeValidJniName(module);
-    char *jniclass     = makeValidJniName(shadow_classname);
-    char *jnibaseclass = makeValidJniName(Char(baseclass));
+    String *jnimodule    = makeValidJniName(module);
+    String *jniclass     = makeValidJniName(shadow_classname);
+    String *jnibaseclass = makeValidJniName(baseclass);
     Replace(wrapper_conversion_code, "$jnibaseclass",jnibaseclass, DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$cbaseclass",  c_baseclass, DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$jniclass",    jniclass,  DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$cclass",      c_classname, DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$jnipkgstr",   c_pkgstr,  DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$jnimodule",   jnimodule, DOH_REPLACE_ANY);
-    free(jnibaseclass);
-    free(jniclass);
-    free(jnimodule);
+    Delete(jnibaseclass);
+    Delete(jniclass);
+    Delete(jnimodule);
   }
 }
 
 int JAVA::classHandler(Node *n) {
 
   if (shadow) {
-    char *rename = GetChar(n,"sym:name");
-    char *ctype  = GetChar(n,"kind");
+    shadow_classname = NewString(Getattr(n,"sym:name"));
     
-    shadow_classname = Swig_copy_string(rename);
-    
-    if (strcmp(shadow_classname, module) == 0) {
+    if (Cmp(shadow_classname, module) == 0) {
       Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
       SWIG_exit(1);
     }
-    sprintf(bigbuf, "%s.java", shadow_classname);
+    sprintf(bigbuf, "%s.java", Char(shadow_classname));
     if(!(f_shadow = fopen(bigbuf, "w"))) {
       Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
     }
@@ -1299,9 +1266,7 @@ int JAVA::classHandler(Node *n) {
     fclose(f_shadow);
     f_shadow = NULL;
     
-    free(shadow_classname);
-    shadow_classname = NULL;
-    
+    Delete(shadow_classname); shadow_classname = NULL;
     Delete(destructor_call); destructor_call = NULL;
     Delete(shadow_constants_code); shadow_constants_code = NULL;
     Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
@@ -1706,7 +1671,7 @@ int JAVA::classDeclaration(Node *n) {
 }
 
 int JAVA::membervariableHandler(Node *n) {
-  shadow_variable_name = GetChar(n,"sym:name");
+  shadow_variable_name = Getattr(n,"sym:name");
   wrapping_member = 1;
   variable_wrapper_flag = 1;
   Language::membervariableHandler(n);
@@ -1716,7 +1681,7 @@ int JAVA::membervariableHandler(Node *n) {
 }
 
 int JAVA::staticmembervariableHandler(Node *n) {
-  shadow_variable_name = GetChar(n,"sym:name");
+  shadow_variable_name = Getattr(n,"sym:name");
   wrapping_member = 1;
   static_flag = 1;
   Language::staticmembervariableHandler(n);
@@ -1726,7 +1691,7 @@ int JAVA::staticmembervariableHandler(Node *n) {
 }
 
 int JAVA::memberconstantHandler(Node *n) {
-  shadow_variable_name = GetChar(n,"sym:name");
+  shadow_variable_name = Getattr(n,"sym:name");
   wrapping_member = 1;
   Language::memberconstantHandler(n);
   wrapping_member = 0;
