@@ -22,4 +22,4 @@ void foo_1() {}
 int bar_1 = 17;
 %}
 
-%constant(int) Baz_1 = 47;
+%constant int Baz_1 = 47;
