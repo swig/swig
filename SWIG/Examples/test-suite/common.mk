@@ -49,7 +49,9 @@ CPP_TEST_BROKEN += \
 	namespace_union \
 	nested_comment \
 	overload_complicated \
+	template_broken \
 	template_expr
+
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += \
