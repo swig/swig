@@ -1698,16 +1698,23 @@ int Language::classDirectorConstructors(Node *n) {
     }
     classDirectorDefaultConstructor(n);
     default_ctor = 1;
-  } else {
-    /* this is just to support old java behavior, ie, the default
-       constructor is always emitted, even when protected, and not
-       needed, since there is a public constructor already defined. */
-    if (!default_ctor && !protected_ctor) {
-      if (Getattr(parent,"allocate:default_base_constructor")) {
-	classDirectorDefaultConstructor(n);
-      }
+  }
+  /* this is just to support old java behavior, ie, the default
+     constructor is always emitted, even when protected, and not
+     needed, since there is a public constructor already defined.  
+
+     (scottm) This code is needed here to make the director_abstract +
+     test generate compileable code (Example2 in director_abastract.i).
+
+     (mmatus) This is very strange, since swig compiled with gcc3.2.3
+     doesn't need it here....
+  */
+  if (!default_ctor && !protected_ctor) {
+    if (Getattr(parent,"allocate:default_base_constructor")) {
+      classDirectorDefaultConstructor(n);
     }
   }
+
   return SWIG_OK;
 }
 
