@@ -1672,7 +1672,8 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
-      if (is_public(ni) || (dirprot_mode() && is_protected(ni))) {
+      int need_prot = director_prot_ctor_code && dirprot_mode() && is_protected(ni);
+      if (is_public(ni) || need_prot) {
         classDirectorConstructor(ni);
         constructor = 1;
       }
@@ -1967,7 +1968,6 @@ int Language::classHandler(Node *n) {
       Iterator k;
       int old_mode = cplus_mode;
       cplus_mode =  CPLUS_PROTECTED;
-
       for (k = First(vtable); k.key; k = Next(k)) {
 	item = k.item;
 	Node *method = Getattr(item, "methodNode");
@@ -2089,13 +2089,8 @@ Language::constructorHandler(Node *n) {
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_construct(symname);
   String *director_ctor = director_ctor_code;
-  if (!is_public(n)) {
-    if (director_prot_ctor_code && is_protected(n)) {
-      director_ctor = director_prot_ctor_code;
-    }
-  }
-  if (Getattr(Swig_methodclass(n),"abstract")) {
-    if (director_prot_ctor_code) {
+  if (director_prot_ctor_code) {
+    if (is_protected(n) || Getattr(Swig_methodclass(n),"abstract")) {
       director_ctor = director_prot_ctor_code;
     }
   }
@@ -2609,7 +2604,6 @@ int Language::abstractClassTest(Node *n) {
   
   return dirabstract;
 }
-
 
 void Language::setSubclassInstanceCheck(String *nc) {
     none_comparison = nc;
