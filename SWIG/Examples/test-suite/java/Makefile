@@ -46,10 +46,7 @@ run_testcase = \
 	(cd $*; javac *.java; ); \
 	if [ -f $*\_runme.java ]; then ( \
 	  javac $*\_runme.java; \
-	  cd $*; \
-	  CLASSPATH=.. \
-	  export CLASSPATH; \
-	  java $*\_runme;) \
+	  env LD_LIBRARY_PATH=$*:$$LD_LIBRARY_PATH java $*\_runme;) \
 	fi;
 
 # Clean: remove testcase directories
