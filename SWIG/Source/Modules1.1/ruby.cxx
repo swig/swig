@@ -731,7 +731,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     cls = RCLASS(classes, SwigType_base(t));
     if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
       const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
-      Printv(getf->code, "vresult = Wrap_", cls->cname, "(", vname, ",", source,  ",",
+      Printv(getf->code, "_val = Wrap_", cls->cname, "(", vname, ",", source,  ",",
 	     (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
     } else {
       if (add_pointer) SwigType_del_pointer(t);
