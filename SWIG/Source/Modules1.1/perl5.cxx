@@ -1081,9 +1081,10 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
     } else {
       Printv(var_stubs, "*", iname, " = *", package, "::", iname, ";\n", 0);
     }
-    if (export_all)
-      Printf(exported,"$%s ", name);
   }
+  if (export_all)
+    Printf(exported,"$%s ", name);
+
   DelWrapper(setf);
   DelWrapper(getf);
 }
