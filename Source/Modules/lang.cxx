@@ -1466,12 +1466,18 @@ int Language::unrollVirtualMethods(Node *n,
 	Node *method_id = NewStringf("%s|%s", name, local_decl);
 	/* Make sure that the new method overwrites the existing: */
 	Hash *exists_item = Getattr(vm, method_id);
-	if (exists_item) Delattr(vm, method_id);
-	/* filling a new method item */
-	String *fqname = NewStringf("%s::%s", classname, name);
+        if (exists_item) {
+	  /* maybe we should check for precedence here, ie, only
+	     delete the previous method if 'n' is derived from the
+	     previous method parent node. This is almost always true,
+	     so by now, we just delete the entry. */
+	  Delattr(vm, method_id);
+	}
+        /* filling a new method item */
+ 	String *fqname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
-	Setattr(item, "methodNode", ni);
+	Setattr(item, "methodNode", Copy(ni));
 	Setattr(vm, method_id, item);
 	Delete(fqname);
 	Delete(item);
@@ -1484,33 +1490,61 @@ int Language::unrollVirtualMethods(Node *n,
   }
 
   /*
-    We delete all the nodirector methods.  This prevents the
+    We delete all the nodirector methods. This prevents the
     generation of 'empty' director classes.
-    
-    But this has to be done outside the previous loop!.
-   */
-  Iterator k;
-  for (k = First(vm); k.key; k = Next(k)) {
-    Node *m = Getattr(k.item, "methodNode");
-    int mdir   = !Cmp(Getattr(m, "feature:director"), "1");    
-    int mnodir = !Cmp(Getattr(m, "feature:nodirector"), "1");
-    /* defines if we need director method */
-    int dir = (mdir || !mnodir);
-    Node *pm = Getattr(m, "parentNode");
-    if (pm != parent) {
-      /* check the method found in vtable against my method features */
-      Node *c = Copy(m);
-      Setattr(c,"parentNode", parent);
-      Setattr(c,"sym:symtab", Getattr(parent,"symtab"));
-      int cdir   = !Cmp(Getattr(c, "feature:director"), "1");    
-      int cnodir = !Cmp(Getattr(c, "feature:nodirector"), "1");
-      dir = (cdir || cnodir) ? (cdir || !cnodir) : dir;
-      Delete(c);
-    }    
-    if (dir) {      
-      if (mnodir) Delattr(m, "feature:nodirector");
-    } else {
-      Delattr(vm, k.key);
+      
+    But this has to be done outside the previous 'for'
+    an the recursive loop!.
+  */
+  if (n == parent) {
+    Iterator k;
+    for (k = First(vm); k.key; k = Next(k)) {
+      Node *m = Getattr(k.item, "methodNode");
+      /* retrieve the director features */
+      int mdir = checkAttribute(m, "feature:director", "1");
+      int mndir = checkAttribute(m, "feature:nodirector", "1");
+      /* 'nodirector' has precedence over 'director' */
+      int dir = (mdir || mndir) ? (mdir && !mndir) : 1;
+      /* check if the method was found only in a base class */
+      Node *p = Getattr(m, "parentNode");
+      if (p != n) {
+	/* check for my own features to take precedence, ie, if I only
+	   found Base::method(), look for MySelf::method() features.
+	   
+	   The problem is that MySelf::method() is not declared in the
+	   MySelf class, and appears here through derivation:
+
+	   %feature("nodirector") Base::method();
+	   %feature("director") MySelf::method();
+
+	   struct Base {
+              virtual ~Base(); 
+	      virtual int method();
+	   };
+
+	   struct MySelf : Base {
+	   };
+
+	   *** Ask David, this is not working now!!! *****
+
+	   This is now just giving back the Base::method() features,
+	   maybe we need to look directly in the feature hash
+	   table?... 
+	*/
+	Node *c = Copy(m);
+	Setattr(c, "parentNode", n);
+	int cdir = checkAttribute(c, "feature:director", "1");
+	int cndir = checkAttribute(c, "feature:nodirector", "1");
+	dir = (cdir || cndir) ? (cdir && !cndir) : dir;
+	Delete(c);
+      }
+      if (dir) {
+	/* be sure the 'nodirector' feature is disabled  */
+	if (mndir) Delattr(m, "feature:nodirector");
+      } else {
+	/* or just delete from the vm, since is not a director method */
+	Delattr(vm, k.key);
+      }
     }
   }  
 
