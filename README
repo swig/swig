@@ -120,7 +120,7 @@ To build and install SWIG, simply type the following:
 
      % ./configure
      % make
-     % make check	# this step is optional
+     % make check	# this step is optional (see note below)
      % make install
 
 In addition, if you need to build the runtime libraries, type
@@ -146,6 +146,14 @@ Notes:
     The SWIG1.1p5 distribution also contains a number of examples configured
     to work with Visual C++ (most of which should also work with SWIG1.3).
 
+(3) 'make check' is a new feature that requires all of the target languages
+     to be installed and which performs compile/link level testing
+     of the examples.  If it fails, it may mean that you have an uninstalled
+     language module or that the file 'Examples/Makefile' has been
+     incorrectly configured.  It may also fail due to compiler issues 
+     such as broken C++ compiler.  Even if 'make check' fails, there is a 
+     pretty good chance SWIG still works correctly---you will just have
+     to mess around with one of the examples and some makefiles first.
 
 Examples
 ========
