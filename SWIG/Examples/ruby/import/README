@@ -1,5 +1,4 @@
-This example tests the SWIG run-time libraries and use of the
-%import directive to work with multiple modules.
+This example tests the %import directive and working with multiple modules.
 
 Use 'ruby runme.rb' to run a test.
 
@@ -16,26 +15,27 @@ a separate C++ class.
 
 Each module used %import to refer to another module.  For
 example, the 'foo.i' module uses '%import base.i' to get
-definitions for its base class. 
+definitions for its base class. These modules do not generate
+any runtime code (-noruntime commandline option).
 
-If everything is working correctly, all of the modules will load
-correctly and type checking will work correctly.   The
-example requires the use of the SWIG run-time libraries
-which must be built and properly installed.  
+The runtime.i file is an empty SWIG module which will generate
+the runtime library code for sharing amongst the other modules 
+(uses -runtime commandline option). 
+
+If everything is okay, all of the modules will load correctly and
+type checking will work correctly.
 
 Unix:
 -----
-- Make sure the SWIG runtime library is built and the path to it is 
-  in LD_LIBRARY_PATH
 - Run make
+- Make sure your LD_LIBRARY_PATH includes the current directory so that
+  libruntime.so can be loaded.
 - Run the test as described above
 
 Windows:
 --------
-- Make sure the SWIG runtime library is built and in your path. See Windows.html.
 - Use the Visual C++ 6 workspace file (example.dsw). Build each project 
-  to create the 4 DLLs. The Batch build option in the Build menu is the
+  to create the 5 DLLs. The Batch build option in the Build menu is the
   easiest way to do this. Only use the Release builds not the Debug builds.
 - Run the test as described above
-
 

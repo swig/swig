@@ -2,10 +2,12 @@ bar.py
 base.py
 foo.py
 spam.py
+runtime.py
 bar.pyc
 base.pyc
 foo.pyc
 spam.pyc
+runtime.pyc
 *_wrap.c
 *_wrap.cxx
 *.dll
