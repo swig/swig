@@ -393,7 +393,7 @@ public:
     String *s = NewString("");
     String *temp = NewString("");
     
-    const char *alias = GetChar(n,"feature:alias");
+    String *alias = Getattr(n,"feature:alias");
     
     switch (current) {
     case MEMBER_FUNC:
@@ -430,8 +430,9 @@ public:
       Printv(f_init,s,NULL);
       break;
     }
-    Delete(s);
     Delete(temp);
+    Delete(s);
+    Delete(wname);
   }
   
   /* ---------------------------------------------------------------------
