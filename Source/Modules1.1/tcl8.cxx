@@ -292,7 +292,7 @@ TCL8::function(DOH *node) {
 	 0);
 
   /* Print out variables for storing arguments. */
-  pcount = emit_args(d, l, f);
+  pcount = emit_args(node, f);
   numopt = check_numopt(l);
 
   /* Extract parameters. */
@@ -440,7 +440,7 @@ TCL8::function(DOH *node) {
   Printv(f->code,incode,0);
 
   /* Now write code to make the function call */
-  emit_func_call(name,d,l,f);
+  emit_func_call(node,f);
 
   /* Return value if necessary  */
   if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"tcl_result",0))) {
@@ -950,11 +950,16 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::add_native()
+ * TCL8::nativefunction();
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+TCL8::nativefunction(DOH *node) {
+  char *name;
+  char *funcname;
+
+  name = GetChar(node,"scriptname");
+  funcname = GetChar(node,"name");
   Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
 }
 
@@ -1043,13 +1048,16 @@ TCL8::cpp_close_class() {
   Delete(code);
 }
 
-void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+void TCL8::cpp_memberfunction(DOH *node) {
+  char *name, *iname;
   char *realname;
   char temp[1024];
   String  *rname;
-
-  this->Language::cpp_member_func(name,iname,t,l);
+  
+  this->Language::cpp_memberfunction(node);
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
     realname = iname ? iname : name;
     /* Add stubs for this member to our class handler function */
 
@@ -1061,14 +1069,17 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   }
 }
 
-void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
+void TCL8::cpp_variable(DOH *node) {
+  char *name, *iname;
   char *realname;
   char temp[1024];
   String *rname;
 
-  this->Language::cpp_variable(name, iname, t);
+  this->Language::cpp_variable(node);
 
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
     realname = iname ? iname : name;
     Printv(attributes, tab4, "{ \"-", realname, "\",", 0);
 
@@ -1090,13 +1101,13 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
 }
 
 void
-TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
-  this->Language::cpp_constructor(name,iname,l);
+TCL8::cpp_constructor(DOH *node) {
+  this->Language::cpp_constructor(node);
   have_constructor = 1;
 }
 
 void
-TCL8::cpp_destructor(char *name, char *newname) {
-  this->Language::cpp_destructor(name,newname);
+TCL8::cpp_destructor(DOH *node) {
+  this->Language::cpp_destructor(node);
   have_destructor = 1;
 }

@@ -379,7 +379,7 @@ PYTHON::function(DOH *node) {
   usage = usage_func(iname,d,l);
 
   /* Write code to extract function parameters. */
-  pcount = emit_args(d, l, f);
+  pcount = emit_args(node, f);
   if (!use_kw) {
     Printf(parse_args,"    if(!PyArg_ParseTuple(args,\"");
   } else {
@@ -550,7 +550,7 @@ PYTHON::function(DOH *node) {
   Printv(f->code, parse_args, get_pointers, check, 0);
 
   /* Emit the function call */
-  emit_func_call(name,d,l,f);
+  emit_func_call(node,f);
 
   /* Return the function value */
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"resultobj",0))) {
@@ -1017,10 +1017,15 @@ PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::add_native()
+ * PYTHON::nativefunctin()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+PYTHON::nativefunction(DOH *node) {
+  char *name;
+  char *funcname;
+  name = GetChar(node,"scriptname");
+  funcname = GetChar(node,"name");
+
   add_method(name, funcname,0);
   if (shadow) {
     Printv(func, name, " = ", module, ".", name, "\n\n", 0);
@@ -1245,17 +1250,24 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
  * PYTHON::cpp_member_func()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+PYTHON::cpp_memberfunction(DOH *node) {
   char *realname;
+  char *name, *iname;
+  SwigType *t;
+  ParmList *l;
   int   oldshadow;
   char  cname[1024];
 
   /* Create the default member function */
   oldshadow = shadow;    /* Disable shadowing when wrapping member functions */
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_member_func(name,iname,t,l);
+  this->Language::cpp_memberfunction(node);
   shadow = oldshadow;
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    t = Getattr(node,"type");
+    l = Getattr(node,"parms");
     realname = iname ? iname : name;
 
     /* Check to see if we've already seen this */
@@ -1305,16 +1317,21 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
  * PYTHON::cpp_constructor()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
+PYTHON::cpp_constructor(DOH *node) {
+  char *name, *iname;
+  ParmList *l;
   char *realname;
   int   oldshadow = shadow;
   char  cname[1024];
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_constructor(name,iname,l);
+  this->Language::cpp_constructor(node);
   shadow = oldshadow;
 
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    l = Getattr(node,"parms");
     realname = iname ? iname : class_name;
 
     /* Check to see if we've already seen this */
@@ -1359,14 +1376,17 @@ PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
  * PYTHON::cpp_destructor()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_destructor(char *name, char *newname) {
+PYTHON::cpp_destructor(DOH *node) {
+  char *name, *newname;
   char *realname;
   int oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_destructor(name,newname);
+  this->Language::cpp_destructor(node);
   shadow = oldshadow;
   if (shadow) {
+    name = GetChar(node,"name");
+    newname = GetChar(node,"scriptname");
     if (newname) realname = newname;
     else realname = class_renamed ? class_name : name;
 
@@ -1495,17 +1515,22 @@ PYTHON::cpp_inherit(char **baseclass,int) {
  * PYTHON::cpp_variable() - Add a member variable
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
+PYTHON::cpp_variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
   char *realname;
   int   inhash = 0;
   int   oldshadow = shadow;
   char  cname[512];
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_variable(name,iname,t);
+  this->Language::cpp_variable(node);
   shadow = oldshadow;
 
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    t = Getattr(node,"type");
     have_getattr = 1;
     have_setattr = 1;
     realname = iname ? iname : name;
@@ -1536,16 +1561,22 @@ PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
  * PYTHON::cpp_declare_const()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+PYTHON::cpp_constant(DOH *node) {
+  char *name, *iname, *value;
+  SwigType *type;
   char *realname;
   int   oldshadow = shadow;
   char  cname[512];
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_declare_const(name,iname,type,value);
+  this->Language::cpp_constant(node);
   shadow = oldshadow;
 
   if (shadow) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    type = Getattr(node,"type");
+    value = GetChar(node,"value");
     realname = iname ? iname : name;
 
     /* Check to see if we've already seen this */

@@ -790,7 +790,11 @@ statement      : INCLUDE LPAREN STRING RPAREN STRING LBRACE {
 		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
-		     lang->add_native($3,$6,0,0);
+		     DOH *node = NewHash();
+		     Setattr(node,"scriptname",$3);
+		     Setattr(node,"name",$6);
+		     lang->nativefunction(node);
+		     Delete(node);
 		   }
 		 }
 	       }
@@ -805,7 +809,13 @@ statement      : INCLUDE LPAREN STRING RPAREN STRING LBRACE {
 		     if ($5) {
 		       emit_extern_func($7.id, $6, $9, $5, f_header);
 		     }
-		     lang->add_native($3,$7.id,$6,$9);
+		     DOH *node = NewHash();
+		     Setattr(node,"name",$7.id);
+		     Setattr(node,"scriptname",$3);
+		     Setattr(node,"type",$6);
+		     Setattr(node,"parms",$9);
+		     lang->nativefunction(node);
+		     Delete(node);
 		   }
 		 }
 		 Delete($6);

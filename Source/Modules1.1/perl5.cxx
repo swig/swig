@@ -523,7 +523,7 @@ PERL5::function(DOH *node)
 
   Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
 
-  pcount = emit_args(d, l, f);
+  pcount = emit_args(node, f);
   numopt = check_numopt(l);
 
   Wrapper_add_local(f,"argvi","int argvi = 0");
@@ -650,7 +650,7 @@ PERL5::function(DOH *node)
 
   /* Now write code to make the function call */
 
-  emit_func_call(name,d,l,f);
+  emit_func_call(node,f);
 
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"ST(argvi)",0))) {
     Printf(f->code, "%s\n", tm);
@@ -1275,10 +1275,13 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::add_native()
+ * PERL5::nativefunction()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+PERL5::nativefunction(DOH *node) {
+  char *name, *funcname;
+  name = GetChar(node,"scriptname");
+  funcname = GetChar(node,"name");
   Printf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package,name, funcname);
   if (export_all)
     Printf(exported,"%s ",name);
@@ -1495,7 +1498,10 @@ PERL5::cpp_close_class() {
  * PERL5::cpp_member_func()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+PERL5::cpp_memberfunction(DOH *node) {
+  char    *name, *iname;
+  SwigType *t;
+  ParmList *l;
   String  *func;
   char    *realname;
   Parm    *p;
@@ -1506,10 +1512,15 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   int      need_wrapper = 0;
 
   member_func = 1;
-  this->Language::cpp_member_func(name,iname,t,l);
+  this->Language::cpp_memberfunction(node);
   member_func = 0;
 
   if (!blessed) return;
+  
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   func = NewString("");
   cname = NewString("perl5:");
@@ -1632,8 +1643,9 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
  * is in the list, we tie it, otherwise, we just return the normal SWIG value.
  * ----------------------------------------------------------------------------- */
 
-void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
-
+void PERL5::cpp_variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
   char *realname;
   String *cname;
 
@@ -1642,13 +1654,18 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
   /* Emit a pair of get/set functions for the variable */
 
   member_func = 1;
-  this->Language::cpp_variable(name, iname, t);
+  this->Language::cpp_variable(node);
   member_func = 0;
 
-  if (iname) realname = iname;
-  else realname = name;
 
   if (blessed) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    t = Getattr(node,"type");
+
+    if (iname) realname = iname;
+    else realname = name;
+  
     Printf(cname,"%s::%s", class_name, realname);
     if (Getattr(symbols,cname)) {
       Delete(cname);
@@ -1684,7 +1701,9 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
  * something that wasn't necessarily allocated by malloc or new
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
+PERL5::cpp_constructor(DOH *node) {
+  char *name, *iname;
+  ParmList *l;
   Parm *p;
   int   i;
   String *realname;
@@ -1695,10 +1714,12 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
   /* Emit an old-style constructor for this class */
 
   member_func = 1;
-  this->Language::cpp_constructor(name, iname, l);
+  this->Language::cpp_constructor(node);
 
   if (blessed) {
-
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    l = Getattr(node,"parms");
     if (iname)
       realname = iname;
     else {
@@ -1769,12 +1790,16 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
  * PERL5::cpp_destructor()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_destructor(char *name, char *newname) {
+PERL5::cpp_destructor(DOH *node) {
   String *realname;
+  char *name, *newname;
   member_func = 1;
-  this->Language::cpp_destructor(name, newname);
+  this->Language::cpp_destructor(node);
 
   if (blessed) {
+    name = GetChar(node,"name");
+    newname = GetChar(node,"scriptname");
+
     if (newname) realname = newname;
     else {
       if (class_renamed) realname = class_name;
@@ -1801,16 +1826,20 @@ PERL5::cpp_destructor(char *name, char *newname) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_static_func()
+ * PERL5::cpp_staticfunction()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
-  this->Language::cpp_static_func(name,iname,t,l);
+PERL5::cpp_staticfunction(DOH *node) {
+  char *name, *iname;
+  this->Language::cpp_staticfunction(node);
   char *realname;
-  if (iname) realname = name;
-  else realname = iname;
 
   if (blessed) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    if (iname) realname = name;
+    else realname = iname;
+
     Printv(pcode, "*", realname, " = *", realpackage, "::", Swig_name_member(class_name,realname), ";\n", 0);
   }
 }
@@ -1854,20 +1883,23 @@ PERL5::cpp_inherit(char **baseclass, int) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_declare_const()
+ * PERL5::cpp_constant()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+PERL5::cpp_constant(DOH *node) {
+  char *name, *iname;
   String *realname;
   int   oldblessed = blessed;
   char  cname[256];
 
   /* Create a normal constant */
   blessed = 0;
-  this->Language::cpp_declare_const(name, iname, type, value);
+  this->Language::cpp_constant(node);
   blessed = oldblessed;
 
   if (blessed) {
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
     if (!iname)
       realname = name;
     else

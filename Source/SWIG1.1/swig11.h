@@ -92,37 +92,35 @@ class Language {
 public:
   virtual void parse_args(int argc, char *argv[]) = 0;
   virtual void parse() = 0;
+
+  /* NEW API */
   virtual void function(DOH *node) = 0;
   virtual void variable(DOH *node) = 0;
   virtual void constant(DOH *node) = 0;
+  virtual void nativefunction(DOH *node);
+
+  /* C++ handling */
+  virtual void cpp_memberfunction(DOH *node);
+  virtual void cpp_constructor(DOH *node);
+  virtual void cpp_destructor(DOH *node);
+  virtual void cpp_variable(DOH *node);
+  virtual void cpp_staticfunction(DOH *node);
+  virtual void cpp_constant(DOH *node);
+  virtual void cpp_staticvariable(DOH *node);
+
+  /* OLD API */
 
   virtual void initialize(void) = 0;
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name) = 0;
-  virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
   virtual void create_command(char *cname, char *iname);
 
-  //
-  // C++ language extensions.
-  // You can redefine these, or use the defaults below
-  //
-
-  virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void cpp_constructor(char *name, char *iname, ParmList *l);
-  virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *name, char *rename, char *ctype, int strip);
   virtual void cpp_close_class();
   virtual void cpp_cleanup();
   virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
-  virtual void cpp_variable(char *name, char *iname, SwigType *t);
-  virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
-  virtual void cpp_static_var(char *name, char *iname, SwigType *t);
   virtual void cpp_pragma(Pragma *plist);
-
-  // Pragma directive
-
   virtual void pragma(char *, char *, char *);
 
   // Declaration of a class, but not a full definition
@@ -130,7 +128,6 @@ public:
   virtual void cpp_class_decl(char *, char *, char *);
 
   // Import directive
-
   virtual void import(char *filename);
 
 };
@@ -138,8 +135,7 @@ public:
 /* Emit functions */
 
 extern  void  new_create_function(char *, char *, SwigType *, ParmList *);
-extern  void  emit_func_call(char *, SwigType *, ParmList *, FILE *);
-extern  void  emit_set_get(char *, char *, SwigType *);
+extern  void  emit_set_get(DOH *node);
 extern  void  emit_set_action(DOHString_or_char *decl);
 
 extern  int   SWIG_main(int, char **, Language *);
@@ -160,10 +156,18 @@ extern "C" {
 
 // Misc
 
-extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
-extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
+extern  int   emit_args(DOH *node, Wrapper *f);
+extern  void  emit_func_call(DOH *node, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
-extern int     check_numopt(ParmList *);
-extern void   SWIG_config_file(const String_or_char *);
+extern  int   check_numopt(ParmList *);
+extern  void  SWIG_config_file(const String_or_char *);
 
 /* swig11.h ends here */
+
+
+
+
+
+
+
+

@@ -277,9 +277,21 @@ public:
     update_parms(l);
     update_local_type(t);
     if (is_static) {
-      lang->cpp_static_func(name, iname, t, l);
+      DOH *node = NewHash();
+      Setattr(node,"name",name);
+      Setattr(node,"scriptname",iname);
+      Setattr(node,"type",t);
+      Setattr(node,"parms",l);
+      lang->cpp_staticfunction(node);
+      Delete(node);
     } else {
-      lang->cpp_member_func(name, iname, t, l);
+      DOH *node = NewHash();
+      Setattr(node,"name",name);
+      Setattr(node,"scriptname",iname);
+      Setattr(node,"type",t);
+      Setattr(node,"parms",l);
+      lang->cpp_memberfunction(node);
+      Delete(node);
     }
     Delete(l);
     Delete(t);
@@ -328,7 +340,12 @@ public:
       
       l = CopyParmList(parms);
       update_parms(l);
-      lang->cpp_constructor(name,iname,l);
+      Hash *node = NewHash();
+      Setattr(node,"name",name);
+      Setattr(node,"scriptname",iname);
+      Setattr(node,"parms",l);
+      lang->cpp_constructor(node);
+      Delete(node);
       Delete(l);
     }
   }
@@ -380,7 +397,11 @@ public:
     line_number = line;
     input_file = file;
     ccode = code;
-    lang->cpp_destructor(name, iname);
+    Hash *node = NewHash();
+    Setattr(node,"name",name);
+    Setattr(node,"scriptname",iname);
+    lang->cpp_destructor(node);
+    Delete(node);
   }
 };
 
@@ -433,9 +454,19 @@ public:
     }
 
     if (!is_static) {
-      lang->cpp_variable(name,iname,t);
+      DOH *node = NewHash();
+      Setattr(node,"name",name);
+      Setattr(node,"scriptname",iname);
+      Setattr(node,"type",t);
+      lang->cpp_variable(node);
+      Delete(node);
     } else {
-      lang->cpp_static_var(name,iname,t);
+      DOH *node = NewHash();
+      Setattr(node,"name",name);
+      Setattr(node,"scriptname",iname);
+      Setattr(node,"type",t);
+      lang->cpp_staticvariable(node);
+      Delete(node);
     }
     Status = old_status;
     Delete(t);
@@ -495,7 +526,13 @@ public:
     line_number = line;
     input_file = file;
     ccode = code;
-    lang->cpp_declare_const(name,iname,type,value);
+    DOH *node = NewHash();
+    Setattr(node,"name",name);
+    Setattr(node,"scriptname", iname);
+    Setattr(node,"type",type);
+    Setattr(node,"value",value);
+    lang->cpp_constant(node);
+    Delete(node);
   }
 
   void inherit(int mode) {

@@ -33,12 +33,12 @@ void Language::create_command(char *, char *) {
 }
 
 /* -----------------------------------------------------------------
- * Language::add_native()
+ * Language::nativefunction()
  * ----------------------------------------------------------------- */
 
 void
-Language::add_native(char *, char *iname, SwigType *, ParmList *) {
-  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
+Language::nativefunction(DOH *node) {
+  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, Getattr(node,"scriptname"));
 }
 
 static char  *ClassName = 0;        /* This is the real name of the current class */
@@ -84,12 +84,20 @@ void Language::cpp_close_class() {
 }
 
 /* -----------------------------------------------------------------------------
- * Language::cpp_member_func()
+ * Language::cpp_memberfunction()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+void Language::cpp_memberfunction(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
+  ParmList *l;
   char       new_name[256];
   char       *prefix;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   /* Generate the C wrapper function name and interpreter name of this function*/
   
@@ -121,9 +129,14 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
  * Language::cpp_constructor()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
-
+void Language::cpp_constructor(DOH *node) {
+  char *name, *iname;
+  ParmList *l;
   char *prefix, *cname;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  l = Getattr(node,"parms");
 
   if ((strcmp(name,ClassName)) && (!ObjCClass)) {
     Printf(stderr,"%s : Line %d.  Function %s must have a return type.\n", 
@@ -161,10 +174,12 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
  * Language::cpp_destructor()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_destructor(char *name, char *iname) {
-
+void Language::cpp_destructor(DOH *node) {
+  char *name, *iname;
   char *cname;
 
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
   if (ClassRename) 
     cname = Char(Swig_name_destroy(ClassRename));
   else
@@ -215,8 +230,14 @@ void Language::cpp_inherit(char **baseclass, int mode) {
  * Language::cpp_variable()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_variable(char *name, char *iname, SwigType *t) {
+void Language::cpp_variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
   char *prefix, *cname;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   /* Set the class prefix */
   
@@ -254,11 +275,18 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
  * Language::cpp_static_func()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
-
+void Language::cpp_staticfunction(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
+  ParmList *l;
   char  *prefix;
   char  *mname;
   char  *cname;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   /* Set the classname prefix */
   
@@ -292,16 +320,23 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
 }
 
 /* ----------------------------------------------------------------------------- 
- * Language::cpp_declare_const()
+ * Language::cpp_constant()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *value)
+void Language::cpp_constant(DOH *node) 
 {
-
+  char *name, *iname, *value;
+  SwigType *type;
+  
   char  *cname;
   char  mname[256];
   char  *new_value;
   char  *prefix;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  value = GetChar(node,"value");
+  type = Getattr(node,"type");
 
   /* Set the classname prefix */
   
@@ -352,14 +387,19 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
 }
 
 /* -----------------------------------------------------------------------------
- * Language::cpp_static_var()
+ * Language::cpp_staticvariable()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_static_var(char *name, char *iname, SwigType *t) {
-
+void Language::cpp_staticvariable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
   char  *cname;
   char  mname[256];
   char  *prefix;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   /* Set the classname prefix */
   
