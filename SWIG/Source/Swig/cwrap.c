@@ -1206,7 +1206,7 @@ Swig_VarsetToFunction(Node *n) {
   nname = SwigType_namestr(name);
 
   ty = Swig_wrapped_var_type(type);
-  parms = NewParm(ty,"value");
+  parms = NewParm(ty,name);
   Delete(ty);
   
   if (!Strstr(type,"enum $unnamed")) {
