@@ -270,6 +270,16 @@ case $host in
    *) LIBTOOL_NO_UNDEFINED="-no-undefined";;
 esac
 
+# Optional CFLAGS used to silence compiler warnings on some platforms.
+
+AC_SUBST(PLATFLAGS)
+case $host in
+   *-*-darwin*) PLATFLAGS="-Wno-long-double";;
+   *) PLATFLAGS="";;
+esac
+
+
+
 echo ""
 echo "Checking for installed packages."
 echo "Note : None of the following packages are required to compile SWIG"
