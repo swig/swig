@@ -40,6 +40,7 @@ extern "C" {
 #endif
 #include "mzscheme.h"
 #include "ruby.h"
+#include "xml.h"
 
 // Global variables
 
@@ -292,4 +293,5 @@ void swig11module() {
   Swig_register_module("guile","swig:top", swig11_init, swig11_run);
   Swig_register_module("mzscheme","swig:top", swig11_init, swig11_run);
   Swig_register_module("swig11","swig:top", swig11_init, swig11_run);
+  Swig_register_module("xml","swig:top", xml_init, xml_run);
 }
