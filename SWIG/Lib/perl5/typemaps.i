@@ -31,10 +31,13 @@ you would use a real value instead.
          int            *INPUT
          short          *INPUT
          long           *INPUT
+         long long      *INPUT
          unsigned int   *INPUT
          unsigned short *INPUT
          unsigned long  *INPUT
+         unsigned long long *INPUT
          unsigned char  *INPUT
+         bool           *INPUT
          float          *INPUT
          double         *INPUT
          
@@ -79,14 +82,14 @@ INPUT_TYPEMAP(unsigned char, SvUV);
 INPUT_TYPEMAP(bool, SvIV);
 
 
-%typemap(in) long long *INPUT(long long temp), long long &INPUT(long long temp) {
+%typemap(in) long long *INPUT($*1_ltype temp), long long &INPUT($*1_ltype temp) {
   temp = strtoll(SvPV($input,PL_na), 0, 0);
   $1 = &temp;
 }
 %typemap(typecheck) long long *INPUT = long long;
 %typemap(typecheck) long long &INPUT = long long;
 
-%typemap(in) unsigned long long *INPUT(unsigned long long temp), unsigned long long &INPUT(unsigned long long temp) {
+%typemap(in) unsigned long long *INPUT($*1_ltype temp), unsigned long long &INPUT($*1_ltype temp) {
   temp = strtoull(SvPV($input,PL_na), 0, 0);
   $1 = &temp;
 }
@@ -109,10 +112,13 @@ multiple output values, functions will return a Perl array.
          int            *OUTPUT
          short          *OUTPUT
          long           *OUTPUT
+         long long      *OUTPUT
          unsigned int   *OUTPUT
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
+         unsigned long long *OUTPUT
          unsigned char  *OUTPUT
+         bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
          
@@ -151,8 +157,8 @@ output values.
                  bool           *OUTPUT(bool temp), bool &OUTPUT(bool temp),
                  float          *OUTPUT(float temp), float &OUTPUT(float temp),
                  double         *OUTPUT(double temp), double &OUTPUT(double temp),
-	         long long      *OUTPUT(long long temp), long long &OUTPUT(long long temp),
-	         unsigned long long *OUTPUT(unsigned long long temp), unsigned long long &OUTPUT(unsigned long long temp) 
+                 long long      *OUTPUT($*1_ltype temp), long long &OUTPUT($*1_ltype temp),
+                 unsigned long long *OUTPUT($*1_ltype temp), unsigned long long &OUTPUT($*1_ltype temp) 
 "$1 = &temp;";
 
 %typemap(argout)  int            *OUTPUT, int &OUTPUT,
@@ -230,10 +236,13 @@ returned in the form of a Perl array.
          int            *INOUT
          short          *INOUT
          long           *INOUT
+         long long      *INOUT
          unsigned int   *INOUT
          unsigned short *INOUT
          unsigned long  *INOUT
+         unsigned long long *INOUT
          unsigned char  *INOUT
+         bool           *INOUT
          float          *INOUT
          double         *INOUT
          
