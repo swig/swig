@@ -1308,8 +1308,26 @@ inline_directive : INLINE HBLOCK {
 		   Delete($2);
 		   Delete(cpps);
 		 }
+		 
 	       }
-               ;
+               | INLINE LBRACE {
+                 String *cpps;
+		 skip_balanced('{','}');
+		 if (Namespaceprefix) {
+		   Swig_error(cparse_file, cparse_start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
+		   
+		   $$ = 0;
+		 } else {
+                   $$ = new_node("insert");
+		   Delitem(scanner_ccode,0);
+		   Delitem(scanner_ccode,DOH_END);
+		   Setattr($$,"code", Copy(scanner_ccode));
+		   cpps=Copy(scanner_ccode);
+		   start_inline(Char(cpps), cparse_start_line);
+		   Delete(cpps);
+		 }
+               }
+                ;
 
 /* ------------------------------------------------------------
    %{ ... %}
