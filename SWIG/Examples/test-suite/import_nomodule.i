@@ -5,9 +5,18 @@
 
 %import "import_nomodule.h"
 
-#ifndef SWIGJAVA
-// The proxy class does not have Bar derived from Foo, yet an instance of Bar can successfully be passed to a proxy function taking a Foo pointer. 
-// This violation of the type system is not possible in Java due to its static type checking.
+#if !defined(SWIGJAVA) && !defined(SWIGRUBY)
+
+/**
+ * The proxy class does not have Bar derived from Foo, yet an instance of Bar
+ * can successfully be passed to a proxy function taking a Foo pointer (for some
+ * language modules).
+ * 
+ * This violation of the type system is not possible in Java due to its static
+ * type checking. It's also not (currently) possible in Ruby, but this may be
+ * fixable (needs more investigation).
+ */
+
 %inline %{
 Foo *create_Foo() {
    return new Foo();
@@ -18,7 +27,6 @@ void test1(Foo *f, Integer x) { };
 class Bar : public Foo { };
 
 %}
+
 #endif
-
-
 
