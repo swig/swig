@@ -22,48 +22,6 @@ char cvsroot_java_cxx[] = "$Header$";
 /* Hash type used for JNI upcall data */
 typedef DOH UpcallData;
 
-extern SwigType *cplus_value_type(SwigType *t);
-
-/* External functions borrowed from python.cxx module: */
-
-extern String *Swig_csuperclass_call(String* base, String* method, ParmList* l);
-extern String *Swig_class_declaration(Node *n, String *name);
-extern String *Swig_class_name(Node *n);
-extern String *Swig_director_declaration(Node *n);
-extern String *Swig_method_call(String_or_char *name, ParmList *parms);
-extern String *method_decl(SwigType *s, const String_or_char *id, List *args, int strip, int values);
-
-/* -----------------------------------------------------------------------------
-* SwigType_director_type()
-*
-* Generate the director type name for a given input type, class and director
-* class names.
-* ----------------------------------------------------------------------------- */
-
-String * SwigType_director_type(String *intype, String *classname, String *director_classname) {
-  String *base_type = SwigType_base(intype);
-  String *director_type = SwigType_typedef_resolve(base_type);
-  int is_pointer = SwigType_ispointer(intype);
-  String *retval;
-
-  if (director_type == NULL)
-    director_type = Copy(intype);
-
-  if (SwigType_isreference(director_type))
-    SwigType_del_reference(director_type);
-  if (!is_pointer)
-    SwigType_add_pointer(director_type);
-
-  Replaceall(director_type, classname, director_classname);
-  retval = SwigType_str(director_type, "");
-
-  Delete(base_type);
-  Delete(director_type);
-
-  return retval;
-}
-
-//------------------------------------------------------------------------
 
 class JAVA : public Language {
   static const char *usage;
@@ -2877,14 +2835,14 @@ class JAVA : public Language {
     /* header declaration, start wrapper definition */
     String *target;
 
-    target = method_decl(decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(decl, qualified_name, l, 0, 0);
     String *rtype = SwigType_str(type, 0);
 
     Printf(w->def, "%s %s", rtype, target);
     Delete(qualified_name);
     Delete(target);
 
-    target = method_decl(decl, name, l, 0, 1);
+    target = Swig_method_decl(decl, name, l, 0, 1);
     Printf(declaration, "  virtual %s %s", rtype, target);
     Delete(rtype);
     Delete(target);
@@ -3087,7 +3045,7 @@ class JAVA : public Language {
     /* constructor */
     {
       String *basetype = Getattr(parent, "classtype");
-      String *target = method_decl(decl, classname, parms, 0, 0);
+      String *target = Swig_method_decl(decl, classname, parms, 0, 0);
       String *call = Swig_csuperclass_call(0, basetype, superparms);
       String *classtype = SwigType_namestr(Getattr(n, "name"));
       String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
@@ -3103,7 +3061,7 @@ class JAVA : public Language {
    
     /* constructor header */
     {
-      String *target = method_decl(decl, classname, parms, 0, 1);
+      String *target = Swig_method_decl(decl, classname, parms, 0, 1);
       Printf(f_directors_h, "  %s;\n", target);
       Delete(target);
     }
