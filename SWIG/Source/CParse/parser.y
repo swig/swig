@@ -1594,8 +1594,6 @@ endtemplate_directive: ENDTEMPLATE SEMI {
 
 c_declaration   : c_decl { $$ = $1; }
                 | c_enum_decl { $$ = $1; }
-/*                | c_constructor_decl { $$ = 0; }
-                | c_destructor_decl { $$ = 0; } */
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
@@ -1611,32 +1609,38 @@ c_declaration   : c_decl { $$ = $1; }
    ------------------------------------------------------------ */
 
 c_decl  : storage_class type declarator initializer c_decl_tail {
-                   $$ = new_node("cdecl");
-		   if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
-		   Setattr($$,"type",$2);
-		   Setattr($$,"storage",$1);
-		   Setattr($$,"name",$3.id);
-		   Setattr($$,"decl",$3.type);
-		   Setattr($$,"parms",$3.parms);
-		   Setattr($$,"value",$4.val);
-		   if (!$5) {
-		     if (Len(scanner_ccode)) {
-		       patch_template_code(scanner_ccode);
-		       Setattr($$,"code",Copy(scanner_ccode));
-		     }
-		   } else {
-		     Node *n = $5;
-		     set_nextSibling($$,n);
-		     /* Inherit attributes */
-		     while (n) {
-		       Setattr(n,"type",Copy($2));
-		       Setattr(n,"storage",$1);
-		       n = nextSibling(n);
-		     }
-		   }
-		   add_symbols($$);
-		 }
-                ;
+              $$ = new_node("cdecl");
+	      if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
+	      Setattr($$,"type",$2);
+	      Setattr($$,"storage",$1);
+	      Setattr($$,"name",$3.id);
+	      Setattr($$,"decl",$3.type);
+	      Setattr($$,"parms",$3.parms);
+	      Setattr($$,"value",$4.val);
+	      if (!$5) {
+		if (Len(scanner_ccode)) {
+		  patch_template_code(scanner_ccode);
+		  Setattr($$,"code",Copy(scanner_ccode));
+		}
+	      } else {
+		Node *n = $5;
+		/* Inherit attributes */
+		while (n) {
+		  Setattr(n,"type",Copy($2));
+		  Setattr(n,"storage",$1);
+		  n = nextSibling(n);
+		}
+	      }
+	      /* Look for "::" declarations (ignored) */
+	      if (Strstr($3.id,"::")) {
+		Delete($$);
+		$$ = $5;
+	      } else {
+		set_nextSibling($$,$5);
+	      }
+	      add_symbols($$);
+           }
+           ;
 
 /* Allow lists of variables and functions to be built up */
 
