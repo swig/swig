@@ -1619,7 +1619,7 @@ int Language::classDeclaration(Node *n) {
   InClass = 1;
   CurrentClass = n;
 
-  Abstract = (Getattr(n,"abstract") ? 1 : 0);
+  Abstract = abstractClassTest(n);
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -2164,6 +2164,14 @@ String * Language::getClassPrefix() const {
 
 String * Language::getClassType() const {
     return ClassType;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::abstractClassTest()
+ * ----------------------------------------------------------------------------- */
+
+int Language::abstractClassTest(Node *n) {
+  return (Getattr(n,"abstract") ? 1 : 0);
 }
 
 void Language::setSubclassInstanceCheck(String *nc) {
