@@ -22,7 +22,7 @@ Foo *create_Foo() {
    return new Foo();
 }
 
-void test1(Foo *f, Integer x) { };
+void test1(Foo *f, Integer x) { }
 
 class Bar : public Foo { };
 

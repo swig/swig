@@ -16,7 +16,7 @@ namespace Namespace {
   typedef const Error* ErrorPtr;
   typedef int IntArray[10];
   enum EnumTest { enum1, enum2 };
-};
+}
 class Foo {
 public:
     void test_int() throw(int) {

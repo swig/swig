@@ -53,7 +53,7 @@
     friend int foo(A*, B*);
   };
 
-  inline int foo(A*, B*) { return 0; };
+  inline int foo(A*, B*) { return 0; }
   
 %}
 
@@ -65,7 +65,7 @@
 // since they are not C/C++/CPP standard.
 //
 %extend Hello {
-  int hi(int) { return 0; };
+  int hi(int) { return 0; }
 }
 
 %rename(chao) hi(int);
@@ -100,7 +100,7 @@
     typedef int Int;
     typedef double Int;
     friend short hello(int);
-    int hi(int) { return 0; };
+    int hi(int) { return 0; }
   };
   
 %}

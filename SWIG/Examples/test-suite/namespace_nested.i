@@ -40,7 +40,7 @@ namespace hello
     // This doesn't work
     //
     typedef Hi<hi::hi0> Hi0;
-  };
+  }
   
   
   namespace oss

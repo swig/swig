@@ -8,5 +8,5 @@ namespace ArrayExample
     public: 
         arr_short8 node_list; 
      }; 
-}; 
+} 
 %} 

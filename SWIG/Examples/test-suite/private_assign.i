@@ -16,6 +16,6 @@
 
    Foo blah() {
       return Foo();
-   };
+   }
 %}
 
