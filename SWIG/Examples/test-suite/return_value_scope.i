@@ -1,6 +1,7 @@
 %module return_value_scope
 %inline %{
 
+namespace Hell {
 class Foo {
 public:
     Foo(int) { };
@@ -19,4 +20,9 @@ public:
        return rettype(1);
    }
 };
+}
 %}
+
+
+
+
