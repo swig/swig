@@ -124,6 +124,9 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
 	return 0;
    }
 
+   // This could be structured better but will be cleaned up soon.
+   // We allow passing of a STRING or RESOURCE pointing to the string
+   // or an OBJECT whose _cPtr is a string or resource pointing to the string
    if (z->type==IS_OBJECT) {
      zval ** _cPtr;
      if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
@@ -135,7 +138,11 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
          if (! c) goto type_error;
        } else goto type_error; // _cPtr was not string or resource property
      } else goto type_error; // can't find property _cPtr
-   } else c = Z_STRVAL_P(z); // was not object
+   } else if (z->type==IS_RESOURCE) {
+     int type;
+     c = (char *) zend_list_find(z->value.lval,&type);
+     if (! c) goto type_error;
+   } else c = Z_STRVAL_P(z); // was not object or resource
    return _SWIG_ConvertPtr(c,ptr,ty);
 
 type_error:
