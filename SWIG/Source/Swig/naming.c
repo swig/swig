@@ -162,7 +162,7 @@ String *
 Swig_name_member(String_or_char *classname, String_or_char *mname) {
   String *r;
   String *f;
-  char   *cname, *c;
+  char   *cname;
 
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
@@ -173,8 +173,11 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
     Append(r,f);
   }
   cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
   /*  name_mangle(r);*/
@@ -239,7 +242,7 @@ String *
 Swig_name_construct(String_or_char *classname) {
   String *r;
   String *f;
-  char *cname, *c;
+  char *cname;
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"construct");
@@ -250,9 +253,11 @@ Swig_name_construct(String_or_char *classname) {
   }
 
   cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
-
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return r;
 }
@@ -268,7 +273,7 @@ String *
 Swig_name_copyconstructor(String_or_char *classname) {
   String *r;
   String *f;
-  char *cname, *c;
+  char *cname;
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"construct");
@@ -279,8 +284,11 @@ Swig_name_copyconstructor(String_or_char *classname) {
   }
 
   cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return r;
@@ -295,7 +303,7 @@ Swig_name_copyconstructor(String_or_char *classname) {
 String *Swig_name_destroy(String_or_char *classname) {
   String *r;
   String *f;
-  char *cname, *c;
+  char *cname;
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"destroy");
@@ -306,9 +314,11 @@ String *Swig_name_destroy(String_or_char *classname) {
   }
 
   cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
-
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return r;
 }

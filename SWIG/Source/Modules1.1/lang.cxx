@@ -867,7 +867,6 @@ Language::memberfunctionHandler(Node *n) {
     /* Transformation */
     Swig_MethodToFunction(n,ClassType, AddMethods);
     Setattr(n,"sym:name",fname);
-
     functionWrapper(n);
 
     /*  DelWrapper(w);*/
@@ -1200,6 +1199,15 @@ int Language::classDeclaration(Node *n) {
     char *iname = Char(symname);
     int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
+    /* Check symbol name for template.   If not renamed. Issue a warning */
+    /*    Printf(stdout,"sym:name = %s\n", symname); */
+
+    if (!validIdentifier(symname)) {
+      Printf(stderr,"%s:%d. Warning. Can't wrap class %s unless renamed to a valid identifier.\n",
+	     input_file, line_number, symname);
+      return SWIG_NOWRAP;
+    }
+
     Swig_save(&n,"name",NULL);
     Setattr(n,"name",classname);
 
@@ -1294,11 +1302,18 @@ int Language::classforwardDeclaration(Node *n) {
 int Language::constructorDeclaration(Node *n) {
     String *name = Getattr(n,"name");
     Parm   *parms = Getattr(n,"parms");
+    String *symname = Getattr(n,"sym:name");
 
     if (!CurrentClass) return SWIG_NOWRAP;
     if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
     if (ImportMode) return SWIG_NOWRAP;
 
+    /* Name adjustment for %name */
+    Swig_save(&n,"sym:name",NULL);
+
+    if ((Strcmp(name,symname) == 0) || (Strcmp(symname,ClassPrefix) != 0)) {
+      Setattr(n,"sym:name", ClassPrefix);
+    }
     /* Only create a constructor if the class is not abstract */
 
     if (!Abstract) {
@@ -1336,6 +1351,7 @@ int Language::constructorDeclaration(Node *n) {
 	}
     }
     Setattr(CurrentClass,"has_constructor","1");
+    Swig_restore(&n);
     return SWIG_OK;
 }
 
@@ -1388,15 +1404,27 @@ int Language::destructorDeclaration(Node *n) {
     if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
     if (ImportMode) return SWIG_NOWRAP;
 
+    Swig_save(&n,"name", "sym:name",NULL);
+
     char *c = GetChar(n,"name");
     if (c && (*c == '~')) Setattr(n,"name",c+1);
 
     c = GetChar(n,"sym:name");
     if (c && (*c == '~')) Setattr(n,"sym:name",c+1);
 
+    /* Name adjustment for %name */
+
+    String *name = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+
+    if ((Strcmp(name,symname) == 0) || (Strcmp(symname,ClassPrefix) != 0)) {
+      Setattr(n,"sym:name", ClassPrefix);
+    }
+
     destructorHandler(n);
 
     Setattr(CurrentClass,"has_destructor","1");
+    Swig_restore(&n);
     return SWIG_OK;
 }
 

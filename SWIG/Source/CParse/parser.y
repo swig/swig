@@ -63,10 +63,7 @@ static int      inclass = 0;
 static int      templatemode = 0;
 static int      templatenum = 0;
 static Hash    *templatetypes = 0;
-static String  *templatename = 0;        /* Name of the template used during expansion */
-static String  *templateiname = 0;       /* Instantiation name of the template being parsed */
 static String  *templateargs = 0;
-static Hash    *templatemaps = 0;        /* Mapping of templates to %template directive */
 
 int      ShowTemplates = 0;    /* Debugging mode */
 
@@ -80,6 +77,62 @@ static Node *new_node(const String_or_char *tag) {
   Setfile(n,input_file);
   Setline(n,line_number);
   return n;
+}
+
+/* Copies a node.  Does not copy tree links or symbol table data (except for
+   sym:name) */
+
+static Node *copy_node(Node *n) {
+  Node *nn;
+  String *key;
+  nn = NewHash();
+  Setfile(nn,Getfile(n));
+  Setline(nn,Getline(n));
+  for (key = Firstkey(n); key; key = Nextkey(n)) {
+    if ((Strcmp(key,"nextSibling") == 0) ||
+	(Strcmp(key,"previousSibling") == 0) ||
+	(Strcmp(key,"parentNode") == 0) ||
+	(Strcmp(key,"lastChild") == 0)) {
+      continue;
+    }
+    /* We do copy sym:name.  For templates */
+    if (Strcmp(key,"sym:name") == 0) {
+      Setattr(nn,key, Copy(Getattr(n,key)));
+      continue;
+    }
+    /* We don't copy any other symbol table attributes */
+    if (Strncmp(key,"sym:",4) == 0) {
+      continue;
+    }
+    /* If children.  We copy them recursively using this function */
+    if (Strcmp(key,"firstChild") == 0) {
+      /* Copy children */
+      Node *cn = Getattr(n,"key");
+      while (cn) {
+	appendChild(nn,copy_node(cn));
+	cn = nextSibling(cn);
+      }
+      continue;
+    }
+    /* We don't copy the symbol table.  But we drop an attribute 
+       requires_symtab so that functions know it needs to be built */
+
+    if (Strcmp(key,"symtab") == 0) {
+      /* Node defined a symbol table. */
+      Setattr(nn,"requires_symtab","1");
+      continue;
+    }
+    /* Can't copy nodes */
+    if (Strcmp(key,"node") == 0) {
+      continue;
+    }
+    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0)) {
+      Setattr(nn,key,CopyParmList(Getattr(n,key)));
+    }
+    /* Looks okay.  Just copy the data using Copy */
+    Setattr(nn, key, Copy(Getattr(n,key)));
+  }
+  return nn;
 }
 
 /* -----------------------------------------------------------------------------
@@ -210,6 +263,8 @@ static String *name_warning(String *name,SwigType *decl) {
 }
 
 /* Add declaration list to symbol table */
+ static int  add_only_one = 0;
+
 static void add_symbols(Node *n) {
   String *decl;
   char *wrn = 0;
@@ -276,6 +331,41 @@ static void add_symbols(Node *n) {
 	Setattr(n,"sym:name", symname);
       }
     }
+    if (add_only_one) return;
+    n = nextSibling(n);
+  }
+}
+
+/* add symbols a parse tree node copy */
+
+void add_symbols_copy(Node *n) {
+  String *name;
+  String *symname;
+  String *oldname;
+  while (n) {
+    oldname = Getattr(n,"sym:name");
+    if (oldname) {
+      Delattr(n,"sym:name");
+      add_only_one = 1;
+      add_symbols(n);
+      add_only_one = 0;
+      name = Getattr(n,"name");
+      symname = Getattr(n,"sym:name");
+      if (Strcmp(name,symname) == 0) {
+	if (Strcmp(oldname,symname) != 0) {
+	  Setattr(n,"sym:name",oldname);
+	}
+      }
+      if (Getattr(n,"requires_symtab")) {
+	Swig_symbol_newscope();
+	Swig_symbol_setscopename(name);
+      }
+      add_symbols_copy(firstChild(n));
+      if (Getattr(n,"requires_symtab")) {
+	Setattr(n,"symtab", Swig_symbol_popscope());
+	Delattr(n,"requires_symtab");
+      }
+    }
     n = nextSibling(n);
   }
 }
@@ -313,13 +403,18 @@ static void merge_addmethods(Node *am) {
   }
 }
 
+/* Check for unused %addmethods.  Special case, don't report unused
+   addmethods for templates */
+ 
  static void check_addmethods() {
    String *key;
    if (!addmethods) return;
    for (key = Firstkey(addmethods); key; key = Nextkey(addmethods)) {
      Node *n = Getattr(addmethods,key);
-     Printf(stderr,"%s:%d. %%addmethods defined for an undeclared class %s.\n",
-	    Getfile(n),Getline(n),key);
+     if (!Strstr(key,"<")) {
+       Printf(stderr,"%s:%d. %%addmethods defined for an undeclared class %s.\n",
+	      Getfile(n),Getline(n),key);
+     }
    }
  }
 
@@ -506,6 +601,7 @@ Node *Swig_cparse(File *f) {
   extern int yyparse();
   scanner_file(f);
   top = 0;
+
   yyparse();
   return top;
 }
@@ -540,12 +636,6 @@ static void canonical_template(String *s) {
   Replace(s,">"," >", DOH_REPLACE_ANY);
 }
 
-static void patch_template_code(String *s) {
-  if (templatename) {
-    Replace(s, templateiname, templatename, DOH_REPLACE_ID);
-  }
-}
-
 static void patch_template_type(String *s) {
   if (templatetypes) {
     if (Strstr(s,"__swig")) {
@@ -554,7 +644,6 @@ static void patch_template_type(String *s) {
 	Replace(s,key,Getattr(templatetypes,key), DOH_REPLACE_ID);
       }
     }
-    Replace(s,templateiname,templatename, DOH_REPLACE_ID);
   }
 }
 
@@ -1537,95 +1626,139 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  String *tds;
 		  String *cpps;
 
-		  /* Try to locate the template node */
-		  n = Swig_symbol_clookup($5,0);
-		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
-
-		    Parm *tparms = Getattr(n,"parms");
-		    if (ParmList_len($7) > ParmList_len(tparms)) {
-		      Printf(stderr,"%s:%d. Too many template parameters. Maximum of %d.\n", input_file, line_number, ParmList_len(tparms));
-		    } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
-		      Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
+		  args = NewString("");
+		  /* Make args from parms */
+		  p = $7;
+		  while (p) {
+		    String *value = Getattr(p,"value");
+		    if (value) {
+		      Printf(args,"%s",value);
 		    } else {
-		      ts = NewString("");
-		      if (Namespaceprefix) {
-			  Printf(ts,"%%{ namespace %s {\n %%}\n", Namespaceprefix);
+		      SwigType *ty = Getattr(p,"type");
+		      if (ty) {
+			Printf(args,"%s",SwigType_str(ty,0));
 		      }
-		      Printf(ts,"%%inline %%{\n");
-		      args = NewString("");
-		      sargs = NewString("");
-		      /* Create typedef's and arguments */
-		      p = $7;
-		      tp = tparms;
-		      while (p) {
-			String *value = Getattr(p,"value");
-			if (value) {
-			  Printf(args,"%s",value);
-			  Printf(sargs,"%s",value);
-			} else {
-			  SwigType *ty = Getattr(p,"type");
-			  if (ty) {
-			    tds = NewStringf("__swigtmpl%d",templatenum);
-			    templatetypes = NewHash();
-			    Setattr(templatetypes,Copy(tds),Copy(ty));
-			    templatenum++;
-			    Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
-			    Printf(args,"%s",tds);
-			    Printf(sargs,"%s",SwigType_str(ty,0));
-			    Delete(tds);
-			  }
-			}
-			p = nextSibling(p);
-			tp = nextSibling(tp);
-			if (!p) p = tp;
-			if (p) {
-			  Printf(args,",");
-			  Printf(sargs,",");
-			}
-		      }
-		      templateargs = NewStringf("%s<%s>", $5, sargs);
-		      canonical_template(templateargs);
-		      
-		      if (!templatemaps) templatemaps = NewHash();
-		      Setattr(templatemaps, templateargs, $3);
-		      
-		      Printf(ts,"%%}\n");
-		      Printf(ts,"%%starttemplate;\n");
-		      Printf(ts,"%s(%s,%s,%s)\n",Getattr(n,"macroname"),$3,args,sargs);
-		      if (Namespaceprefix) {
-			  Printf(ts,"%%{ }\n %%}");
-		      }
-		      Delete(args);
-		      Delete(sargs);
-		      Setfile(ts,input_file);
-		      Setline(ts,line_number);
-		      Seek(ts,0,SEEK_SET);
-		      
-		      cpps = Preprocessor_parse(ts);
-		      
-		      if (ShowTemplates) {
-			Printf(stderr,"%s:%d. %%template(%s) %s<%s> expanded to the following:\n", input_file, line_number, $3,$5,ParmList_protostr($7));
-			Printf(stderr,"\n%s\n",cpps);
-		      }
-		      if (cpps && (Len(cpps) > 0)) {
-			start_inline(Char(cpps),line_number);
-		      } else {
-			Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
-		      }
-		      Delete(ts);
-		      Delete(cpps);
-		      templatename = NewString($5);
-		      templateiname = NewString($3);
 		    }
-		  } else {
-		    if (n) {
-		      Printf(stderr,"%s:%d. '%s' is not defined as a template.\n", input_file, line_number, $5);
-		      Printf(stderr,"%s\n", nodeType(n));
-		    } else {
-		      Printf(stderr,"%s:%d. Template '%s' undefined.\n", input_file, line_number, $5);
+		    p = nextSibling(p);
+		    if (p) {
+		      Printf(args,",");
 		    }
 		  }
-		  $$ = 0;
+		  templateargs = NewStringf("%s<%s>", $5, args);
+		  canonical_template(templateargs);
+
+		  /* Look for specialization first */
+		  n = Swig_symbol_clookup(templateargs,0);
+		  /*		  Printf(stdout,"checking %s\n", templateargs); */
+		  if (n) {
+		    /* Whoa. Found a specialization.   We just insert into to
+                       the parse tree here */
+		    if (Getattr(n,"specialization")) {
+		      if (!Getattr(n,"specialization_wrapped")) {
+			$$ = n;
+			yyrename = $3;
+			Delattr($$,"sym:name");
+			add_symbols($$);
+			Setattr($$,"specialization_wrapped","1");
+		      } else {
+			Printf(stderr,"%s:%d. Template '%s' was already wrapped as '%s' (ignored)\n", 
+			       input_file, line_number, templateargs, Getattr(n,"sym:name"));
+			$$ = 0;
+		      }
+		    } else {
+		      n = 0;
+		    }
+		  } 
+		  if (!n) {
+		    Delete(args);
+		    Delete(templateargs);
+
+		    /* Try to locate the template node */
+		    n = Swig_symbol_clookup($5,0);
+		    if (n && (Strcmp(nodeType(n),"template") == 0)) {
+		      
+		      Parm *tparms = Getattr(n,"parms");
+		      if (ParmList_len($7) > ParmList_len(tparms)) {
+			Printf(stderr,"%s:%d. Too many template parameters. Maximum of %d.\n", input_file, line_number, ParmList_len(tparms));
+		      } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
+			Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
+		      } else {
+			ts = NewString("");
+			if (Namespaceprefix) {
+			  Printf(ts,"%%{ namespace %s {\n %%}\n", Namespaceprefix);
+			}
+			Printf(ts,"%%inline %%{\n");
+			args = NewString("");
+			sargs = NewString("");
+			/* Create typedef's and arguments */
+			p = $7;
+			tp = tparms;
+			while (p) {
+			  String *value = Getattr(p,"value");
+			  if (value) {
+			    Printf(args,"%s",value);
+			    Printf(sargs,"%s",value);
+			  } else {
+			    SwigType *ty = Getattr(p,"type");
+			    if (ty) {
+			      tds = NewStringf("__swigtmpl%d",templatenum);
+			      templatetypes = NewHash();
+			      Setattr(templatetypes,Copy(tds),Copy(ty));
+			      templatenum++;
+			      Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
+			      Printf(args,"%s",tds);
+			      Printf(sargs,"%s",SwigType_str(ty,0));
+			      Delete(tds);
+			    }
+			  }
+			  p = nextSibling(p);
+			  tp = nextSibling(tp);
+			  if (!p) p = tp;
+			  if (p) {
+			    Printf(args,",");
+			    Printf(sargs,",");
+			  }
+			}
+			templateargs = NewStringf("%s<%s>", $5, sargs);
+			canonical_template(templateargs);
+			
+			Printf(ts,"%%}\n");
+			if (Namespaceprefix) {
+			  Printf(ts,"%%{ }\n %%}\n");
+			}
+			
+			Printf(ts,"%%starttemplate;\n");
+			Printf(ts,"%s(%s,%s,%s)\n",Getattr(n,"macroname"),$3,args,sargs);
+			Delete(args);
+			Delete(sargs);
+			Setfile(ts,input_file);
+			Setline(ts,line_number);
+			Seek(ts,0,SEEK_SET);
+			
+			cpps = Preprocessor_parse(ts);
+			
+			if (ShowTemplates) {
+			  Printf(stderr,"%s:%d. %%template(%s) %s<%s> expanded to the following:\n", input_file, line_number, $3,$5,ParmList_protostr($7));
+			  Printf(stderr,"\n%s\n",cpps);
+			}
+			if (cpps && (Len(cpps) > 0)) {
+			  start_inline(Char(cpps),line_number);
+			} else {
+			  Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
+			}
+			Delete(ts);
+			Delete(cpps);
+		      }
+		    } else {
+		      if (n) {
+			Printf(stderr,"%s:%d. '%s' is not defined as a template.\n", input_file, line_number, $5);
+			Printf(stderr,"%s\n", nodeType(n));
+		      } else {
+			Printf(stderr,"%s:%d. Template '%s' undefined.\n", input_file, line_number, $5);
+		      }
+		    }
+		    $$ = 0;
+ 		  }
                }
                ;
 
@@ -1652,10 +1785,6 @@ starttemplate_directive: STARTTEMPLATE  SEMI {
 endtemplate_directive: ENDTEMPLATE SEMI {
                     Delete(templatetypes);
                     templatetypes = 0;
-		    Delete(templatename);
-		    templatename = 0;
-		    Delete(templateiname);
-		    templateiname = 0;
 		    Delete(templateargs);
 		    templateargs = 0;
                     templatemode = 0;
@@ -1694,7 +1823,6 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"value",$4.val);
 	      if (!$5) {
 		if (Len(scanner_ccode)) {
-		  patch_template_code(scanner_ccode);
 		  Setattr($$,"code",Copy(scanner_ccode));
 		}
 	      } else {
@@ -1732,7 +1860,6 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"value",$3.val);
 		 if (!$4) {
 		   if (Len(scanner_ccode)) {
-		     patch_template_code(scanner_ccode);
 		     Setattr($$,"code",Copy(scanner_ccode));
 		   }
 		 } else {
@@ -1814,7 +1941,6 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   }
 		 } else {
 		   if (Len(scanner_ccode)) {
-		     patch_template_code(scanner_ccode);
 		     Setattr(n,"code",Copy(scanner_ccode));
 		   }
 		 }
@@ -1980,6 +2106,14 @@ cpp_class_decl  :
 		 if ($9)
 		   add_symbols($9);
 
+		 /* Check if the class is a template specialization */
+		 if (!templatemode) {
+		   if (Strstr(Classprefix,"<")) {
+		     Setattr($$,"specialization","1");
+		     /*		     Printf(stdout,"Specialization '%s'\n", Classprefix); */
+		     $$ = 0; /* Do not place in parse tree, only a template specialization */
+		   }
+		 }
 		 Classprefix = 0;
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
@@ -2155,14 +2289,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     macroname = Swig_name_mangle(macroname);
 		     Insert(macroname,0,"%");
 		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
-		     Printf(macrocode,"%%gencode %%{\n");
-		     if (Namespaceprefix) {
-			 Printf(macrocode,"typedef %s::%s< %s > __name;\n", Namespaceprefix, $6,$3.sparms);
-		     } else {
-			 Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
-		     }
-		     Printf(macrocode,"%%}\n");
-		     Printf(macrocode,"class __name ");
+		     Printf(macrocode,"%%rename(__name) %s < %s >;  class %s< %s > ", $6, $3.sparms, $6, $3.sparms);
 		     if ($7) {
 		       int i;
 		       Printf(macrocode,": ");
@@ -2171,7 +2298,6 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 			 if (i < (Len($7) - 1)) Putc(',',macrocode);
 		       }
 		     }
-		     Replace(scanner_ccode,$6,"__name", DOH_REPLACE_ID);
 		     /* Replace macros of the form #X with #__swigX */
 		     {
 		       Parm *p = $3.parms;
@@ -2185,21 +2311,12 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		       }
 		     }
 		     Printf(macrocode," %s;\n", scanner_ccode);
-		     /* Include a reverse typedef to associate templated version with renamed version */
 		     Printf(macrocode,"%%endtemplate;\n");
-		     if (Namespaceprefix) {
-			 Printf(macrocode,"typedef __name %s::%s< %s >;\n", Namespaceprefix, $6,$3.sparms);
-			 Printf(macrocode,"%%types(%s::%s< %s > *);\n", Namespaceprefix, $6, $3.sparms);
-		     } else {
-			 Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
-			 Printf(macrocode,"%%types(%s< %s > *);\n", $6, $3.sparms);
-		     }
-
-		     /*		     Printf(stdout,"%s\n", macrocode); */
 		     Seek(macrocode,0, SEEK_SET);
 		     Setline(macrocode,$1-4);
 		     Setfile(macrocode,input_file);
 		     Preprocessor_define(macrocode,1);
+		     /*		     Printf(stdout,"macro %s\n", macrocode); */
 		     /* Drop template into the C symbol table for later lookup */
 		     {
 		       Node *n = new_node("template");
@@ -2442,15 +2559,22 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 /* Since the parse performs type-corrections in template mode, we
                     have to undo the correction here.  Ugh. */
 
-		 if ((templatemode) && (Strcmp($2,templatename) == 0)) {
-		   $2 = NewString(Classprefix);
+		 /* Check for template names.  If the class is a template
+                    and the constructor is missing the template part, we
+                    add it */
+		 {
+		   char *c = Strstr(Classprefix,"<");
+		   if (c) {
+		     if (!Strstr($2,"<")) {
+		       Append($2,c);
+		     }
+		   }
 		 }
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
 		 if (Len(scanner_ccode)) {
-		   patch_template_code(scanner_ccode);
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
 		 Setattr($$,"feature:new","1");
@@ -2460,11 +2584,21 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 /* A destructor (hopefully) */
 
-cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
+cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
+	       /* Check for template names.  If the class is a template
+		  and the constructor is missing the template part, we
+		  add it */
+	       {
+		 char *c = Strstr(Classprefix,"<");
+		 if (c) {
+		   if (!Strstr($2,"<")) {
+		     $2 = NewStringf("%s%s",$2,c);
+		   }
+		 }
+	       }
 	       Setattr($$,"name",NewStringf("~%s",$2));
 	       if (Len(scanner_ccode)) {
-		 patch_template_code(scanner_ccode);
 		 Setattr($$,"code",Copy(scanner_ccode));
 	       }
 	       add_symbols($$);
@@ -2472,15 +2606,25 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 
 /* A virtual destructor */
 
-              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
+              | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
 		$$ = new_node("destructor");
+	       /* Check for template names.  If the class is a template
+		  and the constructor is missing the template part, we
+		  add it */
+	       {
+		 char *c = Strstr(Classprefix,"<");
+		 if (c) {
+		   if (!Strstr($3,"<")) {
+		     $3 = NewStringf("%s%s",$3,c);
+		   }
+		 }
+	       }
 		Setattr($$,"storage","virtual");
 		Setattr($$,"name",NewStringf("~%s",$3));
 		if ($7) {
 		  Setattr($$,"value","0");
 		}
 		if (Len(scanner_ccode)) {
-		  patch_template_code(scanner_ccode);
 		  Setattr($$,"code",Copy(scanner_ccode));
 		}
 		add_symbols($$);
@@ -3490,20 +3634,6 @@ cast_type_right:  primitive_type { $$ = $1; }
 
 inherit        : raw_inherit {
 		 $$ = $1;
-                 if ($1) {
-		   /* Patch names for templates */
-		   String *name;
-                   for (name = Firstitem($1); name; name = Nextitem($1)) {
-		     /* The name might be the same as a template map */
-		     if (templatemaps) {
-		       String *altname = Getattr(templatemaps,name);
-		       if (altname) {
-			 Clear(name);
-			 Append(name,altname);
-		       }
-		     }
-		   }
-		 }
                }
                ;
 
@@ -3646,12 +3776,6 @@ idcolontail    : DCOLON idtemplate idcolontail {
 
 idtemplate    : ID template_decl {
                   $$ = NewStringf("%s%s",$1,$2);
-		  if (templatemode) {
-		    if ((templateargs) && (Cmp($$,templateargs) == 0)) {
-		      Delete($$);
-		      $$ = NewString(templateiname);
-		    }
-		  }
                   scanner_last_id(1);
               }
               ;

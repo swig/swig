@@ -42,32 +42,32 @@ Parm *NewParm(SwigType *type, String_or_char *n) {
 
 Parm *CopyParm(Parm *p) {
   SwigType *t;
-  char     *name;
-  char     *lname;
-  char     *value;
-  int       ignore;
-  char     *alttype;
+  String   *name;
+  String   *lname;
+  String   *value;
+  String   *ignore;
+  String   *alttype;
 
   Parm *np = NewHash();
   t = Getattr(p,"type");
-  name = GetChar(p,"name");
-  lname = GetChar(p,"lname");
-  value = GetChar(p,"value");
-  ignore = GetInt(p,"ignore");
-  alttype = GetChar(p,"alttype");
+  name = Getattr(p,"name");
+  lname = Getattr(p,"lname");
+  value = Getattr(p,"value");
+  ignore = Getattr(p,"ignore");
+  alttype = Getattr(p,"alttype");
 
   if (t) 
     Setattr(np,"type",Copy(t));
   if (name)
-    Setattr(np,"name",name);
+    Setattr(np,"name",Copy(name));
   if (lname)
-    Setattr(np,"lname", lname);
+    Setattr(np,"lname", Copy(lname));
   if (value)
-    Setattr(np,"value", value);
+    Setattr(np,"value", Copy(value));
   if (ignore)
-    SetInt(np,"ignore", ignore);
+    Setattr(np,"ignore", Copy(ignore));
   if (alttype) 
-    Setattr(np,"alttype", alttype);
+    Setattr(np,"alttype", Copy(alttype));
       
   return np;
 }
