@@ -2,6 +2,8 @@
 
 /* SWIG pointer structure */
 
+#include <assert.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
