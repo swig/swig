@@ -17,6 +17,33 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/01/2002: beazley
+            Fixed problem with file include order.  Language specific
+            directories should take precedence over generic directories.
+            For example:  "swig_lib/python/foo.i" should be loaded before
+            "swig_lib/foo.i".    I thought this was the case already, but
+            apparently it has been broken for quite some time.
+
+08/01/2002: beazley
+            Added std_deque.i library file.  Work in progress.
+
+08/01/2002: beazley
+            [Python,Tcl,Perl]
+            Improvements to typemaps.i.  INPUT/INOUT typemaps perform better
+            error checking.  Typemaps are now supplied for references like 
+            int &OUTPUT, double &INOUT, etc.
+          
+08/01/2002: beazley
+            [Python] Deprecated the T_* and L_* typemaps in typemaps.i.
+            Multiple return values are always placed in a tuple. Deprecated
+            the BOTH typemaps.  This is now INOUT (e.g., int *INOUT).
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+
+08/01/2002: beazley
+            Deprecated the pointer.i library file.  Use cpointer.i instead.
+            *** POTENTIAL INCOMPATIBILITY ***
+            
 08/01/2002: cheetah (William Fulton)
             [Java] For consistency the global variable getters and setters use the JavaBean 
             property design pattern like member variables always have. This means if you are 
@@ -24,6 +51,17 @@ Version 1.3.14 (In progress)
             called setFoo(). Before the recent changes to the Java module the getters and 
             setters were called get_foo() and set_foo(). If you really want the original 
             function names use the %rename directive like this: %rename(_foo) Foo;
+
+07/31/2002: beazley
+            Fixed casting problem with multiple inheritance.  If you had this,
+
+                  class foo {};
+                  class bar : public foo {};
+                  class baz : public foo {};
+                  class spam : public bar, public baz {};
+
+            then the wrappers wouldn't compile due to an ambiguous cast.
+            Reported by Art Yerkes.
 
 07/30/2002: cheetah (William Fulton)
             [Java] Due to new static typechecking all pointers held in a Java long are part of 
