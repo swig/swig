@@ -206,8 +206,8 @@ int foo::bar(int) {
 </pre>
 </blockquote>
 
-<li>Certain advanced features of C++ such as namespaces and overloaded
-operators are not currently supported. Please see the section on using SWIG
+<li>Certain advanced features of C++ such as namespaces and nested classes
+are not yet supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
 
@@ -1925,6 +1925,7 @@ SWIG currently supports the following C++ features :<p>
 <li>Public inheritance (including multiple inheritance)
 <li>Static functions
 <li>Function and method overloading (with renaming)
+<li>Operator overloading for most standard operators
 <li>References
 <li>Templates
 <li>Pointers to members
@@ -1935,11 +1936,11 @@ The following C++ features are not currently supported :<p>
 
 <p>
 <ul>
-<li>Operator overloading
 <li>Automatic function and method overloading
 <li>Nested classes
 <li>Namespaces
 <li>Complicated templates (probably)
+<li>Overloaded versions of certain operators (new, delete, etc.)
 </ul>
 
 <p>
@@ -2824,7 +2825,7 @@ to disappear. For example, <tt>%ignore Spam::foo(double)</tt> will eliminate <tt
 <tt>Spam</tt> and all classes derived from <tt>Spam</tt>.
 
 <p>
-A few final notes about the enhanced <tt>%rename</tt> directive and <tt>%ignore</tt>:
+A few implementation notes about the enhanced <tt>%rename</tt> directive and <tt>%ignore</tt>:
 
 <ul>
 <li>The scope qualifier (::) can also be used on simple names.  For example:
@@ -2882,6 +2883,214 @@ same name, scope,  and parameters are supplied.
 the first renaming rule found on a depth-first traversal of the class hierarchy 
 is used.
 
+<p>
+<li>The name matching rules are applied to both qualified and non-qualified members.
+For example, if you have a class like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   ...
+   void bar() const;
+   ...
+};
+</pre>
+</blockquote>
+
+the declaration <tt>%rename(name) Foo::bar()</tt> applies to the qualified member <tt>bar() const</tt>.
+However, an often overlooked C++ feature is that classes can define two different overloaded members
+that differ only in their qualifiers, like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   ...
+   void bar();         // Unqualified member
+   void bar() const;   // Qualified member (OK)
+   ...
+};
+</pre>
+</blockquote>
+
+Even when renaming is used, this still generates an error (both
+<tt>bar()</tt> methods will be renamed to the same thing).  However,
+if you want to silence the errors, <tt>%rename</tt> and
+<tt>%ignore</tt> can be further specialized with qualifiers. For
+example, the following directive would tell SWIG to ignore the
+<tt>const</tt> version of <tt>bar()</tt> above:
+
+<blockquote>
+<pre>
+%ignore Foo::bar() const;   // Ignore bar() const, but leave other bar() alone
+</pre>
+</blockquote>
+
+Note: It is not currently possible for SWIG to actually disambiguate
+two member functions that differ only in constness when generating
+wrappers.  Even though it is technically possible to give <tt>bar()
+const</tt> a unique name, the generated wrapper code would still only
+invoke the unqualified version of <tt>bar()</tt>.
+</ul>
+
+<h3>Wrapping overloaded operators</h3>
+
+Starting in SWIG-1.3.10, C++ overloaded operator declarations can be wrapped. 
+For example, consider a class like this:
+
+<blockquote>
+<pre>
+class Complex {
+private:
+  double rpart, ipart;
+public:
+  Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
+  Complex(const Complex &c) : rpart(c.rpart), ipart(c.ipart) { }
+  Complex &operator=(const Complex &c) {
+    rpart = c.rpart;
+    ipart = c.ipart;
+    return *this;
+  }
+  Complex operator+(const Complex &c) const {
+    return Complex(rpart+c.rpart, ipart+c.ipart);
+  }
+  Complex operator-(const Complex &c) const {
+    return Complex(rpart-c.rpart, ipart-c.ipart);
+  }
+  Complex operator*(const Complex &c) const {
+    return Complex(rpart*c.rpart - ipart*c.ipart,
+		   rpart*c.ipart + c.rpart*ipart);
+  }
+  Complex operator-() const {
+    return Complex(-rpart, -ipart);
+  }
+  double re() const { return rpart; }
+  double im() const { return ipart; }
+};
+</pre>
+</blockquote>
+
+When operator declarations appear, they are handled in
+<em>exactly</em> the same manner as regular methods.  However, the
+names of these methods are set to strings like "<tt>operator +</tt>"
+or "<tt>operator -</tt>".  The problem with these names is that they
+are illegal identifiers in most scripting languages.  For instance,
+you can't just create a method called "<tt>operator +</tt>" in
+Python--there won't be any way to call it.
+
+<p>
+Some language modules already know how to automatically handle certain
+operators (mapping them into operators in the target language).
+However, the underlying implementation of this is really managed in a
+very general way using the <tt>%rename</tt> directive.  For example,
+in Python a declaration similar to this is used:
+
+<blockquote>
+<pre>
+%rename(__add__) Complex::operator+;
+</pre>
+</blockquote>
+
+This binds the + operator to a method called <tt>__add__</tt> (which
+is conveniently the same name used to implement the Python + operator). 
+Internally, the generated wrapper code for a wrapped operator will look
+something like this pseudocode:
+
+<blockquote>
+<pre>
+_wrap_Complex___add__(args) {
+   ... get args ...
+   obj->operator+(args);
+   ...
+}
+</pre>
+</blockquote>
+
+When used in the target language, it may now be possible to use the overloaded
+operator normally. For example:
+
+<blockquote>
+<pre>
+>>> a = Complex(3,4)
+>>> b = Complex(5,2)
+>>> c = a + b           # Invokes __add__ method
+</pre>
+</blockquote>
+
+It is important to realize that there is nothing magical happening here.  The <tt>%rename</tt> directive
+really only picks a valid method name.   If you wrote this:
+
+<blockquote>
+<pre>
+%rename(add) operator+;
+</pre>
+</blockquote>
+
+The resulting scripting interface might work like this:
+
+<blockquote>
+<pre>
+a = Complex(3,4)
+b = Complex(5,2)
+c = a.add(b)      # Call a.operator+(b)
+</pre>
+</blockquote>
+
+All of the techniques described to deal with overloaded functions also apply to operators.
+For example:
+
+<blockquote>
+<pre>
+%ignore Complex::operator=;             // Ignore = in class Complex
+%ignore *::operator=;                   // Ignore = in all classes
+%ignore operator=;                      // Ignore = everywhere.
+
+%rename(__sub__) Complex::operator-; 
+%rename(__neg__) Complex::operator-();  // Unary - 
+</pre>
+</blockquote>
+
+The last part of this example illustrates how multiple definitions of the <tt>operator-</tt> method
+might be handled.
+
+<p>
+Handling operators in this manner is mostly straightforward.  However, there are a few subtle
+issues to keep in mind:
+
+<ul>
+<li>In C++, it is fairly common to define different versions of the operators to account for
+different types.  For example, a class might also include a friend function like this:
+
+<blockquote>
+<pre>
+class Complex {
+public:
+  friend Complex operator+(Complex &, double);
+};
+Complex operator+(Complex &, double);
+</pre>
+</blockquote>
+
+SWIG simply ignores all <tt>friend</tt> declarations.   Furthermore, it doesn't know how to associate the
+associated <tt>operator+</tt> with the class (because it's not a member of the class).
+
+<p>
+It's still possible to make a wrapper for this operator, but you'll have to handle it like a normal
+function. For example:
+
+<blockquote>
+<pre>
+%rename(add_complex_double) operator+(Complex &, double);
+</pre>
+</blockquote>
+
+<p>
+<li>Certain operators are ignored by default. For instance, <tt>new</tt> and <tt>delete</tt> operators
+are ignored as well as conversion operators.
+
+<p>
+<li>The semantics of certain C++ operators may not match those in the target language.
 </ul>
 
 <h3>Adding new methods</h3>
@@ -3194,6 +3403,58 @@ public:
 <p>
 Also, as a rule of thumb, SWIG should not be used on raw C++ source
 files. 
+
+<h3>A brief rant about const-correctness</h3>
+
+A common issue when working with C++ programs is dealing with all
+possible ways in which the <tt>const</tt> qualifier (or lack thereof)
+will break your program, all programs linked against your program, and
+all programs linked against those programs.  In fact, many C++ books
+actively encourage using <tt>const</tt> whenever possible (perhaps in
+an effort to maximize correctness through annoyance or by observing 
+that an uncompilable program will always run correctly).
+
+<p>
+Although SWIG knows how to correctly deal with <tt>const</tt> in its
+internal type system and it knows how to generate wrappers that are
+free of const-related warnings, SWIG does not make any attempt to preserve 
+const-correctness in the target language.  Thus, it is possible to
+pass <tt>const</tt> qualified objects to non-const methods and functions.
+For example, consider the following code in C++:
+
+<blockquote>
+<pre>
+const Object * foo();
+void bar(Object *);
+
+...
+// C++ code
+void blah() {
+   bar(foo());         // Error: bar discards const
+};
+</pre>
+</blockquote>
+
+Now, consider the behavior when wrapped into a Python module:
+
+<blockquote>
+<pre>
+>>> bar(foo())         # Okay
+>>> 
+</pre>
+</blockquote>
+
+Although this is clearly a violation of the C++ type-system, fixing
+the problem doesn't seem to be worth the added implementation
+complexity that would be required to support it in the SWIG run-time type
+system.  There are no plans to change this in future releases
+(although we'll never rule anything out entirely).
+
+<p>
+The bottom line is that this particular issue does not appear to be a problem
+for most SWIG projects.    Of course, you might want to consider
+using another tool if maintaining constness is the most important part
+of your project.
 
 <h2> Code Insertion</h2>
 
