@@ -3543,7 +3543,6 @@ notso_direct_declarator : idcolon {
 		 $$.parms = 0;
 		 $$.have_parms = 0;
                   }
-
                   | NOT idcolon {
                   $$.id = Char(NewStringf("~%s",$2));
                   $$.type = 0;
@@ -3559,6 +3558,14 @@ notso_direct_declarator : idcolon {
                   $$.have_parms = 0;
                   }
 
+/*
+                  | LPAREN AND idcolon RPAREN {
+                     $$.id = Char($3);
+                     $$.type = 0;
+                     $$.parms = 0;
+                     $$.have_parms = 0;
+                  }
+*/
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
                   | LPAREN pointer notso_direct_declarator RPAREN {
 		    $$ = $3;
@@ -3652,6 +3659,13 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		    }
 		    $$.type = $2;
+                  }
+                  | LPAREN AND direct_declarator RPAREN {
+                    $$ = $3;
+		    if (!$$.type) {
+		      $$.type = NewString("");
+		    }
+		    SwigType_add_reference($$.type);
                   }
                   | LPAREN idcolon DSTAR direct_declarator RPAREN {
 		    SwigType *t;
