@@ -114,9 +114,16 @@ class Allocate : public Dispatcher {
 		if (strcmp(la, ba) == 0) Setattr(c,"feature:ignore", "1");
 	      }
             } else {
-	      // if the types are different, we record the original
-	      // virtual base type in case some language needs it.
-              Setattr(c, "virtual:type", Getattr(temp, "type"));
+	      // if the types are different, we record the base type
+	      // those languages that need to know about covariant return types
+              SwigType *ty = NewString(Getattr(temp,"type"));
+              SwigType_push(ty,Getattr(temp,"decl"));
+              if (SwigType_isqualifier(ty)) {
+                SwigType_pop(ty);
+              }
+              Delete(SwigType_pop_function(ty));
+
+              Setattr(c, "virtual:type", ty);
             }
 
 	    Delete(base_decl);
