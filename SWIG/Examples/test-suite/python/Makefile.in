@@ -27,6 +27,7 @@ CPP_TEST_CASES += \
 	li_std_vectora \
 	li_std_map \
 	li_std_stream \
+	li_std_wstream \
 	li_std_wstring \
 	nondynamic \
 	primitive_types \
