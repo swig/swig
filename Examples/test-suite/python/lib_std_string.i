@@ -1,5 +1,6 @@
 %module lib_std_string
-%include "std_string.i"
+%include <std_basic_string.i>
+%include <std_string.i>
 
 %template(string) std::basic_string<char>;
 %inline %{

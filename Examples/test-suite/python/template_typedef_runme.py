@@ -33,7 +33,7 @@ except:
 
 
 # the old large format
-if not SWIG_TypeQuery("vfncs::ArithUnaryFunction<vfncs::arith_traits<float,real>::argument_type,vfncs::arith_traits<float,real >::result_type > *"):
+if not SWIG_TypeQuery("vfncs::ArithUnaryFunction<vfncs::arith_traits<float,double>::argument_type,vfncs::arith_traits<float,double >::result_type > *"):
   raise RuntimeError
 
 

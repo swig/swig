@@ -21,10 +21,11 @@
 
 %}
 
-namespace hello
+namespace hello 
 {
   %template(Hi_hi0) Hi<hi::hi0>;
 }
+
 
 
 %inline %{
@@ -48,7 +49,9 @@ namespace hello
     template <class T1>
     struct hi1 : T1
     {
-    };    
+    };
+
+    typedef hello::Hi<hello::hi::hi0> h0;
   }
   
 %}

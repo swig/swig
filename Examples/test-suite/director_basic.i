@@ -15,6 +15,7 @@ public:
 
 %feature("director") Foo;
 
+
 class Foo {
 public:
 	virtual ~Foo() {}
@@ -25,7 +26,12 @@ public:
 %{
 #include <complex> 
 %}
-%feature("director") A;
+%feature("director");
+
+// basic renaming
+%rename(rg) A::gg;
+%feature("nodirector") hi::A1::gg;
+
 %inline %{
 
 struct A{
@@ -34,11 +40,18 @@ struct A{
     virtual ~A() {}
     
     virtual int f(int i=0) {return i;}
+    virtual int gg(int i=0) {return i;}
 };
 
-struct A1 : public A{
+namespace hi  {
+
+  struct A1 : public A{
     A1(std::complex<int> i, double d=0.0) : A(i, d) {}
     A1(int i, bool j=false) : A(i, j) {}
-};
+    
+    virtual int ff(int i = 0) {return i;}  
+  };
+}
+ 
 
 %}

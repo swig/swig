@@ -329,3 +329,18 @@ t2 = p.vtest(t)
 if t.var_namet !=  t2.var_namet:
   raise RuntimeError, "bad SWIGTYPE* typemap"
   
+
+if cvar.fixsize != 'ho\0la\0\0\0':
+  raise RuntimeError, "bad FIXSIZE typemap"
+
+cvar.fixsize = 'ho'
+if cvar.fixsize != 'ho\0\0\0\0\0\0':
+  raise RuntimeError, "bad FIXSIZE typemap"
+
+
+f = Foo(3)
+f1 = fptr_val(f)
+f2 = fptr_ref(f)
+if f1._a != f2._a:
+  raise RuntimeError, "bad const ptr& typemap"
+  

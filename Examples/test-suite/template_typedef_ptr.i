@@ -17,7 +17,7 @@
  template <class A, class B>
    struct Test<A, B*> 
    {
-     Test (A a, B* b)
+     Test (B* a)
      {
      }
      

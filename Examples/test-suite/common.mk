@@ -46,13 +46,10 @@ LIBPREFIX  = lib
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	derived_nested \
-	derived_byvalue \
 	multiple_inheritance \
 	namespace_union \
 	overload_complicated \
 	smart_pointer_namespace2 \
-	template_specialization_defarg \
-	template_typedef_ptr \
 	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
@@ -114,6 +111,7 @@ CPP_TEST_CASES += \
 	default_args \
 	default_ref \
 	defvalue_constructor \
+	derived_byvalue \
 	destructor_reprotected \
 	director_abstract \
 	director_basic \
@@ -165,6 +163,7 @@ CPP_TEST_CASES += \
 	long_long_apply \
 	member_template \
 	minherit \
+	mixed_types \
 	name_cxx \
 	name_inherit \
 	name_warnings \
@@ -253,6 +252,7 @@ CPP_TEST_CASES += \
 	template_rename \
 	template_retvalue \
 	template_specialization \
+	template_specialization_defarg \
 	template_specialization_enum \
 	template_static \
 	template_tbase_template \
@@ -263,6 +263,7 @@ CPP_TEST_CASES += \
 	template_typedef_cplx3 \
 	template_typedef_cplx4 \
 	template_typedef_cplx5 \
+	template_typedef_ptr \
 	template_virtual \
 	template_whitespace \
 	throw_exception \
