@@ -747,7 +747,7 @@ void generate(DOH *node) {
   }
   if (!swig_module) {
     Printf(stderr,"SWIG: No module name specified! Please use %%module or -module.\n");
-    SWIG_exit(EXIT_FAILURE);
+    Swig_exit(EXIT_FAILURE);
   }
 
   lang->initialize(swig_module);

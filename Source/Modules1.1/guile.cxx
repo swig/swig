@@ -71,14 +71,14 @@ GUILE::parse_args (int argc, char *argv[])
 {
   int i, orig_len;
 
-  sprintf (LibDir, "%s", "guile");
+  Swig_swiglib_set("guile");
 
   // Look for certain command line options
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (guile_usage, stderr);
-	SWIG_exit (EXIT_SUCCESS);
+	Swig_exit (EXIT_SUCCESS);
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
@@ -149,7 +149,7 @@ GUILE::parse_args (int argc, char *argv[])
   Preprocessor_define ((void *) "SWIGGUILE",0);
 
   /* Read in default typemaps */
-  SWIG_config_file("guile.i");
+  Swig_set_config_file("guile.i");
 }
 
 // --------------------------------------------------------------------

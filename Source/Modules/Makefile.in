@@ -5,8 +5,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-SRCS          = init.c test.c
-OBJS          = init.o test.o
+SRCS          = init.c inputmodule.c cppmodule.c cparsemodule.c
+OBJS          = init.o inputmodule.o cppmodule.o cparsemodule.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@

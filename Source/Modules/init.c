@@ -11,12 +11,16 @@
 
 #include "swig.h"
 
-extern void testmodule();
-extern void pythonmodule();
+extern void inputmodule();
+extern void preprocessormodule();
+extern void cparsemodule();
+extern void swig11module();
 
 static void (*modules[])(void) = {
-  testmodule,
-  pythonmodule,
+  inputmodule,
+  preprocessormodule,
+  cparsemodule,
+  swig11module,
   0
 };
 
@@ -33,7 +37,16 @@ void init_modules() {
   }
 }
 
+/* This array contains the names of modules that should be loaded by default */
+static char *default_modules[] = {
+  "input",
+  "preprocessor",
+  "cparse",
+  0
+};
+
 int main(int argc, char **argv) {
   init_modules();
-  return Swig_main(argc, argv);
+  return Swig_main(argc, argv, default_modules);
 }
+

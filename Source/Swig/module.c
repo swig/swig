@@ -182,7 +182,7 @@ DOH *Swig_run_modules(DOH *node) {
     }
     ml = Getattr(LoadedModules,tag);
     if ((!ml) || (Len(ml) == 0)) {
-      Printf(stderr,"No module for object '%s'\n", tag);
+      Printf(stderr,"Internal error. No module defined for handling '%s'\n", tag);
       return 0;
     }
     newnode = 0;
@@ -192,7 +192,7 @@ DOH *Swig_run_modules(DOH *node) {
       m = (Module *) Data(Getitem(ml,i));
       assert(m);
       newnode = (*m->startfunc)(node);
-      if (!newnode) return 0;   /* Done */
+      if (!newnode) return node;   /* Done */
       newtag = Getattr(newnode,"tag");
       if (!newtag) {
 	Printf(stderr,"Fatal error. Module '%s' returns untagged object.\n", m->modname);
