@@ -574,17 +574,6 @@ public:
     s_oinit = NewString("/* oinit subsection */\n");
     pragma_phpinfo = NewString("");
     
-    if (0) Printf(s_vdecl,
-		  "// This array is to shadow _swig_types\n"
-		  "int _swig_type_size=sizeof(swig_types)/sizeof(swig_types[0]);\n"
-		  "static int _extra_swig_types[_swig_type_size];\n"
-		  "for(int i=0;i<_swig_type_size;i++) _extra_swig_types[i]=0;\n"
-		  "// These macros are magic spells so we can map from typemap descriptor"
-		  "// to whether or not it is a shadowed class (updates _extra_swig_types)"
-		  "#define EXTRATYPE(descriptor) _EXTRATYPE(_extra_,descriptor)\n"
-		  "#define _EXTRATYPE(prefix,arrayref) prefix ## arrayref\n");
-    
-    
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",s_init);
