@@ -1329,7 +1329,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       Symtab *ntab;
       SwigType *nt = Copy(Getattr(n,"type"));
       
-#if 0
+#if 1
       /* Fix for case 'typedef struct Hello hello;' */
       {	
 	const char* dclass[3] = {"struct ", "union ", "class "};
