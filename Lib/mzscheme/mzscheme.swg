@@ -3,6 +3,7 @@
    file. */
 
 /* Include headers */
+%runtime "swigrun.swg"     // Common C API type-checking code
 %runtime "common.swg"
 %runtime "mzrun.swg"
 

@@ -5,6 +5,7 @@
 
 #define SWIGGUILE_SCM
 
+%runtime "swigrun.swg"       // Common C API type-checking code
 %runtime "common.swg"
 
 %runtime "guile_scm_run.swg"
