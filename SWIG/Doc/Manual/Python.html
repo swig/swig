@@ -90,7 +90,7 @@ your mileage might vary.  For the best results, consider using Python
 
 <p>
 This chapter covers most SWIG features, but certain low-level details
-are covered in less depth than is found in earlier chapters.  At the
+are covered in less depth than in earlier chapters.  At the
 very least, make sure you read the "<a href="SWIG.html">SWIG
 Basics</a>" chapter.
 
@@ -105,7 +105,7 @@ is used to define high-level features.
 <p>
 This layered approach recognizes the fact that certain aspects of
 extension building are better accomplished in each language (instead
-of trying to do everything in C). Furthermore, by generating code in both
+of trying to do everything in C or C++). Furthermore, by generating code in both
 languages, you get a lot more flexibility since you can enhance the extension
 module with support code in either language.
 
@@ -119,6 +119,8 @@ details.
 
 <a name="n3"></a><H2>18.2 Preliminaries</H2>
 
+
+<h3>Running SWIG</h3>
 
 Suppose that you defined a SWIG module such as the following:
 
@@ -152,7 +154,7 @@ rest of your C/C++ application to create an extension module. The Python source 
 high-level support code. This is the file that you will import to use the module.
 
 <p>
-The name the wrapper file is derived from the name of the input file.  For example, if the
+The name of the wrapper file is derived from the name of the input file.  For example, if the
 input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
 To change this, you can use the <tt>-o</tt> option.   The name of the Python file is derived
 from the module name specified with <tt>%module</tt>.  If the module name is <tt>example</tt>, then
@@ -189,7 +191,7 @@ Type "copyright", "credits" or "license" for more information.
 
 
 The preferred approach to building an extension module is to compile it into
-a shared object file or DLL.   To do this, you will need to compile your program
+a shared object file or DLL.   To do this, you need to compile your program
 using comands like this (shown for Linux):
 
 <p>
@@ -200,7 +202,7 @@ $ gcc -shared example.o example_wrap.o -o _example.so
 </pre></blockquote>
 
 The exact commands for doing this vary from platform to platform. 
-SWIG tries to guess the right options when it is installed.  Therefore, 
+However, SWIG tries to guess the right options when it is installed.  Therefore, 
 you may want to start with one of the examples in the <tt>SWIG/Examples/python</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
@@ -217,11 +219,11 @@ The name of the module is specified using the <tt>%module</tt> directive or the
 <b>Compatibility Note:</b> In SWIG-1.3.13 and earlier releases, module
 names did not include the leading underscore.  This is because modules
 were normally created as C-only extensions without the extra Python
-support file (instead, creating Python code was supported as optional
+support file (instead, creating Python code was supported as an optional
 feature).  This has been changed in SWIG-1.3.14 and is consistent with
 other Python extension modules.  For example, the <tt>socket</tt>
 module actually consists of two files; <tt>socket.py</tt> and
-<tt>_socket.so</tt>.  Many other built-in modules follow a similar convention.
+<tt>_socket.so</tt>.  Many other built-in Python modules follow a similar convention.
 
 <a name="n6"></a><H3>18.2.3 Using distutils</H3>
 
@@ -379,12 +381,12 @@ Finally, suppose that your extension module is linked with another library like 
 
 <blockquote>
 <pre>
-$ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
+$ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib <b>-lfoo</b> \
       -o _example.so
 </pre>
 </blockquote>
 
-If the <tt>foo</tt> library is compiled as a shared library, you might get the following
+If the <tt>foo</tt> library is compiled as a shared library, you might encounter the following
 problem when you try to use your module:
 
 <blockquote>
@@ -407,7 +409,7 @@ module with extra path information. For example, on Linux you can do this:
 <blockquote>
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
-      -Xlinker -rpath /home/beazley/projects/lib \
+      <b>-Xlinker -rpath /home/beazley/projects/lib </b> \
       -o _example.so
 </pre>
 </blockquote>
@@ -610,12 +612,11 @@ SWIG Wiki</a>.
 <a name="n12"></a><H2>18.3 A tour of basic C/C++ wrapping</H2>
 
 
-By default, the Python module tries to build a very natural Python interface
+By default, SWIG tries to build a very natural Python interface
 to your C/C++ code.  Functions are wrapped as functions, classes are wrapped as classes, and so forth.
-This section briefly covers the essential features.
+This section briefly covers the essential aspects of this wrapping.
 
 <a name="n13"></a><H3>18.3.1 Modules</H3>
-
 
 The SWIG <tt>%module</tt> directive specifies the name of the Python
 module. If you specify `<tt>%module example</tt>', then everything is
@@ -802,8 +803,8 @@ incomplete type information.  Here is a rather simple interface:
 <pre>
 %module example
 
-FILE *fopen(const char *f, const char *mode);
-int fprintf(FILE *, const char *fmt, ...);
+FILE *fopen(const char *filename, const char *mode);
+int fputs(const char *, FILE *);
 int fclose(FILE *);
 </pre>
 </blockquote>
@@ -819,7 +820,7 @@ When wrapped, you will be able to use the functions in a natural way from Python
 </pre>
 </blockquote>
 
-If this makes you uneasy, be assured that there is no
+If this makes you uneasy, rest assured that there is no
 deep magic involved.  Underneath the covers, pointers to C/C++ objects are
 simply represented as opaque values--normally an encoded character
 string like this:
@@ -833,10 +834,10 @@ _c0671108_p_FILE
 
 This pointer value can be freely passed around to different C functions that
 expect to receive an object of type <tt>FILE *</tt>.  The only thing you can't do is 
-dereference the pointer from Python. Of course, that isn't much of an issue in this example.
+dereference the pointer from Python. Of course, that isn't much of a concern in this example.
 
 <p>
-As an alternative to strings, SWIG can also encode pointers as a
+As an alternative to strings, SWIG can encode pointers as a
 Python CObject type.  CObjects are rarely discussed in most Python books
 or documentation.  However, this is a special built-in type that can be
 used to hold raw C pointer values.   Internally, a CObject is just a container
@@ -927,7 +928,7 @@ C-style cast may return a bogus result whereas as the C++-style cast will return
 <a name="n18"></a><H3>18.3.6 Structures</H3>
 
 
-If you wrap a C structure, it will be wrapped by a Python proxy class.  This provides
+If you wrap a C structure, it is wrapped by a Python class.  This provides
 a very natural interface.  For example,
 
 <p>
@@ -937,7 +938,7 @@ a very natural interface.  For example,
 
 </pre></blockquote>
 
-can be used as follows:
+is used as follows:
 <p>
 <blockquote><pre>
 &gt;&gt;&gt; v = example.Vector()
@@ -975,13 +976,7 @@ _18e31408_p_Vector
 </pre>
 </blockquote>
 
-Since Python is garbage collected, structures that are created from Python (using <tt>Vector()</tt>) are
-automatically destroyed by the interpreter when no longer in use (i.e., when there are no Python references
-to the object). It possible to change the ownership of an object by setting the value of the 
-<tt>.thisown</tt> attribute.  When set to 1, Python releases the object. When set to 0
-(or not set at all), Python may delete the proxy instance, but it won't delete the
-underlying C object (perhaps the C module is smart enough to take care of this on its own).
-Details of memory management are covered a little later.
+Further details about the Python proxy class are covered a little later.
 
 <p>
 <tt>const</tt> members of a structure are read-only. Data members
@@ -1031,7 +1026,7 @@ _801861a4_p_int
 </blockquote>
 
 This pointer can be passed around to functions that expect to receive
-an <tt>int *</tt> (just like C).   You can also, set the value of an array member using
+an <tt>int *</tt> (just like C).   You can also set the value of an array member using
 another pointer.  For example:
 
 <blockquote>
@@ -1041,7 +1036,7 @@ another pointer.  For example:
 </pre>
 </blockquote>
 
-For assignment, SWIG copies the entire contents of the array starting with the data pointed
+For array assignment, SWIG copies the entire contents of the array starting with the data pointed
 to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWIG makes
 no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
 fault or access violation.
@@ -1089,7 +1084,7 @@ everything works just like you would expect. For example:
 >>> b = Bar()
 >>> b.f.a = 3               # Modify attribute of structure member
 >>> x = b.f                   
->>> x.a = 3                 # Modifies same structure
+>>> x.a = 3                 # Modifies the same structure
 </pre>
 </blockquote>
 
@@ -1125,38 +1120,54 @@ you can use it in Python like this:
 &gt;&gt;&gt;
 </pre></blockquote>
 
-Class data members work the same way as for C structures.   Static class members are wrapped
-in the same way as global variables and global functions.  For example, if you have a class
-like this,
+Class data members are accessed in the same manner as C structures.  
+
+<p>
+Static class members present a special problem for Python.  Prior to Python-2.2, 
+Python classes had no support for static methods and no version of Python
+supports static member variables in a manner that SWIG can utilize.  Therefore, 
+generates wrappers that try to work around some of these issues.  To illustrate,
+suppose you have a class like this:
 
 <blockquote>
 <pre>
 class Spam {
 public:
-   static int nobjs;
-   static void debug();
+   static void foo();
+   static int bar;
+
 };
 </pre>
 </blockquote>
 
-Then these declarations are accessed as follows:
+In Python, the static member can be access in three different ways:
 
 <blockquote>
 <pre>
->>> print example.cvar.Spam_nobjs
-7
->>> example.Spam_debug()
+>>> example.Spam_foo()    # Spam::foo()
+>>> s = example.Spam()
+>>> s.foo()               # Spam::foo() via an instance
+>>> example.Spam.foo()    # Spam::foo(). Python-2.2 only
 </pre>
 </blockquote>
 
-In Python 2.2 and more recent releases, static class functions may be
-wrapped as part of the class instead.  For example, you can say
-<tt>example.Spam.debug()</tt>.  This is not yet supported for static data members.
+The first two methods of access are supported in all versions of Python.  The
+last technique is only available in Python-2.2 and later versions.
+
+<p>
+Static member variables are currently accessed as global variables.  This means,
+they are accessed through <tt>cvar</tt> like this:
+
+<blockquote>
+<pre>
+>>> print example.cvar.Spam_bar
+7
+</pre>
+</blockquote>
 
 </pre></blockquote>
 
 <a name="n20"></a><H3>18.3.8 C++ inheritance</H3>
-
 
 SWIG is fully aware of issues related to C++ inheritance.  Therefore, if you have
 classes like this
@@ -1173,7 +1184,22 @@ class Bar : public Foo {
 </pre>
 </blockquote>
 
-and a function
+those classes are wrapped into a hierarchy of Python classes that reflect the same inheritance
+structure.   All of the usual Python utility will work normally:
+
+<blockquote>
+<pre>
+>>> b = Bar()
+>>> instance(b,Foo)
+1
+>>> issubclass(Bar,Foo)
+1
+>>> issubclass(Foo,Bar)
+0
+</pre>
+</blockquote>
+
+Furthermore, if you have functions like this
 
 <blockquote>
 <pre>
@@ -1182,10 +1208,11 @@ void spam(Foo *f);
 </blockquote>
 
 then the function <tt>spam()</tt> accepts <tt>Foo *</tt> or a pointer to any class derived from <tt>Foo</tt>.
+
+<p>
 It is safe to use multiple inheritance with SWIG.
 
 <a name="n21"></a><H3>18.3.9 Pointers, references, values, and arrays</H3>
-
 
 In C++, there are many different ways a function might receive
 and manipulate objects.  For example:
@@ -1203,7 +1230,7 @@ In Python, there is no detailed distinction like this--specifically,
 there are only "objects".  There are no pointers, references, arrays,
 and so forth.  Because of this, SWIG unifies all of these types
 together in the wrapper code.  For instance, if you actually had the
-above functions, it would be perfectly legal to do this:
+above functions, it is perfectly legal to do this:
 
 <blockquote>
 <pre>
@@ -1227,13 +1254,11 @@ Foo  spam7();
 </blockquote>
 
 then all three functions will return a pointer to some <tt>Foo</tt> object.
-The first two functions return a pointer, but don't give Python ownership of
-the returned object.  Since the third function (spam7) returns a value, newly
-allocated memory is used to hold the result.  Python will release this memory 
-when the return value is garbage collected.
+Since the third function (spam7) returns a value, newly allocated memory is used 
+to hold the result and a pointer is returned (Python will release this memory 
+when the return value is garbage collected).
 
 <a name="n22"></a><H3>18.3.10 C++ overloaded functions</H3>
-
 
 C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
 if you have two functions like this:
@@ -1286,7 +1311,15 @@ void spam(short);
 </pre>
 </blockquote>
 
-If declarations such as this appear, you will get a warning message like this:
+or
+
+<blockquote>
+<pre>
+void foo(Bar *b);
+void foo(Bar &b);
+</pre>
+
+If declarations such as these appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
@@ -1316,10 +1349,15 @@ void spam(short);   // Ignored
 </pre>
 </blockquote>
 
+SWIG resolves overloaded functions and methods using a disambiguation scheme that ranks and sorts
+declarations according to some type-precedence rules.    The order in which declarations appear
+in the input does not matter except in situations where ambiguity arises--in this case, the
+first declaration takes precedence.
+
+<P>
 Please refer to the "SWIG and C++" chapter for more information about overloading. 
 
 <a name="n23"></a><H3>18.3.11 C++ operators</H3>
-
 
 Certain C++ overloaded operators can be handled automatically by SWIG.  For example,
 consider a class like this:
@@ -1360,7 +1398,7 @@ When wrapped, it works like you expect:
 
 One restriction with operator overloading support is that SWIG is not
 able to fully handle operators that aren't defined as part of the class.
-For example, if you also had code like this
+For example, if you had code like this
 
 <blockquote>
 <pre>
@@ -1374,7 +1412,7 @@ friend Complex operator+(double, const Complex &c);
 
 then SWIG doesn't know what to do with the friend function--in fact,
 it simply ignores it and issues a warning.   You can still wrap the operator,
-but you may have to do it as a function.  For example:
+but you may have to encapsulate it in a special function.  For example:
 
 <blockquote>
 <pre>
@@ -1479,6 +1517,163 @@ In Python:
 Obviously, there is more to template wrapping than what is shown in this example.
 More details can be found in the "SWIG and C++" section.   Some more complicated
 examples will appear later.
+
+<h3>C++ Smart Pointers</h3>
+
+In certain C++ programs, it is common to use classes that have been wrapped by
+so-called "smart pointers."   Generally, this involves the use of a template class
+that implements <tt>operator->()</tt> like this:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class SmartPtr {
+   ...
+   T *operator->();
+   ...
+}
+</pre>
+</blockquote>
+
+Then, if you have a class like this,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     int x;
+     int bar();
+};
+</pre>
+</blockquote>
+
+A smart pointer would be used in C++ as follows:
+
+<blockquote>
+<pre>
+SmartPtr&lt;Foo&gt; p = CreateFoo();   // Created somehow (not shown)
+...
+p->x = 3;                        // Foo::x
+int y = p->bar();                // Foo::bar
+</pre>
+</blockquote>
+
+To wrap this in Python, simply tell SWIG about the <tt>SmartPtr</tt> class and the low-level
+<tt>Foo</tt> object.  Make sure you instantiate <tt>SmartPtr</tt> using <tt>%template</tt> if necessary.
+For example:
+
+<blockquote>
+<pre>
+%module example
+...
+%template(SmartPtrFoo) SmartPtr&lt;Foo&gt;;
+...
+</pre>
+</blockquote>
+
+Now, in Python, everything should just "work":
+
+<blockquote>
+<pre>
+>>> p = example.CreateFoo()          # Create a smart-pointer somehow
+>>> p.x = 3                          # Foo::x
+>>> p.bar()                          # Foo::bar
+</pre>
+</blockquote>
+
+If you ever need to access the underlying pointer returned by <tt>operator->()</tt> itself,
+simply use the <tt>__deref__()</tt> method.  For example:
+
+<blockquote>
+<pre>
+>>> f = p.__deref__()     # Returns underlying Foo *
+</pre>
+</blockquote>
+
+<h2>Further details on the Python class interface</h2>
+
+In the previous section, a high-level view of Python wrapping was
+presented.  A key component of this wrapping is that structures and
+classes are wrapped by Python proxy classes.  This provides a very
+natural Python interface and allows SWIG to support a number of
+advanced features such as operator overloading.   However, a number
+of low-level details were ommitted.  This section provides a brief overview
+of how the proxy classes work.
+
+<h3>Proxy classes</h3>
+
+In the <a href="SWIG.html">"SWIG basics"</a> and <a href="SWIGPlus.html">"SWIG and C++"</a> chapters,
+details of low-level structure and class wrapping are described.  To summarize those chapters, if you
+have a class like this
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     int x;
+     int spam(int);
+     ...
+</pre>
+</blockquote>
+
+then SWIG transforms it into a set of low-level procedural wrappers. For example:
+
+<blockquote>
+<pre>
+Foo *new_Foo() {
+    return new Foo();
+}
+void delete_Foo(Foo *f) {
+    delete f;
+}
+int Foo_x_get(Foo *f) {
+    return f->x;
+}
+void Foo_x_set(Foo *f, int value) {
+    f->x = value;
+}
+int Foo_spam(Foo *f, int arg1) {
+    return f->spam(arg1);
+}
+</pre>
+</blockquote>
+
+These wrappers can be found in low-level extension module (e.g., <tt>_example</tt>).
+<p>
+Using these wrappers, SWIG then generates a high-level Python proxy class like this (shown 
+for Python 2.2):
+
+<blockquote>
+<pre>
+import _example
+
+class Foo(object):
+     def __init__(self):
+         self.this = _example.new_Foo()
+         self.thisown = 1
+     def __del__(self):
+         if self.thisown:
+               _example.delete_Foo(self.this)
+     def spam(self,arg1):
+         return _example.Foo_spam(self.this,arg1)
+     x = property(_example.Foo_x_get, _example.Foo_x_set)
+</pre>
+</blockquote>
+
+This class merely holds a pointer to the underlying C++ object (<tt>.this</tt>) and dispatches methods and 
+member variable access to that object using the low-level accessor functions.   From a user's point of
+view, it works normally:
+
+<blockquote>
+<pre>
+>>> f = example.Foo()
+>>> f.x = 3
+>>> y = f.spam()
+</pre>
+</blockquote>
+
+<h3>Python 2.2 and classic classes</h2>
+
+<h3>Memory management</h3>
 
 <a name="n26"></a><H2>18.4 Common customization features</H2>
 
