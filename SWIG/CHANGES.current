@@ -1,6 +1,23 @@
 Version 1.3.17 (In progress)
 ============================
 
+11/05/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added support for nested module declarations (as was
+            previously added for the Perl module). So a %module directive
+            of the form:
+
+                %module "Outer::Inner::Foo"
+
+            will nest everything as (in Ruby code):
+
+                module Outer
+                  module Inner
+                    module Foo
+                      # stuff goes here
+                    end
+                  end
+                end
+ 
 11/05/2002: mkoeppe 
 	    [MzScheme] Add an argument (-declaremodule) that generates
 	    code to correctly declare a primitive module extension.
