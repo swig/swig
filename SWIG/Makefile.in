@@ -93,6 +93,43 @@ runtime:
 	@cd Runtime; $(MAKE)
 
 #####################################################################
+# CHECK
+#####################################################################
+
+check-aliveness: swig
+
+skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
+skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
+skip-python	= [ -z "@PYIINCLUDE@" -o -z "@PYLIB@" ]
+skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
+skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
+skip-mzscheme	= [ -z "@MZC@" ]
+skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
+
+chk = $(MAKE) check
+
+check-examples:
+	$(skip-tcl) || (cd Examples/tcl/constants ; $(chk))
+	$(skip-tcl) || (cd Examples/tcl/simple ; $(chk))
+	$(skip-perl) || (cd Examples/perl5/constants ; $(chk))
+	$(skip-perl) || (cd Examples/perl5/simple ; $(chk))
+	$(skip-python) || (cd Examples/python/constants ; $(chk))
+	$(skip-python) || (cd Examples/python/simple ; $(chk))
+	$(skip-java) || (cd Examples/java/simple ; $(chk))
+	$(skip-java) || (cd Examples/java/native ; $(chk))
+	$(skip-java) || (cd Examples/java/typemap ; $(chk))
+	$(skip-guile) || (cd Examples/guile/simple ; $(chk))
+	$(skip-guile) || (cd Examples/guile/matrix ; $(chk))
+	$(skip-mzscheme) || (cd Examples/mzscheme/simple ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/constants ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/simple ; $(chk))
+
+check-gifplot-example:
+	: todo: gifplot example checking
+
+check: check-aliveness check-examples check-gifplot-example
+
+#####################################################################
 # CLEAN
 #####################################################################
 
@@ -106,7 +143,8 @@ clean:
 	@cd Runtime; $(MAKE) clean
 	rm -f swig
 
-distclean-dead = @configure_substituted_files@
+distclean-dead = config.status config.log config.cache \
+		 @configure_substituted_files@
 
 distclean: clean
 	rm -f $(distclean-dead)
