@@ -53,7 +53,7 @@ SWIGINTERN int
 
 %fragment(SWIG_From_frag(std::wstring),"header",
 	  fragment="SWIG_FromWCharArray") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(std::wstring)(const std::wstring& s)
   {
     return SWIG_FromWCharArray(s.data(), s.size());
@@ -68,7 +68,7 @@ SWIGINTERN int
   {
     std::wstring *s;
     int res = SWIG_AsPtr(std::wstring)(obj, &s);
-    if (res && s) {
+    if ((res != 0) && s) {
       if (val) *val = *s;
       if (res == SWIG_NEWOBJ) delete s;
       return res;

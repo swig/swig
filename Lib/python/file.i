@@ -28,7 +28,7 @@ SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
 }
 
 %fragment("SWIG_AsFilePtr","header",fragment="SWIG_AsValFilePtr") {
-SWIGINTERNSHORT FILE*
+SWIGINTERNINLINE FILE*
 SWIG_AsFilePtr(PyObject *obj) {
   FILE *val = 0;
   SWIG_AsValFilePtr(obj, &val);
@@ -37,7 +37,7 @@ SWIG_AsFilePtr(PyObject *obj) {
 }
 
 %fragment("SWIG_CheckFilePtr","header",fragment="SWIG_AsValFilePtr") {
-SWIGINTERNSHORT int
+SWIGINTERNINLINE int
 SWIG_CheckFilePtr(PyObject *obj) {
   return SWIG_AsValFilePtr(obj, (FILE **)(0));
 }

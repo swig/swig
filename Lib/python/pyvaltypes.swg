@@ -127,7 +127,7 @@
 %define %typemap_asvaln(CheckCode, Type...)
 %fragment(SWIG_As_frag(Type),"header",
 	  fragment=SWIG_AsVal_frag(Type)) %{
-SWIGINTERNSHORT Type
+SWIGINTERNINLINE Type
 SWIG_As(Type)(PyObject* obj)
 {
   Type v;
@@ -142,7 +142,7 @@ SWIG_As(Type)(PyObject* obj)
 %}
 %fragment(SWIG_Check_frag(Type),"header",
 	  fragment=SWIG_AsVal_frag(Type)) %{  
-SWIGINTERNSHORT int
+SWIGINTERNINLINE int
 SWIG_Check(Type)(PyObject* obj)
 {
   return SWIG_AsVal(Type)(obj, (Type*)0);

@@ -131,7 +131,7 @@ SWIG_Python_newvarlink(void) {
   return ((PyObject*) result);
 }
 
-static void
+static SWIGUNUSED void 
 SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;

@@ -140,11 +140,12 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	sprintf(msg,"in sequence element %d", _index);
+	sprintf(msg,"in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
 	  SWIG_type_error(swig::type_name<T>(), item);
 	}
 	SWIG_append_errmsg(msg);
+	SWIG_append_errmsg(e.what());
 	throw;
       }
     }

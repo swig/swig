@@ -128,7 +128,7 @@ SWIG_AsWCharArray(PyObject *obj, wchar_t *val, size_t size)
 }
 
 %fragment("SWIG_FromWCharArray","header") {
-SWIGINTERNSHORT PyObject *
+SWIGINTERNINLINE PyObject *
 SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 {
   if (size > INT_MAX) {

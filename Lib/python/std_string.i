@@ -51,7 +51,7 @@ namespace std
 
 %fragment(SWIG_From_frag(std::string),"header",
 	  fragment="SWIG_FromCharArray") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(std::string)(const std::string& s)
   {
     return SWIG_FromCharArray(s.data(), s.size());
@@ -65,7 +65,7 @@ SWIGINTERN int
   {
     std::string* s;
     int res = SWIG_AsPtr(std::string)(obj, &s);
-    if (res && s) {
+    if ((res != 0) && s) {
       if (val) *val = *s;
       if (res == SWIG_NEWOBJ) delete s;
       return res;
