@@ -526,6 +526,41 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 /* -----------------------------------------------------------------------------
  * Lookup type pointer 
  * ----------------------------------------------------------------------------- */
+#if PY_MAJOR_VERSION < 2
+/* PyModule_AddObject function was introduced in Python 2.0.  The following function
+is copied out of Python/modsupport.c in python version 2.3.4 */
+static int
+PyModule_AddObject(PyObject *m, char *name, PyObject *o)
+{
+	PyObject *dict;
+	if (!PyModule_Check(m)) {
+		PyErr_SetString(PyExc_TypeError,
+			    "PyModule_AddObject() needs module as first arg");
+		return -1;
+	}
+	if (!o) {
+		PyErr_SetString(PyExc_TypeError,
+				"PyModule_AddObject() needs non-NULL value");
+		return -1;
+	}
+
+	dict = PyModule_GetDict(m);
+	if (dict == NULL) {
+		/* Internal error -- modules must have a dict! */
+		PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
+			     PyModule_GetName(m));
+		return -1;
+	}
+	if (PyDict_SetItemString(dict, name, o))
+		return -1;
+	Py_DECREF(o);
+	return 0;
+}
+#endif
+static PyMethodDef swig_empty_runtime_method_table[] = {
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
 static void
 SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
   PyObject *module, *pointer;
@@ -538,7 +573,7 @@ SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
   } else {
     PyErr_Clear();
     /* create a new module and variable */
-    module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION, NULL);
+    module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION, swig_empty_runtime_method_table);
     pointer = PyCObject_FromVoidPtr((void *) (*type_list_handle), NULL);
     if (pointer && module) {
       PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
