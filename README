@@ -6,7 +6,7 @@ $Header$
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         Java, Ruby, PHP, Ocaml and CHICKEN.
+         Java, Ruby, PHP, Ocaml, C# and CHICKEN.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -84,7 +84,7 @@ The most notable changes since SWIG1.1 include the following:
    - A full C preprocessor with macro expansion.
      Includes C99 variadic macro support.
 
-   - Java, Ruby, MzScheme, PHP4, OCAML, Pike, CHICKEN and XML modules
+   - Java, Ruby, MzScheme, PHP4, OCAML, Pike, CHICKEN, XML and C# modules
      added.  Guile module improved.
 
    - Better code generation.   SWIG is better able to make optimizations
