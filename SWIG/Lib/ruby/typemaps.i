@@ -33,16 +33,18 @@ The following methods can be applied to turn a pointer into a simple
 "input" value.  That is, instead of passing a pointer to an object,
 you would use a real value instead.
 
-         int            *INPUT
-         short          *INPUT
-         long           *INPUT
-         unsigned int   *INPUT
-         unsigned short *INPUT
-         unsigned long  *INPUT
-         unsigned char  *INPUT
-	 bool           *INPUT
-         float          *INPUT
-         double         *INPUT
+         int                *INPUT
+         short              *INPUT
+         long               *INPUT
+	 long long          *INPUT
+         unsigned int       *INPUT
+         unsigned short     *INPUT
+         unsigned long      *INPUT
+	 unsigned long long *INPUT
+         unsigned char      *INPUT
+	 bool               *INPUT
+         float              *INPUT
+         double             *INPUT
          
 To use these, suppose you had a C function like this :
 
@@ -78,9 +80,11 @@ INPUT_TYPEMAP(double, NUM2DBL);
 INPUT_TYPEMAP(int, NUM2INT);
 INPUT_TYPEMAP(short, NUM2SHRT);
 INPUT_TYPEMAP(long, NUM2LONG);
+INPUT_TYPEMAP(long long, NUM2LL);
 INPUT_TYPEMAP(unsigned int, NUM2UINT);
 INPUT_TYPEMAP(unsigned short, NUM2USHRT);
 INPUT_TYPEMAP(unsigned long, NUM2ULONG);
+INPUT_TYPEMAP(unsigned long long, NUM2ULL);
 INPUT_TYPEMAP(unsigned char, NUM2UINT);
 INPUT_TYPEMAP(signed char, NUM2INT);
 INPUT_TYPEMAP(bool, RTEST);
@@ -97,16 +101,18 @@ value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  In the case of
 multiple output values, they are returned in the form of a Ruby Array.
 
-         int            *OUTPUT
-         short          *OUTPUT
-         long           *OUTPUT
-         unsigned int   *OUTPUT
-         unsigned short *OUTPUT
-         unsigned long  *OUTPUT
-         unsigned char  *OUTPUT
-	 bool           *OUTPUT
-         float          *OUTPUT
-         double         *OUTPUT
+         int                *OUTPUT
+         short              *OUTPUT
+         long               *OUTPUT
+	 long long          *OUTPUT
+         unsigned int       *OUTPUT
+         unsigned short     *OUTPUT
+         unsigned long      *OUTPUT
+	 unsigned long long *OUTPUT
+         unsigned char      *OUTPUT
+	 bool               *OUTPUT
+         float              *OUTPUT
+         double             *OUTPUT
          
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
@@ -142,9 +148,11 @@ output values.
 OUTPUT_TYPEMAP(int, INT2NUM, (int));
 OUTPUT_TYPEMAP(short, INT2NUM, (int));
 OUTPUT_TYPEMAP(long, INT2NUM, (int));
+OUTPUT_TYPEMAP(long long, LL2NUM, (int));
 OUTPUT_TYPEMAP(unsigned int, UINT2NUM, (unsigned int));
 OUTPUT_TYPEMAP(unsigned short, UINT2NUM, (unsigned int));
 OUTPUT_TYPEMAP(unsigned long, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned long long, ULL2NUM, (unsigned int));
 OUTPUT_TYPEMAP(unsigned char, UINT2NUM, (unsigned int));
 OUTPUT_TYPEMAP(signed char, INT2NUM, (int));
 OUTPUT_TYPEMAP(float, rb_float_new, (double));
@@ -168,16 +176,18 @@ an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
 returned in the form of a Ruby array.
 
-         int            *INOUT
-         short          *INOUT
-         long           *INOUT
-         unsigned int   *INOUT
-         unsigned short *INOUT
-         unsigned long  *INOUT
-         unsigned char  *INOUT
-	 bool           *INOUT
-         float          *INOUT
-         double         *INOUT
+         int                *INOUT
+         short              *INOUT
+         long               *INOUT
+	 long long          *INOUT
+         unsigned int       *INOUT
+         unsigned short     *INOUT
+         unsigned long      *INOUT
+	 unsigned long long *INOUT
+         unsigned char      *INOUT
+	 bool               *INOUT
+         float              *INOUT
+         double             *INOUT
          
 For example, suppose you were trying to wrap the following function :
 
@@ -212,9 +222,11 @@ phased out in future releases.
 %typemap(in) int *INOUT = int *INPUT;
 %typemap(in) short *INOUT = short *INPUT;
 %typemap(in) long *INOUT = long *INPUT;
+%typemap(in) long long *INOUT = long long *INPUT;
 %typemap(in) unsigned *INOUT = unsigned *INPUT;
 %typemap(in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned long long *INOUT = unsigned long long *INPUT;
 %typemap(in) unsigned char *INOUT = unsigned char *INPUT;
 %typemap(in) signed char *INOUT = signed char *INPUT;
 %typemap(in) bool *INOUT = bool *INPUT;
@@ -224,9 +236,11 @@ phased out in future releases.
 %typemap(in) int &INOUT = int &INPUT;
 %typemap(in) short &INOUT = short &INPUT;
 %typemap(in) long &INOUT = long &INPUT;
+%typemap(in) long long &INOUT = long long &INPUT;
 %typemap(in) unsigned &INOUT = unsigned &INPUT;
 %typemap(in) unsigned short &INOUT = unsigned short &INPUT;
 %typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned long long &INOUT = unsigned long long &INPUT;
 %typemap(in) unsigned char &INOUT = unsigned char &INPUT;
 %typemap(in) signed char &INOUT = signed char &INPUT;
 %typemap(in) bool &INOUT = bool &INPUT;
@@ -236,9 +250,11 @@ phased out in future releases.
 %typemap(argout) int *INOUT = int *OUTPUT;
 %typemap(argout) short *INOUT = short *OUTPUT;
 %typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) long long *INOUT = long long *OUTPUT;
 %typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
 %typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
 %typemap(argout) signed char *INOUT = signed char *OUTPUT;
 %typemap(argout) bool *INOUT = bool *OUTPUT;
@@ -248,9 +264,11 @@ phased out in future releases.
 %typemap(argout) int &INOUT = int &OUTPUT;
 %typemap(argout) short &INOUT = short &OUTPUT;
 %typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) long long &INOUT = long long &OUTPUT;
 %typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
 %typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
 %typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
 %typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
 %typemap(argout) signed char &INOUT = signed char &OUTPUT;
 %typemap(argout) bool &INOUT = bool &OUTPUT;
@@ -399,9 +417,11 @@ extern "C" {
 %typemap(typecheck) signed char *INOUT = signed char;
 %typemap(typecheck) unsigned char *INOUT = unsigned char;
 %typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned long long *INOUT = unsigned long long;
 %typemap(typecheck) unsigned short *INOUT = unsigned short;
 %typemap(typecheck) unsigned int *INOUT = unsigned int;
 %typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) long long *INOUT = long long;
 %typemap(typecheck) short *INOUT = short;
 %typemap(typecheck) int *INOUT = int;
 %typemap(typecheck) float *INOUT = float;
@@ -410,9 +430,12 @@ extern "C" {
 %typemap(typecheck) signed char &INOUT = signed char;
 %typemap(typecheck) unsigned char &INOUT = unsigned char;
 %typemap(typecheck) unsigned long &INOUT = unsigned long;
+%typemap(typecheck) unsigned long long &INOUT = unsigned long long;
 %typemap(typecheck) unsigned short &INOUT = unsigned short;
 %typemap(typecheck) unsigned int &INOUT = unsigned int;
 %typemap(typecheck) long &INOUT = long;
+%typemap(typecheck) long long &INOUT = long long;
 %typemap(typecheck) short &INOUT = short;
 %typemap(typecheck) int &INOUT = int;
 %typemap(typecheck) float &INOUT = float;
+
