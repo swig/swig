@@ -14,6 +14,97 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/29/2001: beazley
+           %readonly and %readwrite have been turned into SWIG pragmas.
+           %pragma(swig) readonly and %pragma(swig) readwrite.  Macros
+           are used to provide backwards compatibility.
+
+7/29/2001: beazley
+           Minor changes to %pragma directive.  %pragma must always
+           be directed to a specific language.  For example:
+
+              %pragma(swig) make_default;
+              %pragma(perl5) include = "blah.i";
+
+           Also extended the pragma directive to allow code blocks
+ 
+              %pragma(foo) code = %{
+                  ... some code ...
+              %}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/29/2001: beazley
+           'const' variables are no longer wrapped as constants.
+           Instead, they are wrapped as read-only variables.
+           *** POTENTIAL INCOMPATIBILITY ***           
+
+7/29/2001: beazley
+           Reorganization and simplification of type parsing.
+           Types with 'const' should work correctly now.
+
+7/29/2001: beazley
+           Most swig directives related to the documentation system
+           are now deprecated.
+
+7/29/2001: beazley
+           Removed support for Objective-C in order to simplify
+           parser reconstruction.  Will return if there is sufficient
+           demand.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/29/2001: beazley
+           Code inclusion has been modified in the parser.  A common
+           directive %insert is now used for everything.  This
+           inserts a file into the output:
+
+               %insert(header) "foo.swg"
+
+           This inserts some inline code into the output
+
+               %insert(header) %{
+                   ... some code ... 
+               %}
+
+           There are five predefined targets for the insert directive:
+
+               "header"    - Header section of wrapper file
+               "runtime"   - Runtime section of wrapper file
+               "wrapper"   - Wrapper section
+               "init"      - Initialization function
+               "null"      - Nothing. Discard.
+
+           The following directives are still supported, but are
+           now defined in terms of macros:
+
+               %{ ... %}           -> %insert(header)  %{ ... %}
+               %init %{ ... %}     -> %insert(init)    %{ ... %}
+               %wrapper %{ ... %}  -> %insert(wrapper) %{ ... %}
+               %runtime %{ ... %}  -> %insert(runtime) %{ ... %}
+
+           Language modules can define new named targets by using the
+           C API function Swig_register_filebyname() (see main.cxx).
+           For example, if you wanted to expose a shadow class file,
+           you could do this:
+
+              Swig_register_filebyname("shadow", f_shadow);
+
+           Then in the interface file:
+
+              %insert(shadow) %{ ... %}
+
+           Note: this change should not affect any old interfaces, but
+           does open up new possibilities for enhancements.
+
+7/29/2001: beazley
+           SWIG now always includes a standard library file 'swig.swg'.
+           This file defines a large number of macro definitions
+           that define the behavior of various SWIG directives.
+           Previously, all SWIG directives were handled as special
+           cases in the parser.  This made the parser a large 
+           bloated mess.  Now, the parser is stripped down to a few
+           simple directives and macros are used to handle everything else.
+
 7/26/2001: cheetah (william fulton)
 	   * Fixes for Sourceforge bug #444748 - new testcase cpp_static:
 	     [TCL] Class with just static member variable/function fix
