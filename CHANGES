@@ -2,6 +2,13 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Version 1.3 Alpha 6 (Work in progress)
 ======================================
+10/14/00: beazley
+          Fixed some problems in output file handling and shadow classes.
+          Problem reported by Luigi Ballabio.
+
+10/14/00: beazley
+          Incorporated new set of patches for Macintosh support.  Contributed
+          by Luigi Ballabio.
 
 9/30/00 : beazley
           %except and %typemap directives no longer take a language specifier.
