@@ -26,7 +26,7 @@ struct A
   { return get(0); }
   
   virtual const std::string& get(int n) const
-  { return m_strings.at(n); }
+  { return m_strings[n]; }
 
   std::vector<std::string> m_strings;
  };
