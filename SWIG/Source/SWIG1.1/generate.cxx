@@ -17,8 +17,6 @@ static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 
-typedef DOH Node;
-
 /* cplus.cxx */
 
 extern void cplus_open_class(char *name, char *rname, char *ctype);
@@ -63,8 +61,6 @@ extern char   *input_file;
 #define  IMPORT_MODE     1
 #define  IMPORT_MODULE   2
 
-#define Getdecl(x)  Getattr(x,"decl")
-
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -105,6 +101,15 @@ static Parm *nonvoid_parms(Parm *p) {
     if (SwigType_type(t) == T_VOID) return 0;
   }
   return p;
+}
+
+/* Hack alert */
+static char *symname = 0;
+
+char *make_name(char *n) {
+  if (symname) 
+    return symname;
+  return n;
 }
 
 /* -----------------------------------------------------------------------------
@@ -155,31 +160,6 @@ int add_symbol(char *name) {
    if (Getattr(symbols,name)) return -1;
    Setattr(symbols,name,name);
    return 0;
-}
-
-/* Generate the scripting name of an object using the %name directive */
-static char *make_name(char *name) {
-  static String *tmp = 0;
-  if (yyrename) {
-    String *s = yyrename;
-    yyrename = 0;
-    return Char(s);
-  }
-  /* Check to see if the name is in the hash */
-  if (!name_hash) name_hash = NewHash();
-  char *nn = GetChar(name_hash,name);
-  if (nn) return nn;   
-
-  if (strstr(name,"::")) {
-    if (!tmp) tmp = NewString("");
-    Clear(tmp);
-    if (strncmp(name,"::",2) == 0) name = name + 2;
-    Append(tmp,name);
-    Replace(tmp,"::","_", DOH_REPLACE_ANY);
-    return Char(tmp);
-  } else {
-    return name;
-  }
 }
 
 /* ------------------------------------------------------------------
@@ -428,14 +408,13 @@ end_class(SwigType *endtype, char *endname) {
     SwigType_set_scope_name(cpp_name);
   cplus_register_scope(SwigType_pop_scope());
 
-  /* Create a typedef in global scope */
-
   if (endtype && Len(endtype)) {
     Printf(stderr,"%s:%d. typedef %s { } %s not supported.\n", input_file, line_number, cpp_type, 
 	   SwigType_str(endtype,endname));
     endtype = 0;
     endname = 0;
   }
+  if (CPlusPlus && cpp_name) endname = 0;
   if (endname) {
     cplus_class_close(endname);
   } else {
@@ -452,9 +431,17 @@ end_class(SwigType *endtype, char *endname) {
 
 void generate(Node *top) {
   Node *n = top;
+  String *err;
   while (n) {
     char *tag = GetChar(n,"tag");
     if (!tag) goto g_error;
+    
+    if ((err = Geterror(n))) {
+      n = Getnext(n);
+      continue;
+    }
+
+    symname = Char(Getsymname(n));
 
     line_number = Getline(n);
     input_file = Char(Getfile(n));
@@ -776,16 +763,20 @@ void generate(Node *top) {
       if (cplus_mode == CPLUS_PUBLIC) {
 	char *iname = make_name(Char(name));
 	if (iname == name) iname = 0;
+	if (Cmp(name,iname) == 0) iname = 0;
 	cplus_constructor(name,iname,nonvoid_parms(parms));
       }
     } else if (strcmp(tag,"destructor") == 0) {
-      char *name = Char(Getname(n));
+      char *name = Char(Getname(n))+1;
       String *code  = Getattr(n,"code");
       String *storage = Getattr(n,"storage");
       
       if (cplus_mode == CPLUS_PUBLIC) {
 	char *iname = make_name(name);
 	if (iname == name) iname = 0;
+	if (name && (*name == '~')) name = name + 1;
+	if (iname && (*iname == '~')) iname = iname + 1; 
+	if (Cmp(name,iname) == 0) iname = 0;
 	cplus_destructor(name,iname);
       }
 

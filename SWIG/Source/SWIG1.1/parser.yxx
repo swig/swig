@@ -46,8 +46,6 @@ extern void scanner_ignore_typedef(void);
 extern void start_inline(char *, int);
 
 /* NEW Variables */
-typedef Hash Node;
-#define Setdecl(x,a) Setattr(x,"decl",a)
 
 extern void generate_all(Node *);
 
@@ -78,6 +76,7 @@ static void append_child(Node *n, Node *c) {
        int            Error = 0;
 
 static int cplus_mode  = 0;
+static char  *class_rename = 0;
 
 /* C++ modes */
 
@@ -104,6 +103,58 @@ static int promote(int t1, int t2) {
   return t1 > t2 ? t1 : t2;
 }
 
+static String *yyrename = 0;
+static Hash   *name_hash = 0;
+
+/* Generate the symbol table name for an object */
+static char *make_name(char *name) {
+  static String *tmp = 0;
+  if (yyrename) {
+    String *s = yyrename;
+    yyrename = 0;
+    return Char(s);
+  }
+  if (!name) return 0;
+  /* Check to see if the name is in the hash */
+  if (!name_hash) name_hash = NewHash();
+  String *nn = Getattr(name_hash,name);
+  if (nn) return Char(nn);   
+  return name;
+}
+
+/* Add declaration list to symbol table */
+static void add_symbols(Node *n) {
+  while (n) {
+    char *symname = make_name(GetChar(n,"name"));
+    String *storage = Getstorage(n);
+    if (Cmp(storage,"typedef") == 0) {
+      if (Cmp(symname,Getname(n)) == 0) {
+	/* Don't allow typedef to myself. */
+	symname = 0;
+      }
+    }
+
+    if (!symname) {
+      n = Getnext(n);
+      continue;
+    }
+    Node *c = Swig_symbol_add(symname,n);
+    if (c != n) {
+      String *e = NewString("");
+      Printf(e,"%s:%d. Identifier '%s' redeclared.", Getfile(n),Getline(n),symname);
+      if (Cmp(symname,Getname(n))) {
+	Printf(e," (Renamed from '%s')", Getname(n));
+      }
+      Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
+      if (Cmp(symname,Getname(c))) {
+	Printf(e," (Renamed from '%s')", Getname(c));
+      }
+      Printf(stderr,"%s\n",e);
+      /*      Seterror(n,e); */
+    }
+    n = Getnext(n);
+  }
+}
 
 /* Structures for handling code fragments built for nested classes */
 
@@ -446,7 +497,9 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     Setname($$,$2);
 		     Settype($$,NewSwigType($4.type));
 		     Setvalue($$,$4.val);
+		     Setstorage($$,"%constant");
 		   }
+		   add_symbols($$);
 	       }
 
                | CONSTANT type declarator def_args SEMI {
@@ -460,7 +513,9 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   Setname($$,$3.id);
 		   Settype($$,$2);
 		   Setvalue($$,$4.val);
+		   Setstorage($$,"%constant");
 		 } 
+		 add_symbols($$);
                }
                ;
 
@@ -608,8 +663,8 @@ module_directive: MODULE idstring {
    ------------------------------------------------------------ */
 
 name_directive : NAME LPAREN idstring RPAREN {
-                 $$ = new_node("name");
-		 Setname($$,$3);
+                 yyrename = NewString($3);
+		 $$ = 0;
                }
                | NAME LPAREN RPAREN {
                    $$ = 0;
@@ -693,11 +748,13 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
    ------------------------------------------------------------ */
 
 rename_directive : RENAME ID idstring SEMI {
-                 $$ = new_node("rename");
-		 Setattr($$,"name",$2);
-		 Setattr($$,"scriptname",$3);
-	       }
-               ;
+                 if (!name_hash) {
+                    name_hash = NewHash();
+                 }
+   	         Setattr(name_hash,$2,$3);
+		 $$ = 0;
+              }
+              ;
 
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -904,6 +961,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		       n = Getnext(n);
 		     }
 		   }
+		   add_symbols($$);
 		 }
                 ;
 
@@ -944,13 +1002,19 @@ initializer   : def_args { $$ = $1; }
 
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                   $$ = new_node("enum");
+
+		  /* Setname($$,NewStringf("enum %s",$3)); */
 		  Setname($$,$3);
+		  
 		  append_child($$,$5);
+		  add_symbols($$);
+		  add_symbols($5);
 	       }
 
                | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
 		 $$ = new_node("enum");
+		 /*		 Setname($$,NewStringf("enum %s",$3));*/
 		 Setname($$,$3);
 		 append_child($$,$5);
 		 n = new_node("cdecl");
@@ -972,6 +1036,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   if (Len(CCode)) Setattr(n,"code",Copy(CCode));
 		 }
 		 Setnext($$,n);
+		 add_symbols($$);
+		 add_symbols($5);
 	       }
                ;
 
@@ -990,16 +1056,28 @@ cpp_class_decl  :
 
 /* A simple class/struct/union definition */
                 storage_class cpptype ID inherit LBRACE {
+                   class_rename = make_name($3);
                    if (strcmp($2,"class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
 		   } else {
 		     cplus_mode = CPLUS_PUBLIC;
 		   }
+		   Swig_symbol_newscope();
+		   start_line = line_number;
                } cpp_members RBRACE cpp_opt_declarators {
                $$ = new_node("class");
+	       Setline($$,start_line);
 	       Setname($$,$3);
+		 /*	       if (CPlusPlus) 
+		 Setname($$,$3);
+	       else
+	       Setname($$,NewStringf("%s %s",$2,$3)); */
+
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"bases",$4);
+	       Swig_symbol_setscopename($3);
+	       Setattr($$,"symtab",Swig_symbol_popscope());
+	       yyrename = NewString(class_rename);
 	       append_child($$,$7);
 	       Node *p = $9;
 	       if (p) {
@@ -1031,18 +1109,23 @@ cpp_class_decl  :
 		 }
 		 append_child($$,dump_nested(name));
 	       }
+	       add_symbols($$);
 	     }
 
 /* An unnamed struct, possibly with a typedef */
 
              | storage_class cpptype LBRACE {
-                   if (strcmp($2,"class") == 0) {
-		     cplus_mode = CPLUS_PRIVATE;
-		   } else {
-		     cplus_mode = CPLUS_PUBLIC;
-		   }
+	       class_rename = make_name(0);
+	       if (strcmp($2,"class") == 0) {
+		 cplus_mode = CPLUS_PRIVATE;
+	       } else {
+		 cplus_mode = CPLUS_PUBLIC;
+	       }
+	       Swig_symbol_newscope();
+	       start_line = line_number;
              } cpp_members RBRACE declarator c_decl_tail {
 	       $$ = new_node("class");
+	       Setline($$,start_line);
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       append_child($$,$5);
@@ -1066,17 +1149,29 @@ cpp_class_decl  :
 		 }
 	       }
 	       */
-	       /* This is a sick hack to deal with nested class definitions */
 	       {
+
+		 /* If a proper typedef name was given, we'll use it to set the scope name */
+
 		 char *name = 0;
 		 if (strcmp($1,"typedef") == 0) {
-		   if (!Len($7.type)) {
-		     name = $7.id;
+		   if (!Len($7.type)) {	
+	     name = $7.id;
 		     Setattr($$,"tdname",name);
+		     if (!class_rename) class_rename = name;
+		     Swig_symbol_setscopename(name);
+		   } else {
+		     Swig_symbol_setscopename((char*)"<unnamed>");
 		   }
 		 }
 		 append_child($$,dump_nested(name));
 	       }
+	       /* Pop the scope */
+	       Setattr($$,"symtab",Swig_symbol_popscope());
+	       if (class_rename) {
+		 yyrename = NewString(class_rename);
+	       }
+	       add_symbols($$);
               }
              ;
 
@@ -1258,9 +1353,15 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
                $$ = new_node("constructor");
 	       Setname($$,$2);
 	       Setparms($$,$4);
+	       List *l = typelist($4);
+	       SwigType *decl = NewString("");
+	       SwigType_add_function(decl,l);
+	       Setdecl($$,decl);
+
 	       if (Len(CCode)) {
 		 Setattr($$,"code",Copy(CCode));
 	       }
+	       add_symbols($$);
 	      }
               ;
 
@@ -1268,10 +1369,11 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 
 cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
-	       Setname($$,$2);
+	       Setname($$,NewStringf("~%s",$2));
 	       if (Len(CCode)) {
 		 Setattr($$,"code",Copy(CCode));
 	       }
+	       add_symbols($$);
 	      }
 
 /* A virtual destructor */
@@ -1279,13 +1381,14 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
               | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
 		$$ = new_node("destructor");
 		Setattr($$,"storage","virtual");
-		Setname($$,$3);
+		Setname($$,NewStringf("~%s",$3));
 		if ($7) {
 		  Setattr($$,"value","0");
 		}
 		if (Len(CCode)) {
 		  Setattr($$,"code",Copy(CCode));
 		}
+		add_symbols($$);
 	      }
               ;
 
