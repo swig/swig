@@ -534,6 +534,9 @@ SwigType_strip_qualifiers(SwigType *t) {
  *     Types:         SWIGTYPE
  *     MemberPointer: m(CLASS).SWIGTYPE
  *     Enums:         enum SWIGENUM
+ *
+ * Note: if this function is applied to a primitive type, it returns NULL.  This
+ * allows recursive application for special types like arrays.
  * ----------------------------------------------------------------------------- */
 
 static Hash *default_cache = 0;
@@ -545,8 +548,15 @@ SwigType *SwigType_default(SwigType *t) {
   if (!default_cache) default_cache = NewHash();
   
   r = Getattr(default_cache,t);
-  if (r) return Copy(r);
-  
+  if (r) {
+    if (Strcmp(r,t) == 0) return 0;
+    return Copy(r);
+  }
+ 
+  if (SwigType_isvarargs(t)) {
+    return 0;
+  }
+
   r = t;
   while ((r1 = SwigType_typedef_resolve(r))) {
     if (r != t) Delete(r);
@@ -563,18 +573,37 @@ SwigType *SwigType_default(SwigType *t) {
   } else if (SwigType_isreference(r)) {
     def = NewString("r.SWIGTYPE");
   } else if (SwigType_isarray(r)) {
-    def = NewString("a().SWIGTYPE");
+    if (Strcmp(r,"a(ANY).SWIGTYPE") == 0) {
+      def = NewString("a().SWIGTYPE");
+    } else {
+      int i, empty = 0;
+      int ndim = SwigType_array_ndim(r);
+      for (i = 0; i < ndim; i++) {
+	String *dim = SwigType_array_getdim(r,i);
+	if (!Len(dim)) {
+	  empty = 1;
+	}
+	Delete(dim);
+      }
+      if (empty) {
+	def = NewString("a().SWIGTYPE");
+      } else {
+	def = NewString("a(ANY).SWIGTYPE");
+      }
+    }
   } else if (SwigType_ismemberpointer(r)) {
     def = NewString("m(CLASS).SWIGTYPE");
   } else if (SwigType_isenum(r)) {
     def = NewString("enum SWIGTYPE");
-  } else if (SwigType_isvarargs(r)) {
-    def = NewString("v(...)");
   } else {
     def = NewString("SWIGTYPE");
   }
   if (r != t) Delete(r);
   Setattr(default_cache,t,Copy(def));
+  if (Strcmp(def,t) == 0) {
+    Delete(def);
+    def = 0;
+  }
   return def;
 }
 
