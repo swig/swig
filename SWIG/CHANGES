@@ -16,6 +16,78 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/23/2002: beazley
+            Some refinement of type-name mangling to account for pointers, arrays,
+            references, and other embedded type constructs.
+
+05/23/2002: beazley
+            Initial attempt at supporting template partial specialization.  At
+            the very least, it is parsed and the classes are stored.  Matching
+            of instantiations to specialized version is more limited and based on
+            the SWIG default typemap rules:
+
+                     SWIGTYPE *
+                     SWIGTYPE []
+                     SWIGTYPE &
+
+            Now, why in the world would you want to use this feature?  Other
+            than allowing for slightly modified class APIs, this capability is
+            primarily used to provide advanced wrapping support for STL-like
+            objects.  It can also be mixed with typemaps.  Here is an example:
+
+
+                /* Generic version */
+                template<class T> class vector {
+                    %typemap(in) vector<T> * {
+                        // A container of objects 
+                    }
+                };
+                /* Partial specialization (pointers) */
+                template<class T> class vector<T *> {
+                    %typemap(in) vector<T> * {
+                        // A container of pointers to objects.
+                    }
+                };
+                /* Specialization (integers). */
+                template<> class vector<int> {
+                    %typemap(in) vector<int> * {
+                        // A container of integers.
+                    }
+                };
+
+             *** EXPERIMENTAL FEATURE ***
+            
+05/23/2002: beazley
+            Enhancement to typemaps.   Normally, typemap variables are
+            renamed to avoid conflicts.  For example:
+
+               %typemap(in) int * (int temp) {
+                    $1 = &temp;
+               }
+
+            This results in code that creates and uses variables "temp1","temp2", 
+            "temp3" and so forth depending on how many times the typemap is used.
+            Sometimes you want a single variable instead.  To do that, using
+            the following naming scheme:
+
+                %typemap(in) int *(int _global_temp) {
+                }
+ 
+            Is this case, a single variable _global_temp is emitted in the
+            wrapper functions.  It is shared across all typemaps.  Repeated
+            typemaps do not replicate the variable---they use the first one
+            emitted.
+            *** NEW FEATURE ***
+           
+05/23/2002: beazley
+            Minor enhancement to typemaps.  If you have this code,
+
+               %typemap(in) Foo (int somevar = 3) {
+                     ...
+               }
+
+            the default value for somevar is now emitted into the wrapper code.
+
 05/22/2002: beazley
             Fixed %extend to be better behaved in namespaces.  If you have code
             like this:
