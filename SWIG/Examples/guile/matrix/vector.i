@@ -5,8 +5,6 @@
 #include "vector.h"
 %}
 
-%section "Vector Operations"
-
 extern Vector *createv(double x,double y,double z,double w);
 /* Creates a new vector v(x,y,z,w) */
 
