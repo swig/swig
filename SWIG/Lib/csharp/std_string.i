@@ -53,7 +53,7 @@ class string;
 %typemap(typecheck) string = char *;
 
 %typemap(throws, canthrow=1) string %{
-  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1.c_str());
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.c_str());
   return $null;
 %}
 
@@ -90,7 +90,7 @@ class string;
 %typemap(typecheck) const string & = char *;
 
 %typemap(throws, canthrow=1) const string & %{
-  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1.c_str());
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.c_str());
   return $null;
 %}
 
