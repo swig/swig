@@ -4,6 +4,7 @@
    file. */
 
 /* Insert common stuff */
+%insert(runtime) "swigrun.swg"
 %insert(runtime) "common.swg"
 
 /* Include headers */
