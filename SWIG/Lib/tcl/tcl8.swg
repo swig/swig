@@ -39,6 +39,14 @@
 %typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) return TCL_ERROR;
                                $1 = (bool) tempb;";
 
+/* These will pass an integer as an unsigned long.  However, the implementation is crippled due
+   to limited precision in Tcl */
+
+%typemap(in) long long (int temp) "if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) return TCL_ERROR;
+                                   $1 = (long long) temp;";
+
+%typemap(in) unsigned long long (int temp) "if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) return TCL_ERROR;
+                                   $1 = (unsigned long long) temp;";
 
 /* Enum parsing.  Note: internally SWIG converts enums to/from integers so it's okay to use
    the "i" parse code here */
@@ -48,8 +56,6 @@
 /* Unknown type.  We convert from a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor) != TCL_OK)) return TCL_ERROR;
                                         $1 = *argp; ";
-
-
 
 /* Special constant variations.   These typemaps can be used to parse objects that are both constants
    or values. A Hash table lookup will occur. */
@@ -68,6 +74,9 @@
 /* Output values */
 
 %typemap(out) bool, int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
+     "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) $1));";
+
+%typemap(out) long long, unsigned long long
      "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) $1));";
 
 %typemap(out) char 
@@ -130,6 +139,9 @@
 %typemap(varout) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
     "$result = Tcl_NewIntObj((long) $1);";
 
+%typemap(varout) long long, unsigned long long
+    "$result = Tcl_NewIntObj((long) $1);";
+
 %typemap(varout) double,float "$result = Tcl_NewDoubleObj((double) $1);";
 %typemap(varout) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
 %typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
@@ -144,7 +156,8 @@
 
 /* -- Variable input --- */
 
-%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE,
+                long long, unsigned long long
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
@@ -215,7 +228,7 @@
 
 /* --- Constants --- */
 
-%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
+%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE, long long, unsigned long long
        { SWIG_TCL_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
 
 %typemap(consttab) float, double
