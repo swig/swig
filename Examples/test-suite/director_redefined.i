@@ -25,7 +25,7 @@
   
   struct B : A
   {
-    virtual int get_val(int a)
+    int get_val(int a)
     {
       return 1;
     }    
