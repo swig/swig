@@ -2,15 +2,21 @@
 
 $_original_functions=get_defined_functions();
 $_original_globals=1;
+$_original_classes=get_declared_classes();
 $_original_globals=array_keys($GLOBALS);
 
+
 class check {
-  function classes($classes) {
-    if (! is_array($classes)) $classes=array($classes);
-    $missing=array();
-    foreach($classes as $class) if (! class_exists($class)) $missing[]=$class;
-    if ($missing) return check::fail("Classes missing: %s",join(",",$missing));
-    return TRUE;
+  function get_extra_classes($ref=FALSE) {
+    static $extra;
+    global $_original_classes;
+    if ($ref===FALSE) $f=$_original_classes;
+    if (! is_array($extra)) {
+      $df=array_flip(get_declared_classes());
+      foreach($_original_classes as $class) unset($df[$class]);
+      $extra=array_keys($df);
+    }
+    return $extra;
   }
 
   function get_extra_functions($ref=FALSE) {
@@ -81,6 +87,21 @@ class check {
 
     if ($parent!=$b) return check::fail("Class $a parent not actually $b but $parent");
     return TRUE;
+  }
+
+  function classes($classes) {
+    if (! is_array($classes)) $classes=array($classes);
+    $message=array();
+    $missing=array();
+    $extra=array_flip(check::get_extra_classes());
+    foreach($classes as $class) {
+      if (! class_exists($class)) $missing[]=$class;
+      else unset($extra[$class]);
+    }
+    if ($missing) $message[]=sprintf("Classes missing: %s",join(",",$missing));
+    if ($extra) $message[]=sprintf("These extra classes are defined: %s",join(",",array_keys($extra)));
+    if ($message) return check::fail(join("\n  ",$message));
+    return TRUE;    
   }
 
   function functions($functions) {
