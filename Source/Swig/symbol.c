@@ -1311,11 +1311,13 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
       String *s = NewString("f(");
       pi = First(parms);
       while (pi.item) {
-	Append(s,Swig_symbol_type_qualify(pi.item,st));
+	String *pf = Swig_symbol_type_qualify(pi.item,st);
+	Append(s,pf);
 	pi = Next(pi);
 	if (pi.item) {
 	  Append(s,",");
 	}
+	Delete(pf);
       }
       Append(s,").");
       Append(result,s);
@@ -1580,55 +1582,85 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
  * ----------------------------------------------------------------------------- */
 SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
-  String *result   = 0;
-  String *prefix   = SwigType_prefix(type);
-  String *base     = SwigType_base(type);
-  String *tprefix  = SwigType_templateprefix(base);
-  String *targs    = SwigType_templateargs(base);
-  String *tsuffix  = SwigType_templatesuffix(base);
-  ParmList *tparms = SwigType_function_parms(targs);
-  Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
-  /* Printf(stderr,"deftype type %s \n", type);*/
-  if (tempn) {
-    ParmList *tnargs = Getattr(tempn,"templateparms");
-    Parm *p;
-    Symtab *tsdecl = Getattr(tempn,"sym:symtab");
-
-    /* Printf(stderr,"deftype type %s %s %s %s\n", tprefix, targs, tsuffix);*/
-    Append(tprefix,"<(");
-    Swig_symbol_template_defargs(tparms, tnargs,tscope,tsdecl);
-    p = tparms;
-    while (p) {
-      SwigType *ptype = Getattr(p,"type");
-      SwigType *ttr = ptype ? ptype : Getattr(p,"value");
-      SwigType *ttf = Swig_symbol_type_qualify(ttr,tscope);
-      SwigType *ttq = Swig_symbol_template_param_eval(ttf,tscope);
-      SwigType *ttd = 0;
-      if (SwigType_istemplate(ttq)) {
-	ttd = Swig_symbol_template_deftype(ttq, tscope);
-	ttq = ttd;
-      }	
-      Append(tprefix,ttq);
-      p = nextSibling(p);
-      if (p) Putc(',',tprefix);
-      Delete(ttr);
-      Delete(ttf);
-      Delete(ttd);
+  String *result   = NewString("");
+  List   *elements = SwigType_split(type);
+  int     len = Len(elements);
+  int     i;
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
+    if (SwigType_isfunction(e)) {
+      Iterator pi;
+      List *parms = SwigType_parmlist(e);
+      String *s = NewString("f(");
+      pi = First(parms);
+      while (pi.item) {
+	String *pf = SwigType_istemplate(e) ? 
+	  Swig_symbol_template_deftype(pi.item,tscope)
+	  : Swig_symbol_type_qualify(pi.item,tscope);
+	Append(s,pf);
+	pi = Next(pi);
+	if (pi.item) {
+	  Append(s,",");
+	}
+	Delete(pf);
+      }
+      Append(s,").");
+      Append(result,s);
+      Delete(s);
+    } else if (SwigType_istemplate(e)) {
+      String *prefix   = SwigType_prefix(e);
+      String *base     = SwigType_base(e);
+      String *tprefix  = SwigType_templateprefix(base);
+      String *targs    = SwigType_templateargs(base);
+      String *tsuffix  = SwigType_templatesuffix(base);
+      ParmList *tparms = SwigType_function_parms(targs);
+      Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
+      /* Printf(stderr,"deftype type %s \n", e);*/
+      if (tempn) {
+	ParmList *tnargs = Getattr(tempn,"templateparms");
+	Parm *p;
+	Symtab *tsdecl = Getattr(tempn,"sym:symtab");
+	
+	/* Printf(stderr,"deftype type %s %s %s %s\n", tprefix, targs, tsuffix);*/
+	Append(tprefix,"<(");
+	Swig_symbol_template_defargs(tparms, tnargs,tscope,tsdecl);
+	p = tparms;
+	while (p) {
+	  SwigType *ptype = Getattr(p,"type");
+	  SwigType *ttr = ptype ? ptype : Getattr(p,"value");
+	  SwigType *ttf = Swig_symbol_type_qualify(ttr,tscope);
+	  SwigType *ttq = Swig_symbol_template_param_eval(ttf,tscope);
+	  SwigType *ttd = 0;
+	  if (SwigType_istemplate(ttq)) {
+	    ttd = Swig_symbol_template_deftype(ttq, tscope);
+	    ttq = ttd;
+	  }	
+	  Append(tprefix,ttq);
+	  p = nextSibling(p);
+	  if (p) Putc(',',tprefix);
+	  Delete(ttr);
+	  Delete(ttf);
+	  Delete(ttd);
+	}
+	Append(tprefix,")>");
+	Append(tprefix,tsuffix);
+	Append(prefix,tprefix);
+	/* Printf(stderr,"deftype %s %s \n", type, tprefix); */
+	Append(result,prefix);
+      } else {
+	Append(result,e);
+      }
+      Delete(prefix);
+      Delete(base);
+      Delete(tprefix);
+      Delete(tsuffix);
+      Delete(targs);
+      Delete(tparms);
+    } else {
+      Append(result,e);
     }
-    Append(tprefix,")>");
-    Append(tprefix,tsuffix);
-    Append(prefix,tprefix);
-    /* Printf(stderr,"deftype %s %s \n", type, tprefix); */
-    result = Copy(prefix);
-  } else {
-    result = Copy(type);
   }
-  Delete(prefix);
-  Delete(base);
-  Delete(tprefix);
-  Delete(tsuffix);
-  Delete(targs);
-  Delete(tparms);
+  Delete(elements);
   return result;
 }
 
