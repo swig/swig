@@ -67,7 +67,7 @@
 #      define VALUEFUNC(f) ((VALUE (*)()) f)
 #      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
 #    else /* These definitions should work for Ruby 1.7+ */
-#      define PROTECTFUNC(f) ((VALUE (*)()) f)
+#      define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)
 #      define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
 #      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
 #    endif
