@@ -15,3 +15,8 @@
 
 BAR(int)
 
+%module macro_2
+
+%inline %{
+  int dummy_var;
+%}

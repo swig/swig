@@ -3,7 +3,7 @@
    <annalisa.terracina@datamat.it> on 2001-07-03. 
 */
 
-%module test
+%module static_array_member
 
 class RB {
   static char *rberror[];
