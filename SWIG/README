@@ -17,7 +17,7 @@ This distribution represents the latest development release of SWIG,
 aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
- Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core)
+ Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
  William Fulton (wsf@fultondesigns.co.uk)               (Java)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Loic Dachary (loic@ceic.com)                           (Perl5)
