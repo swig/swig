@@ -185,7 +185,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  Delete(defname);
 	  Delete(defvalue);
 	}
-      }  else if (!pvalue && (tycode == T_POINTER)) {
+      }  else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING))) {
 	pvalue = (String *) "0";
       }
       if (!altty) {
