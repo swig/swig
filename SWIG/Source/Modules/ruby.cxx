@@ -484,7 +484,25 @@ public:
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n,"module");
     if (modname) {
-      Printf(f_init,"rb_require(\"%s\");\n", modname);
+      List *modules = Split(modname,':',INT_MAX);
+      if (modules && Len(modules) > 0) {
+        modname = NewString("");
+        String *last = NULL;
+        Iterator m = First(modules);
+        while (m.item) {
+          if (Len(m.item) > 0) {
+            if (last) {
+              Append(modname, "/");
+            }
+            Append(modname, m.item);
+            last = m.item;
+          }
+          m = Next(m);
+        }
+        Printf(f_init,"rb_require(\"%s\");\n", modname);
+        Delete(modname);
+      }
+      Delete(modules);
     }
     return Language::importDirective(n);
   }

@@ -1,6 +1,29 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/14/2004: lyle
+            Added Kou's patch for the Ruby %import directive so that modules
+            with "nested" names are handled properly. Consider an interface
+            file foo.i that has this %module declaration at its top:
+
+                %module "misc::text::foo"
+
+            Now consider another interface file spam.i that imports foo.i:
+
+                %import foo.i
+            
+            Before this patch, this would result in the following code being
+            generated for spam_wrap.c:
+
+                rb_require("misc::text::foo");
+
+            With this patch, however, you'll get the correct path name
+            for the call to rb_require(), e.g.
+
+                rb_require("misc/text/foo");
+
+            See SourceForge Bug #928299.
+
 05/12/2004: wsfulton
             Patch for emitting directors when %feature("director") specified
             for a class with no virtual methods, but does have a virtual destructor.
