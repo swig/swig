@@ -532,16 +532,16 @@ SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
   void *type_pointer;
 
   /* first check if module already created */
-  type_pointer = PyCObject_Import("swig_runtime_data" SWIG_RUNTIME_VERSION, "type_pointer" SWIG_TYPE_TABLE_NAME);
+  type_pointer = PyCObject_Import((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION, "type_pointer" SWIG_TYPE_TABLE_NAME);
   if (type_pointer) {
     *type_list_handle = (swig_type_info **) type_pointer;
   } else {
     PyErr_Clear();
     /* create a new module and variable */
-    module = Py_InitModule("swig_runtime_data" SWIG_RUNTIME_VERSION, NULL);
+    module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION, NULL);
     pointer = PyCObject_FromVoidPtr((void *) (*type_list_handle), NULL);
     if (pointer && module) {
-      PyModule_AddObject(module, "type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
+      PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
     }
   }
 }
