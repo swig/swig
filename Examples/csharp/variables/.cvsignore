@@ -10,5 +10,9 @@ runme
 *.ncb
 *.opt
 *.plg
+*.suo
+*.pdb
+example-cs.csproj.user
+obj
 Release
 Debug

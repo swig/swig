@@ -6,9 +6,14 @@ runme
 *.dll
 *.dsw
 *.exp
+*.ilk
 *.lib
 *.ncb
 *.opt
 *.plg
+*.suo
+*.pdb
+example-cs.csproj.user
+obj
 Release
 Debug
