@@ -136,6 +136,7 @@ SwigPHP_emit_resource_registrations() {
 
   if (!zend_types) return;
   key = Firstkey(zend_types);
+  if (key) Printf(s_oinit,"\n// Register resource destructors for pointer types\n");
   while (key) if (1 /* is pointer type*/) {
     Node *class_node;
     if (class_node=Getattr(zend_types,key)) {
@@ -163,7 +164,7 @@ SwigPHP_emit_resource_registrations() {
 	     "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
 	     key,key,key);
 
-    Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n\n",
+    Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
            key,key);
     key = Nextkey(zend_types);
   }
@@ -1422,6 +1423,7 @@ Printf(stderr,"Classode: %p\n",classnode);
 
       // Save class in class table
       Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
+      Printf(s_oinit,"\n");
     }
 
     classnode=n;
