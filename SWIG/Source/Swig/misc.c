@@ -222,10 +222,15 @@ String *Swig_string_mangle(String *s) {
 
 void
 Swig_init() {
+  /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
+
+  /* Initialize typemaps */
   Swig_typemap_init();
 
+  /* Initialize symbol table */
+  Swig_symbol_init();
 }

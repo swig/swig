@@ -32,6 +32,7 @@ typedef  DOH     File;
 typedef  DOH     Parm;
 typedef  DOH     ParmList;
 typedef  DOH     Node;
+typedef   DOH     Symtab;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
        for backwards compatibility with older modules --- */
@@ -227,6 +228,18 @@ extern String     *SwigType_default(SwigType *t);
 extern int         SwigType_type(SwigType *t);
 extern void        SwigType_remember(SwigType *t);
 extern void        SwigType_emit_type_table(File *f_headers, File *f_table);
+
+/* --- Symbol table module --- */
+
+extern void    Swig_symbol_init();
+extern void    Swig_symbol_setscopename(String_or_char *name);
+extern String *Swig_symbol_getscopename();
+extern String *Swig_symbol_qualifiedscopename(Symtab *symtab);
+extern Symtab *Swig_symbol_newscope();
+extern Symtab *Swig_symbol_popscope();
+extern Node   *Swig_symbol_add(String_or_char *symname, Node *node);
+extern Node   *Swig_symbol_lookup(String_or_char *symname);
+extern String *Swig_symbol_qualfied(Node *node);
 
 /* --- Parameters and Parameter Lists --- */
 
@@ -430,6 +443,10 @@ extern void   Swig_except_clear();
 #define Getparms(x)        Getattr(x,"parms")
 #define Gettag(x)          Getattr(x,"tag")
 #define Getparent(x)       Getattr(x,"parent")
+#define Getdecl(x)         Getattr(x,"decl")
+#define Getstorage(x)      Getattr(x,"storage")
+#define Getsymname(x)      Getattr(x,"$symname")
+#define Geterror(x)        Getattr(x,"error")
 
 #define Settype(x,v)       Setattr(x,"type",v)
 #define Setname(x,v)       Setattr(x,"name",v)
@@ -439,6 +456,9 @@ extern void   Swig_except_clear();
 #define Settag(x,v)        Setattr(x,"tag",v)
 #define Setparms(x,v)      Setattr(x,"parms", v)
 #define Setparent(x,p)     Setattr(x,"parent",p)
+#define Setdecl(x,d)       Setattr(x,"decl",d)
+#define Setstorage(x,s)    Setattr(x,"storage",s)
+#define Seterror(x,e)      Setattr(x,"error",e)
 
 #define Getnext(x)         Getattr(x,"next")
 #define Setnext(x,n)       Setattr(x,"next",n)

@@ -468,7 +468,9 @@ int SwigType_isarray(SwigType *t) {
 
 int SwigType_isfunction(SwigType *t) {
   char *c;
-  if (!t) return 0;
+  if (!t) {
+    return 0;
+  }
   c = Char(t);
   if (strncmp(c,"f(",2) == 0) {
     return 1;
