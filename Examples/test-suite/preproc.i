@@ -266,7 +266,7 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 #define THREE(FOO) 3
 
 #define one ONE
-#define two TWO
+#define two TWO()
 #define three THREE(42)
 
 

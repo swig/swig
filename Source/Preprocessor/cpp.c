@@ -618,7 +618,7 @@ expand_macro(String_or_char *name, List *args)
   }
 
   /* If the macro expects arguments, but none were supplied, we leave it in place */
-  if (!args && (margs)) {
+  if (!args && (margs) && Len(margs) > 0) {
     return NewString(name);
   }
 
