@@ -683,7 +683,7 @@ int Language::cDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  ty = Copy(type);
+  ty = NewString(type);
   SwigType_push(ty,decl);
   fullty = SwigType_typedef_resolve_all(ty);
   if (SwigType_isfunction(fullty)) {

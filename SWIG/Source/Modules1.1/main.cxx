@@ -201,6 +201,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern void Swig_default_allocators(Node *n);
   extern void Swig_process_types(Node *n);
 
+
   /* Initialize the SWIG core */
   Swig_init();
   
@@ -539,8 +540,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     Node *top = Swig_cparse(cpps);
 
+    if (Verbose) {
+      Printf(stdout,"Processing types...\n");
+    }
     Swig_process_types(top);
+
+    if (Verbose) {
+      Printf(stdout,"C++ analysis...\n");
+    }
     Swig_default_allocators(top);
+
+    if (Verbose) {
+      Printf(stdout,"Generating wrappers...\n");
+    }
 
     if (dump_classes) {
       Hash *classes = Getattr(top,"classes");
