@@ -16,6 +16,8 @@
 #    a) Defines LANGUAGE matching a language rule in Examples/Makefile, 
 #       for example LANGUAGE = java
 #    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
+#    c) Define srcdir, top_srcdir and top_builddir (these are the
+#       equivalent to configure's variables of the same name).
 #
 # The variables below can be overridden after including this makefile
 #######################################################################
@@ -23,17 +25,17 @@
 #######################################################################
 # Variables
 #######################################################################
-TOP        = ../..
-SWIG       = $(TOP)/../swig
-SWIG_LIB   = $(TOP)/../Lib
+SWIG       = $(top_builddir)swig
+SWIG_LIB   = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
+EXAMPLES   = Examples
 CXXSRCS    = 
 CSRCS      = 
 TARGETPREFIX = 
 TARGETSUFFIX = 
-SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
-INCLUDES   = -I$(TOP)/$(TEST_SUITE)
-RUNTIMEDIR = ../$(TOP)/Runtime/.libs
+SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+RUNTIMEDIR = $(top_builddir)/Runtime/.libs
 DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 #
@@ -315,27 +317,30 @@ check: 	$(NOT_BROKEN_TEST_CASES)
 broken: $(BROKEN_TEST_CASES)
 
 swig_and_compile_cpp =  \
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
-	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
-	for f in `cat $(TOP)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
 	  NOLINK=true $(LANGUAGE)$(VARIANT)_multi_cpp; \
 	done
 
 setup = \
-	@if [ -f $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then		  \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
 	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
@@ -347,4 +352,9 @@ setup = \
 # Clean
 #######################################################################
 clean: $(ALL_CLEAN)
+
+distclean: clean
+	@rm -f Makefile
+
+.PHONY: all check broken clean distclean 
 
