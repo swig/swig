@@ -892,8 +892,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  break;
 	  
 	case T_USER :
-	  d->remember();
 	  d->is_pointer++;
+	  d->remember();
 	  f.code << tab4 << "_resultobj = SWIG_NewPointerObj((void *)_result, SWIGTYPE" << d->print_mangle() << ");\n";
 	  d->is_pointer--;
 	  break;
@@ -1224,8 +1224,8 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    break;
 	  case T_USER:
 	    // Hack this into a pointer
-	    t->remember();
 	    t->is_pointer++;
+	    t->remember();
 	    getf.code << tab4 << "pyobj = SWIG_NewPointerObj((void *) &" << name 
 		      << ", SWIGTYPE" << t->print_mangle() << ");\n";
 	    t->is_pointer--;
