@@ -1672,7 +1672,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       else realname = class_name;
     }
 
-    if ((Cmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
+    if ((Cmp(realname,class_name) == 0)) {
 
       /* Emit a blessed constructor  */
 
