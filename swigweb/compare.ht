@@ -3,15 +3,19 @@ SWIG Features
 <h2>SWIG Features</h2>
 
 <p>
-This information is based on the current release, SWIG-1.3.18.
+This information is based on the SWIG-1.3.22 release.
 
 <h3>Code Generation</h3>
 
-SWIG current generates wrapper code for eleven different target languages:
+SWIG current generates wrapper code for thirteen different target languages:
 
 <ul>
+<li>Allegro CL
+<li>C#
+<li>Chicken
 <li>Guile
 <li>Java
+<li>Modula-3
 <li>Mzscheme
 <li>OCAML
 <li>Perl
@@ -19,11 +23,9 @@ SWIG current generates wrapper code for eleven different target languages:
 <li>Python
 <li>Ruby
 <li>Tcl
-<li>Chicken
-<li>C#
 </ul>
 
-In addition to this, an XML output module was recently added and work
+In addition to this, an XML output module is also available and work
 is in progress on a Pike module.
 
 <h3>ANSI C</h3>
@@ -39,6 +41,7 @@ SWIG is capable of wrapping all of ANSI C.   Features include:
 <li>Pointers to functions.
 <li>Variable length arguments.
 <li>Typedef.
+<li>Enums.
 </ul>
 
 <h3>ANSI C++</h3>
