@@ -1,5 +1,10 @@
 %module lib_std_pair
 
+//
+// activate the automatic comparison methods generation (==,!=,...) 
+//
+#define SWIG_STD_EXTEND_COMPARISON
+
 %include std_pair.i
 %include std_string.i
 %include std_complex.i

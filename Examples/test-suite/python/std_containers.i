@@ -1,5 +1,10 @@
 %module std_containers
 
+//
+// activate the automatic comparison methods generation (==,!=,...) 
+//
+#define SWIG_STD_EXTEND_COMPARISON
+
 %include std_vector.i
 %include std_string.i
 %include std_deque.i
@@ -11,11 +16,9 @@
 %include std_multimap.i
 %include std_complex.i
 
-#ifndef SWIG_STD_DEFAULT_INSTANTIATION
 %template() std::vector<double>;
 %template() std::pair<std::string, int>;
 %template() std::pair<int,double>;
-#endif
 
 %template() std::vector< std::vector<double > > ;
 %template(ccube) std::vector< std::vector< std::vector<double > > >;
