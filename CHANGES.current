@@ -1,6 +1,48 @@
 Version 1.3.20 (In progress)
 ============================
 
+06/10/2003: cheetah (William Fulton)
+            [C#] A number of changes have been made to remove the Java naming 
+            that was used in the C# module.
+            
+            Typemap name changes:
+            jni                         -> ctype
+            jtype                       -> cstype
+            jstype                      -> cswtype
+            javain                      -> csin
+            javaout                     -> csout
+            javainterfaces              -> csinterfaces
+            javabase                    -> csbase
+            javaclassmodifiers          -> csclassmodifiers
+            javacode                    -> cscode
+            javaimports                 -> csimports
+            javaptrconstructormodifiers -> csptrconstructormodifiers
+            javagetcptr                 -> csgetcptr
+            javafinalize                -> csfinalize
+
+            Feature name changes:
+            javaconst                   -> csconst
+            javamethodmodifiers         -> csmethodmodifiers
+
+            Pragma changes:
+            pragma(java)                -> pragma(csharp)
+            jniclassbase                -> imclassbase
+            jniclassclassmodifiers      -> imclassclassmodifiers
+            jniclasscode                -> imclasscode
+            jniclassimports             -> imclassimports
+            jniclassinterfaces          -> imclassinterfaces
+
+            Special variable name changes:
+            $javaclassname              -> $csclassname
+            $javainput                  -> $csinput
+            $jnicall                    -> $imcall
+
+            This will break SWIG interface files that use these typemaps, features
+            and pragmas. Please update your code or use macros for backwards
+            compatibility.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
 06/10/2003: mkoeppe (Matthias Koeppe)
 	    [MzScheme] Applied MzScheme module updates contributed by
 	    John Lenz <jelenz@students.wisc.edu>.
@@ -27,20 +69,24 @@ Version 1.3.20 (In progress)
 	    *** NEW FEATURE [MzScheme] ***
 
 06/10/2003: cheetah (William Fulton)
-            [Java] New typemaps: javadestruct_base and javadestruct_derived
-            for the C++ destructor wrapper. The _base version gets used by
-            classes at the top of an inheritance chain and the _derived 
+            [Java] New typemaps: javadestruct and javadestruct_derived
+            for the C++ destructor wrapper. The javadestruct version gets used by
+            classes at the top of an inheritance chain and the javadestruct_derived 
             version gets used by other classes.
 
             [C#] cildispose and cildisposeoverride typemaps replaced by
-            csdestruct_base and csdestruct_derived typemaps. The delete()
+            csdestruct and csdestruct_derived typemaps. The delete()
             method has been removed and its functionality put into these
             typemaps designed for the Dispose() method.
-            New typemaps csinterfaces_base and csinterfaces_derived replace
+
+            - New typemaps csinterfaces and csinterfaces_derived replace
             the javainterfaces typemap. Also fixes the peculiarity of all classes
             in an inheritance chain individually deriving from the IDisposable 
             interface.
-            New typemap csfinalize for finalizers.
+
+            - New typemap csfinalize for finalizers. C++ destructors are now called
+            by garbage collector during finalization. Problem reported by 
+            Andreas Schörk.
 
 06/10/2003: Tiger
 	    Modified contract code for error message output.
