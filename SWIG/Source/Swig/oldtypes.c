@@ -183,134 +183,14 @@ void DataType_primitive(DataType *t) {
 }
 
 /* --------------------------------------------------------------------
- * char *print_type()
- *
- * Print the datatype, but without qualifiers (ie. const, volatile)
- * Returns a string containing the result.
- *
- * If a datatype is marked as an implicit ptr it means that is_pointer
- * is at least one, but we don't print '*'.
- *
- * If the type status is STAT_REPLACETYPE, it means that we can't
- * use this type as a valid type.  We'll substitute it's old name in.
- * -------------------------------------------------------------------- */
-
-char *DataType_print_type(DataType *ty) {
-  static char    result[8][256];
-  static int    ri = 0;
-  int i;
-  DataType *t = ty;
-  
-  if (ty->status & STAT_REPLACETYPE) {
-    t = CopyDataType(ty);
-    DataType_typedef_replace(t);  
-  }
-  ri = ri % 8;
-  sprintf(result[ri],"%s ", t->name);
-  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
-    strcat(result[ri],"*");
-
-  if (ty->status & STAT_REPLACETYPE) {
-    DelDataType(t);
-  };
-  return result[ri++];
-}
-
-/* --------------------------------------------------------------------
- * char *print_full()
- *
- * Prints full type, with qualifiers.
- * -------------------------------------------------------------------- */
-char *DataType_print_full(DataType *t) {
-  static char result[8][256];
-  static int ri = 0;
-
-  ri = ri % 8;
-  if (t->_qualifier) {
-    sprintf(result[ri],"%s %s", t->_qualifier, DataType_print_type(t));
-    return result[ri++];
-  } else {
-    return DataType_print_type(t);
-  }
-}
-
-/* --------------------------------------------------------------------
- * char *print_cast()
- *
- * Prints a cast.  (Basically just a type but with parens added).
- * -------------------------------------------------------------------- */
-
-char *DataType_print_cast(DataType *t) {
-  static char   result[8][256];
-  static int    ri = 0;
-
-  ri = ri % 8;
-  sprintf(result[ri],"(%s)", DataType_print_type(t));
-  return result[ri++];
-}
-
-/* --------------------------------------------------------------------
- * char *print_arraycast()
- *
- * Prints a cast, but for array datatypes.  Super ugly, but necessary
- * for multidimensional arrays.
- * -------------------------------------------------------------------- */
-
-char *DataType_print_arraycast(DataType *ty) {
-  static char result[8][256];
-  static int    ri = 0;
-  int  ndim;
-  char *c;
-  DataType     *t;
-
-  t = ty;
-  if (ty->status & STAT_REPLACETYPE) {
-    t = CopyDataType(ty);
-    DataType_typedef_replace(t);
-  }
-
-  ri = ri % 8;
-  if (t->_arraystr) {
-    ndim = 0;
-    c = t->_arraystr;
-    while (*c) {
-      if (*c == '[') ndim++;
-      c++;
-    }
-    if (ndim > 1) {
-      /* a Multidimensional array.  Provide a special cast for it */
-      int oldstatus = ty->status;
-      t->status = t->status & (~STAT_REPLACETYPE);
-      t->is_pointer--;
-      sprintf(result[ri],"(%s", DataType_print_type(t));
-      t->is_pointer++;
-      t->status = oldstatus;
-      strcat(result[ri]," (*)");
-      c = t->_arraystr;
-      while (*c) {
-	if (*c == ']') break;
-	c++;
-      }
-      if (*c) c++;
-      strcat(result[ri],c);
-      strcat(result[ri],")");
-    }
-  }
-  if (ty->status & STAT_REPLACETYPE) {
-    DelDataType(t);
-  }
-  return result[ri++];
-}
-
-/* --------------------------------------------------------------------
- * char *print_mangle_default()
+ * char *mangle_default()
  *
  * Prints a mangled version of this datatype.   Used for run-time type
  * checking in order to print out a "language friendly" version (ie. no
  * spaces and no weird characters).
  * -------------------------------------------------------------------- */
 
-char *DataType_print_mangle_default(DataType *t) {
+char *DataType_mangle_default(DataType *t) {
   static char   result[8][256];
   static int    ri = 0;
   int   i;
@@ -342,9 +222,9 @@ char *DataType_print_mangle_default(DataType *t) {
 /* This is kind of ugly but needed for each language to support a
    custom name mangling mechanism.  (ie. Perl5). */
 
-static char *(*mangler)(DataType *t) = DataType_print_mangle_default;
+static char *(*mangler)(DataType *t) = DataType_mangle_default;
 
-char *DataType_print_mangle(DataType *t) {
+char *DataType_manglestr(DataType *t) {
    /* Call into target language for name mangling. */
   return (*mangler)(t);
 }
@@ -360,7 +240,7 @@ void DataType_set_mangle(char *(*m)(DataType *t)) {
  * variable name.
  * ----------------------------------------------------------------------------- */
 
-char *DataType_str(DataType *t, char *name) {
+char *DataType_str(DataType *t, DOHString_or_char *name) {
   static char  result[8][256];
   static int    ri = 0;
   int i;
@@ -378,12 +258,183 @@ char *DataType_str(DataType *t, char *name) {
     strcat(result[ri],"*");
   }
   if (t->is_reference) strcat(result[ri],"&");
-  if (name) strcat(result[ri],name);
+  if (name) strcat(result[ri],Char(name));
   if (t->_arraystr) {
     strcat(result[ri],t->_arraystr);
     t->is_pointer++;
   }
   if (t->is_reference) t->is_pointer++;
+  return result[ri++];
+}
+
+/* --------------------------------------------------------------------
+ * char *DataType_lstr()
+ *
+ * Produces a type-string that is suitable as a lvalue in an expression.
+ * That is, a type that can be freely assigned a value without violating
+ * any C assignment rules.
+ *
+ *      -   Qualifiers such as 'const' and 'volatile' are stripped.
+ *      -   Arrays are converted into a *single* pointer (i.e.,
+ *          double [][] becomes double *).
+ *      -   References are converted into a pointer.
+ *      -   Typedef names that refer to read-only types will be replaced
+ *          with an equivalent assignable version.
+ * -------------------------------------------------------------------- */
+
+char *DataType_lstr(DataType *ty, DOHString_or_char *name) {
+  static char    result[8][256];
+  static int    ri = 0;
+  int i;
+  DataType *t = ty;
+  
+  if (ty->status & STAT_REPLACETYPE) {
+    t = CopyDataType(ty);
+    DataType_typedef_replace(t);    /* Replace the type with its typedef value */
+  }
+  ri = ri % 8;
+  sprintf(result[ri],"%s ", t->name);
+  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
+    strcat(result[ri],"*");
+
+  if (ty->status & STAT_REPLACETYPE) {
+    DelDataType(t);
+  }
+  if (name) {
+    strcat(result[ri],Char(name));
+  }
+  return result[ri++];
+}
+
+/* -----------------------------------------------------------------------------
+ * DataType_ltype(DataType *ty)
+ *
+ * Returns a type object corresponding to the string created by lstr
+ * ----------------------------------------------------------------------------- */
+
+DataType *DataType_ltype(DataType *t) {
+
+  DataType *ty = CopyDataType(t);
+  if (ty->status & STAT_REPLACETYPE) {
+    DataType_typedef_replace(ty);    /* Replace the type with its typedef value */
+  }
+  if (ty->_qualifier) {
+    free(ty->_qualifier);
+    ty->_qualifier = 0;
+  }
+  if (ty->_arraystr) {
+    free(ty->_arraystr);
+    ty->_arraystr = 0;
+  }
+  ty->is_reference = 0;
+  return ty;
+}
+
+/* -----------------------------------------------------------------------------
+ * char *DataType_rcaststr(DataType *t, char *name)
+ *
+ * Produces a casting string that maps the type returned by lstr() to the real 
+ * datatype printed by str().
+ * ----------------------------------------------------------------------------- */
+
+char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
+  static char   result[8][256];
+  static int    ri = 0;
+  DataType *t = 0;
+  ri = ri % 8;
+
+  strcpy(result[ri],"");
+  if (ty->_arraystr) {
+    t = ty;
+    if (ty->status & STAT_REPLACETYPE) {
+      t = CopyDataType(ty);
+      DataType_typedef_replace(t);
+    }
+
+    ri = ri % 8;
+    if (t->_arraystr) {
+      int ndim;
+      char *c;
+      ndim = 0;
+      c = t->_arraystr;
+      while (*c) {
+	if (*c == '[') ndim++;
+	c++;
+      }
+      if (ndim > 1) {
+	/* a Multidimensional array.  Provide a special cast for it */
+	char *oldarr = 0;
+	int oldstatus = ty->status;
+	t->status = t->status & (~STAT_REPLACETYPE);
+	t->is_pointer--;
+	oldarr = t->_arraystr;
+	t->_arraystr = 0;
+	sprintf(result[ri],"(%s", DataType_str(t,0));
+	t->_arraystr = oldarr;
+	t->is_pointer++;
+	t->status = oldstatus;
+	strcat(result[ri]," (*)");
+	c = t->_arraystr;
+	while (*c) {
+	  if (*c == ']') break;
+	  c++;
+	}
+	if (*c) c++;
+	strcat(result[ri],c);
+	strcat(result[ri],")");
+      }
+    }
+    if (ty->status & STAT_REPLACETYPE) {
+      DelDataType(t);
+    }
+  } else if (ty->_qualifier) {
+    /* Make a cast to restore const/volatile */
+    sprintf(result[ri],"(%s)", DataType_str(ty,0));
+  }
+
+  if (name) {
+    if (ty->is_reference) {
+      strcat(result[ri],"*");
+    }
+    strcat(result[ri],Char(name));
+  }
+  return result[ri++];
+}
+
+/* -----------------------------------------------------------------------------
+ * DataType_lcaststr()
+ *
+ * Casts a variable from the real type to the local datatype.
+ * ----------------------------------------------------------------------------- */
+
+char *DataType_lcaststr(DataType *ty, DOHString_or_char *name) {
+  static char   result[8][256];
+  static int    ri = 0;
+  DataType *t = 0;
+  ri = ri % 8;
+
+  strcpy(result[ri],"");
+  
+  if (ty->_arraystr) {
+    sprintf(result[ri],"(%s)", DataType_lstr(ty,0));
+    if (name)
+      strcat(result[ri], Char(name));
+  } else if (ty->is_reference) {
+    sprintf(result[ri],"(%s)", DataType_lstr(ty,0));
+    if (name) {
+      strcat(result[ri], "&");
+      strcat(result[ri], Char(name));
+    }
+  } else if (ty->_qualifier) {
+    sprintf(result[ri],"(%s)", DataType_lstr(ty,0));
+    if (name) {
+      strcat(result[ri], Char(name));
+    }
+  } else {
+    if (name) {
+      strcat(result[ri], Char(name));
+    }
+  }
   return result[ri++];
 }
 
@@ -507,8 +558,8 @@ int DataType_typedef_add(DataType *t,char *tname, int mode) {
       if ((t->type != T_VOID) && (strcmp(t->name,tname) != 0)) {
 	t1 = NewDataType(0);
 	strcpy(t1->name,tname);
-	name2 = DataType_print_mangle(t1);
-	name1 = DataType_print_mangle(t);
+	name2 = DataType_manglestr(t1);
+	name1 = DataType_manglestr(t);
 	typeeq_addtypedef(name1,name2,t1);
 	typeeq_addtypedef(name2,name1,t);
 	DelDataType(t1);
@@ -933,8 +984,8 @@ void typeeq_derived(char *n1, char *n2, char *cast) {
   t1->type = T_USER;
   strcpy(t->name,n1);
   strcpy(t1->name,n2);
-  name = DataType_print_mangle(t);
-  name2 = DataType_print_mangle(t1);
+  name = DataType_manglestr(t);
+  name2 = DataType_manglestr(t1);
   typeeq_add(name,name2, cast, t1);
   DelDataType(t);
   DelDataType(t1);
@@ -956,8 +1007,8 @@ void typeeq_mangle(char *n1, char *n2, char *cast) {
 
   strcpy(t->name,n1);
   strcpy(t1->name,n2);
-  name = DataType_print_mangle(t);
-  name2 = DataType_print_mangle(t1);
+  name = DataType_manglestr(t);
+  name2 = DataType_manglestr(t1);
   typeeq_add(name,name2,cast,0);
   DelDataType(t);
   DelDataType(t1);
@@ -1007,7 +1058,7 @@ check_equivalent(DataType *t) {
   Clear(out);
 
   while (t->is_pointer >= t->implicit_ptr) {
-    m = Swig_copy_string(DataType_print_mangle(t));
+    m = Swig_copy_string(DataType_manglestr(t));
 
     if (!te_init) typeeq_init();
 
@@ -1019,7 +1070,7 @@ check_equivalent(DataType *t) {
 	while (e2) {
 	  if (e2->type) {
 	    e2->type->is_pointer += (npointer - t->is_pointer);
-	    Printf(out,"{ \"%s\",", DataType_print_mangle(e2->type));
+	    Printf(out,"{ \"%s\",", DataType_manglestr(e2->type));
 	    e2->type->is_pointer -= (npointer - t->is_pointer);
 	    if (e2->cast) 
 	      Printf(out,"%s}, ", e2->cast);
@@ -1076,7 +1127,7 @@ void DataType_remember(DataType *ty) {
   DataType *t = CopyDataType(ty);
 
   if (!remembered) remembered = NewHash();
-  SetVoid(remembered, DataType_print_mangle(t), t);
+  SetVoid(remembered, DataType_manglestr(t), t);
 
   if (!bases) bases = NewHash();
   /* Now, do the base-class hack */
@@ -1087,7 +1138,7 @@ void DataType_remember(DataType *ty) {
     while (key) {
       DataType *nt = CopyDataType(t);
       strcpy(nt->name,Char(key));
-      if (!Getattr(remembered,DataType_print_mangle(nt))) 
+      if (!Getattr(remembered,DataType_manglestr(nt))) 
 	DataType_remember(nt);
       DelDataType(nt);
       key = Nextkey(h);

@@ -34,6 +34,7 @@ Parm *NewParm(DataType *type, char *n) {
     p->_type = 0;
   }
   p->_name = Swig_copy_string(n);
+  p->_lname = 0;
   p->_defvalue = 0;
   p->ignore = 0;
   return p;
@@ -48,6 +49,7 @@ Parm *CopyParm(Parm *p) {
   if (p->_type) np->_type = CopyDataType(p->_type);
   np->_name = Swig_copy_string(p->_name);
   np->_defvalue = Swig_copy_string(p->_defvalue);
+  np->_lname = Swig_copy_string(p->_lname);
   np->ignore = p->ignore;
   return np;
 }
@@ -60,6 +62,7 @@ void DelParm(Parm *p) {
   if (p->_type) DelDataType(p->_type);
   if (p->_name) free(p->_name);
   if (p->_defvalue) free(p->_defvalue);
+  if (p->_lname) free(p->_lname);
   free(p);
 }
 
@@ -79,6 +82,15 @@ void Parm_Setname(Parm *p, char *n) {
 
 char *Parm_Getname(Parm *p) {
   return p->_name;
+}
+
+void Parm_Setlname(Parm *p, char *n) {
+  if (p->_lname) free(p->_lname);
+  p->_lname = Swig_copy_string(n);
+}
+
+char *Parm_Getlname(Parm *p) {
+  return p->_lname;
 }
 
 void Parm_Setvalue(Parm *p, char *v) {
@@ -301,7 +313,6 @@ void ParmList_print_types(ParmList *l, DOHFile *f) {
  * ---------------------------------------------------------------------- */
 
 void ParmList_print_args(ParmList *l, DOHFile *f) {
-
   int   is_pointer;
   int   pn;
   DataType *t;
@@ -314,5 +325,6 @@ void ParmList_print_args(ParmList *l, DOHFile *f) {
       Printf(f,",");
   }
 }
+
 
 

@@ -3,7 +3,7 @@
  *
  *     This file defines a object for creating wrapper functions.  Primarily
  *     this is used for convenience since it allows pieces of a wrapper function
- *     to be created in a non-linear manner.
+ *     to be created in a piecemeal manner.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -248,24 +248,4 @@ Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
   Delete(decl);
   return ret;
 }
-
-#ifdef TEST
-int main() {
-  Wrapper *w;
-  w = NewWrapper();
-  Printf(w->def,"int foo_wrap(ClientData clientdata, Tcl_Interp *interp, int argc, char *argv[]) {");
-  Wrapper_add_local(w,"int a", "a");
-  Wrapper_add_local(w,"int a", "a");
-  Wrapper_add_local(w,"int b", "b");
-  Wrapper_add_local(w,"char temp[256]","temp");
-  
-  Printf(w->code,"for (i = 0; i < 10; i++) { printf(\"%%d\", i); }\n");
-
-  Printf(w->code,"if (1) { foo;\n} else { bar; \n}\n");
-
-  Printf(w->code,"}\n");
-  Wrapper_print(w,stdout);
-  DelWrapper(w);
-}
-#endif
 
