@@ -48,6 +48,9 @@
 %typemap(m3rawtype) long double,        const long double &        "C.long_double"
 %typemap(m3rawtype) char *                                         "C.char_star"
 %typemap(m3rawtype) void                                           ""
+%typemap(m3rawtype) FILE                                           "Cstdio.FILE";
+%typemap(m3rawtype) FILE *                                         "Cstdio.FILE_star";
+
 
 %typemap(m3rawintype) bool *,               bool &,               bool               "BOOLEAN"
 %typemap(m3rawintype) char *,               char &,               char               "C.char"
@@ -67,9 +70,11 @@
 %typemap(m3rawintype) char *                                                         "C.char_star"
 %typemap(m3rawintype) void                                                           ""
 %typemap(m3rawintype) void *                                                         "ADDRESS"
+%typemap(m3rawintype) FILE                                                           "Cstdio.FILE";
+%typemap(m3rawintype) FILE *                                                         "Cstdio.FILE_star";
 
-%typemap(m3rawinmode) char *             ""
-%typemap(m3rawinmode) void *             ""
+%typemap(m3rawinmode) char *, void *, FILE *  ""
+
 
 %typemap(m3rawrettype) bool,               const bool &               "BOOLEAN"
 %typemap(m3rawrettype) char,               const char &               "C.char"
@@ -89,6 +94,9 @@
 %typemap(m3rawrettype) char *                                         "C.char_star"
 %typemap(m3rawrettype) void                                           ""
 %typemap(m3rawrettype) void *                                         "ADDRESS"
+%typemap(m3rawrettype) FILE                                           "Cstdio.FILE";
+%typemap(m3rawrettype) FILE *                                         "Cstdio.FILE_star";
+
 
 %typemap("m3rawtype:import")
   char,               const char &,
@@ -144,6 +152,18 @@
   char *
     "Ctypes AS C"
 
+%typemap("m3rawtype:import")
+  FILE,   FILE *
+    "Cstdio";
+
+%typemap("m3rawintype:import")
+  FILE,   FILE *
+    "Cstdio";
+
+%typemap("m3rawrettype:import")
+  FILE,   FILE *
+    "Cstdio";
+
 %typemap(m3wraptype) bool,               const bool &               "BOOLEAN"
 %typemap(m3wraptype) char,               const char &               "CHAR"
 %typemap(m3wraptype) signed char,        const signed char &        "CHAR"
@@ -161,6 +181,8 @@
 %typemap(m3wraptype) long double,        const long double &        "EXTENDED"
 %typemap(m3wraptype) char *                                         "TEXT"
 %typemap(m3wraptype) void                                           ""
+%typemap(m3wraptype) FILE                                           "Cstdio.FILE";
+%typemap(m3wraptype) FILE *                                         "Cstdio.FILE_star";
 
 %typemap(m3wrapintype) bool,               const bool *,               const bool &               "BOOLEAN"
 %typemap(m3wrapintype) char,               const char *,               const char &               "CHAR"
@@ -179,6 +201,9 @@
 %typemap(m3wrapintype) long double,        const long double *,        const long double &        "EXTENDED"
 %typemap(m3wrapintype) const char *, const char []   "TEXT"
 %typemap(m3wrapintype,numinputs=0) void              ""
+%typemap(m3wrapintype) FILE            "Cstdio.FILE";
+%typemap(m3wrapintype) FILE *          "Cstdio.FILE_star";
+
 
 %typemap(m3wrapouttype) bool,               bool *,               bool &                  "BOOLEAN"
 %typemap(m3wrapouttype) char,               char *,               char &                  "CHAR"
@@ -215,6 +240,9 @@
 %typemap(m3wraprettype) long double,        const long double &        "EXTENDED"
 %typemap(m3wraprettype) char *                                         "TEXT"
 %typemap(m3wraprettype) void                                           ""
+%typemap(m3wraprettype) FILE            "Cstdio.FILE";
+%typemap(m3wraprettype) FILE *          "Cstdio.FILE_star";
+
 
 %typemap(ctype)          char[ANY]               "char *"
 %typemap(m3rawtype)      char[ANY]               "C.char_star"
@@ -239,6 +267,22 @@
 %typemap(m3wrapretconv) char * %{M3toC.CopyStoT(result)%}
 %typemap("m3wrapretvar:import")  char * "Ctypes AS C"
 %typemap("m3wrapretconv:import") char * "M3toC"
+
+%typemap(m3wrapinmode)  FILE * %{%}
+
+
+%typemap("m3wraptype:import")
+  FILE,   FILE *
+    "Cstdio";
+
+%typemap("m3wrapintype:import")
+  FILE,   FILE *
+    "Cstdio";
+
+%typemap("m3wraprettype:import")
+  FILE,   FILE *
+    "Cstdio";
+
 
 /* Composed types */
 %typemap(ctype)                SWIGTYPE "$1_type"
