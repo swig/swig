@@ -104,6 +104,24 @@ typedef struct swig_instance {
 #define SWIG_MethodCommand SWIG_Tcl_MethodCommand
 #define SWIG_ObjectDelete SWIG_Tcl_ObjectDelete
 
+static void 
+SWIG_Tcl_LookupTypePointer(Tcl_Interp *interp) {
+  char buf[512];
+  char *data;
+  
+  /* first check if pointer already created */
+  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer", TCL_GLOBAL_ONLY);
+  if (data) {
+    SWIG_UnpackData(data, &swig_type_list_handle, sizeof(swig_type_info **));
+  } else {
+    /* create a new pointer */
+    data = SWIG_PackData(buf, &swig_type_list_handle, sizeof(swig_type_info **));
+    *data = 0;
+    Tcl_SetVar(interp, "swig_runtime_data_type_pointer", buf, 0);
+  }
+}
+
+
 #ifdef SWIG_NOINCLUDE
 
 SWIGIMPORT(int)       SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *,int flags);

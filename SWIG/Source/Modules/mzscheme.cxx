@@ -149,10 +149,6 @@ public:
     Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Swig_banner (f_runtime);
     
-    if (NoInclude) {
-      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-    }
-    
     module = Getattr(n,"name");
     
     Language::top(n);
@@ -583,7 +579,7 @@ public:
     
     // Make a static variable;
     
-    Printf (var_name, "_wrap_const_%s", Swig_name_mangle(iname));
+    Printf (var_name, "_wrap_const_%s", Swig_name_mangle(Getattr(n,"sym:name")));
     
     // Build the name for scheme.
     Printv(proc_name, iname,NIL);

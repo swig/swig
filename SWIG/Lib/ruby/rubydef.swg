@@ -5,14 +5,31 @@ extern "C" {
 
 static VALUE _mSWIG = Qnil;
 static VALUE _cSWIG_Pointer = Qnil;
+static VALUE swig_runtime_data_type_pointer = Qnil;
 
 /* Initialize Ruby runtime support */
 SWIGRUNTIME(void)
 SWIG_Ruby_InitRuntime(void)
 {
+    VALUE pointer;
+    
     if (_mSWIG == Qnil) {
         _mSWIG = rb_define_module("SWIG");
     }
+    
+#ifdef SWIG_DISABLE_RUNTIME
+    /* first check if pointer already created */
+    pointer = rb_gv_get("$swig_runtime_data_type_pointer");
+    if (pointer != Qnil) {
+      Data_Get_Struct(pointer, swig_type_info *, swig_type_list_handle);
+    } else {
+      /* register a new class */
+      VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
+      /* create and store the structure pointer to a global variable */
+      swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, swig_type_list_handle);
+      rb_define_readonly_variable("$swig_runtime_data_type_pointer", &swig_runtime_data_type_pointer);
+    }
+#endif
 }
 
 /* Define Ruby class for C type */

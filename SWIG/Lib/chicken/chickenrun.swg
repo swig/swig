@@ -60,27 +60,7 @@ enum {
   SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
 };
   
-#ifdef SWIG_NOINCLUDE
-
-/*SWIGIMPORT(void) SWIG_Chicken_Init();*/
-
-/* Interface helper function */
-SWIGIMPORT(char *) SWIG_Chicken_MakeString(C_word str);
-
-/* Get a pointer value from a C_word.  If there is a type-mismatch,
-   return nonzero; on success, return 0.  */
-SWIGIMPORT(int) SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags);
-/* Get a pointer value from a C_word.  If there is a type-mismatch,
-   signal a wrong-type-arg error for the given argument number. */
-SWIGIMPORT(void *) SWIG_Chicken_MustGetPtr(C_word s, swig_type_info *type, int argnum, int flags);
-/* Make a smob from a pointer and typeinfo, using space as the memory for the new object */
-SWIGIMPORT(C_word) SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **space);
-
-/* generate an error message and halt */
-SWIGIMPORT(void) SWIG_Chicken_Barf(int code, C_char *msg, ...);
-#else
-
-SWIGRUNTIME(char *)
+static char *
 SWIG_Chicken_MakeString(C_word str) {
   char *ret;
   size_t l;
@@ -94,6 +74,17 @@ SWIG_Chicken_MakeString(C_word str) {
   return ret;
 }
 
+static C_word SWIG_Chicken_LookupSymbol(char *name, C_SYMBOL_TABLE *stable) {
+  C_word *a = C_alloc(C_SIZEOF_STRING (strlen (name)));
+  C_word n = C_string2(&a, name);
+  C_word sym = C_find_symbol(n, stable);
+  if (C_truep(sym)) {
+    return C_symbol_value(sym);
+  } else {
+    return C_SCHEME_FALSE;
+  }
+}
+
 /* Just a helper function.  Do not export it */
 static void SWIG_Chicken_Panic (C_char *) C_noret;
 static void SWIG_Chicken_Panic (C_char *msg)
@@ -104,9 +95,9 @@ static void SWIG_Chicken_Panic (C_char *msg)
   exit (5); /* should never get here */
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_Chicken_Barf(int code, C_char *msg, ...) C_noret;
-SWIGRUNTIME(void)
+static void
 SWIG_Chicken_Barf(int code, C_char *msg, ...)
 {
   char *errorhook = C_text("\003syserror-hook");
@@ -166,7 +157,7 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
   }
 }
 
-SWIGRUNTIME(C_word)
+static inline C_word
 SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
 {
   if (ptr == NULL)
@@ -176,7 +167,7 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
 }
 
 /* Return 0 if successful. */
-SWIGRUNTIME(int)
+static int
 SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags)
 {
   swig_type_info *cast;
@@ -204,7 +195,7 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
   return 1;
 }
 
-SWIGRUNTIME(void *)
+static inline void *
 SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
 {
   void *result;
@@ -215,15 +206,6 @@ SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
   }
   return result;
 }
-
-/*
-SWIGRUNTIME(void)
-SWIG_Chicken_Init ()
-{
-}*/
-
-
-#endif
 
 #ifdef __cplusplus
 }

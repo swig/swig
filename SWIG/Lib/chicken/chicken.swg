@@ -601,6 +601,19 @@ $realmodule_swig_init(int argc, C_word closure, C_word continuation) {
   C_word ret;
 
   if (!typeinit) {
+    /* lookup the type pointer... it is stored in it's own symbol table */
+    C_SYMBOL_TABLE *stable = C_find_symbol_table("swig_runtime_data");
+    if (stable != NULL) {
+      sym = SWIG_Chicken_LookupSymbol("type_pointer", stable);
+      if (C_truep(sym) && C_swig_is_ptr(sym)) {
+        swig_type_list_handle = (swig_type_info **) C_block_item(sym, 0);
+      }
+    } else {
+      stable = C_new_symbol_table("swig_runtime_data", 16);
+      sym = C_intern_in(C_heaptop, C_strlen("type_pointer"), "type_pointer", stable);
+      C_mutate(&C_block_item(sym, 0), C_mpointer(C_heaptop, (void *) swig_type_list_handle));
+    }
+    
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }

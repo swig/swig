@@ -27,10 +27,10 @@
 
   if (!_swig_init) {
     int i;
+    SWIG_MzScheme_LookupTypePointer(env);
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }
     _swig_init = 1;
   }
-  SWIG_MzScheme_Init();
 %}

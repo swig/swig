@@ -1,6 +1,16 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/05/2004: wuzzeb (John Lenz)
+            - Reorganize how runtime type information is stored and shared
+	    between modules.  For chicken and mzscheme, I removed
+	    the ability to use runtime libraries, while perl, tcl, python, and
+	    ruby default to using the new method but can go back to the old
+	    method by declaring SWIG_ALLOW_RUNTIME.
+
+	    - line 582 in mzscheme.cxx was generating a segfault on 
+	    imports.multicpptest, so I fixed it.
+
 10/04/2004: wsfulton
             Fixes for %extend and overloaded static methods with default
             arguments.

@@ -230,10 +230,6 @@ CHICKEN::top(Node *n)
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner(f_runtime);
     
-  if (NoInclude) {
-    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-  }
-    
   /* Set module name */
   realmodule = Copy(Getattr(n,"name"));
   module = Copy(realmodule);
@@ -390,10 +386,10 @@ CHICKEN::top(Node *n)
 int
 CHICKEN::importDirective(Node *n)
 {
-  String *modname = Getattr(n,"module");
+  /*String *modname = Getattr(n,"module");
   if (modname) {
     Printf(f_scm,"(declare (uses %s))\n", modname);
-  }
+  }*/
   return Language::importDirective(n);
 }
 
