@@ -629,33 +629,24 @@ PHP4::top(Node *n) {
 	Printf(s_init,"#endif\n\n");
 
   Printf(s_init,
-	"PHP_RINIT_FUNCTION(%s)\n{\n"
-  	"    return SUCCESS;\n"
-  	"}\n",
-	module);
-
-  Printf(s_init,
 	"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n"
   	"    return SUCCESS;\n"
   	"}\n",
 	module);
 
-  Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
-
   /* Start variable init function (to be put in module init function) */
-  Printf(s_cinit,
-	"    int i;\n"
-	"    for (i = 0; swig_types_initial[i]; i++) {\n"
-	"        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
-	"    }\n");
-
+  //?What are these 2 comments for now?
   /* We have to register the constants before they are (possibly) used
    * by the pointer typemaps. This all needs re-arranging really as
    * things are being called in the wrong order
    */
 
-  Printf(s_init, "%s\n", s_cinit); 
-  Clear(s_cinit);
+  Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,
+	"    int i;\n"
+	"    for (i = 0; swig_types_initial[i]; i++) {\n"
+	"        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
+	"    }\n");
 
   /* Emit all of the code */
   Language::top(n);
@@ -663,20 +654,35 @@ PHP4::top(Node *n) {
   /* We need this after all classes written out by ::top */
   Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
   Printf(s_oinit, "/* end oinit subsection */\n");
+  Printf(s_init, "%s\n", s_oinit);
 
   /* Constants generated during top call */
+  // But save them for RINIT
   Printf(s_cinit, "/* end cinit subsection */\n");
-  Printf(s_init, "%s\n", s_cinit); 
 
   /* finish our init section which will have been used by class wrappers */
   Printf(s_vinit, "/* end vinit subsection */\n");
 
-  Printf(s_init, "%s\n%s\n", s_vinit, s_oinit);
-  Delete(s_cinit);
-  Delete(s_vinit);
-
   Printf(s_init, "    return SUCCESS;\n");
   Printf(s_init,"}\n");
+
+  // Now do REQUEST init which holds cinit and vinit
+  Printf(s_init,
+		"PHP_RINIT_FUNCTION(%s)\n{\n",
+	module);
+
+  Printf(s_init, "%s\n", s_cinit); 
+  Clear(s_cinit);
+
+  Printf(s_init, "%s\n", s_vinit);
+  Clear(s_vinit);
+
+  Printf(s_init,
+  	"    return SUCCESS;\n"
+  	"}\n");
+
+  Delete(s_cinit);
+  Delete(s_vinit);
 
   Printf(s_init,
 	"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n"
