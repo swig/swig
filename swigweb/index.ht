@@ -12,7 +12,7 @@ such as Perl, Python, Tcl/Tk, Ruby, Guile and MzScheme, however the list of
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
 non-scripting languages such as Java and OCAML. SWIG is most
 commonly used to create high-level interpreted programming
-environments and as a tool for building user interfaces.  SWIG may be
+environments, user interfaces, and as a tool for testing and prototyping C/C++ software.  SWIG may be
 freely used, distributed, and modified for commercial and
 noncommercial use.
 
