@@ -110,7 +110,7 @@ namespace test
   %template(FooT_H) hola::FooT<Hello>;
 }
 
-%template(FooT_d) test::hola::FooT<double>;
+%template(FooT_d) ::test::hola::FooT<double>;
 %template(BarT_H) test::hola::BarT<test::Hello>;
 
 %inline %{
