@@ -12,7 +12,8 @@ double get_m(double **M, int i, int j) {
 }
 %}
 
-%section "Matrix Operations"
+/*** Matrix Operations ***/
+
 extern double **new_matrix();
 /* Creates a new matrix and returns a pointer to it */
 

@@ -32,7 +32,7 @@ typedef struct {
     const int      array_const_i[ARRAY_LEN];
 } ArrayStruct;
 
-int fn_taking_arrays(SimpleStruct arrays[ARRAY_LEN]) {};
+int fn_taking_arrays(SimpleStruct arrays[ARRAY_LEN]) {}
 
 %}
 

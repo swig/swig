@@ -1,7 +1,8 @@
 // FILE : package.i
 // See the SWIG users manual
 
-%title "Matrix and vector package"
+/*** Matrix and vector package ***/
+
 %module Matrix
 %{
 #include <math.h>
