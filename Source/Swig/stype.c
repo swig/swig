@@ -15,85 +15,63 @@
 /* -----------------------------------------------------------------------------
  * Synopsis
  *
- * One of the goals of SWIG2.0 is to provide a standardized representation
- * of parse trees using XML.   However, it order to do this, it is necessary
- * to provide a textual representation of all parsing elements including datatypes.
- * Unfortunately, type systems are relatively complicated--making a
- * low-level or direct XML representation unnecessarily complicated to work
- * with.  For example, you probably wouldn't want to do this:
- *
- *       <type><pointer><array size="500"><pointer><pointer>int
- *             </pointer></pointer></array></pointer></type>
- *
- * The purpose of this module is to provide a general purpose type system
- * in which types are represented as simple text strings.   The goal of
- * this representation is to make it extremely easy to specify types in
- * XML documents, reduce memory overhead, and to allow fairly easy type
- * manipulation by anyone who wants to play with the type system.
+ * The purpose of this module is to provide a general purpose type representation
+ * based on simple text strings. 
  *
  * General idea:
  *
  * Types are represented by a base type (e.g., "int") and a collection of
- * type elements applied to the base (e.g., pointers, arrays, etc...).
+ * type operators applied to the base (e.g., pointers, arrays, etc...).
  *
  * Encoding:
  *
- * Types are encoded as strings of type constructors separated by '.' delimeters.
+ * Types are encoded as strings of type constructors such as follows:
  *
- *            String Encoding             C Example
- *            ---------------             ---------
- *            *.*.i-32                    int **
- *            [300].[400].i-32            int [300][400]
- *            *.+const.c-8                char const *
+ *        String Encoding                 C Example
+ *        ---------------                 ---------
+ *        p.p.int                         int **
+ *        a(300).a(400).int               int [300][400]
+ *        p.q(const).char                 char const *
  *
- * '*'                = Pointer
- * '&'                = Reference
- * '[...]'            = Array
- * '(..,..)'          = Function
- * '{s/tag/..,..}'    = Structure (/tag/ optional)
- * '{u/tag/..,..}'    = Union (/tag/ optional)
- * '{c/tag/..,..}'    = Class (/tag/ optional)
- * '</t/n=v,n=,..>'   = Enum (/tag/ optional, n = name,
- *                            v = value (optional))
- * '+str'             = Qualifier
- * 'i-w'              = w-bit signed integer
- * 'u-w'              = w-bit unsigned integer
- * 'c-w'              = w-bit character
- *
- * for structures, unions, classes, and enums, a missing body (no curly braces)
- * is denoted by a backslash (\) where the body would appear.  See examples.
- *
- * e.g. '*.+const.i-64'        pointer to const 64-bit integer
- * '(si-32,*.i-32).c-8         function taking 32-bit integer and
- *                              pointer to 32-bit integer and
- *                              returning 8-bit character
- * '{s/Foo/i-32,*.c-8}'        structure, tagged 'Foo', containing a
- *                              32-bit integer and a pointer to
- *                              8-bit character
- * '{si-32,*.c-8}'             same structure, without tag
- * '{ui-32,*.c-8}'             union with same members, without tag
- * '&</Nums/one=1,two,three>'  reference to enumeration, tagged
- *                              'Nums', mapping 'one' to 1, as well as
- *                              'two' and 'three'.
- * '&</Nums/\>'                same enum, without its body
+ * All type constructors are denoted by a trailing '.':
+ * 
+ *  'p.'                = Pointer
+ *  'r.'                = Reference
+ *  'a(n).'             = Array of size n
+ *  'f(..,..).'         = Function with arguments
+ *  'q(str).'           = Qualifier (such as const or volatile)
  *
  * The encoding follows the order that you might describe a type in words.
- * For example "*.[200].int" is "A pointer to array of int's" and
- * "*.+const.char" is "a pointer to a const char".
+ * For example "p.a(200).int" is "A pointer to array of int's" and
+ * "p.q(const).char" is "a pointer to a const char".
  *
- * This representation is particularly convenient because string operations
- * can be used to combine and manipulate types.  For example, a type could be
+ * This representation of types is fairly convenient because ordinary string
+ * operations can be used for type manipulation. For example, a type could be
  * formed by combining two strings such as the following:
  *
- *        "*.*." + "[400].int" = "*.*.[400].int"
+ *        "p.p." + "a(400).int" = "p.p.a(400).int"
  *
  * Similarly, one could strip a 'const' declaration from a type doing something
  * like this:
  *
- *        Replace(t,"+const.","",DOH_REPLACE_ANY)
+ *        Replace(t,"q(const).","",DOH_REPLACE_ANY)
  *
- * The string representation of types also provides a convenient way to
- * build typemaps and other pattern matching rules against type information.
+ * For the most part, this module tries to minimize the use of special
+ * characters (*, [, <, etc...) in its type encoding.  One reason for this
+ * is that SWIG might be extended to interact with data encodings such as
+ * XML in which case a type could be provided as follows:
+ * 
+ *      <function>
+ *         <type>p.p.int</type>
+ *         ...
+ *      </function>
+ *
+ * Or alternatively,
+ *
+ *      <function type="p.p.int" ...>blah</function>
+ *
+ * In either case, it's probably best to avoid characters such as '&'
+ * or '<'.
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
@@ -104,8 +82,7 @@
 
 void
 StringType_add_pointer(DOHString *t) {
-  assert(DohIsString(t));
-  Insert(t,0,"*.");
+  Insert(t,0,"p.");
 }
 
 /* -----------------------------------------------------------------------------
@@ -116,10 +93,9 @@ StringType_add_pointer(DOHString *t) {
 
 void
 StringType_add_array(DOHString *t, DOHString *size) {
-  assert(DohIsString(t));
-  Insert(t,0,"].");
-  Insert(t,0,size);
-  Insert(t,0,"[");
+  char temp[256];
+  sprintf(temp,"a(%s).", Char(size));
+  Insert(t,0,temp);
 }
 
 /* -----------------------------------------------------------------------------
@@ -130,8 +106,7 @@ StringType_add_array(DOHString *t, DOHString *size) {
 
 void
 StringType_add_reference(DOHString *t) {
-  assert(DohIsString(t));
-  Insert(t,0,"&.");
+  Insert(t,0,"r.");
 }
 
 /* -----------------------------------------------------------------------------
@@ -142,10 +117,9 @@ StringType_add_reference(DOHString *t) {
 
 void
 StringType_add_qualifier(DOHString *t, DOHString *qual) {
-  assert(DohIsString(t));
-  Insert(t,0,".");
-  Insert(t,0,qual);
-  Insert(t,0,"+");
+  char temp[256];
+  sprintf(temp,"q(%s).",Char(qual));
+  Insert(t,0,temp);
 }
 
 /* -----------------------------------------------------------------------------
@@ -160,11 +134,9 @@ StringType_add_function(DOHString *t, DOHList *parms) {
   DOHString *pstr;
   int        i,l;
 
-  assert(DohIsString(t));
   Insert(t,0,").");
-  pstr = NewString("");
+  pstr = NewString("f(");
   l = Len(parms);
-  Putc('(',pstr);
   for (i = 0; i < l; i++) {
     Printf(pstr,"%s",Getitem(parms,i));
     if (i < (l-1))
@@ -179,10 +151,10 @@ StringType_add_function(DOHString *t, DOHList *parms) {
  *
  * Isolate a single element of a type string (delimeted by periods)
  * ----------------------------------------------------------------------------- */
+
 static DOHString *
 isolate_element(char *c) {
   DOHString *result = NewString("");
-
   while (*c) {
     if (*c == '.') return result;
     else if (*c == '(') {
@@ -224,13 +196,12 @@ isolate_element(char *c) {
  * Splits a type into it's component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
-DOHList *StringType_split(DOH *t) {
+DOHList *StringType_split(DOHString_or_char *t) {
   DOH     *item;
   DOHList *list;
   char *c;
   int len;
 
-  assert(DohIsString(t));
   c = Char(t);
   list = NewList();
   while (*c) {
@@ -260,7 +231,6 @@ DOHString *StringType_pop(DOH *t)
   DOHString *result;
   char      *c;
 
-  assert(DohIsString(t));
   if (Len(t) == 0) return 0;
   c = Char(t);
   result = isolate_element(c);
@@ -282,7 +252,6 @@ void StringType_push(DOHString *t, DOHString *cons)
 {
   if (!cons) return;
   if (!Len(cons)) return;
-  assert(DohIsString(t));
   if (Len(t)) {
     int len;
     char *c = Char(cons);
@@ -303,7 +272,6 @@ DOHList *StringType_split_parms(DOHString *p) {
   DOHList *list;
   char *c;
 
-  assert(DohIsString(p));
   c = Char(p);
   assert(*c == '(');
   c++;
@@ -353,153 +321,11 @@ DOHList *StringType_split_parms(DOHString *p) {
   return list;
 }
 
-
-/* -----------------------------------------------------------------------------
- * StringType_get_tag()
- *
- * Returns the tag for a struct/enum/whatnot
- * ----------------------------------------------------------------------------- */
-
-DOHString *StringType_get_tag(DOHString *s) {
-   char *c = Char(s);
-
-   if (*c == '{')
-      c += 2;
-   else if (*c == '<')
-      c++;
-   else
-      assert(0);
-
-   if (*c == '/') {
-      char *rv, *p;
-      c++;
-      p = strchr(c, (int)'/');
-      if (!p) return NULL;
-      rv = (char *) DohMalloc (p - c + 1);
-      memmove(rv, c, p - c);
-      rv[p - c] = 0;
-      return rv;
-   }
-   else
-      return NULL;
-}
-
-/* -----------------------------------------------------------------------------
- * StringType_split_enum()
- *
- * Splits a comma separated list of enum elements
- * ----------------------------------------------------------------------------- */
-
-DOHList *StringType_split_enum(DOHString *s) {
-   DOHList *list;
-   DOH     *item;
-   char    *c = Char(s);
-
-   assert(*c == '<');
-   c++;
-   if (*c == '/') {
-      c++;
-      while (*c)
-	 if (*(c++) == '/') break;
-   }
-   if (*c == '\\')
-      return NULL;		/* no body at all */
-
-   list = NewList();
-   item = NewString("");
-   while (*c)
-   {
-      if (*c == ',') {
-	 Append(list, item);
-	 Delete(item);
-	 item = NewString("");
-      } else if (*c == '>')
-	 break;
-      else
-	 Putc(*c, item);
-      c++;
-   }
-   Append(list, item);
-   Delete(item);
-   return list;
-}
-
-/* -----------------------------------------------------------------------------
- * StringType_split_struct()
- *
- * Splits a comma separated list of structure components
- * ----------------------------------------------------------------------------- */
-
-DOHList *StringType_split_struct(DOHString *p) {
-  DOH     *item;
-  DOHList *list;
-  char    *c;
-
-  assert(DohIsString(p));
-  c = Char(p);
-  assert(*c == '{');
-  c++;
-  assert(*c == 's' || *c == 'c' || *c == 'u');
-  c++;
-  if (*c == '/') {
-     c++;
-     while (*c)
-	if (*(c++) == '/') break;
-  }
-  if (*c == '\\')
-     return NULL;		/* no body at all */
-  list = NewList();
-  item = NewString("");
-  while (*c) {
-    if (*c == ',') {
-      Append(list,item);
-      Delete(item);
-      item = NewString("");
-    } else if (*c == '{') {
-      int nbrace = 1;
-      Putc(*c,item);
-      c++;
-      while (*c) {
-	Putc(*c,item);
-	if (*c == '{') nbrace++;
-	if (*c == '}') {
-	  nbrace--;
-	  if (nbrace == 0) break;
-	}
-	c++;
-      }
-    } else if (*c == '}') {
-      break;
-    } else if (*c == '(') {
-      int nparen = 1;
-      Putc(*c,item);
-      c++;
-      while (*c) {
-	Putc(*c,item);
-	if (*c == '(') nparen++;
-	if (*c == ')') {
-	  nparen--;
-	  if (nparen == 0) break;
-	}
-	c++;
-      }
-    } else {
-      Putc(*c,item);
-    }
-    if (*c)
-      c++;
-  }
-  Append(list,item);
-  Delete(item);
-  return list;
-}
-
 /* -----------------------------------------------------------------------------
  * StringType_ispointer()
  * StringType_isarray()
  * StringType_isreference()
  * StringType_isfunction()
- * StringType_isstruct()
  * StringType_isqualifier()
  *
  * Testing functions for querying a datatype
@@ -538,15 +364,6 @@ int StringType_isfunction(DOHString *t) {
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '(') return 1;
-  return 0;
-}
-
-int StringType_isstruct(DOHString *t) {
-  char *c;
-
-  assert(DohIsString(t));
-  c = Char(t);
-  if (*c == '{') return 1;
   return 0;
 }
 
