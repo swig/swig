@@ -346,6 +346,8 @@ typedef_resolve(Typetab *s, String *base) {
   return type;
 }
 
+
+
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
@@ -353,7 +355,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   Typetab  *s, *ss;
   Hash     *ttab;
   String *namebase = 0;
-
+  String *nameprefix = 0;
+  int     newtype = 0;
   resolved_scope = 0;
 
   base = SwigType_base(t);
@@ -374,21 +377,31 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     /* Didn't find in this scope.   We need to do a little more searching */
     if (Strstr(base,"::")) {
       /* A qualified name. */
-      String *nameprefix;
       nameprefix = Swig_scopename_prefix(base);
       if (nameprefix) {
 	/* Name had a prefix on it.   See if we can locate the proper scope for it */
 	s = find_scope(s,nameprefix);
-	Delete(nameprefix);
-
 	/* Couldn't locate a scope for the type.  Bail */
 	if (!s) {
 	  Delete(base);
+	  Delete(nameprefix);
 	  return 0;
 	}
 	/* Try to locate the name starting in the scope */
 	namebase = Swig_scopename_base(base);
 	type = typedef_resolve(s,namebase);
+	if ((type) && (!Strstr(type,"::"))) {
+	  Typetab *rtab = resolved_scope;
+	  String *qname = Getattr(resolved_scope,"qname");
+	  /* If qualified *and* the typename is defined from the resolved scope, we qualify */
+	  if ((qname) && typedef_resolve(resolved_scope,type)) {
+	    type = Copy(type);
+	    Insert(type,0,"::");
+	    Insert(type,0,qname);
+	    newtype = 1;
+	  } 
+	  resolved_scope = rtab;
+	}
       } else {
 	/* Name is unqualified. */
 	type = typedef_resolve(s,base);
@@ -399,19 +412,22 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     }
   }
 
-  if (type && (Strcmp(base,type) == 0)) type = 0;
-  if (type && (Getmeta(type,"class"))) type = 0;
+  /*  Printf(stdout,"+ %s --> %s\n", base,type); */
 
-  if (!type) {
-    if (namebase) Delete(namebase);
-    Delete(base);
-    return 0;
-  }
+  if (type && (Strcmp(base,type) == 0)) type = 0;
+  /*  if (type && (Getmeta(type,"class"))) type = 0; */
+
+  if (namebase) Delete(namebase);
+  if (nameprefix) Delete(nameprefix);
+  Delete(base);
+  
+  if (!type) return 0;
 
   r = SwigType_prefix(t);
   Append(r,type);
-  Delete(base);
-  if (namebase) Delete(namebase);
+  if (newtype) {
+    Delete(type);
+  }
   /*  Printf(stdout,"%s --> %s\n", t,r); */
   return r;
 }
