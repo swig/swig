@@ -1,6 +1,15 @@
 Version 1.3.20 (In progress)
 ============================
-
+11/19/2003: beazley
+            Changes to the SWIG runtime library support. 
+              -  The -c command line option has been renamed to -noruntime
+              -  New command line option: -runtime.  When supplied, this
+                 inserts the symbol SWIG_GLOBAL into the wrapper code.  This,
+                 in turn, makes all of the runtime support functions globally
+                 visible.
+               - New library file: swigrun.i.   Used to create modules
+                 for runtime library (if needed).
+    
 11/18/2003: cheetah (William Fulton)
             'make srcrpm' rpmbuild fix - patch from Joe Cooper
 
