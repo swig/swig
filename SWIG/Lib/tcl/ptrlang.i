@@ -152,7 +152,7 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelem
    
   /* Create the new object */
   
-  ptr = (void *) malloc(sz);
+  ptr = (void *) calloc(1,sz);
   if (!ptr) {
     Tcl_SetResult(interp,"Out of memory in ptrcreate.",TCL_STATIC); 
     return TCL_ERROR;

@@ -145,7 +145,7 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
    
   /* Create the new object */
   
-  ptr = (void *) malloc(sz);
+  ptr = (void *) calloc(1,sz);
   if (!ptr) {
     PyErr_SetString(PyExc_MemoryError,"Out of memory in swig_create."); 
     return NULL;

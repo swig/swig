@@ -178,7 +178,7 @@ static SV *_ptrcreate(char *type, SV *value, int numelements) {
    
   /* Create the new object */
   
-  ptr = (void *) malloc(sz);
+  ptr = (void *) calloc(1,sz);
   if (!ptr) {
     croak("Out of memory in ptrcreate."); 
     return 0;
@@ -368,7 +368,6 @@ static SV *_ptradd(SV *_PTRVALUE, int offset) {
     croak("Type error in ptradd. Argument is not a valid pointer value.");
     return 0;
   }
-  printf("ptradd = %x\n", ptr);
   tname = HvNAME(SvSTASH(SvRV(_PTRVALUE)));
   obj = sv_newmortal();
   sv_setref_pv(obj,tname,ptr);

@@ -152,7 +152,7 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
    
   /* Create the new object */
   
-  ptr = (void *) malloc(sz);
+  ptr = (void *) calloc(1,sz);
   if (!ptr) {
     rb_raise(rb_eFatal,"Out of memory in swig_create."); 
   }

@@ -15,6 +15,11 @@ Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
 7/18/2001: beazley
+           * Fixed core-dump problem in pointer library when 
+             freeing character arrays.
+             SF Bug [ #415837 ] pointer lib core dump
+
+7/18/2001: beazley
            * Fixed problem with default destructors and shadow
              classes.  SF bug #221128.
 
