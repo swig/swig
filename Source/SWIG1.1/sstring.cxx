@@ -136,13 +136,13 @@ String::String() {
 // ---------------------------------------------------------------
 
 String::String(const char *s) {
-  int  max = INIT_MAXSIZE;
+  maxsize = INIT_MAXSIZE;
   int  l = 0;
   if (s) {
     l = (int) strlen(s);
-    if ((l+1) > max) max = l+1;
+    if ((l+1) > maxsize) maxsize = l+1;
   }
-  str = new char[max];
+  str = new char[maxsize];
   if (s) {
     strcpy(str,s);
     len = l;
