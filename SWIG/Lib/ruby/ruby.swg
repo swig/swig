@@ -54,7 +54,7 @@
 
 /* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void *
-        "SWIG_ConvertPtr($input, &$1, 0, 1);";
+        "SWIG_ConvertPtr($input, (void **) &$1, 0, 1);";
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
@@ -242,7 +242,7 @@
 }
 
 %typemap(varin) void *
-        "SWIG_ConvertPtr($input, &$1, 0, 1);";
+        "SWIG_ConvertPtr($input, (void **) &$1, 0, 1);";
 
 %typemap(varin) SWIGTYPE {
    $&1_ltype ptr;
