@@ -35,7 +35,7 @@ static char cvsroot[] = "$Header$";
  * ----------------------------------------------------------------------------- */
 
 static DOH  *cpp = 0;                /* C preprocessor data */
-static int   include_all = 0;        /* Follow all includes */
+static int   include_all = 1;        /* Follow all includes */
 static int   single_include = 1;     /* Only include each file once */
 static int   silent_errors = 0;
 static DOH  *included_files = 0;
@@ -1001,7 +1001,7 @@ SWIG_cpp_parse(DOH *s)
   	  val = SWIG_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET); 
-  	     cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
+	    /* cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
   	    allow = 0; 
   	  } else { 
   	    if (val == 0)  
