@@ -12,6 +12,8 @@
 typedef double Real;
 typedef Real Float;
 
+char buffer[256];
+
 /* A simple segmentation fault on an uninitialized pointer */
 int seg_crash() {
   int *a = 0;
@@ -40,12 +42,10 @@ int overflow_crash() {
   }
 }
 
-/* A simple bus error.  This might fail silently on certain platforms */
+/* A simple bus error.  */
 int bus_crash() {
-  int b;
-  int *a = &b;
-  a = (int *) ((int) a | 0x1);
-  *a = 3;
+  double *a = (double *) (buffer+1);
+  *a = 3.4;
   return 1;
 }
 
