@@ -359,9 +359,8 @@ SwigType *cplus_value_type(SwigType *t) {
 	if (((Strcmp(nodeType(n),"class") == 0) 
 	    && !Getattr(n,"allocate:noassign")
 	    && (Getattr(n,"allocate:default_constructor")))
-	    || (Getattr(n,"feature:novaluewrapper")
-		&& !Getattr(n,"feature:valuewrapper"))) {
-	  use_wrapper = 0;
+	    || (Getattr(n,"feature:novaluewrapper"))) {
+	  use_wrapper = Getattr(n,"feature:valuewrapper") ? 1 : 0;
 	}
       }
       Delete(ftd);

@@ -28,6 +28,15 @@ public:
 %feature("novaluewrapper") B;
 class B;
 
+/*
+ * Force swig to use the value wrapper, even when the class
+ * has a default constructor, in case you want to save a
+ * instance construction.
+ * 
+ */
+%feature("valuewrapper") D;
+class D;
+
 
 %inline %{
 
@@ -36,6 +45,8 @@ class A
 public:
   A(int){}
 };
+
+class D {};
 
 class Klass {};
 
@@ -88,6 +99,10 @@ auto_ptr<A> getPtrA(auto_ptr<A> a) {
 }
 
 B getB(B a) {
+  return a;
+}
+
+D getD(D a) {
   return a;
 }
  
