@@ -69,7 +69,8 @@ The following languages are also supported in SWIG 1.3.6 onwards.
 <li> Guile.
 </ul>
 
-PHP support was added in SWIG 1.3.11.
+PHP support was added in SWIG 1.3.11.<br>
+Objective Caml (Ocaml) support was added in SWIG 1.3.14.
 <p>
 
 Any newer versions of these languages should be assumed to be
