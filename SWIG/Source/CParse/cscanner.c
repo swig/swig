@@ -47,6 +47,7 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 extern  int    Error;
 static  int    last_id = 0;
+static  int    rename_active = 0;
 
 static int       fatal_errors = 0;         
 
@@ -1021,6 +1022,10 @@ void scanner_last_id(int x) {
   last_id = x;
 }
 
+void scanner_clear_rename() {
+  rename_active = 0;
+}
+
 /**************************************************************
  * int yylex()
  *
@@ -1154,7 +1159,7 @@ int yylex(void) {
 	      }
 	      Chop(s);
 	      yylval.str = s;
-	      if (isconversion) {
+	      if (isconversion && !rename_active) {
 		char *t = Char(s) + 9;
 		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0))) {
 		  /*		  retract(strlen(t));*/
@@ -1224,8 +1229,14 @@ int yylex(void) {
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
 	  if (strcmp(yytext,"%gencode") == 0) return (GENCODE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
-	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
-	  if (strcmp(yytext,"%namewarn") == 0) return (NAMEWARN);
+	  if (strcmp(yytext,"%rename") == 0) {
+	    rename_active = 1;
+	    return(RENAME);
+	  }
+	  if (strcmp(yytext,"%namewarn") == 0) {
+	    rename_active = 1;
+	    return (NAMEWARN);
+	  }
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
 	  if (strcmp(yytext,"%val") == 0) {
 	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);

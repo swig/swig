@@ -1135,6 +1135,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		      namewarn_add($2.id,t,$3);
 		    }
 		    $$ = 0;
+		    scanner_clear_rename();
               }
               | rename_namewarn LPAREN idstring RPAREN declarator cpp_const SEMI {
 		SwigType *t = $5.type;
@@ -1176,6 +1177,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  }
 		}
                 $$ = 0;
+		scanner_clear_rename();
               }
               | rename_namewarn LPAREN idstring RPAREN string SEMI {
 		if ($1) {
@@ -1184,6 +1186,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  namewarn_add($5,0,$3);
 		}
 		$$ = 0;
+		scanner_clear_rename();
               }
               ;
 
