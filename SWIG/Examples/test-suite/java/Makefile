@@ -9,7 +9,7 @@ include ../common.mk
 # Overridden variables here
 TOP        = ../../..
 SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE) -package $*
-TARGET     = lib$*
+TARGETPREFIX = lib
 
 # Rules for the different types of tests
 %.cpptest: 

@@ -3,7 +3,7 @@
 # Makefile for guile test-suite
 #######################################################################
 
-LANGUAGE   = guile_simple
+LANGUAGE   = guile_passive
 
 C_TEST_CASES = long_long list_vector pointer_in_out
 
@@ -22,6 +22,11 @@ include ../common.mk
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_multi_testcase)
+
 setup = \
 	@echo Checking testcase $* under Guile;
 
@@ -30,6 +35,11 @@ setup = \
 run_testcase = \
 	if [ -f $*\_runme.scm ]; then ( \
 	  ./$*-guile -l $*\_runme.scm;) \
+	fi;
+
+run_multi_testcase = \
+	if [ -f $*\_runme.scm ]; then ( \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH)::$LD_LIBRARY_PATH guile -l $*\_runme.scm;) \
 	fi;
 
 # Clean

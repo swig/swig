@@ -19,6 +19,11 @@ include ../common.mk
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
 setup = \
 	@echo Checking testcase $* under $(LANGUAGE);
 
@@ -26,7 +31,7 @@ setup = \
 # a file is found which has _runme.tcl appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.tcl ]; then ( \
-	  tclsh $*\_runme.tcl;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH tclsh $*\_runme.tcl;) \
 	fi;
 
 # Clean

@@ -20,6 +20,11 @@ SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
 setup = \
 	@echo Checking testcase $* under $(LANGUAGE);
 
@@ -27,7 +32,7 @@ setup = \
 # a file is found which has _runme.pl appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.pl ]; then ( \
-	  perl $*\_runme.pl;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH perl $*\_runme.pl;) \
 	fi;
 
 # Clean: remove the generated .pm file

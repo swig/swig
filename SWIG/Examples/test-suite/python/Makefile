@@ -7,7 +7,7 @@ LANGUAGE   = python
 include ../common.mk
 
 # Overridden variables here
-TARGET     = $*c
+TARGETSUFFIX = c
 SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
 
 # Rules for the different types of tests
@@ -21,6 +21,11 @@ SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
 setup = \
 	@echo Checking testcase $* under $(LANGUAGE);
 
@@ -28,7 +33,7 @@ setup = \
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.py ]; then ( \
-	  python $*\_runme.py;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH python $*\_runme.py;) \
 	fi;
 
 # Clean: remove the generated .py file

@@ -10,11 +10,12 @@
 # This makefile runs SWIG on the testcases, compiles the c/c++ code
 # then builds the object code for use by the language.
 # To complete a test in a language follow these guidelines: 
-# 1) Add testcases to CPP_TEST_CASES (c++) or C_TEST_CASES (c).
+# 1) Add testcases to CPP_TEST_CASES (c++) or C_TEST_CASES (c) or
+#    MULTI_CPP_TEST_CASES (multi-module c++ tests)
 # 2) If not already done, create a makefile which:
 #    a) Defines LANGUAGE matching a language rule in Examples/Makefile, 
 #       for example LANGUAGE = java
-#    b) Define rules for %.ctest and %.cpptest and %.clean.
+#    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
 #
 # The variables below can be overridden after including this makefile
 #######################################################################
@@ -27,10 +28,12 @@ SWIG       = $(TOP)/../swig
 TEST_SUITE = test-suite
 CXXSRCS    = 
 CSRCS      = 
-TARGET     = $*
+TARGETPREFIX = 
+TARGETSUFFIX = 
 SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
 INCLUDE    = -I$(TOP)/$(TEST_SUITE)
-INTERFACE  = $*.i
+RUNTIMEDIR = ../$(TOP)/Runtime/.libs
+DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
@@ -62,8 +65,16 @@ C_TEST_CASES += \
 	name \
 	preproc_1
 
-ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) $(C_TEST_CASES:=.ctest)
-ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) $(C_TEST_CASES:=.clean)
+MULTI_CPP_TEST_CASES += \
+	import \
+	import2
+
+ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
+		 $(C_TEST_CASES:=.ctest) \
+		 $(MULTI_CPP_TEST_CASES:=.multicpptest)
+ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) \
+		 $(C_TEST_CASES:=.clean) \
+		 $(MULTI_CPP_TEST_CASES:=.multicpptest)
 
 #######################################################################
 # The following applies for all module languages
@@ -75,12 +86,19 @@ check: all
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
-	TARGET="$(TARGET)" INTERFACE="$(INTERFACE)" $(LANGUAGE)_cpp
+	TARGET="$(TARGETPREFIX)$*$(TRAGETSUFFIX)" INTERFACE="$*.i" $(LANGUAGE)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
-	TARGET="$(TARGET)" INTERFACE="$(INTERFACE)" $(LANGUAGE)
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" $(LANGUAGE)
+
+swig_and_compile_multi_cpp = \
+	for f in `cat ../$*.list` ; do \
+	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
+	  INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" $(LANGUAGE)_multi_cpp; \
+	done
 
 #######################################################################
 # Clean
