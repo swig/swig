@@ -2538,6 +2538,7 @@ class JAVA : public Language {
     Wrapper    *w = NewWrapper();
     ParmList   *l = Getattr(n, "parms");
     bool        is_void = !(Cmp(type, "void"));
+    String     *qualified_return = NewString("");
     bool        pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
     int         status = SWIG_OK;
 
@@ -2587,6 +2588,7 @@ class JAVA : public Language {
         Delete(f);
         Delete(t);
 
+        qualified_return = SwigType_rcaststr(return_type, "result");
         if (!SwigType_isclass(return_type)) {
           if (!(SwigType_ispointer(return_type) || SwigType_isreference(return_type))) {
             Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), NIL);
@@ -2725,7 +2727,7 @@ class JAVA : public Language {
       /* Make sure that we return something in the case of a pure
        * virtual method call for syntactical reasons. */
       if (!is_void)
-        Printf(w->code, "return result;\n");
+        Printf(w->code, "return %s;", qualified_return);
       else
         Printf(w->code, "return;\n");
     }
@@ -3000,14 +3002,14 @@ class JAVA : public Language {
 
     /* Terminate wrapper code */
     if (!is_void)
-      Printf(w->code, "return result;\n");
+      Printf(w->code, "return %s;", qualified_return);
 
     Printf(w->code, "}");
 
     /* emit code */
     if (status == SWIG_OK && output_director) {
       if(!is_void) {
-        Replaceall(w->code,"$null", "result");
+        Replaceall(w->code,"$null", qualified_return);
       } else
         Replaceall(w->code,"$null","");
       Wrapper_print(w, f_directors);
@@ -3015,6 +3017,7 @@ class JAVA : public Language {
       Printv(f_directors_h, declaration, NIL);
     }
 
+    Delete(qualified_return);
     Delete(jnidesc);
     Delete(jniret_type);
     Delete(jniret_desc);
