@@ -236,6 +236,7 @@ class TypePass : public Dispatcher {
       if ((Strcmp(nodeType(nn),"template") == 0) ||
 	  (Getattr(nn,"feature:ignore")) ||
 	  (Getattr(nn,"error")) ||
+	  (Strcmp(nodeType(nn),"using") == 0) || 
 	  (checkAttribute(nn,"storage","friend"))) {
 	/* Remove from overloaded list */
 	Node *ps = Getattr(nn,"sym:previousSibling");
@@ -246,6 +247,11 @@ class TypePass : public Dispatcher {
 	if (ns) {
 	  Setattr(ns,"sym:previousSibling",ps);
 	}
+	Delattr(nn,"sym:previousSibling");
+	Delattr(nn,"sym:nextSibling");
+	Delattr(nn,"sym:overloaded");
+	nn = ns;
+	continue;
       } else {
 	if (!first) first = nn;
 	Setattr(nn,"sym:overloaded",first);
@@ -736,7 +742,10 @@ public:
 			  SwigType_typedef(t,Getattr(n,"name"));*/
 		    String *uname = Getattr(n,"uname");
 		    SwigType_typedef_using(uname);
-		}
+	      } else {
+		/* A normal C declaration. */
+
+	      }
 	    } else if ((Strcmp(ntype,"class") == 0) || ((Strcmp(ntype,"classforward") == 0))) {
 		/* We install the using class name as kind of a typedef back to the original class */
 		String *uname = Getattr(n,"uname");

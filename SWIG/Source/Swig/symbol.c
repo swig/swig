@@ -437,6 +437,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   String   *cstorage, *nstorage;
   int      nt = 0, ct = 0;
   int      pn = 0;
+  int      u1 = 0, u2 = 0;
   String   *name;
 
   /* See if the node has a name.  If so, we place in the C symbol table for this
@@ -557,11 +558,16 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
       if (Strcmp(nt1,"template") == 0) nt1 = Getattr(n,"templatetype");
       nt2 = nodeType(c);
       if (Strcmp(nt2,"template") == 0) nt2 = Getattr(c,"templatetype");
-      if (Strcmp(nt1,nt2) != 0) return c;
+      if (Strcmp(nt1,"using") == 0) u1 = 1;
+      if (Strcmp(nt2,"using") == 0) u2 = 1;
+
+      if ((Strcmp(nt1,nt2) != 0) && !(u1 || u2)) return c;
     }
-    if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
-      /* Symbol table conflict */
-      return c;
+    if (!(u1 || u2)) {
+      if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
+	/* Symbol table conflict */
+	return c;
+      }
     }
     
     /* Hmmm. Declarator seems to indicate that this is a function */
@@ -581,15 +587,16 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     pn = 0;
     while (cn) {
       decl = Getattr(cn,"decl");
-      if (Cmp(ndecl,decl) == 0) {
-	/* Declarator conflict */
-	return cn;
+      if (!(u1 || u2)) {
+	if (Cmp(ndecl,decl) == 0) {
+	  /* Declarator conflict */
+	  return cn;
+	}
       }
       cl = cn;
       cn = Getattr(cn,"sym:nextSibling");
       pn++;
     }
-
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n,"sym:symtab",current_symtab);
     Setattr(n,"sym:name",symname);

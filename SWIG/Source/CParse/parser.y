@@ -2677,22 +2677,6 @@ cpp_using_decl : USING idcolon SEMI {
 		  Setattr($$,"uname",$2);
 		  Setattr($$,"name", Swig_scopename_last($2));
 		  add_symbols($$);
-		  /*			  
-                  Node *n = Swig_symbol_clookup($2,0);
-                  if (!n) {
-		    Swig_warning(WARN_PARSE_USING_UNDEF, cparse_file, cparse_line, "Nothing known about '%s'.\n", $2);
-		    $$ = 0;
-		  } else {
-		    $$ = new_node("using");
-		    Setattr($$,"name", Copy(Getattr(n,"name")));
-		    Setattr($$,"uname", $2);
-		    while (Strcmp(nodeType(n),"using") == 0) {
-		      n = Getattr(n,"node");
-		    }
-		    Setattr($$,"node", n);
-		    add_symbols($$);
-		  }
-		  */
              }
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);

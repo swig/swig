@@ -585,6 +585,8 @@ public:
       Wrapper_print(f,f_wrappers);
     }
 
+    Setattr(n,"wrap:name", wname);
+
     /* Now register the function with the interpreter.   */
     if (!Getattr(n,"sym:overloaded")) {
       add_method(iname, wname, allow_kwargs);
@@ -598,7 +600,6 @@ public:
 	}
       }
     } else {
-      Setattr(n,"wrap:name", wname);
       if (!Getattr(n,"sym:nextSibling")) {
 	dispatchFunction(n);
       }
