@@ -6,7 +6,7 @@
 #include <vector>
 %}
 
-%typemap(in) vector<int> "";
+%typemap(in) vector<int> "/* Xyzzy! */";
 
 %inline %{
 void foo(vector<int > v) {}

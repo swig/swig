@@ -543,7 +543,7 @@ static void dump_nested(char *parent) {
 %type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method;
 %type <type>     type opt_signed opt_unsigned strict_type;
 %type <decl>     declaration nested_decl;
-%type <ivalue>   stars maybestars cpp_vend maybeconst;
+%type <ivalue>   stars maybestars cpp_vend maybeconst maybeand;
 %type <ilist>    initlist base_list inherit;
 %type <dtype>    definetype def_args;
 %type <dtype>    etype;
@@ -1652,8 +1652,11 @@ stars :          STAR empty { $$ = 1; }
                ;
 
 maybestars :   empty { $$ = 0; }
-	       | stars { $$ = $1; }
+	       | STAR maybestars { $$ = $2 + 1; }
 	       ;
+
+maybeand :     empty { $$ = 0; }
+	       | AND { $$ = 1; }
 
 array :        LBRACKET  RBRACKET array2 {
 		 $$ = $3 + 1;
@@ -3284,43 +3287,26 @@ tm_tail        : COMMA typemap_parm tm_tail {
                | empty { $$ = 0;}
                ;
 
-typemap_parm   : type typemap_name {
-		    if (InArray) {
-		      SwigType_push($1,ArrayString);
-		    }
-		    $$ = NewTMParm();
-                    $$->p = NewParm($1,$2);
-		    $$->args = tm_parm;
-		    Delete($1);
-		    free($2);
-                 }
-
-                | type stars typemap_name {
-		  $$ = NewTMParm();
-		   $$->p = NewParm($1,$3);
-		   SwigType *pt = Gettype($$->p);
-		   add_pointers(pt,$2);
-		   if (InArray) {
-		     SwigType_push(pt,ArrayString);
-		   }
-		   $$->args = tm_parm;
-		   Delete($1);
-		   free($3);
-		}
-
-                | type maybestars AND typemap_name {
+typemap_parm   : type maybestars maybeconst maybeand typemap_name {
                   $$ = NewTMParm();
-		  $$->p = NewParm($1,$4);
+		  $$->p = NewParm($1,$5);
 		  SwigType *pt = Gettype($$->p);
 		  add_pointers(pt,$2);
-		  SwigType_add_reference(pt);
-		  if (!CPlusPlus) {
+		  if ($3) 
+		     SwigType_add_qualifier(pt,(char*)"const");
+		  if (InArray) 
+		     SwigType_push(pt,ArrayString);
+		  if ($4) {
+		    SwigType_add_reference(pt);	
+		    if (!CPlusPlus) {
 			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+		    }
 		  }
 		  $$->args = tm_parm;
 		  Delete($1);
-		  free($4);
+		  free($5); 
 		}
+/* Following makes a shift/reduce conflict with above */
                 | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
                   Printf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();

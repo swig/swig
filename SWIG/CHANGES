@@ -14,6 +14,12 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/18/2001: mkoeppe
+	   * The parser now handles severely constified types in
+	   typemaps.  This introduced a new shift/reduce conflict, but
+	   only with a heuristic function-pointer catch-all rule.  
+	   * [Guile]: Added typemaps for severely constified types. 
+
 7/17/2001: mkoeppe
 	   * [Guile]: A Scheme file is emitted if the -scmstub FILE.SCM
 	   command-line option is used.  The %scheme directive
