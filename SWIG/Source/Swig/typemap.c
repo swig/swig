@@ -581,7 +581,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     int i;
     for (i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(type,i);
-      if (!index) {
+      if (index == 1) {
 	char t[32];
 	sprintf(t,"$dim%d",i);
 	Replace(s,t,dim,DOH_REPLACE_ANY);
@@ -593,7 +593,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
   }
 
   /* Parameter name substitution */
-  if (!index) {
+  if (index == 1) {
     Replace(s,"$name",pname, DOH_REPLACE_ANY);
   }
   strcpy(varname,"name");
@@ -613,7 +613,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     if (strstr(sc,"type")) {
       /* Given type : $type */
       ts = SwigType_str(type,0);
-      if (!index)
+      if (index == 1)
 	Replace(s, "$type", ts, DOH_REPLACE_ANY);
       strcpy(varname,"type");
       Replace(s,var,ts,DOH_REPLACE_ANY);
@@ -624,7 +624,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
       /* Local type:  $ltype */
       ltype = Swig_clocal_type(type);
       ts = SwigType_str(ltype,0);
-      if (!index)
+      if (index == 1)
 	Replace(s, "$ltype", ts, DOH_REPLACE_ANY);
       strcpy(varname,"ltype");
       Replace(s,var,ts,DOH_REPLACE_ANY);
@@ -636,13 +636,13 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
       /* Mangled type */
       
       mangle = SwigType_manglestr(type);
-      if (!index)
+      if (index == 1)
 	Replace(s, "$mangle", mangle, DOH_REPLACE_ANY);
       strcpy(varname,"mangle");
       Replace(s,var,mangle,DOH_REPLACE_ANY);
     
       descriptor = NewStringf("SWIGTYPE%s", mangle);
-      if (!index)
+      if (index == 1)
 	if (Replace(s, "$descriptor", descriptor, DOH_REPLACE_ANY))
 	  SwigType_remember(type);
       
@@ -665,7 +665,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
       star_type = Copy(type);
       SwigType_del_pointer(star_type);
       ts = SwigType_str(star_type,0);
-      if (!index) 
+      if (index == 1) 
 	Replace(s, "$*type", ts, DOH_REPLACE_ANY);
       sprintf(varname,"$*%d_type",index);
       Replace(s,varname,ts,DOH_REPLACE_ANY);
@@ -673,7 +673,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
       
       star_ltype = Swig_clocal_type(star_type);
       ts = SwigType_str(star_ltype,0);
-      if (!index)
+      if (index == 1)
 	Replace(s, "$*ltype", ts, DOH_REPLACE_ANY);
       sprintf(varname,"$*%d_ltype",index);
       Replace(s,varname,ts,DOH_REPLACE_ANY);
@@ -681,14 +681,14 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
       Delete(star_ltype);
       
       star_mangle = SwigType_manglestr(star_type);
-      if (!index) 
+      if (index == 1) 
 	Replace(s, "$*mangle", star_mangle, DOH_REPLACE_ANY);
       
       sprintf(varname,"$*%d_mangle",index);
       Replace(s,varname,star_mangle,DOH_REPLACE_ANY);
       
       star_descriptor = NewStringf("SWIGTYPE%s", star_mangle);
-      if (!index)
+      if (index == 1)
 	if (Replace(s, "$*descriptor",
 		    star_descriptor, DOH_REPLACE_ANY))
 	  SwigType_remember(star_type);
@@ -707,7 +707,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     amp_type = Copy(type);
     SwigType_add_pointer(amp_type);
     ts = SwigType_str(amp_type,0);
-    if (!index) 
+    if (index == 1) 
       Replace(s, "$&type", ts, DOH_REPLACE_ANY);
     sprintf(varname,"$&%d_type",index);
     Replace(s,varname,ts,DOH_REPLACE_ANY);
@@ -716,7 +716,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     amp_ltype = Swig_clocal_type(amp_type);
     ts = SwigType_str(amp_ltype,0);
     
-    if (!index)
+    if (index == 1)
       Replace(s, "$&ltype", ts, DOH_REPLACE_ANY);
     sprintf(varname,"$&%d_ltype",index);
     Replace(s,varname,ts,DOH_REPLACE_ANY);
@@ -724,13 +724,13 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     Delete(amp_ltype);
     
     amp_mangle = SwigType_manglestr(amp_type);
-    if (!index) 
+    if (index == 1) 
       Replace(s, "$&mangle", amp_mangle, DOH_REPLACE_ANY);
     sprintf(varname,"$&%d_mangle",index);
     Replace(s,varname,amp_mangle,DOH_REPLACE_ANY);
     
     amp_descriptor = NewStringf("SWIGTYPE%s", amp_mangle);
-    if (!index) 
+    if (index == 1) 
       if (Replace(s, "$&descriptor",
 		  amp_descriptor, DOH_REPLACE_ANY))
 	SwigType_remember(amp_type);
@@ -743,13 +743,13 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
     
     /* Base type */
     base_type = SwigType_base(type);
-    if (!index)
+    if (index == 1)
       Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
     strcpy(varname,"basetype");
     Replace(s,var,base_type,DOH_REPLACE_ANY);
     
     base_mangle = SwigType_manglestr(base_type);
-    if (!index)
+    if (index == 1)
       Replace(s,"$basemangle", base_mangle, DOH_REPLACE_ANY);
     strcpy(varname,"basemangle");
     Replace(s,var,base_mangle,DOH_REPLACE_ANY);
@@ -768,7 +768,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
  * creates the local variables.
  * ------------------------------------------------------------------------ */
 
-static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, ParmList *l, Wrapper *f) {
+static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
   char *new_name;
   SwigType *pbase = 0;
@@ -785,9 +785,14 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
 	/* If the user gave us $type as the name of the local variable, we'll use
 	   the passed datatype instead */
 
-	Printf(str,"%s",pn);
+	if (argnum >= 0) {
+	  Printf(str,"%s%d",pn,argnum);
+	} else {
+	  Printf(str,"%s",pn);
+	}
 	/* Substitute parameter names */
-	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
+	Replace(str,"$arg",pname, DOH_REPLACE_ANY);    /* This is deprecated (or should be) */
+
 	pbase = SwigType_base(pt);
         if (Cmp(pbase,"$basetype")==0) /* use $basetype */
 	  new_name = Wrapper_new_localv(f,str,SwigType_base(t),str,0);
@@ -845,7 +850,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   locals = Getattr(tm,"locals");
 
   if (locals && f) {
-    typemap_locals(type,pname,s,locals,f);
+    typemap_locals(type,pname,s,locals,f,-1);
   }
   typemap_replace_vars(s,type,pname,lname,1);
    
@@ -908,7 +913,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       lname = Getattr(p,"lname");
 
       if (locals && f && !i) {
-	typemap_locals(type,pname,s,locals,f);
+	typemap_locals(type,pname,s,locals,f,argnum);
       }
 
       typemap_replace_vars(s,type,pname,lname,i+1);
@@ -916,7 +921,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     }
 
     /* Replace the argument number */
-    sprintf(temp,"%d",argnum+1);
+    sprintf(temp,"%d",argnum);
     Replace(s,"$argnum",temp, DOH_REPLACE_ANY);
 
     /* Attach attributes to object */
