@@ -7,6 +7,11 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Work in progress
 ================
+
+06/14/2001: mkoeppe
+	    Use %%except instead of %except in some format
+	    strings. Reported by Ovidiu Toader, SF Bug #231923.
+
 02/03/01: beazley
           Fixed some bugs related to typedef and typemaps.  The following
           declarations are now legal:
