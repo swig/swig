@@ -86,4 +86,7 @@ PHPKW(xor);
 // This is conflicting with _std_deque.i!.
 PHPKW(empty);
 
+
+#undef PHPKW
+
 #endif //__php_phpkw_swg__

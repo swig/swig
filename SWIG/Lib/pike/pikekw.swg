@@ -51,4 +51,6 @@ PIKEKW(while);
 // Swig manages this one right 
 // PIKEKW(string);
 
+#undef PIKEKW
+
 #endif //__pike_pikekw_swg__
