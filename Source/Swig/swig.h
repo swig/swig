@@ -473,7 +473,7 @@ extern String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, Str
 				  String_or_char *source, String_or_char *target, Wrapper *f);
 
 extern String *Swig_typemap_lookup_new(const String_or_char *op, Node *n, const String_or_char *lname, Wrapper *f);
-
+extern void Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p);
 extern String *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, String_or_char *source, Wrapper *f, int *nmatch);
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
