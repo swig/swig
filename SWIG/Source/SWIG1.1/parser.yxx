@@ -110,6 +110,7 @@ static String *yyrename = 0;
 
 /* Forward renaming operator */
 static Hash   *rename_hash = 0;
+static Hash   *namewarn_hash = 0;
 
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
@@ -120,14 +121,29 @@ rename_add(char *name, SwigType *decl, char *newname) {
     n = NewHash();
     Setattr(rename_hash,name,n);
   }
-  
   /* Add a renaming based on the declarator */
   if (!decl) {
     Setattr(n,NewString("*"),newname);	
   } else {
     Setattr(n,Copy(decl),newname);
   }
+}
 
+static void
+namewarn_add(char *name, SwigType *decl, char *warning) {
+  Hash *n;
+  if (!namewarn_hash) namewarn_hash = NewHash();
+  n = Getattr(namewarn_hash,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(namewarn_hash,name,n);
+  }
+  /* Add a renaming based on the declarator */
+  if (!decl) {
+    Setattr(n,NewString("*"),warning);	
+  } else {
+    Setattr(n,Copy(decl),warning);
+  }
 }
 
 static void
@@ -165,6 +181,29 @@ rename_inherit(String *base, String *derived) {
       }
     }
   }
+
+  if (!namewarn_hash) return;
+  /* Inherit all of the name warnings as well */
+  for (key = Firstkey(namewarn_hash); key; key = Nextkey(namewarn_hash)) {
+    char *k = Char(key);
+    if (strncmp(k,cbprefix,plen) == 0) {
+      String *nkey = NewStringf("%s%s",dprefix,k+plen);
+      Hash *n;
+      n = Getattr(namewarn_hash,key);
+      Hash *newh = Getattr(namewarn_hash,nkey);
+      if (!newh) {
+	newh = NewHash();
+	Setattr(namewarn_hash,nkey,newh);
+      }
+      String *okey;
+      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
+	String *ovalue = Getattr(n,okey);
+	if (!Getattr(newh,okey)) {
+	  Setattr(newh,okey,Copy(ovalue));
+	}
+      }
+    }
+  }
 }
 
 static String *get_name(Hash *n, String *decl) {
@@ -180,7 +219,6 @@ static String *get_name(Hash *n, String *decl) {
 /* Generate the symbol table name for an object */
 static char *make_name(char *name,String *decl) {
   String *tname = 0;
-  char   *hname = 0;
   String *rn = 0;
   Node *n = 0;
   if (yyrename) {
@@ -225,9 +263,47 @@ static String *make_unnamed() {
   return NewStringf("$unnamed%d$",unnamed);
 }
 
+/* Generate the symbol table name for an object */
+static char *name_warning(char *name,String *decl) {
+  String *tname = 0;
+  String *rn = 0;
+  Node *n = 0;
+  if (!name) return 0;
+
+  /* Check to see if the name is in the hash */
+  if (!namewarn_hash) return 0;
+
+  if (Classprefix) {
+    if (Len(Classprefix)) {
+      tname = NewStringf("%s::%s",Classprefix,name);
+      n = Getattr(namewarn_hash,tname);
+      rn = get_name(n,decl);
+      Delete(tname);
+    }
+    if (!rn) {
+      tname = NewStringf("*::%s",name);
+      n = Getattr(namewarn_hash,tname);
+      rn = get_name(n,decl);
+      Delete(tname);
+    }
+  } else {
+    tname = NewStringf("::%s",name);
+    n = Getattr(namewarn_hash,tname);
+    rn = get_name(n,decl);
+    Delete(tname);
+  }
+  if (!rn) {
+    n = Getattr(namewarn_hash,name);
+    rn = get_name(n,decl);
+  }
+  if (!rn) return 0;
+  return Char(rn);
+}
+
 /* Add declaration list to symbol table */
 static void add_symbols(Node *n) {
   String *decl;
+  char *wrn = 0;
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
   while (n) {
@@ -239,26 +315,31 @@ static void add_symbols(Node *n) {
     char *symname;
     if (!SwigType_isfunction(decl)) {
       symname = make_name(GetChar(n,"name"),0);
+      wrn = name_warning(symname,0);
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop(fdecl);
       symname = make_name(GetChar(n,"name"),fun);
+      wrn = name_warning(symname,fun);
       Delete(fdecl);
       Delete(fun);
     }
-
-    String *storage = Getstorage(n);
     if (!symname) {
       n = nextSibling(n);
       continue;
     }
+    //    String *storage = Getstorage(n);
+
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       Seterror(n,NewString("ignored"));
-      char *c = Char(symname)+7;
+      char *c = Char(symname)+8;
       if (strlen(c)) {
-	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n),Getline(n),c+1);
+	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n), Getline(n), c);
       }
     } else {
+      if ((wrn) && (strlen(wrn))) {
+	Printf(stderr,"%s:%d. NameWarning. %s\n", Getfile(n), Getline(n), wrn);
+      }
       Node *c = Swig_symbol_add(symname,n);
       if (c != n) {
 	String *e = NewString("");
@@ -529,7 +610,7 @@ static Node *dump_nested(char *parent) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
-%token NAME RENAME ADDMETHODS PRAGMA
+%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA
 %token ENUM
 %token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
@@ -597,6 +678,7 @@ static Node *dump_nested(char *parent) {
 %type <id>       string;
 %type <str>      template_parms;
 %type <ivalue>   cpp_vend;
+%type <ivalue>   rename_namewarn;
 
 %%
 
@@ -1010,13 +1092,17 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
    %rename identifier "newname";
    ------------------------------------------------------------ */
 
-rename_directive : RENAME declarator idstring SEMI {
+rename_directive : rename_namewarn declarator idstring SEMI {
                     SwigType *t = $2.type;
 		    if (!Len(t)) t = 0;
-		    rename_add($2.id,t,$3);
+		    if ($1) {
+		      rename_add($2.id,t,$3);
+		    } else {
+		      namewarn_add($2.id,t,$3);
+		    }
 		    $$ = 0;
               }
-              | RENAME LPAREN idstring RPAREN declarator SEMI {
+              | rename_namewarn LPAREN idstring RPAREN declarator SEMI {
 		SwigType *t = $5.type;
 		if (!Len(t)) t = 0;
 		/* Special declarator check */
@@ -1025,23 +1111,54 @@ rename_directive : RENAME declarator idstring SEMI {
 		    SwigType *decl = SwigType_pop(t);
 		    if (SwigType_ispointer(t)) {
 		      String *nname = NewStringf("*%s",$5.id);
-		      rename_add(Char(nname),decl,$3);
+		      if ($1) {
+			rename_add(Char(nname),decl,$3);
+		      } else {
+			namewarn_add(Char(nname),decl,$3);
+		      }
 		      Delete(nname);
 		    } else {
-		      rename_add($5.id,decl,$3);
+		      if ($1) {
+			rename_add($5.id,decl,$3);
+		      } else {
+			namewarn_add($5.id,decl,$3);
+		      }
 		    }
 		  } else if (SwigType_ispointer(t)) {
 		    String *nname = NewStringf("*%s",$5.id);
-		    rename_add(Char(nname),0,$3);
+		    if ($1) {
+		      rename_add(Char(nname),0,$3);
+		    } else {
+		      namewarn_add(Char(nname),0,$3);
+		    }
 		    Delete(nname);
 		  }
 		} else {
-		  rename_add($5.id,0,$3);
+		  if ($1) {
+		    rename_add($5.id,0,$3);
+		  } else {
+		    namewarn_add($5.id,0,$3);
+		  }
 		}
                 $$ = 0;
               }
+              | rename_namewarn LPAREN idstring RPAREN string SEMI {
+		if ($1) {
+		  rename_add($5,0,$3);
+		} else {
+		  namewarn_add($5,0,$3);
+		}
+		$$ = 0;
+              }
               ;
 
+rename_namewarn : RENAME {
+		    $$ = 1;
+                } 
+                | NAMEWARN {
+                    $$ = 0;
+                };
+ 
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
    %typemap(method) type "..."

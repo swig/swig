@@ -1086,6 +1086,7 @@ extern "C" int yylex(void) {
 	      String *s = NewString("operator");
 	      int c;
 	      int state = 0;
+	      int sticky = 0;
 	      int isconversion = 0;
 	      while (c = nextchar()) {
 		if (((c == '(') || (c == ';')) && state) {
@@ -1094,9 +1095,13 @@ extern "C" int yylex(void) {
 		}
 		if (!isspace(c)) {
 		  if ((!state) && (isalpha(c))) isconversion = 1;
-		  if (!state) Putc(' ',s);
+		  if (!state && !sticky) Putc(' ',s);
 		  Putc(c,s);
+		  sticky = 0;
 		  state = 1;
+		} else {
+		  if (!sticky) Putc(' ',s);
+		  sticky = 1;
 		}
 	      }
 	      yylval.str = s;
@@ -1168,6 +1173,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
+	  if (strcmp(yytext,"%namewarn") == 0) return (NAMEWARN);
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
 	  if (strcmp(yytext,"%val") == 0) {
 	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
