@@ -172,18 +172,18 @@
 %typemap(memberout) C_NAME {
     $resunt = C_TO_MZ($1);
 }
-%typemap(in) C_NAME *INPUT (C_NAME temp) {
-    temp = (C_NAME) MZ_TO_C($input);
+%typemap(in) C_NAME *INPUT ($*1_ltype temp) {
+    temp = ($*1_ltype) MZ_TO_C($input);
     $1 = &temp;
 }
-%typemap(in,numinputs=0) C_NAME *OUTPUT (C_NAME temp) {
+%typemap(in,numinputs=0) C_NAME *OUTPUT ($*1_ltype temp) {
     $1 = &temp;
 }
 %typemap(argout) C_NAME *OUTPUT {
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
-%typemap(in) C_NAME & (C_NAME temp) {
-    temp = (C_NAME) MZ_TO_C($input);
+%typemap(in) C_NAME & ($*1_ltype temp) {
+    temp = ($*1_ltype) MZ_TO_C($input);
     $1 = &temp;
 }
 %typemap(argout) C_NAME & {
