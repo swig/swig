@@ -19,6 +19,11 @@
       {
 	return 1;
       }      
+
+      int value2() const
+      {
+	return 2;
+      }      
     };    
   }
 
@@ -43,12 +48,8 @@ namespace hello
   {
     struct hi1 : private hello::Hi< hello::Hello, hi0 >
     {
-      // This works
-      // using hello::Hi< hello::Hello, hi::hi0 >::value1;
-
-      // This doesn't
-      using hello::Hi< hello::Hello, hi0 >::value1;
-
+      using hello::Hi< hello::Hello, hi::hi0 >::value1;
+      using hello::Hi< hello::Hello, hi0 >::value2;
     };
     
   }
