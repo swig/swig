@@ -510,13 +510,30 @@ is accessed using a function similar to this:<p>
 }
 </pre></blockquote>
 
+As a special case, most language modules pass <tt>const</tt> references to primitive datatypes (<tt>int</tt>, <tt>short</tt>,
+<tt>float</tt>, etc.) by value instead of pointers.  For example, if you have a function like this,
+
+<blockquote>
+<pre>
+void foo(const int &x);
+</pre>
+</blockquote>
+
+it is called from a script as follows:
+
+<blockquote>
+<pre>
+foo(3)              # Notice pass by value
+</pre>
+</blockquote>
+
 Functions that return a reference are remapped to return a pointer instead.
 For example:
 
 <blockquote><pre>
 class Bar {
 public:
-     double &spam();
+     Foo &spam();
 };
 </pre>
 </blockquote>
@@ -525,15 +542,33 @@ Generates code like this:
 
 <blockquote>
 <pre>
-double *Bar_spam(Bar *obj) {
-   double &result = obj->spam();
+Foo *Bar_spam(Bar *obj) {
+   Foo &result = obj->spam();
    return &result;
 }
 </pre>
 </blockquote>
+
+Functions that return references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
+return the result as a value rather than a pointer.  For example, a function like this,
+
+<blockquote>
+<pre>
+int &bar();
+</pre>
+</blockquote>
+
+will return integers such as 37 or 42 in the target scripting language rather than a pointer to an integer.
+
+<P>
 Don't return references to objects allocated as local variables on the
 stack.  SWIG doesn't make a copy of the objects so this will probably
 cause your program to crash.
+
+<p>
+<b>Note:</b> The special treatment for references to primitive datatypes is necessary to provide
+more seamless integration with more advanced C++ wrapping applications---especially related to 
+templates and the STL.  This was first added in SWIG-1.3.12.
 
 <h2>Pass and return by value</h2>
 
@@ -1401,7 +1436,7 @@ the first renaming rule found on a depth-first traversal of the class hierarchy
 is used.
 
 <p>
-<li>The name matching rules are strictly follow member qualification rules.
+<li>The name matching rules strictly follow member qualification rules.
 For example, if you have a class like this:
 
 <blockquote>
@@ -1449,7 +1484,7 @@ above:
 defines a copy constructor, it is wrapped into a different accessor
 function than an ordinary constructor.  See the section on constructors and destructors
 for details.
- 
+
 </ul>
 
 <h2>Wrapping overloaded operators</h2>
@@ -1719,11 +1754,10 @@ template instantiation a more suitable name such as <tt>intvector</tt>
 when creating a wrapper.
 
 <p>
-To illustrate, consider the following (and admittedly lame) template
-class declaration:
+To illustrate, consider the following template definition:
 
 <p>
-<blockquote><pre>// File : list.h
+<blockquote><pre>
 template&lt;class T&gt; class List {
 private:
     T *data;
@@ -2069,7 +2103,56 @@ Miraculously, you will find that each expansion of <tt>Foo</tt> has member
 functions <tt>bari()</tt> and <tt>bard()</tt> added.
 
 <p>
-If the last example wasn't quite enough and you really want to make
+A common use of member templates is to define constructors for copies and conversions. For example:
+
+<blockquote>
+<pre>
+template&lt;class T1, class T2&gt; struct pair {
+   T1 first;
+   T2 second;
+   pair() : first(T1()), second(T2()) { }
+   pair(const T1 &x, const T2 &y) : first(x), second(y) { }
+   template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &x) : first(x.first),second(x.second) { }
+};
+</pre>
+</blockquote>
+
+This declaration is perfectly acceptable to SWIG, but the constructor template will be ignored
+unless you explicitly expand it.  To do that, you could expand a few versions of the constructor
+in the template class itself.  For example:
+
+<blockquote>
+<pre>
+%extend pair {
+   %template(pair) pair&lt;T1,T2&gt;;        // Generate default copy constructor
+};
+</pre>
+</blockquote>
+
+When using <tt>%extend</tt> in this manner, notice how you can still use the template parameters in
+the original template definition. 
+
+<p>
+Alternatively, you could expand the constructor template in selected instantiations. For example:
+
+<blockquote>
+<pre>
+// Instantiate a few versions
+%template(pairii) pair&lt;int,int&gt;;
+%template(pairdd) pair&lt;double,double&gt;;
+
+// Create a conversion constructor from int to double
+%extend pair&lt;double,double&gt; {
+   %template(pairdd_from_pairii) pair&lt;int,int&gt;;   // Conversion constructor
+};
+</pre>
+</blockquote>
+
+Admittedly, this isn't very pretty or automatic.  However, it's probably
+better than nothing--well, maybe.
+
+<p>
+If all of this isn't quite enough and you really want to make
 someone's head explode, SWIG directives such as
 <tt>%rename</tt>, <tt>%extend</tt>, and <tt>%typemap</tt> can be
 included directly in template definitions.  For example:
@@ -2187,8 +2270,9 @@ wrapper for the second definition, just do it manually:
 </blockquote>
 
 <p>
-<li>Class templates may not be defined within the body of another template class. If you are
-doing this on purpose, we're all really impressed, but please stop. 
+<li>Templates may not be used as a template parameter (i.e., template
+template parameters). If you are doing this on purpose, we're all
+really impressed, but please stop.
 
 </ul>
 
@@ -2517,6 +2601,8 @@ a basic namespace implementation.  Since namespaces are a new addition
 to SWIG, none of the target language modules are currently programmed
 with any namespace awareness.   In the future, language modules may or may not provide
 more advanced namespace support.
+
+
 
 <h2>Pointers to Members</h2>
 
