@@ -1,21 +1,10 @@
-<!-- Published by Quadralay WebWorks HTML Lite 1.5.1 -->
-<!-- And munged by Dave's special Python script -->
 <html>
 <head>
 <title>Exception Handling</title>
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n0"></a><h1>7 Exception Handling</h1><p><ul>
-<li> <a href="#n1">The %except directive</a>
-<li> <a href="#n2">Handling exceptions in C code</a>
-<li> <a href="#n3">Exception handling with longjmp()</a>
-<li> <a href="#n4">Handling C++ exceptions</a>
-<li> <a href="#n5">Defining different exception handlers</a>
-<li> <a href="#n6">Using The SWIG exception library</a>
-<li> <a href="#n7">Debugging and other interesting uses for %except</a>
-<li> <a href="#n8">More Examples</a>
-</ul>
+<h1>7 Exception Handling</h1>
 
 In some cases, it is desirable to catch errors that occur in C
 functions and propagate them up to the scripting language interface
@@ -23,7 +12,7 @@ functions and propagate them up to the scripting language interface
 create a user-definable exception handler using the <tt>%except</tt>
 directive.<p>
 
-<a name="n1"></a><h2> The %except directive</h2>
+<h2>The %except directive</h2>
 
 The <tt>%except</tt> directive allows you to define an exception
 handler. It works something like this :<p>
@@ -53,7 +42,7 @@ To delete an exception handler, simply use the <tt>%except</tt>
 directive with no code. For example :<p>
 
 <p>
-<blockquote><pre>%except(python); 				// Deletes any previously defined handler
+<blockquote><pre>%except(python); // Deletes any previously defined handler
 
 </pre></blockquote>
 
@@ -62,7 +51,7 @@ handler is from the point of definition to the end of the file, the
 definition of a new exception handler, or until the handler is
 deleted.<p>
 
-<a name="n2"></a><h2> Handling exceptions in C code</h2>
+<h2> Handling exceptions in C code</h2>
 
 C has no formal mechanism for handling exceptions so there are many
 possibilities. The first approach is to simply provide some functions
@@ -125,7 +114,7 @@ clean and it assumes that your C code is a willing participant in
 generating error messages. (This isn't going to magically add
 exceptions to a code that doesn't have them).<p>
 
-<a name="n3"></a><h2> Exception handling with longjmp()</h2>
+<h2> Exception handling with longjmp()</h2>
 
 Exception handling can also be added to C code using the
 <tt>&lt;setjmp.h&gt;</tt> library. This usually isn't documented very
@@ -195,7 +184,7 @@ At this point, you're saying this sure looks alot like C++ and you'd
 be right (C++ exceptions are often implemented in a similar manner).
 As always, the usual disclaimers apply--your mileage may vary.  <p>
 
-<a name="n4"></a><h2> Handling C++ exceptions</h2>
+<h2> Handling C++ exceptions</h2>
 
 Handling C++ exceptions is almost completely trivial (well, all except
 for the actual C++ part).  A typical SWIG exception handler will look
@@ -235,7 +224,7 @@ in function declarations. For example :<p>
 
 </pre></blockquote>
 
-<a name="n5"></a><h2> Defining different exception handlers</h2>
+<h2> Defining different exception handlers</h2>
 
 By default, the <tt>%except</tt> directive creates an exception
 handler that is used for all wrapper functions that follow it.
@@ -258,7 +247,7 @@ Thus, a more efficient use of exception handling may work like this
 
 </pre></blockquote>
 
-<a name="n9"></a><h3> Applying exception handlers to specific datatypes.</h3>
+<h3> Applying exception handlers to specific datatypes.</h3>
 
 An alternative approach to using the <tt>%except</tt> directive is to
 use the "except" typemap.  This allows you to attach an error handler
@@ -311,7 +300,7 @@ different exception handler for every function, it is possible to have
 a high degree of control if you need it.  When typemaps are used, they
 override any exception handler defined with <tt>%except</tt>.<p>
 
-<a name="n6"></a><h2> Using The SWIG exception library</h2>
+<h2> Using The SWIG exception library</h2>
 
 The <tt>exception.i</tt> library file provides support for creating
 language independent exceptions in your interfaces.  To use it, simply
@@ -364,7 +353,7 @@ functions.  The exception library provides a language-independent
 exception handling mechanism, so many of SWIG's library files now rely
 upon the library as well.<p>
 
-<a name="n7"></a><h2> Debugging and other interesting uses for %except</h2>
+<h2> Debugging and other interesting uses for %except</h2>
 
 Since the <tt>%except </tt>directive allows you to encapsulate the
 actual C function call, it can also be used for debugging and tracing
@@ -400,7 +389,7 @@ that this must be done before any C/C++ declarations are made (as
 exception handlers are applied immediately to all functions that
 follow them).<p>
 
-<a name="n8"></a><h2> More Examples</h2>
+<h2> More Examples</h2>
 
 By now, you know most of the exception basics.  See the SWIG Examples
 directory for more examples and ideas.  Further chapters show how to
@@ -410,6 +399,6 @@ generate exceptions in specific scripting languages.<p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : July 16, 2001</address>
+<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
 </body>
 </html>

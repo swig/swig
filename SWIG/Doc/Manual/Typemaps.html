@@ -1,29 +1,12 @@
-<!-- Published by Quadralay WebWorks HTML Lite 1.5.1 -->
-<!-- And munged by Dave's special Python script -->
 <html>
 <head>
 <title>Pointers, Constraints, and Typemaps</title>
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n0"></a><h1>6 Pointers, Constraints, and Typemaps</h1><p><ul>
-<li> <a href="#n1">Introduction</a>
-<li> <a href="#n2">The SWIG Pointer Library</a>
-<li> <a href="#n3">Introduction to typemaps</a>
-<li> <a href="#n4">Managing input and output parameters</a>
-<li> <a href="#n5">Applying constraints to input values</a>
-<li> <a href="#n6">Writing new typemaps</a>
-<li> <a href="#n7">Common typemap methods</a>
-<li> <a href="#n8">Writing typemap code</a>
-<li> <a href="#n9">Typemaps for handling arrays</a>
-<li> <a href="#n10">Typemaps and the SWIG Library</a>
-<li> <a href="#n11">Implementing constraints with typemaps</a>
-<li> <a href="#n12">Typemap examples</a>
-<li> <a href="#n13">How to break everything with a typemap</a>
-<li> <a href="#n14">Typemaps and the future</a>
-</ul>
+<h1>6 Pointers, Constraints, and Typemaps</h1>
 
-<a name="n1"></a><h2> Introduction</h2>
+<h2>Introduction</h2>
 
 For most applications, SWIG's treatment of basic datatypes and
 pointers is enough to build an interface. However, in certain cases,
@@ -37,7 +20,7 @@ advanced methods for managing pointers, arrays, and complex
 datatypes. It also describes how you can customize SWIG to handle new
 kinds of objects and datatypes.<p>
 
-<a name="n2"></a><h2> The SWIG Pointer Library</h2>
+<h2> The SWIG Pointer Library</h2>
 
 If your interface involves C pointers, chances are you will need to
 work with these pointers in some way or another. The SWIG pointer
@@ -60,7 +43,7 @@ described below. The functions are mainly designed to work with basic
 C datatypes, but can often be used with more complicated
 structures.<p>
 
-<a name="n15"></a><h3> Pointer Library Functions</h3>
+<h3> Pointer Library Functions</h3>
 
 <b>ptrcreate(type,?value?,?nitems?)</b><p>
 <dl>
@@ -136,7 +119,7 @@ equivalent. <tt>type1</tt> and <tt>type2</tt> are specified as
 strings. Not generally needed, but sometimes useful.
 </dl>
 
-<a name="n16"></a><h3> A simple example</h3>
+<h3> A simple example</h3>
 
 Suppose you have the following C function :<p>
 
@@ -189,7 +172,7 @@ C function, and dereference it to get the result. It's essentially
 identical to how we would have done it in C (well, minus the function
 call to dereference the value).<p>
 
-<a name="n17"></a><h3> Creating arrays</h3>
+<h3> Creating arrays</h3>
 
 Now suppose you have a C function involving arrays :<p>
 <p>
@@ -245,7 +228,7 @@ function created a real C array that can be interchanged with other
 arrays. The <tt>ptrvalue()</tt> function can also dereference a C
 pointer even if it wasn't created from Python. <p>
 
-<a name="n18"></a><h3> Packing a data structure</h3>
+<h3> Packing a data structure</h3>
 
 The pointer library can even be used to pack simple kinds of
 data-structures, perhaps for sending across a network, or simply for
@@ -278,7 +261,7 @@ follows :<p>
 This function could be used even if you didn't tell SWIG anything
 about the "Point" structure above. <p>
 
-<a name="n3"></a><h2> Introduction to typemaps</h2>
+<h2> Introduction to typemaps</h2>
 
 Sometimes it's desirable to change SWIG behavior in some manner. For
 example, maybe you want to automatically translate C arrays to and
@@ -288,7 +271,7 @@ mechanism for doing just this by modifying SWIG's code
 generator. Typemaps are new to SWIG 1.1, but it should be emphasized
 that they are not required to build an interface. <p>
 
-<a name="n19"></a><h3> The idea (in a nutshell)</h3>
+<h3> The idea (in a nutshell)</h3>
 
 The idea behind typemaps is relatively simple--given the occurrence of
 a particular C datatype, we want to apply rules for special
@@ -319,7 +302,7 @@ not be applied to "<tt>double *input</tt>". On the other hand, special
 processing defined for a datatype of "<tt>double *</tt>" could be
 applied to both (since it is more general). <p>
 
-<a name="n20"></a><h3> Using some typemaps</h3>
+<h3> Using some typemaps</h3>
 
 It is easy to start using some typemaps right away. To wrap the above
 function, simply use the <tt>typemaps.i</tt> library file (which is
@@ -359,7 +342,7 @@ Our function is much easier to use and it is no longer necessary to
 create a special double * object and pass it to the function. Typemaps
 took care of this automatically.<p>
 
-<a name="n4"></a><h2> Managing input and output parameters</h2>
+<h2> Managing input and output parameters</h2>
 
 By default, when SWIG encounters a pointer, it makes no assumptions
 about what it is (well, other than the fact that it's a pointer). The
@@ -367,7 +350,7 @@ about what it is (well, other than the fact that it's a pointer). The
 changing this behavior. The following methods are available in this
 file :<p>
 
-<a name="n21"></a><h3> Input Methods</h3>
+<h3> Input Methods</h3>
 
 These methods tell SWIG that a pointer is a single input value. When
 used, functions will expect values instead of pointers.<p>
@@ -410,7 +393,7 @@ Now, when you use your function ,it will work like this :<p>
 7
 </pre></blockquote>
 
-<a name="n22"></a><h3> Output Methods</h3>
+<h3> Output Methods</h3>
 
 These methods tell SWIG that pointer is the output value of a
 function. When used, you do not need to supply the argument when
@@ -470,7 +453,7 @@ below :<p>
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n23"></a><h3> Input/Output Methods</h3>
+<h3> Input/Output Methods</h3>
 
 When a pointer serves as both an input and output value you can use
 the following methods :<p>
@@ -514,7 +497,7 @@ Now within a script, you can simply call the function normally :<p>
 
 </pre></blockquote>
 
-<a name="n24"></a><h3> Using different names</h3>
+<h3> Using different names</h3>
 
 By explicitly using the parameter names of INPUT, OUTPUT, and BOTH in
 your declarations, SWIG performs different operations. If you would
@@ -543,7 +526,7 @@ directive can be used :<p>
 %clear Int32 *in, long *x;
 </pre></blockquote>
 
-<a name="n5"></a><h2> Applying constraints to input values</h2>
+<h2> Applying constraints to input values</h2>
 
 In addition to changing the handling of various input values, it is
 also possible to apply constraints. For example, maybe you want to
@@ -551,7 +534,7 @@ insure that a value is positive, or that a pointer is non-NULL. This
 can be accomplished including the <tt>constraints.i</tt> library file
 (which is also based on typemaps).<p>
 
-<a name="n25"></a><h3> Simple constraint example</h3>
+<h3> Simple constraint example</h3>
 
 The constraints library is best illustrated by the following interface
 file :<p>
@@ -575,7 +558,7 @@ the arguments violate the constraint condition, a scripting language
 exception will be raised. As a result, it is possible to catch bad
 values, prevent mysterious program crashes and so on.<p>
 
-<a name="n26"></a><h3> Constraint methods</h3>
+<h3> Constraint methods</h3>
 
 The following constraints are currently available<p>
 
@@ -589,7 +572,7 @@ NONNULL                      Non-NULL pointer (pointers only).
 
 </pre></blockquote>
 
-<a name="n27"></a><h3> Applying constraints to new datatypes</h3>
+<h3> Applying constraints to new datatypes</h3>
 
 The constraints library only supports the built-in C datatypes, but it
 is easy to apply it to new datatypes using <tt>%apply</tt>. For
@@ -613,7 +596,7 @@ constraint, the %clear directive can be used :<p>
 %clear Vector *;
 </pre></blockquote>
 
-<a name="n6"></a><h2> Writing new typemaps</h2>
+<h2> Writing new typemaps</h2>
 
 So far, we have only seen a high-level picture of typemaps and have
 utilized pre-existing typemaps in the SWIG library. However, it is
@@ -636,7 +619,7 @@ demonstrated). This section describes the basics of typemaps. Language
 specific information (which can be quite technical) is contained in
 the later chapters.<p>
 
-<a name="n28"></a><h3> Motivations for using typemaps</h3>
+<h3> Motivations for using typemaps</h3>
 
 Suppose you have a few C functions such as the following :<p>
 <p>
@@ -649,7 +632,7 @@ nothing, SWIG will convert the last argument into a pointer. When used
 in the scripting language, you will need to pass a "<tt>GLfloat
 *</tt>" object to the function to make it work. <p>
 
-<a name="n29"></a><h3> Managing special data-types with helper functions</h3>
+<h3> Managing special data-types with helper functions</h3>
 
 Helper functions provide one mechanism for dealing with odd
 datatypes. With a helper function, you provide additional
@@ -698,7 +681,7 @@ earlier is an example of just this sort of approach. As a rule of
 thumb, I recommend that you try to use this approach before jumping
 into typemaps. <p>
 
-<a name="n30"></a><h3> A Typemap Implementation</h3>
+<h3> A Typemap Implementation</h3>
 
 As we have seen, a typemap can often eliminate the need for helper
 functions. Without diving into the details, a more sophisticated
@@ -714,7 +697,7 @@ This is a more natural implementation that replaces the low-level
 pointer method. Now we will look into how one actually specifies a
 typemap.<p>
 
-<a name="n31"></a><h3> What is a typemap?</h3>
+<h3> What is a typemap?</h3>
 
 A typemap is specified using the <tt>%typemap</tt> directive in your
 interface file. A simple typemap might look liks this :<p>
@@ -747,7 +730,7 @@ going to use when generating wrapper code. In this example,
 and <tt>$target</tt> would be the C integer value that is going to be
 passed into the "add" function.<p>
 
-<a name="n32"></a><h3> Creating a new typemap</h3>
+<h3> Creating a new typemap</h3>
 
 A new typemap can be created as follows :<p>
 <blockquote><pre>
@@ -805,7 +788,7 @@ current target language. This form is only recommended for typemap
 methods that are language independent (there are a few). It is not
 recommended if you are building interfaces for multiple languages.<p>
 
-<a name="n33"></a><h3> Deleting a typemap</h3>
+<h3> Deleting a typemap</h3>
 
 A typemap can be deleted by providing no conversion code. For example
 :<p>
@@ -815,7 +798,7 @@ A typemap can be deleted by providing no conversion code. For example
 
 </pre></blockquote>
 
-<a name="n34"></a><h3> Copying a typemap</h3>
+<h3> Copying a typemap</h3>
 
 A typemap can be copied using the following declaration :<p>
 
@@ -828,7 +811,7 @@ This specifies that the typemap for "<tt>unsigned int</tt>" should be
 the same as the "<tt>int</tt>" typemap.<p> This is most commonly used
 when working with library files.<p>
 
-<a name="n35"></a><h3> Typemap matching rules</h3>
+<h3> Typemap matching rules</h3>
 
 When you specify a typemap, SWIG is going to try and match it with all
 future occurrences of the datatype you specify. The matching process
@@ -887,7 +870,7 @@ argument of "<tt>int *OUTPUT</tt>" always be treated as an output
 value of a function or make a "<tt>char **argv</tt>" always accept a
 list of string values.<p>
 
-<a name="n7"></a><h2> Common typemap methods</h2>
+<h2> Common typemap methods</h2>
 
 The following methods are supported by most SWIG language
 modules. Individual language may provide any number of other methods
@@ -913,12 +896,12 @@ typemaps can be found on the chapters for each target language.<p>
 <center><img src="ch6.2.png">
 <p></center>
 
-<a name="n8"></a><h2> Writing typemap code</h2>
+<h2> Writing typemap code</h2>
 
 The conversion code supplied to a typemap needs to follow a few
 conventions described here.<p>
 
-<a name="n36"></a><h3> Scope</h3>
+<h3> Scope</h3>
 
 Typemap code is enclosed in braces when it is inserted into the
 resulting wrapper code (using C's block-scope). It is perfectly legal
@@ -927,7 +910,7 @@ variables will only exist in the tiny portion of code you supply. In
 other words, any local variables that you create in a typemap will
 disappear when the typemap has completed its execution.<p>
 
-<a name="n37"></a><h3> Creating local variables</h3>
+<h3> Creating local variables</h3>
 
 Sometimes it is necessary to declare a new local variable that exists
 in the scope of the entire wrapper function. This can be done by
@@ -967,7 +950,7 @@ Some typemaps do not recognize local variables (or they may simply not
 apply). At this time, only the "in", "argout", "default", and "ignore"
 typemaps use local variables.<p>
 
-<a name="n38"></a><h3> Special variables</h3>
+<h3> Special variables</h3>
 
 The following special variables may be used within a typemap
 conversion code :<p>
@@ -979,7 +962,7 @@ with the correct values. Not all values are used in all
 typemaps. Please refer to the SWIG reference manual for the precise
 usage. <p>
 
-<a name="n9"></a><h2> Typemaps for handling arrays</h2>
+<h2> Typemaps for handling arrays</h2>
 
 One of the most common uses of typemaps is providing some support for
 arrays. Due to the subtle differences between pointers and arrays in
@@ -1075,7 +1058,7 @@ A typemap using a specific dimension always has precedence over a more
 general version. For example, <tt>[ANY][4]</tt> will be used
 before<tt>[ANY][ANY]</tt>.<p>
 
-<a name="n10"></a><h2> Typemaps and the SWIG Library</h2>
+<h2> Typemaps and the SWIG Library</h2>
 
 Writing typemaps is a tricky business. For this reason, many common
 typemaps can be placed into a SWIG library file and reused in other
@@ -1134,7 +1117,7 @@ To clear a typemap that has been applied, you can use the
 <blockquote><pre>%clear double x; 			// Clears any typemaps being applied to double x
 </pre></blockquote>
 
-<a name="n11"></a><h2> Implementing constraints with typemaps</h2>
+<h2> Implementing constraints with typemaps</h2>
 
 One particularly interesting application of typemaps is the
 implementation of argument constraints. This can be done with the
@@ -1176,7 +1159,7 @@ a NULL pointer. As a result, SWIG can often prevent a potential
 segmentation faults or other run-time problems by raising an exception
 rather than blindly passing values to the underlying C/C++ program.<p>
 
-<a name="n12"></a><h2> Typemap examples</h2>
+<h2> Typemap examples</h2>
 
 Typemaps are inherently language dependent so more examples appear in
 later chapters. The SWIG<tt> Examples </tt>directory also includes a
@@ -1184,7 +1167,7 @@ variety of examples. Sophisticated users may gain more by examining
 the <tt>typemaps.i</tt> and <tt>constraints.i </tt>SWIG library
 files.<p>
 
-<a name="n13"></a><h2> How to break everything with a typemap</h2>
+<h2> How to break everything with a typemap</h2>
 
 It should be emphasized that typemaps provide a direct mechanism for
 modifying SWIG's output. As a result, it can be very easy to break
@@ -1194,7 +1177,7 @@ to use SWIG with most kinds of applications. Power users, however,
 will probably find typemaps to be a useful tool for creating extremely
 powerful scripting language extensions. <p>
 
-<a name="n14"></a><h2> Typemaps and the future</h2>
+<h2> Typemaps and the future</h2>
 
 The current typemap mechanism, while new, will probably form the basis
 of SWIG 2.0. Rather than having code buried away inside a C++ module,
@@ -1205,6 +1188,6 @@ almost exclusively. <p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : July 16, 2001</address>
+<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
 </body>
 </html>
