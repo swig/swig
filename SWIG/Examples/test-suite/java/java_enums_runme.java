@@ -1,7 +1,7 @@
 
 import java_enums.*;
 
-public class java_enums_runme {
+public class java_enums_runme implements java_enumsConstants {
   static {
     try {
         System.loadLibrary("java_enums");
@@ -36,5 +36,19 @@ public class java_enums_runme {
       short nonsense = java_enums.POPPYCOCK;
       short tst1 = java_enums.test1(nonsense);
       short tst2 = java_enums.test2(nonsense);
+
+      // Check that we can drop the java_enums keyword as this class implements the java_enumsConstants interface
+      switch(number) {
+          case FIDDLE:
+              break;
+          case STICKS:
+              break;
+          case BONGO:
+              break;
+          case DRUMS:
+              break;
+          default:
+              break;
+      }
   }
 }

@@ -3,6 +3,12 @@
 
 %module java_enums
 
+// Some pragmas to add in an interface to the module class - checks that the java_enumsConstants interface class is also 'implemented'
+%pragma(java) moduleinterfaces="Serializable"
+%pragma(java) moduleimports=%{
+import java.io.*; // For Serializable
+%}
+
 // Set default Java const code generation
 %javaconst(1);
 
