@@ -3,6 +3,15 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 5 
 ===================
 
+9/19/00 : beazley
+          Library files specified with the -l option are now included at the
+          end of the interface file (reverting to the old behavior).
+
+9/19/00 : beazley
+          Fixed some problems with enum handling.  enums are now manipulated as
+          'int', but cast into the enum type when values are passed to the 
+          corresponding C function.
+
 9/19/00 : mkoeppe
 	  [Guile] Removed "-with-smobs" command-line option, as this is the
 	  default now.  Added "-emit-setters" command-line option,
