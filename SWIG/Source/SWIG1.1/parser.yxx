@@ -39,10 +39,7 @@ extern void  yyerror (const char *s);
 extern int  line_number;
 extern int  start_line;
 extern void skip_brace(void);
-extern void skip_define(void);
 extern void skip_decl(void);
-extern int  skip_cond(int);
-extern void skip_to_end(void);
 extern void skip_template(void);
 extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
@@ -598,7 +595,8 @@ end_class(SwigType *endtype, char *endname) {
 %token <id> POUND 
 %token <id> STRING
 %token <loc> INCLUDE IMPORT WEXTERN INSERT
-%token <str> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
+%token <str> CHARCONST
+%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
@@ -654,17 +652,14 @@ end_class(SwigType *endtype, char *endname) {
  * ====================================================================== */
 
 program        :  interface {
-                   cplus_cleanup();    /* Dump all of the C++ classes */
-    
 		   if (lang_init) {    /* Clean up the language module if initialized */
+		     cplus_cleanup();    /* Dump all of the C++ classes */
 		     lang->close();
 		   }
                }
                ;
 
-interface      : interface declaration {
-                     Error = 0;
-                }
+interface      : interface declaration {  Error = 0;  }
                | empty
                ;
 
@@ -2146,26 +2141,11 @@ etype            : expr {
    this does allow us to parse many constant declarations.
  */
 
-expr           :  NUM_INT {
-                  $$.val = $1;
-                  $$.type = T_INT;
-                 }
-               |  NUM_FLOAT {
-                  $$.val = $1;
-                  $$.type = T_DOUBLE;
-               }
-               |  NUM_UNSIGNED {
-                  $$.val = $1;
-		  $$.type = T_UINT;
-	       }
-               |  NUM_LONG {
-                  $$.val = $1;
-		  $$.type = T_LONG;
-	       }
-               |  NUM_ULONG {
-                  $$.val = $1;
-		  $$.type = T_ULONG;
-	       }
+expr           :  NUM_INT { $$ = $1; }
+               |  NUM_FLOAT { $$ = $1; }
+               |  NUM_UNSIGNED { $$ = $1; }
+               |  NUM_LONG { $$ = $1; }
+               |  NUM_ULONG { $$ = $1; }
                |  SIZEOF LPAREN type parameter_declarator RPAREN {
   		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
@@ -2198,46 +2178,22 @@ expr           :  NUM_INT {
                | expr AND expr {
 		 $$.val = NewStringf("%s&%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
 	       }
                | expr OR expr {
 		 $$.val = NewStringf("%s|%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
-		 $$.type = T_INT;
 	       }
                | expr XOR expr {
 		 $$.val = NewStringf("%s^%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
-		 $$.type = T_INT;
 	       }
                | expr LSHIFT expr {
 		 $$.val = NewStringf("%s<<%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
-		 $$.type = T_INT;
 	       }
                | expr RSHIFT expr {
 		 $$.val = NewStringf("%s>>%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
-		 $$.type = T_INT;
 	       }
                |  MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
@@ -2245,10 +2201,6 @@ expr           :  NUM_INT {
 	       }
                |  NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
-		 if ($2.type == T_DOUBLE) {
-		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
-		   FatalError();
-		 }
 		 $$.type = $2.type;
 	       }
                |  LPAREN expr RPAREN {
@@ -2346,22 +2298,20 @@ cpp_const      : CONST {}
 
 /* Constructor initializer */
 
-ctor_end       : cpp_const ctor_initializer SEMI {
-		Clear(CCode);
-               }
+ctor_end       : cpp_const ctor_initializer SEMI { Clear(CCode); }
                | cpp_const ctor_initializer LBRACE { skip_brace(); }
                ;
 
-ctor_initializer : COLON mem_initializer_list {}
-               | empty {}
+ctor_initializer : COLON mem_initializer_list
+               | empty
                ;
 
-mem_initializer_list : mem_initializer { }
-               | mem_initializer_list COMMA mem_initializer { }
+mem_initializer_list : mem_initializer
+               | mem_initializer_list COMMA mem_initializer
                ;
 
 mem_initializer : ID LPAREN expr_list RPAREN { }
-               | ID LPAREN RPAREN { }
+                | ID LPAREN RPAREN { }
                 ;
 
 expr_list      : expr { }
@@ -2397,4 +2347,5 @@ empty          :   ;
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (const char *) {
 }
+
 

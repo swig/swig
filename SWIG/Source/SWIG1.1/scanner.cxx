@@ -340,41 +340,6 @@ void skip_template(void) {
 }
 
 /**************************************************************
- * void skip_to_end(void)
- *
- * Skips to the @end directive in a Objective-C definition
- **************************************************************/
-
-void skip_to_end(void) {
-  char c;
-  int  state = 0;
-  yylen = 0;
-  while ((c = nextchar())){
-    switch(state) {
-    case 0:
-      if (c == '@') state = 1;
-      else yylen = 0;
-      break;
-    case 1:
-      if (isspace(c)) {
-	if (strncmp(yytext,"@end",4) == 0) return;
-	else {
-	  yylen = 0;
-	  state = 0;
-	}
-      } else {
-	state = 1;
-      }
-      break;
-    }
-  }
-  Printf(stderr,"%s : EOF. Missing @end. Reached end of input.\n",
-	  input_file);
-  FatalError();
-  return;
-}
-
-/**************************************************************
  * void skip_decl(void)
  *
  * This tries to skip over an entire declaration.   For example
@@ -999,7 +964,12 @@ extern "C" int yylex(void) {
     case NUM_ULONG:
     case NUM_LONG:
     case NUM_UNSIGNED:
-      yylval.str = NewString(yytext);
+      if (l == NUM_INT) yylval.dtype.type = T_INT;
+      if (l == NUM_FLOAT) yylval.dtype.type = T_DOUBLE;
+      if (l == NUM_ULONG) yylval.dtype.type = T_ULONG;
+      if (l == NUM_LONG) yylval.dtype.type = T_LONG;
+      if (l == NUM_UNSIGNED) yylval.dtype.type = T_UINT;
+      yylval.dtype.val = NewString(yytext);
       return(l);
       break;
       
