@@ -1994,7 +1994,7 @@ public:
       // Exception handler
       Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName); 
       Replaceall(tm, "$error", "error");
-      Printf(rescue->code, "if (%s == 0) ", depthCountName);
+      Printf(rescue->code, "if (%s == 1) ", depthCountName);
       Printv(rescue->code, Str(tm), "\n", NIL);
       Printf(rescue->code, "%s--;\n", depthCountName);
       Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
@@ -2002,6 +2002,7 @@ public:
       
       // Main code
       Wrapper_add_localv(w, "args", "Swig::body_args", "args", NIL);
+      Wrapper_add_localv(w, "status", "int", "status", NIL);
       Printv(w->code, "args.recv = swig_get_self();\n", NIL);
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
@@ -2015,8 +2016,14 @@ public:
         Printv(w->code, "args.argv = 0;\n", NIL);
       }
       Printf(w->code,
-        "result = rb_rescue2((VALUE(*)(ANYARGS)) %s, reinterpret_cast<VALUE>(&args), (VALUE(*)(ANYARGS)) %s, reinterpret_cast<VALUE>(&args), rb_eStandardError, 0);\n",
-        bodyName, rescueName);
+        "result = rb_protect((VALUE(*)(VALUE)) %s, reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
+      Printf(w->code,
+        "if (status) {\n");
+      Printf(w->code,
+        "VALUE lastErr = rb_gv_get(\"$!\");\n");
+      Printf(w->code,
+        "%s(reinterpret_cast<VALUE>(&args), lastErr);\n", rescueName);
+      Printf(w->code, "}\n");
       if (argc > 0) {
         Printv(w->code, "delete [] args.argv;\n", NIL);
       }
