@@ -12,8 +12,8 @@ YACC        = @YACC@
 
 INCLUDE     = -I. -I../Swig -I../DOH/Include -I../Preprocessor
 
-SRCS = cscanner.c type.c
-OBJS = parser.o cscanner.o type.o
+SRCS = cscanner.c
+OBJS = parser.o cscanner.o
 TARGET = liblparse.a
 
 .c.o: 
