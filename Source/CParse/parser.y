@@ -67,6 +67,7 @@ static int      inclass = 0;
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
+static int      extendmode   = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -477,13 +478,26 @@ void add_symbols_copy(Node *n) {
    actually needs to take precedence.  Therefore, we will selectively nuke symbols
    from the current symbol table, replacing them with the added methods */
 
-static void merge_extensions(Node *am) {
+static void merge_extensions(Node *cls, Node *am) {
   Node *n;
   Node *csym;
 
   n = firstChild(am);
   while (n) {
     String *symname;
+    if (Strcmp(nodeType(n),"constructor") == 0) {
+      symname = Getattr(n,"sym:name");
+      if (symname) {
+	if (Strcmp(symname,Getattr(n,"name")) == 0) {
+	  /* If the name and the sym:name of a constructor are the same,
+             then it hasn't been renamed.  However---the name of the class
+             itself might have been renamed so we need to do a consistency
+             check here */
+	  Setattr(n,"sym:name", Getattr(cls,"sym:name"));
+	}
+      }
+    }
+
     symname = Getattr(n,"sym:name");
     DohIncref(symname);
     if ((symname) && (!Getattr(n,"error"))) {
@@ -1027,12 +1041,14 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
+		 extendmode = 1;
 	       }
 	       Classprefix = NewString($3);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
 	       Delete(clsname);
 	     } cpp_members RBRACE {
                String *clsname;
+	       extendmode = 0;
                $$ = new_node("extend");
 	       Setattr($$,"symtab",Swig_symbol_popscope());
 	       if (prev_symtab) {
@@ -1988,7 +2004,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			    Symtab *st = Swig_symbol_current();
 			    Swig_symbol_setscope(Getattr($$,"symtab"));
 			    /*			    Printf(stdout,"%s: %s %x %x\n", Getattr($$,"name"), clsname, Swig_symbol_current(), Getattr($$,"symtab")); */
-			    merge_extensions(am);
+			    merge_extensions($$,am);
 			    Swig_symbol_setscope(st);
 			    appendChild($$,am);
 			    Delattr(extendhash,clsname);
@@ -2355,7 +2371,7 @@ cpp_class_decl  :
 		   String *clsname = Swig_symbol_qualifiedscopename(0);
 		   Node *am = Getattr(extendhash,clsname);
 		   if (am) {
-		     merge_extensions(am);
+		     merge_extensions($$,am);
 		     appendChild($$,am);
 		     Delattr(extendhash,clsname);
 		   }
@@ -2488,7 +2504,7 @@ cpp_class_decl  :
 		       Node *am = Getattr(extendhash,clsname);
 		       if (am) {
 			 /* Merge the extension into the symbol table */
-			 merge_extensions(am);
+			 merge_extensions($$,am);
 			 appendChild($$,am);
 			 Delattr(extendhash,clsname);
 		       }
@@ -2968,6 +2984,16 @@ cpp_members  : cpp_member cpp_members {
 cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { 
                  $$ = $1; 
+		 if (extendmode) {
+		   String *symname;
+		   symname= make_name(Getattr($$,"name"), Getattr($$,"decl"));
+		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
+		     /* No renaming operation.  Set name to class name */
+		     yyrename = NewString(Getattr(current_class,"sym:name"));
+		   } else {
+		     yyrename = symname;
+		   }
+		 }
 		 add_symbols($$);
              }
              | cpp_destructor_decl { $$ = $1; }
@@ -2996,22 +3022,6 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (Classprefix) {
 		 SwigType *decl = NewString("");
 		 $$ = new_node("constructor");
-
-		 /* Since the parse performs type-corrections in template mode, we
-                    have to undo the correction here.  Ugh. */
-
-		 /* Check for template names.  If the class is a template
-                    and the constructor is missing the template part, we
-                    add it */
-		 /*		 {
-		   char *c = Strstr(Classprefix,"<");
-		   if (c) {
-		     if (!Strstr($2,"<")) {
-		       Append($2,c);
-		     }
-		   }
-		 }
-		 */
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
