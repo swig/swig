@@ -29,7 +29,23 @@ class RClass {
   String *name;    /* class name (renamed) */
   String *cname;   /* original C class/struct name */
   String *mname;   /* Mangled name */
-  String *vname;   /* variable name */
+  
+  /**
+   * The C variable name used in the SWIG-generated wrapper code to refer to
+   * this class; usually it is of the form "cClassName.klass", where cClassName
+   * is a swig_class struct instance and klass is a member of that struct.
+   */
+  String *vname;
+
+  /**
+   * The C variable name used in the SWIG-generated wrapper code to refer to
+   * the module that implements this class's methods (when we're trying to
+   * support C++ multiple inheritance). Usually it is of the form
+   * "cClassName.mImpl", where cClassName is a swig_class struct instance
+   * and mImpl is a member of that struct.
+   */
+  String *mImpl;
+
   String *type;
   String *prefix;
   String *header;
@@ -44,6 +60,7 @@ class RClass {
     cname = NewString("");
     mname = NewString("");
     vname = NewString("");
+    mImpl = NewString("");
     type = NewString("");
     prefix = NewString("");
     header = NewString("");
@@ -56,6 +73,7 @@ class RClass {
     Delete(name);
     Delete(cname);
     Delete(vname);
+    Delete(mImpl);
     Delete(mname);
     Delete(type);
     Delete(prefix);
@@ -65,14 +83,27 @@ class RClass {
   }
 
   void set_name(const String_or_char *cn, const String_or_char *rn, const String_or_char *valn) {
+    /* Original C/C++ class (or struct) name */
     Clear(cname);
     Append(cname,cn);
+
+    /* Mangled name */
     Delete(mname);
     mname = Swig_name_mangle(cname);
+
+    /* Renamed class name */
     Clear(name);
     Append(name,valn);
+
+    /* Variable name for the VALUE that refers to the Ruby Class object */
     Clear(vname);
-    Printf(vname,"c%s.klass",name);
+    Printf(vname, "c%s.klass", name);
+    
+    /* Variable name for the VALUE that refers to the Ruby Class object */
+    Clear(mImpl);
+    Printf(mImpl, "c%s.mImpl", name);
+
+    /* Prefix */
     Clear(prefix);
     Printv(prefix,(rn ? rn : cn), "_", NIL);
   }
@@ -93,6 +124,7 @@ usage = "\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -globalmodule   - Wrap everything into the global module\n\
+     -minherit       - Attempt to support multiple inheritance\n\
      -feature name   - Set feature name (used by `require')\n";
 
 
@@ -116,6 +148,7 @@ private:
   File *f_init;
   bool use_kw;
   bool useGlobalModule;
+  bool multipleInheritance;
 
   // Wrap modes
   enum {
@@ -152,6 +185,7 @@ public:
     f_init = 0;
     use_kw = false;
     useGlobalModule = false;
+    multipleInheritance = false;
   }
   
   /* ---------------------------------------------------------------------
@@ -180,6 +214,9 @@ public:
 	  }
 	} else if (strcmp(argv[i],"-globalmodule") == 0) {
           useGlobalModule = true;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-minherit") == 0) {
+          multipleInheritance = true;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  Printf(stderr,"%s\n", usage);
@@ -471,8 +508,13 @@ public:
     
     switch (current) {
     case MEMBER_FUNC:
-      Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	     iname, "\", ", wname, ", -1);\n", NIL);
+      if (multipleInheritance) {
+        Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"",
+               iname, "\", ", wname, ", -1);\n", NIL);
+      } else {
+        Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
+               iname, "\", ", wname, ", -1);\n", NIL);
+      }
       break;
     case CONSTRUCTOR_ALLOCATE:
       Printv(s, tab4, "rb_define_alloc_func(", klass->vname, ", ", alloc_func, ");\n", NIL);
@@ -487,8 +529,13 @@ public:
       Append(temp,iname);
       Replaceall(temp,"_set", "=");
       Replaceall(temp,"_get", "");
-      Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	     temp, "\", ", wname, ", -1);\n", NIL);
+      if (multipleInheritance) {
+        Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"",
+               temp, "\", ", wname, ", -1);\n", NIL);
+      } else {
+        Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
+               temp, "\", ", wname, ", -1);\n", NIL);
+      }
       break;
     case STATIC_FUNC:
       Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
@@ -1160,8 +1207,13 @@ public:
       Replaceall(tm, "$symname", iname);
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {
-	Replaceall(tm, "$module", klass->vname);
-	Printv(klass->init, tm, "\n", NIL);
+        if (multipleInheritance) {
+          Replaceall(tm, "$module", klass->vname);
+          Printv(klass->init, tm, "\n", NIL);
+        } else {
+          Replaceall(tm, "$module", klass->mImpl);
+          Printv(klass->init, tm, "\n", NIL);
+        }
       } else {
         if (!useGlobalModule) {
           Replaceall(tm, "$module", modvar);
@@ -1229,29 +1281,40 @@ public:
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
-      String *basename = Getattr(base,"name");
-      String *basenamestr = SwigType_namestr(basename);
-      RClass *super = RCLASS(classes, Char(basenamestr));
-      Delete(basenamestr);
-      if (super) {
-	SwigType *btype = NewString(basename);
-	SwigType_add_pointer(btype);
-	SwigType_remember(btype);
-	String *bmangle = SwigType_manglestr(btype);
-	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
-	Append(bmangle,"->clientdata)->klass");
-	Replaceall(klass->init,"$super",bmangle);
-	Delete(bmangle);
-	Delete(btype);
-      }
-    
-      /* Warn about multiple inheritance if additional base class(es) listed */
-      base = Nextitem(baselist);
       while (base) {
-	basename = Getattr(n,"name");
-	Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
-		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
-	base = Nextitem(baselist);
+        String *basename = Getattr(base,"name");
+        String *basenamestr = SwigType_namestr(basename);
+        RClass *super = RCLASS(classes, Char(basenamestr));
+        Delete(basenamestr);
+        if (super) {
+          SwigType *btype = NewString(basename);
+          SwigType_add_pointer(btype);
+          SwigType_remember(btype);
+          if (multipleInheritance) {
+            String *bmangle = SwigType_manglestr(btype);
+            Insert(bmangle,0,"((swig_class *) SWIGTYPE");
+            Append(bmangle,"->clientdata)->mImpl");
+            Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
+            Delete(bmangle);
+          } else {
+            String *bmangle = SwigType_manglestr(btype);
+            Insert(bmangle,0,"((swig_class *) SWIGTYPE");
+            Append(bmangle,"->clientdata)->klass");
+            Replaceall(klass->init,"$super",bmangle);
+            Delete(bmangle);
+          }
+          Delete(btype);
+        }
+        base = Nextitem(baselist);
+        if (!multipleInheritance) {
+          /* Warn about multiple inheritance for additional base class(es) listed */
+          while (base) {
+            basename = Getattr(n,"name");
+            Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
+                         "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
+            base = Nextitem(baselist);
+          }
+        }
       }
     }
   }
@@ -1283,33 +1346,6 @@ public:
     Replaceall(klass->header,"$freeproto", "");
   }
   
-  void baseClassHandler(Node *n) {
-    Node *c;
-    for (c = firstChild(n); c; c = nextSibling(c)) {
-      char *tag = Char(nodeType(c));
-      if (!tag) {
-        Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
-        return;
-      }
-      // emit_one(c);
-    }
-  }
-
-  void copyBaseClassMembers(Node *n) {
-    List *baselist = Getattr(n,"bases");
-    if (baselist && Len(baselist) > 0) {
-      /* Skip the first base class */
-      Node *base = Firstitem(baselist);
-      
-      /* Loop over remaining base classes */
-      base = Nextitem(baselist);
-      while (base) {
-        baseClassHandler(base);
-        base = Nextitem(baselist);
-      }
-    }
-  }
-
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
@@ -1330,12 +1366,23 @@ public:
     Printv(klass->type, Getattr(n,"classtype"), NIL);
     Printv(klass->header, "\nswig_class c", valid_name, ";\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
-    if (!useGlobalModule) {
-      Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
-             ", \"", klass->name, "\", $super);\n", NIL);
+    if (multipleInheritance) {
+      if (!useGlobalModule) {
+        Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
+               ", \"", klass->name, "\", rb_cObject);\n", NIL);
+      } else {
+        Printv(klass->init, klass->vname, " = rb_define_class(\"",
+               klass->name, "\", rb_cObject);\n", NIL);
+      }
+      Printv(klass->init, klass->mImpl, " = rb_define_module_under(", klass->vname, ", \"Impl\");\n", NIL);
     } else {
-      Printv(klass->init, klass->vname, " = rb_define_class(\"",
-             klass->name, "\", $super);\n", NIL);
+      if (!useGlobalModule) {
+        Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
+               ", \"", klass->name, "\", $super);\n", NIL);
+      } else {
+        Printv(klass->init, klass->vname, " = rb_define_class(\"",
+               klass->name, "\", $super);\n", NIL);
+      }
     }
 
     SwigType *tt = NewString(name);
@@ -1356,13 +1403,15 @@ public:
 	   "$freeproto",
 	   NIL);
 
-    copyBaseClassMembers(n);
-    
     Language::classHandler(n);
 
     handleBaseClasses(n);
     handleMarkFuncDirective(n);
     handleFreeFuncDirective(n);
+    
+    if (multipleInheritance) {
+      Printv(klass->init, "rb_include_module(", klass->vname, ", ", klass->mImpl, ");\n", NIL);
+    }
 
     Printv(f_header, klass->header,NIL);
 
