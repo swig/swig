@@ -1299,6 +1299,8 @@ extern "C" int yylex(void) {
         if (strcmp(yytext,"%checkout") == 0) return(CHECKOUT);
 	if (strcmp(yytext,"%val") == 0) return(CVALUE);
 	if (strcmp(yytext,"%out") == 0) return(COUT);
+	if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
+	if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
 
 	if (strcmp(yytext,"%section") == 0) {
 	  yylval.ivalue = line_number;
