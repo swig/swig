@@ -9,7 +9,7 @@ public class runme
             using (G g = new G()) {
             }
             throw new Exception("Protected destructor exception should have been thrown");
-        } catch (MethodAccessException e) {
+        } catch (MethodAccessException) {
         }
 
         // calling private destructor test
@@ -17,7 +17,7 @@ public class runme
             using (FFF f = new FFF()) {
             }
             throw new Exception("Private destructor exception should have been thrown");
-        } catch (MethodAccessException e) {
+        } catch (MethodAccessException) {
         }
     }
 }
