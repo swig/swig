@@ -73,9 +73,9 @@ or you can use the %apply directive :
 %enddef
 
 %define _PYPTR_INPUT_TYPEMAP(code,asptr_meth,asptr_frag,Type)
-  %typemap(in,fragment=asptr_frag) Type *INPUT(int res)
+  %typemap(in,fragment=asptr_frag) Type *INPUT(int res = 0)
     "if (!(res = asptr_meth($input, &$1))) SWIG_fail;";
-  %typemap(in,fragment=asptr_frag) Type &INPUT(int res)
+  %typemap(in,fragment=asptr_frag) Type &INPUT(int res = 0)
     "if (!(res = asptr_meth($input, &$1)) || !($1)) SWIG_fail;";
   %typemap(freearg) Type *INPUT, Type &INPUT
     "if (res$argnum == SWIG_NEWOBJ) delete $1;";
