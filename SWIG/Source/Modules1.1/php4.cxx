@@ -1557,13 +1557,14 @@ int PHP4::classHandler(Node *n) {
 
 	char bigbuf[1024];
 
+	if(class_name) free(class_name);
+	class_name = Swig_copy_string(GetChar(n, "name"));
+
 	if(shadow) {
 		char *classname = GetChar(n, "name");
 		char *rename = GetChar(n, "sym:name");
 		char *ctype = GetChar(n, "kind");
 
-		if(class_name) free(class_name);
-		class_name = Swig_copy_string(classname);
 		shadow_classname = Swig_copy_string(rename);
 
 		if(Strcmp(shadow_classname, module) == 0) {
