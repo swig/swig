@@ -1754,6 +1754,7 @@ PHP4::memberfunctionHandler(Node *n) {
 
 	*/
 	}
+	return SWIG_OK;
 }
 
 int
