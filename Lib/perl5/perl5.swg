@@ -132,7 +132,7 @@
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & 
     "ST(argvi) = sv_newmortal();
-     SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor,0);";
+     SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor, $shadow|$owner);";
 
 
 %typemap(out) SWIGTYPE 
@@ -140,14 +140,14 @@
 {
   $&1_ltype resultobj = new $1_ltype(($1_ltype &)$1);
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|$owner);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultobj, &$1, sizeof($1_type));
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|$owner);
 }
 #endif
 
@@ -156,7 +156,7 @@
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) $1, ty,0);
+  SWIG_MakePtr(ST(argvi++), (void *) $1, ty, $shadow|$owner);
 }
 
 %typemap(out) void "";

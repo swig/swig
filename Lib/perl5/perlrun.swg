@@ -119,6 +119,9 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 extern "C" {
 #endif
 
+#define SWIG_OWNER 1
+#define SWIG_SHADOW 2
+
 #ifdef SWIG_NOINCLUDE
 
 #ifndef PERL_OBJECT
@@ -246,7 +249,31 @@ SWIGRUNTIME(void)
 SWIG_MakePtr_(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
 #endif
 {
-  sv_setref_pv(sv, (char *) t->name, ptr);
+  if (ptr && (flags & SWIG_SHADOW)) {
+    SV *self;
+    SV *obj=newSV(0);
+    HV *hash=newHV();
+    HV *stash;
+    sv_setref_pv(obj, (char *) t->name, ptr);
+    stash=SvSTASH(SvRV(obj));
+    if (flags & SWIG_OWNER) {
+      HV *hv;
+      GV *gv=*(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
+      if (!isGV(gv))
+        gv_init(gv, stash, "OWNER", 5, FALSE);
+      hv=GvHVn(gv);
+      hv_store_ent(hv, obj, newSViv(1), 0);
+    }
+    sv_magic((SV *)hash, (SV *)obj, PERL_MAGIC_tied, Nullch, 0);
+    SvREFCNT_dec(obj);
+    self=newRV_noinc((SV *)hash);
+    sv_setsv(sv, self);
+    SvREFCNT_dec((SV *)self);
+    sv_bless(sv, stash);
+  }
+  else {
+    sv_setref_pv(sv, (char *) t->name, ptr);
+  }
 }
 
 #endif
