@@ -969,7 +969,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   f.add_local((char*)"dXSARGS",(char*)"");
 
   // Substitute the cleanup code
-  f.code.replace("$cleanup",cleanup);
+  f.code.replace("$cleanup",cleanup.get());
   f.code.replace("$name",iname);
 
   // Dump this function out
@@ -1017,7 +1017,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	String sourceNtarget;
 	sourceNtarget << "$args[" << i << "]";
 
-	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget)))
+	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget.get(),sourceNtarget.get())))
 	  func << tm << "\n";
 	else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
 	  if (i >= (pcount - numopt))
@@ -1632,7 +1632,7 @@ void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
     // Add some symbols to the hash tables
 
     //    classes.add(real_classname,copy_string(class_name));   /* Map original classname to class */
-    Setattr(classes,real_classname,fullclassname);
+    Setattr(classes,real_classname,fullclassname.get());
 
     // Add full name of datatype to the hash table just in case the user uses it
 
@@ -1813,7 +1813,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       String sourceNtarget;
       sourceNtarget << "$args[" << i << "]";
 
-      if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget)))
+      if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget.get(),sourceNtarget.get())))
 	func << tm << "\n";
       // Look up the datatype name here
       else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {

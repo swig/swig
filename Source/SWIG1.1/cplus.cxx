@@ -1515,7 +1515,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     key << cname << "+";
     l->print_types(key);
     //    printf("key = %s\n", (char *) key);  
-    char *temp = copy_string(iname);
+    char *temp = copy_string(iname.get());
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key.get())) {
       delete [] temp;
@@ -1629,11 +1629,11 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       
       // Now wrap the thing.  The name of the function is iname
       
-      lang->create_function(cname, iname, type, newparms);
+      lang->create_function(cname.get(), iname.get(), type, newparms);
       delete newparms;
     } else {
       // Already wrapped this function.   Just patch it up 
-      lang->create_command(prev_wrap, iname);
+      lang->create_command(prev_wrap, iname.get());
     }
 }
 
@@ -1733,7 +1733,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 
     key << cname << "+";
     l->print_types(key);
-    char *temp = copy_string(iname);
+    char *temp = copy_string(iname.get());
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key.get())) {
       delete [] temp;
@@ -1746,7 +1746,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     if (!prev_wrap) {
       if (!((mode) || (ObjCClass))) {
 	// Not an added method and not objective C, just wrap it
-	lang->create_function(cname,iname, type, l);
+	lang->create_function(cname.get(),iname.get(), type, l);
       } else {
 	// This is either an added method or an objective C class function
 	//
@@ -1823,11 +1823,11 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	}
 	if (ObjCClass || (mode && ccode)) 
 	  fprintf(f_wrappers,"%s\n",wrap.get());
-	lang->create_function(cname,iname,type,l);
+	lang->create_function(cname.get(),iname.get(),type,l);
       }
     } else {
       // Already wrapped this function.   Just hook up to it.
-      lang->create_command(prev_wrap, iname);
+      lang->create_command(prev_wrap, iname.get());
     }
 }
 
@@ -1925,7 +1925,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 
     // iname is the desired name of the function in the target language
 
-    lang->create_function(cname,iname,type,l);
+    lang->create_function(cname.get(),iname.get(),type,l);
 
     delete type;
     delete l;
@@ -2068,7 +2068,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 
     // We've now created a C wrapper.  We're going to add it to the interpreter
 
-    lang->create_function(cname, iname, type, l);
+    lang->create_function(cname.get(), iname.get(), type, l);
     delete type;
 }
 
@@ -2158,7 +2158,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
     // Now check to see if we have already wrapped a variable like this.
 
     key << cname;
-    char *temp = copy_string(iname);
+    char *temp = copy_string(iname.get());
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key.get())) {
       delete [] temp;
@@ -2177,7 +2177,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
 	// Now write a function to get the value of the variable
 
-	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source,(char*)"result");
+	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source.get(),(char*)"result");
 
 	if ((type->type == T_USER) && (!type->is_pointer)) {
 	  type->is_pointer++;
@@ -2227,18 +2227,18 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
-	lang->create_function(cname,iname, type, l);
+	lang->create_function(cname.get(),iname.get(), type, l);
 	type->is_pointer--;
       } else {
 	int is_ref = type->is_reference;
 	type->is_reference = 0;
-	lang->create_function(cname,iname, type, l);
+	lang->create_function(cname.get(),iname.get(), type, l);
 	type->is_reference = is_ref;
       }
       delete l;
     } else {
       // Already wrapped this function.  Just patch it up
-      lang->create_command(prev_wrap,iname);
+      lang->create_command(prev_wrap,iname.get());
     }
 
 }
@@ -2339,7 +2339,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     // Now check to see if we have already wrapped a variable like this.
 
     key << cname;
-    char *temp = copy_string(iname);
+    char *temp = copy_string(iname.get());
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key.get())) {
       delete [] temp;
@@ -2357,7 +2357,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	target << "obj->" << mname;
 	
 	// Lookup any typemaps that might exist
-	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target);
+	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target.get());
 	
 	// First write a function to set the variable 
 
@@ -2452,17 +2452,17 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
-	lang->create_function(cname,iname, type, l);
+	lang->create_function(cname.get(),iname.get(), type, l);
 	type->is_pointer--;
       } else {
 	int is_ref = type->is_reference;
 	type->is_reference = 0;
-	lang->create_function(cname,iname, type, l);
+	lang->create_function(cname.get(),iname.get(), type, l);
 	type->is_reference = is_ref;
       }
       delete l;
     } else {
-      lang->create_command(prev_wrap,iname);
+      lang->create_command(prev_wrap,iname.get());
     } 
 }
 

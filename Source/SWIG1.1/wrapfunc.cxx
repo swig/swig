@@ -215,7 +215,7 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
   while ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c))
     c++;
   *c = 0;
-  return new_name;
+  return new_name.get();
 }
 
 // ------------------------------------------------------------------

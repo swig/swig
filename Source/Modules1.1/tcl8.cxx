@@ -756,7 +756,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   f.code << tab4 << "return TCL_OK;\n}";
 
   // Substitute the cleanup code
-  f.code.replace("$cleanup",cleanup);
+  f.code.replace("$cleanup",cleanup.get());
   f.code.replace("$name",iname);
 
   // Dump out the function
@@ -1154,7 +1154,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
     }
     p = l->get_next();
   }
-  return temp;
+  return temp.get();
 }
 
 // ---------------------------------------------------------------------------
@@ -1172,7 +1172,7 @@ char * TCL8::usage_func(char *iname, DataType *t, ParmList *l) {
   } else {
     temp << prefix << iname;
   }
-  return usage_string(temp,t,l);
+  return usage_string(temp.get(),t,l);
 }
 
 // -----------------------------------------------------------------
@@ -1327,7 +1327,7 @@ void TCL8::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 
     temp = "";
     temp << Swig_name_member(class_name,realname);
-    rname = GetChar(repeatcmd,temp);
+    rname = GetChar(repeatcmd,temp.get());
     if (!rname)
       rname = Swig_name_wrapper(temp.get());
     
@@ -1355,7 +1355,7 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
     // Try to figure out if there is a wrapper for this function
     temp = "";
     temp << Swig_name_get(Swig_name_member(bc,realname));
-    rname = GetChar(repeatcmd,temp);
+    rname = GetChar(repeatcmd,temp.get());
     if (!rname) 
       rname = Swig_name_wrapper(temp.get());
     attributes << rname << ", ";
@@ -1363,7 +1363,7 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
     if (!(Status & STAT_READONLY)) {
       temp = "";
       temp << Swig_name_set(Swig_name_member(bc,realname));
-      rname = GetChar(repeatcmd,temp);
+      rname = GetChar(repeatcmd,temp.get());
       if (!rname) 
 	rname = Swig_name_wrapper(temp.get());
       attributes << rname << "},\n";

@@ -249,7 +249,7 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
     str << lang << type->print_type() << pname << suffix;
 
   type->status = old_status;
-  return str;
+  return str.get();
 }
 
 // ------------------------------------------------------------------------
@@ -292,7 +292,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
     if (type_id < tm_old->last) {
       sprintf(temp,"$%s",op);
-      tm->code.replace(temp,tm_old->code);
+      tm->code.replace(temp,tm_old->code.get());
     }
 
     // If found, we need to attach the old version to the new one
@@ -525,12 +525,12 @@ static void typemap_locals(DataType *t, char *pname, String &s, ParmList *l, Wra
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = f.new_local(tt->print_type(),str);
+          new_name = f.new_local(tt->print_type(),str.get());
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = f.new_local(tt->print_full(),str);
+          new_name = f.new_local(tt->print_full(),str.get());
 
 	if (tt->arraystr) tt->is_pointer++;
 	// Substitute 
@@ -661,7 +661,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   // Return character string
 
-  return str;
+  return str.get();
 }
 
 // ----------------------------------------------------------
@@ -827,7 +827,7 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
 
   // Return character string
 
-  return str;
+  return str.get();
 }
 
 // Function for checking with applications
@@ -982,7 +982,7 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
       SetVoid(typemap_hash,key, tn);
     }
   } else {
-    typemap_register(op,lang,ttype,tname,tm->code,tm->args);
+    typemap_register(op,lang,ttype,tname,tm->code.get(),tm->args);
   }
 }
 
@@ -999,7 +999,7 @@ static char *fragment_string(char *op, char *lang) {
   str = "";
 
   str << "fragment:" << lang << op;
-  return str;
+  return str.get();
 }
 
 // ------------------------------------------------------------------------
@@ -1027,7 +1027,7 @@ void fragment_register(char *op, char *lang, char *code) {
 
     sprintf(temp,"$%s",op);
     if (type_id < tm_old->last)
-      tm->code.replace(temp,tm_old->code);
+      tm->code.replace(temp,tm_old->code.get());
 
     tm->next = tm_old;
     tm_old->last = type_id;
@@ -1074,7 +1074,7 @@ char *fragment_lookup(char *op, char *lang, int age) {
   if (!tm) return 0;
 
   str << tm->code;
-  return str;
+  return str.get();
 }
 
 // ------------------------------------------------------------------------
