@@ -478,8 +478,8 @@ Revised: Dave Beazley (7/22/00)
 The representation and manipulation of types is currently in the
 process of being reorganized and (hopefully) simplified.  The
 following list describes the current set of functions that are used to
-manipulate datatypes.  These are functions are different than in
-SWIG1.1 and may change names in the SWIG1.3 release.
+manipulate datatypes.  These functions are different than in
+SWIG1.1 and may change names in the final SWIG1.3 release.
 
 <ul>
 <li><tt>DataType_str(DataType *t, char *name)</tt>.<br>
@@ -583,10 +583,10 @@ wrapper_foo() {
    ...
    get arguments
    ...
-   result = (lstr("int"))  foo(caststr("int","arg0"),
-                               caststr("double [20][30]","arg1"),
-                               caststr("const char *", "arg2"),
-                               caststr("double &amp;", "arg3"))
+   result = (lcaststr("int"))  foo(rcaststr("int","arg0"),
+                               rcaststr("double [20][30]","arg1"),
+                               rcaststr("const char *", "arg2"),
+                               rcaststr("double &amp;", "arg3"))
    ...
 }
 </pre>
