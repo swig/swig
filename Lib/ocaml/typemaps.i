@@ -213,9 +213,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %char_ptr_in(how)
 %typemap(how)  char *, signed char *, unsigned char * {
+    /* %typemap(how) char * ... */
     $1 = ($ltype)caml_string_val($input);
 }
 %typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
+    /* %typemap(how) char [ANY] ... */
     char *temp = caml_string_val($input);
     strncpy((char *)$1,temp,$1_dim0);
 }
@@ -244,10 +246,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_in(how)
 %typemap(how) SWIGTYPE * {
+    /* %typemap(how) SWIGTYPE * */
     $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
+    /* %typemap(how) SWIGTYPE (CLASS::*) */
     void *v = caml_ptr_val($input,$1_descriptor);
     memcpy(& $1, &v, sizeof(v));
 }
@@ -272,11 +275,9 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %enddef
 
 %swigtype_ptr_in(in);
-%swigtype_ptr_in(memberin);
 %swigtype_ptr_in(varin);
 %swigtype_ptr_in(outv);
 %swigtype_ptr_out(out);
-%swigtype_ptr_out(memberout);
 %swigtype_ptr_out(varout);
 %swigtype_ptr_out(inv);
 

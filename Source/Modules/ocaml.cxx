@@ -41,6 +41,7 @@ static String *classname=0;
 static String *module=0;
 static char *ocaml_path=(char*)"ocaml";
 static String *init_func_def = 0;
+static String *f_classtemplate = 0;
 
 static  Hash         *seen_enums = 0;
 static  Hash         *seen_enumvalues = 0;
@@ -415,6 +416,7 @@ public:
 	f_class_ctors_end = NewString("");
 	f_enum_to_int = NewString("");
 	f_int_to_enum = NewString("");
+	f_classtemplate = NewString("");
 
 	module = Getattr(n,"name");
 
@@ -431,6 +433,8 @@ public:
 	Swig_register_filebyname("ml",f_mlbody);
 	Swig_register_filebyname("director",f_directors);
 	Swig_register_filebyname("director_h",f_directors_h);
+	Swig_register_filebyname("classtemplate",f_classtemplate);
+	Swig_register_filebyname("class_ctors",f_class_ctors);
     
 	Swig_name_register("set","%v__set__");
 	Swig_name_register("get","%v__get__");
@@ -799,7 +803,8 @@ public:
 		Replaceall(tm,"$target",Getattr(p,"lname"));   /* Deprecated */
 		Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 		Replaceall(tm,"$input",Getattr(p,"emit:input"));
-		Replaceall(tm,"$ntype",normalizeTemplatedClassName(Getattr(p,"type")));
+		Replaceall(tm,"$ntype",
+			   normalizeTemplatedClassName(Getattr(p,"type")));
 		Printv(outarg,tm,"\n",NIL);
 		p = Getattr(p,"tmap:argout:next");
 		argout_set = 1;
@@ -1214,6 +1219,38 @@ public:
 	return ret;
     }
 
+    /**
+     * A simple, somewhat general purpose function for writing to multiple
+     * streams from a source template.  This allows the user to define the
+     * class definition in ways different from the one I have here if they
+     * want to.  It will also make the class definition system easier to
+     * fiddle with when I want to change methods, etc.
+     */
+
+    void Multiwrite( String *s ) {
+	char *find_marker = strstr(Char(s),"(*Stream:");
+	while( find_marker ) {
+	    char *next = strstr(find_marker,"*)");
+	    find_marker += strlen("(*Stream:");
+
+	    if( next ) {
+		int num_chars = next - find_marker;
+		String *stream_name = NewString(find_marker);
+		Delslice(stream_name,num_chars,Len(stream_name));
+		File *fout = Swig_filebyname(stream_name);
+		if( fout ) {
+		    next += strlen("*)");
+		    char *following = strstr(next,"(*Stream:");
+		    find_marker = following;
+		    if( !following ) following = next + strlen(next);
+		    String *chunk = NewString(next);
+		    Delslice(chunk,following-next,Len(chunk));
+		    Printv(fout,chunk,NIL);
+		}
+	    }
+	}
+    }
+
     /* classHandler
      * 
      * Create a "class" definition for ocaml.  I thought quite a bit about
@@ -1286,115 +1323,51 @@ public:
     int classHandler( Node *n ) {
 	String *name = Getattr(n,"name");
 	String *mangled_sym_name = mangleNameForCaml(name);
-
+	String *this_class_def = NewString( f_classtemplate );
+	String *classbody = NewString("");
+	String *name_normalized = normalizeTemplatedClassName(name);
+	String *old_class_ctors = f_class_ctors;
+	String *base_classes = NewString("");
+	f_class_ctors = NewString("");
+	
 	if( !name ) return SWIG_OK;
 
 	classname = mangled_sym_name;
-
-	Printf( f_class_ctors,
-		"let create_%s_from_ptr raw_ptr =\n"
-		"  C_obj (let rec method_table = [\n"
-		"    \"nop\", (fun args -> C_void) ;\n",
-		classname );
-
-	Printf( f_mlibody,
-		"val create_%s_from_ptr : c_obj -> c_obj\n",
-		classname );
-
-	// Actually write out the class definition
-
-	classmode = 1;
+	classmode = true;
 	int rv = Language::classHandler(n);
-	classmode = 0;
+	classmode = false;
 
-#if 0
-	Printf(f_mlibody, 
-	       "val delete_%s : c_obj -> unit\n",
-	       mangled_sym_name );
-#endif
-    
 	/* Handle up-casts in a nice way */
 	List *baselist = Getattr(n,"bases");
 	if (baselist && Len(baselist)) {
 	    Node *base = Firstitem(baselist);
 	    while (base) {
 		String *bname = Getattr(base, "ocaml:ctor");
-		if (bname)
-		    Printv(f_class_ctors,
+		if (bname) {
+		    Printv(classbody,
 			   "   \"::",bname,"\", (fun args -> "
 			   "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
-	
-		base = Nextitem(baselist);
-	    }
-	}    
-    
-	Printf(f_class_ctors,
-	       "    \"&\", (fun args -> raw_ptr) ;\n"
-	       "    \":parents\",\n"
-	       "      (fun args -> \n"
-	       "        C_list \n"
-	       "        (List.map \n"
-	       "	      (fun (x,y) -> \n"
-	       "            C_string (String.sub x 2 ((String.length x) - 2)))\n"
-	       "          (List.filter \n"
-	       "            (fun (x,y) -> \n"
-	       "              ((String.length x) > 2) && \n"
-	       "              x.[0] == ':' && \n"
-	       "              x.[1] == ':') method_table))) ;\n"
-	       "    \":classof\", (fun args -> (C_string \"%s\")) ;\n"
-	       "    \":methods\", "
-	       "(fun args -> C_list (List.map (fun (x,y) -> C_string x) "
-	       "method_table)) ] in\n"
-	       "  (fun mth arg ->\n"
-	       "    try\n"
-	       "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
-	       "        application \n"
-	       "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | C_void -> (C_list [ raw_ptr ]) | v -> (C_list [ raw_ptr ; v ]))\n"
-	       "    with (Failure \"hd\") -> \n"
-	       "    (* Try parent classes *)\n"
-	       "    begin\n"
-	       "      let parent_classes = [ \n",
-	       name );
-    
-	/* Handle inheritance -- Mostly stolen from python code */
-	baselist = Getattr(n,"bases");
-	if (baselist && Len(baselist)) {
-	    Node *base = Firstitem(baselist);
-	    while (base) {
-		String *bname = Getattr(base, "ocaml:ctor");
-		if (bname)
-		    Printv(f_class_ctors,
-			   "           create_",bname,"_from_ptr",NIL);
-	
-		base = Nextitem(baselist);
-		if (base)
-		    Printv(f_class_ctors," ;\n",NIL);
-		else
-		    Printv(f_class_ctors,"\n",NIL);
-	    }
-	}    
-    
-	Printv(f_class_ctors,"          ]\n",NIL);
-    
-	Printf(f_class_ctors,
-	       "     in let rec try_parent plist raw_ptr = \n"
-	       "       match plist with\n"
-	       "         p :: tl -> (try\n"
-	       "           (invoke (p raw_ptr)) mth arg\n"
-	       "         with (BadMethodName (p,m,s)) -> try_parent tl raw_ptr)\n"
-	       "       | [] ->\n"
-	       "         raise (BadMethodName (raw_ptr,mth,\"%s\"))\n"
-	       "     in try_parent parent_classes raw_ptr\n"
-	       "     end\n"
-	       "   | e -> raise e))\n",
-	       name );
+		    Printv( base_classes, "create_", bname, "_from_ptr ;\n", 
+			    NIL );
+		}
 
-	String *name_normalized = normalizeTemplatedClassName(name);
+		base = Nextitem(baselist);
+	    }
+	}    
     
-	Printf( f_class_ctors,
-		"let _ = Callback.register \"create_%s_from_ptr\" "
-		"create_%s_from_ptr\n",
-		name_normalized, classname );
+	Replaceall(this_class_def,"$classname",classname);
+	Replaceall(this_class_def,"$classbody",classbody);
+	Replaceall(this_class_def,"$normalized",name_normalized);
+	Replaceall(this_class_def,"$realname",name);
+	Replaceall(this_class_def,"$baselist",base_classes);
+	Replaceall(this_class_def,"$classbody",f_class_ctors);
+
+	Delete(f_class_ctors);
+	f_class_ctors = old_class_ctors;
+
+	// Actually write out the class definition
+
+	Multiwrite( this_class_def );
 
 	Setattr(n,"ocaml:ctor",classname);
     
