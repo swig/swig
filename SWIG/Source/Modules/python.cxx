@@ -153,6 +153,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;
+	  apply = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-cpluscast") == 0) {
 	  /* Turn on new value wrapper mpde */
@@ -1865,7 +1866,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classDeclaration(Node *n) {
-    if (shadow) {
+    if (shadow && !Getattr(n,"feature:onlychildren")) {
       Node   *mod = Getattr(n,"module");
       if (mod) {
 	String *importname = NewString("");
