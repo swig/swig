@@ -116,7 +116,6 @@ CPP_TEST_CASES += \
 	namespace_extend \
 	namespace_template \
 	namespace_typemap \
-	pointer_cxx \
 	pointer_reference \
 	primitive_ref \
 	private_assign \
