@@ -11,19 +11,19 @@ let cmap = _new_ColorMap (C_string "cmap")
 let f = _new_FrameBuffer (C_list [ C_int 400 ; C_int 400 ])
 
 (* Clear the picture *)
-let _ = _FrameBuffer_clear (C_list [ f ; _BLACK ])
+let _ = _FrameBuffer_clear (C_list [ f ; _BLACK C_void ])
 
 (* Make a red box *)
 let _ = _FrameBuffer_box 
-	  (C_list [ f ; C_int 40 ; C_int 40 ; C_int 200 ; C_int 200 ; _RED ])
+	  (C_list [ f ; C_int 40 ; C_int 40 ; C_int 200 ; C_int 200 ; _RED C_void ])
 
 (* Make a blue circle *)
 let _ = _FrameBuffer_circle 
-	  (C_list [ f ; C_int 200 ; C_int 200 ; C_int 40 ; _BLUE ])
+	  (C_list [ f ; C_int 200 ; C_int 200 ; C_int 40 ; _BLUE C_void ])
 
 (* Make green line *)
 let _ = _FrameBuffer_line 
-	  (C_list [ f ; C_int 10 ; C_int 390 ; C_int 390 ; C_int 200 ; _GREEN ])
+	  (C_list [ f ; C_int 10 ; C_int 390 ; C_int 390 ; C_int 200 ; _GREEN C_void ])
 
 (* Write an image out to disk *)
 

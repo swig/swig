@@ -27,7 +27,7 @@ let nypoints = 60
 let cmap = _new_ColorMap (C_string "cmap")
 let frame = _new_FrameBuffer (C_list [ C_int 500 ;
 				      C_int 500 ]) 
-let _ = _FrameBuffer_clear (C_list [ frame ; _BLACK ])
+let _ = _FrameBuffer_clear (C_list [ frame ; _BLACK C_void ])
 
 let p2 = _new_Plot3D (C_list [ frame ; 
 			       C_float xmin ; C_float ymin ; C_float zmin ; 
@@ -40,7 +40,7 @@ let _ = _Plot3D_rotd (C_list [ p2 ; C_float 10.0 ])
 
 let drawsolid () =
   begin
-    _Plot3D_clear (C_list [ p2 ; _BLACK ]) ;
+    _Plot3D_clear (C_list [ p2 ; _BLACK C_void ]) ;
     _Plot3D_start p2 ;
     let dx = ((xmax -. xmin) /. (float_of_int nxpoints))
     and dy = ((ymax -. ymin) /. (float_of_int nypoints)) 
