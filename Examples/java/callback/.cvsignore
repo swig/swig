@@ -2,6 +2,7 @@
 *.java
 *_wrap.c
 *_wrap.cxx
+*_wrap.h
 *.dll
 *.dsw
 *.exp
