@@ -4,7 +4,7 @@
  * CSharp typemaps
  * ----------------------------------------------------------------------------- */
 
-//Initial revision of this module - everything is liable to change!!
+//Initial revision of this module - the typemap names will change, in fact anything could change!!
 %include "csharphead.swg"
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
@@ -664,13 +664,55 @@ $1 = &temp; %}
     return (cPtr == IntPtr.Zero) ? null : new $javaclassname(cPtr, $owner);
   }
 
+/* Properties */
+%typemap(csvarin) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+    set {
+      $jnicall;
+    } %}
+
+%typemap(csvarout) bool,               const bool &,
+                  char,               const char &,
+                  signed char,        const signed char &,
+                  unsigned char,      const unsigned char &,
+                  short,              const short &,
+                  unsigned short,     const unsigned short &,
+                  int,                const int &,
+                  unsigned int,       const unsigned int &,
+                  long,               const long &,
+                  unsigned long,      const unsigned long &,
+                  long long,          const long long &,
+                  unsigned long long, const unsigned long long &,
+                  float,              const float &,
+                  double,             const double &,
+                  char *,
+                  char[ANY],
+                  enum SWIGTYPE %{
+    get {
+      return $jnicall;
+    } %}
+%typemap(csvarout) void %{
+    get {
+      $jnicall;
+    } %}
+%typemap(csvarout) SWIGTYPE %{
+    get {
+      return new $&javaclassname($jnicall, true);
+    } %}
+%typemap(csvarout) SWIGTYPE & %{
+    get {
+      return new $javaclassname($jnicall, $owner);
+    } %}
+%typemap(csvarout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+    get {
+      IntPtr cPtr = $jnicall;
+      return (cPtr == IntPtr.Zero) ? null : new $javaclassname(cPtr, $owner);
+    } %}
+
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "using System;"
-%typemap(javajniimports)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "using System;\nusing System.Runtime.InteropServices;"
-%typemap(javamoduleimports)    SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "using System;"
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaptrconstructormodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
 
@@ -698,6 +740,14 @@ $1 = &temp; %}
 
 %javamethodmodifiers "public";
 
+%pragma(java) moduleimports=%{
+using System;
+%}
+
+%pragma(java) jniclassimports=%{
+using System;
+using System.Runtime.InteropServices;
+%}
 
 /* Some ANSI C typemaps */
 
