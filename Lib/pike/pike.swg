@@ -77,8 +77,8 @@ extern "C" {
              const signed char & (signed char temp),
              const unsigned char & (unsigned char temp),
              const bool & (bool temp),
-	     const long long & (long long temp),
-	     const unsigned long long & (unsigned long long temp)
+	     const long long & ($*1_ltype temp),
+	     const unsigned long long & ($*1_ltype temp)
 {
   if ($input.type != T_INT)
     Pike_error("Bad argument: Expected an integer.\n");
