@@ -1456,8 +1456,7 @@ int Language::unrollVirtualMethods(Node *n,
     if (!checkAttribute(ni, "storage", "virtual")) continue;
     nodeType = Getattr(ni, "nodeType");
     /* we need to add only the methods(cdecl), no destructors */
-    if (Cmp(nodeType, "cdecl") == 0 && 
-	!checkAttribute(ni, "feature:nodirector", "1")) {
+    if ((Cmp(nodeType, "cdecl") == 0)) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
       if (SwigType_isfunction(decl) && 
@@ -1467,7 +1466,6 @@ int Language::unrollVirtualMethods(Node *n,
 	String *method_id = NewStringf("%s|%s", name, local_decl);
 	String *fqname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
-	Setattr(ni, "feature:director", "1");
 	Setattr(item, "fqName", fqname);
 	Setattr(item, "methodNode", ni);
 	Setattr(vm, method_id, item);
@@ -1557,6 +1555,9 @@ int Language::classDirectorMethods(Node *n) {
     item = k.item;
     String *method = Getattr(item, "methodNode");
     String *fqname = Getattr(item, "fqName");
+    if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
+      continue;
+
     if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
        Setattr(item, "director", "1");
     }

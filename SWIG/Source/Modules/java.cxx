@@ -2536,10 +2536,6 @@ class JAVA : public Language {
     int         gencomma = 0;
     int         classmeth_off = curr_class_dmethod - first_class_dmethod;
 
-    /* Skip out of here if nodirector is set */
-
-    if (!Cmp(Getattr(n, "feature:nodirector"), "1"))
-      return SWIG_OK;
 
     // This is a kludge: functionWrapper has sym:overload set properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3203,12 +3199,13 @@ class JAVA : public Language {
     Printf(w->code, "}\n");
     Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
 
-    if (first_class_dmethod != curr_class_dmethod) {
-      int n_methods = curr_class_dmethod - first_class_dmethod;
+    int n_methods = curr_class_dmethod - first_class_dmethod;
+    Printf(f_directors_h, "protected:\n");
+    Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
+
+    if (n_methods) {
 
       /* Emit the code to look up the class's methods, initialize the override array */
-      Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
 
       Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
       Printf(w->code, "  if (methods[i].base_methid == NULL) {\n");
