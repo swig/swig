@@ -358,6 +358,16 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      is any symbol that can be replaced by another symbol in the C symbol
      table.  An example would be a forward class declaration.  A forward
      class sits in the symbol table until a real class declaration comes along.
+
+     Certain symbols are marked as "sym:typename".  These are important 
+     symbols related to the C++ type-system and take precedence in the C
+     symbol table.  An example might be code like this:
+
+            template<class T> T foo(T x);
+            int foo(int);
+
+     In this case, the template is marked with "sym:typename" so that it
+     stays in the C symbol table (so that it can be expanded using %template).
    */
 
   {
@@ -365,24 +375,19 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     if (name) {
       cn = Getattr(ccurrent,name);
       if (cn && (Getattr(cn,"sym:typename"))) {
-	/* Do nothing. */
+	  /* The node in the C symbol table is a typename.  Do nothing */
       } else if (cn && (Getattr(cn,"sym:weak"))) {
-	Setattr(ccurrent,name, n);
+	  /* The node in the symbol table is weak. Replace it */
+	  Setattr(ccurrent,name, n);
       } else if (cn && (Getattr(n,"sym:weak"))) {
-	/* Do nothing */
+	  /* The node being added is weak.  Don't worry about it */
+      } else if (cn && (Getattr(n,"sym:typename"))) {
+	  /* The node being added is a typename.  We definitely add it */
+	  Setattr(ccurrent,name,n);
       } else if (!cn) {
-	Setattr(ccurrent,name,n);
+	  /* No conflict. Add the symbol */
+	  Setattr(ccurrent,name,n);
       }
-#ifdef OLD
-      if ((!cn) || (Getattr(cn,"sym:weak") && !Getattr(cn,"sym:typename"))) {
-	Setattr(ccurrent,name,n);
-      } else if (cn && Getattr(n,"sym:typename")) {
-	Printf(stdout,"Here!\n");
-        Setattr(ccurrent,name,n);
-      } else {
-	Printf(stderr,"*Here!\n");
-      }
-#endif
     }
   }
 
