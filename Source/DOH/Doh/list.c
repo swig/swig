@@ -44,7 +44,6 @@ void more(List *l) {
  *
  * Make a shallow copy of a list.
  * ----------------------------------------------------------------------------- */
-
 static DOH *
 CopyList(DOH *lo) {
     List *l,*nl;
@@ -301,7 +300,7 @@ List_dump(DOH *lo, DOH *out) {
 
 #define MAXLISTITEMS 8
 
-static DohSequenceMethods ListSeqMethods = {
+static DohListMethods ListListMethods = {
   List_get,
   List_set,
   List_remove,
@@ -324,7 +323,7 @@ static DohObjInfo ListType = {
     0,               /* doh_hash    */
     0,               /* doh_cmp */
     0,               /* doh_mapping */
-    &ListSeqMethods, /* doh_sequence */
+    &ListListMethods, /* doh_sequence */
     0,               /* doh_file */
     0,               /* doh_string */
     0,               /* doh_callable */
@@ -357,7 +356,6 @@ NewList() {
     int   i;
     l = (List *) DohObjMalloc(sizeof(List));
     l->objinfo = &ListType;
-    DohXInit(l);
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
     l->items = (void **) DohMalloc(l->maxitems*sizeof(void *));

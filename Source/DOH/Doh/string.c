@@ -52,7 +52,7 @@ long    String_tell(DOH *s);
 int     String_replace(DOH *str, DOH *token, DOH *rep, int flags);
 void    String_chop(DOH *str);
 
-static DohSequenceMethods StringSeqMethods = {
+static DohListMethods StringListMethods = {
   0,                      /* doh_getitem */
   0,                      /* doh_setitem */
   String_delitem,         /* doh_delitem */
@@ -91,7 +91,7 @@ static DohObjInfo StringType = {
     String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
     0,                 /* doh_mapping */
-    &StringSeqMethods, /* doh_sequence */
+    &StringListMethods, /* doh_sequence */
     &StringFileMethods,/* doh_file */
     &StringStringMethods, /* doh_string */
     0,                 /* doh_callable */ 

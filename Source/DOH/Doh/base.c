@@ -28,7 +28,7 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_hash    */
   0,                /* doh_cmp */
   0,                /* doh_mapping */
-  0,                /* doh_sequence */
+  0,                /* doh_list */
   0,                /* doh_file  */
   0,                /* doh_string */
   0,                /* doh_callable */
@@ -229,7 +229,7 @@ DohHashval(const DOH *obj) {
   DohTrace(DOH_CALLS,"DohHashval %x\n",obj);
   if (DohCheck(b)) {
     if (b->objinfo->doh_hash) {
-      return (b->objinfo->doh_hash)(b);
+      return (b->objinfo->doh_hashval)(b);
     }
     DohTrace(DOH_UNSUPPORTED,"No hash method defined for type '%s'\n", b->objinfo->objname);
   } else {
@@ -298,7 +298,7 @@ int
 DohIsMapping(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_mapping) return 1;
+  if (b->objinfo->doh_hash) return 1;
   else return 0;
 }
 
@@ -313,8 +313,8 @@ DohGetattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohGetattr %x, %x\n",obj,name);
   if (DohIsMapping(b)) {
-    if (b->objinfo->doh_mapping->doh_getattr) {
-      return (b->objinfo->doh_mapping->doh_getattr)(b,(DOH *) name);
+    if (b->objinfo->doh_hash->doh_getattr) {
+      return (b->objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
     }
   }
   if (DohCheck(b)) {
@@ -336,8 +336,8 @@ DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohSetattr %x, %x, %x\n",obj,name, value);
   if (DohIsMapping(b)) {
-    if (b->objinfo->doh_mapping->doh_setattr) {
-      return (b->objinfo->doh_mapping->doh_setattr)(b,(DOH *) name,(DOH *) value);
+    if (b->objinfo->doh_hash->doh_setattr) {
+      return (b->objinfo->doh_hash->doh_setattr)(b,(DOH *) name,(DOH *) value);
     }
   }
   if (DohCheck(b)) {
@@ -359,8 +359,8 @@ DohDelattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohDelattr %x, %x\n",obj,name);
   if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_mapping->doh_delattr) {
-      (b->objinfo->doh_mapping->doh_delattr)(b,(DOH *) name);
+    if (b->objinfo->doh_hash->doh_delattr) {
+      (b->objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
       return;
     }
   }
@@ -382,8 +382,8 @@ DohFirstkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohFirstkey %x\n",obj);
   if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_mapping->doh_firstkey) {
-      return (b->objinfo->doh_mapping->doh_firstkey)(obj);
+    if (b->objinfo->doh_hash->doh_firstkey) {
+      return (b->objinfo->doh_hash->doh_firstkey)(obj);
     }
   }
   if (DohCheck(obj)) {
@@ -405,8 +405,8 @@ DohNextkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohNextkey %x\n",obj);
   if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_mapping->doh_nextkey) {
-      return (b->objinfo->doh_mapping->doh_nextkey)(obj);
+    if (b->objinfo->doh_hash->doh_nextkey) {
+      return (b->objinfo->doh_hash->doh_nextkey)(obj);
     }
   }
   if (DohCheck(obj)) {
@@ -558,7 +558,7 @@ int
 DohIsSequence(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_sequence) return 1;
+  if (b->objinfo->doh_list) return 1;
   else return 0;
 }
 
@@ -573,8 +573,8 @@ DohGetitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohGetitem %x, %d\n",obj,index);
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_getitem) {
-      return (b->objinfo->doh_sequence->doh_getitem)(obj,index);
+    if (b->objinfo->doh_list->doh_getitem) {
+      return (b->objinfo->doh_list->doh_getitem)(obj,index);
     }
   }
   if (DohCheck(obj)) {
@@ -596,8 +596,8 @@ DohSetitem(DOH *obj, int index, const DOH *value) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohSetitem %x, %d, %x\n",obj,index, value);
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_setitem) {
-      return (b->objinfo->doh_sequence->doh_setitem)(obj,index,(DOH *) value);
+    if (b->objinfo->doh_list->doh_setitem) {
+      return (b->objinfo->doh_list->doh_setitem)(obj,index,(DOH *) value);
     }
   }
   if (DohCheck(obj)) {
@@ -618,8 +618,8 @@ DohDelitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohDelitem %x, %d\n",obj,index);
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_delitem) {
-      return (b->objinfo->doh_sequence->doh_delitem)(obj,index);
+    if (b->objinfo->doh_list->doh_delitem) {
+      return (b->objinfo->doh_list->doh_delitem)(obj,index);
     }
   }
   if (DohCheck(obj)) {
@@ -641,8 +641,8 @@ DohInsertitem(DOH *obj, int index, const DOH *value) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohInsertitem %x, %d, %x\n",obj,index, value);
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_insitem) {
-      return (b->objinfo->doh_sequence->doh_insitem)(obj,index,(DOH *) value);
+    if (b->objinfo->doh_list->doh_insitem) {
+      return (b->objinfo->doh_list->doh_insitem)(obj,index,(DOH *) value);
     }
   }
   if (DohCheck(obj)) {
@@ -663,8 +663,8 @@ DohFirstitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohFirstitem %x\n");
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_firstitem) {
-      return (b->objinfo->doh_sequence->doh_firstitem)(obj);
+    if (b->objinfo->doh_list->doh_firstitem) {
+      return (b->objinfo->doh_list->doh_firstitem)(obj);
     }
   }
   if (DohCheck(obj)) {
@@ -686,8 +686,8 @@ DohNextitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohNextitem %x\n");
   if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_nextitem) {
-      return (b->objinfo->doh_sequence->doh_nextitem)(obj);
+    if (b->objinfo->doh_list->doh_nextitem) {
+      return (b->objinfo->doh_list->doh_nextitem)(obj);
     }
   }
   if (DohCheck(obj)) {
@@ -986,7 +986,7 @@ DohInit(DOH *b) {
  * Set file location (default method).
  * ----------------------------------------------------------------------------- */
 void
-DohSetFile(DOH *ho, DOH *file) {
+DohSetfile(DOH *ho, DOH *file) {
   DohBase *h = (DohBase *) ho;
   if (DohCheck(h)) {
     if (!DohCheck(file)) file = NewString(file);
