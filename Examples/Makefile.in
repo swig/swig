@@ -494,6 +494,7 @@ java_clean:
 ##################################################################
 
 MZC = test -n "@MZC@" && @MZC@
+MZDYNOBJ = @MZDYNOBJ@
 
 # ----------------------------------------------------------------
 # Build a C/C++ dynamically loadable module
@@ -507,7 +508,7 @@ mzscheme: $(SRCS)
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(CPP_DLLIBS) 
+	$(CXXSHARED) -o $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # ----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG runtime
@@ -523,7 +524,7 @@ mzscheme_multi: $(SRCS)
 mzscheme_multi_cpp: $(SRCS)
 	$(SWIG) -c -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(CPP_DLLIBS) 
+	$(CXXSHARED) -o $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # -----------------------------------------------------------------
 # Cleaning the mzscheme examples

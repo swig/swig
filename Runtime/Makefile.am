@@ -181,7 +181,7 @@ libchicken.c: $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
 # MzScheme run-time library
 # ----------------------------------------------------------------------
 
-MZSCHEME_RUNTIME = $(SWIGLIB)/mzscheme/mzschemedec.swg $(SWIGLIB)/mzscheme/mzscheme.swg
+MZSCHEME_RUNTIME = $(SWIG_TYPECHECK) $(SWIGLIB)/mzscheme/mzrun.swg
 MZC = @MZC@
 SO = @SO@
 RELEASESUFFIX   = @release_suffix@

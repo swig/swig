@@ -1,5 +1,31 @@
 Version 1.3.20 (In progress)
 ============================
+
+06/10/2003: mkoeppe (Matthias Koeppe)
+	    [MzScheme] Applied MzScheme module updates contributed by
+	    John Lenz <jelenz@students.wisc.edu>.
+
+            - Updated mzscheme to use SWIG's common runtime type
+              system from common.swg. 
+
+	    - The Lib/mzscheme directory has been reorganized to
+              standardize names across the language modules:
+              mzscheme.i was moved to mzscheme.swg, mzscheme.swg and
+              mzschemedec.swg have been removed, mzrun.swg (which
+              contains the runtime code) has been added.
+
+            - The swig_proxy structure was renamed to swig_mz_proxy.
+              swig_mz_proxy now contains a pointer to a swig_type_info
+              structure.  
+
+	    - Added varin and varout typemaps for SWIGTYPE [] and
+              SWIGTYPE &.
+
+	    - Garbage collection by calling scheme_add_finalizer() has
+              been added.
+
+	    *** NEW FEATURE [MzScheme] ***
+
 06/10/2003: cheetah (William Fulton)
             [Java] New typemaps: javadestruct_base and javadestruct_derived
             for the C++ destructor wrapper. The _base version gets used by
@@ -12,7 +38,7 @@ Version 1.3.20 (In progress)
             typemaps designed for the Dispose method.
             New typemaps: csfinalize for finalizers.
 
-06/10/2002: Tiger
+06/10/2003: Tiger
 	    Modified contract code for error message output.
             Contract code can now print out simple error message.
             Modified contract code to prepare for inheritance
