@@ -46,8 +46,7 @@ LIBPREFIX  = lib
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	namespace_union \
-	overload_complicated \
-	smart_pointer_namespace2
+	overload_complicated
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += \
@@ -157,6 +156,7 @@ CPP_TEST_CASES += \
 	name_cxx \
 	name_inherit \
 	name_warnings \
+	namespace_class \
 	namespace_enum \
 	namespace_extend \
 	namespace_nested \
@@ -187,6 +187,7 @@ CPP_TEST_CASES += \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
 	smart_pointer_namespace \
+	smart_pointer_namespace2 \
 	smart_pointer_not \
 	smart_pointer_overload \
 	smart_pointer_protected \

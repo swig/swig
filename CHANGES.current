@@ -1,6 +1,59 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/31/2004: mmatus
+	    - Solve namespace + class declarations, as in
+
+	       namespace foo {
+                 struct Bar;
+		 struct Foo {
+                 };
+               }
+
+               struct foo::Bar : Foo {
+               };
+
+	       see namespace_class.i for more examples.
+
+            - Fix %template directive to properly use namespaces,
+              including the case:
+
+		   namespace one
+		   {
+		       template <typename T>
+		       struct Ptr {};
+                   }
+
+		   namespace one
+		   {		  
+		       struct Obj1 {};
+		       typedef Ptr<Obj1> Obj1_ptr;
+  		       %template(Obj1_ptr) Ptr<Obj1>; 
+		   }				  
+		   				  
+		   namespace two  
+		   {
+		       struct Obj2 {};	
+		       typedef one::Ptr<Obj2> Obj2_ptr;
+		       %template(Obj2_ptr) one::Ptr<Obj2>;
+		   }
+
+	      this is done by using the namespace name 'one' to create
+              a namespace node to emit the template instantiation,
+              just as before, but the template parameters are resolved
+              and qualified in the current namespace ('one' or 'two').
+              This is same way that typedef works. 
+
+	      This resolve the smart_pointer_namespace2.i case, and at
+              the same time, several other ones where before swig was
+              generating the
+
+	        "Can't instantiate template 'xx' inside namespace 'yy'"
+	      
+	      error message. In fact, that error doesn't exist
+	      anymore. You can only get an error if you use a bad
+	      namespace name or so.
+
 10/30/2004: mmatus
 	    - [ruby] Directors fixes:
 	      - enums and std::strings are working now (several
