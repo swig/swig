@@ -149,7 +149,7 @@ class JAVA : public Language {
     n_directors(0),
     emitted_connect(false)
     {
-      /* by now, multiple inheritance in directors is disabled, this
+      /* for now, multiple inheritance in directors is disabled, this
 	 should be easy to implement though */
       director_multiple_inheritance = 0;
       director_language = 1;
@@ -1275,10 +1275,9 @@ class JAVA : public Language {
     bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
     /* Adjust the enum type for the Swig_typemap_lookup.
-     * We want the same jstype typemap for all the enum items so we use the enum type (parent node).
-     * The type of each enum item depends on what value it is assigned, but is usually a C int. */
+     * We want the same jstype typemap for all the enum items so we use the enum type (parent node). */
     if (is_enum_item) {
-      t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
+      t = Getattr(parentNode(n),"enumtype");
       Setattr(n,"type", t);
     }
 
@@ -2419,45 +2418,61 @@ class JAVA : public Language {
 
   bool substituteClassname(SwigType *pt, String *tm) {
     bool substitution_performed = false;
-    if (Strstr(tm, "$javaclassname") || Strstr(tm,"$&javaclassname")) {
-      SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
-      SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
-      if (SwigType_isenum(strippedtype)) {
-        String *enumname = getEnumName(pt);
-        if (enumname)
-          Replaceall(tm, "$javaclassname", enumname);
-        else
-          Replaceall(tm, "$javaclassname", NewStringf("int"));
-      } else {
-        String *classname = getProxyName(pt);
-        if (classname) {
-          Replaceall(tm,"$&javaclassname", classname); // getProxyName() works for pointers to classes too
-          Replaceall(tm,"$javaclassname", classname);
-        }
-        else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-          String *descriptor = NULL;
-
-          if (Strstr(tm, "$&javaclassname")) {
-            SwigType_add_pointer(type);
-            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-            Replaceall(tm, "$&javaclassname", descriptor);
-          }
-          else { // $javaclassname
-            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-            Replaceall(tm, "$javaclassname", descriptor);
-          }
-
-          // Add to hash table so that the type wrapper classes can be created later
-          Setattr(swig_types_hash, descriptor, type);
-          Delete(descriptor);
-        }
-      }
+    if (Strstr(tm, "$javaclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname");
       substitution_performed = true;
-      Delete(type);
-      Delete(strippedtype);
+      Delete(classnametype);
     }
+    if (Strstr(tm, "$*javaclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&javaclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
     return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype);
+      if (enumname)
+        Replaceall(tm, classnamespecialvariable, enumname);
+      else
+        Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+    } else {
+      String *classname = getProxyName(classnametype);
+      if (classname) {
+        Replaceall(tm, classnamespecialvariable, classname); // getProxyName() works for pointers to classes too
+      }
+      else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+        String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+        Replaceall(tm, classnamespecialvariable, descriptor);
+
+        // Add to hash table so that the type wrapper classes can be created later
+        Setattr(swig_types_hash, descriptor, classnametype);
+        Delete(descriptor);
+      }
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -2736,16 +2751,15 @@ class JAVA : public Language {
     String *reduced_type = SwigType_typedef_resolve_all(classtype);
     String *base_type;
 
-    if (Strncmp(reduced_type, "enum ", 5)) {
-      /* Not an enum, most likely branch */
-      base_type = SwigType_base(reduced_type);
-    } else {
+    if (SwigType_isenum(reduced_type)) {
       /* Enum handling code: Swig_typedef_resolve_all() will prefix an
        * enumerated type with "enum ", leading to all kinds of headaches
        * when above code is called. Need to call Swig_symbol_clookup
        * with the unadorned enum name.
        */
       base_type = classtype;
+    } else {
+      base_type = SwigType_base(reduced_type);
     }
 
     Node   *classnode = Swig_symbol_clookup(base_type, Getattr(n, "sym:symtab"));
