@@ -45,7 +45,7 @@ has been contributed by Luigi Ballabio.
 <p>
 (7/10/01) <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG-1.3.6</a> has been released.  This release includes substantial changes
 to the language modules and greatly improved support for Guile, Java, and 
-Ruby.
+Ruby.  View the <a href="release.html">release notes</a>.
 
 <p>
 (10/14/00) A Macintosh port of <a href="http://prdownloads.sourceforge.net/swig/MacSWIG1.3a5.sit.bin">SWIG1.3a5</a> has been contributed by Luigi Ballabio.
@@ -58,7 +58,7 @@ has been released.  This release has too many changes to list here,
 but it fixes a lot of bugs in SWIG1.3a3 and SWIG1.3a4, includes new language modules
 for Ruby and Mzscheme, and has some new examples.  Note: this is a somewhat
 unstable release and may not be suitable for first time users.
-Download <a href="http://prdownloads.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1</a> instead.  View the <a href="release.html">release notes</a>.
+Download <a href="http://prdownloads.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1</a> instead.
 
 <p>
 (7/10/00) A version of SWIG1.3a3 compiled for Windows NT has been contributed by
