@@ -16,7 +16,52 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
-09/08/2002: samjam (Sam Liddicott)
+05/09/2002: beazley
+            New %warnfilter() directive.  This directive attaches a warning
+            filter to specific declarations and has the same semantics as
+            %rename, %ignore, %feature, and so forth.  For example:
+
+               %warnfilter(501) foo;   // Suppress overloaded warning
+               int foo(int);
+               int foo(double); 
+
+            or
+
+               %warnfilter(501) Object::foo(double);
+               class Object {
+               public:
+                  int foo(int);
+                  int foo(double);
+               };
+
+            This feature only suppresses warnings in later stages of code
+            generation.  It does not suppress warnings related to preprocessing
+            or parsing.
+            *** NEW FEATURE ***
+
+05/09/2002: beazley
+            SWIG now supports C99 variadic preprocessor macros.  For example:
+
+               #define debugf(fmt,...) fprintf(stderr,fmt,__VA_ARGS__)
+
+            The argument "..." is used to indicate variable arguments which
+            are all placed into the special argument name __VA_ARGS__ in
+            the macro expansion.  
+
+            SWIG also implements the GNU (##) extension for swallowing the
+            preceding comma when __VA_ARGS__ is empty. For example:
+
+               #define debugf(fmt,...) fprintf(stderr,fmt, ##__VA_ARGS__)
+
+            Here is how this is expanded:
+
+               debugf("%d", 3)  --> fprintf(stderr,"%d",3)
+               debugf("Hello")  --> fprintf(stderr,"Hello" )
+
+            (notice the deleted comma).
+            *** NEW FEATURE ***
+
+05/08/2002: samjam (Sam Liddicott)
             Many changes to php module.  Shadow classes are now implemented
             entirely in native C and no need for php-code shadow wrappers
             Populated template config.m4 and Makefile.in as needed by
@@ -106,10 +151,16 @@ Version 1.3.12 (In Progress)
                  swig -w302 example.i
                  swig -w302,305 example.i
 
-            Alternatively, the %nowarn directive can be placed in an interface.
+            Alternatively, the #pragma preprocessor directive can be used to disable this:
 
-                 %nowarn(302);
-                 %nowarn(305);
+                 #pragma SWIG nowarn=302
+                 #pragma SWIG nowarn=302,305
+
+            Note: Since SWIG is a multi-pass compiler, this pragma should
+            only be used to change global settings of the warning filter.  It should
+            not be used to selectively enable/disable warnings in an interface file.
+            The handling of #pragma occurs in the C++ preprocoessor and affects all 
+            subsequent stages of compilation.
 
             The -Wall option turns on all warnings and overrides any filters that
             might have been set.
