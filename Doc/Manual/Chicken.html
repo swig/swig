@@ -24,13 +24,14 @@
 </ul>
 <li><a href="#n10">TinyCLOS</a>
 <li><a href="#n11">Compilation</a>
-<li><a href="#n12">Linkage</a>
+<li><a href="#n12">Linking</a>
 <ul>
-<li><a href="#n13">Customized Interpreter</a>
+<li><a href="#n13">Shared library</a>
+<li><a href="#n14">Static binary</a>
 </ul>
-<li><a href="#n14">Typemaps</a>
-<li><a href="#n15">Pointers</a>
-<li><a href="#n16">Unsupported features</a>
+<li><a href="#n15">Typemaps</a>
+<li><a href="#n16">Pointers</a>
+<li><a href="#n17">Unsupported features</a>
 </ul>
 <!-- INDEX -->
 
@@ -68,7 +69,7 @@
       <strong>greater than or equal to <tt>1.40</tt></strong>.
 
       <br></br> CHICKEN can be downloaded from <a
-      href="http://www.call-with-current-continuation.org/chicken.html">http://www.call-with-current-continuation.org/chicken.html</a>
+      href="http://www.call-with-current-continuation.org/">http://www.call-with-current-continuation.org/</a>
 
       You may want to look at any of the examples in Examples/chicken/
       or Examples/GIFPlot/Chicken for the basic steps to run SWIG
@@ -133,9 +134,8 @@
       Given a C variable, function or constant declaration named
       <tt>Foo_Bar_to_Foo_Baz</tt>, the declaration will be available
       in CHICKEN as an identifier ending with
-      <tt>foo-bar->foo-baz</tt>.  That is, an underscore is converted
-      to a dash, '_to_' is converted to an arro, and all characters
-      are sent to lowercase.
+      <tt>Foo-Bar->Foo-Baz</tt>.  That is, an underscore is converted
+      to a dash and '_to_' is converted to an arrow.
 
       <br></br>
 
@@ -143,7 +143,8 @@
       specified with the <tt>-mixed</tt> option on the SWIG command
       line.  In this mode, the above rules apply with the addition
       that changes in case are indications to SWIG CHICKEN to place a
-      dash in the CHICKEN identifier.  For example, a C declartaion
+      dash in the CHICKEN identifier and the name is converted to lowercase.
+      For example, a C declartaion
       named <tt>someDeclaration_xyz</tt> will be available as the
       CHICKEN identifier ending with <tt>some-declaration-xyz</tt>.
 
@@ -175,7 +176,7 @@
 
       Normally, for a C declaration <tt>Foo_Bar</tt> with a module
       name of 'example', the corresponding CHICKEN identifier will be
-      <tt>example:foo-bar</tt>.  <strong>The module name and a colon is
+      <tt>example:Foo-Bar</tt>.  <strong>The module name and a colon is
       prefixed to the CHICKEN identifier</strong> (following normal
       naming conventions).
 
@@ -201,7 +202,7 @@
       </ol>
 
       In all cases, the constants may be accessed from with CHICKEN
-      using the form <tt>(myconstant1)</tt>; that is, the constants
+      using the form <tt>(MYCONSTANT1)</tt>; that is, the constants
       may be accessed using the read-only parameter form.
     </p>
 
@@ -296,59 +297,37 @@
       <tt>-shared</tt> option if you want to create a dynamically
       loadable module.
     </p>
-    <p>
-      All the following examples assume that the module is named
-      'example' and the following occurs when run:
-      <blockquote>
-	<pre>% chicken-config -home
-CHICKEN_HOME=/usr/local/share/chicken</pre>
-      </blockquote>
-      Substitute <tt>/usr/local/share/chicken</tt> as appropriate for
-      your platform.
-    </p>
 
-<a name="n13"></a><H3>25.5.1 Customized Interpreter</H3>
-
+<a name="n13"></a><H3>25.5.1 Shared library</H3>
 
     <p>
-      We will assume your files are in a directory
-      <tt>/home/jonah/examples</tt>.  Make a file as follows:
-      <pre>
-;; precsi.scm
-(declare (unit precsi))
-(declare (uses example))
-
-;; any other code you want run before the main interpreter is executed
-      </pre>
-
-      Run SWIG on your interface file as usual, create the 2 wrapper
-      object files, and then either
-
-      <blockquote>
-	<pre>
-% cd /usr/local/share/chicken
-% chicken /usr/local/share/chicken/src/csi.scm -optimize-level 3 -quiet \
-        -include-path /usr/local/share/chicken/src \
-        -prologue /usr/local/share/chicken/src/build.scm \
-        -prelude "(declare (uses posix precsi))" \
-        -output-file /home/jonah/examples/csi-example.c
-% cd /home/jonah/examples
-% chicken precsi.scm -optimize-level 3 --explicit-use \
-        -output-file precsi.c
-% gcc precsi.c csi.c <i>wrapper_object_files</i> \
-        `chicken-config -libs` `chicken-config -extra-libs` -o csi-example
-	</pre>
-	<pre>
-      </blockquote>
-      or
-      <blockquote>
-	<pre>% extend-csi precsi -output-file csi-example</pre>
-      </blockquote>
-
-
+      The easiest way to use SWIG and CHICKEN is to use the csc compiler
+      wrapper provided by CHICKEN.  Assume you have a SWIG interface file
+      in example.i and the C functions being wrapped are in example_impl.c.
     </p>
 
-<a name="n14"></a><H2>25.6 Typemaps</H2>
+      <pre><blockquote>
+   $ swig -chicken example.i
+   $ csc -svk example.scm example_impl.c example_wrap.c
+   $ csi example.so test_script.scm
+      </blockquote></pre>
+
+    <p>
+      You must be careful not to name the example_impl.c file example.c because
+      when compiling example.scm, csc compiles that into example.c!
+    </p>
+
+<a name="n14"></a><H3>25.5.2 Static binary</H3>
+
+   <p>Again, we can easily use csc to build a binary.</p>
+
+   <pre><blockquote>
+   $ swig -chicken example.i
+   $ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
+   $ ./example
+   </blockquote></pre>
+
+<a name="n15"></a><H2>25.6 Typemaps</H2>
 
 
     <p>
@@ -488,7 +467,7 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
 
     </p>
 
-<a name="n15"></a><H2>25.7 Pointers</H2>
+<a name="n16"></a><H2>25.7 Pointers</H2>
 
 
     <p>
@@ -521,7 +500,7 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
       type.
     </p>
 
-<a name="n16"></a><H2>25.8 Unsupported features</H2>
+<a name="n17"></a><H2>25.8 Unsupported features</H2>
 
 
     <ul>
