@@ -75,6 +75,10 @@ typedef struct {
   int       (*doh_seek)(DOH *obj, long offset, int whence);
   long      (*doh_tell)(DOH *obj);
   int       (*doh_close)(DOH *obj);
+  DOH      *(*doh_getfile)(DOH *obj);
+  void      (*doh_setfile)(DOH *obj, DOH *f);
+  int       (*doh_getline)(DOH *obj);
+  void      (*doh_setline)(DOH *obj, int);
 } DohFileMethods;
 
 /* String methods */

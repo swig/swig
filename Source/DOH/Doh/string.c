@@ -76,7 +76,11 @@ static DohFileMethods StringFileMethods = {
   String_ungetc,
   String_seek,
   String_tell,
-  0,
+  0,              /* close */
+  0,              /* getfile */
+  0,              /* setfile */ 
+  0,              /* getline */
+  0               /* setline */
 };
 
 static DohStringMethods StringStringMethods = {
