@@ -31,10 +31,15 @@
     return c;
   }
 
+  struct C
+  {
+  };
 }
 
 
 %template(map_si)  std::map<std::string, int>;
+%template(pair_iC)  std::pair<int, C*>;
+%template(map_iC)  std::map<int, C*>;
 %template(mmap_si)  std::multimap<std::string, int>;
 %template(set_i) std::set<int>;
 %template(multiset_i) std::multiset<int>;
@@ -54,6 +59,11 @@
 {
   typedef std::vector<std::vector<int> >  imatrix;
   imatrix mident(const imatrix& v)
+  {
+    return v;
+  }
+
+  std::map<int,C*> mapidentc(const std::map<int,C*>& v)
   {
     return v;
   }

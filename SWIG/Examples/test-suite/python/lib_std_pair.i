@@ -34,6 +34,14 @@ namespace std {
 
   %template(ABPair) pair<A, B>;
   %template(IntAPair) pair<int, A>;
+
+  %template(pairP1) pair<int, A*>;
+  %template(pairP2) pair<A*, int>;
+  %template(pairP3) pair<A*, A*>;
+  %template(pairP4) pair<int, int*>;
+  %template(pairP5) pair<int*, int>;
+  %template(pairP6) pair<int*, int*>;
+  
 }
 %std_comp_methods(std::pair<std::pair<std::string, int>, int>);
 
@@ -91,6 +99,11 @@ std::pair<int, int>
   return p;
 }
 
+
+std::pair<int, A*> 
+p_identa(const std::pair<int, A*>& p) {
+  return p;
+}
 
 void
 d_inout(double *INOUT) {
