@@ -79,4 +79,4 @@ run_testcase = \
 	fi;
 
 clean:
-	@rm -f *.class
+	@rm -f *.class hs_err*.log
