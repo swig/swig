@@ -45,10 +45,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	director_redefined \
 	array_typedef_memberin \
 	defvalue_constructor \
-	exception_order \
 	namespace_union \
 	smart_pointer_namespace2 \
 	template_default_arg \
@@ -112,13 +110,14 @@ CPP_TEST_CASES += \
 	default_ref \
 	director_abstract \
 	director_basic \
-	director_exception \
 	director_detect \
+	director_exception \
 	director_finalizer \
-	director_unroll \
-	director_wombat \
 	director_nested \
 	director_protected \
+	director_redefined \
+	director_unroll \
+	director_wombat \
 	dynamic_cast \
 	enum_plus \
 	enum_scope \
@@ -127,10 +126,12 @@ CPP_TEST_CASES += \
 	evil_diamond \
 	evil_diamond_ns \
 	evil_diamond_prop \
+	exception_order \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
 	extern_throws \
+	friends \
 	global_ns_arg \
 	grouping \
 	ignore_parameter \
@@ -152,6 +153,7 @@ CPP_TEST_CASES += \
 	minherit \
 	name_cxx \
 	name_inherit \
+	name_warnings \
 	namespace_enum \
 	namespace_extend \
 	namespace_nested \
