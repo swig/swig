@@ -69,10 +69,6 @@ The build process creates the following shared libraries:
 To install the libraries, simply type 'make install'.  This copies the libraries
 to /usr/local/lib (unless you modify the makefile).
 
-In case the build process does not work, pre-built binaries for both
-platforms can be found in the Prebuilt directory.   Simply go to the appropriate
-platform directory and type 'make install'.
-
 Notes:
 
    -  The Sun version of WAD has only been tested when compiled with the
@@ -242,6 +238,13 @@ Linux:
      convention for saving registers in function prologues.  It also
      relies upon the register save conventions described in the Linux
      Assembly HOWTO.
+
+  -  If you are using WAD with pre-installed binaries for Python, Tcl,
+     and other scripting languages, it may not work correctly due to
+     stripped symbol tables.  Most Linux installs such as Redhat strip
+     symbol tables from executables.  This makes it difficult for WAD
+     to determine context correctly (although it may still work since
+     the dynamic loading symbol table is still available in most cases).
 
 6.  Language specific issues
 
