@@ -252,17 +252,15 @@ SWIGINTERN void SWIG_exception_(int code, const char *msg) {
 
 #ifdef SWIGCHICKEN
 %{
-#define CHICKEN_MSG_BUF_LEN 1024
 SWIGINTERN void SWIG_exception_(int code, const char *msg) {
-  char msg_buf[CHICKEN_MSG_BUF_LEN];
   C_word *a;
   C_word scmmsg;
+  C_word list;
 
-  sprintf (msg_buf, "Exception(%d): %.950s\n", code, msg);
-
-  a = C_alloc (C_SIZEOF_STRING (strlen (msg_buf)));
-  scmmsg = C_string2 (&a, msg_buf);
-  C_halt (scmmsg);
+  a = C_alloc (C_SIZEOF_STRING (strlen (msg)) + C_SIZEOF_LIST(2));
+  scmmsg = C_string2 (&a, (char *) msg);
+  list = C_list(&a, 2, C_fix(code), scmmsg);
+  SWIG_ThrowException(list);
 }
 #define SWIG_exception(a,b) SWIG_exception_((a),(b))
 %}
