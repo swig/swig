@@ -40,7 +40,7 @@ namespace Swig {
       virtual ~Director() {
         if (swig_self) {
           JNIEnv *jenv = swig_acquire_jenv();
-          jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(swig_self), "swig_director_disconnect", "()V");
+          jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(swig_self), "swigDirectorDisconnect", "()V");
           if (disconn_meth)
             jenv->CallVoidMethod(swig_self, disconn_meth);
           jenv->DeleteGlobalRef(swig_self);

@@ -781,7 +781,19 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
     if (director_method) {
-      Setattr(n, "tmap:directorin", Swig_typemap_lookup_new("directorin", n, "", 0));
+      Parm             *jni_pm = NewParm(t, (String*) empty_string);
+      String           *jni_tm = Swig_typemap_lookup_new("jni", jni_pm, "", 0);
+      Parm             *din_pm = NewParm(jni_tm, (String*) empty_string);
+      String           *din_tm = Swig_typemap_lookup_new("directorin", din_pm, "", 0);
+
+      Setattr(n, "tmap:directorin", din_tm);
+      Setattr(n, "tmap:directorin:parse", Getattr(din_pm, "tmap:directorin:parse"));
+
+      Delete(jni_pm);
+      Delete(jni_tm);
+      Delete(din_pm);
+      Delete(din_tm);
+
       Swig_typemap_attach_parms("javadirectorin", l, 0);
     }
 
@@ -1504,20 +1516,15 @@ class JAVA : public Language {
 
     /* Insert declaration for swig_director_connect(), if this class has directors enabled */
     if (parentNode(n) && Swig_directorclass(n)) {
-      Printf(proxy_class_def, "  private final native static void swig_director_connect(%s self, long cptr);\n\n",
-             proxy_class_name);
-      Printf(proxy_class_def, "  private final native static Object SWIG_Java_Object(long cptr);\n\n");
-
-      Printf(proxy_class_def, "  protected void swig_director_disconnect()\n");
-      Printf(proxy_class_def, "  {\n");
+      Printf(proxy_class_def, "  protected void swigDirectorDisconnect() {\n");
       Printf(proxy_class_def, "    swigCMemOwn = false;\n");
       Printf(proxy_class_def, "    %s();\n", destruct_methodname);
       Printf(proxy_class_def, "  }\n\n");
 
       /* Emit for the class itself */
-      Printf(proxy_class_def, "  public static %s %s_Java_Object(%s obj) {\n", proxy_class_name, proxy_class_name, proxy_class_name);
-      Printf(proxy_class_def, "    return (%s) %s.SWIG_Java_Object(%s.getCPtr(obj));\n", proxy_class_name, proxy_class_name,
-	     proxy_class_name);
+      Printf(proxy_class_def, "  public static %s javaObject%s(%s obj) {\n", proxy_class_name, proxy_class_name, proxy_class_name);
+      Printf(proxy_class_def, "    return (%s) %s.javaObject%s(%s.getCPtr(obj));\n", proxy_class_name, imclass_name,
+             proxy_class_name, proxy_class_name);
       Printf(proxy_class_def, "  }\n\n");
 
       /* Walk through inheritance hierarchy (hack: we know that only the first
@@ -1531,9 +1538,9 @@ class JAVA : public Language {
         if (bn != NULL) {
           String *base_name = Getattr(bn, "sym:name");
 
-          Printf(proxy_class_def, "  public static %s %s_Java_Object(%s obj) {\n", proxy_class_name, proxy_class_name, base_name);
-          Printf(proxy_class_def, "    return (%s) %s.SWIG_Java_Object(%s.getCPtr(obj));\n", proxy_class_name, proxy_class_name,
-		 base_name);
+          Printf(proxy_class_def, "  public static %s javaObject%s(%s obj) {\n", proxy_class_name, proxy_class_name, base_name);
+          Printf(proxy_class_def, "    return (%s) %s.javaObject%s(%s.getCPtr(obj));\n", proxy_class_name, imclass_name,
+                 proxy_class_name, base_name);
           Printf(proxy_class_def, "  }\n\n");
 
           bases = Getattr(bn, "bases");
@@ -1944,18 +1951,22 @@ class JAVA : public Language {
       /* Add director connection call if this class has directors. */
 
       if (feature_director) {
-        String *swig_director_connect = NewString("swig_director_connect");
-        Printv(proxy_class_code, "    ", swig_director_connect, "(this, swigCPtr);\n", NIL);
+        String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
+        Printv(proxy_class_code, "    ", imclass_name, ".", swig_director_connect, "(this, swigCPtr);\n", NIL);
 
         if (!emitted_connect) {
+          String  *jni_imclass_name = makeValidJniName(imclass_name);
           String  *jni_class_name = makeValidJniName(proxy_class_name);
           String  *swig_director_connect_jni = makeValidJniName(swig_director_connect);
           String  *norm_name = SwigType_namestr(Getattr(n, "name"));
           Wrapper *conn_wrap;
 
+          Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr);\n", swig_director_connect,
+                 proxy_class_name);
+
           conn_wrap = NewWrapper();
           Printf(conn_wrap->def, "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg) {",
-                 jnipackage, jni_class_name, swig_director_connect_jni);
+                 jnipackage, jni_imclass_name, swig_director_connect_jni);
           Printf(conn_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
           Printf(conn_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
                  Getattr(n, "sym:name"), Getattr(n, "sym:name"));
@@ -1967,10 +1978,13 @@ class JAVA : public Language {
           Wrapper_print(conn_wrap, f_wrappers);
           DelWrapper(conn_wrap);
 
+          Printf(imclass_class_code, "  public final static native %s javaObject%s(long cptr);\n", proxy_class_name,
+                 proxy_class_name);
+
           Wrapper *self_wrap = NewWrapper();
 
-          Printf(self_wrap->def, "JNIEXPORT jobject JNICALL Java_%s%s_SWIG_1Java_1Object(JNIEnv *jenv, jclass jcls, jlong objarg) {",
-                 jnipackage, jni_class_name);
+          Printf(self_wrap->def, "JNIEXPORT jobject JNICALL Java_%s%s_javaObject%s(JNIEnv *jenv, jclass jcls, jlong objarg) {",
+                 jnipackage, jni_imclass_name, jni_class_name);
           Printf(self_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
           Printf(self_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
                  Getattr(n, "sym:name"), Getattr(n, "sym:name"));
@@ -1983,6 +1997,7 @@ class JAVA : public Language {
           Delete(swig_director_connect_jni);
           Delete(norm_name);
           Delete(jni_class_name);
+          Delete(jni_imclass_name);
           emitted_connect = true;
         }
         Delete(swig_director_connect);
@@ -2642,7 +2657,6 @@ class JAVA : public Language {
     String     *return_type = Copy(type);
     String     *tm;
     Parm       *p;
-    Parm       *retpm;
     int         i, num_arguments, num_required;
     Wrapper    *w = NewWrapper();
     ParmList   *l = Getattr(n, "parms");
@@ -2728,6 +2742,58 @@ class JAVA : public Language {
         }
       } else
         Printf(imw->def, "public static void %s(%s self", imclass_dmethod, classname);
+
+      /* Get the JNI field descriptor for this return type, add the JNI field descriptor
+         to jniret_desc */
+
+      Parm       *retpm = NewParm(return_type, empty_str);
+      
+      if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0)) != NULL) {
+        String *jdesc;
+        Parm *tp = NewParm(jniret_type, empty_str);
+
+        if (!is_void) {
+          String *jretval_decl = NewStringf("%s jresult", jniret_type);
+          Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
+          Delete(jretval_decl);
+        }
+
+        if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
+            && (jdesc = Getattr(tp, "tmap:directorin:parse")) != NULL) {
+          String *jnidesc_canon;
+
+          jnidesc_canon = canonicalJNIFDesc(jdesc, n, jniret_type);
+          Append(jniret_desc, jnidesc_canon);
+          Delete(jnidesc_canon);
+        } else {
+          Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                       "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
+          output_director = false;
+        }
+
+        Delete(tp);
+      } else {
+        Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
+            "No jni typemap defined for %s\n", SwigType_str(type,0));
+        output_director = false;
+      }
+
+      String *jdesc;
+
+      if ((tm = Swig_typemap_lookup_new("directorin", retpm, "", 0)) != NULL
+          && (jdesc = Getattr(retpm, "tmap:directorin:parse")) != NULL) {
+        String *jnidesc_canon;
+
+        jnidesc_canon = canonicalJNIFDesc(jdesc, n, return_type);
+        Append(classret_desc, jnidesc_canon);
+        Delete(jnidesc_canon);
+      } else {
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
+        output_director = false;
+      }
+
+      Delete(retpm);
     }
 
     /* Go through argument list, attach lnames for arguments */
@@ -2752,58 +2818,6 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jtype", l, w);
     Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("javadirectorin", l, 0);
-
-    /* Get the JNI field descriptor for this return type */
-
-    retpm = NewParm(return_type, empty_str);
-    if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0)) != NULL) {
-      String *jdesc;
-      Parm *tp = NewParm(jniret_type, empty_str);
-
-      if (!is_void) {
-        String *jretval_decl = NewStringf("%s jresult", jniret_type);
-        Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
-        Delete(jretval_decl);
-      }
-
-      if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
-          && (jdesc = Getattr(tp, "tmap:directorin:parse")) != NULL) {
-        String *jnidesc_canon;
-
-        jnidesc_canon = canonicalJNIFDesc(jdesc, n, jniret_type);
-        Append(jniret_desc, jnidesc_canon);
-        Delete(jnidesc_canon);
-      } else {
-        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
-        output_director = false;
-      }
-
-      Delete(tp);
-    } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
-          "No jni typemap defined for %s\n", SwigType_str(type,0));
-      output_director = false;
-    }
-
-    {
-      String *jdesc;
-
-      if ((tm = Swig_typemap_lookup_new("directorin", retpm, "", 0)) != NULL
-          && (jdesc = Getattr(retpm, "tmap:directorin:parse")) != NULL) {
-        String *jnidesc_canon;
-
-        jnidesc_canon = canonicalJNIFDesc(jdesc, n, return_type);
-        Append(classret_desc, jnidesc_canon);
-        Delete(jnidesc_canon);
-      } else {
-        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
-        output_director = false;
-      }
-    }
-
-    Delete(retpm);
 
     /* header declaration, start wrapper definition */
     {
@@ -3280,6 +3294,7 @@ class JAVA : public Language {
     Printf(f_directors_h, "\n");
     Printf(f_directors_h, "%s\n", declaration);
     Printf(f_directors_h, "\npublic:\n");
+    Printf(f_directors_h, "  virtual ~%s();\n", director_classname);
     Printf(f_directors_h, "  void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
     Printf(f_directors_h, "  bool swig_get_ricochet(int n) {\n");
     Printf(f_directors_h, "    bool ric = swig_ricochet[n];\n");
@@ -3297,6 +3312,9 @@ class JAVA : public Language {
     Printf(f_directors_h, "  }\n");
 
     Delete(declaration);
+
+    Printf(f_directors, "%s::~%s() {}\n", director_classname, director_classname);
+
     Delete(director_classname);
 
     /* Keep track of the director methods for this class */
