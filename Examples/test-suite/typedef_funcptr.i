@@ -17,6 +17,7 @@ int subf(int x, int y) {
 %inline %{
 typedef int Integer;
 
+extern "C"
 Integer do_op(Integer x, Integer y, Integer (*op)(Integer, Integer)) {
     return (*op)(x,y);
 }
