@@ -195,18 +195,19 @@ public:
 
     if (is_abstract_inherit(n)) {
       if ((!Getattr(n,"abstract")) && ((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
-	Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. \n", SwigType_namestr(Getattr(n,"name")));
-		     /*	Setattr(n,"abstract",NewList()); */
+	if (!Getattr(n,"feature:notabstract")) {
+	  Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. No constructors generated. \n", SwigType_namestr(Getattr(n,"name")));
+	  Setattr(n,"abstract",NewList());
+	}
       }
     }
 
     if (!Getattr(n,"allocate:has_constructor")) {
       /* No constructor is defined.  We need to check a few things */
       /* If class is abstract.  No default constructor. Sorry */
-      /*      if (Getattr(n,"abstract")) {
+      if (Getattr(n,"abstract")) {
 	Delattr(n,"allocate:default_constructor");
-	} else  */
-      
+      } 
       if (!Getattr(n,"allocate:default_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n,"bases");
