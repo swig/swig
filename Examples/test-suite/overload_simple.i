@@ -9,7 +9,11 @@
 struct Foo {
 };
 
-struct Bar {
+class Bar {
+public:
+  Bar(int i = 0) {}
+
+  static int foo(int a=0, int b=0) {return 0;}
 };
 
 char *foo(int) {
