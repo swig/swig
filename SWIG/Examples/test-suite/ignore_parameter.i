@@ -2,7 +2,7 @@
 
 %module ignore_parameter
 
-%typemap(in,numinputs=0) char* a "static char* hi = \"hello\"; $1 = hi;";
+%typemap(in,numinputs=0) char* a "static const char* hi = \"hello\"; $1 = const_cast<char *>(hi);";
 %typemap(in,numinputs=0) int bb "$1 = 101;";
 %typemap(in,numinputs=0) double ccc "$1 = 8.8;";
 
