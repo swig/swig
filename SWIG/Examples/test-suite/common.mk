@@ -68,6 +68,7 @@ CPP_TEST_CASES += \
 	arrays_global \
 	arrays_global_twodim \
 	arrays_scope \
+	bloody_hell \
 	bool_default \
 	bools \
 	casts \
@@ -92,6 +93,7 @@ CPP_TEST_CASES += \
 	cpp_static \
 	cpp_typedef \
 	default_cast \
+	default_char \
 	default_constructor \
 	default_ns \
 	default_ref \
@@ -108,6 +110,7 @@ CPP_TEST_CASES += \
 	evil_diamond_ns \
 	evil_diamond_prop \
 	explicit \
+	extend_placement \
 	extend_template \
 	extend_template_ns \
 	global_ns_arg \
