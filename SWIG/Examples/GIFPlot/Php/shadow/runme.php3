@@ -1,10 +1,7 @@
 <?
 
 # Plot a 3D function
-dl("gifplot.so");
-include("ColorMap.php");
-include("FrameBuffer.php");
-include("Plot3D.php");
+include("gifplot.php");
 
 # Here is the function to plot
 function func($x, $y) {
@@ -25,9 +22,8 @@ $nypoints =  60;
 
 $cmap  = new ColorMap("cmap");
 $frame = new FrameBuffer(500,500);
-$frame->clear($BLACK);
+$frame->clear(BLACK);
 
-print "Got $frame\n";
 
 $p3    = new Plot3D($frame,$xmin,$ymin,$zmin,$xmax,$ymax,$zmax);
 $p3->lookat(2*($zmax-$zmin));
@@ -37,7 +33,6 @@ $p3->rotr(30);
 $p3->rotd(10);
 
 function drawsolid() {
-	global $p3;
 	global $xmax;
 	global $xmin;
 	global $ymax;
@@ -46,8 +41,9 @@ function drawsolid() {
 	global $zmax;
 	global $nxpoints;
 	global $nypoints;
+	global $p3;
 
-    $p3->clear($BLACK);
+    $p3->clear(BLACK);
     $p3->start();
     $dx = 1.0*($xmax-$xmin)/$nxpoints;
     $dy = 1.0*($ymax-$ymin)/$nypoints;
