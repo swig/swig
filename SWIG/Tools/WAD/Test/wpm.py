@@ -24,7 +24,7 @@ import linecache
 
 
 print "**************************************************"
-print "*          WAD Post-Mortem Debugger              *"
+print "*                WAD Debugger                    *"
 print "**************************************************"
 
 # Save a local copy of the last exception and value objects from sys

@@ -584,12 +584,11 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   objfile[0] = 0;
 
   for (i = 0; i < ns; i++, s++) {
-    /*    if (wad_debug_mode & DEBUG_STABS) {
+    if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
 	     }
-    */
     if (s->n_type == N_LSYM) {
       stab_symbol(s,stabstr);
       continue;
