@@ -35,8 +35,10 @@ TARGETPREFIX =
 TARGETSUFFIX = 
 SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
-RUNTIMEDIR = $(top_builddir)/Runtime/.libs
-DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
+#RUNTIMEDIR = $(top_builddir)/Runtime/.libs
+#DYNAMIC_LIB_PATH = .
+LIBS       = -L. -l$*_runtime
+LIBPREFIX  = lib
 
 #
 # Please keep test cases in alphabetical order.
@@ -355,13 +357,20 @@ swig_and_compile_c =  \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBPREFIX='$(LIBPREFIX)' \
+	INCLUDES="$(INCLUDES)" SWIGOPT="-runtime $(SWIGOPT)" NOLINK=true \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)_runtime" INTERFACE="$*_runtime.i" \
+	$(LANGUAGE)$(VARIANT)_cpp && \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="-noruntime $(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
-	  NOLINK=true $(LANGUAGE)$(VARIANT)_multi_cpp; \
+	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
+
+swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \

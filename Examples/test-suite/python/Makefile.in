@@ -32,7 +32,7 @@ CPP_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+LIBS       = -L. -l_$*_runtime
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -54,7 +54,7 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH python $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH python $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean: remove the generated .py file
