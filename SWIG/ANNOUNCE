@@ -1,33 +1,39 @@
-*** ANNOUNCE: SWIG 1.3.10 ***
+*** ANNOUNCE: SWIG 1.3.11 ***
 
-December 10, 2001
+January 30, 2002
 
 We're pleased to announce the next installment of the SWIG1.3
-redevelopment effort.  The 1.3.10 release primarily addresses problems
+redevelopment effort.  The 1.3.11 release primarily addresses problems
 related to SWIG's internal implementation.  Substantial changes have
 been made to all of SWIG's language modules.  In addition, typemaps
 and exception handling have been completely rewritten.
 
-*** SPECIAL DISCLAIMER ***
-
-SWIG-1.3.10 represents work in progress and is very likely to be
-broken in a number of critical areas (in fact, it may not work at all
-on your machine).  This release includes some of the most substantial
-changes to the internals that have occurred in the last several years.
-We are also working very hard to eliminate some very nasty
-long-standing limitations of SWIG-1.1.  However, to make SWIG better,
-we need to get your feedback about what's broken and what can be improved.
-Please try it out and let us know how (and if) it works.
-
-Note: A more stable 1.3.11 release is planned for early January.
-
-New Features in 1.3.10
+New Features in 1.3.11
 ----------------------
+
+* Improved template support *
+
+SWIG-1.3.9 and SWIG-1.3.10 were the first releases to provide
+better support for wrapping C++ templates.  SWIG-1.3.11 fixes a
+of number of major problems that were discovered and further
+refines the implementation.
+
+* New PHP4 Module *
+
+Richard Palmer has made substantial progress on creating a PHP4 module
+for SWIG.  The 1.3.11 release includes many more examples, tests, and
+documentation for PHP4 support.
+
+* Enhanced Java Module *
+
+William Fulton has continued to make progress on the SWIG-Java module.
+It should provide much better support for typemaps and other advanced
+features.
 
 * Redesigned Typemaps *
 
-The typemap system has been almost completely rewritten.  The major
-improvement in this release is support for multi-argument typemaps.
+In SWIG-1.3.10, the typemap system was almost completely rewritten.  The major
+improvement in that release is support for multi-argument typemaps.
 This addresses the problem of wrapping functions where multiple arguments
 might be mapped to a single object in the target language.  For example:
 
@@ -43,81 +49,27 @@ of a multi-argument typemap:
         $2 = PyString_Size($input);
     }
 
-* Overloaded Operators *
-
-Overloaded operators can now be wrapped as easily as standard methods.
-Simply give the operators an acceptable name.  For example:
-
-    %rename(__add__) operator+;
-    %rename(__sub__) operator-;
-    ...
-
-Some language modules now provide automatic conversion of certain
-operators to special methods.  However, this is experimental and
-still in development.  SWIG-1.3.10 is powerful enough to handle
-operator overloading if you are willing to handle the renaming
-yourself.
-
-* Enhanced exception handling *
-
-A new %exception directive allows exception handlers to be attached
-to specific declarations.  For example:
-
-   %exception getitem {
-      try {
-         $action
-      } catch(RangeError) {
-         ...
-      }
-    }
-
-    class List {
-    ...
-      T getitem(int index);    <-- Exception handler added here
-    ...
-    };
-
-This feature can greatly reduce the amount of generated code and allows
-exception handling to be more finely tuned.   The new %exception directive
-also allows exception handlers to be defined in advanced--making it easy to
-include raw header files.  For example:
-
-   %exception Object::getitem(int) {
-       ...
-   }
-
-   %include "header.h"
-
-* PHP module *
-
-SWIG-1.3.10 is the first release to include support for PHP4.  This work has
-been contributed by Richard Palmer and is still in progress.   
-
-* Improved internals *
-
-SWIG is now building a complete parse tree of the interface before generating
-any code.  The whole language module API has also been completely redesigned
-to give the code generators greatly flexibility.   For now, you will only notice
-superficial changes (e.g., the generated wrapper code is better).   However,
-more amazing stuff is on the way.
+SWIG-1.3.11 provides many bug-fixes and minor patches to improve
+typemap support.
 
 * Updated documentation *
 
-Continued updates of the SWIG Users Manual are included in this release including
-entirely new sections on typemaps and exception handling.  The first 7 chapters
-of the old manual are now entirely up-to-date with SWIG-1.3.10.   However,
-updating all of the old documentation is an ongoing process and is not yet
-finished (we are working on it).
+Continued updates of the SWIG Users Manual are included in this
+release including entirely new sections on typemaps and exception
+handling.  The first 7 chapters of the old manual are now entirely
+up-to-date with SWIG-1.3.11.  However, updating all of the old
+documentation is an ongoing process and is not yet finished (we are
+working on it).
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://download.sourceforge.net/swig/swig-1.3.10.tar.gz
+     http://download.sourceforge.net/swig/swig-1.3.11.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://download.sourceforge.net/swig/swigwin-1.3.10.zip
+     http://download.sourceforge.net/swig/swigwin-1.3.11.zip
 
 What's broken?
 --------------
@@ -140,9 +92,6 @@ with all Perl configurations such as ActivePerl (It seems to work with
 a standard Perl5.6.1 distribution however).  We are looking for a
 fearless volunteer to help us with future Perl5 support (please skip
 to the end for details).
-
-The Java module is also undergoing some renovation and may not be
-fully functional in this release.
 
 Documentation
 -------------
@@ -178,8 +127,8 @@ not exist without volunteers.  We are also looking for the developers
 of other SWIG language modules.  If you have developed a SWIG module
 and would like to see it incorporated into the new release, please
 contact us to obtain SWIG developer access.  We are also more than
-willing to help port your module from SWIG1.1 to SWIG1.3.
-Please send email to beazley@cs.uchicago.edu for further information.
+willing to help port your module from SWIG1.1 to SWIG1.3.  Please send
+email to beazley@cs.uchicago.edu for further information.
 
 Please report problems with this release to swig-dev@cs.uchicago.edu.
 
