@@ -328,7 +328,7 @@ GUILE::close (void)
 {
   SwigType_emit_type_table (f_runtime, f_wrappers);
 
-  Printf (f_init, "SWIG_Guile_RegisterTypes(_swig_types);\n");
+  Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types);\n");
   Printf (f_init, "}\n\n");
   char module_name[256];
 

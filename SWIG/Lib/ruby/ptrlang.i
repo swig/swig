@@ -25,15 +25,15 @@
 
 /* Pointer library specific types */
 
-static _swig_type_info _swig_pointer_int_p[] = {{"_p_int",0},{"_p_int",0},{0}};
-static _swig_type_info _swig_pointer_short_p[] = {{"_p_short",0},{"_p_short",0},{0}};
-static _swig_type_info _swig_pointer_long_p[] = {{"_p_long",0},{"_p_long",0},{0}};
-static _swig_type_info _swig_pointer_float_p[] = {{"_p_float",0},{"_p_float",0},{0}};
-static _swig_type_info _swig_pointer_double_p[] = {{"_p_double",0},{"_p_double",0},{0}};
-static _swig_type_info _swig_pointer_char_p[] = {{"_p_char",0},{"_p_char",0},{0}};
-static _swig_type_info _swig_pointer_char_pp[] = {{"_pp_char",0},{"_pp_char",0},{0}};
+static swig_type_info _swig_pointer_int_p[] = {{"_p_int",0},{"_p_int",0},{0}};
+static swig_type_info _swig_pointer_short_p[] = {{"_p_short",0},{"_p_short",0},{0}};
+static swig_type_info _swig_pointer_long_p[] = {{"_p_long",0},{"_p_long",0},{0}};
+static swig_type_info _swig_pointer_float_p[] = {{"_p_float",0},{"_p_float",0},{0}};
+static swig_type_info _swig_pointer_double_p[] = {{"_p_double",0},{"_p_double",0},{0}};
+static swig_type_info _swig_pointer_char_p[] = {{"_p_char",0},{"_p_char",0},{0}};
+static swig_type_info _swig_pointer_char_pp[] = {{"_pp_char",0},{"_pp_char",0},{0}};
 
-static _swig_type_info *_swig_pointer_types[] = {
+static swig_type_info *_swig_pointer_types[] = {
    _swig_pointer_int_p,
    _swig_pointer_short_p,
    _swig_pointer_long_p,
@@ -70,7 +70,7 @@ static VALUE ptrcast(VALUE _PTRVALUE, char *type) {
   void *ptr;
   VALUE obj;
   char *typestr,*c;
-  _swig_type_info   temptype;
+  swig_type_info   temptype;
 
   /* Produce a "mangled" version of the type string.  */
 
@@ -188,7 +188,7 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
   void     *ptr;
   VALUE obj;
   int       sz;
-  _swig_type_info *cast;
+  swig_type_info *cast;
   char      temp[40];
 
   /* Check the type string against a variety of possibilities */
@@ -370,7 +370,7 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
   char *r;
   void *ptr,*junk;
   VALUE obj;
-  _swig_type_info *type;
+  swig_type_info *type;
 
   ptr = SWIG_ConvertPtr(_PTRVALUE,0);
 

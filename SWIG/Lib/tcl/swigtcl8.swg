@@ -13,21 +13,21 @@ extern "C" {
 #endif
 
 #ifdef SWIG_NOINCLUDE
-SWIGEXPORT(int) SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, _swig_type_info *);
-SWIGEXPORT(int) SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, _swig_type_info *);
-SWIGEXPORT(void) SWIG_MakePtr(char *, void *, _swig_type_info *);
-SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, _swig_type_info *);
+SWIGEXPORT(int) SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *);
+SWIGEXPORT(int) SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *);
+SWIGEXPORT(void) SWIG_MakePtr(char *, void *, swig_type_info *);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, swig_type_info *);
 SWIGEXPORT(int) SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
 SWIGEXPORT(char *) SWIG_PointerTypeFromString(char *c);
 #else
 
 /* Convert a pointer value */
-SWIGSTATICRUNTIME(int)
-SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_info *ty)
+SWIGRUNTIME(int)
+SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty)
 {
   unsigned long p;
   register int d;
-  _swig_type_info *tc;
+  swig_type_info *tc;
   p = 0;
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
@@ -62,15 +62,15 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_in
 
 
 /* Convert a pointer value */
-SWIGSTATICRUNTIME(int)
-SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, _swig_type_info *ty)
+SWIGRUNTIME(int)
+SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty)
 {
   return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty);
 }
 
 
 /* Convert a pointer value */
-SWIGSTATICRUNTIME(char *)
+SWIGRUNTIME(char *)
 SWIG_PointerTypeFromString(char *c) {
   char d;
   /* Pointer values must start with leading underscore */
@@ -87,8 +87,8 @@ SWIG_PointerTypeFromString(char *c) {
 }
 
 /* Take a pointer and convert it to a string */
-SWIGSTATICRUNTIME(void) 
-SWIG_MakePtr(char *c, void *ptr, _swig_type_info *ty) {
+SWIGRUNTIME(void) 
+SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   static char hex[17] = "0123456789abcdef";
   unsigned long p, s;
   char result[24], *r; 
@@ -110,8 +110,8 @@ SWIG_MakePtr(char *c, void *ptr, _swig_type_info *ty) {
 }
 
 /* Create a new pointer object */
-SWIGSTATICRUNTIME(Tcl_Obj *)
-SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
+SWIGRUNTIME(Tcl_Obj *)
+SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
   char result[256];
   Tcl_Obj *robj;
   SWIG_MakePtr(result,ptr,type);
@@ -120,7 +120,7 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
 }
 
 /* Get arguments */
-SWIGSTATICRUNTIME(int)
+SWIGRUNTIME(int)
 SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...)
 {
   int        argno = 0, opt = 0, tempi;
@@ -129,7 +129,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
   const char *c;
   va_list    ap;
   void      *vptr;
-  _swig_type_info *ty;
+  swig_type_info *ty;
 
   va_start(ap,fmt);
   for (c = fmt; (*c && (*c != ':')); c++,argno++) {
@@ -183,7 +183,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
 	*((char *)vptr) = *(Tcl_GetStringFromObj(objv[argno+1],NULL));
 	break;
       case 'p':
-	ty = (_swig_type_info *) va_arg(ap, void *);
+	ty = (swig_type_info *) va_arg(ap, void *);
 	if (SWIG_ConvertPtr(interp, objv[argno+1], (void **) vptr, ty) == TCL_ERROR) goto argerror;
 	break;
       case 'o':
@@ -218,7 +218,7 @@ typedef struct {
   const char *name;
   int       (*wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
   ClientData  clientdata;
-} _swig_command_info;
+} swig_command_info;
 
 /* Structure for variable linking table */
 typedef struct {
@@ -226,7 +226,7 @@ typedef struct {
   void *addr;
   char * (*get)(ClientData, Tcl_Interp *, char *, char *, int);
   char * (*set)(ClientData, Tcl_Interp *, char *, char *, int);
-} _swig_var_info;
+} swig_var_info;
 
 
 #ifdef __cplusplus

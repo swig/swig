@@ -64,11 +64,11 @@ extern "C" {
 #ifdef SWIG_NOINCLUDE
 
 #ifndef PERL_OBJECT
-extern int SWIG_ConvertPtr(SV *, void **, _swig_type_info *);
-extern void SWIG_MakePtr(SV *, void *, _swig_type_info *);
+extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *);
+extern void SWIG_MakePtr(SV *, void *, swig_type_info *);
 #else
-extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, _swig_type_info *);
-extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, _swig_type_info *);
+extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, swig_type_info *);
+extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
 #define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
 #define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
 #endif
@@ -78,16 +78,16 @@ extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, _swig_type_info *);
 /* Function for getting a pointer value */
 
 #ifndef PERL_OBJECT
-SWIGSTATICRUNTIME(int) 
-SWIG_ConvertPtr(SV *sv, void **ptr, _swig_type_info *_t)
+SWIGRUNTIME(int) 
+SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t)
 #else
 #define SWIG_ConvertPtr(a,b,c) _SWIG_GetConvert(pPerl,a,b,c)
-SWIGSTATICRUNTIME(int)
-_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, _swig_type_info *_t)
+SWIGRUNTIME(int)
+_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t)
 #endif
 {
   char *_c;
-  _swig_type_info *tc;
+  swig_type_info *tc;
   IV   tmp;
 
   /* If magical, apply more magic */
@@ -145,12 +145,12 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, _swig_type_info *_t)
   return 0;
 }
 #ifndef PERL_OBJECT
-SWIGSTATICRUNTIME(void) 
-SWIG_MakePtr(SV *sv, void *ptr, _swig_type_info *t)
+SWIGRUNTIME(void) 
+SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t)
 #else
 #define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
-SWIGSTATICRUNTIME(int *)
-_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, _swig_type_info *t)
+SWIGRUNTIME(int *)
+_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
 #endif
 {
   sv_setref_pv(sv, t->name, ptr);

@@ -34,38 +34,38 @@
 #endif
 
 #ifdef SWIG_GLOBAL
-#define SWIGSTATICRUNTIME(a) SWIGEXPORT(a)
+#define SWIGRUNTIME(a) SWIGEXPORT(a)
 #else
-#define SWIGSTATICRUNTIME(a) static a
+#define SWIGRUNTIME(a) static a
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct _swig_type_info {
+typedef struct swig_type_info {
   char  *name;                 
   void *(*converter)(void *);
   char  *str;
-  struct _swig_type_info  *next;
-  struct _swig_type_info  *prev;
-} _swig_type_info;
+  struct swig_type_info  *next;
+  struct swig_type_info  *prev;
+} swig_type_info;
 
 #ifdef SWIG_NOINCLUDE
-SWIGEXPORT(_swig_type_info *) SWIG_TypeRegister(_swig_type_info *);
-SWIGEXPORT(_swig_type_info *) SWIG_TypeCheck(char *c, _swig_type_info *);
-SWIGEXPORT(void *) SWIG_TypeCast(_swig_type_info *, void *);
+SWIGEXPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
+SWIGEXPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
+SWIGEXPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
 #else
 
-static _swig_type_info *swig_types = 0;
+static swig_type_info *swig_type_list = 0;
 
 /* Register a type mapping with the type-checking */
-SWIGSTATICRUNTIME(_swig_type_info *)
-SWIG_TypeRegister(_swig_type_info *ti)
+SWIGRUNTIME(swig_type_info *)
+SWIG_TypeRegister(swig_type_info *ti)
 {
-  _swig_type_info *tc, *head, *ret, *next;
+  swig_type_info *tc, *head, *ret, *next;
   /* Check to see if this type has already been registered */
-  tc = swig_types;
+  tc = swig_type_list;
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
@@ -79,8 +79,8 @@ SWIG_TypeRegister(_swig_type_info *ti)
   next = 0;
 
   /* Place in list */
-  ti->prev = swig_types;
-  swig_types = ti;
+  ti->prev = swig_type_list;
+  swig_type_list = ti;
 
   /* Build linked lists */
  l1:
@@ -98,10 +98,10 @@ SWIG_TypeRegister(_swig_type_info *ti)
 }
 
 /* Check the typename */
-SWIGSTATICRUNTIME(_swig_type_info *) 
-SWIG_TypeCheck(char *c, _swig_type_info *ty)
+SWIGRUNTIME(swig_type_info *) 
+SWIG_TypeCheck(char *c, swig_type_info *ty)
 {
-  _swig_type_info *s;
+  swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
   while (s) {
@@ -124,12 +124,25 @@ SWIG_TypeCheck(char *c, _swig_type_info *ty)
 }
 
 /* Cast a pointer (needed for C++ inheritance */
-SWIGSTATICRUNTIME(void *) 
-SWIG_TypeCast(_swig_type_info *ty, void *ptr) 
+SWIGRUNTIME(void *) 
+SWIG_TypeCast(swig_type_info *ty, void *ptr) 
 {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
 }
+
+/* Search for a swig_type_info structure */
+SWIGRUNTIME(void *)
+SWIG_TypeQuery(const char *name) {
+  swig_type_info *ty = swig_type_list;
+  while (ty) {
+    if (ty->str && (strcmp(name,ty->str) == 0)) return ty;
+    if (ty->name && (strcmp(name,ty->name) == 0)) return ty;
+    ty = ty->prev;
+  }
+  return 0;
+}
+
 #endif
 
 #ifdef __cplusplus

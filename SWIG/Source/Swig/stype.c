@@ -1555,14 +1555,14 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 #endif
   table = NewString("");
   types = NewString("");
-  Printf(table,"static _swig_type_info *_swig_types_initial[] = {\n");
+  Printf(table,"static swig_type_info *swig_types_initial[] = {\n");
   key = Firstkey(r_mangled);
   Printf(f_forward,"\n/* -------- TYPES TABLE (BEGIN) -------- */\n\n");
   while (key) {
     List *el;
     String *en;
-    Printf(f_forward,"#define  SWIGTYPE%s _swig_types[%d] \n", key, i);
-    Printv(types,"static _swig_type_info _swigt_", key, "[] = {", 0);
+    Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", key, i);
+    Printv(types,"static swig_type_info _swigt_", key, "[] = {", 0);
     Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\"},", 0);
     el = SwigType_equivalent_mangle(key,0,0);
     for (en = Firstitem(el); en; en = Nextitem(el)) {
@@ -1583,7 +1583,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   }
 
   Printf(table, "0\n};\n");
-  Printf(f_forward,"static _swig_type_info *_swig_types[%d];\n", i+1);
+  Printf(f_forward,"static swig_type_info *swig_types[%d];\n", i+1);
   Printf(f_forward,"\n/* -------- TYPES TABLE (END) -------- */\n\n");
   Printf(f_table,"%s\n", types);
   Printf(f_table,"%s\n", table);

@@ -239,15 +239,15 @@ PYTHON::initialize(void) {
   Printf(f_init,"m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
   Printf(f_init,"d = PyModule_GetDict(m);\n");
   Printv(f_init,
-	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
-	 "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	 "}\n",
 	 0);
 
   Printf(f_wrappers,"#ifdef __cplusplus\n");
   Printf(f_wrappers,"extern \"C\" {\n");
   Printf(f_wrappers,"#endif\n");
-  Printf(const_code,"static _swig_const_info _swig_const_table[] = {\n");
+  Printf(const_code,"static swig_const_info swig_const_table[] = {\n");
   Printf(methods,"static PyMethodDef %sMethods[] = {\n", module);
 }
 
@@ -268,7 +268,7 @@ PYTHON::close(void) {
   Printf(const_code, "{0}};\n");
   Printf(f_wrappers,"%s\n",const_code);
 
-  Printv(f_init, "SWIG_InstallConstants(d,_swig_const_table);\n", 0);
+  Printv(f_init, "SWIG_InstallConstants(d,swig_const_table);\n", 0);
   Printf(f_init,"}\n");
 
   if (shadow) {

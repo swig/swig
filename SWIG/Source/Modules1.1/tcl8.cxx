@@ -204,11 +204,11 @@ TCL8::initialize() {
     Printf(f_init,"Tcl_Eval(interp,\"namespace eval %s { }\");\n", ns_name);
   }
 
-  Printf(cmd_info, "\nstatic _swig_command_info _swig_commands[] = {\n");
-  Printf(var_info, "\nstatic _swig_var_info _swig_variables[] = {\n");
+  Printf(cmd_info, "\nstatic swig_command_info swig_commands[] = {\n");
+  Printf(var_info, "\nstatic swig_var_info swig_variables[] = {\n");
   Printv(f_init,
-	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
-	 "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	 "}\n", 0);
 }
 
@@ -225,14 +225,14 @@ TCL8::close(void) {
   Printf(f_wrappers,"%s", cmd_info);
   Printf(f_wrappers,"%s", var_info);
 
-  Printf(f_init,"for (i = 0; _swig_commands[i].name; i++) {\n");
-  Printf(f_init,"Tcl_CreateObjCommand(interp, (char *) _swig_commands[i].name, _swig_commands[i].wrapper, _swig_commands[i].clientdata, NULL);\n");
+  Printf(f_init,"for (i = 0; swig_commands[i].name; i++) {\n");
+  Printf(f_init,"Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);\n");
   Printf(f_init,"}\n");
 
-  Printf(f_init,"for (i = 0; _swig_variables[i].name; i++) {\n");
-  Printf(f_init,"Tcl_SetVar(interp, (char *) _swig_variables[i].name, \"\", TCL_GLOBAL_ONLY);\n");
-  Printf(f_init,"Tcl_TraceVar(interp, (char *) _swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, _swig_variables[i].get, (ClientData) _swig_variables[i].addr);\n");
-  Printf(f_init,"Tcl_TraceVar(interp, (char *) _swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, _swig_variables[i].set, (ClientData) _swig_variables[i].addr);\n");
+  Printf(f_init,"for (i = 0; swig_variables[i].name; i++) {\n");
+  Printf(f_init,"Tcl_SetVar(interp, (char *) swig_variables[i].name, \"\", TCL_GLOBAL_ONLY);\n");
+  Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);\n");
+  Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"}\n");
 
   /* Dump the pointer equivalency table */
@@ -566,8 +566,8 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   if (!getname) {
     Wrapper *get, *set;
 
-    setname = NewStringf("_swig_%s_set", Swig_string_mangle(t));
-    getname = NewStringf("_swig_%s_get", Swig_string_mangle(t));
+    setname = NewStringf("swig_%s_set", Swig_string_mangle(t));
+    getname = NewStringf("swig_%s_get", Swig_string_mangle(t));
     get = NewWrapper();
     set = NewWrapper();
     Printv(set->def, "static char *", setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
@@ -742,13 +742,13 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
-      Printf(ro->def, "static char *_swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
+      Printf(ro->def, "static char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
       Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", 0);
       Wrapper_print(ro,f_wrappers);
       readonlywrap = 1;
       DelWrapper(ro);
     }
-    Printf(var_info, "_swig_readonly},\n");
+    Printf(var_info, "swig_readonly},\n");
   } else {
     Printv(var_info, setname, "},\n",0);
   }
@@ -941,11 +941,11 @@ TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
     }
 
     Clear(attributes);
-    Printf(attributes, "static _swig_attribute _swig_");
+    Printf(attributes, "static swig_attribute swig_");
     Printv(attributes, classname, "_attributes[] = {\n", 0);
 
     Clear(methods);
-    Printf(methods,"static _swig_method _swig_");
+    Printf(methods,"static swig_method swig_");
     Printv(methods, classname, "_methods[] = {\n", 0);
 
     have_constructor = 0;
@@ -972,7 +972,7 @@ TCL8::cpp_close_class() {
     SwigType_add_pointer(t);
 
     if (have_destructor) {
-      Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n", 0);
+      Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
       if (CPlusPlus) {
 	Printv(code,"    delete (", SwigType_str(t,0), ") obj;\n",0);
       } else {
@@ -987,7 +987,7 @@ TCL8::cpp_close_class() {
     Printf(attributes, "    {0,0,0}\n};\n");
     Printv(code,attributes,0);
 
-    Printv(code, "static _swig_class _wrap_class_", class_name, " = { \"", class_name,
+    Printv(code, "static swig_class _wrap_class_", class_name, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
 
     if (have_constructor) {
@@ -996,11 +996,11 @@ TCL8::cpp_close_class() {
       Printf(code,"0");
     }
     if (have_destructor) {
-      Printv(code, ", _swig_delete_", class_name,0);
+      Printv(code, ", swig_delete_", class_name,0);
     } else {
       Printf(code,",0");
     }
-    Printv(code, ", _swig_", real_classname, "_methods, _swig_", real_classname, "_attributes };\n", 0);
+    Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes };\n", 0);
     Printf(f_wrappers,"%s",code);
 
     Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", SwigObjectCmd, &_wrap_class_", class_name, "},\n", 0);

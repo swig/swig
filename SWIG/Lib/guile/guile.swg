@@ -180,7 +180,7 @@ SWIG_Cast (void *source, size_t source_type,
 static unsigned long swig_tag = 0;
 
 SWIGSTATIC SCM
-SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type)
+SWIG_Guile_MakePtr (void *ptr, swig_type_info *type)
 {
   if (ptr==NULL) return SCM_EOL;
   SCM_RETURN_NEWSMOB((((unsigned long)type->tag << 16) | swig_tag),
@@ -189,7 +189,7 @@ SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type)
 
 /* Return 0 if successful. */
 SWIGSTATIC int
-SWIG_Guile_GetPtr(SCM s, void **result, _swig_type_info *type)
+SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
 {
   if (SCM_NULLP(s)) {
     *result = NULL;
@@ -246,10 +246,10 @@ SWIG_Guile_Init (void)
 /* Convert datatype table */
 
 SWIGSTATIC
-void SWIG_Guile_RegisterTypes(_swig_type_info **table)
+void SWIG_Guile_RegisterTypes(swig_type_info **table)
 {
   for (; *table; table++) {
-    _swig_type_info *type = *table;
+    swig_type_info *type = *table;
     char *origname = type->name;
     /* Register datatype itself and store pointer back */
     type->tag = SWIG_RegisterType(origname, type->str);

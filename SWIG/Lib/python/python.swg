@@ -21,23 +21,23 @@ extern "C" {
 #define SWIG_PY_POINTER 4
 
 /* Constant information structure */
-typedef struct _swig_const_info {
+typedef struct swig_const_info {
     int type;
     char *name;
     long lvalue;
     double dvalue;
     void   *pvalue;
-    _swig_type_info **ptype;
-} _swig_const_info;
+    swig_type_info **ptype;
+} swig_const_info;
 
 #ifdef SWIG_NOINCLUDE
 
 SWIGEXPORT(PyObject *)        SWIG_newvarlink();
 SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *, int);
-SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, _swig_type_info *);
-SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, _swig_type_info *);
-SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, _swig_const_info constants[]);
+SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
+SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, swig_type_info *);
+SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, swig_type_info *);
+SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info constants[]);
 
 #else
 
@@ -120,7 +120,7 @@ statichere PyTypeObject varlinktype = {
 };
 
 /* Create a variable linking object for use later */
-SWIGSTATICRUNTIME(PyObject *)
+SWIGRUNTIME(PyObject *)
 SWIG_newvarlink(void) {
   swig_varlinkobject *result = 0;
   result = PyMem_NEW(swig_varlinkobject,1);
@@ -132,7 +132,7 @@ SWIG_newvarlink(void) {
   return ((PyObject*) result);
 }
 
-SWIGSTATICRUNTIME(void)
+SWIGRUNTIME(void)
 SWIG_addvarlink(PyObject *p, char *name,
 	   PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
@@ -147,11 +147,11 @@ SWIG_addvarlink(PyObject *p, char *name,
   v->vars = gv;
 }
 /* Convert a pointer value */
-SWIGSTATICRUNTIME(int)
-SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
+SWIGRUNTIME(int)
+SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   unsigned long p;
   register int d;
-  _swig_type_info *tc;
+  swig_type_info *tc;
   char  *c;
   static PyObject *SWIG_this = 0;
   int    newref = 0;
@@ -243,8 +243,8 @@ type_error:
 }
 
 /* Take a pointer and convert it to a string */
-SWIGSTATICRUNTIME(void) 
-SWIG_MakePtr(char *c, void *ptr, _swig_type_info *ty) {
+SWIGRUNTIME(void) 
+SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   static char hex[17] = "0123456789abcdef";
   unsigned long p, s;
   char result[32], *r; 
@@ -266,8 +266,8 @@ SWIG_MakePtr(char *c, void *ptr, _swig_type_info *ty) {
 }
 
 /* Create a new pointer object */
-SWIGSTATICRUNTIME(PyObject *)
-SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
+SWIGRUNTIME(PyObject *)
+SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
   char result[512];
   PyObject *robj;
   if (!ptr) {
@@ -284,8 +284,8 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
 }
 
 /* Install Constants */
-SWIGSTATICRUNTIME(void)
-SWIG_InstallConstants(PyObject *d, _swig_const_info constants[]) {
+SWIGRUNTIME(void)
+SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
   int i;
   PyObject *obj;
   for (i = 0; constants[i].type; i++) {

@@ -13,15 +13,15 @@
 
 /* Pointer library specific types */
 
-static _swig_type_info _swig_pointer_int_p[] = {{"_int_p",0},{"_int_p",0},{0}};
-static _swig_type_info _swig_pointer_short_p[] = {{"_short_p",0},{"_short_p",0},{0}};
-static _swig_type_info _swig_pointer_long_p[] = {{"_long_p",0},{"_long_p",0},{0}};
-static _swig_type_info _swig_pointer_float_p[] = {{"_float_p",0},{"_float_p",0},{0}};
-static _swig_type_info _swig_pointer_double_p[] = {{"_double_p",0},{"_double_p",0},{0}};
-static _swig_type_info _swig_pointer_char_p[] = {{"_char_p",0},{"_char_p",0},{0}};
-static _swig_type_info _swig_pointer_char_pp[] = {{"_char_pp",0},{"_char_pp",0},{0}};
+static swig_type_info _swig_pointer_int_p[] = {{"_int_p",0},{"_int_p",0},{0}};
+static swig_type_info _swig_pointer_short_p[] = {{"_short_p",0},{"_short_p",0},{0}};
+static swig_type_info _swig_pointer_long_p[] = {{"_long_p",0},{"_long_p",0},{0}};
+static swig_type_info _swig_pointer_float_p[] = {{"_float_p",0},{"_float_p",0},{0}};
+static swig_type_info _swig_pointer_double_p[] = {{"_double_p",0},{"_double_p",0},{0}};
+static swig_type_info _swig_pointer_char_p[] = {{"_char_p",0},{"_char_p",0},{0}};
+static swig_type_info _swig_pointer_char_pp[] = {{"_char_pp",0},{"_char_pp",0},{0}};
 
-static _swig_type_info *_swig_pointer_types[] = {
+static swig_type_info *_swig_pointer_types[] = {
    _swig_pointer_int_p,
    _swig_pointer_short_p,
    _swig_pointer_long_p,
@@ -59,7 +59,7 @@ static int ptrcast(Tcl_Interp *interp, char *ptrvalue, char *type) {
   char *typestr,*c;
   int   pv;
   int   error = 0;
-  _swig_type_info sinfo;
+  swig_type_info sinfo;
 
   /* Produce a "mangled" version of the type string.  */
 
@@ -188,7 +188,7 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
 static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelements) {
   void     *ptr;
   int       sz;
-  _swig_type_info *cast = 0;
+  swig_type_info *cast = 0;
   char      temp[40];
 
   /* Check the type string against a variety of possibilities */
@@ -393,8 +393,8 @@ static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
 
   char *r,*s;
   void *ptr,*junk;
-  _swig_type_info *type = 0;
-  _swig_type_info stype;
+  swig_type_info *type = 0;
+  swig_type_info stype;
 
   /* Check to see what kind of object ptrvalue is */
   

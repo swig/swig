@@ -335,9 +335,9 @@ void RUBY::close(void) {
   /* Finish off our init function */
   Printv(f_init,
 	 "\n",
-	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
-	 "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n",
-	 "SWIG_define_class(_swig_types[i]);\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
+	 "SWIG_define_class(swig_types[i]);\n",
 	 "}\n",
 	 0);
   Printf(f_init,"}\n");
