@@ -685,7 +685,7 @@
   }
 %}
 
-%typemap(javadestruct_base) SWIGTYPE {
+%typemap(javadestruct) SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       $jnicall;
       swigCMemOwn = false;
