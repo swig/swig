@@ -802,94 +802,96 @@ class CSHARP : public Language {
 
   virtual int enumDeclaration(Node *n) {
 
-    if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+    if (!ImportMode) {
+      if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-    enum_code = NewString("");
-    String *symname = Getattr(n,"sym:name");
-    String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
-    String *enumint_feature = Getattr(n,"feature:cs:enumint");
-    bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
-    String *typemap_lookup_type = Getattr(n,"name");
-    if (!enumint_feature_flag && symname) {
-      // Wrap (non-anonymous) C/C++ enum with a C# enum
+      enum_code = NewString("");
+      String *symname = Getattr(n,"sym:name");
+      String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
+      String *enumint_feature = Getattr(n,"feature:cs:enumint");
+      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
+      String *typemap_lookup_type = Getattr(n,"name");
+      if (!enumint_feature_flag && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum with a C# enum
 
-      // Pure C# baseclass and interfaces
-      const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
-      const String *pure_interfaces = typemapLookup("csinterfaces", typemap_lookup_type, WARN_NONE);
+        // Pure C# baseclass and interfaces
+        const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
+        const String *pure_interfaces = typemapLookup("csinterfaces", typemap_lookup_type, WARN_NONE);
 
-      // Emit the enum
-      Printv(enum_code,
-          typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
-          " enum ",
-          symname,
-          *Char(pure_baseclass) ? // Bases
-          " : " : 
-          "",
-          pure_baseclass,
-          *Char(pure_interfaces) ?  // Interfaces
-          " : " :
-          "",
-          pure_interfaces,
-          " {\n",
-          NIL);
-    } else {
-      // Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums
-      if (symname)
-        Printf(constants_code, "  // %s \n", symname);
-    }
-
-    // Emit each enum item
-    Language::enumDeclaration(n);
-
-    if (!enumint_feature_flag && symname) {
-      // Wrap (non-anonymous) C/C++ enum with a C# enum - finish enum declaration. 
-      // Typemaps can be used to add extra code to the enum definition in the same manner as proxy classes.
-      Printv(enum_code,
-          "\n",
-          typemapLookup("csgetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
-          typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
-          "}\n",
-          NIL);
-
-      if (proxy_flag && is_wrapping_class()) {
-        // Enums defined within the C++ class are defined within the proxy class
-
-        // Add extra indentation
-        Replaceall(enum_code, "\n  ", "\n    ");
-        Replaceall(enum_code, "\n}\n", "\n  }\n");
-
-        Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+        // Emit the enum
+        Printv(enum_code,
+            typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
+            " enum ",
+            symname,
+            *Char(pure_baseclass) ? // Bases
+            " : " : 
+            "",
+            pure_baseclass,
+            *Char(pure_interfaces) ?  // Interfaces
+            " : " :
+            "",
+            pure_interfaces,
+            " {\n",
+            NIL);
       } else {
-        // Global enums are defined in their own file
-        String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
-        File *f_enum = NewFile(filen,"w");
-        if(!f_enum) {
-          Printf(stderr,"Unable to open %s\n", filen);
-          SWIG_exit(EXIT_FAILURE);
-        } 
-        Delete(filen); filen = NULL;
+        // Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
+        if (symname && !Getattr(n,"unnamedinstance"))
+          Printf(constants_code, "  // %s \n", symname);
+      }
 
-        // Start writing out the enum file
-        emitBanner(f_enum);
+      // Emit each enum item
+      Language::enumDeclaration(n);
 
-        if(Len(namespce) > 0)
-          Printf(f_enum, "namespace %s {\n", namespce);
-
-        Printv(f_enum,
-            typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
+      if (!enumint_feature_flag && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum with a C# enum - finish enum declaration. 
+        // Typemaps can be used to add extra code to the enum definition in the same manner as proxy classes.
+        Printv(enum_code,
             "\n",
-            enum_code,
+            typemapLookup("csgetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
+            typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
+            "}\n",
             NIL);
 
-        Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "\n");
-        Close(f_enum);
-      }
-    } else {
-      // Wrap C++ enum with integers
-      Printf(constants_code, "\n");
-    }
+        if (proxy_flag && is_wrapping_class()) {
+          // Enums defined within the C++ class are defined within the proxy class
 
-    Delete(enum_code); enum_code = NULL;
+          // Add extra indentation
+          Replaceall(enum_code, "\n  ", "\n    ");
+          Replaceall(enum_code, "\n}\n", "\n  }\n");
+
+          Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+        } else {
+          // Global enums are defined in their own file
+          String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
+          File *f_enum = NewFile(filen,"w");
+          if(!f_enum) {
+            Printf(stderr,"Unable to open %s\n", filen);
+            SWIG_exit(EXIT_FAILURE);
+          } 
+          Delete(filen); filen = NULL;
+
+          // Start writing out the enum file
+          emitBanner(f_enum);
+
+          if(Len(namespce) > 0)
+            Printf(f_enum, "namespace %s {\n", namespce);
+
+          Printv(f_enum,
+              typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
+              "\n",
+              enum_code,
+              NIL);
+
+          Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "\n");
+          Close(f_enum);
+        }
+      } else {
+        // Wrap C++ enum with integers
+        Printf(constants_code, "\n");
+      }
+
+      Delete(enum_code); enum_code = NULL;
+    }
     return SWIG_OK;
   }
 
@@ -915,8 +917,7 @@ class CSHARP : public Language {
     {
       String *enumint_feature = Getattr(parentNode(n),"feature:cs:enumint");
       bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
-
-      if (!enumint_feature_flag && Getattr(parentNode(n),"sym:name")) {
+      if (!enumint_feature_flag && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
         // Wrap C/C++ enums with C# enums. Emit the enum item.
         if (!Getattr(n,"_last")) // Only the first enum item has this attribute set
           Printf(enum_code, ",\n");
@@ -1798,8 +1799,10 @@ class CSHARP : public Language {
 
   String *getOverloadedName(Node *n) {
 
-    /* Although PInvoke functions are designed to handle overloaded functions, a C# IntPtr is used for all classes in the SWIG
-     * intermediary class. The intermediary class methods are thus mangled when overloaded to give a unique name. */
+    /* Although PInvoke functions are designed to handle overloaded functions,
+     * a C# IntPtr is used for all classes in the SWIG intermediary class.
+     * The intermediary class methods are thus mangled when overloaded to give
+     * a unique name. */
     String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
 
     if (Getattr(n,"sym:overloaded")) {
@@ -1998,7 +2001,6 @@ class CSHARP : public Language {
       if (!enumint_feature_flag && symname) {
         // Add in class scope when referencing enum if not a global enum
         String *scopename_prefix = Swig_scopename_prefix(Getattr(n,"name"));
-        // TODO: remove class scope if it is an enum in this class
         String *proxyname = 0;
         if (scopename_prefix) {
           proxyname = getProxyName(scopename_prefix);
