@@ -1237,7 +1237,7 @@ Foo g = new Foo(f);       // Copy f
 </blockquote>
 
 Overloading support is not quite as flexible as in C++. Sometimes there are methods that SWIG
-can't disambiguate as there can be more than one C++ type mapping onto a single Java type. For example:
+cannot disambiguate as there can be more than one C++ type mapping onto a single Java type. For example:
 
 <blockquote>
 <pre>
@@ -1260,10 +1260,9 @@ If declarations such as these appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
-example.i:12: Warning(509): Overloaded spam(unsigned short) is shadowed by spam(int) at example.i:11.
+example.i:12: Warning(515): Overloaded method spam(unsigned short) ignored. Method spam(int) at example.i:11 used.
 </pre>
 </blockquote>
-The generated Java code will not compile either.
 
 To fix this, you either need to ignore or rename one of the methods.  For example:
 
