@@ -100,8 +100,19 @@ static  String       *closhelpers;
 static Language * new_swig_chicken() {
   return new CHICKEN();
 }
-extern "C" Language * swig_chicken(void) {
-  return new_swig_chicken();
+
+extern "C"  {
+  Language * swig_chicken(void) {
+    return new_swig_chicken();
+  }
+
+  static int checkNodeClass(Node *n) {
+    String *kind = Getattr(n, "kind");
+    if (kind && Strcmp(kind, "class") == 0)
+        return 1;
+    else
+        return 0;
+  }
 }
 
 void 
@@ -277,14 +288,6 @@ CHICKEN::top(Node *n)
   return SWIG_OK;
 }
 
-static int checkNodeClass(Node *n) {
-  String *kind = Getattr(n, "kind");
-  if (kind && Strcmp(kind, "class") == 0)
-      return 1;
-  else
-      return 0;
-}
-  
 int
 CHICKEN::functionWrapper(Node *n)
 {
