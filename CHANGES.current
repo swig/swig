@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+09/19/2003: mrose (Mark Rose)
+            [Python] Director constructors now default to __disown = 0, 
+	    which is the intended behavior and fixes the director_finalizer 
+	    test case under python.
+
 09/12/2003: cheetah (William Fulton)
             [C#] - Typemaps added for std::string and const std::string &.
                  - New delegate for creating a C# string given a char *. It
