@@ -11,8 +11,8 @@ print "Creating some objects:\n";
 $a = new_Vector(3,4,5);
 $b = new_Vector(10,11,12);
 
-print "    Created " . Vector_print($a) . "\n";
-print "    Created " . Vector_print($b) . "\n";
+print "    Created a: $a " . Vector_print($a) . "\n";
+print "    Created b: $b " . Vector_print($b) . "\n";
 
 # ----- Call an overloaded operator -----
 
@@ -34,14 +34,16 @@ delete_Vector($c);
 # Note: Using the high-level interface here
 print "Creating an array of vectors\n";
 $va = new_VectorArray(10);
-print "    va = $va\n";
+
+print "    va: $va size=".VectorArray_size($va)."\n";
 
 # ----- Set some values in the array -----
 
 # These operators copy the value of $a and $b to the vector array
 VectorArray_set($va,0,$a);
 VectorArray_set($va,1,$b);
-
+print "===\n";
+VectorArray_get($va,0);
 # This will work, but it will cause a memory leak!
 
 VectorArray_set($va,2,addv($a,$b));
@@ -56,7 +58,9 @@ delete_Vector($c);
 
 print "Getting some array values\n";
 for ($i = 0; $i < 5; $i++) {
+print "do $i\n";
     print "    va($i) = ". Vector_print(VectorArray_get($va,$i)). "\n";
+print "done\n";
 }
 
 # Watch under resource meter to check on this

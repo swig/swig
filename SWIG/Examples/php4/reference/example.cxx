@@ -21,6 +21,7 @@ char *Vector::print() {
 VectorArray::VectorArray(int size) {
   items = new Vector[size];
   maxsize = size;
+printf("Vectorarray new: self=%p\n",this);
 }
 
 VectorArray::~VectorArray() {
@@ -28,6 +29,7 @@ VectorArray::~VectorArray() {
 }
 
 Vector &VectorArray::operator[](int index) {
+printf("Vectorarray: read[%d] self=%p\n",index,this);
   if ((index < 0) || (index >= maxsize)) {
     printf("Panic! Array index out of bounds.\n");
     exit(1);
@@ -36,6 +38,7 @@ Vector &VectorArray::operator[](int index) {
 }
 
 int VectorArray::size() {
+printf("Vectorarray: size %d self=%p\n",maxsize,this);
   return maxsize;
 }
 

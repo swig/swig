@@ -1375,15 +1375,16 @@ public:
     SwigType *t = Getattr(n, "classtype");
     if(class_name) free(class_name);
     class_name = Swig_copy_string(GetChar(n, "name"));
+    String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if(shadow) {
-      cs_entry = NewString("");
-      Printf(cs_entry,"// Function entries for %s\n"
-	     "static zend_function_entry %s_functions[] = {\n"
-	     ,class_name, class_name);
       char *rename = GetChar(n, "sym:name");
       if (!addSymbol(rename,n)) return SWIG_ERROR;
       shadow_classname = Swig_copy_string(rename);
+      cs_entry = NewString("");
+      Printf(cs_entry,"// Function entries for %s\n"
+	     "static zend_function_entry %s_functions[] = {\n"
+	     ,shadow_classname, shadow_classname);
 
       if(Strcmp(shadow_classname, module) == 0) {
 	Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
@@ -1648,6 +1649,7 @@ public:
     char *iname = GetChar(n, "sym:name");
     char *name = GetChar(n, "name");
     String *static_name = NewStringf("%s::%s", class_name, name);
+//    String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
     Wrapper *f;
 
   /* A temporary(!) hack for static member variables.

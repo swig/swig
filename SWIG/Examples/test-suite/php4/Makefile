@@ -8,7 +8,7 @@ SCRIPTSUFFIX = _runme.php4
 include ../common.mk
 
 # Overridden variables here
-SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
+SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
 
 # Rules for the different types of tests
 %.cpptest: 
