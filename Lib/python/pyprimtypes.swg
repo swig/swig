@@ -523,7 +523,7 @@ SWIGSTATICINLINE(int)
     if (val) *val = false;
     return 1;
   }
-  int res;
+  int res = 0;
   if (SWIG_AsVal(int)(obj, &res)) {    
     if (val) *val = (bool)res;
     return 1;
