@@ -168,6 +168,19 @@ packages to compile or run.   The configure script is actually looking for
 these packages so that you can try out the SWIG examples contained
 in the 'Examples' directory without having to hack Makefiles.
 
+SWIG includes an optional set of runtime libraries that are sometimes used
+when working with multiple modules.  By default, these aren't built due to
+the wide variety of target languages, compilers, compiler flags, and other
+configuration information that impacts the way that they have to be built.
+However, if you want to build the runtime libraries in their "default" 
+configuration, type this:
+
+     % make runtime
+     % make install-runtime
+
+More information about the runtime libraries can be found in 
+Doc/Manual/Modules.html.
+
 Notes:
 
 (1) If you checked the code out via CVS, you will have to run ./autogen.sh

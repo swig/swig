@@ -17,7 +17,7 @@ TARGET      = swig@release_suffix@@EXEEXT@
 SOURCE      = Source
 RUNTIME     = Runtime
 
-swig: source runtime swig.spec
+swig: source swig.spec
 
 source:
 	@cd $(SOURCE); $(MAKE)
@@ -317,7 +317,7 @@ MKINSTDIRS      = @abs_srcdir@/Tools/config/install-sh -m 0755 -d
 M4_SOURCE_DIR   = @abs_srcdir@/Tools/config
 M4_INSTALL_DIR  = @datadir@/aclocal
 
-install: install-main install-lib install-runtime install-m4
+install: install-main install-lib install-m4
 	@echo "Installation complete"
 
 install-main:
