@@ -5,8 +5,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-SRCS          = 
-OBJS          = 
+SRCS          = test.c
+OBJS          = test.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
@@ -15,7 +15,7 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Swig
 TARGET        = libmodules.a
 
 .c.o:
