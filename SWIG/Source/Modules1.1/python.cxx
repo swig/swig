@@ -121,6 +121,7 @@ PYTHON::parse_args(int argc, char *argv[]) {
   if (!global_name) global_name = NewString("cvar");
   Preprocessor_define((void *) "SWIGPYTHON", 0);
   typemap_lang = (char*)"python";
+  SWIG_config_file("python.swg");
 }
 
 /* -----------------------------------------------------------------------------
@@ -144,15 +145,6 @@ PYTHON::parse() {
   Printf(f_runtime,"#define SWIGPYTHON\n");
   if (NoInclude)
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-
-  if (Swig_insert_file("common.swg", f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error. Unable to locate common.swg. (Possible installation problem).\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
-  if (Swig_insert_file("python.swg", f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
   yyparse();
 }
 
