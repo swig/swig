@@ -21,6 +21,7 @@ working on this are:
  William Fulton (wsf@fultondesigns.co.uk)               (Java)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Loic Dachary (loic@ceic.com)                           (Perl5)
+ Jason Stewart (jason@openinformatics.com)              (Perl5)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Lyle Johnson (ljohnson@resgen.com)                     (Ruby)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
@@ -36,6 +37,10 @@ Up-to-date SWIG related information can be found at
 
         http://www.swig.org
 
+A SWIG FAQ and other hints can be found on the SWIG Wiki:
+
+       http://swig.cs.uchicago.edu/cgi-bin/wiki.pl
+ 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!                      IMPORTANT                         !!!!!!!
 !!!!!!!                                                        !!!!!!!
@@ -221,6 +226,9 @@ installed.  To fix this:
     4.  The SWIG library can be changed by setting the SWIG_LIB
         environment variable.  However, you really shouldn't
         have to do this.
+
+If you are having other troubles, you might look at the SWIG Wiki at
+http://swig.cs.uchicago.edu/cgi-bin/wiki.pl.
 
 Documentation
 =============
