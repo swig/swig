@@ -27,8 +27,8 @@
 %}
 
 %{
- template class Function <double, double>;
- template class Class <double, double>;
+ template struct Function <double, double>;
+ template struct Class <double, double>;
 %}
  
 %template(traits_dd) traits <double, double>;

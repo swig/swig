@@ -4,7 +4,7 @@
 class Foo {
 protected:
      int x;
-     int blah(int x) { return x; }
+     int blah(int xx) { return xx; }
 };
 
 class FooBar : public Foo {

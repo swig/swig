@@ -40,9 +40,19 @@ void halve_in_place(std::vector<double>& v) {
                    std::bind2nd(std::divides<double>(),2.0));
 }
 
+struct Struct {
+  double num;
+  Struct() : num(0.0) {}
+  Struct(double d) : num(d) {}
+//  bool operator==(const Struct &other) { return (num == other.num); }
+};
 %}
 
+#ifndef SWIGCSHARP
+// Can't do vectors of pointers yet
 %template(IntPtrVector) std::vector<int *>;
+#endif
 
+%template(StructVector) std::vector<Struct>;
 
 

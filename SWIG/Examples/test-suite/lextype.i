@@ -12,7 +12,7 @@ behave appropriately for that particular species.
 
 For this to work correctly however, it is critical that
 there is a variable which strictly preserves the name
-of the type.  '$lextype' doesn't currently do this - 
+of the type.  '$basetype' doesn't currently do this - 
 it sometimes contains 'Giraffe' and sometimes (specifically
 the case of arrays) contains 'Animal'.  Since existing
 code may rely on that behaviour, we create a new variable
@@ -27,11 +27,13 @@ code is not functioning properly it will fail to compile.
 %typemap(in) Animal ()
 {
     void *space_needed = malloc(HEIGHT_$1_lextype * WIDTH_$1_lextype);
+    $1 = 0;
 }
 
 %typemap(in) Animal[2] ()
 {
     void *space_needed = malloc(2 * HEIGHT_$1_lextype * WIDTH_$1_lextype);
+    $1 = 0;
 }
 
 %inline %{
@@ -44,6 +46,6 @@ typedef Animal Giraffe;
 
 void eat(Giraffe g) {}
 void drink(Giraffe *g) {}
-Giraffe mate(Giraffe g[2]) {}
+Giraffe mate(Giraffe g[2]) { return g[0]; }
 
 %}

@@ -4,7 +4,7 @@
 class Foo {
 public:
      int x;
-     int blah(int x) { return x; }
+     int blah(int xx) { return xx; }
      int defaulted(int i = -1) { return i; }
 };
 

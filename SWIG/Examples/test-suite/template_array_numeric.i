@@ -1,7 +1,5 @@
 %module template_array_numeric
 
-%typemap(arginit) const float[ANY] (float temp[$1_dim0]) { }
-
 %inline %{
 
 template <int Len>
