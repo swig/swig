@@ -217,7 +217,7 @@ public:
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
-    String *outfile_h = Getattr(n, "outfile_h");
+    String *outfile_h = !no_header_file ? Getattr(n, "outfile_h"): 0;
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
