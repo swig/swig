@@ -25,6 +25,10 @@ extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
 %apply int *OUTPUT { int *r };
 extern int divide(int n, int d, int *r);
 
+/* Try using pointers that are used as input and output */
+%apply int *INOUT {int *z};
+extern void negate(int *z);
+
 %{
 void add(int *x, int *y, int *result) {
   *result = *x + *y;
@@ -39,6 +43,10 @@ int divide(int n, int d, int *r) {
    q = n/d;
    *r = n - q*d;
    return q;
+}
+
+void negate(int *z) {
+    *z = -(*z);
 }
 
 %}
