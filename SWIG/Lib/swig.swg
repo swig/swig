@@ -142,6 +142,23 @@
   else $1[0] = 0;
 }
 
+/* memberin typemap for arrays.   */
+
+%typemap(memberin) SWIGTYPE [] {
+  int ii;
+  $1_basetype *b = ($1_basetype *) $1;
+  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
+}
+
+%typemap(globalin) SWIGTYPE [] {
+  int ii;
+  $1_basetype *b = ($1_basetype *) $1;
+  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
+}
+
+/* Typemap for variable length arguments sentinel value.  Used
+   by the %varargs directive. */
+
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 
