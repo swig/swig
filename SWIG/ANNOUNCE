@@ -13,10 +13,10 @@ What is SWIG?
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
-Guile, Mzscheme, Ocaml, Chicken Scheme, and C#.  Major applications of
-SWIG include generation of scripting language extension modules, rapid
-prototyping, testing, and user interface development for large C/C++
-systems.
+Guile, MzScheme, Ocaml, Chicken Scheme, C#, and Allegro Common Lisp.  
+Major applications of SWIG include generation of scripting language
+extension modules, rapid prototyping, testing, and user interface
+development for large C/C++ systems.
 
 Availability:
 -------------
