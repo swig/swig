@@ -1,6 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
 
+04/01/2003: beazley
+            Fixed template partial specialization argument expansion bug.
+            This showed up when trying to use std_vector.i with vectors
+            of pointers.
+
 03/31/2003: cheetah (William Fulton)
             Fix for parallel make builds of SWIG, for example
               make -j 4
