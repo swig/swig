@@ -107,11 +107,22 @@ check_suffix(char *name) {
 static void
 install_opts(int argc, char *argv[]) {
   int i;
+  int noopt = 0;
+  char *c;
   for (i = 1; i < (argc-1); i++) {
     if (argv[i]) {
       if ((*argv[i] == '-') && (!isupper(*(argv[i]+1)))) {
 	String *opt = NewStringf("SWIGOPT%(upper)s", argv[i]);
 	Replaceall(opt,"-","_");
+	c = Char(opt);
+	noopt = 0;
+	while (*c) {
+	  if (!(isalnum(*c) || (*c == '_'))) {
+	    noopt = 1;
+	    break;
+	  }
+	  c++;
+	}
 	if (((i+1) < (argc-1)) && (argv[i+1]) && (*argv[i+1] != '-')) {
 	  Printf(opt," %s", argv[i+1]);
 	  i++;
@@ -119,7 +130,8 @@ install_opts(int argc, char *argv[]) {
 	  Printf(opt," 1");
 	}
 	/*	Printf(stdout,"%s\n", opt);*/
-	Preprocessor_define(opt, 0);
+	if (!noopt)
+	  Preprocessor_define(opt, 0);
       }
     }
   }
