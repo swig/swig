@@ -40,6 +40,11 @@
     {
       return 1;
     }    
+
+    const int& get_rrval(const int& a)
+    {
+      return a;
+    }    
   };  
 }
 
