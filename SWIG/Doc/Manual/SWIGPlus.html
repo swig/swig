@@ -1963,6 +1963,33 @@ namespace B {
 Similarly, <tt>%ignore</tt> can be used to ignore declarations.
 
 <p>
+<tt>using</tt> declarations do not have any effect on the generated wrapper
+code. They are ignored by SWIG language modules and they do not result in any
+code.  However, these declarations <em>are</em> used by the internal type
+system to track type-names. Therefore, if you have code like this:
+
+<blockquote>
+<pre>
+namespace A {
+   typedef int Integer;
+}
+using namespace A;
+void foo(Integer x);
+</pre>
+</blockquote>
+
+SWIG knows that <tt>Integer</tt> is the same as <tt>A::Integer</tt> which
+is the same as <tt>int</tt>.  
+
+<p>
+<b>Note:</b> SWIG does <em>not</em> propagate <tt>using</tt> declarations to
+the resulting wrapper code.   If these declarations appear in an interface,
+they should <em>also</em> appear in any header files that might have been 
+included in a <tt>%{ ... %}</tt> section.  In other words, don't extra insert
+<tt>using</tt> declarations into a SWIG interface unless they also appear
+in the underlying C++ code.
+
+<p>
 <b>Note:</b> Although namespaces are flattened in the target language, the SWIG generated wrapper
 code follows the same namespace conventions as used in the input file.  Thus, if there are no symbol
 conflicts in the input, there will be no conflicts in the generated code. 
