@@ -174,6 +174,7 @@ CPP_TEST_CASES += \
 	template_rename \
 	template_tbase_template \
 	template_whitespace \
+	template_typedef \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \
