@@ -22,6 +22,7 @@ static char cvsroot[] = "$Header$";
 
 static char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
+	-cppext		- cpp file extension (default to .cpp)\n\
 	-proxy		- Create proxy classes.\n\
 	-dlname name	- Set module prefix.\n\
 	-make		- Create simple makefile.\n\
@@ -217,6 +218,15 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if(strcmp(argv[i], "-cppext") == 0) {
+	  if (argv[i+1]) {
+	    SWIG_config_cppext(argv[i+1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i+1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
 	}  else if((strcmp(argv[i], "-shadow") == 0) || (strcmp(argv[i],"-proxy") == 0)) {
 	  shadow = 1;
 	  Swig_mark_arg(i);
@@ -261,7 +271,7 @@ public:
 	   "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n"
 	   "%%.o: %%.%s\n"
 	   "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n",
-	   (CPlusPlus?"cxx":"c"));
+	   (CPlusPlus?"cpp":"c"));
     
     Close(f_make);
   }
