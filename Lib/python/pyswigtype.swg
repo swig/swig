@@ -28,7 +28,6 @@
    if (SWIG_arg_fail($argnum)) SWIG_fail;
 }
 
-
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE  {
   $&ltype argp;
@@ -41,7 +40,6 @@
    $1 = *argp;
 }
 
-
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) {  
   if ((SWIG_ConvertPacked($input,(void *)(&$1),sizeof($type),$descriptor,0)) == -1) {
@@ -49,8 +47,6 @@
    }
   if (SWIG_arg_fail($argnum)) SWIG_fail;
 }
-
-
 
 /* -----------------------------------------------------------------------------
  * --- Output arguments --- 
@@ -66,7 +62,7 @@
 /* Dynamic casts */
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
-   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+   swig_type_info *ty = SWIG_TypeDynamicCast($descriptor, (void **) &$1);
    $result = SWIG_NewPointerObj((void *) $1, ty, $owner);
 }
 
@@ -78,7 +74,7 @@
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE 
 {
-  $&1_ltype resultptr;
+  $&ltype resultptr;
   resultptr = new $ltype(SWIG_static_cast($1,$type &));
   $result = SWIG_NewPointerObj((void *)(resultptr), $&descriptor, 1);
 }
@@ -97,20 +93,113 @@
  * --- Variable input --- 
  * ----------------------------------------------------------------------------- */
 
+/* memberin/globalin/varin, for fix arrays. */
 
-/* Pointers, references, and arrays */
+%typemap(memberin) SWIGTYPE [ANY] {
+  $basetype *inp = SWIG_static_cast($input, $basetype *);
+  if (inp) {
+    $basetype *dest = SWIG_static_cast($1, $basetype *);
+    size_t ii = 0;
+    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+  } else {
+    SWIG_null_ref("$basetype");
+  }
+}
+
+%typemap(globalin) SWIGTYPE [ANY] {
+  $basetype *inp = SWIG_static_cast($input, $basetype *);
+  if (inp) {
+    $basetype *dest = SWIG_static_cast($1, $basetype *);
+    size_t ii = 0;
+    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+  } else {
+    SWIG_null_ref("$basetype");
+  }
+}
 
 %typemap(varin) SWIGTYPE [ANY] {
-  void *temp;
-  size_t ii;
-  $basetype *b = 0;
-  if ((SWIG_ConvertPtr($input, &temp, $descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
+  $basetype *inp = 0;
+  if ((SWIG_ConvertPtr($input, (void **)&inp, $descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
     SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
+  } else if (inp) {
+    size_t ii = 0;
+    $basetype *dest = SWIG_static_cast($1, $basetype *);
+    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+  } else {
+    SWIG_null_ref("$basetype");
+    return 1;
   }
-  b = ($1_basetype *) $1;
-  for (ii = 0; ii < (size_t) $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
 }
+
+/* memberin/globalin/varin, for fix double arrays. */
+
+%typemap(memberin) SWIGTYPE [ANY][ANY] {
+  $basetype (*inp)[$dim1] = SWIG_static_cast($input, $basetype (*)[$dim1]);
+  if (inp) {
+    $basetype (*dest)[$dim1] = SWIG_static_cast($1, $basetype (*)[$dim1]);
+    size_t ii = 0;
+    for (; ii < $dim0; ++ii) {
+      $basetype *ip = inp[ii];
+      if (ip) {
+	$basetype *dp = dest[ii];
+	size_t jj = 0;
+	for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+      } else {
+	SWIG_null_ref("$basetype");
+      }
+    }
+  } else {
+    SWIG_null_ref("$basetype[$dim1]");
+  }
+}
+
+%typemap(globalin) SWIGTYPE [ANY][ANY] {
+  $basetype (*inp)[$dim1] = SWIG_static_cast($input, $basetype (*)[$dim1]);
+  if (inp) {
+    $basetype (*dest)[$dim1] = SWIG_static_cast($1, $basetype (*)[$dim1]);
+    size_t ii = 0;
+    for (; ii < $dim0; ++ii) {
+      $basetype *ip = inp[ii];
+      if (ip) {
+	$basetype *dp = dest[ii];
+	size_t jj = 0;
+	for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+      } else {
+	SWIG_null_ref("$basetype");
+      }
+    }
+  } else {
+    SWIG_null_ref("$basetype[$dim1]");
+  }
+}
+
+%typemap(varin) SWIGTYPE [ANY][ANY] {
+  $basetype (*inp)[$dim1] = 0;
+  if ((SWIG_ConvertPtr($input, (void **)&inp, $descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
+    SWIG_append_errmsg("C/C++ variable '$name'");
+    return 1;
+  } else if (inp) {
+    $basetype (*dest)[$dim1] = SWIG_static_cast($1, $basetype (*)[$dim1]);
+    size_t ii = 0;
+    for (; ii < $dim0; ++ii) {
+      $basetype *ip = inp[ii];
+      if (ip) {
+	$basetype *dp = dest[ii];
+	size_t jj = 0;
+	for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+      } else {
+	SWIG_null_ref("$basetype");
+	return 1;
+      }
+    }
+  } else {
+    SWIG_null_ref("$basetype[$dim1]");
+    return 1;
+  }
+}
+
+/* Pointers, references, and variable size arrays */
 
 %typemap(varin) SWIGTYPE * {
   void *temp;
@@ -136,10 +225,9 @@
   $1 = *($ltype) temp;
 }
 
-
 %typemap(varin) SWIGTYPE (CLASS::*) {
   char temp[sizeof($type)];
-  if ((SWIG_ConvertPacked($input,(void *) temp, sizeof($1_type), $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
+  if ((SWIG_ConvertPacked($input,(void *) temp, sizeof($type), $descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
     SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
@@ -161,18 +249,18 @@
 
 /* Pointers and arrays */
 %typemap(varout) SWIGTYPE *, SWIGTYPE [] 
-  "$result = SWIG_NewPointerObj((void *)($1), $1_descriptor, 0);";
+  "$result = SWIG_NewPointerObj((void *)($1), $descriptor, 0);";
 
 /* References */
 %typemap(varout) SWIGTYPE & 
-  "$result = SWIG_NewPointerObj((void *)(&$1), $1_descriptor, 0);";
+  "$result = SWIG_NewPointerObj((void *)(&$1), $descriptor, 0);";
 
 /* Member pointer */
 %typemap(varout) SWIGTYPE (CLASS::*) 
-  "$result = SWIG_NewPackedObj((void *)(&$1), sizeof($1_type), $1_descriptor);";
+  "$result = SWIG_NewPackedObj((void *)(&$1), sizeof($type), $descriptor);";
 
 %typemap(varout) SWIGTYPE 
-  "$result = SWIG_NewPointerObj((void *)(&$1), $&1_descriptor, 0);";
+  "$result = SWIG_NewPointerObj((void *)(&$1), $&descriptor, 0);";
 
 /* -----------------------------------------------------------------------------
  * --- Constants --- *
@@ -252,13 +340,13 @@
  * ------------------------------------------------------------ */
 
 %typemap(throws) SWIGTYPE {
-  $&1_ltype temp = new $1_ltype($1);
-  if ($&1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($&1_descriptor->clientdata), SWIG_NewPointerObj(temp,$&1_descriptor,1));
+  $&ltype temp = new $ltype($1);
+  if ($&descriptor->clientdata) {
+    PyErr_SetObject((PyObject *) ($&descriptor->clientdata), SWIG_NewPointerObj(temp,$&descriptor,1));
   } else {
-    PyErr_SetString(PyExc_RuntimeError,"$1_type");
+    PyErr_SetString(PyExc_RuntimeError,"$type");
     /*
-      PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&1_descriptor,1));
+      PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&descriptor,1));
     */
   }
   SWIG_fail;
@@ -266,32 +354,32 @@
 
 
 %typemap(throws) SWIGTYPE * {
-  if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata),
-		    SWIG_NewPointerObj((void *) $1,$1_descriptor,1));
+  if ($descriptor->clientdata) {
+    PyErr_SetObject((PyObject *) ($descriptor->clientdata),
+		    SWIG_NewPointerObj((void *) $1,$descriptor,1));
   } else {
-    PyErr_SetString(PyExc_RuntimeError,"$1_type");
+    PyErr_SetString(PyExc_RuntimeError,"$type");
   }
   SWIG_fail;
 }
 
 
 %typemap(throws) SWIGTYPE [ANY] {
-  if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata),
-		    SWIG_NewPointerObj((void *)$1,$1_descriptor,1));
+  if ($descriptor->clientdata) {
+    PyErr_SetObject((PyObject *) ($descriptor->clientdata),
+		    SWIG_NewPointerObj((void *)$1,$descriptor,1));
   } else {
-    PyErr_SetString(PyExc_RuntimeError,"$1_type");
+    PyErr_SetString(PyExc_RuntimeError,"$type");
   }
   SWIG_fail;
 }
 
 %typemap(throws) SWIGTYPE & {
-  if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata), 
-		    SWIG_NewPointerObj((void *)&($1),$1_descriptor,1));
+  if ($descriptor->clientdata) {
+    PyErr_SetObject((PyObject *) ($descriptor->clientdata), 
+		    SWIG_NewPointerObj((void *)&($1),$descriptor,1));
   } else {
-    PyErr_SetString(PyExc_RuntimeError,"$1_type");
+    PyErr_SetString(PyExc_RuntimeError,"$type");
   }
   SWIG_fail;
 }
