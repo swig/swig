@@ -295,6 +295,7 @@
 typedef unsigned long SCM;
 %typemap (in) SCM "$1=$input;";
 %typemap (out) SCM "$result=$1;";
+%typecheck(SWIG_TYPECHECK_POINTER) SCM "$1=1;";
 
 /* Some ANSI C typemaps */
 

@@ -263,6 +263,8 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 
 %typemap (in) Scheme_Object * "$1=$input;";
 %typemap (out) Scheme_Object * "$result=$1;";
+%typecheck(SWIG_TYPECHECK_POINTER) Scheme_Object * "$1=1;";
+
 
 /* ------------------------------------------------------------
  * String & length
@@ -338,6 +340,5 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
     $1 = 1;
   }
 }
-
 
 

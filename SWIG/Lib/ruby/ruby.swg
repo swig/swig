@@ -372,14 +372,15 @@
 
 %typemap(constant) SWIGTYPE (CLASS::*) "rb_define_const($module, \"$symname\", SWIG_NewPackedObj((void *) &$1, sizeof($type), $1_descriptor));";
 
-/* ------------------------------------------------------------
- * typedef & typemaps for VALUE (passed through unmodified)
- * ------------------------------------------------------------ */
+/* ---------------------------------------------------------------------
+ * typedef & typemaps for VALUE (passed through unmodified and unchecked)
+ * --------------------------------------------------------------------- */
 
 typedef unsigned long VALUE;
 
 %typemap(ruby,in)  VALUE  "$1 = $input;";
 %typemap(ruby,out) VALUE  "$result = $1;";
+%typecheck(SWIG_TYPECHECK_POINTER) VALUE "$1 = 1;";
 
 /* ------------------------------------------------------------
  * String & length
