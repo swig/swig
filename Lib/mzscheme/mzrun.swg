@@ -110,7 +110,7 @@ SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type,
                          int argc, Scheme_Object **argv) {
   void *result;
   if (SWIG_MzScheme_ConvertPtr(s, &result, type, flags)) {
-    scheme_wrong_type(func_name, type->str ? type->str : "void *", argnum, argc, argv);
+    scheme_wrong_type(func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
   }
   return result;
 }

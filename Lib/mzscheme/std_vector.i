@@ -273,7 +273,7 @@ namespace std {
                         (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
-                                          $argnum, argc, argv);
+                                          $argnum - 1, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
                 $1 = std::vector<T >();
@@ -288,7 +288,7 @@ namespace std {
                         $1.push_back((T)(CONVERT_FROM(head)));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
-                                          $argnum, argc, argv);
+                                          $argnum - 1, argc, argv);
                 }
             } else {
                 $1 = *(($&1_type)
@@ -308,7 +308,7 @@ namespace std {
                         temp[i] = (T)(CONVERT_FROM(o));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
-                                          $argnum, argc, argv);
+                                          $argnum - 1, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
                 temp = std::vector<T >();
@@ -325,10 +325,10 @@ namespace std {
                         temp.push_back((T)(CONVERT_FROM(head)));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
-                                          $argnum, argc, argv);
+                                          $argnum - 1, argc, argv);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum - 1, 0);
             }
         }
         %typemap(out) vector<T> {

@@ -1,5 +1,5 @@
 /* typemaps.i --- mzscheme typemaps -*- c -*-
-   Copyright 2000, 2001 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
+   Copyright 2000, 2001, 2004 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
    Based on code written by Oleg Tolmatcev.
 
    $Id$
@@ -90,13 +90,13 @@
 /* Enums */
 %typemap(in) enum SWIGTYPE {
   if (!SCHEME_INTP($input)) 
-      scheme_wrong_type("$name", "integer", $argnum, argc, argv);
+      scheme_wrong_type(FUNC_NAME, "integer", $argnum - 1, argc, argv);
   $1 = SCHEME_INT_VAL($input);
 }
 
 %typemap(varin) enum SWIGTYPE {
   if (!SCHEME_INTP($input)) 
-      scheme_wrong_type("$name", "integer", 1, argc, argv);
+      scheme_wrong_type(FUNC_NAME, "integer", 0, argc, argv);
   $1 = ($1_type) SCHEME_INT_VAL($input);
 }
 
@@ -156,12 +156,12 @@
 %define SIMPLE_MAP(C_NAME, MZ_PREDICATE, MZ_TO_C, C_TO_MZ, MZ_NAME)
 %typemap(in) C_NAME {
     if (!MZ_PREDICATE($input))
-	scheme_wrong_type("$name", #MZ_NAME, $argnum, argc, argv);
+	scheme_wrong_type(FUNC_NAME, #MZ_NAME, $argnum - 1, argc, argv);
     $1 = MZ_TO_C($input);
 }
 %typemap(varin) C_NAME {
     if (!MZ_PREDICATE($input))
-	scheme_wrong_type("$name", #MZ_NAME, 1, argc, argv);
+	scheme_wrong_type(FUNC_NAME, #MZ_NAME, 0, argc, argv);
     $1 = MZ_TO_C($input);
 }
 %typemap(out) C_NAME {
@@ -225,7 +225,7 @@ SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL,
 %define REF_MAP(C_NAME, MZ_PREDICATE, MZ_TO_C, C_TO_MZ, MZ_NAME)
   %typemap(in) const C_NAME & (C_NAME temp) {
      if (!MZ_PREDICATE($input))
-        scheme_wrong_type("$name", #MZ_NAME, $argnum, argc, argv);
+        scheme_wrong_type(FUNC_NAME, #MZ_NAME, $argnum - 1, argc, argv);
      temp = MZ_TO_C($input);
      $1 = &temp;
   }
