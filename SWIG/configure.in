@@ -251,13 +251,13 @@ esac
 
 AC_SUBST(TCL_LDSHARED)
 case $host in
-   *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -framework Tcl";;
+   *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -flat_namespace -undefined suppress";;
    *) TCL_LDSHARED=$LDSHARED;;
 esac
 
 AC_SUBST(TCL_CXXSHARED)
 case $host in
-   *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -framework Tcl";;
+   *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -flat_namespace -undefined suppress";;
    *) TCL_CXXSHARED=$TRYLINKINGWITHCXX;;
 esac
 
