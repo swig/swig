@@ -46,7 +46,7 @@ public class runme
       try {
         csharp_exceptions.ExceptionSpecificationInteger();
         testFailed = true;
-      } catch (ApplicationException e) {
+      } catch (ApplicationException) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationInteger not working");
 
@@ -106,81 +106,82 @@ public class runme
       try {
         csharp_exceptions.MemoryLeakCheck();
         throw new Exception("MemoryLeakCheck not working");
-      } catch (DivideByZeroException e) {
+      } catch (DivideByZeroException) {
       }
       if (Counter.count != 0) throw new Exception("Memory leaks when throwing exception. count: " + Counter.count);
 
       // test exception pending in the csconstruct typemap
       try {
-        constructor c = new constructor(null);
+        new constructor(null);
         throw new Exception("constructor 1 not working");
-      } catch (NullReferenceException e) {
+      } catch (NullReferenceException) {
       }
       try {
-        constructor c = new constructor();
+        new constructor();
         throw new Exception("constructor 2 not working");
-      } catch (ApplicationException e) {
+      } catch (ApplicationException) {
       }
 
       // test exception pending in the csout typemaps
       try {
         csharp_exceptions.ushorttest();
         throw new Exception("csout not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
 
       // test exception pending in the csvarout/csvarin typemaps and canthrow attribute in unmanaged code typemaps (1) global variables
       // 1) global variables
+      int numberout = 0;
       try {
         csharp_exceptions.numberin = -1;
         throw new Exception("global csvarin not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       csharp_exceptions.numberin = 5;
       if (csharp_exceptions.numberin != 5)
         throw new Exception("global numberin not 5");
       csharp_exceptions.numberout = 20;
       try {
-        int numberout = csharp_exceptions.numberout;
+        numberout += csharp_exceptions.numberout;
         throw new Exception("global csvarout not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       // 2) static member variables
       try {
         InOutStruct.staticnumberin = -1;
         throw new Exception("static csvarin not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       InOutStruct.staticnumberin = 5;
       if (InOutStruct.staticnumberin != 5)
         throw new Exception("static staticnumberin not 5");
       InOutStruct.staticnumberout = 20;
       try {
-        int numberout = InOutStruct.staticnumberout;
+        numberout += InOutStruct.staticnumberout;
         throw new Exception("static csvarout not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       // 3) member variables
       InOutStruct io = new InOutStruct();
       try {
         io.numberin = -1;
         throw new Exception("member csvarin not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       io.numberin = 5;
       if (io.numberin != 5)
         throw new Exception("member numberin not 5");
       io.numberout = 20;
       try {
-        int numberout = io.numberout;
+        numberout += io.numberout;
         throw new Exception("member csvarout not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       // test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
       try {
         csharp_exceptions.exceptionmacrotest(-1);
         throw new Exception("exception macro not working");
-      } catch (IndexOutOfRangeException e) {
+      } catch (IndexOutOfRangeException) {
       }
       if (csharp_exceptions.exception_macro_run_flag)
         throw new Exception("exceptionmacrotest was executed");
@@ -251,21 +252,21 @@ public class runme
         csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentException);
         throw new Exception("ArgumentException not caught");
       } catch (ArgumentException e) {
-        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentException msg incorrect");
+        if (e.Message.Replace(CRLF,"\n") != "msg\nParameter name: parm") throw new Exception("ArgumentException msg incorrect");
         if (e.ParamName != "parm") throw new Exception("ArgumentException parm incorrect");
       }
       try {
         csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentNullException);
         throw new Exception("ArgumentNullException not caught");
       } catch (ArgumentNullException e) {
-        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentNullException msg incorrect");
+        if (e.Message.Replace(CRLF,"\n") != "msg\nParameter name: parm") throw new Exception("ArgumentNullException msg incorrect");
         if (e.ParamName != "parm") throw new Exception("ArgumentNullException parm incorrect");
       }
       try {
         csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentOutOfRangeException);
         throw new Exception("ArgumentOutOfRangeException not caught");
       } catch (ArgumentOutOfRangeException e) {
-        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentOutOfRangeException msg incorrect");
+        if (e.Message.Replace(CRLF,"\n") != "msg\nParameter name: parm") throw new Exception("ArgumentOutOfRangeException msg incorrect");
         if (e.ParamName != "parm") throw new Exception("ArgumentOutOfRangeException parm incorrect");
       }
 
@@ -277,6 +278,7 @@ public class runme
         Thread[] threads = new Thread[NUM_THREADS];
         TestThread[] testThreads = new TestThread[NUM_THREADS];
         // invoke the threads
+        Console.WriteLine("Thread tests");
         for (int i=0; i<NUM_THREADS; i++) {
             testThreads[i] = new TestThread(throwsClass, i);
             threads[i] = new Thread(new ThreadStart(testThreads[i].Run));
@@ -291,6 +293,7 @@ public class runme
         }
       }
     }
+    public static string CRLF = "\r\n"; // Some CLR implementations use a CRLF instead of just CR
 }
 
 public class TestThread {
@@ -304,13 +307,13 @@ public class TestThread {
    public void Run() {
      Failed = false;
      try {
-       for (int i=0; i<4000; i++) { // run test for about 10 seconds on a 1GHz machine
+       for (int i=0; i<80000; i++) { // run test for about 30 seconds on a 1GHz machine
          try {
            throwsClass.ThrowException(i);
            throw new Exception("No exception thrown");
          } catch (ArgumentOutOfRangeException e) {
            String expectedMessage = "caught:" + i + "\n" + "Parameter name: input";
-           if (e.Message != expectedMessage)
+           if (e.Message.Replace(runme.CRLF,"\n") != expectedMessage)
              throw new Exception("Exception message incorrect. Expected:\n[" + expectedMessage + "]\n" + "Received:\n[" + e.Message + "]");
            if (e.ParamName != "input")
              throw new Exception("Exception ParamName incorrect. Expected:\n[input]\n" + "Received:\n[" + e.ParamName + "]");
