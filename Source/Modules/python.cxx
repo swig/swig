@@ -2173,7 +2173,10 @@ public:
     }
     
     if (shadow) {
-      if ( !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
+      //
+      // static + autodoc/prepend/append + def args not working!!!, disable by now
+      //
+      if (0 && !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
         int kw = (check_kwargs(n) && !Getattr(n,"sym:overloaded")) ? 1 : 0;
         Printv(f_shadow, tab4, "def ", symname, "(*args", (kw ? ", **kwargs" : ""), "):\n", NIL);
         if ( have_docstring(n) )
