@@ -348,7 +348,7 @@ void PYTHON::initialize_cmodule(void)
   fprintf(f_init,"extern \"C\" \n");
   fprintf(f_init,"#endif\n");
 
-  fprintf(f_init,"SWIGEXPORT(void) init%s() {\n",module);
+  fprintf(f_init,"SWIGEXPORT(void) init%s(void) {\n",module);
   fprintf(f_init,"\t PyObject *m, *d;\n");
   fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
   fprintf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
