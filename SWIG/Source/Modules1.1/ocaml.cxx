@@ -202,9 +202,20 @@ class OCAML : public Language {
 // --------------------------------------------------------------------
     int 
     top(Node *n) {
-	String *modfile = Getattr(n,"modfile");
+	String *modfile = NULL;
+
+	assert(Getattr(n,"name"));
+	set_module(Char(Getattr(n,"name")));
+
+	if( !modfile ) modfile = NewString(Char(module));
+	Printf(modfile, ".ml");
 
 	if( !modfile ) modfile = modfile_cmd;
+
+	if( !modfile ) {
+	    modfile = Copy(module);
+	    Printf(modfile, ".ml");
+	}
 
 	mliout = 0;
 	processInterface( modfile, n );
@@ -305,9 +316,6 @@ class OCAML : public Language {
 	    if (NoInclude) {
 		Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
 	    }
-
-	    assert(Getattr(n,"name"));
-	    set_module(Char(Getattr(n,"name")));
 
 	    Language::top(n);
 
