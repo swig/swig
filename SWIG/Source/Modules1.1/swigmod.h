@@ -195,6 +195,9 @@ public:
   /* Allow overloaded functions */
   void   allow_overloading();
 
+  /* Wrapping class query */
+  int is_wrapping_class();
+
  private:
   Hash   *symbols;
   Hash   *classtypes;
