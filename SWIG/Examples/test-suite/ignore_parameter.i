@@ -2,9 +2,9 @@
 
 %module ignore_parameter
 
-%typemap(ignore) char* a "static char* hi = \"hello\"; $1 = hi;";
-%typemap(ignore) int bb "$1 = 101;";
-%typemap(ignore) double ccc "$1 = 8.8;";
+%typemap(in,numinputs=0) char* a "static char* hi = \"hello\"; $1 = hi;";
+%typemap(in,numinputs=0) int bb "$1 = 101;";
+%typemap(in,numinputs=0) double ccc "$1 = 8.8;";
 
 %typemap(freearg) char* a ""; // ensure freearg is not generated (needed for Java at least)
 

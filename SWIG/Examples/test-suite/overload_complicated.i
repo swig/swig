@@ -3,7 +3,7 @@
 
 #ifndef SWIG_NO_OVERLOAD
 
-%typemap(ignore) int l { $1 = 4711; }
+%typemap(in, numinputs=0) int l { $1 = 4711; }
 
 %inline %{
 
