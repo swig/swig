@@ -40,6 +40,7 @@ static DOH      *ATTR_NAME = 0;
 static DOH      *ATTR_VALUE = 0;
 static DOH      *ATTR_TYPE = 0;
 static DOH      *ATTR_PARMS = 0;
+static DOH      *ATTR_PARM = 0;
 static DOH      *ATTR_STORAGE = 0;
 static DOH      *TAG_ENUMVALUE = 0;
 static DOH      *TAG_FUNCTION = 0;
@@ -75,8 +76,10 @@ static DOH      *TAG_VARIABLE = 0;
      DohIntern(ATTR_VALUE);
      ATTR_TYPE = NewString("type");
      DohIntern(ATTR_TYPE);
-     ATTR_PARMS = NewString("parms");
+     ATTR_PARMS = NewString("parameters");
      DohIntern(ATTR_PARMS);
+     ATTR_PARM = NewString("parm");
+     DohIntern(ATTR_PARM);
      ATTR_STORAGE = NewString("storage");
      DohIntern(ATTR_STORAGE);
      TAG_ENUMVALUE = NewString("enumvalue");
@@ -112,11 +115,11 @@ static DOH      *TAG_VARIABLE = 0;
    int i, l;
    DOH *p, *r;
    r = NewString("(");
-   l = Len(parms);
-   for (i = 0; i < l; i++) {
-     p = Getitem(parms,i);
+   p = parms;
+   while (p) {
      Append(r,Getattr(p,ATTR_TYPE));
-     if (i < (l-1))
+     p = Getattr(p,ATTR_SIBLING);
+     if (p)
        Append(r,",");
    }
    Append(r,")");
@@ -1315,21 +1318,23 @@ opt_id       : ID { $$ = $1; }
 /* -- Function parameter lists -- */
 
 parms          : parm ptail {
-                 Insert($2,0,$1);
-                 $$ = $2;
+                 if ($2) 
+                    Setattr($1,ATTR_SIBLING,$2);
+                 $$ = $1;
 		}
-               | empty { $$ = NewList(); }
+               | empty { $$ = 0; }
                ;
 
 ptail          : COMMA parm ptail {
-                 Insert($3,0,$2);
-                 $$ = $3;
+                 if ($3) 
+                     Setattr($2,ATTR_SIBLING,$3);
+                 $$ = $2;
                 }
-               | empty { $$ = NewList(); }
+               | empty { $$ = 0; }
                ;
 
 parm           : type pname {
-                   $$ = NewHash();
+                   $$ = new_node("parm",Getfile($2.name),Getline($2.name));
 		   Setattr($$,ATTR_NAME,$2.name);
 		   SwigType_push($1,$2.array);
 		   if ($2.value)
@@ -1337,7 +1342,7 @@ parm           : type pname {
 		   Setattr($$,ATTR_TYPE,$1);
                 }
                 | type stars pname {
-		  $$ = NewHash();
+		  $$ = new_node("parm",Getfile($3.name),Getline($3.name));
 		  Setattr($$,ATTR_NAME,$3.name);
 		  SwigType_push($1,$2);
 		  SwigType_push($1,$3.array);
@@ -1347,7 +1352,7 @@ parm           : type pname {
 		  Setattr($$,ATTR_TYPE,$1);
 		}
                 | type AND pname {
-		  $$ = NewHash();
+		  $$ = new_node("parm",Getfile($3.name),Getline($3.name));
 		  SwigType_add_reference($1);
 		  SwigType_push($1,$3.array);
 		  Setattr($$,ATTR_NAME,$3.name);
@@ -1357,7 +1362,7 @@ parm           : type pname {
 		  Setattr($$,ATTR_TYPE,$1);
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
-		  $$ = NewHash();
+		  $$ = new_node("parm",$2.filename, $2.line);
 		  SwigType_push($1,parmstotype($7));
 		  SwigType_push($1,$3);
 		  if ($4.array)
@@ -1368,7 +1373,7 @@ parm           : type pname {
 		  Setattr($$,ATTR_TYPE,$1);
 		}
                 | type stars LPAREN stars pname RPAREN LPAREN parms RPAREN {
-		  $$ = NewHash();
+		  $$ = new_node("parm",$3.filename, $3.line);
 		  SwigType_push($1,$2);
 		  SwigType_push($1,parmstotype($8));
 		  SwigType_push($1,$4);
@@ -1380,7 +1385,7 @@ parm           : type pname {
 		  Setattr($$,ATTR_TYPE,$1);
 		}
                 | PERIOD PERIOD PERIOD {
-		  $$ = NewHash();
+		  $$ = new_node("parm",$1.filename,$1.line);
 		  Setattr($$,ATTR_NAME,"...");
 		  Setattr($$,ATTR_TYPE,"?");
 		}
