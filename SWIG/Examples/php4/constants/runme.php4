@@ -12,17 +12,16 @@ print "EXPR    = " . EXPR  . " (should be 48.5484)\n";
 print "iconst  = " . iconst . " (should be 37)\n";
 print "fconst  = " . fconst . " (should be 3.14)\n";
 
-
-if (EXTERN) {
+if (EXTERN!="EXTERN") {
     print "EXTERN = " . EXTERN . " (Arg! This shouldn't print anything)\n";
 } else {
-    print "EXTERN isn't defined (good)\n";
+    print "EXTERN defaults to 'EXTERN', it probably isn't defined (good)\n";
 }
 
-if (FOO) {
+if (FOO!="FOO") {
     print "FOO    = " . FOO . "(Arg! This shouldn't print anything)\n";
 } else {
-    print "FOO isn't defined (good)\n";
+    print "FOO defaults to 'FOO', it probably isn't defined (good)\n";
 }
 
 
