@@ -78,6 +78,26 @@ Version 1.3.20 (In progress)
             be subclassed in Perl and used normally. 
             Patch contributed by Salvador Fandiño García.
 
+10/16/2003: cheetah (William Fulton)
+            [C#] IntPtr marshalled with a void* instead of int in C function 
+            declarations. The casts thus look more conventional, for example:
+
+                // old
+                DllExport double SWIGSTDCALL CSharp_get_Shape_x(int jarg1) {
+                    ...
+                    Shape *arg1 = (Shape *) 0 ;
+                    arg1 = *(Shape **)&jarg1; 
+                    ...
+                }
+                // new
+                DllExport double SWIGSTDCALL CSharp_get_Shape_x(void * jarg1) {
+                    ...
+                    Shape *arg1 = (Shape *) 0 ;
+                    arg1 = (Shape *)jarg1; 
+                    ...
+                }
+
+
 10/14/2003: beazley
             Fixed a subtle problem with overloaded methods and smart pointers.
             If a class has overloaded methods like this:
