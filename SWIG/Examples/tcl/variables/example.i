@@ -1,5 +1,8 @@
 /* File : example.i */
 %module example
+%{
+#include "example.h"
+%}
 
 /* Some global variable declarations */
 extern int              ivar;
@@ -14,18 +17,28 @@ extern char             cvar;
 extern float            fvar;
 extern double           dvar;
 extern char            *strvar;
+extern const char      *cstrvar;
 extern int             *iptrvar;
 extern char             name[256];
+
+extern Point           *ptptr;
+extern Point            pt;
+
+
+/* Some read-only variables */
+
+%readonly
+extern int  status;
+extern char path[256];
+%readwrite
 
 /* Some helper functions to make it easier to test */
 extern void  print_vars();
 extern int  *new_int(int value);
+extern Point *new_Point(int x, int y);
+extern char  *Point_print(Point *p);
+extern void  pt_print();
 
-/* A read-only variable */
-
-%readonly
-extern int  status;
-%readwrite
 
 
 
