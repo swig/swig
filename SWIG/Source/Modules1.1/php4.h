@@ -43,5 +43,5 @@ public :
 	void emit_shadow_classdef();
 	void SwigToPhpType(SwigType *t, String_or_char *pname, String *php_type, int shadow_flag);
 	char *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *iname);
-	void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name);
+	void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL);
 };
