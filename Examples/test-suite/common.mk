@@ -308,6 +308,7 @@ C_TEST_CASES += \
 	name \
 	nested \
 	newobject2 \
+	overload_extend \
 	overload_extendc \
 	preproc \
 	ret_by_value \
