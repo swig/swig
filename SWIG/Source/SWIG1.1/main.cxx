@@ -143,9 +143,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern void parser_init(void);
   DOH    *libfiles = 0;
 
-  {
-    //    Printf(stdout,"%s\n", SwigType_lcaststr("a(20).a(10).f(int,q(const).p.double).int","a"));
-  }
+  /* This registers a function for producing escaped strings */
+  DohEncoding("escape",Swig_string_escape);
 
 #ifdef MACSWIG
   try {

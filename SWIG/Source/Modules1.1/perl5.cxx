@@ -356,7 +356,7 @@ PERL5::close(void) {
   Printf(f_wrappers,"%s",type_table);
   Delete(type_table);
 
-  Printf(stdout,"::: Perl shadow :::\n\n%s",classes);
+  /*  Printf(stdout,"::: Perl shadow :::\n\n%s",classes); */
 
   Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
   Printf(f_init,"\t XSRETURN(1);\n");
@@ -1114,14 +1114,15 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setpv);
 	have_char_func = 1;
       }
-      Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
+      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, name, value);
+
       break;
     case T_STRING:
       if (!have_char_func) {
 	Printf(f_header,"%s\n",setpv);
 	have_char_func = 1;
       }
-      Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
+      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, name, value);
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
@@ -1711,6 +1712,7 @@ PERL5::cpp_destructor(char *name, char *newname) {
 
     Printv(pcode,
 	   "sub DESTROY {\n",
+           tab4, "return unless $_[0]->isa('HASH');\n",   
 	   tab4, "my $self = tied(%{$_[0]});\n",
            tab4, "delete $ITERATORS{$self};\n",
 	   tab4, "if (exists $OWNER{$self}) {\n",

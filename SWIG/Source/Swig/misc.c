@@ -13,6 +13,7 @@ static char cvsroot[] = "$Header$";
 
 #include "swig.h"
 #include "swigver.h"
+#include <ctype.h>
 
 /* -----------------------------------------------------------------------------
  * Swig_copy_string()
@@ -99,5 +100,39 @@ DOH  *Swig_temp_result(DOH *x) {
   return x;
 }
   
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_escape()
+ *
+ * Takes a string object and produces a string with escape codes added to it.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_escape(String *s) {
+  String *ns;
+  int c;
+  ns = NewString("");
   
+  while ((c = Getc(s)) != EOF) {
+    if (c == '\n') {
+      Printf(ns,"\\n");
+    } else if (c == '\r') {
+      Printf(ns,"\\r");
+    } else if (c == '\t') {
+      Printf(ns,"\\t");
+    } else if (c == '\\') {
+      Printf(ns,"\\\\");
+    } else if (c == '\'') {
+      Printf(ns,"\\'");
+    } else if (c == '\"') {
+      Printf(ns,"\\\"");
+    } else if (c == ' ') {
+      Putc(c,ns);
+    } else if (!isgraph(c)) {
+      Printf(ns,"\\0%o", c);
+    } else {
+      Putc(c,ns);
+    }
+  }
+  return ns;
+}
      

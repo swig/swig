@@ -74,7 +74,7 @@ static int            InArray = 0;             // Used when an array declaration
 static DOHString     *ArrayString = 0;         // Array type attached to parameter names
 static DOHString     *ArrayBackup = 0; 
 static char           *DefArg = 0;             // Default argument hack
-static char           *ConstChar = 0;          // Used to store raw character constants
+static String         *ConstChar = 0;          // Used to store raw character constants
 static ParmList       *tm_parm = 0;            // Parameter list used to hold typemap parameters
 static DOHHash        *name_hash = 0;          // Hash table containing renamings
        char           *objc_construct = (char *) "new"; // Objective-C constructor
@@ -122,6 +122,17 @@ void parser_init() {
 	temp_type = NewString("");
 }  
 
+static void my_cplus_declare_const(char *name, char *iname, SwigType *type, char *value) {
+  String *tval;
+  if (value) {
+    tval = NewStringf("%(escape)s",value);
+    cplus_declare_const(name,iname,type,Char(tval));
+    Delete(tval);
+  } else {
+    cplus_declare_const(name,iname,type,value);
+  }
+}
+
 static TMParm *NewTMParm() {
   TMParm *tmp = (TMParm *) malloc(sizeof(TMParm));
   tmp->next = 0;
@@ -133,71 +144,6 @@ static void add_pointers(SwigType *t, int npointer) {
   for (i = 0; i < npointer; i++) {
     SwigType_add_pointer(t);
   }
-}
-
-//-----------------------------------------------------------------------
-// void format_string(char *str)
-//
-// Replace all of the escape sequences in the string str.   It is
-// assumed that the new string is smaller than the original!
-//-----------------------------------------------------------------------
-
-static void format_string(char *str) {
-  char *newstr, *c,*c1;
-  int  state;
-  if (!str) return;
-  newstr = Swig_copy_string(str);
-  c = newstr;
-  c1 = str;
-  state = 0;
-  while (*c) {
-    switch(state) {
-    case 0:
-      if (*c == '\\')
-	state = 1;
-      else {
-	*(c1++) = *c;
-	state = 0;
-      }
-      break;
-   case 1:
-      // We're in a simple escape sequence figure out what to do
-      switch(*c) {
-      case 'n':
-	*(c1++) = '\n';
-	break;
-      case 'f':
-	*(c1++) = '\f';
-	break;
-      case 'r':
-	*(c1++) = '\r';
-	break;
-      case 't':
-	*(c1++) = '\t';
-	break;
-      case '\\':
-	*(c1++) = '\\';
-      break;
-      case '\"':
-	*(c1++) = '\"';
-      break;
-      case '\'':
-	*(c1++) = '\'';
-      break;
-      default:
-	*(c1++) = '\\';
-        *(c1++) = *c;
-      }
-      state = 0;
-      break;
-    default:
-      *(c1++) = *c;
-      state = 0;
-    }
-    c++;
-  }
-  *c1 = 0;
-  free(newstr);
 }
 
 // Emit an external function declaration 
@@ -398,7 +344,9 @@ void create_constant(char *name, SwigType *type, char *value) {
 	    input_file, line_number, name);
   } else {
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
-      lang->declare_const(name, name, type, value);
+      String *tval = NewStringf("%(escape)s",value);
+      lang->declare_const(name, name, type, Char(tval));
+      Delete(tval);
     }
   }
   scanner_clear_start();
@@ -1081,6 +1029,39 @@ statement      : INCLUDE STRING LBRACE {
 		 free($3);
 	       }
 
+/* Create a new typemap */
+
+               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list STRING {
+		   TMParm *p;
+                   skip_brace();
+		   p = $7;
+		   while (p) {
+		     if (strcmp($3,typemap_lang) == 0)
+		       Swig_typemap_register($5,Gettype(p->p),Getname(p->p), $8, p->args);
+		     p = p->next;
+                   }
+		   free($3);
+		   free($5);
+	       }
+
+/* Create a new typemap in current language */
+               | TYPEMAP LPAREN tm_method RPAREN tm_list STRING {
+		 if (!typemap_lang) {
+		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
+		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
+		   FatalError();
+		 } else {
+		   TMParm *p;
+		   skip_brace();
+		   p = $5;
+		   while (p) {
+		     Swig_typemap_register($3,Gettype(p->p),Getname(p->p), $6, p->args);
+		     p = p->next;
+		   }
+		 }
+		 free($3);
+	       }
+
 /* Clear a typemap */
 
                | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list SEMI {
@@ -1512,7 +1493,7 @@ pname          : ID def_args {
                     $$ = $1; 
                     InArray = 0;
 		    if ($2.type == T_CHAR)
-		      DefArg = Swig_copy_string(ConstChar);
+		      DefArg = Swig_copy_string(Char(ConstChar));
 		    else
 		      DefArg = Swig_copy_string($2.id);
                     if ($2.id) free($2.id);
@@ -1757,22 +1738,20 @@ opt_int        : TYPE_INT { }
 definetype     : { scanner_check_typedef(); } expr {
                    $$ = $2;
 		   scanner_ignore_typedef();
-		   if (ConstChar) free(ConstChar);
+		   if (ConstChar) Delete(ConstChar);
 		   ConstChar = 0;
                 }
                 | STRING {
                    $$.id = $1;
                    $$.type = T_CHAR;
-		   if (ConstChar) free(ConstChar);
-		   ConstChar = (char *) malloc(strlen($1)+3);
-		   sprintf(ConstChar,"\"%s\"",$1);
+		   if (ConstChar) Delete(ConstChar);
+		   ConstChar = NewStringf("\"%(escape)s\"",$1);
 		}
                 | CHARCONST {
                    $$.id = $1;
 		   $$.type = T_CHAR;
-		   if (ConstChar) free(ConstChar);
-		   ConstChar = (char *) malloc(strlen($1)+3);
-		   sprintf(ConstChar,"'%s'",$1);
+		   if (ConstChar) Delete(ConstChar);
+		   ConstChar = NewStringf("'%(escape)s'", $1);
 		 }
                 ;	       
 
@@ -2382,7 +2361,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  if (SwigType_isconst($1)) {
 		    iname = make_name($2.id);
 		    if (iname == $2.id) iname = 0;
-		    cplus_declare_const($2.id,iname, $1, $3.id);
+		    my_cplus_declare_const($2.id,iname, $1, $3.id);
 		  } else {
 		      iname = make_name($2.id);
 		      if (iname == $2.id) iname = 0;
@@ -2678,7 +2657,7 @@ cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
 cpp_edecl      :  ID {
 		 if (cplus_mode == CPLUS_PUBLIC) {
 		   temp_typeptr = NewSwigType(T_INT);
-		   cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
+		   my_cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
 		   Delete(temp_typeptr);
 		   scanner_clear_start();
 		 }
@@ -2686,8 +2665,8 @@ cpp_edecl      :  ID {
                  | ID EQUAL etype {
 		   if (cplus_mode == CPLUS_PUBLIC) {
 		     temp_typeptr = NewSwigType(T_INT);
-		     cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
-		     // OLD : Bug with value     cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
+		     my_cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
+		     // OLD : Bug with value     my_cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
 		     Delete(temp_typeptr);
 		     scanner_clear_start();
 		   }
@@ -2695,7 +2674,7 @@ cpp_edecl      :  ID {
                  | NAME LPAREN ID RPAREN ID {
 		   if (cplus_mode == CPLUS_PUBLIC) {
 		     temp_typeptr = NewSwigType(T_INT);
-		     cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
+		     my_cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
 		     Delete(temp_typeptr);
 		     scanner_clear_start();
 		   }
@@ -2703,7 +2682,7 @@ cpp_edecl      :  ID {
                  | NAME LPAREN ID RPAREN ID EQUAL etype {
 		     if (cplus_mode == CPLUS_PUBLIC) {
 		       temp_typeptr = NewSwigType(T_INT);
-		       cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
+		       my_cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
 		       Delete(temp_typeptr);
 		       scanner_clear_start();
 		     }
@@ -3125,7 +3104,6 @@ stylelist      : ID stylearg styletail {
                     $$ = $3;
 		    $$.names[$$.count] = Swig_copy_string($1);
 		    $$.values[$$.count] = Swig_copy_string($2);
-		    format_string($$.values[$$.count]);
 		    $$.count++;
                  }
                ;
@@ -3135,7 +3113,6 @@ styletail      : styletail COMMA ID stylearg {
                     $$ = $1;
 		    $$.names[$$.count] = Swig_copy_string($3);
 		    $$.values[$$.count] = Swig_copy_string($4);
-		    format_string($$.values[$$.count]);
 		    $$.count++;
                  }
                | empty {

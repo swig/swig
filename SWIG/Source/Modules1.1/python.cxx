@@ -883,10 +883,10 @@ PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
       Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
       break;
     case T_CHAR :
-      Printv(const_code, tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
+      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
       break;
     case T_STRING:
-      Printv(const_code,tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
+      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(type);

@@ -301,6 +301,16 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	  }
 	} else {
 	  if (!doh) doh = "";
+	  
+	  if (strlen(encoder)) {
+	    DOH *s = NewString(doh);
+	    Seek(s,0, SEEK_SET);
+	    enc = encode(encoder,s);
+	    Delete(s);
+	    doh = Char(enc);
+	  } else {
+	    enc = 0;
+	  }
 	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
 	  *(fmt++) = 's';
 	  *fmt = 0;
@@ -314,6 +324,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	  if (stemp != obuffer) {
 	    DohFree(stemp);
 	  }
+	  if (enc) Delete(enc);
 	}
       } else {
 	*(fmt++) = *p;
