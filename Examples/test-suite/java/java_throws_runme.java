@@ -27,20 +27,34 @@ public class java_throws_runme {
       catch (CloneNotSupportedException e) {}
       catch (IllegalAccessException e) {}
 
-      if (!pass) {
-        System.err.println("Test 1 failed");
-        System.exit(1);
-      }
+      if (!pass)
+        throw new RuntimeException("Test 1 failed");
 
       // Check the exception class in the throw typemap
+      pass = false;
       try {
         java_throws.throw_spec_function(100);
       }
       catch (IllegalAccessException e) { pass = true; }
 
-      if (!pass) {
-        System.err.println("Test 2 failed");
-        System.exit(1);
+      if (!pass)
+        throw new RuntimeException("Test 2 failed");
+
+      // Check newfree typemap throws attribute
+      try {
+        TestClass tc = java_throws.makeTestClass();
       }
+      catch (NoSuchMethodException e) {}
+
+      // Check javaout typemap throws attribute
+      pass = false;
+      try {
+        int myInt = java_throws.ioTest();
+      }
+      catch (java.io.IOException e) { pass = true; }
+
+      if (!pass)
+        throw new RuntimeException("Test 4 failed");
+      
   }
 }
