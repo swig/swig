@@ -6,8 +6,8 @@
 
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
+srcdir     = @ROOT_DIR@
 
-TARGET     = swig
 SHELL  = /bin/sh
 CC     = @CC@
 CXX    = @CXX@
@@ -17,55 +17,76 @@ SWIG_LIB = $(prefix)/lib/swig1.3
 BIN_DIR  = $(exec_prefix)/bin
 LIB_DIR  = $(prefix)/lib
 
-#
-#
-#
+GOAL		:= all
+OBJS_FILE	:= $(srcdir)/objs.tmp
+OBJS    	= `cat $(OBJS_FILE)`
+MODULES		:= 
 
-SWIGOBJS   = Source/SWIG1.1/*.o Source/Modules1.1/*.o Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o
+#####################################################################
+# TARGET: swig
+#####################################################################
+swig: GOAL := all
+swig: MODULES := SWIG1.1 Modules1.1 Swig Preprocessor
+swig: _recurse DOH 
+	$(CXX) $(OBJS) $(LIBS) -o swig
 
-EXPOBJS    = Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o Source/LParse/*.o Source/Experiment/*.o Source/SWILL/SWILL/*.o Source/Swim/*.o
+#####################################################################
+# TARGET: experiment
+#####################################################################
+experiment: GOAL := experiment
+experiment: MODULES := Swig Preprocessor LParse Experiment Swim
+experiment: _recurse DOH SWILL
+	$(CC) $(OBJS) $(LIBS) -o experiment
 
-swig: objs
-	$(CXX) $(SWIGOBJS) $(LIBS) -o $(TARGET)
+#####################################################################
+# TARGET: clean
+#####################################################################
+clean: GOAL := clean
+clean: _recurse
+	rm -f swig experiment
 
-experiment: objs
-	$(CC) $(EXPOBJS) $(LIBS) -o $(TARGET)
-      
-objs:		
-	@ORIG_DIR=`pwd`; \
-	for i in `ls Source/`; \
-	do \
-	  if [ -d Source/$$i -a -f Source/$$i/Makefile ]; then \
-            (cd Source/$$i && $(MAKE)) || exit 1; \
-            cd $$ORIG_DIR ;\
-          fi \
-        done;
-
-clean:
-	@ORIG_DIR=`pwd`; \
-	for i in `ls Source/`; \
-	do \
-	  if [ -d Source/$$i -a -f Source/$$i/Makefile ]; then \
-            (cd Source/$$i && $(MAKE) clean) || exit 1; \
-            cd $$ORIG_DIR ;\
-          fi \
-        done;
-	rm -f swig
-
-nuke:
-	@ORIG_DIR=`pwd`; \
-	for i in `ls Source/`; \
-	do \
-	  if [ -d Source/$$i -a -f Source/$$i/Makefile ]; then \
-            (cd Source/$$i && $(MAKE) nuke) || exit 1; \
-            cd $$ORIG_DIR ;\
-          fi \
-        done;
+#####################################################################
+# TARGET: nuke
+#####################################################################
+nuke: GOAL := nuke
+nuke: clean _recurse
 	rm -f Makefile Makefile.template config.*
 
+#####################################################################
+# TARGET: _recurse (UTILITY)
+#####################################################################
+# this target recurses through the directories in $(MODULES), executing
+# $(MAKE) $(GOAL) in each one, with the variable OBJS_FILE set to
+# the name of a file into which will be recorded the names of the
+# relevant object files.  See the "swig" target for an example.
+_recurse:		
+	@ORIG_DIR=`pwd`; \
+	echo "" > $(OBJS_FILE); \
+	for i in $(MODULES); \
+	do \
+	  if [ -d Source/$$i -a -f Source/$$i/Makefile ]; then \
+            (cd Source/$$i && $(MAKE) $(TARGET) OBJS_FILE=$(OBJS_FILE)) || exit 1; \
+            cd $$ORIG_DIR ;\
+          fi \
+        done;
 
+#####################################################################
+# TARGET: DOH (an independent project)
+#####################################################################
+DOH:
+	cd Source/DOH; $(MAKE)
+	ls Source/DOH/Doh/*.o >> $(OBJS_FILE)
 
-# Install the SWIG program
+#####################################################################
+# TARGET: SWILL (an independent project)
+#####################################################################
+SWILL:
+	cd Source/SWILL; $(MAKE)
+	ls Source/SWILL/SWILL/*.o >> $(OBJS_FILE)
+
+#####################################################################
+# TARGETS: install & friends
+#####################################################################
 
 INSTALL        = ./install-sh -c
 INSTALL_DATA   = ${INSTALL} -m 644

@@ -1,3 +1,4 @@
 configure config.*
 Makefile
 swig
+objs.tmp experiment

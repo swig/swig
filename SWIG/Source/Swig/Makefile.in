@@ -17,6 +17,7 @@
 #----------------------------------------------------------------
 
 SRCS          = types.c scanner.c include.c getopt.c misc.c super.c
+OBJS          = $(SRCS:.c=.o)
 INTERFACE     = swig.i
 WRAPFILE      = $(INTERFACE:.i=_wrap.c)
 WRAPOBJ       = $(INTERFACE:.i=_wrap.o)
@@ -45,11 +46,6 @@ SWIGCC        = $(CC)
 
 # SWIG Library files.  Uncomment if rebuilding the Python interpreter
 #SWIGLIB       = -lembed.i
-
-# Rules for creating .o files from source.
-
-OBJS         = $(SRCS:.c=.o)
-ALLOBJS       = $(OBJS)
 
 # Command that will be used to build the final extension.
 BUILD         = $(SWIGCC)
@@ -82,7 +78,15 @@ BUILD_LIBS    = $(LIBS) # Dynamic loading
 # Toplevel Targets
 # ----------------------------------------------------------------------
 
-all: $(OBJS)			# the object files
+######################################################################
+# TARGET: swig
+#####################################################################
+# note that here we echo the names of all of our object files, 
+# relative to the project root, into $(OBJS_FILE), for compatibility
+# with the parent makefile.
+all: swig
+swig: $(OBJS)
+	for i in $(OBJS); do echo Source/Swig/$$i >> $(OBJS_FILE); done
 
 python: $(TARGET)		# the python module
 
@@ -104,5 +108,5 @@ $(WRAPFILE) : $(INTERFACE)
 	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
 
 $(TARGET): $(WRAPOBJ) $(ALLOBJS)
-	$(BUILD) $(WRAPOBJ) $(ALLOBJS) $(BUILD_LIBS) -o $(TARGET)
+	$(BUILD) $(WRAPOBJ) $(OBJS) $(BUILD_LIBS) -o $(TARGET)
 

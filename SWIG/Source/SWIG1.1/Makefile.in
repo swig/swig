@@ -52,6 +52,8 @@ INCLUDE  = -I../Include -I. -I../Swig -I../Preprocessor -I../DOH/Include
 CFLAGS   = @CFLAGS@ -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"' @DEFS@
 SHELL  = /bin/sh
 
+OBJS = parser.o $(LIBOBJS)
+
 #
 #
 #
@@ -60,7 +62,13 @@ SHELL  = /bin/sh
 .cxx.o: 
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-all:    parser.o $(LIBOBJS)
+#####################################################################
+# TARGET: swig
+#####################################################################
+# friendly to the toplevel makefile
+all: swig
+swig:    $(OBJS)
+	for i in $(OBJS); do echo Source/SWIG1.1/$$i >> $(OBJS_FILE); done
 
 parser.o: parser.cxx $(LIBHEADERS)
 	$(CC) $(INCLUDE) $(CFLAGS) parser.cxx -c -o parser.o
