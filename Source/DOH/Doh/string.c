@@ -170,7 +170,7 @@ NewString(const DOH *so)
 	str->str[0] = 0;
 	str->len = 0;
     }
-    str->sp = str->len;
+    /*    str->sp = str->len; */
     return (DOHString *) str;
 }
 
@@ -215,7 +215,7 @@ CopyString(DOH *so) {
   str->maxsize= max;
   str->len = s->len;
   str->str[str->len] = 0;
-  str->sp = s->len;
+  /*  str->sp = s->len;*/
   return (DOH *) str;
 }
 
