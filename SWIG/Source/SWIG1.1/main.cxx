@@ -401,7 +401,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
       }
-      Printf(fs,"\n%%includefile \"%s\" {\n", Swig_last_file());
+      Printf(fs,"\n%%file(\"include\") \"%s\" {\n", Swig_last_file());
       Append(fs, ds);
       Append(fs,"\n}\n");
       Delete(ds);

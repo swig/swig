@@ -1039,8 +1039,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
-	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
-	  if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
+	  if (strcmp(yytext,"%file") == 0) return(INCLUDE);
 	  if (strcmp(yytext,"%val") == 0) {
 	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
 	    return (yylex());
@@ -1083,7 +1082,6 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%inline") == 0) return(INLINE);
 	  if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
 	  if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-	  if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
 	  if (strcmp(yytext,"%echo") == 0) return(ECHO);
 	  if (strcmp(yytext,"%new") == 0) return(NEW);
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);

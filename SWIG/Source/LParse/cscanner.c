@@ -394,43 +394,19 @@ yylex1(void) {
 	if (strcmp(yytext,"%module") == 0) return(MODULE);
 	if (strcmp(yytext,"%constant") == 0) return (CONSTANT);
 	if (strcmp(yytext,"%type") == 0) return (TYPE);
-	if (strcmp(yytext,"%init") == 0)  return(INIT);
-	if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
-	if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
-	if (strcmp(yytext,"%readonly") == 0) return(READONLY);
-	if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
-	if (strcmp(yytext,"%name") == 0) return(NAME);
-	if (strcmp(yytext,"%rename") == 0) return(RENAME);
-	if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
-	if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
+	if (strcmp(yytext,"%file") == 0) return(FILEDIRECTIVE);
 	if (strcmp(yytext,"%insert") == 0) return (INSERT);
-	if (strcmp(yytext,"%checkout") == 0) return(CHECKOUT);
 	if (strcmp(yytext,"%macro") == 0) return(MACRO);
-	if (strcmp(yytext,"%section") == 0) return(SECTION);
-	if (strcmp(yytext,"%subsection") == 0) return(SUBSECTION);
-	if (strcmp(yytext,"%subsubsection") == 0) return(SUBSUBSECTION);
-	if (strcmp(yytext,"%title") == 0) return(TITLE);
-	if (strcmp(yytext,"%style") == 0) return(STYLE);
-	if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
 	if (strcmp(yytext,"%typedef") == 0) return(TYPEDEF);
-
-	if (strcmp(yytext,"%alpha") == 0) return(ALPHA_MODE);
-	if (strcmp(yytext,"%raw") == 0) return(RAW_MODE);
-	if (strcmp(yytext,"%text") == 0) return(TEXT);
 	if (strcmp(yytext,"%native") == 0) return(NATIVE);
-	if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
-	if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
 	if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
 	if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
 	if (strcmp(yytext,"%inline") == 0) return(INLINE);
 	if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
 	if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-	if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
 	if (strcmp(yytext,"%echo") == 0) return(ECHO);
-	if (strcmp(yytext,"%new") == 0) return(NEW);
 	if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	if (strcmp(yytext,"%clear") == 0) return(CLEAR);
-	if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
 	if (strcmp(yytext,"%map") == 0) return(MAP);
       }
       /* Have an unknown identifier, as a last step, we'll */

@@ -699,6 +699,7 @@ static int
 check_id(DOH *s)
 {
   int c, state = 0;
+  int hasvalue = 0;
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     switch(state) {
@@ -706,12 +707,17 @@ check_id(DOH *s)
     case 0:
       if (isdigit(c)) state = 1;
       else if (isidentifier(c)) return 1;
-      else if (c == '\"') skip_tochar(s,'\"',0);
-      else if (c == '\'') skip_tochar(s,'\'',0);
-      else if (c == '/') state = 3;
+      else if (c == '\"') {
+	skip_tochar(s,'\"',0);
+	hasvalue = 1;
+      } else if (c == '\'') {
+	skip_tochar(s,'\'',0);
+	hasvalue = 1;
+      } else if (c == '/') state = 3;
       break;
     case 1:
       if (isspace(c)) state = 0;
+      hasvalue = 1;
       break;
     case 3:
       if (c == '*') state = 10;
@@ -733,6 +739,7 @@ check_id(DOH *s)
       break;
     }
   }
+  if (!hasvalue) return 1;
   return 0;
 }
 
@@ -930,7 +937,12 @@ Preprocessor_parse(DOH *s)
     case 45:
       if (c == '/') state = 46;
       else if (c == '*') state = 47;
-      else {
+      else if (c == '\n') {
+	Putc('/',value);
+	Ungetc(c,s);
+	cpp_lines++;
+	state = 50;
+      } else {
 	Putc('/',value);
 	Putc(c,value);
 	state = 43;
@@ -970,6 +982,7 @@ Preprocessor_parse(DOH *s)
 	      silent_errors = 1;
 	      v1 = Preprocessor_replace(v);
 	      silent_errors = 0;
+	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
 		  Printf(ns,"%%constant %s %s;\n", Getattr(m,"name"), v1);
@@ -1077,7 +1090,7 @@ Preprocessor_parse(DOH *s)
   	  fn = get_filename(value);
 	  s1 = cpp_include(fn);
 	  if (s1) {
-  	    Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file());
+  	    Printf(ns,"%%file(\"include\") \"%s\" {\n", Swig_last_file());
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
   	    Printf(ns,"\n}\n");
@@ -1153,7 +1166,7 @@ Preprocessor_parse(DOH *s)
 	    if (s1) {
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
-  	      Printf(ns,"%sfile \"%s\" {\n", decl, Swig_last_file());
+  	      Printf(ns,"%%file(\"%s\") \"%s\" {\n", Char(decl)+1, Swig_last_file());
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_define("WRAPEXTERN 1", 0);
 	      }
