@@ -452,8 +452,6 @@ $1 = &temp; %}
 #define %csconst(flag)     %feature("cs:const","flag")
 #define %csmethodmodifiers %feature("cs:methodmodifiers")
 
-%csmethodmodifiers "public";
-
 %pragma(csharp) moduleimports=%{
 using System;
 %}
