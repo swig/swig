@@ -56,21 +56,21 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
   if (!type) {
     /* No datatype was passed.   Type to figure out if it's a common one */
     if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p,0)) {
-      type = "int";
+      type = (char *)"int";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p,0)) {
-      type = "double";
+      type = (char *)"double";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p,0)) {
-      type = "short";
+      type = (char *)"short";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p,0)) {
-      type = "long";
+      type = (char *)"long";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p,0)) {
-      type = "float";
+      type = (char *)"float";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p,0)) {
-      type = "char";
+      type = (char *)"char";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp,0)) {
-      type = "char *";
+      type = (char *)"char *";
     } else {
-      type = "unknown";
+      type = (char *)"unknown";
     }
   }
   if (!ptr) {
@@ -236,21 +236,21 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
   if (!type) {
     /* No datatype was passed.   Type to figure out if it's a common one */
     if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p,0)) {
-      type = "int";
+      type = (char *)"int";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p,0)) {
-      type = "double";
+      type = (char *)"double";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p,0)) {
-      type = "short";
+      type = (char *)"short";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p,0)) {
-      type = "long";
+      type = (char *)"long";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p,0)) {
-      type = "float";
+      type = (char *)"float";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p,0)) {
-      type = "char";
+      type = (char *)"char";
     } else if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp,0)) {
-      type = "char *";
+      type = (char *)"char *";
     } else {
-      type = "unknown";
+      type = (char *)"unknown";
     }
   }
   if (!ptr) {

@@ -401,7 +401,7 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
                   int ptradd,
                   int ptrfree  
 {
-  return $1;
+  if ($1 != TCL_OK) return $1;
 }
 
 %typemap(tcl8,ignore) Tcl_Interp * {
