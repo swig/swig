@@ -136,7 +136,8 @@ It should also be noted that the SWIG preprocessor skips all text
 enclosed inside a <tt>%{...%}</tt> block.  In addition, the
 preprocessor includes a number of macro handling enhancements that
 make it more powerful than the normal C preprocessor.  These
-extensions are described in the "Preprocessor" chapter.
+extensions are described in the "Preprocessor" section near the end of
+this chapter.
 
 <h3>SWIG Directives</h3>
 
@@ -205,8 +206,8 @@ int foo::bar(int) {
 </pre>
 </blockquote>
 
-<li>Other advanced features of C++ such as templates, namespaces, and operator
-overloading are not currently supported. Please see the section on using SWIG
+<li>Certain advanced features of C++ such as namespaces and overloaded
+functions are not currently supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
 
@@ -1685,11 +1686,10 @@ some way or another.
 <h2> C++ support</h2>
 
 SWIG's support for C++ is an extension of the support for C functions,
-variables, and structures. However, SWIG only supports a subset of the
-C++ language. It has never been my goal to write a full C++ compiler
-or to turn scripting languages into some sort of weird pseudo C++
-interpreter (considering how hard it is to write a C++ compiler, I'm
-not sure this would even be feasible anyways). <p>
+variables, and structures.  However, because of its sheer complexity
+and the fact that C++ is nearly impossible to integrate with itself
+let alone any other language, SWIG only provides support for a moderate
+subset of C++ features.
 <p>
 This section describes SWIG's low-level access to C++ declarations. In
 many instances, this low-level interface may be hidden by shadow
@@ -1707,6 +1707,7 @@ SWIG supports the following C++ features :<p>
 <li>Public inheritance (including multiple inheritance)
 <li>Static functions
 <li>References
+<li>Simple templates
 </ul>
 
 <p>
@@ -1716,21 +1717,16 @@ The following C++ features are not currently supported :<p>
 <ul>
 <li>Operator overloading
 <li>Function overloading (without renaming)
-<li>Templates (anything that would be defined using the
-`<tt>template</tt>' keyword).
 <li>Friends
 <li>Nested classes
 <li>Namespaces
-<li>Pointers to member functions.
+<li>Pointers to member functions
+<li>Complicated templates
 </ul>
 
 <p>
-Since SWIG's C++ support is a "work in progress", many of these
-limitations may be lifted in future releases. In particular, function
-overloading and nested classes, may be supported in the
-future. Operator overloading and templates are unlikely to be
-supported anytime in the near future, but I'm not going to rule out
-the possibility in later releases.<p>
+SWIG's C++ support has gradually been improved over the years so some
+of these limitations may be lifted in a future release.  However, we make no promises.
 
 <h3> C++ example</h3>
 The following code shows a SWIG interface file for a simple C++
@@ -1760,15 +1756,15 @@ static void print(List *l);
 <p>
 When compiling C++ code, it is critical that SWIG be called with the
 `<tt>-c++</tt>' option. This changes the way a number of critical
-features are handled with respect to differences between C and C++. It
-also enables the detection of C++ keywords. Without the <tt>-c++</tt>
+features such as memory management are handled. It
+also enables the recognition of C++ keywords. Without the <tt>-c++</tt>
 flag, SWIG will either issue a warning or a large number of syntax
-errors if it encounters any C++ code in an interface file.<p>
+errors if it encounters C++ code in an interface file.<p>
 
 <h3> Constructors and destructors</h3>
 
-C++ constructors and destructors are translated into accessor
-functions like the following :<p>
+C++ constructors and destructors are internally translated into accessor
+functions such as the following :<p>
 
 <p>
 <blockquote><pre>List * new_List(void) {
@@ -1780,13 +1776,25 @@ void delete_List(List *l) {
 
 </pre></blockquote>
 If the original C++ class does not have any constructors or
-destructors, putting constructors and destructors in the SWIG
-interface file will cause SWIG to generate wrappers for the default
-constructor and destructor of an object.<p>
+destructors, no such functions are generated.   If you want to create
+constructors or destructors, make sure they are defined in the SWIG
+interface file.  Alternative, the <tt>-make_default</tt> option or
+following pragma can be used:
+
+<blockquote>
+<pre>
+%pragma make_default;
+class Foo {
+...
+};
+
+%pragma nodefault;
+</pre>
+</blockquote>
 
 <h3> Member functions</h3>
 
-Member functions are translated into accessor functions like this :<p>
+All member functions are translated into accessor functions like this :<p>
 <p>
 <blockquote><pre>int List_search(List *obj, char *value) {
 	return obj-&gt;search(value);
@@ -1794,19 +1802,19 @@ Member functions are translated into accessor functions like this :<p>
 
 </pre></blockquote>
 
-Virtual member functions are treated in an identical manner since the
-C++ compiler takes care of this for us automatically.<p>
+This translation is the same even if the member function has been
+declared as <tt>virtual</tt>.
 
 <h3> Static members</h3>
 
-Static member functions are called directly without making any
-additional C wrappers. For example, the static member function
-<tt>print(List *l)</tt> will simply be called as <tt>List::print(List
-*l)</tt> in the resulting wrapper code.<p>
+Static member functions are called directly without making any special
+transformations. For example, the static member function
+<tt>print(List *l)</tt> directly invokes <tt>List::print(List *l)</tt>
+in the generated wrapper code.
 
 <h3> Member data</h3>
 
-Member data is handled in exactly the same manner as used for C
+Member data is handled in exactly the same manner as for C
 structures. A pair of accessor functions will be created. For example
 :<p>
 
@@ -1836,6 +1844,8 @@ public:
 ...
 };
 </pre></blockquote>
+
+Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-only members.
 
 <h3> Protection</h3>
 
@@ -1869,12 +1879,13 @@ Swig_PORTER = Swig::PORTER
 Swig_STOUT = Swig::STOUT
 
 </pre></blockquote>
-Members declared as <tt>const</tt> are wrapped in a similar manner.<p>
+
+Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 
 <h3> References</h3>
 
-C++ references are supported, but SWIG will treat them as
-pointers. For example, a declaration like this :<p>
+C++ references are supported, but SWIG handles them internally as pointers. For example,
+a declaration like this :<p>
 <p>
 <blockquote><pre>class Foo {
 public:
@@ -1882,7 +1893,7 @@ public:
 }
 </pre></blockquote>
 <p>
-will be accessed using a function like this :<p>
+is accessed using a function similar to this:<p>
 <p>
 <blockquote><pre>double Foo_bar(Foo *obj, double *a) {
 	obj-&gt;bar(*a);
@@ -1890,18 +1901,39 @@ will be accessed using a function like this :<p>
 
 </pre></blockquote>
 
-Functions returning a reference will be mapped into functions
-returning pointers.<p>
+Functions that return a reference are remapped to return a pointer instead.
+For example:
+
+<blockquote><pre>
+class Bar {
+public:
+     double &spam();
+};
+</pre>
+</blockquote>
+
+Generates code like this:
+
+<blockquote>
+<pre>
+double *Bar_spam(Bar *obj) {
+   double &result = obj->spam();
+   return &result;
+}
+</pre>
+</blockquote>
 
 <h3> Inheritance</h3>
 
 SWIG supports basic C++ public inheritance of classes and allows both
 single and multiple inheritance. The SWIG type-checker knows about the
-relationship between base and derived classes and will allow pointers
+relationship between base and derived classes and allows pointers
 to any object of a derived class to be used in functions of a base
 class. The type-checker properly casts pointer values and is safe to
-use with multiple inheritance.<p> SWIG does not support private or
-protected inheritance (it will be parsed, but ignored).<p>
+use with multiple inheritance.
+
+<p> SWIG does not support private or protected inheritance (it is
+parsed, but ignored).<p>
 
 <p>
 The following example shows how SWIG handles inheritance. For clarity,
@@ -1958,115 +1990,15 @@ print shapes::Shape_perimeter($square),"\n";
 40.00000000000000000
  
 </pre></blockquote>
-In our example, we have created Circle and Square objects. We can call
-member functions on each object by making calls to
-<tt>Circle_area</tt>, <tt>Square_area</tt>, and so on. However, we can
-can accomplish the same thing by simply using the <tt>Shape_area</tt>
+In this example,  Circle and Square objects have been created.  Member
+functions can be invoked on each object by making calls to
+<tt>Circle_area</tt>, <tt>Square_area</tt>, and so on. However, the same
+results can be accomplished by simply using the <tt>Shape_area</tt>
 function on either object.<p>
 
-<h3> Templates</h3>
-
-SWIG does not support template definitions--that is, it does not
-support anything that would be declared in C++ using the
-`<tt>template</tt>' keyword. If a template definition is found, SWIG
-will issue a warning message and attempt to ignore the contents of the
-entire declaration. For example, a template class such as the
-following would be ignored by SWIG :<p>
 <p>
-<blockquote><pre>// File : list.h
-#define MAXITEMS 100
-template&lt;class T&gt; class List { 						// Entire class is ignored by SWIG
-private:
-    T *data;
-    int nitems;
-public:
-    List() {
-      data = new T [MAXITEMS];
-      nitems = 0;
-    }
-    ~List() {
-      delete [] data;
-    };
-    void append(T obj) {
-      if (nitems &lt; MAXITEMS) {
-        data[nitems++] = obj;
-      }
-    }
-    int length() {
-      return nitems;
-    }
-    T get(int n) {
-      return data[n];
-    }
-};
-
-</pre></blockquote>
-
-However, SWIG can support instantiations of a template and types
-involving templates. For example, the following interface file would
-be legal :<p>
-
-<p>
-<blockquote><pre>// SWIG interface involving a template
-%module example
-%{
-#include "list.h"				// Get Template definition 
-%}
-
-// Now a function involving templates
-extern void PrintData(List&lt;double&gt; &amp;l);
-
-</pre></blockquote>
-
-The type "<tt>List&lt;double</tt>&gt;" becomes the datatype for the
-function parameter. In, Python it might appear like this :<p>
-<p>
-<blockquote><pre>&gt;&gt;&gt; print cl
-_80a2df8_List&lt;double&gt;_p
-&gt;&gt;&gt;
-
-</pre></blockquote>
-To create specific objects, you may need to supply helper functions
-such as the following :<p>
-
-<blockquote><pre>
-%inline %{
-// Helper function to create a List&lt;double&gt;
-List&lt;double&gt; *new_DoubleList() {
-	return new List&lt;double&gt;;
-}
-%}
-</pre></blockquote>
-<p>
-Specific templates can also be wrapped in a clever way using
-<tt>typedef.</tt> For example, the following would also work :<p>
-<p>
-<blockquote><pre>%module example
-%{
-#include "list.h"
-typedef List&lt;double&gt; DoubleList;
-%}
-
-class DoubleList {
-public:
-	DoubleList();
-	~DoubleList();
-	void append(double);
-	int length();
-	double get(int n);
-};
-
-</pre></blockquote>
-
-In this case, SWIG thinks that there is a class "<tt>DoubleList</tt>"
-with the methods supplied. It generates the appropriate code and
-everything works like you would expect (of course, in reality there is
-no such class). When the SWIG module is compiled, all of the methods
-get supplied by the original template class. A key thing to keep in
-mind when working with templates is that SWIG can only handle
-particular instantiations of a template (such as a list of
-double). More general support is not yet provided (but may be added
-someday).<p>
+Shadow classes, described shortly, can also be used to provide a more
+class-like scripting language interface.
 
 <h3> Renaming</h3>
 
@@ -2154,223 +2086,301 @@ command. <p>
 The<tt> %addmethods</tt> directive follows all of the same conventions
 as its use with C structures.<p>
 
+<h3>Templates</h3>
+
+In all versions of SWIG, template type names may appear anywhere a type
+is expected in an interface file.  For example:
+
+<blockquote>
+<pre>
+void foo(vector&lt;int&gt; *a, int n);
+</pre>
+</blockquote>
+
+Starting with SWIG-1.3.7, simple C++ template declarations can also be easily wrapped.
+For example, consider the following template class declaration:
+
+<p>
+<blockquote><pre>// File : list.h
+template&lt;class T&gt; class List {
+private:
+    T *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max) {
+      data = new T [max];
+      nitems = 0;
+      maxitems = max;
+    }
+    ~List() {
+      delete [] data;
+    };
+    void append(T obj) {
+      if (nitems &lt; maxitems) {
+        data[nitems++] = obj;
+      }
+    }
+    int length() {
+      return nitems;
+    }
+    T get(int n) {
+      return data[n];
+    }
+};
+</pre></blockquote>
+
+By itself, this template declaration is useless--SWIG simply ignores it
+because it doesn't know how to generate any code until unless a definition of
+<tt>T</tt> is provided.
+
+<p>
+To create wrappers for a specific template instantiation, use the <tt>%template</tt> directive like this:
+
+<blockquote>
+<pre>
+/* Instantiate a few different versions of the template */
+%template(intList) List&lt;int&gt;;
+%template(doubleList) List&lt;double&gt;;
+</pre>
+</blockquote>
+
+The argument to <tt>%template()</tt> is the name of the
+instantiation in the target language.  Most target languages do not
+recognize identifiers such as <tt>List&lt;int&gt;</tt>.  Therefore,
+each instantiation of a template has to be associated with a nicely
+formatted identifier such as <tt>intList</tt> or <tt>doubleList</tt>.
+Furthermore, due to the details of the underlying implementation, the
+name you select has to be unused in both C++ and the target scripting
+language (e.g., the name must not match any existing C++ typename,
+class name, or declaration name).
+
+<p>
+Internally, templates are handled by playing some clever tricks with macro
+expansion.  Specifically, the <tt>%template(intList) List&lt;int&gt;</tt>
+declaration gets expanded into the following code which is then parsed to create an
+interface:
+
+<blockquote>
+<pre>
+// Example of how templates are internally expanded by SWIG
+%{
+// Define a nice name for the instantiation
+typedef List<int> intList;
+%}
+// Provide a simple class definition with types filled in
+class intList {
+private:
+    int *data;
+    int nitems;
+    int maxitems;
+public:
+    intList(int max) {
+      data = new int [max];
+      nitems = 0;
+      maxitems = max;
+    }
+    ~intList() {
+      delete [] data;
+    };
+    void append(int obj) {
+      if (nitems &lt; maxitems) {
+        data[nitems++] = obj;
+      }
+    }
+    int length() {
+      return nitems;
+    }
+    int get(int n) {
+      return data[n];
+    }
+};
+</pre>
+</blockquote>
+
+SWIG can also generate wrappers for function templates using a similar technique.
+For example:
+
+<blockquote>
+<pre>
+// Function template
+template<class T> T max(T a, T b) { return a > b ? a : b; }
+
+// Make some different versions of this function
+%template(maxint) max<int>;
+%template(maxdouble) max<double>;
+</pre>
+</blockquote>
+
+In this case, <tt>maxint</tt> and <tt>maxdouble</tt> become unique names for specific 
+instantiations of the function.
+
+<p>
+If your goal is to make someone's head explode more than usual, SWIG
+directives such as <tt>%name</tt> and <tt>%addmethods</tt> can be
+included directly in template definitions.  Not only that, since
+template support is built using the preprocessor, standard C
+preprocessor operators such as <tt>#</tt> and <tt>##</tt> can be
+applied to template parameters.  For example:
+
+<p>
+<blockquote><pre>// File : list.h
+template&lt;class T&gt; class List {
+   ...
+public:
+    List(int max);
+    ~List();
+    ...
+    %name(getitem) T get(int index);
+    %addmethods {
+        char *__str__() {
+            /* Make a string representation */
+            ...
+        }
+        /* Return actual type of template instantiation as a string */
+        char *ttype() {
+            return #T;
+        }
+    }
+};
+</pre></blockquote>
+
+In this example, the extra SWIG directives are propagated to <em>every</em> template 
+instantiation.  
+
+<p>
+In addition, the <tt>%addmethods</tt> directive can be used to add
+additional methods to a specific instantiation. For example:
+
+<blockquote>
+<pre>
+%template(intList) List<int>;
+
+%addmethods intList {
+    void blah() {
+          printf("Hey, I'm an intList!\n");
+    }
+};
+</pre>
+</blockquote>
+
+Needless to say, SWIG's template support provides plenty of opportunities to
+break the universe.  That said, an important final point to note is
+that <b>SWIG performs no extensive error checking of templates!</b>
+Specifically, SWIG does not perform type checking nor does it check to
+see if the actual contents of the template declaration make any sense.
+Since the C++ compiler will <em>definitely</em> check this when it
+compiles the resulting wrapper file, there is no practical reason for
+SWIG to duplicate this functionality (besides, none of the SWIG
+developers are quite that masochistic).
+
 <h3> Partial class definitions</h3>
 
-Since SWIG is still somewhat limited in its support of C++, it may be
-necessary to only use partial class information in an interface
-file. This should not present a problem as SWIG does not need the
-exact C++ specification. As a general rule, you should strip all
-classes of operator overloading, friends, and other declarations
-before giving them to SWIG (although SWIG will generate only warnings
-for most of these things).<p>
+Since SWIG is still limited in its support of C++, it may be necessary
+to use partial class information in an interface file.  However, since
+SWIG does not need the entire class specification to work, conditional
+compilation can be used to comment out problematic parts.  The most
+problematic limitation at this writing is the lack of support for
+overloaded functions and methods.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   void bar(int);
+   void bar(double, double);    // Conflicts with earlier bar
+   ...
+};
+</pre>
+</blockquote>
+
+At this time, the only way to work around this problem is to
+explicitly disambiguate the functions using <tt>%name</tt> like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   void bar(int);
+/* Use an alternative name */
+%name(bar_dd)  void bar(double, double); 
+   ...
+};
+</pre>
+</blockquote>
 
 <p>
-As a rule of thumb, running SWIG on raw C++ header or source files is
-currently discouraged. Given the complexity of C++ parsing and
-limitations in SWIG's parser it will still take some time for SWIG's
-parser to evolve to a point of being able to safely handle most raw
-C++ files.<p>
-
-<h3> SWIG, C++, and the Legislation of Morality</h3>
-
-As languages go, C++ is quite possibly one of the most immense and
-complicated languages ever devised. It is certainly a far cry from the
-somewhat minimalistic nature of C. Many parts of C++ are designed to
-build large programs that are "safe" and "reliable." However, as a
-result, it is possible for developers to overload operators, implement
-smart pointers, and do all sorts of other insane things (like
-expression templates). As far as SWIG is concerned, the primary goal
-is attaching to such systems and providing a scripting language
-interface. There are many features of C++ that I would not have the
-slightest idea how to support in SWIG (most kinds of templates for
-example). There are other C++ idioms that may be unsafe to use with
-SWIG. For example, if one implements "smart" pointers, how would they
-actually interact with the pointer mechanism used by SWIG? <p>
-
-<p>
-Needless to say, handling all of the possible cases is probably
-impossible. SWIG is certainly not guaranteed to work with every
-conceivable type of C++ program (especially those that use C++ in a
-maximal manner). Nor is SWIG claiming to build C++ interfaces in a
-completely "safe" manner. The bottom line is that effective use of C++
-with SWIG requires that you know what you're doing and that you have a
-certain level of "moral flexibility" when it comes to the issue of
-building a useful scripting language interface.<p>
-
-<h3> The future of C++ and SWIG</h3>
-
-SWIG's support of C++ is best described as an ongoing project. It will
-probably remain evolutionary in nature for the foreseeable future. In
-the short term, work is already underway for supporting nested classes
-and function overloading. As always, these developments will take
-time. Feedback and contributions are always welcome.<p>
-
-<h2> Conditional compilation</h2>
-
-SWIG does not run the C preprocessor, but it does support conditional
-compilation of interface files in a manner similar to the C
-preprocessor. This can be done by placed <tt>#ifdef</tt>,
-<tt>#ifndef</tt>, <tt>#if</tt>, <tt>#else</tt>, <tt>#elif</tt>, and
-<tt>#endif</tt> directives in your interface file. These directives
-can be safely nested. This allows one to conditionally compile out
-troublesome C/C++ code if necessary. For example, the following file
-can serve as both a C header file and a SWIG interface file :<p>
-
-<p>
-<blockquote><pre>#ifdef SWIG
-%module mymodule
-%{
-#include "header.h"
-%}
-
-%include wish.i
-#endif
-
-... normal C declarations here ...
-
-</pre></blockquote>
-
-<p>
-Similarly, conditional compilation can be used to customize an
-interface. The following interface file can be used to build a Perl5
-module that works with either static or dynamic linking :<p>
-
-<p>
-<blockquote><pre>
-%module mymodule
-%{
-#include "header.h"
-%}
-
-... Declarations ...
-
-#ifdef STATIC
-%include perlmain.i 				// Include code for static linking
-#endif
-
-</pre></blockquote>
-However, it is not safe to use conditional compilation in the middle
-of a declaration. For example :<p>
-<p>
-<blockquote><pre>double foo(
-#ifdef ANSI_ARGS
-double a, double b
-#endif
-);
-
-</pre></blockquote>
-
-This fails because the SWIG parser is not equipped to handle
-conditional compilation directives in an arbitrary location (like the
-C preprocessor). For files that make heavy use of the C preprocessor
-like this, it may be better to run the header file through the C
-preprocessor and use the output as the input to SWIG.<p>
-
-<h3> Defining symbols</h3>
-
-To define symbols, you can use the <tt>-D</tt> option as in :<p>
-
-<blockquote><pre>
-swig -perl5 -static -DSTATIC interface.i
-
-</pre></blockquote>
-
-Symbols can also be defined using <tt>#define</tt> with no
-arguments. For example :<p>
-
-<p>
-<blockquote><pre>%module mymodule
-#define STATIC 
-
-... etc ...
-</pre></blockquote>
-
-<p>
-For the purposes of conditional compilation, one should not assign
-values to symbols. If this is done, SWIG interprets the #define as
-providing the definition of a scripting language constant. <p>
-
-<h3> The #if directive</h3>
-
-The <tt>#if</tt> directive can only be used in the following context :<p>
-<blockquote><pre>
-#if defined(SYMBOL)
-...
-#elif !defined(OTHERSYMBOL)
-...
-#endif
-</pre></blockquote>
-
-<p>
-The C preprocessor version supports any constant integral expression
-as an argument to <tt>#if</tt>, but SWIG does not yet contain an
-expression evaluator so this is not currently supported. As a result,
-declarations such as the following don't yet work :<p>
-<p>
-<blockquote><pre>#if (defined(foo) || defined(bar))
-...
-#endif
-
-</pre></blockquote>
-
-<h3> Predefined Symbols</h3>
-One or more of the following symbols will be defined by SWIG when it
-is processing an interface file :<p>
-
-<p>
-<blockquote><pre>SWIG				Always defined when SWIG is processing a file
-SWIGTCL				Defined when using Tcl
-SWIGTCL8				Defined when using Tcl8.0
-SWIGPERL				Defined when using Perl
-SWIGPERL4				Defined when using Perl4
-SWIGPERL5				Defined when using Perl5
-SWIGPYTHON				Defined when using Python
-SWIGGUILE				Defined when using Guile
-SWIGWIN				Defined when running SWIG under Windows
-SWIGMAC				Defined when running SWIG on the Macintosh
-
-</pre></blockquote>
-Interface files can look at these symbols as necessary to change the
-way in which an interface is generated or to mix SWIG directives with
-C code. These symbols are also defined within the C code generated by
-SWIG (except for the symbol `<tt>SWIG</tt>' which is only defined
-within the SWIG compiler).<p>
+Also, as a rule of thumb, SWIG should not be used on raw C++ source files.  SWIG
+does not know how to parse C++ declarations that have been declared outside
+of their class definition.   No such support is planned for future releases.
 
 <h2> Code Insertion</h2>
 
 Sometimes it is necessary to insert special code into the resulting
 wrapper file generated by SWIG.  For example, you may want to include
 additional C code to perform initialization or other operations.
-There are four ways to insert code, but it's useful to know how the
+There are four common ways to insert code, but it's useful to know how the
 output of SWIG is structured first.<p>
 
 <h3> The output of SWIG</h3>
 
-SWIG creates a single C source file containing wrapper functions,
-initialization code, and support code. The structure of this file is
-as follows :<p>
+When SWIG creates its output file, it is broken up into four sections
+corresponding to runtime libraries, headers, wrapper functions, and module
+initialization code (in that order).   
 
-<center><img src="ch3.1.png"></center>
+<ul>
+<li><b>Runtime libraries</b>.  <br>
+This code is internal to SWIG and is used to include
+type-checking and other support functions that are used by the rest of the module.
 
 <p>
+<li><b>Header section</b>.  <br>
+This is user-defined support code that has been included by 
+the <tt>%{ ... %}</tt> directive.  Usually this consists of header files and 
+other helper functions.
+
 <p>
-The headers portion typically contains header files, supporting code,
-helper functions, and forward declarations. If you look at it, you'll
-usually find a hideous mess since this also contains the SWIG run-time
-pointer type-checker and internal functions used by the wrapper
-functions. The "wrapper" portion of the output contains all of the
-wrapper functions. Finally, the initialization function is a single C
-function that is created to initialize your module when it is
-loaded.<p>
+<li><b>Wrapper code</b>.  <br>
+These are the wrappers generated automatically by SWIG.
 
-<h3> Code blocks</h3>
+<p>
+<li><b>Module initialization</b>.  <br>
+The function generated by SWIG to initialize
+the module upon loading.
+</ul>
 
-A code block is enclosed by a <tt>%{, %}</tt> and is used to insert
-code into the header portion of the resulting wrapper file. Everything
-in the block is copied verbatim into the output file and will appear
-before any generated wrapper functions.  Most SWIG input files have at
-least one code block that is normally used to include header files and
-supporting C code.  Additional code blocks may be placed anywhere in a
+<h3> Code insertion blocks</h3>
+
+Code is inserted into the appropriate code section by using one
+of the following code insertion directives:
+
+<blockquote>
+<pre>
+%runtime %{
+   ... code in runtime section ...
+%}
+
+%header %{
+   ... code in header section ...
+%}
+
+%wrapper %{
+   ... code in wrapper section ...
+%}
+
+%init %{
+   ... code in init section ...
+%}
+</pre>
+</blockquote>
+
+The bare <tt>%{ ... %}</tt> directive is a shortcut that is the same as
+<tt>%header %{ ... %}</tt>.
+
+<p>
+Everything in a code insertion block is copied verbatim into the output file and is 
+not parsed by SWIG.   Most SWIG input files have at least one such block to include header
+files and support C code.  Additional code blocks may be placed anywhere in a
 SWIG file as needed. <p>
 
 <blockquote><pre>
@@ -2378,38 +2388,35 @@ SWIG file as needed. <p>
 %{
 #include "my_header.h"
 %}
-
 ... Declare functions here
 %{
 
-... Include Tcl_AppInit() function here ...
-
+void some_extra_function() {
+  ...
+}
 %}
 </pre></blockquote>
 
 <p>
-Code blocks are also typically used to write "helper" functions. These
+A common use for code blocks is to write "helper" functions. These
 are functions that are used specifically for the purpose of building
-an interface and are generally not visible to the normal C
+an interface, but which are generally not visible to the normal C
 program. For example :<p>
 <p>
 <blockquote><pre>%{
-
 /* Create a new vector */
 static Vector *new_Vector() {
 	return (Vector *) malloc(sizeof(Vector));
 }
 
 %}
-
 // Now wrap it 
 Vector *new_Vector();
-
 </pre></blockquote>
 
-<h3> Inlined code blocks</h3>
+<h3>Inlined code blocks</h3>
 
-Because the process of writing helper functions is fairly common,
+Since the process of writing helper functions is fairly common,
 there is a special inlined form of code block that is used as follows
 :<p>
 <p>
@@ -2424,49 +2431,255 @@ Vector *new_Vector() {
 
 The <tt>%inline</tt> directive inserts all of the code that follows
 verbatim into the header portion of an interface file. The code is
-then fed into the SWIG parser and turned into an interface. Thus, the
-above example creates a new command <tt>new_Vector</tt> using only one
+then parsed by both the SWIG preprocessor and parser.
+Thus, the above example creates a new command <tt>new_Vector</tt> using only one
 declaration. Since the code inside an <tt>%inline %{ ... %}</tt> block
 is given to both the C compiler and SWIG, it is illegal to include any
 SWIG directives inside the <tt>%{ ... %}</tt> block.<p>
 
-<h3> Initialization blocks</h3>
+<h3>Initialization blocks</h3>
 
-Code may also be inserted using an initialization block, as shown
-below :<p>
+When code is included in the <tt>%init</tt> section, it is copied directly into the 
+module initialization function.  For example, if you needed to perform some extra
+initialization, you could write this:
 <p>
 <blockquote><pre>%init %{
-
 	init_variables();
 %}
 </pre></blockquote>
 
+<h2>SWIG Preprocessor</h2>
+
+SWIG includes its own enhanced version of the C preprocessor.  The preprocessor
+supports the standard preprocessor directives and macro expansion rules.
+However, a number of modifications and enhancements have been made.  This
+section describes some of these modifications.
+
+<h3>File inclusion</h3>
+
+To include another file into a SWIG interface, use the <tt>%include</tt> directive
+like this:
+
+<blockquote>
+<pre>
+%include "pointer.i"
+</pre>
+</blockquote>
+
+Unlike, <tt>#include</tt>, <tt>%include</tt> includes each file once (and will not
+reload the file on subsequent <tt>%include</tt> declarations).  Therefore, it
+is not necessary to use include-guards in SWIG interfaces.
+
 <p>
-This code is inserted directly into SWIG's initialization function.
-You can use it to perform additional initialization and operations.
-Since this code is inserted directly into another function, it should
-not declare functions or include header files.  Primarily this can be
-used to add callouts to widgets and other packages that might also
-need to be initialized when your extension is loaded.<p>
+By default, the <tt>#include</tt> is ignored unless you run SWIG with the
+<tt>-includeall</tt> option.   The reason for ignoring traditional includes
+is that you often don't want SWIG to try and wrap everything included
+in standard header system headers and auxilliary files.
 
-<h3> Wrapper code blocks</h3>
+<h3>File imports</h3>
 
-Code may be inserted in the wrapper code section of an output file
-using the <tt>%wrapper</tt> directive as shown :<p>
+SWIG provides another file inclusion directive with the <tt>%import</tt> directive.
+For example:
+
+<blockquote>
+<pre>
+%import "foo.i"
+</pre>
+</blockquote>
+
+The purpose of <tt>%import</tt> is to collect certain information from another 
+SWIG interface file or a header file without actually generating any wrapper code.
+Such information generally includes type declarations (e.g., <tt>typedef</tt>) as well as
+C++ classes that might be used as base-classes for class declarations in the interface.
+The use of <tt>%import</tt> is also important when SWIG is used to generate
+extensions as a collection of related modules.   This is advanced topic and is described
+in a later chapter.
+
+<P>
+The <tt>-importall</tt> directive tells SWIG to follow all <tt>#include</tt> statements
+as imports.    This might be useful if you want to extract type definitions from system 
+header files without generating any wrappers.
+
+<h3>Conditional Compilation</h3>
+
+SWIG fully supports the use of <tt>#if</tt>, <tt>#ifdef</tt>,
+<tt>#ifndef</tt>, <tt>#else</tt>, <tt>#endif</tt> to conditionally
+include parts of an interface.  The following symbols are predefined
+by SWIG when it is parsing the interface:
+
 <p>
-<blockquote><pre>%wrapper %{
-	... a bunch of code ...
-%}
-
+<blockquote><pre>
+SWIG                            Always defined when SWIG is processing a file
+SWIGTCL                         Defined when using Tcl
+SWIGTCL8                        Defined when using Tcl8.0
+SWIGPERL                        Defined when using Perl
+SWIGPERL5                       Defined when using Perl5
+SWIGPYTHON                      Defined when using Python
+SWIGGUILE                       Defined when using Guile
+SWIGRUBY                        Defined when using Ruby
+SWIGJAVA                        Defined when using Java
+SWIGMZSCHEME                    Defined when using Mzscheme        
+SWIGWIN                         Defined when running SWIG under Windows
+SWIGMAC                         Defined when running SWIG on the Macintosh
 </pre></blockquote>
 
-This directive, for almost all practical purposes, is identical to
-just using a <tt>%{,%}</tt> block, but may be required for more
-sophisticated applications. It is mainly only used for advanced
-features in the SWIG library. As a general rule, you should avoid
-using this directive unless you absolutely know what you are doing.<p>
+In addition, SWIG defines the following set of standard C/C++ macros:
 
-<h2> A general interface building strategy</h2>
+<blockquote>
+<pre>
+__LINE__                        Current line number
+__FILE__                        Current file name
+__STDC__                        Defined to indicate ANSI C
+__cplusplus                     Defined when -c++ option used
+</pre>
+</blockquote>
+
+Interface files can look at these symbols as necessary to change the
+way in which an interface is generated or to mix SWIG directives with
+C code. These symbols are also defined within the C code generated by
+SWIG (except for the symbol `<tt>SWIG</tt>' which is only defined
+within the SWIG compiler).<p>
+
+<h3>Macro Expansion</h3>
+
+Traditional preprocessor macros can be used in SWIG interfaces.  Be aware that the <tt>#define</tt> statement
+is also used to try and detect constants.  Therefore, if you have something like this in your file,
+
+<blockquote>
+<pre>
+#ifndef _FOO_H 1
+#define _FOO_H 1
+...
+#endif
+</pre>
+</blockquote>
+you may get some extra constants such as <tt>_FOO_H</tt> showing up in the scripting interface.
+
+<p>
+More complex macros can be defined in the standard way. For example:
+
+<blockquote>
+<pre>
+#define EXTERN extern
+#ifdef __STDC__
+#define _ANSI(args)   (args)
+#else
+#define _ANSI(args) ()
+#endif
+</pre>
+</blockquote>
+
+The following operators can be appear in macro definitions:
+
+<ul>
+<li><tt>#x</tt><br>
+Converts macro argument <tt>x</tt> to a string surrounded by double quotes ("x").
+
+<p>
+<li><tt>x ## y</tt><br>
+Concatenates x and y together to form <tt>xy</tt>.
+
+<p>
+<li><tt>`x`</tt><br>
+If <tt>x</tt> is a string surrounded by double quotes, do nothing.  Otherwise, turn into a string
+like <tt>#x</tt>.  This is a non-standard SWIG extension.
+</ul>
+
+<h3>SWIG Macros</h3>
+
+SWIG provides an enhanced macro capability with the <tt>%define</tt> and <tt>%enddef</tt> directives. 
+For example:
+
+<blockquote>
+<pre>
+%define ARRAYHELPER(type,name)
+%inline %{
+type *new_ ## name (int nitems) {
+   return (type *) malloc(sizeof(type)*nitems);
+}
+void delete_ ## name(type *t) {
+   free(t);
+}
+type name ## _get(type *t, int index) {
+   return t[index];
+}
+void name ## _set(type *t, int index, type val) {
+   t[index] = val;
+}
+%}
+%enddef
+
+ARRAYHELPER(int, IntArray)
+ARRAYHELPER(double, DoubleArray)
+</pre>
+</blockquote>
+
+The primary purpose of <tt>%define</tt> is to define large macros of code.  Unlike normal C preprocessor
+macros, it is not necessary to terminate each line with a continuation character (\)--the macro definition
+extends to the first occurrence of <tt>%enddef</tt>.    Furthermore, when such macros are expanded,
+they are reparsed through the C preprocessor.  Thus, SWIG macros can contain all other preprocessor
+directives except for nested <tt>%define</tt> statements.
+
+<p>
+The SWIG macro capability is a very quick and easy way to generate large amounts of code.  In fact,
+many of SWIG's advanced features and libraries are built using this mechanism.
+
+<h3>Preprocessing and %{ ... %} blocks</h3>
+
+The SWIG preprocessor does not process any text enclosed in a code block %{ ... %}.  Therefore,
+if you write code like this,
+
+<blockquote>
+<pre>
+%{
+#ifdef NEED_BLAH
+int blah() {
+   ...
+}
+#endif
+%}
+</pre>
+</blockquote>
+
+the contents of the <tt>%{ ... %}</tt> block are copied without
+modification to the output (including all preprocessor directives).
+
+<h3>Preprocessing and { ... }</h3>
+
+SWIG always runs the preprocessor on text appearing inside <tt>{ ... }</tt>.  However,
+sometimes it is desirable to make a preprocessor directive pass through to the output
+file.  For example:
+
+<blockquote>
+<pre>
+%addmethods Foo {
+   void bar() {
+      #ifdef DEBUG
+       printf("I'm in bar\n");
+      #endif
+   }
+}
+</pre>
+</blockquote>
+
+By default, SWIG will interpret the <tt>#ifdef DEBUG</tt> statement.   However, if you wanted that code
+to actually go into the wrapper file, prefix the preprocessor directives with % like this:
+
+<blockquote>
+<pre>
+%addmethods Foo {
+   void bar() {
+      %#ifdef DEBUG
+       printf("I'm in bar\n");
+      %#endif
+   }
+}
+</pre>
+</blockquote>
+
+SWIG will strip the extra <tt>%</tt> and leave the normal preprocessor directive.
+
+<h2>An Interface Building Strategy</h2>
 
 This section describes the general approach for building interface
 with SWIG. The specifics related to a particular scripting language
@@ -2492,17 +2705,9 @@ interface to your program.
 
 <li>Copy the appropriate declarations into the interface file or use
 SWIG's <tt>%include</tt> directive to process an entire C
-source/header file. Either way, this step is fairly easy.
+source/header file. 
 
 <li>Make sure everything in the interface file uses ANSI C/C++syntax.
-
-<li>Check to make sure there aren't any functions involving function
-pointers, or variable length arguments since SWIG doesn't like these
-very much.
-
-<li>Eliminate unnecessary C preprocessor directives. SWIG will
-probably remove most of them, but better safe than sorry. Remember,
-SWIG does not run the C preprocessor.
 
 <li>Make sure all necessary `<tt>typedef</tt>' declarations and
 type-information is available in the interface file.
@@ -2513,14 +2718,14 @@ type-information is available in the interface file.
 <li>Run SWIG and compile.
 </ul>
 <p>
-While this may sound complicated, the process turns out to be
-relatively easy in practice--for example, making an interface to the
-entire OpenGL library only takes about 5-10 minutes.<p>
+Although this may sound complicated, the process turns out to be
+fairly easy once you get the hang of it. In fact, in most cases, you can
+get a rough interface working in 5-10 minutes.
+
 <p>
-In the process of building an interface, you are encouraged to use
-SWIG to find problematic declarations and specifications. SWIG will
-report syntax errors and other problems along with the associated file
-and line number. <p>
+In the process of building an interface, SWIG may encounter syntax errors or
+other problems.  The best way to deal with this is to simply copy the offending
+code into a separate interface file and edit it. 
 
 <h3> The SWIG interface file</h3>
 
@@ -2564,11 +2769,11 @@ have made an interface file like this as well:<p>
 <p>
 Naturally, your mileage may vary.<p>
 
-<h3> Why use separate interface files?</h3>
+<h3>Why use separate interface files?</h3>
 
-While SWIG can parse many header files, it is more common to write a
+Although SWIG can parse many header files, it is more common to write a
 special <tt>.i</tt> file defining the interface to a package. There
-are several reasons for doing this :<p>
+are several reasons why you might want to do this:
 <p>
 <ul>
 <li>It is rarely necessary to access every single function in a large
@@ -2578,27 +2783,23 @@ environment. Therfore, why wrap them?
 <li>Separate interface files provide an opportunity to provide more
 precise rules about how an interface is to be constructed.
 
-<li>Interface files can provide structure and organization. For
-example , you can break the interface up into sections, provide
-documentation, and do other things that you might not normally do with
-an ordinary .h file.
+<li>Interface files can provide more structure and organization.
 
 <li>SWIG can't parse certain definitions that appear in header
 files. Having a separate file allows you to eliminate or work around
 these problems.
 
-<li>Interface files provide a precise definition of what the interface
+<li>Interface files provide a more precise definition of what the interface
 is. Users wanting to extend the system can go to the interface file
 and immediately see what is available without having to dig it out of
 header files.
 </ul>
 
-<h3> Getting the right header files</h3>
+<h3>Getting the right header files</h3>
 
 Sometimes, it is necessary to use certain header files in order for
-the code generated by SWIG to compile properly. You can have SWIG
-include certain header files by using a <tt>%{,%}</tt> block as
-follows :<p>
+the code generated by SWIG to compile properly. Make sure you
+include certain header files by using a <tt>%{,%}</tt> block like this:
 
 <blockquote><pre>
 %module graphics
@@ -2616,13 +2817,12 @@ follows :<p>
 If your program defines a <tt>main()</tt> function, you may need to
 get rid of it or rename it in order to use a scripting language. Most
 scripting languages define their own <tt>main()</tt> procedure that
-must be called instead. <tt>main()</tt> also makes no sense when
+is called instead. <tt>main()</tt> also makes no sense when
 working with dynamic loading. There are a few approaches to solving
 the <tt>main()</tt> conflict :<p>
 <p>
 <ul>
-<li>Get rid of <tt>main()</tt> entirely. This is the brute force
-approach.
+<li>Get rid of <tt>main()</tt> entirely. 
 
 <li>Rename <tt>main()</tt> to something else. You can do this by
 compiling your C program with an option like <tt>-Dmain=oldmain</tt>.
@@ -2647,46 +2847,19 @@ program that is more interactive. In many cases, the old
 <tt>main()</tt> program can be completely replaced by a Perl, Python,
 or Tcl script.<p>
 
-<h3> Working with the C preprocessor</h3>
-
-If you have a header file that makes heavy use of macros and C
-preprocessor directives, it may be useful to run it through the C
-preprocessor first. This can usually be done by running the C compiler
-with the -E option. The output will be completely hideous, but macros
-and other preprocessor directives should now be expanded as needed. If
-you want to wrap a C preprocessor macro with SWIG, this can be done by
-giving a function declaration with the same name and usage as the
-macro. When writing the macro as a function declaration, you are
-providing SWIG with type-information--without that, SWIG would be
-unable to produce any sort of wrapper code. <p>
-
-<h3> How to cope with C++</h3>
-
-Given the complexity of C++, it will almost always be necessary to
-build a special interface file containing suitably edited C++
-declarations. If you are working with a system involving 400 header
-files, this process will not be trivial. Perhaps the best word of
-advice is to think hard about what you want this interface to
-be. Also, is it absolutely critical to wrap every single function in a
-C++ program? SWIG's support of C++ will improve with time, but I'll be
-the first to admit that SWIG works much better with pure ANSI C code
-when it comes to large packages.<p>
-
 <h3> How to avoid creating the interface from hell</h3>
 
-SWIG makes it pretty easy to build a big interface really fast. In
+SWIG makes it fairly easy to build a big interface really fast. In
 fact, if you apply it to a large enough package, you'll find yourself
-with a rather large chunk of code being produced in the resulting
-wrapper file. To give you an idea, wrapping a 1000 line C header file
+with a rather large amount of code being produced in the resulting
+wrapper file. For instance,  wrapping a 1000 line C header file
 with a large number of structure declarations may result in a wrapper
-file containing 20,000-30,000 lines of code. I can only imagine what
-wrapping a huge C++ class hierarchy would generate. Here's a few rules
-of thumb for making smaller interfaces :<p>
+file containing 20,000-30,000 lines of code.  Here are a few things
+you can do to make smaller interface:
 <p>
 <ul>
-<li>Ask yourself if you really need to access particular functions. It
-is usually not necessary to wrap every single function in a
-package. In fact, you probably only need a relatively small subset.
+<li>It is usually not necessary to wrap every single function in a package.
+Try to eliminate the unneeded ones.
 
 <li>SWIG does not require structure definitions to operate. If you are
 never going to access the members of a structure, don't wrap the
@@ -2694,7 +2867,7 @@ structure definition.
 
 <li>Eliminate unneeded members of C++ classes.
 
-<li>Think about the problem at hand. If you are only using a subset of
+<li>Think about what you are doing. If you are only using a subset of
 some library, there is no need to wrap the whole thing.
 
 <li>Write support or helper functions to simplify common
@@ -2703,22 +2876,8 @@ language environment. You might consider writing an alternative
 version and wrapping that instead.
 </ul>
 
-<p>
-Writing a nice interface to a package requires work. Just because you
-use SWIG it doesn't mean that you're going to end up with a good
-interface. SWIG is primarily designed to eliminate the tedious task of
-writing wrapper functions. It does not eliminate the need for proper
-planning and design when it comes to building a useful application. In
-short, a little forethought can go a long way.<p>
-<p>
-Of course,if you're primarily interested in just slapping something
-together for the purpose of debugging, rapid application development,
-and prototyping, SWIG will gladly do it for you (in fact, I use SWIG
-alot for this when developing other C/C++ applications).<p>
-<p>
-
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : August 17, 2001</address>
+<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
 </body>
 </html>
