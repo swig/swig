@@ -107,6 +107,7 @@ SWIG_Guile_scm2newstr(SCM str, size_t *len) {
 #undef FUNC_NAME
 }
 
+static int swig_initialized = 0;
 static scm_t_bits swig_tag = 0;
 static scm_t_bits swig_collectable_tag = 0;
 static scm_t_bits swig_destroyed_tag = 0;
@@ -247,7 +248,7 @@ SWIG_Guile_MarkPointerNoncollectable(SCM s)
 }
 
 /* Mark a pointer object destroyed */
-SWIGIMPORT(void)
+SWIGRUNTIME(void)
 SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
@@ -321,26 +322,66 @@ free_swig(SCM A)
   return 0;
 }
 
+static int
+ensure_smob_tag(SCM swig_module,
+		scm_t_bits *tag_variable,
+		const char *smob_name,
+		const char *scheme_variable_name)
+{
+  SCM variable = scm_sym2var(scm_str2symbol(scheme_variable_name),
+			     scm_module_lookup_closure(swig_module),
+			     SCM_BOOL_T);
+  if (SCM_UNBNDP(SCM_VARIABLE_REF(variable))) {
+    *tag_variable = scm_make_smob_type((char*)scheme_variable_name, 0);
+    SCM_VARIABLE_SET(variable,
+		     scm_ulong2num(*tag_variable));
+    return 1;
+  }
+  else {
+    *tag_variable = scm_num2ulong(SCM_VARIABLE_REF(variable), 0,
+				  "SWIG_Guile_Init");
+    return 0;
+  }
+}
+
 SWIGRUNTIME(void)
 SWIG_Guile_Init ()
 {
-  static int initialized = 0;
-  if (initialized) return;
-  initialized = 1;
+  SCM swig_module;
+  
+  if (swig_initialized) return;
+  swig_initialized = 1;
 
-  swig_tag = scm_make_smob_type((char*)"swig-pointer", 0);
-  scm_set_smob_print(swig_tag, print_swig);
-  scm_set_smob_equalp(swig_tag, equalp_swig);
-
-  swig_collectable_tag = scm_make_smob_type((char*)"collectable-swig-pointer", 0);
-  scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
-  scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
-  scm_set_smob_free(swig_collectable_tag, free_swig);
-
-  swig_destroyed_tag = scm_make_smob_type((char*)"destroyed-swig-pointer", 0);
-  scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
-  scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
-      
+  swig_module = scm_c_resolve_module("Swig swigrun");
+  if (ensure_smob_tag(swig_module, &swig_tag,
+		      "swig-pointer", "swig-pointer-tag")) {
+    scm_set_smob_print(swig_tag, print_swig);
+    scm_set_smob_equalp(swig_tag, equalp_swig);
+  }
+  if (ensure_smob_tag(swig_module, &swig_collectable_tag,
+		      "collectable-swig-pointer", "collectable-swig-pointer-tag")) {
+    scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
+    scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
+    scm_set_smob_free(swig_collectable_tag, free_swig);
+  }
+  if (ensure_smob_tag(swig_module, &swig_destroyed_tag,
+		      "destroyed-swig-pointer", "destroyed-swig-pointer-tag")) {
+    scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
+    scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
+  }
+  {
+    SCM variable = scm_sym2var(scm_str2symbol("swig-type-list-address"),
+			       scm_module_lookup_closure(swig_module),
+			       SCM_BOOL_T);
+    if (SCM_UNBNDP(SCM_VARIABLE_REF(variable))) {
+      SCM_VARIABLE_SET(variable, scm_ulong2num((unsigned long) swig_type_list_handle));
+    }
+    else {
+      swig_type_list_handle
+	= (swig_type_info **) scm_num2ulong(SCM_VARIABLE_REF(variable), 0,
+					    "SWIG_Guile_Init");
+    }
+  }
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
   swig_keyword = scm_permanent_object(scm_c_make_keyword((char*) "init-smob"));
