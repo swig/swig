@@ -1,6 +1,19 @@
 Version 1.3.20 (In progress)
 ============================
 11/11/2003: beazley
+            Preprocessor enhancement.   For include statements like this:
+
+                  %include "foo/bar.i"
+
+            the directory "foo" is now added to the search path while 
+            processing the contents of bar.i.  Thus, if bar.i includes other
+            files in the same directory, they will be found. Previously,
+            you would have to add additional directories using -I to make this
+            work correctly.  Note: the C preprocessor seems to behave in
+            an identical manner on many (most? all?) systems.
+            Suggested by Kerim Borchaev.
+
+11/11/2003: beazley
             Configuration changes to make SWIG work on Mac OSX 10.3.x (Panther).
             Tested with Python, Tcl, Perl, and Ruby---all of which seem to work.
 
