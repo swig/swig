@@ -913,11 +913,20 @@ PYTHON::memberconstantHandler(Node *n) {
 String *
 PYTHON::pythoncode(String *code, const String *indent) {
   String *out = NewString("");
-
+  String *temp;
+  char   *t;
   if (!indent) indent = "";
 
+  temp = NewString(code);
+
+  t = Char(temp);
+  if (*t == '{') {
+    Delitem(temp,0);
+    Delitem(temp,DOH_END);
+  }
   /* Split the input text into lines */
-  List *clist = DohSplit(code,"\n",-1);
+  List *clist = DohSplit(temp,"\n",-1);
+  Delete(temp);
   int   initial = 0;
   String *s;
 
