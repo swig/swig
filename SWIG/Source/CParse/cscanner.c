@@ -1184,6 +1184,12 @@ int yylex(void) {
 	    if (strcmp(yytext,"delete") == 0) {
 	      return(DELETE);
 	    }
+	    if (strcmp(yytext,"using") == 0) {
+	      return(USING);
+	    }
+	    if (strcmp(yytext,"namespace") == 0) {
+	      return(NAMESPACE);
+	    }
 	  } else {
 	    if (strcmp(yytext,"class") == 0) {
 	      Printf(stderr,"%s:%d. Warning: class keyword used, but not in C++ mode.\n",input_file,line_number);

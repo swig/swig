@@ -84,7 +84,11 @@ int Dispatcher::emit_one(Node *n) {
       return destructorDeclaration(n);
     } else if (strcmp(tag,"access") == 0) {
       return accessDeclaration(n);
-    } 
+    } else if (strcmp(tag,"using") == 0) {
+      return usingDeclaration(n);
+    } else if (strcmp(tag,"namespace") == 0) {
+      return namespaceDeclaration(n);
+    }
     
     /* ===============================================================
      *  SWIG directives
@@ -173,6 +177,8 @@ int Dispatcher::classforwardDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::constructorDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::destructorDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::accessDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::usingDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 
 /* ----------------------------------------------------------------------
    emit_one()

@@ -92,6 +92,8 @@ class Dispatcher {
   virtual int constructorDeclaration(Node *n);
   virtual int destructorDeclaration(Node *n);
   virtual int accessDeclaration(Node *n);
+  virtual int usingDeclaration(Node *n);
+  virtual int namespaceDeclaration(Node *n);
 };
 
 /************************************************************************

@@ -597,6 +597,7 @@ static void patch_template_type(String *s) {
 %token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
+%token USING NAMESPACE
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
@@ -635,6 +636,7 @@ static void patch_template_type(String *s) {
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
+%type <node>     cpp_using_decl cpp_namespace_decl ;
 %type <node>     kwargs;
 
 /* Misc */
@@ -1768,7 +1770,9 @@ c_destructor_decl : storage_class type DCNOT ID LPAREN RPAREN cpp_end {
 cpp_declaration : cpp_class_decl { $$ = $1; }
                 | cpp_forward_class_decl { $$ = $1; }
                 | cpp_template_decl { $$ = $1; }
-             ;
+                | cpp_using_decl { $$ = $1; }
+                | cpp_namespace_decl { $$ = $1; }
+                ;
 
 cpp_class_decl  :
 
@@ -2088,6 +2092,29 @@ template_parms  : rawparms {
                  }
                 ;
 
+/* Namespace support */
+
+cpp_using_decl : USING idcolon SEMI {
+               $$ = new_node("using");
+	       Setattr($$,"name", $2);
+             }
+             | USING NAMESPACE idcolon SEMI {
+	       $$ = new_node("using");
+	       Setattr($$,"namespace", $3);
+             }
+             ;
+
+cpp_namespace_decl : NAMESPACE idcolon LBRACE interface RBRACE {
+                $$ = $4;
+		set_nodeType($$,"namespace");
+		Setattr($$,"name",$2);
+             } 
+             | NAMESPACE LBRACE interface RBRACE {
+	       $$ = $3;
+	       set_nodeType($$,"namespace");
+             }
+             ;
+
 cpp_members  : cpp_member cpp_members {
                    $$ = $1;
 		   if ($$) {
@@ -2137,6 +2164,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
              | cpp_nested { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
+             | cpp_using_decl { $$ = $1; }
              | SEMI { $$ = 0; }
              ;
 
