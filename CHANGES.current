@@ -2,6 +2,16 @@ Version 1.3.20 (In progress)
 ============================
 
 11/23/2003: mkoeppe (Matthias Koeppe)
+	    Add a generated script "preinst-swig", which can be used
+	    to invoke SWIG before it has been installed.  It arranges
+	    that the runtime libraries from the source directory are
+	    used. 
+
+11/23/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] In -gh mode, don't forget to call SWIG_Guile_Init.
+	    Add a SWIG_contract_assert macro.
+
+11/23/2003: mkoeppe (Matthias Koeppe)
 	    [MzScheme] Update the configure check for the dynext object to work
 	    with MzScheme 205.
 
