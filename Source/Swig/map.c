@@ -346,3 +346,8 @@ Swig_map_match_type(Hash *ruleset, DOH *type, String_or_char *name) {
   Delete(p);
   return obj;
 }
+
+
+
+
+

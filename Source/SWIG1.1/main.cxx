@@ -55,7 +55,7 @@ extern "C" {
     int        GenerateDefault = 0;            // Generate default constructors
     char      *Config = 0;
     int        NoInclude = 0;
-    char      *typemap_lang = 0;                // Typemap name
+
     int        error_count = 0;                 // Error count
     int        Verbose = 0;
 
@@ -135,13 +135,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     help = 0;
   int     checkout = 0;
   int     cpp_only = 0;
-
+  int     tm_debug = 0;
   char   *includefiles[256];
   int     includecount = 0;
   extern  int check_suffix(char *);
   extern  void scanner_file(DOHFile *);
   extern void parser_init(void);
-  extern void typemap_initialize();
   DOH    *libfiles = 0;
 
   {
@@ -154,7 +153,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Initialize the preprocessor
   Preprocessor_init();
-  typemap_initialize();
+  Swig_typemap_init();
+
   f_wrappers = 0;
   f_init = 0;
   f_header = 0;
@@ -258,6 +258,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-includeall") == 0) {
 	    Preprocessor_include_all(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-tm_debug") == 0) {
+	    tm_debug = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
@@ -414,18 +417,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     f_init = NewString("");
 
     // Set up the typemap for handling new return strings
-#ifdef OLD
     {
-      DataType *temp_t = NewDataType(T_CHAR);
-      DataType_add_pointer(temp_t);
       if (CPlusPlus)
-	typemap_register((char*)"newfree",typemap_lang,temp_t,(char*)"",(char*)"delete [] $source;\n",0);
+	Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"delete [] $source;\n",0);
       else
-	typemap_register((char*)"newfree",typemap_lang,temp_t,(char*)"",(char*)"free($source);\n",0);
-
-      DelDataType(temp_t);
+	Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"free($source);\n",0);
     }
-#endif
 
     // If in Objective-C mode.  Load in a configuration file
 
@@ -461,6 +458,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       remove(input_file);
     }
   }
+  if (tm_debug) Swig_typemap_debug();
   while (freeze);
   return error_count;
 }

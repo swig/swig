@@ -1517,7 +1517,6 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   SwigType_inherit_equiv(f_table);
 
-
 #ifdef DEBUG
   Printf(stdout,"---r_mangled---\n");
   Printf(stdout,"%s\n", r_mangled);

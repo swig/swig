@@ -34,6 +34,7 @@ extern void scanner_ignore_typedef(void);
 extern void scanner_clear_start(void);
 extern void start_inline(char *, int);
 extern void swig_pragma(char *, char *);
+ char  *typemap_lang = 0;
 
 #include "internal.h"
 extern "C" {
@@ -1048,7 +1049,8 @@ statement      : INCLUDE STRING LBRACE {
                    skip_brace();
 		   p = $7;
 		   while (p) {
-		     typemap_register($5,$3,Gettype(p->p),Getname(p->p),Char(CCode),p->args);
+		     if (strcmp($3,typemap_lang) == 0)
+		       Swig_typemap_register($5,Gettype(p->p),Getname(p->p), CCode, p->args);
 		     p = p->next;
                    }
 		   free($3);
@@ -1066,7 +1068,7 @@ statement      : INCLUDE STRING LBRACE {
 		   skip_brace();
 		   p = $5;
 		   while (p) {
-		     typemap_register($3,typemap_lang,Gettype(p->p),Getname(p->p),Char(CCode),p->args);
+		     Swig_typemap_register($3,Gettype(p->p),Getname(p->p), CCode, p->args);
 		     p = p->next;
 		   }
 		 }
@@ -1079,7 +1081,9 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $7;
 		 while (p) {
-                   typemap_clear($5,$3,Gettype(p->p),Getname(p->p));
+		   if (strcmp($3,typemap_lang) == 0) {
+		     Swig_typemap_clear($5,Gettype(p->p),Getname(p->p));
+		   }
 		   p = p->next;
 		 }
 		 free($3);
@@ -1096,7 +1100,7 @@ statement      : INCLUDE STRING LBRACE {
 		   TMParm *p;
 		   p = $5;
 		   while (p) {
-		     typemap_clear($3,typemap_lang,Gettype(p->p),Getname(p->p));
+		     Swig_typemap_clear($3,Gettype(p->p),Getname(p->p));
 		     p = p->next;
 		   }
 		 }
@@ -1109,7 +1113,9 @@ statement      : INCLUDE STRING LBRACE {
                    TMParm *p;
 		   p = $7;
 		   while (p) {
-		     typemap_copy($5,$3,Gettype($9->p),Getname($9->p),Gettype(p->p),Getname(p->p));
+		     if (strcmp($3,typemap_lang) == 0) {
+		       Swig_typemap_copy($5,Gettype($9->p),Getname($9->p),Gettype(p->p),Getname(p->p));
+		     }
 		     p = p->next;
 		   }
 		   free($3);
@@ -1129,7 +1135,7 @@ statement      : INCLUDE STRING LBRACE {
                    TMParm *p;
 		   p = $5;
 		   while (p) {
-		     typemap_copy($3,typemap_lang,Gettype($7->p),Getname($7->p),Gettype(p->p),Getname(p->p));
+		     Swig_typemap_copy($3,Gettype($7->p),Getname($7->p),Gettype(p->p),Getname(p->p));
 		     p = p->next;
 		   }
 		 }
@@ -1145,7 +1151,7 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $4;
 		 while(p) {
-		   typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
+		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
 		   p = p->next;
 		 }
 		 free($4);
@@ -1156,7 +1162,7 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $2;
 		 while (p) {
-		   typemap_clear_apply(Gettype(p->p), Getname(p->p));
+		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p));
 		   p = p->next;
 		 }
                }
@@ -1171,25 +1177,27 @@ statement      : INCLUDE STRING LBRACE {
 /* An exception definition */
                | EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_brace();
-                    fragment_register((char *)"except",$3, Char(CCode));
+		    if (strcmp($3,typemap_lang) == 0) {
+		      Swig_except_register(CCode);
+		    }
 		    free($3);
 	       }
 
 /* A Generic Exception (no language specified */
                | EXCEPT LBRACE {
                     skip_brace();
-                    fragment_register((char *) "except",typemap_lang, Char(CCode));
+		    Swig_except_register(CCode);
                }
 
 /* Clear an exception */
 
                | EXCEPT LPAREN ID RPAREN SEMI {
-		 fragment_clear((char *) "except",$3);
+		 Swig_except_clear();
                }
 
 /* Generic clear */
                | EXCEPT SEMI {
-		 fragment_clear((char *) "except",typemap_lang);
+		 Swig_except_clear();
 	       }
    
 /* Miscellaenous stuff */
