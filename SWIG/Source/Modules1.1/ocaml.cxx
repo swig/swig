@@ -934,10 +934,6 @@ class OCAML : public Language {
 	lcase(Char(ml_iname));
 	
 	String *name_no_get = NewString(Char(vname));
-	char *get_part = strstr( Char(name_no_get), "_get" );
-	
-	if( get_part )
-	    *get_part = 0;
 	
 	// Polymorphic variant support
 	if( const_enum )
