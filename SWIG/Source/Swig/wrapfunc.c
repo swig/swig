@@ -92,6 +92,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	Putc(c,ts);
 	if (c == '\"') break;
       }
+      empty = 0;
     } else if (c == '\'') {
       Putc(c,ts);
       while ((c = Getc(str)) != EOF) {
@@ -102,6 +103,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	Putc(c,ts);
 	if (c == '\'') break;
       }
+      empty = 0;
     } else if (c == '{') {
       Putc(c,ts);
       Putc('\n',ts);
@@ -116,6 +118,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	  break;
 	}
       }
+      empty = 0;
     } else if (c == '}') {
       if (!empty) {
 	Putc('\n',ts);
@@ -126,14 +129,20 @@ Wrapper_pretty_print(String *str, File *f) {
       }
       level-=4;
       Putc(c,ts);
+      empty = 0;
     } else if (c == '\n') {
       Putc(c,ts);
-      for (i = 0; i < level; i++)
-	Putc(' ',f);
-      Printf(f,"%s",ts);
+      if (!empty) {
+	if ((Char(ts))[0] != '#') {
+	  for (i = 0; i < level; i++)
+	    Putc(' ',f);
+	}
+	Printf(f,"%s",ts);
+      }
       Clear(ts);
       empty = 1;
     } else if (c == '/') {
+      empty = 0;
       Putc(c,ts);
       c = Getc(str);
       if (c != EOF) {
@@ -196,6 +205,7 @@ Wrapper_compact_print(String *str, File *f) {
 
   while ((c = Getc(str)) != EOF) {
     if (c == '\"') { /* string 1 */
+      empty = 0;
       Putc(c,ts);
       while ((c = Getc(str)) != EOF) {
 	if (c == '\\') {
@@ -206,6 +216,7 @@ Wrapper_compact_print(String *str, File *f) {
 	if (c == '\"') break;
       }
     } else if (c == '\'') { /* string 2 */
+      empty = 0;
       Putc(c,ts);
       while ((c = Getc(str)) != EOF) {
 	if (c == '\\') {
@@ -216,6 +227,7 @@ Wrapper_compact_print(String *str, File *f) {
 	if (c == '\'') break;
       }
     } else if (c == '{') { /* start of {...} */
+      empty = 0;
       Putc(c,ts);
       if (Len(tf) == 0) {
 	for (i = 0; i < level; i++) 
@@ -239,6 +251,7 @@ Wrapper_compact_print(String *str, File *f) {
 	}
       }
     } else if (c == '}') { /* end of {...} */
+      empty = 0;
       if (Len(tf) == 0) {
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
@@ -284,6 +297,7 @@ Wrapper_compact_print(String *str, File *f) {
 
       empty = 1;
     } else if (c == '/') { /* comment */
+      empty = 0;
       c = Getc(str);
       if (c != EOF) {
 	if (c == '/') {         /* C++ comment */
@@ -319,12 +333,16 @@ Wrapper_compact_print(String *str, File *f) {
 	} else if (c == '\n') 
 	  break;
       }
-      Printf(tf, "%s",ts);
+      if (!empty) {
+	Printf(tf,"\n");
+      }
+      Printf(tf,"%s",ts);
       Printf(f, "%s", tf);
       Clear(tf);
       Clear(ts);
       for (i = 0; i < level; i++) 
         Putc(' ',tf);
+      empty = 1;
     } else {
       if (!empty || !isspace(c)) {
 	Putc(c,ts);
