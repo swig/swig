@@ -51,6 +51,9 @@ Here are the most notable changes (so far):
 
    - Java module is now included.
 
+   - The Guile module is stable. It represents C pointers as smobs and
+     supports the Guile module system and exceptions. 
+
    - A lot of minor bug fixes and cleanup.
 
 Here are a few missing features
@@ -66,10 +69,6 @@ Here are a few missing features
 
 What's Broken?
 ==============
-
-   - The Guile module is undergoing a number of substantial
-     changes and may be inoperable in the SWIG1.3a2 release.
-     (3/1/00)
 
    - SWIG requires an ANSI C compiler.
 
