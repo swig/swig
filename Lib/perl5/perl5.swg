@@ -4,6 +4,7 @@
  * Perl 5 configuration file
  * ----------------------------------------------------------------------------- */
 
+%runtime "precommon.swg"
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
 %runtime "noembed.h"          // undefine Perl5 macros

@@ -45,14 +45,15 @@ endif
 
 TCL_INCLUDE = @TCLINCLUDE@
 TCL_RUNTIME = $(SWIGLIB)/tcl/swigtcl8.swg
+TCL_PRECOMMON = $(SWIGLIB)/tcl/precommon.swg
 TCL_DLNK    = @TCLDYNAMICLINKING@
 
 libswigtcl8_la_SOURCES  = libtcl8.c
 libswigtcl8_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(TCL_DLNK)
 libswigtcl8_la_CFLAGS   = -DSWIG_GLOBAL $(TCL_INCLUDE)
 
-libtcl8.c: $(SWIG_TYPECHECK) $(TCL_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(TCL_RUNTIME) > libtcl8.c
+libtcl8.c: $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME)
+	cat $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME) > libtcl8.c
 
 # ----------------------------------------------------------------------
 # Perl run-time library
@@ -60,6 +61,7 @@ libtcl8.c: $(SWIG_TYPECHECK) $(TCL_RUNTIME)
 
 PERL5_INCLUDE = -I@PERL5EXT@
 PERL5_RUNTIME = $(SWIGLIB)/perl5/perlrun.swg
+PERL5_PRECOMMON = $(SWIGLIB)/perl5/precommon.swg
 PERL5_DLNK    = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
 
@@ -67,8 +69,8 @@ libswigpl_la_SOURCES    = libpl.c
 libswigpl_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PERL5_DLNK)
 libswigpl_la_CFLAGS     = -DSWIG_GLOBAL $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
 
-libpl.c: $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PERL5_RUNTIME) > libpl.c
+libpl.c: $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
+	cat $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME) > libpl.c
 
 # ----------------------------------------------------------------------
 # Python run-time library
@@ -76,14 +78,15 @@ libpl.c: $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
 
 PYTHON_INCLUDE = -DHAVE_CONFIG_H @PYINCLUDE@
 PYTHON_RUNTIME = $(SWIGLIB)/python/pyrun.swg
+PYTHON_PRECOMMON = $(SWIGLIB)/python/precommon.swg
 PYTHON_DLNK    = @PYTHONDYNAMICLINKING@
 
 libswigpy_la_SOURCES    = libpy.c
 libswigpy_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PYTHON_DLNK)
 libswigpy_la_CFLAGS     = -DSWIG_GLOBAL $(PYTHON_INCLUDE)
 
-libpy.c: $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) > libpy.c
+libpy.c: $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
+	cat $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) > libpy.c
 
 # ----------------------------------------------------------------------
 # Guile run-time library
@@ -115,6 +118,7 @@ libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
 
 RUBY_INCLUDE = @RUBYINCLUDE@
 RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg $(SWIGLIB)/ruby/rubydef.swg
+RUBY_PRECOMMON = $(SWIGLIB)/ruby/precommon.swg
 RUBY_DLNK    = @RUBYDYNAMICLINKING@
 RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 
@@ -122,8 +126,8 @@ libswigrb_la_SOURCES    = librb.c
 libswigrb_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(RUBY_DLNK)
 libswigrb_la_CFLAGS     = -DSWIG_GLOBAL $(RUBY_INCLUDE) $(RUBY_CFLAGS)
 
-librb.c: $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(RUBY_RUNTIME) > librb.c
+librb.c: $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
+	cat $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME) > librb.c
 
 # ----------------------------------------------------------------------
 # PHP4 run-time library
@@ -131,14 +135,15 @@ librb.c: $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
 
 PHP4_INCLUDE = @PHP4INC@
 PHP4_RUNTIME = $(SWIGLIB)/php4/php4run.swg
+PHP4_PRECOMMON = $(SWIGLIB)/php4/precommon.swg
 PHP4_DLNK    = 
 
 libswigphp4_la_SOURCES  = libphp4.c
 libswigphp4_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PHP4_DLNK)
 libswigphp4_la_CFLAGS   = -DSWIG_GLOBAL $(PHP4_INCLUDE)
 
-libphp4.c: $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PHP4_RUNTIME) > libphp4.c
+libphp4.c: $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
+	cat $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME) > libphp4.c
 
 # ----------------------------------------------------------------------
 # Pike run-time library
@@ -146,14 +151,15 @@ libphp4.c: $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
 
 PIKE_INCLUDE = -DHAVE_CONFIG_H @PIKEINCLUDE@
 PIKE_RUNTIME = $(SWIGLIB)/pike/pikerun.swg
+PIKE_PRECOMMON = $(SWIGLIB)/pike/precommon.swg
 PIKE_DLNK    = 
 
 libswigpike_la_SOURCES  = libpike.c
 libswigpike_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PIKE_DLNK)
 libswigpike_la_CFLAGS   = -DSWIG_GLOBAL $(PIKE_INCLUDE)
 
-libpike.c: $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PIKE_RUNTIME) > libpike.c
+libpike.c: $(PIKE_PRECOMMON) $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
+	cat $(PIKE_PRECOMMON) $(SWIG_TYPECHECK) $(PIKE_RUNTIME) > libpike.c
 
 # ----------------------------------------------------------------------
 # CHICKEN run-time library

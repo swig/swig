@@ -4,6 +4,7 @@
  * Pike configuration module.
  * ----------------------------------------------------------------------------- */
 
+%insert(runtime) "precommon.swg"
 %insert(runtime) "common.swg";          // Common type-checking code
 %insert(runtime) "pikerun.swg";         // Pike run-time code
 
