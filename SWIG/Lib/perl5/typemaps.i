@@ -74,51 +74,51 @@ or you can use the %apply directive :
 %}
 #endif
 
-%typemap(perl5,in) double *INPUT(double temp)
+%typemap(in) double *INPUT(double temp)
 {
   temp = (double) SvNV($input);
   $1 = &temp;
 }
 
-%typemap(perl5,in) float  *INPUT(float temp)
+%typemap(in) float  *INPUT(float temp)
 {
   temp = (float) SvNV($input);
   $1 = &temp;
 }
 
-%typemap(perl5,in) int            *INPUT(int temp)
+%typemap(in) int            *INPUT(int temp)
 {
   temp = (int) SvIV($input);
   $1 = &temp;
 }
 
-%typemap(perl5,in) short          *INPUT(short temp)
+%typemap(in) short          *INPUT(short temp)
 {
   temp = (short) SvIV($input);
   $1 = &temp;
 }
 
-%typemap(perl5,in) long           *INPUT(long temp)
+%typemap(in) long           *INPUT(long temp)
 {
   temp = (long) SvIV($input);
   $1 = &temp;
 }
-%typemap(perl5,in) unsigned int   *INPUT(unsigned int temp)
+%typemap(in) unsigned int   *INPUT(unsigned int temp)
 {
   temp = (unsigned int) SvIV($input);
   $1 = &temp;
 }
-%typemap(perl5,in) unsigned short *INPUT(unsigned short temp)
+%typemap(in) unsigned short *INPUT(unsigned short temp)
 {
   temp = (unsigned short) SvIV($input);
   $1 = &temp;
 }
-%typemap(perl5,in) unsigned long  *INPUT(unsigned long temp)
+%typemap(in) unsigned long  *INPUT(unsigned long temp)
 {
   temp = (unsigned long) SvIV($input);
   $1 = &temp;
 }
-%typemap(perl5,in) unsigned char  *INPUT(unsigned char temp)
+%typemap(in) unsigned char  *INPUT(unsigned char temp)
 {
   temp = (unsigned char) SvIV($input);
   $1 = &temp;
@@ -174,7 +174,7 @@ output values.
 
 // Force the argument to be ignored.
 
-%typemap(perl5,ignore) int            *OUTPUT(int temp),
+%typemap(ignore) int            *OUTPUT(int temp),
                        short          *OUTPUT(short temp),
                        long           *OUTPUT(long temp),
                        unsigned int   *OUTPUT(unsigned int temp),
@@ -187,7 +187,7 @@ output values.
   $1 = &temp;
 }
 
-%typemap(perl5,argout) int            *OUTPUT,
+%typemap(argout) int            *OUTPUT,
                        short          *OUTPUT,
                        long           *OUTPUT,
                        unsigned int   *OUTPUT,
@@ -203,7 +203,7 @@ output values.
   argvi++;
 }
 
-%typemap(perl5,argout) float    *OUTPUT,
+%typemap(argout) float    *OUTPUT,
                        double   *OUTPUT
 {
   if (argvi >= items) {
@@ -266,25 +266,25 @@ do this :
 
 #endif
 
-%typemap(perl5,in) int *INOUT = int *INPUT;
-%typemap(perl5,in) short *INOUT = short *INPUT;
-%typemap(perl5,in) long *INOUT = long *INPUT;
-%typemap(perl5,in) unsigned *INOUT = unsigned *INPUT;
-%typemap(perl5,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(perl5,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(perl5,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(perl5,in) float *INOUT = float *INPUT;
-%typemap(perl5,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned *INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(perl5,argout) int *INOUT = int *OUTPUT;
-%typemap(perl5,argout) short *INOUT = short *OUTPUT;
-%typemap(perl5,argout) long *INOUT = long *OUTPUT;
-%typemap(perl5,argout) unsigned *INOUT = unsigned *OUTPUT;
-%typemap(perl5,argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(perl5,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(perl5,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(perl5,argout) float *INOUT = float *OUTPUT;
-%typemap(perl5,argout) double *INOUT = double *OUTPUT;
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
+%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT = double *OUTPUT;
 
 %apply int *INOUT { int *BOTH };
 %apply short *INOUT { short *BOTH };
@@ -348,7 +348,7 @@ as follows :
 
 #endif
 
-%typemap(perl5,in) double *REFERENCE (double dvalue)
+%typemap(in) double *REFERENCE (double dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -363,7 +363,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(perl5,in) float *REFERENCE (float dvalue)
+%typemap(in) float *REFERENCE (float dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -377,7 +377,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(perl5,in) int *REFERENCE (int dvalue)
+%typemap(in) int *REFERENCE (int dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -391,7 +391,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(perl5,in) short *REFERENCE (short dvalue)
+%typemap(in) short *REFERENCE (short dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -404,7 +404,7 @@ as follows :
   dvalue = (short) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(perl5,in) long *REFERENCE (long dvalue)
+%typemap(in) long *REFERENCE (long dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -417,7 +417,7 @@ as follows :
   dvalue = (long) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(perl5,in) unsigned int *REFERENCE (unsigned int dvalue)
+%typemap(in) unsigned int *REFERENCE (unsigned int dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -430,7 +430,7 @@ as follows :
   dvalue = (unsigned int) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(perl5,in) unsigned short *REFERENCE (unsigned short dvalue)
+%typemap(in) unsigned short *REFERENCE (unsigned short dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -443,7 +443,7 @@ as follows :
   dvalue = (unsigned short) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(perl5,in) unsigned long *REFERENCE (unsigned long dvalue)
+%typemap(in) unsigned long *REFERENCE (unsigned long dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -457,7 +457,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(perl5,argout) double *REFERENCE,
+%typemap(argout) double *REFERENCE,
                        float  *REFERENCE
 {
   SV *tempsv;
@@ -465,7 +465,7 @@ as follows :
   sv_setnv(tempsv, (double) *$1);
 }
 
-%typemap(perl5,argout) int            *REFERENCE,
+%typemap(argout) int            *REFERENCE,
                        short          *REFERENCE,
                        long           *REFERENCE,
                        unsigned int   *REFERENCE,
@@ -477,9 +477,29 @@ as follows :
   sv_setiv(tempsv, (int) *$1);
 }
 
-// --------------------------------------------------------------------
-// Special types
-//
-// --------------------------------------------------------------------
+/* Overloading information */
 
+%typemap(typecheck) double *INPUT = double;
+%typemap(typecheck) bool *INPUT = bool;
+%typemap(typecheck) signed char *INPUT = signed char;
+%typemap(typecheck) unsigned char *INPUT = unsigned char;
+%typemap(typecheck) unsigned long *INPUT = unsigned long;
+%typemap(typecheck) unsigned short *INPUT = unsigned short;
+%typemap(typecheck) unsigned int *INPUT = unsigned int;
+%typemap(typecheck) long *INPUT = long;
+%typemap(typecheck) short *INPUT = short;
+%typemap(typecheck) int *INPUT = int;
+%typemap(typecheck) float *INPUT = float;
+
+%typemap(typecheck) double *INOUT = double;
+%typemap(typecheck) bool *INOUT = bool;
+%typemap(typecheck) signed char *INOUT = signed char;
+%typemap(typecheck) unsigned char *INOUT = unsigned char;
+%typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned short *INOUT = unsigned short;
+%typemap(typecheck) unsigned int *INOUT = unsigned int;
+%typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) short *INOUT = short;
+%typemap(typecheck) int *INOUT = int;
+%typemap(typecheck) float *INOUT = float;
 

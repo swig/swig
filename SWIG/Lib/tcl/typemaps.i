@@ -9,7 +9,6 @@
  * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
-%section "Typemap Library (Tcl)",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
 %text %{
 %include typemaps.i
 
@@ -71,7 +70,7 @@ or you can use the %apply directive :
 %}
 #endif
 
-%typemap(tcl8,in) double *INPUT(double temp)
+%typemap(in) double *INPUT(double temp)
 {
   if (Tcl_GetDoubleFromObj(interp,$input,&temp) == TCL_ERROR) {
     return TCL_ERROR;
@@ -79,7 +78,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) float *INPUT(double dvalue, float  temp) 
+%typemap(in) float *INPUT(double dvalue, float  temp) 
 {
   if (Tcl_GetDoubleFromObj(interp,$input,&dvalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -88,7 +87,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) int  *INPUT(int temp)
+%typemap(in) int  *INPUT(int temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) {
     return TCL_ERROR;
@@ -96,7 +95,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) short *INPUT(int ivalue, short temp)
+%typemap(in) short *INPUT(int ivalue, short temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -105,7 +104,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) long *INPUT(int ivalue, long temp)
+%typemap(in) long *INPUT(int ivalue, long temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -114,7 +113,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) unsigned int  *INPUT(int ivalue, unsigned int temp)
+%typemap(in) unsigned int  *INPUT(int ivalue, unsigned int temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -123,7 +122,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) unsigned short *INPUT(int ivalue, unsigned short temp)
+%typemap(in) unsigned short *INPUT(int ivalue, unsigned short temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -132,7 +131,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) unsigned long *INPUT(int ivalue, unsigned long temp)
+%typemap(in) unsigned long *INPUT(int ivalue, unsigned long temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -141,7 +140,7 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(tcl8,in) unsigned char *INPUT(int ivalue, unsigned char temp)
+%typemap(in) unsigned char *INPUT(int ivalue, unsigned char temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
@@ -199,7 +198,7 @@ output values.
 #endif
 
 
-%typemap(tcl8,ignore) int            *OUTPUT(int temp),
+%typemap(ignore) int            *OUTPUT(int temp),
                      short          *OUTPUT(short temp),
                      long           *OUTPUT(long temp),
                      unsigned int   *OUTPUT(unsigned int temp),
@@ -212,7 +211,7 @@ output values.
   $1 = &temp;
 }
 
-%typemap(tcl8,argout) int     *OUTPUT,
+%typemap(argout) int     *OUTPUT,
                      short   *OUTPUT,
                      long    *OUTPUT,
                      unsigned int   *OUTPUT,
@@ -225,7 +224,7 @@ output values.
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
 
-%typemap(tcl8,argout) float    *OUTPUT,
+%typemap(argout) float    *OUTPUT,
                      double   *OUTPUT
 {
   Tcl_Obj *o;
@@ -285,25 +284,25 @@ to a Tcl variable you might do this :
 #endif
 
 
-%typemap(tcl8,in) int *INOUT = int *INPUT;
-%typemap(tcl8,in) short *INOUT = short *INPUT;
-%typemap(tcl8,in) long *INOUT = long *INPUT;
-%typemap(tcl8,in) unsigned int *INOUT = unsigned int *INPUT;
-%typemap(tcl8,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(tcl8,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(tcl8,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(tcl8,in) float *INOUT = float *INPUT;
-%typemap(tcl8,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned int *INOUT = unsigned int *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(tcl8,argout) int *INOUT = int *OUTPUT;
-%typemap(tcl8,argout) short *INOUT = short *OUTPUT;
-%typemap(tcl8,argout) long *INOUT = long *OUTPUT;
-%typemap(tcl8,argout) unsigned int *INOUT = unsigned int *OUTPUT;
-%typemap(tcl8,argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(tcl8,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(tcl8,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(tcl8,argout) float *INOUT = float *OUTPUT;
-%typemap(tcl8,argout) double *INOUT = double *OUTPUT;
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) unsigned int *INOUT = unsigned int *OUTPUT;
+%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT = double *OUTPUT;
 
 %apply int *INOUT { int *BOTH };
 %apply short *INOUT { short *BOTH };
@@ -357,16 +356,41 @@ int Tcl_Result
 
 #endif
 
-%typemap(tcl8,ignore) Tcl_Interp *interp {
+%typemap(ignore) Tcl_Interp *interp {
   $1 = interp;
 }
 
 // If return code is a Tcl_Result, simply pass it on
 
-%typemap(tcl8,out) int Tcl_Result {
+%typemap(out) int Tcl_Result {
   return $1;
 }
 
+/* Overloading information */
+
+%typemap(typecheck) double *INPUT = double;
+%typemap(typecheck) bool *INPUT = bool;
+%typemap(typecheck) signed char *INPUT = signed char;
+%typemap(typecheck) unsigned char *INPUT = unsigned char;
+%typemap(typecheck) unsigned long *INPUT = unsigned long;
+%typemap(typecheck) unsigned short *INPUT = unsigned short;
+%typemap(typecheck) unsigned int *INPUT = unsigned int;
+%typemap(typecheck) long *INPUT = long;
+%typemap(typecheck) short *INPUT = short;
+%typemap(typecheck) int *INPUT = int;
+%typemap(typecheck) float *INPUT = float;
+
+%typemap(typecheck) double *INOUT = double;
+%typemap(typecheck) bool *INOUT = bool;
+%typemap(typecheck) signed char *INOUT = signed char;
+%typemap(typecheck) unsigned char *INOUT = unsigned char;
+%typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned short *INOUT = unsigned short;
+%typemap(typecheck) unsigned int *INOUT = unsigned int;
+%typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) short *INOUT = short;
+%typemap(typecheck) int *INOUT = int;
+%typemap(typecheck) float *INOUT = float;
 
 
   

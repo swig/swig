@@ -25,11 +25,15 @@ namespace std {
     %rename(String) string;
     class string;
 
+    %typemap(typecheck) string = char *;
+    %typemap(typecheck) const string & = char *;
+
     %typemap(in) string {
-        if (TYPE($input) == T_STRING)
+        if (TYPE($input) == T_STRING) {
             $1 = std::string(STR2CSTR($input));
-        else
+        } else {
             SWIG_exception(SWIG_TypeError, "not a string");
+        }
     }
 
     %typemap(in) const string & (std::string temp) {

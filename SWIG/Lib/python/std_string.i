@@ -22,6 +22,11 @@ namespace std {
 
     class string;
 
+    /* Overloading check */
+
+    %typemap(typecheck) string = char *;
+    %typemap(typecheck) const string & = char *;
+
     %typemap(in) string {
         if (PyString_Check($input))
             $1 = std::string(PyString_AsString($input));

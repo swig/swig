@@ -12,19 +12,6 @@
 // Disclaimer : Unless you really understand how typemaps work, this file
 // probably isn't going to make much sense.
 //
-#ifdef AUTODOC
-%section "Typemap Library (Python)",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
-%text %{
-%include typemaps.i
-
-The SWIG typemap library provides a language independent mechanism for
-supporting output arguments, input values, and other C function
-calling mechanisms.  The primary use of the library is to provide a
-better interface to certain C function--especially those involving
-pointers.
-%}
-
-#endif
 
 // ------------------------------------------------------------------------
 // Pointer handling
@@ -77,63 +64,67 @@ or you can use the %apply directive :
 %}
 #endif
 
-%typemap(python,in) double *INPUT(double temp)
+%typemap(in) double *INPUT(double temp)
 {
   temp = PyFloat_AsDouble($input);
   $1 = &temp;
 }
 
-%typemap(python,in) float  *INPUT(float temp)
+%typemap(in) float  *INPUT(float temp)
 {
   temp = (float) PyFloat_AsDouble($input);
   $1 = &temp;
 }
 
-%typemap(python,in) int            *INPUT(int temp)
+%typemap(in) int            *INPUT(int temp)
 {
   temp = (int) PyInt_AsLong($input);
   $1 = &temp;
 }
 
-%typemap(python,in) short          *INPUT(short temp)
+%typemap(in) short          *INPUT(short temp)
 {
   temp = (short) PyInt_AsLong($input);
   $1 = &temp;
 }
 
-%typemap(python,in) long           *INPUT(long temp)
+%typemap(in) long           *INPUT(long temp)
 {
   temp = (long) PyInt_AsLong($input);
   $1 = &temp;
 }
-%typemap(python,in) unsigned int   *INPUT(unsigned int temp)
+
+%typemap(in) unsigned int   *INPUT(unsigned int temp)
 {
   temp = (unsigned int) PyInt_AsLong($input);
   $1 = &temp;
 }
-%typemap(python,in) unsigned short *INPUT(unsigned short temp)
+
+%typemap(in) unsigned short *INPUT(unsigned short temp)
 {
   temp = (unsigned short) PyInt_AsLong($input);
   $1 = &temp;
 }
-%typemap(python,in) unsigned long  *INPUT(unsigned long temp)
+
+%typemap(in) unsigned long  *INPUT(unsigned long temp)
 {
   temp = (unsigned long) PyInt_AsLong($input);
   $1 = &temp;
 }
-%typemap(python,in) unsigned char  *INPUT(unsigned char temp)
+
+%typemap(in) unsigned char  *INPUT(unsigned char temp)
 {
   temp = (unsigned char) PyInt_AsLong($input);
   $1 = &temp;
 }
 
-%typemap(python,in) signed char  *INPUT(signed char temp)
+%typemap(in) signed char  *INPUT(signed char temp)
 {
   temp = (unsigned char) PyInt_AsLong($input);
   $1 = &temp;
 }
 
-%typemap(python,in) bool *INPUT(bool temp) 
+%typemap(in) bool *INPUT(bool temp) 
 {
   temp = (bool) PyInt_AsLong($input);
   $1 = &temp;
@@ -213,7 +204,7 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
 
 // Force the argument to be ignored.
 
-%typemap(python,ignore) int            *L_OUTPUT(int temp),
+%typemap(ignore) int            *L_OUTPUT(int temp),
                         short          *L_OUTPUT(short temp),
                         long           *L_OUTPUT(long temp),
                         unsigned int   *L_OUTPUT(unsigned int temp),
@@ -229,7 +220,7 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
   $1 = &temp;
 }
 
-%typemap(python,argout) int            *L_OUTPUT,
+%typemap(argout) int            *L_OUTPUT,
                         short          *L_OUTPUT,
                         long           *L_OUTPUT,
                         unsigned int   *L_OUTPUT,
@@ -244,7 +235,7 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
     $result = l_output_helper($result,o);
 }
 
-%typemap(python,argout) float    *L_OUTPUT,
+%typemap(argout) float    *L_OUTPUT,
                         double   *L_OUTPUT
 {
     PyObject *o;
@@ -290,7 +281,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 %}
 
 // Force the argument to be ignored.
-%typemap(python,ignore) int            *T_OUTPUT(int temp),
+%typemap(ignore) int            *T_OUTPUT(int temp),
                         short          *T_OUTPUT(short temp),
                         long           *T_OUTPUT(long temp),
                         unsigned int   *T_OUTPUT(unsigned int temp),
@@ -305,7 +296,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
   $1 = &temp;
 }
 
-%typemap(python,argout) int            *T_OUTPUT,
+%typemap(argout) int            *T_OUTPUT,
                         short          *T_OUTPUT,
                         long           *T_OUTPUT,
                         unsigned int   *T_OUTPUT,
@@ -320,7 +311,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
     $result = t_output_helper($result, o);
 }
 
-%typemap(python,argout) float    *T_OUTPUT,
+%typemap(argout) float    *T_OUTPUT,
                         double   *T_OUTPUT
 {
     PyObject *o;
@@ -331,53 +322,53 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 // Set the default output typemap
 
 #ifdef OUTPUT_LIST
-%typemap(python,ignore) int                *OUTPUT = int   *L_OUTPUT;
-%typemap(python,ignore) short              *OUTPUT = short *L_OUTPUT;
-%typemap(python,ignore) long               *OUTPUT = long  *L_OUTPUT;
-%typemap(python,ignore) unsigned           *OUTPUT = unsigned *L_OUTPUT;
-%typemap(python,ignore) unsigned short     *OUTPUT = unsigned short *L_OUTPUT;
-%typemap(python,ignore) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
-%typemap(python,ignore) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
-%typemap(python,ignore) signed char        *OUTPUT = signed char    *L_OUTPUT;
-%typemap(python,ignore) bool               *OUTPUT = bool           *L_OUTPUT;
-%typemap(python,ignore) double             *OUTPUT = double         *L_OUTPUT;
-%typemap(python,ignore) float              *OUTPUT = float          *L_OUTPUT;
+%typemap(ignore) int                *OUTPUT = int   *L_OUTPUT;
+%typemap(ignore) short              *OUTPUT = short *L_OUTPUT;
+%typemap(ignore) long               *OUTPUT = long  *L_OUTPUT;
+%typemap(ignore) unsigned           *OUTPUT = unsigned *L_OUTPUT;
+%typemap(ignore) unsigned short     *OUTPUT = unsigned short *L_OUTPUT;
+%typemap(ignore) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
+%typemap(ignore) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
+%typemap(ignore) signed char        *OUTPUT = signed char    *L_OUTPUT;
+%typemap(ignore) bool               *OUTPUT = bool           *L_OUTPUT;
+%typemap(ignore) double             *OUTPUT = double         *L_OUTPUT;
+%typemap(ignore) float              *OUTPUT = float          *L_OUTPUT;
 
-%typemap(python,argout) int                *OUTPUT = int   *L_OUTPUT;
-%typemap(python,argout) short              *OUTPUT = short *L_OUTPUT;
-%typemap(python,argout) long               *OUTPUT = long  *L_OUTPUT;
-%typemap(python,argout) unsigned           *OUTPUT = unsigned *L_OUTPUT;
-%typemap(python,argout) unsigned short     *OUTPUT = unsigned short *L_OUTPUT;
-%typemap(python,argout) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
-%typemap(python,argout) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
-%typemap(python,argout) signed char        *OUTPUT = signed char    *L_OUTPUT;
-%typemap(python,argout) bool               *OUTPUT = bool           *L_OUTPUT;
-%typemap(python,argout) double             *OUTPUT = double         *L_OUTPUT;
-%typemap(python,argout) float              *OUTPUT = float          *L_OUTPUT;
+%typemap(argout) int                *OUTPUT = int   *L_OUTPUT;
+%typemap(argout) short              *OUTPUT = short *L_OUTPUT;
+%typemap(argout) long               *OUTPUT = long  *L_OUTPUT;
+%typemap(argout) unsigned           *OUTPUT = unsigned *L_OUTPUT;
+%typemap(argout) unsigned short     *OUTPUT = unsigned short *L_OUTPUT;
+%typemap(argout) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
+%typemap(argout) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
+%typemap(argout) signed char        *OUTPUT = signed char    *L_OUTPUT;
+%typemap(argout) bool               *OUTPUT = bool           *L_OUTPUT;
+%typemap(argout) double             *OUTPUT = double         *L_OUTPUT;
+%typemap(argout) float              *OUTPUT = float          *L_OUTPUT;
 #else
-%typemap(python,ignore) int                *OUTPUT = int   *T_OUTPUT;
-%typemap(python,ignore) short              *OUTPUT = short *T_OUTPUT;
-%typemap(python,ignore) long               *OUTPUT = long  *T_OUTPUT;
-%typemap(python,ignore) unsigned           *OUTPUT = unsigned *T_OUTPUT;
-%typemap(python,ignore) unsigned short     *OUTPUT = unsigned short *T_OUTPUT;
-%typemap(python,ignore) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
-%typemap(python,ignore) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
-%typemap(python,ignore) signed char        *OUTPUT = signed char    *T_OUTPUT;
-%typemap(python,ignore) bool               *OUTPUT = bool           *T_OUTPUT;
-%typemap(python,ignore) double             *OUTPUT = double         *T_OUTPUT;
-%typemap(python,ignore) float              *OUTPUT = float          *T_OUTPUT;
+%typemap(ignore) int                *OUTPUT = int   *T_OUTPUT;
+%typemap(ignore) short              *OUTPUT = short *T_OUTPUT;
+%typemap(ignore) long               *OUTPUT = long  *T_OUTPUT;
+%typemap(ignore) unsigned           *OUTPUT = unsigned *T_OUTPUT;
+%typemap(ignore) unsigned short     *OUTPUT = unsigned short *T_OUTPUT;
+%typemap(ignore) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
+%typemap(ignore) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
+%typemap(ignore) signed char        *OUTPUT = signed char    *T_OUTPUT;
+%typemap(ignore) bool               *OUTPUT = bool           *T_OUTPUT;
+%typemap(ignore) double             *OUTPUT = double         *T_OUTPUT;
+%typemap(ignore) float              *OUTPUT = float          *T_OUTPUT;
 
-%typemap(python,argout) int                *OUTPUT = int   *T_OUTPUT;
-%typemap(python,argout) short              *OUTPUT = short *T_OUTPUT;
-%typemap(python,argout) long               *OUTPUT = long  *T_OUTPUT;
-%typemap(python,argout) unsigned           *OUTPUT = unsigned *T_OUTPUT;
-%typemap(python,argout) unsigned short     *OUTPUT = unsigned short *T_OUTPUT;
-%typemap(python,argout) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
-%typemap(python,argout) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
-%typemap(python,argout) signed char        *OUTPUT = signed char    *T_OUTPUT;
-%typemap(python,argout) bool               *OUTPUT = bool           *T_OUTPUT;
-%typemap(python,argout) double             *OUTPUT = double         *T_OUTPUT;
-%typemap(python,argout) float              *OUTPUT = float          *T_OUTPUT;
+%typemap(argout) int                *OUTPUT = int   *T_OUTPUT;
+%typemap(argout) short              *OUTPUT = short *T_OUTPUT;
+%typemap(argout) long               *OUTPUT = long  *T_OUTPUT;
+%typemap(argout) unsigned           *OUTPUT = unsigned *T_OUTPUT;
+%typemap(argout) unsigned short     *OUTPUT = unsigned short *T_OUTPUT;
+%typemap(argout) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
+%typemap(argout) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
+%typemap(argout) signed char        *OUTPUT = signed char    *T_OUTPUT;
+%typemap(argout) bool               *OUTPUT = bool           *T_OUTPUT;
+%typemap(argout) double             *OUTPUT = double         *T_OUTPUT;
+%typemap(argout) float              *OUTPUT = float          *T_OUTPUT;
 #endif
 
 // INOUT
@@ -437,71 +428,71 @@ phased out in future releases.
 
 #endif
 
-%typemap(python,in) int *INOUT = int *INPUT;
-%typemap(python,in) short *INOUT = short *INPUT;
-%typemap(python,in) long *INOUT = long *INPUT;
-%typemap(python,in) unsigned *INOUT = unsigned *INPUT;
-%typemap(python,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(python,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(python,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(python,in) bool *INOUT = bool *INPUT;
-%typemap(python,in) float *INOUT = float *INPUT;
-%typemap(python,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned *INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) bool *INOUT = bool *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(python,argout) int *INOUT = int *OUTPUT;
-%typemap(python,argout) short *INOUT = short *OUTPUT;
-%typemap(python,argout) long *INOUT = long *OUTPUT;
-%typemap(python,argout) unsigned *INOUT = unsigned *OUTPUT;
-%typemap(python,argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(python,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(python,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(python,argout) bool *INOUT = bool *OUTPUT;
-%typemap(python,argout) float *INOUT = float *OUTPUT;
-%typemap(python,argout) double *INOUT = double *OUTPUT;
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
+%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT = double *OUTPUT;
 
-%typemap(python,in) int *T_INOUT = int *INPUT;
-%typemap(python,in) short *T_INOUT = short *INPUT;
-%typemap(python,in) long *T_INOUT = long *INPUT;
-%typemap(python,in) unsigned *T_INOUT = unsigned *INPUT;
-%typemap(python,in) unsigned short *T_INOUT = unsigned short *INPUT;
-%typemap(python,in) unsigned long *T_INOUT = unsigned long *INPUT;
-%typemap(python,in) unsigned char *T_INOUT = unsigned char *INPUT;
-%typemap(python,in) bool *T_INOUT = bool *INPUT;
-%typemap(python,in) float *T_INOUT = float *INPUT;
-%typemap(python,in) double *T_INOUT = double *INPUT;
+%typemap(in) int *T_INOUT = int *INPUT;
+%typemap(in) short *T_INOUT = short *INPUT;
+%typemap(in) long *T_INOUT = long *INPUT;
+%typemap(in) unsigned *T_INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *T_INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *T_INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *T_INOUT = unsigned char *INPUT;
+%typemap(in) bool *T_INOUT = bool *INPUT;
+%typemap(in) float *T_INOUT = float *INPUT;
+%typemap(in) double *T_INOUT = double *INPUT;
 
-%typemap(python,argout) int *T_INOUT = int *T_OUTPUT;
-%typemap(python,argout) short *T_INOUT = short *T_OUTPUT;
-%typemap(python,argout) long *T_INOUT = long *T_OUTPUT;
-%typemap(python,argout) unsigned *T_INOUT = unsigned *T_OUTPUT;
-%typemap(python,argout) unsigned short *T_INOUT = unsigned short *T_OUTPUT;
-%typemap(python,argout) unsigned long *T_INOUT = unsigned long *T_OUTPUT;
-%typemap(python,argout) unsigned char *T_INOUT = unsigned char *T_OUTPUT;
-%typemap(python,argout) bool *T_INOUT = bool *T_OUTPUT;
-%typemap(python,argout) float *T_INOUT = float *T_OUTPUT;
-%typemap(python,argout) double *T_INOUT = double *T_OUTPUT;
+%typemap(argout) int *T_INOUT = int *T_OUTPUT;
+%typemap(argout) short *T_INOUT = short *T_OUTPUT;
+%typemap(argout) long *T_INOUT = long *T_OUTPUT;
+%typemap(argout) unsigned *T_INOUT = unsigned *T_OUTPUT;
+%typemap(argout) unsigned short *T_INOUT = unsigned short *T_OUTPUT;
+%typemap(argout) unsigned long *T_INOUT = unsigned long *T_OUTPUT;
+%typemap(argout) unsigned char *T_INOUT = unsigned char *T_OUTPUT;
+%typemap(argout) bool *T_INOUT = bool *T_OUTPUT;
+%typemap(argout) float *T_INOUT = float *T_OUTPUT;
+%typemap(argout) double *T_INOUT = double *T_OUTPUT;
 
-%typemap(python,in) int *L_INOUT = int *INPUT;
-%typemap(python,in) short *L_INOUT = short *INPUT;
-%typemap(python,in) long *L_INOUT = long *INPUT;
-%typemap(python,in) unsigned *L_INOUT = unsigned *INPUT;
-%typemap(python,in) unsigned short *L_INOUT = unsigned short *INPUT;
-%typemap(python,in) unsigned long *L_INOUT = unsigned long *INPUT;
-%typemap(python,in) unsigned char *L_INOUT = unsigned char *INPUT;
-%typemap(python,in) bool *L_INOUT = bool *INPUT;
-%typemap(python,in) float *L_INOUT = float *INPUT;
-%typemap(python,in) double *L_INOUT = double *INPUT;
+%typemap(in) int *L_INOUT = int *INPUT;
+%typemap(in) short *L_INOUT = short *INPUT;
+%typemap(in) long *L_INOUT = long *INPUT;
+%typemap(in) unsigned *L_INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *L_INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *L_INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *L_INOUT = unsigned char *INPUT;
+%typemap(in) bool *L_INOUT = bool *INPUT;
+%typemap(in) float *L_INOUT = float *INPUT;
+%typemap(in) double *L_INOUT = double *INPUT;
 
-%typemap(python,argout) int *L_INOUT = int *L_OUTPUT;
-%typemap(python,argout) short *L_INOUT = short *L_OUTPUT;
-%typemap(python,argout) long *L_INOUT = long *L_OUTPUT;
-%typemap(python,argout) unsigned *L_INOUT = unsigned *L_OUTPUT;
-%typemap(python,argout) unsigned short *L_INOUT = unsigned short *L_OUTPUT;
-%typemap(python,argout) unsigned long *L_INOUT = unsigned long *L_OUTPUT;
-%typemap(python,argout) unsigned char *L_INOUT = unsigned char *L_OUTPUT;
-%typemap(python,argout) bool *L_INOUT = bool *L_OUTPUT;
-%typemap(python,argout) float *L_INOUT = float *L_OUTPUT;
-%typemap(python,argout) double *L_INOUT = double *L_OUTPUT;
+%typemap(argout) int *L_INOUT = int *L_OUTPUT;
+%typemap(argout) short *L_INOUT = short *L_OUTPUT;
+%typemap(argout) long *L_INOUT = long *L_OUTPUT;
+%typemap(argout) unsigned *L_INOUT = unsigned *L_OUTPUT;
+%typemap(argout) unsigned short *L_INOUT = unsigned short *L_OUTPUT;
+%typemap(argout) unsigned long *L_INOUT = unsigned long *L_OUTPUT;
+%typemap(argout) unsigned char *L_INOUT = unsigned char *L_OUTPUT;
+%typemap(argout) bool *L_INOUT = bool *L_OUTPUT;
+%typemap(argout) float *L_INOUT = float *L_OUTPUT;
+%typemap(argout) double *L_INOUT = double *L_OUTPUT;
 
 // Backwards compatibility
 
@@ -527,34 +518,32 @@ phased out in future releases.
 %apply float *T_INOUT { float *T_BOTH };
 %apply double *T_INOUT { double *T_BOTH };
 
-// --------------------------------------------------------------------
-// Special types
-//
-// --------------------------------------------------------------------
 
-#ifdef AUTODOC
-%subsection "Special Methods"
+/* Overloading information */
 
-%text %{
-The typemaps.i library also provides the following mappings :
+%typemap(typecheck) double *INPUT = double;
+%typemap(typecheck) bool *INPUT = bool;
+%typemap(typecheck) signed char *INPUT = signed char;
+%typemap(typecheck) unsigned char *INPUT = unsigned char;
+%typemap(typecheck) unsigned long *INPUT = unsigned long;
+%typemap(typecheck) unsigned short *INPUT = unsigned short;
+%typemap(typecheck) unsigned int *INPUT = unsigned int;
+%typemap(typecheck) long *INPUT = long;
+%typemap(typecheck) short *INPUT = short;
+%typemap(typecheck) int *INPUT = int;
+%typemap(typecheck) float *INPUT = float;
 
-PyObject *
-
-      When a PyObject * appears as either an input value or return
-      value of a function, SWIG passes it through unmodified.  Thus,
-      if you want to write a C function that operates on PyObjects,
-      it is easy to write.  For example :
-
-           %include typemaps.i
-           PyObject *spam(PyObject *obj1, int n);
-
-      Unlike normal Python wrapper functions, These functions can
-      use any combination of parameters that you wish.
-
-%}
-
-#endif
-
+%typemap(typecheck) double *INOUT = double;
+%typemap(typecheck) bool *INOUT = bool;
+%typemap(typecheck) signed char *INOUT = signed char;
+%typemap(typecheck) unsigned char *INOUT = unsigned char;
+%typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned short *INOUT = unsigned short;
+%typemap(typecheck) unsigned int *INOUT = unsigned int;
+%typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) short *INOUT = short;
+%typemap(typecheck) int *INOUT = int;
+%typemap(typecheck) float *INOUT = float;
 
 
 

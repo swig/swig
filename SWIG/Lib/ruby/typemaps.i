@@ -74,67 +74,67 @@ or you can use the %apply directive :
 %}
 #endif
 
-%typemap(ruby,in) double *INPUT(double temp)
+%typemap(in) double *INPUT(double temp)
 {
   temp = NUM2DBL($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) float *INPUT(float temp)
+%typemap(in) float *INPUT(float temp)
 {
   temp = (float) NUM2DBL($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) int *INPUT(int temp)
+%typemap(in) int *INPUT(int temp)
 {
   temp = NUM2INT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) short *INPUT(short temp)
+%typemap(in) short *INPUT(short temp)
 {
   temp = NUM2SHRT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) long *INPUT(long temp)
+%typemap(in) long *INPUT(long temp)
 {
   temp = NUM2LONG($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) unsigned int *INPUT(unsigned int temp)
+%typemap(in) unsigned int *INPUT(unsigned int temp)
 {
   temp = NUM2UINT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) unsigned short *INPUT(unsigned short temp)
+%typemap(in) unsigned short *INPUT(unsigned short temp)
 {
   temp = NUM2USHRT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) unsigned long *INPUT(unsigned long temp)
+%typemap(in) unsigned long *INPUT(unsigned long temp)
 {
   temp = NUM2ULONG($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) unsigned char *INPUT(unsigned char temp)
+%typemap(in) unsigned char *INPUT(unsigned char temp)
 {
   temp = (unsigned char)NUM2UINT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) signed char *INPUT(signed char temp)
+%typemap(in) signed char *INPUT(signed char temp)
 {
   temp = (signed char)NUM2INT($input);
   $1 = &temp;
 }
                  
-%typemap(ruby,in) bool *INPUT(bool temp)
+%typemap(in) bool *INPUT(bool temp)
 {
   temp = RTEST($input);
   $1 = &temp;
@@ -206,7 +206,7 @@ static VALUE output_helper(VALUE target, VALUE o) {
 
 // Force the argument to be ignored.
 
-%typemap(ruby,ignore) int            *OUTPUT(int temp),
+%typemap(ignore) int            *OUTPUT(int temp),
                       short          *OUTPUT(short temp),
                       long           *OUTPUT(long temp),
                       unsigned int   *OUTPUT(unsigned int temp),
@@ -221,7 +221,7 @@ static VALUE output_helper(VALUE target, VALUE o) {
     $1 = &temp;
 }
 
-%typemap(ruby,argout) int            *OUTPUT,
+%typemap(argout) int            *OUTPUT,
                       short          *OUTPUT,
                       long           *OUTPUT,
                       signed char    *OUTPUT
@@ -229,7 +229,7 @@ static VALUE output_helper(VALUE target, VALUE o) {
     $result = output_helper($result, INT2NUM(*$1));
 }
 
-%typemap(ruby,argout) unsigned int   *OUTPUT,
+%typemap(argout) unsigned int   *OUTPUT,
                       unsigned short *OUTPUT,
                       unsigned long  *OUTPUT,
                       unsigned char  *OUTPUT
@@ -237,13 +237,13 @@ static VALUE output_helper(VALUE target, VALUE o) {
     $result = output_helper($result, UINT2NUM(*$1));
 }
 
-%typemap(ruby,argout) float    *OUTPUT,
+%typemap(argout) float    *OUTPUT,
                       double   *OUTPUT
 {
     $result = output_helper($result, rb_float_new(*$1));
 }
 
-%typemap(ruby,argout) bool *OUTPUT
+%typemap(argout) bool *OUTPUT
 {
     $result = output_helper($result, (*$1) ? Qtrue : Qfalse);
 }
@@ -304,27 +304,27 @@ phased out in future releases.
 
 #endif
 
-%typemap(ruby,in) int *INOUT = int *INPUT;
-%typemap(ruby,in) short *INOUT = short *INPUT;
-%typemap(ruby,in) long *INOUT = long *INPUT;
-%typemap(ruby,in) unsigned *INOUT = unsigned *INPUT;
-%typemap(ruby,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(ruby,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(ruby,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(ruby,in) bool *INOUT = bool *INPUT;
-%typemap(ruby,in) float *INOUT = float *INPUT;
-%typemap(ruby,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned *INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) bool *INOUT = bool *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(ruby,argout) int *INOUT = int *OUTPUT;
-%typemap(ruby,argout) short *INOUT = short *OUTPUT;
-%typemap(ruby,argout) long *INOUT = long *OUTPUT;
-%typemap(ruby,argout) unsigned *INOUT = unsigned *OUTPUT;
-%typemap(ruby,argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(ruby,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(ruby,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(ruby,argout) bool *INOUT = bool *OUTPUT;
-%typemap(ruby,argout) float *INOUT = float *OUTPUT;
-%typemap(ruby,argout) double *INOUT = double *OUTPUT;
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
+%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT = double *OUTPUT;
 
 // Backwards compatibility
 
@@ -380,7 +380,7 @@ struct timeval rb_time_timeval(VALUE);
 #endif
 %}
 
-%typemap(ruby,in) struct timeval *INPUT (struct timeval temp)
+%typemap(in) struct timeval *INPUT (struct timeval temp)
 {
     if (NIL_P($input))
 	$1 = NULL;
@@ -390,28 +390,28 @@ struct timeval rb_time_timeval(VALUE);
     }
 }
 
-%typemap(ruby,ignore) struct timeval *OUTPUT(struct timeval temp)
+%typemap(ignore) struct timeval *OUTPUT(struct timeval temp)
 {
     $1 = &temp;
 }
 
-%typemap(ruby,argout) struct timeval *OUTPUT
+%typemap(argout) struct timeval *OUTPUT
 {
     $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
-%typemap(ruby,out) struct timeval *
+%typemap(out) struct timeval *
 {
     $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
-%typemap(ruby,out) struct timespec *
+%typemap(out) struct timespec *
 {
     $result = rb_time_new($1->tv_sec, $1->tv_nsec / 1000);
 }
 
 // time_t
-%typemap(ruby,in) time_t
+%typemap(in) time_t
 {
     if (NIL_P($input))
 	$1 = (time_t)-1;
@@ -419,17 +419,17 @@ struct timeval rb_time_timeval(VALUE);
 	$1 = NUM2LONG(rb_funcall($input, rb_intern("tv_sec"), 0));
 }
 
-%typemap(ruby,out) time_t
+%typemap(out) time_t
 {
     $result = rb_time_new($1, 0);
 }
 
 // argc and argv
-%typemap(ruby,ignore) int PROG_ARGC {
+%typemap(ignore) int PROG_ARGC {
     $1 = RARRAY(rb_argv)->len + 1;
 }
 
-%typemap(ruby,ignore) char **PROG_ARGV {
+%typemap(ignore) char **PROG_ARGV {
     int i, n;
     VALUE ary = rb_eval_string("[$0] + ARGV");
     n = RARRAY(ary)->len;
@@ -441,7 +441,7 @@ struct timeval rb_time_timeval(VALUE);
     }
 }
 
-%typemap(ruby,freearg) char **PROG_ARGV {
+%typemap(freearg) char **PROG_ARGV {
     int i, n = RARRAY(rb_argv)->len + 1;
     for (i = 0; i < n; i++) free($1[i]);
     free($1);
@@ -458,7 +458,7 @@ extern "C" {
 #endif
 %}
 
-%typemap(ruby,in) FILE *READ {
+%typemap(in) FILE *READ {
     OpenFile *of;
     GetOpenFile($input, of);
     rb_io_check_readable(of);
@@ -466,16 +466,42 @@ extern "C" {
     rb_read_check($1);
 }
 
-%typemap(ruby,in) FILE *READ_NOCHECK {
+%typemap(in) FILE *READ_NOCHECK {
     OpenFile *of;
     GetOpenFile($input, of);
     rb_io_check_readable(of);
     $1 = GetReadFile(of);
 }
 
-%typemap(ruby,in) FILE *WRITE {
+%typemap(in) FILE *WRITE {
     OpenFile *of;
     GetOpenFile($input, of);
     rb_io_check_writable(of);
     $1 = GetWriteFile(of);
 }
+
+/* Overloading information */
+
+%typemap(typecheck) double *INPUT = double;
+%typemap(typecheck) signed char *INPUT = signed char;
+%typemap(typecheck) unsigned char *INPUT = unsigned char;
+%typemap(typecheck) unsigned long *INPUT = unsigned long;
+%typemap(typecheck) unsigned short *INPUT = unsigned short;
+%typemap(typecheck) unsigned int *INPUT = unsigned int;
+%typemap(typecheck) long *INPUT = long;
+%typemap(typecheck) short *INPUT = short;
+%typemap(typecheck) int *INPUT = int;
+%typemap(typecheck) float *INPUT = float;
+
+%typemap(typecheck) double *INOUT = double;
+%typemap(typecheck) signed char *INOUT = signed char;
+%typemap(typecheck) unsigned char *INOUT = unsigned char;
+%typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned short *INOUT = unsigned short;
+%typemap(typecheck) unsigned int *INOUT = unsigned int;
+%typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) short *INOUT = short;
+%typemap(typecheck) int *INOUT = int;
+%typemap(typecheck) float *INOUT = float;
+
+
