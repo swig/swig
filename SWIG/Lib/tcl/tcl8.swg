@@ -33,10 +33,10 @@
 
 /* Pointers */
 %typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
+  "if ((SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
 
 %typemap(in) void *
-  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, 0,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
+  "if ((SWIG_ConvertPtr($input, (void **) &$1, 0,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
 
 /* For bools, we first convert to an integer and then to a bool.  There
    is no guarantee that a bool is the same size as an int so we have to do this */
@@ -57,7 +57,7 @@
 
 /* Unknown type.  We convert from a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype argp) 
-  "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) SWIG_fail;
+  "if ((SWIG_ConvertPtr($input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) SWIG_fail;
   $1 = *argp; ";
 
 
@@ -167,14 +167,14 @@
 }
 
 %typemap(out) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
-     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor,0));";
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor,0));";
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
      swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
-     Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void *) $1, ty,0));
+     Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, ty,0));
 }
 
 %typemap(out) void "";
@@ -202,14 +202,14 @@
 {
   $&1_ltype resultptr;
   resultptr = new $1_ltype(($1_ltype &) $1);
-  Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
+  Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void*) resultptr, $&1_descriptor,1));
 }
 #else
 {
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
+  Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void*) resultptr, $&1_descriptor,1));
 }
 #endif
 
@@ -273,13 +273,13 @@
 %typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
 
 %typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE INSTANCE[]
-    "$result = SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0);";
+    "$result = SWIG_NewInstanceObj((void *) $1, $1_descriptor,0);";
 
 %typemap(varout) SWIGTYPE &INSTANCE
-    "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $1_descriptor,0);";
+    "$result = SWIG_NewInstanceObj((void *) &$1, $1_descriptor,0);";
 
-%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
-%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
+%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
 
 /* -- Variable input --- */
 
@@ -357,7 +357,7 @@
 
 %typemap(varin) SWIGTYPE * {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
+  if (SWIG_ConvertPtr($input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = ($1_type) temp;
@@ -365,7 +365,7 @@
 
 %typemap(varin) void * {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,0, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
+  if (SWIG_ConvertPtr($input,&temp,0, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = ($1_type) temp;
@@ -373,7 +373,7 @@
 
 %typemap(varin) SWIGTYPE & {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
+  if (SWIG_ConvertPtr($input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = *($1_ltype) temp;
@@ -381,7 +381,7 @@
 
 %typemap(varin) SWIGTYPE {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
+  if (SWIG_ConvertPtr($input,&temp,$&1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
     return (char*)"Type error. Expected $&1_ltype";
   }
   $1 = *(($&1_type) temp);
@@ -389,7 +389,7 @@
 
 %typemap(varin) SWIGTYPE [ANY] {
    void *temp;
-   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
+   if (SWIG_ConvertPtr($input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
       return (char *)"Type error. Expected $1_ltype";
    }
    memmove((void *) $1,temp,$1_size*sizeof($1_basetype));
@@ -484,7 +484,7 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
-  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $1_descriptor, 0) == TCL_ERROR) {
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == TCL_ERROR) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -493,7 +493,7 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $&1_descriptor, 0) == TCL_ERROR) {
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0) == TCL_ERROR) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -502,7 +502,7 @@
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, 0, 0) == TCL_ERROR) {
+  if (SWIG_ConvertPtr($input, (void **) &ptr, 0, 0) == TCL_ERROR) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -525,7 +525,7 @@
 
 %typemap(throws) SWIGTYPE CLASS {
   $&1_ltype temp = new $1_ltype($1);
-  Tcl_SetObjResult(interp, SWIG_NewInstanceObj(interp, (void *) temp, $&1_descriptor, 1));
+  Tcl_SetObjResult(interp, SWIG_NewInstanceObj((void *) temp, $&1_descriptor, 1));
   SWIG_fail;
 }
 
