@@ -9,11 +9,21 @@
  * Tim Hockin <thockin@sun.com>
  */
 
+static char cvsroot[] = "$Header$";
+
 #include <ctype.h>
 
 #include "mod11.h"
 #include "php4.h"
 #include "swigconfig.h"
+
+static char *usage = (char*)"\
+PHP4 Options (available with -php4)\n\
+	-shadow		- Create shadow classes.\n\
+	-dlname name	- Set module prefix.\n\
+	-make		- Create simple makefile.\n\
+	-phpfull	- Create full make files.\n\
+	-nosync		- No syncronisation of variables.\n\n";
 
 #define PHP_READONLY	1<<0
 
@@ -34,6 +44,7 @@ static Wrapper	*f_c;
 static Wrapper  *f_php;
 static int	gen_extra = 0;
 static int	gen_make = 0;
+static int	no_sync = 0;
 
 static FILE	  *f_shadow= 0;
 
@@ -53,6 +64,8 @@ static String	  *s_entry;
 static String	  *pragma_incl;
 static String	  *pragma_code;
 static String	  *pragma_phpinfo;
+static String	  *shadow_sync_c;
+static String	  *shadow_sync_php;
 
 /* Variables for using PHP classes */
 static String	  *php;		/* Class initialization code */
@@ -64,6 +77,8 @@ static String	  *realpackage = 0;
 static String	  *package = 0;
 
 static Hash	*shadow_classes;
+static Hash	*shadow_php_vars;
+static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
 static String 	*shadow_code;
 static char	*shadow_variable_name = 0;
@@ -106,6 +121,18 @@ static String *is_shadow(SwigType *t) {
 	Delete(lt);
 	return r;
 }
+
+// Return the type of the c array
+static SwigType *get_array_type(SwigType *t) {
+  SwigType *ta = 0;
+    if (SwigType_type(t) == T_ARRAY) {
+        SwigType *aop;
+        ta = Copy(t);
+        aop = SwigType_pop(ta);
+    }
+    return ta;
+}
+
 
 static void emit_banner(FILE *f) {
 Printf(f, "/* ----------------------------------------------------------------------------\n");
@@ -171,11 +198,14 @@ PHP4::main(int argc, char *argv[]) {
 	    } else if(strcmp(argv[i], "-make") == 0) {
 		gen_make = 1;
 		Swig_mark_arg(i);
+	    } else if(strcmp(argv[i], "-help") == 0) {
+	        fputs(usage, stderr);
 	    }
 	  }
 	}
 	  
-	Preprocessor_define((void *) "SWIGPHP4", 0);
+	Preprocessor_define((void *) "SWIGPHP 1", 0);
+	Preprocessor_define((void *) "SWIGPHP4 1", 0);
 	SWIG_typemap_lang("php4");
 	/* DB: Suggest using a language configuration file */
 	SWIG_config_file("php4.swg");
@@ -409,6 +439,9 @@ PHP4::top(Node *n) {
   s_vinit = NewString("/* vinit subsection */\n");
   s_cinit = NewString("/* cinit subsection */\n");
   s_oinit = NewString("/* oinit subsection */\n");
+  shadow_c_vars = NewHash();
+  shadow_php_vars = NewHash();
+
   pragma_phpinfo = NewString("");
 
 
@@ -740,12 +773,18 @@ PHP4::functionWrapper(Node *n) {
   if(shadow && wrapping_member && !enum_flag) {
     String *member_function_name = NewString("");
     String *php_function_name = NewString(iname);
-    if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name)))) == 0)
+    if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name)))) == 0) {
 	Printf(member_function_name, "set");
-    else 
+    	if(!no_sync)
+	  Setattr(shadow_c_vars, php_function_name, name);
+    } else {
 	Printf(member_function_name, "get");
+	if(!no_sync) 
+	   Setattr(shadow_php_vars, php_function_name, name);
+    }
     Putc(toupper((int )*shadow_variable_name), member_function_name);
     Printf(member_function_name, "%s", shadow_variable_name+1);
+
 
     cpp_func(Char(member_function_name), d, l, php_function_name);
 
@@ -1531,9 +1570,17 @@ PHP4::emit_shadow_classdef() {
 		// Control which super constructor is called -
 		// we don't want 2 malloc/new c/c++ calls
 	} else {
+		String *k;
+
 		Printv(shadow_classdef,
 		" var $_cPtr;\n",
-		" var $_cMemOwn;\n",
+		" var $_cMemOwn;\n", 0);
+
+		for(k = Firstkey(shadow_php_vars); k; k = Nextkey(shadow_php_vars)) {
+			Printf(shadow_classdef, " var $%s;\n", Getattr(shadow_php_vars, k));
+		}
+
+		Printv(shadow_classdef,
 		"\n",
 		" function getCPtr() {\n",
 		"    return $this->_cPtr;\n",
@@ -1603,6 +1650,9 @@ int PHP4::classHandler(Node *n) {
 		this_shadow_baseclass = NewString("");
 		this_shadow_extra_code = NewString("");
 		this_shadow_import = NewString("");
+
+		shadow_sync_c = NewString("");
+		shadow_sync_php = NewString("");
 
 		/* Deal with inheritance */
 		List *baselist = Getattr(n, "bases");
@@ -1682,11 +1732,12 @@ int PHP4::classHandler(Node *n) {
 		free(shadow_classname);
 		shadow_classname = NULL;
 
-
 		Delete(shadow_enum_code); shadow_enum_code = NULL;
 		Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
 		Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
 		Delete(this_shadow_import); this_shadow_import = NULL;
+		Delete(shadow_sync_c); shadow_sync_c = NULL;
+		Delete(shadow_sync_php); shadow_sync_php = NULL;
 	}
 	return SWIG_OK;
 }
@@ -1735,17 +1786,8 @@ PHP4::membervariableHandler(Node *n) {
 	Language::membervariableHandler(n);
 	wrapping_member = 0;
 	variable_wrapper_flag = 0;
+
 	return SWIG_OK;
-	/* if value, set variable, else dont ( no checking done */
-
-	/* allocate zval */
-
-	/* copy value into zval and set type ? */
-
-	/* insert value into active_class_entry->default_properties hash */
-
-	/* add get / set function wrappers or lines in swig_sync or intercept set/get property calls ? */
-
 }
 
 int PHP4::staticmemberfunctionHandler(Node *n) {
@@ -2043,6 +2085,29 @@ int PHP4::destructorHandler(Node *n) {
 	  Printf(shadow_code, "   }\n");
 	  Printf(shadow_code, " }\n\n");
 
+	  if(!no_sync) {
+	    String *k;
+	    Printf(shadow_code," function _sync_c() {\n ");
+
+	    for(k = Firstkey(shadow_c_vars); k ; k = Nextkey(shadow_c_vars)) {
+		    Printf(shadow_code, "%s::%s($this->_cPtr, $this->%s);\n",
+			     	        package, k, 
+					Getattr(shadow_c_vars, k));
+	    }
+
+	    Printf(shadow_code, "\n}\n");
+
+	    Printf(shadow_code," function _sync_php() {\n");
+
+	    for(k = Firstkey(shadow_php_vars);k;k = Nextkey(shadow_php_vars)) {
+		    Printf(shadow_code, "$this->%s = %s::%s($this->_cPtr);\n",
+					 Getattr(shadow_php_vars, k),
+					 package, k);
+	    }
+
+	    Printf(shadow_code, "\n}\n");
+	  }
+
 	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
 
 	  Printf(s_oinit, "{\nzend_function function;\n");
@@ -2127,6 +2192,9 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	if(static_flag && !const_flag)
 		Printf(shadow_code, "$val = 0");
 
+	if(!no_sync)
+		Printf(nativecall, "$this->_sync_c();\n\n");
+
 	if((SwigType_type(t) != T_VOID) && !is_shadow(t)) {
 		if(static_flag && !const_flag)
 			Printf(nativecall, "if($val) {\n");
@@ -2139,15 +2207,22 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 			Printv(nativecall, "$this->_cPtr", 0);
 		}
 	} else if(SwigType_type(t) == T_VOID) {
-		Printv(nativecall, package, "::", php_function_name, "(", 0);
+		if(static_flag && !const_flag)
+			Printf(nativecall, "    if($val) {\n");
+		Printv(nativecall,"    ", package, "::",php_function_name,"(",0);
 		Printv(nativecall, "$this->_cPtr", 0);
 	} else if(is_shadow(t)) {
+		if(SwigType_type(t) == T_ARRAY) {
+			Printf(nativecall, "    return %s::%s($this->_cPtr", 
+			       package, php_function_name);
+		} else {
 		String *shadowrettype = NewString("");
 		SwigToPhpType(t, iname, shadowrettype, shadow);
 		Printf(nativecall, "    $_sPtr = new %s();\n", shadowrettype);
 		Printf(nativecall, "    $_sPtr->_destroy();\n");
 		Printf(nativecall, "    $_iPtr = %s::%s($this->_cPtr",
 		       package, php_function_name);
+		}
 	}
 
 
@@ -2205,7 +2280,9 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	}
       }
       
-      if(is_shadow(t)) {
+      if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
+	      Printf(nativecall, ");\n");
+      } else if(is_shadow(t)) {
 	switch(SwigType_type(t)) {
 		case T_USER:
 			Printf(nativecall, ");\n");
@@ -2230,12 +2307,16 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 		  Printf(nativecall, "    } else {\n");
 		  Printv(nativecall, "    return ", package, "::",
 			 php_function_name, "();\n",0);
-		  Printf(nativecall, "}\n");
 		}
 	}
 
+	if(static_flag &&!const_flag)
+		Printf(nativecall, "}\n");
+
 	Printf(shadow_code, ") {\n");
 	Printf(shadow_code, "    %s", nativecall);
+	if(!no_sync)
+		Printf(shadow_code, "    $this->_sync_php();\n");
 	Printf(shadow_code, "   }\n\n");
 
       Delete(nativecall);
