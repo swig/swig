@@ -62,6 +62,8 @@ class Dispatcher {
  public:
 
   Dispatcher() : cplus_mode(PUBLIC) {}
+  virtual ~Dispatcher() {}
+
   virtual int emit_one(Node *n);
   virtual int emit_children(Node *n);
   virtual int defaultHandler(Node *n);
