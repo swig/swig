@@ -481,7 +481,7 @@ PHP4::top(Node *n) {
 
   /* Initialize all of the output files */
   outfile = Getattr(n,"outfile");
-  
+
   /* main output file */
   f_runtime = NewFile(outfile,"w");
   if (!f_runtime) {
@@ -642,7 +642,6 @@ PHP4::top(Node *n) {
 
   Printf(s_entry,"/* Every non-class user visible function must have an entry here */\n");
   Printf(s_entry,"function_entry %s_functions[] = {\n", module);
-
 
   /* start the init section */
   if (gen_extra)
@@ -882,10 +881,10 @@ PHP4::functionWrapper(Node *n) {
 
   outarg = NewString("");
 
-  // Special action for destructors under php.
+  // Special action for shadowing destructors under php.
   // The real destructor is the resource list destructor, this is
   // merely the thing that actually knows how to destroy...
-  if (destructor) {
+  if (shadow && destructor) {
     Printf(f->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
     // What makes me so sure emit_action will use the name arg1??
     // What makes me so sure I know the TYPE?  [%s * arg1=NULL;]
@@ -895,13 +894,13 @@ PHP4::functionWrapper(Node *n) {
       "  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &arg1,NULL);\n"
       "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
       ,class_name, shadow_classname);
+
     emit_action(n,f);
     Printf(f->code,
       "  // now delete wrapped string pointer\n"
       "  efree(rsrc->ptr);\n"
       "  rsrc->ptr=NULL;\n"
       "}\n");
-
     Wrapper_print(f,s_wrappers);
     return SWIG_OK;
   }
@@ -1730,7 +1729,7 @@ int PHP4::constructorHandler(Node *n) {
 	char *iname = GetChar(n, "sym:name");
 	ParmList *l = Getattr(n, "parms");
 
-	native_constructor = (strcmp(iname, shadow_classname) == 0)?\
+	if (shadow) native_constructor = (strcmp(iname, shadow_classname) == 0)?\
 		NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
 
 	Language::constructorHandler(n);
