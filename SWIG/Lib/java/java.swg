@@ -414,9 +414,9 @@ $1 = &temp; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
-%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
+%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME)
 
-%typemap(in) CTYPE[ANY] (JTYPE *jarr)
+%typemap(in) CTYPE[ANY] (JNITYPE *jarr)
 %{ if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}

@@ -79,18 +79,18 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
 /* Array support is a combination of SWIG macros and functions in order to reduce code bloat and 
  * aid maintainability. The SWIG preprocessor expands the macros into functions for inclusion in
  * the generated code. */
-%define JAVA_ARRAYS_DECL(CTYPE, JTYPE, JAVATYPE, JFUNCNAME)
+%define JAVA_ARRAYS_DECL(CTYPE, JNITYPE, JAVATYPE, JFUNCNAME)
 %{
-int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE##Array input);
-void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JTYPE *jarr, CTYPE *carr, JTYPE##Array input);
-JTYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz);
+int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **carr, JNITYPE##Array input);
+void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JNITYPE *jarr, CTYPE *carr, JNITYPE##Array input);
+JNITYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz);
 %}
 %enddef
 
-%define JAVA_ARRAYS_IMPL(CTYPE, JTYPE, JAVATYPE, JFUNCNAME)
+%define JAVA_ARRAYS_IMPL(CTYPE, JNITYPE, JAVATYPE, JFUNCNAME)
 %{
 /* CTYPE[] support */
-int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE##Array input) {
+int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **carr, JNITYPE##Array input) {
   int i;
   jsize sz;
   if (!input) {
@@ -115,26 +115,26 @@ int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE
   return 1;
 }
 
-void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JTYPE *jarr, CTYPE *carr, JTYPE##Array input) {
+void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JNITYPE *jarr, CTYPE *carr, JNITYPE##Array input) {
   int i;
   jsize sz;
   sz = JCALL1(GetArrayLength, jenv, input);
   for (i=0; i<sz; i++)
-    jarr[i] = (JTYPE)carr[i];
+    jarr[i] = (JNITYPE)carr[i];
   JCALL3(Release##JAVATYPE##ArrayElements, jenv, input, jarr, 0);
 }
 
-JTYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz) {
-  JTYPE *arr;
+JNITYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz) {
+  JNITYPE *arr;
   int i;
-  JTYPE##Array jresult = JCALL1(New##JAVATYPE##Array, jenv, sz);
+  JNITYPE##Array jresult = JCALL1(New##JAVATYPE##Array, jenv, sz);
   if (!jresult)
     return NULL;
   arr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, jresult, 0);
   if (!arr)
     return NULL;
   for (i=0; i<sz; i++)
-    arr[i] = (JTYPE)result[i];
+    arr[i] = (JNITYPE)result[i];
   JCALL3(Release##JAVATYPE##ArrayElements, jenv, jresult, arr, 0);
   return jresult;
 }
