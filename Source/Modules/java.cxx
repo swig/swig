@@ -3228,12 +3228,11 @@ class JAVA : public Language {
       Printf(w->code, "  if (methods[i].base_methid == NULL) {\n");
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
       Printf(w->code, "  }\n");
+      Printf(w->code, "  swig_override[i] = false;\n");
       Printf(w->code, "  if (derived) {\n");
       Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].mname, methods[i].mdesc);\n");
-      Printf(w->code, "    swig_override[i] = (methid && jenv->IsSameObject((jobject) methid, (jobject) methods[i].base_methid) ? false : true);\n");
+      Printf(w->code, "    swig_override[i] = (methid != methods[i].base_methid);\n");
       Printf(w->code, "    jenv->ExceptionClear();\n");
-      Printf(w->code, "  } else {\n");
-      Printf(w->code, "    swig_override[i] = false;\n");
       Printf(w->code, "  }\n");
       Printf(w->code, "}\n");
     }
