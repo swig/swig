@@ -24,90 +24,83 @@ extern "C" {
 // class DataType member functions.
 // -------------------------------------------------------------------
 
-DataType::DataType() {
-    type = 1;
-    name[0] = 0;
-    is_pointer = 0;
-    implicit_ptr = 0;
-    qualifier = 0;
-    is_reference = 0;
-    status = 0;
-    arraystr = 0;
-    id = type_id++;
-}
-
 // Create a data type only from the type code (used to form constants)
 
-DataType::DataType(int t) {
+DataType *NewDataType(int t) {
+  DataType *ty = (DataType *) malloc(sizeof(DataType));
   switch(t) {
   case T_BOOL:
-    strcpy(name,"bool");
+    strcpy(ty->name,"bool");
     break;
   case T_INT: case T_SINT:
-    strcpy(name,"int");
+    strcpy(ty->name,"int");
     break;
   case T_UINT:
-    strcpy(name,"unsigned int");
+    strcpy(ty->name,"unsigned int");
     break;
   case T_SHORT: case T_SSHORT:
-    strcpy(name,"short");
+    strcpy(ty->name,"short");
     break;
   case T_USHORT:
-    strcpy(name,"unsigned short");
+    strcpy(ty->name,"unsigned short");
     break;
   case T_LONG: case T_SLONG:
-    strcpy(name,"long");
+    strcpy(ty->name,"long");
     break;
   case T_ULONG:
-    strcpy(name,"unsigned long");
+    strcpy(ty->name,"unsigned long");
     break;
   case T_FLOAT:
-    strcpy(name, "float");
+    strcpy(ty->name, "float");
     break;
   case T_DOUBLE:
-    strcpy(name, "double");
+    strcpy(ty->name, "double");
     break;
   case T_CHAR: case T_SCHAR:
-    strcpy(name, "char");
+    strcpy(ty->name, "char");
     break;
   case T_UCHAR:
-    strcpy(name,"unsigned char");
+    strcpy(ty->name,"unsigned char");
     break;
   case T_VOID:
-    strcpy(name,"void");
+    strcpy(ty->name,"void");
     break;
   case T_USER:
-    strcpy(name,"USER");
+    strcpy(ty->name,"USER");
     break;
   default :
-    strcpy(name,"UNKNOWN");
+    strcpy(ty->name,"");
     break;
   }
-  type = t;
-  is_pointer = 0;
-  implicit_ptr = 0;
-  qualifier = 0;
-  is_reference = 0;
-  status = 0;
-  arraystr = 0;
-  id = type_id++;
+  ty->type = t;
+  ty->is_pointer = 0;
+  ty->implicit_ptr = 0;
+  ty->qualifier = 0;
+  ty->is_reference = 0;
+  ty->status = 0;
+  ty->arraystr = 0;
+  ty->id = type_id++;
+  return ty;
 }
  	
-DataType::DataType(DataType *t) {
-    type = t->type;
-    strcpy(name,t->name);
-    is_pointer = t->is_pointer;
-    implicit_ptr = t->implicit_ptr;
-    qualifier = copy_string(t->qualifier);
-    is_reference = t->is_reference;
-    status = t->status;
-    arraystr = copy_string(t->arraystr);
-    id = t->id;
+DataType *CopyDataType(DataType *t) {
+  DataType *ty = (DataType *) malloc(sizeof(DataType));
+  ty->type = t->type;
+  strcpy(ty->name,t->name);
+  ty->is_pointer = t->is_pointer;
+  ty->implicit_ptr = t->implicit_ptr;
+  ty->qualifier = copy_string(t->qualifier);
+  ty->is_reference = t->is_reference;
+  ty->status = t->status;
+  ty->arraystr = copy_string(t->arraystr);
+  ty->id = t->id;
+  return ty;
 }
 
-DataType::~DataType() {
-    if (qualifier) delete qualifier;
-    if (arraystr) delete arraystr;
+void DelDataType(DataType *t) {
+    if (t->qualifier) delete t->qualifier;
+    if (t->arraystr) delete t->arraystr;
+    free(t);
 }
 
 // --------------------------------------------------------------------
@@ -194,7 +187,7 @@ char *DataType_print_type(DataType *ty) {
   DataType *t = ty;
   
   if (ty->status & STAT_REPLACETYPE) {
-    t = new DataType(ty);
+    t = CopyDataType(ty);
     DataType_typedef_replace(t);   // Upgrade type
   }
   ri = ri % 8;
@@ -203,7 +196,7 @@ char *DataType_print_type(DataType *ty) {
     strcat(result[ri],"*");
 
   if (ty->status & STAT_REPLACETYPE) {
-    delete t;
+    DelDataType(t);
   };
   return result[ri++];
 }
@@ -281,7 +274,7 @@ char *DataType_print_arraycast(DataType *ty) {
 
   t = ty;
   if (ty->status & STAT_REPLACETYPE) {
-    t = new DataType(ty);
+    t = CopyDataType(ty);
     DataType_typedef_replace(t);   // Upgrade type
   }
 
@@ -313,7 +306,7 @@ char *DataType_print_arraycast(DataType *ty) {
     }
   }
   if (ty->status & STAT_REPLACETYPE) {
-    delete t;
+    DelDataType(t);
   }
   return result[ri++];
 }
@@ -470,7 +463,7 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
 
   // Make a new datatype that we will place in our hash table
 
-  nt = new DataType(t);
+  nt = CopyDataType(t);
   nt->implicit_ptr = (t->is_pointer-t->implicit_ptr); // Record if mapped type is a pointer
   nt->is_pointer = (t->is_pointer-t->implicit_ptr); // Adjust pointer value to be correct
   DataType_typedef_resolve(nt,0);                   // Resolve any other mappings of this type
@@ -482,13 +475,13 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
 
   if (mode == 0) {
       if ((t->type != T_VOID) && (strcmp(t->name,tname) != 0)) {
-	t1 = new DataType();
+	t1 = NewDataType(0);
 	strcpy(t1->name,tname);
 	name2 = DataType_print_mangle(t1);
 	name1 = DataType_print_mangle(t);
 	typeeq_addtypedef(name1,name2,t1);
 	typeeq_addtypedef(name2,name1,t);
-	delete t1;
+	DelDataType(t1);
       }
   }
   // Call into the target language with this typedef
@@ -636,7 +629,7 @@ void DataType_merge_scope(void *ho) {
     while (key) {
       //      printf("%s\n", key);
       t = (DataType *) GetVoid(h,key);
-      nt = new DataType(t);
+      nt = CopyDataType(t);
       SetVoid(typedef_hash[scope],key,(void *) nt);
       key = Nextkey(h);
     }
@@ -697,7 +690,7 @@ void *DataType_collapse_scope(char *prefix) {
       key = Firstkey(typedef_hash[scope]);
       while (key) {
 	t = (DataType *) GetVoid(typedef_hash[scope],key);
-	nt = new DataType(t);
+	nt = CopyDataType(t);
 	temp = new char[strlen(prefix)+strlen(Char(key))+4];
 	sprintf(temp,"%s::%s",prefix,Char(key));
 	SetVoid(typedef_hash[scope-1],temp, (void *)nt);
@@ -788,7 +781,7 @@ void typeeq_add(char *name, char *eqname, char *cast = 0, DataType *type = 0) {
   e2->name = copy_string(eqname);
   e2->cast = copy_string(cast);
   if (type) 
-    e2->type = new DataType(type);
+    e2->type = CopyDataType(type);
   else 
     e2->type = 0;
   e2->next = e1->next;               // Add onto the linked list for name
@@ -808,7 +801,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
   if (!te_init) typeeq_init();
 
   if (!t) {
-    t = new DataType(T_USER);
+    t = NewDataType(T_USER);
     strcpy(t->name, eqname);
   }
 
@@ -898,18 +891,22 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
 // ------------------------------------------------------------------------------
 
 void typeeq_derived(char *n1, char *n2, char *cast=0) {
-  DataType   t,t1;
+  DataType   *t,*t1;
   char       *name, *name2;
 
+  t = NewDataType(0);
+  t1 = NewDataType(0);
   if (!te_init) typeeq_init();
 
-  t.type = T_USER;
-  t1.type = T_USER;
-  strcpy(t.name,n1);
-  strcpy(t1.name,n2);
-  name = DataType_print_mangle(&t);
-  name2 = DataType_print_mangle(&t1);
-  typeeq_add(name,name2, cast, &t1);
+  t->type = T_USER;
+  t1->type = T_USER;
+  strcpy(t->name,n1);
+  strcpy(t1->name,n2);
+  name = DataType_print_mangle(t);
+  name2 = DataType_print_mangle(t1);
+  typeeq_add(name,name2, cast, t1);
+  DelDataType(t);
+  DelDataType(t1);
 }
 
 // ------------------------------------------------------------------------------
@@ -919,16 +916,20 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
 // ------------------------------------------------------------------------------
 
 void typeeq_mangle(char *n1, char *n2, char *cast=0) {
-  DataType   t,t1;
+  DataType   *t,*t1;
   char      *name, *name2;
 
+  t = NewDataType(0);
+  t1 = NewDataType(0);
   if (!te_init) typeeq_init();
 
-  strcpy(t.name,n1);
-  strcpy(t1.name,n2);
-  name = DataType_print_mangle(&t);
-  name2 = DataType_print_mangle(&t1);
+  strcpy(t->name,n1);
+  strcpy(t1->name,n2);
+  name = DataType_print_mangle(t);
+  name2 = DataType_print_mangle(t1);
   typeeq_add(name,name2,cast);
+  DelDataType(t);
+  DelDataType(t1);
 }
 
 // ------------------------------------------------------------------------------
@@ -1041,7 +1042,7 @@ static  DOHHash  *remembered = 0;
 
 void DataType_remember(DataType *ty) {
   DOHHash *h;
-  DataType *t = new DataType(ty);
+  DataType *t = CopyDataType(ty);
 
   if (!remembered) remembered = NewHash();
   SetVoid(remembered, DataType_print_mangle(t), t);
@@ -1053,11 +1054,11 @@ void DataType_remember(DataType *ty) {
     DOH *key;
     key = Firstkey(h);
     while (key) {
-      DataType *nt = new DataType(t);
+      DataType *nt = CopyDataType(t);
       strcpy(nt->name,Char(key));
       if (!Getattr(remembered,DataType_print_mangle(nt))) 
 	DataType_remember(nt);
-      delete nt;
+      DelDataType(nt);
       key = Nextkey(h);
     }
   }

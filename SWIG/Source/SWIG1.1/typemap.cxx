@@ -77,7 +77,7 @@ struct TypeMap {
 
   TypeMap(char *l, DataType *t, char *c, ParmList *p = 0) {
     lang = copy_string(l);
-    type = new DataType(t);
+    type = CopyDataType(t);
     code = NewString(c);
     first = type_id;
     last = INT_MAX;
@@ -101,7 +101,7 @@ struct TypeMap {
   }
   TypeMap(TypeMap *t) {
     lang = copy_string(t->lang);
-    type = new DataType(t->type);
+    type = CopyDataType(t->type);
     code = Copy(t->code);
     first = type_id;
     last = INT_MAX;
@@ -129,7 +129,7 @@ struct TmMethod {
     if (n) name = copy_string(n);
     else name = 0;
     if (t) {
-      type = new DataType(t);
+      type = CopyDataType(t);
     } else {
       type = 0;
     }
@@ -336,11 +336,13 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
 void typemap_register(char *op, char *lang, char *type, char *pname, 
                       char *getcode, ParmList *args) {
-  DataType temp;
-  strcpy(temp.name,type);
-  temp.is_pointer = 0;
-  temp.type = T_USER;
-  typemap_register(op,lang,&temp,pname,getcode,args);
+  DataType *temp;
+  temp = NewDataType(0);
+  strcpy(temp->name,type);
+  temp->is_pointer = 0;
+  temp->type = T_USER;
+  typemap_register(op,lang,temp,pname,getcode,args);
+  DelDataType(temp);
 }
 
 
@@ -355,7 +357,7 @@ void typemap_register(char *op, char *lang, char *type, char *pname,
 void typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr,
 			   char *code, ParmList *args) {
 
-  DataType *t = new DataType(type);
+  DataType *t = NewDataType(type);
 
   // Create a raw datatype from the arguments
 
@@ -365,7 +367,7 @@ void typemap_register_default(char *op, char *lang, int type, int ptr, char *arr
   // Now, go register this as a default type
 
   typemap_register(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",code,args);
-  delete t;
+  DelDataType(t);
 }
 
 
@@ -747,11 +749,11 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
   // Still no idea, try to find a default typemap
 
   if (!result) {
-    DataType *t = new DataType(type);
+    DataType *t = CopyDataType(type);
     DataType_primitive(t); // Knock it down to its basic type
     result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     if (result) {
-      delete t;
+      DelDataType(t);
       return result;
     }
     if ((t->type == T_USER) || (t->is_pointer)) {
@@ -765,7 +767,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       DataType_primitive(t);
       result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     }
-    delete t;
+    DelDataType(t);
   }
   return result;
 }
@@ -902,11 +904,11 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 
   // If still no result, might have a default typemap
   if (!result) {
-    DataType *t = new DataType(type);
+    DataType *t = CopyDataType(type);
     DataType_primitive(t); // Knock it down to its basic type
     result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     if (result) {
-      delete t;
+      DelDataType(t);
       return result;
     }
     if ((t->type == T_USER) || (t->is_pointer)) {
@@ -919,7 +921,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       DataType_primitive(t);
       result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     }
-    delete t;
+    DelDataType(t);
   }
   return result;
 }

@@ -63,7 +63,7 @@ static int     lang_init = 0;      /* Indicates if the language has been initial
 static int            i;
        int            Error = 0;
 static char           temp_name[128];
-static DataType      *temp_typeptr, temp_type;
+static DataType      *temp_typeptr, *temp_type = 0;
 static char           yy_rename[256];
 static int            Rename_true = 0;
 static DataType      *Active_type = 0;         // Used to support variable lists
@@ -119,6 +119,7 @@ extern void cplus_abort();
 
 void parser_init() {
 	ArrayString = NewString("");
+	temp_type = NewDataType(0);
 }  
 
 // ----------------------------------------------------------------------
@@ -547,8 +548,8 @@ statement      : INCLUDE STRING LBRACE {
 
                 | extern type declaration array2 def_args {
 		    init_language();
-		    if (Active_type) delete Active_type;
-		    Active_type = new DataType($2);
+		    if (Active_type) DelDataType(Active_type);
+		    Active_type = CopyDataType($2);
 		    Active_extern = $1;
 		    $2->is_pointer += $3.is_pointer;
 		    if ($4 > 0) {
@@ -569,7 +570,7 @@ statement      : INCLUDE STRING LBRACE {
 		      } else
 			create_variable($1,$3.id,$2);
 		    }
-		  delete $2;
+		  DelDataType($2);
                 } stail { } 
 
 /* Global variable that smells like a function pointer */
@@ -584,7 +585,7 @@ statement      : INCLUDE STRING LBRACE {
 
    	        | STATIC type declaration array2 def_args {
 		  Active_static = 1;
-		  delete $2;
+		  DelDataType($2);
 		} stail {
 		  Active_static = 0;
 		}
@@ -602,13 +603,13 @@ statement      : INCLUDE STRING LBRACE {
 
                 | extern type declaration LPAREN parms RPAREN cpp_const {
 		    init_language();
-		    if (Active_type) delete Active_type;
-		    Active_type = new DataType($2);
+		    if (Active_type) DelDataType(Active_type);
+		    Active_type = CopyDataType($2);
 		    Active_extern = $1;
 		    $2->is_pointer += $3.is_pointer;
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
-		  delete $2;
+		  DelDataType($2);
 	          DelParmList($5);
 		} stail { } 
                
@@ -619,7 +620,7 @@ statement      : INCLUDE STRING LBRACE {
 		    $2->is_pointer += $3.is_pointer;
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
-		  delete $2;
+		  DelDataType($2);
 	          DelParmList($5);
 		};
 
@@ -627,11 +628,11 @@ statement      : INCLUDE STRING LBRACE {
 
                 | extern declaration LPAREN parms RPAREN cpp_const { 
                     init_language();
-		    DataType *t = new DataType(T_INT);
+		    DataType *t = NewDataType(T_INT);
                     t->is_pointer += $2.is_pointer;
 		    t->is_reference = $2.is_reference;
 		    create_function($1,$2.id,t,$4);
-		    delete t;
+		    DelDataType(t);
                 } stail { };
 
 /* A static function declaration code after it */
@@ -645,7 +646,7 @@ statement      : INCLUDE STRING LBRACE {
 		      create_function(0, $3.id, $2, $5);
 		    }
 		  }
-		  delete $2;
+		  DelDataType($2);
 	          DelParmList($5);
 		};
 
@@ -666,15 +667,15 @@ statement      : INCLUDE STRING LBRACE {
 		      }
 		      create_function(0, $3.id, $2, $5);
 		    }
-		  delete $2;
-		  DelParmList($5);
+		    DelDataType($2);
+		    DelParmList($5);
 		};
 
 /* A static function declaration (ignored) */
 
                 | STATIC type declaration LPAREN parms RPAREN cpp_const {
 		  Active_static = 1;
-		  delete $2;
+		  DelDataType($2);
 		  DelParmList($5);
 		} stail {
 		  Active_static = 0;
@@ -749,7 +750,7 @@ statement      : INCLUDE STRING LBRACE {
 		     lang->add_native($3,$7.id,$6,$9);
 		   }
 		 }
-		 delete $6;
+		 DelDataType($6);
 		 DelParmList($9);
 	       }
 
@@ -886,9 +887,9 @@ statement      : INCLUDE STRING LBRACE {
                | CONSTANT ID definetype SEMI {
 		   if (($3.type != T_ERROR) && ($3.type != T_SYMBOL)) {
 		     init_language();
-		     temp_typeptr = new DataType($3.type);
+		     temp_typeptr = NewDataType($3.type);
 		     create_constant($2, temp_typeptr, $3.id);
-		     delete temp_typeptr;
+		     DelDataType(temp_typeptr);
 		   } else if ($3.type == T_SYMBOL) {
 		     // Add a symbol to the SWIG symbol table
 		     if (add_symbol($2)) {
@@ -903,11 +904,11 @@ statement      : INCLUDE STRING LBRACE {
                | extern ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE SEMI { 
 		   init_language();
 		   if ($3) {
-		     temp_type.type = T_INT;
-		     temp_type.is_pointer = 0;
-		     temp_type.implicit_ptr = 0;
-		     sprintf(temp_type.name,"int");
-		     DataType_typedef_add(&temp_type,$3,1);
+		     temp_type->type = T_INT;
+		     temp_type->is_pointer = 0;
+		     temp_type->implicit_ptr = 0;
+		     sprintf(temp_type->name,"int");
+		     DataType_typedef_add(temp_type,$3,1);
 		   }
 	       }
 
@@ -915,12 +916,12 @@ statement      : INCLUDE STRING LBRACE {
 
                | TYPEDEF ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE ID {
 		   init_language();
-		   temp_type.type = T_INT;
-		   temp_type.is_pointer = 0;
-		   temp_type.implicit_ptr = 0;
-		   sprintf(temp_type.name,"int");
-		   Active_typedef = new DataType(&temp_type);
-		   DataType_typedef_add(&temp_type,$8,1);
+		   temp_type->type = T_INT;
+		   temp_type->is_pointer = 0;
+		   temp_type->implicit_ptr = 0;
+		   sprintf(temp_type->name,"int");
+		   Active_typedef = CopyDataType(temp_type);
+		   DataType_typedef_add(temp_type,$8,1);
 	       } typedeflist { }
 
 /* -----------------------------------------------------------------
@@ -1139,7 +1140,7 @@ doc_enable     : DOC_DISABLE {
 typedef_decl   : TYPEDEF type declaration {
 		   init_language();
 		   /* Add a new typedef */
-		   Active_typedef = new DataType($2);
+		   Active_typedef = CopyDataType($2);
 		   $2->is_pointer += $3.is_pointer;
 		   DataType_typedef_add($2, $3.id,0);
 		   /* If this is %typedef, add it to the header */
@@ -1163,7 +1164,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$5,1);
 		   cplus_register_type($5);
-		 delete $2;
+		 DelDataType($2);
 		 delete $5;
 		 DelParmList($8);
 	       }
@@ -1185,7 +1186,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$6,1);
 		   cplus_register_type($6);
-		 delete $2;
+		 DelDataType($2);
 		 delete $6;
 		 DelParmList($9);
 	       }
@@ -1194,7 +1195,7 @@ typedef_decl   : TYPEDEF type declaration {
 
                | TYPEDEF type declaration array {
 		   init_language();
-		   Active_typedef = new DataType($2);
+		   Active_typedef = CopyDataType($2);
 		   // This datatype is going to be readonly
 			
 		   $2->status = STAT_READONLY | STAT_REPLACETYPE;
@@ -1222,22 +1223,22 @@ typedef_decl   : TYPEDEF type declaration {
 typedeflist   : COMMA declaration typedeflist {
 		  if (Active_typedef) {
 		    DataType *t;
-		    t = new DataType(Active_typedef);
+		    t = CopyDataType(Active_typedef);
 		    t->is_pointer += $2.is_pointer;
 		    DataType_typedef_add(t,$2.id,0);
 		    cplus_register_type($2.id);
-		    delete t;
+		    DelDataType(t);
 		  }
               }
               | COMMA declaration array {
 		    DataType *t;
-		    t = new DataType(Active_typedef);
+		    t = CopyDataType(Active_typedef);
 		    t->status = STAT_READONLY | STAT_REPLACETYPE;
 		    t->is_pointer += $2.is_pointer + 1;
 		    t->arraystr = copy_string(Char(ArrayString));
 		    DataType_typedef_add(t,$2.id,0);
 		    cplus_register_type($2.id);
-		    delete t;
+		    DelDataType(t);
     		    fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap.\n",input_file,line_number, $2.id);
 	      }
               | empty { }
@@ -1266,7 +1267,7 @@ pragma         : PRAGMA LPAREN ID COMMA ID stylearg RPAREN {
 stail          : SEMI { }
                | COMMA declaration array2 def_args {
 		 init_language();
-		 temp_typeptr = new DataType(Active_type);
+		 temp_typeptr = CopyDataType(Active_type);
 		 temp_typeptr->is_pointer += $2.is_pointer;
 		 if ($3 > 0) {
 		   temp_typeptr->is_pointer++;
@@ -1287,15 +1288,15 @@ stail          : SEMI { }
 		   } else
 		     create_variable(Active_extern, $2.id, temp_typeptr);
 		 }
-		 delete temp_typeptr;
+		 DelDataType(temp_typeptr);
 	       } stail { } 
                | COMMA declaration LPAREN parms RPAREN cpp_const {
 		 init_language();
-		 temp_typeptr = new DataType(Active_type);
+		 temp_typeptr = CopyDataType(Active_type);
 		 temp_typeptr->is_pointer += $2.is_pointer;
 		 temp_typeptr->is_reference = $2.is_reference;
 		 create_function(Active_extern, $2.id, temp_typeptr, $4);
-		 delete temp_typeptr;
+		 DelDataType(temp_typeptr);
 		 DelParmList($4);
 	       } stail { }
               ;
@@ -1373,7 +1374,7 @@ parm_type      : type pname {
 		      $$->call_type = CALL_REFERENCE;
 		      $$->t->is_pointer++;
 		    }
-		    delete $1;
+		    DelDataType($1);
 		    delete $2;
                  }
 
@@ -1387,7 +1388,7 @@ parm_type      : type pname {
 		     // Add array string to the type
 		     $$->t->arraystr = copy_string(Char(ArrayString));
 		    }
-		   delete $1;
+		   DelDataType($1);
 		   delete $3;
 		}
 
@@ -1400,7 +1401,7 @@ parm_type      : type pname {
 		  if (!CPlusPlus) {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
-		  delete $1;
+		  DelDataType($1);
 		  delete $3;
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
@@ -1410,13 +1411,13 @@ parm_type      : type pname {
 		  $$->t->type = T_ERROR;
 		  $$->name = copy_string($4);
 		  strcpy($$->t->name,"<function ptr>");
-		  delete $1;
+		  DelDataType($1);
 		  delete $4;
 		  DelParmList($7);
 		}
                 | PERIOD PERIOD PERIOD {
                   fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
-		  $$ = NewParm(new DataType(T_INT),(char *) "varargs");
+		  $$ = NewParm(NewDataType(T_INT),(char *) "varargs");
 		  $$->t->type = T_ERROR;
 		  $$->name = copy_string((char*)"varargs");
 		  strcpy($$->t->name,"<varargs>");
@@ -1571,7 +1572,7 @@ type           : TYPE_INT {
 		  }
 	       }
                | ID objc_protolist {
-		  $$ = new DataType;
+		  $$ = NewDataType(0);
 		  strcpy($$->name,$1);
 		  $$->type = T_USER;
 		  /* Do a typedef lookup */
@@ -1591,12 +1592,12 @@ type           : TYPE_INT {
 		  strcpy($$->qualifier,"const");
      	       }
                | cpptype ID {
-                  $$ = new DataType;
+                  $$ = NewDataType(0);
 		  sprintf($$->name,"%s %s",$1, $2);
 		  $$->type = T_USER;
 	       }
                | ID DCOLON ID {
-                  $$ = new DataType;
+                  $$ = NewDataType(0);
                   sprintf($$->name,"%s::%s",$1,$3);
                   $$->type = T_USER;
 		  DataType_typedef_resolve($$,0);
@@ -1605,13 +1606,13 @@ type           : TYPE_INT {
 
 
                | DCOLON ID {
-                  $$ = new DataType;
+                  $$ = NewDataType(0);
                   sprintf($$->name,"%s", $2);
                   $$->type = T_USER;
                   DataType_typedef_resolve($$,1);
                }
                | ENUM ID {
-                  $$ = new DataType;
+                  $$ = NewDataType(0);
                   sprintf($$->name,"enum %s", $2);
                   $$->type = T_INT;
                   DataType_typedef_resolve($$,1);
@@ -1662,7 +1663,7 @@ strict_type    : TYPE_INT {
 		  strcpy($$->qualifier,"const");
      	       }
                | cpptype ID {
-                  $$ = new DataType;
+                  $$ = NewDataType(0);
 		  sprintf($$->name,"%s %s",$1, $2);
 		  $$->type = T_USER;
 	       }
@@ -1788,19 +1789,19 @@ enumlist       :  enumlist COMMA edecl {}
 
 
 edecl          :  ID {
-		   temp_typeptr = new DataType(T_INT);
+		   temp_typeptr = NewDataType(T_INT);
 		   create_constant($1, temp_typeptr, $1);
-		   delete temp_typeptr;
+		   DelDataType(temp_typeptr);
 		 } 
                  | ID EQUAL { scanner_check_typedef();} etype {
-		   temp_typeptr = new DataType($4.type);
+		   temp_typeptr = NewDataType($4.type);
 // Use enum name instead of value
 // OLD		   create_constant($1, temp_typeptr, $4.id);
 	           if ($4.type == T_CHAR) 
 	               create_constant($1,temp_typeptr, $4.id);
 		   else
 		     create_constant($1, temp_typeptr, $1);
-		   delete temp_typeptr;
+		   DelDataType(temp_typeptr);
   	           scanner_ignore_typedef();
                  }
                  | empty { }
@@ -2083,7 +2084,7 @@ cpp_class    :
 		  }
 		}
 		// Create a datatype for correctly processing the typedef
-		Active_typedef = new DataType();
+		Active_typedef = NewDataType(0);
 		Active_typedef->type = T_USER;
 		sprintf(Active_typedef->name,"%s %s", $2,$3);
 		Active_typedef->is_pointer = 0;
@@ -2121,11 +2122,11 @@ cpp_class    :
 		if ($9.is_pointer == 0)
 		  DataType_typedef_add(Active_typedef,$9.id,0);
 		else {
-		  DataType *t = new DataType(Active_typedef);
+		  DataType *t = CopyDataType(Active_typedef);
 		  t->is_pointer += $9.is_pointer;
 		  DataType_typedef_add(t,$9.id,0);
 		  cplus_register_type($9.id);
-		  delete t;
+		  DelDataType(t);
 		}
 		cplus_mode = CPLUS_PUBLIC;
 	      } typedeflist { };
@@ -2162,7 +2163,7 @@ cpp_class    :
 		  }
 		}
 		// Create a datatype for correctly processing the typedef
-		Active_typedef = new DataType();
+		Active_typedef = NewDataType(0);
 		Active_typedef->type = T_USER;
 		sprintf(Active_typedef->name,"%s",$7.id);
 		Active_typedef->is_pointer = 0;
@@ -2206,7 +2207,7 @@ cpp_other    :/* A dummy class name */
 		  sprintf(yy_rename,"%s_%s",$3.id,$5);
 		}
 		create_function($1, temp_name, $2, $7);
-		delete $2;
+		DelDataType($2);
 		DelParmList($7);
 	      }
  
@@ -2224,7 +2225,7 @@ cpp_other    :/* A dummy class name */
 		 sprintf(yy_rename,"%s_%s",$3.id,$5);
 	       }
 	       create_variable($1,temp_name, $2);
-	       delete $2;
+	       DelDataType($2);
 	     }
 
 /* Operator overloading catch */
@@ -2232,7 +2233,7 @@ cpp_other    :/* A dummy class name */
              | extern type declaration DCOLON OPERATOR {
 	       fprintf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
-		delete $2;
+		DelDataType($2);
 	     } 
 
 
@@ -2292,7 +2293,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_member_func($2.id, iname, $1,$4,0);
 		}
 		scanner_clear_start();
-		delete $1;
+		DelDataType($1);
 	        DelParmList($4);
               }
  
@@ -2309,7 +2310,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		 cplus_member_func($3.id,iname,$2,$5,1);
 	       }
 	       scanner_clear_start();
-	       delete $2;
+	       DelDataType($2);
 	       DelParmList($5);
 	     }
 
@@ -2359,8 +2360,8 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (Active_type) delete Active_type;
-		  Active_type = new DataType($1);
+		  if (Active_type) DelDataType(Active_type);
+		  Active_type = CopyDataType($1);
 		  $1->is_pointer += $2.is_pointer;
 		  $1->is_reference = $2.is_reference;
 		  if ($1->qualifier) {
@@ -2397,7 +2398,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  }
 		}
 		scanner_clear_start();
-		delete $1;
+		DelDataType($1);
 	      } cpp_tail { }
 
               | type declaration array def_args {
@@ -2406,8 +2407,8 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		char *tm = 0;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (Active_type) delete Active_type;
-		  Active_type = new DataType($1);
+		  if (Active_type) DelDataType(Active_type);
+		  Active_type = CopyDataType($1);
 		  $1->is_pointer += $2.is_pointer + 1;
 		  $1->is_reference = $2.is_reference;
 		  $1->arraystr = copy_string(Char(ArrayString));
@@ -2422,7 +2423,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		    fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
 		}
 		scanner_clear_start();
-		delete $1;
+		DelDataType($1);
 	      }
   
 
@@ -2436,11 +2437,11 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  iname = make_name($3.id);
 		  if (iname == $3.id) iname = 0;
 		  cplus_static_var($3.id,iname,$2);
-		  if (Active_type) delete Active_type;
-		  Active_type = new DataType($2);
+		  if (Active_type) DelDataType(Active_type);
+		  Active_type = CopyDataType($2);
 		}
 		scanner_clear_start();
-		delete $2;
+		DelDataType($2);
 	      } cpp_tail { }
 
 /* Static member function */
@@ -2455,7 +2456,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_static_func($3.id, iname, $2, $5);
 		}
 		scanner_clear_start();
-		delete $2;
+		DelDataType($2);
 		DelParmList($5);
 	      }
 /* Turn on public: mode */
@@ -2501,11 +2502,11 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if ($2) {
 		    cplus_register_type($2);
-		    temp_type.type = T_INT;
-		    temp_type.is_pointer = 0;
-		    temp_type.implicit_ptr = 0;
-		    sprintf(temp_type.name,"int");
-		    DataType_typedef_add(&temp_type,$2,1); 
+		    temp_type->type = T_INT;
+		    temp_type->is_pointer = 0;
+		    temp_type->implicit_ptr = 0;
+		    sprintf(temp_type->name,"int");
+		    DataType_typedef_add(temp_type,$2,1); 
 		  }
 		}
 	      }
@@ -2583,7 +2584,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 			      Char(CCode), " $classname_", $5.id, ";\n", 0);
 		      n->name = copy_string($5.id);
 		      n->line = start_line;
-		      n->type = new DataType;
+		      n->type = NewDataType(0);
 		      n->type->type = T_USER;
 		      n->type->is_pointer = $5.is_pointer;
 		      n->type->is_reference = $5.is_reference;
@@ -2609,7 +2610,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 			    Char(CCode), " $classname_", $4.id, ";\n",0);
 		    n->name = copy_string($4.id);
 		    n->line = start_line;
-		    n->type = new DataType;
+		    n->type = NewDataType(0);
 		    n->type->type = T_USER;
 		    n->type->is_pointer = $4.is_pointer;
 		    n->type->is_reference = $4.is_reference;
@@ -2662,7 +2663,7 @@ cpp_tail      : SEMI { }
 		 
 		 init_language();
 		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = new DataType(Active_type);
+		   temp_typeptr = CopyDataType(Active_type);
 		   temp_typeptr->is_pointer += $2.is_pointer;
 		   if (temp_typeptr->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,temp_typeptr,$2.id,(char*)"",(char*)""))) 
@@ -2670,7 +2671,7 @@ cpp_tail      : SEMI { }
 		   }
 		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
 		   Status = oldstatus;
-		   delete temp_typeptr;
+		   DelDataType(temp_typeptr);
 		 }
 		 scanner_clear_start();
 	       } cpp_tail { } 
@@ -2680,7 +2681,7 @@ cpp_tail      : SEMI { }
 		 
 		 init_language();
 		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = new DataType(Active_type);
+		   temp_typeptr = CopyDataType(Active_type);
 		   temp_typeptr->is_pointer += $2.is_pointer;
 		   if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,temp_typeptr,$2.id,(char*)"",(char*)""))) 
 		     Status = Status | STAT_READONLY;
@@ -2689,7 +2690,7 @@ cpp_tail      : SEMI { }
 		   Status = oldstatus;
 		   if (!tm)
 		     fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
-		   delete temp_typeptr;
+		   DelDataType(temp_typeptr);
 		 }
 		 scanner_clear_start();
 	       } cpp_tail { } 
@@ -2712,35 +2713,35 @@ cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
 
 cpp_edecl      :  ID {
 		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = new DataType(T_INT);
+		   temp_typeptr = NewDataType(T_INT);
 		   cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
-		   delete temp_typeptr;
+		   DelDataType(temp_typeptr);
 		   scanner_clear_start();
 		 }
 }
                  | ID EQUAL etype {
 		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = new DataType(T_INT);
+		     temp_typeptr = NewDataType(T_INT);
 		     cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
 		     // OLD : Bug with value     cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
-		     delete temp_typeptr;
+		     DelDataType(temp_typeptr);
 		     scanner_clear_start();
 		   }
 		 }
                  | NAME LPAREN ID RPAREN ID {
 		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = new DataType(T_INT);
+		     temp_typeptr = NewDataType(T_INT);
 		     cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
-		     delete temp_typeptr;
+		     DelDataType(temp_typeptr);
 		     scanner_clear_start();
 		   }
 		 }
                  | NAME LPAREN ID RPAREN ID EQUAL etype {
 		     if (cplus_mode == CPLUS_PUBLIC) {
-		       temp_typeptr = new DataType(T_INT);
+		       temp_typeptr = NewDataType(T_INT);
 		       cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
 // Old : bug with value	       cplus_declare_const($5,$3, temp_typeptr,$7.id);
-		       delete temp_typeptr;
+		       DelDataType(temp_typeptr);
 		       scanner_clear_start();
 		     }
 		 }
@@ -2968,8 +2969,8 @@ objc_var       : type declaration {
 		   int oldstatus = Status;
 		   char *tm;
 		   char *iname;
-		   if (Active_type) delete Active_type;
-		   Active_type = new DataType($1);
+		   if (Active_type) DelDataType(Active_type);
+		   Active_type = CopyDataType($1);
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
 		   if ($1->status & STAT_READONLY) {
@@ -2982,14 +2983,14 @@ objc_var       : type declaration {
 		   Status = oldstatus; 
 		 }
 		 scanner_clear_start();
-		 delete $1;
+		 DelDataType($1);
                }
                | type declaration array { 
 		 if (cplus_mode == CPLUS_PUBLIC) {
 		   int oldstatus = Status;
 		   char *tm, *iname;
-		   if (Active_type) delete Active_type;
-		   Active_type = new DataType($1);
+		   if (Active_type) DelDataType(Active_type);
+		   Active_type = CopyDataType($1);
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
 		   $1->arraystr = copy_string(Char(ArrayString));
@@ -3003,7 +3004,7 @@ objc_var       : type declaration {
 		   Status = oldstatus; 
 		 }
 		 scanner_clear_start();
-		 delete $1;
+		 DelDataType($1);
 	       }
                | NAME LPAREN ID RPAREN {
                     strcpy(yy_rename,$3);
@@ -3014,7 +3015,7 @@ objc_vartail   : COMMA declaration objc_vartail {
                  if (cplus_mode == CPLUS_PUBLIC) {
 		   int oldstatus = Status;
 		   char *tm, *iname;
-		   DataType *t = new DataType (Active_type);
+		   DataType *t = CopyDataType (Active_type);
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
 		   if (t->status & STAT_READONLY) {
@@ -3025,7 +3026,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,t);
 		   Status = oldstatus; 
-		   delete t;
+		   DelDataType(t);
 		 }
 		 scanner_clear_start();
                }
@@ -3034,7 +3035,7 @@ objc_vartail   : COMMA declaration objc_vartail {
                  if (cplus_mode == CPLUS_PUBLIC) {
 		   int oldstatus = Status;
 		   char *tm;
-		   DataType *t = new DataType (Active_type);
+		   DataType *t = CopyDataType (Active_type);
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
 		   t->arraystr = copy_string(Char(ArrayString));
@@ -3046,7 +3047,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,t);
 		   Status = oldstatus; 
-		   delete t;
+		   DelDataType(t);
 		 }
 		 scanner_clear_start();
                }
@@ -3093,7 +3094,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 		   if (iname == $3) iname = 0;
 		   cplus_member_func($3,iname,$2,$4,0);
 		   scanner_clear_start();
-		   delete $2;
+		   DelDataType($2);
 		   delete $3;
 		   DelParmList($4);
 		 }
@@ -3111,7 +3112,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 		   cplus_static_func($3,iname,$2,$4);
 		 }
                  scanner_clear_start();
-                 delete $2;
+                 DelDataType($2);
                  delete $3;
                  DelParmList($4);
                }
@@ -3129,7 +3130,7 @@ objc_ret_type  : LPAREN type RPAREN {
                   $$->is_pointer += $3;
                }
                | empty {       /* Empty type means "id" type */
-                  $$ = new DataType(T_VOID);
+                  $$ = NewDataType(T_VOID);
 		  sprintf($$->name,"id");
                   $$->is_pointer = 1;
                   $$->implicit_ptr = 1;
@@ -3137,11 +3138,11 @@ objc_ret_type  : LPAREN type RPAREN {
                ;
 
 objc_arg_type  : LPAREN parm RPAREN { 
-                  $$ = new DataType($2->t);
+                  $$ = CopyDataType($2->t);
 		  DelParm($2);
                  }
                | empty { 
-                  $$ = new DataType(T_VOID);
+                  $$ = NewDataType(T_VOID);
 		  sprintf($$->name,"id");
                   $$->is_pointer = 1;
                   $$->implicit_ptr = 1;
@@ -3241,7 +3242,7 @@ typemap_parm   : type typemap_name {
                     $$->p = NewParm($1,$2);
 		    $$->p->call_type = 0;
 		    $$->args = tm_parm;
-		    delete $1;
+		    DelDataType($1);
 		    delete $2;
                  }
 
@@ -3255,7 +3256,7 @@ typemap_parm   : type typemap_name {
 		     $$->p->t->arraystr = copy_string(Char(ArrayString));
 		    }
 		   $$->args = tm_parm;
-		   delete $1;
+		   DelDataType($1);
 		   delete $3;
 		}
 
@@ -3269,7 +3270,7 @@ typemap_parm   : type typemap_name {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
 		  $$->args = tm_parm;
-		  delete $1;
+		  DelDataType($1);
 		  delete $3;
 		}
                 | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
@@ -3281,7 +3282,7 @@ typemap_parm   : type typemap_name {
 		  $$->p->name = copy_string($4);
 		  strcpy($$->p->t->name,"<function ptr>");
 		  $$->args = tm_parm;
-		  delete $1;
+		  DelDataType($1);
 		  delete $4;
 		  DelParmList($7);
 		}

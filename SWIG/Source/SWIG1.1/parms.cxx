@@ -30,7 +30,7 @@ extern "C" {
 Parm *NewParm(DataType *type, char *n) {
   Parm *p = (Parm *) malloc(sizeof(Parm));
   if (type) {
-    p->t = new DataType(type);
+    p->t = CopyDataType(type);
   } else {
     p->t = 0;
   }
@@ -50,7 +50,7 @@ Parm *NewParm(DataType *type, char *n) {
 
 Parm *CopyParm(Parm *p) {
   Parm *np = (Parm *) malloc(sizeof(Parm));
-  if (p->t) np->t = new DataType(p->t);
+  if (p->t) np->t = CopyDataType(p->t);
   np->name = copy_string(p->name);
   np->call_type = p->call_type;
   np->defvalue = copy_string(p->defvalue);
@@ -66,7 +66,7 @@ Parm *CopyParm(Parm *p) {
 // ------------------------------------------------------------------------
 
 void DelParm(Parm *p) {
-  if (p->t) delete p->t;
+  if (p->t) DelDataType(p->t);
   if (p->name) delete p->name;
   if (p->defvalue) delete p->defvalue;
   if (p->objc_separator) delete p->objc_separator;

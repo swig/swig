@@ -210,7 +210,7 @@ public:
   CPP_function(char *n, char *i, DataType *t, ParmList *l, int s, int v = 0) {
     name = copy_string(n);
     iname = copy_string(i);
-    ret_type = new DataType(t);
+    ret_type = CopyDataType(t);
     parms = CopyParmList(l);
     is_static = s;
     is_virtual = v;
@@ -266,7 +266,7 @@ public:
     // Make a copy of the parameter list and upgrade its types
 
     l = CopyParmList(parms);
-    t = new DataType(ret_type);
+    t = CopyDataType(ret_type);
     update_parms(l);
     update_local_type(t);
     if (is_static) {
@@ -275,7 +275,7 @@ public:
       lang->cpp_member_func(name, iname, t, l);
     }
     DelParmList(l);
-    delete t;
+    DelDataType(t);
     IsVirtual = 0;
   }
 };
@@ -377,7 +377,7 @@ public:
   CPP_variable(char *n, char *i, DataType *t, int s) {
     name = copy_string(n);
     iname = copy_string(i);
-    type = new DataType(t);
+    type = CopyDataType(t);
     is_static = s;
     status = Status;
     next = 0;
@@ -404,7 +404,7 @@ public:
     input_file = file;
     ccode = code;
 
-    t = new DataType(type);
+    t = CopyDataType(type);
     if (t->qualifier) {
       //      if (strcmp(t->qualifier,"const") == 0) Status = Status | STAT_READONLY;
     }
@@ -415,7 +415,7 @@ public:
       lang->cpp_static_var(name,iname,t);
     }
     Status = old_status;
-    delete t;
+    DelDataType(t);
   }
 
   // Inherit into another class
@@ -453,7 +453,7 @@ public:
   CPP_constant(char *n, char *i, DataType *t, char *v) {
     name = copy_string(n);
     iname = copy_string(i);
-    type = new DataType(t);
+    type = CopyDataType(t);
     value = copy_string(v);
     new_method = AddMethods;
     next = 0;
@@ -1621,7 +1621,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       
       newparms = CopyParmList(l);
       p = NewParm(0,0);
-      p->t = new DataType;
+      p->t = NewDataType(0);
       p->t->type = T_USER;
       p->t->is_pointer = 1;
       p->t->id = cpp_id;
@@ -1917,7 +1917,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     
     l = NewParmList();
     p = NewParm(0,0);
-    p->t = new DataType;
+    p->t = NewDataType(0);
     p->t->type = T_USER;
     p->t->is_pointer = 1;
     p->t->id = cpp_id;
@@ -1926,7 +1926,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     p->name = (char*)"self";
     ParmList_insert(l,p,0);
     
-    type = new DataType;
+    type = NewDataType(0);
     type->type = T_VOID;
     sprintf(type->name,"void");
     type->is_pointer = 0;
@@ -1936,7 +1936,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 
     lang->create_function(cname,iname,type,l);
 
-    delete type;
+    DelDataType(type);
     DelParmList(l);
     Delete(wrap);
 }
@@ -1990,7 +1990,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 
     // Create a return type
 
-    type = new DataType;
+    type = NewDataType(0);
     type->type = T_USER;
     sprintf(type->name,"%s%s", classtype,classname);
     type->is_pointer = 1;
@@ -2078,7 +2078,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     // We've now created a C wrapper.  We're going to add it to the interpreter
 
     lang->create_function(cname, iname, type, l);
-    delete type;
+    DelDataType(type);
     Delete(wrap);
     Delete(fcall);
 }
@@ -2229,7 +2229,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
       l = NewParmList();
       p = NewParm(0,0);
-      p->t =  new DataType;
+      p->t =  NewDataType(0);
       p->t->type = T_USER;
       p->t->is_pointer = 1;
       p->t->id = cpp_id;
@@ -2449,7 +2449,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       
       l = NewParmList();
       p = NewParm(0,0);
-      p->t = new DataType(type);
+      p->t = CopyDataType(type);
       p->t->is_reference = 0;
       p->call_type = 0;	
       p->t->id = cpp_id;
@@ -2460,7 +2460,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	p->name = mname;
       ParmList_insert(l,p,0);
       p = NewParm(0,0);
-      p->t =  new DataType;
+      p->t =  NewDataType(0);
       p->t->type = T_USER;
       p->call_type = 0;	
       p->t->is_pointer = 1;
