@@ -9,14 +9,14 @@ use example;
 # ----- Object creation -----
 
 print "Creating some objects:\n";
-$c = examplec::new_Circle(10);
+$c = new example::Circle(10);
 print "    Created circle $c\n";
-$s = examplec::new_Square(10);
+$s = new example::Square(10);
 print "    Created square $s\n";
 
 # ----- Access a static member -----
 
-print "\nA total of $examplec::Shape_nshapes shapes were created\n";
+print "\nA total of $example::Shape::nshapes shapes were created\n";
 
 # ----- Member data access -----
 
@@ -24,34 +24,33 @@ print "\nA total of $examplec::Shape_nshapes shapes were created\n";
 # Note: methods in the base class Shape are used since
 # x and y are defined there.
 
-examplec::Shape_x_set($c, 20);
-examplec::Shape_y_set($c, 30);
-examplec::Shape_x_set($s,-10);
-examplec::Shape_y_set($s,5);
+$c->{x} = 20;
+$c->{y} = 30;
+$s->{x} = -10;
+$s->{y} = 5;
 
 print "\nHere is their current position:\n";
-print "    Circle = (",examplec::Shape_x_get($c),",", examplec::Shape_y_get($c),")\n";
-print "    Square = (",examplec::Shape_x_get($s),",", examplec::Shape_y_get($s),")\n";
+print "    Circle = (",$c->{x},",", $c->{y},")\n";
+print "    Square = (",$s->{x},",", $s->{y},")\n";
 
 # ----- Call some methods -----
 
 print "\nHere are some properties of the shapes:\n";
 foreach $o ($c,$s) {
       print "    $o\n";
-      print "        area      = ", examplec::Shape_area($o), "\n";
-      print "        perimeter = ", examplec::Shape_perimeter($o), "\n";
+      print "        area      = ", $o->area(), "\n";
+      print "        perimeter = ", $o->perimeter(), "\n";
   }
-# Notice how the Shape_area() and Shape_perimeter() functions really
-# invoke the appropriate virtual method on each object.
 
 # ----- Delete everything -----
 
 print "\nGuess I'll clean up now\n";
 
 # Note: this invokes the virtual destructor
-examplec::delete_Shape($c);
-examplec::delete_Shape($s);
 
-print $examplec::Shape_nshapes," shapes remain\n";
+$c->DESTROY();
+$s->DESTROY();
+
+print $example::Shape::nshapes," shapes remain\n";
 print "Goodbye\n";
 
