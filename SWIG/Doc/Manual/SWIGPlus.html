@@ -35,7 +35,7 @@ use in other languages.  In order for this to work, a "component" has
 to contain real executable instructions and there has to be some kind
 of binary linking mechanism for accessing its functionality.  In
 contrast, C++ has increasingly relied upon generic programming and
-templates (i.e., glorified macros) for much of its functionality.
+templates for much of its functionality.
 Although templates are a powerful feature, they are largely orthogonal
 to the whole notion of binary components and libraries.  For example,
 an STL <tt>vector</tt> does not define any kind of binary object for
@@ -48,27 +48,47 @@ problems in a C++-only universe, it greatly complicates the problem of
 crossing language boundaries and provides many opportunities to shoot
 yourself in the foot.  You will have to be careful.
 
+<h2>Approach</h2>
+
+To wrap C++, SWIG uses a layered approach to code generation.  
+At the lowest level, SWIG generates a collection of procedural ANSI-C style
+wrappers.   These wrappers are responsible for basic type conversion,
+type checking, error handling, and other details of the C++ binding.
+These wrappers are also sufficient to bind C++ into any target language
+that supports built-in procedures.   In some sense, you might view this
+layer of wrapping as providing a C library interface to C++.
+Optionally, SWIG can also generate proxy classes 
+that provide a natural OO interface to the underlying code.  These proxies
+are built on top of the low-level procedural wrappers and are typically
+written in the target language itself.  For instance, in Python, a real
+Python class is used to provide a wrapper around the underlying C++ object.
+
 <p>
-To wrap C++, SWIG takes a deliberately conservative, low-level, and
-non-intrusive approach.  For one, SWIG generates all of its C++
-wrappers so that they have standard ANSI C linkage.  This low-level
-interface is then used as a basis for building the resulting scripting
-language module (which may or may not utilize OO features).  Second,
-SWIG does not encapsulate C++ classes inside special adaptor or proxy
-classes, it does not rely upon additional template magic, nor does it
-use C++ inheritance.  The last thing that most C++ programs need is
+It is important to emphasize that SWIG takes a deliberately
+conservative and non-intrusive approach to C++ wrapping. SWIG does not
+encapsulate C++ classes inside special C++ adaptor or proxy classes,
+it does not rely upon templates, nor does it use C++ inheritance when
+generating wrappers.  The last thing that most C++ programs need is
 even more compiler magic.  Therefore, SWIG tries to maintain a very
 strict and clean separation between the implementation of your C++
 application and the resulting wrapper code. You might say that SWIG
 has been written to follow the principle of least surprise--it does
 not play sneaky tricks with the C++ type system, it doesn't mess with
-your class hierarchies, and it doesn't introduce new semantics.  
+your class hierarchies, and it doesn't introduce new semantics.
 Although this approach might not provide the most seamless integration
 with C++, it is safe, simple, portable, and debuggable.
 
+<p>
+Most of this chapter focuses on the low-level procedural interface to
+C++ that is used as the foundation for all language modules.  Keep in
+mind that most target languages also provide a high-level OO interface via
+proxy classes.  A few general details about proxies can be found at the end of
+this chapter.  However, more detailed coverage can be found in the documentation
+for each target language.
+
 <h2>Supported C++ features</h2>
 
-SWIG currently supports the following C++ features :<p>
+SWIG's currently supports the following C++ features :<p>
 <p>
 <ul>
 <li>Simple classes.
@@ -77,9 +97,9 @@ SWIG currently supports the following C++ features :<p>
 <li>Public inheritance (including multiple inheritance)
 <li>Static functions
 <li>Function and method overloading (with renaming)
-<li>Operator overloading for most standard operators
+<li>Operator overloading for many standard operators
 <li>References
-<li>Simple templates
+<li>Templates (including specialization and member templates).
 <li>Pointers to members
 <li>Namespaces
 </ul>
@@ -96,10 +116,36 @@ The following C++ features are not currently supported :<p>
 </ul>
 
 <p>
-SWIG's C++ support is always improving so some of these limitations may be lifted
+SWIG's C++ support is an ongoing project so some of these limitations may be lifted
 in future releases.  However, we make no promises.
 
-<h2> A simple C++ example</h2>
+<h2>Command line options and compilation</h2>
+
+<p>
+When wrapping C++ code, it is critical that SWIG be called with the
+`<tt>-c++</tt>' option. This changes the way a number of critical
+features such as memory management are handled. It
+also enables the recognition of C++ keywords. Without the <tt>-c++</tt>
+flag, SWIG will either issue a warning or a large number of syntax
+errors if it encounters C++ code in an interface file.<p>
+
+<P>
+When compiling and linking the resulting wrapper file,  it is normal
+to use the C++ compiler.  For example:
+
+<blockquote>
+<pre>
+$ swig -c++ -tcl example.i
+$ c++ -c example_wrap.cxx 
+$ c++ example_wrap.o $(OBJS) -o example.so
+</pre>
+</blockquote>
+
+Unfortunately, the process varies slightly on each machine.  Make sure
+you refer to the documentation on each target language for further
+details.  The SWIG Wiki also has further details.
+
+<h2>Simple C++ wrapping</h2>
 The following code shows a SWIG interface file for a simple C++
 class.<p>
 
@@ -123,14 +169,6 @@ public:
 static void print(List *l);
 };
 </pre></blockquote>
-
-<p>
-When compiling C++ code, it is critical that SWIG be called with the
-`<tt>-c++</tt>' option. This changes the way a number of critical
-features such as memory management are handled. It
-also enables the recognition of C++ keywords. Without the <tt>-c++</tt>
-flag, SWIG will either issue a warning or a large number of syntax
-errors if it encounters C++ code in an interface file.<p>
 
 <h3>Constructors and destructors</h3>
 
@@ -339,20 +377,21 @@ example.i:15. Warning. Can't set default argument (ignored)
 This incompatibility arises because default values in C++ are
 evaluated in the same scope as the member function whereas SWIG
 evaluates them in the scope of a wrapper function (meaning that the
-values have to be publically accessible).  The full set of arguments
+values have to be public).  The full set of arguments
 are needed in the wrappers in order to support a number of advanced
 customization features and the use of default arguments in ANSI C
 (which is not part of the ANSI standard).
 
 <p>
-There are several somewhat clumsy ways to work around this problem.
-However, a simpler solution may be to reconsider your design--is it
-really <em>that</em> critical to make the default argument private?
+There are several somewhat clumsy ways to work around this problem
+(which are not discussed here). However, a simpler solution may be to
+reconsider your design--is it really <em>that</em> critical to make
+the default argument private?
 
 <h3> Member data</h3>
 
 Member data is handled in exactly the same manner as for C
-structures. A pair of accessor functions will be created. For example
+structures. A pair of accessor functions are created. For example
 :<p>
 
 <p>
@@ -468,7 +507,8 @@ until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).<p>
 
 <p>
-<b>ADD: Protection and default values</b>
+A subtle access problem relates to default values of member functions.  Specifically,
+default values must be public.   Please go back to the section on default arguments for further details.
 
 <h2>Enums and constants</h2>
 
@@ -549,7 +589,7 @@ Foo *Bar_spam(Bar *obj) {
 </pre>
 </blockquote>
 
-Functions that return references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
+However, functions that return references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
 return the result as a value rather than a pointer.  For example, a function like this,
 
 <blockquote>
@@ -732,9 +772,8 @@ the attributes <tt>x</tt> and <tt>y</tt> are generated as
 
 <p>
 Although the low-level C-like interface is functional, most language
-modules also produce a higher level OO interface using a technique
-known as shadow classing.  This approach is described shortly and can be
-used to provide a more natural C++ interface.
+modules also produce a higher level OO interface using proxy classes.
+This approach is described later and can be used to provide a more natural C++ interface.
 
 <p>
 <b>Note:</b>  For the best results, SWIG requires all
@@ -796,13 +835,119 @@ to inherit all of the declarations defined in base classes and
 regenerate specialized accessor functions such as
 <tt>Circle_x_get()</tt>, <tt>Square_x_get()</tt>,
 <tt>Circle_set_location()</tt>, and <tt>Square_set_location()</tt>.
-This old behavior results in huge amounts of replicated code for large
-class hierarchies and makes it awkward to build applications spread
+This behavior resulted in huge amounts of replicated code for large
+class hierarchies and made it awkward to build applications spread
 across multiple modules (since accessor functions are duplicated in
 every single module).   It is also unnecessary to have such wrappers
-when advanced features like shadow-classing are used.  Future versions
+when advanced features like proxy classes are used.  Future versions
 of SWIG may apply further optimizations such as not regenerating 
 wrapper functions for virtual members that are already defined in a base class.
+
+<h2>A brief discussion of multiple inheritance, pointers,  and type checking</h2>
+
+When a target scripting language refers to a C++ object, it normally
+uses a tagged pointer object that contains both the value of the
+pointer and a type string.  For example, in Tcl, a C++ pointer might
+be encoded as a string like this:
+
+<blockquote>
+<pre>
+_808fea88_p_Circle
+</pre>
+</blockquote>
+
+A somewhat common question is whether or not the type-tag could be safely
+removed from the pointer.  For instance, to get better performance, could you
+strip all type tags and just use simple integers instead?
+
+<p>
+In general, the answer to this question is no.  In the wrappers, all
+pointers are converted into a common data representation in the target
+language.  Typically this is the equivalent of casting a pointer to <tt>void *</tt>.
+This means that any C++ type information associated with the pointer is
+lost in the conversion.
+
+<p>
+The problem with losing type information is that it is needed to
+properly support many advanced C++ features--especially multiple
+inheritance.  For example, suppose you had code like this:
+
+<blockquote>
+<pre>
+class A {
+public:
+   int x;
+};
+
+class B {
+public:
+   int y;
+};
+
+class C : public A, public B {
+};
+
+int A_function(A *a) {
+   return a->x;
+}
+
+int B_function(B *b) {
+   return b->y;
+}
+</pre>
+</blockquote>
+
+Now, consider the following code that uses <tt>void *</tt>.
+
+<blockquote>
+<pre>
+C *c = new C();
+void *p = (void *) c;
+...
+int x = A_function((A *) p);
+int y = B_function((B *) p);
+</pre>
+</blockquote>
+
+In this code, both <tt>A_function()</tt> and <tt>B_function()</tt> may
+legally accept an object of type <tt>C *</tt> (via inheritance).
+However, one of the functions will always return the wrong result when
+used as shown. The reason for this is that even though <tt>p</tt>
+points to an object of type <tt>C</tt>, the casting operation doesn't
+work like you would expect.  Internally, this has to do with the data
+representation of <tt>C</tt>. With multiple inheritance, the data from
+each base class is stacked together.  For example:
+
+<blockquote>
+<pre>
+             ------------    &lt;--- (C *),  (A *)
+            |     A      |
+            |------------|   &lt;--- (B *)
+            |     B      |
+             ------------   
+</pre>
+</blockquote>
+
+Because of this stacking, a pointer of type <tt>C *</tt> may change
+value when it is converted to a <tt>A *</tt> or <tt>B *</tt>.
+However, this adjustment does <em>not</em> occur if you are converting from a
+<tt>void *</tt>.
+
+<p>
+The use of type tags marks all pointers with the real type of the
+underlying object.  This extra information is then used by SWIG
+generated wrappers to correctly cast pointer values under inheritance
+(avoiding the above problem). 
+
+<p>
+One might be inclined to fix this problem using some variation of
+<tt>dynamic_cast&lt;&gt;</tt>.  The only problem is that it doesn't
+work with <tt>void</tt> pointers, it requires RTTI support, and it
+only works with polymorphic classes (i.e., classes that define one or
+more virtual functions).
+
+<p>
+The bottom line: learn to live with type-tagged pointers.
 
 <h2>Renaming</h2>
 
@@ -2490,9 +2635,9 @@ SWIG knows that <tt>Integer</tt> is the same as <tt>A::Integer</tt> which
 is the same as <tt>int</tt>.  
 
 <P>
-Namespaces may be combined with templates.  However, when you use the <tt>%template</tt> directive, the
-template in question must be available in the same scope in which the <tt>%template</tt> directive appears.
-Furthermore, the template name may not be qualified. For example:
+Namespaces may be combined with templates.  If necessary, the
+<tt>%template</tt> directive can be used to expand a template defined
+in a different namespace.  For example:
 
 <blockquote>
 <pre>
@@ -2503,7 +2648,7 @@ namespace foo {
 using foo::max;
 
 %template(maxint)   max&lt;int&gt;            // Okay.
-%template(maxfloat) foo::max&lt;float&gt;;    // Error.   Qualified name
+%template(maxfloat) foo::max&lt;float&gt;;    // Okay (qualified name).
 
 namespace bar {
     using namespace foo;
@@ -2726,6 +2871,10 @@ for most SWIG projects.    Of course, you might want to consider
 using another tool if maintaining constness is the most important part
 of your project.
 
+<h2>Proxy classes</h2>
+
+Write me.
+
 <h2>Where to go for more information</h2>
 
 If you're wrapping serious C++ code, you might want to pick up a copy
@@ -2734,7 +2883,7 @@ is the reference document we use to guide a lot of SWIG's C++ support.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : April 23, 2002</address>
+<address>SWIG 1.3 - Last Modified : May 12, 2002</address>
 </body>
 </html>
 
