@@ -9,9 +9,28 @@ struct A : std::string
   A(const std::string& s) : std::string(s)
   {
   }
+};
+
+struct B 
+{
+  B(const std::string& s) : cname(0), name(s), a(s)
+  {
+  }
   
+  char *cname;
+  std::string name;
+  A a;
+
 };
  
+
+const char* test_ccvalue(const char* x) {
+   return x;
+}
+
+char* test_cvalue(char* x) {
+   return x;
+}
   
 
 std::string test_value(std::string x) {
