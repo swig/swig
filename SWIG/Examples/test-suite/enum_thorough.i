@@ -7,13 +7,14 @@
 %warnfilter(801) SpeedClass::slow;
 %warnfilter(801) SpeedClass::medium;
 %warnfilter(801) SpeedClass::fast;
+%warnfilter(801) SpeedClass::lightning;
 %warnfilter(801) TemplateClass::einstein;
 %warnfilter(801) TemplateClass::galileo;
 %warnfilter(801) Name::TClass::faraday;
 %warnfilter(801) Name::TClass::bell;
 %warnfilter(801) argh;
 %warnfilter(801) OldNameStruct::whizz;
-%warnfilter(801) OldNameStruct::bang;
+%warnfilter(801) OldNameStruct::kerboom;
 %warnfilter(801) OldNameStruct::pop;
 %warnfilter(801) OldNameStruct::simple1;
 %warnfilter(801) OldNameStruct::singlename1;
@@ -29,6 +30,11 @@
 %warnfilter(801) Obscure::twoagain;
 %warnfilter(801) Obscure::twotrail;
 %warnfilter(801) Obscure::twotrailagain;
+%warnfilter(801) globalinstance1;
+%warnfilter(801) globalinstance2;
+%warnfilter(801) Instances::memberinstance1;
+%warnfilter(801) Instances::memberinstance2;
+%warnfilter(801) Instances::memberinstance3;
 
 %inline %{
 
