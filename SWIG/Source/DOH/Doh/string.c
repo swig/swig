@@ -24,7 +24,6 @@ typedef struct String {
     int            len;                       /* Current length     */
     int            hashkey;                   /* Hash key value     */
     int            sp;                        /* Current position   */
-    int            lsp;                       /* Last returned position */
     char          *str;                       /* String data        */
     char           pb[4];                     /* Pushback data      */
     int            pbi;
@@ -141,7 +140,7 @@ int String_dump(DOH *so, DOH *out) {
 /* -----------------------------------------------------------------------------
  * NewString(const char *c) - Create a new string
  * ----------------------------------------------------------------------------- */
-DOH *
+DOHString *
 NewString(const DOH *so)
 {
     int l = 0, max;
@@ -154,7 +153,6 @@ NewString(const DOH *so)
     DohXInit(str);
     str->hashkey = -1;
     str->sp = 0;
-    str->lsp = 0;
     str->pbi = 0;
     str->line = 1;
     str->file = 0;
@@ -172,7 +170,8 @@ NewString(const DOH *so)
 	str->str[0] = 0;
 	str->len = 0;
     }
-    return (DOH *) str;
+    str->sp = str->len;
+    return (DOHString *) str;
 }
 
 /* -----------------------------------------------------------------------------
@@ -181,7 +180,7 @@ NewString(const DOH *so)
  * Create a new string from a list of objects.
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHString *
 NewStringf(const DOH *fmt, ...)
 {
   va_list ap;
@@ -190,7 +189,7 @@ NewStringf(const DOH *fmt, ...)
   r = NewString("");
   DohvPrintf(r,Char(fmt),ap);
   va_end(ap);
-  return r;
+  return (DOHString *) r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -206,7 +205,6 @@ CopyString(DOH *so) {
   str->objinfo = &StringType;
   str->hashkey = -1;
   str->sp = 0;
-  str->lsp = 0;
   str->line = s->line;
   str->file = s->file;
   if (str->file) Incref(str->file);
@@ -217,6 +215,7 @@ CopyString(DOH *so) {
   str->maxsize= max;
   str->len = s->len;
   str->str[str->len] = 0;
+  str->sp = s->len;
   return (DOH *) str;
 }
 
@@ -383,7 +382,6 @@ String_clear(DOH *so)
   s->len = 0;
   *(s->str) = 0;
   s->sp = 0;
-  s->lsp = 0;
   s->line = 1;
   s->pbi = 0;
 }
