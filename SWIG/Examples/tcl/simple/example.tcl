@@ -1,5 +1,5 @@
 # file: example.tcl
-# Try to load as a dynamic module.  If not, we'll just assume
+# Try to load as a dynamic module.
 
 catch { load ./example.so example}
 catch { load ./example.dll example}    ;# Windows
