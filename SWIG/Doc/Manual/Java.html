@@ -3898,7 +3898,7 @@ The first is not to use a Java cast but a call to C++ to make the cast. Add this
 }
 %extend Ambulance {
     static Ambulance *dynamic_cast(Vehicle *vehicle) {
-        return dynamic_cast<Ambulance *>(vehicle);
+        return dynamic_cast&lt;Ambulance *&gt;(vehicle);
     }
 };
 </pre></blockquote>
@@ -3915,7 +3915,7 @@ Add the following before the definition of <tt>vehicle_factory</tt>:
 
 <blockquote><pre>
 %typemap(out) Vehicle * {
-    Ambulance *downcast = dynamic_cast<Ambulance *>($1);
+    Ambulance *downcast = dynamic_cast&lt;Ambulance *&gt;($1);
     *(Ambulance **)&$result = downcast;
 }
 
@@ -3932,6 +3932,9 @@ Consider expanding our example with a new Vehicle type and a more flexible facto
 class FireEngine : public Vehicle {
 public:
     FireEngine() {}
+    virtual void start() {
+        cout << "FireEngine started" << endl;
+    }
     void roll_out_hose() {
         cout << "Hose rolled out" << endl;
     }
@@ -3966,8 +3969,8 @@ Note that in this case, the Java class is constructed using JNI code rather than
   }
 
 %typemap(out) Vehicle * {
-    Ambulance *ambulance = dynamic_cast<Ambulance *>($1);
-    FireEngine *fireengine = dynamic_cast<FireEngine *>($1);
+    Ambulance *ambulance = dynamic_cast&lt;Ambulance *&gt;($1);
+    FireEngine *fireengine = dynamic_cast&lt;FireEngine *&gt;($1);
     if (ambulance) {
         // call the Ambulance(long cPtr, boolean cMemoryOwn) constructor
         jclass clazz = jenv->FindClass("Ambulance");
