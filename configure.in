@@ -1108,15 +1108,15 @@ fi
 
 if test -n "$CHICKEN_CONFIG" ; then
 
-  AC_ARG_WITH(chickhme,[  --with-chickenhome=path Set location of CHICKEN home directory],[
+  AC_ARG_WITH(chickenhome,[  --with-chickenhome=path Set location of CHICKEN home directory],[
 	CHICKENHOME="$withval"], [CHICKENHOME=])
-  AC_ARG_WITH(chickops,[  --with-chickensharedopts=path   Set compiler options for shared CHICKEN generated code],[
+  AC_ARG_WITH(chickensharedopts,[  --with-chickensharedopts=path   Set compiler options for shared CHICKEN generated code],[
 	CHICKENSHAREDOPTS="$withval"], [CHICKENSHAREDOPTS=])
-  AC_ARG_WITH(chickopt,[  --with-chickenopts=path Set compiler options for static CHICKEN generated code],[
+  AC_ARG_WITH(chickenopts,[  --with-chickenopts=path Set compiler options for static CHICKEN generated code],[
 	CHICKENOPTS="$withval"], [CHICKENOPTS=])
-  AC_ARG_WITH(chicklis,[  --with-chickensharedlib=path    Set linker options for shared CHICKEN generated code],[
+  AC_ARG_WITH(chickensharedlib,[  --with-chickensharedlib=path    Set linker options for shared CHICKEN generated code],[
 	CHICKENSHAREDLIB="$withval"], [CHICKENSHAREDLIB=])
-  AC_ARG_WITH(chicklib,[  --with-chickenlib=path  Set linker options for static CHICKEN generated code],[
+  AC_ARG_WITH(chickenlib,[  --with-chickenlib=path  Set linker options for static CHICKEN generated code],[
 	CHICKENLIB="$withval"], [CHICKENLIB=])
 
   AC_MSG_CHECKING(for CHICKEN home directory)
