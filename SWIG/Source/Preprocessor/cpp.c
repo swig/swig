@@ -27,7 +27,7 @@ static int       ignore_missing = 0;
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       imported_depth = 0;	 /* Depth of %imported files */
 static int       single_include = 1;     /* Only include each file once */
-static int       replace_defined = 0;
+static int       replace_defined = 1;
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 
@@ -1335,7 +1335,6 @@ Preprocessor_parse(String *s)
 	  }
 	}
       } else if (Cmp(id,"if") == 0) {
-	replace_defined = 1;
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1357,9 +1356,7 @@ Preprocessor_parse(String *s)
   	  }
   	  mask = 1;
   	}
-	replace_defined = 0;
       } else if (Cmp(id,"elif") == 0) {
-	replace_defined = 1;
   	if (level == 0) {
   	  Swig_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
   	} else {
@@ -1386,7 +1383,6 @@ Preprocessor_parse(String *s)
   	    }
   	  }
   	}
-	replace_defined = 0;
       } else if (Cmp(id,"line") == 0) {
       } else if (Cmp(id,"include") == 0) {
   	if (((include_all) || (import_all)) && (allow)) {
