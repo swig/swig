@@ -31,6 +31,7 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_clear */
   0,                /* doh_str */
   0,                /* doh_data */
+  0,                /* doh_dump */
   0,                /* doh_len */
   0,                /* doh_hash    */
   0,                /* doh_cmp */
@@ -139,11 +140,22 @@ DOH *DohStr(DOH *obj) {
 	  return (b->objinfo->doh_str)(b);
 	}
 	s = NewString("<Object ");
-	Appendf(s,"'%s' at %x>", b->objinfo->objname, b);
+	Printf(s,"'%s' at %x>", b->objinfo->objname, b);
 	return s;
     } else {
       return NewString(obj);
     }
+}
+
+/* Serialize an object */
+int DohDump(DOH *obj, DOH *out) {
+  DohBase *b = (DohBase *) obj;
+  if (DohCheck(obj)) {
+    if (b->objinfo->doh_dump) {
+      return (b->objinfo->doh_dump)(b,out);
+    }
+  }
+  return 0;
 }
 
 /* Get the length */
@@ -282,6 +294,7 @@ DOH *DohGetattr(DOH *obj, DOH *name) {
   return 0;
 }
 
+#ifdef OLD
 /* Getattrf */
 int DohGetattrf(DOH *obj, DOH *name, char *format, ...) {
   va_list ap;
@@ -299,7 +312,7 @@ int DohGetattrf(DOH *obj, DOH *name, char *format, ...) {
   } 
   return ret;
 }
-
+#endif
 
 /* Set an attribute in an object */
 int DohSetattr(DOH *obj, DOH *name, DOH *value) {
@@ -481,60 +494,6 @@ void DohInsertitem(DOH *obj, int index, DOH *value) {
   }
 }
 
-/* Set an item in an object */
-void DohInsertitemf(DOH *obj, int index, char *format, ...) {
-  va_list ap;
-  DohBase *b = (DohBase *) obj;
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_insertf) {
-      va_start(ap,format);
-      (b->objinfo->doh_sequence->doh_insertf)(obj,index,format,ap);
-      va_end(ap);
-      return;
-    }
-    printf("No insertf method defined for type '%s'\n", b->objinfo->objname);
-  }
-}
-
-/* Set an item in an object */
-void DohvInsertitemf(DOH *obj, int index, char *format, va_list ap) {
-  DohBase *b = (DohBase *) obj;
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_insertf) {
-      (b->objinfo->doh_sequence->doh_insertf)(obj,index,format,ap);
-      return;
-    }
-    printf("No insertf method defined for type '%s'\n", b->objinfo->objname);
-  }
-}
-
-/* Append an item to an object */
-void DohAppendf(DOH *obj, char *format, ...) {
-  va_list ap;
-  DohBase *b = (DohBase *) obj;
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_insertf) {
-      va_start(ap,format);
-      (b->objinfo->doh_sequence->doh_insertf)(obj,DOH_END,format,ap);
-      va_end(ap);
-      return;
-    }
-    printf("No appendf method defined for type '%s'\n", b->objinfo->objname);
-  }
-}
-
-/* Append an item to an object */
-void DohvAppendf(DOH *obj, char *format, va_list ap) {
-  DohBase *b = (DohBase *) obj;
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_sequence->doh_insertf) {
-      (b->objinfo->doh_sequence->doh_insertf)(obj,DOH_END,format,ap);
-      return;
-    }
-    printf("No appendf method defined for type '%s'\n", b->objinfo->objname);
-  }
-}
-
 /* -----------------------------------------------------------------------------
  * File methods 
  * ----------------------------------------------------------------------------- */
@@ -557,7 +516,7 @@ int DohRead(DOH *obj, void *buffer, int length) {
   } else {
     /* Hmmm.  Not a file.  Maybe it's a real FILE */
     if (!DohCheck(b)) {
-      return fread(buffer,length,1,(FILE *) b);
+      return fread(buffer,1,length,(FILE *) b);
     }
   }
   return -1;
@@ -573,7 +532,7 @@ int DohWrite(DOH *obj, void *buffer, int length) {
     printf("No write method defined for type '%s'\n", b->objinfo->objname);
   } else {
     if (!DohCheck(b)) {
-      return fwrite(buffer,length,1,(FILE *) b);
+      return fwrite(buffer,1,length,(FILE *) b);
     }
   }
   return -1;
@@ -611,83 +570,52 @@ long DohTell(DOH *obj) {
   return -1;
 }
 
-/* Printf */
-int DohPrintf(DOH *obj, char *format, ...) {
-  va_list ap;
-  int ret;
+/* Getc */
+int DohGetc(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_printf) {
-      va_start(ap,format);
-      ret = (b->objinfo->doh_file->doh_printf)(obj,format,ap);
-      va_end(ap);
-      return ret;
+    if (b->objinfo->doh_file->doh_getc) {
+      return (b->objinfo->doh_file->doh_getc)(obj);
     }
-    printf("No printf method defined for type '%s'\n", b->objinfo->objname);
+    printf("No getc method defined for type '%s'\n", b->objinfo->objname);
   } else {
-    if (!DohCheck(obj)) {
-      DOH *str;
-      str = NewString("");
-      va_start(ap,format);
-      DohvAppendf(str,format,ap);
-      va_end(ap);
-      ret = fprintf((FILE *) obj, "%s", Data(str));
-      Delete(str);
-      return ret;
+    if (!DohCheck(b)) {
+      return fgetc((FILE *) b);
     }
   }
-  return -1;
+  return EOF;
 }
 
-/* vPrintf */
-int DohvPrintf(DOH *obj, char *format, va_list ap) {
-  int ret;
+/* Putc */
+int DohPutc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_printf) {
-      return (b->objinfo->doh_file->doh_printf)(obj,format,ap);
+    if (b->objinfo->doh_file->doh_putc) {
+      return (b->objinfo->doh_file->doh_putc)(obj,ch);
     }
-    printf("No printf method defined for type '%s'\n", b->objinfo->objname);
+    printf("No putc method defined for type '%s'\n", b->objinfo->objname);
   } else {
-    if (!DohCheck(obj)) {
-      DOH  *str;
-      str = NewString("");
-      DohvAppendf(str,format,ap);
-      ret = fprintf((FILE *) obj, "%s", Data(str));
-      Delete(str);
-      return ret;
+    if (!DohCheck(b)) {
+      return fputc(ch,(FILE *) b);
     }
   }
-  return -1;
+  return EOF;
 }
 
-/* Printf */
-int DohScanf(DOH *obj, char *format, ...) {
-  va_list ap;
-  int ret;
+/* ungetc */
+int DohUngetc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_scanf) {
-      va_start(ap,format);
-      ret = (b->objinfo->doh_file->doh_scanf)(obj,format,ap);
-      va_end(ap);
-      return ret;
+    if (b->objinfo->doh_file->doh_ungetc) {
+      return (b->objinfo->doh_file->doh_ungetc)(obj,ch);
     }
-    printf("No scanf method defined for type '%s'\n", b->objinfo->objname);
-  }
-  return -1;
-}
-
-/* vPrintf */
-int DohvScanf(DOH *obj, char *format, va_list ap) {
-  DohBase *b = (DohBase *) obj;
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_scanf) {
-      return (b->objinfo->doh_file->doh_scanf)(obj,format,ap);
+    printf("No ungetc method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(b)) {
+      return ungetc(ch,(FILE *) b);
     }
-    printf("No scanf method defined for type '%s'\n", b->objinfo->objname);
   }
-  return -1;
+  return EOF;
 }
 
 int DohClose(DOH *obj) {

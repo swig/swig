@@ -51,7 +51,6 @@ typedef struct {
   int       (*doh_setitem)(DOH *obj, int index, DOH *value);
   int       (*doh_delitem)(DOH *obj, int index);
   int       (*doh_insitem)(DOH *obj, int index, DOH *value);
-  int       (*doh_insertf)(DOH *obj, int index, char *format, va_list ap);
   DOH      *(*doh_first)(DOH *obj);
   DOH      *(*doh_next)(DOH *obj);
 } DohSequenceMethods;
@@ -60,10 +59,11 @@ typedef struct {
 typedef struct {
   int       (*doh_read)(DOH *obj, void *buffer, int nbytes);
   int       (*doh_write)(DOH *obj, void *buffer, int nbytes);
+  int       (*doh_putc)(DOH *obj, int ch);
+  int       (*doh_getc)(DOH *obj);
+  int       (*doh_ungetc)(DOH *obj, int ch);
   int       (*doh_seek)(DOH *obj, long offset, int whence);
   long      (*doh_tell)(DOH *obj);
-  int       (*doh_printf)(DOH *obj, char *format, va_list ap);
-  int       (*doh_scanf)(DOH *obj, char *format, va_list ap);
   int       (*doh_close)(DOH *obj);
 } DohFileMethods;
 
@@ -83,8 +83,9 @@ typedef struct DohObjInfo {
   void      (*doh_clear)(DOH *obj);        /* Clear an object    */
 
   /* Output methods */
-  DOH       *(*doh_str)(DOH *obj);         /* Make a full string */
-  void      *(*doh_data)(DOH *obj);        /* Return raw data    */
+  DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
+  void      *(*doh_data)(DOH *obj);            /* Return raw data    */
+  int        (*doh_dump)(DOH *obj, DOH *out);  /* Serialize on out */
 
   /* Length and hash values */
   int       (*doh_len)(DOH *obj);          
@@ -120,6 +121,7 @@ extern DOH    *DohCopy(DOH *obj);
 extern void    DohClear(DOH *obj);
 extern int     DohCmp(DOH *obj1, DOH *obj2);
 extern DOH    *DohStr(DOH *obj);
+extern int     DohDump(DOH *obj, DOH *out);
 extern DOH    *DohGetattr(DOH *obj, DOH *name);
 extern int     DohGetattrf(DOH *obj, DOH *name, char *fmt, ...);
 extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
@@ -130,10 +132,6 @@ extern DOH    *DohGetitem(DOH *obj, int index);
 extern void    DohSetitem(DOH *obj, int index, DOH *value);
 extern void    DohDelitem(DOH *obj, int index);
 extern void    DohInsertitem(DOH *obj, int index, DOH *value);
-extern void    DohInsertf(DOH *obj, int index, char *format, ...);
-extern void    DohvInsertf(DOH *obj, int index, char *format, va_list ap);
-extern void    DohAppendf(DOH *obj, char *format, ...);
-extern void    DohvAppendf(DOH *obj, char *format, va_list ap);
 extern int     DohLen(DOH *obj);
 extern DOH    *DohFirst(DOH *obj);
 extern DOH    *DohNext(DOH *obj);
@@ -152,6 +150,10 @@ extern int     DohWrite(DOH *obj, void *buffer, int length);
 extern int     DohRead(DOH *obj, void *buffer, int length);
 extern int     DohSeek(DOH *obj, long offser, int whence);
 extern long    DohTell(DOH *obj);
+extern int     DohGetc(DOH *obj);
+extern int     DohPutc(int ch, DOH *obj);
+extern int     DohUngetc(int ch, DOH *obj);
+
 extern int     DohPrintf(DOH *obj, char *format, ...);
 extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 extern int     DohScanf(DOH *obj, char *format, ...);
@@ -164,6 +166,7 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
 #define Copy               DohCopy
 #define Clear              DohClear
 #define Str                DohStr
+#define Dump               DohDump
 #define Signature          DohSignature
 #define Getattr            DohGetattr
 #define Getattrf           DohGetattrf
@@ -175,11 +178,7 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
 #define Setitem            DohSetitem
 #define Delitem            DohDelitem
 #define Insert             DohInsertitem
-#define Insertf            DohInsertitemf
-#define vInsertf           DohvInsertitemf
 #define Append(s,x)        DohInsertitem(s,DOH_END,x)
-#define Appendf            DohAppendf
-#define vAppendf           DohvAppendf
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
 #define First              DohFirst
@@ -198,6 +197,9 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
 #define Seek               DohSeek
 #define Tell               DohTell
 #define Printf             DohPrintf
+#define Getc               DohGetc
+#define Putc               DohPutc
+#define Ungetc             DohUngetc
 #define vPrintf            DohvPrintf
 #define Scanf              DohScanf
 #define vScanf             DohvScanf

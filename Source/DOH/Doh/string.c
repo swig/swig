@@ -30,6 +30,8 @@ typedef struct String {
     int            sp;                        /* Current position   */
     int            lsp;                       /* Last returned position */
     char          *str;                       /* String data        */
+    char           pb[4];                     /* Pushback data      */
+    int            pbi;
 } String;
 
 /* Forward references */
@@ -46,30 +48,32 @@ int     String_insert(DOH *s, int pos, DOH *DOH);
 void   *String_data(DOH *s);
 int     String_cmp(DOH *, DOH *);
 int     String_hash(DOH *s);
+int     String_dump(DOH *s, DOH *out);
 int     String_read(DOH *s, void *buffer, int length);
 int     String_write(DOH *s, void *buffer, int length);
+int     String_getc(DOH *s);
+int     String_putc(DOH *s, int ch);
+int     String_ungetc(DOH *s, int ch);
 int     String_seek(DOH *s, long offset, int whence);
 long    String_tell(DOH *s);
-int     String_printf(DOH *s, char *fmt, va_list ap);
-int     String_scanfv(DOH *s, char *fmt, va_list ap);
     
 static DohSequenceMethods StringSeqMethods = {
-  0,
-  0,
-  String_delitem,
-  String_insert,
-  String_insertfv,
-  0,
-  0,
+  0,                      /* doh_getitem */
+  0,                      /* doh_setitem */
+  String_delitem,         /* doh_delitem */
+  String_insert,          /* doh_insitem */
+  0,                      /* doh_first   */
+  0,                      /* doh_next    */
 };
 
 static DohFileMethods StringFileMethods = {
   String_read,
   String_write,
+  String_putc,
+  String_getc,
+  String_ungetc,
   String_seek,
   String_tell,
-  String_printf,
-  String_scanfv,
   0,
 };
 
@@ -81,6 +85,7 @@ static DohObjInfo StringType = {
     String_clear,      /* sm_clear */
     String_str,        /* sm_str */
     String_data,       /* doh_data */
+    String_dump,       /* doh_dump */
     String_len,        /* sm_len */
     String_hash,       /* sm_hash    */
     String_cmp,        /* doh_cmp */
@@ -107,6 +112,27 @@ void *String_data(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
+ * int  String_dump(DOH *so, DOH *out) 
+ *
+ * Serialize a string onto out
+ * ----------------------------------------------------------------------------- */
+
+int String_dump(DOH *so, DOH *out) {
+  int nsent;
+  int ret;
+  String *s;
+  
+  s = (String *) so;
+  nsent = 0;
+  while (nsent < s->len) {
+    ret = Write(out,s->str+nsent,(s->len-nsent));
+    if (ret < 0) return ret;
+    nsent += ret;
+  }
+  return nsent;
+}
+
+/* -----------------------------------------------------------------------------
  * NewString(const char *c) - Create a new string
  * ----------------------------------------------------------------------------- */
 DOH *
@@ -120,6 +146,7 @@ NewString(char *s)
     str->hashkey = -1;
     str->sp = 0;
     str->lsp = 0;
+    str->pbi = 0;
     str->line = 1;
     max = INIT_MAXSIZE;
     if (s) {
@@ -154,6 +181,7 @@ CopyString(DOH *so) {
   str->sp = 0;
   str->lsp = 0;
   str->line = 1;
+  str->pbi = 0;
   max = s->maxsize;
   str->str = (char *) malloc(max);
   memmove(str->str, s->str, max);
@@ -251,6 +279,7 @@ add(String *s, const char *newstr) {
     s->maxsize = newmaxsize;
   }
   strcpy(s->str+s->len,newstr);
+  if (s->sp >= s->len) s->sp+=l;
   s->len += l;
 }  
 
@@ -267,6 +296,7 @@ addstr(String *s, String *s1) {
     s->maxsize = newmaxsize;
   }
   memmove(s->str+s->len,s1->str,s1->len);
+  if (s->sp >= s->len) s->sp+=l;
   s->len += l;
 }  
 
@@ -281,8 +311,9 @@ String_addchar(DOH *so, char c) {
     assert(s->str = (char *) realloc(s->str,2*s->maxsize));
     s->maxsize *= 2;
   }
-  s->str[s->len++] = c;
-  s->str[s->len] = 0;
+  s->str[s->len] = c;
+  if (s->sp >= s->len) s->sp++;
+  s->len++;
 }
 
 /* Expand a string to accomodate a write */
@@ -309,327 +340,8 @@ String_clear(DOH *so)
   s->sp = 0;
   s->lsp = 0;
   s->line = 1;
+  s->pbi = 0;
 }
-
-/* -----------------------------------------------------------------------------
- * void String_appendfv(String *s, char *format, va_list ap) 
- *
- * Formats a string into s.   This is an incredibly gross hack.
- * -----------------------------------------------------------------------------*/
-void
-String_appendfv(DOH *so, char *format, va_list ap)
-{
-  static char *fmt_codes = "dioxXucsSfeEgGpnbB";
-  int state = 0;
-  char *p = format;
-  char  newformat[256];
-  char *fmt;
-  char  temp[64];
-  int   widthval = 0;
-  int   precval = 0;
-  int   maxwidth;
-  char *w, *prec;
-  int   ivalue;
-  int   dvalue;
-  String *s;
-
-  s = (String *) so;
-
-  while (*p) {
-    switch(state) {
-    case 0:  /* Ordinary text */
-      if (*p != '%') {
-	String_addchar(s,*p);
-      } else{
-	fmt = newformat;
-	widthval = 0;
-	precval = 0;
-	*(fmt++) = *p;
-	state = 10;
-      }
-      break;
-    case 10: /* Look for a width and precision */
-      if (isdigit(*p) && (*p != '0')) {
-	w = temp;
-	*(w++) = *p;
-	*(fmt++) = *p;
-	state = 20;
-      } else if (strchr(fmt_codes,*p)) {
-	/* Got one of the formatting codes */
-	p--;
-	state = 100;
-      } else if (*p == '*') {
-	/* Width field is specified in the format list */
-	widthval = va_arg(ap,int);
-	sprintf(temp,"%d",widthval);
-	for (w = temp; *w; w++) {
-	  *(fmt++) = *w;
-	}
-	state = 30;
-      } else if (*p == '%') {
-	String_addchar(s,*p);	
-	fmt = newformat;
-	state = 0;
-      } else {
-	*(fmt++) = *p;
-      }
-      break;
-      
-    case 20: /* Hmmm. At the start of a width field */
-      if (isdigit(*p)) {
-	*(w++) = *p;
-	*(fmt++) = *p;
-      } else if (strchr(fmt_codes,*p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	*w = 0;
-	widthval = atoi(temp);
-	p--;
-	state = 100;
-      } else if (*p == '.') {
-	*w = 0;
-	widthval = atoi(temp);
-	w = temp;
-	*(fmt++) = *p;
-	state = 40;
-      } else {
-	/* ??? */
-	*w = 0;
-	widthval = atoi(temp);
-	state = 50;
-      }
-      break;
-
-    case 30:   /* Parsed a width from an argument.  Look for a . */
-      if (*p == '.') {
-	w = temp;
-	*(fmt++) = *p;
-	state = 40;
-      } else if (strchr(fmt_codes,*p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	p--;
-	state = 100;
-      } else {
-	/* hmmm. Something else. */
-	state = 50;
-      }
-      break;
-
-    case 40:
-      /* Start of precision expected */
-      if (isdigit(*p) && (*p != '0')) {
-	*(fmt++) = *p;
-	*(w++) = *p;
-	state = 41;
-      } else if (*p == '*') {
-	/* Precision field is specified in the format list */
-	precval = va_arg(ap,int);
-	sprintf(temp,"%d",precval);
-	for (w = temp; *w; w++) {
-	  *(fmt++) = *w;
-	}
-	state = 50;
-      } else if (strchr(fmt_codes,*p)) {
-	p--;
-	state = 100;
-      } else {
-	*(fmt++) = *p;
-	state = 50;
-      }
-      break;
-    case 41:
-      if (isdigit(*p)) {
-	*(fmt++) = *p;
-	*(w++) = *p;
-      } else if (strchr(fmt_codes,*p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	*w = 0;
-	precval = atoi(temp);
-	p--;
-	state = 100;
-      } else {
-	*w = 0;
-	precval = atoi(temp);
-	*(fmt++) = *p;
-	state = 50;
-      }
-      break;
-      /* Hang out, wait for format specifier */
-    case 50:
-      if (strchr(fmt_codes,*p)) {
-	p--;
-	state = 100;
-      } else {
-	*(fmt++) = *p;
-      }
-      break;
-    case 100:
-      /* Got a formatting code */
-      if (widthval < precval) maxwidth = precval;
-      else maxwidth = widthval;
-      if ((*p == 's') || (*p == 'S')) {       /* Null-Terminated string */
-	DOH    *doh;
-	String *Sval;
-	doh = va_arg(ap, DOH *);
-	if (DohCheck(doh)) {
-	  /* Is an object at least */
-	  if (String_check(doh)) {
-	    Sval = (String *) doh;
-	  } else {
-	    Sval = (String *) Str(doh);
-	  }
-	  maxwidth = maxwidth+strlen(newformat)+strlen(Sval->str);
-	  String_expand(s,maxwidth);
-	  *(fmt++) = 's';
-	  *fmt = 0;
-	  sprintf(s->str+s->len,newformat,Sval->str);
-	  s->len = s->len + strlen(s->str+s->len);
-	  if ((DOH *) Sval != doh) {
-	    Delete(Sval);
-	  }
-	  if (*p == 'S') {
-	    Delete(doh);
-	  }
-	} else {
-	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
-	  String_expand(s,maxwidth);
-	  *(fmt++) = 's';
-	  *fmt = 0;
-	  sprintf(s->str+s->len,newformat,doh);
-	  s->len = s->len + strlen(s->str+s->len);
-	}
-      } else if ((*p == 'b') || (*p == 'B')) {
-	/* Raw binary mode */
-	DOH    *doh, *Sval;
-	doh = va_arg(ap, DOH *);
-	if (DohCheck(doh)) {
-	  void *ptr;
-	  int   len;
-	  Sval = Str(doh);
-	  ptr = Data(Sval);
-	  len = Len(Sval);
-	  if ((widthval > 0) && (widthval < len)) len = widthval;
-	  String_expand(s,len);
-	  if (ptr) {
-	    memmove(s->str+s->len,ptr,len);
-	    s->len += len;
-	  }
-	  if (*p == 'B') {
-	    Delete(doh);
-	  }
-	  Delete(Sval);
-	} else {
-	  String_expand(s,widthval);
-	  memmove(s->str+s->len,doh,widthval);
-	  s->len+=widthval;
-	}
-      } else {
-	int ivalue;
-	double dvalue;
-	void  *pvalue;
-	*(fmt++) = *p;
-	*fmt = 0;
-	maxwidth = maxwidth+strlen(newformat)+64;
-	String_expand(s,maxwidth);
-	switch(*p) {
-	case 'd':
-	case 'i':
-	case 'o':
-	case 'u':
-	case 'x':
-	case 'X':
-	case 'c':
-	  ivalue = va_arg(ap,int);
-	  sprintf(s->str+s->len,newformat,ivalue);
-	  break;
-	case 'f':
-	case 'g':
-	case 'e':
-	case 'E':
-	case 'G':
-	  dvalue = va_arg(ap,double);
-	  sprintf(s->str+s->len,newformat,dvalue);
-	  break;
-	case 'p':
-	  pvalue = va_arg(ap,void *);
-	  sprintf(s->str+s->len,newformat,pvalue);	  
-	  break;
-	default:
-	  break;
-	}
-	s->len = s->len + strlen(s->str+s->len);
-      }
-      state = 0;
-      break;
-    }
-    p++;
-  }
-  if (state) {
-    *fmt = 0;
-    add(s,fmt);
-  }
-}
-
-/* ----------------------------------------------------------------------
- * int String_scanfv(DOH *doh, char *format, va_list ap)
- *
- * Do a string scanf.  Somewhat broken compared to C scanf.
- * ---------------------------------------------------------------------- */
-
-int String_scanfv(DOH *doh, char *format, va_list ap) {
-  static char *fmt_chars = "diouxcsefgp";
-  String *s;
-  char    newformat[256];
-  char   *fmt;
-  char    *p;
-  int     state;
-  void    *ptr;
-  int     total = 0;
-  int     i;
-
-  s = (String *) doh;
-  state = 0;
-  p = format;
-  while (*p) {
-    switch(state) {
-    case 0:
-      if (*p == '%') {
-	fmt = newformat;
-	*(fmt++) = *p;
-	state = 10;
-      }
-      break;
-    case 10:
-      if (strchr(fmt_chars,*p)) {
-	int len;
-	*(fmt++) = *p;
-	*fmt = 0;
-	ptr = va_arg(ap, void *);
-	len = sscanf(s->str+s->sp,newformat,ptr);
-	for (i = 0; i < len; i++) {
-	  while (s->sp < s->len) {
-	    if (!isspace(s->str[s->sp])) break;
-	    s->sp++;
-	  }
-	  while (s->sp < s->len) {
-	    if (isspace(s->str[s->sp])) break;
-	    s->sp++;
-	  }
-	}
-	total += len;
-	state = 0;
-	fmt = newformat;
-      } else {
-	*(fmt++) = *p;
-      }
-      break;
-    }
-    p++;
-  }
-  return total;
-}      
   
 void
 raw_insert(String *s, int pos, char *data, int len)
@@ -675,27 +387,6 @@ String_insert(DOH *so, int pos, DOH *str)
 }
 
 /* -----------------------------------------------------------------------------
- * void String_insertf(DOH *so, char *format, ...) - Insert a string
- * -----------------------------------------------------------------------------*/
-
-int
-String_insertfv(DOH *so, int pos, char *format, va_list ap)
-{
-    String      *s; 
-    String      *temp;
-    s = (String *) so;
-    if (pos == DOH_END) {
-      String_appendfv(so,format,ap);
-      return 0;
-    }
-    temp = NewString("");
-    String_appendfv(temp,format,ap);
-    raw_insert(s,pos, temp->str,temp->len);
-    Delete(temp);
-    return 0;
-}
-
-/* -----------------------------------------------------------------------------
  * int String_delitem(DOH *so, int pos)
  * 
  * Delete an individual item
@@ -734,12 +425,26 @@ String_str(DOH *so) {
  * ----------------------------------------------------------------------------- */
 int
 String_read(DOH *so, void *buffer, int len) {
-  int    reallen;
+  int    reallen, retlen;
+  int    i;
+  char   *cb;
   String *s = (String *) so;
-  if ((s->sp + len) > s->len) reallen = (s->len - s->sp);
-  memmove(buffer, s->str+s->sp, reallen);
-  s->sp += reallen;
-  return reallen;
+  if (((s->sp-s->pbi) + len) > s->len) reallen = (s->len - (s->sp-s->pbi));
+
+  cb = (char *) buffer;
+  retlen = reallen;
+
+  /* Read the push-back buffer contents first */
+  while (reallen > 0) {
+    if (s->pbi <= 0) break;
+    *(cb++) = (char) s->pb[--s->pbi];
+    reallen--;
+  }
+  if (reallen > 0) {
+    memmove(cb, s->str+s->sp, reallen);
+    s->sp += reallen;
+  }
+  return retlen;
 }
 
 /* -----------------------------------------------------------------------------
@@ -757,8 +462,10 @@ String_write(DOH *so, void *buffer, int len) {
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
+  if (newlen > s->len) s->len = newlen;
   memmove(s->str+s->sp,buffer,len);
   s->sp += len;
+  s->pbi = 0;
   return len;
 }
 
@@ -780,6 +487,7 @@ String_seek(DOH *so, long offset, int whence) {
   s->sp = pos + offset;
   if (s->sp < 0) s->sp = 0;
   if (s->sp > s->len) s->sp = s->len;
+  s->pbi = 0;
   return 0;
 }
 
@@ -791,26 +499,63 @@ String_seek(DOH *so, long offset, int whence) {
 long
 String_tell(DOH *so) {
   String *s = (String *) so;
-  return (long) s->sp;
+  return (long) (s->sp - s->pbi);
 }
 
 /* -----------------------------------------------------------------------------
- * int String_printf(DOH *so, char *format, ...)
+ * int String_putc(DOH *so, int ch)
  *
+ * Put a character into the string.
  * ----------------------------------------------------------------------------- */
 
 int
-String_printf(DOH *so, char *format, va_list ap) 
-{
-  int len;
-  DOH    *nso;
+String_putc(DOH *so, int ch) {
   String *s = (String *) so;
-  nso = NewString("");
-  String_appendfv(nso,format,ap);
-  len = ((String *) nso)->len;
-  String_write(so,Data(nso),len);
-  Delete(nso);
-  return len;
+  if (s->sp >= s->len) {
+    String_addchar(s,(char) ch);
+  } else {
+    s->str[s->sp] = (char) ch;
+    s->sp++;
+  }
+  s->pbi = 0;
+  return ch;
+}
+
+/* -----------------------------------------------------------------------------
+ * int String_getc(DOH *so)
+ *
+ * Get a character from the string
+ * ----------------------------------------------------------------------------- */
+
+int String_getc(DOH *so) {
+  String *s = (String *) so;
+  if (s->pbi) {
+    return (int) s->pb[--s->pbi];
+  }
+  if (s->sp >= s->len) return EOF;
+  else return (int) s->str[s->sp++];
+}
+
+/* -----------------------------------------------------------------------------
+ * int String_ungetc(DOH *so, int ch)
+ *
+ * Put a character back on to the input stream.
+ * ----------------------------------------------------------------------------- */
+
+int String_ungetc(DOH *so, int ch) {
+  String *s = (String *) so;
+  int i;
+  if (ch == EOF) return ch;
+  if ((s->sp - s->pbi) <= 0) return EOF;
+  if (s->pbi == 4) {
+    s->pb[0] = s->pb[1];
+    s->pb[1] = s->pb[2];
+    s->pb[2] = s->pb[3];
+    s->pb[3] = (char) ch;
+  } else {
+    s->pb[s->pbi++] = (char) ch;
+  }
+  return ch;
 }
 
 /* -----------------------------------------------------------------------------

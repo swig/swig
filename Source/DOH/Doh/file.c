@@ -33,16 +33,22 @@ typedef struct File {
 void    DelFile(DOH *s);
 int     File_read(DOH *s, void *buffer, int length);
 int     File_write(DOH *s, void *buffer, int length);
+int     File_putc(DOH *s, int ch);
+int     File_getc(DOH *s);
+int     File_ungetc(DOH *s, int ch);
 int     File_seek(DOH *s, long offset, int whence);
 long    File_tell(DOH *s);
-int     File_printf(DOH *s, char *fmt, va_list ap);
+
 
 static DohFileMethods FileFileMethods = {
-  File_read,
+  File_read, 
   File_write,
+  File_putc,
+  File_getc,
+  File_ungetc,
   File_seek,
   File_tell,
-  File_printf,
+  0,
 };
 
 static DohObjInfo FileType = {
@@ -53,6 +59,7 @@ static DohObjInfo FileType = {
     0,               /* sm_clear */
     0,               /* sm_str */
     0,               /* doh_data */
+    0,               /* doh_dump */
     0,               /* sm_len */
     0,               /* sm_hash    */
     0,               /* doh_cmp */
@@ -143,7 +150,7 @@ File_check(DOH *f)
 int
 File_read(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
-  return (size_t) fread(buffer,len,1,s->filep);
+  return (size_t) fread(buffer,1,len,s->filep);
 }
 
 /* -----------------------------------------------------------------------------
@@ -154,7 +161,7 @@ File_read(DOH *so, void *buffer, int len) {
 int
 File_write(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
-  return (size_t) fwrite(buffer,len,1,s->filep);
+  return (size_t) fwrite(buffer,1,len,s->filep);
 }
 
 /* -----------------------------------------------------------------------------
@@ -180,22 +187,36 @@ File_tell(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_printf(DOH *so, char *format, ...)
+ * int File_putc(DOH *obj, int ch)
  *
+ * Put a character on the output
  * ----------------------------------------------------------------------------- */
 
-int
-File_printf(DOH *so, char *format, va_list ap) 
-{
-  int len, wlen;
-  DOH    *nso;
-  File *s = (File *) so;
-  nso = NewString("");
-  vAppendf(nso,format,ap);
-  len = Len(nso);
-  wlen = File_write(so,Data(nso),len);
-  Delete(nso);
-  return wlen;
+int File_putc(DOH *obj, int ch) {
+  File *s = (File *) obj;
+  return fputc(ch,s->filep);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_getc(DOH *obj)
+ *
+ * Get a character
+ * ----------------------------------------------------------------------------- */
+
+int File_getc(DOH *obj) {
+  File *s = (File *) obj;
+  return fgetc(s->filep);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_ungetc(DOH *obj, int ch)
+ *
+ * Put a character back onto the input
+ * ----------------------------------------------------------------------------- */
+
+int File_ungetc(DOH *obj, int ch) {
+  File *s = (File *) obj;
+  return ungetc(ch, s->filep);
 }
 
     
