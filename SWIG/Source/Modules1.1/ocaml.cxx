@@ -389,10 +389,13 @@ public:
       Replaceall(opname,"operator ","");
 
       if( strstr( Char(mangled_name), "__get__" ) ) {
+	String *set_name = Copy(mangled_name);
+	Replaceall(set_name,"__get__","__set__");
 	Printf(f_class_ctors,
 	       "    \"%s\", (fun args -> "
-	       "if args = C_void then %s__get__ args else %s__set__ args) ;\n",
-	       opname, opname, opname );
+	       "if args = (C_list [ raw_ptr ]) then %s args else %s args) ;\n",
+	       opname, mangled_name, set_name );
+	Delete(set_name);
       } else if( strstr( Char(mangled_name), "__set__" ) ) {
 	  ; /* Nothing ... handled by the case above */
       } else {
