@@ -223,6 +223,10 @@ public:
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      if (dirprot_mode()) {
+	Printf(f_directors_h, "#include <map>\n");
+	Printf(f_directors_h, "#include <string>\n\n");
+      }
       Printf(f_directors_h, "class Swig::Director;\n\n");
       Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
@@ -1542,11 +1546,6 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorInit(Node *n) {
-    if (dirprot_mode()) {
-      Printf(f_directors_h, "#include <map>\n");
-      Printf(f_directors_h, "#include <string>\n\n");
-    }    
-
     String *declaration = Swig_director_declaration(n);
     Printf(f_directors_h, "\n");
     Printf(f_directors_h, "%s\n", declaration);
