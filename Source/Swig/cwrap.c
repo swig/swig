@@ -609,7 +609,8 @@ Swig_directormap(Node *module, String *type) {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags)
+Swig_ConstructorToFunction(Node *n, String *classname, 
+			   String *none_comparison, int cplus, int flags)
 {
   ParmList *parms;
   SwigType *type;
@@ -649,16 +650,22 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags)
 	String *name = Getattr(parent, "sym:name");
         String* directorname = NewStringf("__DIRECTOR__%s", name);
 	String* action = NewString("");
+	String* tmp_none_comparison = Copy(none_comparison);
+	
+	Replaceall( tmp_none_comparison, "$arg", "arg1" );
+
         /* if Python class has been subclassed, create a director instance.  
 	 * otherwise, just create a normal instance.
          */
-	Printv(action, "if (arg1 != Py_None) { // subclassed\n",
+	// arty: arg1 != Py_None => tmp_none_comparison
+	Printv(action, "if (",tmp_none_comparison,") { // subclassed\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_director_call(directorname, parms)),
 		       "} else {\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_nodirector_call(classname, parms)),
 		       "}\n",
 		       NULL);
 	Setattr(n, "wrap:action", action);
+	Delete(tmp_none_comparison);
 	Delete(action);
         Delete(directorname);
       } else {

@@ -436,7 +436,9 @@ extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t, String
 /* --- Transformations --- */
 
 extern int        Swig_MethodToFunction(Node *n, String *classname, int flags);
-extern int        Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags);
+extern int        Swig_ConstructorToFunction(Node *n, String *classname, 
+					     String *none_comparison,
+					     int cplus, int flags);
 extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
 extern int        Swig_MembersetToFunction(Node *n, String *classname, int flags);
 extern int        Swig_MembergetToFunction(Node *n, String *classname, int flags);

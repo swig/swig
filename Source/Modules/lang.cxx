@@ -201,6 +201,7 @@ int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 Language::Language() {
   symbols = NewHash();
   classtypes = NewHash();
+  none_comparison = NewString("$arg != 0");
   overloading = 0;
   multiinput = 0;
   directors = 0;
@@ -1759,7 +1760,8 @@ Language::constructorHandler(Node *n) {
 
   mrename = Swig_name_construct(symname);
   if (CPlusPlus) patch_parms(parms);
-  Swig_ConstructorToFunction(n,ClassType,CPlusPlus,Getattr(n,"template") ? 0 :Extend);
+  Swig_ConstructorToFunction(n,ClassType,none_comparison,
+			     CPlusPlus,Getattr(n,"template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -1779,7 +1781,8 @@ Language::copyconstructorHandler(Node *n) {
   Parm   *parms = Getattr(n,"parms");
   if (CPlusPlus) patch_parms(parms);
   mrename = Swig_name_copyconstructor(symname);
-  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, Getattr(n,"template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n,ClassType, none_comparison,
+			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2148,4 +2151,8 @@ String * Language::getClassPrefix() const {
 
 String * Language::getClassType() const {
     return ClassType;
+}
+
+void Language::SetNoneComparison( String *nc ) {
+    none_comparison = nc;
 }
