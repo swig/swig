@@ -473,37 +473,57 @@ static int NAME(TYPE x) {
 #endif
 %}
 
-
-/* Common labels and attributes for the internal SWIG methods */
+/* 
+   Common labels and attributes
+*/
 %insert("runtime") %{
 /* inline attribute */
 #ifndef SWIGINLINE
-#if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
-#  define SWIGINLINE inline
-#else
-#  define SWIGINLINE
-#endif
+# if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
+#   define SWIGINLINE inline
+# else
+#   define SWIGINLINE
+# endif
 #endif
 
-/* attritbute passed for some compilers to avoid unused method warnings */
+/* attritbute passed for some compilers to avoid 'unused' warnings */
 #ifndef SWIGUNUSED
-#ifdef __GNUC__
-#define SWIGUNUSED __attribute__ ((unused)) 
-#else
-#define SWIGUNUSED 
-#endif
+# if defined(__GNUC__) || defined(__ICC)
+#   define SWIGUNUSED __attribute__ ((unused)) 
+# else
+#   define SWIGUNUSED 
+# endif
 #endif
 
 /* internal SWIG method */
 #ifndef SWIGINTERN
-#define SWIGINTERN static SWIGUNUSED
+# define SWIGINTERN static SWIGUNUSED
 #endif
-
 
 /* internal inline SWIG method */
 #ifndef SWIGINTERNINLINE
-#define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
+# define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
 #endif
 
+/* how we export a method such that it can go in to a shared or dll library */
+#ifndef SWIGEXPORT
+# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#   if defined(_MSC_VER) || defined(__GNUC__)
+#     if defined(STATIC_LINKED)
+#       define SWIGEXPORT(a) a
+#     else
+#       define SWIGEXPORT(a) __declspec(dllexport) a
+#     endif
+#   else
+#     if defined(__BORLANDC__)
+#       define SWIGEXPORT(a) a _export
+#     else
+#       define SWIGEXPORT(a) a
+#     endif
+#   endif
+# else
+#   define SWIGEXPORT(a) a
+# endif
+#endif
 %}
 
