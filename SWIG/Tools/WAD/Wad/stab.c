@@ -154,6 +154,8 @@ wad_search_stab(void *sp, int size, char *stabstr, char *symbol, unsigned long o
 	debug.parms[debug.nargs].loc = PARM_STACK;
 
       debug.parms[debug.nargs].value = s->n_value;
+      /*      printf("%s : %d: %d : %s\n", debug.parms[debug.nargs].name, s->n_type, debug.parms[debug.nargs].value,pname); */
+	     
       debug.nargs++;
     }
   }

@@ -75,12 +75,15 @@ wad_segment_find(wadaddr_t addr) {
     return 0;
   }
   
+  segment.mapname[0] = 0;
+
   read_segment = 0;
   while (1) {
     n = read(fd,&pmap,sizeof(prmap_t));
     if (n <= 0) break;
     offset += n;
     if ((addr >= (wadaddr_t) pmap.pr_vaddr) && (addr <= (wadaddr_t) (pmap.pr_vaddr + pmap.pr_size))) {
+      /* We are in a new segment */
       strncpy(segment.mapname, pmap.pr_mapname, MAX_PATH);
       strcpy(segment.mappath,dirname);
       strcat(segment.mappath,"/object/");

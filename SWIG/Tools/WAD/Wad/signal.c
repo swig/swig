@@ -14,6 +14,7 @@
 #include <sys/ucontext.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <dlfcn.h>
 
 /* Data structures for containing information about non-local returns */
 
@@ -25,13 +26,21 @@ typedef struct nonlocal {
 
 static nonlocal *return_points = 0;
 
-void wad_set_return(char *name, long value) {
+void wad_set_return(const char *name, long value) {
   nonlocal *nl;
   nl = (nonlocal *) malloc(sizeof(nonlocal));
   strcpy(nl->symname,name);
   nl->value = value;
   nl->next = return_points;
   return_points = nl;
+}
+
+void wad_set_returns(WadReturnFunc *rf) {
+  int i;
+  while (rf[i].name) {
+    wad_set_return(rf[i].name, rf[i].value);
+    i++;
+  }
 }
 
 static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
@@ -112,6 +121,15 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   p_pc = (unsigned long) (*pc);
   p_sp = (unsigned long) (*sp);
 
+
+  /*  {
+    Dl_info dli;
+    if (dladdr((void *) p_pc, &dli) >= 0) {
+      printf("dli_fname = %s\n", dli.dli_fname);
+      printf("dli_sname = %s\n", dli.dli_sname);
+    }
+  }
+  */
   frame = wad_stack_trace(p_pc, p_sp, 0);
   origframe =frame;
   if (!frame) {
@@ -167,4 +185,5 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     *(npc) = *(pc) + 4;
     return;
   }
+  exit(1);
 }

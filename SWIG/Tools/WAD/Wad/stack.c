@@ -12,6 +12,7 @@
 #include "wad.h"
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <dlfcn.h>
 
 /* Given a stack pointer, this function performs a single level of stack 
    unwinding */
@@ -91,10 +92,17 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       }
       
       /* Try to find the symbol corresponding to this PC */
-      if (wo)
-	symname = wad_find_symbol(wo,(void *) p_pc, (unsigned long) ws->vaddr, &value);
-      else 
+      if (wo) {
+	symname = wad_find_symbol(wo, (void *) p_pc, (unsigned long) ws->vaddr, &value);
+	/*	if (!symname) {
+	  Dl_info dli;
+	  if (dladdr((void *) p_pc, &dli) >= 0) {
+	    symname = (char *) dli.dli_sname;
+	  }
+	  }*/
+      } else {
 	symname = 0;
+      }
       
       /* Build up some information about the exception frame */
       frame.frameno = n;
