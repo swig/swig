@@ -1,6 +1,6 @@
 <?
 
-dl("libexample.so");
+require "example.php";
 
 # ----- Object creation -----
 
