@@ -259,7 +259,7 @@ Hash_getattr(DOH *ho, DOH *k) {
     n = h->hashtable[hv];
     k_type = ((DohBase*)k)->type;
     while (n) {
-      nk = n->key;
+      nk = (DohBase *)n->key;
       if ((k_type == nk->type) && ((k_type->doh_cmp)(k, nk) == 0)) return n->object;
       n = n->next;
     }
