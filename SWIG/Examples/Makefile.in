@@ -500,6 +500,7 @@ java_clean:
 
 MZC = test -n "@MZC@" && @MZC@
 MZDYNOBJ = @MZDYNOBJ@
+MZSCHEME_SO = @MZSCHEME_SO@
 
 # ----------------------------------------------------------------
 # Build a C/C++ dynamically loadable module
@@ -508,12 +509,12 @@ MZDYNOBJ = @MZDYNOBJ@
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ISRCS) $(SRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
+	$(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) -o $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
+	$(CXXSHARED) -o $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # ----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG runtime
@@ -524,12 +525,12 @@ MZSCHEME_RUNTIME=-L$(RUNTIMEDIR) -lswigmz@release_suffix@
 mzscheme_multi: $(SRCS)
 	$(SWIG) -noruntime -mzscheme $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ISRCS) $(SRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME)
+	$(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME)
 
 mzscheme_multi_cpp: $(SRCS)
 	$(SWIG) -noruntime -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) -o $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(MZDYNOBJ) $(CPP_DLLIBS) 
+	$(CXXSHARED) -o $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # -----------------------------------------------------------------
 # Cleaning the mzscheme examples
