@@ -11,11 +11,16 @@ struct Foo {
 
 class Bar {
 public:
-  Bar(int i = 0) {}
+  Bar(int i = 0) { num = i; }
 
   static int foo(int a=0, int b=0) {return 0;}
+
+  int num;
 };
 
+char *foo() {
+   return (char *) "foo:";
+}
 char *foo(int) {
    return (char*) "foo:int";
 }
@@ -36,6 +41,12 @@ char *foo(Bar *) {
 }
 char *foo(void *) {
    return (char *) "foo:void *";
+}
+char *foo(Foo *, int) {
+   return (char *) "foo:Foo *,int";
+}
+char *foo(double, Bar *) {
+   return (char *) "foo:double,Bar *";
 }
 
 char *blah(double) {
