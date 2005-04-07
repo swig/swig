@@ -543,7 +543,40 @@ all the modules.</p>
     <ul>
       <li>No director support.</li>
       <li>No support for c++ standard types like std::vector.</li>
+      <li>The TinyCLOS wrappers for overloaded functions will not work correctly when using 
+          <a href="SWIGPlus.html#SWIGPlus_default_args">%feature(compactdefaultargs)</a>.</li>
     </ul>
+
+    <p>TinyCLOS has a limitation such that generic methods do not properly work on methods
+    with different number of specializers: TinyCLOS assumes that every method added to a generic function
+    will have the same number of specializers. SWIG generates functions with different lengths of specializers
+    when C/C++ functions are overloaded.  For example, the code</p>
+
+<div class="code">
+<pre>
+class Foo {};
+int foo(int a, Foo *b);
+int foo(int a);
+</pre></div>
+
+<p>will produce scheme code</p>
+
+<div class="targetlang">
+<pre>
+(define-method (foo (arg0 &lt;top&gt;) (arg1 &lt;Foo&gt;)) (<i>call primitive function</i>))
+(define-method (foo (arg0 &lt;top&gt;)) (<i>call primitive function</i>))
+</pre></div>
+
+<p>Using unpatched TinyCLOS, the second <code>(define-method)</code> will replace the first one,
+so calling <code>(foo 3 f)</code> will produce an error.</p>
+
+<p>There are two solutions to this: the
+file <tt>Lib/chicken/tinyclos-multi-generic.patch</tt> in the SWIG source contains a patch against
+tinyclos.scm inside the chicken source to add support into TinyCLOS for multi-argument generics.
+This requires chicken to be rebuilt and custom install of chicken.  An alternative is the <tt>Lib/chicken/multi-generic.scm</tt>
+file in the SWIG source.  This file can be loaded after TinyCLOS is loaded, and it will override some functions
+inside TinyCLOS to correctly support multi-argument generics.  This solution will work on any install of chicken.
+Please see the comments at the top of both files for more information.</p>
 
   </body>
 </html>

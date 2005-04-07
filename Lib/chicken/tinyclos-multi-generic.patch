@@ -1,0 +1,82 @@
+# This patch is against chicken 1.92, but it should work just fine
+# with older versions of chicken.  It adds support for mulit-argument
+# generics, that is, generics now correctly handle adding methods
+# with different lengths of specializer lists
+
+# Comments, bugs, suggestions send to chicken-users@nongnu.org
+
+# Patch written by John Lenz <lenz@cs.wisc.edu>
+
+--- tinyclos.scm.old	2005-04-04 23:35:10.000000000 -0500
++++ tinyclos.scm	2005-04-05 14:03:26.740306763 -0500
+@@ -868,13 +868,24 @@
+     (##tinyclos#slot-set!
+      generic
+      'methods
+-     (cons method
+-	   (filter-in
+-	    (lambda (m) 
+-	      (let ([ms1 (method-specializers m)]
+-		    [ms2 (method-specializers method)] )
+-		(not (every2 (lambda (x y) (eq? x y)) ms1 ms2) ) ) )
+-	    (##tinyclos#slot-ref generic 'methods))))
++       (let filter-in-method ([methods (##tinyclos#slot-ref generic 'methods)])
++         (if (null? methods)
++           (list method)
++           (let ([l1 (length (method-specializers method))]
++		 [l2 (length (method-specializers (##sys#slot methods 0)))])
++             (cond ((> l1 l2)
++                    (cons (##sys#slot methods 0) (filter-in-method (##sys#slot methods 1))))
++                   ((< l1 l2)
++                    (cons method methods))
++                   (else
++                     (let check-method ([ms1 (method-specializers method)]
++                                        [ms2 (method-specializers (##sys#slot methods 0))])
++                       (cond ((and (null? ms1) (null? ms2))
++                              (cons method (##sys#slot methods 1))) ;; skip the method already in the generic
++                             ((eq? (##sys#slot ms1 0) (##sys#slot ms2 0))
++                              (check-method (##sys#slot ms1 1) (##sys#slot ms2 1)))
++                             (else
++                               (cons (##sys#slot methods 0) (filter-in-method (##sys#slot methods 1))))))))))))
+     (if (memq generic generic-invocation-generics)
+ 	(set! method-cache-tag (vector))
+ 	(%entity-cache-set! generic #f) )
+@@ -946,9 +957,13 @@
+       (lambda (args)
+ 	(let ([applicable
+ 	       (filter-in (lambda (method)
+-			    (every2 applicable?
+-				   (method-specializers method)
+-				   args))
++                            (let check-applicable ([list1 (method-specializers method)]
++                                                   [list2 args])
++                              (cond ((null? list1) #t)
++                                    ((null? list2) #f)
++                                    (else
++                                      (and (applicable? (##sys#slot list1 0) (##sys#slot list2 0))
++                                           (check-applicable (##sys#slot list1 1) (##sys#slot list2 1)))))))
+ 			  (generic-methods generic) ) ] )
+ 	  (if (or (null? applicable) (null? (##sys#slot applicable 1))) 
+ 	      applicable
+@@ -975,8 +990,10 @@
+ 	   [else
+ 	    (cond ((and (null? specls1) (null? specls2))
+ 		   (##sys#error "two methods are equally specific" generic))
+-		  ((or (null? specls1) (null? specls2))
+-		   (##sys#error "two methods have different number of specializers" generic))
++		  ;((or (null? specls1) (null? specls2))
++		  ; (##sys#error "two methods have different number of specializers" generic))
++                  ((null? specls1) #f)
++                  ((null? specls2) #t)
+ 		  ((null? args)
+ 		   (##sys#error "fewer arguments than specializers" generic))
+ 		  (else
+@@ -1235,7 +1252,7 @@
+ (define <tcp-listener> (make-primitive-class "tcp-listener" <structure>))
+ (define <c++-object> (make <class> 'name "c++-object" 'direct-supers (list <object>) 'direct-slots '(this)))
+ 
+-(set! method-caching-enabled #t)
++;(set! method-caching-enabled #t)
+ 
+ 
+ ;;; Utilities:

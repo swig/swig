@@ -1057,8 +1057,7 @@ CHICKEN::classHandler(Node *n)
 
   if (have_constructor) {
       Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
-                       "  (call-next-method)\n",
-		       "  (swig-initialize obj initargs ", NIL);
+		           "  (swig-initialize obj initargs ", NIL);
       if (constructor_arg_types) {
         String *initfunc_name = NewStringf("%s@@SWIG@initmethod", class_name);
         String *func_call = buildClosFunctionCall(constructor_arg_types, initfunc_name, chickenPrimitiveName(constructor_name));
@@ -1080,9 +1079,8 @@ CHICKEN::classHandler(Node *n)
       constructor_name = 0;
   } else {
       Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
-                       "  (call-next-method)\n",
-		       "  (swig-initialize obj initargs (lambda x #f)))\n",
-		       NIL);
+		           "  (swig-initialize obj initargs (lambda x #f)))\n",
+		           NIL);
   }
 
   /* export class initialization function */
