@@ -17,6 +17,7 @@ CPP_TEST_CASES += \
 	callback \
 	complextest \
 	director_stl \
+	director_thread \
 	file_test \
 	implicittest \
 	inout \
