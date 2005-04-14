@@ -3657,17 +3657,6 @@ class JAVA : public Language {
     Setattr(n, "director:ctor", class_ctor);
   }
 
-  /* -----------------------------------------------------------------------------
-   * abstractClassTest()
-   *
-   * Make sure that the constructors are always generated for director-based
-   * classes derived from abstract classes, since Java always allocates the
-   * director-based class.
-   * ----------------------------------------------------------------------------- */
-
-  virtual int abstractClassTest(Node *n) {
-    return Language::abstractClassTest(n);
-  }
 };   /* class JAVA */
 
 /* -----------------------------------------------------------------------------
