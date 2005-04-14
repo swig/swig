@@ -66,11 +66,37 @@ public class li_std_string_runme {
           li_std_string.test_throw();
           throw new Throwable("Test 5 failed");
       } catch (RuntimeException e) {
+        if (!e.getMessage().equals("test_throw message"))
+          throw new Exception("Test 5 string check: " + e.getMessage());
       }
       try {
           li_std_string.test_const_reference_throw();
           throw new Throwable("Test 6 failed");
       } catch (RuntimeException e) {
+        if (!e.getMessage().equals("test_const_reference_throw message"))
+          throw new Exception("Test 6 string check: " + e.getMessage());
       }
+
+      // Global variables
+      String s = "initial string";
+      if (!li_std_string.getGlobalString2().equals("global string 2"))
+        throw new Exception("GlobalString2 test 1");
+      li_std_string.setGlobalString2(s);
+      if (!li_std_string.getGlobalString2().equals(s))
+        throw new Exception("GlobalString2 test 2");
+
+      // Member variables
+      Structure myStructure = new Structure();
+      if (!myStructure.getMemberString2().equals("member string 2"))
+        throw new Exception("MemberString2 test 1");
+      myStructure.setMemberString2(s);
+      if (!myStructure.getMemberString2().equals(s))
+        throw new Exception("MemberString2 test 2");
+
+      if (!Structure.getStaticMemberString2().equals("static member string 2"))
+        throw new Exception("StaticMemberString2 test 1");
+      Structure.setStaticMemberString2(s);
+      if (!Structure.getStaticMemberString2().equals(s))
+        throw new Exception("StaticMemberString2 test 2");
   }
 }
