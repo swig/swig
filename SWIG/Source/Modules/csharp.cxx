@@ -36,6 +36,7 @@ class CSHARP : public Language {
   bool   variable_wrapper_flag; // Flag for when wrapping a nonstatic member variable
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
   bool   global_variable_flag; // Flag for when wrapping a global variable
+  bool   generate_property_declaration_flag; // Flag for generating properties
 
   String *imclass_name;  // intermediary class name
   String *module_class_name;  // module class name
@@ -88,6 +89,7 @@ class CSHARP : public Language {
     variable_wrapper_flag(false),
     wrapping_member_flag(false),
     global_variable_flag(false),
+    generate_property_declaration_flag(false),
 
     imclass_name(NULL),
     module_class_name(NULL),
@@ -800,24 +802,12 @@ class CSHARP : public Language {
 
   virtual int globalvariableHandler(Node *n) {
 
-    SwigType  *t = Getattr(n,"type");
-    String    *tm;
-
-    // Get the variable type
-    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
-      substituteClassname(t, tm);
-    } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
-          "No cstype typemap defined for %s\n", SwigType_str(t,0));
-    }
-
-    // Output the property's field declaration and accessor methods
-    Printf(module_class_code, "  public static %s %s {", tm, Getattr(n, "sym:name"));
-
+    generate_property_declaration_flag = true;
     variable_name = Getattr(n,"sym:name");
     global_variable_flag = true;
     int ret = Language::globalvariableHandler(n);
     global_variable_flag = false;
+    generate_property_declaration_flag = false;
 
     Printf(module_class_code, "\n  }\n\n");
 
@@ -1636,6 +1626,25 @@ class CSHARP : public Language {
 
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
+      if (generate_property_declaration_flag) { // Ensure the declaration is generated just once should the property contain both a set and get
+	// Get the C# variable type - obtained differently depending on whether a setter is required.
+	String *variable_type = return_type;
+	if (setter_flag) {
+	  p = last_parm; // (last parameter is the only parameter for properties)
+	  SwigType *pt = Getattr(p,"type");
+	  if ((tm = Getattr(p,"tmap:cstype"))) {
+	    substituteClassname(pt, tm);
+	    variable_type = tm;
+	  } else {
+	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
+		"No csvarin typemap defined for %s\n", SwigType_str(pt,0));
+	  }
+	}
+	Printf(proxy_class_code, "  public %s%s %s {", static_flag ? "static " : "", variable_type, variable_name);
+      }
+      generate_property_declaration_flag = false;
+
+
       if(setter_flag) {
         // Setter method
         Swig_typemap_attach_parms("csvarin", l, NULL);
@@ -1804,26 +1813,15 @@ class CSHARP : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    SwigType  *t = Getattr(n,"type");
-    String    *tm;
 
-    // Get the variable type
-    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
-      substituteClassname(t, tm);
-    } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
-          "No cstype typemap defined for %s\n", SwigType_str(t,0));
-    }
-
-    // Output the property's field declaration and accessor methods
-    Printf(proxy_class_code, "  public %s %s {", tm, Getattr(n, "sym:name"));
-
+    generate_property_declaration_flag = true;
     variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
     variable_wrapper_flag = true;
     Language::membervariableHandler(n);
     wrapping_member_flag = false;
     variable_wrapper_flag = false;
+    generate_property_declaration_flag = false;
 
     Printf(proxy_class_code, "\n  }\n\n");
 
@@ -1837,28 +1835,15 @@ class CSHARP : public Language {
   virtual int staticmembervariableHandler(Node *n) {
 
     bool static_const_member_flag = (Getattr(n, "value") == 0);
-    if(static_const_member_flag) {
-      SwigType  *t = Getattr(n,"type");
-      String    *tm;
 
-      // Get the variable type
-      if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
-        substituteClassname(t, tm);
-      } else {
-        Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
-            "No cstype typemap defined for %s\n", SwigType_str(t,0));
-      }
-
-      // Output the property's field declaration and accessor methods
-      Printf(proxy_class_code, "  public static %s %s {", tm, Getattr(n, "sym:name"));
-    }
-
+    generate_property_declaration_flag = true;
     variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
     static_flag = true;
     Language::staticmembervariableHandler(n);
     wrapping_member_flag = false;
     static_flag = false;
+    generate_property_declaration_flag = false;
 
     if(static_const_member_flag)
       Printf(proxy_class_code, "\n  }\n\n");
@@ -2029,6 +2014,24 @@ class CSHARP : public Language {
 
     if (proxy_flag && global_variable_flag) {
       // Properties
+      if (generate_property_declaration_flag) { // Ensure the declaration is generated just once should the property contain both a set and get
+	// Get the C# variable type - obtained differently depending on whether a setter is required.
+	String *variable_type = return_type;
+	if (setter_flag) {
+	  p = last_parm; // (last parameter is the only parameter for properties)
+	  SwigType *pt = Getattr(p,"type");
+	  if ((tm = Getattr(p,"tmap:cstype"))) {
+	    substituteClassname(pt, tm);
+	    variable_type = tm;
+	  } else {
+	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
+		"No csvarin typemap defined for %s\n", SwigType_str(pt,0));
+	  }
+	}
+	Printf(module_class_code, "  public static %s %s {", variable_type, variable_name);
+      }
+      generate_property_declaration_flag = false;
+
       if(setter_flag) {
         // Setter method
         Swig_typemap_attach_parms("csvarin", l, NULL);
