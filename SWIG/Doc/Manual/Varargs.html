@@ -126,7 +126,7 @@ example:
 <pre>
 List make_list(const char *s, ...) {
     va_list ap;
-    List    *x = new List();
+    List    x;
     ...
     va_start(ap, s);
     while (s) {

@@ -259,7 +259,7 @@ Vector *new_Vector();
 void delete_Vector(Vector *v);
 double Vector_x_get(Vector *v);
 double Vector_y_get(Vector *v);
-double Vector_y_get(Vector *v);
+double Vector_z_get(Vector *v);
 void Vector_x_set(Vector *v, double x);
 void Vector_y_set(Vector *v, double y);
 void Vector_z_set(Vector *v, double z);
@@ -372,7 +372,7 @@ gcc -c example.c example_wrap.c -I/usr/local/include
 ld -G example.o example_wrap.o -o example.so
 
 # Build a shared library for Linux
-agcc -fpic -c example.c example_wrap.c -I/usr/local/include
+gcc -fpic -c example.c example_wrap.c -I/usr/local/include
 gcc -shared example.o example_wrap.o -o example.so
 
 # Build a shared library for Irix
