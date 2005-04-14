@@ -2380,6 +2380,7 @@ as shown.   To work with heap allocated data, the following technique can be use
       $1[i] = (float) PyFloat_AsDouble(o);
     } else {
       PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      free($1);
       return NULL;
     }
   }
@@ -2465,7 +2466,7 @@ can be set nicely, but reading the member simply returns a pointer:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; s = SomeObject()
-&gt;&gt;&gt; s.x = [1, 2.5, 5. 10]
+&gt;&gt;&gt; s.x = [1, 2.5, 5, 10]
 &gt;&gt;&gt; print s.x
 _1008fea8_p_float
 &gt;&gt;&gt; 
@@ -3084,7 +3085,7 @@ descriptor name for any C datatype.  For example:
 %typemap(in) Foo * {
   if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) {
      Bar *temp;
-     if ((SWIG_ConvertPtr($input), (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
+     if ((SWIG_ConvertPtr($input, (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
          return NULL;
      }
      $1 = (Foo *) temp;
@@ -3587,6 +3588,7 @@ in a tremendous amount of code bloat.  For example, consider this typemap for an
       $1[i] = (float) PyFloat_AsDouble(o);
     } else {
       PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      free(result);
       return NULL;
     }
   }

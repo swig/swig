@@ -425,13 +425,13 @@ interface is as follows:
 <div class="code">
 <pre>
 struct name {
-   name(int nelements);               // Create an array
-  ~name();                            // Delete array
-   type getitem(int index);           // Return item
-   void setitem(index, type value);   // Set item
-   type *cast();                      // Cast to original type
-   static name *frompointer(type *);  // Create class wrapper from
-                                      // existing pointer
+   name(int nelements);                  // Create an array
+  ~name();                               // Delete array
+   type getitem(int index);              // Return item
+   void setitem(int index, type value);  // Set item
+   type *cast();                         // Cast to original type
+   static name *frompointer(type *);     // Create class wrapper from
+                                         // existing pointer
 };
 </pre>
 </div>
@@ -731,7 +731,7 @@ Generates the following function for extracting C data for a given type.
 
 <div class="code">
 <pre>
-char *cdata_<em>name</em>(int nitems)
+char *cdata_<em>name</em>(type* ptr, int nitems)
 </pre>
 </div>
 

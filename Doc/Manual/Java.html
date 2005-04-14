@@ -915,7 +915,7 @@ public interface exampleConstants {
 </pre></div>
 
 <p>
-The <tt>%javaconst(flag)</tt> and <tt>%javaconst(value)</tt> directive introduced in the previous section on constants can also be used with enums.
+The <tt>%javaconst(flag)</tt> and <tt>%javaconstvalue(value)</tt> directive introduced in the previous section on constants can also be used with enums.
 As is the case for constants, the default is <tt>%javaconst(0)</tt> as not all C values will compile as Java code.
 However, it is strongly recommended to add in a <tt>%javaconst(1)</tt> directive at the top of your 
 interface file as it is only on very rare occasions that this will produce code that won't compile under Java.
@@ -968,7 +968,7 @@ enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
 </pre>
 </div>
 
-<p>and</p>
+<p>will generate:</p>
 
 <div class="code">
 <pre>
@@ -2992,7 +2992,7 @@ The %feature directive can be applied globally, to specific classes, and to spec
 // generate directors for all classes that have virtual methods
 %feature("director");         
 
-// genarate directors for all virtual methods in class Foo
+// generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
 
 // generate a director for just Foo::bar()
@@ -5685,7 +5685,7 @@ $ java main
 
 <p>
 SWIG support for polymorphism works in that the appropriate virtual function is called. However, the default generated code does not allow for downcasting. 
-Let's examine this with the follow code:
+Let's examine this with the following code:
 </p>
 
 <div class="code"><pre>
@@ -6033,9 +6033,9 @@ public static void MyClass_method_upcall(MyClass self, long jarg1)
 }
 </pre>
 </div>
-  <p>Unfortunately, this loses the Java type information that is part of the underlying Foo director proxy class's java object pointer causing the type cast to fail.
+  <p>Unfortunately, this loses the Java type information that is part of the underlying Foo director proxy class's Java object pointer causing the type cast to fail.
   The SWIG Java module's director code attempts to correct the problem, <b>but only for director-enabled classes</b>, since the director class retains a global reference to its Java object.
-  Thus, for director-enabled classes <b>and only for director-enabled classes</b>, the generated proxy Java code looks somthing like:
+  Thus, for director-enabled classes <b>and only for director-enabled classes</b>, the generated proxy Java code looks something like:
   </p>
 
 <div class="code">
@@ -6121,7 +6121,7 @@ public class MyClassDerived extends MyClass {
   /* ... */
   public void method_upcall(Foo foo_object)
   {
-    FooDerived    derived = FooDerived.downcastFooDerived(foo_object) : null);
+    FooDerived    derived = FooDerived.downcastFooDerived(foo_object);
     /* rest of your code here */
   }
 }
@@ -6326,7 +6326,7 @@ and as usual this function is wrapped by another which for a global C function w
 <p>
 The <tt>packageName</tt> and <tt>moduleName</tt> must of course be correct else you will get linker errors when the JVM dynamically loads the JNI function.
 You may have to add in some "jtype", "jstype", "javain" and "javaout" typemaps when wrapping some JNI types.
-Here the default typemaps work for for <tt>int</tt> and <tt>char *</tt>.
+Here the default typemaps work for <tt>int</tt> and <tt>char *</tt>.
 </p>
 
 <p>
