@@ -10,5 +10,3 @@ zlib        -- a wrapping of the zlib compression library
 
 You should be able to run make in each of the examples.  By default, a shared
 library will be built.  Run make check to execute the test.
-
-You can uncomment a few lines in the Makefile to build a static test exe.

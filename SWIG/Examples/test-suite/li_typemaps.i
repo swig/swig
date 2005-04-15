@@ -3,7 +3,10 @@
 %include "typemaps.i"
 
 %apply int &INOUT { int &INOUT2 };
+%newobject out_foo;
 %inline %{
+
+struct Foo { int a; };
 
 bool in_bool(bool *INPUT) { return *INPUT; }
 int in_int(int *INPUT) { return *INPUT; }
@@ -46,6 +49,14 @@ void out_float(float x, float *OUTPUT) {  *OUTPUT = x; }
 void out_double(double x, double *OUTPUT) {  *OUTPUT = x; }
 void out_longlong(long long x, long long *OUTPUT) {  *OUTPUT = x; }
 void out_ulonglong(unsigned long long x, unsigned long long *OUTPUT) {  *OUTPUT = x; }
+
+/* Tests a returning a wrapped pointer and an output argument */
+struct Foo *out_foo(int a, int *OUTPUT) {
+  struct Foo *f = new struct Foo();
+  f->a = a;
+  *OUTPUT = a * 2;
+  return f;
+}
 
 void outr_bool(bool x, bool &OUTPUT) {  OUTPUT = x; }
 void outr_int(int x, int &OUTPUT) {  OUTPUT = x; }

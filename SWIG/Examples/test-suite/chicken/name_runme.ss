@@ -1,2 +1,2 @@
-(load-library 'name "name.so")
+(load "name.so")
 (include "../schemerunme/name.scm")

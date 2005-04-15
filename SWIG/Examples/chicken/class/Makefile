@@ -7,7 +7,7 @@ TARGET      = class
 INCLUDE     =
 SWIGOPT     =
 CFLAGS      = 
-VARIANT     = _csc
+VARIANT     =
 
 # uncomment the following lines to build a static exe (only pick one of the CHICKEN_MAIN lines)
 #CHICKEN_MAIN = test-lowlevel-class.scm

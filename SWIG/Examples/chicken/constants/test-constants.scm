@@ -1,8 +1,6 @@
-;; run with './constants test-constants.scm'
 ;; feel free to uncomment and comment sections
 
-(load-library 'example "constants.so")
-(declare (uses example))
+(load-library 'example "./constants.so")
 
 (display "starting test ... you will see 'finished' if successful.\n")
 (or (= (ICONST) 42) (exit 1))

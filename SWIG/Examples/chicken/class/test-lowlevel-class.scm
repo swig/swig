@@ -64,8 +64,9 @@
 (display "\nGuess I'll clean up now\n")
 
 ;; Note: this invokes the virtual destructor
-(delete-Shape c)
-(delete-Shape s)
+(set! c #f)
+(set! s #f)
+(gc #t)
 
 (set! s 3)
 (display (Shape-nshapes))

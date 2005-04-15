@@ -20,7 +20,7 @@
 ;; ----- Access a static member -----
 
 (display "\nA total of ")
-(display (nshapes))
+(display (Shape-nshapes))
 (display " shapes were created\n")
 
 ;; ----- Member data access -----
@@ -67,9 +67,9 @@
 ;; Note: Invoke the virtual destructors by forcing garbage collection
 (set! c 77)
 (set! s 88)
-;(gc #t)
+(gc #t)
 
-(display (nshapes))
+(display (Shape-nshapes))
 (display " shapes remain\n")
 (display "Goodbye\n")
 

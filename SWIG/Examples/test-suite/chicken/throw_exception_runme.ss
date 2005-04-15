@@ -1,4 +1,4 @@
-(load-library 'throw-exception "throw_exception.so")
+(load "throw_exception.so")
 
 (define-macro (check-throw expr check)
  `(if (handle-exceptions exvar (if ,check #f (begin (print "Error executing: " ',expr " " exvar) (exit 1))) ,expr #t)

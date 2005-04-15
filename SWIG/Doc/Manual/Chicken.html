@@ -26,11 +26,11 @@
 <li><a href="#Chicken_nn10">Exceptions</a>
 </ul>
 <li><a href="#Chicken_nn11">TinyCLOS</a>
-<li><a href="#Chicken_nn12">Compilation</a>
-<li><a href="#Chicken_nn13">Linkage</a>
+<li><a href="#Chicken_nn12">Linkage</a>
 <ul>
-<li><a href="#Chicken_nn14">Shared library</a>
-<li><a href="#Chicken_nn15">Static binary</a>
+<li><a href="#Chicken_nn13">Static binary or shared library linked at compile time</a>
+<li><a href="#Chicken_nn14">Building chicken extension libraries</a>
+<li><a href="#Chicken_nn15">Linking multiple SWIG modules with TinyCLOS</a>
 </ul>
 <li><a href="#Chicken_nn16">Typemaps</a>
 <li><a href="#Chicken_nn17">Pointers</a>
@@ -205,7 +205,7 @@
       </ol>
 
     <p>
-      In all cases, the constants may be accessed from with CHICKEN
+      In all cases, the constants may be accessed from within CHICKEN
       using the form <tt>(MYCONSTANT1)</tt>; that is, the constants
       may be accessed using the read-only parameter form.
     </p>
@@ -247,7 +247,7 @@
 
      <p>Chicken supports both the <code>SWIG_exception(int code, const char *msg)</code> interface
      as well as a <code>SWIG_ThrowException(C_word val)</code> function for throwing exceptions from
-     inside the %exception blocks.  <code>SWIG_exception</code> will throw a list consiting of the code
+     inside the %exception blocks.  <code>SWIG_exception</code> will throw a list consisting of the code
      (as an integer) and the message.  Both of these will throw an exception using <code>(abort)</code>,
      which can be handled by <code>(handle-exceptions)</code>.  See
      <a href="http://www.call-with-current-continuation.org/manual/Exceptions.html#Exceptions">Chicken manual on Exceptions</a>
@@ -378,7 +378,7 @@ $ csc -v test_script.scm -lexample
 </pre>
 </div>
 
-<p>An alternative is the test_script.scm can have the code <code>(load-library 'example "example.so")</code>,
+<p>An alternative is that the test_script.scm can have the code <code>(load-library 'example "example.so")</code>,
 in which case the test script does not need to be linked with example.so.  The test_script.scm file can then
 be run with <tt>csi</tt>.
 </p>
@@ -388,8 +388,8 @@ be run with <tt>csi</tt>.
 
 <p>Building a shared library like in the above section only works if the library
 is linked at compile time with a script containing <code>(declare (uses ...))</code> or is
-loaded explictetly with <code>(load-library 'example "example.so")</code>. It is
-not the format that chicken expects for extension libraries and eggs.  The problem is the
+loaded explicitly with <code>(load-library 'example "example.so")</code>. It is
+not the format that CHICKEN expects for extension libraries and eggs.  The problem is the
 <code>(declare (unit <i>modname</i>))</code> inside the <tt>modname.scm</tt> file.  There are
 two possible solutions to this.</p>
 
@@ -405,7 +405,7 @@ $ csc -sv modname.scm modname_wrap.c modname_impl.c -o modname.so
 
 <p>This library can then be loaded by scheme code with the <code>(require 'modname)</code> function.
 See <a href="http://www.call-with-current-continuation.org/manual/Loading-extension-libraries.html">
-Loading-extension-libraries</a> in the eval unit inside the Chicken manual for more information.</p>
+Loading-extension-libraries</a> in the eval unit inside the CHICKEN manual for more information.</p>
 
 <p>Another alternative is to run SWIG normally and create a scheme file that contains <code>(declare (uses <i>modname</i>))</code>
 and then compile that file into the shared library as well.  For example, inside the <tt>mod_load.scm</tt> file,</p>
@@ -442,6 +442,7 @@ distributed and used by anyone, even if SWIG is not installed.</p>
 two eggs, one using the first method and one using the second method.</p>
 
 <H3><a name="Chicken_nn15"></a>17.4.3 Linking multiple SWIG modules with TinyCLOS</H3>
+
 
 <p>Linking together multiple modules that share type information using the <code>%import</code>
 directive while also using <tt>-proxy</tt> is more complicated.  For example, if <tt>mod2.i</tt> imports <tt>mod1.i</tt>, then the

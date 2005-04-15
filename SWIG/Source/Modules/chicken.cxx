@@ -50,12 +50,11 @@ static  File         *f_header = 0;
 static  File         *f_wrappers = 0;
 static  File         *f_init = 0;
 static  String       *chickentext = 0;
-static  String       *closhelpers;
+static  String       *closprefix = 0;
 static String        *swigtype_ptr = 0;
 
 
 static  String       *f_sym_size = 0;
-static  String       *closcode = 0;
 
 /* some options */
 static int           declare_unit = 1;
@@ -67,18 +66,19 @@ static int           clos = 0;
 static  String       *class_name  = 0;
 static  String       *short_class_name  = 0;
 
-/* sections of the clos code */
-static  String       *clos_class_defines = 0;
-static  String       *clos_methods = 0;
-
 static  int          in_class = 0;
 static  int          have_constructor = 0;
 static  bool         exporting_destructor = false;
 static  String       *constructor_name = 0;
-static String        *memberfunction_name = 0;
+static String        *member_name = 0;
 
+/* sections of the clos code */
+static  String       *clos_class_defines = 0;
+static  String       *clos_methods = 0;
+
+/* Some clos options */
 static int           useclassprefix = 0;
-static String        *closprefix = 0;
+static String        *clossymnameprefix = 0;
 static  int          hide_primitive = 1;
 static Hash          *primitive_names = 0;
 
@@ -122,7 +122,6 @@ protected:
 };
 
 /* -----------------------------------------------------------------------
-static  String       *closhelpers;
  * swig_chicken()    - Instantiate module
  * ----------------------------------------------------------------------- */
 
@@ -133,17 +132,6 @@ static Language * new_swig_chicken() {
 extern "C"  {
   Language * swig_chicken(void) {
     return new_swig_chicken();
-  }
-
-  static int checkNodeClass(Node *n) {
-    String *kind = Getattr(n, "kind");
-    if (kind && (
-          Strcmp(kind, "class") == 0 ||
-          Strcmp(kind, "struct") == 0 ||
-          Strcmp(kind, "union") == 0))
-        return 1;
-    else
-        return 0;
   }
 }
 
@@ -158,15 +146,15 @@ CHICKEN::main(int argc, char *argv[])
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
-	fputs(chicken_usage, stdout);
-	SWIG_exit(0);
+        fputs(chicken_usage, stdout);
+        SWIG_exit(0);
       } 
       else if (strcmp(argv[i],"-proxy") == 0) {
-	clos = 1;
-	Swig_mark_arg(i);
+        clos = 1;
+        Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-closprefix") == 0) {
           if (argv[i+1]) {
-              closprefix = NewString(argv[i+1]);
+              clossymnameprefix = NewString(argv[i+1]);
               Swig_mark_arg(i);
               Swig_mark_arg(i+1);
               i++;
@@ -180,11 +168,11 @@ CHICKEN::main(int argc, char *argv[])
           hide_primitive = 0;
           Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-nounit") == 0) {
-	  declare_unit = 0;
-	  Swig_mark_arg(i);
+          declare_unit = 0;
+          Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-noclosuses") == 0) {
-	  clos_uses = 0;
-	  Swig_mark_arg(i);
+          clos_uses = 0;
+          Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-nocollection") == 0) {
           no_collection = 1;
           Swig_mark_arg(i);
@@ -225,7 +213,7 @@ CHICKEN::top(Node *n)
   f_header = NewString("");
   f_wrappers = NewString("");
   chickentext = NewString("");
-  closhelpers = NewString("");
+  closprefix = NewString("");
   f_sym_size = NewString("");
   primitive_names = NewHash();
   overload_parameter_lists = NewHash();
@@ -237,9 +225,8 @@ CHICKEN::top(Node *n)
   Swig_register_filebyname("init",f_init);
 
   Swig_register_filebyname("chicken", chickentext);
-  Swig_register_filebyname("closprefix", closhelpers);
+  Swig_register_filebyname("closprefix", closprefix);
     
-  closcode = NewString("");
   clos_class_defines = NewString("");
   clos_methods = NewString("");
 
@@ -285,24 +272,23 @@ CHICKEN::top(Node *n)
   }
 
   Printv(f_scm,
-	 ";; -*- buffer-read-only: t -*- vi: set ro:\n",
-	 ";; This file was created automatically by SWIG.\n",
-	 ";; Don't modify this file, modify the SWIG interface instead.\n",
-	 NIL);
+         ";; -*- buffer-read-only: t -*- vi: set ro:\n",
+         ";; This file was created automatically by SWIG.\n",
+         ";; Don't modify this file, modify the SWIG interface instead.\n",
+         NIL);
   if (declare_unit)
     Printv(f_scm,"(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm,"(declare \n",
-	 tab4, "(hide swig-init swig-init-return)\n",
-	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(C_word,C_word,C_word) C_noret;\"))\n", NIL);
+         tab4, "(hide swig-init swig-init-return)\n",
+         tab4, "(foreign-declare \"C_extern void swig_", module, "_init(C_word,C_word,C_word) C_noret;\"))\n", NIL);
   Printv(f_scm,"(define swig-init (##core#primitive \"swig_", module,
-	 "_init\"))\n", NIL);
+         "_init\"))\n", NIL);
   Printv(f_scm,"(define swig-init-return (swig-init))\n\n", NIL);
 
   if (clos) {
     Printf (f_scm, "(declare (uses tinyclos))\n");
-    Replaceall(closhelpers,"$module", scmmodule);
-    Printf (f_scm, "%s\n", closhelpers);
-    Printf (f_scm, "%s\n", closcode);
+    Replaceall(closprefix,"$module", scmmodule);
+    Printf (f_scm, "%s\n", closprefix);
     Printf (f_scm, "%s\n", clos_class_defines);
     Printf (f_scm, "%s\n", clos_methods);
   }
@@ -325,10 +311,9 @@ CHICKEN::top(Node *n)
 
   Delete(chicken_filename);
   Delete(chickentext);
-  Delete(closhelpers);
+  Delete(closprefix);
   Delete(overload_parameter_lists);
 
-  Delete(closcode);
   Delete(clos_class_defines);
   Delete(clos_methods);
 
@@ -364,13 +349,14 @@ CHICKEN::functionWrapper(Node *n)
   String *mangle = NewString("");
   String *get_pointers;
   String *cleanup;
-  String *outarg;
+  String *argout;
   String *tm;
   String *overname = 0;
   String *declfunc = 0;
   String *scmname;
   bool any_specialized_arg = false;
   List *function_arg_types = NewList();
+  int return_proxy_fastcall = 0;
 
   int     num_required;
   int     num_arguments;
@@ -387,15 +373,13 @@ CHICKEN::functionWrapper(Node *n)
   wname        = NewString("");
   get_pointers = NewString("");
   cleanup      = NewString("");
-  outarg       = NewString("");
+  argout       = NewString("");
   declfunc     = NewString("");
   scmname      = NewString(iname);
   Replaceall(scmname, "_", "-");
 
   /* Local vars */
   Wrapper_add_local(f,"resultobj", "C_word resultobj");
-  Wrapper_add_local(f,"resultobjlast", "C_word resultobjlast");
-  Wrapper_add_local(f,"gswig_list_p", "int gswig_list_p = 0");
 
   /* Write code to extract function parameters. */
   emit_args(d, l, f);
@@ -417,14 +401,14 @@ CHICKEN::functionWrapper(Node *n)
   Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
   Printv(f->def,
-	 "static ",
-	 "void ", wname,
-	 " (C_word argc, C_word closure, C_word continuation",
-	 NIL);
+         "static ",
+         "void ", wname,
+         " (C_word argc, C_word closure, C_word continuation",
+         NIL);
   Printv(declfunc,
-	 "void ", wname,
-	 "(C_word,C_word,C_word",
-	 NIL);
+         "void ", wname,
+         "(C_word,C_word,C_word",
+         NIL);
 
   /* Generate code for argument marshalling */
   for (i = 0, p=l; i < num_arguments; i++) {
@@ -435,7 +419,6 @@ CHICKEN::functionWrapper(Node *n)
 
     SwigType *pt = Getattr(p,"type");
     String   *ln = Getattr(p,"lname");
-    SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
 
     source = NewStringf("scm%d",i+1);
 
@@ -446,35 +429,39 @@ CHICKEN::functionWrapper(Node *n)
     if ((tm = Getattr(p,"tmap:in"))) {
       String *parse = Getattr(p,"tmap:in:parse");
       if (!parse) {
-	Replaceall(tm,"$source",source);
-	Replaceall(tm,"$target",ln);
-	Replaceall(tm,"$input", source);
-	Setattr(p,"emit:input", source);   /* Save the location of
-					      the object */
-	  
-	if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
-	  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
-	} else {
-	  Replaceall(tm,"$disown","0");
-	}
+        Replaceall(tm,"$source",source);
+        Replaceall(tm,"$target",ln);
+        Replaceall(tm,"$input", source);
+        Setattr(p,"emit:input", source);   /* Save the location of
+                                              the object */
+          
+        if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
+          Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+        } else {
+          Replaceall(tm,"$disown","0");
+        }
 
-	if (i >= num_required)
-	  Printf(get_pointers, "if (argc-2>%i && (%s)) {\n", i, source);
-	Printv(get_pointers,tm,"\n", NIL);
-	if (i >= num_required)
-	  Printv(get_pointers, "}\n", NIL);
+        if (i >= num_required)
+          Printf(get_pointers, "if (argc-2>%i && (%s)) {\n", i, source);
+        Printv(get_pointers,tm,"\n", NIL);
+        if (i >= num_required)
+          Printv(get_pointers, "}\n", NIL);
 
           if (clos) {
               if (i < num_required) {
                   if (strcmp("void", Char(pt)) != 0) {
-                      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), checkNodeClass);
-                      if (class_node) {
-			  String *class_name = NewStringf("<%s>", Getattr(class_node, "sym:name"));
+                      Node *class_node = 0;
+                      String *clos_code = Getattr(p, "tmap:in:closcode");
+                      class_node = classLookup(pt);
+                      if (clos_code && class_node) {
+                          String *class_name = NewStringf("<%s>", Getattr(class_node, "sym:name"));
                           Append(function_arg_types, class_name);
+                          Append(function_arg_types, Copy(clos_code));
                           any_specialized_arg = true;
                           Delete(class_name);
                       } else {
                           Append(function_arg_types, "<top>");
+                          Append(function_arg_types, "$input");
                       }
                   }
               }
@@ -488,8 +475,8 @@ CHICKEN::functionWrapper(Node *n)
       continue;
     } else {
       Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
-		   "Unable to use type %s as a function argument.\n",
-		   SwigType_str(pt,0));
+                   "Unable to use type %s as a function argument.\n",
+                   SwigType_str(pt,0));
       break;
     }
 
@@ -503,7 +490,7 @@ CHICKEN::functionWrapper(Node *n)
   Printf(declfunc, ")");
 
   if (num_required != num_arguments) {
-    Push(function_arg_types, "^^##optional$$");
+    Append(function_arg_types, "^^##optional$$");
   }
 
   /* First check the number of arguments is correct */
@@ -540,6 +527,24 @@ CHICKEN::functionWrapper(Node *n)
   /* Emit the function call */
   emit_action(n,f);
 
+  /* Insert argument output code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      if (!Wrapper_check_local(f, "gswig_list_p")) {
+        Wrapper_add_local(f,"resultobjlast", "C_word resultobjlast");
+        Wrapper_add_local(f,"gswig_list_p", "int gswig_list_p = 0");
+      }
+      Replaceall(tm,"$source",Getattr(p,"lname"));
+      Replaceall(tm,"$target","resultobj");
+      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
+      Printf(argout, "%s", tm);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
   /* Return the function value */
   if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
     Replaceall(tm,"$source", "result");
@@ -550,26 +555,26 @@ CHICKEN::functionWrapper(Node *n)
     } else {
       Replaceall(tm,"$owner","0");
     }
+
+    /* check for chickenfastproxy flag */
+    if (Getattr(n, "tmap:out:chickenfastproxy")) {
+      /* can only do fast proxy if there are no argout paramaters... */
+      if (Wrapper_check_local(f, "gswig_list_p")) {
+        Replaceall(tm, "$proxy", "1");
+      } else {
+        Replaceall(tm, "$proxy", "0");
+        return_proxy_fastcall = 1;
+      }
+    }
     Printf(f->code, "%s", tm);
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		 "Unable to use return type %s in function %s.\n", 
-		 SwigType_str(d,0), name);
+                 "Unable to use return type %s in function %s.\n", 
+                 SwigType_str(d,0), name);
   }
 
-  /* Insert argument output code */
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:argout"))) {
-      Replaceall(tm,"$source",Getattr(p,"lname"));
-      Replaceall(tm,"$target","resultobj");
-      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-      Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printf(f->code, "%s", tm);
-      p = Getattr(p,"tmap:argout:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
+  /* Insert the argumetn output code */
+  Printv(f->code, argout, NIL);
 
   /* Output cleanup code */
   Printv(f->code,cleanup,NIL);
@@ -588,14 +593,25 @@ CHICKEN::functionWrapper(Node *n)
     Printf(f->code,"%s\n",tm);
   }
 
-  Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
+  if (return_proxy_fastcall) {
+    Printv(f->code,"{\n",
+                   "C_word func;\n",
+                   "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
+                   "if (C_swig_is_closurep(func))\n",
+                   "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
+                   "else\n",
+                   "  C_kontinue(continuation, resultobj);\n",
+                   "}\n", NIL);
+  } else {
+    Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
+  }
 
   /* Error handling code */
 #ifdef USE_FAIL
   Printf(f->code,"fail:\n");
   Printv(f->code,cleanup,NIL);
   Printf(f->code,"swig_panic (\"failure in "
-	 "'$symname' SWIG function wrapper\");\n");
+         "'$symname' SWIG function wrapper\");\n");
 #endif
   Printf(f->code,"}\n");
 
@@ -608,8 +624,8 @@ CHICKEN::functionWrapper(Node *n)
 
   /* Dump the function out */
   Printv(f_wrappers, 
-	  "static ",
-	  declfunc, " C_noret;\n", NIL);
+          "static ",
+          declfunc, " C_noret;\n", NIL);
   Wrapper_print(f,f_wrappers);
 
   Setattr(n,"wrap:name", wname);
@@ -624,13 +640,12 @@ CHICKEN::functionWrapper(Node *n)
       addMethod(scmname, wname);
     }
 
-    /* Only export if we are not in a class, or if in a class memberfunction (this protects against member variables
-     * and static functions and so forth, which are generated seperatly) */
-    if (!in_class || memberfunction_name) {
+    /* Only export if we are not in a class, or if in a class memberfunction */
+    if (!in_class || member_name) {
         String *method_def;
         String *clos_name;
         if (in_class)
-            clos_name = NewString(memberfunction_name);
+            clos_name = NewString(member_name);
         else
             clos_name = chickenNameMapping(scmname, (char *)"");
 
@@ -668,7 +683,6 @@ CHICKEN::functionWrapper(Node *n)
   Delete(wname);
   Delete(get_pointers);
   Delete(cleanup);
-  Delete(outarg);
   Delete(declfunc);
   Delete(mangle);
   Delete(function_arg_types);
@@ -732,14 +746,14 @@ CHICKEN::variableWrapper(Node *n)  {
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
       
     Printv(f->def, 
-	    "static ",
-	    "void ",wname,"(C_word, C_word, C_word, C_word) C_noret;\n", 
-	    NIL);
+            "static ",
+            "void ",wname,"(C_word, C_word, C_word, C_word) C_noret;\n", 
+            NIL);
     Printv(f->def, 
-	    "static "
-	    "void ",wname,"(C_word argc, C_word closure, "
-	    "C_word continuation, C_word value) {\n", 
-	    NIL);
+            "static "
+            "void ",wname,"(C_word argc, C_word closure, "
+            "C_word continuation, C_word value) {\n", 
+            NIL);
       
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
 
@@ -749,15 +763,15 @@ CHICKEN::variableWrapper(Node *n)  {
     if (!Getattr(n,"feature:immutable")) {
       Printf(f->code, "if (argc > 2) {\n");
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-	Replaceall(tm,"$source","value");
-	Replaceall(tm,"$target",name);
-	Replaceall(tm,"$input","value");
-	Printv(f->code, tm, "\n",NIL);
+        Replaceall(tm,"$source","value");
+        Replaceall(tm,"$target",name);
+        Replaceall(tm,"$input","value");
+        Printv(f->code, tm, "\n",NIL);
       }
       else {
-	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
-		     "Unable to set variable of type %s.\n", 
-		     SwigType_str(t,0));
+        Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+                     "Unable to set variable of type %s.\n", 
+                     SwigType_str(t,0));
       }
       Printf(f->code, "}\n");
     }
@@ -780,15 +794,27 @@ CHICKEN::variableWrapper(Node *n)  {
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Unable to read variable of type %s\n", SwigType_str(t,0));
+                   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-    Printf(f->code,"\nC_kontinue (continuation, resultobj);\n");
-      
+
+    if (Getattr(n, "tmap:varout:chickenfastproxy")) {
+      Printv(f->code,"{\n",
+                     "C_word func;\n",
+                     "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
+                     "if (C_swig_is_closurep(func))\n",
+                     "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
+                     "else\n",
+                     "  C_kontinue(continuation, resultobj);\n",
+                     "}\n", NIL);
+    } else {
+      Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
+    }
+
     /* Error handling code */
 #ifdef USE_FAIL
     Printf(f->code,"fail:\n");
     Printf(f->code,"swig_panic (\"failure in "
-	   "'%s' SWIG wrapper\");\n", proc_name);
+           "'%s' SWIG wrapper\");\n", proc_name);
 #endif
     Printf(f->code,"}\n");
 
@@ -797,18 +823,27 @@ CHICKEN::variableWrapper(Node *n)  {
     /* Now register the variable with the interpreter.   */
     addMethod(scmname, wname);
 
-    if (!in_class) {
-        String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
-        String *clos_name = chickenNameMapping(scmname, (char *)"");
-        /* Simply re-export the procedure */
-        Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
-        Delete(class_name);
+    if (!in_class || member_name) {
+        String *clos_name;
+        if (in_class)
+                clos_name = NewString(member_name);
+        else
+                clos_name = chickenNameMapping(scmname, (char *)"");
+
+        Node *class_node = classLookup(t);
+        if (class_node && Getattr(n, "tmap:varout:chickenfastproxy")) {
+          Printv(clos_methods, "(define (", clos_name, " . lst) (if (null? lst) (", chickenPrimitiveName(scmname), ") (",
+                     chickenPrimitiveName(scmname), " (slot-ref (car lst) 'swig-this))))\n", NIL);
+        } else {
+          /* Simply re-export the procedure */
+          Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+        }
         Delete(clos_name);
     }
   } else {
     Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
-		 "Unsupported variable type %s (ignored).\n", 
-		 SwigType_str(t,0));
+                 "Unsupported variable type %s (ignored).\n", 
+                 SwigType_str(t,0));
   }
 
   Delete(wname);
@@ -898,7 +933,7 @@ CHICKEN::constantWrapper(Node *n)
   } 
   else {
     Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
-		 "Unsupported constant value.\n");
+                 "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
 
@@ -922,15 +957,15 @@ CHICKEN::constantWrapper(Node *n)
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
       
     Printv(f->def, 
-	    "static ",
-	    "void ",wname,"(C_word, C_word, C_word) C_noret;\n", 
-	   NIL);
+            "static ",
+            "void ",wname,"(C_word, C_word, C_word) C_noret;\n", 
+           NIL);
 
     Printv(f->def, 
-	    "static ",
-	    "void ",wname,"(C_word argc, C_word closure, "
-	    "C_word continuation) {\n", 
-	   NIL);
+            "static ",
+            "void ",wname,"(C_word argc, C_word closure, "
+            "C_word continuation) {\n", 
+           NIL);
       
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
 
@@ -947,15 +982,27 @@ CHICKEN::constantWrapper(Node *n)
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Unable to read variable of type %s\n", SwigType_str(t,0));
+                   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-    Printf(f->code,"\nC_kontinue (continuation, resultobj);\n");
-      
+
+    if (Getattr(n, "tmap:varout:chickenfastproxy")) {
+      Printv(f->code,"{\n",
+                     "C_word func;\n",
+                     "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
+                     "if (C_swig_is_closurep(func))\n",
+                     "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
+                     "else\n",
+                     "  C_kontinue(continuation, resultobj);\n",
+                     "}\n", NIL);
+    } else {
+      Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
+    }
+
     /* Error handling code */
 #ifdef USE_FAIL
     Printf(f->code,"fail:\n");
     Printf(f->code,"swig_panic (\"failure in "
-	   "'%s' SWIG wrapper\");\n", proc_name);
+           "'%s' SWIG wrapper\");\n", proc_name);
 #endif
     Printf(f->code,"}\n");
 
@@ -964,16 +1011,20 @@ CHICKEN::constantWrapper(Node *n)
     /* Now register the variable with the interpreter.   */
     addMethod(scmname, wname);
 
-    if (!in_class) {
-      String *clos_name = chickenNameMapping(scmname, (char *)"");
+    if (!in_class || member_name) {
+      String *clos_name;
+      if (in_class)
+        clos_name = NewString(member_name);
+      else
+        clos_name = chickenNameMapping(scmname, (char *)"");
       Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
       Delete(clos_name);
     }
 
   } else {
     Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
-		 "Unsupported variable type %s (ignored).\n", 
-		 SwigType_str(t,0));
+                 "Unsupported variable type %s (ignored).\n", 
+                 SwigType_str(t,0));
   }
 
   Delete(wname);
@@ -1014,9 +1065,9 @@ CHICKEN::classHandler(Node *n)
     while (base.item) {
         Printv(base_class, Getattr(base.item, "sym:name"),NIL);
         base = Next(base);
-	if (base.item) {
-	  Printf(base_class, "> <");
-	}
+        if (base.item) {
+          Printf(base_class, "> <");
+        }
       }
     }
     Printf(base_class, ">");
@@ -1026,7 +1077,7 @@ CHICKEN::classHandler(Node *n)
     Replaceall(scmmod, "_", "-");
 
     Printv(clos_class_defines,"(define ", class_name, "\n",
-                    "  (make <swig-metaclass-", scmmod, "> 'name '", class_name, "\n", NIL);
+                    "  (make <swig-metaclass-", scmmod, "> 'name \"", short_class_name, "\"\n", NIL);
     Delete(scmmod);
 
     if (Len(base_class) > 2) {
@@ -1057,7 +1108,7 @@ CHICKEN::classHandler(Node *n)
 
   if (have_constructor) {
       Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
-		           "  (swig-initialize obj initargs ", NIL);
+                           "  (swig-initialize obj initargs ", NIL);
       if (constructor_arg_types) {
         String *initfunc_name = NewStringf("%s@@SWIG@initmethod", class_name);
         String *func_call = buildClosFunctionCall(constructor_arg_types, initfunc_name, chickenPrimitiveName(constructor_name));
@@ -1079,8 +1130,8 @@ CHICKEN::classHandler(Node *n)
       constructor_name = 0;
   } else {
       Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
-		           "  (swig-initialize obj initargs (lambda x #f)))\n",
-		           NIL);
+                           "  (swig-initialize obj initargs (lambda x #f)))\n",
+                           NIL);
   }
 
   /* export class initialization function */
@@ -1093,9 +1144,9 @@ CHICKEN::classHandler(Node *n)
       Printv(f_wrappers, "static void ", funcname, "(C_word,C_word,C_word,C_word) C_noret;\n",
                          "static void ", funcname, "(C_word argc, C_word closure, C_word continuation, C_word cl) {\n",
                          "  C_trace(\"", funcname, "\");\n",
-			 "  if (argc!=3) C_bad_argc(argc,3);\n",
-			 "  swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) SWIGTYPE", swigtype_ptr,"->clientdata;\n",
-			 "  cdata->gc_proxy_create = CHICKEN_new_gc_root();\n",
+                         "  if (argc!=3) C_bad_argc(argc,3);\n",
+                         "  swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) SWIGTYPE", swigtype_ptr,"->clientdata;\n",
+                         "  cdata->gc_proxy_create = CHICKEN_new_gc_root();\n",
                          "  CHICKEN_gc_root_set(cdata->gc_proxy_create, cl);\n",
                          "  C_kontinue(continuation, C_SCHEME_UNDEFINED);\n",
                          "}\n", NIL);
@@ -1126,10 +1177,10 @@ CHICKEN::memberfunctionHandler(Node *n)
     String *proc = NewString(iname);
     Replaceall(proc, "_", "-");
 
-    memberfunction_name = chickenNameMapping(proc, short_class_name);
+    member_name = chickenNameMapping(proc, short_class_name);
     Language::memberfunctionHandler(n);
-    Delete(memberfunction_name);
-    memberfunction_name = NULL;
+    Delete(member_name);
+    member_name = NULL;
     Delete(proc);
 
     return SWIG_OK;
@@ -1142,10 +1193,10 @@ CHICKEN::staticmemberfunctionHandler(Node *n)
     String *proc = NewString(iname);
     Replaceall(proc, "_", "-");
 
-    memberfunction_name = NewStringf("%s-%s", short_class_name, proc);
+    member_name = NewStringf("%s-%s", short_class_name, proc);
     Language::staticmemberfunctionHandler(n);
-    Delete(memberfunction_name);
-    memberfunction_name = NULL;
+    Delete(member_name);
+    member_name = NULL;
     Delete(proc);
 
     return SWIG_OK;
@@ -1155,14 +1206,15 @@ int
 CHICKEN::membervariableHandler(Node *n)
 {
   String *iname = Getattr(n,"sym:name");
-  String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
+  //String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
 
   Language::membervariableHandler(n);
 
   String *proc = NewString(iname);
   Replaceall(proc,"_","-");
 
-  Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+  //Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+  Node *class_node = classLookup(Getattr(n, "type"));
 
   String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
   String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
@@ -1186,30 +1238,17 @@ CHICKEN::membervariableHandler(Node *n)
 int
 CHICKEN::staticmembervariableHandler(Node *n)
 {
-  String *iname = Getattr(n, "sym:name");
-  String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
+    String *iname = Getattr(n, "sym:name");
+    String *proc = NewString(iname);
+    Replaceall(proc, "_", "-");
 
-  Language::staticmembervariableHandler(n);
+    member_name = NewStringf("%s-%s", short_class_name, proc);
+    Language::staticmembervariableHandler(n);
+    Delete(member_name);
+    member_name = NULL;
+    Delete(proc);
 
-  String *proc = NewString(iname);
-  Replaceall(proc, "_", "-");
-
-  String *closprocname = chickenNameMapping(proc, short_class_name);
-
-  Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
-
-  String *primfunc = NewStringf("%s-%s", short_class_name, proc);
-
-  if (class_node) {
-    Printv(clos_methods, "(define (", closprocname, " . lst) (if (null? lst) (", chickenPrimitiveName(primfunc), ") (",
-	             chickenPrimitiveName(primfunc), " (slot-ref (car lst) 'swig-this))))\n", NIL);
-  } else {
-    Printv(clos_methods, "(define ", closprocname, " ", chickenPrimitiveName(primfunc), ")\n", NIL);
-  }
-
-  Delete(closprocname);
-
-  return SWIG_OK;
+    return SWIG_OK;
 }
 
 int
@@ -1249,7 +1288,7 @@ int CHICKEN::importDirective(Node *n) {
     if (mod) {
       String *name = Getattr(mod, "name");
       if (name) {
-        Printf(closcode, "(declare (uses %s))\n", name);
+        Printf(closprefix, "(declare (uses %s))\n", name);
       }
     }
   }
@@ -1271,11 +1310,17 @@ String *CHICKEN::buildClosFunctionCall(List *types, String_or_char *closname, St
       optional_arguments = 1;
     } else {
       Printf(method_signature, " (arg%i %s)", arg_count, arg_type.item);
-      if (Strcmp(arg_type.item, "<top>") == 0) {
-        Printf(func_args, " arg%i", arg_count);
-      } else {
-        Printf(func_args, " (slot-ref arg%i 'swig-this)", arg_count);
-      }
+      arg_type = Next(arg_type);
+      if (!arg_type.item) break;
+
+      String *arg = NewStringf("arg%i", arg_count);
+      String *access_arg = Copy(arg_type.item);
+
+      Replaceall(access_arg, "$input", arg);
+      Printf(func_args, " %s", access_arg);
+
+      Delete(arg);
+      Delete(access_arg);
     }
     arg_count++;
   }
@@ -1296,17 +1341,10 @@ String *CHICKEN::buildClosFunctionCall(List *types, String_or_char *closname, St
 
 extern "C" {
 
-  /* This compares first based on the position of the last non-primitive argument,
-   * then if the positions are equal, comparing on non-primitive names */
-  static int compareTypeLists(const DOH *a, const DOH *b) {
+  /* compares based on non-primitive names */
+  static int compareTypeListsHelper(const DOH *a, const DOH *b, int opt_equal) {
     List *la = (List *) a;
     List *lb = (List *) b;
-    int la_len = Len(la);
-    int lb_len = Len(lb);
-
-    /* We want longer lists to come before shorter lists */
-    if (la_len < lb_len) return 1;
-    if (la_len > lb_len) return -1;
 
     Iterator ia = First(la);
     Iterator ib = First(lb);
@@ -1314,13 +1352,25 @@ extern "C" {
     while (ia.item && ib.item) {
       int ret = Strcmp(ia.item, ib.item);
       if (ret) return ret;
-      ia = Next(ia);
-      ib = Next(ib);
+      ia = Next(Next(ia));
+      ib = Next(Next(ib));
     }
+
+    if (opt_equal && ia.item && Strcmp(ia.item, "^^##optional$$") == 0)
+      return 0;
+    if (ia.item)
+      return -1;
+    if (opt_equal && ib.item && Strcmp(ib.item, "^^##optional$$") == 0)
+      return 0;
+    if (ib.item)
+      return 1;
 
     return 0;
   }
 
+  static int compareTypeLists(const DOH *a, const DOH *b) {
+    return compareTypeListsHelper(a, b, 0);
+  }
 }
 
 void 
@@ -1331,9 +1381,9 @@ CHICKEN::dispatchFunction(Node *n)
   int maxargs;
   String *tmp = NewString("");
   String *dispatch = 
-    Swig_overload_dispatch(n,"%s (2+argc,closure,"
-			   "continuation$commaargs);", &maxargs);
-	
+    Swig_overload_dispatch(n,"%s (2+$numargs,closure,"
+                           "continuation$commaargs);", &maxargs);
+        
   /* Generate a dispatch wrapper for all overloaded functions */
 
   Wrapper *f       = NewWrapper();
@@ -1345,13 +1395,13 @@ CHICKEN::dispatchFunction(Node *n)
   Append(wname, Swig_name_wrapper(iname));
 
   Printv(f->def, "static void real_", wname, 
-	 "(C_word, C_word, C_word, C_word) C_noret;\n", NIL);
+         "(C_word, C_word, C_word, C_word) C_noret;\n", NIL);
 
   Printv(f->def, 
-	 "static void real_",
-	 wname,
-	 "(C_word oldargc, C_word closure, C_word continuation, C_word args) {",
-	 NIL);
+         "static void real_",
+         wname,
+         "(C_word oldargc, C_word closure, C_word continuation, C_word args) {",
+         NIL);
     
   Wrapper_add_local(f,"argc","int argc");
   Printf(tmp,"C_word argv[%d]", maxargs+1);
@@ -1360,7 +1410,7 @@ CHICKEN::dispatchFunction(Node *n)
   Wrapper_add_local(f,"t","C_word t = args");
   Printf(f->code,"if (!C_swig_is_list (args)) {\n");
   Printf(f->code,"  swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "
-	 "\"Argument #1 must be a list of overloaded arguments\");\n");
+         "\"Argument #1 must be a list of overloaded arguments\");\n");
   Printf(f->code,"}\n");
   Printf(f->code,"argc = C_unfix (C_i_length (args));\n");
   Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++, t = C_block_item (t, 1)) {\n",maxargs);
@@ -1369,7 +1419,7 @@ CHICKEN::dispatchFunction(Node *n)
     
   Printv(f->code,dispatch,"\n",NIL);
   Printf(f->code,"swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE,"
-	 "\"No matching function for overloaded '%s'\");\n", iname);
+         "\"No matching function for overloaded '%s'\");\n", iname);
   Printv(f->code,"}\n",NIL);
   Wrapper_print(f,f_wrappers);
   addMethod(scmname, wname);
@@ -1379,18 +1429,18 @@ CHICKEN::dispatchFunction(Node *n)
 
   /* varargs */
   Printv(f->def, "void ", wname, 
-	 "(C_word, C_word, C_word, ...) C_noret;\n", NIL);
+         "(C_word, C_word, C_word, ...) C_noret;\n", NIL);
   Printv(f->def, "void ", wname,
-	 "(C_word c, C_word t0, C_word t1, ...) {",
-	 NIL);
+         "(C_word c, C_word t0, C_word t1, ...) {",
+         NIL);
   Printv(f->code, 
-	 "C_word t2;\n",
-	 "va_list v;\n",
-	 "C_word *a, c2 = c;\n",
-	 "C_save_rest (t1, c2, 2);\n",
-	 "a = C_alloc((c-2)*3);\n",
-	 "t2 = C_restore_rest (a, C_rest_count (0));\n",
-	 "real_", wname, " (3, t0, t1, t2);\n", NIL);
+         "C_word t2;\n",
+         "va_list v;\n",
+         "C_word *a, c2 = c;\n",
+         "C_save_rest (t1, c2, 2);\n",
+         "a = C_alloc((c-2)*3);\n",
+         "t2 = C_restore_rest (a, C_rest_count (0));\n",
+         "real_", wname, " (3, t0, t1, t2);\n", NIL);
   Printv(f->code,"}\n",NIL);
   Wrapper_print(f,f_wrappers);
 
@@ -1411,7 +1461,7 @@ CHICKEN::dispatchFunction(Node *n)
           construct = 1;
           Printf(clos_methods, "(declare (hide %s))\n", clos_name);
       } else if (in_class)
-          clos_name = NewString(memberfunction_name);
+          clos_name = NewString(member_name);
       else
           clos_name = chickenNameMapping(scmname, (char *)"");
       
@@ -1423,7 +1473,7 @@ CHICKEN::dispatchFunction(Node *n)
       String *newlist = NewList();
       for (f = First(flist); f.item; f = Next(f)) {
         /* check if cur is a duplicate of prev */
-        if (prev && compareTypeLists(f.item, prev) == 0) {
+        if (prev && compareTypeListsHelper(f.item, prev, 1) == 0) {
           Delete(f.item);
         } else {
           Append(newlist, f.item);
@@ -1482,15 +1532,15 @@ CHICKEN::addMethod(String *scheme_name, String *function)
                    "  C_word *p0 = a;\n",
                    "  *(a++)=C_CLOSURE_TYPE|1;\n",
                    "  *(a++)=(C_word)", function, ";\n",
-		   "  C_mutate(return_vec++, (C_word)p0);\n",
-		   "}\n", NIL);
+                   "  C_mutate(return_vec++, (C_word)p0);\n",
+                   "}\n", NIL);
   } else {
     Printf(f_sym_size, "+C_SIZEOF_INTERNED_SYMBOL(%d)", Len(sym));    
     Printf(f_init, "sym = C_intern (&a, %d, \"%s\");\n", 
-	   Len(sym), sym);
+           Len(sym), sym);
     Printv(f_init, 
-	   "C_mutate ((C_word*)sym+1, (*a=C_CLOSURE_TYPE|1, a[1]=(C_word)", 
-	   function, ", tmp=(C_word)a, a+=2, tmp));\n", NIL);
+           "C_mutate ((C_word*)sym+1, (*a=C_CLOSURE_TYPE|1, a[1]=(C_word)", 
+           function, ", tmp=(C_word)a, a+=2, tmp));\n", NIL);
   } 
 
   if (hide_primitive) {
@@ -1523,22 +1573,22 @@ CHICKEN::validIdentifier(String *s)
   /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
   /* <initial> --> <letter> | <special initial> */
   if (!(isalpha(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	|| (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	|| (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	|| (*c == '^') || (*c == '_') || (*c == '~'))) {
+        || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+        || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+        || (*c == '^') || (*c == '_') || (*c == '~'))) {
     /* <peculiar identifier> --> + | - | ... */
     if ((strcmp(c, "+") == 0)
-	|| strcmp(c, "-") == 0
-	|| strcmp(c, "...") == 0) return 1;
+        || strcmp(c, "-") == 0
+        || strcmp(c, "...") == 0) return 1;
     else return 0;
   }
   /* <subsequent> --> <initial> | <digit> | <special subsequent> */
   while (*c) {
     if (!(isalnum(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	  || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	  || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	  || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
-	  || (*c == '-') || (*c == '.') || (*c == '@'))) return 0;
+          || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+          || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+          || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
+          || (*c == '-') || (*c == '.') || (*c == '@'))) return 0;
     c++;
   }
   return 1;
@@ -1556,8 +1606,8 @@ CHICKEN::validIdentifier(String *s)
     
     if (Strcmp(class_name, "") == 0) {
       // not part of a class, so no class name to prefix
-      if (closprefix) {
-        Printf(n, "%s%s", closprefix, name);
+      if (clossymnameprefix) {
+        Printf(n, "%s%s", clossymnameprefix, name);
       } else {
         Printf(n, "%s", name);
       }
@@ -1565,8 +1615,8 @@ CHICKEN::validIdentifier(String *s)
       if (useclassprefix) {
         Printf(n, "%s-%s", class_name, name);
       } else {
-        if (closprefix) {
-          Printf(n, "%s%s", closprefix, name);
+        if (clossymnameprefix) {
+          Printf(n, "%s%s", clossymnameprefix, name);
         } else {
           Printf(n, "%s", name);
         }

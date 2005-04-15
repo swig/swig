@@ -1,2 +1,2 @@
-(load-library 'constover "constover.so")
+(load "constover.so")
 (include "../schemerunme/constover.scm")

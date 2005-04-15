@@ -1,8 +1,6 @@
 ;; This file demonstrates the overloading capabilities of SWIG
 
 (load-library 'example "overload.so")
-(declare (uses example))
-(declare (uses tinyclos))
 
 ;; Low level
 ;; ---------
@@ -40,7 +38,7 @@ Trying TinyCLOS code ...
 (foo 1)
 (foo "some string")
 (define A-FOO (make <Foo>))
-(define ANOTHER-FOO (make <Foo> (slot-ref A-FOO 'swig-this))) ;; copy constructor
+(define ANOTHER-FOO (make <Foo> A-FOO)) ;; copy constructor
 (bar A-FOO 2)
 (bar ANOTHER-FOO "another string" 3)
 

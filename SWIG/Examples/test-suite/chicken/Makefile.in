@@ -18,7 +18,7 @@ SO           = @SO@
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT +=
+SWIGOPT += -nounit
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -41,6 +41,9 @@ SWIGOPT +=
 	$(setup) \
 	($(swig_and_compile_multi_cpp); ) && \
 	$(run_testcase)
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
+	  $(MAKE) $*.multiproxy; ) \
+	fi;
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
@@ -63,6 +66,13 @@ run_testcase = \
 %.cproxy:
 	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
 	($(swig_and_compile_c); ) && \
+	$(run_testcase)
+
+%.multiproxy: SWIGOPT += -proxy -noclosuses
+%.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
+%.multiproxy:
+	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
+	($(swig_and_compile_multi_cpp); ) && \
 	$(run_testcase)
 
 # Clean

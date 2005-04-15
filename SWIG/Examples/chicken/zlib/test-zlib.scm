@@ -1,45 +1,43 @@
-;; run with './zlib test-zlib.scm'
-
-(declare (uses example))
-(declare (uses format))
+(load-library 'example "./zlib.so")
 
 ;; Init zstream
-(define s (zlib:new-z-stream))
-(zlib:z-stream-zalloc-set s #f)
-(zlib:z-stream-zfree-set s #f)
-(zlib:z-stream-opaque-set s #f)
-(zlib:deflate-init s (zlib:z-default-compression))
+(define s (new-z-stream))
+(z-stream-zalloc-set s #f)
+(z-stream-zfree-set s #f)
+(z-stream-opaque-set s #f)
+(deflate-init s (Z-DEFAULT-COMPRESSION))
 
 ;; Deflate something small so we don't need to loop/stream data
 (define in "some pony et jumping et jack et flash et had a jack pony")
 (define out (make-string 1000))
-(format #t "to be compressed: ~A~%to be compressed bytes: ~D~%~%" in (string-length in))
-(zlib:z-stream-next-in-set s in)
-(zlib:z-stream-avail-in-set s (string-length in))
-(zlib:z-stream-next-out-set s out)
-(zlib:z-stream-avail-out-set s (string-length out))
+(printf "to be compressed: ~A~%to be compressed bytes: ~A~%~%" in (string-length in))
+(z-stream-next-in-set s in)
+(z-stream-avail-in-set s (string-length in))
+(z-stream-next-out-set s out)
+(z-stream-avail-out-set s (string-length out))
 (let*
-    ((saved-out (zlib:z-stream-save-next-out s))
-     (ret (zlib:deflate s (zlib:z-finish))))
+    ((saved-out (z-stream-save-next-out s))
+     (ret (deflate s (Z-FINISH))))
   (cond
-   ((= ret (zlib:z-stream-end))
-    (format #t "deflated properly!~%compressed bytes: ~D~%compressed stream: ~S~%" 
-            (zlib:z-stream-total-out-get s) (zlib:z-stream-get-next-chunk s saved-out)))
-   ((= ret (zlib:z-ok))
+   ((= ret (Z-STREAM-END))
+    (printf "deflated properly!~%compressed bytes: ~A~%compressed stream: ~A~%" 
+            (z-stream-total-out-get s) (z-stream-get-next-chunk s saved-out)))
+   ((= ret (Z-OK))
     (display "only partial deflation ... not enough output space\n"))
    (else
-    (format #t "deflate error(~D): ~A ~%" ret (zlib:z-stream-msg-get s)))))
+    (printf "deflate error(~D): ~A ~%" ret (z-stream-msg-get s)))))
 
 ;; Use simple compress routine, and set max output size to 100
-(define c (zlib:compress 100 in))
+(define c (compress 100 in))
 (newline)
 (let
     ((ret (car c))
      (compressed (cadr c)))
   (cond
-   ((= ret (zlib:z-ok))
-    (format #t "compressed properly!~%compressed bytes: ~D~%compressed stream: ~S~%"
+   ((= ret (Z-OK))
+    (printf "compressed properly!~%compressed bytes: ~A~%compressed stream: ~A~%"
             (string-length compressed) compressed))
    (else
-    (format #t "compress error(~D): ~A ~%" ret (zlib:z-error ret)))))
+    (printf "compress error(~D): ~A ~%" ret (z-error ret)))))
 
+(exit 0)
