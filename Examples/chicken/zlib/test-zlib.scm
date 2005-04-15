@@ -28,16 +28,14 @@
     (printf "deflate error(~D): ~A ~%" ret (z-stream-msg-get s)))))
 
 ;; Use simple compress routine, and set max output size to 100
-(define c (compress 100 in))
 (newline)
-(let
-    ((ret (car c))
-     (compressed (cadr c)))
-  (cond
-   ((= ret (Z-OK))
-    (printf "compressed properly!~%compressed bytes: ~A~%compressed stream: ~A~%"
-            (string-length compressed) compressed))
-   (else
-    (printf "compress error(~D): ~A ~%" ret (z-error ret)))))
+(call-with-values (lambda () (compress 100 in))
+  (lambda (ret compressed)
+    (cond
+     ((= ret (Z-OK))
+      (printf "compressed properly!~%compressed bytes: ~A~%compressed stream: ~A~%"
+              (string-length compressed) compressed))
+     (else
+      (printf "compress error(~D): ~A ~%" ret (z-error ret))))))
 
 (exit 0)

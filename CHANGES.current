@@ -1,6 +1,12 @@
 Version 1.3.25 (In progress)
 ============================
 
+04/15/2005: wuzzeb (John Lenz)
+	    [Chicken]
+	    For wrapped functions that return multiple values (using argout),
+	    SWIG CHICKEN now returns them as multiple values instead of as
+	    a list.  They can then be accessed using (call-with-values).
+
 04/14/2005: wuzzeb (John Lenz)
             [Chicken]
             + Added a whole bunch of new _runme scripts into the chicken test
