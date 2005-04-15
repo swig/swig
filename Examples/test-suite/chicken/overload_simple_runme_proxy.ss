@@ -1,6 +1,4 @@
-(require 'tinyclos)
-(load "../../../Lib/chicken/multi-generic.scm")
-(load-library 'overload_simple "overload_simple.so")
+(load "overload_simple.so")
 
 (define-macro (check test)
   `(if (not ,test) (error ',test)))

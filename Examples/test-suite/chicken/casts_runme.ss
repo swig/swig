@@ -1,2 +1,2 @@
-(load-library 'casts "casts.so")
+(load "casts.so")
 (include "../schemerunme/casts.scm")

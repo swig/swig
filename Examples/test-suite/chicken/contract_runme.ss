@@ -1,3 +1,3 @@
-(load-library 'contract "contract.so")
+(load "contract.so")
 (include "testsuite.ss")
 (include "../schemerunme/contract.scm")

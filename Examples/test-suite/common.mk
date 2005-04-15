@@ -96,6 +96,7 @@ CPP_TEST_CASES += \
 	conversion_namespace \
 	conversion_ns_template \
 	cplusplus_throw \
+	cpp_basic \
 	cpp_enum \
 	cpp_namespace \
 	cpp_nodefault \

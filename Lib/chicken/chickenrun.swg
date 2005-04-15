@@ -25,7 +25,9 @@ extern "C" {
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
   SWIG_Chicken_MustGetPtr(s, type, argnum, flags)
 #define SWIG_NewPointerObj(ptr, type, owner) \
-  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
+  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, 1, &known_space)
+#define SWIG_NewPointerObjProxy(ptr, type, owner, proxy) \
+  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, proxy, &known_space)
 #define swig_barf SWIG_Chicken_Barf
 #define SWIG_ThrowException(val) SWIG_Chicken_ThrowException(val)
 
@@ -63,6 +65,19 @@ extern "C" {
     C_word tmp = C_pair(&pair_space, object, C_SCHEME_END_OF_LIST); \
     C_set_block_item(resultobjlast, 1, tmp); \
     resultobjlast = tmp; \
+  }
+
+/* given a SWIG pointer wrapped in a C_word, return the proxy create function, if any */
+#define SWIG_Chicken_FindCreateProxy(val, x) \
+  if (C_swig_is_swigpointer(x)) { \
+    swig_type_info *t = (swig_type_info *) C_block_item(x, 1); \
+    if (t && t->clientdata &&    ((swig_chicken_clientdata *)t->clientdata)->gc_proxy_create) { \
+      val = CHICKEN_gc_root_ref( ((swig_chicken_clientdata *)t->clientdata)->gc_proxy_create); \
+    } else { \
+      val = C_SCHEME_FALSE; \
+    } \
+  } else { \
+    val = C_SCHEME_FALSE; \
   }
 
 #define SWIG_POINTER_DISOWN 1
@@ -216,7 +231,7 @@ SWIG_Chicken_Finalizer(C_word argc, C_word closure, C_word continuation, C_word 
 static C_word finalizer_obj[2] = {(C_word) (C_CLOSURE_TYPE|1), (C_word) SWIG_Chicken_Finalizer};
 
 static C_word
-SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
+SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, int create_proxy, C_word **data)
 {
   swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) type->clientdata;
 
@@ -231,7 +246,7 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
     #endif
 
     /* wrap the result inside a proxy class if one is available */
-    if (cdata && cdata->gc_proxy_create) {
+    if (create_proxy && cdata && cdata->gc_proxy_create) {
       C_word closure = CHICKEN_gc_root_ref(cdata->gc_proxy_create);
       if (C_swig_is_closurep(closure)) {
         C_save(cptr);
@@ -281,10 +296,11 @@ static SWIGINLINE void *
 SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
 {
   void *result;
+  char err_msg[256];
   if (SWIG_Chicken_ConvertPtr(s, &result, type, flags)) {
     /* type mismatch */
-    SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, 
-      "Type error in argument %i: expected a %s.", argnum, type->name);
+    snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", argnum, (type->str ? type->str : type->name));
+    SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
   }
   return result;
 }

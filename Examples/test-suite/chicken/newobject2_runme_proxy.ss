@@ -1,4 +1,4 @@
-(load-library 'newobject2 "newobject2.so")
+(load "newobject2.so")
 
 (define f (make <Foo>))
 

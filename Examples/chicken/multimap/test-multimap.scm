@@ -2,7 +2,6 @@
 ;; feel free to uncomment and comment sections
 
 (load-library 'example "multimap.so")
-(declare (uses example))
 
 (display "(gcd 90 12): ")
 (display (gcd 90 12))

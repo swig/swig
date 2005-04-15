@@ -1,4 +1,4 @@
-(load-library 'overload-subtype "./overload_subtype.so")
+(load "./overload_subtype.so")
 
 (define f (make <Foo>))
 (define b (make <Bar>))

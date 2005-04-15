@@ -8,6 +8,6 @@
 
 extern double My_variable;
 extern int    fact(int);
-%name(mod) extern int    my_mod(int n, int m);
+%rename(mod) my_mod;
 extern int    my_mod(int n, int m);
 extern char   *get_time();

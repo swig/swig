@@ -1,3 +1,5 @@
+(load "li_std_string.so")
+
 (define x "hello")
 
 (if (not (string=? (test-value x) x))
@@ -21,16 +23,16 @@
 (if (not (string=? (GlobalString2) "global string 2"))
   (error "Error 4"))
 
-(define struct (new-Structure))
+(define struct (make <Structure>))
 
 ;; MemberString should be a wrapped class
-(define scl (Structure-MemberString-get struct))
-(if (not (string=? (std-string-str-get scl) ""))
+(define scl (slot-ref struct 'MemberString))
+(if (not (string=? (slot-ref scl 'str) ""))
   (error "Error 4.5"))
-(std-string-str-set scl "and how")
-(if (not (string=? (std-string-str-get (Structure-MemberString-get struct)) "and how"))
+(slot-set! scl 'str "and how")
+(if (not (string=? (slot-ref (slot-ref struct 'MemberString) 'str) "and how"))
   (error "Error 5"))
-(if (not (string=? (Structure-MemberString2-get struct) "member string 2"))
+(if (not (string=? (slot-ref struct 'MemberString2) "member string 2"))
   (error "Error 6"))
 (Structure-StaticMemberString "static str")
 (if (not (string=? (Structure-StaticMemberString) "static str"))

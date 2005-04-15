@@ -1,6 +1,4 @@
-(require 'tinyclos)
-(load "../../../Lib/chicken/multi-generic.scm")
-(load-library 'overload-extend "./overload_extend.so")
+(load "./overload_extend.so")
 
 (define f (make <Foo>))
 
