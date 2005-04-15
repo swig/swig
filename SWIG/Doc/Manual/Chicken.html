@@ -230,10 +230,10 @@
     <p>
       A function may return more than one value by using the
       <code>OUTPUT</code> specifier (see Lib/chicken/typemaps.i).
-      They will be returned as a Scheme list if there is more than one
+      They will be returned as multiple values using <code>(values)</code> if there is more than one
       result (that is, a non-void return value and at least one argout
       parameter, or a void return value and at least two argout
-      parameters).
+      parameters).  The return values can then be accessed with <code>(call-with-values)</code>.
     </p>
 
 <H3><a name="Chicken_nn10"></a>17.2.5 Exceptions</H3>

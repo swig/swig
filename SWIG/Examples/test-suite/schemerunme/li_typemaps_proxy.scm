@@ -23,12 +23,23 @@
 (check "longlong" 1634 =)
 (check "ulonglong" 6432 =)
 
-(let ((lst (inoutr-int2 3 -2)))
-  (if (not (and (= (car lst) 3) (= (cadr lst) -2)))
-    (error "Error in inoutr-int2")))
+;; The checking of inoutr-int2 and out-foo is done in the individual
+;; language runme scripts, since chicken returns multiple values
+;; and must be checked with call-with-values, while guile just returns a list
 
-(let ((lst (out-foo 4)))
-  (if (not (and (= (slot-ref (car lst) 'a) 4) (= (cadr lst) 8)))
-    (error "Error in out-foo")))
+;(call-with-values (lambda () (inoutr-int2 3 -2))
+;		  (lambda (a b)
+;		    (if (not (and (= a 3) (= b -2)))
+;		      (error "Error in inoutr-int2"))))
+;(call-with-values (lambda () (out-foo 4))
+;		  (lambda (a b)
+;		    (if (not (and (= (slot-ref a 'a) 4) (= b 8)))
+;		      (error "Error in out-foo"))))
 
-(exit 0)
+;(let ((lst (inoutr-int2 3 -2)))
+;  (if (not (and (= (car lst) 3) (= (cadr lst) -2)))
+;    (error "Error in inoutr-int2")))
+
+;(let ((lst (out-foo 4)))
+;  (if (not (and (= (slot-ref (car lst) 'a) 4) (= (cadr lst) 8)))
+;    (error "Error in out-foo")))

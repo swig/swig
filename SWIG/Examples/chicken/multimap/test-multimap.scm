@@ -52,7 +52,8 @@
 (display "\n")
 
 (display "(squarecubed 3: ")
-(display (squareCubed 3))
+(call-with-values (lambda() (squareCubed 3)) 
+		  (lambda (a b) (printf "~A ~A" a b)))
 (display "\n")
 
 (exit)

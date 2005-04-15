@@ -602,8 +602,13 @@ CHICKEN::functionWrapper(Node *n)
                    "else\n",
                    "  C_kontinue(continuation, resultobj);\n",
                    "}\n", NIL);
+  } else if (Wrapper_check_local(f, "gswig_list_p")) {
+    Printv(f->code,"if (gswig_list_p)\n",
+		   "  C_apply_values(3, C_SCHEME_UNDEFINED, continuation, resultobj);\n",
+		   "else\n",
+		   "  C_kontinue(continuation, resultobj);\n", NIL);
   } else {
-    Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
+    Printf(f->code,"C_kontinue (continuation, resultobj);\n");
   }
 
   /* Error handling code */
