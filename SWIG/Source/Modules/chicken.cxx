@@ -69,6 +69,7 @@ static  String       *short_class_name  = 0;
 static  int          in_class = 0;
 static  int          have_constructor = 0;
 static  bool         exporting_destructor = false;
+static  bool         exporting_constructor = false;
 static  String       *constructor_name = 0;
 static String        *member_name = 0;
 
@@ -558,12 +559,17 @@ CHICKEN::functionWrapper(Node *n)
 
     /* check for chickenfastproxy flag */
     if (Getattr(n, "tmap:out:chickenfastproxy")) {
-      /* can only do fast proxy if there are no argout paramaters... */
-      if (Wrapper_check_local(f, "gswig_list_p")) {
-        Replaceall(tm, "$proxy", "1");
-      } else {
+      if (exporting_constructor && clos && hide_primitive) {
+        /* Don't return a proxy, the wrapped CLOS class is the proxy */
         Replaceall(tm, "$proxy", "0");
-        return_proxy_fastcall = 1;
+      } else {
+        /* can only do fast proxy if there are no argout paramaters... */
+        if (Wrapper_check_local(f, "gswig_list_p")) {
+          Replaceall(tm, "$proxy", "1");
+        } else {
+          Replaceall(tm, "$proxy", "0");
+          return_proxy_fastcall = 1;
+        }
       }
     }
     Printf(f->code, "%s", tm);
@@ -1263,7 +1269,9 @@ CHICKEN::constructorHandler(Node *n)
   has_constructor_args = 0;
 
 
+  exporting_constructor = true;
   Language::constructorHandler(n);
+  exporting_constructor = false;
 
   has_constructor_args = 1;
 
