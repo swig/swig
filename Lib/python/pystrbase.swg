@@ -90,9 +90,7 @@
 %typemap(directorin,fragment=#SWIG_FromCharPtr)
   Char *, Char const*, Char *const, Char const *const, 
   Char const *&, Char *const &, Char const *const &
-  "$input = SWIG_NewPointerObj((Char*)($1_name), $descriptor(Char *), 0);"
-  /* "$input = SWIG_FromCharPtr($1_name);"; */
-
+  "$input = SWIG_FromCharPtr($1_name);"; 
 
 /* directorout */
 
