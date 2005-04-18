@@ -16,7 +16,7 @@ manner.
 To compile SWIG from its CVS repository, you will need the following tools:
 
 <ul>
-<li> Autoconf 2.54 or higher
+<li> Autoconf 2.58 or higher
 <li> Automake 1.7.2 or higher
 <li> A working C++ compiler.
 <li> yacc or bison (to compile the SWIG parser).  
