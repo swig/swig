@@ -47,28 +47,15 @@ PHP module.
 
 <tr>
 <td>
-<img src="blank.jpg" alt="Blank"><br>
+<img src="images/marcelo.jpg" alt="Marcelo Matus"><br>
 <b>Marcelo Matus (ACMS, Tuscon, AZ).</b> <br>
 Evil C++ testing, SWIG core, template support, STL,
 Python, and Ruby and Tcl when needed
 </td>
 <td>
 <img src="blank.jpg" alt="Blank"><br>
-<b>Richard Palmer.</b> <br>
-PHP module.
-</td>
-</tr>
-
-<tr>
-<td>
-<img src="blank.jpg" alt="Blank"><br>
 <b>Jason Stewart (Albuquerque, New Mexico).</b> <br>
 Perl module.
-</td>
-<td>
-<img src="blank.jpg" alt="Blank"><br>
-<b>Klaus Wiederänders (Vienna, Austria).</b> <br>
-XML module.
 </td>
 </tr>
 
@@ -115,6 +102,8 @@ Japanese translation.
 <li>Dustin Mitchell
 <li>Ian Cooke
 <li>Hasan Baran Kovuk
+<li>Klaus Wiederänders
+<li>Richard Palmer
 </ul>
 
 <p>
