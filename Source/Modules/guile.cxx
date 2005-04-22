@@ -126,6 +126,13 @@ static int     primRenamer = 0; // if (use-modules ((...) :renamer ...) is expor
 static int     exportprimitive = 0; // -exportprimitive argument
 static String *memberfunction_name = 0;
 
+extern "C" {
+  static int has_classname(Node *class_node)
+  {
+    return Getattr(class_node, "guile:goopsclassname") != NULL;
+  }
+}
+  
 class GUILE : public Language {
 public:
 
@@ -683,7 +690,7 @@ public:
    * functionWrapper()
    * Create a function declaration and register it with the interpreter.
    * ------------------------------------------------------------ */
-
+  
   virtual int functionWrapper(Node *n) {
     String *iname = Getattr(n,"sym:name");
     SwigType *d = Getattr(n,"type");
@@ -829,7 +836,8 @@ public:
 	if (goops) {
 	  if (i < numreq) {
 	    if (strcmp("void", Char(pt)) != 0) {
-	      Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+	      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"),
+							   has_classname);
 	      String *goopsclassname = (class_node == NULL) ? NULL :
 		Getattr(class_node, "guile:goopsclassname");
 	      /* do input conversion */
