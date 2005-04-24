@@ -49,7 +49,7 @@ namespace Space {
     static int smember;
 //    static short memberfunction() { return 0; } //javaout and jstype typemaps don't use fully qualified name, but other typemaps do
   };
+  int Struct::smember = 0;
 }
-
 %}
 
