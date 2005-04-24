@@ -105,11 +105,11 @@ typedef struct {
   void       *data;                 /* Data pointer */
   DohObjInfo *type;             
   void       *meta;                 /* Meta data */
-  int        flag_intern   : 1;        /* Interned object */
-  int        flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
-  int        flag_user     : 1;        /* User flag */
-  int        flag_usermark : 1;        /* User marked */
-  int        refcount      : 28;       /* Reference count (max 16 million) */
+  unsigned int flag_intern   : 1;   /* Interned object */
+  unsigned int flag_marked   : 1;   /* Mark flag. Used to avoid recursive loops in places */
+  unsigned int flag_user     : 1;   /* User flag */
+  unsigned int flag_usermark : 1;   /* User marked */
+  unsigned int refcount      : 28;  /* Reference count (max 16 million) */
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */

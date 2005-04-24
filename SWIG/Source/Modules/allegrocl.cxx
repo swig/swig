@@ -16,6 +16,11 @@ public:
 static File *f_cl=0;
 static File *f_null=0;
 
+static struct {
+  int count;
+  String **entries;
+} defined_foreign_types;
+
 const char *identifier_converter="identifier-convert-null";
 
 int any_varargs(ParmList *pl) {
@@ -94,11 +99,6 @@ String *convert_literal(String *num_param, String *type) {
 
 	return res;
 }
-
-struct {
-  int count;
-  String **entries;
-} defined_foreign_types;
 
 void add_defined_foreign_type(String *type) {
   if (!defined_foreign_types.count) {

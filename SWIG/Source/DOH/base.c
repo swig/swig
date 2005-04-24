@@ -230,6 +230,8 @@ DohFirst(DOH *obj) {
   iter.object  = 0;
   iter.item    = 0;
   iter.key     = 0;
+  iter._current= 0;
+  iter._index  = 0;
   return iter;
 }
 
