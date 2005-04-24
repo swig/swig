@@ -199,6 +199,7 @@ List_first(DOH *lo) {
   List *l = (List *) ObjData(lo);
   iter.object = lo;
   iter._index = 0;
+  iter._current = 0;
   iter.key = 0;
   if (l->nitems > 0) {
     iter.item = l->items[0];
