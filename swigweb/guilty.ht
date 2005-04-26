@@ -39,9 +39,9 @@ Ruby module.
 Guile module.
 </td>
 <td>
-<img src="images/sam.jpg" alt="Sam Liddicott"><br>
-<b>Sam Liddicott (Wakefield, UK).</b>  <br>
-PHP module.
+<img src="images/lenz.jpg" alt="John Lenz (Madison, Wisconsin)"><br>
+<b>John Lenz</b>  <br>
+Chicken, Guile, and MzScheme modules, runtime type system.
 </td>
 </tr>
 
@@ -104,6 +104,7 @@ Japanese translation.
 <li>Hasan Baran Kovuk
 <li>Klaus Wiederänders
 <li>Richard Palmer
+<li>Sam Liddicott
 </ul>
 
 <p>
