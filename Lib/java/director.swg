@@ -59,12 +59,15 @@ namespace Swig {
 
     void release(JNIEnv *jenv) {
 #if defined(DEBUG_DIRECTOR_OWNED)
-      std::cout << "JObjectWrapper::release(" << jthis_ << "): " << (weak_global_ ? "local ref" : "global ref") << std::endl;
+      std::cout << "JObjectWrapper::release(" << jthis_ << "): " << (weak_global_ ? "weak global ref" : "global ref") << std::endl;
 #endif
-      if (weak_global_)
-        jenv->DeleteWeakGlobalRef(jthis_);
-      else
-        jenv->DeleteGlobalRef(jthis_);
+      if (jthis_ != NULL) {
+        if (weak_global_) {
+          if (jenv->IsSameObject(jthis_, NULL) == JNI_FALSE)
+            jenv->DeleteWeakGlobalRef(jthis_);
+        } else
+          jenv->DeleteGlobalRef(jthis_);
+      }
 
       jthis_ = NULL;
       weak_global_ = true;
@@ -72,6 +75,25 @@ namespace Swig {
 
     jobject peek() {
       return jthis_;
+    }
+
+    /* Java proxy releases ownership of C++ object, C++ object is now
+       responsible for destruction (creates NewGlobalRef to pin Java
+       proxy) */
+    void java_change_ownership(JNIEnv *jenv, jobject jself, bool take_or_release) {
+      if (take_or_release) {  /* Java takes ownership of C++ object's lifetime. */
+        if (!weak_global_) {
+          jenv->DeleteGlobalRef(jthis_);
+          jthis_ = jenv->NewWeakGlobalRef(jself);
+          weak_global_ = true;
+        }
+      } else { /* Java releses ownership of C++ object's lifetime */
+        if (weak_global_) {
+          jenv->DeleteWeakGlobalRef(jthis_);
+          jthis_ = jenv->NewGlobalRef(jself);
+          weak_global_ = false;
+        }
+      }
     }
 
   private:
@@ -101,16 +123,17 @@ namespace Swig {
     /* Disconnect director from Java object */
     void swig_disconnect_director_self(const char *disconn_method) {
       JNIEnv *jenv = swig_acquire_jenv();
-      jobject jobj = swig_self_.get(jenv);
+      jobject jobj = swig_self_.peek();
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
 #endif
-      if (jobj) {
+      if (jobj && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {
         jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(jobj), disconn_method, "()V");
         if (disconn_meth) {
+#if defined(DEBUG_DIRECTOR_OWNED)
+          std::cout << "Swig::Director::disconnect_director_self upcall to " << disconn_method << std::endl;
+#endif
           jenv->CallVoidMethod(jobj, disconn_meth);
-        } else {
-          jenv->ExceptionClear();
         }
       }
     }
@@ -131,6 +154,11 @@ namespace Swig {
 
     jobject swig_get_self(JNIEnv *jenv) const {
       return swig_self_.get(jenv);
+    }
+
+    // Change C++ object's ownership, relative to Java
+    void swig_java_change_ownership(JNIEnv *jenv, jobject jself, bool take_or_release) {
+      swig_self_.java_change_ownership(jenv, jself, take_or_release);
     }
   };
 }

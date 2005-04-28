@@ -427,7 +427,7 @@ class JAVA : public Language {
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
       if (Len(imclass_directors) > 0) {
-        Printf(f_im, "\n/* Director upcall methods: */\n\n");
+        Printf(f_im, "\n  /* Director upcall methods: */\n\n");
         Printv(f_im, imclass_directors, NIL);
       }
 
@@ -1576,44 +1576,24 @@ class JAVA : public Language {
         Printv(proxy_class_def, "\n  ", "public void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
 
-    /* Insert declaration for directordisconnect/directordisconnect_derived typemap, if this class has directors enabled */
+    /* Insert directordisconnect typemap, if this class has directors enabled */
+    /* Also insert the swigTakeOwnership and swigReleaseOwnership methods */
     if (feature_director) {
-      const String *disconn_tm = NULL;
-      Node *disconn_attr = NewHash();
-      String *disconn_methodname = NULL;
+      String *destruct_jnicall, *release_jnicall, *take_jnicall;
 
-      if (derived) {
-        disconn_tm = typemapLookup("directordisconnect_derived", typemap_lookup_type, WARN_NONE, disconn_attr);
-        disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect_derived:methodname");
-      } else {
-        disconn_tm = typemapLookup("directordisconnect", typemap_lookup_type, WARN_NONE, disconn_attr);
-        disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
-      }
+      destruct_jnicall = NewStringf("%s()", destruct_methodname);
+      release_jnicall = NewStringf("%s.%s_change_ownership(this, swigCPtr, false)", imclass_name, 
+                                   proxy_class_name);
+      take_jnicall = NewStringf("%s.%s_change_ownership(this, swigCPtr, true)",
+                                imclass_name, proxy_class_name);
 
-      if (*Char(disconn_tm)) {
-        if (disconn_methodname != NULL) {
-          String *disconn_call = Copy(disconn_tm);
-          String *disconn_destruct = Copy(destruct_methodname);
-          Append(disconn_destruct, "()");
-          Replaceall(disconn_call, "$jnicall", disconn_destruct);
-          Printv(proxy_class_def,
-                 "\n",
-                 "  protected void ", disconn_methodname, "() ",
-                 disconn_call,
-                 "\n",
-                 NIL);
-          Delete(disconn_call);
-          Delete(disconn_destruct);
-        } else {
-          Swig_error(input_file, line_number,
-              "No directordisconnect%s method name for %s\n", (derived ? "_derived" : ""), proxy_class_name);
-        }
-      } else {
-        Swig_error(input_file, line_number,
-            "No directordisconnect%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
-      }
+      emitCodeTypemap(false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
+      emitCodeTypemap(false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
+      emitCodeTypemap(false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
 
-      Delete(disconn_attr);
+      Delete(destruct_jnicall);
+      Delete(release_jnicall);
+      Delete(take_jnicall);
     }
 
     Delete(attributes);
@@ -1990,6 +1970,8 @@ class JAVA : public Language {
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(overloaded_name);
       String *imcall = NewString("");
+      String *javaconstruct_tm;
+      Hash *javaconstruct_attrs;
 
       const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
@@ -2063,16 +2045,34 @@ class JAVA : public Language {
 
       Printf(function_code, ")");
       generateThrowsClause(n, function_code);
-      if (feature_director) {
-        Printv(function_code, " ", typemapLookup("javaconstruct_director", Getattr(n,"name"), WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF), NIL);
-      } else {
-        Printv(function_code, " ", typemapLookup("javaconstruct", Getattr(n,"name"), WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF), NIL);
+
+      /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
+      javaconstruct_attrs = NewHash();
+      javaconstruct_tm = Copy(typemapLookup("javaconstruct", Getattr(n,"name"),
+                                            WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, javaconstruct_attrs));
+      if (javaconstruct_tm != NULL) {
+        if (!feature_director) {
+          Replaceall(javaconstruct_tm, "$directorconnect", "");
+        } else {
+          String *connect_attr = Getattr(javaconstruct_attrs, "tmap:javaconstruct:directorconnect");
+
+          if (connect_attr != NULL) {
+            Replaceall(javaconstruct_tm, "$directorconnect", connect_attr);
+          } else {
+            Swig_warning(WARN_JAVA_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorconnect\" attribute missing in %s \"javaconstruct\" typemap.\n", Getattr(n,"name"));
+            Replaceall(javaconstruct_tm, "$directorconnect", "");
+          }
+        }
+
+        Printv(function_code, " ", javaconstruct_tm, "\n", NIL);
       }
-      Printf(function_code, "\n");
+
       Replaceall(function_code, "$imcall", imcall);
 
       Printv(proxy_class_code, function_code, "\n", NIL);
 
+      Delete(javaconstruct_tm);
+      Delete(javaconstruct_attrs);
       Delete(overloaded_name);
       Delete(imcall);
     }
@@ -2742,39 +2742,114 @@ class JAVA : public Language {
    *--------------------------------------------------------------------*/
   void emitDirectorExtraMethods(Node *n)
   {
-    if (Swig_directorclass(n)) {
-      String *jni_imclass_name = makeValidJniName(imclass_name);
-      String *norm_name = SwigType_namestr(Getattr(n, "name"));
-      String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
-      String  *swig_director_connect_jni = makeValidJniName(swig_director_connect);
-      Wrapper *code_wrap;
+    if (!Swig_directorclass(n))
+      return;
 
-      Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
-             swig_director_connect, proxy_class_name);
+    // Output the director connect method:
+    String *jni_imclass_name = makeValidJniName(imclass_name);
+    String *norm_name = SwigType_namestr(Getattr(n, "name"));
+    String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
+    String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
+    String *sym_name = Getattr(n, "sym:name");
+    Wrapper *code_wrap;
 
-      code_wrap = NewWrapper();
-      Printf(code_wrap->def,
-             "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
-             "jboolean jweak_global) {\n",
-             jnipackage, jni_imclass_name, swig_director_connect_jni);
-      Printf(code_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
-      Printf(code_wrap->code, "  (void)jcls;\n");
-      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
-             Getattr(n, "sym:name"), Getattr(n, "sym:name"));
-      Printf(code_wrap->code, "  if (director) {\n");
-      Printf(code_wrap->code, "    director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
-             "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
-      Printf(code_wrap->code, "  }\n");
-      Printf(code_wrap->code, "}\n");
+    Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
+	   swig_director_connect, proxy_class_name);
 
-      Wrapper_print(code_wrap, f_wrappers);
-      DelWrapper(code_wrap);
+    code_wrap = NewWrapper();
+    Printf(code_wrap->def,
+	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
+	   "jboolean jweak_global) {\n",
+	   jnipackage, jni_imclass_name, swig_director_connect_jni);
+    Printf(code_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
+    Printf(code_wrap->code, "  (void)jcls;\n");
+    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
+	   sym_name, sym_name);
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
+	   "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
+    Printf(code_wrap->code, "  }\n");
+    Printf(code_wrap->code, "}\n");
 
-      Delete(swig_director_connect_jni);
-      Delete(norm_name);
-      Delete(jni_imclass_name);
-      Delete(swig_director_connect);
+    Wrapper_print(code_wrap, f_wrappers);
+    DelWrapper(code_wrap);
+
+    Delete(swig_director_connect_jni);
+    Delete(swig_director_connect);
+
+    // Output the swigReleaseOwnership, swigTakeOwnership methods:
+    String *changeown_method_name = NewStringf("%s_change_ownership", proxy_class_name);
+    String *changeown_jnimethod_name = makeValidJniName(changeown_method_name);
+
+    Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean take_or_release);\n",
+           changeown_method_name, proxy_class_name);
+
+    code_wrap = NewWrapper();
+    Printf(code_wrap->def,
+	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
+           jnipackage, jni_imclass_name, changeown_jnimethod_name);
+    Printf(code_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
+    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
+	   sym_name, sym_name);
+    Printf(code_wrap->code, "  (void)jcls;\n");
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release);\n");
+    Printf(code_wrap->code, "  }\n");
+    Printf(code_wrap->code, "}\n");
+
+    Wrapper_print(code_wrap, f_wrappers);
+    DelWrapper(code_wrap);
+
+    Delete(changeown_method_name);
+    Delete(changeown_jnimethod_name);
+    Delete(norm_name);
+    Delete(jni_imclass_name);
+  }
+
+  /*----------------------------------------------------------------------
+   * emitCodeTypemap()
+   *
+   * Output a code typemap that uses $methodname and $jnicall, as used
+   * in the directordisconnect, director_release and director_take
+   * typemaps.
+   *--------------------------------------------------------------------*/
+
+  void
+  emitCodeTypemap(bool derived, String *lookup_type, const String *typemap, const String *methodname, const String *jnicall)
+  {
+    const String *tm = NULL;
+    Node *tmattrs = NewHash();
+    String *lookup_tmname = NewString(typemap);
+    String *method_attr_name;
+    String *method_attr;
+
+    if (derived) {
+      Append(lookup_tmname, "_derived");
     }
+
+    tm = typemapLookup(lookup_tmname, lookup_type, WARN_NONE, tmattrs);
+    method_attr_name = NewStringf("tmap:%s:%s", lookup_tmname, methodname);
+    method_attr = Getattr(tmattrs, method_attr_name);
+
+    if (*Char(tm)) {
+      if (method_attr != NULL) {
+        String *codebody = Copy(tm);
+        Replaceall(codebody, "$methodname", method_attr);
+        Replaceall(codebody, "$jnicall", jnicall);
+        Append(proxy_class_def, codebody);
+        Delete(codebody);
+      } else {
+        Swig_error(input_file, line_number,
+            "No %s method name attribute for %s\n", lookup_tmname, proxy_class_name);
+      }
+    } else {
+      Swig_error(input_file, line_number,
+          "No %s typemap for %s\n", lookup_tmname, proxy_class_name);
+    }
+
+    Delete(tmattrs);
+    Delete(lookup_tmname);
+    Delete(method_attr);
   }
 
   /* ---------------------------------------------------------------
@@ -2859,7 +2934,7 @@ class JAVA : public Language {
     String     *jniret_desc = NewString("");
     String     *classret_desc = NewString("");
     SwigType   *jniret_type = NULL;
-    String     *jupcall_args = NewString("swig_get_self(jenv)");
+    String     *jupcall_args = NewString("jobj");
     String     *imclass_dmethod;
     Wrapper    *imw = NewWrapper();
     String     *imcall_args = NewString("");
@@ -3020,14 +3095,17 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("out", l, w);
     Swig_typemap_attach_parms("jni", l, w);
     Swig_typemap_attach_parms("jtype", l, w);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("javadirectorin", l, 0);
 
     /* Add Java environment pointer to wrapper */
     String *jenvstr = NewString("jenv");
+    String *jobjstr = NewString("jobj");
 
     Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= (JNIEnv *) NULL", NIL);
+    Wrapper_add_localv(w, jobjstr, "jobject ", jobjstr, "= (jobject) NULL", NIL);
     Delete(jenvstr);
+    Delete(jobjstr);
 
     /* Preamble code */
 
@@ -3043,6 +3121,7 @@ class JAVA : public Language {
         Delete(super_call);
       }
     } else {
+      Printf(w->code, "jenv = swig_acquire_jenv();\n");
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaDirectorPureVirtual,\n");
       Printf(w->code, "      \"Attempted to invoke pure virtual method %s::%s.\");\n",
              c_classname, name);
@@ -3057,6 +3136,8 @@ class JAVA : public Language {
 
     Printf(w->code, "}\n");
     Printf(w->code, "jenv = swig_acquire_jenv();\n");
+    Printf(w->code, "jobj = swig_get_self(jenv);\n");
+    Printf(w->code, "if (jobj != NULL && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {\n");
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
     Parm *tp = NewParmFromNode(c_classname, empty_str, n);
@@ -3286,13 +3367,10 @@ class JAVA : public Language {
     String *methid = Getattr(udata, "imclass_methodidx");
     String *methop = getUpcallJNIMethod(jniret_desc);
 
-    if (!is_void) {
-      Printf(w->code, "jresult = (%s) jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
-             jniret_type, methop, imclass_name, methid, jupcall_args);
-    } else {
-      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
-             methop, imclass_name, methid, jupcall_args);
-    }
+    if (!is_void) Printf(w->code, "jresult = (%s) ", jniret_type);
+    
+    Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
+           methop, imclass_name, methid, jupcall_args);
 
     Printf(w->code, "if (jenv->ExceptionOccurred()) return $null;\n");
 
@@ -3324,6 +3402,10 @@ class JAVA : public Language {
     Delete(class_desc);
 
     /* Terminate wrapper code */
+    Printf(w->code, "}  else {\n");
+    Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
+    Printf(w->code, "}\n");
+
     if (!is_void)
       Printf(w->code, "return %s;", qualified_return);
 
@@ -3509,20 +3591,15 @@ class JAVA : public Language {
       Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
     }
 
-    /* Ensure that correct directordisconnect/_derived typemap's method name is called
+    /* Ensure that correct directordisconnect typemap's method name is called
      * here: */
 
     const String *disconn_tm = NULL;
     Node *disconn_attr = NewHash();
     String *disconn_methodname = NULL;
 
-    if (Getattr(current_class, "bases") != NULL) {
-      disconn_tm = typemapLookup("directordisconnect_derived", full_classname, WARN_NONE, disconn_attr);
-      disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect_derived:methodname");
-    } else {
-      disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
-      disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
-    }
+    disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
 
     Printv(w->code,
            "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n",

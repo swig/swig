@@ -96,12 +96,14 @@ public:
   public boolean disconnectMethodCalled = false;
 %}
 
-%typemap(directordisconnect_derived, methodname="disconnect_director") hi::Quux1 {
+%typemap(directordisconnect, methodname="disconnect_director") hi::Quux1 %{
+  public void $methodname() {
     swigCMemOwn = false;
     $jnicall;
     // add in a flag to check this method is really called
     disconnectMethodCalled = true;
   }
+%}
 
 %inline %{
 
