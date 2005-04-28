@@ -1,6 +1,43 @@
 Version 1.3.25 (In progress)
 ============================
 
+04/28/2005: wsfulton
+            [C#] Fixed problems due to the over eager garbage collector. Occasionally the
+            garbage collector would collect a C# proxy class instance while it was being used
+            in unmanaged code if the object was passed as a parameter to a wrapped function.
+            Needless to say this caused havoc as the C# proxy class calls the C++ destructor
+            when it is collected. Proxy classes and type wrapper classes now use a HandleRef,
+            which holds an IntPtr, instead of a plain IntPtr to marshal the C++ pointer to unmanaged
+            code. There doesn't appear to be any performance degradation as a result of this
+            modification.
+
+            The changes are in the proxy and type wrapper classes. The swigCPtr is now of type HandleRef
+            instead of IntPtr and consequently the getCPtr method return type has also changed. The net
+            effect is that any custom written typemaps might have to be modified to suite. Affected users
+            should note that the implementation uses the new 'out' attribute in the imtype typemap as the
+            input type is now a HandleRef and the output type is still an IntPtr.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+04/28/2005: wsfulton
+            [C#] Support for asymmetric type marshalling added. Sometimes the output type needs to be
+            different to the input type. Support for this comes in the form of a new optional 'out'
+            attribute for the ctype, imtype and cstype typemaps. If this typemap attribute is not
+            specified, then the type used for both input and output is the type specified in the
+            typemap, as has always previously been the case. If this typemap attribute is specified,
+            then the type specified in the attribute is used for output types and the type specified
+            in the typemap itself is used for the input type. An output type is a return value from
+            a wrapped method or wrapped constant and an input type is a parameter in a wrapped method.
+
+            An example shows that char * could be marshalled in different ways, 
+
+              %typemap(imtype, out="IntPtr") char * "string"
+              char * function(char *);
+
+            The output type is thus IntPtr and the input type is string. The resulting intermediary C# code is:
+
+              public static extern IntPtr function(string jarg1);
+
 04/22/2005: mkoeppe (Matthias Koeppe)
 	    [Guile] Fix generation of "define-method" for methods of
 	    classes with a constructor.  Reported by Luigi Ballabio.
@@ -177,6 +214,8 @@ Version 1.3.25 (In progress)
               NullReferenceException, OutOfMemoryException, OverflowException, 
               SystemException, ArgumentException, ArgumentNullException and
               ArgumentOutOfRangeException.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
 
 05/05/2005: mmatus
 	    
