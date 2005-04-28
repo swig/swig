@@ -209,9 +209,6 @@ C#
 ***    Implement director support for C# so that virtual methods work seemlessly
        when mixing C# and C++ code.
 
-****   Fix exception handling. Currently memory leaks occur when a C# exception
-       is thrown from C/C++.
-
 PHP
 ---
 
