@@ -56,20 +56,20 @@ public class java_director_runme {
     QuuxContainer qc = new QuuxContainer();
 
     qc.push(new Quux("element 1"));
-    qc.push(new MyQuux("element 2"));
-    qc.push(new MyQuux("element 3"));
+    qc.push(new java_director_MyQuux("element 2"));
+    qc.push(new java_director_MyQuux("element 3"));
     qc.push(new Quux("element 4"));
 
     return qc;
   }
 }
 
-class MyQuux extends Quux {
-  public MyQuux(String arg) {
+class java_director_MyQuux extends Quux {
+  public java_director_MyQuux(String arg) {
     super(arg);
   }
 
   public String director_method() {
-    return "MyQuux:" + member();
+    return "java_director_MyQuux:" + member();
   }
 }

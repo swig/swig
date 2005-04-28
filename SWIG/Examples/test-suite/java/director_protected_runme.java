@@ -17,19 +17,19 @@ public class director_protected_runme {
 
     Bar b = new Bar();
     Foo f = b.create();
-    FooBar fb = new FooBar();
-    FooBar2 fb2 = new FooBar2();
+    director_protected_FooBar fb = new director_protected_FooBar();
+    director_protected_FooBar2 fb2 = new director_protected_FooBar2();
 
     {
       String s = fb.used();
-      if (!s.equals("Foo::pang();Bar::pong();Foo::pong();FooBar::ping();"))
-        throw new RuntimeException( "bad FooBar::used" );
+      if (!s.equals("Foo::pang();Bar::pong();Foo::pong();director_protected_FooBar::ping();"))
+        throw new RuntimeException( "bad director_protected_FooBar::used" );
     }
 
     {
       String s = fb2.used();
-      if (!s.equals("FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();"))
-        throw new RuntimeException( "bad FooBar2::used" );
+      if (!s.equals("director_protected_FooBar2::pang();Bar::pong();Foo::pong();director_protected_FooBar2::ping();"))
+        throw new RuntimeException( "bad director_protected_FooBar2::used" );
     }
 
     {
@@ -46,8 +46,8 @@ public class director_protected_runme {
 
     {
       String s3 = fb.pong();
-      if (!s3.equals("Bar::pong();Foo::pong();FooBar::ping();"))
-        throw new RuntimeException(" bad FooBar::pong" );
+      if (!s3.equals("Bar::pong();Foo::pong();director_protected_FooBar::ping();"))
+        throw new RuntimeException(" bad director_protected_FooBar::pong" );
     }
 
     try {
@@ -68,18 +68,18 @@ public class director_protected_runme {
   }
 }
 
-class FooBar extends Bar {
+class director_protected_FooBar extends Bar {
   public String ping() {
-    return "FooBar::ping();";
+    return "director_protected_FooBar::ping();";
   }
 }
 
-class FooBar2 extends Bar {
+class director_protected_FooBar2 extends Bar {
   public String ping() {
-    return "FooBar2::ping();";
+    return "director_protected_FooBar2::ping();";
   }
   public String pang() {
-    return "FooBar2::pang();";
+    return "director_protected_FooBar2::pang();";
   }
 }
 

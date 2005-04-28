@@ -14,7 +14,7 @@ public class director_exception_runme {
 
   public static void main(String argv[]) {
 
-      MyFoo a = new MyFoo();
+      director_exception_MyFoo a = new director_exception_MyFoo();
       Foo b = director_exception.launder(a);
 
       try {
@@ -26,7 +26,7 @@ public class director_exception_runme {
   }
 }
 
-class MyFoo extends Foo {
+class director_exception_MyFoo extends Foo {
     public String ping() {
         throw new UnsupportedOperationException("Foo::ping not implemented");
     }

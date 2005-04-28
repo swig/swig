@@ -24,28 +24,28 @@ public class director_wombat_runme
 
     a.delete();
 
-    a = new Foo_integers_derived();
+    a = new director_wombat_Foo_integers_derived();
     if ((retval = a.meth(62)) != 62 + 2) {
       throw new RuntimeException ("Test failed: retval = " + retval + ", expected 62 + 2");
     }
 
     a.delete();
 
-    a = new Foo_integers_derived_2();
+    a = new director_wombat_Foo_integers_derived_2();
     if ((retval = a.meth(37)) != 37) {
       throw new RuntimeException ("Test failed: retval = " + retval + ", expected 37");
     }
 
     b.delete();
 
-    b = new Bar_derived_1();
+    b = new director_wombat_Bar_derived_1();
     b.foo_meth(a, 0);
   }
 }
 
-class Foo_integers_derived extends Foo_integers
+class director_wombat_Foo_integers_derived extends Foo_integers
 {
-  public Foo_integers_derived()
+  public director_wombat_Foo_integers_derived()
   {
     super();
   }
@@ -56,25 +56,25 @@ class Foo_integers_derived extends Foo_integers
   }
 }
 
-class Foo_integers_derived_2 extends Foo_integers
+class director_wombat_Foo_integers_derived_2 extends Foo_integers
 {
-  public Foo_integers_derived_2()
+  public director_wombat_Foo_integers_derived_2()
   {
     super();
   }
 }
 
-class Bar_derived_1 extends Bar
+class director_wombat_Bar_derived_1 extends Bar
 {
-  public Bar_derived_1()
+  public director_wombat_Bar_derived_1()
   {
     super();
   }
 
   public void foo_meth(Foo_integers foo_obj, int param)
   {
-    if (!(foo_obj instanceof Foo_integers_derived_2)) {
-      throw new RuntimeException ("Test failed: foo_obj is not Foo_integers_derived_2, got " + foo_obj);
+    if (!(foo_obj instanceof director_wombat_Foo_integers_derived_2)) {
+      throw new RuntimeException ("Test failed: foo_obj is not director_wombat_Foo_integers_derived_2, got " + foo_obj);
     }
   }
 }

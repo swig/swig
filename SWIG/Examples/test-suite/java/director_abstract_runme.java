@@ -14,17 +14,17 @@ public class director_abstract_runme {
 
   public static void main(String argv[]) {
 
-      MyFoo a = new MyFoo();
+      director_abstract_MyFoo a = new director_abstract_MyFoo();
 
-      if (!a.ping().equals("MyFoo::ping()")) {
+      if (!a.ping().equals("director_abstract_MyFoo::ping()")) {
           throw new RuntimeException ( "a.ping()" );
       }
 
-      if (!a.pong().equals("Foo::pong();MyFoo::ping()")) {
+      if (!a.pong().equals("Foo::pong();director_abstract_MyFoo::ping()")) {
           throw new RuntimeException ( "a.pong()" );
       }
 
-      BadFoo b = new BadFoo();
+      director_abstract_BadFoo b = new director_abstract_BadFoo();
       try {
         b.ping();
         System.out.println( "Test failed. An attempt to call a pure virtual method should throw an exception" );
@@ -35,12 +35,12 @@ public class director_abstract_runme {
   }
 }
 
-class MyFoo extends Foo {
+class director_abstract_MyFoo extends Foo {
     public String ping() {
-        return "MyFoo::ping()";
+        return "director_abstract_MyFoo::ping()";
     }
 }
 
-class BadFoo extends Foo {
+class director_abstract_BadFoo extends Foo {
 }
 

@@ -14,21 +14,21 @@ public class director_unroll_runme {
 
   public static void main(String argv[]) {
 
-      MyFoo a = new MyFoo();
+      director_unroll_MyFoo a = new director_unroll_MyFoo();
 
       Bar b = new Bar();
 
       b.set(a);
       Foo c = b.get();
 
-      if (!c.ping().equals("MyFoo::ping()"))
+      if (!c.ping().equals("director_unroll_MyFoo::ping()"))
           throw new RuntimeException ( "c.ping()" );
   }
 }
 
-class MyFoo extends Foo {
+class director_unroll_MyFoo extends Foo {
     public String ping() {
-        return "MyFoo::ping()";
+        return "director_unroll_MyFoo::ping()";
     }
 }
 
