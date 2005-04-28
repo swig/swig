@@ -14,6 +14,7 @@ top_builddir = @top_builddir@../
 
 CPP_TEST_CASES = \
 	csharp_exceptions \
+	csharp_typemaps \
 	enum_thorough_simple \
 	enum_thorough_typesafe
 
