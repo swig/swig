@@ -66,24 +66,24 @@
 
 /* Non primitive types */
 %typemap(ctype) SWIGTYPE "void *"
-%typemap(imtype) SWIGTYPE "IntPtr"
+%typemap(imtype, out="IntPtr") SWIGTYPE "HandleRef"
 %typemap(cstype) SWIGTYPE "$&csclassname"
 
 %typemap(ctype) SWIGTYPE [] "void *"
-%typemap(imtype) SWIGTYPE [] "IntPtr"
+%typemap(imtype, out="IntPtr") SWIGTYPE [] "HandleRef"
 %typemap(cstype) SWIGTYPE [] "$csclassname"
 
 %typemap(ctype) SWIGTYPE * "void *"
-%typemap(imtype) SWIGTYPE * "IntPtr"
+%typemap(imtype, out="IntPtr") SWIGTYPE * "HandleRef"
 %typemap(cstype) SWIGTYPE * "$csclassname"
 
 %typemap(ctype) SWIGTYPE & "void *"
-%typemap(imtype) SWIGTYPE & "IntPtr"
+%typemap(imtype, out="IntPtr") SWIGTYPE & "HandleRef"
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
 /* pointer to a class member */
 %typemap(ctype) SWIGTYPE (CLASS::*) "int"
-%typemap(imtype) SWIGTYPE (CLASS::*) "IntPtr"
+%typemap(imtype, out="IntPtr") SWIGTYPE (CLASS::*) "HandleRef"
 %typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
 /* The following are the in and out typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
@@ -539,53 +539,53 @@ $1 = &temp; %}
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\n"
+%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\nusing System.Runtime.InteropServices;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
 %typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
 // Proxy classes (base classes, ie, not derived classes)
 %typemap(csbody) SWIGTYPE %{
-  private IntPtr swigCPtr;
+  private HandleRef swigCPtr;
   protected bool swigCMemOwn;
 
   internal $csclassname(IntPtr cPtr, bool cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
-    swigCPtr = cPtr;
+    swigCPtr = new HandleRef(this, cPtr);
   }
 
-  internal static IntPtr getCPtr($csclassname obj) {
-    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+  internal static HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
 // Derived proxy classes
 %typemap(csbody_derived) SWIGTYPE %{
-  private IntPtr swigCPtr;
+  private HandleRef swigCPtr;
 
   internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
-    swigCPtr = cPtr;
+    swigCPtr = new HandleRef(this, cPtr);
   }
 
-  internal static IntPtr getCPtr($csclassname obj) {
+  internal static HandleRef getCPtr($csclassname obj) {
     return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
   }
 %}
 
 // Typewrapper classes
 %typemap(csbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-  private IntPtr swigCPtr;
+  private HandleRef swigCPtr;
 
   internal $csclassname(IntPtr cPtr, bool futureUse) {
-    swigCPtr = cPtr;
+    swigCPtr = new HandleRef(this, cPtr);
   }
 
   protected $csclassname() {
-    swigCPtr = IntPtr.Zero;
+    swigCPtr = new HandleRef(null, IntPtr.Zero);
   }
 
-  internal static IntPtr getCPtr($csclassname obj) {
-    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+  internal static HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
@@ -600,20 +600,20 @@ $1 = &temp; %}
 %}
 
 %typemap(csdestruct, methodname="Dispose") SWIGTYPE {
-    if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
+    if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
       swigCMemOwn = false;
       $imcall;
     }
-    swigCPtr = IntPtr.Zero;
+    swigCPtr = new HandleRef(null, IntPtr.Zero);
     GC.SuppressFinalize(this);
   }
 
 %typemap(csdestruct_derived, methodname="Dispose") SWIGTYPE {
-    if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
+    if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
       swigCMemOwn = false;
       $imcall;
     }
-    swigCPtr = IntPtr.Zero;
+    swigCPtr = new Handle(null, IntPtr.Zero);
     GC.SuppressFinalize(this);
     base.Dispose();
   }
@@ -631,6 +631,7 @@ $1 = &temp; %}
 
 %pragma(csharp) moduleimports=%{
 using System;
+using System.Runtime.InteropServices;
 %}
 
 %pragma(csharp) imclassimports=%{
