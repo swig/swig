@@ -583,13 +583,13 @@
    }
    $1 = *argp; %}
 
-%typemap(directorout) SWIGTYPE ($&1_type argp)
-%{ argp = *($&1_ltype*)&$input; 
+%typemap(directorout) SWIGTYPE ($1_ltype argp)
+%{ argp = *($&1_ltype)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
      return $null;
    }
-   $1 = *argp; %}
+   $1 = argp; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
@@ -1105,46 +1105,36 @@ SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
 /*
  * Java constructor typemaps:
  *
- * The javaconstruct and javaconstruct_director typemaps are inserted when a
- * proxy class's constructor is generated. These typemaps allow control over what
- * code is executed in the constructor as well as specifying who owns the
- * underlying C/C++ object. Normally, Java has ownership and the underlying
- * C/C++ object is deallocated when the Java object is finalized (swigCMemOwn
- * is true.) If swigCMemOwn is false, C/C++ is ultimately responsible for
- * deallocating the underlying object's memory.
+ * The javaconstruct typemap is inserted when a proxy class's constructor is generated.
+ * This typemap allows control over what code is executed in the constructor as
+ * well as specifying who owns the underlying C/C++ object. Normally, Java has
+ * ownership and the underlying C/C++ object is deallocated when the Java object
+ * is finalized (swigCMemOwn is true.) If swigCMemOwn is false, C/C++ is
+ * ultimately responsible for deallocating the underlying object's memory.
  *
- * The SWIG_PROXY_CONSTRUCTOR and SWIG_DIRECTOR_CONSTRUCTOR macros define the
- * javaconstruct and javaconstruct_director typemaps for a proxy class for a
- * particular TYPENAME. OWNERSHIP is passed as the value of swigCMemOwn to the
- * pointer constructor method. SWIG_DIRECTOR_CONSTRUCTOR takes an additional
- * parameter, WEAKREF, that determines which kind of Java object reference
- * will be used by the C++ director class (WeakGlobalRef vs. GlobalRef.)
+ * The SWIG_PROXY_CONSTRUCTOR macro defines the javaconstruct typemap for a proxy
+ * class for a particular TYPENAME. OWNERSHIP is passed as the value of
+ * swigCMemOwn to the pointer constructor method.  WEAKREF determines which kind
+ * of Java object reference will be used by the C++ director class (WeakGlobalRef
+ * vs. GlobalRef.)
  *
  * The SWIG_DIRECTOR_OWNED macro sets the ownership of director-based proxy
- * classes to false, meaning that the underlying C++ object will be
- * reclaimed by C++.
+ * classes and the weak reference flag to false, meaning that the underlying C++
+ * object will be reclaimed by C++.
  */
 
-%define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, TYPENAME...)
-%typemap(javaconstruct) TYPENAME {
-    this($imcall, OWNERSHIP);
-  }
-%enddef
-
-%define SWIG_DIRECTOR_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct_director) TYPENAME {
-    this($imcall, OWNERSHIP);
-    $moduleJNI.$javaclassname_director_connect(this, swigCPtr, OWNERSHIP, WEAKREF);
+%define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
+%typemap(javaconstruct,directorconnect="\n    $moduleJNI.$javaclassname_director_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
+    this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef
 
 %define SWIG_DIRECTOR_OWNED(TYPENAME...)
-SWIG_DIRECTOR_CONSTRUCTOR(true, false, TYPENAME)
+SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 %enddef
 
 // Set the default for SWIGTYPE: Java owns the C/C++ object.
-SWIG_PROXY_CONSTRUCTOR(true, SWIGTYPE)
-SWIG_DIRECTOR_CONSTRUCTOR(true, true, SWIGTYPE)
+SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %typemap(javadestruct, methodname="delete") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
@@ -1163,15 +1153,26 @@ SWIG_DIRECTOR_CONSTRUCTOR(true, true, SWIGTYPE)
     super.delete();
   }
 
-%typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE {
+%typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
+  protected void $methodname() {
     swigCMemOwn = false;
     $jnicall;
   }
+%}
 
-%typemap(directordisconnect_derived, methodname="swigDirectorDisconnect") SWIGTYPE {
+%typemap(directorowner_release, methodname="swigReleaseOwnership") SWIGTYPE %{
+  public void $methodname() {
     swigCMemOwn = false;
     $jnicall;
   }
+%}
+
+%typemap(directorowner_take, methodname="swigTakeOwnership") SWIGTYPE %{
+  public void $methodname() {
+    swigCMemOwn = true;
+    $jnicall;
+  }
+%}
 
 /* Java specific directives */
 #define %javaconst(flag)            %feature("java:const","flag")
