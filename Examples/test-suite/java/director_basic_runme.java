@@ -14,13 +14,13 @@ public class director_basic_runme {
 
   public static void main(String argv[]) {
 
-      MyFoo a = new MyFoo();
+      director_basic_MyFoo a = new director_basic_MyFoo();
 
-      if (!a.ping().equals("MyFoo::ping()")) {
+      if (!a.ping().equals("director_basic_MyFoo::ping()")) {
           throw new RuntimeException ( "a.ping()" );
       }
 
-      if (!a.pong().equals("Foo::pong();MyFoo::ping()")) {
+      if (!a.pong().equals("Foo::pong();director_basic_MyFoo::ping()")) {
           throw new RuntimeException ( "a.pong()" );
       }
 
@@ -39,9 +39,9 @@ public class director_basic_runme {
   }
 }
 
-class MyFoo extends Foo {
+class director_basic_MyFoo extends Foo {
     public String ping() {
-        return "MyFoo::ping()";
+        return "director_basic_MyFoo::ping()";
     }
 }
 

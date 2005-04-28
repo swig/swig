@@ -14,7 +14,7 @@ public class director_enum_runme {
 
   public static void main(String argv[]) {
 
-      MyFoo a = new MyFoo();
+      director_enum_MyFoo a = new director_enum_MyFoo();
 
       if (a.ping(Hallo.awright) != Hallo.yo) {
           throw new RuntimeException ( "a.ping()" );
@@ -40,7 +40,7 @@ public class director_enum_runme {
   }
 }
 
-class MyFoo extends Foo {
+class director_enum_MyFoo extends Foo {
     public Hallo say_hi(Hallo h) {
         return Hallo.yo;
     }

@@ -14,28 +14,28 @@ public class director_string_runme {
 
   public static void main(String argv[]) {
 
-    B b = new B("hello");
+    director_string_B b = new director_string_B("hello");
 
     String s;
 
     s = b.call_get_first();
-    if (!s.equals("B.get_first")) throw new RuntimeException("call_get_first() failed");
+    if (!s.equals("director_string_B.get_first")) throw new RuntimeException("call_get_first() failed");
 
     s = b.call_get(0);
-    if (!s.equals("B.get: hello")) throw new RuntimeException("get(0) failed");
+    if (!s.equals("director_string_B.get: hello")) throw new RuntimeException("get(0) failed");
   }
 }
 
-class B extends A {
-    public B(String first) {
+class director_string_B extends A {
+    public director_string_B(String first) {
       super(first);
     }
     public String get_first() {
-      return "B.get_first";
+      return "director_string_B.get_first";
     }
   
     public String get(int n) {
-      return "B.get: " + super.get(n);
+      return "director_string_B.get: " + super.get(n);
     }
 }
 

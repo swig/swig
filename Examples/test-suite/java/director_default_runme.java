@@ -14,15 +14,15 @@ public class director_default_runme {
 
   public static void main(String argv[]) {
     {
-      MyFoo a = new MyFoo();
-      a = new MyFoo(10);
+      director_default_MyFoo a = new director_default_MyFoo();
+      a = new director_default_MyFoo(10);
     }
 
-    MyFoo a = new MyFoo();
-    if (!a.GetMsg().equals("MyFoo-default")) {
+    director_default_MyFoo a = new director_default_MyFoo();
+    if (!a.GetMsg().equals("director_default_MyFoo-default")) {
       throw new RuntimeException ( "Test 1 failed" );
     }
-    if (!a.GetMsg("boo").equals("MyFoo-boo")) {
+    if (!a.GetMsg("boo").equals("director_default_MyFoo-boo")) {
       throw new RuntimeException ( "Test 2 failed" );
     }
 
@@ -37,15 +37,15 @@ public class director_default_runme {
   }
 }
 
-class MyFoo extends Foo {
-    public MyFoo() {
+class director_default_MyFoo extends Foo {
+    public director_default_MyFoo() {
       super();
     }
-    public MyFoo(int i) {
+    public director_default_MyFoo(int i) {
       super(i);
     }
     public String Msg(String msg) { 
-      return "MyFoo-" + msg; 
+      return "director_default_MyFoo-" + msg; 
     }
 }
 
