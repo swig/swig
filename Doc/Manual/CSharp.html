@@ -162,6 +162,40 @@ $jnicall                    -&gt; $imcall
 </pre></div>
 </li>
 
+<li>
+<p>
+The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
+</p>
+</li>
+
+<li>
+<p>
+Support for asymmetric type marshalling. The 'ctype', 'imtype' and 'cstype' typemaps support an optional <tt>out</tt> attribute which is used for output types.
+If this typemap attribute is specified, then the type specified in the attribute is used for output types.
+the type specified in the typemap itself is used for the input type.
+If this typemap attribute is not specified, then the type used for both input and output is the type specified in the typemap.
+An example shows that <tt>char *</tt> could be marshalled in different ways, 
+</p>
+
+<div class="code">
+<pre>
+%typemap(imtype, out="IntPtr") char * "string"
+char * function(char *);
+</pre>
+</div>
+
+<p>
+The output type is thus IntPtr and the input type is string. The resulting intermediary C# code is:
+</p>
+
+<div class="code">
+<pre>
+public static extern IntPtr function(string jarg1);
+</pre>
+</div>
+
+</li>
+
 </ul>
 
 <p>
@@ -169,10 +203,6 @@ $jnicall                    -&gt; $imcall
 This is a C# only special variable that can be used in typemaps, pragmas, features etc.
 The special variable will get translated into the value specified by the <tt>-dllimport</tt> commandline option
 if specified, otherwise it is equivalent to the <b>$module</b> special variable.
-</p>
-
-<p>
-The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
 </p>
 
 <p>

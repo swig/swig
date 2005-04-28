@@ -482,6 +482,9 @@ class CSHARP : public Language {
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("ctype",n,"",0))) {
+      String *ctypeout = Getattr(n,"tmap:ctype:out"); // the type in the ctype typemap's out attribute overrides the type in the typemap
+      if (ctypeout)
+        tm = ctypeout;
       Printf(c_return_type,"%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, 
@@ -489,6 +492,9 @@ class CSHARP : public Language {
     }
 
     if ((tm = Swig_typemap_lookup_new("imtype",n,"",0))) {
+      String *imtypeout = Getattr(n,"tmap:imtype:out"); // the type in the imtype typemap's out attribute overrides the type in the typemap
+      if (imtypeout)
+        tm = imtypeout;
       Printf(im_return_type,"%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
@@ -1060,6 +1066,9 @@ class CSHARP : public Language {
     bool classname_substituted_flag = false;
     
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
+      String *cstypeout = Getattr(n,"tmap:cstype:out"); // the type in the cstype typemap's out attribute overrides the type in the typemap
+      if (cstypeout)
+        tm = cstypeout;
       classname_substituted_flag = substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
@@ -1513,6 +1522,9 @@ class CSHARP : public Language {
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
       SwigType *virtualtype = Getattr(n,"virtual:type");
+      String *cstypeout = Getattr(n,"tmap:cstype:out"); // the type in the cstype typemap's out attribute overrides the type in the typemap
+      if (cstypeout)
+        tm = cstypeout;
       substituteClassname(virtualtype ? virtualtype : t, tm);
       Printf(return_type, "%s", tm);
       if (virtualtype)
@@ -1869,8 +1881,7 @@ class CSHARP : public Language {
 
   String *getOverloadedName(Node *n) {
 
-    /* Although PInvoke functions are designed to handle overloaded functions,
-     * a C# IntPtr is used for all classes in the SWIG intermediary class.
+    /* A C# HandleRef is used for all classes in the SWIG intermediary class.
      * The intermediary class methods are thus mangled when overloaded to give
      * a unique name. */
     String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
@@ -1914,6 +1925,9 @@ class CSHARP : public Language {
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
+      String *cstypeout = Getattr(n,"tmap:cstype:out"); // the type in the cstype typemap's out attribute overrides the type in the typemap
+      if (cstypeout)
+        tm = cstypeout;
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
