@@ -1,6 +1,20 @@
 Version 1.3.25 (In progress)
 ============================
 
+04/29/2005: wsfulton
+            New configure option to turn off the default maximum compiler warning as
+            they couldn't be removed even when overriding CFLAGS and CXXFLAGS with configure
+            (./configure CFLAGS= CXXFLAGS=). To turn the maximum warnings off, run: 
+
+              ./configure --without-maximum-compile-warnings
+
+04/28/2005: wsfulton
+            Patch from Scott Michel which reworks the Java constructor and finalize/destructor typemaps,
+            for directors to reduce the number of overall Java typemaps. Added the director_take and 
+            director_release typemaps to emulate other modules' __disown__ functionality.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA DIRECTORS ***
+
 04/28/2005: wsfulton
             [C#] Fixed problems due to the over eager garbage collector. Occasionally the
             garbage collector would collect a C# proxy class instance while it was being used
