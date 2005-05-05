@@ -4,7 +4,7 @@ Version 1.3.25 (In progress)
 04/29/2005: wsfulton
             New configure option to turn off the default maximum compiler warning as
             they couldn't be removed even when overriding CFLAGS and CXXFLAGS with configure
-            (./configure CFLAGS= CXXFLAGS=). To turn the maximum warnings off, run: 
+            (./configure CFLAGS= CXXFLAGS=). To turn the maximum warnings off, run:  
 
               ./configure --without-maximum-compile-warnings
 
