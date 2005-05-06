@@ -1,5 +1,7 @@
 /* This is a basic test of proxy classes, used by chicken */
 
+%warnfilter(801) global_cint;       /* Ruby, wrong constant name */
+
 %module cpp_basic
 
 %newobject Bar::testFoo;
