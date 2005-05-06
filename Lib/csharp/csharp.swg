@@ -568,7 +568,7 @@ $1 = &temp; %}
   }
 
   internal static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
@@ -613,7 +613,7 @@ $1 = &temp; %}
       swigCMemOwn = false;
       $imcall;
     }
-    swigCPtr = new Handle(null, IntPtr.Zero);
+    swigCPtr = new HandleRef(null, IntPtr.Zero);
     GC.SuppressFinalize(this);
     base.Dispose();
   }

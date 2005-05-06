@@ -129,7 +129,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %}
 
 %pragma(csharp) imclasscode=%{
-  class SWIGExceptionHelper {
+  protected class SWIGExceptionHelper {
 
     public delegate void ExceptionDelegate(string message);
     public delegate void ExceptionArgumentDelegate(string message, string paramName);
@@ -229,7 +229,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     }
   }
 
-  static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
+  protected static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
 
   public class SWIGPendingException {
     [ThreadStatic]
@@ -278,7 +278,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 %}
 
 %pragma(csharp) imclasscode=%{
-  class SWIGStringHelper {
+  protected class SWIGStringHelper {
 
     public delegate string SWIGStringDelegate(string message);
     static SWIGStringDelegate stringDelegate = new SWIGStringDelegate(CreateString);
@@ -295,7 +295,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
     }
   }
 
-  static SWIGStringHelper swigStringHelper = new SWIGStringHelper();
+  static protected SWIGStringHelper swigStringHelper = new SWIGStringHelper();
 %}
 
 %insert(runtime) %{
