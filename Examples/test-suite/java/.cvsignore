@@ -29,6 +29,7 @@ clientdata_prop
 constant_pointers
 const_const
 const_const_2
+const_const_2/CVS
 constover
 constructor_exception
 constructor_explicit
@@ -38,12 +39,12 @@ conversion
 conversion_namespace
 conversion_ns_template
 cplusplus_throw
+cpp_basic
 cpp_enum
 cpp_namespace
 cpp_nodefault
 cpp_static
 cpp_typedef
-CVS
 default_args
 default_constructor
 defvalue_constructor
@@ -62,7 +63,6 @@ director_frob
 director_nested
 director_protected
 director_redefined
-directors_enum
 director_string
 director_unroll
 director_wombat
@@ -89,6 +89,7 @@ features
 friends
 function_typedef
 global_ns_arg
+global_vars
 grouping
 ignore_parameter
 import_nomodule
@@ -98,6 +99,7 @@ inherit_missing
 inherit_void_arg
 inline_initializer
 java_constants
+java_director
 java_enums
 java_jnitypes
 java_lib_arrays
@@ -109,7 +111,6 @@ java_typemaps_proxy
 java_typemaps_typewrapper
 kind
 lextype
-lib_arrays_dimensionless
 li_carrays
 li_cdata
 li_cmalloc
@@ -142,6 +143,7 @@ name_warnings
 nested
 newobject1
 newobject2
+ordering
 overload_copy
 overload_extend
 overload_extendc
@@ -239,6 +241,7 @@ template_typedef_cplx3
 template_typedef_cplx4
 template_typedef_cplx5
 template_typedef_import
+template_typedef_ns
 template_typedef_ptr
 template_type_namespace
 template_virtual
@@ -255,6 +258,8 @@ typemap_namespace
 typemap_ns_using
 typemap_numinputs
 typemap_subst
+typemap_variables
+typemap_various
 typename
 unions
 union_scope
