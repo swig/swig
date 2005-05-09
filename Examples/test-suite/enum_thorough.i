@@ -461,7 +461,9 @@ struct Obscure {
 };
 
 // Unnamed enum instance
+extern "C" {
 enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
+}
 
 struct Instances {
   enum { memberinstance1, memberinstance2, memberinstance3 = 300 } MemberInstance;
