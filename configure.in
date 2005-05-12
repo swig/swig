@@ -518,29 +518,6 @@ PYINCLUDE=
 PYLIB=
 PYPACKAGE=
 
-# I don't think any of this commented stuff works anymore
-
-#PYLINK="-lModules -lPython -lObjects -lParser"
-
-#AC_ARG_WITH(py,[  --with-py=path          Set location of Python],[
-#	PYPACKAGE="$withval"], [PYPACKAGE=])
-#AC_ARG_WITH(pyincl,[  --with-pyincl=path      Set location of Python include directory],[
-#	PYINCLUDE="$withval"], [PYINCLUDE=])
-#AC_ARG_WITH(pylib,[  --with-pylib=path       Set location of Python library directory],[
-#	PYLIB="$withval"], [PYLIB=])
-
-#if test -z "$PYINCLUDE"; then
-#   if test -n "$PYPACKAGE"; then
-#	PYINCLUDE="$PYPACKAGE/include"
-#   fi
-#fi
-
-#if test -z "$PYLIB"; then
-#   if test -n "$PYPACKAGE"; then
-#	PYLIB="$PYPACKAGE/lib"
-#   fi
-#fi
-
 AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
 AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN=])
 
