@@ -36,6 +36,8 @@ struct StructWithEnums {
  };
 
 extern "C"
+{
  enum {Hi, Hello } hi;
+}
 
 %}
