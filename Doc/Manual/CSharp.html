@@ -38,6 +38,12 @@ Swig C# works equally well on non-Microsoft operating systems such as Linux, Sol
 <a href="http://www.mono-project.com/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
 </p>
 
+<p>
+To get the most out of this chapter an understanding of interop is required.
+The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> has a good reference guide in a section titled "Interop Marshaling".
+Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/Interop_with_Native_Libraries">Interop with native libraries</a>.
+</p>
+
 <H2><a name="csharp_differences_java"></a>16.2 Differences to the Java module</H2>
 
 
@@ -128,6 +134,7 @@ javadestruct_derived        -&gt; csdestruct_derived
 <div class="code"><pre>
 csvarin                     C# code property set typemap
 csvarout                    C# code property get typemap
+csattributes                C# attributes for attaching to proxy classes/enums
 </pre></div>
 
 </li>
@@ -171,7 +178,7 @@ The intermediary classname has <tt>PINVOKE</tt> appended after the module name i
 <li>
 <p>
 Support for asymmetric type marshalling. The 'ctype', 'imtype' and 'cstype' typemaps support an optional <tt>out</tt> attribute which is used for output types.
-If this typemap attribute is specified, then the type specified in the attribute is used for output types.
+If this typemap attribute is specified, then the type specified in the attribute is used for output types and
 the type specified in the typemap itself is used for the input type.
 If this typemap attribute is not specified, then the type used for both input and output is the type specified in the typemap.
 An example shows that <tt>char *</tt> could be marshalled in different ways, 
@@ -194,6 +201,105 @@ public static extern IntPtr function(string jarg1);
 </pre>
 </div>
 
+</li>
+
+<li>
+<p>
+Support for type attributes.
+The 'imtype' and 'cstype' typemaps can have an optional <tt>inattributes</tt> and <tt>outattributes</tt> typemap attribute.
+There are C# attributes and typemap attributes, don't get confused!!
+The C# attributes specified in these typemap attributes are generated wherever the type is used in the C# wrappers.
+These can be used to specify any C# attribute associated with a C/C++ type, but are more typically used for the C# <tt>MarshalAs</tt> attribute.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(imtype,
+         inattributes="[MarshalAs(UnmanagedType.LPStr)]",
+         outattributes="[return: MarshalAs(UnmanagedType.LPStr)]") const char * "String"
+
+const char * GetMsg() {}
+void SetMsg(const char *msg) {}
+</pre>
+</div>
+
+<p>
+The intermediary class will then have the marshalling as specified by everything in the 'imtype' typemap:
+</p>
+
+<div class="code">
+<pre>
+class examplePINVOKE {
+  ...
+  [DllImport("example", EntryPoint="CSharp_GetMsg")]
+  [return: MarshalAs(UnmanagedType.LPStr)]
+  public static extern String GetMsg();
+
+  [DllImport("example", EntryPoint="CSharp_SetMsg")]
+  public static extern void SetMsg([MarshalAs(UnmanagedType.LPStr)]String jarg1);
+}
+</pre>
+</div>
+
+<p>
+Note that the <tt>DllImport</tt> attribute is always generated, irrespective of any additional attributes specified.
+</p>
+
+<p>
+These attributes are associated with the C/C++ parameter type or return type, which is subtely different to 
+the attribute features and typemaps covered next.
+Note that all these different C# attributes can be combined so that a method has more than one attribute.
+</p>
+</li>
+
+<li>
+<p>
+Support for attaching C# attributes to wrapped methods and variables.
+This is done using the <tt>%csattributes</tt> feature, see <a href="Customization.html#features">%feature directives</a>.
+Note that C# attributes are attached to proxy classes and enums using the <tt>csattributes</tt> typemap.
+For example, imagine we have a custom attribute class, <tt>ThreadSafeAttribute</tt>, for labelling thread safety.
+The following SWIG code shows how to attach this C# attribute to some methods and the class declaration itself:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csattributes) AClass          "[ThreadSafe]"
+%csattributes AClass::AClass(double d) "[ThreadSafe(false)]"
+%csattributes AClass::AMethod()        "[ThreadSafe(true)]"
+
+%inline %{
+class AClass {
+public:
+  AClass(double a) {}
+  void AMethod() {}
+};
+%}
+</pre>
+</div>
+
+<p>
+will generate a C# proxy class:
+</p>
+
+<div class="code">
+<pre>
+[ThreadSafe]
+public class AClass : IDisposable {
+  ...
+  [ThreadSafe(false)]
+  public AClass(double a) ...
+
+  [ThreadSafe(true)]
+  public void AMethod() ...
+}
+</pre>
+</div>
+
+<p>
+If C# attributes need adding to the <tt>set</tt> or <tt>get</tt> part of C# properties, when wrapping C/C++ variables,
+they can be added using the 'csvarin' and 'csvarout' typemaps respectively.
+</p>
 </li>
 
 </ul>
