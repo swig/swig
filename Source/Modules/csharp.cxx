@@ -455,6 +455,7 @@ class CSHARP : public Language {
     String    *cleanup = NewString("");
     String    *outarg = NewString("");
     String    *body = NewString("");
+    String    *im_outattribute = 0;
     int       num_arguments = 0;
     int       num_required = 0;
     bool      is_void_return;
@@ -496,6 +497,7 @@ class CSHARP : public Language {
       if (imtypeout)
         tm = imtypeout;
       Printf(im_return_type,"%s", tm);
+      im_outattribute = Getattr(n,"tmap:imtype:outattributes");
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
           "No imtype typemap defined for %s\n", SwigType_str(t,0));
@@ -527,6 +529,9 @@ class CSHARP : public Language {
 
     Printv(imclass_class_code, 
            "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", overloaded_name, "\")]\n", NIL);
+
+    if (im_outattribute)
+      Printf(imclass_class_code, "  %s\n", im_outattribute);
 
     Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
 
@@ -561,7 +566,8 @@ class CSHARP : public Language {
 
       /* Get the intermediary class parameter types of the parameter */
       if ((tm = Getattr(p,"tmap:imtype"))) {
-        Printv(im_param_type, tm, NIL);
+        String *inattributes = Getattr(p,"tmap:imtype:inattributes");
+        Printf(im_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
             "No imtype typemap defined for %s\n", SwigType_str(pt,0));
@@ -849,6 +855,11 @@ class CSHARP : public Language {
         const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
         const String *pure_interfaces = typemapLookup("csinterfaces", typemap_lookup_type, WARN_NONE);
 
+        // Class attributes
+        const String *csattributes = typemapLookup("csattributes", typemap_lookup_type, WARN_NONE);
+        if (csattributes && *Char(csattributes))
+          Printf(enum_code, "%s\n", csattributes);
+
         // Emit the enum
         Printv(enum_code,
             typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
@@ -882,8 +893,7 @@ class CSHARP : public Language {
             "\n" :
             typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
             typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
-            "}\n",
-            "\n",
+            "}",
             NIL);
 
         Replaceall(enum_code, "$csclassname", symname);
@@ -898,10 +908,9 @@ class CSHARP : public Language {
           // Enums defined within the C++ class are defined within the proxy class
 
           // Add extra indentation
-          Replaceall(enum_code, "\n  ", "\n    ");
-          Replaceall(enum_code, "\n}\n", "\n  }\n");
+          Replaceall(enum_code, "\n", "\n  ");
 
-          Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+          Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
         } else {
           // Global enums are defined in their own file
           String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
@@ -922,9 +931,10 @@ class CSHARP : public Language {
               typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
               "\n",
               enum_code,
+              "\n",
               NIL);
 
-          Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "\n");
+          Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "");
           Close(f_enum);
         }
       } else {
@@ -1088,8 +1098,11 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-      const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-      Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
+    const String *outattributes = Getattr(n,"tmap:cstype:outattributes");
+    if (outattributes)
+      Printf(constants_code, "  %s\n", outattributes);
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
     // Check for the %csconstvalue feature
     String *value = Getattr(n,"feature:cs:constvalue");
@@ -1263,11 +1276,18 @@ class CSHARP : public Language {
 
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
-
     // Start writing the proxy class
     Printv(proxy_class_def,
         typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
         "\n",
+        NIL);
+
+    // Class attributes
+    const String *csattributes = typemapLookup("csattributes", typemap_lookup_type, WARN_NONE);
+    if (csattributes)
+      Printf(proxy_class_def, "%s\n", csattributes);
+
+    Printv(proxy_class_def,
         typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " $csclassname",       // Class name and base class
         (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ?
@@ -1541,6 +1561,12 @@ class CSHARP : public Language {
     }
 
     /* Start generating the proxy function */
+    const String *outattributes = Getattr(n,"tmap:cstype:outattributes");
+    if (outattributes)
+      Printf(function_code, "  %s\n", outattributes);
+    const String *csattributes = Getattr(n,"feature:cs:attributes");
+    if (csattributes)
+      Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s ", methodmods);
@@ -1586,7 +1612,8 @@ class CSHARP : public Language {
         /* Get the C# parameter type */
         if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
-          Printf(param_type, "%s", tm);
+          String *inattributes = Getattr(p,"tmap:cstype:inattributes");
+          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1652,6 +1679,9 @@ class CSHARP : public Language {
 		"No csvarin typemap defined for %s\n", SwigType_str(pt,0));
 	  }
 	}
+        const String *csattributes = Getattr(n,"feature:cs:attributes");
+        if (csattributes)
+          Printf(proxy_class_code, "  %s\n", csattributes);
 	Printf(proxy_class_code, "  public %s%s %s {", static_flag ? "static " : "", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
@@ -1721,6 +1751,9 @@ class CSHARP : public Language {
       String *mangled_overname = Swig_name_construct(overloaded_name);
       String *imcall = NewString("");
 
+      const String *csattributes = Getattr(n,"feature:cs:attributes");
+      if (csattributes)
+        Printf(function_code, "  %s\n", csattributes);
       const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
       methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
@@ -1756,7 +1789,8 @@ class CSHARP : public Language {
         /* Get the C# parameter type */
         if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
-          Printf(param_type, "%s", tm);
+          String *inattributes = Getattr(p,"tmap:cstype:inattributes");
+          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1951,6 +1985,12 @@ class CSHARP : public Language {
     }
 
     /* Start generating the function */
+    const String *outattributes = Getattr(n,"tmap:cstype:outattributes");
+    if (outattributes)
+      Printf(function_code, "  %s\n", outattributes);
+    const String *csattributes = Getattr(n,"feature:cs:attributes");
+    if (csattributes)
+      Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
@@ -1977,7 +2017,8 @@ class CSHARP : public Language {
       /* Get the C# parameter type */
       if ((tm = Getattr(p,"tmap:cstype"))) {
         substituteClassname(pt, tm);
-        Printf(param_type, "%s", tm);
+        String *inattributes = Getattr(p,"tmap:cstype:inattributes");
+        Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
             "No cstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -2042,6 +2083,9 @@ class CSHARP : public Language {
 		"No csvarin typemap defined for %s\n", SwigType_str(pt,0));
 	  }
 	}
+        const String *csattributes = Getattr(n,"feature:cs:attributes");
+        if (csattributes)
+          Printf(module_class_code, "  %s\n", csattributes);
 	Printf(module_class_code, "  public static %s %s {", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
@@ -2316,6 +2360,14 @@ class CSHARP : public Language {
     Printv(swigtype,
         typemapLookup("csimports", type, WARN_NONE), // Import statements
         "\n",
+        NIL);
+
+    // Class attributes
+    const String *csattributes = typemapLookup("csattributes", type, WARN_NONE);
+    if (csattributes)
+      Printf(swigtype, "%s\n", csattributes);
+
+    Printv(swigtype,
         typemapLookup("csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " $csclassname",       // Class name and base class
         (*Char(pure_baseclass) || *Char(pure_interfaces)) ?

@@ -625,6 +625,7 @@ $1 = &temp; %}
 #define %csenum(wrapapproach)       %feature("cs:enum","wrapapproach")
 #define %csmethodmodifiers          %feature("cs:methodmodifiers")
 #define %csnothrowexception         %feature("except")
+#define %csattributes               %feature("cs:attributes")
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"

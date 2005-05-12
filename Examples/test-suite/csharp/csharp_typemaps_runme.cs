@@ -22,6 +22,7 @@ public class runme
     if (csharp_typemaps.go != "zzz")
       throw new Exception("go variable failed");
 
+
     // Eager garbage collector test
     {
       const int NUM_THREADS = 8;
@@ -44,6 +45,7 @@ public class runme
 
   }
 }
+
 
 public class TestThread {
    private int threadId;
