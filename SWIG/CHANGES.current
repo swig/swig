@@ -1,6 +1,15 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/12/2005: wsfulton
+            [C#] Support for C# attributes. C# attributes can be generated:
+            1) On a C/C++ type basis by specifying an inattributes and/or outattributes typemap attribute
+               in the imtype or cstype typemaps (for C# return type or C# parameter type attributes).
+            2) On a wrapped method or variable by specifying a csattributes feature (%feature).
+            3) On a wrapped proxy class or enum by specifying a csattributes typemap.
+
+            Examples are in the C# documentation (CSharp.html).
+
 04/29/2005: wsfulton
             New configure option to turn off the default maximum compiler warning as
             they couldn't be removed even when overriding CFLAGS and CXXFLAGS with configure
