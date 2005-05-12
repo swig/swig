@@ -1106,8 +1106,7 @@ class JAVA : public Language {
             "",
             typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
             typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
-            "}\n",
-            "\n",
+            "}",
             NIL);
 
         Replaceall(enum_code, "$javaclassname", symname);
@@ -1122,10 +1121,9 @@ class JAVA : public Language {
           // Enums defined within the C++ class are defined within the proxy class
 
           // Add extra indentation
-          Replaceall(enum_code, "\n  ", "\n    ");
-          Replaceall(enum_code, "\n}\n", "\n  }\n");
+          Replaceall(enum_code, "\n", "\n  ");
 
-          Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+          Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
         } else {
           // Global enums are defined in their own file
           String *filen = NewStringf("%s%s.java", SWIG_output_directory(), symname);
@@ -1146,6 +1144,7 @@ class JAVA : public Language {
               typemapLookup("javaimports", typemap_lookup_type, WARN_NONE), // Import statements
               "\n",
               enum_code,
+              "\n",
               NIL);
 
           Printf(f_enum, "\n");

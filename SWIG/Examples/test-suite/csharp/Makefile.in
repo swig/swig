@@ -13,6 +13,7 @@ top_srcdir   = @top_srcdir@/..
 top_builddir = @top_builddir@../
 
 CPP_TEST_CASES = \
+	csharp_attributes \
 	csharp_exceptions \
 	csharp_typemaps \
 	enum_thorough_simple \
