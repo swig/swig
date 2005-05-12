@@ -11,8 +11,7 @@ public class runme
     // cstype typemap attributechecks
     //
     // Global function cstype typemap attributes check
-    csharp_attributes csharpattributes = new csharp_attributes();
-    Type globaltype = csharpattributes.GetType();
+    Type globaltype = typeof(csharp_attributes);
     {
       MethodInfo member = (MethodInfo)globaltype.GetMember("GlobalFunction")[0];
       if (Attribute.GetCustomAttribute(member, typeof(IntOutAttribute)) == null)
@@ -32,8 +31,7 @@ public class runme
     }
 
     // Non-static method cstype typemap attributes check
-    Stations testClass = new Stations(20);
-    Type type = testClass.GetType();
+    Type type = typeof(Stations);
     {
       MethodInfo member = (MethodInfo)type.GetMember("Reading")[0];
       if (Attribute.GetCustomAttribute(member, typeof(IntOutAttribute)) == null)
@@ -72,8 +70,7 @@ public class runme
     // imtype typemap attributechecks
     //
     // Global function imtype typemap attributes check
-    csharp_attributesPINVOKE csPinvoke = new csharp_attributesPINVOKE();
-    Type imclasstype = csPinvoke.GetType();
+    Type imclasstype = typeof(csharp_attributesPINVOKE);
     {
       MethodInfo member = (MethodInfo)imclasstype.GetMember("GlobalFunction")[0];
       if (Attribute.GetCustomAttribute(member, typeof(IntegerOutAttribute)) == null)
@@ -113,8 +110,7 @@ public class runme
     //
     // attributes feature
     //
-    MoreStations moreStations = new MoreStations();
-    Type moretype = moreStations.GetType();
+    Type moretype = typeof(MoreStations);
 
     // Constructor attributes feature check
     {
@@ -177,14 +173,11 @@ public class runme
     }
     // Enum csattribute typemap
     {
-      /* TODO
-      Cymru cymru = new Cymru();
-      Type cymrutype = Cymru.GetType();
+      Type cymrutype = typeof(Cymru);
       Object[] attribs = cymrutype.GetCustomAttributes(true);
       Eurostar3Attribute tgv = (Eurostar3Attribute)attribs[0];
       if (tgv == null)
         throw new Exception("No attribute for Cymru");
-      */
     }
   }
 }
