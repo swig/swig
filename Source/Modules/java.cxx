@@ -3658,7 +3658,6 @@ class JAVA : public Language {
     Printf(w->code, "if (baseclass == NULL) return;\n");
     Printf(w->code, "baseclass = (jclass) jenv->NewGlobalRef(baseclass);\n");
     Printf(w->code, "}\n");
-    Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
 
     int n_methods = curr_class_dmethod - first_class_dmethod;
 
@@ -3673,6 +3672,7 @@ class JAVA : public Language {
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
+      Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
       Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
       Printf(w->code, "  if (methods[i].base_methid == NULL) {\n");
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");

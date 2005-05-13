@@ -72,7 +72,7 @@ struct Structure {
   const std::string ConstMemberString;
   static const std::string ConstStaticMemberString;
 
-  Structure() : ConstMemberString("const member string"), MemberString2("member string 2") {}
+  Structure() : MemberString2("member string 2"), ConstMemberString("const member string") {}
 };
 %}
 
