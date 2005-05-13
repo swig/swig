@@ -36,7 +36,7 @@ typedef enum {
 typedef enum {
   SWIG_CSharpArgumentException,
   SWIG_CSharpArgumentNullException,
-  SWIG_CSharpArgumentOutOfRangeException,
+  SWIG_CSharpArgumentOutOfRangeException
 } SWIG_CSharpExceptionArgumentCodes;
 
 typedef void (SWIGSTDCALL* SWIG_CSharpExceptionCallback_t)(const char *);
