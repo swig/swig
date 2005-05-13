@@ -909,6 +909,7 @@ class CSHARP : public Language {
 
           // Add extra indentation
           Replaceall(enum_code, "\n", "\n  ");
+          Replaceall(enum_code, "  \n", "\n");
 
           Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
         } else {
@@ -1284,7 +1285,7 @@ class CSHARP : public Language {
 
     // Class attributes
     const String *csattributes = typemapLookup("csattributes", typemap_lookup_type, WARN_NONE);
-    if (csattributes)
+    if (csattributes && *Char(csattributes))
       Printf(proxy_class_def, "%s\n", csattributes);
 
     Printv(proxy_class_def,
@@ -2364,7 +2365,7 @@ class CSHARP : public Language {
 
     // Class attributes
     const String *csattributes = typemapLookup("csattributes", type, WARN_NONE);
-    if (csattributes)
+    if (csattributes && *Char(csattributes))
       Printf(swigtype, "%s\n", csattributes);
 
     Printv(swigtype,
