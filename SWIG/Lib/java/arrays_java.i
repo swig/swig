@@ -366,18 +366,18 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   }
 
 %typemap(in) ARRAYSOFENUMS[] (jint *jarr)
-%{  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
+%{  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int **)(void *)&$1, $input)) return $null; %}
 %typemap(in) ARRAYSOFENUMS[ANY] (jint *jarr) {
   if ($input && JCALL1(GetArrayLength, jenv, $input) != $1_size) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
     return $null;
   }
-  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null;
+  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int **)(void *)&$1, $input)) return $null;
 }
 %typemap(argout) ARRAYSOFENUMS[ANY] 
-%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
+%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int *)$1, $input); %}
 %typemap(out) ARRAYSOFENUMS[ANY] 
-%{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $1_dim0); %}
+%{$result = SWIG_JavaArrayOutInt(jenv, (int *)$1, $1_dim0); %}
 %typemap(freearg) ARRAYSOFENUMS[ANY] 
 #ifdef __cplusplus
 %{ delete [] $1; %}
