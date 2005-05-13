@@ -262,7 +262,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     return $null;
   }
   for (i=0; i<sz; i++) {
-    $1[i] = **($&1_ltype)&jarr[i];
+    $1[i] = **($&1_ltype)(void *)&jarr[i];
   }
 }
 
@@ -292,7 +292,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     return $null;
   }
   for (i=0; i<sz; i++) {
-    $1[i] = **($&1_ltype)&jarr[i];
+    $1[i] = **($&1_ltype)(void *)&jarr[i];
   }
 }
 
@@ -301,7 +301,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   int i;
   for (i=0; i<sz$argnum; i++) {
     jarr$argnum[i] = 0;
-    *($&1_ltype)&jarr$argnum[i] = &$1[i];
+    *($&1_ltype)(void *)&jarr$argnum[i] = &$1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
@@ -320,7 +320,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   }
   for (i=0; i<$1_dim0; i++) {
     arr[i] = 0;
-    *($&1_ltype)&arr[i] = &$1[i];
+    *($&1_ltype)(void *)&arr[i] = &$1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
