@@ -35,7 +35,7 @@ JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass 
 
     (void)jcls;
 
-    p = *(Point **)&jpoint;
+    p = *(Point **)(void *)&jpoint;
     sprintf(buf, "[%d,%d]", p->x, p->y);
 
     result = (*jenv)->NewStringUTF(jenv, buf);

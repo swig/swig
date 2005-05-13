@@ -87,7 +87,7 @@ namespace Swig {
           jthis_ = jenv->NewWeakGlobalRef(jself);
           weak_global_ = true;
         }
-      } else { /* Java releses ownership of C++ object's lifetime */
+      } else { /* Java releases ownership of C++ object's lifetime */
         if (weak_global_) {
           jenv->DeleteWeakGlobalRef(jthis_);
           jthis_ = jenv->NewGlobalRef(jself);

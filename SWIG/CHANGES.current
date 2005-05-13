@@ -1,6 +1,14 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/13/2005: wsfulton
+            [Java] Fixes to remove "dereferencing type-punned pointer will break strict-aliasing rules"
+            warnings in C wrappers when compiling C code with 'gcc -Wall -fstrict-aliasing'. Patch from
+            Michael Cahill. This modifies many of the casts slightly, for example
+              arg1 = *(DB_ENV **)&jarg1;
+            to
+              arg1 = *(DB_ENV **)(void *)&jarg1;
+
 05/12/2005: wsfulton
             [C#] Support for C# attributes. C# attributes can be generated:
             1) On a C/C++ type basis by specifying an inattributes and/or outattributes typemap attribute

@@ -1122,6 +1122,7 @@ class JAVA : public Language {
 
           // Add extra indentation
           Replaceall(enum_code, "\n", "\n  ");
+          Replaceall(enum_code, "  \n", "\n");
 
           Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
         } else {
@@ -1623,7 +1624,7 @@ class JAVA : public Language {
           "    jlong baseptr = 0;\n"
           "    (void)jenv;\n"
           "    (void)jcls;\n"
-          "    *($cbaseclass **)&baseptr = *($cclass **)&jarg1;\n"
+          "    *($cbaseclass **)(void *)&baseptr = *($cclass **)(void *)&jarg1;\n"
           "    return baseptr;\n"
           "}\n",
           "\n",
@@ -1723,7 +1724,7 @@ class JAVA : public Language {
                jnipackage, jni_imclass_name, jni_class_name);
         Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
         Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
-        Printf(dcast_wrap->code, "  %s *obj = *((%s **) &jCPtrBase);\n", norm_name, norm_name);
+        Printf(dcast_wrap->code, "  %s *obj = *((%s **)(void *)&jCPtrBase);\n", norm_name, norm_name);
         Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
         Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
         Printf(dcast_wrap->code, "  return jresult;\n");
@@ -2760,7 +2761,7 @@ class JAVA : public Language {
 	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
 	   "jboolean jweak_global) {\n",
 	   jnipackage, jni_imclass_name, swig_director_connect_jni);
-    Printf(code_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
+    Printf(code_wrap->code, "  %s *obj = *((%s **)(void *)&objarg);\n", norm_name, norm_name);
     Printf(code_wrap->code, "  (void)jcls;\n");
     Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
 	   sym_name, sym_name);
@@ -2787,7 +2788,7 @@ class JAVA : public Language {
     Printf(code_wrap->def,
 	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
            jnipackage, jni_imclass_name, changeown_jnimethod_name);
-    Printf(code_wrap->code, "  %s *obj = *((%s **) &objarg);\n", norm_name, norm_name);
+    Printf(code_wrap->code, "  %s *obj = *((%s **)(void *)&objarg);\n", norm_name, norm_name);
     Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
 	   sym_name, sym_name);
     Printf(code_wrap->code, "  (void)jcls;\n");
