@@ -8,8 +8,8 @@ public class li_std_vector_runme {
   private static readonly int collectionSize = 20;
   private static readonly int midCollection = collectionSize/2;
 
-  private static DoubleVector myDoubleVector;
-  private static RealVector myRealVector;
+  public static DoubleVector myDoubleVector;
+  public static RealVector myRealVector;
 
   public static void Main() {
     // Setup collection
