@@ -267,6 +267,7 @@ CPP_TEST_CASES += \
 	template_typedef_cplx3 \
 	template_typedef_cplx4 \
 	template_typedef_cplx5 \
+	template_typedef_fnc \
 	template_typedef_ns \
 	template_typedef_ptr \
 	template_virtual \
