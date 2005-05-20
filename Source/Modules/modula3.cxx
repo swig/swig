@@ -2785,7 +2785,7 @@ MODULA3 ():
 */
       String *arguments = createM3Signature (n);
       String *storage = Getattr (n, "storage");
-      String *overridden = Getattr (n, "virtual:derived");
+      String *overridden = Getattr (n, "override");
       bool isVirtual = (storage != NIL) && (Strcmp (storage, "virtual") == 0);
       bool isOverridden = (overridden != NIL)
         && (Strcmp (overridden, "1") == 0);
@@ -2906,7 +2906,7 @@ MODULA3 ():
             Getattr (n, "feature:modula3:methodmodifiers"));
     if (static_flag)
       Printf (function_code, "static ");
-    if (Getattr (n, "virtual:derived"))
+    if (Getattr (n, "override"))
       Printf (function_code, "override ");
     else if (checkAttribute (n, "storage", "virtual"))
       Printf (function_code, "virtual ");

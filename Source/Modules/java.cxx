@@ -1831,12 +1831,12 @@ class JAVA : public Language {
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
-      SwigType *virtualtype = Getattr(n,"virtual:type");
-      substituteClassname(virtualtype ? virtualtype : t, tm);
+      SwigType *covariant = Getattr(n,"covariant");
+      substituteClassname(covariant ? covariant : t, tm);
       Printf(return_type, "%s", tm);
-      if (virtualtype)
+      if (covariant)
         Swig_warning(WARN_JAVA_COVARIANT_RET, input_file, line_number, 
-          "Covariant return types not supported in Java. Proxy method will return %s.\n", SwigType_str(virtualtype,0));
+          "Covariant return types not supported in Java. Proxy method will return %s.\n", SwigType_str(covariant,0));
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
@@ -3053,8 +3053,8 @@ class JAVA : public Language {
 
       String *jdesc;
 
-      SwigType *virtualtype = Getattr(n,"virtual:type");
-      SwigType *adjustedreturntype = virtualtype ? virtualtype : returntype;
+      SwigType *covariant = Getattr(n,"covariant");
+      SwigType *adjustedreturntype = covariant ? covariant : returntype;
       Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0)) != NULL

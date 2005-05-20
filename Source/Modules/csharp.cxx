@@ -1542,15 +1542,15 @@ class CSHARP : public Language {
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
-      SwigType *virtualtype = Getattr(n,"virtual:type");
+      SwigType *covariant = Getattr(n,"covariant");
       String *cstypeout = Getattr(n,"tmap:cstype:out"); // the type in the cstype typemap's out attribute overrides the type in the typemap
       if (cstypeout)
         tm = cstypeout;
-      substituteClassname(virtualtype ? virtualtype : t, tm);
+      substituteClassname(covariant ? covariant : t, tm);
       Printf(return_type, "%s", tm);
-      if (virtualtype)
+      if (covariant)
         Swig_warning(WARN_CSHARP_COVARIANT_RET, input_file, line_number, 
-          "Covariant return types not supported in C#. Proxy method will return %s.\n", SwigType_str(virtualtype,0));
+          "Covariant return types not supported in C#. Proxy method will return %s.\n", SwigType_str(covariant,0));
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
@@ -1573,7 +1573,7 @@ class CSHARP : public Language {
     Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
-    if (Getattr(n,"virtual:derived"))
+    if (Getattr(n,"override"))
         Printf(function_code, "override ");
     else if (checkAttribute(n, "storage", "virtual"))
         Printf(function_code, "virtual ");
