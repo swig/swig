@@ -1,6 +1,9 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/21/2005: wsfulton
+            Fix bug #1196755 to remove debug from swigtcl8.swg.
+
 05/19/2005: wsfulton
             [C# and -fvirtual option] Fix for the override key not being generated in the derived class when a
             virtual method's return type was a typedef in either the base or derived class. Also ensures the
