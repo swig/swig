@@ -332,7 +332,6 @@ SWIG_Tcl_GetConstant(const char *key) {
   if (entryPtr) {
     return (Tcl_Obj *) Tcl_GetHashValue(entryPtr);
   }
-  printf("Searching %s\n", key);
   return 0;
 }
 
