@@ -44,6 +44,7 @@ cpp_namespace
 cpp_nodefault
 cpp_static
 cpp_typedef
+csharp_attributes
 csharp_exceptions
 csharp_typemaps
 default_args
