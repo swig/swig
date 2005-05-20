@@ -2,6 +2,8 @@
 
 %warnfilter(822, 842) copy; /* Java, C# covariant return types */
 %warnfilter(822, 842) ref_this; /* Java, C# covariant return types */
+%warnfilter(822, 842) covariant; /* Java, C# covariant return types */
+%warnfilter(822, 842) covariant2; /* Java, C# covariant return types */
 
 //
 // Check this example with directors wherever possible.
@@ -133,3 +135,42 @@
     return dynamic_cast<NDouble*>(n);
   }
 %}
+
+%inline %{
+
+// These two classes test covariant return types and whether swig accurately match
+// polymorphic methods (mainly for C# override keyword)
+
+typedef int* IntegerPtr;
+typedef double Double;
+
+template<typename T> struct Base {
+  T t;
+  virtual IntegerPtr method() const = 0;
+  virtual IntegerPtr foxy() const = 0;
+  virtual IntegerPtr foxy(int a) const = 0;
+  virtual int * foxy(int*& a) { return 0; }
+  virtual double function() = 0;
+  virtual IntegerPtr defaultargs(double d, int * a = 0) = 0;
+  virtual Base * covariant(int a = 0, int * i = 0) { return 0; }
+  typedef Base * BasePtr;
+  virtual BasePtr covariant2() { return 0; }
+  virtual ~Base() {}
+};
+
+template<typename T> struct Derived : Base<T> {
+  int * method() const { return 0; }
+  int * foxy(int a) const {}
+  virtual int * foxy(int*& a) { return 0; }
+  Double function() { return 0; }
+  int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }
+  typedef Derived * DerivedPtr;
+  DerivedPtr covariant(int a = 0, IntegerPtr i = 0) { return 0; }
+  DerivedPtr covariant2() { return 0; }
+};
+%}
+
+%template(BaseInt) Base<int>;
+%template(DerivedInt) Derived<int>;
+
+
