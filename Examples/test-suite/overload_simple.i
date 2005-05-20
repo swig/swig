@@ -108,6 +108,13 @@ static char *bar(void *) {
 };
 %}
 
+%inline %{
+void ull() {}
+void ull(unsigned long long ull) {}
+void ll() {}
+void ll(long long ull) {}
+%}
+
 %include cmalloc.i
 %malloc(void);
 

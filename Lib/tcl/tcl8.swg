@@ -481,15 +481,22 @@
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
-	 long long, unsigned long long,
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
-	 const long long &, const unsigned long long &,
 	 enum SWIGTYPE, const enum SWIGTYPE &,
 	 bool, const bool & 
 {
   long tmp;
   if (Tcl_GetLongFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
+  else $1 = 1;
+}
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 long long, unsigned long long,
+	 const long long &, const unsigned long long &
+{
+  Tcl_WideInt tmp;
+  if (Tcl_GetWideIntFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
   else $1 = 1;
 }
 
