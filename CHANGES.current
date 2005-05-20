@@ -1,6 +1,25 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/19/2005: wsfulton
+            [C# and -fvirtual option] Fix for the override key not being generated in the derived class when a
+            virtual method's return type was a typedef in either the base or derived class. Also ensures the
+            method is eliminated when using the -fvirtual option. For example, Derived.method now has the C#
+            override keyword generated:
+
+              typedef int* IntegerPtr;
+
+              struct Base {
+                virtual IntegerPtr method();
+              };
+
+              struct Derived : Base {
+                int * method() const;
+              };
+
+            [C#] Fix for the override key being incorrectly generated for virtual methods when a base class
+            is ignored with %ignore.
+
 05/13/2005: wsfulton
             [Java] Fixes to remove "dereferencing type-punned pointer will break strict-aliasing rules"
             warnings in C wrappers when compiling C code with 'gcc -Wall -fstrict-aliasing'. Patch from
