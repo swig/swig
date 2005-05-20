@@ -1636,7 +1636,7 @@ SwigType_inherit(String *derived, String *base, String *cast) {
 /* -----------------------------------------------------------------------------
  * SwigType_issubtype()
  *
- * Determines if a t1 is a subtype of t2
+ * Determines if a t1 is a subtype of t2, ie, is t1 derived from t2
  * ----------------------------------------------------------------------------- */
 
 int
