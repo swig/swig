@@ -605,7 +605,20 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     meth = cls->methods;
     while (meth && meth->name) {
       char *cr = (char *) Tcl_GetStringResult(interp);
-      if (!strstr(strchr(cr,':'), meth->name))
+      int meth_len = strlen(meth->name);
+      char* where = strchr(cr,':');
+      while(where) {
+        where = strstr(where, meth->name);
+        if(where) {
+          if(where[-1] == ' ' && (where[meth_len] == ' ' || where[meth_len]==0)) {
+            break;
+          } else {
+            where++;
+          }
+        }
+      }
+
+      if (!where)
         Tcl_AppendElement(interp, (char *) meth->name);
       meth++;
     }
