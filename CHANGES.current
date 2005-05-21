@@ -2,6 +2,19 @@ Version 1.3.25 (In progress)
 ============================
 
 05/21/2005: wsfulton
+            [Java] std::wstring typemaps moved from std_string.i to std_wstring.i
+
+05/21/2005: wsfulton
+            Fix for crash in DohStrstr, bug #1190921
+
+05/21/2005: wsfulton
+            [TCL] Fix for methods with similar names when showing list of names on error - bug #1191828.
+            Patch from Jeroen Dobbelaere.
+
+05/21/2005: wsfulton
+            [TCL] long long overloading fix - bug #1191835, patch from Jeroen Dobbelaere.
+
+05/21/2005: wsfulton
             Fix bug #1196755 to remove debug from swigtcl8.swg.
 
 05/19/2005: wsfulton
