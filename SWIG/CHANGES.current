@@ -2,6 +2,10 @@ Version 1.3.25 (In progress)
 ============================
 
 05/23/2005: wsfulton
+            Fixes for detecting virtual methods in %extend for the -fvirtual option and C# override and new
+            method modifiers.
+
+05/23/2005: wsfulton
             [C#] The 'new' modifier is now generated on the proxy method when a method in a derived
             class is not polymorphic and the same method exists in the derived class (ie it hides
             the base class' non-virtual method).
