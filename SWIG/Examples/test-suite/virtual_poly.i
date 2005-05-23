@@ -4,6 +4,8 @@
 %warnfilter(822, 842) ref_this; /* Java, C# covariant return types */
 %warnfilter(822, 842) covariant; /* Java, C# covariant return types */
 %warnfilter(822, 842) covariant2; /* Java, C# covariant return types */
+%warnfilter(822, 842) covariant3; /* Java, C# covariant return types */
+%warnfilter(822, 842) covariant4; /* Java, C# covariant return types */
 
 //
 // Check this example with directors wherever possible.
@@ -138,8 +140,9 @@
 
 %inline %{
 
-// These two classes test covariant return types and whether swig accurately match
-// polymorphic methods (mainly for C# override keyword)
+// These three classes test covariant return types and whether swig accurately matches
+// polymorphic methods (mainly for C# override keyword). Also tests methods which hide
+// the base class' method (for C#, new keyword required on method declaration).
 
 typedef int* IntegerPtr;
 typedef double Double;
@@ -152,9 +155,13 @@ template<typename T> struct Base {
   virtual int * foxy(int*& a) { return 0; }
   virtual double function() = 0;
   virtual IntegerPtr defaultargs(double d, int * a = 0) = 0;
+  static void StaticHidden() {}
+  void AmIAmINotVirtual() {}
+  IntegerPtr NotVirtual(IntegerPtr i) {}
   virtual Base * covariant(int a = 0, int * i = 0) { return 0; }
   typedef Base * BasePtr;
   virtual BasePtr covariant2() { return 0; }
+  virtual BasePtr covariant3() { return 0; }
   virtual ~Base() {}
 };
 
@@ -164,13 +171,33 @@ template<typename T> struct Derived : Base<T> {
   virtual int * foxy(int*& a) { return 0; }
   Double function() { return 0; }
   int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }
+  void AmIAmINotVirtual() {}
+  int * NotVirtual(int *i) {}
   typedef Derived * DerivedPtr;
   DerivedPtr covariant(int a = 0, IntegerPtr i = 0) { return 0; }
   DerivedPtr covariant2() { return 0; }
+  Derived<T> * covariant3() { return 0; }
+  virtual Derived<T> * covariant4(double d) { return 0; }
+  virtual int IsVirtual() { return 0; }
+};
+
+template<typename T> struct Bottom : Derived<T> {
+  int * method() const { return 0; }
+  static void StaticHidden() {}
+  void AmIAmINotVirtual() {}
+  IntegerPtr NotVirtual(IntegerPtr i) {}
+  void (*funcptr)(int a, bool b);
+  Bottom<T> * covariant(int a = 0, IntegerPtr i = 0) { return 0; }
+  Derived<T> * covariant2() { return 0; }
+  Bottom<T> * covariant3() { return 0; }
+  Bottom<T> * covariant4(double d) { return 0; }
+  int IsVirtual() { return 0; }
 };
 %}
 
+
 %template(BaseInt) Base<int>;
 %template(DerivedInt) Derived<int>;
+%template(BottomInt) Bottom<int>;
 
 
