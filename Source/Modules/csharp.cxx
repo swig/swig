@@ -1577,6 +1577,8 @@ class CSHARP : public Language {
         Printf(function_code, "override ");
     else if (checkAttribute(n, "storage", "virtual"))
         Printf(function_code, "virtual ");
+    if (Getattr(n, "hides"))
+        Printf(function_code, "new ");
 
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
