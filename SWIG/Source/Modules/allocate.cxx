@@ -62,12 +62,13 @@ class Allocate : public Dispatcher {
   Node  *inclass;
   int extendmode;
 
-  /* Checks if a virtual function is the same as inherited from the base, ie if the method is polymorphic. */
+  /* Checks if a function, n, is the same as any in the base class, ie if the method is polymorphic.
+   * Also checks for methods which will be hidden (ie a base has an identical non-virtual method). */
   int function_is_defined_in_bases(Node *n, Node *bases) {
-    
+
     if (!bases)
       return 0;
-    
+
     String *this_decl = Getattr(n, "decl");
     if (!this_decl)
       return 0;
@@ -76,76 +77,114 @@ class Allocate : public Dispatcher {
     String *this_type = Getattr(n, "type");
     String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
 
-    // Search all base classes for polymorphic methods (virtual methods with same signature)
+    // Search all base classes for methods with same signature
     for (int i = 0; i < Len(bases); i++) {
       Node *b = Getitem(bases,i);
       Node *base = firstChild (b);
       while (base) {
+	if (Strcmp(nodeType(base),"extend") == 0) {
+	  // Loop through all the %extend methods
+	  Node *extend = firstChild(base);
+	  while (extend) {
+	    if (function_is_defined_in_bases_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
+	      Delete(resolved_decl);
+	      return 1;
+	    }
+	    extend = nextSibling(extend);
+	  }
+	} else {
+	  // normal (non %extend) methods
+	  if (function_is_defined_in_bases_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
+	    Delete(resolved_decl);
+	    return 1;
+	  }
+	}
+	base = nextSibling(base);
+      }
+    }
+    Delete(resolved_decl);
+    resolved_decl = 0;
+    for (int j = 0; j < Len(bases); j++) {
+      Node *b = Getitem(bases,j);
+      if (function_is_defined_in_bases(n, Getattr(b, "allbases")))
+	return 1;
+    }
+    return 0;
+  }
 
-	String *base_decl = Getattr(base, "decl");
-	SwigType *base_type = Getattr(base, "type");
-	if (base_decl && base_type) {
-	  if (checkAttribute(base, "name", name) &&
-	      checkAttribute(base, "storage", "virtual") &&
-	      !Getattr(b, "feature:ignore") /* whole class is ignored */ ) {
-	    // We have found a method that is virtual and has the same name as one in a base class
-	    bool covariant_returntype  = false;
-	    bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
-	    bool decl_match = Strcmp(base_decl, this_decl) == 0 ? true : false;
-	    if (returntype_match && decl_match) {
-	      // Exact match - we have found a polymorphic method.
-	      // No typedef resolution was done, but skipping it speeds things up slightly
-	    } else {
-	      // Either we have:
-	      //  1) polymorphic methods but are using typedefs
-	      //  2) polymorphic methods with covariant return type
-	      //  3) non-polymorphic method (ie an overloaded method of some sort)
+  int function_is_defined_in_bases_seek(Node *n, Node *b, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
 
-	      // Check if fully resolved return types match (including covariant return types)
-	      String *this_returntype = function_return_type(n);
-	      String *base_returntype = function_return_type(base);
-	      returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
-	      if (!returntype_match) {
-		covariant_returntype = SwigType_issubtype(this_returntype, base_returntype);
-		returntype_match = covariant_returntype;
-	      }
+    String *base_decl = Getattr(base, "decl");
+    SwigType *base_type = Getattr(base, "type");
+    if (base_decl && base_type) {
+      if (checkAttribute(base, "name", name) && !Getattr(b, "feature:ignore") /* whole class is ignored */ ) {
+	if (SwigType_isfunction(resolved_decl)) {
+	  // We have found a method that has the same name as one in a base class
+	  bool covariant_returntype  = false;
+	  bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
+	  bool decl_match = Strcmp(base_decl, this_decl) == 0 ? true : false;
+	  if (returntype_match && decl_match) {
+	    // Exact match - we have found a method with identical signature
+	    // No typedef resolution was done, but skipping it speeds things up slightly
+	  } else {
+	    // Either we have:
+	    //  1) matching methods but are one of them uses a different typedef (return type or parameter) to the one in base class' method
+	    //  2) matching polymorphic methods with covariant return type
+	    //  3) a non-matching method (ie an overloaded method of some sort)
+	    //  4) a matching method which is not polymorphic, ie it hides the base class' method
 
-	      // The return types must match at this point, for the method to be polymorphic
-	      if (returntype_match) {
-		// Now need to check the parameter list
-		// First do an inexpensive parameter count
-		ParmList *this_parms = Getattr(n,"parms");
-		ParmList *base_parms = Getattr(base,"parms");
-		if (ParmList_len(this_parms) == ParmList_len(base_parms)) {
-		  // Number of parameters are the same, now check that all the parameters match
-		  SwigType *base_fn = NewString("");
-		  SwigType *this_fn = NewString("");
-		  SwigType_add_function(base_fn, base_parms);
-		  SwigType_add_function(this_fn, this_parms);
-		  base_fn = SwigType_typedef_resolve_all(base_fn);
-		  this_fn = SwigType_typedef_resolve_all(this_fn);
-		  if (Strcmp(base_fn, this_fn) == 0) {
-		    // Finally check that the qualifiers match
-		    bool base_qualifier = SwigType_isqualifier(resolved_decl);
-		    bool this_qualifier = SwigType_isqualifier(base_decl);
-		    if (base_qualifier == this_qualifier) {
-		      decl_match = true;
-		    }
-		  }
-		  Delete(base_fn);
-		  Delete(this_fn);
-		}
-	      }
-	      Delete(this_returntype);
-	      Delete(base_returntype);
+	    // Check if fully resolved return types match (including covariant return types)
+	    String *this_returntype = function_return_type(n);
+	    String *base_returntype = function_return_type(base);
+	    returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
+	    if (!returntype_match) {
+	      covariant_returntype = SwigType_issubtype(this_returntype, base_returntype);
+	      returntype_match = covariant_returntype;
 	    }
 
-	    if (decl_match && returntype_match) {
+	    // The return types must match at this point, for the whole method to match
+	    if (returntype_match) {
+	      // Now need to check the parameter list
+	      // First do an inexpensive parameter count
+	      ParmList *this_parms = Getattr(n,"parms");
+	      ParmList *base_parms = Getattr(base,"parms");
+	      if (ParmList_len(this_parms) == ParmList_len(base_parms)) {
+		// Number of parameters are the same, now check that all the parameters match
+		SwigType *base_fn = NewString("");
+		SwigType *this_fn = NewString("");
+		SwigType_add_function(base_fn, base_parms);
+		SwigType_add_function(this_fn, this_parms);
+		base_fn = SwigType_typedef_resolve_all(base_fn);
+		this_fn = SwigType_typedef_resolve_all(this_fn);
+		if (Strcmp(base_fn, this_fn) == 0) {
+		  // Finally check that the qualifiers match
+		  bool base_qualifier = SwigType_isqualifier(resolved_decl);
+		  bool this_qualifier = SwigType_isqualifier(base_decl);
+		  if (base_qualifier == this_qualifier) {
+		    decl_match = true;
+		  }
+		}
+		Delete(base_fn);
+		Delete(this_fn);
+	      }
+	    }
+	    Delete(this_returntype);
+	    Delete(base_returntype);
+	  }
+
+	  if (decl_match && returntype_match) {
+	    if (checkAttribute(base, "storage", "virtual")) {
+	      // Found a polymorphic method.
 	      // Mark the polymorphic method, even if the virtual keyword was not used.
 	      Setattr(n, "storage", "virtual");
-	      Setattr(n, "override", "1"); 
+	      Setattr(n, "override", base); 
 
-	      if (!covariant_returntype) {
+	      // Try and find the most base's covariant return type
+	      SwigType *most_base_covariant_type = Getattr(base, "covariant");
+	      if (!most_base_covariant_type && covariant_returntype)
+		most_base_covariant_type = function_return_type(base, false);
+
+	      if (!most_base_covariant_type) {
 		// If the types and access are the same, then we can attempt
 		// to eliminate the derived virtual method.
 		if (virtual_elimination_mode) {
@@ -157,23 +196,17 @@ class Allocate : public Dispatcher {
 		}
 	      } else {
 		// Some languages need to know about covariant return types
-		String *base_covariant_type = function_return_type(base, false);
-		Setattr(n, "covariant", base_covariant_type);
+		Setattr(n, "covariant", most_base_covariant_type);
 	      }
 
-	      Delete(resolved_decl);
-	      return 1;
+	    } else {
+	      // Found an identical method in the base class, but it is not polymorphic.
+	      Setattr(n, "hides", base);
 	    }
+	    return 1;
 	  }
 	}
-	base = nextSibling(base);
       }
-    }
-    Delete(resolved_decl);
-    for (int j = 0; j < Len(bases); j++) {
-      Node *b = Getitem(bases,j);
-      if (function_is_defined_in_bases(n, Getattr(b, "allbases")))
-	return 1;
     }
     return 0;
   }
@@ -205,7 +238,6 @@ class Allocate : public Dispatcher {
     bases = Getattr(classnode, "allbases");
     if (!bases) return 0;
 
-    //if (checkAttribute(member, "storage", "virtual"))
     {
       int old_mode = virtual_elimination_mode;
       if (is_member_director(classnode, member))
@@ -600,8 +632,7 @@ public:
     mark_exception_classes(Getattr(n,"throws"));
 
     if (inclass) {
-      /* check whether the member node n is defined in class node inclass's bases */
-      // if (checkAttribute(n, "storage", "virtual"))
+      /* check whether the member node n is defined in class node in class's bases */
       class_member_is_defined_in_bases(n, inclass);
 
       /* Check to see if this is a static member or not.  If so, we add an attribute
