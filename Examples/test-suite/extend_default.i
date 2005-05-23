@@ -106,3 +106,28 @@ struct Override {
 %extend Override {
   int ride(int a) { return a+a; } // SWIG should give a warning then ignore this one
 }
+
+
+// %extend in class hierarchy
+%extend Base {
+virtual int * virtualmethod(int a = 0) { return 0; }
+int * nonvirtual(int a = 0) { return 0; }
+static int * staticmethod(int a = 0) { return 0; }
+}
+%extend Derived {
+int * virtualmethod(int a = 0) { return 0; }
+int * nonvirtual(int a = 0) { return 0; }
+static int * staticmethod(int a = 0) { return 0; }
+int * realvirtual(int a = 0) { return 0; }
+}
+
+
+%inline %{
+struct Base {
+  virtual ~Base() {}
+  virtual int * realvirtual(int a = 0) { return 0; }
+};
+struct Derived : Base {
+};
+%}
+
