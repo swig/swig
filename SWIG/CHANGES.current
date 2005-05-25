@@ -1,6 +1,28 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/25/2005: wsfulton
+            Added missing constructors to std::pair wrappers (std_pair.i) for all languages.
+
+05/25/2005: wsfulton
+            [C#] Added std::pair wrappers in std_pair.i
+
+05/25/2005: wsfulton
+            [C#] The C# 'new' and 'override' modifiers will be generated when a C++ class inherits methods
+            via a C++ 'using' declaration.
+
+05/25/2005: wsfulton
+            Fix for exception specifications previously being ignored in classes that inherited methods
+            from 'using' declarations, eg calls to Derived::bar below will convert C++ exceptions into
+            a target language exception/error, like it would for Base::Bar.
+
+            class Base {
+              virtual bar() throw (std::string);
+            };
+            class Derived : public Base {
+              using Base::bar;
+            };
+
 05/23/2005: wsfulton
             Fixes for detecting virtual methods in %extend for the -fvirtual option and C# override and new
             method modifiers.
