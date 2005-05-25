@@ -2381,8 +2381,6 @@ int Language::usingDeclaration(Node *n) {
     Node* np = Copy(n);    
     Node *c;
     for (c = firstChild(np); c; c = nextSibling(c)) {
-      if (!is_public(c))
-	Setattr(c, "access", "public");
       /* it seems for some cases this is needed, like A* A::boo() */
       if (CurrentClass) 
 	Setattr(c, "parentNode", CurrentClass);
