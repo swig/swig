@@ -7,7 +7,7 @@
 
 namespace std {
   template <class T, class U > struct pair {      
-    typedef T fisrt_type;
+    typedef T first_type;
     typedef U second_type;
     
     %traits_swigtype(T);
@@ -30,8 +30,8 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_PAIR, std::pair<T,U >);
 
     pair();
-    pair(T __a, U __b);
-    pair(const pair& __p);
+    pair(T first, U second);
+    pair(const pair& p);
 
     template <class U1, class U2> pair(const pair<U1, U2> &p);
 
@@ -49,7 +49,7 @@ namespace std {
   // simplified when a 'const SWIGTYPE*&' can be defined
   // ***
   template <class T, class U > struct pair<T, U*> {      
-    typedef T fisrt_type;
+    typedef T first_type;
     typedef U* second_type;
     
     %traits_swigtype(T);
@@ -85,7 +85,7 @@ namespace std {
   };
 
   template <class T, class U > struct pair<T*, U> {      
-    typedef T* fisrt_type;
+    typedef T* first_type;
     typedef U second_type;
     
     %traits_swigtype(T);
@@ -121,7 +121,7 @@ namespace std {
   };
 
   template <class T, class U > struct pair<T*, U*> {
-    typedef T* fisrt_type;
+    typedef T* first_type;
     typedef U* second_type;
 
     %traits_swigtype(T);
