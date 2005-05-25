@@ -831,10 +831,14 @@ class TypePass : private Dispatcher {
 			}
 		      }
 		      Node *nn = copyNode(c);
+		      Delattr(nn,"access"); // access might be different from the method in the base class
 		      if (!Getattr(nn,"sym:name")) Setattr(nn,"sym:name", symname);
 
 		      if (!Getattr(nn,"feature:ignore")) {
 			Setattr(nn,"parms",CopyParmList(Getattr(c,"parms")));
+			ParmList *throw_parm_list = Getattr(c,"throws");
+			if (throw_parm_list)
+			  Setattr(nn,"throws",CopyParmList(throw_parm_list));
 			ccount++;
 			if (!last_unodes) {
 			  last_unodes = nn;
