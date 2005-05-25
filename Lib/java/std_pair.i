@@ -16,16 +16,20 @@
 #include <utility>
 %}
 
-// exported class
-
 namespace std {
 
-    template<class T, class U> struct pair {
-        // add typemaps here
-        T first;
-        U second;
-    };
+  template<class T, class U> struct pair {
 
-    // add specializations here
+    pair();
+    pair(T first, U second);
+    pair(const pair& p);
+
+    template <class U1, class U2> pair(const pair<U1, U2> &p);
+
+    T first;
+    U second;
+  };
+
+  // add specializations here
 
 }
