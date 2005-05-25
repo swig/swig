@@ -14,7 +14,7 @@ Version 1.3.25 (In progress)
 05/25/2005: wsfulton
             Fix for exception specifications previously being ignored in classes that inherited methods
             from 'using' declarations, eg calls to Derived::bar below will convert C++ exceptions into
-            a target language exception/error, like it would for Base::Bar.
+            a target language exception/error, like it always has done for Base::Bar.
 
             class Base {
               virtual bar() throw (std::string);
