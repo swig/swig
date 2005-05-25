@@ -92,8 +92,18 @@ class Allocate : public Dispatcher {
 	    }
 	    extend = nextSibling(extend);
 	  }
+	} else if (Strcmp(nodeType(base),"using") == 0) {
+	  // Loop through all the using declaration methods
+	  Node *usingdecl = firstChild(base);
+	  while (usingdecl) {
+	    if (function_is_defined_in_bases_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
+	      Delete(resolved_decl);
+	      return 1;
+	    }
+	    usingdecl = nextSibling(usingdecl);
+	  }
 	} else {
-	  // normal (non %extend) methods
+	  // normal methods
 	  if (function_is_defined_in_bases_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
 	    Delete(resolved_decl);
 	    return 1;
@@ -173,11 +183,17 @@ class Allocate : public Dispatcher {
 	  }
 
 	  if (decl_match && returntype_match) {
+	    // Found an identical method in the base class
+	    String *this_access = Getattr(n, "access");
+	    String *base_access = Getattr(base, "access");
+	    bool both_have_public_access = !this_access && !base_access;
 	    if (checkAttribute(base, "storage", "virtual")) {
 	      // Found a polymorphic method.
-	      // Mark the polymorphic method, even if the virtual keyword was not used.
+	      // Mark the polymorphic method, in case the virtual keyword was not used.
 	      Setattr(n, "storage", "virtual");
-	      Setattr(n, "override", base); 
+
+	      if (both_have_public_access)
+		Setattr(n, "override", base); 
 
 	      // Try and find the most base's covariant return type
 	      SwigType *most_base_covariant_type = Getattr(base, "covariant");
@@ -185,14 +201,9 @@ class Allocate : public Dispatcher {
 		most_base_covariant_type = function_return_type(base, false);
 
 	      if (!most_base_covariant_type) {
-		// If the types and access are the same, then we can attempt
-		// to eliminate the derived virtual method.
+		// Eliminate the derived virtual method.
 		if (virtual_elimination_mode) {
-		  String *this_access = Getattr(n, "access");
-		  String *base_access = Getattr(base, "access");
-		  const char *la = this_access ? Char(this_access) : "";
-		  const char *ba = base_access ? Char(base_access) : "";
-		  if (strcmp(la, ba) == 0) Setattr(n,"feature:ignore", "1");
+		  Setattr(n,"feature:ignore", "1");
 		}
 	      } else {
 		// Some languages need to know about covariant return types
@@ -201,7 +212,8 @@ class Allocate : public Dispatcher {
 
 	    } else {
 	      // Found an identical method in the base class, but it is not polymorphic.
-	      Setattr(n, "hides", base);
+	      if (both_have_public_access)
+		Setattr(n, "hides", base);
 	    }
 	    return 1;
 	  }
@@ -624,6 +636,21 @@ public:
     } else if (Cmp(kind,"protected") == 0) {
       cplus_mode = PROTECTED;
     }
+    return SWIG_OK;
+  }
+
+  virtual int usingDeclaration(Node *n) {
+
+    Node *c = 0;
+    for (c = firstChild(n); c; c = nextSibling(c)) {
+      if (Strcmp(nodeType(c),"cdecl") == 0) {
+	mark_exception_classes(Getattr(c,"throws"));
+
+	if (inclass)
+	  class_member_is_defined_in_bases(c, inclass);
+      }
+    }
+
     return SWIG_OK;
   }
 
