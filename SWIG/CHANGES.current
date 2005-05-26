@@ -1,6 +1,15 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/26/2005: wsfulton
+            %csmethodmodifiers can be applied to variables as well as methods now.
+
+            %csmethodmodifiers will replace the virtual/new/override modifiers that SWIG thinks is
+            appropriate in addition to the default 'public'. This is necessary for some obscure cases
+            where SWIG might get the modifiers incorrect, for example with private inheritance.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
 05/25/2005: wsfulton
             Added missing constructors to std::pair wrappers (std_pair.i) for all languages.
 
