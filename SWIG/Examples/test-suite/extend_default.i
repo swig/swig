@@ -112,12 +112,12 @@ struct Override {
 %extend Base {
 virtual int * virtualmethod(int a = 0) { return 0; }
 int * nonvirtual(int a = 0) { return 0; }
-static int * staticmethod(int a = 0) { return 0; }
+static int * static_method(int a = 0) { return 0; }
 }
 %extend Derived {
 int * virtualmethod(int a = 0) { return 0; }
 int * nonvirtual(int a = 0) { return 0; }
-static int * staticmethod(int a = 0) { return 0; }
+static int * static_method(int a = 0) { return 0; }
 int * realvirtual(int a = 0) { return 0; }
 }
 
