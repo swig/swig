@@ -43,8 +43,7 @@
 	if (pysize < 0) {
 	  PyErr_SetString(PyExc_OverflowError,
 			  "multimap size not valid in python");
-	  Py_INCREF(Py_None);
-	  return Py_None;
+	  return NULL;
 	}
 	PyObject *obj = PyDict_New();
 	for (const_iterator i= multimap.begin(); i!= multimap.end(); ++i) {

@@ -132,8 +132,8 @@ SWIGINTERNINLINE PyObject *
 SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 {
   if (size > INT_MAX) {
-    SWIG_NewPointerObj(SWIG_const_cast(carray,wchar_t *), SWIG_TypeQuery("wchar_t *"), 0);
-    return Py_None;    
+    return SWIG_NewPointerObj(SWIG_const_cast(carray,wchar_t *), 
+			      SWIG_TypeQuery("wchar_t *"), 0);
   } else {
     return PyUnicode_FromWideChar(carray, SWIG_numeric_cast(size,int));
   }

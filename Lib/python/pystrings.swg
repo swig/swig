@@ -138,7 +138,8 @@ SWIGINTERNINLINE PyObject *
 SWIG_FromCharArray(const char* carray, size_t size)
 {
   if (size > INT_MAX) {
-    return Py_None;    
+    return SWIG_NewPointerObj(SWIG_const_cast(carray,char *), 
+			      SWIG_TypeQuery("char *"), 0);
   } else {
     return PyString_FromStringAndSize(carray, SWIG_numeric_cast(size,int));
   }

@@ -43,8 +43,7 @@
 	if (pysize < 0) {
 	  PyErr_SetString(PyExc_OverflowError,
 			  "map size not valid in python");
-	  Py_INCREF(Py_None);
-	  return Py_None;
+	  return NULL;
 	}
 	PyObject *obj = PyDict_New();
 	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
@@ -93,8 +92,7 @@
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+	return NULL;
       }
       PyObject* keyList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
@@ -110,8 +108,7 @@
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+	return NULL;
       }
       PyObject* valList = PyTuple_New(pysize);
       Map::const_iterator i = self->begin();
@@ -127,8 +124,7 @@
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+	return NULL;
       }    
       PyObject* itemList = PyTuple_New(pysize);
       Map::const_iterator i = self->begin();
@@ -149,8 +145,7 @@
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+	return NULL;
       }
       PyObject* keyTuple = PyTuple_New(pysize);
       Map::const_iterator i = self->begin();
