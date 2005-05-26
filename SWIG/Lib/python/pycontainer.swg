@@ -613,8 +613,7 @@ namespace swig
 	} else {
 	  PyErr_SetString(PyExc_OverflowError,
 			  "sequence size not valid in python");
-	  Py_INCREF(Py_None);
-	  return Py_None;
+	  return NULL;
 	}
       }
     };
