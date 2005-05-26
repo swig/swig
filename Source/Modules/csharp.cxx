@@ -1569,16 +1569,20 @@ class CSHARP : public Language {
     if (csattributes)
       Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
-    Printf(function_code, "  %s ", methodmods);
+    if (methodmods) {
+      Printf(function_code, "  %s ", methodmods);
+    } else {
+      methodmods = (!is_public(n) ? protected_string : public_string);
+      Printf(function_code, "  %s ", methodmods);
+      if (Getattr(n,"override"))
+	Printf(function_code, "override ");
+      else if (checkAttribute(n, "storage", "virtual"))
+	Printf(function_code, "virtual ");
+      if (Getattr(n, "hides"))
+	Printf(function_code, "new ");
+    }
     if (static_flag)
       Printf(function_code, "static ");
-    if (Getattr(n,"override"))
-        Printf(function_code, "override ");
-    else if (checkAttribute(n, "storage", "virtual"))
-        Printf(function_code, "virtual ");
-    if (Getattr(n, "hides"))
-        Printf(function_code, "new ");
 
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
@@ -1685,7 +1689,10 @@ class CSHARP : public Language {
         const String *csattributes = Getattr(n,"feature:cs:attributes");
         if (csattributes)
           Printf(proxy_class_code, "  %s\n", csattributes);
-	Printf(proxy_class_code, "  public %s%s %s {", static_flag ? "static " : "", variable_type, variable_name);
+	const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
+	if (!methodmods)
+	  methodmods = (!is_public(n) ? protected_string : public_string);
+	Printf(proxy_class_code, "  %s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
 
@@ -2089,7 +2096,10 @@ class CSHARP : public Language {
         const String *csattributes = Getattr(n,"feature:cs:attributes");
         if (csattributes)
           Printf(module_class_code, "  %s\n", csattributes);
-	Printf(module_class_code, "  public static %s %s {", variable_type, variable_name);
+	const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
+	if (!methodmods)
+	  methodmods = (!is_public(n) ? protected_string : public_string);
+	Printf(module_class_code, "  %s static %s %s {", methodmods, variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
 
