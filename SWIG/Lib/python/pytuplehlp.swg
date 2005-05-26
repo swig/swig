@@ -19,6 +19,7 @@ t_output_helper(PyObject* target, PyObject* o) {
       PyList_SetItem(target, 0, o2);
     }
     PyList_Append(target,o);
+    Py_DECREF(o);
     }
   return target;
 }
