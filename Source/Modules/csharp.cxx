@@ -507,7 +507,7 @@ class CSHARP : public Language {
     if (!is_void_return)
       Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
 
-    Printv(f->def, " DllExport ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
+    Printv(f->def, " SWIGEXPORT ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args(t,l,f);
@@ -1368,7 +1368,7 @@ class CSHARP : public Language {
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
       Printv(upcasts_code,
-          "DllExport $cbaseclass * SWIGSTDCALL CSharp_$imclazznameUpcast",
+          "SWIGEXPORT $cbaseclass * SWIGSTDCALL CSharp_$imclazznameUpcast",
           "($cclass *objectRef) {\n",
           "    return ($cbaseclass *)objectRef;\n"
           "}\n",
