@@ -5,18 +5,7 @@
  *
  ************************************************************************/
 
-/* 
-   SWIGTEMPLATEDISAMBIGUATOR is needed when wrapping template calls
-   (cwrap.c:Swig_cfunction_call/Swig_cmethod_call), as in
-
-     result = nspace::template function<int >(arg1);
-     result = arg1->template method<int >(arg2);
-
-    SWIGTEMPLATEDISAMBIGUATOR is compiler dependent (common.swg),
-      - SUN Studio requires 'template', 
-      - gcc-3.4 forbids the use of 'template'.
-      - gcc-3.2.3 produces internal errors if you use 'template'
-*/
+/* template workaround for compilers that cannot correctly implement the C++ standard */
 #ifndef SWIGTEMPLATEDISAMBIGUATOR
 #  if defined(__SUNPRO_CC) 
 #    define SWIGTEMPLATEDISAMBIGUATOR template
@@ -34,7 +23,7 @@
 # endif
 #endif
 
-/* attritbute passed for some compilers to avoid 'unused' warnings */
+/* attribute recognised by some compilers to avoid 'unused' warnings */
 #ifndef SWIGUNUSED
 # if defined(__GNUC__) || defined(__ICC)
 #   define SWIGUNUSED __attribute__ ((unused)) 
@@ -53,23 +42,25 @@
 # define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
 #endif
 
-/* how we export a method such that it can go in to a shared or dll library */
+/* exporting methods for Windows DLLs */
 #ifndef SWIGEXPORT
 # if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#   if defined(_MSC_VER) || defined(__GNUC__)
-#     if defined(STATIC_LINKED)
-#       define SWIGEXPORT(a) a
-#     else
-#       define SWIGEXPORT(a) __declspec(dllexport) a
-#     endif
+#   if defined(STATIC_LINKED)
+#     define SWIGEXPORT
 #   else
-#     if defined(__BORLANDC__)
-#       define SWIGEXPORT(a) a _export
-#     else
-#       define SWIGEXPORT(a) a
-#     endif
+#     define SWIGEXPORT __declspec(dllexport)
 #   endif
 # else
-#   define SWIGEXPORT(a) a
+#   define SWIGEXPORT
 # endif
 #endif
+
+/* calling conventions for Windows */
+#ifndef SWIGSTDCALL
+# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#   define SWIGSTDCALL __stdcall
+# else
+#   define SWIGSTDCALL
+# endif 
+#endif
+
