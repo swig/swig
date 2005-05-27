@@ -297,7 +297,7 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT(void) SWIG_init(void) {
+SWIGEXPORT void SWIG_init(void) {
   static PyObject *SWIG_globals = 0; 
   PyObject *m, *d;
   if (!SWIG_globals) SWIG_globals = SWIG_newvarlink();

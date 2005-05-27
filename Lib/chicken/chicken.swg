@@ -671,7 +671,7 @@ $result = C_SCHEME_UNDEFINED;
 extern "C" {
 #endif
 /* Chicken initialization function */
-SWIGEXPORT(void) SWIG_init(C_word, C_word, C_word) C_noret;
+SWIGEXPORT void SWIG_init(C_word, C_word, C_word) C_noret;
 #ifdef __cplusplus
 }
 #endif
@@ -686,8 +686,7 @@ SWIGEXPORT(void) SWIG_init(C_word, C_word, C_word) C_noret;
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGEXPORT(void)
-SWIG_init(C_word argc, C_word closure, C_word continuation) {
+SWIGEXPORTvoid SWIG_init(C_word argc, C_word closure, C_word continuation) {
   int       i;
   C_word sym;
   C_word tmp;
