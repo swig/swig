@@ -5,6 +5,7 @@ abstract_signature
 abstract_typedef
 abstract_typedef2
 abstract_virtual
+access_change
 add_link
 aggregate
 anonymous_bitfield
@@ -46,6 +47,7 @@ cpp_static
 cpp_typedef
 csharp_attributes
 csharp_exceptions
+csharp_features
 csharp_typemaps
 default_args
 default_constructor
@@ -230,6 +232,7 @@ template_typedef_cplx2
 template_typedef_cplx3
 template_typedef_cplx4
 template_typedef_cplx5
+template_typedef_fnc
 template_typedef_import
 template_typedef_ns
 template_typedef_ptr
