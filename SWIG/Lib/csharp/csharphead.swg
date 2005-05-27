@@ -8,13 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#if defined(_WIN32) || defined(__CYGWIN32__)
-#  define DllExport   __declspec( dllexport )
-#  define SWIGSTDCALL __stdcall
-#else
-#  define DllExport  
-#  define SWIGSTDCALL
-#endif 
 %}
 
 %insert(runtime) %{
@@ -92,7 +85,7 @@ static void SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExceptionArgumentC
 #ifdef __cplusplus
 extern "C" 
 #endif
-DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
+SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
                                                 SWIG_CSharpExceptionCallback_t applicationCallback,
                                                 SWIG_CSharpExceptionCallback_t arithmeticCallback,
                                                 SWIG_CSharpExceptionCallback_t divideByZeroCallback, 
@@ -118,7 +111,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
 #ifdef __cplusplus
 extern "C" 
 #endif
-DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
+SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                                 SWIG_CSharpExceptionArgumentCallback_t argumentCallback,
                                                 SWIG_CSharpExceptionArgumentCallback_t argumentNullCallback,
                                                 SWIG_CSharpExceptionArgumentCallback_t argumentOutOfRangeCallback) {
@@ -302,7 +295,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 #ifdef __cplusplus
 extern "C" 
 #endif
-DllExport void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringHelperCallback callback) {
+SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringHelperCallback callback) {
   SWIG_csharp_string_callback = callback;
 }
 
