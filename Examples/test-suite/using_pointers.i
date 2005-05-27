@@ -1,5 +1,9 @@
 %module using_pointers
 
+#ifdef SWIGCSHARP
+%csmethodmodifiers x "public new"
+#endif
+
 %inline %{
   class Foo {
   public:
