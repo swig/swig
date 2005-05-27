@@ -2,7 +2,7 @@
 
 // SWIG gets the method modifiers wrong occasionally, like with private inheritance, %csmethodmodifiers can fix this
 %csmethodmodifiers Derived::VirtualMethod() "public virtual"
-%csmethodmodifiers Derived::variable "public new"
+%csmethodmodifiers MoreDerived::variable "public new"
 
 %inline %{
 class Base {
