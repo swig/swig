@@ -626,7 +626,7 @@ extern "C" {
 #ifdef MAC_TCL
 #pragma export on
 #endif
-SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
+SWIGEXPORT int SWIG_init(Tcl_Interp *);
 #ifdef MAC_TCL
 #pragma export off
 #endif
@@ -641,7 +641,7 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 %insert(init) "swiginit.swg"
 
 %init %{
-SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
+SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
     int i;
     if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS

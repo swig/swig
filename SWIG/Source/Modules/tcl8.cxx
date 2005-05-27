@@ -229,7 +229,7 @@ public:
     Printf(f_init,"return TCL_OK;\n}\n");
 
     if (!nosafe) {
-      Printf(f_init,"SWIGEXPORT(int) %(title)s_SafeInit(Tcl_Interp *interp) {\n", module );
+      Printf(f_init,"SWIGEXPORT int %(title)s_SafeInit(Tcl_Interp *interp) {\n", module );
       Printf(f_init,"    return SWIG_init(interp);\n");
       Printf(f_init,"}\n");
     }

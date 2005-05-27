@@ -446,7 +446,7 @@ public:
 	   "#ifdef __cplusplus\n",
 	   "extern \"C\"\n",
 	   "#endif\n",
-	   "SWIGEXPORT(void) Init_", feature, "(void) {\n",
+	   "SWIGEXPORT void Init_", feature, "(void) {\n",
 	   "int i;\n",
 	   "\n",
 	   NIL);
