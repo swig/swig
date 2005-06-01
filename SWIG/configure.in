@@ -756,8 +756,8 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        JAVADYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
-        JAVACFLAGS="-mno-cygwin"
+        JAVADYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
+        JAVACFLAGS="-mno-cygwin -mthreads"
     else
         JAVADYNAMICLINKING=""
         JAVACFLAGS=""
@@ -1452,8 +1452,8 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        CSHARPDYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
-        CSHARPCFLAGS="-mno-cygwin"
+        CSHARPDYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
+        CSHARPCFLAGS="-mno-cygwin -mthreads"
     else
         CSHARPDYNAMICLINKING=""
         CSHARPCFLAGS=""
