@@ -193,7 +193,8 @@ class Allocate : public Dispatcher {
 	      Setattr(n, "storage", "virtual");
 
 	      if (both_have_public_access)
-		Setattr(n, "override", base); 
+                if (!is_non_public_base(inclass, b))
+                  Setattr(n, "override", base); 
 
 	      // Try and find the most base's covariant return type
 	      SwigType *most_base_covariant_type = Getattr(base, "covariant");
@@ -213,7 +214,8 @@ class Allocate : public Dispatcher {
 	    } else {
 	      // Found an identical method in the base class, but it is not polymorphic.
 	      if (both_have_public_access)
-		Setattr(n, "hides", base);
+                if (!is_non_public_base(inclass, b))
+                  Setattr(n, "hides", base);
 	    }
 	    return 1;
 	  }
@@ -221,6 +223,29 @@ class Allocate : public Dispatcher {
       }
     }
     return 0;
+  }
+
+  /* Determines whether the base class, b, is in the list of private
+   * or protected base classes for class n. */
+  bool is_non_public_base(Node *n, Node *b) {
+    bool non_public_base = false;
+    Node *bases = Getattr(n, "privatebases");
+    if (bases) {
+      for (int i = 0; i < Len(bases); i++) {
+        Node *base = Getitem(bases,i);
+        if (base == b)
+          non_public_base = true;
+      }
+    }
+    bases = Getattr(n, "protectedbases");
+    if (bases) {
+      for (int i = 0; i < Len(bases); i++) {
+        Node *base = Getitem(bases,i);
+        if (base == b)
+          non_public_base = true;
+      }
+    }
+    return non_public_base;
   }
 
   /* Returns the return type for a function. The node n should be a function.
