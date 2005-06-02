@@ -2728,7 +2728,7 @@ likely to be extended in Python and used in C++.
 <p>
 Compared to classes that do not use directors, the call routing in the
 director methods does add some overhead. In particular, at least one
-dynamic cast and one extra function call occur per method call from
+dynamic cast and one extra function call occurs per method call from
 Python. Relative to the speed of Python execution this is probably
 completely negligible. For worst case routing, a method call that
 ultimately resolves in C++ may take one extra detour through Python in
@@ -2754,8 +2754,8 @@ Typemaps for input and output of most of the basic types from director
 classes have been written. These are roughly the reverse of the usual
 input and output typemaps used by the wrapper code. The typemap
 operation names are 'directorin', 'directorout', and 'directorargout'.
-The director code does not use any of the other kinds of typemaps
-yet. It is not clear at this point which kinds are appropriate and
+The director code does not currently use any of the other kinds of typemaps.
+It is not clear at this point which kinds are appropriate and
 need to be supported.
 </p>
 
@@ -2765,7 +2765,7 @@ need to be supported.
 
 <p>
 Director typemaps for STL classes are in place, and hence you should
-be able to use std::vector, std::string, etc., as any other raw type.
+be able to use std::vector, std::string, etc., as you would any other type.
 </p>
 
 <p>
@@ -2776,7 +2776,7 @@ references, such as
 <pre>
 class Foo {
 &hellip;
-    virtual const int& bar();
+    virtual const int&amp; bar();
 &hellip;
 };
 </pre>
@@ -2784,10 +2784,10 @@ class Foo {
 
 <p>
 will work only for simple call scenarios. Usually the resulting code
-is neither thread or reentrant safe. Hence, the user is adviced to
-avoid returning const reference in director methods. For example,
-the user could modify the method interface to use a lvalue return
-types, when possible, i.e.
+is neither thread or reentrant safe. Hence, the user is advised to
+avoid returning const references in director methods. For example,
+the user could modify the method interface to use lvalue return
+types, wherever possible, for example
 </p>
 
 <div class="code">
@@ -2801,11 +2801,9 @@ class Foo {
 </div>
 
 <p>
-If that is not possible, the user should avoid to enable the
+If that is not possible, the user should avoid enabling the
 director feature for reentrant, recursive or threaded member
 methods that return const references.
-</p>
-
 </p>
 
 

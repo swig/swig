@@ -29,9 +29,9 @@
 
 <p>
 The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
-The wrapper code implementation uses C# and the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
-The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
-PINVOKE is part of the ECMA/ISO C# specification.
+The wrapper code implementation uses C# and the Platform Invoke (PInvoke) interface to access natively compiled C/C++ code.
+The PInvoke interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
+PInvoke is part of the ECMA/ISO C# specification.
 It is also better suited for robust production environments due to the Managed C++ flaw called the
 <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dv_vstechart/html/vcconMixedDLLLoadingProblem.asp">Mixed DLL Loading Problem</a>.
 Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
@@ -96,7 +96,7 @@ Note that %csconst(0) will be ignored when wrapping C/C++ enums with proper C# e
 This is because C# enum items must be initialised from a compile time constant.
 If an enum item has an initialiser and the initialiser doesn't compile as C# code,
 then the %csconstvalue directive must be used as %csconst(0) will have no effect.
-If it was used, it would generate an illegal runtime initialisation via a PINVOKE call.
+If it was used, it would generate an illegal runtime initialisation via a PInvoke call.
 </li>
 
 <li>
@@ -451,11 +451,15 @@ the code contains a call to <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>. T
 
 %typemap(check, canthrow=1) int number %{
 if ($1 &lt; 0) {
-  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
+                                         "only positive numbers accepted", "number");
   return $null;
 }
 // SWIGEXCODE is a macro used by many other csout typemaps
-%define SWIGEXCODE "\n    if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
+%define SWIGEXCODE
+ "\n    if ($modulePINVOKE.SWIGPendingException.Pending)"
+ "\n      throw $modulePINVOKE.SWIGPendingException.Retrieve();"
+%enddef
 %typemap(csout, excode=SWIGEXCODE) void {
     $imcall;$excode
   }
@@ -504,13 +508,14 @@ Now let's analyse the generated code to gain a fuller understanding of the typem
 
 <div class="code">
 <pre>
-DllExport void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
     int arg1 ;
     
     arg1 = (int)jarg1; 
     
     if (arg1 &lt; 0) {
-        SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+        SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
+                                               "only positive numbers accepted", "number");
         return ;
     }
     
@@ -529,7 +534,8 @@ This largely comes from the "check" typemap. The managed code in the module clas
 public class example {
   public static void positivesonly(int number) {
     examplePINVOKE.positivesonly(number);
-    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+    if (examplePINVOKE.SWIGPendingException.Pending)
+      throw examplePINVOKE.SWIGPendingException.Retrieve();
   }
 
 }
@@ -578,7 +584,8 @@ In fact, the code above would be generated if the <tt>canthrow</tt> attribute wa
 <pre>
 %typemap(check) int number %{
 if ($1 &lt; 0) {
-  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
+                                         "only positive numbers accepted", "number");
   return $null;
 }
 %}
@@ -634,7 +641,7 @@ The generated unmanaged code this time catches the C++ exception and converts it
 
 <div class="code">
 <pre>
-DllExport void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
     int arg1 ;
     
     arg1 = (int)jarg1; 
@@ -659,7 +666,8 @@ The managed code generated does check for the pending exception as mentioned ear
 <pre>
   public static void negativesonly(int value) {
     examplePINVOKE.negativesonly(value);
-    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+    if (examplePINVOKE.SWIGPendingException.Pending)
+      throw examplePINVOKE.SWIGPendingException.Retrieve();
   }
 </pre>
 </div>
@@ -683,7 +691,7 @@ such as the <tt>evensonly</tt> method below.
 }
 
 %inline %{
-#include <stdexcept>
+#include &lt;stdexcept&gt;
 void evensonly(int input) throw (std::out_of_range) {
   if (input%2 != 0)
     throw std::out_of_range("number is not even");
@@ -699,7 +707,7 @@ SWIG generates a try catch block with the throws typemap code in the catch handl
 
 <div class="code">
 <pre>
-DllExport void SWIGSTDCALL CSharp_evensonly(int jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
     int arg1 ;
     
     arg1 = (int)jarg1; 
@@ -750,11 +758,13 @@ the C# code can be generated into the intermediary class using the <tt>imclassco
   typedef void (SWIGSTDCALL* CSharpExceptionCallback_t)(const char *);
   CSharpExceptionCallback_t customExceptionCallback = NULL;
 
-  extern "C" DllExport void SWIGSTDCALL CustomExceptionRegisterCallback(CSharpExceptionCallback_t customCallback) {
+  extern "C" SWIGEXPORT
+  void SWIGSTDCALL CustomExceptionRegisterCallback(CSharpExceptionCallback_t customCallback) {
     customExceptionCallback = customCallback;
   }
 
-  // Note that SWIG detects any method calls named starting with SWIG_CSharpSetPendingException for warning 845
+  // Note that SWIG detects any method calls named starting with
+  // SWIG_CSharpSetPendingException for warning 845
   static void SWIG_CSharpSetPendingExceptionCustom(const char *msg) {
     customExceptionCallback(msg);
   }
@@ -764,7 +774,8 @@ the C# code can be generated into the intermediary class using the <tt>imclassco
   class CustomExceptionHelper {
     // C# delegate for the C/C++ customExceptionCallback
     public delegate void CustomExceptionDelegate(string message);
-    static CustomExceptionDelegate customDelegate = new CustomExceptionDelegate(SetPendingCustomException);
+    static CustomExceptionDelegate customDelegate =
+                                   new CustomExceptionDelegate(SetPendingCustomException);
 
     [DllImport("$dllimport", EntryPoint="CustomExceptionRegisterCallback")]
     public static extern void CustomExceptionRegisterCallback(CustomExceptionDelegate customCallback);

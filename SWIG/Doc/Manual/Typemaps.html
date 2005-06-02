@@ -70,10 +70,10 @@
 <li><a href="#Typemaps_nn46">Usage</a>
 </ul>
 <li><a href="#Typemaps_overloading">Typemaps and overloading</a>
-<li><a href="#Typemaps_nn45">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="#Typemaps_nn46">Reducing wrapper code size</a>
+<li><a href="#Typemaps_nn48">More about <tt>%apply</tt> and <tt>%clear</tt></a>
+<li><a href="#Typemaps_nn49">Reducing wrapper code size</a>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
-<li><a href="#Typemaps_nn48">Where to go for more information?</a>
+<li><a href="#Typemaps_nn51">Where to go for more information?</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -2837,6 +2837,8 @@ information storage, the generated SWIG code needs to provide it.
 
 <p>
 Requirements for the type system:
+</p>
+<ul>
 <li>Store inheritance and type equivalence information and be able to correctly 
 re-create the type pointer.</li>
 <li>Share type information between modules.</li>
@@ -2847,7 +2849,7 @@ dependency.</li>
 language modules.</li>
 <li>Custom, language specific information can be attached to types.</li>
 <li>Modules can be unloaded from the type system.</li>
-</p>
+</ul>
 
 <H3><a name="Typemaps_nn45"></a>10.8.1 Implementation</H3>
 
@@ -3016,7 +3018,7 @@ Each module has one swig_module_info structure which looks like this:
  * Each module generates one structure like this, and the runtime collects
  * all of these structures and stores them in a circularly linked list.*/
 typedef struct swig_module_info {
-  swig_type_info **types;         /* Array of pointers to swig_type_info structures that are in this module */
+  swig_type_info **types;         /* Array of pointers to swig_type_info structures in this module */
   int size;                       /* Number of types in this module */
   struct swig_module_info *next;  /* Pointer to next element in circularly linked list */
   swig_type_info **type_initial;  /* Array of initially generated type structures */
@@ -3476,7 +3478,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H2><a name="Typemaps_nn45"></a>10.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<H2><a name="Typemaps_nn48"></a>10.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 <p>
@@ -3561,7 +3563,7 @@ example:
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn46"></a>10.11 Reducing wrapper code size</H2>
+<H2><a name="Typemaps_nn49"></a>10.11 Reducing wrapper code size</H2>
 
 
 <p>
@@ -3679,7 +3681,7 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn48"></a>10.13 Where to go for more information?</H2>
+<H2><a name="Typemaps_nn51"></a>10.13 Where to go for more information?</H2>
 
 
 <p>
