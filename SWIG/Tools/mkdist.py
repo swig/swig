@@ -1,19 +1,24 @@
 #!/usr/local/bin/python
 
-# This script builds a SWIG-1.3 distribution.
-# Usage : mkdist.py directory, where directory should be SWIG-1.3.x
+# This script builds a swig-1.3 distribution.
+# Usage : mkdist.py directory, where directory should be swig-1.3.x
 
 import sys
 import string
+import os
 
 try:
    dirname = sys.argv[1]
 except:
-   print "Usage: mkdist.py directory, where directory should be SWIG-1.3.x"
+   print "Usage: mkdist.py directory, where directory should be swig-1.3.x"
    sys.exit(0)
 
+# Check name matches normal unix conventions
+if string.lower(dirname) != dirname:
+  print "directory name ("+dirname+") should be in lowercase"
+  sys.exit(0)
+
 # If directory exists, remove it
-import os
 print "Removing ", dirname
 os.system("rm -rf "+dirname)
 
@@ -46,6 +51,6 @@ print "Building documentation"
 os.system("cd "+dirname+"/Doc/Manual; make; rm *.bak")
 
 # Build the tar-ball
-os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
-os.system("gzip "+string.lower(dirname)+".tar")
+os.system("tar -cf "+dirname+".tar "+dirname)
+os.system("gzip "+dirname+".tar")
 
