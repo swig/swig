@@ -80,7 +80,7 @@
   public readonly int swigValue;
 
   public static $csclassname swigToEnum(int swigValue) {
-    if (swigValue < swigValues.Length && swigValues[swigValue].swigValue == swigValue)
+    if (swigValue < swigValues.Length && swigValue >= 0 && swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
     for (int i = 0; i < swigValues.Length; i++)
       if (swigValues[i].swigValue == swigValue)

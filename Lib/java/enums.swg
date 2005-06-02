@@ -82,7 +82,7 @@
 
   public static $javaclassname swigToEnum(int swigValue) {
     $javaclassname[] swigValues = $javaclassname.class.getEnumConstants();
-    if (swigValue < swigValues.length && swigValues[swigValue].swigValue == swigValue)
+    if (swigValue < swigValues.length && swigValue >= 0 && swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
     for ($javaclassname swigEnum : swigValues)
       if (swigEnum.swigValue == swigValue)
