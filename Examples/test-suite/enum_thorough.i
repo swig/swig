@@ -51,7 +51,7 @@ namespace AnonSpace {
 }
 
 
-enum colour { red, blue, green = 10 };
+enum colour { red=-1, blue, green = 10 };
 colour colourTest1(colour e) { return e; }
 enum colour colourTest2(enum colour e) { return e; }
 const colour colourTest3(const colour e) { return e; }
