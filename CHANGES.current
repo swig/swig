@@ -1,6 +1,13 @@
 Version 1.3.25 (In progress)
 ============================
 
+06/02/2005: wsfulton
+            Fix #1066363 - Follow convention of release tarball name matching directory name.
+
+06/02/2005: wsfulton
+            [C#, Java] Fix #1211353 - typesafe enums (and Java proper enums) wrappers when enum value
+            is negative.
+
 05/27/2005: wsfulton
             Modernised and tidied up Windows macros --> SWIGEXPORT, SWIGSTDCALL. They can be overridden
             by users via -D compiler directives if need be.
