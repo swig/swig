@@ -469,7 +469,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	      fprintf(stdout,"\nSWIG Version %s\n", PACKAGE_VERSION);
 	      fprintf(stdout,"Copyright (c) 1995-1998\n");
 	      fprintf(stdout,"University of Utah and the Regents of the University of California\n");
-	      fprintf(stdout,"Copyright (c) 1998-2004\n");
+	      fprintf(stdout,"Copyright (c) 1998-2005\n");
 	      fprintf(stdout,"University of Chicago\n");
 	      fprintf(stdout,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	      fprintf(stdout,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
