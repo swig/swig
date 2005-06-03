@@ -157,7 +157,7 @@ template<typename T> struct Base {
   virtual IntegerPtr defaultargs(double d, int * a = 0) = 0;
   static void StaticHidden() {}
   void AmIAmINotVirtual() {}
-  IntegerPtr NotVirtual(IntegerPtr i) {}
+  IntegerPtr NotVirtual(IntegerPtr i) { return 0; }
   virtual Base * covariant(int a = 0, int * i = 0) { return 0; }
   typedef Base * BasePtr;
   virtual BasePtr covariant2() { return 0; }
@@ -172,7 +172,7 @@ template<typename T> struct Derived : Base<T> {
   Double function() { return 0; }
   int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }
   void AmIAmINotVirtual() {}
-  int * NotVirtual(int *i) {}
+  int * NotVirtual(int *i) { return 0; }
   typedef Derived * DerivedPtr;
   DerivedPtr covariant(int a = 0, IntegerPtr i = 0) { return 0; }
   DerivedPtr covariant2() { return 0; }
@@ -185,7 +185,7 @@ template<typename T> struct Bottom : Derived<T> {
   int * method() const { return 0; }
   static void StaticHidden() {}
   void AmIAmINotVirtual() {}
-  IntegerPtr NotVirtual(IntegerPtr i) {}
+  IntegerPtr NotVirtual(IntegerPtr i) { return 0; }
   void (*funcptr)(int a, bool b);
   Bottom<T> * covariant(int a = 0, IntegerPtr i = 0) { return 0; }
   Derived<T> * covariant2() { return 0; }

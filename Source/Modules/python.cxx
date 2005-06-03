@@ -1407,7 +1407,7 @@ public:
     emit_action(n,f);
 
     if (directorsEnabled()) {
-      Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
+      Printf(f->code, "} catch (Swig::DirectorException&) {\n");
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
     }

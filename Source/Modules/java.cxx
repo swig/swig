@@ -1486,7 +1486,7 @@ class JAVA : public Language {
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
     String *typemap_lookup_type = Getattr(n,"classtypeobj");
-    bool    feature_director = Swig_directorclass(n);
+    bool    feature_director = Swig_directorclass(n) ? true : false;
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -2793,7 +2793,7 @@ class JAVA : public Language {
 	   sym_name, sym_name);
     Printf(code_wrap->code, "  (void)jcls;\n");
     Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release);\n");
+    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
     Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
