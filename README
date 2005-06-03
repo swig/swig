@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.24 (December 14, 2004)
+Version: 1.3.25 (June 11, 2005)
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
@@ -72,10 +72,20 @@ What's New?
 
 SWIG-1.3.25 summary:
 - Improved runtime type system.  Speed of module loading improved in
-  modules with lots of types.  SWIG_RUNTIME_VERSION has been increaced
+  modules with lots of types.  SWIG_RUNTIME_VERSION has been increased
   from 1 to 2, but the API is exactly the same; only internal changes
   were made.
-- All languages now support external access to the runtime type system.
+- The languages that use the runtime type system now support external
+  access to the runtime type system.
+- Various improvements with typemaps and template handling.
+- Fewer warnings in generated code.
+- Improved colour documentation.
+- Many C# module improvements (exception handling, prevention of early
+  garbage collection, C# attributes support added, more flexible type
+  marshalling/asymmetric types.)
+- Minor improvements and bug fixes specific to the C#, Java, TCL, Guile,
+  Chicken, MzScheme, Perl, Php, Python, Ruby and Ocaml modules).
+- Various other bug fixes and memory leak fixes.
 
 SWIG-1.3.24 summary:
 - Improved enum handling

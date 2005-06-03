@@ -1,11 +1,10 @@
-*** ANNOUNCE: SWIG 1.3.24 ***
+*** ANNOUNCE: SWIG 1.3.25 (June 11, 2005) ***
 
 http://www.swig.org
 
-December 14, 2004
 
-We're pleased to announce SWIG-1.3.24, the latest installment in the
-SWIG development effort.  SWIG-1.3.24 includes a number of bug fixes
+We're pleased to announce SWIG-1.3.25, the latest installment in the
+SWIG development effort.  SWIG-1.3.25 includes a number of bug fixes
 and large number of enhancements throughout.
 
 What is SWIG?
@@ -22,11 +21,11 @@ Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.24.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.25.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.24.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.25.zip
 
 Release numbers
 ---------------
