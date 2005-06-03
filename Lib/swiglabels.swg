@@ -7,7 +7,7 @@
 
 /* template workaround for compilers that cannot correctly implement the C++ standard */
 #ifndef SWIGTEMPLATEDISAMBIGUATOR
-#  if defined(__SUNPRO_CC) 
+#  if defined(__SUNPRO_CC) && (__SUNPRO_CC <= 0x560)
 #    define SWIGTEMPLATEDISAMBIGUATOR template
 #  else
 #    define SWIGTEMPLATEDISAMBIGUATOR 
