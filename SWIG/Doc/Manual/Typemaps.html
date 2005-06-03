@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Typemaps</title>
-<link rel="stylesheet" type="text/css" href="style.css"/>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body bgcolor="#ffffff">
@@ -3018,7 +3018,7 @@ Each module has one swig_module_info structure which looks like this:
  * Each module generates one structure like this, and the runtime collects
  * all of these structures and stores them in a circularly linked list.*/
 typedef struct swig_module_info {
-  swig_type_info **types;         /* Array of pointers to swig_type_info structures in this module */
+  swig_type_info **types;         /* Array of pointers to swig_type_info structs in this module */
   int size;                       /* Number of types in this module */
   struct swig_module_info *next;  /* Pointer to next element in circularly linked list */
   swig_type_info **type_initial;  /* Array of initially generated type structures */

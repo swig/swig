@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>SWIG and C#</title>
-<link rel="stylesheet" type="text/css" href="style.css"/>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
 <H1><a name="CSharp"></a>16 SWIG and C#</H1>
@@ -715,10 +715,10 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
         evensonly(arg1);
     }
     catch(std::out_of_range &amp;_e) {
-        {
-            SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
-            return ;
-        }
+      {
+          SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
+          return ;
+      }
     }
     
 }
@@ -778,7 +778,8 @@ the C# code can be generated into the intermediary class using the <tt>imclassco
                                    new CustomExceptionDelegate(SetPendingCustomException);
 
     [DllImport("$dllimport", EntryPoint="CustomExceptionRegisterCallback")]
-    public static extern void CustomExceptionRegisterCallback(CustomExceptionDelegate customCallback);
+    public static extern
+           void CustomExceptionRegisterCallback(CustomExceptionDelegate customCallback);
 
     static void SetPendingCustomException(string message) {
       SWIGPendingException.Set(new CustomApplicationException(message));
