@@ -18,13 +18,13 @@
 // Statically typed languages use in/out for variables
 %typemap(in)  int                           "this_will_not_compile_in "
 %typemap(out) int                           "this_will_not_compile_out"
-%typemap(in)  int globul                    "/*int globul in */"
+%typemap(in)  int globul                    "/*int globul in */ $1=0;"
 %typemap(out) int globul                    "/*int globul out*/"
-%typemap(in)  int Space::nspace             "/*int nspace in */"
+%typemap(in)  int Space::nspace             "/*int nspace in */ $1=0;"
 %typemap(out) int Space::nspace             "/*int nspace out*/"
-%typemap(in)  int member                    "/*int member in */"
+%typemap(in)  int member                    "/*int member in */ $1=0;"
 %typemap(out) int member                    "/*int member out*/"
-%typemap(in)  int Space::Struct::smember    "/*int smember in */"
+%typemap(in)  int Space::Struct::smember    "/*int smember in */ $1=0;"
 %typemap(out) int Space::Struct::smember    "/*int smember out*/"
 
 %typemap(javain)  int                           "this_will_not_compile_javain "

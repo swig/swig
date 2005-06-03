@@ -148,7 +148,7 @@ class Allocate : public Dispatcher {
 	    String *base_returntype = function_return_type(base);
 	    returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
 	    if (!returntype_match) {
-	      covariant_returntype = SwigType_issubtype(this_returntype, base_returntype);
+	      covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
 	      returntype_match = covariant_returntype;
 	    }
 
@@ -168,8 +168,8 @@ class Allocate : public Dispatcher {
 		this_fn = SwigType_typedef_resolve_all(this_fn);
 		if (Strcmp(base_fn, this_fn) == 0) {
 		  // Finally check that the qualifiers match
-		  bool base_qualifier = SwigType_isqualifier(resolved_decl);
-		  bool this_qualifier = SwigType_isqualifier(base_decl);
+		  int base_qualifier = SwigType_isqualifier(resolved_decl);
+		  int this_qualifier = SwigType_isqualifier(base_decl);
 		  if (base_qualifier == this_qualifier) {
 		    decl_match = true;
 		  }

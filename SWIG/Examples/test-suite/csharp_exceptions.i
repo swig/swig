@@ -30,7 +30,7 @@
 %csnothrowexception NoThrowException() {
   try {
     $action
-  } catch(Ex e) {
+  } catch(Ex) {
     // swallowed
   }
 }
