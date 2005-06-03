@@ -5,6 +5,7 @@
 
 %inline %{
 template <class T> struct Foo {
+  Foo() {}
 #ifdef SWIG
   // These typemaps should be used by foo1 and foo2
   %typemap(in) Foo<T>      "/*in typemap for Foo<T> */"

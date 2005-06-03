@@ -195,7 +195,7 @@ PySwigObject_type(void) {
     = {
     PyObject_HEAD_INIT(&PyType_Type)
     0,					/*ob_size*/
-    "PySwigObject",			/*tp_name*/
+    (char *)"PySwigObject",		/*tp_name*/
     sizeof(PySwigObject),		/*tp_basicsize*/
     0,					/*tp_itemsize*/
     /* methods */
@@ -352,7 +352,7 @@ PySwigPacked_type(void) {
     = {
     PyObject_HEAD_INIT(&PyType_Type)
     0,					/*ob_size*/
-    "PySwigPacked",			/*tp_name*/
+    (char *)"PySwigPacked",		/*tp_name*/
     sizeof(PySwigPacked),		/*tp_basicsize*/
     0,					/*tp_itemsize*/
     /* methods */

@@ -8,7 +8,7 @@
 %{
   namespace swig {
     template <class PySeq, class T> 
-    static inline void
+    inline void
     assign(const PySeq& pyseq, std::multiset<T>* seq) {
 #ifdef SWIG_STD_NOINSERT_TEMPLATE_STL
       typedef typename PySeq::value_type value_type;

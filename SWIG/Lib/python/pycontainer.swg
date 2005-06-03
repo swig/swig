@@ -540,7 +540,7 @@ namespace swig
 %{
   namespace swig {
     template <class PySeq, class Seq> 
-    static inline void
+    inline void
     assign(const PySeq& pyseq, Seq* seq) {
 #ifdef SWIG_STD_NOASSIGN_STL
       typedef typename PySeq::value_type value_type;
