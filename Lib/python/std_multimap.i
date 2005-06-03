@@ -7,7 +7,7 @@
 {
   namespace swig {
     template <class PySeq, class K, class T >
-    static inline void 
+    inline void 
     assign(const PySeq& pyseq, std::multimap<K,T > *multimap) {
       typedef typename std::map<K,T>::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
