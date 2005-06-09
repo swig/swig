@@ -108,6 +108,7 @@ imports_a.py
 imports_b.py
 inctest.py
 inherit_missing.py
+inherit_same_name.py
 inherit_void_arg.py
 inline_initializer.py
 inout.py
@@ -264,6 +265,7 @@ template_typedef.py
 template_type_namespace.py
 template_virtual.py
 template_whitespace.py
+threads.py
 throw_exception.py
 typedef_array_member.py
 typedef_class.py

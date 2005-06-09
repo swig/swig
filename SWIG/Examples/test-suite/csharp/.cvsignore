@@ -99,6 +99,7 @@ import_nomodule
 imports
 inctest
 inherit_missing
+inherit_same_name
 inherit_void_arg
 inline_initializer
 kind
@@ -239,6 +240,7 @@ template_typedef_ptr
 template_type_namespace
 template_virtual
 template_whitespace
+threads
 throw_exception
 typedef_array_member
 typedef_class

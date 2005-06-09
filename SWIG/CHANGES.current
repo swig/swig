@@ -1,6 +1,14 @@
 Version 1.3.25 (June 11, 2005)
 ==============================
 
+06/08/2005: wsfulton
+            Fix for when a base class defines a symbol as a member variable and a derived class defines
+            the same symbol as a member method.
+
+06/08/2005: wsfulton
+            [C#] More fixes for virtual/new/override modifiers - when a method has protected access 
+            in base and public access in derived class.
+
 06/02/2005: wsfulton
             Fix #1066363 - Follow convention of release tarball name matching directory name.
 
