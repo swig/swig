@@ -147,8 +147,9 @@ CPP_TEST_CASES += \
 	ignore_parameter \
 	import_nomodule \
 	inherit_missing \
-	inline_initializer \
+	inherit_same_name \
 	inherit_void_arg \
+	inline_initializer \
 	kind \
 	li_carrays \
 	li_cdata \
