@@ -63,7 +63,8 @@ class Allocate : public Dispatcher {
   int extendmode;
 
   /* Checks if a function, n, is the same as any in the base class, ie if the method is polymorphic.
-   * Also checks for methods which will be hidden (ie a base has an identical non-virtual method). */
+   * Also checks for methods which will be hidden (ie a base has an identical non-virtual method).
+   * Both methods must have public access for a match to occur. */
   int function_is_defined_in_bases(Node *n, Node *bases) {
 
     if (!bases)
@@ -122,13 +123,14 @@ class Allocate : public Dispatcher {
     return 0;
   }
 
+  /* Helper function for function_is_defined_in_bases */
   int function_is_defined_in_bases_seek(Node *n, Node *b, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
 
     String *base_decl = Getattr(base, "decl");
     SwigType *base_type = Getattr(base, "type");
     if (base_decl && base_type) {
       if (checkAttribute(base, "name", name) && !Getattr(b, "feature:ignore") /* whole class is ignored */ ) {
-	if (SwigType_isfunction(resolved_decl)) {
+	if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
 	  // We have found a method that has the same name as one in a base class
 	  bool covariant_returntype  = false;
 	  bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
@@ -203,9 +205,10 @@ class Allocate : public Dispatcher {
 
 	      if (!most_base_covariant_type) {
 		// Eliminate the derived virtual method.
-		if (virtual_elimination_mode) {
-		  Setattr(n,"feature:ignore", "1");
-		}
+		if (virtual_elimination_mode)
+		  if (both_have_public_access)
+		    if (!is_non_public_base(inclass, b))
+		      Setattr(n,"feature:ignore", "1");
 	      } else {
 		// Some languages need to know about covariant return types
 		Setattr(n, "covariant", most_base_covariant_type);
@@ -217,7 +220,8 @@ class Allocate : public Dispatcher {
                 if (!is_non_public_base(inclass, b))
                   Setattr(n, "hides", base);
 	    }
-	    return 1;
+	    if (both_have_public_access)
+	      return 1;
 	  }
 	}
       }
