@@ -7,6 +7,10 @@
 template<typename T> class Base {
 public:
   virtual ~Base() {}
+  virtual int *PublicProtectedPublic1() { return 0; }
+  int *PublicProtectedPublic2() { return 0; }
+  virtual int *PublicProtectedPublic3() { return 0; }
+  int *PublicProtectedPublic4() { return 0; }
 protected:
   virtual int * WasProtected1() { return 0; }
   int * WasProtected2() { return 0; }
@@ -20,6 +24,11 @@ public:
   int * WasProtected2() { return 0; }
   using Base<T>::WasProtected3;
   using Base<T>::WasProtected4;
+protected:
+  virtual int *PublicProtectedPublic1() { return 0; }
+  int *PublicProtectedPublic2() { return 0; }
+  using Base<T>::PublicProtectedPublic3;
+  using Base<T>::PublicProtectedPublic4;
 };
 
 template<typename T> class Bottom : public Derived<T> {
@@ -28,6 +37,10 @@ public:
   int * WasProtected2() { return 0; }
   using Base<T>::WasProtected3;
   using Base<T>::WasProtected4;
+  int *PublicProtectedPublic1() { return 0; }
+  int *PublicProtectedPublic2() { return 0; }
+  int *PublicProtectedPublic3() { return 0; }
+  int *PublicProtectedPublic4() { return 0; }
 };
 %}
 
