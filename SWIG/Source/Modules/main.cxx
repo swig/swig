@@ -84,7 +84,7 @@ static const char *usage2 = (const char*)"\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
      -nopreprocess   - Skip the preprocessor step\n\
-     -notemplatereduce - Disable reduccion of the typedefs in templates \n\
+     -notemplatereduce - Disable reduction of the typedefs in templates \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
