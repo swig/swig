@@ -38,5 +38,6 @@ extern "C" void* working(void* t);
       sleep(1);
       f->do_foo();
     }
+    return 0;
   }
 }
