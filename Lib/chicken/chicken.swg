@@ -686,7 +686,7 @@ SWIGEXPORT void SWIG_init(C_word, C_word, C_word) C_noret;
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGEXPORTvoid SWIG_init(C_word argc, C_word closure, C_word continuation) {
+SWIGEXPORT void SWIG_init(C_word argc, C_word closure, C_word continuation) {
   int       i;
   C_word sym;
   C_word tmp;
