@@ -31,14 +31,15 @@ include $(srcdir)/../common.mk
 
 # override the default in common.mk by adding SWIGOPT +=
 swig_and_compile_multi_cpp = \
-	export SWIGOPT=" -runtime "; \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  SWIGOPT=" -runtime "; \
+	  export SWIGOPT; \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $$SWIGOPT" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
-	  export SWIGOPT=" -noruntime "; \
+	  SWIGOPT=" -noruntime "; \
 	done
 
 %.multicpptest: 
