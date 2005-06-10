@@ -330,9 +330,14 @@ typedef unsigned long SCM;
   $1 = SCM_STRINGP($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
   $1 = !SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  $1 = !SWIG_ConvertPtr($input, &ptr, $&descriptor, 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
