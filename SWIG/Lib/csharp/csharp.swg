@@ -653,22 +653,22 @@ using System.Runtime.InteropServices;
 
 /*
 // Alternative char * typemaps.
-// Warning the GC may collect the SWIGStringMarshal instance while the unmanaged code is executing, so these typemaps should be avoided.
 %pragma(csharp) imclasscode=%{
-  public class SWIGStringMarshal {
-    public readonly IntPtr ptr;
+  public class SWIGStringMarshal : IDisposable {
+    public readonly HandleRef swigCPtr;
     public SWIGStringMarshal(string str) {
-      ptr = System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str);
+      swigCPtr = new HandleRef(this, System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str));
     }
-    ~SWIGStringMarshal() {
-      System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
+    public virtual void Dispose() {
+      System.Runtime.InteropServices.Marshal.FreeHGlobal(swigCPtr.Handle);
+      GC.SuppressFinalize(this);
     }
   }
 %}
 
-%typemap(imtype) char *, char[ANY], char[]   "IntPtr"
+%typemap(imtype, out="IntPtr") char *, char[ANY], char[]   "HandleRef"
 %typemap(out) char *, char[ANY], char[] %{ $result = $1; %}
-%typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).ptr"
+%typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).swigCPtr"
 %typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
     string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
     return ret;
