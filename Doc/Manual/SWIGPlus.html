@@ -3406,12 +3406,12 @@ in a different namespace.  For example:
 <div class="code">
 <pre>
 namespace foo {
-    template&lt;typename T&gt; max(T a, T b) { return a &gt; b ? a : b; }
+    template&lt;typename T&gt; T max(T a, T b) { return a &gt; b ? a : b; }
 }
 
 using foo::max;
 
-%template(maxint)   max&lt;int&gt;            // Okay.
+%template(maxint)   max&lt;int&gt;;           // Okay.
 %template(maxfloat) foo::max&lt;float&gt;;    // Okay (qualified name).
 
 namespace bar {
