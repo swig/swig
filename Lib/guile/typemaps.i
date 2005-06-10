@@ -8,10 +8,12 @@
 %typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
 }
+%typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
 
 %typemap(in) void * {
   $1 = SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
+%typemap(freearg) void * "";
 
 %typemap(varin) SWIGTYPE * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0);
@@ -258,10 +260,14 @@
 
 %typemap (freearg) char *OUTPUT, char *BOTH "";
 
-/* If we set a string variable, delete the old result first. */
+/* If we set a string variable, delete the old result first, unless const. */
 
 %typemap (varin) char * {
     if ($1) free($1);
+    $1 = SWIG_scm2str($input);
+}
+
+%typemap (varin) const char * {
     $1 = SWIG_scm2str($input);
 }
 
