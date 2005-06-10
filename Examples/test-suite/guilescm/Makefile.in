@@ -22,3 +22,12 @@ setup = \
 	else								  \
 	  echo "Checking testcase $* under $(LANGUAGE) (with SCM API)" ;		  \
 	fi;
+
+swig_and_compile_multi_cpp = \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $$SWIGOPT" NOLINK=true \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
+	  $(LANGUAGE)$(VARIANT)_cpp; \
+	done
