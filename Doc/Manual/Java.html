@@ -2804,7 +2804,8 @@ public final class Beverage {
   }
 
   public static Beverage swigToEnum(int swigValue) {
-    if (swigValue &lt; swigValues.length &amp;&amp; swigValues[swigValue].swigValue == swigValue)
+    if (swigValue &lt; swigValues.length &amp;&amp; swigValue &gt;= 0 &amp;&amp;
+        swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
     for (int i = 0; i &lt; swigValues.length; i++)
       if (swigValues[i].swigValue == swigValue)
@@ -2876,7 +2877,8 @@ public enum Beverage {
 
   public static Beverage swigToEnum(int swigValue) {
     Beverage[] swigValues = Beverage.class.getEnumConstants();
-    if (swigValue &lt; swigValues.length &amp;&amp; swigValues[swigValue].swigValue == swigValue)
+    if (swigValue &lt; swigValues.length &amp;&amp; swigValue &gt;= 0 &amp;&amp;
+        swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
     for (Beverage swigEnum : swigValues)
       if (swigEnum.swigValue == swigValue)
