@@ -122,7 +122,17 @@
 /* Enums */
 
 %typemap(in)     enum SWIGTYPE  { $1 = ($1_type) gh_scm2int($input); }
-%typemap(varin)  enum SWIGTYPE  { $1 = ($1_type) gh_scm2int($input); }
+/* The complicated construction below needed to deal with anonymous
+   enums, which cannot be cast to. */
+%typemap(varin)  enum SWIGTYPE  {
+  if (sizeof(int) != sizeof($1)) {
+    scm_error(scm_str2symbol("swig-error"),
+	      (char *) FUNC_NAME,
+	      (char *) "enum variable '$name' cannot be set",
+	      SCM_EOL, SCM_BOOL_F); 
+  }
+  * (int *) &($1) = gh_scm2int($input);
+}
 %typemap(out)    enum SWIGTYPE  { $result = gh_int2scm($1); }
 %typemap(varout) enum SWIGTYPE  { $result = gh_int2scm($1); }
 
