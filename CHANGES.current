@@ -1,6 +1,9 @@
 Version 1.3.25 (June 11, 2005)
 ==============================
 
+06/11/2006: mkoeppe
+	    [Guile] Fix handling of anonymous-enum variables.
+
 06/10/2005: mkoeppe
 	    [Guile] Fix for function arguments that are passed by
 	    copy-of-value.  Fix for global "const char *" variables.
