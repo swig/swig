@@ -6,6 +6,13 @@
 #include "gifplot.h"
 %}
 
+#if defined(SWIGJAVA ) || defined(SWIGPHP4)
+  %rename(make_default) ColorMap::default();
+#endif
+
+%rename(__getitem__)  ColorMap::getitem(int index);
+%rename(__setitem__)  ColorMap::setitem(int index, int value);
+
 /* Pixel is 8-bits */
 
 typedef unsigned char Pixel;
@@ -28,14 +35,10 @@ typedef struct ColorMap {
   %extend {
     ColorMap(char *filename);
     ~ColorMap();
-#if defined(SWIGJAVA ) || defined(SWIGPHP4)
-    %name(make_default) void        default();
-#else
     void        default();
-#endif
     void        assign(int index,int r, int g, int b);
-    %name(__getitem__)  int getitem(int index);
-    %name(__setitem__)  void setitem(int index, int value);
+    int getitem(int index);
+    void setitem(int index, int value);
     int         write(char *filename);
   }
 } ColorMap;
