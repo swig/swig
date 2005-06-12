@@ -25,6 +25,7 @@ You can also find SWIG in the following locations :
 <ul>
 <li> <a href="http://cgi.debian.org/www-master/debian.org/Packages/stable/interpreters/swig.html">Debian GNU/Linux</a>.
 <li> <a href="http://www.freebsd.org/ports/devel.html">FreeBSD</a>.
+<li> <a href="http://www.cygwin.com">Cygwin</a>.
 <li> <a href="http://www.oreilly.com/catalog/python/noframes.html">Programming Python</a> (Included on CD-ROM).
 <li> <a href="http://www.mkp.com/books_catalog/0-12261-205-1.asp">Tcl/Tk for Real Programmers</a> (Included on CD-ROM).
 </ul>
