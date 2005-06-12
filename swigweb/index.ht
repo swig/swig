@@ -32,6 +32,10 @@ and non-commercial use.
 
 
 <p>
+<b>2005/06/11</b>
+SWIG-1.3.25 has been released.  This largely contains bug fixes and enhancements to the C# module and the runtime type system.
+
+<p>
 <b>2005/03/25</b>
 Greg Stein gives a <a href=http://www.sauria.com/~twl/conferences/pycon2005/20050325/Python%20at%20Google.notes>keynote speech</a> about Google's use of Python and SWIG at the PyCon 2005 conference.
 
