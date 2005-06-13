@@ -1515,10 +1515,10 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       {	
 	const char* dclass[3] = {"struct ", "union ", "class "};
 	int i;
+	char * c = Char(nt);
 	for (i=0; i<3; i++) {
-	  char * c = Char(nt);
 	  if (strstr(c, dclass[i]) == c) {
-	    Replace(nt,dclass[i],"", DOH_REPLACE_FIRST);
+	    Replace(nt,dclass[i],"", DOH_REPLACE_FIRST); 
 	  }
 	}
       }
