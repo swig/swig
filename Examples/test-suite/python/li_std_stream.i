@@ -4,7 +4,6 @@
   struct A;  
 %}
 
-%include <wchar.i>
 %include <std_iostream.i>
 %include <std_sstream.i>
 
