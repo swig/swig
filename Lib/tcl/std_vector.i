@@ -425,7 +425,7 @@ namespace std {
     specialize_std_vector(short, SwigInt_As<short>, Tcl_NewIntObj);
     specialize_std_vector(long, SwigInt_As<long>, Tcl_NewIntObj);
     specialize_std_vector(unsigned char, 
-                          SwigInt_As<unsigned int>, Tcl_NewIntObj);
+                          SwigInt_As<unsigned char>, Tcl_NewIntObj);
     specialize_std_vector(unsigned int, 
                           SwigInt_As<unsigned int>, Tcl_NewIntObj);
     specialize_std_vector(unsigned short, 
