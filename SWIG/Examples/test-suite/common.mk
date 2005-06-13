@@ -272,6 +272,7 @@ CPP_TEST_CASES += \
 	template_typedef_fnc \
 	template_typedef_ns \
 	template_typedef_ptr \
+	template_using \
 	template_virtual \
 	template_whitespace \
 	threads \
