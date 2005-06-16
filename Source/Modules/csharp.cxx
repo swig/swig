@@ -1620,7 +1620,7 @@ class CSHARP : public Language {
         if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
           String *inattributes = Getattr(p,"tmap:cstype:inattributes");
-          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, (const String *)tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
