@@ -23,6 +23,14 @@ extern "C" {
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
   SWIG_MzScheme_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
 
+#define SWIG_contract_assert(expr,msg) \
+ if (!(expr)) { \
+    char *m=(char *) scheme_malloc(strlen(msg)+1000); \
+    sprintf(m,"SWIG contract, assertion failed: function=%s, message=%s", \
+            (char *) FUNC_NAME,(char *) msg); \
+    scheme_signal_error(m); \
+ }
+
 /* Runtime API */
 #define SWIG_GetModule(clientdata) SWIG_MzScheme_GetModule((Scheme_Env *)(clientdata))
 #define SWIG_SetModule(clientdata, pointer) SWIG_MzScheme_SetModule((Scheme_Env *) (clientdata), pointer)
