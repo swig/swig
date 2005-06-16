@@ -670,7 +670,7 @@ public:
     if (maybe_delimiter && Len(output) > 0 && Len(tm) > 0) {
       Printv(output, maybe_delimiter, NIL);
     }
-    const String *pn = (name == NULL) ? Getattr(p,"name") : name;
+    const String *pn = (name == NULL) ? (const String *)Getattr(p,"name") : name;
     String *pt = Getattr(p,"type");
     Replaceall(tm, "$name", pn); // legacy for $parmname
     Replaceall(tm, "$type", SwigType_str(pt,0));
