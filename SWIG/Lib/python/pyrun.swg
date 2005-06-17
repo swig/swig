@@ -55,6 +55,20 @@ extern "C" {
 #define SWIG_BUFFER_SIZE 1024
 #endif
 
+/* A crude PyString_FromFormat implementation for old Pythons */
+#if PY_VERSION_HEX < 0x02020000
+static PyObject *
+PyString_FromFormat(const char *fmt, ...) {
+  va_list ap;
+  char buf[SWIG_BUFFER_SIZE * 2];
+  int res;
+  va_start(ap, fmt);
+  res = vsnprintf(buf, sizeof(buf), fmt, ap);
+  va_end(ap);
+  return (res < 0 || res >= sizeof(buf)) ? 0 : PyString_FromString(buf);
+}
+#endif
+
 #if defined(SWIG_COBJECT_TYPES)
 #if !defined(SWIG_COBJECT_PYTHON)
 /* -----------------------------------------------------------------------------
@@ -180,8 +194,10 @@ PySwigObject_type(void) {
     (unaryfunc)0,                 /*nb_float*/
     (unaryfunc)PySwigObject_oct,  /*nb_oct*/
     (unaryfunc)PySwigObject_hex,  /*nb_hex*/
-#if PY_VERSION_HEX >= 0x02000000
+#if PY_VERSION_HEX >= 0x02020000
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_true_divide */ 
+#elif PY_VERSION_HEX >= 0x02000000
+    0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_or */
 #endif
   };
 
@@ -313,7 +329,7 @@ PySwigPacked_str(PySwigPacked *v)
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))){
     return PyString_FromFormat("%s%s", result, v->desc);
   } else {
-    return PyString_FromFormat("%s", v->desc);
+    return PyString_FromString(v->desc);
   }  
 }
 
