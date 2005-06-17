@@ -15,6 +15,22 @@ public:
          return data;
      }
 };
+
+
+
+class Foo
+{
+};
+
+typedef Foo FooBar;
+
+class CBaz
+{
+public:
+  typedef FooBar Foo;
+};
+
+
 %}
 
 

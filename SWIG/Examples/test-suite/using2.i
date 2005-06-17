@@ -1,5 +1,9 @@
 %module using2
 
+%warnfilter(315);
+
+using ::baz;
+
 %warnfilter(801) X::_FooImpl;	/* Ruby, wrong class name */
 
 %inline %{
@@ -19,4 +23,5 @@ using Y::Foo;
 
 int spam(Foo::value_type x) { return x; }
 
+ 
 %}
