@@ -492,12 +492,23 @@
 }
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
-	 long long, unsigned long long,
-	 const long long &, const unsigned long long &
-{
-  Tcl_WideInt tmp;
-  if (Tcl_GetWideIntFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
-  else $1 = 1;
+	 long long, const long long &
+{ 
+  int len;
+  char *end = 0;  
+  char *str = Tcl_GetStringFromObj($input, &len);
+  strtoll(str, &end, 0);
+  $1 = (end != 0) && (*end != '\0') && (str != end) && (errno == 0);
+}
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 unsigned long long, const unsigned long long &
+{ 
+  int len;
+  char *end = 0;  
+  char *str = Tcl_GetStringFromObj($input, &len);
+  strtoull(str, &end, 0);
+  $1 = (end != 0) && (*end != '\0') && (str != end) && (errno == 0);
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
