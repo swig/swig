@@ -2,7 +2,11 @@
 %include <std_basic_string.i>
 %include <std_except.i>
 %{
-#include <ios>
+#ifndef SWIG_STD_NOMODERN_STL
+# include <ios>
+#else
+# include <streambuf.h>
+#endif
 %}
 
 namespace std {

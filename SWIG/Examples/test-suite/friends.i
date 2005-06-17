@@ -1,6 +1,6 @@
 %module friends
 %{
-#include <istream>
+#include <iostream>
 %}
 
 %warnfilter(503);

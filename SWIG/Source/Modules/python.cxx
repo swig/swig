@@ -390,7 +390,8 @@ public:
         // Try loading weakref.proxy, which is only available in Python 2.1 and higher
         Printv(f_shadow,
                "try:\n",
-	       tab4, "from weakref import proxy as weakref_proxy\n",
+	       tab4, "import weakref\n",
+	       tab4, "weakref_proxy = weakref.proxy\n",
 	       "except:\n",
 	       tab4, "weakref_proxy = lambda x: x\n",
 	       "\n\n",
