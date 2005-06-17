@@ -1009,8 +1009,10 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   /* Check if s is a 'using' node */
   while (s && Strcmp(nodeType(s),k_using) == 0) {
-    Node *ss;
-    ss = Swig_symbol_clookup(Getattr(s,k_uname), Getattr(s,k_symsymtab));
+    String *uname = Getattr(s,k_uname);
+    Symtab *un = Getattr(s,k_symsymtab);
+    Node *ss = (Strcmp(name,uname) || (un != n)) ?
+      Swig_symbol_clookup(uname, un) : 0; /* avoid infinity loop */
     if (!ss) {
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,k_uname));
     }
