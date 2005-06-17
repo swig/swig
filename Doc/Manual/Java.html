@@ -121,6 +121,7 @@
 <li><a href="#adding_downcasts">Adding Java downcasts to polymorphic return types</a>
 <li><a href="#adding_equals_method">Adding an equals method to the Java classes</a>
 <li><a href="#void_pointers">Void pointers and a common Java base class</a>
+<li><a href="#struct_pointer_pointer">Struct pointer to pointer</a>
 </ul>
 <li><a href="#java_directors_faq">Living with Java Directors</a>
 <li><a href="#odds_ends">Odds and ends</a>
@@ -5985,6 +5986,173 @@ This example contains some useful functionality which you may want in your code.
     <li> It has an <tt>equals()</tt> method. Unlike the previous example, the method code isn't replicated in all classes.
     <li> It also has a function which effectively implements a cast from the type of the proxy/type wrapper class to a void pointer. This is necessary for passing a proxy class or a type wrapper class to a function that takes a void pointer.
 </ul>
+
+<H3><a name="struct_pointer_pointer"></a>Struct pointer to pointer</H3>
+<p>
+Pointers to pointers are often used as output parameters in C code in factory type functions.
+These are a bit more tricky to handle.
+Consider the following situation where a <tt>Butler</tt> can be created/hired and fired:
+</p>
+
+<div class="code">
+<pre>
+typedef struct 
+{
+  int hoursAvailable;
+  char *greeting;
+} Butler;
+
+// Note: HireButler will allocate the memory 
+// The caller must free the memory by calling FireButler()!!
+extern int HireButler(Butler **ppButler);
+extern void FireButler(Butler *pButler);
+</pre>
+</div>
+
+<p>
+C code implementation:
+</p>
+
+<div class="code">
+<pre>
+int HireButler(Butler **ppButler) {
+  Butler *pButler = (Butler *)malloc(sizeof(Butler));
+  pButler-&gt;hoursAvailable = 24;
+  pButler-&gt;greeting = (char *)malloc(32);
+  strcpy(pButler-&gt;greeting, "At your service Sir");
+  *ppButler = pButler;
+  return 1;
+}
+void FireButler(Butler *pButler) {
+  free(pButler-&gt;greeting);
+  free(pButler);
+}
+</pre>
+</div>
+
+<p>
+The memory ownership is very C oriented.
+We could make it slightly more object oriented and get the Java proxy class's finalizer call the <tt>FireButler()</tt> function to clean up the memory.
+The proxy class will thus take ownership of the memory and clean it up when no longer needed.
+We will also ensure that the proxy class's public constructor does not actually create any C object.
+The only way a Java user can then create a Butler is via the <tt>HireButler()</tt> method.
+A number of typemaps and features are needed to implement this. 
+The code that follows implements does this and should be put in the interface file before SWIG parses the above C code.
+</p>
+
+<div class="code">
+<pre>
+%nodefault Butler;
+
+// Don't wrap the function which frees the memory
+%ignore FireButler(Butler *pButler);
+
+// Add in a custom proxy destructor
+%extend Butler {
+  ~Butler() {
+     FireButler(self);
+   }
+}
+
+// Typemaps for marshalling Butler **
+%typemap(jni) Butler ** "jobject"
+%typemap(jtype) Butler ** "Butler"
+%typemap(jstype) Butler ** "Butler"
+%typemap(javacode) Butler %{
+  /** This constructor creates the proxy which initially doesn't own any C memory */
+  public Butler() {
+    this(0, false);
+  }
+%}
+%typemap(in) Butler ** (Butler *ppButler = 0) %{
+  $1 = &ppButler;
+%}
+%typemap(argout) Butler ** {
+  // Give Java proxy the C pointer (of newly created object)
+  jclass clazz = (*jenv)-&gt;FindClass(jenv, "Butler");
+  jfieldID fid = (*jenv)-&gt;GetFieldID(jenv, clazz, "swigCPtr", "J");
+  jlong cPtr = 0;
+  *(Butler **)(void *)&amp;cPtr = *$1;
+  (*jenv)-&gt;SetLongField(jenv, $input, fid, cPtr);
+  // Get Java proxy to take ownership of the C memory
+  fid = (*jenv)-&gt;GetFieldID(jenv, clazz, "swigCMemOwn", "Z");
+  (*jenv)-&gt;SetBooleanField(jenv, $input, fid, JNI_TRUE);
+}
+%typemap(javain) Butler ** "$javainput"
+
+</pre>
+</div>
+
+<p>
+Usage from Java is simply:
+</p>
+
+<div class="code">
+<pre>
+Butler jeeves = new Butler();
+example.HireButler(jeeves);
+System.out.println("Greeting:     " + jeeves.getGreeting());
+System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
+jeeves.delete(); // optional
+jeeves.delete(); // inadvertant multiple calls are safe, the memory is only deleted once
+</pre>
+</div>
+
+<p>
+Output when run is:
+<p>
+
+<div class="shell">
+<pre>
+$ java main
+Greeting:     At your service Sir
+Availability: 24 hours per day
+</pre>
+</div>
+
+<p>
+Note that the user can decide when the underlying C memory is free'd by calling the <tt>delete()</tt> method. 
+However this is not necessary and the garbage collector will collect the object and call the finalizer, which in turn calls <tt>delete()</tt> which in turn calls 
+<tt>FireButler()</tt>.
+There are many variations on how this code could be wrapped. 
+For example the <tt>HireButler()</tt> method could be ignored and a proxy constructor added to call this method instead.
+The code would be similar, except the <tt>javacode</tt> typemap would not be used and the following would be added:
+</p>
+
+<div class="code">
+<pre>
+// Don't wrap the HireButler method
+%ignore HireButler(Butler **ppButler);
+
+// Add custom proxy constructor which calls the HireButler method
+%extend Butler {
+  Butler() {
+    Butler *pButler = 0;
+    HireButler(&amp;pButler);
+    return pButler;
+  }
+}
+</pre>
+</div>
+
+<p>
+The following Java code would then be all that is necessary:
+</p>
+
+<div class="code">
+<pre>
+    Butler jeeves = new Butler();
+    System.out.println("Greeting:     " + jeeves.getGreeting());
+    System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
+    jeeves.delete(); // optional
+    jeeves.delete(); // inadvertant multiple calls are safe, the memory is only deleted once
+</pre>
+</div>
+
+<p>
+Other alternatives would be to have no proxy constructors/finalizers and to expose both of the C methods to Java users.
+</p>
+
 
 <H2><a name="java_directors_faq"></a>19.10 Living with Java Directors</H2>
 
