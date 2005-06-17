@@ -567,7 +567,7 @@ class CSHARP : public Language {
       /* Get the intermediary class parameter types of the parameter */
       if ((tm = Getattr(p,"tmap:imtype"))) {
         String *inattributes = Getattr(p,"tmap:imtype:inattributes");
-        Printf(im_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+        Printf(im_param_type, "%s%s", inattributes ? (const String *)inattributes : empty_string, tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
             "No imtype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1620,7 +1620,7 @@ class CSHARP : public Language {
         if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
           String *inattributes = Getattr(p,"tmap:cstype:inattributes");
-          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, (const String *)tm);
+          Printf(param_type, "%s%s", inattributes ? (const String *)inattributes : empty_string, tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1800,7 +1800,7 @@ class CSHARP : public Language {
         if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
           String *inattributes = Getattr(p,"tmap:cstype:inattributes");
-          Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+          Printf(param_type, "%s%s", inattributes ? (const String *)inattributes : empty_string, tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -2028,7 +2028,7 @@ class CSHARP : public Language {
       if ((tm = Getattr(p,"tmap:cstype"))) {
         substituteClassname(pt, tm);
         String *inattributes = Getattr(p,"tmap:cstype:inattributes");
-        Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+        Printf(param_type, "%s%s", inattributes ? (const String *)inattributes : empty_string, tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
             "No cstype typemap defined for %s\n", SwigType_str(pt,0));

@@ -2795,7 +2795,7 @@ MODULA3 ():
           Printf (methods, "%s(%s)%s%s;%s\n",
                   methodname, arguments,
                   hasContent (rettype) ? ": " : "",
-                  hasContent (rettype) ? rettype : "",
+                  hasContent (rettype) ? (const String *)rettype : "",
                   isVirtual ? "  (* base method *)" : "");
         }
         {
@@ -3187,7 +3187,7 @@ MODULA3 ():
           String *inmode = getMappedTypeNew (n, "m3wrapinmode", "", false);
           String *intype = getMappedTypeNew (n, "m3wrapintype", "");
           Printf (methods, "set%s(%s val:%s);\n",
-                  m3name, (inmode != NIL) ? inmode : "", intype);
+                  m3name, (inmode != NIL) ? (const String *)inmode : "", intype);
         }
         {
           /* this was attached by functionWrapper
