@@ -5,6 +5,7 @@
  */
 
 #include <tcl.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
