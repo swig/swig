@@ -69,6 +69,10 @@ PyString_FromFormat(const char *fmt, ...) {
 }
 #endif
 
+#if PY_VERSION_HEX < 0x01060000
+#define PyObject_Del(op) PyMem_Del((op))
+#endif
+
 #if defined(SWIG_COBJECT_TYPES)
 #if !defined(SWIG_COBJECT_PYTHON)
 /* -----------------------------------------------------------------------------
@@ -162,7 +166,7 @@ PySwigObject_compare(PySwigObject *v, PySwigObject *w)
 SWIGRUNTIME void
 PySwigObject_dealloc(PySwigObject *self)
 {
-  PyObject_DEL(self);
+  PyObject_Del(self);
 }
 
 SWIGRUNTIME PyTypeObject*
@@ -351,7 +355,7 @@ SWIGRUNTIME void
 PySwigPacked_dealloc(PySwigPacked *self)
 {
   free(self->pack);
-  PyObject_DEL(self);
+  PyObject_Del(self);
 }
 
 SWIGRUNTIME PyTypeObject*
