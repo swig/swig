@@ -1,6 +1,8 @@
 /*
   Pairs
 */
+%include <pycontainer.swg>
+
 %fragment("StdPairTraits","header",
 	  fragment="StdTraits",fragment="PyObject_var") {
   namespace swig {
