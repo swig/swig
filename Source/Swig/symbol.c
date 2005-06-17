@@ -567,6 +567,31 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
       type = Copy(Getattr(td,k_type));
       SwigType_push(type,Getattr(td,k_decl));
       td1 = Swig_symbol_clookup(type,0);
+ 
+      /* Fix patetic case #1214313:
+	 
+	 class Foo
+	 {
+	 };
+	 
+	 typedef Foo FooBar;
+	 
+	 class CBaz
+	 {
+	 public:
+	 typedef FooBar Foo;
+	 };
+
+	 ie, when Foo -> FooBar -> Foo, jump one scope up when possible.
+	 
+      */
+      if (td1 && checkAttribute(td1,k_storage,k_typedef)) {
+	if (Strcmp(Getattr(td1,k_type), Getattr(td,k_name)) == 0) {
+	  Symtab *sc = parentNode(current_symtab);
+	  if (sc) td1 = Swig_symbol_clookup(type,sc);
+	}
+      }
+
       Delete(type);
       if (td1 == td) break;
       td = td1;
