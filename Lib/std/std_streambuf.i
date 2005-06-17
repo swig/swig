@@ -1,6 +1,10 @@
 %include <std_ios.i>
 %{
+#ifndef SWIG_STD_NOMODERN_STL
 #include <streambuf>
+#else
+#include <streambuf.h>
+#endif
 %}
 
 namespace std {

@@ -254,38 +254,6 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
  *  Initialize type list
  * -----------------------------------------------------------------------------*/
 
-#if PY_MAJOR_VERSION < 2
-/* PyModule_AddObject function was introduced in Python 2.0.  The following function
-is copied out of Python/modsupport.c in python version 2.3.4 */
-SWIGINTERN int
-PyModule_AddObject(PyObject *m, char *name, PyObject *o)
-{
-  PyObject *dict;
-  if (!PyModule_Check(m)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "PyModule_AddObject() needs module as first arg");
-    return -1;
-  }
-  if (!o) {
-    PyErr_SetString(PyExc_TypeError,
-		    "PyModule_AddObject() needs non-NULL value");
-    return -1;
-  }
-  
-  dict = PyModule_GetDict(m);
-  if (dict == NULL) {
-    /* Internal error -- modules must have a dict! */
-    PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
-		 PyModule_GetName(m));
-    return -1;
-  }
-  if (PyDict_SetItemString(dict, name, o))
-    return -1;
-  Py_DECREF(o);
-  return 0;
-}
-#endif
-
 #ifdef __cplusplus
 }
 #endif

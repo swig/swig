@@ -70,7 +70,7 @@ PyString_FromFormat(const char *fmt, ...) {
 #endif
 
 #if PY_VERSION_HEX < 0x01060000
-#define PyObject_Del(op) PyMem_Del((op))
+#define PyObject_Del(op) PyMem_DEL((op))
 #endif
 
 #if defined(SWIG_COBJECT_TYPES)
@@ -787,6 +787,38 @@ SWIG_Python_GetModule(void) {
 #endif
   return (swig_module_info *) type_pointer;
 }
+
+#if PY_MAJOR_VERSION < 2
+/* PyModule_AddObject function was introduced in Python 2.0.  The following function
+is copied out of Python/modsupport.c in python version 2.3.4 */
+SWIGINTERN int
+PyModule_AddObject(PyObject *m, char *name, PyObject *o)
+{
+  PyObject *dict;
+  if (!PyModule_Check(m)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "PyModule_AddObject() needs module as first arg");
+    return -1;
+  }
+  if (!o) {
+    PyErr_SetString(PyExc_TypeError,
+		    "PyModule_AddObject() needs non-NULL value");
+    return -1;
+  }
+  
+  dict = PyModule_GetDict(m);
+  if (dict == NULL) {
+    /* Internal error -- modules must have a dict! */
+    PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
+		 PyModule_GetName(m));
+    return -1;
+  }
+  if (PyDict_SetItemString(dict, name, o))
+    return -1;
+  Py_DECREF(o);
+  return 0;
+}
+#endif
 
 SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {

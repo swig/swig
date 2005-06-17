@@ -16,6 +16,14 @@
 #define SWIG_STD_NOINSERT_TEMPLATE_STL
 #endif
 
+
+#if defined(__GNUC__)
+#  if __GNUC__ == 2 && __GNUC_MINOR <= 96
+#     define SWIG_STD_NOMODERN_STL
+#  endif
+#endif
+
+
 %}
 
 //
