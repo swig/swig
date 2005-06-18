@@ -799,38 +799,41 @@ int Language::cDeclaration(Node *n) {
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
       f_header = Swig_filebyname("header");
+      /* 
+	 in C++ mode we can't emit a extern declaration derived from
+	 the definition, for example, if we have
 
-      if (!NoExtern) {
-	if (f_header) {
-	  if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
-	    /* we don't need the 'extern' part in the C/C++ declaration,
-	       and it produces some problems when namespace and SUN
-	       Studio is used.
+	   --- foo.c ---
+	   int foo(int bar) {
+	   }
+	   --- foo.c ---
 
-	       Printf(f_header,"extern %s", SwigType_str(ty,name));
-	    */
-	    String *str = SwigType_str(ty,name);
-	    Printf(f_header,"%s", str);
-	    Delete(str);
-	    {
-	      DOH *t = Getattr(n,"throws");
-	      if (t) {
-		Printf(f_header,"throw(");
-		while (t) {
-		  Printf(f_header,"%s", Getattr(t,"type"));
-		  t = nextSibling(t);
-		  if (t) Printf(f_header,",");
-		}
-		Printf(f_header,")");
-	      }
+	 we could be tempted to declare
+
+	   extern int foo(int bar);
+
+	 but the real declaration could be:
+	 
+	   extern int foo(int bar = 1);
+
+	 hence, the user MUST provide the declaration, and swig
+	 shouldn't attempt to deduce it.
+      */
+      if (f_header) {
+	int extern_c = Cmp(storage,"externc") == 0;
+	int need_extern = CPlusPlus ? extern_c : 1;
+	if (!NoExtern && need_extern) {
+	  String *str = SwigType_str(ty,name);
+	  if ((storage && Strstr(storage,"extern")) || (ForceExtern && !storage)) {
+	    Printf(f_header,"extern ", str);
+	    if (extern_c) {
+	      /* here 'extern "C"' is needed */
+	      Printf(f_header, "\"C\" ");
 	    }
-	    Printf(f_header,";\n");
-	  } else if (Cmp(storage,"externc") == 0) {
-	    /* here 'extern "C"' is needed */
-	    String *str = SwigType_str(ty,name);
-	    Printf(f_header, "extern \"C\" %s;\n", str);
-	    Delete(str);
 	  }
+	  Printf(f_header,"%s", str);
+	  Delete(str);
+	  Printf(f_header,";\n");
 	}
       }
     }

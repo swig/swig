@@ -138,6 +138,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
+	extern_namespace \
 	extern_throws \
 	features \
 	friends \
