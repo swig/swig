@@ -823,17 +823,17 @@ int Language::cDeclaration(Node *n) {
 	int extern_c = Cmp(storage,"externc") == 0;
 	int need_extern = CPlusPlus ? extern_c : 1;
 	if (!NoExtern && need_extern) {
-	  String *str = SwigType_str(ty,name);
 	  if ((storage && Strstr(storage,"extern")) || (ForceExtern && !storage)) {
+	    String *str = SwigType_str(ty,name);
 	    Printf(f_header,"extern ", str);
 	    if (extern_c) {
 	      /* here 'extern "C"' is needed */
 	      Printf(f_header, "\"C\" ");
 	    }
+	    Printf(f_header,"%s", str);
+	    Delete(str);
+	    Printf(f_header,";\n");
 	  }
-	  Printf(f_header,"%s", str);
-	  Delete(str);
-	  Printf(f_header,";\n");
 	}
       }
     }
