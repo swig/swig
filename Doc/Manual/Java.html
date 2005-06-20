@@ -5077,7 +5077,7 @@ public static void setHair(HairType h) {
 
 public static HairType getHair() {
   return HairType.class.getEnumConstants()[exampleJNI.getHair()];
-}/
+}
 </pre>
 </div>
 
@@ -5989,15 +5989,14 @@ This example contains some useful functionality which you may want in your code.
 
 <H3><a name="struct_pointer_pointer"></a>Struct pointer to pointer</H3>
 <p>
-Pointers to pointers are often used as output parameters in C code in factory type functions.
+Pointers to pointers are often used as output parameters in C factory type functions.
 These are a bit more tricky to handle.
-Consider the following situation where a <tt>Butler</tt> can be created/hired and fired:
+Consider the following situation where a <tt>Butler</tt> can be hired and fired:
 </p>
 
 <div class="code">
 <pre>
-typedef struct 
-{
+typedef struct {
   int hoursAvailable;
   char *greeting;
 } Butler;
@@ -6031,39 +6030,61 @@ void FireButler(Butler *pButler) {
 </div>
 
 <p>
-The memory ownership is very C oriented.
-We could make it slightly more object oriented and get the Java proxy class's finalizer call the <tt>FireButler()</tt> function to clean up the memory.
-The proxy class will thus take ownership of the memory and clean it up when no longer needed.
-We will also ensure that the proxy class's public constructor does not actually create any C object.
-The only way a Java user can then create a Butler is via the <tt>HireButler()</tt> method.
-A number of typemaps and features are needed to implement this. 
-The code that follows implements does this and should be put in the interface file before SWIG parses the above C code.
+Let's take two approaches to wrapping this code.
+The first is to provide a functional interface, much like the original C interface.
+The following Java code shows how we intend the code to be used:
 </p>
 
 <div class="code">
 <pre>
+    Butler jeeves = new Butler();
+    example.HireButler(jeeves);
+    System.out.println("Greeting:     " + jeeves.getGreeting());
+    System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
+    example.FireButler(jeeves);
+</pre>
+</div>
+
+<p>
+Resulting in the following output when run:
+</p>
+
+<div class="shell">
+<pre>
+Greeting:     At your service Sir
+Availability: 24 hours per day
+</pre>
+</div>
+
+<p>
+Note the usage is very much like it would be used if we were writing C code, that is, explicit memory management is needed.
+No C memory is allocated in the construction of the <tt>Butler</tt> proxy class and 
+the proxy class will not destroy the underlying C memory when it is collected.
+A number of typemaps and features are needed to implement this approach. 
+The following interface file code should be placed before SWIG parses the above C code.
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+// Do not generate the default proxy constructor or destructor
 %nodefault Butler;
 
-// Don't wrap the function which frees the memory
-%ignore FireButler(Butler *pButler);
-
-// Add in a custom proxy destructor
-%extend Butler {
-  ~Butler() {
-     FireButler(self);
-   }
-}
-
-// Typemaps for marshalling Butler **
-%typemap(jni) Butler ** "jobject"
-%typemap(jtype) Butler ** "Butler"
-%typemap(jstype) Butler ** "Butler"
+// Add in pure Java code proxy constructor
 %typemap(javacode) Butler %{
-  /** This constructor creates the proxy which initially doesn't own any C memory */
+  /** This constructor creates the proxy which initially does not create nor own any C memory */
   public Butler() {
     this(0, false);
   }
 %}
+
+// Type typemaps for marshalling Butler **
+%typemap(jni) Butler ** "jobject"
+%typemap(jtype) Butler ** "Butler"
+%typemap(jstype) Butler ** "Butler"
+
+// Typemaps for Butler ** as a parameter output type
 %typemap(in) Butler ** (Butler *ppButler = 0) %{
   $1 = &ppButler;
 %}
@@ -6074,83 +6095,66 @@ The code that follows implements does this and should be put in the interface fi
   jlong cPtr = 0;
   *(Butler **)(void *)&amp;cPtr = *$1;
   (*jenv)-&gt;SetLongField(jenv, $input, fid, cPtr);
-  // Get Java proxy to take ownership of the C memory
-  fid = (*jenv)-&gt;GetFieldID(jenv, clazz, "swigCMemOwn", "Z");
-  (*jenv)-&gt;SetBooleanField(jenv, $input, fid, JNI_TRUE);
 }
 %typemap(javain) Butler ** "$javainput"
-
 </pre>
 </div>
 
 <p>
-Usage from Java is simply:
+Note that the JNI code sets the proxy's <tt>swigCPtr</tt> member variable to point to the newly created object.
+The <tt>swigCMemOwn</tt> remains unchanged (at false), so that the proxy does not own the memory.
+</p>
+
+<p>
+The second approach offers a more object oriented interface to the Java user.
+We do this by making the Java proxy class's
+constructor call the <tt>HireButler()</tt> method to create the underlying C object.
+Additionally we get the proxy to take ownership of the memory so that the
+finalizer will call the <tt>FireButler()</tt> function.
+The proxy class will thus take ownership of the memory and clean it up when no longer needed.
+We will also prevent the user from being able to explicitly call the <tt>HireButler()</tt> and <tt>FireButler()</tt> functions.
+Usage from Java will simply be:
 </p>
 
 <div class="code">
 <pre>
 Butler jeeves = new Butler();
-example.HireButler(jeeves);
 System.out.println("Greeting:     " + jeeves.getGreeting());
 System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
-jeeves.delete(); // optional
-jeeves.delete(); // inadvertant multiple calls are safe, the memory is only deleted once
 </pre>
 </div>
 
 <p>
-Output when run is:
-<p>
-
-<div class="shell">
-<pre>
-$ java main
-Greeting:     At your service Sir
-Availability: 24 hours per day
-</pre>
-</div>
-
-<p>
-Note that the user can decide when the underlying C memory is free'd by calling the <tt>delete()</tt> method. 
-However this is not necessary and the garbage collector will collect the object and call the finalizer, which in turn calls <tt>delete()</tt> which in turn calls 
-<tt>FireButler()</tt>.
-There are many variations on how this code could be wrapped. 
-For example the <tt>HireButler()</tt> method could be ignored and a proxy constructor added to call this method instead.
-The code would be similar, except the <tt>javacode</tt> typemap would not be used and the following would be added:
+Note that the Butler class is used just like any other Java class and no extra coding by the user needs to be written to 
+clear up the underlying C memory as the finalizer will be called by the garbage collector which in turn will call the <tt>FireButler()</tt> function.
+To implement this, we use the above interface file code but remove the <tt>javacode</tt> typemap and add the following:
 </p>
 
 <div class="code">
 <pre>
-// Don't wrap the HireButler method
+// Don't expose the memory allocation/de-allocation functions
+%ignore FireButler(Butler *pButler);
 %ignore HireButler(Butler **ppButler);
 
-// Add custom proxy constructor which calls the HireButler method
+// Add in a custom proxy constructor and destructor
 %extend Butler {
   Butler() {
     Butler *pButler = 0;
     HireButler(&amp;pButler);
     return pButler;
   }
+  ~Butler() {
+     FireButler(self);
+   }
 }
 </pre>
 </div>
 
 <p>
-The following Java code would then be all that is necessary:
-</p>
-
-<div class="code">
-<pre>
-    Butler jeeves = new Butler();
-    System.out.println("Greeting:     " + jeeves.getGreeting());
-    System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
-    jeeves.delete(); // optional
-    jeeves.delete(); // inadvertant multiple calls are safe, the memory is only deleted once
-</pre>
-</div>
-
-<p>
-Other alternatives would be to have no proxy constructors/finalizers and to expose both of the C methods to Java users.
+Not that the code in <tt>%extend</tt> is using a C++ type constructor and destructor, yet the generated code will still compile as C code,
+see <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>.
+The C functional interface has been completely morphed into an object-oriented interface and
+the Butler class would behave much like any pure Java class and feel more natural to Java users.
 </p>
 
 
@@ -6523,7 +6527,7 @@ Java classes without any finalizers generally speed up code execution as there i
 
 <p>
 However, you will have to be careful about memory management and make sure that you code in a call to the <tt>delete()</tt> member function. 
-This method calls the C++ destructor or <tt>free()</tt> for C code.
+This method normally calls the C++ destructor or <tt>free()</tt> for C code.
 </p>
 
 
