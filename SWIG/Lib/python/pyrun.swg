@@ -610,7 +610,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
       goto type_error;
     }
   } 
-  c = PyString_AS_STRING(obj);
+  c = PyString_AsString(obj);
   /* Pointer values must start with leading underscore */
   c = SWIG_UnpackVoidPtr(c, &vptr, ty->name);
   if (newref) { Py_DECREF(obj); }
@@ -679,7 +679,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
   c = PySwigPacked_UnpackData(obj, ptr, sz);
 #else
   if ((!obj) || (!PyString_Check(obj))) goto type_error;
-  c = PyString_AS_STRING(obj);
+  c = PyString_AsString(obj);
   /* Pointer values must start with leading underscore */
   c = SWIG_UnpackDataName(c, ptr, sz, ty->name);
 #endif
