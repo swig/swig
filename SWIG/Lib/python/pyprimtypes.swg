@@ -52,13 +52,6 @@
 SWIGINTERN int
   SWIG_AsVal(unsigned long)(PyObject *obj, unsigned long *val) 
 {
-  if (PyInt_Check(obj)) {
-    long v = PyInt_AsLong(obj);
-    if (v >= 0) {
-      if (val) *val = v;
-      return 1;
-    }   
-  }
   if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {
@@ -69,6 +62,13 @@ SWIGINTERN int
       return 0;
     }
   } 
+  if (PyInt_Check(obj)) {
+    long v = PyInt_AsLong(obj);
+    if (v >= 0) {
+      if (val) *val = v;
+      return 1;
+    }   
+  }
   if (val) {
     SWIG_type_error("unsigned long", obj);
   }
@@ -154,10 +154,6 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(long)(PyObject * obj, long* val)
 {
-  if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
-    return 1;
-  }
   if (PyLong_Check(obj)) {
     long v = PyLong_AsLong(obj);
     if (!PyErr_Occurred()) {
@@ -167,6 +163,10 @@ SWIGINTERN int
       if (!val) PyErr_Clear();
       return 0;
     }
+  }
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return 1;
   }
   if (val) {
     SWIG_type_error("long", obj);
