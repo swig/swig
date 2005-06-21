@@ -53,7 +53,7 @@ SWIGINTERN int
   SWIG_AsVal(unsigned long)(PyObject *obj, unsigned long *val) 
 {
   if (PyInt_Check(obj)) {
-    long v = PyInt_AS_LONG(obj);
+    long v = PyInt_AsLong(obj);
     if (v >= 0) {
       if (val) *val = v;
       return 1;
@@ -126,11 +126,11 @@ SWIGINTERN int
   SWIG_AsVal(double)(PyObject *obj, double *val)
 {
   if (PyFloat_Check(obj)) {
-    if (val) *val = PyFloat_AS_DOUBLE(obj);
+    if (val) *val = PyFloat_AsDouble(obj);
     return 1;
   }  
   if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AS_LONG(obj);
+    if (val) *val = PyInt_AsLong(obj);
     return 1;
   }
   if (PyLong_Check(obj)) {
@@ -155,7 +155,7 @@ SWIGINTERN int
   SWIG_AsVal(long)(PyObject * obj, long* val)
 {
   if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AS_LONG(obj);
+    if (val) *val = PyInt_AsLong(obj);
     return 1;
   }
   if (PyLong_Check(obj)) {
@@ -214,7 +214,7 @@ SWIGINTERN int
     }
   }
   if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AS_LONG(obj);
+    if (val) *val = PyInt_AsLong(obj);
     return 1;
   }
   if (val) {
