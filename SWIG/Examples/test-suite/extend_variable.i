@@ -6,7 +6,7 @@
 class ExtendMe {
   double var;
 public:
-  ExtendMe(){}
+  ExtendMe() : var(0.0) {}
   bool get(double &d) {
     d = var;
     return true;
@@ -19,14 +19,10 @@ public:
 %}
 
 %extend ExtendMe {
-  ExtendVar;
+  double ExtendVar;
 };
 
 %{
-namespace {
-  static double StaticVar = 0;
-}
-
 // If possible, all language modules should use this naming format for consistency
 void ExtendMe_ExtendVar_set(ExtendMe *thisptr, double value) {
   thisptr->set(value);
