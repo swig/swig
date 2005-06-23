@@ -41,6 +41,7 @@ class JAVA : public Language {
   bool   variable_wrapper_flag; // Flag for when wrapping a nonstatic member variable
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
   bool   global_variable_flag; // Flag for when wrapping a global variable
+  bool   old_variable_names;      // Flag for old style variable names in the intermediary class
   bool   member_func_flag;      // flag set when wrapping a member function
 
   String *imclass_name;  // intermediary class name
@@ -107,6 +108,7 @@ class JAVA : public Language {
     variable_wrapper_flag(false),
     wrapping_member_flag(false),
     global_variable_flag(false),
+    old_variable_names (false),
     member_func_flag(false),
 
     imclass_name(NULL),
@@ -219,6 +221,9 @@ class JAVA : public Language {
         } else if ((strcmp(argv[i],"-noproxy") == 0)) {
           Swig_mark_arg(i);
           proxy_flag = false;
+        } else if (strcmp(argv[i],"-oldvarnames") == 0) {
+          Swig_mark_arg(i);
+	  old_variable_names = true;
         } else if (strcmp(argv[i],"-jnic") == 0) {
           Swig_mark_arg(i);
           Printf(stderr,"Deprecated command line option: -jnic. C JNI calling convention now used when -c++ not specified.\n");
@@ -375,9 +380,10 @@ class JAVA : public Language {
     Delete(jniname);
 
     Swig_name_register((char*)"wrapper", Char(wrapper_name));
-    Swig_name_register((char*)"set", (char*)"set_%v");
-    Swig_name_register((char*)"get", (char*)"get_%v");
-    Swig_name_register((char*)"member", (char*)"%c_%m");
+    if (old_variable_names) {
+      Swig_name_register((char*)"set", (char*)"set_%v");
+      Swig_name_register((char*)"get", (char*)"get_%v");
+    }
 
     Delete(wrapper_name);
 
@@ -3756,5 +3762,6 @@ Java Options (available with -java)\n\
      -package <name> - set name of the Java package to <name>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
+     -oldvarnames    - old intermediary method names for variable wrappers\n\
 \n";
 

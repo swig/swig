@@ -27,6 +27,7 @@ static const char *usage = (char*)
      "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
      "-where          - Emit library location\n"
      "-suffix <name>  - Change .cxx to something else\n"
+     "-oldvarnames    - old intermediary method names for variable wrappers\n"
      "\n");
 
 static int classmode = 0;
@@ -36,6 +37,7 @@ static int static_member_function = 0;
 static int generate_sizeof = 0;
 static char *prefix=0;
 static char *ocaml_path=(char*)"ocaml";
+static bool  old_variable_names = false;
 static String *classname=0;
 static String *module=0;
 static String *init_func_def = 0;
@@ -131,6 +133,9 @@ public:
 			i++;
 		    } else
 			Swig_arg_error();
+		} else if (strcmp(argv[i],"-oldvarnames") == 0) {
+		  Swig_mark_arg(i);
+		  old_variable_names = true;
 		}
 	    }
 	}
@@ -269,8 +274,10 @@ public:
 	Swig_register_filebyname("classtemplate",f_classtemplate);
 	Swig_register_filebyname("class_ctors",f_class_ctors);
     
-	Swig_name_register("set","%v__set__");
-	Swig_name_register("get","%v__get__");
+	if (old_variable_names) {
+	  Swig_name_register("set","%v__set__");
+	  Swig_name_register("get","%v__get__");
+	}
     
 	Printf( f_runtime, 
 		"/* -*- buffer-read-only: t -*- vi: set ro: */\n" );
