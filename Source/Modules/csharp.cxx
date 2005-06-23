@@ -36,6 +36,7 @@ class CSHARP : public Language {
   bool   variable_wrapper_flag; // Flag for when wrapping a nonstatic member variable
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
   bool   global_variable_flag; // Flag for when wrapping a global variable
+  bool   old_variable_names;      // Flag for old style variable names in the intermediary class
   bool   generate_property_declaration_flag; // Flag for generating properties
 
   String *imclass_name;  // intermediary class name
@@ -89,6 +90,7 @@ class CSHARP : public Language {
     variable_wrapper_flag(false),
     wrapping_member_flag(false),
     global_variable_flag(false),
+    old_variable_names (false),
     generate_property_declaration_flag(false),
 
     imclass_name(NULL),
@@ -170,6 +172,9 @@ class CSHARP : public Language {
         } else if ((strcmp(argv[i],"-noproxy") == 0)) {
           Swig_mark_arg(i);
           proxy_flag = false;
+        } else if (strcmp(argv[i],"-oldvarnames") == 0) {
+          Swig_mark_arg(i);
+	  old_variable_names = true;
         } else if (strcmp(argv[i],"-help") == 0) {
           Printf(stdout,"%s\n", usage);
         }
@@ -256,9 +261,10 @@ class CSHARP : public Language {
 
     Printf(wrapper_name, "CSharp_%%f", imclass_name);
     Swig_name_register((char*)"wrapper", Char(wrapper_name));
-    Swig_name_register((char*)"set", (char*)"set_%v");
-    Swig_name_register((char*)"get", (char*)"get_%v");
-    Swig_name_register((char*)"member", (char*)"%c_%m");
+    if (old_variable_names) {
+      Swig_name_register((char*)"set", (char*)"set_%v");
+      Swig_name_register((char*)"get", (char*)"get_%v");
+    }
 
     Delete(wrapper_name);
 
@@ -2492,5 +2498,6 @@ C# Options (available with -csharp)\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
+     -oldvarnames    - old intermediary method names for variable wrappers\n\
 \n";
 

@@ -198,6 +198,7 @@ private:
   bool variable_wrapper_flag;   // Flag for when wrapping a nonstatic member variable
   bool wrapping_member_flag;    // Flag for when wrapping a member variable/enum/const
   bool global_variable_flag;    // Flag for when wrapping a global variable
+  bool old_variable_names;      // Flag for old style variable names in the intermediary class
   bool unsafe_module;
 
   String *m3raw_name;           // raw interface name
@@ -262,6 +263,7 @@ MODULA3 ():
     variable_wrapper_flag (false),
     wrapping_member_flag (false),
     global_variable_flag (false),
+    old_variable_names (false),
     unsafe_module (false),
     m3raw_name (NULL),
     m3raw_intf (),
@@ -794,6 +796,9 @@ MODULA3 ():
         } else if (strcmp (argv[i], "-noproxy") == 0) {
           Swig_mark_arg (i);
           proxy_flag = false;
+        } else if (strcmp(argv[i],"-oldvarnames") == 0) {
+          Swig_mark_arg(i);
+	  old_variable_names = true;
         } else if (strcmp (argv[i], "-help") == 0) {
           Printf (stdout, "%s\n", usage);
         }
@@ -1020,9 +1025,10 @@ MODULA3 ():
 
     Printf (wrapper_name, "Modula3_%%f", m3raw_name);
     Swig_name_register ((char *) "wrapper", Char (wrapper_name));
-    Swig_name_register ((char *) "set", (char *) "set_%v");
-    Swig_name_register ((char *) "get", (char *) "get_%v");
-    Swig_name_register ((char *) "member", (char *) "%c_%m");
+    if (old_variable_names) {
+      Swig_name_register ((char *) "set", (char *) "set_%v");
+      Swig_name_register ((char *) "get", (char *) "get_%v");
+    }
 
     Delete (wrapper_name);
 
@@ -4205,9 +4211,10 @@ extern "C" Language * swig_modula3 (void)
 
 const char *MODULA3::usage = (char *) "\
 Modula 3 Options (available with -modula3)\n\
-     -generateconst <file> - generate code for computing numeric values of constants\n\
-     -generaterename <file> - generate suggestions for %rename\n\
+     -generateconst <file>   - generate code for computing numeric values of constants\n\
+     -generaterename <file>  - generate suggestions for %rename\n\
      -generatetypemap <file> - generate templates for some basic typemaps\n\
+     -oldvarnames    - old intermediary method names for variable wrappers\n\
 \n";
 
 /*
