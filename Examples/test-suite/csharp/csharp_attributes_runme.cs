@@ -82,7 +82,7 @@ public class runme
     }
     // Constant - imtype typemap attributes check
     {
-      MethodInfo member = (MethodInfo)imclasstype.GetMember("get_TESTMACRO")[0];
+      MethodInfo member = (MethodInfo)imclasstype.GetMember("TESTMACRO_get")[0];
       if (Attribute.GetCustomAttribute(member, typeof(IntegerOutAttribute)) == null)
         throw new Exception("No IntegerOut attribute for " + member.Name);
     }
