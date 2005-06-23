@@ -1,4 +1,30 @@
 Version 1.3.26 (in progress)
 ============================
 
+06/22/2005: wsfulton
+            [C#, Java, Modula3, Ocaml]
+            The intermediary function names have been changed when wrapping variables to
+            match the other language modules so that %extend for a member variable works
+            uniformly across all language modules, eg:
+
+              %extend ExtendMe {
+                Var;
+              };
+
+              %{
+                void ExtendMe_Var_set(ExtendMe *, double) {...}
+                double ExtendMe_Var_get(ExtendMe *) {...}
+              %}
+
+            The methods implementing the get/set used to be:
+
+              %{
+                void set_ExtendMe_Var(ExtendMe *, double) {...}
+                double get_ExtendMe_Var(ExtendMe *) {...}
+              %}
+
+            This also changes the name of variable wrapper functions when using -noproxy.
+            The original names can be generated with the -oldvarnames commandline option.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
