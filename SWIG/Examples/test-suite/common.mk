@@ -317,6 +317,7 @@ C_TEST_CASES += \
 	char_constant \
 	const_const \
 	enums \
+	extern_declaration \
 	function_typedef \
 	inctest \
 	lextype \
