@@ -1,6 +1,45 @@
 Version 1.3.26 (in progress)
 ============================
 
+06/27/2005: wsfulton
+            Functions declared as 'extern' no longer have an additional function declaration added to the 
+            wrapper files. There are some cases where SWIG does not get this right, eg bug #1205859 (extern
+            functions with default arguments declared in a namespace). Also SWIG cannot get non-standard
+            calling conventions correct, eg Windows calling conventions are usually handled like this:
+
+              %{
+              #define DLLIMPORT __declspec(dllimport)
+              #define STDCALL __stdcall
+              %}
+              #define DLLIMPORT
+              #define STDCALL
+              %inline %{
+              DLLIMPORT extern STDCALL void function(int);
+              %}
+
+            SWIG incorrectly generates:
+
+            extern void function(int);
+
+            To which there is no solution as SWIG doesn't handle non-standard calling conventions. The extra
+            'extern' function that SWIG generates is superfluous unless a user has forgotten to add the function
+            declaration into the wrappers.
+
+            The -noextern commandline argument is now redundant and a new commandline argument -addextern can
+            be used to obtain the original behaviour. This shouldn't be necessary unless the header file
+            containing the function declaration was inadvertently not added to the wrappers. To fix this
+            add the function declaration into your wrappers, For example, replace:
+
+              extern void foo(int);
+
+            with:
+
+              %inline %{
+              extern void foo(int);
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 06/22/2005: wsfulton
             [C#, Java, Modula3, Ocaml]
             The intermediary function names have been changed when wrapping variables to
