@@ -679,8 +679,10 @@ Java global variable, access to C/C++ global variables is done through static ge
 // SWIG interface file with global variables
 %module example
 ...
+%inline %{
 extern int My_variable;
 extern double density;
+%}
 ...
 </pre></div>
 
@@ -719,6 +721,9 @@ To make ordinary variables read-only, you can use the <tt>%immutable</tt> direct
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable;
 extern char *path;
 %mutable;
@@ -736,6 +741,9 @@ If you just want to make a specific variable immutable, supply a declaration nam
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable path;
 ...
 extern char *path;      // Read-only (due to %immutable)
@@ -3671,7 +3679,10 @@ If you must work with simple pointers such as <tt>int *</tt> or <tt>double *</tt
 %module example
 %include "cpointer.i"
 
+%inline %{
 extern void add(int x, int y, int *result);
+%}
+
 %pointer_functions(int, intp);
 </pre>
 </div>
@@ -4134,7 +4145,9 @@ you might define a typemap like this:
   $1 = $input;
   printf("Received an integer : %d\n",  $1);
 }
+%inline %{
 extern int fact(int nonnegative);
+%}
 </pre></div>
 
 <p>
@@ -4177,7 +4190,9 @@ You can refine this by supplying an optional parameter name.  For example:
   printf("Received an integer : %d\n",  $1);
 }
 
+%inline %{
 extern int fact(int nonnegative);
+%}
 </pre></div>
 
 <p>
@@ -4198,8 +4213,10 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
   $1 = $input;
   printf("Received an integer : %d\n",  $1);
 }
+%inline %{
 typedef int Integer;
 extern int fact(Integer nonnegative);    // Above typemap is applied
+%}
 </pre>
 </div>
 

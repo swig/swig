@@ -83,7 +83,9 @@ One way to deal with this is to use the
 %include "typemaps.i"
 
 %apply double *OUTPUT { double *result };
+%inlne %{
 extern void add(double a, double b, double *result);
+%}
 </pre></div>
 
 <p>
@@ -123,10 +125,13 @@ of the type and name.  For example, you could write the following:
 %include "typemaps.i"
 
 %apply double *OUTPUT { double *result };
+
+%inline %{
 extern void add(double a, double b, double *result);
 extern void sub(double a, double b, double *result);
 extern void mul(double a, double b, double *result);
 extern void div(double a, double b, double *result);
+%}
 ...
 </pre></div>
 
@@ -174,6 +179,9 @@ rule names directly in arguments.  For example, you could write this:
 %module example
 %include "typemaps.i"
 
+%{
+extern void add(double a, double b, double *OUTPUT);
+%}
 extern void add(double a, double b, double *OUTPUT);
 </pre></div>
 
@@ -226,6 +234,9 @@ Now, consider this SWIG interface:
 %module example
 %include "typemaps.i"
 ...
+%{
+extern double add(double *, double *);
+%}
 extern double add(double *INPUT, double *INPUT);
 
 </pre></div>
@@ -274,7 +285,9 @@ A SWIG interface file might look like this :</p>
 %module example
 %include "typemaps.i"
 ...
+%inline %{
 extern void add(double a, double b, double *OUTPUT);
+%}
 
 </pre></div>
 
@@ -340,6 +353,9 @@ function like this in an interface file :</p>
 %module example
 %include typemaps.i
 ...
+%{
+extern void negate(double *);
+%}
 extern void negate(double *INOUT);
 
 </pre></div>

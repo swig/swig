@@ -184,9 +184,11 @@ For example:
 <div class="code"><pre>
 %module example
 
+%inline %{
 extern int fact(int);
 extern int mod(int, int);
 extern double My_variable;
+%}
 
 %include tclsh.i       // Include code for rebuilding tclsh
 
@@ -717,7 +719,9 @@ C/C++ global variables are wrapped by Tcl global variables.  For example:
 // SWIG interface file with global variables
 %module example
 ...
+%inline %{
 extern double density;
+%}
 ...
 </pre></div>
 
@@ -754,6 +758,9 @@ To make ordinary variables read-only, you can use the <tt>%immutable</tt> direct
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable;
 extern char *path;
 %mutable;
@@ -771,6 +778,9 @@ If you just want to make a specific variable immutable, supply a declaration nam
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable path;
 ...
 extern char *path;      // Read-only (due to %immutable)
@@ -2455,7 +2465,9 @@ you might define a typemap like this:
         if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
 	printf("Received an integer : %d\n",$1);
 }
+%inline %{
 extern int fact(int n);
+%}
 </pre></div>
 
 <p>
@@ -2491,7 +2503,9 @@ You can refine this by supplying an optional parameter name.  For example:
         if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
 	printf("n = %d\n",$1);
 }
+%inline %{
 extern int fact(int n);
+%}
 </pre></div>
 
 <p>
@@ -2512,8 +2526,10 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
         if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
 	printf("n = %d\n",$1);
 }
+%inline %{
 typedef int Integer;
 extern int fact(Integer n);    // Above typemap is applied
+%}
 </pre>
 </div>
 
