@@ -1,5 +1,14 @@
 %module example
 
+%{
+extern int gcd(int x, int y);
+extern int gcdmain(int argc, char *argv[]);
+extern int count(char *bytes, int len, char c);
+extern void capitalize (char *str, int len);
+extern void circle (double cx, double cy);
+extern int squareCubed (int n, int *OUTPUT);
+%}
+
 %include exception.i
 %include typemaps.i
 

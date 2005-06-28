@@ -14,6 +14,8 @@ ensure:
 	fact >= 1;
 }
 
+%inline %{
 extern int    gcd(int x, int y);
 extern int    fact(int n);
 extern double Foo;
+%}

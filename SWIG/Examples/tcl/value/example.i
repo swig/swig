@@ -6,8 +6,10 @@
 %}
 
 /* Some functions that manipulate Vectors by value */
+%inline %{
 extern double dot_product(Vector a, Vector b);
 extern Vector vector_add(Vector a, Vector b);
+%}
 
 /* Include this because the vector_add() function will leak memory */
 void   free(void *);

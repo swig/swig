@@ -14,4 +14,6 @@ ensure:
      Circle >= 0;
 }
 
+%inline %{
 extern int Circle (int x, int y, int radius);
+%}
