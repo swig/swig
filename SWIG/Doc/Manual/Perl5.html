@@ -257,8 +257,10 @@ follows :</p>
 <div class="code"><pre>
 %module example
 
+%inline %{
 extern double My_variable;
 extern int fact(int);
+%}
 
 // Include code for rebuilding Perl
 %include perlmain.i
@@ -777,6 +779,9 @@ To make ordinary variables read-only, you can also use the <tt>%immutable</tt> d
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable;
 extern char *path;
 %mutable;
@@ -790,6 +795,9 @@ The <tt>%immutable</tt> directive stays in effect until it is explicitly disable
 
 <div class="code">
 <pre>
+%{
+extern char *path;
+%}
 %immutable path; 
 ...
 ...
@@ -1730,7 +1738,9 @@ you might define a typemap like this:
 	printf("Received an integer : %d\n", $1);
 }
 ...
+%inline %{
 extern int fact(int n);
+%}
 
 </pre></div>
 
@@ -1773,8 +1783,10 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 	$1 = (int) SvIV($input);
 	printf("n = %d\n",$1);
 }
+%inline %{
 typedef int Integer;
 extern int fact(Integer n);    // Above typemap is applied
+%}
 </pre>
 </div>
 

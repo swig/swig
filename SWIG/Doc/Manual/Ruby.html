@@ -589,7 +589,7 @@ variables:
 </p>
 
 <div class="code">
-  <pre>// SWIG interface file with global variables<br>%module example<br>...<br>extern int    variable1;<br>extern double Variable2;<br>...<br></pre>
+  <pre>// SWIG interface file with global variables<br>%module example<br>...<br>%inline %{<br>extern int    variable1;<br>extern double Variable2;<br>%}<br>...<br></pre>
 </div>
 <p>
 Now look at the Ruby interface:</p>
@@ -626,7 +626,7 @@ error.
 directive. For example:
 </p>
 <div class="code">
-  <pre>%immutable;<br>extern char *path;<br>%mutable;<br></pre>
+  <pre>%immutable;<br>%inline %{<br>extern char *path;<br>%}<br>%mutable;<br></pre>
 </div>
 
 <p>
@@ -1511,7 +1511,7 @@ you might define a typemap like this:
 </p>
 
 <div class="code">
-  <pre>%module example<br><br>%typemap(in) int {<br>  $1 = (int) NUM2INT($input);<br>  printf("Received an integer : %d\n",$1);<br>}<br><br>extern int fact(int n);<br></pre>
+  <pre>%module example<br><br>%typemap(in) int {<br>  $1 = (int) NUM2INT($input);<br>  printf("Received an integer : %d\n",$1);<br>}<br><br>%inline %{<br>extern int fact(int n);<br>%}<br></pre>
 </div>
 <p>
 Typemaps are always associated with some specific aspect of code
@@ -1544,7 +1544,7 @@ For
 example:
 </p>
 <div class="code">
-  <pre>%module example<br><br>%typemap(in) int n {<br>  $1 = (int) NUM2INT($input);<br>  printf("n = %d\n",$1);<br>}<br><br>extern int fact(int n);<br></pre>
+  <pre>%module example<br><br>%typemap(in) int n {<br>  $1 = (int) NUM2INT($input);<br>  printf("n = %d\n",$1);<br>}<br><br>%inline %{<br>extern int fact(int n);<br>%}<br></pre>
 </div>
 
 <p>
