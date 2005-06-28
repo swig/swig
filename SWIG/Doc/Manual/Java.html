@@ -768,10 +768,10 @@ The constants are generated into the constants interface and look like this:
 
 <div class="code"><pre>
 public interface exampleConstants {
-  public final static double PI = exampleJNI.get_PI();
-  public final static String VERSION = exampleJNI.get_VERSION();
-  public final static int FOO = exampleJNI.get_FOO();
-  public final static String path = exampleJNI.get_path();
+  public final static double PI = exampleJNI.PI_get();
+  public final static String VERSION = exampleJNI.VERSION_get();
+  public final static int FOO = exampleJNI.FOO_get();
+  public final static String path = exampleJNI.path_get();
 }
 </pre></div>
 
@@ -802,8 +802,8 @@ generates:
 <div class="code"><pre>
 public interface exampleConstants {
   public final static int EXPRESSION = (0x100+5);
-  public final static long BIG = exampleJNI.get_BIG();
-  public final static java.math.BigInteger LARGE = exampleJNI.get_LARGE();
+  public final static long BIG = exampleJNI.BIG_get();
+  public final static java.math.BigInteger LARGE = exampleJNI.LARGE_get();
 }
 </pre></div>
 
@@ -908,10 +908,10 @@ is wrapped into the constants interface, in a similar manner as constants (see p
 
 <div class="code"><pre>
 public interface exampleConstants {
-  public final static int ALE = exampleJNI.get_ALE();
-  public final static int LAGER = exampleJNI.get_LAGER();
-  public final static int STOUT = exampleJNI.get_STOUT();
-  public final static int PILSNER = exampleJNI.get_PILSNER();
+  public final static int ALE = exampleJNI.ALE_get();
+  public final static int LAGER = exampleJNI.LAGER_get();
+  public final static int STOUT = exampleJNI.STOUT_get();
+  public final static int PILSNER = exampleJNI.PILSNER_get();
 }
 </pre></div>
 
@@ -941,7 +941,7 @@ public interface exampleConstants {
   public final static int ALE = 0;
   public final static int LAGER = 10;
   public final static int STOUT = LAGER+1;
-  public final static int PILSNER = exampleJNI.get_PILSNER();
+  public final static int PILSNER = exampleJNI.PILSNER_get();
 }
 </pre></div>
 
@@ -975,7 +975,7 @@ enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
 <pre>
 public final class Beverage {
   public final static Beverage ALE = new Beverage("ALE");
-  public final static Beverage LAGER = new Beverage("LAGER", exampleJNI.get_LAGER());
+  public final static Beverage LAGER = new Beverage("LAGER", exampleJNI.LAGER_get());
   public final static Beverage STOUT = new Beverage("STOUT");
   public final static Beverage PILSNER = new Beverage("PILSNER");
   [... additional support methods omitted for brevity ...]
@@ -2037,9 +2037,9 @@ JNI functions. The JNI functions have to follow a particular naming convention s
 JNIEXPORT jlong JNICALL Java_exampleJNI_new_1Foo(JNIEnv *jenv, jclass jcls);
 JNIEXPORT void JNICALL Java_exampleJNI_delete_1Foo(JNIEnv *jenv, jclass jcls,
                                                    jlong jarg1);
-JNIEXPORT void JNICALL Java_exampleJNI_set_1Foo_1x(JNIEnv *jenv, jclass jcls,
+JNIEXPORT void JNICALL Java_exampleJNI_Foo_1x_1set(JNIEnv *jenv, jclass jcls,
                                                    jlong jarg1, jint jarg2);
-JNIEXPORT jint JNICALL Java_exampleJNI_get_1Foo_1x(JNIEnv *jenv, jclass jcls,
+JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1x_1get(JNIEnv *jenv, jclass jcls,
                                                    jlong jarg1);
 JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls,
                                                  jlong jarg1, jint jarg2, jlong jarg3);
@@ -2056,8 +2056,8 @@ For every JNI C function there has to be a static native Java function. These ap
 class exampleJNI {
   public final static native long new_Foo();
   public final static native void delete_Foo(long jarg1);
-  public final static native void set_Foo_x(long jarg1, int jarg2);
-  public final static native int get_Foo_x(long jarg1);
+  public final static native void Foo_x_set(long jarg1, int jarg2);
+  public final static native int Foo_x_get(long jarg1);
   public final static native int Foo_spam(long jarg1, int jarg2, long jarg3);
   public final static native void egg(long jarg1);
 }
@@ -2292,11 +2292,11 @@ public class Foo {
   }
 
   public void setX(int x) {
-    exampleJNI.set_Foo_x(swigCPtr, x);
+    exampleJNI.Foo_x_set(swigCPtr, x);
   }
 
   public int getX() {
-    return exampleJNI.get_Foo_x(swigCPtr);
+    return exampleJNI.Foo_x_get(swigCPtr);
   }
 
   public int spam(int num, Foo foo) {
@@ -6430,8 +6430,8 @@ Here is what the module class looks like:
 <div class="code">
 <pre>
 public class example {
-  public static void set_Foo_x(SWIGTYPE_p_Foo self, int x) {...}
-  public static int get_Foo_x(SWIGTYPE_p_Foo self) {...}
+  public static void Foo_x_get(SWIGTYPE_p_Foo self, int x) {...}
+  public static int Foo_x_get(SWIGTYPE_p_Foo self) {...}
   public static int Foo_spam(SWIGTYPE_p_Foo self, int num, SWIGTYPE_p_Foo foo) {...}
   public static SWIGTYPE_p_Foo new_Foo() {...}
   public static void delete_Foo(SWIGTYPE_p_Foo self) {...}
@@ -6446,8 +6446,8 @@ This approach is not nearly as natural as using proxy classes as the functions n
 <div class="code">
 <pre>
 SWIGTYPE_p_Foo foo = example.new_Foo();
-example.set_Foo_x(foo, 10);
-int var = example.get_Foo_x(foo);
+example.Foo_x_set(foo, 10);
+int var = example.Foo_x_get(foo);
 example.Foo_spam(foo, 20, foo);
 example.delete_Foo(foo);
 </pre>
