@@ -1884,19 +1884,15 @@ int Language::classDirector(Node *n) {
                    "Director base class %s has no virtual destructor.\n",
 		   classtype);
     }
-  /*
-    since now %feature("nodirector") is working, we check
-    that the director is really not abstract.
-  */
 
     Setattr(n, "vtable", vtable);
+    if (directormap != 0) {
+      Setattr(directormap, classtype, n);
+    }
     classDirectorInit(n);
     classDirectorConstructors(n);
     classDirectorMethods(n);
     classDirectorEnd(n);
-    if (directormap != 0) {
-      Setattr(directormap, classtype, n);
-    }
   }
   Delete(vtable);
   return SWIG_OK;

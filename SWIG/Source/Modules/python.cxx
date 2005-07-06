@@ -2621,8 +2621,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Swig_typemap_attach_parms("directorargout", l, w);
 
   Parm* p;
-  int num_arguments = emit_num_arguments(l);
-  int i;
   char source[256];
 
   wrap_args = NewString("");
@@ -2630,8 +2628,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!is_void) outputs++;
 	
   /* build argument list and type conversion string */
-  for (i=0, idx=0, p = l; i < num_arguments && p != 0; i++) {
-
+  idx = 0;
+  p = l;
+  while (p != NULL) {
     if (checkAttribute(p,"tmap:in:numinputs","0")) {
       p = Getattr(p,"tmap:in:next");
       continue;
@@ -2752,7 +2751,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
   }
   /* declare Python return value */
-  Wrapper_add_local(w, "result", "PyObject *result");
+  if (!is_void) {
+    Wrapper_add_local(w, "result", "PyObject *result");
+  }
 
   /* direct call to superclass if _up is set */
   Printf(w->code, "if (swig_get_up()) {\n");
@@ -2782,11 +2783,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
   if (Len(parse_args) > 0) {
-    Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
+    Printf(w->code, "%s PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", (!is_void ? "result =" : "(void)"), pyname, parse_args, arglist);
   } else {
-    Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", pyname);
+    Printf(w->code, "%s PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", (!is_void ? "result =" : "(void)"), pyname);
   }
-  Printv(xdecref, "Py_XDECREF(result);\n", NULL);
+  if (!is_void) {
+    Printv(xdecref, "Py_XDECREF(result);\n", NULL);
+  }
   if (dirprot_mode() && !is_public(n))
     Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
@@ -2795,7 +2798,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!tm) {
     tm = Getattr(n, "feature:director:except");
   }
-  Printf(w->code, "if (result == NULL) {\n");
+  if (!is_void) {
+    Printf(w->code, "if (result == NULL) {\n");
+  }
   Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
     Replaceall(tm, "$error", "error");
@@ -2807,7 +2812,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "  }\n");
   }
   
-  Printf(w->code, "}\n");
+  if (!is_void) {
+    Printf(w->code, "}\n");
+  }
 
   /*
    * Python method may return a simple object, or a tuple.
