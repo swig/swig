@@ -21,9 +21,9 @@ static struct {
   String **entries;
 } defined_foreign_types;
 
-const char *identifier_converter="identifier-convert-null";
+static const char *identifier_converter="identifier-convert-null";
 
-int any_varargs(ParmList *pl) {
+static int any_varargs(ParmList *pl) {
   Parm *p;
   
   for(p=pl; p; p=nextSibling(p)) {
@@ -37,7 +37,7 @@ int any_varargs(ParmList *pl) {
   
 /* utilities */
 /* returns new string w/ parens stripped */
-String *strip_parens(String *string) {
+static String *strip_parens(String *string) {
 	char *s=Char(string), *p;
 	int len=Len(string);
 	String *res;
@@ -62,7 +62,7 @@ String *strip_parens(String *string) {
 }
 
 
-String *convert_literal(String *num_param, String *type) {
+static String *convert_literal(String *num_param, String *type) {
 	String *num=strip_parens(num_param), *res;
 	char *s=Char(num);
 	
@@ -100,7 +100,7 @@ String *convert_literal(String *num_param, String *type) {
 	return res;
 }
 
-void add_defined_foreign_type(String *type) {
+static void add_defined_foreign_type(String *type) {
   if (!defined_foreign_types.count) {
     /* Make fresh */
     defined_foreign_types.count=1;
@@ -125,7 +125,7 @@ void add_defined_foreign_type(String *type) {
 }
 
 
-String *get_ffi_type(SwigType *ty, const String_or_char *name) {
+static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
   if (typemap) {
 	  String *typespec = Getattr(typemap, "code");
@@ -169,7 +169,7 @@ String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   return 0;
 }
 
-String *get_lisp_type(SwigType *ty, const String_or_char *name)
+static String *get_lisp_type(SwigType *ty, const String_or_char *name)
 {
   Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
   if (typemap) {
