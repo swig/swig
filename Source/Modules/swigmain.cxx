@@ -48,6 +48,7 @@ extern "C" {
   Language *swig_chicken(void);
   Language *swig_csharp(void);
   Language *swig_allegrocl(void);
+  Language *swig_clisp(void);
 }
 
 struct swig_module {
@@ -63,6 +64,7 @@ struct swig_module {
 swig_module  modules[] = {  
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
   {"-chicken",   swig_chicken,   "CHICKEN"},
+  {"-clisp",     swig_clisp,     "CLISP"},
   {"-csharp",    swig_csharp,    "C#"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
