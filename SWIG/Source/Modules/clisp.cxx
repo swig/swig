@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
- * python.cxx
+ * clisp.cxx
  *
- *     Python module.
+ *     clisp module.
  *
  * Author(s) : Surendra Singhi (surendra@asu.edu)
  *
@@ -75,7 +75,7 @@ int CLISP :: top(Node *n) {
   Swig_register_filebyname("runtime",f_null);
   Swig_register_filebyname("wrapper", f_null);
 
-  Printf(f_cl, ";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ff :excl))\n\n(in-package :%s)\n", module, module);
+  Printf(f_cl, ";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi))\n\n(in-package :%s)\n", module, module);
 
   
   Language::top(n);
