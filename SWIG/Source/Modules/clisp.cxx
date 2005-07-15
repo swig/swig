@@ -24,13 +24,12 @@ public:
   virtual int functionWrapper(Node *n); 
   virtual int constantWrapper(Node *n);
   virtual int classDeclaration(Node *n);
-
+  List *entries;
 private:
   String* get_ffi_type(SwigType *ty, const String_or_char *name);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
 };
-
 
 void CLISP :: main(int argc, char *argv[]) {
   int i;
@@ -54,10 +53,11 @@ int CLISP :: top(Node *n) {
   File *f_null=NewString("");
   module=Getattr(n, "name");
   String *output_filename;
-
+  entries = NewList();
+  
   /* Get the output file name */
   String *outfile = Getattr(n,"outfile");
-   
+    
   if(!outfile)
     output_filename=outfile;
   else  {
@@ -65,7 +65,7 @@ int CLISP :: top(Node *n) {
     Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
   }
 
-  f_cl=NewFile(output_filename, "w");
+  f_cl=NewFile(output_filename, "w+");
   if (!f_cl) {
     Printf(stderr, "Unable to open %s for writing\n", output_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -75,10 +75,35 @@ int CLISP :: top(Node *n) {
   Swig_register_filebyname("runtime",f_null);
   Swig_register_filebyname("wrapper", f_null);
 
-  Printf(f_cl, ";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi))\n\n(in-package :%s)\n", module, module);
 
-  
+  String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi)", module);
+
   Language::top(n);
+
+  Iterator i;
+  for (i = First(entries); i.item; i = Next(i)) {
+    Printf(header,"\n\t:%s", i.item);
+  }
+  Printf(header, ")\n",NULL);
+
+  Printf(header,"\n(in-package :%s)\n",module);
+
+  long len= Tell(f_cl);
+
+  Printf(f_cl,"%s",header);
+
+  long end = Tell(f_cl);
+
+  for(len--;len >=0 ; len --) {
+     end--;
+     Seek(f_cl,len,SEEK_SET);
+     int ch=Getc(f_cl);
+     Seek(f_cl,end,SEEK_SET);
+     Putc(ch,f_cl);
+   }
+  
+  Seek(f_cl,0,SEEK_SET);
+  Write(f_cl,Char(header), Len(header));
 
   Close(f_cl);
   Delete(f_cl); // Deletes the handle, not the file
@@ -92,12 +117,13 @@ int CLISP :: functionWrapper(Node *n) {
 
   ParmList *pl=Getattr(n, "parms");
   Parm *p;
-  int argnum=0, first=1, varargs=0;
+  int argnum=0, first=1;
   
   //Language::functionWrapper(n);
 
   Printf(f_cl, "\n(ffi:def-cal-out %s-%s (:name \"%s\")\n", module, func_name,func_name);
-
+  
+  Append(entries,NewStringf("%s-%s",module,func_name));
   /* Special cases */
   
   if (ParmList_len(pl) != 0) {
@@ -125,6 +151,7 @@ int CLISP :: functionWrapper(Node *n) {
     if (tempargname) 
       Delete(argname);
   }
+
   Printf(f_cl, ")\n"); /* finish arg list */
   Printf(f_cl, "\t(:return-type %s)\n", get_ffi_type(Getattr(n, "type"), "result"));
   Printf(f_cl, "\t(:library +library-name+))\n");
@@ -164,8 +191,10 @@ int CLISP :: classDeclaration(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Printf(f_cl,"(ffi:def-c-struct  %s",name);
-  
+  Printf(f_cl,"\n(ffi:def-c-struct  %s-%s",module,name);
+
+  Append(entries,NewStringf("make-%s-%s",module,name));
+	 
   for (c=firstChild(n); c; c=nextSibling(c)) {
     SwigType *type=Getattr(c, "type");
     String *lisp_type;
@@ -184,11 +213,14 @@ int CLISP :: classDeclaration(Node *n) {
     /* Printf(stdout, "Converting %s in %s\n", type, name); */
     lisp_type=get_ffi_type(type, Getattr(c, "sym:name"));
 
+    String *slot_name = Getattr(c, "sym:name");
     Printf(f_cl, 
 	   "\n\t(%s :type %s)", 
-	   Getattr(c, "sym:name"),
+	   slot_name,
 	   lisp_type);
 
+    Append(entries,NewStringf("%s-%s-%s",module,name,slot_name));
+      
     Delete(lisp_type);
   }
   
@@ -268,7 +300,7 @@ String* CLISP::convert_literal(String *num_param, String *type) {
 }
 
 String* CLISP::get_ffi_type(SwigType *ty, const String_or_char *name) {
-  Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
+  Hash *typemap = Swig_typemap_search("in", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");
     return NewString(typespec);
