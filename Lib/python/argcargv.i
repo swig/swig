@@ -12,8 +12,9 @@ SWIGINTERN char**
   char **argv = 0;
   size_t i = 0;
   if (SWIG_ConvertPtr(input, (void **)&argv, ppchar_info, 0) == -1) {
+    int list = 0;
     PyErr_Clear();
-    int list = PyList_Check(input);
+    list = PyList_Check(input);
     if (list || PyTuple_Check(input)) {
       *argc = list ? PyList_Size(input) : PyTuple_Size(input);
       argv = SWIG_new_array(*argc + 1, char*);
