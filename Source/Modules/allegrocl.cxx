@@ -128,45 +128,64 @@ static void add_defined_foreign_type(String *type) {
 static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
   if (typemap) {
-	  String *typespec = Getattr(typemap, "code");
-	  return NewString(typespec);
+    String *typespec = Getattr(typemap, "code");
+    return NewString(typespec);
   }
   else {
-	  SwigType *tr=SwigType_typedef_resolve_all(ty);
-	  char *type_reduced=Char(tr);
-	  int i;
-
-	  //Printf(stdout,"convert_type %s\n", ty);
-	  if (SwigType_isconst(tr)) {
-		  SwigType_pop(tr);
-		  type_reduced=Char(tr);
-	  }
-
-	  if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
-	      !strncmp(type_reduced, "p.f", 3)) {
-#if 1
-		  return NewString("(* :void)");
-#else
-		  return NewString(":foreign-address");
+    List *elements;
+    int nelements, i;
+    String *head = NewString("");
+    String *tail = NewString("");
+    String *base_type;
+    do {
+      elements = SwigType_split(ty);
+      nelements = Len(elements);
+      for (i = 0; i<nelements - 1; i++) {
+	String *element = Getitem(elements, i);
+	if (SwigType_isqualifier(element)) {
+	  /* discard qualifiers */
+	}
+	else if (SwigType_ispointer(element)
+		 || SwigType_isarray(element)) {
+	  Append(head, "(* ");
+	  Insert(tail, 0, ")");
+	}
+	else {
+	  /* unknown complicated type, so use void * */
+	  return NewString("(* :void)");
+	}
+      }
+      base_type = Getitem(elements, nelements - 1);
+      ty = SwigType_typedef_resolve_all(base_type);
+    } while (Cmp(ty, base_type) != 0);
+#if 0
+    Printf(stdout, "Basetype: %s\n", base_type);
 #endif
-	  }
-  
-	  for(i=0; i<defined_foreign_types.count; i++) {
-		  if (!Strcmp(ty, defined_foreign_types.entries[i])) {
-			  return NewStringf("#.(%s \"%s\" :type :type)",
-					    identifier_converter, 
-					    ty);
-		  }
-	  }
-  
-	  if (!Strncmp(type_reduced, "enum ", 5)) {
-		  return NewString(":int");
-	  }
-
-	  Printf(stderr, "Unsupported data type: %s (was: %s)\n", type_reduced, ty);
-	  SWIG_exit(EXIT_FAILURE);
+    Hash *typemap = Swig_typemap_search("ffitype", base_type, NIL, 0);
+    if (typemap) {
+      String *typespec = Getattr(typemap, "code");
+      return NewStringf("%s%s%s", head, typespec, tail);
+    }
+    else {
+      int i;
+      char *bt = Char(base_type);
+      if ((strncmp(bt,"struct ", 7) == 0) ||
+	  ((strncmp(bt,"class ", 6) == 0)) ||
+	  ((strncmp(bt,"union ", 6) == 0))) {
+	bt = strchr(bt, ' ')+1;
+      }
+      for (i=0; i<defined_foreign_types.count; i++) {
+	if (!Strcmp(bt, defined_foreign_types.entries[i])) {
+	  return NewStringf("%s#.(funcall *swig-identifier-converter* \"%s\" :type :type)%s",
+			    head,
+			    bt,
+			    tail);
+	}
+      }
+      /* Unknown */
+      return NewString("(* :void)");
+    }
   }
-  return 0;
 }
 
 static String *get_lisp_type(SwigType *ty, const String_or_char *name)
@@ -376,8 +395,7 @@ int ALLEGROCL :: classDeclaration(Node *n) {
     lisp_type=get_ffi_type(type, Getattr(c, "sym:name"));
 
     Printf(f_cl, 
-	   "  (#.(%s \"%s\" :type :slot) %s)\n", 
-	   identifier_converter,
+	   "  (#.(funcall *swig-identifier-converter* \"%s\" :type :slot) %s)\n", 
 	   Getattr(c, "sym:name"), 
 	   lisp_type);
 
