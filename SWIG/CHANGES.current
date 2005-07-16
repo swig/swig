@@ -1,6 +1,10 @@
 Version 1.3.26 (in progress)
 ============================
 
+07/16/2005: mkoeppe
+	    [Allegro CL] Use specific foreign types rather than (* :void). 
+	    Use *swig-identifier-converter*.
+
 06/27/2005: wsfulton
             Functions declared as 'extern' no longer have an additional function declaration added to the 
             wrapper files. There are some cases where SWIG does not get this right, eg bug #1205859 (extern
