@@ -9,8 +9,6 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-
-
 char cvsroot_clisp_cxx[] = "$Header$";
 
 #include "swigmod.h"
@@ -21,14 +19,16 @@ public:
   String *module;
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
-  virtual int functionWrapper(Node *n); 
+  virtual int functionWrapper(Node *n);
+  virtual int variableWrapper(Node *n); 
   virtual int constantWrapper(Node *n);
   virtual int classDeclaration(Node *n);
   List *entries;
 private:
-  String* get_ffi_type(SwigType *ty, const String_or_char *name);
+  String* get_ffi_type(SwigType *ty);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
+  int generate_all_flag;
 };
 
 void CLISP :: main(int argc, char *argv[]) {
@@ -36,13 +36,20 @@ void CLISP :: main(int argc, char *argv[]) {
 
   SWIG_library_directory("clisp"); 
   SWIG_config_file("clisp.swg");
-
+  generate_all_flag = 0;
+  
   for(i=1; i<argc; i++) {
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stdout, "clisp Options (available with -clisp)\n");
-      fprintf(stdout, 
-	      " currently none");
-
+      Printf(stdout, "clisp Options (available with -clisp)\n");
+      Printf(stdout, 
+	     " -generate-all\n"
+	     "\t If this option is given then clisp definitions for all the functions\n"
+	     "and global variables will be created otherwise only definitions for \n"
+	     "externed functions and variables is created.");
+    }
+    else if ( (Strcmp(argv[i],"-generate-all") == 0)) {
+	    generate_all_flag = 1;
+	    Swig_mark_arg(i);
     }
   }
 }
@@ -76,7 +83,7 @@ int CLISP :: top(Node *n) {
   Swig_register_filebyname("wrapper", f_null);
 
 
-  String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi)", module);
+  String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage \"%s\"\n  (:use :common-lisp :ffi)", module);
 
   Language::top(n);
 
@@ -95,12 +102,12 @@ int CLISP :: top(Node *n) {
   long end = Tell(f_cl);
 
   for(len--;len >=0 ; len --) {
-     end--;
-     Seek(f_cl,len,SEEK_SET);
-     int ch=Getc(f_cl);
-     Seek(f_cl,end,SEEK_SET);
-     Putc(ch,f_cl);
-   }
+    end--;
+    Seek(f_cl,len,SEEK_SET);
+    int ch=Getc(f_cl);
+    Seek(f_cl,end,SEEK_SET);
+    Putc(ch,f_cl);
+  }
   
   Seek(f_cl,0,SEEK_SET);
   Write(f_cl,Char(header), Len(header));
@@ -113,47 +120,54 @@ int CLISP :: top(Node *n) {
 
 
 int CLISP :: functionWrapper(Node *n) {
+
+  String *storage=Getattr(n,"storage");
+  if(!generate_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+    return SWIG_OK;
+     
   String *func_name=Getattr(n, "sym:name");
 
   ParmList *pl=Getattr(n, "parms");
-  Parm *p;
-  int argnum=0, first=1;
-  
-  //Language::functionWrapper(n);
 
-  Printf(f_cl, "\n(ffi:def-cal-out %s-%s (:name \"%s\")\n", module, func_name,func_name);
+  int argnum=0, first=1;
+
+  Printf(f_cl, "\n(ffi:def-call-out %s\n\t(:name \"%s\")\n", func_name,func_name);
   
-  Append(entries,NewStringf("%s-%s",module,func_name));
+  Append(entries,func_name);
   /* Special cases */
   
   if (ParmList_len(pl) != 0) {
     Printf(f_cl, "\t(:arguments ");
   }
-  for (p=pl; p; p=nextSibling(p), argnum++) {
+  for (Parm *p=pl; p; p=nextSibling(p), argnum++) {
+
     String *argname=Getattr(p, "name");
     SwigType *argtype=Getattr(p, "type");
-    String *ffitype=get_ffi_type(argtype, argname);
+    
+    String *ffitype=get_ffi_type(argtype);
+    
     int tempargname=0;
       
-    if (!argname) {
-      argname=NewStringf("arg%d", argnum);
-      tempargname=1;
-    }
+     if (!argname) {
+       argname=NewStringf("arg%d", argnum);
+       tempargname=1;
+     }
       
-    if (!first) {
-      Printf(f_cl, "\n\t\t");
-    }
-    Printf(f_cl, "(%s %s)", argname, ffitype);
-    first=0;
+     if (!first) {
+       Printf(f_cl, "\n\t\t");
+     }
+     Printf(f_cl, "(%s %s)", argname, ffitype);
+     first=0;
       
-    Delete(ffitype);
+     Delete(ffitype);
 
-    if (tempargname) 
-      Delete(argname);
+     if (tempargname) 
+       Delete(argname);
   }
-
-  Printf(f_cl, ")\n"); /* finish arg list */
-  Printf(f_cl, "\t(:return-type %s)\n", get_ffi_type(Getattr(n, "type"), "result"));
+  if (ParmList_len(pl) != 0) {
+    Printf(f_cl, ")\n"); /* finish arg list */
+  }
+  Printf(f_cl, "\t(:return-type %s)\n", get_ffi_type(Getattr(n, "type")));
   Printf(f_cl, "\t(:library +library-name+))\n");
    
   return SWIG_OK;
@@ -165,12 +179,12 @@ int CLISP :: constantWrapper(Node *n) {
   String *converted_value=convert_literal(Getattr(n, "value"), type);
   String *name=Getattr(n, "sym:name");
 
-#if 1
+#if 0
   Printf(stdout, "constant %s is of type %s. value: %s\n",
 	 name, type, converted_value);
 #endif
 
-  Printf(f_cl, "(defconstant \"%s\" %s)\n",
+  Printf(f_cl, "\n(defconstant %s %s)\n",
 	 name, converted_value);
 
   Delete(converted_value);
@@ -178,11 +192,24 @@ int CLISP :: constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
+int CLISP :: variableWrapper(Node *n) {
+  String *storage=Getattr(n,"storage");
+  if(!generate_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+    return SWIG_OK;
+
+  String *type=Getattr(n, "type");
+  String *var_name=Getattr(n, "sym:name");
+  String *lisp_type=get_ffi_type(type);
+  Printf(f_cl,"\n(def-c-var %s (:type %s)\n",var_name,lisp_type);
+  Printf(f_cl, "\t(:library +library-name+))\n");
+  return SWIG_OK;
+}
+
+
 // Includes structs
 int CLISP :: classDeclaration(Node *n) {
   String *name=Getattr(n, "sym:name");
   String *kind = Getattr(n,"kind");
-  Node *c;
   
   if (Strcmp(kind, "struct")) {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n",
@@ -191,12 +218,11 @@ int CLISP :: classDeclaration(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Printf(f_cl,"\n(ffi:def-c-struct  %s-%s",module,name);
+  Printf(f_cl,"\n(ffi:def-c-struct %s",name);
 
-  Append(entries,NewStringf("make-%s-%s",module,name));
+  Append(entries,NewStringf("make-%s",name));
 	 
-  for (c=firstChild(n); c; c=nextSibling(c)) {
-    SwigType *type=Getattr(c, "type");
+  for (Node *c=firstChild(n); c; c=nextSibling(c)) {
     String *lisp_type;
 
     if (Strcmp(nodeType(c), "cdecl")) {
@@ -209,9 +235,11 @@ int CLISP :: classDeclaration(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
 
-    
     /* Printf(stdout, "Converting %s in %s\n", type, name); */
-    lisp_type=get_ffi_type(type, Getattr(c, "sym:name"));
+    String *temp=Copy(Getattr(c,"decl"));
+    Append(temp,Getattr(c,"type"));
+    lisp_type=get_ffi_type(temp);
+    Delete(temp);
 
     String *slot_name = Getattr(c, "sym:name");
     Printf(f_cl, 
@@ -219,7 +247,7 @@ int CLISP :: classDeclaration(Node *n) {
 	   slot_name,
 	   lisp_type);
 
-    Append(entries,NewStringf("%s-%s-%s",module,name,slot_name));
+    Append(entries,NewStringf("%s-%s",name,slot_name));
       
     Delete(lisp_type);
   }
@@ -233,114 +261,139 @@ int CLISP :: classDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-
-  
 /* utilities */
 /* returns new string w/ parens stripped */
 String* CLISP::strip_parens(String *string) {
-	char *s=Char(string), *p;
-	int len=Len(string);
-	String *res;
+  char *s=Char(string), *p;
+  int len=Len(string);
+  String *res;
 	
-	if (len==0 || s[0] != '(' || s[len-1] != ')') {
-		return NewString(string);
-	}
+  if (len==0 || s[0] != '(' || s[len-1] != ')') {
+    return NewString(string);
+  }
 	
-	p=(char *)malloc(len-2+1);
-	if (!p) {
-		Printf(stderr, "Malloc failed\n");
-		SWIG_exit(EXIT_FAILURE);
-	}
+  p=(char *)malloc(len-2+1);
+  if (!p) {
+    Printf(stderr, "Malloc failed\n");
+    SWIG_exit(EXIT_FAILURE);
+  }
 	
-	strncpy(p, s+1, len-1);
-	p[len-2]=0; /* null terminate */
+  strncpy(p, s+1, len-1);
+  p[len-2]=0; /* null terminate */
 	
-	res=NewString(p);
-	free(p);
+  res=NewString(p);
+  free(p);
 	
-	return res;
+  return res;
 }
 
 String* CLISP::convert_literal(String *num_param, String *type) {
-	String *num=strip_parens(num_param), *res;
-	char *s=Char(num);
+  String *num=strip_parens(num_param), *res;
+  char *s=Char(num);
 	
-	/* Make sure doubles use 'd' instead of 'e' */
-	if (!Strcmp(type, "double")) {
-		String *updated=Copy(num);
-		if (Replace(updated, "e", "d", DOH_REPLACE_ANY) > 1) {
-			Printf(stderr, "Weird!! number %s looks invalid.\n", num);
-			SWIG_exit(EXIT_FAILURE);
-		}
-		Delete(num);
-		return updated;
-	}
+  /* Make sure doubles use 'd' instead of 'e' */
+  if (!Strcmp(type, "double")) {
+    String *updated=Copy(num);
+    if (Replace(updated, "e", "d", DOH_REPLACE_ANY) > 1) {
+      Printf(stderr, "Weird!! number %s looks invalid.\n", num);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    Delete(num);
+    return updated;
+  }
 
-	if (SwigType_type(type) == T_CHAR) {
-		/* Use CL syntax for character literals */
-		return NewStringf("#\\%s", num_param);
-	}
-	else if (SwigType_type(type) == T_STRING) {
-		/* Use CL syntax for string literals */
-		return NewStringf("\"%s\"", num_param);
-	}
+  if (SwigType_type(type) == T_CHAR) {
+    /* Use CL syntax for character literals */
+    return NewStringf("#\\%s", num_param);
+  }
+  else if (SwigType_type(type) == T_STRING) {
+    /* Use CL syntax for string literals */
+    return NewStringf("\"%s\"", num_param);
+  }
 	
-	if (Len(num) < 2 || s[0] != '0') {
-		return num;
-	}
+  if (Len(num) < 2 || s[0] != '0') {
+    return num;
+  }
 	
-	/* octal or hex */
+  /* octal or hex */
 	
-	res=NewStringf("#%c%s", 
-		       s[1] == 'x' ? 'x' : 'o', 
-		       s+2);
-	Delete(num);
+  res=NewStringf("#%c%s", 
+		 s[1] == 'x' ? 'x' : 'o', 
+		 s+2);
+  Delete(num);
 
-	return res;
+  return res;
 }
 
-String* CLISP::get_ffi_type(SwigType *ty, const String_or_char *name) {
-  Hash *typemap = Swig_typemap_search("in", ty, name, 0);
+String* CLISP::get_ffi_type(SwigType *ty) {
+  Hash *typemap =Swig_typemap_search("in", ty,"", 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");
     return NewString(typespec);
   }
-  else {
-    SwigType *tr=SwigType_typedef_resolve_all(ty);
-    char *type_reduced=Char(tr);
-    //    int i;
-
-    //Printf(stdout,"convert_type %s\n", ty);
-    if (SwigType_isconst(tr)) {
-      SwigType_pop(tr);
-      type_reduced=Char(tr);
-    }
-
-    if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
-	!strncmp(type_reduced, "p.f", 3)) {
-#if 1
-      return NewString("(* :void)");
-#else
-      return NewString(":foreign-address");
-#endif
-    }
-  
-    // 	  for(i=0; i<defined_foreign_types.count; i++) {
-    // 		  if (!Strcmp(ty, defined_foreign_types.entries[i])) {
-    // 			  return NewStringf("#.(%s \"%s\" :type :type)",
-    // 					    identifier_converter, 
-    // 					    ty);
-    // 		  }
-    // 	  }
-  
-    if (!Strncmp(type_reduced, "enum ", 5)) {
-      return NewString(":int");
-    }
-
-    Printf(stderr, "Unsupported data type: %s (was: %s)\n", type_reduced, ty);
-    SWIG_exit(EXIT_FAILURE);
+  else if(SwigType_ispointer(ty)) {
+    SwigType *cp = Copy(ty);
+    SwigType_del_pointer(cp);
+    String *inner_type=get_ffi_type(cp);
+    String *str = NewStringf("(ffi:c-pointer %s)",inner_type);
+    Delete(cp);
+    Delete(inner_type);
+    return str;
   }
-  return 0;
+  else if(SwigType_isarray(ty)) {
+    SwigType *cp = Copy(ty);
+    String *array_dim=SwigType_array_getdim(ty,0);
+
+    if(!Strcmp(array_dim,""))  { //dimension less array convert to pointer
+      Delete(array_dim);
+      SwigType_del_array(cp);
+      SwigType_add_pointer(cp);
+      String *str =get_ffi_type(cp);
+      Delete(cp);
+      return str;
+    }
+    else {
+      SwigType_pop_arrays(cp);
+      String *inner_type = get_ffi_type(cp);
+      Delete(cp);
+	     
+      int ndim=SwigType_array_ndim(ty);
+      String *dimension;
+      if(ndim == 1) {
+	dimension=array_dim;
+      }
+      else {
+	dimension = array_dim;
+	for(int i=1;i<ndim;i++)	  {
+	  array_dim=SwigType_array_getdim(ty,i);
+	  Append(dimension," ");
+	  Append(dimension,array_dim);
+	  Delete(array_dim);
+	}
+	String *temp=dimension;
+	dimension=NewStringf("(%s)",dimension);
+	Delete(temp);
+      }
+      String *str=NewStringf("(ffi:c-array %s %s)",inner_type,dimension);
+      Delete(inner_type);
+      Delete(dimension);
+      return str;
+    }
+  }
+  String *str=SwigType_str(ty,0);
+  if(str) {
+    char *st = Strstr(str,"struct");
+    if(st) {
+      st+=7;
+      return NewString(st);
+    }
+    char *cl = Strstr(str,"class");
+    if(cl) {
+      cl+=6;
+      return NewString(cl);
+    }
+  }
+  return str;
 }
 
 extern "C" Language *swig_clisp(void) {
