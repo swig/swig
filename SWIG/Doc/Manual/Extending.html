@@ -1925,6 +1925,38 @@ Adds an array with dimension <tt>dim</tt> to <tt>ty</tt>.
 </div>
 
 <p>
+<b><tt>void SwigType_del_array(SwigType *ty)</tt></b>
+</p>
+
+<div class="indent">
+Removes a single array dimension from <tt>ty</tt>.
+</div>
+
+<p>
+<b><tt>int SwigType_array_ndim(SwigType *ty)</tt></b>
+</p>
+
+<div class="indent">
+Returns number of array dimensions of <tt>ty</tt>.
+</div>
+
+<p>
+<b><tt>String* SwigType_array_getdim(SwigType *ty,int n)</tt></b>
+</p>
+
+<div class="indent">
+Returns <tt>n</tt>th array dimension of <tt>ty</tt>.
+</div>
+
+<p>
+<b><tt>void SwigType_array_setdim(SwigType *ty, int n, const String_or_char *rep)</tt></b>
+</p>
+
+<div class="indent">
+Sets <tt>n</tt>th array dimensions of <tt>ty</tt> to <tt>rep</tty>.
+</div>
+
+<p>
 <b><tt>void SwigType_add_qualifier(SwigType *ty, String_or_char *q)</tt></b>
 </p>
 
