@@ -46,6 +46,10 @@
    bool __contains__(value_type x) {
      return self->find(x) != self->end();
    }
+
+   value_type __getitem__(difference_type i) const {
+     return *(swig::cgetpos(self, i));
+   }
   };    
 %enddef
 

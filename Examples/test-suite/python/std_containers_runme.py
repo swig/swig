@@ -91,4 +91,14 @@ v3 = std_containers.vector_piA(v2)
 v3[0][1].a
 v3[1][1].a
 
+s = std_containers.set_i()
+s.append(1)
+s.append(2)
+s.append(3)
+j=1
+for i in s:
+  if i != j:
+    raise RuntimeError
+  j = j + 1
+
 
