@@ -89,3 +89,8 @@ if v.size() != 0:
     raise RuntimeError,"bad getslice"    
 
 
+
+v = vecStr(["hello ", "world"])
+if v[0] != 'hello world':
+    raise RuntimeError,"bad std::string+std::vector"
+    

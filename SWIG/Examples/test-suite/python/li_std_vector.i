@@ -1,5 +1,6 @@
 %module li_std_vector
 
+%include "std_string.i"
 %include "std_vector.i"
 %include "cpointer.i"
 %include "carrays.i"
@@ -14,6 +15,7 @@ namespace std {
     %template() vector<short>;
     %template(IntVector) vector<int>;
     %template(BoolVector) vector<bool>;
+    %template() vector<string>;
 }
 
 %template(DoubleVector) std::vector<double>;
@@ -105,6 +107,12 @@ std::vector<short> halfs(const std::vector<short>& v) {
     for (std::vector<short>::size_type i=0; i<w.size(); i++)
         w[i] /= 2;
     return w;
+}
+
+
+std::vector<std::string>  vecStr(std::vector<std::string> v) {
+  v[0] += v[1];
+  return v;
 }
 
 %}
