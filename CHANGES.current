@@ -1,6 +1,22 @@
 Version 1.3.26 (in progress)
 ============================
 
+07/22/2005: wsfulton
+            [C#] Changes to support C# structs returned by value. The changes required are:
+              - Using an optional 'null' attribute in the out typemap. If this attribute is specified,
+                then it is used for the $null special variable substitution.
+              - The ctype used in the C/C++ wrappers is no longer initialised to 0 on declaration.
+            Both of these changes fix the situations where an attempt was made to assign 0 to the
+            returned struct. Marshalling structs as value types still requires user defined typemaps.
+            See documentation for an example.
+
+07/22/2005: wsfulton
+            [C#, Java] Fix SWIG_exception usage to work with compilers that don't support empty macro
+            arguments. Unfortunately this fix will stop usage of SWIG_exception being used within typemaps
+            that use "" or %{ %} delimeters, but continues to work with typemaps using {} delimeters.
+            Please use the SWIG_CSharpSetPendingExceptionArgument or SWIG_JavaThrowException methods instead
+            as SWIG_exception is really intended as a platform independent macro for the SWIG library writers.
+
 07/16/2005: mkoeppe
 	    [Allegro CL] Use specific foreign types rather than (* :void). 
 	    Use *swig-identifier-converter*.
