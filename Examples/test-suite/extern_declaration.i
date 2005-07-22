@@ -14,14 +14,14 @@
 #endif
 %}
 
-DLLIMPORT extern int externimport(int in);
+DLLIMPORT extern int externimport(int i);
 SWIGEXPORT extern int externexport(int);
 extern int SWIGSTDCALL externstdcall(int);
 
 %{
-SWIGEXPORT extern int externimport(int in) { return in; }
-SWIGEXPORT extern int externexport(int in) { return in; }
-extern int SWIGSTDCALL externstdcall(int in) { return in; }
+SWIGEXPORT extern int externimport(int i) { return i; }
+SWIGEXPORT extern int externexport(int i) { return i; }
+extern int SWIGSTDCALL externstdcall(int i) { return i; }
 %}
 
 
