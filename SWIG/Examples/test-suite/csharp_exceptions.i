@@ -143,12 +143,11 @@ unsigned short ushorttest() { return 100; }
 %}
 
 // test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
-%typemap(check, canthrow=1) int macrotest %{
+%typemap(check, canthrow=1) int macrotest {
   if ($1 < 0) {
     SWIG_exception(SWIG_IndexError, "testing SWIG_exception macro");
-    return $null;
   }
-%}
+}
 %inline %{
   bool exception_macro_run_flag = false;
   void exceptionmacrotest(int macrotest) {
