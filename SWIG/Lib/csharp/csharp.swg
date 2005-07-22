@@ -126,7 +126,7 @@
 %typemap(in) char * %{ $1 = $input; %}
 %typemap(out) char * %{ $result = SWIG_csharp_string_callback($1); %}
 
-%typemap(out) void ""
+%typemap(out, null="") void ""
 
 /* primitive types by const reference */
 %typemap(in) const bool & (bool temp)
