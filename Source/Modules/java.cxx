@@ -972,9 +972,6 @@ class JAVA : public Language {
     /* Contract macro modification */
     Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
 
-    /* Exception macro modification */
-    Replaceall(f->code, "SWIG_exception(", "SWIG_exception($null, ");
-
     if(!is_void_return)
       Replaceall(f->code,"$null","0");
     else
