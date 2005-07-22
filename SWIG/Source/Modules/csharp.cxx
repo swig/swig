@@ -511,7 +511,7 @@ class CSHARP : public Language {
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
     if (!is_void_return)
-      Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
+      Wrapper_add_localv(f,"jresult", c_return_type, "jresult",NIL);
 
     Printv(f->def, " SWIGEXPORT ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
@@ -680,6 +680,7 @@ class CSHARP : public Language {
       Swig_restore(n);
 
     /* Return value if necessary  */
+    String *null_attribute = 0;
     if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
         canThrow(n, "out", n);
@@ -687,6 +688,7 @@ class CSHARP : public Language {
         Replaceall(tm,"$target", "jresult"); /* deprecated */
         Replaceall(tm,"$result","jresult");
         Printf(f->code,"%s", tm);
+        null_attribute = Getattr(n, "tmap:out:null");
         if (Len(tm))
           Printf(f->code,"\n");
       } else {
@@ -737,13 +739,10 @@ class CSHARP : public Language {
       Setattr(n,"csharp:canthrow","1");
     }
 
-    /* Exception macro modification */
-    Replaceall(f->code, "SWIG_exception(", "SWIG_exception($null, ");
-
-    if(!is_void_return)
+    if(!null_attribute)
       Replaceall(f->code,"$null","0");
     else
-      Replaceall(f->code,"$null","");
+      Replaceall(f->code,"$null",null_attribute);
 
     /* Dump the function out */
     if(!native_function_flag) {
