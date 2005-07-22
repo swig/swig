@@ -8,14 +8,12 @@
 
 %include exception.i
 
-// containers
-
-// methods which can raise are caused to throw an IndexError
 %exception std::vector::get {
     try {
         $action
     } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+        SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, const_cast<char*>(e.what()));
+        return $null;
     }
 }
 
@@ -23,7 +21,8 @@
     try {
         $action
     } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+        SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, const_cast<char*>(e.what()));
+        return $null;
     }
 }
 
