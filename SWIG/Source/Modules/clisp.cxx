@@ -23,12 +23,15 @@ public:
   virtual int variableWrapper(Node *n); 
   virtual int constantWrapper(Node *n);
   virtual int classDeclaration(Node *n);
+  virtual int typedefHandler(Node *n);
   List *entries;
 private:
   String* get_ffi_type(SwigType *ty);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
-  int generate_all_flag;
+  int extern_all_flag;
+  int generate_typedef_flag;
+  int is_function;
 };
 
 void CLISP :: main(int argc, char *argv[]) {
@@ -36,24 +39,32 @@ void CLISP :: main(int argc, char *argv[]) {
 
   SWIG_library_directory("clisp"); 
   SWIG_config_file("clisp.swg");
-  generate_all_flag = 0;
+  generate_typedef_flag = 0;
+  extern_all_flag=0;
   
   for(i=1; i<argc; i++) {
     if (!strcmp(argv[i], "-help")) {
       Printf(stdout, "clisp Options (available with -clisp)\n");
       Printf(stdout, 
-	     " -generate-all\n"
+	     " -extern-all\n"
 	     "\t If this option is given then clisp definitions for all the functions\n"
 	     "and global variables will be created otherwise only definitions for \n"
-	     "externed functions and variables is created.");
+	     "externed functions and variables are created."
+	     " -generate-typedef\n"
+	     "\t If this option is given then def-c-type will be used to generate shortcuts\n"
+	     "according to the typedefs in the input.\n"
+	     );
     }
-    else if ( (Strcmp(argv[i],"-generate-all") == 0)) {
-	    generate_all_flag = 1;
-	    Swig_mark_arg(i);
+    else if ( (Strcmp(argv[i],"-extern-all") == 0)) {
+      extern_all_flag = 1;
+      Swig_mark_arg(i);
+    }
+    else if ( (Strcmp(argv[i],"-generate-typedef") == 0)) {
+      generate_typedef_flag = 1;
+      Swig_mark_arg(i);
     }
   }
 }
-
 
 int CLISP :: top(Node *n) {
 
@@ -81,8 +92,7 @@ int CLISP :: top(Node *n) {
   Swig_register_filebyname("header",f_null);
   Swig_register_filebyname("runtime",f_null);
   Swig_register_filebyname("wrapper", f_null);
-
-
+ 
   String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage \"%s\"\n  (:use :common-lisp :ffi)", module);
 
   Language::top(n);
@@ -92,7 +102,6 @@ int CLISP :: top(Node *n) {
     Printf(header,"\n\t:%s", i.item);
   }
   Printf(header, ")\n",NULL);
-
   Printf(header,"\n(in-package :%s)\n",module);
 
   long len= Tell(f_cl);
@@ -120,9 +129,9 @@ int CLISP :: top(Node *n) {
 
 
 int CLISP :: functionWrapper(Node *n) {
-
+  is_function=1;
   String *storage=Getattr(n,"storage");
-  if(!generate_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+  if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
     return SWIG_OK;
      
   String *func_name=Getattr(n, "sym:name");
@@ -134,8 +143,7 @@ int CLISP :: functionWrapper(Node *n) {
   Printf(f_cl, "\n(ffi:def-call-out %s\n\t(:name \"%s\")\n", func_name,func_name);
   
   Append(entries,func_name);
-  /* Special cases */
-  
+
   if (ParmList_len(pl) != 0) {
     Printf(f_cl, "\t(:arguments ");
   }
@@ -148,21 +156,21 @@ int CLISP :: functionWrapper(Node *n) {
     
     int tempargname=0;
       
-     if (!argname) {
-       argname=NewStringf("arg%d", argnum);
-       tempargname=1;
-     }
+    if (!argname) {
+      argname=NewStringf("arg%d", argnum);
+      tempargname=1;
+    }
       
-     if (!first) {
-       Printf(f_cl, "\n\t\t");
-     }
-     Printf(f_cl, "(%s %s)", argname, ffitype);
-     first=0;
+    if (!first) {
+      Printf(f_cl, "\n\t\t");
+    }
+    Printf(f_cl, "(%s %s)", argname, ffitype);
+    first=0;
       
-     Delete(ffitype);
+    Delete(ffitype);
 
-     if (tempargname) 
-       Delete(argname);
+    if (tempargname) 
+      Delete(argname);
   }
   if (ParmList_len(pl) != 0) {
     Printf(f_cl, ")\n"); /* finish arg list */
@@ -175,29 +183,25 @@ int CLISP :: functionWrapper(Node *n) {
 
 
 int CLISP :: constantWrapper(Node *n) {
+  is_function=0;
   String *type=Getattr(n, "type");
   String *converted_value=convert_literal(Getattr(n, "value"), type);
   String *name=Getattr(n, "sym:name");
 
-#if 0
-  Printf(stdout, "constant %s is of type %s. value: %s\n",
-	 name, type, converted_value);
-#endif
-
-  Printf(f_cl, "\n(defconstant %s %s)\n",
-	 name, converted_value);
-
+  Printf(f_cl, "\n(defconstant %s %s)\n", name, converted_value);
   Delete(converted_value);
  
   return SWIG_OK;
 }
 
 int CLISP :: variableWrapper(Node *n) {
+  is_function=0;
+  SwigType *type=Getattr(n, "type");
   String *storage=Getattr(n,"storage");
-  if(!generate_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+  
+  if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
     return SWIG_OK;
 
-  String *type=Getattr(n, "type");
   String *var_name=Getattr(n, "sym:name");
   String *lisp_type=get_ffi_type(type);
   Printf(f_cl,"\n(def-c-var %s (:type %s)\n",var_name,lisp_type);
@@ -205,9 +209,19 @@ int CLISP :: variableWrapper(Node *n) {
   return SWIG_OK;
 }
 
+int CLISP :: typedefHandler(Node *n) {
+  if(generate_typedef_flag) {
+    is_function=0;
+    Printf(f_cl,"\n(def-c-type %s (:type %s)\n",Getattr(n,"name"),get_ffi_type(Getattr(n,"type")));
+  }
+  
+  return Language::typedefHandler(n);
+}
+
 
 // Includes structs
 int CLISP :: classDeclaration(Node *n) {
+  is_function=0;
   String *name=Getattr(n, "sym:name");
   String *kind = Getattr(n,"kind");
   
@@ -335,7 +349,25 @@ String* CLISP::get_ffi_type(SwigType *ty) {
     SwigType *cp = Copy(ty);
     SwigType_del_pointer(cp);
     String *inner_type=get_ffi_type(cp);
-    String *str = NewStringf("(ffi:c-pointer %s)",inner_type);
+
+    if(SwigType_isfunction(cp)) {
+      return inner_type;
+    }
+    
+    SwigType *base=SwigType_base(ty);
+    String *base_name=SwigType_str(base,0);
+
+    String *str;
+    if(!Strcmp(base_name,"int") || !Strcmp(base_name,"float") || !Strcmp(base_name,"short")
+       || !Strcmp(base_name,"double") || !Strcmp(base_name,"long")) {
+    
+      str = NewStringf("(ffi:c-ptr %s)",inner_type);
+    }
+    else {
+      str = NewStringf("(ffi:c-pointer %s)",inner_type);
+    }
+    Delete(base_name);
+    Delete(base);
     Delete(cp);
     Delete(inner_type);
     return str;
@@ -374,11 +406,56 @@ String* CLISP::get_ffi_type(SwigType *ty) {
 	dimension=NewStringf("(%s)",dimension);
 	Delete(temp);
       }
-      String *str=NewStringf("(ffi:c-array %s %s)",inner_type,dimension);
+      String *str;
+      if(is_function)
+	str=NewStringf("(ffi:c-ptr (ffi:c-array %s %s))",inner_type,dimension);
+      else
+	str=NewStringf("(ffi:c-array %s %s)",inner_type,dimension);
+      
       Delete(inner_type);
       Delete(dimension);
       return str;
     }
+  }
+  else if(SwigType_isfunction(ty)) {
+    SwigType *cp = Copy(ty);
+    SwigType *fn=SwigType_pop_function(cp);
+    String *args=NewString("");
+    ParmList *pl= SwigType_function_parms(fn);
+    if (ParmList_len(pl) != 0) {
+      Printf(args, "(:arguments ");
+    }
+    int argnum=0, first=1;
+    for (Parm *p=pl; p; p=nextSibling(p), argnum++) {
+      String *argname=Getattr(p, "name");
+      SwigType *argtype=Getattr(p, "type");
+      String *ffitype=get_ffi_type(argtype);
+    
+      int tempargname=0;
+      
+      if (!argname) {
+ 	argname=NewStringf("arg%d", argnum);
+ 	tempargname=1;
+      }
+      if (!first) {
+ 	Printf(args, "\n\t\t");
+      }
+      Printf(args, "(%s %s)", argname, ffitype);
+      first=0;
+      Delete(ffitype);
+      if (tempargname) 
+ 	Delete(argname);
+    }
+    if (ParmList_len(pl) != 0) {
+      Printf(args, ")\n"); /* finish arg list */
+    }
+    String *ffitype = get_ffi_type(cp);
+    String *str=NewStringf("(ffi:c-function %s \t\t\t\t(:return-type %s))",args,ffitype);
+    Delete(fn);
+    Delete(args);
+    Delete(cp);
+    Delete(ffitype);
+    return str;
   }
   String *str=SwigType_str(ty,0);
   if(str) {
