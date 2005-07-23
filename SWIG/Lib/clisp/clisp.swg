@@ -25,4 +25,4 @@
 %typemap(in) unsigned long "ffi:ulong";
 
 %typemap(in) float "SINGLE-FLOAT";
-%typemap(in) double "DOUBLE_FLOAT";
+%typemap(in) double "DOUBLE-FLOAT";
