@@ -1,5 +1,18 @@
 Version 1.3.26 (in progress)
 ============================
+07/22/2005: efuzzyone
+            [CLISP] The clisp module for SWIG:
+              - It can only handle C, clisp currently does not supports ffi bindings to C++.
+              - It has two options, (a) -extern-all this will generate wrappers for all functions
+        	and variablestions, (b) -generate-typedef this will generate wrappers "def-c-type"
+	        wrappers for typedefs
+	      - Can handle pointers to functions, complex types such as n-dimensional arrays of 
+	 	pointers of depth d
+	      - Generates wrappers for constants as well as variables
+	      - Correctly distinguishes between the declaration of variables in structures and functions
+	      - Creates a defpackage "declaration" with the module name as the package name, the created 
+	    	package exports both functions and variables
+	      - tries to guess when should a pointer variable be declared as c-ptr or c-pointer
 
 07/22/2005: wsfulton
             [C#] Changes to support C# structs returned by value. The changes required are:
