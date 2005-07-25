@@ -419,11 +419,6 @@ $1 = &temp; %}
     $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
     return ret;
   }
-%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
-    IntPtr cPtr = $imcall;
-    $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
-    return ret;
-  }
 
 
 /* Properties */
