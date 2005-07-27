@@ -1,79 +1,35 @@
-%include <std_string.i>
-%include <exception.i>
+// Typemaps used by the STL wrappers that throw exceptions.
+// These typemaps are used when methods are declared with an STL exception specification, such as
+//   size_t at() const throw (std::out_of_range);
 
-%{
-#include <stdexcept>
-%}
-
-namespace std {
-  /* Mark all of them as exception classes */
-  %feature("exceptionclass")  exception;  
-  %feature("exceptionclass")  bad_exception;
-  %feature("exceptionclass")  logic_error;
-  %feature("exceptionclass")  domain_error;
-  %feature("exceptionclass")  invalid_argument;
-  %feature("exceptionclass")  length_error;
-  %feature("exceptionclass")  out_of_range;
-  %feature("exceptionclass")  runtime_error;
-  %feature("exceptionclass")  range_error;
-  %feature("exceptionclass")  overflow_error;
-  %feature("exceptionclass")  underflow_error;
-}
-
-namespace std {
-  struct exception 
-  {
-    virtual ~exception() throw();
-    virtual const char* what() const throw();
-  };
-
-  struct bad_exception : exception 
-  {
-  };
-
-  struct logic_error : exception 
-  {
-    logic_error(const string& msg);
-  };
-
-  struct domain_error : logic_error 
-  {
-    domain_error(const string& msg);
-  };
-
-  struct invalid_argument : logic_error 
-  {
-    invalid_argument(const string& msg);
-  };
-
-  struct length_error : logic_error 
-  {
-    length_error(const string& msg);
-  };
-
-  struct out_of_range : logic_error 
-  {
-    out_of_range(const string& msg);
-  };
-
-  struct runtime_error : exception 
-  {
-    runtime_error(const string& msg);
-  };
-
-  struct range_error : runtime_error 
-  {
-    range_error(const string& msg);
-  };
-
-  struct overflow_error : runtime_error 
-  {
-    overflow_error(const string& msg);
-  };
-
-  struct underflow_error : runtime_error 
-  {
-    underflow_error(const string& msg);
-  };
-}
+#if defined(SWIGJAVA)
+  %typemap(throws) std::out_of_range %{
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, _e.what());
+    return $null; %}
+#elif defined(SWIGCSHARP)
+  %typemap(throws, canthrow=1) std::out_of_range %{
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, _e.what());
+    return $null; %}
+  %typemap(throws, canthrow=1) std::invalid_argument %{
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, _e.what(), "");
+    return $null; %}
+#elif defined(SWIGPYTHON)
+  %include "exception.i"
+  %typemap(throws) std::out_of_range %{
+    if (!PyErr_Occurred()) {
+      SWIG_exception(SWIG_IndexError, _e.what());
+    } else {
+      SWIG_fail;
+    } %}
+  %typemap(throws) std::invalid_argument %{
+    if (!PyErr_Occurred()) {
+      SWIG_exception(SWIG_TypeError, _e.what());
+    } else {
+      SWIG_fail;
+    } %}
+#elif
+  %include "exception.i"
+  %typemap(throws) std::out_of_range %{
+    SWIG_exception(SWIG_IndexError, _e.what()); %}
+#endif
 

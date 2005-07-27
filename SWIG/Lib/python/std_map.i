@@ -61,7 +61,7 @@
   %swig_container_methods(Map)
 
   %extend {
-    mapped_type __getitem__(const key_type& key) const {
+    mapped_type __getitem__(const key_type& key) const throw (std::out_of_range) {
       Map::const_iterator i = self->find(key);
       if (i != self->end())
 	return i->second;
@@ -69,11 +69,11 @@
 	throw std::out_of_range("key not found");
     }
     
-    void __setitem__(const key_type& key, const mapped_type& x) {
+    void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       self->insert(Map::value_type(key,x));
     }
     
-    void __delitem__(const key_type& key) {
+    void __delitem__(const key_type& key) throw (std::out_of_range) {
       Map::iterator i = self->find(key);
       if (i != self->end())
 	self->erase(i);

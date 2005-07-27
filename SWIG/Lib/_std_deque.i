@@ -3,36 +3,13 @@
  * this file to generate wrappers. 
  */
 
+%include <std_common.i>
+
 %{
 #include <deque>
 #include <stdexcept>
 %}
 
-%include "exception.i"
-
-%exception std::deque::getitem {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::deque::setitem {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::deque::delitem  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
 
 /* This macro defines all of the standard methods for a deque.  This
    is defined as a macro to simplify the task of specialization.  For
@@ -69,7 +46,7 @@
 
        /* Some useful extensions */
        %extend {
-           const_reference getitem(int i) {
+           const_reference getitem(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i<0) i += size;
                 if (i>=0 && i<size)
@@ -77,7 +54,7 @@
                 else
                     throw std::out_of_range("deque index out of range");
            }
-           void setitem(int i, const T& x) {
+           void setitem(int i, const T& x) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size)
@@ -85,7 +62,7 @@
                 else
                     throw std::out_of_range("deque index out of range");
            }
-           void delitem(int i) {
+           void delitem(int i) throw (std::out_of_range) {
             	int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size) {

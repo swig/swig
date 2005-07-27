@@ -1,3 +1,4 @@
+%include <std/std_except.i>
 %include <pystdcommon.swg>
 %include <std/std_common.i>
 

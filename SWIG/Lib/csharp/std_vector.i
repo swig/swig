@@ -8,6 +8,8 @@
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  */
 
+%include <std_common.i>
+
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
 %define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
@@ -172,7 +174,7 @@
     %newobject Repeat(const CTYPE& value, int count);
     vector();
     %extend {
-      vector(int capacity) {
+      vector(int capacity) throw (std::out_of_range) {
         std::vector<CTYPE >* pv = 0;
         if (capacity >= 0) {
           pv = new std::vector<CTYPE >();
@@ -182,19 +184,19 @@
        }
        return pv;
       }
-      CTYPE getitemcopy(int index) {
+      CTYPE getitemcopy(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
           throw std::out_of_range("index");
       }
-      const CTYPE& getitem(int index) {
+      const CTYPE& getitem(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, const CTYPE& value) {
+      void setitem(int index, const CTYPE& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           (*self)[index] = value;
         else
@@ -205,44 +207,44 @@
         self->insert(self->end(), values.begin(), values.end());
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
-      std::vector<CTYPE > *GetRange(int index, int count) {
+      std::vector<CTYPE > *GetRange(int index, int count) throw (std::out_of_range, std::invalid_argument) {
         if (index < 0)
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
-          throw "invalid range";
+          throw std::invalid_argument("invalid range");
         return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
-      void Insert(int index, const CTYPE& value) {
+      void Insert(int index, const CTYPE& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, value);
         else
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.InsertRange
-      void InsertRange(int index, const std::vector<CTYPE >& values) {
+      void InsertRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, values.begin(), values.end());
         else
           throw std::out_of_range("index");
       }
-      void RemoveAt(int index) {
+      void RemoveAt(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           self->erase(self->begin() + index);
         else
           throw std::out_of_range("index");
       }
-      void RemoveRange(int index, int count) {
+      void RemoveRange(int index, int count) throw (std::out_of_range, std::invalid_argument) {
         if (index < 0)
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
-          throw "invalid range";
+          throw std::invalid_argument("invalid range");
         self->erase(self->begin()+index, self->begin()+index+count);
       }
-      static std::vector<CTYPE > *Repeat(const CTYPE& value, int count) {
+      static std::vector<CTYPE > *Repeat(const CTYPE& value, int count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("count");
         return new std::vector<CTYPE >(count, value);
@@ -250,17 +252,17 @@
       void Reverse() {
         std::reverse(self->begin(), self->end());
       }
-      void Reverse(int index, int count) {
+      void Reverse(int index, int count) throw (std::out_of_range, std::invalid_argument) {
         if (index < 0)
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
-          throw "invalid range";
+          throw std::invalid_argument("invalid range");
         std::reverse(self->begin()+index, self->begin()+index+count);
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
-      void SetRange(int index, const std::vector<CTYPE >& values) {
+      void SetRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
         if (index < 0)
           throw std::out_of_range("index");
         if (index+values.size() > self->size())
@@ -317,125 +319,6 @@ namespace std {
   };
 }
 %enddef
-
-
-// Methods which can throw an Exception
-%exception std::vector::vector(int capacity) {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::getitemcopy {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::getitem {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::setitem {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::GetRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  } catch (const char *e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
-    return $null;
-  }
-}
-
-%exception std::vector::Insert {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::InsertRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::RemoveAt {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::Repeat {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
-
-%exception std::vector::RemoveRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  } catch (const char *e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
-    return $null;
-  }
-}
-
-%exception std::vector::Reverse(int index, int count) {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  } catch (const char *e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
-    return $null;
-  }
-}
-
-%exception std::vector::SetRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
-    return $null;
-  }
-}
 
 
 %{
