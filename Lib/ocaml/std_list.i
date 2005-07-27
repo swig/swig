@@ -6,38 +6,13 @@
 //
 // Python implementation
 
+%include <std_common.i>
 
 %module std_list
 %{
 #include <list>
 #include <stdexcept>
 %}
-
-%include "exception.i"
-
-%exception std::list::__getitem__ {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::list::__setitem__ {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::list::__delitem__  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
 
 
 namespace std{
@@ -86,7 +61,7 @@ namespace std{
 		
 	%extend 
 	    {
-		const_reference __getitem__(int i) 
+		const_reference __getitem__(int i) throw (std::out_of_range) 
 		    {
 			std::list<T>::iterator first = self->begin(); 
 			int size = int(self->size());
@@ -101,7 +76,7 @@ namespace std{
 			}
 			else throw std::out_of_range("list index out of range");
 		    }
-		void __setitem__(int i, const T& x) 
+		void __setitem__(int i, const T& x) throw (std::out_of_range)
 		    {
 			std::list<T>::iterator first = self->begin(); 
 			int size = int(self->size());
@@ -116,7 +91,7 @@ namespace std{
 			}
 			else throw std::out_of_range("list index out of range");
 		    }
-		void __delitem__(int i) 
+		void __delitem__(int i) throw (std::out_of_range)
 		    {
 			std::list<T>::iterator first = self->begin(); 
 			int size = int(self->size());

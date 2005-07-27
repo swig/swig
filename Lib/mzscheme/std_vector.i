@@ -5,36 +5,7 @@
 //
 // MzScheme implementation
 
-%include std_common.i
-%include exception.i
-
-// containers
-
-
-%exception std::vector::ref {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::vector::set {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::vector::pop  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
+%include <std_common.i>
 
 // ------------------------------------------------------------------------
 // std::vector
@@ -233,21 +204,21 @@ namespace std {
         %rename("push!") push_back;
         void push_back(const T& x);
         %extend {
-            T pop() {
+            T pop() throw (std::out_of_range) {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
                 T x = self->back();
                 self->pop_back();
                 return x;
             }
-            T& ref(int i) {
+            T& ref(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, const T& x) {
+            void set(int i, const T& x) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;
@@ -409,21 +380,21 @@ namespace std {
         %rename("push!") push_back;
         void push_back(T x);
         %extend {
-            T pop() {
+            T pop() throw (std::out_of_range) {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
                 T x = self->back();
                 self->pop_back();
                 return x;
             }
-            T ref(int i) {
+            T ref(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, T x) {
+            void set(int i, T x) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;

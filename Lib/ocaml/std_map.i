@@ -5,24 +5,7 @@
 //
 // Common implementation
 
-%include std_common.i
-%include exception.i
-
-%exception std::map::get {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::map::del  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
+%include <std_common.i>
 
 // ------------------------------------------------------------------------
 // std::map
@@ -47,7 +30,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& get(const K& key) {
+            T& get(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -57,7 +40,7 @@ namespace std {
             void set(const K& key, const T& x) {
                 (*self)[key] = x;
             }
-            void del(const K& key) {
+            void del(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
@@ -86,7 +69,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& get(K key) {
+            T& get(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -96,7 +79,7 @@ namespace std {
             void set(K key, const T& x) {
                 (*self)[key] = x;
             }
-            void del(K key) {
+            void del(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
@@ -122,7 +105,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T get(const K& key) {
+            T get(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -132,7 +115,7 @@ namespace std {
             void set(const K& key, T x) {
                 (*self)[key] = x;
             }
-            void del(const K& key) {
+            void del(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
@@ -159,7 +142,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T get(K key) {
+            T get(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -169,7 +152,7 @@ namespace std {
             void set(K key, T x) {
                 (*self)[key] = x;
             }
-            void del(K key) {
+            void del(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);

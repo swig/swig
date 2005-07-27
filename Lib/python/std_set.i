@@ -47,7 +47,7 @@
      return self->find(x) != self->end();
    }
 
-   value_type __getitem__(difference_type i) const {
+   value_type __getitem__(difference_type i) const throw (std::out_of_range) {
      return *(swig::cgetpos(self, i));
    }
   };    

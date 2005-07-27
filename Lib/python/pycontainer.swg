@@ -357,99 +357,6 @@ namespace swig
 
 
 %define %swig_container_methods(Container...)
-  // __getitem__ is required to raise an IndexError for for-loops to work
-  // other methods which can raise are made to throw an IndexError as well
-  %exception __getitem__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-  %exception __setitem__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-  %exception __getslice__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-
-  %exception __setslice__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    catch (std::invalid_argument& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }      
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-  %exception __delslice__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-  %exception __delitem__ {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
-
-  %exception pop  {
-    try { $action }
-    catch (std::out_of_range& e) {
-      if (!PyErr_Occurred()) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-      } else {
-	SWIG_fail;
-      }
-    }
-    SWIG_CATCH_UNKNOWN
-  }
 
   %newobject __getslice__;
 
@@ -469,7 +376,7 @@ namespace swig
   %fragment("PySequence_Base");
 
   %extend {
-    value_type pop() {
+    value_type pop() throw (std::out_of_range) {
       if (self->size() == 0)
 	throw std::out_of_range("pop from empty container");
       Sequence::value_type x = self->back();
@@ -477,19 +384,19 @@ namespace swig
       return x;
     }
 
-    Sequence* __getslice__(difference_type i, difference_type j) {
+    Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range) {
       return swig::getslice(self, i, j);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v) {
+    void __setslice__(difference_type i, difference_type j, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
       swig::setslice(self, i, j, v);
     }
 
-    void __delslice__(difference_type i, difference_type j) {
+    void __delslice__(difference_type i, difference_type j) throw (std::out_of_range) {
       swig::delslice(self, i, j);
     }
 
-    void __delitem__(difference_type i) {
+    void __delitem__(difference_type i) throw (std::out_of_range) {
       self->erase(swig::getpos(self,i));
     }
   }
@@ -498,11 +405,11 @@ namespace swig
 %define %swig_sequence_methods(Sequence...)
   %swig_sequence_methods_common(SWIG_arg(Sequence))
   %extend {
-    const value_type& __getitem__(difference_type i) const {
+    const value_type& __getitem__(difference_type i) const throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    void __setitem__(difference_type i, const value_type& x) {
+    void __setitem__(difference_type i, const value_type& x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 
@@ -515,11 +422,11 @@ namespace swig
 %define %swig_sequence_methods_val(Sequence...)
   %swig_sequence_methods_common(SWIG_arg(Sequence))
   %extend {
-    value_type __getitem__(difference_type i)  {
+    value_type __getitem__(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    void __setitem__(difference_type i, value_type x) {
+    void __setitem__(difference_type i, value_type x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 

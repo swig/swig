@@ -5,24 +5,7 @@
 //
 // Ruby implementation
 
-%include std_common.i
-%include exception.i
-
-%exception std::map::__getitem__ {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
-
-%exception std::map::__delitem__  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
+%include <std_common.i>
 
 // ------------------------------------------------------------------------
 // std::map
@@ -192,7 +175,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& __getitem__(const K& key) {
+            T& __getitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -202,7 +185,7 @@ namespace std {
             void __setitem__(const K& key, const T& x) {
                 (*self)[key] = x;
             }
-            T __delitem__(const K& key) {
+            T __delitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end()) {
                     T x = i->second;
@@ -396,7 +379,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& __getitem__(K key) {
+            T& __getitem__(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -406,7 +389,7 @@ namespace std {
             void __setitem__(K key, const T& x) {
                 (*self)[key] = x;
             }
-            T __delitem__(K key) {
+            T __delitem__(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end()) {
                     T x = i->second;
@@ -594,7 +577,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T __getitem__(const K& key) {
+            T __getitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -604,7 +587,7 @@ namespace std {
             void __setitem__(const K& key, T x) {
                 (*self)[key] = x;
             }
-            T __delitem__(const K& key) {
+            T __delitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end()) {
                     T x = i->second;
@@ -779,7 +762,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T __getitem__(K key) {
+            T __getitem__(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
@@ -789,7 +772,7 @@ namespace std {
             void __setitem__(K key, T x) {
                 (*self)[key] = x;
             }
-            T __delitem__(K key) {
+            T __delitem__(K key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end()) {
                     T x = i->second;

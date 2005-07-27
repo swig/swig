@@ -5,27 +5,7 @@
 //
 // Java implementation
 
-
-%include exception.i
-
-%exception std::vector::get {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, const_cast<char*>(e.what()));
-        return $null;
-    }
-}
-
-%exception std::vector::set {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, const_cast<char*>(e.what()));
-        return $null;
-    }
-}
-
+%include <std_common.i>
 
 // ------------------------------------------------------------------------
 // std::vector
@@ -73,14 +53,14 @@ namespace std {
         %rename(add) push_back;
         void push_back(const T& x);
         %extend {
-            T& get(int i) {
+            T& get(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, const T& x) {
+            void set(int i, const T& x) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;
@@ -106,14 +86,14 @@ namespace std {
         %rename(add) push_back;
         void push_back(T x);
         %extend {
-            T get(int i) {
+            T get(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, T x) {
+            void set(int i, T x) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;

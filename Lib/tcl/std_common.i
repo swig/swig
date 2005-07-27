@@ -5,6 +5,8 @@
 //
 // Tcl implementation
 
+%include <std/std_except.i>
+
 %types(std::size_t);
 %apply size_t { std::size_t };
 %apply const unsigned long& { const std::size_t& };

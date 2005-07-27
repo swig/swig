@@ -5,6 +5,8 @@
 //
 // Guile implementation
 
+%include <std/std_except.i>
+
 %apply size_t { std::size_t };
 
 #define SWIG_bool2scm(b) gh_bool2scm(b ? 1 : 0)
