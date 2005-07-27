@@ -25,7 +25,7 @@
 <li><a href="#Library_nn11">Using %newobject to release memory</a>
 <li><a href="#Library_nn12">cstring.i</a>
 </ul>
-<li><a href="#Library_nn13">C++ Library</a>
+<li><a href="#Library_stl_cpp_library">STL/C++ Library</a>
 <ul>
 <li><a href="#Library_nn14">std_string.i</a>
 <li><a href="#Library_nn15">std_vector.i</a>
@@ -1346,14 +1346,41 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_nn13"></a>8.4 C++ Library</H2>
+<H2><a name="Library_stl_cpp_library"></a>8.4 STL/C++ Library</H2>
 
 
 <p>
-The library modules in this section provide access to parts of the standard C++ library.
-All of these modules are new in SWIG-1.3.12 and are only the beginning phase of more complete
-C++ library support including support for the STL.  
+The library modules in this section provide access to parts of the standard C++ library including the STL.
+SWIG support for the STL is an ongoing effort. Support is quite comprehensive for some language modules
+but some of the lesser used modules do not have quite as much library code written.
 </p>
+
+<p>
+The following table shows which C++ classes are supported and the equivalent SWIG interface library file for the C++ library.
+</p>
+
+<table BORDER summary="SWIG C++ library files">
+<tr VALIGN=TOP>
+<td><b>C++ class</b></td>
+<td><b>C++ Library file</b></td>
+<td><b>SWIG Interface library file</b></td>
+</tr>
+
+<tr> <td>std::deque</td>           <td>deque</td>             <td>std_deque.i</td> </tr>
+<tr> <td>std::list</td>           <td>list</td>             <td>std_list.i</td> </tr>
+<tr> <td>std::map</td>           <td>map</td>             <td>std_map.i</td> </tr>
+<tr> <td>std::pair</td>           <td>utility</td>             <td>std_pair.i</td> </tr>
+<tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
+<tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
+<tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
+
+</table>
+
+<p>
+The list is by no means complete; some language modules support a subset of the above and some support additional STL classes.
+Please look for the library files in the appropriate language library directory.
+</p>
+
 
 <H3><a name="Library_nn14"></a>8.4.1 std_string.i</H3>
 
@@ -1596,6 +1623,55 @@ details and the public API exposed to the interpreter vary.
 </p>
 
 
+<H3><a name="Library_stl_exceptions"></a>STL exceptions</H3>
+<p>
+Many of the STL wrapper functions add parameter checking and will throw a language dependent error/exception
+should the values not be valid. The classic example is array bounds checking.
+The library wrappers are written to throw a C++ exception in the case of error.
+The C++ exception in turn gets converted into an appropriate error/exception for the target language.
+By and large this handling should not need customising, however, customisation can easily be achieved by supplying appropriate "throws" typemaps.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include "std_vector.i"
+%typemap(throws) std::out_of_range {
+  // custom exception handler
+}
+%template(VectInt) std::vector<int>;
+</pre>
+</div>
+
+<p>
+The custom exception handler might, for example, log the exception then convert it into a specific error/exception for the target language.
+</p>
+
+<p>
+When using the STL it is advisable to add in an exception handler to catch all STL exceptions.
+The <tt>%exception</tt> directive can be used by placing the following code before any other methods or libraries to be wrapped:
+</p>
+
+<div class="code">
+<pre>
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception&amp; e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+</pre>
+</div>
+
+<p>
+Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
+</p>
+
+
 <H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
 
 
@@ -1604,7 +1680,9 @@ details and the public API exposed to the interpreter vary.
 
 <p>
 The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
-exception in the target language.
+exception in the target language. This library is largely used by the SWIG library writers.
+If possible, use the error handling scheme available to your target language as there is greater
+flexibility in what errors/exceptions can be thrown.
 </p>
 
 <p>
