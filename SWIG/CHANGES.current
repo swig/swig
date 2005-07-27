@@ -1,5 +1,31 @@
 Version 1.3.26 (in progress)
 ============================
+
+07/27/2005: wsfulton
+            Modifications to STL wrappers so that it is possible for a user's %exception directive
+            to be applied to the STL wrapper methods. Previously the following global %exception
+            directive would not be used on the wrapper methods:
+
+                %exception { 
+                  try {
+                    $action
+                  } catch (...) {
+                    // handle uncaught exceptions
+                  }
+                }
+
+            This has been implemented by replacing %exception directives for specific STL wrapper
+            methods with an exception specification declared on the wrapper methods. throws typemaps
+            are now supplied for handling the STL exception specification. These can also be easily
+            overridden, for example the std::out_of_range exception, which is used a lot in the STL
+            wrappers, can be customised easily:
+
+              %include "std_vector.i"
+              %typemap(throws) std::out_of_range {
+                // custom exception handler
+              }
+              %template(VectInt) std::vector<int>;
+
 07/22/2005: efuzzyone
             [CLISP] The clisp module for SWIG:
               - It can only handle C, clisp currently does not supports ffi bindings to C++.
