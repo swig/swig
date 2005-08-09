@@ -70,6 +70,12 @@ public:
 	    SWIG_exit(EXIT_FAILURE);
 	  }
       }
+    String *f_sink = NewString("");
+    Swig_register_filebyname("header",f_sink);
+    Swig_register_filebyname("wrapper",f_sink);
+    Swig_register_filebyname("runtime",f_sink);
+    Swig_register_filebyname("init",f_sink);
+    
     Language::top(n);
     Printf( out, ";;; Lisp parse tree produced by SWIG\n" );
     print_circle_hash = DohNewHash();
