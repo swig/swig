@@ -49,6 +49,7 @@ extern "C" {
   Language *swig_csharp(void);
   Language *swig_allegrocl(void);
   Language *swig_clisp(void);
+  Language *swig_uffi(void);
 }
 
 struct swig_module {
@@ -81,6 +82,7 @@ swig_module  modules[] = {
   {"-sexp",      swig_sexp,      "Lisp S-Expressions"},
   {"-tcl",       swig_tcl,       "Tcl"},
   {"-tcl8",      swig_tcl, 0},
+  {"-uffi",      swig_uffi,      "Common Lisp / UFFI"},
   {"-xml",       swig_xml,       "XML"},
   {NULL, NULL, NULL}
 };
