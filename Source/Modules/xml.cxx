@@ -275,11 +275,26 @@ public:
 		for (s = First(p); s.item; s = Next(s))
 		{
 			print_indent(0);
-			Printf( out, "<base name=\"%s\" id=\"%ld\" addr=\"%x\" />\n", s.item, ++id, s.item );
+			String *item_name = Xml_escape_string(s.item);
+			Printf( out, "<base name=\"%s\" id=\"%ld\" addr=\"%x\" />\n", item_name, ++id, s.item );
+			Delete(item_name);
 		}
 		indent_level -= 4;
 		print_indent(0);
 		Printf( out, "</baselist >\n" );
+	}
+
+	String *Xml_escape_string(String *str) {
+	    String *escaped_str = 0;
+	    if (str) {
+	      escaped_str = NewString(str);
+	      Replaceall( escaped_str, "&", "&amp;" );
+	      Replaceall( escaped_str, "<", "&lt;" );
+	      Replaceall( escaped_str, "\"", "&quot;" );
+	      Replaceall( escaped_str, "\\", "\\\\" );
+	      Replaceall( escaped_str, "\n", "&#10;" );
+	    }
+	    return escaped_str;
 	}
 
 	void Xml_print_module(Node *p)
