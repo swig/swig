@@ -23,6 +23,7 @@ public:
   virtual int variableWrapper(Node *n); 
   virtual int constantWrapper(Node *n);
   virtual int classDeclaration(Node *n);
+  virtual int enumDeclaration(Node *n);
   virtual int typedefHandler(Node *n);
   List *entries;
 private:
@@ -49,7 +50,7 @@ void CLISP :: main(int argc, char *argv[]) {
 	     " -extern-all\n"
 	     "\t If this option is given then clisp definitions for all the functions\n"
 	     "and global variables will be created otherwise only definitions for \n"
-	     "externed functions and variables are created."
+	     "externed functions and variables are created.\n"
 	     " -generate-typedef\n"
 	     "\t If this option is given then def-c-type will be used to generate shortcuts\n"
 	     "according to the typedefs in the input.\n"
@@ -93,18 +94,31 @@ int CLISP :: top(Node *n) {
   Swig_register_filebyname("runtime",f_null);
   Swig_register_filebyname("wrapper", f_null);
  
-  String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage \"%s\"\n  (:use :common-lisp :ffi)", module);
+  String *header=NewStringf(";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi)", module);
 
   Language::top(n);
 
   Iterator i;
+
+  long len=Len(entries);
+  if(len > 0) {
+    Printf(header,"\n  (:export");
+  }
+  //else nothing to export
+    
   for (i = First(entries); i.item; i = Next(i)) {
     Printf(header,"\n\t:%s", i.item);
   }
-  Printf(header, ")\n",NULL);
+  
+  if(len > 0) {
+    Printf(header,")");
+  }
+  
+  Printf(header, ")\n");
   Printf(header,"\n(in-package :%s)\n",module);
-
-  long len= Tell(f_cl);
+  Printf(header,"\n(default-foreign-language :stdc)\n");
+  
+  len= Tell(f_cl);
 
   Printf(f_cl,"%s",header);
 
@@ -150,9 +164,9 @@ int CLISP :: functionWrapper(Node *n) {
   for (Parm *p=pl; p; p=nextSibling(p), argnum++) {
 
     String *argname=Getattr(p, "name");
-    SwigType *argtype=Getattr(p, "type");
+    //    SwigType *argtype;
     
-    String *ffitype=get_ffi_type(argtype);
+    String *ffitype=get_ffi_type(Getattr(p, "type"));
     
     int tempargname=0;
       
@@ -175,7 +189,10 @@ int CLISP :: functionWrapper(Node *n) {
   if (ParmList_len(pl) != 0) {
     Printf(f_cl, ")\n"); /* finish arg list */
   }
-  Printf(f_cl, "\t(:return-type %s)\n", get_ffi_type(Getattr(n, "type")));
+  String *ffitype=get_ffi_type(Getattr(n, "type"));
+  if(Strcmp(ffitype,"NIL")) { //when return type is not nil
+    Printf(f_cl, "\t(:return-type %s)\n", ffitype);
+  }
   Printf(f_cl, "\t(:library +library-name+))\n");
    
   return SWIG_OK;
@@ -189,6 +206,7 @@ int CLISP :: constantWrapper(Node *n) {
   String *name=Getattr(n, "sym:name");
 
   Printf(f_cl, "\n(defconstant %s %s)\n", name, converted_value);
+  Append(entries,name);
   Delete(converted_value);
  
   return SWIG_OK;
@@ -196,26 +214,51 @@ int CLISP :: constantWrapper(Node *n) {
 
 int CLISP :: variableWrapper(Node *n) {
   is_function=0;
-  SwigType *type=Getattr(n, "type");
+  //  SwigType *type=;
   String *storage=Getattr(n,"storage");
   
   if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
     return SWIG_OK;
 
   String *var_name=Getattr(n, "sym:name");
-  String *lisp_type=get_ffi_type(type);
-  Printf(f_cl,"\n(def-c-var %s (:type %s)\n",var_name,lisp_type);
+  String *lisp_type=get_ffi_type(Getattr(n, "type"));
+  Printf(f_cl,"\n(ffi:def-c-var %s\n (:type %s)\n",var_name,lisp_type);
   Printf(f_cl, "\t(:library +library-name+))\n");
+  Append(entries,var_name);
+
+  Delete(lisp_type);
   return SWIG_OK;
 }
 
 int CLISP :: typedefHandler(Node *n) {
   if(generate_typedef_flag) {
     is_function=0;
-    Printf(f_cl,"\n(def-c-type %s (:type %s)\n",Getattr(n,"name"),get_ffi_type(Getattr(n,"type")));
+    Printf(f_cl,"\n(ffi:def-c-type %s (:type %s)\n",Getattr(n,"name"),get_ffi_type(Getattr(n,"type")));
   }
   
   return Language::typedefHandler(n);
+}
+
+int CLISP :: enumDeclaration(Node *n) {
+  is_function=0;
+  String *name=Getattr(n, "sym:name");
+  
+  Printf(f_cl,"\n(ffi:def-c-enum %s ",name);
+
+  for (Node *c=firstChild(n); c; c=nextSibling(c)) {
+
+    String *slot_name = Getattr(c, "name");
+    String *value = Getattr(c, "enumvalue");
+	
+    Printf(f_cl,"(%s %s)",slot_name,value);
+
+    Append(entries,slot_name);
+      
+    Delete(value);
+  }
+ 
+  Printf(f_cl, ")\n");
+  return SWIG_OK;
 }
 
 
@@ -232,12 +275,12 @@ int CLISP :: classDeclaration(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
+  
   Printf(f_cl,"\n(ffi:def-c-struct %s",name);
 
   Append(entries,NewStringf("make-%s",name));
 	 
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
-    String *lisp_type;
 
     if (Strcmp(nodeType(c), "cdecl")) {
       Printf(stderr, "Structure %s has a slot that we can't deal with.\n",
@@ -249,15 +292,14 @@ int CLISP :: classDeclaration(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
 
-    /* Printf(stdout, "Converting %s in %s\n", type, name); */
     String *temp=Copy(Getattr(c,"decl"));
-    Append(temp,Getattr(c,"type"));
-    lisp_type=get_ffi_type(temp);
+    Append(temp,Getattr(c,"type")); //appending type to the end, otherwise wrong type
+    String *lisp_type=get_ffi_type(temp);
     Delete(temp);
 
     String *slot_name = Getattr(c, "sym:name");
     Printf(f_cl, 
-	   "\n\t(%s :type %s)", 
+	   "\n\t(%s %s)", 
 	   slot_name,
 	   lisp_type);
 
@@ -359,7 +401,7 @@ String* CLISP::get_ffi_type(SwigType *ty) {
 
     String *str;
     if(!Strcmp(base_name,"int") || !Strcmp(base_name,"float") || !Strcmp(base_name,"short")
-       || !Strcmp(base_name,"double") || !Strcmp(base_name,"long")) {
+       || !Strcmp(base_name,"double") || !Strcmp(base_name,"long") || !Strcmp(base_name,"char")) {
     
       str = NewStringf("(ffi:c-ptr %s)",inner_type);
     }
