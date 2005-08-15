@@ -4,7 +4,7 @@
  * swigmain.cxx
  *
  *     This file is the main entry point to SWIG.  It collects the command
- *     line options, registers built-in language modules, and instantiates 
+ *     line options, registers built-in language modules, and instantiates
  *     a module for code generation.   If adding new language modules
  *     to SWIG, you would modify this file.
  *
@@ -25,7 +25,7 @@ char cvsroot_swigmain_cxx[] = "$Header$";
 #include <ctype.h>
 #include "swigmod.h"
 
-/* Module factories.  These functions are used to instantiate 
+/* Module factories.  These functions are used to instantiate
    the built-in language modules.    If adding a new language
    module to SWIG, place a similar function here. Make sure
    the function has "C" linkage.  This is required so that modules
@@ -48,6 +48,7 @@ extern "C" {
   Language *swig_chicken(void);
   Language *swig_csharp(void);
   Language *swig_allegrocl(void);
+  Language *swig_lua(void);
   Language *swig_clisp(void);
   Language *swig_uffi(void);
 }
@@ -62,13 +63,14 @@ struct swig_module {
    Place an entry for new language modules here, keeping the
    list sorted alphabetically. */
 
-swig_module  modules[] = {  
+swig_module  modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
   {"-chicken",   swig_chicken,   "CHICKEN"},
   {"-clisp",     swig_clisp,     "CLISP"},
   {"-csharp",    swig_csharp,    "C#"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
+  {"-lua",       swig_lua,       "Lua"},
   {"-modula3",   swig_modula3,   "Modula 3"},
   {"-mzscheme",  swig_mzscheme,  "Mzscheme"},
   {"-ocaml",     swig_ocaml,     "Ocaml"},
@@ -123,7 +125,7 @@ void SWIG_merge_envopt(const char *env, int oargc, char *oargv[],
     if (*c) {
       argv[argc] = b;
       ++argc;
-    }    
+    }
     while ((b != be) && *c && !isspace(*c)) {
       *(b++) = *(c++);
     }

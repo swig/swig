@@ -863,3 +863,56 @@ csharp_compile: $(SRCS)
 csharp_clean:
 	rm -f *.@OBJEXT@ *@CSHARPSO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ runme runme.exe gc.log `find . -name \*.cs | grep -v runme.cs`
 
+##################################################################
+#####                      LUA                              ######
+##################################################################
+
+# lua flags
+LUA_INCLUDE= @LUAINCLUDE@
+LUA_LIB    = @LUALIB@ -llua -llualib
+
+# Extra specific dynamic linking options
+LUA_DLNK   = @LUADYNAMICLINKING@
+LUA_SO     = @LUA_SO@
+
+# Extra code for lua static link
+LUA_INTERP     = ../lua.c
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+lua: $(SRCS)
+	$(SWIG) -lua $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(LUA_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+lua_cpp: $(SRCS)
+	$(SWIG) -c++ -lua $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Lua interpreter
+# -----------------------------------------------------------------
+
+lua_static: $(SRCS)
+	$(SWIG) -lua -module example $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS)  $(ISRCS) $(SRCS) $(LUA_INTERP) $(INCLUDES) \
+	$(LUA_INCLUDE) $(LIBS) $(LUA_LIB) -o $(TARGET)
+
+lua_static_cpp: $(SRCS)
+	$(SWIG) -c++ -lua -module example $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(LUA_INTERP) $(INCLUDES) \
+	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Cleaning the lua examples
+# -----------------------------------------------------------------
+
+lua_clean:
+	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ mylua@EXEEXT@
