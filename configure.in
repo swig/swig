@@ -260,6 +260,12 @@ case $host in
    *) TCL_CXXSHARED=$TRYLINKINGWITHCXX;;
 esac
 
+AC_SUBST(LUA_SO)
+case $host in
+   *-*-darwin*) LUA_SO=.so;;
+   *) LUA_SO=$SO;;
+esac
+
 # Optional CFLAGS used to silence compiler warnings on some platforms.
 
 AC_SUBST(PLATFLAGS)
@@ -1491,6 +1497,87 @@ AC_SUBST(CSHARPCFLAGS)
 AC_SUBST(CSHARPSO)
 
 #----------------------------------------------------------------
+# Look for Lua
+#----------------------------------------------------------------
+
+LUABIN=
+LUAINCLUDE=
+LUALIB=
+
+AC_ARG_WITH(lua, AS_HELP_STRING([--without-lua], [Disable Lua])
+AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN=])
+AC_ARG_WITH(luaincl,[  --with-luaincl=path     Set location of Lua include directory],[
+	LUAINCLUDE="$ISYSTEM$withval"], [LUAINCLUDE=])
+AC_ARG_WITH(lualib,[  --with-lualib=path      Set location of Lua library directory],[
+	LUALIB="-L$withval"], [LUALIB=])
+
+# First, check for "--without-lua" or "--with-lua=no".
+if test x"${LUABIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Lua])
+else
+
+# can we find lua?
+if test -z "$LUABIN"; then
+   AC_PATH_PROG(LUABIN, lua)
+fi
+
+# look for the header files
+AC_MSG_CHECKING(for Lua header files)
+if test -z "$LUAINCLUDE"; then
+#AC_TRY_CPP([#include <lua.h>], , LUAINCLUDE="")
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <lua.h>]])], , LUAINCLUDE="")
+if test -z "$LUAINCLUDE"; then
+	dirs="/usr/local/include /usr/include /opt/local/include"
+	for i in $dirs ; do
+		if test -r $i/tcl.h; then
+			AC_MSG_RESULT($i)
+			LUAINCLUDE="$ISYSTEM$i"
+			break
+		fi
+	done
+fi
+fi
+if test -z "$LUAINCLUDE"; then
+    	AC_MSG_RESULT(not found)
+else
+        AC_MSG_RESULT($LUAINCLUDE)
+fi
+
+# look for the library files
+AC_MSG_CHECKING(for Lua library)
+if test -z "$LUALIB"; then
+dirs="/usr/local/lib /usr/lib /opt/local/lib"
+for i in $dirs ; do
+	if test -r $i/liblua.a; then
+	    AC_MSG_RESULT($i)
+	    LUALIB="-L$i"
+	    break
+	fi
+done
+fi
+if test -z "$LUALIB"; then
+   AC_MSG_RESULT(not found)
+else
+   AC_MSG_RESULT($LUALIB)
+fi
+
+# copied from PYTHON code, but I think this is not needed for lua...
+# Cygwin (Windows) needs the library for dynamic linking
+#case $host in
+#*-*-cygwin* | *-*-mingw*) LUADYNAMICLINKING="-L$LUALIB $PYLINK"
+#         PYINCLUDE="-DUSE_DL_IMPORT $PYINCLUDE"
+#         ;;
+#*)LUADYNAMICLINKING="";;
+#esac
+
+fi # if not disabled
+
+AC_SUBST(LUADYNAMICLINKING)
+AC_SUBST(LUAINCLUDE)
+AC_SUBST(LUALIB)
+AC_SUBST(LUABIN)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -1590,6 +1677,12 @@ AC_SUBST(SKIP_CSHARP)
 SKIP_MODULA3="1" # Always skipped!
 AC_SUBST(SKIP_MODULA3)
 
+SKIP_LUA=
+# do we really need the LUABIN?
+if test -z "$LUABIN" || test -z "$LUAINCLUDE" || test -z "$LUALIB" ; then
+    SKIP_LUA="1"
+fi
+AC_SUBST(SKIP_LUA)
 
 #----------------------------------------------------------------
 # Miscellaneous
@@ -1648,6 +1741,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/python/Makefile	        \
     Examples/test-suite/ruby/Makefile	        \
     Examples/test-suite/tcl/Makefile	        \
+    Examples/test-suite/lua/Makefile	        \
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT

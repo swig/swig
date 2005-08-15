@@ -178,6 +178,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	newobject1 \
 	ordering \
+	operator_overload \
 	overload_copy \
 	overload_extend \
 	overload_rename \

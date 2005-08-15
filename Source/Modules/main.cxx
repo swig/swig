@@ -338,7 +338,7 @@ void SWIG_getoptions(int argc, char *argv[])
   int     includecount = 0;
   // Get options
   for (i = 1; i < argc; i++) {
-      if (argv[i]) {
+      if (argv[i] && !Swig_check_marked(i)) {
 	  if (strncmp(argv[i],"-I-",3) == 0) {
 	    // Don't push/pop directories
 	    Swig_set_push_dir(0);
