@@ -193,6 +193,7 @@ public:
 				  String *ck = NewString(k);
 					o = Str(Getattr(obj,k));
 					Replaceall( ck, ":", "_" );
+					Replaceall( ck, "<", "&lt;" );
                                         /* Do first to avoid aliasing errors. */
 					Replaceall( o, "&", "&amp;" );
 					Replaceall( o, "<", "&lt;" );
