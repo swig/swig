@@ -447,7 +447,7 @@ public:
 	   "extern \"C\"\n",
 	   "#endif\n",
 	   "SWIGEXPORT void Init_", feature, "(void) {\n",
-	   "int i;\n",
+	   "size_t i;\n",
 	   "\n",
 	   NIL);
 
