@@ -61,4 +61,7 @@
 #ifdef eof
   #undef eof
 #endif
+#ifdef bool
+  #undef bool
+#endif
 
