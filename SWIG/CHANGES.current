@@ -1,6 +1,9 @@
 Version 1.3.26 (in progress)
 ============================
 
+08/18/2005: wsfulton
+            [Tcl] Bug #1240469 - %newobject support for Tcl. Patch from Bob Marinier.
+
 08/16/2005: wsfulton
             [Perl] Bug #1254494 - Fix for global namespace pollution by perl header files
             (bool define) prevented STL headers from being used on some systems, eg
