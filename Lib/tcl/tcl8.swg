@@ -160,26 +160,26 @@
      "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,-1));";
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-     "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, $1_descriptor,0));";
+     "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner));";
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
      swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
-     Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, ty,0));
+     Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, ty, $owner));
 }
 
 %typemap(out) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
-     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor,0));";
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor, $owner));";
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor,0));";
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, $1_descriptor, $owner));";
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
      swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
-     Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, ty,0));
+     Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, ty, $owner));
 }
 
 %typemap(out) SWIGTYPE (CLASS::*) 
-    "Tcl_SetObjResult(interp, SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor, 0));";
+    "Tcl_SetObjResult(interp, SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor,  $owner));";
 
 %typemap(out) void "";
 
@@ -189,14 +189,14 @@
 {
   $&1_ltype resultptr;
   resultptr = new $1_ltype(($1_ltype &) $1);
-  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor,0));
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor, $owner));
 }
 #else
 {
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor,0));
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor, $owner));
 }
 #endif
 
@@ -274,18 +274,18 @@
 %typemap(varout) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
 %typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
 %typemap(varout) char "$result = Tcl_NewStringObj(&$1,1);";
-%typemap(varout) SWIGTYPE *, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
-%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
+%typemap(varout) SWIGTYPE *, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
+%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, $owner);";
 
 %typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE INSTANCE[]
-    "$result = SWIG_NewInstanceObj((void *) $1, $1_descriptor,0);";
+    "$result = SWIG_NewInstanceObj((void *) $1, $1_descriptor, $owner);";
 
 %typemap(varout) SWIGTYPE &INSTANCE
-    "$result = SWIG_NewInstanceObj((void *) &$1, $1_descriptor,0);";
+    "$result = SWIG_NewInstanceObj((void *) &$1, $1_descriptor, $owner);";
 
-%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
-%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
-%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor, 0);";
+%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, $owner);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, $owner);";
+%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor,  $owner);";
 
 /* -- Variable input --- */
 

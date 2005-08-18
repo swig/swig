@@ -438,6 +438,11 @@ public:
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "Tcl_GetObjResult(interp)");
       Replaceall(tm,"$result", "Tcl_GetObjResult(interp)");
+      if(Getattr(n,"feature:new")) {
+        Replaceall(tm,"$owner","1");
+      } else {
+        Replaceall(tm,"$owner","0");
+      }
       Printf(f->code,"%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
