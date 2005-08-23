@@ -724,6 +724,12 @@ public:
       Replaceall(tm,"$target",ln);
       Replaceall(tm,"$source",source);
       Replaceall(tm,"$input",source);
+      if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
+	Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+      } 
+      else {
+	Replaceall(tm,"$disown","0");
+      }
       Setattr(p,"emit:input",Copy(source));
       Printf(f->code,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");

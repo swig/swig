@@ -120,6 +120,14 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
     Data_Get_Struct(obj, void, *ptr);
   }
   
+  /* Check to see if the input object is giving up ownership
+     of the underlying C struct or C++ object.  If so, then
+     set the free function to nil so that the C struct
+     is not freed when the Ruby object goes out of scope.*/
+  if (flags & SWIG_POINTER_DISOWN) {
+    RDATA(obj)->dfree = 0;
+  }
+
   /* Do type-checking if type info was provided */
   if (ty) {
     if (ty->clientdata) {
