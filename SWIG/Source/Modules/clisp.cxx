@@ -233,7 +233,7 @@ int CLISP :: variableWrapper(Node *n) {
 int CLISP :: typedefHandler(Node *n) {
   if(generate_typedef_flag) {
     is_function=0;
-    Printf(f_cl,"\n(ffi:def-c-type %s (:type %s)\n",Getattr(n,"name"),get_ffi_type(Getattr(n,"type")));
+    Printf(f_cl,"\n(ffi:def-c-type %s %s)\n",Getattr(n,"name"),get_ffi_type(Getattr(n,"type")));
   }
   
   return Language::typedefHandler(n);
