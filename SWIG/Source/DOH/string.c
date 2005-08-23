@@ -115,7 +115,7 @@ String_cmp(DOH *so1, DOH *so2)
   String * s2 = (String *) ObjData(so2);
   register char *c1 = s1->str;
   register char *c2 = s2->str;
-#if 0
+#if 1
   /* this should be faster ? */
   return strcmp(c1, c2);
 #else
