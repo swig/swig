@@ -783,8 +783,8 @@ SWIG_Python_GetModule(void) {
       PyErr_Clear();
       type_pointer = (void *)0;
     }
-  }
 #endif
+  }
   return (swig_module_info *) type_pointer;
 }
 
