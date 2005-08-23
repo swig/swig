@@ -2,21 +2,24 @@
 
 %typemap(in) SWIGTYPE *,
              SWIGTYPE []
-        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
+        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, $disown);"
+
+%typemap(in) SWIGTYPE *DISOWN
+        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN);"
 
 /* Additional check for null references */
 %typemap(in) SWIGTYPE &
-        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1); if ($1 == NULL) rb_raise(rb_eTypeError, \"null reference\");"
+        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, $disown); if ($1 == NULL) rb_raise(rb_eTypeError, \"null reference\");"
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
    $&1_ltype ptr;
-   SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 1);
+   SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, $disown);
    if (ptr) $1 = *ptr;
 }
 
 /* Pointer to a class member */
-%typemap(in) SWIGTYPE (CLASS::*) "SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor, 1);";
+%typemap(in) SWIGTYPE (CLASS::*) "SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor, $disown);";
 
 /* --- Output typemaps --- */
 
