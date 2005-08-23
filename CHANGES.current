@@ -2,6 +2,15 @@ Version 1.3.26 (in progress)
 ============================
 
 08/18/2005: wsfulton
+            [Ruby] Implement support for SWIGTYPE* DISOWN typemap (like in Python) for
+            better control of memory management, eg when adding an object created in Ruby
+            to a C++ container. Patch #1261692 from Charlie Savage.
+
+08/18/2005: wsfulton
+            [Tcl] 64 bit platform fixes for the varargs handling in SWIG_GetArgs. This is an
+            improved fix for bug #1011604 as suggested by Jeremy Lin.
+
+08/18/2005: wsfulton
             [Tcl] Bug #1240469 - %newobject support for Tcl. Patch from Bob Marinier.
 
 08/16/2005: wsfulton
