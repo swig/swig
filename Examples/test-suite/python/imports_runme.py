@@ -1,7 +1,7 @@
 # This is the import runtime testcase.
 
-import imports_a
 import imports_b
+import imports_a
 import sys
 
 x = imports_b.B()
