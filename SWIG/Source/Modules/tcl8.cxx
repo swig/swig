@@ -338,7 +338,7 @@ public:
 	  }
 
 	  Putc('o',argstr);
-	  Printf(args,",NULL");
+	  Printf(args,",(void *)0");
 	  if (i >= num_required) {
 	    Printf(incode, "if (objc > %d) {\n", i+1);
 	  }
@@ -353,7 +353,7 @@ public:
 	    SwigType *lt = SwigType_ltype(pt);
 	    SwigType_remember(pt);
 	    if (Cmp(lt,"p.void") == 0) {
-	      Printf(args,",NULL");
+	      Printf(args,",(void *)0");
 	    } else {
 	      Printf(args,",SWIGTYPE%s", SwigType_manglestr(pt));
 	    }
