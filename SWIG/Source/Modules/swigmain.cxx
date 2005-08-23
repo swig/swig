@@ -63,7 +63,7 @@ struct swig_module {
    Place an entry for new language modules here, keeping the
    list sorted alphabetically. */
 
-swig_module  modules[] = {
+static swig_module  modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
   {"-chicken",   swig_chicken,   "CHICKEN"},
   {"-clisp",     swig_clisp,     "CLISP"},
@@ -188,7 +188,7 @@ int main(int margc, char **margv) {
 		Printf(stdout,"     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
 	      }
 	    }
-	    Swig_mark_arg(i);
+	    // Swig_mark_arg not called as the general -help options also need to be displayed later on
 	  }
       }
   }
