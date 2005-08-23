@@ -274,18 +274,18 @@
 %typemap(varout) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
 %typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
 %typemap(varout) char "$result = Tcl_NewStringObj(&$1,1);";
-%typemap(varout) SWIGTYPE *, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
-%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, $owner);";
+%typemap(varout) SWIGTYPE *, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
+%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);";
 
 %typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE INSTANCE[]
-    "$result = SWIG_NewInstanceObj((void *) $1, $1_descriptor, $owner);";
+    "$result = SWIG_NewInstanceObj((void *) $1, $1_descriptor, 0);";
 
 %typemap(varout) SWIGTYPE &INSTANCE
-    "$result = SWIG_NewInstanceObj((void *) &$1, $1_descriptor, $owner);";
+    "$result = SWIG_NewInstanceObj((void *) &$1, $1_descriptor, 0);";
 
-%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, $owner);";
-%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, $owner);";
-%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor,  $owner);";
+%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, 0);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor, 0);";
+%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor, 0);";
 
 /* -- Variable input --- */
 
