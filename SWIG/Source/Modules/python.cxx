@@ -35,8 +35,10 @@ static  File         *f_wrappers = 0;
 static  File         *f_directors = 0;
 static  File         *f_directors_h = 0;
 static  File         *f_init = 0;
-static  File         *f_shadow = 0;
-static  File         *f_shadow_stubs = 0;
+static  File         *f_shadow_py = 0;
+static  String       *f_shadow = 0;
+static  String       *f_shadow_imports = 0;
+static  String       *f_shadow_stubs = 0;
 
 static  String       *methods;
 static  String       *class_name;
@@ -302,18 +304,20 @@ public:
       // If we don't have an interface then change the module name X to _X
       if (interface) module = interface;
       else Insert(module,0,"_");
-      if ((f_shadow = NewFile(filen,"w")) == 0) {
+      if ((f_shadow_py = NewFile(filen,"w")) == 0) {
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit (EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
 
+      f_shadow = NewString("");
+      f_shadow_imports = NewString("");
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow",f_shadow);
       Swig_register_filebyname("python",f_shadow);
 
-      Printv(f_shadow,
+      Printv(f_shadow_py,
 	     "# This file was created automatically by SWIG.\n",
 	     "# Don't modify this file, modify the SWIG interface instead.\n",
 	     NIL);
@@ -329,8 +333,6 @@ public:
         Delete(mod_docstring); mod_docstring = NULL;
       }
       
-      Printf(f_shadow,"\nimport %s\n\n", module);
-
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       { 
@@ -432,9 +434,13 @@ public:
     Printf(f_wrappers,"#endif\n");
 
     if (shadow) {
-      Printv(f_shadow, f_shadow_stubs, "\n",NIL);
-      Close(f_shadow);
-      Delete(f_shadow);
+      Printf(f_shadow_imports,"\nimport %s\n", module);
+      Printv(f_shadow_py, f_shadow_imports, "\n",NIL);
+      Printv(f_shadow_py, f_shadow, "\n",NIL);
+      Printv(f_shadow_py, f_shadow_stubs, "\n",NIL);
+
+      Close(f_shadow_py);
+      Delete(f_shadow_py);
     }
 
     /* Close all of the files */
@@ -469,8 +475,9 @@ public:
   virtual int importDirective(Node *n) {
     if (shadow) {
       String *modname = Getattr(n,"module");
+
       if (modname) {
-        Printf(f_shadow,"import ");
+        Printf(f_shadow_imports,"import ");
 
         // Find the module node for this imported module.  It should be the
         // first child but search just in case.
@@ -484,11 +491,11 @@ public:
         Node *options = Getattr(mod, "options");
         String* pkg = options ? Getattr(options, "package") : 0;
 	if (pkg && (!package || Strcmp(pkg, package) != 0)) {
-	  Printf(f_shadow, "%s.", pkg);
+	  Printf(f_shadow_imports, "%s.", pkg);
         }
 
         // finally, output the name of the imported module
-	Printf(f_shadow, "%s\n", modname);
+	Printf(f_shadow_imports, "%s\n", modname);
       }
     }
     return Language::importDirective(n);
