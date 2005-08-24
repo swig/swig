@@ -82,10 +82,11 @@ class check {
     }
     $extra=array_keys($classmethods);
     if ($missing) $message[]="does not have these methods:\n  ".join(",",$missing);
-    if ($extra) $message[]="does have these extra methods:\n  ".join(",",$extra);
     if ($message) {
       return check::fail("Class %s %s\nFull class list:\n  %s\n",$classname,join("\nbut ",$message),join("\n  ",get_class_methods($classname)));
     }
+    if ($extra) $message[]="does have these extra methods:\n  ".join(",",$extra);
+    if ($message) return check::warn(join("\n  ",$message));
     return TRUE;
   }
 
@@ -133,8 +134,9 @@ class check {
       else unset($extra[$class]);
     }
     if ($missing) $message[]=sprintf("Classes missing: %s",join(",",$missing));
-    if ($extra) $message[]=sprintf("These extra classes are defined: %s",join(",",array_keys($extra)));
     if ($message) return check::fail(join("\n  ",$message));
+    if ($extra) $message[]=sprintf("These extra classes are defined: %s",join(",",array_keys($extra)));
+    if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
   }
 
@@ -149,8 +151,9 @@ class check {
       else unset($extra[$func]);
     }
     if ($missing) $message[]=sprintf("Functions missing: %s",join(",",$missing));
-    if ($extra) $message[]=sprintf("These extra methods are defined: %s",join(",",array_keys($extra)));
     if ($message) return check::fail(join("\n  ",$message));
+    if ($extra) $message[]=sprintf("These extra methods are defined: %s",join(",",array_keys($extra)));
+    if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
   }
 
@@ -169,8 +172,9 @@ class check {
       }
     }
     if ($missing) $message[]=sprintf("Globals missing: %s",join(",",$missing));
-    if ($extra) $message[]=sprintf("These extra globals are defined: %s",join(",",array_keys($extra)));
     if ($message) return check::fail(join("\n  ",$message));
+    if ($extra) $message[]=sprintf("These extra globals are defined: %s",join(",",array_keys($extra)));
+    if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
 
   }
@@ -208,6 +212,12 @@ class check {
     $args=func_get_args();
     print("Failed on: ".call_user_func_array("sprintf",$args)."\n");
     exit(1);
+  }
+
+  function warn($pattern) {
+    $args=func_get_args();
+    print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
+    exit(0);
   }
 
   function done() {
