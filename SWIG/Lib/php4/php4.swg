@@ -13,6 +13,10 @@
 %include "globalvar.i"	// Global variables.
 %include "const.i"
 
+// use %shutdown %{ " /*code goes here*/ " %} to
+// insert code in the PHP_MSHUTDOWN_FUNCTION
+#define %shutdown  %insert("shutdown")
+
 /* Typemaps for input parameters by value */
 
 %include "utils.i"
