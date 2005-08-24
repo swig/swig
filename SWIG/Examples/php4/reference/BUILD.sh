@@ -1,4 +1,5 @@
 #! /bin/sh -e
 
-${SWIG:=swig} -php4 -phpfull -c++ -noproxy -withcxx example.cxx example.i
-phpize && ./configure && make clean && make
+${SWIG:=swig}  -php4 -make -c++ -noproxy -withcxx example.cxx example.i
+make
+php -d extension_dir=. runme.php4

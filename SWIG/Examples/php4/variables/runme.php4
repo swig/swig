@@ -2,8 +2,10 @@
 
 	require "example.php";
 	/* Try to set the values of some global variables */
+$a = "42.14";
 
-	ivar_set(42);
+	ivar_set($a);
+echo "a = $a\n";
 	svar_set(-31000);
 	lvar_set(65537);
 	uivar_set(123456);

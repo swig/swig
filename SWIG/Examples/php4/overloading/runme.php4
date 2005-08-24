@@ -9,8 +9,8 @@ include("example.php");
 # ----- Object creation -----
 
 print "Creating some objects:\n";
-$c = CircleFactory(10);
-print "    Created circle $c with area ". $c->area() ."\n";
+$c = new Circle(10);
+print "    Created circle $c\n";
 $s = new Square(10);
 print "    Created square $s\n";
 
@@ -36,12 +36,9 @@ print "    Square = (" . $s->x . "," . $s->y . ")\n";
 # ----- Call some methods -----
 
 print "\nHere are some properties of the shapes:\n";
-foreach (array($c,$s) as $o) {
+foreach (array(1,2.1,$c,$s) as $o) {
       print "    ".get_class($o)." $o\n";
-      print "        x         = " .  $o->x . "\n";
-      print "        y         = " .  $o->y . "\n";
-      print "        area      = " .  $o->area() . "\n";
-      print "        perimeter = " .  $o->perimeter() . "\n";
+      print "        overloaded= " .  overloaded($o) . "\n";
   }
 
 # Need to unset($o) or else we hang on to a reference to the Square object.
@@ -56,12 +53,6 @@ unset($c);
 $s = 42;
 
 print Shape::nshapes() . " shapes remain\n";
-
-print "Manually setting nshapes\n";
-
-Shape::nshapes(42);
-
-print Shape::get_nshapes() ." == 42\n";
 
 print "Goodbye\n";
 

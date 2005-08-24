@@ -5,26 +5,10 @@
 #include "example.h"
 %}
 
-/* Some functions that manipulate Vectors by value */
-%inline %{
-extern double dot_product(Vector a, Vector b);
-extern Vector vector_add(Vector a, Vector b);
-%}
-
-/* Include this because the vector_add() function will leak memory */
-void   free(void *);
+%include "example.h"
 
 /* Some helper functions for our interface */
 %inline %{
-
-Vector *new_Vector(double x, double y, double z) {
-	/* We use the Zend memory manager */
-   Vector *v = (Vector *) emalloc(sizeof(Vector));
-   v->x = x;
-   v->y = y;
-   v->z = z;
-   return v;
-}
 
 void vector_print(Vector *v) {
   printf("Vector %x = (%g, %g, %g)\n", v, v->x, v->y, v->z);

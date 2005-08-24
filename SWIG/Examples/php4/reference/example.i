@@ -33,7 +33,7 @@ public:
  /*  This wrapper provides an alternative to the [] operator */
   %extend {
     Vector &get(int index) {
-printf("%p %d\n",self,index);
+      printf("VectorArray extended get: %p %d\n",self,index);
       return (*self)[index];
     }
     void set(int index, Vector &a) {

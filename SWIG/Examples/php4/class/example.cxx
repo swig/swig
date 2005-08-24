@@ -1,7 +1,14 @@
 /* File : example.c */
 
 #include "example.h"
-#define M_PI 3.14159265358979323846
+#include <math.h>
+#ifndef M_PI
+#  define M_PI 3.14159265358979323846
+#endif
+
+int Shape::get_nshapes() {
+  return nshapes;
+}
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {
@@ -10,6 +17,10 @@ void Shape::move(double dx, double dy) {
 }
 
 int Shape::nshapes = 0;
+
+void Circle::set_radius( double r ) {
+  radius = r;
+}
 
 double Circle::area(void) {
   return M_PI*radius*radius;

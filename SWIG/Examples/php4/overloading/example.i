@@ -2,7 +2,7 @@
 %module example
 
 %{
-extern double Foo;
+#include "example.h"
 %}
 
-int    gcd(int x, int y);
+%include "example.h"
