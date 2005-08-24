@@ -57,6 +57,7 @@ static String	  *phpfilename =0;
 static String	  *s_header;
 static String	  *s_wrappers;
 static String	  *s_init;
+static String     *s_shutdown;
 static String	  *s_vinit;
 static String	  *s_vdecl;
 static String	  *s_cinit;
@@ -533,6 +534,7 @@ public:
     
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
+    s_shutdown = NewString("/* shutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     s_type = NewString("");
@@ -546,6 +548,7 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",s_init);
+    Swig_register_filebyname("shutdown",s_shutdown);
     Swig_register_filebyname("header",s_header);
     Swig_register_filebyname("wrapper",s_wrappers);
     
@@ -692,10 +695,6 @@ public:
       Printf(s_init,"#endif\n\n");
     }
     
-    Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n",module);
-    Printf(s_init,"    return SUCCESS;\n");
-    Printf(s_init,"}\n");
-    
     /* We have to register the constants before they are (possibly) used
      * by the pointer typemaps. This all needs re-arranging really as
      * things are being called in the wrong order
@@ -737,6 +736,11 @@ public:
     
     Delete(s_cinit);
     Delete(s_vinit);
+    
+    Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n",module);
+    Printf(s_init,"%s\n",s_shutdown);
+    Printf(s_init,"    return SUCCESS;\n");
+    Printf(s_init,"}\n");
     
     Printf(s_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"    return SUCCESS;\n");
