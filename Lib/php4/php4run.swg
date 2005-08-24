@@ -31,6 +31,18 @@ extern "C" {
 }
 #endif
 
+#define SWIG_fail goto fail
+
+static char *default_error_msg = "Unknown error occurred";
+static int default_error_code = E_ERROR;
+
+#define SWIG_PHP_Arg_Error_Msg(argnum,extramsg) "Error in argument " #argnum " "#extramsg
+
+#define SWIG_PHP_Error(code,msg) ErrorCode() = code; ErrorMsg() = msg; SWIG_fail;
+
+#define SWIG_contract_assert(expr,msg) \
+  if (!(expr) ) { zend_printf("Contract Assert Failed %s\n",msg ); } else
+
 /* Standard SWIG API */
 #define SWIG_GetModule(clientdata) SWIG_Php4_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Php4_SetModule(pointer)
@@ -42,56 +54,24 @@ typedef struct _swig_object_wrapper {
   int newobject;
 } swig_object_wrapper;
 
-/* local scope self_constructors are set to 1 inside function wrappers
-   which are also class constructors, so that the php4.swg output typemaps
-   know whether or not to wrap returned objects in this_ptr or a new object */
-int self_constructor=0;
-
 /* empty zend destructor for types without one */
 static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) {};
-
-/* This one makes old swig style string pointers but the php module doesn't
-   use these any more.  This is just left here for old times sake and may go */
-static void
-SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
-  static char hex[17] = "0123456789abcdef";
-  unsigned long p, s;
-  char data[32], *r;
-
-  r = data;
-  p = (unsigned long) ptr;
-  if (p > 0) {
-    while (p > 0) {
-      s = p & 0xf;
-      *(r++) = hex[s];
-      p = p >> 4;
-    }
-    *r = '_';
-    while (r >= data) {
-      *(c++) = *(r--);
-    }
-    strcpy (c, ty->name);
-  } else {
-    strcpy (c, "NULL");
-  }
-}
-
-static void
-SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
-   char data[512];
-
-   SWIG_MakePtr(data, ptr, type);
-   *c = estrdup(data);
-}
 
 #define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d, SWIG_module_entry TSRMLS_CC)
 
 static void
 SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject, zend_module_entry* module_entry TSRMLS_DC) {
   swig_object_wrapper *value=NULL;
-  /* No need to call SWIG_MakePtr here! */
+  /*
+   * First test for Null pointers.  Return those as PHP native NULL
+   */
+  if (!ptr ) {
+    ZVAL_NULL(z);
+    return;
+  }
   if (type->clientdata) {
-    if (! (*(int *)(type->clientdata))) zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
+    if (! (*(int *)(type->clientdata)))
+      zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
     value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
     value->ptr=ptr;
     value->newobject=newobject;
