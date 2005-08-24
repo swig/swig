@@ -21,15 +21,16 @@ char *Vector::print() {
 VectorArray::VectorArray(int size) {
   items = new Vector[size];
   maxsize = size;
-printf("Vectorarray new: self=%p\n",this);
+  printf("VectorArray new: self=%p\n",this);
 }
 
 VectorArray::~VectorArray() {
+  printf("VectorArray delete: self=%p\n",this);
   delete [] items;
 }
 
 Vector &VectorArray::operator[](int index) {
-printf("Vectorarray: read[%d] self=%p\n",index,this);
+  printf("VectorArray: read[%d] self=%p\n",index,this);
   if ((index < 0) || (index >= maxsize)) {
     printf("Panic! Array index out of bounds.\n");
     exit(1);
@@ -38,7 +39,7 @@ printf("Vectorarray: read[%d] self=%p\n",index,this);
 }
 
 int VectorArray::size() {
-printf("Vectorarray: size %d self=%p\n",maxsize,this);
+  printf("VectorArray: size %d self=%p\n",maxsize,this);
   return maxsize;
 }
 

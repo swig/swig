@@ -24,7 +24,6 @@ private:
 public:
   Circle(double r) : radius(r) { };
   ~Circle() { };
-  void set_radius( double r );
   virtual double area(void);
   virtual double perimeter(void);
 };
@@ -39,5 +38,8 @@ public:
   virtual double perimeter(void);
 };
 
-Circle *CircleFactory( double r );
-  
+char *overloaded( int i );
+char *overloaded( double d );
+char *overloaded( const Circle& );
+char *overloaded( const Shape& );
+

@@ -3,8 +3,15 @@
 	require "example.php";
 
 
-	$v = new_vector(1.0,2.0,3.0);
-	$w = new_vector(10.0,11.0,12.0);
+	$v = new_vector();
+        vector_x_set($v,1.0);
+        vector_y_set($v,2.0);
+        vector_z_set($v,3.0);
+
+	$w = new_vector();
+        vector_x_set($w,10.0);
+        vector_y_set($w,11.0);
+        vector_z_set($w,12.0);
 
 	echo "I just created the following vector\n";
 	vector_print($v);
@@ -18,7 +25,8 @@
 
 	echo "\nNow I'm going to add the vectors together\n";
 
-	$r = vector_add($v, $w);
+        $r = new_vector();
+	vector_add($v, $w, $r);
 
 	vector_print($r);
 

@@ -35,22 +35,28 @@ print "    Square = (" . Shape_x_get($s) . "," .  Shape_y_get($s) . ")\n";
 
 # ----- Call some methods -----
 
+# Notice how the Shape_area() and Shape_perimeter() functions really
+# invoke the appropriate virtual method on each object.
 print "\nHere are some properties of the shapes:\n";
 foreach (array($c,$s) as $o) {
       print "    $o\n";
       print "        area      = " .  Shape_area($o) .  "\n";
       print "        perimeter = " .  Shape_perimeter($o) . "\n";
   }
-# Notice how the Shape_area() and Shape_perimeter() functions really
-# invoke the appropriate virtual method on each object.
 
 # ----- Delete everything -----
 
 print "\nGuess I'll clean up now\n";
 
 # Note: this invokes the virtual destructor
-delete_Shape($c);
-delete_Shape($s);
+#delete_Shape($c);
+#delete_Shape($s);
+$c = NULL;
+$s = NULL;
+
+# and don't forget the $o from the for loop above.  It still refers to
+# the square.
+$o = NULL;
 
 print nshapes() . " shapes remain\n";
 print "Goodbye\n";

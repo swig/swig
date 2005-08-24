@@ -18,10 +18,6 @@ void Shape::move(double dx, double dy) {
 
 int Shape::nshapes = 0;
 
-void Circle::set_radius( double r ) {
-  radius = r;
-}
-
 double Circle::area(void) {
   return M_PI*radius*radius;
 }
@@ -38,6 +34,18 @@ double Square::perimeter(void) {
   return 4*width;
 }
 
-Circle *CircleFactory( double r ) {
-  return new Circle(r);
+char *overloaded(int i) {
+  return "Overloaded with int";
+}
+
+char *overloaded(double d) {
+  return "Overloaded with double";
+}
+
+char *overloaded( const Circle& ) {
+  return "Overloaded with Circle";
+}
+
+char *overloaded( const Shape& ) {
+  return "Overloaded with Shape";
 }

@@ -7,5 +7,6 @@
 
 /* Let's just grab the original header file here */
 
+%newobject CircleFactory;
 %include "example.h"
 

@@ -6,18 +6,28 @@
 
 	print "Testing the pointer library\n";
 
-	$a = 37.145;
-	$b = 42.555;
-	$c = "";  // $c must be defined and not null.
+	$a = new_intp();
+	$b = new_intp();
+	$c = new_intp();
+	intp_assign($a,37);
+	intp_assign($b,42);
 
 	print "	a = $a\n";
 	print "	b = $b\n";
 	print "	c = $c\n";
 
 	# Call the add() function wuth some pointers
-	add(&$a,&$b,&$c);
+	add($a,$b,$c);
 
-	print "	$a + $b = $c\n";
+	# Now get the result
+	$r = intp_value($c);
+
+	print "	38 + 42 = $r\n";
+
+	# Clean up the pointers
+	delete_intp($a);
+	delete_intp($b);
+	delete_intp($c);
 
 	# Now try the typemap library
 	# This should be much easier. Now how it is no longer
