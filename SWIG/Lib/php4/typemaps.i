@@ -14,16 +14,26 @@
 //
 // Define macros to define the following typemaps:
 //
-// INPUT arguments by Pointer
-// OUTPUT arguments by Pointer
-// INPUT arguments by Php reference
-// OUTPUT arguments by Php reference
+// TYPE *INPUT.   Argument is passed in as native variable by value.
+// TYPE *OUTPUT.  Argument is returned as an array from the function call.
+// TYPE *INOUT.   Argument is passed in by value, and out as part of returned list
+// TYPE *REFERENCE.  Argument is passed in as native variable with value
+//                   semantics.  Variable value is changed with result.
+//                   Use like this:
+//                   int foo(int *REFERENCE);
+//
+//                   $a = 0;
+//                   $rc = foo($a);
+//
+//                   Even though $a looks like it's passed by value,
+//                   it's value can be changed by foo().
 //
 %define double_typemap(TYPE)
 %typemap(in) TYPE *INPUT(TYPE temp)
 {
-        temp = (TYPE) Z_DVAL_PP($input);
-        $1 = &temp;
+  convert_to_double_ex($input);
+  temp = (TYPE) Z_DVAL_PP($input);
+  $1 = &temp;
 }
 %typemap(argout) TYPE *INPUT "";
 %typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp)
@@ -39,18 +49,13 @@
 }
 %typemap(in) TYPE *REFERENCE (TYPE dvalue)
 {
-  if(!ParameterPassedByReference(ht, argvi))
-  {
-        SWIG_PHP_Error(E_WARNING, "Parameter wasn't passed by reference");
-	RETURN_NULL();
-  }
-
+  convert_to_double_ex($input);
   dvalue = (TYPE) (*$input)->value.dval;
   $1 = &dvalue;
 }
 %typemap(argout) TYPE *REFERENCE
 {
-  $1->value.dval = (double)(*$arg);
+  $1->value.dval = (double)(lvalue$argnum);
   $1->type = IS_DOUBLE;
 }
 %enddef
@@ -58,8 +63,9 @@
 %define int_typemap(TYPE)
 %typemap(in) TYPE *INPUT(TYPE temp)
 {
-        temp = (TYPE) Z_LVAL_PP($input);
-        $1 = &temp;
+  convert_to_long_ex($input);
+  temp = (TYPE) Z_LVAL_PP($input);
+  $1 = &temp;
 }
 %typemap(argout) TYPE *INPUT "";
 %typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp)
@@ -75,19 +81,14 @@
 }
 %typemap(in) TYPE *REFERENCE (TYPE lvalue)
 {
-  if(!ParameterPassedByReference(ht, argvi))
-  {
-	SWIG_PHP_Error(E_WARNING, "Parameter wasn't passed by reference");
-	RETURN_NULL();
-  }
-
+  convert_to_long_ex($input);
   lvalue = (TYPE) (*$input)->value.lval;
   $1 = &lvalue;
 }
 %typemap(argout) TYPE	*REFERENCE
 {
 
-  (*$arg)->value.lval = (long)(*$input);
+  (*$arg)->value.lval = (long)(lvalue$argnum);
   (*$arg)->type = IS_LONG;
 }
 %enddef
