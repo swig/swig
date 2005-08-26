@@ -111,30 +111,25 @@ String_len(DOH *so) {
 static int
 String_cmp(DOH *so1, DOH *so2)
 {
-  String * s1 = (String *) ObjData(so1);
-  String * s2 = (String *) ObjData(so2);
-  register char *c1 = s1->str;
-  register char *c2 = s2->str;
-#if 1
-  /* this should be faster ? */
-  return strcmp(c1, c2);
-#else
-  register int len1 = s1->len;
-  register int len2 = s2->len;
-  if (len1 < len2) {
-    register char *ce  = c1 + len1;
-    for (; c1 != ce ; ++c1, ++c2) {
-      if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
-    }
-    return -1;
-  } else {
-    register char *ce  = c2 + len2;
-    for (; c2 != ce ; ++c1, ++c2) {
-      if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
-    }
-    return (len1 == len2) ? 0 : 1;
+  String *s1, *s2;
+  char *c1, *c2;
+  int  maxlen,i;
+  s1 = (String *) ObjData(so1);
+  s2 = (String *) ObjData(so2);
+  maxlen = s1->len;
+  if (s2->len < maxlen) maxlen = s2->len;
+  c1 = s1->str;
+  c2 = s2->str;
+  for (i = maxlen; i; --i,c1++,c2++) {
+    if (*c1 != *c2) break;
   }
-#endif
+  if (i != 0) {
+    if (*c1 < *c2) return -1;
+    else return 1;
+  }
+  if (s1->len == s2->len) return 0;
+  if (s1->len > s2->len) return 1;
+  return -1;
 }
 
 /* -----------------------------------------------------------------------------
