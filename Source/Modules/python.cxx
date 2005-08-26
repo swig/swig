@@ -318,7 +318,7 @@ public:
       Swig_register_filebyname("python",f_shadow);
 
       Printv(f_shadow_py,
-	     "# This file was created automatically by SWIG.\n",
+	     "# This file was created automatically by SWIG ", PACKAGE_VERSION, ".\n",
 	     "# Don't modify this file, modify the SWIG interface instead.\n",
 	     NIL);
 
@@ -477,7 +477,7 @@ public:
       String *modname = Getattr(n,"module");
 
       if (modname) {
-        Printf(f_shadow_imports,"import ");
+        String *import = NewString("import ");
 
         // Find the module node for this imported module.  It should be the
         // first child but search just in case.
@@ -491,11 +491,16 @@ public:
         Node *options = Getattr(mod, "options");
         String* pkg = options ? Getattr(options, "package") : 0;
 	if (pkg && (!package || Strcmp(pkg, package) != 0)) {
-	  Printf(f_shadow_imports, "%s.", pkg);
+	  Printf(import, "%s.", pkg);
         }
 
         // finally, output the name of the imported module
-	Printf(f_shadow_imports, "%s\n", modname);
+	Printf(import, "%s\n", modname);
+
+	if (!Strstr(f_shadow_imports, import)) {
+	  Printf(f_shadow_imports, "%s", import);
+	}
+	Delete(import);
       }
     }
     return Language::importDirective(n);
