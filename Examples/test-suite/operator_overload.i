@@ -6,6 +6,10 @@ see bottom for a set of possible tests
 */
 %module operator_overload
 
+#if defined(SWIGPYTHON)
+%warnfilter(362,361,389,503);
+#endif
+
 %inline %{
 
 class Op{
