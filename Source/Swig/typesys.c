@@ -1773,7 +1773,7 @@ void SwigType_inherit_equiv(File *out) {
 
 /* Helper function to sort the mangled list */
 static int SwigType_compare_mangled(const DOH *a, const DOH *b) {
-  return strcmp(DohData(a), DohData(b));
+  return Cmp(a, b);
 }
 
 /* -----------------------------------------------------------------------------
