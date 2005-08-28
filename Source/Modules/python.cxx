@@ -2106,8 +2106,7 @@ public:
         Printv(f_shadow_file,
                tab8, "_swig_setattr(self, ", class_name, ", 'this', this)\n",
                tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
-               tab8, "_swig_setattr(self, ", class_name, ",self.__class__,", class_name, ")\n",
-               NIL);
+	       tab8, "self.__class__ = ", class_name, "\n", NIL);
       } else {
         Printv(f_shadow_file,
                tab8, "self.this = this\n",
