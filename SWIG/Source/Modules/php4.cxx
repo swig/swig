@@ -57,10 +57,12 @@ static String	  *phpfilename =0;
 static String	  *s_header;
 static String	  *s_wrappers;
 static String	  *s_init;
-static String     *s_shutdown;
-static String	  *s_vinit;
+static String	  *r_init;       // RINIT user code
+static String     *s_shutdown;   // MSHUTDOWN user code
+static String     *r_shutdown;   // RSHUTDOWN user code
+static String	  *s_vinit;      // varinit initialization code.
 static String	  *s_vdecl;
-static String	  *s_cinit;
+static String	  *s_cinit;      // consttab initialization code.
 static String	  *s_oinit;
 static String	  *s_entry;
 static String	  *cs_entry;
@@ -534,7 +536,9 @@ public:
     
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
+    r_init = NewString("/* rinit section */\n");
     s_shutdown = NewString("/* shutdown section */\n");
+    r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     s_type = NewString("");
@@ -548,7 +552,9 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",s_init);
+    Swig_register_filebyname("rinit",r_init);
     Swig_register_filebyname("shutdown",s_shutdown);
+    Swig_register_filebyname("rshutdown",r_shutdown);
     Swig_register_filebyname("header",s_header);
     Swig_register_filebyname("wrapper",s_wrappers);
     
@@ -724,18 +730,18 @@ public:
     
     // Now do REQUEST init which holds cinit and vinit
     Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n",module);
-    
-    Printf(s_init, "%s\n", s_cinit); 
+    Printf(s_init,"%s\n",r_init);
+    Printf(s_init,"%s\n",s_cinit); 
     Clear(s_cinit);
+    Delete(s_cinit);
     
     Printf(s_init, "%s\n", s_vinit);
     Clear(s_vinit);
+    Delete(s_vinit);
     
     Printf(s_init,"    return SUCCESS;\n");
     Printf(s_init,"}\n");
     
-    Delete(s_cinit);
-    Delete(s_vinit);
     
     Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s\n",s_shutdown);
@@ -743,6 +749,7 @@ public:
     Printf(s_init,"}\n");
     
     Printf(s_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n",module);
+    Printf(s_init,"%s\n",r_shutdown);
     Printf(s_init,"    return SUCCESS;\n");
     Printf(s_init,"}\n");
 	   
