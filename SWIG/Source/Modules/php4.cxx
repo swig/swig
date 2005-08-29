@@ -46,44 +46,44 @@ static String *withcxx = 0;
 
 static char *shadow_classname;
 
-static int	gen_extra = 0;
-static int	gen_make = 0;
+static int      gen_extra = 0;
+static int      gen_make = 0;
 
-static File	  *f_runtime = 0;
-static File	  *f_h = 0;
-static File	  *f_phpcode = 0;
-static String	  *phpfilename =0;
+static File       *f_runtime = 0;
+static File       *f_h = 0;
+static File       *f_phpcode = 0;
+static String     *phpfilename =0;
 
-static String	  *s_header;
-static String	  *s_wrappers;
-static String	  *s_init;
-static String	  *r_init;       // RINIT user code
+static String     *s_header;
+static String     *s_wrappers;
+static String     *s_init;
+static String     *r_init;       // RINIT user code
 static String     *s_shutdown;   // MSHUTDOWN user code
 static String     *r_shutdown;   // RSHUTDOWN user code
-static String	  *s_vinit;      // varinit initialization code.
-static String	  *s_vdecl;
-static String	  *s_cinit;      // consttab initialization code.
-static String	  *s_oinit;
-static String	  *s_entry;
-static String	  *cs_entry;
-static String	  *all_cs_entry;
-static String	  *pragma_incl;
-static String	  *pragma_code;
-static String	  *pragma_phpinfo;
+static String     *s_vinit;      // varinit initialization code.
+static String     *s_vdecl;
+static String     *s_cinit;      // consttab initialization code.
+static String     *s_oinit;
+static String     *s_entry;
+static String     *cs_entry;
+static String     *all_cs_entry;
+static String     *pragma_incl;
+static String     *pragma_code;
+static String     *pragma_phpinfo;
 
 /* Variables for using PHP classes */
-static String	  *class_name = 0;
+static String     *class_name = 0;
 
-static Hash	*shadow_get_vars;
-static Hash	*shadow_set_vars;
+static Hash     *shadow_get_vars;
+static Hash     *shadow_set_vars;
 #define NATIVE_CONSTRUCTOR 1
 #define ALTERNATIVE_CONSTRUCTOR 2
-static int	native_constructor=0;
-static Hash	*zend_types = 0;
+static int      native_constructor=0;
+static Hash     *zend_types = 0;
 
 static String *this_shadow_baseclass = 0;   //inheritance for shadow class from %pragma and cpp_inherit
 static String *this_shadow_multinherit = 0;
-static int	  shadow	= 1;
+static int        shadow        = 1;
 
 // These static variables are used to pass some state from Handlers into functionWrapper
 static enum {
@@ -143,8 +143,8 @@ SwigPHP_emit_resource_registrations() {
       if ((class_node!=NOTCLASS)) {
         classname = Getattr(class_node,"name");
         if (! (shadow_classname = Getattr(class_node,"sym:name"))) {
-	  shadow_classname=classname;
-	}
+          shadow_classname=classname;
+        }
         // Do we have a known destructor for this type?
         if ((destructor = Getattr(class_node,"destructor"))) {
           Printf(s_wrappers,"  /* has destructor: %s */\n",destructor);
@@ -164,12 +164,12 @@ SwigPHP_emit_resource_registrations() {
 
       // register with php
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
-	     key,key,key);
+             "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+             key,key,key);
 
       // store php type in class struct
       Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
-	     key,key);
+             key,key);
     }
     ki = Next(ki);
   }
@@ -186,7 +186,7 @@ public:
     if (n) {
       r = Getattr(n,"php:proxy");   // Set by classDeclaration()
       if (!r) {
-	r = Getattr(n,"sym:name");      // Not seen by classDeclaration yet, but this is the name
+        r = Getattr(n,"sym:name");      // Not seen by classDeclaration yet, but this is the name
       }
     }
     return r;
@@ -203,73 +203,73 @@ public:
     
     for(i = 1; i < argc; i++) {
       if (argv[i]) {
-	if(strcmp(argv[i], "-phpfull") == 0) {
-	  gen_extra = 1;
-	  Swig_mark_arg(i);
-	} else if(strcmp(argv[i], "-dlname") == 0) {
-	  if (argv[i+1]) {
-	    dlname = NewString(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if(strcmp(argv[i], "-withlibs") == 0) {
-	  if (argv[i+1]) {
-	    withlibs = NewString(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if(strcmp(argv[i], "-withincs") == 0) {
-	  if (argv[i+1]) {
-	    withincs = NewString(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if(strcmp(argv[i], "-withc") == 0) {
-	  if (argv[i+1]) {
-	    withc = NewString(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if(strcmp(argv[i], "-withcxx") == 0) {
-	  if (argv[i+1]) {
-	    withcxx = NewString(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if(strcmp(argv[i], "-cppext") == 0) {
-	  if (argv[i+1]) {
-	    SWIG_config_cppext(argv[i+1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i+1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	}  else if((strcmp(argv[i], "-noshadow") == 0)
-		   || (strcmp(argv[i],"-noproxy") == 0)) {
-	  shadow = 0;
-	  Swig_mark_arg(i);
-	} else if(strcmp(argv[i], "-make") == 0) {
-	  gen_make = 1;
-	  Swig_mark_arg(i);
-	} else if(strcmp(argv[i], "-help") == 0) {
-	  fputs(usage, stdout);
-	}
+        if(strcmp(argv[i], "-phpfull") == 0) {
+          gen_extra = 1;
+          Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-dlname") == 0) {
+          if (argv[i+1]) {
+            dlname = NewString(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if(strcmp(argv[i], "-withlibs") == 0) {
+          if (argv[i+1]) {
+            withlibs = NewString(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if(strcmp(argv[i], "-withincs") == 0) {
+          if (argv[i+1]) {
+            withincs = NewString(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if(strcmp(argv[i], "-withc") == 0) {
+          if (argv[i+1]) {
+            withc = NewString(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if(strcmp(argv[i], "-withcxx") == 0) {
+          if (argv[i+1]) {
+            withcxx = NewString(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if(strcmp(argv[i], "-cppext") == 0) {
+          if (argv[i+1]) {
+            SWIG_config_cppext(argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        }  else if((strcmp(argv[i], "-noshadow") == 0)
+                   || (strcmp(argv[i],"-noproxy") == 0)) {
+          shadow = 0;
+          Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-make") == 0) {
+          gen_make = 1;
+          Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-help") == 0) {
+          fputs(usage, stdout);
+        }
       }
     }
     
@@ -331,186 +331,184 @@ public:
     // also withincs and withlibs only take one name each now
     // the code they generate should be adapted to take multiple lines
     
-    if(gen_extra) {
-      /* Write out Makefile.in */
-      f_extra = NewFile(makefilein, "w");
-      if (!f_extra) {
-	Printf(stderr,"Unable to open %s\n",makefilein);
-	SWIG_exit(EXIT_FAILURE);
-      }
-      
-      Printf(f_extra,
-	     "# $Id$\n\n"
-	     "LTLIBRARY_NAME          = php_%s.la\n",
-	     module);
-      
-      // CPP has more and different entires to C in Makefile.in
-      if (! CPlusPlus) {
-	Printf(f_extra,"LTLIBRARY_SOURCES       = %s %s\n", Swig_file_filename(outfile),withc);
-	Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s\n", withcxx);
-      } else {
-	Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n", withc );
-	Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s %s\n", Swig_file_filename(outfile),withcxx);
-	Printf(f_extra,"LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n");
-	       
-      }
-      Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n", module);
-      Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n",module);
-      Printf(f_extra,"include $(top_srcdir)/build/dynlib.mk\n");
-	     
-      Printf(f_extra,"\n# patch in .cxx support to php build system to work like .cpp\n");
-      Printf(f_extra,".SUFFIXES: .cxx\n\n");
-
-      Printf(f_extra,".cxx.o:\n");
-      Printf(f_extra,"	$(CXX_COMPILE) -c $<\n\n");
-
-      Printf(f_extra,".cxx.lo:\n");
-      Printf(f_extra,"	$(CXX_PHP_COMPILE)\n\n");
-      Printf(f_extra,".cxx.slo:\n");
-
-      Printf(f_extra,"	$(CXX_SHARED_COMPILE)\n\n");
-      
-      Printf(f_extra,"\n# make it easy to test module\n");
-      Printf(f_extra,"testmodule:\n");
-      Printf(f_extra,"	php -q -d extension_dir=modules %s\n\n",Swig_file_filename(phpfilename));
-
-      Close(f_extra);
-      
-      /* Now config.m4 */
-      // Note: # comments are OK in config.m4 if you don't mind them
-      // appearing in the final ./configure file 
-      // (which can help with ./configure debugging)
-      
-      // NOTE2: phpize really ought to be able to write out a sample
-      // config.m4 based on some simple data, I'll take this up with
-      // the php folk!
-      f_extra = NewFile(configm4, "w");
-      if (!f_extra) {
-	Printf(stderr, "Unable to open %s\n",configm4);
-	SWIG_exit(EXIT_FAILURE);
-      }
-      
-      Printf(f_extra,"dnl $Id$\n");
-      Printf(f_extra,"dnl ***********************************************************************\n");
-      Printf(f_extra,"dnl ** THIS config.m4 is provided for PHPIZE and PHP's consumption NOT\n");
-      Printf(f_extra,"dnl ** for any part of the rest of the %s build system\n",module);
-      Printf(f_extra,"dnl ***********************************************************************\n\n");
-	     
-      
-      if (! with) { // must be enable then
-	Printf(f_extra,"PHP_ARG_ENABLE(%s, whether to enable %s support,\n",module,module);
-	Printf(f_extra,"[  --enable-%s             Enable %s support])\n\n",module,module);
-      } else {
-	Printf(f_extra,"PHP_ARG_WITH(%s, for %s support,\n",module,module);
-	Printf(f_extra,"[  --with-%s[=DIR]             Include %s support.])\n\n",module,module);
-	// These tests try and file the library we need
-	Printf(f_extra,"dnl THESE TESTS try and find the library and header files\n");
-	Printf(f_extra,"dnl your new php module needs. YOU MAY NEED TO EDIT THEM\n");
-	Printf(f_extra,"dnl as written they assume your header files are all in the same place\n\n");
-	
-	Printf(f_extra,"dnl ** are we looking for %s_lib.h or something else?\n",module);
-	if (withincs)
-	  Printf(f_extra,"HNAMES=\"%s\"\n\n",withincs);
-	else
-	  Printf(f_extra,"HNAMES=\"\"; # %s_lib.h ?\n\n",module);
-	
-	Printf(f_extra,"dnl ** Are we looking for lib%s.a or lib%s.so or something else?\n",module,module);
-
-	if (withlibs)
-	  Printf(f_extra,"LIBNAMES=\"%s\"\n\n",withlibs);
-	else
-	  Printf(f_extra,"LIBNAMES=\"\"; # lib_%s.so ?\n\n",withlibs);
-
-	Printf(f_extra,"dnl IF YOU KNOW one of the symbols in the library and you\n");
-	Printf(f_extra,"dnl specify it below then we can have a link test to see if it works\n");
-	Printf(f_extra,"LIBSYMBOL=\"\"\n\n");
-      }
-      
-      // Now write out tests to find thing.. they may need to extend tests
-      Printf(f_extra,"if test \"$PHP_%(upper)s\" != \"no\"; then\n\n",module);
-      
-      // Ready for when we add libraries as we find them
-      Printf(f_extra,"  PHP_SUBST(%(upper)s_SHARED_LIBADD)\n\n",module);
-      
-      if (withlibs) { // find more than one library
-	Printf(f_extra,"  for LIBNAME in $LIBNAMES ; do\n");
-	Printf(f_extra,"    LIBDIR=\"\"\n");
-	// For each path element to try...
-	Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/lib /usr/local/lib ; do\n",module,module);
-	Printf(f_extra,"      if test -r $i/lib$LIBNAME.a -o -r $i/lib$LIBNAME.so ; then\n");
-	Printf(f_extra,"        LIBDIR=\"$i\"\n");
-	Printf(f_extra,"        break\n");
-	Printf(f_extra,"      fi\n");
-	Printf(f_extra,"    done\n\n");
-	Printf(f_extra,"    dnl ** and $LIBDIR should be the library path\n");
-	Printf(f_extra,"    if test \"$LIBNAME\" != \"\" -a -z \"$LIBDIR\" ; then\n");
-	Printf(f_extra,"      AC_MSG_RESULT(Library files $LIBNAME not found)\n");
-	Printf(f_extra,"      AC_MSG_ERROR(Is the %s distribution installed properly?)\n",module);
-	Printf(f_extra,"    else\n");
-	Printf(f_extra,"      AC_MSG_RESULT(Library files $LIBNAME found in $LIBDIR)\n");
-	Printf(f_extra,"      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %(upper)s_SHARED_LIBADD)\n",module);
-	Printf(f_extra,"    fi\n");
-	Printf(f_extra,"  done\n\n");
-      }
-      
-      if (withincs) {  // Find more than once include
-	Printf(f_extra,"  for HNAME in $HNAMES ; do\n");
-	Printf(f_extra,"    INCDIR=\"\"\n");
-	// For each path element to try...
-	Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include $PHP_%(upper)s/includes $PHP_%(upper)s/inc $PHP_%(upper)s/incs /usr/local/include /usr/include; do\n",module,module,module,module,module);
-	// Try and find header files
-	Printf(f_extra,"      if test \"$HNAME\" != \"\" -a -r $i/$HNAME ; then\n");
-	Printf(f_extra,"        INCDIR=\"$i\"\n");
-	Printf(f_extra,"        break\n");
-	Printf(f_extra,"      fi\n");
-	Printf(f_extra,"    done\n\n");
-	
-	Printf(f_extra,"    dnl ** Now $INCDIR should be the include file path\n");
-	Printf(f_extra,"    if test \"$HNAME\" != \"\" -a -z \"$INCDIR\" ; then\n");
-	Printf(f_extra,"      AC_MSG_RESULT(Include files $HNAME not found)\n");
-	Printf(f_extra,"      AC_MSG_ERROR(Is the %s distribution installed properly?)\n",module);
-	Printf(f_extra,"    else\n");
-	Printf(f_extra,"      AC_MSG_RESULT(Include files $HNAME found in $INCDIR)\n");
-	Printf(f_extra,"      PHP_ADD_INCLUDE($INCDIR)\n");
-	Printf(f_extra,"    fi\n\n");
-	Printf(f_extra,"  done\n\n");
-      }
-      
-      if (CPlusPlus) {
-	Printf(f_extra,"  # As this is a C++ module..\n");
-      }
-
-      Printf(f_extra,"  PHP_REQUIRE_CXX\n");
-      Printf(f_extra,"  AC_CHECK_LIB(stdc++, cin)\n");
-      
-      if (with) {
-	Printf(f_extra,"  if test \"$LIBSYMBOL\" != \"\" ; then\n");
-	Printf(f_extra,"    old_LIBS=\"$LIBS\"\n");
-	Printf(f_extra,"    LIBS=\"$LIBS -L$TEST_DIR/lib -lm -ldl\"\n");
-	Printf(f_extra,"    AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_TESTLIB,1,  [ ])],\n");
-	Printf(f_extra,"    [AC_MSG_ERROR(wrong test lib version or lib not found)])\n");
-	Printf(f_extra,"    LIBS=\"$old_LIBS\"\n");
-	Printf(f_extra,"  fi\n\n");
-      }
-      
-      Printf(f_extra,"  AC_DEFINE(HAVE_%(upper)s, 1, [ ])\n",module);
-      Printf(f_extra,"dnl  AC_DEFINE_UNQUOTED(PHP_%(upper)s_DIR, \"$%(upper)s_DIR\", [ ])\n",module,module);
-      Printf(f_extra,"  PHP_EXTENSION(%s, $ext_shared)\n",module);
-      
-      // and thats all!
-      Printf(f_extra,"fi\n");
-      
-      Close(f_extra);
-      
-      /*  CREDITS */
-      f_extra = NewFile(credits, "w");
-      if (!f_extra) {
-	Printf(stderr,"Unable to open %s\n",credits);
-	SWIG_exit(EXIT_FAILURE);
-      }
-      Printf(f_extra, "%s\n", module);
-      Close(f_extra);
+    /* Write out Makefile.in */
+    f_extra = NewFile(makefilein, "w");
+    if (!f_extra) {
+      Printf(stderr,"Unable to open %s\n",makefilein);
+      SWIG_exit(EXIT_FAILURE);
     }
+    
+    Printf(f_extra,
+	   "# $Id$\n\n"
+	   "LTLIBRARY_NAME          = php_%s.la\n",
+	   module);
+    
+    // CPP has more and different entires to C in Makefile.in
+    if (! CPlusPlus) {
+      Printf(f_extra,"LTLIBRARY_SOURCES       = %s %s\n", Swig_file_filename(outfile),withc);
+      Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s\n", withcxx);
+    } else {
+      Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n", withc );
+      Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s %s\n", Swig_file_filename(outfile),withcxx);
+      Printf(f_extra,"LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n");
+      
+    }
+    Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n", module);
+    Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n",module);
+    Printf(f_extra,"include $(top_srcdir)/build/dynlib.mk\n");
+    
+    Printf(f_extra,"\n# patch in .cxx support to php build system to work like .cpp\n");
+    Printf(f_extra,".SUFFIXES: .cxx\n\n");
+    
+    Printf(f_extra,".cxx.o:\n");
+    Printf(f_extra,"  $(CXX_COMPILE) -c $<\n\n");
+    
+    Printf(f_extra,".cxx.lo:\n");
+    Printf(f_extra,"  $(CXX_PHP_COMPILE)\n\n");
+    Printf(f_extra,".cxx.slo:\n");
+    
+    Printf(f_extra,"  $(CXX_SHARED_COMPILE)\n\n");
+    
+    Printf(f_extra,"\n# make it easy to test module\n");
+    Printf(f_extra,"testmodule:\n");
+    Printf(f_extra,"  php -q -d extension_dir=modules %s\n\n",Swig_file_filename(phpfilename));
+    
+    Close(f_extra);
+      
+    /* Now config.m4 */
+    // Note: # comments are OK in config.m4 if you don't mind them
+    // appearing in the final ./configure file 
+    // (which can help with ./configure debugging)
+    
+    // NOTE2: phpize really ought to be able to write out a sample
+    // config.m4 based on some simple data, I'll take this up with
+    // the php folk!
+    f_extra = NewFile(configm4, "w");
+    if (!f_extra) {
+      Printf(stderr, "Unable to open %s\n",configm4);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    
+    Printf(f_extra,"dnl $Id$\n");
+    Printf(f_extra,"dnl ***********************************************************************\n");
+    Printf(f_extra,"dnl ** THIS config.m4 is provided for PHPIZE and PHP's consumption NOT\n");
+    Printf(f_extra,"dnl ** for any part of the rest of the %s build system\n",module);
+    Printf(f_extra,"dnl ***********************************************************************\n\n");
+    
+    
+    if (! with) { // must be enable then
+      Printf(f_extra,"PHP_ARG_ENABLE(%s, whether to enable %s support,\n",module,module);
+      Printf(f_extra,"[  --enable-%s             Enable %s support])\n\n",module,module);
+    } else {
+      Printf(f_extra,"PHP_ARG_WITH(%s, for %s support,\n",module,module);
+      Printf(f_extra,"[  --with-%s[=DIR]             Include %s support.])\n\n",module,module);
+      // These tests try and file the library we need
+      Printf(f_extra,"dnl THESE TESTS try and find the library and header files\n");
+      Printf(f_extra,"dnl your new php module needs. YOU MAY NEED TO EDIT THEM\n");
+      Printf(f_extra,"dnl as written they assume your header files are all in the same place\n\n");
+      
+      Printf(f_extra,"dnl ** are we looking for %s_lib.h or something else?\n",module);
+      if (withincs)
+	Printf(f_extra,"HNAMES=\"%s\"\n\n",withincs);
+      else
+	Printf(f_extra,"HNAMES=\"\"; # %s_lib.h ?\n\n",module);
+      
+      Printf(f_extra,"dnl ** Are we looking for lib%s.a or lib%s.so or something else?\n",module,module);
+      
+      if (withlibs)
+	Printf(f_extra,"LIBNAMES=\"%s\"\n\n",withlibs);
+      else
+	Printf(f_extra,"LIBNAMES=\"\"; # lib_%s.so ?\n\n",withlibs);
+      
+      Printf(f_extra,"dnl IF YOU KNOW one of the symbols in the library and you\n");
+      Printf(f_extra,"dnl specify it below then we can have a link test to see if it works\n");
+      Printf(f_extra,"LIBSYMBOL=\"\"\n\n");
+    }
+    
+    // Now write out tests to find thing.. they may need to extend tests
+    Printf(f_extra,"if test \"$PHP_%(upper)s\" != \"no\"; then\n\n",module);
+    
+    // Ready for when we add libraries as we find them
+    Printf(f_extra,"  PHP_SUBST(%(upper)s_SHARED_LIBADD)\n\n",module);
+    
+    if (withlibs) { // find more than one library
+      Printf(f_extra,"  for LIBNAME in $LIBNAMES ; do\n");
+      Printf(f_extra,"    LIBDIR=\"\"\n");
+      // For each path element to try...
+      Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/lib /usr/local/lib ; do\n",module,module);
+      Printf(f_extra,"      if test -r $i/lib$LIBNAME.a -o -r $i/lib$LIBNAME.so ; then\n");
+      Printf(f_extra,"        LIBDIR=\"$i\"\n");
+      Printf(f_extra,"        break\n");
+      Printf(f_extra,"      fi\n");
+      Printf(f_extra,"    done\n\n");
+      Printf(f_extra,"    dnl ** and $LIBDIR should be the library path\n");
+      Printf(f_extra,"    if test \"$LIBNAME\" != \"\" -a -z \"$LIBDIR\" ; then\n");
+      Printf(f_extra,"      AC_MSG_RESULT(Library files $LIBNAME not found)\n");
+      Printf(f_extra,"      AC_MSG_ERROR(Is the %s distribution installed properly?)\n",module);
+      Printf(f_extra,"    else\n");
+      Printf(f_extra,"      AC_MSG_RESULT(Library files $LIBNAME found in $LIBDIR)\n");
+      Printf(f_extra,"      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %(upper)s_SHARED_LIBADD)\n",module);
+      Printf(f_extra,"    fi\n");
+      Printf(f_extra,"  done\n\n");
+    }
+    
+    if (withincs) {  // Find more than once include
+      Printf(f_extra,"  for HNAME in $HNAMES ; do\n");
+      Printf(f_extra,"    INCDIR=\"\"\n");
+      // For each path element to try...
+      Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include $PHP_%(upper)s/includes $PHP_%(upper)s/inc $PHP_%(upper)s/incs /usr/local/include /usr/include; do\n",module,module,module,module,module);
+      // Try and find header files
+      Printf(f_extra,"      if test \"$HNAME\" != \"\" -a -r $i/$HNAME ; then\n");
+      Printf(f_extra,"        INCDIR=\"$i\"\n");
+      Printf(f_extra,"        break\n");
+      Printf(f_extra,"      fi\n");
+      Printf(f_extra,"    done\n\n");
+      
+      Printf(f_extra,"    dnl ** Now $INCDIR should be the include file path\n");
+      Printf(f_extra,"    if test \"$HNAME\" != \"\" -a -z \"$INCDIR\" ; then\n");
+      Printf(f_extra,"      AC_MSG_RESULT(Include files $HNAME not found)\n");
+      Printf(f_extra,"      AC_MSG_ERROR(Is the %s distribution installed properly?)\n",module);
+      Printf(f_extra,"    else\n");
+      Printf(f_extra,"      AC_MSG_RESULT(Include files $HNAME found in $INCDIR)\n");
+      Printf(f_extra,"      PHP_ADD_INCLUDE($INCDIR)\n");
+      Printf(f_extra,"    fi\n\n");
+      Printf(f_extra,"  done\n\n");
+    }
+    
+    if (CPlusPlus) {
+      Printf(f_extra,"  # As this is a C++ module..\n");
+    }
+    
+    Printf(f_extra,"  PHP_REQUIRE_CXX\n");
+    Printf(f_extra,"  AC_CHECK_LIB(stdc++, cin)\n");
+    
+    if (with) {
+      Printf(f_extra,"  if test \"$LIBSYMBOL\" != \"\" ; then\n");
+      Printf(f_extra,"    old_LIBS=\"$LIBS\"\n");
+      Printf(f_extra,"    LIBS=\"$LIBS -L$TEST_DIR/lib -lm -ldl\"\n");
+      Printf(f_extra,"    AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_TESTLIB,1,  [ ])],\n");
+      Printf(f_extra,"    [AC_MSG_ERROR(wrong test lib version or lib not found)])\n");
+      Printf(f_extra,"    LIBS=\"$old_LIBS\"\n");
+      Printf(f_extra,"  fi\n\n");
+    }
+    
+    Printf(f_extra,"  AC_DEFINE(HAVE_%(upper)s, 1, [ ])\n",module);
+    Printf(f_extra,"dnl  AC_DEFINE_UNQUOTED(PHP_%(upper)s_DIR, \"$%(upper)s_DIR\", [ ])\n",module,module);
+    Printf(f_extra,"  PHP_EXTENSION(%s, $ext_shared)\n",module);
+    
+    // and thats all!
+    Printf(f_extra,"fi\n");
+    
+    Close(f_extra);
+    
+    /*  CREDITS */
+    f_extra = NewFile(credits, "w");
+    if (!f_extra) {
+      Printf(stderr,"Unable to open %s\n",credits);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    Printf(f_extra, "%s\n", module);
+    Close(f_extra);
   }
 
   /* ------------------------------------------------------------
@@ -591,7 +589,7 @@ public:
     Printf(f_phpcode,"$%s_LOADED__ = true;\n\n", cap_module);
     Printf(f_phpcode,"/* if our extension has not been loaded, do what we can */\n");
     Printf(f_phpcode,"if (!extension_loaded(\"php_%s\")) {\n", module);
-    Printf(f_phpcode,"	if (!dl(\"%s\")) return;\n", dlname);
+    Printf(f_phpcode,"  if (!dl(\"%s\")) return;\n", dlname);
     Printf(f_phpcode,"}\n\n");
     
     
@@ -631,10 +629,10 @@ public:
     Printf(s_header, "  ErrorCode() = default_error_code;\n");
     Printf(s_header, "}\n");
 
-    Printf(s_header,"#define SWIG_name	\"%s\"\n", module);
-    /*	   Printf(s_header,"#ifdef HAVE_CONFIG_H\n");
-	   Printf(s_header,"#include \"config.h\"\n");
-	   Printf(s_header,"#endif\n\n");
+    Printf(s_header,"#define SWIG_name  \"%s\"\n", module);
+    /*     Printf(s_header,"#ifdef HAVE_CONFIG_H\n");
+           Printf(s_header,"#include \"config.h\"\n");
+           Printf(s_header,"#endif\n\n");
     */
     Printf(s_header,"#ifdef __cplusplus\n");
     Printf(s_header,"extern \"C\" {\n");
@@ -646,7 +644,7 @@ public:
     Printf(s_header,"#ifdef __cplusplus\n");
     Printf(s_header,"}\n");
     Printf(s_header,"#endif\n\n");
-	   
+           
     /* Create the .h file too */
     filen = NewString("");
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
@@ -696,7 +694,7 @@ public:
     Printf(s_init,"#ifdef __cplusplus\n");
     Printf(s_init,"}\n");
     Printf(s_init,"#endif\n\n");
-	   
+           
     if (gen_extra) {
       Printf(s_init,"#endif\n\n");
     }
@@ -714,7 +712,7 @@ public:
     SwigPHP_emit_resource_registrations();    
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
+    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");        
     Printf(s_oinit, "/* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
     
@@ -752,13 +750,13 @@ public:
     Printf(s_init,"%s\n",r_shutdown);
     Printf(s_init,"    return SUCCESS;\n");
     Printf(s_init,"}\n");
-	   
+           
     
     Printf(s_init,"PHP_MINFO_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s", pragma_phpinfo);
     Printf(s_init,"}\n");
     Printf(s_init,"/* end init section */\n");
-	   
+           
     Printf(f_h, "#endif /* PHP_%s_H */\n",  cap_module);
 
     Close(f_h);
@@ -791,13 +789,11 @@ public:
      * function really needs totally redoing.
      */
     
-    Printv(f_runtime, s_header, NIL);
-    
     Printf(s_header, "/* end header section */\n");
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
     
-    Printv(f_runtime, s_vdecl, s_wrappers, s_init, NIL);
+    Printv(f_runtime, s_header, s_vdecl, s_wrappers, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
@@ -806,10 +802,12 @@ public:
     Printf(f_phpcode, "%s\n%s\n?>\n", pragma_incl, pragma_code);
     Close(f_phpcode); 
     
-    create_extra_files(outfile);
-    
-    if(!gen_extra && gen_make)
+    if ( gen_extra ) {
+      create_extra_files(outfile);
+    }
+    else if( gen_make ) {
       create_simple_make();
+    }
     
     return SWIG_OK;
   }
@@ -824,9 +822,9 @@ public:
     
     // This is for the single main function_entry record
     if (cs_entry) {
-      Printf(cs_entry,"	ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
+      Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
     } else {
-      Printf(s_entry,"	ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
+      Printf(s_entry,"  ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
     }
   }
   /* ------------------------------------------------------------
@@ -838,7 +836,7 @@ public:
     int maxargs;
     String *tmp = NewString("");
     String *dispatch = Swig_overload_dispatch(n,"return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);",&maxargs);
-	
+        
     /* Generate a dispatch wrapper for all overloaded functions */
     
     Wrapper *f       = NewWrapper();
@@ -922,7 +920,7 @@ public:
       overname = Getattr(n,"sym:overname");
     } else {
       if (!addSymbol(iname,n))
-	return SWIG_ERROR;
+        return SWIG_ERROR;
     }
 
     strcpy(wname,Char(Swig_name_wrapper(iname)));
@@ -935,16 +933,16 @@ public:
     if (mvr) {
       String *php_function_name = NewString(iname);
       if( Strcmp( iname, Swig_name_set(Swig_name_member(shadow_classname, name)))== 0) {
-	Setattr(shadow_set_vars, php_function_name, name);
+        Setattr(shadow_set_vars, php_function_name, name);
       }
       if( Strcmp(iname, Swig_name_get(Swig_name_member(shadow_classname, name))) == 0) {
-	Setattr(shadow_get_vars, php_function_name, name);
+        Setattr(shadow_get_vars, php_function_name, name);
       }
 
       Delete(php_function_name);
     }
 
-    f 	= NewWrapper();
+    f   = NewWrapper();
     numopt = 0;
     
     String *outarg = NewString("");
@@ -952,10 +950,10 @@ public:
     
     if (mvr) { // do prop[gs]et header
       if (mvrset) {
-	Printf(f->def, "static int _wrap_%s(zend_property_reference *property_reference, pval *value) {\n",iname);
+        Printf(f->def, "static int _wrap_%s(zend_property_reference *property_reference, pval *value) {\n",iname);
       }
       else {
-	Printf(f->def, "static pval _wrap_%s(zend_property_reference *property_reference) {\n",iname);
+        Printf(f->def, "static pval _wrap_%s(zend_property_reference *property_reference) {\n",iname);
       }
     } else {
       // regular header
@@ -963,9 +961,9 @@ public:
       // destructors when using shadows.
       // And for static member variables
       if (!overloaded &&
-	  !(destructor && shadow) &&
+          !(destructor && shadow) &&
           wrapperType != staticmembervar ) {
-	create_command( iname, wname );
+        create_command( iname, wname );
       }
       Printv(f->def, "ZEND_NAMED_FUNCTION(" , wname, ") {\n", NIL);
     }
@@ -1003,10 +1001,10 @@ public:
 
     if (native_constructor) {
       if (native_constructor==NATIVE_CONSTRUCTOR) {
-	Printf(f->code, "/* NATIVE Constructor */\n");
+        Printf(f->code, "/* NATIVE Constructor */\n");
       }
       else {
-	Printf(f->code, "/* ALTERNATIVE Constructor */\n");
+        Printf(f->code, "/* ALTERNATIVE Constructor */\n");
       }
     }
 
@@ -1020,7 +1018,7 @@ public:
       Printf(f->code,"arg_count = ZEND_NUM_ARGS();\n");
       Printf(f->code,"if(arg_count<%d || arg_count>%d)\n",num_required, num_arguments);
       Printf(f->code,"\tWRONG_PARAM_COUNT;\n\n");
-	     
+             
       
       /* Verified args, retrieve them... */
       Printf(f->code,"if(zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)\n");
@@ -1028,7 +1026,7 @@ public:
       
     } else if (!mvr) {
       Printf(f->code, "if(((ZEND_NUM_ARGS() )!= %d) || (zend_get_parameters_array_ex(%d, args)",
-	     num_arguments-has_this_ptr, num_arguments-has_this_ptr);
+             num_arguments-has_this_ptr, num_arguments-has_this_ptr);
       Printf(f->code, "!= SUCCESS)) {\n");
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");     
     }
@@ -1053,18 +1051,18 @@ public:
       SwigType *pt = Getattr(p,"type");
       
       if (mvr) { // do we assert that numargs=2, that i<2
-	if (i==0) {
-	  sprintf(source,"&(property_reference->object)");
-	}
-	else {
-	  sprintf(source,"&value");
-	}
+        if (i==0) {
+          sprintf(source,"&(property_reference->object)");
+        }
+        else {
+          sprintf(source,"&value");
+        }
       } else {
-	if (i==0 && has_this_ptr ) {
-	  sprintf(source,"&this_ptr");
+        if (i==0 && has_this_ptr ) {
+          sprintf(source,"&this_ptr");
         } else {
-	  sprintf(source, "args[%d]", i-has_this_ptr);
-	}
+          sprintf(source, "args[%d]", i-has_this_ptr);
+        }
       }
       
       String *ln = Getattr(p,"lname");
@@ -1073,64 +1071,64 @@ public:
        /* Check if optional */
       
       if(i>= (num_required)) {
-	Printf(f->code,"\tif(arg_count > %d) {\n", i);
+        Printf(f->code,"\tif(arg_count > %d) {\n", i);
       }
       
       if ((tm = Getattr(p,"tmap:in"))) {
-	Replaceall(tm,"$source",source);
-	Replaceall(tm,"$target",ln);
-	Replaceall(tm,"$input", source);
-	Setattr(p,"emit:input", source);
-	Printf(f->code,"%s\n",tm);
-	p = Getattr(p,"tmap:in:next");
-	if (i >= num_required) {
-	  Printf(f->code,"}\n");
-	}
-	continue;
+        Replaceall(tm,"$source",source);
+        Replaceall(tm,"$target",ln);
+        Replaceall(tm,"$input", source);
+        Setattr(p,"emit:input", source);
+        Printf(f->code,"%s\n",tm);
+        p = Getattr(p,"tmap:in:next");
+        if (i >= num_required) {
+          Printf(f->code,"}\n");
+        }
+        continue;
       } else {
-	Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n",
-	       input_file, line_number, SwigType_str(pt,0));
+        Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n",
+               input_file, line_number, SwigType_str(pt,0));
       }
       if (i>= num_required) {
-	Printf(f->code,"\t}\n");
+        Printf(f->code,"\t}\n");
       }
     }
     
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
-	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NIL);
-	p = Getattr(p,"tmap:check:next");
+        Replaceall(tm,"$target",Getattr(p,"lname"));
+        Printv(f->code,tm,"\n",NIL);
+        p = Getattr(p,"tmap:check:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
     /* Insert cleanup code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NIL);
-	p = Getattr(p,"tmap:freearg:next");
+        Replaceall(tm,"$source",Getattr(p,"lname"));
+        Printv(cleanup,tm,"\n",NIL);
+        p = Getattr(p,"tmap:freearg:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
     
     /* Insert argument output code */
     for (i=0,p = l; p;i++) {
       if ((tm = Getattr(p,"tmap:argout"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	//	Replaceall(tm,"$input",Getattr(p,"lname"));
-	Replaceall(tm,"$target","return_value");
-	Replaceall(tm,"$result","return_value");
-	Replaceall(tm,"$arg", Getattr(p,"emit:input"));
-	Replaceall(tm,"$input", Getattr(p,"emit:input"));
-	Printv(outarg,tm,"\n",NIL);
-	p = Getattr(p,"tmap:argout:next");
+        Replaceall(tm,"$source",Getattr(p,"lname"));
+        //      Replaceall(tm,"$input",Getattr(p,"lname"));
+        Replaceall(tm,"$target","return_value");
+        Replaceall(tm,"$result","return_value");
+        Replaceall(tm,"$arg", Getattr(p,"emit:input"));
+        Replaceall(tm,"$input", Getattr(p,"emit:input"));
+        Printv(outarg,tm,"\n",NIL);
+        p = Getattr(p,"tmap:argout:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
     
@@ -1147,43 +1145,43 @@ public:
       // are we returning a wrapable object?
       // I don't know if this test is comlete, I nicked it
       if(is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
-	Printf(f->code,"/* Wrap this return value */\n");
-	if (native_constructor==NATIVE_CONSTRUCTOR) {
-	  Printf(f->code, "if (this_ptr) {\n");
-	  Printf(f->code, "/* NATIVE Constructor, use this_ptr */\n");
-	  Printf(f->code, "zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n");
-	  Printf(f->code, "*_cPtr = *return_value;\n");
-	  Printf(f->code, "INIT_ZVAL(*return_value);\n");
-	  Printf(f->code, "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n");
-	  Printf(f->code, "} else if (! this_ptr) ");
-	}
-	{ // THIS CODE only really needs writing out if the object to be returned
-	  // Is being shadow-wrap-thingied
-	  Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
-	  // Make object 
-	  String *shadowrettype = NewString("");
-	  SwigToPhpType(d, iname, shadowrettype, shadow);
-	  
-	  Printf(f->code,"zval *obj, *_cPtr;\n");
-	  Printf(f->code,"MAKE_STD_ZVAL(obj);\n");
-	  Printf(f->code,"MAKE_STD_ZVAL(_cPtr);\n");
-	  Printf(f->code,"*_cPtr = *return_value;\n");
-	  Printf(f->code,"INIT_ZVAL(*return_value);\n");
-	  
-	  if (! shadow) {
-	    Printf(f->code,"*return_value=*_cPtr;\n");
-	  } else {
-	    Printf(f->code,"object_init_ex(obj,ptr_ce_swig_%s);\n",shadowrettype);
-	    Printf(f->code,"add_property_zval(obj,\"_cPtr\",_cPtr);\n");
-	    Printf(f->code,"*return_value=*obj;\n");
-		   
-	  }
-	  Printf(f->code, "}\n");
-	}
+        Printf(f->code,"/* Wrap this return value */\n");
+        if (native_constructor==NATIVE_CONSTRUCTOR) {
+          Printf(f->code, "if (this_ptr) {\n");
+          Printf(f->code, "/* NATIVE Constructor, use this_ptr */\n");
+          Printf(f->code, "zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n");
+          Printf(f->code, "*_cPtr = *return_value;\n");
+          Printf(f->code, "INIT_ZVAL(*return_value);\n");
+          Printf(f->code, "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n");
+          Printf(f->code, "} else if (! this_ptr) ");
+        }
+        { // THIS CODE only really needs writing out if the object to be returned
+          // Is being shadow-wrap-thingied
+          Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
+          // Make object 
+          String *shadowrettype = NewString("");
+          SwigToPhpType(d, iname, shadowrettype, shadow);
+          
+          Printf(f->code,"zval *obj, *_cPtr;\n");
+          Printf(f->code,"MAKE_STD_ZVAL(obj);\n");
+          Printf(f->code,"MAKE_STD_ZVAL(_cPtr);\n");
+          Printf(f->code,"*_cPtr = *return_value;\n");
+          Printf(f->code,"INIT_ZVAL(*return_value);\n");
+          
+          if (! shadow) {
+            Printf(f->code,"*return_value=*_cPtr;\n");
+          } else {
+            Printf(f->code,"object_init_ex(obj,ptr_ce_swig_%s);\n",shadowrettype);
+            Printf(f->code,"add_property_zval(obj,\"_cPtr\",_cPtr);\n");
+            Printf(f->code,"*return_value=*obj;\n");
+                   
+          }
+          Printf(f->code, "}\n");
+        }
       } // end of if-shadow lark
     } else {
       Printf(stderr,"%s: Line %d, Unable to use return type %s in function %s.\n",
-	     input_file, line_number, SwigType_str(d,0), name);
+             input_file, line_number, SwigType_str(d,0), name);
     }
     
     if(outarg) {
@@ -1201,10 +1199,10 @@ public:
 
     if (mvr) {
       if (! mvrset) {
-	Printf(f->code,"return _return_value;\n");    
+        Printf(f->code,"return _return_value;\n");    
       }
       else{
-	Printf(f->code,"return SUCCESS;\n");
+        Printf(f->code,"return SUCCESS;\n");
       }
     }
     else {
@@ -1263,7 +1261,7 @@ public:
       Printf(s_vinit, "%s\n", tm);
     } else {
       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", 
-	     input_file, line_number, SwigType_str(t,0), name);
+             input_file, line_number, SwigType_str(t,0), name);
     }
 
     /* Now generate PHP -> C sync blocks */
@@ -1335,23 +1333,23 @@ public:
       String *value = Getattr(n,"value");
 
       if (Strcmp(lang,"php4") == 0) {
-	
-	if (Strcmp(type, "code") == 0) {
-	  if (value) {
-	    Printf(pragma_code, "%s\n", value);
-	  }
-	} else if (Strcmp(type, "include") == 0) {
-	  if (value) {
-	    Printf(pragma_incl, "include \"%s\";\n", value);
-	  }
-	} else if (Strcmp(type, "phpinfo") == 0) {
-	  if (value) {
-	    Printf(pragma_phpinfo, "%s\n", value);
-	  }
-	} else {
-	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
-		 input_file, line_number);
-	}
+        
+        if (Strcmp(type, "code") == 0) {
+          if (value) {
+            Printf(pragma_code, "%s\n", value);
+          }
+        } else if (Strcmp(type, "include") == 0) {
+          if (value) {
+            Printf(pragma_incl, "include \"%s\";\n", value);
+          }
+        } else if (Strcmp(type, "phpinfo") == 0) {
+          if (value) {
+            Printf(pragma_phpinfo, "%s\n", value);
+          }
+        } else {
+          Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
+                 input_file, line_number);
+        }
       }
     }
     return Language::pragmaDirective(n);
@@ -1390,8 +1388,8 @@ public:
       Printf(cs_entry,"static zend_function_entry %s_functions[] = {\n", shadow_classname);
 
       if(Strcmp(shadow_classname, module) == 0) {
-	Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
-	SWIG_exit(1);
+        Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
+        SWIG_exit(1);
       }
 
       this_shadow_baseclass = NewString("");
@@ -1405,32 +1403,32 @@ public:
 
       if(baselist) {
         int class_count = 0;
-	Iterator base = First(baselist);
-	while(base.item && Getattr(base.item,"feature:ignore")) {
-	  base = Next(base);
-	}
+        Iterator base = First(baselist);
+        while(base.item && Getattr(base.item,"feature:ignore")) {
+          base = Next(base);
+        }
 
-	if (base.item && is_shadow(Getattr(base.item, "name"))) {
-	  class_count++;
-	  Printf(this_shadow_baseclass, "%s", Getattr(base.item, "name"));
-	}
+        if (base.item && is_shadow(Getattr(base.item, "name"))) {
+          class_count++;
+          Printf(this_shadow_baseclass, "%s", Getattr(base.item, "name"));
+        }
 
-	if (base.item) for(base = Next(base); base.item; base = Next(base)) {
-	  if (Getattr(base.item,"feature:ignore")) {
-	    continue;
-	  }
-	  if(is_shadow(Getattr(base.item, "name"))) {
-	    class_count++;
-	    Printf(this_shadow_multinherit, "%s ", Getattr(base.item, "name"));
-	  }
-	}
+        if (base.item) for(base = Next(base); base.item; base = Next(base)) {
+          if (Getattr(base.item,"feature:ignore")) {
+            continue;
+          }
+          if(is_shadow(Getattr(base.item, "name"))) {
+            class_count++;
+            Printf(this_shadow_multinherit, "%s ", Getattr(base.item, "name"));
+          }
+        }
 
-	if(class_count > 1) {
-	  Printf(stderr,
-		 "Error: %s inherits from multiple base classes(%s %s). "
-		 "Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n",
-		 shadow_classname, base.item, this_shadow_multinherit);
-	}
+        if(class_count > 1) {
+          Printf(stderr,
+                 "Error: %s inherits from multiple base classes(%s %s). "
+                 "Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n",
+                 shadow_classname, base.item, this_shadow_multinherit);
+        }
       }
 
       /* Write out class init code */
@@ -1445,8 +1443,8 @@ public:
     if(shadow) {
       DOH *key;
       int gcount, scount;
-      String	  *s_propget=NewString("");
-      String	  *s_propset=NewString("");
+      String      *s_propget=NewString("");
+      String      *s_propset=NewString("");
       List *baselist = Getattr(n, "bases");
       Iterator ki, base;
 
@@ -1461,17 +1459,17 @@ public:
 
       Printf(s_oinit,"/* Define class %s */\n",shadow_classname);
       Printf(s_oinit,"INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,",
-	     shadow_classname,shadow_classname, shadow_classname);
+             shadow_classname,shadow_classname, shadow_classname);
       Printf(s_oinit,"NULL,_wrap_propget_%s,_wrap_propset_%s);\n",shadow_classname,shadow_classname);
 
       // ******** Write property SET handlers
       Printf(s_header,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value);\n",
-	     shadow_classname);
+             shadow_classname);
       Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n",
-	     shadow_classname);
+             shadow_classname);
 
       Printf(s_propset,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value) { \n",
-	     shadow_classname);
+             shadow_classname);
       Printf(s_propset,"  zval * _value;\n");
       Printf(s_propset,"  zend_llist_element *element = property_reference->elements_list->head;\n");
       Printf(s_propset,"  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n");
@@ -1484,18 +1482,18 @@ public:
       Printf(s_propset,"  return add_property_zval_ex(property_reference->object,Z_STRVAL_P(&(property->element)),1+Z_STRLEN_P(&(property->element)),_value);\n");
       Printf(s_propset,"}\n");
       Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n",
-	     shadow_classname);
+             shadow_classname);
 
 
       if (baselist) {
-	base=First(baselist);
+        base=First(baselist);
       }
       else {
-	base.item = NULL;
+        base.item = NULL;
       }
 
       while(base.item && Getattr(base.item,"feature:ignore")) {
-	base = Next(base);
+        base = Next(base);
       }
 
       ki = First(shadow_set_vars);
@@ -1505,9 +1503,9 @@ public:
       // are properties for this class to look up...
       if (key || ! base.item) { // or if we are base class and set it ourselves
         Printf(s_propset,"  /* get the property name */\n");
-	Printf(s_propset,"  zend_llist_element *element = property_reference->elements_list->head;\n");
-	Printf(s_propset,"  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n");
-	Printf(s_propset,"  char *propname=Z_STRVAL_P(&(property->element));\n");
+        Printf(s_propset,"  zend_llist_element *element = property_reference->elements_list->head;\n");
+        Printf(s_propset,"  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n");
+        Printf(s_propset,"  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
         if (base.item) {
           Printf(s_propset,"  /* No extra properties for subclass %s */\n",shadow_classname);
@@ -1518,19 +1516,19 @@ public:
 
       scount=0;
       while (ki.key) {
-	key = ki.key;
+        key = ki.key;
         if (scount++) {
-	  Printf(s_propset," else");
-	}
+          Printf(s_propset," else");
+        }
         Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n",Getattr(shadow_set_vars,key) );
-	Printf(s_propset,"    return _wrap_%s(property_reference, value);\n",key);
-	Printf(s_propset,"  }");
+        Printf(s_propset,"    return _wrap_%s(property_reference, value);\n",key);
+        Printf(s_propset,"  }");
 
         ki=Next(ki);
       }
 
       if (scount) {
-	Printf(s_propset," else");
+        Printf(s_propset," else");
       }
 
       // If there is a base class then chain it's handler else set directly
@@ -1539,25 +1537,25 @@ public:
         Printf(s_propset,  "  {\n    /* chain to base class */\n");
         while(base.item) {
           Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
-		 GetChar(base.item, "sym:name"));
-	  
+                 GetChar(base.item, "sym:name"));
+          
           base=Next(base);
-	  while (base.item && Getattr(base.item,"feature:ignore")) {
-	    base=Next(base);
-	  }
-	}
+          while (base.item && Getattr(base.item,"feature:ignore")) {
+            base=Next(base);
+          }
+        }
         Printf(s_propset,"  }\n");
       }
       Printf(s_propset,"  return FAILURE;\n}\n\n");
 
       // ******** Write property GET handlers
       Printf(s_header,"static pval _wrap_propget_%s(zend_property_reference *property_reference);\n",
-	     shadow_classname);
+             shadow_classname);
       Printf(s_header,"static int _propget_%s(zend_property_reference *property_reference, pval *value);\n",
-	     shadow_classname);
+             shadow_classname);
 
       Printf(s_propget,"static pval _wrap_propget_%s(zend_property_reference *property_reference) {\n",
-	     shadow_classname);
+             shadow_classname);
       Printf(s_propget,"  pval result;\n");
       Printf(s_propget,"  pval **_result;\n");
       Printf(s_propget,"  zend_llist_element *element = property_reference->elements_list->head;\n");
@@ -1577,15 +1575,15 @@ public:
       Printf(s_propget,"  return result;\n");
       Printf(s_propget,"}\n");
       Printf(s_propget,"static int _propget_%s(zend_property_reference *property_reference, pval *value) {\n",
-	     shadow_classname);
+             shadow_classname);
 
       if (baselist) {
-	base=First(baselist); 
+        base=First(baselist); 
       } else {
-	base.item=NULL;
+        base.item=NULL;
       }
       while(base.item && Getattr(base.item,"feature:ignore")) {
-	base = Next(base);
+        base = Next(base);
       }
       ki = First(shadow_get_vars);
 
@@ -1595,9 +1593,9 @@ public:
       // are properties for this class to look up...
       if (key || !base.item ) { // or if we are base class...
         Printf(s_propget,"  /* get the property name */\n");
-	Printf(s_propget,"  zend_llist_element *element = property_reference->elements_list->head;\n");
-	Printf(s_propget,"  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n");
-	Printf(s_propget,"  char *propname=Z_STRVAL_P(&(property->element));\n");
+        Printf(s_propget,"  zend_llist_element *element = property_reference->elements_list->head;\n");
+        Printf(s_propget,"  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n");
+        Printf(s_propget,"  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
         if (base.item) {
           Printf(s_propget,"  /* No extra properties for subclass %s */\n",shadow_classname);
@@ -1608,20 +1606,20 @@ public:
 
       gcount=0;
       while (ki.key) {
-	key = ki.key;
+        key = ki.key;
         if (gcount++) {
-	  Printf(s_propget," else");
-	}
+          Printf(s_propget," else");
+        }
         Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n",Getattr(shadow_get_vars,key));
-	Printf(s_propget,"    *value=_wrap_%s(property_reference);\n",key);
-	Printf(s_propget,"    return SUCCESS;\n");
-	Printf(s_propget,"  }");
+        Printf(s_propget,"    *value=_wrap_%s(property_reference);\n",key);
+        Printf(s_propget,"    return SUCCESS;\n");
+        Printf(s_propget,"  }");
 
         ki=Next(ki);
       }
 
       if (gcount) {
-	Printf(s_propget," else");
+        Printf(s_propget," else");
       }
 
       // If there is a base class then chain it's handler else return null
@@ -1632,9 +1630,9 @@ public:
                GetChar(base.item, "sym:name"));
 
           base=Next(base);
-	  while (base.item && Getattr(base.item,"feature:ignore")) {
-	    base=Next(base);
-	  }
+          while (base.item && Getattr(base.item,"feature:ignore")) {
+            base=Next(base);
+          }
         }
         Printf(s_propget,"  }\n");
       }
@@ -1648,21 +1646,21 @@ public:
 
       // Save class in class table
       if (baselist) {
-	base=First(baselist);
+        base=First(baselist);
       }
       else {
-	base.item=NULL;
+        base.item=NULL;
       }
       while(base.item && Getattr(base.item,"feature:ignore")) {
-	base = Next(base);
+        base = Next(base);
       }
 
       if (base.item) {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
-	       shadow_classname,shadow_classname,GetChar(base.item, "sym:name"), shadow_classname);
+               shadow_classname,shadow_classname,GetChar(base.item, "sym:name"), shadow_classname);
       } else {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,NULL,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
-	       shadow_classname,shadow_classname, shadow_classname);
+               shadow_classname,shadow_classname, shadow_classname);
       }
       Printf(s_oinit,"\n");
 
@@ -1678,7 +1676,7 @@ public:
       Delete(shadow_get_vars); shadow_get_vars = NULL;
       Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
       
-      Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
+      Printf(all_cs_entry,"%s   { NULL, NULL, NULL}\n};\n",cs_entry);
       //??delete cs_entry;
       cs_entry=NULL;
     }
@@ -1738,8 +1736,8 @@ public:
      * that returns the current value of the variable. E.g.
      *
      * class Example {
-     * 	public:
-     * 		static int ncount;
+     *  public:
+     *          static int ncount;
      * };
      *
      * would be available in php as Example::ncount() 
@@ -1755,7 +1753,7 @@ public:
     if (assignable) {
       String *tm = Swig_typemap_lookup_new("globalin",n,name,0);
       if (!tm && SwigType_isarray(type)) {
-	assignable = 0;
+        assignable = 0;
       }
     }
 
@@ -1838,24 +1836,24 @@ public:
       case T_BOOL:
       case T_STRING:
       case T_VOID:
-	Printf(php_type, "");
-	break;
+        Printf(php_type, "");
+        break;
       case T_POINTER:
       case T_REFERENCE:
       case T_USER:
-	if(shadow_flag && is_shadow(t)) {
-	  Printf(php_type, Char(is_shadow(t)));
-	}
-	else {
-	  Printf(php_type, "");
-	}
-	break;
+        if(shadow_flag && is_shadow(t)) {
+          Printf(php_type, Char(is_shadow(t)));
+        }
+        else {
+          Printf(php_type, "");
+        }
+        break;
       case T_ARRAY:
-	/* TODO */
-	break;
+        /* TODO */
+        break;
       default:
-	Printf(stderr, "SwigToPhpType: unhandled data type: %s\n", SwigType_str(t,0));
-	break;
+        Printf(stderr, "SwigToPhpType: unhandled data type: %s\n", SwigType_str(t,0));
+        break;
       }
     }
   }
@@ -1892,7 +1890,7 @@ public:
 
       Printf(f->def, "ZEND_NAMED_FUNCTION(_wrap_new_%s) {\n", iname );
       Printf(f->def, "zend_error(E_ERROR,\"Cannot create swig object type: %s as the underlying object is abstract\");\n",
-	     iname);
+             iname);
       Printf(f->def, "}\n\n");
       Wrapper_print(f,s_wrappers);
       DelWrapper(f);
@@ -1908,7 +1906,7 @@ public:
 
     if (shadow) {
       native_constructor = (strcmp(iname, shadow_classname) == 0)?\
-	NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
+        NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
     }
     else {
       native_constructor=0;
@@ -1964,7 +1962,7 @@ public:
     Printf(df->code,"  efree(value);\n");
     Printf(df->code,"  if (! newobject) return; /* can't delete it! */\n");
     Printf(df->code,"  SWIG_ZTS_ConvertResourceData(ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n",
-	   SwigType_manglestr(pt));
+           SwigType_manglestr(pt));
     Printf(df->code,"  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
 
     emit_action(n,df);
