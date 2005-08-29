@@ -288,7 +288,7 @@ public:
     Printf(f_make, "CXX_SOURCES=%s\n", withcxx );
     Printf(f_make, "C_SOURCES=%s\n", withc );
     Printf(f_make, "OBJS=%s_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)\n", module );
-    Printf(f_make, "PROG=php_%s.so\n", module);
+    Printf(f_make, "PROG=%s\n", dlname);
     Printf(f_make, "CFLAGS=-fpic\n" );
     Printf(f_make, "LDFLAGS=-shared\n");
     Printf(f_make, "PHP_INC=`php-config --includes`\n");
@@ -559,9 +559,9 @@ public:
     /* Set the dlname */
     if (!dlname) {
 #if defined(_WIN32) || defined(__WIN32__)
-      dlname = NewStringf("%s.dll", module);
+      dlname = NewStringf("php_%s.dll", module);
 #else
-      dlname = NewStringf("%s.so", module);
+      dlname = NewStringf("php_%s.so", module);
 #endif
     }
     
@@ -585,7 +585,7 @@ public:
     Printf(f_phpcode,"$%s_LOADED__ = true;\n\n", cap_module);
     Printf(f_phpcode,"/* if our extension has not been loaded, do what we can */\n");
     Printf(f_phpcode,"if (!extension_loaded(\"php_%s\")) {\n", module);
-    Printf(f_phpcode,"	if (!dl(\"php_%s\")) return;\n", dlname);
+    Printf(f_phpcode,"	if (!dl(\"%s\")) return;\n", dlname);
     Printf(f_phpcode,"}\n\n");
     
     
