@@ -13,9 +13,23 @@
 %include "globalvar.i"	// Global variables.
 %include "const.i"
 
+// use %init %{ "/*code goes here*/ " %} 
+// or  %minit %{ "/* code goes here*/ " %} to
+// insert code in the PHP_MINIT_FUNCTION
+#define %minit %insert("init")
+
+// use %rinit %{ "/* code goes here*/ " %} to
+// insert code in the PHP_RINIT_FUNCTION
+#define %rinit %insert("rinit")
+
 // use %shutdown %{ " /*code goes here*/ " %} to
 // insert code in the PHP_MSHUTDOWN_FUNCTION
 #define %shutdown  %insert("shutdown")
+#define %mshutdown  %insert("shutdown")
+
+// use %rshutdown %{ " /*code goes here*/" %} to
+// insert code in the PHP_RSHUTDOWN_FUNCTION
+#define %rshutdown  %insert("rshutdown")
 
 /* Typemaps for input parameters by value */
 
