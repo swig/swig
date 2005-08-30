@@ -1858,7 +1858,6 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 
     cast_temp = NewString("");
     
-    Printf(f_forward,"#define SWIGTYPE%s swig_types[%d]\n", ki.item, i);
     Printv(types,"static swig_type_info _swigt_", ki.item, " = {", NIL);
     Append(table_list, ki.item);
     Printf(cast_temp, "static swig_cast_info _swigc_%s[] = {", ki.item);
@@ -1893,7 +1892,6 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       Delete(ckey);
 
       if (!Getattr(r_mangled, ei.item) && !Getattr(imported_types, ei.item)) {
-        Printf(f_forward, "#define SWIGTYPE%s swig_types[%i]\n", ei.item, i);
         Printf(types, "static swig_type_info _swigt_%s = {\"%s\", 0, 0, 0, 0};\n", ei.item, ei.item);
 	Append(table_list, ei.item);
 	
@@ -1912,7 +1910,9 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   }
   /* print the tables in the proper order */
   SortList(table_list, SwigType_compare_mangled);
+  i = 0;
   for (ki = First(table_list); ki.item; ki = Next(ki)) {
+    Printf(f_forward,"#define SWIGTYPE%s swig_types[%d]\n", ki.item, i++);
     Printf(table, "  &_swigt_%s,\n", ki.item);
     Printf(cast_init, "  _swigc_%s,\n", ki.item);
   }
