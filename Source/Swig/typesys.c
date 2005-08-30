@@ -1773,7 +1773,7 @@ void SwigType_inherit_equiv(File *out) {
 
 /* Helper function to sort the mangled list */
 static int SwigType_compare_mangled(const DOH *a, const DOH *b) {
-  return Cmp(a, b);
+  return strcmp(Data(a), Data(b));
 }
 
 /* -----------------------------------------------------------------------------
@@ -1801,6 +1801,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   String *types, *table, *cast, *cast_init, *cast_temp;
   Hash *imported_types;
   List *mangled_list;
+  List *table_list = NewList();
   int i = 0;
 
   if (!r_mangled) {
@@ -1859,9 +1860,8 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     
     Printf(f_forward,"#define SWIGTYPE%s swig_types[%d]\n", ki.item, i);
     Printv(types,"static swig_type_info _swigt_", ki.item, " = {", NIL);
-    Printf(table, "  &_swigt_%s,\n", ki.item);
+    Append(table_list, ki.item);
     Printf(cast_temp, "static swig_cast_info _swigc_%s[] = {", ki.item);
-    Printf(cast_init, "  _swigc_%s,\n", ki.item);
     i++;
     
     cd = SwigType_clientdata_collect(ki.item);
@@ -1895,10 +1895,10 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       if (!Getattr(r_mangled, ei.item) && !Getattr(imported_types, ei.item)) {
         Printf(f_forward, "#define SWIGTYPE%s swig_types[%i]\n", ei.item, i);
         Printf(types, "static swig_type_info _swigt_%s = {\"%s\", 0, 0, 0, 0};\n", ei.item, ei.item);
-        Printf(table, "  &_swigt_%s,\n", ei.item);
+	Append(table_list, ei.item);
+	
         Printf(cast, "static swig_cast_info _swigc_%s[] = {{&_swigt_%s, 0, 0, 0},{0, 0, 0, 0}};\n",
           ei.item, ei.item);
-        Printf(cast_init, "  _swigc_%s,\n", ei.item);
         i++;
 
         Setattr(imported_types, ei.item, "1");
@@ -1910,6 +1910,15 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     Delete(nt);
     Delete(rt);
   }
+  /* print the tables in the proper order */
+  SortList(table_list, SwigType_compare_mangled);
+  for (ki = First(table_list); ki.item; ki = Next(ki)) {
+    Printf(table, "  &_swigt_%s,\n", ki.item);
+    Printf(cast_init, "  _swigc_%s,\n", ki.item);
+  }
+
+  Delete(table_list);
+
   Delete(mangled_list);
 
   Printf(table, "};\n");
