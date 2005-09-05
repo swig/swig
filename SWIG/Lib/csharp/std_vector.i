@@ -67,11 +67,11 @@
     }
   }
 
-  public void CopyTo(Array array) {
+  public void CopyTo(System.Array array) {
     CopyTo(0, array, 0, this.Count);
   }
 
-  public void CopyTo(Array array, int arrayIndex) {
+  public void CopyTo(System.Array array, int arrayIndex) {
     CopyTo(0, array, arrayIndex, this.Count);
   }
 
