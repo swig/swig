@@ -29,6 +29,7 @@ int count(wchar_t *in, int n, wchar_t c) {
 	r++;
      }
      in++;
+     --n;
    }
    return r;
 }

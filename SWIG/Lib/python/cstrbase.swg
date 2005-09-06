@@ -36,7 +36,7 @@
   SWIG_AsCharPtrAndSize($input, &buf, &size);	               \
   if (SWIG_arg_fail($argnum)) SWIG_fail; 	               \
   $1 = ($1_ltype) buf;					       \
-  $2 = ($2_ltype) size;					       \
+  $2 = ($2_ltype) size - 1;				       \
 }								
 
 
