@@ -1,5 +1,9 @@
 from li_cstring import *
 
+
+if count("ab\0ab\0ab\0", 0) != 3:
+    raise RuntimeError    
+
 if test1() != "Hello World":
     raise RuntimeError
 

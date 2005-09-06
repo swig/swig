@@ -29,6 +29,7 @@ int count(char *in, int n, char c) {
 	r++;
      }
      in++;
+     --n;
    }
    return r;
 }
