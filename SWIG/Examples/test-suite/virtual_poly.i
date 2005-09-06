@@ -167,7 +167,7 @@ template<typename T> struct Base {
 
 template<typename T> struct Derived : Base<T> {
   int * method() const { return 0; }
-  int * foxy(int a) const {}
+  int * foxy(int a) const { return 0; }
   virtual int * foxy(int*& a) { return 0; }
   Double function() { return 0; }
   int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }

@@ -14,6 +14,6 @@ class A {
 
   enum MemberEnum { memberenum1=10, memberenum2 };
   virtual MemberEnum member_virtual_test(MemberEnum e) { return e; }
-  virtual GlobalEnum global_virtual_test(GlobalEnum e) { return e; }
+  virtual GlobalEnum global_virtual_test(GlobalEnum e) { return global_test(e); }
 }; 
 
