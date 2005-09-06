@@ -311,8 +311,8 @@
 %typemap(in, fragment=#SWIG_AsCharPtrAndSize) 
   (Char *STRING, int LENGTH) (Char *buf, size_t size)
 {
-  int res = SWIG_AsCharPtrAndSize($input, &buf, &size);
-  if (!res) {SWIG_arg_fail($argnum);SWIG_fail;}
+  SWIG_AsCharPtrAndSize($input, &buf, &size);
+  if (SWIG_arg_fail($argnum)) SWIG_fail;
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) size - 1;
 }
@@ -321,7 +321,8 @@
 %typemap(in,fragment=#SWIG_AsCharPtrAndSize)
   (Char *STRING, int SIZE) (Char *buf, size_t size)
 {
-  if (!SWIG_AsCharPtrAndSize($input, &buf, &size)) {SWIG_arg_fail($argnum);SWIG_fail;}
+  SWIG_AsCharPtrAndSize($input, &buf, &size);
+  if (SWIG_arg_fail($argnum)) SWIG_fail;
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) size;
 }

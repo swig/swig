@@ -25,6 +25,7 @@ CPP_TEST_CASES += \
 	inplaceadd \
 	kwargs \
 	li_cstring \
+	li_cwstring \
 	li_std_except \
 	li_std_vectora \
 	li_std_map \
@@ -41,6 +42,7 @@ CPP_TEST_CASES += \
 C_TEST_CASES += \
 	file_test \
 	li_cstring \
+	li_cwstring \
 	nondynamic
 
 #

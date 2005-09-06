@@ -39,24 +39,30 @@
 #endif
 #endif
 
-#if defined(__cplusplus) && defined(SWIG_CPLUSPLUS_CAST)
+#if defined(__cplusplus) 
+#define SWIG_new(Type...) (new Type)
+#define SWIG_new_copy(ptr,Type...) (new Type(*ptr))
 #define SWIG_new_array(size,Type...) (new Type[(size)])
 #define SWIG_delete(cptr) delete cptr
 #define SWIG_delete_array(cptr) delete[] cptr
-#define SWIG_const_cast(a,Type...) const_cast<Type >(a)
-#define SWIG_static_cast(a,Type...) static_cast<Type >(a)
-#define SWIG_reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
-#define SWIG_new_copy(ptr,Type...) (new Type(*ptr))
-#define SWIG_numeric_cast(a,Type...) static_cast<Type >(a)
 #else /* C case */
+#define SWIG_new(Type...)  ((Type*)malloc(sizeof(Type)))
+#define SWIG_new_copy(ptr,Type...)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 #define SWIG_new_array(size,Type...) ((Type*) malloc((size)*sizeof(Type)))
 #define SWIG_delete(cptr) free((char*)cptr)
 #define SWIG_delete_array(cptr) free((char*)cptr)
+#endif /* __cplusplus */
+
+#if defined(__cplusplus) && defined(SWIG_CPLUSPLUS_CAST)
+#define SWIG_const_cast(a,Type...) const_cast<Type >(a)
+#define SWIG_static_cast(a,Type...) static_cast<Type >(a)
+#define SWIG_reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
+#define SWIG_numeric_cast(a,Type...) static_cast<Type >(a)
+#else /* C case */
 #define SWIG_const_cast(a,Type...) (Type)(a)
 #define SWIG_static_cast(a,Type...) (Type)(a)
 #define SWIG_reinterpret_cast(a,Type...) (Type)(a)
 #define SWIG_numeric_cast(a,Type...) (Type)(a)
-#define SWIG_new_copy(ptr,Type...)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 #endif /* __cplusplus */
 
 

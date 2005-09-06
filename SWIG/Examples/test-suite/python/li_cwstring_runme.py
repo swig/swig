@@ -1,4 +1,4 @@
-from li_cstring import *
+from li_cwstring import *
 
 if test1() != "Hello World":
     raise RuntimeError
