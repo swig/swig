@@ -6,17 +6,18 @@
 
 %cstring_input_binary(char *in, int n);
 %cstring_bounded_output(char *out1, 512);
-%cstring_chunk_output(char *out2, 128);
+%cstring_chunk_output(char *out2, 64);
 %cstring_bounded_mutable(char *out3, 512);
 %cstring_mutable(char *out4, 32);
 %cstring_output_maxsize(char *out5, int max);
 %cstring_output_withsize(char *out6, int *size);
+
 #ifdef __cplusplus
-%cstring_output_allocate(char **out7, delete [] $1);
-%cstring_output_allocate_size(char **out8, int *size, delete [] $1);
+%cstring_output_allocate(char **out7, delete [] *$1);
+%cstring_output_allocate_size(char **out8, int *size, delete [] *$1);
 #else
-%cstring_output_allocate(char **out7, free($1));
-%cstring_output_allocate_size(char **out8, int *size, free($1));
+%cstring_output_allocate(char **out7, free(*$1));
+%cstring_output_allocate_size(char **out8, int *size, free(*$1));
 #endif
 
 %inline %{
@@ -38,8 +39,8 @@ void test1(char *out1) {
 
 void test2(char *out2) {
    int i;
-   for (i = 0; i < 128; i++) {
-       *out2 = (char) i;
+   for (i = 0; i < 64; i++) {
+       *out2 = (char) i + 32;
        out2++;
    }
 }
@@ -74,29 +75,23 @@ void test7(char **out7) {
 #else
    *out7 = malloc(64);
 #endif
+   (*out7)[0] = 0;
    strcat(*out7,"Hello world!");
 }
 
-void test8(char **out8, int *sz) {
+void test8(char **out8, int *size) {
    int i;
 #ifdef __cplusplus
-   *out8 = new char[128];
+   *out8 = new char[64];
 #else
-   *out8 = malloc(128);
+   *out8 = malloc(64);
 #endif
-   for (i = 0; i < 128; i++) {
-      *out8[i] = (char) i;
+   for (i = 0; i < 64; i++) {
+      (*out8)[i] = (char) i+32;
    }
+   *size = 64;
 }
 
 %}
 
 #endif
-  
-    
-
-
-
-
-      
-    
