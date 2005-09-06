@@ -29,15 +29,16 @@
  *
  */
 
-#define Name ## _input_binary(TYPEMAP, SIZE)                   \
-%typemap(in, fragment=#SWIG_AsCharPtrAndSize) (TYPEMAP, SIZE)  \
-  (Char *buf, size_t size)                                     \
-{							       \
-  SWIG_AsCharPtrAndSize($input, &buf, &size);	               \
-  if (SWIG_arg_fail($argnum)) SWIG_fail; 	               \
-  $1 = ($1_ltype) buf;					       \
-  $2 = ($2_ltype) size - 1;				       \
-}								
+%define Name ## _input_binary(TYPEMAP, SIZE)                   
+%typemap(in, fragment=#SWIG_AsCharPtrAndSize) (TYPEMAP, SIZE)  
+  (Char *buf, size_t size)                                     
+{							       
+  SWIG_AsCharPtrAndSize($input, &buf, &size);	               
+  if (SWIG_arg_fail($argnum)) SWIG_fail; 	               
+  $1 = ($1_ltype) buf;					       
+  $2 = ($2_ltype) size - 1;				       
+}
+%enddef								
 
 
 /*
@@ -53,13 +54,13 @@
  *
  */
 
-#define Name ## _bounded_output(TYPEMAP,MAX)        \
-%typemap(in,numinputs=0) TYPEMAP(Char temp[MAX+1])  \
-  "$1 = ($1_ltype) temp;";                          \
-                                                    \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr ) TYPEMAP \
+%define Name ## _bounded_output(TYPEMAP,MAX)        
+%typemap(in,numinputs=0) TYPEMAP(Char temp[MAX+1])  
+  "$1 = ($1_ltype) temp;";                          
+                                                    
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr ) TYPEMAP 
   "$1[MAX] = 0;  $result = t_output_helper($result, SWIG_FromCharPtr($1));";
-
+%enddef
 
 
 /*
@@ -75,12 +76,13 @@
  *
  */
 
-#define Name ## _chunk_output(TYPEMAP,SIZE)           \
-%typemap(in,numinputs=0) TYPEMAP(Char temp[SIZE])      \
-  "$1 = ($1_ltype) temp;";                             \
-                                                       \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray) TYPEMAP \
+%define Name ## _chunk_output(TYPEMAP,SIZE)           
+%typemap(in,numinputs=0) TYPEMAP(Char temp[SIZE])      
+  "$1 = ($1_ltype) temp;";                             
+                                                       
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray) TYPEMAP 
   "$result = t_output_helper($result, SWIG_FromCharArray($1,SIZE));";
+%enddef
 
 
 /*
@@ -99,19 +101,19 @@
  */
 
 
-#define Name ## _bounded_mutable(TYPEMAP,MAX)                              \
-%typemap(in,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP(Char temp[MAX+1]) {   \
-  Char *t = 0; size_t n;                                                   \
-  SWIG_AsCharPtrAndSize($input, &t, &n);                                   \
-  if (SWIG_arg_fail($argnum)) SWIG_fail;                                   \
-  if ( n > (size_t)MAX ) n = (size_t)MAX;                                  \
-  memcpy(temp, t, sizeof(Char)*n);                                         \
-  temp[n] = 0;                                                             \
-  $1 = ($1_ltype) temp;                                                    \
-}                                                                          \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP     \
+%define Name ## _bounded_mutable(TYPEMAP,MAX)                              
+%typemap(in,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP(Char temp[MAX+1]) {   
+  Char *t = 0; size_t n;                                                   
+  SWIG_AsCharPtrAndSize($input, &t, &n);                                   
+  if (SWIG_arg_fail($argnum)) SWIG_fail;                                   
+  if ( n > (size_t)MAX ) n = (size_t)MAX;                                  
+  memcpy(temp, t, sizeof(Char)*n);                                         
+  temp[n] = 0;                                                             
+  $1 = ($1_ltype) temp;                                                    
+}                                                                          
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP     
   "$1[MAX] = 0; $result = t_output_helper($result, SWIG_FromCharPtr($1));";
-
+%enddef
 
 
 /*
@@ -130,22 +132,26 @@
  *
  */
 
-#define Name ## _mutable(TYPEMAP,EXP...)                  \
-%typemap(in,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP {    \
-  const size_t expansion = strlen(#EXP) ? atoi(#EXP) : 0; \
-  Char* t = 0; size_t n = 0;                              \
-  SWIG_AsCharPtrAndSize($input, &t, &n);                  \
-  if (SWIG_arg_fail($argnum)) SWIG_fail;                  \
-  $1 = SWIG_new_array(n+1+expansion, $*1_ltype);          \
-  memcpy($1,t,sizeof(Char)*n);                            \
-  $1[n] = 0;                                              \
-}                                                         \
-                                                          \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP { \
-  $result = t_output_helper($result,SWIG_FromCharPtr($1));\
-  SWIG_delete_array($1);                                  \
+%define Name ## _mutable(TYPEMAP,EXP...)                  
+%typemap(in,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP {
+#if #EXP == ""
+  const size_t expansion = 1; 
+#else
+  const size_t expansion = 1 + EXP; 
+#endif
+  Char* t = 0; size_t n = 0;                              
+  SWIG_AsCharPtrAndSize($input, &t, &n);                  
+  if (SWIG_arg_fail($argnum)) SWIG_fail;                  
+  $1 = SWIG_new_array(n+expansion, $*1_ltype);          
+  memcpy($1,t,sizeof(Char)*n);                            
+  $1[n] = 0;                                              
+}                                                         
+                                                          
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP { 
+  $result = t_output_helper($result,SWIG_FromCharPtr($1));
+  SWIG_delete_array($1);                                  
 }
-
+%enddef
 
 /*
  * %cstring_output_maxsize(TYPEMAP, SIZE)
@@ -158,16 +164,17 @@
  *     }
  */
 
-#define Name ## _output_maxsize(TYPEMAP, SIZE)                       \
-%typemap(in,fragment=SWIG_As_frag(unsigned long)) (TYPEMAP, SIZE) {   \
-  $2 = ($2_ltype) SWIG_As(unsigned long)($input);                     \
-  if (SWIG_arg_fail($argnum)) SWIG_fail;                              \
-  $1 = SWIG_new_array($2+1, $*1_ltype);                                \
-}                                                                     \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) (TYPEMAP,SIZE) { \
-  $result = t_output_helper($result,SWIG_FromCharPtr($1));            \
-  SWIG_delete_array($1);                                              \
+%define Name ## _output_maxsize(TYPEMAP, SIZE)                       
+%typemap(in,fragment=SWIG_As_frag(unsigned long)) (TYPEMAP, SIZE) {   
+  $2 = ($2_ltype) SWIG_As(unsigned long)($input);                     
+  if (SWIG_arg_fail($argnum)) SWIG_fail;                              
+  $1 = SWIG_new_array($2+1, $*1_ltype);                                
+}                                                                     
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) (TYPEMAP,SIZE) { 
+  $result = t_output_helper($result,SWIG_FromCharPtr($1));            
+  SWIG_delete_array($1);                                              
 }
+%enddef
 
 
 
@@ -184,19 +191,20 @@
  *     }
  */
 
-#define Name ## _output_withsize(TYPEMAP, SIZE)                        \
-%typemap(in,fragment=SWIG_As_frag(unsigned long)) (TYPEMAP, SIZE) {    \
-  size_t n = SWIG_As(unsigned long)($input);                           \
-  if (SWIG_arg_fail($argnum)) SWIG_fail;                               \
-  $1 = SWIG_new_array(n+1, $*1_ltype);				       \
-  $2 = SWIG_new($*2_ltype);				               \
-  *$2 = n;							       \
-}								       \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray) (TYPEMAP,SIZE) { \
-  $result = t_output_helper($result, SWIG_FromCharArray($1,*$2));      \
-  SWIG_delete_array($1);					       \
-  SWIG_delete($2);						       \
+%define Name ## _output_withsize(TYPEMAP, SIZE)                        
+%typemap(in,fragment=SWIG_As_frag(unsigned long)) (TYPEMAP, SIZE) {    
+  size_t n = SWIG_As(unsigned long)($input);                           
+  if (SWIG_arg_fail($argnum)) SWIG_fail;                               
+  $1 = SWIG_new_array(n+1, $*1_ltype);				       
+  $2 = SWIG_new($*2_ltype);				               
+  *$2 = n;							       
+}								       
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray) (TYPEMAP,SIZE) { 
+  $result = t_output_helper($result, SWIG_FromCharArray($1,*$2));      
+  SWIG_delete_array($1);					       
+  SWIG_delete($2);						       
 }
+%enddef
 
  
 /*
@@ -212,16 +220,17 @@
  *     }
  */
  
-#define Name ## _output_allocate(TYPEMAP, RELEASE)           \
-%typemap(in,numinputs=0) TYPEMAP($*1_ltype temp = 0)         \
-  "$1 = &temp;";				  	     \
-						  	     \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP { \
-  if (*$1) {					  	     \
-    $result = t_output_helper($result,SWIG_FromCharPtr(*$1));\
-    RELEASE;					  	     \
-  }						  	     \
-}							     \
+%define Name ## _output_allocate(TYPEMAP, RELEASE)           
+%typemap(in,numinputs=0) TYPEMAP($*1_ltype temp = 0)         
+  "$1 = &temp;";				  	     
+						  	     
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharPtr) TYPEMAP { 
+  if (*$1) {					  	     
+    $result = t_output_helper($result,SWIG_FromCharPtr(*$1));
+    RELEASE;					  	     
+  }						  	     
+}							     
+%enddef
 
 
 /*
@@ -238,17 +247,17 @@
  *     }
  */
 
-#define Name ## _output_allocate_size(TYPEMAP, SIZE, RELEASE)                      \
-%typemap(in,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn)     \
-  "$1 = &temp; $2 = &tempn;";							   \
-										   \
-%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray)(TYPEMAP,SIZE) {   \
-  if (*$1) {									   \
-    $result = t_output_helper($result,SWIG_FromCharArray(*$1,*$2));                \
-    RELEASE;									   \
-  }										   \
-}										   \
-
+%define Name ## _output_allocate_size(TYPEMAP, SIZE, RELEASE)                      
+%typemap(in,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn)     
+  "$1 = &temp; $2 = &tempn;";							   
+										   
+%typemap(argout,fragment="t_output_helper," #SWIG_FromCharArray)(TYPEMAP,SIZE) {   
+  if (*$1) {									   
+    $result = t_output_helper($result,SWIG_FromCharArray(*$1,*$2));                
+    RELEASE;									   
+  }										   
+}										   
+%enddef
 
 %enddef
 

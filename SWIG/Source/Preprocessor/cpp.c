@@ -1072,6 +1072,7 @@ Preprocessor_parse(String *s)
   int    start_line = 0;
   int    allow = 1;
   int    level = 0;
+  int    dlevel = 0;
   int    mask = 0;
   int    start_level = 0;
   int    cpp_lines = 0;
@@ -1556,6 +1557,7 @@ Preprocessor_parse(String *s)
   	  state = 1;
   	} else if (Cmp(decl,"%define") == 0) {
   	  /* Got a define directive  */
+	  dlevel++;	  
   	  add_chunk(ns,chunk,allow);
   	  copy_location(s,chunk);
   	  Clear(value);
@@ -1574,27 +1576,39 @@ Preprocessor_parse(String *s)
     case 150:
       Putc(c,value);
       if (c == '%') {
+  	const char *ed = "enddef";
+  	const char *df = "define";
+	char statement[7];
   	int i = 0;
-  	char *d = "enddef";
-  	for (i = 0; i < 6; i++) {
+  	for (i = 0; i < 6; ) {
   	  c = Getc(s);
   	  Putc(c,value);
-  	  if (c != d[i]) break;
+	  statement[i++] = c;
+  	  if (strncmp(statement, ed, i) && strncmp(statement, df, i)) break;
   	}
 	c = Getc(s);
 	Ungetc(c,s);
   	if ((i == 6) && (isspace(c))) {
-  	  /* Got the macro  */
-  	  for (i = 0; i < 7; i++) {
-  	    Delitem(value,DOH_END);
-  	  }
-  	  if (allow) {
-  	    Seek(value,0,SEEK_SET);
-  	    Preprocessor_define(value,1);
-  	  }
-  	  Putc('\n',ns);
-  	  addline(ns,value,0);
-  	  state = 0;
+	  if (strncmp(statement, df, i) == 0) {
+	    ++dlevel;
+	  } else {
+	    if (strncmp(statement, ed, i) == 0) {
+	      --dlevel;
+	      if (!dlevel) {	
+		/* Got the macro  */
+		for (i = 0; i < 7; i++) {
+		  Delitem(value,DOH_END);
+		}
+		if (allow) {
+		  Seek(value,0,SEEK_SET);
+		  Preprocessor_define(value,1);
+		}
+		Putc('\n',ns);
+		addline(ns,value,0);
+		state = 0;
+	      }
+	    }
+	  }
   	}
       }
       break;
