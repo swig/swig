@@ -1,6 +1,24 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/06/2005: mmatus 
+
+	    Allow a %define a macro inside another %define macro, for example
+
+	      %define hello(name, Type)
+	      %define name ## a(Type)
+	      %typemap(in) Type "hello;";
+	      %enddef
+	      %enddef
+	      
+	    To learn how to use this new features in your own typemaps library, see
+	    python/cstring.i, python/cwstring.i and python/cwstrbase.i.	    
+
+            [Python] Normalize the cstring.i implementation to use fragments, and add
+            cwstring.i, which implements the same typemaps but for wchar_t strings.
+
+	    [Python] Bug fixed: 1247477, 1245591, 1249878 and others.
+
 08/18/2005: wsfulton
             [Ruby] Implement support for SWIGTYPE* DISOWN typemap (like in Python) for
             better control of memory management, eg when adding an object created in Ruby
