@@ -31,6 +31,14 @@ extern "C" {
 }
 #endif
 
+/* But in fact SWIG_ConvertPtr is the native interface for getting typed
+   pointer values out of zvals.  We need the TSRMLS_ macros for when we
+   make PHP type calls later as we handle php resources */
+#define SWIG_ConvertPtr(obj,pp,type,flags) SWIG_ZTS_ConvertPtr(obj,pp,type,flags TSRMLS_CC)
+
+/* Flags for SWIG_ConvertPtr */
+#define SWIG_POINTER_DISOWN  0x1
+
 #define SWIG_fail goto fail
 
 static char *default_error_msg = "Unknown error occurred";
@@ -83,55 +91,6 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
   }
 }
 
-/* This old-style routine converts an old string-pointer c into a real pointer
-   ptr calling making appropriate casting functions according to ty
-   We don't use this any more */
-static int
-SWIG_ConvertPtr_(char *c, void **ptr, swig_type_info *ty) {
-   register int d;
-   unsigned long p;
-   swig_cast_info *tc;
-
-   if(c == NULL) {
-   	*ptr = 0;
-	return 0;
-   }
-
-   p = 0;
-   if (*c != '_') {
-    *ptr = (void *) 0;
-    if (strcmp(c,"NULL") == 0) {
-	return 0;
-    } else {
-	goto type_error;
-    }
-  }
-
-    c++;
-    /* Extract hex value from pointer */
-    while ((d = *c)) {
-      if ((d >= '0') && (d <= '9'))
-        p = (p << 4) + (d - '0');
-      else if ((d >= 'a') && (d <= 'f'))
-        p = (p << 4) + (d - ('a'-10));
-      else
-        break;
-      c++;
-    }
-    *ptr = (void *) p;
-	
-    if(ty) {
-	tc = SWIG_TypeCheck(c,ty);
-	if(!tc) goto type_error;
-	*ptr = SWIG_TypeCast(tc, (void*)p);
-    }
-    return 0;
-
-type_error:
-
-    return -1;
-}
-
 /* This is a new pointer conversion routine
    Taking the native pointer p (which would have been converted from the old
    string pointer) and it's php type id, and it's type name (which also would
@@ -169,13 +128,16 @@ SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **p
    and type info from the resource in z.  z must be a resource
    It uses SWIG_ZTS_ConvertResourceData to do the real work. */
 static int
-SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
+SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC) {
   swig_object_wrapper *value;
   void *p;
   int type;
   char *type_name;
 
   value = (swig_object_wrapper *) zend_list_find(z->value.lval,&type);
+  if ( flags && SWIG_POINTER_DISOWN ) {
+    value->newobject = 0;
+  }
   p = value->ptr;
   if (type==-1) return -1;
 
@@ -184,16 +146,11 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
   return SWIG_ZTS_ConvertResourceData(p,type,type_name,ptr,ty TSRMLS_CC);
 }
 
-/* But in fact SWIG_ConvertPtr is the native interface for getting typed
-   pointer values out of zvals.  We need the TSRMLS_ macros for when we
-   make PHP type calls later as we handle php resources */
-#define SWIG_ConvertPtr(a,b,c) SWIG_ZTS_ConvertPtr(a,b,c TSRMLS_CC)
-
 /* We allow passing of a STRING or RESOURCE pointing to the object
    or an OBJECT whose _cPtr is a string or resource pointing to the object
    STRING pointers are very depracated */
 static int
-SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
+SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC) {
    char *c;
    zval *val;
    
@@ -208,14 +165,11 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
        /* Don't co-erce to string if it isn't */
        if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
        else if ((*_cPtr)->type==IS_RESOURCE) {
-         return SWIG_ZTS_ConvertResourcePtr(*_cPtr,ptr,ty TSRMLS_CC);
+         return SWIG_ZTS_ConvertResourcePtr(*_cPtr,ptr,ty, flags TSRMLS_CC);
        } else goto type_error; /* _cPtr was not string or resource property */
      } else goto type_error; /* can't find property _cPtr */
    } else if (z->type==IS_RESOURCE) {
-     return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty TSRMLS_CC);
-   } else if (z->type==IS_STRING) {
-     c = Z_STRVAL_P(z); 
-     return SWIG_ConvertPtr_(c,ptr,ty);
+     return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty, flags TSRMLS_CC);
    } else goto type_error;
 
 type_error:
