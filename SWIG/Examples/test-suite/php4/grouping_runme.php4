@@ -17,7 +17,6 @@ check::set(test3,38);
 check::equal(38,check::get(test3),'38==get(test3) after set(test)');
 
 check::equal(-5,negate(5),"-5==negate(5)");
-check::functionref(NEGATE,"_p_UnaryOp","NEGATE=_p_UnaryOp");
 check::equal(7,do_unary(-7,NEGATE),"7=do_unary(-7,NEGATE)");
 
 check::done();
