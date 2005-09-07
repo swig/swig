@@ -190,7 +190,7 @@
   $&1_ltype _temp;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
-  if (SWIG_ConvertPtr(*z_var, (void**)&_temp, $&1_descriptor) < 0) {
+  if (SWIG_ConvertPtr(*z_var, (void**)&_temp, $&1_descriptor, 0) < 0) {
     SWIG_PHP_Error(E_ERROR,"Type error in value of $symname. Expected $&1_descriptor");
   }
 
@@ -204,7 +204,7 @@
   $1_ltype _temp;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
-  if (SWIG_ConvertPtr(*z_var, (void **)&_temp, $1_descriptor) < 0) { 
+  if (SWIG_ConvertPtr(*z_var, (void **)&_temp, $1_descriptor, 0) < 0) { 
     SWIG_PHP_Error(E_ERROR,"Type error in value of $symname. Expected $&1_descriptor");
   }
 
