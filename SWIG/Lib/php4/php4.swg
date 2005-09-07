@@ -74,7 +74,7 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 {
-	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor, 0) < 0) {
           SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
 	}
 	$1 = *tmp;
@@ -85,9 +85,16 @@
              SWIGTYPE &
 {
         /* typemap(in) SWIGTYPE * */
-	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
             SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
 	}
+}
+%typemap(in) SWIGTYPE *DISOWN
+{
+  /* typemap(in) SWIGTYPE *DISOWN */
+  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+  }
 }
 %typemap(argout) SWIGTYPE *,
                  SWIGTYPE [],
@@ -95,7 +102,7 @@
 	
 %typemap(in) void *
 {
-	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0, 0) < 0) {
 	  /* Allow NULL from php for void* */
 	  if ((*$input)->type==IS_NULL) $1=0;
 	  else
@@ -110,7 +117,7 @@
 {
   /* If they pass NULL by reference, make it into a void*
      This bit should go in arginit if arginit support init-ing scripting args */
-  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
 #ifdef __cplusplus
@@ -248,7 +255,7 @@
 {
   /* typecheck SWIGTYPE * */
   void *tmp;
-  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor) < 0)? 0:1;
+  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) < 0)? 0:1;
 }
 	
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
