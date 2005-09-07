@@ -147,7 +147,7 @@ int_typemap(unsigned char);
 {
   /* If they pass NULL by reference, make it into a void*
      This bit should go in arginit if arginit support init-ing scripting args */
-  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
 #ifdef __cplusplus
