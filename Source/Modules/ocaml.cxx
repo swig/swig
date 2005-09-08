@@ -233,7 +233,7 @@ public:
     
 	f_runtime = NewFile(outfile,"w");
 	if (!f_runtime) {
-	    Printf(stderr,"*** Can't open '%s'\n", outfile);
+	    FileErrorDisplay(outfile);
 	    SWIG_exit(EXIT_FAILURE);
 	}
 	f_init = NewString("");
@@ -320,12 +320,12 @@ public:
     
 	String *mlfilen = NewStringf("%s%s", SWIG_output_directory(),mlfile);
 	if ((f_mlout = NewFile(mlfilen,"w")) == 0) {
-	    Printf(stderr,"Unable to open %s\n", mlfilen);
+	    FileErrorDisplay(mlfilen);
 	    SWIG_exit (EXIT_FAILURE);
 	}
 	String *mlifilen = NewStringf("%s%s", SWIG_output_directory(),mlifile);
 	if ((f_mliout = NewFile(mlifilen,"w")) == 0) {
-	    Printf(stderr,"Unable to open %s\n", mlifilen);
+	    FileErrorDisplay(mlifilen);
 	    SWIG_exit (EXIT_FAILURE);
 	}
     

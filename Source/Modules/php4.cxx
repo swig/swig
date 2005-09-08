@@ -334,7 +334,7 @@ public:
     /* Write out Makefile.in */
     f_extra = NewFile(makefilein, "w");
     if (!f_extra) {
-      Printf(stderr,"Unable to open %s\n",makefilein);
+      FileErrorDisplay(makefilein);
       SWIG_exit(EXIT_FAILURE);
     }
     
@@ -385,7 +385,7 @@ public:
     // the php folk!
     f_extra = NewFile(configm4, "w");
     if (!f_extra) {
-      Printf(stderr, "Unable to open %s\n",configm4);
+      FileErrorDisplay(configm4);
       SWIG_exit(EXIT_FAILURE);
     }
     
@@ -504,7 +504,7 @@ public:
     /*  CREDITS */
     f_extra = NewFile(credits, "w");
     if (!f_extra) {
-      Printf(stderr,"Unable to open %s\n",credits);
+      FileErrorDisplay(credits);
       SWIG_exit(EXIT_FAILURE);
     }
     Printf(f_extra, "%s\n", module);
@@ -526,7 +526,7 @@ public:
     /* main output file */
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     
@@ -576,7 +576,7 @@ public:
     
     f_phpcode = NewFile(filen, "w");
     if (!f_phpcode) {
-      Printf(stderr, "*** Can't open '%s'\n", filen);
+      FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     }
     
@@ -650,7 +650,7 @@ public:
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
     f_h = NewFile(filen, "w");
     if (!f_h) {
-      Printf(stderr,"Unable to open %s\n", filen);
+      FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     }
     

@@ -283,14 +283,14 @@ class JAVA : public Language {
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"Unable to open %s\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       f_runtime_h = NewFile(outfile_h,"w");
       if (!f_runtime_h) {
-        Printf(stderr,"Unable to open %s\n", outfile_h);
+        FileErrorDisplay(outfile_h);
         SWIG_exit(EXIT_FAILURE);
       }
     }
@@ -404,7 +404,7 @@ class JAVA : public Language {
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), imclass_name);
       File *f_im = NewFile(filen,"w");
       if(!f_im) {
-        Printf(stderr,"Unable to open %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -455,7 +455,7 @@ class JAVA : public Language {
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
-        Printf(stderr,"Unable to open %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -502,7 +502,7 @@ class JAVA : public Language {
       String *filen = NewStringf("%s%sConstants.java", SWIG_output_directory(), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
-        Printf(stderr,"Unable to open %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -1133,7 +1133,7 @@ class JAVA : public Language {
           String *filen = NewStringf("%s%s.java", SWIG_output_directory(), symname);
           File *f_enum = NewFile(filen,"w");
           if(!f_enum) {
-            Printf(stderr,"Unable to open %s\n", filen);
+            FileErrorDisplay(filen);
             SWIG_exit(EXIT_FAILURE);
           } 
           Delete(filen); filen = NULL;
@@ -1672,7 +1672,7 @@ class JAVA : public Language {
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), proxy_class_name);
       f_proxy = NewFile(filen,"w");
       if(!f_proxy) {
-        Printf(stderr, "Unable to create proxy class file: %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -2510,7 +2510,7 @@ class JAVA : public Language {
     String *filen = NewStringf("%s%s.java", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen,"w");
     if(!f_swigtype) {
-      Printf(stderr,"Unable to open %s\n", filen);
+      FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     } 
     Delete(filen); filen = NULL;

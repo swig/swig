@@ -184,7 +184,7 @@ public:
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");
@@ -245,7 +245,7 @@ public:
       }
       String *filen = NewStringf("%s%s", SWIG_output_directory(),pmfile);
       if ((f_pm = NewFile(filen,"w")) == 0) {
-	Printf(stderr,"Unable to open %s\n", filen);
+	FileErrorDisplay(filen);
 	SWIG_exit (EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;

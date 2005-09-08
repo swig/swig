@@ -207,7 +207,7 @@ CHICKEN::top(Node *n)
     
   f_runtime = NewFile(outfile,"w");
   if (!f_runtime) {
-    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
   f_init = NewString("");
@@ -268,7 +268,7 @@ CHICKEN::top(Node *n)
 
   Printf(chicken_filename,"%s%s.scm", SWIG_output_directory(), module);
   if ((f_scm = NewFile(chicken_filename,"w")) == 0) {
-    Printf(stderr,"Unable to open %s\n", chicken_filename);
+    FileErrorDisplay(chicken_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 

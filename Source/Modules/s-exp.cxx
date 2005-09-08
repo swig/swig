@@ -66,7 +66,7 @@ public:
 	out = NewFile(outfile,"w");
 	if (!out) 
 	  {
-	    Printf(stderr,"*** Can't open '%s'\n", outfile);
+	    FileErrorDisplay(outfile);
 	    SWIG_exit(EXIT_FAILURE);
 	  }
       }

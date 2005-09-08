@@ -136,7 +136,7 @@ public:
     
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");
@@ -175,7 +175,7 @@ public:
       Insert( module,0,"_" );
 
       if ((f_shadow = NewFile(filen,"w")) == 0) {
-	Printf(stderr,"Unable to open %s\n", filen);
+	FileErrorDisplay(filen);
 	SWIG_exit (EXIT_FAILURE);
       }
       f_shadow_stubs = NewString("");

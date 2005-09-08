@@ -575,8 +575,8 @@ MODULA3 ():
   File *openWriteFile (String * name)
   {
     File *file = NewFile (name, "w");
-    if (file == NIL) {
-      Printf (stderr, "Unable to open <%s> for writing.\n", name);
+    if (!file) {
+      FileErrorDisplay (name);
       SWIG_exit (EXIT_FAILURE);
     }
     Delete (name);
@@ -967,7 +967,7 @@ MODULA3 ():
 
     f_runtime = NewFile (outfile, "w");
     if (!f_runtime) {
-      Printf (stderr, "Unable to open %s\n", outfile);
+      FileErrorDisplay (outfile);
       SWIG_exit (EXIT_FAILURE);
     }
     f_init = NewString ("");
@@ -2575,7 +2575,7 @@ MODULA3 ():
         NewStringf ("%s%s.m3", Swig_file_dirname (outfile), proxy_class_name);
       f_proxy = NewFile (filen, "w");
       if (!f_proxy) {
-        Printf (stderr, "Unable to create proxy class file: %s\n", filen);
+        FileErrorDisplay (filen);
         SWIG_exit (EXIT_FAILURE);
       }
       Delete (filen);
@@ -4012,6 +4012,10 @@ MODULA3 ():
     String *filen =
       NewStringf ("%s%s.m3", Swig_file_dirname (outfile), classname);
     File *f_swigtype = NewFile (filen, "w");
+    if (!f_swigtype) {
+      FileErrorDisplay(filen);
+      SWIG_exit(EXIT_FAILURE);
+    }
     String *swigtype = NewString ("");
 
     // Emit banner name

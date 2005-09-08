@@ -179,7 +179,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Open the output file */
     f_runtime = NewFile(outfile, "w");
     if (!f_runtime) {
-      Printf(stderr, "*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");

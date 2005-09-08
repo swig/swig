@@ -93,6 +93,7 @@
 #define DohNewFile         DOH_NAMESPACE(NewFile)
 #define DohNewFileFromFile DOH_NAMESPACE(NewFileFromFile)
 #define DohNewFileFromFd   DOH_NAMESPACE(NewFileFromFd)
+#define DohFileErrorDisplay   DOH_NAMESPACE(FileErrorDisplay)
 #define DohClose           DOH_NAMESPACE(Close)
 #define DohCopyto          DOH_NAMESPACE(Copyto)
 #define DohNewList         DOH_NAMESPACE(NewList)
@@ -283,6 +284,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 extern DOHFile *DohNewFile(DOH *file, const char *mode);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
+extern void     DohFileErrorDisplay(DOHString *filename);
 extern int      DohClose(DOH *file);
 extern int      DohCopyto(DOHFile *input, DOHFile *output);
 
@@ -372,6 +374,7 @@ extern void      DohMemoryDebug(void);
 #define NewFile            DohNewFile
 #define NewFileFromFile    DohNewFileFromFile
 #define NewFileFromFd      DohNewFileFromFd
+#define FileErrorDisplay   DohFileErrorDisplay
 #define Close              DohClose
 #define NewVoid            DohNewVoid
 #define Keys               DohKeys

@@ -233,7 +233,7 @@ int UFFI :: top(Node *n) {
 
   f_null=NewFile(devnull, "w+");
   if (!f_null) {
-	  perror("Failed to open /dev/null");
+	  FileErrorDisplay(devnull);
 	  SWIG_exit(EXIT_FAILURE);
   }
   Delete(devnull);
@@ -244,7 +244,7 @@ int UFFI :: top(Node *n) {
 
   f_cl=NewFile(output_filename, "w");
   if (!f_cl) {
-    Printf(stderr, "Unable to open %s for writing\n", output_filename);
+    FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
