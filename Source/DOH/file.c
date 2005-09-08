@@ -296,7 +296,7 @@ DohNewFileFromFd(int fd)
 /* -----------------------------------------------------------------------------
  * FileErrorDisplay()
  *
- * Display cause of one the NewFile functions failing.
+ * Display cause of one of the NewFile functions failing.
  * ----------------------------------------------------------------------------- */
 
 void
