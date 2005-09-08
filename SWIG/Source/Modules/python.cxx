@@ -232,7 +232,7 @@ public:
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     
@@ -240,7 +240,7 @@ public:
       if (!no_header_file) {
 	f_runtime_h = NewFile(outfile_h,"w");
 	if (!f_runtime_h) {
-	  Printf(stderr,"*** Can't open '%s'\n", outfile_h);
+	  FileErrorDisplay(outfile_h);
 	  SWIG_exit(EXIT_FAILURE);
 	}
       } else {
@@ -305,7 +305,7 @@ public:
       if (interface) module = interface;
       else Insert(module,0,"_");
       if ((f_shadow_py = NewFile(filen,"w")) == 0) {
-	Printf(stderr,"Unable to open %s\n", filen);
+	FileErrorDisplay(filen);
 	SWIG_exit (EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;

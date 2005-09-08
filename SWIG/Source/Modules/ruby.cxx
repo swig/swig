@@ -373,14 +373,14 @@ public:
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       f_runtime_h = NewFile(outfile_h,"w");
       if (!f_runtime_h) {
-        Printf(stderr,"*** Can't open '%s'\n", outfile_h);
+        FileErrorDisplay(outfile_h);
         SWIG_exit(EXIT_FAILURE);
       }
     }

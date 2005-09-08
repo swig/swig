@@ -200,6 +200,10 @@ public:
 	else if (strcmp (argv[i], "-procdoc") == 0) {
 	  if (argv[i + 1]) {
 	    procdoc = NewFile(argv[i + 1], (char *) "w");
+	    if (!procdoc) {
+	      FileErrorDisplay(argv[i + 1]);
+	      SWIG_exit(EXIT_FAILURE);
+	    }
 	    Swig_mark_arg (i);
 	    Swig_mark_arg (i + 1);
 	    i++;
@@ -338,7 +342,7 @@ public:
     
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");
@@ -543,7 +547,7 @@ public:
       Delete(primitive_name);
       File *scmstubfile = NewFile(fname, (char *) "w");
       if (!scmstubfile) {
-	Printf(stderr,"*** Can't open '%s' for writing\n", fname);
+	FileErrorDisplay(fname);
 	SWIG_exit(EXIT_FAILURE);
       }	
       Delete(fname);
@@ -575,7 +579,7 @@ public:
 				 module_name);
       File *goopsfile = NewFile(fname, (char *)"w");
       if (!goopsfile) {
-	Printf(stderr,"*** Can't open '%s' for writing\n", fname);
+	FileErrorDisplay(fname);
 	SWIG_exit(EXIT_FAILURE);
       }	
       Delete(fname);

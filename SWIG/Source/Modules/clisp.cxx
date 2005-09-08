@@ -86,7 +86,7 @@ int CLISP :: top(Node *n) {
 
   f_cl=NewFile(output_filename, "w+");
   if (!f_cl) {
-    Printf(stderr, "Unable to open %s for writing\n", output_filename);
+    FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 

@@ -65,7 +65,7 @@ public:
 				out = NewFile(outfile,"w");
 				if (!out)
 				{
-					Printf(stderr,"*** Can't open '%s'\n", outfile);
+					FileErrorDisplay(outfile);
 					SWIG_exit(EXIT_FAILURE);
 				}
 				continue;
@@ -106,7 +106,7 @@ public:
 			out = NewFile(outfile,"w");
 			if (!out)
 			{
-				Printf(stderr,"*** Can't open '%s'\n", outfile);
+				FileErrorDisplay(outfile);
 				SWIG_exit(EXIT_FAILURE);
 			}
 		}
@@ -367,7 +367,7 @@ void Swig_print_xml(DOH *obj, String* filename)
     else {
         out = NewFile(filename, "w");
         if (!out) {
-            Printf(stderr,"*** Can't open '%s'\n", filename);
+            FileErrorDisplay(filename);
             SWIG_exit(EXIT_FAILURE);
         }
     }

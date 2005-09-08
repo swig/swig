@@ -290,7 +290,7 @@ static void SWIG_dump_runtime() {
 
   runtime = NewFile(outfile, "w");
   if (!runtime) {
-    Printf(stderr, "*** Unable to open '%s'\n", outfile);
+    FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
 
@@ -841,11 +841,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  outfile = NewString(outfile_name);
 	}
-	if (dependencies_file && Len(dependencies_file) != 0)
+	if (dependencies_file && Len(dependencies_file) != 0) {
 	  f_dependencies_file = NewFile(dependencies_file,"w");
-	else if (!depend_only) {
+	  if (!f_dependencies_file) {
+	    FileErrorDisplay(dependencies_file);
+	    SWIG_exit(EXIT_FAILURE);
+	  }
+	} else if (!depend_only) {
 	  String *filename = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), depends_extension);
 	  f_dependencies_file = NewFile(filename,"w");
+	  if (!f_dependencies_file) {
+	    FileErrorDisplay(filename);
+	    SWIG_exit(EXIT_FAILURE);
+	  }
 	} 
 	else
 	  f_dependencies_file = stdout;

@@ -210,7 +210,7 @@ class CSHARP : public Language {
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
-      Printf(stderr,"Unable to open %s\n", outfile);
+      FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");
@@ -280,7 +280,7 @@ class CSHARP : public Language {
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), imclass_name);
       File *f_im = NewFile(filen,"w");
       if(!f_im) {
-        Printf(stderr,"Unable to open %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -321,7 +321,7 @@ class CSHARP : public Language {
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
-        Printf(stderr,"Unable to open %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -922,7 +922,7 @@ class CSHARP : public Language {
           String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
           File *f_enum = NewFile(filen,"w");
           if(!f_enum) {
-            Printf(stderr,"Unable to open %s\n", filen);
+            FileErrorDisplay(filen);
             SWIG_exit(EXIT_FAILURE);
           } 
           Delete(filen); filen = NULL;
@@ -1412,7 +1412,7 @@ class CSHARP : public Language {
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), proxy_class_name);
       f_proxy = NewFile(filen,"w");
       if(!f_proxy) {
-        Printf(stderr, "Unable to create proxy class file: %s\n", filen);
+        FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -2359,7 +2359,7 @@ class CSHARP : public Language {
     String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen,"w");
     if(!f_swigtype) {
-      Printf(stderr,"Unable to open %s\n", filen);
+      FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     } 
     Delete(filen); filen = NULL;

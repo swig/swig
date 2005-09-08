@@ -17,6 +17,7 @@ char cvsroot_file_c[] = "$Header$";
 #ifdef DOH_INTFILE
 #include <unistd.h>
 #endif
+#include <errno.h>
 
 typedef struct {
   FILE     *filep;       
@@ -291,3 +292,16 @@ DohNewFileFromFd(int fd)
   f->closeondel = 0;
   return DohObjMalloc(&DohFileType,f);
 }
+
+/* -----------------------------------------------------------------------------
+ * FileErrorDisplay()
+ *
+ * Display cause of one the NewFile functions failing.
+ * ----------------------------------------------------------------------------- */
+
+void
+DohFileErrorDisplay(DOHString *filename)
+{
+  Printf(stderr, "Unable to open file %s: %s\n", filename, strerror(errno));
+}
+
