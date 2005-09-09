@@ -35,6 +35,13 @@ struct A
   { return get(n); }
 
   std::vector<std::string> m_strings;
+
+
+  virtual void process_text(const char *text) 
+  {
+  }
+
+  void call_process_func() { process_text("hello"); }
  };
  
  %}
