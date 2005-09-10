@@ -1,6 +1,12 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/11/2005: wsfulton
+            When wrapping variables, ensure that none of the typemaps used for the
+            set wrappers are used when generating the get wrappers. I doubt this was a
+            problem for any languages except for the recently introduced null attribute
+            in the out typemap (C# only).
+
 09/08/2005: wsfulton
             More descriptive error messages when files fail to open.
 
