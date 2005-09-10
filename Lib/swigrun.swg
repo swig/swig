@@ -224,16 +224,18 @@ SWIG_TypePrettyName(const swig_type_info *type) {
 */
 SWIGRUNTIME void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
-  if (!ti->clientdata) {
-    swig_cast_info *cast = ti->cast;
-    /* if (ti->clientdata == clientdata) return; */
-    ti->clientdata = clientdata;
-    
-    while (cast) {
-      if (!cast->converter)
-	SWIG_TypeClientData(cast->type, clientdata);
-      cast = cast->next;
-    }
+  swig_cast_info *cast = ti->cast;
+  /* if (ti->clientdata == clientdata) return; */
+  ti->clientdata = clientdata;
+  
+  while (cast) {
+    if (!cast->converter) {
+      swig_type_info *tc = cast->type;
+      if (!tc->clientdata) {
+	SWIG_TypeClientData(tc, clientdata);
+      }
+    }    
+    cast = cast->next;
   }
 }
 
