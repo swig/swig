@@ -167,22 +167,22 @@ phased out in future releases.
   Apply the INPUT/OUTPUT typemaps to all the C types (int, double, ...) if
   not already defined.
 */
-%define %typemap_inout(Code,AsMeth, CheckMeth, FromMeth, AsFrag, CheckFrag, FromFrag, ...)
+%define %typemap_inout(Code,AsMeth, CheckMeth, FromMeth, AsFrag, CheckFrag, FromFrag, Type...)
   _PYVAL_INPUT_TYPEMAP(SWIG_arg(Code), SWIG_arg(AsMeth), SWIG_arg(CheckMeth),
-		       SWIG_arg(AsFrag), SWIG_arg(CheckFrag), SWIG_arg(__VA_ARGS__));
-  _PYVAL_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), SWIG_arg(__VA_ARGS__));
-  _PYVAL_INOUT_TYPEMAP(SWIG_arg(__VA_ARGS__));
+		       SWIG_arg(AsFrag), SWIG_arg(CheckFrag), SWIG_arg(Type));
+  _PYVAL_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), SWIG_arg(Type));
+  _PYVAL_INOUT_TYPEMAP(SWIG_arg(Type));
 %enddef
 
-%define %typemap_inoutn(Code,...)
+%define %typemap_inoutn(Code,Type...)
   %typemap_inout(SWIG_arg(Code),
-		 SWIG_arg(SWIG_As(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_Check(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_From(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
-		 SWIG_arg(__VA_ARGS__));
+		 SWIG_arg(SWIG_As(Type)), 
+		 SWIG_arg(SWIG_Check(Type)), 
+		 SWIG_arg(SWIG_From(Type)), 
+		 SWIG_arg(SWIG_As_frag(Type)), 
+		 SWIG_arg(SWIG_Check_frag(Type)), 
+		 SWIG_arg(SWIG_From_frag(Type)), 
+		 SWIG_arg(Type));
 %enddef
 
 %apply_checkctypes(%typemap_inoutn)
