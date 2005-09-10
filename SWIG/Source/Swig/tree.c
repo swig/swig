@@ -44,12 +44,6 @@ Swig_print_tags(DOH *obj, DOH *root) {
     Delete(croot);
 }
 
-/* -----------------------------------------------------------------------------
- * Swig_print_tree()
- *
- * Dump the tree structure of a parse tree to standard output
- * ----------------------------------------------------------------------------- */
-
 static int indent_level = 0;
 
 static void print_indent(int l) {
@@ -113,6 +107,12 @@ Swig_print_node(Node *obj) {
     Printf(stdout,"\n");
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_print_tree()
+ *
+ * Dump the tree structure of a parse tree to standard output
+ * ----------------------------------------------------------------------------- */
 
 void 
 Swig_print_tree(DOH *obj) {
@@ -216,6 +216,10 @@ Swig_tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * checkAttribute()
+ * ----------------------------------------------------------------------------- */
+
 int
 checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
   String *v;
@@ -227,6 +231,16 @@ checkAttribute(Node *n, const String_or_char *name, const String_or_char *value)
 
 /* -----------------------------------------------------------------------------
  * Swig_require()
+ * ns   - namespace for the view name for saving any attributes under
+ * n    - node
+ * ...  - list of attribute names of type char*
+ * This method checks that the attribute names exist in the node n and asserts if
+ * not. Assert will only occur unless the attribute is optional. An attribute is
+ * optional if it is prefixed by ?, eg "?value". If the attribute name is prefixed
+ * by * or ?, eg "*value" then a copy of the attribute is saved. The saved
+ * attributes will be restored on a subsequent call to Swig_restore(). All the 
+ * saved attributes are saved in the view namespace (prefixed by ns).
+ * This function can be called more than once with different namespaces.
  * ----------------------------------------------------------------------------- */
 
 int 
@@ -286,6 +300,12 @@ Swig_require(const char *ns, Node *n, ...) {
 }
 
 
+/* -----------------------------------------------------------------------------
+ * Swig_save()
+ * Same as Swig_require(), but all attribute names are optional and all attributes
+ * are saved, ie behaves as if all the attribute names were prefixed by ?.
+ * ----------------------------------------------------------------------------- */
+
 int 
 Swig_save(const char *ns, Node *n, ...) {
   va_list ap;
@@ -302,9 +322,9 @@ Swig_save(const char *ns, Node *n, ...) {
       name++;
     }
     obj = Getattr(n,name);
-    if (!obj) {
-      obj = DohNone;
-    }
+    if (!obj) obj = DohNone;
+
+    /* Save a copy of the attribute */
     strcpy(temp,ns);
     strcat(temp,":");
     strcat(temp,name);
@@ -332,6 +352,11 @@ Swig_save(const char *ns, Node *n, ...) {
 
   return 1;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_restore()
+ * Restores attributes saved by a previous call to Swig_require() or Swig_save().
+ * ----------------------------------------------------------------------------- */
 
 void 
 Swig_restore(Node *n) {
