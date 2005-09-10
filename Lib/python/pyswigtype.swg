@@ -84,7 +84,7 @@
 {
   $&ltype resultptr;
   resultptr = ($&ltype) malloc(sizeof($type));
-  if (resultptr) memmove(resultptr, &$1, sizeof($type));
+  if (resultptr) memcpy(resultptr, &$1, sizeof($type));
   $result = SWIG_NewPointerObj((void *)(resultptr), $&descriptor, 1);
 }
 #endif
