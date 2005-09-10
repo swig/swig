@@ -1222,7 +1222,7 @@ Language::membervariableHandler(Node *n) {
     }
 
     if (assignable) {
-      int       make_wrapper = 1;
+      int       make_set_wrapper = 1;
       String *tm = 0;
       String *target = 0;
       if (!Extend) {
@@ -1249,7 +1249,7 @@ Language::membervariableHandler(Node *n) {
 	  if (SwigType_isarray(type)) {
 	    Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
 		     "Unable to set variable of type %s.\n", SwigType_str(type,0));
-	    make_wrapper = 0;
+	    make_set_wrapper = 0;
 	  }
 	}  else {
 	  Replace(tm,"$source", Swig_cparm_name(0,1), DOH_REPLACE_ANY);
@@ -1261,7 +1261,7 @@ Language::membervariableHandler(Node *n) {
 	}
 	Delete(target);
       }
-      if (make_wrapper) {
+      if (make_set_wrapper) {
 	Setattr(n,"sym:name", mrename_set);
 	functionWrapper(n);
       } else {
@@ -1271,6 +1271,13 @@ Language::membervariableHandler(Node *n) {
       Setattr(n,"type",type);
       Setattr(n,"name",name);
       Setattr(n,"sym:name",symname);
+
+      /* Delete all attached typemaps and typemap attributes */
+      Iterator ki;
+      for (ki = First(n); ki.key; ki = Next(ki)) {
+	if (Strncmp(ki.key, "tmap:", 5) == 0)
+	  Delattr(n, ki.key);
+      }
     }
     /* Emit get function */
     {
@@ -2421,7 +2428,7 @@ int Language::variableWrapper(Node *n) {
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
   if (assignable) {
-    int make_wrapper = 1;
+    int make_set_wrapper = 1;
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n);
@@ -2434,7 +2441,7 @@ int Language::variableWrapper(Node *n) {
       if (SwigType_isarray(type)) {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
 		     "Unable to set variable of type %s.\n", SwigType_str(type,0));
-	make_wrapper = 0;
+	make_set_wrapper = 0;
       }
     }  else {
       Replace(tm,"$source", Swig_cparm_name(0,0), DOH_REPLACE_ANY);
@@ -2443,12 +2450,20 @@ int Language::variableWrapper(Node *n) {
       Setattr(n,"wrap:action", tm);
       Delete(tm);
     }
-    if (make_wrapper) {
+    if (make_set_wrapper) {
       functionWrapper(n);
     }
+    /* Restore parameters */
     Setattr(n,"sym:name",symname);
     Setattr(n,"type",type);
     Setattr(n,"name",name);
+
+    /* Delete all attached typemaps and typemap attributes */
+    Iterator ki;
+    for (ki = First(n); ki.key; ki = Next(ki)) {
+      if (Strncmp(ki.key, "tmap:", 5) == 0)
+	Delattr(n, ki.key);
+    }
   }
   Swig_VargetToFunction(n);
   Setattr(n,"sym:name", Swig_name_get(symname));
