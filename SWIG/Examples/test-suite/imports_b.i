@@ -12,6 +12,6 @@
 #include "imports_b.h" 
 %} 
 
-%import "imports_a.i" 
+%import(module="imports_a") "imports_a.i" 
 
 %include "imports_b.h"  
