@@ -5,7 +5,7 @@
 /* in */
 
 %typemap(in) void *
-        "SWIG_ConvertPtr($input, (void **) &$1, 0, 1);";
+        "SWIG_ConvertPtr($input, (void **) &$1, 0, SWIG_POINTER_EXCEPTION|$disown);";
 
 /* out */
 
