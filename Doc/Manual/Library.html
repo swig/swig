@@ -29,6 +29,7 @@
 <ul>
 <li><a href="#Library_nn14">std_string.i</a>
 <li><a href="#Library_nn15">std_vector.i</a>
+<li><a href="#Library_stl_exceptions">STL exceptions</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -1623,7 +1624,9 @@ details and the public API exposed to the interpreter vary.
 </p>
 
 
-<H3><a name="Library_stl_exceptions"></a>STL exceptions</H3>
+<H3><a name="Library_stl_exceptions"></a>8.4.3 STL exceptions</H3>
+
+
 <p>
 Many of the STL wrapper functions add parameter checking and will throw a language dependent error/exception
 should the values not be valid. The classic example is array bounds checking.
@@ -1640,7 +1643,7 @@ For example:
 %typemap(throws) std::out_of_range {
   // custom exception handler
 }
-%template(VectInt) std::vector<int>;
+%template(VectInt) std::vector&lt;int&gt;;
 </pre>
 </div>
 
