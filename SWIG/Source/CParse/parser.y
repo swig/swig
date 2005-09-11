@@ -1857,7 +1857,6 @@ insert_directive : HBLOCK {
 
 module_directive: MODULE options idstring {
                  $$ = new_node("module");
-		 Setattr($$,"name",$3);
 		 if ($2) {
 		   Setattr($$,"options",$2);
 		   if (Getattr($2,"directors")) {
@@ -1873,6 +1872,7 @@ module_directive: MODULE options idstring {
 		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
+		 Setattr($$,"name",ModuleName);
 		 if (!module_node) module_node = $$;
 	       }
                ;
