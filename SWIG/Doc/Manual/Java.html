@@ -6004,7 +6004,9 @@ This example contains some useful functionality which you may want in your code.
     <li> It also has a function which effectively implements a cast from the type of the proxy/type wrapper class to a void pointer. This is necessary for passing a proxy class or a type wrapper class to a function that takes a void pointer.
 </ul>
 
-<H3><a name="struct_pointer_pointer"></a>Struct pointer to pointer</H3>
+<H3><a name="struct_pointer_pointer"></a>19.9.10 Struct pointer to pointer</H3>
+
+
 <p>
 Pointers to pointers are often used as output parameters in C factory type functions.
 These are a bit more tricky to handle.
@@ -6103,7 +6105,7 @@ The following interface file code should be placed before SWIG parses the above 
 
 // Typemaps for Butler ** as a parameter output type
 %typemap(in) Butler ** (Butler *ppButler = 0) %{
-  $1 = &ppButler;
+  $1 = &amp;ppButler;
 %}
 %typemap(argout) Butler ** {
   // Give Java proxy the C pointer (of newly created object)

@@ -161,7 +161,7 @@
 <li><a href="SWIG.html#SWIG_nn34">Array members</a>
 <li><a href="SWIG.html#SWIG_nn35">Structure data members</a>
 <li><a href="SWIG.html#SWIG_nn36">C constructors and destructors </a>
-<li><a href="SWIG.html#SWIG_nn37">Adding member functions to C structures</a>
+<li><a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
 <li><a href="SWIG.html#SWIG_nn38">Nested structures</a>
 <li><a href="SWIG.html#SWIG_nn39">Other things to note about structure wrapping</a>
 </ul>
@@ -278,10 +278,11 @@
 <li><a href="Library.html#Library_nn11">Using %newobject to release memory</a>
 <li><a href="Library.html#Library_nn12">cstring.i</a>
 </ul>
-<li><a href="Library.html#Library_nn13">C++ Library</a>
+<li><a href="Library.html#Library_stl_cpp_library">STL/C++ Library</a>
 <ul>
 <li><a href="Library.html#Library_nn14">std_string.i</a>
 <li><a href="Library.html#Library_nn15">std_vector.i</a>
+<li><a href="Library.html#Library_stl_exceptions">STL exceptions</a>
 </ul>
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
 <ul>
@@ -687,6 +688,7 @@
 <li><a href="Java.html#adding_downcasts">Adding Java downcasts to polymorphic return types</a>
 <li><a href="Java.html#adding_equals_method">Adding an equals method to the Java classes</a>
 <li><a href="Java.html#void_pointers">Void pointers and a common Java base class</a>
+<li><a href="Java.html#struct_pointer_pointer">Struct pointer to pointer</a>
 </ul>
 <li><a href="Java.html#java_directors_faq">Living with Java Directors</a>
 <li><a href="Java.html#odds_ends">Odds and ends</a>
@@ -1028,70 +1030,17 @@
 <li><a href="Ruby.html#Ruby_nn2">Preliminaries</a>
 <ul>
 <li><a href="Ruby.html#Ruby_nn3">Running SWIG</a>
-<li><a href="Ruby.html#Ruby_nn4">Getting the right header files</a>
-<li><a href="Ruby.html#Ruby_nn5">Compiling a dynamic module</a>
-<li><a href="Ruby.html#Ruby_nn6">Using your module</a>
-<li><a href="Ruby.html#Ruby_nn7">Static linking</a>
-<li><a href="Ruby.html#Ruby_nn8">Compilation of C++ extensions</a>
-</ul>
-<li><a href="Ruby.html#Ruby_nn9">Building Ruby Extensions under Windows 95/NT</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn10">Running SWIG from Developer Studio</a>
-</ul>
-<li><a href="Ruby.html#Ruby_nn11">The Ruby-to-C/C++ Mapping</a>
-<ul>
 <li><a href="Ruby.html#Ruby_nn12">Modules</a>
 <li><a href="Ruby.html#Ruby_nn13">Functions</a>
-<li><a href="Ruby.html#Ruby_nn14">Variable Linking</a>
 <li><a href="Ruby.html#Ruby_nn15">Constants</a>
 <li><a href="Ruby.html#Ruby_nn16">Pointers</a>
 <li><a href="Ruby.html#Ruby_nn17">Structures</a>
 <li><a href="Ruby.html#Ruby_nn18">C++ classes</a>
-<li><a href="Ruby.html#Ruby_nn19">C++ Inheritance</a>
-<li><a href="Ruby.html#Ruby_nn20">C++ Overloaded Functions</a>
-<li><a href="Ruby.html#Ruby_nn21">C++ Operators</a>
-<li><a href="Ruby.html#Ruby_nn22">C++ namespaces</a>
-<li><a href="Ruby.html#Ruby_nn23">C++ templates</a>
-<li><a href="Ruby.html#ruby_cpp_smart_pointers">C++ Smart Pointers</a>
-<li><a href="Ruby.html#Ruby_nn25">Cross-Language Polymorphism</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn26">Exception Unrolling</a>
 </ul>
-</ul>
-<li><a href="Ruby.html#Ruby_nn27">Input and output parameters</a>
-<li><a href="Ruby.html#Ruby_nn28">Simple exception handling </a>
 <li><a href="Ruby.html#Ruby_nn29">Typemaps</a>
 <ul>
-<li><a href="Ruby.html#Ruby_nn30">What is a typemap?</a>
-<li><a href="Ruby.html#Ruby_nn31">Ruby typemaps</a>
-<li><a href="Ruby.html#Ruby_nn32">Typemap variables</a>
-<li><a href="Ruby.html#Ruby_nn33">Useful Functions</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn34">C Datatypes to Ruby Objects</a>
-<li><a href="Ruby.html#Ruby_nn35">Ruby Objects to C Datatypes</a>
-<li><a href="Ruby.html#Ruby_nn36">Macros for VALUE</a>
 <li><a href="Ruby.html#Ruby_nn37">Exceptions</a>
 <li><a href="Ruby.html#Ruby_nn38">Iterators</a>
-</ul>
-<li><a href="Ruby.html#ruby_typemap_examples">Typemap Examples</a>
-<li><a href="Ruby.html#Ruby_nn40">Converting a Ruby array to a char **</a>
-<li><a href="Ruby.html#Ruby_nn41">Collecting arguments in a hash</a>
-<li><a href="Ruby.html#Ruby_nn42">Pointer handling</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn43">Ruby Datatype Wrapping</a>
-</ul>
-</ul>
-<li><a href="Ruby.html#ruby_operator_overloading">Operator overloading</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn45">Example: STL Vector to Ruby Array</a>
-</ul>
-<li><a href="Ruby.html#Ruby_nn46">Advanced Topics</a>
-<ul>
-<li><a href="Ruby.html#Ruby_nn47">Creating Multi-Module Packages</a>
-<li><a href="Ruby.html#Ruby_nn48">Defining Aliases</a>
-<li><a href="Ruby.html#Ruby_nn49">Predicate Methods</a>
-<li><a href="Ruby.html#Ruby_nn50">Specifying Mixin Modules</a>
-<li><a href="Ruby.html#Ruby_nn51">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 </div>
@@ -1162,7 +1111,46 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Extending.html#Extending">29 Extending SWIG</a></h3>
+<h3><a href="Lua.html#Lua">29 SWIG and Lua</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="Lua.html#Lua_nn2">Preliminaries</a>
+<li><a href="Lua.html#Lua_nn3">Running SWIG</a>
+<ul>
+<li><a href="Lua.html#Lua_nn4">Compiling and Linking and Interpreter</a>
+<li><a href="Lua.html#Lua_nn5">Compiling a dynamic module</a>
+<li><a href="Lua.html#Lua_nn6">Using your module</a>
+</ul>
+<li><a href="Lua.html#Lua_nn7">A tour of basic C/C++ wrapping</a>
+<ul>
+<li><a href="Lua.html#Lua_nn8">Modules</a>
+<li><a href="Lua.html#Lua_nn9">Functions</a>
+<li><a href="Lua.html#Lua_nn10">Global variables</a>
+<li><a href="Lua.html#Lua_nn11">Constants and enums</a>
+<li><a href="Lua.html#Lua_nn12">Pointers</a>
+<li><a href="Lua.html#Lua_nn13">Structures</a>
+<li><a href="Lua.html#Lua_nn14">C++ classes</a>
+<li><a href="Lua.html#Lua_nn15">C++ inheritance</a>
+<li><a href="Lua.html#Lua_nn16">Pointers, references, values, and arrays</a>
+<li><a href="Lua.html#Lua_nn17">C++ overloaded functions</a>
+<li><a href="Lua.html#Lua_nn18">C++ operators</a>
+<li><a href="Lua.html#Lua_nn19">Class extension with %extend</a>
+<li><a href="Lua.html#Lua_nn20">C++ templates</a>
+<li><a href="Lua.html#Lua_nn21">C++ Smart Pointers</a>
+</ul>
+<li><a href="Lua.html#Lua_nn22">Details on the Lua binding</a>
+<ul>
+<li><a href="Lua.html#Lua_nn23">Binding global data into the module.</a>
+<li><a href="Lua.html#Lua_nn24">Userdata and Metatables</a>
+<li><a href="Lua.html#Lua_nn25">Memory management</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Extending.html#Extending">30 Extending SWIG</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
