@@ -166,6 +166,11 @@ static String  *class_rename = 0;
 #define  CPLUS_PRIVATE   2
 #define  CPLUS_PROTECTED 3
 
+/* include types */
+static int   include_type = 0;
+#define  INCLUDE_MODE    1
+#define  IMPORT_MODE     2
+
 void SWIG_typemap_lang(const char *tm_lang) {
   typemap_lang = Swig_copy_string(tm_lang);
 }
@@ -1766,8 +1771,8 @@ include_directive: includetype options string LBRACKET {
                }
                ;
 
-includetype    : INCLUDE { $$.type = (char *) "include"; }
-               | IMPORT  { $$.type = (char *) "import"; }
+includetype    : INCLUDE { $$.type = (char *) "include"; include_type = INCLUDE_MODE;}
+               | IMPORT  { $$.type = (char *) "import"; include_type = IMPORT_MODE;}
                ;
 
 /* ------------------------------------------------------------
@@ -1872,7 +1877,14 @@ module_directive: MODULE options idstring {
 		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
-		 Setattr($$,"name",ModuleName);
+		 if (include_type == INCLUDE_MODE) {
+		   /* first module included, we apply global
+		      ModuleName, which can be modify by -module */
+		   Setattr($$,"name",Copy(ModuleName));
+		 } else { 
+		   /* import mode, we just pass the idstring */
+		   Setattr($$,"name",$3);   
+		 }		 
 		 if (!module_node) module_node = $$;
 	       }
                ;
