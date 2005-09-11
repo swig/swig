@@ -1,6 +1,47 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/11/2005: mmatus
+            Adding the module option to the %import directive. Now you
+            can use it as
+
+	        %import(module="BigModule") foo.i
+
+	    where subfile could (or not) define the module name via
+	    the %module directive. The module option take precedence
+	    and it has the same effects than having the directive 
+
+	        %module BigModule  
+
+	    inside the imported file foo.i.
+
+	    You can use the option in mainly two cases:
+
+	    1.- You used the -module option when you generated the
+                module to be imported, and hence the module name in
+                the imported %module directive is not really useful.
+
+	    2.- The module you want to import is very large, and it
+                has several .i/.h files. Then, if you just one to
+                import a class or so from the module, says 'foo', and
+                not the entire module via importing the main
+                BigModule.i file, then you just do:
+
+ 		    %import(module="BigModule") foo.h
+
+   	        or
+		
+ 		    %import(module="BigModule") foo.i
+
+		where foo.i contains the 'foo' declaration and maybe a
+		couple of extra %include directives, as needed.
+
+	    
+09/11/2005: mmatus
+	    Fix bug #1282637, about the -module option not having effect
+	    in places where it was needed.
+
+
 09/11/2005: wsfulton
             When wrapping variables, ensure that none of the typemaps used for the
             set wrappers are used when generating the get wrappers. I doubt this was a
