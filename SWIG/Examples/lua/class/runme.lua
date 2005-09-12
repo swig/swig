@@ -3,10 +3,13 @@
 -- This file illustrates class C++ interface generated
 -- by SWIG.
 
--- importing (lua doesnt have a nice way to do this)
-if example==nil then 
-	assert(loadlib("example.dll","Example_Init"))()
+-- importing (lua does not have a nice way to do this)
+loadlibrary = loadlib("example.so","Example_Init")
+if loadlibrary == nil then
+    loadlibrary = loadlib("example.dll","Example_Init")
 end
+assert(loadlibrary, "could not find dynamic libray")
+loadlibrary()
 
 ----- Object creation -----
 
