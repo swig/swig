@@ -1929,7 +1929,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(f_table,"%s\n", cast_init);
   Printf(f_table,"\n/* -------- TYPE CONVERSION AND EQUIVALENCE RULES (END) -------- */\n\n");
 
-  Printf(f_forward,"static swig_type_info *swig_types[%d];\n", i);
+  Printf(f_forward,"static swig_type_info *swig_types[%d];\n", i + 1);
   Printf(f_forward,"static swig_module_info swig_module = {swig_types, %d, 0, 0, 0, 0};\n", i);
   Printf(f_forward,"#define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)\n");
   Printf(f_forward,"#define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)\n");

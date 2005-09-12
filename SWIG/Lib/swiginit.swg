@@ -114,6 +114,7 @@ SWIG_InitializeModule(void *clientdata) {
     /* Set entry in modules->types array equal to the type */
     swig_module.types[i] = type;
   }
+  swig_module.types[i] = 0;
 }
 
 /* This function will propagate the clientdata field of type to
