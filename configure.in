@@ -1503,6 +1503,7 @@ AC_SUBST(CSHARPSO)
 LUABIN=
 LUAINCLUDE=
 LUALIB=
+LUADYNAMICLOADLIB=
 
 AC_ARG_WITH(lua, AS_HELP_STRING([--without-lua], [Disable Lua])
 AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN=])
@@ -1519,6 +1520,18 @@ else
 # can we find lua?
 if test -z "$LUABIN"; then
    AC_PATH_PROG(LUABIN, lua)
+fi
+
+if test "$LUABIN"; then
+   AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
+   # check if dynamic library loading is configured
+   # detection is not currently working currently
+   LUADYNAMICLOADLIB=`($LUABIN -e 'assert(loadlib) print ("1")') 2>/dev/null`
+   if test -z "$LUADYNAMICLOADLIB"; then
+     AC_MSG_RESULT(no)
+   else
+     AC_MSG_RESULT(yes)
+   fi
 fi
 
 # look for the header files
@@ -1679,7 +1692,7 @@ AC_SUBST(SKIP_MODULA3)
 
 SKIP_LUA=
 # do we really need the LUABIN?
-if test -z "$LUABIN" || test -z "$LUAINCLUDE" || test -z "$LUALIB" ; then
+if test -z "$LUABIN" || test -z "$LUAINCLUDE" || test -z "$LUALIB" || test -z "$LUADYNAMICLOADLIB"; then
     SKIP_LUA="1"
 fi
 AC_SUBST(SKIP_LUA)
