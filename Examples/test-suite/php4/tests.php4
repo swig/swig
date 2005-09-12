@@ -221,7 +221,7 @@ class check {
   }
 
   function done() {
-    print $_SERVER[argv][0]." ok\n";
+#    print $_SERVER[argv][0]." ok\n";
   }
 }
 ?>
