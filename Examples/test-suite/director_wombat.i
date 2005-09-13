@@ -22,7 +22,9 @@ class Bar
 public:
   virtual              ~Bar();
   virtual Foo_int      *meth();
-  virtual void          foo_meth(Foo_int &, int);
+  virtual void          foo_meth_ref(Foo_int &, int);
+  virtual void          foo_meth_ptr(Foo_int *, int);
+  virtual void          foo_meth_val(Foo_int, int);
 };
 
 Bar::~Bar()
@@ -34,10 +36,9 @@ Bar::meth()
   return new Foo_int();
 }
 
-void
-Bar::foo_meth(Foo_int &arg, int param)
-{
-}
+void Bar::foo_meth_ref(Foo_int &arg, int param) { }
+void Bar::foo_meth_ptr(Foo_int *arg, int param) { }
+void Bar::foo_meth_val(Foo_int arg, int param) { }
 %}
 
 %template(Foo_integers) Foo<int>;
