@@ -39,7 +39,9 @@ public class director_wombat_runme
     b.delete();
 
     b = new director_wombat_Bar_derived_1();
-    b.foo_meth(a, 0);
+    b.foo_meth_ref(a, 0);
+    b.foo_meth_ptr(a, 1);
+    b.foo_meth_val(a, 2);
   }
 }
 
@@ -71,10 +73,22 @@ class director_wombat_Bar_derived_1 extends Bar
     super();
   }
 
-  public void foo_meth(Foo_integers foo_obj, int param)
+  public void foo_meth_ref(Foo_integers foo_obj, int param)
   {
     if (!(foo_obj instanceof director_wombat_Foo_integers_derived_2)) {
-      throw new RuntimeException ("Test failed: foo_obj is not director_wombat_Foo_integers_derived_2, got " + foo_obj);
+      throw new RuntimeException ("Test failed: foo_obj in foo_meth_ref is not director_wombat_Foo_integers_derived_2, got " + foo_obj);
+    }
+  }
+  public void foo_meth_ptr(Foo_integers foo_obj, int param)
+  {
+    if (!(foo_obj instanceof director_wombat_Foo_integers_derived_2)) {
+      throw new RuntimeException ("Test failed: foo_obj in foo_meth_ptr is not director_wombat_Foo_integers_derived_2, got " + foo_obj);
+    }
+  }
+  public void foo_meth_val(Foo_integers foo_obj, int param)
+  {
+    if (!(foo_obj instanceof director_wombat_Foo_integers_derived_2)) {
+      throw new RuntimeException ("Test failed: foo_obj in foo_meth_val is not director_wombat_Foo_integers_derived_2, got " + foo_obj);
     }
   }
 }
