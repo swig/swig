@@ -64,7 +64,7 @@ namespace Swig {
       if (jthis_ != NULL) {
         if (weak_global_) {
           if (jenv->IsSameObject(jthis_, NULL) == JNI_FALSE)
-            jenv->DeleteWeakGlobalRef(jthis_);
+            jenv->DeleteWeakGlobalRef((jweak)jthis_);
         } else
           jenv->DeleteGlobalRef(jthis_);
       }
@@ -89,7 +89,7 @@ namespace Swig {
         }
       } else { /* Java releases ownership of C++ object's lifetime */
         if (weak_global_) {
-          jenv->DeleteWeakGlobalRef(jthis_);
+          jenv->DeleteWeakGlobalRef((jweak)jthis_);
           jthis_ = jenv->NewGlobalRef(jself);
           weak_global_ = false;
         }
