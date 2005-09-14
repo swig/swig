@@ -82,6 +82,8 @@ sure to check it out.
 
 <a href="http://elmer.sourceforge.net">Elmer</a>. Glue code generator so that Python modules can run in C and Tcl programs.<br>
 
+<a href="http://www.sourceforge.net/projects/swigxmltocom">SwigXmlToCom</a>. Tool that uses SWIG to generate COM wrappers.<br>
+
 </blockquote>
 
 <h3> Other interesting links</h3>
