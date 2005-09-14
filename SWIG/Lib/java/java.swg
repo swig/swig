@@ -329,7 +329,7 @@
 }
 
 /* Convert to BigInteger (see out typemap) */
-%typemap(directorin, descriptor="Ljava/math/Biginteger;") unsigned long long, const unsigned long long & {
+%typemap(directorin, descriptor="Ljava/math/BigInteger;") unsigned long long, const unsigned long long & {
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
@@ -602,7 +602,9 @@
 }
 #endif
 
-%typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE "*(($&1_type)(void *)&$input) = &$1;"
+%typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
+%{ $input = 0;
+   *(($&1_ltype*)(void *)&$input) = &$1; %}
 %typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
