@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Extending"></a>30 Extending SWIG</H1>
+<H1><a name="Extending"></a>31 Extending SWIG</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -75,7 +75,7 @@
 <b>Caution: This chapter is being rewritten! (11/25/01)</b>
 </p>
 
-<H2><a name="Extending_nn2"></a>30.1 Introduction</H2>
+<H2><a name="Extending_nn2"></a>31.1 Introduction</H2>
 
 
 <p>
@@ -91,7 +91,7 @@ Also, this chapter is not meant to be a hand-holding tutorial.  As a starting po
 you should probably look at one of SWIG's existing modules.
 </p>
 
-<H2><a name="Extending_nn3"></a>30.2 Prerequisites</H2>
+<H2><a name="Extending_nn3"></a>31.2 Prerequisites</H2>
 
 
 <p>
@@ -121,7 +121,7 @@ obvious, but almost all SWIG directives as well as the low-level generation of
 wrapper code are driven by C++ datatypes.
 </p>
 
-<H2><a name="Extending_nn4"></a>30.3 The Big Picture</H2>
+<H2><a name="Extending_nn4"></a>31.3 The Big Picture</H2>
 
 
 <p>
@@ -158,7 +158,7 @@ role in making the system work.  For example, both typemaps and declaration anno
 based on pattern matching and interact heavily with the underlying type system.
 </p>
 
-<H2><a name="Extending_nn5"></a>30.4 Execution Model</H2>
+<H2><a name="Extending_nn5"></a>31.4 Execution Model</H2>
 
 
 <p>
@@ -203,7 +203,7 @@ stage of compilation.
 The next few sections briefly describe some of these stages.
 </p>
 
-<H3><a name="Extending_nn6"></a>30.4.1 Preprocessing</H3>
+<H3><a name="Extending_nn6"></a>31.4.1 Preprocessing</H3>
 
 
 <p>
@@ -283,7 +283,7 @@ been expanded as well as everything else that goes into the low-level
 construction of the wrapper code.
 </p>
 
-<H3><a name="Extending_nn7"></a>30.4.2 Parsing</H3>
+<H3><a name="Extending_nn7"></a>31.4.2 Parsing</H3>
 
 
 <p>
@@ -384,7 +384,7 @@ returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 </p>
 
-<H3><a name="Extending_nn8"></a>30.4.3 Parse Trees</H3>
+<H3><a name="Extending_nn8"></a>31.4.3 Parse Trees</H3>
 
 
 <p>
@@ -636,7 +636,7 @@ $ swig -c++ -python -dump_tree example.i
 </pre>
 </div>
 
-<H3><a name="Extending_nn9"></a>30.4.4 Attribute namespaces</H3>
+<H3><a name="Extending_nn9"></a>31.4.4 Attribute namespaces</H3>
 
 
 <p>
@@ -655,7 +655,7 @@ that matches the name of the target language.  For example, <tt>python:foo</tt> 
 <tt>perl:foo</tt>.
 </p>
 
-<H3><a name="Extending_nn10"></a>30.4.5 Symbol Tables</H3>
+<H3><a name="Extending_nn10"></a>31.4.5 Symbol Tables</H3>
 
 
 <p>
@@ -743,7 +743,7 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </div>
 
-<H3><a name="Extending_nn11"></a>30.4.6 The %feature directive</H3>
+<H3><a name="Extending_nn11"></a>31.4.6 The %feature directive</H3>
 
 
 <p>
@@ -799,7 +799,7 @@ For example, the exception code above is simply
 stored without any modifications.
 </p>
 
-<H3><a name="Extending_nn12"></a>30.4.7 Code Generation</H3>
+<H3><a name="Extending_nn12"></a>31.4.7 Code Generation</H3>
 
 
 <p>
@@ -921,7 +921,7 @@ public :
 The role of these functions is described shortly.
 </p>
 
-<H3><a name="Extending_nn13"></a>30.4.8 SWIG and XML</H3>
+<H3><a name="Extending_nn13"></a>31.4.8 SWIG and XML</H3>
 
 
 <p>
@@ -934,7 +934,7 @@ internal data structures, it may be useful keep XML in the back of
 your mind as a model.
 </p>
 
-<H2><a name="Extending_nn14"></a>30.5 Primitive Data Structures</H2>
+<H2><a name="Extending_nn14"></a>31.5 Primitive Data Structures</H2>
 
 
 <p>
@@ -980,7 +980,7 @@ typedef Hash   Typetab;
 </pre>
 </div>
 
-<H3><a name="Extending_nn15"></a>30.5.1 Strings</H3>
+<H3><a name="Extending_nn15"></a>31.5.1 Strings</H3>
 
 
 <p>
@@ -1121,7 +1121,7 @@ Returns the number of replacements made (if any).
 
 </div>
 
-<H3><a name="Extending_nn16"></a>30.5.2 Hashes</H3>
+<H3><a name="Extending_nn16"></a>31.5.2 Hashes</H3>
 
 
 <p>
@@ -1198,7 +1198,7 @@ Returns the list of hash table keys.
 </div>
 
 
-<H3><a name="Extending_nn17"></a>30.5.3 Lists</H3>
+<H3><a name="Extending_nn17"></a>31.5.3 Lists</H3>
 
 
 <p>
@@ -1287,7 +1287,7 @@ If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
 and is used to create a String object.
 </div>
 
-<H3><a name="Extending_nn18"></a>30.5.4 Common operations</H3>
+<H3><a name="Extending_nn18"></a>31.5.4 Common operations</H3>
 
 
 The following operations are applicable to all datatypes.
@@ -1342,7 +1342,7 @@ objects and report errors.
 Gets the line number associated with <tt>x</tt>.
 </div>
 
-<H3><a name="Extending_nn19"></a>30.5.5 Iterating over Lists and Hashes</H3>
+<H3><a name="Extending_nn19"></a>31.5.5 Iterating over Lists and Hashes</H3>
 
 
 To iterate over the elements of a list or a hash table, the following functions are used:
@@ -1387,7 +1387,7 @@ for (j = First(j); j.item; j= Next(j)) {
 
 </div>
 
-<H3><a name="Extending_nn20"></a>30.5.6 I/O</H3>
+<H3><a name="Extending_nn20"></a>31.5.6 I/O</H3>
 
 
 Special I/O functions are used for all internal I/O.  These operations
@@ -1523,7 +1523,7 @@ Similarly, the preprocessor and parser all operate on string-files.
 
 </div>
 
-<H2><a name="Extending_nn21"></a>30.6 Navigating and manipulating parse trees</H2>
+<H2><a name="Extending_nn21"></a>31.6 Navigating and manipulating parse trees</H2>
 
 
 Parse trees are built as collections of hash tables.   Each node is a hash table in which
@@ -1657,7 +1657,7 @@ Deletes a node from the parse tree.  Deletion reconnects siblings and properly u
 the parent so that sibling nodes are unaffected.
 </div>
 
-<H2><a name="Extending_nn22"></a>30.7 Working with attributes</H2>
+<H2><a name="Extending_nn22"></a>31.7 Working with attributes</H2>
 
 
 <p>
@@ -1774,7 +1774,7 @@ the attribute is optional.   <tt>Swig_restore()</tt> must always be called after
 function.
 </div>
 
-<H2><a name="Extending_nn23"></a>30.8 Type system</H2>
+<H2><a name="Extending_nn23"></a>31.8 Type system</H2>
 
 
 <p>
@@ -1783,7 +1783,7 @@ pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 </p>
 
-<H3><a name="Extending_nn24"></a>30.8.1 String encoding of types</H3>
+<H3><a name="Extending_nn24"></a>31.8.1 String encoding of types</H3>
 
 
 <p>
@@ -1884,7 +1884,7 @@ make the final type, the two parts are just joined together using
 string concatenation.
 </p>
 
-<H3><a name="Extending_nn25"></a>30.8.2 Type construction</H3>
+<H3><a name="Extending_nn25"></a>31.8.2 Type construction</H3>
 
 
 <p>
@@ -2053,7 +2053,7 @@ Returns the prefix of a type. For example, if <tt>ty</tt> is
 <tt>ty</tt> is unmodified.
 </div>
 
-<H3><a name="Extending_nn26"></a>30.8.3 Type tests</H3>
+<H3><a name="Extending_nn26"></a>31.8.3 Type tests</H3>
 
 
 <p>
@@ -2140,7 +2140,7 @@ Checks if <tt>ty</tt> is a varargs type.
 Checks if <tt>ty</tt> is a templatized type. 
 </div>
 
-<H3><a name="Extending_nn27"></a>30.8.4 Typedef and inheritance</H3>
+<H3><a name="Extending_nn27"></a>31.8.4 Typedef and inheritance</H3>
 
 
 <p>
@@ -2242,7 +2242,7 @@ Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
 will consist only of primitive typenames.
 </div>
 
-<H3><a name="Extending_nn28"></a>30.8.5 Lvalues</H3>
+<H3><a name="Extending_nn28"></a>31.8.5 Lvalues</H3>
 
 
 <p>
@@ -2279,7 +2279,7 @@ Literal y;    // type = 'Literal', ltype='p.char'
 </pre>
 </div>
 
-<H3><a name="Extending_nn29"></a>30.8.6 Output functions</H3>
+<H3><a name="Extending_nn29"></a>31.8.6 Output functions</H3>
 
 
 <p>
@@ -2341,7 +2341,7 @@ SWIG, but is most commonly associated with type-descriptor objects
 that appear in wrappers (e.g., <tt>SWIGTYPE_p_double</tt>).
 </div>
 
-<H2><a name="Extending_nn30"></a>30.9 Parameters</H2>
+<H2><a name="Extending_nn30"></a>31.9 Parameters</H2>
 
 
 <p>
@@ -2440,7 +2440,7 @@ included.  Used to emit prototypes.
 Returns the number of required (non-optional) arguments in <tt>p</tt>.
 </div>
 
-<H2><a name="Extending_nn31"></a>30.10 Writing a Language Module</H2>
+<H2><a name="Extending_nn31"></a>31.10 Writing a Language Module</H2>
 
 
 <p>
@@ -2451,7 +2451,7 @@ describes the creation of a minimal Python module.   You should be able to extra
 this to other languages.
 </p>
 
-<H3><a name="Extending_nn32"></a>30.10.1 Execution model</H3>
+<H3><a name="Extending_nn32"></a>31.10.1 Execution model</H3>
 
 
 <p>
@@ -2461,7 +2461,7 @@ the parsing of command line options, all aspects of code generation are controll
 different methods of the <tt>Language</tt> that must be defined by your module.
 </p>
 
-<H3><a name="Extending_nn33"></a>30.10.2 Starting out</H3>
+<H3><a name="Extending_nn33"></a>31.10.2 Starting out</H3>
 
 
 <p>
@@ -2574,7 +2574,7 @@ that activates your module. For example, <tt>swig -python foo.i</tt>. The
 messages from your new module should appear.
 </p>
 
-<H3><a name="Extending_nn34"></a>30.10.3 Command line options</H3>
+<H3><a name="Extending_nn34"></a>31.10.3 Command line options</H3>
 
 
 <p>
@@ -2633,7 +2633,7 @@ to mark the option as valid.   If you forget to do this, SWIG will terminate wit
 unrecognized command line option error.
 </p>
 
-<H3><a name="Extending_nn35"></a>30.10.4 Configuration and preprocessing</H3>
+<H3><a name="Extending_nn35"></a>31.10.4 Configuration and preprocessing</H3>
 
 
 <p>
@@ -2682,7 +2682,7 @@ an implementation file <tt>python.cxx</tt> and a configuration file
 <tt>python.swg</tt>.
 </p>
 
-<H3><a name="Extending_nn36"></a>30.10.5 Entry point to code generation</H3>
+<H3><a name="Extending_nn36"></a>31.10.5 Entry point to code generation</H3>
 
 
 <p>
@@ -2740,13 +2740,13 @@ int Python::top(Node *n) {
 </pre>
 </div>
 
-<H3><a name="Extending_nn37"></a>30.10.6 Module I/O and wrapper skeleton</H3>
+<H3><a name="Extending_nn37"></a>31.10.6 Module I/O and wrapper skeleton</H3>
 
 
-<H3><a name="Extending_nn38"></a>30.10.7 Low-level code generators</H3>
+<H3><a name="Extending_nn38"></a>31.10.7 Low-level code generators</H3>
 
 
-<H3><a name="Extending_nn39"></a>30.10.8 Configuration files</H3>
+<H3><a name="Extending_nn39"></a>31.10.8 Configuration files</H3>
 
 
 <!-- please report bugs in this section to ttn -->
@@ -2901,7 +2901,7 @@ to handle some of these configuration tasks, but that point is now
 long past.  If you are interested in working on that, feel free to
 raise the issue in the context of a next-generation clean-slate SWIG.
 
-<H3><a name="Extending_nn40"></a>30.10.9 Runtime support</H3>
+<H3><a name="Extending_nn40"></a>31.10.9 Runtime support</H3>
 
 
 <p>
@@ -2910,7 +2910,7 @@ Discuss the kinds of functions typically needed for SWIG runtime support (e.g.
 the SWIG files that implement those functions.
 </p>
 
-<H3><a name="Extending_nn41"></a>30.10.10 Standard library files</H3>
+<H3><a name="Extending_nn41"></a>31.10.10 Standard library files</H3>
 
 
 <p>
@@ -2924,7 +2924,7 @@ Discuss the standard library files that most language modules provide, e.g.
 <li> stl.i </li>
 </ul>
 
-<H3><a name="Extending_nn42"></a>30.10.11 Examples and test cases</H3>
+<H3><a name="Extending_nn42"></a>31.10.11 Examples and test cases</H3>
 
 
 <p>
@@ -2951,7 +2951,7 @@ during this process, see the section on <a href="#n37a">configuration
 files</a>.
 </p>
 
-<H3><a name="Extending_nn43"></a>30.10.12 Documentation</H3>
+<H3><a name="Extending_nn43"></a>31.10.12 Documentation</H3>
 
 
 <p>
@@ -2983,13 +2983,13 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<H2><a name="Extending_nn44"></a>30.11 Typemaps</H2>
+<H2><a name="Extending_nn44"></a>31.11 Typemaps</H2>
 
 
-<H3><a name="Extending_nn45"></a>30.11.1 Proxy classes</H3>
+<H3><a name="Extending_nn45"></a>31.11.1 Proxy classes</H3>
 
 
-<H2><a name="Extending_nn46"></a>30.12 Guide to parse tree nodes</H2>
+<H2><a name="Extending_nn46"></a>31.12 Guide to parse tree nodes</H2>
 
 
 <p>
