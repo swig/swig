@@ -72,7 +72,8 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
-     -cppcast        - Enable new C++ casting operators, useful for debugging\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
+     -cppcast        - Enable C++ casting operators\n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -apply          - Use apply() in proxy classes\n\
@@ -106,6 +107,7 @@ public:
    * ------------------------------------------------------------ */
   
   virtual void main(int argc, char *argv[]) {
+    int cppcast = 1;
 
     SWIG_library_directory("python");
   
@@ -155,7 +157,11 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-cppcast") == 0) {
 	  /* Turn on new value wrapper mpde */
-	  Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nocppcast") == 0) {
+	  /* Turn on new value wrapper mpde */
+	  cppcast = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
 	  /* Turn on no RTTI mode */
@@ -179,6 +185,12 @@ public:
 	}
       }
     }
+
+    if (cppcast) {
+      /* Turn on new value wrapper mpde */
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+    }
+    
     if (!global_name) global_name = NewString("cvar");
     Preprocessor_define("SWIGPYTHON 1", 0);
     SWIG_typemap_lang("python");
