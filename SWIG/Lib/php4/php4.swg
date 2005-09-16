@@ -222,9 +222,17 @@
   RETVAL_STRINGL($1,len,1);
 }
 
+// This typecheck would do hard checking for proper argument type.
+//%define %php_typecheck(_type,_prec,is)
+//%typemap(typecheck,precedence=_prec) _type
+// " $1 = Z_TYPE_PP($input) == is ? 1 : 0; "
+//%enddef
+
 %define %php_typecheck(_type,_prec,is)
 %typemap(typecheck,precedence=_prec) _type
- " $1 = Z_TYPE_PP($input) == is ? 1 : 0; "
+ " $1 = (Z_TYPE_PP($input) == IS_LONG ||
+         Z_TYPE_PP($input) == IS_DOUBLE ||
+         Z_TYPE_PP($input) == IS_STRING) ? 1 : 0; "
 %enddef
 
 %php_typecheck(int,SWIG_TYPECHECK_INTEGER,IS_LONG)
