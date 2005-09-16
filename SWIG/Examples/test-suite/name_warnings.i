@@ -12,6 +12,12 @@
 /* activate all the name warnings */
 %warnfilter(+315,+321,-403);
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
+
 %inline 
 {
   class string; // csharp keyword

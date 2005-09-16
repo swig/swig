@@ -1,5 +1,13 @@
 %module member_template
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
+
+  
+
 %inline %{
 template<class T> T max(T x, T y, T z) { return (x > y) ? x : y; }
 

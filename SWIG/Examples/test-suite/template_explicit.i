@@ -11,6 +11,11 @@
 
 
 /* Let's just grab the original header file here */
+%{
+#ifdef max
+#undef max
+#endif
+%}
 
 %inline %{
 

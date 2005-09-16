@@ -8,6 +8,12 @@
 %warnfilter(801) vector<test4::Integer>; /* Ruby, wrong class name */
 
 %{
+#ifdef max
+#undef max
+#endif
+%}
+
+%{
 namespace test {
    template<typename T> T max(T a, T b) { return (a > b) ? a : b; }
    template<typename T> class vector { 

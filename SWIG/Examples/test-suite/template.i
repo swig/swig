@@ -7,6 +7,12 @@
 
 /* Let's just grab the original header file here */
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
+
 %inline %{
 
 template<class T> T max(const T a, const T b) { return  a>b ? a : b; }
