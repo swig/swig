@@ -36,7 +36,7 @@ print "    Square = (" . $s->x . "," . $s->y . ")\n";
 # ----- Call some methods -----
 
 print "\nHere are some properties of the shapes:\n";
-foreach (array(1,2.1,$c,$s) as $o) {
+foreach (array(1,2.1,"3.6",$c,$s) as $o) {
       print "    ".get_class($o)." $o\n";
       print "        overloaded= " .  overloaded($o) . "\n";
   }
