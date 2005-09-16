@@ -4,7 +4,7 @@ require "example.php";
 
 # Call our gcd() function
 
-$x = 42;
+$x = "42 aaa";
 $y = 105;
 $g = gcd($x,$y);
 print "The gcd of $x and $y is $g\n";
