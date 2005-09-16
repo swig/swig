@@ -19,6 +19,12 @@ FIELD(b, NEXT_CONST);
 } MyStruct_t;
 %}
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
+
 // bug #994301
 %inline %{
 #define max(a,b) ((a) > (b) ? (a) : (b))

@@ -2,6 +2,11 @@
 
 /* Testing technique for wrapping macros */
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
 
 /* Here, some macros to wrap */
 %inline %{

@@ -1,4 +1,11 @@
 %module overload_template
+
+%{
+#ifdef max
+#undef max
+#endif
+%}
+
 %inline %{
 
 int foo() {
