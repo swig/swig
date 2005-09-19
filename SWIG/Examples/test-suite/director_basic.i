@@ -61,7 +61,7 @@ namespace hi  {
 
 %inline %{
 
-typedef void NT;
+typedef void VoidType;
 
 class MyClass {
 public:
@@ -69,7 +69,7 @@ public:
   {
   }
   
-  virtual void method(NT *)
+  virtual void method(VoidType *)
   {
   }
   
@@ -86,7 +86,7 @@ public:
   {
   }
   
-  virtual void method(NT *)
+  virtual void method(VoidType *)
   {
   }
   
