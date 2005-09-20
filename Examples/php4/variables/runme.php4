@@ -1,6 +1,30 @@
 <?php
 
 	require "example.php";
+	echo "\nVariables (values printed from C)\n";
+
+	print_vars();
+
+	echo "Variables (values printed from PHP)\n";
+
+	echo "ivar	= ".ivar_get()."\n";
+	echo "svar	= ".svar_get()."\n";
+	echo "lvar	= ".lvar_get()."\n";
+	echo "uivar	= ".uivar_get()."\n";
+	echo "usvar	= ".usvar_get()."\n";
+	echo "ulvar	= ".ulvar_get()."\n";
+	echo "scvar	= ".scvar_get()."\n";
+	echo "ucvar	= ".ucvar_get()."\n";
+	echo "cvar	= ".cvar_get()."\n";
+	echo "fvar	= ".fvar_get()."\n";
+	echo "dvar	= ".dvar_get()."\n";
+	echo "strvar	= ".strvar_get()."\n";
+	echo "cstrvar	= ".cstrvar_get()."\n";
+	echo "iptrvar	= ".iptrvar_get()."\n";
+	echo "name	= \"".name_get()."\"\n";
+	echo "ptptr	= ".ptptr_get() , point_print(ptptr_get()) , "\n";
+	echo "pt	= ".pt_get(), point_print(pt_get()) , "\n";
+
 	/* Try to set the values of some global variables */
 $a = "42.14";
 
@@ -19,7 +43,7 @@ echo "a = $a\n";
 	strvar_set("Hello World");
 	iptrvar_set(new_int(37));
 	ptptr_set(new_point(37,42));
-	name_set("Bill");
+	name_set("B");
 
 	echo "Variables (values printed from PHP)\n";
 
