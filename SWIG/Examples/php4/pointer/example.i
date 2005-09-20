@@ -6,7 +6,7 @@
 
 %include phppointers.i
 /* First we'll use the pointer library */
-extern void add(double *x, double *y, double *result);
+extern void add(double *REF, double *REF, double *REF);
 
 /* Next we'll use some typemaps */
 
