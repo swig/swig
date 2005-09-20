@@ -86,7 +86,7 @@
 {
         /* typemap(in) SWIGTYPE * */
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
 }
 %typemap(in) SWIGTYPE *DISOWN
@@ -218,8 +218,7 @@
 
 %typemap(out) char [ANY]
 {
-  size_t len = strnlen($1,$1_dim0);
-  RETVAL_STRINGL($1,len,1);
+  RETVAL_STRINGL($1,$1_dim0,1);
 }
 
 // This typecheck would do hard checking for proper argument type.
