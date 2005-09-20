@@ -170,6 +170,9 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
      } else goto type_error; /* can't find property _cPtr */
    } else if (z->type==IS_RESOURCE) {
      return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty, flags TSRMLS_CC);
+   } if (z->type==IS_NULL ) {
+     *ptr = 0;
+     return 0;
    } else goto type_error;
 
 type_error:
