@@ -20,7 +20,7 @@ double           dvar = 0;
 char            *strvar = 0;
 const char       cstrvar[] = "Goodbye";
 int             *iptrvar = 0;
-char             name[256] = "Dave";
+char             name[5] = "Dave";
 char             path[256] = "/home/beazley";
 
 
@@ -48,8 +48,8 @@ void print_vars() {
   printf("strvar    = %s\n", strvar ? strvar : "(null)");
   printf("cstrvar   = %s\n", cstrvar ? cstrvar : "(null)");
   printf("iptrvar   = %p\n", iptrvar);
-  printf("name      = %s\n", name);
-  printf("ptptr     = %p (%d, %d)\n", ptptr, ptptr ? ptptr->x : 0, ptptr ? ptptr->y : 0);
+  printf("name      = %c%c%c%c%c\n", name[0],name[1],name[2],name[3],name[4]);
+  printf("ptptr     = %p %s\n", ptptr, Point_print( ptptr ) );
   printf("pt        = (%d, %d)\n", pt.x, pt.y);
   printf("status    = %d\n", status);
 }
