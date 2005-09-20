@@ -1522,12 +1522,39 @@ if test -z "$LUABIN"; then
    AC_PATH_PROG(LUABIN, lua)
 fi
 
+# check version: we need Lua 5.x
+if test "$LUABIN"; then
+   AC_MSG_CHECKING(Lua version)
+   # if version 5.x
+   LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
+   # if not version 5.0
+   LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
+
+   if test -z "$LUAV5"; then
+     AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
+     LUABIN=""
+   elif test -z "$LUAV51"; then
+     AC_MSG_RESULT(Lua 5.0.x)
+     # note: different versions of lua use different libs
+     LUALIBRARY="-llua -llualib"
+   else
+     AC_MSG_RESULT(Lua 5.1 or later)
+     # note: different versions of lua use different libs
+     LUALIBRARY="-llua"
+   fi
+fi
+
 if test "$LUABIN"; then
    AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
-   # check if dynamic library loading is configured
-   # detection is not currently working currently
-   LUADYNAMICLOADLIB=`($LUABIN -e 'assert(loadlib) print ("1")') 2>/dev/null`
-   if test -z "$LUADYNAMICLOADLIB"; then
+   # using Lua to check Lua
+   # lua 5.0 & 5.1 have different fn names
+   if test -z "$LUAV51"; then
+     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+   else
+     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+   fi
+   
+   if test -z "$LUADYNAMICLOADLIB"; then 
      AC_MSG_RESULT(no)
    else
      AC_MSG_RESULT(yes)
@@ -1542,7 +1569,7 @@ AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <lua.h>]])], , LUAINCLUDE="")
 if test -z "$LUAINCLUDE"; then
 	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
-		if test -r $i/tcl.h; then
+		if test -r $i/lua.h; then
 			AC_MSG_RESULT($i)
 			LUAINCLUDE="$ISYSTEM$i"
 			break
@@ -1588,6 +1615,7 @@ fi # if not disabled
 AC_SUBST(LUADYNAMICLINKING)
 AC_SUBST(LUAINCLUDE)
 AC_SUBST(LUALIB)
+AC_SUBST(LUALIBRARY)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
