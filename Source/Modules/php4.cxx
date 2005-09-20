@@ -297,7 +297,11 @@ public:
     Printf(f_make, "EXTRA_INC=\n");
     Printf(f_make, "EXTRA_LIB=\n\n" );
     Printf(f_make, "$(PROG): $(OBJS)\n");
-    Printf(f_make, "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
+    if ( CPlusPlus || (withcxx != NULL) ) {
+      Printf(f_make, "\t$(CXX) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
+    } else {
+      Printf(f_make, "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
+    }
     Printf(f_make, "%%.o: %%.cpp\n");
     Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
     Printf(f_make, "%%.o: %%.cxx\n");
