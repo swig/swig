@@ -53,7 +53,10 @@ Lua is an extension programming language designed to support general procedural 
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms),
+The current SWIG implementation is designed to work with Lua 5.0. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
+</p>
+<p>
+Note: Lua 5.1 (alpha) has just (as of September 05) been released. The current version of SWIG will produce wrappers which are compatible with Lua 5.1, though the  dynamic loading mechanism has changed (see below). The configure script and makefiles should work correctly with with Lua 5.1, though some small tweaks may be needed.
 </p>
 <H2><a name="Lua_nn3"></a>29.2 Running SWIG</H2>
 
@@ -150,7 +153,8 @@ $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o exam
 You will also need an interpreter with the loadlib function (such as the default interpreter compiled with Lua). In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
 </p>
 <div class="targetlang"><pre>
-my_init=loadlib("example.so","Example_Init")
+my_init=loadlib("example.so","Example_Init") -- for Unix/Linux
+--my_init=loadlib("example.dll","Example_Init") -- for Windows
 assert(my_init) -- name sure its not nil
 my_init()       -- call the init fn of the lib
 </pre></div>
@@ -160,6 +164,13 @@ Or can be done in a single line of Lua code
 
 <div class="targetlang"><pre>
 assert(loadlib("example.so","Example_Init"))()
+</pre></div>
+<p>
+Update for Lua 5.1 (alpha):<br>
+The wrappers produced by SWIG can be compiled and linked with Lua 5.1. The loading is now much simpler.
+</p>
+<div class="targetlang"><pre>
+require("example")
 </pre></div>
 
 <H3><a name="Lua_nn6"></a>29.2.3 Using your module</H3>
@@ -214,7 +225,7 @@ creates a built-in function <tt>example.fact(n)</tt> that works exactly like you
 To avoid name collisions, SWIG create a Lua table which it keeps all the functions and global variables in. It is possible to copy the functions out of this and into the global environment with the following code. This can easily overwrite existing functions, so this must be used with care.
 </p>
 <div class="targetlang"><pre>
-&gt; for k,v in example do _G[k]=v end
+&gt; for k,v in pairs(example) do _G[k]=v end
 &gt; print(fact(4))
 24
 &gt;
