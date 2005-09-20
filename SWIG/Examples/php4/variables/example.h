@@ -19,7 +19,7 @@ extern double           dvar;
 extern char            *strvar;
 extern const char       cstrvar[];
 extern int             *iptrvar;
-extern char             name[256];
+extern char             name[5];
 
 extern Point           *ptptr;
 extern Point            pt;
