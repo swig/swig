@@ -213,7 +213,9 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     String *init_name = NewStringf("%(title)s_Init",module);
     Printf(f_header, "#define SWIG_init    %s\n", init_name);
-    Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
+    Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
+    /* SWIG_import is a special function name for importing within Lua5.1 */
+    Printf(f_header, "#define SWIG_import  luaopen_%s\n\n", module);
 
     Printf(s_cmd_tab,   "\nstatic swig_lua_command_info swig_commands[] = {\n");
     Printf(s_var_tab,   "\nstatic swig_lua_var_info swig_variables[] = {\n");

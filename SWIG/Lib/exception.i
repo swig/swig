@@ -204,7 +204,7 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 SWIGINTERN void SWIG_exception_(int code, const char *msg) {
   char msg_buf[OCAML_MSG_BUF_LEN];
   sprintf( msg_buf, "Exception(%d): %s\n", code, msg );
-  failwith( msg_buf );  
+  failwith( msg_buf );
 }
 #define SWIG_exception(a,b) SWIG_exception_((a),(b))
 %}
@@ -318,6 +318,15 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 %enddef
 #endif // SWIGCSHARP
 
+#ifdef SWIGLUA
+
+%{
+#define SWIG_exception(a,b)\
+{ lua_pushfstring(L,"%s:%s",#a,b);SWIG_fail; }
+%}
+
+#endif // SWIGLUA
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
@@ -330,11 +339,11 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
     catch (my_except& e) {
       ...
     }
-    SWIG_CATCH_STDEXCEPT // catch std::exception 
+    SWIG_CATCH_STDEXCEPT // catch std::exception
     catch (...) {
      SWIG_exception(SWIG_UnknownError, "Unknown exception");
     }
-  }  
+  }
 */
 %{
 #include <stdexcept>

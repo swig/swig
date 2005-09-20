@@ -1,12 +1,12 @@
--- file: example.lua
-
--- importing (lua does not have a nice way to do this)
-loadlibrary = loadlib("example.so","Example_Init")
-if loadlibrary == nil then
-    loadlibrary = loadlib("example.dll","Example_Init")
+---- importing ----
+if string.sub(_VERSION,1,7)=='Lua 5.0' then
+	-- lua5.0 doesnt have a nice way to do this
+	lib=loadlib('example.dll','Example_Init') or loadlib('example.so','Example_Init')
+	assert(lib)()
+else
+	-- lua 5.1 does
+	require('example')
 end
-assert(loadlibrary, "could not find dynamic libray")
-loadlibrary()
 
 -- Try to set the values of some global variables
 

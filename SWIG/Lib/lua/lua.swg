@@ -71,7 +71,7 @@
 %typemap(out) char
 %{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
 
-// byref
+// by const ref
 %typemap(in,checkfn="lua_isstring") const char& (char temp)
 %{temp = ((char*)lua_tostring(L, $input))[0]; $1=&temp;%}
 
@@ -81,7 +81,6 @@
 
 // pointers and references
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE*,SWIGTYPE&,SWIGTYPE[]
-//%{if(SWIG_ConvertPtr(L,$input,(void**)(&$1),$descriptor,SWIG_POINTER_EXCEPTION) == -1) SWIG_fail; %}
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
 
 %typemap(out) SWIGTYPE*,SWIGTYPE&
@@ -353,6 +352,9 @@ Therefore I have not bothered to try doing much in this
 On top of this I an not clear on how best to do this is Lua
 
 Therefore currently its just enough to get a few test cases running ok
+
+note: if you wish to throw anything related to std::exception
+use %include <std_except.i> instead
 */
 %typemap(throws) int,unsigned int,signed int,
 				long,unsigned long,signed long,
@@ -364,11 +366,11 @@ Therefore currently its just enough to get a few test cases running ok
 %{lua_pushfstring(L,"exception thrown of value %d",(long)$1);
 SWIG_fail; %}
 
-#include "exception.h"
-#define SWIG_exception(a,b)\
-{ lua_pushfstring(L,"%s thrown:%s",#a,b);SWIG_fail; }
+// strings are just sent as errors
+%typemap(throws) char*, const char*
+%{lua_pushstring(L,$1);SWIG_fail;%}
 
-
+// anything else is sent as an object
 #ifdef __cplusplus
 	%typemap(throws) SWIGTYPE
 	{
@@ -442,6 +444,17 @@ SWIGEXPORT int SWIG_init(lua_State* L)
 	lua_pop(L,1);                      // tidy stack (remove global table)
 
 	return 1;
+}
+
+// Lua 5.1 has a different name for importing libraries
+// luaopen_XXX, where XXX is the name of the module (not capitalised)
+// this function will allow Lua 5.1 to import correctly
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT int SWIG_import(lua_State* L)
+{
+	return SWIG_init(L);
 }
 
 %}
