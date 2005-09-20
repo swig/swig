@@ -138,8 +138,10 @@ int_typemap(unsigned char);
 }
 %typemap(argout) char OUTPUT[ANY]
 {
-  size_t len = strnlen($1,$1_dim0);
-  RETURN_STRINGL( $1, len );
+  zval *o;
+  MAKE_STD_ZVAL(o);
+  ZVAL_STRINGL(o,temp$argnum,$1_dim0);
+  t_output_helper( &$result, o );
 }
 
 %typemap(in,numinputs=0) void **OUTPUT (int force),
