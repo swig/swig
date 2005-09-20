@@ -869,7 +869,7 @@ csharp_clean:
 
 # lua flags
 LUA_INCLUDE= @LUAINCLUDE@
-LUA_LIB    = @LUALIB@ -llua -llualib
+LUA_LIB    = @LUALIB@ @LUALIBRARY@
 
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@

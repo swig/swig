@@ -1,28 +1,42 @@
 -- import
-function import(module,intoglobal)
+-- the lua 5.0 loading mechanism is rather poor & relies upon the loadlib() fn
+-- the lua 5.1 loading mechanism is simplicity itself
+-- for now we need a bridge which will use the correct verion
+
+function import_5_0(module)
 	-- imports the file into the program
-	-- for a module example
+	-- for a module 'example'
 	-- this must load 'example.dll' or 'example.so'
 	-- and look for the fn 'Example_Init()' (note the capitalisation)
-	
+	if rawget(_G,module)~=nil then return end -- module appears to be loaded
+		
 	-- capitialising the first letter
 	local c=string.upper(string.sub(module,1,1))
 	local fnname=c..string.sub(module,2).."_Init"
 	
-        -- attempt to load the module using Unix and Windows dll/shared object
-	local loadlibrary = loadlib(module..".so",fnname)
-        if loadlibrary == nil then
-          loadlibrary = loadlib(module..".dll",fnname)
-        end
-        assert(loadlibrary~=nil,"could not load module")
-        loadlibrary()
-	
-	-- moving to global namespace
-	if intoglobal then
-		--m=raw_get(_G,module)	-- gets the module object
-		local m=_G[module]	-- gets the module object
-		assert(m~=nil,"no module table found")
-		local k,v
-		for k,v in m do _G[k]=v end
+	local suffix,lib
+	-- note: as there seems to be no way in lua to determine the platform
+	-- we will try loading all possible names
+	-- providing one works, we can load
+	for _,suffix in pairs{".dll",".so"} do
+		lib=loadlib(module..suffix,fnname)
+		if lib then -- found
+			break
+		end
 	end
+	assert(lib,"error loading module:"..module)
+	
+	lib() -- execute the function: initalising the lib
+	local m=rawget(_G,module)	-- gets the module object
+	assert(m~=nil,"no module table found")
+end
+
+function import_5_1(module)
+	require(module)
+end
+
+if string.sub(_VERSION,1,7)=='Lua 5.0' then
+	import=import_5_0
+else
+	import=import_5_1
 end

@@ -1,6 +1,8 @@
 -- demo of lua swig capacilities (operator overloading)
 require("import")	-- the import fn
-import("operator_overload",true)	-- import lib into global
+import("operator_overload")	-- import lib
+
+for k,v in pairs(operator_overload) do _G[k]=v end -- move to global
 
 -- catching undefined variables
 setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})

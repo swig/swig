@@ -1,5 +1,5 @@
 require("import")	-- the import fn
-import("enums",false)	-- import lib
+import("enums")	-- import lib
 
 -- catch "undefined" global variables
 setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
