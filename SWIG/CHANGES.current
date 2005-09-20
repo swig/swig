@@ -1,11 +1,14 @@
 Version 1.3.26 (in progress)
 ============================
 
-09/14/2005: mmatus
+09/20/2005: wsfulton
+            [Lua] Patch from Mark Gossage to add support for Lua-5.1, std::string,
+            std::vector, std::exception and documentation.
 
+09/14/2005: mmatus
 	    [Python] Add -nocppcast. Now the default behavior is to
 	    always use the cppcast operators. Before that was the case
-	    only when you used the -ccpcast option.
+	    only when you used the -cppcast option.
 
             If this seems to break your code... your welcome!, it
 	    means it was broken before, and you never notice. 
@@ -20,6 +23,9 @@ Version 1.3.26 (in progress)
 
 		This change doesn't break compatibility, it was broken before.
 
+09/13/2005: wsfulton
+            [Java] Fix for director methods when a class is passed by value as a
+            parameter.
 
 09/11/2005: mmatus
             Adding the module option to the %import directive. Now you
@@ -60,7 +66,6 @@ Version 1.3.26 (in progress)
 09/11/2005: mmatus
 	    Fix bug #1282637, about the -module option not having effect
 	    in places where it was needed.
-
 
 09/11/2005: wsfulton
             When wrapping variables, ensure that none of the typemaps used for the
