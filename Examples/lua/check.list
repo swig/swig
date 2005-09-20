@@ -1,4 +1,7 @@
 # see top-level Makefile.in
 class
+constants
+functest
+pointer
 simple
 variables
