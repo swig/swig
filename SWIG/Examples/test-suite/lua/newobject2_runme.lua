@@ -1,16 +1,16 @@
 require("import")	-- the import fn
-import("newobject2",true)	-- import code into global
+import("newobject2",true)	-- import code
 
-foo1 = makeFoo()	-- lua doesnt yet support static fns properly
-assert(fooCount() == 1)	-- lua doesnt yet support static fns properly
+foo1 = newobject2.makeFoo()	-- lua doesnt yet support static fns properly
+assert(newobject2.fooCount() == 1)	-- lua doesnt yet support static fns properly
 
-foo2 = makeFoo()
-assert(fooCount() == 2)
+foo2 = newobject2.makeFoo()
+assert(newobject2.fooCount() == 2)
 
 foo1 = nil 
 collectgarbage()
-assert(fooCount() == 1)
+assert(newobject2.fooCount() == 1)
 
 foo2 = nil 
 collectgarbage()
-assert(fooCount() == 0)
+assert(newobject2.fooCount() == 0)
