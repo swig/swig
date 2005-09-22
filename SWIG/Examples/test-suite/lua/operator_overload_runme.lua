@@ -12,11 +12,13 @@ a=Op()
 b=Op(5)
 c=Op(b) -- copy construct
 d=Op(2)
+dd=d; -- assignment operator
 
 -- test equality
 assert(a~=b)
 assert(b==c)
 assert(a~=d)
+assert(d==dd)
 
 -- test <
 assert(a<b)
