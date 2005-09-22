@@ -876,22 +876,26 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="Php.html#Php_nn2">Preliminaries</a>
-<li><a href="Php.html#Php_nn3">Building PHP4 Extensions</a>
+<li><a href="Php.html#Php_nn1">Generating PHP4 Extensions</a>
 <ul>
-<li><a href="Php.html#Php_nn4">Building a loadable extension</a>
-<li><a href="Php.html#Php_nn5">Basic PHP4 interface</a>
-<li><a href="Php.html#Php_nn6">Functions</a>
-<li><a href="Php.html#Php_nn7">Global Variables</a>
-<li><a href="Php.html#Php_nn8">Pointers </a>
-<li><a href="Php.html#Php_nn9">Structures and C++ classes</a>
-<li><a href="Php.html#Php_nn10">Constants</a>
-<li><a href="Php.html#Php_nn11">Proxy classes</a>
-<li><a href="Php.html#Php_nn12">Constructors and Destructers</a>
-<li><a href="Php.html#Php_nn13">Static Member Variables</a>
-<li><a href="Php.html#Php_nn14">PHP4 Pragmas</a>
-<li><a href="Php.html#Php_nn15">Building extensions into php</a>
-<li><a href="Php.html#Php_nn16">To be furthered...</a>
+<li><a href="Php.html#Php_nn1_1">Building a loadable extension</a>
+<li><a href="Php.html#Php_nn1_2">Building extensions into PHP</a>
+<li><a href="Php.html#Php_nn1_3">Using PHP4 Extensions</a>
+</ul>
+<li><a href="Php.html#Php_nn2">Basic PHP4 interface</a>
+<ul>
+<li><a href="Php.html#Php_nn2_1">Constants</a>
+<li><a href="Php.html#Php_nn2_2">Global Variables</a>
+<li><a href="Php.html#Php_nn2_3">Functions</a>
+<li><a href="Php.html#Php_nn2_4">Overloading</a>
+<li><a href="Php.html#Php_nn2_5">Pointers and References</a>
+<li><a href="Php.html#Php_nn2_6">Structures and C++ classes</a>
+<ul>
+<li><a href="Php.html#Php_nn2_6_1">Using <tt>-noproxy</tt></a>
+<li><a href="Php.html#Php_nn2_6_3">Static Member Variables</a>
+<li><a href="Php.html#Php_nn2_6_4">Static Member Functions</a>
+</ul>
+<li><a href="Php.html#Php_nn2_7">PHP4 Pragmas, Startup and Shutdown code</a>
 </ul>
 </ul>
 </div>
@@ -1030,17 +1034,76 @@
 <li><a href="Ruby.html#Ruby_nn2">Preliminaries</a>
 <ul>
 <li><a href="Ruby.html#Ruby_nn3">Running SWIG</a>
+<li><a href="Ruby.html#Ruby_nn4">Getting the right header files</a>
+<li><a href="Ruby.html#Ruby_nn5">Compiling a dynamic module</a>
+<li><a href="Ruby.html#Ruby_nn6">Using your module</a>
+<li><a href="Ruby.html#Ruby_nn7">Static linking</a>
+<li><a href="Ruby.html#Ruby_nn8">Compilation of C++ extensions</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn9">Building Ruby Extensions under Windows 95/NT</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn10">Running SWIG from Developer Studio</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn11">The Ruby-to-C/C++ Mapping</a>
+<ul>
 <li><a href="Ruby.html#Ruby_nn12">Modules</a>
 <li><a href="Ruby.html#Ruby_nn13">Functions</a>
+<li><a href="Ruby.html#Ruby_nn14">Variable Linking</a>
 <li><a href="Ruby.html#Ruby_nn15">Constants</a>
 <li><a href="Ruby.html#Ruby_nn16">Pointers</a>
 <li><a href="Ruby.html#Ruby_nn17">Structures</a>
 <li><a href="Ruby.html#Ruby_nn18">C++ classes</a>
+<li><a href="Ruby.html#Ruby_nn19">C++ Inheritance</a>
+<li><a href="Ruby.html#Ruby_nn20">C++ Overloaded Functions</a>
+<li><a href="Ruby.html#Ruby_nn21">C++ Operators</a>
+<li><a href="Ruby.html#Ruby_nn22">C++ namespaces</a>
+<li><a href="Ruby.html#Ruby_nn23">C++ templates</a>
+<li><a href="Ruby.html#ruby_cpp_smart_pointers">C++ Smart Pointers</a>
+<li><a href="Ruby.html#Ruby_nn25">Cross-Language Polymorphism</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn26">Exception Unrolling</a>
 </ul>
+</ul>
+<li><a href="Ruby.html#Ruby_nn27">Input and output parameters</a>
+<li><a href="Ruby.html#Ruby_nn28">Simple exception handling </a>
 <li><a href="Ruby.html#Ruby_nn29">Typemaps</a>
 <ul>
+<li><a href="Ruby.html#Ruby_nn30">What is a typemap?</a>
+<li><a href="Ruby.html#Ruby_nn31">Ruby typemaps</a>
+<li><a href="Ruby.html#Ruby_nn32">Typemap variables</a>
+<li><a href="Ruby.html#Ruby_nn33">Useful Functions</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn34">C Datatypes to Ruby Objects</a>
+<li><a href="Ruby.html#Ruby_nn35">Ruby Objects to C Datatypes</a>
+<li><a href="Ruby.html#Ruby_nn36">Macros for VALUE</a>
 <li><a href="Ruby.html#Ruby_nn37">Exceptions</a>
 <li><a href="Ruby.html#Ruby_nn38">Iterators</a>
+</ul>
+<li><a href="Ruby.html#ruby_typemap_examples">Typemap Examples</a>
+<li><a href="Ruby.html#Ruby_nn40">Converting a Ruby array to a char **</a>
+<li><a href="Ruby.html#Ruby_nn41">Collecting arguments in a hash</a>
+<li><a href="Ruby.html#Ruby_nn42">Pointer handling</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn43">Ruby Datatype Wrapping</a>
+</ul>
+</ul>
+<li><a href="Ruby.html#ruby_operator_overloading">Operator overloading</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn45">Example: STL Vector to Ruby Array</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn46">Advanced Topics</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn47">Creating Multi-Module Packages</a>
+<li><a href="Ruby.html#Ruby_nn48">Defining Aliases</a>
+<li><a href="Ruby.html#Ruby_nn49">Predicate Methods</a>
+<li><a href="Ruby.html#Ruby_nn50">Specifying Mixin Modules</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn51">Memory Management</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn52">Mark and Sweep Garbage Collector </a>
+<li><a href="Ruby.html#Ruby_nn53">Object Ownership</a>
+<li><a href="Ruby.html#Ruby_nn54">Free Functions</a>
+<li><a href="Ruby.html#Ruby_nn55">Mark Functions</a>
 </ul>
 </ul>
 </div>
@@ -1150,25 +1213,8 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lua.html#Lua">30 SWIG and Common Lisp</a></h3>
+<h3><a href="Extending.html#Extending">30 Extending SWIG</a></h3>
 
-<!-- INDEX -->
-<div class="sectiontoc">
-<ul>
-<li><a href="Lisp.html#Lisp_nn2">Allegro Common Lisp</a>
-<li><a href="Lisp.html#Lisp_nn3">CLISP</a>
-<ul>
-<li><a href="Lisp.html#Lisp_nn4">Additional Commandline Options</a></li>
-<li><a href="Lisp.html#Lisp_nn5">Details on CLISP bindings</a></li>
-</ul>
-<li><a href="Lisp.html#Lisp_nn6">UFFI</a>
-</ul>
-</div>
-
-<!-- INDEX -->
-
-<h3><a href="Extending.html#Extending">31 Extending SWIG</a></h3>
-    
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
