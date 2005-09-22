@@ -1,6 +1,6 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.25
+Release: SWIG-1.3.26
 
 $Header$
 -----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ defer  ready to go.  The primary obstacle lies in the target language
        an implementation that is better integrated with symbol table
        management.  Continue to consolidate SWIG directives to %feature.
 
-***    Bring Aquinas' contract/assertion checking code online.
+[done] Bring Aquinas' contract/assertion checking code online.
 
 ***    Add more intelligent information related to object ownership.
        SWIG should be able to automatically strip ownership from
@@ -148,7 +148,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 Build
 -----
 
-****   Make sure there are tests for *ALL* library files in the test-suite.
+[done] Make sure there are tests for *ALL* library files in the test-suite.
        A number of files appear to be broken in SWIG-1.3.13.
 
 Library
