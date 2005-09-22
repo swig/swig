@@ -2,6 +2,10 @@
 %module example
 
 %{
+#ifdef max
+#undef max
+#endif
+
 #include "example.h"
 %}
 
