@@ -1,11 +1,11 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.25 (June 11, 2005)
+Version: 1.3.26 (October 1, 2005)
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         Java, Ruby, PHP, Ocaml, Pike, C#, Modula-3, CHICKEN, and
-         Allegro Common Lisp.
+         Java, Lua, Ruby, PHP, Ocaml, Pike, C#, Modula-3, CHICKEN
+         and Allegro Common Lisp.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -20,7 +20,6 @@ Active Developers:
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
- Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
  Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
@@ -31,6 +30,7 @@ Active Developers:
  John Lenz                                              (Guile, MzScheme updates, Chicken module)
 
 Major contributors include:
+ Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Richard Palmer (richard@magicality.org)                (PHP)
  Sam Liddicott (saml@liddicott.com)                     (PHP)
@@ -69,6 +69,14 @@ Information about SWIG is also available in Japanese translation at
 
 What's New?
 ===========
+
+SWIG-1.3.26 summary:
+- New language modules: Lua, CLisp and Common Lisp with UFFI.
+- Big overhaul to the PHP module.
+- Change to the way 'extern' is handled.
+- Minor bug fixes specific to  C#, Java, Modula3, Ocaml, Allegro CL,
+  Xml Tcl, Ruby and Python modules.
+- Other minor improvements and bug fixes.
 
 SWIG-1.3.25 summary:
 - Improved runtime type system.  Speed of module loading improved in
