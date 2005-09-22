@@ -27,6 +27,7 @@
 <li><a href="#Php_nn2_6">Structures and C++ classes</a>
 <ul>
 <li><a href="#Php_nn2_6_1">Using <tt>-noproxy</tt></a>
+<li><a href="#Php_nn2_6_2">Constructors and Destructers</a>
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
 </ul>
@@ -554,7 +555,7 @@ not be silently converted.  So these two functions:
 </p>
 
 <div class="code"><pre>
-void doit( const Vector & );
+void doit( const Vector &amp; );
 void doit( int i );
 </pre></div>
 
@@ -575,7 +576,7 @@ as PHP resources, rather like MySQL connection handles.
 <p>
 There are multiple ways to wrap pointers to simple types.  Given the
 following C method:
-<p>
+</p>
 
 <div class="code"><pre>
   void add( int *in1, int *in2, int *result);
@@ -672,7 +673,7 @@ include("example.php");
 $in1 = 3;
 $in2 = 5;
 $result = 0;
-add(&$in1,&$in2,&$result);
+add(&amp;$in1,&amp;$in2,&amp;$result);
 
 echo "The sum $in1 + $in2 = $result\n";
 ?>
@@ -726,7 +727,7 @@ struct Complex {
 
 <p>
 Would be used in the following way:
-<p>
+</p>
 
 <div class="code"><pre>
 &lt;?php
@@ -779,7 +780,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>24.2.6.2 Constructors and Destructers</H3>
+<H4><a name="Php_nn2_6_2"></a>24.2.6.2 Constructors and Destructers</H4>
 
 
 <p>
@@ -820,7 +821,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>24.2.6.2 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>24.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -860,7 +861,7 @@ Ko::threats(10);
 echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>24.2.6.3 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>24.2.6.4 Static Member Functions</H4>
 
 
 <p>
