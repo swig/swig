@@ -7,7 +7,31 @@ see bottom for a set of possible tests
 %module operator_overload
 
 #if defined(SWIGPYTHON)
-%warnfilter(362,361,389,503);
+%warnfilter(362,389);
+#endif
+
+#if !defined(SWIGLUA)
+%rename(Equal) operator =;
+%rename(PlusEqual) operator +=;
+%rename(MinusEqual) operator -=;
+%rename(MultiplyEqual) operator *=;
+%rename(DivideEqual) operator /=;
+%rename(PercentEqual) operator %=;
+%rename(Plus) operator +;
+%rename(Minus) operator -;
+%rename(Multiply) operator *;
+%rename(Divide) operator /;
+%rename(Percent) operator %;
+%rename(Not) operator !;
+%rename(IndexIntoConst) operator[](unsigned idx) const;
+%rename(IndexInto) operator[](unsigned idx);
+%rename(Functor) operator ();
+%rename(EqualEqual) operator ==;
+%rename(NotEqual) operator !=;
+%rename(LessThan) operator <;
+%rename(LessThanEqual) operator <=;
+%rename(GreaterThan) operator >;
+%rename(GreaterThanEqual) operator >=;
 #endif
 
 %inline %{
@@ -100,13 +124,12 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 	{	return (*self)[i];	}
 	void __setitem__(unsigned i,int v)
 	{	(*self)[i]=v;	}
-
 }
 
 /*
 Suggested list of operator overloads (mainly from python)
 
-Operators overloaded with their C++ equivilent
+Operators overloaded with their C++ equivalent
 __add__,__sub__,__mul__,__div__,__mod__	+,-,*,/,%
 __iadd__,__isub__,__imul__,__idiv__,__imod__	+=,-=,*=,/=,%=
 
@@ -137,11 +160,13 @@ int main(int argc,char** argv)
 	Op b=5;
 	Op c=b;	// copy construct
 	Op d=2;
+        Op dd=d; // assignment operator
 
 	// test equality
 	assert(a!=b);
 	assert(b==c);
 	assert(a!=d);
+        assert(d==dd);
 
 	// test <
 	assert(a<b);
