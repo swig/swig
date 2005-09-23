@@ -76,7 +76,7 @@ SWIG-1.3.26 summary:
 - Big overhaul to the PHP module.
 - Change to the way 'extern' is handled.
 - Minor bug fixes specific to  C#, Java, Modula3, Ocaml, Allegro CL,
-  Xml Tcl, Ruby and Python modules.
+  XML, Lisp s-expressions, Tcl, Ruby and Python modules.
 - Other minor improvements and bug fixes.
 
 SWIG-1.3.25 summary:
