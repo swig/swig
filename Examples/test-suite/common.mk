@@ -147,6 +147,7 @@ CPP_TEST_CASES += \
 	grouping \
 	ignore_parameter \
 	import_nomodule \
+	inherit \
 	inherit_missing \
 	inherit_same_name \
 	inherit_void_arg \
