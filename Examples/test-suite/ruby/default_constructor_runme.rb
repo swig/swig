@@ -18,6 +18,10 @@ begin
   b = B.new
 rescue ArgumentError
   # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::BB
+	exceptionRaised = true
 end
 
 # The two-argument constructor for B should work
@@ -29,6 +33,10 @@ begin
   puts "Whoa. new BB created."
 rescue NoConstructorError
   # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::BB
+	exceptionRaised = true
 end
 
 # C's constructor is protected, so this should raise an exception
@@ -36,6 +44,14 @@ begin
   c = C.new
   print "Whoa. new C created."
 rescue NoConstructorError
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::C
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::C
   # pass
 end
 
@@ -48,6 +64,10 @@ begin
   puts "Whoa. new D created"
 rescue NoConstructorError
   # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::D
+  # pass
 end
 
 # DD shouldn't get a default constructor, so this should fail
@@ -56,6 +76,18 @@ begin
   puts "Whoa. new DD created"
 rescue NoConstructorError
   # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::DD
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::D
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::DD
+  # pass
 end
 
 # AD shouldn't get a default constructor, so this should fail
@@ -63,6 +95,14 @@ begin
   ad = AD.new
   puts "Whoa. new AD created"
 rescue NoConstructorError
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::AD
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::AD
   # pass
 end
 
@@ -78,6 +118,14 @@ begin
   eb = EB.new
   puts "Whoa. new EB created"
 rescue NoConstructorError
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::EB
+  # pass
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Default_constructor::EB
   # pass
 end
 

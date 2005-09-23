@@ -12,6 +12,10 @@ begin
   Foo.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_inherit_ok::Foo
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end
