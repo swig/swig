@@ -2,6 +2,10 @@ Version 1.3.26 (in progress)
 ============================
 
 09/20/2005: wsfulton
+            [Perl] Patch 1116431 from Josh Cherry. Fixes non member functions inadvertently
+            being called instead of member functions.
+
+09/20/2005: wsfulton
             [Lua] Patch from Mark Gossage to add support for Lua-5.1, std::string,
             std::vector, std::exception and documentation.
 
