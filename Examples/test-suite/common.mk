@@ -280,6 +280,7 @@ CPP_TEST_CASES += \
 	template_whitespace \
 	threads \
 	throw_exception \
+	track_objects \
 	typedef_array_member \
 	typedef_class \
 	typedef_funcptr \
