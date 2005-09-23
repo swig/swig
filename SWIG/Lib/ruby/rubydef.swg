@@ -62,16 +62,27 @@ SWIG_Ruby_define_class(swig_type_info *type)
 
 /* Create a new pointer object */
 static VALUE
-SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int own)
+SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
 {
+	 int own = flags & SWIG_POINTER_OWN;
+	 int track = flags & SWIG_TRACK_OBJECTS;
+	 
     char *klass_name;
     swig_class *sklass;
     VALUE klass;
     VALUE obj;
     
     if (!ptr)
-	return Qnil;
+      return Qnil;
     
+    /* Have we already wrapped this pointer? */
+    if (track) {
+	    obj = SWIG_RubyInstanceFor(ptr);
+   	 if (obj != Qnil) {
+      	return obj;
+    	}
+    }
+		
     if (type->clientdata) {
       sklass = (swig_class *) type->clientdata;
       obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
@@ -83,6 +94,12 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int own)
       obj = Data_Wrap_Struct(klass, 0, 0, ptr);
     }
     rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
+    
+    /* Keep track of this object if necessary */
+    if (track) {
+	   SWIG_RubyAddTracking(ptr, obj);
+    }
+   
     return obj;
 }
 
@@ -121,11 +138,21 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
   }
   
   /* Check to see if the input object is giving up ownership
-     of the underlying C struct or C++ object.  If so, then
-     set the free function to nil so that the C struct
-     is not freed when the Ruby object goes out of scope.*/
+     of the underlying C struct or C++ object.  If so then we
+     need to reset the destructor since the Ruby object no 
+     longer owns the underlying C++ object.*/ 
   if (flags & SWIG_POINTER_DISOWN) {
-    RDATA(obj)->dfree = 0;
+	 if (flags & SWIG_TRACK_OBJECTS) {
+      /* We are tracking objects.  Thus we change the destructor
+		 * to SWIG_RubyRemoveTracking.  This allows us to
+		 * remove the mapping from the C++ to Ruby object
+		 * when the Ruby object is garbage collected.  If we don't
+		 * do this, then it is possible we will return a reference 
+		 * to a Ruby object that no longer exists thereby crashing Ruby. */
+		RDATA(obj)->dfree = SWIG_RubyRemoveTracking;
+  	 } else {    
+      RDATA(obj)->dfree = 0;
+    }
   }
 
   /* Do type-checking if type info was provided */
