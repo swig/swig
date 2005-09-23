@@ -1147,10 +1147,7 @@ public:
       /* If we are inheriting from a base class, set that up */
 
 
-      Printv(pm, "@ISA = qw( ", NIL);
-      if (!compat || Cmp(fullmodule, fullclassname)) {
-	Printv(pm, fullmodule, NIL);
-      }
+      Printv(pm, "@ISA = qw(", NIL);
 
       /* Handle inheritance */
       List *baselist = Getattr(n,"bases");
@@ -1167,6 +1164,12 @@ public:
 	  b = Next(b);
 	}
       }
+
+      /* Module comes last */
+      if (!compat || Cmp(fullmodule, fullclassname)) {
+        Printv(pm, " ", fullmodule, NIL);
+      }
+
       Printf(pm, " );\n");
 
       /* Dump out a hash table containing the pointers that we own */
