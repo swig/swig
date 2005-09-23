@@ -6,7 +6,9 @@
 
 /* Flags for pointer conversion */
 #define SWIG_POINTER_EXCEPTION     0x1
+#define SWIG_POINTER_OWN           0x1
 #define SWIG_POINTER_DISOWN        0x2
+#define SWIG_TRACK_OBJECTS	        0x4
 
 #define NUM2USHRT(n) (\
     (0 <= NUM2UINT(n) && NUM2UINT(n) <= USHRT_MAX)\
