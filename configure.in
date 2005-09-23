@@ -435,7 +435,8 @@ if test x"${with_tclconfig}" != x ; then
 fi
 # check in a few common install locations
 if test x"${TCLCONFIG}" = x ; then
-    for i in `ls -d /usr/lib 2>/dev/null` `ls -d /usr/local/lib 2>/dev/null` ; do
+    for i in `ls -d /usr/lib 2>/dev/null` \
+	    `ls -d /usr/local/lib 2>/dev/null` ; do
 	if test -f "$i/tclConfig.sh" ; then
 	    TCLCONFIG=`(cd $i; pwd)`
 	    break
@@ -1225,7 +1226,8 @@ AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path],
   [PIKECONFIG="$withval"], [PIKECONFIG=""])
 
 if test -z "$PIKECONFIG" -a -n "$PIKE"; then
-	AC_CHECK_PROGS(PIKECONFIG, $PIKE-config pike-config pike7.6-config pike7.4-config pike7.2-config)
+	AC_CHECK_PROGS(PIKECONFIG, $PIKE-config pike-config \
+		pike7.6-config pike7.4-config pike7.2-config)
 fi
 
 # Check for a --with-pikeincl option to configure
