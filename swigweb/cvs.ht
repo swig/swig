@@ -31,7 +31,9 @@ to install these tools on your machine for everything to work.
 <h3>To check out the latest version </h3>
 There are
 <a href="http://sourceforge.net/cvs/?group_id=1645">generic CVS instructions</a>
-available on the SourceForge site, but the following steps should be all you need.
+available on the SourceForge site, but the steps below should be all you need.
+The instructions below are for those who have read only access for cvs, developers should
+consult the generic CVS instructions above.
 
 <ol>
 <li><p> Set the location of CVSROOT
