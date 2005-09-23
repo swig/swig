@@ -1,4 +1,4 @@
-require 'abstract_inherit'
+	require 'abstract_inherit'
 
 include Abstract_inherit
 
@@ -13,6 +13,10 @@ begin
   Foo.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_inherit::Foo
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end
@@ -22,6 +26,10 @@ begin
   Bar.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_inherit::Bar
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end
@@ -31,6 +39,10 @@ begin
   Spam.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_inherit::Spam
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end

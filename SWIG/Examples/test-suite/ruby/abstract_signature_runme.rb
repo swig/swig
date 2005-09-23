@@ -12,6 +12,10 @@ begin
   Abstract_foo.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_signature::Abstract_foo
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end
@@ -26,6 +30,10 @@ begin
   Abstract_bar.new
 rescue NameError
   exceptionRaised = true
+rescue TypeError
+  # In Ruby 1.8 the exception raised is:
+  # TypeError: allocator undefined for Abstract_signature::Abstract_bar
+	exceptionRaised = true
 ensure
   raise RuntimeError unless exceptionRaised
 end
