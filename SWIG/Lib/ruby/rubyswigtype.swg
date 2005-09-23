@@ -121,6 +121,16 @@
 
 /* --- directorin typemaps --- */
 
+%typemap(directorin) SWIGTYPE*
+        "$input = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
+
+%typemap(directorin) SWIGTYPE
+        "$input = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
+
+%typemap(directorin) SWIGTYPE&
+        "$input = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
+
+
 /* --- directorout typemaps --- */
 %typemap(directorout) SWIGTYPE *,
                       SWIGTYPE &,
