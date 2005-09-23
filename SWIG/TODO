@@ -247,10 +247,6 @@ Guile
        SWIG type descriptors; enable reflection on types.  (Maybe
        GOOPS metaclasses?)
 
-**     Maybe communicate the type system between object modules via Scheme
-       variables, rather than a shared object.  This would remove the
-       need of a shared SWIG runtime library.
-
 **     Provide a clean way to construct type predicates.
 
 **     In GOOPS mode, maybe make overloaded functions methods. 
