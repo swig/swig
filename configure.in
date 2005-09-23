@@ -1023,7 +1023,21 @@ if test -n "$RUBY"; then
             else # 1.6.x
                 link = "-l" + c[["RUBY_INSTALL_NAME"]]
             end
-            puts link') 2>/dev/null`
+            
+            # Get the target Ruby was built for
+            target = c[["target"]]
+           
+            if target == "i386-pc-mswin32"
+              # Need to change msvcrt-ruby*.lib to -lmsvcrt-ruby*
+              ext = File.extname(link)
+              # Get index that counts backwards from end of string
+              index = -1 - ext.size
+              # Strip off the extension
+              link = link.slice(0..index)
+              puts "-l#{link}"
+            else
+              puts link
+            end') 2>/dev/null`
 
 		if test "$rb_libruby" != ""; then
 			for i in $dirs; do
@@ -1044,7 +1058,12 @@ if test -n "$RUBY"; then
 		RUBYINCLUDE="-I$RUBYDIR"
 		RUBYLIB="$RUBYDIR"
 	fi
-	RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
+
+	case $host in
+		*-*-mingw*) ;; # do nothing, the default windows libraries are already included
+		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`";;
+	esac
+
 	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
