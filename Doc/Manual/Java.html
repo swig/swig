@@ -378,7 +378,6 @@ The most common cause for this is an incorrect naming of the native library for 
 The string passed to the <tt>loadLibrary</tt> function must not include the file extension name in the string, that is <i>.dll</i> or <i>.so</i>. 
 The string must be <i>name</i> and not <i>libname</i> for all platforms. 
 On Windows the native library must then be called <i>name.dll</i> and on most Unix systems it must be called <i>libname.so</i>. 
-If you are debugging using <tt> java -debug</tt>, then the native library must be called <i>name_g.dll</i> on Windows and <i>libname_g.so</i> on Unix.
 </p>
 
 <p>
@@ -6170,7 +6169,7 @@ To implement this, we use the above interface file code but remove the <tt>javac
 </div>
 
 <p>
-Not that the code in <tt>%extend</tt> is using a C++ type constructor and destructor, yet the generated code will still compile as C code,
+Note that the code in <tt>%extend</tt> is using a C++ type constructor and destructor, yet the generated code will still compile as C code,
 see <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>.
 The C functional interface has been completely morphed into an object-oriented interface and
 the Butler class would behave much like any pure Java class and feel more natural to Java users.
