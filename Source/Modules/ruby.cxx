@@ -465,6 +465,9 @@ public:
 	   NIL);
     Printf(f_init,"\n");
 
+    /* Initialize code to keep track of objects */
+    Printf(f_init,"SWIG_RubyInitializeTrackings();\n");
+    
     Language::top(n);
 
     /* Finish off our init function */
@@ -724,12 +727,23 @@ public:
       Replaceall(tm,"$target",ln);
       Replaceall(tm,"$source",source);
       Replaceall(tm,"$input",source);
+
       if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
 	Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
       } 
       else {
 	Replaceall(tm,"$disown","0");
       }
+
+	   /* Are we tracking the type represented by the
+	    * object being disowned?  Note this code cannot 
+	    * go into the first part of the wrap:disown if 
+	    * statement above because that is not activated 
+	    * when the SWIGTYPE *DISOWN type map is applied. */      
+      if (trackType(pt)) {
+        setTrackObjectsFlagForConvertPtr(tm);
+      }	
+		
       Setattr(p,"emit:input",Copy(source));
       Printf(f->code,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");
@@ -902,6 +916,14 @@ public:
 	Replaceall(tm,"$result","vresult");
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
+	     
+	     /* Are we tracking the type that is being returned
+	      * by this output parameter? */
+		  SwigType *pt = Getattr(p,"type");
+	     if (pt && trackType(pt)) {
+          setTrackObjectsFlagForNewPointer(tm);
+        }
+     
 	Printv(outarg,tm,"\n",NIL);
 	need_result = 1;
 	p = Getattr(p,"tmap:argout:next");
@@ -937,6 +959,91 @@ public:
     }
     return 1;
   }
+  
+  /* ---------------------------------------------------------------------
+   * trackType()
+   *
+   * Returns whether this type should be tracked.
+   * --------------------------------------------------------------------- */
+  bool trackType(SwigType* aType) {
+    /* Get the base type */
+    SwigType* baseType = SwigType_base(aType);
+    Node* classNode =  classLookup(baseType);
+    
+    if (classNode && Getattr(classNode, "feature:trackobjects")) {
+	   return true;
+    } else {
+    	return false;
+    }
+  }    
+    
+  /* ---------------------------------------------------------------------
+   * setTrackObjectsFlagForConvertPtr()
+   *
+   * Adds "|SWIG_TRACK_OBJECTS" flag to be passed to SWIG_ConvertPtr
+   * --------------------------------------------------------------------- */
+  void setTrackObjectsFlagForConvertPtr(String* originalString) {
+    /* If feature:trackobjects is defined for a class and an object
+     * of that class is giving up ownership of the underlying C++
+     * object, then we need to set the SWIG_TRACK_OBJECTS flag.
+	  * This notifies the SWIG_ConvertPtr method so that it can
+	  * appropriately reset the free function of the object.*/
+	  
+    Replaceall(originalString, "SWIG_POINTER_DISOWN",
+               "SWIG_POINTER_DISOWN | SWIG_TRACK_OBJECTS");
+  }	
+  	
+  /* ---------------------------------------------------------------------
+   * setTrackObjectsFlagForNewPointer()
+   *
+   * Adds "|SWIG_TRACK_OBJECTS" flag to be passed to SWIG_NewPointer
+   * --------------------------------------------------------------------- */
+  void setTrackObjectsFlagForNewPointer(String* originalString) {
+    /* If feature:trackobjects is defined for a class then
+	  * we want to send a flag to the SWIG_NewPointerObj method.
+	  * Unfortunately, this implementation is quite awful. 
+     * We want to change code like this:
+     * 
+	  * 	SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Foo,0);
+	  * 
+	  * To this:
+	  * 
+	  * 	SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Foo,0|SWIG_TRACK_OBJECTS);
+	  *
+	  * A better implemenation would be to introduce a $track_objects
+	  * marker, similar to how $disown and $owner now work.  However,
+	  * that would require changing all typemaps that currently
+	  * call SWIG_NewPointerObj which did not seem like a good idea.
+	  * 
+	  * The reason why passing a flag to SWIG_NewPointerObj is the best
+	  * implemenation is that:
+	  * 	- it already is aware of object tracking since it uses
+	  *     the SWIG_RubyInstanceFor method - thus this is more 
+	  *     cohesive
+	  * 	- it centers most object tracking code in SWIG_NewPointerObj and
+	  *     SWIG_ConvertPtr as opposed to scattering it all over the place.
+	  *   - it allows SWIG_NewPointerObj to be optimized so that
+	  * 	  SWIG_RubyInstanceFor is called only for objects that the
+	  *     user as marked to track */
+		
+     /* Look for the string SWIG_NewPointerObj */
+     char* start = Strstr(originalString, "SWIG_NewPointerObj");
+			
+     if (start) {
+       /* Okay - found it.  We now replace ); with "|SWIG_TRACK_OBJECTS);"
+        * Of course, we only want to replace the first occurence we see.
+        * Note this code is easily subverted if a user types in 
+        * "SWIG_NewPointerObj(a,b) ;
+        * 
+        * It would be best if we could call the replace method
+		  * on start, but that does not work because replace only
+		  * works on string objects (although the documenation 
+		  * implies otherwise.*/
+   	  String* replaceString = NewString(start);
+		  Replace(replaceString, ");", "|SWIG_TRACK_OBJECTS);", DOH_REPLACE_FIRST);
+		  Replace(originalString, start, replaceString, DOH_REPLACE_FIRST);
+	  }
+  }	
   
   /* ---------------------------------------------------------------------
    * functionWrapper()
@@ -1104,7 +1211,11 @@ public:
       if (current == CONSTRUCTOR_INITIALIZE) {
 	String *action = Getattr(n,"wrap:action");
 	if (action) {
-	  Append(action,"DATA_PTR(self) = result;");
+	  Append(action,"DATA_PTR(self) = result;\n");
+
+    if (Getattr(n,"feature:trackobjects")) {
+		  Append(action,"SWIG_RubyAddTracking(result, self);\n");
+    }
 	}
       }
       emit_action(n,f);
@@ -1121,16 +1232,21 @@ public:
 	  Replaceall(tm,"$result","vresult");
 	  Replaceall(tm,"$source","result");
 	  Replaceall(tm,"$target","vresult");
+
           if (Getattr(n, "feature:new"))
             Replaceall(tm,"$owner", "1");
           else
             Replaceall(tm,"$owner", "0");
 
+          if (trackType(t)) {
+	         setTrackObjectsFlagForNewPointer(tm);
+          }
+            
           // FIXME: this will not try to unwrap directors returned as non-director
           //        base class pointers!
     
           /* New addition to unwrap director return values so that the original
-           * python object is returned instead. 
+           * Ruby object is returned instead. 
            */
           bool unwrap = false;
           String *decl = Getattr(n, "decl");
@@ -1837,6 +1953,7 @@ public:
     Printv(freebody, "static void\n",
 	   freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
 	   tab4, NIL);
+
     if (Extend) {
       String *wrap = Getattr(n, "wrap:code");
       if (wrap) {
@@ -1856,7 +1973,11 @@ public:
 	  Printf(freebody, "free((char*) %s);\n", Swig_cparm_name(0,0));
       }
     }
-    Printv(freebody, "}\n", NIL);
+    
+    	    if (Getattr(n,"feature:trackobjects")) {
+    		 Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", Swig_cparm_name(0,0));
+	    }
+    Printv(freebody, "}\n\n", NIL);
   
     Printv(f_wrappers, freebody, NIL);
   
