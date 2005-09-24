@@ -87,6 +87,9 @@ extend_default
 extend_placement
 extend_template
 extend_template_ns
+extend_variable
+extern_declaration
+extern_namespace
 extern_throws
 features
 friends
@@ -98,6 +101,7 @@ ignore_parameter
 import_nomodule
 imports
 inctest
+inherit
 inherit_missing
 inherit_same_name
 inherit_void_arg
@@ -136,6 +140,7 @@ name_warnings
 nested
 newobject1
 newobject2
+operator_overload
 ordering
 overload_copy
 overload_extend
@@ -238,10 +243,12 @@ template_typedef_import
 template_typedef_ns
 template_typedef_ptr
 template_type_namespace
+template_using
 template_virtual
 template_whitespace
 threads
 throw_exception
+track_objects
 typedef_array_member
 typedef_class
 typedef_funcptr
