@@ -1,7 +1,11 @@
+makefile
 Makefile
 Makefile.lnk
+php_example.h
+example.php
 *_wrap.c
 *_wrap.cxx
+*_wrap.cpp
 *.dll
 *.dsw
 *.exp
