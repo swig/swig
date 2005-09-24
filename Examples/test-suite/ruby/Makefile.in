@@ -9,11 +9,13 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+CPP_TEST_CASES = \
+	track_objects
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-CPP_TEST_CASES = \
-	track_objects
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 
