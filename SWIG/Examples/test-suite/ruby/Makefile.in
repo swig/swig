@@ -12,7 +12,8 @@ top_builddir = @top_builddir@
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+CPP_TEST_CASES = \
+	track_objects
 
 # Rules for the different types of tests
 %.cpptest: 
