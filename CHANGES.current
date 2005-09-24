@@ -4,7 +4,8 @@ Version 1.3.26 (in progress)
 09/24/2005: cfisavage
             [Ruby] Adds new %trackobjects functionality that maps C++ objects to
             Ruby objects.  This functionality makes it much easier to implement
-            mark functions for the garbage collector.
+            mark functions for the garbage collector.  For more information
+            refer to the update documentation and examples.
             
 09/20/2005: wsfulton
             [Perl] Patch 1116431 from Josh Cherry. Fixes non member functions inadvertently
