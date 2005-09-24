@@ -923,9 +923,10 @@ Assuming that you had some global data that you wanted to share between C and Lu
 extern double Foo;
 </pre></div>
 <p>
-SWIG will effectively generate the pair of functions <div class="code"><pre>void Foo_set(double);
-double Foo_get();
+SWIG will effectively generate the pair of functions
 </p>
+<div class="code"><pre>void Foo_set(double);
+double Foo_get();
 </pre></div>
 <p>
 At initialisation time, it will then add to the interpreter a table called 'example', which represents the module. It will then add all its functions to the module. But it also adds a metatable to this table, which has two functions (<tt>__index</tt> and <tt>__newindex</tt>) as well as two tables (<tt>.get</tt> and <tt>.set</tt>) The following Lua code will show these hidden features.
