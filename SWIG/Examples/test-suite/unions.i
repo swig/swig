@@ -4,6 +4,14 @@ This testcase checks that unions can be set and read.
 
 %module unions
 
+%{
+/* Must undefine small to work on Windows.  small is defined as a
+char in rpcndr.h */
+#ifdef small
+#undef small	
+#endif
+%}
+
 %inline %{
 
 typedef struct SmallStruct {
