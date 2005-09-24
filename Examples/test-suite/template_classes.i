@@ -3,6 +3,9 @@
 
 %module template_classes
 
+%{
+%}
+
 %inline %{
 
 template <class T>
@@ -14,7 +17,7 @@ private:
 };
 
 template <class T>
-class Rectangle {
+class RectangleTest {
 public:
   Point<T>& getPoint() {return point;}
   void setPoint(Point<T>& value) {point = value;}
@@ -25,6 +28,6 @@ private:
 %}
 
 %template(PointInt) Point<int>;
-%template(RectangleInt) Rectangle<int>;
+%template(RectangleInt) RectangleTest<int>;
 
 
