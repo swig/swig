@@ -10,7 +10,8 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
-	track_objects
+	track_objects \
+	track_objects_directors
 
 include $(srcdir)/../common.mk
 
