@@ -2,12 +2,14 @@
 class
 constants
 enum
+free_function
 funcptr
 funcptr2
 functor
 hashargs
 import
 import_template
+mark_function
 mpointer
 multimap
 operator
