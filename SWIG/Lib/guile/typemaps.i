@@ -57,6 +57,30 @@
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
 }
 
+%typemap(throws) SWIGTYPE {
+  $&ltype temp = new $ltype($1);
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(SWIG_NewPointerObj(temp, $&descriptor, 1),
+		    SCM_UNDEFINED));
+}
+
+%typemap(throws) SWIGTYPE & {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(SWIG_NewPointerObj(&$1, $&descriptor, 1),
+		    SCM_UNDEFINED));
+}
+
+%typemap(throws) SWIGTYPE * {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(SWIG_NewPointerObj($1, $&descriptor, 1),
+		    SCM_UNDEFINED));
+}
+
+%typemap(throws) SWIGTYPE [] {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(SWIG_NewPointerObj($1, $&descriptor, 1),
+		    SCM_UNDEFINED));
+}
 
 /* Change of object ownership, and interaction of destructor-like functions and the
    garbage-collector */
@@ -178,6 +202,12 @@
  %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME &
      { C_NAME swig_c_value = *$1;
        $result = C_TO_SCM_EXPR; }
+ /* Throw typemap */
+ %typemap(throws) C_NAME {
+   C_NAME swig_c_value = $1;
+   scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	     gh_list(C_TO_SCM_EXPR, SCM_UNDEFINED));
+ }
 %enddef
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
@@ -216,6 +246,11 @@
  }
  %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME & {
    $result = C_TO_SCM(*$1);
+ }
+ /* Throw typemap */
+ %typemap(throws) C_NAME {
+   scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	     gh_list(C_TO_SCM($1), SCM_UNDEFINED));
  }
 %enddef
 
@@ -279,6 +314,11 @@
 
 %typemap (varin) const char * {
     $1 = SWIG_scm2str($input);
+}
+
+%typemap(throws) char * {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(gh_str02scm($1), SCM_UNDEFINED));
 }
 
 /* Void */
