@@ -1,4 +1,3 @@
-require 'test/unit'
 require 'track_objects_directors'
 	
 class MyFoo < Track_objects_directors::Foo
