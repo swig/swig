@@ -1,6 +1,9 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/25/2005: mkoeppe
+	    [Guile] Add "throws" typemaps.
+
 09/24/2005: cfisavage
             [Ruby] Adds new %trackobjects functionality that maps C++ objects to
             Ruby objects.  This functionality makes it much easier to implement
