@@ -26,6 +26,7 @@ public:
   virtual void          foo_meth_ptr(Foo_int *, int);
   virtual void          foo_meth_val(Foo_int, int);
   virtual void          foo_meth_cref(const Foo_int &, int);
+  virtual void          foo_meth_cptr(const Foo_int *, int);
 };
 
 Bar::~Bar()
@@ -41,6 +42,7 @@ void Bar::foo_meth_ref(Foo_int &arg, int param) { }
 void Bar::foo_meth_ptr(Foo_int *arg, int param) { }
 void Bar::foo_meth_val(Foo_int arg, int param) { }
 void Bar::foo_meth_cref(const Foo_int &arg, int param) { }
+void Bar::foo_meth_cptr(const Foo_int *arg, int param) { }
 %}
 
 %template(Foo_integers) Foo<int>;

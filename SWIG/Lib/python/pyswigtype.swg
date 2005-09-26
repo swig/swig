@@ -295,8 +295,13 @@
   $input = SWIG_NewPointerObj(SWIG_static_cast(SWIG_static_cast(&$1_name, $1_ltype), void*), $descriptor, 0);
 }
 
+/* the const cases */
 %typemap(directorin) SWIGTYPE const& {
   $input = SWIG_NewPointerObj(SWIG_static_cast(SWIG_const_cast(&$1_name, $1_ltype), void*), $descriptor, 0);
+}
+
+%typemap(directorin) SWIGTYPE const* {
+  $input = SWIG_NewPointerObj(SWIG_static_cast(SWIG_const_cast($1_name, $1_ltype), void*), $descriptor, 0);
 }
 
 
