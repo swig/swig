@@ -42,3 +42,4 @@
   (check-throw-error (Foo-test-cls-ptr-td foo))
   (check-throw-error (Foo-test-cls-ref-td foo)))
   			      
+(exit 0)
