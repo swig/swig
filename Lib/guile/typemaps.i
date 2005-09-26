@@ -66,19 +66,19 @@
 
 %typemap(throws) SWIGTYPE & {
   scm_throw(gh_symbol2scm((char *) "swig-exception"),
-	    gh_list(SWIG_NewPointerObj(&$1, $&descriptor, 1),
+	    gh_list(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE * {
   scm_throw(gh_symbol2scm((char *) "swig-exception"),
-	    gh_list(SWIG_NewPointerObj($1, $&descriptor, 1),
+	    gh_list(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE [] {
   scm_throw(gh_symbol2scm((char *) "swig-exception"),
-	    gh_list(SWIG_NewPointerObj($1, $&descriptor, 1),
+	    gh_list(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
@@ -159,6 +159,10 @@
 }
 %typemap(out)    enum SWIGTYPE  { $result = gh_int2scm($1); }
 %typemap(varout) enum SWIGTYPE  { $result = gh_int2scm($1); }
+%typemap(throws) enum SWIGTYPE {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+     gh_list(gh_int2scm($1), SCM_UNDEFINED));
+}
 
 /* The SIMPLE_MAP_WITH_EXPR macro below defines the whole set of
    typemaps needed for simple types.
