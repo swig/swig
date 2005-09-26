@@ -7,6 +7,11 @@
  * String & length
  * ------------------------------------------------------------ */
 
+%typemap(in) (int LENGTH, char *STRING) {
+    $1 = ($1_ltype) StringValueLen($input);
+    $2 = ($2_ltype) StringValuePtr($input);
+}
+
 %typemap(in) (char *STRING, int LENGTH) {
     $1 = ($1_ltype) StringValuePtr($input);
     $2 = ($2_ltype) StringValueLen($input);
