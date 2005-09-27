@@ -920,7 +920,7 @@ public:
 		         "swig_", mangled_classname, "_base_names, &swig_module };\n", NIL);
 
     if( !itcl ) {
-      Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
+      Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_", mangled_classname, "},\n", NIL);
     };
 
     Delete(t);

@@ -158,5 +158,5 @@
  * ------------------------------------------------------------ */
 
 %typemap(throws) SWIGTYPE, SWIGTYPE *, SWIGTYPE [ANY], SWIGTYPE &
-  "rb_raise(rb_eRuntimeError, \"$1_type\");";
+  "(void)$1; rb_raise(rb_eRuntimeError, \"$1_type\");";
 

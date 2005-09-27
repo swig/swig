@@ -61,5 +61,5 @@ static void SWIG_AsVal(VALUE obj, int *val)
  * ------------------------------------------------------------ */
 
 %typemap(throws) enum SWIGTYPE
-    "rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(INT2NUM($1))));";
+    "(void)$1; rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(INT2NUM($1))));"
 
