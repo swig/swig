@@ -21,9 +21,9 @@
    that are used to marshal different types.   The parse codes below correspond
    to these special codes */
 
-%typemap(in,parse="i") int, unsigned int "";
+%typemap(in,parse="i") int "";
 %typemap(in,parse="h") short, unsigned short "";
-%typemap(in,parse="l") long, unsigned long "";
+%typemap(in,parse="l") long "";
 %typemap(in,parse="b") signed char, unsigned char "";
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
@@ -42,6 +42,9 @@
 
 %typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) SWIG_fail;
                                $1 = tempb ? true : false;";
+
+%typemap(in) unsigned int "$1 = ($1_ltype) strtoul(Tcl_GetStringFromObj($input,NULL), 0, 0);";
+%typemap(in) unsigned long "$1 = ($1_ltype) strtoul(Tcl_GetStringFromObj($input,NULL), 0, 0);";
 
 /* These will pass an integer as an unsigned long.  However, the implementation is crippled due
    to limited precision in Tcl */
@@ -82,9 +85,7 @@
 %typemap(in) const int & ($*1_ltype temp),
 	     const short & ($*1_ltype temp),
              const long  & ($*1_ltype temp),
-             const unsigned int & ($*1_ltype temp),
              const unsigned short & ($*1_ltype temp),
-             const unsigned long & ($*1_ltype temp),
              const signed char & ($*1_ltype temp),
              const unsigned char & ($*1_ltype temp),
              const enum SWIGTYPE & ($*1_ltype temp)
@@ -96,6 +97,14 @@
   temp = ($*1_ltype) ltemp;
   $1 = &temp;
 }
+
+%typemap(in) const unsigned int & ($*1_ltype temp) 
+        "temp = ($*1_ltype) strtoul(Tcl_GetStringFromObj($input,NULL),0,0);
+         $1 = &temp;";
+
+%typemap(in) const unsigned long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) strtoul(Tcl_GetStringFromObj($input,NULL),0,0);
+         $1 = &temp;";
 
 %typemap(in) const bool & (bool temp)
 {
@@ -135,8 +144,18 @@
 
 /* Output values */
 
-%typemap(out) bool, int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
+%typemap(out) bool, int, short, unsigned short, signed char, unsigned char, enum SWIGTYPE
      "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) $1));";
+
+%typemap(out) long
+     "Tcl_SetObjResult(interp,Tcl_NewLongObj((long) $1));";
+
+%typemap(out) unsigned int, unsigned long {
+  char temp[256]; 
+  sprintf(temp,"%lu", (unsigned long) $1);
+  Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
+}
+
 
 %typemap(out) long long {
   char temp[256]; 
@@ -225,13 +244,23 @@
 
 /* Primitive references */
 
-%typemap(out) const int &, const unsigned int &,
+%typemap(out) const int &, 
               const short &, const unsigned short &,
-              const long &, const unsigned long &,
               const signed char &, const unsigned char &,
               const bool &,
               const enum SWIGTYPE &
     "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) *($1)));";
+
+%typemap(out) const long &
+    "Tcl_SetObjResult(interp,Tcl_NewLongObj((long) *($1)));";
+
+%typemap(out) const unsigned int &, const unsigned long &
+{
+  char temp[256];
+  sprintf(temp,"%lu", (unsigned long)*($1));
+  Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
+}
+
 
 %typemap(out) const float &, const double & 
     "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) *($1)));";
@@ -255,8 +284,17 @@
 
 /* --- Variable output --- */
 
-%typemap(varout) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(varout) int, short, unsigned short, signed char, unsigned char, bool, enum SWIGTYPE 
     "$result = Tcl_NewIntObj((long) $1);";
+
+%typemap(varout) long
+    "$result = Tcl_NewLongObj((long) $1);";
+
+%typemap(varout) unsigned int, unsigned long {
+      char temp[256];
+      sprintf(temp,"%lu", (unsigned long)$1);
+      $result = Tcl_NewStringObj(temp,-1);
+}
 
 %typemap(varout) long long {
       char temp[256]; 
@@ -289,7 +327,7 @@
 
 /* -- Variable input --- */
 
-%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char
+%typemap(varin) int, short, unsigned short, long, signed char, unsigned char
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
@@ -297,6 +335,8 @@
   }
   $1 = ($1_type) temp;
 }
+
+%typemap(varin) unsigned int, unsigned long "$1 = ($1_ltype) strtoul(Tcl_GetStringFromObj($input,NULL),0,0);";
 
 %typemap(varin) enum SWIGTYPE
 {
@@ -429,8 +469,11 @@
    
 /* --- Constants --- */
 
-%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
+%typemap(consttab) int, short, unsigned short, unsigned char, signed char, bool, enum SWIGTYPE
        { SWIG_TCL_INT,     (char *)"$nsname", (long) $value, 0, 0, 0}
+
+%typemap(consttab) unsigned int, unsigned long 
+       { SWIG_TCL_STRING, (char *) "$nsname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) float, double
        { SWIG_TCL_FLOAT,   (char*)"$nsname", 0, (double) $value, 0, 0}
