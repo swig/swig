@@ -1,5 +1,5 @@
 # You can build the package from CVS using something like:
-# tar -czf swig-@PACKAGE_VERSION@.tar.gz SWIG-@PACKAGE_VERSION@ && rpmbuild -tb swig-@PACKAGE_VERSION@.tar.gz
+# tar -czf swig-@PACKAGE_VERSION@.tar.gz swig-@PACKAGE_VERSION@ && rpmbuild -tb swig-@PACKAGE_VERSION@.tar.gz
 # @configure_input@
 
 %define ver          @PACKAGE_VERSION@
@@ -33,7 +33,7 @@ and as a tool for testing and prototyping C/C++ software. SWIG can also export
 its parse tree in the form of XML and Lisp s-expressions. 
 
 %prep
-%setup -q -n SWIG-%{version}
+%setup -q -n %{name}-%{version}
 
 %build
 # so we can build package from cvs source too
