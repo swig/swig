@@ -43,5 +43,21 @@ const bool* const_pbo(const bool* b) {
 bool value(bool* b) {
     return *b;
 }
+
+struct BoolStructure {
+  bool m_bool1;
+  bool m_bool2;
+  bool* m_pbool;
+  bool& m_rbool;
+  const bool* m_const_pbool;
+  const bool& m_const_rbool;
+  BoolStructure() :
+    m_bool1(true),
+    m_bool2(false),
+    m_pbool(&m_bool1),
+    m_rbool(m_bool2),
+    m_const_pbool(m_pbool),
+    m_const_rbool(m_rbool) {}
+};
 %}
 
