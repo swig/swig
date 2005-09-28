@@ -125,6 +125,7 @@ CPP_TEST_CASES += \
 	director_unroll \
 	director_wombat \
 	dynamic_cast \
+	empty \
 	enum_plus \
 	enum_scope_template \
 	enum_template \
@@ -318,6 +319,7 @@ C_TEST_CASES += \
 	arrays \
 	char_constant \
 	const_const \
+	empty \
 	enums \
 	extern_declaration \
 	function_typedef \
