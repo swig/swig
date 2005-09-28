@@ -1916,6 +1916,11 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     Printf(table, "  &_swigt_%s,\n", ki.item);
     Printf(cast_init, "  _swigc_%s,\n", ki.item);
   }
+  if (i==0) {
+    /* empty arrays are not allowed by ISO C */
+    Printf(table, "  NULL\n");
+    Printf(cast_init, "  NULL\n");
+  }
 
   Delete(table_list);
 

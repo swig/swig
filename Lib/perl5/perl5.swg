@@ -12,8 +12,11 @@
 
 /* Typemaps for input parameters */
 
-%typemap(in)  int, short, long, signed char, bool, enum SWIGTYPE
+%typemap(in)  int, short, long, signed char, enum SWIGTYPE
        "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(in)  bool
+       "$1 = SvIV($input) ? true : false;";
 
 %typemap(in) unsigned int, unsigned short, unsigned long, unsigned char
 	"$1 = ($1_ltype) SvUV($input);";
@@ -68,9 +71,12 @@
 	     const short & (short temp),
              const long  & (long temp),
              const signed char & (signed char temp),
-             const bool & (bool temp),
              const enum SWIGTYPE & ($*1_ltype temp)
 	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(in) const bool & (bool temp)
+	"temp = SvIV($input) ? true : false;
          $1 = &temp;";
 
 %typemap(in) const unsigned int & (unsigned int temp),
@@ -227,8 +233,11 @@
 
 /* Variable input */
 
-%typemap(varin)  int, short, long, signed char, bool
+%typemap(varin)  int, short, long, signed char
        "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(varin)  bool
+       "$1 = SvIV($input) ? true : false;";
 
 %typemap(varin) unsigned int, unsigned short, unsigned long, unsigned char
 	"$1 = ($1_ltype) SvUV($input);";
@@ -305,9 +314,12 @@
 	     const short & (short temp),
              const long  & (long temp),
              const signed char & (signed char temp),
-             const bool & (bool temp),
              const enum SWIGTYPE & ($*1_ltype temp)
 	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(varin) const bool & (bool temp)
+	"temp = SvIV($input) ? true : false;
          $1 = &temp;";
 
 %typemap(varin) const unsigned int & (unsigned int temp),
@@ -555,10 +567,12 @@
 }
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+  (void)$1;
   SWIG_croak("C++ $1_type exception thrown");
 %}
 
 %typemap(throws) enum SWIGTYPE %{
+  (void)$1;
   SWIG_croak("C++ $1_type exception thrown");
 %}
 

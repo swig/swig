@@ -571,6 +571,7 @@ $1 = &temp; %}
 }
 
 %typemap(throws) SWIGTYPE {
+  (void)$1;
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
   RETURN $null;
 }

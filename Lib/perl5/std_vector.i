@@ -266,7 +266,6 @@ namespace std {
                                "Expected an array of " #T);
                 SV **tv;
                 I32 len = av_len(av) + 1;
-                T* obj;
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
                     if (CHECK_T(*tv)) {
@@ -284,9 +283,9 @@ namespace std {
             }
         }
         %typemap(out) vector<T> {
-            int len = $1.size();
+            size_t len = $1.size();
             SV **svs = new SV*[len];
-            for (unsigned int i=0; i<len; i++) {
+            for (size_t i=0; i<len; i++) {
                 svs[i] = sv_newmortal();
                 FROM_T(svs[i], $1[i]);
             }
