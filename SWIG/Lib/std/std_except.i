@@ -27,7 +27,7 @@
     } else {
       SWIG_fail;
     } %}
-#elif
+#else
   %include "exception.i"
   %typemap(throws) std::out_of_range %{
     SWIG_exception(SWIG_IndexError, $1.what()); %}
