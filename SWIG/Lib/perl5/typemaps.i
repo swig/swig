@@ -79,8 +79,13 @@ INPUT_TYPEMAP(unsigned int, SvUV);
 INPUT_TYPEMAP(unsigned long, SvUV);
 INPUT_TYPEMAP(unsigned short, SvUV);
 INPUT_TYPEMAP(unsigned char, SvUV);
-INPUT_TYPEMAP(bool, SvIV);
 
+%typemap(in) bool *INPUT(bool temp), bool &INPUT(bool temp) {
+  temp = SvIV($input) ? true : false;
+  $1 = &temp;
+}
+%typemap(typecheck) bool *INPUT = bool;
+%typemap(typecheck) bool &INPUT = bool;
 
 %typemap(in) long long *INPUT($*1_ltype temp), long long &INPUT($*1_ltype temp) {
   temp = strtoll(SvPV($input,PL_na), 0, 0);

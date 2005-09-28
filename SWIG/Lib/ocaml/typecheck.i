@@ -167,6 +167,7 @@
 }
 
 %typemap(throws) SWIGTYPE {
+  (void)$1;
   SWIG_exception(0,"Thrown exception from C++ (unknown)");
 }
 
