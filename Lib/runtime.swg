@@ -25,13 +25,13 @@ SWIG_MangledTypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) 
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_TypeQuery(const char *name) {
-  swig_module_info *module = SWIG_GetModule();
+  swig_module_info *module = SWIG_GetModule(NULL);
   return SWIG_TypeQueryModule(module, module, name);
 }
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_MangledTypeQuery(const char *name) {
-  swig_module_info *module = SWIG_GetModule();
+  swig_module_info *module = SWIG_GetModule(NULL);
   return SWIG_MangledTypeQueryModule(module, module, name);
 }
 
