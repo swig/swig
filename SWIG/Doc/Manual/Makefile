@@ -1,11 +1,14 @@
 # Makefile for generating the SWIG documentation
 #
-# Note that the htmldoc package needs to be installed.
+# Note that the htmldoc package needs to be installed, but requires patching (using the
+# margin-left.patch file from this directory) in order to correctly generate the pdf docs.
 # The .html files are first processed and updated with chapter numbering and anchor names
 # are added to the HTML headings using the python scripts. The htmldoc program is then
 # used to generate the PDF document and single page HTML version of the documentation.
 # HTML TIDY (package also known as tidy) is also required and is used as an aid to HTML
 # validation.
+#
+# Additional html validation can be done using the validate target.
 #
 
 # Note the # and " are escaped
