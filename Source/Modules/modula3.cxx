@@ -493,7 +493,7 @@ MODULA3 ():
       if ((c == '_') || (c == ':')) {
         cap = true;
       } else {
-        if (isdigit(c)) {
+        if (isdigit (c)) {
           m3sym[i] = c;
           cap = true;
         } else {
@@ -796,9 +796,9 @@ MODULA3 ():
         } else if (strcmp (argv[i], "-noproxy") == 0) {
           Swig_mark_arg (i);
           proxy_flag = false;
-        } else if (strcmp(argv[i],"-oldvarnames") == 0) {
-          Swig_mark_arg(i);
-	  old_variable_names = true;
+        } else if (strcmp (argv[i], "-oldvarnames") == 0) {
+          Swig_mark_arg (i);
+          old_variable_names = true;
         } else if (strcmp (argv[i], "-help") == 0) {
           Printf (stdout, "%s\n", usage);
         }
@@ -1923,7 +1923,7 @@ MODULA3 ():
       if (name != NIL) {
         Printv (file, name, NIL);
       } else {
-        Printf (file, "dummy%d", i);
+        Printf (file, "Dummy%d", i);
       }
     }
     Printf (file, "\n};\n");
@@ -2232,7 +2232,7 @@ MODULA3 ():
             newname = NewStringf ("%s%s", newprefix, newstem);
             Delete (newstem);
           } else {
-            newname = nameToModula3 (stem, false);
+            newname = nameToModula3 (stem, true);
           }
         } else {
           if (srcstyle != NIL) {
@@ -2322,7 +2322,7 @@ MODULA3 ():
             Iterator patternit;
             for (patternit = First (patterndesc); patternit.item != NIL;
                  patternit = Next (patternit)) {
-              String *patternassign = Split (patternit.item, '=', 2);
+              List *patternassign = Split (patternit.item, '=', 2);
               String *tag = Getitem (patternassign, 0);
               String *data = Getitem (patternassign, 1);
               if (Strcmp (tag, "prefix") == 0) {
@@ -2801,7 +2801,7 @@ MODULA3 ():
           Printf (methods, "%s(%s)%s%s;%s\n",
                   methodname, arguments,
                   hasContent (rettype) ? ": " : "",
-                  hasContent (rettype) ? (const String *)rettype : "",
+                  hasContent (rettype) ? (const String *) rettype : "",
                   isVirtual ? "  (* base method *)" : "");
         }
         {
@@ -2996,7 +2996,8 @@ MODULA3 ():
     }
 
     generateThrowsClause (throws_hash, function_code);
-    Printf (function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
+    Printf (function_code, " %s\n\n",
+            tm ? (const String *) tm : empty_string);
 
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
@@ -3193,7 +3194,8 @@ MODULA3 ():
           String *inmode = getMappedTypeNew (n, "m3wrapinmode", "", false);
           String *intype = getMappedTypeNew (n, "m3wrapintype", "");
           Printf (methods, "set%s(%s val:%s);\n",
-                  m3name, (inmode != NIL) ? (const String *)inmode : "", intype);
+                  m3name, (inmode != NIL) ? (const String *) inmode : "",
+                  intype);
         }
         {
           /* this was attached by functionWrapper
@@ -3752,7 +3754,7 @@ MODULA3 ():
 
       Printf (function_code, " =\n%s%s%s%sBEGIN\n%s%sEND %s;\n\n",
               hasContent (local_constants) ? "CONST\n" : "", local_constants,
-              hasContent (local_variables) ? "VAR\n"   : "", local_variables,
+              hasContent (local_variables) ? "VAR\n" : "", local_variables,
               exc_handler, outarg, func_name);
 
       Delete (exc_handler);
@@ -4013,8 +4015,8 @@ MODULA3 ():
       NewStringf ("%s%s.m3", Swig_file_dirname (outfile), classname);
     File *f_swigtype = NewFile (filen, "w");
     if (!f_swigtype) {
-      FileErrorDisplay(filen);
-      SWIG_exit(EXIT_FAILURE);
+      FileErrorDisplay (filen);
+      SWIG_exit (EXIT_FAILURE);
     }
     String *swigtype = NewString ("");
 
