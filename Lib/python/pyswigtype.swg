@@ -368,9 +368,6 @@
     PyErr_SetObject((PyObject *) ($&descriptor->clientdata), SWIG_NewPointerObj(temp,$&descriptor,1));
   } else {
     PyErr_SetString(PyExc_RuntimeError,"$type");
-    /*
-      PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&descriptor,1));
-    */
   }
   SWIG_fail;
 }
