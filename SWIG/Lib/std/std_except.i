@@ -13,23 +13,8 @@
   %typemap(throws, canthrow=1) std::invalid_argument %{
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, $1.what(), "");
     return $null; %}
-#elif defined(SWIGPYTHON)
-  %include "exception.i"
-  %typemap(throws) std::out_of_range %{
-    if (!PyErr_Occurred()) {
-      SWIG_exception(SWIG_IndexError, $1.what());
-    } else {
-      SWIG_fail;
-    } %}
-  %typemap(throws) std::invalid_argument %{
-    if (!PyErr_Occurred()) {
-      SWIG_exception(SWIG_TypeError, $1.what());
-    } else {
-      SWIG_fail;
-    } %}
 #else
   %include "exception.i"
   %typemap(throws) std::out_of_range %{
     SWIG_exception(SWIG_IndexError, $1.what()); %}
 #endif
-
