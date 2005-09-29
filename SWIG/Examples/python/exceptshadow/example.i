@@ -26,10 +26,27 @@
    the handler for any class with this method defined.
 */
 
+/*
+  First we need to 'disable' the default swig throw mechanism for the
+  FullError class. We do this by rethrowing the exception.
+
+  Note that this is necessary since the class appears in a throw
+  declaration:
+
+
+    void enqueue(T x) throw(FullError);
+
+  hence, swig recognizes it as an exception class and it will generate
+  the necessary code to catch it and rethrow it to the python side.
+   
+*/
+%typemap(throws) FullError "throw;";
+
+
 %exception *::enqueue {
    try {
       $action
-   } catch(FullError e) {
+   } catch(FullError& e) {
       FullError *ecopy = new FullError(e);
       PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_FullError, 1);
       PyErr_SetObject((PyObject *) SWIGTYPE_p_FullError->clientdata, err);
@@ -58,10 +75,23 @@
        PyErr_SetObject()!   A neat trick perhaps.
 */
 
+/*
+  Now, the EmpytError doesn't appear in a throw declaration, and hence
+  we need to 'mark' it as an exception class. In python, classes that 
+  are used as exception are 'special', and need to be wrapped as
+  'classic' ones.
+
+  This is a python issue, and if you don't mark the class, you will
+  see 'interesting' behaviours at the python side.
+  
+
+*/
+%exceptionclass EmptyError;
+
 %exception *::dequeue {
    try {
       $action
-   } catch(EmptyError e) {
+   } catch(EmptyError& e) {
       EmptyError *ecopy = new EmptyError(e);
       PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_EmptyError, 1);
       PyErr_SetObject((PyObject *) SWIGTYPE_p_EmptyError->clientdata, err);
