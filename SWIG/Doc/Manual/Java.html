@@ -1362,7 +1362,8 @@ For array assignment (setters not getters), SWIG copies the entire contents of t
 to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWIG makes
 no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
 fault or access violation.
-Array access can be changed from this default to use Java arrays and this is covered later.
+The default wrapping makes it hard to set or get just one element of the array and so array access from Java is somewhat limited.
+This can be changed easily though by using the approach outlined later in the <a href="#c_arrays">Wrapping C arrays with Java arrays</a> section.
 </p>
 
 <p>
