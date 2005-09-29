@@ -31,7 +31,7 @@ template<typename T> class Queue {
     last = (last + 1) % maxsize;
     nitems++;
   }
-  T dequeue() throw(EmptyError) {
+  T dequeue()  {
     T x;
     if (nitems == 0) throw EmptyError();
     x = items[(last + maxsize - nitems) % maxsize];
