@@ -5,20 +5,28 @@
 #include <stdexcept>
 %}
 
+
+
 namespace std {
-  /* Mark all of them as exception classes */
-  %feature("exceptionclass")  exception;  
-  %feature("exceptionclass")  bad_exception;
-  %feature("exceptionclass")  logic_error;
-  %feature("exceptionclass")  domain_error;
-  %feature("exceptionclass")  invalid_argument;
-  %feature("exceptionclass")  length_error;
-  %feature("exceptionclass")  out_of_range;
-  %feature("exceptionclass")  runtime_error;
-  %feature("exceptionclass")  range_error;
-  %feature("exceptionclass")  overflow_error;
-  %feature("exceptionclass")  underflow_error;
+  /* 
+     Mark all of std exception classes as "exception classes" via
+     the "exceptionclass" feature.
+     
+     If needed, you can disable it by using %noexceptionclass.
+  */
+  %exceptionclass  exception;  
+  %exceptionclass  bad_exception;
+  %exceptionclass  logic_error;
+  %exceptionclass  domain_error;
+  %exceptionclass  invalid_argument;
+  %exceptionclass  length_error;
+  %exceptionclass  out_of_range;
+  %exceptionclass  runtime_error;
+  %exceptionclass  range_error;
+  %exceptionclass  overflow_error;
+  %exceptionclass  underflow_error;
 }
+
 
 namespace std {
   struct exception 

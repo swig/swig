@@ -66,6 +66,10 @@
 #endif
 #define %noexception %feature("except","")
 
+#define %exceptionclass %feature("exceptionclass","1")
+#define %noexceptionclass %feature("exceptionclass","0")
+
+
 #define %newobject   %feature("new")
 
 /* Warnings */

@@ -1954,7 +1954,7 @@ public:
       have_constructor = 0;
       have_repr = 0;
       
-      if (Getattr(n,"feature:exceptionclass")) {
+      if (checkAttribute(n,"feature:exceptionclass","1")) {
 	classic = 1;
         modern  = 0;
       }
