@@ -21,12 +21,17 @@
 
 #ifdef SWIGTCL8
 %{
-#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); SWIG_fail; }
+/* We cast from 'const char*' to 'char*' since TCL_VOLATILE ensure
+   that an internal copy of the strng will be stored.
+
+   NOTE: Later use const_cast<char*> via SWIG_const_cast or so.
+*/
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,(char *)b,TCL_VOLATILE); SWIG_fail; }
 %}
 #else
 #ifdef SWIGTCL
 %{
-#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR; }
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,(char *)b,TCL_VOLATILE); return TCL_ERROR; }
 %}
 #endif
 #endif
