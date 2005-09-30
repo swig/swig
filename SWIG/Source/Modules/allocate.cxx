@@ -539,7 +539,7 @@ public:
        a base class */
     
     if (!Getattr(n,"abstract") && is_abstract_inherit(n)) {
-      if (((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
+      if (((Getattr(n,"allocate:public_constructor") || (!GetFlag(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
 	if (!Getattr(n,"feature:notabstract")) {
 	  Node *na = Getattr(n,"abstract:firstnode");
 	  if (na) {

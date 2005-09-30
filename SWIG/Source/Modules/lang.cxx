@@ -2063,7 +2063,7 @@ int Language::classHandler(Node *n) {
   }
 
   cplus_mode = PUBLIC;
-  if (!ImportMode && (GenerateDefault && !Getattr(n,"feature:nodefault"))) {
+  if (!ImportMode && (GenerateDefault && !GetFlag(n,"feature:nodefault"))) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
       if (!Abstract) {
