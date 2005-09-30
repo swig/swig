@@ -1537,7 +1537,7 @@ MODULA3 ():
     Printv (f->code, cleanup, NIL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (Getattr (n, "feature:new")) {
+    if (GetFlag (n, "feature:new")) {
       String *tm = Swig_typemap_lookup_new ("newfree", n, "result", 0);
       if (tm != NIL) {
         addThrows (throws_hash, "newfree", n);
@@ -2987,7 +2987,7 @@ MODULA3 ():
     // Transform return type used in PInvoke function (in intermediary class) to type used in Modula 3 wrapper function (in proxy class)
     if ((tm = getMappedTypeNew (n, "m3out", ""))) {
       addThrows (throws_hash, "m3out", n);
-      if (Getattr (n, "feature:new"))
+      if (GetFlag (n, "feature:new"))
         Replaceall (tm, "$owner", "true");
       else
         Replaceall (tm, "$owner", "false");
@@ -3004,7 +3004,7 @@ MODULA3 ():
       if (setter_flag) {
         // Setter method
         if ((tm = getMappedTypeNew (n, "m3varin", ""))) {
-          if (Getattr (n, "feature:new"))
+          if (GetFlag (n, "feature:new"))
             Replaceall (tm, "$owner", "true");
           else
             Replaceall (tm, "$owner", "false");
@@ -3015,7 +3015,7 @@ MODULA3 ():
       } else {
         // Getter method
         if ((tm = getMappedTypeNew (n, "m3varout", ""))) {
-          if (Getattr (n, "feature:new"))
+          if (GetFlag (n, "feature:new"))
             Replaceall (tm, "$owner", "true");
           else
             Replaceall (tm, "$owner", "false");
@@ -3768,7 +3768,7 @@ MODULA3 ():
         // Setter method
         String *tm = getMappedTypeNew (n, "m3varin", "");
         if (tm != NIL) {
-          if (Getattr (n, "feature:new")) {
+          if (GetFlag (n, "feature:new")) {
             Replaceall (tm, "$owner", "true");
           } else {
             Replaceall (tm, "$owner", "false");
@@ -3783,7 +3783,7 @@ MODULA3 ():
         // Getter method
         String *tm = getMappedTypeNew (n, "m3varout", "");
         if (tm != NIL) {
-          if (Getattr (n, "feature:new"))
+          if (GetFlag (n, "feature:new"))
             Replaceall (tm, "$owner", "true");
           else
             Replaceall (tm, "$owner", "false");

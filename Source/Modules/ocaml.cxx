@@ -472,7 +472,7 @@ public:
 	int i = 0;
 	int numargs;
 	int numreq;
-	int newobj = Getattr(n,"feature:new") ? 1 : 0;
+	int newobj = GetFlag(n,"feature:new");
 	String *nodeType = Getattr(n, "nodeType");
 	int constructor = !Cmp(nodeType, "constructor");
 	int destructor = (!Cmp(nodeType, "destructor")); 
@@ -734,7 +734,7 @@ public:
     
 	// Look for any remaining cleanup
     
-	if (Getattr(n,"feature:new")) {
+	if (GetFlag(n,"feature:new")) {
 	    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 		Replaceall(tm,"$source","swig_result");
 		Printv(f->code, tm, "\n",NIL);

@@ -438,7 +438,7 @@ public:
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "Tcl_GetObjResult(interp)");
       Replaceall(tm,"$result", "Tcl_GetObjResult(interp)");
-      if(Getattr(n,"feature:new")) {
+      if(GetFlag(n,"feature:new")) {
         Replaceall(tm,"$owner","1");
       } else {
         Replaceall(tm,"$owner","0");
@@ -456,7 +456,7 @@ public:
     Printv(f->code,cleanup,NIL);
     
     /* Look for any remaining cleanup */
-    if (Getattr(n,"feature:new")) {
+    if (GetFlag(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printf(f->code,"%s\n", tm);
