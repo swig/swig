@@ -167,9 +167,9 @@ static String  *class_rename = 0;
 #define  CPLUS_PROTECTED 3
 
 /* include types */
-static int   include_type = 0;
 #define  INCLUDE_MODE    1
 #define  IMPORT_MODE     2
+static int   include_type = 1;
 
 void SWIG_typemap_lang(const char *tm_lang) {
   typemap_lang = Swig_copy_string(tm_lang);
@@ -1760,6 +1760,11 @@ include_directive: includetype options string LBRACKET {
 		       set_nodeType($$,"import");
 		       /* try to get the modulename from the options */
 		       modulename = $2 ? Getattr($2,"module") : 0;
+		       /* 
+			  we return to include type only here since an
+			  %imported file can also %include other files
+		       */
+		       include_type = INCLUDE_MODE;
 		     }
 		     
 		     Setattr($$,"name",$3);
@@ -1780,7 +1785,7 @@ include_directive: includetype options string LBRACKET {
                }
                ;
 
-includetype    : INCLUDE { $$.type = (char *) "include"; include_type = INCLUDE_MODE;}
+includetype    : INCLUDE { $$.type = (char *) "include"; }
                | IMPORT  { $$.type = (char *) "import"; include_type = IMPORT_MODE;}
                ;
 
@@ -1889,7 +1894,7 @@ module_directive: MODULE options idstring {
 		 if (include_type == INCLUDE_MODE) {
 		   /* first module included, we apply global
 		      ModuleName, which can be modify by -module */
-		   Setattr($$,"name",Copy(ModuleName));
+		   Setattr($$,"name",ModuleName); 
 		 } else { 
 		   /* import mode, we just pass the idstring */
 		   Setattr($$,"name",$3);   
