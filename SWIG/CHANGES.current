@@ -23,6 +23,7 @@ Version 1.3.26 (in progress)
               java:const
               java:downcast
               new
+              nodefault
               valuewrapper
 
             It is now possible, for example to ignore all methods/classes in a header file, except for a
