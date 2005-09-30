@@ -17,10 +17,12 @@ Version 1.3.26 (in progress)
 
             The following features are affected:
 
-              java:const
-              java:downcast
               compactdefaultargs
               ignore
+              immutable
+              java:const
+              java:downcast
+              new
               valuewrapper
 
             It is now possible, for example to ignore all methods/classes in a header file, except for a
