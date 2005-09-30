@@ -3315,7 +3315,7 @@ MODULA3 ():
     String *raw_name = Getattr (n, "name");     /*original C function name */
     //String     *func_name = Getattr(n,"sym:name");  /*final Modula3 name chosen by the user*/
     bool setter_flag = false;
-    bool multiretval = Getattr (n, "feature:modula3:multiretval") != NIL;
+    int multiretval = GetFlag (n, "feature:modula3:multiretval");
 
     if (l) {
       if (SwigType_type (Getattr (l, "type")) == T_VOID) {
