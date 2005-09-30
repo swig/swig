@@ -467,8 +467,8 @@ class Allocate : public Dispatcher {
       }
       Node *c = Swig_symbol_clookup(t,0);
       if (c) {
-	if (!Getattr(c,"feature:exceptionclass")) {
-	  Setattr(c,"feature:exceptionclass","1");
+	if (!GetFlag(c,"feature:exceptionclass")) {
+	  SetFlag(c,"feature:exceptionclass");
 	}
       }
       p = nextSibling(p);
