@@ -1359,7 +1359,7 @@ public:
 	if( const_enum && name && !Getattr(seen_enumvalues,name) ) {
 	    Setattr(seen_enumvalues,name,"true");
 	    SetFlag(n,"feature:immutable");
-	    Setattr(n,"feature:enumvalue","1");
+	    Setattr(n,"feature:enumvalue","1"); // this does not appear to be used
 
 	    if( qvalue ) 
 		Setattr(n,"qualified:value",qvalue);
