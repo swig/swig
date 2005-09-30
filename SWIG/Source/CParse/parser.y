@@ -1219,8 +1219,7 @@ static void default_arguments(Node *n) {
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
         } else if (Strcmp(nodeType(function),"constructor") == 0) {
           /* only copied for constructors as this is not a user defined feature - it is hard coded in the parser */
-          Node *featurenew = Getattr(function,"feature:new");
-          if (featurenew) Setattr(new_function,"feature:new",Copy(featurenew));
+          if (GetFlag(function,"feature:new")) SetFlag(new_function,"feature:new");
         }
 
         add_symbols(new_function);
@@ -3699,7 +3698,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 if (Len(scanner_ccode)) {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
-		 Setattr($$,"feature:new","1");
+		 SetFlag($$,"feature:new");
 	      } else {
 		$$ = 0;
               }
