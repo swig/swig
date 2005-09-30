@@ -1099,7 +1099,7 @@ public:
     Wrapper *f = NewWrapper();
 
     /* Rename predicate methods */
-    if (Getattr(n, "feature:predicate")) {
+    if (GetFlag(n, "feature:predicate")) {
       Append(symname, "?");
     }
 
@@ -1224,7 +1224,7 @@ public:
     /* Return value if necessary */
     if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
-      if (Getattr(n, "feature:predicate")) {
+      if (GetFlag(n, "feature:predicate")) {
 	Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
       } else {
 	tm = Swig_typemap_lookup_new("out",n,"result",0);
