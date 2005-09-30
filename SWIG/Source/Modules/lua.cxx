@@ -664,7 +664,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 //   Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
 //	   "variableWrapper %s : %s : %s \n",iname,Swig_name_set(iname),Swig_name_get(iname));
 	   int result=Language::variableWrapper(n);
-	   if (!Getattr(n,"feature:immutable")) {
+	   if (!GetFlag(n,"feature:immutable")) {
          Printv(s_var_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(Swig_name_get(iname)),
       			", ", Swig_name_wrapper(Swig_name_set(iname)),"},\n", NIL);
        }
@@ -971,7 +971,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,symname)));
     Printv(s_attr_tab, rname, ", ", NIL);
     Delete(rname);
-    if (!Getattr(n,"feature:immutable")) {
+    if (!GetFlag(n,"feature:immutable")) {
       rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,symname)));
       Printv(s_attr_tab, rname, "},\n",NIL);
       Delete(rname);

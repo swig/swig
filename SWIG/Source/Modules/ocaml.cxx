@@ -521,7 +521,7 @@ public:
 
 	    if( strstr( Char(mangled_name), "__get__" ) ) {
 		String *set_name = Copy(mangled_name);
-		if( !Getattr(n,"feature:immutable") ) {
+		if( !GetFlag(n,"feature:immutable") ) {
 		    Replaceall(set_name,"__get__","__set__");
 		    Printf(f_class_ctors,
 			   "    \"%s\", (fun args -> "
@@ -879,7 +879,7 @@ public:
 	
 	Wrapper_add_local (f, "swig_result", "CAML_VALUE swig_result");
 	
-	if (!Getattr(n,"feature:immutable")) {
+	if (!GetFlag(n,"feature:immutable")) {
 	    /* Check for a setting of the variable value */
 	    Printf (f->code, "if (args != Val_int(0)) {\n");
 	    if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
@@ -923,7 +923,7 @@ public:
 	
 	// Now add symbol to the Ocaml interpreter
 	
-	if( Getattr( n, "feature:immutable" ) ) {
+	if( GetFlag( n, "feature:immutable" ) ) {
 	    Printf( f_mlbody, 
 		    "external _%s : c_obj -> Swig.c_obj = \"%s\" \n",
 		    mname, var_name );
@@ -1015,7 +1015,7 @@ public:
 	    Printf (f_header, "%s;\n", value);
 	}
 
-	Setattr(n,"feature:immutable","1");
+	SetFlag(n,"feature:immutable");
 	variableWrapper(n);
 	return SWIG_OK;
     }
@@ -1358,7 +1358,7 @@ public:
 
 	if( const_enum && name && !Getattr(seen_enumvalues,name) ) {
 	    Setattr(seen_enumvalues,name,"true");
-	    Setattr(n,"feature:immutable","1");
+	    SetFlag(n,"feature:immutable");
 	    Setattr(n,"feature:enumvalue","1");
 
 	    if( qvalue ) 

@@ -1456,7 +1456,7 @@ public:
     Printv(getf->code, tab4, "return _val;\n}\n", NIL);
     Wrapper_print(getf,f_wrappers);
 
-    if (Getattr(n,"feature:immutable")) {
+    if (GetFlag(n,"feature:immutable")) {
       setfname = NewString("NULL");
     } else {
       /* create setter */
@@ -1495,7 +1495,7 @@ public:
 	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	     klass->strip(iname), "\", ", getfname, ", 0);\n",
 	     NIL);
-      if (!Getattr(n,"feature:immutable")) {
+      if (!GetFlag(n,"feature:immutable")) {
 	Printv(s,
 	       tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	       klass->strip(iname), "=\", ", setfname, ", 1);\n",
@@ -1512,7 +1512,7 @@ public:
                tab4, "rb_define_singleton_method(", modvar, ", \"",
                iname, "\", ", getfname, ", 0);\n",
                NIL);
-        if (!Getattr(n,"feature:immutable")) {
+        if (!GetFlag(n,"feature:immutable")) {
           Printv(s,
                  tab4, "rb_define_singleton_method(", modvar, ", \"",
                  iname, "=\", ", setfname, ", 1);\n",
@@ -1523,7 +1523,7 @@ public:
                tab4, "rb_define_global_method(\"",
                iname, "\", ", getfname, ", 0);\n",
                NIL);
-        if (!Getattr(n,"feature:immutable")) {
+        if (!GetFlag(n,"feature:immutable")) {
           Printv(s,
                  tab4, "rb_define_global_method(\"",
                  iname, "=\", ", setfname, ", 1);\n",

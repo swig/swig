@@ -499,7 +499,7 @@ public:
       
       Wrapper_add_local (f, "swig_result", "Scheme_Object *swig_result");
       
-      if (!Getattr(n,"feature:immutable")) {
+      if (!GetFlag(n,"feature:immutable")) {
 	/* Check for a setting of the variable value */
 	Printf (f->code, "if (argc) {\n");
 	if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
