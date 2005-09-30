@@ -12,6 +12,31 @@
 #include "imports_b.h" 
 %} 
 
-%import(module="imports_a") "imports_a.i" 
+
+/* 
+   To import, you can use either
+   
+     %import "imports_a.i"
+
+   or
+
+     %import(module="imports_a") "imports_a.h" 
+
+
+   In the first case, imports_a.i should declare the module name using
+   the %module directive.
+
+   In the second case, the file could be either a .h file, where no
+   %module directive will be found, or a swig interface file, where
+   the module option will take priority over any %module directive
+   inside the imported file.
+
+*/
+
+#if 0
+%import "imports_a.i"
+#else
+%import(module="imports_a") "imports_a.h" 
+#endif
 
 %include "imports_b.h"  

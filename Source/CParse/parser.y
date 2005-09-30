@@ -1748,11 +1748,13 @@ include_directive: includetype options string LBRACKET {
 		     cparse_file = Swig_copy_string($3);
 		     cparse_line = 0;
                } interface RBRACKET {
+                     String *mname = 0;
                      $$ = $6;
 		     cparse_file = $1.filename;
 		     cparse_line = $1.line;
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) {
+		       mname = $2 ? Getattr($2,"module") : 0;
 		       set_nodeType($$,"import");
 		       if (import_mode) --import_mode;
 		     }
@@ -1763,10 +1765,28 @@ include_directive: includetype options string LBRACKET {
 			 Node *n = firstChild($$);
 			 while (n) {
 			     if (Strcmp(nodeType(n),"module") == 0) {
+			         if (mname) {
+				   Setattr(n,"name", mname);
+				   mname = 0;
+				 }
 				 Setattr($$,"module",Getattr(n,"name"));
 				 break;
 			     }
 			     n = nextSibling(n);
+			 }
+			 if (mname) {
+			   /* There is no module node in the import
+			      node, ie, you imported a .h file
+			      directly.  We are forced then to create
+			      a new import node with a module node.
+			   */			      
+			   Node *nint = new_node("import");
+			   Node *mnode = new_node("module");
+			   Setattr(mnode,"name", mname);
+			   appendChild(nint,mnode);
+			   appendChild(nint,firstChild($$));
+			   $$ = nint;
+			   Setattr($$,"module",mname);
 			 }
 		     }
 		     Setattr($$,"options",$2);
