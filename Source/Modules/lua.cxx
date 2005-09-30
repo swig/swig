@@ -874,7 +874,7 @@ NEW LANGUAGE NOTE:END ************************************************/
       b = First(baselist);
       while (b.item) {
 	String *bname = Getattr(b.item, "name");
-	if ((!bname) || Getattr(b.item,"feature:ignore") || (!Getattr(b.item,"module"))) {
+	if ((!bname) || GetFlag(b.item,"feature:ignore") || (!Getattr(b.item,"module"))) {
 	  b = Next(b);
 	  continue;
 	}
@@ -901,7 +901,7 @@ NEW LANGUAGE NOTE:END ************************************************/
       Node *base = First(baselist);
       while (base) {
 	String *bname = Getattr(base, "name");
-	if ((!bname) || Getattr(base,"feature:ignore") || (!Getattr(base,"module"))) {
+	if ((!bname) || GetFlag(base,"feature:ignore") || (!Getattr(base,"module"))) {
 	  base = Next(baselist);
 	  continue;
 	}
