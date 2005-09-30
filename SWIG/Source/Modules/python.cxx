@@ -1982,7 +1982,7 @@ public:
 	b = First(baselist);
 	while (b.item) {
 	  String *bname = Getattr(b.item, "python:proxy");
-	  if (!bname || Getattr(b.item,"feature:ignore")) {
+	  if (!bname || GetFlag(b.item,"feature:ignore")) {
 	    b = Next(b);
 	    continue;
 	  }

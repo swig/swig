@@ -772,8 +772,8 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     This happens in python, but may also happens in other target
     languages.
   */
-  if (Getattr(n,"feature:self:disown")) {
-    Setattr(p,"wrap:disown",Getattr(n,"feature:self:disown"));
+  if (GetFlag(n,"feature:self:disown")) {
+    Setattr(p,"wrap:disown","1");
   }
   set_nextSibling(p,parms);
   Delete(type);

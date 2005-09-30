@@ -280,7 +280,7 @@ int Language::emit_one(Node *n) {
   int oldext;
   if (!n) return SWIG_OK;
 
-  if (Getattr(n,"feature:ignore")
+  if (GetFlag(n,"feature:ignore")
       && !Getattr(n,"feature:onlychildren")) return SWIG_OK;
 
   oldext = Extend;
@@ -1915,7 +1915,7 @@ int Language::classDeclaration(Node *n) {
     Setattr(n,"feature:emitonlychildren",ochildren);
     emit_children(n);
     Delattr(n,"feature:emitonlychildren");
-    Setattr(n,"feature:ignore","1");
+    SetFlag(n,"feature:ignore");
     return SWIG_NOWRAP;
   }
 
@@ -2144,7 +2144,7 @@ int Language::constructorDeclaration(Node *n) {
     while (nn) {
       if (!is_public(nn)) {
 	if (!dirclass || !need_nonpublic_ctor(nn)) {
-	  Setattr(nn,"feature:ignore","1");
+	  SetFlag(nn,"feature:ignore");
 	}
       }
       nn = Getattr(nn,"sym:nextSibling");
@@ -2590,7 +2590,7 @@ Language::classLookup(SwigType *s) {
     Delete(base);
     Delete(prefix);
   }
-  if (n && (Getattr(n,"feature:ignore") || Getattr(n,"feature:onlychildren"))) {
+  if (n && (GetFlag(n,"feature:ignore") || Getattr(n,"feature:onlychildren"))) {
       n = 0;
   }
 
@@ -2652,7 +2652,7 @@ Language::enumLookup(SwigType *s) {
     Delete(base);
     Delete(prefix);
   }
-  if (n && (Getattr(n,"feature:ignore"))) {
+  if (n && (GetFlag(n,"feature:ignore"))) {
       n = 0;
   }
 
