@@ -1005,8 +1005,7 @@ class CSHARP : public Language {
         Delete(typemap_lookup_type); typemap_lookup_type = NULL;
 
         // The %csconst feature determines how the constant value is obtained
-        String *const_feature = Getattr(n,"feature:cs:const");
-        bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+        int const_feature_flag = GetFlag(n,"feature:cs:const");
 
         if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
           // Wrap (non-anonymouse) enum using the typesafe enum pattern
@@ -1065,8 +1064,7 @@ class CSHARP : public Language {
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
     // The %csconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:cs:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+    int const_feature_flag = GetFlag(n,"feature:cs:const");
 
     /* Adjust the enum type for the Swig_typemap_lookup.
      * We want the same jstype typemap for all the enum items so we use the enum type (parent node). */
@@ -2192,8 +2190,7 @@ class CSHARP : public Language {
 
     if (!value) {
       // The %csconst feature determines how the constant value is obtained
-      String *const_feature = Getattr(n,"feature:cs:const");
-      bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+      int const_feature_flag = GetFlag(n,"feature:cs:const");
 
       if (const_feature_flag) {
         // Use the C syntax to make a true C# constant and hope that it compiles as C# code
