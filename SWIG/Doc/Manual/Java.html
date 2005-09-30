@@ -1363,7 +1363,8 @@ to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWI
 no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
 fault or access violation.
 The default wrapping makes it hard to set or get just one element of the array and so array access from Java is somewhat limited.
-This can be changed easily though by using the approach outlined later in the <a href="#c_arrays">Wrapping C arrays with Java arrays</a> section.
+This can be changed easily though by using the approach outlined later in the <a href="#c_arrays">Wrapping C arrays with Java arrays</a> and
+<a href="#unbounded_c_arrays">Unbounded C Arrays</a> sections.
 </p>
 
 <p>
@@ -3796,7 +3797,7 @@ When arrays are used in functions like <tt>populate</tt>, the size of the C arra
 
 <p>
 Please be aware that the typemaps in this library are not efficient as all the elements are copied from the Java array to a C array whenever the array is passed to and from JNI code.
-There is an alternative approach using the SWIG array library and this is covered in the next.
+There is an alternative approach using the SWIG array library and this is covered in the next section.
 </p>
 
 <H3><a name="unbounded_c_arrays"></a>19.7.4 Unbounded C Arrays</H3>
@@ -4500,7 +4501,7 @@ Used in input typemaps to return early from JNI functions that have either void 
 <div class="code"><pre>
 %typemap(check) int * %{ 
   if (error) {
-    SWIG_exception(SWIG_IndexError, "Array element error");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
     return $null;
   }
 %}
@@ -4513,7 +4514,7 @@ If the typemap gets put into a function with void as return, $null will expand t
 <div class="code"><pre>
 JNIEXPORT void JNICALL Java_jnifn(...) {
     if (error) {
-      SWIG_exception(SWIG_IndexError, "Array element error");
+      SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
       return ;
     }
   ...
@@ -4527,7 +4528,7 @@ otherwise $null expands to <i>NULL</i>
 <div class="code"><pre>
 JNIEXPORT jobject JNICALL Java_jnifn(...) {
     if (error) {
-      SWIG_exception(SWIG_IndexError, "Array element error");
+      SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
       return NULL;
     }
   ...
