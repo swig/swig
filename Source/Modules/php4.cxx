@@ -1281,7 +1281,7 @@ public:
     */
     /* Now generate C -> PHP sync blocks */
     /*
-      if(!Getattr(n,"feature:immutable")) {
+      if(!GetFlag(n,"feature:immutable")) {
       
       tm = Swig_typemap_lookup_new("varout", n, name, 0);
       if(tm) {

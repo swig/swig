@@ -728,7 +728,7 @@ public:
     need_setter = false;
     i = First(membervariables);
     while (i.item) {
-      if (!Getattr(i.item, "feature:immutable")) {
+      if (!GetFlag(i.item, "feature:immutable")) {
         need_setter = true;
 	break;
       }
@@ -745,7 +745,7 @@ public:
       
       i = First(membervariables);
       while (i.item) {
-	if (!Getattr(i.item, "feature:immutable")) {
+	if (!GetFlag(i.item, "feature:immutable")) {
 	  name = Getattr(i.item, "name");
 	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);

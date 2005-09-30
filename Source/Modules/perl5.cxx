@@ -784,7 +784,7 @@ public:
 
     /* Create a Perl function for setting the variable value */
 
-    if (!Getattr(n,"feature:immutable")) {
+    if (!GetFlag(n,"feature:immutable")) {
       Printf(setf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC *mg) {\n", set_name);
       Printv(setf->code,
 	     tab4, "MAGIC_PPERL\n",
@@ -850,7 +850,7 @@ public:
       tt = (String *) "0";
     }
     /* Now add symbol to the PERL interpreter */
-    if (Getattr(n,"feature:immutable")) {
+    if (GetFlag(n,"feature:immutable")) {
       Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",NIL);
 
     } else {

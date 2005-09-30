@@ -1591,7 +1591,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     Setattr($$,"value",$4.val);
 		     if ($4.rawval) Setattr($$,"rawval", $4.rawval);
 		     Setattr($$,"storage","%constant");
-		     Setattr($$,"feature:immutable","1");
+		     SetFlag($$,"feature:immutable");
 		     add_symbols($$);
 		   } else {
 		     if ($4.type == T_ERROR) {
@@ -1615,7 +1615,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   Setattr($$,"value",$4.val);
 		   if ($4.rawval) Setattr($$,"rawval", $4.rawval);
 		   Setattr($$,"storage","%constant");
-		   Setattr($$,"feature:immutable","1");
+		   SetFlag($$,"feature:immutable");
 		   add_symbols($$);
 		 } else {
 		     if ($4.type == T_ERROR) {
@@ -4927,7 +4927,7 @@ edecl          :  ID {
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
 		   Setattr($$,"type",NewSwigType(T_INT));
-		   Setattr($$,"feature:immutable","1");
+		   SetFlag($$,"feature:immutable");
 		 }
                  | ID EQUAL etype {
 		   $$ = new_node("enumitem");
@@ -4940,7 +4940,7 @@ edecl          :  ID {
 		     Setattr($$,"value",$1);
 		     Setattr($$,"type",NewSwigType(T_INT));
 		   }
-		   Setattr($$,"feature:immutable","1");
+		   SetFlag($$,"feature:immutable");
                  }
                  | empty { $$ = 0; }
                  ;

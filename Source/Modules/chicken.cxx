@@ -771,7 +771,7 @@ CHICKEN::variableWrapper(Node *n)  {
     Printf(f->code, "if (argc!=2 && argc!=3) C_bad_argc(argc,2);\n");
 
     /* Check for a setting of the variable value */
-    if (!Getattr(n,"feature:immutable")) {
+    if (!GetFlag(n,"feature:immutable")) {
       Printf(f->code, "if (argc > 2) {\n");
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
         Replaceall(tm,"$source","value");
@@ -1232,7 +1232,7 @@ CHICKEN::membervariableHandler(Node *n)
 
   Printv(clos_class_defines,"        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
 
-  if (!Getattr(n,"feature:immutable")) {
+  if (!GetFlag(n,"feature:immutable")) {
       if (class_node) {
           Printv(clos_class_defines, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))))\n", NIL);
       } else {

@@ -857,7 +857,7 @@ int Language::cDeclaration(Node *n) {
   } else {
     /* Some kind of variable declaration */
     Delattr(n,"decl");
-    if (Getattr(n,"nested")) Setattr(n,"feature:immutable","1");
+    if (Getattr(n,"nested")) SetFlag(n,"feature:immutable");
     if (!CurrentClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 	f_header = Swig_filebyname("header");
@@ -871,13 +871,13 @@ int Language::cDeclaration(Node *n) {
       }
     }
     if (!SwigType_ismutable(ty)) {
-      Setattr(n,"feature:immutable","1");
+      SetFlag(n,"feature:immutable");
     }
     /* If an array and elements are const, then read-only */
     if (SwigType_isarray(ty)) {
       SwigType *tya = SwigType_array_type(ty);
       if (SwigType_isconst(tya)) {
-	Setattr(n,"feature:immutable","1");
+	SetFlag(n,"feature:immutable");
       }
       Delete(tya);
     }
@@ -1151,7 +1151,7 @@ Language::variableHandler(Node *n) {
     if (SmartPointer) {
       /* If a smart-pointer and it's a constant access, we have to set immutable */
       if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
-	Setattr(n,"feature:immutable","1");
+	SetFlag(n,"feature:immutable");
       }
     }
     if ((Cmp(storage,"static") == 0) 
@@ -1265,7 +1265,7 @@ Language::membervariableHandler(Node *n) {
 	Setattr(n,"sym:name", mrename_set);
 	functionWrapper(n);
       } else {
-	Setattr(n,"feature:immutable","1");
+	SetFlag(n,"feature:immutable");
       }
       /* Restore parameters */
       Setattr(n,"type",type);
@@ -1310,7 +1310,7 @@ Language::membervariableHandler(Node *n) {
       Delete(cname);
     }
     Delete(gname);
-    if (!Getattr(n,"feature:immutable")) {
+    if (!GetFlag(n,"feature:immutable")) {
       gname = NewStringf(AttributeFunctionSet,symname);
       vty = NewString("void");
       if (!Extend) {
@@ -2913,7 +2913,7 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
 
 int Language::is_assignable(Node *n)
 {
-  if (Getattr(n,"feature:immutable")) return 0;
+  if (GetFlag(n,"feature:immutable")) return 0;
   SwigType *type = Getattr(n,"type");
   Node *cn = 0;
   SwigType *ftd = SwigType_typedef_resolve_all(type);
@@ -2922,7 +2922,7 @@ int Language::is_assignable(Node *n)
     if ((cn = Swig_symbol_clookup(td,0))) {
       if ((Strcmp(nodeType(cn),"class") == 0)) {
 	if (Getattr(cn,"allocate:noassign")) {
-	  Setattr(n,"feature:immutable","1");
+	  SetFlag(n,"feature:immutable");
 	  Delete(ftd);
 	  Delete(td);
 	  return 0;

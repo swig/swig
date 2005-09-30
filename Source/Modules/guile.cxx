@@ -1254,7 +1254,7 @@ public:
       
       Wrapper_add_local (f, "gswig_result", "SCM gswig_result");
       
-      if (!Getattr(n,"feature:immutable")) {
+      if (!GetFlag(n,"feature:immutable")) {
 	/* Check for a setting of the variable value */
 	Printf (f->code, "if (s_0 != SCM_UNDEFINED) {\n");
 	if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
@@ -1290,16 +1290,16 @@ public:
       // Now add symbol to the Guile interpreter
       
       if (!emit_setters
-	  || Getattr(n,"feature:immutable")) {
+	  || GetFlag(n,"feature:immutable")) {
 	/* Read-only variables become a simple procedure returning the
 	   value; read-write variables become a simple procedure with
 	   an optional argument. */
         if (use_scm_interface) {
           Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n",
-                proc_name, Getattr(n, "feature:immutable") ? 0 : 1, var_name);
+                proc_name, !GetFlag(n, "feature:immutable"), var_name);
         } else {
           Printf (f_init, "\t gh_new_procedure(\"%s\", (swig_guile_proc) %s, 0, %d, 0);\n",
-		proc_name, var_name, Getattr(n,"feature:immutable") ? 0 : 1);
+		proc_name, var_name, !GetFlag(n,"feature:immutable"));
         }
       }
       else {
@@ -1341,7 +1341,7 @@ public:
 	String *signature2 = NULL;
 	String *doc = NewString("");
 	
-	if (Getattr(n,"feature:immutable")) {
+	if (GetFlag(n,"feature:immutable")) {
 	  Printv(signature, proc_name, NIL);
 	  Printv(doc, "Returns constant ", NIL);
 	  if ((tm = Getattr(n,"tmap:varout:doc"))) {
@@ -1472,7 +1472,7 @@ public:
       Setattr(n,"name",var_name);
       Setattr(n,"sym:name",iname);
       Setattr(n,"type", nctype);
-      Setattr(n,"feature:immutable", "1");
+      SetFlag(n,"feature:immutable");
       variableWrapper(n);
       Delete(n);
     }
@@ -1651,7 +1651,7 @@ public:
     Printv(goopscode, "\n   #:slot-ref (lambda (obj) (",
 	   primRenamer ? "primitive:" : "", 
 	   short_class_name, "-", proc, "-get", " obj))", NIL);
-    if (!Getattr(n,"feature:immutable")) {
+    if (!GetFlag(n,"feature:immutable")) {
       Printv(goopscode, "\n   #:slot-set! (lambda (obj value) (",
 	     primRenamer ? "primitive:" : "", 
 	     short_class_name, "-", proc, "-set", " obj value))", NIL);
@@ -1659,7 +1659,7 @@ public:
       Printf(goopscode, "\n   #:slot-set! (lambda (obj value) (error \"Immutable slot\"))");
     }
     if (emit_slot_accessors) {
-      if (Getattr(n, "feature:immutable")) {
+      if (GetFlag(n, "feature:immutable")) {
         Printv(goopscode, "\n   #:getter ", goops_name, NIL);
       } else {
         Printv(goopscode, "\n   #:accessor ", goops_name, NIL);
