@@ -1233,7 +1233,7 @@ public:
 	  Replaceall(tm,"$source","result");
 	  Replaceall(tm,"$target","vresult");
 
-          if (Getattr(n, "feature:new"))
+          if (GetFlag(n, "feature:new"))
             Replaceall(tm,"$owner", "1");
           else
             Replaceall(tm,"$owner", "0");
@@ -1296,7 +1296,7 @@ public:
       Printv(f->code,cleanup,NIL);
 
     /* Look for any remaining cleanup.  This processes the %new directive */
-    if (current != CONSTRUCTOR_ALLOCATE && Getattr(n, "feature:new")) {
+    if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
       tm = Swig_typemap_lookup_new("newfree",n,"result",0);
       if (tm) {
 	Replaceall(tm,"$source","result");

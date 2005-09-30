@@ -938,7 +938,7 @@ class JAVA : public Language {
     Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (Getattr(n,"feature:new")) {
+    if (GetFlag(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
         addThrows(n, "tmap:newfree", n);
         Replaceall(tm,"$source","result"); /* deprecated */
@@ -1929,7 +1929,7 @@ class JAVA : public Language {
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
       addThrows(n, "tmap:javaout", n);
-      if (Getattr(n,"feature:new"))
+      if (GetFlag(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
@@ -2273,7 +2273,7 @@ class JAVA : public Language {
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
       addThrows(n, "tmap:javaout", n);
-      if (Getattr(n,"feature:new"))
+      if (GetFlag(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");

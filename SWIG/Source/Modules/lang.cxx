@@ -2008,7 +2008,7 @@ static Node *makeConstructor(Node *n)
   }
   String *lname = Swig_scopename_last(name);
   Append(dname,lname);
-  Setattr(cn,"feature:new","1");
+  SetFlag(cn,"feature:new");
   Setattr(cn,"decl","f().");
   Swig_features_get(Swig_cparse_features(), 0, dname, Getattr(cn,"decl"), cn);
   Delete(rname);

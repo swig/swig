@@ -704,7 +704,7 @@ class CSHARP : public Language {
     Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (Getattr(n,"feature:new")) {
+    if (GetFlag(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
         canThrow(n, "newfree", n);
         Replaceall(tm,"$source","result"); /* deprecated */
@@ -1663,7 +1663,7 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      if (Getattr(n,"feature:new"))
+      if (GetFlag(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
@@ -1719,7 +1719,7 @@ class CSHARP : public Language {
       } else {
         // Getter method
         if ((tm = Swig_typemap_lookup_new("csvarout",n,"",0))) {
-          if (Getattr(n,"feature:new"))
+          if (GetFlag(n,"feature:new"))
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");
@@ -2070,7 +2070,7 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      if (Getattr(n,"feature:new"))
+      if (GetFlag(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
@@ -2125,7 +2125,7 @@ class CSHARP : public Language {
       } else {
         // Getter method
         if ((tm = Swig_typemap_lookup_new("csvarout",n,"",0))) {
-          if (Getattr(n,"feature:new"))
+          if (GetFlag(n,"feature:new"))
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");

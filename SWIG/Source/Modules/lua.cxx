@@ -507,7 +507,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 //      }
 //        else returnval++;
       Replaceall(tm,"$source", "result");
- 	  if (Getattr(n,"feature:new")) {
+ 	  if (GetFlag(n,"feature:new")) {
 	    Replaceall(tm,"$owner","1");
 	  } else {
 	    Replaceall(tm,"$owner","0");
@@ -526,7 +526,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (Getattr(n,"feature:new")) {
+    if (GetFlag(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printf(f->code,"%s\n",tm);

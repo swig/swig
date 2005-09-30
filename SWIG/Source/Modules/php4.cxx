@@ -886,7 +886,7 @@ public:
     SwigType *d     = Getattr(n,"type");
     ParmList *l     = Getattr(n,"parms");
     String *nodeType = Getattr(n, "nodeType");
-    int newobject   = (Getattr(n,"feature:new"))?1:0;
+    int newobject   = GetFlag(n,"feature:new");
 
     Parm *p;
     char source[256];

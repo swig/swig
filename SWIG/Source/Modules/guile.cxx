@@ -947,7 +947,7 @@ public:
       Replaceall(tm,"$result","gswig_result");
       Replaceall(tm,"$target","gswig_result");
       Replaceall(tm,"$source","result");
-      if (Getattr(n, "feature:new"))
+      if (GetFlag(n, "feature:new"))
         Replaceall(tm, "$owner", "1");
       else 
         Replaceall(tm, "$owner", "0");
@@ -965,7 +965,7 @@ public:
     
     // Look for any remaining cleanup
     
-    if (Getattr(n,"feature:new")) {
+    if (GetFlag(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printv(f->code,tm,"\n",NIL);
