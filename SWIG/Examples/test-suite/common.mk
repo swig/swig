@@ -93,6 +93,7 @@ CPP_TEST_CASES += \
 	constructor_explicit \
 	constructor_value \
 	contract \
+	compactdefaultargs \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
