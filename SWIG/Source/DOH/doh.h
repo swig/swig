@@ -188,10 +188,13 @@ extern int           DohSetattr(DOH *obj, const DOHString_or_char *name, const D
 extern int           DohDelattr(DOH *obj, const DOHString_or_char *name);
 extern DOH          *DohKeys(DOH *obj);
 extern int           DohGetInt(DOH *obj, const DOHString_or_char *name);
-extern double        DohGetDouble(DOH *obj, const DOHString_or_char *name);
-extern char         *DohGetChar(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetInt(DOH *obj, const DOHString_or_char *name, int);
+extern double        DohGetDouble(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetDouble(DOH *obj, const DOHString_or_char *name, double);
+extern char         *DohGetChar(DOH *obj, const DOHString_or_char *name);
+extern void          DohSetChar(DOH *obj, const DOH *name, char *value);
+extern int           DohGetFlag(DOH *obj, const DOHString_or_char *name);
+extern void          DohSetFlag(DOH *obj, const DOHString_or_char *name);
 extern void         *DohGetVoid(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetVoid(DOH *obj, const DOHString_or_char *name, void *value);
 
@@ -356,10 +359,12 @@ extern void      DohMemoryDebug(void);
 #define GetDouble          DohGetDouble
 #define GetChar            DohGetChar
 #define GetVoid            DohGetVoid
+#define GetFlag            DohGetFlag
 #define SetInt             DohSetInt
 #define SetDouble          DohSetDouble
 #define SetChar            DohSetattr
 #define SetVoid            DohSetVoid
+#define SetFlag            DohSetFlag
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
