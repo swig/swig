@@ -167,9 +167,7 @@ static String  *class_rename = 0;
 #define  CPLUS_PROTECTED 3
 
 /* include types */
-#define  INCLUDE_MODE    1
-#define  IMPORT_MODE     2
-static int   include_type = 1;
+static int   import_mode = 0;
 
 void SWIG_typemap_lang(const char *tm_lang) {
   typemap_lang = Swig_copy_string(tm_lang);
@@ -1750,43 +1748,33 @@ include_directive: includetype options string LBRACKET {
 		     cparse_file = Swig_copy_string($3);
 		     cparse_line = 0;
                } interface RBRACKET {
-                     String *modulename = 0;
                      $$ = $6;
 		     cparse_file = $1.filename;
 		     cparse_line = $1.line;
-		     if (strcmp($1.type,"include") == 0) {
-		       set_nodeType($$,"include");
-		     } else if (strcmp($1.type,"import") == 0) {
+		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
+		     if (strcmp($1.type,"import") == 0) {
 		       set_nodeType($$,"import");
-		       /* try to get the modulename from the options */
-		       modulename = $2 ? Getattr($2,"module") : 0;
-		       /* 
-			  we return to include type only here since an
-			  %imported file can also %include other files
-		       */
-		       include_type = INCLUDE_MODE;
+		       if (import_mode) --import_mode;
 		     }
 		     
 		     Setattr($$,"name",$3);
-		     Setattr($$,"options",$2);
-		     if (!modulename) {
-		       /* Search for the first module node (if any) */
-		       Node *n = firstChild($$);
-		       while (n) {
-			 if (Strcmp(nodeType(n),"module") == 0) {
-			   modulename = Getattr(n,"name");			   
-			   break;
+		     /* Search for the module (if any) */
+		     {
+			 Node *n = firstChild($$);
+			 while (n) {
+			     if (Strcmp(nodeType(n),"module") == 0) {
+				 Setattr($$,"module",Getattr(n,"name"));
+				 break;
+			     }
+			     n = nextSibling(n);
 			 }
-			 n = nextSibling(n);
-		       }
 		     }
-		     Setattr($$,"module",Copy(modulename));
-		     
+		     Setattr($$,"options",$2);
                }
                ;
 
 includetype    : INCLUDE { $$.type = (char *) "include"; }
-               | IMPORT  { $$.type = (char *) "import"; include_type = IMPORT_MODE;}
+               | IMPORT  { $$.type = (char *) "import"; ++import_mode;}
                ;
 
 /* ------------------------------------------------------------
@@ -1891,10 +1879,10 @@ module_directive: MODULE options idstring {
 		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
-		 if (include_type == INCLUDE_MODE) {
+		 if (!import_mode) {
 		   /* first module included, we apply global
 		      ModuleName, which can be modify by -module */
-		   Setattr($$,"name",ModuleName); 
+		   Setattr($$,"name",Copy(ModuleName));
 		 } else { 
 		   /* import mode, we just pass the idstring */
 		   Setattr($$,"name",$3);   
