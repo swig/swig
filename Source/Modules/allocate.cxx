@@ -129,7 +129,7 @@ class Allocate : public Dispatcher {
     String *base_decl = Getattr(base, "decl");
     SwigType *base_type = Getattr(base, "type");
     if (base_decl && base_type) {
-      if (checkAttribute(base, "name", name) && !Getattr(b, "feature:ignore") /* whole class is ignored */ ) {
+      if (checkAttribute(base, "name", name) && !GetFlag(b, "feature:ignore") /* whole class is ignored */ ) {
 	if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
 	  // We have found a method that has the same name as one in a base class
 	  bool covariant_returntype  = false;
@@ -208,7 +208,7 @@ class Allocate : public Dispatcher {
 		if (virtual_elimination_mode)
 		  if (both_have_public_access)
 		    if (!is_non_public_base(inclass, b))
-		      Setattr(n,"feature:ignore", "1");
+		      SetFlag(n,"feature:ignore");
 	      } else {
 		// Some languages need to know about covariant return types
 		Setattr(n, "covariant", most_base_covariant_type);
@@ -363,21 +363,21 @@ class Allocate : public Dispatcher {
     if (kind && (Strcmp(kind,"class") == 0)) mode = PRIVATE;
     
     while (c) {
-      if (Getattr(c,"error") || Getattr(c,"feature:ignore")) {
+      if (Getattr(c,"error") || GetFlag(c,"feature:ignore")) {
 	c = nextSibling(c);
 	continue;
       }
       if (!isconst && (Strcmp(nodeType(c),"extend") == 0)) {
 	methods = smart_pointer_methods(c, methods, isconst, Getattr(cls,"name"));
       } else if (Strcmp(nodeType(c),"cdecl") == 0) {
-	if (!Getattr(c,"feature:ignore")) {
+	if (!GetFlag(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
 	  if (!((Cmp(storage,"typedef") == 0))
 	      && !((Cmp(storage,"friend") == 0))) {
 	    String *name = Getattr(c,"name");
 	    String *symname = Getattr(c,"sym:name");
 	    Node   *e    = Swig_symbol_clookup_local(name,0);
-	    if (e && is_public(e) && !Getattr(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
+	    if (e && is_public(e) && !GetFlag(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
 	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->(),\n",
 			   name);
 	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(c),Getline(c),"previous declaration of '%s'.\n", name);
@@ -644,7 +644,7 @@ public:
 	  p = parentNode(p);
 	}
 	if (Strcmp(nodeType(p),"class") == 0) {
-	  if (Getattr(p,"feature:ignore")) {
+	  if (GetFlag(p,"feature:ignore")) {
 	    Setattr(n,"allocate:smartpointer",Getattr(p,"allocate:smartpointer"));
 	  }
 	}
@@ -718,7 +718,7 @@ public:
 	  Setattr(inclass,"allocate:has_new","1");
 	}
 	/* Look for smart pointer operator */
-	if ((Strcmp(name,"operator ->") == 0) && (!Getattr(n,"feature:ignore"))) {
+	if ((Strcmp(name,"operator ->") == 0) && (!GetFlag(n,"feature:ignore"))) {
 	  /* Look for version with no parameters */
 	  Node *sn = n;
 	  while (sn) {

@@ -1277,7 +1277,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
       SwigType *td = SwigType_strip_qualifiers(ftd);
       Delete(ftd);
       if ((n = Swig_symbol_clookup(td,0))) {
-	if (Getattr(n,"feature:valuewrapper")) {
+	if (GetFlag(n,"feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
 	  if ((Strcmp(nodeType(n),"class") == 0) 
@@ -1314,7 +1314,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	     && !Getattr(n,"allocate:noassign")
 	     && (Getattr(n,"allocate:default_constructor")))
 	    || (Getattr(n,"feature:novaluewrapper"))) {
-	  use_wrapper = Getattr(n,"feature:valuewrapper") ? 1 : 0;
+	  use_wrapper = GetFlag(n,"feature:valuewrapper");
 	}
       }
     } else {

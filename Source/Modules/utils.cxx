@@ -50,7 +50,7 @@ void clean_overloaded(Node *n) {
   int   cnt = 0;
   while (nn) {
     if ((Strcmp(nodeType(nn),"template") == 0) ||
-	(Getattr(nn,"feature:ignore")) ||
+	(GetFlag(nn,"feature:ignore")) ||
 	(Getattr(nn,"error")) ||
 	// (checkAttribute(nn,"storage","friend")) ||
 	((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn))) {

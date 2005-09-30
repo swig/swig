@@ -438,7 +438,7 @@ static void add_symbols(Node *n) {
     }
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
-      Setattr(n,"feature:ignore","1");
+      SetFlag(n,"feature:ignore");
       if (strlen(c)) {
 	SWIG_WARN_NODE_BEGIN(n);
 	Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
@@ -1166,7 +1166,7 @@ static void default_arguments(Node *n) {
       (one wrapped method per function irrespective of number of default arguments) */
     if (compact_default_args 
 	|| is_cfunction(function) 
-	|| Getattr(function,"feature:compactdefaultargs") 
+	|| GetFlag(function,"feature:compactdefaultargs") 
 	|| Getattr(function,"feature:kwargs")) {
       ParmList *p = Getattr(function,"parms");
       if (p) 

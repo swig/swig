@@ -1408,7 +1408,7 @@ public:
       if(baselist) {
         int class_count = 0;
         Iterator base = First(baselist);
-        while(base.item && Getattr(base.item,"feature:ignore")) {
+        while(base.item && GetFlag(base.item,"feature:ignore")) {
           base = Next(base);
         }
 
@@ -1418,7 +1418,7 @@ public:
         }
 
         if (base.item) for(base = Next(base); base.item; base = Next(base)) {
-          if (Getattr(base.item,"feature:ignore")) {
+          if (GetFlag(base.item,"feature:ignore")) {
             continue;
           }
           if(is_shadow(Getattr(base.item, "name"))) {
@@ -1496,7 +1496,7 @@ public:
         base.item = NULL;
       }
 
-      while(base.item && Getattr(base.item,"feature:ignore")) {
+      while(base.item && GetFlag(base.item,"feature:ignore")) {
         base = Next(base);
       }
 
@@ -1544,7 +1544,7 @@ public:
                  GetChar(base.item, "sym:name"));
           
           base=Next(base);
-          while (base.item && Getattr(base.item,"feature:ignore")) {
+          while (base.item && GetFlag(base.item,"feature:ignore")) {
             base=Next(base);
           }
         }
@@ -1586,7 +1586,7 @@ public:
       } else {
         base.item=NULL;
       }
-      while(base.item && Getattr(base.item,"feature:ignore")) {
+      while(base.item && GetFlag(base.item,"feature:ignore")) {
         base = Next(base);
       }
       ki = First(shadow_get_vars);
@@ -1634,7 +1634,7 @@ public:
                GetChar(base.item, "sym:name"));
 
           base=Next(base);
-          while (base.item && Getattr(base.item,"feature:ignore")) {
+          while (base.item && GetFlag(base.item,"feature:ignore")) {
             base=Next(base);
           }
         }
@@ -1655,7 +1655,7 @@ public:
       else {
         base.item=NULL;
       }
-      while(base.item && Getattr(base.item,"feature:ignore")) {
+      while(base.item && GetFlag(base.item,"feature:ignore")) {
         base = Next(base);
       }
 

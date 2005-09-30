@@ -208,7 +208,7 @@ Swig_name_get(const String_or_char *vname) {
   String *f;
 
 #ifdef SWIG_DEBUG
-  Printf(stdout,"name get:  '%s'\n", vname); 
+  Printf(stdout,"Swig_name_get:  '%s'\n", vname); 
 #endif
 
   r = NewString("");
@@ -395,7 +395,7 @@ Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) 
   DOH *n;
 
 #ifdef SWIG_DEBUG
-  Printf(stdout,"name set:  '%s', '%s'\n", name, decl); 
+  Printf(stdout,"Swig_name_object_set:  '%s', '%s'\n", name, decl); 
 #endif
   n = Getattr(namehash,name);
   if (!n) {
@@ -571,7 +571,7 @@ void features_get(Hash *features, String *tname, SwigType *decl, SwigType *ncdec
 {
   Node *n = Getattr(features,tname);
 #ifdef SWIG_DEBUG
-  Printf(stdout,"  feature_get: %s\n", tname);
+  Printf(stdout,"  features_get: %s\n", tname);
 #endif
   if (n) {
     merge_features(get_object(n,0),node);
@@ -608,7 +608,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   }
   
 #ifdef SWIG_DEBUG
-  Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);
+  Printf(stdout,"SWwig_features_get: %s %s %s\n", prefix, name, decl);
 #endif
 
   /* Global features */
@@ -676,7 +676,7 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   Hash *fhash;
 
 #ifdef SWIG_DEBUG
-  Printf(stdout,"feature_set: %s %s %s %s\n", name, decl, featurename,value);  
+  Printf(stdout,"Swig_feature_set: %s %s %s %s\n", name, decl, featurename,value);  
 #endif
 
   n = Getattr(features,name);

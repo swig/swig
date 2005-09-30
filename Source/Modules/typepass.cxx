@@ -797,7 +797,7 @@ class TypePass : private Dispatcher {
 	    SwigType_typedef_using(uname);
 	  } else {
 	    /* A normal C declaration. */
-	    if ((inclass) && (!Getattr(n,"feature:ignore")) && (Getattr(n,"sym:name"))) {
+	    if ((inclass) && (!GetFlag(n,"feature:ignore")) && (Getattr(n,"sym:name"))) {
 	      Node *c = ns;
 	      Node *unodes = 0, *last_unodes = 0;
 	      int   ccount = 0;
@@ -808,7 +808,7 @@ class TypePass : private Dispatcher {
 			|| checkAttribute(c,"storage","typedef")
 			|| checkAttribute(c,"storage","friend")
 			|| (Getattr(c,"feature:extend") && !Getattr(c,"code"))
-			|| Getattr(c,"feature:ignore"))) {
+			|| GetFlag(c,"feature:ignore"))) {
 			
 		    String *csymname = Getattr(c,"sym:name");
 		    if (!csymname || (Strcmp(csymname,symname) == 0)) {
@@ -834,7 +834,7 @@ class TypePass : private Dispatcher {
 		      Delattr(nn,"access"); // access might be different from the method in the base class
 		      if (!Getattr(nn,"sym:name")) Setattr(nn,"sym:name", symname);
 
-		      if (!Getattr(nn,"feature:ignore")) {
+		      if (!GetFlag(nn,"feature:ignore")) {
 			Setattr(nn,"parms",CopyParmList(Getattr(c,"parms")));
 			ParmList *throw_parm_list = Getattr(c,"throws");
 			if (throw_parm_list)

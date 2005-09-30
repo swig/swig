@@ -1267,8 +1267,7 @@ class JAVA : public Language {
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
     // The %javaconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:java:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+    int const_feature_flag = GetFlag(n,"feature:java:const");
 
     /* Adjust the enum type for the Swig_typemap_lookup.
      * We want the same jstype typemap for all the enum items so we use the enum type (parent node). */
@@ -1713,7 +1712,7 @@ class JAVA : public Language {
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
-      if (Getattr(n, "feature:javadowncast")) {
+      if (GetFlag(n, "feature:javadowncast")) {
         String *jni_imclass_name = makeValidJniName(imclass_name);
         String *jni_class_name = makeValidJniName(proxy_class_name);
         String *norm_name = SwigType_namestr(Getattr(n, "name"));
@@ -2337,8 +2336,7 @@ class JAVA : public Language {
 
     if (!value) {
       // The %javaconst feature determines how the constant value is obtained
-      String *const_feature = Getattr(n,"feature:java:const");
-      bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+      int const_feature_flag = GetFlag(n,"feature:java:const");
 
       if (const_feature_flag) {
         // Use the C syntax to make a true Java constant and hope that it compiles as Java code
