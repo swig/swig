@@ -1,6 +1,39 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/30/2005: wsfulton
+            Subtle change to some features. Previously it was not possible to unset many
+            features once they had been set. This was for most features that behave as
+            flags. These features now work as follows:
+
+              %feature("name")              // enables the feature
+              %feature("name", "1")         // enables the feature
+              %feature("name", "0")         // disables the feature
+              %feature("name", "")          // clears the feature
+
+            In fact any non-empty value other than "0" will enable the feature (like C boolean logic).
+            Previously "1", "0" or any other non-empty value would enable the feature and it would
+            only be possible to disable the feature by clearing it (assuming there was no global enable).
+
+            The following features are affected:
+
+              java:const
+              java:downcast
+              compactdefaultargs
+              ignore
+              valuewrapper
+
+            It is now possible, for example to ignore all methods/classes in a header file, except for a
+            few targetted methods, for example:
+
+              %feature("ignore");                                // ignore all methods/classes
+              %feature("ignore","0") some_function(int, double); // do not ignore this function
+              %feature("ignore","0") SomeClass;                  // do not ignore this Class
+              %feature("ignore","0") SomeClass::method;          // do not ignore this method
+              %include "bigheader.h"
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 09/25/2005: mkoeppe
 	    [Guile] Add "throws" typemaps.
 
