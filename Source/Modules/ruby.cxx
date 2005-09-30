@@ -970,10 +970,10 @@ public:
     SwigType* baseType = SwigType_base(aType);
     Node* classNode =  classLookup(baseType);
     
-    if (classNode && Getattr(classNode, "feature:trackobjects")) {
-	   return true;
+    if (classNode && GetFlag(classNode, "feature:trackobjects")) {
+      return true;
     } else {
-    	return false;
+      return false;
     }
   }    
     
@@ -1213,9 +1213,9 @@ public:
 	if (action) {
 	  Append(action,"DATA_PTR(self) = result;\n");
 
-    if (Getattr(n,"feature:trackobjects")) {
-		  Append(action,"SWIG_RubyAddTracking(result, self);\n");
-    }
+	  if (GetFlag(n,"feature:trackobjects")) {
+	    Append(action,"SWIG_RubyAddTracking(result, self);\n");
+	  }
 	}
       }
       emit_action(n,f);
@@ -1974,9 +1974,9 @@ public:
       }
     }
     
-    	    if (Getattr(n,"feature:trackobjects")) {
-    		 Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", Swig_cparm_name(0,0));
-	    }
+    if (GetFlag(n,"feature:trackobjects")) {
+      Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", Swig_cparm_name(0,0));
+    }
     Printv(freebody, "}\n\n", NIL);
   
     Printv(f_wrappers, freebody, NIL);
