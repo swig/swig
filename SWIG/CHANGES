@@ -2006,7 +2006,7 @@ Version 1.3.23 (November 11, 2004)
 
             or 
 
-	      %pythondynamic(0);
+	      %pythondynamic(0); [ Note: %pythondynamic since deprecated ]
    
 	    to force all the wrapped classes to be "nondynamic" ones.
 
