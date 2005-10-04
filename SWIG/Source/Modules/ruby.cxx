@@ -1124,7 +1124,7 @@ public:
     int  numarg = emit_num_arguments(l);
     int  numreq = emit_num_required(l);
     int  varargs = emit_isvarargs(l);
-    bool allow_kwargs = Getattr(n,"feature:kwargs") ? true : false;
+    bool allow_kwargs = GetFlag(n,"feature:kwargs") ? true : false;
     
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) ? 1 : 0;
