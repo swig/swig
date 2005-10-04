@@ -608,7 +608,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   }
   
 #ifdef SWIG_DEBUG
-  Printf(stdout,"SWwig_features_get: %s %s %s\n", prefix, name, decl);
+  Printf(stdout,"Swig_features_get: %s %s %s\n", prefix, name, decl);
 #endif
 
   /* Global features */
