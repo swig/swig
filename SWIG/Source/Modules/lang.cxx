@@ -1200,7 +1200,7 @@ Language::membervariableHandler(Node *n) {
      allows this. 
   */
 
-  if (!(Extend | SmartPointer) && (!Getattr(n,"feature:allowexcept"))) {
+  if (!(Extend | SmartPointer) && (!GetFlag(n,"feature:allowexcept"))) {
     Delattr(n,"feature:except");
   }
 
@@ -1661,8 +1661,8 @@ int Language::unrollVirtualMethods(Node *n,
     for (k = First(vm); k.key; k = Next(k)) {
       Node *m = Getattr(k.item, "methodNode");
       /* retrieve the director features */
-      int mdir = checkAttribute(m, "feature:director", "1");
-      int mndir = checkAttribute(m, "feature:nodirector", "1");
+      int mdir = GetFlag(m, "feature:director");
+      int mndir = GetFlag(m, "feature:nodirector");
       /* 'nodirector' has precedence over 'director' */
       int dir = (mdir || mndir) ? (mdir && !mndir) : 1;
       /* check if the method was found only in a base class */
@@ -1670,8 +1670,8 @@ int Language::unrollVirtualMethods(Node *n,
       if (p != n) {
 	Node *c = Copy(m);
 	Setattr(c, "parentNode", n);
-	int cdir = checkAttribute(c, "feature:director", "1");
-	int cndir = checkAttribute(c, "feature:nodirector", "1");
+	int cdir = GetFlag(c, "feature:director");
+	int cndir = GetFlag(c, "feature:nodirector");
 	dir = (cdir || cndir) ? (cdir && !cndir) : dir;
 	Delete(c);
       }
@@ -1807,14 +1807,13 @@ int Language::classDirectorMethods(Node *n) {
     item = k.item;
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
+    if (GetFlag(method, "feature:nodirector"))
       continue;
     
     String *type = Getattr(method, "nodeType");
     if (!Cmp(type, "destructor")) { 
       classDirectorDestructor(method);
-    }
-    else {
+    } else {
       if (classDirectorMethod(method, n, fqdname) == SWIG_OK) {
 	Setattr(item, "director", "1");
       }
@@ -1968,8 +1967,8 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    int ndir = checkAttribute(n, "feature:director", "1");
-    int nndir = checkAttribute(n, "feature:nodirector", "1");
+    int ndir = GetFlag(n, "feature:director");
+    int nndir = GetFlag(n, "feature:nodirector");
     /* 'nodirector' has precedence over 'director' */
     int dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     if (directorsEnabled() && dir) {
@@ -2228,7 +2227,7 @@ get_director_ctor_code(Node *n, String *director_ctor_code,
     Node *pn = Swig_methodclass(n);
     abstract = Getattr(pn,"abstract");
     if (director_prot_ctor_code) {
-      int is_notabstract = Getattr(pn,"feature:notabstract") ? 1 : 0;
+      int is_notabstract = GetFlag(pn,"feature:notabstract");
       int is_abstract = abstract && !is_notabstract;
       if (is_protected(n) || is_abstract) {
 	director_ctor = director_prot_ctor_code;
@@ -2846,7 +2845,7 @@ String * Language::getClassType() const {
 //#define SWIG_DEBUG
 int Language::abstractClassTest(Node *n) {
   /* check for non public operator new */
-  if (Getattr(n,"feature:notabstract")) return 0;  
+  if (GetFlag(n,"feature:notabstract")) return 0;  
   if (Getattr(n,"allocate:nonew")) return 1;
   /* now check for the rest */
   List *abstract = Getattr(n,"abstract");
@@ -2858,7 +2857,7 @@ int Language::abstractClassTest(Node *n) {
 #endif
   if (!labs) return 0; /*strange, but need to be fixed */
   if (abstract && !directorsEnabled()) return 1;
-  if (!Getattr(n,"feature:director")) return 1;
+  if (!GetFlag(n,"feature:director")) return 1;
 
   Node *dirabstract = 0;  
   Node *vtable = Getattr(n, "vtable");
