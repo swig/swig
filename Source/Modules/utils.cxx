@@ -25,11 +25,11 @@ int is_member_director(Node* parentnode, Node* member)
 
   if (checkAttribute(member,"director","1")) return 1;
   if (parentnode && checkAttribute(member, "storage", "virtual")) {
-    int parent_nodirector = checkAttribute(parentnode,"feature:nodirector","1");
+    int parent_nodirector = GetFlag(parentnode,"feature:nodirector");
     if (parent_nodirector) return 0;
-    int parent_director = director_mode|| checkAttribute(parentnode,"feature:director","1");
-    int cdecl_director = parent_director || checkAttribute(member,"feature:director","1");
-    int cdecl_nodirector = checkAttribute(member,"feature:nodirector","1");
+    int parent_director = director_mode || GetFlag(parentnode,"feature:director");
+    int cdecl_director = parent_director || GetFlag(member,"feature:director");
+    int cdecl_nodirector = GetFlag(member,"feature:nodirector");
     return cdecl_director && !cdecl_nodirector;
   } else {
     return 0;
