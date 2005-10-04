@@ -37,7 +37,7 @@
 
 //%pythonnondynamic(1);
 %pythonnondynamic(1) A;
-%pythondynamic(1) C;
+%pythonnondynamic(0) C;
 
 
 %inline %{
