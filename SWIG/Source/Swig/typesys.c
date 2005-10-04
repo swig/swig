@@ -1282,9 +1282,8 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	} else {
 	  if ((Strcmp(nodeType(n),"class") == 0) 
 	      && (!Getattr(n,"allocate:default_constructor") 
-		  || (Getattr(n,"allocate:noassign")))) {
-	    use_wrapper = !Getattr(n,"feature:novaluewrapper") 
-	      || GetFlag(n,"feature:nodefault");
+	      || (Getattr(n,"allocate:noassign")))) {
+	    use_wrapper = !GetFlag(n,"feature:novaluewrapper") || GetFlag(n,"feature:nodefault");
 	  }
 	}
       } else {
@@ -1311,9 +1310,9 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
     if (SwigType_type(td) == T_USER) {
       if ((n = Swig_symbol_clookup(td,0))) {
 	if (((Strcmp(nodeType(n),"class") == 0) 
-	     && !Getattr(n,"allocate:noassign")
-	     && (Getattr(n,"allocate:default_constructor")))
-	    || (Getattr(n,"feature:novaluewrapper"))) {
+	    && !Getattr(n,"allocate:noassign")
+	    && (Getattr(n,"allocate:default_constructor")))
+	    || (GetFlag(n,"feature:novaluewrapper"))) {
 	  use_wrapper = GetFlag(n,"feature:valuewrapper");
 	}
       }
