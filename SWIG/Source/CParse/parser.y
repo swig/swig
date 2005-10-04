@@ -1167,7 +1167,7 @@ static void default_arguments(Node *n) {
     if (compact_default_args 
 	|| is_cfunction(function) 
 	|| GetFlag(function,"feature:compactdefaultargs") 
-	|| Getattr(function,"feature:kwargs")) {
+	|| GetFlag(function,"feature:kwargs")) {
       ParmList *p = Getattr(function,"parms");
       if (p) 
         Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
