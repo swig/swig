@@ -636,7 +636,7 @@ public:
   bool have_docstring(Node *n) {
     String* str = Getattr(n, "feature:docstring");
     return (str != NULL && Len(str) > 0) ||
-        (Getattr(n,"feature:autodoc") && !Getattr(n, "feature:noautodoc"));
+        (Getattr(n,"feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
   }
   
   /* ------------------------------------------------------------
@@ -650,7 +650,7 @@ public:
     bool use_triple = true) {
     String* str = Getattr(n, "feature:docstring");
     bool have_ds = (str != NULL && Len(str) > 0);
-    bool have_auto = (Getattr(n,"feature:autodoc") && !Getattr(n, "feature:noautodoc"));
+    bool have_auto = (Getattr(n,"feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
     const char* triple_double = use_triple ? "\"\"\"" : "";
     String* autodoc = NULL;
     String* doc = NULL;
@@ -1042,7 +1042,7 @@ public:
    * ------------------------------------------------------------ */
 
   int check_kwargs(Node *n) {
-    return ((use_kw || Getattr(n,"feature:kwargs")) && !Getattr(n, "feature:nokwargs")) ? 1 : 0;
+    return (use_kw || GetFlag(n,"feature:kwargs"));
   }
 
 
@@ -1107,7 +1107,7 @@ public:
     
     Replaceall(dispatch,"$args","self,args");
     Printv(f->code,dispatch,"\n",NIL);
-    if (checkAttribute(n,"feature:python:maybecall","1")) {
+    if (GetFlag(n,"feature:python:maybecall")) {
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
     } else {
@@ -1958,11 +1958,11 @@ public:
 	classic = 1;
         modern  = 0;
       }
-      if (Getattr(n,"feature:classic")) {
+      if (GetFlag(n,"feature:classic")) {
         classic = 1;
         modern  = 0;
       }
-      if (Getattr(n,"feature:modern")) {
+      if (GetFlag(n,"feature:modern")) {
         classic = 0;
         modern = 1;
       }
@@ -2014,7 +2014,7 @@ public:
           Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
         }
 
-	if (!checkAttribute(n,"feature:python:nondynamic","1")) {
+	if (!GetFlag(n,"feature:python:nondynamic")) {
 	  Printv(f_shadow,
 		 tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n",
 		 NIL);
@@ -2034,7 +2034,7 @@ public:
                NIL);
       } else {
 	/* Add static attribute */
-	if (checkAttribute(n,"feature:python:nondynamic","1")) {
+	if (GetFlag(n,"feature:python:nondynamic")) {
 	  Printv(f_shadow_file,
 		 tab4, "__setattr__ = _swig_setattr_nondynamic_method(object.__setattr__)\n",
 		 tab4, "class __metaclass__(type):\n",
