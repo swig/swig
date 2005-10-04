@@ -517,7 +517,7 @@ Swig_cattr_search(Node *n, const String *attr, const String *noattr)
 {
   String *f = 0;
   n = Swig_methodclass(n);  
-  if (Getattr(n, noattr)) {
+  if (GetFlag(n, noattr)) {
     /* Printf(stdout,"noattr in %s\n", Getattr(n,"name")); */
     return 0;
   }
@@ -541,7 +541,7 @@ Swig_cattr_search(Node *n, const String *attr, const String *noattr)
     }
   }
 #ifdef SWIG_FAST_REC_SEARCH
-  Setattr(n, noattr, "1");
+  SetFlag(n, noattr);
 #endif
   return 0;
 }
@@ -556,7 +556,7 @@ String *
 Swig_unref_call(Node *n) {
   String* unref = 0;
   n = Swig_methodclass(n);  
-  if (!Getattr(n,"feature:nounref")) {
+  if (!GetFlag(n,"feature:nounref")) {
     unref = Getattr(n,"feature:unref");
     unref = unref ? unref : 
       Swig_cattr_search(n,"feature:unref","feature:nounref");
@@ -578,7 +578,7 @@ String *
 Swig_ref_call(Node *n, const String* lname) {
   String* ref = 0;
   n = Swig_methodclass(n);
-  if (!Getattr(n,"feature:noref")) {
+  if (!GetFlag(n,"feature:noref")) {
     ref = Getattr(n,"feature:ref");
     ref = ref ? ref : 
       Swig_cattr_search(n,"feature:ref","feature:noref");
