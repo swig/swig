@@ -2,8 +2,8 @@ Version 1.3.26 (in progress)
 ============================
 
 09/30/2005: wsfulton
-            Subtle change to some features. Previously it was not possible to unset many
-            features once they had been set. This was for most features that behave as
+            Subtle change to some features. Previously it was not possible to disable many
+            features once they had been enabled. This was for most features that behave as
             flags. These features now work as follows:
 
               %feature("name")              // enables the feature
@@ -17,15 +17,28 @@ Version 1.3.26 (in progress)
 
             The following features are affected:
 
+              allowexcept
               compactdefaultargs
+              classic                (Python)
               cs:const               (C#)
+              director
               exceptionclass         (Python)
               ignore
               immutable
               java:const             (Java)
               java:downcast          (Java)
+              kwargs
+              modern                 (Python)
               new
+              noautodoc              (Python)
               nodefault
+              nodirector
+              noref
+              notabstract
+              nounref
+              novaluewrapper
+              python:maybecall       (Python)
+              python:nondynamic      (Python)
               modula3:multiretval    (Modula3)
               predicate              (Ruby)
               trackobjects           (Ruby)
@@ -39,6 +52,9 @@ Version 1.3.26 (in progress)
               %feature("ignore","0") SomeClass;                  // do not ignore this Class
               %feature("ignore","0") SomeClass::method;          // do not ignore this method
               %include "bigheader.h"
+
+            Removed %pythondynamic - it never worked properly. Use %pythonnondynamic instead.
+            Removed %feature("nokwargs") - it wasn't fully implemented  - use %feature("kwargs","0") instead.
 
             *** POTENTIAL INCOMPATIBILITY ***
 
