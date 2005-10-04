@@ -44,16 +44,10 @@ You can also use the raw %feature form
 
 %feature("pythonnondynamic") A;
 
-or the inverse form
-
-%pythondynamic(0) A;
-
-
 */
 
 
 #define %pythonnondynamic(FLAG) %feature("python:nondynamic", #FLAG)
-#define %pythondynamic(FLAG) %pythonnondynamic(!FLAG)
 
 
 /*
