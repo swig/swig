@@ -1216,7 +1216,7 @@ public:
     /* Error handling code */
     Printf(f->code,"fail:\n");
     Printv(f->code,cleanup,NIL);
-    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());");
+    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());",NIL);
 
     Printf(f->code, "}\n");    
 
