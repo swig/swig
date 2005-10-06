@@ -21,6 +21,8 @@
 <li><a href="#ownership">Object ownership and %newobject</a>
 <li><a href="#features">Features and the %feature directive</a>
 <ul>
+<li><a href="#Customization_feature_flags">Feature flags</a>
+<li><a href="#Customization_clearing_features">Clearing features</a>
 <li><a href="#Customization_features_default_args">Features and default arguments</a>
 <li><a href="#features_example">Feature example</a>
 </ul>
@@ -553,7 +555,9 @@ For now this is still supported but is deprecated.
 char *strdup(const char *s);
 </pre>
 </div>
+<p>
 The results might not be what you expect.
+</p>
 
 <H2><a name="features"></a>11.3 Features and the %feature directive</H2>
 
@@ -562,7 +566,7 @@ The results might not be what you expect.
 Both <tt>%exception</tt> and <tt>%newobject</tt> are examples of a
 more general purpose customization mechanism known as "features."  A
 feature is simply a user-definable property that is attached to
-specific declarations in an interface file.  Features are attached
+specific declarations.  Features are attached
 using the <tt>%feature</tt> directive. For example:
 </p>
 
@@ -594,32 +598,13 @@ involving <tt>%feature</tt>:
 </div>
 
 <p>
-The <tt>%feature</tt> directive follows the same name matching rules
-as the <tt>%rename</tt> directive (which is in fact just a special
-form of <tt>%feature</tt>).   This means that features can be applied with
+The name matching rules outlined in the <a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+section applies to all <tt>%feature</tt> directives.
+In fact the the <tt>%rename</tt> directive is just a special form of <tt>%feature</tt>. 
+The matching rules mean that features are very flexible and can be applied with
 pinpoint accuracy to specific declarations if needed.
-</p>
-
-<p>
-When a feature is defined, it is given a name and a value.   Most commonly, the
-value is supplied after the declaration name as shown for the <tt>"except"</tt>
-example above.   However, if the feature is simple, a value might be supplied
-as an extra argument as shown for the <tt>"new"</tt> feature.
-</p>
-
-<p>
-A feature stays in effect until it is explicitly disabled.  A feature is disabled by
-supplying a <tt>%feature</tt> directive with no value.  For example:
-</p>
-
-<div class="code">
-<pre>
-%feature("except") Object::allocate;    // Removes any previously defined feature
-</pre>
-</div>
-
-<p>
-If no declaration name is given, a global feature is defined.  This feature is then
+Additionally, if no declaration name is given, a global feature is said to be defined.
+This feature is then
 attached to <em>every</em> declaration that follows.  This is how global exception handlers
 are defined.  For example:
 </p>
@@ -635,9 +620,6 @@ are defined.  For example:
 }
 
 ... bunch of declarations ...
-
-/* Disable the exception handler */
-%feature("except");
 </pre>
 </div>
 
@@ -664,10 +646,10 @@ The following is the generic syntax for features:
 
 <div class="code">
 <pre>
-%feature("name","value", attribute1="AttibuteValue1") symbol;
-%feature("name", attribute1="AttibuteValue1") symbol {value};
-%feature("name", attribute1="AttibuteValue1") symbol %{value%};
-%feature("name", attribute1="AttibuteValue1") symbol "value";
+%feature("name","value", attribute1="AttributeValue1") symbol;
+%feature("name", attribute1="AttributeValue1") symbol {value};
+%feature("name", attribute1="AttributeValue1") symbol %{value%};
+%feature("name", attribute1="AttributeValue1") symbol "value";
 </pre>
 </div>
 
@@ -694,7 +676,168 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 Further details can be obtained from the <a href="Java.html#exception_handling">Java exception handling</a> section.
 </p>
 
-<H3><a name="Customization_features_default_args"></a>11.3.1 Features and default arguments</H3>
+<H3><a name="Customization_feature_flags"></a>11.3.1 Feature flags</H3>
+
+
+<p>
+Feature flags are used to enable or disable a particular feature. Feature flags are a common but simple usage of <tt>%feature</tt>
+and the feature value should be either <tt>1</tt> to enable or <tt>0</tt> to disable the feature. 
+</p>
+
+<div class="code">
+<pre>
+%feature("name")          // enables feature
+%feature("name", "1")     // enables feature
+%feature("name", "x")     // enables feature
+%feature("name", "0")     // disables feature
+%feature("name", "")      // clears feature
+</pre>
+</div>
+
+<p>
+Actually any value other than zero will enable the feature.
+Note that if the value is omitted completely, the default value becomes <tt>1</tt>, thereby enabling the feature.
+A feature is cleared by specifying no value, see <a href="#Customization_clearing_features">Clearing features</a>.
+The <tt>%immutable</tt> directive described in the <a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a> section,
+is just a macro for <tt>%feature("immutable")</tt>, and can be used to demonstrates feature flags:
+</p>
+
+<div class="code">
+<pre>
+                                // features are disabled by default
+int red;                        // mutable
+
+%feature("immutable");          // global enable
+int orange;                     // immutable
+
+%feature("immutable","0");      // global disable
+int yellow;                     // mutable
+
+%feature("immutable","1");      // another form of global enable
+int green;                      // immutable
+
+%feature("immutable","");       // clears the global feature
+int blue;                       // mutable
+</pre>
+</div>
+
+<p>
+Note that features are disabled by default and must be explicitly enabled either globally or by specifying a targeted declaration.
+The above intersperses SWIG directives with C code. Of course you can target features explicitly, so the above could also be rewritten as:
+</p>
+
+<div class="code">
+<pre>
+%feature("immutable","1") orange;
+%feature("immutable","1") green;
+int red;                        // mutable
+int orange;                     // immutable
+int yellow;                     // mutable
+int green;                      // immutable
+int blue;                       // mutable
+</pre>
+</div>
+
+<p>
+The above approach allows for the C declarations to be separated from the SWIG directives for when the C declarations are parsed from a C header file.
+The logic above can of course be inverted and rewritten as:
+</p>
+
+<div class="code">
+<pre>
+%feature("immutable","1");
+%feature("immutable","0") red;
+%feature("immutable","0") yellow;
+%feature("immutable","0") blue;
+int red;                        // mutable
+int orange;                     // immutable
+int yellow;                     // mutable
+int green;                      // immutable
+int blue;                       // mutable
+</pre>
+</div>
+
+
+<H3><a name="Customization_clearing_features"></a>11.3.2 Clearing features</H3>
+
+
+<p>
+A feature stays in effect until it is explicitly cleared.  A feature is cleared by
+supplying a <tt>%feature</tt> directive with no value.  For example <tt>%feature("name","")</tt>.
+A cleared feature means that any feature exactly matching any previously defined feature is no longer used in the name matching rules.
+So if a feature is cleared, it might mean that another name matching rule will apply.
+To clarify, let's consider the <tt>except</tt> feature again (<tt>%exception</tt>):
+</p>
+
+<div class="code">
+<pre>
+// Define global exception handler
+%feature("except") {
+    try {
+        $action
+    } catch (...) {
+        croak("Unknown C++ exception");
+    }
+}
+
+// Define exception handler for all clone methods to log the method calls
+%feature("except") *::clone() {
+    try {
+        logger.info("$action");
+        $action
+    } catch (...) {
+        croak("Unknown C++ exception");
+    }
+}
+
+... initial set of class declarations with clone methods ...
+
+// clear the previously defined feature
+%feature("except","") *::clone();
+
+... final set of class declarations with clone methods ...
+</pre>
+</div>
+
+<p>
+In the above scenario, the initial set of clone methods will log all method invocations from the target language.
+This specific feature is cleared for the final set of clone methods.
+However, these clone methods will still have an exception handler (without logging) as the next best feature match for them is the global exception handler.
+</p>
+
+<p>
+Note that clearing a feature is not always the same as disabling it.
+Clearing the feature above with <tt>%feature("except","") *::clone()</tt> is not the same as specifying
+<tt>%feature("except","0") *::clone()</tt>. The former will disable the feature for clone methods -
+the feature is still a better match than the global feature.
+If on the other hand, no global exception handler had been defined at all,
+then clearing the feature would be the same as disabling it as no other feature would have matched.
+</p>
+
+<p>
+Note that the feature must match exactly for it to be cleared by any previously defined feature.
+For example the following attempt to clear the initial feature will not work:
+</p>
+
+<div class="code">
+<pre>
+%feature("except") clone() { logger.info("$action"); $action }
+%feature("except","") *::clone();
+</pre>
+</div>
+
+<p>
+but this will:
+</p>
+
+<div class="code">
+<pre>
+%feature("except") clone() { logger.info("$action"); $action }
+%feature("except","") clone();
+</pre>
+</div>
+
+<H3><a name="Customization_features_default_args"></a>11.3.3 Features and default arguments</H3>
 
 
 <p>
@@ -710,7 +853,7 @@ For example:
 
 <div class="code">
 <pre>
-%feature("except") void hello(int i=0, double d=0.0);
+%feature("except") void hello(int i=0, double d=0.0) { ... }
 void hello(int i=0, double d=0.0);
 </pre>
 </div>
@@ -733,7 +876,7 @@ If the default arguments are not specified in the feature:
 
 <div class="code">
 <pre>
-%feature("except") void hello(int i, double d);
+%feature("except") void hello(int i, double d) { ... }
 void hello(int i=0, double d=0.0);
 </pre>
 </div>
@@ -769,7 +912,7 @@ specifying or not specifying default arguments in a feature is not applicable as
 in SWIG-1.3.23 when the approach to wrapping methods with default arguments was changed.
 </p>
 
-<H3><a name="features_example"></a>11.3.2 Feature example</H3>
+<H3><a name="features_example"></a>11.3.4 Feature example</H3>
 
 
 <p>
