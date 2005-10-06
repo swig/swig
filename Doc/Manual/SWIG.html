@@ -42,7 +42,7 @@
 <li><a href="#SWIG_nn24">Linking to structure variables</a>
 <li><a href="#SWIG_nn25">Linking to <tt>char *</tt></a>
 <li><a href="#SWIG_nn26">Arrays</a>
-<li><a href="#SWIG_nn27">Creating read-only variables</a>
+<li><a href="#SWIG_readonly_variables">Creating read-only variables</a>
 <li><a href="#SWIG_nn28">Renaming and ignoring declarations</a>
 <li><a href="#SWIG_default_args">Default/optional arguments</a>
 <li><a href="#SWIG_nn30">Pointers to functions and callbacks</a>
@@ -1542,7 +1542,7 @@ void pathname_set(char *value) {
 In the target language, the value can be set like a normal variable.
 </p>
 
-<H3><a name="SWIG_nn27"></a>5.4.6 Creating read-only variables</H3>
+<H3><a name="SWIG_readonly_variables"></a>5.4.6 Creating read-only variables</H3>
 
 
 <p>
@@ -1567,13 +1567,36 @@ immutable.  For example:
 </p>
 
 <div class="code"><pre>
-%immutable x;               // Make x read-only
+%immutable x;                   // Make x read-only
 ...
-double x;                   // Read-only (from earlier %immutable directive)
-double y;                   // Read-write
+double x;                       // Read-only (from earlier %immutable directive)
+double y;                       // Read-write
 ...
-</pre>
-</div>
+</pre></div>
+
+<p>
+The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually 
+<a href="Customization.html#features">%feature directives</a> defined like this:
+</p>
+
+<div class="code"><pre>
+#define %immutable   %feature("immutable")
+#define %mutable     %feature("immutable","")
+</pre></div>
+
+<p>
+If you wanted to make all wrapped variables read-only, barring one or two, it might be easier to take this approach:
+</p>
+
+<div class="code"><pre>
+%immutable;                     // Make all variables read-only
+%feature("immutable","0") x;    // except, make x read/write
+...
+double x;
+double y;
+double z;
+...
+</pre></div>
 
 <p>
 Read-only variables are also created when declarations are declared as <tt>const</tt>.
@@ -1584,8 +1607,7 @@ For example:
 <pre>
 const int foo;               /* Read only variable */
 char * const version="1.0";  /* Read only variable */
-</pre>
-</div>
+</pre></div>
 
 <p>
 <b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
