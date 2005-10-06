@@ -789,8 +789,13 @@ extern char *path;
 </div>
 
 <p>
-The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled using
-<tt>%mutable</tt>.  It is also possible to tag a specific variable as read-only like this:
+The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled or cleared using
+<tt>%mutable</tt>.
+See the <a href="SWIG.html#SWIG_readonly_variables">Creatng read-only variables</a> section for further details.
+</p>
+
+<p>
+It is also possible to tag a specific variable as read-only like this:
 </p>
 
 <div class="code">
