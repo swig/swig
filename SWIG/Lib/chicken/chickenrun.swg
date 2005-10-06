@@ -49,7 +49,8 @@ extern "C" {
 #define C_swig_is_ptr(x) (C_truep (C_blockp (x)) && C_truep (C_pointerp (x)))
 #define C_swig_is_swigpointer(x) (C_truep (C_blockp(x)) && C_truep (C_swigpointerp(x)))
 #define C_swig_is_closurep(x) (C_truep (C_blockp(x)) && C_truep(C_closurep(x)))
-#define C_swig_is_long(x) (C_swig_is_fixnum(x) || C_swig_is_flonum(x))
+#define C_swig_is_number(x) (C_swig_is_fixnum(x) || C_swig_is_flonum(x))
+#define C_swig_is_long(x) C_swig_is_number(x)
 
 #define SWIG_APPEND_VALUE(object) \
   if (resultobj == C_SCHEME_UNDEFINED) \

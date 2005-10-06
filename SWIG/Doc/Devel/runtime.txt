@@ -140,6 +140,16 @@ a pointer to the swig_type_info structure, then the TypeCheckStruct function
 should be called.  The TypeCheckStruct is slightly faster, since it does a
 pointer comparison instead of a strcmp.  
 
+The flag argument to ConvertPtr is used in some languages for disowning a
+pointer.  If the wrapped C function is taking ownership of the pointer (that
+means, the wrapped C function is responsible for deleting the object), then that
+pointer should be removed from the garbage collector.  We do that in the
+ConvertPtr function.  The pointer is still valid in the target language, but
+when the target language type is garbage collected, it will not call the
+associated destructor.  Languages have a special typemap called DISOWN that can be
+applied which passes this argument.  All the languages have the flags argument
+for consistancy, and the flags argument can be ignored or used for some other
+purpose.
 
 
 void *SWIG_MustGetPtr(LangType obj, swig_type_info *type, int flags,
