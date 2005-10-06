@@ -7,6 +7,7 @@
 		      (error "Error in inoutr-int2"))))
 (call-with-values (lambda () (out-foo 4))
 		  (lambda (a b)
+		    ;
 		    (if (not (and (= (slot-ref a 'a) 4) (= b 8)))
 		      (error "Error in out-foo"))))
 
