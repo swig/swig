@@ -2,12 +2,17 @@
 # (see also top-level configure.in kludge)
 class
 constants
+cpointer
+disown
 enum
 funcptr
+overloading
 pointer
+pragmas
 reference
 shadow
 simple
+struct
 sync
 value
 variables
