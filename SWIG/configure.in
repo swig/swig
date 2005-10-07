@@ -1125,9 +1125,6 @@ if test -z "$PHP4INC"; then
 	AC_MSG_RESULT(not found)
 fi
 
-( cd $srcdir/Examples/php4 ; for dir in `sed '/^#/d' check.list` ; do
-    test -f $dir/Makefile || ( cd $dir ; ln -s ../Makefile.php Makefile )
-  done )
 fi
 AC_SUBST(PHP4)
 AC_SUBST(PHP4INC)
