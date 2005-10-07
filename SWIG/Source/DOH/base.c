@@ -373,19 +373,28 @@ DohGetChar(DOH *obj, const DOH *name) {
 }
 
 /* -----------------------------------------------------------------------------
- * DohGetFlag()
+ * DohGetFlagAttr() / DohGetFlag()
  * A flag is unset if the attribute (name) does not exist on the node (obj),
- * or it is set to "0". If the attribute is set to any other value, the flag is set.
+ * or it is set to "0". If the attribute is set to any other value,
+ * the flag is set.
+ * 
+ * DohGetFlag()     returns if the flag is set or not
+ * DohGetFlagAttr() returns the flag value if is set, NULL otherwise
  * ----------------------------------------------------------------------------- */
+
+
+DOH *
+DohGetFlagAttr(DOH *obj, const DOH *name) {
+  DOH *val = Getattr(obj,(DOH *) name);
+  if (!val) return NULL;
+  return (Strcmp(val, "0") != 0) ? val : NULL;
+}
 
 int
 DohGetFlag(DOH *obj, const DOH *name) {
-  DOH *val;
-  val = Getattr(obj,(DOH *) name);
-  if (!val) return 0;
-  return (Strcmp(val, "0") != 0);
-  return 0;
+  return DohGetFlagAttr(obj, name) ? 1: 0;
 }
+
 
 /* -----------------------------------------------------------------------------
  * DohGetVoid()
@@ -437,8 +446,13 @@ DohSetChar(DOH *obj, const DOH *name, char *value) {
  * ----------------------------------------------------------------------------- */
 
 void
+DohSetFlagAttr(DOH *obj, const DOH *name, const DOH* attr) {
+  Setattr(obj,(DOH *) name, attr ? attr : NewString("0"));
+}
+
+void
 DohSetFlag(DOH *obj, const DOH *name) {
-  Setattr(obj,(DOH *) name,NewString("1"));
+  Setattr(obj,(DOH *) name, NewString("1"));
 }
 
 /* -----------------------------------------------------------------------------
