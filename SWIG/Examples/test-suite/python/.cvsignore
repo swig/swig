@@ -450,3 +450,5 @@ imports_a.py
 imports_b.py
 template_typedef_import.py
 li_cwstring.py
+compactdefaultargs.py
+refcount.py
