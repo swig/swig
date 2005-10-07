@@ -893,7 +893,8 @@ public:
     String *name      = Getattr(n,"name");
     String *iname     = Getattr(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
-    String   *value = Getattr(n,"value");
+    String   *rawval = Getattr(n,"rawval");
+    String   *value = rawval ? rawval : Getattr(n,"value");
     String   *tm;
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;

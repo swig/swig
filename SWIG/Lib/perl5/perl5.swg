@@ -455,7 +455,7 @@
        { SWIG_FLOAT,   (char *) SWIG_prefix "$symname", 0, (double) $value, 0, 0}
 
 %typemap(consttab) char, char *
-       { SWIG_STRING,  (char *) SWIG_prefix "$symname", 0, 0, (void *)"$value", 0}
+       { SWIG_STRING,  (char *) SWIG_prefix "$symname", 0, 0, (void *)$value, 0}
 
 %typemap(consttab) long long, unsigned long long
        { SWIG_STRING, (char *) SWIG_prefix "$symname", 0, 0, (void *) "$value", 0}
