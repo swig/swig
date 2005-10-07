@@ -193,7 +193,9 @@ extern double        DohGetDouble(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetDouble(DOH *obj, const DOHString_or_char *name, double);
 extern char         *DohGetChar(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetChar(DOH *obj, const DOH *name, char *value);
+extern void         *DohGetFlagAttr(DOH *obj, const DOHString_or_char *name);
 extern int           DohGetFlag(DOH *obj, const DOHString_or_char *name);
+extern void          DohSetFlagAttr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *attr);
 extern void          DohSetFlag(DOH *obj, const DOHString_or_char *name);
 extern void         *DohGetVoid(DOH *obj, const DOHString_or_char *name);
 extern void          DohSetVoid(DOH *obj, const DOHString_or_char *name, void *value);
@@ -359,12 +361,16 @@ extern void      DohMemoryDebug(void);
 #define GetDouble          DohGetDouble
 #define GetChar            DohGetChar
 #define GetVoid            DohGetVoid
+#define GetFlagAttr        DohGetFlagAttr
 #define GetFlag            DohGetFlag
 #define SetInt             DohSetInt
 #define SetDouble          DohSetDouble
 #define SetChar            DohSetattr
 #define SetVoid            DohSetVoid
+#define SetFlagAttr        DohSetFlagAttr
 #define SetFlag            DohSetFlag
+#define UnsetFlag(o,n)     DohSetFlagAttr(o,n,NULL)
+#define ClearFlag(o,n)     DohSetFlagAttr(o,n,"")
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
