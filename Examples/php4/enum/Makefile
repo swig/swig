@@ -1,5 +1,5 @@
 
-SWIGFLAGS   = -c++
+SWIGFLAGS   = -c++ -noproxy
 
 C_SOURCES   = 
 CXX_SOURCES = example.cxx

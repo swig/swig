@@ -1,14 +1,14 @@
 
-SWIGFLAGS   = -c++
+SWIGFLAGS   =
 
-C_SOURCES   = 
-CXX_SOURCES = example.cxx
+C_SOURCES   = example.c
+CXX_SOURCES =
 
 SWIG = ../../../swig
 
 all: check
 
-example_wrap.cpp: example.i
+example_wrap.c: example.i
 	$(SWIG) -php4 $(SWIGFLAGS) example.i
 
 OBJS= example_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)

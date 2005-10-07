@@ -1,14 +1,14 @@
 
-SWIGFLAGS   = -c++
+SWIGFLAGS   =
 
 C_SOURCES   = 
-CXX_SOURCES = example.cxx
+CXX_SOURCES =
 
 SWIG = ../../../swig
 
 all: check
 
-example_wrap.cpp: example.i
+example_wrap.c: example.i
 	$(SWIG) -php4 $(SWIGFLAGS) example.i
 
 OBJS= example_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)
@@ -34,4 +34,4 @@ check: $(PROG)
 	@php -d extension_dir=. runme.php4
 
 clean:
-	rm -f example_wrap.* *.o *~ *.so core example.php php_example.h
+	rm -f example_wrap.* *.o *~ example.so core example.php php_example.h
