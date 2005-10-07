@@ -453,7 +453,7 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Look for except feature */
   if (!tm) {
-    tm = Getattr(n,"feature:except");
+    tm = GetFlagAttr(n,"feature:except");
     if (tm) tm = Copy(tm);
   }  
   if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {

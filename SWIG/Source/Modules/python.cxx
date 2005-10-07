@@ -1057,7 +1057,7 @@ public:
     else
       Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, ", name, function);
     
-    if (n && Getattr(n,"feature:callback")) {
+    if (n && GetFlag(n,"feature:callback")) {
       if (have_docstring(n)) {
         String* ds = docstring(n, AUTODOC_FUNC, "", false);
         Replaceall(ds, "\n", "\\n");
@@ -1954,10 +1954,6 @@ public:
       have_constructor = 0;
       have_repr = 0;
       
-      if (GetFlag(n,"feature:exceptionclass")) {
-	classic = 1;
-        modern  = 0;
-      }
       if (GetFlag(n,"feature:classic")) {
         classic = 1;
         modern  = 0;
@@ -1965,6 +1961,10 @@ public:
       if (GetFlag(n,"feature:modern")) {
         classic = 0;
         modern = 1;
+      }
+      if (GetFlag(n,"feature:exceptionclass")) {
+	classic = 1;
+        modern  = 0;
       }
 
       shadow_indent = (String *) tab4;
@@ -2147,16 +2147,12 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionHandler(Node *n) {
-    String *pcb = Getattr(n,"feature:python:callback");
-    if (pcb && (Strcmp(pcb,"0") == 0)) {
-      Setattr(n,"feature:python:callback","");
-      pcb = 0;
-    }
+    String *pcb = GetFlagAttr(n,"feature:python:callback");
     if (pcb) {
       if (Strcmp(pcb,"1") == 0) {
-	Setattr(n,"feature:callback","%s_cb_ptr");
+	SetFlagAttr(n,"feature:callback","%s_cb_ptr");
       } else {
-	Setattr(n,"feature:callback",pcb);
+	SetFlagAttr(n,"feature:callback",pcb);
       }
       autodoc_l dlevel = autodoc_level(Getattr(n, "feature:autodoc"));
       if (dlevel != NO_AUTODOC && dlevel > TYPES_AUTODOC) {
