@@ -1,11 +1,11 @@
 %module nondynamic
 
 /*
- Use the "static" feature to make the wrapped class a static one,
- ie, a python class that doesn't dynamically add new attributes.
- Hence, for the class
+ Use the %pythonnondynamic directuve to make the wrapped class a
+ nondynamic one, ie, a python class that doesn't dynamically add new
+ attributes.  Hence, for the class
 
-  %feature("static") A;
+  %pythonnondynamic A;
   struct A 
   {
     int a;
@@ -19,11 +19,11 @@
   aa.b = 1  # Ok
   aa.c = 3  # error
 
- Since "static" is a feature, if you use
+ Since "nondynamic" is a feature, if you use
 
-  %feature("static");
+  %pythonnondynamic;
 
- it will make all the wrapped class static ones.
+ it will make all the wrapped class nondynamic ones.
 
  The implementation is based on the recipe:
 
@@ -35,9 +35,8 @@
 
 
 
-//%pythonnondynamic(1);
-%pythonnondynamic(1) A;
-%pythonnondynamic(0) C;
+%pythonnondynamic A;
+%pythondynamic C;
 
 
 %inline %{

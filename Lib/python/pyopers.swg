@@ -6,7 +6,7 @@
 #ifdef __cplusplus
 %define %pybinoperator(pyname,oper) 
 %rename(pyname) oper;
-%pythonmaybecall(1) oper;
+%pythonmaybecall oper;
 %enddef
 
 %pybinoperator(__add__,      *::operator+);
@@ -31,8 +31,8 @@
 %pybinoperator(__ne__,       *::operator!=);
 
 %define %pybinoperation(oper)
-%pythonmaybecall(1) __ ## oper ## __;
-%pythonmaybecall(1) __r ## oper ## __;
+%pythonmaybecall __ ## oper ## __;
+%pythonmaybecall __r ## oper ## __;
 %enddef
 
 %pybinoperation(add);
