@@ -491,13 +491,13 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_cattr_search()
+ * Swig_rflag_search()
  *
  * This function searches for the class attribute 'attr' in the class
  * 'n' or recursively in its bases.
  *
  * If you define SWIG_FAST_REC_SEARCH, the method will set the found
- * 'attr' in io the target class 'n'. If not, the method will set the
+ * 'attr' in the target class 'n'. If not, the method will set the
  * 'noattr' one. This prevents of having to navigate the entire
  * hierarchy tree everytime, so, it is an O(1) method...  or something
  * like that. However, it populates all the parsed classes with the
@@ -513,27 +513,25 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
 
 /* #define SWIG_FAST_REC_SEARCH 1 */
 String *
-Swig_cattr_search(Node *n, const String *attr, const String *noattr)
+Swig_rflag_search(Node *n, const String *attr, const String *noattr)
 {
   String *f = 0;
   n = Swig_methodclass(n);  
   if (GetFlag(n, noattr)) {
-    /* Printf(stdout,"noattr in %s\n", Getattr(n,"name")); */
     return 0;
   }
-  f = Getattr(n, attr);
+  f = GetFlagAttr(n, attr);
   if (f) {
-    /* Printf(stdout,"attr in %s\n", Getattr(n,"name")); */
     return f;
   } else {
     List* bl = Getattr(n, "bases");
     if (bl) {
       Iterator bi;
       for (bi = First(bl); bi.item; bi = Next(bi)) {
-	f = Swig_cattr_search(bi.item, attr, noattr);
+	f = Swig_rflag_search(bi.item, attr, noattr);
 	if (f) {
 #ifdef SWIG_FAST_REC_SEARCH
-	  Setattr(n, attr, f);
+	  SetFlagAttr(n, attr, f);
 #endif
 	  return f;
 	}
@@ -554,16 +552,12 @@ Swig_cattr_search(Node *n, const String *attr, const String *noattr)
 
 String *
 Swig_unref_call(Node *n) {
-  String* unref = 0;
-  n = Swig_methodclass(n);  
-  if (!GetFlag(n,"feature:nounref")) {
-    unref = Getattr(n,"feature:unref");
-    unref = unref ? unref : 
-      Swig_cattr_search(n,"feature:unref","feature:nounref");
-    if (unref) {
-      unref = NewStringf("%s",unref);
-      Replaceall(unref,"$this",Swig_cparm_name(0,0));
-    }
+  Node *cn = Swig_methodclass(n);  
+  String* unref = Swig_rflag_search(cn,"feature:unref","feature:nounref");
+  if (unref) {
+    unref = NewStringf("%s",unref);
+    Replaceall(unref,"$this",Swig_cparm_name(0,0));
+    Replaceall(unref,"$self",Swig_cparm_name(0,0));
   }
   return unref;
 }
@@ -576,16 +570,12 @@ Swig_unref_call(Node *n) {
 
 String *
 Swig_ref_call(Node *n, const String* lname) {
-  String* ref = 0;
-  n = Swig_methodclass(n);
-  if (!GetFlag(n,"feature:noref")) {
-    ref = Getattr(n,"feature:ref");
-    ref = ref ? ref : 
-      Swig_cattr_search(n,"feature:ref","feature:noref");
-    if (ref) {
-      ref = NewStringf("%s",ref);
-      Replaceall(ref,"$this",lname);
-    }
+  Node *cn = Swig_methodclass(n);  
+  String* ref = Swig_rflag_search(cn,"feature:ref","feature:noref");
+  if (ref) {
+    ref = NewStringf("%s",ref);
+    Replaceall(ref,"$this",lname);
+    Replaceall(ref,"$self",lname);
   }
   return ref;
 }
