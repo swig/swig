@@ -7,36 +7,13 @@
 #include "refcount.h"
 %}
 
-#if 0
 //
-// the old macro way
+// using the %refobject/%unrefobject directives you can active the
+// ref. counting for RCObj and all its descendents at once
 //
-%define RefCount(...)
-  %typemap(newfree) __VA_ARGS__* { $1->ref(); }
-  %newobject __VA_ARGS__::clone();
-  %extend __VA_ARGS__ { ~__VA_ARGS__() { self->unref(); } }
-  %ignore __VA_ARGS__::~__VA_ARGS__();
-%enddef
-//
-// you need to apply the RefCount macro to all the RCObj derived
-// classes.
-//
-RefCount(RCObj);
-RefCount(A);
-RefCount(A1);
-RefCount(A2);
-RefCount(A3);
-RefCount(B);
 
-#else
-//
-// using the ref/unref features you can active the ref. counting
-// for RCObj and all its descendents at once
-//
 %refobject   RCObj "$this->ref();"
 %unrefobject RCObj "$this->unref();"
-
-#endif
 
 %include "refcount.h"
 
@@ -103,12 +80,3 @@ RefCount(B);
   };
 
 %}
-
-
-/* Other ref/unref uses:
-
-// deactive the refcounting for A1 and its descendents
-%noref   A1;
-%nounref A1;
-
-*/
