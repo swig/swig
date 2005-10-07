@@ -23,7 +23,6 @@ static int eax()
 
 // bool functions
 bool bo(bool b) {
-  eax();
   return b;
 }
 bool& rbo(bool& b) {
