@@ -1,6 +1,32 @@
 Version 1.3.26 (in progress)
 ============================
 
+10/07/2005: mmatus
+	     Update more features to follow new convention, including:
+
+	       callback
+	       ref/unref
+	       except
+	    
+	     All of them use not only the feature as a flag, but also
+	     as code value. To deal with those features, we use now
+	     GetFlagAttr, which is similar to GetFlag, but instead or
+	     returning 1 or 0, it returns the attr value, if happens
+	     to be different of "0" of course.
+
+	     Now there are also more uniform directive names for the 
+	     ones based in features, for example, for the old
+	     %newobject directive now we have tree directives defined:
+	     
+
+	     #define %newobject        %feature("new")
+	     #define %nonewobject      %feature("new","0")
+	     #define %clearnewobject   %feature("new","")
+
+	     and so on for all the other feature directives.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 09/30/2005: wsfulton
             Subtle change to some features. Previously it was not possible to disable many
             features once they had been enabled. This was for most features that behave as
