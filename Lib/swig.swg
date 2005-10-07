@@ -32,45 +32,68 @@
 
 #define %addmethods  %warn "113:%addmethods is now %extend" %extend
 
-/* Access control directives */
-
-#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable");
-#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable","");
-
-#define %immutable   %feature("immutable")
-#define %mutable     %feature("immutable","")
-
-/* Directives for callback functions */
-
-/* Experimental */
-
-#define %callback(x) %feature("callback",`x`)
-#define %nocallback  %feature("callback","")
-
 /* %ignore directive */
 
 #define %ignore         %rename($ignore)
 #define %ignorewarn(x)  %rename("$ignore:" x)
 
+/* Access control directives */
+
+#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable");
+#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable","");
+
+#define %immutable       %feature("immutable")
+#define %noimmutable     %feature("immutable","0")
+#define %clearimmutable  %feature("immutable","")
+#define %mutable         %noimmutable
+
 /* Generation of default constructors/destructors */
 
-#define %nodefault     %feature("nodefault")
-#define %makedefault   %feature("nodefault","")
+#define %nodefault       %feature("nodefault","1")
+#define %default         %feature("nodefault","0")
+#define %clearnodefault  %feature("nodefault","")
+#define %makedefault     %default
 
-/* Common features */
+/* the %exception directive */
 
 #ifdef SWIGCSHARP
-#define %exception   %feature("except", canthrow=1)
+#define %exception      %feature("except", canthrow=1)
 #else
-#define %exception   %feature("except")
+#define %exception      %feature("except")
 #endif
-#define %noexception %feature("except","")
+#define %noexception    %feature("except","0")
+#define %clearexception %feature("except","")
 
-#define %exceptionclass %feature("exceptionclass","1")
-#define %noexceptionclass %feature("exceptionclass","0")
+/* the %exceptionclass directive */
+
+#define %exceptionclass      %feature("exceptionclass")
+#define %noexceptionclass    %feature("exceptionclass","0")
+#define %clearexceptionclass %feature("exceptionclass","")
+
+/* the %newobject directive */
+
+#define %newobject        %feature("new")
+#define %nonewobject      %feature("new","0")
+#define %clearnewobject   %feature("new","")
+
+/* the %refobject/%unrefobject directives */
+
+#define %refobject         %feature("ref")
+#define %norefobject       %feature("ref","0")
+#define %clearrefobject    %feature("ref","")
+
+#define %unrefobject       %feature("unref")
+#define %nounrefobject     %feature("unref","0")
+#define %clearunrefobject  %feature("unref","")
+
+/* Directives for callback functions (experimental) */
+
+#define %callback(x)    %feature("callback",`x`)
+#define %nocallback     %feature("callback","0")
+#define %clearcallback  %feature("callback","")
 
 
-#define %newobject   %feature("new")
+/* Common features */
 
 /* Warnings */
 #define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
