@@ -937,7 +937,7 @@ Language::globalfunctionHandler(Node *n) {
     return SWIG_NOWRAP;   /* Can't wrap static functions */
   } else {
     /* Check for callback mode */
-    String *cb = Getattr(n,"feature:callback");
+    String *cb = GetFlagAttr(n,"feature:callback");
     if (cb) {
       String *cbname = Getattr(n,"feature:callback:name");
       if (!cbname) {
@@ -972,7 +972,7 @@ Language::callbackfunctionHandler(Node *n) {
   String *type    = Getattr(n,"type");
   String *name    = Getattr(n,"name");
   String *parms   = Getattr(n,"parms");
-  String *cb      = Getattr(n,"feature:callback");
+  String *cb      = GetFlagAttr(n,"feature:callback");
   String *cbname  = Getattr(n,"feature:callback:name");
   String *calltype= NewStringf("(%s (*)(%s))(%s)", SwigType_str(type,0), ParmList_str(parms), SwigType_namestr(name));
   SwigType *cbty = Copy(type);
@@ -1013,7 +1013,7 @@ Language::memberfunctionHandler(Node *n) {
   SwigType *type    = Getattr(n,"type");
   String   *value   = Getattr(n,"value");
   ParmList *parms   = Getattr(n,"parms");
-  String   *cb      = Getattr(n,"feature:callback");
+  String   *cb      = GetFlagAttr(n,"feature:callback");
 
   if (Cmp(storage,"virtual") == 0) {
     if (Cmp(value,"0") == 0) {
@@ -1084,7 +1084,7 @@ Language::staticmemberfunctionHandler(Node *n) {
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
   ParmList *parms   = Getattr(n,"parms");
-  String   *cb      = Getattr(n,"feature:callback");
+  String   *cb      = GetFlagAttr(n,"feature:callback");
   String   *cname, *mrename;
 
   if (!Extend) {
@@ -1201,7 +1201,7 @@ Language::membervariableHandler(Node *n) {
   */
 
   if (!(Extend | SmartPointer) && (!GetFlag(n,"feature:allowexcept"))) {
-    Delattr(n,"feature:except");
+    UnsetFlag(n,"feature:except");
   }
 
   if (!AttributeFunctionGet) {
