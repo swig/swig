@@ -194,6 +194,7 @@ CPP_TEST_CASES += \
         protected_rename \
 	pure_virtual \
 	redefined \
+	refcount \
 	reference_global_vars \
 	register_par \
 	rename_scope \

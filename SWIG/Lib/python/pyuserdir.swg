@@ -13,7 +13,7 @@ one, ie, a python class that doesn't dynamically add new attributes.
 
 For example, for the class
 
-%pythonnondynamic(1) A;
+%pythonnondynamic A;
 struct A
 {
   int a;
@@ -27,28 +27,25 @@ you will get:
  aa.b = 1  # Ok
  aa.c = 3  # error
 
-Since "nondynamic" is a feature, if you use it like
+Since nondynamic is a feature, if you use it like
 
-%pythonnondynamic(1);
+ %pythonnondynamic;
 
 it will make all the wrapped classes nondynamic ones.
 
 The implementation is based on the recipe:
 
- http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252158
+   http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252158
 
-and works for modern (-modern) and plain python. We don't use __slots__, 
-so, it works with old python versions. 
-
-You can also use the raw %feature form
-
-%feature("pythonnondynamic") A;
+and works for modern (-modern) and plain python. We don not use __slots__, 
+so, it works with old python versions.
 
 */
 
-
-#define %pythonnondynamic(FLAG) %feature("python:nondynamic", #FLAG)
-
+#define %pythonnondynamic      %feature("python:nondynamic", "1")
+#define %nopythonnondynamic    %feature("python:nondynamic", "0")
+#define %clearpythonnondynamic %feature("python:nondynamic", "")
+#define %pythondynamic         %nopythonnondynamic
 
 /*
 
@@ -59,7 +56,9 @@ These methods "may be called" if needed.
 
 */
 
-%define %pythonmaybecall(FLAG) %feature("python:maybecall",#FLAG) %enddef
+#define %pythonmaybecall      %feature("python:maybecall", "1") 
+#define %nopythonmaybecall    %feature("python:maybecall", "0")
+#define %clearpythonmaybecall %feature("python:maybecall", "")
 
 /*
   The %pythoncallback feature produce a more natural callback wrap
@@ -102,26 +101,25 @@ These methods "may be called" if needed.
 
 */
 
-#define %pythoncallback(x) %feature("python:callback",`x`)
-#define %nopythoncallback %feature("python:callback","")
+#define %pythoncallback      %feature("python:callback")
+#define %nopythoncallback    %feature("python:callback","0")
+#define %clearpythoncallback %feature("python:callback","")
+
 
 /*  Support for the old %callback directive name */
 #ifdef %callback
 #undef %callback
 #endif
-#define %callback(x) %pythoncallback(x)
 
 #ifdef %nocallback
 #undef %nocallback
 #endif
-#define %nocallback %nopythoncallback; %feature("callback","")
 
+#ifdef %clearcallback
+#undef %clearcallback
+#endif
 
-/* When using -nortti, tell directors to avoid RTTI */
-#ifdef SWIG_NORTTI
-%insert("runtime") %{
-#ifndef SWIG_DIRECTOR_NORTTI
-#define SWIG_DIRECTOR_NORTTI
-#endif
-%}
-#endif
+#define %callback(x)     %feature("python:callback",`x`)
+#define %nocallback      %nopythoncallback
+#define %clearcallback   %clearpythoncallback
+

@@ -1,6 +1,6 @@
 %module refcount
 
-#warnfilter(362);
+%warnfilter(362);
 
 %{ 
 #include <iostream> 
@@ -33,8 +33,8 @@ RefCount(B);
 // using the ref/unref features you can active the ref. counting
 // for RCObj and all its descendents at once
 //
-%feature("ref")   RCObj "$this->ref();"
-%feature("unref") RCObj "$this->unref();"
+%refobject   RCObj "$this->ref();"
+%unrefobject RCObj "$this->unref();"
 
 #endif
 
@@ -108,7 +108,7 @@ RefCount(B);
 /* Other ref/unref uses:
 
 // deactive the refcounting for A1 and its descendents
-%feature("noref")   A1;
-%feature("nounref") A1;
+%noref   A1;
+%nounref A1;
 
 */

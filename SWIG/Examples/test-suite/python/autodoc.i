@@ -62,7 +62,7 @@
 %typemap(doc) int a "a: special comment for parameter a";
 %typemap(doc) int b "b: another special comment for parameter b";
 
-%pythoncallback(1) func_cb;
+%callback(1) func_cb;
 
 %inline {
   
