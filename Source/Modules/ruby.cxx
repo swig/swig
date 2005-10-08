@@ -1676,6 +1676,9 @@ public:
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Iterator base = First(baselist);
+      while(base.item && GetFlag(base.item,"feature:ignore")) {
+	base = Next(base);
+      }
       while (base.item) {
         String *basename = Getattr(base.item,"name");
         String *basenamestr = SwigType_namestr(basename);
@@ -1701,12 +1704,20 @@ public:
           Delete(btype);
         }
         base = Next(base);
+	while(base.item && GetFlag(base.item,"feature:ignore")) {
+	  base = Next(base);
+	}
         if (!multipleInheritance) {
-          /* Warn about multiple inheritance for additional base class(es) listed */
+          /* Warn about multiple inheritance for additional base class(es) */
           while (base.item) {
-            basename = Getattr(n,"name");
+	    if (GetFlag(base.item,"feature:ignore")) {
+	      base = Next(base);
+	      continue;
+	    }
+	    String *proxyclassname = SwigType_str(Getattr(n,"classtypeobj"),0);
+	    String *baseclassname = SwigType_str(Getattr(base.item,"name"),0);
             Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
-                         "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
             base = Next(base);
           }
         }

@@ -11,6 +11,8 @@
  * Portions copyright Ananova Ltd (c) 2002
  * Sam Liddicott <sam@ananova.com>
  *
+ * TODO: Replace stderr messages with Swig_warning
+ *
  */
 
 char cvsroot_php4_cxx[] = "$Header$";
@@ -81,8 +83,6 @@ static Hash     *shadow_set_vars;
 static int      native_constructor=0;
 static Hash     *zend_types = 0;
 
-static String *this_shadow_baseclass = 0;   //inheritance for shadow class from %pragma and cpp_inherit
-static String *this_shadow_multinherit = 0;
 static int        shadow        = 1;
 
 // These static variables are used to pass some state from Handlers into functionWrapper
@@ -1385,6 +1385,7 @@ public:
 
     if(shadow) {
       char *rename = GetChar(n, "sym:name");
+
       if (!addSymbol(rename,n)) return SWIG_ERROR;
       shadow_classname = Swig_copy_string(rename);
       cs_entry = NewString("");
@@ -1396,43 +1397,31 @@ public:
         SWIG_exit(1);
       }
 
-      this_shadow_baseclass = NewString("");
-      this_shadow_multinherit = NewString("");
-
       shadow_get_vars = NewHash();
       shadow_set_vars = NewHash();
 
       /* Deal with inheritance */
-      List *baselist = Getattr(n, "bases");
-
-      if(baselist) {
-        int class_count = 0;
-        Iterator base = First(baselist);
-        while(base.item && GetFlag(base.item,"feature:ignore")) {
-          base = Next(base);
-        }
-
-        if (base.item && is_shadow(Getattr(base.item, "name"))) {
-          class_count++;
-          Printf(this_shadow_baseclass, "%s", Getattr(base.item, "name"));
-        }
-
-        if (base.item) for(base = Next(base); base.item; base = Next(base)) {
-          if (GetFlag(base.item,"feature:ignore")) {
-            continue;
-          }
-          if(is_shadow(Getattr(base.item, "name"))) {
-            class_count++;
-            Printf(this_shadow_multinherit, "%s ", Getattr(base.item, "name"));
-          }
-        }
-
-        if(class_count > 1) {
-          Printf(stderr,
-                 "Error: %s inherits from multiple base classes(%s %s). "
-                 "Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n",
-                 shadow_classname, base.item, this_shadow_multinherit);
-        }
+      List *baselist = Getattr(n,"bases");
+      if (baselist) {
+	Iterator base = First(baselist);
+	while(base.item && GetFlag(base.item,"feature:ignore")) {
+	  base = Next(base);
+	}
+	base = Next(base);
+	if (base.item) {
+	  /* Warn about multiple inheritance for additional base class(es) */
+	  while (base.item) {
+	    if (GetFlag(base.item,"feature:ignore")) {
+	      base = Next(base);
+	      continue;
+	    }
+	    String *proxyclassname = SwigType_str(Getattr(n,"classtypeobj"),0);
+	    String *baseclassname = SwigType_str(Getattr(base.item,"name"),0);
+	    Swig_warning(WARN_PHP4_MULTIPLE_INHERITANCE, input_file, line_number, 
+		"Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Php4.\n", proxyclassname, baseclassname);
+	    base = Next(base);
+	  }
+	}
       }
 
       /* Write out class init code */
@@ -1675,10 +1664,8 @@ public:
       free(shadow_classname);
       shadow_classname = NULL;
       
-      Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
       Delete(shadow_set_vars); shadow_set_vars = NULL;
       Delete(shadow_get_vars); shadow_get_vars = NULL;
-      Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
       
       Printf(all_cs_entry,"%s   { NULL, NULL, NULL}\n};\n",cs_entry);
       //??delete cs_entry;
