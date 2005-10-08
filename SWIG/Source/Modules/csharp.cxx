@@ -1254,15 +1254,27 @@ class CSHARP : public Language {
     List *baselist = Getattr(n,"bases");
     if (baselist) {
       Iterator base = First(baselist);
-      c_baseclassname = Getattr(base.item,"name");
-      baseclass = Copy(getProxyName(c_baseclassname));
-      if (baseclass){
-        c_baseclass = SwigType_namestr(Getattr(base.item,"name"));
+      while(base.item && GetFlag(base.item,"feature:ignore")) {
+	base = Next(base);
       }
-      base = Next(base);
       if (base.item) {
-        Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, Getattr(base.item,"name"));
+	c_baseclassname = Getattr(base.item,"name");
+	baseclass = Copy(getProxyName(c_baseclassname));
+	if (baseclass)
+	  c_baseclass = SwigType_namestr(Getattr(base.item,"name"));
+	base = Next(base);
+	/* Warn about multiple inheritance for additional base class(es) */
+	while (base.item) {
+	  if (GetFlag(base.item,"feature:ignore")) {
+	    base = Next(base);
+	    continue;
+	  }
+	  String *proxyclassname = SwigType_str(Getattr(n,"classtypeobj"),0);
+	  String *baseclassname = SwigType_str(Getattr(base.item,"name"),0);
+	  Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
+	      "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
+	  base = Next(base);
+	}
       }
     }
 
