@@ -86,8 +86,10 @@
 
 /* --- Constants --- */
 
-%typemap(constant) char
-        "rb_define_const($module,\"$symname\", rb_str_new($1,1));";
+%typemap(constant) char {
+  char temp = $1;
+  rb_define_const($module,"$symname", rb_str_new(&temp,1));
+}
 
 %typemap(constant) char *
         "rb_define_const($module,\"$symname\", rb_str_new2($1));";
