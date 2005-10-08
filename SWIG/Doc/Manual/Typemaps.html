@@ -155,9 +155,9 @@ PyObject *wrap_factorial(PyObject *self, PyObject *args) {
     PyObject *resultobj;
 
     if (!PyArg_ParseTuple("O:factorial", &amp;obj1)) return NULL;
-    <b><font color="#0000ff">arg1 = PyInt_AsLong(obj1);</font></b>
+    <b>arg1 = PyInt_AsLong(obj1);</b>
     result = factorial(arg1);
-    <b><font color="#0000ff">resultobj = PyInt_FromLong(result);</font></b>
+    <b>resultobj = PyInt_FromLong(result);</b>
     return resultobj;
 }
 </pre>
@@ -261,23 +261,23 @@ PyObject *wrap_gcd(PyObject *self, PyObject *args) {
 
    if (!PyArg_ParseTuple("OO:gcd", &amp;obj1, &amp;obj2)) return NULL;
 
-   /* "in" typemap, argument 1 */<b><font color="#0000ff">   
+   /* "in" typemap, argument 1 */<b>   
    {
       arg1 = PyInt_AsLong(obj1);
    }
-</font></b>
-   /* "in" typemap, argument 2 */<b><font color="#0000ff">   
+</b>
+   /* "in" typemap, argument 2 */<b>
    {
       arg2 = PyInt_AsLong(obj2);
    }
-</font></b>
+</b>
    result = gcd(arg1,arg2);
 
-   /* "out" typemap, return value */<b><font color="#0000ff">
+   /* "out" typemap, return value */<b>
    {
       resultobj = PyInt_FromLong(result);
    }
-</font></b>
+</b>
    return resultobj;
 }
 </pre>
@@ -304,14 +304,14 @@ it is applied to all future occurrences of that type in the input file.  For exa
 <div class="code">
 <pre>
 /* Convert from Perl --&gt; C */
-%typemap(in) <b><font color="#ff0000">int</font></b> {
+%typemap(in) <b>int</b> {
    $1 = SvIV($input);
 }
 
 ...
-int factorial(<b><font color="#ff0000">int</font></b> n);
-int gcd(<b><font color="#ff0000">int</font></b> x, <b><font color="#ff0000">int</font></b> y);
-int count(char *s, char *t, <b><font color="#ff0000">int</font></b> max);
+int factorial(<b>int</b> n);
+int gcd(<b>int</b> x, <b>int</b> y);
+int count(char *s, char *t, <b>int</b> max);
 </pre>
 </div>
 
@@ -325,7 +325,7 @@ underlying type.  For example, you could have code like this:
 <div class="code">
 <pre>
 /* Convert from Ruby--&gt; C */
-%typemap(in) <b><font color="#ff0000">int</font></b> {
+%typemap(in) <b>int</b> {
    $1 = NUM2INT($input);
 }
 ...
@@ -334,9 +334,9 @@ namespace foo {
     typedef Integer Number;
 };
 
-int foo(<b><font color="#ff0000">int</font></b> x);
-int bar(<b><font color="#ff0000">Integer</font></b> y);
-int spam(<b><font color="#ff0000">foo::Number</font></b> a, <b><font color="#ff0000">foo::Number</font></b> b);
+int foo(<b>int</b> x);
+int bar(<b>Integer</b> y);
+int spam(<b>foo::Number</b> a, <b>foo::Number</b> b);
 </pre>
 </div>
 
@@ -354,7 +354,7 @@ example, you could write a typemap like this:
 
 <div class="code">
 <pre>
-%typemap(in) <b><font color="#ff0000">double nonnegative</font></b> {
+%typemap(in) <b>double nonnegative</b> {
    $1 = PyFloat_AsDouble($input);
    if ($1 &lt; 0) {
         PyErr_SetString(PyExc_ValueError,"argument must be nonnegative.");
@@ -365,10 +365,10 @@ example, you could write a typemap like this:
 ...
 double sin(double x);
 double cos(double x);
-double sqrt(<b><font color="#ff0000">double nonnegative</font></b>);
+double sqrt(<b>double nonnegative</b>);
 
 typedef double Real;
-double log(<b><font color="#ff0000">Real nonnegative</font></b>);
+double log(<b>Real nonnegative</b>);
 ...
 </pre>
 </div>
@@ -380,12 +380,12 @@ consecutive arguments.    For example:
 
 <div class="code">
 <pre>
-%typemap(in) (<b><font color="#ff0000">char *str, int len</font></b>) {
+%typemap(in) (<b>char *str, int len</b>) {
     $1 = PyString_AsString($input);   /* char *str */
     $2 = PyString_Size($input);       /* int len   */
 }
 ...
-int count(<b><font color="#ff0000">char *str, int len</font></b>, char c);
+int count(<b>char *str, int len</b>, char c);
 </pre>
 </div>
 
@@ -465,7 +465,7 @@ typemaps address:
 
 <div class="code">
 <pre>
-int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
+int foo(<b>int x, double y, char *s</b>);
 </pre>
 </div>
 
@@ -485,7 +485,7 @@ int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
 
 <div class="code">
 <pre>
-<b><font color="#ff0000">int</font></b> foo(int x, double y, char *s);
+<b>int</b> foo(int x, double y, char *s);
 </pre>
 </div>
 
@@ -501,7 +501,7 @@ int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
 
 <div class="code">
 <pre>
-<b><font color="#ff0000">int</font></b> foo(int x, double y, char *s) throw(<b><font color="#ff0000">MemoryError, IndexError</font></b>);
+<b>int</b> foo(int x, double y, char *s) throw(<b>MemoryError, IndexError</b>);
 </pre>
 </div>
 
@@ -515,7 +515,7 @@ int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
 
 <div class="code">
 <pre>
-<b><font color="#ff0000">int foo;</font></b>
+<b>int foo;</b>
 </pre>
 </div>
 
@@ -531,7 +531,7 @@ int foo(<b><font color="#ff0000">int x, double y, char *s</font></b>);
 <div class="code">
 <pre>
 struct Foo {
-    <b><font color="#ff0000">int x[20]</font></b>;
+    <b>int x[20]</b>;
 };
 </pre>
 </div>
