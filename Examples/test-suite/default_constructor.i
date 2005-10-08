@@ -3,8 +3,8 @@
 
 %module(ruby_minherit="1") default_constructor
 
-%warnfilter(813,833) EB; /* C#, Java multiple inheritance */
-%warnfilter(813,833) AD; /* C#, Java multiple inheritance */
+%warnfilter(813,833,870) EB; /* C#, Java, Php4 multiple inheritance */
+%warnfilter(813,833,870) AD; /* C#, Java, Php4 multiple inheritance */
 %warnfilter(510) F; /* friend function */
 
 %inline %{

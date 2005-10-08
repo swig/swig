@@ -1,6 +1,6 @@
 %module(ruby_minherit="1") using_composition
 
-%warnfilter(813,833) FooBar;   // C#, Java multiple inheritance
+%warnfilter(813,833,870) FooBar;   // C#, Java, Php4 multiple inheritance
 
 %inline %{
 class Foo {
