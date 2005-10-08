@@ -1,7 +1,7 @@
 %module(ruby_minherit="1") abstract_virtual
 
-%warnfilter(813,833) D; /* C#, Java multiple inheritance */
-%warnfilter(813,833) E; /* C#, Java multiple inheritance */
+%warnfilter(813,833,870) D; /* C#, Java, Php4 multiple inheritance */
+%warnfilter(813,833,870) E; /* C#, Java, Php4 multiple inheritance */
 
 %inline %{
   struct A 
