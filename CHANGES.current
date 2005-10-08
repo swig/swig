@@ -1,6 +1,12 @@
 Version 1.3.26 (in progress)
 ============================
 
+09/30/2005: wsfulton
+            Fixes for languages that don't support multiple inheritance. The
+            first non-ignored class in the public base class list is used for inheritance.
+            by the proxy class. Previously, if the first class in the list was ignored, then
+            the proxy class wouldn't have any base classes.
+
 10/07/2005: mmatus
 	     Update more features to follow new convention, including:
 
