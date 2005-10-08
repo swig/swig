@@ -229,6 +229,10 @@
 /* please leave 850-869 free for Modula 3 */
 
 
+/* please leave 870-889 free for Php */
+#define WARN_PHP4_MULTIPLE_INHERITANCE        870
+
+
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
