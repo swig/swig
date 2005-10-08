@@ -42,4 +42,11 @@ namespace std {
         ZVAL_STRINGL($result,const_cast<char*>($1->c_str()),$1->length(),1);
     }
 
+    %typemap(throws) string %{
+      SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
+    %}
+
+    %typemap(throws) const string& %{
+      SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
+    %}
 }
