@@ -10,7 +10,7 @@
         CONVERT_IN( tmp, $*1_ltype, $input );
       $1 = &tmp;
   } else {
-        SWIG_PHP_Error( E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Excpeted a reference) );
+        SWIG_PHP_Error( E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Expected a reference) );
   }
 }
 %typemap(argout) TYPE *REF,
