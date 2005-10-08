@@ -3,8 +3,7 @@
 %warnfilter(801) foo;		// Ruby, wrong class name
 %warnfilter(801) bar;		// Ruby, wrong class name
 %warnfilter(801) baz;		// Ruby, wrong class name
-%warnfilter(801) spam;	        // Ruby, wrong class name
-%warnfilter(813,833,870) spam;	// C# & Java, Php4 multiple inheritance
+%warnfilter(801,813,833,870) spam;	// Ruby, wrong class name - C# & Java, Php4 multiple inheritance
 
 %inline %{
 
