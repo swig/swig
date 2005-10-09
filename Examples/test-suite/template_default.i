@@ -53,7 +53,11 @@ namespace ns1 {
 	
 #ifdef SWIG      
 	%typemap(in) A *  { /* in A */ }
+  #ifdef SWIGCSHARP
+	%typemap(out) A *  { /* out A */ $result=0; }
+  #else
 	%typemap(out) A *  { /* out A */ }
+  #endif
 #endif
       };
 
@@ -69,7 +73,11 @@ namespace ns1 {
 	
 #ifdef SWIG      
 	%typemap(in) N *  { /* in N */ }
+  #ifdef SWIGCSHARP
+	%typemap(out) N *  { /* out N */ $result=0; }
+  #else
 	%typemap(out) N *  { /* out N */ }
+  #endif
 #endif
       };
     }
