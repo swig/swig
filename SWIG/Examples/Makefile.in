@@ -147,7 +147,8 @@ tcl_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 tcl_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ mytclsh@EXEEXT@ 
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ mytclsh@EXEEXT@ 
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       PERL 5                          ######
@@ -207,7 +208,8 @@ perl5_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 perl5_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ myperl@EXEEXT@ *.pm
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ myperl@EXEEXT@ *.pm
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       PYTHON                          ######
@@ -265,7 +267,8 @@ python_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 python_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ mypython@EXEEXT@ *.pyc
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ mypython@EXEEXT@ *.pyc
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       GUILE                           ######
@@ -350,7 +353,8 @@ guile_simple_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 guile_clean:
-	rm -f *.@OBJEXT@ *@SO@ *.$(GUILE_SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ my-guile@EXEEXT@ $(TARGET)@EXEEXT@
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ my-guile@EXEEXT@ $(TARGET)@EXEEXT@
+	rm -f *.@OBJEXT@ *@GUILE_SO@
 
 ##################################################################
 #####                       JAVA                            ######
@@ -392,7 +396,8 @@ java_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *.@OBJEXT@ *@JAVASO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
+	rm -f *.@OBJEXT@ *@JAVASO@
 
 ##################################################################
 #####                      MODULA3                          ######
@@ -446,7 +451,8 @@ mzscheme_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 mzscheme_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                          Ocaml                         #####
@@ -575,7 +581,8 @@ ocaml_dynamic_cpp: $(SRCS)
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
 
 ocaml_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.cmo *.cmi $(MLFILE) $(MLFILE)i swig.mli swig.cmi swig.ml swig.cmo swigp4.ml swigp4.cmo
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ *.cmo *.cmi $(MLFILE) $(MLFILE)i swig.mli swig.cmi swig.ml swig.cmo swigp4.ml swigp4.cmo
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       RUBY                            ######
@@ -630,7 +637,8 @@ ruby_cpp_static: $(SRCS)
 # -----------------------------------------------------------------
 
 ruby_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ myruby@EXEEXT@ *.pm
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ myruby@EXEEXT@ *.pm
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       PHP                             ######
@@ -671,7 +679,8 @@ php4_run:
 # -----------------------------------------------------------------
 
 php4_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ *.php
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ *.php
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                       Pike                            ######
@@ -725,7 +734,8 @@ pike_cpp_static: $(SRCS)
 # -----------------------------------------------------------------
 
 pike_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ mypike@EXEEXT@ 
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ mypike@EXEEXT@ 
+	rm -f *.@OBJEXT@ *@SO@
 
 
 ##################################################################
@@ -817,7 +827,8 @@ chicken_cpp:
 	$(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ICXXSRCS) $(CXXSRCS) -o $(TARGET)$(SO)
 
 chicken_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ *_chicken*
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ *_chicken*
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                      CSHARP                           ######
@@ -861,7 +872,8 @@ csharp_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 csharp_clean:
-	rm -f *.@OBJEXT@ *@CSHARPSO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ runme runme.exe gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ runme runme.exe gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *.@OBJEXT@ *@CSHARPSO@
 
 ##################################################################
 #####                      LUA                              ######
@@ -915,4 +927,6 @@ lua_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 lua_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ mylua@EXEEXT@
+	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ mylua@EXEEXT@
+	rm -f *.@OBJEXT@ *@CSHARPSO@
+
