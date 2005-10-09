@@ -3105,10 +3105,10 @@ class JAVA : public Language {
     }
 
     /* Attach the standard typemaps */
-    Swig_typemap_attach_parms("out", l, w);
-    Swig_typemap_attach_parms("jni", l, w);
-    Swig_typemap_attach_parms("jtype", l, w);
-    Swig_typemap_attach_parms("directorin", l, w);
+    Swig_typemap_attach_parms("out", l, 0);
+    Swig_typemap_attach_parms("jni", l, 0);
+    Swig_typemap_attach_parms("jtype", l, 0);
+    Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("javadirectorin", l, 0);
 
     /* Add Java environment pointer to wrapper */
