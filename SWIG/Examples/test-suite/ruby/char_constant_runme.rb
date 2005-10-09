@@ -17,7 +17,7 @@ if Char_constant::NULL_CONST != "\000"
   raise RuntimeError, "Invalid value for NULL_CONST."
 end
 
-if Char_constant::SPECIALCHAR != 'á'
+if Char_constant::SPECIALCHAR != "\341"  #'á'
   raise RuntimeError, "Invalid value for SPECIALCHAR."
 end
 
