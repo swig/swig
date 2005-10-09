@@ -1556,9 +1556,8 @@ public:
 	/* attach typemaps to arguments (C/C++ -> Ocaml) */
 	String *arglist = NewString("");
 
-	Swig_typemap_attach_parms("in", l, w);
-	Swig_typemap_attach_parms("directorin", l, w);
-	Swig_typemap_attach_parms("directorout", l, w);
+	Swig_typemap_attach_parms("in", l, 0);
+	Swig_typemap_attach_parms("directorin", l, 0);
 	Swig_typemap_attach_parms("directorargout", l, w);
 
 	Parm* p;

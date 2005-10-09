@@ -2342,9 +2342,8 @@ public:
      */
     typemap_copy_pname_to_lname(l);
     
-    Swig_typemap_attach_parms("in", l, w);
-    Swig_typemap_attach_parms("directorin", l, w);
-    Swig_typemap_attach_parms("directorout", l, w);
+    Swig_typemap_attach_parms("in", l, 0);
+    Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
     int num_arguments = emit_num_arguments(l);
