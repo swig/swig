@@ -11,10 +11,9 @@
 
 
 %typemap(directorout) enum SWIGTYPE "$result = ($1_ltype) NUM2INT($input);";
-%typemap(directorout) const enum SWIGTYPE & ($*1_ltype temp)
-        "temp = ($*1_ltype) NUM2INT($input);
-         $result = &temp;";
-
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const enum SWIGTYPE &
+%{ static $*1_ltype temp = ($*1_ltype) NUM2INT($input);
+   $result = &temp; %}
 
 /* --- Output typemaps --- */
 %typemap(out) enum SWIGTYPE "$result = INT2NUM($1);";
