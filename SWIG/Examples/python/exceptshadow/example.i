@@ -40,7 +40,7 @@
   the necessary code to catch it and rethrow it to the python side.
    
 */
-%typemap(throws) FullError "throw;";
+%typemap(throws) FullError "(void)$1; throw;";
 
 
 %exception *::enqueue {
