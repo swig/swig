@@ -16,8 +16,7 @@
 %typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
 
 %typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const enum SWIGTYPE &
-%{ static $*1_ltype temp;
-   temp = ($*1_ltype)$input; 
+%{ static $*1_ltype temp = ($*1_ltype)$input; 
    $1 = &temp; %}
 %typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE &    "$input = (jint)$1_name;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
