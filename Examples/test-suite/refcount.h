@@ -1,5 +1,5 @@
-#ifndef __test_suite_refcount_h__
-#define __test_suite_refcount_h__
+#ifndef TEST_SUITE_REFCOUNT_H__
+#define TEST_SUITE_REFCOUNT_H__
 
 struct RCObjBase  {
   /*!
@@ -17,7 +17,7 @@ struct RCObjBase  {
 
     \return The reference counter value.
   */
-  int ref() const
+  int addref() const
   {
     return  add_ref();
   }
@@ -29,7 +29,7 @@ struct RCObjBase  {
     \return The reference counter value, which can be zero after
     deletion.
   */
-  int unref() const
+  int delref() const
   {
     if (ref_count() == 0 || del_ref() == 0 )
       {
@@ -75,9 +75,9 @@ protected:
 */
 template <class T>
 inline
-T* ref(T* r)
+T* addref(T* r)
 { 
-  return (r && r->ref() ) ? r : 0;
+  return (r && r->addref() ) ? r : 0;
 }
   
 /*! Unreference an RCObj object.
@@ -85,9 +85,9 @@ T* ref(T* r)
 */
 template <class T>
 inline
-T* unref(T* r)
+T* delref(T* r)
 { 
-  return ( r && r->unref() ) ? r : 0;
+  return ( r && r->delref() ) ? r : 0;
 }
 
 
@@ -163,7 +163,7 @@ inline
 RCPtr<T>::RCPtr(T* realPtr)
   : pointee(realPtr)
 {
-  ref(pointee);
+  addref(pointee);
 }
 
 template <class T>
@@ -171,14 +171,14 @@ inline
 RCPtr<T>::RCPtr(const RCPtr& rhs)
   : pointee(rhs.pointee)
 {
-  ref(pointee);
+  addref(pointee);
 }
 
 template <class T>
 inline
 RCPtr<T>::~RCPtr()
 {
-  unref(pointee);
+  delref(pointee);
 }
 
 template <class T>
@@ -186,13 +186,13 @@ inline
 RCPtr<T>& RCPtr<T>::operator=(const RCPtr& rhs)
 {
   if (pointee != rhs.pointee) {
-    unref(pointee);
+    delref(pointee);
     pointee = rhs.pointee;
-    ref(pointee);
+    addref(pointee);
   }
   return *this;
 }
 
 
 
-#endif //__test_suite_refcount_h__
+#endif //TEST_SUITE_REFCOUNT_H__
