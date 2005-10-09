@@ -48,7 +48,7 @@ private:
 
   RCObjBase& operator=(const RCObjBase& );
 
-  friend class RCObj;
+  friend struct RCObj;
 
   int add_ref() const
   {

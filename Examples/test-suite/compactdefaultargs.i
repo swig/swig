@@ -7,12 +7,15 @@
 class Defaults1 {
   static const int PRIVATE_DEFAULT = -1;
 public:
-  static const double PUBLIC_DEFAULT = -1.0;
+  static const double PUBLIC_DEFAULT;
   Defaults1(int a = PRIVATE_DEFAULT) {}
   double ret(double d = PUBLIC_DEFAULT) { return d; }
 };
 %}
 
+%{
+const double Defaults1::PUBLIC_DEFAULT = -1.0;
+%}
 
 // compactdefaultargs now on by default
 %feature("compactdefaultargs");
@@ -24,9 +27,12 @@ public:
 class Defaults2 {
   static const int PRIVATE_DEFAULT = -1;
 public:
-  static const double PUBLIC_DEFAULT = -1.0;
+  static const double PUBLIC_DEFAULT;
   Defaults2(int a = PRIVATE_DEFAULT) {}
   double ret(double d = PUBLIC_DEFAULT) { return d; }
 };
 %}
 
+%{
+const double Defaults2::PUBLIC_DEFAULT = -1.0;
+%}
