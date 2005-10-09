@@ -12,8 +12,8 @@
 // ref. counting for RCObj and all its descendents at once
 //
 
-%refobject   RCObj "$this->ref();"
-%unrefobject RCObj "$this->unref();"
+%refobject   RCObj "$this->addref();"
+%unrefobject RCObj "$this->delref();"
 
 %include "refcount.h"
 
