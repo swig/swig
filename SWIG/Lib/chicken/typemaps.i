@@ -163,21 +163,21 @@ output values, in reverse order.
 
 %enddef
 
-INOUT_TYPEMAP(int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
+INOUT_TYPEMAP(int, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
+INOUT_TYPEMAP(enum SWIGTYPE, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
+INOUT_TYPEMAP(short, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
 INOUT_TYPEMAP(long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(unsigned int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(unsigned short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
+INOUT_TYPEMAP(unsigned int, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
+INOUT_TYPEMAP(unsigned short, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
 INOUT_TYPEMAP(unsigned long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
+INOUT_TYPEMAP(unsigned char, C_character_code, C_make_character, C_swig_is_char, (unsigned int), 0);
+INOUT_TYPEMAP(signed char, C_character_code, C_make_character, C_swig_is_char, (int), 0);
 INOUT_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
 INOUT_TYPEMAP(bool, C_truep, C_mk_bool, C_swig_is_bool, (bool), 0);
-INOUT_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(float, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEOF_FLONUM);
 
 // INOUT
 // Mappings for an argument that is both an input and output
