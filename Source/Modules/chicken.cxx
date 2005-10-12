@@ -1282,9 +1282,19 @@ CHICKEN::constructorHandler(Node *n)
 }
 
 int CHICKEN::destructorHandler(Node *n) {
+
+  if (no_collection)
+    member_name = NewStringf("delete-%s", short_class_name);
+
   exporting_destructor = true;
   Language::destructorHandler(n);
   exporting_destructor = false;
+
+  if (no_collection) {
+    Delete(member_name);
+    member_name = NULL;
+  }
+
   return SWIG_OK;
 }
 
