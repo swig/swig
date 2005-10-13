@@ -394,7 +394,8 @@ SwigType *SwigType_default(SwigType *t) {
 #ifdef SWIG_NEW_TYPE_DEFAULT
     SwigType *nr = Copy(r);
     SwigType_del_pointer(nr);
-    def = NewStringf("p.");
+    def = SwigType_isfunction(nr) ? 
+      NewStringf("") : NewStringf("p.");
     SwigType_add_default(def, nr);
     Delete(nr);
 #else
@@ -453,6 +454,12 @@ SwigType *SwigType_default(SwigType *t) {
       def = NewString("SWIGTYPE");
     } else {
       def = NewString("enum SWIGTYPE");
+    }
+  } else if (SwigType_isfunction(r)) {
+    if (Strcmp(r,"f(ANY).SWIGTYPE") == 0) {
+      def = NewString("p.SWIGTYPE");
+    } else {
+      def = NewString("p.f(ANY).SWIGTYPE");
     }
   } else {
     def = NewString("SWIGTYPE");
