@@ -403,6 +403,13 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       if (print_typecheck(f, j, pj)) {
 	Printf(f, "if (_v) {\n");
 	num_braces++;
+      } 
+      if (!Getattr(pj,"tmap:in:SWIGTYPE") && Getattr(pj,"tmap:typecheck:SWIGTYPE")) {
+	/* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+	Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
+		     "Overloaded %s(%s) with no explicit typecheck typemap for arg %d of type '%s'\n", 
+		     Getattr(n,"name"),ParmList_str_defaultargs(pi),
+		     j+1, SwigType_str(Getattr(pj,"type"),0));
       }
       Parm *pk = Getattr(pj,"tmap:in:next");
       if (pk) pj = pk;
