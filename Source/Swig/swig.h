@@ -81,7 +81,8 @@ typedef  DOH     SwigType;
 
 /* non-numeric */
 
-#define   T_CHAR       30
+#define   T_CHAR       29
+#define   T_WCHAR      30
 #define   T_USER       31
 #define   T_VOID       32
 #define   T_STRING     33

@@ -1100,6 +1100,10 @@ int yylex(void) {
 	    yylval.type = NewSwigType(T_CHAR);
 	    return(TYPE_CHAR);
 	  }
+	  if (strcmp(yytext,"wchar_t") == 0) {
+	    yylval.type = NewSwigType(T_WCHAR);
+	    return(TYPE_WCHAR);
+	  }
 	  if (strcmp(yytext,"short") == 0) {
 	    yylval.type = NewSwigType(T_SHORT);
 	    return(TYPE_SHORT);
