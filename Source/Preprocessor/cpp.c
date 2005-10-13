@@ -1385,6 +1385,14 @@ Preprocessor_parse(String *s)
   	    }
   	  }
   	}
+      } else if (Cmp(id,"warning") == 0) {
+	if (allow) {
+	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"%s\n", value);
+	}
+      } else if (Cmp(id,"error") == 0) {
+	if (allow) {
+	  Swig_error(Getfile(s),Getline(id),"%s\n",value);
+	}
       } else if (Cmp(id,"line") == 0) {
       } else if (Cmp(id,"include") == 0) {
   	if (((include_all) || (import_all)) && (allow)) {
