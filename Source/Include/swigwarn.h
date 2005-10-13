@@ -50,6 +50,7 @@
 #define WARN_PP_MISSING_FILE          201
 #define WARN_PP_EVALUATION            202
 #define WARN_PP_INCLUDEALL_IMPORTALL  203
+#define WARN_PP_CPP_WARNING           204
 
 /* -- C/C++ Parser -- */
 
@@ -150,6 +151,7 @@
 #define WARN_TYPEMAP_DIRECTORIN_UNDEF  469
 #define WARN_TYPEMAP_THREAD_UNSAFE     470 /* mostly used in directorout typemaps */
 #define WARN_TYPEMAP_DIRECTOROUT_UNDEF 471
+#define WARN_TYPEMAP_TYPECHECK_UNDEF  472
 
 /* -- General code generation -- */
 
