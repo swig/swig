@@ -1,3 +1,70 @@
 Version 1.3.27 (In progress)
 ============================
 
+
+10/13/2005: mmatus
+	    Several minor changes:
+	    
+	    - Improve the wchar_t type support
+	    - Add a warning for when you define the 'in' typemap but
+	      you don't define the 'typecheck' one. Very common mistake.
+	    - Add proper default rule for function pointers, now you
+	      can define a typemap such as:
+
+	      %typemap(in) SWIGTYPE ((*)(ANY)) {...}
+
+	      That will apply to all the pointer to functions. The
+	      rule in C++ also apply to the function 'reference', ie,
+	      in both cases
+
+	        typedef  int (*fptr)(int a);
+	        typedef  int (func)(int a);
+
+	      This was needed since it seems to be 'illegal' in C++ to
+	      do something like:
+
+	         void *ptr = static_cast<void *>(fptr);
+
+	      and probably, as for member functions, it is not
+	      warrantied that the pointer sizes will match.
+
+	    - Add the #error/#warning directives to swig's cpp.
+
+	    - Add the noblock option for typemaps, which is used as
+              follows: supposed you a typemap, like this
+
+	      
+	      %typemap(in,noblock=1) Hello {			   
+	         ....
+              }
+
+	      then the typemap will be inserted without the block
+	      imposed by the brackets, similar to
+
+	       %typemap(in) Hello "...";
+
+	      So, why you don't just use the quote style?, because:
+	      
+	         1.- The quote style doesn't get preprocessed, for example
+	      
+	              %typemap(in) Hello "$1= SWIG_macro($1);";
+	      
+	             here, SWIG_macro doesn't get expanded
+
+                 2.- Inside a quote typemap, you have to use 
+                     quotes carefully
+
+		      %typemap(in) Hello "$1 = \"hello\" ";
+
+		 3.- You can't make emacs and/or other editors
+		     to indent inside a string!. 
+
+
+	      So, why do you want to remove the block?, because an extra
+	      block when not needed (no local variables in it):
+
+	          1.- makes the code harder to read
+                  2.- makes the code larger
+                  3.- or in short, for the same reason we have the quote style.
+
+
