@@ -1290,7 +1290,7 @@ static void default_arguments(Node *n) {
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
@@ -2222,12 +2222,31 @@ varargs_parms   : parms { $$ = $1; }
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = 0;
 		   if ($3.op) {
+		     String *code = 0;
 		     $$ = new_node("typemap");
 		     Setattr($$,"method",$3.op);
-		     Setattr($$,"code",NewString($6));
 		     if ($3.kwargs) {
+		       Parm *kw = $3.kwargs;
+		       /* check for 'noblock' option, which remove the block braces */
+		       while (kw) {
+			 String *name = Getattr(kw,"name");
+			 if (name && (Cmp(name,"noblock") == 0)) {
+			   char *cstr = Char($6);
+			   size_t len = Len($6);
+			   if (len && cstr[0] == '{') {
+			     --len; ++cstr; 
+			     if (len && cstr[len - 1] == '}') { --len; }
+			     /* we now remove the extra spaces */
+			     while (len && isspace(cstr[0])) { --len; ++cstr; }
+			     while (len && isspace(cstr[len - 1])) { --len; }
+			     code = NewStringWithSize(cstr, len);
+			   }
+			 }
+			 kw = nextSibling(kw);
+		       }
 		       Setattr($$,"kwargs", $3.kwargs);
 		     }
+		     Setattr($$,"code", code ? code : NewString($6));
 		     appendChild($$,$5);
 		   }
 	       }
@@ -4835,6 +4854,10 @@ type_specifier : TYPE_INT {
                 }
                | TYPE_CHAR { 
                     $$.type = NewString("char");
+                    $$.us = 0;
+                }
+               | TYPE_WCHAR { 
+                    $$.type = NewString("wchar_t");
                     $$.us = 0;
                 }
                | TYPE_FLOAT { 
