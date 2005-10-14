@@ -3,9 +3,9 @@
 %inline %{
   typedef struct {
     int numpoints;
-  } lineObj;
+  } LineObj;
   
-  typedef lineObj multipointObj;
+  typedef LineObj MultipointObj;
   
   typedef struct {
 #ifdef SWIG
@@ -20,7 +20,7 @@
 #ifndef SWIG
     void* map;
 #endif
-  } fontSetObj;
+  } FontSetObj;
 
 #define MS_NOOVERRIDE -1111
 
