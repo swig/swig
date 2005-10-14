@@ -290,6 +290,7 @@ CPP_TEST_CASES += \
 	typedef_mptr \
 	typedef_reference \
 	typedef_scope \
+	typedef_struct \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
