@@ -586,7 +586,9 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 	 
       */
       if (td1 && checkAttribute(td1,k_storage,k_typedef)) {
-	if (Strcmp(Getattr(td1,k_type), Getattr(td,k_name)) == 0) {
+	String *st = Getattr(td1,k_type);
+	String *sn = Getattr(td,k_name);
+	if (st && sn && (Strcmp(st, sn) == 0)) {
 	  Symtab *sc = parentNode(current_symtab);
 	  if (sc) td1 = Swig_symbol_clookup(type,sc);
 	}
