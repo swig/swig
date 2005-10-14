@@ -73,7 +73,7 @@ What's New?
 ===========
 
 SWIG-1.3.27 summary:
-- Fix bug in anonymous typedef structures leading to strange behaviour.
+- Fix bug in anonymous typedef structures which was leading to strange behaviour
 
 SWIG-1.3.26 summary:
 - New language modules: Lua, CLISP and Common Lisp with UFFI.
