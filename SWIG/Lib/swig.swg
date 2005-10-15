@@ -45,14 +45,14 @@
 #define %immutable       %feature("immutable")
 #define %noimmutable     %feature("immutable","0")
 #define %clearimmutable  %feature("immutable","")
-#define %mutable         %noimmutable
+#define %mutable         %clearimmutable
 
 /* Generation of default constructors/destructors */
 
 #define %nodefault       %feature("nodefault","1")
 #define %default         %feature("nodefault","0")
 #define %clearnodefault  %feature("nodefault","")
-#define %makedefault     %default
+#define %makedefault     %cleardefault
 
 /* the %exception directive */
 
