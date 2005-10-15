@@ -504,19 +504,6 @@
 }
 
 /* ------------------------------------------------------------
- * ANSI C typemaps 
- * ------------------------------------------------------------ */
-
-%types(size_t);
-%apply unsigned long { size_t };
-%apply const unsigned long& { const size_t& };
-
-%types(ptrdiff_t);
-%apply long { ptrdiff_t };
-%apply const long& { const ptrdiff_t& };
-
-
-/* ------------------------------------------------------------
  * Typechecking rules
  * ------------------------------------------------------------ */
 
@@ -643,6 +630,19 @@
   Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1, -1));
   SWIG_fail;
 }
+
+/* ------------------------------------------------------------
+ * ANSI C typemaps 
+ * ------------------------------------------------------------ */
+
+%types(size_t);
+%apply unsigned long { size_t };
+%apply const unsigned long& { const size_t& };
+
+%types(ptrdiff_t);
+%apply long { ptrdiff_t };
+%apply const long& { const ptrdiff_t& };
+
 
 // Some special reserved words in classes
 %include "tcl8kw.swg"
