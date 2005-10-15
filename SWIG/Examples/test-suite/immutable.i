@@ -8,14 +8,13 @@
 
 %inline %{
 #define ABC -11
-enum count {zero, one, two};
-%}
+enum count {Zero, One, Two}; %}
 
 
 %clearimmutable;
 
 %inline %{
 #define XYZ -22
-enum backwards {tre=3, duo=2, uno=1};
+enum backwards {Tre=3, Duo=2, Uno=1};
 %}
 
