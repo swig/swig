@@ -46,7 +46,7 @@
 %typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 
-%typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
+%typecheck(SWIG_TYPECHECK_POINTER) enum SWIGTYPE ""
 
 %typemap(throws) enum SWIGTYPE %{
   (void)$1;
