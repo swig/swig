@@ -19,9 +19,12 @@ if string.lower(dirname) != dirname:
   print "directory name ("+dirname+") should be in lowercase"
   sys.exit(0)
 
-# If directory exists, remove it
+# If directory and tarball exist, remove it
 print "Removing ", dirname
 os.system("rm -rf "+dirname)
+
+print "Removing old tarball "+dirname+".tar.gz if exists"
+os.system("rm -f "+dirname+".tar.gz")
 
 # Do a CVS export on the directory name
 
