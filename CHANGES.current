@@ -2,6 +2,10 @@ Version 1.3.27 (October 15, 2005)
 =================================
 
 07/15/2005: wsfulton
+            [Java] Fix for typesafe enum wrapping so that it is possible to
+            overload a method with 2 different enum types.
+
+07/15/2005: wsfulton
             Fix for %feature("immutable","0") attempting to generate setters
             for constants.
 
