@@ -326,6 +326,7 @@ C_TEST_CASES += \
 	enums \
 	extern_declaration \
 	function_typedef \
+	immutable \
 	inctest \
 	lextype \
 	li_carrays \
