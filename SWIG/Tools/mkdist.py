@@ -23,8 +23,11 @@ if string.lower(dirname) != dirname:
 print "Removing ", dirname
 os.system("rm -rf "+dirname)
 
-print "Removing old tarball "+dirname+".tar.gz if exists"
+print "Removing "+dirname+".tar if exists"
 os.system("rm -f "+dirname+".tar.gz")
+
+print "Removing "+dirname+".tar.gz if exists"
+os.system("rm -f "+dirname+".tar")
 
 # Do a CVS export on the directory name
 
