@@ -1128,6 +1128,7 @@ class CSHARP : public Language {
         Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(symname));
 
       // Each constant and enum value is wrapped with a separate PInvoke function call
+      SetFlag(n,"feature:immutable");
       enum_constant_flag = true;
       variableWrapper(n);
       enum_constant_flag = false;
