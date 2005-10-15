@@ -628,6 +628,7 @@ public:
 	Setattr(n,"name",var_name);
 	Setattr(n,"sym:name",iname);
 	Setattr(n,"type", type);
+	SetFlag(n,"feature:immutable");
 	variableWrapper(n);
 	Delete(n);
       }
