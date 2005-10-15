@@ -64,4 +64,10 @@
 #ifdef bool
   #undef bool
 #endif
+#ifdef close
+  #undef close
+#endif
+#ifdef rewind
+  #undef rewind
+#endif
 
