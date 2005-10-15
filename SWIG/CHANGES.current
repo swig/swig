@@ -1,6 +1,13 @@
 Version 1.3.27 (October 15, 2005)
 =================================
 
+07/15/2005: wsfulton
+            Fix for %feature("immutable","0") attempting to generate setters
+            for constants.
+
+            Restored %immutable and %makedefault to clear the feature as it
+            behaved in SWIG-1.3.25 and earlier.
+
 10/14/2005: mmatus
             Fix bug in anonymous typedef structures which was leading to
             strange behaviour.
