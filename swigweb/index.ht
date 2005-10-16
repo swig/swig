@@ -32,6 +32,10 @@ and non-commercial use.
 
 
 <p>
+<b>2005/10/15</b>
+SWIG-1.3.27 has been released to fix a major bug in previous release.
+
+<p>
 <b>2005/10/09</b>
 SWIG-1.3.26 has been released.  Lua, CLISP and Common Lisp with UFFI join the list of supported languages. The PHP4 module has been given a good work over after some bitrot. Various other minor bug fixes and improvements are all also in this release.
 
