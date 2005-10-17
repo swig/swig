@@ -42,7 +42,7 @@ int is_member_director(Node* member)
 }
 
 
-/* Clean overloaded list.  Removes templates, friends, ignored, and errors */
+/* Clean overloaded list.  Removes templates, ignored, and errors */
 
 void clean_overloaded(Node *n) {
   Node *nn = Getattr(n,"sym:overloaded");
@@ -52,7 +52,6 @@ void clean_overloaded(Node *n) {
     if ((Strcmp(nodeType(nn),"template") == 0) ||
 	(GetFlag(nn,"feature:ignore")) ||
 	(Getattr(nn,"error")) ||
-	// (checkAttribute(nn,"storage","friend")) ||
 	((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn,"sym:previousSibling");

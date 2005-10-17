@@ -132,6 +132,28 @@
     private:
       C val;
     };
+
+  namespace ns1 {
+
+    void bas() {}
+
+    void baz() {}
+    
+    namespace ns2 {
+      class Foo {
+      public:
+	Foo::Foo() {};
+	friend void bar();
+	friend void ns1::baz();	
+	void Foo::member() { }
+	
+      };
+      void bar() {}
+    
+    }
+
+    
+  };
 %}
 
 %template(D_i) D<int>;
