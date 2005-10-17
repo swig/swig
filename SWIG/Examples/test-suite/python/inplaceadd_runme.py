@@ -16,3 +16,7 @@ a *= 2
 
 if a.val != 14:
   raise RuntimeError
+
+a += a
+if a.val != 28:
+  raise RuntimeError
