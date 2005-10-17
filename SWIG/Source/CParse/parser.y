@@ -197,6 +197,8 @@ static Hash   *rename_hash = 0;
 static Hash   *namewarn_hash = 0;
 static Hash   *features_hash = 0;
 
+static String *resolve_node_scope(String *cname);
+
 Hash *Swig_cparse_features() {
   if (!features_hash) features_hash = NewHash();
   return features_hash;
@@ -356,6 +358,10 @@ static int is_friend(Node *n) {
  return Cmp(Getattr(n,"storage"),"friend") == 0;
 }
 
+static int is_operator(String *name) {
+ return Strncmp(name,"operator ", 9) == 0;
+}
+
 
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
@@ -369,9 +375,50 @@ static void add_symbols(Node *n) {
   while (n) {
     String *symname;
     /* for friends, we need to pop the scope once */
-    int isfriend = is_friend(n);
-    Symtab *class_scope = isfriend ? Swig_symbol_popscope() : 0;
-
+    String *old_prefix = 0;
+    Symtab *old_scope = 0;
+    int isfriend = inclass && is_friend(n);
+    if (inclass) {
+      String *name = Getattr(n, "name");
+      if (isfriend) {
+	/* for friends, we need to add the scopename if needed */
+	String *prefix = name ? Swig_scopename_prefix(name) : 0;
+	old_prefix = Namespaceprefix;
+	old_scope = Swig_symbol_popscope();
+	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+	if (!prefix) {
+	  if (name && Namespaceprefix) {
+	    String *nname = NewStringf("%s::%s", Namespaceprefix, name);
+	    Setattr(n,"name",nname);
+	  }
+	} else {
+	  Symtab *st = Swig_symbol_getscope(prefix);
+	  String *ns = st ? Getattr(st,"name") : prefix;
+	  String *base  = Swig_scopename_last(name);
+	  String *nname = NewStringf("%s::%s", ns, base);
+	  Setattr(n,"name",nname);
+	  Delete(base);
+	  Delete(prefix);
+	}
+      } else {
+	/* for member functions, we need to remove the redundant
+	   class scope if provided, as in
+	   
+	   struct Foo {
+	      int Foo::method(int a);
+	   };
+	   
+	*/
+	String *prefix = name ? Swig_scopename_prefix(name) : 0;
+	if (prefix) {
+	  if (Classprefix && (Strcmp(prefix,Classprefix) == 0)) {
+	    String *base = Swig_scopename_last(name);
+	    Setattr(n,"name",base);
+	  }
+	  Delete(prefix);
+	}
+      }
+    }
     if (!isfriend && inclass && (cplus_mode != CPLUS_PUBLIC)) {
       int only_csymbol = 1;
       if (cplus_mode == CPLUS_PROTECTED) {
@@ -418,10 +465,6 @@ static void add_symbols(Node *n) {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
 
-      /* for friends, we need to disable the class prefix */
-      String* class_prefix = isfriend ? Namespaceprefix : 0;
-      if (isfriend) Namespaceprefix = 0;
-
       symname = make_name(Getattr(n,"name"),fun);
       wrn = name_warning(n,symname,fun);
       
@@ -429,8 +472,6 @@ static void add_symbols(Node *n) {
       Delete(fdecl);
       Delete(fun);
       
-      /* restore the class prefix if needed */
-      if (isfriend) Namespaceprefix = class_prefix;
     }
     if (!symname) {
       n = nextSibling(n);
@@ -500,8 +541,10 @@ static void add_symbols(Node *n) {
       }
     }
     /* restore the class scope if needed */
-    if (isfriend) Swig_symbol_setscope(class_scope);
-
+    if (isfriend) {
+      Swig_symbol_setscope(old_scope);
+      Namespaceprefix = old_prefix;
+    }
     if (add_only_one) return;
     n = nextSibling(n);
   }
@@ -2667,8 +2710,9 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
                 /* This is a special case. If the scope name of the declaration exactly
                    matches that of the declaration, then we will allow it. Otherwise, delete. */
                 String *p = Swig_scopename_prefix($3.id);
-		if (p && Namespaceprefix) {
-		  if (Strcmp(p,Namespaceprefix) == 0) {
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p,Namespaceprefix) == 0) ||
+		      (inclass && Strcmp(p,Classprefix) == 0)) {
 		    Setattr($$,"name",Swig_scopename_last($3.id));
 		    set_nextSibling($$,$5);
 		  } else {
@@ -3250,7 +3294,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 		      if ($$) tname = Getattr($$,"name");
 		      
 		      /* Check if the class is a template specialization */
-		      if (($$) && (Strstr(tname,"<")) && (Strncmp(tname,"operator ",9) != 0)) {
+		      if (($$) && (Strstr(tname,"<")) && (!is_operator(tname))) {
 			/* If a specialization.  Check if defined. */
 			Node *tempn = 0;
 			{
