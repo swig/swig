@@ -23,7 +23,7 @@
 %}
 
 %fragment("PySequence_Base","header")
-%{
+{
 namespace swig {
   inline size_t
   check_index(ptrdiff_t i, size_t size, bool insert = false) {
@@ -115,13 +115,13 @@ namespace swig {
     }
   }
 }
-%}
+}
 
 %fragment("PySequence_Cont","header",
 	  fragment="StdTraits",
 	  fragment="PySequence_Base",
 	  fragment="PyObject_var")
-%{
+{
 #include <iterator>
 namespace swig
 {
@@ -140,12 +140,12 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	PyOS_snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
+	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<T>(), item);
+	  SWIG_set_errmsg(SWIG_TypeError,swig::type_name<T>());
 	}
-	SWIG_append_errmsg(msg);
-	SWIG_append_errmsg(e.what());
+	SWIG_Python_AddErrorMsg(msg);
+	SWIG_Python_AddErrorMsg(e.what());
 	throw;
       }
     }
@@ -335,9 +335,8 @@ namespace swig
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
-	    PyOS_snprintf(msg, sizeof(msg), "in sequence element %d", i);
-	    SWIG_type_error(swig::type_name<value_type>(), item);
-	    SWIG_append_errmsg(msg);
+	    snprintf(msg, sizeof(msg), "in sequence element %d of type %s", i, swig::type_name<value_type>());
+	    SWIG_set_errmsg(SWIG_TypeError, msg);
 	  }
 	  return 0;
 	}
@@ -350,7 +349,7 @@ namespace swig
   };
 
 }
-%}
+}
 
 
 /**** The python container methods  ****/
@@ -444,20 +443,20 @@ namespace swig
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",fragment="PyObject_var",
 	  fragment="PySequence_Cont")
-%{
+{
   namespace swig {
     template <class PySeq, class Seq> 
     inline void
     assign(const PySeq& pyseq, Seq* seq) {
-#ifdef SWIG_STD_NOASSIGN_STL
+%#ifdef SWIG_STD_NOASSIGN_STL
       typedef typename PySeq::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
       for (;it != pyseq.end(); ++it) {
 	seq->insert(seq->end(),(value_type)(*it));
       }
-#else
+%#else
       seq->assign(pyseq.begin(), pyseq.end());
-#endif
+%#endif
     }
 
     template <class Seq, class T = typename Seq::value_type >
@@ -487,7 +486,7 @@ namespace swig
 	} else {
 	  sequence *p;
 	  if (SWIG_ConvertPtr(obj,(void**)&p,
-			      swig::type_info<sequence>(),0) != -1) {
+			      swig::type_info<sequence>(),0) == SWIG_OK) {
 	    if (seq) *seq = p;
 	    return 1;
 	  }
@@ -525,4 +524,4 @@ namespace swig
       }
     };
   }
-%}
+}

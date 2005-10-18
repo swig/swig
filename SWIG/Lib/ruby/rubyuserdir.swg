@@ -1,0 +1,6 @@
+#define %alias %feature("alias")
+#define %freefunc %feature("freefunc")
+#define %markfunc %feature("markfunc")
+#define %mixin %feature("mixin")
+#define %predicate %feature("predicate", "1")
+#define %trackobjects %feature("trackobjects")

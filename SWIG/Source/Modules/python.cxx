@@ -156,11 +156,9 @@ public:
 	  apply = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-cppcast") == 0) {
-	  /* Turn on new value wrapper mpde */
 	  cppcast = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nocppcast") == 0) {
-	  /* Turn on new value wrapper mpde */
 	  cppcast = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
@@ -187,7 +185,6 @@ public:
     }
 
     if (cppcast) {
-      /* Turn on new value wrapper mpde */
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
     
@@ -1352,7 +1349,7 @@ public:
   
     /* Insert cleanup code */
     for (p = l; p;) {
-      if ((tm = Getattr(p,"tmap:freearg"))) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
 	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");

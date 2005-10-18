@@ -18,14 +18,15 @@ CPP_TEST_CASES += \
 	complextest \
 	director_stl \
 	director_thread \
+	director_wstring \
 	file_test \
-	implicittest \
 	inout \
 	input \
 	inplaceadd \
 	kwargs \
 	li_cstring \
 	li_cwstring \
+	li_implicit \
 	li_std_except \
 	li_std_vectora \
 	li_std_map \

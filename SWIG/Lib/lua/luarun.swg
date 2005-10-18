@@ -26,9 +26,6 @@ extern "C" {
 #define SWIG_LUA_POINTER 4
 #define SWIG_LUA_BINARY  5
 
-/* Flags for pointer conversion */
-#define SWIG_POINTER_EXCEPTION     0x1
-
 /* type for all wrapper fns */
 typedef int (*swig_lua_wrapper_func)(lua_State*);
 

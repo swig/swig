@@ -118,6 +118,8 @@ usage = "\
 Ruby Options (available with -ruby)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -minherit       - Attempt to support multiple inheritance\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
+     -cppcast        - Enable C++ casting operators\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -feature <name> - Set feature name to <name> (used by `require')\n";
 
@@ -205,6 +207,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual void main(int argc, char *argv[]) {
+    int cppcast = 1;
 
     /* Set location of SWIG library */
     SWIG_library_directory("ruby");
@@ -229,6 +232,12 @@ public:
           multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nocppcast") == 0) {
+	  cppcast = 0;
+	  Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-prefix") == 0) {
           if (argv[i+1]) {
             char *name = argv[i+1];
@@ -243,6 +252,11 @@ public:
 	  Printf(stdout,"%s\n", usage);
 	}
       }
+    }
+
+    if (cppcast) {
+      /* Turn on new value wrapper mpde */
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     /* Add a symbol to the parser for conditional compilation */
@@ -889,7 +903,7 @@ public:
   void insertCleanupCode(ParmList *l, String *cleanup) {
     String *tm;
     for (Parm *p = l; p; ) {
-      if ((tm = Getattr(p,"tmap:freearg"))) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
 	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
@@ -1132,12 +1146,12 @@ public:
     /* Now write the wrapper function itself */
     if        (current == CONSTRUCTOR_ALLOCATE) {
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
-      Printv(f->def, "static VALUE\n", wname, "(VALUE self) {", NIL);
+      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(VALUE self) {", NIL);
       Printf(f->def, "#else\n");
-      Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       Printf(f->def, "#endif\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
-      Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
 	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
       } else {
@@ -1145,7 +1159,7 @@ public:
       }
       Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
     } else {
-      Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
 	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
       } else {
@@ -1379,7 +1393,7 @@ public:
     String  *wname   = Swig_name_wrapper(symname);
 
     Printv(f->def,	
-	   "static VALUE ", wname,
+	   "SWIGINTERN VALUE ", wname,
 	   "(int nargs, VALUE *args, VALUE self) {",
 	   NIL);
     
@@ -1438,7 +1452,7 @@ public:
 
     /* create getter */
     getfname = NewString(Swig_name_get(iname));
-    Printv(getf->def, "static VALUE\n", getfname, "(", NIL);
+    Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
     Printf(getf->def, ") {");
     Wrapper_add_local(getf,"_val","VALUE _val");
@@ -1461,7 +1475,7 @@ public:
     } else {
       /* create setter */
       setfname = NewString(Swig_name_set(iname));
-      Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", NIL);
+      Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
     
       tm = Swig_typemap_lookup_new("varin",n,name,0);
@@ -1594,6 +1608,7 @@ public:
       value = Char(wname);
     }
     String *tm = Swig_typemap_lookup_new("constant", n, value, 0);
+    if (!tm) tm = Swig_typemap_lookup_new("constcode", n, value, 0);
     if (tm) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", iname);
@@ -1962,7 +1977,7 @@ public:
     String *freebody = NewString("");
   
     Printv(freefunc, "free_", klass->mname, NIL);
-    Printv(freebody, "static void\n",
+    Printv(freebody, "SWIGINTERN void\n",
 	   freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
 	   tab4, NIL);
 

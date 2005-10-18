@@ -11,6 +11,7 @@ if li_std_string.test_cvalue(x) != x:
   raise RuntimeError, "bad string mapping"
 
 if li_std_string.test_value(x) != x:
+  print x, li_std_string.test_value(x)
   raise RuntimeError, "bad string mapping"
 
 if li_std_string.test_const_reference(x) != x:

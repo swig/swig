@@ -105,8 +105,9 @@ These methods "may be called" if needed.
 #define %nopythoncallback    %feature("python:callback","0")
 #define %clearpythoncallback %feature("python:callback","")
 
-
-/*  Support for the old %callback directive name */
+/*
+  Support for the old %callback directive name
+*/
 #ifdef %callback
 #undef %callback
 #endif

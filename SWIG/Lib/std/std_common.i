@@ -142,7 +142,7 @@ namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
     static int asval(PyObject *obj, value_type *val) { 
-      return SWIG_AsVal(Type)(obj, val);
+      return SWIG_AsVal(Type)(obj, val) == SWIG_OK;
     }
   };
   template <>  struct traits_from<Type > {
@@ -160,14 +160,12 @@ namespace swig {
 */
 
 %define %typemap_traits(Code,Type...)
-  %typemap_ascheckfrom(SWIG_arg(Code),
-		       SWIG_arg(swig::as<Type >),
-		       SWIG_arg(swig::check<Type >),
-		       SWIG_arg(swig::from),
-		       SWIG_arg(SWIG_Traits_frag(Type)),
-		       SWIG_arg(SWIG_Traits_frag(Type)),
-		       SWIG_arg(SWIG_Traits_frag(Type)),
-		       Type);
+  %typemap_asvalfrom(SWIG_arg(Code),
+		     SWIG_arg(swig::asval<Type >),
+		     SWIG_arg(swig::from),
+		     SWIG_arg(SWIG_Traits_frag(Type)),
+		     SWIG_arg(SWIG_Traits_frag(Type)),
+		     Type);
 %enddef
 
 /*

@@ -6,6 +6,7 @@ if mainc(largs) != 3:
 
 targs=('hi','hola')
 if mainv(targs,1) != 'hola':
+  print mainv(targs,1)
   raise RuntimeError, "bad main typemap"
 
 targs=('hi', 'hola')

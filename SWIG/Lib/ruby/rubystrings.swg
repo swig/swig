@@ -1,125 +1,60 @@
-/* --- Input Values --- */
-
-%typemap(in) char *          "$1 = StringValuePtr($input);";
-%typemap(in) char [ANY]      "$1 = StringValuePtr($input);";
-
 /* ------------------------------------------------------------
- * String & length
+ *  utility methods for char strings 
  * ------------------------------------------------------------ */
 
-%typemap(in) (int LENGTH, char *STRING) {
-    $1 = ($1_ltype) StringValueLen($input);
-    $2 = ($2_ltype) StringValuePtr($input);
-}
-
-%typemap(in) (char *STRING, int LENGTH) {
-    $1 = ($1_ltype) StringValuePtr($input);
-    $2 = ($2_ltype) StringValueLen($input);
-}
-
-/* --- Output typemaps --- */
-
-/* Single char */
-%typemap(out) char         "$result = rb_str_new(&$1,1);";
-%typemap(out) const char & "$result = rb_str_new($1, 1);";
-
-/* C string */
-%typemap(out) char * "$result = rb_str_new2($1);";
-
-/* Special typemap for character array return values */
-%typemap(out) char [ANY], const char [ANY] "$result = rb_str_new2($1);";
-
-/* --- Variable Input --- */
-
-/* A string */
-#ifdef __cplusplus
-
-%typemap(varin) char * {
-  char *temp = (char *) StringValuePtr($input);
-  if ($1) delete [] $1;
-  $1 = ($type) new char[strlen(temp)+1];
-  strcpy((char*)$1,temp);
-}
-
-%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) StringValuePtr($input);
-  $1 = ($type) new char[strlen(temp)+1];
-  strcpy((char*)$1,temp);
-}
-
-#else
-
-%typemap(varin) char * {
-  char *temp = (char *) StringValuePtr($input);
-  if ($1) free((char*) $1);
-  $1 = ($type) malloc(strlen(temp)+1);
-  strcpy((char*)$1,temp);
-}
-
-%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) StringValuePtr($input);
-  $1 = ($type) malloc(strlen(temp)+1);
-  strcpy((char*)$1,temp);
-}
-
-#endif /* __cplusplus */
-
-/* Special case for string array variables */
-%typemap(varin,
-         warning="462:Unable to set variable of type char []") char[]
+%fragment("SWIG_AsCharPtrAndSize","header") {
+SWIGINTERN int
+SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 {
-  rb_raise(rb_eTypeError, "C/C++ variable '$name' is read-only.");
+  static swig_type_info* pchar_info = 0;
+  char* vptr = 0;
+  if (!pchar_info) pchar_info = SWIG_TypeQuery("char *");
+  if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_info, 0) == SWIG_OK) {
+    if (cptr) *cptr = vptr;
+    if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
+    if (alloc) *alloc = SWIG_OLDOBJ;
+    return SWIG_OK;
+  } else {
+    if (TYPE(obj) == T_STRING) {
+      char *cstr = rb_string_value_ptr(&(obj)); 
+      size_t size = RSTRING(obj)->len + 1;
+      if (cptr)  {
+	if (alloc) {
+	  if (*alloc == SWIG_NEWOBJ) {
+	    *cptr = SWIG_new_copy_array(cstr, size, char);
+	  } else {
+	    *cptr = cstr;
+	    *alloc = SWIG_OLDOBJ;
+	  }
+	}
+      }
+      if (psize) *psize = size;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
 }
 
-%typemap(varin) char[ANY] "strncpy($1,StringValuePtr($input),$1_dim0);";
-
-/* --- Variable Output --- */
-
-/* Character */
-%typemap(varout) char "$result = rb_str_new(&$1,1);";
-
-/* C string */
-%typemap(varout) char * "$result = rb_str_new2($1);";
-
-/* Special typemap for character array return values */
-%typemap(varout) char [ANY], const char [ANY] "$result = rb_str_new2($1);";
-
-/* --- Constants --- */
-
-%typemap(constant) char {
-  char temp = $1;
-  rb_define_const($module,"$symname", rb_str_new(&temp,1));
+%fragment("SWIG_FromCharPtrAndSize","header") {
+SWIGINTERNINLINE VALUE 
+SWIG_FromCharPtrAndSize(const char* carray, size_t size)
+{
+  if (carray) {
+    if (size > LONG_MAX) {
+      return SWIG_NewPointerObj(SWIG_const_cast(carray,char *), SWIG_TypeQuery("char *"), 0);
+    } else {
+      return rb_str_new(carray, SWIG_numeric_cast(size,long));
+    }
+  } else {
+    return Qnil;
+  }
 }
-
-%typemap(constant) char *
-        "rb_define_const($module,\"$symname\", rb_str_new2($1));";
-
-/* directorin typemaps */
-
-%typemap(directorin) char * "$input = rb_str_new2($1);";
-
-/* directorout typemaps */
-
-%typemap(directorout) char *       "$result = STR2CSTR($1);";
-%typemap(directorout) const char * "$result = STR2CSTR($1);";
+}
 
 /* ------------------------------------------------------------
- * Typechecking rules
+ *  The plain char * handling
  * ------------------------------------------------------------ */
 
-%typecheck(SWIG_TYPECHECK_CHAR) char {
-  $1 = (TYPE($input) == T_STRING && (RSTRING($input)->len == 1)) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_STRING) char * {
-  $1 = (TYPE($input) == T_STRING) ? 1 : 0;
-}
-
-/* ------------------------------------------------------------
- * Exception handling
- * ------------------------------------------------------------ */
-
-%typemap(throws) char * {
-  rb_raise(rb_eRuntimeError, $1);
-}
-
+%include <typemaps/strings.swg>
+%typemap_string(char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, strlen)

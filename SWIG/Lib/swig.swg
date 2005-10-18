@@ -282,7 +282,13 @@ namespace std {
 
 /* Macro for overload resolution */
 
-#define %typecheck(_x) %typemap(typecheck, precedence=_x)
+%define %typecheck(_x, _opt...) 
+#if #_opt != ""
+%typemap(typecheck, precedence=_x, _opt)
+#else
+%typemap(typecheck, precedence=_x)
+#endif
+%enddef
 
 /* Macros for precedence levels */
 

@@ -8,7 +8,7 @@
   Attribute implementation using JOHN E LENZ ideas.
 
   The following macros convert a pair of set/get methods
-  into a "native" python attribute.
+  into a "native" attribute.
 
   Use %attribute when you have a pair of get/set methods
   like in:

@@ -1,0 +1,16 @@
+/* -----------------------------------------------------------------------------
+ *  Internal typemap specializations
+ * ----------------------------------------------------------------------------- */
+
+enumint.swg		enum especializations as int types
+inoutlist.swg		return the OUTPUT types in a list
+misctypes.swg		Miscellaneos types (size_t, ptrdiff_t, etc)
+primtypes.swg		Macros to manage primitive types (shot,int,double,etc)
+ptrtypes.swg		Typemaps for types with a 'ptr' behavior
+strings.swg		String base typemaps
+cstring.swg		Various forms of C character string handling
+swigobject.swg		Language object, such as PyObject, Tcl_Obj, etc
+swigtype.swg		SWIGTYPE
+valtypes.swg		Typemaps for types with a 'by value' behavior
+void.swg		void * typemaps
+implicit.swg		Allow the use of implicit C++ constructors

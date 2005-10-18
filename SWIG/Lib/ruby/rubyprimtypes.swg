@@ -1,257 +1,317 @@
+%include <typemaps/primtypes.swg>
+
+/* Macro for 'signed long' derived types */
+
+%define %type_slong(Type, Frag, Min, Max)
+%derived_type_from(long, Type)
+%signed_derived_type_asval(long, Type, Frag, Min, Max)
+%enddef
+
+/* Macro for 'unsigned long' derived types */
+
+%define %type_ulong(Type, Frag, Max)
+%derived_type_from(unsigned long, Type)
+%unsigned_derived_type_asval(unsigned long, Type, Frag, Max)
+%enddef
+
 /* ------------------------------------------------------------
  * Primitive Types
  * ------------------------------------------------------------ */
 
-/* --- Input Values --- */
-
-%typemap(in) int             "$1 = NUM2INT($input);";
-%typemap(in) unsigned int    "$1 = NUM2UINT($input);";
-%typemap(in) short           "$1 = NUM2SHRT($input);";
-%typemap(in) unsigned short  "$1 = NUM2USHRT($input);";
-%typemap(in) long            "$1 = NUM2LONG($input);";
-%typemap(in) unsigned long   "$1 = NUM2ULONG($input);";
-%typemap(in) signed char     "$1 = ($1_ltype) NUM2INT($input);";
-%typemap(in) unsigned char   "$1 = ($1_ltype) NUM2INT($input);";
-%typemap(in) char            "$1 = NUM2CHR($input);";
-%typemap(in) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
-%typemap(in) bool            "$1 = RTEST($input);";
-
-/* Long long */
-
-%typemap(in) long long          "$1 = ($1_ltype) NUM2LL($input);";
-%typemap(in) unsigned long long "$1 = ($1_ltype) NUM2ULL($input);";
-
-/* Const primitive references.  Passed by value */
-
-%typemap(in) const int & (int temp),
-             const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp)
-        "temp = ($*1_ltype) NUM2INT($input);
-         $1 = &temp;";
-
-%typemap(in) const short & (short temp)
-        "temp = ($*1_ltype) NUM2SHRT($input);
-         $1 = &temp;";
-
-%typemap(in) const long & (long temp)
-        "temp = ($*1_ltype) NUM2LONG($input);
-         $1 = &temp;";
-
-%typemap(in) const unsigned int & (unsigned int temp)
-        "temp = ($*1_ltype) NUM2UINT($input);
-         $1 = &temp;";
-
-%typemap(in) const unsigned short & (unsigned short temp)
-        "temp = ($*1_ltype) NUM2USHRT($input);
-         $1 = &temp;";
-
-%typemap(in) const unsigned long & (unsigned long temp)
-        "temp = ($*1_ltype) NUM2ULONG($input);
-         $1 = &temp;";
-
-%typemap(in) const bool & (bool temp)
-        "temp = ($*1_ltype) RTEST($input);
-         $1 = &temp;";
-
-%typemap(in) const float & (float temp),
-             const double & (double temp)
-        "temp = ($*1_ltype) NUM2DBL($input);
-         $1 = &temp;";
-
-%typemap(in) const long long & ($*1_ltype temp)
-        "temp = ($*1_ltype) NUM2LL($input);
-         $1 = &temp;";
-
-%typemap(in) const unsigned long long & ($*1_ltype temp)
-        "temp = ($*1_ltype) NUM2ULL($input);
-         $1 = &temp;";
-
-%typemap(in) const char &(char temp) {
-        char *stemp = StringValuePtr($input);
-        temp = *stemp;
-        $1 = &temp;
+%fragment("SWIG_ruby_failed","header")
+{
+SWIGINTERN VALUE
+SWIG_ruby_failed()
+{
+  return Qnil;
+}
+ 
 }
 
-/* --- Output typemaps --- */
 
-%typemap(out) int, short, long, signed char
-        "$result = INT2NUM($1);";
+/* boolean */
 
-%typemap(out) unsigned int, unsigned short, unsigned long, unsigned char
-        "$result = UINT2NUM($1);";
-
-/* Long long */
-
-%typemap(out) long long  "$result = LL2NUM($1);";
-%typemap(out) unsigned long long "$result = ULL2NUM($1);";
-
-/* Floating point output values */
-%typemap(out) double, float
-        "$result = rb_float_new($1);";
-
-/* Boolean */
-%typemap(out) bool
-        "$result = $1 ? Qtrue : Qfalse;";
-
-/* References to primitive types.  Return by value */
-
-%typemap(out) const int &,
-              const short &,
-              const long &,
-              const signed char &
-      "$result = INT2NUM((long) *($1));";
-
-%typemap(out) const unsigned int &,
-              const unsigned short &,
-              const unsigned long &,
-              const unsigned char &
-      "$result = UINT2NUM((unsigned long) *($1));";
-
-%typemap(out) const bool &
-      "$result = *($1) ? Qtrue : Qfalse;";
-
-%typemap(out) const float &, const double &
-      "$result = rb_float_new((double) *($1));";
-
-%typemap(out) const long long &
-      "$result = LL2NUM(*($1));";
-
-%typemap(out) const unsigned long long &
-      "$result = ULL2NUM(*($1));";
-
-/* --- Variable Input --- */
-
-%typemap(varin) int             "$1 = NUM2INT($input);";
-%typemap(varin) unsigned int    "$1 = NUM2UINT($input);";
-%typemap(varin) short           "$1 = NUM2SHRT($input);";
-%typemap(varin) unsigned short  "$1 = NUM2USHRT($input);";
-%typemap(varin) long            "$1 = NUM2LONG($input);";
-%typemap(varin) unsigned long   "$1 = NUM2ULONG($input);";
-%typemap(varin) signed char     "$1 = (signed char) NUM2INT($input);";
-%typemap(varin) unsigned char   "$1 = (unsigned char) NUM2INT($input);";
-%typemap(varin) char            "$1 = NUM2CHR($input);";
-%typemap(varin) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
-%typemap(varin) bool            "$1 = RTEST($input);";
-
-%typemap(varin) long long       "$1 = NUM2LL($input);";
-%typemap(varin) unsigned long long "$1 = NUM2ULL($input);";
-
-/* --- Variable Output --- */
-
-%typemap(varout) int, short, long, signed char
-        "$result = INT2NUM($1);";
-
-%typemap(varout) unsigned int, unsigned short, unsigned long, unsigned char
-        "$result = UINT2NUM($1);";
-
-%typemap(varout) long long "$result = LL2NUM($1);";
-%typemap(varout) unsigned long long "$result = ULL2NUM($1);";
-
-/* Floats and doubles */
-%typemap(varout) double, float
-        "$result = rb_float_new($1);";
-
-/* Boolean */
-%typemap(varout) bool
-        "$result = $1 ? Qtrue : Qfalse;";
-
-/* --- Constants --- */
-
-%typemap(constant) int, short, long, signed char
-        "rb_define_const($module,\"$symname\", INT2NUM($1));";
-
-%typemap(constant) unsigned int, unsigned short, unsigned long, unsigned char
-        "rb_define_const($module,\"$symname\", UINT2NUM($1));";
-
-%typemap(constant) long long
-        "rb_define_const($module,\"$symname\", LL2NUM($1));";
-
-%typemap(constant) unsigned long long
-        "rb_define_const($module,\"$symname\", ULL2NUM($1));";
-
-%typemap(constant) double, float
-        "rb_define_const($module,\"$symname\", rb_float_new($1));";
-
-%typemap(constant) bool
-        "rb_define_const($module,\"$symname\", ($1 ? Qtrue : Qfalse));";
-
-/* directorin typemaps */
-
-%typemap(directorin) int           , const int&             "$input = INT2NUM($1);";
-%typemap(directorin) short         , const short&           "$input = INT2NUM($1);";
-%typemap(directorin) long          , const long&            "$input = LONG2NUM($1);";
-%typemap(directorin) signed char   , const signed char&     "$input = INT2NUM($1);";
-%typemap(directorin) float         , const float&           "$input = rb_float_new($1);";
-%typemap(directorin) double        , const double&          "$input = rb_float_new($1);";
-%typemap(directorin) bool          , const bool&            "$input = $1 ? Qtrue : Qfalse;";
-%typemap(directorin) unsigned int  , const unsigned int&    "$input = UINT2NUM($1);";
-%typemap(directorin) unsigned short, const unsigned short&  "$input = UINT2NUM($1);";
-%typemap(directorin) unsigned long , const unsigned long&   "$input = ULONG2NUM($1);";
-%typemap(directorin) unsigned char , const unsigned char&   "$input = UINT2NUM($1);";
-
-/* --- directorout typemaps --- */
-
-%define DIRECTOROUT_TYPEMAP(type, converter)
-%typemap(directorargout) type *DIRECTOROUT "*$result = (type) converter($input);";
-%typemap(directorout) type "$result = (type) converter($input);";
-%typemap(directorout) const type& {
-  $basetype temp = converter($input);
-  $result = &temp;
+%fragment(SWIG_From_frag(bool),"header") {
+SWIGINTERNINLINE VALUE
+  SWIG_From_dec(bool)(bool value)
+{
+  return value ? Qtrue : Qfalse;
 }
-%typemap(directorout) type &DIRECTOROUT = type
-%enddef
+}
 
-DIRECTOROUT_TYPEMAP(char, NUM2INT);
-DIRECTOROUT_TYPEMAP(unsigned char, NUM2UINT);
-DIRECTOROUT_TYPEMAP(short, NUM2INT);
-DIRECTOROUT_TYPEMAP(unsigned short, NUM2INT);
-DIRECTOROUT_TYPEMAP(int, NUM2INT);
-DIRECTOROUT_TYPEMAP(unsigned int, NUM2INT);
-DIRECTOROUT_TYPEMAP(long, NUM2INT);
-DIRECTOROUT_TYPEMAP(unsigned long, NUM2INT);
-DIRECTOROUT_TYPEMAP(long long, NUM2INT);
-DIRECTOROUT_TYPEMAP(unsigned long long, NUM2INT);
-DIRECTOROUT_TYPEMAP(float, NUM2DBL);
-DIRECTOROUT_TYPEMAP(double, NUM2DBL);
-DIRECTOROUT_TYPEMAP(bool, RTEST);
+%fragment(SWIG_AsVal_frag(bool),"header",
+	  fragment=SWIG_AsVal_frag(int)) {
+SWIGINTERN int
+SWIG_AsVal_dec(bool)(VALUE obj, bool *val)
+{
+  if (obj == Qtrue) {
+    if (val) *val = true;
+    return SWIG_OK;
+  } else if (obj == Qfalse) {
+    if (val) *val = false;
+    return SWIG_OK;
+  } else {
+    int res = 0;
+    if (SWIG_AsVal(int)(obj, &res) == SWIG_OK) {    
+      if (val) *val = res ? true : false;
+      return SWIG_OK;
+    }
+  }  
+  return SWIG_TypeError;
+}
+}
+
+/* signed/unsigned char */
+
+%type_slong(signed char,     "<limits.h>", SCHAR_MIN, SCHAR_MAX)
+%type_ulong(unsigned char,   "<limits.h>", UCHAR_MAX)
+
+/* short/unsigned short */
+
+%type_slong(short,           "<limits.h>", SHRT_MIN, SHRT_MAX)
+%type_ulong(unsigned short,  "<limits.h>", USHRT_MAX)
+
+/* int/unsigned int */
+
+%type_slong(int,             "<limits.h>", INT_MIN, INT_MAX)
+%type_ulong(unsigned int,    "<limits.h>", UINT_MAX)
+
+/* signed/unsigned wchar_t */
+
+#ifdef __cplusplus
+%type_slong(signed wchar_t,   "<wchar.h>", WCHAR_MIN, WCHAR_MAX)
+%type_ulong(unsigned wchar_t, "<wchar.h>", UWCHAR_MAX)
+#endif
+
+/* long */
+
+%fragment(SWIG_From_frag(long),"header",
+	  fragment="<limits.h>") {
+  SWIG_define(SWIG_From_dec(long),           LONG2NUM)
+}
+
+%fragment(SWIG_AsVal_frag(long),"header",fragment="SWIG_ruby_failed") {
+SWIGINTERN VALUE SWIG_num2long(VALUE *args)
+{
+  *((long *)(args[1])) = NUM2LONG(args[0]);
+  return args[0];
+}  
+SWIGINTERN int
+SWIG_AsVal_dec(long)(VALUE obj, long* val)
+{
+  if (obj != Qnil && ((TYPE(obj) == T_FIXNUM) || (TYPE(obj) == T_BIGNUM))) {
+    long v;
+    VALUE a[2] = { obj, (VALUE)(&v) };
+    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_num2long), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (val) *val = v;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
+}
+
+/* unsigned long */
+
+%fragment(SWIG_From_frag(unsigned long),"header",
+	  fragment=SWIG_From_frag(long)) {
+SWIGINTERNINLINE VALUE
+SWIG_From_dec(unsigned long)(unsigned long value)
+{
+  return ULONG2NUM(value); 
+}
+}
+
+%fragment(SWIG_AsVal_frag(unsigned long),"header",fragment="SWIG_ruby_failed") {
+SWIGINTERN VALUE SWIG_num2ulong(VALUE *args)
+{
+  *((unsigned long *)(args[1])) = NUM2ULONG(args[0]);
+  return args[0];
+}
+SWIGINTERN int
+SWIG_AsVal_dec(unsigned long)(VALUE obj, unsigned long *val) 
+{
+  if (obj != Qnil && ((TYPE(obj) == T_FIXNUM) || (TYPE(obj) == T_BIGNUM))) {
+    unsigned long v;
+    VALUE a[2] = { obj, (VALUE)(&v) };
+    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_num2ulong), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (val) *val = v;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
+}
+
+/* long long */
+
+%fragment(SWIG_From_frag(long long),"header",
+	  fragment=SWIG_From_frag(long),
+	  fragment="<limits.h>") {
+SWIGINTERNINLINE VALUE 
+SWIG_From_dec(long long)(long long value)
+{
+  return LL2NUM(value);
+}
+}
+
+%fragment(SWIG_AsVal_frag(long long),"header",fragment="SWIG_ruby_failed") {
+SWIGINTERN VALUE SWIG_num2longlong(VALUE *args)
+{
+  *((long long *)(args[1])) = NUM2LL(args[0]);
+  return args[0];
+}
+SWIGINTERN int
+SWIG_AsVal_dec(long long)(VALUE obj, long long *val)
+{
+  if (obj != Qnil && ((TYPE(obj) == T_FIXNUM) || (TYPE(obj) == T_BIGNUM))) {
+    long long v;
+    VALUE a[2] = { obj, (VALUE)(&v) };
+    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_num2longlong), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (val) *val = v;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
+}
+
+/* unsigned long long */
+
+%fragment(SWIG_From_frag(unsigned long long),"header",
+	  fragment=SWIG_From_frag(long long),
+	  fragment="<limits.h>") {
+SWIGINTERNINLINE VALUE 
+SWIG_From_dec(unsigned long long)(unsigned long long value)
+{
+  return ULL2NUM(value);
+}
+}
+
+%fragment(SWIG_AsVal_frag(unsigned long long),"header",fragment="SWIG_ruby_failed") {
+SWIGINTERN VALUE SWIG_num2ulonglong(VALUE *args)
+{
+  *((unsigned long long *)(args[1])) = NUM2ULL(args[0]);
+  return args[0];
+}
+SWIGINTERN int
+SWIG_AsVal_dec(unsigned long long)(VALUE obj, unsigned long long *val)
+{
+  if (obj != Qnil && ((TYPE(obj) == T_FIXNUM) || (TYPE(obj) == T_BIGNUM))) {
+    unsigned long long v;
+    VALUE a[2] = { obj, (VALUE)(&v) };
+    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_num2ulonglong), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (val) *val = v;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
+}
+
+/* float */
+
+%derived_type_from(double, float)
+%signed_derived_type_asval(double, float, "<float.h>", -FLT_MAX, FLT_MAX)
+
+/* double */
+
+%fragment(SWIG_From_frag(double),"header") {
+  SWIG_define(SWIG_From_dec(double),  rb_float_new)
+}
+
+%fragment(SWIG_AsVal_frag(double),"header",fragment="SWIG_ruby_failed") {
+SWIGINTERN VALUE SWIG_num2dbl(VALUE *args)
+{
+  *((double *)(args[1])) = NUM2DBL(args[0]);
+  return args[0];
+}
+SWIGINTERN int
+SWIG_AsVal_dec(double)(VALUE obj, double *val)
+{
+  if (obj != Qnil &&((TYPE(obj) == T_FLOAT) || (TYPE(obj) == T_FIXNUM) || (TYPE(obj) == T_BIGNUM))) {
+    double v;
+    VALUE a[2] = { obj, (VALUE)(&v) };
+    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_num2dbl), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (val) *val = v;
+      return SWIG_OK;
+    }
+  }
+  return SWIG_TypeError;
+}
+}
+
+/* char */
+
+%fragment(SWIG_From_frag(char),"header") {
+SWIGINTERNINLINE VALUE
+SWIG_From_dec(char)(char c) 
+{ 
+  return rb_str_new(&c,1);
+}
+}
+
+%fragment(SWIG_AsVal_frag(char),"header",
+	  fragment="SWIG_AsCharArray",
+	  fragment=SWIG_AsVal_frag(signed char)) {
+SWIGINTERN int
+SWIG_AsVal_dec(char)(VALUE obj, char *val)
+{
+  signed char v;
+  if (SWIG_AsVal(signed char)(obj, &v) == SWIG_OK) {
+    if (val) *val = (char)(v);
+    return SWIG_OK;
+  } else {
+    if (SWIG_AsCharArray(obj, val, 1) == SWIG_OK) {
+      return SWIG_OK;
+    }
+  }  
+  return SWIG_TypeError;
+ }
+}
+
+/* wchar_t */
+
+
+%fragment(SWIG_From_frag(wchar_t),"header",
+	  fragment=SWIG_From_frag(char),
+	  fragment=SWIG_From_frag(long)) {
+SWIGINTERNINLINE VALUE
+SWIG_From_dec(wchar_t)(wchar_t c) 
+{ 
+  if (CHAR_MIN <= v && v <= CHAR_MAX) {
+    return SWIG_From(char)((char)c);
+  } else {
+    return SWIG_From(long)((long)c);
+  }
+}
+}
+
+%fragment(SWIG_AsVal_frag(wchar_t),"header",
+	  fragment="SWIG_AsWCharArray",
+	  fragment=SWIG_AsVal_frag(long)) {
+SWIGINTERN int
+SWIG_AsVal_dec(wchar_t)(VALUE obj, wchar_t *val)
+{
+  char v;
+  if (SWIG_AsVal(char)(obj, &v) == SWIG_OK) {
+    if (val) *val = (wchar_t)(v);
+    return SWIG_OK;
+  } else {
+    long v;
+    if (SWIG_AsVal(long)(obj, &v) == SWIG_OK) {
+      if (WCHAR_MIN <= v && v <= WCHAR_MAX) {
+	if (val) *val = (wchar_t)(v);
+	return SWIG_OK;
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+}
 
 /* ------------------------------------------------------------
- * Typechecking rules
+ * Apply the primitive typemap for all the types with checkcode
  * ------------------------------------------------------------ */
 
-%typecheck(SWIG_TYPECHECK_BOOL) bool {
-  $1 = ($input == Qtrue || $input == Qfalse) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_INTEGER)
-         int, short, long,
-         unsigned int, unsigned short, unsigned long,
-         signed char, unsigned char,
-         long long, unsigned long long,
-         const int &, const short &, const long &,
-        const unsigned int &, const unsigned short &, const unsigned long &,
-        const long long &, const unsigned long long &
-{
-  $1 = ((TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_DOUBLE)
-        float, double,
-        const float &, const double &
-{
-  $1 = ((TYPE($input) == T_FLOAT) || (TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
-}
-
-/* ------------------------------------------------------------
- * Exception handling
- * ------------------------------------------------------------ */
-
-%typemap(throws) int,
-                  long,
-                  short,
-                  unsigned int,
-                  unsigned long,
-                  unsigned short {
-  rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(INT2NUM($1))));
-}
-
+%apply_checkctypes(%typemap_primitive)

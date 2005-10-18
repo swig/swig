@@ -125,13 +125,13 @@
  */
 
 
+%include <typemaps/cstring.swg>
 %include <pywstrings.swg>
-%include <cstrbase.swg>
 
 %typemap_cstrings(%cwstring,
 		  wchar_t,
 		  SWIG_AsWCharPtr,
 		  SWIG_AsWCharPtrAndSize,
 		  SWIG_FromWCharPtr,
-		  SWIG_FromWCharArray);
+		  SWIG_FromWCharPtrAndSize);
 

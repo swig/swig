@@ -92,7 +92,7 @@
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE
 {
    $&ltype argp;
-   if(SWIG_ConvertPtr(L,$input,(void**)(&argp),$&descriptor,SWIG_POINTER_EXCEPTION) == -1) SWIG_fail;
+   if(SWIG_ConvertPtr(L,$input,(void**)(&argp),$&descriptor,0)) SWIG_fail;
    $1 = *argp;
 }
 

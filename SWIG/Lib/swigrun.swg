@@ -36,6 +36,39 @@
 # define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
 #endif
 
+/*  Generic buffer size */
+#ifndef SWIG_BUFFER_SIZE
+# define SWIG_BUFFER_SIZE 1024
+#endif
+
+/* Flags for pointer conversions */
+#define SWIG_POINTER_DISOWN        0x1
+
+/* Flags for new pointer objects */
+#define SWIG_POINTER_OWN           0x1
+
+/*  Alloc. memory flags */
+#define SWIG_OLDOBJ                1
+#define SWIG_NEWOBJ                2
+
+/*  Error flags */
+#define  SWIG_OK                   0 
+#define  SWIG_ERROR               -1
+
+#define  SWIG_MemoryError    	   1 
+#define  SWIG_IOError        	   2 
+#define  SWIG_RuntimeError   	   3 
+#define  SWIG_IndexError     	   4 
+#define  SWIG_TypeError      	   5 
+#define  SWIG_DivisionByZero 	   6 
+#define  SWIG_OverflowError  	   7 
+#define  SWIG_SyntaxError    	   8 
+#define  SWIG_ValueError     	   9 
+#define  SWIG_SystemError    	   10
+#define  SWIG_AttributeError 	   11
+#define  SWIG_UnknownError         99
+
+
 #include <string.h>
 
 #ifdef __cplusplus
@@ -73,7 +106,6 @@ typedef struct swig_module_info {
   swig_cast_info         **cast_initial;	/* Array of initially generated casting structures */
   void                    *clientdata;		/* Language specific module data */
 } swig_module_info;
-
 
 /* 
   Compare two type names skipping the space characters, therefore
@@ -208,6 +240,7 @@ SWIG_TypePrettyName(const swig_type_info *type) {
      type, separated by vertical-bar characters.  We choose
      to print the last name, as it is often (?) the most
      specific. */
+  if (!type) return NULL;
   if (type->str != NULL) {
     const char *last_name = type->str;
     const char *s;
@@ -317,7 +350,6 @@ SWIG_TypeQueryModule(swig_module_info *start,
   /* neither found a match */
   return 0;
 }
-
 
 /* 
    Pack binary data into a string

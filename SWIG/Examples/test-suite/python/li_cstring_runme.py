@@ -11,9 +11,11 @@ if test2() != " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
     raise RuntimeError
 
 if test3("hello") != "hello-suffix":
+    print test3("hello")
     raise RuntimeError
 
 if test4("hello") != "hello-suffix":
+    print test4("hello")
     raise RuntimeError
     
 if test5(4) != 'xxxx':

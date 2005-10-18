@@ -1,6 +1,9 @@
 // Massive primitive datatype test.
 %module(directors="1") primitive_types
 
+// Ruby constant names
+#pragma SWIG nowarn=801
+
 // Using thread unsafe wrapping
 #pragma SWIG nowarn=470
  /*
@@ -217,8 +220,8 @@ macro(long,               pfx, long)
 macro(unsigned long,      pfx, ulong)
 macro(long long,          pfx, llong)
 macro(unsigned long long, pfx, ullong)
-//macro(float,              pfx, float)
-//macro(double,             pfx, double)
+macro(float,              pfx, float)
+macro(double,             pfx, double)
 macro(char,               pfx, char)
 %enddef
 
@@ -345,9 +348,7 @@ macro(size_t,             pfx, sizet)
 %enddef
 
 
-#ifdef SWIGPYTHON
 %apply (char *STRING, int LENGTH) { (const char *str, size_t len) }
-#endif
 
 %inline {
   struct Foo
