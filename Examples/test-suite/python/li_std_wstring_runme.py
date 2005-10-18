@@ -3,6 +3,7 @@ import li_std_wstring
 x=u"h"
 
 if li_std_wstring.test_wcvalue(x) != x:
+  print li_std_wstring.test_wcvalue(x)
   raise RuntimeError, "bad string mapping"
 
 x=u"hello"

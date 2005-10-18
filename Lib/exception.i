@@ -5,36 +5,6 @@
 //
 // This SWIG library file provides language independent exception handling
 
-%{
-#define  SWIG_MemoryError    1
-#define  SWIG_IOError        2
-#define  SWIG_RuntimeError   3
-#define  SWIG_IndexError     4
-#define  SWIG_TypeError      5
-#define  SWIG_DivisionByZero 6
-#define  SWIG_OverflowError  7
-#define  SWIG_SyntaxError    8
-#define  SWIG_ValueError     9
-#define  SWIG_SystemError   10
-#define  SWIG_UnknownError  99
-%}
-
-#ifdef SWIGTCL8
-%{
-/* We cast from 'const char*' to 'char*' since TCL_VOLATILE ensure
-   that an internal copy of the strng will be stored.
-
-   NOTE: Later use const_cast<char*> via SWIG_const_cast or so.
-*/
-#define SWIG_exception(a,b)   { Tcl_SetResult(interp,(char *)b,TCL_VOLATILE); SWIG_fail; }
-%}
-#else
-#ifdef SWIGTCL
-%{
-#define SWIG_exception(a,b)   { Tcl_SetResult(interp,(char *)b,TCL_VOLATILE); return TCL_ERROR; }
-%}
-#endif
-#endif
 
 #ifdef SWIGPERL5
 %{
@@ -46,50 +16,6 @@
 %{
 /* We should make use of "code" if we can */
 #define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
-%}
-#endif
-
-#ifdef SWIGPYTHON
-%{
-SWIGINTERN void SWIG_exception_(int code, const char *msg) {
-  switch(code) {
-  case SWIG_MemoryError:
-    PyErr_SetString(PyExc_MemoryError,msg);
-    break;
-  case SWIG_IOError:
-    PyErr_SetString(PyExc_IOError,msg);
-    break;
-  case SWIG_RuntimeError:
-    PyErr_SetString(PyExc_RuntimeError,msg);
-    break;
-  case SWIG_IndexError:
-    PyErr_SetString(PyExc_IndexError,msg);
-    break;
-  case SWIG_TypeError:
-    PyErr_SetString(PyExc_TypeError,msg);
-    break;
-  case SWIG_DivisionByZero:
-    PyErr_SetString(PyExc_ZeroDivisionError,msg);
-    break;
-  case SWIG_OverflowError:
-    PyErr_SetString(PyExc_OverflowError,msg);
-    break;
-  case SWIG_SyntaxError:
-    PyErr_SetString(PyExc_SyntaxError,msg);
-    break;
-  case SWIG_ValueError:
-    PyErr_SetString(PyExc_ValueError,msg);
-    break;
-  case SWIG_SystemError:
-    PyErr_SetString(PyExc_SystemError,msg);
-    break;
-  default:
-    PyErr_SetString(PyExc_RuntimeError,msg);
-    break;
-  }
-}
-
-#define SWIG_exception(a,b) { SWIG_exception_(a,b); SWIG_fail; }
 %}
 #endif
 
@@ -215,51 +141,6 @@ SWIGINTERN void SWIG_exception_(int code, const char *msg) {
 %}
 #endif
 
-#ifdef SWIGRUBY
-%{
-SWIGINTERN void SWIG_exception_(int code, const char *msg) {
-    switch (code) {
-        case SWIG_MemoryError:
-            rb_raise(rb_eNoMemError, msg);
-            break;
-        case SWIG_IOError:
-            rb_raise(rb_eIOError, msg);
-            break;
-        case SWIG_RuntimeError:
-            rb_raise(rb_eRuntimeError, msg);
-            break;
-        case SWIG_IndexError:
-            rb_raise(rb_eIndexError, msg);
-            break;
-        case SWIG_TypeError:
-            rb_raise(rb_eTypeError, msg);
-            break;
-        case SWIG_DivisionByZero:
-            rb_raise(rb_eZeroDivError, msg);
-            break;
-        case SWIG_OverflowError:
-            rb_raise(rb_eRangeError, msg);
-            break;
-        case SWIG_SyntaxError:
-            rb_raise(rb_eSyntaxError, msg);
-            break;
-        case SWIG_ValueError:
-            rb_raise(rb_eArgError, msg);
-            break;
-        case SWIG_SystemError:
-            rb_raise(rb_eFatal, msg);
-            break;
-        case SWIG_UnknownError:
-            rb_raise(rb_eRuntimeError, msg);
-            break;
-        default:
-            break;
-    }
-}
-
-#define SWIG_exception(a, b) SWIG_exception_((a), (b))
-%}
-#endif
 
 #ifdef SWIGCHICKEN
 %{

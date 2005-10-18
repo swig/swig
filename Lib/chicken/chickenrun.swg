@@ -84,7 +84,6 @@ extern "C" {
     func = C_SCHEME_FALSE; \
   }
 
-#define SWIG_POINTER_DISOWN 1
 
 enum {
   SWIG_BARF1_BAD_ARGUMENT_TYPE /* 1 arg */,

@@ -35,7 +35,7 @@ if { [ value $const_pbool ] != $bool1} {
     exit 1
 }
 
-if { [ value $const_rbool ] != $bool2} {
+if { $const_rbool != $bool2} {
     puts stderr "Runtime test 7 failed"
     exit 1
 }
@@ -61,7 +61,7 @@ if { [ value  [ pbo $pbool ] ] !=  [ value $pbool ]} {
     exit 1
 }
 
-if { [ const_rbo [ value $const_rbool ] ] !=  [ value $const_rbool ]} {
+if { [ const_rbo $const_rbool ] !=   $const_rbool } {
     puts stderr "Runtime test 12 failed"
     exit 1
 }

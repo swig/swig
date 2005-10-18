@@ -14,6 +14,12 @@ class MyFoo2 < Foo
   end
 end
 
+class MyFoo3 < Foo
+  def ping
+    5 # error: should return a string
+  end
+end
+
 ok = false
 
 a = MyFoo.new
@@ -37,6 +43,17 @@ begin
 rescue TypeError
   ok = true
 end
+
+
+a = MyFoo3.new
+b = launder(a)
+
+begin
+  b.pong
+rescue TypeError
+  ok = true
+end
+
 
 raise RuntimeError unless ok
 

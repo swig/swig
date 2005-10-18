@@ -20,42 +20,94 @@ namespace Swig {
     int argc;
     VALUE *argv;
   };
-
+  
   /* Base class for director exceptions */
   class DirectorException {
-    protected:
-      VALUE swig_error;
-    protected:
-      DirectorException(VALUE error=Qnil) : swig_error(error) {}
-    public:
-      VALUE getType() const  { 
-        return CLASS_OF(swig_error); 
+  protected:
+    VALUE swig_error;
+    std::string swig_msg;
+  protected:
+    DirectorException(VALUE error)
+      : swig_error(error)
+    {
+    }
+    
+    DirectorException(VALUE error, const char* hdr, const char* msg ="") 
+      : swig_error(error), swig_msg(hdr) {
+      if (strlen(msg)) {
+	swig_msg += " ";
+	swig_msg += msg;
       }
-      VALUE getError() const {
-        return swig_error;
+      if (swig_msg.size()) {
+	VALUE str = rb_str_new2(swig_msg.c_str());
+	swig_error = rb_exc_new3(error, str);
+      } else {
+	swig_error = error;
       }
-      virtual ~DirectorException() {}
+    }
+  public:
+    VALUE getType() const  { 
+      return CLASS_OF(swig_error); 
+    }
+    VALUE getError() const {
+      return swig_error;
+    }
+    virtual ~DirectorException() {}
   };
-
+  
   /* Type mismatch in the return value from a Ruby method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
-    public:
-      DirectorTypeMismatchException(const char *msg="") {
-        VALUE str = rb_str_new2("Swig director type mismatch: ");
-        rb_str_concat(str, rb_str_new2(msg));
-        swig_error = rb_exc_new3(rb_eTypeError, str);
-      }
+  public:
+    DirectorTypeMismatchException(VALUE error, const char *msg="")
+      : Swig::DirectorException(error, "Swig director type mismatch", msg) 
+    {
+    }
+
+    DirectorTypeMismatchException(const char *msg="")
+      : Swig::DirectorException(rb_eTypeError, "Swig director type mismatch", msg) 
+    {
+    }
+
+    static void raise(VALUE error, const char *msg) {
+      throw DirectorTypeMismatchException(error, msg);
+    }
+
+    static void raise(const char *msg) {
+      throw DirectorTypeMismatchException(msg);
+    }
   };
 
   /* Any Ruby exception that occurs during a director method call */
   class DirectorMethodException : public Swig::DirectorException {
-    public:
-      DirectorMethodException(VALUE error) : Swig::DirectorException(error) {}
+  public:
+    DirectorMethodException(VALUE error) 
+      : Swig::DirectorException(error) {
+    }
+
+    DirectorMethodException(const char* msg = "") 
+      : Swig::DirectorException(rb_eRuntimeError, "Swig director method error", msg) {
+    }
+    
+    static void raise(VALUE error)
+    {
+      throw DirectorMethodException(error);
+    }    
   };
 
   /* Attempted to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {};
+  class DirectorPureVirtualException : public Swig::DirectorException
+  {
+  public:
+    DirectorPureVirtualException(const char* msg = "") 
+      : DirectorException(rb_eRuntimeError, "Swig director pure virtal method called", msg)
+    { 
+    }
 
+    static void raise(const char *msg) 
+    {
+      throw DirectorPureVirtualException(msg);
+    }
+  };
 
   /* Simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__

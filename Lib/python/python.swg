@@ -9,9 +9,16 @@
   resolution.
 */
 
-#undef SWIG_TYPECHECK_BOOL
-%define SWIG_TYPECHECK_BOOL         10000 %enddef
+/* -----------------------------------------------------------------------------
+ *  Inner macros
+ * ----------------------------------------------------------------------------- */
+%include <pymacros.swg>
 
+/* -----------------------------------------------------------------------------
+ *  Error manipulation
+ * ----------------------------------------------------------------------------- */
+
+%include <pyerrors.swg>
 
 /* -----------------------------------------------------------------------------
  *  The runtime part
@@ -24,29 +31,10 @@
 %include <pyuserdir.swg>
 
 /* -----------------------------------------------------------------------------
- *  Inner macros (ugly ones)
- * ----------------------------------------------------------------------------- */
-%include <pymacros.swg>
-
-/* -----------------------------------------------------------------------------
- *  Look for user fragments file. If not found, include empty system one.
- * ----------------------------------------------------------------------------- */
-%include "pyfragments.swg"
-
-/* -----------------------------------------------------------------------------
  *  Typemap specializations
- * ----------------------------------------------------------------------------- */
-%include <pyswigtype.swg>
-%include <pyinout.swg>
-%include <pyvoid.swg>
-%include <pyobject.swg>
-%include <pystrbase.swg>
-%include <pystrings.swg>
-%include <pyvaltypes.swg>
-%include <pyptrtypes.swg>
-%include <pyprimtypes.swg>
-%include <pymisctypes.swg>
-%include <pyenum.swg>
+ * ----------------------------------------------------------------------------- */ 
+
+%include <pytypemaps.swg>
 
 /* ------------------------------------------------------------
  *  Overloaded operator support

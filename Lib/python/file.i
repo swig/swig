@@ -14,18 +14,18 @@ SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
   static swig_type_info* desc = 0;
   FILE *ptr = 0;
   if (!desc) desc = SWIG_TypeQuery("FILE *");
-  if ((SWIG_ConvertPtr(obj,(void **)(&ptr), desc, 0)) != -1) {
+  if ((SWIG_ConvertPtr(obj,(void **)(&ptr), desc, 0)) == SWIG_OK) {
     if (val) *val = ptr;
-    return 1;
+    return SWIG_OK;
   } 
   if (PyFile_Check(obj)) {
     if (val) *val =  PyFile_AsFile(obj);
-    return 1;
+    return SWIG_OK;
   }
-  if (val) PyErr_SetString(PyExc_TypeError, "a FILE* is expected");
-  return 0;
+  return SWIG_TypeError;
 }
 }
+
 
 %fragment("SWIG_AsFilePtr","header",fragment="SWIG_AsValFilePtr") {
 SWIGINTERNINLINE FILE*
@@ -36,13 +36,5 @@ SWIG_AsFilePtr(PyObject *obj) {
 }
 }
 
-%fragment("SWIG_CheckFilePtr","header",fragment="SWIG_AsValFilePtr") {
-SWIGINTERNINLINE int
-SWIG_CheckFilePtr(PyObject *obj) {
-  return SWIG_AsValFilePtr(obj, (FILE **)(0));
-}
-}
-
 /* defining the typemaps */
-%typemap_ascheck(SWIG_CCode(POINTER), SWIG_AsFilePtr, SWIG_CheckFilePtr,
-		 "SWIG_AsFilePtr", "SWIG_CheckFilePtr", FILE*);
+%typemap_asval(SWIG_CCode(POINTER), SWIG_AsValFilePtr, "SWIG_AsValFilePtr", FILE*);

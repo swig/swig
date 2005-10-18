@@ -1,56 +1,37 @@
 //
-// SWIG typemaps for std::string
-// Luigi Ballabio and Manu ???
-// Apr 26, 2002
+// std::string
 //
-// Tcl implementation
 
-
-// ------------------------------------------------------------------------
-// std::string is typemapped by value
-// This can prevent exporting methods which return a string
-// in order for the user to modify it.
-// However, I think I'll wait until someone asks for it...
-// ------------------------------------------------------------------------
-
-%include exception.i
+#ifndef SWIG_STD_BASIC_STRING
+#define SWIG_STD_STRING
 
 %{
 #include <string>
 %}
-
-namespace std {
-
-    class string;
-
-    /* Overloading check */
-    %typemap(typecheck) string = char *;
-    %typemap(typecheck) const string & = char *;
-
-    %typemap(in) string {
-        $1 = std::string(Tcl_GetStringFromObj($input,NULL));
-    }
-
-    %typemap(in) const string & (std::string temp) {
-        temp = std::string(Tcl_GetStringFromObj($input,NULL));
-        $1 = &temp;
-    }
-
-    %typemap(out) string {
-        Tcl_SetStringObj($result,(char*)$1.c_str(),$1.length());
-    }
-
-    %typemap(out) const string & {
-        Tcl_SetStringObj($result,(char*)$1->c_str(),$1->length());
-    }
-
-    %typemap(throws) string {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1.c_str(), -1));
-        SWIG_fail;
-    }
-
-    %typemap(throws) const string & {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1.c_str(), -1));
-        SWIG_fail;
-    }
+  
+namespace std
+{
+  class string;
 }
+
+%include <typemaps/std_string.swg>
+%include <tclstrings.swg>
+
+%fragment("Tcl_std_string_asptr","header",fragment="SWIG_AsCharPtrAndSize") {
+%tcl_asptr_decl(std::string)
+}
+%fragment("Tcl_std_string_asval","header",fragment="Tcl_std_string_asptr") {
+%tcl_asptr_decl(std::string)
+}
+
+%std_string_asptr_frag(std::string, char, SWIG_AsCharPtrAndSize, "Tcl_std_string_asptr")
+%std_string_asval_frag(std::string, "Tcl_std_string_asval")
+%std_string_from(std::string, SWIG_FromCharPtrAndSize)
+
+%typemap_asptrfromn(SWIG_CCode(STRING), std::string);
+
+#else
+
+%include <std/std_string.i>
+
+#endif

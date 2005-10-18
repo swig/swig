@@ -1,7 +1,5 @@
-%include <pyptrtypes.swg>
-
 %fragment("PyObject_var","header") 
-%{
+{
   namespace swig {
     struct PyObject_var {
       PyObject* ptr;
@@ -11,10 +9,10 @@
       PyObject* operator->() const { return ptr; }
     };
   }
-%}
+}
 
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
-%{
+{
 namespace swig {  
   /*
     Traits that provides the from method
@@ -54,14 +52,9 @@ namespace swig {
   struct traits_asptr {   
     static int asptr(PyObject *obj, Type **val) {
       Type *p;
-      int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) != -1) 
-	? SWIG_OLDOBJ : 0;
+      int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
       if (res) {
-	if (val) {
-	  *val = p;
-	}
-      } else {
-	SWIG_type_error(type_name<Type>(), obj);
+	if (val) *val = p;
       }
       return res;
     }
@@ -81,7 +74,7 @@ namespace swig {
 	if ((res != 0) && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
-	  if (res == SWIG_NEWOBJ) delete p;
+	  if (res == SWIG_NEWOBJ) SWIG_delete(p);
 	  return true;
 	} else {
 	  return false;
@@ -93,7 +86,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static bool asval(PyObject *obj, Type **val) {
+    static int asval(PyObject *obj, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
@@ -121,7 +114,7 @@ namespace swig {
       Type v;
       if (!obj || !asval(obj, &v)) {
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>(), obj);
+	  SWIG_Python_SetErrorMsg(SWIG_Python_ErrorType(SWIG_TypeError), swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
       }
@@ -137,7 +130,7 @@ namespace swig {
       if (res && v) {
 	if (res == SWIG_NEWOBJ) {
 	  Type r(*v);
-	  delete v;
+	  SWIG_delete(v);
 	  return r;
 	} else {
 	  return *v;
@@ -146,7 +139,7 @@ namespace swig {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>(), obj);
+	  SWIG_Python_SetErrorMsg(SWIG_Python_ErrorType(SWIG_TypeError), swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
@@ -164,7 +157,7 @@ namespace swig {
 	return v;
       } else {
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>(), obj);
+	  SWIG_Python_SetErrorMsg(SWIG_Python_ErrorType(SWIG_TypeError),swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	return 0;
@@ -196,7 +189,7 @@ namespace swig {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
-%}
+}
 
 //
 // Backward compatibility

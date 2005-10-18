@@ -48,12 +48,6 @@ std_wsstream.i		wstring stream
 std_wstreambuf.i	wstreambuf
 std_wstring.i		wstring
 
-/*-----------------------------------------------------------------------------
- *  Backward compatibility
- * ----------------------------------------------------------------------------- */
-
-std_vectora.i		vector + allocator (allocators are now supported in STD/STL)
-typemaps.i		old in/out typemaps (doen't need to be included)
 
 
 /********************************************************************************
@@ -87,14 +81,9 @@ pyrun.swg		Python run-time code
  * ----------------------------------------------------------------------------- */
 
 pyswigtype.swg		SWIGTYPE
-pyvoid.swg		void *
-pyobject.swg		PyObject
-pystrbase.swg		String base
 pystrings.swg		Char strings (char *)
 pywstrings.swg		Wchar Strings (wchar_t *)
 pyprimtypes.swg		Primitive types (shot,int,double,etc)
-pymisctypes.swg		Miscellaneos types (size_t, ptrdiff_t, etc)
-pyenum.swg		enum especializations
 pycomplex.swg		PyComplex and helper for C/C++ complex types
 pydocs.swg		Typemaps documentation
 
@@ -107,8 +96,10 @@ std_common.i		general common code  for the STD/STL implementation
 std_container.i		general common code for the STD/STL containers
 
 
-/* -----------------------------------------------------------------------------
- *  deprecated
+/*-----------------------------------------------------------------------------
+ *  Backward compatibility and deprecated
  * ----------------------------------------------------------------------------- */
 
+std_vectora.i		vector + allocator (allocators are now supported in STD/STL)
+typemaps.i		old in/out typemaps (doen't need to be included)
 defarg.swg		for processing default arguments with shadow classes

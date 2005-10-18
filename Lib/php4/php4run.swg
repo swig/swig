@@ -36,8 +36,6 @@ extern "C" {
    make PHP type calls later as we handle php resources */
 #define SWIG_ConvertPtr(obj,pp,type,flags) SWIG_ZTS_ConvertPtr(obj,pp,type,flags TSRMLS_CC)
 
-/* Flags for SWIG_ConvertPtr */
-#define SWIG_POINTER_DISOWN  0x1
 
 #define SWIG_fail goto fail
 

@@ -14,8 +14,8 @@ cvar.var_long = sct_long
 cvar.var_ulong = sct_ulong
 cvar.var_llong = sct_llong
 cvar.var_ullong = sct_ullong
-#cvar.var_float = sct_float
-#cvar.var_double = sct_double
+cvar.var_float = sct_float
+cvar.var_double = sct_double
 cvar.var_char = sct_char
 cvar.var_pchar = sct_pchar
 cvar.var_pcharc = sct_pcharc
@@ -46,8 +46,8 @@ if cvar.var_long != cct_long: pyerror("long", cvar.var_long, cct_long)
 if cvar.var_ulong != cct_ulong: pyerror("ulong", cvar.var_ulong, cct_ulong)
 if cvar.var_llong != cct_llong: pyerror("llong", cvar.var_llong, cct_llong)
 if cvar.var_ullong != cct_ullong: pyerror("ullong", cvar.var_ullong, cct_ullong)
-#if cvar.var_float != cct_float: pyerror("float", cvar.var_float, cct_float)
-#if cvar.var_double != cct_double: pyerror("double", cvar.var_double, cct_double)
+if cvar.var_float != cct_float: pyerror("float", cvar.var_float, cct_float)
+if cvar.var_double != cct_double: pyerror("double", cvar.var_double, cct_double)
 if cvar.var_char != cct_char: pyerror("char", cvar.var_char, cct_char)
 if cvar.var_pchar != cct_pchar: pyerror("pchar", cvar.var_pchar, cct_pchar)
 if cvar.var_pcharc != cct_pcharc: pyerror("pchar", cvar.var_pcharc, cct_pcharc)
@@ -128,8 +128,8 @@ p.var_long = p.stc_long
 p.var_ulong = p.stc_ulong
 p.var_llong = p.stc_llong
 p.var_ullong = p.stc_ullong
-#p.var_float = p.stc_float
-#p.var_double = p.stc_double
+p.var_float = p.stc_float
+p.var_double = p.stc_double
 p.var_char = p.stc_char
 p.var_pchar = sct_pchar
 p.var_pcharc = sct_pcharc
@@ -156,8 +156,8 @@ t.var_long = t.stc_long
 t.var_ulong = t.stc_ulong
 t.var_llong = t.stc_llong
 t.var_ullong = t.stc_ullong
-#t.var_float = t.stc_float
-#t.var_double = t.stc_double
+t.var_float = t.stc_float
+t.var_double = t.stc_double
 t.var_char = t.stc_char
 t.var_pchar = sct_pchar
 t.var_pcharc = sct_pcharc
@@ -215,6 +215,7 @@ if cvar.var_char != '\0':
 cvar.var_namet = '\0'
 #if cvar.var_namet != '\0\0\0\0\0':
 if cvar.var_namet != '':
+  print 'hola', '', cvar.var_namet
   raise RuntimeError, "bad char '\0' case"
 
 cvar.var_namet = ''
@@ -301,7 +302,7 @@ try:
   a = t.var_uint
   t.var_uint = -1
   error = 1
-except TypeError:
+except OverflowError:
   if a != t.var_uint:
     error = 1
   pass 

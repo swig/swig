@@ -85,6 +85,7 @@ public:
    * ------------------------------------------------------------ */
   
   virtual void main(int argc, char *argv[]) {
+    int cppcast = 1;
 
     SWIG_library_directory("tcl");
     
@@ -113,11 +114,22 @@ public:
 	} else if (strcmp(argv[i],"-nosafe") == 0) {
 	  nosafe = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nocppcast") == 0) {
+	  cppcast = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stdout);
 	}
       }
     }
+
+    if (cppcast) {
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+    }
+
     Preprocessor_define("SWIGTCL 1",0);
     Preprocessor_define("SWIGTCL8 1", 0);
     SWIG_typemap_lang("tcl8");
@@ -283,8 +295,11 @@ public:
     outarg  = NewString("");
     argstr  = NewString("\"");
     args    = NewString("");
-    
+ 
     f = NewWrapper();
+
+    Wrapper_add_local(f,"resultobj", "Tcl_Obj *resultobj = NULL");
+
     String  *wname = Swig_name_wrapper(iname);
     if (overname) {
       Append(wname, overname);
@@ -292,7 +307,7 @@ public:
     Setattr(n,"wrap:name",wname);
 
     Printv(f->def,
-	   "static int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	   "SWIGINTERN int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	   NIL);
     
     /* Print out variables for storing arguments. */
@@ -404,7 +419,7 @@ public:
     
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
-      if ((tm = Getattr(p,"tmap:freearg"))) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
 	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
@@ -417,8 +432,8 @@ public:
     for (i=0,p = parms; p;i++) {
       if ((tm = Getattr(p,"tmap:argout"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Replaceall(tm,"$target","(Tcl_GetObjResult(interp))");
-	Replaceall(tm,"$result","(Tcl_GetObjResult(interp))");
+	Replaceall(tm,"$target","resultobj");
+	Replaceall(tm,"$result","resultobj");
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
 	Printv(outarg,tm,"\n",NIL);
@@ -436,8 +451,8 @@ public:
     /* Return value if necessary  */
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
       Replaceall(tm,"$source", "result");
-      Replaceall(tm,"$target", "Tcl_GetObjResult(interp)");
-      Replaceall(tm,"$result", "Tcl_GetObjResult(interp)");
+      Replaceall(tm,"$target", "resultobj");
+      Replaceall(tm,"$result", "resultobj");
       if(GetFlag(n,"feature:new")) {
         Replaceall(tm,"$owner","1");
       } else {
@@ -467,6 +482,7 @@ public:
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n", tm);
     }
+    Printv(f->code, "if (resultobj) Tcl_SetObjResult(interp, resultobj);\n", NIL);
     Printv(f->code, "return TCL_OK;\n", NIL);
     Printv(f->code, "fail:\n", cleanup, "return TCL_ERROR;\n", NIL);
     Printv(f->code,"}\n", NIL);
@@ -494,7 +510,7 @@ public:
 	String  *dname   = Swig_name_wrapper(iname);
 
 	Printv(df->def,	
-	       "static int\n", dname,
+	       "SWIGINTERN int\n", dname,
 	       "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	       NIL);
 	Printf(df->code,"Tcl_Obj *CONST *argv = objv+1;\n");
@@ -541,7 +557,7 @@ public:
   /* Create a function for getting a variable */
     getf = NewWrapper();
     getname = Swig_name_wrapper(Swig_name_get(iname));
-    Printv(getf->def,"static char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
+    Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
     Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
 
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
@@ -568,7 +584,7 @@ public:
     if (!GetFlag(n,"feature:immutable")) {
       setf = NewWrapper();
       setname = Swig_name_wrapper(Swig_name_set(iname));
-      Printv(setf->def,"static char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
+      Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
       Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
       Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");
 
@@ -597,7 +613,7 @@ public:
       static int readonlywrap = 0;
       if (!readonlywrap) {
 	Wrapper *ro = NewWrapper();
-	Printf(ro->def, "static const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
+	Printf(ro->def, "SWIGINTERN const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
 	Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", NIL);
 	Wrapper_print(ro,f_wrappers);
 	readonlywrap = 1;
@@ -621,7 +637,8 @@ public:
     String *iname     = Getattr(n,"sym:name");
     String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
     SwigType *type    = Getattr(n,"type");
-    String   *value   = Getattr(n,"value");
+    String *rawval    = Getattr(n,"rawval");
+    String *value     = rawval ? rawval : Getattr(n,"value");
     String *tm;
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
@@ -734,7 +751,7 @@ public:
     // Register the class structure with the type checker
     /*    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname); */
     if (have_destructor) {
-      Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NIL);
+      Printv(f_wrappers, "SWIGINTERN void swig_delete_", class_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
 	Printv(f_wrappers, SwigType_str(rt,"arg1"), " = (", SwigType_str(rt,0), ") obj;\n", NIL);
 	Printv(f_wrappers, destructor_action, NIL);

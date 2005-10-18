@@ -8,40 +8,41 @@
 
 %fragment(SWIG_AsPtr_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_AsCharPtrAndSize") {
-  SWIGINTERN int
-    SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
-    {
-      static swig_type_info* string_info = 
-	SWIG_TypeQuery("std::basic_string<char> *");
-      std::string *vptr;    
-      if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
-	if (val) *val = vptr;
-	return SWIG_OLDOBJ;
-      } else {
-	PyErr_Clear();
-	char* buf = 0 ; size_t size = 0;
-	if (SWIG_AsCharPtrAndSize(obj, &buf, &size)) {
-	  if (buf) {
-	    if (val) *val = new std::string(buf, size - 1);
-	    return SWIG_NEWOBJ;
-	  }
-	} else {
-	  PyErr_Clear();
-	}  
-	if (val) {
-	  PyErr_SetString(PyExc_TypeError,"a string is expected");
-	}
-	return 0;
+SWIGINTERN int
+SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
+{
+  static swig_type_info* string_info = 
+    SWIG_TypeQuery("std::basic_string<char> *");
+  std::string *vptr;    
+  if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) == SWIG_OK) {
+    if (val) *val = vptr;
+    return SWIG_OLDOBJ;
+  } else {
+    PyErr_Clear();
+    char* buf = 0 ; size_t size = 0; int alloc = 0;
+    if (SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
+      if (buf) {
+	if (val) *val = new std::string(buf, size - 1);
+	if (alloc == SWIG_NEWOBJ) SWIG_delete_array(buf);
+	return SWIG_NEWOBJ;
       }
+    } else {
+      PyErr_Clear();
     }  
+    if (val) {
+      PyErr_SetString(PyExc_TypeError,"a string is expected");
+    }
+    return 0;
+  }
+}  
 }
 
 %fragment(SWIG_From_frag(std::basic_string<char>),"header",
-	  fragment="SWIG_FromCharArray") {
+	  fragment="SWIG_FromCharPtrAndSize") {
 SWIGINTERNINLINE PyObject*
   SWIG_From(std::basic_string<char>)(const std::string& s)
   {
-    return SWIG_FromCharArray(s.data(), s.size());
+    return SWIG_FromCharPtrAndSize(s.data(), s.size());
   }
 }
 
@@ -61,17 +62,16 @@ SWIGINTERN int
     static swig_type_info* string_info = 
       SWIG_TypeQuery("std::basic_string<wchar_t> *");
     std::wstring *vptr;    
-    if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
+    if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) == SWIG_OK) {
       if (val) *val = vptr;
       return SWIG_OLDOBJ;
     } else {
       PyErr_Clear();
-      wchar_t *buf = 0 ; size_t size = 0;
-      int res = 0;
-      if ((res = SWIG_AsWCharPtrAndSize(obj, &buf, &size))) {
+      wchar_t *buf = 0 ; size_t size = 0; int alloc = 0;
+      if (SWIG_AsWCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
 	if (buf) {
 	  if (val) *val = new std::wstring(buf, size - 1);
-	  if (res == SWIG_NEWOBJ) SWIG_delete_array(buf);
+	  if (alloc == SWIG_NEWOBJ) SWIG_delete_array(buf);
 	  return SWIG_NEWOBJ;
 	}
       } else {
@@ -86,11 +86,11 @@ SWIGINTERN int
 }
 
 %fragment(SWIG_From_frag(std::basic_string<wchar_t>),"header",
-	  fragment="SWIG_FromWCharArray") {
+	  fragment="SWIG_FromWCharPtrAndSize") {
 SWIGINTERNINLINE PyObject*
   SWIG_From(std::basic_string<wchar_t>)(const std::wstring& s)
   {
-    return SWIG_FromWCharArray(s.data(), s.size());
+    return SWIG_FromWCharPtrAndSize(s.data(), s.size());
   }
 }
 

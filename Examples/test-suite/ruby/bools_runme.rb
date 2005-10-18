@@ -33,7 +33,7 @@ if (Bools.value(Bools.const_pbool) != Bools.bool1)
     exit 1
 end
 
-if (Bools.value(Bools.const_rbool) != Bools.bool2)
+if (Bools.const_rbool != Bools.bool2)
     print "Runtime test 7 failed\n"
     exit 1
 end
@@ -59,7 +59,7 @@ if (Bools.value(Bools.pbo(Bools.pbool)) != Bools.value(Bools.pbool))
     exit 1
 end
 
-if (Bools.const_rbo(Bools.value(Bools.const_rbool)) != Bools.value(Bools.const_rbool))
+if (Bools.const_rbo(Bools.const_rbool) != Bools.const_rbool)
     print "Runtime test 12 failed\n"
     exit 1
 end

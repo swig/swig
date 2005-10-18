@@ -2,16 +2,15 @@
  * --- Argc & Argv ---
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsArgcArgv","header",
-	  fragment="SWIG_AsCharPtr") {
+%fragment("SWIG_AsArgcArgv","header",fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN char**
-  SWIG_AsArgcArgv(PyObject* input,
-		  swig_type_info* ppchar_info,
-		  size_t* argc, int* owner)
+SWIG_AsArgcArgv(PyObject* input,
+		swig_type_info* ppchar_info,
+		size_t* argc, int* owner)
 {  
   char **argv = 0;
   size_t i = 0;
-  if (SWIG_ConvertPtr(input, (void **)&argv, ppchar_info, 0) == -1) {
+  if (SWIG_ConvertPtr(input, (void **)&argv, ppchar_info, 0) != SWIG_OK) {
     int list = 0;
     PyErr_Clear();
     list = PyList_Check(input);
@@ -21,10 +20,17 @@ SWIGINTERN char**
       *owner = 1;
       for (; i < *argc; ++i) {
 	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
-	if (!SWIG_AsCharPtr(obj, &(argv[i]))) {
+	char *cptr = 0; size_t size = 0; int alloc = 0;
+	if (SWIG_AsCharPtrAndSize(obj, &cptr, &size, &alloc) == SWIG_OK) {
+	  if (cptr && size) {
+	    argv[i] = (alloc == SWIG_NEWOBJ) ? cptr : SWIG_new_copy_array(cptr, size, char);
+	  } else {
+	    argv[i] = 0;
+	  }
+	} else {
 	  PyErr_Clear();
 	  PyErr_SetString(PyExc_TypeError,"list or tuple must contain strings only");
-	}
+	}	
       }
       argv[i] = 0;
       return argv;
@@ -48,13 +54,11 @@ SWIGINTERN char**
   tuple
  */
 
-%typemap(in,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV)
-  (int owner) {
-  size_t argc = 0;
-  char **argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
-  if (PyErr_Occurred()) { 
+%typemap(in,noblock=0,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV) (char **argv = 0, size_t argc = 0, int owner= 0) {
+  argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
+  if (!argv) { 
     $1 = 0; $2 = 0;
-    if (SWIG_arg_fail($argnum)) SWIG_fail;
+    SWIG_arg_fail(SWIG_TypeError, "int ARGC, char **ARGV", $argnum);
   } else {  
     $1 = ($1_ltype) argc;
     $2 = ($2_ltype) argv;
@@ -62,6 +66,12 @@ SWIGINTERN char**
 }
 
 %typemap(freearg) (int ARGC, char **ARGV)  {
-  if (owner$argnum) SWIG_delete_array($2);
+  if (owner$argnum) {
+    size_t i = argc$argnum;
+    while (i) {
+      SWIG_delete_array(argv$argnum[--i]);
+    }
+    SWIG_delete_array(argv$argnum);
+  }
 }
 

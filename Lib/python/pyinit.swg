@@ -173,33 +173,18 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   size_t i;
   for (i = 0; constants[i].type; ++i) {
     switch(constants[i].type) {
-    case SWIG_PY_INT:
-      obj = PyInt_FromLong(constants[i].lvalue);
-      break;
-    case SWIG_PY_FLOAT:
-      obj = PyFloat_FromDouble(constants[i].dvalue);
-      break;
-    case SWIG_PY_STRING:
-      if (constants[i].pvalue) {
-	obj = PyString_FromString((char *) constants[i].pvalue);
-      } else {
-	Py_INCREF(Py_None);
-	obj = Py_None;
-      }
-      break;
     case SWIG_PY_POINTER:
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_PY_BINARY:
-      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype), 0);
       break;
     default:
       obj = 0;
       break;
     }
     if (obj) {
-      PyDict_SetItemString(d,constants[i].name,obj);
-      Py_DECREF(obj);
+      PyDict_SetItemString(d, constants[i].name, obj);
     }
   }
 }
@@ -249,10 +234,6 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
     }
   }
 }
-
-/* -----------------------------------------------------------------------------*
- *  Initialize type list
- * -----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
 }

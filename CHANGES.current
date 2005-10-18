@@ -1,11 +1,67 @@
 Version 1.3.27 (October 15, 2005)
 =================================
 
-07/15/2005: wsfulton
+10/18/2005: mmatus
+	    
+	    Unifying the typemaps for
+
+ 	        python, ruby, tcl
+
+	    and in the process, fix several problems in three
+	    languages to work in the "canonical" way now stablished in
+	    the typemap library
+	    
+	       SWIG/Lib/typempas
+
+	    The current status of the unification is that everything
+	    compiles and runs inside the test-suite and examples
+	    directories. And for the first type we have three
+	    languages than pass the primitive_types.i case.
+
+	    Also, we have uniform way to treat the errors, for example
+	    if you do something like
+
+	      >>> from primitive_types import *
+              >>> print val_uchar(10)
+              10
+	      >>> print val_uchar(1000)
+              Traceback (most recent call last):		      
+	        File "<stdin>", line 1, in ?			    
+	      OverflowError: in argument 1 of type 'unsigned char'
+
+	    you get the same exception in all the three languages.
+	    
+	    And well, many more good things will come from this
+	    unification, as proper support of the STL/STD classes
+	    for all the languages, and hopefully, we can keep
+	    adding other languages.
+
+	    The hardest part, writting a common typemap library
+	    that suites the three different languages, is done,
+	    and adding another language it is easy now. 
+
+	    Still the global unification is not complete, the STL/STD 
+	    part is next, and probably adding one or two more
+	    languages.
+
+	    If you are curious, look at the python, ruby and/or tcl
+	    directories to see what is needed to support the new
+	    common typemaps library.  Still, the final way to
+	    integrate a new language could change as we move to
+	    integrate the STD/STL.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+	    Some missing typemaps could start working, and change
+	    the old expected behavior, specially in ruby and tcl.
+
+	    	    
+
+10/15/2005: wsfulton
             [Java] Fix for typesafe enum wrapping so that it is possible to
             overload a method with 2 different enum types.
 
-07/15/2005: wsfulton
+10/15/2005: wsfulton
             Fix for %feature("immutable","0") attempting to generate setters
             for constants.
 

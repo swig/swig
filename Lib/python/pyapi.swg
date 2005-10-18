@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * SWIG API. Portion that goes into the runtime
+ * Python API portion that goes into the runtime
  * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
@@ -7,41 +7,10 @@ extern "C" {
 #endif
 
 /* -----------------------------------------------------------------------------
- * for internal method declarations
- * ----------------------------------------------------------------------------- */
-
-#ifndef SWIGINTERN
-#  define SWIGINTERN static SWIGUNUSED
-#endif
-
-#ifndef SWIGINTERNINLINE
-#  define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
-#endif
-
-/*
-  Exception handling in wrappers
-*/
-#define SWIG_fail                goto fail
-#define SWIG_arg_fail(arg)       SWIG_Python_ArgFail(arg)
-#define SWIG_append_errmsg(msg)   SWIG_Python_AddErrMesg(msg,0)
-#define SWIG_preppend_errmsg(msg) SWIG_Python_AddErrMesg(msg,1)
-#define SWIG_type_error(type,obj) SWIG_Python_TypeError(type,obj)
-#define SWIG_null_ref(type)       SWIG_Python_NullRef(type)
-
-/*
-  Contract support
-*/
-#define SWIG_contract_assert(expr, msg) \
- if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg ); goto fail; } else
-
-/* -----------------------------------------------------------------------------
  * Constant declarations
  * ----------------------------------------------------------------------------- */
 
 /* Constant Types */
-#define SWIG_PY_INT     1
-#define SWIG_PY_FLOAT   2
-#define SWIG_PY_STRING  3
 #define SWIG_PY_POINTER 4
 #define SWIG_PY_BINARY  5
 
@@ -56,12 +25,28 @@ typedef struct swig_const_info {
 } swig_const_info;
 
 
+
 /* -----------------------------------------------------------------------------
- * Alloc. memory flags
+ * Append a value to the result obj
  * ----------------------------------------------------------------------------- */
-#define SWIG_OLDOBJ  1
-#define SWIG_NEWOBJ  SWIG_OLDOBJ + 1
-#define SWIG_PYSTR   SWIG_NEWOBJ + 1
+SWIGINTERN PyObject*
+SWIG_Python_AppendResult(PyObject* result, PyObject* obj) {
+  if (!result) {
+    result = obj;
+  } else if (result == Py_None) {  
+    Py_DECREF(result);
+    result = obj;
+  } else {
+    if (!PyList_Check(result)) {
+      PyObject *o2 = result;
+      result = PyList_New(1);
+      PyList_SetItem(result, 0, o2);
+    }
+    PyList_Append(result,obj);
+    Py_DECREF(obj);
+  }
+  return result;
+}
 
 #ifdef __cplusplus
 }

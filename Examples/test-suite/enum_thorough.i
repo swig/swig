@@ -63,6 +63,7 @@ struct SpeedClass {
   enum speed { slow=10, medium=20, fast=30, lightning };
   typedef enum speed speedtd1;
 
+  int                           speedTest0(int s) { return s; }
   speed                         speedTest1(speed s) { return s; }
   enum speed                    speedTest2(enum speed s) { return s; }
   const speed                   speedTest3(const speed s) { return s; }
@@ -77,6 +78,7 @@ struct SpeedClass {
   SpeedClass() : myColour2(red), mySpeedtd1(slow) { }
 };
 
+int                            speedTest0(int s) { return s; }
 SpeedClass::speed              speedTest1(SpeedClass::speed s) { return s; }
 enum SpeedClass::speed         speedTest2(enum SpeedClass::speed s) { return s; }
 const SpeedClass::speed        speedTest3(const SpeedClass::speed s) { return s; }

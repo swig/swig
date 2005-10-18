@@ -9,7 +9,7 @@ set v [malloc_void 32]
 
 set x [foo 3]
 if {$x != "foo:int"} {
-   puts stderr "foo(int) test failed"
+   puts stderr "foo(int) test failed $x"
    exit 1
 }
 
