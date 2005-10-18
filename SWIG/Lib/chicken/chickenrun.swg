@@ -2,7 +2,7 @@
  * -----------------------------------------------------------------------
  * swig_lib/chicken/chickenrun.swg
  *
- * Author: John Lenz <jelenz@wisc.edu>
+ * Author: John Lenz <lenz@cs.wisc.edu>
  * ----------------------------------------------------------------------- */
 
 #include <chicken.h>
@@ -25,9 +25,7 @@ extern "C" {
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
   SWIG_Chicken_MustGetPtr(s, type, argnum, flags)
 #define SWIG_NewPointerObj(ptr, type, owner) \
-  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, 1, &known_space)
-#define SWIG_NewPointerObjProxy(ptr, type, owner, proxy) \
-  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, proxy, &known_space)
+  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
 #define swig_barf SWIG_Chicken_Barf
 #define SWIG_ThrowException(val) SWIG_Chicken_ThrowException(val)
 
@@ -52,33 +50,38 @@ extern "C" {
 #define C_swig_is_number(x) (C_swig_is_fixnum(x) || C_swig_is_flonum(x))
 #define C_swig_is_long(x) C_swig_is_number(x)
 
-#define SWIG_APPEND_VALUE(object) \
-  if (resultobj == C_SCHEME_UNDEFINED) \
-    resultobj = object; \
-  else { \
-    C_word *pair_space = C_alloc(C_SIZEOF_PAIR); \
-    if (!gswig_list_p) { \
-      gswig_list_p = 1; \
-      C_word *pair_space2 = C_alloc(C_SIZEOF_PAIR); \
-      resultobj = C_pair(&pair_space2, resultobj, C_SCHEME_END_OF_LIST); \
-      resultobjlast = resultobj; \
-    } \
-    C_word tmp = C_pair(&pair_space, object, C_SCHEME_END_OF_LIST); \
-    C_set_block_item(resultobjlast, 1, tmp); \
-    resultobjlast = tmp; \
+#define C_swig_sizeof_closure(num) (num+1)
+
+#define SWIG_Chicken_SetupArgout { \
+  C_word *a = C_alloc(C_swig_sizeof_closure(2)); \
+  C_word *closure = a; \
+  *(a++)=C_CLOSURE_TYPE|2; \
+  *(a++)=(C_word)SWIG_Chicken_ApplyResults; \
+  *(a++)=continuation; \
+  continuation=(C_word)closure; \
+}
+
+#define SWIG_APPEND_VALUE(obj) \
+  if (obj != C_SCHEME_UNDEFINED) { \
+    C_word *a = C_alloc(C_swig_sizeof_closure(3)); \
+    C_word *closure = a; \
+    *(a++)=C_CLOSURE_TYPE|3; \
+    *(a++)=(C_word)SWIG_Chicken_MultiResultBuild; \
+    *(a++)=(C_word)continuation; \
+    *(a++)=(C_word)(obj); \
+    continuation=(C_word)closure; \
   }
 
-/* given a SWIG pointer wrapped in a C_word, return the proxy create function, if any */
-#define SWIG_Chicken_FindCreateProxy(val, x) \
-  if (C_swig_is_swigpointer(x)) { \
-    swig_type_info *t = (swig_type_info *) C_block_item(x, 1); \
+#define SWIG_Chicken_FindCreateProxy(func,obj) \
+  if (C_swig_is_swigpointer(obj)) { \
+    swig_type_info *t = (swig_type_info *) C_block_item(obj, 1); \
     if (t && t->clientdata &&    ((swig_chicken_clientdata *)t->clientdata)->gc_proxy_create) { \
-      val = CHICKEN_gc_root_ref( ((swig_chicken_clientdata *)t->clientdata)->gc_proxy_create); \
+      func = CHICKEN_gc_root_ref( ((swig_chicken_clientdata *)t->clientdata)->gc_proxy_create); \
     } else { \
-      val = C_SCHEME_FALSE; \
+      func = C_SCHEME_FALSE; \
     } \
   } else { \
-    val = C_SCHEME_FALSE; \
+    func = C_SCHEME_FALSE; \
   }
 
 #define SWIG_POINTER_DISOWN 1
@@ -232,7 +235,7 @@ SWIG_Chicken_Finalizer(C_word argc, C_word closure, C_word continuation, C_word 
 static C_word finalizer_obj[2] = {(C_word) (C_CLOSURE_TYPE|1), (C_word) SWIG_Chicken_Finalizer};
 
 static C_word
-SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, int create_proxy, C_word **data)
+SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
 {
   swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) type->clientdata;
 
@@ -246,14 +249,6 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, int creat
       C_do_register_finalizer(cptr, (C_word) finalizer_obj);
     #endif
 
-    /* wrap the result inside a proxy class if one is available */
-    if (create_proxy && cdata && cdata->gc_proxy_create) {
-      C_word closure = CHICKEN_gc_root_ref(cdata->gc_proxy_create);
-      if (C_swig_is_closurep(closure)) {
-        C_save(cptr);
-        return C_callback(closure, 1);
-      }
-    }
     return cptr;
   }
 }
@@ -346,6 +341,25 @@ SWIG_Chicken_SetModule(swig_module_info *module) {
     pointer = C_mpointer(&a, (void *) module);
     sym = C_intern_in(&a, C_strlen(chicken_runtimevar_name), chicken_runtimevar_name, stable);
     C_set_block_item(sym, 0, pointer);
+}
+
+static C_word SWIG_Chicken_MultiResultBuild(C_word num, C_word closure, C_word lst) {
+  C_word cont = C_block_item(closure,1);
+  C_word obj = C_block_item(closure,2);
+  C_word func;
+
+  SWIG_Chicken_FindCreateProxy(func,obj);
+
+  if (C_swig_is_closurep(func)) {
+    ((C_proc3)(void *)C_block_item(func, 0))(4,func,cont,obj,lst);
+  } else {
+    C_word *a = C_alloc(C_SIZEOF_PAIR);
+    C_kontinue(cont,C_pair(&a,obj,lst));
+  }
+}
+
+C_word SWIG_Chicken_ApplyResults(C_word num, C_word closure, C_word result) {
+  C_apply_values(3,C_SCHEME_UNDEFINED,C_block_item(closure,1),result);
 }
 
 #ifdef __cplusplus
