@@ -357,10 +357,10 @@ CHICKEN::functionWrapper(Node *n)
   String *scmname;
   bool any_specialized_arg = false;
   List *function_arg_types = NewList();
-  int return_proxy_fastcall = 0;
 
   int     num_required;
   int     num_arguments;
+  int     have_argout;
 
   Printf(mangle, "\"%s\"", SwigType_manglestr(d));
 
@@ -529,12 +529,16 @@ CHICKEN::functionWrapper(Node *n)
   emit_action(n,f);
 
   /* Insert argument output code */
+  have_argout = 0;
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:argout"))) {
-      if (!Wrapper_check_local(f, "gswig_list_p")) {
-        Wrapper_add_local(f,"resultobjlast", "C_word resultobjlast");
-        Wrapper_add_local(f,"gswig_list_p", "int gswig_list_p = 0");
+      
+      if (!have_argout) {
+        have_argout = 1;
+        // Print initial argument output code
+        Printf(f->code,"SWIG_Chicken_SetupArgout\n");
       }
+      
       Replaceall(tm,"$source",Getattr(p,"lname"));
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
@@ -557,22 +561,11 @@ CHICKEN::functionWrapper(Node *n)
       Replaceall(tm,"$owner","0");
     }
 
-    /* check for chickenfastproxy flag */
-    if (Getattr(n, "tmap:out:chickenfastproxy")) {
-      if (exporting_constructor && clos && hide_primitive) {
-        /* Don't return a proxy, the wrapped CLOS class is the proxy */
-        Replaceall(tm, "$proxy", "0");
-      } else {
-        /* can only do fast proxy if there are no argout paramaters... */
-        if (Wrapper_check_local(f, "gswig_list_p")) {
-          Replaceall(tm, "$proxy", "1");
-        } else {
-          Replaceall(tm, "$proxy", "0");
-          return_proxy_fastcall = 1;
-        }
-      }
-    }
     Printf(f->code, "%s", tm);
+
+    if (have_argout)
+      Printf(f->code, "\nSWIG_APPEND_VALUE(resultobj);\n");
+      
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
                  "Unable to use return type %s in function %s.\n", 
@@ -599,22 +592,24 @@ CHICKEN::functionWrapper(Node *n)
     Printf(f->code,"%s\n",tm);
   }
 
-  if (return_proxy_fastcall) {
-    Printv(f->code,"{\n",
+
+  if (have_argout) {
+    Printf(f->code, "C_kontinue(continuation,C_SCHEME_END_OF_LIST);\n");
+  } else {
+      if (exporting_constructor && clos && hide_primitive) {
+        /* Don't return a proxy, the wrapped CLOS class is the proxy */
+        Printf(f->code, "C_kontinue(continuation,resultobj);\n");
+      } else {
+        // make the continuation the proxy creation function, if one exists
+        Printv(f->code,"{\n",
                    "C_word func;\n",
-                   "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
+                   "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
                    "if (C_swig_is_closurep(func))\n",
-                   "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
+                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
                    "else\n",
                    "  C_kontinue(continuation, resultobj);\n",
                    "}\n", NIL);
-  } else if (Wrapper_check_local(f, "gswig_list_p")) {
-    Printv(f->code,"if (gswig_list_p)\n",
-		   "  C_apply_values(3, C_SCHEME_UNDEFINED, continuation, resultobj);\n",
-		   "else\n",
-		   "  C_kontinue(continuation, resultobj);\n", NIL);
-  } else {
-    Printf(f->code,"C_kontinue (continuation, resultobj);\n");
+      }
   }
 
   /* Error handling code */
@@ -808,18 +803,14 @@ CHICKEN::variableWrapper(Node *n)  {
                    "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
 
-    if (Getattr(n, "tmap:varout:chickenfastproxy")) {
-      Printv(f->code,"{\n",
-                     "C_word func;\n",
-                     "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
-                     "if (C_swig_is_closurep(func))\n",
-                     "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
-                     "else\n",
-                     "  C_kontinue(continuation, resultobj);\n",
-                     "}\n", NIL);
-    } else {
-      Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
-    }
+    Printv(f->code,"{\n",
+                   "C_word func;\n",
+                   "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
+                   "if (C_swig_is_closurep(func))\n",
+                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
+                   "else\n",
+                   "  C_kontinue(continuation, resultobj);\n",
+                   "}\n", NIL);
 
     /* Error handling code */
 #ifdef USE_FAIL
@@ -842,9 +833,11 @@ CHICKEN::variableWrapper(Node *n)  {
                 clos_name = chickenNameMapping(scmname, (char *)"");
 
         Node *class_node = classLookup(t);
-        if (class_node && Getattr(n, "tmap:varout:chickenfastproxy")) {
+        String *clos_code = Getattr(n, "tmap:varin:closcode");
+        if (class_node && clos_code) {
+          Replaceall(clos_code,"$input", "(car lst)");
           Printv(clos_methods, "(define (", clos_name, " . lst) (if (null? lst) (", chickenPrimitiveName(scmname), ") (",
-                     chickenPrimitiveName(scmname), " (slot-ref (car lst) 'swig-this))))\n", NIL);
+                     chickenPrimitiveName(scmname), " ", clos_code, ")))\n", NIL);
         } else {
           /* Simply re-export the procedure */
           Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
@@ -996,18 +989,14 @@ CHICKEN::constantWrapper(Node *n)
                    "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
 
-    if (Getattr(n, "tmap:varout:chickenfastproxy")) {
-      Printv(f->code,"{\n",
-                     "C_word func;\n",
-                     "SWIG_Chicken_FindCreateProxy(func, resultobj);\n",
-                     "if (C_swig_is_closurep(func))\n",
-                     "  ((C_proc3)(void *)C_block_item(func, 0))(3,func,continuation,resultobj);\n",
-                     "else\n",
-                     "  C_kontinue(continuation, resultobj);\n",
-                     "}\n", NIL);
-    } else {
-      Printf(f->code,"    C_kontinue (continuation, resultobj);\n");
-    }
+    Printv(f->code,"{\n",
+                   "C_word func;\n",
+                   "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
+                   "if (C_swig_is_closurep(func))\n",
+                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
+                   "else\n",
+                   "  C_kontinue(continuation, resultobj);\n",
+                   "}\n", NIL);
 
     /* Error handling code */
 #ifdef USE_FAIL
@@ -1163,8 +1152,9 @@ CHICKEN::classHandler(Node *n)
                          "}\n", NIL);
       addMethod(closfuncname, funcname);
 
-      Printv(clos_methods, "(", chickenPrimitiveName(closfuncname), " (lambda (x) (make ", class_name, " 'swig-this x)))\n\n", NIL);
-
+      Printv(clos_methods, "(", chickenPrimitiveName(closfuncname), " (lambda (x lst) (if lst ",
+                                                                                        "(cons (make ", class_name, " 'swig-this x) lst) ",
+                                                                                        "(make ", class_name, " 'swig-this x))))\n\n", NIL);
       Delete(closfuncname);
       Delete(funcname);
   }

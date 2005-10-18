@@ -10,7 +10,7 @@ PROXYSUFFIX  = _runme_proxy.ss
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-CHICKEN_CSI  = @CHICKEN_CSI@ -quiet
+CHICKEN_CSI  = @CHICKEN_CSI@ -quiet -batch -no-init
 SO           = @SO@
 
 #C_TEST_CASES = long_long list_vector pointer_in_out multivalue

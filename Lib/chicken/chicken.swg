@@ -134,10 +134,10 @@ SIMPLE_TYPEMAP(int, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
 SIMPLE_TYPEMAP(short, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
 SIMPLE_TYPEMAP(long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-SIMPLE_TYPEMAP(unsigned int, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
-SIMPLE_TYPEMAP(unsigned short, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
-SIMPLE_TYPEMAP(unsigned long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-SIMPLE_TYPEMAP(unsigned long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned int, C_num_to_unsigned_int, C_unsigned_int_to_num, C_swig_is_number, (unsigned int), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned short, C_num_to_unsigned_int, C_fix, C_swig_is_number, (unsigned int), 0);
+SIMPLE_TYPEMAP(unsigned long, C_num_to_unsigned_long, C_unsigned_long_to_num, C_swig_is_long, (unsigned long), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned long long, C_num_to_unsigned_long, C_unsigned_long_to_num, C_swig_is_long, (unsigned long), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(unsigned char, C_character_code, C_make_character, C_swig_is_char, (unsigned int), 0);
 SIMPLE_TYPEMAP(signed char, C_character_code, C_make_character, C_swig_is_char, (int), 0);
 SIMPLE_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
@@ -190,11 +190,11 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   $1 = SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
 
-%typemap(varin) SWIGTYPE * {
+%typemap(varin,closcode="(slot-ref $input 'swig-this)") SWIGTYPE * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, SWIG_POINTER_DISOWN);
 }
 
-%typemap(varin) SWIGTYPE & {
+%typemap(varin,closcode="(slot-ref $input 'swig-this)") SWIGTYPE & {
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
@@ -215,25 +215,25 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   $1 = SWIG_MustGetPtr($input, NULL, 1, 0);
 }
 
-%typemap(out,chickenfastproxy="1") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
-  $result = SWIG_NewPointerObjProxy($1, $descriptor, $owner, $proxy);
+  $result = SWIG_NewPointerObj($1, $descriptor, $owner);
 }
 
-%typemap(out,chickenfastproxy="1") SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
-  $result = SWIG_NewPointerObjProxy($1, ty, $owner, $proxy);
+  $result = SWIG_NewPointerObj($1, ty, $owner);
 }
     
-%typemap(varout,chickenfastproxy="1") SWIGTYPE *, SWIGTYPE [] {
+%typemap(varout) SWIGTYPE *, SWIGTYPE [] {
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
-  $result = SWIG_NewPointerObjProxy($varname, $descriptor, 0, 0);
+  $result = SWIG_NewPointerObj($varname, $descriptor, 0);
 }
 
-%typemap(varout,chickenfastproxy="1") SWIGTYPE & {
+%typemap(varout) SWIGTYPE & {
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
-  $result = SWIG_NewPointerObjProxy((void *) &$varname, $1_descriptor, 0, 0);
+  $result = SWIG_NewPointerObj((void *) &$varname, $1_descriptor, 0);
 }
 
 /* Pass-by-value */
@@ -243,19 +243,19 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   $1 = *argp;
 }
 
-%typemap(varin) SWIGTYPE {
+%typemap(varin,closcode="(slot-ref $input 'swig-this)") SWIGTYPE {
   $&1_ltype argp;
   argp = ($&1_ltype)SWIG_MustGetPtr($input, $&1_descriptor, 1, 0);
   $1 = *argp;
 }
 
-%typemap(out,chickenfastproxy="1") SWIGTYPE 
+%typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
   resultptr = new $1_ltype(($1_ltype &) $1);
-  $result =  SWIG_NewPointerObjProxy(resultptr, $&1_descriptor, 1, $proxy);
+  $result =  SWIG_NewPointerObj(resultptr, $&1_descriptor, 1);
 } 
 #else
 {
@@ -263,17 +263,17 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  $result = SWIG_NewPointerObjProxy(resultptr, $&1_descriptor, 1,$proxy);
+  $result = SWIG_NewPointerObj(resultptr, $&1_descriptor, 1);
 }
 #endif
 
-%typemap(varout,chickenfastproxy="1") SWIGTYPE 
+%typemap(varout) SWIGTYPE 
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
   resultptr = new $1_ltype(($1_ltype&) $1);
-  $result =  SWIG_NewPointerObjProxy(resultptr, $&1_descriptor, 0, 0);
+  $result =  SWIG_NewPointerObj(resultptr, $&1_descriptor, 0);
 } 
 #else
 {
@@ -281,7 +281,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  $result = SWIG_NewPointerObjProxy(resultptr, $&1_descriptor, 0, 0);
+  $result = SWIG_NewPointerObj(resultptr, $&1_descriptor, 0);
 }
 #endif
 

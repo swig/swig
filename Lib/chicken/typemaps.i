@@ -105,9 +105,6 @@ or you can use the %apply directive :
         %apply double *OUTPUT { double *ip };
         double modf(double x, double *ip);
 
-The CHICKEN output of the function would be a list containing both
-output values, in reverse order. 
-
 */
 
 // These typemaps contributed by Robin Dunn
@@ -168,10 +165,10 @@ INOUT_TYPEMAP(enum SWIGTYPE, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
 INOUT_TYPEMAP(short, C_num_to_int, C_fix, C_swig_is_number, (int), 0);
 INOUT_TYPEMAP(long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(unsigned int, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
-INOUT_TYPEMAP(unsigned short, C_num_to_unsigned_int, C_fix, C_swig_is_number, (int), 0);
-INOUT_TYPEMAP(unsigned long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(unsigned long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned int, C_num_to_unsigned_int, C_unsigned_int_to_num, C_swig_is_number, (int), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned short, C_num_to_unsigned_int, C_fix, C_swig_is_number, (unsigned int), 0);
+INOUT_TYPEMAP(unsigned long, C_num_to_unsigned_long, C_unsigned_long_to_num, C_swig_is_long, (unsigned long), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned long long, C_num_to_unsigned_long, C_unsigned_long_to_num, C_swig_is_long, (unsigned long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned char, C_character_code, C_make_character, C_swig_is_char, (unsigned int), 0);
 INOUT_TYPEMAP(signed char, C_character_code, C_make_character, C_swig_is_char, (int), 0);
 INOUT_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
