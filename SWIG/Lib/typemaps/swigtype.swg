@@ -309,7 +309,7 @@
   if (SWIG_ConvertPtr($input,&argp,$&descriptor, 0) != SWIG_OK) {
     SWIG_dout_fail(SWIG_TypeError,"$type");
   }
-  $result = *(SWIG_reinterpret_cast(argp, $&ltype);
+  $result = *(SWIG_reinterpret_cast(argp, $&ltype));
 }
 %typemap(directorout,noblock=1) SWIGTYPE *(void *argp), SWIGTYPE [](void *argp) {
   if (SWIG_ConvertPtr($input, &argp, $descriptor, 0) != SWIG_OK) {
