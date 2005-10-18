@@ -1371,14 +1371,33 @@ Language::staticmembervariableHandler(Node *n)
               static const int x = 3;
           };
 
-	  Some discussion of this in section 9.4 of the C++ draft standard. */
+	  Some discussion of this in section 9.4 of the C++ draft standard.
+
+      Also, we have to manage the case:
+
+          class Foo {
+          public:
+              %extend {
+                  static const int x = 3;
+              }
+          };
+
+      in which there's no actual Foo::x variable to refer to. In this case,
+      the best we can do is to wrap the given value verbatim.
+ */
 
 
     String *name    = Getattr(n,"name");
     String *cname   = NewStringf("%s::%s", classname,name);
-    String* value   = SwigType_namestr(cname);
-    Setattr(n, "value", value);
-    
+    if (Getattr(n,"feature:extend")) {
+        /* the variable is a synthesized one.
+           There's nothing we can do; we just keep the given value */
+    } else {
+        /* we refer to the value as Foo::x */
+        String* value   = SwigType_namestr(cname);
+        Setattr(n, "value", value);
+    }
+
     SwigType *t1    = SwigType_typedef_resolve_all(Getattr(n,"type"));
     SwigType *t2    = SwigType_strip_qualifiers(t1);
     Setattr(n, "type", t2);
