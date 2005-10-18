@@ -46,9 +46,9 @@
 %define %implicit_frag(Type...) ,fragment=SWIG_Traits_frag(Type) %enddef
 
 %define %implicit_code(Type...)
-  if (swig::asval<Type>(obj, 0)) {
+  if (swig::asval<Type >(obj, 0)) {
     Type _v;
-    swig::asval<Type>(obj, &_v);
+    swig::asval<Type >(obj, &_v);
     if (val) *val = new value_type(_v);
     return SWIG_NEWOBJ;
   }
