@@ -322,7 +322,7 @@ install-main:
 	@echo "Installing $(BIN_DIR)/$(TARGET)"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
-lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
+lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml \
 	pike chicken csharp modula3 allegrocl clisp lua
 
 lib-modules = std
