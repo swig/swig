@@ -89,28 +89,25 @@
     int res = asval_meth($input, &val);
     if (res != SWIG_OK) {
       SWIG_dout_fail(res, "$type");
-    } else {
-      *$result = SWIG_static_cast(val, $type);
-    }
+    } 
+    *$result = SWIG_static_cast(val, $type);
   }
   %typemap(directorout,noblock=1,fragment=frag) Type {
     Type val;
     int res = asval_meth($input, &val);
     if (res != SWIG_OK) {
       SWIG_dout_fail(res, "$type");
-    } else {
-      $result = SWIG_static_cast(val,$type);
     }
+    $result = SWIG_static_cast(val,$type);
   }
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {  
     Type val;
     int res = asval_meth($input, &val);
     if (res != SWIG_OK) {
       SWIG_dout_fail(res, "$type");
-    } else {
-      static $basetype temp = SWIG_static_cast(val, $basetype);
-      $result = &temp;
-    }
+    } 
+    static $basetype temp = SWIG_static_cast(val, $basetype);
+    $result = &temp;
   }
   %typemap(directorout,fragment=frag) Type &DIRECTOROUT = Type
 %enddef

@@ -37,7 +37,7 @@
 
 #if defined(__cplusplus) 
 # define SWIG_new(Type...)                      (new Type)
-# define SWIG_new_copy(val,Type...)             (new Type(val))
+# define SWIG_new_copy(val,Type...)             (new Type(SWIG_static_cast(val, const Type&)))
 # define SWIG_new_array(size,Type...)           (new Type[size])
 # define SWIG_new_copy_array(ptr,size,Type...)  SWIG_reinterpret_cast(memcpy(SWIG_new_array(size,Type), ptr, sizeof(Type)*(size)), Type*)
 # define SWIG_delete(cptr)                      delete cptr
