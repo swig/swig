@@ -33,3 +33,19 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
   return value;
 }
 %}
+
+
+%{
+  class Foo 
+  {
+  };
+%}
+
+
+class Foo {
+  public:
+    %extend {
+        static const int Bar = 42;
+    }
+}; 
+  
