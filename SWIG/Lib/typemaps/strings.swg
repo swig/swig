@@ -39,8 +39,7 @@
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_delete_array(buf$argnum);
 }
 
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (Char *buf, int alloc)
-{
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (Char *buf = 0, int alloc = 0) {
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     SWIG_arg_fail(SWIG_TypeError,"$type",$argnum);
   }
@@ -149,7 +148,7 @@
 
 /* directorin */
 
-%typemap(directorin,fragment=#SWIG_FromCharPtr,noblock=1)
+%typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtr)
   Char *, Char const*, Char *const, Char const *const, 
   Char const *&, Char *const &, Char const *const & {
   $input = SWIG_FromCharPtr($1_name);
@@ -158,14 +157,14 @@
 
 /* directorout */
 
-%typemap(directorout,fragment=#SWIG_AsCharPtr,noblock=1) Char * (Char* buf, int alloc) {
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) Char * (Char* buf = 0, int alloc = 0) {
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     SWIG_dout_fail(SWIG_TypeError, "$type");
   }
   $result = buf;
 }
 
-%typemap(directorout,fragment=#SWIG_AsCharPtr) Char * const& (Char* buf, int alloc) { 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) Char * const& (Char* buf = 0, int alloc = 0) { 
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     SWIG_dout_fail(SWIG_TypeError, "$type");
   }

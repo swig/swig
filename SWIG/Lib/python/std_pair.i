@@ -20,7 +20,7 @@
 	    pfirst = &((*val)->first);
 	    psecond = &((*val)->second);
 	  }	  
-	  if (swig::asval(first,pfirst) && swig::asval(second,psecond)) {
+	  if ((swig::asval(first,pfirst) == SWIG_OK) && (swig::asval(second,psecond) == SWIG_OK)) {
 	    return SWIG_NEWOBJ;
 	  } else {
 	    SWIG_delete(*val);

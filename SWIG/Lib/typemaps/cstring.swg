@@ -29,14 +29,14 @@
 
 %define Name ## _input_binary(TYPEMAP, SIZE)                   
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) (TYPEMAP, SIZE) 
-  (Char *buf, size_t size, int alloc)  {
+  (Char *buf = 0, size_t size = 0, int alloc = 0)  {
   if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) {
     SWIG_arg_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   $1 = ($1_ltype) buf;					       
   $2 = ($2_ltype) size - 1;				       
 }
-%typemap(freearg) (TYPEMAP, SIZE) {
+%typemap(freearg,noblock=1) (TYPEMAP, SIZE) {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_delete_array(buf$argnum);
 }
 %enddef								
@@ -59,7 +59,7 @@
 %typemap(in,noblock=1,numinputs=0) TYPEMAP (Char temp[MAX+1])  {
   $1 = ($1_ltype) temp;
 }
-%typemap(freearg) TYPEMAP "";
+%typemap(freearg,noblock=1) TYPEMAP "";
 %typemap(argout,noblock=1,fragment= #SWIG_FromCharPtr ) TYPEMAP {
   $1[MAX] = 0;  
   SWIG_append_result(SWIG_FromCharPtr($1));
@@ -84,7 +84,7 @@
 %typemap(in,noblock=1,numinputs=0) TYPEMAP(Char temp[SIZE]) {
   $1 = ($1_ltype) temp;
 }
-%typemap(freearg) TYPEMAP "";
+%typemap(freearg,noblock=1) TYPEMAP "";
 %typemap(argout,noblock=1,fragment= #SWIG_FromCharPtrAndSize) TYPEMAP {
   SWIG_append_result(SWIG_FromCharPtrAndSize($1,SIZE));
 }
@@ -108,7 +108,8 @@
 
 
 %define Name ## _bounded_mutable(TYPEMAP,MAX)                              
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP (Char temp[MAX+1], Char *t, size_t n, int alloc) {  
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
+  (Char temp[MAX+1], Char *t = 0, size_t n = 0, int alloc = 0) {  
   if (SWIG_AsCharPtrAndSize($input, &t, &n, &alloc) != SWIG_OK) {
     SWIG_arg_fail(SWIG_TypeError, "TYPEMAP", $argnum);
   }
@@ -118,7 +119,7 @@
   temp[n - 1] = 0;                                                             
   $1 = ($1_ltype) temp;                                                    
 }
-%typemap(freearg) TYPEMAP "";
+%typemap(freearg,noblock=1) TYPEMAP "";
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP {
   $1[MAX] = 0;
   SWIG_append_result(SWIG_FromCharPtr($1));
@@ -143,7 +144,8 @@
  */
 
 %define Name ## _mutable(TYPEMAP,EXP...)                  
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP (Char* t, size_t n, int alloc, size_t expansion = 0) {
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
+ (Char* t = 0, size_t n = 0, int alloc = 0, size_t expansion = 0) {
 #if #EXP != ""
   expansion += EXP;
 #endif
@@ -155,7 +157,7 @@
   if (alloc == SWIG_NEWOBJ) SWIG_delete_array(t);
   $1[n-1] = 0;
 }
-%typemap(freearg) TYPEMAP "";
+%typemap(freearg,noblock=1) TYPEMAP "";
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP { 
   SWIG_append_result(SWIG_FromCharPtr($1));
   SWIG_delete_array($1);                                  

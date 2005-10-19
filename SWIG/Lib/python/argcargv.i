@@ -65,7 +65,7 @@ SWIG_AsArgcArgv(PyObject* input,
   }
 }
 
-%typemap(freearg) (int ARGC, char **ARGV)  {
+%typemap(freearg,noblock=1) (int ARGC, char **ARGV)  {
   if (owner$argnum) {
     size_t i = argc$argnum;
     while (i) {

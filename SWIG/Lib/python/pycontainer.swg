@@ -338,10 +338,10 @@ namespace swig
 	    snprintf(msg, sizeof(msg), "in sequence element %d of type %s", i, swig::type_name<value_type>());
 	    SWIG_set_errmsg(SWIG_TypeError, msg);
 	  }
-	  return 0;
+	  return false;
 	}
       }
-      return 1;  
+      return true;  
     }
 
   private:
@@ -488,7 +488,7 @@ namespace swig
 	  if (SWIG_ConvertPtr(obj,(void**)&p,
 			      swig::type_info<sequence>(),0) == SWIG_OK) {
 	    if (seq) *seq = p;
-	    return 1;
+	    return SWIG_OLDOBJ;
 	  }
 	}
 	if (seq) {

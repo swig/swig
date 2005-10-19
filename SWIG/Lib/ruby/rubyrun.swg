@@ -42,7 +42,7 @@
 
 /* Error manipulation */
 #define SWIG_ERROR                       -1
-#define SWIG_fail                        return Qnil
+#define SWIG_fail                        goto fail
 #define SWIG_var_fail                    return Qnil
 
 #define SWIG_error(code, msg)            SWIG_Ruby_SetErrorMsg(SWIG_Ruby_ErrorType(code), msg)

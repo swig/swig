@@ -22,36 +22,28 @@
  * 
  * ----------------------------------------------------------------------------- */
 
-%define %array_functions(TYPE,NAME)
+%define %array_functions(TYPE,NAME) 
 %{
-static TYPE *new_##NAME(int nelements) { %}
-#ifdef __cplusplus
-%{  return new TYPE[nelements]; %}
-#else
-%{  return (TYPE *) calloc(nelements,sizeof(TYPE)); %}
-#endif
-%{}
+  static TYPE *new_##NAME(size_t nelements) { 
+    return SWIG_new_array(nelements, TYPE);
+  }
 
-static void delete_##NAME(TYPE *ary) { %}
-#ifdef __cplusplus
-%{  delete [] ary; %}
-#else
-%{  free(ary); %}
-#endif
-%{}
+  static void delete_##NAME(TYPE *ary) {
+    SWIG_delete_array(ary);
+  }
 
-static TYPE NAME##_getitem(TYPE *ary, int index) {
+  static TYPE NAME##_getitem(TYPE *ary, size_t index) {
     return ary[index];
-}
-static void NAME##_setitem(TYPE *ary, int index, TYPE value) {
+  }
+  static void NAME##_setitem(TYPE *ary, size_t index, TYPE value) {
     ary[index] = value;
-}
+  }
 %}
 
-TYPE *new_##NAME(int nelements);
+TYPE *new_##NAME(size_t nelements);
 void delete_##NAME(TYPE *ary);
-TYPE NAME##_getitem(TYPE *ary, int index);
-void NAME##_setitem(TYPE *ary, int index, TYPE value);
+TYPE NAME##_getitem(TYPE *ary, size_t index);
+void NAME##_setitem(TYPE *ary, size_t index, TYPE value);
 
 %enddef
 
@@ -80,39 +72,37 @@ typedef TYPE NAME;
 typedef struct NAME {
   /* Put language specific enhancements here */
 
+#if defined(SWIGPYTHON) || defined(SWIGRUBY)
+  %rename(__getitem__) getitem;
+  %rename(__setitem__) setitem;
+#endif
 } NAME;
 
 %extend NAME {
 
-#ifdef __cplusplus
-NAME(int nelements) {
-  return new TYPE[nelements];
-}
-~NAME() {
-  delete [] self;
-}
-#else
-NAME(int nelements) {
-  return (TYPE *) calloc(nelements,sizeof(TYPE));
-}
-~NAME() {
-  free(self);
-}
-#endif
+  NAME(size_t nelements) {
+    return SWIG_new_array(nelements, TYPE);
+  }
 
-TYPE getitem(int index) {
-  return self[index];
-}
-void setitem(int index, TYPE value) {
-  self[index] = value;
-}
-TYPE * cast() {
-  return self;
-}
-static NAME *frompointer(TYPE *t) {
-  return (NAME *) t;
-}
+  ~NAME() {
+    SWIG_delete_array(self);
+  }
+  
+  TYPE getitem(size_t index) {
+    return self[index];
+  }
 
+  void setitem(size_t index, TYPE value) {
+    self[index] = value;
+  }
+
+  TYPE * cast() {
+    return self;
+  }
+
+  static NAME *frompointer(TYPE *t) {
+    return SWIG_static_cast(t, NAME *);
+  }
 };
 
 %types(NAME = TYPE);
