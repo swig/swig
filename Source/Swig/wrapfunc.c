@@ -77,6 +77,8 @@ Wrapper_pretty_print(String *str, File *f) {
   int level = 0;
   int c, i;
   int empty = 1;
+  int indent = 4;
+  int plevel = 0;
 
   ts = NewString("");
   Seek(str,0, SEEK_SET);
@@ -104,6 +106,14 @@ Wrapper_pretty_print(String *str, File *f) {
 	if (c == '\'') break;
       }
       empty = 0;
+    } else if (c == '(') {
+      Putc(c,ts);
+      plevel+=indent;
+      empty = 0;
+    } else if (c == ')') {
+      Putc(c,ts);
+      plevel-=indent;
+      empty = 0;
     } else if (c == '{') {
       Putc(c,ts);
       Putc('\n',ts);
@@ -111,7 +121,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	Putc(' ',f);
       Printf(f,"%s", ts);
       Clear(ts);
-      level+=4;
+      level+=indent;
       while ((c = Getc(str)) != EOF) {
 	if (!isspace(c)) {
 	  Ungetc(c,str);
@@ -127,7 +137,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	Printf(f,"%s",ts);
 	Clear(ts);
       }
-      level-=4;
+      level-=indent;
       Putc(c,ts);
       empty = 0;
     } else if (c == '\n') {
@@ -139,6 +149,8 @@ Wrapper_pretty_print(String *str, File *f) {
 	    Putc(' ',f);
 	}
 	Printf(f,"%s",ts);
+	for (i = 0; i < plevel; i++)
+	  Putc(' ',f);
       }
       Clear(ts);
       empty = 1;
@@ -197,6 +209,7 @@ Wrapper_compact_print(String *str, File *f) {
   int level = 0;
   int c, i;
   int empty = 1;
+  int indent = 2;
 
   ts = NewString("");
   tf = NewString("");
@@ -244,7 +257,7 @@ Wrapper_compact_print(String *str, File *f) {
       }
       Printf(tf,"%s",ts);
       Clear(ts);
-      level+=4;
+      level+=indent;
       while ((c = Getc(str)) != EOF) {
 	if (!isspace(c)) {
 	  Ungetc(c,str);
@@ -268,7 +281,7 @@ Wrapper_compact_print(String *str, File *f) {
       Printf(tf, "%s", ts);
       Putc(c, tf);
       Clear(ts);
-      level-=4;
+      level-=indent;
     } else if (c == '\n') { /* line end */
       while ((c = Getc(str)) != EOF) {
 	if (!isspace(c))
