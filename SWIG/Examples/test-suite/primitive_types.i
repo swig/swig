@@ -220,8 +220,6 @@ macro(long,               pfx, long)
 macro(unsigned long,      pfx, ulong)
 macro(long long,          pfx, llong)
 macro(unsigned long long, pfx, ullong)
-macro(float,              pfx, float)
-macro(double,             pfx, double)
 macro(char,               pfx, char)
 %enddef
 
@@ -463,6 +461,9 @@ macro(size_t,             pfx, sizet)
      return len;
    }
 
+   static const double stc_double;
+   static const double stc_float;
+
    
  };
 
@@ -534,7 +535,6 @@ macro(size_t,             pfx, sizet)
      return t;
    }
    
-
  }; 
 
  int v_check() 
@@ -547,7 +547,6 @@ macro(size_t,             pfx, sizet)
 
 }
 
-
 %inline %{
 
   const char* char_foo(float f, const char *s) {
@@ -558,6 +557,11 @@ macro(size_t,             pfx, sizet)
     return i;
   }
   
+%}
+
+%{
+  const double Test::stc_double = 1;
+  const double Test::stc_float = 1;
 %}
 
 
