@@ -1350,8 +1350,10 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NIL);
+	if (Len(tm) != 0) {
+	  Replaceall(tm,"$source",Getattr(p,"lname"));
+	  Printv(cleanup,tm,"\n",NIL);
+	}
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -1487,7 +1489,11 @@ public:
     Printv(f->code,outarg,NIL);
 
     /* Output cleanup code */
-    Printv(f->code,cleanup,NIL);
+    int need_cleanup = Len(cleanup) != 0;
+    if (need_cleanup) {
+      Printf(f->code,"cleanup:\n");
+      Printv(f->code,cleanup,NIL);
+    }
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n,"feature:new")) {
@@ -1508,8 +1514,15 @@ public:
     /* Error handling code */
 
     Printf(f->code,"fail:\n");
-    Printv(f->code,cleanup,NIL);
-    Printf(f->code,"return NULL;\n");
+    if (need_cleanup) {
+      Printf(f->code,"if (resultobj) Py_DECREF(resultobj);\n");
+      Printf(f->code,"resultobj = NULL;\n");
+      Printf(f->code,"goto cleanup;\n");
+    } else {
+      Printf(f->code,"return NULL;\n");
+    }
+    
+    
     Printf(f->code,"}\n");
 
     /* Substitute the cleanup code */
