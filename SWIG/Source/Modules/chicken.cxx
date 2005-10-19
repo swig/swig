@@ -1058,19 +1058,17 @@ CHICKEN::classHandler(Node *n)
   if (!addSymbol(class_name,n)) return SWIG_ERROR;
 
   /* Handle inheritance */
-  String *base_class = NewString("<");
+  String *base_class = NewString("");
   List *baselist = Getattr(n,"bases");
   if (baselist && Len(baselist)) {
     Iterator base = First(baselist);
     while (base.item) {
-        Printv(base_class, Getattr(base.item, "sym:name"),NIL);
-        base = Next(base);
-        if (base.item) {
-          Printf(base_class, "> <");
-        }
-      }
+      if (!Getattr(base.item, "feature:ignore"))
+        Printv(base_class, "<", Getattr(base.item, "sym:name"), "> ", NIL);
+      base = Next(base);
     }
-    Printf(base_class, ">");
+  }
+
     Replaceall(base_class, "_", "-");
 
     String *scmmod = NewString(module);
@@ -1080,7 +1078,7 @@ CHICKEN::classHandler(Node *n)
                     "  (make <swig-metaclass-", scmmod, "> 'name \"", short_class_name, "\"\n", NIL);
     Delete(scmmod);
 
-    if (Len(base_class) > 2) {
+    if (Len(base_class)) {
       Printv(clos_class_defines,"    'direct-supers (list ", base_class, ")\n", NIL);
     } else {
       Printv(clos_class_defines,"    'direct-supers (list <object>)\n", NIL);
