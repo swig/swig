@@ -265,6 +265,7 @@ cvar.var_namet = pc
 if cvar.var_namet != "hola":
   raise RuntimeError, "bad pointer case"
 
+delete_pchar(pc)
 
 #
 # Now when things should fail
