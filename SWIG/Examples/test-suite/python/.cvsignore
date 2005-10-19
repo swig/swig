@@ -452,3 +452,7 @@ template_typedef_import.py
 li_cwstring.py
 compactdefaultargs.py
 refcount.py
+li_implicit.py
+director_wstring.py
+immutable.py
+inherit.py
