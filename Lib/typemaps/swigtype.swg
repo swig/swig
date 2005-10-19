@@ -4,7 +4,7 @@
 
 /* Pointers and arrays */
 %typemap(in, noblock=1) SWIGTYPE *, SWIGTYPE [] {
-  if (SWIG_ConvertPtr($input, SWIG_as_voidptrptr(&$1), $descriptor, $disown) != SWIG_OK) { 
+  if (SWIG_ConvertPtr($input, SWIG_as_voidptrptr(&$1),$descriptor, $disown) != SWIG_OK) { 
     SWIG_arg_fail(SWIG_TypeError, "$type", $argnum); 
   }
 }

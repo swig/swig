@@ -41,47 +41,44 @@
 /* directorout */
 
 %define SWIG_PTR_DIRECTOROUT_TYPEMAP(asptr_meth,frag,Type...)
-  %typemap(directorargout,fragment=frag) Type *DIRECTOROUT ($*1_ltype temp) {
-    Type *ptr = 0;
-    int res = $input ? asptr_meth($input, &ptr) : 0;
-    if (!res || !ptr) { 
+  %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp) {
+    Type *optr = 0;
+    int ores = $input ? asptr_meth($input, &optr) : 0;
+    if (!ores || !optr) { 
       SWIG_dout_fail(SWIG_TypeError,"$type");
-    } else {
-      temp = *ptr;
-      $result = &temp;
-      if (res == SWIG_NEWOBJ) SWIG_delete(ptr);
     }
+    temp = *optr;
+    $result = &temp;
+    if (ores == SWIG_NEWOBJ) SWIG_delete(optr);
   }
 
-  %typemap(directorout,fragment=frag) Type {
-    Type *ptr = 0;
-    int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) { 
+  %typemap(directorout,noblock=1,fragment=frag) Type {
+    Type *optr = 0;
+    int ores = asptr_meth($input, &optr);
+    if (!ores || !optr) { 
       SWIG_dout_fail(SWIG_TypeError,"$type");
-    } else {
-      $result = *ptr;
-      if (res == SWIG_NEWOBJ) SWIG_delete(ptr);
     }
+    $result = *optr;
+    if (ores == SWIG_NEWOBJ) SWIG_delete(optr);
   }
 
-  %typemap(directorout,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {
-    Type *ptr = 0;
-    int res = asptr_meth($input, &ptr);
-    if (!res) { 
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {
+    Type *optr = 0;
+    int ores = asptr_meth($input, &optr);
+    if (!ores) { 
       SWIG_dout_fail(SWIG_TypeError,"$type");
     } else {
-      if (!ptr) { 
+      if (!optr) { 
 	SWIG_dout_nullref("$type");
-      } else {
-	if (res == SWIG_NEWOBJ) {
-	  /* Possible thread/reentrant problem here! */
-	  static $*ltype temp = *ptr;
-	  $result = &temp;
-	  SWIG_delete(ptr);
-	} else {
-	  $result = ptr;
-	}
-      }
+      } 
+    }    
+    if (ores == SWIG_NEWOBJ) {
+      /* Possible thread/reentrant problem here! */
+      static $*ltype temp = *optr;
+      $result = &temp;
+      SWIG_delete(optr);
+    } else {
+      $result = optr;
     }
   }
 
@@ -115,12 +112,12 @@
     {
       Type *v = (Type *)0;
       int res = SWIG_AsPtr(Type)(obj, &v);
-      if (!res || !v) return 0;  
+      if (!res || !v) return SWIG_ERROR;
       if (val) {
 	*val = *v;
 	if (res == SWIG_NEWOBJ) SWIG_delete(v);
       }
-      return 1;
+      return SWIG_OK;
     }
   %}
   %fragment(SWIG_As_frag(Type),"header",

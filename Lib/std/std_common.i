@@ -142,7 +142,7 @@ namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
     static int asval(PyObject *obj, value_type *val) { 
-      return SWIG_AsVal(Type)(obj, val) == SWIG_OK;
+      return SWIG_AsVal(Type)(obj, val);
     }
   };
   template <>  struct traits_from<Type > {

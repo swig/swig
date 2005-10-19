@@ -67,7 +67,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_asval {
-    static bool asval(PyObject *obj, Type *val) {
+    static int asval(PyObject *obj, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
@@ -75,12 +75,12 @@ namespace swig {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
 	  if (res == SWIG_NEWOBJ) SWIG_delete(p);
-	  return true;
+	  return SWIG_OK;
 	} else {
-	  return false;
+	  return SWIG_ERROR;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? true : false;
+	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? SWIG_OK : SWIG_ERROR;
       }
     }
   };
@@ -93,26 +93,26 @@ namespace swig {
         int res = traits_asptr<noconst_type>::asptr(obj, &p);
         if (res) {
           *(const_cast<noconst_type**>(val)) = p;
-     	  return true;
+     	  return SWIG_OK;
 	} else {
-	  return false;
+	  return SWIG_ERROR;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? true : false;
+	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? SWIG_OK : SWIG_ERROR;
       }
     }
   };
   
   template <class Type>
-  inline bool asval(PyObject *obj, Type *val) {
-    return traits_asval<Type>::asval(obj, val) ? true : false;
+  inline int asval(PyObject *obj, Type *val) {
+    return traits_asval<Type>::asval(obj, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type v;
-      if (!obj || !asval(obj, &v)) {
+      if (!obj || (asval(obj, &v) != SWIG_OK)) {
 	if (!PyErr_Occurred()) {
 	  SWIG_Python_SetErrorMsg(SWIG_Python_ErrorType(SWIG_TypeError), swig::type_name<Type>());
 	}
@@ -173,7 +173,7 @@ namespace swig {
   template <class Type> 
   struct traits_check<Type, value_category> {
     static bool check(PyObject *obj) {
-      return obj && asval(obj, (Type *)(0));
+      return obj && (asval(obj, (Type *)(0)) == SWIG_OK);
     }
   };
 
@@ -229,9 +229,9 @@ namespace swig {
     static int asval(PyObject *obj, value_type *val) {
       if (Check(obj)) {
 	*val = As(obj);
-	return 1;
+	return SWIG_OK;
       }
-      return 0;
+      return SWIG_ERROR;
     }
   };
   template <>  struct traits_from<Type > {

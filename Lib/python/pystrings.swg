@@ -20,12 +20,30 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
       PyString_AsStringAndSize(obj, &cstr, &len);
       if (cptr)  {
 	if (alloc) {
-	  if (*alloc == SWIG_NEWOBJ) {
-	    *cptr = SWIG_new_copy_array(cstr, len + 1, char);
-	  } else {
+	  /* 
+	     In python the user should not be able to modify the inner
+	     string representation, so, by default we return a copy of
+	     the buffer, as in the wstring case.
+
+	     But, if you use the -DSWIG_PYTHON_UNSAFE_CSTR at
+	     compilation time, you will get, at your own risk, the
+	     inner string pointer instead, when possible.
+	  */ 
+#ifndef SWIG_PYTHON_UNSAFE_CSTR
+	  if (*alloc != SWIG_OLDOBJ) 
+#else
+	  if (*alloc == SWIG_NEWOBJ) 
+#endif
+	    {
+	      *cptr = SWIG_new_copy_array(cstr, len + 1, char);
+	      *alloc = SWIG_NEWOBJ;
+	    }
+	  else {
 	    *cptr = cstr;
 	    *alloc = SWIG_OLDOBJ;
 	  }
+	} else {
+	  *cptr = cstr;
 	}
       }
       if (psize) *psize = len + 1;
