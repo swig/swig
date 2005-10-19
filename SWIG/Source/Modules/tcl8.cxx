@@ -420,8 +420,10 @@ public:
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
       if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NIL);
+	if (Len(tm) != 0) {
+	  Replaceall(tm,"$source",Getattr(p,"lname"));
+	  Printv(cleanup,tm,"\n",NIL);
+	}
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);

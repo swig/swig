@@ -904,8 +904,10 @@ public:
     String *tm;
     for (Parm *p = l; p; ) {
       if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NIL);
+	if (Len(tm) != 0) {
+	  Replaceall(tm,"$source",Getattr(p,"lname"));
+	  Printv(cleanup,tm,"\n",NIL);
+	}
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -1223,6 +1225,10 @@ public:
     /* Now write code to make the function call */
     if (current != CONSTRUCTOR_ALLOCATE) {
       if (current == CONSTRUCTOR_INITIALIZE) {
+	Node *pn = Swig_methodclass(n);
+	String *symname = Getattr(pn,"sym:name");
+	String *classname = NewStringf("const char *classname = \"%s::%s\"", module, symname);
+	Wrapper_add_local(f, "classname", classname);
 	String *action = Getattr(n,"wrap:action");
 	if (action) {
 	  Append(action,"DATA_PTR(self) = result;\n");
@@ -1306,8 +1312,12 @@ public:
     Printv(f->code,outarg,NIL);
 
     /* Dump the argument cleanup code */
-    if (current != CONSTRUCTOR_ALLOCATE)
+    int need_cleanup = (current != CONSTRUCTOR_ALLOCATE) && (Len(cleanup) != 0);
+    if (need_cleanup) {
+      Printv(f->code,"cleanup:\n",NIL);
       Printv(f->code,cleanup,NIL);
+    }
+    
 
     /* Look for any remaining cleanup.  This processes the %new directive */
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
@@ -1331,12 +1341,32 @@ public:
 	Printv(f->code, tab4, "return vresult;\n", NIL);
       } else if (current == CONSTRUCTOR_INITIALIZE) {
 	Printv(f->code, tab4, "return self;\n", NIL);
+	Printv(f->code,"fail:\n",NIL);
+	if (need_cleanup) {
+	  Printv(f->code, tab4, "self = Qnil;\n", NIL);
+	  Printv(f->code, tab4, "goto cleanup;\n", NIL);
+	} else {
+	  Printv(f->code, tab4, "return Qnil;\n", NIL);
+	}
       } else {
 	Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
 	Printv(f->code, tab4, "return vresult;\n", NIL);
+	Printv(f->code,"fail:\n",NIL);
+	if (need_cleanup) {
+	  Printv(f->code, tab4, "vresult = Qnil;\n", NIL);
+	  Printv(f->code, tab4, "goto cleanup;\n", NIL);
+	} else {
+	  Printv(f->code, tab4, "return Qnil;\n", NIL);
+	}
       }
     } else {
       Printv(f->code, tab4, "return Qnil;\n", NIL);
+      Printv(f->code,"fail:\n",NIL);
+      if (need_cleanup) {
+	Printv(f->code, tab4, "goto cleanup;\n", NIL);
+      } else {
+	Printv(f->code, tab4, "return Qnil;\n", NIL);
+      }
     }
 
     /* Error handling code */
@@ -1882,7 +1912,6 @@ public:
     char *cname = Char(name);
     if(cname) cname[0] = toupper(cname[0]);
     Printv(director_prot_ctor_code,
-	   "char *classname = \"",module,"::",cname,"\";\n",
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",
 	   "} else {\n",
@@ -1892,7 +1921,6 @@ public:
     Delete(director_ctor_code);
     director_ctor_code = NewString("");
     Printv(director_ctor_code,
-	   "char *classname = \"",module,"::",cname,"\";\n",
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",
 	   "} else {\n",
