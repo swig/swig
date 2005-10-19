@@ -482,7 +482,7 @@ SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
     if ((csize == size + 1) && cptr && !(cptr[csize-1])) --csize;
     if (csize <= size) {
       if (val) {
-	if (csize) memcpy(val, cptr, csize);
+	if (csize) memcpy(val, cptr, csize*sizeof(Char));
 	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
 	if (alloc == SWIG_NEWOBJ) SWIG_delete_array(cptr);
       }

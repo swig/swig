@@ -11,8 +11,6 @@
     
     A(int v): val(v)
     {
-      int a = 2;
-      a += (a +=1 ) = 5;
     }
     
     A& operator+=(int v) 

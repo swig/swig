@@ -2781,7 +2781,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
   /* declare Python return value */
   if (!is_void) {
-    Wrapper_add_local(w, "result", "PyObject *result");
+    Wrapper_add_local(w, "result", "PyObject *result = 0");
   }
 
   /* direct call to superclass if _up is set */

@@ -36,12 +36,14 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
   /* Handle return type */
   if (rt && (SwigType_type(rt) != T_VOID)) {
-    SwigType *vt = 0;
-    vt = cplus_value_type(rt);
-    if (!vt) {
-      Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
-    } else {
-      Wrapper_add_local(f,"result", SwigType_lstr(vt,"result"));
+    SwigType *vt = cplus_value_type(rt);
+    SwigType *tt = vt ? vt : rt;
+    if (SwigType_ispointer(tt)) {
+      Wrapper_add_localv(f,"result", SwigType_lstr(tt,"result"), "= 0", NULL);
+    } else{
+      Wrapper_add_local(f,"result", SwigType_lstr(tt,"result"));
+    }
+    if (vt) {
       Delete(vt);
     }
   }

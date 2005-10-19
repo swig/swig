@@ -10,40 +10,28 @@ SWIG_Python_ErrorType(int code) {
   switch(code) {
   case SWIG_MemoryError:
     return PyExc_MemoryError;
-    break;
   case SWIG_IOError:
     return PyExc_IOError;
-    break;
   case SWIG_RuntimeError:
     return PyExc_RuntimeError;
-    break;
   case SWIG_IndexError:
     return PyExc_IndexError;
-    break;
   case SWIG_TypeError:
     return PyExc_TypeError;
-    break;
   case SWIG_DivisionByZero:
     return PyExc_ZeroDivisionError;
-    break;
   case SWIG_OverflowError:
     return PyExc_OverflowError;
-    break;
   case SWIG_SyntaxError:
     return PyExc_SyntaxError;
-    break;
   case SWIG_ValueError:
     return PyExc_ValueError;
-    break;
   case SWIG_SystemError:
     return PyExc_SystemError;
-    break;
   case SWIG_AttributeError:
     return PyExc_AttributeError;
-    break;
   default:
     return PyExc_RuntimeError;
-    break;
   }
 }
 

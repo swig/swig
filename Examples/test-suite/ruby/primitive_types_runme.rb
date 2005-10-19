@@ -5,9 +5,6 @@ include Primitive_types
 
 raise RuntimeError if val_uchar(255) != 255
 
-raise RuntimeError if val_double(255.5) != 255.5
-
-
 fail = 0
 begin
   val_uchar(-1)

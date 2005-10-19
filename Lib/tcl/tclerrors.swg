@@ -10,40 +10,28 @@ SWIG_Tcl_ErrorType(int code) {
   switch(code) {
   case SWIG_MemoryError:
     return "MemoryError";
-    break;
   case SWIG_IOError:
     return "IOError";
-    break;
   case SWIG_RuntimeError:
     return "RuntimeError";
-    break;
   case SWIG_IndexError:
     return "IndexError";
-    break;
   case SWIG_TypeError:
     return "TypeError";
-    break;
   case SWIG_DivisionByZero:
     return "ZeroDivisionError";
-    break;
   case SWIG_OverflowError:
     return "OverflowError";
-    break;
   case SWIG_SyntaxError:
     return "SyntaxError";
-    break;
   case SWIG_ValueError:
     return "ValueError";
-    break;
   case SWIG_SystemError:
     return "SystemError";
-    break;
   case SWIG_AttributeError:
     return "AttributeError";
-    break;
   default:
     return "RuntimeError";
-    break;
   }
 }
 
