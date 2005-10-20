@@ -7,32 +7,32 @@
 (display (gcd 90 12))
 (display "\n")
 
-(display "(gcd 90 'a): ")
-;;(display (gcd 90 'a))
-(display "\n")
-
-(display "(gcd 'b 12): ")
-;;(display (gcd 'b 12))
-(display "\n")
-
 (display "(circle 0.5 0.5): ")
-(circle 0.5 0.5)
+(display (circle 0.5 0.5))
 (display "\n")
 
 (display "(circle 1.0 1.0): ")
-;;(circle 1.0 1.0)
+(handle-exceptions exvar
+  (if (= (car exvar) 9)
+    (display "success: exception thrown")
+    (display "an incorrect exception was thrown"))
+  (begin
+    (circle 1.0 1.0)
+    (display "an exception was not thrown when it should have been")))
 (display "\n")
 
 (display "(circle 1 1): ")
-;;(circle 1 1)
+(handle-exceptions exvar
+  (if (= (car exvar) 9)
+    (display "success: exception thrown")
+    (display "an incorrect exception was thrown"))
+  (begin
+    (circle 1 1)
+    (display "an exception was not thrown when it should have been")))
 (display "\n")
 
 (display "(capitalize \"will this be all capital letters?\"): ")
 (display (capitalize "will this be all capital letters?"))
-(display "\n")
-
-(display "(capitalize 'a): ")
-;;(display (capitalize 'a))
 (display "\n")
 
 (display "(count \"jumpity little spider\" #\\t): ")
@@ -51,7 +51,7 @@
 (gcdmain '#("gcd" "12" "90"))
 (display "\n")
 
-(display "(squarecubed 3: ")
+(display "squarecubed 3: ")
 (call-with-values (lambda() (squareCubed 3)) 
 		  (lambda (a b) (printf "~A ~A" a b)))
 (display "\n")
