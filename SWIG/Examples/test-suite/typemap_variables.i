@@ -23,11 +23,7 @@
 %typemap(in)  int Space::nspace             "/*int nspace in */ $1=0;"
 %typemap(out) int Space::nspace             "/*int nspace out*/ $result=0;"
 %typemap(in)  int member                    "/*int member in */ $1=0;"
-#ifdef SWIGTCL
-%typemap(out) int member                    "/*int member out*/"
-#else
 %typemap(out) int member                    "/*int member out*/ $result=0;"
-#endif
 %typemap(in)  int Space::Struct::smember    "/*int smember in */ $1=0;"
 %typemap(out) int Space::Struct::smember    "/*int smember out*/ $result=0;"
 
