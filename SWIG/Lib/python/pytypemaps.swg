@@ -30,8 +30,6 @@
  *  All the typemaps
  * ----------------------------------------------------------------------------- */
 
-%include "pyfragments.swg"
-
 %include <typemaps/exception.swg>
 %include <pyswigtype.swg>
 %include <typemaps/void.swg>

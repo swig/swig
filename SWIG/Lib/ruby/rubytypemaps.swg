@@ -2,7 +2,7 @@
  *  Typemap specializations
  * ----------------------------------------------------------------------------- */
 
-/* directors are supported in Python */
+/* directors are supported in Ruby */
 #ifndef SWIG_DIRECTOR_TYPEMAPS
 #define SWIG_DIRECTOR_TYPEMAPS
 #endif
@@ -24,8 +24,6 @@
 /* -----------------------------------------------------------------------------
  *  All the typemaps
  * ----------------------------------------------------------------------------- */
-
-%include "rubyfragments.swg"
 
 %include <typemaps/exception.swg>
 %include <typemaps/swigtype.swg>

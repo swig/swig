@@ -24,8 +24,6 @@
  *  All the typemaps
  * ----------------------------------------------------------------------------- */
 
-%include "tclfragments.swg"
-
 %include <typemaps/exception.swg>
 %include <tclswigtype.swg>
 %include <typemaps/void.swg>
