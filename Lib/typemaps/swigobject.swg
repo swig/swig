@@ -13,7 +13,7 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIG_Object "$1 = ($input != 0);";
 
 %typemap(throws,noblock=1) SWIG_Object {
-  SWIG_exception_obj(0, "$type", $1);
+  SWIG_raise($1, "$type", 0);
 }
 
 %typemap(constcode,noblock=1) SWIG_Object {

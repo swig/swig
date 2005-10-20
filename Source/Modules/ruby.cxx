@@ -1314,7 +1314,6 @@ public:
     /* Dump the argument cleanup code */
     int need_cleanup = (current != CONSTRUCTOR_ALLOCATE) && (Len(cleanup) != 0);
     if (need_cleanup) {
-      Printv(f->code,"cleanup:\n",NIL);
       Printv(f->code,cleanup,NIL);
     }
     
@@ -1343,38 +1342,27 @@ public:
 	Printv(f->code, tab4, "return self;\n", NIL);
 	Printv(f->code,"fail:\n",NIL);
 	if (need_cleanup) {
-	  Printv(f->code, tab4, "self = Qnil;\n", NIL);
-	  Printv(f->code, tab4, "goto cleanup;\n", NIL);
-	} else {
-	  Printv(f->code, tab4, "return Qnil;\n", NIL);
-	}
+	  Printv(f->code,cleanup,NIL);
+	} 
+	Printv(f->code, tab4, "return Qnil;\n", NIL);
       } else {
 	Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
 	Printv(f->code, tab4, "return vresult;\n", NIL);
 	Printv(f->code,"fail:\n",NIL);
 	if (need_cleanup) {
-	  Printv(f->code, tab4, "vresult = Qnil;\n", NIL);
-	  Printv(f->code, tab4, "goto cleanup;\n", NIL);
-	} else {
-	  Printv(f->code, tab4, "return Qnil;\n", NIL);
-	}
+	  Printv(f->code,cleanup,NIL);
+	} 
+	Printv(f->code, tab4, "return Qnil;\n", NIL);
       }
     } else {
       Printv(f->code, tab4, "return Qnil;\n", NIL);
       Printv(f->code,"fail:\n",NIL);
       if (need_cleanup) {
-	Printv(f->code, tab4, "goto cleanup;\n", NIL);
-      } else {
-	Printv(f->code, tab4, "return Qnil;\n", NIL);
+	Printv(f->code,cleanup,NIL);
       }
+      Printv(f->code, tab4, "return Qnil;\n", NIL);
     }
 
-    /* Error handling code */
-    /*
-    Printf(f->code,"fail:\n");
-    Printv(f->code,cleanup,NIL);
-    Printv(f->code,"return Qnil;\n",NIL);
-    */
     Printf(f->code,"}\n");
 
     /* Substitute the cleanup code */
@@ -1500,7 +1488,7 @@ public:
     Printv(getf->code, tab4, "return _val;\n}\n", NIL);
     Wrapper_print(getf,f_wrappers);
 
-    if (GetFlag(n,"feature:immutable")) {
+    if (!is_assignable(n)) {
       setfname = NewString("NULL");
     } else {
       /* create setter */
@@ -1518,7 +1506,9 @@ public:
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
 		     "Unable to set variable of type %s\n", SwigType_str(t,0));
       }
-      Printv(setf->code, tab4, "return _val;\n",NIL);
+      Printv(setf->code, tab4, "return _val;\n", NIL);
+      Printf(setf->code, "fail:\n");
+      Printv(setf->code, tab4, "return Qnil;\n", NIL);
       Printf(setf->code,"}\n");
       Wrapper_print(setf,f_wrappers);
     }

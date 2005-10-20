@@ -10,7 +10,7 @@
   }
 }
 
-%typemap(freearg,noblock=1) void * "";
+%typemap(freearg) void * "";
 
 %typemap(in,noblock=1) void * const& ($*ltype temp) {
   if (SWIG_ConvertPtr($input, SWIG_as_voidptrptr(&temp), 0, $disown) != SWIG_OK) { 
@@ -23,7 +23,7 @@
 /* out */
 
 %typemap(out,noblock=1) void {
-  SWIG_set_result(SWIG_NoneObject());
+  SWIG_set_result(SWIG_VoidObject());
 }
 
 /* varin */

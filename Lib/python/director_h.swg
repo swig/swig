@@ -98,7 +98,7 @@ namespace Swig {
 	swig_msg += msg;
       }
       if (!PyErr_Occurred()) {
-	SWIG_Python_SetErrorMsg(error, getMessage());
+	PyErr_SetString(error, getMessage());
       } else {
 	SWIG_Python_AddErrorMsg(getMessage());
       }

@@ -1,6 +1,26 @@
 Version 1.3.27 (October 15, 2005)
 =================================
 
+10/20/2005: mmatus
+	    Ruby, Tcl, Python:
+
+	    - Uniform way to fail (label fail:), now finally
+	      SWIG_exception works across the three languages and all
+	      the typemaps.
+
+	    - Add proper cleanup code to ruby
+
+	    - More valgrind fixes
+
+	    - Simplify the inline use, it seems a small interface of
+	      20,000 lines (plus many many templates0 can break 
+	      gcc -O3 easily.
+
+	    - Finalize the typemaps library. All the old  *.i files
+	      (carray.i, cpointer.i, exception.i) had been implemented
+	      in the new typemaps library.
+	    
+
 10/19/2005: wuzzeb
 	    Update the Runtime Typemap documentation in Typemaps.html
 

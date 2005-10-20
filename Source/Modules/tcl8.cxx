@@ -583,7 +583,7 @@ public:
     DelWrapper(getf);
 
   /* Try to create a function setting a variable */
-    if (!GetFlag(n,"feature:immutable")) {
+    if (is_assignable(n)) {
       setf = NewWrapper();
       setname = Swig_name_wrapper(Swig_name_set(iname));
       Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
@@ -600,6 +600,8 @@ public:
 	Printf(setf->code,"if (!value) return NULL;\n");
 	Printf(setf->code,"%s\n", tm);
 	Printf(setf->code,"return NULL;\n");
+	Printf(setf->code,"fail:\n");
+	Printf(setf->code,"return \"%s\";\n", iname);
 	Printf(setf->code,"}\n");
 	if (setf) Wrapper_print(setf,f_wrappers);  
       } else {
@@ -608,10 +610,13 @@ public:
 	readonly = 1;
       }
       DelWrapper(setf);
-    } 
+    } else {
+      readonly = 1;
+    }
+    
 
     Printv(var_tab, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", NIL);
-    if (readonly || GetFlag(n,"feature:immutable")) {
+    if (readonly) {
       static int readonlywrap = 0;
       if (!readonlywrap) {
 	Wrapper *ro = NewWrapper();

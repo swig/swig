@@ -85,29 +85,33 @@
 
 /* macros for result manipulation */
 
-#define SWIG_set_result(obj)          SWIG_SetResultObj(obj) 
-#define SWIG_append_result(obj)       SWIG_AppendResultObj(obj) 
-#define SWIG_set_constant(n, v)       SWIG_SetConstantObj(n,v)
+#define SWIG_set_result(obj)               SWIG_SetResultObj(obj) 
+#define SWIG_append_result(obj)            SWIG_AppendResultObj(obj) 
+#define SWIG_set_constant(name,value)      SWIG_SetConstantObj(name,value)
 
 /* macros for error manipulation */
-#define SWIG_TypeErrorFmt(_type,_name)   "expected '"_type"'"
-#define SWIG_VarFailFmt(_type,_name)     "in variable '"_name"' of type '"_type"'"
-#define SWIG_ArgFailFmt(_type,_argn)     "in argument " #_argn" of type '" _type"'"
-#define SWIG_OutFailFmt(_type)           "in output of type '"_type"'"
-#define SWIG_ArgNullRefFmt(_type, _argn) "null reference " SWIG_ArgFailFmt(_type, _argn)
-#define SWIG_VarNullRefFmt(_type, _name) "null reference " SWIG_VarFailFmt(_type, _name)
-#define SWIG_OutNullRefFmt(_type)        "null reference " SWIG_OutFailFmt(_type)
+#define SWIG_NullRefFmt()                  "invalid null reference "
+#define SWIG_VarFailFmt(_type,_name)       "in variable '"_name"' of type '"_type"'"	 		   
+#define SWIG_ArgFailFmt(_type,_argn)       "in argument " #_argn" of type '" _type"'"	 		   
+#define SWIG_OutFailFmt(_type)             "in output value of type '"_type"'"
+#define SWIG_ArgNullRefFmt(_type, _argn)   SWIG_NullRefFmt() SWIG_ArgFailFmt(_type, _argn)
+#define SWIG_VarNullRefFmt(_type, _name)   SWIG_NullRefFmt() SWIG_VarFailFmt(_type, _name) 		   
+#define SWIG_OutNullRefFmt(_type)          SWIG_NullRefFmt() SWIG_OutFailFmt(_type)
 
-#define SWIG_ArgFail(code,type,argn)  SWIG_SetErrorMsg(code,SWIG_ArgFailFmt(type, argn))
-#define SWIG_VarFail(code,type,name)  SWIG_SetErrorMsg(code,SWIG_VarFailFmt(type, name))
-#define SWIG_ArgNullRef(type,argn)    SWIG_SetErrorMsg(SWIG_ValueError, SWIG_ArgNullRefFmt(type, argn))
-#define SWIG_VarNullRef(type,name)    SWIG_SetErrorMsg(SWIG_ValueError, SWIG_VarNullRefFmt(type, name))
-#define SWIG_OutNullRef(type)         SWIG_SetErrorMsg(SWIG_ValueError, SWIG_OutNullRefFmt(type))
+#define SWIG_ArgFail(code,type,argn)       SWIG_Error(code, SWIG_ArgFailFmt(type, argn))	       	   
+#define SWIG_VarFail(code,type,name)  	   SWIG_Error(code, SWIG_VarFailFmt(type, name))	       	   
+#define SWIG_ArgNullRef(type,argn)    	   SWIG_Error(SWIG_ValueError, SWIG_ArgNullRefFmt(type, argn))
+#define SWIG_VarNullRef(type,name)    	   SWIG_Error(SWIG_ValueError, SWIG_VarNullRefFmt(type, name))
+#define SWIG_OutNullRef(type)         	   SWIG_Error(SWIG_ValueError, SWIG_OutNullRefFmt(type))      
 
-#define SWIG_set_errmsg(code,msg...)  SWIG_SetErrorMsg(code,msg)
-#define SWIG_set_errobj(code,obj)     SWIG_SetErrorObj(code,obj)
 
-#define SWIG_error_block(Block...)    SWIG_block(Block)
+/* setting an error */
+#define SWIG_error(code,msg...)            SWIG_Error(code, msg)
+#define SWIG_type_error(msg...)            SWIG_Error(SWIG_TypeError,  msg)
+
+
+/* setting an error and exit */
+#define SWIG_error_block(Block...)         SWIG_block(Block)
 
 #define SWIG_arg_fail(code, type, arg)     SWIG_error_block(SWIG_ArgFail(code, type, arg); SWIG_fail)
 #define SWIG_arg_nullref(type, arg)        SWIG_error_block(SWIG_ArgNullRef(type, arg); SWIG_fail)
@@ -118,14 +122,13 @@
 #define SWIG_global_fail(code, type, name) SWIG_error_block(SWIG_VarFail(code, type, name); SWIG_fail)
 #define SWIG_global_nullref(type, name)    SWIG_error_block(SWIG_VarNullRef(type, name); SWIG_fail)
 
-#define SWIG_var_fail(code, type, name)    SWIG_error_block(SWIG_VarFail(code, type, name); SWIG_var_fail)
-#define SWIG_var_nullref(type, name)       SWIG_error_block(SWIG_VarNullRef(type, name); SWIG_var_fail)
+#define SWIG_var_fail(code, type, name)    SWIG_error_block(SWIG_VarFail(code, type, name); SWIG_fail)
+#define SWIG_var_nullref(type, name)       SWIG_error_block(SWIG_VarNullRef(type, name); SWIG_fail)
 
 #define SWIG_dout_fail(code, type)         SWIG_DirOutFail(code, SWIG_OutFailFmt(type))
 #define SWIG_dout_nullref(type)            SWIG_DirOutFail(SWIG_ValueError, SWIG_OutNullRefFmt(type))
 
-
-#define SWIG_exception_obj(desc, type, obj) SWIG_error_block(SWIG_ExceptionObj(desc, type, obj); SWIG_fail)
+#define SWIG_raise(obj, type, desc)        SWIG_error_block(SWIG_Raise(obj, type, desc); SWIG_fail)
 
 
 /* 
@@ -133,7 +136,7 @@
    
    Use it, for example in Tcl, as
    
-     %define_swig_object(Tcl_Obj)   
+     %define_swig_object(Tcl_Obj *)
 */
 
 #define SWIG_Object __NULL__
@@ -153,7 +156,7 @@
  * ----------------------------------------------------------------------------- */
 
 /* define a new macro */
-%define SWIG_define(Def, Val)
+%define SWIG_define(Def, Val...)
 %#define Def Val
 %enddef
 

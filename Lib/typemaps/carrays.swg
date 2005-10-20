@@ -61,21 +61,22 @@ void NAME##_setitem(TYPE *ary, size_t index, TYPE value);
  *              void setitem(int index, TYPE value);
  *              TYPE * cast();
  *              static NAME *frompointer(TYPE *t);
-  *         }
+ *         }
  *
+ * Use
+ *
+ *    %array_class_wrap(TYPE,NAME,GET,SET) 
+ *
+ * if you want  different names for the get/set methods.
  * ----------------------------------------------------------------------------- */
 
-%define %array_class(TYPE,NAME)
+%define %array_class_wrap(TYPE,NAME,getitem,setitem)
 %{
 typedef TYPE NAME;
 %}
-typedef struct NAME {
-  /* Put language specific enhancements here */
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY)
-  %rename(__getitem__) getitem;
-  %rename(__setitem__) setitem;
-#endif
+
+typedef struct NAME {
 } NAME;
 
 %extend NAME {
@@ -109,3 +110,9 @@ typedef struct NAME {
 
 %enddef
 
+
+#ifndef %array_class
+%define %array_class(TYPE,NAME)
+  %array_class_wrap(TYPE,NAME,getitem,setitem)
+%enddef
+#endif

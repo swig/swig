@@ -305,6 +305,15 @@ static void SWIG_dump_runtime() {
   Printf(runtime, "%s", s);
   Delete(s);
   
+  s = Swig_include_sys("swigerrors.swg");
+  if (!s) {
+    Printf(stderr, "*** Unable to open 'swigerrors.swg'\n");
+    Close(runtime);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(runtime, "%s", s);
+  Delete(s);
+  
   s = Swig_include_sys("swigrun.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigrun.swg'\n");
