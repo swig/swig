@@ -4,6 +4,7 @@
 #######################################################################
 
 LANGUAGE     = python
+#PYTHON      = valgrind --leak-check=full --show-reachable=yes @PYTHON@
 PYTHON       = @PYTHON@
 SCRIPTSUFFIX = _runme.py
 srcdir       = @srcdir@

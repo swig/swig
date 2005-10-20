@@ -18,6 +18,7 @@ public:
 
 class Foo;
 
+%newobject new_Foo;
 %inline %{
 
 class Bar : public Foo {

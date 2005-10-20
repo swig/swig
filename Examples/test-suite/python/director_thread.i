@@ -15,12 +15,17 @@ extern "C" void* working(void* t);
   class Foo {
   public:
     int val;
-    Foo() : val(0) {}
+    pthread_t *t;
     
-    virtual ~Foo()  {}
+    Foo() : val(0) {
+      t = new pthread_t;
+    }
+    
+    virtual ~Foo()  {
+      delete t;
+    }
 
     void run() {
-      pthread_t *t = new pthread_t;
       pthread_create(t,NULL,working,this);
       sleep(5);
     }

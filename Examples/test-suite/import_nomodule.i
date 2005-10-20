@@ -17,6 +17,7 @@
  * fixable (needs more investigation).
  */
 
+%newobject create_Foo;
 %inline %{
 Foo *create_Foo() {
    return new Foo();
