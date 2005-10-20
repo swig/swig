@@ -24,7 +24,7 @@
 %include "python/pythonkw.swg"
 %include "ocaml/ocamlkw.swg"
 %include "ruby/rubykw.swg"
-%include "tcl/tcl8kw.swg"
+%include "tcl/tclkw.swg"
 
 
 #endif //__Lib_allkw_swg__

@@ -1177,7 +1177,7 @@ public:
     outarg       = NewString("");
     kwargs       = NewString("");
     
-    Wrapper_add_local(f,"resultobj", "PyObject *resultobj = NULL");
+    Wrapper_add_local(f,"resultobj", "PyObject *resultobj = 0");
 
   /* Write code to extract function parameters. */
     emit_args(d, l, f);
@@ -1491,7 +1491,6 @@ public:
     /* Output cleanup code */
     int need_cleanup = Len(cleanup) != 0;
     if (need_cleanup) {
-      Printf(f->code,"cleanup:\n");
       Printv(f->code,cleanup,NIL);
     }
 
@@ -1515,12 +1514,10 @@ public:
 
     Printf(f->code,"fail:\n");
     if (need_cleanup) {
-      Printf(f->code,"if (resultobj) Py_DECREF(resultobj);\n");
-      Printf(f->code,"resultobj = NULL;\n");
-      Printf(f->code,"goto cleanup;\n");
-    } else {
-      Printf(f->code,"return NULL;\n");
+      Printv(f->code,cleanup,NIL);
     }
+    Printv(f->code,tab4,"return NULL;\n",NIL);
+    
     
     
     Printf(f->code,"}\n");
@@ -1606,7 +1603,7 @@ public:
       Python dictionary. */
 
     if (!have_globals) {
-      Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
+      Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals());\n",global_name);
       have_globals=1;
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
@@ -1636,7 +1633,9 @@ public:
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
 		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
       }
-      Printf(setf->code,"    return 0;\n");
+      Printv(setf->code,tab4,"return 0;\n",NULL);
+      Printf(setf->code,"fail:\n");
+      Printv(setf->code,tab4,"return 1;\n",NULL);
     } else {
       /* Is a readonly variable.  Issue an error */
       if (CPlusPlus) {
@@ -1645,8 +1644,7 @@ public:
 	Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
       }
       Printv(setf->code,
-	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
-	     " is read-only.\");\n",
+	     tab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname," is read-only.\");\n",
 	     tab4, "return 1;\n",
 	     NIL);
     }
@@ -1656,7 +1654,7 @@ public:
 
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"static PyObject *%s_get(void) {", wname);
-    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = NULL");
+    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","pyobj");
@@ -1671,7 +1669,7 @@ public:
     Wrapper_print(getf,f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
 
     DelWrapper(setf);
     DelWrapper(getf);

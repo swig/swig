@@ -2,37 +2,52 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
+%insert("runtime") "swigerrors.swg"
+
 %insert("header") %{
 
 
 SWIGINTERN const char*
 SWIG_Tcl_ErrorType(int code) {
+  const char* type = 0;
   switch(code) {
   case SWIG_MemoryError:
-    return "MemoryError";
+    type = "MemoryError";
+    break;
   case SWIG_IOError:
-    return "IOError";
+    type = "IOError";
+    break;
   case SWIG_RuntimeError:
-    return "RuntimeError";
+    type = "RuntimeError";
+    break;
   case SWIG_IndexError:
-    return "IndexError";
+    type = "IndexError";
+    break;
   case SWIG_TypeError:
-    return "TypeError";
+    type = "TypeError";
+    break;
   case SWIG_DivisionByZero:
-    return "ZeroDivisionError";
+    type = "ZeroDivisionError";
+    break;
   case SWIG_OverflowError:
-    return "OverflowError";
+    type = "OverflowError";
+    break;
   case SWIG_SyntaxError:
-    return "SyntaxError";
+    type = "SyntaxError";
+    break;
   case SWIG_ValueError:
-    return "ValueError";
+    type = "ValueError";
+    break;
   case SWIG_SystemError:
-    return "SystemError";
+    type = "SystemError";
+    break;
   case SWIG_AttributeError:
-    return "AttributeError";
+    type = "AttributeError";
+    break;
   default:
-    return "RuntimeError";
+    type = "RuntimeError";
   }
+  return type;
 }
 
 

@@ -2,49 +2,55 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
-
 %insert("header") %{
 
 SWIGINTERN PyObject*
 SWIG_Python_ErrorType(int code) {
+  PyObject* type = 0;
   switch(code) {
   case SWIG_MemoryError:
-    return PyExc_MemoryError;
+    type = PyExc_MemoryError;
+    break;
   case SWIG_IOError:
-    return PyExc_IOError;
+    type = PyExc_IOError;
+    break;
   case SWIG_RuntimeError:
-    return PyExc_RuntimeError;
+    type = PyExc_RuntimeError;
+    break;
   case SWIG_IndexError:
-    return PyExc_IndexError;
+    type = PyExc_IndexError;
+    break;
   case SWIG_TypeError:
-    return PyExc_TypeError;
+    type = PyExc_TypeError;
+    break;
   case SWIG_DivisionByZero:
-    return PyExc_ZeroDivisionError;
+    type = PyExc_ZeroDivisionError;
+    break;
   case SWIG_OverflowError:
-    return PyExc_OverflowError;
+    type = PyExc_OverflowError;
+    break;
   case SWIG_SyntaxError:
-    return PyExc_SyntaxError;
+    type = PyExc_SyntaxError;
+    break;
   case SWIG_ValueError:
-    return PyExc_ValueError;
+    type = PyExc_ValueError;
+    break;
   case SWIG_SystemError:
-    return PyExc_SystemError;
+    type = PyExc_SystemError;
+    break;
   case SWIG_AttributeError:
-    return PyExc_AttributeError;
+    type = PyExc_AttributeError;
+    break;
   default:
-    return PyExc_RuntimeError;
+    type = PyExc_RuntimeError;
   }
+  return type;
 }
 
-SWIGINTERN void
-SWIG_Python_SetErrorMsg(PyObject *type, const char *mesg) {
-  PyErr_SetString(type, mesg);
+SWIGINTERNINLINE PyObject *
+SWIG_Python_ExceptionType(swig_type_info *desc) {
+  return (desc && desc->clientdata ? (PyObject *)(desc->clientdata) : PyExc_RuntimeError);
 }
-
-SWIGINTERNINLINE void
-SWIG_Python_SetExceptionObj(swig_type_info *desc, PyObject *obj) {
-  PyErr_SetObject((desc && desc->clientdata ? (PyObject *)(desc->clientdata) : PyExc_RuntimeError), obj);
-}
- 
 
 SWIGINTERN void
 SWIG_Python_AddErrorMsg(const char* mesg)
@@ -56,10 +62,11 @@ SWIG_Python_AddErrorMsg(const char* mesg)
   if (PyErr_Occurred()) PyErr_Fetch(&type, &value, &traceback);
   if (value) {
     PyObject *old_str = PyObject_Str(value);
-    Py_XINCREF(type);
     PyErr_Clear();
+    Py_XINCREF(type);
     PyErr_Format(type, "%s %s", PyString_AsString(old_str), mesg);
     Py_DECREF(old_str);
+    Py_DECREF(value);
   } else {
     PyErr_Format(PyExc_RuntimeError, mesg);
   }

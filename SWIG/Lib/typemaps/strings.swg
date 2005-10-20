@@ -184,7 +184,7 @@
 /* throws */
 
 %typemap(throws,noblock=1,fragment=#SWIG_FromCharPtr) Char * {
-  SWIG_exception_obj(0, "$type", SWIG_FromCharPtr($1));
+  SWIG_raise(SWIG_FromCharPtr($1), "$type", 0);
 }
 
 
@@ -327,7 +327,7 @@
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
   while (size && ($1[size - 1] == '\0')) --size;
 %#endif
-  SWIG_exception_obj(0, "$type", SWIG_FromCharPtrAndSize($1, size)); 
+  SWIG_raise(SWIG_FromCharPtrAndSize($1, size), "$type", 0); 
 }
 
 /* -------------------------------------------------------------------
@@ -357,9 +357,8 @@
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
 
 %typemap(throws,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
-  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
-{
-  SWIG_exception_obj(0, "$type", SWIG_FromCharPtrAndSize($1, $1_dim0)); 
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY] {
+  SWIG_raise(SWIG_FromCharPtrAndSize($1, $1_dim0), "$type", 0); 
 }
 
 /* ------------------------------------------------------------
@@ -484,10 +483,11 @@ SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
       if (val) {
 	if (csize) memcpy(val, cptr, csize*sizeof(Char));
 	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
-	if (alloc == SWIG_NEWOBJ) SWIG_delete_array(cptr);
       }
+      if (alloc == SWIG_NEWOBJ) SWIG_delete_array(cptr);
       return SWIG_OK;
     }
+    if (alloc == SWIG_NEWOBJ) SWIG_delete_array(cptr);
   }
   return SWIG_TypeError;
 }

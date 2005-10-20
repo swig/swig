@@ -49,7 +49,7 @@
     $input = from_meth($1_name);
   }
   %typemap(throws,noblock=1,fragment=frag) enum SWIGTYPE {
-    SWIG_exception_obj(0,"$type", from_meth($1));
+    SWIG_raise(from_meth($1),"$type",0);
   }
 %enddef
 

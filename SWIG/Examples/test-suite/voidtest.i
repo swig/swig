@@ -7,7 +7,7 @@ void globalfunc(void) {
 
 class Foo {
 public:
-   Foo() { }
+   Foo(void) { }
    void memberfunc(void) { }
    static void staticmemberfunc(void) { }
 };

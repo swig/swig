@@ -29,37 +29,40 @@
 
 
 /* Runtime API */
-#define SWIG_GetModule(clientdata) SWIG_Ruby_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Ruby_SetModule(pointer)
+
+#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule()	
+#define SWIG_SetModule(clientdata, pointer) 		SWIG_Ruby_SetModule(pointer)
+
+
+/* Error manipulation */
+
+#define SWIG_ErrorType(code)                            SWIG_Ruby_ErrorType(code)               
+#define SWIG_Error(code, msg)            		rb_raise(SWIG_Ruby_ErrorType(code), msg)
+#define SWIG_fail                        		goto fail				 
+
 
 /* Ruby-specific SWIG API */
 
-#define SWIG_InitRuntime()                           SWIG_Ruby_InitRuntime()
-#define SWIG_define_class(ty)                        SWIG_Ruby_define_class(ty)
-#define SWIG_NewClassInstance(value, ty)             SWIG_Ruby_NewClassInstance(value, ty)
-#define SWIG_MangleStr(value)                        SWIG_Ruby_MangleStr(value)
-#define SWIG_CheckConvert(value, ty)                 SWIG_Ruby_CheckConvert(value, ty)
+#define SWIG_InitRuntime()                              SWIG_Ruby_InitRuntime()              
+#define SWIG_define_class(ty)                        	SWIG_Ruby_define_class(ty)		  
+#define SWIG_NewClassInstance(value, ty)             	SWIG_Ruby_NewClassInstance(value, ty)
+#define SWIG_MangleStr(value)                        	SWIG_Ruby_MangleStr(value)		  
+#define SWIG_CheckConvert(value, ty)                 	SWIG_Ruby_CheckConvert(value, ty)	  
 
-/* Error manipulation */
-#define SWIG_ERROR                       -1
-#define SWIG_fail                        goto fail
-#define SWIG_var_fail                    return Qnil
-
-#define SWIG_error(code, msg)            SWIG_Ruby_SetErrorMsg(SWIG_Ruby_ErrorType(code), msg)
-#define SWIG_exception(code, msg)        do { SWIG_error(code, msg); SWIG_fail; } while (0)
-#define SWIG_contract_assert(expr, msg)  if (!(expr)) { SWIG_error(SWIG_RuntimeError, msg); SWIG_fail; } else
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Flags for new pointer objects */
-#define SWIG_TRACK_OBJECTS	 0x4
 
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
+
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* cc-mode */
+#endif
+#endif
+
+/* Flags for new pointer objects */
+#define SWIG_TRACK_OBJECTS	 0x4
 
 typedef struct {
   VALUE klass;
@@ -256,7 +259,7 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int fl
   }
   return SWIG_OK;
 
-type_error:
+ type_error:
   return SWIG_ERROR;
 }
 
@@ -285,5 +288,8 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 }
 
 #ifdef __cplusplus
+#if 0
+{ /* cc-mode */
+#endif
 }
 #endif

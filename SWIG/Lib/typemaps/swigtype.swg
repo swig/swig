@@ -357,19 +357,19 @@
  * ------------------------------------------------------------ */
 
 %typemap(throws,noblock=1) SWIGTYPE {
-  SWIG_exception_obj($&descriptor, "$type", SWIG_NewPointerObj(SWIG_new_copy($1, $ltype),$&descriptor,SWIG_POINTER_OWN));
+  SWIG_raise(SWIG_NewPointerObj(SWIG_new_copy($1, $ltype),$&descriptor,SWIG_POINTER_OWN), "$type", $&descriptor);
 }
 
 %typemap(throws,noblock=1) SWIGTYPE * {
-  SWIG_exception_obj($descriptor, "$type", SWIG_NewPointerObj(SWIG_as_voidptr($1),$descriptor,0));
+  SWIG_raise(SWIG_NewPointerObj(SWIG_as_voidptr($1),$descriptor,0), "$type", $descriptor);
 }
 
 %typemap(throws,noblock=1) SWIGTYPE [ANY] {
-  SWIG_exception_obj($descriptor, "$type", SWIG_NewPointerObj(SWIG_as_voidptr($1),$descriptor,0));
+  SWIG_raise(SWIG_NewPointerObj(SWIG_as_voidptr($1),$descriptor,0), "$type", $descriptor);
 }
 
 %typemap(throws,noblock=1) SWIGTYPE & {
-  SWIG_exception_obj($descriptor, "$type", SWIG_NewPointerObj(SWIG_as_voidptr(&$1),$descriptor,0));
+  SWIG_raise(SWIG_NewPointerObj(SWIG_as_voidptr(&$1),$descriptor,0), "$type", $descriptor);
 }
 
 /* ------------------------------------------------------------

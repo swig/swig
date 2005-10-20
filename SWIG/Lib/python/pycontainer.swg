@@ -142,7 +142,7 @@ namespace swig
 	char msg[1024];
 	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
-	  SWIG_set_errmsg(SWIG_TypeError,swig::type_name<T>());
+	  SWIG_type_error(swig::type_name<T>());
 	}
 	SWIG_Python_AddErrorMsg(msg);
 	SWIG_Python_AddErrorMsg(e.what());
@@ -336,7 +336,7 @@ namespace swig
 	  if (set_err) {
 	    char msg[1024];
 	    snprintf(msg, sizeof(msg), "in sequence element %d of type %s", i, swig::type_name<value_type>());
-	    SWIG_set_errmsg(SWIG_TypeError, msg);
+	    SWIG_Error(SWIG_RuntimeError, msg);
 	  }
 	  return false;
 	}

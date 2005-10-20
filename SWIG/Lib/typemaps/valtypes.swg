@@ -124,7 +124,7 @@
 
 %define SWIG_VALUE_THROWS_TYPEMAP(from_meth,frag,Type...)
   %typemap(throws,noblock=1,fragment=frag) Type {
-    SWIG_exception_obj(0, "Type", from_meth(SWIG_static_cast($1,$basetype)));
+    SWIG_raise(from_meth(SWIG_static_cast($1,Type)), "$type", 0);
   }
 %enddef
 

@@ -7,18 +7,18 @@
 %init %{
 
 #ifdef __cplusplus
-extern "C" {   
+extern "C" {
 #endif
 
 /* Python-specific SWIG API */
 #define SWIG_newvarlink()                             SWIG_Python_newvarlink()
 #define SWIG_addvarlink(p, name, get_attr, set_attr)  SWIG_Python_addvarlink(p, name, get_attr, set_attr)
 #define SWIG_InstallConstants(d, constants)           SWIG_Python_InstallConstants(d, constants)
-
+ 
 /* -----------------------------------------------------------------------------
  * global variable support code.
  * ----------------------------------------------------------------------------- */
-
+ 
 typedef struct swig_globalvar {   
   char       *name;                  /* Name of global variable */
   PyObject *(*get_attr)(void);       /* Return the current value */
@@ -48,6 +48,17 @@ swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags) {
   }
   fprintf(fp," }\n");
   return 0;
+}
+
+SWIGINTERN void
+swig_varlink_delete(swig_varlinkobject *v) {
+  swig_globalvar *var = v->vars;
+  while (var) {
+    swig_globalvar *n = var->next;
+    free(var->name);
+    free(var);
+    var = n;
+  }
 }
 
 SWIGINTERN PyObject *
@@ -92,7 +103,7 @@ swig_varlink_type(void) {
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
       0,                                  /* Itemsize (tp_itemsize) */
-      0,                                  /* Deallocator (tp_dealloc) */ 
+      (destructor) swig_varlink_delete,   /* Deallocator (tp_dealloc) */ 
       (printfunc) swig_varlink_print,     /* Print (tp_print) */
       (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
       (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
@@ -162,6 +173,13 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
   v->vars = gv;
 }
 
+SWIGINTERN PyObject *
+SWIG_globals() {
+  static PyObject *_SWIG_globals = 0; 
+  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
+  return _SWIG_globals;
+}
+
 /* -----------------------------------------------------------------------------
  * constants/methods manipulation
  * ----------------------------------------------------------------------------- */
@@ -185,6 +203,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
     }
     if (obj) {
       PyDict_SetItemString(d, constants[i].name, obj);
+      Py_DECREF(obj);
     }
   }
 }
@@ -233,7 +252,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
       }
     }
   }
-}
+} 
 
 #ifdef __cplusplus
 }
@@ -247,17 +266,16 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 extern "C"
 #endif
 SWIGEXPORT void SWIG_init(void) {
-  static PyObject *SWIG_globals = 0; 
   PyObject *m, *d;
-  if (!SWIG_globals) SWIG_globals = SWIG_newvarlink();
-
+  
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
   
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
   d = PyModule_GetDict(m);
-
+  
   SWIG_InitializeModule(0);
   SWIG_InstallConstants(d,swig_const_table);
+  
 %}
 
