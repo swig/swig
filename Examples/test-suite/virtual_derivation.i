@@ -51,4 +51,17 @@
     // declaration:
     // using A::get_a;
   };
+
+
+
+
+  class IndexReader{
+  public:
+    virtual void norms() = 0;
+  };
+
+  class MultiReader : public IndexReader {
+  protected:
+    MultiReader();
+  };
 %}
