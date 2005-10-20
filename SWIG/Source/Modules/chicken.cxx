@@ -605,7 +605,7 @@ CHICKEN::functionWrapper(Node *n)
                    "C_word func;\n",
                    "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
                    "if (C_swig_is_closurep(func))\n",
-                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
+                   "  ((C_proc4)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
                    "else\n",
                    "  C_kontinue(continuation, resultobj);\n",
                    "}\n", NIL);
@@ -807,7 +807,7 @@ CHICKEN::variableWrapper(Node *n)  {
                    "C_word func;\n",
                    "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
                    "if (C_swig_is_closurep(func))\n",
-                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
+                   "  ((C_proc4)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
                    "else\n",
                    "  C_kontinue(continuation, resultobj);\n",
                    "}\n", NIL);
@@ -993,7 +993,7 @@ CHICKEN::constantWrapper(Node *n)
                    "C_word func;\n",
                    "SWIG_Chicken_FindCreateProxy(func, resultobj)\n",
                    "if (C_swig_is_closurep(func))\n",
-                   "  ((C_proc3)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
+                   "  ((C_proc4)(void *)C_block_item(func, 0))(4,func,continuation,resultobj,C_SCHEME_FALSE);\n",
                    "else\n",
                    "  C_kontinue(continuation, resultobj);\n",
                    "}\n", NIL);

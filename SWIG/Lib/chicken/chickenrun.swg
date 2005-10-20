@@ -61,16 +61,17 @@ extern "C" {
   continuation=(C_word)closure; \
 }
 
-#define SWIG_APPEND_VALUE(obj) \
-  if (obj != C_SCHEME_UNDEFINED) { \
+#define SWIG_APPEND_VALUE(obj) { \
+  C_word val = (C_word)(obj); \
+  if (val != C_SCHEME_UNDEFINED) { \
     C_word *a = C_alloc(C_swig_sizeof_closure(3)); \
     C_word *closure = a; \
     *(a++)=C_CLOSURE_TYPE|3; \
     *(a++)=(C_word)SWIG_Chicken_MultiResultBuild; \
     *(a++)=(C_word)continuation; \
-    *(a++)=(C_word)(obj); \
+    *(a++)=val; \
     continuation=(C_word)closure; \
-  }
+  } }
 
 #define SWIG_Chicken_FindCreateProxy(func,obj) \
   if (C_swig_is_swigpointer(obj)) { \
@@ -357,7 +358,7 @@ static C_word SWIG_Chicken_MultiResultBuild(C_word num, C_word closure, C_word l
   }
 }
 
-C_word SWIG_Chicken_ApplyResults(C_word num, C_word closure, C_word result) {
+static C_word SWIG_Chicken_ApplyResults(C_word num, C_word closure, C_word result) {
   C_apply_values(3,C_SCHEME_UNDEFINED,C_block_item(closure,1),result);
 }
 
