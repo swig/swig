@@ -3005,7 +3005,7 @@ to have ONE <tt>swig_type_info</tt> for each type.  If two modules both use the 
 second module loaded must lookup and use the swig_type_info structure from the module already loaded.
 Because no dynamic memory is used and the circular dependencies of the
 casting information, loading the type information is somewhat tricky, and not explained here.
-A complete description is in the <tt>common.swg</tt> file (and near the top of any generated file).
+A complete description is in the <tt>Lib/swiginit.swg</tt> file (and near the top of any generated file).
 </p>
 
 <p>
@@ -3123,47 +3123,9 @@ interface file.
 </p>
 
 <p>
-A final problem related to the type-checker is the conversion of types
-in code that is external to the SWIG wrapper file.  This situation is
-somewhat rare in practice, but occasionally a programmer may want to
-convert a typed pointer object into a C++ pointer somewhere else in
-their program.  The only problem is that the SWIG type descriptor
-objects are only defined in the wrapper code and not normally
-accessible.
-</p>
-
-<p>
-To correctly deal with this situation, the following technique can be used:
-</p>
-
-<div class="code">
-<pre>
-
-/* Some non-SWIG file */
-
-/* External declarations */
-extern void *SWIG_TypeQuery(const char *);
-extern int   SWIG_ConvertPtr(PyObject *, void **ptr, void *descr);
-
-void foo(PyObject *o) {
-   Foo *f;
-   static void *descr = 0;
-   if (!descr) {
-      descr = SWIG_TypeQuery("Foo *");    /* Get the type descriptor structure for Foo */
-      assert(descr);
-   }
-   if ((SWIG_ConvertPtr(o,(void **) &amp;f, descr) == -1)) {
-       abort();
-   }
-   ...
-}
-</pre>
-</div>
-
-<p>
 Further details about the run-time type checking can be found in the documentation for
 individual language modules.   Reading the source code may also help.  The file
-<tt>swigrun.swg</tt> in the SWIG library contains all of the source code for 
+<tt>Lib/swigrun.swg</tt> in the SWIG library contains all of the source code for 
 type-checking.  This code is also included in every generated wrapped file so you
 probably just look at the output of SWIG to get a better sense for how types are
 managed.
