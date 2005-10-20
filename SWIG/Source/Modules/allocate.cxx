@@ -310,7 +310,9 @@ class Allocate : public Dispatcher {
     }
     List *abstract = Getattr(base,"abstract");
     if (abstract) {
-      for (int i = 0; i < Len(abstract); i++) {
+      int dabstract = 0;
+      int len = Len(abstract);
+      for (int i = 0; i < len; i++) {
 	Node *nn = Getitem(abstract,i);
 	String *name = Getattr(nn,"name");
 	if (!name) continue;
@@ -326,17 +328,19 @@ class Allocate : public Dispatcher {
 	Delete(base_decl);
 
 	if (!dn) {
-	  List *abstract = Getattr(n,"abstract");
-	  if (!abstract) {
-	    abstract = NewList();
-	    Setattr(n,"abstract",abstract);
-	  } else {
-	    if (!Getattr(n,"abstract:firstnode"))
-	      Setattr(n,"abstract:firstnode",nn);
+	  List *nabstract = Getattr(n,"abstract");
+	  if (!nabstract) {
+	    nabstract = NewList();
+	    Setattr(n,"abstract",nabstract);
 	  }
-	  Append(abstract,nn);
+	  Append(nabstract,nn);
+	  if (!Getattr(n,"abstract:firstnode")) {
+	    Setattr(n,"abstract:firstnode",nn);
+	  }
+	  dabstract = base != n;
 	}
       }
+      if (dabstract) return 1;
     }
     List *bases = Getattr(base,"allbases");
     if (!bases) return 0;
@@ -537,7 +541,6 @@ public:
     /* Check if the class is abstract via inheritance.   This might occur if a class didn't have
        any pure virtual methods of its own, but it didn't implement all of the pure methods in
        a base class */
-    
     if (!Getattr(n,"abstract") && is_abstract_inherit(n)) {
       if (((Getattr(n,"allocate:public_constructor") || (!GetFlag(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
 	if (!GetFlag(n,"feature:notabstract")) {
