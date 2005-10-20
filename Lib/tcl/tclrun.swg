@@ -130,7 +130,6 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) {
-      Tcl_ResetResult(interp);
       return SWIG_ERROR;
     }
     if (flags & SWIG_POINTER_DISOWN) {
@@ -184,16 +183,6 @@ SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig
 
  type_error:
 
-  if (flags) {
-    if (ty) {
-      Tcl_SetResult(interp, (char *) "Type error. Expected ", TCL_STATIC);
-      Tcl_AppendElement(interp, (char *) ty->name);
-      return SWIG_ERROR;
-    } else {
-      Tcl_SetResult(interp, (char *) "Expected packed data.", TCL_STATIC);
-      return SWIG_ERROR;
-    }
-  }
   return SWIG_ERROR;
 }
 
