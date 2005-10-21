@@ -336,5 +336,4 @@ PIKE_MODULE_INIT
 %}
 
 /* pike keywords */
-/* please test and activate */
-//%include "pikekw.swg"
+%include "pikekw.swg"
