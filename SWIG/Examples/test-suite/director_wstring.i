@@ -37,11 +37,11 @@ struct A
   std::vector<std::wstring> m_strings;
 
 
-  virtual void process_text(const char *text) 
+  virtual void process_text(const wchar_t *text) 
   {
   }
 
-  void call_process_func() { process_text("hello"); }
+  void call_process_func() { process_text(L"hello"); }
  };
  
  %}
