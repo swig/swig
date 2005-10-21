@@ -1155,19 +1155,19 @@ public:
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
-	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+	Printf(f->code,"if ((argc < %d) || (argc > %d)) ", numreq-start, numarg-start);
       } else {
-	Printf(f->code,"if (argc < %d)\n", numreq-start);
+	Printf(f->code,"if (argc < %d) ", numreq-start);
       }
-      Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
+      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); return Qnil;}\n",numreq-start);
     } else {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
-	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+	Printf(f->code,"if ((argc < %d) || (argc > %d)) ", numreq-start, numarg-start);
       } else {
-	Printf(f->code,"if (argc < %d)\n", numreq-start);
+	Printf(f->code,"if (argc < %d) ", numreq-start);
       }
-      Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
+      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); return Qnil;}\n",numreq-start);
     }
 
     /* Now walk the function parameter list and generate code */
