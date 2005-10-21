@@ -81,4 +81,7 @@
 
   int foo_kw(int from = 1, int except = 2) {return from + except; }
 
+
+  int foo_nu(int from = 1, int = 0) {return from; }
+
 %}
