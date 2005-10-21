@@ -293,5 +293,4 @@
 
 
 /* php keywords */
-/* please test and activate */
-//%include "phpkw.swg"
+%include "phpkw.swg"
