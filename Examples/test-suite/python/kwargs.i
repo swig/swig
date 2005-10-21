@@ -46,6 +46,7 @@
 // Functions
 %inline %{
   int foo(int a = 1, int b = 0) {return a + b; }
+
   
   template<typename T> T templatedfunction(T a = 1, T b = 0) { return a + b; }
 %}
@@ -71,4 +72,13 @@
     return x;
   }
   
+%}
+
+// Functions with keywords
+%warnfilter(-314);
+%inline %{
+  /* silently rename the parameter names in python */
+
+  int foo_kw(int from = 1, int except = 2) {return from + except; }
+
 %}

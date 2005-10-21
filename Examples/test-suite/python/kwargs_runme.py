@@ -42,3 +42,8 @@ if foo(a=1,b=2) != 3:
 if foo(b=2) != 3:
   raise RuntimeError
 
+
+#Funtions with keywords
+
+if foo_kw(_from=2) != 4:
+  raise RuntimeError

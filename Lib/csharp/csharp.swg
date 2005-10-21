@@ -640,8 +640,7 @@ using System.Runtime.InteropServices;
 %apply unsigned long { size_t };
 
 /* csharp keywords */
-/* please test and activate */
-//%include "csharpkw.swg"
+%include "csharpkw.swg"
 
 // Default enum handling
 %include "enums.swg"

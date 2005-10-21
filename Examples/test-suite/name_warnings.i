@@ -10,7 +10,7 @@
 */
 
 /* activate all the name warnings */
-%warnfilter(+315,+321,-403);
+%warnfilter(+314,+321,-403);
 
 %{
 #ifdef max
@@ -53,6 +53,15 @@
     B() {}
   };
   
+  
 }
 
 %template(max_i) max<int>;
+
+
+%inline {
+  /* silently rename the parameter names in csharp/java */
+
+  double foo(double in, double out) { return 1.0; }
+  double bar(double native, bool boolean) { return 1.0; }
+}

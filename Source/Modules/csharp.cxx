@@ -14,6 +14,7 @@ char cvsroot_csharp_cxx[] = "$Header$";
 
 #include <limits.h> // for INT_MAX
 #include "swigmod.h"
+#include "cparse.h"
 #include <ctype.h>
 
 
@@ -2354,7 +2355,8 @@ class CSHARP : public Language {
           count++;
         plist = nextSibling(plist);
       }
-      arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(pn);
+      String *wrn = pn ? Swig_name_object_get(Swig_cparse_namewarn(),0,pn,0) : 0;
+      arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d",arg_num) : Copy(pn);
     }
 
     return arg;

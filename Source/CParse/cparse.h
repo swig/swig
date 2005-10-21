@@ -43,6 +43,7 @@ extern int       yylex();
 /* parser.y */
 extern SwigType *Swig_cparse_type(String *);
 extern Node     *Swig_cparse(File *);
+extern Hash     *Swig_cparse_namewarn();
 extern Hash     *Swig_cparse_features();
 extern void      SWIG_cparse_set_compact_default_args(int defargs);
 extern void      SWIG_cparse_template_reduce(int treduce);
