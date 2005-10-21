@@ -1270,10 +1270,20 @@ public:
       if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
 
       /* Keyword argument handling */
-      if (Len(pn)) {
+      String *wrn = pn ? Swig_name_object_get(Swig_cparse_namewarn(),0,pn,0) : 0; 
+      if (!wrn && Len(pn)) {
 	Printf(kwargs,"(char *) \"%s\",", pn);
       } else {
-	Printf(kwargs,"\"arg%d\",", i+1);
+	if (wrn) {
+	  /*
+	    we change the parameter name just a little.
+	    do we need to emit a warning?
+	  */
+	  Printf(kwargs,"(char *) \"_%s\",", pn);
+	  Swig_warning(0,Getfile(n),Getline(n), "%s, renaming parameter to _%s\n", wrn, pn);
+	} else {
+	  Printf(kwargs,"(char *)\"arg%d\",", i+1);
+	}
       }
 
       /* Look for an input typemap */
@@ -1317,7 +1327,7 @@ public:
     /* finish argument marshalling */
     Printf(kwargs," NULL }");
     if (allow_kwargs) {
-      Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NIL);
+      Printv(f->locals,tab4, "char *  kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     Printf(parse_args,":%s\"", iname);

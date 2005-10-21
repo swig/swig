@@ -1192,8 +1192,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply unsigned long { size_t };
 
 /* java keywords */
-/* please test and activate */
-//%include "javakw.swg"
+%include "javakw.swg"
 
 // Default enum handling
 %include "enumtypesafe.swg"

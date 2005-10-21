@@ -199,6 +199,11 @@ static Hash   *features_hash = 0;
 
 static String *resolve_node_scope(String *cname);
 
+Hash *Swig_cparse_namewarn() {
+  if (!namewarn_hash) namewarn_hash = NewHash();
+  return namewarn_hash;
+}
+
 Hash *Swig_cparse_features() {
   if (!features_hash) features_hash = NewHash();
   return features_hash;
@@ -271,21 +276,20 @@ static void rename_add(const char *name, SwigType *decl, const char *newname, Pa
 
 static void namewarn_add(const char *name, SwigType *decl, const char *warning) {
   String *nname;
-  if (!namewarn_hash) namewarn_hash = NewHash();
   if (Namespaceprefix) {
     nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
 
-  Swig_name_object_set(namewarn_hash,nname,decl,NewString(warning));
+  Swig_name_object_set(Swig_cparse_namewarn(),nname,decl,NewString(warning));
   Delete(nname);
 }
 
 static void rename_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
   Swig_name_object_inherit(rename_hash,base,derived);
-  Swig_name_object_inherit(namewarn_hash,base,derived);
+  Swig_name_object_inherit(Swig_cparse_namewarn(),base,derived);
   Swig_name_object_inherit(features_hash,base,derived);
 }
 
@@ -339,7 +343,7 @@ static String *make_unnamed() {
 /* Return the node name when it requires to emit a name warning */
 static String *name_warning(Node *n,String *name,SwigType *decl) {
   /* Return in the obvious cases */
-  if (!namewarn_hash || !name || !need_name_warning(n)) {
+  if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
     return 0;
   } else {
     String *access = Getattr(n,"access");	
@@ -350,7 +354,7 @@ static String *name_warning(Node *n,String *name,SwigType *decl) {
   }
   
   /* Check to see if the name is in the hash */
-  return Swig_name_object_get(namewarn_hash,Namespaceprefix,name,decl);
+  return Swig_name_object_get(Swig_cparse_namewarn(),Namespaceprefix,name,decl);
 }
 
 /* Return if the node is a friend declaration */
