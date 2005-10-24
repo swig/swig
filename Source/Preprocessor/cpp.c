@@ -751,8 +751,11 @@ expand_macro(String_or_char *name, List *args)
     g = Preprocessor_parse(e);
 
     /* Drop the macro in place, but with a marker around it */
+#if 0
     Printf(f,"/*@%s,%d,%s@*/%s/*@@*/", Getfile(macro), Getline(macro), name, g);
-
+#else
+    Printf(f,"%s", g);
+#endif
     /*    Printf(f," }\n"); */
     Delete(g);
     Delete(e);
