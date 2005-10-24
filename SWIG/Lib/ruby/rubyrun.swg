@@ -12,19 +12,19 @@
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Ruby_NewPointerObj(ptr, type, flags)
 
 /* for raw packed data */
-#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)     SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
-#define SWIG_NewPackedObj(ptr, sz, type, flags)         SWIG_Ruby_NewPackedObj(ptr, sz, type)
+#define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
+#define SWIG_NewPackedObj(ptr, sz, type)                SWIG_Ruby_NewPackedObj(ptr, sz, type)
 
 /* for class or struct pointers */
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Ruby_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_Ruby_NewPointerObj(ptr, type, flags)
 
 /* for C or C++ function pointers */
-#define SWIG_ConvertFunctionPtr(obj, pptr, type, flags) SWIG_Ruby_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Ruby_ConvertPtr(obj, pptr, type, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Ruby_NewPointerObj(ptr, type, 0)
 
 /* for C++ member pointers, ie, member methods */
-#define SWIG_ConvertMember(obj, ptr, sz, ty, flags)     SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
+#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Ruby_NewPackedObj(ptr, sz, type)
 
 
@@ -44,7 +44,7 @@
 /* Ruby-specific SWIG API */
 
 #define SWIG_InitRuntime()                              SWIG_Ruby_InitRuntime()              
-#define SWIG_define_class(ty)                        	SWIG_Ruby_define_class(ty)		  
+#define SWIG_define_class(ty)                        	SWIG_Ruby_define_class(ty)
 #define SWIG_NewClassInstance(value, ty)             	SWIG_Ruby_NewClassInstance(value, ty)
 #define SWIG_MangleStr(value)                        	SWIG_Ruby_MangleStr(value)		  
 #define SWIG_CheckConvert(value, ty)                 	SWIG_Ruby_CheckConvert(value, ty)	  
@@ -243,7 +243,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
 
 /* Convert a packed value value */
 SWIGRUNTIME int
-SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char  *c;
 

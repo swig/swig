@@ -12,7 +12,7 @@
 %fragment(SWIG_From_frag(Type),"header")
 {
 SWIGINTERNINLINE PyObject*
-SWIG_From(Type)(SWIG_cplusplus(const Type&, Type) c)
+SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
 {
   return PyComplex_FromDoubles(Real(c), Imag(c));
 }
@@ -46,7 +46,6 @@ SWIG_AsVal(Type) (PyObject *o, Type* val)
 /* the float case */
 %define %swig_cplxflt_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
-	  fragment="SWIG_CheckDoubleInRange",
           fragment=SWIG_AsVal_frag(float)) {
 SWIGINTERN int
 SWIG_AsVal(Type)(PyObject *o, Type *val)
@@ -55,11 +54,11 @@ SWIG_AsVal(Type)(PyObject *o, Type *val)
     double re = PyComplex_RealAsDouble(o);
     double im = PyComplex_ImagAsDouble(o);
     if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
-      if (val) *val = Constructor(SWIG_numeric_cast(re, float),
-				  SWIG_numeric_cast(im, float));
+      if (val) *val = Constructor(%numeric_cast(re, float),
+				  %numeric_cast(im, float));
       return SWIG_OK;
     } else {
-      return SWIG_TypeError;
+      return SWIG_OverflowError;
     }    
   } else {
     float re;    

@@ -73,3 +73,37 @@ const int* globalRet1() {return &GlobalInt;}
 int* const globalRet2() {return &GlobalInt;}
 
 %}
+
+
+%{
+  struct A
+  {
+  };
+%}
+
+
+%inline 
+{
+  typedef const A* Acptr;
+
+  Acptr opaque(Acptr aptr) {
+    return aptr;
+  }
+
+  struct B
+  {
+    const A ca;
+    A a;
+    A* ap;
+    const A* cap;
+    Acptr acptr;  
+  };
+
+  const B* bar(const B* b) {
+    return b;
+  }
+
+  B const*& cbar(B const*& b) {
+    return b;
+  }
+}

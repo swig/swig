@@ -1,5 +1,3 @@
-%include <typemaps/swigtype.swg>
-
 %typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
 %typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;

@@ -33,11 +33,9 @@
 
   The plain implicit macro takes care of simple type list. If it doesn't
   work because you are passing template types with commas, then use
-  the %implicit_{1,2,3} versions and/or the SWIG_arg macro.
+  the %implicit_{1,2,3} versions and/or the %arg macro.
 
 */
-
-%check_swig_object()
 
 %define %implicit_type(Type...)
 %traits_swigtype(Type);
@@ -49,7 +47,7 @@
   if (swig::asval<Type >(obj, 0) == SWIG_OK) {
     Type _v;
     swig::asval<Type >(obj, &_v);
-    if (val) *val = new value_type(_v);
+    if (val) *val = %new_copy(_v, value_type);
     return SWIG_NEWOBJ;
   }
 %enddef
@@ -86,7 +84,7 @@ namespace swig {
 }
 %}
 
-%typemap_traits_ptr(SWIG_CCode(POINTER),Type);
+%typemap_traits_ptr(%checkcode(POINTER),Type);
 %enddef
 
 /* implicit_1 */
@@ -121,7 +119,7 @@ namespace swig {
 }
 %}
 
-%typemap_traits_ptr(SWIG_CCode(POINTER),Type);
+%typemap_traits_ptr(%checkcode(POINTER),Type);
 
 %enddef
 
@@ -159,7 +157,7 @@ namespace swig {
 }
 %}
 
-%typemap_traits_ptr(SWIG_CCode(POINTER),Type);
+%typemap_traits_ptr(%checkcode(POINTER),Type);
 %enddef
 
 
@@ -200,5 +198,5 @@ namespace swig {
 }
 %}
 
-%typemap_traits_ptr(SWIG_CCode(POINTER),Type);
+%typemap_traits_ptr(%checkcode(POINTER),Type);
 %enddef

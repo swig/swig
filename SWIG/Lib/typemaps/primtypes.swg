@@ -1,9 +1,40 @@
 /* ------------------------------------------------------------
- * typemap for primitive type with no pointer representation 
+ * Basic fragments derived from long and double types
  * ------------------------------------------------------------ */
 
-%define %typemap_primitive(Code, Type...)
-%typemap_asvalfromn(SWIG_arg(Code), Type);
+/* signed/unsigned char */
+
+%numeric_slong(signed char,     "<limits.h>", SCHAR_MIN, SCHAR_MAX)
+%numeric_ulong(unsigned char,   "<limits.h>", UCHAR_MAX)
+
+/* short/unsigned short */
+
+%numeric_slong(short,           "<limits.h>", SHRT_MIN, SHRT_MAX)
+%numeric_ulong(unsigned short,  "<limits.h>", USHRT_MAX)
+
+/* int/unsigned int */
+
+%numeric_slong(int,             "<limits.h>", INT_MIN, INT_MAX)
+%numeric_ulong(unsigned int,    "<limits.h>", UINT_MAX)
+
+/* signed/unsigned wchar_t */
+
+#ifdef __cplusplus
+%numeric_slong(signed wchar_t,   "<wchar.h>", WCHAR_MIN, WCHAR_MAX)
+%numeric_ulong(unsigned wchar_t, "<wchar.h>", UWCHAR_MAX)
+#endif
+
+/* float */
+
+%numeric_double(float,           "<float.h>", -FLT_MAX, FLT_MAX)
+
+
+/* ------------------------------------------------------------
+ * typemap macro for primitive types with asval/from methods
+ * ------------------------------------------------------------ */
+
+%define %typemaps_primitive(Code, Type)
+  %typemaps_asvalfromn(%arg(Code), Type);
 %enddef
 
 /* ------------------------------------------------------------
@@ -14,7 +45,7 @@
 
 %define _apply_macro(macro, arg2, arg1...)
 #if #arg1 != ""
-  macro(SWIG_arg(arg1),arg2);
+  macro(%arg(arg1),arg2);
 #else
   macro(arg2);
 #endif
@@ -53,80 +84,27 @@ _apply_macro(Macro, std::complex<double>, __VA_ARGS__);
 %enddef
 
 %define %apply_checkctypes(Macro)
-Macro(SWIG_CCode(BOOL),    bool);
-Macro(SWIG_CCode(INT8),    signed char);
-Macro(SWIG_CCode(UINT8),   unsigned char);
-Macro(SWIG_CCode(INT16),   short);
-Macro(SWIG_CCode(UINT16),  unsigned short);
-Macro(SWIG_CCode(INT32),   int);
-Macro(SWIG_CCode(UINT32),  unsigned int);
-Macro(SWIG_CCode(INT64),   long);
-Macro(SWIG_CCode(UINT64),  unsigned long);
-Macro(SWIG_CCode(INT128),  long long);
-Macro(SWIG_CCode(UINT128), unsigned long long);
-Macro(SWIG_CCode(FLOAT),   float);
-Macro(SWIG_CCode(DOUBLE),  double);
-Macro(SWIG_CCode(CHAR),    char);
-Macro(SWIG_CCode(UNICHAR), wchar_t);
+Macro(%checkcode(BOOL),    bool);
+Macro(%checkcode(INT8),    signed char);
+Macro(%checkcode(UINT8),   unsigned char);
+Macro(%checkcode(INT16),   short);
+Macro(%checkcode(UINT16),  unsigned short);
+Macro(%checkcode(INT32),   int);
+Macro(%checkcode(UINT32),  unsigned int);
+Macro(%checkcode(INT64),   long);
+Macro(%checkcode(UINT64),  unsigned long);
+Macro(%checkcode(INT128),  long long);
+Macro(%checkcode(UINT128), unsigned long long);
+Macro(%checkcode(FLOAT),   float);
+Macro(%checkcode(DOUBLE),  double);
+Macro(%checkcode(CHAR),    char);
+Macro(%checkcode(UNICHAR), wchar_t);
 %enddef
-
 
 
 /* ------------------------------------------------------------
- * common fragments and macro helpers
+ * Apply the primitive typemap for all the types with checkcode
  * ------------------------------------------------------------ */
 
-
-%fragment("<limits.h>","header") %{
-#include <limits.h>
-%}
-
-%fragment("<wchar.h>","header") %{
-#include <wchar.h>
-%}
-
-%fragment("<float.h>","header") %{
-#include <float.h>
-%}
-
-/* Macros for derived types */
-
-%define %derived_type_from(Base, Type)
-%fragment(SWIG_From_frag(Type),"header",
-	  fragment=SWIG_From_frag(Base)) {
-  SWIG_define(SWIG_From_dec(Type),  SWIG_From_dec(Base))
-}
-%enddef
-
-%define %derived_type_asval(Base, Type, Frag, OverflowCond)
-%check_swig_object()
-
-%fragment(SWIG_AsVal_frag(Type),"header",
-	  fragment=Frag,
-	  fragment=SWIG_AsVal_frag(Base)) {
-SWIGINTERN int
-SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
-{
-  Base v;
-  int res = SWIG_AsVal(Base)(obj, &v);
-  if (res == SWIG_OK) {
-    if (OverflowCond) {
-      return SWIG_OverflowError;
-    } else {
-      if (val) *val = SWIG_numeric_cast(v, Type);
-      return SWIG_OK;
-    }
-  }  
-  return res;
-}
-}
-%enddef
-
-%define %signed_derived_type_asval(Base, Type, Frag, Min, Max)
-%derived_type_asval(Base, Type, Frag, (v < Min || v > Max))
-%enddef
-
-%define %unsigned_derived_type_asval(Base, Type, Frag, Max)
-%derived_type_asval(Base, Type, Frag, (v > Max))
-%enddef
+%apply_checkctypes(%typemaps_primitive);
 

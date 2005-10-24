@@ -50,7 +50,7 @@ SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_TCL_BINARY:
-      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype),0);
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
       break;
     default:
       obj = 0;

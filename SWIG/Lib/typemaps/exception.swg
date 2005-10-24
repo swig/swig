@@ -1,13 +1,29 @@
 // This SWIG library file provides language independent exception handling
 %include <typemaps/swigmacros.swg>
 
+
+/* macros for error manipulation */
+#define %nullref_fmt()                    "invalid null reference "		   
+#define %varfail_fmt(_type,_name)         "in variable '"_name"' of type '"_type"'"  	 		   
+#define %argfail_fmt(_type,_argn)         "in argument " #_argn" of type '" _type"'" 	 		   
+#define %outfail_fmt(_type)               "in output value of type '"_type"'"	   
+#define %argnullref_fmt(_type, _argn)     %nullref_fmt() %argfail_fmt(_type, _argn)  
+#define %varnullref_fmt(_type, _name)     %nullref_fmt() %varfail_fmt(_type, _name)  		   
+#define %outnullref_fmt(_type)            %nullref_fmt() %outfail_fmt(_type)         
+
+/* setting an error */
+#define %error(code,msg...)               SWIG_Error(code, msg)
+#define %type_error(msg...)               SWIG_Error(SWIG_TypeError,  msg)
+
+
+
 %insert("runtime") {
 
-  SWIG_define(SWIG_exception(code, msg),        
-	      SWIG_block(SWIG_error(code, msg); SWIG_fail))
+  %define_as(SWIG_exception(code, msg),        
+	      %block(%error(code, msg); SWIG_fail))
 
-  SWIG_define(SWIG_contract_assert(expr, msg),  
-	      if (!(expr)) { SWIG_error(SWIG_RuntimeError, msg); SWIG_fail; } else)
+  %define_as(SWIG_contract_assert(expr, msg),  
+	      if (!(expr)) { %error(SWIG_RuntimeError, msg); SWIG_fail; } else)
 
 }
 

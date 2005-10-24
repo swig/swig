@@ -38,3 +38,47 @@ rescue TypeError
 end
 
 raise RuntimeError if fail != 1
+
+
+raise RuntimeError if val_double_2(1.0) != 4.0
+raise RuntimeError if val_double_2(1) != 4
+raise RuntimeError if val_double_2(1,1) != 2
+
+fail = 0
+begin
+  val_double_2("1.0",1.0)
+rescue 
+  fail = 1
+end
+raise RuntimeError if fail != 1
+
+
+fail = 0
+begin
+  val_double_2(1.0,"1.0")
+rescue 
+  fail = 1
+end
+raise RuntimeError if fail != 1
+
+
+raise RuntimeError if val_float_2(1.0) != 4.0
+raise RuntimeError if val_float_2(1) != 4
+raise RuntimeError if val_float_2(1,1) != 2
+
+fail = 0
+begin
+  val_float_2("1.0",1.0)
+rescue 
+  fail = 1
+end
+raise RuntimeError if fail != 1
+
+
+fail = 0
+begin
+  val_float_2(1.0,"1.0")
+rescue 
+  fail = 1
+end
+raise RuntimeError if fail != 1

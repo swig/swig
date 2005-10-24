@@ -25,7 +25,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
     if (isunicode) {
       int len = PyUnicode_GetSize(obj);
       if (cptr) {
-	*cptr = SWIG_new_array(len + 1, wchar_t);
+	*cptr = %new_array(len + 1, wchar_t);
 	PyUnicode_AsWideChar((PyUnicodeObject *)obj, *cptr, len);
 	(*cptr)[len] = 0;
       }
@@ -45,10 +45,10 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 {
   if (carray) {
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(SWIG_const_cast(carray,wchar_t *), 
+      return SWIG_NewPointerObj(%const_cast(carray,wchar_t *), 
 				SWIG_TypeQuery("wchar_t *"), 0);
     } else {
-      return PyUnicode_FromWideChar(carray, SWIG_numeric_cast(size,int));
+      return PyUnicode_FromWideChar(carray, %numeric_cast(size,int));
     }
   } else {
     Py_INCREF(Py_None);
@@ -57,10 +57,4 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 }
 }
 
-/* ------------------------------------------------------------
- *  The plain wchar_t * handling
- * ------------------------------------------------------------ */
-
-%include <typemaps/strings.swg>
-%typemap_string(wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, wcslen);
 

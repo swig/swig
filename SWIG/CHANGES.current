@@ -1,6 +1,63 @@
 Version 1.3.27 (October 15, 2005)
 =================================
 
+10/24/2005: mmatus
+
+	    - Perl uses now the unified typemap libray.
+
+	    - Changes in ruby to use the $track option in typemaps.
+
+	    - Changes in the unified typemap library to follow the
+	      convention that all macros that are not used in the
+	      C/C++ side starts with %, such as
+
+	           %delete
+		   %new_array
+
+              etc.
+	      
+	    - Documenting fragments, see fragments.swg.
+
+	    - Cleaner way to use the unified typemap library, include
+	      just <typemaps/swigtypes.swg>.
+
+	      Check some of the supported languages: perl, tcl, ruby,
+	      python.
+
+	      Always start with the head file, such as
+
+	         python/python.swg
+	         tcl/tcl8.swg
+	         ruby/ruby.swg
+	         perl5/perl5.swg
+
+              and the principal file that invokes the unified library, such as
+
+	         python/pytypemaps.swg	    
+	         tcl/tcltypemaps.swg	    
+	         ruby/rubytypemaps.swg	    
+	         perl/perltypemaps.swg	    
+	    
+	      The file that provide the specialization for each
+	      language are the one that provides the basic types:
+
+	         python/pyprimtypes.swg	
+	         ruby/rubyprimtypes.swg	
+	         tcl/tclprimtypes.swg	
+	         perl5/perlprimtypes.swg
+
+	      and the string manipulation:  	 
+	    
+	         python/pystrings.swg	
+	         ruby/rubystrings.swg	
+	         tcl/tclstrings.swg	
+	         perl5/perlstrings.swg
+
+		 
+	      The rest fo the files, such as carray.i, are mostly one 
+	      line files that include the proper typemap library
+	      version.
+
 10/23/2005: wuzzeb
             Chicken:
               + pointers to member functions finally work properly

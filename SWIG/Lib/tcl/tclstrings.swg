@@ -24,13 +24,8 @@ SWIG_AsCharPtrAndSize(Tcl_Obj *obj, char** cptr, size_t* psize, int *alloc)
 SWIGINTERNINLINE Tcl_Obj *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  return (size < INT_MAX) ? Tcl_NewStringObj(carray, SWIG_numeric_cast(size,int)) : NULL;
+  return (size < INT_MAX) ? Tcl_NewStringObj(carray, %numeric_cast(size,int)) : NULL;
 }
 }
 
-/* ------------------------------------------------------------
- *  The plain char * handling
- * ------------------------------------------------------------ */
 
-%include <typemaps/strings.swg>
-%typemap_string(char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, strlen)

@@ -142,7 +142,7 @@ namespace swig
 	char msg[1024];
 	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<T>());
+	  %type_error(swig::type_name<T>());
 	}
 	SWIG_Python_AddErrorMsg(msg);
 	SWIG_Python_AddErrorMsg(e.what());
@@ -371,7 +371,7 @@ namespace swig
 %enddef
 
 %define %swig_sequence_methods_common(Sequence...)
-  %swig_container_methods(SWIG_arg(Sequence))
+  %swig_container_methods(%arg(Sequence))
   %fragment("PySequence_Base");
 
   %extend {
@@ -402,7 +402,7 @@ namespace swig
 %enddef
 
 %define %swig_sequence_methods(Sequence...)
-  %swig_sequence_methods_common(SWIG_arg(Sequence))
+  %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
@@ -419,7 +419,7 @@ namespace swig
 %enddef
 
 %define %swig_sequence_methods_val(Sequence...)
-  %swig_sequence_methods_common(SWIG_arg(Sequence))
+  %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));

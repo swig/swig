@@ -16,14 +16,14 @@ SWIG_AsArgcArgv(PyObject* input,
     list = PyList_Check(input);
     if (list || PyTuple_Check(input)) {
       *argc = list ? PyList_Size(input) : PyTuple_Size(input);
-      argv = SWIG_new_array(*argc + 1, char*);
+      argv = %new_array(*argc + 1, char*);
       *owner = 1;
       for (; i < *argc; ++i) {
 	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
 	char *cptr = 0; size_t size = 0; int alloc = 0;
 	if (SWIG_AsCharPtrAndSize(obj, &cptr, &size, &alloc) == SWIG_OK) {
 	  if (cptr && size) {
-	    argv[i] = (alloc == SWIG_NEWOBJ) ? cptr : SWIG_new_copy_array(cptr, size, char);
+	    argv[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, size, char);
 	  } else {
 	    argv[i] = 0;
 	  }
@@ -58,7 +58,7 @@ SWIG_AsArgcArgv(PyObject* input,
   argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
   if (!argv) { 
     $1 = 0; $2 = 0;
-    SWIG_arg_fail(SWIG_TypeError, "int ARGC, char **ARGV", $argnum);
+    %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV", $argnum);
   } else {  
     $1 = ($1_ltype) argc;
     $2 = ($2_ltype) argv;
@@ -69,9 +69,9 @@ SWIG_AsArgcArgv(PyObject* input,
   if (owner$argnum) {
     size_t i = argc$argnum;
     while (i) {
-      SWIG_delete_array(argv$argnum[--i]);
+      %delete_array(argv$argnum[--i]);
     }
-    SWIG_delete_array(argv$argnum);
+    %delete_array(argv$argnum);
   }
 }
 

@@ -71,9 +71,9 @@
   NOTE: remember that if the type contains commas, such as
   'std::pair<int,int>', you need to use the macro like:
 
-  %attribute_ref(A, SWIG_arg(std::pair<int,int>), pval);
+  %attribute_ref(A, %arg(std::pair<int,int>), pval);
 
-  where SWIG_arg() 'normalize' the type to be understood as a single
+  where %arg() 'normalize' the type to be understood as a single
   argument, otherwise the macro will get confused (see the 'cpp'
   documentation).
 
@@ -115,10 +115,10 @@
 %ignore Class::get;
 #if #__VA_ARGS__ != ""
   %ignore Class::__VA_ARGS__;
-  %_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
+  %_attribute(%arg(Class), Wrap, %arg(type),
 	      attr, _t->get(), _t->__VA_ARGS__(_val)) 
 #else
-  %_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
+  %_attribute(%arg(Class), Wrap, %arg(type),
 	      attr, _t->get(), 
 	      fprintf(stderr,"'attr' is a read-only attribute"))
 #endif
@@ -127,15 +127,15 @@
 %define %_attribute_ref_T(Class, Wrap, type, refname, attr) 
 %ignore Class::refname();
 %ignore Class::refname() const;
-%_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
+%_attribute(%arg(Class), Wrap, %arg(type),
 	    attr, _t->refname(), _t->refname() = _val) 
 %enddef
 
 %define %attribute_ref_T(Class, Wrap, type, refname, ...) 
 #if #__VA_ARGS__ == ""
-  %_attribute_ref_T(SWIG_arg(Class), Wrap, SWIG_arg(type), refname, refname) 
+  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, refname) 
 #else
-  %_attribute_ref_T(SWIG_arg(Class), Wrap, SWIG_arg(type), refname, __VA_ARGS__)
+  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, __VA_ARGS__)
 #endif
 %enddef
 
@@ -144,9 +144,9 @@
 //
 
 %define %attribute(Class, type, attr, get, ...)
- %attribute_T(SWIG_arg(Class), SWIG_Mangle(Class), SWIG_arg(type), attr, get, __VA_ARGS__)
+ %attribute_T(%arg(Class), %mangle(Class), %arg(type), attr, get, __VA_ARGS__)
 %enddef
 
 %define %attribute_ref(Class, type, refname, ...)
- %attribute_ref_T(SWIG_arg(Class), SWIG_Mangle(Class), SWIG_arg(type), refname, __VA_ARGS__)
+ %attribute_ref_T(%arg(Class), %mangle(Class), %arg(type), refname, __VA_ARGS__)
 %enddef

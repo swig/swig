@@ -5,4 +5,4 @@
 */
 
 #warning "Deprecated file: Don't use t_output_helper anymore,"
-#warning "use SWIG_Python_AppendResult  or SWIG_append_result instead."
+#warning "use SWIG_Python_AppendOutput  or %append_output instead."

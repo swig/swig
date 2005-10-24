@@ -30,7 +30,7 @@ typedef struct swig_const_info {
  * Append a value to the result obj
  * ----------------------------------------------------------------------------- */
 SWIGINTERN PyObject*
-SWIG_Python_AppendResult(PyObject* result, PyObject* obj) {
+SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
   if (!result) {
     result = obj;
   } else if (result == Py_None) {  

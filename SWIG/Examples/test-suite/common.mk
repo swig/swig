@@ -155,6 +155,7 @@ CPP_TEST_CASES += \
 	inherit_void_arg \
 	inline_initializer \
 	kind \
+	langobj \
 	li_carrays \
 	li_cdata \
 	li_cpointer \

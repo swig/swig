@@ -1,0 +1,25 @@
+%include <typemaps/wstring.swg>
+
+#ifndef SWIG_STD_BASIC_STRING
+#define SWIG_STD_WSTRING
+
+%include <typemaps/std_strings.swg>
+
+%{
+#include <cwchar>
+#include <string>
+%}
+
+namespace std
+{
+  class wstring;
+}
+
+%typemaps_std_string(std::wstring, wchar_t, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, %checkcode(UNISTRING));
+
+
+#else
+
+%include <std/std_wstring.i>
+
+#endif

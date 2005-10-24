@@ -16,14 +16,14 @@
 	  T *pfirst = 0;
 	  U *psecond = 0;
 	  if (val) {
-	    *val = SWIG_new(std::pair<T,U>);
+	    *val = %new_instance(std::pair<T,U>);
 	    pfirst = &((*val)->first);
 	    psecond = &((*val)->second);
 	  }	  
 	  if ((swig::asval(first,pfirst) == SWIG_OK) && (swig::asval(second,psecond) == SWIG_OK)) {
 	    return SWIG_NEWOBJ;
 	  } else {
-	    SWIG_delete(*val);
+	    %delete(*val);
 	  }
 	} else {
 	  value_type *p;

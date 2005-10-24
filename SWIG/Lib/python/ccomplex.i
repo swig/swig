@@ -19,6 +19,6 @@
 %swig_cplxdbl_convn(complex, CCplxConst, creal, cimag);
 
 /* declaring the typemaps */
-%typemap_primitive(SWIG_TYPECHECK_CPLXFLT, float complex);
-%typemap_primitive(SWIG_TYPECHECK_CPLXDBL, double complex);
-%typemap_primitive(SWIG_TYPECHECK_CPLXDBL, complex);
+%typemaps_primitive(SWIG_TYPECHECK_CPLXFLT, float complex);
+%typemaps_primitive(SWIG_TYPECHECK_CPLXDBL, double complex);
+%typemaps_primitive(SWIG_TYPECHECK_CPLXDBL, complex);

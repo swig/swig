@@ -21,7 +21,7 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
       if (cptr)  {
 	if (alloc) {
 	  if (*alloc == SWIG_NEWOBJ) {
-	    *cptr = SWIG_new_copy_array(cstr, size, char);
+	    *cptr = %new_copy_array(cstr, size, char);
 	  } else {
 	    *cptr = cstr;
 	    *alloc = SWIG_OLDOBJ;
@@ -42,9 +42,9 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   if (carray) {
     if (size > LONG_MAX) {
-      return SWIG_NewPointerObj(SWIG_const_cast(carray,char *), SWIG_TypeQuery("char *"), 0);
+      return SWIG_NewPointerObj(%const_cast(carray,char *), SWIG_TypeQuery("char *"), 0);
     } else {
-      return rb_str_new(carray, SWIG_numeric_cast(size,long));
+      return rb_str_new(carray, %numeric_cast(size,long));
     }
   } else {
     return Qnil;
@@ -52,9 +52,3 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 }
 }
 
-/* ------------------------------------------------------------
- *  The plain char * handling
- * ------------------------------------------------------------ */
-
-%include <typemaps/strings.swg>
-%typemap_string(char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, strlen)

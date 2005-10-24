@@ -162,6 +162,6 @@ phased out in future releases.
 
 #ifdef SWIG_INOUT_NODEF
 
-%apply_checkctypes(%typemap_inoutn)
+%apply_checkctypes(%typemaps_inoutn)
 
 #endif

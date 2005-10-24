@@ -4,6 +4,8 @@
 
 %include <pycomplex.swg>
 
+
+
 %{
 #include <complex> 
 %}
@@ -17,6 +19,8 @@
 		    std::complex<float>, std::real, std::imag)
 
 
-%typemap_primitive(SWIG_CCode(CPLXDBL), std::complex<double>);
-%typemap_primitive(SWIG_CCode(CPLXFLT), std::complex<float>);
+%typemaps_primitive(%checkcode(CPLXDBL), std::complex<double>);
+%typemaps_primitive(%checkcode(CPLXFLT), std::complex<float>);
+
+
 

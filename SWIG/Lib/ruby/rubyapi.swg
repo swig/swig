@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 SWIGINTERN VALUE
-SWIG_Ruby_AppendResult(VALUE target, VALUE o) {
+SWIG_Ruby_AppendOutput(VALUE target, VALUE o) {
   if (NIL_P(target)) {
     target = o;
   } else {
