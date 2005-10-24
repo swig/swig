@@ -127,7 +127,7 @@ public:
     int i = 1;
     int cppcast = 1;
 
-    SWIG_library_directory("nperl5");
+    SWIG_library_directory("perl5");
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-package") == 0) {
