@@ -12,6 +12,16 @@ class Foo {
   public:
     Foo(int a) : num(a) {}
     int num;
+
+    int func1(int a) {
+      return 2*a*num;
+    }
+    
+    int func2(int a) {
+      return -a*num;
+    }
+    
+    int (Foo::*func_ptr)(int);
 };
 
 %}
@@ -51,4 +61,20 @@ class Bar {
 Foo *Bar::global_fptr = NULL;
 Foo &Bar::global_fref = init_ref;
 Foo Bar::global_fval = Foo(3);
+%}
+
+/* member function tests */
+%inline %{
+int (Foo::*get_func1_ptr())(int) {
+  return &Foo::func1;
+}
+
+int (Foo::*get_func2_ptr())(int) {
+  return &Foo::func2;
+}
+
+int test_func_ptr(Foo *f, int a) {
+  return (f->*(f->func_ptr))(a);
+}
+
 %}

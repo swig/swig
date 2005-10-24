@@ -48,4 +48,17 @@
 (Bar-global-fval (make <Foo> -34))
 (check (= (slot-ref (Bar-global-fval) 'num) -34))
 
+;; Now test function pointers
+(define func1ptr (get-func1-ptr))
+(define func2ptr (get-func2-ptr))
+
+(slot-set! f 'num 4)
+(check (= (func1 f 2) 16))
+(check (= (func2 f 2) -8))
+
+(slot-set! f 'func-ptr func1ptr)
+(check (= (test-func-ptr f 2) 16))
+(slot-set! f 'func-ptr func2ptr)
+(check (= (test-func-ptr f 2) -8))
+
 (exit 0)
