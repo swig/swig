@@ -236,6 +236,42 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
   $result = SWIG_NewPointerObj((void *) &$varname, $1_descriptor, 0);
 }
 
+/* special typemaps for class pointers */
+%typemap(in) SWIGTYPE (CLASS::*) {
+  char err_msg[256];
+
+  if (C_swig_is_pair($input)) {
+    /* try and convert pointer object */
+    void *result;
+    if (!SWIG_ConvertPtr(C_block_item($input,1), &result, $descriptor, 0)) {
+      C_word ptr = C_block_item($input,0);
+      if (C_swig_is_string(ptr)) {
+        SWIG_UnpackData(C_c_string(ptr), (void *) &$1, sizeof($type));
+      } else {
+        snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", $argnum, ($descriptor->str ? $descriptor->str : $descriptor->name));
+        SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
+      }
+    } else {
+      snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", $argnum, ($descriptor->str ? $descriptor->str : $descriptor->name));
+      SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
+    }
+  } else {
+    snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", $argnum, ($descriptor->str ? $descriptor->str : $descriptor->name));
+    SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
+  }
+}
+
+%typemap(out) SWIGTYPE (CLASS::*) {
+  size_t ptr_size = sizeof($type);
+  C_word *known_space = C_alloc(C_SIZEOF_PAIR + C_SIZEOF_STRING(2*ptr_size) + C_SIZEOF_SWIG_POINTER);
+  char *temp = (char *)malloc(2*ptr_size);
+  C_word ptr = SWIG_NewPointerObj((void *) known_space, $descriptor, 0);
+
+  SWIG_PackData(temp, (void *) &$1, ptr_size);
+  $result = C_pair(&known_space, C_string(&known_space, 2*ptr_size, temp), ptr);
+  free(temp);
+}
+
 /* Pass-by-value */
 
 %typemap(in,closcode="(slot-ref $input 'swig-this)") SWIGTYPE($&1_ltype argp) {
