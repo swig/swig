@@ -424,6 +424,8 @@ public:
 
     Swig_banner(f_runtime);
 
+    Printf(f_runtime,"#define SWIGRUBY\n");
+
     if (directorsEnabled()) {
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
     }
@@ -749,14 +751,12 @@ public:
 	Replaceall(tm,"$disown","0");
       }
 
-	   /* Are we tracking the type represented by the
-	    * object being disowned?  Note this code cannot 
-	    * go into the first part of the wrap:disown if 
-	    * statement above because that is not activated 
-	    * when the SWIGTYPE *DISOWN type map is applied. */      
       if (trackType(pt)) {
-        setTrackObjectsFlagForConvertPtr(tm);
-      }	
+	Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
+      }	else {
+	Replaceall(tm, "$track","0");
+      }
+      
 		
       Setattr(p,"emit:input",Copy(source));
       Printf(f->code,"%s\n", tm);
@@ -1259,8 +1259,11 @@ public:
             Replaceall(tm,"$owner", "0");
 
           if (trackType(t)) {
-	         setTrackObjectsFlagForNewPointer(tm);
-          }
+	    Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
+          } else {
+	    Replaceall(tm, "$track","0");
+	  }
+	  
             
           // FIXME: this will not try to unwrap directors returned as non-director
           //        base class pointers!
@@ -1480,6 +1483,12 @@ public:
       Replaceall(tm,"$result","_val");
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
+      if (trackType(t)) {
+	Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
+      } else {
+	Replaceall(tm, "$track","0");
+      }
+
       Printv(getf->code,tm, NIL);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
@@ -1501,6 +1510,11 @@ public:
 	Replaceall(tm,"$input","_val");
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
+	if (trackType(t)) {
+	  Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
+	} else {
+	  Replaceall(tm, "$track","0");
+	}
 	Printv(setf->code,tm,"\n",NIL);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
@@ -2404,6 +2418,7 @@ public:
         sprintf(source, "obj%d", idx++);
         Replaceall(tm, "$input", source);
         Replaceall(tm, "$owner", "0");
+        Replaceall(tm, "$track", "0");
         Printv(wrap_args, tm, "\n", NIL);
         Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
         Printv(arglist, source, NIL);
@@ -2556,6 +2571,7 @@ public:
 	} else {
 	  Replaceall(tm,"$disown","0");
 	}
+	Replaceall(tm,"$track","0");
 	Replaceall(tm, "$result", "c_result");
 	Printv(w->code, tm, "\n", NIL);
       } else {

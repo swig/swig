@@ -23,7 +23,7 @@ SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
     if (SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
       if (buf) {
 	if (val) *val = new std::string(buf, size - 1);
-	if (alloc == SWIG_NEWOBJ) SWIG_delete_array(buf);
+	if (alloc == SWIG_NEWOBJ) %delete_array(buf);
 	return SWIG_NEWOBJ;
       }
     } else {
@@ -47,7 +47,7 @@ SWIGINTERNINLINE PyObject*
 }
 
 %include <std/std_basic_string.i>
-%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
+%typemaps_asptrfromn(%checkcode(STRING), std::basic_string<char>);
 
 #endif
 
@@ -71,7 +71,7 @@ SWIGINTERN int
       if (SWIG_AsWCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
 	if (buf) {
 	  if (val) *val = new std::wstring(buf, size - 1);
-	  if (alloc == SWIG_NEWOBJ) SWIG_delete_array(buf);
+	  if (alloc == SWIG_NEWOBJ) %delete_array(buf);
 	  return SWIG_NEWOBJ;
 	}
       } else {
@@ -94,6 +94,6 @@ SWIGINTERNINLINE PyObject*
   }
 }
 
-%typemap_asptrfromn(SWIG_CCode(UNISTRING), std::basic_string<wchar_t>);
+%typemaps_asptrfromn(%checkcode(UNISTRING), std::basic_string<wchar_t>);
 
 #endif

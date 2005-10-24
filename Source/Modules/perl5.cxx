@@ -26,6 +26,8 @@ Perl5 Options (available with -perl5)\n\
      -proxy          - Create proxy classes\n\
      -noproxy        - Don't create proxy classes\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
+     -cppcast        - Enable C++ casting operators\n\
      -compat         - Compatibility mode\n\n";
 
 static int     compat = 0;
@@ -123,8 +125,9 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     int i = 1;
+    int cppcast = 1;
 
-    SWIG_library_directory("perl5");
+    SWIG_library_directory("nperl5");
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-package") == 0) {
@@ -157,6 +160,12 @@ public:
 	    i++;
 	    pmfile = NewString(argv[i]);
 	    Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nocppcast") == 0) {
+	  cppcast = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-compat") == 0) {
 	  compat = 1;
 	  Swig_mark_arg(i);
@@ -164,6 +173,10 @@ public:
 	  fputs(usage,stdout);
 	}
       }
+    }
+
+    if (cppcast) {
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     Preprocessor_define("SWIGPERL 1", 0);
@@ -565,6 +578,13 @@ public:
 	Replaceall(tm,"$source",source);
 	Replaceall(tm,"$input", source);
 	Setattr(p,"emit:input",source);       /* Save input location */
+
+	if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
+	  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+	} else {
+	  Replaceall(tm,"$disown","0");
+	}
+
 	Printf(f->code,"%s\n",tm);
 	p = Getattr(p,"tmap:in:next");
       } else {
@@ -690,8 +710,8 @@ public:
 	   "fail:\n",
 	   cleanup,
 	   ";\n", /* empty statement */
-	   "}\n",
 	   "croak(Nullch);\n"
+	   "}\n",
 	   "}\n",
 	   NIL);
 	   
@@ -803,6 +823,7 @@ public:
 		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
 	return SWIG_NOWRAP;
       }
+      Printf(setf->code,"fail:\n");
       Printf(setf->code,"    return 1;\n}\n");
       Replaceall(setf->code,"$symname",iname);
       Wrapper_print(setf,magic);
@@ -820,6 +841,11 @@ public:
       Replaceall(tm,"$target","sv");
       Replaceall(tm,"$result","sv");
       Replaceall(tm,"$source",name);
+      if (is_shadow(t)) {
+	Replaceall(tm, "$shadow", "SWIG_SHADOW");
+      } else {
+	Replaceall(tm, "$shadow", "0");
+      }
       Printf(getf->code,"%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,

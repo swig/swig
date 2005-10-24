@@ -20,7 +20,7 @@ typedef struct SWIGCDATA {
  * ----------------------------------------------------------------------------- */
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") SWIGCDATA {
-   $result = SWIG_FromCharPtrAndSize($1.data,$1.len);
+  %set_output(SWIG_FromCharPtrAndSize($1.data,$1.len));
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int SIZE);
 

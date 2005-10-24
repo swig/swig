@@ -15,19 +15,19 @@
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(ptr, type, flags)
 
 /* for raw packed data */
-#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)     SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
-#define SWIG_NewPackedObj(ptr, sz, type, flags)         SWIG_Python_NewPackedObj(ptr, sz, type)
+#define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Python_ConvertPacked(obj, ptr, sz, ty)
+#define SWIG_NewPackedObj(ptr, sz, type)                SWIG_Python_NewPackedObj(ptr, sz, type)
 
 /* for class or struct pointers */
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Python_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_Python_NewPointerObj(ptr, type, flags)
 
 /* for C or C++ function pointers */
-#define SWIG_ConvertFunctionPtr(obj, pptr, type, flags) SWIG_Python_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Python_ConvertPtr(obj, pptr, type, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Python_NewPointerObj(ptr, type, 0)
 
 /* for C++ member pointers, ie, member methods */
-#define SWIG_ConvertMember(obj, ptr, sz, ty, flags)     SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
+#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Python_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Python_NewPackedObj(ptr, sz, type)
 
 
@@ -504,7 +504,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
 
 /* Convert a packed value value */
 SWIGRUNTIME int
-SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty, int flags) {
+SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char *c = 0;
 

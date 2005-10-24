@@ -577,6 +577,22 @@ macro(size_t,             pfx, sizet)
         using namespace DCTypes;
         unsigned int SetPos(cuint& x, cuint& y) {return x + y;}
     }
+
+    double val_double_2(double x, const double& y = 3.0) {
+      return x + y;
+    } 
+
+    double val_double(double x) {
+      return x;
+    } 
+
+    float val_float_2(float x, const float& y = 3.0) {
+      return x + y;
+    } 
+
+    float val_float(float x) {
+      return x;
+    } 
 %}
 
 

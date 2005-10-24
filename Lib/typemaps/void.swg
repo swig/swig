@@ -2,19 +2,23 @@
  * Void * -  Accepts any kind of pointer
  * ------------------------------------------------------------ */
 
+#if !defined(VOID_Object) 
+#error "VOID_Object must be defined using %define_void_object"
+#endif
+
 /* in */
 
 %typemap(in,noblock=1) void * {
-  if (SWIG_ConvertPtr($input,SWIG_as_voidptrptr(&$1), 0, $disown) != SWIG_OK) { 
-    SWIG_arg_fail(SWIG_TypeError, "$type", $argnum); 
+  if (SWIG_ConvertPtr($input,%as_voidptrptr(&$1), 0, $disown) != SWIG_OK) { 
+    %argument_fail(SWIG_TypeError, "$type", $argnum); 
   }
 }
 
 %typemap(freearg) void * "";
 
 %typemap(in,noblock=1) void * const& ($*ltype temp) {
-  if (SWIG_ConvertPtr($input, SWIG_as_voidptrptr(&temp), 0, $disown) != SWIG_OK) { 
-    SWIG_arg_fail(SWIG_TypeError, "Stype", $argnum); 
+  if (SWIG_ConvertPtr($input, %as_voidptrptr(&temp), 0, $disown) != SWIG_OK) { 
+    %argument_fail(SWIG_TypeError, "Stype", $argnum); 
   }
   $1 =  &temp;
 }
@@ -23,7 +27,7 @@
 /* out */
 
 %typemap(out,noblock=1) void {
-  SWIG_set_result(SWIG_VoidObject());
+  $result = VOID_Object;
 }
 
 /* varin */
@@ -31,7 +35,7 @@
 %typemap(varin,noblock=1) void * {
   void *temp = 0;
   if (SWIG_ConvertPtr($input, &temp, 0, SWIG_POINTER_DISOWN) != SWIG_OK) {
-    SWIG_var_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(SWIG_TypeError, "$type", "$name");
   }
   $1 = ($1_ltype) temp;
 }
@@ -50,9 +54,9 @@
 
 %typemap(directorout,noblock=1) void * (void *argp) {
   if (SWIG_ConvertPtr($input, &argp, 0, 0) != SWIG_OK) {
-    SWIG_dout_fail(SWIG_TypeError,"$type");
+    %dirout_fail(SWIG_TypeError,"$type");
   }
-  $result = SWIG_reinterpret_cast(argp, $ltype);
+  $result = %reinterpret_cast(argp, $ltype);
 }
 
 

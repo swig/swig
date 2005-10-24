@@ -1,82 +1,101 @@
-/*
-  Value typemaps (Type, const Type&) for "Ptr" types, such as swig
-  wrapped classes, that define the AsPtr/From methods
-*/
+/*---------------------------------------------------------------------
+ * Value typemaps (Type, const Type&) for "Ptr" types, such as swig
+ * wrapped classes, that define the AsPtr/From methods
+ *
+ * To apply them, just use one of the following macros:
+ *
+ *    %typemaps_asptr(CheckCode, AsPtrMeth, AsPtrFrag, Type)
+ *    %typemaps_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type)
+ *
+ * or the simpler and normalize form:
+ *
+ *    %typemaps_asptrfromn(CheckCode, Type)
+ *
+ * Also, you can use the individual typemap definitions:
+ *
+ *    %ptr_in_typemap(asptr_meth,frag,Type)
+ *    %ptr_varin_typemap(asptr_meth,frag,Type)
+ *    %ptr_typecheck_typemap(check,asptr_meth,frag,Type)
+ *    %ptr_directorout_typemap(asptr_meth,frag,Type)
+ *
+ *---------------------------------------------------------------------*/
+
+%include <typemaps/valtypes.swg>
 
 /* in */
 
-%define SWIG_PTR_IN_TYPEMAP(asptr_meth,frag,Type...)
+%define %ptr_in_typemap(asptr_meth,frag,Type...)
   %typemap(in,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) { SWIG_arg_fail(SWIG_TypeError, "$type", $argnum); }
+    if (!res || !ptr) { %argument_fail(SWIG_TypeError, "$type", $argnum); }
     $1 = *ptr;
-    if (res == SWIG_NEWOBJ) SWIG_delete(ptr);
+    if (res == SWIG_NEWOBJ) %delete(ptr);
   }
   %typemap(in,fragment=frag) const Type & (int res = 0) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
-    if (!res) { SWIG_arg_fail(SWIG_TypeError,"$type",$argnum); }
-    if (!ptr) { SWIG_arg_nullref("$type",$argnum); }
+    if (!res) { %argument_fail(SWIG_TypeError,"$type",$argnum); }
+    if (!ptr) { %argument_nullref("$type",$argnum); }
     $1 = ptr;
   }
   %typemap(freearg,noblock=1) const Type &  {
-    if (res$argnum == SWIG_NEWOBJ) SWIG_delete($1);
+    if (res$argnum == SWIG_NEWOBJ) %delete($1);
   }
 %enddef
 
 /* varin */
 
-%define SWIG_PTR_VARIN_TYPEMAP(asptr_meth,frag,Type...)
+%define %ptr_varin_typemap(asptr_meth,frag,Type...)
   %typemap(varin,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) { SWIG_var_fail(SWIG_TypeError, "$type", "$name"); }
+    if (!res || !ptr) { %variable_fail(SWIG_TypeError, "$type", "$name"); }
     $1 = *ptr;
-    if (res == SWIG_NEWOBJ) SWIG_delete(ptr);
+    if (res == SWIG_NEWOBJ) %delete(ptr);
   }
 %enddef
 
 #ifdef SWIG_DIRECTOR_TYPEMAPS
 /* directorout */
 
-%define SWIG_PTR_DIRECTOROUT_TYPEMAP(asptr_meth,frag,Type...)
+%define %ptr_directorout_typemap(asptr_meth,frag,Type...)
   %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp) {
     Type *optr = 0;
     int ores = $input ? asptr_meth($input, &optr) : 0;
     if (!ores || !optr) { 
-      SWIG_dout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(SWIG_TypeError,"$type");
     }
     temp = *optr;
     $result = &temp;
-    if (ores == SWIG_NEWOBJ) SWIG_delete(optr);
+    if (ores == SWIG_NEWOBJ) %delete(optr);
   }
 
   %typemap(directorout,noblock=1,fragment=frag) Type {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!ores || !optr) { 
-      SWIG_dout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(SWIG_TypeError,"$type");
     }
     $result = *optr;
-    if (ores == SWIG_NEWOBJ) SWIG_delete(optr);
+    if (ores == SWIG_NEWOBJ) %delete(optr);
   }
 
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!ores) { 
-      SWIG_dout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(SWIG_TypeError,"$type");
     } else {
       if (!optr) { 
-	SWIG_dout_nullref("$type");
+	%dirout_nullref("$type");
       } 
     }    
     if (ores == SWIG_NEWOBJ) {
       /* Possible thread/reentrant problem here! */
       static $*ltype temp = *optr;
       $result = &temp;
-      SWIG_delete(optr);
+      %delete(optr);
     } else {
       $result = optr;
     }
@@ -88,26 +107,26 @@
 
 #else
 
-#define SWIG_PTR_DIRECTOROUT_TYPEMAP(asptr_meth,frag,Type...) 
+#define %ptr_directorout_typemap(asptr_meth,frag,Type...) 
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
 
 /* typecheck */
 
-%define SWIG_PTR_TYPECHECK_TYPEMAP(check,asptr_meth,frag,Type...)
+%define %ptr_typecheck_typemap(check,asptr_meth,frag,Type...)
 %typemap(typecheck,precedence=check,fragment=frag) 
    Type, const Type&
    "$1 = asptr_meth($input, (Type**)(0));";
 %enddef
 
-/*
-  typemap definition for types with AsPtr/From methods
- */
 
-%define %typemap_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
-  %fragment(SWIG_AsVal_frag(Type),"header",
-	    fragment=SWIG_AsPtr_frag(Type)) %{
-  SWIGINTERNINLINE int
+/*---------------------------------------------------------------------
+ * typemap definition for types with asptr method
+ *---------------------------------------------------------------------*/
+
+%define %typemaps_asptr(CheckCode, AsPtrMeth, AsPtrFrag, Type...)
+  %fragment(SWIG_AsVal_frag(Type),"header",fragment=SWIG_AsPtr_frag(Type)) {
+    SWIGINTERNINLINE int
     SWIG_AsVal(Type)(SWIG_Object obj, Type *val)
     {
       Type *v = (Type *)0;
@@ -115,43 +134,38 @@
       if (!res || !v) return SWIG_ERROR;
       if (val) {
 	*val = *v;
-	if (res == SWIG_NEWOBJ) SWIG_delete(v);
+	if (res == SWIG_NEWOBJ) %delete(v);
       }
       return SWIG_OK;
     }
-  %}
-  %fragment(SWIG_As_frag(Type),"header",
-	    fragment=SWIG_AsVal_frag(Type)) %{
-  SWIGINTERNINLINE Type
-    SWIG_As(Type)(SWIG_Object obj)
-    {
-      Type v;
-      SWIG_AsVal(Type)(obj, &v);
-      return v;
-    }
-  %}
-  SWIG_PTR_IN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
-  SWIG_PTR_VARIN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
-  SWIG_PTR_DIRECTOROUT_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
-  SWIG_PTR_TYPECHECK_TYPEMAP(SWIG_arg(CheckCode), SWIG_arg(AsPtrMeth), 
-			  SWIG_arg(AsPtrFrag), Type);
-  %typemap_from(SWIG_arg(FromMeth), SWIG_arg(FromFrag), Type);
-
-  SWIG_PTR_INPUT_TYPEMAP(SWIG_arg(CheckCode),SWIG_arg(AsPtrMeth),
-		      SWIG_arg(AsPtrFrag),Type);
-  SWIG_VALUE_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), Type);
-  SWIG_PTR_INOUT_TYPEMAP(Type);
+  }
+  %ptr_in_typemap(%arg(AsPtrMeth), %arg(AsPtrFrag), Type);
+  %ptr_varin_typemap(%arg(AsPtrMeth), %arg(AsPtrFrag), Type);
+  %ptr_directorout_typemap(%arg(AsPtrMeth), %arg(AsPtrFrag), Type);
+  %ptr_typecheck_typemap(%arg(CheckCode), %arg(AsPtrMeth),%arg(AsPtrFrag), Type);
+  %ptr_input_typemap(%arg(CheckCode),%arg(AsPtrMeth),%arg(AsPtrFrag),Type);
 %enddef
 
-/*
-  typemap for simple swig types with only AsPtr/From methods
-*/
+/*---------------------------------------------------------------------
+ * typemap definition for types with asptr/from methods
+ *---------------------------------------------------------------------*/
 
-%define %typemap_asptrfromn(CheckCode, Type...)
-%typemap_asptrfrom(SWIG_arg(CheckCode),
-		   SWIG_arg(SWIG_AsPtr(Type)), 
-		   SWIG_arg(SWIG_From(Type)), 
-		   SWIG_arg(SWIG_AsPtr_frag(Type)), 
-		   SWIG_arg(SWIG_From_frag(Type)), 
+%define %typemaps_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
+  %typemaps_asptr(%arg(CheckCode), %arg(AsPtrMeth), %arg(AsPtrFrag), Type)
+  %typemaps_from(%arg(FromMeth), %arg(FromFrag), Type);
+  %value_output_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+  %ptr_inout_typemap(Type);
+%enddef
+
+/*---------------------------------------------------------------------
+ * typemap definition for types  with for 'normalized' asptr/from methods
+ *---------------------------------------------------------------------*/
+
+%define %typemaps_asptrfromn(CheckCode, Type...)
+%typemaps_asptrfrom(%arg(CheckCode),
+		   %arg(SWIG_AsPtr(Type)), 
+		   %arg(SWIG_From(Type)), 
+		   %arg(SWIG_AsPtr_frag(Type)), 
+		   %arg(SWIG_From_frag(Type)), 
 		   Type);
 %enddef

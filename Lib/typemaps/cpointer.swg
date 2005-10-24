@@ -55,10 +55,10 @@ typedef struct {
 
 %extend NAME {
   NAME() {
-    return SWIG_new(TYPE);
+    return %new_instance(TYPE);
   }
   ~NAME() {
-    if (self) SWIG_delete(self);
+    if (self) %delete(self);
   }
 }
 
@@ -109,15 +109,15 @@ typedef struct {
 %define %pointer_functions(TYPE,NAME)
 %{
   static TYPE *new_##NAME() { 
-    return SWIG_new(TYPE);
+    return %new_instance(TYPE);
   }
   
   static TYPE *copy_##NAME(TYPE value) { 
-    return SWIG_new_copy(value, TYPE);
+    return %new_copy(value, TYPE);
   }
 
   static void delete_##NAME(TYPE *self) { 
-    if (self) SWIG_delete(self);
+    if (self) %delete(self);
   }
 
   static void NAME ##_assign(TYPE *self, TYPE value) {
@@ -146,7 +146,7 @@ TYPE  NAME##_value(TYPE *self);
 %define %pointer_cast(TYPE1,TYPE2,NAME)
 %inline %{
 TYPE2 NAME(TYPE1 x) {
-   return SWIG_static_cast(x, TYPE2);
+   return %static_cast(x, TYPE2);
 }
 %}
 %enddef

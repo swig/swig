@@ -25,11 +25,11 @@
 %define %array_functions(TYPE,NAME) 
 %{
   static TYPE *new_##NAME(size_t nelements) { 
-    return SWIG_new_array(nelements, TYPE);
+    return %new_array(nelements, TYPE);
   }
 
   static void delete_##NAME(TYPE *ary) {
-    SWIG_delete_array(ary);
+    %delete_array(ary);
   }
 
   static TYPE NAME##_getitem(TYPE *ary, size_t index) {
@@ -82,11 +82,11 @@ typedef struct NAME {
 %extend NAME {
 
   NAME(size_t nelements) {
-    return SWIG_new_array(nelements, TYPE);
+    return %new_array(nelements, TYPE);
   }
 
   ~NAME() {
-    SWIG_delete_array(self);
+    %delete_array(self);
   }
   
   TYPE getitem(size_t index) {
@@ -102,7 +102,7 @@ typedef struct NAME {
   }
 
   static NAME *frompointer(TYPE *t) {
-    return SWIG_static_cast(t, NAME *);
+    return %static_cast(t, NAME *);
   }
 };
 

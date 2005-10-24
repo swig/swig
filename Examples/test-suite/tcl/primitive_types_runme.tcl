@@ -18,4 +18,16 @@ if {[val_uchar 10] != 10 } { error "bad uchar map" }
 if {[val_ushort 10] != 10 } { error "bad ushort map" }
 
 
+if {[val_double 10] != 10 } { error "bad double map" }
+if {[val_float 10] != 10 } { error "bad double map" }
+
+
+
+if [catch { val_float hello } ] {} else { error "bad double map" }
+
+if {[val_char c] != "c" } { error "bad char map" }
+if {[val_char "c"] != "c" } { error "bad char map" }
+if {[val_char 101] != "e" } { error "bad char map" }
+
+
 

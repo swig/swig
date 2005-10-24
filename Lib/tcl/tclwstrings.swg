@@ -2,35 +2,64 @@
  *  utility methods for wchar strings 
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsCharPtrAndSize","header") {
+%{
+#include <wchar.h>
+%}
+
+%fragment("SWIG_AsWCharPtrAndSize","header") {
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(Tcl_Obj *obj, wchar_t** cptr, size_t* psize, int *alloc)
 { 
   int len = 0;
-  wchar_t *cstr = Tcl_GetUnicodeFromObj(obj, &len);
-  if (cstr) {
-    if (cptr)  *cptr = cstr;
+  Tcl_UniChar *ustr = Tcl_GetUnicodeFromObj(obj, &len);
+  if (ustr) {
+    if (cptr)  {
+      Tcl_Encoding encoding = NULL;
+      char *src = (char *) ustr;
+      int srcLen = (len)*sizeof(Tcl_UniChar);
+      int dstLen = sizeof(wchar_t)*(len + 1);
+      char *dst = %new_array(dstLen, char);
+      int flags = 0;
+      Tcl_EncodingState *statePtr = 0;
+      int srcRead = 0;
+      int dstWrote = 0;
+      int dstChars = 0;
+      Tcl_UtfToExternal(0, encoding, src, srcLen, flags, statePtr, dst,
+			dstLen, &srcRead, &dstWrote, &dstChars);
+      
+      if (alloc) *alloc = SWIG_NEWOBJ;
+    }
     if (psize) *psize = len + 1;
-    if (alloc) *alloc = SWIG_OLDOBJ;
     return SWIG_OK;
   }
   return SWIG_TypeError;
 }
 }
 
-%fragment("SWIG_FromWCharPtrAndSize","header",
-	  fragment="<limits.h>") {
+%fragment("SWIG_FromWCharPtrAndSize","header") {
 SWIGINTERNINLINE Tcl_Obj *
 SWIG_FromWCharPtrAndSize(const wchar_t* carray, size_t size)
 {
-  return (size < INT_MAX) ? Tcl_NewUnicodeObj(carray, SWIG_numeric_cast(size,int)) : NULL;
+  Tcl_Obj *res = NULL;
+  if (size < INT_MAX) {
+    Tcl_Encoding encoding = NULL;
+    char *src = (char *) carray;
+    int srcLen = (size)*sizeof(wchar_t);
+    int dstLen = (size)*sizeof(Tcl_UniChar);
+    char *dst = %new_array(dstLen, char);
+    int flags = 0;
+    Tcl_EncodingState *statePtr = 0;
+    int srcRead = 0;
+    int dstWrote = 0;
+    int dstChars = 0;
+    
+    Tcl_ExternalToUtf(0, encoding, src, srcLen, flags, statePtr, dst,
+		      dstLen, &srcRead, &dstWrote, &dstChars);
+    
+    res = Tcl_NewUnicodeObj((Tcl_UniChar*)dst, size);
+    %delete_array(dst);
+  }
+  return res;
 }
 }
 
-
-/* ------------------------------------------------------------
- *  The plain char * handling
- * ------------------------------------------------------------ */
-
-%include <typemaps/strings.swg>
-%typemap_string(wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, wcslen)

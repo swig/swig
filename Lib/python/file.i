@@ -37,4 +37,4 @@ SWIG_AsFilePtr(PyObject *obj) {
 }
 
 /* defining the typemaps */
-%typemap_asval(SWIG_CCode(POINTER), SWIG_AsValFilePtr, "SWIG_AsValFilePtr", FILE*);
+%typemaps_asval(%checkcode(POINTER), SWIG_AsValFilePtr, "SWIG_AsValFilePtr", FILE*);

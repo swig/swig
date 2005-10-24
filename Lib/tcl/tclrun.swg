@@ -14,20 +14,20 @@
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Tcl_NewPointerObj(ptr, type, flags)
 
 /* for raw packed data */
-#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)     SWIG_Tcl_ConvertPacked(interp, obj, ptr, sz, ty, flags)
-#define SWIG_NewPackedObj(ptr, sz, type, flags)         SWIG_Tcl_NewPackedObj(ptr, sz, type, flags)
+#define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Tcl_ConvertPacked(interp, obj, ptr, sz, ty)
+#define SWIG_NewPackedObj(ptr, sz, type)                SWIG_Tcl_NewPackedObj(ptr, sz, type)
 
 /* for class or struct pointers */
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Tcl_ConvertPtr(interp, obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_Tcl_NewInstanceObj(interp, thisvalue, type, flags)
 
 /* for C or C++ function pointers */
-#define SWIG_ConvertFunctionPtr(obj, pptr, type, flags) SWIG_Tcl_ConvertPtr(interp, obj, pptr, type, flags)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Tcl_ConvertPtr(interp, obj, pptr, type, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Tcl_NewPointerObj(ptr, type, 0)
 
 /* for C++ member pointers, ie, member methods */
-#define SWIG_ConvertMember(obj, ptr, sz, ty, flags)     SWIG_Tcl_ConvertPacked(interp,obj, ptr, sz, ty, flags)
-#define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Tcl_NewPackedObj(ptr, sz, type, 0)
+#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Tcl_ConvertPacked(interp,obj, ptr, sz, ty)
+#define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Tcl_NewPackedObj(ptr, sz, type)
 
 
 /* Runtime API */
@@ -58,6 +58,8 @@
 #define SWIG_ObjectDelete                            	SWIG_Tcl_ObjectDelete				       
 
 
+#define SWIG_TCL_DECL_ARGS_2(arg1, arg2)                (Tcl_Interp *interp, arg1, arg2)
+#define SWIG_TCL_CALL_ARGS_2(arg1, arg2)                (interp, arg1, arg2)
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
@@ -165,7 +167,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
 
 /* Convert a packed value value */
 SWIGRUNTIME int
-SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char  *c;
 
@@ -211,14 +213,13 @@ SWIG_Tcl_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
 }
 
 SWIGRUNTIME Tcl_Obj *
-SWIG_Tcl_NewPackedObj(void *ptr, int sz, swig_type_info *type, int flags) {
+SWIG_Tcl_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
   if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
   *(r++) = '_';
   r = SWIG_PackData(r,ptr,sz);
   strcpy(r,type->name);
-  flags = 0;
   return Tcl_NewStringObj(result,-1);
 }
 

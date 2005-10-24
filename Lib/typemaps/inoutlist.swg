@@ -3,32 +3,27 @@
  * Define the IN/OUTPUT typemaps assuming the output parameters are
  * returned in a list, i.e., they are not directly modified.
  *
- * The user should provide the SWIG_append_result(result, obj) method,
+ * The user should provide the %append_output(result, obj) method,
  * via a macro, which append a particular object to the result.
  *
  *
  * In Tcl, for example, the file is used as:
  *
- *   #define SWIG_append_result(obj) Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),obj);
+ *   #define %append_output(obj) Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),obj);
  *   %include <typemaps/inoutlist.swg>
  *
  * while in Python it is used as:
  *
- *   #define SWIG_append_result(obj) $result = SWIG_Python_AppendResult($result, obj)
+ *   #define %append_output(obj) $result = SWIG_Python_AppendResult($result, obj)
  *   %include <typemaps/inoutlist.swg>
  *
  * where the method SWIG_Python_AppendResult is defined inside the
- * SWIG_append_result fragment.
+ * %append_output fragment.
  *
- * If you forget to define SWIG_append_result, this file will generate
+ * If you forget to define %append_output, this file will generate
  * an error.
  *
  * ------------------------------------------------------------ */
-
-
-#ifndef SWIG_append_result
-#error Undefined Method SWIG_append_result: used in the OUTPUT typemaps
-#endif
 
 
 //
@@ -76,60 +71,60 @@ or you can use the %apply directive :
 
 */
 #ifdef SWIG_INPUT_ACCEPT_PTRS
-#define SWIG_CheckInputPtr(input,arg,desc,disown) (SWIG_ConvertPtr(input,SWIG_as_voidptrptr(arg),desc,disown) == SWIG_OK)
+#define %check_input_ptr(input,arg,desc,disown) (SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown) == SWIG_OK)
 #else
-#define SWIG_CheckInputPtr(input,arg,desc,disown) (0)
+#define %check_input_ptr(input,arg,desc,disown) (0)
 #endif
 
-%define _SWIG_VALUE_INPUT_TYPEMAP(code, asval_meth, asval_frag, Type)
+%define %_value_input_typemap(code, asval_meth, asval_frag, Type)
   %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0) {
-    if (!SWIG_CheckInputPtr($input,&$1,$descriptor,$disown)) {
+    if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val; 
       int ecode = asval_meth($input, &val);
       if (ecode != SWIG_OK) { 
-	SWIG_arg_fail(ecode, "$*ltype",$argnum);
+	%argument_fail(ecode, "$*ltype",$argnum);
       }
-      temp = SWIG_static_cast(val, $*ltype);
+      temp = %static_cast(val, $*ltype);
       $1 = &temp;
       res = SWIG_NEWOBJ;
     }
   }
   %typemap(in,noblock=1,fragment=asval_frag) Type &INPUT($*ltype temp, int res = 0) {
-    if (!SWIG_CheckInputPtr($input,&$1,$descriptor,$disown)) {
+    if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val;
       int ecode = asval_meth($input, &val);
       if (ecode != SWIG_OK) { 
-	SWIG_arg_fail(ecode, "$*ltype",$argnum);
+	%argument_fail(ecode, "$*ltype",$argnum);
       }
-      temp = SWIG_static_cast(val, $*ltype);
+      temp = %static_cast(val, $*ltype);
       $1 = &temp;
       res = SWIG_NEWOBJ;
     }
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr;
-    $1 = ((asval_meth($input, 0) == SWIG_OK) || (SWIG_CheckInputPtr($input,&ptr,$1_descriptor,0)));
+    $1 = ((asval_meth($input, 0) == SWIG_OK) || (%check_input_ptr($input,&ptr,$1_descriptor,0)));
   }
 %enddef
 
-%define _SWIG_PTR_INPUT_TYPEMAP(code,asptr_meth,asptr_frag,Type)
+%define %_ptr_input_typemap(code,asptr_meth,asptr_frag,Type)
   %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res = 0) {  
     res = asptr_meth($input, &$1);
     if (!res) {
-      SWIG_arg_fail(SWIG_TypeError,"$type",$argnum);
+      %argument_fail(SWIG_TypeError,"$type",$argnum);
     }
   }
   %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res = 0) {  
     res = asptr_meth($input, &$1);
     if (!res) { 
-      SWIG_arg_fail(SWIG_TypeError,"$type",$argnum);
+      %argument_fail(SWIG_TypeError,"$type",$argnum);
     }     
     if (!$1) { 
-      SWIG_arg_nullref("$type",$argnum);
+      %argument_nullref("$type",$argnum);
     }
   }
   %typemap(freearg,noblock=1) Type *INPUT, Type &INPUT {
-    if (res$argnum == SWIG_NEWOBJ) SWIG_delete($1);
+    if (res$argnum == SWIG_NEWOBJ) %delete($1);
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asptr_frag) Type *INPUT, Type &INPUT {
     $1 = asptr_meth($input, (Type**)0) != 0;
@@ -167,15 +162,18 @@ values.
 
 */
 
-%define _SWIG_VALUE_OUTPUT_TYPEMAP(from_meth, from_frag, Type)
+%define %_value_output_typemap(from_meth, from_frag, Type)
  %typemap(in,numinputs=0,noblock=1) 
    Type *OUTPUT ($*1_ltype temp, int res = SWIG_NEWOBJ), 
    Type &OUTPUT ($*1_ltype temp, int res = SWIG_NEWOBJ) {
    $1 = &temp;
  }
  %typemap(argout,noblock=1,fragment=from_frag) Type *OUTPUT, Type &OUTPUT {
-   SWIG_append_result(((res$argnum == SWIG_NEWOBJ) ?
-		       from_meth((*$1)) : SWIG_NewPointerObj((void*)($1), $1_descriptor, 0)));
+   if (res$argnum == SWIG_NEWOBJ) {
+     %append_output(from_meth((*$1)));
+   } else {
+     %append_output(SWIG_NewPointerObj((void*)($1), $1_descriptor, 0));
+   }
  }
 %enddef
 
@@ -218,7 +216,7 @@ phased out in future releases.
 
 */
 
-%define _SWIG_VALUE_INOUT_TYPEMAP(Type)
+%define %_value_inout_typemap(Type)
  %typemap(in) Type *INOUT = Type *INPUT;
  %typemap(in) Type &INOUT = Type &INPUT;
  %typemap(typecheck) Type *INOUT = Type *INPUT;
@@ -228,51 +226,51 @@ phased out in future releases.
 %enddef
 
 
-%define _SWIG_PTR_INOUT_TYPEMAP(Type)
- _SWIG_VALUE_INOUT_TYPEMAP(SWIG_arg(Type))
+%define %_ptr_inout_typemap(Type)
+ %_value_inout_typemap(%arg(Type))
  %typemap(freearg) Type *INOUT = Type *INPUT;
  %typemap(freearg) Type &INOUT = Type &INPUT;
 %enddef
 
 #ifndef SWIG_INOUT_NODEF
-#define SWIG_VALUE_INPUT_TYPEMAP(code,_a,_af,...)	        \
-  _SWIG_VALUE_INPUT_TYPEMAP(SWIG_arg(code),SWIG_arg(_a),	\
-		       SWIG_arg(_af),SWIG_arg(__VA_ARGS__))
+#define %value_input_typemap(code,_a,_af,...)	        \
+  %_value_input_typemap(%arg(code),%arg(_a),	        \
+		       %arg(_af),%arg(__VA_ARGS__))
 
-#define SWIG_PTR_INPUT_TYPEMAP(code,_a,_af,...)				\
-  _SWIG_PTR_INPUT_TYPEMAP(SWIG_arg(code),SWIG_arg(_a),SWIG_arg(_af),	\
-		       SWIG_arg(__VA_ARGS__))
+#define %ptr_input_typemap(code,_a,_af,...)		\
+  %_ptr_input_typemap(%arg(code),%arg(_a),%arg(_af),	\
+		       %arg(__VA_ARGS__))
 
-#define SWIG_VALUE_OUTPUT_TYPEMAP(_f,_ff,...)				\
-  _SWIG_VALUE_OUTPUT_TYPEMAP(SWIG_arg(_f),SWIG_arg(_ff),SWIG_arg(__VA_ARGS__))
+#define %value_output_typemap(_f,_ff,...)		\
+  %_value_output_typemap(%arg(_f),%arg(_ff),%arg(__VA_ARGS__))
 
-#define SWIG_VALUE_INOUT_TYPEMAP(...) _SWIG_VALUE_INOUT_TYPEMAP(SWIG_arg(__VA_ARGS__))
-#define SWIG_PTR_INOUT_TYPEMAP(...) _SWIG_PTR_INOUT_TYPEMAP(SWIG_arg(__VA_ARGS__))
+#define %value_inout_typemap(...) %_value_inout_typemap(%arg(__VA_ARGS__))
+#define %ptr_inout_typemap(...) %_ptr_inout_typemap(%arg(__VA_ARGS__))
 
 #else /* You need to include typemaps.i */
 
 
-#define SWIG_VALUE_OUTPUT_TYPEMAP(...)
-#define SWIG_VALUE_INPUT_TYPEMAP(...)
-#define SWIG_VALUE_INOUT_TYPEMAP(...)
-#define SWIG_PTR_INPUT_TYPEMAP(...)
-#define SWIG_PTR_INOUT_TYPEMAP(...)
+#define %value_output_typemap(...)
+#define %value_input_typemap(...)
+#define %value_inout_typemap(...)
+#define %ptr_input_typemap(...)
+#define %ptr_inout_typemap(...)
 
 #endif /* SWIG_INOUT_DEFAULT */
 
 
-%define %typemap_inout(Code, AsValMeth, FromMeth, AsValFrag, FromFrag, Type...)
-  _SWIG_VALUE_INPUT_TYPEMAP(SWIG_arg(Code), SWIG_arg(AsValMeth), 
-			    SWIG_arg(AsValFrag), SWIG_arg(Type));
-  _SWIG_VALUE_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), SWIG_arg(Type));
-  _SWIG_VALUE_INOUT_TYPEMAP(SWIG_arg(Type));
+%define %typemaps_inout(Code, AsValMeth, FromMeth, AsValFrag, FromFrag, Type...)
+  %_value_input_typemap(%arg(Code), %arg(AsValMeth), 
+			    %arg(AsValFrag), %arg(Type));
+  %_value_output_typemap(%arg(FromMeth), %arg(FromFrag), %arg(Type));
+  %_value_inout_typemap(%arg(Type));
 %enddef
 
-%define %typemap_inoutn(Code,Type...)
-  %typemap_inout(SWIG_arg(Code),
-		 SWIG_arg(SWIG_AsVal(Type)), 
-		 SWIG_arg(SWIG_From(Type)), 
-		 SWIG_arg(SWIG_AsVal_frag(Type)), 
-		 SWIG_arg(SWIG_From_frag(Type)), 
-		 SWIG_arg(Type));
+%define %typemaps_inoutn(Code,Type...)
+  %typemaps_inout(%arg(Code),
+		 %arg(SWIG_AsVal(Type)), 
+		 %arg(SWIG_From(Type)), 
+		 %arg(SWIG_AsVal_frag(Type)), 
+		 %arg(SWIG_From_frag(Type)), 
+		 %arg(Type));
 %enddef

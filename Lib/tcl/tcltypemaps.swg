@@ -11,27 +11,21 @@
  *  Basic definitions
  * ----------------------------------------------------------------------------- */
 
-%define_swig_object(Tcl_Obj *)
+#define SWIG_Object                      Tcl_Obj *
+#define VOID_Object                      NULL
 
-#define SWIG_VoidObject()                NULL
-#define SWIG_SetResultObj(obj)           $result = obj
-#define SWIG_AppendResultObj(obj)        $result = (Tcl_ListObjAppendElement(NULL,$result,obj) == TCL_OK) ? $result : NULL
-#define SWIG_SetConstantObj(name, obj)   SWIG_Tcl_SetConstantObj(interp, name, obj)
+#define SWIG_AppendOutput(result,obj)    (Tcl_ListObjAppendElement(NULL,result,obj) == TCL_OK) ? result : NULL
+#define SWIG_SetConstant(name, obj)      SWIG_Tcl_SetConstantObj(interp, name, obj)
 #define SWIG_Raise(obj,type,desc)        SWIG_Tcl_SetErrorObj(interp,type,obj)
-#define SWIG_DirOutFail(code, msg)       /* no directors supported */
 
 /* -----------------------------------------------------------------------------
  *  All the typemaps
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/exception.swg>
-%include <tclswigtype.swg>
-%include <typemaps/void.swg>
-%include <typemaps/valtypes.swg>
-%include <typemaps/ptrtypes.swg>
-%include <typemaps/swigobject.swg>
-%include <typemaps/inoutlist.swg>
 %include <tclprimtypes.swg>
 %include <tclstrings.swg>
-%include <typemaps/misctypes.swg>
-%include <typemaps/enumint.swg>
+%include <typemaps/swigtypemaps.swg>
+
+/* fix for instances */
+%include <tclswigtype.swg>
+

@@ -74,7 +74,7 @@ namespace swig {
 	if ((res != 0) && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
-	  if (res == SWIG_NEWOBJ) SWIG_delete(p);
+	  if (res == SWIG_NEWOBJ) %delete(p);
 	  return SWIG_OK;
 	} else {
 	  return SWIG_ERROR;
@@ -114,7 +114,7 @@ namespace swig {
       Type v;
       if (!obj || (asval(obj, &v) != SWIG_OK)) {
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>());
+	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
       }
@@ -130,7 +130,7 @@ namespace swig {
       if (res && v) {
 	if (res == SWIG_NEWOBJ) {
 	  Type r(*v);
-	  SWIG_delete(v);
+	  %delete(v);
 	  return r;
 	} else {
 	  return *v;
@@ -139,7 +139,7 @@ namespace swig {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>());
+	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
@@ -157,7 +157,7 @@ namespace swig {
 	return v;
       } else {
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swig::type_name<Type>());
+	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	return 0;
@@ -252,8 +252,8 @@ namespace swig {
 %enddef
 
 
-#define specialize_std_vector(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
-#define specialize_std_list(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
-#define specialize_std_deque(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
-#define specialize_std_set(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
-#define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
+#define specialize_std_vector(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_list(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_deque(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_set(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)

@@ -8,11 +8,6 @@
 
 %insert("runtime") "swigerrors.swg"
 
-#ifdef SWIGPERL5
-%{
-#define SWIG_exception(a,b)   SWIG_croak(b)
-%}
-#endif
 
 #ifdef SWIGPHP4
 %{

@@ -1,5 +1,3 @@
-%include <typemaps/swigtype.swg>
-
 /* ------------------------------------------------------------
  * --- Consttab --- needed for callbacks, it should be removed later.
  * ------------------------------------------------------------ */

@@ -35,7 +35,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	  if (*alloc == SWIG_NEWOBJ) 
 #endif
 	    {
-	      *cptr = SWIG_new_copy_array(cstr, len + 1, char);
+	      *cptr = %new_copy_array(cstr, len + 1, char);
 	      *alloc = SWIG_NEWOBJ;
 	    }
 	  else {
@@ -60,10 +60,10 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   if (carray) {
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(SWIG_const_cast(carray,char *), 
+      return SWIG_NewPointerObj(%const_cast(carray,char *), 
 				SWIG_TypeQuery("char *"), 0);
     } else {
-      return PyString_FromStringAndSize(carray, SWIG_numeric_cast(size,int));
+      return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
     }
   } else {
     Py_INCREF(Py_None);
@@ -72,9 +72,4 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 }
 }
 
-/* ------------------------------------------------------------
- *  The plain char * handling
- * ------------------------------------------------------------ */
 
-%include <typemaps/strings.swg>
-%typemap_string(char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, strlen)

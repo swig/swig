@@ -37,7 +37,7 @@
 
 %define %std_sequence_methods_common(sequence)
   
-  %std_container_methods(SWIG_arg(sequence));
+  %std_container_methods(%arg(sequence));
   
   sequence(size_type size);
   void pop_back();
@@ -55,7 +55,7 @@
 
 %define %std_sequence_methods(sequence)
   
-  %std_sequence_methods_common(SWIG_arg(sequence));
+  %std_sequence_methods_common(%arg(sequence));
   
   sequence(size_type size, const value_type& value);
   void push_back(const value_type& x);  
@@ -76,7 +76,7 @@
 
 %define %std_sequence_methods_val(sequence...)
   
-  %std_sequence_methods_common(SWIG_arg(sequence));
+  %std_sequence_methods_common(%arg(sequence));
   
   sequence(size_type size, value_type value);
   void push_back(value_type x);  

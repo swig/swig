@@ -1,183 +1,90 @@
-/* ---------------------------------------------------------------------- -*- c -*-
- * perl5.swg
+/***********************************************************************
+ * perlrun.swg
  *
- * Perl5 runtime library
- * $Header$
- * ----------------------------------------------------------------------------- */
-
-#define SWIGPERL
-#define SWIGPERL5
-#ifdef __cplusplus
-/* Needed on some windows machines---since MS plays funny games with the header files under C++ */
-#include <math.h>
-#include <stdlib.h>
-extern "C" {
-#endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-/* Get rid of free and malloc defined by perl */
-#undef free
-#undef malloc
-
-#ifndef pTHX_
-#define pTHX_
-#endif
-
-#include <string.h>
-#ifdef __cplusplus
-}
-#endif
-
-/* Macro to call an XS function */
-
-#ifdef PERL_OBJECT 
-#  define SWIG_CALLXS(_name) _name(cv,pPerl) 
-#else 
-#  ifndef MULTIPLICITY 
-#    define SWIG_CALLXS(_name) _name(cv) 
-#  else 
-#    define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv) 
-#  endif 
-#endif 
-
-/* Contract support */
-
-#define SWIG_contract_assert(expr,msg) if (!(expr)) { SWIG_croak(msg); } else
-
-/* Note: SwigMagicFuncHack is a typedef used to get the C++ compiler to just shut up already */
-
+ *     This file contains the runtime support for Ruby modules
+ *     and includes code for managing global variables and pointer
+ *     type checking.
+ *
+ ************************************************************************/
 #ifdef PERL_OBJECT
-#define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (CPerlObj::*SwigMagicFuncHack)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-#define SWIGCLASS_STATIC
+#define SWIG_PERL_OBJECT_DECL CPerlObj *pPerl,
+#define SWIG_PERL_OBJECT_CALL pPerl,
 #else
-#define MAGIC_PPERL
-#define SWIGCLASS_STATIC static
-#ifndef MULTIPLICITY
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-typedef int (*SwigMagicFunc)(SV *, MAGIC *);
-
-#ifdef __cplusplus
-extern "C" {
+#define SWIG_PERL_OBJECT_DECL
+#define SWIG_PERL_OBJECT_CALL
 #endif
-typedef int (*SwigMagicFuncHack)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-
-#else
-#define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
-typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-#endif
-
-#if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
-#define PerlIO_exportFILE(fh,fl) (FILE*)(fh)
-#endif
-
-/* Modifications for newer Perl 5.005 releases */
-
-#if !defined(PERL_REVISION) || ((PERL_REVISION >= 5) && ((PERL_VERSION < 5) || ((PERL_VERSION == 5) && (PERL_SUBVERSION < 50))))
-#  ifndef PL_sv_yes
-#    define PL_sv_yes sv_yes
-#  endif
-#  ifndef PL_sv_undef
-#    define PL_sv_undef sv_undef
-#  endif
-#  ifndef PL_na
-#    define PL_na na
-#  endif
-#endif
-
-#include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define SWIG_OWNER 1
-#define SWIG_SHADOW 2
 
 /* Common SWIG API */
 
-#ifdef PERL_OBJECT
-#  define SWIG_ConvertPtr(obj, pp, type, flags) \
-     SWIG_Perl_ConvertPtr(pPerl, obj, pp, type, flags)
-#  define SWIG_NewPointerObj(p, type, flags) \
-     SWIG_Perl_NewPointerObj(pPerl, p, type, flags)
-#  define SWIG_MakePackedObj(sv, p, s, type)	\
-     SWIG_Perl_MakePackedObj(pPerl, sv, p, s, type)
-#  define SWIG_ConvertPacked(obj, p, s, type, flags) \
-     SWIG_Perl_ConvertPacked(pPerl, obj, p, s, type, flags)
+/* for raw pointers */
+#define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(SWIG_PERL_OBJECT_CALL obj, pp, type, flags)
+#define SWIG_NewPointerObj(p, type, flags)              SWIG_Perl_NewPointerObj(SWIG_PERL_OBJECT_CALL p, type, flags)
 
-#else
-#  define SWIG_ConvertPtr(obj, pp, type, flags) \
-     SWIG_Perl_ConvertPtr(obj, pp, type, flags)
-#  define SWIG_NewPointerObj(p, type, flags) \
-     SWIG_Perl_NewPointerObj(p, type, flags)
-#  define SWIG_MakePackedObj(sv, p, s, type)	\
-     SWIG_Perl_MakePackedObj(sv, p, s, type )
-#  define SWIG_ConvertPacked(obj, p, s, type, flags) \
-     SWIG_Perl_ConvertPacked(obj, p, s, type, flags)
-#endif
+/* for raw packed data */
+#define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(SWIG_PERL_OBJECT_CALL obj, p, s, type)
+#define SWIG_NewPackedObj(p, s, type)	                SWIG_Perl_NewPackedObj(SWIG_PERL_OBJECT_CALL p, s, type)
+
+/* for class or struct pointers */
+#define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_NewPointerObj(ptr, type, flags)
+
+/* for C or C++ function pointers */
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_ConvertPtr(obj, pptr, type, 0)
+#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_NewPointerObj(ptr, type, 0)
+
+/* for C++ member pointers, ie, member methods */
+#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_ConvertPacked(obj, ptr, sz, ty)
+#define SWIG_NewMemberObj(ptr, sz, type)                SWIG_NewPackedObj(ptr, sz, type)
+
 
 /* Runtime API */
-#define SWIG_GetModule(clientdata) SWIG_Perl_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Perl_SetModule(pointer)
 
-/* Perl-specific API */
-#ifdef PERL_OBJECT
-#  define SWIG_MakePtr(sv, ptr, type, flags) \
-     SWIG_Perl_MakePtr(pPerl, sv, ptr, type, flags)
-#  define SWIG_SetError(str) \
-     SWIG_Perl_SetError(pPerl, str)
-#else
-#  define SWIG_MakePtr(sv, ptr, type, flags) \
-     SWIG_Perl_MakePtr(sv, ptr, type, flags)
-#  define SWIG_SetError(str) \
-     SWIG_Perl_SetError(str)
-#  define SWIG_SetErrorSV(str) \
-     SWIG_Perl_SetErrorSV(str)
+#define SWIG_GetModule(clientdata)                      SWIG_Perl_GetModule()
+#define SWIG_SetModule(clientdata, pointer)             SWIG_Perl_SetModule(pointer)
+
+
+/* Error manipulation */
+
+#define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
+#define SWIG_Error(code, msg)            		sv_setpvf(perl_get_sv("@", TRUE), "%s error %s\n", SWIG_ErrorType(code), msg)
+#define SWIG_fail                        		goto fail						    
+
+/* Perl-specific SWIG API */
+
+#define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_MakePtr(SWIG_PERL_OBJECT_CALL sv, ptr, type, flags)
+#define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(SWIG_PERL_OBJECT_CALL sv, p, s, type)
+#define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
+
+
+#define SWIG_PERL_DECL_ARGS_1(arg1)                     (SWIG_PERL_OBJECT_DECL arg1)
+#define SWIG_PERL_CALL_ARGS_1(arg1)                     (SWIG_PERL_OBJECT_CALL arg1)
+#define SWIG_PERL_DECL_ARGS_2(arg1, arg2)               (SWIG_PERL_OBJECT_DECL arg1, arg2)
+#define SWIG_PERL_CALL_ARGS_2(arg1, arg2)               (SWIG_PERL_OBJECT_CALL arg1, arg2)
+
+/* -----------------------------------------------------------------------------
+ * pointers/data manipulation
+ * ----------------------------------------------------------------------------- */
+
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* cc-mode */
+#endif
 #endif
 
-#define SWIG_SetErrorf SWIG_Perl_SetErrorf
+#define SWIG_OWNER   SWIG_POINTER_OWN
+#define SWIG_SHADOW  SWIG_OWNER << 1
 
+#define SWIG_MAYBE_PERL_OBJECT SWIG_PERL_OBJECT_DECL
 
-#ifdef PERL_OBJECT
-#  define SWIG_MAYBE_PERL_OBJECT CPerlObj *pPerl,
-#else
-#  define SWIG_MAYBE_PERL_OBJECT
-#endif
-
-static swig_cast_info *
+SWIGRUNTIME swig_cast_info *
 SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
   SWIG_TypeCheck_Template(sv_derived_from(rv, (char *) iter->type->name), ty);
 }
 
 /* Function for getting a pointer value */
 
-static int
+SWIGRUNTIME int
 SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
@@ -201,7 +108,7 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
           }
         }
       } else {
-        return -1;
+        return SWIG_ERROR;
       }
     } else {
       tmp = SvIV((SV*)SvRV(sv));
@@ -209,37 +116,36 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
     voidptr = (void *)tmp;
     if (!_t) {
       *(ptr) = voidptr;
-      return 0;
+      return SWIG_OK;
     }
   } else if (! SvOK(sv)) {            /* Check for undef */
     *(ptr) = (void *) 0;
-    return 0;
+    return SWIG_OK;
   } else if (SvTYPE(sv) == SVt_RV) {  /* Check for NULL pointer */
-    *(ptr) = (void *) 0;
-    if (!SvROK(sv))
-      return 0;
-    else
-      return -1;
+    if (!SvROK(sv)) {
+      *(ptr) = (void *) 0;
+      return SWIG_OK;
+    } else {
+      return SWIG_ERROR;
+    }
   } else {                            /* Don't know what it is */
-    *(ptr) = (void *) 0;
-    return -1;
+    return SWIG_ERROR;
   }
   if (_t) {
     /* Now see if the types match */
     char *_c = HvNAME(SvSTASH(SvRV(sv)));
     tc = SWIG_TypeCheck(_c,_t);
     if (!tc) {
-      *ptr = voidptr;
-      return -1;
+      return SWIG_ERROR;
     }
     *ptr = SWIG_TypeCast(tc,voidptr);
-    return 0;
+    return SWIG_OK;
   }
   *ptr = voidptr;
-  return 0;
+  return SWIG_OK;
 }
 
-static void
+SWIGRUNTIME void
 SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
   if (ptr && (flags & SWIG_SHADOW)) {
     SV *self;
@@ -268,15 +174,15 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
   }
 }
 
-static SWIGINLINE SV *
+SWIGRUNTIMEINLINE SV *
 SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
   return result;
 }
 
-static void
-  SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
+SWIGRUNTIME void
+SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
   if ((2*sz + 1 + strlen(type->name)) > 1000) return;
@@ -286,49 +192,35 @@ static void
   sv_setpv(sv, result);
 }
 
+SWIGRUNTIME SV *
+SWIG_Perl_NewPackedObj(SWIG_MAYBE_PERL_OBJECT void *ptr, int sz, swig_type_info *type) {
+  SV *result = sv_newmortal();
+  SWIG_Perl_MakePackedObj(result, ptr, sz, type);
+  return result;
+}
+
 /* Convert a packed value value */
-static int
-SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+SWIGRUNTIME int
+SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char  *c = 0;
 
-  if ((!obj) || (!SvOK(obj))) return -1;
+  if ((!obj) || (!SvOK(obj))) return SWIG_ERROR;
   c = SvPV(obj, PL_na);
   /* Pointer values must start with leading underscore */
-  if (*c != '_') return -1;
+  if (*c != '_') return SWIG_ERROR;
   c++;
   c = SWIG_UnpackData(c,ptr,sz);
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
-    if (!tc) return -1;
+    if (!tc) return SWIG_ERROR;
   }
-  return 0;
+  return SWIG_OK;
 }
 
-static SWIGINLINE void
-SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT const char *error) {
-  if (error) sv_setpv(perl_get_sv("@", TRUE), error);
-}
-
-static SWIGINLINE void
-SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT SV *error) {
-  if (error) sv_setsv(perl_get_sv("@", TRUE), error);
-}
-
-static void
-SWIG_Perl_SetErrorf(const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  sv_vsetpvfn(perl_get_sv("@", TRUE), fmt, strlen(fmt), &args, Null(SV**), 0, Null(bool*));
-  va_end(args);
-}
 
 /* Macros for low-level exception handling */
-#define SWIG_fail       goto fail
-#define SWIG_croak(x)   { SWIG_SetError(x); goto fail; }
-#define SWIG_croakSV(x) { SWIG_SetErrorSV(x); goto fail; }
-/* most preprocessors do not support vararg macros :-( */
-/* #define SWIG_croakf(x...) { SWIG_SetErrorf(x); goto fail; } */
+#define SWIG_croak(x)    { SWIG_Error(SWIG_RuntimeError, x); SWIG_fail; }
 
 
 typedef XS(SwigPerlWrapper);
@@ -358,9 +250,6 @@ typedef struct swig_constant_info {
     swig_type_info **ptype;
 } swig_constant_info;
 
-#ifdef __cplusplus
-}
-#endif
 
 /* Structure for variable table */
 typedef struct {
@@ -374,14 +263,15 @@ typedef struct {
 #ifndef PERL_OBJECT
 #define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
   #ifndef MULTIPLICITY
-     static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
+     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
   #else
-     static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) {
+     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
   #endif
 #else
 #  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
+SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
 #endif
+{
   MAGIC *mg;
   sv_magic(sv,sv,'U',(char *) name,strlen(name));
   mg = mg_find(sv,'U');
@@ -394,7 +284,7 @@ static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (C
 }
 
 
-static swig_module_info *
+SWIGRUNTIME swig_module_info *
 SWIG_Perl_GetModule() {
   static void *type_pointer = (void *)0;
   SV *pointer;
@@ -410,7 +300,7 @@ SWIG_Perl_GetModule() {
   return (swig_module_info *) type_pointer;
 }
 
-static void
+SWIGRUNTIME void
 SWIG_Perl_SetModule(swig_module_info *module) {
   SV *pointer;
 
@@ -418,3 +308,10 @@ SWIG_Perl_SetModule(swig_module_info *module) {
   pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
   sv_setiv(pointer, PTR2IV(module));
 }
+
+#ifdef __cplusplus
+#if 0
+{ /* cc-mode */
+#endif
+}
+#endif

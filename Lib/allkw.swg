@@ -25,6 +25,7 @@
 %include "ocaml/ocamlkw.swg"
 %include "ruby/rubykw.swg"
 %include "tcl/tclkw.swg"
+%include "perl5/perlkw.swg"
 
 
 #endif //__Lib_allkw_swg__
