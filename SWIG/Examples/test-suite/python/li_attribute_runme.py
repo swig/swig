@@ -35,3 +35,12 @@ if pi.value != 7:
 pi.value=3
 if pi.value != 3:
  raise RuntimeError
+
+
+b = li_attribute.B(aa)
+
+if b.a.c != 3:
+ raise RuntimeError
+  
+
+
