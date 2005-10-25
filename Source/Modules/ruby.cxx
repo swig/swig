@@ -1227,12 +1227,13 @@ public:
       if (current == CONSTRUCTOR_INITIALIZE) {
 	Node *pn = Swig_methodclass(n);
 	String *symname = Getattr(pn,"sym:name");
-	String *classname = NewStringf("const char *classname = \"%s::%s\"", module, symname);
-	Wrapper_add_local(f, "classname", classname);
 	String *action = Getattr(n,"wrap:action");
+	if (directorsEnabled()) {
+	  String *classname = NewStringf("const char *classname SWIGUNUSED = \"%s::%s\"", module, symname);
+	  Wrapper_add_local(f, "classname", classname);
+	}
 	if (action) {
 	  Append(action,"DATA_PTR(self) = result;\n");
-
 	  if (GetFlag(n,"feature:trackobjects")) {
 	    Append(action,"SWIG_RubyAddTracking(result, self);\n");
 	  }
@@ -2146,7 +2147,7 @@ public:
         String *basetype = Getattr(parent, "classtype");
         String *target = Swig_method_decl(decl, classname, parms, 0, 0);
         call = Swig_csuperclass_call(0, basetype, superparms);
-        Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
+        Printf(w->def, "%s::%s: Swig::Director(self), %s { }", classname, target, call);
         Delete(target);
         Wrapper_print(w, f_directors);
         Delete(call);

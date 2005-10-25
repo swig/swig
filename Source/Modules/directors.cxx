@@ -79,7 +79,7 @@ String *Swig_director_declaration(Node *n) {
   String *directorname = NewStringf("SwigDirector_%s", classname);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
-  Printf(declaration, " : public %s, virtual public Swig::Director {\n", base);
+  Printf(declaration, " : virtual public Swig::Director, public %s {\n", base);
   Delete(classname);
   Delete(directorname);
   return declaration;
