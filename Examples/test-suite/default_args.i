@@ -27,7 +27,7 @@
   const char * casts1(const char *m = (const char *) NULL) {
     char *ret = NULL; 
     if (m) { 
-      ret = new char[strlen(m+1)];
+      ret = new char[strlen(m)+1];
       strcpy(ret, m);
     }
     return ret;
@@ -35,7 +35,7 @@
   const char * casts2(const char *m = (const char *) "Hello") {
     char *ret = NULL; 
     if (m) { 
-      ret = new char[strlen(m+1)];
+      ret = new char[strlen(m)+1];
       strcpy(ret, m);
     }
     return ret;
