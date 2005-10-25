@@ -1380,7 +1380,7 @@ public:
 	       tab4, "my $self = tied(%{$_[0]});\n",
 	       tab4, "return unless defined $self;\n",
 	       tab4, "delete $ITERATORS{$self};\n",
-	       tab4, "if ((exists $OWNER{$self}) and ($OWNER{$self} == 1)) {\n",
+	       tab4, "if (exists $OWNER{$self}) {\n",
 	       tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
 	       tab8, "delete $OWNER{$self};\n",
 	       tab4, "}\n}\n\n",

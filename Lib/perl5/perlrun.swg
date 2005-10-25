@@ -148,18 +148,17 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
        almost copy paste code from bellow SWIG_POINTER_OWN setting
     */
     SV *obj = sv;
-    HV *hv;
-    HV *stash;
-    stash=SvSTASH(SvRV(obj));
-    GV *gv= *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
-    if (!isGV(gv))
-      gv_init(gv, stash, "OWNER", 5, FALSE);
-    hv = GvHVn(gv);
-    /*
-      To set ownership (see bellow), we use newSViv(1). Hence, to
-      remove ownership, now we use newSViv(0), right?
-    */
-    hv_store_ent(hv, obj, newSViv(0), 0);
+    HV *stash = SvSTASH(SvRV(obj));
+    GV *gv = *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
+    if (isGV(gv)) {
+      HV *hv = GvHVn(gv);
+      /*
+	To set ownership (see bellow), an newSViv(1) entry is added. 
+	Hence, to remove ownership, we delete the entry.
+      */
+      SV *v = hv_delete_ent(hv, obj, 0, 0);
+      if (v) SvREFCNT_dec(v);
+    }
   }
   return SWIG_OK;
 }
