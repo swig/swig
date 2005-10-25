@@ -88,14 +88,14 @@ SWIGRUNTIME int
 SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
-
+  SV *tsv = 0;
   /* If magical, apply more magic */
   if (SvGMAGICAL(sv))
     mg_get(sv);
 
   /* Check to see if this is an object */
   if (sv_isobject(sv)) {
-    SV *tsv = (SV*) SvRV(sv);
+    tsv = (SV*) SvRV(sv);
     IV tmp = 0;
     if ((SvTYPE(tsv) == SVt_PVHV)) {
       MAGIC *mg;
@@ -104,20 +104,17 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
         if (mg) {
           sv = mg->mg_obj;
           if (sv_isobject(sv)) {
-            tmp = SvIV((SV*)SvRV(sv));
+	    tsv = (SV*)SvRV(sv);
+            tmp = SvIV(tsv);
           }
         }
       } else {
         return SWIG_ERROR;
       }
     } else {
-      tmp = SvIV((SV*)SvRV(sv));
+      tmp = SvIV(tsv);
     }
     voidptr = (void *)tmp;
-    if (!_t) {
-      *(ptr) = voidptr;
-      return SWIG_OK;
-    }
   } else if (! SvOK(sv)) {            /* Check for undef */
     *(ptr) = (void *) 0;
     return SWIG_OK;
@@ -134,14 +131,36 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   if (_t) {
     /* Now see if the types match */
     char *_c = HvNAME(SvSTASH(SvRV(sv)));
+
     tc = SWIG_TypeCheck(_c,_t);
     if (!tc) {
       return SWIG_ERROR;
     }
     *ptr = SWIG_TypeCast(tc,voidptr);
-    return SWIG_OK;
+  } else {
+    *ptr = voidptr;
   }
-  *ptr = voidptr;
+  /* 
+     DISOWN implementation: we need a perl guru to check this one.
+  */
+  if (tsv && (flags & SWIG_POINTER_DISOWN)) {
+    /* 
+       almost copy paste code from bellow SWIG_POINTER_OWN setting
+    */
+    SV *obj = sv;
+    HV *hv;
+    HV *stash;
+    stash=SvSTASH(SvRV(obj));
+    GV *gv= *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
+    if (!isGV(gv))
+      gv_init(gv, stash, "OWNER", 5, FALSE);
+    hv = GvHVn(gv);
+    /*
+      To set ownership (see bellow), we use newSViv(1). Hence, to
+      remove ownership, now we use newSViv(0), right?
+    */
+    hv_store_ent(hv, obj, newSViv(0), 0);
+  }
   return SWIG_OK;
 }
 
@@ -154,7 +173,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     HV *stash;
     sv_setref_pv(obj, (char *) t->name, ptr);
     stash=SvSTASH(SvRV(obj));
-    if (flags & SWIG_OWNER) {
+    if (flags & SWIG_POINTER_OWN) {
       HV *hv;
       GV *gv=*(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
       if (!isGV(gv))
