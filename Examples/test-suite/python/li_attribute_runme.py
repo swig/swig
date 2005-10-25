@@ -1,6 +1,6 @@
-import attributetest
+import li_attribute
 
-aa = attributetest.A(1,2,3)
+aa = li_attribute.A(1,2,3)
 
 if aa.a != 1:
   raise RuntimeError
@@ -28,7 +28,7 @@ if aa.c != 3:
 #if aa.c != 3:
 #  raise RuntimeError
 
-pi = attributetest.Param_i(7)
+pi = li_attribute.Param_i(7)
 if pi.value != 7:
  raise RuntimeError
 

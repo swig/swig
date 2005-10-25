@@ -11,6 +11,7 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	primitive_types \
+	li_attribute \
 	li_cstring \
 	li_cwstring \
 	li_std_wstring
