@@ -1,5 +1,7 @@
 use enum_thorough;
 
+$enum_thorough::myColour;
+
 
 # Just test an in and out typemap for enum SWIGTYPE and const enum SWIGTYPE & typemaps
 if (enum_thorough::speedTest4($enum_thorough::SpeedClass::slow) != $enum_thorough::SpeedClass::slow) {

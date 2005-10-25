@@ -66,13 +66,13 @@
   %set_output(obj) %enddef
 
 /* variable output */
-%define %set_varoutput(obj) sv_setsv($result,obj);  SvREFCNT_dec(obj) %enddef
+%define %set_varoutput(obj) sv_setsv($result,obj)  %enddef
 
 /* constant */
 %define %set_constant(name, obj) %begin_block
+  SV *_obj = obj;
   SV *sv = get_sv((char*) SWIG_prefix name, TRUE | 0x2);
-  sv_setsv(sv, obj);
-  SvREFCNT_dec(obj);
+  sv_setsv(sv, _obj);
   SvREADONLY_on(sv);
 %end_block %enddef
 
