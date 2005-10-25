@@ -558,7 +558,7 @@ public:
 
   /* Create a function for getting a variable */
     getf = NewWrapper();
-    getname = Swig_name_wrapper(Swig_name_get(iname));
+    getname = Swig_name_get(iname);
     Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
     Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
 
@@ -585,7 +585,7 @@ public:
   /* Try to create a function setting a variable */
     if (is_assignable(n)) {
       setf = NewWrapper();
-      setname = Swig_name_wrapper(Swig_name_set(iname));
+      setname = Swig_name_set(iname);
       Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {",NIL);
       Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
       Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");

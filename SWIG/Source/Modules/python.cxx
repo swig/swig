@@ -1599,7 +1599,8 @@ public:
     String *iname = Getattr(n,"sym:name");
     SwigType *t = Getattr(n,"type");
     
-    String *wname;
+    String *getnamef;
+    String *setnamef;
     static int have_globals = 0;
     String  *tm;
     Wrapper *getf, *setf;
@@ -1627,12 +1628,13 @@ public:
       }
     }
 
-    wname = Swig_name_wrapper(iname);
+    getnamef = Swig_name_get(iname);
+    setnamef = Swig_name_set(iname);
 
     /* Create a function for setting the value of the variable */
 
     if (assignable) {
-      Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
+      Printf(setf->def,"static int %s(PyObject *_val) {", setnamef);
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
@@ -1649,9 +1651,9 @@ public:
     } else {
       /* Is a readonly variable.  Issue an error */
       if (CPlusPlus) {
-	Printf(setf->def,"static int %s_set(PyObject *) {", wname);
+	Printf(setf->def,"static int %s(PyObject *) {", setnamef);
       } else {
-	Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
+	Printf(setf->def,"static int %s(PyObject *_val SWIGUNUSED) {", setnamef);
       }
       Printv(setf->code,
 	     tab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname," is read-only.\");\n",
@@ -1663,7 +1665,7 @@ public:
     Wrapper_print(setf,f_wrappers);
 
     /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static PyObject *%s_get(void) {", wname);
+    Printf(getf->def,"static PyObject *%s(void) {", getnamef);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
@@ -1679,8 +1681,10 @@ public:
     Wrapper_print(getf,f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, getnamef, setnamef);
 
+    Delete(getnamef);
+    Delete(setnamef);
     DelWrapper(setf);
     DelWrapper(getf);
     return SWIG_OK;
