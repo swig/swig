@@ -794,8 +794,8 @@ public:
     Wrapper  *getf, *setf;
     String  *tm;
 
-    String *set_name = NewStringf("_wrap_set_%s", iname);
-    String *val_name = NewStringf("_wrap_val_%s", iname);
+    String *set_name = Swig_name_set(iname);
+    String *val_name = Swig_name_get(iname);
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
 
@@ -1380,7 +1380,7 @@ public:
 	       tab4, "my $self = tied(%{$_[0]});\n",
 	       tab4, "return unless defined $self;\n",
 	       tab4, "delete $ITERATORS{$self};\n",
-	       tab4, "if (exists $OWNER{$self}) {\n",
+	       tab4, "if ((exists $OWNER{$self}) and ($OWNER{$self} == 1)) {\n",
 	       tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
 	       tab8, "delete $OWNER{$self};\n",
 	       tab4, "}\n}\n\n",
