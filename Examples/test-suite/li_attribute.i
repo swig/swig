@@ -11,6 +11,8 @@
 %attribute(A, int, c, get_c);  /* read-only */
 %attribute_ref(A, int, b, d);  /* different attribute name 'd' */
 
+%attribute_ref(B, A*, a)
+
 %inline
 {
   struct A
@@ -63,7 +65,20 @@
     }    
   private:
     C _v;
-  };  
+  }; 
+  
+  
+  struct B {
+    B(A *a) : mA(a)
+    {
+    }
+    
+    A*& a() { return mA; }
+    
+  protected:
+    A*  mA;
+  };
+ 
 }
 
 %template(Param_i) Param<int>;
