@@ -1,67 +1,150 @@
 /* -----------------------------------------------------------------------------
- *  Typemap specializations
+ *  Unified Typemap Library frontend
  * ----------------------------------------------------------------------------- */
 
-/* flags for new/convert methods */
+/*
+  This file provides the frontend to the Unified Typemap Library.
+
+  When using this library in a SWIG target language, you need to
+  define a minimum set of fragments, specialized a couple of macros,
+  and then include this file.
+
+  Typically you will create a 'mytypemaps.swg' file in each target
+  languge, where you will have the following sections:
+
+    === mytypemaps.swg ===
+
+    //  Fragment section 
+    %include <typemaps/fragments.swg>
+    <include target language fragments>
+
+    // Unified typemap section 
+    <specialized the typemap library macros>
+    %include <typemaps/swigtypemaps.swg>
+
+    // Local typemap section 
+    <add/replace extra target language typemaps>
+
+    === mytypemaps.swg ===
+
+  While we add more docs, please take a look at the following cases
+  to see how you specialized the unified typemap library for a new
+  target language:
+
+      Lib/python/pytypemaps.swg
+      Lib/tcl/tcltypemaps.swg
+      Lib/ruby/rubytypemaps.swg
+      Lib/perl5/perl5typemaps.swg
+    
+*/
+
+
+/* -----------------------------------------------------------------------------
+ *   Language specialization section. 
+ *
+ *   Tune these macros for each language as needed.
+ * ----------------------------------------------------------------------------- */
+
+/*
+  The SWIG target language object must be provided.
+  For example in python you define:
+
+    #define SWIG_Object PyObject *
+*/
+
+#if !defined(SWIG_Object) 
+#error "SWIG_Object must be defined as the SWIG target language object"
+#endif
+
+/*==== flags for new/convert methods ====*/
 
 #ifndef %convertptr_flags
-%ignore %convertptr_flags;
-#define %convertptr_flags 0
+%define %convertptr_flags  0 %enddef
 #endif
 
 #ifndef %newpointer_flags
-%ignore %newpointer_flags;
-#define %newpointer_flags 0 
+%define %newpointer_flags  0 %enddef
 #endif
 
 #ifndef %newinstance_flags
-%ignore %newinstance_flags;
-#define %newinstance_flags 0 
+%define %newinstance_flags 0 %enddef
 #endif
 
-/* output  and constant manipulation */
-
-#ifndef %set_varoutput
-#define %set_varoutput(obj)         $result = obj
-#endif
+/*==== set output ====*/
 
 #ifndef %set_output
-#define %set_output(obj)            $result = obj
+/* simple set output operation */
+#define %set_output(obj)                  $result = obj
 #endif
+
+/*==== set variable output  ====*/
+
+#ifndef %set_varoutput
+/* simple set varoutput operation */
+#define %set_varoutput(obj)               $result = obj
+#endif
+
+/*==== append output ====*/
 
 #ifndef %append_output
-#define %append_output(obj)         $result = SWIG_AppendOutput($result,obj) 
+#if defined(SWIG_AppendOutput)
+/* simple append operation */
+#define %append_output(obj)               $result = SWIG_AppendOutput($result,obj) 
+#else
+#error "Language must define SWIG_AppendOutput or %append_output"
 #endif
+#endif
+
+/*==== set constant ====*/
 
 #ifndef %set_constant
-#define %set_constant(name,value)   SWIG_SetConstant(name,value)
+#if defined(SWIG_SetConstant)
+/* simple set constant operation */
+#define %set_constant(name,value)         SWIG_SetConstant(name,value)
+#else
+#error "Language must define SWIG_SetConstant or %set_constant"
+#endif
 #endif
 
-/* setting an error and exit */
+/*==== raise an exception ====*/
+
+#ifndef %raise
+#if defined(SWIG_Raise)
+/* simple raise operation */
+#define %raise(obj, type, desc)           %error_block(SWIG_Raise(obj, type, desc); SWIG_fail)
+#else
+#error "Language must define SWIG_Raise or %raise"
+#endif
+#endif
+
+/*==== director output exception ====*/
+
+#ifdef SWIG_DIRECTOR_TYPEMAPS
+#ifndef SWIG_DirOutFail
+#define SWIG_DirOutFail(code, msg)        Swig::DirectorTypeMismatchException::raise(SWIG_ErrorType(code), msg)
+#endif
+#endif
+
+
+/* -----------------------------------------------------------------------------
+ *  Language independent definitions
+ * ----------------------------------------------------------------------------- */
+
 #define %error_block(Block...)            %block(Block)
 #define %argument_fail(code, type, argn)  %error_block(SWIG_Error(code, %argfail_fmt(type, argn)); SWIG_fail)
 #define %argument_nullref(type, argn)     %error_block(SWIG_Error(SWIG_ValueError, %argnullref_fmt(type, argn)); SWIG_fail)
 #define %variable_fail(code, type, name)  %error_block(SWIG_Error(code, %varfail_fmt(type, name)); SWIG_fail)
 #define %variable_nullref(type, name)     %error_block(SWIG_Error(SWIG_ValueError, %varnullref_fmt(type, name)); SWIG_fail)
 
-
-#ifndef %raise
-#define %raise(obj, type, desc)           %error_block(SWIG_Raise(obj, type, desc); SWIG_fail)
-#endif
-
 #ifdef SWIG_DIRECTOR_TYPEMAPS
 #define %dirout_fail(code, type)          SWIG_DirOutFail(code, %outfail_fmt(type))
 #define %dirout_nullref(type)             SWIG_DirOutFail(SWIG_ValueError, %outnullref_fmt(type))
 #endif
 
-
-
-
-
-
 /* -----------------------------------------------------------------------------
  *  All the typemaps
  * ----------------------------------------------------------------------------- */
+
 
 %include <typemaps/fragments.swg>
 %include <typemaps/exception.swg>

@@ -1,14 +1,97 @@
 /* -----------------------------------------------------------------------------
  * SWIG API. Portion only visible from SWIG
  * ----------------------------------------------------------------------------- */
+/*
+  This file implements the internal macros of the 'SWIG API', which
+  are useful to implement all the SWIG target languges.
 
+  Basic preprocessor macros:
+  --------------------------
+
+    %arg(Arg)               Safe argument wrap
+    %str(Arg)               Stringtify the argument 
+    %begin_block            Begin a execution block  
+    %end_block              End a execution block   
+    %block(Block)           Execute Block as a excecution block
+    %define_as(Def, Val)    Define 'Def' as 'Val', expanding Def and Val first
+    %ifcplusplus(V1, V2)    if C++ Mode; then V1; else V2; fi
+
+
+  Casting Operations:
+  -------------------
+  
+  Swig provides the following casting macros, which implement the
+  corresponding C++ casting operations:
+
+    %const_cast(a, Type)         const_cast<Type >(a)			       
+    %static_cast(a, Type)      	 static_cast<Type >(a)			       
+    %reinterpret_cast(a, Type) 	 reinterpret_cast<Type >(a)		       
+    %numeric_cast(a, Type)     	 static_cast<Type >(a)			       
+    %as_voidptr(a)            	 const_cast<void *>(static_cast<const void *>(a)) 
+    %as_voidptrptr(a)        	 reinterpret_cast<void **>(a)                     
+  
+  or their C unsafe versions. In C++ we use the safe version unless
+  SWIG_NO_CPLUSPLUS_CAST is defined (usually via the -nocppcast swig flag).
+
+
+  Memory allocation:
+  ------------------
+  
+  These allocation/freeing macros are safe to use in C or C++ and
+  dispatch the proper new/delete/delete[] or free/malloc calls as
+  needed.
+  
+    %new_instance(Type)             Allocate a new instance of given Type
+    %new_copy(value,Type)           Allocate and initialize a new instance with 'value'
+    %new_array(size,Type)           Allocate a new array with given size and Type
+    %new_copy_array(cptr,size,Type) Allocate and initialize a new array from 'cptr'
+    %delete(cptr)                   Delete an instance  
+    %delete_array(cptr)             Delete an array
+
+
+  Auxiliar loop macros:
+  ---------------------
+
+    %formacro(Macro, Args...) or %formacro_1(Macro, Args...)
+       for i in Args
+       do 
+          Macro($i)
+       done
+
+    %formacro_2(Macro2, Args...)
+       for i,j in Args
+       do 
+          Macro2($i, $j)
+       done
+
+
+  Swig flags:
+  -----------
+
+     %swig_mark_flag(flag)
+       flag := True
+
+     %evalif(flag,expr) 
+       if flag; then
+         expr
+       fi
+
+     %evalif_2(flag1 flag2,expr) 
+       if flag1 and flag2; then
+         expr
+       fi
+
+
+*/
 /* -----------------------------------------------------------------------------
  * Basic preprocessor macros 
  * ----------------------------------------------------------------------------- */
 
-#define %arg(Arg...) Arg
-#define %str(Type...) #Type
-#define %block(Block...)  do { Block; } while(0)
+#define %arg(Arg...)        Arg
+#define %str(Arg)           `Arg`
+#define %begin_block        do {
+#define %end_block          } while(0)
+#define %block(Block...)    %begin_block Block; %end_block
 
 /* define a new macro */
 %define %define_as(Def, Val...)
@@ -41,7 +124,7 @@ nocppval
 # define %reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
 # define %numeric_cast(a,Type...)     static_cast<Type >(a)
 # define %as_voidptr(a)               const_cast<void *>(static_cast<const void *>(a))
-# define %as_voidptrptr(a)            reinterpret_cast<void **>(a)
+# define %as_voidptrptr(a)            reinterpret_cast<void **>(a)                     
 #else /* C case */
 # define %const_cast(a,Type...)       (Type)(a)
 # define %static_cast(a,Type...)      (Type)(a)
@@ -81,27 +164,8 @@ nocppval
 #define %checkcode(Code)           	  %name_type(TYPECHECK, Code)
 
 
-
-/* 
-   Macros to define language dependent object and the void object.
-   Use them, for example in Tcl, as
-   
-     %define_swig_object(Tcl_Obj *)
-     %define_void_object(NULL)
-*/
-
-/* VOID_Object */
-%define %define_void_object(Obj)
-#define VOID_Object Obj
-%enddef
-
-/* SWIG_Object */
-%define %define_swig_object(Obj)
-#define SWIG_Object Obj
-%enddef
-
 /* -----------------------------------------------------------------------------
- * Auxiliar ugly macros used to write typemaps
+ * Auxiliar loop macros 
  * ----------------------------------------------------------------------------- */
 
 
@@ -115,6 +179,9 @@ macro(arg1)
 
 /* for loop for macro with one argument */
 %define %formacro_1(macro,...)
+%_formacro_1(macro,__VA_ARGS__,__fordone__)
+%enddef
+%define %formacro(macro,...)
 %_formacro_1(macro,__VA_ARGS__,__fordone__)
 %enddef
 
@@ -131,30 +198,21 @@ macro(arg1, arg2)
 %_formacro_2(macro, __VA_ARGS__, __fordone__)
 %enddef
 
+/* -----------------------------------------------------------------------------
+ * Swig flags
+ * ----------------------------------------------------------------------------- */
 
 /* 
   mark a flag, ie, define a macro name but ignore it in
   the interface. 
   
-  the flags latter can be used with %evalif
+  the flag can be later used with %evalif
 */
 
 %define %swig_mark_flag(x)
-%ignore x;
-#define x 1
+%define x 1 %enddef
 %enddef
 
-/*
- %swig_equal_type and %swig_order_type flagged a type of having equal (==,!=)
- and/or order methods  (<=,>=,<,>).
-*/
-#define SWIG_OrderType(Type...)    %name_type(OrderType, Type)
-#define SWIG_EqualType(Type...)    %name_type(EqualType, Type)
-
-#define %swig_equal_type(...) %swig_mark_flag(SWIG_EqualType(__VA_ARGS__))
-#define %swig_order_type(...)		       \
-  %swig_mark_flag(SWIG_EqualType(__VA_ARGS__)) \
-  %swig_mark_flag(SWIG_OrderType(__VA_ARGS__))
 
 /*
   %evalif and %evalif_2 are use to evaluate or process 
@@ -172,17 +230,11 @@ _expr
 #endif
 %enddef
 
-%define %evalif(_x,...) 
-  %_evalif(%arg(_x),%arg(__VA_ARGS__)) 
+%define %evalif(_x,_expr...) 
+  %_evalif(%arg(_x),%arg(_expr)) 
 %enddef
 
-%define %evalif_2(_x,_y,...) 
-  %_evalif_2(%arg(_x),%arg(_y),%arg(__VA_ARGS__)) 
+%define %evalif_2(_x,_y,_expr...) 
+  %_evalif_2(%arg(_x),%arg(_y),%arg(_expr)) 
 %enddef
 
-
-/* -----------------------------------------------------------------------------
- * Include special macros for fragments
- * ----------------------------------------------------------------------------- */
-
-%include <typemaps/fragmacros.swg>

@@ -3,31 +3,6 @@
  * ------------------------------------------------------------ */
 
 
-/* boolean */
-
-%fragment(SWIG_From_frag(bool),"header") {
-SWIGINTERN SV *
-SWIG_From_dec(bool)(bool value)
-{    
-  SV *obj = sv_newmortal();
-  sv_setiv(obj, value ? 1 : 0);
-  return obj;
-}
-}
-
-%fragment(SWIG_AsVal_frag(bool),"header",fragment=SWIG_AsVal_frag(long)) {
-SWIGINTERN int
-SWIG_AsVal_dec(bool)(SV *obj, bool *val)
-{
-  long v;
-  if (SWIG_AsVal(long)(obj, val ? &v : 0) == SWIG_OK) {    
-    if (val) *val = v ? true : false;
-    return SWIG_OK;
-  }  
-  return SWIG_TypeError;
-}
-}
-
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
@@ -39,7 +14,6 @@ SWIG_From_dec(long)(long value)
   return obj;
 }
 }
-
 
 %fragment(SWIG_AsVal_frag(long),"header") {
 SWIGINTERN int
@@ -64,7 +38,6 @@ SWIG_From_dec(unsigned long)(unsigned long value)
   return obj;
 }
 }
-
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header") {
 SWIGINTERN int
@@ -132,7 +105,6 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
   return SWIG_TypeError; 
 }
 }
-
 
 /* unsigned long long */
 
@@ -205,5 +177,3 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
   return SWIG_TypeError;
 }
 }
-
-

@@ -58,7 +58,7 @@
 #define SWIG_ObjectDelete                            	SWIG_Tcl_ObjectDelete				       
 
 
-#define SWIG_TCL_DECL_ARGS_2(arg1, arg2)                (Tcl_Interp *interp, arg1, arg2)
+#define SWIG_TCL_DECL_ARGS_2(arg1, arg2)                (Tcl_Interp *interp SWIGUNUSED, arg1, arg2)
 #define SWIG_TCL_CALL_ARGS_2(arg1, arg2)                (interp, arg1, arg2)
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
@@ -167,7 +167,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
 
 /* Convert a packed value value */
 SWIGRUNTIME int
-SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
+SWIG_Tcl_ConvertPacked(Tcl_Interp *interp SWIGUNUSED, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char  *c;
 

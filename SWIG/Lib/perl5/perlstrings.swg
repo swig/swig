@@ -42,7 +42,20 @@ SWIGINTERNINLINE SV *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SV *obj = sv_newmortal();
-  sv_setpv(obj, carray);
+  if (size && carray) {
+    if (carray[size - 1] == 0) {
+      sv_setpv(obj, carray);
+    } else {
+      char *tmp = %new_array(size + 1, char);
+      memcpy(tmp, carray, size);
+      tmp[size] = 0;
+      sv_setpv(obj, tmp);
+      %delete(tmp);
+    }
+  } else {
+    sv_setpv(obj, 0);
+  }
   return obj;
 }
 }
+

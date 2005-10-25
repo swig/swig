@@ -2,10 +2,6 @@
  * Language Object *  - Just pass straight through unmodified
  * ------------------------------------------------------------ */
 
-#if !defined(SWIG_Object) 
-#error "SWIG_Object must be defined using %define_swig_object"
-#endif
-
 %typemap(in)   SWIG_Object "$1 = $input;";
 
 %typemap(out,noblock=1)  SWIG_Object {

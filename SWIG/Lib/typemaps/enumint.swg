@@ -26,39 +26,3 @@
   }
 }
 
-/* 
-   typemaps needed due to unnamed enums
-*/
-%define %enum_out_typemaps(from_meth,frag)
-  %typemap(out,noblock=1,fragment=frag) enum SWIGTYPE {
-    %set_output(from_meth(($1)));
-  }
-  %typemap(out,noblock=1,fragment=frag) const enum SWIGTYPE& {
-    %set_output(from_meth((*$1)));
-  }
-  %typemap(varout,noblock=1,fragment=frag) enum SWIGTYPE, const enum SWIGTYPE& {
-    %set_varoutput(from_meth($1));
-  }
-  %typemap(constcode,noblock=1,fragment=frag) enum SWIGTYPE {
-    %set_constant("$symname", from_meth($value));
-  }
-  %typemap(directorin,noblock=1,fragment=frag) enum SWIGTYPE *DIRECTORIN {
-    $input = from_meth(*$1_name);
-  }
-  %typemap(directorin,noblock=1,fragment=frag) enum SWIGTYPE, const enum SWIGTYPE& {
-    $input = from_meth($1_name);
-  }
-  %typemap(throws,noblock=1,fragment=frag) enum SWIGTYPE {
-    %raise(from_meth($1),"$type",0);
-  }
-%enddef
-
-%enum_out_typemaps(SWIG_From(int),SWIG_From_frag(int));
-
-  
-
-
-
-
-
-

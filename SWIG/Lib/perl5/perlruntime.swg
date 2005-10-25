@@ -4,10 +4,6 @@
 #include <perl.h>
 #include <XSUB.h>
 
-/* Get rid of free and malloc defined by perl */
-#undef free
-#undef malloc
-
 #ifndef pTHX_
 #define pTHX_
 #endif
@@ -44,7 +40,7 @@ typedef int (CPerlObj::*SwigMagicFuncHack)(SV *, MAGIC *);
 #define SWIGCLASS_STATIC
 #else
 #define MAGIC_PPERL
-#define SWIGCLASS_STATIC static
+#define SWIGCLASS_STATIC static SWIGUNUSED
 #ifndef MULTIPLICITY
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
 typedef int (*SwigMagicFunc)(SV *, MAGIC *);

@@ -269,10 +269,50 @@
 */
 
 
+/* -----------------------------------------------------------------------------
+ * Define the basic macros to 'normalize' the type fragments
+ * ----------------------------------------------------------------------------- */
+
+#ifndef SWIG_ASVAL_DECL_ARGS
+#define SWIG_ASVAL_DECL_ARGS
+#endif
+
+#ifndef SWIG_ASPTR_DECL_ARGS
+#define SWIG_ASPTR_DECL_ARGS
+#endif
+
+#ifndef SWIG_FROM_DECL_ARGS
+#define SWIG_FROM_DECL_ARGS
+#endif
+
+#ifndef SWIG_ASVAL_CALL_ARGS
+#define SWIG_ASVAL_CALL_ARGS
+#endif
+
+#ifndef SWIG_ASPTR_CALL_ARGS
+#define SWIG_ASPTR_CALL_ARGS
+#endif
+
+#ifndef SWIG_FROM_CALL_ARGS
+#define SWIG_FROM_CALL_ARGS
+#endif
+
+#define SWIG_Traits_frag(Type...) %string_type(Traits, Type) 
+#define SWIG_AsPtr_frag(Type...)  %string_type(AsPtr, Type)	 
+#define SWIG_AsVal_frag(Type...)  %string_type(AsVal, Type)	 
+#define SWIG_From_frag(Type...)   %string_type(From, Type)	 
+
+#define SWIG_AsVal_dec(Type...)   %name_type(AsVal, Type) SWIG_ASVAL_DECL_ARGS
+#define SWIG_AsPtr_dec(Type...)   %name_type(AsPtr, Type) SWIG_ASPTR_DECL_ARGS
+#define SWIG_From_dec(Type...)    %name_type(From, Type)  SWIG_FROM_DECL_ARGS 
+
+#define SWIG_AsVal(Type...)       %name_type(AsVal, Type) SWIG_ASVAL_CALL_ARGS 
+#define SWIG_AsPtr(Type...)  	  %name_type(AsPtr, Type) SWIG_ASPTR_CALL_ARGS 	 
+#define SWIG_From(Type...)   	  %name_type(From, Type)  SWIG_FROM_CALL_ARGS 
+
 /* ------------------------------------------------------------
  * common fragments 
  * ------------------------------------------------------------ */
-
 
 %fragment("<limits.h>","header") %{
 #include <limits.h>
@@ -286,4 +326,90 @@
 #include <float.h>
 %}
 
+/* -----------------------------------------------------------------------------
+ * special macros for fragments
+ * ----------------------------------------------------------------------------- */
 
+/* Macros to derive numeric types */
+
+%define %numeric_type_from(Type, Base)
+%fragment(SWIG_From_frag(Type),"header",
+	  fragment=SWIG_From_frag(Base)) {
+SWIGINTERNINLINE SWIG_Object
+SWIG_From_dec(Type)(Type value)
+{    
+  return SWIG_From(Base)(value);
+}
+}
+%enddef
+
+%define %numeric_type_asval(Type, Base, Frag, OverflowCond)
+%fragment(SWIG_AsVal_frag(Type),"header",
+	  fragment=Frag,
+	  fragment=SWIG_AsVal_frag(Base)) {
+SWIGINTERN int
+SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
+{
+  Base v;
+  int res = SWIG_AsVal(Base)(obj, &v);
+  if (res == SWIG_OK) {
+    if (OverflowCond) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = %numeric_cast(v, Type);
+      return SWIG_OK;
+    }
+  }  
+  return res;
+}
+}
+%enddef
+
+%define %numeric_signed_type_asval(Type, Base, Frag, Min, Max)
+%numeric_type_asval(Type, Base, Frag, (v < Min || v > Max))
+%enddef
+
+%define %numeric_unsigned_type_asval(Type, Base, Frag, Max)
+%numeric_type_asval(Type, Base, Frag, (v > Max))
+%enddef
+
+
+/* Macro for 'signed long' derived types */
+
+%define %numeric_slong(Type, Frag, Min, Max)
+%numeric_type_from(Type, long)
+%numeric_signed_type_asval(Type, long, Frag , Min, Max)
+%enddef
+
+/* Macro for 'unsigned long' derived types */
+
+%define %numeric_ulong(Type, Frag, Max)
+%numeric_type_from(Type, unsigned long)
+%numeric_unsigned_type_asval(Type, unsigned long, Frag, Max)
+%enddef
+
+
+/* Macro for 'double' derived types */
+
+%define %numeric_double(Type, Frag, Min, Max)
+%numeric_type_from(Type, double)
+%numeric_signed_type_asval(Type, double, Frag , Min, Max)
+%enddef
+
+
+/* Macros for missing fragments */
+
+%define %ensure_fragment(Fragment)
+%fragment(`Fragment`,"header") {
+%#error "Swig language implementation must provide the Fragment fragment"
+}
+%enddef
+
+%define %ensure_type_fragments(Type)
+%fragment(SWIG_From_frag(Type),"header") {
+%#error "Swig language implementation must provide a SWIG_From_frag(Type) fragment"
+}
+%fragment(SWIG_AsVal_frag(Type),"header") {
+%#error "Swig language implementation must provide a SWIG_AsVal_frag(Type) fragment"
+}
+%enddef
