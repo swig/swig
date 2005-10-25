@@ -28,12 +28,8 @@
     {
       _a = aa;
     }
-    
-    const int& b() const 
-    {
-      return _b;
-    }
-    
+
+    /* only one ref method */
     int& b() 
     {
       return _b;
