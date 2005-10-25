@@ -1473,7 +1473,7 @@ public:
     setf = NewWrapper();
 
     /* create getter */
-    getfname = NewString(Swig_name_get(iname));
+    getfname = Swig_name_get(iname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
     Printf(getf->def, ") {");
@@ -1502,7 +1502,7 @@ public:
       setfname = NewString("NULL");
     } else {
       /* create setter */
-      setfname = NewString(Swig_name_set(iname));
+      setfname = Swig_name_set(iname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
     
