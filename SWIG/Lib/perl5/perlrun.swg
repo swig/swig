@@ -156,8 +156,10 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
 	To set ownership (see bellow), an newSViv(1) entry is added. 
 	Hence, to remove ownership, we delete the entry.
       */
-      SV *v = hv_delete_ent(hv, obj, 0, 0);
-      if (v) SvREFCNT_dec(v);
+
+      /* SV *val = */
+      hv_delete_ent(hv, obj, 0, 0);
+      /* if (val) SvREFCNT_dec(val); */
     }
   }
   return SWIG_OK;
