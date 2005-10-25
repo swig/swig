@@ -79,7 +79,13 @@
 
 */
 
-#ifdef __cplusplus
+//
+// Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates.
+//
+//#define SWIG_ATTRIBUTE_TEMPLATE
+
+
+#if defined(__cplusplus) && defined(SWIG_ATTRIBUTE_TEMPLATE)
 %define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
 %extend Class {
   type attr;
@@ -115,16 +121,16 @@
 // Internal versions, need Wrap name
 //
 
-%define %attribute_T(Class, Wrap, type, attr, get, _Type...) 
+%define %attribute_T(Class, Wrap, type, attr, get, set...) 
 %ignore Class::get;
-#if #_Type != ""
-  %ignore Class::_Type;
+#if #set != ""
+  %ignore Class::set;
   %_attribute(%arg(Class), Wrap, %arg(type),
-	      attr, _t->get(), _t->_Type(_val)) 
+	      attr, _t->get(), _t->set(_val)) 
 #else
   %_attribute(%arg(Class), Wrap, %arg(type),
 	      attr, _t->get(), 
-	      fprintf(stderr,"'attr' is a read-only attribute"))
+	      SWIG_exception(SWIG_AttributeError,"read-only  'attr' attribute");)
 #endif
 %enddef
 
@@ -135,11 +141,11 @@
 	    attr, _t->refname(), _t->refname() = _val) 
 %enddef
 
-%define %attribute_ref_T(Class, Wrap, type, refname, _Type...) 
-#if #_Type == ""
+%define %attribute_ref_T(Class, Wrap, type, refname, attr...) 
+#if #attr == ""
   %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, refname) 
 #else
-  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, _Type)
+  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, attr)
 #endif
 %enddef
 
@@ -147,8 +153,8 @@
 // User versions
 //
 
-%define %attribute(Class, type, attr, get, _Type...)
- %attribute_T(%arg(Class), %mangle(Class), %arg(type), attr, get, _Type)
+%define %attribute(Class, type, attr, get, set...)
+ %attribute_T(%arg(Class), %mangle(Class), %arg(type), attr, get, set)
 %enddef
 
 %define %attribute_ref(Class, type, refname, _Type...)
