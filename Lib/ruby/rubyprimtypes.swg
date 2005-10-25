@@ -30,7 +30,7 @@ SWIGINTERN VALUE SWIG_AUX_##Method##(VALUE *args)
 
 %fragment(SWIG_From_frag(bool),"header") {
 SWIGINTERNINLINE VALUE
-  SWIG_From_dec(bool)(bool value)
+SWIG_From_dec(bool)(bool value)
 {
   return value ? Qtrue : Qfalse;
 }

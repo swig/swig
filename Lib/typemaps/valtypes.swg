@@ -76,7 +76,7 @@
 
 %define %value_varout_typemap(from_meth,frag,Type...)
   %typemap(varout,noblock=1,fragment=frag) Type, const Type&  {
-    %set_varoutput(from_meth(%static_cast($1,$basetype)));
+    %set_varoutput(from_meth(%static_cast($1,Type)));
   }
 %enddef
 

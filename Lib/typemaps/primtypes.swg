@@ -1,6 +1,116 @@
 /* ------------------------------------------------------------
- * Basic fragments derived from long and double types
+ * Primitive type fragments and macros 
  * ------------------------------------------------------------ */
+
+/*
+  This file provide fragments and macros for the C/C++ primitive types. 
+
+  The file defines default fragments for the  following types:
+
+    bool
+    signed char
+    unsigned char
+    signed wchar_t     // in C++
+    unsigned wchar_t   // in C++
+    short
+    unsigned short
+    int
+    unsigned int
+    float
+
+  which can always be redefined in the swig target languge if needed.
+  
+  The fragments for the following types, however, need to be defined
+  in the target language always:
+
+    long
+    unsigned long
+    long long
+    unsigned long long
+    double
+ 
+  If they are not provided, an #error directive will appear in the
+  wrapped code.
+
+  --------------------------------------------------------------------
+  
+  This file provides the macro
+
+    %typemaps_primitive(CheckCode, Type)
+
+  which generate the typemaps for a primitive type with a given
+  checkcode. It is assumed the the primitive type is 'normalized' and
+  the corresponding SWIG_AsVal(Type) and SWIG_From(Type) methods are
+  provided via fragments.
+  
+   
+  The following auxiliar macros (explained with bash pseudo code) are
+  also defined:
+
+    %apply_ctypes(Macro)        
+      for i in C Type 
+      do
+        Macro($i)
+      done
+
+    %apply_cpptypes(Macro) 
+      for i in C++ Type 
+      do
+        Macro($i)
+      done
+
+    %apply_ctypes_2(Macro2)     			     
+       for i in C Type 					     
+       do							     
+         for j in C Type 					     
+         do						     
+            Macro_2($i, $j)				     
+         done						     
+       done						     
+    							     
+    %apply_cpptypes_2(Macro2)     			     
+       for i in C++ Type 					     
+       do							     
+         for j in C++ Type 				     
+         do						     
+            Macro_2($i, $j)				     
+         done						     
+       done						     
+    							     
+    %apply_checkctypes(Macro2)
+       for i in Check Type 
+       do
+         Macro2(%checkcode($i), $i)
+       done
+
+*/
+
+
+/* ------------------------------------------------------------
+ * Primitive type fragments 
+ * ------------------------------------------------------------ */
+/* boolean */
+
+%fragment(SWIG_From_frag(bool),"header",fragment=SWIG_From_frag(long)) {
+SWIGINTERN SWIG_Object
+SWIG_From_dec(bool)(bool value)
+{    
+  return SWIG_From(long)(value ? 1 : 0);
+}
+}
+
+%fragment(SWIG_AsVal_frag(bool),"header",fragment=SWIG_AsVal_frag(long)) {
+SWIGINTERN int
+SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
+{
+  long v;
+  if (SWIG_AsVal(long)(obj, val ? &v : 0) == SWIG_OK) {    
+    if (val) *val = v ? true : false;
+    return SWIG_OK;
+  }  
+  return SWIG_TypeError;
+}
+}
 
 /* signed/unsigned char */
 
@@ -28,9 +138,23 @@
 
 %numeric_double(float,           "<float.h>", -FLT_MAX, FLT_MAX)
 
+/* long/unsgined long */
+
+%ensure_type_fragments(long)
+%ensure_type_fragments(unsigned long)
+
+/* long long/unsigned long long */
+
+%ensure_type_fragments(long long)
+%ensure_type_fragments(unsigned long long)
+
+/* double */
+
+%ensure_type_fragments(double)
+
 
 /* ------------------------------------------------------------
- * typemap macro for primitive types with asval/from methods
+ * Generate the typemaps for primitive type 
  * ------------------------------------------------------------ */
 
 %define %typemaps_primitive(Code, Type)
@@ -70,7 +194,12 @@ _apply_macro(Macro, char               , __VA_ARGS__);
 _apply_macro(Macro, wchar_t            , __VA_ARGS__);
 %enddef
 
-/* apply the Macro(Type) to all the C++ types  */
+/* apply the Macro2(Type1, Type2) to all  C types  */
+%define %apply_ctypes_2(Macro2)
+%apply_ctypes(%apply_ctypes, Macro2)
+%enddef
+
+/* apply the Macro(Type) to all  C++ types  */
 %define %apply_cpptypes(Macro,...)
 %apply_ctypes(Macro, __VA_ARGS__)
 _apply_macro(Macro, std::string, __VA_ARGS__);
@@ -78,32 +207,33 @@ _apply_macro(Macro, std::complex<float>, __VA_ARGS__);
 _apply_macro(Macro, std::complex<double>, __VA_ARGS__);
 %enddef
 
-/* apply the Macro2(Type1, Type2) to all the C++ types  */
+/* apply the Macro2(Type1, Type2) to all  C++ types  */
 %define %apply_cpptypes_2(Macro2)
 %apply_cpptypes(%apply_cpptypes, Macro2)
 %enddef
 
-%define %apply_checkctypes(Macro)
-Macro(%checkcode(BOOL),    bool);
-Macro(%checkcode(INT8),    signed char);
-Macro(%checkcode(UINT8),   unsigned char);
-Macro(%checkcode(INT16),   short);
-Macro(%checkcode(UINT16),  unsigned short);
-Macro(%checkcode(INT32),   int);
-Macro(%checkcode(UINT32),  unsigned int);
-Macro(%checkcode(INT64),   long);
-Macro(%checkcode(UINT64),  unsigned long);
-Macro(%checkcode(INT128),  long long);
-Macro(%checkcode(UINT128), unsigned long long);
-Macro(%checkcode(FLOAT),   float);
-Macro(%checkcode(DOUBLE),  double);
-Macro(%checkcode(CHAR),    char);
-Macro(%checkcode(UNICHAR), wchar_t);
+/* apply the Macro2(CheckCode,Type) to all  Checked Types */
+%define %apply_checkctypes(Macro2)
+Macro2(%checkcode(BOOL),    bool);
+Macro2(%checkcode(INT8),    signed char);
+Macro2(%checkcode(UINT8),   unsigned char);
+Macro2(%checkcode(INT16),   short);
+Macro2(%checkcode(UINT16),  unsigned short);
+Macro2(%checkcode(INT32),   int);
+Macro2(%checkcode(UINT32),  unsigned int);
+Macro2(%checkcode(INT64),   long);
+Macro2(%checkcode(UINT64),  unsigned long);
+Macro2(%checkcode(INT128),  long long);
+Macro2(%checkcode(UINT128), unsigned long long);
+Macro2(%checkcode(FLOAT),   float);
+Macro2(%checkcode(DOUBLE),  double);
+Macro2(%checkcode(CHAR),    char);
+Macro2(%checkcode(UNICHAR), wchar_t);
 %enddef
 
 
 /* ------------------------------------------------------------
- * Apply the primitive typemap for all the types with checkcode
+ * Generate the typemaps for all the primitive types with checkcode
  * ------------------------------------------------------------ */
 
 %apply_checkctypes(%typemaps_primitive);

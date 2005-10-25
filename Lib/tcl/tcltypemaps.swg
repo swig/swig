@@ -1,31 +1,70 @@
-/* -----------------------------------------------------------------------------
- *  Typemap specializations
- * ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ *  Typemap specializations for Tcl
+ * ------------------------------------------------------------ */
 
-/* no director supported in Tcl */
+/* ------------------------------------------------------------
+ *  Fragment section
+ * ------------------------------------------------------------ */
+
+/*
+  in Tcl we need to pass the interp value, so, we define the decl/call
+  macros as needed.
+*/
+
+#define SWIG_ASPTR_DECL_ARGS SWIG_TCL_DECL_ARGS_2
+#define SWIG_ASPTR_CALL_ARGS SWIG_TCL_CALL_ARGS_2
+
+#define SWIG_ASVAL_DECL_ARGS SWIG_TCL_DECL_ARGS_2
+#define SWIG_ASVAL_CALL_ARGS SWIG_TCL_CALL_ARGS_2
+
+
+/* Include fundamental fragemt definitions */
+%include <typemaps/fragments.swg>
+
+/* Look for user fragments file. */
+%include "tclfragments.swg"
+
+/* Tcl fragments for primitve types */
+%include <tclprimtypes.swg>
+
+/* Tcl fragments for char* strings */
+%include <tclstrings.swg>
+
+
+/* ------------------------------------------------------------
+ *  Unified typemap section
+ * ------------------------------------------------------------ */
+
+/* No director supported in Tcl */
 #ifdef SWIG_DIRECTOR_TYPEMAPS
 #undef SWIG_DIRECTOR_TYPEMAPS
 #endif
 
-/* -----------------------------------------------------------------------------
- *  Basic definitions
- * ----------------------------------------------------------------------------- */
-
+/* Tcl types */
 #define SWIG_Object                      Tcl_Obj *
-#define VOID_Object                      NULL
 
+/* Simple overload of the output/constant/exception handling */
 #define SWIG_AppendOutput(result,obj)    (Tcl_ListObjAppendElement(NULL,result,obj) == TCL_OK) ? result : NULL
 #define SWIG_SetConstant(name, obj)      SWIG_Tcl_SetConstantObj(interp, name, obj)
 #define SWIG_Raise(obj,type,desc)        SWIG_Tcl_SetErrorObj(interp,type,obj)
 
-/* -----------------------------------------------------------------------------
- *  All the typemaps
- * ----------------------------------------------------------------------------- */
 
-%include <tclprimtypes.swg>
-%include <tclstrings.swg>
+/* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
-/* fix for instances */
-%include <tclswigtype.swg>
+
+/* ------------------------------------------------------------
+ *  Tcl extra typemaps
+ * ------------------------------------------------------------ */
+
+%typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
+%typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
+%typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;
+%typemap(out)    SWIGTYPE [] =  SWIGTYPE INSTANCE[];
+%typemap(varout) SWIGTYPE    =  SWIGTYPE INSTANCE;
+
+%typemap(throws,noblock=1) SWIGTYPE CLASS {
+  SWIG_set_result(SWIG_NewInstanceObj(SWIG_as_voidptr(SWIG_new_copy($1, $1_ltype)), $&1_descriptor, 1));
+  SWIG_fail;
+}
 

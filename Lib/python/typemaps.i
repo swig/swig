@@ -1,4 +1,1 @@
 %include <typemaps/typemaps.swg>
-
-
-

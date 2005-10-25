@@ -2,10 +2,6 @@
  * Void * -  Accepts any kind of pointer
  * ------------------------------------------------------------ */
 
-#if !defined(VOID_Object) 
-#error "VOID_Object must be defined using %define_void_object"
-#endif
-
 /* in */
 
 %typemap(in,noblock=1) void * {
@@ -26,9 +22,11 @@
 
 /* out */
 
-%typemap(out,noblock=1) void {
-  $result = VOID_Object;
-}
+#if defined(VOID_Object)
+%typemap(out,noblock=1) void { $result = VOID_Object; }
+#else
+%typemap(out,noblock=1) void {}
+#endif
 
 /* varin */
 

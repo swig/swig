@@ -70,4 +70,10 @@
 #ifdef rewind
   #undef rewind
 #endif
+#ifdef free
+  #undef free
+#endif
+#ifdef malloc
+  #undef malloc
+#endif
 
