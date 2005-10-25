@@ -13,7 +13,6 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	argcargvtest \
-	attributetest \
 	autodoc \
 	callback \
 	complextest \
@@ -25,6 +24,7 @@ CPP_TEST_CASES += \
 	input \
 	inplaceadd \
 	kwargs \
+	li_attribute \
 	li_cstring \
 	li_cwstring \
 	li_implicit \
