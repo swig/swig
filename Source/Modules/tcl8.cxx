@@ -307,7 +307,7 @@ public:
     Setattr(n,"wrap:name",wname);
 
     Printv(f->def,
-	   "SWIGINTERN int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	   "SWIGINTERN int\n ", wname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	   NIL);
     
     /* Print out variables for storing arguments. */
@@ -513,7 +513,7 @@ public:
 
 	Printv(df->def,	
 	       "SWIGINTERN int\n", dname,
-	       "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	       "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	       NIL);
 	Printf(df->code,"Tcl_Obj *CONST *argv = objv+1;\n");
 	Printf(df->code,"int argc = objc-1;\n");
@@ -559,7 +559,7 @@ public:
   /* Create a function for getting a variable */
     getf = NewWrapper();
     getname = Swig_name_wrapper(Swig_name_get(iname));
-    Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
+    Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
     Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
 
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
@@ -586,7 +586,7 @@ public:
     if (is_assignable(n)) {
       setf = NewWrapper();
       setname = Swig_name_wrapper(Swig_name_set(iname));
-      Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
+      Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {",NIL);
       Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
       Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");
 
@@ -620,7 +620,7 @@ public:
       static int readonlywrap = 0;
       if (!readonlywrap) {
 	Wrapper *ro = NewWrapper();
-	Printf(ro->def, "SWIGINTERN const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
+	Printf(ro->def, "SWIGINTERN const char *swig_readonly(ClientData clientData SWIGUNUSED, Tcl_Interp *interp SWIGUNUSED, char *name1 SWIGUNUSED, char *name2 SWIGUNUSED, int flags SWIGUNUSED) {");
 	Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", NIL);
 	Wrapper_print(ro,f_wrappers);
 	readonlywrap = 1;
