@@ -66,18 +66,19 @@
   %set_output(obj) %enddef
 
 /* variable output */
-%define %set_varoutput(obj) sv_setsv($result,obj) %enddef
+%define %set_varoutput(obj) sv_setsv($result,obj);  SvREFCNT_dec(obj) %enddef
 
 /* constant */
 %define %set_constant(name, obj) %begin_block
   SV *sv = get_sv((char*) SWIG_prefix name, TRUE | 0x2);
-  sv_setsv(sv, obj); 
+  sv_setsv(sv, obj);
+  SvREFCNT_dec(obj);
   SvREADONLY_on(sv);
 %end_block %enddef
 
 /* raise exception */
 %define %raise(obj, type, desc)
-  sv_setsv(perl_get_sv("@", TRUE), obj);
+  sv_setsv(perl_get_sv("@", TRUE), obj); 
   croak(Nullch) %enddef
 
 /* Include the unified typemap library */

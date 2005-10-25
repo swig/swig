@@ -50,10 +50,10 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       memcpy(tmp, carray, size);
       tmp[size] = 0;
       sv_setpv(obj, tmp);
-      %delete(tmp);
+      %delete_array(tmp);
     }
   } else {
-    sv_setpv(obj, 0);
+    sv_setpv(obj, "");
   }
   return obj;
 }
