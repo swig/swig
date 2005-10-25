@@ -1,5 +1,9 @@
 %module template_ns_enum2
  
+#ifdef SWIGPERL
+%rename(_eval) eval;
+#endif
+
 %inline %{ 
   
   namespace hi 
