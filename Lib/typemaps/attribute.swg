@@ -1,9 +1,3 @@
-%{
-#include <stdio.h>
-%}
-
-%include <typemaps/swigmacros.swg>
-
 /*
   Attribute implementation using JOHN E LENZ ideas.
 
@@ -79,6 +73,10 @@
 
 */
 
+#ifndef %attribute_exception
+#define %attribute_exception(code,msg) SWIG_exception(code,msg)
+#endif
+
 //
 // Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates.
 //
@@ -130,9 +128,10 @@
 #else
   %_attribute(%arg(Class), Wrap, %arg(type),
 	      attr, _t->get(), 
-	      SWIG_exception(SWIG_AttributeError,"read-only  'attr' attribute");)
+	      %attribute_exception(SWIG_AttributeError,"read-only  'attr' attribute");)
 #endif
 %enddef
+
 
 %define %_attribute_ref_T(Class, Wrap, type, refname, attr) 
 %ignore Class::refname();
@@ -160,3 +159,5 @@
 %define %attribute_ref(Class, type, refname, _Type...)
  %attribute_ref_T(%arg(Class), %mangle(Class), %arg(type), refname, _Type)
 %enddef
+
+
