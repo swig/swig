@@ -1,5 +1,6 @@
 %module li_attribute
 
+%include exception.i
 %include attribute.i
 
 %attribute(A, int, a, get_a, set_a);

@@ -15,10 +15,11 @@ CPP_TEST_CASES = \
 	track_objects \
 	track_objects_directors \
 	primitive_types \
-	li_attribute \
+	li_cdata \
 	li_cstring
 
 C_TEST_CASES += \
+	li_cdata \
 	li_cstring
 
 include $(srcdir)/../common.mk

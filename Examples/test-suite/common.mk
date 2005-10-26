@@ -125,6 +125,7 @@ CPP_TEST_CASES += \
 	director_string \
 	director_unroll \
 	director_wombat \
+	disown \
 	dynamic_cast \
 	empty \
 	enum_plus \
@@ -156,6 +157,7 @@ CPP_TEST_CASES += \
 	inline_initializer \
 	kind \
 	langobj \
+	li_attribute \
 	li_carrays \
 	li_cdata \
 	li_cpointer \
