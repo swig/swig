@@ -172,7 +172,7 @@ values.
    if (res$argnum == SWIG_NEWOBJ) {
      %append_output(from_meth((*$1)));
    } else {
-     %append_output(SWIG_NewPointerObj((void*)($1), $1_descriptor, 0));
+     %append_output(SWIG_NewPointerObj((void*)($1), $1_descriptor, %newpointer_flags));
    }
  }
 %enddef
