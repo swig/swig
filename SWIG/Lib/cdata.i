@@ -19,13 +19,7 @@ typedef struct SWIGCDATA {
  * Typemaps for returning binary data
  * ----------------------------------------------------------------------------- */
 
-#if SWIGPERL
-%typemap(out) SWIGCDATA {
-   ST(argvi) = sv_newmortal();
-   sv_setpvn((SV*)ST(argvi++),$1.data,$1.len);
-}
-%typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
-#elif SWIGGUILE
+#if SWIGGUILE
 %typemap(out) SWIGCDATA {
    $result = gh_str2scm($1.data,$1.len);
 }
