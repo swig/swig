@@ -1260,7 +1260,7 @@ public:
 	  Replaceall(tm,"$target","vresult");
 
           if (GetFlag(n, "feature:new"))
-            Replaceall(tm,"$owner", "1");
+            Replaceall(tm,"$owner", "SWIG_POINTER_OWN");
           else
             Replaceall(tm,"$owner", "0");
 
