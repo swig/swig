@@ -13,7 +13,7 @@
 
 %typemap(argout) Foo** foo {
 	/* %typemap(argout) Foo** foo */
-	$result = SWIG_NewPointerObj((void *) *$1, $*1_descriptor, 0);
+	$result = SWIG_NewPointerObj((void *) *$1, $*1_descriptor, $track);
 }	
 
 %apply SWIGTYPE *DISOWN {Foo* ownedFoo};
