@@ -24,7 +24,7 @@ class B(FooBar_int):
     return "B::do_step;"
   
   def get_value(self):
-    return "B::get_value"
+    return 1
 
   pass
 
@@ -33,4 +33,29 @@ b = B()
 
 if b.step() != "Bar::step;Foo::advance;B::do_advance;B::do_step;":
   raise RuntimeError,"Bad B virtual resolution"
+
+
+
+class C(FooBar_int):
+  def do_advance(self):
+    return "C::do_advance;" + FooBar_int.do_advance(self)
+
+  def do_step(self):
+    return "C::do_step;"
+  
+  def get_value(self):
+    return 2
+
+  def get_name(self):
+    return FooBar_int.get_name(self) + " hello"
+
+  
+  pass
+
+cc = C()
+
+c = C.get_self(cc)
+c.advance()
+if c.get_name() != "FooBar::get_name hello":
+  raise RuntimeError
 
