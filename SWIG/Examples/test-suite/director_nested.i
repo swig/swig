@@ -60,6 +60,17 @@
     {
     public:
       virtual C get_value() const = 0;
+
+      virtual const char * get_name() 
+      {
+	return "FooBar::get_name";
+      }
+      
+      static FooBar *get_self(FooBar *a)
+      {
+	return a;
+      }
+      
     };
 }
 
