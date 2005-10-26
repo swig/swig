@@ -1,6 +1,50 @@
 Version 1.3.27 (October 15, 2005)
 =================================
 
+10/26/2005: mmatus
+
+	  - Added the attribute.i file to the global library director.
+	    Now it can be used from other languages that do not use
+	    the unified typemap library as well.
+
+	    So, if you have something like:
+
+	       %include attribute.i
+
+               %attribute(A, int, a, get_a, set_a);
+	       				      	  
+	       struct A			      	  
+	       {    				  
+	         int get_a() const; 		  
+	         void set_a(int aa); 		  
+	       };				  
+
+               %attribute_ref(B, int, c);
+	       				
+	       struct B			
+	       {    			
+	         int& c(); 		
+	       }; 
+
+	    then in the target language the 'A.a' and 'B.c' attributes will
+	    be visible, ie, you can access them as plain variables:
+
+               f   = A()
+               f.a = 3
+               g   = B()
+               g.c = 3 
+           
+	       h   = f.a + g.c
+
+	    and the proper get/set methods will be dispatched. See
+	    attribute.i for more info.
+   
+          - More cleanups around and adding more test-cases. The
+            DISOWN typemap now is tested and working in all the
+            languages that use the unified typemap library, ie, tcl,
+            ruby, perl and python.
+	    
+
 10/25/2005: mmatus
 
 	    - Perl, complete the DISOWN typemap.
