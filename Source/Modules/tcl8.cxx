@@ -196,9 +196,8 @@ public:
       Swig_register_filebyname("itcl",f_shadow);
 
       Printv(f_shadow,
-	     "# This file was created automatically by SWIG.\n",
+	     "# This file was created automatically by SWIG ", PACKAGE_VERSION, ".\n",
 	     "# Don't modify this file, modify the SWIG interface instead.\n",
-	     "# This file is compatible with both classic and new-style classes.\n",
 	     NIL);
 
       Printv(f_shadow,"\npackage require Itcl\n\n", NIL);
