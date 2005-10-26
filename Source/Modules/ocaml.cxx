@@ -1833,7 +1833,7 @@ public:
               String *basetype = Getattr(parent, "classtype");
               String *target = Swig_method_decl(decl, classname, parms, 0, 0);
               call = Swig_csuperclass_call(0, basetype, superparms);
-              Printf( w->def, "%s::%s: Swig::Director(self), %s { }", classname, target, call );
+              Printf( w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call );
               Delete(target);
               Wrapper_print(w, f_directors);
               Delete(call);
