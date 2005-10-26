@@ -246,7 +246,7 @@
  * ----------------------------------------------------------------------------- */
 
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorin */
 

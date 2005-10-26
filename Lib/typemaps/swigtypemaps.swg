@@ -119,7 +119,7 @@
 
 /*==== director output exception ====*/
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 #ifndef SWIG_DirOutFail
 #define SWIG_DirOutFail(code, msg)        Swig::DirectorTypeMismatchException::raise(SWIG_ErrorType(code), msg)
 #endif
@@ -136,7 +136,7 @@
 #define %variable_fail(code, type, name)  %error_block(SWIG_Error(code, %varfail_fmt(type, name)); SWIG_fail)
 #define %variable_nullref(type, name)     %error_block(SWIG_Error(SWIG_ValueError, %varnullref_fmt(type, name)); SWIG_fail)
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 #define %dirout_fail(code, type)          SWIG_DirOutFail(code, %outfail_fmt(type))
 #define %dirout_nullref(type)             SWIG_DirOutFail(SWIG_ValueError, %outnullref_fmt(type))
 #endif
