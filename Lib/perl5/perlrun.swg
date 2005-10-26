@@ -46,7 +46,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
-#define SWIG_Error(code, msg)            		sv_setpvf(perl_get_sv("@", TRUE), "%s error %s\n", SWIG_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		warn("%s %s\n", SWIG_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail						    
 
 /* Perl-specific SWIG API */
@@ -156,10 +156,9 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
 	To set ownership (see bellow), an newSViv(1) entry is added. 
 	Hence, to remove ownership, we delete the entry.
       */
-
-      /* SV *val = */
-      hv_delete_ent(hv, obj, 0, 0);
-      /* if (val) SvREFCNT_dec(val); */
+      if (hv_exists_ent(hv, obj, 0)) {
+	hv_delete_ent(hv, obj, 0, 0);
+      }
     }
   }
   return SWIG_OK;
