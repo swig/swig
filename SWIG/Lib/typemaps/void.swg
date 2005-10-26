@@ -46,7 +46,7 @@
   $1 = (SWIG_ConvertPtr($input, &ptr, 0, 0) == SWIG_OK);
 }
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorout */
 

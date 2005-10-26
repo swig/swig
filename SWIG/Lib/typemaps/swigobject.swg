@@ -18,7 +18,7 @@
   %set_constant("$symname", $value);
 }
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 %typemap(directorin) SWIG_Object "$input = $1_name";
 %typemap(directorout) SWIG_Object "$result = $input;";

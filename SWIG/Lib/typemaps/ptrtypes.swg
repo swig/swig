@@ -56,7 +56,7 @@
   }
 %enddef
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 /* directorout */
 
 %define %ptr_directorout_typemap(asptr_meth,frag,Type...)

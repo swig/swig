@@ -144,7 +144,7 @@
 }
 
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorin */
 
@@ -157,7 +157,8 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) Char * (Char* buf = 0, int alloc = 0) {
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr)
+  Char * (Char* buf = 0, int alloc = 0) {
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError, "$type");
   }
@@ -282,7 +283,7 @@
 }
 
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorin */
 %typemap(directorin,fragment=#SWIG_FromCharPtrAndSize)
@@ -346,7 +347,7 @@
   %set_output(SWIG_FromCharPtrAndSize($1, $1_dim0));
 }
 
-#ifdef SWIG_DIRECTOR_TYPEMAPS
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
   Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
