@@ -935,10 +935,12 @@ public:
 	     
 	     /* Are we tracking the type that is being returned
 	      * by this output parameter? */
-		  SwigType *pt = Getattr(p,"type");
-	     if (pt && trackType(pt)) {
-          setTrackObjectsFlagForNewPointer(tm);
-        }
+	SwigType *pt = Getattr(p,"type");
+	if (trackType(pt)) {
+	  Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
+	} else {
+	  Replaceall(tm, "$track","0");
+	}
      
 	Printv(outarg,tm,"\n",NIL);
 	need_result = 1;
@@ -993,6 +995,7 @@ public:
     }
   }    
     
+#if 0
   /* ---------------------------------------------------------------------
    * setTrackObjectsFlagForConvertPtr()
    *
@@ -1061,6 +1064,8 @@ public:
 	  }
   }	
   
+#endif
+
   /* ---------------------------------------------------------------------
    * functionWrapper()
    *
@@ -1159,7 +1164,7 @@ public:
       } else {
 	Printf(f->code,"if (argc < %d) ", numreq-start);
       }
-      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); return Qnil;}\n",numreq-start);
+      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n",numreq-start);
     } else {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
@@ -1167,7 +1172,7 @@ public:
       } else {
 	Printf(f->code,"if (argc < %d) ", numreq-start);
       }
-      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); return Qnil;}\n",numreq-start);
+      Printf(f->code,"{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n",numreq-start);
     }
 
     /* Now walk the function parameter list and generate code */
