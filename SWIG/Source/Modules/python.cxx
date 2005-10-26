@@ -1199,24 +1199,24 @@ public:
       if (!varargs) {
         if (CPlusPlus) {
 	  Printv(f->def,
-	         "static PyObject *", wname,
+	         "SWIGINTERN PyObject *", wname,
 	         "(PyObject *, PyObject *args) {",
 	         NIL);
         } else {
 	  Printv(f->def,
-	         "static PyObject *", wname,
+	         "SWIGINTERN PyObject *", wname,
 	         "(PyObject *self, PyObject *args) {",
 	         NIL);
         }
       } else {
         if (CPlusPlus) {
 	  Printv(f->def,
-	         "static PyObject *", wname, "__varargs__", 
+	         "SWIGINTERN PyObject *", wname, "__varargs__", 
 	         "(PyObject *, PyObject *args, PyObject *varargs) {",
 	         NIL);
         } else {
 	  Printv(f->def,
-	         "static PyObject *", wname, "__varargs__", 
+	         "SWIGINTERN PyObject *", wname, "__varargs__", 
 	         "(PyObject *self, PyObject *args, PyObject *varargs) {",
 	         NIL);
         }
@@ -1234,12 +1234,12 @@ public:
       }
       if (CPlusPlus) {
         Printv(f->def,
-               "static PyObject *", wname,
+               "SWIGINTERN PyObject *", wname,
                "(PyObject *, PyObject *args, PyObject *kwargs) {",
                NIL);
       } else {
         Printv(f->def,
-               "static PyObject *", wname,
+               "SWIGINTERN PyObject *", wname,
                "(PyObject *self, PyObject *args, PyObject *kwargs) {",
                NIL);
       }
@@ -1547,7 +1547,7 @@ public:
       DelWrapper(f);
       f = NewWrapper();
       Printv(f->def,
-	     "static PyObject *", wname,
+	     "SWIGINTERN PyObject *", wname,
 	     "(PyObject *self, PyObject *args) {",
 	     NIL);
       Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
@@ -1634,7 +1634,7 @@ public:
     /* Create a function for setting the value of the variable */
 
     if (assignable) {
-      Printf(setf->def,"static int %s(PyObject *_val) {", setnamef);
+      Printf(setf->def,"SWIGINTERN int %s(PyObject *_val) {", setnamef);
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
@@ -1651,9 +1651,9 @@ public:
     } else {
       /* Is a readonly variable.  Issue an error */
       if (CPlusPlus) {
-	Printf(setf->def,"static int %s(PyObject *) {", setnamef);
+	Printf(setf->def,"SWIGINTERN int %s(PyObject *) {", setnamef);
       } else {
-	Printf(setf->def,"static int %s(PyObject *_val SWIGUNUSED) {", setnamef);
+	Printf(setf->def,"SWIGINTERN int %s(PyObject *_val SWIGUNUSED) {", setnamef);
       }
       Printv(setf->code,
 	     tab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname," is read-only.\");\n",
@@ -1665,7 +1665,7 @@ public:
     Wrapper_print(setf,f_wrappers);
 
     /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static PyObject *%s(void) {", getnamef);
+    Printf(getf->def,"SWIGINTERN PyObject *%s(void) {", getnamef);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
@@ -2084,7 +2084,7 @@ public:
 	SwigType_remember(ct);
         if (CPlusPlus) {
 	  Printv(f_wrappers,
-	         "static PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n",
+	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n",
 	         tab4, "PyObject *obj;\n",
 	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
   	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
@@ -2093,7 +2093,7 @@ public:
 	         "}\n",NIL);
         } else {
 	  Printv(f_wrappers,
-	         "static PyObject * ", class_name, "_swigregister(PyObject *self, PyObject *args) {\n",
+	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *self SWIGUNUSED, PyObject *args) {\n",
 	         tab4, "PyObject *obj;\n",
 	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
   	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
