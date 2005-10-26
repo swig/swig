@@ -92,3 +92,7 @@ cvsignore:
 	@echo Makefile
 	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.py; done 
 	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.py CVS/Entries ; then echo $${i}_runme.py; fi; done 
+	@echo clientdata_prop_a.py 
+	@echo clientdata_prop_b.py 
+	@echo imports_a.py 
+	@echo imports_b.py 
