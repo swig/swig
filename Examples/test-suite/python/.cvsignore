@@ -30,6 +30,7 @@ swigobject.py
 template_matrix.py
 virtual_derivation.py
 simutry.py
+singleton.py
 abstract_access.py
 abstract_inherit.py
 abstract_inherit_ok.py
@@ -349,6 +350,7 @@ std_containers_runme.py
 swigobject_runme.py
 template_matrix_runme.py
 virtual_derivation_runme.py
+singleton_runme.py
 abstract_access_runme.py
 abstract_typedef_runme.py
 abstract_typedef2_runme.py

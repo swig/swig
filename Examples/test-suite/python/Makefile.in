@@ -20,6 +20,7 @@ CPP_TEST_CASES += \
 	director_thread \
 	director_wstring \
 	file_test \
+	iadd \
 	inout \
 	input \
 	inplaceadd \
@@ -38,7 +39,8 @@ CPP_TEST_CASES += \
 	std_containers \
 	swigobject \
 	template_matrix \
-	simutry
+	simutry 
+
 
 C_TEST_CASES += \
 	file_test \
