@@ -9,10 +9,4 @@ class Foo;
 %attribute_ref(test::Foo, long, AsLong);
 
 
-%typemap(out) B & B::operator+=  "hello";
-
-
-
-
-
 %include "iadd.h"
