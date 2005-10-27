@@ -233,6 +233,7 @@
   }
   $1 = temp;
 }
+%typemap(freearg) Char [ANY], const Char [ANY] "";
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray) const Char (&)[ANY] (Char temp[$1_dim0])
 {  
@@ -241,6 +242,7 @@
   }
   $1 = &temp;
 }
+%typemap(freearg) const Char (&)[ANY] "";
 
 %typemap(out,fragment=#SWIG_FromCharPtrAndSize)
   Char [ANY], const Char[ANY] 

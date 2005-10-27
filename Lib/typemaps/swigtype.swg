@@ -9,7 +9,6 @@
   }
   $1 = %reinterpret_cast(argp, $ltype);
 }
-
 %typemap(freearg) SWIGTYPE *, SWIGTYPE [] "";
 
 %typemap(in, noblock=1) SWIGTYPE* const&  (void *argp, $*ltype temp) {
@@ -19,6 +18,7 @@
   temp = %reinterpret_cast(argp, $*ltype);
   $1 = &temp;
 }
+%typemap(freearg) SWIGTYPE* const& "";
 
 /* Reference */
 %typemap(in, noblock=1) SWIGTYPE & (void *argp) {  
@@ -28,6 +28,7 @@
   if (!argp) { %argument_nullref("$type", $argnum); }
   $1 = %reinterpret_cast(argp, $ltype);
 }
+%typemap(freearg) SWIGTYPE& "";
 
 /* By value */
 %typemap(in,noblock=1) SWIGTYPE (void *argp) {
@@ -37,6 +38,7 @@
   if (!argp) { %argument_nullref("$type", $argnum); }
   $1 = *(%reinterpret_cast(argp, $&ltype));
 }
+%typemap(freearg) SWIGTYPE "";
 
 /* -----------------------------------------------------------------------------
  * --- Output arguments --- 
@@ -327,6 +329,7 @@
     %argument_fail(SWIG_TypeError,"$type",$argnum); 
   }
 }
+%typemap(freearg) SWIGTYPE (CLASS::*) "";
 
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
   %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
@@ -361,6 +364,7 @@
     %argument_fail(SWIG_TypeError,"$type",$argnum); 
   }
 }
+%typemap(freearg) SWIGTYPE ((*)(ANY)) "";
 
 %typemap(out, noblock=1) SWIGTYPE ((*)(ANY)) {
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
@@ -378,6 +382,7 @@
 /* VARARGS_SENTINEL typemap. Used by the %varargs directive. */
 
 %typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
+%typemap(freearg) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 
 /* DISOWN typemap */
@@ -387,6 +392,7 @@
     %argument_fail(SWIG_TypeError,"$type", $argnum);
   }
 }
+%typemap(freearg) SWIGTYPE *DISOWN "";
 
 %typemap(varin,noblock=1) SWIGTYPE *DISOWN {
   void *temp = 0;

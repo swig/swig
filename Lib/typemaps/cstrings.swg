@@ -11,10 +11,10 @@
  */
 
 %define %typemaps_cstring(Name, Char,
-			 SWIG_AsCharPtr,
-			 SWIG_AsCharPtrAndSize,
-			 SWIG_FromCharPtr,
-			 SWIG_FromCharPtrAndSize)
+			  SWIG_AsCharPtr,
+			  SWIG_AsCharPtrAndSize,
+			  SWIG_FromCharPtr,
+			  SWIG_FromCharPtrAndSize)
 
 
 /* %cstring_input_binary(TYPEMAP, SIZE)
@@ -181,16 +181,19 @@
  */
 
 %define Name ## _output_maxsize(TYPEMAP, SIZE)                       
-%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(unsigned long)) (TYPEMAP, SIZE) (unsigned long size) {   
-  if (SWIG_AsVal(unsigned long)($input, &size) != SWIG_OK) {
+%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t size, Char *buff = 0) {   
+  if (SWIG_AsVal(size_t)($input, &size) != SWIG_OK) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
+  buff= %new_array(size+1, Char);
   $2 = %numeric_cast(size, $2_ltype);
-  $1 = %new_array(size+1, $*1_ltype);
-}                                                                     
+  $1 = %static_cast(buff,$1_ltype);
+}
+%typemap(freearg,noblock=1) (TYPEMAP,SIZE) {
+  if (buff$argnum) %delete_array(buff$argnum);
+} 
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) (TYPEMAP,SIZE) { 
   %append_output(SWIG_FromCharPtr($1));
-  %delete_array($1);                                              
 }
 %enddef
 
@@ -208,18 +211,20 @@
  */
 
 %define Name ## _output_withsize(TYPEMAP, SIZE)                        
-%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(unsigned long)) (TYPEMAP, SIZE) (unsigned long n) {    
-  if (SWIG_AsVal(unsigned long)($input, &n) != SWIG_OK) {
+%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t n, Char *buff = 0, $*2_ltype size) {    
+  if (SWIG_AsVal(size_t)($input, &n) != SWIG_OK) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
-  $1 = %new_array(n+1, $*1_ltype);				       
-  $2 = %new_instance($*2_ltype);
-  *$2 = %numeric_cast(n, $*2_ltype);
+  buff= %new_array(n+1, Char);
+  $1 = %static_cast(buff, $1_ltype);
+  size = %numeric_cast(n,$*2_ltype);
+  $2 = &size;
 }								       
+%typemap(freearg,noblock=1)(TYPEMAP,SIZE) {
+  if (buff$argnum) %delete_array(buff$argnum);
+} 
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize) (TYPEMAP,SIZE) { 
   %append_output(SWIG_FromCharPtrAndSize($1,*$2));
-  %delete_array($1);					       
-  %delete($2);						       
 }
 %enddef
 
@@ -240,7 +245,8 @@
 %define Name ## _output_allocate(TYPEMAP, RELEASE)           
 %typemap(in,noblock=1,numinputs=0) TYPEMAP($*1_ltype temp = 0) {
   $1 = &temp;
-}						  	     
+}
+%typemap(freearg) TYPEMAP "";
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP { 
   if (*$1) {
     %append_output(SWIG_FromCharPtr(*$1));
@@ -268,6 +274,7 @@
 %typemap(in,noblock=1,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
   $1 = &temp; $2 = &tempn;
 }
+%typemap(freearg) (TYPEMAP,SIZE) "";
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)(TYPEMAP,SIZE) {   
   if (*$1) {
     %append_output(SWIG_FromCharPtrAndSize(*$1,*$2));
