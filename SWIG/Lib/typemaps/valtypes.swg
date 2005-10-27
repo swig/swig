@@ -38,6 +38,7 @@
     } 
     $1 = %static_cast(val,$ltype);
   }
+  %typemap(freearg) Type "";
   %typemap(in,noblock=1,fragment=frag) const Type & ($*ltype temp, Type val, int ecode = 0) {  
     ecode = asval_meth($input, &val);
     if (ecode != SWIG_OK) {
@@ -46,6 +47,7 @@
     temp = %static_cast(val, $*ltype);
     $1 = &temp;
   }
+  %typemap(freearg) const Type& "";
 %enddef
 
 /* out */

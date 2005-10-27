@@ -152,6 +152,24 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 
 %ensure_type_fragments(double)
 
+/* size_t */
+
+%fragment(SWIG_From_frag(size_t),"header",fragment=SWIG_From_frag(unsigned long)) {
+SWIGINTERNINLINE SWIG_Object
+SWIG_From_dec(size_t)(size_t value)
+{    
+  return SWIG_From(unsigned long)(value);
+}
+}
+
+%fragment(SWIG_AsVal_frag(size_t),"header",fragment=SWIG_AsVal_frag(unsigned long)) {
+SWIGINTERNINLINE int
+SWIG_AsVal_dec(size_t)(SWIG_Object obj, size_t *val)
+{
+  return SWIG_AsVal(unsigned long)(obj, val);
+}
+}
+
 
 /* ------------------------------------------------------------
  * Generate the typemaps for primitive type 

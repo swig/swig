@@ -9,7 +9,6 @@
     %argument_fail(SWIG_TypeError, "$type", $argnum); 
   }
 }
-
 %typemap(freearg) void * "";
 
 %typemap(in,noblock=1) void * const& ($*ltype temp) {
@@ -18,6 +17,7 @@
   }
   $1 =  &temp;
 }
+%typemap(freearg) void * const& "";
 
 
 /* out */
