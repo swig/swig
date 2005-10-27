@@ -32,6 +32,8 @@ see bottom for a set of possible tests
 %rename(LessThanEqual) operator <=;
 %rename(GreaterThan) operator >;
 %rename(GreaterThanEqual) operator >=;
+%rename(And) operator &&;
+%rename(Or) operator ||;
 #endif
 
 %inline %{
@@ -60,6 +62,9 @@ public:
   friend Op operator*(const Op& a,const Op& b){return Op(a.i*b.i);}
   friend Op operator/(const Op& a,const Op& b){return Op(a.i/b.i);}
   friend Op operator%(const Op& a,const Op& b){return Op(a.i%b.i);}
+
+  friend Op operator&&(const Op& a,const Op& b){return Op(a.i&&b.i);}
+  friend Op operator||(const Op& a,const Op& b){return Op(a.i||b.i);}
 
   // unary operators
   Op operator-() const {return Op(-i);}
