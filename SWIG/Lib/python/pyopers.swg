@@ -63,8 +63,11 @@
 
 /* Ignored operators */
 %ignorewarn("361:operator! ignored") operator!;
+%ignorewarn("361:operator not ignored") operator not;
 %ignorewarn("381:operator&& ignored") operator&&;
+%ignorewarn("381:operator and ignored") operator and;
 %ignorewarn("382:operator|| ignored") operator||;
+%ignorewarn("382:operator or ignored") operator or;
 %ignorewarn("362:operator= ignored") *::operator=;
 %ignorewarn("383:operator++ ignored") *::operator++;
 %ignorewarn("384:operator-- ignored") *::operator--;
