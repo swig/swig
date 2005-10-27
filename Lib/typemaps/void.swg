@@ -48,6 +48,13 @@
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
+/* directorin */
+
+%typemap(directorin,noblock=1) void *, void const*, void *const, void const *const, 
+  void const *&, void *const &, void const *const & {
+  $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
+}
+
 /* directorout */
 
 %typemap(directorout,noblock=1) void * (void *argp) {
@@ -56,6 +63,14 @@
   }
   $result = %reinterpret_cast(argp, $ltype);
 }
+
+%typemap(directorout,noblock=1) void * const& ($*ltype temp) {
+  if (SWIG_ConvertPtr($input, %as_voidptrptr(&temp), 0, $disown) != SWIG_OK) { 
+    %dirout_fail(SWIG_TypeError,"$type");
+  }
+  $result =  &temp;
+}
+
 
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */

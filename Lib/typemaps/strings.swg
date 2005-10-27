@@ -165,7 +165,9 @@
   $result = buf;
 }
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) Char * const& (Char* buf = 0, int alloc = 0) { 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) 
+  Char * const& (Char* buf = 0, int alloc = 0),
+  Char const* const& (Char* buf = 0, int alloc = 0) { 
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError, "$type");
   }

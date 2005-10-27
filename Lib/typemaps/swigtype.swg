@@ -250,7 +250,7 @@
 
 /* directorin */
 
-%typemap(directorin,noblock=1) SWIGTYPE* {
+%typemap(directorin,noblock=1) SWIGTYPE*, SWIGTYPE* const& {
   $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
 }
 
