@@ -39,5 +39,9 @@
   char *do_blah(Foo *f) {
     return f->blah();
   }
+
+  class ForwardClass;  
+  template <class C> class ForwardClassT;  
+  template<typename T1, typename T2> class PatchList;
 %}
 

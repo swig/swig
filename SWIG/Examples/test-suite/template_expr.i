@@ -23,3 +23,14 @@ class X {};
 
 %template(X_1) X<1>;
 %template(X_m1) X<-1>;
+
+
+
+// bug 1338527
+
+
+%inline %{
+
+  template<typename, typename> class PatchList;
+
+%}
