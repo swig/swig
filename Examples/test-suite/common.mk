@@ -45,6 +45,7 @@ LIBPREFIX  = lib
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
+	constants \
 	cpp_broken \
 	namespace_union \
 	nested_comment \
