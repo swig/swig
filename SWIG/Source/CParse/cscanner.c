@@ -1021,6 +1021,31 @@ void scanner_next_token(int tok) {
  * Gets the lexene and returns tokens.
  *************************************************************/
 
+static int search_name(char c, const char* ostr)
+{
+  int count = 0;
+  int find = 0;
+
+  while (ostr[count]) {
+    if (c == ostr[count]) {
+      c = nextchar();
+      ++count;
+    } else {
+      break;
+    }
+  }
+  if (!ostr[count]) {
+    if (isalnum(c) || c == '_') {
+      find = 0;
+    } else {
+      find = c;
+    }
+  }
+  if (count) retract(count);  
+  return find;
+}
+
+
 int yylex(void) {
 
     int   l;
@@ -1131,6 +1156,9 @@ int yylex(void) {
 	  /* C++ keywords */
 	  
 	  if (cparse_cplusplus) {
+	    if (strcmp(yytext,"and") == 0) return(LAND);
+	    if (strcmp(yytext,"or") == 0) return(LOR);
+	    if (strcmp(yytext,"not") == 0) return(LNOT);
 	    if (strcmp(yytext,"class") == 0) return(CLASS);
 	    if (strcmp(yytext,"private") == 0) return(PRIVATE);
 	    if (strcmp(yytext,"public") == 0) return(PUBLIC);
@@ -1151,7 +1179,17 @@ int yylex(void) {
 		}
 		count++;
 		if (!isspace(c)) {
-		  if ((!state) && (isalpha(c))) isconversion = 1;
+		  if ((!state) && (isalpha(c))) {
+		    /* we look for the and/not/or operators */
+		    if (search_name(c, "and") ||
+			search_name(c, "not") ||
+			search_name(c, "or")) {
+		      isconversion = 0;
+		    } else {
+		      isconversion = 1;
+		    }
+		  }
+		  
 		  if (!state && !sticky) Putc(' ',s);
 		  Putc(c,s);
 		  sticky = 0;
