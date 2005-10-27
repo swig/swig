@@ -111,9 +111,9 @@ nocppval
  * Casting operators
  * ----------------------------------------------------------------------------- */
 
-#ifdef SWIG_NO_CPLUSPLUS_CAST   
+#if defined(SWIG_NO_CPLUSPLUS_CAST)
 /* Disable 'modern' cplusplus casting operators */
-# ifdef SWIG_CPLUSPLUS_CAST
+# if defined(SWIG_CPLUSPLUS_CAST)
 #   undef SWIG_CPLUSPLUS_CAST
 # endif
 #endif
@@ -159,9 +159,9 @@ nocppval
  * ----------------------------------------------------------------------------- */
 
 #define %mangle(Type...)                  #@Type
-#define %name_type(Name, Type...)         SWIG_ ## Name ## _ ## #@Type
-#define %string_type(Name, Type...)       "SWIG_" #Name "_" {Type}
-#define %checkcode(Code)           	  %name_type(TYPECHECK, Code)
+#define %string_name(Name)                "SWIG_" %str(Name)
+#define %symbol_name(Name, Type...)       SWIG_ ## Name ## _ #@Type
+#define %checkcode(Code)           	  SWIG_TYPECHECK_ ## Code
 
 
 /* -----------------------------------------------------------------------------

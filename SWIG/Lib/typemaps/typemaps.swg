@@ -160,7 +160,7 @@ phased out in future releases.
 */
 
 
-#ifdef SWIG_INOUT_NODEF
+#if defined(SWIG_INOUT_NODEF)
 
 %apply_checkctypes(%typemaps_inoutn)
 

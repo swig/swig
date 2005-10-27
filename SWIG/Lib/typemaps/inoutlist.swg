@@ -70,7 +70,7 @@ or you can use the %apply directive :
         double fadd(double *a, double *b);
 
 */
-#ifdef SWIG_INPUT_ACCEPT_PTRS
+#if defined(SWIG_INPUT_ACCEPT_PTRS)
 #define %check_input_ptr(input,arg,desc,disown) (SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown) == SWIG_OK)
 #else
 #define %check_input_ptr(input,arg,desc,disown) (0)
