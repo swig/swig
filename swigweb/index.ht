@@ -32,6 +32,10 @@ and non-commercial use.
 
 
 <p>
+<b>2005/10/29</b>
+The swig and swig-dev mailing lists hosted at the University of Chicago are being shut down. Please use the new swig-user and swig-devel lists at SourceForge, details on the <a href="http://www.swig.org/mail.html">mailing list page</a>.
+
+<p>
 <b>2005/10/15</b>
 SWIG-1.3.27 has been released to fix a major bug in previous release.
 
