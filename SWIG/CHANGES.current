@@ -1,5 +1,9 @@
-Version 1.3.27 (October 15, 2005)
-=================================
+Unreleased changes
+==================
+
+10/30/2005: mkoeppe 
+	    [Guile] Make declared and defined linkage of SWIG_init consistent.  
+	    Reported by Steven G. Johnson (SF patch 1315498).
 
 10/26/2005: mmatus
 
@@ -221,85 +225,3 @@ Version 1.3.27 (October 15, 2005)
 	    the old expected behavior, specially in ruby and tcl.
 
 	    	    
-
-10/15/2005: wsfulton
-            [Java] Fix for typesafe enum wrapping so that it is possible to
-            overload a method with 2 different enum types.
-
-10/15/2005: wsfulton
-            Fix for %feature("immutable","0") attempting to generate setters
-            for constants.
-
-            Restored %immutable and %makedefault to clear the feature as it
-            behaved in SWIG-1.3.25 and earlier.
-
-10/14/2005: mmatus
-            Fix bug in anonymous typedef structures which was leading to
-            strange behaviour.
-
-10/13/2005: mmatus
-	    Several minor changes:
-	    
-	    - Improve the wchar_t type support
-	    - Add a warning for when you define the 'in' typemap but
-	      you don't define the 'typecheck' one. Very common mistake.
-	    - Add proper default rule for function pointers, now you
-	      can define a typemap such as:
-
-	      %typemap(in) SWIGTYPE ((*)(ANY)) {...}
-
-	      That will apply to all the pointer to functions. The
-	      rule in C++ also apply to the function 'reference', ie,
-	      in both cases
-
-	        typedef  int (*fptr)(int a);
-	        typedef  int (func)(int a);
-
-	      This was needed since it seems to be 'illegal' in C++ to
-	      do something like:
-
-	         void *ptr = static_cast<void *>(fptr);
-
-	      and probably, as for member functions, it is not
-	      warrantied that the pointer sizes will match.
-
-	    - Add the #error/#warning directives to swig's cpp.
-
-	    - Add the noblock option for typemaps, which is used as
-              follows: supposed you a typemap, like this
-
-	      
-	      %typemap(in,noblock=1) Hello {			   
-	         ....
-              }
-
-	      then the typemap will be inserted without the block
-	      imposed by the brackets, similar to
-
-	       %typemap(in) Hello "...";
-
-	      So, why you don't just use the quote style?, because:
-	      
-	         1.- The quote style doesn't get preprocessed, for example
-	      
-	              %typemap(in) Hello "$1= SWIG_macro($1);";
-	      
-	             here, SWIG_macro doesn't get expanded
-
-                 2.- Inside a quote typemap, you have to use 
-                     quotes carefully
-
-		      %typemap(in) Hello "$1 = \"hello\" ";
-
-		 3.- You can't make emacs and/or other editors
-		     to indent inside a string!. 
-
-
-	      So, why do you want to remove the block?, because an extra
-	      block when not needed (no local variables in it):
-
-	          1.- makes the code harder to read
-                  2.- makes the code larger
-                  3.- or in short, for the same reason we have the quote style.
-
-
