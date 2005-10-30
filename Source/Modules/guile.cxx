@@ -379,27 +379,26 @@ public:
     
     module = Swig_copy_string(Char(Getattr(n,"name")));
     
-    if (CPlusPlus) {
-      Printf(f_runtime, "extern \"C\" {\n\n");
-    }
-    
     switch (linkage) {
     case GUILE_LSTYLE_SIMPLE:
       /* Simple linkage; we have to export the SWIG_init function. The user can
 	 rename the function by a #define. */
-      Printf (f_runtime, "extern void\nSWIG_init (void)\n;\n");
-      Printf (f_init, "#define SWIG_GUILE_INIT_STATIC static\n");
+      Printf (f_runtime, "#define SWIG_GUILE_INIT_STATIC extern\n");
       break;
     default:
       /* Other linkage; we make the SWIG_init function static */
-      Printf (f_runtime, "static void\nSWIG_init (void)\n;\n");
-      Printf (f_init, "#define SWIG_GUILE_INIT_STATIC extern\n");
+      Printf (f_runtime, "#define SWIG_GUILE_INIT_STATIC static\n");
       break;
     }
+
+    if (CPlusPlus) {
+      Printf(f_runtime, "extern \"C\" {\n\n");
+    }
+    Printf (f_runtime, "SWIG_GUILE_INIT_STATIC void\nSWIG_init (void);\n");
     if (CPlusPlus) {
       Printf(f_runtime, "\n}\n");
     }
-
+    
     Language::top(n);
     
     /* Close module */
