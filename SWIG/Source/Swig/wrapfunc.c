@@ -79,6 +79,7 @@ Wrapper_pretty_print(String *str, File *f) {
   int empty = 1;
   int indent = 4;
   int plevel = 0;
+  int label = 0;
 
   ts = NewString("");
   Seek(str,0, SEEK_SET);
@@ -106,6 +107,12 @@ Wrapper_pretty_print(String *str, File *f) {
 	if (c == '\'') break;
       }
       empty = 0;
+    } else if (c == ':') {
+      Putc(c,ts);
+      if ((c = Getc(str)) == '\n') {
+	if (!empty && !Strstr(ts,"?")) label = 1;
+      }
+      Ungetc(c,str);
     } else if (c == '(') {
       Putc(c,ts);
       plevel+=indent;
@@ -144,7 +151,7 @@ Wrapper_pretty_print(String *str, File *f) {
       Putc(c,ts);
       empty = 0;
       if (!empty) {
-	if ((Char(ts))[0] != '#') {
+	if (!label && (Char(ts))[0] != '#') {
 	  for (i = 0; i < level; i++)
 	    Putc(' ',f);
 	}
@@ -153,6 +160,7 @@ Wrapper_pretty_print(String *str, File *f) {
 	  Putc(' ',f);
       }
       Clear(ts);
+      label = 0;
       empty = 1;
     } else if (c == '/') {
       empty = 0;
