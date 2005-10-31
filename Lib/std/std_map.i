@@ -12,7 +12,7 @@
   size_type count(const key_type& x) const;
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator position, const value_type& x);
+//  iterator insert(iterator position, const value_type& x);
   void erase(iterator position);
   void erase(iterator first, iterator last);
 
@@ -29,7 +29,7 @@
   %std_map_methods_common(map);
 
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(const value_type& x);
+//  iterator insert(const value_type& x);
   #endif
 %enddef
 
@@ -113,13 +113,13 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<_Key, _Tp, _Compare, _Alloc >);
-  
-    %std_map_methods(map);
 
 #ifdef %swig_map_methods
     // Add swig/language extra methods
     %swig_map_methods(std::map<_Key, _Tp, _Compare, _Alloc >);
 #endif
+  
+    %std_map_methods(map);
   };
 
 }

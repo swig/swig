@@ -9,9 +9,8 @@
   %std_map_methods_common(mmap);
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  pair<iterator,bool> insert(const value_type& x);
-  pair<iterator,iterator> equal_range(const key_type& x);
-  pair<const_iterator,const_iterator> equal_range(const key_type& x) const;
+  std::pair<iterator,iterator> equal_range(const key_type& x);
+  std::pair<const_iterator,const_iterator> equal_range(const key_type& x) const;
 #endif
 %enddef
 
@@ -76,11 +75,11 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<_Key, _Tp, _Compare, _Alloc >);
   
-    %std_multimap_methods(multimap);
-
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods
     %swig_multimap_methods(std::multimap<_Key, _Tp, _Compare, _Alloc >);
 #endif
+
+    %std_multimap_methods(multimap);
   };
 }

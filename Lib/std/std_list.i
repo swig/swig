@@ -89,13 +89,13 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<_Tp, _Alloc >);
-  
-    %std_list_methods(list);
 
 #ifdef %swig_list_methods
     // Add swig/language extra methods
     %swig_list_methods(std::list<_Tp, _Alloc >);
 #endif
+  
+    %std_list_methods(list);
   };
 
   template<class _Tp, class _Alloc >
@@ -127,12 +127,12 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<_Tp*, _Alloc >);
 
-    %std_list_methods_val(list);
-
 #ifdef %swig_list_methods_val
     // Add swig/language extra methods
     %swig_list_methods_val(std::list<_Tp*, _Alloc >);
 #endif
+
+    %std_list_methods_val(list);
   };
 
 }

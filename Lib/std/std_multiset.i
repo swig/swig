@@ -8,9 +8,6 @@
 
 %define %std_multiset_methods(multiset...)
   %std_set_methods_common(multiset);
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  pair<iterator,bool> insert(iterator pos);
-  #endif
 %enddef
 
 
@@ -73,12 +70,12 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<_Key, _Compare, _Alloc >);
-  
-    %std_multiset_methods(multiset);
 
 #ifdef %swig_multiset_methods
     // Add swig/language extra methods
     %swig_multiset_methods(std::multiset<_Key, _Compare, _Alloc >);
 #endif
+  
+    %std_multiset_methods(multiset);
   };
 }

@@ -21,6 +21,11 @@
   allocator_type get_allocator() const;
 
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  class iterator;
+  class reverse_iterator;
+  class const_iterator;
+  class const_reverse_iterator;
+
   iterator begin();
   const_iterator begin() const;
   iterator end();
@@ -45,7 +50,6 @@
   void resize(size_type new_size);
   
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator pos);
   iterator erase(iterator pos);
   iterator erase(iterator first, iterator last);
   #endif

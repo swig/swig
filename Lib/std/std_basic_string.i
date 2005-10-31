@@ -3,9 +3,14 @@
 %include <std_alloc.i>
 %include <std_char_traits.i>
 
+
 %{
 #include <string>
 %}
+
+#ifdef SWIG_EXPORT_ITERATOR_METHODS
+#endif
+
 
 namespace std {
 
@@ -28,6 +33,10 @@ namespace std {
     typedef _Alloc allocator_type;
     
     static const size_type npos;
+
+    %traits_swigtype(_CharT);
+    %fragment(SWIG_Traits_frag(_CharT));
+    
 
     basic_string(const _CharT* __s, size_type __n);
 
@@ -181,20 +190,20 @@ namespace std {
 
     %ignore pop();
 
+
 #ifdef %swig_basic_string
     // Add swig/language extra methods
     %swig_basic_string(std::basic_string<_CharT, _Traits, _Alloc >);
 #endif
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-    iterator 
-    insert(iterator __p, _CharT __c = _CharT());
 
-    iterator 
-    erase(iterator __position);
+    
+    class iterator;
+    class reverse_iterator;
+    class const_iterator;
+    class const_reverse_iterator;
 
-    iterator 
-    erase(iterator __first, iterator __last);
 
     void 
     insert(iterator __p, size_type __n, _CharT __c);
@@ -203,23 +212,14 @@ namespace std {
     replace(iterator __i1, iterator __i2, const basic_string& __str);
 
     basic_string& 
-    replace(iterator __i1, iterator __i2,
-	    const _CharT* __s, size_type __n);
-
-    basic_string& 
-    replace(iterator __i1, iterator __i2, const _CharT* __s);
+    replace(iterator __i1, iterator __i2, const _CharT* __s, size_type __n);
 
     basic_string& 
     replace(iterator __i1, iterator __i2, size_type __n, _CharT __c);
 
-    basic_string& 
-    replace(iterator __i1, iterator __i2, _CharT* __k1, _CharT* __k2);
 
     basic_string& 
     replace(iterator __i1, iterator __i2, const _CharT* __k1, const _CharT* __k2);
-
-    basic_string& 
-    replace(iterator __i1, iterator __i2, iterator __k1, iterator __k2);
 
     basic_string& 
     replace(iterator __i1, iterator __i2, const_iterator __k1, const_iterator __k2);
