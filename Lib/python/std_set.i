@@ -36,21 +36,23 @@
 %}
 
 %define %swig_set_methods(set...)
+  %swig_sequence_iterator(set);
   %swig_container_methods(set);
 
   %extend  {
-   void append(value_type x) {
-     self->insert(x);
-   }
+     void append(value_type x) {
+       self->insert(x);
+     }
   
-   bool __contains__(value_type x) {
-     return self->find(x) != self->end();
-   }
+     bool __contains__(value_type x) {
+       return self->find(x) != self->end();
+     }
 
-   value_type __getitem__(difference_type i) const throw (std::out_of_range) {
-     return *(swig::cgetpos(self, i));
-   }
-  };    
+     value_type __getitem__(difference_type i) const throw (std::out_of_range) {
+       return *(swig::cgetpos(self, i));
+     }
+
+  };
 %enddef
 
 %include <std/std_set.i>
