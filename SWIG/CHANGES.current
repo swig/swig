@@ -1,6 +1,133 @@
 Unreleased changes
 ==================
 
+10/31/2005: mmatus
+	    [Python]
+
+	    - Finally, no more ClassPtr shadow classes. You will see
+	      only a clean Class shadow class in the .py file.
+
+	    - No more thisown attribute either, the PySwigObject now
+              carries the ownership info.
+
+	      You can also do something like
+
+	          print self.this.own() 
+		  >>> True
+		  
+		  self.this.disown()
+	          print self.this.own() 
+		  >>> False		  
+
+		  self.this.acquire()
+	          print self.this.own() 
+		  >>> True		  
+
+	    - Support for iterartors in STL/STD containers, for example, if you have
+
+                    %template<set_string> std::set<std::string>;
+	          
+               you can use the C++ iterators as:  
+
+                     s = set_string()
+		                     
+		     s.append("c")   
+		     s.append("a")   
+	             s.append("b")
+
+                     b = s.begin()      
+		     e = s.end()        
+		     sum = ""           
+		     while (b != e):    
+                         sum += b.next()        
+                     print sum
+
+                     >>> "abc" 
+
+		advance the iterator as in C++
+
+                     current = s.begin()      
+		     current += 1
+                     print current.value()
+		     >>> "b"
+		     
+		now using the reverse operators
+
+                     b = s.rbegin()      
+		     e = s.rend()        
+		     sum = ""           
+		     while (b != e):    
+                         sum += b.next()        
+                     print sum
+
+                     >>> "cba" 
+
+	        or the 'previous' method
+
+                     b = s.begin()      
+		     e = s.end()        
+		     sum = ""           
+		     while (b != e):    
+                         sum += e.previous()
+                     print sum
+
+                     >>> "cba" 
+
+                or just as in a python fashion
+
+                     for i in s:
+                         sum += i        
+                           
+                Note 1: Iterators in C++ are very powerful, but
+                dangerous too. And in python you can shoot your foot
+                as well as in C++, so, be careful.
+		
+		Note 2: the iterators are 'light', ie, they do not
+		convert sequence elements until you request so, via
+		next(), value() or previous(). If you just increment/decrement one
+		no conversion is performed, for example:
+
+                      
+                     b = s.begin()      
+	             b += 1
+                     b.incr()
+                     b.incr(2)
+		     b.decr(2)
+                     b.decr()
+                     b -= 1
+
+		 only the iterator is modified, and not value wrapper
+		 is generated. Other typical C++ operations are also 
+		 available, such as:
+
+		     print s.end() - s.begin()
+		     >>> 3
+		     f = s.begin() + 1
+		     print f.value()
+		     >>> "b"
+		     l = s.end() - 1
+		     print l.value()
+		     >>> "c"
+		 
+		 etc.  Of course, the 'find', 'insert', 'erase', and
+		 so on methods also supports iterators now, ie:
+
+		      i = s.begin()
+		      i += 1
+		      s.erase(i)
+                      for i in s:
+                         sum += i
+		      print sum
+		      >>> "ac"
+		      
+
+            *** POTENTIAL INCOMPATIBILITY ***
+                
+		Iterators for std::map now behaves as in C++, ie, they
+		return a pair of (key, value). Before the map.__iter__
+		method returned a list with only the keys.
+
+
 10/30/2005: mkoeppe 
 	    [Guile] Make declared and defined linkage of SWIG_init consistent.  
 	    Reported by Steven G. Johnson (SF patch 1315498).
