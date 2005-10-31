@@ -233,32 +233,39 @@ phased out in future releases.
 %enddef
 
 #ifndef SWIG_INOUT_NODEF
-#define %value_input_typemap(code,_a,_af,...)	        \
-  %_value_input_typemap(%arg(code),%arg(_a),	        \
-		       %arg(_af),%arg(__VA_ARGS__))
 
-#define %ptr_input_typemap(code,_a,_af,...)		\
-  %_ptr_input_typemap(%arg(code),%arg(_a),%arg(_af),	\
-		       %arg(__VA_ARGS__))
+%define %value_input_typemap(code,asval_meth, asval_frag, Type...)
+  %_value_input_typemap(%arg(code),%arg(asval_meth),%arg(asval_frag),%arg(Type))
+%enddef
 
-#define %value_output_typemap(_f,_ff,...)		\
-  %_value_output_typemap(%arg(_f),%arg(_ff),%arg(__VA_ARGS__))
+%define %ptr_input_typemap(code,asval_meth,asval_frag,Type...)		
+  %_ptr_input_typemap(%arg(code),%arg(asval_meth),%arg(asval_frag),%arg(Type))
+%enddef
 
-#define %value_inout_typemap(...) %_value_inout_typemap(%arg(__VA_ARGS__))
-#define %ptr_inout_typemap(...) %_ptr_inout_typemap(%arg(__VA_ARGS__))
+%define %value_output_typemap(from_meth,from_frag,Type...)		
+  %_value_output_typemap(%arg(from_meth),%arg(from_frag),%arg(Type))
+%enddef
+
+#define %value_inout_typemap(Type...) %_value_inout_typemap(%arg(Type))
+#define %ptr_inout_typemap(Type...) %_ptr_inout_typemap(%arg(Type))
 
 #else /* You need to include typemaps.i */
 
 
-#define %value_output_typemap(...)
-#define %value_input_typemap(...)
-#define %value_inout_typemap(...)
-#define %ptr_input_typemap(...)
-#define %ptr_inout_typemap(...)
+#define %value_output_typemap(Type...)
+#define %value_input_typemap(Type...)
+#define %value_inout_typemap(Type...)
+#define %ptr_input_typemap(Type...)
+#define %ptr_inout_typemap(Type...)
 
 #endif /* SWIG_INOUT_DEFAULT */
 
-
+/*----------------------------------------------------------------------
+  Front ends.
+  
+  use the following macros to define your own IN/OUTPUT/INOUT typemaps
+  
+  ------------------------------------------------------------------------*/
 %define %typemaps_inout(Code, AsValMeth, FromMeth, AsValFrag, FromFrag, Type...)
   %_value_input_typemap(%arg(Code), %arg(AsValMeth), 
 			    %arg(AsValFrag), %arg(Type));
