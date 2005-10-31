@@ -279,7 +279,7 @@
   $result = %reinterpret_cast(argp, $ltype);
 }
 %typemap(directorout,noblock=1) SWIGTYPE &(void *argp) {
-  if (SWIG_ConvertPtr($input, &argp, $descriptor, $disown | %convertptr_flags) != SWIG_OK) {
+  if (SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError,"$type");
   }
   if (!argp) { %dirout_nullref("$type"); }
@@ -341,7 +341,7 @@
   }
 }
 
-%typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {  
+%typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {
   %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
 }
 
@@ -349,6 +349,23 @@
   %set_constant("$symname", SWIG_NewMemberObj(%as_voidptr(&$value), sizeof($type), $descriptor));
 }
 
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
+
+/* directorin */
+
+%typemap(directorin,noblock=1) SWIGTYPE (CLASS::*) {
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1_name), sizeof($type), $descriptor);
+}
+
+/* directorout */
+
+%typemap(directorout,noblock=1) SWIGTYPE (CLASS::*)  {
+  if (SWIG_ConvertMember($input,%as_voidptr(&$result), sizeof($type), $descriptor) != SWIG_OK) {
+    %dirout_fail(SWIG_TypeError,"$type");
+  }
+  $result = %reinterpret_cast(argp, $ltype);
+}
+#endif
 
 /* ------------------------------------------------------------
  * --- function ptr typemaps --- 
@@ -370,10 +387,37 @@
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
 
+%typemap(varin,noblock=1) SWIGTYPE ((*)(ANY)) {
+  if (SWIG_ConvertFunctionPtr($input, %as_voidptrptr(&$1), $descriptor) != SWIG_OK) {
+    %variable_fail(SWIG_TypeError, "$type", "$name"); 
+  }
+}
+
+%typemap(varout,noblock=1) SWIGTYPE ((*)(ANY)) {  
+  %set_varoutput(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
+}
 
 %typemap(constcode, noblock=1) SWIGTYPE ((*)(ANY)){
   %set_constant("$symname", SWIG_NewFunctionPtrObj((void *)$value, $descriptor));
 }
+
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
+
+/* directorin */
+
+%typemap(directorin,noblock=1) SWIGTYPE ((*)(ANY)) {
+  $input = SWIG_NewFunctionPtrObj((void*)($1_name), $descriptor);
+}
+
+/* directorout */
+
+%typemap(directorout,noblock=1) SWIGTYPE ((*)(ANY)) {
+  if (SWIG_ConvertFunctionPtr($input,%as_voidptrptr(&$result),$descriptor) != SWIG_OK) {
+    %dirout_fail(SWIG_TypeError,"$type");
+  }
+}
+#endif
+
 
 /* ------------------------------------------------------------
  * --- Special typemaps ---
