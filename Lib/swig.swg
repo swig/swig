@@ -293,6 +293,7 @@ namespace std {
 /* Macros for precedence levels */
 
 %define SWIG_TYPECHECK_POINTER       0     %enddef
+%define SWIG_TYPECHECK_ITERATOR      5     %enddef
 %define SWIG_TYPECHECK_VOIDPTR       10    %enddef
 %define SWIG_TYPECHECK_BOOL          15    %enddef
 %define SWIG_TYPECHECK_UINT8         20    %enddef
