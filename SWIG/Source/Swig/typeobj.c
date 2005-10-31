@@ -164,10 +164,11 @@ element_size(char *c) {
  * Deletes one type element from the type.  
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_del_element(SwigType *t) {
   int sz = element_size(Char(t));
   Delslice(t,0,sz);
+  return t;
 }
 
 /* -----------------------------------------------------------------------------
@@ -304,12 +305,13 @@ List *SwigType_parmlist(const String *p) {
  * functions take into account qualifiers (if any).
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_pointer(SwigType *t) {
   Insert(t,0,"p.");
+  return t;
 }
 
-void
+SwigType *
 SwigType_del_pointer(SwigType *t) {
   char *c, *s;
   c = Char(t);
@@ -325,6 +327,7 @@ SwigType_del_pointer(SwigType *t) {
     abort();
   }
   Delslice(t,0,(c-s)+2);
+  return t;
 }
 
 int
@@ -355,17 +358,19 @@ SwigType_ispointer(SwigType *t) {
  * functions take into account qualifiers (if any).
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_reference(SwigType *t) {
   Insert(t,0,"r.");
+  return t;  
 }
 
-void
+SwigType *
 SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c,"r.",2);
   assert(check == 0);
   Delslice(t,0,2);
+  return t;
 }
 
 int
@@ -393,7 +398,7 @@ SwigType_isreference(SwigType *t) {
  * stored in exactly the same way as "q(const volatile)".
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
   char temp[256], newq[256];
   int  sz, added = 0;
@@ -405,7 +410,7 @@ SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
   if (!(strncmp(c,"q(",2) == 0)) {
     sprintf(temp,"q(%s).",cqual);
     Insert(t,0,temp);
-    return;
+    return t;
   } 
 
   /* The type already has a qualifier on it.  In this case, we first check to
@@ -418,7 +423,7 @@ SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
 
   if (strstr(temp,cqual)) {
     /* Qualifier already added */
-    return;
+    return t;
   }
 
   /* Add the qualifier to the existing list. */
@@ -448,14 +453,16 @@ SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
   strcat(newq,").");
   Delslice(t,0,sz);
   Insert(t,0,newq);
+  return t;
 }
 
-void
+SwigType *
 SwigType_del_qualifier(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c,"q(",2);
   assert(check == 0);
   Delslice(t,0,element_size(Char(t)));
+  return t;
 }
 
 int 
@@ -479,19 +486,21 @@ SwigType_isqualifier(SwigType *t) {
  * Add, remove, and test for C++ pointer to members.
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_memberpointer(SwigType *t, const String_or_char *name) {
   String *temp = NewStringf("m(%s).", name);
   Insert(t,0,temp);
   Delete(temp);
+  return t;
 }
 
-void
+SwigType *
 SwigType_del_memberpointer(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c,"m(",2);
   assert(check == 0);
   Delslice(t,0,element_size(c));
+  return t;
 }
 
 int 
@@ -521,21 +530,23 @@ SwigType_ismemberpointer(SwigType *t) {
  * SwigType_pop_arrays()        - Remove all arrays
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_array(SwigType *t, const String_or_char *size) {
   char temp[512];
   strcpy(temp,"a(");
   strcat(temp,Char(size));
   strcat(temp,").");
   Insert(t,0,temp);
+  return t;
 }
 
-void
+SwigType *
 SwigType_del_array(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c,"a(",2);
   assert(check == 0);
   Delslice(t,0,element_size(c));
+  return t;
 }
 
 int SwigType_isarray(SwigType *t) {
@@ -642,7 +653,7 @@ SwigType_array_type(SwigType *ty) {
  * ----------------------------------------------------------------------------- */
 
 /* Returns the function type, t, constructed from the parameters, parms */
-void
+SwigType *
 SwigType_add_function(SwigType *t, ParmList *parms) {
   String *pstr;
   Parm   *p;
@@ -656,6 +667,7 @@ SwigType_add_function(SwigType *t, ParmList *parms) {
   }
   Insert(t,0,pstr);
   Delete(pstr);
+  return t;
 }
 
 SwigType *
@@ -736,7 +748,7 @@ int SwigType_isvarargs(const SwigType *t) {
  *  vector<int *> ----> "vector<(p.int)>"
  * ----------------------------------------------------------------------------- */
 
-void
+SwigType *
 SwigType_add_template(SwigType *t, ParmList *parms) {
   Parm   *p;
 
@@ -754,6 +766,7 @@ SwigType_add_template(SwigType *t, ParmList *parms) {
     }
   }
   Append(t,")>");
+  return t;
 }
 
 
