@@ -79,7 +79,8 @@
 /* raise exception */
 %define %raise(obj, type, desc)
   sv_setsv(perl_get_sv("@", TRUE), obj); 
-  croak(Nullch) %enddef
+  croak(Nullch);
+  SWIG_fail %enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
