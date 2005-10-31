@@ -1,4 +1,4 @@
-%module li_std_map
+%module("templatereduce") li_std_map
 
 %include std_pair.i
 %include std_map.i

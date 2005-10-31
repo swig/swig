@@ -3,10 +3,8 @@ a = inplaceadd.A(7)
 
 a += 5
 if a.val != 12:
+  print a.val
   raise RuntimeError
-
-if a.thisown != 1:
-  raise RuntimeError  
 
 a -= 5
 if a.val != 7:

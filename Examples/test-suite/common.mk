@@ -163,6 +163,7 @@ CPP_TEST_CASES += \
 	li_cdata \
 	li_cpointer \
 	li_std_deque \
+	li_std_except \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
