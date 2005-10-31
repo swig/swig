@@ -3,6 +3,7 @@
 //
 
 %include <std_container.i>
+%include <std_pair.i>
 
 // Set
 %define %std_set_methods_common(set...)
@@ -12,25 +13,20 @@
   size_type count(const key_type& x) const;
   
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator pos, const value_type& x);
-  void insert(iterator pos, size_type n, const value_type& x);
-  iterator erase(iterator pos);
-  iterator erase(iterator first, iterator last);
+  void erase(iterator pos);
+  void erase(iterator first, iterator last);
 
   iterator find(const key_type& x) const;
   iterator lower_bound(const key_type& x) const;
   iterator upper_bound(const key_type& x) const;
   std::pair<iterator,iterator> equal_range(const key_type& x);
-  iterator begin() const;
-  iterator end() const;
 #endif
 %enddef
 
 %define %std_set_methods(set...)
   %std_set_methods_common(set);
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  pair<iterator,bool> insert(const value_type& __x);
-  iterator insert(iterator pos);
+  std::pair<iterator,bool> insert(const value_type& __x);
 #endif
 %enddef
 
@@ -94,12 +90,13 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<_Key, _Compare, _Alloc >);
-  
-    %std_set_methods(set);
 
 #ifdef %swig_set_methods
     // Add swig/language extra methods
     %swig_set_methods(std::set<_Key, _Compare, _Alloc >);
 #endif
+  
+    %std_set_methods(set);
+
   };
 }

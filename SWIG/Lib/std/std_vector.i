@@ -84,13 +84,13 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<_Tp, _Alloc >);
-  
-    %std_vector_methods(vector);
 
 #ifdef %swig_vector_methods
     // Add swig/language extra methods
     %swig_vector_methods(std::vector<_Tp, _Alloc >);
 #endif
+  
+    %std_vector_methods(vector);
   };
 
   // ***
@@ -126,12 +126,12 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<_Tp*, _Alloc >);
 
-    %std_vector_methods_val(vector);
-
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods
     %swig_vector_methods_val(std::vector<_Tp*, _Alloc >);
 #endif
+
+    %std_vector_methods_val(vector);
   };
 
   // ***
@@ -167,16 +167,18 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool, _Alloc >);
 
+
+#ifdef %swig_vector_methods_val
+    // Add swig/language extra methods
+    %swig_vector_methods_val(std::vector<bool, _Alloc >);
+#endif
+
     %std_vector_methods_val(vector);
 
 #if defined(SWIG_STD_MODERN_STL) && !defined(SWIG_STD_NOMODERN_STL) 
     void flip();
 #endif
 
-#ifdef %swig_vector_methods_val
-    // Add swig/language extra methods
-    %swig_vector_methods_val(std::vector<bool, _Alloc >);
-#endif
   };
 
 }
