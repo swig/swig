@@ -1,6 +1,6 @@
-// 
+//
 // Python sequence <-> C++ container wrapper
-// 
+//
 // This wrapper, and its iterator, allows a general use (and reuse) of
 // the the mapping between C++ and Python, thanks to the C++
 // templates.
@@ -10,7 +10,7 @@
 // be the case.
 //
 %{
-#include <iostream>  
+#include <iostream>
 %}
 
 /**** The PySequence C++ Wrap ***/
@@ -22,13 +22,16 @@
 #include <stdexcept>
 %}
 
+%include std_except.i
+
 %fragment("PySequence_Base","header")
 {
 namespace swig {
+
   inline size_t
   check_index(ptrdiff_t i, size_t size, bool insert = false) {
     if ( i < 0 ) {
-      if ((size_t) (-i) <= size) 
+      if ((size_t) (-i) <= size)
 	return (size_t) (i + size);
     } else if ( (size_t) i < size ) {
       return (size_t) i;
@@ -53,28 +56,28 @@ namespace swig {
   }
 
   template <class Sequence, class Difference>
-  inline typename Sequence::iterator 
+  inline typename Sequence::iterator
   getpos(Sequence* self, Difference i)  {
-    typename Sequence::iterator pos = self->begin(); 
+    typename Sequence::iterator pos = self->begin();
     std::advance(pos, check_index(i,self->size()));
     return pos;
   }
 
   template <class Sequence, class Difference>
-  inline typename Sequence::const_iterator 
+  inline typename Sequence::const_iterator
   cgetpos(const Sequence* self, Difference i)  {
-    typename Sequence::const_iterator pos = self->begin(); 
+    typename Sequence::const_iterator pos = self->begin();
     std::advance(pos, check_index(i,self->size()));
     return pos;
   }
 
   template <class Sequence, class Difference>
   inline Sequence*
-  getslice(const Sequence* self, Difference i, Difference j) { 
+  getslice(const Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
     typename Sequence::size_type ii = swig::check_index(i, size);
     typename Sequence::size_type jj = swig::slice_index(j, size);
-    
+
     if (jj > ii) {
       typename Sequence::const_iterator vb = self->begin();
       typename Sequence::const_iterator ve = self->begin();
@@ -99,7 +102,7 @@ namespace swig {
     std::advance(vmid, jj - ii);
     self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
   }
- 
+
   template <class Sequence, class Difference>
   inline void
   delslice(Sequence* self, Difference i, Difference j) {
@@ -117,23 +120,233 @@ namespace swig {
 }
 }
 
+
+#define SWIG_EXPORT_ITERATOR_METHODS SWIG_EXPORT_ITERATOR_METHODS
+  
+#if defined(SWIG_EXPORT_ITERATOR_METHODS)
+/*
+   Throw a StopIteration exception
+*/
+namespace swig 
+{
+  %ignore stop_iteration;
+  %typemap(throws) stop_iteration {
+    Py_INCREF(Py_None);
+    PyErr_SetObject(PyExc_StopIteration, Py_None);
+  }
+}
+
+namespace swig {
+  %newobject PySequence_OutputIterator::operator +;
+  %newobject PySequence_OutputIterator::operator - (ptrdiff_t n) const;
+  %newobject PySequence_OutputIterator::copy;
+}
+
+%inline {
+  namespace swig {
+    struct stop_iteration
+    {
+    };
+
+    struct PySequence_OutputIterator
+    {
+    private:
+      PyObject *_seq;
+
+    protected:
+      PySequence_OutputIterator(PyObject *seq) : _seq(seq)
+      {
+	if (_seq) Py_INCREF(_seq);
+      }
+      
+    public:
+      virtual ~PySequence_OutputIterator() {
+	if (_seq) Py_DECREF(_seq);
+      }
+
+      virtual PyObject *value() const throw (stop_iteration) = 0;
+      virtual PySequence_OutputIterator *incr(size_t n = 1) throw (stop_iteration) = 0;
+      virtual PySequence_OutputIterator *decr(size_t n = 1) throw (stop_iteration) = 0;
+      virtual PySequence_OutputIterator *copy() const = 0;
+      virtual ptrdiff_t distance(const PySequence_OutputIterator &x) const = 0;
+      virtual bool equal (const PySequence_OutputIterator &x) const = 0;
+
+      PyObject *next() throw (stop_iteration)
+      {
+	PyObject *obj = value();
+	incr();
+	return obj;
+      }
+
+      PyObject *previous() throw (stop_iteration)
+      {
+	decr();
+	return value();
+      }
+
+      PySequence_OutputIterator *advance(ptrdiff_t n) throw (stop_iteration)
+      {
+	return  (n > 0) ?  incr(n) : decr(-n);
+      }
+      
+    public:
+      
+      bool operator == (const PySequence_OutputIterator& x)  const
+      {
+	return equal(x);
+      }
+      
+      bool operator != (const PySequence_OutputIterator& x) const
+      {
+	return ! operator==(x);
+      }
+      
+      PySequence_OutputIterator& operator += (ptrdiff_t n) throw (stop_iteration)
+      {
+	return *advance(n);
+      }
+
+      PySequence_OutputIterator& operator -= (ptrdiff_t n) throw (stop_iteration)
+      {
+	return *advance(-n);
+      }
+      
+      PySequence_OutputIterator* operator + (ptrdiff_t n) const throw (stop_iteration)
+      {
+	return copy()->advance(n);
+      }
+
+      PySequence_OutputIterator* operator - (ptrdiff_t n) const throw (stop_iteration)
+      {
+	return copy()->advance(-n);
+      }
+      
+      ptrdiff_t operator - (const PySequence_OutputIterator& x) const
+      {
+	return x.distance(*this);
+      }
+      
+      static swig_type_info* desc() {
+	static swig_type_info* desc = SWIG_TypeQuery("swig::PySequence_OutputIterator *");
+	return desc;
+      }
+    };
+  }
+}
+#endif //SWIG_EXPORT_ITERATOR_METHODS
+
 %fragment("PySequence_Cont","header",
 	  fragment="StdTraits",
 	  fragment="PySequence_Base",
 	  fragment="PyObject_var")
 {
 #include <iterator>
+  
 namespace swig
 {
-  template <class T> 
+#if defined(SWIG_EXPORT_ITERATOR_METHODS)
+  template<typename OutIterator>
+  class PySequence_OutputIterator_T :  public PySequence_OutputIterator
+  {
+  public:
+    typedef OutIterator out_iterator;
+    typedef typename std::iterator_traits<out_iterator>::value_type value_type;
+    
+    typedef PySequence_OutputIterator_T<out_iterator> self_type;
+    
+    PySequence_OutputIterator_T(out_iterator curr, out_iterator first, out_iterator last, PyObject *seq)
+      : PySequence_OutputIterator(seq), current(curr), begin(first), end(last)
+    {
+    }
+    
+    PyObject *value() const throw (stop_iteration) {
+      if (current == end) {
+	throw stop_iteration();
+      } else {
+	return swig::from((const value_type&)*(current));
+      }
+    }
+    
+    
+    PySequence_OutputIterator_T *copy() const
+    {
+      return new self_type(*this);
+    }
+
+    PySequence_OutputIterator_T *incr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	if (current == end) {
+	  throw stop_iteration();
+	} else {
+	  ++current;
+	}
+      }
+      return this;
+    }
+
+    PySequence_OutputIterator_T *decr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	if (current == begin) {
+	  throw stop_iteration();
+	} else {
+	  --current;
+	}
+      }
+      return this;
+    }
+    
+    
+    bool equal (const PySequence_OutputIterator &iter) const throw (std::invalid_argument)
+    {
+      const self_type *iters = dynamic_cast<const self_type *>(&iter);
+      if (iters) {
+	return (current == iters->get_current());
+      } else {
+	throw std::invalid_argument("bad iterator type");
+      }
+    }
+    
+    ptrdiff_t distance(const PySequence_OutputIterator &iter) const throw (std::invalid_argument)
+    {
+      const self_type *iters = dynamic_cast<const self_type *>(&iter);
+      if (iters) {
+	return std::distance(current, iters->get_current());
+      } else {
+	throw std::invalid_argument("bad iterator type");
+      }
+    }
+    
+    const out_iterator& get_current() const
+    {
+      return current;
+    }
+    
+  private:
+    out_iterator current;
+    out_iterator begin;
+    out_iterator end;
+  };
+
+  template<typename OutIter>
+  inline PySequence_OutputIterator*
+  make_output_iterator(const OutIter& current, const OutIter& begin = OutIter(), 
+		       const OutIter& end = OutIter(), PyObject *seq = 0)
+  {
+    return new PySequence_OutputIterator_T<OutIter>(current, begin, end, seq);
+  }
+#endif //SWIG_EXPORT_ITERATOR_METHODS
+  
+  template <class T>
   struct PySequence_Ref
   {
-    PySequence_Ref(PyObject* seq, int index) 
+    PySequence_Ref(PyObject* seq, int index)
       : _seq(seq), _index(index)
     {
     }
-
-    operator T () const 
+    
+    operator T () const
     {
       swig::PyObject_var item = PySequence_GetItem(_seq, _index);
       try {
@@ -149,31 +362,31 @@ namespace swig
 	throw;
       }
     }
-    
-    PySequence_Ref& operator=(const T& v) 
+
+    PySequence_Ref& operator=(const T& v)
     {
       PySequence_SetItem(_seq, _index, swig::from<T>(v));
       return *this;
     }
-    
+
   private:
     PyObject* _seq;
     int _index;
   };
 
-  template <class T> 
-  struct PySequence_ArrowProxy 
+  template <class T>
+  struct PySequence_ArrowProxy
   {
     PySequence_ArrowProxy(const T& x): m_value(x) {}
     const T* operator->() const { return &m_value; }
     operator const T*() const { return &m_value; }
     T m_value;
-  };    
+  };
 
-  template <class T, class Reference > 
-  struct PySequence_Iter
+  template <class T, class Reference >
+  struct PySequence_InputIterator
   {
-    typedef PySequence_Iter<T, Reference > self;
+    typedef PySequence_InputIterator<T, Reference > self;
 
     typedef std::random_access_iterator_tag iterator_category;
     typedef Reference reference;
@@ -181,17 +394,17 @@ namespace swig
     typedef T* pointer;
     typedef int difference_type;
 
-    PySequence_Iter()
+    PySequence_InputIterator()
     {
     }
 
-    PySequence_Iter(PyObject* seq, int index)
+    PySequence_InputIterator(PyObject* seq, int index)
       : _seq(seq), _index(index)
     {
     }
 
     reference operator*() const
-    { 
+    {
       return reference(_seq, _index);
     }
 
@@ -200,19 +413,19 @@ namespace swig
       return PySequence_ArrowProxy<T>(operator*());
     }
 
-    bool operator==(const self& ri) const 
-    { 
+    bool operator==(const self& ri) const
+    {
       return (_index == ri._index) && (_seq == ri._seq);
     }
 
-    bool operator!=(const self& ri) const 
+    bool operator!=(const self& ri) const
     {
       return !(operator==(ri));
-    }    
+    }
 
     self& operator ++ ()
     {
-      ++_index;      
+      ++_index;
       return *this;
     }
 
@@ -222,7 +435,7 @@ namespace swig
       return *this;
     }
 
-    self& operator += (difference_type n) 
+    self& operator += (difference_type n)
     {
       _index += n;
       return *this;
@@ -233,7 +446,7 @@ namespace swig
       return self(_seq, _index + n);
     }
 
-    self& operator -= (difference_type n) 
+    self& operator -= (difference_type n)
     {
       _index -= n;
       return *this;
@@ -242,25 +455,25 @@ namespace swig
     self operator -(difference_type n) const
     {
       return self(_seq, _index - n);
-    }    
+    }
 
     difference_type operator - (const self& ri) const
     {
       return _index - ri._index;
     }
 
-    reference 
-    operator[](difference_type n) const 
-    { 
+    reference
+    operator[](difference_type n) const
+    {
       return reference(_seq, _index + n);
     }
 
   private:
     PyObject* _seq;
     int _index;
-  }; 
+  };
 
-  template <class T> 
+  template <class T>
   struct PySequence_Cont
   {
     typedef PySequence_Ref<T> reference;
@@ -270,8 +483,8 @@ namespace swig
     typedef int difference_type;
     typedef int size_type;
     typedef const pointer const_pointer;
-    typedef PySequence_Iter<T, reference> iterator;
-    typedef PySequence_Iter<T, const_reference> const_iterator;
+    typedef PySequence_InputIterator<T, reference> iterator;
+    typedef PySequence_InputIterator<T, const_reference> const_iterator;
 
     PySequence_Cont(PyObject* seq) : _seq(0)
     {
@@ -282,7 +495,7 @@ namespace swig
       Py_INCREF(_seq);
     }
 
-    ~PySequence_Cont() 
+    ~PySequence_Cont()
     {
       if (_seq) Py_DECREF(_seq);
     }
@@ -295,7 +508,7 @@ namespace swig
     bool empty() const
     {
       return size() == 0;
-    }    
+    }
 
     iterator begin()
     {
@@ -306,24 +519,24 @@ namespace swig
     {
       return const_iterator(_seq, 0);
     }
-    
+
     iterator end()
     {
       return iterator(_seq, size());
     }
-    
+
     const_iterator end() const
     {
       return const_iterator(_seq, size());
-    }    
+    }
 
-    reference operator[](difference_type n) 
-    { 
+    reference operator[](difference_type n)
+    {
       return reference(_seq, n);
     }
 
     const_reference operator[](difference_type n)  const
-    { 
+    {
       return const_reference(_seq, n);
     }
 
@@ -341,7 +554,7 @@ namespace swig
 	  return false;
 	}
       }
-      return true;  
+      return true;
     }
 
   private:
@@ -350,6 +563,80 @@ namespace swig
 
 }
 }
+
+%define %swig_sequence_iterator(Sequence...)
+#if defined(SWIG_EXPORT_ITERATOR_METHODS)
+  class iterator;
+  class reverse_iterator;
+  class const_iterator;
+  class const_reverse_iterator;
+
+  %typemap(out,noblock=1,fragment="PySequence_Cont")
+    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
+    $result = SWIG_NewPointerObj(swig::make_output_iterator((const $type &)$1),
+				 swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN);
+  }
+  %typemap(out,noblock=1,fragment="PySequence_Cont")
+    std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
+    $result = PyTuple_New(2);
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));
+    PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));    
+  }
+
+  %fragment("PyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="PySequence_Cont") {}
+
+  %typemap(out,noblock=1,fragment="PyPairBoolOutputIterator")
+    std::pair<iterator, bool>, std::pair<const_iterator, bool> {
+    $result = PyTuple_New(2);
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));    
+    PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
+  }
+
+  %typemap(in,noblock=1,fragment="PySequence_Cont")
+    iterator(swig::PySequence_OutputIterator *iter),
+    reverse_iterator(swig::PySequence_OutputIterator *iter),
+    const_iterator(swig::PySequence_OutputIterator *iter),
+    const_reverse_iterator(swig::PySequence_OutputIterator *iter) {
+    if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySequence_OutputIterator::desc(), 0) != SWIG_OK) {
+      %argument_fail(SWIG_TypeError, "$type", $argnum);
+    }
+    if (iter) {
+      swig::PySequence_OutputIterator_T<$type > *iter_t 
+	= dynamic_cast<swig::PySequence_OutputIterator_T<$type > *>(iter);
+      $1 = iter_t->get_current();
+    } else {
+      %argument_fail(SWIG_TypeError, "$type", $argnum);
+    }
+  }
+
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="PySequence_Cont")
+    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
+    swig::PySequence_OutputIterator *iter = 0;
+    $1 = ((SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
+			   swig::PySequence_OutputIterator::desc(), 0) == SWIG_OK)
+	  && iter
+	  && (dynamic_cast<swig::PySequence_OutputIterator_T<$type > *>(iter) != 0));
+  }
+
+  %fragment("PySequence_Cont");
+
+  %newobject output_iterator(PyObject *seq);
+  %extend  {
+    swig::PySequence_OutputIterator* output_iterator(PyObject *seq) {
+      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), seq);
+    }
+
+    %pythoncode {
+      def __iter__(self):
+        i = self.output_iterator(self)
+        return i
+    }
+  }
+#endif //SWIG_EXPORT_ITERATOR_METHODS
+%enddef
 
 
 /**** The python container methods  ****/
@@ -371,7 +658,9 @@ namespace swig
 %enddef
 
 %define %swig_sequence_methods_common(Sequence...)
+  %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
+  
   %fragment("PySequence_Base");
 
   %extend {
@@ -387,7 +676,8 @@ namespace swig
       return swig::getslice(self, i, j);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
+    void __setslice__(difference_type i, difference_type j, const Sequence& v) 
+      throw (std::out_of_range, std::invalid_argument) {
       swig::setslice(self, i, j, v);
     }
 
@@ -436,6 +726,8 @@ namespace swig
 %enddef
 
 
+
+
 //
 // Common fragments
 //
@@ -445,7 +737,7 @@ namespace swig
 	  fragment="PySequence_Cont")
 {
   namespace swig {
-    template <class PySeq, class Seq> 
+    template <class PySeq, class Seq>
     inline void
     assign(const PySeq& pyseq, Seq* seq) {
 %#ifdef SWIG_STD_NOASSIGN_STL
@@ -463,7 +755,7 @@ namespace swig
     struct traits_asptr_stdseq {
       typedef Seq sequence;
       typedef T value_type;
-		    
+
       static int asptr(PyObject *obj, sequence **seq) {
 	if (PySequence_Check(obj)) {
 	  try {
@@ -492,10 +784,10 @@ namespace swig
 	  }
 	}
 	if (seq) {
-	  PyErr_Format(PyExc_TypeError, "a %s is expected", 
+	  PyErr_Format(PyExc_TypeError, "a %s is expected",
 		       swig::type_name<sequence>());
 	}
-	return 0;	  
+	return 0;
       }
     };
 

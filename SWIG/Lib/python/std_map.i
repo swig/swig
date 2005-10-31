@@ -58,6 +58,7 @@
 }
 
 %define %swig_map_methods(Map...)
+  %swig_sequence_iterator(Map);
   %swig_container_methods(Map)
 
   %extend {
@@ -139,6 +140,7 @@
       return self->find(key) != self->end();
     }
 
+#if !defined(SWIG_EXPORT_ITERATOR_METHODS) || defined(SWIG_USE_OLD_MAP_ITERATOR)
     PyObject* __iter__() {
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
@@ -160,6 +162,7 @@
       return keyTuple;
 %#endif
     }
+#endif
   }
 %enddef
 
