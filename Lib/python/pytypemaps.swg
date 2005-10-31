@@ -57,7 +57,8 @@
 %define %raise(obj, type, desc)
   PyObject *_obj = obj; 
   PyErr_SetObject(SWIG_Python_ExceptionType(desc), _obj);
-  Py_DECREF(_obj) %enddef
+  Py_DECREF(_obj);
+  SWIG_fail %enddef
 
 
 /* Include the unified typemap library */
