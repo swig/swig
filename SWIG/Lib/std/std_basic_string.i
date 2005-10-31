@@ -8,9 +8,6 @@
 #include <string>
 %}
 
-#ifdef SWIG_EXPORT_ITERATOR_METHODS
-#endif
-
 
 namespace std {
 
@@ -33,6 +30,14 @@ namespace std {
     typedef _Alloc allocator_type;
     
     static const size_type npos;
+
+#ifdef SWIG_EXPORT_ITERATOR_METHODS
+  class iterator;
+  class reverse_iterator;
+  class const_iterator;
+  class const_reverse_iterator;
+#endif
+
 
     %traits_swigtype(_CharT);
     %fragment(SWIG_Traits_frag(_CharT));
