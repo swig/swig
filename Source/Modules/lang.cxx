@@ -2269,10 +2269,17 @@ Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler",n,"?name","*sym:name","?type","?parms",NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_construct(symname);
+  String *nodeType = Getattr(n, "nodeType");
+  int constructor = (!Cmp(nodeType, "constructor")); 
   List *abstract = 0;
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
 						 abstract);
+  if (!constructor) {
+    /* if not originally a constructor, still handle it as one */
+    Setattr(n,"handled_as_constructor","1");
+  }
+	
   Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, 
 			     CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
