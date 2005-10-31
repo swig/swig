@@ -38,14 +38,18 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   if (rt && (SwigType_type(rt) != T_VOID)) {
     SwigType *vt = cplus_value_type(rt);
     SwigType *tt = vt ? vt : rt;
-    if (SwigType_ispointer(tt)) {
-      Wrapper_add_localv(f,"result", SwigType_lstr(tt,"result"), "= 0", NULL);
+    SwigType *lt = SwigType_ltype(tt);
+    String *lstr = SwigType_str(lt,"result");
+    if (SwigType_ispointer(lt)) {
+      Wrapper_add_localv(f,"result", lstr, "= 0", NULL);
     } else{
-      Wrapper_add_local(f,"result", SwigType_lstr(tt,"result"));
+      Wrapper_add_local(f,"result", lstr);
     }
     if (vt) {
       Delete(vt);
     }
+    Delete(lt);
+    Delete(lstr);
   }
   
   /* Attach typemaps to parameters */
