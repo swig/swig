@@ -168,6 +168,7 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 {
   char *c;
   swig_cast_info *tc;
+  void *vptr = 0;
 
   /* Grab the pointer */
   if (NIL_P(obj)) {
@@ -177,7 +178,7 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
     if (TYPE(obj) != T_DATA) {
       return SWIG_ERROR;
     }
-    Data_Get_Struct(obj, void, *ptr);
+    Data_Get_Struct(obj, void, vptr);
   }
   
 
@@ -203,9 +204,10 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
   if (ty) {
     if (ty->clientdata) {
       if (rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
-	if (*ptr == 0) {
+	if (vptr == 0) {
 	  return SWIG_ERROR;
 	}
+	*ptr = vptr;
 	return SWIG_OK;
       }
     }
@@ -216,7 +218,7 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
     if (!tc) {
       return SWIG_ERROR;
     }
-    *ptr = SWIG_TypeCast(tc, *ptr);
+    *ptr = SWIG_TypeCast(tc, vptr);
   }
   return SWIG_OK;
 }
