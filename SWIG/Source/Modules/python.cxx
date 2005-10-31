@@ -351,12 +351,18 @@ public:
                tab4, "if (name == \"this\"):\n",
                tab4, tab4, "if isinstance(value, class_type):\n",
                tab4, tab8, "self.__dict__[name] = value.this\n",
+#ifdef USE_THISOWN
                tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
                tab4, tab8, "del value.thisown\n",
+#endif
                tab4, tab8, "return\n",
                tab4, "method = class_type.__swig_setmethods__.get(name,None)\n",
                tab4, "if method: return method(self,value)\n",
+#ifdef USE_THISOWN
 	       tab4, "if (not static) or hasattr(self,name) or (name == \"thisown\"):\n",
+#else
+	       tab4, "if (not static) or hasattr(self,name):\n",
+#endif
                tab4, tab4, "self.__dict__[name] = value\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
@@ -389,7 +395,11 @@ public:
         Printv(f_shadow,
 	       "def _swig_setattr_nondynamic_method(set):\n",
 	       tab4, "def set_attr(self,name,value):\n",
+#ifdef USE_THISOWN
 	       tab4, tab4, "if hasattr(self,name) or (name in (\"this\", \"thisown\")):\n",
+#else
+	       tab4, tab4, "if hasattr(self,name) or (name == \"this\"):\n",
+#endif
 	       tab4, tab4, tab4, "set(self,name,value)\n",
 	       tab4, tab4, "else:\n",
 	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n",
@@ -523,14 +533,19 @@ public:
    *    to use keyword args or not.
    * ------------------------------------------------------------ */
 
-  String *funcCallHelper(String *name, int kw) {
+  String *funcCallHelper(String *name, int kw, const char* self = 0) {
     String *str;
     
     str = NewString("");
     if (apply) {
       Printv(str, "apply(", module, ".", name, ", args", (kw ? ", kwargs" : ""), ")", NIL);
     } else {
-      Printv(str, module, ".", name, "(*args", (kw ? ", **kwargs" : ""), ")", NIL);
+      if (self) {
+	Printv(str, module, ".", name, "(", self, ", *args", (kw ? ", **kwargs" : ""), ")", NIL);
+      } else {
+	Printv(str, module, ".", name, "(*args", (kw ? ", **kwargs" : ""), ")", NIL);
+      }
+      
     }
     return str;
   }
@@ -784,7 +799,7 @@ public:
 	  Printf(pdocs, "   %s\n", pdoc);
 	}
       } else {
-        Printf(doc, "??");
+        Printf(doc, "?");
       }
 
       if (value) {
@@ -1454,12 +1469,15 @@ public:
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "resultobj");
       Replaceall(tm,"$result", "resultobj");
-      if (GetFlag(n,"feature:new")) {
-	Replaceall(tm,"$owner","SWIG_POINTER_OWN");
-      } else {
-	Replaceall(tm,"$owner","0");
+      if (constructor || Getattr(n,"handled_as_constructor")) {
+	Replaceall(tm,"$owner","SWIG_POINTER_NEW");
+      } else {      
+	if (GetFlag(n,"feature:new")) {
+	  Replaceall(tm,"$owner","SWIG_POINTER_OWN");
+	} else {
+	  Replaceall(tm,"$owner","0");
+	}
       }
-
       // FIXME: this will not try to unwrap directors returned as non-director
       //        base class pointers!
 
@@ -1922,7 +1940,11 @@ public:
       String *symname = Getattr(n,"sym:name");
       String *mrename = Swig_name_disown(symname); //Getattr(n, "name"));
       Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
+#ifdef USE_THISOWN
       Printv(f_shadow, tab8, "self.thisown = 0\n", NIL);
+#else
+      Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
+#endif
       Printv(f_shadow, tab8, module, ".", mrename,"(self)\n", NIL);
       Printv(f_shadow, tab8, "return weakref_proxy(self)\n", NIL);
       Delete(mrename);
@@ -2107,7 +2129,16 @@ public:
 	Delete(ct);
       }
       if (!have_constructor) {
-	Printv(f_shadow_file,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NIL);
+	String *rclassname = Swig_class_name(getCurrentClass());
+	Printv(f_shadow_file, tab4,"def __init__(self, **kwargs):\n",NIL);
+	Printv(f_shadow_file, tab8, "try:    this = kwargs[\"_swig_this\"]\n", NIL);
+	Printv(f_shadow_file, tab8, "except: this = None\n", NIL);
+	Printv(f_shadow_file, tab8, "if this == None: raise RuntimeError, \"No constructor defined\"\n", NIL);
+	if (!modern) {
+	  Printv(f_shadow_file, tab8, "_swig_setattr(self, ", rclassname, ", 'this', this )\n", NIL);
+	} else {
+	  Printv(f_shadow_file, tab8, "self.this = this\n", NIL);
+	}
       }
 
       if (!have_repr) {
@@ -2116,13 +2147,13 @@ public:
 	if (new_repr) {
 	  Printv(f_shadow_file,
                  tab4, "def __repr__(self):\n",
-                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance at %s>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
+                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance at 0x%x>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
                  NIL);
 	}
 	else {
 	  Printv(f_shadow_file,
 	         tab4, "def __repr__(self):\n",
-  	         tab8, "return \"<C ", rname," instance at %s>\" % (self.this,)\n",
+  	         tab8, "return \"<C ", rname," instance at 0x%x>\" % (self.this,)\n",
 	         NIL);
 	}
 	Delete(rname);
@@ -2133,24 +2164,30 @@ public:
       Printv(f_shadow_file, f_shadow, NIL);
 
       /* Now the Ptr class */
+#if 0
       Printv(f_shadow_file,
   	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
              tab4, "def __init__(self, this):\n", NIL);
       if (!modern) {
         Printv(f_shadow_file,
                tab8, "_swig_setattr(self, ", class_name, ", 'this', this)\n",
+#ifdef USE_THISOWN
                tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
+#endif
 	       tab8, "self.__class__ = ", class_name, "\n", NIL);
       } else {
         Printv(f_shadow_file,
                tab8, "self.this = this\n",
+#ifdef USE_THISOWN
                tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
+#endif
                tab8, "self.__class__ = ", class_name, "\n", NIL);
   	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
   	     //	   tab8,"except AttributeError: self.this = this\n"
       }
+#endif
 
-      Printf(f_shadow_file,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
+      Printf(f_shadow_file,"%s.%s_swigregister(%s)\n", module, class_name, class_name,0);
       shadow_indent = 0;
       Printf(f_shadow_file,"%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
@@ -2336,7 +2373,7 @@ public:
 	    String *classname = Swig_class_name(parent);
 	    String *rclassname = Swig_class_name(getCurrentClass());
 	    assert(rclassname);
-	    if (use_director) {
+	    if (use_director) {	      
  	      Printv(pass_self, tab8, NIL);
 	      Printf(pass_self, "if self.__class__ == %s:\n", classname);
 	      Printv(pass_self, tab8, tab4, "args = (None,) + args\n",
@@ -2345,25 +2382,28 @@ public:
                                 NIL);
  	    }
 
-            Printv(f_shadow, tab4, "def __init__(self, *args",
-                   (allow_kwargs ? ", **kwargs" : ""), "):\n", NIL);
+            Printv(f_shadow, tab4, "def __init__(self, *args, **kwargs):\n", NIL);
             if ( have_docstring(n) )
               Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
             if ( have_pythonprepend(n) )
               Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
             Printv(f_shadow, pass_self, NIL);
+	    Printv(f_shadow, tab8, "try:    this = kwargs[\"_swig_this\"]\n", NIL);
+	    Printv(f_shadow, tab8, "except: this = None\n", NIL);
+	    Printv(f_shadow, tab8, "if this == None: this = ", funcCallHelper(Swig_name_construct(symname), allow_kwargs),"\n", NIL);
             if (!modern) {
-              Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', ", 
-                     funcCallHelper(Swig_name_construct(symname), allow_kwargs), ")\n", NIL);
+              Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', this )\n", NIL);
               Printv(f_shadow, 
+#ifdef USE_THISOWN
                      tab8, "_swig_setattr(self, ", rclassname, ", 'thisown', 1)\n",
+#endif
                      NIL);
             } else {
-              Printv(f_shadow, tab8, "newobj = ",
-                     funcCallHelper(Swig_name_construct(symname), allow_kwargs), "\n", NIL);
-              Printv(f_shadow, tab8, "self.this = newobj.this\n", NIL);
+              Printv(f_shadow, tab8, "self.this = this\n", NIL);
+#ifdef USE_THISOWN
               Printv(f_shadow, tab8, "self.thisown = 1\n", NIL);
               Printv(f_shadow, tab8, "del newobj.thisown\n", NIL);
+#endif
             }
             if ( have_pythonappend(n) )
               Printv(f_shadow, tab8, pythonappend(n), "\n\n", NIL);
@@ -2390,7 +2430,9 @@ public:
               Printv(f_shadow_stubs, tab4, pythonprepend(n), "\n", NIL);
             Printv(f_shadow_stubs, tab4, "val = ",
                    funcCallHelper(Swig_name_construct(symname), allow_kwargs), "\n", NIL);
+#ifdef USE_THISOWN
 	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
+#endif
             if ( have_pythonappend(n) )
               Printv(f_shadow_stubs, tab4, pythonappend(n), "\n", NIL);
             Printv(f_shadow_stubs, tab4, "return val\n", NIL);
@@ -2410,6 +2452,7 @@ public:
     int oldshadow = shadow;
     
     if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    //Setattr(n,"emit:dealloc","1");
     Language::destructorHandler(n);
     shadow = oldshadow;
     if (shadow) {
@@ -2425,9 +2468,15 @@ public:
               Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
 	if ( have_pythonprepend(n) )
 	  Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+#ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
 	Printv(f_shadow, tab8, tab4, "if self.thisown: destroy(self)\n", NIL);
 	Printv(f_shadow, tab8, "except: pass\n", NIL);
+#else
+	Printv(f_shadow, tab8, "try:\n", NIL);
+	Printv(f_shadow, tab8, tab4, "if self.this.own(): destroy(self.this)\n", NIL);
+	Printv(f_shadow, tab8, "except: pass\n", NIL);	
+#endif
 	if ( have_pythonappend(n) )
 	  Printv(f_shadow, tab8, pythonappend(n), "\n", NIL);
         Printv(f_shadow, "\n", NIL);
