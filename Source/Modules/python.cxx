@@ -324,6 +324,7 @@ public:
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow",f_shadow);
+      Swig_register_filebyname("python_header",f_shadow_imports);
       Swig_register_filebyname("python",f_shadow);
 
       Printv(f_shadow_py,
