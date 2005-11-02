@@ -1,6 +1,30 @@
 Unreleased changes
 ==================
 
+11/02/2005: mmatus
+
+	    [Python]
+	    - add 'iterator()' method for all sequences and additionally
+	      'key_iterator()' for maps.
+
+	      'iterator()' will always return the native C++ iterator.
+	      Additionally, in maps, 'key_iterator()' will return a python
+	      iterator using only the map keys.
+	      
+	      In general the sequence method __iter__ will call
+	      'iterator()', returning the native C++ iterator, but in
+	      maps it will call 'key_iterator()', maintaining
+	      backcompatibilty.
+
+	      Hence, for std::maps, you can play then with the native
+	      C++ iterator, which value is a (key, value) pair, by
+	      calling map.iterator(), as with map.begin(), map.end(), etc.
+
+	      The difference is that map.iterator() returns a safe
+	      'close' iterator, while map.begin() and map.end() are
+	      'open' iterators.
+	      
+	      
 10/31/2005: mmatus
 	    [Python]
 
@@ -120,13 +144,6 @@ Unreleased changes
 		      print sum
 		      >>> "ac"
 		      
-
-            *** POTENTIAL INCOMPATIBILITY ***
-                
-		Iterators for std::map now behaves as in C++, ie, they
-		return a pair of (key, value). Before the map.__iter__
-		method returned a list with only the keys.
-
 
 10/30/2005: mkoeppe 
 	    [Guile] Make declared and defined linkage of SWIG_init consistent.  
