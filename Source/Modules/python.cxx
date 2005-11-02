@@ -533,19 +533,14 @@ public:
    *    to use keyword args or not.
    * ------------------------------------------------------------ */
 
-  String *funcCallHelper(String *name, int kw, const char* self = 0) {
+  String *funcCallHelper(String *name, int kw) {
     String *str;
     
     str = NewString("");
     if (apply) {
       Printv(str, "apply(", module, ".", name, ", args", (kw ? ", kwargs" : ""), ")", NIL);
     } else {
-      if (self) {
-	Printv(str, module, ".", name, "(", self, ", *args", (kw ? ", **kwargs" : ""), ")", NIL);
-      } else {
-	Printv(str, module, ".", name, "(*args", (kw ? ", **kwargs" : ""), ")", NIL);
-      }
-      
+      Printv(str, module, ".", name, "(*args", (kw ? ", **kwargs" : ""), ")", NIL);
     }
     return str;
   }
@@ -1177,7 +1172,7 @@ public:
     int destructor = (!Cmp(nodeType, "destructor")); 
     String *storage   = Getattr(n,"storage");
     int isVirtual = (Cmp(storage,"virtual") == 0);
-
+    int handled_as_constructor = constructor || Getattr(n,"handled_as_constructor");
     if (Getattr(n,"sym:overloaded")) {
       overname = Getattr(n,"sym:overname");
     } else {
@@ -1268,7 +1263,7 @@ public:
 
     /* Generate code for argument marshalling */
 
-    Printf(kwargs,"{ ");  
+    Printf(kwargs,"{");  
     for (i = 0, p=l; i < num_arguments; i++) {
     
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
@@ -1469,7 +1464,7 @@ public:
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "resultobj");
       Replaceall(tm,"$result", "resultobj");
-      if (constructor || Getattr(n,"handled_as_constructor")) {
+      if (handled_as_constructor) {
 	Replaceall(tm,"$owner","SWIG_POINTER_NEW");
       } else {      
 	if (GetFlag(n,"feature:new")) {
@@ -2106,39 +2101,25 @@ public:
 	SwigType_remember(ct);
         if (CPlusPlus) {
 	  Printv(f_wrappers,
-	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n",
-	         tab4, "PyObject *obj;\n",
-	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
-  	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
-  	         tab4, "Py_INCREF(obj);\n",
-	         tab4, "return Py_BuildValue((char *)\"\");\n",
-	         "}\n",NIL);
+	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n", NIL);
         } else {
 	  Printv(f_wrappers,
-	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *self SWIGUNUSED, PyObject *args) {\n",
-	         tab4, "PyObject *obj;\n",
-	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
-  	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
-  	         tab4, "Py_INCREF(obj);\n",
-	         tab4, "return Py_BuildValue((char *)\"\");\n",
-	         "}\n",NIL);
+	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *self SWIGUNUSED, PyObject *args) {\n", NIL);
         }
+	Printv(f_wrappers,
+	       tab4, "PyObject *obj;\n",
+	       tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
+	       tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
+	       tab4, "Py_INCREF(Py_None);\n",
+	       tab4, "return Py_None;\n",
+	       "}\n",NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
 	Delete(cname);
 	Delete(ct);
       }
       if (!have_constructor) {
-	String *rclassname = Swig_class_name(getCurrentClass());
-	Printv(f_shadow_file, tab4,"def __init__(self, **kwargs):\n",NIL);
-	Printv(f_shadow_file, tab8, "try:    this = kwargs[\"_swig_this\"]\n", NIL);
-	Printv(f_shadow_file, tab8, "except: this = None\n", NIL);
-	Printv(f_shadow_file, tab8, "if this == None: raise RuntimeError, \"No constructor defined\"\n", NIL);
-	if (!modern) {
-	  Printv(f_shadow_file, tab8, "_swig_setattr(self, ", rclassname, ", 'this', this )\n", NIL);
-	} else {
-	  Printv(f_shadow_file, tab8, "self.this = this\n", NIL);
-	}
+	Printv(f_shadow_file, tab4,"def __init__(self): raise AttributeError, \"No constructor defined\"\n", NIL);
       }
 
       if (!have_repr) {
@@ -2147,7 +2128,10 @@ public:
 	if (new_repr) {
 	  Printv(f_shadow_file,
                  tab4, "def __repr__(self):\n",
-                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance at 0x%x>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
+		 tab8, "try: \n",
+		 tab8, tab4, "sthis = \"at 0x%x\" %( self.this, ) \n",
+		 tab8, "except: sthis = \"\" \n",
+                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance %s>\" % (self.__class__.__module__, self.__class__.__name__, sthis,)\n",
                  NIL);
 	}
 	else {
@@ -2382,15 +2366,14 @@ public:
                                 NIL);
  	    }
 
-            Printv(f_shadow, tab4, "def __init__(self, *args, **kwargs):\n", NIL);
+            Printv(f_shadow, tab4, "def __init__(self, *args",
+		   (allow_kwargs ? ", **kwargs" : ""),"):\n", NIL);
             if ( have_docstring(n) )
               Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
             if ( have_pythonprepend(n) )
               Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
             Printv(f_shadow, pass_self, NIL);
-	    Printv(f_shadow, tab8, "try:    this = kwargs[\"_swig_this\"]\n", NIL);
-	    Printv(f_shadow, tab8, "except: this = None\n", NIL);
-	    Printv(f_shadow, tab8, "if this == None: this = ", funcCallHelper(Swig_name_construct(symname), allow_kwargs),"\n", NIL);
+	    Printv(f_shadow, tab8, "this = ", funcCallHelper(Swig_name_construct(symname), allow_kwargs),"\n", NIL);
             if (!modern) {
               Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', this )\n", NIL);
               Printv(f_shadow, 
@@ -2474,7 +2457,8 @@ public:
 	Printv(f_shadow, tab8, "except: pass\n", NIL);
 #else
 	Printv(f_shadow, tab8, "try:\n", NIL);
-	Printv(f_shadow, tab8, tab4, "if self.this.own(): destroy(self.this)\n", NIL);
+	Printv(f_shadow, tab8, tab4, "this = self.this\n", NIL);
+	Printv(f_shadow, tab8, tab4, "if this.own(): destroy(this)\n", NIL);
 	Printv(f_shadow, tab8, "except: pass\n", NIL);	
 #endif
 	if ( have_pythonappend(n) )
