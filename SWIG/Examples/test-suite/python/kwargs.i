@@ -9,14 +9,25 @@
   static int sfoo(int a = 1, int b = 0) { return a + b; }
 }
 
+%newobject Foo::create;
+
 %inline %{
 
   struct Foo 
   {
-    Foo(int a, int b = 0){}
+    Foo(int a, int b = 0) {}
 
-    int foo(int a = 1, int b = 0) {return a + b; }
+    virtual int foo(int a = 1, int b = 0) {return a + b; }
     static int statfoo(int a = 1, int b = 0) {return a + b; }
+
+    static Foo *create(int a = 1, int b = 0) 
+    {
+      return new Foo(a, b);
+    }
+
+    virtual ~Foo(){
+    }
+    
   };
 
 %}

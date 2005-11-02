@@ -1,6 +1,14 @@
 from kwargs import *
 
+class MyFoo(Foo):
+  def __init__(self, a , b = 0):
+    Foo.__init__(self, a, b)
+
+    
+
 # Simple class
+f1 = MyFoo(2)
+
 f = Foo(b=2,a=1)
 
 if f.foo(b=1,a=2) != 3:
