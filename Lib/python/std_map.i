@@ -140,8 +140,7 @@
       return self->find(key) != self->end();
     }
 
-#if !defined(SWIG_EXPORT_ITERATOR_METHODS) || defined(SWIG_USE_OLD_MAP_ITERATOR)
-    PyObject* __iter__() {
+    PyObject* key_iterator() {
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
       if (pysize < 0) {
@@ -162,6 +161,11 @@
       return keyTuple;
 %#endif
     }
+#if !defined(SWIG_USE_STD_MAP_ITERATOR)
+    %pythoncode {
+      def __iter__(self):
+        return self.key_iterator()
+    }    
 #endif
   }
 %enddef

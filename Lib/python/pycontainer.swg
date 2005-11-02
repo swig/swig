@@ -623,16 +623,15 @@ namespace swig
 
   %fragment("PySequence_Cont");
 
-  %newobject output_iterator(PyObject *seq);
+  %newobject iterator(PyObject *PYTHON_SELF);
   %extend  {
-    swig::PySequence_OutputIterator* output_iterator(PyObject *seq) {
-      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), seq);
+    swig::PySequence_OutputIterator* iterator(PyObject **PYTHON_SELF) {
+      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
     %pythoncode {
       def __iter__(self):
-        i = self.output_iterator(self)
-        return i
+        return self.iterator()
     }
   }
 #endif //SWIG_EXPORT_ITERATOR_METHODS
