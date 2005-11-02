@@ -69,6 +69,10 @@
  *  Python extra typemaps
  * ------------------------------------------------------------ */
 
+/* Get the address of the 'python self' object */
+
+%typemap(in,numinputs=0) PyObject **PYTHON_SELF "$1 = &obj0;";
+
 /* Consttab, needed for callbacks, it should be removed later */
 
 %typemap(consttab) SWIGTYPE ((*)(ANY))  
