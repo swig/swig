@@ -24,7 +24,47 @@ Unreleased changes
 	      'close' iterator, while map.begin() and map.end() are
 	      'open' iterators.
 	      
-	      
+	    [Python]
+	    - Finally, when we call 
+
+	        f = Foo()
+
+	      the construction is 'one-way'. Before construction  was done
+	      something like
+
+	          Foo() (python) -> _new_Foo() (C++) 
+                  new_Foo() (C++) -> FooPtr() (python) 
+                  FooPtr() (python) -> Foo() (python)
+
+              and returning a pointer was done like
+
+                  NewPointerObj() (C++) -> FooPtr() (python)
+                  FooPtr(python) -> Foo() (python)
+                  		  
+
+	      ie, we when going back and forward between the C++ and
+	      python side.
+
+	      Now since there is no FooPtr the construction process is
+
+	          Foo() (python) -> _new_Foo() (C++)
+                  _new_Foo() (C++) -> NewPointerObj() (C++) (no shadow class)
+
+              and returning a pointer is done
+
+                  NewPointerObj() (C++) (with shadow class) -> NewInstaceObj() (C++)
+
+	      where NewInstanceObj creates a new instance without
+	      calling __init__ and it doesn't go 'back' to python, is
+	      'pure' C API.
+
+	     - With the above change, and the other changes in the
+               PySwigObject type, which now carries the thisown and
+               swig_type_info pointer, we should be as fast as
+               boost::Python and/or the other python wrappers based in
+               pure Python/C API calls.
+
+		  	      
 10/31/2005: mmatus
 	    [Python]
 
