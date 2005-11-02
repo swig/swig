@@ -69,3 +69,17 @@
 #endif
 
 
+/*
+  Use this label for initialize a static pointer, as in 
+
+  int a;
+  int b;
+  static PyObject *MyVar = SWIG_SATIC_POINTER(MyVar) NewSomething(..);
+  ...
+
+*/
+#ifdef __cplusplus
+#define SWIG_STATIC_POINTER(var) 
+#else
+#define SWIG_STATIC_POINTER(var) 0; if (!var) var =
+#endif
