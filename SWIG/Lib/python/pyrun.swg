@@ -47,7 +47,8 @@
  * ----------------------------------------------------------------------------- */
 
 /* Flags for new pointer objects */
-#define SWIG_POINTER_NEW           SWIG_POINTER_OWN << 1
+#define SWIG_POINTER_NOSHADOW      SWIG_POINTER_OWN << 1
+#define SWIG_POINTER_NEW           SWIG_POINTER_NOSHADOW | SWIG_POINTER_OWN
 
 
 #ifdef __cplusplus
@@ -473,7 +474,6 @@ PySwigPacked_type(void) {
 #endif
   return &pyswigpacked_type;
 }
-
 SWIGRUNTIME PyObject *
 PySwigPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
@@ -510,6 +510,14 @@ PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
+SWIGRUNTIME
+PyObject *
+SWIG_This()
+{
+  static PyObject *_this = SWIG_STATIC_POINTER(_this) PyString_FromString("this");
+  return _this;
+}
+
 
 /* Convert a pointer value */
 SWIGRUNTIME int
@@ -520,11 +528,6 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   PyObject  *pyobj = 0;
   void *vptr = 0;
   PySwigObject *sobj = 0;
-  static PyObject *SWIG_this =
-#if !defined(__cplusplus)
-    0; if (!SWIG_this) SWIG_this = 
-#endif
-    PyString_FromString("this");
   
   if (!obj) return SWIG_ERROR;
   if (obj == Py_None) {
@@ -534,7 +537,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
 
   if (!(PySwigObject_Check(obj))) {    
     pyobj = obj;
-    obj = PyObject_GetAttr(obj,SWIG_this);
+    obj = PyObject_GetAttr(obj, SWIG_This());
     if (!obj) goto type_error;
     if (!PySwigObject_Check(obj)) {
       Py_DECREF(obj);
@@ -606,10 +609,46 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
  * Create a new pointer object
  * ----------------------------------------------------------------------------- */
 
+SWIGRUNTIMEINLINE void * 
+SWIG_NewClientData(PyObject* obj)
+{
+  if (PyClass_Check(obj)) {
+    Py_INCREF(obj);
+    return obj;
+  } else {
+    PyObject *args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, obj);
+    return args;
+  }
+}
+
+/* Create a new instance object whitout calling __init__ */
+
+SWIGRUNTIME PyObject* 
+SWIG_NewInstance(PyObject * obj)
+{
+  PyObject *inst = 0;
+  if (PyTuple_Check(obj)) {
+    static PyObject* fnew = SWIG_STATIC_POINTER(fnew) PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, "__new__");    
+    inst = PyObject_Call(fnew, obj, NULL);
+  } else if (PyClass_Check(obj)) {
+    inst = PyInstance_NewRaw(obj, NULL);
+  } else {
+    PyObject* args = PyTuple_New(1);
+    PyTuple_SetItem(args,0,obj);
+    inst = SWIG_NewInstance(args);
+    Py_DECREF(args);
+  }
+  
+  return inst;
+}
+
+
 SWIGRUNTIME PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   PyObject *robj = 0;
-  int own = (flags & SWIG_POINTER_OWN) || (flags & SWIG_POINTER_NEW);
+  int own = (flags & SWIG_POINTER_OWN);
+  int shadow = !(flags & SWIG_POINTER_NOSHADOW);
   if (!type) {
     if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "Swig: null type passed to NewPointerObj");
@@ -622,15 +661,11 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   }
   robj = PySwigObject_New((void *) ptr, type, own);
   if (!robj || (robj == Py_None)) return robj;
-  /* direct new call doesn't create a shadow */
-  if (!(flags & SWIG_POINTER_NEW) && type->clientdata) {
-    PyObject *inst;
-    PyObject *args = PyDict_New();
-    PyDict_SetItemString(args, "_swig_this", robj);
-    Py_DECREF(robj);
-    inst = PyEval_CallObjectWithKeywords((PyObject *) type->clientdata, NULL, args);
-    Py_DECREF(args);
+  if (shadow && type->clientdata) {
+    PyObject *inst = SWIG_NewInstance((PyObject *)type->clientdata);
     if (inst) {
+      PyObject_SetAttr(inst, SWIG_This(), robj);
+      Py_DECREF(robj);
       robj = inst;
     }
   }
