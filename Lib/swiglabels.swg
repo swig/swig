@@ -74,12 +74,12 @@
 
   int a;
   int b;
-  static PyObject *MyVar = SWIG_SATIC_POINTER(MyVar) NewSomething(..);
+  static PyObject *SWIG_SATIC_POINTER(MyVar) = NewSomething(..);
   ...
 
 */
 #ifdef __cplusplus
-#define SWIG_STATIC_POINTER(var) 
+#define SWIG_STATIC_POINTER(var)  var
 #else
-#define SWIG_STATIC_POINTER(var) 0; if (!var) var =
+#define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
 #endif
