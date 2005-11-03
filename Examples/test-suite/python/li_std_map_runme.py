@@ -32,10 +32,17 @@ for k in m:
   
 
 
+
+m = {}
+m[1] = (1,2)
+m["foo"] = "hello"
+
 pm = li_std_map.pymap()
 
-pm[1] = (1,2)
-pm["foo"] = "hello"
+for k in m:  
+  pm[k] = m[k]
 
 for k in pm:  
-  print pm[k]
+  if (pm[k] != m[k]):
+    raise RuntimeError
+

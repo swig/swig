@@ -24,8 +24,64 @@
 
 %include std_except.i
 
+
+
+namespace swig {
+  %ignore PyItem;
+  struct PyItem {};
+  %apply PyObject * {PyItem};
+  %apply PyObject * const& {PyItem const&};
+}
+
+%fragment(SWIG_Traits_frag(swig::PyItem),"header",fragment="StdTraits") {
+namespace swig {
+  template <>  struct traits<PyItem > {
+    typedef value_category category;
+    static const char* type_name() { return  "PyItem"; }
+  };
+  
+  template <>  struct traits_from<PyItem> {
+    typedef PyItem value_type;
+    static PyObject *from(const value_type& val) {
+      return static_cast<PyObject *>(val);
+    }
+  };
+  
+  template <> 
+  struct traits_check<PyItem, value_category> {
+    static bool check(PyObject *obj) {
+      return true;
+    }
+  };
+  
+  template <>  struct traits_asval<PyItem > {   
+    typedef PyItem value_type;
+    static int asval(PyObject *obj, value_type *val) {
+      if (val) *val = obj;
+      return SWIG_OK;
+    }
+  };
+}
+}
+
+%fragment(SWIG_Traits_frag(PyItem),"header")
+{
+}
+
+
 %fragment("PySequence_Base","header")
 {
+
+namespace std {
+  template <>
+  struct less <PyObject *>: public binary_function<PyObject *, PyObject *, bool>
+  {
+    bool
+    operator()(PyObject * v, PyObject *w) const
+    { return PyObject_Compare(v, w) < 0; }
+  };
+}
+
 namespace swig {
   template <> struct traits<PyObject *> {
     typedef value_category category;
@@ -44,6 +100,59 @@ namespace swig {
       Py_XINCREF(val);
       return val;
     }
+  };
+  
+  class PyItem {
+    PyObject *_obj;
+  public:
+    PyItem(const PyItem& item) : _obj(item._obj)
+    {
+      Py_XINCREF(_obj);      
+    }
+    
+    PyItem(PyObject *obj = 0) :_obj(obj)
+    {
+      Py_XINCREF(obj);
+    }
+    
+    PyItem & operator=(PyObject *obj) {
+      Py_XINCREF(obj);      
+      Py_XDECREF(_obj);
+      _obj = obj;
+      return *this;
+    } 
+
+    PyItem & operator=(const PyItem& item) {
+      this->operator=(static_cast<PyObject *>(item));
+      return *this;      
+    }
+    
+    ~PyItem() 
+    {
+      Py_XDECREF(_obj);
+    }
+    
+    operator PyObject *() const
+    {
+      return _obj;
+    }
+
+    PyObject *operator->() const
+    {
+      return _obj;
+    }
+    
+  };
+
+}
+
+namespace std {
+  template <>
+  struct less <swig::PyItem>: public binary_function<swig::PyItem, swig::PyItem, bool>
+  {
+    bool
+    operator()(const swig::PyItem& v, const swig::PyItem& w) const
+    { return PyObject_Compare(v, w) < 0; }
   };
 }
 

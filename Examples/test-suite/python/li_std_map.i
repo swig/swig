@@ -29,8 +29,8 @@ namespace std
   %template(pairiiAc) pair<int,const pair<int, A*> >;
 
 
-  %template() pair<PyObject *, PyObject *>;
-  %template(pymap) map<PyObject *, PyObject*>;
+  %template() pair<swig::PyItem, swig::PyItem>;
+  %template(pymap) map<swig::PyItem, swig::PyItem>;
   
 }
 
