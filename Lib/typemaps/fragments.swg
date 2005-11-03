@@ -160,6 +160,13 @@
 
      %typemap(in,fragment="bigfragment") {...}
 
+  
+  Finally, you can force the inclusion of a fragment at any moment as follow:
+
+     %fragment("bigfragment");
+
+  which is very useful inside a template class, for example. 
+
 
   Fragment type specialization
   ============================
