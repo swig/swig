@@ -121,3 +121,6 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 
 %pointer_class(int,PtrInt)
 %array_functions(int,ArrInt)
+
+
+%template(pyvector) std::vector<PyObject*>; 

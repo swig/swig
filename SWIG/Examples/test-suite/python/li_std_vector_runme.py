@@ -94,3 +94,10 @@ v = vecStr(["hello ", "world"])
 if v[0] != 'hello world':
     raise RuntimeError,"bad std::string+std::vector"
     
+
+
+pv = pyvector([1, "hello", (1,2)])
+
+if pv[1] != "hello":
+    raise RuntimeError
+
