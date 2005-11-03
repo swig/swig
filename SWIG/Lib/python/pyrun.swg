@@ -566,7 +566,6 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   desc = (const char *) to->name;
   if (newref) { newref = 0; Py_DECREF(obj); }
 
- type_check:
   if (ty) {
     if (to == ty) {
       /* no type cast needed */
