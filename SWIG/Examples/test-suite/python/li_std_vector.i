@@ -20,8 +20,6 @@ namespace std {
 
 %template(DoubleVector) std::vector<double>;
 
-specialize_std_vector(size_t,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
-
 
 %template(sizeVector) std::vector<size_t>;
 %{
