@@ -17,6 +17,8 @@
     int
     unsigned int
     float
+    size_t
+    ptrdiff_t
 
   which can always be redefined in the swig target languge if needed.
   
@@ -170,6 +172,23 @@ SWIG_AsVal_dec(size_t)(SWIG_Object obj, size_t *val)
 }
 }
 
+/* ptrdiff_t */
+
+%fragment(SWIG_From_frag(ptrdiff_t),"header",fragment=SWIG_From_frag(long)) {
+SWIGINTERNINLINE SWIG_Object
+SWIG_From_dec(ptrdiff_t)(ptrdiff_t value)
+{    
+  return SWIG_From(long)(value);
+}
+}
+
+%fragment(SWIG_AsVal_frag(ptrdiff_t),"header",fragment=SWIG_AsVal_frag(long)) {
+SWIGINTERNINLINE int
+SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
+{
+  return SWIG_AsVal(long)(obj, val);
+}
+}
 
 /* ------------------------------------------------------------
  * Generate the typemaps for primitive type 
@@ -193,23 +212,25 @@ SWIG_AsVal_dec(size_t)(SWIG_Object obj, size_t *val)
 #endif
 %enddef
 
-/* Apply macro to the order types */
-%define %apply_ctypes(Macro,...)
-_apply_macro(Macro, bool               , __VA_ARGS__);
-_apply_macro(Macro, signed char        , __VA_ARGS__);
-_apply_macro(Macro, unsigned char      , __VA_ARGS__);
-_apply_macro(Macro, short              , __VA_ARGS__);
-_apply_macro(Macro, unsigned short     , __VA_ARGS__);
-_apply_macro(Macro, int                , __VA_ARGS__);
-_apply_macro(Macro, unsigned int       , __VA_ARGS__);
-_apply_macro(Macro, long               , __VA_ARGS__);
-_apply_macro(Macro, unsigned long      , __VA_ARGS__);
-_apply_macro(Macro, long long          , __VA_ARGS__);
-_apply_macro(Macro, unsigned long long , __VA_ARGS__);
-_apply_macro(Macro, float              , __VA_ARGS__);
-_apply_macro(Macro, double             , __VA_ARGS__);
-_apply_macro(Macro, char               , __VA_ARGS__);
-_apply_macro(Macro, wchar_t            , __VA_ARGS__);
+/* Apply macro to the C-types */
+%define %apply_ctypes(Macro, Arg2...)
+_apply_macro(Macro, bool               , Arg2);
+_apply_macro(Macro, signed char        , Arg2);
+_apply_macro(Macro, unsigned char      , Arg2);
+_apply_macro(Macro, short              , Arg2);
+_apply_macro(Macro, unsigned short     , Arg2);
+_apply_macro(Macro, int                , Arg2);
+_apply_macro(Macro, unsigned int       , Arg2);
+_apply_macro(Macro, long               , Arg2);
+_apply_macro(Macro, unsigned long      , Arg2);
+_apply_macro(Macro, long long          , Arg2);
+_apply_macro(Macro, unsigned long long , Arg2);
+_apply_macro(Macro, float              , Arg2);
+_apply_macro(Macro, double             , Arg2);
+_apply_macro(Macro, char               , Arg2);
+_apply_macro(Macro, wchar_t            , Arg2);
+_apply_macro(Macro, size_t             , Arg2);
+_apply_macro(Macro, ptrdiff_t          , Arg2);
 %enddef
 
 /* apply the Macro2(Type1, Type2) to all  C types  */
@@ -218,11 +239,13 @@ _apply_macro(Macro, wchar_t            , __VA_ARGS__);
 %enddef
 
 /* apply the Macro(Type) to all  C++ types  */
-%define %apply_cpptypes(Macro,...)
-%apply_ctypes(Macro, __VA_ARGS__)
-_apply_macro(Macro, std::string, __VA_ARGS__);
-_apply_macro(Macro, std::complex<float>, __VA_ARGS__);
-_apply_macro(Macro, std::complex<double>, __VA_ARGS__);
+%define %apply_cpptypes(Macro, Arg2...)
+%apply_ctypes(Macro, Arg2)
+_apply_macro(Macro, std::size_t, Arg2);
+_apply_macro(Macro, std::ptrdiff_t, Arg2);
+_apply_macro(Macro, std::string, Arg2);
+_apply_macro(Macro, std::complex<float>, Arg2);
+_apply_macro(Macro, std::complex<double>, Arg2);
 %enddef
 
 /* apply the Macro2(Type1, Type2) to all  C++ types  */
@@ -247,6 +270,8 @@ Macro2(%checkcode(FLOAT),   float);
 Macro2(%checkcode(DOUBLE),  double);
 Macro2(%checkcode(CHAR),    char);
 Macro2(%checkcode(UNICHAR), wchar_t);
+Macro2(%checkcode(SIZE),    size_t);
+Macro2(%checkcode(PTRDIFF), ptrdiff_t);
 %enddef
 
 
