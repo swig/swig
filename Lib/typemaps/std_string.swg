@@ -15,7 +15,7 @@ namespace std
   class string;
 }
 
-%typemaps_std_string(std::string, char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, %checkcode(STRING));
+%typemaps_std_string(std::string, char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, %checkcode(STDSTRING));
 
 #else
 
