@@ -82,3 +82,15 @@ if m.value() != "c":
 
 
 
+s = pyset()
+s.insert((1,2))
+s.insert(1)
+s.insert("hello")
+
+
+sum = ()
+for i in s:
+    sum += (i,)
+
+if sum != (1, 'hello', (1, 2)):
+    raise RuntimeError

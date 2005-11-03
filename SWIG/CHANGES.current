@@ -3,6 +3,76 @@ Unreleased changes
 
 11/02/2005: mmatus
 
+	    [Python] Adding more fun to STL/STD containers, now you
+	    can do
+
+	       %template(pyset) std::set<PyObject *>;		
+	       %template(pyvector) std::vector<PyObject *>;	
+	       %template() std::pair<PyObject *,PyObject *>;	
+	       %template(pyvector) std::map<PyObject *,PyObject *>;
+	       ....
+
+	    The same  applies to std::list, std::deque, std::multiset, etc.
+
+	    Then, at the python side you can do now:
+
+	       # C++ std::vector as native python sequence
+	       v = pyvector([1,"hello",(1,2)])
+	       print v[1]
+	       >> 'hello'
+	       print v[2]
+	       >> (1,2)
+	       					   
+	       # C++ std::set as native python sequence
+	       s = pyset()			   
+	       s.insert((1,2))		   
+	       s.insert(1)			   
+	       s.insert("hello")
+	       sum=()
+	       for i in s:
+	         sum +=(i,)
+	       print sum
+	       >>> (1, 'hello', (1, 2))
+	       				   
+	       # C++ std::map as native python sequence
+	       m = pymap()			   
+	       m["foo"] = "hello"		   
+	       m[1] = (1,2)
+	       pm = {}
+	       for k in m:	    	   
+	         pm[k] = m[k]
+	       print pm
+	       >>> {1: (1, 2), 'foo': 'hello'}
+
+	    ie, the STD/STL containers work as real native python
+	    container, with arbitrary item types and so.
+
+	    But since normal C++ containers do not properly ref/unref
+	    their items, you should use the safer versions:
+	    
+	      %template(pyset) std::set<swig::PyItem>;
+	      %template(pyvector) std::vector<swig::PyItem>;
+	      %template() std::pair<swig::PyItem, swig::PyItem>;
+	      %template(pyvector) std::map<swig::PyItem,swig::PyItem>;
+	      ....
+
+	    where swig::PyItem is a PyObject * envelope class provided
+	    to safely incref/decref the python object. 
+	    
+	    So, now you can use all the STL/STD containers as native
+	    Python containers. 
+
+	    Note 1: std::map, std::set and the other 'ordered'
+	    containers will properly use PyObject_Compare for sorting,
+	    when needed.
+
+	    Note 2: all the STL/STD containers have a limit size of
+	    SIZE_MAX, ie, you can have manage containers larger than
+	    INT_MAX, the python limit.
+	    
+	      
+11/02/2005: mmatus
+
 	    [Python]
 	    - add 'iterator()' method for all sequences and additionally
 	      'key_iterator()' for maps.

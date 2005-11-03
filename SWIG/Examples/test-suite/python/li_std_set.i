@@ -13,3 +13,5 @@
 
 
 
+
+%template(pyset) std::set<swig::PyItem>; 
