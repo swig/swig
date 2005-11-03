@@ -45,7 +45,7 @@ static  String       *class_name;
 static  String       *shadow_indent = 0;
 static  int           in_class = 0;
 static  int           classic = 0;
-static  int           modern = 0;
+static  int           modern = 1;
 static  int           apply = 0;
 static  int           new_repr = 1;
 static int            no_header_file = 0;
@@ -76,6 +76,7 @@ Python Options (available with -python)\n\
      -cppcast        - Enable C++ casting operators\n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -modern         - Use modern python features only, without compatibility code\n\
+     -nomodern       - Don't use modern python features which are not back compatible \n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
      -new_repr       - Use more informative version of __repr__ in proxy classes\n\
@@ -169,6 +170,9 @@ public:
 	  apply = 0;
 	  classic = 0;
           modern = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nomodern") == 0) {
+          modern = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-noh") == 0) {
 	  no_header_file = 1;
