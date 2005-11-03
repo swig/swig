@@ -3,9 +3,18 @@
  * ------------------------------------------------------------ */
 
 %typemap(in)   SWIG_Object "$1 = $input;";
+%typemap(freearg) SWIG_Object "";
 
-%typemap(out,noblock=1)  SWIG_Object {
+%typemap(in)   SWIG_Object const & "$1 = &$input;";
+%typemap(freearg) SWIG_Object const & "";
+
+
+%typemap(out,noblock=1) SWIG_Object {
   $result = $1;
+}
+
+%typemap(out,noblock=1)  SWIG_Object const & {
+  $result = *$1;
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIG_Object "$1 = ($input != 0);";

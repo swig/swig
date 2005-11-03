@@ -31,3 +31,11 @@ for k in m:
 
   
 
+
+pm = li_std_map.pymap()
+
+pm[1] = (1,2)
+pm["foo"] = "hello"
+
+for k in pm:  
+  print pm[k]

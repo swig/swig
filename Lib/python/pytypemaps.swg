@@ -73,12 +73,25 @@
 
 %typemap(in,numinputs=0) PyObject **PYTHON_SELF "$1 = &obj0;";
 
+/* For output, we increase the reference object */
+%typemap(out,noblock=1)  PyObject * {
+  Py_XINCREF($1);
+  $result = $1;
+}
+
+%typemap(out,noblock=1)  PyObject * const & {
+  Py_XINCREF(*$1);
+  $result = *$1;
+}
+
 /* Consttab, needed for callbacks, it should be removed later */
 
 %typemap(consttab) SWIGTYPE ((*)(ANY))  
 { SWIG_PY_POINTER, (char*)"$symname", 0, 0, (void *)($value), &$descriptor }
 
 %typemap(constcode) SWIGTYPE ((*)(ANY)) "";
+
+
 
 
 
