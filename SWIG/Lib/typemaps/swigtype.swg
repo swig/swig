@@ -383,6 +383,12 @@
 }
 %typemap(freearg) SWIGTYPE ((*)(ANY)) "";
 
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((*)(ANY)) {
+  void *ptr = 0;
+  $1 = (SWIG_ConvertFunctionPtr($input, &ptr, $descriptor) == SWIG_OK);
+}
+
+
 %typemap(out, noblock=1) SWIGTYPE ((*)(ANY)) {
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
