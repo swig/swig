@@ -33,6 +33,54 @@ namespace swig {
   %apply PyObject * const& {PyItem const&};
 }
 
+%{
+namespace swig {
+  class PyItem {
+    PyObject *_obj;
+  public:
+    PyItem(const PyItem& item) : _obj(item._obj)
+    {
+      Py_XINCREF(_obj);      
+    }
+    
+    PyItem(PyObject *obj = 0) :_obj(obj)
+    {
+      Py_XINCREF(_obj);
+    }
+    
+    PyItem & operator=(PyObject *obj) {
+      Py_XINCREF(obj);      
+      Py_XDECREF(_obj);
+      _obj = obj;
+      return *this;
+    } 
+
+    PyItem & operator=(const PyItem& item) {
+      this->operator=(static_cast<PyObject *>(item));
+      return *this;      
+    }
+    
+    ~PyItem() 
+    {
+      Py_XDECREF(_obj);
+    }
+    
+    operator PyObject *() const
+    {
+      return _obj;
+    }
+
+    PyObject *operator->() const
+    {
+      return _obj;
+    }
+    
+  };
+}
+%}
+
+  
+
 %fragment(SWIG_Traits_frag(swig::PyItem),"header",fragment="StdTraits") {
 namespace swig {
   template <>  struct traits<PyItem > {
@@ -49,7 +97,7 @@ namespace swig {
   
   template <> 
   struct traits_check<PyItem, value_category> {
-    static bool check(PyObject *obj) {
+    static bool check(PyObject *) {
       return true;
     }
   };
@@ -62,10 +110,6 @@ namespace swig {
     }
   };
 }
-}
-
-%fragment(SWIG_Traits_frag(PyItem),"header")
-{
 }
 
 
@@ -102,48 +146,6 @@ namespace swig {
     }
   };
   
-  class PyItem {
-    PyObject *_obj;
-  public:
-    PyItem(const PyItem& item) : _obj(item._obj)
-    {
-      Py_XINCREF(_obj);      
-    }
-    
-    PyItem(PyObject *obj = 0) :_obj(obj)
-    {
-      Py_XINCREF(obj);
-    }
-    
-    PyItem & operator=(PyObject *obj) {
-      Py_XINCREF(obj);      
-      Py_XDECREF(_obj);
-      _obj = obj;
-      return *this;
-    } 
-
-    PyItem & operator=(const PyItem& item) {
-      this->operator=(static_cast<PyObject *>(item));
-      return *this;      
-    }
-    
-    ~PyItem() 
-    {
-      Py_XDECREF(_obj);
-    }
-    
-    operator PyObject *() const
-    {
-      return _obj;
-    }
-
-    PyObject *operator->() const
-    {
-      return _obj;
-    }
-    
-  };
-
 }
 
 namespace std {
@@ -281,18 +283,15 @@ namespace swig {
     struct PySequence_OutputIterator
     {
     private:
-      PyObject *_seq;
+      PyItem _seq;
 
     protected:
       PySequence_OutputIterator(PyObject *seq) : _seq(seq)
       {
-	if (_seq) Py_INCREF(_seq);
       }
       
     public:
-      virtual ~PySequence_OutputIterator() {
-	if (_seq) Py_DECREF(_seq);
-      }
+      virtual ~PySequence_OutputIterator() {}
 
       virtual PyObject *value() const throw (stop_iteration) = 0;
       virtual PySequence_OutputIterator *incr(size_t n = 1) throw (stop_iteration) = 0;
