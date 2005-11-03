@@ -302,6 +302,8 @@ namespace std {
 %define SWIG_TYPECHECK_INT16         35    %enddef
 %define SWIG_TYPECHECK_UINT32        40    %enddef
 %define SWIG_TYPECHECK_INT32         45    %enddef
+%define SWIG_TYPECHECK_SIZE          47    %enddef
+%define SWIG_TYPECHECK_PTRDIFF       48    %enddef
 %define SWIG_TYPECHECK_UINT64        50    %enddef
 %define SWIG_TYPECHECK_INT64         55    %enddef
 %define SWIG_TYPECHECK_UINT128       60    %enddef
@@ -313,8 +315,10 @@ namespace std {
 %define SWIG_TYPECHECK_CPLXDBL      100    %enddef
 %define SWIG_TYPECHECK_COMPLEX      105    %enddef
 %define SWIG_TYPECHECK_UNICHAR      110    %enddef
+%define SWIG_TYPECHECK_STDUNISTRING 115    %enddef
 %define SWIG_TYPECHECK_UNISTRING    120    %enddef
 %define SWIG_TYPECHECK_CHAR         130    %enddef
+%define SWIG_TYPECHECK_STDSTRING    135    %enddef
 %define SWIG_TYPECHECK_STRING       140    %enddef
 %define SWIG_TYPECHECK_PAIR         150    %enddef
 %define SWIG_TYPECHECK_VECTOR       160    %enddef
