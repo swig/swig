@@ -15,7 +15,7 @@ namespace std
   class wstring;
 }
 
-%typemaps_std_string(std::wstring, wchar_t, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, %checkcode(UNISTRING));
+%typemaps_std_string(std::wstring, wchar_t, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, %checkcode(STDUNISTRING));
 
 
 #else
