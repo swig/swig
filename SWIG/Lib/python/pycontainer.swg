@@ -124,31 +124,7 @@ namespace std {
     operator()(PyObject * v, PyObject *w) const
     { return PyObject_Compare(v, w) < 0; }
   };
-}
 
-namespace swig {
-  template <> struct traits<PyObject *> {
-    typedef value_category category;
-    static const char* type_name() { return "PyObject *"; }
-  };  
-  template <>  struct traits_asval<PyObject * > {   
-    typedef PyObject * value_type;
-    static int asval(PyObject *obj, value_type *val) {
-      if (val) *val = obj;
-      return SWIG_OK;
-    }
-  };
-  template <>  struct traits_from<PyObject *> {
-    typedef PyObject * value_type;
-    static PyObject *from(const value_type& val) {
-      Py_XINCREF(val);
-      return val;
-    }
-  };
-  
-}
-
-namespace std {
   template <>
   struct less <swig::PyItem>: public binary_function<swig::PyItem, swig::PyItem, bool>
   {
@@ -157,6 +133,37 @@ namespace std {
     { return PyObject_Compare(v, w) < 0; }
   };
 }
+
+namespace swig {
+  template <> struct traits<PyObject *> {
+    typedef value_category category;
+    static const char* type_name() { return "PyObject *"; }
+  };  
+
+  template <>  struct traits_asval<PyObject * > {   
+    typedef PyObject * value_type;
+    static int asval(PyObject *obj, value_type *val) {
+      if (val) *val = obj;
+      return SWIG_OK;
+    }
+  };
+
+  template <> 
+  struct traits_check<PyObject *, value_category> {
+    static bool check(PyObject *) {
+      return true;
+    }
+  };
+
+  template <>  struct traits_from<PyObject *> {
+    typedef PyObject * value_type;
+    static PyObject *from(const value_type& val) {
+      return val;
+    }
+  };
+  
+}
+
 
 namespace swig {
 
