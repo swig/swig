@@ -505,6 +505,7 @@ SwigType_namestr(const SwigType *t) {
   }
   *e = 0;
   r = NewString(tmp);
+  Putc(' ',r);
   Putc('<',r);
   
   p = SwigType_parmlist(t);
