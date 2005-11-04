@@ -159,12 +159,22 @@ namespace jafar {
       
       template<class VecFrame, class Vec, class VecRes>
       static void toFrame(const VecFrame& frame_, const Vec&v_,const VecRes& vRes){}
+      
+      template<class T>
+      void operator ()(T& x){}
+
+      template<class T>
+      void operator < (T& x){}
+
     };
   }
 }
 %}
 
 %template(toFrame) jafar::jmath::EulerT3D::toFrame<int,int,int>;
+%template(callint) jafar::jmath::EulerT3D::operator()<int>;
+%template(lessint) jafar::jmath::EulerT3D::operator< <int>;
+
 
 
 %inline %{
