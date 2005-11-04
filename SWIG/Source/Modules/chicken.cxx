@@ -63,6 +63,7 @@ static int           clos_uses = 1;
 
 /* C++ Support + Clos Classes */
 static int           clos = 0;
+static  String       *c_class_name = 0;
 static  String       *class_name  = 0;
 static  String       *short_class_name  = 0;
 
@@ -1048,10 +1049,11 @@ CHICKEN::classHandler(Node *n)
   constructor_dispatch = 0;
   constructor_name = 0;
       
+  c_class_name = NewString(Getattr(n,"sym:name"));
   class_name = NewString("");
   short_class_name = NewString("");
-  Printv(class_name, "<", Getattr(n,"sym:name"), ">", NIL);
-  Printv(short_class_name, Getattr(n,"sym:name"), NIL);
+  Printv(class_name, "<", c_class_name, ">", NIL);
+  Printv(short_class_name, c_class_name, NIL);
   Replaceall(class_name, "_", "-");
   Replaceall(short_class_name, "_", "-");
       
@@ -1163,8 +1165,10 @@ CHICKEN::classHandler(Node *n)
                            
   Delete(class_name);
   Delete(short_class_name);
+  Delete(c_class_name);
   class_name = 0;
   short_class_name = 0;
+  c_class_name = 0;
 
   return SWIG_OK;
 }
@@ -1215,8 +1219,12 @@ CHICKEN::membervariableHandler(Node *n)
   //Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
   Node *class_node = classLookup(Getattr(n, "type"));
 
-  String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
-  String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
+  //String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
+  //String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
+  String *getfunc = Swig_name_get(Swig_name_member(c_class_name, iname));
+  Replaceall(getfunc, "_","-");
+  String *setfunc = Swig_name_set(Swig_name_member(c_class_name, iname));
+  Replaceall(setfunc, "_","-");
 
   Printv(clos_class_defines,"        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
 
