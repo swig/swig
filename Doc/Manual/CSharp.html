@@ -18,6 +18,11 @@
 <li><a href="#csharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
 <li><a href="#csharp_custom_application_exception">Custom C# ApplicationException example</a>
 </ul>
+<li><a href="#csharp_typemap_examples">C# Typemap examples</a>
+<ul>
+<li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -862,6 +867,257 @@ try {
 }
 </pre>
 </div>
+
+<H2><a name="csharp_typemap_examples"></a>16.4 C# Typemap examples</H2>
+
+
+This section includes a few examples of typemaps.  For more examples, you
+might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
+the SWIG library.
+
+
+<H3><a name="csharp_memory_management_member_variables"></a>16.4.1 Memory management when returning references to member variables</H3>
+
+
+<p>
+This example shows how to prevent early garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
+The example is a direct equivalent to this <a href="Java.html#java_memory_management_objects">Java equivalent</a>.
+</p>
+
+<p>
+Consider the following C++ code:
+</p>
+
+<div class="code">
+<pre>
+struct Wheel {
+  int size;
+  Wheel(int sz) : size(sz) {}
+};
+
+class Bike {
+  Wheel wheel;
+public:
+  Bike(int val) : wheel(val) {}
+  Wheel&amp; getWheel() { return wheel; }
+};
+</pre>
+</div>
+
+<p>
+and the following usage from C# after running the code through SWIG:
+</p>
+
+
+<div class="code">
+<pre>
+      Wheel wheel = new Bike(10).getWheel();
+      Console.WriteLine("wheel size: " + wheel.size);
+      // Simulate a garbage collection
+      System.GC.Collect();
+      System.GC.WaitForPendingFinalizers();
+      Console.WriteLine("wheel size: " + wheel.size);
+</pre>
+</div>
+
+<p>
+Don't be surprised that if the resulting output gives strange results such as...
+</p>
+
+<div class="shell">
+<pre>
+wheel size: 10
+wheel size: 135019664
+</pre>
+</div>
+
+<p>
+What has happened here is the garbage collector has collected the <tt>Bike</tt> instance as it doesn't think it is needed any more.
+The proxy instance, <tt>wheel</tt>, contains a reference to memory that was deleted when the <tt>Bike</tt> instance was collected.
+In order to prevent the garbage collector from collecting the <tt>Bike</tt> instance a reference to the <tt>Bike</tt> must
+be added to the <tt>wheel</tt> instance. You can do this by adding the reference when the <tt>getWheel()</tt> method
+is called using the following typemaps.
+</p>
+
+
+<div class="code">
+<pre>
+%typemap(cscode) Wheel %{
+  // Ensure that the GC doesn't collect any Bike instance set from C#
+  private Bike bikeReference;
+  internal void addReference(Bike bike) {
+    bikeReference = bike;
+  }
+%}
+
+// Add a C# reference to prevent early garbage collection and resulting use
+// of dangling C++ pointer. Intended for methods that return pointers or
+// references to a member variable.
+%typemap(csout, excode=SWIGEXCODE) Wheel&amp; getWheel {
+    IntPtr cPtr = $imcall;$excode
+    $csclassname ret = null;
+    if (cPtr != IntPtr.Zero) {
+      ret = new $csclassname(cPtr, $owner);
+      ret.addReference(this);
+    }
+    return ret;
+  }
+</pre>
+</div>
+
+<p>
+The code in the first typemap gets added to the <tt>Wheel</tt> proxy class.
+The code in the second typemap constitutes the bulk of the code in the generated <tt>getWheel()</tt> function:
+</p>
+
+<div class="code">
+<pre>
+public class Wheel : IDisposable {
+  ...
+  // Ensure that the GC doesn't collect any Bike instance set from C#
+  private Bike bikeReference;
+  internal void addReference(Bike bike) {
+    bikeReference = bike;
+  }
+}
+
+public class Bike : IDisposable {
+  ...
+  public Wheel getWheel() {
+    IntPtr cPtr = examplePINVOKE.Bike_getWheel(swigCPtr);
+    Wheel ret = null;
+    if (cPtr != IntPtr.Zero) {
+      ret = new Wheel(cPtr, false);
+      ret.addReference(this);
+    }
+    return ret;
+  }
+}
+</pre>
+</div>
+
+<p>
+Note the <tt>addReference</tt> call.
+</p>
+
+<H3><a name="csharp_memory_management_objects"></a>16.4.2 Memory management for objects passed to the C++ layer</H3>
+
+
+<p>
+The example is a direct equivalent to this <a href="Java.html#java_memory_management_objects">Java equivalent</a>.
+Managing memory can be tricky when using C++ and C# proxy classes.
+The previous example shows one such case and this example looks at memory management for a class passed to a C++ method which expects the object to remain in scope
+after the function has returned. Consider the following two C++ classes:
+</p>
+
+<div class="code">
+<pre>
+struct Element {
+  int value;
+  Element(int val) : value(val) {}
+};
+class Container {
+  Element* element;
+public:
+  Container() : element(0) {}
+  void setElement(Element* e) { element = e; }
+  Element* getElement() { return element; }
+};
+</pre>
+</div>
+
+<p>
+and usage from C++
+</p>
+
+<div class="code">
+<pre>
+    Container container;
+    Element element(20);
+    container.setElement(&amp;element);
+    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()->value &lt;&lt; endl;
+</pre>
+</div>
+
+<p>
+and more or less equivalent usage from C#
+</p>
+
+<div class="code">
+<pre>
+      Container container = new Container();
+      Element element = new Element(20);
+      container.setElement(element);
+</pre>
+</div>
+
+<p>
+The C++ code will always print out 20, but the value printed out may not be this in the C# equivalent code.
+In order to understand why, consider a garbage collection occuring...
+</p>
+
+<div class="code">
+<pre>
+      Container container = new Container();
+      Element element = new Element(20);
+      container.setElement(element);
+      Console.WriteLine("element.value: " + container.getElement().value);
+      // Simulate a garbage collection
+      System.GC.Collect();
+      System.GC.WaitForPendingFinalizers();
+      Console.WriteLine("element.value: " + container.getElement().value);
+</pre>
+</div>
+
+<p>
+The temporary element created with <tt>new Element(20)</tt> could get garbage collected
+which ultimately means the <tt>container</tt> variable is holding a dangling pointer, thereby printing out any old random value instead of the expected value of 20.
+One solution is to add in the appropriate references in the C# layer...
+</p>
+
+<div class="code">
+<pre>
+public class Container : IDisposable {
+
+  ...
+
+  // Ensure that the GC doesn't collect any Element set from C#
+  // as the underlying C++ class stores a shallow copy
+  private Element elementReference;
+  private HandleRef getCPtrAndAddReference(Element element) {
+    elementReference = element;
+    return Element.getCPtr(element);
+  }
+
+  public void setElement(Element e) {
+    examplePINVOKE.Container_setElement(swigCPtr, getCPtrAndAddReference(e));
+  }
+}
+</pre>
+</div>
+
+<p>
+The following typemaps will generate the desired code.
+The 'csin' typemap matches the input parameter type for the <tt>setElement</tt> method.
+The 'cscode' typemap simply adds in the specified code into the C# proxy class.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csin) Element *e "getCPtrAndAddReference($csinput)"
+
+%typemap(cscode) Container %{
+  // Ensure that the GC doesn't collect any Element set from C#
+  // as the underlying C++ class stores a shallow copy
+  private Element elementReference;
+  private HandleRef getCPtrAndAddReference(Element element) {
+    elementReference = element;
+    return Element.getCPtr(element);
+  }
+%}
+</pre>
+</div>
+
 
 </body>
 </html>
