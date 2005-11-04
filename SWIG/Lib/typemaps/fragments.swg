@@ -280,24 +280,16 @@
  * Define the basic macros to 'normalize' the type fragments
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_ASVAL_DECL_ARGS
-#define SWIG_ASVAL_DECL_ARGS
-#endif
-
-#ifndef SWIG_ASPTR_DECL_ARGS
-#define SWIG_ASPTR_DECL_ARGS
+#ifndef SWIG_AS_DECL_ARGS
+#define SWIG_AS_DECL_ARGS
 #endif
 
 #ifndef SWIG_FROM_DECL_ARGS
 #define SWIG_FROM_DECL_ARGS
 #endif
 
-#ifndef SWIG_ASVAL_CALL_ARGS
-#define SWIG_ASVAL_CALL_ARGS
-#endif
-
-#ifndef SWIG_ASPTR_CALL_ARGS
-#define SWIG_ASPTR_CALL_ARGS
+#ifndef SWIG_AS_CALL_ARGS
+#define SWIG_AS_CALL_ARGS
 #endif
 
 #ifndef SWIG_FROM_CALL_ARGS
@@ -311,12 +303,12 @@
 #define SWIG_AsVal_frag(Type...)  %fragment_name(AsVal, Type)	 
 #define SWIG_From_frag(Type...)   %fragment_name(From, Type)	 
 
-#define SWIG_AsVal_dec(Type...)   %symbol_name(AsVal, Type) SWIG_ASVAL_DECL_ARGS
-#define SWIG_AsPtr_dec(Type...)   %symbol_name(AsPtr, Type) SWIG_ASPTR_DECL_ARGS
+#define SWIG_AsVal_dec(Type...)   %symbol_name(AsVal, Type) SWIG_AS_DECL_ARGS
+#define SWIG_AsPtr_dec(Type...)   %symbol_name(AsPtr, Type) SWIG_AS_DECL_ARGS
 #define SWIG_From_dec(Type...)    %symbol_name(From, Type)  SWIG_FROM_DECL_ARGS 
 
-#define SWIG_AsVal(Type...)       %symbol_name(AsVal, Type) SWIG_ASVAL_CALL_ARGS 
-#define SWIG_AsPtr(Type...)  	  %symbol_name(AsPtr, Type) SWIG_ASPTR_CALL_ARGS 	 
+#define SWIG_AsVal(Type...)       %symbol_name(AsVal, Type) SWIG_AS_CALL_ARGS 
+#define SWIG_AsPtr(Type...)  	  %symbol_name(AsPtr, Type) SWIG_AS_CALL_ARGS 	 
 #define SWIG_From(Type...)   	  %symbol_name(From, Type)  SWIG_FROM_CALL_ARGS 
 
 /* ------------------------------------------------------------
