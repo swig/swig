@@ -351,15 +351,17 @@ static C_word SWIG_Chicken_MultiResultBuild(C_word num, C_word closure, C_word l
   SWIG_Chicken_FindCreateProxy(func,obj);
 
   if (C_swig_is_closurep(func)) {
-    ((C_proc3)(void *)C_block_item(func, 0))(4,func,cont,obj,lst);
+    ((C_proc4)(void *)C_block_item(func, 0))(4,func,cont,obj,lst);
   } else {
     C_word *a = C_alloc(C_SIZEOF_PAIR);
     C_kontinue(cont,C_pair(&a,obj,lst));
   }
+  return C_SCHEME_UNDEFINED; /* never reached */
 }
 
 static C_word SWIG_Chicken_ApplyResults(C_word num, C_word closure, C_word result) {
   C_apply_values(3,C_SCHEME_UNDEFINED,C_block_item(closure,1),result);
+  return C_SCHEME_UNDEFINED; /* never reached */
 }
 
 #ifdef __cplusplus
