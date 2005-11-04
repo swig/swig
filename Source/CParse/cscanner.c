@@ -1021,31 +1021,6 @@ void scanner_next_token(int tok) {
  * Gets the lexene and returns tokens.
  *************************************************************/
 
-static int search_name(char c, const char* ostr)
-{
-  int count = 0;
-  int find = 0;
-
-  while (ostr[count]) {
-    if (c == ostr[count]) {
-      c = nextchar();
-      ++count;
-    } else {
-      break;
-    }
-  }
-  if (!ostr[count]) {
-    if (isalnum(c) || c == '_') {
-      find = 0;
-    } else {
-      find = c;
-    }
-  }
-  if (count) retract(count);  
-  return find;
-}
-
-
 int yylex(void) {
 
     int   l;
@@ -1172,22 +1147,19 @@ int yylex(void) {
 	      int sticky = 0;
 	      int isconversion = 0;
 	      int count = 0;
+	      int start_template = 0;
+	      int end_template = 0;
 	      while ((c = nextchar())) {
 		if (((c == '(') || (c == ';')) && state) {
 		  retract(1);
 		  break;
 		}
+		if ((c == '<')) start_template = count;
+		if ((c == '>')) end_template = count;
 		count++;
 		if (!isspace(c)) {
 		  if ((!state) && (isalpha(c))) {
-		    /* we look for the and/not/or operators */
-		    if (search_name(c, "and") ||
-			search_name(c, "not") ||
-			search_name(c, "or")) {
-		      isconversion = 0;
-		    } else {
-		      isconversion = 1;
-		    }
+		    isconversion = 1;
 		  }
 		  
 		  if (!state && !sticky) Putc(' ',s);
@@ -1200,6 +1172,28 @@ int yylex(void) {
 		}
 	      }
 	      Chop(s);
+	      if (start_template && end_template) {
+		/* 
+		   Manage the case:
+
+		     %template(foo) operator()<int>;
+		   
+		   ie, don't count <int> as part of the operator.		   
+		*/
+		int len = Len(s);
+		char *end = Char(s);
+		int tlen = end_template - start_template + 1;
+		int nlen = len - tlen;
+		if (nlen) {
+		  String *ns = 0;		
+		  while (isspace(end[--nlen]));
+		  ns = NewStringWithSize(s, nlen + 1);
+		  retract(count - start_template);
+		  Delete(s);
+		  s = ns;
+		}
+	      }
+	      
 	      yylval.str = s;
 	      while(Replaceall(s,"[ ", "["));
 	      if (isconversion) {
@@ -1208,8 +1202,14 @@ int yylex(void) {
 	      }
 	      if (isconversion && !rename_active) {
 		char *t = Char(s) + 9;
-		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0) 
-		      || (strcmp(t,"new[]") == 0) || (strcmp(t,"delete[]") == 0))) {
+		if (!((strcmp(t,"new") == 0) 
+		      || (strcmp(t,"delete") == 0) 
+		      || (strcmp(t,"new[]") == 0) 
+		      || (strcmp(t,"delete[]") == 0)
+		      || (strcmp(t,"and") == 0)
+		      || (strcmp(t,"or") == 0)
+		      || (strcmp(t,"not") == 0)
+		      )) {
 		  /*		  retract(strlen(t));*/
 		  retract(count);
 		  return COPERATOR;
