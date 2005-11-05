@@ -123,7 +123,6 @@ CPP_TEST_CASES += \
 	director_nested \
 	director_protected \
 	director_redefined \
-	director_string \
 	director_unroll \
 	director_wombat \
 	disown \
@@ -162,11 +161,7 @@ CPP_TEST_CASES += \
 	li_carrays \
 	li_cdata \
 	li_cpointer \
-	li_std_deque \
-	li_std_except \
-        li_std_pair \
 	li_std_string \
-	li_std_vector \
 	li_typemaps \
 	long_long_apply \
 	member_template \
@@ -261,7 +256,6 @@ CPP_TEST_CASES += \
 	template_ns_enum2 \
 	template_ns_inherit \
 	template_ns_scope \
-	template_opaque \
 	template_partial_arg \
 	template_qualifier \
 	template_qualifier \
@@ -273,14 +267,12 @@ CPP_TEST_CASES += \
 	template_specialization_enum \
 	template_static \
 	template_tbase_template \
-	template_type_namespace \
 	template_typedef \
 	template_typedef_cplx \
 	template_typedef_cplx2 \
 	template_typedef_cplx3 \
 	template_typedef_cplx4 \
 	template_typedef_cplx5 \
-	template_typedef_fnc \
 	template_typedef_ns \
 	template_typedef_ptr \
 	template_using \
@@ -321,6 +313,24 @@ CPP_TEST_CASES += \
 	virtual_poly \
 	voidtest \
 	wrapmacro
+
+#
+# Put all the heavy STD/STL cases here, where they can be skipped if needed
+#
+CPP_STD_TEST_CASES += \
+	director_string \
+	li_std_deque \
+	li_std_except \
+        li_std_pair \
+	li_std_vector \
+	template_typedef_fnc \
+	template_type_namespace \
+	template_opaque \
+
+ifndef SKIP_CPP_STD_CASES
+CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
+endif
+
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \

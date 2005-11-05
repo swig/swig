@@ -3,8 +3,9 @@
 #include <vector>
 %}
 
+#ifndef SWIGCHICKEN
 %include "std_common.i"
-%include "std_vector.i"
+#endif
 
 %inline
 {
@@ -26,6 +27,8 @@
 }
 
 #ifdef SWIGPYTHON
+%include "std_vector.i"
+
 %template(vectors) std::vector<unsigned long>;
   
 %inline 

@@ -15,6 +15,9 @@ SO           = @SO@
 
 #C_TEST_CASES = long_long list_vector pointer_in_out multivalue
 
+# Skip the STD cases for now
+SKIP_CPP_STD_CASES = Yes
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -77,7 +80,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-	
+
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile chicken_clean
 	rm -f *.scm
