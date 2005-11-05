@@ -1751,14 +1751,18 @@ done using <tt>%rename</tt>.  For example:
 
 <div class="code">
 <pre>
+%rename("foo_short") foo(short);
 %rename(foo_long) foo(long);
 
 void foo(int);
+void foo(short);      // Accessed as foo_short()
 void foo(long);       // Accessed as foo_long()
 </pre>
 </div>
 
 <p>
+Note that the quotes around the new name are optional, however,
+should the new name be a C/C++ keyword they would be essential in order to avoid a parsing error.
 The <tt>%ignore</tt> and <tt>%rename</tt> directives are both rather powerful
 in their ability to match declarations.    When used in their simple form, they apply to
 both global functions and methods.  For example:
