@@ -49,3 +49,30 @@ class Foo {
     }
 }; 
   
+
+%inline {
+  namespace ns1 
+  {
+    struct Bar
+    {
+    }
+    ;
+  }
+}
+
+%{
+  int ns1_Bar_x_get(ns1::Bar *self) {
+    return 1;
+  }
+
+  void ns1_Bar_x_set(ns1::Bar *self, int x) {
+  }
+  
+%}
+%extend ns1::Bar 
+{
+  int x;
+}
+
+
+  
