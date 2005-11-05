@@ -38,12 +38,16 @@ namespace swig {
   class PyItem {
     PyObject *_obj;
   public:
+    PyItem() :_obj(0)
+    {
+    }
+
     PyItem(const PyItem& item) : _obj(item._obj)
     {
       Py_XINCREF(_obj);      
     }
     
-    PyItem(PyObject *obj = 0) :_obj(obj)
+    PyItem(PyObject *obj) :_obj(obj)
     {
       Py_XINCREF(_obj);
     }
@@ -62,7 +66,7 @@ namespace swig {
     
     ~PyItem() 
     {
-      Py_XDECREF(_obj);
+      if (_obj) Py_DECREF(_obj);
     }
     
     operator PyObject *() const
@@ -91,7 +95,9 @@ namespace swig {
   template <>  struct traits_from<PyItem> {
     typedef PyItem value_type;
     static PyObject *from(const value_type& val) {
-      return static_cast<PyObject *>(val);
+      PyObject *obj = static_cast<PyObject *>(val);
+      Py_XINCREF(obj);
+      return obj;
     }
   };
   
@@ -158,6 +164,7 @@ namespace swig {
   template <>  struct traits_from<PyObject *> {
     typedef PyObject * value_type;
     static PyObject *from(const value_type& val) {
+      Py_XINCREF(val);
       return val;
     }
   };
