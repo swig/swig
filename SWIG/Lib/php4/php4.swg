@@ -293,4 +293,4 @@
 
 
 /* php keywords */
-%include "phpkw.swg"
+%include "php4kw.swg"
