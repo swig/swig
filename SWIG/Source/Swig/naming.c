@@ -244,7 +244,7 @@ Swig_name_set(const String_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
-  name_mangle(r);
+  /* name_mangle(r); */
   return r;
 }
 
