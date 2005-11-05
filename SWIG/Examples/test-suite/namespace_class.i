@@ -12,6 +12,12 @@
 
 
 %inline %{
+  template <class C>
+  struct Bar_T
+  {
+  };
+  
+  
 
   namespace test {
     enum Hello {
@@ -165,6 +171,9 @@ namespace jafar {
 
       template<class T>
       void operator < (T& x){}
+      
+      template<class T>
+      operator Bar_T<T> () {}
 
     };
   }
@@ -173,8 +182,9 @@ namespace jafar {
 
 %template(toFrame) jafar::jmath::EulerT3D::toFrame<int,int,int>;
 %template(callint) jafar::jmath::EulerT3D::operator()<int>;
-%template(lessint) jafar::jmath::EulerT3D::operator< <int>;
-
+%template(lessint) jafar::jmath::EulerT3D::operator < <int>;
+%template(callfooi) jafar::jmath::EulerT3D::operator() <test::hola::FooT<int> >;
+%template(lessfooi) jafar::jmath::EulerT3D::operator < < test::hola::FooT<int> >;
 
 
 %inline %{
@@ -225,3 +235,9 @@ public:
 };
 
 %template(hi) Ala::hi<int>;
+
+%extend jafar::jmath::EulerT3D 
+{
+  
+}
+

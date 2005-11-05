@@ -835,7 +835,7 @@ static Node *nscope_inner = 0;
 static String *resolve_node_scope(String *cname) {
   Symtab *gscope = 0;
   nscope = 0;
-  nscope_inner = 0;
+  nscope_inner = 0;  
   if (Swig_scopename_check(cname)) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
@@ -3484,7 +3484,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			/* We also place a fully parameterized version in the symbol table */
 			{
 			  Parm *p;
-			  String *fname = NewStringf("%s<(",Getattr($$,"name"));
+			  String *fname = NewStringf("%s<(", Getattr($$,"name"));
 			  p = $3;
 			  while (p) {
 			    String *n = Getattr(p,"name");
@@ -3522,7 +3522,10 @@ cpp_temp_possible:  c_decl {
                 }
                 | cpp_forward_class_decl {
                   $$ = $1;
-                } 
+                }
+                | cpp_conversion_operator {
+                  $$ = $1;
+                }
                 ;
 
 template_parms  : rawparms {

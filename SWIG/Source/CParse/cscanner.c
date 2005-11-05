@@ -47,6 +47,7 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 static  int    last_id = 0;
 static  int    rename_active = 0;
+static  int    swigtemplate_active = 0;
         int    cparse_cplusplus = 0;
 
 /* -----------------------------------------------------------------------------
@@ -527,7 +528,11 @@ int yylook(void) {
 
 	  else if (c == '(') return (LPAREN);
 	  else if (c == ')') return (RPAREN);
-	  else if (c == ';') return (SEMI);
+	  else if (c == ';') {
+	    swigtemplate_active = 0;
+	    return (SEMI);
+	  }
+	  
 	  else if (c == ',') return (COMMA);
 	  else if (c == '*') return (STAR);
 	  else if (c == '}') {
@@ -1154,8 +1159,16 @@ int yylex(void) {
 		  retract(1);
 		  break;
 		}
-		if ((c == '<')) start_template = count;
-		if ((c == '>')) end_template = count;
+		if ((c == '<') && !start_template) {
+		  int fcount = 1;
+		  char c = nextchar();
+		  while (isspace(c)) {c = nextchar(); ++fcount;}
+		  if (isalpha(c)|| c == ':') {
+		    start_template = count;
+		  }
+		  retract(fcount);
+		}
+		if ((c == '>') && start_template) end_template = count;
 		count++;
 		if (!isspace(c)) {
 		  if ((!state) && (isalpha(c))) {
@@ -1172,7 +1185,7 @@ int yylex(void) {
 		}
 	      }
 	      Chop(s);
-	      if (start_template && end_template) {
+	      if (swigtemplate_active && start_template && end_template) {
 		/* 
 		   Manage the case:
 
@@ -1191,6 +1204,8 @@ int yylex(void) {
 		  retract(count - start_template);
 		  Delete(s);
 		  s = ns;
+		  count = start_template;
+		  isconversion = 0;
 		}
 	      }
 	      
@@ -1324,7 +1339,11 @@ int yylex(void) {
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	  if (strcmp(yytext,"%parms") == 0) return(PARMS);
 	  if (strcmp(yytext,"%varargs") == 0) return(VARARGS);
-	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
+	  if (strcmp(yytext,"%template") == 0) {
+	    swigtemplate_active = 1;
+	    return (SWIGTEMPLATE);
+	  }
+	  
 	  if (strcmp(yytext,"%warn") == 0) return(WARN);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
