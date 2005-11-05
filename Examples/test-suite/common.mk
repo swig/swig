@@ -325,7 +325,8 @@ CPP_STD_TEST_CASES += \
 	li_std_vector \
 	template_typedef_fnc \
 	template_type_namespace \
-	template_opaque \
+	template_opaque
+
 
 ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
