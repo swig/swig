@@ -15,10 +15,13 @@ SO           = @SO@
 
 #C_TEST_CASES = long_long list_vector pointer_in_out multivalue
 
-# Skip the STD cases for now
+# Skip the STD cases for now, except for li_std_string.i
 SKIP_CPP_STD_CASES = Yes
 
+CPP_TEST_CASES += li_std_string 
+
 include $(srcdir)/../common.mk
+
 
 # Overridden variables here
 SWIGOPT += -nounit
