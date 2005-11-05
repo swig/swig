@@ -15,15 +15,17 @@
 	  swig::PyObject_var second = PySequence_GetItem(obj,1);
 	  T *pfirst = 0;
 	  U *psecond = 0;
+	  value_type *vp = 0;
 	  if (val) {
-	    *val = %new_instance(std::pair<T,U>);
-	    pfirst = &((*val)->first);
-	    psecond = &((*val)->second);
+	    vp = %new_instance(std::pair<T,U>);
+	    pfirst = &(vp->first);
+	    psecond = &(vp->second);
 	  }	  
 	  if ((swig::asval(first,pfirst) == SWIG_OK) && (swig::asval(second,psecond) == SWIG_OK)) {
+	    if (val) *val = vp;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    %delete(*val);
+	    %delete(vp);
 	  }
 	} else {
 	  value_type *p;
