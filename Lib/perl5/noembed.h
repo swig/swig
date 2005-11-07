@@ -76,4 +76,6 @@
 #ifdef malloc
   #undef malloc
 #endif
-
+#ifdef calloc
+  #undef calloc
+#endif
