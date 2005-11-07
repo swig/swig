@@ -27,7 +27,7 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
     return SWIG_OK;
   } else {
     long v = 0;
-    int res = SWIG_AsVal(long)(obj, &v);
+    int res = SWIG_AsVal(long)(obj, val ? &v : 0);
     if (res == SWIG_OK && val) *val = v ? true : false;
     return res;
   }
