@@ -38,8 +38,8 @@ b = director_basic.Bar(3)
 d = director_basic.MyClass()
 c = PyClass()
 
-cc = PyClass.get_self(c)
-dd = PyClass.get_self(d)
+cc = director_basic.MyClass_get_self(c)
+dd = director_basic.MyClass_get_self(d)
 
 bc = cc.cmethod(b)
 bd = dd.cmethod(b)
@@ -50,4 +50,41 @@ if bc.x != 34:
 
 if bd.x != 16:
 	raise RuntimeError
+
+
+
+class PyMulti(director_basic.Foo, director_basic.MyClass):
+	def __init__(self):
+		director_basic.Foo.__init__(self)
+		director_basic.MyClass.__init__(self)		
+		pass
+
+		
+	def vmethod(self, b):
+		b.x += 31
+		return b
+
+	
+	def ping(self):
+		return "PyFoo::ping()"
+
+a = 0
+for i in range(0,100):
+    pymult = PyMulti()
+    pymult.pong()
+    del pymult 
+
+
+
+pymult = PyMulti()
+
+
+
+
+p1 = director_basic.Foo_get_self(pymult)
+p2 = director_basic.MyClass_get_self(pymult)
+
+p1.ping()
+p2.vmethod(bc)
+
 

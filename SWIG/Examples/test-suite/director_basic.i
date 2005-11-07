@@ -4,9 +4,12 @@
 
  class Foo {
  public:
-	 virtual ~Foo() {}
-	 virtual std::string ping() { return "Foo::ping()"; }
-	 virtual std::string pong() { return "Foo::pong();" + ping(); }
+   virtual ~Foo() {}
+   virtual std::string ping() { return "Foo::ping()"; }
+   virtual std::string pong() { return "Foo::pong();" + ping(); }
+
+   static Foo* get_self(Foo *self) {return self;}
+   
  };
 
  %}
@@ -18,9 +21,12 @@
 
  class Foo {
  public:
-	 virtual ~Foo() {}
-	 virtual std::string ping() { return "Foo::ping()"; }
-	 virtual std::string pong() { return "Foo::pong();" + ping(); }
+   virtual ~Foo();
+   virtual std::string ping();
+   virtual std::string pong();
+   
+   static Foo* get_self(Foo *self);
+   
  };
 
  %{

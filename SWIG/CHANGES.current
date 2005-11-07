@@ -1,6 +1,69 @@
 Version 1.3.28 (unreleased)
 ===========================
 
+11/07/2005: mmatus
+
+	    [Python] Adding proper support for multi-inheritance in
+	    the python side, ie, if you have two C++ wrapped class, Foo
+	    and Bar, now:
+
+	       class MyPythonClass(Foo,Bar):
+	          ....
+
+            will properly work, even with directors, and the
+            deallocation of Foo.this and Bar.this will follow
+            correctly. Before, since a class can only have one 'this'
+            instance (not as in C++), only the last base class was
+            properly deletted, or detected with directors.
+
+	    Now the self.this element can be a list, which will
+	    contain the C++ instance pointers for all the base
+	    classes.
+	    
+	    - Now the 'this' pointer is responsible for deallocating
+	    the C++ instance, and the __del__ method is not emitted
+	    unless the user preppend/append some code to it.
+
+	    - Swig now can detect memory leaks, ie, if you still
+	      use the non-shadow module, and type something like
+	    
+	         import _example
+	         f = _example.new_Foo()
+
+	      and forgot to call _example.delete_Foo(f), then swig
+	      will tell you that there is a memory leak.
+
+	      Otherwise, if you always use the shadow module, probably
+	      you will never ever see this warning unless there is
+	      something wrong inside the swig wrapping code.
+	       
+	
+            *** POTENTIAL INCOMPATIBILITY ***
+	    
+	    If you overloaded the __del__ method, and call the base
+	    one	 without a try block, as in
+
+	           class MyClass(SwigClass):
+
+	              def __del__(self):
+		          <your code here>
+		          SwigClass.__del__(self)
+			  
+            python could complain that the method SwigClass.__del__ is
+            undefined. Try to use instead:
+	    
+	              def __del__(self):
+		          <your code here>
+		          try: SwigClass.__del__(self)
+			  except: pass
+
+	    or simply 		  
+
+	              def __del__(self):
+		          <your code here>
+	     
+	    
+
 11/02/2005: mmatus
 
 	    [Python] Adding more fun to STL/STD containers, now you
@@ -84,7 +147,7 @@ Version 1.3.28 (unreleased)
 	      In general the sequence method __iter__ will call
 	      'iterator()', returning the native C++ iterator, but in
 	      maps it will call 'key_iterator()', maintaining
-	      backcompatibilty.
+	      backward compatibility.
 
 	      Hence, for std::maps, you can play then with the native
 	      C++ iterator, which value is a (key, value) pair, by
@@ -153,12 +216,12 @@ Version 1.3.28 (unreleased)
 
 	     - With this change, and the other ones in the
                PySwigObject type, which now carries the thisown and
-               swig_type_info pointer, the generated code shoudl be as
+               swig_type_info pointer, the generated code should be as
                fast as boost::Python and/or the other python wrappers
                based in pure Python/C API calls.
 
 	       As a reference, the profiletest_runme.py example, which
-	       does a simple call function many times:
+	       does a simple call function many times, such as this code:
 
                     import profiletest       
 		                             
@@ -172,14 +235,20 @@ Version 1.3.28 (unreleased)
 	       produces  the following times
 
                                nomodern    modern
-	         swig-1.3.26    25.9s       7.6s
-                 swig-CVS        3.4s       3.3s
+	         swig-1.3.26    19.70s      5.98s
+                 swig-CVS        0.99s      0.98s
 	       
 
 	       Clearly, there is a large improvement for the python
 	       'nomodern' mode. Still, the 'modern' mode is around
-	       twice faster than before.
+	       6 times faster than before. For the same test, but
+	       using the non-shadow version of the module, we get
 
+	                       _profiletest (non-shadow)
+	         swig-1.3.26     0.80s 
+                 swig-CVS        0.60s 
+
+	       Hence, now the proxy overhead is almost insignificant.
 	       
 		  	      
 10/31/2005: mmatus
@@ -204,7 +273,7 @@ Version 1.3.28 (unreleased)
 	          print self.this.own() 
 		  >>> True		  
 
-	    - Support for iterartors in STL/STD containers, for example, if you have
+	    - Support for iterators in STL/STD containers, for example, if you have
 
                     %template<set_string> std::set<std::string>;
 	          
@@ -375,7 +444,7 @@ Version 1.3.28 (unreleased)
 
 	    - uniform the names for the setter and getter methods in
 	      perl,tcl,ruby and python, so, the attribute.i library
-	      can work accross them.
+	      can work across them.
 	      
 	    - see the li_attribute.i test-case or the library file
 
@@ -388,7 +457,7 @@ Version 1.3.28 (unreleased)
 
 10/24/2005: mmatus
 
-	    - Perl uses now the unified typemap libray.
+	    - Perl uses now the unified typemap library.
 
 	    - Changes in ruby to use the $track option in typemaps.
 
@@ -439,7 +508,7 @@ Version 1.3.28 (unreleased)
 	         perl5/perlstrings.swg
 
 		 
-	      The rest fo the files, such as carray.i, are mostly one 
+	      The rest of the files, such as carray.i, are mostly one 
 	      line files that include the proper typemap library
 	      version.
 
