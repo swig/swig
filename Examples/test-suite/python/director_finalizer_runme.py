@@ -3,7 +3,8 @@ from director_finalizer import *
 class MyFoo(Foo):
 	def __del__(self):
 		self.orStatus(2)
-		Foo.__del__(self)
+		try: Foo.__del__(self)
+		except: pass
 
 
 resetStatus()

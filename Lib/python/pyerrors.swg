@@ -49,7 +49,9 @@ SWIG_Python_ErrorType(int code) {
 
 SWIGINTERNINLINE PyObject *
 SWIG_Python_ExceptionType(swig_type_info *desc) {
-  return (desc && desc->clientdata ? (PyObject *)(desc->clientdata) : PyExc_RuntimeError);
+  PySwigClientData *data = desc ? (PySwigClientData *) desc->clientdata : 0;
+  PyObject *klass = data ? data->klass : 0;
+  return (klass ? klass : PyExc_RuntimeError);
 }
 
 SWIGINTERN void
