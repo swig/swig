@@ -29,6 +29,10 @@ if a.rg(2) != 2:
 
 
 class PyClass(director_basic.MyClass):
+	def method(self, vptr):
+		self.cmethod = 7
+		pass
+	
 	def vmethod(self, b):
 		b.x += 31
 		return b
@@ -43,6 +47,10 @@ dd = director_basic.MyClass_get_self(d)
 
 bc = cc.cmethod(b)
 bd = dd.cmethod(b)
+
+cc.method(b)
+if c.cmethod != 7:
+	raise RuntimeError
 
 if bc.x != 34:
 	raise RuntimeError
