@@ -12,14 +12,6 @@ class PyCallback(example.Callback):
 		example.Callback.__init__(self)
 	def run(self):
 		print "PyCallback.run()"
-	def __del__(self):
-		print "PyCallback.__del__()"
-		# for shadow class extensions that are not "disowned" and
-		# define a __del__ method, it is very important to call the 
-		# base class __del__.  otherwise the c++ objects will never
-		# be deleted.
-		example.Callback.__del__(self)
-
 
 # Create an Caller instance
 
