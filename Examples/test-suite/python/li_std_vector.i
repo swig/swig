@@ -121,4 +121,4 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 %array_functions(int,ArrInt)
 
 
-%template(pyvector) std::vector<swig::PyItem>; 
+%template(pyvector) std::vector<swig::PyObject_ptr>; 

@@ -14,4 +14,4 @@
 
 
 
-%template(pyset) std::set<swig::PyItem>; 
+%template(pyset) std::set<swig::PyObject_ptr>; 

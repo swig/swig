@@ -113,13 +113,13 @@ Version 1.3.28 (unreleased)
 	    But since normal C++ containers do not properly ref/unref
 	    their items, you should use the safer versions:
 	    
-	      %template(pyset) std::set<swig::PyItem>;
-	      %template(pyvector) std::vector<swig::PyItem>;
-	      %template() std::pair<swig::PyItem, swig::PyItem>;
-	      %template(pyvector) std::map<swig::PyItem,swig::PyItem>;
+	      %template(pyset) std::set<swig::PyObject_ptr>;
+	      %template(pyvector) std::vector<swig::PyObject_ptr>;
+	      %template() std::pair<swig::PyObject_ptr, swig::PyObject_ptr>;
+	      %template(pyvector) std::map<swig::PyObject_ptr,swig::PyObject_ptr>;
 	      ....
 
-	    where swig::PyItem is a PyObject * envelope class provided
+	    where swig::PyObject_ptr is a PyObject * envelope class provided
 	    to safely incref/decref the python object. 
 	    
 	    So, now you can use all the STL/STD containers as native
@@ -248,7 +248,14 @@ Version 1.3.28 (unreleased)
 	         swig-1.3.26     0.80s 
                  swig-CVS        0.60s 
 
-	       Hence, now the proxy overhead is almost insignificant.
+	       Hence, now for practical porpuses, the proxy overhead
+	       is insignificant.
+
+	       Note that the performance numbers we are showing is for
+	       a simple module (two types) and a simple function (one
+	       argument). For real situations, with modules with many
+	       more types and/or functions with many more parameters,
+	       you will see even better results.
 	       
 		  	      
 10/31/2005: mmatus
