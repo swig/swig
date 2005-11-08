@@ -3,8 +3,7 @@
 */
 %include <pycontainer.swg>
 
-%fragment("StdPairTraits","header",
-	  fragment="StdTraits",fragment="PyObject_var") {
+%fragment("StdPairTraits","header",fragment="StdTraits") {
   namespace swig {
     template <class T, class U >
     struct traits_asptr<std::pair<T,U> >  {
