@@ -1,16 +1,3 @@
-%fragment("PyObject_var","header") 
-{
-  namespace swig {
-    struct PyObject_var {
-      PyObject* ptr;
-      PyObject_var(PyObject* obj = 0) : ptr(obj) { }      
-      ~PyObject_var() { if (ptr) Py_DECREF(ptr); }      
-      operator PyObject*() { return ptr; }
-      PyObject* operator->() const { return ptr; }
-    };
-  }
-}
-
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
 namespace swig {  
