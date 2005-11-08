@@ -2127,7 +2127,7 @@ public:
 	Printv(f_wrappers,
 	       tab4, "PyObject *obj;\n",
 	       tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n",
-	       tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
+	       tab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
 	       tab4, "Py_INCREF(Py_None);\n",
 	       tab4, "return Py_None;\n",
 	       "}\n",NIL);
@@ -2482,7 +2482,7 @@ public:
 	Delete(pyaction);
 	Printv(f_shadow,pycode,"\n", NIL);
       } else {
-	Printv(f_shadow, tab4, "__destroy__ = ", module, ".", Swig_name_destroy(symname), "\n", NIL);
+	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
 	  return SWIG_OK;
 	}
@@ -2644,7 +2644,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   bool pure_virtual = false;
   int status = SWIG_OK;
   int idx;
-  String* xdecref = NewString("");
 
   if (Cmp(storage,"virtual") == 0) {
     if (Cmp(value,"0") == 0) {
@@ -2741,6 +2740,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   /* build argument list and type conversion string */
   idx = 0;
   p = l;
+  int use_parse = 0;
   while (p != NULL) {
     if (checkAttribute(p,"tmap:in:numinputs","0")) {
       p = Getattr(p,"tmap:in:next");
@@ -2765,14 +2765,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       String* parse = Getattr(p, "tmap:directorin:parse");
       if (!parse) {
 	sprintf(source, "obj%d", idx++);
-	Replaceall(tm, "$input", source);
+	String *input = NewStringf("%s", source);	
+	Replaceall(tm, "$input", input);
+	Delete(input);
 	Replaceall(tm, "$owner", "0");
 	Printv(wrap_args, tm, "\n", NIL);
-	Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
-	Printv(arglist, source, NIL);
+	Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
+	Printv(arglist, "(PyObject *)",source, NIL);
 	Putc('O', parse_args);
-	Printf(xdecref,"Py_XDECREF(%s);\n", source);
       } else {
+	use_parse = 1;
 	Printf(parse_args, "%s", parse);
 	Replaceall(tm, "$input", pname);
 	Replaceall(tm, "$owner", "0");
@@ -2821,24 +2823,22 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
 	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-	    Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
+	    Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Printf(wrap_args, "} else {\n");
 	    Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
-	    Printf(wrap_args,   "Py_INCREF(%s);\n", source);
+	    Printf(wrap_args,   "Py_INCREF((PyObject *)%s);\n", source);
 	    Printf(wrap_args, "}\n");
 	    Delete(director);
-	    Printf(xdecref,"Py_XDECREF(%s);\n", source);
 	    Printv(arglist, source, NIL);
 	  } else {
-	    Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
+	    Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
 	           source, nonconst, mangle); 
 	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
 	    //       source, nonconst, base);
-	    Printf(xdecref,"Py_XDECREF(%s);\n", source);
 	    Printv(arglist, source, NIL);
 	  }
 	  Putc('O', parse_args);
@@ -2854,6 +2854,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     p = nextSibling(p);
   }
 
+  /* add the method name as a PyString */
+  String *pyname = Getattr(n,"sym:name");
+  String *tmp = NewStringf("static swig::PyObject_var swig_method_name = PyString_FromString(\"%s\")",pyname);
+  Wrapper_add_local(w, "swig_method_name", tmp);
+  Delete(tmp);
+
   /* declare method return value 
    * if the return value is a reference or const reference, a specialized typemap must
    * handle it, including declaration of c_result ($result).
@@ -2861,11 +2867,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!is_void) {
     Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
   }
-  /* declare Python return value */
-  if (!is_void) {
-    Wrapper_add_local(w, "result", "PyObject *result = 0");
-  }
-
+  
+  
   /* direct call to superclass if _up is set */
   Printf(w->code, "if (swig_get_up()) {\n");
   if (pure_virtual) {
@@ -2884,7 +2887,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   /* wrap complex arguments to PyObjects */
   Printv(w->code, wrap_args, NIL);
 
-  String  *pyname = Getattr(n,"sym:name");
 
   /* pass the method call on to the Python object */
   if (dirprot_mode() && !is_public(n))
@@ -2893,13 +2895,21 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "if (!swig_get_self()) {\n");
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
+  Wrapper_add_local(w, "method", "swig::PyObject_var method = 0");
+  Printf(w->code, "method = PyObject_GetAttr(swig_get_self(), swig_method_name);\n");
+  Printf(w->code, "if (method == NULL) {\n");
+  Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
+  Printf(w->code, "}\n");
+
+  Wrapper_add_local(w, "result", "swig::PyObject_var result = 0");
   if (Len(parse_args) > 0) {
-    Printf(w->code, "%s PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", (!is_void ? "result =" : "(void)"), pyname, parse_args, arglist);
+    if (use_parse) {
+      Printf(w->code, "result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
+    } else {
+      Printf(w->code, "result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
+    }
   } else {
-    Printf(w->code, "%s PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", (!is_void ? "result =" : "(void)"), pyname);
-  }
-  if (!is_void) {
-    Printv(xdecref, "Py_XDECREF(result);\n", NULL);
+    Printf(w->code, "result = PyObject_CallFunction(method, NULL);\n");
   }
   if (dirprot_mode() && !is_public(n))
     Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
@@ -2909,23 +2919,18 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!tm) {
     tm = Getattr(n, "feature:director:except");
   }
-  if (!is_void) {
-    Printf(w->code, "if (result == NULL) {\n");
-  }
+  Printf(w->code, "if (result == NULL) {\n");
   Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
     Replaceall(tm, "$error", "error");
     Printv(w->code, Str(tm), "\n", NIL);
   } else {
     Printf(w->code, "  if (error != NULL) {\n");
-    Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s.\\n\");\n", 
+    Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s\");\n", 
 	   classname, pyname);
     Printf(w->code, "  }\n");
   }
-  
-  if (!is_void) {
-    Printf(w->code, "}\n");
-  }
+  Printf(w->code, "}\n");
 
   /*
    * Python method may return a simple object, or a tuple.
@@ -3008,9 +3013,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       p = nextSibling(p);
     }
   }
-
-  Printv(w->code, xdecref, NULL);
-  Delete(xdecref);
 
   /* any existing helper functions to handle this? */
   if (!is_void) {
