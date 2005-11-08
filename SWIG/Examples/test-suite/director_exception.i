@@ -7,7 +7,7 @@ class Foo {
 public:
 	virtual ~Foo() {}
 	virtual std::string ping() { return "Foo::ping()"; }
-	virtual std::string pong() { return "Foo::pong();" + ping(); }
+	virtual std::string pong(int val = 3) { return "Foo::pong();" + ping(); }
 };
 
 Foo *launder(Foo *f) {
@@ -65,7 +65,7 @@ class Foo {
 public:
 	virtual ~Foo() {}
 	virtual std::string ping() { return "Foo::ping()"; }
-	virtual std::string pong() { return "Foo::pong();" + ping(); }
+	virtual std::string pong(int val = 3) { return "Foo::pong();" + ping(); }
 };
 
 Foo *launder(Foo *f);
