@@ -35,6 +35,7 @@
 
 #define SWIG_GetModule(clientdata)                      SWIG_Python_GetModule()
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Python_SetModule(pointer)
+#define SWIG_NewClientData(obj)                         PySwigClientData_New(obj)
 
 /* Error manipulation */
 
@@ -58,12 +59,67 @@ extern "C" {
 #endif
 
 
-/* PySwigObject */
+
+/* PySwigClientData */
+
 typedef struct {
   PyObject *klass;
+  PyObject *newraw;
   PyObject *newargs;
   PyObject *destroy;
 } PySwigClientData;
+
+
+SWIGRUNTIME PySwigClientData * 
+PySwigClientData_New(PyObject* obj)
+{
+  if (!obj) {
+    return 0;
+  } else {
+    PySwigClientData *data = (PySwigClientData *)malloc(sizeof(PySwigClientData));
+    
+    /* the klass element */
+    data->klass = obj;
+    Py_INCREF(obj);
+    
+    /* the newraw method and newargs arguments used to create a new raw instance */
+    if (PyClass_Check(obj)) {
+      data->newraw = 0;
+
+      data->newargs = obj;
+      Py_INCREF(obj);
+    } else {
+      data->newraw = PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, "__new__");
+      Py_INCREF(data->newraw);
+
+      data->newargs = PyTuple_New(1);
+      PyTuple_SetItem(data->newargs, 0, obj);
+    }
+    
+    /* the destroy method, aka as the C++ delete method */
+    data->destroy = PyObject_GetAttrString(data->klass, "__swig_destroy__");
+    if (PyErr_Occurred()) {
+      PyErr_Clear();
+      data->destroy = 0;
+    }
+    Py_XINCREF(data->destroy);
+
+    return data;
+  }
+}
+
+SWIGRUNTIME void 
+PySwigClientData_Del(PySwigClientData* data)
+{
+  Py_XDECREF(data->klass);
+  Py_XDECREF(data->newraw);
+  Py_XDECREF(data->newargs);
+  Py_XDECREF(data->destroy);
+  free(data);
+}
+
+
+/* PySwigObject */
 
 typedef struct {
   PyObject_HEAD
@@ -600,10 +656,12 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 	obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
       } else {
 	obj = PyObject_GetAttr(pyobj,SWIG_This());
+	Py_XDECREF(obj);
       }
     } 
 #else
     obj = PyObject_GetAttr(pyobj,SWIG_This());
+    Py_XDECREF(obj);
 #endif    
     if (PyErr_Occurred()) {
       obj = 0;
@@ -708,35 +766,6 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
  * Create a new pointer object
  * ----------------------------------------------------------------------------- */
 
-#define SWIG_NewClientData(obj) PySwigClientData_New(obj)
-
-SWIGRUNTIMEINLINE void * 
-PySwigClientData_New(PyObject* obj)
-{
-  PySwigClientData *data = (PySwigClientData *)malloc(sizeof(PySwigClientData));
-  data->klass = 0;
-  data->newargs = 0;
-  data->destroy = 0;
-  
-  if (PyClass_Check(obj)) {
-    data->klass = obj;
-    data->newargs = obj;
-    Py_INCREF(data->newargs);
-  } else {
-    data->klass = obj;
-    data->newargs = PyTuple_New(1);
-    PyTuple_SetItem(data->newargs, 0, obj);
-  }
-  if (data->klass) {
-    static PyObject* SWIG_STATIC_POINTER(destroystr) = PyString_FromString("__destroy__");    
-    data->destroy = PyObject_GetAttr(data->klass, destroystr);
-    if (PyErr_Occurred()) {
-      PyErr_Clear();
-      data->destroy = 0;
-    }
-  }
-  return data;
-}
 
 /*
   Create a new instance object, whitout calling __init__,
@@ -747,10 +776,8 @@ SWIGRUNTIMEINLINE PyObject*
 SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 {
   PyObject *inst = 0;
-  if (!PyClass_Check(data->klass)) {
-    static PyObject* SWIG_STATIC_POINTER(fnew) =
-      PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, "__new__");
-    inst = PyObject_Call(fnew, data->newargs, NULL);
+  if (data->newraw) {
+    inst = PyObject_Call(data->newraw, data->newargs, NULL);
     if (inst) {
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
       PyObject **dictptr = _PyObject_GetDictPtr(inst);
@@ -874,12 +901,30 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 #endif
 
 SWIGRUNTIME void
+SWIG_Python_DestroyModule(void *vptr)
+{
+  swig_module_info *swig_module = (swig_module_info *) vptr;
+  swig_type_info **types = swig_module->types;
+  size_t i;
+  for (i =0; i < swig_module->size; ++i) {
+    swig_type_info *ty = types[i];
+    if (ty->owndata) {
+      PySwigClientData *data = (PySwigClientData *) ty->clientdata;
+      if (data) PySwigClientData_Del(data);
+      ty->clientdata = 0;
+    }
+  }
+  Py_DECREF(SWIG_This());  
+  /* and, what else ... */
+}
+
+SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
   static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
 
   PyObject *module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION,
 				   swig_empty_runtime_method_table);
-  PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, NULL);
+  PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, SWIG_Python_DestroyModule);
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
   }
