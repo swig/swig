@@ -67,6 +67,7 @@ typedef struct swig_type_info {
   swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
   struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
   void                   *clientdata;		/* language specific type data */
+  int                    owndata;		/* flag if the structure owns the clientdata */
 } swig_type_info;
 
 /* Structure to store a type and conversion function used for casting */
@@ -253,7 +254,12 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
     cast = cast->next;
   }
 }
-
+SWIGRUNTIME void
+SWIG_TypeNewClientData(swig_type_info *ti, void *clientdata) {
+  SWIG_TypeClientData(ti, clientdata);
+  ti->owndata = 1;
+}
+  
 /*
   Search for a swig_type_info structure only by mangled name
   Search is a O(log #types)

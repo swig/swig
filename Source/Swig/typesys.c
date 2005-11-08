@@ -1875,7 +1875,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     } else {
       nt = NewStringf("%s|%s", rn, ln);
     }
-    Printf(types, "\"%s\", \"%s\", 0, 0, %s};\n", ki.item, nt, cd);
+    Printf(types, "\"%s\", \"%s\", 0, 0, %s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item,0,0);
     for (ei = First(el); ei.item; ei = Next(ei)) {
@@ -1891,7 +1891,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       Delete(ckey);
 
       if (!Getattr(r_mangled, ei.item) && !Getattr(imported_types, ei.item)) {
-        Printf(types, "static swig_type_info _swigt_%s = {\"%s\", 0, 0, 0, 0};\n", ei.item, ei.item);
+        Printf(types, "static swig_type_info _swigt_%s = {\"%s\", 0, 0, 0, 0, 0};\n", ei.item, ei.item);
 	Append(table_list, ei.item);
 	
         Printf(cast, "static swig_cast_info _swigc_%s[] = {{&_swigt_%s, 0, 0, 0},{0, 0, 0, 0}};\n",
