@@ -2,6 +2,12 @@ Version 1.3.28 (unreleased).
 ===========================
 
 11/09/2005: wsfulton
+            [Java, C#] Portability warning for files which will overwrite each other on case
+            insensitive file systems such as FAT32/NTFS. This will occur, for example, when two
+            class names are the same barring case. The warning is issued on all platforms and
+            can be suppressed with the usual warning suppression techniques.
+
+11/09/2005: wsfulton
             ./configure --with-python --with-ruby --with-perl5 etc enable these languages,
             ie the --with-xxxx options, where no path is specified, work the same as if 
             the option was not specified at all. Based on patches #1335042 #1329048 #1329047.
@@ -99,6 +105,7 @@ Version 1.3.28 (unreleased).
 	     
 	    
 
+>>>>>>> 1.469
 11/02/2005: mmatus
 
 	    [Python] Adding more fun to STL/STD containers, now you
