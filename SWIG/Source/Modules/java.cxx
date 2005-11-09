@@ -34,6 +34,7 @@ class JAVA : public Language {
   File   *f_init;
   File   *f_directors;
   File   *f_directors_h;
+  List   *filenames_list;
 
   bool   proxy_flag; // Flag for generating proxy classes
   bool   native_function_flag;     // Flag for when wrapping a native function
@@ -101,6 +102,7 @@ class JAVA : public Language {
     f_init(NULL),
     f_directors(NULL),
     f_directors_h(NULL),
+    filenames_list(NULL),
 
     proxy_flag(true),
     native_function_flag(false),
@@ -311,6 +313,7 @@ class JAVA : public Language {
     Swig_register_filebyname("director_h",f_directors_h);
 
     swig_types_hash = NewHash();
+    filenames_list = NewList();
 
     // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
     if (!imclass_name) {
@@ -408,6 +411,7 @@ class JAVA : public Language {
         FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
+      Append(filenames_list, Copy(filen));
       Delete(filen); filen = NULL;
 
       // Start writing out the intermediary class file
@@ -459,6 +463,7 @@ class JAVA : public Language {
         FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
+      Append(filenames_list, Copy(filen));
       Delete(filen); filen = NULL;
 
       // Start writing out the module class file
@@ -506,6 +511,7 @@ class JAVA : public Language {
         FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
+      Append(filenames_list, Copy(filen));
       Delete(filen); filen = NULL;
 
       // Start writing out the Java constants interface file
@@ -541,7 +547,27 @@ class JAVA : public Language {
       emitTypeWrapperClass(swig_type.key, swig_type.item);
     }
 
+    // Check for overwriting file problems on filesystems that are case insensitive
+    Iterator it1;
+    Iterator it2;
+    for (it1 = First(filenames_list); it1.item; it1 = Next(it1)) {
+      String *item1_lower = Swig_string_lower(it1.item);
+      for (it2 = Next(it1); it2.item; it2 = Next(it2)) {
+        String *item2_lower = Swig_string_lower(it2.item);
+        if (it1.item && it2.item) {
+          if (Strcmp(item1_lower, item2_lower) == 0) {
+            Swig_warning(WARN_LANG_PORTABILITY_FILENAME, input_file, line_number, 
+              "Portability warning: File %s will be overwritten by %s on case insensitive filesystems such as "
+              "Windows' FAT32 and NTFS unless the class/module name is renamed\n", it1.item, it2.item);
+          }
+        }
+        Delete(item2_lower);
+      }
+      Delete(item1_lower);
+    }
+
     Delete(swig_types_hash); swig_types_hash = NULL;
+    Delete(filenames_list); filenames_list = NULL;
     Delete(imclass_name); imclass_name = NULL;
     Delete(imclass_class_code); imclass_class_code = NULL;
     Delete(proxy_class_def); proxy_class_def = NULL;
@@ -1137,6 +1163,7 @@ class JAVA : public Language {
             FileErrorDisplay(filen);
             SWIG_exit(EXIT_FAILURE);
           } 
+          Append(filenames_list, Copy(filen));
           Delete(filen); filen = NULL;
 
           // Start writing out the enum file
@@ -1688,6 +1715,7 @@ class JAVA : public Language {
         FileErrorDisplay(filen);
         SWIG_exit(EXIT_FAILURE);
       }
+      Append(filenames_list, Copy(filen));
       Delete(filen); filen = NULL;
 
       // Start writing out the proxy class file
@@ -2526,6 +2554,7 @@ class JAVA : public Language {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     } 
+    Append(filenames_list, Copy(filen));
     Delete(filen); filen = NULL;
 
     // Start writing out the type wrapper class file
