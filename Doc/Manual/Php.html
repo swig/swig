@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>24 SWIG and PHP4</H1>
+<H1><a name="Php"></a>26 SWIG and PHP4</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -66,7 +66,7 @@ extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
 </p>
 
-<H2><a name="Php_nn1"></a>24.1 Generating PHP4 Extensions</H2>
+<H2><a name="Php_nn1"></a>26.1 Generating PHP4 Extensions</H2>
 
 
 <p>
@@ -104,7 +104,7 @@ script.  The first choice is the default, however it can be changed by passing
 the '-phpfull' command line switch to select the second build method.  
 </p>
 
-<H3><a name="Php_nn1_1"></a>24.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1"></a>26.1.1 Building a loadable extension</H3>
 
 
 <p>
@@ -194,7 +194,7 @@ additional optional arguments:
 <li><tt>-dlname "&lt;name&gt;"</tt> Changes the name of the generated shared object.
 </ul>
 
-<H3><a name="Php_nn1_2"></a>24.1.2 Building extensions into PHP</H3>
+<H3><a name="Php_nn1_2"></a>26.1.2 Building extensions into PHP</H3>
 
 
 <p>
@@ -252,7 +252,7 @@ which contains your new module. You can test it with a php script which
 does not have the 'dl' command as used above.
 </p>
 
-<H3><a name="Php_nn1_3"></a>24.1.3 Using PHP4 Extensions</H3>
+<H3><a name="Php_nn1_3"></a>26.1.3 Using PHP4 Extensions</H3>
 
 
 <p>
@@ -275,7 +275,7 @@ attempts to do the <tt>dl()</tt> call for you:
 
 
 
-<H2><a name="Php_nn2"></a>24.2 Basic PHP4 interface</H2>
+<H2><a name="Php_nn2"></a>26.2 Basic PHP4 interface</H2>
 
 
 <p>
@@ -285,7 +285,7 @@ possible for names of symbols in one extension module to clash with
 other symbols unless care is taken to <tt>%rename</tt> them.
 </p>
 
-<H3><a name="Php_nn2_1"></a>24.2.1 Constants</H3>
+<H3><a name="Php_nn2_1"></a>26.2.1 Constants</H3>
 
 
 <p>
@@ -410,7 +410,7 @@ both point to the same value, without the case test taking place.  (
 Apologies, this paragraph needs rewriting to make some sense. )
 </p>
 
-<H3><a name="Php_nn2_2"></a>24.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2"></a>26.2.2 Global Variables</H3>
 
 
 <p>
@@ -459,7 +459,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>24.2.3 Functions</H3>
+<H3><a name="Php_nn2_3"></a>26.2.3 Functions</H3>
 
 
 <p>
@@ -510,7 +510,7 @@ print $s;      # The value of $s was not changed.
 </pre></div>
 
 
-<H3><a name="Php_nn2_4"></a>24.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4"></a>26.2.4 Overloading</H3>
 
 
 <p>
@@ -564,7 +564,7 @@ Cause less confusion and <tt>doit("2");</tt> will invoke the function
 taking the integer argument.
 </p>
 
-<H3><a name="Php_nn2_5"></a>24.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5"></a>26.2.5 Pointers and References</H3>
 
 
 <p>
@@ -696,7 +696,7 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>24.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6"></a>26.2.6 Structures and C++ classes</H3>
 
 
 <p>
@@ -755,7 +755,7 @@ Would be used in the following way:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>24.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1"></a>26.2.6.1 Using <tt>-noproxy</tt></H4>
 
 
 <p>
@@ -780,7 +780,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>24.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2"></a>26.2.6.2 Constructors and Destructors</H4>
 
 
 <p>
@@ -821,7 +821,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>24.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>26.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -861,7 +861,7 @@ Ko::threats(10);
 echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>24.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>26.2.6.4 Static Member Functions</H4>
 
 
 <p>
@@ -883,7 +883,7 @@ Ko::threats();
 </pre></div>
 
 
-<H3><a name="Php_nn2_7"></a>24.2.7 PHP4 Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7"></a>26.2.7 PHP4 Pragmas, Startup and Shutdown code</H3>
 
 
 <p>
