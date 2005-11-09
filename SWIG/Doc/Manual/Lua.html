@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Lua_nn1"></a>29 SWIG and Lua</H1>
+<H1><a name="Lua_nn1"></a>31 SWIG and Lua</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -49,7 +49,7 @@
 <p>
 Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). Its also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
 </p>
-<H2><a name="Lua_nn2"></a>29.1 Preliminaries</H2>
+<H2><a name="Lua_nn2"></a>31.1 Preliminaries</H2>
 
 
 <p>
@@ -58,7 +58,7 @@ The current SWIG implementation is designed to work with Lua 5.0. It should work
 <p>
 Note: Lua 5.1 (alpha) has just (as of September 05) been released. The current version of SWIG will produce wrappers which are compatible with Lua 5.1, though the  dynamic loading mechanism has changed (see below). The configure script and makefiles should work correctly with with Lua 5.1, though some small tweaks may be needed.
 </p>
-<H2><a name="Lua_nn3"></a>29.2 Running SWIG</H2>
+<H2><a name="Lua_nn3"></a>31.2 Running SWIG</H2>
 
 
 <p>
@@ -90,7 +90,7 @@ This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx
 <p>
 The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int Example_Init(LuaState* L)"</tt> which must be called to register the module with the Lua interpreter. The name "Example_Init" depends upon the name of the module. Note: SWIG will automatically capitalise the module name, so <tt>"module example;"</tt> becomes <tt>"Example_Init"</tt>.
 </p>
-<H3><a name="Lua_nn4"></a>29.2.1 Compiling and Linking and Interpreter</H3>
+<H3><a name="Lua_nn4"></a>31.2.1 Compiling and Linking and Interpreter</H3>
 
 
 <p>
@@ -137,7 +137,7 @@ $ gcc -c example.c -o example.o
 $ gcc -I/usr/include/lua -L/usr/lib/lua min.o example_wrap.o example.o -o my_lua
 </pre></div>
 
-<H3><a name="Lua_nn5"></a>29.2.2 Compiling a dynamic module</H3>
+<H3><a name="Lua_nn5"></a>31.2.2 Compiling a dynamic module</H3>
 
 
 <p>
@@ -173,7 +173,7 @@ The wrappers produced by SWIG can be compiled and linked with Lua 5.1. The loadi
 require("example")
 </pre></div>
 
-<H3><a name="Lua_nn6"></a>29.2.3 Using your module</H3>
+<H3><a name="Lua_nn6"></a>31.2.3 Using your module</H3>
 
 
 <p>
@@ -191,19 +191,19 @@ $ ./my_lua
 &gt;
 </pre></div>
 
-<H2><a name="Lua_nn7"></a>29.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Lua_nn7"></a>31.3 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
 By default, SWIG tries to build a very natural Lua interface to your C/C++ code. This section briefly covers the essential aspects of this wrapping.
 </p>
-<H3><a name="Lua_nn8"></a>29.3.1 Modules</H3>
+<H3><a name="Lua_nn8"></a>31.3.1 Modules</H3>
 
 
 <p>
 The SWIG module directive specifies the name of the Lua module. If you specify `module example', then everything is wrapped into a Lua table 'example' containing all the functions and variables. When choosing a module name, make sure you don't use the same name as a built-in Lua command or standard module name.
 </p>
-<H3><a name="Lua_nn9"></a>29.3.2 Functions</H3>
+<H3><a name="Lua_nn9"></a>31.3.2 Functions</H3>
 
 
 <p>
@@ -241,7 +241,7 @@ It is also possible to rename the module with an assignment.
 24
 </pre></div>
 
-<H3><a name="Lua_nn10"></a>29.3.3 Global variables</H3>
+<H3><a name="Lua_nn10"></a>31.3.3 Global variables</H3>
 
 
 <p>
@@ -296,7 +296,7 @@ nil
 3.142
 </pre></div>
 
-<H3><a name="Lua_nn11"></a>29.3.4 Constants and enums</H3>
+<H3><a name="Lua_nn11"></a>31.3.4 Constants and enums</H3>
 
 
 <p>
@@ -319,7 +319,7 @@ example.SUNDAY=0
 <p>
 Constants are not guaranteed to remain constant in Lua. The name of the constant could be accidentally reassigned to refer to some other object. Unfortunately, there is no easy way for SWIG to generate code that prevents this. You will just have to be careful.
 </p>
-<H3><a name="Lua_nn12"></a>29.3.5 Pointers</H3>
+<H3><a name="Lua_nn12"></a>31.3.5 Pointers</H3>
 
 
 <p>
@@ -357,7 +357,7 @@ Lua enforces the integrity of its userdata, so it is virtually impossible to cor
 nil
 </pre></div>
 
-<H3><a name="Lua_nn13"></a>29.3.6 Structures</H3>
+<H3><a name="Lua_nn13"></a>31.3.6 Structures</H3>
 
 
 <p>
@@ -443,7 +443,7 @@ Because the pointer points inside the structure, you can modify the contents and
 &gt; x.a = 3                 -- Modifies the same structure
 </pre></div>
 
-<H3><a name="Lua_nn14"></a>29.3.7 C++ classes</H3>
+<H3><a name="Lua_nn14"></a>31.3.7 C++ classes</H3>
 
 
 <p>
@@ -503,7 +503,7 @@ It is not (currently) possible to access static members of an instance:
                                 -- does NOT work
 </pre></div>
 
-<H3><a name="Lua_nn15"></a>29.3.8 C++ inheritance</H3>
+<H3><a name="Lua_nn15"></a>31.3.8 C++ inheritance</H3>
 
 
 <p>
@@ -528,7 +528,7 @@ then the function <tt>spam()</tt> accepts a Foo pointer or a pointer to any clas
 <p>
 It is safe to use multiple inheritance with SWIG.
 </p>
-<H3><a name="Lua_nn16"></a>29.3.9 Pointers, references, values, and arrays</H3>
+<H3><a name="Lua_nn16"></a>31.3.9 Pointers, references, values, and arrays</H3>
 
 
 <p>
@@ -559,7 +559,7 @@ Foo  spam7();
 <p>
 then all three functions will return a pointer to some Foo object. Since the third function (spam7) returns a value, newly allocated memory is used to hold the result and a pointer is returned (Lua will release this memory when the return value is garbage collected). The other two are pointers which are assumed to be managed by the C code and so will not be garbage collected.
 </p>
-<H3><a name="Lua_nn17"></a>29.3.10 C++ overloaded functions</H3>
+<H3><a name="Lua_nn17"></a>31.3.10 C++ overloaded functions</H3>
 
 
 <p>
@@ -645,7 +645,7 @@ Please refer to the "SWIG and C++" chapter for more information about overloadin
 <p>
 Dealing with the Lua coercion mechanism, the priority is roughly (integers, floats, strings, userdata). But it is better to rename the functions rather than rely upon the ordering.
 </p>
-<H3><a name="Lua_nn18"></a>29.3.11 C++ operators</H3>
+<H3><a name="Lua_nn18"></a>31.3.11 C++ operators</H3>
 
 
 <p>
@@ -760,7 +760,7 @@ It is also possible to overload the operator<tt>[]</tt>, but currently this cann
 };
 </pre></div>
 
-<H3><a name="Lua_nn19"></a>29.3.12 Class extension with %extend</H3>
+<H3><a name="Lua_nn19"></a>31.3.12 Class extension with %extend</H3>
 
 
 <p>
@@ -815,7 +815,7 @@ true
 <p>
 Extend works with both C and C++ code, on classes and structs. It does not modify the underlying object in any way---the extensions only show up in the Lua interface. The only item to take note of is the code has to use the 'self' instead of 'this', and that you cannot access protected/private members of the code (as you are not officially part of the class).
 </p>
-<H3><a name="Lua_nn20"></a>29.3.13 C++ templates</H3>
+<H3><a name="Lua_nn20"></a>31.3.13 C++ templates</H3>
 
 
 <p>
@@ -850,7 +850,7 @@ In Lua:
 <p>
 Obviously, there is more to template wrapping than shown in this example. More details can be found in the SWIG and C++ chapter. Some more complicated examples will appear later.
 </p>
-<H3><a name="Lua_nn21"></a>29.3.14 C++ Smart Pointers</H3>
+<H3><a name="Lua_nn21"></a>31.3.14 C++ Smart Pointers</H3>
 
 
 <p>
@@ -902,7 +902,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 &gt; f = p:__deref__()     -- Returns underlying Foo *
 </pre></div>
 
-<H2><a name="Lua_nn22"></a>29.4 Details on the Lua binding</H2>
+<H2><a name="Lua_nn22"></a>31.4 Details on the Lua binding</H2>
 
 
 <p>
@@ -913,7 +913,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
  </i>
 </p>
 
-<H3><a name="Lua_nn23"></a>29.4.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn23"></a>31.4.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -972,7 +972,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn24"></a>29.4.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn24"></a>31.4.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1052,7 +1052,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrappered classes/s
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn25"></a>29.4.3 Memory management</H3>
+<H3><a name="Lua_nn25"></a>31.4.3 Memory management</H3>
 
 
 <p>

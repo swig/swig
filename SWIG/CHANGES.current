@@ -1,6 +1,36 @@
 Version 1.3.28 (unreleased)
 ===========================
 
+11/09/2005: dancy
+
+	    [Allegrocl]
+	    Add C++ support to the Allegrocl module. Further
+	    enhances the C support as well. Some of the
+	    features:
+
+	    - MUCH better generation of foreign types based on
+	    the C/C++ types for use in defining the FFI on
+	    the lisp side. We don't pass everything as a (* :void)
+	    any longer.
+
+	    - Uses typemaps for better control of type conversions
+	    and code generation in the generated lisp and c++ wrapper
+	    code.
+
+	    - CLOS wrapping of pointers returned from foreign space
+	    makes it easier to differentiate pointers in user code.
+	    The wrapping objects can be passed directly to FF calls.
+
+	    - Defun wrapping of FF calls, allowing for more lispy
+	    interface. Conversion, GCing, of lisp objects to 
+	    foreign objects can be done in the wrapping defun via
+	    the use of typemaps.
+	    
+	    - overload dispatching implemented on the lisp side
+	    using generic functions.
+
+	    - Templates and synonymous types supported.
+
 11/07/2005: mmatus
 
 	    [Python] Adding proper support for multi-inheritance in
