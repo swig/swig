@@ -1,5 +1,10 @@
-Version 1.3.28 (unreleased)
+Version 1.3.28 (unreleased).
 ===========================
+
+11/09/2005: wsfulton
+            ./configure --with-python --with-ruby --with-perl5 etc enable these languages,
+            ie the --with-xxxx options, where no path is specified, work the same as if 
+            the option was not specified at all. Based on patches #1335042 #1329048 #1329047.
 
 11/09/2005: dancy
 
