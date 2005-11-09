@@ -402,7 +402,7 @@ AC_SUBST(XLIBSW)
 AC_ARG_WITH(alllang, AS_HELP_STRING([--without-alllang], [Disable all languages]), with_alllang="$withval")
 
 #--------------------------------------------------------------------
-#	Try to locate the Tcl package
+# Look for Tcl
 #--------------------------------------------------------------------
 
 TCLINCLUDE=
@@ -410,11 +410,10 @@ TCLLIB=
 TCLPACKAGE=
 
 AC_ARG_WITH(tclconfig, AS_HELP_STRING([--without-tcl], [Disable Tcl])
-AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]),
-        with_tclconfig="$withval")
+AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]), [with_tclconfig="$withval"], [with_tclconfig=])
 AC_ARG_WITH(tcl,
  [  --with-tcl=path         Set location of Tcl package],[
-	TCLPACKAGE="$withval"], [TCLPACKAGE=])
+	TCLPACKAGE="$withval"], [TCLPACKAGE=yes])
 AC_ARG_WITH(tclincl,[  --with-tclincl=path     Set location of Tcl include directory],[
 	TCLINCLUDE="$ISYSTEM$withval"], [TCLINCLUDE=])
 AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library directory],[
@@ -457,13 +456,13 @@ else
 fi
 
 if test -z "$TCLINCLUDE"; then
-   if test -n "$TCLPACKAGE"; then
+   if test "x$TCLPACKAGE" != xyes; then
 	TCLINCLUDE="$ISYSTEM$TCLPACKAGE/include"
    fi
 fi
 
 if test -z "$TCLLIB"; then
-   if test -n "$TCLPACKAGE"; then
+   if test "x$TCLPACKAGE" != xyes; then
 	TCLLIB="-L$TCLPACKAGE/lib -ltcl"
    fi
 fi
@@ -525,7 +524,7 @@ PYLIB=
 PYPACKAGE=
 
 AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
-AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN=])
+AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN=yes])
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -533,7 +532,7 @@ AC_MSG_NOTICE([Disabling Python])
 else
 # First figure out the name of the Python executable
 
-if test -z "$PYBIN"; then
+if test "x$PYBIN" = xyes; then
 AC_CHECK_PROGS(PYTHON, python python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
 else
 PYTHON="$PYBIN"
@@ -625,7 +624,7 @@ AC_SUBST(PYTHONDYNAMICLINKING)
 PERLBIN=
 
 AC_ARG_WITH(perl5, AS_HELP_STRING([--without-perl5], [Disable Perl5])
-AS_HELP_STRING([--with-perl5=path], [Set location of Perl5 executable]),[ PERLBIN="$withval"], [PERLBIN=])
+AS_HELP_STRING([--with-perl5=path], [Set location of Perl5 executable]),[ PERLBIN="$withval"], [PERLBIN=yes])
 
 # First, check for "--without-perl5" or "--with-perl5=no".
 if test x"${PERLBIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -634,7 +633,7 @@ else
 
 # First figure out what the name of Perl5 is
 
-if test -z "$PERLBIN"; then
+if test "x$PERLBIN" = xyes; then
 AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
 else
 PERL="$PERLBIN"
@@ -699,7 +698,7 @@ AC_SUBST(PERL5CCFLAGS)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(java, AS_HELP_STRING([--without-java], [Disable Java])
-AS_HELP_STRING([--with-java=path], [Set location of Java executable]),[JAVABIN="$withval"], [JAVABIN=])
+AS_HELP_STRING([--with-java=path], [Set location of Java executable]),[JAVABIN="$withval"], [JAVABIN=yes])
 AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
 
 # First, check for "--without-java" or "--with-java=no".
@@ -707,13 +706,13 @@ if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Java])
 else
 
-if test -z "$JAVABIN" ; then
+if test "x$JAVABIN" = xyes; then
   AC_CHECK_PROGS(JAVA, java kaffe guavac)
 else
   JAVA="$JAVABIN"
 fi
 
-if test -z "$JAVACBIN" ; then
+if test -z "$JAVACBIN"; then
   AC_CHECK_PROGS(JAVAC, javac)
 else
   JAVAC="$JAVACBIN"
@@ -722,7 +721,7 @@ fi
 AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
-if test -z "$JAVAINCDIR"; then
+if test -z "$JAVAINCDIR" ; then
   JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
 
   # Add in default installation directory on Windows for Cygwin
@@ -825,7 +824,7 @@ AS_HELP_STRING([--with-guile-config=path], [Set location of guile-config]),[ GUI
 AC_ARG_WITH(guilepackage, AS_HELP_STRING([--with-guile-prefix=path], [Set location of Guile tree]),[
 	GUILEPACKAGE="$withval"])
 AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile executable],[
-	GUILE="$withval"])
+	GUILE="$withval"], [GUILE=yes])
 AC_ARG_WITH(guileincl,[  --with-guileincl=path   Set location of Guile include directory],[
 	GUILEINCLUDE="$withval"])
 AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
@@ -849,9 +848,11 @@ if test -n "$GUILE_CONFIG" ; then
   GUILEPKGDATADIR="`$GUILE_CONFIG info pkgdatadir`"
 fi
 
-  if test -z "$GUILE"; then
+  if test -z "$GUILE" -o "x$GUILE" = xyes; then
      if test -n "$GUILEPACKAGE"; then
   	GUILE="$GUILEPACKAGE/bin/guile"
+     else
+  	GUILE=
      fi
   fi
 
@@ -936,7 +937,7 @@ AC_SUBST(GUILE_SCM_INTERFACE)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(mzscheme, AS_HELP_STRING([--without-mzscheme], [Disable MzScheme])
-AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ MZSCHEMEBIN="$withval"], [MZSCHEMEBIN=])
+AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ MZSCHEMEBIN="$withval"], [MZSCHEMEBIN=yes])
 AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
 
 # First, check for "--without-mzscheme" or "--with-mzscheme=no".
@@ -944,7 +945,7 @@ if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling MzScheme])
 else
 
-if test -z "$MZSCHEMEBIN"; then
+if test "x$MZSCHEMEBIN" = xyes; then
    AC_PATH_PROG(MZSCHEME, mzscheme)
 else
    MZSCHEME="$MZSCHEMEBIN"
@@ -971,7 +972,7 @@ AC_SUBST(MZDYNOBJ)
 RUBYBIN=
 
 AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
-AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=])
+AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=yes])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
 if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -980,7 +981,7 @@ else
 
 # First figure out what the name of Ruby is
 
-if test -z "$RUBYBIN"; then
+if test "x$RUBYBIN" = xyes; then
 	AC_CHECK_PROGS(RUBY, ruby)
 else
 	RUBY="$RUBYBIN"
@@ -1091,17 +1092,17 @@ AC_SUBST(RUBYDYNAMICLINKING)
 PHP4BIN=
 
 AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP4])
-AS_HELP_STRING([--with-php4=path], [Set location of PHP4 executable]),[ PHP4BIN="$withval"], [PHP4BIN=])
+AS_HELP_STRING([--with-php4=path], [Set location of PHP4 executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
 
 # First, check for "--without-php4" or "--with-php4=no".
 if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling PHP4])
+      AC_MSG_NOTICE([Disabling PHP4])
 else
 
-if test -z "$PHP4BIN"; then
-AC_CHECK_PROGS(PHP4, php php4)
+if test "x$PHP4BIN" = xyes; then
+      AC_CHECK_PROGS(PHP4, php php4)
 else
-PHP4="$PHP4BIN"
+      PHP4="$PHP4BIN"
 fi
 
 AC_MSG_CHECKING(for PHP4 header files)
@@ -1134,7 +1135,7 @@ AC_SUBST(PHP4INC)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml])
-AS_HELP_STRING([--with-ocaml=path], [Set location of ocaml executable]),[ OCAMLBIN="$withval"], [OCAMLBIN=])
+AS_HELP_STRING([--with-ocaml=path], [Set location of ocaml executable]),[ OCAMLBIN="$withval"], [OCAMLBIN=yes])
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path      Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
 AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
@@ -1167,7 +1168,7 @@ OCAMLC="$OCAMLC"
 fi
 
 AC_MSG_CHECKING(for Ocaml interpreter)
-if test -z "$OCAMLBIN"; then
+if test "x$OCAMLBIN" = xyes; then
 AC_CHECK_PROGS(OCAMLBIN, ocaml, ocaml)
 else
 OCAMLBIN="$OCAMLBIN"
@@ -1221,14 +1222,14 @@ AC_SUBST(OCAMLMKTOP)
 # Priority: configure option, automatic search
 PIKEBIN=
 AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
-AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[ PIKEBIN="$withval"], [PIKEBIN=])
+AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="$withval"], [PIKEBIN=yes])
 
 # First, check for "--without-pike" or "--with-pike=no".
 if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Pike])
 else
 
-if test -z "$PIKEBIN"; then
+if test "x$PIKEBIN" = xyes; then
 	AC_CHECK_PROGS(PIKE, pike pike7.6 pike7.4 pike7.2)
 else
 	PIKE="$PIKEBIN"
@@ -1252,20 +1253,22 @@ AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path],
 	[Set location of Pike include directory]),
   [PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
 
-AC_MSG_CHECKING([for Pike header files])
-if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
-	PIKEINCLUDE=`$PIKECONFIG --cflags`
-fi
-if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
-	PIKEPATH=`which $PIKE`
-	PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
-	PIKEINCLUDE="-I$PIKEINCLUDE"
-fi
+if test -n "$PIKE"; then
+      AC_MSG_CHECKING([for Pike header files])
+      if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
+              PIKEINCLUDE=`$PIKECONFIG --cflags`
+      fi
+      if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
+              PIKEPATH=`which $PIKE`
+              PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
+              PIKEINCLUDE="-I$PIKEINCLUDE"
+      fi
 
-if test -z "$PIKEINCLUDE"; then
-    	AC_MSG_RESULT(not found)
-else
-        AC_MSG_RESULT($PIKEINCLUDE)
+      if test -z "$PIKEINCLUDE"; then
+              AC_MSG_RESULT(not found)
+      else
+              AC_MSG_RESULT($PIKEINCLUDE)
+      fi
 fi
 fi
 
@@ -1285,17 +1288,17 @@ CHICKENLIB=
 
 
 AC_ARG_WITH(chicken, AS_HELP_STRING([--without-chicken], [Disable CHICKEN])
-AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKEN="$withval"], [CHICKEN=])
+AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKENBIN="$withval"], [CHICKENBIN=yes])
 
 # First, check for "--without-chicken" or "--with-chicken=no".
-if test x"${CHICKEN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${CHICKENBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CHICKEN])
 else
 
-if test -z "$CHICKEN"; then
+if test "x$CHICKENBIN" = xyes; then
 AC_CHECK_PROGS(CHICKEN, chicken)
 else
-CHICKEN="$CHICKEN"
+CHICKEN="$CHICKENBIN"
 fi
 
 AC_ARG_WITH(chickencsc,[  --with-chickencsc=path  Set location of csc executable],[ CHICKEN_CSC="$withval"], [CHICKEN_CSC=])
@@ -1417,7 +1420,7 @@ AC_SUBST(CHICKENSHAREDLIB)
 # Look for C#
 #----------------------------------------------------------------
 
-AC_ARG_WITH(csharp, AS_HELP_STRING([--without-csharp], [Disable CSharp]), [with_csharp="$withval"], [with_csharp=])
+AC_ARG_WITH(csharp, AS_HELP_STRING([--without-csharp], [Disable CSharp]), [with_csharp="$withval"], [with_csharp=yes])
 AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path     Set location of CIL interpreter for CSharp],[CSHARPBIN="$withval"], [CSHARPBIN=])
 AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
 
@@ -1522,7 +1525,7 @@ LUALIB=
 LUADYNAMICLOADLIB=
 
 AC_ARG_WITH(lua, AS_HELP_STRING([--without-lua], [Disable Lua])
-AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN=])
+AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN=yes])
 AC_ARG_WITH(luaincl,[  --with-luaincl=path     Set location of Lua include directory],[
 	LUAINCLUDE="$ISYSTEM$withval"], [LUAINCLUDE=])
 AC_ARG_WITH(lualib,[  --with-lualib=path      Set location of Lua library directory],[
@@ -1534,7 +1537,7 @@ AC_MSG_NOTICE([Disabling Lua])
 else
 
 # can we find lua?
-if test -z "$LUABIN"; then
+if test "x$LUABIN" = xyes; then
    AC_PATH_PROG(LUABIN, lua)
 fi
 
