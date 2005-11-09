@@ -437,6 +437,9 @@ extern String    *Swig_scopename_last(String *s);
 extern String    *Swig_scopename_first(String *s);
 extern String    *Swig_scopename_suffix(String *s);
 extern int        Swig_scopename_check(String *s);
+extern String    *Swig_string_lower(String *s);
+extern String    *Swig_string_upper(String *s);
+extern String    *Swig_string_title(String *s);
 
 extern void       Swig_init();
 extern void       Swig_warn(const char *filename, int line, const char *msg);

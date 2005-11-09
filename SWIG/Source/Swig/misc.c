@@ -94,14 +94,15 @@ String *Swig_string_escape(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_upper()
  *
- * Takes a string object and convets it to all caps.
+ * Takes a string object and returns a copy that is uppercase
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_upper(String *s) {
   String *ns;
   int c;
   ns = NewString("");
-  
+
+  Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     Putc(toupper(c),ns);
   }
@@ -111,14 +112,15 @@ String *Swig_string_upper(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_lower()
  *
- * Takes a string object and convets it to all lower.
+ * Takes a string object and returns a copy that is lowercase
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_lower(String *s) {
   String *ns;
   int c;
   ns = NewString("");
-  
+
+  Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     Putc(tolower(c),ns);
   }
@@ -129,7 +131,8 @@ String *Swig_string_lower(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_title()
  *
- * Takes a string object and convets it to all lower.
+ * Takes a string object and returns a copy that is lowercase with first letter
+ * capitalized
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_title(String *s) {
@@ -137,7 +140,8 @@ String *Swig_string_title(String *s) {
   int first = 1;
   int c;
   ns = NewString("");
-  
+
+  Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     Putc(first ? toupper(c) : tolower(c),ns);
     first = 0;
