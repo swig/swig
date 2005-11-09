@@ -1,3 +1,6 @@
+/* Workaround perl5 global namespace pollution. Note that undefining library
+ * functions like fopen will not solve the problem on all platforms as fopen
+ * might be a macro on Windows but not necessarily on other operating systems. */
 #ifdef do_open
   #undef do_open
 #endif
