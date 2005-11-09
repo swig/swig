@@ -5,7 +5,7 @@ Version 1.3.28 (unreleased).
             [Java, C#] Portability warning for files which will overwrite each other on case
             insensitive file systems such as FAT32/NTFS. This will occur, for example, when two
             class names are the same barring case. The warning is issued on all platforms and
-            can be suppressed with the usual warning suppression techniques.
+            can be suppressed with the usual warning suppression techniques. SF bug #1084507.
 
 11/09/2005: wsfulton
             ./configure --with-python --with-ruby --with-perl5 etc enable these languages,
