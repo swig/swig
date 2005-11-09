@@ -102,10 +102,7 @@ Version 1.3.28 (unreleased).
 
 	              def __del__(self):
 		          <your code here>
-	     
-	    
 
->>>>>>> 1.469
 11/02/2005: mmatus
 
 	    [Python] Adding more fun to STL/STD containers, now you
