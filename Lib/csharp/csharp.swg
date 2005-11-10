@@ -129,23 +129,23 @@
 %typemap(out, null="") void ""
 
 /* primitive types by const reference */
-%typemap(in) const bool & (bool temp)
+%typemap(in) const bool & ($*1_ltype temp)
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
 
-%typemap(in) const char & (char temp), 
-             const signed char & (signed char temp), 
-             const unsigned char & (unsigned char temp), 
-             const short & (short temp), 
-             const unsigned short & (unsigned short temp), 
-             const int & (int temp), 
-             const unsigned int & (unsigned int temp), 
-             const long & (long temp), 
-             const unsigned long & (unsigned long temp), 
+%typemap(in) const char & ($*1_ltype temp), 
+             const signed char & ($*1_ltype temp), 
+             const unsigned char & ($*1_ltype temp), 
+             const short & ($*1_ltype temp), 
+             const unsigned short & ($*1_ltype temp), 
+             const int & ($*1_ltype temp), 
+             const unsigned int & ($*1_ltype temp), 
+             const long & ($*1_ltype temp), 
+             const unsigned long & ($*1_ltype temp), 
              const long long & ($*1_ltype temp), 
              const unsigned long long & ($*1_ltype temp), 
-             const float & (float temp), 
-             const double & (double temp)
+             const float & ($*1_ltype temp), 
+             const double & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
 $1 = &temp; %}
 
