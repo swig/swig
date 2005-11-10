@@ -640,6 +640,8 @@ PERL="$PERLBIN"
 fi
 
 
+# This could probably be simplified as for all platforms and all versions of Perl the following apparently should be run to get the compilation options:
+# perl -MExtUtils::Embed -e ccopts
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
 	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
