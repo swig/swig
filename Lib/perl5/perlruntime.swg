@@ -1,14 +1,23 @@
 %insert(runtime) %{
 
-#include <EXTERN.h>
-#include <perl.h>
-#include <XSUB.h>
+#ifdef __cplusplus
+/* Needed on some windows machines---since MS plays funny games with the header files under C++ */
+#include <math.h>
+#include <stdlib.h>
+extern "C" {
+#endif
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
 
 #ifndef pTHX_
 #define pTHX_
 #endif
 
 #include <string.h>
+#ifdef __cplusplus
+}
+#endif
 
 /* Macro to call an XS function */
 
