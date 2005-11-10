@@ -1,6 +1,12 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+11/10/2005: wsfulton
+            New library file for Windows - windows.i. This file will contain useful type
+            information for users who include windows.h. Initial support is for the
+            non ISO integral types: __int8, __int16, __int32, __int64 and unsigned versions.
+            The unsigned versions previously could not be parsed by SWIG.  SF #872013.
+
 11/09/2005: wsfulton
             [Java, C#] Portability warning for files which will overwrite each other on case
             insensitive file systems such as FAT32/NTFS. This will occur, for example, when two
