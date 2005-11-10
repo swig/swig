@@ -9,7 +9,7 @@
   // Use equivalent typs for non-windows systems
   #define __int8   char
   #define __int16  short
-  #define __int32  long
+  #define __int32  int
   #define __int64  long long
 #endif
 
