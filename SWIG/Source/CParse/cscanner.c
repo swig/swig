@@ -1133,8 +1133,26 @@ int yylex(void) {
 	    yylval.type = NewSwigType(T_BOOL);
 	    return(TYPE_BOOL);
 	  }
+
+          /* Non ISO (Windows) C extensions */
+	  if (strcmp(yytext,"__int8") == 0) {
+	    yylval.type = NewString(yytext);
+	    return(TYPE_NON_ISO_INT8);
+	  }
+	  if (strcmp(yytext,"__int16") == 0) {
+	    yylval.type = NewString(yytext);
+	    return(TYPE_NON_ISO_INT16);
+	  }
+	  if (strcmp(yytext,"__int32") == 0) {
+	    yylval.type = NewString(yytext);
+	    return(TYPE_NON_ISO_INT32);
+	  }
+	  if (strcmp(yytext,"__int64") == 0) {
+	    yylval.type = NewString(yytext);
+	    return(TYPE_NON_ISO_INT64);
+	  }
+
 	  /* C++ keywords */
-	  
 	  if (cparse_cplusplus) {
 	    if (strcmp(yytext,"and") == 0) return(LAND);
 	    if (strcmp(yytext,"or") == 0) return(LOR);

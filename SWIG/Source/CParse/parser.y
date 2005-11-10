@@ -1337,7 +1337,7 @@ static void default_arguments(Node *n) {
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
@@ -4929,6 +4929,22 @@ type_specifier : TYPE_INT {
                 }
                | TYPE_COMPLEX { 
                     $$.type = NewString("complex");
+                    $$.us = 0;
+                }
+               | TYPE_NON_ISO_INT8 { 
+                    $$.type = NewString("__int8");
+                    $$.us = 0;
+                }
+               | TYPE_NON_ISO_INT16 { 
+                    $$.type = NewString("__int16");
+                    $$.us = 0;
+                }
+               | TYPE_NON_ISO_INT32 { 
+                    $$.type = NewString("__int32");
+                    $$.us = 0;
+                }
+               | TYPE_NON_ISO_INT64 { 
+                    $$.type = NewString("__int64");
                     $$.us = 0;
                 }
                ;
