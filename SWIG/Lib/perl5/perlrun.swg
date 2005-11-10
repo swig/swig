@@ -1,7 +1,7 @@
 /***********************************************************************
  * perlrun.swg
  *
- *     This file contains the runtime support for Ruby modules
+ *     This file contains the runtime support for Perl modules
  *     and includes code for managing global variables and pointer
  *     type checking.
  *
