@@ -82,3 +82,6 @@
 #ifdef calloc
   #undef calloc
 #endif
+#ifdef Stat
+  #undef Stat
+#endif
