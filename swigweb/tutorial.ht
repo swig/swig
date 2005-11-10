@@ -116,7 +116,7 @@ You can also build a Perl5 module as follows (shown for Solaris, see the <a href
 <blockquote><pre>
 unix % swig -perl5 example.i
 unix % gcc -c example.c example_wrap.c \
-       -I/usr/lib/perl/solaris/5.003/CORE 
+       `perl -MExtUtils::Embed -e ccopts`
 unix % ld -G example.o example_wrap.o -o example.so
 unix % perl
 use example;
