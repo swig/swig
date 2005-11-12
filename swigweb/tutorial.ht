@@ -57,7 +57,7 @@ extern char *get_time();
 
 <h3> Building a Tcl module </h3>
 
-At the UNIX prompt, type the following (shown for Linux, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
+At the UNIX prompt, type the following (shown for Linux, see the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
 
 <blockquote>
 <pre>
@@ -87,7 +87,7 @@ the 'load' command.
 
 <h3> Building a Python module </h3>
 
-Turning C code into a Python module is also easy.  Simply do the following (shown for Irix, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
+Turning C code into a Python module is also easy.  Simply do the following (shown for Irix, see the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
 
 <blockquote> <pre>
 
@@ -111,7 +111,7 @@ We can now use the Python module as follows :
 </blockquote>
 
 <h3> Building a Perl module </h3>
-You can also build a Perl5 module as follows (shown for Solaris, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
+You can also build a Perl5 module as follows (shown for Solaris, see the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
 
 <blockquote><pre>
 unix % swig -perl5 example.i
@@ -131,7 +131,7 @@ unix %
 </pre></blockquote>
 
 <h3> Building a Java module </h3>
-SWIG will also generate JNI code for accessing C/C++ code from Java. Here is an example building a Java module (shown for Cygwin, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
+SWIG will also generate JNI code for accessing C/C++ code from Java. Here is an example building a Java module (shown for Cygwin, see the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems):
 
 <blockquote><pre>
 $ swig -java example.i
@@ -155,7 +155,7 @@ $
 </pre></blockquote>
 
 <h3> Building a C# module </h3>
-SWIG will also generate code for accessing C/C++ code from C# using PInvoke. Here is an example building a C# module (shown for Linux, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems). It uses the open source <a href="http://www.southern-storm.com.au/portable_net.html">DotGNU Portable.NET</a> C# compiler which runs on most Unix systems, but works equally well using other C# compilers:
+SWIG will also generate code for accessing C/C++ code from C# using PInvoke. Here is an example building a C# module (shown for Linux, see the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems). It uses the open source <a href="http://www.southern-storm.com.au/portable_net.html">DotGNU Portable.NET</a> C# compiler which runs on most Unix systems, but works equally well using other C# compilers:
 
 <blockquote><pre>
 $ swig -csharp  example.i
