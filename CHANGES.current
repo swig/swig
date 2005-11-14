@@ -569,6 +569,10 @@ Version 1.3.28 (unreleased).
               + pointers to member functions finally work properly
               + add test of member function pointers to cpp_basic.i
 
+10/20/2005: dancy
+	    [allegrocl] Added C++ support. Large update, many changes. See
+	    newly added Allegro Common Lisp section in lisp.html
+
 10/20/2005: mmatus
 	    Ruby, Tcl, Python:
 

@@ -154,7 +154,7 @@ for s in lines:
         prevheadingtext = m.group(2)
         nameindex += 1
         subsubsection += 1
-        subsubsubsection = 0
+
         headingname = getheadingname(m)
         result.append("""<H4><a name="%s"></a>%d.%d.%d.%d %s</H4>""" % (headingname,num,section, subsection, subsubsection, prevheadingtext))
 
@@ -164,6 +164,7 @@ for s in lines:
             index += "<ul>\n"
 
         index += """<li><a href="#%s">%s</a>\n""" % (headingname,prevheadingtext)
+        subsubsubsection = 0
         skipspace = 1        
         continue
     m = h5.match(s)
