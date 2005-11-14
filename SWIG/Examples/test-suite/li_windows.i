@@ -74,3 +74,22 @@ uint64 uint64_td(int64 i) { return i; }
 
 %}
 
+// Windows calling conventions and some types in windows.h
+%inline %{
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#else
+
+#define __stdcall
+#define __declspec(WINDOWS_EXTENDED_ATTRIBUTE)
+#define DWORD unsigned int
+#define PSZ char *
+
+#endif
+
+// Windows calling conventions
+__declspec(dllexport) int __stdcall declspecstdcall(int i) { return i; }
+
+DWORD mefod(DWORD d) { return d; }
+PSZ funktion(PSZ d) { return d; }
+%}
+
