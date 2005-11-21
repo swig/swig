@@ -44,7 +44,7 @@ namespace swig {
   
   template <> 
   struct traits_check<PyObject_ptr, value_category> {
-    static bool check(PyObject *) {
+    static bool check(PyObject_ptr) {
       return true;
     }
   };
@@ -58,6 +58,41 @@ namespace swig {
   };
 }
 }
+
+
+%fragment(SWIG_Traits_frag(swig::PyObject_var),"header",fragment="StdTraits") {
+namespace swig {
+  template <>  struct traits<PyObject_var > {
+    typedef value_category category;
+    static const char* type_name() { return  "PyObject_var"; }
+  };
+  
+  template <>  struct traits_from<PyObject_var> {
+    typedef PyObject_var value_type;
+    static PyObject *from(const value_type& val) {
+      PyObject *obj = static_cast<PyObject *>(val);
+      Py_XINCREF(obj);
+      return obj;
+    }
+  };
+  
+  template <> 
+  struct traits_check<PyObject_var, value_category> {
+    static bool check(PyObject_var) {
+      return true;
+    }
+  };
+  
+  template <>  struct traits_asval<PyObject_var > {   
+    typedef PyObject_var value_type;
+    static int asval(PyObject *obj, value_type *val) {
+      if (val) *val = obj;
+      return SWIG_OK;
+    }
+  };
+} 
+}
+
 
 
 %fragment("PySequence_Base","header")
@@ -79,6 +114,15 @@ namespace std {
     operator()(const swig::PyObject_ptr& v, const swig::PyObject_ptr& w) const
     { return PyObject_Compare(v, w) < 0; }
   };
+
+  template <>
+  struct less <swig::PyObject_var>: public binary_function<swig::PyObject_var, swig::PyObject_var, bool>
+  {
+    bool
+    operator()(const swig::PyObject_var& v, const swig::PyObject_var& w) const
+    { return PyObject_Compare(v, w) < 0; }
+  };
+
 }
 
 namespace swig {
@@ -706,7 +750,7 @@ namespace swig
 
   %fragment("PySequence_Cont");
 
-  %newobject iterator(PyObject *PYTHON_SELF);
+  %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
     swig::PySequence_OutputIterator* iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);

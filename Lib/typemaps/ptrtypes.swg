@@ -82,7 +82,25 @@
     if (ores == SWIG_NEWOBJ) %delete(optr);
   }
 
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) Type* {
+    Type *optr = 0;
+    int ores = asptr_meth($input, &optr);
+    if (!ores) { 
+      %dirout_fail(SWIG_TypeError,"$type");
+    }    
+    $result = optr;
+    if (ores == SWIG_NEWOBJ) {
+      swig_acquire_ownership(optr);
+    }
+  }
+  %typemap(directorfree,noblock=1) Type*
+  {
+    if (director)  {
+      director->swig_release_ownership(%as_voidptr($input));
+    }
+  }
+
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) Type& {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!ores) { 
@@ -92,15 +110,18 @@
 	%dirout_nullref("$type");
       } 
     }    
+    $result = optr;
     if (ores == SWIG_NEWOBJ) {
-      /* Possible thread/reentrant problem here! */
-      static $*ltype temp = *optr;
-      $result = &temp;
-      %delete(optr);
-    } else {
-      $result = optr;
+      swig_acquire_ownership(optr);
     }
   }
+  %typemap(directorfree,noblock=1) Type&
+  {
+    if (director) {
+      director->swig_release_ownership(%as_voidptr($input));
+    }
+  }
+
 
   %typemap(directorout,fragment=frag) Type &DIRECTOROUT = Type
 

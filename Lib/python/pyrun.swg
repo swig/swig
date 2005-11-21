@@ -11,16 +11,19 @@
 /* Common SWIG API */
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Python_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Python_ConvertPtrAndOwn(obj, pptr, type, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Python_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(ptr, type, flags)
+#define SWIG_AcquirePtr(ptr, src)                       SWIG_Python_AcquirePtr(ptr, src)
+#define swig_owntype                                    int
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Python_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewPackedObj(ptr, sz, type)                SWIG_Python_NewPackedObj(ptr, sz, type)
 
 /* for class or struct pointers */
-#define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Python_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_Python_NewPointerObj(ptr, type, flags)
+#define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_NewPointerObj(ptr, type, flags)
 
 /* for C or C++ function pointers */
 #define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Python_ConvertFunctionPtr(obj, pptr, type)
@@ -282,7 +285,7 @@ SWIGINTERN PyObject*
 PySwigObject_acquire(PyObject *v)
 {
   PySwigObject *sobj = (PySwigObject *)v;
-  sobj->own = 1;
+  sobj->own = SWIG_POINTER_OWN;
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -642,7 +645,7 @@ SWIG_This()
 SWIGRUNTIMEINLINE PySwigObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
-  if (PySwigObject_Check(pyobj)) {
+  if (pyobj && PySwigObject_Check(pyobj)) {
     return (PySwigObject *) pyobj;
   } else {
     PyObject *obj = 0;
@@ -663,17 +666,37 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     obj = PyObject_GetAttr(pyobj,SWIG_This());
     Py_XDECREF(obj);
 #endif    
-    if (PyErr_Occurred()) {
-      obj = 0;
+    if (!obj || PyErr_Occurred()) {
       PyErr_Clear();
+      return 0;
     }
-    return obj && PySwigObject_Check(obj) ? (PySwigObject *) obj : 0;
+    if (PySwigObject_Check(obj)) {
+      return (PySwigObject *)obj;
+    } else {
+      return 0;
+    }
+  }
+}
+
+/* Acquire a pointer value */
+SWIGRUNTIME int
+SWIG_Python_AcquirePtr(PyObject *obj, int own) {
+  if (own) {
+    PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
+    if (sobj) {
+      int oldown = sobj->own;
+      sobj->own = own;
+      return oldown;
+    } else {
+      return 0;
+    }
   }
 }
 
 /* Convert a pointer value */
+
 SWIGRUNTIME int
-SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
+SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   if (!obj) return SWIG_ERROR;
   if (obj == Py_None) {
     *ptr = 0;
@@ -703,6 +726,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
       }
     }
     if (sobj) {
+      if (own) *own = sobj->own;
       if (flags & SWIG_POINTER_DISOWN) {
 	sobj->own = 0;
       }
@@ -717,7 +741,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
 SWIGRUNTIME int
 SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
   if (!PyCFunction_Check(obj)) {
-    return SWIG_Python_ConvertPtr(obj, ptr, ty, 0);
+    return SWIG_ConvertPtr(obj, ptr, ty, 0);
   } else {
     const char *desc = 0;
     void *vptr = 0;
@@ -814,7 +838,8 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
     }
     return NULL;
   } else {
-    PyObject *robj = PySwigObject_New((void *) ptr, type, (flags & SWIG_POINTER_OWN));
+    int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
+    PyObject *robj = PySwigObject_New((void *) ptr, type, own);
     PySwigClientData *clientdata = (PySwigClientData *)type->clientdata;
     if (clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
       PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
@@ -914,8 +939,7 @@ SWIG_Python_DestroyModule(void *vptr)
       ty->clientdata = 0;
     }
   }
-  Py_DECREF(SWIG_This());  
-  /* and, what else ... */
+  Py_DECREF(SWIG_This());
 }
 
 SWIGRUNTIME void

@@ -19,7 +19,6 @@ char cvsroot_python_cxx[] = "$Header$";
 #define PYSHADOW_MEMBER  0x2
 
 static  String       *const_code = 0;
-static  String       *shadow_methods = 0;
 static  String       *module = 0;
 static  String       *package = 0;
 static  String       *mainmodule = 0;
@@ -27,6 +26,7 @@ static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 1;
 static  int           use_kw = 0;
+static  int           director_method_index = 0;
 
 static  File         *f_runtime = 0;
 static  File         *f_runtime_h = 0;
@@ -276,7 +276,6 @@ public:
     Swig_register_filebyname("director_h",f_directors_h);
 
     const_code     = NewString("");
-    shadow_methods = NewString("");
     methods        = NewString("");
 
     Swig_banner(f_runtime);
@@ -1153,7 +1152,7 @@ public:
     String  *iname = Getattr(n,"sym:name");
     SwigType *d    = Getattr(n,"type");
     ParmList *l    = Getattr(n,"parms");
-    Node *parent   = Getattr(n,"parentNode");
+    int director_method = 0;
 
     Parm    *p;
     int     i;
@@ -1436,9 +1435,10 @@ public:
       if (!is_smart_pointer()) {
         if (/*directorbase &&*/ !constructor && !destructor 
 	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
+	  director_method = 1;
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
-	  if (dirprot_mode() && !is_public(n)) {
+	  if (dirprot_mode() && !is_public(n)) {      
             Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
 	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
 	    Printf(f->code, "SWIG_fail;\n");
@@ -1461,14 +1461,14 @@ public:
     */
      
     /* Emit the function call */
-    if (directorsEnabled()) {
+    if (director_method) {
       Printf(f->code, "try {\n");
       Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     }
     
     emit_action(n,f);
 
-    if (directorsEnabled()) {
+    if (director_method) {
       Printf(f->code, "} catch (Swig::DirectorException&) {\n");
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
@@ -1497,6 +1497,7 @@ public:
       /* New addition to unwrap director return values so that the original
        * python object is returned instead. 
        */
+#if 1
       int unwrap = 0;
       String *decl = Getattr(n, "decl");
       int is_pointer = SwigType_ispointer_return(decl);
@@ -1505,15 +1506,16 @@ public:
         String *type = Getattr(n, "type");
   	//Node *classNode = Swig_methodclass(n);
         //Node *module = Getattr(classNode, "module");
+	Node *parent   = Getattr(n,"parentNode");
         Node *module = Getattr(parent, "module");
         Node *target = Swig_directormap(module, type);
 	if (target) unwrap = 1;
       }
       if (unwrap) {
-      	Wrapper_add_local(f, "resultdirector", "Swig::Director *resultdirector = 0");
-	Printf(f->code, "resultdirector = SWIG_DIRECTOR_CAST(result);\n");
-	Printf(f->code, "if (resultdirector) {\n");
-	Printf(f->code, "  resultobj = resultdirector->swig_get_self();\n");
+      	Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+	Printf(f->code, "director = SWIG_DIRECTOR_CAST(result);\n");
+	Printf(f->code, "if (director) {\n");
+	Printf(f->code, "  resultobj = director->swig_get_self();\n");
 	Printf(f->code, "  Py_INCREF(resultobj);\n");
 	Printf(f->code, "} else {\n"); 
         Printf(f->code,"%s\n", tm);
@@ -1521,6 +1523,9 @@ public:
       } else {
         Printf(f->code,"%s\n", tm);
       }
+#else
+      Printf(f->code,"%s\n", tm);
+#endif
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		   "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
@@ -1548,6 +1553,15 @@ public:
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n",tm);
     }
+
+    if (director_method) {
+      if ((tm = Swig_typemap_lookup_new("directorfree",n,"result",0))) {
+	Replaceall(tm,"$input","result");
+	Replaceall(tm,"$result","resultobj");
+	Printf(f->code,"%s\n",tm);
+      }
+    }
+
 
     Printf(f->code,"    return resultobj;\n");
 
@@ -1815,6 +1829,8 @@ public:
    * ** Moved down due to gcc-2.96 internal error **
    * --------------------------------------------------------------- */
 
+  int classDirectorMethods(Node *n);
+
   int classDirectorMethod(Node *n, Node *parent, String *super);
   
   /* ------------------------------------------------------------
@@ -1934,10 +1950,27 @@ public:
       Printf(f_directors_h,"    mutable std::map<std::string, bool> inner;\n");
 
     }
+
+    Printf(f_directors_h,"\n\n");
+    Printf(f_directors_h,"/* VTable implementation */\n");
+    Printf(f_directors_h,"public:\n");
+    Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
+    Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
+    Printf(f_directors_h,"      if (!method) {\n");
+    Printf(f_directors_h,"         swig::PyObject_var name = PyString_FromString(method_name);\n");
+    Printf(f_directors_h,"         vtable[method_index] = method = PyObject_GetAttr(swig_get_self(), name);\n");
+    Printf(f_directors_h,"         Py_DECREF(swig_get_self());\n");
+    Printf(f_directors_h,"      };\n");
+    Printf(f_directors_h,"      return method;\n");
+    Printf(f_directors_h,"    }\n\n");
+    Printf(f_directors_h,"private:\n");
+    Printf(f_directors_h,"    mutable swig::PyObject_var vtable[%d];\n", director_method_index);
+      
     Printf(f_directors_h, "};\n\n");
     return Language::classDirectorEnd(n);
   }
-
+  
+  
   /* ------------------------------------------------------------
    * classDirectorDisown()
    * ------------------------------------------------------------ */
@@ -2614,7 +2647,7 @@ public:
   virtual String *defaultExternalRuntimeFilename() {
     return NewString("swigpyrun.h");
   }
-
+  
 };
 
 /* ---------------------------------------------------------------
@@ -2625,6 +2658,11 @@ public:
  *
  * ** Moved it here due to internal error on gcc-2.96 **
  * --------------------------------------------------------------- */
+int PYTHON::classDirectorMethods(Node *n) {
+  director_method_index = 0;  
+  return Language::classDirectorMethods(n);
+}
+
 
 int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   int is_void = 0;
@@ -2856,9 +2894,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* add the method name as a PyString */
   String *pyname = Getattr(n,"sym:name");
-  String *tmp = NewStringf("static swig::PyObject_var swig_method_name = PyString_FromString(\"%s\")",pyname);
-  Wrapper_add_local(w, "swig_method_name", tmp);
-  Delete(tmp);
+  Wrapper_add_localv(w, "swig_method_index", "const size_t swig_method_index =", NewStringf("%d", director_method_index++), NIL);
+  Wrapper_add_localv(w, "swig_method_name", "const char * const swig_method_name =", NewStringf("\"%s\"",pyname), NIL);
 
   /* declare method return value 
    * if the return value is a reference or const reference, a specialized typemap must
@@ -2889,14 +2926,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
 
   /* pass the method call on to the Python object */
-  if (dirprot_mode() && !is_public(n))
+  if (dirprot_mode() && !is_public(n)) {
     Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
+  }
+  
 
   Printf(w->code, "if (!swig_get_self()) {\n");
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
-  Wrapper_add_local(w, "method", "swig::PyObject_var method = 0");
-  Printf(w->code, "method = PyObject_GetAttr(swig_get_self(), swig_method_name);\n");
+  Wrapper_add_local(w, "method", "PyObject* method = 0");
+  Printf(w->code, "method = swig_get_method(swig_method_index, swig_method_name);\n");
   Printf(w->code, "if (method == NULL) {\n");
   Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
   Printf(w->code, "}\n");

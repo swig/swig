@@ -9,16 +9,143 @@
  *          Mark Rose (mrose@stm.lbl.gov).
  ************************************************************************/
 
+/*
+  Use -DSWIG_DIRECTOR_NOUEH if you prefer to avoid the use of the
+  Undefined Exception Handler provided by swift
+*/
+#ifndef SWIG_DIRECTOR_NOUEH
+#ifndef SWIG_DIRECTOR_UEH
+#define SWIG_DIRECTOR_UEH
+#endif
+#endif
+
 #ifdef __cplusplus
 
 #include <string>
+#include <iostream>
+#include <map>
 
 namespace Swig {
+  /* memory handler */
+  struct GCItem 
+  {
+    virtual ~GCItem() = 0;
+
+    virtual ruby_owntype get_own() const
+    {
+      return 0;
+    }
+  };
+  
+  struct GCItem_var
+  {
+    GCItem_var(GCItem *item = 0) : _item(item)
+    {
+    }
+
+    GCItem_var& operator=(GCItem *item)
+    {
+      GCItem *tmp = _item;
+      _item = item;
+      delete tmp;
+      return *this;
+    }
+    
+    ~GCItem_var() 
+    {
+      delete _item;
+    }
+    
+    GCItem * operator->() const
+    {
+      return _item;
+    }
+    
+  private:
+    GCItem *_item;
+  };
+
+
+  template <typename Type>
+  struct GCItem_T : GCItem
+  {
+    GCItem_T(Type *ptr) : _ptr(ptr)
+    {
+    }
+    
+    virtual ~GCItem_T() 
+    {
+      delete _ptr;
+    }
+    
+  private:
+    Type *_ptr;
+  };
+
+  struct GCItem_Object : GCItem
+  {
+    GCItem_Object(ruby_owntype own) : _own(own)
+    {
+    }
+    
+    virtual ~GCItem_Object() 
+    {
+    }
+
+    ruby_owntype get_own()
+    {
+      return _own;
+    }
+    
+  private:
+    ruby_owntype _own;
+  };
+
+
+  template <typename Type>
+  struct GCArray_T : GCItem
+  {
+    GCArray_T(Type *ptr) : _ptr(ptr)
+    {
+    }
+    
+    virtual ~GCArray_T() 
+    {
+      delete[] _ptr;
+    }
+    
+  private:
+    Type *_ptr;
+  };
+
+
+  /* body args */
+
   struct body_args {
     VALUE recv;
     ID id;
     int argc;
     VALUE *argv;
+  };
+
+  /* unknown exception handler  */
+  class UnknownExceptionHandler 
+  {
+    static void handler();    
+  public:
+    
+#ifdef SWIG_DIRECTOR_UEH
+    std::unexpected_handler old;
+    UnknownExceptionHandler(std::unexpected_handler nh = handler)
+    {
+      old = std::set_unexpected(nh);
+    }
+
+    ~UnknownExceptionHandler()
+    {
+      std::set_unexpected(old);
+    }
+#endif
   };
   
   /* Base class for director exceptions */
@@ -52,9 +179,15 @@ namespace Swig {
     VALUE getError() const {
       return swig_error;
     }
+    const std::string& getMessage() const 
+    {
+      return swig_msg;
+    }
+    
     virtual ~DirectorException() {}
   };
   
+
   /* Type mismatch in the return value from a Ruby method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
@@ -122,6 +255,27 @@ namespace Swig {
 #define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER 
 #endif
 #endif
+
+#ifdef  __PTHREAD__
+# define SWIG_GUARD(mutex) Guard _guard(mutex)
+#else
+# define SWIG_GUARD(mutex) 
+#endif
+
+  struct Guard
+  {
+    pthread_mutex_t *_mutex;
+    
+    Guard(pthread_mutex_t &mutex) : _mutex(&mutex)
+    {
+      pthread_mutex_lock(_mutex);
+    }
+    
+    ~Guard()
+    {
+      pthread_mutex_unlock(_mutex);
+    }
+  };
 
   /* director base class */
   class Director {
@@ -212,6 +366,55 @@ namespace Swig {
           swig_disown_flag = true;
         } 
       }
+
+    /* ownership managing */
+  private:
+    typedef std::map<void*, GCItem_var> ownership_map;
+    mutable ownership_map owner;
+    mutable pthread_mutex_t swig_mutex_own;
+    
+
+  public:
+    template <typename Type>
+    void swig_acquire_ownership_array(Type *vptr)  const
+    {
+      if (vptr) {
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCArray_T<Type>(vptr);
+      }
+    }
+    
+    template <typename Type>
+    void swig_acquire_ownership(Type *vptr)  const
+    {
+      if (vptr) {	
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCItem_T<Type>(vptr);
+      }
+    }
+
+    void swig_acquire_ownership_obj(void *vptr, ruby_owntype own) const
+    {
+      if (vptr && own) {
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCItem_Object(own);
+      }
+    }
+    
+    ruby_owntype swig_release_ownership(void *vptr) const
+    {
+      ruby_owntype own = 0;
+      if (vptr) {
+	SWIG_GUARD(swig_mutex_own);
+	ownership_map::iterator iter = owner.find(vptr);
+	if (iter != owner.end()) {
+	  own = iter->second->get_own();
+	  owner.erase(iter);
+	}
+      }
+      return own;
+    }
+
   };
 
   bool Swig::Director::swig_up = false;
@@ -222,6 +425,34 @@ namespace Swig {
   bool Swig::Director::swig_mutex_active = false;
 #endif
 
+  void UnknownExceptionHandler::handler()  {
+    try {
+      throw;
+    } catch (DirectorException& e) {
+      std::cerr << "Swig Director exception caught:" << std::endl
+                << e.getMessage() << std::endl;
+    } catch (std::exception& e) {
+      std::cerr << "std::exception caught: "<< e.what() << std::endl;
+    } catch (...) {
+      std::cerr << "Unknown exception caught." << std::endl;
+    }
+    
+    std::cerr << std::endl
+    	      << "Ruby interpreter traceback:" << std::endl;
+    std::cerr << std::endl;
+    
+    std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
+              << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
+	      << std::endl
+              << "Exception is being re-thrown, program will like abort/terminate." << std::endl;
+    throw;
+  }
+
+
+  GCItem::~GCItem()
+  {
+  }
+  
 }
 
 #endif /* __cplusplus */

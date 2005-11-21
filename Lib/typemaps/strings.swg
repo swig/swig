@@ -29,7 +29,7 @@
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) 
   Char * (Char *buf = 0, int alloc = 0),
-  const Char * (Char *buf = 0, int alloc = SWIG_OLDOBJ) {
+  const Char * (Char *buf = 0, int alloc = 0) {
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
@@ -157,21 +157,41 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr)
-  Char * (Char* buf = 0, int alloc = 0) {
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE)
+  Char * (Char* buf = 0, int alloc = SWIG_NEWOBJ) {
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError, "$type");
+  }
+  if (alloc == SWIG_NEWOBJ) {
+    swig_acquire_ownership_array(buf);
   }
   $result = buf;
 }
+%typemap(directorfree,noblock=1) Char *
+{
+  if (director) {
+    director->swig_release_ownership(%as_voidptr($input));
+  }
+}
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr) 
-  Char * const& (Char* buf = 0, int alloc = 0),
-  Char const* const& (Char* buf = 0, int alloc = 0) { 
+
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) 
+  Char * const& (Char* buf = 0, int alloc = SWIG_NEWOBJ),
+  Char const* const& (Char* buf = 0, int alloc = SWIG_NEWOBJ) { 
   if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError, "$type");
   }
-  $result = ($1_ltype) &buf;
+  static $*ltype tmp = buf;
+  $result = &tmp;
+  if (alloc == SWIG_NEWOBJ) {
+    swig_acquire_ownership_array(buf);
+  }
+}
+%typemap(directorfree,noblock=1)
+  Char * const&, Char const* const& {
+  if (director) {
+    director->swig_release_ownership(%as_voidptr(*$input));
+  }
 }
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
@@ -373,7 +393,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = 0),
-  (const Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = SWIG_OLDOBJ)
+  (const Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) { 
     %argument_fail(SWIG_TypeError,"$type",$argnum);
@@ -392,7 +412,7 @@
 /* Here size includes the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize)
   (Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = 0),
-  (const Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = SWIG_OLDOBJ)
+  (const Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
@@ -413,7 +433,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (size_t LENGTH, Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t LENGHT, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = SWIG_OLDOBJ)
+  (size_t LENGHT, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) { 
     %argument_fail(SWIG_TypeError,"$type",$argnum);
@@ -431,7 +451,7 @@
 /* Here size includes the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize)
   (size_t SIZE, Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t SIZE, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = SWIG_OLDOBJ)
+  (size_t SIZE, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) {
     %argument_fail(SWIG_TypeError, "$type",$argnum);
