@@ -64,10 +64,11 @@
   $result = %reinterpret_cast(argp, $ltype);
 }
 
-%typemap(directorout,noblock=1) void * const& ($*ltype temp) {
-  if (SWIG_ConvertPtr($input, %as_voidptrptr(&temp), 0, $disown) != SWIG_OK) { 
+%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) void * const& (void *argp) {
+  if (SWIG_ConvertPtr($input, &argp, 0, $disown) != SWIG_OK) { 
     %dirout_fail(SWIG_TypeError,"$type");
   }
+  static $*ltype temp = %reinterpret_cast(argp, $*ltype);
   $result =  &temp;
 }
 

@@ -1,6 +1,29 @@
 Version 1.3.28 (unreleased).
 ===========================
+11/21/2005: mmatus
+	    [ruby + python]
 
+	    Fixes for directors + pointers, ugly problem with not easy
+	    solution. Before we identified this case as problematic:
+
+	          virtual const MyClass& my_method();
+
+            but it turns out that all the cases where a pointer, array or
+            reference is returned, are problematic, even for 
+	    primitive types (as int, double, char*, etc).
+
+	    To try to fix the issue, a new typemap was added,
+	    'directorfree', which is used to 'free' the resources
+	    allocated during the 'directorout' phase. At the same
+	    time, a primitive garbage collector engine was added to
+	    deal with orphans addresses, when needed.
+	    
+	    The situation now is much better, but still you can have
+	    memory exaustation if recursion is used.
+
+	    So, still you need to avoid returning pointers, arrays or
+	    references when using director methods.
+	    
 11/14/2005: wsfulton
             More types added to windows.i, eg UINT8, WORD, BYTE etc. 
             Including windows.i will also enable SWIG to parse the __declspec Microsoft
@@ -69,26 +92,25 @@ Version 1.3.28 (unreleased).
             instance (not as in C++), only the last base class was
             properly deletted, or detected with directors.
 
-	    Now the self.this element can be a list, which will
-	    contain the C++ instance pointers for all the base
-	    classes.
+	    Now 'self.this' can be a list, which will contain the C++
+	    instance pointers for all the base classes.
 	    
-	    - Now the 'this' pointer is responsible for deallocating
-	    the C++ instance, and the __del__ method is not emitted
-	    unless the user preppend/append some code to it.
+	    Also, swig.this is responsible for deallocating the C++
+	    instance(s), and the __del__ method is not emitted unless
+	    the user preppend/append some code to it.
 
-	    - Swig now can detect memory leaks, ie, if you still
-	      use the non-shadow module, and type something like
+	  - Swig now can detect memory leaks, ie, if you still
+	    use the non-shadow module, and type something like
 	    
 	         import _example
 	         f = _example.new_Foo()
 
-	      and forgot to call _example.delete_Foo(f), then swig
-	      will tell you that there is a memory leak.
+	    and forgot to call _example.delete_Foo(f), then swig will
+	    tell you that there is a memory leak.
 
-	      Otherwise, if you always use the shadow module, probably
-	      you will never ever see this warning unless there is
-	      something wrong inside the swig wrapping code.
+	    Otherwise, if you always use the shadow module, probably
+	    you will never ever see this warning unless there is
+	    something wrong inside the swig wrapping code.
 	       
 	
             *** POTENTIAL INCOMPATIBILITY ***

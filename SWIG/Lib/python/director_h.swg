@@ -14,6 +14,22 @@
 #include <string>
 #include <iostream>
 #include <exception>
+#include <vector>
+#include <map>
+
+
+/*
+  Use -DSWIG_DIRECTOR_NOVTABLE if you don't want to generate a 'virtual
+  table', and avoid multiple GetAttr calls to retreive the python
+  methods.
+*/
+
+#ifndef SWIG_DIRECTOR_NOVTABLE
+#ifndef SWIG_DIRECTOR_VTABLE
+#define SWIG_DIRECTOR_VTABLE
+#endif
+#endif
+
 
 
 /*
@@ -50,6 +66,7 @@
 # ifndef SWIG_DIRECTOR_RTDIR
 # define SWIG_DIRECTOR_RTDIR
 #include <map>
+
 namespace Swig {
   class Director;
   SWIGINTERN std::map<void*,Director*>& get_rtdir_map() {
@@ -84,6 +101,117 @@ extern "C" {
 }
 
 namespace Swig {  
+
+  /* memory handler */
+  struct GCItem 
+  {
+    virtual ~GCItem() = 0;
+
+    virtual int get_own() const
+    {
+      return 0;
+    }
+  };
+  
+  struct GCItem_var
+  {
+    GCItem_var(GCItem *item = 0) : _item(item)
+    {
+    }
+
+    GCItem_var& operator=(GCItem *item)
+    {
+      GCItem *tmp = _item;
+      _item = item;
+      delete tmp;
+      return *this;
+    }
+
+    ~GCItem_var() 
+    {
+      delete _item;
+    }
+    
+    GCItem * operator->() const
+    {
+      return _item;
+    }
+    
+  private:
+    GCItem *_item;
+  };
+  
+  struct GCItem_Object : GCItem
+  {
+    GCItem_Object(int own) : _own(own)
+    {
+    }
+    
+    virtual ~GCItem_Object() 
+    {
+    }
+
+    int get_own()
+    {
+      return _own;
+    }
+    
+  private:
+    int _own;
+  };
+
+  template <typename Type>
+  struct GCItem_T : GCItem
+  {
+    GCItem_T(Type *ptr) : _ptr(ptr)
+    {
+    }
+    
+    virtual ~GCItem_T() 
+    {
+      delete _ptr;
+    }
+    
+  private:
+    Type *_ptr;
+  };
+
+  template <typename Type>
+  struct GCArray_T : GCItem
+  {
+    GCArray_T(Type *ptr) : _ptr(ptr)
+    {
+    }
+    
+    virtual ~GCArray_T() 
+    {
+      delete[] _ptr;
+    }
+    
+  private:
+    Type *_ptr;
+  };
+
+
+  /* unknown exception handler  */
+  class UnknownExceptionHandler 
+  {
+    static void handler();    
+  public:
+    
+#ifdef SWIG_DIRECTOR_UEH
+    std::unexpected_handler old;
+    UnknownExceptionHandler(std::unexpected_handler nh = handler)
+    {
+      old = std::set_unexpected(nh);
+    }
+
+    ~UnknownExceptionHandler()
+    {
+      std::set_unexpected(old);
+    }
+#endif
+  };
 
   /* base class for director exceptions */
   class DirectorException {
@@ -120,25 +248,6 @@ namespace Swig {
     }
   };
 
-  /* unknown exception handler  */
-  class UnknownExceptionHandler 
-  {
-    static void handler();    
-  public:
-    
-#ifdef SWIG_DIRECTOR_UEH
-    std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler)
-    {
-      old = std::set_unexpected(nh);
-    }
-
-    ~UnknownExceptionHandler()
-    {
-      std::set_unexpected(old);
-    }
-#endif
-  };
 
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
@@ -194,20 +303,41 @@ namespace Swig {
   };
 
 
-  /* simple thread abstraction for pthreads on win32 */
+/* simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__
-#define __PTHREAD__
-#if defined(_WIN32) || defined(__WIN32__)
-#define pthread_mutex_lock EnterCriticalSection
-#define pthread_mutex_unlock LeaveCriticalSection
-#define pthread_mutex_t CRITICAL_SECTION
-#define MUTEX_INIT(var) CRITICAL_SECTION var
+# define __PTHREAD__
+# if defined(_WIN32) || defined(__WIN32__)
+#  define pthread_mutex_lock EnterCriticalSection
+#  define pthread_mutex_unlock LeaveCriticalSection
+#  define pthread_mutex_t CRITICAL_SECTION
+#  define SWIG_MUTEX_INIT(var) var
+# endif
 #else
-#include <pthread.h>
-#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER 
-#endif
+# include <pthread.h>
+# define SWIG_MUTEX_INIT(var) var = PTHREAD_MUTEX_INITIALIZER 
 #endif
 
+#ifdef  __PTHREAD__
+# define SWIG_GUARD(mutex) Guard _guard(mutex)
+#else
+# define SWIG_GUARD(mutex) 
+#endif
+
+
+  struct Guard
+  {
+    pthread_mutex_t *_mutex;
+    
+    Guard(pthread_mutex_t &mutex) : _mutex(&mutex)
+    {
+      pthread_mutex_lock(_mutex);
+    }
+    
+    ~Guard()
+    {
+      pthread_mutex_unlock(_mutex);
+    }
+  };
 
   /* director base class */
   class Director {
@@ -248,9 +378,7 @@ namespace Swig {
 
   public:
     /* wrap a python object, optionally taking ownership */
-    Director(PyObject* self) : swig_self(self), swig_disown_flag(false) {
-      swig_incref();
-    }
+    Director(PyObject* self);
 
     /* discard our reference at destruction */
     virtual ~Director();
@@ -320,6 +448,53 @@ namespace Swig {
     }
     
     virtual void swig_set_inner(const char* /* name */, bool /* val */) const {
+    }
+
+    /* ownership managing */
+  private:
+    typedef std::map<void*, GCItem_var> ownership_map;
+    mutable ownership_map owner;
+    mutable pthread_mutex_t swig_mutex_own;
+
+  public:
+    template <typename Type>
+    void swig_acquire_ownership_array(Type *vptr)  const
+    {
+      if (vptr) {
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCArray_T<Type>(vptr);
+      }
+    }
+    
+    template <typename Type>
+    void swig_acquire_ownership(Type *vptr)  const
+    {
+      if (vptr) {	
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCItem_T<Type>(vptr);
+      }
+    }
+
+    void swig_acquire_ownership_obj(void *vptr, int own) const
+    {
+      if (vptr && own) {
+	SWIG_GUARD(swig_mutex_own);
+	owner[vptr] = new GCItem_Object(own);
+      }
+    }
+    
+    int swig_release_ownership(void *vptr) const
+    {
+      int own = 0;
+      if (vptr) {
+	SWIG_GUARD(swig_mutex_own);
+	ownership_map::iterator iter = owner.find(vptr);
+	if (iter != owner.end()) {
+	  own = iter->second->get_own();
+	  owner.erase(iter);
+	}
+      }
+      return own;
     }
   };
 

@@ -272,19 +272,35 @@
   }
   $result = *(%reinterpret_cast(argp, $&ltype));
 }
-%typemap(directorout,noblock=1) SWIGTYPE *(void *argp), SWIGTYPE [](void *argp) {
-  if (SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags) != SWIG_OK) {
+%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) 
+  SWIGTYPE *(void *argp, swig_owntype own), SWIGTYPE [](void *argp, swig_owntype own) {
+  if (SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError,"$type");
   }
   $result = %reinterpret_cast(argp, $ltype);
+  swig_acquire_ownership_obj(%as_voidptr($result), own);
 }
-%typemap(directorout,noblock=1) SWIGTYPE &(void *argp) {
-  if (SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags) != SWIG_OK) {
+%typemap(directorfree,noblock=1) SWIGTYPE *, SWIGTYPE [] {
+  if (director) {
+    SWIG_AcquirePtr($result, director->swig_release_ownership(%as_voidptr($input)));
+  }
+}
+
+%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) 
+  SWIGTYPE &(void *argp, swig_owntype own) {
+  if (SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError,"$type");
   }
   if (!argp) { %dirout_nullref("$type"); }
   $result = %reinterpret_cast(argp, $ltype);
+  swig_acquire_ownership_obj(%as_voidptr($result), own);
 }
+%typemap(directorfree,noblock=1) SWIGTYPE & {
+  if (director) {
+    SWIG_AcquirePtr($result, director->swig_release_ownership(%as_voidptr($input)));
+  }
+}
+
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
 
 

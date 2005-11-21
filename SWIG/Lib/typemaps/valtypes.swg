@@ -129,8 +129,14 @@
     if (res != SWIG_OK) {
       %dirout_fail(res, "$type");
     } 
-    static $basetype temp = %static_cast(val, $basetype);
-    $result = &temp;
+    $basetype *temp = new $basetype(($basetype)val);
+    swig_acquire_ownership(temp);
+    $result = temp;
+  }
+  %typemap(directorfree,noblock=1) const Type & {
+    if (director) {
+      director->swig_release_ownership(%as_voidptr($input));
+    }
   }
   %typemap(directorout,fragment=frag) Type &DIRECTOROUT = Type
 %enddef

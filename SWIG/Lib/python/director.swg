@@ -10,15 +10,30 @@
 #ifdef __cplusplus
 
 namespace Swig {
+
+  GCItem::~GCItem()
+  {
+  }
+  
   /* simple thread abstraction for pthreads on win32 */
   Director::~Director() {
     swig_decref(); 
   }
 
+  /* wrap a python object, optionally taking ownership */
+  Director::Director(PyObject* self) : swig_self(self), swig_disown_flag(false) {
+#ifdef __PTHREAD__
+    MUTEX_INIT(swig_mutex_own);
+#endif
+    swig_incref();
+  }
+
+
+
   bool Director::swig_up = false;
 
 #ifdef __PTHREAD__
-  MUTEX_INIT(Director::swig_mutex_up);
+  pthread_mutex_t SWIG_MUTEX_INIT(Director::swig_mutex_up);
   pthread_t Director::swig_mutex_thread;
   bool Director::swig_mutex_active = false;
 #endif

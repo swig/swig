@@ -106,6 +106,13 @@ namespace swig {
 
   Hence, this class is purely internal and not visible at the wrapped side.
  */
+namespace swig {
+  %ignore PyObject_var;
+  struct PyObject_var {};
+  %apply PyObject * {PyObject_var};
+  %apply PyObject * const& {PyObject_var const&};
+}
+
 %{
   namespace swig {
     struct PyObject_var : PyObject_ptr {

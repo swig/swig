@@ -1082,7 +1082,7 @@ public:
     String *symname = Copy(Getattr(n,"sym:name"));
     SwigType *t = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
-    Node *parent   = Getattr(n,"parentNode");
+    int director_method = 0;
     String *tm;
     
     int need_result = 0;
@@ -1220,6 +1220,7 @@ public:
       if (!is_smart_pointer()) {
         if (/*directorbase &&*/ !constructor && !destructor 
 	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
+	  director_method = 1;
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
           Printf(f->code, "if (director && (director->swig_get_self() == self)) director->swig_set_up();\n");
@@ -1244,7 +1245,20 @@ public:
 	  }
 	}
       }
+
+      /* Emit the function call */
+      if (director_method) {
+	Printf(f->code, "try {\n");
+	Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
+      }
+      
       emit_action(n,f);
+      
+      if (director_method) {
+	Printf(f->code, "} catch (Swig::DirectorException&) {\n");
+	Printf(f->code, "  SWIG_fail;\n");
+	Printf(f->code, "}\n");
+      }
     }
 
     /* Return value if necessary */
@@ -1270,7 +1284,7 @@ public:
 	    Replaceall(tm, "$track","0");
 	  }
 	  
-            
+#if 1            
           // FIXME: this will not try to unwrap directors returned as non-director
           //        base class pointers!
     
@@ -1283,21 +1297,26 @@ public:
           int is_reference = SwigType_isreference_return(decl);
           if (is_pointer || is_reference) {
             String *type = Getattr(n, "type");
+	    Node *parent   = Getattr(n,"parentNode");
             Node *modname = Getattr(parent, "module");
             Node *target = Swig_directormap(modname, type);
             if (target) unwrap = true;
           }
           if (unwrap) {
-            Wrapper_add_local(f, "resultdirector", "Swig::Director *resultdirector = 0");
-            Printf(f->code, "resultdirector = dynamic_cast<Swig::Director *>(result);\n");
-            Printf(f->code, "if (resultdirector) {\n");
-            Printf(f->code, "  vresult = resultdirector->swig_get_self();\n");
+            Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+            Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
+            Printf(f->code, "if (director) {\n");
+            Printf(f->code, "  vresult = director->swig_get_self();\n");
             Printf(f->code, "} else {\n"); 
             Printf(f->code,"%s\n", tm);
             Printf(f->code, "}\n");
+	    director_method = 0;
           } else {
             Printf(f->code,"%s\n", tm);
           }
+#else
+	  Printf(f->code,"%s\n", tm);
+#endif
 	} else {
 	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		       "Unable to use return type %s.\n", SwigType_str(t,0));
@@ -1342,6 +1361,15 @@ public:
       Replaceall(tm,"$source","result");
       Printv(f->code,tm, NIL);
     }
+
+    if (director_method) {
+      if ((tm = Swig_typemap_lookup_new("directorfree",n,"result",0))) {
+	Replaceall(tm,"$input","result");
+	Replaceall(tm,"$result","vresult");
+	Printf(f->code,"%s\n",tm);
+      }
+    }
+
 
     /* Wrap things up (in a manner of speaking) */
     if (need_result) {
@@ -2218,26 +2246,29 @@ public:
     if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0))
     {
       // Declare a global to hold the depth count
-      Printf(f_directors, "static int %s = 0;\n", depthCountName);
+      if (!Getattr(n,"sym:nextSibling")) {
+	Printf(f_directors, "static int %s = 0;\n", depthCountName);
 
-      // Function body
-      Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
-      Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
-      Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
-      Printf(body->code, "%s++;\n", depthCountName, NIL);
-      Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
-      Printf(body->code, "%s--;\n", depthCountName, NIL);
-      Printv(body->code, "return result;\n", NIL);
-      Printv(body->code, "}", NIL);
+	// Function body
+	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
+	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
+	Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
+	Printf(body->code, "%s++;\n", depthCountName, NIL);
+	Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+	Printf(body->code, "%s--;\n", depthCountName, NIL);
+	Printv(body->code, "return result;\n", NIL);
+	Printv(body->code, "}", NIL);
+	
+	// Exception handler
+	Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName); 
+	Replaceall(tm, "$error", "error");
+	Printf(rescue->code, "if (%s == 1) ", depthCountName);
+	Printv(rescue->code, Str(tm), "\n", NIL);
+	Printf(rescue->code, "%s--;\n", depthCountName);
+	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
+	Printv(rescue->code, "}", NIL);
+      }
       
-      // Exception handler
-      Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName); 
-      Replaceall(tm, "$error", "error");
-      Printf(rescue->code, "if (%s == 1) ", depthCountName);
-      Printv(rescue->code, Str(tm), "\n", NIL);
-      Printf(rescue->code, "%s--;\n", depthCountName);
-      Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
-      Printv(rescue->code, "}", NIL);
       
       // Main code
       Wrapper_add_localv(w, "args", "Swig::body_args", "args", NIL);

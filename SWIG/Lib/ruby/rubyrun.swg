@@ -8,20 +8,23 @@
  ************************************************************************/
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Ruby_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Ruby_ConvertPtrAndOwn(obj, pptr, type, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Ruby_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Ruby_NewPointerObj(ptr, type, flags)
+#define SWIG_AcquirePtr(ptr, own)                       SWIG_Ruby_AcquirePtr(ptr, own)
+#define swig_owntype                                    ruby_owntype
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
 #define SWIG_NewPackedObj(ptr, sz, type)                SWIG_Ruby_NewPackedObj(ptr, sz, type)
 
 /* for class or struct pointers */
-#define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Ruby_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_Ruby_NewPointerObj(ptr, type, flags)
+#define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewInstanceObj(ptr, type, flags)           SWIG_NewPointerObj(ptr, type, flags)
 
 /* for C or C++ function pointers */
-#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Ruby_ConvertPtr(obj, pptr, type, 0)
-#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Ruby_NewPointerObj(ptr, type, 0)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_ConvertPtr(obj, pptr, type, 0)
+#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_NewPointerObj(ptr, type, 0)
 
 /* for C++ member pointers, ie, member methods */
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty)
@@ -162,9 +165,23 @@ SWIG_Ruby_MangleStr(VALUE obj)
   return StringValuePtr(stype);
 }
 
+/* Acquire a pointer value */
+typedef void (*ruby_owntype)(void*);
+
+SWIGRUNTIME ruby_owntype
+SWIG_Ruby_AcquirePtr(VALUE obj, ruby_owntype own) {
+  if (obj) {
+    ruby_owntype oldown = RDATA(obj)->dfree;
+    RDATA(obj)->dfree = own;
+    return oldown;
+  } else {
+    return 0;
+  }
+}
+
 /* Convert a pointer value */
 SWIGRUNTIME int
-SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
+SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags, ruby_owntype *own)
 {
   char *c;
   swig_cast_info *tc;
@@ -186,6 +203,8 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
      of the underlying C struct or C++ object.  If so then we
      need to reset the destructor since the Ruby object no 
      longer owns the underlying C++ object.*/ 
+  if (own) *own = RDATA(obj)->dfree;
+    
   if (flags & SWIG_POINTER_DISOWN) {
     if (flags & SWIG_TRACK_OBJECTS) {
       /* We are tracking objects.  Thus we change the destructor
