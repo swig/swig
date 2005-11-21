@@ -48,7 +48,8 @@ ArrInt_setitem(ap,2,123)
 vi = IntPtrVector((ip,ap,None))
 if ArrInt_getitem(vi[0],0) != ArrInt_getitem(vi[1],2):
     raise RuntimeError,"bad std::vector<int*> mapping"
-    
+
+delete_ArrInt(ap)    
 
 
 a = halfs([10,8,4,3])
