@@ -161,6 +161,7 @@ CPP_TEST_CASES += \
 	li_carrays \
 	li_cdata \
 	li_cpointer \
+	li_stdint \
 	li_typemaps \
 	li_windows \
 	long_long_apply \
