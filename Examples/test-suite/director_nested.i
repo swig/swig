@@ -1,4 +1,5 @@
 %module(directors="1",dirprot="1") director_nested
+#pragma SWIG nowarn=470
 
 %{
 #include <string>
@@ -64,6 +65,11 @@
       virtual const char * get_name() 
       {
 	return "FooBar::get_name";
+      }
+
+      const char *name() 
+      {
+	return get_name();
       }
       
       static FooBar *get_self(FooBar *a)
