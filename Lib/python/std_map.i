@@ -47,9 +47,9 @@
 	}
 	PyObject *obj = PyDict_New();
 	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
-	  PyDict_SetItem(obj,
-			 swig::from(i->first),
-			 swig::from(i->second));
+	  swig::PyObject_var key = swig::from(i->first);
+	  swig::PyObject_var val = swig::from(i->second);
+	  PyDict_SetItem(obj, key, val);
 	}
 	return obj;
       }
