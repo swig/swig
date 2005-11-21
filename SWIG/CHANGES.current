@@ -23,6 +23,8 @@ Version 1.3.28 (unreleased).
 
 	    So, still you need to avoid returning pointers, arrays or
 	    references when using director methods.
+
+	    - Added stdint.i
 	    
 11/14/2005: wsfulton
             More types added to windows.i, eg UINT8, WORD, BYTE etc. 
