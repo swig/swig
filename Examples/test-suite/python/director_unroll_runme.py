@@ -12,6 +12,8 @@ b = director_unroll.Bar()
 b.set(a)
 c = b.get()
 
-if not (a is c):
+
+if not (a.this == c.this):
+	print a, c
 	raise RuntimeError
 
