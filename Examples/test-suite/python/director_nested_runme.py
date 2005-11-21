@@ -53,9 +53,11 @@ class C(FooBar_int):
   pass
 
 cc = C()
-
 c = C.get_self(cc)
 c.advance()
+
 if c.get_name() != "FooBar::get_name hello":
   raise RuntimeError
 
+if c.name() != "FooBar::get_name hello":
+  raise RuntimeError
