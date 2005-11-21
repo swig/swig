@@ -28,6 +28,8 @@ namespace Foo {
     %typemap(javaout) Str1 * = char *;
 #endif
     %typemap(in) Str1 * = char *;
+    %typemap(freearg) Str1 * = char *;
+    %typemap(typecheck) Str1 * = char *;
     %apply char * { Str2 * };
 }
 
