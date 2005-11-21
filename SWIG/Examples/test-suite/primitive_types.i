@@ -120,6 +120,11 @@
     T val;
 
     Param(T v = 0): val(v) {
+      name[0] = 0;
+      name[1] = 0;
+      name[2] = 0;
+      name[3] = 0;
+      name[4] = 0;
     }
     
     operator T() const { return val; }

@@ -1,4 +1,5 @@
 %module(directors="1") director_wombat
+#pragma SWIG nowarn=470
 
 %feature(director) Bar;
 %feature(director) Foo<int>;

@@ -1,4 +1,5 @@
 %module(directors="1") director_frob;
+#pragma SWIG nowarn=470
 
 %header %{
 #include <iostream>

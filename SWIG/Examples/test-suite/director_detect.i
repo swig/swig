@@ -1,4 +1,5 @@
 %module(directors="1") director_detect
+#pragma SWIG nowarn=470
 
 %warnfilter(822, 842) cloner; /* Java, C# covariant return types */
 

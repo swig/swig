@@ -1,4 +1,6 @@
  %module(directors="1") director_basic
+ #pragma SWIG nowarn=470
+
  %{
  #include <string>
 
@@ -32,7 +34,7 @@
  %{
  #include <complex> 
  %}
- %feature("director");
+ %feature("director") A;
 
  // basic renaming
  %rename(rg) A::gg;
@@ -99,10 +101,17 @@ public:
     return b;
   }  
 
+  virtual Bar* pmethod(Bar *b)
+  {
+    b->x += 12;
+    return b;
+  }  
+
   Bar cmethod(const Bar &b)
   {
     return vmethod(b);
   }  
+
 
   static MyClass *get_self(MyClass *c) 
   {

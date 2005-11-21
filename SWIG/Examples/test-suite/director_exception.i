@@ -3,16 +3,6 @@
 
 #include <string>
 
-class Foo {
-public:
-	virtual ~Foo() {}
-	virtual std::string ping() { return "Foo::ping()"; }
-	virtual std::string pong(int val = 3) { return "Foo::pong();" + ping(); }
-};
-
-Foo *launder(Foo *f) {
-	return f;
-}
 
 // define dummy director exception classes to prevent spurious errors 
 // in target languages that do not support directors.
@@ -61,14 +51,21 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 %feature("director") Foo;
 
+%inline {
+
 class Foo {
 public:
-	virtual ~Foo() {}
-	virtual std::string ping() { return "Foo::ping()"; }
-	virtual std::string pong(int val = 3) { return "Foo::pong();" + ping(); }
+  virtual ~Foo() {}
+  virtual std::string ping() { return "Foo::ping()"; }
+  virtual std::string pong(int val=3) { return "Foo::pong();" + ping(); }
 };
 
-Foo *launder(Foo *f);
+Foo *launder(Foo *f) {
+  return f;
+}
+
+}
+
 
 %{
   struct Unknown1

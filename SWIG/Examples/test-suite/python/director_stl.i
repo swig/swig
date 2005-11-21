@@ -1,4 +1,5 @@
 %module(directors="1") director_stl
+#pragma SWIG nowarn=470
 
 %include "std_string.i"
 %include "std_pair.i"
