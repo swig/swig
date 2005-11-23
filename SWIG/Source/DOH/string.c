@@ -154,13 +154,16 @@ String_hash(DOH *so) {
 }  
 
 /* -----------------------------------------------------------------------------
- * static add(String *s, const char *newstr) - Append to s
+ * DohString_append(String *s, const char *newstr) - Append to s
  * ----------------------------------------------------------------------------- */
 
-static void
-add(String *s, const char *newstr) {
+void
+DohString_append(DOH *so, DOH *str) {
   int   oldlen, newlen, newmaxsize, l, i, sp;
   char *tc;
+  String *s = (String *) ObjData(so);
+  char *newstr = (char *) DohData(str);
+
   if (!newstr) return;
   s->hashkey = -1;
   l = (int) strlen(newstr);
@@ -208,19 +211,21 @@ String_clear(DOH *so)
 static int 
 String_insert(DOH *so, int pos, DOH *str)
 {
-  String *s = (String *) ObjData(so);
+  String *s;
   char *nstr;
   int   len;
   char *data;
 
+  if (pos == DOH_END) {
+    DohString_append(so, str);
+    return 0;
+  }
+
+  s = (String *) ObjData(so);
+  s->hashkey = -1;
   data = (char *) DohData(str);
   nstr = s->str;
 
-  s->hashkey = -1;
-  if (pos == DOH_END) {
-    add(s, data);
-    return 0;
-  }
 
   if (pos < 0) pos = 0;
   else if (pos > s->len) pos = s->len;
@@ -417,8 +422,8 @@ String_tell(DOH *so)
  * int String_putc()
  * ----------------------------------------------------------------------------- */
 
-static int
-String_putc(DOH *so, int ch)
+int
+DohString_putc(DOH *so, int ch)
 {
   register int len, maxsize, sp;
   String *s = (String *) ObjData(so);
@@ -429,9 +434,9 @@ String_putc(DOH *so, int ch)
     register char *tc;
     maxsize = s->maxsize;
     if (len > (maxsize-2)) {
-      s->str = (char *) DohRealloc(s->str,2*maxsize);
+      s->str = (char *) DohRealloc(s->str,3*maxsize);
       assert(s->str);
-      s->maxsize = 2*maxsize;
+      s->maxsize = 3*maxsize;
     }
     tc = s->str + len;
     *(tc++) = ch;
@@ -452,8 +457,8 @@ String_putc(DOH *so, int ch)
  * int String_getc()
  * ----------------------------------------------------------------------------- */
 
-static int 
-String_getc(DOH *so)
+int 
+DohString_getc(DOH *so)
 {
   int c;
   String *s = (String *) ObjData(so);
@@ -469,8 +474,8 @@ String_getc(DOH *so)
  * int String_ungetc()
  * ----------------------------------------------------------------------------- */
 
-static int 
-String_ungetc(DOH *so, int ch)
+int 
+DohString_ungetc(DOH *so, int ch)
 {
   String *s = (String *) ObjData(so);
   if (ch == EOF) return ch;
@@ -479,7 +484,6 @@ String_ungetc(DOH *so, int ch)
   if (ch == '\n') s->line--;
   return ch;
 }
-
 
 /* -----------------------------------------------------------------------------
  * replace_simple(String *str, char *token, char *rep, int flags, int count)
@@ -882,9 +886,9 @@ static DohListMethods StringListMethods = {
 static DohFileMethods StringFileMethods = {
   String_read,
   String_write,
-  String_putc,
-  String_getc,
-  String_ungetc,
+  DohString_putc,
+  DohString_getc,
+  DohString_ungetc,
   String_seek,
   String_tell,
   0,              /* close */
