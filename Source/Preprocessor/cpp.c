@@ -46,26 +46,26 @@ isidchar(int c) {
 
 /* Skip whitespace */
 static void
-skip_whitespace(File *s, File *out) {
+skip_whitespace(String *s, String *out) {
   int c;
-  while ((c = Getc(s)) != EOF) {
+  while ((c = StringGetc(s)) != EOF) {
     if (!isspace(c)) {
-      Ungetc(c,s);
+      StringUngetc(c,s);
       break;
-    } else if (out) Putc(c,out);
+    } else if (out) StringPutc(c,out);
   }
 }
 
 /* Skip to a specified character taking line breaks into account */
 static int
-skip_tochar(File *s, int ch, File *out) {
+skip_tochar(String *s, int ch, String *out) {
   int c;
-  while ((c = Getc(s)) != EOF) {
-    if (out) Putc(c,out);
+  while ((c = StringGetc(s)) != EOF) {
+    if (out) StringPutc(c,out);
     if (c == ch) break;
     if (c == '\\') {
-      c = Getc(s);
-      if ((c != EOF) && (out)) Putc(c,out);
+      c = StringGetc(s);
+      if ((c != EOF) && (out)) StringPutc(c,out);
     }
   }
   if (c == EOF) return -1;
@@ -113,6 +113,10 @@ List *Preprocessor_depend(void) {
 /* -----------------------------------------------------------------------------
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
+static String *k_args = 0;
+static String *k_name = 0;
+static String *k_value = 0;
+
 void Preprocessor_init(void) {
   Hash *s;
   cpp = NewHash();
@@ -120,6 +124,10 @@ void Preprocessor_init(void) {
   Setattr(cpp,"symbols",s);
   Preprocessor_expr_init();            /* Initialize the expression evaluator */
   included_files = NewHash();
+
+  k_args = NewString("args");
+  k_name = NewString("name");
+  k_value = NewString("value");
 }
 /* -----------------------------------------------------------------------------
  * void Preprocessor_include_all() - Instruct preprocessor to include all files
@@ -199,14 +207,14 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* Now look for a macro name */
   macroname = NewString("");
-  while ((c = Getc(str)) != EOF) {
+  while ((c = StringGetc(str)) != EOF) {
     if (c == '(') {
       argstr = NewString("");
       copy_location(str,argstr);
       /* It is a macro.  Go extract it's argument string */
-      while ((c = Getc(str)) != EOF) {
+      while ((c = StringGetc(str)) != EOF) {
 	if (c == ')') break;
-	else Putc(c,argstr);
+	else StringPutc(c,argstr);
       }
       if (c != ')') {
 	Swig_error(Getfile(str),Getline(str), "Missing \')\' in macro parameters\n");
@@ -214,28 +222,28 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       }
       break;
     } else if (isidchar(c) || (c == '%')) {
-      Putc(c,macroname);
+      StringPutc(c,macroname);
     } else if (isspace(c)) {
       break;
     } else if (c == '\\') {
-      c = Getc(str);
+      c = StringGetc(str);
       if (c != '\n') {
-	Ungetc(c,str);
-	Ungetc('\\',str);
+	StringUngetc(c,str);
+	StringUngetc('\\',str);
 	break;
       }
     } else {
       /*Swig_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
 	goto macro_error; */
-      Ungetc(c,str);
+      StringUngetc(c,str);
       break;
     }
   }
   if (!swigmacro)
     skip_whitespace(str,0);
   macrovalue = NewString("");
-  while ((c = Getc(str)) != EOF) {
-    Putc(c,macrovalue);
+  while ((c = StringGetc(str)) != EOF) {
+    StringPutc(c,macrovalue);
   }
 
   /* If there are any macro arguments, convert into a list */
@@ -244,7 +252,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     arglist = NewList();
     Seek(argstr,0,SEEK_SET);
     argname = NewString("");
-    while ((c = Getc(argstr)) != EOF) {
+    while ((c = StringGetc(argstr)) != EOF) {
       if (c == ',') {
 	varargname = Macro_vararg_name(argname, str);
 	if (varargname) {
@@ -255,7 +263,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 	Delete(argname);
 	argname = NewString("");
       } else if (isidchar(c) || (c == '.')) {
-	Putc(c,argname);
+	StringPutc(c,argname);
       } else if (!(isspace(c) || (c == '\\'))) {
 	Swig_error(Getfile(str),Getline(str),"Illegal character in macro argument name\n");
 	goto macro_error;
@@ -349,15 +357,15 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* Go create the macro */
   macro = NewHash();
-  Setattr(macro,"name", macroname);
+  Setattr(macro,k_name, macroname);
   if (arglist) {
-    Setattr(macro,"args",arglist);
+    Setattr(macro,k_args,arglist);
     Delete(arglist);
     if (varargs) {
       Setattr(macro,"varargs","1");
     }
   }
-  Setattr(macro,"value",macrovalue);
+  Setattr(macro,k_value,macrovalue);
   Delete(macrovalue);
   Setline(macro,line);
   Setfile(macro,file);
@@ -366,7 +374,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   symbols = Getattr(cpp,"symbols");
   if ((m1 = Getattr(symbols,macroname))) {
-    if (Cmp(Getattr(m1,"value"),macrovalue)) {
+    if (Cmp(Getattr(m1,k_value),macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
       goto macro_error;
@@ -422,41 +430,41 @@ find_args(String *s)
   skip_whitespace(s,0);
 
   /* Now see if the next character is a '(' */
-  c = Getc(s);
+  c = StringGetc(s);
   if (c != '(') {
     /* Not a macro, bail out now! */
     Seek(s,pos, SEEK_SET);
     Delete(args);
     return 0;
   }
-  c = Getc(s);
+  c = StringGetc(s);
   /* Okay.  This appears to be a macro so we will start isolating arguments */
   while (c != EOF) {
     if (isspace(c)) {
       skip_whitespace(s,0);                    /* Skip leading whitespace */
-      c = Getc(s);
+      c = StringGetc(s);
     }
     str = NewString("");
     copy_location(s,str);
     level = 0;
     while (c != EOF) {
       if (c == '\"') {
-	Putc(c,str);
+	StringPutc(c,str);
 	skip_tochar(s,'\"',str);
-	c = Getc(s);
+	c = StringGetc(s);
 	continue;
       } else if (c == '\'') {
-	Putc(c,str);
+	StringPutc(c,str);
 	skip_tochar(s,'\'',str);
-	c = Getc(s);
+	c = StringGetc(s);
 	continue;
       }
       if ((c == ',') && (level == 0)) break;
       if ((c == ')') && (level == 0)) break;
-      Putc(c,str);
+      StringPutc(c,str);
       if (c == '(') level++;
       if (c == ')') level--;
-      c = Getc(s);
+      c = StringGetc(s);
     }
     if (level > 0) {
       goto unterm;
@@ -470,7 +478,7 @@ find_args(String *s)
 	  Append(args,str); */
 
     if (c == ')') return args;
-    c = Getc(s);
+    c = StringGetc(s);
   }
  unterm:
   Swig_error(Getfile(args),Getline(args),"Unterminated macro call.\n");
@@ -492,17 +500,17 @@ get_filename(String *str, int* sysfile) {
   skip_whitespace(str,0);
   fn = NewString("");
   copy_location(str,fn);
-  c = Getc(str);
+  c = StringGetc(str);
   *sysfile = 0;
   if (c == '\"') {
-    while (((c = Getc(str)) != EOF) && (c != '\"')) Putc(c,fn);
+    while (((c = StringGetc(str)) != EOF) && (c != '\"')) StringPutc(c,fn);
   } else if (c == '<') {
     *sysfile = 1;
-    while (((c = Getc(str)) != EOF) && (c != '>'))  Putc(c,fn);
+    while (((c = StringGetc(str)) != EOF) && (c != '>'))  StringPutc(c,fn);
   } else {
-    Putc(c,fn);
-    while (((c = Getc(str)) != EOF) && (!isspace(c))) Putc(c,fn);
-    if (isspace(c)) Ungetc(c,str);
+    StringPutc(c,fn);
+    while (((c = StringGetc(str)) != EOF) && (!isspace(c))) StringPutc(c,fn);
+    if (isspace(c)) StringUngetc(c,str);
   }
 #if defined(_WIN32) || defined(MACSWIG)
   /* accept Unix path separator on non-Unix systems */
@@ -521,13 +529,13 @@ get_options(String *str) {
 
   int  c;
   skip_whitespace(str,0);
-  c = Getc(str);
+  c = StringGetc(str);
   if (c == '(') {
     String *opt;
     int     level = 1;
     opt = NewString("(");
-    while (((c = Getc(str)) != EOF)) {
-      Putc(c,opt);
+    while (((c = StringGetc(str)) != EOF)) {
+      StringPutc(c,opt);
       if (c == ')') {
 	level--;
 	if (!level) return opt;
@@ -537,7 +545,7 @@ get_options(String *str) {
     Delete(opt);
     return 0;
   } else {
-    Ungetc(c,str);
+    StringUngetc(c,str);
     return 0;
   }
 }
@@ -564,24 +572,24 @@ expand_macro(String_or_char *name, List *args)
   if (!macro) return 0;
   if (Getattr(macro,"*expanded*")) {
     ns = NewString("");
-    Printf(ns,"%s",name);
+    StringAppend(ns,name);
     if (args) {
       if (Len(args))
-	Putc('(',ns);
+	StringPutc('(',ns);
       for (i = 0; i < Len(args); i++) {
-	Printf(ns,"%s",Getitem(args,i));
-	if (i < (Len(args) -1)) Putc(',',ns);
+	StringAppend(ns,Getitem(args,i));
+	if (i < (Len(args) -1)) StringPutc(',',ns);
       }
       if (i)
-	Putc(')',ns);
+	StringPutc(')',ns);
     }
     return ns;
   }
 
   /* Get macro arguments and value */
-  mvalue = Getattr(macro,"value");
+  mvalue = Getattr(macro,k_value);
   assert(mvalue);
-  margs = Getattr(macro,"args");
+  margs = Getattr(macro,k_args);
 
   if (args && Getattr(macro,"varargs")) {
     isvarargs = 1;
@@ -593,9 +601,9 @@ expand_macro(String_or_char *name, List *args)
       vi = Len(margs)-1;
       na = Len(args);
       for (i = vi; i < na; i++) {
-	Append(vararg,Getitem(args,i));
+	StringAppend(vararg,Getitem(args,i));
 	if ((i+1) < na) {
-	  Append(vararg,",");
+	  StringAppend(vararg,",");
 	}
       }
       /* Remove arguments */
@@ -652,12 +660,12 @@ expand_macro(String_or_char *name, List *args)
 	Clear(temp);
 	Clear(tempa);
 	Printf(temp,"\002%s",aname);
-	Append(tempa,"\002\003");
+	StringAppend(tempa,"\002\003");
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
 	Clear(temp);
 	Clear(tempa);
 	Printf(temp,"%s\002",aname);
-	Append(tempa,"\003\002");
+	StringAppend(tempa,"\003\002");
 	Replace(ns,temp,tempa, DOH_REPLACE_ID_BEGIN);
       }
 
@@ -754,7 +762,7 @@ expand_macro(String_or_char *name, List *args)
 #if 0
     Printf(f,"/*@%s,%d,%s@*/%s/*@@*/", Getfile(macro), Getline(macro), name, g);
 #else
-    Printf(f,"%s", g);
+    Append(f,g);
 #endif
     /*    Printf(f," }\n"); */
     Delete(g);
@@ -807,53 +815,53 @@ Preprocessor_replace(DOH *s)
   id = NewString("");
 
   /* Try to locate identifiers in s and replace them with macro replacements */
-  while ((c = Getc(s)) != EOF) {
+  while ((c = StringGetc(s)) != EOF) {
     switch (state) {
     case 0:
       if (isidentifier(c) || (c == '%')) {
 	Clear(id);
 	copy_location(s,id);
-	Putc(c,id);
+	StringPutc(c,id);
 	state = 1;
       } else if (c == '\"') {
-	Putc(c,ns);
+	StringPutc(c,ns);
 	skip_tochar(s,'\"',ns);
       } else if (c == '\'') {
-	Putc(c,ns);
+	StringPutc(c,ns);
 	skip_tochar(s,'\'',ns);
       } else if (c == '/') {
-	Putc(c,ns);
+	StringPutc(c,ns);
 	state = 10;
       } else {
-	Putc(c,ns);
+	StringPutc(c,ns);
       }
       break;
     case 1:  /* An identifier */
       if (isidchar(c)) {
-	Putc(c,id);
+	StringPutc(c,id);
 	state = 1;
       } else {
 	/* We found the end of a valid identifier */
-	Ungetc(c,s);
+	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
 	if (Cmp(id,"defined") == 0) {
 	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
 	  skip_whitespace(s,0);
-	  c = Getc(s);
+	  c = StringGetc(s);
 	  if (c == '(') {
 	    Seek(s,-1,SEEK_CUR);
 	    args = find_args(s);
 	  } else if (isidchar(c)) {
 	    DOH *arg = NewString("");
 	    args = NewList();
-	    Putc(c,arg);
-	    while (((c = Getc(s)) != EOF)) {
+	    StringPutc(c,arg);
+	    while (((c = StringGetc(s)) != EOF)) {
 	      if (!isidchar(c)) {
 		Seek(s,-1,SEEK_CUR);
 		break;
 	      }
-	      Putc(c,arg);
+	      StringPutc(c,arg);
 	    }
 	    if (Len(arg)) Append(args,arg);
 	    Delete(arg);
@@ -862,7 +870,7 @@ Preprocessor_replace(DOH *s)
 	  }
 	  if ((!args) || (!Len(args))) {
 	    /* This is not a defined() macro. */
-	    Printf(ns,"%s",id);
+	    StringAppend(ns,id);
 	    state = 0;
 	    break;
 	  }
@@ -872,8 +880,8 @@ Preprocessor_replace(DOH *s)
 	      break;
 	    }
 	  }
-	  if (i < Len(args)) Putc('0',ns);
-	  else Putc('1',ns);
+	  if (i < Len(args)) StringPutc('0',ns);
+	  else StringPutc('1',ns);
 	  Delete(args);
 	  state = 0;
 	  break;
@@ -896,7 +904,7 @@ Preprocessor_replace(DOH *s)
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
-	  if (Getattr(m,"args")) {
+	  if (Getattr(m,k_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
 	    args = find_args(s);
 	    if (!Len(args)) {
@@ -908,12 +916,12 @@ Preprocessor_replace(DOH *s)
 	  }
 	  e = expand_macro(id,args);
 	  if (e) {
-	    Printf(ns,"%s",e);
+	    StringAppend(ns,e);
 	  }
 	  Delete(e);
 	  Delete(args);
 	} else {
-	  Printf(ns,"%s",id);
+	  StringAppend(ns,id);
 	}
 	state = 0;
       }
@@ -922,22 +930,22 @@ Preprocessor_replace(DOH *s)
       if (c == '/') state = 11;
       else if (c == '*') state = 12;
       else {
-	Ungetc(c,s);
+	StringUngetc(c,s);
 	state = 0;
 	break;
       }
-      Putc(c,ns);
+      StringPutc(c,ns);
       break;
     case 11:
-      Putc(c,ns);
+      StringPutc(c,ns);
       if (c == '\n') state = 0;
       break;
     case 12:
-      Putc(c,ns);
+      StringPutc(c,ns);
       if (c == '*') state = 13;
       break;
     case 13:
-      Putc(c,ns);
+      StringPutc(c,ns);
       if (c == '/') state = 0;
       else if (c != '*') state = 12;
       break;
@@ -960,10 +968,10 @@ Preprocessor_replace(DOH *s)
 	  Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
 	  } */
 	e = expand_macro(id,0);
-	Printf(ns,"%s",e);
+	StringAppend(ns,e);
 	Delete(e);
     } else {
-      Printf(ns,"%s",id);
+      StringAppend(ns,id);
     }
   }
   Delete(id);
@@ -1008,11 +1016,11 @@ static void
 addline(DOH *s1, DOH *s2, int allow)
 {
   if (allow) {
-    Append(s1,s2);
+    StringAppend(s1,s2);
   } else {
     char *c = Char(s2);
     while (*c) {
-      if (*c == '\n') Putc('\n',s1);
+      if (*c == '\n') StringPutc('\n',s1);
       c++;
     }
   }
@@ -1050,6 +1058,7 @@ pop_imported() {
     Preprocessor_undef("SWIGIMPORTED");
   }
 }
+
 
 /* -----------------------------------------------------------------------------
  * Preprocessor_parse()
@@ -1096,7 +1105,7 @@ Preprocessor_parse(String *s)
   symbols = Getattr(cpp,"symbols");
 
   state = 0;
-  while ((c = Getc(s)) != EOF) {
+  while ((c = StringGetc(s)) != EOF) {
     switch(state) {
     case 0:        /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
@@ -1106,11 +1115,11 @@ Preprocessor_parse(String *s)
 	cpp_lines = 1;
 	state = 40;
       } else if (isspace(c)) {
-	Putc(c,chunk);
+	StringPutc(c,chunk);
 	skip_whitespace(s,chunk);
       } else {
 	state = 1;
-	Ungetc(c,s);
+	StringUngetc(c,s);
       }
       break;
     case 1:       /* Non-preprocessor directive */
@@ -1119,7 +1128,7 @@ Preprocessor_parse(String *s)
 	state = 100;
 	break;
       }
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '\n') state = 0;
       else if (c == '\"') {
 	start_line = Getline(s);
@@ -1137,34 +1146,34 @@ Preprocessor_parse(String *s)
 
     case 30:      /* Possibly a comment string of some sort */
       start_line = Getline(s);
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '/') state = 31;
       else if (c == '*') state = 32;
       else state = 1;
       break;
     case 31:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '\n') state = 0;
       break;
     case 32:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '*') state = 33;
       break;
     case 33:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '/') state = 1;
       else if (c != '*') state = 32;
       break;
 
     case 40:   /* Start of a C preprocessor directive */
       if (c == '\n') {
-	Putc('\n',chunk);
+	StringPutc('\n',chunk);
 	state = 0;
       } else if (isspace(c)) {
 	state = 40;
       } else {
 	/* Got the start of a preprocessor directive */
-	Ungetc(c,s);
+	StringUngetc(c,s);
 	Clear(id);
 	copy_location(s,id);
 	state = 41;
@@ -1176,25 +1185,25 @@ Preprocessor_parse(String *s)
 	Clear(value);
 	Clear(comment);
 	if (c == '\n') {
-	  Ungetc(c,s);
+	  StringUngetc(c,s);
 	  state = 50;
 	} else {
 	  state = 42;
 	  if (!isspace(c)) {
-	    Ungetc(c,s);
+	    StringUngetc(c,s);
 	  }
 	}
 
 	copy_location(s,value);
 	break;
       }
-      Putc(c,id);
+      StringPutc(c,id);
       break;
 
     case 42: /* Strip any leading space before preprocessor value */
       if (isspace(c)) {
 	if (c == '\n') {
-	  Ungetc(c,s);
+	  StringUngetc(c,s);
 	  state = 50;
 	}
 	break;
@@ -1205,28 +1214,28 @@ Preprocessor_parse(String *s)
     case 43:
       /* Get preprocessor value */
       if (c == '\n') {
-	Ungetc(c,s);
+	StringUngetc(c,s);
 	state = 50;
       } else if (c == '/') {
 	state = 45;
       } else if (c == '\"') {
-	Putc(c,value);
+	StringPutc(c,value);
 	skip_tochar(s,'\"',value);
       } else if (c == '\'') {
-	Putc(c,value);
+	StringPutc(c,value);
 	skip_tochar(s,'\'',value);
       } else {
-	Putc(c,value);
+	StringPutc(c,value);
 	if (c == '\\') state = 44;
       }
       break;
 
     case 44:
       if (c == '\n') {
-	Putc(c,value);
+	StringPutc(c,value);
 	cpp_lines++;
       } else {
-	Ungetc(c,s);
+	StringUngetc(c,s);
       }
       state = 43;
       break;
@@ -1238,33 +1247,33 @@ Preprocessor_parse(String *s)
       if (c == '/') state = 46;
       else if (c == '*') state = 47;
       else if (c == '\n') {
-	Putc('/',value);
-	Ungetc(c,s);
+	StringPutc('/',value);
+	StringUngetc(c,s);
 	cpp_lines++;
 	state = 50;
       } else {
-	Putc('/',value);
-	Putc(c,value);
+	StringPutc('/',value);
+	StringPutc(c,value);
 	state = 43;
       }
       break;
     case 46:
       if (c == '\n') {
-	Ungetc(c,s);
+	StringUngetc(c,s);
 	cpp_lines++;
 	state = 50;
-      } else Putc(c,comment);
+      } else StringPutc(c,comment);
       break;
     case 47:
       if (c == '*') state = 48;
-      else Putc(c,comment);
+      else StringPutc(c,comment);
       break;
     case 48:
       if (c == '/') state = 43;
-      else if (c == '*') Putc(c,comment);
+      else if (c == '*') StringPutc(c,comment);
       else {
-	Putc('*',comment);
-	Putc(c,comment);
+	StringPutc('*',comment);
+	StringPutc(c,comment);
 	state = 47;
       }
       break;
@@ -1276,8 +1285,8 @@ Preprocessor_parse(String *s)
 	  DOH *m, *v, *v1;
 	  Seek(value,0,SEEK_SET);
 	  m = Preprocessor_define(value,0);
-	  if ((m) && !(Getattr(m,"args"))) {
-	    v = Copy(Getattr(m,"value"));
+	  if ((m) && !(Getattr(m,k_args))) {
+	    v = Copy(Getattr(m,k_value));
 	    if (Len(v)) {
 	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);
@@ -1285,9 +1294,9 @@ Preprocessor_parse(String *s)
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns,"%%constant %s = %s;\n", Getattr(m,"name"), v1);
+		  Printf(ns,"%%constant %s = %s;\n", Getattr(m,k_name), v1);
 		else
-		  Printf(ns,"%%constant %s = %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
+		  Printf(ns,"%%constant %s = %s; /*%s*/\n", Getattr(m,k_name),v1,comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
@@ -1451,7 +1460,7 @@ Preprocessor_parse(String *s)
 	Swig_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }
       for (i = 0; i < cpp_lines; i++)
-  	Putc('\n',ns);
+  	StringPutc('\n',ns);
       state = 0;
       break;
 
@@ -1462,35 +1471,35 @@ Preprocessor_parse(String *s)
   	start_line = Getline(s);
   	add_chunk(ns,chunk,allow);
   	copy_location(s,chunk);
-  	Putc('%',chunk);
-  	Putc(c,chunk);
+  	StringPutc('%',chunk);
+  	StringPutc(c,chunk);
   	state = 105;
       }
       /* %#cpp -  an embedded C preprocessor directive (we strip off the %)  */
       else if (c == '#') {
 	add_chunk(ns,chunk,allow);
-  	Putc(c,chunk);
+  	StringPutc(c,chunk);
   	state = 107;
       } else if (isidentifier(c)) {
   	Clear(decl);
-  	Putc('%',decl);
-  	Putc(c,decl);
+  	StringPutc('%',decl);
+  	StringPutc(c,decl);
   	state = 110;
       } else {
-	Putc('%',chunk);
-  	Putc(c,chunk);
+	StringPutc('%',chunk);
+  	StringPutc(c,chunk);
   	state = 1;
       }
       break;
 
     case 105:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '%')
   	state = 106;
       break;
 
     case 106:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '}') {
   	state = 1;
 	addline(ns,chunk,allow);
@@ -1502,7 +1511,7 @@ Preprocessor_parse(String *s)
       break;
       
     case 107:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       if (c == '\n') {
 	addline(ns,chunk,allow);
 	Clear(chunk);
@@ -1513,13 +1522,13 @@ Preprocessor_parse(String *s)
       break;
 
     case 108:
-      Putc(c,chunk);
+      StringPutc(c,chunk);
       state = 107;
       break;
 
     case 110:
       if (!isidchar(c)) {
-  	Ungetc(c,s);
+  	StringUngetc(c,s);
   	/* Look for common Swig directives  */
   	if ((Cmp(decl,"%include") == 0) || (Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
   	  /* Got some kind of file inclusion directive  */
@@ -1529,7 +1538,7 @@ Preprocessor_parse(String *s)
 	    if (Cmp(decl,"%extern") == 0) {
 	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
 	      Clear(decl);
-	      Printf(decl,"%%import");
+	      StringAppend(decl,"%%import");
 	    }
 	    opt = get_options(s);
   	    fn = get_filename(s, &sysfile);
@@ -1556,7 +1565,7 @@ Preprocessor_parse(String *s)
 		pop_imported();
 	      }
   	      addline(ns,s2,allow);
-  	      Printf(ns,"\n]");
+  	      StringAppend(ns,"\n]");
 	      Delete(s2);
 	      Delete(s1);
   	    }
@@ -1575,30 +1584,30 @@ Preprocessor_parse(String *s)
   	  copy_location(s,value);
   	  state = 150;
   	} else {
-  	  Printf(chunk,"%s", decl);
+  	  StringAppend(chunk,decl);
   	  state = 1;
   	}
       } else {
-  	Putc(c,decl);
+  	StringPutc(c,decl);
       }
       break;
 
         /* Searching for the end of a %define statement  */
     case 150:
-      Putc(c,value);
+      StringPutc(c,value);
       if (c == '%') {
   	const char *ed = "enddef";
   	const char *df = "define";
 	char statement[7];
   	int i = 0;
   	for (i = 0; i < 6; ) {
-  	  c = Getc(s);
-  	  Putc(c,value);
+  	  c = StringGetc(s);
+  	  StringPutc(c,value);
 	  statement[i++] = c;
   	  if (strncmp(statement, ed, i) && strncmp(statement, df, i)) break;
   	}
-	c = Getc(s);
-	Ungetc(c,s);
+	c = StringGetc(s);
+	StringUngetc(c,s);
   	if ((i == 6) && (isspace(c))) {
 	  if (strncmp(statement, df, i) == 0) {
 	    ++dlevel;
@@ -1614,7 +1623,7 @@ Preprocessor_parse(String *s)
 		  Seek(value,0,SEEK_SET);
 		  Preprocessor_define(value,1);
 		}
-		Putc('\n',ns);
+		StringPutc('\n',ns);
 		addline(ns,value,0);
 		state = 0;
 	      }

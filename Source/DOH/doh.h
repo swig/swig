@@ -65,6 +65,14 @@
 #define DohGetc            DOH_NAMESPACE(Getc)
 #define DohPutc            DOH_NAMESPACE(Putc)
 #define DohUngetc          DOH_NAMESPACE(Ungetc)
+
+#define DohStringGetc            DOH_NAMESPACE(StringGetc)
+#define DohStringPutc            DOH_NAMESPACE(StringPutc)
+#define DohStringUngetc          DOH_NAMESPACE(StringUngetc)
+#define DohStringAppend          DOH_NAMESPACE(StringAppend)
+
+
+
 #define DohGetline         DOH_NAMESPACE(Getline)
 #define DohSetline         DOH_NAMESPACE(Setline)
 #define DohGetfile         DOH_NAMESPACE(Getfile)
@@ -218,6 +226,8 @@ extern int           DohGetc(DOHFile *obj);
 extern int           DohPutc(int ch, DOHFile *obj);
 extern int           DohUngetc(int ch, DOHFile *obj);
 
+
+
 /* Iterators */
 extern DohIterator   DohFirst(DOH *obj);
 extern DohIterator   DohNext(DohIterator x);
@@ -233,6 +243,16 @@ extern void          DohSetfile(DOH *obj, DOH *file);
 
 extern int           DohReplace(DOHString *src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
 extern void          DohChop(DOHString *src);
+
+extern int DohString_putc(DOH *so, int ch);
+extern int DohString_getc(DOH *so);
+extern int DohString_ungetc(DOH *so, int ch);
+extern void DohString_append(DOH *so, DOH *str);
+
+#define DohStringPutc(ch,so)    DohString_putc(so, ch)
+#define DohStringGetc(so)       DohString_getc(so)
+#define DohStringUngetc(ch,so)  DohString_ungetc(so, ch)
+#define DohStringAppend(so,str) DohString_append(so, str)
 
 /* Meta-variables */
 extern DOH          *DohGetmeta(DOH *, const DOH *);
@@ -355,6 +375,12 @@ extern void      DohMemoryDebug(void);
 #define Getc               DohGetc
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
+
+#define StringGetc         DohStringGetc
+#define StringPutc         DohStringPutc
+#define StringUngetc       DohStringUngetc
+#define StringAppend       DohStringAppend
+
 #define Close              DohClose
 #define vPrintf            DohvPrintf
 #define GetInt             DohGetInt
