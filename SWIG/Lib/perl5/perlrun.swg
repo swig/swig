@@ -77,10 +77,23 @@ extern "C" {
 
 #define SWIG_MAYBE_PERL_OBJECT SWIG_PERL_OBJECT_DECL
 
-SWIGRUNTIME swig_cast_info *
-SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
-  SWIG_TypeCheck_Template(sv_derived_from(rv, (char *) iter->type->name), ty);
+SWIGRUNTIME const char *
+SWIG_Perl_TypeProxyName(const swig_type_info *type) {
+  if (!type) return NULL;
+  if (type->clientdata != NULL) {
+    return (const char*) type->clientdata;
+  } 
+  else {
+    return type->name;
+  }
 }
+
+SWIGRUNTIME swig_cast_info *
+SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
+  SWIG_TypeCheck_Template(( (!iter->type->clientdata && (strcmp((char*)iter->type->name, c) == 0)) 
+			    || (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0))), ty);
+}
+
 
 /* Function for getting a pointer value */
 
@@ -131,8 +144,7 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   if (_t) {
     /* Now see if the types match */
     char *_c = HvNAME(SvSTASH(SvRV(sv)));
-
-    tc = SWIG_TypeCheck(_c,_t);
+    tc = SWIG_TypeProxyCheck(_c,_t);
     if (!tc) {
       return SWIG_ERROR;
     }
@@ -171,7 +183,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     SV *obj=newSV(0);
     HV *hash=newHV();
     HV *stash;
-    sv_setref_pv(obj, (char *) t->name, ptr);
+    sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
     stash=SvSTASH(SvRV(obj));
     if (flags & SWIG_POINTER_OWN) {
       HV *hv;
@@ -189,7 +201,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     sv_bless(sv, stash);
   }
   else {
-    sv_setref_pv(sv, (char *) t->name, ptr);
+    sv_setref_pv(sv, (char *) SWIG_Perl_TypeProxyName(t), ptr);
   }
 }
 
@@ -204,10 +216,10 @@ SWIGRUNTIME void
 SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
-  if ((2*sz + 1 + strlen(type->name)) > 1000) return;
+  if ((2*sz + 1 + strlen(SWIG_Perl_TypeProxyName(type))) > 1000) return;
   *(r++) = '_';
   r = SWIG_PackData(r,ptr,sz);
-  strcpy(r,type->name);
+  strcpy(r,SWIG_Perl_TypeProxyName(type));
   sv_setpv(sv, result);
 }
 

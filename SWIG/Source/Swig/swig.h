@@ -292,6 +292,7 @@ extern int         SwigType_isclass(SwigType *t);
 extern void        SwigType_attach_symtab(Symtab *syms);
 extern void        SwigType_remember(SwigType *t);
 extern void        SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata);
+extern void        SwigType_remember_mangleddata(String *mangled, const String_or_char *clientdata);
 extern void      (*SwigType_remember_trace(void (*tf)(SwigType *, String *, String *)))(SwigType *, String *, String *);
 extern void        SwigType_emit_type_table(File *f_headers, File *f_table);
 extern int         SwigType_type(SwigType *t);
