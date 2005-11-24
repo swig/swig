@@ -114,20 +114,29 @@ List *Preprocessor_depend(void) {
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
 static String *k_args = 0;
+static String *k_expanded = 0;
 static String *k_name = 0;
+static String *k_symbols = 0;
 static String *k_value = 0;
+static String *k_varargs = 0;
+static String *k_swigmacro = 0;
 
 void Preprocessor_init(void) {
   Hash *s;
-  cpp = NewHash();
-  s =   NewHash();
-  Setattr(cpp,"symbols",s);
-  Preprocessor_expr_init();            /* Initialize the expression evaluator */
-  included_files = NewHash();
 
   k_args = NewString("args");
   k_name = NewString("name");
   k_value = NewString("value");
+  k_symbols = NewString("symbols");
+  k_varargs = NewString("varargs");
+  k_expanded = NewString("*expanded*");
+  k_swigmacro = NewString("swigmacro");
+
+  cpp = NewHash();
+  s =   NewHash();
+  Setattr(cpp,k_symbols,s);
+  Preprocessor_expr_init();            /* Initialize the expression evaluator */
+  included_files = NewHash();
 }
 /* -----------------------------------------------------------------------------
  * void Preprocessor_include_all() - Instruct preprocessor to include all files
@@ -362,7 +371,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     Setattr(macro,k_args,arglist);
     Delete(arglist);
     if (varargs) {
-      Setattr(macro,"varargs","1");
+      Setattr(macro,k_varargs,"1");
     }
   }
   Setattr(macro,k_value,macrovalue);
@@ -370,9 +379,9 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   Setline(macro,line);
   Setfile(macro,file);
   if (swigmacro) {
-    Setattr(macro,"swigmacro","1");
+    Setattr(macro,k_swigmacro,"1");
   }
-  symbols = Getattr(cpp,"symbols");
+  symbols = Getattr(cpp,k_symbols);
   if ((m1 = Getattr(symbols,macroname))) {
     if (Cmp(Getattr(m1,k_value),macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
@@ -403,7 +412,7 @@ void Preprocessor_undef(const String_or_char *str)
 {
   Hash *symbols;
   assert(cpp);
-  symbols = Getattr(cpp,"symbols");
+  symbols = Getattr(cpp,k_symbols);
   Delattr(symbols,str);
 }
 
@@ -564,13 +573,13 @@ expand_macro(String_or_char *name, List *args)
   int i, l;
   int isvarargs = 0;
 
-  symbols = Getattr(cpp,"symbols");
+  symbols = Getattr(cpp,k_symbols);
   if (!symbols) return 0;
 
   /* See if the name is actually defined */
   macro = Getattr(symbols,name);
   if (!macro) return 0;
-  if (Getattr(macro,"*expanded*")) {
+  if (Getattr(macro,k_expanded)) {
     ns = NewString("");
     StringAppend(ns,name);
     if (args) {
@@ -591,7 +600,7 @@ expand_macro(String_or_char *name, List *args)
   assert(mvalue);
   margs = Getattr(macro,k_args);
 
-  if (args && Getattr(macro,"varargs")) {
+  if (args && Getattr(macro,k_varargs)) {
     isvarargs = 1;
     /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
     if (Len(args) >= (Len(margs)-1)) {
@@ -744,14 +753,14 @@ expand_macro(String_or_char *name, List *args)
   Replace(ns,"\004","#@",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
 
   /* Expand this macro even further */
-  Setattr(macro,"*expanded*","1"); 
+  Setattr(macro,k_expanded,"1"); 
 
   e = Preprocessor_replace(ns);
 
-  Delattr(macro,"*expanded*");
+  Delattr(macro,k_expanded);
   Delete(ns);
 
-  if (Getattr(macro,"swigmacro")) {
+  if (Getattr(macro,k_swigmacro)) {
     String *g;
     String *f = NewString("");
     Seek(e,0,SEEK_SET);
@@ -807,7 +816,7 @@ Preprocessor_replace(DOH *s)
   int   c, i, state = 0;
 
   assert(cpp);
-  symbols = Getattr(cpp,"symbols");
+  symbols = Getattr(cpp,k_symbols);
 
   ns = NewString("");
   copy_location(s,ns);
@@ -1102,7 +1111,7 @@ Preprocessor_parse(String *s)
   chunk = NewString("");
   copy_location(s,chunk);
   copy_location(s,ns);
-  symbols = Getattr(cpp,"symbols");
+  symbols = Getattr(cpp,k_symbols);
 
   state = 0;
   while ((c = StringGetc(s)) != EOF) {
