@@ -434,9 +434,9 @@ DohString_putc(DOH *so, int ch)
     register char *tc;
     maxsize = s->maxsize;
     if (len > (maxsize-2)) {
-      s->str = (char *) DohRealloc(s->str,3*maxsize);
+      s->str = (char *) DohRealloc(s->str,2*maxsize);
       assert(s->str);
-      s->maxsize = 3*maxsize;
+      s->maxsize = 2*maxsize;
     }
     tc = s->str + len;
     *(tc++) = ch;

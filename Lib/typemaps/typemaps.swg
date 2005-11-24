@@ -164,4 +164,7 @@ phased out in future releases.
 
 %apply_checkctypes(%typemaps_inoutn)
 
+%apply size_t& { std::size_t& };
+%apply ptrdiff_t& { std::ptrdiff_t& };
+
 #endif
