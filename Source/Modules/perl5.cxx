@@ -325,27 +325,26 @@ public:
     Printf(f_header,"%s\n", magic);
 
     String *type_table = NewString("");
-    SwigType_emit_type_table(f_runtime,type_table);
 
   /* Patch the type table to reflect the names used by shadow classes */
     if (blessed) {
       Iterator  cls;
       for (cls = First(classlist); cls.item; cls = Next(cls)) {
-	if (Getattr(cls.item,"perl5:proxy")) {
-	  SwigType *type = Copy(Getattr(cls.item,"classtype"));
-
+	String *pname = Getattr(cls.item,"perl5:proxy");
+	if (pname) {
+	  SwigType *type = Getattr(cls.item,"classtypeobj");
 	  if (!type) continue;   /* If unnamed class, no type will be found */
+	  type = Copy(type);
 
 	  SwigType_add_pointer(type);
-	  String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
-	  String *rep = NewStringf("\"%s\"", Getattr(cls.item,"perl5:proxy"));
-	  Replaceall(type_table,mangle,rep);
-	  Delete(mangle);
-	  Delete(rep);
+	  String *mangled = SwigType_manglestr(type);
+	  SwigType_remember_mangleddata(mangled, NewStringf("\"%s\"",pname));
 	  Delete(type);
+	  Delete(mangled);
 	}
       }
     }
+    SwigType_emit_type_table(f_runtime,type_table);
 
     Printf(f_wrappers,"%s",type_table);
     Delete(type_table);

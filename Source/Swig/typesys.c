@@ -1379,9 +1379,18 @@ static Hash *r_mangled = 0;                /* Hash mapping mangled types to full
 static Hash *r_resolved = 0;               /* Hash mapping resolved types to mangled types       */
 static Hash *r_ltype = 0;                  /* Hash mapping mangled names to their local c type   */
 static Hash *r_clientdata = 0;             /* Hash mapping resolved types to client data         */
+static Hash *r_mangleddata = 0;            /* Hash mapping mangled types to client data         */
 static Hash *r_remembered = 0;             /* Hash of types we remembered already */
 
 static void (*r_tracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
+
+void SwigType_remember_mangleddata(String *mangled, const String_or_char *clientdata) {
+  if (!r_mangleddata) {
+    r_mangleddata = NewHash();
+  }
+  Setattr(r_mangleddata, mangled, clientdata);
+}
+
 
 void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata) {
   String *mt;
@@ -1565,6 +1574,11 @@ static
 String *SwigType_clientdata_collect(String *ms) {
   Hash *mh;
   String *clientdata = 0;
+
+  if (r_mangleddata) {
+    clientdata = Getattr(r_mangleddata,ms);
+    if (clientdata) return clientdata;
+  }
 
   mh = Getattr(r_mangled,ms);
   if (mh) {
@@ -1875,7 +1889,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     } else {
       nt = NewStringf("%s|%s", rn, ln);
     }
-    Printf(types, "\"%s\", \"%s\", 0, 0, %s, 0};\n", ki.item, nt, cd);
+    Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item,0,0);
     for (ei = First(el); ei.item; ei = Next(ei)) {
