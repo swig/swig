@@ -303,13 +303,17 @@
 #define SWIG_AsVal_frag(Type...)  %fragment_name(AsVal, Type)	 
 #define SWIG_From_frag(Type...)   %fragment_name(From, Type)	 
 
-#define SWIG_AsVal_dec(Type...)   %symbol_name(AsVal, Type) SWIG_AS_DECL_ARGS
-#define SWIG_AsPtr_dec(Type...)   %symbol_name(AsPtr, Type) SWIG_AS_DECL_ARGS
-#define SWIG_From_dec(Type...)    %symbol_name(From, Type)  SWIG_FROM_DECL_ARGS 
+#define SWIG_AsVal_name(Type...)  %symbol_name(AsVal, Type) 
+#define SWIG_AsPtr_name(Type...)  %symbol_name(AsPtr, Type) 
+#define SWIG_From_name(Type...)   %symbol_name(From, Type)  
 
-#define SWIG_AsVal(Type...)       %symbol_name(AsVal, Type) SWIG_AS_CALL_ARGS 
-#define SWIG_AsPtr(Type...)  	  %symbol_name(AsPtr, Type) SWIG_AS_CALL_ARGS 	 
-#define SWIG_From(Type...)   	  %symbol_name(From, Type)  SWIG_FROM_CALL_ARGS 
+#define SWIG_AsVal_dec(Type...)   SWIG_AsVal_name(Type) SWIG_AS_DECL_ARGS
+#define SWIG_AsPtr_dec(Type...)   SWIG_AsPtr_name(Type) SWIG_AS_DECL_ARGS
+#define SWIG_From_dec(Type...)    SWIG_From_name(Type)  SWIG_FROM_DECL_ARGS 
+
+#define SWIG_AsVal(Type...)       SWIG_AsVal_name(Type) SWIG_AS_CALL_ARGS 
+#define SWIG_AsPtr(Type...)  	  SWIG_AsPtr_name(Type) SWIG_AS_CALL_ARGS 	 
+#define SWIG_From(Type...)   	  SWIG_From_name(Type)  SWIG_FROM_CALL_ARGS 
 
 /* ------------------------------------------------------------
  * common fragments 
