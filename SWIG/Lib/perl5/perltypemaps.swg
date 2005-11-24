@@ -40,6 +40,11 @@
 #undef SWIG_DIRECTOR_TYPEMAPS
 #endif
 
+#ifndef SWIG_INOUT_NODEF
+#define SWIG_INOUT_NODEF
+#endif
+
+
 /* Perl types */
 #define SWIG_Object                      SV *
 

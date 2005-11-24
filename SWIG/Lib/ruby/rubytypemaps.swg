@@ -31,6 +31,10 @@
 #define SWIG_DIRECTOR_TYPEMAPS
 #endif
 
+#ifndef SWIG_INOUT_NODEF
+#define SWIG_INOUT_NODEF
+#endif
+
 /* Ruby types */
 #define SWIG_Object                      VALUE
 #define VOID_Object                      Qnil
