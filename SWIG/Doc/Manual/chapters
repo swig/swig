@@ -13,14 +13,13 @@ Contract.html
 Varargs.html
 Warnings.html
 Modules.html
-Lisp.html
 Allegrocl.html
 CSharp.html
 Chicken.html
-Lisp.html
-Allegrocl.html
 Guile.html
 Java.html
+Lisp.html
+Lua.html
 Modula3.html
 Mzscheme.html
 Ocaml.html
@@ -30,5 +29,4 @@ Pike.html
 Python.html
 Ruby.html
 Tcl.html
-Lua.html
 Extending.html
