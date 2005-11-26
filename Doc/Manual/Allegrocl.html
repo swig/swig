@@ -218,8 +218,8 @@ int fact(char *statement);   // pass it a fact, and it will rate it.
   (swig-ff-call SWIG_arg0)))
 
 (swig-dispatcher ("fact" :type :function :arities (1)))
-</div>
 </pre>
+</div>
 
 <p>
 The generated file contains calls to internal swig helper
@@ -402,8 +402,11 @@ int fact(int n);
 </pre>
 </div>
 
-<ul>Additional sections have been added for inserting into the
+<p>
+Additional sections have been added for inserting into the
 generated lisp interface file
+</p>
+<ul>
   <li><tt>lisphead</tt> - inserts before type declarations</li>
   <li><tt>lispwrap</tt> - inserts after type declarations according to
     where it appears in the .i file</li>
@@ -500,7 +503,6 @@ interested in generating an interface to C++.
     should be specified for a given function.
   </p>
   
-  <p>
   <div class="code">ffargs.i:
   <pre>
 %module ffargs
@@ -516,9 +518,9 @@ void bar(void *lisp_fn);
 char *xxx();
   </pre>
   </div>
-  </p>
 
   <p>Generates:
+  </p>
   <div class="targetlang">ffargs.cl:
   <pre>
 (swig-in-package ())
@@ -561,7 +563,6 @@ char *xxx();
   (swig-ff-call))
   </pre>
   </div>
-  </p>
 
   <div class="code">
     <pre>%ffargs(strings_convert="t");</pre>
@@ -653,6 +654,7 @@ char *xxx();
     directive or the <tt>-module</tt> command-line argument. Further
     namespaces are created using Allegro CLs nested namespace convention.
     For example:
+  </p>
 
     <div class="code">foo.i:
     <pre>
@@ -672,8 +674,8 @@ namespace car {
 }
     </pre>
     </div>
-  </p>
   <p>Generates the following code.
+  </p>
     <div class="targetlang">foo.cl
     <pre>
 (defpackage :foo
@@ -722,6 +724,7 @@ namespace car {
     </p>
     <p>
       Here are examples of simple preprocessor constants.
+    </p>
       <div class="code">
       <pre>
 #define A 1                    => (swig-defconstant "A" 1)  
@@ -740,7 +743,6 @@ namespace car {
       a literal, no node is added to the SWIG parse tree, and so
       no values can be generated.
       </p>
-    </p>
 
     <p>
       For preprocessor constants containing expressions which can be
@@ -748,6 +750,7 @@ namespace car {
       of the constant value. A very very simple infix to prefix converter
       has been implemented that does the right thing for simple cases, but
       does not for more complex expressoins.
+    </p>
       
       <div class="code">
       <pre>
@@ -763,7 +766,6 @@ namespace car {
       <p>
 	Users are cautioned to get to know their constants before use.
       </p>
-    </p>
 
 <H3><a name="Allegrocl_nn17"></a>16.3.3 Variables</H3>
 
@@ -779,7 +781,6 @@ namespace car {
       setter wrapper for global_var, defined as const.
     </p>
 
-    <p>
     <div class="code">vars.h
     <pre>
 namespace nnn {
@@ -788,9 +789,10 @@ namespace nnn {
 }
     </pre>
     </div>
-    </p>
 
     <p>
+    Generated code:
+    </p>
     <div class="targetlang">vars.cl
     <pre>
 (swig-in-package ("nnn"))
@@ -816,7 +818,6 @@ namespace nnn {
   (swig-ff-call))
     </pre>
     </div>
-    </p>
 
     <p>
       Note also, that where applicable, setter wrappers are implemented
@@ -824,7 +825,6 @@ namespace nnn {
       to the foreign code.
     </p>
 
-    <p>
     <div class="targetlang">
     <pre>
 user> (load "globalvar.dll")
@@ -874,7 +874,9 @@ enum COL { RED, GREEN, BLUE };
 enum FOO { FOO1 = 10, FOO2, FOO3 };
       </pre>
       </div>
+      <p>
       Processed as a C header, generates
+      </p>
       <div class="targetlang">enum.cl:
       <pre>
 (swig-def-foreign-type "COL" :int)
@@ -888,7 +890,6 @@ enum FOO { FOO1 = 10, FOO2, FOO3 };
 (swig-defconstant "FOO3" (+ #.(swig-insert-id "FOO2" () :type :constant) 1))
       </pre>
       </div>
-    </p>
 
     <p>And for C++ generates
       <div class="code">enum_wrap.cxx:
@@ -901,8 +902,9 @@ EXPORT const int ACL_ENUM___FOO2__SWIG_0 = FOO2;
 EXPORT const int ACL_ENUM___FOO3__SWIG_0 = FOO3;
       </pre>
       </div>
-    </p>
     <p>
+    and
+    </p>
       <div class="targetlang">enum.cl:
       <pre>
 (swig-def-foreign-type "COL" :int)
@@ -917,7 +919,6 @@ EXPORT const int ACL_ENUM___FOO3__SWIG_0 = FOO3;
 
       </pre>
       </div>
-    </p>
 
 <H3><a name="Allegrocl_nn19"></a>16.3.5 Arrays</H3>
 
@@ -937,6 +938,7 @@ EXPORT const int ACL_ENUM___FOO3__SWIG_0 = FOO3;
       Below is a comprehensive example, showing a number of legal
       C/C++ array declarations and how they are translated
       into foreign-type specifications in the generated lisp code.
+    </p>
     <div class="code">array.h
     <pre>
 #define MAX_BUF_SIZE 1024
@@ -961,9 +963,11 @@ namespace BAR {
 }
     </pre>
     </div>
-    </p>
 
     <p>
+    Generates:
+    </p>
+
     <div class="targetlang">array.cl
     <pre>
 (in-package #.*swig-module-name*)
@@ -1063,7 +1067,6 @@ namespace BAR {
   (make-instance 'ff:foreign-pointer :foreign-address (swig-ff-call)))
     </pre>
     </div>
-    </p>
 
 <H3><a name="Allegrocl_nn20"></a>16.3.6 Classes and Structs and Unions (oh my!)</H3>
 
@@ -1215,6 +1218,7 @@ int zzz(A *inst = 0);  /* return inst->x + inst->y */
     <p>
       Given the above header file, synonym.h, a Lisp session would
       appear as follows:
+    </p>
     <div class="targetlang">
     <pre>
 CL-USER> (load "synonym.dll")
@@ -1235,7 +1239,6 @@ synonym> (zzz foo)
 synonym> 
     </pre>
     </div>
-    </p>
 
 <H4><a name="Allegrocl_nn29"></a>16.3.8.1 Choosing a primary type</H4>
 
@@ -1243,6 +1246,7 @@ synonym>
     <p>
       The choice of a primary type is selected by the following
       criteria from a set of synonym types.
+    </p>
       <ul>
 	<li>
 	  If a synonym type has a class definition, it is the primary type.
@@ -1256,7 +1260,6 @@ synonym>
 	  parsed first becomes the primary type.
 	</li>
       </ul>
-    </p>
 
 <H3><a name="Allegrocl_nn30"></a>16.3.9 Function overloading/Parameter defaulting</H3>
 
@@ -1275,6 +1278,7 @@ synonym>
     </p>
 
     <p>Example:
+    </p>
     <div class="code">overload.h:
     <pre>
 
@@ -1288,10 +1292,10 @@ float xxx(int i, int x = 0);   /* return i * x */
 float xxx(A *inst, int x);     /* return x + A->x + A->y */
     </pre>
     </div>
-    </p>
 
     <p>Creates the following three wrappers, for each of the possible argument
       combinations
+    </p>
     <div class="code">overload_wrap.cxx
     <pre>
 EXPORT void ACL___delete_A__SWIG_0 (A *larg1) {
@@ -1362,11 +1366,11 @@ EXPORT float ACL___xxx__SWIG_2 (A *larg1, int larg2) {
 }
     </pre>
     </div>
-    </p>
 
     <p>
       And the following foreign-function-call and method definitions on the
       lisp side:
+    </p>
     <div class="targetlang">overload.cl
     <pre>
 (swig-defmethod ("xxx" "ACL___xxx__SWIG_0" :type :function :arity 2)
@@ -1397,9 +1401,9 @@ EXPORT float ACL___xxx__SWIG_2 (A *larg1, int larg2) {
 (swig-dispatcher ("xxx" :type :function :arities (1 2)))
     </pre>
     </div>
-    </p>
 
     <p>And their usage in a sample lisp session:
+    </p>
     <div class="targetlang">
     <pre>
 overload> (setf a (new_A))
@@ -1419,7 +1423,6 @@ overload> (xxx a 2)
 overload> 
     </pre>
     </div>
-    </p>
 
 <H3><a name="Allegrocl_nn31"></a>16.3.10 Operator wrapping and Operator overloading</H3>
 
@@ -1512,7 +1515,6 @@ overload>
       on Operator==.
     </p>
 
-    <p>
     <div class="code">opoverload.h
     <pre>
 class B {
@@ -1523,9 +1525,10 @@ class B {
 };
     </pre>
     </div>
-    </p>
 
     <p>
+    and
+    </p>
     <div class="code">opoverload.i
     <pre>
 %module opoverload
@@ -1552,11 +1555,12 @@ bool B___eq__(B const *inst, int const x)
 };
     </pre>
     </div>
-    </p>
 
     <p>
-    <div class="targetlang">Either operator can be called via a single call
+      Either operator can be called via a single call
       to the dispatch function:
+    </p>
+    <div class="targetlang">
     <pre>
 opoverload> (B___eq__ x1 x2)
 nil
@@ -1565,7 +1569,6 @@ nil
 opoverload> 
     </pre>
     </div>
-    </p>
 
 <H3><a name="Allegrocl_nn32"></a>16.3.11 Varargs</H3>
 
@@ -1627,6 +1630,7 @@ opoverload>
     
     <p>
       Every C++ wrapper generated by SWIG has the following form:
+    </p>
 
     <div class="diagram">
     <pre>
@@ -1649,7 +1653,6 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
    }
     </pre>
     </div>
-    </p>
 
 <H4><a name="Allegrocl_nn37"></a>16.4.1.1 IN Typemap</H4>
 
@@ -1670,6 +1673,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       <tt>$input</tt> refers to the parameter code is being generated
       for, and <tt>$1</tt> is the local variable to which it is
       being assigned. The default settings of this typemap are as follows:
+    </p>
       
     <div class="code">
     <pre>
@@ -1684,7 +1688,6 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
     </pre>
     </div>
-    </p>
 
 <H4><a name="Allegrocl_nn38"></a>16.4.1.2 OUT Typemap</H4>
 
@@ -1770,6 +1773,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </p>
 
     <p>The LIN typemap accepts the following <tt>$variable</tt> references.
+    </p>
       <ul>
 	<li><tt>$in</tt> - expands to the name of the parameter being
 	  applied to this typemap
@@ -1784,7 +1788,6 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 	  calling into foreign code. Not recommended.
 	</li>
       </ul>
-    </p>
       
     <div class="code">
     <pre>
@@ -1802,6 +1805,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </p>
 
     <p>The LOUT typemap uses the following $variable
+    </p>
       <ul>
 	<li><tt>$lclass</tt> - Expands to the CLOS class that
 	  represents foreign-objects of the return type matching this
@@ -1815,7 +1819,6 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 	  collection into the wrapper code (see default mappings below).
 	</li>
       </ul>
-    </p>
 
     <div class="code">
     <pre>
@@ -1828,9 +1831,9 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
                SWIGTYPE &amp;       "(make-instance '$lclass :foreign-address $body)";
 %typemap(lout) SWIGTYPE         "(let* ((address $body)\n
-                                        (ACL_result (make-instance '$lclass :foreign-address address)))\n
-                                    (unless (zerop address)\n
-                                       (excl:schedule-finalization ACL_result #'$ldestructor))\n
+                                   (ACL_result (make-instance '$lclass :foreign-address address)))\n
+                                 (unless (zerop address)\n
+                                   (excl:schedule-finalization ACL_result #'$ldestructor))\n
                                     ACL_result)";
     </pre>
     </div>
@@ -1943,15 +1946,17 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 
 %typemap(in)        wchar_t "$1 = $input;";
 %typemap(lin)       wchar_t "(let (($out (char-code $in)))\n  $body)";
-%typemap(lin)       wchar_t* "(excl:with-native-string ($out $in
-                                                        :external-format #+little-endian :fat-le 
-                                                                         #-little-endian :fat)\n
+%typemap(lin)       wchar_t* "(excl:with-native-string
+                                         ($out $in
+                                          :external-format #+little-endian :fat-le 
+                                                           #-little-endian :fat)\n
                                  $body)"
 
 %typemap(out)       wchar_t "$result = $1;";
 %typemap(lout)      wchar_t "(code-char $body)";
-%typemap(lout)      wchar_t* "(excl:native-to-string $body :external-format #+little-endian :fat-le
-                                                                            #-little-endian :fat)";
+%typemap(lout)      wchar_t* "(excl:native-to-string $body
+                                          :external-format #+little-endian :fat-le
+                                                           #-little-endian :fat)";
 
 %typemap(ffitype)   wchar_t ":unsigned-short";
 %typemap(lisptype)  wchar_t "";
@@ -2015,7 +2020,6 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       identifier-converters in <tt>Lib/allegrocl/allegrocl.swg</tt> for
       default naming conventions.
     </p>
-  </p>
 
 <H3><a name="Allegrocl_nn53"></a>16.5.3 Defining your own identifier-converter</H3>
 
@@ -2042,6 +2046,7 @@ identifier. It's value is a symbol. This allows the
 identifier-converter to apply different heuristics when mapping
 different types of identifiers to symbols. SWIG will generate calls
 to your identifier-converter using the following types.
+</p>
 
 <ul>
   <li>:class - names a CLOS class.</li>
@@ -2058,7 +2063,6 @@ to your identifier-converter using the following types.
   <li>:type - names a foreign-type defined via ff:def-foreign-type.</li>
   <li>:variable - names a variable defined via ff:def-foreign-variable.</li>
 </ul>
-</p>
 
 <p>
 The :class keyword argument is a string naming a foreign
@@ -2082,10 +2086,14 @@ this identifier.
   command-line argument. The value should be a string naming the
   function you wish the interface to use instead, when generating
   symbols. ex:
+</p>
 
 <div class="code">
 <pre>
 % swig -allegrocl -c++ -module mymodule -identifier-converter my-identifier-converter
 </pre>
 </div>
-</p>
+
+
+</body>
+</html>
