@@ -20,7 +20,7 @@ class Simple {};
 // method tests
 %exception NS::SimpleNS::method()       "_failed_ /*NS::Simple::method() const*/";
 %exception NS::SimpleNS::method() const "$action /*NS::Simple::method() const*/";
-%exception NS::SimpleNS::function() "$action /*NS::Simple::function()*/";
+%exception NS::SimpleNS::afunction() "$action /*NS::Simple::afunction()*/";
 
 %inline %{
   namespace NS 
@@ -29,7 +29,7 @@ class Simple {};
     class SimpleNS {
     public:
       void method() const {}
-      void function() {}
+      void afunction() {}
     };
   }
   

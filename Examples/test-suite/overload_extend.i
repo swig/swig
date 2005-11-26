@@ -22,7 +22,7 @@
 
 %inline %{
 struct Foo {
-  int var;
+  int variable;
 #ifdef __cplusplus
     int test() { return -1; }
 #endif
@@ -50,7 +50,7 @@ struct Foo {
 
 %inline %{
 typedef struct {
-  int var;
+  int variable;
 } Bar;
 %}
        

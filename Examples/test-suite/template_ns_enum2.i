@@ -1,9 +1,5 @@
 %module template_ns_enum2
  
-#ifdef SWIGPERL
-%rename(_eval) eval;
-#endif
-
 %inline %{ 
   
   namespace hi 
@@ -30,11 +26,11 @@
     struct B 
     { 
       const traits<Hola>::value_type& 
-          eval(const traits<Hola>::value_type& e) const; 
+          evaluate(const traits<Hola>::value_type& e) const; 
     
     }; 
     const traits<Hola>::value_type&
-    B::eval(const traits<Hola>::value_type& e) const {
+    B::evaluate(const traits<Hola>::value_type& e) const {
       return e;
     }
   } 
