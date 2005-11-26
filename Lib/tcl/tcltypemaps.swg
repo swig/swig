@@ -19,7 +19,7 @@
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
-%include "tclfragments.swg"
+%include <tclfragments.swg>
 
 /* Tcl fragments for primitve types */
 %include <tclprimtypes.swg>

@@ -605,4 +605,4 @@ extern "C" {
 /* still we include the file, but the warning says that the offending
    name will be properly renamed. Just to let the user to know about
    it. */
-%include "ocamlkw.swg"
+%include <ocamlkw.swg>

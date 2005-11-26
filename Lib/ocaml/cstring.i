@@ -11,7 +11,7 @@
  * some way.
  */
 
-%include "fragments.i"
+%include <fragments.i>
 
 /* %cstring_input_binary(TYPEMAP, SIZE)
  * 

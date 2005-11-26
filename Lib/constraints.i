@@ -9,7 +9,7 @@
 
 #ifdef AUTODOC
 %text %{
-%include constraints.i
+%include <constraints.i>
 
 This library provides support for applying constraints to function
 arguments.  Using a constraint, you can restrict arguments to be
@@ -64,7 +64,7 @@ If you have used typedef to change type-names, you can also do this :
 %}
 #endif
 
-%include exception.i
+%include <exception.i>
 
 #ifdef SWIGCSHARP
 // Required attribute for C# exception handling

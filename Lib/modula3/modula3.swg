@@ -4,7 +4,7 @@
  * Modula3 typemaps
  * ----------------------------------------------------------------------------- */
 
-%include "modula3head.swg"
+%include <modula3head.swg>
 
 /* The ctype, m3rawtype and m3wraptype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the C type used in the signature of C wrappers for C++ functions. 

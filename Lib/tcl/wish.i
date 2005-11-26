@@ -7,6 +7,9 @@
 //
 /* Revision History
  * $Log$
+ * Revision 1.4  2005/11/26 09:28:20  wsfulton
+ * Use the system angle brackets for %include
+ *
  * Revision 1.3  2002/11/30 22:10:09  beazley
  * *** empty log message ***
  *
@@ -37,7 +40,7 @@ both static and dynamic loading, put something like this in your
 interface file :
 
      #ifdef STATIC
-     %include wish.i
+     %include <wish.i>
      #endif
 
 A startup file may be specified by defining the symbol SWIG_RcFileName

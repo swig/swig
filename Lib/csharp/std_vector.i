@@ -358,6 +358,6 @@ SWIG_STD_VECTOR_SPECIALIZE(long, long long)
 SWIG_STD_VECTOR_SPECIALIZE(ulong, unsigned long long)
 SWIG_STD_VECTOR_SPECIALIZE(float, float)
 SWIG_STD_VECTOR_SPECIALIZE(double, double)
-SWIG_STD_VECTOR_SPECIALIZE(string, std::string) // also requires a %include "std_string.i"
+SWIG_STD_VECTOR_SPECIALIZE(string, std::string) // also requires a %include <std_string.i>
 
 

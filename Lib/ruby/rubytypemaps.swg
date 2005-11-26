@@ -9,7 +9,7 @@
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
-%include "rubyfragments.swg"
+%include <rubyfragments.swg>
 
 /* Ruby fragments for primitive types */
 %include <rubyprimtypes.swg>

@@ -8,10 +8,10 @@
 %runtime "swigrun.swg"  // Common C API type-checking code
 %runtime "php4run.swg"	// Php4 runtime functions
 
-%include "php4init.swg" // Php4 initialization routine.
+%include <php4init.swg> // Php4 initialization routine.
 
-%include "globalvar.i"	// Global variables.
-%include "const.i"
+%include <globalvar.i>	// Global variables.
+%include <const.i>
 
 // use %init %{ "/*code goes here*/ " %} 
 // or  %minit %{ "/* code goes here*/ " %} to
@@ -33,7 +33,7 @@
 
 /* Typemaps for input parameters by value */
 
-%include "utils.i"
+%include <utils.i>
 
 %pass_by_val(bool,CONVERT_BOOL_IN);
 
@@ -293,4 +293,4 @@
 
 
 /* php keywords */
-%include "php4kw.swg"
+%include <php4kw.swg>

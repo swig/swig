@@ -6,7 +6,7 @@
 //
 // Ocaml implementation
 
-%include std_common.i
+%include <std_common.i>
 
 // ------------------------------------------------------------------------
 // std::vector
