@@ -4,17 +4,17 @@
 %{
 namespace test {
    /* A minimalistic string class */
-   class string {
+   class string_class {
       char *data;
    public:
-      string() {
+      string_class() {
 	data = 0;
       }
-      string(const char *s) {
+      string_class(const char *s) {
         data = new char[strlen(s)+1];
 	strcpy(data,s);
       }
-     ~string() {
+     ~string_class() {
         if (data) delete [] data;
       }
       char *c_str() {
@@ -59,20 +59,20 @@ namespace test {
 #endif
 
 namespace test {
-    class string;
+    class string_class;
 #ifdef SWIGPYTHON
-	%typemap(in) string * {
-	    $1 = new string(PyString_AsString($input));
+	%typemap(in) string_class * {
+	    $1 = new string_class(PyString_AsString($input));
 	}
-	%typemap(freearg) string * {
+	%typemap(freearg) string_class * {
 	    delete $1;
 	}
 #endif
 #ifdef SWIGRUBY
-	%typemap(in) string * {
-	    $1 = new string(STR2CSTR($input));
+	%typemap(in) string_class * {
+	    $1 = new string_class(STR2CSTR($input));
 	}
-	%typemap(freearg) string * {
+	%typemap(freearg) string_class * {
 	    delete $1;
 	}
 #endif
@@ -80,11 +80,11 @@ namespace test {
 
 %inline %{
     namespace test {
-	class string;
+	class string_class;
 	class complex;
 
 	/* Functions in the namespace itself */
-	char *stest1(string *s) {
+	char *stest1(string_class *s) {
 	    return s->c_str();
 	}
 	double ctest1(complex *c) {
@@ -93,11 +93,11 @@ namespace test {
     }
 
     namespace test2 {
-	using test::string;
+	using test::string_class;
 	using test::complex;
 
 	/* Functions in another namespace */
-	char *stest2(string *s) {
+	char *stest2(string_class *s) {
 	    return s->c_str();
 	}
 	double ctest2(complex *c) {
@@ -108,7 +108,7 @@ namespace test {
     namespace test3 {
 	using namespace test;
 
-	char *stest3(string *s) {
+	char *stest3(string_class *s) {
 	    return s->c_str();
 	}
 	double ctest3(complex *c) {
@@ -119,7 +119,7 @@ namespace test {
     namespace test4 {
 	using namespace test2;
 
-	char *stest4(string *s) {
+	char *stest4(string_class *s) {
 	    return s->c_str();
 	}
 	double ctest4(complex *c) {
@@ -130,7 +130,7 @@ namespace test {
     namespace test5 {
 	using namespace test3;
 
-	char *stest5(string *s) {
+	char *stest5(string_class *s) {
 	    return s->c_str();
 	}
 	double ctest5(complex *c) {
@@ -138,35 +138,35 @@ namespace test {
 	}
     }
 
-    char *stest6(test::string *s) {
+    char *stest6(test::string_class *s) {
 	return s->c_str();
     }
     double ctest6(test::complex *c) {
 	return c->real();
     }
 
-    char *stest7(test2::string *s) {
+    char *stest7(test2::string_class *s) {
 	return s->c_str();
     }
     double ctest7(test2::complex *c) {
 	return c->real();
     }
 
-    char *stest8(test3::string *s) {
+    char *stest8(test3::string_class *s) {
 	return s->c_str();
     }
     double ctest8(test3::complex *c) {
 	return c->real();
     }
 
-    char *stest9(test4::string *s) {
+    char *stest9(test4::string_class *s) {
 	return s->c_str();
     }
     double ctest9(test4::complex *c) {
 	return c->real();
     }
 
-    char *stest10(test5::string *s) {
+    char *stest10(test5::string_class *s) {
 	return s->c_str();
     }
     double ctest10(test5::complex *c) {
@@ -175,7 +175,7 @@ namespace test {
 
     namespace test11 = test;
     
-    char *stest11(test11::string *s) {
+    char *stest11(test11::string_class *s) {
 	return s->c_str();
     }
     double ctest11(test11::complex *c) {
@@ -185,7 +185,7 @@ namespace test {
     using namespace test2;
     using test::complex;
 
-    char *stest12(string *s) {
+    char *stest12(string_class *s) {
 	return s->c_str();
     }
     double ctest12(complex *c) {
