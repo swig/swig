@@ -358,6 +358,14 @@ public class runme {
       i.MemberInstance = Instances.memberinstance3;
       if (i.MemberInstance != Instances.memberinstance3) throw new Exception("MemberInstance 1 failed");
     }
+    {
+      if (enum_thorough_typesafe.repeatTest(repeat.one).swigValue != 1) throw new Exception("repeatTest 1 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.initial).swigValue != 1) throw new Exception("repeatTest 2 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.two).swigValue != 2) throw new Exception("repeatTest 3 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.three).swigValue != 3) throw new Exception("repeatTest 4 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.last).swigValue != 3) throw new Exception("repeatTest 5 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.end).swigValue != 3) throw new Exception("repeatTest 6 failed");
+    }
   }
 }
 

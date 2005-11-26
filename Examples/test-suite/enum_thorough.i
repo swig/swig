@@ -474,4 +474,27 @@ struct Instances {
 
 %}
 
+// Repeated values
+#if defined(SWIGJAVA)
+%javaconst(1);
+#elif defined(SWIGCSHARP)
+%csconst(1);
+#endif
+
+%inline %{
+namespace RepeatSpace {
+typedef enum
+{
+   one = 1,
+   initial = one,
+   two,
+   three,
+   last = three,
+   end = last
+} repeat;
+repeat repeatTest(repeat e) { return e; }
+}
+
+%}
+
 
