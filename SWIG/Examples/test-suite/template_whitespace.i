@@ -1,5 +1,5 @@
 /* This interface file tests whether whitespace in angle brackets
-   effects the SWIG types. SF Bug #221917, reported by
+   affects the SWIG types. SF Bug #221917, reported by
    burchanb@cs.tamu.edu. */
 
 %module template_whitespace
@@ -17,6 +17,6 @@ template<class T, class U> class map {
 
 %inline %{
 void foo(vector<int > v) {}
-void var(vector<unsigned  int> v) {}
+void bar(vector<unsigned  int> v) {}
 void baz(map < int , int > p) {}
 %}

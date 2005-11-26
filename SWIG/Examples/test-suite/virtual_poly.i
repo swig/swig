@@ -153,7 +153,7 @@ template<typename T> struct Base {
   virtual IntegerPtr foxy() const = 0;
   virtual IntegerPtr foxy(int a) const = 0;
   virtual int * foxy(int*& a) { return 0; }
-  virtual double function() = 0;
+  virtual double afunction() = 0;
   virtual IntegerPtr defaultargs(double d, int * a = 0) = 0;
   static void StaticHidden() {}
   void AmIAmINotVirtual() {}
@@ -169,7 +169,7 @@ template<typename T> struct Derived : Base<T> {
   int * method() const { return 0; }
   int * foxy(int a) const { return 0; }
   virtual int * foxy(int*& a) { return 0; }
-  Double function() { return 0; }
+  Double afunction() { return 0; }
   int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }
   void AmIAmINotVirtual() {}
   int * NotVirtual(int *i) { return 0; }

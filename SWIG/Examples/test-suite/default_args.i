@@ -54,7 +54,7 @@
     namespace B { 
       int CONST_NUM = 10; 
     } 
-    int function(int i = B::CONST_NUM) { return i; }
+    int afunction(int i = B::CONST_NUM) { return i; }
   } 
 
   // references

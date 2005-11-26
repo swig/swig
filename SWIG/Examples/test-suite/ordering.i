@@ -3,12 +3,12 @@
 // Ruby used to fail on the ordering of the two Class declarations below
 
 struct Class {
-  int var;
+  int variable;
 };
 
 %{
 struct Class {
-  int var;
+  int variable;
 };
 %}
 
