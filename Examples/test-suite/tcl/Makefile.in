@@ -53,6 +53,7 @@ run_testcase = \
 
 # Clean
 %.clean:
+	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile tcl_clean
