@@ -103,6 +103,12 @@
     swigNext = swigValue+1;
   }
 
+  private $csclassname(string swigName, $csclassname swigEnum) {
+    this.swigName = swigName;
+    this.swigValue = swigEnum.swigValue;
+    swigNext = this.swigValue+1;
+  }
+
   private static $csclassname[] swigValues = { $enumvalues };
   private static int swigNext = 0;
   private readonly string swigName;

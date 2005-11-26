@@ -98,6 +98,11 @@
     SwigNext.next = swigValue+1;
   }
 
+  private $javaclassname($javaclassname swigEnum) {
+    this.swigValue = swigEnum.swigValue;
+    SwigNext.next = this.swigValue+1;
+  }
+
   private final int swigValue;
 
   private static class SwigNext {

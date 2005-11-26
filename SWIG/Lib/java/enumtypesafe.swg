@@ -102,6 +102,12 @@
     swigNext = swigValue+1;
   }
 
+  private $javaclassname(String swigName, $javaclassname swigEnum) {
+    this.swigName = swigName;
+    this.swigValue = swigEnum.swigValue;
+    swigNext = this.swigValue+1;
+  }
+
   private static $javaclassname[] swigValues = { $enumvalues };
   private static int swigNext = 0;
   private final int swigValue;
