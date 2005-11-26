@@ -7,7 +7,7 @@
    Example usage:
    Wrapping:
 
-     %include "arrays_java.i"
+     %include <arrays_java.i>
      %inline %{
          short FiddleSticks[3];
      %}

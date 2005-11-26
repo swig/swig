@@ -14,7 +14,7 @@
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, $1.what(), "");
     return $null; %}
 #else
-  %include "exception.i"
+  %include <exception.i>
   %typemap(throws) std::out_of_range %{
     SWIG_exception(SWIG_IndexError, $1.what()); %}
 #endif

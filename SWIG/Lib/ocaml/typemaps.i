@@ -206,7 +206,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 }
 
 #if 0
-%include "carray.i"
+%include <carray.i>
 #endif
 
 /* Handle char arrays as strings */

@@ -19,7 +19,7 @@
 #define SCM_VALIDATE_LIST(argnum, value) (void)0
 
 /* Read in standard typemaps. */
-%include "typemaps.i"
+%include <typemaps.i>
 
 %insert(init) "swiginit.swg"
 

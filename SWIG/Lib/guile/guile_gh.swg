@@ -7,7 +7,7 @@
 
 %runtime "swigrun.swg"
 %runtime "guile_gh_run.swg"
-%include "guile.i"
+%include <guile.i>
 
 %runtime %{
 

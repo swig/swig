@@ -26,4 +26,4 @@
 
 #define GUILE_APPEND_RESULT SWIG_APPEND_VALUE
 
-%include "typemaps.i"
+%include <typemaps.i>

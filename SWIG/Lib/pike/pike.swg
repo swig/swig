@@ -11,9 +11,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "global.h"
-#include "module.h"
-#include "interpret.h"
+#include <global.h>
+#include <module.h>
+#include <interpret.h>
 #ifdef __cplusplus
 }
 #endif
@@ -336,4 +336,4 @@ PIKE_MODULE_INIT
 %}
 
 /* pike keywords */
-%include "pikekw.swg"
+%include <pikekw.swg>

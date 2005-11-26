@@ -5,7 +5,7 @@
 %{
 #include <stdexcept>
 %}
-%include "exception.i"
+%include <exception.i>
 
 %typemap(throws) std::out_of_range %{
 SWIG_exception(SWIG_IndexError, $1.what()); %}

@@ -7,7 +7,7 @@
 /* chicken.h has to appear first. */
 
 %insert(runtime) %{
-#include "chicken.h"
+#include <chicken.h>
 %}
 
 %insert(runtime) "swigrun.swg";            // Common C API type-checking code
@@ -695,7 +695,7 @@ $result = C_SCHEME_UNDEFINED;
 
 #endif
 /* Warnings for certain CHICKEN keywords */
-%include "chickenkw.swg"
+%include <chickenkw.swg>
 
 /* TinyCLOS <--> Low-level CHICKEN */
 

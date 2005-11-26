@@ -13,7 +13,7 @@
 #ifdef AUTODOC
 %section "Typemap Library (Perl 5)",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
 %text %{
-%include typemaps.i
+%include <typemaps.i>
 
 The SWIG typemap library provides a language independent mechanism for
 supporting output arguments, input values, and other C function
@@ -62,12 +62,12 @@ To use these, suppose you had a C function like this :
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         double fadd(double *INPUT, double *INPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *INPUT { double *a, double *b };
         double fadd(double *a, double *b);
 
@@ -156,12 +156,12 @@ returns the integer part in one of its parameters).K:
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         double modf(double x, double *OUTPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *OUTPUT { double *ip };
         double modf(double x, double *ip);
 
@@ -246,12 +246,12 @@ For example, suppose you were trying to wrap the following function :
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         void neg(double *BOTH);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *BOTH { double *x };
         void neg(double *x);
 
@@ -318,12 +318,12 @@ For example, suppose you were trying to wrap the following function :
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         void neg(double *REFERENCE);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *REFERENCE { double *x };
         void neg(double *x);
 

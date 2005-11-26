@@ -22,7 +22,7 @@
 #include <stdexcept>
 %}
 
-%include std_except.i
+%include <std_except.i>
 
   
 

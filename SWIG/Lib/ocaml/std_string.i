@@ -13,7 +13,7 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
-%include exception.i
+%include <exception.i>
 
 %{
 #include <string>
@@ -22,7 +22,7 @@
     using std::vector;
 %}
 
-%include std_vector.i
+%include <std_vector.i>
 
 namespace std {
     template <class charT> class basic_string {

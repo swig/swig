@@ -6,8 +6,8 @@
 
 // Perl implementation
 
-%include std_common.i
-%include exception.i
+%include <std_common.i>
+%include <exception.i>
 
 // containers
 

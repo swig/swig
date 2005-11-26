@@ -16,16 +16,16 @@
   
 */
 
-%include "chicken/chickenkw.swg"
-%include "csharp/csharpkw.swg"
-%include "java/javakw.swg"
-%include "php4/php4kw.swg"
-%include "pike/pikekw.swg"
-%include "python/pythonkw.swg"
-%include "ocaml/ocamlkw.swg"
-%include "ruby/rubykw.swg"
-%include "tcl/tclkw.swg"
-%include "perl5/perlkw.swg"
+%include <chicken/chickenkw.swg>
+%include <csharp/csharpkw.swg>
+%include <java/javakw.swg>
+%include <php4/php4kw.swg>
+%include <pike/pikekw.swg>
+%include <python/pythonkw.swg>
+%include <ocaml/ocamlkw.swg>
+%include <ruby/rubykw.swg>
+%include <tcl/tclkw.swg>
+%include <perl5/perlkw.swg>
 
 
 #endif //__Lib_allkw_swg__

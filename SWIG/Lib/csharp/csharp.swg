@@ -4,7 +4,7 @@
  * CSharp typemaps
  * ----------------------------------------------------------------------------- */
 
-%include "csharphead.swg"
+%include <csharphead.swg>
 
 /* The ctype, imtype and cstype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the PInvoke type used in the PInvoke (C/C++) code. 
@@ -640,10 +640,10 @@ using System.Runtime.InteropServices;
 %apply unsigned long { size_t };
 
 /* csharp keywords */
-%include "csharpkw.swg"
+%include <csharpkw.swg>
 
 // Default enum handling
-%include "enums.swg"
+%include <enums.swg>
 
 /*
 // Alternative char * typemaps.

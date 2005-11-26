@@ -13,7 +13,7 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
-%include exception.i
+%include <exception.i>
 
 %{
 #include <string>

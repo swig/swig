@@ -9,4 +9,4 @@
 %alias std::deque::push_back	"<<";
 %alias std::deque::size		"length";
 
-%include "_std_deque.i"
+%include <_std_deque.i>

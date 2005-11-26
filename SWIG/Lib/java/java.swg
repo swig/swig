@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 
-%include "javahead.swg"
+%include <javahead.swg>
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
@@ -1192,8 +1192,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply unsigned long { size_t };
 
 /* java keywords */
-%include "javakw.swg"
+%include <javakw.swg>
 
 // Default enum handling
-%include "enumtypesafe.swg"
+%include <enumtypesafe.swg>
 

@@ -22,7 +22,7 @@
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
-%include "perlfragments.swg"
+%include <perlfragments.swg>
 
 /* Perl fragments for primitive types */
 %include <perlprimtypes.swg>

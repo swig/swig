@@ -46,6 +46,16 @@
 #define SWIG_Error(code, msg)            		PyErr_SetString(SWIG_Python_ErrorType(code), msg) 
 #define SWIG_fail                        		goto fail					   
 
+/*
+  Helper for static pointer initialization for both C and C++ code, for example
+  static PyObject *SWIG_STATIC_POINTER(MyVar) = NewSomething(...);
+*/
+#ifdef __cplusplus
+#define SWIG_STATIC_POINTER(var)  var
+#else
+#define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
+#endif
+
 /* -----------------------------------------------------------------------------
  * Pointer declarations
  * ----------------------------------------------------------------------------- */

@@ -13,7 +13,7 @@
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
-%include "pyfragments.swg"
+%include <pyfragments.swg>
 
 /* Python fragments for fundamental types */
 %include <pyprimtypes.swg>

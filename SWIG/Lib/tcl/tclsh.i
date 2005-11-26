@@ -15,7 +15,7 @@ both static and dynamic loading, put something like this in your
 interface file :
 
      #ifdef STATIC
-     %include tclsh.i
+     %include <tclsh.i>
      #endif
 %}
 #endif

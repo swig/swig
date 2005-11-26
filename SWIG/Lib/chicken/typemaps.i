@@ -53,12 +53,12 @@ To use these, suppose you had a C function like this :
 
 You could wrap it with SWIG as follows :
         
-        %include typemaps.i
+        %include <typemaps.i>
         double fadd(double *INPUT, double *INPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *INPUT { double *a, double *b };
         double fadd(double *a, double *b);
 
@@ -96,12 +96,12 @@ returns the integer part in one of its parameters).K:
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         double modf(double x, double *OUTPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *OUTPUT { double *ip };
         double modf(double x, double *ip);
 
@@ -208,18 +208,18 @@ For example, suppose you were trying to wrap the following function :
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include <typemaps.i>
         void neg(double *INOUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *INOUT { double *x };
         void neg(double *x);
 
 As well, you can wrap variables with :
 
-        %include typemaps.i
+        %include <typemaps.i>
         %apply double *INOUT { double *y };
         extern double *y;
 
