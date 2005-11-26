@@ -369,6 +369,14 @@ public class enum_thorough_runme {
       i.setMemberInstance(Instances.memberinstance3);
       if (i.getMemberInstance() != Instances.memberinstance3) throw new RuntimeException("MemberInstance 1 failed");
     }
+    {
+      if (enum_thorough.repeatTest(repeat.one).swigValue() != 1) throw new RuntimeException("repeatTest 1 failed");
+      if (enum_thorough.repeatTest(repeat.initial).swigValue() != 1) throw new RuntimeException("repeatTest 2 failed");
+      if (enum_thorough.repeatTest(repeat.two).swigValue() != 2) throw new RuntimeException("repeatTest 3 failed");
+      if (enum_thorough.repeatTest(repeat.three).swigValue() != 3) throw new RuntimeException("repeatTest 4 failed");
+      if (enum_thorough.repeatTest(repeat.last).swigValue() != 3) throw new RuntimeException("repeatTest 5 failed");
+      if (enum_thorough.repeatTest(repeat.end).swigValue() != 3) throw new RuntimeException("repeatTest 6 failed");
+    }
   }
 }
 
