@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig -I/usr/include/g++-3
+SWIG       = $(TOP)/../preinst-swig
 SRCS       = 
 TARGET     = example
 INTERFACE  = example.i

@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig
+SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    = 
 SRCS       = example.c
 TARGET     = example
