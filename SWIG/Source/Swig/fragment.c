@@ -40,7 +40,7 @@ Swig_fragment_register(Node* fragment) {
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       String *mangle = Swig_string_mangle(rtype);
-      Printf(name,"%s",mangle);
+      Append(name,mangle);
       Delete(mangle);
       Delete(rtype);
     }
@@ -107,8 +107,8 @@ Swig_fragment_emit(Node *n) {
   pc = char_index(tok,',');
   if (pc) *pc = 0;
   while (tok) {
-    String *name = NewStringf("%s", tok);
-    if (mangle) Printf(name,"%s",mangle);
+    String *name = NewString(tok);
+    if (mangle) Append(name,mangle);
     code = Getattr(fragments,name);
     if (debug) Printf(stdout,"looking subfragment %s\n", name);
     if (code && (Strcmp(code,"ignore") != 0)) {

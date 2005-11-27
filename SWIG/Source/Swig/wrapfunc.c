@@ -77,7 +77,7 @@ Wrapper_pretty_print(String *str, File *f) {
   int level = 0;
   int c, i;
   int empty = 1;
-  int indent = 4;
+  int indent = 2;
   int plevel = 0;
   int label = 0;
 
@@ -439,7 +439,7 @@ Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
 
   obj = va_arg(ap,void *);
   while (obj) {
-    Printv(decl,obj,NIL);
+    Append(decl,obj);
     Putc(' ', decl);
     obj = va_arg(ap, void *);
   }
@@ -514,7 +514,7 @@ Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
 
   obj = va_arg(ap,void *);
   while (obj) {
-    Printv(decl,obj,NIL);
+    Append(decl,obj);
     Putc(' ',decl);
     obj = va_arg(ap, void *);
   }

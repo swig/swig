@@ -938,7 +938,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
-	Printv(qprefix,"<(",NIL);
+	Append(qprefix,"<(");
 	pi = First(parms);
 	while ((p = pi.item)) {
 	  String *qt = SwigType_typedef_qualified(p);
@@ -1885,7 +1885,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     ln = SwigType_lstr(lt,0);
     rn = SwigType_lstr(rt,0);
     if (Strcmp(ln,rn) == 0) {
-      nt = NewStringf("%s", ln);
+      nt = NewString(ln);
     } else {
       nt = NewStringf("%s|%s", rn, ln);
     }

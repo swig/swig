@@ -395,7 +395,7 @@ SwigType *SwigType_default(SwigType *t) {
     SwigType *nr = Copy(r);
     SwigType_del_pointer(nr);
     def = SwigType_isfunction(nr) ? 
-      NewStringf("") : NewStringf("p.");
+      NewString("") : NewString("p.");
     SwigType_add_default(def, nr);
     Delete(nr);
 #else
@@ -407,7 +407,7 @@ SwigType *SwigType_default(SwigType *t) {
 #ifdef SWIG_NEW_TYPE_DEFAULT
     SwigType *nr = Copy(r);
     SwigType_del_reference(nr);
-    def = NewStringf("r.");
+    def = NewString("r.");
     SwigType_add_default(def, nr);
     Delete(nr);
 #else
@@ -894,7 +894,7 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
     Printf(result,"(%s)", str);
     Delete(str);
     if (name) 
-      Printv(result,name,NIL);
+      Append(result,name);
   } else if (SwigType_isqualifier(s)) {
     Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
   } else {
@@ -1006,10 +1006,10 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  List *tparms = SwigType_parmlist(e);
 	  int j;
 	  String *nt = SwigType_templateprefix(e);
-	  Printv(nt,"<(",NIL);
+	  Append(nt,"<(");
 	  for (j = 0; j < Len(tparms); j++) {
 	    SwigType_typename_replace(Getitem(tparms,j), pat, rep);
-	    Printv(nt,Getitem(tparms,j),NIL);
+	    Append(nt,Getitem(tparms,j));
 	    if (j < (Len(tparms)-1)) Putc(',',nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
@@ -1035,13 +1035,13 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       int j;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
-      Printv(e,"f(",NIL);
+      Append(e,"f(");
       for (j = 0; j < Len(fparms); j++) {
 	SwigType_typename_replace(Getitem(fparms,j), pat, rep);
-	Printv(e,Getitem(fparms,j),NIL);
+	Append(e,Getitem(fparms,j));
 	if (j < (Len(fparms)-1)) Putc(',',e);
       }
-      Printv(e,").",NIL);
+      Append(e,").");
       Delete(fparms);
     } else if (SwigType_isarray(e)) {
       Replace(e,pat,rep, DOH_REPLACE_ID);

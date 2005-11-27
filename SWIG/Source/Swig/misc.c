@@ -170,7 +170,7 @@ String *Swig_string_typecode(String *s) {
 	Putc(c,tc);
       }
       str = SwigType_str(tc,0);
-      Printf(ns,"%s",str);
+      Append(ns,str);
       Delete(str);
     } else {
       Putc(c,ns);
@@ -251,7 +251,7 @@ String *Swig_string_mangle(const String *s) {
     if (isalnum((int)c) || (c == '_')) {
       state = 1;
       if (space && (space == state)) {
-	Printf(result,"_SS_");
+	Append(result,"_SS_");
       }
       space = 0;
       Printf(result,"%c",(int)c);
@@ -586,5 +586,8 @@ Swig_init() {
 
   /* Initialize type system */
   SwigType_typesystem_init();
+
+  /* Initialize template system */
+  SwigType_template_init();
 
 }

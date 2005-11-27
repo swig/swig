@@ -254,7 +254,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   }
 
   /* Now print out function call */
-  Printv(fcall,decl,NIL);
+  Append(fcall,decl);
 
   /* A sick hack */
   {
@@ -333,7 +333,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
     }
     p = nextSibling(p);    
   }
-  Printf(func,")");
+  Append(func,")");
   return func;
 }
 
@@ -403,7 +403,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
     }
     p = nextSibling(p);
   }
-  Printf(func,")");
+  Append(func,")");
   Delete(nname);
   return func;
 }
@@ -555,7 +555,7 @@ Swig_unref_call(Node *n) {
   Node *cn = Swig_methodclass(n);  
   String* unref = Swig_rflag_search(cn,"feature:unref","feature:nounref");
   if (unref) {
-    unref = NewStringf("%s",unref);
+    unref = NewString(unref);
     Replaceall(unref,"$this",Swig_cparm_name(0,0));
     Replaceall(unref,"$self",Swig_cparm_name(0,0));
   }
@@ -573,7 +573,7 @@ Swig_ref_call(Node *n, const String* lname) {
   Node *cn = Swig_methodclass(n);  
   String* ref = Swig_rflag_search(cn,"feature:ref","feature:noref");
   if (ref) {
-    ref = NewStringf("%s",ref);
+    ref = NewString(ref);
     Replaceall(ref,"$this",lname);
     Replaceall(ref,"$self",lname);
   }
@@ -815,14 +815,14 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
 	if ((SwigType_type(pt) != T_VOID)) {
 	  String *pname = Swig_cparm_name(pp,i++);
 	  String *rcaststr = SwigType_rcaststr(pt, pname);
-	  Printf(func,"%s", rcaststr);
+	  Append(func,rcaststr);
 	  Delete(rcaststr);
 	  Delete(pname);
 	  pp = nextSibling(pp);
 	  if (pp) Append(func,",");
 	}
       }
-      Printf(func,")");
+      Append(func,")");
       Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", func));      
     } else {
       Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
@@ -993,7 +993,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	   * implemented in the target language, calls to those methods will
 	   * generate Swig::DirectorPureVirtualException exceptions.
 	   */
-	  Printv(action, Swig_cresult(type, "result", director_call), NIL);
+	  Append(action, Swig_cresult(type, "result", director_call));
 	} else {
 	  /* (scottm): The code for creating a new director is now a string
 	     template that gets passed in via the director_ctor argument.
@@ -1002,7 +1002,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	     $director_new: Call new for director class
 	     $nondirector_new: Call new for non-director class
 	   */
-	  Printv(action, director_ctor, NIL);
+	  Append(action, director_ctor);
 	  Replaceall( action, "$comparison", tmp_none_comparison);
 	  Replaceall( action, "$director_new", 
 		      Swig_cresult(type, "result", director_call) );
