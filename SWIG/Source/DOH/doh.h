@@ -42,7 +42,7 @@
 #define DohCmp             DOH_NAMESPACE(Cmp)
 #define DohEqual           DOH_NAMESPACE(Equal)
 #define DohIncref          DOH_NAMESPACE(Incref)
-#define DohGetattr         DOH_NAMESPACE(Getattr)
+#define DohCheckattr       DOH_NAMESPACE(Checkattr)
 #define DohSetattr         DOH_NAMESPACE(Setattr)
 #define DohDelattr         DOH_NAMESPACE(Delattr)
 #define DohKeys            DOH_NAMESPACE(Keys)
@@ -108,6 +108,7 @@
 #define DohCopyto          DOH_NAMESPACE(Copyto)
 #define DohNewList         DOH_NAMESPACE(NewList)
 #define DohNewHash         DOH_NAMESPACE(NewHash)
+#define DohHashCheckAttr   DOH_NAMESPACE(HashCheckAttr)
 #define DohNewVoid         DOH_NAMESPACE(NewVoid)
 #define DohSplit           DOH_NAMESPACE(Split)
 #define DohSplitLines      DOH_NAMESPACE(SplitLines)
@@ -331,6 +332,7 @@ extern void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *));
  * ----------------------------------------------------------------------------- */
 
 extern DOHHash   *DohNewHash();
+extern int       DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
 
 /* -----------------------------------------------------------------------------
  * Void
@@ -414,6 +416,7 @@ extern void      DohMemoryDebug(void);
 #define NewStringWithSize  DohNewStringWithSize
 #define NewStringf         DohNewStringf
 #define NewHash            DohNewHash
+#define HashCheckAttr      DohHashCheckAttr
 #define NewList            DohNewList
 #define NewFile            DohNewFile
 #define NewFileFromFile    DohNewFileFromFile

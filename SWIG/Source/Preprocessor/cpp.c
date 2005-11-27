@@ -432,7 +432,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   symbols = Getattr(cpp,k_symbols);
   if ((m1 = Getattr(symbols,macroname))) {
-    if (!StringEqual(Getattr(m1,k_value),macrovalue)) {
+    if (!HashCheckAttr(m1,k_value,macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
       goto macro_error;
@@ -858,7 +858,7 @@ List *evaluate_args(List *x) {
  * which are then expanded.
  * ----------------------------------------------------------------------------- */
 
-/* #define SWIG_PUT_BUFF */
+/* #define SWIG_PUT_BUFF  */
 
 DOH *
 Preprocessor_replace(DOH *s)
@@ -920,7 +920,7 @@ Preprocessor_replace(DOH *s)
 	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
 #ifndef SWIG_PUT_BUFF
-	if (StringEqual(id,k_defined)) {
+	if (StringEqual(k_defined,id)) {
 #else
 	if (strcmp(id,"defined") == 0) {
 #endif
@@ -966,7 +966,7 @@ Preprocessor_replace(DOH *s)
 	  break;
 	}
 #ifndef SWIG_PUT_BUFF
-	if (StringEqual(id,k_LINE)) {
+	if (StringEqual(k_LINE,id)) {
 #else
 	if (strcmp(id,"__LINE__") == 0) {
 #endif
@@ -975,7 +975,7 @@ Preprocessor_replace(DOH *s)
 	  break;
 	}
 #ifndef SWIG_PUT_BUFF
-	if (StringEqual(id,k_FILE)) {
+	if (StringEqual(k_FILE,id)) {
 #else
 	if (strcmp(id,"__FILE__") == 0) {
 #endif
@@ -1046,7 +1046,7 @@ Preprocessor_replace(DOH *s)
   if (state == 1) {
     /* See if this is the special "defined" macro */
 #ifndef SWIG_PUT_BUFF
-    if (StringEqual(id,k_defined)) {
+    if (StringEqual(k_defined,id)) {
 #else
     if (strcmp(id,"defined") == 0) {
 #endif
