@@ -142,6 +142,9 @@ static String *k_dinclude = 0;
 static String *k_dimport = 0;
 static String *k_dextern = 0;
 
+static String *k_LINE = 0;
+static String *k_FILE = 0;
+
 void Preprocessor_init(void) {
   Hash *s;
 
@@ -173,6 +176,10 @@ void Preprocessor_init(void) {
   k_dextern = NewString("%extern");
   k_ddefine = NewString("%define");
   k_dline = NewString("%line");
+
+
+  k_LINE = NewString("__LINE__");
+  k_FILE = NewString("__FILE__");
 
   cpp = NewHash();
   s =   NewHash();
@@ -425,7 +432,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   symbols = Getattr(cpp,k_symbols);
   if ((m1 = Getattr(symbols,macroname))) {
-    if (Cmp(Getattr(m1,k_value),macrovalue)) {
+    if (!StringEqual(Getattr(m1,k_value),macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
       goto macro_error;
@@ -851,17 +858,20 @@ List *evaluate_args(List *x) {
  * which are then expanded.
  * ----------------------------------------------------------------------------- */
 
-/*#define PBUFF*/
+/* #define SWIG_PUT_BUFF */
+
 DOH *
 Preprocessor_replace(DOH *s)
 {
   DOH   *ns, *symbols, *m;
   int   c, i, state = 0;
+
+#ifndef SWIG_PUT_BUFF
   String   *id = NewString("");
-#ifdef PBUFF
-  char bid[4096];
+#else
+  char id[4096];
   char *cid;
-  cid = bid; *cid = 0;
+  cid = id; *cid = 0;
 #endif
   
   assert(cpp);
@@ -876,14 +886,11 @@ Preprocessor_replace(DOH *s)
     switch (state) {
     case 0:
       if (isidentifier(c) || (c == '%')) {
+#ifndef SWIG_PUT_BUFF
 	Clear(id);
-#ifdef PBUFF
-	cid = bid; *cid = 0;
-#endif
-	copy_location(s,id);
-#ifndef PBUFF
 	StringPutc(c,id);
 #else
+	cid = id;
 	*cid = c; ++cid; *cid = 0;
 #endif
 	state = 1;
@@ -902,23 +909,20 @@ Preprocessor_replace(DOH *s)
       break;
     case 1:  /* An identifier */
       if (isidchar(c)) {
-#ifndef PBUFF
+#ifndef SWIG_PUT_BUFF
 	StringPutc(c,id);
 #else
 	*cid = c; ++cid; *cid = 0;
 #endif
 	state = 1;
       } else {
-#ifdef PBUFF
-	/* StringAppend(id,bid); */
-#endif
 	/* We found the end of a valid identifier */
 	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
-#ifndef PBUFF
-	if (Cmp(id,k_defined) == 0) {
+#ifndef SWIG_PUT_BUFF
+	if (StringEqual(id,k_defined)) {
 #else
-	if (strcmp(bid,"defined") == 0) {
+	if (strcmp(id,"defined") == 0) {
 #endif
 	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
@@ -945,11 +949,7 @@ Preprocessor_replace(DOH *s)
 	  }
 	  if ((!args) || (!Len(args))) {
 	    /* This is not a defined() macro. */
-#ifndef PBUFF
 	    StringAppend(ns,id);
-#else
-	    StringAppend(ns,bid);
-#endif
 	    state = 0;
 	    break;
 	  }
@@ -965,19 +965,19 @@ Preprocessor_replace(DOH *s)
 	  state = 0;
 	  break;
 	}
-#ifndef PBUFF
-	if (Cmp(id,"__LINE__") == 0) {
+#ifndef SWIG_PUT_BUFF
+	if (StringEqual(id,k_LINE)) {
 #else
-	if (strcmp(bid,"__LINE__") == 0) {
+	if (strcmp(id,"__LINE__") == 0) {
 #endif
 	  Printf(ns,"%d",Getline(s));
 	  state = 0;
 	  break;
 	}
-#ifndef PBUFF
-	if (Cmp(id,"__FILE__") == 0) {
+#ifndef SWIG_PUT_BUFF
+	if (StringEqual(id,k_FILE)) {
 #else
-	if (strcmp(bid,"__FILE__") == 0) {
+	if (strcmp(id,"__FILE__") == 0) {
 #endif
 	  String *fn = Copy(Getfile(s));
 	  Replaceall(fn,"\\","\\\\");
@@ -987,11 +987,7 @@ Preprocessor_replace(DOH *s)
 	  break;
 	}
 	/* See if the macro is defined in the preprocessor symbol table */
-#ifndef PBUFF
 	if ((m = Getattr(symbols,id))) {
-#else
-	if ((m = Getattr(symbols,bid))) {
-#endif
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
@@ -1005,22 +1001,14 @@ Preprocessor_replace(DOH *s)
 	  } else {
 	    args = 0;
 	  }	  
-#ifndef PBUFF
 	  e = expand_macro(id,args);
-#else
-	  e = expand_macro(bid,args);
-#endif
 	  if (e) {
 	    StringAppend(ns,e);
 	  }
 	  Delete(e);
 	  Delete(args);
 	} else {
-#ifndef PBUFF
 	  StringAppend(ns,id);
-#else
-	  StringAppend(ns,bid);
-#endif
 	}
 	state = 0;
       }
@@ -1056,43 +1044,30 @@ Preprocessor_replace(DOH *s)
 
   /* Identifier at the end */
   if (state == 1) {
-#ifdef PBUFF
-    /* StringAppend(id,bid); */
-#endif
     /* See if this is the special "defined" macro */
-#ifndef PBUFF
-    if (Cmp(id,k_defined) == 0) {
+#ifndef SWIG_PUT_BUFF
+    if (StringEqual(id,k_defined)) {
 #else
-    if (strcmp(bid,"defined") == 0) {
+    if (strcmp(id,"defined") == 0) {
 #endif
-      Swig_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
-#ifndef PBUFF
+      Swig_error(Getfile(s),Getline(s),"No arguments given to defined()\n");
     } else if ((m = Getattr(symbols,id))) {
-#else
-    } else if ((m = Getattr(symbols,bid))) {
-#endif
 	DOH *e;
 	/* Yes.  There is a macro here */
 	/* See if the macro expects arguments */
 	/*	if (Getattr(m,"args")) {
 	  Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
 	  } */
-#ifndef PBUFF
 	e = expand_macro(id,0);
-#else
-	e = expand_macro(bid,0);
-#endif
 	StringAppend(ns,e);
 	Delete(e);
     } else {
-#ifndef PBUFF
       StringAppend(ns,id);
-#else
-      StringAppend(ns,bid);
-#endif
     }
   }
+#ifndef SWIG_PUT_BUFF
   Delete(id);
+#endif
   return ns;
 }
 
@@ -1398,7 +1373,7 @@ Preprocessor_parse(String *s)
     case 50:
       /* Check for various preprocessor directives */
       Chop(value);
-      if (Cmp(id,k_define) == 0) {
+      if (StringEqual(id,k_define)) {
 	if (allow) {
 	  DOH *m, *v, *v1;
 	  Seek(value,0,SEEK_SET);
@@ -1423,9 +1398,9 @@ Preprocessor_parse(String *s)
 	  }
 	  Delete(m);
 	}
-      } else if (Cmp(id,k_undef) == 0) {
+      } else if (StringEqual(id,k_undef)) {
 	if (allow) Preprocessor_undef(value);
-      } else if (Cmp(id,k_ifdef) == 0) {
+      } else if (StringEqual(id,k_ifdef)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1434,7 +1409,7 @@ Preprocessor_parse(String *s)
 	  if (!Getattr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
-      } else if (Cmp(id,k_ifndef) == 0) {
+      } else if (StringEqual(id,k_ifndef)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1443,7 +1418,7 @@ Preprocessor_parse(String *s)
 	  if (Getattr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
-      } else if (Cmp(id,k_else) == 0) {
+      } else if (StringEqual(id,k_else)) {
 	if (level <= 0) {
 	  Swig_error(Getfile(s),Getline(id),"Misplaced #else.\n");
 	} else {
@@ -1455,7 +1430,7 @@ Preprocessor_parse(String *s)
 	    allow = 1*mask;
 	  }
 	}
-      } else if (Cmp(id,k_endif) == 0) {
+      } else if (StringEqual(id,k_endif)) {
 	level--;
 	if (level < 0) {
 	  Swig_error(Getfile(id),Getline(id),"Extraneous #endif.\n");
@@ -1466,7 +1441,7 @@ Preprocessor_parse(String *s)
 	    start_level--;
 	  }
 	}
-      } else if (Cmp(id,k_if) == 0) {
+      } else if (StringEqual(id,k_if)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1488,7 +1463,7 @@ Preprocessor_parse(String *s)
   	  }
   	  mask = 1;
   	}
-      } else if (Cmp(id,k_elif) == 0) {
+      } else if (StringEqual(id,k_elif)) {
   	if (level == 0) {
   	  Swig_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
   	} else {
@@ -1515,16 +1490,16 @@ Preprocessor_parse(String *s)
   	    }
   	  }
   	}
-      } else if (Cmp(id,k_warning) == 0) {
+      } else if (StringEqual(id,k_warning)) {
 	if (allow) {
 	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"%s\n", value);
 	}
-      } else if (Cmp(id,k_error) == 0) {
+      } else if (StringEqual(id,k_error)) {
 	if (allow) {
 	  Swig_error(Getfile(s),Getline(id),"%s\n",value);
 	}
-      } else if (Cmp(id,k_line) == 0) {
-      } else if (Cmp(id,k_include) == 0) {
+      } else if (StringEqual(id,k_line)) {
+      } else if (StringEqual(id,k_include)) {
   	if (((include_all) || (import_all)) && (allow)) {
   	  String *s1, *s2, *fn;
 	  char *dirname; int sysfile = 0;
@@ -1564,7 +1539,7 @@ Preprocessor_parse(String *s)
 	  Delete(s1);
  	  Delete(fn);
   	}
-      } else if (Cmp(id,k_pragma) == 0) {
+      } else if (StringEqual(id,k_pragma)) {
 	if (Strncmp(value,"SWIG ",5) == 0) {
 	  char *c = Char(value)+5;
 	  while (*c && (isspace((int)*c))) c++;
@@ -1574,7 +1549,7 @@ Preprocessor_parse(String *s)
 	    }
 	  }
 	}
-      } else if (Cmp(id,k_level) == 0) {
+      } else if (StringEqual(id,k_level)) {
 	Swig_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }
       for (i = 0; i < cpp_lines; i++)
@@ -1648,12 +1623,12 @@ Preprocessor_parse(String *s)
       if (!isidchar(c)) {
   	StringUngetc(c,s);
   	/* Look for common Swig directives  */
-  	if ((Cmp(decl,k_dinclude) == 0) || (Cmp(decl,k_dimport) == 0) || (Cmp(decl,k_dextern) == 0)) {
+  	if (StringEqual(decl,k_dinclude) || StringEqual(decl,k_dimport) || StringEqual(decl,k_dextern)) {
   	  /* Got some kind of file inclusion directive  */
   	  if (allow) {
   	    DOH *s1, *s2, *fn, *opt; int sysfile = 0;
 
-	    if (Cmp(decl,k_dextern) == 0) {
+	    if (StringEqual(decl,k_dextern)) {
 	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
 	      Clear(decl);
 	      StringAppend(decl,"%%import");
@@ -1666,7 +1641,7 @@ Preprocessor_parse(String *s)
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
   	      Printf(ns,"%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
-	      if (Cmp(decl,k_dimport) == 0) {
+	      if (StringEqual(decl,k_dimport)) {
 		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
@@ -1679,7 +1654,7 @@ Preprocessor_parse(String *s)
 	      if (dirname) {
 		Swig_pop_directory();
 	      }
-	      if (Cmp(decl,k_dimport) == 0) {
+	      if (StringEqual(decl,k_dimport)) {
 		pop_imported();
 	      }
   	      addline(ns,s2,allow);
@@ -1690,10 +1665,10 @@ Preprocessor_parse(String *s)
 	    Delete(fn);
   	  }
   	  state = 1;
-  	} else if (Cmp(decl,k_dline) == 0) {
+  	} else if (StringEqual(decl,k_dline)) {
   	  /* Got a line directive  */
   	  state = 1;
-  	} else if (Cmp(decl,k_ddefine) == 0) {
+  	} else if (StringEqual(decl,k_ddefine)) {
   	  /* Got a define directive  */
 	  dlevel++;	  
   	  add_chunk(ns,chunk,allow);
