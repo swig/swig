@@ -92,7 +92,7 @@ namespace Swig {
     {
     }
 
-    ruby_owntype get_own()
+    ruby_owntype get_own() const
     {
       return _own;
     }

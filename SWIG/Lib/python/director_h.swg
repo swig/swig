@@ -151,7 +151,7 @@ namespace Swig {
     {
     }
 
-    int get_own()
+    int get_own() const
     {
       return _own;
     }
