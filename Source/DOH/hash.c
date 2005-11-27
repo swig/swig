@@ -244,26 +244,58 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
  *
  * Get an attribute from the hash table. Returns 0 if it doesn't exist.
  * ----------------------------------------------------------------------------- */
+typedef int        (*binop)(DOH *obj1, DOH *obj2);
+
+#define _Hash_getattr(h, k, o)                                      \
+  int hv = Hashval(k) % h->hashsize;                                \
+  DohObjInfo *k_type = ((DohBase*)k)->type;                         \
+  HashNode *n = h->hashtable[hv];                                   \
+  if (k_type->doh_equal) {                                          \
+    binop equal = k_type->doh_equal;                                \
+    while (n) {                                                     \
+      DohBase *nk = (DohBase *)n->key;                              \
+      if ((k_type == nk->type) && equal(k, nk)) o = n->object;      \
+      n = n->next;                                                  \
+    }                                                               \
+  } else {                                                          \
+    binop cmp = k_type->doh_cmp;                                    \
+    while (n) {                                                     \
+      DohBase *nk = (DohBase *)n->key;                              \
+      if ((k_type == nk->type) && (cmp(k, nk) == 0)) o = n->object; \
+      n = n->next;                                                  \
+    }                                                               \
+  }
+
 
 static DOH *
-Hash_getattr(DOH *ho, DOH *k) {
-    int hv;
-    HashNode *n;
-    DohObjInfo *k_type;
-    DohBase *nk;
+Hash_getattr(DOH *h, DOH *k) {
+  DOH *obj = 0;
+  Hash *ho = (Hash *) ObjData(h);
+  DOH *ko = DohCheck(k) ? k : find_key(k);
+  _Hash_getattr(ho, ko, obj);
+  return obj;
+}
 
-    Hash *h = (Hash *) ObjData(ho);
 
-    if (!DohCheck(k)) k = find_key(k);
-    hv = Hashval(k) % h->hashsize;
-    n = h->hashtable[hv];
-    k_type = ((DohBase*)k)->type;
-    while (n) {
-      nk = (DohBase *)n->key;
-      if ((k_type == nk->type) && ((k_type->doh_equal)(k, nk))) return n->object;
-      n = n->next;
+/* -----------------------------------------------------------------------------
+ * Hash_checkattr()
+ *
+ * Get an attribute from the hash table. Returns 0 if it doesn't exist.
+ * ----------------------------------------------------------------------------- */
+
+int
+DohHashCheckAttr(DOH *h, DOH *k, DOH *v) {
+  DOH *obj = 0;
+  Hash *ho = (Hash *) ObjData(h);
+  _Hash_getattr(ho, k, obj);
+  if (obj) {
+    DohObjInfo *o_type = ((DohBase*)obj)->type;
+    if (o_type == ((DohBase*)v)->type) {
+      binop equal = o_type->doh_equal;
+      return equal ? equal(obj, v) : (o_type->doh_cmp(obj, v) == 0);
     }
-    return 0;
+  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------

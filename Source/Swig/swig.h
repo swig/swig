@@ -537,6 +537,11 @@ extern  void  Swig_fragment_emit(String *name);
 extern  int   Swig_need_protected();
 extern  int   Swig_director_mode();
 
+
+/* -- template init -- */
+extern void SwigType_template_init();
+
+
 #ifdef __cplusplus
 }
 #endif

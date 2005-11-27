@@ -988,7 +988,7 @@ DohNewString(const DOH *so)
     char *s;
     if (DohCheck(so)) {
       str = (String *) ObjData(so);
-      s = String_data(so);
+      s = String_data((String *)so);
       l = s ? str->len : 0;
     } else {
       s = (char *) so;
@@ -1029,7 +1029,7 @@ DohNewStringWithSize(const DOH *so, int len)
     String *str;
     char *s;
     if (DohCheck(so)) {
-      s = String_data(so);
+      s = String_data((String *)so);
     }
     else {
       s = (char *) so;

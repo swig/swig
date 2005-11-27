@@ -661,7 +661,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_ch
       if (!unstripped) {
 	unstripped = ctype;
 	ctype = SwigType_strip_qualifiers(ctype);
-	if (Strcmp(ctype,unstripped) != 0) continue;    /* Types are different */
+	if (!StringEqual(ctype,unstripped)) continue;    /* Types are different */
 	Delete(ctype);
 	ctype = unstripped;
 	unstripped = 0;
@@ -1325,7 +1325,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
     Delete(locals);  
   }
 
-  if (checkAttribute(tm,k_type,k_SWIGTYPE)) {
+  if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
     sprintf(temp,"%s:SWIGTYPE", Char(op));
     Setattr(node,tmop_name(temp),k_one);
   }
@@ -1499,7 +1499,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 	typemap_replace_vars(s,locals,type,type,pname,lname,i+1);
       }
 
-      if (checkAttribute(tm,k_type,k_SWIGTYPE)) {
+      if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
 	sprintf(temp,"%s:SWIGTYPE", Char(op));
 	Setattr(p,tmop_name(temp),k_one);
       }
