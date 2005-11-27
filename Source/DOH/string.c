@@ -133,24 +133,63 @@ String_cmp(DOH *so1, DOH *so2)
 }
 
 /* -----------------------------------------------------------------------------
+ * int String_equal() - Say if two string are equal
+ * ----------------------------------------------------------------------------- */
+
+int
+DohString_equal(DOH *so1, DOH *so2)
+{
+  String *s1 = (String *) ObjData(so1);
+  String *s2 = (String *) ObjData(so2);
+  register int len = s1->len;
+  if (len != s2->len) {
+    return 0;
+  } else {
+    register char *c1 = s1->str;
+    register char *c2 = s2->str;
+    register int mlen = len >> 2;
+    register int i = mlen;
+    for (; i; --i) {
+      if (*(c1++) != *(c2++)) return 0;
+      if (*(c1++) != *(c2++)) return 0;
+      if (*(c1++) != *(c2++)) return 0;
+      if (*(c1++) != *(c2++)) return 0;
+    }
+    for (i = len - (mlen << 2); i; --i) {
+      if (*(c1++) != *(c2++)) return 0;
+    }
+    return 1;
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * int String_hash() - Compute string hash value
  * ----------------------------------------------------------------------------- */
 
 static int 
 String_hash(DOH *so) {
   String *s = (String *) ObjData(so);
-  char *c;
-  int   i, h = 0, len;
-
-  if (s->hashkey >= 0) return s->hashkey;
-  c = s->str;
-  len = s->len > 50 ? 50 : s->len;
-  for (i = 0; i < len; i++) {
-    h = (((h << 5) + *(c++)));
+  if (s->hashkey >= 0) {
+    return s->hashkey;
+  } else {
+    register char *c = s->str;
+    register int len = s->len > 50 ? 50 : s->len;
+    register int h = 0;
+    register int mlen = len >> 2;
+    register int i = mlen;
+    for (; i; --i) {
+      h = (h << 5) + *(c++);
+      h = (h << 5) + *(c++);
+      h = (h << 5) + *(c++);
+      h = (h << 5) + *(c++);
+    }
+    for (i = len - (mlen << 2); i; --i) {
+      h = (h << 5) + *(c++);
+    }
+    h &= 0x7fffffff;
+    s->hashkey = h;
+    return h;
   }
-  h = h & 0x7fffffff;
-  s->hashkey = h;
-  return h;
 }  
 
 /* -----------------------------------------------------------------------------
@@ -159,14 +198,22 @@ String_hash(DOH *so) {
 
 void
 DohString_append(DOH *so, DOH *str) {
-  int   oldlen, newlen, newmaxsize, l, i, sp;
+  int   oldlen, newlen, newmaxsize, l, sp;
   char *tc;
   String *s = (String *) ObjData(so);
-  char *newstr = (char *) DohData(str);
+  char *newstr = 0;
 
+  if (DohCheck(str)) {
+    String *ss = (String *) ObjData(str);
+    newstr = String_data(str);
+    l = ss->len;
+  } else {
+    newstr = (char *) (str);
+    l = (int) strlen(newstr);
+  }
   if (!newstr) return;
   s->hashkey = -1;
-  l = (int) strlen(newstr);
+
   oldlen = s->len;
   newlen = oldlen+l + 1;
   if (newlen >= s->maxsize-1) {
@@ -177,12 +224,13 @@ DohString_append(DOH *so, DOH *str) {
     s->maxsize = newmaxsize;
   }
   tc = s->str;
-  strcpy(tc+oldlen,newstr);
+  memcpy(tc+oldlen,newstr,l+1);
   sp = s->sp;
   if (sp >= oldlen) {
+    int i  = oldlen + l - sp;
     tc += sp;
-    for (i = sp; i < oldlen+l; i++,tc++) {
-      if (*tc == '\n') s->line++;
+    for (; i ; --i) {
+      if (*(tc++) == '\n') s->line++;
     }
     s->sp = oldlen+l;
   }
@@ -910,6 +958,7 @@ DohObjInfo DohStringType = {
     String_len,        /* doh_len */
     String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
+    DohString_equal,      /* doh_equal */
     0,               /* doh_first    */
     0,               /* doh_next     */
     String_setfile,    /* doh_setfile */
@@ -921,7 +970,7 @@ DohObjInfo DohStringType = {
     &StringFileMethods,   /* doh_file */
     &StringStringMethods, /* doh_string */
     0,                    /* doh_position */
-    0,
+    0
 };
 
 
@@ -937,8 +986,15 @@ DohNewString(const DOH *so)
     int l = 0, max;
     String *str;
     char *s;
-    if (DohCheck(so)) s = Char(so);
-    else s = (char *) so;
+    if (DohCheck(so)) {
+      str = (String *) ObjData(so);
+      s = String_data(so);
+      l = s ? str->len : 0;
+    } else {
+      s = (char *) so;
+      l = s ? (int) strlen(s) : 0;
+    }
+    
     str = (String *) DohMalloc(sizeof(String));
     str->hashkey = -1;
     str->sp = 0;
@@ -946,7 +1002,6 @@ DohNewString(const DOH *so)
     str->file = 0;
     max = INIT_MAXSIZE;
     if (s) {
-      l = (int) strlen(s);
       if ((l+1) > max) max = l+1;
     }
     str->str = (char *) DohMalloc(max);
@@ -973,8 +1028,13 @@ DohNewStringWithSize(const DOH *so, int len)
     int l = 0, max;
     String *str;
     char *s;
-    if (DohCheck(so)) s = Char(so);
-    else s = (char *) so;
+    if (DohCheck(so)) {
+      s = String_data(so);
+    }
+    else {
+      s = (char *) so;
+    }
+    
     str = (String *) DohMalloc(sizeof(String));
     str->hashkey = -1;
     str->sp = 0;

@@ -40,6 +40,7 @@
 #define DohLen             DOH_NAMESPACE(Len)
 #define DohHashval         DOH_NAMESPACE(Hashval)
 #define DohCmp             DOH_NAMESPACE(Cmp)
+#define DohEqual           DOH_NAMESPACE(Equal)
 #define DohIncref          DOH_NAMESPACE(Incref)
 #define DohGetattr         DOH_NAMESPACE(Getattr)
 #define DohSetattr         DOH_NAMESPACE(Setattr)
@@ -66,10 +67,11 @@
 #define DohPutc            DOH_NAMESPACE(Putc)
 #define DohUngetc          DOH_NAMESPACE(Ungetc)
 
-#define DohStringGetc            DOH_NAMESPACE(StringGetc)
-#define DohStringPutc            DOH_NAMESPACE(StringPutc)
-#define DohStringUngetc          DOH_NAMESPACE(StringUngetc)
-#define DohStringAppend          DOH_NAMESPACE(StringAppend)
+#define DohStringPutc      DOH_NAMESPACE(StringPutc)
+#define DohStringGetc      DOH_NAMESPACE(StringGetc)
+#define DohStringUngetc    DOH_NAMESPACE(StringUngetc)
+#define DohStringAppend    DOH_NAMESPACE(StringAppend)
+#define DohStringEqual     DOH_NAMESPACE(StringEqual)
 
 
 
@@ -187,6 +189,7 @@ extern int           DohDump(const DOH *obj, DOHFile *out);
 extern int           DohLen(const DOH *obj);
 extern int           DohHashval(const DOH *obj);
 extern int           DohCmp(const DOH *obj1, const DOH *obj2);
+extern int           DohEqual(const DOH *obj1, const DOH *obj2);
 extern void          DohIncref(DOH *obj);
 
 /* Mapping methods */
@@ -248,11 +251,13 @@ extern int DohString_putc(DOH *so, int ch);
 extern int DohString_getc(DOH *so);
 extern int DohString_ungetc(DOH *so, int ch);
 extern void DohString_append(DOH *so, DOH *str);
+extern int DohString_equal(DOH *s1, DOH *s2);
 
 #define DohStringPutc(ch,so)    DohString_putc(so, ch)
 #define DohStringGetc(so)       DohString_getc(so)
 #define DohStringUngetc(ch,so)  DohString_ungetc(so, ch)
 #define DohStringAppend(so,str) DohString_append(so, str)
+#define DohStringEqual(s1,s2)   DohString_equal(s1,s2)
 
 /* Meta-variables */
 extern DOH          *DohGetmeta(DOH *, const DOH *);
@@ -362,6 +367,7 @@ extern void      DohMemoryDebug(void);
 #define Data               DohData
 #define Char               (char *) Data
 #define Cmp                DohCmp
+#define Equal              DohEqual
 #define Setline            DohSetline
 #define Getline            DohGetline
 #define Setfile            DohSetfile
@@ -376,10 +382,11 @@ extern void      DohMemoryDebug(void);
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
 
-#define StringGetc         DohStringGetc
 #define StringPutc         DohStringPutc
+#define StringGetc         DohStringGetc
 #define StringUngetc       DohStringUngetc
 #define StringAppend       DohStringAppend
+#define StringEqual        DohStringEqual
 
 #define Close              DohClose
 #define vPrintf            DohvPrintf

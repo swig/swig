@@ -211,6 +211,43 @@ DohCmp(const DOH *obj1, const DOH *obj2) {
 }
 
 /* -----------------------------------------------------------------------------
+ * DohEqual()
+ * ----------------------------------------------------------------------------- */
+
+int
+DohEqual(const DOH *obj1, const DOH *obj2) {
+  DohBase *b1 = (DohBase *) obj1;
+  DohBase *b2 = (DohBase *) obj2;
+  if (!b1) {
+    return !b2;
+  } else if (!b2) {
+    return 0;
+  } else {
+    DohObjInfo *b1info = 0;
+    DohObjInfo *b2info = 0;
+    if (DohCheck(b1)) {
+      b1info = b1->type;
+      if (DohCheck(b2)) {
+	b2info = b2->type;
+      } else {
+	return strncmp((b1info->doh_data)(b1), (void*) obj2, (b1info->doh_len)(b1)) == 0;
+      }
+    } else if (DohCheck(b2)) {
+      b2info = b2->type;
+      return strncmp((b2info->doh_data)(b2), (void*) obj1, (b2info->doh_len)(b2)) == 0;
+    }
+    if (!b1info) {
+      return obj1 == obj2;
+    } else if ((b1info == b2info)) {
+      return b1info->doh_equal ? (b1info->doh_equal)(b1,b2) : 
+	(b1info->doh_cmp ? (b1info->doh_cmp)(b1,b2) == 0 : (b1 == b2));
+    } else {
+      return 0;
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * DohFirst()
  * ----------------------------------------------------------------------------- */
 
