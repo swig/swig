@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig
+SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = example.c
 TARGET     = example
 INTERFACE  = example.i

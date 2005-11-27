@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig
+SWIG       = $(TOP)/../preinst-swig
 SRCS       = 
 TARGET     = example
 INTERFACE  = example.i
