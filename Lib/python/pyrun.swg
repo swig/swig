@@ -697,10 +697,9 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
       int oldown = sobj->own;
       sobj->own = own;
       return oldown;
-    } else {
-      return 0;
     }
   }
+  return 0;
 }
 
 /* Convert a pointer value */
