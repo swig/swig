@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig
+SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
 TARGET     = my_tclsh
 DLTARGET   = example
