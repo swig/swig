@@ -51,3 +51,26 @@ const int &oss::modules::CavityPackFlags::reftest = refvalue;
 
 %template(Test_int) oss::modules::Test<int>;
 
+
+
+
+%inline %{
+
+class Foo
+{
+public:
+  int val;
+  
+  Foo(int v) : val(v)
+  {
+  }
+  
+  static const Foo BAR;
+  static const Foo BAZ;
+};
+
+%}
+%{
+  const Foo Foo::BAR = Foo(1);
+  const Foo Foo::BAZ = Foo(2);
+%}
