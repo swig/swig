@@ -663,7 +663,7 @@ SwigType_add_function(SwigType *t, ParmList *parms) {
   p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms) Putc(',',pstr);
-    Printv(pstr, Getattr(p,"type"), NIL);
+    Append(pstr, Getattr(p,"type"));
   }
   Insert(t,0,pstr);
   Delete(pstr);
