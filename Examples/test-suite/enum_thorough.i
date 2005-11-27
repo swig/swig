@@ -481,7 +481,27 @@ struct Instances {
 %csconst(1);
 #endif
 
+#if defined(SWIGPERL)
 %inline %{
+
+namespace RepeatSpace {
+typedef enum
+{
+   one = 1,
+   initial = one,
+   two,
+   three,
+   llast = three,
+   end = llast
+} repeat;
+repeat repeatTest(repeat e) { return e; }
+}
+
+%}
+
+#else
+%inline %{
+
 namespace RepeatSpace {
 typedef enum
 {
@@ -497,4 +517,6 @@ repeat repeatTest(repeat e) { return e; }
 
 %}
 
+
+#endif
 
