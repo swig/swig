@@ -324,6 +324,7 @@ DohObjInfo DohListType = {
     List_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
+    0,               /* doh_equal    */
     List_first,               /* doh_first    */
     List_next,               /* doh_next     */
     List_setfile,               /* doh_setfile */

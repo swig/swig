@@ -260,7 +260,7 @@ Hash_getattr(DOH *ho, DOH *k) {
     k_type = ((DohBase*)k)->type;
     while (n) {
       nk = (DohBase *)n->key;
-      if ((k_type == nk->type) && ((k_type->doh_cmp)(k, nk) == 0)) return n->object;
+      if ((k_type == nk->type) && ((k_type->doh_equal)(k, nk))) return n->object;
       n = n->next;
     }
     return 0;
@@ -510,6 +510,7 @@ DohObjInfo DohHashType = {
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
+    0,               /* doh_equal    */
     Hash_firstiter,             /* doh_first    */
     Hash_nextiter,               /* doh_next     */
     Hash_setfile,               /* doh_setfile */

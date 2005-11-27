@@ -83,6 +83,9 @@ typedef struct DohObjInfo {
   /* Compare */
   int        (*doh_cmp)(DOH *obj1, DOH *obj2);
 
+  /* Equal */
+  int        (*doh_equal)(DOH *obj1, DOH *obj2);
+
   /* Iterators */
   DohIterator (*doh_first)(DOH *obj);
   DohIterator (*doh_next)(DohIterator );

@@ -69,6 +69,7 @@ static DohObjInfo DohVoidType = {
   0,                /* doh_len */
   0,                /* doh_hash    */
   0,                /* doh_cmp */
+  0,               /* doh_equal    */
   0,               /* doh_first    */
   0,               /* doh_next     */
   0,                /* doh_setfile */
