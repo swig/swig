@@ -3489,11 +3489,11 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  while (p) {
 			    String *n = Getattr(p,"name");
 			    if (!n) n = Getattr(p,"type");
-			    Printf(fname,"%s", n);
+			    Append(fname,n);
 			    p = nextSibling(p);
 			    if (p) Putc(',',fname);
 			  }
-			  Printf(fname,")>");
+			  Append(fname,")>");
 			  Swig_symbol_cadd(fname,$$);
 			}
 		      }
