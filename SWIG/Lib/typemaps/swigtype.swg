@@ -393,7 +393,7 @@
   some providences.
  */
 %typemap(in, noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (SWIG_ConvertFunctionPtr($input, %as_voidptrptr(&$1), $descriptor) != SWIG_OK) {
+  if (SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor) != SWIG_OK) {
     %argument_fail(SWIG_TypeError,"$type",$argnum); 
   }
 }
@@ -410,7 +410,7 @@
 }
 
 %typemap(varin,noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (SWIG_ConvertFunctionPtr($input, %as_voidptrptr(&$1), $descriptor) != SWIG_OK) {
+  if (SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor) != SWIG_OK) {
     %variable_fail(SWIG_TypeError, "$type", "$name"); 
   }
 }
@@ -434,7 +434,7 @@
 /* directorout */
 
 %typemap(directorout,noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (SWIG_ConvertFunctionPtr($input,%as_voidptrptr(&$result),$descriptor) != SWIG_OK) {
+  if (SWIG_ConvertFunctionPtr($input,(void**)(&$result),$descriptor) != SWIG_OK) {
     %dirout_fail(SWIG_TypeError,"$type");
   }
 }
