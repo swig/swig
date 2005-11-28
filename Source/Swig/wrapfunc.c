@@ -110,7 +110,7 @@ Wrapper_pretty_print(String *str, File *f) {
     } else if (c == ':') {
       Putc(c,ts);
       if ((c = Getc(str)) == '\n') {
-	if (!empty && !Strstr(ts,"?")) label = 1;
+	if (!empty && !strstr(Char(ts),"?")) label = 1;
       }
       Ungetc(c,str);
     } else if (c == '(') {

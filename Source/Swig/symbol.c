@@ -314,7 +314,7 @@ Swig_symbol_setscopename(const String_or_char *name) {
 
 String *
 Swig_symbol_getscopename() {
-  return Getattr(current_symtab,k_name);
+  return HashGetAttr(current_symtab,k_name);
 }
 
 /* -----------------------------------------------------------------------------
@@ -343,19 +343,19 @@ Swig_symbol_qualifiedscopename(Symtab *symtab) {
   Hash *parent;
   String *name;
   if (!symtab) symtab = current_symtab;
-  parent = Getattr(symtab,k_parentnode);
+  parent = HashGetAttr(symtab,k_parentnode);
   if (parent) {
     result = Swig_symbol_qualifiedscopename(parent);
   }
-  name = Getattr(symtab,k_name);
+  name = HashGetAttr(symtab,k_name);
   if (name) {
     if (!result) {
       result = NewString("");
     }
-    if (Len(result)) {
+    if (StringLen(result)) {
       Printv(result,"::",name, NIL);
     } else {
-      Append(result,name);
+      StringAppend(result,name);
     }
   }
   return result;
@@ -404,9 +404,9 @@ Symtab *
 Swig_symbol_setscope(Symtab *sym) {
   Symtab *ret = current_symtab;
   current_symtab = sym;
-  current = Getattr(sym,k_symtab);
+  current = HashGetAttr(sym,k_symtab);
   assert(current);
-  ccurrent = Getattr(sym,k_csymtab);
+  ccurrent = HashGetAttr(sym,k_csymtab);
   assert(ccurrent);
   return ret;
 }
@@ -421,11 +421,11 @@ Swig_symbol_setscope(Symtab *sym) {
 Symtab *
 Swig_symbol_popscope() {
   Hash *h = current_symtab;
-  current_symtab = Getattr(current_symtab, k_parentnode);
+  current_symtab = HashGetAttr(current_symtab, k_parentnode);
   assert(current_symtab);
-  current = Getattr(current_symtab,k_symtab);
+  current = HashGetAttr(current_symtab,k_symtab);
   assert(current);
-  ccurrent = Getattr(current_symtab,k_csymtab);
+  ccurrent = HashGetAttr(current_symtab,k_csymtab);
   assert(ccurrent);
   return h;
 }
@@ -455,7 +455,7 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
   } else {
     qname = NewString(aliasname);
   }
-  if (!Getattr(symtabs,qname)) {
+  if (!HashGetAttr(symtabs,qname)) {
     Setattr(symtabs,qname,s);
   }
   Delete(qname);
@@ -469,7 +469,7 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
 
 void Swig_symbol_inherit(Symtab *s) {
   int i;
-  List *inherit = Getattr(current_symtab,k_inherit);
+  List *inherit = HashGetAttr(current_symtab,k_inherit);
   if (!inherit) {
     inherit = NewList();
     Setattr(current_symtab,k_inherit, inherit);
@@ -525,16 +525,16 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 #endif
   cn = Getattr(ccurrent,name);
 
-  if (cn && (Getattr(cn,k_symtypename))) {
+  if (cn && (HashGetAttr(cn,k_symtypename))) {
     /* The node in the C symbol table is a typename.  Do nothing */
     /* We might append the symbol at the end */
     append = n;
-  } else if (cn && (Getattr(cn,k_symweak))) {
+  } else if (cn && (HashGetAttr(cn,k_symweak))) {
     /* The node in the symbol table is weak. Replace it */
     Setattr(ccurrent,name, n);
-  } else if (cn && (Getattr(n,k_symweak))) {
+  } else if (cn && (HashGetAttr(n,k_symweak))) {
     /* The node being added is weak.  Don't worry about it */
-  } else if (cn && (Getattr(n,k_symtypename))) {
+  } else if (cn && (HashGetAttr(n,k_symtypename))) {
     /* The node being added is a typename.  We definitely add it */
     Setattr(ccurrent,name,n);
     append = cn;
@@ -564,7 +564,7 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 	/* already added. Bail */
 	return;
       }
-      fn = Getattr(fn,k_csymnextSibling);
+      fn = HashGetAttr(fn,k_csymnextSibling);
     }
     if (pn) {
       Setattr(pn,k_csymnextSibling,append);
@@ -587,8 +587,8 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
     while (td && HashCheckAttr(td,k_nodetype,k_cdecl) && HashCheckAttr(td,k_storage,k_typedef)) {
       SwigType *type;
       Node *td1;
-      type = Copy(Getattr(td,k_type));
-      SwigType_push(type,Getattr(td,k_decl));
+      type = Copy(HashGetAttr(td,k_type));
+      SwigType_push(type,HashGetAttr(td,k_decl));
       td1 = Swig_symbol_clookup(type,0);
  
       /* Fix patetic case #1214313:
@@ -609,10 +609,10 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 	 
       */
       if (td1 && HashCheckAttr(td1,k_storage,k_typedef)) {
-	String *st = Getattr(td1,k_type);
-	String *sn = Getattr(td,k_name);
+	String *st = HashGetAttr(td1,k_type);
+	String *sn = HashGetAttr(td,k_name);
 	if (st && sn && StringEqual(st, sn)) {
-	  Symtab *sc = Getattr(current_symtab,k_parentnode);
+	  Symtab *sc = HashGetAttr(current_symtab,k_parentnode);
 	  if (sc) td1 = Swig_symbol_clookup(type,sc);
 	}
       }
@@ -621,9 +621,9 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
       if (td1 == td) break;
       td = td1;
       if (td) {
-	Symtab *st = Getattr(td,k_symtab);
+	Symtab *st = HashGetAttr(td,k_symtab);
 	if (st) {
-	  Swig_symbol_alias(Getattr(n,k_name),st);
+	  Swig_symbol_alias(HashGetAttr(n,k_name),st);
 	  break;
 	}
       }
@@ -674,7 +674,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      stays in the C symbol table (so that it can be expanded using %template).
    */
 
-  name = Getattr(n,k_name);
+  name = HashGetAttr(n,k_name);
   if (name && Len(name)) {
     Swig_symbol_cadd(name,n);
   }
@@ -700,7 +700,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      In this case, "Foo" sits in the symbol table.  However, the
      definition of Foo would replace the entry if it appeared later. */
      
-  if (c && Getattr(c,k_symweak)) {
+  if (c && HashGetAttr(c,k_symweak)) {
     c = 0;
   }
   if (c) {
@@ -715,13 +715,13 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     */
 
     /* Check for namespaces */
-    String *ntype = Getattr(n, k_nodetype); 
-    if ((StringEqual(ntype,Getattr(c,k_nodetype))) && ((StringEqual(ntype,k_namespace)))) {
+    String *ntype = HashGetAttr(n, k_nodetype); 
+    if ((StringEqual(ntype,HashGetAttr(c,k_nodetype))) && ((StringEqual(ntype,k_namespace)))) {
       Node *cl, *pcl = 0;
       cl = c;
       while (cl) {
 	pcl = cl;
-	cl = Getattr(cl,k_symnextSibling);
+	cl = HashGetAttr(cl,k_symnextSibling);
       }
       Setattr(pcl,k_symnextSibling,n);
       Setattr(n,k_symsymtab, current_symtab);
@@ -729,8 +729,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
       Setattr(n,k_sympreviousSibling, pcl);
       return n;
     }
-    if (Getattr(n,k_allowstypedef)) nt = 1;
-    if (Getattr(c,k_allowstypedef)) ct = 1;
+    if (HashGetAttr(n,k_allowstypedef)) nt = 1;
+    if (HashGetAttr(c,k_allowstypedef)) ct = 1;
     if (nt || ct) {
       Node *td, *other;
       String *s;
@@ -748,7 +748,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 	other = n;
       }
       /* Make sure the other node is a typedef */
-      s = Getattr(other,k_storage);
+      s = HashGetAttr(other,k_storage);
       if (!s || (!StringEqual(s,k_typedef))) return c;  /* No.  This is a conflict */
       
       /* Hmmm.  This appears to be okay.  Make sure the symbol table refers to the allow_type node */
@@ -761,15 +761,15 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
       return n;
     }
      
-    decl = Getattr(c,k_decl);
-    ndecl = Getattr(n,k_decl);
+    decl = HashGetAttr(c,k_decl);
+    ndecl = HashGetAttr(n,k_decl);
 
     {
       String *nt1, *nt2;
-      nt1 = Getattr(n,k_nodetype);
-      if (StringEqual(nt1,k_template)) nt1 = Getattr(n,k_templatetype);
-      nt2 = Getattr(c,k_nodetype);
-      if (StringEqual(nt2,k_template)) nt2 = Getattr(c,k_templatetype);
+      nt1 = HashGetAttr(n,k_nodetype);
+      if (StringEqual(nt1,k_template)) nt1 = HashGetAttr(n,k_templatetype);
+      nt2 = HashGetAttr(c,k_nodetype);
+      if (StringEqual(nt2,k_template)) nt2 = HashGetAttr(c,k_templatetype);
       if (StringEqual(nt1,k_using)) u1 = 1;
       if (StringEqual(nt2,k_using)) u2 = 1;
 
@@ -784,8 +784,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     
     /* Hmmm. Declarator seems to indicate that this is a function */
     /* Look at storage class to see if compatible */
-    cstorage = Getattr(c,k_storage);
-    nstorage = Getattr(n,k_storage);
+    cstorage = HashGetAttr(c,k_storage);
+    nstorage = HashGetAttr(n,k_storage);
 
     /* If either one is declared as typedef, forget it. We're hosed */
     if (Cmp(cstorage,k_typedef) == 0) {
@@ -797,19 +797,19 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
     {
-      String *nt = Getattr(n,k_nodetype);
+      String *nt = HashGetAttr(n,k_nodetype);
       int n_template = StringEqual(nt,k_template) && HashCheckAttr(n,k_templatetype,k_cdecl);
       int n_plain_cdecl = StringEqual(nt,k_cdecl);
       cn = c;
       pn = 0;
       while (cn) {
-        decl = Getattr(cn,k_decl);
+        decl = HashGetAttr(cn,k_decl);
         if (!(u1 || u2)) {
           if (Cmp(ndecl,decl) == 0) {
             /* Declarator conflict */
             /* Now check we don't have a non-templated function overloaded by a templated function with same params,
              * eg void foo(); template<typename> void foo(); */
-	    String *cnt = Getattr(cn,k_nodetype);
+	    String *cnt = HashGetAttr(cn,k_nodetype);
             int cn_template = StringEqual(cnt,k_template) && HashCheckAttr(cn,k_templatetype,k_cdecl);
             int cn_plain_cdecl = StringEqual(cnt,k_cdecl);
             if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl))) {
@@ -819,7 +819,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
           }
         }
         cl = cn;
-        cn = Getattr(cn,k_symnextSibling);
+        cn = HashGetAttr(cn,k_symnextSibling);
         pn++;
       }
     }
@@ -827,7 +827,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     Setattr(n,k_symsymtab,current_symtab);
     Setattr(n,k_symname,symname);
     /* Printf(stdout,"%s %x\n", Getattr(n,k_symovername), current_symtab); */
-    assert(!Getattr(n,k_symovername));
+    assert(!HashGetAttr(n,k_symovername));
     overname = NewStringf("__SWIG_%d", pn);
     Setattr(n,k_symovername, overname);
     /*Printf(stdout,"%s %s %s\n", symname, Getattr(n,k_decl), Getattr(n,k_symovername)); */
@@ -866,18 +866,18 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static Node *
-symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
+_symbol_lookup(String *name, Symtab *symtab, int (*check)(Node *n)) {
   Node *n;
   List *inherit;
-  Hash *sym = Getattr(symtab,k_csymtab);
+  Hash *sym = HashGetAttr(symtab,k_csymtab);
   if (Getmark(symtab)) return 0;
   Setmark(symtab,1);
 
 
-  n = Getattr(sym,name);
+  n = HashGetAttr(sym,name);
 
 #ifdef SWIG_DEBUG
-  Printf(stderr,"symbol_look %s %x %x %s\n", name, n, symtab, Getattr(symtab,k_name));
+  Printf(stderr,"symbol_look %s %x %x %s\n", name, n, symtab, HashGetAttr(symtab,k_name));
 #endif
   
   if (n) {
@@ -904,18 +904,18 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
     Setmark(symtab,0);
     dname = Swig_symbol_template_deftype(name,symtab);
     if (!StringEqual(dname,name)) {
-      n = symbol_lookup(dname, symtab, check);
+      n = _symbol_lookup(dname, symtab, check);
     }
     Delete(dname);
     if (n) return n;
   }
 
-  inherit = Getattr(symtab,k_inherit);
+  inherit = HashGetAttr(symtab,k_inherit);
   if (inherit) {
     int  i,len;
     len = Len(inherit);
     for (i = 0; i < len; i++) {
-      n = symbol_lookup(name, Getitem(inherit,i),check);
+      n = _symbol_lookup(name, Getitem(inherit,i),check);
       if (n) {
 	Setmark(symtab,0);
 	return n;
@@ -926,6 +926,21 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
   Setmark(symtab,0);
   return 0;
 }
+
+static Node *
+symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
+  Node *n = 0;
+  if (DohCheck(name)) {
+    n = _symbol_lookup(name, symtab, check);
+  } else {
+    String *sname = NewString(name);
+    n =  _symbol_lookup(sname, symtab, check);
+    Delete(sname);
+  }
+  return n;
+}
+
+
 
 /* -----------------------------------------------------------------------------
  * symbol_lookup_qualified()
@@ -947,21 +962,20 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     Delete(prefix);
     return n;
   } else {
-    String *qname;
     Symtab *st;
     Node *n = 0;
     /* Make qualified name of current scope */
-    qname = Swig_symbol_qualifiedscopename(symtab);
-    if (Len(qname)) {
-      if (Len(prefix)) {
-	Append(qname,k_coloncolon);
-	Append(qname,prefix);
+    String *qname = Swig_symbol_qualifiedscopename(symtab);
+    if (qname && StringLen(qname)) {
+      if (prefix && StringLen(prefix)) {
+	StringAppend(qname,k_coloncolon);
+	StringAppend(qname,prefix);
       }
     } else {
       Delete(qname);
-      qname = NewString(prefix);
+      qname = Copy(prefix);
     }
-    st = Getattr(symtabs,qname);
+    st = HashGetAttr(symtabs,qname);
     /* Found a scope match */
     if (st) {
       if (!name) return st;
@@ -971,7 +985,7 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     Delete(qname);
     if (!n) {
       if (!local) {
-	Node *pn = Getattr(symtab,k_parentnode);
+	Node *pn = HashGetAttr(symtab,k_parentnode);
 	if (pn) n = symbol_lookup_qualified(name,pn, prefix, local,checkfunc);
       } else {
 	n = 0;
@@ -998,7 +1012,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
     hsym = current_symtab;
   } else {
     if (!HashCheckAttr(n,k_nodetype,k_symboltable)) {
-      n = Getattr(n,k_symsymtab);
+      n = HashGetAttr(n,k_symsymtab);
     }
     assert(n);
     if (n) {
@@ -1007,7 +1021,8 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   
   if (Swig_scopename_check(name)) {
-    if (Strncmp(name,k_coloncolon,2) == 0) {
+    char *cname = Char(name);
+    if (strncmp(cname,"::",2) == 0) {
       String *nname = NewString(Char(name)+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
@@ -1028,7 +1043,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
     while (hsym) {
       s = symbol_lookup(name,hsym,0);
       if (s) break;
-      hsym = Getattr(hsym,k_parentnode);
+      hsym = HashGetAttr(hsym,k_parentnode);
       if (!hsym) break;
     }
   }
@@ -1037,12 +1052,12 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   /* Check if s is a 'using' node */
   while (s && HashCheckAttr(s,k_nodetype,k_using)) {
-    String *uname = Getattr(s,k_uname);
-    Symtab *un = Getattr(s,k_symsymtab);
+    String *uname = HashGetAttr(s,k_uname);
+    Symtab *un = HashGetAttr(s,k_symsymtab);
     Node *ss = (!StringEqual(name,uname) || (un != n)) ?
       Swig_symbol_clookup(uname, un) : 0; /* avoid infinity loop */
     if (!ss) {
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,k_uname));
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", HashGetAttr(s,k_uname));
     }
     s = ss;
   }
@@ -1068,7 +1083,7 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
     hsym = current_symtab;
   } else {
     if (!HashCheckAttr(n,k_nodetype,k_symboltable)) {
-      n = Getattr(n,k_symsymtab);
+      n = HashGetAttr(n,k_symsymtab);
     }
     assert(n);
     if (n) {
@@ -1077,7 +1092,8 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
   }
   
   if (Swig_scopename_check(name)) {
-    if (Strncmp(name,k_coloncolon,2) == 0) {
+    char *cname = Char(name);
+    if (strncmp(cname,"::",2) == 0) {
       String *nname = NewString(Char(name)+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
@@ -1098,7 +1114,7 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
     while (hsym) {
       s = symbol_lookup(name,hsym,checkfunc);
       if (s) break;
-      hsym = Getattr(hsym,k_parentnode);
+      hsym = HashGetAttr(hsym,k_parentnode);
       if (!hsym) break;
     }
   }
@@ -1108,9 +1124,9 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
   /* Check if s is a 'using' node */
   while (s && HashCheckAttr(s,k_nodetype,k_using)) {
     Node *ss;
-    ss = Swig_symbol_clookup(Getattr(s,k_uname), Getattr(s,k_symsymtab));
+    ss = Swig_symbol_clookup(HashGetAttr(s,k_uname), HashGetAttr(s,k_symsymtab));
     if (!ss && !checkfunc) {
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,k_uname));
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", HashGetAttr(s,k_uname));
     }
     s = ss;
   }
@@ -1131,15 +1147,16 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
     h = ccurrent;
   } else {
     if (!HashCheckAttr(n,k_nodetype,k_symboltable)) {
-      n = Getattr(n,k_symsymtab);
+      n = HashGetAttr(n,k_symsymtab);
     }
     assert(n);
     hsym = n;
-    h = Getattr(n,k_csymtab);
+    h = HashGetAttr(n,k_csymtab);
   }
 
   if (Swig_scopename_check(name)) {
-    if (Strncmp(name,k_coloncolon,2) == 0) {
+    char *cname = Char(name);
+    if (strncmp(cname,"::",2) == 0) {
       String *nname = NewString(Char(name)+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
@@ -1155,9 +1172,9 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   if (!s) return 0;
   /* Check if s is a 'using' node */
   while (s && HashCheckAttr(s,k_nodetype,k_using)) {
-    Node *ss = Swig_symbol_clookup_local(Getattr(s,k_uname), Getattr(s,k_symsymtab));
+    Node *ss = Swig_symbol_clookup_local(HashGetAttr(s,k_uname), HashGetAttr(s,k_symsymtab));
     if (!ss) {
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,k_uname));
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", HashGetAttr(s,k_uname));
     }
     s = ss;
   }
@@ -1178,15 +1195,16 @@ Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc
     h = ccurrent;
   } else {
     if (!HashCheckAttr(n,k_nodetype,k_symboltable)) {
-      n = Getattr(n,k_symsymtab);
+      n = HashGetAttr(n,k_symsymtab);
     }
     assert(n);
     hsym = n;
-    h = Getattr(n,k_csymtab);
+    h = HashGetAttr(n,k_csymtab);
   }
 
   if (Swig_scopename_check(name)) {
-    if (Strncmp(name,k_coloncolon,2) == 0) {
+    char *cname = Char(name);
+    if (strncmp(cname,"::",2) == 0) {
       String *nname = NewString(Char(name)+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
@@ -1202,9 +1220,9 @@ Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc
   if (!s) return 0;
   /* Check if s is a 'using' node */
   while (s && HashCheckAttr(s,k_nodetype,k_using)) {
-    Node *ss = Swig_symbol_clookup_local_check(Getattr(s,k_uname), Getattr(s,k_symsymtab),checkfunc);
+    Node *ss = Swig_symbol_clookup_local_check(HashGetAttr(s,k_uname), HashGetAttr(s,k_symsymtab),checkfunc);
     if (!ss && !checkfunc) {
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,k_uname));
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", HashGetAttr(s,k_uname));
     }
     s = ss;
   }
@@ -1220,7 +1238,8 @@ Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc
 
 Symtab *
 Swig_symbol_cscope(String_or_char *name, Symtab *symtab) {
-  if (Strncmp(name,k_coloncolon,2) == 0) return symbol_lookup_qualified(0, global_scope, name, 0,0);
+  char *cname = Char(name);
+  if (strncmp(cname,"::",2) == 0) return symbol_lookup_qualified(0, global_scope, name, 0,0);
   return symbol_lookup_qualified(0,symtab,name,0,0);
 }
 
@@ -1240,11 +1259,11 @@ Swig_symbol_remove(Node *n) {
   Node    *symprev;
   Node    *symnext;
   Node    *fixovername = 0;
-  symtab  = Getattr(n,k_symsymtab);        /* Get symbol table object */
-  symtab  = Getattr(symtab,k_symtab);       /* Get actual hash table of symbols */
-  symname = Getattr(n,k_symname);
-  symprev = Getattr(n,k_sympreviousSibling);
-  symnext = Getattr(n,k_symnextSibling);
+  symtab  = HashGetAttr(n,k_symsymtab);        /* Get symbol table object */
+  symtab  = HashGetAttr(symtab,k_symtab);       /* Get actual hash table of symbols */
+  symname = HashGetAttr(n,k_symname);
+  symprev = HashGetAttr(n,k_sympreviousSibling);
+  symnext = HashGetAttr(n,k_symnextSibling);
 
   /* If previous symbol, just fix the links */
   if (symprev) {
@@ -1287,19 +1306,19 @@ Swig_symbol_remove(Node *n) {
     /* find head of linked list */
     while (nn) {
       head = nn;
-      nn = Getattr(nn, k_sympreviousSibling);
+      nn = HashGetAttr(nn, k_sympreviousSibling);
     }
 
     /* adjust all the sym:overname strings to start from 0 and increment by one */
     nn = head;
     while (nn) {
-      assert(Getattr(nn,k_symovername));
+      assert(HashGetAttr(nn,k_symovername));
       Delattr(nn,k_symovername);
       overname = NewStringf("__SWIG_%d", pn);
       Setattr(nn,k_symovername, overname);
       Delete(overname);
       pn++;
-      nn = Getattr(nn,k_symnextSibling);
+      nn = HashGetAttr(nn,k_symnextSibling);
     }
   }
 }
@@ -1316,11 +1335,11 @@ Swig_symbol_qualified(Node *n) {
   if (HashCheckAttr(n,k_nodetype,k_symboltable)) {
     symtab = n;
   } else {
-    symtab = Getattr(n,k_symsymtab);
+    symtab = HashGetAttr(n,k_symsymtab);
   }
   if (!symtab) return NewString("");
 #ifdef SWIG_DEBUG
-  Printf(stderr,"symbol_qscope %s %x %s\n", Getattr(n,k_name), symtab,Getattr(symtab,k_name));
+  Printf(stderr,"symbol_qscope %s %x %s\n", HashGetAttr(n,k_name), symtab,HashGetAttr(symtab,k_name));
 #endif
   return Swig_symbol_qualifiedscopename(symtab);
 }
@@ -1333,7 +1352,7 @@ Swig_symbol_qualified(Node *n) {
 
 Node *
 Swig_symbol_isoverloaded(Node *n) {
-  return Getattr(n,k_symoverloaded);
+  return HashGetAttr(n,k_symoverloaded);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1344,7 +1363,7 @@ Swig_symbol_isoverloaded(Node *n) {
 
 static int no_constructor(Node *n) {
 #ifdef SWIG_DEBUG
-  Printf(stderr,"node type %s\n", Getattr(n,k_name), type);
+  Printf(stderr,"node type %s\n", HashGetAttr(n,k_name), type);
 #endif
   return !HashCheckAttr(n, k_nodetype, k_constructor);
 }
@@ -1362,8 +1381,8 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   qprefix = Swig_symbol_type_qualify(tprefix,st);
   targs = SwigType_parmlist(e);
   tempn = Swig_symbol_clookup_local(tprefix,st);
-  tscope = tempn ? Getattr(tempn,k_symsymtab) : 0;
-  Printf(qprefix,"<(");
+  tscope = tempn ? HashGetAttr(tempn,k_symsymtab) : 0;
+  StringAppend(qprefix,"<(");
   for (ti = First(targs); ti.item;) {
     String *vparm;
     String *qparm = Swig_symbol_type_qualify(ti.item,st);
@@ -1374,7 +1393,7 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
     }
 
     vparm = Swig_symbol_template_param_eval(qparm, st);
-    Append(qprefix,vparm);
+    StringAppend(qprefix,vparm);
     ti = Next(ti);
     if (ti.item) {
       Putc(',',qprefix);
@@ -1382,8 +1401,8 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
     Delete(qparm);
     Delete(vparm);
   }
-  Append(qprefix,")>");
-  Append(qprefix,tsuffix);
+  StringAppend(qprefix,")>");
+  StringAppend(qprefix,tsuffix);
   Delete(tprefix);
   Delete(tsuffix);
   Delete(targs);
@@ -1408,15 +1427,15 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
     if (SwigType_issimple(e)) {
       Node *n = Swig_symbol_clookup_check(e,st,no_constructor);
       if (n) {
-	String *name = Getattr(n,k_name);
+	String *name = HashGetAttr(n,k_name);
 	Clear(e);
-	Append(e,name);
+	StringAppend(e,name);
 #ifdef SWIG_DEBUG
 	Printf(stderr,"symbol_qual_ei %d %s %s %x\n", i, name, e, st);
 #endif
 	if (!Swig_scopename_check(name)) {
 	  String *qname = Swig_symbol_qualified(n);
-	  if (Len(qname)) {
+	  if (qname && StringLen(qname)) {
 	    Insert(e,0,k_coloncolon);
 	    Insert(e,0,qname);
 	  }
@@ -1428,38 +1447,38 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
       } else if (SwigType_istemplate(e)) {
 	SwigType *ty = Swig_symbol_template_qualify(e,st);
 	Clear(e);
-	Append(e,ty);
+	StringAppend(e,ty);
 	Delete(ty);	
       }
-      if (Strncmp(e,k_coloncolon,2) == 0) {
+      if (strncmp(Char(e),"::",2) == 0) {
 	Delitem(e,0);
 	Delitem(e,0);
       }
-      Append(result,e);
+      StringAppend(result,e);
     } else if (SwigType_isfunction(e)) {
       List *parms = SwigType_parmlist(e);
       String *s = NewString("f(");
       Iterator pi = First(parms);
       while (pi.item) {
 	String *pf = Swig_symbol_type_qualify(pi.item,st);
-	Append(s,pf);
+	StringAppend(s,pf);
 	pi = Next(pi);
 	if (pi.item) {
-	  Append(s,",");
+	  StringAppend(s,",");
 	}
 	Delete(pf);
       }
-      Append(s,").");
-      Append(result,s);
+      StringAppend(s,").");
+      StringAppend(result,s);
       Delete(parms);
       Delete(s);
     } else {
-      Append(result,e);
+      StringAppend(result,e);
     }
   }
   Delete(elements);
 #ifdef SWIG_DEBUG
-  Printf(stderr,"symbol_qualify %s %s %x %s\n", t, result, st, st ?Getattr(st,k_name): 0);
+  Printf(stderr,"symbol_qualify %s %s %x %s\n", t, result, st, st ?HashGetAttr(st,k_name): 0);
 #endif
   return result;
 }
@@ -1488,9 +1507,9 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
     Node *n = Swig_symbol_clookup(qp,ntab);
     if (n) {
       String *qual = Swig_symbol_qualified(n);
-      np = Copy(Getattr(n,k_name));
+      np = Copy(HashGetAttr(n,k_name));
       tp = np;
-      if (Len(qual)) {
+      if (qual && StringLen(qual)) {
 	Insert(np,0,k_coloncolon);
 	Insert(np,0,qual);
       }
@@ -1498,15 +1517,15 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
     } else {
       np = qp;
     }
-    Append(qprefix,np);
+    StringAppend(qprefix,np);
     pi= Next(pi);
     if (pi.item) {
-      Append(qprefix,",");
+      StringAppend(qprefix,",");
     }
     Delete(qp);
     Delete(tp);
   }
-  Append(qprefix,")>");
+  StringAppend(qprefix,")>");
   Insert(tsuffix, 0, qprefix);
   Delete(parms);  
   Delete(tprefix);  
@@ -1528,7 +1547,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
     Delete(base);
     if (SwigType_istemplate(ty)) {
       SwigType *qt = Swig_symbol_template_reduce(ty,tab);
-      Append(prefix,qt);
+      StringAppend(prefix,qt);
       Delete(qt);
 #ifdef SWIG_DEBUG
       Printf(stderr,"symbol_reduce %s %s\n", ty, prefix);
@@ -1542,11 +1561,11 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       return Copy(ty);
     }
   }
-  nt = Getattr(n,k_nodetype);
+  nt = HashGetAttr(n,k_nodetype);
   if (StringEqual(nt,k_using)) {
-    String *uname = Getattr(n,k_uname);
+    String *uname = HashGetAttr(n,k_uname);
     if (uname) {
-      n = Swig_symbol_clookup(base,Getattr(n,k_symsymtab));
+      n = Swig_symbol_clookup(base,HashGetAttr(n,k_symsymtab));
       if (!n) {
 	Delete(base);
 	Delete(prefix);
@@ -1558,13 +1577,13 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
     } 
   }
   if (StringEqual(nt,k_cdecl)) {
-    String *storage = Getattr(n,k_storage);
+    String *storage = HashGetAttr(n,k_storage);
     if (storage && (StringEqual(storage,k_typedef))) {
       SwigType *decl;
       SwigType *rt;
       SwigType *qt;
       Symtab *ntab;
-      SwigType *nt = Copy(Getattr(n,k_type));
+      SwigType *nt = Copy(HashGetAttr(n,k_type));
       
       /* Fix for case 'typedef struct Hello hello;' */
       {	
@@ -1577,14 +1596,14 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
 	  }
 	}
       }
-      decl = Getattr(n,k_decl);
+      decl = HashGetAttr(n,k_decl);
       if (decl) {
 	SwigType_push(nt,decl);
       }
       SwigType_push(nt,prefix);
       Delete(base);
       Delete(prefix);
-      ntab = Getattr(n,k_symsymtab);
+      ntab = HashGetAttr(n,k_symsymtab);
       rt = Swig_symbol_typedef_reduce(nt, ntab);
       qt = Swig_symbol_type_qualify(rt, ntab);
       if (SwigType_istemplate(qt)) {
@@ -1633,7 +1652,7 @@ Swig_symbol_string_qualify(String *s, Symtab *st) {
     } else {
       if (have_id) {
 	String *qid = Swig_symbol_type_qualify(id,st);
-	Append(r,qid);
+	StringAppend(r,qid);
 	Clear(id);
 	Delete(qid);
 	have_id = 0;
@@ -1644,7 +1663,7 @@ Swig_symbol_string_qualify(String *s, Symtab *st) {
   }
   if (have_id) {
     String *qid = Swig_symbol_type_qualify(id,st);
-    Append(r,qid);
+    StringAppend(r,qid);
     Delete(qid);
   }
   Delete(id);
@@ -1671,7 +1690,7 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
       if (p) lp = p;
     }
     while (tp) {
-      String *value = Getattr(tp,k_value);
+      String *value = HashGetAttr(tp,k_value);
       if (value) {
 	Parm *cp;
 	Parm *ta = targs;
@@ -1679,12 +1698,12 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
 	SwigType *nt = Swig_symbol_string_qualify(value,tsdecl);
 	SwigType *ntq = 0;
 #ifdef SWIG_DEBUG
-	Printf(stderr,"value %s %s %s\n",value, nt,tsdecl ? Getattr(tsdecl,k_name) : tsdecl);
+	Printf(stderr,"value %s %s %s\n",value, nt,tsdecl ? HashGetAttr(tsdecl,k_name) : tsdecl);
 #endif
 	while(p && ta) {
-	  String *name = Getattr(ta,k_name);
-	  String *pvalue = Getattr(p,k_value);
-	  String *value = pvalue ? pvalue : Getattr(p,k_type);
+	  String *name = HashGetAttr(ta,k_name);
+	  String *pvalue = HashGetAttr(p,k_value);
+	  String *value = pvalue ? pvalue : HashGetAttr(p,k_type);
 	  String *ttq = Swig_symbol_type_qualify(value,tscope);
 	  /* value = SwigType_typedef_resolve_all(value);*/
 	  Replaceid(nt, name, ttq);
@@ -1738,15 +1757,15 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	String *pf = SwigType_istemplate(e) ? 
 	  Swig_symbol_template_deftype(pi.item,tscope)
 	  : Swig_symbol_type_qualify(pi.item,tscope);
-	Append(s,pf);
+	StringAppend(s,pf);
 	pi = Next(pi);
 	if (pi.item) {
-	  Append(s,",");
+	  StringAppend(s,",");
 	}
 	Delete(pf);
       }
-      Append(s,").");
-      Append(result,s);
+      StringAppend(s,").");
+      StringAppend(result,s);
       Delete(s);
       Delete(parms);
     } else if (SwigType_istemplate(e)) {
@@ -1761,20 +1780,20 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       Printf(stderr,"deftype type %s \n", e);
 #endif
       if (tempn) {
-	ParmList *tnargs = Getattr(tempn,k_templateparms);
+	ParmList *tnargs = HashGetAttr(tempn,k_templateparms);
 	Parm *p;
-	Symtab *tsdecl = Getattr(tempn,k_symsymtab);
+	Symtab *tsdecl = HashGetAttr(tempn,k_symsymtab);
 	
 #ifdef SWIG_DEBUG
 	Printf(stderr,"deftype type %s %s %s\n", tprefix, targs,tsuffix);
 #endif
-	Append(tprefix,"<(");
+	StringAppend(tprefix,"<(");
 	Swig_symbol_template_defargs(tparms, tnargs,tscope,tsdecl);
 	p = tparms;
 	tscope = tsdecl;
 	while (p) {
-	  SwigType *ptype = Getattr(p,k_type);
-	  SwigType *ttr = ptype ? ptype : Getattr(p,k_value);
+	  SwigType *ptype = HashGetAttr(p,k_type);
+	  SwigType *ttr = ptype ? ptype : HashGetAttr(p,k_value);
 	  SwigType *ttf = Swig_symbol_type_qualify(ttr,tscope);
 	  SwigType *ttq = Swig_symbol_template_param_eval(ttf,tscope);
 #ifdef SWIG_DEBUG
@@ -1788,21 +1807,21 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	    Printf(stderr,"arg deftype %s\n", ttq);
 #endif
 	  }	
-	  Append(tprefix,ttq);
+	  StringAppend(tprefix,ttq);
 	  p = nextSibling(p);
 	  if (p) Putc(',',tprefix);
 	  Delete(ttf);
 	  Delete(ttq);
 	}
-	Append(tprefix,")>");
-	Append(tprefix,tsuffix);
-	Append(prefix,tprefix);
+	StringAppend(tprefix,")>");
+	StringAppend(tprefix,tsuffix);
+	StringAppend(prefix,tprefix);
 #ifdef SWIG_DEBUG
 	Printf(stderr,"deftype %s %s \n", type, tprefix); 
 #endif
-	Append(result,prefix);
+	StringAppend(result,prefix);
       } else {
-	Append(result,e);
+	StringAppend(result,e);
       }
       Delete(prefix);
       Delete(base);
@@ -1811,7 +1830,7 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       Delete(targs);
       Delete(tparms);
     } else {
-      Append(result,e);
+      StringAppend(result,e);
     }
   }
   Delete(elements);
@@ -1827,13 +1846,13 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab)
     if (n == lastnode) break;
     lastnode = n;
     if (n) {
-      String *nt = Getattr(n,k_nodetype);
+      String *nt = HashGetAttr(n,k_nodetype);
       if (StringEqual(nt,k_enumitem)) {
 	/* An enum item.   Generate a fully qualified name */
 	String *qn = Swig_symbol_qualified(n);
-	if (Len(qn)) {
-	  Append(qn,k_coloncolon);
-	  Append(qn,Getattr(n,k_name));
+	if (qn && StringLen(qn)) {
+	  StringAppend(qn,k_coloncolon);
+	  StringAppend(qn,HashGetAttr(n,k_name));
 	  Delete(value);
 	  value = qn;
 	  continue;
@@ -1842,7 +1861,7 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab)
 	  break;
 	}
       } else if ((StringEqual(nt,k_cdecl))) {
-	String *nv = Getattr(n,k_value);
+	String *nv = HashGetAttr(n,k_value);
 	if (nv) {
 	  Delete(value);
 	  value = Copy(nv);

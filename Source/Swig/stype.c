@@ -328,7 +328,7 @@ void SwigType_add_default(String *def, SwigType *nr)
     Append(def,"SWIGTYPE");
   } else {
     String *q = SwigType_isqualifier(nr) ? SwigType_pop(nr) : 0;
-    if (q && Strstr(nr,"SWIGTYPE")) {
+    if (q && strstr(Char(nr),"SWIGTYPE")) {
       Append(def, nr);
     } else {
       String *nd = SwigType_default(nr);
@@ -381,7 +381,7 @@ SwigType *SwigType_default(SwigType *t) {
     String *q;
     if (r == t) r = Copy(t);
     q = SwigType_pop(r);
-    if (Strstr(r,"SWIGTYPE")) {
+    if (strstr(Char(r),"SWIGTYPE")) {
       Delete(q);
       def = r;
       return def;
@@ -496,9 +496,8 @@ SwigType_namestr(const SwigType *t) {
 
   if (!SwigType_istemplate(t)) return NewString(t);
 
-  c = Strstr(t,"<(");
-
   d = Char(t);
+  c = strstr(d,"<(");
   e = tmp;
   while (d != c) {
     *(e++) = *(d++);
@@ -547,7 +546,7 @@ SwigType_str(SwigType *s, const String_or_char *id)
   int nelements, i;
 
   if (id) {
-    result = NewString(Char(id));
+    result = NewString(id);
   } else {
     result = NewString("");
   }
@@ -615,7 +614,7 @@ SwigType_str(SwigType *s, const String_or_char *id)
       Append(result,")");
       Delete(parms);
     } else {
-      if (Strcmp(element,"v(...)") == 0) {
+      if (strcmp(Char(element),"v(...)") == 0) {
 	Insert(result,0,"...");
       } else {
 	String *bs = SwigType_namestr(element);
@@ -996,7 +995,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	Replace(e,pat,rep,DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
          /* Replaces a type of the form 'pat<args>' with 'rep' */
-	if (Strncmp(e,pat,Len(pat)) == 0) {
+	if (StringEqual(e,pat)) {
 	  String *repbase = SwigType_templateprefix(rep);
 	  Replace(e,pat,repbase,DOH_REPLACE_ID | DOH_REPLACE_FIRST);
 	  Delete(repbase);

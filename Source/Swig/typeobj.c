@@ -864,7 +864,7 @@ SwigType_templateargs(const SwigType *t) {
 
 int 
 SwigType_istemplate(const SwigType *t) {
-  if (Strstr(t,"<(")) return 1;
+  if (strstr(Char(t),"<(")) return 1;
   return 0;
 }
 
