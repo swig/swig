@@ -88,28 +88,28 @@ static Node *new_node(const String_or_char *tag) {
 
 static Node *copy_node(Node *n) {
   Node *nn;
-  String *key;
   Iterator k;
   nn = NewHash();
   Setfile(nn,Getfile(n));
   Setline(nn,Getline(n));
   for (k = First(n); k.key; k = Next(k)) {
-    key = k.key;
-    if ((Strcmp(key,"nextSibling") == 0) ||
-	(Strcmp(key,"previousSibling") == 0) ||
-	(Strcmp(key,"parentNode") == 0) ||
-	(Strcmp(key,"lastChild") == 0)) {
+    String *key = k.key;
+    char *ckey = Char(key);
+    if ((strcmp(ckey,"nextSibling") == 0) ||
+	(strcmp(ckey,"previousSibling") == 0) ||
+	(strcmp(ckey,"parentNode") == 0) ||
+	(strcmp(ckey,"lastChild") == 0)) {
       continue;
     }
     if (Strncmp(key,"csym:",5) == 0) continue;
     /* We do copy sym:name.  For templates */
-    if ((Strcmp(key,"sym:name") == 0) || 
-	(Strcmp(key,"sym:weak") == 0) ||
-	(Strcmp(key,"sym:typename") == 0)) {
+    if ((strcmp(ckey,"sym:name") == 0) || 
+	(strcmp(ckey,"sym:weak") == 0) ||
+	(strcmp(ckey,"sym:typename") == 0)) {
       Setattr(nn,key, Copy(k.item));
       continue;
     }
-    if (Strcmp(key,"sym:symtab") == 0) {
+    if (strcmp(ckey,"sym:symtab") == 0) {
       Setattr(nn,"sym:needs_symtab", "1");
     }
     /* We don't copy any other symbol table attributes */
@@ -117,7 +117,7 @@ static Node *copy_node(Node *n) {
       continue;
     }
     /* If children.  We copy them recursively using this function */
-    if (Strcmp(key,"firstChild") == 0) {
+    if (strcmp(ckey,"firstChild") == 0) {
       /* Copy children */
       Node *cn = k.item;
       while (cn) {
@@ -129,17 +129,17 @@ static Node *copy_node(Node *n) {
     /* We don't copy the symbol table.  But we drop an attribute 
        requires_symtab so that functions know it needs to be built */
 
-    if (Strcmp(key,"symtab") == 0) {
+    if (strcmp(ckey,"symtab") == 0) {
       /* Node defined a symbol table. */
       Setattr(nn,"requires_symtab","1");
       continue;
     }
     /* Can't copy nodes */
-    if (Strcmp(key,"node") == 0) {
+    if (strcmp(ckey,"node") == 0) {
       continue;
     }
-    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0)
-	|| (Strcmp(key,"kwargs") == 0)) {
+    if ((strcmp(ckey,"parms") == 0) || (strcmp(ckey,"pattern") == 0) || (strcmp(ckey,"throws") == 0)
+	|| (strcmp(ckey,"kwargs") == 0)) {
       ParmList *pl = CopyParmList(k.item);
       Setattr(nn,key,pl);
       Delete(pl);

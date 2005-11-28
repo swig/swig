@@ -25,11 +25,11 @@ void Swig_cparse_replace_descriptor(String *s) {
   char   tmp[512];
   String *arg = 0;
   SwigType *t;
+  char *c = 0;
 
-  while (Strstr(s,"$descriptor(")) {
+  while ((c = strstr(Char(s),"$descriptor("))) {
     char *d = tmp;
     int  level = 0;
-    char *c = Strstr(s,"$descriptor(");
     while (*c) {
       if (*c == '(') level++;
       if (*c == ')') {
