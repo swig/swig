@@ -375,7 +375,7 @@ Swig_restore(Node *n) {
   len = strlen(temp);
 
   for (ki = First(n); ki.key; ki = Next(ki)) {
-    if (Strncmp(temp,ki.key,len) == 0) {
+    if (strncmp(temp,Char(ki.key),len) == 0) {
       Append(l,ki.key);
     }
   }

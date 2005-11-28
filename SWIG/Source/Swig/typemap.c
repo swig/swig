@@ -1629,13 +1629,13 @@ static void split_var(String *s, String **name, String **value) {
 }
 
 static void replace_embedded_typemap(String *s) {
-  while (Strstr(s,"$TYPEMAP(")) {
+  char *start = 0;
+  while (start = strstr(Char(s),"$TYPEMAP(")) {
 
     /* Gather the argument */
     char *start, *end=0,*c;
     int  level = 0;
     String *tmp;
-    start = Strstr(s,"$TYPEMAP(");
     c = start;
     while (*c) {
       if (*c == '(') level++;

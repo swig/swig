@@ -589,7 +589,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   if (SwigType_issimple(base)) {
     s = current_scope;
     ttab = current_typetab;
-    if (Strncmp(base,"::",2) == 0) {
+    if (strncmp(Char(base),"::",2) == 0) {
       s = global_scope;
       ttab = Getattr(s,k_typetab);
       Delitem(base,0);
@@ -763,7 +763,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   r = SwigType_prefix(t);
   if (!type) {
     if (r && Len(r)) {
-      if ((Strstr(r,"f(") || (Strstr(r,"m(")))) {
+      char *cr = Char(r);
+      if ((strstr(cr,"f(") || (strstr(cr,"m(")))) {
 	SwigType *rt = SwigType_typedef_resolve(r);
 	if (rt) {
 	  Delete(r);
@@ -998,7 +999,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	Delete(qprefix);
 	Delete(parms);
       }
-      if (Strncmp(e,"::",2) == 0) {
+      if (strncmp(Char(e),"::",2) == 0) {
 	Delitem(e,0);
 	Delitem(e,0);
       }
@@ -1442,9 +1443,12 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   /*Printf(stdout,"t = '%s'\n", t);
     Printf(stdout,"fr= '%s'\n\n", fr); */
   
-  if (Strstr(t,"<") && !(Strstr(t,"<("))) {
-    Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
-    assert(0);
+  if (t) {
+    char *ct = Char(t);
+    if (strstr(ct,"<") && !(strstr(ct,"<("))) {
+      Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
+      assert(0);
+    }
   }
 
   h = Getattr(r_mangled,mt);
