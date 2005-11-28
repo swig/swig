@@ -123,16 +123,23 @@ nocppval
 # define %static_cast(a,Type...)      static_cast<Type >(a)
 # define %reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
 # define %numeric_cast(a,Type...)     static_cast<Type >(a)
-# define %as_voidptr(a)               const_cast<void *>(static_cast<const void *>(a))
-# define %as_voidptrptr(a)            reinterpret_cast<void **>(a)                     
 #else /* C case */
 # define %const_cast(a,Type...)       (Type)(a)
 # define %static_cast(a,Type...)      (Type)(a)
 # define %reinterpret_cast(a,Type...) (Type)(a)
 # define %numeric_cast(a,Type...)     (Type)(a)
-# define %as_voidptr(a)               (void *)(a)
-# define %as_voidptrptr(a)            (void **)(a)
 #endif /* __cplusplus */
+
+
+#define %as_voidptr(a)               SWIG_as_voidptr(a)
+#define %as_voidptrptr(a)            SWIG_as_voidptrptr(a)
+
+%insert("header") {
+  %define_as(SWIG_as_voidptr(a),    %const_cast(%static_cast(a,const void *), void *))
+  %define_as(SWIG_as_voidptrptr(a), (%as_voidptr(*a),%reinterpret_cast(a, void**)))
+}
+
+  
 
 /* -----------------------------------------------------------------------------
  * Allocating/freeing elements 
