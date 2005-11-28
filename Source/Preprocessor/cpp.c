@@ -31,18 +31,11 @@ static Hash     *included_files = 0;
 static List     *dependencies = 0;
 
 /* Test a character to see if it starts an identifier */
-static int
-isidentifier(int c) {
-  if ((isalpha(c)) || (c == '_') || (c == '$')) return 1;
-  else return 0;
-}
+#define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
 
 /* Test a character to see if it valid in an identifier (after the first letter) */
-static int
-isidchar(int c) {
-  if ((isalnum(c)) || (c == '_') || (c == '$')) return 1;
-  else return 0;
-}
+#define isidchar(c) ((isalnum(c)) || (c == '_') || (c == '$'))
+
 
 /* Skip whitespace */
 static void
@@ -430,8 +423,8 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   if (swigmacro) {
     Setattr(macro,k_swigmacro,"1");
   }
-  symbols = Getattr(cpp,k_symbols);
-  if ((m1 = Getattr(symbols,macroname))) {
+  symbols = HashGetAttr(cpp,k_symbols);
+  if ((m1 = HashGetAttr(symbols,macroname))) {
     if (!HashCheckAttr(m1,k_value,macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
@@ -461,7 +454,7 @@ void Preprocessor_undef(const String_or_char *str)
 {
   Hash *symbols;
   assert(cpp);
-  symbols = Getattr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,k_symbols);
   Delattr(symbols,str);
 }
 
@@ -615,20 +608,20 @@ get_options(String *str) {
  * ----------------------------------------------------------------------------- */
 
 static String *
-expand_macro(String_or_char *name, List *args)
+expand_macro(String *name, List *args)
 {
   DOH *symbols, *ns, *macro, *margs, *mvalue, *temp, *tempa, *e;
   DOH *Preprocessor_replace(DOH *);
   int i, l;
   int isvarargs = 0;
 
-  symbols = Getattr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,k_symbols);
   if (!symbols) return 0;
 
   /* See if the name is actually defined */
-  macro = Getattr(symbols,name);
+  macro = HashGetAttr(symbols,name);
   if (!macro) return 0;
-  if (Getattr(macro,k_expanded)) {
+  if (HashGetAttr(macro,k_expanded)) {
     ns = NewString("");
     StringAppend(ns,name);
     if (args) {
@@ -645,11 +638,11 @@ expand_macro(String_or_char *name, List *args)
   }
 
   /* Get macro arguments and value */
-  mvalue = Getattr(macro,k_value);
+  mvalue = HashGetAttr(macro,k_value);
   assert(mvalue);
-  margs = Getattr(macro,k_args);
+  margs = HashGetAttr(macro,k_args);
 
-  if (args && Getattr(macro,k_varargs)) {
+  if (args && HashGetAttr(macro,k_varargs)) {
     isvarargs = 1;
     /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
     if (Len(args) >= (Len(margs)-1)) {
@@ -775,7 +768,8 @@ expand_macro(String_or_char *name, List *args)
         namelen = Len(aname);
 	a = strstr(s,name);
 	while (a) {
-          if (!isidchar(a[namelen+1])) {
+	  char ca = a[namelen+1];
+          if (!isidchar(ca)) {
           /* Matched the entire vararg name, not just a prefix */
 	    t = a-1;
 	    if (*t == '\002') {
@@ -809,7 +803,7 @@ expand_macro(String_or_char *name, List *args)
   Delattr(macro,k_expanded);
   Delete(ns);
 
-  if (Getattr(macro,k_swigmacro)) {
+  if (HashGetAttr(macro,k_swigmacro)) {
     String *g;
     String *f = NewString("");
     Seek(e,0,SEEK_SET);
@@ -866,16 +860,10 @@ Preprocessor_replace(DOH *s)
   DOH   *ns, *symbols, *m;
   int   c, i, state = 0;
 
-#ifndef SWIG_PUT_BUFF
   String   *id = NewString("");
-#else
-  char id[4096];
-  char *cid;
-  cid = id; *cid = 0;
-#endif
   
   assert(cpp);
-  symbols = Getattr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,k_symbols);
 
   ns = NewString("");
   copy_location(s,ns);
@@ -886,13 +874,8 @@ Preprocessor_replace(DOH *s)
     switch (state) {
     case 0:
       if (isidentifier(c) || (c == '%')) {
-#ifndef SWIG_PUT_BUFF
 	Clear(id);
 	StringPutc(c,id);
-#else
-	cid = id;
-	*cid = c; ++cid; *cid = 0;
-#endif
 	state = 1;
       } else if (c == '\"') {
 	StringPutc(c,ns);
@@ -909,27 +892,19 @@ Preprocessor_replace(DOH *s)
       break;
     case 1:  /* An identifier */
       if (isidchar(c)) {
-#ifndef SWIG_PUT_BUFF
 	StringPutc(c,id);
-#else
-	*cid = c; ++cid; *cid = 0;
-#endif
 	state = 1;
       } else {
 	/* We found the end of a valid identifier */
 	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
-#ifndef SWIG_PUT_BUFF
 	if (StringEqual(k_defined,id)) {
-#else
-	if (strcmp(id,"defined") == 0) {
-#endif
 	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
 	  skip_whitespace(s,0);
 	  c = StringGetc(s);
 	  if (c == '(') {
-	    Seek(s,-1,SEEK_CUR);
+	    StringUngetc(c,s);
 	    args = find_args(s);
 	  } else if (isidchar(c)) {
 	    DOH *arg = NewString("");
@@ -937,7 +912,7 @@ Preprocessor_replace(DOH *s)
 	    StringPutc(c,arg);
 	    while (((c = StringGetc(s)) != EOF)) {
 	      if (!isidchar(c)) {
-		Seek(s,-1,SEEK_CUR);
+		StringUngetc(c,s);
 		break;
 	      }
 	      StringPutc(c,arg);
@@ -955,7 +930,7 @@ Preprocessor_replace(DOH *s)
 	  }
 	  for (i = 0; i < Len(args); i++) {
 	    DOH *o = Getitem(args,i);
-	    if (!Getattr(symbols,o)) {
+	    if (!HashGetAttr(symbols,o)) {
 	      break;
 	    }
 	  }
@@ -965,20 +940,12 @@ Preprocessor_replace(DOH *s)
 	  state = 0;
 	  break;
 	}
-#ifndef SWIG_PUT_BUFF
 	if (StringEqual(k_LINE,id)) {
-#else
-	if (strcmp(id,"__LINE__") == 0) {
-#endif
 	  Printf(ns,"%d",Getline(s));
 	  state = 0;
 	  break;
 	}
-#ifndef SWIG_PUT_BUFF
 	if (StringEqual(k_FILE,id)) {
-#else
-	if (strcmp(id,"__FILE__") == 0) {
-#endif
 	  String *fn = Copy(Getfile(s));
 	  Replaceall(fn,"\\","\\\\");
 	  Printf(ns,"\"%s\"",fn);
@@ -987,11 +954,11 @@ Preprocessor_replace(DOH *s)
 	  break;
 	}
 	/* See if the macro is defined in the preprocessor symbol table */
-	if ((m = Getattr(symbols,id))) {
+	if ((m = HashGetAttr(symbols,id))) {
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
-	  if (Getattr(m,k_args)) {
+	  if (HashGetAttr(m,k_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
 	    args = find_args(s);
 	    if (!Len(args)) {
@@ -1045,13 +1012,9 @@ Preprocessor_replace(DOH *s)
   /* Identifier at the end */
   if (state == 1) {
     /* See if this is the special "defined" macro */
-#ifndef SWIG_PUT_BUFF
     if (StringEqual(k_defined,id)) {
-#else
-    if (strcmp(id,"defined") == 0) {
-#endif
       Swig_error(Getfile(s),Getline(s),"No arguments given to defined()\n");
-    } else if ((m = Getattr(symbols,id))) {
+    } else if ((m = HashGetAttr(symbols,id))) {
 	DOH *e;
 	/* Yes.  There is a macro here */
 	/* See if the macro expects arguments */
@@ -1195,7 +1158,7 @@ Preprocessor_parse(String *s)
   chunk = NewString("");
   copy_location(s,chunk);
   copy_location(s,ns);
-  symbols = Getattr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,k_symbols);
 
   state = 0;
   while ((c = StringGetc(s)) != EOF) {
@@ -1378,8 +1341,8 @@ Preprocessor_parse(String *s)
 	  DOH *m, *v, *v1;
 	  Seek(value,0,SEEK_SET);
 	  m = Preprocessor_define(value,0);
-	  if ((m) && !(Getattr(m,k_args))) {
-	    v = Copy(Getattr(m,k_value));
+	  if ((m) && !(HashGetAttr(m,k_args))) {
+	    v = Copy(HashGetAttr(m,k_value));
 	    if (Len(v)) {
 	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);
@@ -1387,9 +1350,9 @@ Preprocessor_parse(String *s)
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns,"%%constant %s = %s;\n", Getattr(m,k_name), v1);
+		  Printf(ns,"%%constant %s = %s;\n", HashGetAttr(m,k_name), v1);
 		else
-		  Printf(ns,"%%constant %s = %s; /*%s*/\n", Getattr(m,k_name),v1,comment);
+		  Printf(ns,"%%constant %s = %s; /*%s*/\n", HashGetAttr(m,k_name),v1,comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
@@ -1406,7 +1369,7 @@ Preprocessor_parse(String *s)
 	if (allow) {
 	  start_level = level;
 	  /* See if the identifier is in the hash table */
-	  if (!Getattr(symbols,value)) allow = 0;
+	  if (!HashGetAttr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
       } else if (StringEqual(id,k_ifndef)) {
@@ -1415,7 +1378,7 @@ Preprocessor_parse(String *s)
 	if (allow) {
 	  start_level = level;
 	  /* See if the identifier is in the hash table */
-	  if (Getattr(symbols,value)) allow = 0;
+	  if (HashGetAttr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
       } else if (StringEqual(id,k_else)) {
