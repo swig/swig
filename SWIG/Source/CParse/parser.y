@@ -508,9 +508,9 @@ static void add_symbols(Node *n) {
         if (Getattr(n,"sym:weak")) {
           Setattr(n,"sym:name",symname);
         } else {
-          String *e = NewString("");
-          String *en = NewString("");
-          String *ec = NewString("");
+          String *e = NewStringEmpty();
+          String *en = NewStringEmpty();
+          String *ec = NewStringEmpty();
           int redefined = need_redefined_warn(n,c,inclass);
           if (redefined) {
             Printf(en,"Identifier '%s' redefined (ignored)",symname);
@@ -678,9 +678,9 @@ static void merge_extensions(Node *cls, Node *am) {
       csym = Swig_symbol_add(symname,n);
       if (csym != n) {
 	/* Conflict with previous definition.  Nuke previous definition */
-	String *e = NewString("");
-	String *en = NewString("");
-	String *ec = NewString("");
+	String *e = NewStringEmpty();
+	String *en = NewStringEmpty();
+	String *ec = NewStringEmpty();
 	Printf(ec,"Identifier '%s' redefined by %%extend (ignored),",symname);
 	Printf(en,"%%extend definition of '%s'.",symname);
 	SWIG_WARN_NODE_BEGIN(n);
@@ -1104,7 +1104,7 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
   if (declaratorid) {
     fixname = feature_identifier_fix(declaratorid);
   } else {
-    fixname = NewString("");
+    fixname = NewStringEmpty();
   }
   if (Namespaceprefix) {
    name = NewStringf("%s::%s",Namespaceprefix, fixname);
@@ -1899,7 +1899,7 @@ insert_directive : HBLOCK {
 		 Setattr($$,"code",$1);
 	       }
                | INSERT LPAREN idstring RPAREN string {
-		 String *code = NewString("");
+		 String *code = NewStringEmpty();
 		 $$ = new_node("insert");
 		 Setattr($$,"section",$3);
 		 Setattr($$,"code",code);
@@ -2914,7 +2914,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			Setattr($$,"name",ty);
 
 			if ($6.have_parms) {
-			  SwigType *decl = NewString("");
+			  SwigType *decl = NewStringEmpty();
 			  SwigType_add_function(decl,$6.parms);
 			  Setattr($$,"decl",decl);
 			  Setattr($$,"parms",$6.parms);
@@ -3154,7 +3154,7 @@ cpp_class_decl  :
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
 	       inclass = 1;
-	       Classprefix = NewString("");
+	       Classprefix = NewStringEmpty();
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
              } cpp_members RBRACE declarator c_decl_tail {
 	       String *unnamed;
@@ -3757,7 +3757,7 @@ cpp_member   : c_declaration { $$ = $1; }
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (Classprefix) {
-		 SwigType *decl = NewString("");
+		 SwigType *decl = NewStringEmpty();
 		 $$ = new_node("constructor");
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
@@ -3784,7 +3784,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		 Setattr($$,"code",Copy(scanner_ccode));
 	       }
 	       {
-		 String *decl = NewString("");
+		 String *decl = NewStringEmpty();
 		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
 	       }
@@ -3819,7 +3819,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		  Setattr($$,"code",Copy(scanner_ccode));
 		}
 		{
-		  String *decl = NewString("");
+		  String *decl = NewStringEmpty();
 		  SwigType_add_function(decl,$5);
 		  Setattr($$,"decl",decl);
 		}
@@ -3849,7 +3849,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
                  $$ = new_node("cdecl");
                  Setattr($$,"type",$3);
 		 Setattr($$,"name",$2);
-		 decl = NewString("");
+		 decl = NewStringEmpty();
 		 SwigType_add_reference(decl);
 		 SwigType_add_function(decl,$6);
 		 if ($8.qualifier) {
@@ -3862,7 +3862,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 	       }
 
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
-		String *t = NewString("");
+		String *t = NewStringEmpty();
 		$$ = new_node("cdecl");
 		Setattr($$,"type",$3);
 		Setattr($$,"name",$2);
@@ -3934,13 +3934,13 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
-		      n->code = NewString("");
+		      n->code = NewStringEmpty();
 		      Printv(n->code, "typedef ", $2, " ",
 			     Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
 
 		      n->name = Swig_copy_string($6.id);
 		      n->line = cparse_start_line;
-		      n->type = NewString("");
+		      n->type = NewStringEmpty();
 		      n->kind = $2;
 		      SwigType_push(n->type, $6.type);
 		      n->next = 0;
@@ -3962,12 +3962,12 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		  } else if ($5.id) {
 		    /* Generate some code for a new class */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
-		    n->code = NewString("");
+		    n->code = NewStringEmpty();
 		    Printv(n->code, "typedef ", $2, " " ,
 			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
 		    n->name = Swig_copy_string($5.id);
 		    n->line = cparse_start_line;
-		    n->type = NewString("");
+		    n->type = NewStringEmpty();
 		    n->kind = $2;
 		    SwigType_push(n->type,$5.type);
 		    n->next = 0;
@@ -4352,11 +4352,11 @@ declarator :  pointer notso_direct_declarator {
            }
            | direct_declarator {
               $$ = $1;
-	      if (!$$.type) $$.type = NewString("");
+	      if (!$$.type) $$.type = NewStringEmpty();
            }
            | AND notso_direct_declarator { 
 	     $$ = $2;
-	     $$.type = NewString("");
+	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
 	     if ($2.type) {
 	       SwigType_push($$.type,$2.type);
@@ -4364,7 +4364,7 @@ declarator :  pointer notso_direct_declarator {
 	     }
            }
            | idcolon DSTAR notso_direct_declarator { 
-	     SwigType *t = NewString("");
+	     SwigType *t = NewStringEmpty();
 
 	     $$ = $3;
 	     SwigType_add_memberpointer(t,$1);
@@ -4375,7 +4375,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$.type = t;
 	     } 
            | pointer idcolon DSTAR notso_direct_declarator { 
-	     SwigType *t = NewString("");
+	     SwigType *t = NewStringEmpty();
 	     $$ = $4;
 	     SwigType_add_memberpointer(t,$2);
 	     SwigType_push($1,t);
@@ -4397,7 +4397,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$.type = $1;
 	   }
            | idcolon DSTAR AND notso_direct_declarator { 
-	     SwigType *t = NewString("");
+	     SwigType *t = NewStringEmpty();
 	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
@@ -4451,7 +4451,7 @@ notso_direct_declarator : idcolon {
                   | LPAREN idcolon DSTAR notso_direct_declarator RPAREN {
 		    SwigType *t;
 		    $$ = $4;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t,$2);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4462,7 +4462,7 @@ notso_direct_declarator : idcolon {
                   | notso_direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,(char*)"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4473,7 +4473,7 @@ notso_direct_declarator : idcolon {
                   | notso_direct_declarator LBRACKET expr RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,$3.val);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4484,7 +4484,7 @@ notso_direct_declarator : idcolon {
                   | notso_direct_declarator LPAREN parms RPAREN {
 		    SwigType *t;
                     $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_function(t,$3);
 		    if (!$$.have_parms) {
 		      $$.parms = $3;
@@ -4536,14 +4536,14 @@ direct_declarator : idcolon {
                   | LPAREN AND direct_declarator RPAREN {
                     $$ = $3;
 		    if (!$$.type) {
-		      $$.type = NewString("");
+		      $$.type = NewStringEmpty();
 		    }
 		    SwigType_add_reference($$.type);
                   }
                   | LPAREN idcolon DSTAR direct_declarator RPAREN {
 		    SwigType *t;
 		    $$ = $4;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t,$2);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4554,7 +4554,7 @@ direct_declarator : idcolon {
                   | direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,(char*)"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4565,7 +4565,7 @@ direct_declarator : idcolon {
                   | direct_declarator LBRACKET expr RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,$3.val);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4576,7 +4576,7 @@ direct_declarator : idcolon {
                   | direct_declarator LPAREN parms RPAREN {
 		    SwigType *t;
                     $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_function(t,$3);
 		    if (!$$.have_parms) {
 		      $$.parms = $3;
@@ -4625,7 +4625,7 @@ abstract_declarator : pointer {
                   }
                   | AND direct_abstract_declarator {
 		    $$ = $2;
-		    $$.type = NewString("");
+		    $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
 		    if ($2.type) {
 		      SwigType_push($$.type,$2.type);
@@ -4636,18 +4636,18 @@ abstract_declarator : pointer {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
-                    $$.type = NewString("");
+                    $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
                   }
                   | idcolon DSTAR { 
-		    $$.type = NewString("");
+		    $$.type = NewStringEmpty();
                     SwigType_add_memberpointer($$.type,$1);
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
       	          }
                   | pointer idcolon DSTAR { 
-		    SwigType *t = NewString("");
+		    SwigType *t = NewStringEmpty();
                     $$.type = $1;
 		    $$.id = 0;
 		    $$.parms = 0;
@@ -4670,7 +4670,7 @@ abstract_declarator : pointer {
 direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,(char*)"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4681,7 +4681,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
                   | direct_abstract_declarator LBRACKET expr RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
 		    SwigType_add_array(t,$3.val);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
@@ -4690,14 +4690,14 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    $$.type = t;
                   }
                   | LBRACKET RBRACKET { 
-		    $$.type = NewString("");
+		    $$.type = NewStringEmpty();
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
 		    SwigType_add_array($$.type,(char*)"");
                   }
                   | LBRACKET expr RBRACKET { 
-		    $$.type = NewString("");
+		    $$.type = NewStringEmpty();
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
@@ -4709,7 +4709,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
                   | direct_abstract_declarator LPAREN parms RPAREN {
 		    SwigType *t;
                     $$ = $1;
-		    t = NewString("");
+		    t = NewStringEmpty();
                     SwigType_add_function(t,$3);
 		    if (!$$.type) {
 		      $$.type = t;
@@ -4724,7 +4724,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    }
 		  }
                   | LPAREN parms RPAREN {
-                    $$.type = NewString("");
+                    $$.type = NewStringEmpty();
                     SwigType_add_function($$.type,$2);
 		    $$.parms = $2;
 		    $$.have_parms = 1;
@@ -4734,31 +4734,31 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 
 
 pointer    : STAR type_qualifier pointer { 
-               $$ = NewString("");
+               $$ = NewStringEmpty();
                SwigType_add_pointer($$);
 	       SwigType_push($$,$2);
 	       SwigType_push($$,$3);
 	       Delete($3);
            }
            | STAR pointer {
-	     $$ = NewString("");
+	     $$ = NewStringEmpty();
 	     SwigType_add_pointer($$);
 	     SwigType_push($$,$2);
 	     Delete($2);
 	     } 
            | STAR type_qualifier { 
-	     	$$ = NewString("");	
+	     	$$ = NewStringEmpty();	
 		SwigType_add_pointer($$);
 	        SwigType_push($$,$2);
            }
            | STAR {
-	      $$ = NewString("");
+	      $$ = NewStringEmpty();
 	      SwigType_add_pointer($$);
            }
            ;
 
 type_qualifier : type_qualifier_raw { 
-	          $$ = NewString("");
+	          $$ = NewStringEmpty();
 	          if ($1) SwigType_add_qualifier($$,$1);
                }
                | type_qualifier_raw type_qualifier { 
@@ -5361,7 +5361,7 @@ mem_initializer : idcolon LPAREN {
                 ;
 
 template_decl : LESSTHAN valparms GREATERTHAN { 
-                     String *s = NewString("");
+                     String *s = NewStringEmpty();
                      SwigType_add_template(s,$2);
                      $$ = Char(s);
 		     scanner_last_id(1);

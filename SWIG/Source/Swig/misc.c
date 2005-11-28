@@ -63,7 +63,7 @@ Swig_banner(File *f) {
 String *Swig_string_escape(String *s) {
   String *ns;
   int c;
-  ns = NewString("");
+  ns = NewStringEmpty();
   
   while ((c = Getc(s)) != EOF) {
     if (c == '\n') {
@@ -100,7 +100,7 @@ String *Swig_string_escape(String *s) {
 String *Swig_string_upper(String *s) {
   String *ns;
   int c;
-  ns = NewString("");
+  ns = NewStringEmpty();
 
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
@@ -118,7 +118,7 @@ String *Swig_string_upper(String *s) {
 String *Swig_string_lower(String *s) {
   String *ns;
   int c;
-  ns = NewString("");
+  ns = NewStringEmpty();
 
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
@@ -139,7 +139,7 @@ String *Swig_string_title(String *s) {
   String *ns;
   int first = 1;
   int c;
-  ns = NewString("");
+  ns = NewStringEmpty();
 
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
@@ -160,11 +160,11 @@ String *Swig_string_typecode(String *s) {
   String *ns;
   int c;
   String *tc;
-  ns = NewString("");
+  ns = NewStringEmpty();
   while ((c = Getc(s)) != EOF) {
     if (c == '`') {
       String *str = 0;
-      tc = NewString("");
+      tc = NewStringEmpty();
       while ((c = Getc(s)) != EOF) {
 	if (c == '`') break;
 	Putc(c,tc);
@@ -231,7 +231,7 @@ String *Swig_string_mangle(const String *s) {
   }
   return t;
 #else
-  String *result = NewString("");
+  String *result = NewStringEmpty();
   int space = 0;
   int state = 0;
   char *pc, *cb;
@@ -245,13 +245,13 @@ String *Swig_string_mangle(const String *s) {
     Delete(b);
     b = t ;
   }
-  pc = cb = Char(b);
+  pc = cb = StringChar(b);
   while (*pc) {
     char c = *pc;
     if (isalnum((int)c) || (c == '_')) {
       state = 1;
       if (space && (space == state)) {
-	Append(result,"_SS_");
+	StringAppend(result,"_SS_");
       }
       space = 0;
       Printf(result,"%c",(int)c);
@@ -268,7 +268,7 @@ String *Swig_string_mangle(const String *s) {
       switch(c) {
       case '.':
 	if ((cb != pc) && (*(pc - 1) == 'p')) {
-	  Append(result,"_");
+	  StringAppend(result,"_");
 	  ++pc;
 	  continue;
 	} else {
@@ -277,7 +277,7 @@ String *Swig_string_mangle(const String *s) {
 	break;
       case ':':
 	if (*(pc + 1) == ':') {
-	  Append(result,"_");
+	  StringAppend(result,"_");
 	  ++pc; ++pc;
 	  continue;
 	}

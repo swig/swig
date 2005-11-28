@@ -27,7 +27,7 @@ Swig_print_tags(DOH *obj, DOH *root) {
   DOH *croot, *newroot;
   DOH *cobj;
 
-  if (!root) croot = NewString("");
+  if (!root) croot = NewStringEmpty();
   else croot = root;
 
   while (obj) {

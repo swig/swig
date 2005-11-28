@@ -416,8 +416,8 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   /*  Printf(stdout,"apply : %s --> %s\n", ParmList_str(src), ParmList_str(dest)); */
 
   /* Create type signature of source */
-  ssig = NewString("");
-  dsig = NewString("");
+  ssig = NewStringEmpty();
+  dsig = NewStringEmpty();
   p = src;
   dp = dest;
   lastp = 0;
@@ -536,7 +536,7 @@ Swig_typemap_clear_apply(Parm *parms) {
   String *name;
 
   /* Create a type signature of the parameters */
-  tsig = NewString("");
+  tsig = NewStringEmpty();
   p = parms;
   lastp = 0;
   while (p) {
@@ -822,7 +822,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType 
     int i;
     if (SwigType_array_ndim(type) != SwigType_array_ndim(ftype)) type = ftype;
     ndim = SwigType_array_ndim(type);
-    size = NewString("");
+    size = NewStringEmpty();
     for (i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(type,i);
       if (index == 1) {
@@ -1098,7 +1098,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	String *str;
 	int     isglobal = 0;
 
-	str = NewString("");
+	str = NewStringEmpty();
 
 	if (Strncmp(pn,"_global_",8) == 0) {
 	    isglobal = 1;
@@ -1392,7 +1392,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
 
 void
 Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
-  String *temp = NewString("");
+  String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm,k_kwargs);
   while (kw) {
     String *value = Copy(Getattr(kw,k_value));

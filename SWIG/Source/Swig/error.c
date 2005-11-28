@@ -71,7 +71,7 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
   
   va_start(ap,fmt);
 
-  out = NewString("");
+  out = NewStringEmpty();
   vPrintf(out,fmt,ap);
   {
     char temp[64], *t;
@@ -175,7 +175,7 @@ Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
   String *s;
 
-  if (!filter) filter = NewString("");
+  if (!filter) filter = NewStringEmpty();
   s = NewString(wlist);
   c = Char(s);
   c = strtok(c,", ");

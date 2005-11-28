@@ -120,6 +120,7 @@ static String *k_typetab = 0;
 static String *k_inherit = 0;
 static String *k_parent = 0;
 static String *k_value = 0;
+static String *k_nodetype = 0;
 
 /* 
    Enable this one if your language fully support SwigValueWrapper<T>.
@@ -157,6 +158,7 @@ void SwigType_typesystem_init() {
   k_inherit = NewString("inherit");
   k_parent = NewString("parent");
   k_value = NewString("value");
+  k_nodetype = NewString("nodeType");
 
   if (global_scope) Delete(global_scope);
   if (scopes)       Delete(scopes);
@@ -563,7 +565,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   /*
   if (!noscope) {
-    noscope = NewString("");
+    noscope = NewStringEmpty();
   }
   */
 
@@ -661,7 +663,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       }
     }
     
-    if (type && (Strcmp(base,type) == 0)) {
+    if (type && (StringEqual(base,type))) {
       if (newtype) Delete(type);
       Delete(base);
       Delete(namebase);
@@ -862,7 +864,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
     return rc;
   }
 
-  result = NewString("");
+  result = NewStringEmpty();
   elements = SwigType_split(t);
   len = Len(elements);
   for (i = 0; i < len; i++) {
@@ -943,7 +945,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	pi = First(parms);
 	while ((p = pi.item)) {
 	  String *qt = SwigType_typedef_qualified(p);
-	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) */
+	  if (StringEqual(qt,p)) { /*  && (!Swig_scopename_check(qt))) */
 	    /* No change in value.  It is entirely possible that the parameter is an integer value.
 	       If there is a symbol table associated with this scope, we're going to check for this */
 
@@ -955,7 +957,8 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 		if (n == lastnode) break;
 		lastnode = n;
 		if (n) {
-		  if (Strcmp(nodeType(n),"enumitem") == 0) {
+		  char *ntype = Char(Getattr(n,k_nodetype));
+		  if (strcmp(ntype,"enumitem") == 0) {
 		    /* An enum item.   Generate a fully qualified name */
 		    String *qn = Swig_symbol_qualified(n);
 		    if (Len(qn)) {
@@ -968,7 +971,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 		      Delete(qn);
 		      break;
 		    }
-		  } else if ((Strcmp(nodeType(n),"cdecl") == 0) && (Getattr(n,k_value))) {
+		  } else if ((strcmp(ntype,"cdecl") == 0) && (Getattr(n,k_value))) {
 		    Delete(value);
 		    value = Copy(Getattr(n,k_value));
 		    continue;
@@ -1851,10 +1854,10 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(stdout,"%s\n", r_clientdata);
 
 #endif
-  table = NewString("");
-  types = NewString("");
-  cast = NewString("");
-  cast_init = NewString("");
+  table = NewStringEmpty();
+  types = NewStringEmpty();
+  cast = NewStringEmpty();
+  cast_init = NewStringEmpty();
   imported_types = NewHash("");
   
   Printf(table,"static swig_type_info *swig_type_initial[] = {\n");
@@ -1873,7 +1876,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     String *rn;
     const String *cd;
 
-    cast_temp = NewString("");
+    cast_temp = NewStringEmpty();
     
     Printv(types,"static swig_type_info _swigt_", ki.item, " = {", NIL);
     Append(table_list, ki.item);

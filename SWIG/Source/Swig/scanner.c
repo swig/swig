@@ -48,7 +48,7 @@ NewSwigScanner() {
   s->yylen = 0;
   s->idstart = "";
   s->scanobjs = NewList();
-  s->text = NewString("");
+  s->text = NewStringEmpty();
   s->str = 0;
   return s;
 }

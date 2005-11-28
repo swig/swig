@@ -455,7 +455,7 @@ DohGetVoid(DOH *obj, const DOH *name) {
 void
 DohSetInt(DOH *obj, const DOH *name, int value) {
   DOH *temp;
-  temp = NewString("");
+  temp = NewStringEmpty();
   Printf(temp,"%d",value);
   Setattr(obj,(DOH *) name,temp);
 }
@@ -467,7 +467,7 @@ DohSetInt(DOH *obj, const DOH *name, int value) {
 void
 DohSetDouble(DOH *obj, const DOH *name, double value) {
   DOH *temp;
-  temp = NewString("");
+  temp = NewStringEmpty();
   Printf(temp,"%0.17f",value);
   Setattr(obj,(DOH *) name,temp);
 }

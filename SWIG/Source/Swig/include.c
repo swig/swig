@@ -142,7 +142,7 @@ Swig_search_path_any(int syspath) {
   llist = 0;
   slist = NewList();
   assert(slist);
-  filename = NewString("");
+  filename = NewStringEmpty();
   assert(filename);
 #ifdef MACSWIG
   Printf(filename,"%s",SWIG_FILE_DELIMETER);
@@ -159,7 +159,7 @@ Swig_search_path_any(int syspath) {
   
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);
-    filename = NewString("");
+    filename = NewStringEmpty();
     assert(filename);
     Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
     if (syspath && !Getattr(dirname,"sysdir")) {
@@ -244,7 +244,7 @@ Swig_open(const String_or_char *name) {
 String *
 Swig_read_file(FILE *f) {
   char       buffer[4096];
-  String *str = NewString("");
+  String *str = NewStringEmpty();
 
   assert(str);
   while (fgets(buffer,4095,f)) {

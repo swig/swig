@@ -33,9 +33,9 @@ NewWrapper() {
   Wrapper *w;
   w = (Wrapper *) malloc(sizeof(Wrapper));
   w->localh = NewHash();
-  w->locals = NewString("");
-  w->code = NewString("");
-  w->def = NewString("");
+  w->locals = NewStringEmpty();
+  w->code = NewStringEmpty();
+  w->def = NewStringEmpty();
   return w;
 }
 
@@ -81,7 +81,7 @@ Wrapper_pretty_print(String *str, File *f) {
   int plevel = 0;
   int label = 0;
 
-  ts = NewString("");
+  ts = NewStringEmpty();
   Seek(str,0, SEEK_SET);
   Clear(ts);
   while ((c = Getc(str)) != EOF) {
@@ -219,8 +219,8 @@ Wrapper_compact_print(String *str, File *f) {
   int empty = 1;
   int indent = 2;
 
-  ts = NewString("");
-  tf = NewString("");
+  ts = NewStringEmpty();
+  tf = NewStringEmpty();
   Seek(str,0, SEEK_SET);
   Clear(ts);
   Clear(tf);
@@ -392,7 +392,7 @@ void
 Wrapper_print(Wrapper *w, File *f) {
   String *str;
 
-  str = NewString("");
+  str = NewStringEmpty();
   Printf(str,"%s\n", w->def);
   Printf(str,"%s\n", w->locals);
   Printf(str,"%s\n", w->code);
@@ -434,7 +434,7 @@ Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
   int     ret;
   String *decl;
   DOH       *obj;
-  decl = NewString("");
+  decl = NewStringEmpty();
   va_start(ap,name);
 
   obj = va_arg(ap,void *);
@@ -509,7 +509,7 @@ Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
   char *ret;
   String *decl;
   DOH       *obj;
-  decl = NewString("");
+  decl = NewStringEmpty();
   va_start(ap,name);
 
   obj = va_arg(ap,void *);

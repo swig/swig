@@ -54,7 +54,7 @@ static String *
 Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value) {
   String *decl;
 
-  decl = NewString("");
+  decl = NewStringEmpty();
 
   switch(SwigType_type(t)) {
   case T_REFERENCE:
@@ -235,7 +235,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl) {
   String *fcall;
   
-  fcall = NewString("");
+  fcall = NewStringEmpty();
   switch(SwigType_type(t)) {
   case T_VOID:
     break;
@@ -289,7 +289,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   Parm *p = parms;
   String  *nname;
 
-  func = NewString("");
+  func = NewStringEmpty();
   nname = SwigType_namestr(name);
 
   /*
@@ -359,7 +359,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
 
   if (!self) self = (char *) "(this)->";
 
-  func = NewString("");
+  func = NewStringEmpty();
   nname = SwigType_namestr(name);
   if (!p) return func;
   Append(func,self);
@@ -420,7 +420,7 @@ String *
 Swig_cconstructor_call(String_or_char *name) {
   DOH *func;
 
-  func = NewString("");
+  func = NewStringEmpty();
   Printf(func,"(%s *) calloc(1, sizeof(%s))", name, name);
   return func;
 }
@@ -449,7 +449,7 @@ Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_se
     i++;
   }
   nname = SwigType_namestr(name);
-  func = NewString("");
+  func = NewStringEmpty();
   Printf(func,"new %s(", nname);
   while (p) {
     String *pname;
@@ -625,7 +625,7 @@ Swig_cppdestructor_call(Node *n) {
 String *
 Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self) {
   String *func;
-  func = NewString("");
+  func = NewStringEmpty();
   if (!self) self = NewString("(this)->");
   else self = NewString(self);
   Replaceall(self,"this",Swig_cparm_name(0,0));
@@ -659,7 +659,7 @@ Swig_cmemberget_call(const String_or_char *name, SwigType *t,
   if (!self) self = NewString("(this)->");
   else self = NewString(self);
   Replaceall(self,"this",Swig_cparm_name(0,0));
-  func = NewString("");
+  func = NewStringEmpty();
   Printf(func,"%s (%s%s)", Swig_wrapped_var_assign(t,""),self, name);
   Delete(self);
   return func;
@@ -976,7 +976,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   	int abstract = Getattr(parent, "abstract") != 0;
 	String *name = Getattr(parent, "sym:name");
         String* directorname = NewStringf("SwigDirector_%s", name);
-	String* action = NewString("");
+	String* action = NewStringEmpty();
 	String* tmp_none_comparison = Copy(none_comparison);
 	String* director_call;
 	String* nodirector_call;
