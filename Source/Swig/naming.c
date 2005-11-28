@@ -147,7 +147,7 @@ Swig_name_wrapper(const String_or_char *fname) {
   String *r;
   String *f;
 
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"wrapper");
   if (!f) {
@@ -175,7 +175,7 @@ Swig_name_member(const String_or_char *classname, const String_or_char *mname) {
   char   *cname;
 
   rclassname = SwigType_namestr(classname);
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"member");
   if (!f) {
@@ -211,7 +211,7 @@ Swig_name_get(const String_or_char *vname) {
   Printf(stdout,"Swig_name_get:  '%s'\n", vname); 
 #endif
 
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"get");
   if (!f) {
@@ -235,7 +235,7 @@ Swig_name_set(const String_or_char *vname) {
   String *r;
   String *f;
 
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"set");
   if (!f) {
@@ -262,7 +262,7 @@ Swig_name_construct(const String_or_char *classname) {
   char *cname;
 
   rclassname = SwigType_namestr(classname);
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"construct");
   if (!f) {
@@ -297,7 +297,7 @@ Swig_name_copyconstructor(const String_or_char *classname) {
   char *cname;
 
   rclassname = SwigType_namestr(classname);
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"construct");
   if (!f) {
@@ -330,7 +330,7 @@ String *Swig_name_destroy(const String_or_char *classname) {
   String *rclassname;
   char *cname;
   rclassname = SwigType_namestr(classname);
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"destroy");
   if (!f) {
@@ -363,7 +363,7 @@ String *Swig_name_disown(const String_or_char *classname) {
   String *rclassname;
   char *cname;
   rclassname = SwigType_namestr(classname);
-  r = NewString("");
+  r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"disown");
   if (!f) {

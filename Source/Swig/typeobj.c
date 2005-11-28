@@ -564,7 +564,7 @@ SwigType *
 SwigType_pop_arrays(SwigType *t) {
   String *ta;
   assert(SwigType_isarray(t));
-  ta = NewString("");
+  ta = NewStringEmpty();
   while (SwigType_isarray(t)) {
     SwigType *td = SwigType_pop(t);
     Append(ta,td);
@@ -825,7 +825,7 @@ SwigType_templatesuffix(const SwigType *t) {
     }
     c++;
   }
-  return NewString("");
+  return NewStringEmpty();
 }
 
 /* -----------------------------------------------------------------------------
@@ -969,7 +969,7 @@ SwigType_prefix(const SwigType *t) {
       return r;
     }
   }
-  return NewString("");
+  return NewStringEmpty();
 }
 
 /* -----------------------------------------------------------------------------
@@ -990,7 +990,7 @@ SwigType_strip_qualifiers(SwigType *t) {
   if (r) return Copy(r);
   
   l = SwigType_split(t);
-  r = NewString("");
+  r = NewStringEmpty();
   
   for (ei = First(l);ei.item; ei = Next(ei)) {
     if (SwigType_isqualifier(ei.item)) continue;

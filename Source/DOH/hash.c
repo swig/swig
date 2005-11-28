@@ -422,7 +422,7 @@ Hash_str(DOH *ho) {
     static int indent = 4;
     Hash *h = (Hash *) ObjData(ho);
 
-    s = NewString("");
+    s = NewStringEmpty();
     if (ObjGetMark(ho)) {
       Printf(s,"Hash(0x%x)",ho);
       return s;

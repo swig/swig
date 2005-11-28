@@ -238,7 +238,7 @@ List_str(DOH *lo) {
     DOH *s;
     int i;
     List *l = (List *) ObjData(lo);
-    s = NewString("");
+    s = NewStringEmpty();
     if (ObjGetMark(lo)) {
       Printf(s,"List(%x)", lo);
       return s;

@@ -257,10 +257,10 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   skip_whitespace(str,0);
 
   /* Now look for a macro name */
-  macroname = NewString("");
+  macroname = NewStringEmpty();
   while ((c = StringGetc(str)) != EOF) {
     if (c == '(') {
-      argstr = NewString("");
+      argstr = NewStringEmpty();
       copy_location(str,argstr);
       /* It is a macro.  Go extract it's argument string */
       while ((c = StringGetc(str)) != EOF) {
@@ -292,7 +292,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   if (!swigmacro)
     skip_whitespace(str,0);
-  macrovalue = NewString("");
+  macrovalue = NewStringEmpty();
   while ((c = StringGetc(str)) != EOF) {
     StringPutc(c,macrovalue);
   }
@@ -302,7 +302,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     String *argname, *varargname;
     arglist = NewList();
     Seek(argstr,0,SEEK_SET);
-    argname = NewString("");
+    argname = NewStringEmpty();
     while ((c = StringGetc(argstr)) != EOF) {
       if (c == ',') {
 	varargname = Macro_vararg_name(argname, str);
@@ -312,7 +312,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 	  Append(arglist,argname);
 	}
 	Delete(argname);
-	argname = NewString("");
+	argname = NewStringEmpty();
       } else if (isidchar(c) || (c == '.')) {
 	StringPutc(c,argname);
       } else if (!(isspace(c) || (c == '\\'))) {
@@ -495,7 +495,7 @@ find_args(String *s)
       skip_whitespace(s,0);                    /* Skip leading whitespace */
       c = StringGetc(s);
     }
-    str = NewString("");
+    str = NewStringEmpty();
     copy_location(s,str);
     level = 0;
     while (c != EOF) {
@@ -549,7 +549,7 @@ get_filename(String *str, int* sysfile) {
   int  c;
 
   skip_whitespace(str,0);
-  fn = NewString("");
+  fn = NewStringEmpty();
   copy_location(str,fn);
   c = StringGetc(str);
   *sysfile = 0;
@@ -610,7 +610,8 @@ get_options(String *str) {
 static String *
 expand_macro(String *name, List *args)
 {
-  DOH *symbols, *ns, *macro, *margs, *mvalue, *temp, *tempa, *e;
+  String *ns;
+  DOH *symbols, *macro, *margs, *mvalue, *temp, *tempa, *e;
   DOH *Preprocessor_replace(DOH *);
   int i, l;
   int isvarargs = 0;
@@ -622,7 +623,7 @@ expand_macro(String *name, List *args)
   macro = HashGetAttr(symbols,name);
   if (!macro) return 0;
   if (HashGetAttr(macro,k_expanded)) {
-    ns = NewString("");
+    ns = NewStringEmpty();
     StringAppend(ns,name);
     if (args) {
       if (Len(args))
@@ -648,7 +649,7 @@ expand_macro(String *name, List *args)
     if (Len(args) >= (Len(margs)-1)) {
       int i;
       int vi, na;
-      String *vararg = NewString("");
+      String *vararg = NewStringEmpty();
       vi = Len(margs)-1;
       na = Len(args);
       for (i = vi; i < na; i++) {
@@ -688,8 +689,8 @@ expand_macro(String *name, List *args)
   /* Tag the macro as being expanded.   This is to avoid recursion in
      macro expansion */
 
-  temp = NewString("");
-  tempa = NewString("");
+  temp = NewStringEmpty();
+  tempa = NewStringEmpty();
   if (args && margs) {
     l = Len(margs);
     for (i = 0; i < l; i++) {
@@ -698,7 +699,7 @@ expand_macro(String *name, List *args)
       arg = Getitem(args,i);           /* Get an argument value */
       reparg = Preprocessor_replace(arg);
       aname = Getitem(margs,i);        /* Get macro argument name */
-      if (strstr(Char(ns),"\001")) {
+      if (strstr(StringChar(ns),"\001")) {
 	/* Try to replace a quoted version of the argument */
 	Clear(temp);
 	Clear(tempa);
@@ -706,7 +707,7 @@ expand_macro(String *name, List *args)
 	Printf(tempa,"\"%s\"",arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
       }
-      if (strstr(Char(ns),"\002")) {
+      if (strstr(StringChar(ns),"\002")) {
 	/* Look for concatenation tokens */
 	Clear(temp);
 	Clear(tempa);
@@ -724,7 +725,7 @@ expand_macro(String *name, List *args)
 	 version of the argument except that if the argument is already quoted
 	 nothing happens */
 
-      if (strstr(Char(ns),"`")) {
+      if (strstr(StringChar(ns),"`")) {
 	String *rep;
 	char *c;
 	Clear(temp);
@@ -742,14 +743,14 @@ expand_macro(String *name, List *args)
 
       /* Non-standard mangle expansions.  
 	 The #@Name is replaced by mangle_arg(Name). */
-      if (strstr(Char(ns),"\004")) {
+      if (strstr(StringChar(ns),"\004")) {
 	String* marg = Swig_string_mangle(arg);
 	Clear(temp);
 	Printf(temp,"\004%s", aname);
 	Replace(ns, temp, marg, DOH_REPLACE_ID_END);
 	Delete(marg);
       }
-      if (strstr(Char(ns),"\005")) {
+      if (strstr(StringChar(ns),"\005")) {
 	String* marg = Swig_string_mangle(arg);
 	Clear(temp);
 	Clear(tempa);
@@ -763,7 +764,7 @@ expand_macro(String *name, List *args)
 	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
 	char *a, *s, *t, *name;
         int namelen;
-	s = Char(ns);
+	s = StringChar(ns);
         name = Char(aname);
         namelen = Len(aname);
 	a = strstr(s,name);
@@ -805,7 +806,7 @@ expand_macro(String *name, List *args)
 
   if (HashGetAttr(macro,k_swigmacro)) {
     String *g;
-    String *f = NewString("");
+    String *f = NewStringEmpty();
     Seek(e,0,SEEK_SET);
     copy_location(macro,e);
     g = Preprocessor_parse(e);
@@ -860,12 +861,12 @@ Preprocessor_replace(DOH *s)
   DOH   *ns, *symbols, *m;
   int   c, i, state = 0;
 
-  String   *id = NewString("");
+  String   *id = NewStringEmpty();
   
   assert(cpp);
   symbols = HashGetAttr(cpp,k_symbols);
 
-  ns = NewString("");
+  ns = NewStringEmpty();
   copy_location(s,ns);
   Seek(s,0,SEEK_SET);
 
@@ -907,7 +908,7 @@ Preprocessor_replace(DOH *s)
 	    StringUngetc(c,s);
 	    args = find_args(s);
 	  } else if (isidchar(c)) {
-	    DOH *arg = NewString("");
+	    DOH *arg = NewStringEmpty();
 	    args = NewList();
 	    StringPutc(c,arg);
 	    while (((c = StringGetc(s)) != EOF)) {
@@ -1149,13 +1150,13 @@ Preprocessor_parse(String *s)
   /* Blow away all carriage returns */
   Replace(s,"\015","",DOH_REPLACE_ANY); 
 
-  ns = NewString("");        /* Return result */
+  ns = NewStringEmpty();        /* Return result */
 
-  decl = NewString("");
-  id = NewString("");
-  value = NewString("");
-  comment = NewString("");
-  chunk = NewString("");
+  decl = NewStringEmpty();
+  id = NewStringEmpty();
+  value = NewStringEmpty();
+  comment = NewStringEmpty();
+  chunk = NewStringEmpty();
   copy_location(s,chunk);
   copy_location(s,ns);
   symbols = HashGetAttr(cpp,k_symbols);

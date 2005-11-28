@@ -476,7 +476,7 @@ DohSplit(DOH *in, char ch, int nsplits) {
   }
 
   while (1) {
-    str = NewString("");
+    str = NewStringEmpty();
     do {
       c = Getc(in);
     } while ((c != EOF) && (c == ch));
@@ -515,7 +515,7 @@ DohSplitLines(DOH *in) {
   }
 
   while (c != EOF) {
-    str = NewString("");
+    str = NewStringEmpty();
     while ((c = Getc(in)) != '\n' && c != EOF) {
       Putc(c, str);
     }
@@ -536,7 +536,7 @@ DOH *
 DohReadline(DOH *in) {
   char c;
   int n = 0;
-  DOH *s = NewString("");
+  DOH *s = NewStringEmpty();
   while (1) {
     if (Read(in,&c,1) < 0) {
       if (n == 0) {

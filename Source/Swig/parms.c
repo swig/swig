@@ -192,7 +192,7 @@ int ParmList_len(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_str(ParmList *p) {
-  String *out = NewString("");
+  String *out = NewStringEmpty();
   while(p) {
     String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
     Append(out,pstr);
@@ -212,7 +212,7 @@ String *ParmList_str(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_str_defaultargs(ParmList *p) {
-  String *out = NewString("");
+  String *out = NewStringEmpty();
   while(p) {
     String *value = Getattr(p,"value");
     String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
@@ -236,7 +236,7 @@ String *ParmList_str_defaultargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_protostr(ParmList *p) {
-  String *out = NewString("");
+  String *out = NewStringEmpty();
   while(p) {
     if (Getattr(p,"hidden")) {
       p = nextSibling(p);

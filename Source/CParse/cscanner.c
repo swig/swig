@@ -103,7 +103,7 @@ scanner_locator(String *loc) {
   
   /* Now, parse the new location out of the locator string */
   {
-    String *fn = NewString("");
+    String *fn = NewStringEmpty();
     Putc(c,fn);
     
     while ((c = Getc(loc)) != EOF) {
@@ -143,9 +143,9 @@ scanner_locator(String *loc) {
 void scanner_init() {
   yybuffer = (char *) malloc(YYBSIZE);
   scan_init = 1;
-  header = NewString("");
-  comment = NewString("");
-  scanner_ccode = NewString("");
+  header = NewStringEmpty();
+  comment = NewStringEmpty();
+  scanner_ccode = NewStringEmpty();
 }
 
 /**************************************************************

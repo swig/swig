@@ -176,6 +176,7 @@ static Hash *global_scope = 0;    /* Global scope */
 
 /* common attribute keys, to avoid calling find_key all the times */
 
+static String *empty_string = 0;
 static String *k_allowstypedef = 0;
 static String *k_cdecl = 0;
 static String *k_coloncolon = 0;
@@ -184,7 +185,6 @@ static String *k_csymnextSibling = 0;
 static String *k_csympreviousSibling = 0;
 static String *k_csymtab = 0;
 static String *k_decl = 0;
-static String *k_empty = 0;
 static String *k_enumitem = 0;
 static String *k_inherit = 0;
 static String *k_name = 0;
@@ -236,6 +236,7 @@ Swig_symbol_dump_symtable() {
 
 void
 Swig_symbol_init() {
+  empty_string = NewStringEmpty();
   k_allowstypedef = NewString("allows_typedef");
   k_cdecl = NewString("cdecl");
   k_coloncolon = NewString("::");
@@ -244,7 +245,6 @@ Swig_symbol_init() {
   k_csympreviousSibling = NewString("csym:previousSibling");
   k_csymtab = NewString("csymtab");
   k_decl = NewString("decl");
-  k_empty = NewString("empty");
   k_enumitem = NewString("enumitem");
   k_inherit = NewString("inherit");
   k_name = NewString("name");
@@ -281,7 +281,7 @@ Swig_symbol_init() {
 
   /* Set the global scope */
   symtabs = NewHash();
-  Setattr(symtabs,k_empty,current_symtab);
+  Setattr(symtabs,empty_string,current_symtab);
   global_scope = current_symtab;
 }
 
@@ -326,7 +326,7 @@ Swig_symbol_getscopename() {
 Symtab *
 Swig_symbol_getscope(const String_or_char *name) {
   if (!symtabs) return 0;
-  if (StringEqual(k_coloncolon,(String_or_char *)name)) name = k_empty;
+  if (StringEqual(k_coloncolon,(String_or_char *)name)) name = empty_string;
   return Getattr(symtabs,name);
 }
 
@@ -350,7 +350,7 @@ Swig_symbol_qualifiedscopename(Symtab *symtab) {
   name = HashGetAttr(symtab,k_name);
   if (name) {
     if (!result) {
-      result = NewString("");
+      result = NewStringEmpty();
     }
     if (StringLen(result)) {
       Printv(result,"::",name, NIL);
@@ -1023,7 +1023,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   if (Swig_scopename_check(name)) {
     char *cname = Char(name);
     if (strncmp(cname,"::",2) == 0) {
-      String *nname = NewString(Char(name)+2);
+      String *nname = NewString(cname+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
       }
@@ -1094,7 +1094,7 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
   if (Swig_scopename_check(name)) {
     char *cname = Char(name);
     if (strncmp(cname,"::",2) == 0) {
-      String *nname = NewString(Char(name)+2);
+      String *nname = NewString(cname+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
       }
@@ -1157,7 +1157,7 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   if (Swig_scopename_check(name)) {
     char *cname = Char(name);
     if (strncmp(cname,"::",2) == 0) {
-      String *nname = NewString(Char(name)+2);
+      String *nname = NewString(cname+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
       }
@@ -1205,7 +1205,7 @@ Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc
   if (Swig_scopename_check(name)) {
     char *cname = Char(name);
     if (strncmp(cname,"::",2) == 0) {
-      String *nname = NewString(Char(name)+2);
+      String *nname = NewString(cname+2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
       }
@@ -1337,7 +1337,7 @@ Swig_symbol_qualified(Node *n) {
   } else {
     symtab = HashGetAttr(n,k_symsymtab);
   }
-  if (!symtab) return NewString("");
+  if (!symtab) return NewStringEmpty();
 #ifdef SWIG_DEBUG
   Printf(stderr,"symbol_qscope %s %x %s\n", HashGetAttr(n,k_name), symtab,HashGetAttr(symtab,k_name));
 #endif
@@ -1396,7 +1396,7 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
     StringAppend(qprefix,vparm);
     ti = Next(ti);
     if (ti.item) {
-      Putc(',',qprefix);
+      StringPutc(',',qprefix);
     }
     Delete(qparm);
     Delete(vparm);
@@ -1418,7 +1418,7 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   String *result;
   int     i,len;
 
-  result = NewString("");
+  result = NewStringEmpty();
   elements = SwigType_split(t);
 
   len = Len(elements);
@@ -1450,7 +1450,7 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 	StringAppend(e,ty);
 	Delete(ty);	
       }
-      if (strncmp(Char(e),"::",2) == 0) {
+      if (strncmp(StringChar(e),"::",2) == 0) {
 	Delitem(e,0);
 	Delitem(e,0);
       }
@@ -1589,7 +1589,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       {	
 	const char* dclass[3] = {"struct ", "union ", "class "};
 	int i;
-	char * c = Char(nt);
+	char * c = StringChar(nt);
 	for (i=0; i<3; i++) {
 	  if (strstr(c, dclass[i]) == c) {
 	    Replace(nt,dclass[i],"", DOH_REPLACE_FIRST); 
@@ -1638,16 +1638,13 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
 
 String *
 Swig_symbol_string_qualify(String *s, Symtab *st) {
-  char *c;
-  String *id, *r;
-  int     have_id = 0;
-
-  id = NewString("");
-  r = NewString("");
-  c = Char(s);
+  int have_id = 0;
+  String *id = NewStringEmpty();
+  String *r = NewStringEmpty();
+  char *c = StringChar(s);
   while (*c) {
     if (isalpha((int)*c) || (*c == '_') || (*c == ':')) {
-      Putc(*c,id);
+      StringPutc(*c,id);
       have_id = 1;
     } else {
       if (have_id) {
@@ -1657,7 +1654,7 @@ Swig_symbol_string_qualify(String *s, Symtab *st) {
 	Delete(qid);
 	have_id = 0;
       }
-      Putc(*c,r);
+      StringPutc(*c,r);
     }
     c++;
   }
@@ -1739,7 +1736,7 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
  * ----------------------------------------------------------------------------- */
 SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
-  String *result   = NewString("");
+  String *result   = NewStringEmpty();
   List   *elements = SwigType_split(type);
   int     len = Len(elements);
   int     i;
@@ -1809,7 +1806,7 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	  }	
 	  StringAppend(tprefix,ttq);
 	  p = nextSibling(p);
-	  if (p) Putc(',',tprefix);
+	  if (p) StringPutc(',',tprefix);
 	  Delete(ttf);
 	  Delete(ttq);
 	}

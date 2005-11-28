@@ -37,6 +37,11 @@ String_data(DOH *so) {
   return (void *) s->str;
 }
 
+char *
+DohString_char(DOH *so) {
+  return (char *) String_data(so);
+}
+
 /* -----------------------------------------------------------------------------
  * int String_dump() - Serialize a string onto out
  * ----------------------------------------------------------------------------- */
@@ -426,7 +431,6 @@ static int
 String_seek(DOH *so, long offset, int whence)
 {
   int    pos, nsp, inc;
-  int prev;
   String *s = (String *) ObjData(so);
   if (whence == SEEK_SET) pos = 0;
   else if (whence == SEEK_CUR) pos = s->sp;
@@ -450,7 +454,7 @@ String_seek(DOH *so, long offset, int whence)
     register char *tc = s->str;
     register int len = s->len;
     while (sp != nsp) {
-      prev = sp + inc;
+      int prev = sp + inc;
       if (prev>=0 && prev<=len && tc[prev] == '\n')
 	s->line += inc;
       sp+=inc;
@@ -458,7 +462,6 @@ String_seek(DOH *so, long offset, int whence)
 #else
     register int sp = s->sp;
     register char *tc = s->str;
-    register int len = s->len;
     if (inc > 0) {
       while (sp != nsp) {
 	if (tc[++sp] == '\n')
@@ -1008,17 +1011,19 @@ DohNewString(const DOH *so)
     int l = 0, max;
     String *str;
     char *s;
+    int hashkey = -1;
     if (DohCheck(so)) {
       str = (String *) ObjData(so);
       s = String_data((String *)so);
       l = s ? str->len : 0;
+      hashkey = str->hashkey;
     } else {
       s = (char *) so;
       l = s ? (int) strlen(s) : 0;
     }
     
     str = (String *) DohMalloc(sizeof(String));
-    str->hashkey = -1;
+    str->hashkey = hashkey;
     str->sp = 0;
     str->line = 1;
     str->file = 0;
@@ -1039,6 +1044,26 @@ DohNewString(const DOH *so)
     return DohObjMalloc(&DohStringType,str);
 }
 
+
+/* -----------------------------------------------------------------------------
+ * NewStringEmpty() - Create a new string
+ * ----------------------------------------------------------------------------- */
+
+DOHString *
+DohNewStringEmpty()
+{
+  int max = INIT_MAXSIZE;
+  String *str = (String *) DohMalloc(sizeof(String));
+  str->hashkey = 0;
+  str->sp = 0;
+  str->line = 1;
+  str->file = 0;
+  str->str = (char *) DohMalloc(max);
+  str->maxsize = max;
+  str->str[0] = 0;
+  str->len = 0;
+  return DohObjMalloc(&DohStringType,str);
+}
 
 /* -----------------------------------------------------------------------------
  * NewStringWithSize(const char *c, int len) - Create a new string
@@ -1092,7 +1117,7 @@ DohNewStringf(const DOH *fmt, ...)
   va_list ap;
   DOH *r;
   va_start(ap,fmt);
-  r = NewString("");
+  r = NewStringEmpty();
   DohvPrintf(r,Char(fmt),ap);
   va_end(ap);
   return (DOHString *) r;
