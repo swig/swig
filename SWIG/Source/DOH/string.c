@@ -65,7 +65,7 @@ CopyString(DOH *so) {
   String *str;
   String *s = (String *) ObjData(so);
   str = (String *) DohMalloc(sizeof(String));
-  str->hashkey = -1;
+  str->hashkey = s->hashkey;
   str->sp = s->sp;
   str->line = s->line;
   str->file = s->file;
@@ -87,18 +87,16 @@ CopyString(DOH *so) {
 static void
 DelString(DOH *so) {
   String *s = (String *) ObjData(so);
-  s->hashkey = -1;
   DohFree(s->str);
-  s->str = 0;
   DohFree(s);
 }
 
 /* -----------------------------------------------------------------------------
- * String_len() - Length of a string
+ * DohString_len() - Length of a string
  * ----------------------------------------------------------------------------- */
 
-static int
-String_len(DOH *so) {
+int
+DohString_len(DOH *so) {
   String *s = (String *) ObjData(so);
   return s->len;
 }
@@ -237,6 +235,7 @@ DohString_append(DOH *so, DOH *str) {
   s->len += l;
 }
 
+
 /* -----------------------------------------------------------------------------
  * void String_clear() - Clear a string
  * ----------------------------------------------------------------------------- */
@@ -269,17 +268,23 @@ String_insert(DOH *so, int pos, DOH *str)
     return 0;
   }
 
+
   s = (String *) ObjData(so);
   s->hashkey = -1;
-  data = (char *) DohData(str);
+  if (DohCheck(str)) {
+    String *ss = (String *) ObjData(str);
+    data = String_data(str);
+    len = ss->len;
+  } else {
+    data = (char *) (str);
+    len = (int) strlen(data);
+  }
   nstr = s->str;
-
 
   if (pos < 0) pos = 0;
   else if (pos > s->len) pos = s->len;
   
   /* See if there is room to insert the new data */
-  len = Len(str);  
   while (s->maxsize <= s->len+len) {
     s->str = (char *) DohRealloc(s->str,2*s->maxsize);
     assert(s->str);
@@ -440,6 +445,7 @@ String_seek(DOH *so, long offset, int whence)
   inc = (nsp > s->sp) ? 1 : -1;
 
   {
+#if 0
     register int sp = s->sp;
     register char *tc = s->str;
     register int len = s->len;
@@ -449,6 +455,22 @@ String_seek(DOH *so, long offset, int whence)
 	s->line += inc;
       sp+=inc;
     }
+#else
+    register int sp = s->sp;
+    register char *tc = s->str;
+    register int len = s->len;
+    if (inc > 0) {
+      while (sp != nsp) {
+	if (tc[++sp] == '\n')
+	  ++s->line;
+      }
+    } else {
+      while (sp != nsp) {
+	if (tc[--sp] == '\n')
+	  --s->line;
+      }
+    }
+#endif
     s->sp = sp;
   }
   assert (s->sp >= 0);
@@ -955,7 +977,7 @@ DohObjInfo DohStringType = {
     String_str,        /* doh_str */
     String_data,       /* doh_data */
     String_dump,       /* doh_dump */
-    String_len,        /* doh_len */
+    DohString_len,     /* doh_len */
     String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
     DohString_equal,      /* doh_equal */
