@@ -276,11 +276,19 @@ Hash_getattr(DOH *h, DOH *k) {
   return obj;
 }
 
+DOH *
+DohHashGetAttr(DOH *h, DOH *k) {
+  DOH *obj = 0;
+  Hash *ho = (Hash *) ObjData(h);
+  _Hash_getattr(ho, k, obj);
+  return obj;
+}
+
 
 /* -----------------------------------------------------------------------------
- * Hash_checkattr()
+ * HashCheckAttr()
  *
- * Get an attribute from the hash table. Returns 0 if it doesn't exist.
+ * Check an attribute from the hash table.
  * ----------------------------------------------------------------------------- */
 
 int

@@ -71,6 +71,7 @@
 #define DohStringGetc      DOH_NAMESPACE(StringGetc)
 #define DohStringUngetc    DOH_NAMESPACE(StringUngetc)
 #define DohStringAppend    DOH_NAMESPACE(StringAppend)
+#define DohStringLen       DOH_NAMESPACE(StringLen)
 #define DohStringEqual     DOH_NAMESPACE(StringEqual)
 
 
@@ -108,6 +109,7 @@
 #define DohCopyto          DOH_NAMESPACE(Copyto)
 #define DohNewList         DOH_NAMESPACE(NewList)
 #define DohNewHash         DOH_NAMESPACE(NewHash)
+#define DohHashGetAttr     DOH_NAMESPACE(HashGetAttr)
 #define DohHashCheckAttr   DOH_NAMESPACE(HashCheckAttr)
 #define DohNewVoid         DOH_NAMESPACE(NewVoid)
 #define DohSplit           DOH_NAMESPACE(Split)
@@ -252,12 +254,14 @@ extern int DohString_putc(DOH *so, int ch);
 extern int DohString_getc(DOH *so);
 extern int DohString_ungetc(DOH *so, int ch);
 extern void DohString_append(DOH *so, DOH *str);
+extern int DohString_len(DOH *s1);
 extern int DohString_equal(DOH *s1, DOH *s2);
 
 #define DohStringPutc(ch,so)    DohString_putc(so, ch)
 #define DohStringGetc(so)       DohString_getc(so)
 #define DohStringUngetc(ch,so)  DohString_ungetc(so, ch)
 #define DohStringAppend(so,str) DohString_append(so, str)
+#define DohStringLen(so)        DohString_len(so)
 #define DohStringEqual(s1,s2)   DohString_equal(s1,s2)
 
 /* Meta-variables */
@@ -332,6 +336,7 @@ extern void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *));
  * ----------------------------------------------------------------------------- */
 
 extern DOHHash   *DohNewHash();
+extern DOH       *DohHashGetAttr(DOH *hash, DOH *key);
 extern int       DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
 
 /* -----------------------------------------------------------------------------
@@ -388,6 +393,7 @@ extern void      DohMemoryDebug(void);
 #define StringGetc         DohStringGetc
 #define StringUngetc       DohStringUngetc
 #define StringAppend       DohStringAppend
+#define StringLen          DohStringLen
 #define StringEqual        DohStringEqual
 
 #define Close              DohClose
@@ -416,6 +422,7 @@ extern void      DohMemoryDebug(void);
 #define NewStringWithSize  DohNewStringWithSize
 #define NewStringf         DohNewStringf
 #define NewHash            DohNewHash
+#define HashGetAttr        DohHashGetAttr
 #define HashCheckAttr      DohHashCheckAttr
 #define NewList            DohNewList
 #define NewFile            DohNewFile
