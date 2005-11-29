@@ -235,13 +235,12 @@ DohEqual(const DOH *obj1, const DOH *obj2) {
       } else {
 	int len = (b1info->doh_len)(b1);
 	char *cobj = (char *) obj2;
-	return len == strlen(cobj) ? (memcmp(RawData(b1), cobj, len) == 0) : 0;
+	return len == (int)strlen(cobj) ? (memcmp(RawData(b1), cobj, len) == 0) : 0;
       }
     } else if (DohCheck(b2)) {
-      b2info = b2->type;
-      int len = (b2info->doh_len)(b2);
+      int len = (b2->type->doh_len)(b2);
       char *cobj = (char *) obj1;
-      return len == strlen(cobj) ? (memcmp(RawData(b2), cobj, len) == 0) : 0;
+      return len == (int)strlen(cobj) ? (memcmp(RawData(b2), cobj, len) == 0) : 0;
     } else {
       return strcmp((char*) obj1, (char*) obj2) == 0;
     }

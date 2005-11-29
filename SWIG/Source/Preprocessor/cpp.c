@@ -66,9 +66,9 @@ skip_tochar(String *s, int ch, String *out) {
 }
 
 static void
-copy_location(DOH *s1, DOH *s2) {
-  Setfile(s2,Getfile(s1));
-  Setline(s2,Getline(s1));
+copy_location(const DOH *s1, DOH *s2) {
+  Setfile(s2,Getfile((DOH *)s1));
+  Setline(s2,Getline((DOH *)s1));
 }
 
 static String *cpp_include(String_or_char *fn, int sysfile) {
@@ -237,13 +237,15 @@ String_or_char *Macro_vararg_name(String_or_char *str,
   return varargname;
 }
 
-Hash *Preprocessor_define(const String *str, int swigmacro)
+Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 {
   String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
   Hash   *macro = 0, *symbols = 0, *m1;
   List   *arglist = 0;
   int c, line;
   int    varargs = 0;
+
+  String *str = NewString(_str);
 
   assert(cpp);
   assert(str);
@@ -1688,8 +1690,7 @@ Preprocessor_parse(String *s)
 		}
 		if (allow) {
 		  Seek(value,0,SEEK_SET);
-		  DOH *m = Preprocessor_define(value,1);
-		  Delete(m);
+		  Delete(Preprocessor_define(value,1));
 		}
 		StringPutc('\n',ns);
 		addline(ns,value,0);
