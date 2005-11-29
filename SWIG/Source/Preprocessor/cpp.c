@@ -244,15 +244,14 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   List   *arglist = 0;
   int c, line;
   int    varargs = 0;
-
-  String *str = NewString(_str);
+  String_or_char *str = (String_or_char *)_str;
 
   assert(cpp);
   assert(str);
 
   /* First make sure that string is actually a string */
   if (DohCheck(str)) {
-    s = NewString(str);
+    s = Copy(str);
     copy_location(str,s);
     str = s;
   } else {
