@@ -48,7 +48,8 @@ t_output_helper( zval **target, zval *o) {
     return;
   }
   zval *tmp;
-  tmp = *target;
+  ALLOC_INIT_ZVAL(tmp);
+  *tmp = **target;
   zval_copy_ctor(tmp);
   array_init(*target);
   add_next_index_zval( *target, tmp);
