@@ -204,19 +204,25 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
 	}
 	Delete(stripped_name);
       }
-      if (Strstr(name,"<")) {
+      if (strstr(Char(name),"<")) {
 	Append(patchlist,Getattr(n,k_name));
       } else {
 	Append(name,templateargs);
       }
       name = Getattr(n,k_symname);
-      if (name && (Strstr(name,"<"))) {
-	Clear(name);
-	Append(name,rname);   
-      } else {
-	Replace(name,tname,rname, DOH_REPLACE_ANY);
+      if (name) {
+	if (strstr(Char(name),"<")) {
+	  Clear(name);
+	  Append(name,rname);   
+	} else {
+	  String *tmp = Copy(name);
+	  Replace(tmp,tname,rname, DOH_REPLACE_ANY);
+	  Clear(name);
+	  Append(name,tmp);
+	  Delete(tmp);
+	}
       }
-      Setattr(n,k_symname,name);
+      /* Setattr(n,k_symname,name); */
     }
     Append(cpatchlist,Getattr(n,k_code));
     Append(typelist, Getattr(n,k_decl));
@@ -224,27 +230,25 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     add_parms(Getattr(n,k_throws), cpatchlist, typelist);
   } else if (StringEqual(nodeType,k_destructor)) {
     String *name = Getattr(n,k_name);
-    if (Strstr(name,"<")) {
+    if (name && strstr(Char(name),"<")) {
       Append(patchlist,Getattr(n,k_name));
     } else {
       Append(name,templateargs);
     }
     name = Getattr(n,k_symname);
-    if (name && Strstr(name,"<")) {
+    if (name && strstr(Char(name),"<")) {
       String *sn = Copy(tname);
       Setattr(n,k_symname, sn);
       Delete(sn);
     } else {
       Replace(name,tname,rname, DOH_REPLACE_ANY);
     }
-    Setattr(n,k_symname,name);
+    /* Setattr(n,k_symname,name); */
     Append(cpatchlist,Getattr(n,k_code));
   } else if (StringEqual(nodeType,k_using)) {
     String *uname = Getattr(n,k_uname);
-    if (uname) {
-      if (Strstr(uname,"<")) {
-	Append(patchlist, uname);
-      }
+    if (uname && strstr(Char(uname),"<")) {
+      Append(patchlist, uname);
     }
     if (Getattr(n,k_namespace)) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
@@ -272,17 +276,18 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
 static
 String *partial_arg(String *s, String *p) {
   char *c;
+  char *cp = Char(p);
   String *prefix;
   String *newarg;
 
   /* Find the prefix on the partial argument */
   
-  c = Strstr(p,"$");
+  c = strstr(cp,"$");
   if (!c) {
-    return NewString(s);
+    return Copy(s);
   }
-  prefix = NewStringWithSize(Char(p),c-Char(p));
-  newarg = NewString(s);
+  prefix = NewStringWithSize(cp,c-cp);
+  newarg = Copy(s);
   Replace(newarg,prefix,"",DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
   Delete(prefix);
   return newarg;
@@ -462,6 +467,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
   Delete(cpatchlist);
   Delete(typelist);
   Delete(tbase);
+  Delete(tname);
   Delete(templateargs);
 
   /*  set_nodeType(n,k_template);*/

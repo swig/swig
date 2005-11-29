@@ -90,11 +90,14 @@ static String *cpp_include(String_or_char *fn, int sysfile) {
       Swig_error(Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
     }
   } else {
+    String *lf;
     Seek(s,0,SEEK_SET);
     if (!dependencies) {
       dependencies = NewList();
     }
-    Append(dependencies, Copy(Swig_last_file()));
+    lf = Copy(Swig_last_file());
+    Append(dependencies, lf);
+    Delete(lf);
   }
   return s;
 }
@@ -213,30 +216,34 @@ String_or_char *Macro_vararg_name(String_or_char *str,
   argname = Copy(str);
   s = Char(argname);
   dots = strchr(s, '.');
-  if (!dots) return NULL;
+  if (!dots) {
+    Delete(argname);
+    return NULL;
+  }
+  
   if (strcmp(dots, "...") != 0) {
     Swig_error(Getfile(line), Getline(line),
                "Illegal macro argument name '%s'\n", str);  
+    Delete(argname);
     return NULL;
   }
   if (dots == s) {
       varargname = NewString("__VA_ARGS__");
   } else {
     *dots = '\0';
-    varargname = NewStringf(argname);
+    varargname = NewString(s);
   }
   Delete(argname);
   return varargname;
 }
 
-Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
+Hash *Preprocessor_define(const String *str, int swigmacro)
 {
   String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
   Hash   *macro = 0, *symbols = 0, *m1;
   List   *arglist = 0;
   int c, line;
   int    varargs = 0;
-  String_or_char *str = (String_or_char *) _str;
 
   assert(cpp);
   assert(str);
@@ -307,6 +314,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       if (c == ',') {
 	varargname = Macro_vararg_name(argname, str);
 	if (varargname) {
+	  Delete(varargname);
           Swig_error(Getfile(str),Getline(str),"Variable-length macro argument must be last parameter\n");	  
 	} else {
 	  Append(arglist,argname);
@@ -316,10 +324,11 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       } else if (isidchar(c) || (c == '.')) {
 	StringPutc(c,argname);
       } else if (!(isspace(c) || (c == '\\'))) {
+	Delete(argname);
 	Swig_error(Getfile(str),Getline(str),"Illegal character in macro argument name\n");
 	goto macro_error;
       }
-    }
+    }    
     if (Len(argname)) {
       /* Check for varargs */
       varargname = Macro_vararg_name(argname, str);
@@ -330,8 +339,8 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       } else {
 	Append(arglist,argname);
       }
-      Delete(argname);
     }
+    Delete(argname);
   }
 
   if (!swigmacro) {
@@ -409,6 +418,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   /* Go create the macro */
   macro = NewHash();
   Setattr(macro,k_name, macroname);
+
   if (arglist) {
     Setattr(macro,k_args,arglist);
     Delete(arglist);
@@ -432,15 +442,16 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     }
   }
   Setattr(symbols,macroname,macro);
+  Delete(macroname);
   
   Delete(str);
   Delete(argstr);
-  Delete(macroname);
   return macro;
 
  macro_error:
   Delete(str);
   Delete(argstr);
+  Delete(arglist);
   Delete(macroname);
   return 0;
 }
@@ -1029,9 +1040,7 @@ Preprocessor_replace(DOH *s)
       StringAppend(ns,id);
     }
   }
-#ifndef SWIG_PUT_BUFF
   Delete(id);
-#endif
   return ns;
 }
 
@@ -1103,7 +1112,8 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
 static void
 push_imported() {
   if (imported_depth == 0) {
-    Preprocessor_define("SWIGIMPORTED 1", 0);
+    DOH *m = Preprocessor_define("SWIGIMPORTED 1", 0);
+    Delete(m);
   }
   ++imported_depth;
 }
@@ -1678,7 +1688,8 @@ Preprocessor_parse(String *s)
 		}
 		if (allow) {
 		  Seek(value,0,SEEK_SET);
-		  Preprocessor_define(value,1);
+		  DOH *m = Preprocessor_define(value,1);
+		  Delete(m);
 		}
 		StringPutc('\n',ns);
 		addline(ns,value,0);

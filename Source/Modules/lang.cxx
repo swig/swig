@@ -269,6 +269,8 @@ Language::~Language() {
   Delete(symbols);
   Delete(classtypes);
   Delete(enumtypes);
+  Delete(director_ctor_code);
+  Delete(none_comparison);
 }
 
 /* ----------------------------------------------------------------------

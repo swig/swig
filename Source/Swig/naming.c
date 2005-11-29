@@ -401,12 +401,15 @@ Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) 
   if (!n) {
     n = NewHash();
     Setattr(namehash,name,n);
+    Delete(n);
   }
   /* Add an object based on the declarator value */
   if (!decl) {
     Setattr(n,"*",object);
   } else {
-    Setattr(n,Copy(decl),object);
+    SwigType *cd = Copy(decl);
+    Setattr(n,cd,object);
+    Delete(cd);
   }
 }
 
@@ -555,7 +558,9 @@ static void merge_features(Hash *features, Node *n) {
 
   if (!features) return;
   for (ki = First(features); ki.key; ki = Next(ki)) {
-    Setattr(n,ki.key,Copy(ki.item));
+    String *ci = Copy(ki.item);    
+    Setattr(n,ki.key,ci);
+    Delete(ci);
   }
 }
 
@@ -683,18 +688,21 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   if (!n) {
     n = NewHash();
     Setattr(features,name,n);
+    Delete(n);
   }
   if (!decl) {
     fhash = Getattr(n,"*");
     if (!fhash) {
       fhash = NewHash();
       Setattr(n,"*",fhash);
+      Delete(fhash);
     }
   } else {
     fhash = Getattr(n,decl);
     if (!fhash) {
       fhash = NewHash();
       Setattr(n,Copy(decl),fhash);
+      Delete(fhash);
     }
   }
   if (value) {

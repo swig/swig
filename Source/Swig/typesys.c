@@ -858,7 +858,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   String *result;
   int     i,len;
   if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
-  result = Getattr(typedef_qualified_cache,t);
+  result = HashGetAttr(typedef_qualified_cache,t);
   if (result) {
     String *rc = Copy(result);
     return rc;
@@ -1403,6 +1403,7 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   SwigType *fr;
   SwigType *qr;
   String   *tkey;
+  String   *cd;
 
   if (!r_mangled) {
     r_mangled = NewHash();
@@ -1419,8 +1420,10 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   }
 
   tkey = Copy(t);
-  Setattr(r_remembered, tkey, clientdata ? NewString(clientdata) : (void *) "");
+  cd = clientdata ? NewString(clientdata) : NewStringEmpty();
+  Setattr(r_remembered, tkey, cd);
   Delete(tkey);
+  Delete(cd);
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
 

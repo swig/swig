@@ -263,10 +263,10 @@ extern int DohString_equal(DOH *s1, DOH *s2);
 #define DohStringPutc(ch,so)    DohString_putc(so, ch)
 #define DohStringGetc(so)       DohString_getc(so)
 #define DohStringUngetc(ch,so)  DohString_ungetc(so, ch)
-#define DohStringAppend(so,str) DohString_append(so, str)
-#define DohStringLen(so)        DohString_len(so)
+#define DohStringAppend(so,str) DohString_append(so, (DOH*)str)
+#define DohStringLen(so)        DohString_len((DOH*)so)
 #define DohStringChar(so)       DohString_char(so)
-#define DohStringEqual(s1,s2)   DohString_equal(s1,s2)
+#define DohStringEqual(s1,s2)   DohString_equal((DOH *)s1, (DOH *)s2)
 
 /* Meta-variables */
 extern DOH          *DohGetmeta(DOH *, const DOH *);

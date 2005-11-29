@@ -240,7 +240,9 @@ class TypePass : private Dispatcher {
       Swig_symbol_setscope(s);
 
       /* Recursively hit base classes */
-      String *newcast = NewStringf("(%s *)%s", SwigType_namestr(Getattr(bclass,"name")), cast);
+      String *namestr = SwigType_namestr(Getattr(bclass,"name"));
+      String *newcast = NewStringf("(%s *)%s", namestr, cast);
+      Delete(namestr);
       cplus_inherit_types_impl(first,bclass,clsname,bases,baselist,ispublic,newcast);
       Delete(newcast);
     }
@@ -434,6 +436,7 @@ class TypePass : private Dispatcher {
     /* If in a namespace, patch the class name */
     if (nname) {
       Setattr(n,"name",nname);
+      Delete(nname);
     }
     return SWIG_OK;
   }

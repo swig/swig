@@ -195,10 +195,10 @@ String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while(p) {
     String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
-    Append(out,pstr);
+    StringAppend(out,pstr);
     p = nextSibling(p);
     if (p) {
-      Append(out,",");
+      StringAppend(out,",");
     }
     Delete(pstr);
   }
@@ -216,13 +216,13 @@ String *ParmList_str_defaultargs(ParmList *p) {
   while(p) {
     String *value = Getattr(p,"value");
     String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
-    Append(out,pstr);
+    StringAppend(out,pstr);
     if (value) {
       Printf(out,"=%s", value);
     }
     p = nextSibling(p);
     if (p) {
-      Append(out,",");
+      StringAppend(out,",");
     }
     Delete(pstr);    
   }
@@ -242,10 +242,10 @@ String *ParmList_protostr(ParmList *p) {
       p = nextSibling(p);
     } else {
       String *pstr = SwigType_str(Getattr(p,"type"), 0);
-      Append(out,pstr);
+      StringAppend(out,pstr);
       p = nextSibling(p);
       if (p) {
-	Append(out,",");
+	StringAppend(out,",");
       }
       Delete(pstr);
     }

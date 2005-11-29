@@ -93,6 +93,7 @@ static Node *copy_node(Node *n) {
   Setfile(nn,Getfile(n));
   Setline(nn,Getline(n));
   for (k = First(n); k.key; k = Next(k)) {
+    String *ci;
     String *key = k.key;
     char *ckey = Char(key);
     if ((strcmp(ckey,"nextSibling") == 0) ||
@@ -106,7 +107,9 @@ static Node *copy_node(Node *n) {
     if ((strcmp(ckey,"sym:name") == 0) || 
 	(strcmp(ckey,"sym:weak") == 0) ||
 	(strcmp(ckey,"sym:typename") == 0)) {
-      Setattr(nn,key, Copy(k.item));
+      String *ci = Copy(k.item);
+      Setattr(nn,key, ci);
+      Delete(ci);
       continue;
     }
     if (strcmp(ckey,"sym:symtab") == 0) {
@@ -146,7 +149,9 @@ static Node *copy_node(Node *n) {
       continue;
     }
     /* Looks okay.  Just copy the data using Copy */
-    Setattr(nn, key, Copy(k.item));
+    ci = Copy(k.item);
+    Setattr(nn, key, ci);
+    Delete(ci);
   }
   return nn;
 }
@@ -227,15 +232,17 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
-static void single_rename_add(const char *name, SwigType *decl, const char *newname) {
+static void single_rename_add(const char *name, SwigType *decl, const char *cnewname) {
   String *nname;
+  String *newname = NewString(cnewname);
   if (!rename_hash) rename_hash = NewHash();
   if (Namespaceprefix) {
     nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
-  Swig_name_object_set(rename_hash,nname,decl,NewString(newname));
+  Swig_name_object_set(rename_hash,nname,decl,newname);
+  Delete(newname);
   Delete(nname);
 }
 
@@ -394,6 +401,7 @@ static void add_symbols(Node *n) {
 	  if (name && Namespaceprefix) {
 	    String *nname = NewStringf("%s::%s", Namespaceprefix, name);
 	    Setattr(n,"name",nname);
+	    Delete(nname);
 	  }
 	} else {
 	  Symtab *st = Swig_symbol_getscope(prefix);
@@ -401,6 +409,7 @@ static void add_symbols(Node *n) {
 	  String *base  = Swig_scopename_last(name);
 	  String *nname = NewStringf("%s::%s", ns, base);
 	  Setattr(n,"name",nname);
+	  Delete(nname);
 	  Delete(base);
 	  Delete(prefix);
 	}
@@ -418,6 +427,7 @@ static void add_symbols(Node *n) {
 	  if (Classprefix && (Strcmp(prefix,Classprefix) == 0)) {
 	    String *base = Swig_scopename_last(name);
 	    Setattr(n,"name",base);
+	    Delete(base);
 	  }
 	  Delete(prefix);
 	}
@@ -539,6 +549,7 @@ static void add_symbols(Node *n) {
           Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
                  Getfile(c),Getline(c),ec);
           Setattr(n,"error",e);
+	  Delete(e);
           Delete(en);
           Delete(ec);
         }
@@ -690,6 +701,7 @@ static void merge_extensions(Node *cls, Node *am) {
 	Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(csym),Getline(csym),ec, 
 	       Getfile(n),Getline(n),en);
 	Setattr(csym,"error",e);
+	Delete(e);
 	Delete(en);
 	Delete(ec);
 	Swig_symbol_remove(csym);              /* Remove class definition */
@@ -991,6 +1003,7 @@ static Node *dump_nested(const char *parent) {
   while (n) {
     char temp[256];
     Node *retx;
+    SwigType *nt;
     /* Token replace the name of the parent class */
     Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
     /* Fix up the name of the datatype (for building typedefs and other stuff) */
@@ -1003,7 +1016,9 @@ static Node *dump_nested(const char *parent) {
     /* Add the appropriate declaration to the C++ processor */
     retx = new_node("cdecl");
     Setattr(retx,"name",n->name);
-    Setattr(retx,"type",Copy(n->type));
+    nt = Copy(n->type);
+    Setattr(retx,"type",nt);
+    Delete(nt);
     Setattr(retx,"nested",parent);
     add_symbols(retx);
     if (ret) {
@@ -1065,9 +1080,10 @@ static Node *dump_nested(const char *parent) {
       }
     }
     {
-      Node *head;
-      head = new_node("insert");
-      Setattr(head,"code",NewStringf("\n%s\n",n->code));
+      Node *head = new_node("insert");
+      String *code = NewStringf("\n%s\n",n->code);
+      Setattr(head,"code", code);
+      Delete(code);
       set_nextSibling(head,ret);
       ret = head;
     }
@@ -1200,7 +1216,9 @@ static void default_arguments(Node *n) {
 	  if (pp) {
 	    set_nextSibling(pp,Copy(varargs));
 	  } else {
-	    Setattr(function,"parms", Copy(varargs));
+	    ParmList *cv =  Copy(varargs);
+	    Setattr(function,"parms", cv);
+	    Delete(cv);
 	  }
 	  break;
 	}
@@ -1235,19 +1253,28 @@ static void default_arguments(Node *n) {
         Node *new_function = new_node(Copy(nodeType(function)));
         SwigType *decl = Copy(Getattr(function,"decl"));
         int constqualifier = SwigType_isconst(decl);
+	String *ccode = Copy(Getattr(function,"code"));
+	String *cstorage = Copy(Getattr(function,"storage"));
+	SwigType *ctype = Copy(Getattr(function,"type"));
+	String *cthrow = Copy(Getattr(function,"throw"));
 
         Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
         SwigType_add_function(decl,newparms);
         if (constqualifier)
           SwigType_add_qualifier(decl,"const");
 
-        Setattr(new_function,"name",Getattr(function,"name"));
-        Setattr(new_function,"code",Copy(Getattr(function,"code")));
+        Setattr(new_function,"name", Getattr(function,"name"));
+        Setattr(new_function,"code", ccode);
         Setattr(new_function,"decl", decl);
-        Setattr(new_function,"parms",newparms);
-        Setattr(new_function,"storage",Copy(Getattr(function,"storage")));
-        Setattr(new_function,"type",Copy(Getattr(function,"type")));
-        Setattr(new_function,"throw",Copy(Getattr(function,"throw")));
+        Setattr(new_function,"parms", newparms);
+        Setattr(new_function,"storage", cstorage);
+        Setattr(new_function,"type", ctype);
+        Setattr(new_function,"throw", cthrow);
+	Delete(ccode);
+	Delete(cstorage);
+	Delete(ctype);
+	Delete(cthrow);
+	Delete(decl);
 
         {
           Node *throws = Getattr(function,"throws");

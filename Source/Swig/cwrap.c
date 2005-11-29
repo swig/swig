@@ -80,9 +80,11 @@ Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value
     if (value) {
       String *lcaststr = SwigType_lcaststr(t,value);
       String *lstr = SwigType_lstr(t,0);
-      Printf(decl,"%s = (%s) %s", SwigType_lstr(t,name), lstr, lcaststr);
+      String *lstrn = SwigType_lstr(t,name);
+      Printf(decl,"%s = (%s) %s", lstrn, lstr, lcaststr);
       Delete(lcaststr);
       Delete(lstr);
+      Delete(lstrn);
     } else {
       String *lstrname = SwigType_lstr(t,name);
       Printf(decl,"%s", lstrname);
@@ -194,7 +196,9 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  tycode = SwigType_type(tvalue);
 	  if (tycode != T_USER) {
 	    /* plain primitive type, we copy the the def value */
-	    defvalue = NewStringf("%s = %s", SwigType_lstr(tvalue,defname),qvalue);
+	    String *lstr = SwigType_lstr(tvalue,defname);
+	    defvalue = NewStringf("%s = %s", lstr,qvalue);
+	    Delete(lstr);
 	  } else {
 	    /* user type, we copy the reference value */
 	    String *str = SwigType_str(type,defname);
@@ -239,9 +243,13 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   switch(SwigType_type(t)) {
   case T_VOID:
     break;
-  case T_REFERENCE:
-    Printf(fcall,"{\n");
-    Printf(fcall,"%s = ", SwigType_str(t,"_result_ref"));
+  case T_REFERENCE: 
+    {
+      String *str = SwigType_str(t,"_result_ref");
+      Printf(fcall,"{\n");
+      Printf(fcall,"%s = ", str);
+      Delete(str);
+    }
     break;
   case T_USER:
     Printf(fcall,"%s = ", name);
@@ -249,7 +257,11 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
 
   default:
     /* Normal return value */
-    Printf(fcall,"%s = (%s)", name, SwigType_lstr(t,0));
+    {
+      String *lstr = SwigType_lstr(t,0);
+      Printf(fcall,"%s = (%s)", name, lstr);
+      Delete(lstr);
+    }
     break;
   }
 
@@ -311,7 +323,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   } else {
     Printf(func,"%s(", nname);
   }
-
+  Delete(nname);
 
   while (p) {
     SwigType *pt = Getattr(p,"type");
@@ -770,7 +782,11 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   
   /* Generate action code for the access */
   if (!(flags & CWRAP_EXTEND)) {
-    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cmethod_call(name,p,self)));
+    String *call = Swig_cmethod_call(name,p,self);
+    String *result = Swig_cresult(Getattr(n,"type"),"result", call);
+    Setattr(n,"wrap:action", result);
+    Delete(call);
+    Delete(result);
   } else {
     /* Methods with default arguments are wrapped with additional methods for each default argument,
      * however, only one extra %extend method is generated. */

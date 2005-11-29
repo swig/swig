@@ -43,8 +43,8 @@ Swig_fragment_register(Node* fragment) {
       Append(name,mangle);
       Delete(mangle);
       Delete(rtype);
+      if (debug) Printf(stdout,"register fragment %s %s\n",name,type);
     }
-    if (debug) Printf(stdout,"register fragment %s %s\n",name,type);
     if (!fragments) {
       fragments = NewHash();
     }
@@ -54,15 +54,14 @@ Swig_fragment_register(Node* fragment) {
       Hash *kwargs = Getattr(fragment,"kwargs");
       Setmeta(ccode,"section",section);
       if (kwargs) {
-	kwargs = Copy(kwargs);
 	Setmeta(ccode,"kwargs",kwargs);
-	Delete(kwargs);      
       }
       Setattr(fragments,name,ccode);
       if (debug) Printf(stdout,"registering fragment %s %s\n",name,section);
       Delete(section);
       Delete(ccode);
     }
+    Delete(name);
   }
 }
 
@@ -140,6 +139,7 @@ Swig_fragment_emit(Node *n) {
       pc = char_index(tok,',');
       if (pc) *pc = 0;
     }
+    Delete(name);
   }
   Delete(t);
 }
