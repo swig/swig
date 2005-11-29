@@ -560,11 +560,12 @@ Swig_typemap_clear_apply(Parm *parms) {
   if (tm) {
     /* Clear typemaps that match our signature */
     Iterator ki, ki2;
-
+    char *ctsig = Char(tsig);
     for (ki = First(tm); ki.key; ki = Next(ki)) {
-      if (Strncmp(ki.key,"tmap:",5) == 0) {
+      char *ckey = Char(ki.key);
+      if (strncmp(ckey,"tmap:",5) == 0) {
 	int na = count_args(ki.key);
-	if ((na == narg) && Strstr(ki.key,tsig)) {
+	if ((na == narg) && strstr(ckey,ctsig)) {
 	  Hash *h = ki.item;
 	  for (ki2 = First(h); ki2.key; ki2 = Next(ki2)) {
 	    Delattr(h,ki2.key);
@@ -1255,7 +1256,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
   */
   st = Getattr(node,"sym:symtab");
   qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
-  if (qsn && Len(qsn)) {
+  if (qsn && StringLen(qsn)) {
     /* look qualified names first, such as
        
          int *Foo::foo(int bar)   ->  Foo::foo
@@ -1540,6 +1541,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 
     /* increase argnum to consider numinputs */
     argnum += nmatch - 1;
+    Delete(s);
   }
 }
 
@@ -1566,7 +1568,7 @@ static List *split_embedded(String *s) {
   int  leading = 1;
   args = NewList();
   
-  c = Strstr(s,"(");
+  c = strstr(Char(s),"(");
   c++;
 
   start = c;
@@ -1605,7 +1607,7 @@ static void split_var(String *s, String **name, String **value) {
   char *eq;
   char *c;
 
-  eq = Strstr(s,"=");
+  eq = strstr(Char(s),"=");
   if (!eq) {
     *name = 0;
     *value = 0;
@@ -1630,10 +1632,10 @@ static void split_var(String *s, String **name, String **value) {
 
 static void replace_embedded_typemap(String *s) {
   char *start = 0;
-  while (start = strstr(Char(s),"$TYPEMAP(")) {
+  while ((start = strstr(Char(s),"$TYPEMAP("))) {
 
     /* Gather the argument */
-    char *start, *end=0,*c;
+    char *end=0,*c;
     int  level = 0;
     String *tmp;
     c = start;

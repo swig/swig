@@ -889,18 +889,22 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   result = NewStringEmpty();
 
   if (SwigType_isarray(s)) {
-    Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
+    String *lstr = SwigType_lstr(s,0);
+    Printf(result,"(%s)%s", lstr,name);
+    Delete(lstr);
   } else if (SwigType_isreference(s)) {
     String *str = SwigType_str(s,0);
     Printf(result,"(%s)", str);
     Delete(str);
     if (name) 
-      Append(result,name);
+      StringAppend(result,name);
   } else if (SwigType_isqualifier(s)) {
-    Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
+    String *lstr = SwigType_lstr(s,0);
+    Printf(result,"(%s)%s", lstr,name);
+    Delete(lstr);
   } else {
     if (name)
-      Append(result,name);
+      StringAppend(result,name);
   }
   return result;
 }
@@ -1007,17 +1011,17 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  List *tparms = SwigType_parmlist(e);
 	  int j;
 	  String *nt = SwigType_templateprefix(e);
-	  Append(nt,"<(");
+	  StringAppend(nt,"<(");
 	  for (j = 0; j < Len(tparms); j++) {
 	    SwigType_typename_replace(Getitem(tparms,j), pat, rep);
-	    Append(nt,Getitem(tparms,j));
+	    StringAppend(nt,Getitem(tparms,j));
 	    if (j < (Len(tparms)-1)) Putc(',',nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
 	  Printf(nt,")>%s", tsuffix);
 	  Delete(tsuffix);
 	  Clear(e);
-	  Append(e,nt);
+	  StringAppend(e,nt);
 	  Delete(nt);
 	  Delete(tparms);
 	}
@@ -1036,18 +1040,18 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       int j;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
-      Append(e,"f(");
+      StringAppend(e,"f(");
       for (j = 0; j < Len(fparms); j++) {
 	SwigType_typename_replace(Getitem(fparms,j), pat, rep);
-	Append(e,Getitem(fparms,j));
+	StringAppend(e,Getitem(fparms,j));
 	if (j < (Len(fparms)-1)) Putc(',',e);
       }
-      Append(e,").");
+      StringAppend(e,").");
       Delete(fparms);
     } else if (SwigType_isarray(e)) {
       Replace(e,pat,rep, DOH_REPLACE_ID);
     }
-    Append(nt,e);
+    StringAppend(nt,e);
   }
   Clear(t);
   Append(t,nt);
@@ -1067,10 +1071,9 @@ SwigType_check_decl(SwigType *ty, const SwigType *decl) {
   t = SwigType_typedef_resolve_all(ty);
   t1 = SwigType_strip_qualifiers(t);
   t2 = SwigType_prefix(t1);
-  r = Cmp(t2,decl);
+  r = Equal(t2,decl);
   Delete(t);
   Delete(t1);
   Delete(t2);
-  if (r == 0) return 1;
-  return 0;
+  return r == 1;
 }

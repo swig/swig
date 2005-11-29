@@ -719,6 +719,7 @@ SwigType_function_parms(SwigType *t) {
     if (!firstp) firstp = p;
     if (pp) {
       set_nextSibling(pp,p);
+      Delete(p);
     }
     pp = p;
   }

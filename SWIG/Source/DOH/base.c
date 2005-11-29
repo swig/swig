@@ -233,12 +233,19 @@ DohEqual(const DOH *obj1, const DOH *obj2) {
       if (DohCheck(b2)) {
 	b2info = b2->type;
       } else {
-	return strncmp((b1info->doh_data)(b1), (void*) obj2, (b1info->doh_len)(b1)) == 0;
+	int len = (b1info->doh_len)(b1);
+	char *cobj = (char *) obj2;
+	return len == strlen(cobj) ? (memcmp(RawData(b1), cobj, len) == 0) : 0;
       }
     } else if (DohCheck(b2)) {
       b2info = b2->type;
-      return strncmp((b2info->doh_data)(b2), (void*) obj1, (b2info->doh_len)(b2)) == 0;
+      int len = (b2info->doh_len)(b2);
+      char *cobj = (char *) obj1;
+      return len == strlen(cobj) ? (memcmp(RawData(b2), cobj, len) == 0) : 0;
+    } else {
+      return strcmp((char*) obj1, (char*) obj2) == 0;
     }
+    
     if (!b1info) {
       return obj1 == obj2;
     } else if ((b1info == b2info)) {

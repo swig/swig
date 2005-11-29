@@ -164,7 +164,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
 	  /* Turn on no RTTI mode */
-	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
+	  Delete(Preprocessor_define((DOH *) "SWIG_NORTTI", 0));
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
@@ -189,11 +189,11 @@ public:
     }
 
     if (cppcast) {
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+      Delete(Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0));
     }
     
     if (!global_name) global_name = NewString("cvar");
-    Preprocessor_define("SWIGPYTHON 1", 0);
+    Delete(Preprocessor_define("SWIGPYTHON 1", 0));
     SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
     allow_overloading();
@@ -489,6 +489,7 @@ public:
     Delete(f_directors_h);
 
     Close(f_runtime);
+    Delete(f_runtime);
 
     return SWIG_OK;
   }
@@ -1209,8 +1210,10 @@ public:
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
     varargs = emit_isvarargs(l);
-
-    strcpy(wname,Char(Swig_name_wrapper(iname)));
+    
+    String *nw = Swig_name_wrapper(iname);
+    strcpy(wname,Char(nw));
+    Delete(nw);
     if (overname) {
       strcat(wname,Char(overname));
     }
@@ -1526,6 +1529,7 @@ public:
 #else
       Printf(f->code,"%s\n", tm);
 #endif
+      Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		   "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
@@ -1559,6 +1563,7 @@ public:
 	Replaceall(tm,"$input","result");
 	Replaceall(tm,"$result","resultobj");
 	Printf(f->code,"%s\n",tm);
+	Delete(tm);
       }
     }
 
@@ -1717,6 +1722,7 @@ public:
       Replaceall(tm,"$target","pyobj");
       Replaceall(tm,"$result","pyobj");
       Printf(getf->code,"%s\n", tm);
+      Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
@@ -1763,6 +1769,7 @@ public:
       Replaceall(tm,"$target",name);
       Replaceall(tm,"$value", value);
       Printf(const_code,"%s,\n", tm);
+      Delete(tm);
       have_tm = 1;
     }
     if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
@@ -1770,6 +1777,7 @@ public:
       Replaceall(tm,"$target",name);
       Replaceall(tm,"$value",value);
       Printf(f_init, "%s\n", tm);
+      Delete(tm);
       have_tm = 1;
     }
     if (!have_tm) {
@@ -2237,6 +2245,7 @@ public:
     modern  = oldmodern;
 
     /* Restore shadow file back to original version */
+    Delete(f_shadow);
     f_shadow = f_shadow_file;
 
     return SWIG_OK;
@@ -2957,6 +2966,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
   if (!tm) {
     tm = Getattr(n, "feature:director:except");
+    if (tm) tm = Copy(tm);
   }
   Printf(w->code, "if (result == NULL) {\n");
   Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
@@ -2970,6 +2980,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "  }\n");
   }
   Printf(w->code, "}\n");
+  Delete(tm);
 
   /*
    * Python method may return a simple object, or a tuple.
@@ -3029,6 +3040,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       }
       Replaceall(tm, "$result", "c_result");
       Printv(w->code, tm, "\n", NIL);
+      Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 		   "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);

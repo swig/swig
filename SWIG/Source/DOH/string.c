@@ -150,6 +150,7 @@ DohString_equal(DOH *so1, DOH *so2)
   } else {
     register char *c1 = s1->str;
     register char *c2 = s2->str;
+#if 0
     register int mlen = len >> 2;
     register int i = mlen;
     for (; i; --i) {
@@ -162,6 +163,9 @@ DohString_equal(DOH *so1, DOH *so2)
       if (*(c1++) != *(c2++)) return 0;
     }
     return 1;
+#else
+    return memcmp(c1, c2, len) == 0;
+#endif
   }
 }
 
@@ -208,7 +212,7 @@ DohString_append(DOH *so, DOH *str) {
 
   if (DohCheck(str)) {
     String *ss = (String *) ObjData(str);
-    newstr = String_data(str);
+    newstr = String_data((DOH*)str);
     l = ss->len;
   } else {
     newstr = (char *) (str);
@@ -667,8 +671,6 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
   register char *base;
   int i;
 
-  str->hashkey = -1;
-
   /* Figure out if anything gets replaced */
   if (!strlen(token)) return 0;
 
@@ -677,6 +679,8 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
   s = (*match)(base,base,token,tokenlen);
 
   if (!s) return 0;    /* No matches.  Who cares */
+
+  str->hashkey = -1;
 
   if (flags & DOH_REPLACE_NOQUOTE) noquote = 1;
 

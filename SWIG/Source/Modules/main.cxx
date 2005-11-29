@@ -185,7 +185,7 @@ static void install_opts(int argc, char *argv[]) {
 	}
 	if (!noopt) {
 	  /*	  Printf(stdout,"%s\n", opt); */
-	  Preprocessor_define(opt, 0);
+	  Delete(Preprocessor_define(opt, 0));
 	}
       }
     }
@@ -359,7 +359,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
 	    Replace(d,(char*)"=",(char*)" ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-	    Preprocessor_define((DOH *) d,0);
+	    Delete(Preprocessor_define((DOH *) d,0));
 	    // Create a symbol
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-E") == 0) {
@@ -374,7 +374,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
-	      Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+	      Delete(Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0));
 	      Swig_cparse_cplusplus(1);
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-fcompact") == 0) {
@@ -651,13 +651,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
 
-  Preprocessor_define((DOH *) "SWIG 1", 0);
-  Preprocessor_define((DOH *) "__STDC__", 0);
+  Delete(Preprocessor_define((DOH *) "SWIG 1", 0));
+  Delete(Preprocessor_define((DOH *) "__STDC__", 0));
 #ifdef MACSWIG
-  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
+  Delete(Preprocessor_define((DOH *) "SWIGMAC 1", 0));
 #endif
 #ifdef SWIGWIN32
-  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
+  Delete(Preprocessor_define((DOH *) "SWIGWIN32 1", 0));
 #endif
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
@@ -678,7 +678,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Turn on contracts */
 
   Swig_contract_mode_set(1);
-  Preprocessor_define(vers,0);
+  Delete(Preprocessor_define(vers,0));
 
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);
@@ -715,7 +715,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
-    Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+    Delete(Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0));
 
   // Parse language dependent options
   lang->main(argc,argv);
@@ -892,6 +892,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     Node *top = Swig_cparse(cpps);
+    Delete(cpps);
 
 
     if (Verbose) {

@@ -236,7 +236,7 @@ Swig_symbol_dump_symtable() {
 
 void
 Swig_symbol_init() {
-  empty_string = NewStringEmpty();
+  empty_string = NewString("");
   k_allowstypedef = NewString("allows_typedef");
   k_cdecl = NewString("cdecl");
   k_coloncolon = NewString("::");

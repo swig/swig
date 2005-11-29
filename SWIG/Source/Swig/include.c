@@ -167,6 +167,7 @@ Swig_search_path_any(int syspath) {
     } else {
       Append(slist,filename);
     }
+    Delete(filename);
   }
   if (syspath) {
     for (i = 0; i < Len(llist); i++) {

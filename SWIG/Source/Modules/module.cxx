@@ -23,6 +23,11 @@ struct Module {
     strcpy(name, n);
     next = 0;
   }
+
+  ~Module()
+  {
+    delete[] name;
+  }
 };
 
 static Module *modules = 0;
