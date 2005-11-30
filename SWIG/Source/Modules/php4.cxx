@@ -1379,8 +1379,7 @@ public:
   virtual int classHandler(Node *n) {
     constructors=0;
     //SwigType *t = Getattr(n, "classtype");
-    if(class_name) free(class_name);
-    class_name = Swig_copy_string(GetChar(n, "name"));
+    class_name = Getattr(n, "sym:name");
     // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if(shadow) {
@@ -1753,7 +1752,6 @@ public:
     Wrapper *f = NewWrapper();
 
     Printv(f->def, "ZEND_NAMED_FUNCTION(",Swig_name_wrapper(iname), ") {\n", NIL );
-
     String *mget = Swig_name_wrapper(Swig_name_get( Swig_name_member(class_name,iname)));
     String *mset = Swig_name_wrapper(Swig_name_set( Swig_name_member(class_name,iname)));
 
