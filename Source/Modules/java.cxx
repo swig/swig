@@ -2894,7 +2894,7 @@ class JAVA : public Language {
 
     Delete(tmattrs);
     Delete(lookup_tmname);
-    Delete(method_attr);
+    // Delete(method_attr);
   }
 
   /* ---------------------------------------------------------------
