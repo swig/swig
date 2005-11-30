@@ -1,8 +1,5 @@
 %include <typemaps/exception.swg>
-
-%{
-#include <stdexcept>
-%}
+%include <std/std_except.i>
 
 /* 
    Mark all of std exception classes as "exception classes" via
