@@ -164,7 +164,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
 	  /* Turn on no RTTI mode */
-	  Delete(Preprocessor_define((DOH *) "SWIG_NORTTI", 0));
+	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
@@ -189,11 +189,11 @@ public:
     }
 
     if (cppcast) {
-      Delete(Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0));
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
     
     if (!global_name) global_name = NewString("cvar");
-    Delete(Preprocessor_define("SWIGPYTHON 1", 0));
+    Preprocessor_define("SWIGPYTHON 1", 0);
     SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
     allow_overloading();
@@ -2304,6 +2304,7 @@ public:
 	      if (!shadow_list) {
 		shadow_list = NewList();
 		Setattr(getCurrentClass(),"shadow_methods", shadow_list);
+		Delete(shadow_list);
 	      }
 	      Append(shadow_list, symname);
 	    } else {
@@ -2560,27 +2561,29 @@ public:
     Language::membervariableHandler(n);
     shadow = oldshadow;
 
+    String *mname = Swig_name_member(class_name,symname);
+    String *sname = Swig_name_set(mname);
+    String *gname = Swig_name_get(mname);
     if (shadow) {
       int assignable = is_assignable(n);
       if (!modern) {
         if (assignable) {
-          Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NIL);
+          Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL); 
         } 
-        Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NIL);
+        Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname,"\n", NIL);
       }
       if (!classic) {
 	if (!assignable) {
-	  Printv(f_shadow,tab4, modern ? "" : "if _newclass:",
-                 symname," = property(", module, ".", 
-		 Swig_name_get(Swig_name_member(class_name,symname)),")\n", NIL);
+	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
 	} else {
-	  Printv(f_shadow,tab4, modern ? "" : "if _newclass:",
-                 symname," = property(", 
-		 module, ".", Swig_name_get(Swig_name_member(class_name,symname)),", ",
-		 module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NIL);
+	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
 	}
       }
     }
+    Delete(mname);
+    Delete(sname);
+    Delete(gname);
+
     return SWIG_OK;
   }
 
@@ -2597,7 +2600,9 @@ public:
       t = Getattr(n,"type");
       symname = Getattr(n,"sym:name");
       if (SwigType_isconst(t) && !Getattr(n, "value")) {
-	Printf(f_shadow_stubs,"%s.%s = %s.%s.%s\n", class_name, symname, module, global_name, Swig_name_member(class_name,symname));      
+	String *mname = Swig_name_member(class_name,symname);
+	Printf(f_shadow_stubs,"%s.%s = %s.%s.%s\n", class_name, symname, module, global_name, mname);
+	Delete(mname);
       }
     }
     return SWIG_OK;

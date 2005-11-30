@@ -423,6 +423,7 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
     for (/* empty */; num_braces > 0; num_braces--)
       Printf(f, "}\n");
     Printf(f,"}\n"); /* braces closes "if" for this method */
+    Delattr(ni,"wrap:parms");
   }
   Delete(dispatch);
   return f;

@@ -18,14 +18,17 @@ char cvsroot_base_c[] = "$Header$";
  * DohDelete()
  * ----------------------------------------------------------------------------- */
 
-/* #define SWIG_DEBUG_DELETE */
+#ifndef SWIG_DEBUG_DELETE
+#define SWIG_DEBUG_DELETE 0
+#endif
+
 void
 DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
 
   if (!obj) return;
-#ifdef SWIG_DEBUG_DELETE
+#if SWIG_DEBUG_DELETE
   if (!DohCheck(b)) {
     fputs("DOH: Fatal error. Attempt to delete a non-doh object.\n",stderr);
     abort();

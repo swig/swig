@@ -131,7 +131,7 @@ class TypePass : private Dispatcher {
       
     if (first == cls) return;  /* The Marcelo check */
     if (!cls) cls = first;
-
+    List *alist = 0;
     List *ilist = Getattr(cls,bases);
     if (!ilist) {
       List *nlist = Getattr(cls,baselist);
@@ -184,7 +184,7 @@ class TypePass : private Dispatcher {
 		bcls = 0;
 	      } else {
 		if (Getattr(bcls,"typepass:visit")) {
-		  if (!ilist) ilist = NewList();
+		  if (!ilist) ilist = alist = NewList();
 		  Append(ilist,bcls);
 		} else {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,Getfile(cls),Getline(cls),"Base class '%s' undefined.\n", bname);
@@ -214,6 +214,8 @@ class TypePass : private Dispatcher {
 	Setattr(cls,bases,ilist);
       }
     }
+    if (alist) Delete(alist);
+
     if (!ilist) return;
     int len = Len(ilist);
     int i;
@@ -269,9 +271,8 @@ class TypePass : private Dispatcher {
     append_list(allbases,Getattr(cls,"privatebases"));
     if (Len(allbases)) {
       Setattr(cls,"allbases",allbases);
-    } else {
-      Delete(allbases);
     }
+    Delete(allbases);
   }
 
   /* ------------------------------------------------------------

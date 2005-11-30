@@ -956,7 +956,11 @@ Language::globalfunctionHandler(Node *n) {
       Delete(cbname);
     }
     Setattr(n,"parms",nonvoid_parms(parms));
-    Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(name,parms)));
+    String *call = Swig_cfunction_call(name,parms);
+    String *cres = Swig_cresult(type,"result", call);
+    Setattr(n,"wrap:action", cres);
+    Delete(cres);
+    Delete(call);
     functionWrapper(n);
   }
   Swig_restore(n);
@@ -1207,11 +1211,10 @@ Language::membervariableHandler(Node *n) {
   }
 
   if (!AttributeFunctionGet) {
-  
-    String *mrename_get, *mrename_set;
-    
-    mrename_get = Swig_name_get(Swig_name_member(ClassPrefix, symname));
-    mrename_set = Swig_name_set(Swig_name_member(ClassPrefix, symname));
+    String *mname = Swig_name_member(ClassPrefix, symname);
+    String *mrename_get = Swig_name_get(mname);
+    String *mrename_set = Swig_name_set(mname);
+    Delete(mname);
 
     /* Create a function to set the value of the variable */
     
@@ -1234,10 +1237,14 @@ Language::membervariableHandler(Node *n) {
 	    String *base = Getattr(sn,"name"); 
 	    target = NewStringf("%s::%s", base,name);
 	  } else {
-	    target = NewStringf("(*%s)->%s",Swig_cparm_name(0,0),name);
+	    String *pname = Swig_cparm_name(0,0);
+	    target = NewStringf("(*%s)->%s",pname,name);
+	    Delete(pname);
 	  }
 	} else {
-	  target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
+	  String *pname = Swig_cparm_name(0,0);
+	  target = NewStringf("%s->%s", pname,name);
+	  Delete(pname);
 	}	
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
@@ -1254,12 +1261,16 @@ Language::membervariableHandler(Node *n) {
 	    make_set_wrapper = 0;
 	  }
 	}  else {
-	  Replace(tm,"$source", Swig_cparm_name(0,1), DOH_REPLACE_ANY);
+	  String *pname0 = Swig_cparm_name(0,0);
+	  String *pname1 = Swig_cparm_name(0,1);
+	  Replace(tm,"$source", pname1, DOH_REPLACE_ANY);
 	  Replace(tm,"$target", target, DOH_REPLACE_ANY);
-	  Replace(tm,"$input",Swig_cparm_name(0,1),DOH_REPLACE_ANY);
-	  Replace(tm,"$self",Swig_cparm_name(0,0),DOH_REPLACE_ANY);
+	  Replace(tm,"$input",pname1,DOH_REPLACE_ANY);
+	  Replace(tm,"$self",pname0,DOH_REPLACE_ANY);
 	  Setattr(n,"wrap:action", tm);
 	  Delete(tm);
+	  Delete(pname0);
+	  Delete(pname1);
 	}
 	Delete(target);
       }
@@ -1307,7 +1318,7 @@ Language::membervariableHandler(Node *n) {
       cpp_member_func(Char(gname),Char(gname),type,0);
       Delete(ActionFunc);
     } else {
-      String *cname = Copy(Swig_name_get(name));
+      String *cname = Swig_name_get(name);
       cpp_member_func(Char(cname),Char(gname),type,0);
       Delete(cname);
     }
@@ -1320,7 +1331,7 @@ Language::membervariableHandler(Node *n) {
 	cpp_member_func(Char(gname),Char(gname),vty,p);
 	Delete(ActionFunc);
       } else {
-	String *cname = Copy(Swig_name_set(name));
+	String *cname = Swig_name_set(name);
 	cpp_member_func(Char(cname),Char(gname),vty,p);
 	Delete(cname);
       }
@@ -2459,8 +2470,9 @@ int Language::variableWrapper(Node *n) {
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n);
-
-    Setattr(n,"sym:name", Swig_name_set(symname));
+    String *sname = Swig_name_set(symname);
+    Setattr(n,"sym:name", sname);
+    Delete(sname);
 
     /*    String *tm = Swig_typemap_lookup((char *) "globalin",type,name,name,Swig_cparm_name(0,0),name,0);*/
 
@@ -2471,11 +2483,13 @@ int Language::variableWrapper(Node *n) {
 	make_set_wrapper = 0;
       }
     }  else {
-      Replace(tm,"$source", Swig_cparm_name(0,0), DOH_REPLACE_ANY);
+      String *pname0 = Swig_cparm_name(0,0);
+      Replace(tm,"$source", pname0, DOH_REPLACE_ANY);
       Replace(tm,"$target", name, DOH_REPLACE_ANY);
-      Replace(tm,"$input",Swig_cparm_name(0,0),DOH_REPLACE_ANY);
+      Replace(tm,"$input",pname0,DOH_REPLACE_ANY);
       Setattr(n,"wrap:action", tm);
       Delete(tm);
+      Delete(pname0);
     }
     if (make_set_wrapper) {
       functionWrapper(n);
@@ -2493,7 +2507,9 @@ int Language::variableWrapper(Node *n) {
     }
   }
   Swig_VargetToFunction(n);
-  Setattr(n,"sym:name", Swig_name_get(symname));
+  String *gname = Swig_name_get(symname);
+  Setattr(n,"sym:name", gname);
+  Delete(gname);
   functionWrapper(n);
   Swig_restore(n);
   return SWIG_OK;

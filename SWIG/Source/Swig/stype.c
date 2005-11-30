@@ -355,7 +355,7 @@ void SwigType_add_default(String *def, SwigType *nr)
 
 
 SwigType *SwigType_default(SwigType *t) {
-  String *r1, *def;
+  String *r1, *def, *cdef;
   String *r = 0;
   char *cr;
 
@@ -440,10 +440,10 @@ SwigType *SwigType_default(SwigType *t) {
 #ifdef SWIG_NEW_TYPE_DEFAULT
       SwigType_del_array(nr);
       SwigType_add_default(def, nr);
-      Delete(nr);
 #else
       Append(def,"SWIGTYPE");
 #endif
+      Delete(nr);
     }
   } else if (SwigType_ismemberpointer(r)) {
     if (strcmp(cr,"m(CLASS).SWIGTYPE") == 0) {
@@ -469,7 +469,9 @@ SwigType *SwigType_default(SwigType *t) {
   if (r != t) Delete(r);
 #ifdef SWIG_DEFAULT_CACHE
   /* The cache produces strange results, see enum_template.i case */
-  Setattr(default_cache,t,Copy(def)); 
+  cdef  = Copy(def);
+  Setattr(default_cache,t, cdef); 
+  Delete(cdef);
 #endif
   if (StringEqual(def,t)) {
     Delete(def);
@@ -1055,6 +1057,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   }
   Clear(t);
   Append(t,nt);
+  Delete(nt);
   Delete(elem);
 }
 

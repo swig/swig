@@ -125,7 +125,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     /* Change the node type back to normal */
     if (!expanded) {
       expanded = 1;
-      set_nodeType(n,Getattr(n,k_templatetype));
+      Setattr(n,k_nodetype,Getattr(n,k_templatetype));
       ret = cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
       expanded = 0;
       return ret;
@@ -133,9 +133,9 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
 	/* Called when template appears inside another template */
 	/* Member templates */
 
-      set_nodeType(n,Getattr(n,k_templatetype));
+      Setattr(n,k_nodetype,Getattr(n,k_templatetype));
       ret = cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
-      set_nodeType(n,k_template);
+      Setattr(n,k_nodetype,k_template);
       return ret;
     }
   } else if (StringEqual(nodeType,k_cdecl)) {
