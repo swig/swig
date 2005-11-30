@@ -537,10 +537,13 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
       if (!newh) {
 	newh = NewHash();
 	Setattr(namehash,nkey,newh);
+	Delete(newh);
       }
       for (oi = First(n); oi.key; oi = Next(oi)) {
 	if (!Getattr(newh,oi.key)) {
-	  Setattr(newh,oi.key,Copy(oi.item));
+	  String *ci = Copy(oi.item);
+	  Setattr(newh,oi.key,ci);
+	  Delete(ci);
 	}
       }
     }
@@ -700,8 +703,10 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   } else {
     fhash = Getattr(n,decl);
     if (!fhash) {
+      String *cdecl = Copy(decl);
       fhash = NewHash();
-      Setattr(n,Copy(decl),fhash);
+      Setattr(n,cdecl,fhash);
+      Delete(cdecl);
       Delete(fhash);
     }
   }

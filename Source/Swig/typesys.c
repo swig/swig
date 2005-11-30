@@ -794,7 +794,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     String *key = NewString(t);
     if (r) {
       SwigType *r1;
-      Setattr(typedef_resolve_cache,key,r);
+      Setattr(typedef_resolve_cache,key,r);      
       Setmeta(r,k_scope,resolved_scope);
       r1 = Copy(r);
       Delete(r);

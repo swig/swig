@@ -1101,7 +1101,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 
 	str = NewStringEmpty();
 
-	if (Strncmp(pn,"_global_",8) == 0) {
+	if (strncmp(Char(pn),"_global_",8) == 0) {
 	    isglobal = 1;
 	}
 
@@ -1159,7 +1159,10 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   if (!s) return 0;
 
   /* Blocked */
-  if (Cmp(s,"pass") == 0) return 0;
+  if (Cmp(s,"pass") == 0) {
+    Delete(mtype);
+    return 0;
+  }
 
   s = Copy(s);             /* Make a local copy of the typemap code */
 
@@ -1345,6 +1348,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
     }
     sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,k_name)));
     Setattr(node,tmop_name(temp), value);
+    Delete(value);
     kw = nextSibling(kw);
   }
 
@@ -1400,13 +1404,15 @@ Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
     String *type = Getattr(kw,k_type);
     if (type) {
       Hash *v = NewHash();
-      Setattr(v,k_value,value);
       Setattr(v,k_type,type);
+      Setattr(v,k_value,value);
+      Delete(value);
       value = v;
     }
     Clear(temp);
     Printf(temp,"%s:%s",op,Getattr(kw,k_name));
     Setattr(p,tmop_name(temp),value);
+    Delete(value);
     kw = nextSibling(kw);
   }
   Delete(temp);

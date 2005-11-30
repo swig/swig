@@ -277,11 +277,14 @@ Swig_symbol_init() {
   ccurrent = NewHash();
   set_nodeType(current_symtab,k_symboltable);
   Setattr(current_symtab,k_symtab,current);
+  Delete(current);
   Setattr(current_symtab,k_csymtab, ccurrent);
+  Delete(ccurrent);
 
   /* Set the global scope */
   symtabs = NewHash();
   Setattr(symtabs,empty_string,current_symtab);
+  Delete(current_symtab);
   global_scope = current_symtab;
 }
 
@@ -378,6 +381,7 @@ Swig_symbol_newscope()
 
   set_nodeType(h,k_symboltable);  
   Setattr(h,k_symtab,hsyms);
+  Delete(hsyms);
   set_parentNode(h,current_symtab);
   
   n = lastChild(current_symtab);
@@ -390,8 +394,9 @@ Swig_symbol_newscope()
   current = hsyms;
   ccurrent = NewHash();
   Setattr(h,k_csymtab,ccurrent);
+  Delete(ccurrent);
   current_symtab = h;
-  return current_symtab;
+  return h;
 }
 
 /* -----------------------------------------------------------------------------
@@ -473,6 +478,7 @@ void Swig_symbol_inherit(Symtab *s) {
   if (!inherit) {
     inherit = NewList();
     Setattr(current_symtab,k_inherit, inherit);
+    Delete(inherit);
   }
   assert(s != current_symtab);
   for (i = 0; i < Len(inherit); i++) {

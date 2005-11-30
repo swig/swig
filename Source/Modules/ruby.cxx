@@ -2041,10 +2041,11 @@ public:
 
     String *freefunc = NewString("");
     String *freebody = NewString("");
+    String *pname0 = Swig_cparm_name(0,0);
   
     Printv(freefunc, "free_", klass->mname, NIL);
     Printv(freebody, "SWIGINTERN void\n",
-	   freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
+	   freefunc, "(", klass->type, " *", pname0, ") {\n",
 	   tab4, NIL);
 
     if (Extend) {
@@ -2052,7 +2053,7 @@ public:
       if (wrap) {
         Printv(f_wrappers, wrap, NIL);
       }
-      /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NIL); */
+      /*    Printv(freebody, Swig_name_destroy(name), "(", pname0, ")", NIL); */
       Printv(freebody,Getattr(n,"wrap:action"), NIL);
     } else {
       String  *action = Getattr(n,"wrap:action");
@@ -2061,14 +2062,14 @@ public:
       } else {      
 	/* In the case swig emits no destroy function. */
 	if (CPlusPlus)
-	  Printf(freebody, "delete %s;\n", Swig_cparm_name(0,0));
+	  Printf(freebody, "delete %s;\n", pname0);
 	else
-	  Printf(freebody, "free((char*) %s);\n", Swig_cparm_name(0,0));
+	  Printf(freebody, "free((char*) %s);\n", pname0);
       }
     }
     
     if (GetFlag(n,"feature:trackobjects")) {
-      Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", Swig_cparm_name(0,0));
+      Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", pname0);
     }
     Printv(freebody, "}\n\n", NIL);
   
@@ -2078,6 +2079,7 @@ public:
     current = NO_CPP;
     Delete(freefunc);
     Delete(freebody);
+    Delete(pname0);
     return SWIG_OK;
   }
 

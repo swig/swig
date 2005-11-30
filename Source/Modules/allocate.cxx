@@ -332,6 +332,7 @@ class Allocate : public Dispatcher {
 	  if (!nabstract) {
 	    nabstract = NewList();
 	    Setattr(n,"abstract",nabstract);
+	    Delete(nabstract);
 	  }
 	  Append(nabstract,nn);
 	  if (!Getattr(n,"abstract:firstnode")) {
@@ -557,6 +558,7 @@ public:
 	      List *abstract = NewList();
 	      Append(abstract,na);
 	      Setattr(n,"abstract",abstract);
+	      Delete(abstract);
 	    }
 	  }
 	}

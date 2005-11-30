@@ -29,6 +29,7 @@ static int       imported_depth = 0;	 /* Depth of %imported files */
 static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
+static SwigScanner *id_scan = 0;
 
 /* Test a character to see if it starts an identifier */
 #define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
@@ -72,8 +73,7 @@ copy_location(const DOH *s1, DOH *s2) {
 }
 
 static String *cpp_include(String_or_char *fn, int sysfile) {
-  String *s;
-  s = sysfile ? Swig_include_sys(fn) : Swig_include(fn);
+  String *s = sysfile ? Swig_include_sys(fn) : Swig_include(fn);
   if (s && single_include) {
     String *file = Getfile(s);
     if (Getattr(included_files,file)) {
@@ -180,9 +180,58 @@ void Preprocessor_init(void) {
   cpp = NewHash();
   s =   NewHash();
   Setattr(cpp,k_symbols,s);
+  Delete(s);
   Preprocessor_expr_init();            /* Initialize the expression evaluator */
   included_files = NewHash();
+
+  id_scan = NewSwigScanner();;
+
 }
+
+void Preprocessor_delete(void) {
+  Delete(k_args);
+  Delete(k_define);
+  Delete(k_defined);
+  Delete(k_else);
+  Delete(k_elif);
+  Delete(k_endif);
+  Delete(k_expanded);
+  Delete(k_if);
+  Delete(k_ifdef);
+  Delete(k_ifndef);
+  Delete(k_name);
+  Delete(k_swigmacro);
+  Delete(k_symbols);
+  Delete(k_undef);
+  Delete(k_value);
+  Delete(k_error);
+  Delete(k_warning);
+  Delete(k_pragma);
+  Delete(k_level);
+  Delete(k_line);
+  Delete(k_include);
+  Delete(k_varargs);
+
+  Delete(k_dinclude);
+  Delete(k_dimport);
+  Delete(k_dextern);
+  Delete(k_ddefine);
+  Delete(k_dline);
+
+
+  Delete(k_LINE);
+  Delete(k_FILE);
+  Delete(cpp);
+  Delete(included_files);
+  Preprocessor_expr_delete();
+  DelSwigScanner(id_scan);
+
+  Delete(dependencies);
+
+  Delete(Swig_last_file());
+  Delete(Swig_add_directory(0));
+}
+
 /* -----------------------------------------------------------------------------
  * void Preprocessor_include_all() - Instruct preprocessor to include all files
  * ----------------------------------------------------------------------------- */
@@ -418,7 +467,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* Go create the macro */
   macro = NewHash();
-  Setattr(macro,k_name, macroname);
+  Setattr(macro,k_name,macroname);
 
   if (arglist) {
     Setattr(macro,k_args,arglist);
@@ -428,7 +477,6 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     }
   }
   Setattr(macro,k_value,macrovalue);
-  Delete(macrovalue);
   Setline(macro,line);
   Setfile(macro,file);
   if (swigmacro) {
@@ -441,9 +489,13 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
       goto macro_error;
     }
+  } else {
+    Setattr(symbols,macroname,macro);
+    Delete(macro);
   }
-  Setattr(symbols,macroname,macro);
+  
   Delete(macroname);
+  Delete(macrovalue);
   
   Delete(str);
   Delete(argstr);
@@ -454,6 +506,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   Delete(argstr);
   Delete(arglist);
   Delete(macroname);
+  Delete(macrovalue);
   return 0;
 }
 
@@ -1056,15 +1109,11 @@ Preprocessor_replace(DOH *s)
 static int
 check_id(DOH *s)
 {
-  static SwigScanner *scan = 0;
   int c;
   int hastok = 0;
+  SwigScanner *scan = id_scan;
 
   Seek(s,0,SEEK_SET);
-
-  if (!scan) {
-    scan = NewSwigScanner();
-  }
 
   SwigScanner_clear(scan);
   s = Copy(s);
@@ -1113,8 +1162,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
 static void
 push_imported() {
   if (imported_depth == 0) {
-    DOH *m = Preprocessor_define("SWIGIMPORTED 1", 0);
-    Delete(m);
+    Preprocessor_define("SWIGIMPORTED 1", 0);
   }
   ++imported_depth;
 }
@@ -1145,10 +1193,10 @@ String *
 Preprocessor_parse(String *s)
 {
   String  *ns;             /* New string containing the preprocessed text */
-  String  *chunk, *sval, *decl;
+  String  *chunk, *decl;
   Hash    *symbols;
   String  *id = 0, *value = 0, *comment = 0;
-  int    i, state, val, e, c;
+  int    i, state, e, c;
   int    start_line = 0;
   int    allow = 1;
   int    level = 0;
@@ -1371,7 +1419,6 @@ Preprocessor_parse(String *s)
 	    }
 	    Delete(v);
 	  }
-	  Delete(m);
 	}
       } else if (StringEqual(id,k_undef)) {
 	if (allow) Preprocessor_undef(value);
@@ -1420,8 +1467,9 @@ Preprocessor_parse(String *s)
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
+	  int val;
+	  String *sval = Preprocessor_replace(value);
 	  start_level = level;
-	  sval = Preprocessor_replace(value);
 	  Seek(sval,0,SEEK_SET);
 	  /*	  Printf(stdout,"Evaluating '%s'\n", sval); */
   	  val = Preprocessor_expr(sval,&e);
@@ -1447,7 +1495,8 @@ Preprocessor_parse(String *s)
   	    allow = 0;
   	    mask = 0;
   	  } else if (level == start_level) {
-  	    sval = Preprocessor_replace(value);
+	    int val;
+  	    String *sval = Preprocessor_replace(value);
   	    Seek(sval,0,SEEK_SET);
   	    val = Preprocessor_expr(sval,&e);
   	    if (e) {
@@ -1689,7 +1738,7 @@ Preprocessor_parse(String *s)
 		}
 		if (allow) {
 		  Seek(value,0,SEEK_SET);
-		  Delete(Preprocessor_define(value,1));
+		  Preprocessor_define(value,1);
 		}
 		StringPutc('\n',ns);
 		addline(ns,value,0);

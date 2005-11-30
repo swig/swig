@@ -226,6 +226,13 @@ Preprocessor_expr_init (void) {
   if (!scan) scan = NewSwigScanner();
 }
 
+void
+Preprocessor_expr_delete (void) {
+  SwigScanner_clear(scan);
+  DelSwigScanner(scan);
+}
+
+
 /* -----------------------------------------------------------------------------
  * Tokenizer 
  * ----------------------------------------------------------------------------- */

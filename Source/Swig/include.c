@@ -68,15 +68,19 @@ Swig_swiglib_get() {
  * Adds a directory to the SWIG search path.
  * ----------------------------------------------------------------------------- */
 
-void 
+List *
 Swig_add_directory(const String_or_char *dirname) {
   String *dir = 0;  
   if (!directories) directories = NewList();
   assert(directories);
-  dir = NewString((char *) dirname);
-  assert(dir);
-  Setattr(dir,"sysdir","1");
-  Append(directories, dir);
+  if (dirname) {
+    dir = NewString((char *) dirname);
+    assert(dir);
+    Setattr(dir,"sysdir","1");
+    Append(directories, dir);
+    Delete(dir);
+  }
+  return directories;
 }
 
 

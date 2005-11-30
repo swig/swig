@@ -97,7 +97,7 @@ typedef  DOH     SwigType;
 
 /* --- File interface --- */
 
-extern void     Swig_add_directory(const String_or_char *dirname);
+extern List    *Swig_add_directory(const String_or_char *dirname);
 extern void     Swig_push_directory(const String_or_char *dirname);
 extern void     Swig_pop_directory();
 extern String  *Swig_last_file();
