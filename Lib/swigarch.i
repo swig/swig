@@ -36,6 +36,9 @@
 #ifdef SWIGWORDSIZE32
 %{
 #define SWIGWORDSIZE32
+#ifndef LONG_MAX
+#include <limits.h>
+#endif
 #if LONG_MAX != INT_MAX
 # error "SWIG wrapped code invalid in 64 bit architecture, regenarete code using -DSWIGWORDSIZE64"
 #endif
@@ -45,6 +48,9 @@
 #ifdef SWIGWORDSIZE64
 %{
 #define SWIGWORDSIZE64
+#ifndef LONG_MAX
+#include <limits.h>
+#endif
 #if LONG_MAX == INT_MAX
 # error "SWIG wrapped code invalid in 32 bit architecture, regenarete code using -DSWIGWORDSIZE32"
 #endif
