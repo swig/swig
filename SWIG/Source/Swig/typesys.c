@@ -606,7 +606,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       /* Didn't find in this scope.   We need to do a little more searching */
       if (Swig_scopename_check(base)) {
 	/* A qualified name. */
-	nameprefix = Swig_scopename_prefix(base);
+	Swig_scopename_split(base, &nameprefix, &namebase);
 #ifdef SWIG_DEBUG
 	Printf(stdout,"nameprefix = '%s'\n", nameprefix); 
 #endif
@@ -617,12 +617,12 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  /* Couldn't locate a scope for the type.  */
 	  if (!s) {
 	    Delete(base);
+	    Delete(namebase);
 	    Delete(nameprefix);
 	    r = 0;
 	    goto return_result;
 	  }
 	  /* Try to locate the name starting in the scope */
-	  namebase = Swig_scopename_last(base);
 #ifdef SWIG_DEBUG
 	  Printf(stdout,"namebase = '%s'\n", namebase); 
 #endif
@@ -714,8 +714,6 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     }
     if (namebase) Delete(namebase);
     if (nameprefix) Delete(nameprefix);
-    namebase = 0;
-    nameprefix = 0;
   } else {
     if (SwigType_isfunction(base)) {
       List *parms;
@@ -888,18 +886,18 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	  }
 	} else {
 	  if (Swig_scopename_check(e)) {
-	    String *tqname;
 	    String *qlast;
-	    String *qname = Swig_scopename_prefix(e);
+	    String *qname;
+	    Swig_scopename_split(e, &qname, &qlast);
 	    if (qname) {
-	      qlast = Swig_scopename_last(e);
-	      tqname = SwigType_typedef_qualified(qname);
+	      String *tqname = SwigType_typedef_qualified(qname);
 	      Clear(e);
 	      Printf(e,"%s::%s", tqname, qlast);
 	      Delete(qname);
-	      Delete(qlast);
 	      Delete(tqname);
 	    }
+	    Delete(qlast);
+
 	    /* Automatic template instantiation might go here??? */
 	  } else {
 	    /* It's a bare name.  It's entirely possible, that the
