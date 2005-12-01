@@ -1640,6 +1640,28 @@ AC_SUBST(LUALIBRARY)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
+# Look for Allegro Common Lisp
+#----------------------------------------------------------------
+
+ALLEGROCLBIN=
+
+AC_ARG_WITH(allegrocl, AS_HELP_STRING([--without-allegrocl], [Disable Allegro CL])
+AS_HELP_STRING([--with-allegrocl=path], [Set location of Allegro CL executable (alisp)]),[ ALLEGROCLBIN="$withval"], [ALLEGROCLBIN=yes])
+
+# First, check for "--without-allegrocl" or "--with-allegrocl=no".
+if test x"${ALLEGROCLBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Allegro CL])
+else
+
+# can we find allegrocl?
+if test "x$ALLEGROCLBIN" = xyes; then
+   AC_PATH_PROG(ALLEGROCLBIN, alisp)
+fi
+fi
+
+AC_SUBST(ALLEGROCLBIN)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -1746,6 +1768,12 @@ if test -z "$LUABIN" || test -z "$LUAINCLUDE" || test -z "$LUALIB" || test -z "$
 fi
 AC_SUBST(SKIP_LUA)
 
+SKIP_ALLEGROCL=
+if test -z "$ALLEGROCLBIN" ; then
+    SKIP_ALLEGROCL="1"
+fi
+AC_SUBST(SKIP_ALLEGROCL)
+
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
@@ -1804,6 +1832,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/ruby/Makefile	        \
     Examples/test-suite/tcl/Makefile	        \
     Examples/test-suite/lua/Makefile	        \
+    Examples/test-suite/allegrocl/Makefile	\
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT

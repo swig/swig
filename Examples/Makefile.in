@@ -930,3 +930,17 @@ lua_clean:
 	rm -f *_wrap* *~ .~* core @EXTRA_CLEAN@ mylua@EXEEXT@
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
+##################################################################
+#####                   ALLEGRO CL                          ######
+##################################################################
+
+allegrocl: $(SRCS)
+	$(SWIG) -allegrocl $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(SRCS) 
+	$(LDSHARED) $(OBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+allegrocl_cpp: $(SRCS)
+	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
