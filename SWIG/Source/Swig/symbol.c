@@ -1429,13 +1429,13 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List   *elements;
   String *result;
   int     i,len;
-  Iterator pe;
 
   result = NewStringEmpty();
   elements = SwigType_split(t);
 
-  for (pe = First(elements); pe.item; pe = Next(pe)) {
-    String *e = pe.item;
+  len = Len(elements);
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
       Node *n = Swig_symbol_clookup_check(e,st,no_constructor);
       if (n) {
@@ -1504,14 +1504,13 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 static 
 SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
 {
-  Iterator pi;
   Parm *p;
   List *parms = SwigType_parmlist(qt);
+  Iterator pi = First(parms);
   String *tprefix = SwigType_templateprefix(qt);
   String *tsuffix = SwigType_templatesuffix(qt);
   String *qprefix = SwigType_typedef_qualified(tprefix);
-  Printv(qprefix,"<(",NIL);
-  pi = First(parms);
+  StringAppend(qprefix,"<(");
   while ((p = pi.item)) {
     String *np;
     String *tp = Swig_symbol_typedef_reduce(p, ntab);
@@ -1520,6 +1519,7 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
     if (n) {
       String *qual = Swig_symbol_qualified(n);
       np = Copy(HashGetAttr(n,k_name));
+      Delete(tp);
       tp = np;
       if (qual && StringLen(qual)) {
 	Insert(np,0,k_coloncolon);
@@ -1538,11 +1538,11 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
     Delete(tp);
   }
   StringAppend(qprefix,")>");
-  Insert(tsuffix, 0, qprefix);
+  StringAppend(qprefix,tsuffix);
   Delete(parms);  
   Delete(tprefix);  
-  Delete(qprefix);  
-  return tsuffix;
+  Delete(tsuffix);  
+  return qprefix;
 }
 
 
@@ -1750,13 +1750,14 @@ SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   String *result   = NewStringEmpty();
   List   *elements = SwigType_split(type);
-  Iterator pe;
+  int     len = Len(elements);
+  int     i;
 #ifdef SWIG_DEBUG
   Printf(stderr,"finding deftype %s\n", type);
 #endif
 
-  for (pe = First(elements); pe.item; pe = Next(pe)) {
-    String *e = pe.item;
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
     if (SwigType_isfunction(e)) {
       String *s = NewString("f(");
       List *parms = SwigType_parmlist(e);
