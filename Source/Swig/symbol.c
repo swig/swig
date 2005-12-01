@@ -961,8 +961,7 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     Node *n;
     String *bname;
     String *prefix;
-    bname = Swig_scopename_last(name);
-    prefix = Swig_scopename_prefix(name);
+    Swig_scopename_split(name, &prefix, &bname);
     n = symbol_lookup_qualified(bname,symtab,prefix,local,checkfunc);
     Delete(bname);
     Delete(prefix);
@@ -971,24 +970,31 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     Symtab *st;
     Node *n = 0;
     /* Make qualified name of current scope */
+    String *qalloc = 0;
     String *qname = Swig_symbol_qualifiedscopename(symtab);
-    if (qname && StringLen(qname)) {
-      if (prefix && StringLen(prefix)) {
-	StringAppend(qname,k_coloncolon);
-	StringAppend(qname,prefix);
+    if (qname){
+      if (StringLen(qname)) {
+	if (prefix && StringLen(prefix)) {
+	  Printv(qname,k_coloncolon,prefix,NIL);
+	}
+      } else {
+	StringAppend(qname, prefix);
       }
+      qalloc = qname;
     } else {
-      Delete(qname);
-      qname = Copy(prefix);
+      qname = prefix;
     }
     st = HashGetAttr(symtabs,qname);
     /* Found a scope match */
     if (st) {
-      if (!name) return st;
+      if (!name) {
+	if (qalloc) Delete(qalloc);
+	return st;
+      }
       n = symbol_lookup(name, st,checkfunc);
     }
+    if (qalloc) Delete(qalloc);
 
-    Delete(qname);
     if (!n) {
       if (!local) {
 	Node *pn = HashGetAttr(symtab,k_parentnode);
@@ -1423,13 +1429,13 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List   *elements;
   String *result;
   int     i,len;
+  Iterator pe;
 
   result = NewStringEmpty();
   elements = SwigType_split(t);
 
-  len = Len(elements);
-  for (i = 0; i < len; i++) {
-    String *e = Getitem(elements,i);
+  for (pe = First(elements); pe.item; pe = Next(pe)) {
+    String *e = pe.item;
     if (SwigType_issimple(e)) {
       Node *n = Swig_symbol_clookup_check(e,st,no_constructor);
       if (n) {
@@ -1744,14 +1750,13 @@ SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   String *result   = NewStringEmpty();
   List   *elements = SwigType_split(type);
-  int     len = Len(elements);
-  int     i;
+  Iterator pe;
 #ifdef SWIG_DEBUG
   Printf(stderr,"finding deftype %s\n", type);
 #endif
 
-  for (i = 0; i < len; i++) {
-    String *e = Getitem(elements,i);
+  for (pe = First(elements); pe.item; pe = Next(pe)) {
+    String *e = pe.item;
     if (SwigType_isfunction(e)) {
       String *s = NewString("f(");
       List *parms = SwigType_parmlist(e);

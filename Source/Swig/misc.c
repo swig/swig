@@ -362,6 +362,58 @@ String *Swig_string_mangle(const String *s) {
  * In this case, "A::B".   Returns NULL if there is no base.
  * ----------------------------------------------------------------------------- */
 
+void
+Swig_scopename_split(String *s, String **rprefix, String **rlast) {
+  char *tmp = Char(s);
+  char *c = tmp;
+  char *cc = c;
+  char *co = 0;
+  if (!strstr(c,"::")) {
+    *rprefix = 0;
+    *rlast = Copy(s);
+  }
+  
+  if ((co = strstr(cc,"operator "))) {
+    if (co == cc) {
+      *rprefix = 0;
+      *rlast = Copy(s);
+      return;
+    } else {
+      *rprefix = NewStringWithSize(cc, co - cc - 2);
+      *rlast = NewString(co);
+      return;
+    }
+  }
+  while (*c) {
+    if ((*c == ':') && (*(c+1) == ':')) {
+      cc = c;
+      c += 2;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
+    }
+  }
+
+  if (cc != tmp) {
+    *rprefix = NewStringWithSize(tmp, cc - tmp);
+    *rlast = NewString(cc + 2);
+    return;
+  } else {
+    *rprefix = 0;
+    *rlast = Copy(s);
+  }
+}
+
+
 String *
 Swig_scopename_prefix(String *s) {
   char *tmp = Char(s);
