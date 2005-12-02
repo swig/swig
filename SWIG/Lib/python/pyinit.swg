@@ -119,14 +119,10 @@ swig_varlink_type(void) {
       0,                                  /* tp_as_buffer */
       0,                                  /* tp_flags */
       varlink__doc__,                     /* tp_doc */
-#if PY_VERSION_HEX >= 0x02000000
       0,                                  /* tp_traverse */
       0,                                  /* tp_clear */
-#endif
-#if PY_VERSION_HEX >= 0x02010000
       0,                                  /* tp_richcompare */
       0,                                  /* tp_weaklistoffset */
-#endif
 #if PY_VERSION_HEX >= 0x02020000
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
 #endif
