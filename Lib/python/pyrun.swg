@@ -192,7 +192,7 @@ PySwigObject_repr(PySwigObject *v)
 }
 
 SWIGRUNTIME int
-PySwigObject_print(PySwigObject *v, FILE *fp, int SWIGUNUSED flags)
+PySwigObject_print(PySwigObject *v, FILE *fp, int SWIGUNUSEDPARM(flags))
 {
   PyObject *repr = PySwigObject_repr(v);
   if (repr) {
@@ -395,20 +395,15 @@ PySwigObject_type(void) {
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
 	swigobject_doc, 	            /* tp_doc */        
-#if PY_VERSION_HEX >= 0x02000000
 	0,                                  /* tp_traverse */
 	0,                                  /* tp_clear */
-#endif
-#if PY_VERSION_HEX >= 0x02010000
 	0,                                  /* tp_richcompare */
 	0,                                  /* tp_weaklistoffset */
-#endif
 #if PY_VERSION_HEX >= 0x02020000
 	0,                                  /* tp_iter */
 	0,                                  /* tp_iternext */
-#endif
 	swigobject_methods,		    /* tp_methods */ 
-	0,			            /* tp_members */    		
+	0,			            /* tp_members */
 	0,				    /* tp_getset */	    	
 	0,			            /* tp_base */	        
 	0,				    /* tp_dict */	    	
@@ -425,6 +420,7 @@ PySwigObject_type(void) {
 	0,				    /* tp_cache */   
  	0,				    /* tp_subclasses */
 	0,				    /* tp_weaklist */
+#endif
 #if PY_VERSION_HEX >= 0x02030000
 	0,                                  /* tp_del */
 #endif
@@ -466,10 +462,9 @@ typedef struct {
 } PySwigPacked;
 
 SWIGRUNTIME int
-PySwigPacked_print(PySwigPacked *v, FILE *fp, int flags)
+PySwigPacked_print(PySwigPacked *v, FILE *fp, int SWIGUNUSEDPARM(flags))
 {
   char result[SWIG_BUFFER_SIZE];
-  flags = flags;
   fputs("<Swig Packed ", fp); 
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))) {
     fputs("at ", fp); 
