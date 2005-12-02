@@ -639,7 +639,7 @@ PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
 
 SWIGRUNTIME
 PyObject *
-SWIG_This()
+SWIG_This(void)
 {
   static PyObject *SWIG_STATIC_POINTER(swig_this) = PyString_FromString("this");
   return swig_this;
