@@ -364,7 +364,7 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   register const unsigned char *eu = u + sz;
   for (; u != eu; ++u) {
     register char d = *(c++);
-    register unsigned char uu = 0;
+    register unsigned char uu;
     if ((d >= '0') && (d <= '9'))
       uu = ((d - '0') << 4);
     else if ((d >= 'a') && (d <= 'f'))

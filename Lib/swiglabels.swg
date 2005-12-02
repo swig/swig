@@ -36,6 +36,14 @@
 # endif
 #endif
 
+#ifndef SWIGUNUSEDPARM
+# ifdef __cplusplus
+#   define SWIGUNUSEDPARM(p)
+# else
+#   define SWIGUNUSEDPARM(p) p SWIGUNUSED 
+# endif
+#endif
+
 /* internal SWIG method */
 #ifndef SWIGINTERN
 # define SWIGINTERN static SWIGUNUSED

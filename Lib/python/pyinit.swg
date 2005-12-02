@@ -38,9 +38,8 @@ swig_varlink_repr(swig_varlinkobject *v) {
 }
 
 SWIGINTERN int
-swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags) {
+swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
   swig_globalvar  *var;
-  flags = flags;
   fprintf(fp,"Swig global variables { ");
   for (var = v->vars; var; var=var->next) {
     fprintf(fp,"%s", var->name);
