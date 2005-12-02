@@ -7,7 +7,7 @@
  *
  ************************************************************************/
 #ifdef PERL_OBJECT
-#define SWIG_PERL_OBJECT_DECL CPerlObj *pPerl SWIGUNUSED,
+#define SWIG_PERL_OBJECT_DECL CPerlObj *SWIGUNUSEDPARM(pPerl),
 #define SWIG_PERL_OBJECT_CALL pPerl,
 #else
 #define SWIG_PERL_OBJECT_DECL
