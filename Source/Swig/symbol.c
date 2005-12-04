@@ -389,6 +389,7 @@ Swig_symbol_newscope()
     set_firstChild(current_symtab,h);
   } else {
     set_nextSibling(n,h);
+    Delete(h);
   }
   set_lastChild(current_symtab,h);
   current = hsyms;
@@ -1380,6 +1381,7 @@ static int no_constructor(Node *n) {
   return !HashCheckAttr(n, k_nodetype, k_constructor);
 }
 
+#define SWIG_TEMPLATE_QUALIFY_CACHE
 static SwigType *
 Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   String *tprefix, *tsuffix;
@@ -1388,6 +1390,22 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   Node *tempn;
   Symtab *tscope;
   Iterator ti;
+#ifdef SWIG_TEMPLATE_QUALIFY_CACHE
+  static Hash *qualify_cache = 0;
+  String *scopetype = st ? NewStringf("%s::%s",Getattr(st,k_name),e)
+    : NewStringf("%s::%s",Swig_symbol_getscopename(),e);
+  if (!qualify_cache) {
+    qualify_cache = NewHash();
+  }
+  if (scopetype) {
+    String *cres = Getattr(qualify_cache, scopetype);
+    if (cres) {
+      Delete(scopetype);
+      return Copy(cres);
+    }  
+  }
+#endif
+
   tprefix = SwigType_templateprefix(e);
   tsuffix = SwigType_templatesuffix(e);
   qprefix = Swig_symbol_type_qualify(tprefix,st);
@@ -1421,16 +1439,21 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
 #ifdef SWIG_DEBUG
   Printf(stderr,"symbol_temp_qual %s %s\n", e, qprefix);
 #endif
+#ifdef SWIG_TEMPLATE_QUALIFY_CACHE
+  Setattr(qualify_cache,scopetype,qprefix);
+  Delete(scopetype);
+#endif
+
   return qprefix;
 }
+
 
 SwigType *
 Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List   *elements;
-  String *result;
+  String *result = NewStringEmpty();
   int     i,len;
 
-  result = NewStringEmpty();
   elements = SwigType_split(t);
 
   len = Len(elements);
@@ -1492,6 +1515,7 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 #ifdef SWIG_DEBUG
   Printf(stderr,"symbol_qualify %s %s %x %s\n", t, result, st, st ?HashGetAttr(st,k_name): 0);
 #endif
+
   return result;
 }
 
@@ -1746,12 +1770,32 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
  *
  * Apply default args to generic template type
  * ----------------------------------------------------------------------------- */
+
+
+#define SWIG_TEMPLATE_DEFTYPE_CACHE
 SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   String *result   = NewStringEmpty();
   List   *elements = SwigType_split(type);
   int     len = Len(elements);
   int     i;
+#ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
+  static Hash *deftype_cache = 0;
+  String *scopetype = tscope ? NewStringf("%s::%s",Getattr(tscope,k_name),type)
+    : NewStringf("%s::%s",Swig_symbol_getscopename(),type);
+  if (!deftype_cache) {
+    deftype_cache = NewHash();
+  }
+  if (scopetype) {
+    String *cres = Getattr(deftype_cache, scopetype);
+    if (cres) {
+      Append(result,cres);
+      Delete(scopetype);
+      return result;
+    }  
+  }
+#endif
+
 #ifdef SWIG_DEBUG
   Printf(stderr,"finding deftype %s\n", type);
 #endif
@@ -1843,6 +1887,11 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
     }
   }
   Delete(elements);
+#ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
+  Setattr(deftype_cache,scopetype,result);
+  Delete(scopetype);
+#endif
+
   return result;
 }
 
