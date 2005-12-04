@@ -39,7 +39,7 @@
 
 /* Python types */
 #define SWIG_Object                     PyObject *
-#define VOID_Object                     (Py_INCREF(Py_None) ? Py_None : 0)
+#define VOID_Object                     SWIG_Py_Void()
 
 /* Overload of the output/constant/exception/dirout handling */
 

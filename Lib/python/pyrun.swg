@@ -262,24 +262,24 @@ SWIGRUNTIME PyObject*
 PySwigObject_append(PyObject* v, PyObject* next)
 {
   PySwigObject *sobj = (PySwigObject *) v;
-  if (!PySwigObject_Check(next)) 
+  if (!PySwigObject_Check(next)) {
     return NULL;
-  
+  }
   sobj->next = next;
   Py_INCREF(next);
-
-  Py_INCREF(Py_None);
-  return Py_None;
+  return SWIG_Py_Void();
 }
 
 SWIGRUNTIME PyObject* 
 PySwigObject_next(PyObject* v)
 {
   PySwigObject *sobj = (PySwigObject *) v;
-  PyObject *obj = sobj->next ? sobj->next : Py_None;
-
-  Py_INCREF(obj);
-  return obj;
+  if (sobj->next) {    
+    Py_INCREF(sobj->next);
+    return sobj->next;
+  } else {
+    return  SWIG_Py_Void();
+  }
 }
 
 SWIGINTERN PyObject*
@@ -287,8 +287,7 @@ PySwigObject_disown(PyObject *v)
 {
   PySwigObject *sobj = (PySwigObject *)v;
   sobj->own = 0;
-  Py_INCREF(Py_None);
-  return Py_None;
+  return SWIG_Py_Void();
 }
 
 SWIGINTERN PyObject*
@@ -296,8 +295,7 @@ PySwigObject_acquire(PyObject *v)
 {
   PySwigObject *sobj = (PySwigObject *)v;
   sobj->own = SWIG_POINTER_OWN;
-  Py_INCREF(Py_None);
-  return Py_None;
+  return SWIG_Py_Void();
 }
 
 SWIGINTERN PyObject*
@@ -373,7 +371,7 @@ PySwigObject_type(void) {
     const PyTypeObject tmp
 #endif
       = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				    /* ob_size */
 	(char *)"PySwigObject",		    /* tp_name */
 	sizeof(PySwigObject),		    /* tp_basicsize */
@@ -433,6 +431,7 @@ PySwigObject_type(void) {
     type_init = 1;
   }
 #endif
+  pyswigobject_type.ob_type = &PyType_Type;
   return &pyswigobject_type;
 }
 
@@ -702,8 +701,8 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
 SWIGRUNTIME int
 SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   if (!obj) return SWIG_ERROR;
-  if (obj == Py_None) {
-    *ptr = 0;
+  if (obj == SWIG_Py_None()) {
+    if (ptr) *ptr = 0;
     return SWIG_OK;
   } else {
     PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
@@ -713,7 +712,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	swig_type_info *to = sobj->ty;
 	if (to == ty) {
 	  /* no type cast needed */
-	  *ptr = vptr;
+	  if (ptr) *ptr = vptr;
 	  break;
 	} else {
 	  swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
@@ -725,7 +724,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	  }
 	}
       } else {
-	*ptr = vptr;
+	if (ptr) *ptr = vptr;
 	break;
       }
     }
@@ -834,8 +833,7 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 SWIGRUNTIME PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   if (!ptr) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    return SWIG_Py_Void();
   } else if (!type) {
     if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "Swig: null type passed to NewPointerObj");
@@ -862,10 +860,8 @@ SWIGRUNTIME PyObject *
 SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   PyObject *robj = 0;
   if (!ptr) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    return SWIG_Py_Void();
   }
-
   robj = PySwigPacked_New((void *) ptr, sz, type);
   return robj;
 }

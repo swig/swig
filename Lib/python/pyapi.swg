@@ -4,6 +4,9 @@
 
 #ifdef __cplusplus
 extern "C" {
+#if 0
+} /* cc-mode */
+#endif
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -16,14 +19,38 @@ extern "C" {
 
 /* Constant information structure */
 typedef struct swig_const_info {
-    int type;
-    char *name;
-    long lvalue;
-    double dvalue;
-    void   *pvalue;
-    swig_type_info **ptype;
+  int type;
+  char *name;
+  long lvalue;
+  double dvalue;
+  void   *pvalue;
+  swig_type_info **ptype;
 } swig_const_info;
 
+
+
+/* -----------------------------------------------------------------------------
+ * Safe Py_None and Py_Void accessors
+ * ----------------------------------------------------------------------------- */
+
+SWIGRUNTIME PyObject * 
+SWIG_Py_None(void)
+{
+  static PyObject *none = 0;
+  if (!none) {
+    none = Py_BuildValue("");
+    Py_DECREF(none);
+  }
+  return none;
+}
+
+SWIGRUNTIMEINLINE PyObject * 
+SWIG_Py_Void(void)
+{
+  PyObject *none = SWIG_Py_None();
+  Py_INCREF(none);
+  return none;
+}
 
 
 /* -----------------------------------------------------------------------------
@@ -33,7 +60,7 @@ SWIGINTERN PyObject*
 SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
   if (!result) {
     result = obj;
-  } else if (result == Py_None) {  
+  } else if (result == SWIG_Py_None()) {
     Py_DECREF(result);
     result = obj;
   } else {
@@ -49,6 +76,9 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
 }
 
 #ifdef __cplusplus
+#if 0
+{ /* cc-mode */
+#endif
 }
 #endif
 

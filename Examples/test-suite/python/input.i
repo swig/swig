@@ -6,8 +6,7 @@
   if ($1) {
     $result = SWIG_From(int)(*$1);
   } else {
-    Py_INCREF(Py_None);
-    $result = Py_None;
+    $result = SWIG_Py_Void();
   }
 }
 
@@ -30,8 +29,7 @@
   if ($1) {
     $result = SWIG_From(std::string)(*$1);
   } else {
-    Py_INCREF(Py_None);
-    $result = Py_None;
+    $result = SWIG_Py_Void();
   }
 }
 

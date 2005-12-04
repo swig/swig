@@ -96,7 +96,7 @@ swig_varlink_type(void) {
     const PyTypeObject tmp
 #endif
       = {
-      PyObject_HEAD_INIT(&PyType_Type)
+      PyObject_HEAD_INIT(NULL)
       0,                                  /* Number of items in variable part (ob_size) */
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
@@ -137,6 +137,7 @@ swig_varlink_type(void) {
     type_init = 1;
   }
 #endif
+  varlink_type.ob_type = &PyType_Type;
   return &varlink_type;
 }
 
