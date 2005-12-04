@@ -1240,8 +1240,16 @@ int yylex(void) {
 		      || (strcmp(t,"new[]") == 0) 
 		      || (strcmp(t,"delete[]") == 0)
 		      || (strcmp(t,"and") == 0)
-		      || (strcmp(t,"or") == 0)
+		      || (strcmp(t,"and_eq") == 0)
+		      || (strcmp(t,"bitand") == 0)
+		      || (strcmp(t,"bitor") == 0)
+		      || (strcmp(t,"compl") == 0)
 		      || (strcmp(t,"not") == 0)
+		      || (strcmp(t,"not_eq") == 0)
+		      || (strcmp(t,"or") == 0)
+		      || (strcmp(t,"or_eq") == 0)
+		      || (strcmp(t,"xor") == 0)
+		      || (strcmp(t,"xor_eq") == 0)
 		      )) {
 		  /*		  retract(strlen(t));*/
 		  retract(count);
