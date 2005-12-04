@@ -93,7 +93,7 @@ swig_varlink_type(void) {
   ;
   static int type_init = 0;  
   if (!type_init) {
-    PyTypeObject tmp
+    const PyTypeObject tmp
 #endif
       = {
       PyObject_HEAD_INIT(&PyType_Type)
