@@ -115,11 +115,10 @@ DohObjMalloc(DohObjInfo *type, void *data) {
     FreeList = (DohBase *) obj->data;
   } else {
     while (Pools->current == Pools->len) {
-      PoolSize *= 2;
       CreatePool();
     }
     obj = Pools->ptr + Pools->current;
-    Pools->current++;
+    ++Pools->current;
   }
   obj->type = type;
   obj->data = data;

@@ -1220,29 +1220,15 @@ public:
 
     if (!allow_kwargs || Getattr(n,"sym:overloaded")) {
       if (!varargs) {
-        if (CPlusPlus) {
-	  Printv(f->def,
-	         "SWIGINTERN PyObject *", wname,
-	         "(PyObject *, PyObject *args) {",
-	         NIL);
-        } else {
-	  Printv(f->def,
-	         "SWIGINTERN PyObject *", wname,
-	         "(PyObject *self, PyObject *args) {",
-	         NIL);
-        }
+	Printv(f->def,
+	       "SWIGINTERN PyObject *", wname,
+	       "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {",
+	       NIL);
       } else {
-        if (CPlusPlus) {
-	  Printv(f->def,
-	         "SWIGINTERN PyObject *", wname, "__varargs__", 
-	         "(PyObject *, PyObject *args, PyObject *varargs) {",
-	         NIL);
-        } else {
-	  Printv(f->def,
-	         "SWIGINTERN PyObject *", wname, "__varargs__", 
-	         "(PyObject *self, PyObject *args, PyObject *varargs) {",
-	         NIL);
-        }
+	Printv(f->def,
+	       "SWIGINTERN PyObject *", wname, "__varargs__", 
+	       "(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *varargs) {",
+	       NIL);
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number,
@@ -1255,17 +1241,10 @@ public:
 		     "Can't wrap varargs with keyword arguments enabled\n");
 	varargs = 0;
       }
-      if (CPlusPlus) {
-        Printv(f->def,
-               "SWIGINTERN PyObject *", wname,
-               "(PyObject *, PyObject *args, PyObject *kwargs) {",
-               NIL);
-      } else {
-        Printv(f->def,
-               "SWIGINTERN PyObject *", wname,
-               "(PyObject *self, PyObject *args, PyObject *kwargs) {",
-               NIL);
-      }
+      Printv(f->def,
+	     "SWIGINTERN PyObject *", wname,
+	     "(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {",
+	     NIL);
     }
     if (!allow_kwargs) {
       Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
@@ -1549,6 +1528,7 @@ public:
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printf(f->code,"%s\n",tm);
+	Delete(tm);
       }
     }
 
@@ -1556,6 +1536,7 @@ public:
     if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n",tm);
+      Delete(tm);
     }
 
     if (director_method) {
@@ -2158,13 +2139,8 @@ public:
       {
 	SwigType  *ct = NewStringf("p.%s", real_classname);
 	SwigType_remember(ct);
-        if (CPlusPlus) {
-	  Printv(f_wrappers,
-	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n", NIL);
-        } else {
-	  Printv(f_wrappers,
-	         "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *self SWIGUNUSED, PyObject *args) {\n", NIL);
-        }
+	Printv(f_wrappers,
+	       "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers,
 	       tab4, "PyObject *obj;\n",
 	       tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n",
@@ -2297,6 +2273,7 @@ public:
 	  Replaceall(pycode,"$action", pyaction);
 	  Delete(pyaction);
 	  Printv(f_shadow,pycode,"\n",NIL);
+	  Delete(pycode);
 	} else {
 	  if (!have_addtofunc(n)) {
 	    if (!allow_kwargs) {
@@ -2428,6 +2405,7 @@ public:
 	    Replaceall(pycode,"$action", pyaction);
 	    Delete(pyaction);
 	    Printv(f_shadow,pycode,"\n",NIL);
+	    Delete(pycode);
 	  } else {
 	    String *pass_self = NewString("");
 	    Node *parent = Swig_methodclass(n);
@@ -2482,6 +2460,7 @@ public:
 	    Replaceall(pycode,"$action", pyaction);
 	    Delete(pyaction);
 	    Printv(f_shadow_stubs,pycode,"\n",NIL);
+	    Delete(pycode);
 	  } else {
 
             Printv(f_shadow_stubs, "\ndef ", symname, "(*args",
@@ -2524,6 +2503,7 @@ public:
 	Replaceall(pycode, "$action", pyaction);
 	Delete(pyaction);
 	Printv(f_shadow,pycode,"\n", NIL);
+	Delete(pycode);
       } else {
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {

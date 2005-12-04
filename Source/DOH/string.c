@@ -295,9 +295,10 @@ String_insert(DOH *so, int pos, DOH *str)
   
   /* See if there is room to insert the new data */
   while (s->maxsize <= s->len+len) {
-    s->str = (char *) DohRealloc(s->str,2*s->maxsize);
+    int newsize = 2*s->maxsize;
+    s->str = (char *) DohRealloc(s->str,newsize);
     assert(s->str);
-    s->maxsize *= 2;
+    s->maxsize = newsize;
   }
   memmove(s->str+pos+len, s->str+pos, (s->len - pos));
   memcpy(s->str+pos,data,len);
@@ -502,31 +503,27 @@ String_tell(DOH *so)
 int
 DohString_putc(DOH *so, int ch)
 {
-  register int len, maxsize, sp;
   String *s = (String *) ObjData(so);
+  register int len = s->len;
+  register int sp = s->sp;
   s->hashkey = -1;
-  len = s->len;
-  sp = s->sp;
   if (sp >= len) {
-    register char *tc;
-    maxsize = s->maxsize;
+    register size_t maxsize = s->maxsize;
+    register char *tc = s->str;
     if (len > (maxsize-2)) {
-      s->str = (char *) DohRealloc(s->str,2*maxsize);
-      assert(s->str);
-      s->maxsize = 2*maxsize;
+      maxsize *= 2;
+      tc = (char *) DohRealloc(tc, maxsize);
+      assert(tc);
+      s->maxsize = (int)maxsize;
+      s->str = tc;
     }
-    tc = s->str + len;
-    *(tc++) = ch;
-    if (sp >= len) {
-      s->sp = len+1;
-      *tc = 0;
-      if (ch == '\n') s->line++;
-    }
-    s->len = len+1;
+    tc += sp;
+    *tc = (char) ch; *(++tc) = 0;
+    s->len = s->sp = sp + 1;
   } else {
     s->str[s->sp++] = (char) ch;
-    if (ch == '\n') s->line++;
   }
+  if (ch == '\n') s->line++;
   return ch;
 }
 
@@ -543,7 +540,7 @@ DohString_getc(DOH *so)
     c = EOF;
   else
     c = (int) s->str[s->sp++];
-  if (c == '\n') s->line++;
+  if (c == '\n') s->line--; 
   return c;
 }
 
@@ -558,7 +555,7 @@ DohString_ungetc(DOH *so, int ch)
   if (ch == EOF) return ch;
   if (s->sp <= 0) return EOF;
   s->sp--;
-  if (ch == '\n') s->line--;
+  if (ch == '\n') s->line++;
   return ch;
 }
 

@@ -1317,6 +1317,7 @@ public:
 #else
 	  Printf(f->code,"%s\n", tm);
 #endif
+	  Delete(tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		       "Unable to use return type %s.\n", SwigType_str(t,0));
@@ -1352,6 +1353,7 @@ public:
       if (tm) {
 	Replaceall(tm,"$source","result");
 	Printv(f->code,tm, "\n",NIL);
+	Delete(tm);
       }
     }
 
@@ -1360,6 +1362,7 @@ public:
     if (tm) {
       Replaceall(tm,"$source","result");
       Printv(f->code,tm, NIL);
+      Delete(tm);
     }
 
     if (director_method) {

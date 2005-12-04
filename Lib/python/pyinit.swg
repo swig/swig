@@ -32,8 +32,7 @@ typedef struct swig_varlinkobject {
 } swig_varlinkobject;
 
 SWIGINTERN PyObject *
-swig_varlink_repr(swig_varlinkobject *v) {
-  v = v;
+swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
   return PyString_FromString("<Swig global variables>");
 }
 
@@ -50,7 +49,7 @@ swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
 }
 
 SWIGINTERN void
-swig_varlink_delete(swig_varlinkobject *v) {
+swig_varlink_dealloc(swig_varlinkobject *v) {
   swig_globalvar *var = v->vars;
   while (var) {
     swig_globalvar *n = var->next;
@@ -102,7 +101,7 @@ swig_varlink_type(void) {
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
       0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_delete,   /* Deallocator (tp_dealloc) */ 
+      (destructor) swig_varlink_dealloc,   /* Deallocator (tp_dealloc) */ 
       (printfunc) swig_varlink_print,     /* Print (tp_print) */
       (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
       (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */

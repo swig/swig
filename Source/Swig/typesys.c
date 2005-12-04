@@ -292,6 +292,7 @@ SwigType_inherit_scope(Typetab *scope) {
   if (!inherits) {
     inherits = NewList();
     Setattr(current_scope,k_inherit, inherits);
+    Delete(inherits);
   }
   assert(scope != current_scope);
   
@@ -338,6 +339,7 @@ SwigType_using_scope(Typetab *scope) {
     if (!ulist) {
       ulist = NewList();
       Setattr(current_scope,k_using, ulist);
+      Delete(ulist);
     }
     assert(scope != current_scope);
     len = Len(ulist);
@@ -1645,6 +1647,7 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   if (!h) {
     h = NewHash();
     Setattr(subclass,base,h);
+    Delete(h);
   }
   if (!Getattr(h,derived)) {
     Setattr(h,derived, cast ? cast : (void *) "");
@@ -1789,6 +1792,7 @@ void SwigType_inherit_equiv(File *out) {
       bk = Next(bk);
     }
     rk = Next(rk);
+    Delete(rlist);
   }
 }
 
