@@ -27,7 +27,7 @@ extern "C" void* working(void* t);
 
     void run() {
       pthread_create(t,NULL,working,this);
-      sleep(5);
+      sleep(2);
     }
     
     virtual void do_foo() {
