@@ -51,8 +51,7 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
       return PyUnicode_FromWideChar(carray, %numeric_cast(size,int));
     }
   } else {
-    Py_INCREF(Py_None);
-    return Py_None;
+    return SWIG_Py_Void();
   }
 }
 }

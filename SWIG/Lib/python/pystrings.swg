@@ -66,8 +66,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
     }
   } else {
-    Py_INCREF(Py_None);
-    return Py_None;
+    return SWIG_Py_Void();
   }
 }
 }

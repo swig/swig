@@ -262,8 +262,7 @@ namespace swig
 {
   %ignore stop_iteration;
   %typemap(throws) stop_iteration {
-    Py_INCREF(Py_None);
-    PyErr_SetObject(PyExc_StopIteration, Py_None);
+    PyErr_SetObject(PyExc_StopIteration, SWIG_Py_Void());
   }
 }
 

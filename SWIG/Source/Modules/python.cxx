@@ -237,7 +237,7 @@ public:
     }
 
     /* Set comparison with none for ConstructorToFunction */
-    setSubclassInstanceCheck(NewString("$arg != Py_None"));
+    setSubclassInstanceCheck(NewString("$arg != SWIG_Py_None()"));
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
@@ -1438,7 +1438,7 @@ public:
     /*
     if (constructor && (Getattr(n, "wrap:self") != 0)) {
       Wrapper_add_local(f, "subclassed", "int subclassed = 0");
-      Printf(f->code, "subclassed = (arg1 != Py_None);\n");
+      Printf(f->code, "subclassed = (arg1 != SWIG_Py_None());\n");
     }
     */
      
@@ -2145,8 +2145,7 @@ public:
 	       tab4, "PyObject *obj;\n",
 	       tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n",
 	       tab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
-	       tab4, "Py_INCREF(Py_None);\n",
-	       tab4, "return Py_None;\n",
+	       tab4, "return SWIG_Py_Void();\n",
 	       "}\n",NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
