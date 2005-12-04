@@ -364,7 +364,6 @@ SwigType *SwigType_default(SwigType *t) {
   
   r = Getattr(default_cache,t);
   if (r) {
-    if (Strcmp(r,t) == 0) return 0;
     return Copy(r);
   }
 #endif
@@ -467,16 +466,19 @@ SwigType *SwigType_default(SwigType *t) {
     def = NewString("SWIGTYPE");
   }
   if (r != t) Delete(r);
-#ifdef SWIG_DEFAULT_CACHE
-  /* The cache produces strange results, see enum_template.i case */
-  cdef  = Copy(def);
-  Setattr(default_cache,t, cdef); 
-  Delete(cdef);
-#endif
   if (StringEqual(def,t)) {
     Delete(def);
     def = 0;
   }
+
+#ifdef SWIG_DEFAULT_CACHE
+  /* The cache produces strange results, see enum_template.i case */
+  if (def) {
+    cdef  = Copy(def);
+    Setattr(default_cache,t, cdef); 
+    Delete(cdef);
+  }
+#endif
 
   /* Printf(stderr,"type : def %s : %s\n", t, def);  */
 

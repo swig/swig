@@ -61,6 +61,7 @@ void Swig_cparse_replace_descriptor(String *s) {
       Replace(s,tmp,descriptor,DOH_REPLACE_ANY);
       Delete(mangle);
       Delete(descriptor);
+      Delete(t);
     } else {
       Swig_error(Getfile(s),Getline(s),"Bad $descriptor() macro.\n");
       break;

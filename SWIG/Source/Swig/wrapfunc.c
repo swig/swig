@@ -83,7 +83,6 @@ Wrapper_pretty_print(String *str, File *f) {
 
   ts = NewStringEmpty();
   Seek(str,0, SEEK_SET);
-  Clear(ts);
   while ((c = Getc(str)) != EOF) {
     if (c == '\"') {
       Putc(c,ts);
@@ -222,8 +221,6 @@ Wrapper_compact_print(String *str, File *f) {
   ts = NewStringEmpty();
   tf = NewStringEmpty();
   Seek(str,0, SEEK_SET);
-  Clear(ts);
-  Clear(tf);
 
   while ((c = Getc(str)) != EOF) {
     if (c == '\"') { /* string 1 */
@@ -263,7 +260,7 @@ Wrapper_compact_print(String *str, File *f) {
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
       }
-      Printf(tf,"%s",ts);
+      Append(tf,ts);
       Clear(ts);
       level+=indent;
       while ((c = Getc(str)) != EOF) {
@@ -286,7 +283,7 @@ Wrapper_compact_print(String *str, File *f) {
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
       }
-      Printf(tf, "%s", ts);
+      Append(tf, ts);
       Putc(c, tf);
       Clear(ts);
       level-=indent;
@@ -312,7 +309,7 @@ Wrapper_compact_print(String *str, File *f) {
 	  for (i = 0; i < level; i++) 
 	    Putc(' ',tf);
 	}
-	Printf(tf,"%s",ts);
+	Append(tf,ts);
 	Clear(ts);
       }
       Ungetc(c,str);
@@ -356,9 +353,9 @@ Wrapper_compact_print(String *str, File *f) {
 	  break;
       }
       if (!empty) {
-	Printf(tf,"\n");
+	Append(tf,"\n");
       }
-      Printf(tf,"%s",ts);
+      Append(tf,ts);
       Printf(f, "%s", tf);
       Clear(tf);
       Clear(ts);
@@ -373,7 +370,7 @@ Wrapper_compact_print(String *str, File *f) {
     }
   }
   if (!empty) {
-    Printf(tf,"%s",ts);
+    Append(tf,ts);
   }
   if (Len(tf) != 0)
     Printf(f,"%s",tf);
@@ -400,6 +397,8 @@ Wrapper_print(Wrapper *w, File *f) {
     Wrapper_compact_print(str,f);
   else
     Wrapper_pretty_print(str,f);
+
+  Delete(str);
 }
 
 /* -----------------------------------------------------------------------------

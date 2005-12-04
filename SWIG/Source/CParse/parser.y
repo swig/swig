@@ -786,6 +786,7 @@ static void merge_extensions(Node *cls, Node *am) {
      qargs  = Swig_symbol_type_qualify(args,0);
      Append(prefix,qargs);
      Delete(nname);
+     Delete(args);
      Delete(qargs);
      nname = prefix;
    }
@@ -960,12 +961,14 @@ static String *resolve_node_scope(String *cname) {
 	  if (nscope_inner) {
 	    if (Getattr(nscope_inner,"symtab") != Getattr(ns2,"symtab")) {
 	      appendChild(nscope_inner,ns2);
+	      Delete(ns2);
 	    }
 	  }
 	  nscope_inner = ns2;
 	  if (!nscope) nscope = ns2;
 	}
 	cname = base;
+	Delete(scopes);
       }
     }
     Delete(prefix);
@@ -1039,6 +1042,7 @@ static Node *dump_nested(const char *parent) {
     add_symbols(retx);
     if (ret) {
       set_nextSibling(retx,ret);
+      Delete(ret);
     }
     ret = retx;
 
@@ -1101,6 +1105,7 @@ static Node *dump_nested(const char *parent) {
       Setattr(head,"code", code);
       Delete(code);
       set_nextSibling(head,ret);
+      Delete(ret);      
       ret = head;
     }
       
@@ -1230,7 +1235,9 @@ static void default_arguments(Node *n) {
 	SwigType *t = Getattr(p,"type");
 	if (Strcmp(t,"v(...)") == 0) {
 	  if (pp) {
-	    set_nextSibling(pp,Copy(varargs));
+	    ParmList *cv = Copy(varargs);
+	    set_nextSibling(pp,cv);
+	    Delete(cv);
 	  } else {
 	    ParmList *cv =  Copy(varargs);
 	    Setattr(function,"parms", cv);
@@ -1333,7 +1340,7 @@ static void default_arguments(Node *n) {
 
         /* Point to the new function, extending the linked list */
         set_nextSibling(function, new_function);
-
+	Delete(new_function);
         function = new_function;
 	
 	Delete(ntype);
@@ -1505,7 +1512,8 @@ program        :  interface {
 	           top = $1;
                }
                | PARSETYPE parm SEMI {
-                 top = Getattr($2,"type");
+                 top = Copy(Getattr($2,"type"));
+		 Delete($2);
                }
                | PARSETYPE error {
                  top = 0;
@@ -1895,6 +1903,7 @@ include_directive: includetype options string LBRACKET {
 			   Node *mnode = new_node("module");
 			   Setattr(mnode,"name", mname);
 			   appendChild(nint,mnode);
+			   Delete(mnode);
 			   appendChild(nint,firstChild($$));
 			   $$ = nint;
 			   Setattr($$,"module",mname);
@@ -2325,6 +2334,7 @@ varargs_parms   : parms { $$ = $1; }
 		    for (i = 0; i < n; i++) {
 		      p = Copy($3);
 		      set_nextSibling(p,$$);
+		      Delete($$);
 		      $$ = p;
 		    }
 		  }
@@ -2695,6 +2705,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           /* non-global namespace */
                           if (templnode) {
                             appendChild(nscope_inner,templnode);
+			    Delete(templnode);
                             if (nscope) $$ = nscope;
                           }
                         } else {
@@ -2703,6 +2714,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             $$ = templnode;
                           } else {
                             set_nextSibling(linklistend,templnode);
+			    Delete(templnode);
                           }
                           linklistend = templnode;
                         }
@@ -2814,7 +2826,9 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p,Namespaceprefix) == 0) ||
 		      (inclass && Strcmp(p,Classprefix) == 0)) {
-		    Setattr($$,"name",Swig_scopename_last($3.id));
+		    String *lstr = Swig_scopename_last($3.id);
+		    Setattr($$,"name",lstr);
+		    Delete(lstr);
 		    set_nextSibling($$,$5);
 		  } else {
 		    Delete($$);
@@ -2993,6 +3007,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 
 		 add_symbols($$);       /* Add enum to tag space */
 		 set_nextSibling($$,n);
+		 Delete(n);
 
 		 add_symbols($5);       /* Add enum values to id space */
 	         add_symbols(n);
@@ -3236,6 +3251,7 @@ cpp_class_decl  :
 		   Setattr(pa,"kind","public");
 		   cplus_mode = CPLUS_PUBLIC;
 		   appendChild($$,pa);
+		   Delete(pa);
 		 }
 
 		 Setattr($$,"symtab",Swig_symbol_popscope());
@@ -3321,6 +3337,7 @@ cpp_class_decl  :
 		 }
 	       }
 	       set_nextSibling($$,n);
+	       Delete(n);
 	       {
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
 		 String *name = 0;
@@ -3584,6 +3601,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 				Delete(rtt);
 				Delete(ttr);
 			      }
+			      Delete(tparms);
 			      Append(ffname,")>");
 			    }
 			    {
@@ -3591,6 +3609,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      if (!partials) {
 				partials = NewList();
 				Setattr(tempn,"partials",partials);
+				Delete(partials);
 			      }
 			      /*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
 			      Append(partials,ffname);
@@ -5388,9 +5407,15 @@ base_list      : base_specifier {
 		   Hash *list = NewHash();
 		   Node *base = $1;
 		   Node *name = Getattr(base,"name");
-		   Setattr(list,"public",NewList());
-		   Setattr(list,"protected",NewList());
-		   Setattr(list,"private",NewList());
+		   List *lpublic = NewList();
+		   List *lprotected = NewList();
+		   List *lprivate = NewList();
+		   Setattr(list,"public",lpublic);
+		   Setattr(list,"protected",lprotected);
+		   Setattr(list,"private",lprivate);
+		   Delete(lpublic);
+		   Delete(lprotected);
+		   Delete(lprivate);
 		   Append(Getattr(list,Getattr(base,"access")),name);
 	           $$ = list;
                }
@@ -5742,6 +5767,7 @@ Parm *Swig_cparse_parm(String *s) {
    scanner_next_token(PARSEPARM);
    yyparse();
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   Delete(ns);
    return top;
 }
 

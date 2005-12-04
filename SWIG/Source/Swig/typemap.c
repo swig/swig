@@ -1111,10 +1111,12 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	if ((argnum >= 0) && (!isglobal)) {
 	  Printf(str,"%s%d",pn,argnum);
 	} else {
-	  Printf(str,"%s",pn);
+	  StringAppend(str,pn);
 	}
 	if (isglobal && Wrapper_check_local(f,str)) {
 	    p = nextSibling(p);
+	    Delete(str);
+	    if (at) Delete(at);
 	    continue;
 	}
 	if (value) {
@@ -1134,7 +1136,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
       }
     }
     p = nextSibling(p);
-    Delete(at);
+    if (at) Delete(at);
   }
 }
 
@@ -1156,7 +1158,11 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   if (!tm) return 0;
 
   s = Getattr(tm,k_code);
-  if (!s) return 0;
+  if (!s) {
+    if (mtype) Delete(mtype);
+    return 0;
+  }
+  
 
   /* Blocked */
   if (Cmp(s,"pass") == 0) {
@@ -1342,7 +1348,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       String *mangle = Swig_string_mangle(rtype);
-      Printf(value,"%s",mangle);
+      StringAppend(value,mangle);
       Delete(mangle);
       Delete(rtype);
     }
@@ -1678,6 +1684,8 @@ static void replace_embedded_typemap(String *s) {
 	  Insert(n,0,"$");
 	  Setattr(vars,n,v);
 	}
+	Delete(n);
+	Delete(v);
       }
 
       method = Getitem(l,0);
