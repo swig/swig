@@ -1526,7 +1526,7 @@ Preprocessor_parse(String *s)
       } else if (StringEqual(id,k_error)) {
 	if (allow) {
 	  if (error_as_warning) {
-	    Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"%s\n", value);
+	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"%s\n", value);
 	  } else {
 	    Swig_error(Getfile(s),Getline(id),"%s\n",value);
 	  }
