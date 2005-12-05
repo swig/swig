@@ -1521,12 +1521,12 @@ Preprocessor_parse(String *s)
   	}
       } else if (StringEqual(id,k_warning)) {
 	if (allow) {
-	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"%s\n", value);
+	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"CPP #warning: %s\n", value);
 	}
       } else if (StringEqual(id,k_error)) {
 	if (allow) {
 	  if (error_as_warning) {
-	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"%s\n", value);
+	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error: %s\n", value);
 	  } else {
 	    Swig_error(Getfile(s),Getline(id),"%s\n",value);
 	  }
@@ -1580,8 +1580,8 @@ Preprocessor_parse(String *s)
 	    if (strncmp(c,"nowarn=",7) == 0) {
 	      Swig_warnfilter(c+7,1);
 	    }
-	    else if (strncmp(c,"erroraswarn=",7) == 0) {
-	      error_as_warning = atoi(c+12);
+	    else if (strncmp(c,"cpperraswarn=",7) == 0) {
+	      error_as_warning = atoi(c+13);
 	    }
 	  }
 	}
