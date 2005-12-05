@@ -51,6 +51,7 @@
 #define WARN_PP_EVALUATION            202
 #define WARN_PP_INCLUDEALL_IMPORTALL  203
 #define WARN_PP_CPP_WARNING           204
+#define WARN_PP_CPP_ERROR             205
 
 /* -- C/C++ Parser -- */
 
