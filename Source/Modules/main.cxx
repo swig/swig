@@ -67,6 +67,7 @@ static const char *usage1 = (const char*)"\
      -ignoremissing  - Ignore missing include files\n\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
+     -erroraswarn <v>- Treat (or not) the CPP #error statement as #warning instead\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
      -M              - List all dependencies \n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
@@ -517,6 +518,18 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-ignoremissing") == 0) {
 	    Preprocessor_ignore_missing(1);
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-erroraswarn") == 0) {
+	    String *erroraswarn = 0;
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      erroraswarn = NewString(argv[i+1]);	    
+	      Swig_mark_arg(i+1);
+	    }
+	    if (!erroraswarn) {
+	      Swig_arg_error();
+	    } else {
+	      Preprocessor_error_as_warning(atoi(Char(erroraswarn)));
+	    }
 	  } else if (strcmp(argv[i],"-tm_debug") == 0) {
 	    tm_debug = 1;
 	    Swig_mark_arg(i);
