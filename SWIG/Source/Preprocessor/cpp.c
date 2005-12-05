@@ -30,6 +30,7 @@ static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 static SwigScanner *id_scan = 0;
+static int       error_as_warning = 0;    /* Understand the cpp #error directive as a #warning */
 
 /* Test a character to see if it starts an identifier */
 #define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
@@ -245,6 +246,10 @@ void Preprocessor_import_all(int a) {
 
 void Preprocessor_ignore_missing(int a) {
   ignore_missing = a;
+}
+
+void Preprocessor_error_as_warning(int a) {
+  error_as_warning = a;
 }
 
 
@@ -1520,7 +1525,11 @@ Preprocessor_parse(String *s)
 	}
       } else if (StringEqual(id,k_error)) {
 	if (allow) {
-	  Swig_error(Getfile(s),Getline(id),"%s\n",value);
+	  if (error_as_warning) {
+	    Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"%s\n", value);
+	  } else {
+	    Swig_error(Getfile(s),Getline(id),"%s\n",value);
+	  }
 	}
       } else if (StringEqual(id,k_line)) {
       } else if (StringEqual(id,k_include)) {
@@ -1568,8 +1577,11 @@ Preprocessor_parse(String *s)
 	  char *c = Char(value)+5;
 	  while (*c && (isspace((int)*c))) c++;
 	  if (*c) {
-	    if (Strncmp(c,"nowarn=",7) == 0) {
+	    if (strncmp(c,"nowarn=",7) == 0) {
 	      Swig_warnfilter(c+7,1);
+	    }
+	    else if (strncmp(c,"erroraswarn=",7) == 0) {
+	      error_as_warning = atoi(c+12);
 	    }
 	  }
 	}
