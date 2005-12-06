@@ -8,7 +8,6 @@ class Foo;
 extern "C" void* working(void* t);
 %}
 
-%threads;
 %director Foo;
 
 %inline {
