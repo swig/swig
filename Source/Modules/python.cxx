@@ -1297,8 +1297,6 @@ public:
     int allow_thread = threads_enable(n);
     if (allow_thread) thread_begin_block(n, f);
     
-    Wrapper_add_local(f,"errormsg", "const char *errmsg = 0");
-    Wrapper_add_local(f,"errorobj", "PyObject *errorobj = 0");
     Wrapper_add_local(f,"resultobj", "PyObject *resultobj = 0");
 
   /* Write code to extract function parameters. */
