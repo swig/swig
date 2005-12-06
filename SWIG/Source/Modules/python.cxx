@@ -1543,8 +1543,10 @@ public:
       Printf(f->code, "try {\n");
       Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     } else {
-      Printf(f->code, "{\n");
-      if (allow_thread) thread_begin_allow(n, f);
+      if (allow_thread) {
+	Printf(f->code, "{\n");
+	thread_begin_allow(n, f);
+      }
     }
     
     emit_action(n,f);
@@ -1554,8 +1556,10 @@ public:
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
     } else {
-      if (allow_thread) thread_end_allow(n, f);
-      Printf(f->code, "}\n");
+      if (allow_thread) {
+	thread_end_allow(n, f);
+	Printf(f->code, "}\n");
+      }
     }
     
     
