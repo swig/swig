@@ -56,7 +56,9 @@
 /* raise */
 %define %raise(obj, type, desc)
   PyObject *_obj = obj; 
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   PyErr_SetObject(SWIG_Python_ExceptionType(desc), _obj);
+  SWIG_PYTHON_THREAD_END_BLOCK;
   Py_DECREF(_obj);
   SWIG_fail %enddef
 

@@ -21,16 +21,17 @@
 */
 
 SWIGINTERN PyObject *swig_call_defargs(PyObject *self, PyObject *args) {
-	PyObject *func;
-	PyObject *parms;
-
-	if (!PyArg_ParseTuple(args,"OO",&func,&parms))
-	  return NULL;
-
-	if (!PyCallable_Check(func)) {
-             PyErr_SetString(PyExc_TypeError, "__call_defarg : Need a callable object!");
-	     return NULL;
-	}
-	return PyEval_CallObject(func,parms);
-
+  PyObject *func;
+  PyObject *parms;
+  
+  if (!PyArg_ParseTuple(args,"OO",&func,&parms))
+    return NULL;
+  
+  if (!PyCallable_Check(func)) {
+    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+    PyErr_SetString(PyExc_TypeError, "__call_defarg : Need a callable object!");
+    SWIG_PYTHON_THREAD_END_BLOCK;
+    return NULL;
+  }
+  return PyEval_CallObject(func,parms);
 }

@@ -30,7 +30,9 @@ SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
       PyErr_Clear();
     }  
     if (val) {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       PyErr_SetString(PyExc_TypeError,"a string is expected");
+      SWIG_PYTHON_THREAD_END_BLOCK;
     }
     return 0;
   }
@@ -78,7 +80,9 @@ SWIGINTERN int
 	PyErr_Clear();
       }  
       if (val) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_TypeError,"a wstring is expected");
+	SWIG_PYTHON_THREAD_END_BLOCK;
       }
       return 0;
     }

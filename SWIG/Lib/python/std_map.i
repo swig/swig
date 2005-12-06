@@ -25,7 +25,9 @@
 	    ::asptr(items, val);
 	}
 	if (val) {
+	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	  PyErr_SetString(PyExc_TypeError, "a dictionary is expected");
+	  SWIG_PYTHON_THREAD_END_BLOCK;
 	}
 	return 0;
       }      
@@ -41,8 +43,10 @@
 	size_type size = map.size();
 	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
 	if (pysize < 0) {
+	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	  PyErr_SetString(PyExc_OverflowError,
 			  "map size not valid in python");
+	  SWIG_PYTHON_THREAD_END_BLOCK;
 	  return NULL;
 	}
 	PyObject *obj = PyDict_New();
@@ -91,8 +95,10 @@
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
       if (pysize < 0) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
+	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* keyList = PyList_New(pysize);
@@ -107,8 +113,10 @@
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
       if (pysize < 0) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
+	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* valList = PyTuple_New(pysize);
@@ -123,8 +131,10 @@
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
       if (pysize < 0) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
+	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }    
       PyObject* itemList = PyTuple_New(pysize);
@@ -144,8 +154,10 @@
       Map::size_type size = self->size();
       int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
       if (pysize < 0) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
+	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* keyTuple = PyTuple_New(pysize);

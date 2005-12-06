@@ -48,13 +48,16 @@ static  int           classic = 0;
 static  int           modern = 1;
 static  int           apply = 0;
 static  int           new_repr = 1;
-static int            no_header_file = 0;
+static  int           no_header_file = 0;
 
 /* C++ Support + Shadow Classes */
 
 static  int       have_constructor;
 static  int       have_repr;
 static  String   *real_classname;
+
+/* Thread Support */
+static  int       threads = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -72,15 +75,17 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
+     -cppcast        - Enable C++ casting operators (default) \n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -cppcast        - Enable C++ casting operators\n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
-     -modern         - Use modern python features only, without compatibility code\n\
+     -modern         - Use modern python features only, without compatibility code (default)\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
-     -new_repr       - Use more informative version of __repr__ in proxy classes\n\
+     -new_repr       - Use more informative version of __repr__ in proxy classes (default) \n\
      -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
+     -threads        - Add thread support for all the interface\n\
+     -nothreads      - Disable thread support for all the interface\n\
      -noexcept       - No automatic exception handling\n\
      -noh            - Don't generate the output header file\n\
      -noproxy        - Don't generate proxy classes \n\n";
@@ -95,12 +100,78 @@ public:
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",
 	   "} else {\n",
+	   "  SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n",
 	   "  PyErr_SetString(PyExc_RuntimeError,",
 	   "    \"accessing abstract class or protected constructor\"); \n",
+	   "  SWIG_PYTHON_THREAD_END_BLOCK;\n",
 	   "  SWIG_fail;\n",
 	   "}\n", NIL);
     director_multiple_inheritance = 1;
     director_language = 1;
+  }
+
+  /* ------------------------------------------------------------
+   * Thread Implementation
+   * ------------------------------------------------------------ */
+
+  int threads_enable(Node *n) const {
+    return threads && GetFlagAttr(n, "feature:threads");
+  }
+   
+  int initialize_threads(String *f_init) {
+    if (!threads) {
+      return SWIG_OK;
+    }
+    
+    Printf(f_init,"\n");
+    Printf(f_init,"/* Initialize threading */\n");
+    Printf(f_init,"SWIG_PYTHON_INITIALIZE_THREADING;\n");
+    
+    return SWIG_OK;
+  }
+  
+  virtual void thread_begin_block(Node *n, Wrapper *f) {
+    if (!GetFlag(n, "feature:nothreadblock")) {
+      String *bb = Getattr(n,"feature:threadbeginblock");
+      if (bb) {
+	Wrapper_add_local(f,"python_thread_state", bb);
+      } else {
+	Wrapper_add_local(f,"python_thread_state", "SWIG_PYTHON_THREAD_BEGIN_BLOCK");
+      }      
+    }
+  }
+  
+  virtual void thread_end_block(Node *n, Wrapper *f) {
+    if (!GetFlag(n, "feature:nothreadblock")) {
+      String *eb = Getattr(n, "feature:threadendblock");
+      if (eb) {
+	Append(f->code,eb);
+      } else {
+	Append(f->code, "SWIG_PYTHON_THREAD_END_BLOCK;\n");
+      }
+    }
+  }
+
+  virtual void thread_begin_allow(Node *n, Wrapper *f) {
+    if (!GetFlag(n, "feature:nothreadallow")) {
+      String *bb = Getattr(n, "feature:threadbeginallow");
+      if (bb) {
+	Append(f->code,bb);
+      } else {
+	Append(f->code, "SWIG_PYTHON_THREAD_BEGIN_ALLOW;\n");
+      }
+    }
+  }
+  
+  virtual void thread_end_allow(Node *n, Wrapper *f) {
+    if (!GetFlag(n, "feature:nothreadallow")) {
+      String *eb = Getattr(n, "feature:threadendallow");
+      if (eb) {
+	Append(f->code, eb);
+      } else {
+	Append(f->code, "SWIG_PYTHON_THREAD_END_ALLOW;\n");
+      }
+    }
   }
   
   /* ------------------------------------------------------------
@@ -163,8 +234,24 @@ public:
 	  cppcast = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
-	  /* Turn on no RTTI mode */
+	  /* Turn on no-RTTI mode */
 	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-threads") == 0) {
+	  Hash *features_hash = Swig_cparse_features();
+	  String *name = NewString("");
+	  String *fname = NewString("feature:threads");
+	  String *fvalue = NewString("1");
+	  Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+	  threads = 1;
+	  Swig_mark_arg(i);
+	  Delete(name);
+	  Delete(fname);
+	  Delete(fvalue);
+	} else if (strcmp(argv[i],"-nothreads") == 0) {
+	  /* Turn off thread suppor mode */
+	  threads = 0;
+	  Preprocessor_define((DOH *) "SWIG_PYTHON_NO_THREADING", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
@@ -229,6 +316,9 @@ public:
           if (Getattr(options, "directors")) {
             allow_directors();
 	    if (dirprot) allow_dirprot();
+          }
+          if (Getattr(options, "threads")) {
+            threads = 1;
           }
           mod_docstring = Getattr(options, "docstring");
           package = Getattr(options, "package");
@@ -452,6 +542,7 @@ public:
 
     Printf(const_code, "{0, 0, 0, 0.0, 0, 0}};\n");
     Printf(f_wrappers,"%s\n",const_code);
+    initialize_threads(f_init);
     Printf(f_init,"}\n");
 
     Printf(f_wrappers,"#ifdef __cplusplus\n");
@@ -1125,7 +1216,9 @@ public:
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
     } else {
+      Printf(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
       Printf(f->code,"PyErr_SetString(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
+      Printf(f->code,"SWIG_PYTHON_THREAD_END_BLOCK;\n");
       Printf(f->code,"return NULL;\n");
     }
     Printv(f->code,"}\n",NIL);
@@ -1197,7 +1290,12 @@ public:
     cleanup      = NewString("");
     outarg       = NewString("");
     kwargs       = NewString("");
+
+    int allow_thread = threads_enable(n);
+    if (allow_thread) thread_begin_block(n, f);
     
+    Wrapper_add_local(f,"errormsg", "const char *errmsg = 0");
+    Wrapper_add_local(f,"errorobj", "PyObject *errorobj = 0");
     Wrapper_add_local(f,"resultobj", "PyObject *resultobj = 0");
 
   /* Write code to extract function parameters. */
@@ -1422,7 +1520,9 @@ public:
           Printf(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
 	  if (dirprot_mode() && !is_public(n)) {      
             Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
+	    Printf(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
 	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
+	    Printf(f->code,"SWIG_PYTHON_THREAD_END_BLOCK;\n");
 	    Printf(f->code, "SWIG_fail;\n");
 	    Printf(f->code, "}\n");
 	  }
@@ -1444,17 +1544,26 @@ public:
      
     /* Emit the function call */
     if (director_method) {
+      if (allow_thread) thread_end_block(n, f);
       Printf(f->code, "try {\n");
       Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
+    } else {
+      Printf(f->code, "{\n");
     }
     
+    
+    if (allow_thread) thread_begin_allow(n, f);
     emit_action(n,f);
+    if (allow_thread) thread_end_allow(n, f);
 
     if (director_method) {
       Printf(f->code, "} catch (Swig::DirectorException&) {\n");
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
+    } else {
+      Printf(f->code, "}\n");
     }
+    
     
 
     /* This part below still needs cleanup */
@@ -1548,7 +1657,7 @@ public:
       }
     }
 
-
+    if (allow_thread) thread_end_block(n, f);
     Printf(f->code,"    return resultobj;\n");
 
     /* Error handling code */
@@ -1557,6 +1666,7 @@ public:
     if (need_cleanup) {
       Printv(f->code,cleanup,NIL);
     }
+    if (allow_thread) thread_end_block(n, f);
     Printv(f->code,tab4,"return NULL;\n",NIL);
     
     
@@ -2885,7 +2995,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     p = nextSibling(p);
   }
 
-  /* add the method name as a PyString */
+
+/* add the method name as a PyString */
   String *pyname = Getattr(n,"sym:name");
   Wrapper_add_localv(w, "swig_method_index", "const size_t swig_method_index =", NewStringf("%d", director_method_index++), NIL);
   Wrapper_add_localv(w, "swig_method_name", "const char * const swig_method_name =", NewStringf("\"%s\"",pyname), NIL);
@@ -2897,10 +3008,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!is_void) {
     Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
   }
-  
+
+  int allow_thread = threads_enable(n);
+  if (allow_thread) thread_begin_block(n, w);
   
   /* direct call to superclass if _up is set */
   Printf(w->code, "if (swig_get_up()) {\n");
+  if (allow_thread) thread_end_block(n, w);
   if (pure_virtual) {
     Printf(w->code,
 	   "Swig::DirectorPureVirtualException::raise(\"%s.\");\n",Swig_method_call(super,l));
@@ -2925,11 +3039,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   
 
   Printf(w->code, "if (!swig_get_self()) {\n");
+  if (allow_thread) thread_end_block(n, w);
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
   Wrapper_add_local(w, "method", "PyObject* method = 0");
   Printf(w->code, "method = swig_get_method(swig_method_index, swig_method_name);\n");
   Printf(w->code, "if (method == NULL) {\n");
+  if (allow_thread) thread_end_block(n, w);
   Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
   Printf(w->code, "}\n");
 
@@ -2955,15 +3071,18 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "if (result == NULL) {\n");
   Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+    if (allow_thread) thread_end_block(n, w);
     Replaceall(tm, "$error", "error");
     Printv(w->code, Str(tm), "\n", NIL);
   } else {
     Printf(w->code, "  if (error != NULL) {\n");
+    if (allow_thread) thread_end_block(n, w);
     Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s\");\n", 
 	   classname, pyname);
     Printf(w->code, "  }\n");
   }
   Printf(w->code, "}\n");
+  if (allow_thread) thread_end_block(n, w);
   Delete(tm);
 
   /*

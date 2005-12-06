@@ -28,15 +28,19 @@ SWIG_AsArgcArgv(PyObject* input,
 	    argv[i] = 0;
 	  }
 	} else {
+	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	  PyErr_Clear();
 	  PyErr_SetString(PyExc_TypeError,"list or tuple must contain strings only");
+	  SWIG_PYTHON_THREAD_END_BLOCK;
 	}	
       }
       argv[i] = 0;
       return argv;
     } else {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       *argc = 0;
       PyErr_SetString(PyExc_TypeError,"a list or tuple is expected");
+      SWIG_PYTHON_THREAD_END_BLOCK;
       return 0;
     }
   } else {
