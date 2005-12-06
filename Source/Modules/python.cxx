@@ -58,6 +58,7 @@ static  String   *real_classname;
 
 /* Thread Support */
 static  int       threads = 0;
+static  int       nothreads = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -115,7 +116,7 @@ public:
    * ------------------------------------------------------------ */
 
   int threads_enable(Node *n) const {
-    return threads && GetFlagAttr(n, "feature:threads");
+    return threads && !GetFlagAttr(n, "feature:nothread");
   }
    
   int initialize_threads(String *f_init) {
@@ -124,7 +125,7 @@ public:
     }
     Printf(f_init,"\n");
     Printf(f_init,"/* Initialize threading */\n");
-    Printf(f_init,"SWIG_PYTHON_INITIALIZE_THREADING;\n");
+    Printf(f_init,"SWIG_PYTHON_INITIALIZE_THREADS;\n");
     
     return SWIG_OK;
   }
@@ -133,9 +134,9 @@ public:
     if (!GetFlag(n, "feature:nothreadblock")) {
       String *bb = Getattr(n,"feature:threadbeginblock");
       if (bb) {
-	Wrapper_add_local(f,"python_thread_state", bb);
+	Append(f->code, bb);
       } else {
-	Wrapper_add_local(f,"python_thread_state", "SWIG_PYTHON_THREAD_BEGIN_BLOCK");
+	Append(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
       }      
     }
   }
@@ -237,20 +238,11 @@ public:
 	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-threads") == 0) {
-	  Hash *features_hash = Swig_cparse_features();
-	  String *name = NewString("");
-	  String *fname = NewString("feature:threads");
-	  String *fvalue = NewString("1");
-	  Swig_feature_set(features_hash,name,0,fname,fvalue,0);
 	  threads = 1;
 	  Swig_mark_arg(i);
-	  Delete(name);
-	  Delete(fname);
-	  Delete(fvalue);
 	} else if (strcmp(argv[i],"-nothreads") == 0) {
 	  /* Turn off thread suppor mode */
-	  threads = 0;
-	  Preprocessor_define((DOH *) "SWIG_PYTHON_NO_THREADING", 0);
+	  nothreads = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
@@ -375,8 +367,10 @@ public:
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
     }
 
-    if (threads) {
-      Printf(f_runtime,"#define SWIG_PYTHON_THREADING\n");
+    if (nothreads) {
+      Printf(f_runtime,"#define SWIG_PYTHON_NO_THREADS\n");
+    } else if (threads) {
+      Printf(f_runtime,"#define SWIG_PYTHON_THREADS\n");
     }
 
     /* Set module name */
@@ -1550,18 +1544,17 @@ public:
       Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     } else {
       Printf(f->code, "{\n");
+      if (allow_thread) thread_begin_allow(n, f);
     }
     
-    
-    if (allow_thread) thread_begin_allow(n, f);
     emit_action(n,f);
-    if (allow_thread) thread_end_allow(n, f);
 
     if (director_method) {
       Printf(f->code, "} catch (Swig::DirectorException&) {\n");
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
     } else {
+      if (allow_thread) thread_end_allow(n, f);
       Printf(f->code, "}\n");
     }
     
@@ -3011,23 +3004,26 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
 
   int allow_thread = threads_enable(n);
-  if (allow_thread) thread_begin_block(n, w);
-  
+
   /* direct call to superclass if _up is set */
   Printf(w->code, "if (swig_get_up()) {\n");
-  if (allow_thread) thread_end_block(n, w);
   if (pure_virtual) {
     Printf(w->code,
 	   "Swig::DirectorPureVirtualException::raise(\"%s.\");\n",Swig_method_call(super,l));
-  } else {
+  } else { 
+    if (allow_thread) thread_begin_allow(n, w);
     if (is_void) {
       Printf(w->code, "%s;\n", Swig_method_call(super,l));
       Printf(w->code, "return;\n");
     } else {
       Printf(w->code, "return %s;\n", Swig_method_call(super,l));
     }
+    if (allow_thread) thread_end_allow(n, w);
   }
-  Printf(w->code, "}\n");
+  Printf(w->code, "}  else {\n");
+
+  if (allow_thread) thread_begin_block(n, w);
+  
     
   /* wrap complex arguments to PyObjects */
   Printv(w->code, wrap_args, NIL);
@@ -3040,13 +3036,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   
 
   Printf(w->code, "if (!swig_get_self()) {\n");
-  if (allow_thread) thread_end_block(n, w);
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
   Wrapper_add_local(w, "method", "PyObject* method = 0");
   Printf(w->code, "method = swig_get_method(swig_method_index, swig_method_name);\n");
   Printf(w->code, "if (method == NULL) {\n");
-  if (allow_thread) thread_end_block(n, w);
   Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
   Printf(w->code, "}\n");
 
@@ -3072,18 +3066,15 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "if (result == NULL) {\n");
   Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-    if (allow_thread) thread_end_block(n, w);
     Replaceall(tm, "$error", "error");
     Printv(w->code, Str(tm), "\n", NIL);
   } else {
     Printf(w->code, "  if (error != NULL) {\n");
-    if (allow_thread) thread_end_block(n, w);
     Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s\");\n", 
 	   classname, pyname);
     Printf(w->code, "  }\n");
   }
   Printf(w->code, "}\n");
-  if (allow_thread) thread_end_block(n, w);
   Delete(tm);
 
   /*
@@ -3170,6 +3161,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
 
   /* any existing helper functions to handle this? */
+  if (allow_thread) thread_end_block(n, w);
   if (!is_void) {
     String* rettype = SwigType_str(return_type, 0);      
     if (!SwigType_isreference(return_type)) {
@@ -3180,6 +3172,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Delete(rettype);
   }
 
+  Printf(w->code, "}\n");
   Printf(w->code, "}\n");
 
   /* emit the director method */

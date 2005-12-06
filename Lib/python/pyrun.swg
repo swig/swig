@@ -643,7 +643,6 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   if (pyobj && PySwigObject_Check(pyobj)) {
     return (PySwigObject *) pyobj;
   } else {
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     PyObject *obj = 0;
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
     if (PyInstance_Check(pyobj)) {
@@ -664,13 +663,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 #endif
     if (!obj || PyErr_Occurred()) {
       PyErr_Clear();
-      SWIG_PYTHON_THREAD_END_BLOCK;
       return 0;
     }
     if (!PySwigObject_Check(obj)) {
       obj = 0;
     } 
-    SWIG_PYTHON_THREAD_END_BLOCK;
     return (PySwigObject *)obj;
   }
 }
@@ -828,11 +825,9 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   if (!ptr) {
     return SWIG_Py_Void();
   } else if (!type) {
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "Swig: null type passed to NewPointerObj");
     }
-    SWIG_PYTHON_THREAD_END_BLOCK;
     return NULL;
   } else {
     int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
@@ -872,7 +867,6 @@ void *SWIG_ReturnGlobalTypeList(void *);
 SWIGRUNTIME swig_module_info *
 SWIG_Python_GetModule(void) {
   static void *type_pointer = (void *)0;
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   /* first check if module already created */
   if (!type_pointer) {
 #ifdef SWIG_LINK_RUNTIME
@@ -886,7 +880,6 @@ SWIG_Python_GetModule(void) {
     }
 #endif
   }
-  SWIG_PYTHON_THREAD_END_BLOCK;
   return (swig_module_info *) type_pointer;
 }
 
@@ -898,27 +891,21 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 {
   PyObject *dict;
   if (!PyModule_Check(m)) {
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     PyErr_SetString(PyExc_TypeError,
 		    "PyModule_AddObject() needs module as first arg");
-    SWIG_PYTHON_THREAD_END_BLOCK;
     return SWIG_ERROR;
   }
   if (!o) {
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     PyErr_SetString(PyExc_TypeError,
 		    "PyModule_AddObject() needs non-NULL value");
-    SWIG_PYTHON_THREAD_END_BLOCK;
     return SWIG_ERROR;
   }
   
   dict = PyModule_GetDict(m);
   if (dict == NULL) {
     /* Internal error -- modules must have a dict! */
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
 		 PyModule_GetName(m));
-    SWIG_PYTHON_THREAD_END_BLOCK;
     return SWIG_ERROR;
   }
   if (PyDict_SetItemString(dict, name, o))

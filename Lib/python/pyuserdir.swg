@@ -1,15 +1,15 @@
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  *  Special user directives
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 /* shadow code */
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
 
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /* 
 Use the "nondynamic" feature to make a wrapped class behaves as a "nondynamic"
 one, ie, a python class that doesn't dynamically add new attributes.
@@ -51,7 +51,7 @@ so, it works with old python versions.
 #define %pythondynamic         %nopythonnondynamic
 
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /*
 
 Use %pythonmaybecall to flag a method like __add__ or __radd__, which
@@ -65,7 +65,7 @@ These methods "may be called" if needed.
 #define %nopythonmaybecall    %feature("python:maybecall", "0")
 #define %clearpythonmaybecall %feature("python:maybecall", "")
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /*
   The %pythoncallback feature produce a more natural callback wrap
   than the  %callback mechanism, ie, it use the original name for
@@ -111,7 +111,7 @@ These methods "may be called" if needed.
 #define %nopythoncallback    %feature("python:callback","0")
 #define %clearpythoncallback %feature("python:callback","")
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /*
   Support for the old %callback directive name
 */
@@ -131,14 +131,15 @@ These methods "may be called" if needed.
 #define %nocallback      %nopythoncallback
 #define %clearcallback   %clearpythoncallback
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /*
-  Thread support
+  Thread support - Advance control
+  
 */
 
-#define %threads      %feature("threads")
-#define %nothreads    %feature("threads","0")
-#define %clearthreads %feature("threads","")
+#define %nothread           %feature("nothread")
+#define %thread             %feature("nothread","0")
+#define %clearnothread      %feature("nothread","")
 
 #define %nothreadblock      %feature("nothreadblock")
 #define %threadblock        %feature("nothreadblock","0")
@@ -149,7 +150,7 @@ These methods "may be called" if needed.
 #define %clearnothreadallow %feature("nothreadallow","")
 
 
-/* ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 /*
   Directors
 */
