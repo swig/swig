@@ -96,13 +96,10 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
-  static PyTypeObject varlink_type
-#if !defined(__cplusplus)
-  ;
+  static PyTypeObject varlink_type;
   static int type_init = 0;  
   if (!type_init) {
     const PyTypeObject tmp
-#endif
       = {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* Number of items in variable part (ob_size) */
@@ -140,12 +137,10 @@ swig_varlink_type(void) {
       0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
     };
-#if !defined(__cplusplus)
     varlink_type = tmp;
+    varlink_type.ob_type = &PyType_Type;
     type_init = 1;
   }
-#endif
-  varlink_type.ob_type = &PyType_Type;
   return &varlink_type;
 }
 
