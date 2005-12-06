@@ -1,8 +1,4 @@
-#if !defined(SWIG_PYTHON_NO_THREADING)
-#  if !defined(SWIG_PYTHON_THREADING)
-#    define SWIG_PYTHON_THREADING
-#  endif
-#else
+#if defined(SWIG_PYTHON_NO_THREADING)
 #  if defined(SWIG_PYTHON_THREADING)
 #    undef SWIG_PYTHON_THREADING
 #  endif

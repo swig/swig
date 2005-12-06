@@ -122,7 +122,6 @@ public:
     if (!threads) {
       return SWIG_OK;
     }
-    
     Printf(f_init,"\n");
     Printf(f_init,"/* Initialize threading */\n");
     Printf(f_init,"SWIG_PYTHON_INITIALIZE_THREADING;\n");
@@ -374,6 +373,10 @@ public:
 
     if (directorsEnabled()) {
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
+    }
+
+    if (threads) {
+      Printf(f_runtime,"#define SWIG_PYTHON_THREADING\n");
     }
 
     /* Set module name */

@@ -363,13 +363,10 @@ PySwigObject_type(void) {
 #endif
   };
 
-  static PyTypeObject pyswigobject_type
-#if !defined(__cplusplus)
-    ;  
+  static PyTypeObject pyswigobject_type;  
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp
-#endif
       = {
 	PyObject_HEAD_INIT(NULL)
 	0,				    /* ob_size */
@@ -426,15 +423,12 @@ PySwigObject_type(void) {
 	0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
       };
-#if !defined(__cplusplus)
     pyswigobject_type = tmp;
+    pyswigobject_type.ob_type = &PyType_Type;
     type_init = 1;
   }
-#endif
-  pyswigobject_type.ob_type = &PyType_Type;
   return &pyswigobject_type;
 }
-
 
 SWIGRUNTIME PyObject *
 PySwigObject_New(void *ptr, swig_type_info *ty, int own)
@@ -526,15 +520,12 @@ PySwigPacked_dealloc(PyObject *v)
 SWIGRUNTIME PyTypeObject*
 PySwigPacked_type(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
-  static PyTypeObject pyswigpacked_type
-#if !defined(__cplusplus)
-    ;
+  static PyTypeObject pyswigpacked_type;
   static int type_init = 0;  
   if (!type_init) {
     PyTypeObject tmp
-#endif
       = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				    /* ob_size */	
 	(char *)"PySwigPacked",		    /* tp_name */	
 	sizeof(PySwigPacked),		    /* tp_basicsize */	
@@ -593,13 +584,13 @@ PySwigPacked_type(void) {
 	0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
       };
-#if !defined(__cplusplus)
     pyswigpacked_type = tmp;
+    pyswigpacked_type.ob_type = &PyType_Type;
     type_init = 1;
   }
-#endif
   return &pyswigpacked_type;
 }
+
 SWIGRUNTIME PyObject *
 PySwigPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
@@ -837,11 +828,11 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   if (!ptr) {
     return SWIG_Py_Void();
   } else if (!type) {
+    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     if (!PyErr_Occurred()) {
-      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       PyErr_SetString(PyExc_TypeError, "Swig: null type passed to NewPointerObj");
-      SWIG_PYTHON_THREAD_END_BLOCK;
     }
+    SWIG_PYTHON_THREAD_END_BLOCK;
     return NULL;
   } else {
     int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
@@ -881,6 +872,7 @@ void *SWIG_ReturnGlobalTypeList(void *);
 SWIGRUNTIME swig_module_info *
 SWIG_Python_GetModule(void) {
   static void *type_pointer = (void *)0;
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   /* first check if module already created */
   if (!type_pointer) {
 #ifdef SWIG_LINK_RUNTIME
@@ -894,6 +886,7 @@ SWIG_Python_GetModule(void) {
     }
 #endif
   }
+  SWIG_PYTHON_THREAD_END_BLOCK;
   return (swig_module_info *) type_pointer;
 }
 
