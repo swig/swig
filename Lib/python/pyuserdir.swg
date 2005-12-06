@@ -2,11 +2,14 @@
  *  Special user directives
  * ----------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------- */
+
 /* shadow code */
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
 
 
+/* ----------------------------------------------------------------------------- */
 /* 
 Use the "nondynamic" feature to make a wrapped class behaves as a "nondynamic"
 one, ie, a python class that doesn't dynamically add new attributes.
@@ -47,6 +50,8 @@ so, it works with old python versions.
 #define %clearpythonnondynamic %feature("python:nondynamic", "")
 #define %pythondynamic         %nopythonnondynamic
 
+
+/* ----------------------------------------------------------------------------- */
 /*
 
 Use %pythonmaybecall to flag a method like __add__ or __radd__, which
@@ -60,6 +65,7 @@ These methods "may be called" if needed.
 #define %nopythonmaybecall    %feature("python:maybecall", "0")
 #define %clearpythonmaybecall %feature("python:maybecall", "")
 
+/* ----------------------------------------------------------------------------- */
 /*
   The %pythoncallback feature produce a more natural callback wrap
   than the  %callback mechanism, ie, it use the original name for
@@ -105,6 +111,7 @@ These methods "may be called" if needed.
 #define %nopythoncallback    %feature("python:callback","0")
 #define %clearpythoncallback %feature("python:callback","")
 
+/* ----------------------------------------------------------------------------- */
 /*
   Support for the old %callback directive name
 */
@@ -123,4 +130,32 @@ These methods "may be called" if needed.
 #define %callback(x)     %feature("python:callback",`x`)
 #define %nocallback      %nopythoncallback
 #define %clearcallback   %clearpythoncallback
+
+/* ----------------------------------------------------------------------------- */
+/*
+  Thread support
+*/
+
+#define %threads      %feature("threads")
+#define %nothreads    %feature("threads","0")
+#define %clearthreads %feature("threads","")
+
+#define %nothreadblock      %feature("nothreadblock")
+#define %threadblock        %feature("nothreadblock","0")
+#define %clearnothreadblock %feature("nothreadblock","")
+
+#define %nothreadallow      %feature("nothreadallow")
+#define %threadallow        %feature("nothreadallow","0")
+#define %clearnothreadallow %feature("nothreadallow","")
+
+
+/* ----------------------------------------------------------------------------- */
+/*
+  Directors
+*/
+
+#define %director      %feature("director")
+#define %nodirector    %feature("director","0")
+#define %cleardirector %feature("director","")
+
 

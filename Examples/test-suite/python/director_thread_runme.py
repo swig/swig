@@ -12,4 +12,5 @@ d = Derived()
 d.run()
 
 if d.val >= 0:
+    print d.val
     raise RuntimeError

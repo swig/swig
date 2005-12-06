@@ -1,4 +1,4 @@
-%module(directors="1") director_thread
+%module(directors="1",threads="1") director_thread
 
 %{
 #include <pthread.h>
@@ -8,8 +8,8 @@ class Foo;
 extern "C" void* working(void* t);
 %}
 
-
-%feature("director") Foo;
+%threads;
+%director Foo;
 
 %inline {
   class Foo {
@@ -38,7 +38,7 @@ extern "C" void* working(void* t);
 
 %inline {
   extern "C" void* working(void* t) {
-    Foo* f = static_cast<Foo*>(t);  
+    Foo* f = static_cast<Foo*>(t);
     while (1) {
       sleep(1);
       f->do_foo();

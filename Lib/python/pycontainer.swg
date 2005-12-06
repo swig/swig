@@ -13,6 +13,7 @@
 #include <iostream>
 %}
 
+
 /**** The PySequence C++ Wrap ***/
 
 %insert(header) %{
@@ -104,7 +105,13 @@ namespace std {
   {
     bool
     operator()(PyObject * v, PyObject *w) const
-    { return PyObject_Compare(v, w) < 0; }
+    { 
+      bool res;
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      res = PyObject_Compare(v, w) < 0;
+      SWIG_PYTHON_THREAD_END_BLOCK;
+      return res;
+    }
   };
 
   template <>
@@ -112,7 +119,9 @@ namespace std {
   {
     bool
     operator()(const swig::PyObject_ptr& v, const swig::PyObject_ptr& w) const
-    { return PyObject_Compare(v, w) < 0; }
+    {
+      return std::less<PyObject *>()(v, w);
+    }
   };
 
   template <>
@@ -120,7 +129,9 @@ namespace std {
   {
     bool
     operator()(const swig::PyObject_var& v, const swig::PyObject_var& w) const
-    { return PyObject_Compare(v, w) < 0; }
+    {
+      return std::less<PyObject *>()(v, w);
+    }
   };
 
 }
@@ -262,9 +273,14 @@ namespace swig
 {
   %ignore stop_iteration;
   %typemap(throws) stop_iteration {
+    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     PyErr_SetObject(PyExc_StopIteration, SWIG_Py_Void());
+    SWIG_PYTHON_THREAD_END_BLOCK;
+    SWIG_fail;
   }
 }
+
+
 
 namespace swig {
   %newobject PySequence_OutputIterator::operator +;
@@ -478,6 +494,7 @@ namespace swig
       try {
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	char msg[1024];
 	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
@@ -485,6 +502,7 @@ namespace swig
 	}
 	SWIG_Python_AddErrorMsg(msg);
 	SWIG_Python_AddErrorMsg(e.what());
+	SWIG_PYTHON_THREAD_END_BLOCK; 
 	throw;
       }
     }
@@ -895,8 +913,11 @@ namespace swig
 	    }
 	  } catch (std::exception& e) {
 	    if (seq) {
-	      if (!PyErr_Occurred())
+	      SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
+	      if (!PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, e.what());
+	      }
+	      SWIG_PYTHON_THREAD_END_BLOCK; 
 	    }
 	    return 0;
 	  }
@@ -934,8 +955,10 @@ namespace swig
 	  }
 	  return obj;
 	} else {
+	  SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	  PyErr_SetString(PyExc_OverflowError,
 			  "sequence size not valid in python");
+	  SWIG_PYTHON_THREAD_END_BLOCK; 
 	  return NULL;
 	}
       }

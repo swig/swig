@@ -221,6 +221,7 @@ namespace Swig {
     DirectorException(PyObject *error, const char* hdr ="", const char* msg ="") 
       : swig_msg(hdr)
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
       if (strlen(msg)) {
 	swig_msg += " ";
 	swig_msg += msg;
@@ -230,6 +231,7 @@ namespace Swig {
       } else {
 	SWIG_Python_AddErrorMsg(getMessage());
       }
+      SWIG_PYTHON_THREAD_END_BLOCK; 
     }
 
     const char *getMessage() const
@@ -359,7 +361,9 @@ namespace Swig {
     /* decrement the reference count of the wrapped python object */
     void swig_decref() const { 
       if (swig_disown_flag) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	Py_DECREF(swig_self); 
+	SWIG_PYTHON_THREAD_END_BLOCK; 
       }
     }
 
