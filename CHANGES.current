@@ -13,6 +13,14 @@ Version 1.3.28 (unreleased).
 	    
 
 12/06/2005: mmatus
+	    [Python] The generated code is now more portable, specially
+	    for Windows. Following 
+
+                 http://www.python.org/doc/faq/windows.html
+
+            Py_None is never accessed as a structure, plus other
+            tricks mentioned there.
+
 	    [Python] Added initial support for threads based in the
 	    proposal by Joseph Winston.
 
