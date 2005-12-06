@@ -1,6 +1,73 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/06/2005: mmatus 
+
+            Several memory and speed improvements, specially for
+	    templates. Now swig is up to 20 faster than before for
+	    large template interfaces, such as the std_containers.i
+	    and template_matrix.i files in the python test-suite.
+
+	    Memory footprint is also reduced in consideration of small
+	    pcs/architectures.
+	    
+
+12/06/2005: mmatus
+	    [Python] Added initial support for threads based in the
+	    proposal by Joseph Winston.
+
+	    The user interface is as follows:
+
+	    1.- the module thread support is enable via the "threads" module
+                option, ie
+
+                %module("threads"=1)
+
+            2.-	For each method you want to add full thread support, you
+                should use the "threads" feature, as in
+
+                  %feature("threads") method;
+
+                or in the directive form
+
+                  %threads method;
+
+            3.- Since threads is a feature, you can enable it for the
+                entire interface as follow
+
+                  %module("threads"=1)
+                  %threads;
+
+            4.- Equivalent to that, is the following swig option
+
+                  swig -threads -python ...
+
+                ie, swig enables thread support for the module and all
+		the methods.
+
+            5.- You can partially disable thread support for each
+                method using:
+
+                  %feature("nothreads") method;
+
+                also, you can disable sections of the thread support, 
+                for example
+
+                  %feature("nothreadsblock") method;
+                  %feature("nothreadsallow") method;
+
+                the first disable the C++/python thread protection, and the
+                second the python/C++ thread protection. See
+                pythreads.swg for more information.
+
+            6.- The current thread support is based in the PyGIL
+                extension present in python version 2.3 or later, but
+                you can provide the thread code for older versions by
+                defining the macros described in pythreads.swg.
+
+		If you get a working implementation for older versions,
+		please send us a patch.
+
 11/26/2005: wsfulton
             SWIG library files use system angle brackets everywhere for %include, eg
               %include "std_common.i"
