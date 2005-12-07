@@ -30,7 +30,7 @@ static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 static SwigScanner *id_scan = 0;
-static int       error_as_warning = 0;    /* Understand the cpp #error directive as a #warning */
+static int       error_as_warning = 1;    /* Understand the cpp #error directive as a #warning */
 
 /* Test a character to see if it starts an identifier */
 #define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
