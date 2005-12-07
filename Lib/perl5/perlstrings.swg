@@ -53,7 +53,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       %delete_array(tmp);
     }
   } else {
-    sv_setpv(obj, "");
+    sv_setsv(obj, &PL_sv_undef);
   }
   return obj;
 }
