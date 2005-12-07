@@ -2,7 +2,6 @@
  * Primitive Types
  * ------------------------------------------------------------ */
 
-
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
@@ -49,7 +48,7 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
   } else  if (SvIOK(obj)) {
     long v = SvIV(obj);
     if (v > 0) {
-      if (val) *val = SvUV(obj);
+      if (val) *val = v;
       return SWIG_OK;
     } else {
       return SWIG_OverflowError;
