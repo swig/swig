@@ -287,6 +287,7 @@ CPP_TEST_CASES += \
 	typedef_inherit \
 	typedef_mptr \
 	typedef_reference \
+	typedef_sizet \
 	typedef_scope \
 	typedef_struct \
 	typemap_namespace \
