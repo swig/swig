@@ -23,6 +23,8 @@
 char cvsroot_tcl8_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
+static int treduce = SWIG_cparse_template_reduce(1);
 
 static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
@@ -418,7 +420,8 @@ public:
     
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
-      if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0") 
+	  && !Getattr(p,"tmap:in:parse") && (tm = Getattr(p,"tmap:freearg"))) {
 	if (Len(tm) != 0) {
 	  Replaceall(tm,"$source",Getattr(p,"lname"));
 	  Printv(cleanup,tm,"\n",NIL);

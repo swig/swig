@@ -16,6 +16,8 @@
 char cvsroot_perl5_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
+static int treduce = SWIG_cparse_template_reduce(1);
 
 #include <ctype.h>
 
@@ -128,6 +130,7 @@ public:
     int cppcast = 1;
 
     SWIG_library_directory("perl5");
+
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-package") == 0) {

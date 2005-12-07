@@ -39,7 +39,7 @@ Swig_fragment_register(Node* fragment) {
     String *type = Getattr(fragment,"type");
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
-      String *mangle = Swig_string_mangle(rtype);
+      String *mangle = Swig_string_mangle(type);
       Append(name,mangle);
       Delete(mangle);
       Delete(rtype);
@@ -95,9 +95,7 @@ Swig_fragment_emit(Node *n) {
   }
   type = Getattr(n,"type");
   if (type) {
-    SwigType *rtype = SwigType_typedef_resolve_all(type);
-    mangle = Swig_string_mangle(rtype);
-    Delete(rtype);
+    mangle = Swig_string_mangle(type);
   }
 
   if (debug) Printf(stdout,"looking fragment %s %s\n",name, type);
@@ -133,7 +131,19 @@ Swig_fragment_emit(Node *n) {
 	  Setattr(fragments,name,"ignore");
 	}
       }
+    } else {
+      if (code && type) {
+	SwigType *rtype = SwigType_typedef_resolve_all(type);
+	if (!Equal(type,rtype)) {
+	  String *name = Copy(Getattr(n,"value"));
+	  Append(name,rtype);
+	  Swig_fragment_emit(name);
+	  Delete(name);
+	}
+	Delete(rtype);
+      }      
     }
+    
     tok = pc ? pc + 1 : 0;
     if (tok) {
       pc = char_index(tok,',');
