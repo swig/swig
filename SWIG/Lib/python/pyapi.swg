@@ -27,6 +27,8 @@ typedef struct swig_const_info {
   swig_type_info **ptype;
 } swig_const_info;
 
+<<<<<<< pyapi.swg
+=======
 
 
 /* -----------------------------------------------------------------------------
@@ -75,6 +77,7 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
   return result;
 }
 
+>>>>>>> 1.13
 #ifdef __cplusplus
 #if 0
 { /* cc-mode */
