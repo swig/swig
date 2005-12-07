@@ -2991,13 +2991,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Wrapper_add_localv(w, "swig_method_index", "const size_t swig_method_index =", NewStringf("%d", director_method_index++), NIL);
   Wrapper_add_localv(w, "swig_method_name", "const char * const swig_method_name =", NewStringf("\"%s\"",pyname), NIL);
 
-  /* declare method return value 
-   * if the return value is a reference or const reference, a specialized typemap must
-   * handle it, including declaration of c_result ($result).
-   */
-  if (!is_void) {
-    Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
-  }
 
   int allow_thread = threads_enable(n);
 
@@ -3016,8 +3009,18 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     }
     if (allow_thread) thread_end_allow(n, w);
   }
-  Printf(w->code, "}  else {\n");
+  Printf(w->code, "}\n");
+  Printf(w->code, "{\n");
 
+  /* declare method return value 
+   * if the return value is a reference or const reference, a specialized typemap must
+   * handle it, including declaration of c_result ($result).
+   */
+  if (!is_void) {
+    String *cres = SwigType_lstr(return_type, "swig_c_result");
+    Printf(w->code, "%s;\n", cres);
+    Delete(cres);
+  }
   if (allow_thread) thread_begin_block(n, w);
   
     
@@ -3129,7 +3132,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       } else {
 	Replaceall(tm,"$disown","0");
       }
-      Replaceall(tm, "$result", "c_result");
+      Replaceall(tm, "$result", "swig_c_result");
       Printv(w->code, tm, "\n", NIL);
       Delete(tm);
     } else {
@@ -3161,13 +3164,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!is_void) {
     String* rettype = SwigType_str(return_type, 0);      
     if (!SwigType_isreference(return_type)) {
-      Printf(w->code, "return (%s) c_result;\n", rettype);
+      Printf(w->code, "return (%s) swig_c_result;\n", rettype);
     } else {
-      Printf(w->code, "return (%s) *c_result;\n", rettype);
+      Printf(w->code, "return (%s) *swig_c_result;\n", rettype);
     }
     Delete(rettype);
   }
-
   Printf(w->code, "}\n");
   Printf(w->code, "}\n");
 
