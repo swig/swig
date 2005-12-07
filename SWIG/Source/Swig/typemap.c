@@ -1230,6 +1230,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   String   *symname;
   String   *cname = 0;
   String   *clname = 0;
+  char     *cop = Char(op);
 #if 0
   String   *qsn;
   Symtab   *st;
@@ -1330,13 +1331,13 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
 
   Setattr(node,tmop_name(op),s);
   if (locals) {
-    sprintf(temp,"%s:locals", Char(op));
+    sprintf(temp,"%s:locals", cop);
     Setattr(node,tmop_name(temp), locals);
     Delete(locals);  
   }
 
   if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
-    sprintf(temp,"%s:SWIGTYPE", Char(op));
+    sprintf(temp,"%s:SWIGTYPE", cop);
     Setattr(node,tmop_name(temp),k_one);
   }
 
@@ -1345,14 +1346,13 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
   while (kw) {
     String *value = Copy(Getattr(kw,k_value));
     String *type = Getattr(kw,k_type);
-    if (type) {
-      SwigType *rtype = SwigType_typedef_resolve_all(type);
-      String *mangle = Swig_string_mangle(rtype);
+    char *ckwname = Char(Getattr(kw,k_name));
+    if (type) {      
+      String *mangle = Swig_string_mangle(type);
       StringAppend(value,mangle);
       Delete(mangle);
-      Delete(rtype);
     }
-    sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,k_name)));
+    sprintf(temp,"%s:%s",cop, ckwname);
     Setattr(node,tmop_name(temp), value);
     Delete(value);
     kw = nextSibling(kw);
@@ -1361,7 +1361,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
   /* Look for warnings */
   {
     String *w;
-    sprintf(temp,"%s:warning", Char(op));
+    sprintf(temp,"%s:warning", cop);
     w = Getattr(node,tmop_name(temp));
     if (w) {
       Swig_warning(0,Getfile(node),Getline(node),"%s\n", w);
@@ -1371,7 +1371,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
   /* Look for code fragments */
   {
     String *f;
-    sprintf(temp,"%s:fragment", Char(op));
+    sprintf(temp,"%s:fragment", cop);
     f = Getattr(node,tmop_name(temp));
     if (f) {
       Swig_fragment_emit(f);
@@ -1468,6 +1468,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   ParmList *locals;
   int   argnum = 0;
   char  temp[256];
+  char *cop = Char(op);
 
   p = parms;
   while (p) {
@@ -1513,7 +1514,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       }
 
       if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
-	sprintf(temp,"%s:SWIGTYPE", Char(op));
+	sprintf(temp,"%s:SWIGTYPE", cop);
 	Setattr(p,tmop_name(temp),k_one);
       }
       p = nextSibling(p);
@@ -1533,13 +1534,13 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     Setattr(firstp,tmop_name(op),s);           /* Code object */
 
     if (locals) {
-      sprintf(temp,"%s:locals", Char(op));
+      sprintf(temp,"%s:locals", cop);
       Setattr(firstp,tmop_name(temp), locals);
       Delete(locals);
     }
 
     /* Attach a link to the next parameter.  Needed for multimaps */
-    sprintf(temp,"%s:next",Char(op));
+    sprintf(temp,"%s:next",cop);
     Setattr(firstp,tmop_name(temp),p);
 
     /* Attach kwargs */
