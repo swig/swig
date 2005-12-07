@@ -273,9 +273,7 @@ namespace swig
 {
   %ignore stop_iteration;
   %typemap(throws) stop_iteration {
-    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-    PyErr_SetObject(PyExc_StopIteration, SWIG_Py_Void());
-    SWIG_PYTHON_THREAD_END_BLOCK;
+    SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
     SWIG_fail;
   }
 }
@@ -494,7 +492,6 @@ namespace swig
       try {
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
-	SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	char msg[1024];
 	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
@@ -502,7 +499,6 @@ namespace swig
 	}
 	SWIG_Python_AddErrorMsg(msg);
 	SWIG_Python_AddErrorMsg(e.what());
-	SWIG_PYTHON_THREAD_END_BLOCK; 
 	throw;
       }
     }
@@ -913,11 +909,9 @@ namespace swig
 	    }
 	  } catch (std::exception& e) {
 	    if (seq) {
-	      SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	      if (!PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, e.what());
 	      }
-	      SWIG_PYTHON_THREAD_END_BLOCK; 
 	    }
 	    return 0;
 	  }
@@ -955,10 +949,8 @@ namespace swig
 	  }
 	  return obj;
 	} else {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
 	  PyErr_SetString(PyExc_OverflowError,
 			  "sequence size not valid in python");
-	  SWIG_PYTHON_THREAD_END_BLOCK; 
 	  return NULL;
 	}
       }

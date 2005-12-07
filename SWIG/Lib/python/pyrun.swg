@@ -44,6 +44,10 @@
 
 #define SWIG_ErrorType(code)                            SWIG_Python_ErrorType(code)                       
 #define SWIG_Error(code, msg)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetString(SWIG_Python_ErrorType(code), msg); SWIG_PYTHON_THREAD_END_BLOCK; }
+#define SWIG_SetErrorObj(type, obj)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetObject(type, obj); SWIG_PYTHON_THREAD_END_BLOCK; }
+#define SWIG_SetErrorMsg(type, msg)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetString(type, msg); SWIG_PYTHON_THREAD_END_BLOCK; }
+
+
 #define SWIG_fail                        		goto fail					   
 
 /*
