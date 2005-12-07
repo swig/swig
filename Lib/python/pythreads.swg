@@ -10,24 +10,24 @@
 #    endif
 #  endif
 #  if defined(SWIG_PYTHON_USE_GIL) /* Use PyGILState threads calls */
-#    define SWIG_PYTHON_INITIALIZE_THREADS     PyEval_InitThreads()
+#    ifndef SWIG_PYTHON_INITIALIZE_THREADS
+#     define SWIG_PYTHON_INITIALIZE_THREADS  PyEval_InitThreads() 
+#    endif
 #    ifdef __cplusplus /* C++ code */
        class SWIG_Python_Thread_Block {
          bool status;
          PyGILState_STATE state;
-         void begin() { if (!status) { state = PyGILState_Ensure(); status = true;} }
        public:
          void end() { if (status) { PyGILState_Release(state); status = false;} }
-         SWIG_Python_Thread_Block() : status(false)  { begin(); }
+         SWIG_Python_Thread_Block() : status(true), state(PyGILState_Ensure()) {}
          ~SWIG_Python_Thread_Block() { end(); }
        };
        class SWIG_Python_Thread_Allow {
          bool status;
          PyThreadState *save;
-         void begin() { if (!status) { status = true; save = PyEval_SaveThread(); } }
        public:
          void end() { if (status) { PyEval_RestoreThread(save); status = false; }}
-         SWIG_Python_Thread_Allow() : status(false) { begin(); }
+         SWIG_Python_Thread_Allow() : status(true), save(PyEval_SaveThread()) {}
          ~SWIG_Python_Thread_Allow() { end(); }
        };
 #      define SWIG_PYTHON_THREAD_BEGIN_BLOCK   SWIG_Python_Thread_Block _swig_thread_block

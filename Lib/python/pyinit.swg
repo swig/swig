@@ -61,36 +61,36 @@ swig_varlink_dealloc(swig_varlinkobject *v) {
 
 SWIGINTERN PyObject *
 swig_varlink_getattr(swig_varlinkobject *v, char *n) {
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
+  PyObject *res = NULL;
   swig_globalvar *var = v->vars;
   while (var) {
     if (strcmp(var->name,n) == 0) {
-      PyObject *obj = (*var->get_attr)();
-      SWIG_PYTHON_THREAD_END_BLOCK;
-      return obj;
+      res = (*var->get_attr)();
+      break;
     }
     var = var->next;
   }
-  PyErr_SetString(PyExc_NameError,"Unknown C global variable");
-  SWIG_PYTHON_THREAD_END_BLOCK; 
-  return NULL;
+  if (res == NULL && !PyErr_Occurred()) {
+    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+  }
+  return res;
 }
 
 SWIGINTERN int
 swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
+  int res = 1;
   swig_globalvar *var = v->vars;
   while (var) {
     if (strcmp(var->name,n) == 0) {
-      int res = (*var->set_attr)(p);
-      SWIG_PYTHON_THREAD_END_BLOCK;
-      return res;
+      res = (*var->set_attr)(p);
+      break;
     }
     var = var->next;
   }
-  PyErr_SetString(PyExc_NameError,"Unknown C global variable");
-  SWIG_PYTHON_THREAD_END_BLOCK; 
-  return 1;
+  if (res == 1 && !PyErr_Occurred()) {
+    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+  }
+  return res;
 }
 
 SWIGINTERN PyTypeObject*

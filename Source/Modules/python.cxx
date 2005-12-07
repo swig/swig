@@ -102,10 +102,7 @@ public:
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",
 	   "} else {\n",
-	   "  SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n",
-	   "  PyErr_SetString(PyExc_RuntimeError,",
-	   "    \"accessing abstract class or protected constructor\"); \n",
-	   "  SWIG_PYTHON_THREAD_END_BLOCK;\n",
+	   "  SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing abstract class or protected constructor\"); \n",
 	   "  SWIG_fail;\n",
 	   "}\n", NIL);
     director_multiple_inheritance = 1;
@@ -1214,9 +1211,7 @@ public:
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
     } else {
-      Printf(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
-      Printf(f->code,"PyErr_SetString(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
-      Printf(f->code,"SWIG_PYTHON_THREAD_END_BLOCK;\n");
+      Printf(f->code,"SWIG_SetErrorMsg(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
       Printf(f->code,"return NULL;\n");
     }
     Printv(f->code,"}\n",NIL);
@@ -1517,9 +1512,7 @@ public:
           Printf(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
 	  if (dirprot_mode() && !is_public(n)) {      
             Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
-	    Printf(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
-	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
-	    Printf(f->code,"SWIG_PYTHON_THREAD_END_BLOCK;\n");
+	    Printf(f->code, "SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
 	    Printf(f->code, "SWIG_fail;\n");
 	    Printf(f->code, "}\n");
 	  }
@@ -1541,7 +1534,6 @@ public:
      
     /* Emit the function call */
     if (director_method) {
-      if (allow_thread) thread_end_block(n, f);
       Printf(f->code, "try {\n");
       Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     } else {
@@ -1563,8 +1555,6 @@ public:
 	Printf(f->code, "}\n");
       }
     }
-    
-    
 
     /* This part below still needs cleanup */
 
