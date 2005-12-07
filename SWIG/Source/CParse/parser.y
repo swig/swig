@@ -184,8 +184,9 @@ void SWIG_cparse_set_compact_default_args(int defargs) {
   compact_default_args = defargs;
 }
 
-void SWIG_cparse_template_reduce(int treduce) {
+int SWIG_cparse_template_reduce(int treduce) {
   template_reduce = treduce;
+  return treduce;  
 }
 
 /* -----------------------------------------------------------------------------
@@ -2022,6 +2023,9 @@ module_directive: MODULE options idstring {
 		   } 
 		   if (Getattr($2,"templatereduce")) {
 		     template_reduce = 1;
+		   }
+		   if (Getattr($2,"notemplatereduce")) {
+		     template_reduce = 0;
 		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
