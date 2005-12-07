@@ -51,6 +51,12 @@
 #define SWIG_OLDOBJ                1
 #define SWIG_NEWOBJ                2
 
+
+/* Flags for returning states */
+#define  SWIG_OK                   0 
+#define  SWIG_ERROR               -1
+
+
 #include <string.h>
 
 #ifdef __cplusplus

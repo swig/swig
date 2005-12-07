@@ -1,8 +1,4 @@
 /*  Errors in SWIG */
-
-#define  SWIG_OK                   0 
-#define  SWIG_ERROR               -1
-
 #define  SWIG_MemoryError    	   1 
 #define  SWIG_IOError        	   2 
 #define  SWIG_RuntimeError   	   3 
