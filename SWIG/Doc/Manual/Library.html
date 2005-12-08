@@ -75,7 +75,7 @@ When searching for files, directories are searched in the following order:
 
 <p>
 Within each directory, SWIG first looks for a subdirectory corresponding to a target language (e.g., <tt>python</tt>,
-<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows 
+<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows
 for language-specific implementations of library files.
 </p>
 
@@ -88,7 +88,7 @@ You can override the location of the SWIG library by setting the
 
 
 <p>
-This section describes library modules for manipulating low-level C arrays and pointers. 
+This section describes library modules for manipulating low-level C arrays and pointers.
 The primary use of these modules is in supporting C declarations that manipulate bare
 pointers such as <tt>int *</tt>, <tt>double *</tt>, or <tt>void *</tt>.  The modules can be
 used to allocate memory, manufacture pointers, dereference memory, and wrap
@@ -127,7 +127,7 @@ object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
 </p>
 
 <div class="indent"><p>
-Creates a new object of type <tt>type</tt> and returns a pointer to it. 
+Creates a new object of type <tt>type</tt> and returns a pointer to it.
 An initial value is set by copying it from <tt>value</tt>. In C, the
 object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
 </p></div>
@@ -187,7 +187,7 @@ Now, in Python:
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.new_intp()     # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3,4,c)         # Call function   
+&gt;&gt;&gt; example.add(3,4,c)         # Call function
 &gt;&gt;&gt; example.intp_value(c)      # Dereference
 7
 &gt;&gt;&gt; example.delete_intp(c)     # Delete
@@ -267,7 +267,7 @@ Now, in Python (using proxy classes)
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.intp()         # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3,4,c)         # Call function   
+&gt;&gt;&gt; example.add(3,4,c)         # Call function
 &gt;&gt;&gt; c.value()                  # Dereference
 7
 </pre>
@@ -369,7 +369,7 @@ should not correspond to any other name used in the interface file.
 </p>
 
 <p>
-Here is an example of <tt>%array_functions()</tt>.  Suppose you had a 
+Here is an example of <tt>%array_functions()</tt>.  Suppose you had a
 function like this:
 </p>
 
@@ -447,7 +447,7 @@ it can be transparently passed to any function that expects the pointer.
 
 
 <p>
-When combined with proxy classes, the <tt>%array_class()</tt> macro can be especially useful. 
+When combined with proxy classes, the <tt>%array_class()</tt> macro can be especially useful.
 For example:
 </p>
 
@@ -633,7 +633,7 @@ Now, in a script:
 &gt;&gt;&gt; a = malloc_int()
 &gt;&gt;&gt; a
 '_000efa70_p_int'
-&gt;&gt;&gt; free_int(a)    
+&gt;&gt;&gt; free_int(a)
 &gt;&gt;&gt; b = malloc_intp()
 &gt;&gt;&gt; b
 '_000efb20_p_p_int'
@@ -654,7 +654,7 @@ Now, in a script:
 
 <p>
 The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
-in the target language.  The primary applications of this module would be packing/unpacking of 
+in the target language.  The primary applications of this module would be packing/unpacking of
 binary data structures---for instance, if you needed to extract data from a buffer.
 The target language must support strings with embedded binary data
 in order for this to work.
@@ -665,7 +665,7 @@ in order for this to work.
 </p>
 
 <div class="indent"><p>
-Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any 
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any
 pointer.
 </p></div>
 
@@ -674,13 +674,13 @@ pointer.
 </p>
 
 <div class="indent"><p>
-Copies all of the string data in <tt>s</tt> into the memory pointed to by 
-<tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of 
+Copies all of the string data in <tt>s</tt> into the memory pointed to by
+<tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of
 the string is implicitly determined in the underlying wrapper code.
 </p></div>
 
 <p>
-One use of these functions is packing and unpacking data from memory. 
+One use of these functions is packing and unpacking data from memory.
 Here is a short example:
 </p>
 
@@ -712,7 +712,7 @@ Python example:
 &gt;&gt;&gt; memmove(c,b)
 &gt;&gt;&gt; print c[4]
 4
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 </pre>
 </div>
 
@@ -764,7 +764,7 @@ fixed-sized buffers.
 The problems (and perils) of using <tt>char *</tt> are
 well-known. However, SWIG is not in the business of enforcing
 morality.  The modules in this section provide basic functionality
-for manipulating raw C strings. 
+for manipulating raw C strings.
 </p>
 
 <H3><a name="Library_nn9"></a>8.3.1 Default string handling</H3>
@@ -868,7 +868,7 @@ char *foo() {
 
 <p>
 then the SWIG generated wrappers will have a memory leak--the returned data will be copied
-into a string object and the old contents ignored.  
+into a string object and the old contents ignored.
 </p>
 
 <p>
@@ -996,7 +996,7 @@ In the target language:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; get_packet()
-'\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
+'\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f\xd3\x99\x14V\xec\x06\xea\xa2\x88'
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -1295,13 +1295,13 @@ In the target language:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo()
-'\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
+'\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f\xd3\x99\x14V\xec\x06\xea\xa2\x88'
 &gt;&gt;&gt;
 </pre>
 </div>
 
 <p>
-This is the safest and most reliable way to return binary string data in 
+This is the safest and most reliable way to return binary string data in
 SWIG.  If you have functions that conform to another prototype, you might
 consider wrapping them with a helper function.   For example, if you had this:
 </p>
@@ -1334,7 +1334,7 @@ void my_get_data(char **result, int *len) {
 SWIG modules currently support this library.
 </li>
 
-<li>Reliable handling of raw C strings is a delicate topic.  There are many ways 
+<li>Reliable handling of raw C strings is a delicate topic.  There are many ways
 to accomplish this in SWIG.  This library provides support for a few common techniques.
 </li>
 
@@ -1413,6 +1413,42 @@ bar("Hello World");       # Pass string as std::string
 </div>
 
 <p>
+A common problem that people encounter is that of classes/structures
+containing a <tt>std::string</tt>. This can be overcome by defining a typemap.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include "std_string.i"
+
+%apply const std::string& {std::string* foo};
+
+struct my_struct
+{
+  std::string foo;
+};
+</pre>
+</div>
+
+<p>
+In the target language:
+</p>
+
+<div class="targetlang">
+<pre>
+x = my_struct();
+x.foo="Hello World";      # assign with string
+print x.foo;              # print as string
+</pre>
+</div>
+
+<p>
+</pre>
+</div>
+
+<p>
 This module only supports types <tt>std::string</tt> and
 <tt>const std::string &amp;</tt>.    Pointers and non-const references
 are left unmodified and returned as SWIG pointers.
@@ -1473,7 +1509,7 @@ currently a subset of the real STL vector class.
 
 <li>Input typemaps are defined for <tt>vector&lt;X&gt;</tt>, <tt>const vector&lt;X&gt; &amp;</tt>, and
 <tt>const vector&lt;X&gt; *</tt>.  For each of these, a pointer <tt>vector&lt;X&gt; *</tt> may be passed or
-a native list object in the target language. 
+a native list object in the target language.
 </li>
 
 <li>An output typemap is defined for <tt>vector&lt;X&gt;</tt>.  In this case, the values in the
@@ -1484,7 +1520,7 @@ vector are expanded into a list object in the target language.
 object in the usual manner.
 </li>
 
-<li>An exception handler for <tt>std::out_of_range</tt> is defined. 
+<li>An exception handler for <tt>std::out_of_range</tt> is defined.
 </li>
 
 <li>Optionally, special methods for indexing, item retrieval, slicing, and element assignment
@@ -1588,7 +1624,7 @@ IndexError: vector index out of range
 </div>
 
 <p>
-This library module is fully aware of C++ namespaces.  If you use vectors with other names, 
+This library module is fully aware of C++ namespaces.  If you use vectors with other names,
 make sure you include the appropriate <tt>using</tt> or typedef directives.  For example:
 </p>
 
@@ -1615,12 +1651,12 @@ if you want to make their head explode.
 </p>
 
 <p>
-<b>Note:</b> This module is defined for all SWIG target languages.  However argument conversion 
+<b>Note:</b> This module is defined for all SWIG target languages.  However argument conversion
 details and the public API exposed to the interpreter vary.
 </p>
 
 <p>
-<b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.  
+<b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.
 </p>
 
 
