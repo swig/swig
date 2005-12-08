@@ -128,46 +128,46 @@ public:
     return SWIG_OK;
   }
   
-  virtual void thread_begin_block(Node *n, Wrapper *f) {
+  virtual void thread_begin_block(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadblock")) {
       String *bb = Getattr(n,"feature:threadbeginblock");
       if (bb) {
-	Append(f->code, bb);
+	Append(f, bb);
       } else {
-	Append(f->code,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
+	Append(f,"SWIG_PYTHON_THREAD_BEGIN_BLOCK;\n");
       }      
     }
   }
   
-  virtual void thread_end_block(Node *n, Wrapper *f) {
+  virtual void thread_end_block(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadblock")) {
       String *eb = Getattr(n, "feature:threadendblock");
       if (eb) {
-	Append(f->code,eb);
+	Append(f, eb);
       } else {
-	Append(f->code, "SWIG_PYTHON_THREAD_END_BLOCK;\n");
+	Append(f, "SWIG_PYTHON_THREAD_END_BLOCK;\n");
       }
     }
   }
 
-  virtual void thread_begin_allow(Node *n, Wrapper *f) {
+  virtual void thread_begin_allow(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadallow")) {
       String *bb = Getattr(n, "feature:threadbeginallow");
       if (bb) {
-	Append(f->code,bb);
+	Append(f, bb);
       } else {
-	Append(f->code, "SWIG_PYTHON_THREAD_BEGIN_ALLOW;\n");
+	Append(f, "SWIG_PYTHON_THREAD_BEGIN_ALLOW;\n");
       }
     }
   }
   
-  virtual void thread_end_allow(Node *n, Wrapper *f) {
+  virtual void thread_end_allow(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadallow")) {
       String *eb = Getattr(n, "feature:threadendallow");
       if (eb) {
-	Append(f->code, eb);
+	Append(f, eb);
       } else {
-	Append(f->code, "SWIG_PYTHON_THREAD_END_ALLOW;\n");
+	Append(f, "SWIG_PYTHON_THREAD_END_ALLOW;\n");
       }
     }
   }
@@ -1182,6 +1182,8 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    int allow_thread = threads_enable(n);
+
     String *tmp = NewString("");
     String *dispatch = Swig_overload_dispatch(n,"return %s(self,args);",&maxargs);
 	
@@ -1200,13 +1202,28 @@ public:
     Printf(tmp,"PyObject *argv[%d]", maxargs+1);
     Wrapper_add_local(f,"argv",tmp);
     Wrapper_add_local(f,"ii","int ii");
+
+    if (allow_thread) thread_begin_block(n, f->code);
+
     Printf(f->code,"argc = PyObject_Length(args);\n");
     Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n",maxargs);
     Printf(f->code,"argv[ii] = PyTuple_GetItem(args,ii);\n");
     Printf(f->code,"}\n");
     
     Replaceall(dispatch,"$args","self,args");
+
+    if (allow_thread) {
+      String *ret = NewStringEmpty();
+      thread_end_block(n, ret);
+      Append(ret, "return ");
+      Replaceall(dispatch,"return ",ret);
+      Delete(ret);
+    }
+
     Printv(f->code,dispatch,"\n",NIL);
+
+    if (allow_thread) thread_end_block(n, f->code);
+
     if (GetFlag(n,"feature:python:maybecall")) {
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
@@ -1285,7 +1302,7 @@ public:
     kwargs       = NewString("");
 
     int allow_thread = threads_enable(n);
-    if (allow_thread) thread_begin_block(n, f);
+    if (allow_thread) thread_begin_block(n, f->code);
     
     Wrapper_add_local(f,"resultobj", "PyObject *resultobj = 0");
 
@@ -1539,7 +1556,7 @@ public:
     } else {
       if (allow_thread) {
 	Printf(f->code, "{\n");
-	thread_begin_allow(n, f);
+	thread_begin_allow(n, f->code);
       }
     }
     
@@ -1551,7 +1568,7 @@ public:
       Printf(f->code, "}\n");
     } else {
       if (allow_thread) {
-	thread_end_allow(n, f);
+	thread_end_allow(n, f->code);
 	Printf(f->code, "}\n");
       }
     }
@@ -1647,7 +1664,7 @@ public:
       }
     }
 
-    if (allow_thread) thread_end_block(n, f);
+    if (allow_thread) thread_end_block(n, f->code);
     Printf(f->code,"    return resultobj;\n");
 
     /* Error handling code */
@@ -1656,7 +1673,7 @@ public:
     if (need_cleanup) {
       Printv(f->code,cleanup,NIL);
     }
-    if (allow_thread) thread_end_block(n, f);
+    if (allow_thread) thread_end_block(n, f->code);
     Printv(f->code,tab4,"return NULL;\n",NIL);
     
     
@@ -3000,14 +3017,14 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code,
 	   "Swig::DirectorPureVirtualException::raise(\"%s.\");\n",Swig_method_call(super,l));
   } else { 
-    if (allow_thread) thread_begin_allow(n, w);
+    if (allow_thread) thread_begin_allow(n, w->code);
     if (is_void) {
       Printf(w->code, "%s;\n", Swig_method_call(super,l));
       Printf(w->code, "return;\n");
     } else {
       Printf(w->code, "return %s;\n", Swig_method_call(super,l));
     }
-    if (allow_thread) thread_end_allow(n, w);
+    if (allow_thread) thread_end_allow(n, w->code);
   }
   Printf(w->code, "}\n");
   Printf(w->code, "{\n");
@@ -3021,7 +3038,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "%s;\n", cres);
     Delete(cres);
   }
-  if (allow_thread) thread_begin_block(n, w);
+  if (allow_thread) thread_begin_block(n, w->code);
   
     
   /* wrap complex arguments to PyObjects */
@@ -3160,7 +3177,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
 
   /* any existing helper functions to handle this? */
-  if (allow_thread) thread_end_block(n, w);
+  if (allow_thread) thread_end_block(n, w->code);
   if (!is_void) {
     String* rettype = SwigType_str(return_type, 0);      
     if (!SwigType_isreference(return_type)) {
