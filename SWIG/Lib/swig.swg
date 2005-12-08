@@ -92,6 +92,11 @@
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
 
+/* the %fastdispatch directive */
+#define %fastdispatch        %feature("fastdispatch")
+#define %nofastdispatch      %feature("fastdispatch","0")
+#define %clearfastdispatch   %feature("fastdispatch","")
+
 
 /* Common features */
 

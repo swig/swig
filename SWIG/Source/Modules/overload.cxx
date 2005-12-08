@@ -372,6 +372,7 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
   /* Loop over the functions */
 
   for (i = 0; i < nfunc; i++) {
+    int fn = 0;
     Node *ni = Getitem(dispatch,i);
     Parm *pi = Getattr(ni,"wrap:parms");
     int num_required = emit_num_required(pi);
@@ -410,8 +411,7 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
     int num_braces = 0;
     bool test=(Len(coll)>0 && num_arguments);
     if (test) {
-      Printf(f,"int _v=1;\n");
-    
+      int need_v = 1;
       j = 0;
       Parm *pj = pi;
       while (pj) {
@@ -459,6 +459,10 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
 	  }
 
 	  if (emitcheck) {
+	    if (need_v) {
+	      Printf(f,"int _v = 1;\n");
+	      need_v = 0;
+	    }
 	    if (j >= num_required) {
 	      Printf(f, "if (%s > %d) {\n", argc_template_string, j);
 	      num_braces++;
@@ -466,7 +470,8 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
 	    String *tmp=NewStringf(argv_template_string, j);
 	    Replaceall(tm,"$input", tmp);
 	    Printv(f,"{\n",tm,"}\n",NIL);
-	    Printf(f, "if (!_v) goto fail_%s;\n", Getattr(ni, "wrap:name"));
+	    fn = i + 1;
+	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	  }
 	}
 	if (!Getattr(pj,"tmap:in:SWIGTYPE") && Getattr(pj,"tmap:typecheck:SWIGTYPE")) {
@@ -491,7 +496,7 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
     Printf(f, Char(lfmt),Getattr(ni,"wrap:name"));
 
     Printf(f,"}\n"); /* braces closes "if" for this method */
-    Printf(f, "fail_%s:\n\n", Getattr(ni,"wrap:name"));
+    if (fn) Printf(f, "check_%d:\n\n", fn);
 
     Delete (lfmt);
     Delete(coll);

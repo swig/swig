@@ -189,6 +189,7 @@ CPP_TEST_CASES += \
 	overload_simple \
 	overload_subtype \
 	overload_template \
+	overload_template_fast \
 	pointer_reference \
 	primitive_ref \
 	private_assign \
