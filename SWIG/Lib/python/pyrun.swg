@@ -571,7 +571,7 @@ PySwigPacked_type(void) {
   static PyTypeObject pyswigpacked_type;
   static int type_init = 0;  
   if (!type_init) {
-    PyTypeObject tmp
+    const PyTypeObject tmp
       = {
 	PyObject_HEAD_INIT(NULL)
 	0,				    /* ob_size */	
@@ -595,20 +595,15 @@ PySwigPacked_type(void) {
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
 	swigpacked_doc, 	            /* tp_doc */
-#if PY_VERSION_HEX >= 0x02000000
 	0,                                  /* tp_traverse */
 	0,                                  /* tp_clear */
-#endif
-#if PY_VERSION_HEX >= 0x02010000
 	0,                                  /* tp_richcompare */
 	0,                                  /* tp_weaklistoffset */
-#endif
 #if PY_VERSION_HEX >= 0x02020000
 	0,                                  /* tp_iter */
 	0,                                  /* tp_iternext */
-#endif
 	0,		                    /* tp_methods */ 
-	0,			            /* tp_members */    		
+	0,			            /* tp_members */
 	0,				    /* tp_getset */	    	
 	0,			            /* tp_base */	        
 	0,				    /* tp_dict */	    	
@@ -625,6 +620,7 @@ PySwigPacked_type(void) {
 	0,				    /* tp_cache */   
  	0,				    /* tp_subclasses */
 	0,				    /* tp_weaklist */
+#endif
 #if PY_VERSION_HEX >= 0x02030000
 	0,                                  /* tp_del */
 #endif
