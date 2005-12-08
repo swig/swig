@@ -289,12 +289,19 @@ SWIG_Ruby_GetModule()
 {
   VALUE pointer;
   swig_module_info *ret = 0;
+  VALUE verbose = rb_gv_get("VERBOSE");
+
+ /* temporarily disable warnings, since the pointer check causes warnings with 'ruby -w' */
+  rb_gv_set("VERBOSE", Qfalse);
   
   /* first check if pointer already created */
   pointer = rb_gv_get("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   if (pointer != Qnil) {
     Data_Get_Struct(pointer, swig_module_info, ret);
   }
+
+  /* reinstate warnings */
+  rb_gv_set("VERBOSE", verbose);
   return ret;
 }
 
