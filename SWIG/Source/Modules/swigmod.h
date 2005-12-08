@@ -350,6 +350,7 @@ int is_member_director(Node* member);
 void Wrapper_virtual_elimination_mode_set(int);
 void Wrapper_director_mode_set(int);
 void Wrapper_director_protected_mode_set(int);
+void Wrapper_fast_dispatch_mode_set(int);
 
 void clean_overloaded(Node *n);
 

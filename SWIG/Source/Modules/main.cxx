@@ -59,6 +59,7 @@ static const char *usage1 = (const char*)"\
                        -features directors,autodoc=1      \n\
                        if not explicit value is given to the feature, a '1' is used \n\
      -fvirtual       - Compile in virtual elimination mode\n\
+     -fdispatch      - Use fast dispatch mode, which produces faster overload dispatcher code\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -help           - This output\n\
@@ -387,6 +388,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-fvirtual") == 0) {
 	    Wrapper_virtual_elimination_mode_set(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-fdispatch") == 0) {
+	    Wrapper_fast_dispatch_mode_set(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-directors") == 0) {
 	    Hash *features_hash = Swig_cparse_features();
