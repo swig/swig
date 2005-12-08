@@ -27,13 +27,13 @@ Version 1.3.28 (unreleased).
 
 	    You use this new mechanism as
 
-                swig -fastdispatch
+              swig -fastdispatch
 
             or using the feature form
 
-	       %feature("fastdispatch") method;
-           or
-               %fastdispatch method;
+	      %feature("fastdispatch") method;
+            or
+              %fastdispatch method;
 	    
 
 12/06/2005: mmatus 
@@ -70,13 +70,14 @@ Version 1.3.28 (unreleased).
             Py_None is never accessed as a structure, plus other
             tricks mentioned there.
 
+12/06/2005: mmatus
 	    [Python] Added initial support for threads based in the
 	    proposal by Joseph Winston.
 
 	    The user interface is as follows:
 
 	    1.- the module thread support is enable via the "threads" module
-                option, ie
+                option, i.e.
 
                   %module("threads"=1)
 
@@ -112,6 +113,24 @@ Version 1.3.28 (unreleased).
 
 		If you get a working implementation for older versions,
 		please send us a patch.
+
+            For the curious about performance, here are some numbers
+            for the profiletest.i test, which is used to check the speed
+	    of the wrapped code:
+
+	        nothread           9.6s  (no thread code)
+		nothreadblock     12.2s  (only 'allow' code)
+		nothreadallow     13.6s  (only 'block' code)
+                full thread       15.5s  ('allow' + 'block' code)
+	    
+	    i.e., full thread code decreases the wrapping performance
+	    around 60%. If that is important to your application, you
+	    can tune each method usin the different 'nothread',
+	    'nothreadblock' or 'nothreadallow' features as
+	    needed. Note that for some methods deactivating the
+	    'thread block' or 'thread allow' code is not an option,
+	    so, be careful.
+	    
 
 11/26/2005: wsfulton
             SWIG library files use system angle brackets everywhere for %include, eg
@@ -726,6 +745,11 @@ Version 1.3.28 (unreleased).
 	      line files that include the proper typemap library
 	      version.
 
+            *** POTENTIAL INCOMPATIBILITY in Perl ***
+
+	    Some missing/wrong typemaps could start working properly,
+	    and change the old expected behavior in Perl.
+
 10/23/2005: wuzzeb
             Chicken:
               + pointers to member functions finally work properly
@@ -823,9 +847,10 @@ Version 1.3.28 (unreleased).
 	    integrate a new language could change as we move to
 	    integrate the STD/STL.
 
-            *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY in Ruby/Tcl ***
 
-	    Some missing typemaps could start working, and change
-	    the old expected behavior, specially in ruby and tcl.
+	    Some missing/wrong typemaps could start working properly,
+	    and change the old expected behavior, specially in ruby
+	    and tcl.
 
 	    	    
