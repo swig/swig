@@ -375,6 +375,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
 	int     sz, i;
 	String *dvalue = 0;
+	String *qvalue = 0;
 	
 	name = Getattr(tp,k_name);
 	value = Getattr(p,k_value);
@@ -382,7 +383,8 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 
 	if (name) {
 	  if (!value) value = Getattr(p,k_type);
-	  dvalue = Swig_symbol_type_qualify(value,tsdecl);
+	  qvalue = Swig_symbol_type_qualify(value,tsdecl); 
+	  dvalue = Swig_symbol_typedef_reduce(qvalue, tsdecl);
 	  if (SwigType_istemplate(dvalue)) {
 	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
 	    Delete(dvalue);
@@ -434,6 +436,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	  Delete(tmpr);
 	  Delete(valuestr);
 	  Delete(dvalue);
+	  Delete(qvalue);
 	}
 	p = nextSibling(p);
 	tp = nextSibling(tp);
