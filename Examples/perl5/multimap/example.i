@@ -31,7 +31,7 @@ extern int    gcd(int x, int y);
   tempav = (AV*)SvRV($input);
   len = av_len(tempav);
   $1 = (int) len+1;
-  $2 = (char **) malloc($1*sizeof(char *));
+  $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
     tv = av_fetch(tempav, i, 0);
     $2[i] = (char *) SvPV(*tv,PL_na);

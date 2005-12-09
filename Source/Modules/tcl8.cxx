@@ -299,7 +299,10 @@ public:
  
     f = NewWrapper();
 
+#ifdef SWIG_USE_RESULTOBJ
     Wrapper_add_local(f,"resultobj", "Tcl_Obj *resultobj = NULL");
+#endif
+
 
     String  *wname = Swig_name_wrapper(iname);
     if (overname) {
@@ -436,8 +439,13 @@ public:
     for (i=0,p = parms; p;i++) {
       if ((tm = Getattr(p,"tmap:argout"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
+#ifdef SWIG_USE_RESULTOBJ
 	Replaceall(tm,"$target","resultobj");
 	Replaceall(tm,"$result","resultobj");
+#else
+	Replaceall(tm,"$target","(Tcl_GetObjResult(interp))");
+	Replaceall(tm,"$result","(Tcl_GetObjResult(interp))");
+#endif
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
 	Printv(outarg,tm,"\n",NIL);
@@ -455,8 +463,13 @@ public:
     /* Return value if necessary  */
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
       Replaceall(tm,"$source", "result");
-      Replaceall(tm,"$target", "resultobj");
-      Replaceall(tm,"$result", "resultobj");
+#ifdef SWIG_USE_RESULTOBJ
+      Replaceall(tm,"$target","resultobj");
+      Replaceall(tm,"$result","resultobj");
+#else
+      Replaceall(tm,"$target","(Tcl_GetObjResult(interp))");
+      Replaceall(tm,"$result","(Tcl_GetObjResult(interp))");
+#endif
       if(GetFlag(n,"feature:new")) {
         Replaceall(tm,"$owner","SWIG_POINTER_OWN");
       } else {
@@ -486,7 +499,9 @@ public:
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n", tm);
     }
+#ifdef SWIG_USE_RESULTOBJ
     Printv(f->code, "if (resultobj) Tcl_SetObjResult(interp, resultobj);\n", NIL);
+#endif
     Printv(f->code, "return TCL_OK;\n", NIL);
     Printv(f->code, "fail:\n", cleanup, "return TCL_ERROR;\n", NIL);
     Printv(f->code,"}\n", NIL);

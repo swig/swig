@@ -15,11 +15,11 @@
 
 
 %typemap(out,noblock=1) SWIG_Object {
-  $result = $1;
+  %set_output($1);
 }
 
 %typemap(out,noblock=1)  SWIG_Object const & {
-  $result = *$1;
+  %set_output(*$1);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIG_Object "$1 = ($input != 0);";
