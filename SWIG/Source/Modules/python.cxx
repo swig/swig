@@ -60,6 +60,7 @@ static  String   *real_classname;
 /* Thread Support */
 static  int       threads = 0;
 static  int       nothreads = 0;
+static  int       classptr = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -86,6 +87,7 @@ Python Options (available with -python)\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
      -new_repr       - Use more informative version of __repr__ in proxy classes (default) \n\
      -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
+     -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -threads        - Add thread support for all the interface\n\
      -nothreads      - Disable thread support for all the interface\n\
      -noexcept       - No automatic exception handling\n\
@@ -213,6 +215,9 @@ public:
           Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-old_repr") == 0) {
           new_repr = 0;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i],"-classptr") == 0) {
+          classptr = 1;
           Swig_mark_arg(i);
 	} else if ((strcmp(argv[i],"-noproxy") == 0)) {
 	  shadow = 0;
@@ -2304,29 +2309,34 @@ public:
       Printv(f_shadow_file, f_shadow, NIL);
 
       /* Now the Ptr class */
-#if 0
-      Printv(f_shadow_file,
-  	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
-             tab4, "def __init__(self, this):\n", NIL);
-      if (!modern) {
-        Printv(f_shadow_file,
-               tab8, "_swig_setattr(self, ", class_name, ", 'this', this)\n",
+      if (classptr) {
+	Printv(f_shadow_file,
+	       "\nclass ", class_name, "Ptr(", class_name, "):\n",
+	       tab4, "def __init__(self, this):\n", NIL);
+	if (!modern) {
+	  Printv(f_shadow_file,
+		 tab8, "try: self.this.append(this)\n",
+		 tab8, "except: self.this = this\n",
 #ifdef USE_THISOWN
-               tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
+		 tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
+#else
+		 tab8, "self.this.own(0)\n",
 #endif
-	       tab8, "self.__class__ = ", class_name, "\n", NIL);
-      } else {
-        Printv(f_shadow_file,
-               tab8, "self.this = this\n",
+		 tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+	} else {
+	  Printv(f_shadow_file,
+		 tab8, "try: self.this.append(this)\n",
+		 tab8, "except: self.this = this\n",
 #ifdef USE_THISOWN
-               tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
+		 tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
+#else
+		 tab8, "self.this.own(0)\n",
 #endif
-               tab8, "self.__class__ = ", class_name, "\n", NIL);
-  	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
-  	     //	   tab8,"except AttributeError: self.this = this\n"
+		 tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+	}
       }
-#endif
-
+      
+      
       List *shadow_list = Getattr(n,"shadow_methods");
       for (int i = 0; i < Len(shadow_list); ++i) {
 	String *symname = Getitem(shadow_list,i);

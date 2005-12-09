@@ -638,10 +638,17 @@ Version 1.3.28 (unreleased).
 	    
             *** POTENTIAL INCOMPATIBILITY ***
 	    
-	    There is no more ClassPtr classes, so, if in the past you
-	    needed to resort in some kind of trick to use, or overcome
-	    their presence, it is no longer needed, but the extra code
-	    you added could break.
+	    There is no more ClassPtr classes in the python code. Hence,
+	    if in the past you needed to resort in some kind of trick
+	    to use them, or overcome their presence, it is no longer
+	    required, but the extra code you added could now break
+	    things arounds.
+
+	    If needed, you can use the option -classptr, i.e.,
+
+               swig -classptr -python ...
+
+	    to generate the old ClassPtr classes.
 
 
 10/30/2005: mkoeppe 
