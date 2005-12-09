@@ -13,7 +13,7 @@ char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(1);
+static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
 
@@ -61,6 +61,7 @@ static  String   *real_classname;
 static  int       threads = 0;
 static  int       nothreads = 0;
 static  int       classptr = 0;
+static  int       shadowimport = 1;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -92,7 +93,9 @@ Python Options (available with -python)\n\
      -nothreads      - Disable thread support for all the interface\n\
      -noexcept       - No automatic exception handling\n\
      -noh            - Don't generate the output header file\n\
-     -noproxy        - Don't generate proxy classes \n\n";
+     -noproxy        - Don't generate proxy classes \n\
+     -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
+\n";
 
 class PYTHON : public Language {
 public:
@@ -221,6 +224,9 @@ public:
           Swig_mark_arg(i);
 	} else if ((strcmp(argv[i],"-noproxy") == 0)) {
 	  shadow = 0;
+	  Swig_mark_arg(i);
+	} else if ((strcmp(argv[i],"-noproxyimport") == 0)) {
+	  shadowimport = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
@@ -418,7 +424,6 @@ public:
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow",f_shadow);
-      Swig_register_filebyname("python_header",f_shadow_imports);
       Swig_register_filebyname("python",f_shadow);
 
       Printv(f_shadow_py,
@@ -554,8 +559,11 @@ public:
     Printf(f_wrappers,"#endif\n");
 
     if (shadow) {
+      /*
       Printf(f_shadow_imports,"\nimport %s\n", module);
       Printv(f_shadow_py, f_shadow_imports, "\n",NIL);
+      */
+      Printf(f_shadow_py,"\nimport %s\n", module);
       Printv(f_shadow_py, f_shadow, "\n",NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n",NIL);
 
@@ -616,11 +624,16 @@ public:
         }
 
         // finally, output the name of the imported module
-	Printf(import, "%s\n", modname);
-
-	if (!Strstr(f_shadow_imports, import)) {
-	  Printf(f_shadow_imports, "%s", import);
+	if (shadowimport) {
+	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {	    
+	    Printf(import, "_%s\n", modname);
+	    if (!Strstr(f_shadow_imports, import)) {
+	      Printf(f_shadow, "import %s\n", modname);
+	      Printf(f_shadow_imports, "%s", import);
+	    }
+	  }
 	}
+	
 	Delete(import);
       }
     }
