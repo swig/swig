@@ -2103,6 +2103,8 @@ int Language::classHandler(Node *n) {
 	Delete(cn);
       }
     }
+  }
+  if (!ImportMode) {
     if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) && (Getattr(n,"allocate:default_destructor"))) {
       Node *cn = makeDestructor(CurrentClass);
       destructorHandler(cn);
