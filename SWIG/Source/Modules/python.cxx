@@ -224,6 +224,7 @@ public:
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;
 	  apply = 1;
+	  modern = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-cppcast") == 0) {
 	  cppcast = 1;
@@ -439,6 +440,7 @@ public:
         // Python-2.2 object hack
         Printv(f_shadow,
                "def _swig_setattr_nondynamic(self,class_type,name,value,static=1):\n",
+               tab4, "if (name == \"thisown\"): return self.this.own(value)\n",
                tab4, "if (name == \"this\"):\n",
                tab4, tab4, "if type(value).__name__ == 'PySwigObject':\n",
                tab4, tab8, "self.__dict__[name] = value\n",
@@ -463,6 +465,7 @@ public:
 
         Printv(f_shadow,
                "def _swig_getattr(self,class_type,name):\n",
+               tab4, "if (name == \"thisown\"): return self.this.own()\n",
                tab4, "method = class_type.__swig_getmethods__.get(name,None)\n",
                tab4, "if method: return method(self)\n",
                tab4, "raise AttributeError,name\n\n",
@@ -489,6 +492,7 @@ public:
 #ifdef USE_THISOWN
 	       tab4, tab4, "if hasattr(self,name) or (name in (\"this\", \"thisown\")):\n",
 #else
+	       tab4, tab4, "if (name == \"thisown\"): return self.this.own(value)\n",
 	       tab4, tab4, "if hasattr(self,name) or (name == \"this\"):\n",
 #endif
 	       tab4, tab4, tab4, "set(self,name,value)\n",
@@ -2229,6 +2233,8 @@ public:
                tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
                NIL);
       } else {
+	Printv(f_shadow, tab4, "if _newclass: thisown = property(lambda x: x.this.own(), ",
+	       "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n,"feature:python:nondynamic")) {
 	  Printv(f_shadow_file,

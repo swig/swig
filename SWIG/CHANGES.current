@@ -490,7 +490,7 @@ Version 1.3.28 (unreleased).
 	    - Finally, no more ClassPtr shadow classes. You will see
 	      only a clean Class shadow class in the .py file.
 
-	    - No more thisown attribute either, the PySwigObject now
+	    - No more 'real' thisown attribute either, the PySwigObject now
               carries the ownership info.
 
 	      You can also do something like
@@ -499,12 +499,31 @@ Version 1.3.28 (unreleased).
 		  >>> True
 		  
 		  self.this.disown()
+		  self.this.own(0)
 	          print self.this.own() 
 		  >>> False		  
 
 		  self.this.acquire()
+		  self.this.own(1)
 	          print self.this.own() 
-		  >>> True		  
+		  >>> True
+
+	      Still the old way,
+	      
+	          print self.thisown
+		  >>> True
+
+		  self.thisown = 0
+	          print self.thisown
+		  >>> False		  
+
+		  self.thisown = 1
+	          print self.thisown
+		  >>> True
+
+              is supported, and python dispatch the proper method
+              calls as needed. 		  
+	       
 
 	    - Support for iterators in STL/STD containers, for example, if you have
 
@@ -605,20 +624,25 @@ Version 1.3.28 (unreleased).
 		      
             *** POTENTIAL INCOMPATIBILITY ***
 
-	    There is no more 'thisown' attribute. If you use it, you
-	    need to change as follows:
+	    There is no more 'thisown' attribute. If you use it, python
+	    will translate the following code as follows:
 
                 if (self.thisown):   ==>   if (self.this.own()):
-		self.thisown = 1     ==>   self.this.acquire()
-                self.thisown = 0     ==>   self.this.disown()
+		self.thisown = 1     ==>   self.this.own(1)
+                self.thisown = 0     ==>   self.this.own(0)
 
-            if you really really like the old 'thisown' attribute, you
-	    can submit a patch to treat it as a property, and dispatch
-	    the new method calls. Of course, before you try, it needs
-	    to work with old and new python versions, and with classic
-	    and modern python classes.
+	    Still, maybe in some strange case the translation is not
+	    100% secure,so if you have a problem, please report it
+	    and/or use the new 'self.this.own()' accessor.
 	    
 	    
+            *** POTENTIAL INCOMPATIBILITY ***
+	    
+	    There is no more ClassPtr classes, so, if in the past you
+	    needed to resort in some kind of trick to use, or overcome
+	    their presence, it is no longer needed, but the extra code
+	    you added could break.
+
 
 10/30/2005: mkoeppe 
 	    [Guile] Make declared and defined linkage of SWIG_init consistent.  
