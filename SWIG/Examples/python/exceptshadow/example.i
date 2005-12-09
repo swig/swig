@@ -47,10 +47,10 @@
    try {
       $action
    } catch(FullError& e) {
-      FullError *ecopy = new FullError(e);
-      PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_FullError, 1);
-      PyErr_SetObject((PyObject *) SWIGTYPE_p_FullError->clientdata, err);
-      return NULL;
+     FullError *ecopy = new FullError(e);
+     PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_FullError, 1);
+     PyErr_SetObject(SWIG_Python_ExceptionType(SWIGTYPE_p_FullError), err);
+     SWIG_fail;
    }
 }
 
@@ -87,6 +87,7 @@
 
 */
 %exceptionclass EmptyError;
+%exceptionclass FullError;
 
 %exception *::dequeue {
    try {
@@ -94,8 +95,8 @@
    } catch(EmptyError& e) {
       EmptyError *ecopy = new EmptyError(e);
       PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_EmptyError, 1);
-      PyErr_SetObject((PyObject *) SWIGTYPE_p_EmptyError->clientdata, err);
-      return NULL;
+      PyErr_SetObject(SWIG_Python_ExceptionType(SWIGTYPE_p_EmptyError), err);
+      SWIG_fail;
    }
 }
 

@@ -532,7 +532,7 @@ namespace swig
     typedef Reference reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef int difference_type;
+    typedef ptrdiff_t difference_type;
 
     PySequence_InputIterator()
     {

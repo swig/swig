@@ -30,10 +30,18 @@
          SWIG_Python_Thread_Allow() : status(true), save(PyEval_SaveThread()) {}
          ~SWIG_Python_Thread_Allow() { end(); }
        };
-#      define SWIG_PYTHON_THREAD_BEGIN_BLOCK   SWIG_Python_Thread_Block _swig_thread_block
-#      define SWIG_PYTHON_THREAD_END_BLOCK     _swig_thread_block.end()
-#      define SWIG_PYTHON_THREAD_BEGIN_ALLOW   SWIG_Python_Thread_Allow _swig_thread_allow
-#      define SWIG_PYTHON_THREAD_END_ALLOW     _swig_thread_allow.end()
+#      if !defined(SWIG_PYTHON_THREAD_BEGIN_BLOCK)
+#        define SWIG_PYTHON_THREAD_BEGIN_BLOCK   SWIG_Python_Thread_Block _swig_thread_block
+#      endif
+#      if !defined(SWIG_PYTHON_THREAD_END_BLOCK)
+#        define SWIG_PYTHON_THREAD_END_BLOCK     _swig_thread_block.end()
+#      endif
+#      if !defined(SWIG_PYTHON_THREAD_BEGIN_ALLOW)
+#        define SWIG_PYTHON_THREAD_BEGIN_ALLOW   SWIG_Python_Thread_Allow _swig_thread_allow
+#      endif
+#      if !defined(SWIG_PYTHON_THREAD_END_ALLOW)
+#        define SWIG_PYTHON_THREAD_END_ALLOW     
+#      endif
 #    else /* C code */
 #      define SWIG_PYTHON_THREAD_BEGIN_BLOCK   PyGILState_STATE _swig_thread_block = PyGILState_Ensure()
 #      define SWIG_PYTHON_THREAD_END_BLOCK     PyGILState_Release(_swig_thread_block)

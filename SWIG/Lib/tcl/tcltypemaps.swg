@@ -45,7 +45,9 @@
 #define SWIG_Object                      Tcl_Obj *
 
 /* Simple overload of the output/constant/exception handling */
-#define SWIG_AppendOutput(result,obj)    (Tcl_ListObjAppendElement(NULL,result,obj) == TCL_OK) ? result : NULL
+/* output */
+#define %set_output(obj)                 Tcl_SetObjResult(interp,obj)
+#define %append_output(obj)              Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),obj)
 #define SWIG_SetConstant(name, obj)      SWIG_Tcl_SetConstantObj(interp, name, obj)
 #define SWIG_Raise(obj,type,desc)        SWIG_Tcl_SetErrorObj(interp,type,obj)
 
