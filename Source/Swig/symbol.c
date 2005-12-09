@@ -1016,6 +1016,10 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
  * to get the real node.
  * ----------------------------------------------------------------------------- */
 
+static 
+SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab);
+
+
 Node *
 Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   Hash *hsym = 0;
@@ -1052,6 +1056,19 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
       }
     }
   }
+  if (!s) {
+    if (SwigType_istemplate(name)) {
+      SwigType *qt = Swig_symbol_type_qualify(name,hsym);
+      SwigType *rt = Swig_symbol_template_reduce(qt, hsym);
+      if (!Equal(rt,name)) {
+	s = Swig_symbol_clookup(rt, hsym);
+      }
+      Delete(qt);
+      Delete(rt);
+    }
+    
+  }
+  
   if (!s) {
     while (hsym) {
       s = symbol_lookup(name,hsym,0);
