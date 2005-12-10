@@ -2082,6 +2082,8 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
+    String *classname = Swig_class_name(n);
+
     if (dirprot_mode()) {
       /*
 	This implementation uses a std::map<std::string,int>.
@@ -2113,9 +2115,14 @@ public:
     Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
     Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
     Printf(f_directors_h,"      if (!method) {\n");
-    Printf(f_directors_h,"         swig::PyObject_var name = PyString_FromString(method_name);\n");
-    Printf(f_directors_h,"         vtable[method_index] = method = PyObject_GetAttr(swig_get_self(), name);\n");
-    Printf(f_directors_h,"         Py_DECREF(swig_get_self());\n");
+    Printf(f_directors_h,"        swig::PyObject_var name = PyString_FromString(method_name);\n");
+    Printf(f_directors_h,"        method = PyObject_GetAttr(swig_get_self(), name);\n");
+    Printf(f_directors_h,"        if (method == NULL) {\n");
+    Printf(f_directors_h,"          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
+    Printf(f_directors_h,"          msg += method_name;\n");
+    Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
+    Printf(f_directors_h,"        }\n");
+    Printf(f_directors_h,"        vtable[method_index] = method;\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");
     Printf(f_directors_h,"    }\n");
@@ -2681,6 +2688,7 @@ public:
       } else {
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
+	  Printv(f_shadow, tab4, "__del__ = lambda self : None;\n", NIL);
 	  return SWIG_OK;
 	}
 	Printv(f_shadow, tab4, "def __del__(self):\n", NIL);
@@ -3085,7 +3093,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     if (allow_thread) thread_end_allow(n, w->code);
   }
   Printf(w->code, "}\n");
-  Printf(w->code, "{\n");
 
   /* declare method return value 
    * if the return value is a reference or const reference, a specialized typemap must
@@ -3096,12 +3103,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "%s;\n", cres);
     Delete(cres);
   }
-  if (allow_thread) thread_begin_block(n, w->code);
-  
+  if (allow_thread) {
+    thread_begin_block(n, w->code);
+    Printf(w->code, "{\n");
+  }
     
   /* wrap complex arguments to PyObjects */
   Printv(w->code, wrap_args, NIL);
-
 
   /* pass the method call on to the Python object */
   if (dirprot_mode() && !is_public(n)) {
@@ -3117,9 +3125,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "const char * const swig_method_name = \"%s\";\n", pyname);
 
   Printf(w->code, "PyObject* method = swig_get_method(swig_method_index, swig_method_name);\n");
-  Printf(w->code, "if (method == NULL) {\n");
-  Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
-  Printf(w->code, "}\n");
   if (Len(parse_args) > 0) {
     if (use_parse) {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
@@ -3154,7 +3159,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printv(w->code, Str(tm), "\n", NIL);
   } else {
     Printf(w->code, "  if (error != NULL) {\n");
-    Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s\");\n", 
+    Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling '%s.%s'\");\n", 
 	   classname, pyname);
     Printf(w->code, "  }\n");
   }
@@ -3245,7 +3250,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
 
   /* any existing helper functions to handle this? */
-  if (allow_thread) thread_end_block(n, w->code);
+  if (allow_thread) {
+    Printf(w->code, "}\n");
+    thread_end_block(n, w->code);
+  }
+  
   if (!is_void) {
     String* rettype = SwigType_str(return_type, 0);      
     if (!SwigType_isreference(return_type)) {
@@ -3255,7 +3264,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     }
     Delete(rettype);
   }
-  Printf(w->code, "}\n");
   Printf(w->code, "}\n");
 
   /* emit the director method */
