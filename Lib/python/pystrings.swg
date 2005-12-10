@@ -20,11 +20,11 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	   The default behavior is just to return the pointer value,
 	   so, be careful.
 	*/ 
-#if defined(SWIG_PYTHON_SAFE_CSTRINGS)
+%#if defined(SWIG_PYTHON_SAFE_CSTRINGS)
 	if (*alloc != SWIG_OLDOBJ) 
-#else
+%#else
 	if (*alloc == SWIG_NEWOBJ) 
-#endif
+%#endif
 	  {
 	    *cptr = %new_copy_array(cstr, len + 1, char);
 	    *alloc = SWIG_NEWOBJ;
