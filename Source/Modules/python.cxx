@@ -46,7 +46,7 @@ static  String       *class_name;
 static  String       *shadow_indent = 0;
 static  int           in_class = 0;
 static  int           classic = 0;
-static  int           modern = 1;
+static  int           modern = 0;
 static  int           apply = 0;
 static  int           new_repr = 1;
 static  int           no_header_file = 0;
@@ -84,7 +84,7 @@ Python Options (available with -python)\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
-     -modern         - Use modern python features only, without compatibility code (default)\n\
+     -modern         - Use modern python features only, without compatibility code\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
@@ -101,6 +101,8 @@ Python Options (available with -python)\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
+     -O              - Enable several old and new optimizations options: \n\
+                         -modern, -fastdispatch, -dirvtable, -nosafecstrings, -fvirtual, -fcompact \n\
 \n";
 
 class PYTHON : public Language {
@@ -287,6 +289,17 @@ public:
 	  /* Turn on new value wrapper mpde */
 	  Swig_value_wrapper_mode(1); 
 	  no_header_file = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-O") == 0) {
+	  apply = 0;
+	  classic = 0;
+	  modern = 1;
+	  dirvtable = 1;
+	  safecstrings = 0;
+	  classptr = 0;
+	  Wrapper_fast_dispatch_mode_set(1);
+	  Wrapper_virtual_elimination_mode_set(1);
+	  Wrapper_compact_print_mode_set(1);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stdout);
@@ -2122,6 +2135,7 @@ public:
     Printf(f_directors_h,"          msg += method_name;\n");
     Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
     Printf(f_directors_h,"        }\n");
+    Printf(f_directors_h,"        Py_DECREF(swig_get_self());\n");
     Printf(f_directors_h,"        vtable[method_index] = method;\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");
@@ -3132,14 +3146,22 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
     }
   } else {
-    Printf(w->code, "static swig::PyObject_var args = PyTuple_New(0);\n");
+    Printf(w->code, "swig::PyObject_var args = PyTuple_New(0);\n");
     Printf(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
   }
   Printf(w->code,"#else\n");
   if (Len(parse_args) > 0) {
-    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
+    if (use_parse) {
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", 
+	     pyname, parse_args, arglist);
+    } else {
+      Printf(w->code, "swig::PyObject_var swig_method_name = PyString_FromString((char *)\"%s\");\n", pyname);
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", 
+	     arglist);
+    }
   } else {
-    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", pyname);
+    Printf(w->code, "swig::PyObject_var swig_method_name = PyString_FromString((char *)\"%s\");\n", pyname);
+    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
   }
   Printf(w->code,"#endif\n");
 
