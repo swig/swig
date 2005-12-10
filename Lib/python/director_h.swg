@@ -19,12 +19,12 @@
 
 
 /*
-  Use -DSWIG_DIRECTOR_NOVTABLE if you don't want to generate a 'virtual
+  Use -DSWIG_DIRECTOR_NO_VTABLE if you don't want to generate a 'virtual
   table', and avoid multiple GetAttr calls to retreive the python
   methods.
 */
 
-#ifndef SWIG_DIRECTOR_NOVTABLE
+#ifndef SWIG_DIRECTOR_NO_VTABLE
 #ifndef SWIG_DIRECTOR_VTABLE
 #define SWIG_DIRECTOR_VTABLE
 #endif
@@ -33,10 +33,10 @@
 
 
 /*
-  Use -DSWIG_DIRECTOR_NOUEH if you prefer to avoid the use of the
+  Use -DSWIG_DIRECTOR_NO_UEH if you prefer to avoid the use of the
   Undefined Exception Handler provided by swift
 */
-#ifndef SWIG_DIRECTOR_NOUEH
+#ifndef SWIG_DIRECTOR_NO_UEH
 #ifndef SWIG_DIRECTOR_UEH
 #define SWIG_DIRECTOR_UEH
 #endif
