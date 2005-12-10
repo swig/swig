@@ -6,22 +6,32 @@
 SWIGINTERN int
 SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val) 
 {
-  static swig_type_info* string_info = SWIG_TypeQuery(#String " *");
-  String *vptr;    
-  if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
-    if (val) *val = vptr;
-    return SWIG_OLDOBJ;
+  Char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
+  if (SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
+    if (buf) {
+      if (val) *val = new String(buf, size - 1);
+      if (alloc == SWIG_NEWOBJ) %delete_array(buf);
+      return SWIG_NEWOBJ;
+    } else {
+      if (val) *val = 0;
+      return SWIG_OLDOBJ;
+    }
   } else {
-    Char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
-    if (SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
-      if (buf) {
-	if (val) *val = new String(buf, size - 1);
-	if (alloc == SWIG_NEWOBJ) %delete_array(buf);
-	return SWIG_NEWOBJ;
+    static int init = 0;
+    static swig_type_info* descriptor = 0;
+    if (!init) {
+      descriptor = SWIG_TypeQuery(#String " *");
+      init = 1;
+    }
+    if (descriptor) {
+      String *vptr;    
+      if ((SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0) == SWIG_OK)) {
+	if (val) *val = vptr;
+	return SWIG_OLDOBJ;
       }
     }
-    return 0;
   }
+  return 0;
 }
 }
 %enddef

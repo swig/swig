@@ -22,13 +22,15 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
     if (psize) *psize = size;
     return SWIG_OK;
   } else {
-    char* vptr = 0;
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
-    if (pchar_descriptor && (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK)) {
-      if (cptr) *cptr = vptr;
-      if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
-      if (alloc) *alloc = SWIG_OLDOBJ;
-      return SWIG_OK;
+    if (pchar_descriptor) {
+      char* vptr = 0;
+      if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = vptr;
+	if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
+	if (alloc) *alloc = SWIG_OLDOBJ;
+	return SWIG_OK;
+      }
     }
   }  
   return SWIG_TypeError;
