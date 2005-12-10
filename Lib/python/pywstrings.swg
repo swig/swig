@@ -27,11 +27,13 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
     return SWIG_OK;
   } else {
     swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
-    wchar_t * vptr = 0;
-    if (pwchar_descriptor && (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_descriptor, 0) == SWIG_OK)) {
-      if (cptr) *cptr = vptr;
-      if (psize) *psize = vptr ? (wcslen(vptr) + 1) : 0;
-      return SWIG_OK;
+    if (pwchar_descriptor) {
+      wchar_t * vptr = 0;
+      if (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = vptr;
+	if (psize) *psize = vptr ? (wcslen(vptr) + 1) : 0;
+	return SWIG_OK;
+      }
     }
   }
   return SWIG_TypeError;

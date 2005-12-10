@@ -1,6 +1,34 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/10/2005: mmatus 
+	  [UTF]
+          - Fix inneccessary calls to SWIG_TypeQuery for 'char *'
+	    and 'wchar_t *', problem found by Clay Culver while
+	    profiling the PyOgre project.
+
+	  
+	  [Python] 
+	  - Add the -dirvtable/-nodirvtable to enable/disable
+	    a pseudo virtual table used for directors, avoiding
+	    to resolv the python method at each call.
+	    
+	  - Add the -safecstrings/-nosafecstrings options to
+	    enable/disable the use of safe conversions from PyString
+	    to char *. Python requires you never change the internal
+	    buffer directly, and henve 'safectrings' warranties that
+	    but returning a copy of the internal python string buffer.
+
+	    The default, as in previous releases, is to return a
+	    pointer to the buffer (nosafecstrings), so, is the user
+	    responsability to avoid its modification.
+	    
+	  - Add the -O option to enable all the optimization options
+	    at once, equivalent to
+
+	    -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -fcompact 
+
+
 12/08/2005: mmatus 
 
 	  - Add the -fastdispatch option (fastdispatch feature). This
