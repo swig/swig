@@ -63,7 +63,7 @@ static  int       nothreads = 0;
 static  int       classptr = 0;
 static  int       shadowimport = 1;
 static  int       safecstrings = 0;
-static  int       dirvtable = 1;
+static  int       dirvtable = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -99,8 +99,8 @@ Python Options (available with -python)\n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
-     -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch (default) \n\
-     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time\n\
+     -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
 \n";
 
 class PYTHON : public Language {
@@ -2122,7 +2122,6 @@ public:
     Printf(f_directors_h,"          msg += method_name;\n");
     Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
     Printf(f_directors_h,"        }\n");
-    Printf(f_directors_h,"        Py_DECREF(swig_get_self());\n");
     Printf(f_directors_h,"        vtable[method_index] = method;\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");
