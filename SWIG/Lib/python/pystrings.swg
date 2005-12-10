@@ -1,8 +1,7 @@
 /* ------------------------------------------------------------
  *  utility methods for char strings 
  * ------------------------------------------------------------ */
-
-%fragment("SWIG_AsCharPtrAndSize","header") {
+%fragment("SWIG_AsCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 {
@@ -40,10 +39,9 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
     if (psize) *psize = len + 1;
     return SWIG_OK;
   } else {
-    char* vptr = 0;
-    static swig_type_info* pchar_info = 0;
-    if (!pchar_info) pchar_info = SWIG_TypeQuery("char *");
-    if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_info, 0) == SWIG_OK) {
+    char* vptr = 0; 
+    swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+    if (pchar_descriptor && (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK)) {
       if (cptr) *cptr = vptr;
       if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
       if (alloc) *alloc = SWIG_OLDOBJ;
@@ -54,14 +52,15 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 }
 }
 
-%fragment("SWIG_FromCharPtrAndSize","header") {
+%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
 SWIGINTERNINLINE PyObject *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   if (carray) {
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(%const_cast(carray,char *), 
-				SWIG_TypeQuery("char *"), 0);
+      swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+      return pchar_descriptor ? 
+	SWIG_NewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
       return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
     }

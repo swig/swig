@@ -2122,6 +2122,7 @@ public:
     Printf(f_directors_h,"          msg += method_name;\n");
     Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
     Printf(f_directors_h,"        }\n");
+    Printf(f_directors_h,"        Py_DECREF(swig_get_self());\n");
     Printf(f_directors_h,"        vtable[method_index] = method;\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");

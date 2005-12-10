@@ -166,6 +166,7 @@ nocppval
  * ----------------------------------------------------------------------------- */
 
 #define %mangle(Type...)                  #@Type
+#define %descriptor(Type...)               SWIGTYPE_ ## #@Type
 #define %string_name(Name)                "SWIG_" %str(Name)
 #define %symbol_name(Name, Type...)       SWIG_ ## Name ## _ #@Type
 #define %checkcode(Code)           	  SWIG_TYPECHECK_ ## Code
