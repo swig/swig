@@ -2,7 +2,7 @@
  *  utility methods for wchar_t strings 
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>") {
+%fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
@@ -26,10 +26,9 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
     if (tmp) Py_DECREF(tmp);
     return SWIG_OK;
   } else {
-    static swig_type_info* pwchar_info = 0;
+    swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
     wchar_t * vptr = 0;
-    if (!pwchar_info) pwchar_info = SWIG_TypeQuery("wchar_t *");
-    if (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_info, 0) == SWIG_OK) {
+    if (pwchar_descriptor && (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_descriptor, 0) == SWIG_OK)) {
       if (cptr) *cptr = vptr;
       if (psize) *psize = vptr ? (wcslen(vptr) + 1) : 0;
       return SWIG_OK;
@@ -39,14 +38,15 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 }
 }
 
-%fragment("SWIG_FromWCharPtrAndSize","header",fragment="<wchar.h>") {
+%fragment("SWIG_FromWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
 SWIGINTERNINLINE PyObject *
 SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 {
   if (carray) {
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(%const_cast(carray,wchar_t *), 
-				SWIG_TypeQuery("wchar_t *"), 0);
+      swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
+      return pwchar_descriptor ? 
+	SWIG_NewPointerObj(%const_cast(carray,wchar_t *), pwchar_descriptor, 0) : SWIG_Py_Void();
     } else {
       return PyUnicode_FromWideChar(carray, %numeric_cast(size,int));
     }

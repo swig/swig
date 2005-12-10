@@ -367,8 +367,13 @@ namespace swig {
 	return x.distance(*this);
       }
       
-      static swig_type_info* desc() {
-	static swig_type_info* desc = SWIG_TypeQuery("swig::PySequence_OutputIterator *");
+      static swig_type_info* descriptor() {
+	static int init = 0;
+	static swig_type_info* desc = 0;
+	if (!init) {
+	  desc = SWIG_TypeQuery("swig::PySequence_OutputIterator *");
+	  init = 1;
+	}	
 	return desc;
       }
     };
@@ -714,15 +719,15 @@ namespace swig
   %typemap(out,noblock=1,fragment="PySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     $result = SWIG_NewPointerObj(swig::make_output_iterator((const $type &)$1),
-				 swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN);
+				 swig::PySequence_OutputIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="PySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
     PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));
+					       swig::PySequence_OutputIterator::descriptor(),SWIG_POINTER_OWN));
     PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));    
+					       swig::PySequence_OutputIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
   %fragment("PyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="PySequence_Cont") {}
@@ -731,7 +736,7 @@ namespace swig
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
     PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-					       swig::PySequence_OutputIterator::desc(),SWIG_POINTER_OWN));    
+					       swig::PySequence_OutputIterator::descriptor(),SWIG_POINTER_OWN));    
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
 
@@ -740,7 +745,7 @@ namespace swig
     reverse_iterator(swig::PySequence_OutputIterator *iter),
     const_iterator(swig::PySequence_OutputIterator *iter),
     const_reverse_iterator(swig::PySequence_OutputIterator *iter) {
-    if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySequence_OutputIterator::desc(), 0) != SWIG_OK) {
+    if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySequence_OutputIterator::descriptor(), 0) != SWIG_OK) {
       %argument_fail(SWIG_TypeError, "$type", $argnum);
     }
     if (iter) {
@@ -756,7 +761,7 @@ namespace swig
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::PySequence_OutputIterator *iter = 0;
     $1 = ((SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
-			   swig::PySequence_OutputIterator::desc(), 0) == SWIG_OK)
+			   swig::PySequence_OutputIterator::descriptor(), 0) == SWIG_OK)
 	  && iter
 	  && (dynamic_cast<swig::PySequence_OutputIterator_T<$type > *>(iter) != 0));
   }
