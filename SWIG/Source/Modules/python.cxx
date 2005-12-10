@@ -63,6 +63,7 @@ static  int       nothreads = 0;
 static  int       classptr = 0;
 static  int       shadowimport = 1;
 static  int       safecstrings = 0;
+static  int       dirvtable = 1;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -98,6 +99,8 @@ Python Options (available with -python)\n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
+     -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch (default) \n\
+     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time\n\
 \n";
 
 class PYTHON : public Language {
@@ -263,6 +266,12 @@ public:
 	} else if (strcmp(argv[i],"-nosafecstrings") == 0) {
 	  safecstrings = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-dirvtable") == 0) {
+	  dirvtable = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nodirvtable") == 0) {
+	  dirvtable = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
 	  classic = 0;
@@ -394,6 +403,10 @@ public:
 
     if (safecstrings) {
       Printf(f_runtime,"#define SWIG_PYTHON_SAFE_CSTRINGS\n");
+    }
+
+    if (!dirvtable) {
+      Printf(f_runtime,"#define SWIG_DIRECTOR_NO_VTABLE\n");
     }
     
 
@@ -2094,8 +2107,9 @@ public:
     }
 
     Printf(f_directors_h,"\n\n");
-    Printf(f_directors_h,"/* VTable implementation */\n");
     Printf(f_directors_h,"public:\n");
+    Printf(f_directors_h,"#if defined(SWIG_DIRECTOR_VTABLE)\n");
+    Printf(f_directors_h,"/* VTable implementation */\n");
     Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
     Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
     Printf(f_directors_h,"      if (!method) {\n");
@@ -2104,9 +2118,10 @@ public:
     Printf(f_directors_h,"         Py_DECREF(swig_get_self());\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");
-    Printf(f_directors_h,"    }\n\n");
+    Printf(f_directors_h,"    }\n");
     Printf(f_directors_h,"private:\n");
     Printf(f_directors_h,"    mutable swig::PyObject_var vtable[%d];\n", director_method_index);
+    Printf(f_directors_h,"#endif\n\n");
       
     Printf(f_directors_h, "};\n\n");
     return Language::classDirectorEnd(n);
@@ -2960,8 +2975,10 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	Replaceall(tm, "$input", input);
 	Delete(input);
 	Replaceall(tm, "$owner", "0");
+	/* Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);*/
+	Printv(wrap_args, "swig::PyObject_var ", source, ";\n", NIL);
+	
 	Printv(wrap_args, tm, "\n", NIL);
-	Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
 	Printv(arglist, "(PyObject *)",source, NIL);
 	Putc('O', parse_args);
       } else {
@@ -3004,7 +3021,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
 	    Delete(nonconst_i);
 	    Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-		         "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(ptype, pname), classname, name);
+		         "Target language argument '%s' discards const in director method %s::%s.\n", 
+			 SwigType_str(ptype, pname), classname, name);
 	  } else {
 	    nonconst = Copy(ppname);
 	  }
@@ -3048,9 +3066,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
 /* add the method name as a PyString */
   String *pyname = Getattr(n,"sym:name");
-  Wrapper_add_localv(w, "swig_method_index", "const size_t swig_method_index =", NewStringf("%d", director_method_index++), NIL);
-  Wrapper_add_localv(w, "swig_method_name", "const char * const swig_method_name =", NewStringf("\"%s\"",pyname), NIL);
-
 
   int allow_thread = threads_enable(n);
 
@@ -3097,22 +3112,32 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "if (!swig_get_self()) {\n");
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
-  Wrapper_add_local(w, "method", "PyObject* method = 0");
-  Printf(w->code, "method = swig_get_method(swig_method_index, swig_method_name);\n");
+  Printf(w->code,"#if defined(SWIG_DIRECTOR_VTABLE)\n");
+  Printf(w->code, "const size_t swig_method_index = %d;\n", director_method_index++);
+  Printf(w->code, "const char * const swig_method_name = \"%s\";\n", pyname);
+
+  Printf(w->code, "PyObject* method = swig_get_method(swig_method_index, swig_method_name);\n");
   Printf(w->code, "if (method == NULL) {\n");
   Printf(w->code, "  Swig::DirectorMethodException::raise(\"Method '%s.%s' doesn't exist\");\n", classname, pyname);
   Printf(w->code, "}\n");
-
-  Wrapper_add_local(w, "result", "swig::PyObject_var result = 0");
   if (Len(parse_args) > 0) {
     if (use_parse) {
-      Printf(w->code, "result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
     } else {
-      Printf(w->code, "result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
     }
   } else {
-    Printf(w->code, "result = PyObject_CallFunction(method, NULL);\n");
+    Printf(w->code, "static swig::PyObject_var args = PyTuple_New(0);\n");
+    Printf(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
   }
+  Printf(w->code,"#else\n");
+  if (Len(parse_args) > 0) {
+    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
+  } else {
+    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", pyname);
+  }
+  Printf(w->code,"#endif\n");
+
   if (dirprot_mode() && !is_public(n))
     Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
