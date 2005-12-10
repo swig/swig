@@ -6,32 +6,32 @@
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
-  static swig_type_info* pwchar_info = 0;
-  wchar_t * vptr = 0;
-  if (!pwchar_info) pwchar_info = SWIG_TypeQuery("wchar_t *");
-  if (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_info, 0) == SWIG_OK) {
-    if (cptr) *cptr = vptr;
-    if (psize) *psize = vptr ? (wcslen(vptr) + 1) : 0;
+  PyObject *tmp = 0;
+  int isunicode = PyUnicode_Check(obj);
+  if (!isunicode && PyString_Check(obj)) {
+    if (cptr) {
+      obj = tmp = PyUnicode_FromObject(obj);
+    }
+    isunicode = 1;
+  }
+  if (isunicode) {
+    int len = PyUnicode_GetSize(obj);
+    if (cptr) {
+      *cptr = %new_array(len + 1, wchar_t);
+      PyUnicode_AsWideChar((PyUnicodeObject *)obj, *cptr, len);
+      (*cptr)[len] = 0;
+    }
+    if (psize) *psize = (size_t) len + 1;
+    if (alloc) *alloc = cptr ? SWIG_NEWOBJ : 0;
+    if (tmp) Py_DECREF(tmp);
     return SWIG_OK;
   } else {
-    PyObject *tmp = 0;
-    int isunicode = PyUnicode_Check(obj);
-    if (!isunicode && PyString_Check(obj)) {
-      if (cptr) {
-	obj = tmp = PyUnicode_FromObject(obj);
-      }
-      isunicode = 1;
-    }
-    if (isunicode) {
-      int len = PyUnicode_GetSize(obj);
-      if (cptr) {
-	*cptr = %new_array(len + 1, wchar_t);
-	PyUnicode_AsWideChar((PyUnicodeObject *)obj, *cptr, len);
-	(*cptr)[len] = 0;
-      }
-      if (psize) *psize = (size_t) len + 1;
-      if (alloc) *alloc = cptr ? SWIG_NEWOBJ : 0;
-      if (tmp) Py_DECREF(tmp);
+    static swig_type_info* pwchar_info = 0;
+    wchar_t * vptr = 0;
+    if (!pwchar_info) pwchar_info = SWIG_TypeQuery("wchar_t *");
+    if (SWIG_ConvertPtr(obj, (void**)&vptr, pwchar_info, 0) == SWIG_OK) {
+      if (cptr) *cptr = vptr;
+      if (psize) *psize = vptr ? (wcslen(vptr) + 1) : 0;
       return SWIG_OK;
     }
   }

@@ -62,6 +62,7 @@ static  int       threads = 0;
 static  int       nothreads = 0;
 static  int       classptr = 0;
 static  int       shadowimport = 1;
+static  int       safecstrings = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -95,6 +96,8 @@ Python Options (available with -python)\n\
      -noh            - Don't generate the output header file\n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
+     -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
+     -nosafecstrings - Avoid extra strings copies when possible (default)\n\
 \n";
 
 class PYTHON : public Language {
@@ -254,6 +257,12 @@ public:
 	  /* Turn off thread suppor mode */
 	  nothreads = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-safecstrings") == 0) {
+	  safecstrings = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nosafecstrings") == 0) {
+	  safecstrings = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
 	  classic = 0;
@@ -382,6 +391,11 @@ public:
     } else if (threads) {
       Printf(f_runtime,"#define SWIG_PYTHON_THREADS\n");
     }
+
+    if (safecstrings) {
+      Printf(f_runtime,"#define SWIG_PYTHON_SAFE_CSTRINGS\n");
+    }
+    
 
     /* Set module name */
     module = Copy(Getattr(n,"name"));
