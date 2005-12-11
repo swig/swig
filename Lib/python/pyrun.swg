@@ -369,7 +369,7 @@ PySwigObject_own(PyObject *v, PyObject *args)
 }
 
 SWIGRUNTIME PyTypeObject*
-PySwigObject_type(void) {
+_PySwigObject_type(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
   static PyMethodDef
     swigobject_methods[] = {
@@ -477,6 +477,12 @@ PySwigObject_type(void) {
     type_init = 1;
   }
   return &pyswigobject_type;
+}
+
+SWIGRUNTIME PyTypeObject*
+PySwigObject_type(void) {
+  static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigObject_type();
+  return type;
 }
 
 SWIGRUNTIME PyObject *
@@ -706,8 +712,8 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     obj = PyObject_GetAttr(pyobj,SWIG_This());
     Py_XDECREF(obj);
 #endif
-    if (!obj || PyErr_Occurred()) {
-      PyErr_Clear();
+    if (!obj) {
+      if (PyErr_Occurred()) PyErr_Clear();
       return 0;
     }
     if (!PySwigObject_Check(obj)) {
@@ -839,7 +845,12 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 {
   PyObject *inst = 0;
   if (data->newraw) {
+#if 1
+    PyCFunctionWithKeywords meth = (PyCFunctionWithKeywords) PyCFunction_GET_FUNCTION(data->newraw);
+    inst = (*meth)(PyCFunction_GET_SELF(data->newraw), data->newargs, NULL);
+#else
     inst = PyObject_Call(data->newraw, data->newargs, NULL);
+#endif
     if (inst) {
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
       PyObject **dictptr = _PyObject_GetDictPtr(inst);
