@@ -1,6 +1,18 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/11/2005: mmatus 
+	  [Python]
+	  - Add the -proxydel/-noproxydel options to enable/disable
+	    the generation of proxy/shadow __del__ methods, even
+	    when now are redundant, since they are empty.
+	    However, old interfaces could relay in calling them.
+
+	    The default behavior is to generate the __del__ methods
+	    as in 1.3.27 or older swig versions.
+
+	    The option -O now also implies -noproxydel.
+
 12/10/2005: mmatus 
 	  [UTF]
           - Fix inneccessary calls to SWIG_TypeQuery for 'char *'
@@ -26,7 +38,7 @@ Version 1.3.28 (unreleased).
 	  - Add the -O option to enable all the optimization options
 	    at once, equivalent to
 
-	    -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -fcompact 
+	    -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual
 
 
 12/08/2005: mmatus 

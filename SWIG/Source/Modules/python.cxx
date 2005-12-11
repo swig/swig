@@ -61,9 +61,11 @@ static  String   *real_classname;
 static  int       threads = 0;
 static  int       nothreads = 0;
 static  int       classptr = 0;
+/* Other options */
 static  int       shadowimport = 1;
 static  int       safecstrings = 0;
 static  int       dirvtable = 0;
+static  int       proxydel = 1;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -101,8 +103,10 @@ Python Options (available with -python)\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
+     -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
+     -noproxydel     - Don't generate the redundant __del__ method \n\
      -O              - Enable several old and new optimizations options: \n\
-                         -modern, -fastdispatch, -dirvtable, -nosafecstrings, -fvirtual, -fcompact \n\
+                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel \n\
 \n";
 
 class PYTHON : public Language {
@@ -274,6 +278,12 @@ public:
 	} else if (strcmp(argv[i],"-nodirvtable") == 0) {
 	  dirvtable = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-proxydel") == 0) {
+	  proxydel = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-noproxydel") == 0) {
+	  proxydel = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
 	  classic = 0;
@@ -297,9 +307,9 @@ public:
 	  dirvtable = 1;
 	  safecstrings = 0;
 	  classptr = 0;
+	  proxydel = 0;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
-	  Wrapper_compact_print_mode_set(1);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stdout);
@@ -2702,7 +2712,9 @@ public:
       } else {
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
-	  Printv(f_shadow, tab4, "__del__ = lambda self : None;\n", NIL);
+	  if (proxydel) {
+	    Printv(f_shadow, tab4, "__del__ = lambda self : None;\n", NIL);
+	  }
 	  return SWIG_OK;
 	}
 	Printv(f_shadow, tab4, "def __del__(self):\n", NIL);
@@ -3092,6 +3104,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   int allow_thread = threads_enable(n);
 
   /* direct call to superclass if _up is set */
+  if (allow_thread) thread_begin_block(n, w->code);
   Printf(w->code, "if (swig_get_up()) {\n");
   if (pure_virtual) {
     Printf(w->code,
@@ -3118,7 +3131,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Delete(cres);
   }
   if (allow_thread) {
-    thread_begin_block(n, w->code);
     Printf(w->code, "{\n");
   }
     

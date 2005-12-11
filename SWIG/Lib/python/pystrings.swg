@@ -29,7 +29,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	    *alloc = SWIG_NEWOBJ;
 	  }
 	else {
-	  *cptr = PyString_AsString(obj);
+	  *cptr = cstr;
 	  *alloc = SWIG_OLDOBJ;
 	}
       } else {
