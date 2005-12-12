@@ -82,7 +82,7 @@ extern "C" {
 /*  Safe Py_None and Py_Void accessors */
 
 SWIGRUNTIME PyObject * 
-SWIG_Py_None(void)
+_SWIG_Py_None(void)
 {
   static PyObject *none = 0;
   if (!none) {
@@ -91,6 +91,14 @@ SWIG_Py_None(void)
   }
   return none;
 }
+
+SWIGRUNTIMEINLINE PyObject * 
+SWIG_Py_None(void)
+{
+  static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
+  return none;
+}
+
 
 SWIGRUNTIMEINLINE PyObject * 
 SWIG_Py_Void(void)
@@ -129,6 +137,7 @@ typedef struct {
   PyObject *newraw;
   PyObject *newargs;
   PyObject *destroy;
+  PyObject *delargs;
 } PySwigClientData;
 
 
@@ -166,6 +175,8 @@ PySwigClientData_New(PyObject* obj)
     }
     Py_XINCREF(data->destroy);
 
+    data->delargs = PyTuple_New(1);
+
     return data;
   }
 }
@@ -177,6 +188,7 @@ PySwigClientData_Del(PySwigClientData* data)
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
+  Py_XDECREF(data->delargs);
   free(data);
 }
 
@@ -271,7 +283,7 @@ PySwigObject_compare(PySwigObject *v, PySwigObject *w)
 
 SWIGRUNTIME PyTypeObject* PySwigObject_type(void);
 
-SWIGRUNTIME int
+SWIGRUNTIMEINLINE int
 PySwigObject_Check(PyObject *op) {
   return ((op)->ob_type == PySwigObject_type()) 
     || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
@@ -292,10 +304,14 @@ PySwigObject_dealloc(PyObject *v)
     PySwigClientData *data = ty ? (PySwigClientData *) ty->clientdata : 0;
     PyObject *destroy = data ? data->destroy : 0;
     if (destroy) {
-      PyObject *args = PyTuple_New(1);
+      /* destroy is always a VARARGS method */
+      PyObject *res;
+      PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
+      PyObject *args = data->delargs;
       PyTuple_SetItem(args,0,v);
-      PyObject_Call(destroy, args, NULL);
-      Py_DECREF(args);
+      res = ((*meth)(PyCFunction_GET_SELF(destroy), args));
+      PyTuple_SetItem(args,0,SWIG_Py_Void());
+      Py_DECREF(res);
     } else {
       const char *name = SWIG_TypePrettyName(ty);
       PyObject *wrn = PyString_FromFormat("swig/python detected a memory leak of type '%s'.", name);
@@ -479,7 +495,7 @@ _PySwigObject_type(void) {
   return &pyswigobject_type;
 }
 
-SWIGRUNTIME PyTypeObject*
+SWIGRUNTIMEINLINE PyTypeObject*
 PySwigObject_type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigObject_type();
   return type;
@@ -573,7 +589,7 @@ PySwigPacked_dealloc(PyObject *v)
 }
 
 SWIGRUNTIME PyTypeObject*
-PySwigPacked_type(void) {
+_PySwigPacked_type(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
   static PyTypeObject pyswigpacked_type;
   static int type_init = 0;  
@@ -642,6 +658,12 @@ PySwigPacked_type(void) {
   return &pyswigpacked_type;
 }
 
+SWIGRUNTIMEINLINE PyTypeObject*
+PySwigPacked_type(void) {
+  static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigPacked_type();
+  return type;
+}
+
 SWIGRUNTIME PyObject *
 PySwigPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
@@ -678,11 +700,20 @@ PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIME
-PyObject *
+SWIGRUNTIME PyObject *
+_SWIG_This(void)
+{
+  static PyObject *_this = 0;
+  if (!_this) {
+    _this = PyString_FromString("this");
+  }
+  return _this;
+}
+
+SWIGRUNTIMEINLINE PyObject *
 SWIG_This(void)
 {
-  static PyObject *SWIG_STATIC_POINTER(swig_this) = PyString_FromString("this");
+  static PyObject *SWIG_STATIC_POINTER(swig_this) = _SWIG_This();
   return swig_this;
 }
 
@@ -787,12 +818,11 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
   if (!PyCFunction_Check(obj)) {
     return SWIG_ConvertPtr(obj, ptr, ty, 0);
   } else {
-    const char *desc = 0;
     void *vptr = 0;
     
     /* here we get the method pointer for callbacks */
     char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
-    desc = doc ? strstr(doc, "swig_ptr: ") : 0;
+    const char *desc = doc ? strstr(doc, "swig_ptr: ") : 0;
     if (desc) {
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
       if (!desc) goto type_error;
@@ -844,12 +874,14 @@ SWIGRUNTIMEINLINE PyObject*
 SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 {
   PyObject *inst = 0;
-  if (data->newraw) {
-#if 1
-    PyCFunctionWithKeywords meth = (PyCFunctionWithKeywords) PyCFunction_GET_FUNCTION(data->newraw);
-    inst = (*meth)(PyCFunction_GET_SELF(data->newraw), data->newargs, NULL);
+  PyObject *newraw = data->newraw;
+  if (newraw) {
+#ifdef SWIG_USE_GENERAL_NEW_CALL
+    inst = PyCFunction_Call(newraw, data->newargs, NULL);
 #else
-    inst = PyObject_Call(data->newraw, data->newargs, NULL);
+    /* 'tp_new_wrapper' is a METH_KEYWORDS function */
+    PyCFunctionWithKeywords meth = (PyCFunctionWithKeywords) PyCFunction_GET_FUNCTION(newraw);
+    inst = (*meth)(PyCFunction_GET_SELF(newraw), data->newargs, NULL);
 #endif
     if (inst) {
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
@@ -857,13 +889,15 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
       if (dictptr != NULL) {
 	PyObject *dict = *dictptr;
 	if (dict == NULL) {
+	  PyObject *key = SWIG_This();
 	  dict = PyDict_New();
 	  *dictptr = dict;
-	  PyDict_SetItem(dict, SWIG_This(), swig_this);
+	  PyDict_SetItem(dict, key, swig_this);
 	}
       }      
 #else
-      PyObject_SetAttr(inst, SWIG_This(), swig_this);
+      PyObject *key = SWIG_This();
+      PyObject_SetAttr(inst, key, swig_this);
 #endif
     }
   } else {
