@@ -311,7 +311,7 @@ PySwigObject_dealloc(PyObject *v)
       PyTuple_SetItem(args,0,v);
       res = ((*meth)(PyCFunction_GET_SELF(destroy), args));
       PyTuple_SetItem(args,0,SWIG_Py_Void());
-      Py_DECREF(res);
+      Py_XDECREF(res);
     } else {
       const char *name = SWIG_TypePrettyName(ty);
       PyObject *wrn = PyString_FromFormat("swig/python detected a memory leak of type '%s'.", name);
