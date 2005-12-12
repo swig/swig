@@ -308,7 +308,7 @@ namespace Swig {
 #if defined(SWIG_PYTHON_THREADS)
 /*  __THREAD__ is the old macro to activate some thread support */
 # if !defined(__THREAD__)
-#   define __THREAD__
+#   define __THREAD__ 1
 # endif
 #endif
 
@@ -463,7 +463,7 @@ namespace Swig {
   private:
     typedef std::map<void*, GCItem_var> ownership_map;
     mutable ownership_map owner;
-    mutable pthread_mutex_t swig_mutex_own;
+    static pthread_mutex_t swig_mutex_own;
 
   public:
     template <typename Type>
