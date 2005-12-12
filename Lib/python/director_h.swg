@@ -305,6 +305,13 @@ namespace Swig {
   };
 
 
+#if defined(SWIG_PYTHON_THREADS)
+/*  __THREAD__ is the old macro to activate some thread support */
+# if !defined(__THREAD__)
+#   define __THREAD__
+# endif
+#endif
+
 /* simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__
 # define __PTHREAD__
@@ -313,19 +320,13 @@ namespace Swig {
 #  define pthread_mutex_unlock LeaveCriticalSection
 #  define pthread_mutex_t CRITICAL_SECTION
 #  define SWIG_MUTEX_INIT(var) var
+# else
+#  include <pthread.h>
+#  define SWIG_MUTEX_INIT(var) var = PTHREAD_MUTEX_INITIALIZER 
 # endif
-#else
-# include <pthread.h>
-# define SWIG_MUTEX_INIT(var) var = PTHREAD_MUTEX_INITIALIZER 
 #endif
 
 #ifdef  __PTHREAD__
-# define SWIG_GUARD(mutex) Guard _guard(mutex)
-#else
-# define SWIG_GUARD(mutex) 
-#endif
-
-
   struct Guard
   {
     pthread_mutex_t *_mutex;
@@ -340,6 +341,10 @@ namespace Swig {
       pthread_mutex_unlock(_mutex);
     }
   };
+# define SWIG_GUARD(mutex) Guard _guard(mutex)
+#else
+# define SWIG_GUARD(mutex) 
+#endif
 
   /* director base class */
   class Director {
