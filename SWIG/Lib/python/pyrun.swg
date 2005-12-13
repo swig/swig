@@ -125,6 +125,32 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
   return result;
 }
 
+SWIGINTERN int
+SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyObject **objs)
+{    
+  if (!PyTuple_Check(args)) {
+    PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
+    return 0;
+  } else {
+    int l = PyTuple_GET_SIZE(args);
+    if (l < min) {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
+		   name, (min == max ? "" : "at least "), min, l);
+      return 0;
+    } else if (l > max) {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
+		   name, (min == max ? "" : "at most "), max, l);
+      return 0;
+    } else {
+      register int i;
+      for (i = 0; i < l; ++i) {
+	objs[i] = PyTuple_GET_ITEM(args, i);
+      }
+    }    
+    return 1;
+  }
+}
+
 /* PySwigClientData */
 
 typedef struct {
@@ -132,7 +158,9 @@ typedef struct {
   PyObject *newraw;
   PyObject *newargs;
   PyObject *destroy;
+#ifndef SWIG_PYTHON_FAST_PARSE
   PyObject *delargs;
+#endif
 } PySwigClientData;
 
 SWIGRUNTIME PySwigClientData * 
@@ -163,7 +191,9 @@ PySwigClientData_New(PyObject* obj)
       data->destroy = 0;
     }
     Py_XINCREF(data->destroy);
+#ifndef SWIG_PYTHON_FAST_PARSE
     data->delargs = PyTuple_New(1);
+#endif
     return data;
   }
 }
@@ -175,7 +205,9 @@ PySwigClientData_Del(PySwigClientData* data)
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
+#ifndef SWIG_PYTHON_FAST_PARSE
   Py_XDECREF(data->delargs);
+#endif
   free(data);
 }
 
@@ -295,10 +327,14 @@ PySwigObject_dealloc(PyObject *v)
       /* destroy is always a VARARGS method */
       PyObject *res;
       PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
+#ifdef SWIG_PYTHON_FAST_PARSE
+      res = ((*meth)(PyCFunction_GET_SELF(destroy), v));
+#else
       PyObject *args = data->delargs;
       PyTuple_SetItem(args,0,v);
       res = ((*meth)(PyCFunction_GET_SELF(destroy), args));
       PyTuple_SetItem(args,0,SWIG_Py_Void());
+#endif
       Py_XDECREF(res);
     } else {
       const char *name = SWIG_TypePrettyName(ty);
@@ -704,10 +740,10 @@ SWIG_This(void)
 SWIGRUNTIMEINLINE PySwigObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
-  if (pyobj && PySwigObject_Check(pyobj)) {
+  if (PySwigObject_Check(pyobj)) {
     return (PySwigObject *) pyobj;
   } else {
-    PyObject *obj = 0;
+    PyObject *obj;
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
     if (PyInstance_Check(pyobj)) {
       obj = _PyInstance_Lookup(pyobj, SWIG_This());
@@ -729,9 +765,6 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       if (PyErr_Occurred()) PyErr_Clear();
       return 0;
     }
-    if (!PySwigObject_Check(obj)) {
-      obj = 0;
-    } 
     return (PySwigObject *)obj;
   }
 }
