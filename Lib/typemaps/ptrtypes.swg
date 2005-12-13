@@ -137,8 +137,11 @@
 
 %define %ptr_typecheck_typemap(check,asptr_meth,frag,Type...)
 %typemap(typecheck,precedence=check,fragment=frag) 
-   Type, const Type&
+   Type *
    "$1 = asptr_meth($input, (Type**)(0));";
+%typemap(typecheck,precedence=check,fragment=frag) 
+  Type, const Type&   
+  "Type *ptr; $1 = asptr_meth($input, &ptr) && ptr;";
 %enddef
 
 
