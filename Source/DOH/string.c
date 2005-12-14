@@ -508,7 +508,7 @@ DohString_putc(DOH *so, int ch)
   register int sp = s->sp;
   s->hashkey = -1;
   if (sp >= len) {
-    register size_t maxsize = s->maxsize;
+    register int maxsize = s->maxsize;
     register char *tc = s->str;
     if (len > (maxsize-2)) {
       maxsize *= 2;
@@ -540,7 +540,7 @@ DohString_getc(DOH *so)
     c = EOF;
   else
     c = (int) s->str[s->sp++];
-  if (c == '\n') s->line--; 
+  if (c == '\n') s->line++; 
   return c;
 }
 
@@ -555,7 +555,7 @@ DohString_ungetc(DOH *so, int ch)
   if (ch == EOF) return ch;
   if (s->sp <= 0) return EOF;
   s->sp--;
-  if (ch == '\n') s->line++;
+  if (ch == '\n') s->line--;
   return ch;
 }
 
