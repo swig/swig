@@ -750,16 +750,18 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
     if (PyInstance_Check(pyobj)) {
       obj = _PyInstance_Lookup(pyobj, SWIG_This());
-#ifdef PyWeakref_CheckProxy
-    } else if (PyWeakref_CheckProxy(pyobj)) {
-      return SWIG_Python_GetSwigThis(PyWeakref_GetObject(pyobj));
-#endif
     } else {
       PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
       if (dictptr != NULL) {
 	PyObject *dict = *dictptr;
 	obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
       }      
+#ifdef PyWeakref_CheckProxy
+      else if (PyWeakref_CheckProxy(pyobj)) {
+	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
+      }
+#endif
     }
 #else
     obj = PyObject_GetAttr(pyobj,SWIG_This());
@@ -773,6 +775,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     return (PySwigObject *)obj;
   }
 }
+
 
 /* Acquire a pointer value */
 
