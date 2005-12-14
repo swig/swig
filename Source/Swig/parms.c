@@ -68,6 +68,7 @@ Parm *CopyParm(Parm *p) {
   String   *alttype = Getattr(p,"alttype");
   String   *byname = Getattr(p, "arg:byname");
   String   *compactdefargs = Getattr(p, "compactdefargs");
+  String   *self = Getattr(p, "self");
 
   if (t) {
     SwigType *nt = Copy(t);
@@ -107,6 +108,11 @@ Parm *CopyParm(Parm *p) {
   if (compactdefargs) {
     String *str = Copy(compactdefargs);    
     Setattr(np, "compactdefargs", str);
+    Delete(str);
+  }
+  if (self) {
+    String *str = Copy(self);
+    Setattr(np, "self", str);
     Delete(str);
   }
       
