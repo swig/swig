@@ -198,7 +198,6 @@ PySwigClientData_New(PyObject* obj)
     } else {
       data->delargs = 0;
     }
-    
     return data;
   }
 }
@@ -747,28 +746,30 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   if (PySwigObject_Check(pyobj)) {
     return (PySwigObject *) pyobj;
   } else {
-    PyObject *obj;
+    PyObject *obj = 0;
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
     if (PyInstance_Check(pyobj)) {
       obj = _PyInstance_Lookup(pyobj, SWIG_This());
+#ifdef PyWeakref_CheckProxy
+    } else if (PyWeakref_CheckProxy(pyobj)) {
+      return SWIG_Python_GetSwigThis(PyWeakref_GetObject(pyobj));
+#endif
     } else {
       PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
       if (dictptr != NULL) {
 	PyObject *dict = *dictptr;
 	obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
-      } else {
-	obj = PyObject_GetAttr(pyobj,SWIG_This());
-	Py_XDECREF(obj);
-      }
-    } 
+      }      
+    }
 #else
     obj = PyObject_GetAttr(pyobj,SWIG_This());
-    Py_XDECREF(obj);
-#endif
-    if (!obj) {
+    if (obj) {
+      Py_DECREF(obj);
+    } else {
       if (PyErr_Occurred()) PyErr_Clear();
       return 0;
     }
+#endif
     return (PySwigObject *)obj;
   }
 }
