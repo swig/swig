@@ -132,7 +132,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyOb
     PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
     return 0;
   } else {
-    int l = PyTuple_GET_SIZE(args);
+    register int l = PyTuple_GET_SIZE(args);
     if (l < min) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
 		   name, (min == max ? "" : "at least "), min, l);
@@ -146,8 +146,11 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyOb
       for (i = 0; i < l; ++i) {
 	objs[i] = PyTuple_GET_ITEM(args, i);
       }
+      for (; l < max; ++l) {
+	objs[l] = 0;
+      }
+      return i + 1;
     }    
-    return 1;
   }
 }
 
@@ -158,9 +161,7 @@ typedef struct {
   PyObject *newraw;
   PyObject *newargs;
   PyObject *destroy;
-#ifndef SWIG_PYTHON_FAST_PARSE
   PyObject *delargs;
-#endif
 } PySwigClientData;
 
 SWIGRUNTIME PySwigClientData * 
@@ -190,10 +191,14 @@ PySwigClientData_New(PyObject* obj)
       PyErr_Clear();
       data->destroy = 0;
     }
-    Py_XINCREF(data->destroy);
-#ifndef SWIG_PYTHON_FAST_PARSE
-    data->delargs = PyTuple_New(1);
-#endif
+    if (data->destroy) {
+      Py_INCREF(data->destroy);
+      int flags = PyCFunction_GET_FLAGS(data->destroy);
+      data->delargs = (flags & (METH_VARARGS)) ? PyTuple_New(1) : 0;
+    } else {
+      data->delargs = 0;
+    }
+    
     return data;
   }
 }
@@ -205,9 +210,7 @@ PySwigClientData_Del(PySwigClientData* data)
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
-#ifndef SWIG_PYTHON_FAST_PARSE
   Py_XDECREF(data->delargs);
-#endif
   free(data);
 }
 
@@ -327,14 +330,15 @@ PySwigObject_dealloc(PyObject *v)
       /* destroy is always a VARARGS method */
       PyObject *res;
       PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
-#ifdef SWIG_PYTHON_FAST_PARSE
-      res = ((*meth)(PyCFunction_GET_SELF(destroy), v));
-#else
+      PyObject *mself = PyCFunction_GET_SELF(destroy);
       PyObject *args = data->delargs;
-      PyTuple_SetItem(args,0,v);
-      res = ((*meth)(PyCFunction_GET_SELF(destroy), args));
-      PyTuple_SetItem(args,0,SWIG_Py_Void());
-#endif
+      if (args) {
+	PyTuple_SetItem(args,0,v);
+	res = ((*meth)(mself, args));
+	PyTuple_SetItem(args,0,SWIG_Py_Void());
+      } else {
+	res = ((*meth)(mself, v));
+      }
       Py_XDECREF(res);
     } else {
       const char *name = SWIG_TypePrettyName(ty);
@@ -886,13 +890,7 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
   PyObject *inst = 0;
   PyObject *newraw = data->newraw;
   if (newraw) {
-#ifdef SWIG_USE_GENERAL_NEW_CALL
-    inst = PyCFunction_Call(newraw, data->newargs, NULL);
-#else
-    /* 'tp_new_wrapper' is a METH_KEYWORDS function */
-    PyCFunctionWithKeywords meth = (PyCFunctionWithKeywords) PyCFunction_GET_FUNCTION(newraw);
-    inst = (*meth)(PyCFunction_GET_SELF(newraw), data->newargs, NULL);
-#endif
+    inst = PyObject_Call(newraw, data->newargs, NULL);
     if (inst) {
 #ifndef SWIG_PYTHON_SLOW_GETSET_THIS
       PyObject **dictptr = _PyObject_GetDictPtr(inst);
