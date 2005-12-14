@@ -772,6 +772,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   }
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
+  Setattr(p,"self","1");
   Setattr(p,"hidden","1");
   /*
     Disable the 'this' ownership in 'self' to manage inplace
@@ -1111,6 +1112,7 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
   type  = NewString(classname);
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
+  Setattr(p,"self","1");
   Setattr(p,"wrap:disown","1");
   Delete(type);
   type = NewString("void");
@@ -1190,6 +1192,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   t = NewString(classname);
   SwigType_add_pointer(t);
   parms = NewParm(t,"self");
+  Setattr(parms,"self","1");
   Delete(t);
 
   ty = Swig_wrapped_var_type(type);
@@ -1273,6 +1276,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   t = NewString(classname);
   SwigType_add_pointer(t);
   parms = NewParm(t,"self");
+  Setattr(parms,"self","1");
   Delete(t);
 
   ty = Swig_wrapped_var_type(type);
