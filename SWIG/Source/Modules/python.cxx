@@ -1292,7 +1292,7 @@ public:
     String  *wname   = Swig_name_wrapper(symname);
 
     Printv(f->def,	
-	   "static PyObject *", wname,
+	   "SWIGINTERN PyObject *", wname,
 	   "(PyObject *self, PyObject *args) {",
 	   NIL);
     
@@ -1569,10 +1569,10 @@ public:
 	Clear(f->def);
 	if (overname) {
 	  if (noargs) {
-	    Printv(f->def, "SWIGINTERN PyObject *", wname,
+	    Printv(f->def, "SWIGINTERNINLINE PyObject *", wname,
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **SWIGUNUSEDPARM(obj)) {", NIL);
 	  } else{
-	    Printv(f->def, "SWIGINTERN PyObject *", wname,
+	    Printv(f->def, "SWIGINTERNINLINE PyObject *", wname,
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **obj) {", NIL);
 	  }
 	} else {
