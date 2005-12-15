@@ -316,6 +316,10 @@ PySwigObject_Check(PyObject *op) {
     || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
 }
 
+
+SWIGRUNTIME PyObject *
+PySwigObject_New(void *ptr, swig_type_info *ty, int own);
+
 SWIGRUNTIME void
 PySwigObject_dealloc(PyObject *v)
 {
@@ -332,9 +336,11 @@ PySwigObject_dealloc(PyObject *v)
       PyObject *mself = PyCFunction_GET_SELF(destroy);
       PyObject *args = data->delargs;
       if (args) {
-	PyTuple_SetItem(args,0,v);
+	/* we need to create a temporal object to carry the destroy operation */
+	PyObject *tmp = PySwigObject_New(sobj->ptr, ty, 0);
+	PyTuple_SetItem(args,0,tmp);
 	res = ((*meth)(mself, args));
-	PyTuple_SetItem(args,0,SWIG_Py_Void());
+	PyTuple_SetItem(args,0,SWIG_Py_Void());	
       } else {
 	res = ((*meth)(mself, v));
       }
@@ -522,7 +528,7 @@ _PySwigObject_type(void) {
   return &pyswigobject_type;
 }
 
-SWIGRUNTIMEINLINE PyObject *
+SWIGRUNTIME PyObject *
 PySwigObject_New(void *ptr, swig_type_info *ty, int own)
 {
   PySwigObject *sobj = PyObject_NEW(PySwigObject, PySwigObject_type());
