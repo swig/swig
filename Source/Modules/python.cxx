@@ -2216,7 +2216,6 @@ public:
     }
 
     Printf(f_directors_h,"\n\n");
-    Printf(f_directors_h,"public:\n");
     Printf(f_directors_h,"#if defined(SWIG_DIRECTOR_VTABLE)\n");
     Printf(f_directors_h,"/* VTable implementation */\n");
     Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
@@ -2229,7 +2228,6 @@ public:
     Printf(f_directors_h,"          msg += method_name;\n");
     Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
     Printf(f_directors_h,"        }\n");
-    Printf(f_directors_h,"        Py_DECREF(swig_get_self());\n");
     Printf(f_directors_h,"        vtable[method_index] = method;\n");
     Printf(f_directors_h,"      };\n");
     Printf(f_directors_h,"      return method;\n");

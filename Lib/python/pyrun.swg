@@ -161,7 +161,7 @@ typedef struct {
   PyObject *newraw;
   PyObject *newargs;
   PyObject *destroy;
-  PyObject *delargs;
+  int delargs;
 } PySwigClientData;
 
 SWIGRUNTIME PySwigClientData * 
@@ -184,6 +184,7 @@ PySwigClientData_New(PyObject* obj)
       Py_INCREF(data->newraw);
       data->newargs = PyTuple_New(1);
       PyTuple_SetItem(data->newargs, 0, obj);
+      Py_INCREF(data->newargs);
     }
     /* the destroy method, aka as the C++ delete method */
     data->destroy = PyObject_GetAttrString(data->klass, "__swig_destroy__");
@@ -194,7 +195,7 @@ PySwigClientData_New(PyObject* obj)
     if (data->destroy) {
       Py_INCREF(data->destroy);
       int flags = PyCFunction_GET_FLAGS(data->destroy);
-      data->delargs = (flags & (METH_VARARGS)) ? PyTuple_New(1) : 0;
+      data->delargs = (flags & (METH_VARARGS));
     } else {
       data->delargs = 0;
     }
@@ -209,7 +210,6 @@ PySwigClientData_Del(PySwigClientData* data)
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
-  Py_XDECREF(data->delargs);
   free(data);
 }
 
@@ -334,13 +334,13 @@ PySwigObject_dealloc(PyObject *v)
       PyObject *res;
       PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
       PyObject *mself = PyCFunction_GET_SELF(destroy);
-      PyObject *args = data->delargs;
-      if (args) {
+      if (data->delargs) {
 	/* we need to create a temporal object to carry the destroy operation */
 	PyObject *tmp = PySwigObject_New(sobj->ptr, ty, 0);
+	PyObject *args = PyTuple_New(1);
 	PyTuple_SetItem(args,0,tmp);
 	res = ((*meth)(mself, args));
-	PyTuple_SetItem(args,0,SWIG_Py_Void());	
+	Py_DECREF(args);
       } else {
 	res = ((*meth)(mself, v));
       }
