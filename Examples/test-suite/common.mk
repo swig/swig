@@ -277,6 +277,7 @@ CPP_TEST_CASES += \
 	template_typedef_cplx5 \
 	template_typedef_ns \
 	template_typedef_ptr \
+	template_typedef_rec \
 	template_using \
 	template_virtual \
 	template_whitespace \
