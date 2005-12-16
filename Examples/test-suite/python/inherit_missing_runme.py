@@ -15,3 +15,5 @@ if x != "Bar::blah":
 x = inherit_missing.do_blah(c)
 if x != "Spam::blah":
     print "Whoa! Bad return", x
+
+inherit_missing.delete_Foo(a)

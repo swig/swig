@@ -117,6 +117,7 @@ void ll(long long ull) {}
 
 %include cmalloc.i
 %malloc(void);
+%free(void);
 
 #endif
 

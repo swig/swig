@@ -84,6 +84,10 @@
   }
   
 %}
+%{
+  const int Hello::hello;
+%}
+  
 
 // Functions with keywords
 %warnfilter(-314);
