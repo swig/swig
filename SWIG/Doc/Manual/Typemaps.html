@@ -2350,7 +2350,7 @@ array dimensions.   Multidimensional arrays can be matched in a similar manner. 
 
 <div class="code">
 <pre>
-%typemap(python,in) float matrix[ANY][ANY] (float temp[$1_dim0][$1_dim1]) {
+%typemap(in) float matrix[ANY][ANY] (float temp[$1_dim0][$1_dim1]) {
    ... convert a 2d array ...
 }
 </pre>
