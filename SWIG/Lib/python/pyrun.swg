@@ -195,7 +195,7 @@ PySwigClientData_New(PyObject* obj)
     if (data->destroy) {
       Py_INCREF(data->destroy);
       int flags = PyCFunction_GET_FLAGS(data->destroy);
-      data->delargs = (flags & (METH_VARARGS));
+      data->delargs = !(flags & (METH_O));
     } else {
       data->delargs = 0;
     }
@@ -332,16 +332,14 @@ PySwigObject_dealloc(PyObject *v)
     if (destroy) {
       /* destroy is always a VARARGS method */
       PyObject *res;
-      PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
-      PyObject *mself = PyCFunction_GET_SELF(destroy);
       if (data->delargs) {
 	/* we need to create a temporal object to carry the destroy operation */
 	PyObject *tmp = PySwigObject_New(sobj->ptr, ty, 0);
-	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem(args,0,tmp);
-	res = ((*meth)(mself, args));
-	Py_DECREF(args);
+	res = PyObject_CallFunctionObjArgs(destroy, tmp, NULL);
+	Py_DECREF(tmp);
       } else {
+	PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
+	PyObject *mself = PyCFunction_GET_SELF(destroy);
 	res = ((*meth)(mself, v));
       }
       Py_XDECREF(res);
@@ -1039,6 +1037,8 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, SWIG_Python_DestroyModule);
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
+  } else {
+    Py_XDECREF(pointer);
   }
 }
 
