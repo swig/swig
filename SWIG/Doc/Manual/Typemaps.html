@@ -63,6 +63,7 @@
 <li><a href="#Typemaps_nn40">Typemaps for arrays</a>
 <li><a href="#Typemaps_nn41">Implementing constraints with typemaps</a>
 </ul>
+<li><a href="#Typemaps_nn43">Typemaps for multiple languages</a>
 <li><a href="#Typemaps_nn42">Multi-argument typemaps</a>
 <li><a href="#runtime_type_checker">The run-time type checker</a>
 <ul>
@@ -2560,7 +2561,37 @@ rather than blindly passing values to the underlying C/C++ program.</p>
 Note: A more advanced constraint checking system is in development.  Stay tuned.
 </p>
 
-<H2><a name="Typemaps_nn42"></a>10.7 Multi-argument typemaps</H2>
+<H2><a name="Typemaps_nn43"></a>10.7 Typemaps for multiple languages</H2>
+
+
+<p>
+The code within typemaps is usually language dependent,
+however, many languages support the same typemaps.
+In order to distinguish typemaps across different languages, the preprocessor should be used.
+For example, the "in" typemap for Perl and Ruby could be written as:
+</p>
+
+<div class="code"><pre>
+#if defined(SWIGPERL)
+  %typemap(in) int "$1 = NUM2INT($input);"
+#elif defined(SWIGRUBY)
+  %typemap(in) int "$1 = ($1_ltype) SvIV($input);"
+#else
+  #warning no "in" typemap defined
+#endif
+</pre></div>
+
+<p>
+The full set of language specific macros is defined in the <a href="Preprocessor.html#Preprocessor_condition_compilation">Conditional Compilation</a> section.
+The example above also shows a common approach of issuing a warning for an as yet unsupported language.
+</p>
+
+<p>
+<b>Compatibility note: </b> In SWIG-1.1 different languages could be distinguished with the language name being put within the <tt>%typemap</tt> directive, for example, <br>
+<tt>%typemap(ruby,in) int "$1 = NUM2INT($input);"</tt>.
+</p>
+
+<H2><a name="Typemaps_nn42"></a>10.8 Multi-argument typemaps</H2>
 
 
 <p>
@@ -2825,7 +2856,7 @@ when crossing languages you may need to worry about issues such as row-major vs.
 ordering (and perform conversions if needed).
 </p>
 
-<H2><a name="runtime_type_checker"></a>10.8 The run-time type checker</H2>
+<H2><a name="runtime_type_checker"></a>10.9 The run-time type checker</H2>
 
 
 <p>
@@ -2851,7 +2882,7 @@ language modules.</li>
 <li>Modules can be unloaded from the type system.</li>
 </ul>
 
-<H3><a name="Typemaps_nn45"></a>10.8.1 Implementation</H3>
+<H3><a name="Typemaps_nn45"></a>10.9.1 Implementation</H3>
 
 
 <p>
@@ -3037,7 +3068,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_nn46"></a>10.8.2 Usage</H3>
+<H3><a name="Typemaps_nn46"></a>10.9.2 Usage</H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -3131,7 +3162,7 @@ probably just look at the output of SWIG to get a better sense for how types are
 managed.
 </p>
 
-<H2><a name="Typemaps_overloading"></a>10.9 Typemaps and overloading</H2>
+<H2><a name="Typemaps_overloading"></a>10.10 Typemaps and overloading</H2>
 
 
 <p>
@@ -3440,7 +3471,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H2><a name="Typemaps_nn48"></a>10.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<H2><a name="Typemaps_nn48"></a>10.11 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 <p>
@@ -3525,7 +3556,7 @@ example:
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn49"></a>10.11 Reducing wrapper code size</H2>
+<H2><a name="Typemaps_nn49"></a>10.12 Reducing wrapper code size</H2>
 
 
 <p>
@@ -3606,7 +3637,7 @@ convert_float_array(PyObject *input, int size) {
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn47"></a>10.12 Passing data between typemaps</H2>
+<H2><a name="Typemaps_nn47"></a>10.13 Passing data between typemaps</H2>
 
 
 <p>
@@ -3643,7 +3674,7 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn51"></a>10.13 Where to go for more information?</H2>
+<H2><a name="Typemaps_nn51"></a>10.14 Where to go for more information?</H2>
 
 
 <p>
