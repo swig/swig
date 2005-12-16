@@ -7,38 +7,58 @@
   namespace swig {
     template <class T, class U >
     struct traits_asptr<std::pair<T,U> >  {
-      static int asptr(PyObject *obj, std::pair<T,U> **val) {
-	typedef std::pair<T,U> value_type;
-	if (PySequence_Check(obj) && (PySequence_Size(obj) == 2)) {
-	  swig::PyObject_var first = PySequence_GetItem(obj,0);
-	  swig::PyObject_var second = PySequence_GetItem(obj,1);
-	  T *pfirst = 0;
-	  U *psecond = 0;
-	  value_type *vp = 0;
-	  if (val) {
-	    vp = %new_instance(std::pair<T,U>);
-	    pfirst = &(vp->first);
-	    psecond = &(vp->second);
-	  }	  
-	  if ((swig::asval(first,pfirst) == SWIG_OK) && (swig::asval(second,psecond) == SWIG_OK)) {
-	    if (val) *val = vp;
+      typedef std::pair<T,U> value_type;
+
+      static int get_pair(PyObject* first, PyObject* second,
+			  std::pair<T,U> **val) 
+      {
+	if (val) {
+	  value_type *vp = %new_instance(std::pair<T,U>);
+	  T *pfirst = &(vp->first);
+	  U *psecond = &(vp->second);
+	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
+	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
+	    *val = vp;
 	    return SWIG_NEWOBJ;
 	  } else {
 	    %delete(vp);
+	    return SWIG_BADOBJ;
+	  }
+	} else {
+	  T *pfirst = 0;
+	  U *psecond = 0;
+	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
+	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
+	    return SWIG_NEWOBJ;
+	  } else {
+	    return SWIG_BADOBJ;
+	  }
+	}	
+      }
+      
+      static int asptr(PyObject *obj, std::pair<T,U> **val) {
+	int res = SWIG_BADOBJ;
+	if (PyTuple_Check(obj)) {
+	  if (PyTuple_GET_SIZE(obj) == 2) {
+	    res = get_pair(PyTuple_GET_ITEM(obj,0),PyTuple_GET_ITEM(obj,1), val);
+	  }
+	} else if (PySequence_Check(obj)) {
+	  if (PySequence_Size(obj) == 2) {
+	    swig::PyObject_var first = PySequence_GetItem(obj,0);
+	    swig::PyObject_var second = PySequence_GetItem(obj,1);
+	    res = get_pair(first, second, val);
 	  }
 	} else {
 	  value_type *p;
-	  if (SWIG_ConvertPtr(obj,(void**)&p,
-			      swig::type_info<value_type>(),0) != -1) {
+	  if (SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0) == SWIG_OK) {
 	    if (val) *val = p;
-	    return SWIG_OLDOBJ;
-	  }
+	    res = SWIG_OLDOBJ;
+	  }	  
 	}
-	if (val) {
-	  PyErr_Format(PyExc_TypeError, "a %s is expected", 
-		       swig::type_name<value_type>());
+	if ((res == SWIG_BADOBJ) && val) {
+	  PyErr_Format(PyExc_TypeError, "a %s is expected", swig::type_name<value_type>());
 	}
-	return 0;
+	return res;
       }
     };
 

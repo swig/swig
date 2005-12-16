@@ -57,7 +57,7 @@ namespace swig {
     static int asval(PyObject *obj, Type *val) {
       if (val) {
 	Type *p = 0;
-	int res = traits_asptr<Type>::asptr(obj, &p);
+	int res = traits_asptr<Type>::asptr(obj, (val ? &p : 0));
 	if ((res != 0) && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
@@ -77,7 +77,7 @@ namespace swig {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
-        int res = traits_asptr<noconst_type>::asptr(obj, &p);
+        int res = traits_asptr<noconst_type>::asptr(obj, (val ? &p : 0));
         if (res) {
           *(const_cast<noconst_type**>(val)) = p;
      	  return SWIG_OK;

@@ -48,6 +48,7 @@
 #define SWIG_POINTER_OWN           0x1
 
 /*  Alloc. memory flags */
+#define SWIG_BADOBJ                0
 #define SWIG_OLDOBJ                1
 #define SWIG_NEWOBJ                2
 
