@@ -1766,7 +1766,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			similar typemaps for other STL structures:
 		</p>
 		<div class="code">
-			<pre>%define PTR_VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(ruby, out) vectorclassname &amp;, const vectorclassname &amp; {<br> VALUE arr = rb_ary_new2($1-&gt;size());<br> vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br> $result = arr;<br>}<br>%typemap(ruby, out) vectorclassname, const vectorclassname {<br> VALUE arr = rb_ary_new2($1.size());<br> vectorclassname::iterator i = $1.begin(), iend = $1.end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br> $result = arr;<br>}<br>%enddef<br></pre>
+			<pre>%define PTR_VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(out) vectorclassname &amp;, const vectorclassname &amp; {<br> VALUE arr = rb_ary_new2($1-&gt;size());<br> vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br> $result = arr;<br>}<br>%typemap(out) vectorclassname, const vectorclassname {<br> VALUE arr = rb_ary_new2($1.size());<br> vectorclassname::iterator i = $1.begin(), iend = $1.end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br> $result = arr;<br>}<br>%enddef<br></pre>
 		</div>
 		<p>
 			Note, that the "<tt>c ## classname.klass"</tt> is used in the preprocessor step 
@@ -1781,13 +1781,13 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			It is also possible to create a STL vector of Ruby objects:
 		</p>
 		<div class="code">
-			<pre>%define RUBY_ARRAY_TO_PTR_VECTOR(vectorclassname, classname)<br>%typemap(ruby, in) vectorclassname &amp;, const vectorclassname &amp; {<br> Check_Type($input, T_ARRAY);<br> vectorclassname *vec = new vectorclassname;<br> int len = RARRAY($input)-&gt;len;<br> for (int i=0; i!=len; i++) {<br> VALUE inst = rb_ary_entry($input, i);<br> //The following _should_ work but doesn't on HPUX<br> // Check_Type(inst, T_DATA);<br> classname *element = NULL;<br> Data_Get_Struct(inst, classname, element);<br> vec-&gt;push_back(element);<br> }<br> $1 = vec;<br>}<br><br>%typemap(ruby, freearg) vectorclassname &amp;, const vectorclassname &amp; {<br> delete $1;<br>}<br>%enddef<br></pre>
+			<pre>%define RUBY_ARRAY_TO_PTR_VECTOR(vectorclassname, classname)<br>%typemap(in) vectorclassname &amp;, const vectorclassname &amp; {<br> Check_Type($input, T_ARRAY);<br> vectorclassname *vec = new vectorclassname;<br> int len = RARRAY($input)-&gt;len;<br> for (int i=0; i!=len; i++) {<br> VALUE inst = rb_ary_entry($input, i);<br> //The following _should_ work but doesn't on HPUX<br> // Check_Type(inst, T_DATA);<br> classname *element = NULL;<br> Data_Get_Struct(inst, classname, element);<br> vec-&gt;push_back(element);<br> }<br> $1 = vec;<br>}<br><br>%typemap(freearg) vectorclassname &amp;, const vectorclassname &amp; {<br> delete $1;<br>}<br>%enddef<br></pre>
 		</div>
 		<p>
 			It is also possible to create a Ruby array from a vector of static data types:
 		</p>
 		<div class="code">
-			<pre>%define VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(ruby, out) vectorclassname &amp;, const vectorclassname &amp; {<br> VALUE arr = rb_ary_new2($1-&gt;size()); <br> vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%typemap(ruby, out) vectorclassname, const vectorclassname {<br> VALUE arr = rb_ary_new2($1.size()); <br> vectorclassname::iterator i = $1.begin(), iend = $1.end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%enddef<br></pre>
+			<pre>%define VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(out) vectorclassname &amp;, const vectorclassname &amp; {<br> VALUE arr = rb_ary_new2($1-&gt;size()); <br> vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%typemap(out) vectorclassname, const vectorclassname {<br> VALUE arr = rb_ary_new2($1.size()); <br> vectorclassname::iterator i = $1.begin(), iend = $1.end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%enddef<br></pre>
 		</div>
 <H2><a name="Ruby_nn46"></a>30.7 Advanced Topics</H2>
 
