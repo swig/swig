@@ -12,7 +12,7 @@
 <ul>
 <li><a href="#Preprocessor_nn2">File inclusion</a>
 <li><a href="#Preprocessor_nn3">File imports</a>
-<li><a href="#Preprocessor_nn4">Conditional Compilation</a>
+<li><a href="#Preprocessor_condition_compilation">Conditional Compilation</a>
 <li><a href="#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="#Preprocessor_nn6">SWIG Macros</a>
 <li><a href="#Preprocessor_nn7">C99 and GNU Extensions</a>
@@ -87,7 +87,7 @@ The <tt>-importall</tt> directive tells SWIG to follow all <tt>#include</tt> sta
 as imports.    This might be useful if you want to extract type definitions from system 
 header files without generating any wrappers.
 
-<H2><a name="Preprocessor_nn4"></a>7.3 Conditional Compilation</H2>
+<H2><a name="Preprocessor_condition_compilation"></a>7.3 Conditional Compilation</H2>
 
 
 <p>
@@ -109,12 +109,15 @@ SWIGCHICKEN                     Defined when using CHICKEN
 SWIGCSHARP                      Defined when using C#
 SWIGGUILE                       Defined when using Guile
 SWIGJAVA                        Defined when using Java
+SWIGLUA                         Defined when using Lua
+SWIGMODULA3                     Defined when using Modula-3
 SWIGMZSCHEME                    Defined when using Mzscheme        
 SWIGOCAML                       Defined when using Ocaml
 SWIGPERL                        Defined when using Perl
 SWIGPERL5                       Defined when using Perl5
 SWIGPHP                         Defined when using PHP
 SWIGPHP4                        Defined when using PHP4
+SWIGPIKE                        Defined when using Pike
 SWIGPYTHON                      Defined when using Python
 SWIGRUBY                        Defined when using Ruby
 SWIGSEXP                        Defined when using S-expressions
