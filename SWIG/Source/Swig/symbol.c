@@ -1392,13 +1392,11 @@ Swig_symbol_isoverloaded(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static int no_constructor(Node *n) {
-#ifdef SWIG_DEBUG
-  Printf(stderr,"node type %s\n", HashGetAttr(n,k_name), type);
-#endif
   return !HashCheckAttr(n, k_nodetype, k_constructor);
 }
 
-#define SWIG_TEMPLATE_QUALIFY_CACHE
+/* This cache produce problems with OSS, don't active it */
+/* #define SWIG_TEMPLATE_QUALIFY_CACHE */
 static SwigType *
 Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   String *tprefix, *tsuffix;
@@ -1597,14 +1595,14 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
 
   n = Swig_symbol_clookup(base,tab);
   if (!n) {
-    Delete(base);
     if (SwigType_istemplate(ty)) {
-      SwigType *qt = Swig_symbol_template_reduce(ty,tab);
+      SwigType *qt = Swig_symbol_template_reduce(base,tab);
       StringAppend(prefix,qt);
       Delete(qt);
 #ifdef SWIG_DEBUG
       Printf(stderr,"symbol_reduce %s %s\n", ty, prefix);
 #endif
+      Delete(base);
       return prefix;
     } else {
       Delete(prefix);
