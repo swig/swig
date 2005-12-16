@@ -3,6 +3,7 @@ It was reported in bug 899332 by Jermey Brown (jhbrown94) */
 
 %module return_const_value
 
+
 %inline %{
 
 class Foo {
@@ -16,17 +17,29 @@ public:
 
 class Foo_ptr {
     Foo *_ptr;
+    mutable bool _own;
+  
 public:
-    Foo_ptr(Foo *p): _ptr(p) {}
-    static Foo_ptr getPtr() {
-        return Foo_ptr(new Foo(17));
-    }
-    static const Foo_ptr getConstPtr() {
-        return Foo_ptr(new Foo(17));
-    }
-    const Foo *operator->() {
-        return _ptr;
-    }
+  Foo_ptr(Foo *p, int own = false): _ptr(p), _own(own) {}
+  static Foo_ptr getPtr() {
+    return Foo_ptr(new Foo(17), true);
+  }
+  static const Foo_ptr getConstPtr() {
+    return Foo_ptr(new Foo(17), true);
+  }
+  const Foo *operator->() {
+    return _ptr;
+  }
+
+  Foo_ptr(const Foo_ptr& f) : _ptr(f._ptr), _own(f._own) 
+  {
+    f._own = 0;
+  }
+  
+
+  ~Foo_ptr() {
+    if(_own) delete _ptr;
+  }  
 };
 
 %}

@@ -40,6 +40,10 @@ Foo *new_Foo() {
    return new Foo();
 }
 
+void delete_Foo(Foo *f) {
+   return delete f;
+}
+
 char *do_blah(Foo *f) {
   return f->blah();
 }

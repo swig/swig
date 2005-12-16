@@ -23,6 +23,10 @@ Foo *create_Foo() {
    return new Foo();
 }
 
+void delete_Foo(Foo *f) {
+   delete f;
+}
+
 void test1(Foo *f, Integer x) { }
 
 class Bar : public Foo { };

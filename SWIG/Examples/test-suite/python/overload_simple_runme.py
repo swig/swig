@@ -95,3 +95,4 @@ if s.type != "void *":
 
 
 
+free_void(v)
