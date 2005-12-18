@@ -107,3 +107,20 @@ int* const globalRet2() {return &GlobalInt;}
     return b;
   }
 }
+
+
+
+%{
+static int wxEVT_COMMAND_BUTTON_CLICKEDv;
+static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
+%}
+
+
+%inline {
+#define EWXWEXPORT_VAR 
+
+  const int* wxEVENT_COMMAND_BUTTON_CLICKEDr = (int*) &wxEVT_COMMAND_BUTTON_CLICKEDv;
+  const int* wxEVENT_COMMAND_BUTTON_CLICKEDp = (int*) *wxEVT_COMMAND_BUTTON_CLICKEDp;
+
+}
+
