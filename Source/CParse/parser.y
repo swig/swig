@@ -4413,27 +4413,6 @@ def_args       : EQUAL definetype {
 		    $$.throw = 0;
 		  }
                }
-               | EQUAL AND declarator {
-		 Node *n = Swig_symbol_clookup($3.id,0);
-		 if (n) {
-		   String *q = Swig_symbol_qualified(n);
-                   if (q) {
-                     String *temp = NewStringf("%s::%s", q, Getattr(n,"name"));
-                     $$.val = NewStringf("&%s", SwigType_str($3.type,temp));
-                     Delete(q);
-                     Delete(temp);
-                   } else {
-                     $$.val = NewStringf("&%s", SwigType_str($3.type,$3.id));
-                   }
-		 } else {
-		   $$.val = NewStringf("&%s",SwigType_str($3.type,$3.id));
-		 }
-		 $$.rawval = 0;
-		 $$.type = T_USER;
-		 $$.bitfield = 0;
-		 $$.throws = 0;
-		 $$.throw = 0;
-	       }
                | EQUAL LBRACE {
 		 skip_balanced('{','}');
 		 $$.val = 0;
@@ -5311,7 +5290,13 @@ expr           :  exprnum { $$ = $1; }
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
 		 }
  	       }
+               | AND expr {
+                 $$.val = NewStringf("&%s",$2.val);
+	       }
                ;
+               | STAR expr {
+                 $$.val = NewStringf("*%s",$2.val);
+	       }
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
