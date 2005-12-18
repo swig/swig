@@ -3,6 +3,7 @@
 %inline %{
 class Foo {
 public:
+     virtual ~Foo() { }
      int x;
      int blah(int xx) { return xx; }
      int defaulted(int i = -1) { return i; }
