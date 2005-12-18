@@ -1,7 +1,27 @@
 Version 1.3.28 (unreleased).
 ===========================
 
-12/14/2005: mmatus 
+
+12/17/2005: mmatus
+	  [Python]
+	  - Add the -aliasobj0/-noaliasobj0 options to use with
+	    -fastunpack and/or -O and old typemaps that use 'obj0'
+	    directly.
+
+	    So, if you compile your code using -O and get errors about
+	    the undeclared 'obj0' variable, run again using 
+
+		swig -O -aliasobj0 -python ....
+	    
+	    For new typemaps, never use 'obj0' directly, if needed,
+	    use the '$self' name that will be properly  expanded to
+	    'obj0' (nofastunpack) or 'swig_obj[0]' (fastunpack). 
+  
+	    If you have no idea what I am talking about, better, that
+	    means you have no typemap with this problem.
+
+
+12/14/2005: mmatus 	 
 	  [Python]
 	  - Add the -fastunpack/-nofastunpack options to enable/disable
 	    the use of the internal UnpackTuple method, instead of
