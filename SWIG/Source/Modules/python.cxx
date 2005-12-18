@@ -439,9 +439,9 @@ public:
     }
 
     if (!dirvtable) {
-      Printf(f_runtime,"#define SWIG_DIRECTOR_NO_VTABLE\n");
+      Printf(f_runtime,"#define SWIG_PYTHON_DIRECTOR_NO_VTABLE\n");
     }
-    
+
 
     /* Set module name */
     module = Copy(Getattr(n,"name"));
@@ -1309,10 +1309,9 @@ public:
       Printf(f->code,"}\n");
     } else {
       String  *iname = Getattr(n,"sym:name");
-      Printf(f->code,"argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv);\n", iname, maxargs);
-      Printf(f->code,"if (!argc) { return NULL; } else { --argc; }\n");
+      Printf(f->code,"if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
+      Printf(f->code,"--argc;\n");
     }
-
     
     Replaceall(dispatch,"$args","self,args");
 
@@ -1329,9 +1328,11 @@ public:
     if (allow_thread) thread_end_block(n, f->code);
 
     if (GetFlag(n,"feature:python:maybecall")) {
+      Printf(f->code,"fail:;\n");
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
     } else {
+      Printf(f->code,"fail:;\n");
       Printf(f->code,"SWIG_SetErrorMsg(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
       Printf(f->code,"return NULL;\n");
     }
@@ -1465,8 +1466,8 @@ public:
     /* Generate code for argument marshalling */
     if (funpack) {
       if (!overname && num_arguments) {
-	sprintf(source,"obj[%d]",num_arguments);
-	Wrapper_add_localv(f, "obj", "PyObject *",source, NIL);
+	sprintf(source,"PyObject *swig_obj[%d]",num_arguments);
+	Wrapper_add_localv(f, "swig_obj", source, NIL);
       }
     }
 
@@ -1481,7 +1482,7 @@ public:
       String   *pn = Getattr(p,"name");
       String   *ln = Getattr(p,"lname");
       if (funpack) {
-	sprintf(source,"obj[%d]",i);
+	sprintf(source,"swig_obj[%d]",i);
       } else {
 	sprintf(source,"obj%d",i);
       }
@@ -1512,7 +1513,7 @@ public:
 	String *parse = Getattr(p,"tmap:in:parse");
 	if (!parse) {
 	  if (funpack) {
-	    Replaceall(tm,"$self","obj[0]");
+	    Replaceall(tm,"$self","swig_obj[0]");
 	  } else{
 	    Replaceall(tm,"$self","obj0");
 	  }
@@ -1569,11 +1570,11 @@ public:
 	Clear(f->def);
 	if (overname) {
 	  if (noargs) {
-	    Printv(f->def, "SWIGINTERNINLINE PyObject *", wname,
-		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **SWIGUNUSEDPARM(obj)) {", NIL);
+	    Printv(f->def, "SWIGINTERN PyObject *", wname,
+		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
 	  } else{
-	    Printv(f->def, "SWIGINTERNINLINE PyObject *", wname,
-		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **obj) {", NIL);
+	    Printv(f->def, "SWIGINTERN PyObject *", wname,
+		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **swig_obj) {", NIL);
 	  }
 	} else {
 	  if (noargs) {
@@ -1584,9 +1585,9 @@ public:
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
 	  }
 	  if (onearg) {
-	    Printf(parse_args,"if (!args) { goto fail; } else { obj[0] = args; }\n");
+	    Printf(parse_args,"if (!args) { goto fail; } else { swig_obj[0] = args; }\n");
 	  } else if (!noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,obj)) goto fail;\n", 
+	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
@@ -1680,7 +1681,7 @@ public:
 	    Printf(f->code, "}\n");
 	  }
 	  if (funpack) {
-	    Printf(f->code, "if (director && (director->swig_get_self()==obj[0])) director->swig_set_up();\n");
+	    Printf(f->code, "if (director && (director->swig_get_self()==swig_obj[0])) director->swig_set_up();\n");
 	  } else {
 	    Printf(f->code, "if (director && (director->swig_get_self()==obj0)) director->swig_set_up();\n");
 	  }
@@ -1727,6 +1728,11 @@ public:
 
     /* Return the function value */
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+      if (funpack) {
+	Replaceall(tm,"$self","swig_obj[0]");
+      } else{
+	Replaceall(tm,"$self","obj0");
+      }
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "resultobj");
       Replaceall(tm,"$result", "resultobj");
@@ -1838,7 +1844,7 @@ public:
     Replaceall(f->code,"$result","resultobj");
 
     if (funpack) {
-      Replaceall(f->code,"$self","obj[0]");
+      Replaceall(f->code,"$self","swig_obj[0]");
     } else{
       Replaceall(f->code,"$self","obj0");
     }
@@ -2216,7 +2222,7 @@ public:
     }
 
     Printf(f_directors_h,"\n\n");
-    Printf(f_directors_h,"#if defined(SWIG_DIRECTOR_VTABLE)\n");
+    Printf(f_directors_h,"#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
     Printf(f_directors_h,"/* VTable implementation */\n");
     Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
     Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
@@ -3228,7 +3234,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Printf(w->code, "if (!swig_get_self()) {\n");
   Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
-  Printf(w->code,"#if defined(SWIG_DIRECTOR_VTABLE)\n");
+  Printf(w->code,"#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
   Printf(w->code, "const size_t swig_method_index = %d;\n", director_method_index++);
   Printf(w->code, "const char * const swig_method_name = \"%s\";\n", pyname);
 
