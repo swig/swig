@@ -1,10 +1,68 @@
 /*
   Pairs
 */
-%include <pycontainer.swg>
+%include <pystdcommon.swg>
+
+//#define SWIG_STD_PAIR_ASVAL
 
 %fragment("StdPairTraits","header",fragment="StdTraits") {
   namespace swig {
+#ifdef SWIG_STD_PAIR_ASVAL
+    template <class T, class U >
+    struct traits_asval<std::pair<T,U> >  {
+      typedef std::pair<T,U> value_type;
+
+      static int get_pair(PyObject* first, PyObject* second,
+			  std::pair<T,U> *val)
+      {
+	if (val) {
+	  T *pfirst = &(val->first);
+	  U *psecond = &(val->second);
+	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
+	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
+	    return SWIG_OK;
+	  } else {
+	    return SWIG_ERROR;
+	  }
+	} else {
+	  T *pfirst = 0;
+	  U *psecond = 0;
+	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
+	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
+	    return SWIG_OK;
+	  } else {
+	    return SWIG_ERROR;
+	  }
+	}	
+      }
+
+      static int asval(PyObject *obj, std::pair<T,U> *val) {
+	int res = SWIG_ERROR;
+	if (PyTuple_Check(obj)) {
+	  if (PyTuple_GET_SIZE(obj) == 2) {
+	    res = get_pair(PyTuple_GET_ITEM(obj,0),PyTuple_GET_ITEM(obj,1), val);
+	  }
+	} else if (PySequence_Check(obj)) {
+	  if (PySequence_Size(obj) == 2) {
+	    swig::PyObject_var first = PySequence_GetItem(obj,0);
+	    swig::PyObject_var second = PySequence_GetItem(obj,1);
+	    res = get_pair(first, second, val);
+	  }
+	} else {
+	  value_type *p;
+	  if (SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0) == SWIG_OK) {
+	    if (val) *val = *p;
+	    res = SWIG_OK;
+	  }	  
+	}
+	if ((res == SWIG_ERROR) && val) {
+	  PyErr_Format(PyExc_TypeError, "a %s is expected", swig::type_name<value_type>());
+	}
+	return res;
+      }
+    };
+
+#else
     template <class T, class U >
     struct traits_asptr<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
@@ -35,7 +93,7 @@
 	  }
 	}	
       }
-      
+
       static int asptr(PyObject *obj, std::pair<T,U> **val) {
 	int res = SWIG_BADOBJ;
 	if (PyTuple_Check(obj)) {
@@ -62,6 +120,7 @@
       }
     };
 
+#endif
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
       static PyObject *from(const std::pair<T,U>& val) {
