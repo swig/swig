@@ -107,8 +107,9 @@ nocppval
 #endif
 %enddef
 
-/* insert the SWIG_VERSION in the code */
+/* insert the SWIGVERSION in the interface and the wrapper code */
 #if SWIG_VERSION
+#define SWIGVERSION SWIG_VERSION
 %insert("header") {
   %define_as(SWIGVERSION,  SWIG_VERSION)
 }
