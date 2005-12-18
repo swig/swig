@@ -67,6 +67,7 @@ static  int       safecstrings = 0;
 static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
+static  int       keepobj0 = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -108,6 +109,8 @@ Python Options (available with -python)\n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
+     -keepobj0       - Keep obj0 when using fastunpack, needed for some users typemaps \n\
+     -nokeepobj0     - Don't generate obj0 when using fastunpack (default) \n\
      -O              - Enable several old and new optimizations options: \n\
                        -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack\n\
 \n";
@@ -286,6 +289,12 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nofastunpack") == 0) {
 	  fastunpack = 0;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-keepobj0") == 0) {
+	  keepobj0 = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nokeepobj0") == 0) {
+	  keepobj0 = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-proxydel") == 0) {
 	  proxydel = 1;
@@ -1465,9 +1474,16 @@ public:
 
     /* Generate code for argument marshalling */
     if (funpack) {
-      if (!overname && num_arguments) {
+      if (overname) {
+	if (keepobj0) {
+	  Printf(f->code, "#define obj0 (swig_obj[0])\n");
+	}
+      } else if (num_arguments) {
 	sprintf(source,"PyObject *swig_obj[%d]",num_arguments);
 	Wrapper_add_localv(f, "swig_obj", source, NIL);
+	if (keepobj0) {
+	  Printf(f->code, "#define obj0 (swig_obj[0])\n");
+	}
       }
     }
 
@@ -1832,6 +1848,14 @@ public:
     if (allow_thread) thread_end_block(n, f->code);
     Printv(f->code,tab4,"return NULL;\n",NIL);
     
+
+    if (funpack) {
+      if (keepobj0) {
+	Printf(f->code, "#if defined(obj0)\n");
+	Printf(f->code, "#undef obj0\n");
+	Printf(f->code, "#endif\n");
+      }
+    }
     
     
     Printf(f->code,"}\n");
