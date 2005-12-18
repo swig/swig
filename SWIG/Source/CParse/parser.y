@@ -5293,10 +5293,10 @@ expr           :  exprnum { $$ = $1; }
                | AND expr {
                  $$.val = NewStringf("&%s",$2.val);
 	       }
-               ;
                | STAR expr {
                  $$.val = NewStringf("*%s",$2.val);
 	       }
+               ;
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
