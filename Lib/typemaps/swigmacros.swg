@@ -107,6 +107,15 @@ nocppval
 #endif
 %enddef
 
+/* insert the SWIG_VERSION in the code */
+#if SWIG_VERSION
+%insert("header") {
+  %define_as(SWIGVERSION,  SWIG_VERSION)
+}
+#endif  
+
+
+
 /* -----------------------------------------------------------------------------
  * Casting operators
  * ----------------------------------------------------------------------------- */
@@ -139,7 +148,6 @@ nocppval
   %define_as(SWIG_as_voidptrptr(a), ((void)%as_voidptr(*a),%reinterpret_cast(a, void**)))
 }
 
-  
 
 /* -----------------------------------------------------------------------------
  * Allocating/freeing elements 
