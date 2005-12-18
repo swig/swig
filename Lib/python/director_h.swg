@@ -19,14 +19,14 @@
 
 
 /*
-  Use -DSWIG_DIRECTOR_NO_VTABLE if you don't want to generate a 'virtual
+  Use -DSWIG_PYTHON_DIRECTOR_NO_VTABLE if you don't want to generate a 'virtual
   table', and avoid multiple GetAttr calls to retreive the python
   methods.
 */
 
-#ifndef SWIG_DIRECTOR_NO_VTABLE
-#ifndef SWIG_DIRECTOR_VTABLE
-#define SWIG_DIRECTOR_VTABLE
+#ifndef SWIG_PYTHON_DIRECTOR_NO_VTABLE
+#ifndef SWIG_PYTHON_DIRECTOR_VTABLE
+#define SWIG_PYTHON_DIRECTOR_VTABLE
 #endif
 #endif
 
