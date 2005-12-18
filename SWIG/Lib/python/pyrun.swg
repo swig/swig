@@ -96,6 +96,11 @@ SWIG_Py_None(void)
   return none;
 }
 
+#ifdef Py_None
+#  undef Py_None
+#  define Py_None SWIG_Py_None()
+#endif
+
 SWIGRUNTIMEINLINE PyObject * 
 SWIG_Py_Void(void)
 {
