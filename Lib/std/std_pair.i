@@ -27,7 +27,11 @@ namespace std {
       }
     }
 
+#ifndef SWIG_STD_PAIR_ASVAL
     %typemap_traits_ptr(SWIG_TYPECHECK_PAIR, std::pair<T,U >);
+#else
+    %typemap_traits(SWIG_TYPECHECK_PAIR, std::pair<T,U >);
+#endif
 
     pair();
     pair(T first, U second);
