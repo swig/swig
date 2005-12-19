@@ -724,6 +724,32 @@ static void merge_extensions(Node *cls, Node *am) {
   }
 }
 
+static void append_previous_extension(Node *cls, Node *am) {
+  Node *n, *ne;
+  Node *pe = 0;
+  Node *ae = 0;
+
+  if (!am) return;
+  
+  n = firstChild(am);
+  while (n) {
+    ne = nextSibling(n);
+    set_nextSibling(n,0);
+    /* typemaps and fragments need to be preppended */
+    if (((Cmp(nodeType(n),"typemap") == 0) || (Cmp(nodeType(n),"fragment") == 0)))  {
+      if (!pe) pe = new_node("extend");
+      appendChild(pe, n);
+    } else {
+      if (!ae) ae = new_node("extend");
+      appendChild(ae, n);
+    }    
+    n = ne;
+  }
+  if (pe) preppendChild(cls,pe);
+  if (ae) appendChild(cls,ae);
+}
+ 
+
 /* Check for unused %extend.  Special case, don't report unused
    extensions for templates */
  
@@ -2682,7 +2708,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                                 /*			    Printf(stdout,"%s: %s %x %x\n", Getattr(templnode,"name"), clsname, Swig_symbol_current(), Getattr(templnode,"symtab")); */
                                 merge_extensions(templnode,am);
                                 Swig_symbol_setscope(st);
-                                appendChild(templnode,am);
+				append_previous_extension(templnode,am);
                                 Delattr(extendhash,clsname);
                               }
 			      if (stmp) Delete(stmp);
@@ -3203,7 +3229,8 @@ cpp_class_decl  :
 		 Delete(scpname);
 
 		 appendChild($$,$7);
-		 if (am) appendChild($$,am);
+		 
+		 if (am) append_previous_extension($$,am);
 
 		 p = $9;
 		 if (p) {
@@ -3367,7 +3394,7 @@ cpp_class_decl  :
 		       if (am) {
 			 /* Merge the extension into the symbol table */
 			 merge_extensions($$,am);
-			 appendChild($$,am);
+			 append_previous_extension($$,am);
 			 Delattr(extendhash,clsname);
 		       }
 		       Delete(clsname);

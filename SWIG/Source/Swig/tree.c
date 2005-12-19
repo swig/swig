@@ -150,6 +150,30 @@ appendChild(Node *node, Node *chd) {
 }
 
 /* -----------------------------------------------------------------------------
+ * preppendChild()
+ *
+ * Preppends a new child to a node
+ * ----------------------------------------------------------------------------- */
+
+void
+preppendChild(Node *node, Node *chd) {
+  Node *fc;
+
+  if (!chd) return;
+
+  fc = firstChild(node);
+  if (fc) {
+    set_nextSibling(chd,fc);
+    set_previousSibling(fc,chd);
+  }
+  set_firstChild(node,chd);
+  while (chd) {
+    set_parentNode(chd,node);
+    chd = nextSibling(chd);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * deleteNode()
  *
  * Deletes a node.
