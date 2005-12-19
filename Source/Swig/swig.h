@@ -369,6 +369,7 @@ extern int checkAttribute(Node *obj, const String_or_char *name, const String_or
 #define  set_lastChild(x,v)        Setattr(x,"lastChild",v)
 
 extern void appendChild(Node *node, Node *child);
+extern void preppendChild(Node *node, Node *child);
 extern void deleteNode(Node *node);
 extern Node *copyNode(Node *node);
 
