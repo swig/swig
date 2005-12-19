@@ -2,10 +2,6 @@ from li_std_carray import *
 
 
 v3 = Vector3()
-
-da = Vector3((1,2,3))
-print da
-
 for i in range(0,len(v3)):
     v3[i] = i
 
@@ -20,7 +16,6 @@ m3 = Matrix3()
 
 for i in range(0,len(m3)):
     v3 = m3[i]
-    print v3
     for j in range(0,len(v3)):
         v3[j] = i + j
 
@@ -40,8 +35,7 @@ for i in range(0,len(m3)):
         if m3[i][j] != i + j:
             raise RuntimeError
 
-
-print m3
-print m3[0]
-
 da = Vector3((1,2,3))
+ma = Matrix3(((1,2,3),(4,5,6),(7,8,9)))
+
+
