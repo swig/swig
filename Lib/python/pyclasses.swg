@@ -114,22 +114,19 @@ namespace swig {
 }
 
 %{
-  namespace swig {
-    struct PyObject_var : PyObject_ptr {
-      PyObject_var(PyObject* obj = 0) : PyObject_ptr(obj, false) { }
-      
-      PyObject_var & operator = (PyObject* obj)
-      {
-	Py_XDECREF(_obj);
-	_obj = obj;
-	return *this;      
-      }
-    };
-  }
+namespace swig {
+  struct PyObject_var : PyObject_ptr {
+    PyObject_var(PyObject* obj = 0) : PyObject_ptr(obj, false) { }
+    
+    PyObject_var & operator = (PyObject* obj)
+    {
+      Py_XDECREF(_obj);
+      _obj = obj;
+      return *this;      
+    }
+  };
+}
 %}
-
-
-
 
 
 #endif
