@@ -29,7 +29,14 @@
 
 /* attribute recognised by some compilers to avoid 'unused' warnings */
 #ifndef SWIGUNUSED
-# if defined(__GNUC__) || defined(__ICC)
+# if defined(__GNUC__)
+/* Old G++ versions has problems with this attribute, but not GCC */
+#  if !(defined(__cplusplus)) || (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
+#    define SWIGUNUSED __attribute__ ((__unused__)) 
+#  else
+#    define SWIGUNUSED
+#  endif
+# elif defined(__ICC)
 #   define SWIGUNUSED __attribute__ ((__unused__)) 
 # else
 #   define SWIGUNUSED 
