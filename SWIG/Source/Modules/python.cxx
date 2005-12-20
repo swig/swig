@@ -1331,7 +1331,7 @@ public:
       Printf(f->code,"}\n");
     } else {
       String  *iname = Getattr(n,"sym:name");
-      Printf(f->code,"if (!(argc = SWIG_Python_Modernargs(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
+      Printf(f->code,"if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
       Printf(f->code,"--argc;\n");
     }
     
@@ -1616,12 +1616,12 @@ public:
 	  if (onearg) {
 	    Printf(parse_args,"if (!args) { goto fail; } else { swig_obj[0] = args; }\n");
 	  } else if (!noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_Modernargs(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
+	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
       } else {	
-	Printf(parse_args,"if(!PyArg_Modernargs(args,(char *)\"%s\",%d,%d", iname, num_required, num_arguments);
+	Printf(parse_args,"if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_required, num_arguments);
 	Printv(parse_args,arglist, ")) goto fail;\n",NIL);
       }
     }
@@ -2470,9 +2470,9 @@ public:
 	Printv(f_wrappers, tab4, "PyObject *obj;\n", NIL);
 	if (modernargs) {
 	  if (fastunpack) {
-	    Printv(f_wrappers, tab4, "if (!SWIG_Python_Modernargs(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	    Printv(f_wrappers, tab4, "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
 	  } else {
-	    Printv(f_wrappers, tab4, "if (!PyArg_Modernargs(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	    Printv(f_wrappers, tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
 	  }
 	} else {
 	  Printv(f_wrappers, tab4, "if (!PyArg_ParseTuple(args,(char*)\"O|swigregister\", &obj)) return NULL;\n", NIL);
