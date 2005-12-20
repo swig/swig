@@ -30,6 +30,26 @@ PyString_FromFormat(const char *fmt, ...) {
 #if PY_VERSION_HEX < 0x01060000
 #define PyObject_Del(op) PyMem_DEL((op))
 #endif
+#ifndef PyObject_DEL
+#define PyObject_DEL PyObject_Del
+#endif
+
+/* A crude PyExc_StopIteration exception for old Pythons */
+#if PY_VERSION_HEX < 0x02020000
+#define PyExc_StopIteration PyExc_RuntimeError
+#define PyObject_GenericGetAttr 0
+#define Py_NotImplemented PyExc_RuntimeError
+#endif
+
+
+/* A crude PyString_AsStringAndSize implementation for old Pythons */
+#if PY_VERSION_HEX < 0x02010000
+#define PyString_AsStringAndSize(obj, s, len) {*s = PyString_AsString(obj); *len = *s ? strlen(*s) : 0;}
+#endif
+
+#if PY_VERSION_HEX < 0x02000000
+#define PySequence_Size PySequence_Length
+#endif
 
 %}
 %insert(runtime) "swigrun.swg";         /* SWIG API */

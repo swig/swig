@@ -27,9 +27,6 @@
 /**** The PySequence C++ Wrap ***/
 
 %insert(header) %{
-#if PY_VERSION_HEX < 0x02000000
-#define PySequence_Size PySequence_Length
-#endif
 #include <stdexcept>
 %}
 
