@@ -30,7 +30,7 @@
 /* attribute recognised by some compilers to avoid 'unused' warnings */
 #ifndef SWIGUNUSED
 # if defined(__GNUC__) || defined(__ICC)
-#   define SWIGUNUSED __attribute__ ((unused)) 
+#   define SWIGUNUSED __attribute__ ((__unused__)) 
 # else
 #   define SWIGUNUSED 
 # endif
