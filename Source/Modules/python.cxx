@@ -67,6 +67,7 @@ static  int       safecstrings = 0;
 static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
+static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 
 /* flags for the make_autodoc function */
@@ -107,12 +108,14 @@ Python Options (available with -python)\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
+     -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments \n\
+     -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
-     -O              - Enable several old and new optimizations options: \n\
-                       -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack\n\
+     -O              - Enable all the optimizations options: \n\
+                       -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack -modernargs\n\
 \n";
 
 class PYTHON : public Language {
@@ -252,6 +255,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;
+          modernargs = 0;
 	  apply = 1;
 	  modern = 0;
 	  Swig_mark_arg(i);
@@ -290,6 +294,12 @@ public:
 	} else if (strcmp(argv[i],"-nofastunpack") == 0) {
 	  fastunpack = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-modernargs") == 0) {
+	  modernargs = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nomodernargs") == 0) {
+	  modernargs = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-aliasobj0") == 0) {
 	  aliasobj0 = 1;
 	  Swig_mark_arg(i);
@@ -306,9 +316,11 @@ public:
 	  apply = 0;
 	  classic = 0;
           modern = 1;
+	  modernargs = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nomodern") == 0) {
           modern = 0;
+          modernargs = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-noh") == 0) {
 	  no_header_file = 1;
@@ -327,6 +339,7 @@ public:
 	  classptr = 0;
 	  proxydel = 0;
 	  fastunpack = 1;
+	  modernargs = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
 	  Swig_mark_arg(i);
@@ -1318,7 +1331,7 @@ public:
       Printf(f->code,"}\n");
     } else {
       String  *iname = Getattr(n,"sym:name");
-      Printf(f->code,"if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
+      Printf(f->code,"if (!(argc = SWIG_Python_Modernargs(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
       Printf(f->code,"--argc;\n");
     }
     
@@ -1430,7 +1443,7 @@ public:
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
     varargs = emit_isvarargs(l);
-    int funpack = fastunpack &&  !varargs && !allow_kwargs ;
+    int funpack = modernargs && fastunpack &&  !varargs && !allow_kwargs ;
     int noargs = funpack && (num_required == 0 && num_arguments == 0);
     int onearg = funpack && (num_required == 1 && num_arguments == 1);
 
@@ -1576,7 +1589,7 @@ public:
       Printv(f->locals,tab4, "char *  kwnames[] = ", kwargs, ";\n", NIL);
     }
 
-    if (use_parse || allow_kwargs) {
+    if (use_parse || allow_kwargs || !modernargs) {
       Printf(parse_args,":%s\"", iname);
       Printv(parse_args,arglist, ")) goto fail;\n",NIL);
       funpack = 0;
@@ -1603,12 +1616,12 @@ public:
 	  if (onearg) {
 	    Printf(parse_args,"if (!args) { goto fail; } else { swig_obj[0] = args; }\n");
 	  } else if (!noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
+	    Printf(parse_args,"if(!SWIG_Python_Modernargs(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
       } else {	
-	Printf(parse_args,"if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_required, num_arguments);
+	Printf(parse_args,"if(!PyArg_Modernargs(args,(char *)\"%s\",%d,%d", iname, num_required, num_arguments);
 	Printv(parse_args,arglist, ")) goto fail;\n",NIL);
       }
     }
@@ -2454,9 +2467,18 @@ public:
 	SwigType_remember(ct);
 	Printv(f_wrappers,
 	       "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
+	Printv(f_wrappers, tab4, "PyObject *obj;\n", NIL);
+	if (modernargs) {
+	  if (fastunpack) {
+	    Printv(f_wrappers, tab4, "if (!SWIG_Python_Modernargs(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	  } else {
+	    Printv(f_wrappers, tab4, "if (!PyArg_Modernargs(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	  }
+	} else {
+	  Printv(f_wrappers, tab4, "if (!PyArg_ParseTuple(args,(char*)\"O|swigregister\", &obj)) return NULL;\n", NIL);
+	}
+
 	Printv(f_wrappers,
-	       tab4, "PyObject *obj;\n",
-	       tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n",
 	       tab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
 	       tab4, "return SWIG_Py_Void();\n",
 	       "}\n",NIL);
@@ -3264,7 +3286,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   Printf(w->code, "PyObject* method = swig_get_method(swig_method_index, swig_method_name);\n");
   if (Len(parse_args) > 0) {
-    if (use_parse) {
+    if (use_parse || !modernargs) {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
     } else {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
@@ -3275,7 +3297,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
   Printf(w->code,"#else\n");
   if (Len(parse_args) > 0) {
-    if (use_parse) {
+    if (use_parse || !modernargs) {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", 
 	     pyname, parse_args, arglist);
     } else {
@@ -3284,8 +3306,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	     arglist);
     }
   } else {
-    Printf(w->code, "swig::PyObject_var swig_method_name = PyString_FromString((char *)\"%s\");\n", pyname);
-    Printf(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
+    if (!modernargs) {
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *) \"%s\", NULL);\n",  pyname);
+    } else {
+      Printf(w->code, "swig::PyObject_var swig_method_name = PyString_FromString((char *)\"%s\");\n", pyname);
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
+    }
   }
   Printf(w->code,"#endif\n");
 
