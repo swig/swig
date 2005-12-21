@@ -736,12 +736,12 @@ String * convert_literal(String *num_param, String *type) {
   char *s=Char(num);
 
   // very basic parsing of infix expressions.
-  if(res = infix_to_prefix(num, '|', "logior", type)) return res;
-  if(res = infix_to_prefix(num, '&', "logand", type)) return res;
-  if(res = infix_to_prefix(num, '*', "*", type)) return res;  
-  if(res = infix_to_prefix(num, '/', "/", type)) return res;  
-  if(res = infix_to_prefix(num, '+', "+", type)) return res;
-  if(res = infix_to_prefix(num, '-', "-", type)) return res;  
+  if( (res = infix_to_prefix(num, '|', "logior", type)) ) return res;
+  if( (res = infix_to_prefix(num, '&', "logand", type)) ) return res;
+  if( (res = infix_to_prefix(num, '*', "*", type)) ) return res;  
+  if( (res = infix_to_prefix(num, '/', "/", type)) ) return res;  
+  if( (res = infix_to_prefix(num, '+', "+", type)) ) return res;
+  if( (res = infix_to_prefix(num, '-', "-", type)) ) return res;  
 
   if (SwigType_type(type) == T_FLOAT ||
       SwigType_type(type) == T_DOUBLE ||
@@ -1093,8 +1093,8 @@ void dump_linked_types(File *f) {
   while(n) {
     Printf(f,"%d: (%x) node '%s' name '%s'\n", i++, n, nodeType(n), Getattr(n,"sym:name"));
 
-    Node *t;
-    if(t = Getattr(n,"allegrocl:synonym-of"))
+    Node *t = Getattr(n,"allegrocl:synonym-of");
+    if(t)
       Printf(f,"     synonym-of %s(%x)\n",Getattr(t,"name"),t);
     n = Getattr(n,"allegrocl:next_linked_type");
   }
