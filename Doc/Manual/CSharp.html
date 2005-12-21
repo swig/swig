@@ -316,6 +316,26 @@ This feature is useful for some obscure cases where SWIG might get the <tt>virtu
 </p>
 </li>
 
+<li>
+<a name="csharp_module_directive">
+<p>
+The name of the intermediary class can be changed from its default, that is, the module name with PINVOKE appended after it. 
+The module directive attribute <tt>imclassname</tt> is used to achieve this:
+</p>
+
+<div class="code">
+<pre>
+%module (imclassname="name") modulename
+</pre>
+</div>
+
+<p>
+If <tt>name</tt> is the same as <tt>modulename</tt> then the module class name gets changed
+from <tt>modulename</tt> to <tt>modulenameModule</tt>.
+</p>
+</li>
+
+
 </ul>
 
 <p>
@@ -323,6 +343,12 @@ This feature is useful for some obscure cases where SWIG might get the <tt>virtu
 This is a C# only special variable that can be used in typemaps, pragmas, features etc.
 The special variable will get translated into the value specified by the <tt>-dllimport</tt> commandline option
 if specified, otherwise it is equivalent to the <b>$module</b> special variable.
+</p>
+
+<p>
+<b><tt>$imclassname</tt></b><br>
+This special variable expands to the intermediary class name. For C# this is usually the same as '$modulePINVOKE' ('$moduleJNI' for Java),
+unless the imclassname attribute is specified in the <a href="CSharp.html#csharp_module_directive">%module directive</a>.
 </p>
 
 <p>
