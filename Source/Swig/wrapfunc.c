@@ -150,8 +150,10 @@ Wrapper_pretty_print(String *str, File *f) {
       Putc(c,ts);
       empty = 0;
       if (!empty) {
-	if (!label && (Char(ts))[0] != '#') {
-	  for (i = 0; i < level; i++)
+	int slevel = level;
+	if (label && (slevel >= indent)) slevel -= indent;
+	if ((Char(ts))[0] != '#') {
+	  for (i = 0; i < slevel; i++)
 	    Putc(' ',f);
 	}
 	Printf(f,"%s",ts);
