@@ -17,7 +17,7 @@
 <li><a href="#SWIGPlus_nn6">Simple C++ wrapping</a>
 <ul>
 <li><a href="#SWIGPlus_nn7">Constructors and destructors</a>
-<li><a href="#SWIGPlus_nn8">Default constructors</a>
+<li><a href="#SWIGPlus_nn8">Default constructors and implicit destructors</a>
 <li><a href="#SWIGPlus_nn9">When constructor wrappers aren't created</a>
 <li><a href="#SWIGPlus_nn10">Copy constructors</a>
 <li><a href="#SWIGPlus_nn11">Member functions</a>
@@ -270,13 +270,21 @@ void delete_List(List *l) {
 
 </pre></div>
 
-<H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors</H3>
+<H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors and implicit destructors</H3>
 
 
 <p>
-If a C++ class does not define any public constructors or
-destructors, SWIG will automatically create a default constructor or 
-destructor.   However, there are a few rules that define this behavior:
+If a C++ class does not define a destructor, SWIG will automatically
+create one following the implicit destructor rule from C++.
+</p>
+
+<p>
+If a C++ class does not define any public constructors, SWIG will
+automatically create a default constructor. 
+</p>
+
+<p>
+ There are, however, a few rules that alters the previous behavior:
 </p>
 
 <ul>
@@ -291,45 +299,108 @@ inherit from an abstract class, but don't provide definitions for all of the pur
 default constructor. 
 </li>
 
-<li>Default constructors and destructors are not created if a class
+<li>Default constructors and implicit destructors are not created if a class
 defines constructors or destructors in a <tt>private</tt> or <tt>protected</tt> section.
 </li>
 
-<li>Default constructors and destructors are not created if any base
-class defines a private default constructor or a private destructor.
+<li>Default constructors and implicit destructors are not created if any base
+class defines a non-public default constructor or destructor.
 </li>
 </ul>
 
 <p>
-SWIG should never generate a constructor or destructor for a class in which
-it is illegal to do so.   However, if it is necessary to disable the
-default constructor/destructor creation, the <tt>%nodefault</tt> directive
-can be used:
+SWIG should never generate a default constructor for a class in which
+it is illegal to do so.  In some cases, however, it could be necessary
+or desired to disable the default constructor. Then the
+<tt>%nodefault</tt> directive can be used:
 </p>
 
 <div class="code">
 <pre>
-%nodefault;   // Disable creation of constructor/destructor
-class Foo {
+%nodefault Foo;     // Disable the default constructor for class Foo.
+class Foo {         // No default constructor is generated, unless is declared
 ...
 };
-%makedefault;
+class Bar {         // A default constructor is generated, if possible
+...
+};
+</pre>
+</div>
+<p>
+The directive <tt>%nodefault</tt> can also be applied "globally", as in:
+</p>
+<div class="code">
+<pre>
+%nodefault;   // Disable creation of default constructors
+class Foo {   // No default constructor is generated, unless is declared
+...
+};
+class Bar {   // No default constructor is generated, unless is declared
+...
+};
+%makedefault; // Enable the creation of default constructors again
 </pre>
 </div>
 
 <p>
-<tt>%nodefault</tt> can also take a class name.  For example:
+Note that the <tt>%nodefault</tt> has no effect if the default
+constructor is explicitly declared, as in the following case:
+</p>
+<div class="code">
+<pre>
+%nodefault;   // Disable creation of default constructors
+class Foo {   
+public:
+  Foo();      // The default constructor is generated, since is declared
+};
+%makedefault; // Enable the creation of default constructors again
+</pre>
+</div>
+
+
+
+<p>
+The correspondig <tt>%nodefaultdtor</tt> directive can be used
+to disable the generation of the default or implicit destructor, if
+needed. Be aware, however, that this could lead to memory leaks in the
+target language. Hence, it is recommended to use this directive only
+in well known cases. For example:
 </p>
 
 <div class="code">
 <pre>
-%nodefault Foo;     // Disable for class Foo only.
+%nodefaultdtor Foo;   // Disable the implictit/default destructor for class Foo.
+class Foo {                 // No destructor is generated, unless is declared
+...
+};
 </pre>
 </div>
+
+<p>
+As in the <tt>%nodefault</tt> case, the <tt>%nodefaultdtor</tt>
+has no effect over classes that explicitly declare a public
+destructor:
+</p>
+
+<div class="code">
+<pre>
+%nodefaultdtor Foo;   // Try to disable the implictit/default destructor for class Foo.
+class Foo {                 
+public:
+  ~Foo();                   // The destructor is generated, since is declared
+};
+</pre>
+</div>
+
+<p>
+If you still need to prevent the generation of the default constructor
+or destructor, even when they are declared in the class, you need to
+use the <tt>%ignore</tt> directive.
+</p>
 
 <p>
 <b>Compatibility Note:</b> The generation of default
-constructors/destructors was made the default behavior in SWIG
+constructors/implicit destructors was made the default behavior in SWIG
 1.3.7. This may break certain older modules, but the old behavior can
 be easily restored using <tt>%nodefault</tt> or the
 <tt>-nodefault</tt> command line option.  Furthermore, in order for
@@ -343,6 +414,16 @@ However, this removal may now cause SWIG to erroneously generate constructors
 for classes that define a constructor in those sections.  Consider restoring
 those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 </p>
+
+<p>
+<b>Compatibility Note:</b> Prior to 1.3.28, the <tt>%nodefault</tt>
+directive and the <tt>-nodefault</tt> option also disable the
+generation of the implicit destructors. This produced memory leaks
+across the target langauges in an indiscriminated way. If your
+interface needs the old behavior, use the <tt>-oldnodefault</tt>
+option.
+</p>
+
 
 <H3><a name="SWIGPlus_nn9"></a>6.5.3 When constructor wrappers aren't created</H3>
 

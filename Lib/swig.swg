@@ -47,12 +47,21 @@
 #define %clearimmutable  %feature("immutable","")
 #define %mutable         %clearimmutable
 
-/* Generation of default constructors/destructors */
-
+/* Generation of default constructors */
 #define %nodefault       %feature("nodefault","1")
 #define %default         %feature("nodefault","0")
 #define %clearnodefault  %feature("nodefault","")
 #define %makedefault     %cleardefault
+
+/* Disable the generation of implicit/default destructor */
+#define %nodefaultdtor       %feature("nodefaultdtor","1")
+#define %defaultdtor         %feature("nodefaultdtor","0")
+#define %clearnodefaultdtor  %feature("nodefaultdtor","")
+
+/* Force the old nodefault behavior */
+#define %oldnodefault       %feature("oldnodefault","1")
+#define %nooldnodefault     %feature("oldnodefault","0")
+#define %clearoldnodefault  %feature("oldnodefault","")
 
 /* the %exception directive */
 

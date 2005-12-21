@@ -77,22 +77,31 @@ Version 1.3.28 (unreleased).
 	    just to disable the destructor  when the flag is mainly 
 	    used to ignore the default constructor. 
 
-	    It should be noted that this is also the behavior for C,
-	    i.e., the destructor is always generated.
+	    If needed, you can still disable the destructor, by using
+	    the feature form:
 
-	    What about adding a -nodefaultdestructor? I am not sure, I
-	    don't see a reason to do that as long as I don't a reason
-	    to add a flag like -pleasegeneratememoryleaks.
-
-	    But don't worry, if needed, we can still generate memory
-	    leaks, I mean, disable the destructor,  by using 
-
-	       %ignore Class::~Class();
+	       %nodefaultdtor  MyVerySpecialClass;
 	    
-	    Yes, is not as automatic as '-nodefault' or
-	    '-nodefaultdestructor', but in this case I think that
-	    forcing to do this manually and in a 'case by case' approach
-	    is desirable.
+	    Note: if you really really need it, you can still disable
+	    the implicit destructors at the command line using
+   	   
+               swig  -nodefaultdtor
+
+	    But really, don't do that please.
+
+	    Also, you can force the old 'nodefault' behavior by using
+
+	       swig -oldnodefault
+   
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+	    If you use -nodefault in your interface, now some new
+	    destructors could be generated in the interface. This
+	    could solve some memory leaks but also produce some
+	    conflicts.
+
+	    To restore old behavior, you can use -oldnodefault.
  
 
 12/08/2005: mmatus 

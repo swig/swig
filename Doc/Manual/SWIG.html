@@ -2222,13 +2222,13 @@ differently.
 </p>
 
 <p>
-If you don't want SWIG to generate constructors and destructors, you
-can use the <tt>%nodefault</tt> directive or the <tt>-no_default</tt>
-command line option.  For example:
+If you don't want SWIG to generate default constructors when processing C++
+interfaces, you can use the <tt>%nodefault</tt> directive or the
+<tt>-nodefault</tt> command line option.  For example:
 </p>
 
 <div class="shell"><pre>
-swig -no_default example.i 
+swig -nodefault example.i 
 </pre></div>
 
 <p>
@@ -2238,9 +2238,9 @@ or
 <div class="code"><pre>
 %module foo
 ...
-%nodefault;        // Don't create default constructors/destructors
+%nodefault;        // Don't create default constructors
 ... declarations ...
-%makedefault;      // Reenable default constructors/destructors
+%makedefault;      // Reenable default constructors
 </pre></div>
 
 <p>
@@ -2250,15 +2250,37 @@ definitions.  For example:
 
 <div class="code">
 <pre>
-%nodefault Foo;          // No default constructor/destructors for Foo
+%nodefault Foo;          // No default constructor for Foo
 ...
-struct Foo {             // No default generated.
+struct Foo {             // No default constructor generated.
 };
 
-struct Bar {             // Default constructor/destructor generated.
+struct Bar {             // Default constructor generated.
 };
 </pre>
 </div>
+
+
+<p>
+Since ignoring the implicit or default destructors most of the times
+produce memory leaks, SWIG will always try to generate them. If
+needed, however, you can selectively disable the generation of the
+default/implicit destructor by using <tt>%nodefaultdestructor </tt>
+</p>
+
+<div class="code">
+<pre>
+%nodefaultdestructor Foo; // No default/implicit destructor for Foo
+...
+struct Foo {              // No default destructor is generated.
+};
+
+struct Bar {              // Default destructor generated.
+};
+</pre>
+</div>
+
+
 
 <p>
 <b>Compatibility note:</b> Prior to SWIG-1.3.7, SWIG did not generate default constructors
@@ -2266,6 +2288,17 @@ or destructors unless you explicitly turned them on using <tt>-make_default</tt>
 However, it appears that most users want to have constructor and destructor functions so it
 has now been enabled as the default behavior.
 </p>
+
+<p>
+<b>Compatibility note:</b> Prior to SWIG-1.3.28, the
+<tt>-nodefault</tt> option and <tt>%nodefault</tt> directive also
+disable the default or implicit destructor generation. This had the
+major side effect of generating memory leaks, and is now disabled. If
+your interface needs the old behavior, use the
+<tt>-oldnodefault</tt> option.
+
+</p>
+
 
 <H3><a name="SWIG_adding_member_functions"></a>5.5.6 Adding member functions to C structures</H3>
 
