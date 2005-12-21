@@ -1066,7 +1066,7 @@
   private long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($moduleJNI.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
+    super($imclassname.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 
@@ -1126,7 +1126,7 @@ SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $moduleJNI.$javaclassname_director_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclassname_director_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef

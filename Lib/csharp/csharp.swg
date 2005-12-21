@@ -340,8 +340,8 @@ $1 = &temp; %}
  * method can throw any exceptions from unmanaged code, otherwise replaced by nothing. */
 
 // Macro used by the $excode special variable
-%define SWIGEXCODE "\n    if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
-%define SWIGEXCODE2 "\n      if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
+%define SWIGEXCODE "\n    if ($imclassname.SWIGPendingException.Pending) throw $imclassname.SWIGPendingException.Retrieve();" %enddef
+%define SWIGEXCODE2 "\n      if ($imclassname.SWIGPendingException.Pending) throw $imclassname.SWIGPendingException.Retrieve();" %enddef
 
 %typemap(csout, excode=SWIGEXCODE) bool,               const bool &               {
     bool ret = $imcall;$excode
@@ -558,7 +558,7 @@ $1 = &temp; %}
 %typemap(csbody_derived) SWIGTYPE %{
   private HandleRef swigCPtr;
 
-  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclassnameUpcast(cPtr), cMemoryOwn) {
     swigCPtr = new HandleRef(this, cPtr);
   }
 
@@ -662,7 +662,7 @@ using System.Runtime.InteropServices;
 
 %typemap(imtype, out="IntPtr") char *, char[ANY], char[]   "HandleRef"
 %typemap(out) char *, char[ANY], char[] %{ $result = $1; %}
-%typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).swigCPtr"
+%typemap(csin) char *, char[ANY], char[] "new $imclassname.SWIGStringMarshal($csinput).swigCPtr"
 %typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
     string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
     return ret;
