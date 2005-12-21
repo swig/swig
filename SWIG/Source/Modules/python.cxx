@@ -401,7 +401,7 @@ public:
     }
 
     /* Set comparison with none for ConstructorToFunction */
-    setSubclassInstanceCheck(NewString("$arg != SWIG_Py_None()"));
+    setSubclassInstanceCheck(NewString("$arg != Py_None"));
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
@@ -1725,7 +1725,7 @@ public:
     /*
     if (constructor && (Getattr(n, "wrap:self") != 0)) {
       Wrapper_add_local(f, "subclassed", "int subclassed = 0");
-      Printf(f->code, "subclassed = (arg1 != SWIG_Py_None());\n");
+      Printf(f->code, "subclassed = (arg1 != Py_None);\n");
     }
     */
      
