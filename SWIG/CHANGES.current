@@ -1,7 +1,6 @@
 Version 1.3.28 (unreleased).
 ===========================
 
-
 12/17/2005: mmatus
 	  [Python]
 	  - Add the -aliasobj0/-noaliasobj0 options to use with
@@ -69,6 +68,32 @@ Version 1.3.28 (unreleased).
 
 	    -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual
 
+12/09/2005: mmatus
+	    The '-nodefault' flag (pragma and features) now only
+	    disable the default constructor, but not the default
+	    destructor. The reason is that ignoring the default
+	    destructor generates memory leaks, impossible to 
+	    work around, in all the languages. Hence, is to risky
+	    just to disable the destructor  when the flag is mainly 
+	    used to ignore the default constructor. 
+
+	    It should be noted that this is also the behavior for C,
+	    i.e., the destructor is always generated.
+
+	    What about adding a -nodefaultdestructor? I am not sure, I
+	    don't see a reason to do that as long as I don't a reason
+	    to add a flag like -pleasegeneratememoryleaks.
+
+	    But don't worry, if needed, we can still generate memory
+	    leaks, I mean, disable the destructor,  by using 
+
+	       %ignore Class::~Class();
+	    
+	    Yes, is not as automatic as '-nodefault' or
+	    '-nodefaultdestructor', but in this case I think that
+	    forcing to do this manually and in a 'case by case' approach
+	    is desirable.
+ 
 
 12/08/2005: mmatus 
 
