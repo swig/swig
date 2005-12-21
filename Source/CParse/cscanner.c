@@ -790,7 +790,6 @@ int yylook(void) {
 	    retract(1);
 	    return LESSTHAN;
 	  }
-	  break;
 	case 61:
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '>') return RSHIFT;
@@ -798,7 +797,6 @@ int yylook(void) {
 	    retract(1);
             return GREATERTHAN;
 	  }
-	  break;
 	case 7: /* Identifier */
 	  if ((c = nextchar()) == 0) return(0);
 	  if (isalnum(c) || (c == '_') || (c == '.') || (c == '$')) {
@@ -1082,7 +1080,6 @@ int yylex(void) {
       yylval.dtype.bitfield = 0;
       yylval.dtype.throws = 0;
       return(l);
-      break;
       
     case ID:
 
