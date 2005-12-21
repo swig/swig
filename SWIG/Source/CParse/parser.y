@@ -1390,7 +1390,7 @@ static void default_arguments(Node *n) {
     String *qualifier;
     String *bitfield;
     Parm   *throws;
-    String *throw;
+    String *throwf;
   } dtype;
   struct {
     char *type;
@@ -1404,7 +1404,7 @@ static void default_arguments(Node *n) {
     ParmList  *parms;
     short      have_parms;
     ParmList  *throws;
-    String    *throw;
+    String    *throwf;
   } decl;
   Parm         *tparms;
   struct {
@@ -2826,7 +2826,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"parms",$3.parms);
 	      Setattr($$,"value",$4.val);
 	      Setattr($$,"throws",$4.throws);
-	      Setattr($$,"throw",$4.throw);
+	      Setattr($$,"throw",$4.throwf);
 	      if (!$5) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -2889,7 +2889,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"parms",$2.parms);
 		 Setattr($$,"value",$3.val);
 		 Setattr($$,"throws",$3.throws);
-		 Setattr($$,"throw",$3.throw);
+		 Setattr($$,"throw",$3.throwf);
 		 if ($3.bitfield) {
 		   Setattr($$,"bitfield", $3.bitfield);
 		 }
@@ -2913,25 +2913,25 @@ initializer   : def_args {
                    $$ = $1; 
                    $$.qualifier = 0;
 		   $$.throws = 0;
-		   $$.throw = 0;
+		   $$.throwf = 0;
               }
               | type_qualifier def_args { 
                    $$ = $2; 
 		   $$.qualifier = $1;
 		   $$.throws = 0;
-		   $$.throw = 0;
+		   $$.throwf = 0;
 	      }
               | THROW LPAREN parms RPAREN def_args { 
 		   $$ = $5; 
                    $$.qualifier = 0;
 		   $$.throws = $3;
-		   $$.throw = NewString("1");
+		   $$.throwf = NewString("1");
               }
               | type_qualifier THROW LPAREN parms RPAREN def_args { 
                    $$ = $6; 
                    $$.qualifier = $1;
 		   $$.throws = $4;
-		   $$.throw = NewString("1");
+		   $$.throwf = NewString("1");
               }
               ;
 
@@ -3081,7 +3081,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			  Setattr($$,"value",$6.defarg);
 			}
 			Setattr($$,"throws",$6.throws);
-			Setattr($$,"throw",$6.throw);
+			Setattr($$,"throw",$6.throwf);
 			err = 0;
 		      }
 		    }
@@ -3961,7 +3961,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"throws",$6.throws);
-		 Setattr($$,"throw",$6.throw);
+		 Setattr($$,"throw",$6.throwf);
 		 if (Len(scanner_ccode)) {
 		   String *code = Copy(scanner_ccode);
 		   Setattr($$,"code",code);
@@ -3993,7 +3993,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		 Delete(decl);
 	       }
 	       Setattr($$,"throws",$6.throws);
-	       Setattr($$,"throw",$6.throw);
+	       Setattr($$,"throw",$6.throwf);
 	       add_symbols($$);
 	      }
 
@@ -4016,7 +4016,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		Setattr($$,"name",name);
 		Delete(name);
 		Setattr($$,"throws",$7.throws);
-		Setattr($$,"throw",$7.throw);
+		Setattr($$,"throw",$7.throwf);
 		if ($7.val) {
 		  Setattr($$,"value","0");
 		}
@@ -4238,12 +4238,12 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 cpp_end        : cpp_const SEMI {
 	            Clear(scanner_ccode);
 		    $$.throws = $1.throws;
-		    $$.throw = $1.throw;
+		    $$.throwf = $1.throwf;
                }
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
 		    $$.throws = $1.throws;
-		    $$.throw = $1.throw;
+		    $$.throwf = $1.throwf;
 	       }
                ;
 
@@ -4253,7 +4253,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.qualifier = $1.qualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws;
-                     $$.throw = $1.throw;
+                     $$.throwf = $1.throwf;
                 }
                | cpp_const EQUAL definetype SEMI { 
                      Clear(scanner_ccode);
@@ -4261,7 +4261,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.qualifier = $1.qualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
-                     $$.throw = $1.throw; 
+                     $$.throwf = $1.throwf; 
                }
                | cpp_const LBRACE { 
                      skip_balanced('{','}');
@@ -4269,7 +4269,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.qualifier = $1.qualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
-                     $$.throw = $1.throw; 
+                     $$.throwf = $1.throwf; 
                }
                ;
 
@@ -4437,7 +4437,7 @@ def_args       : EQUAL definetype {
 		    $$.rawval = 0;
 		    $$.bitfield = 0;
 		    $$.throws = 0;
-		    $$.throw = 0;
+		    $$.throwf = 0;
 		  }
                }
                | EQUAL LBRACE {
@@ -4447,7 +4447,7 @@ def_args       : EQUAL definetype {
                  $$.type = T_INT;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
-		 $$.throw = 0;
+		 $$.throwf = 0;
 	       }
                | COLON expr { 
 		 $$.val = 0;
@@ -4455,7 +4455,7 @@ def_args       : EQUAL definetype {
 		 $$.type = 0;
 		 $$.bitfield = $2.val;
 		 $$.throws = 0;
-		 $$.throw = 0;
+		 $$.throwf = 0;
 	       }
                | empty {
                  $$.val = 0;
@@ -4463,7 +4463,7 @@ def_args       : EQUAL definetype {
                  $$.type = T_INT;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
-		 $$.throw = 0;
+		 $$.throwf = 0;
                }
                ;
 
@@ -5149,7 +5149,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   }
 		   $$.bitfield = 0;
 		   $$.throws = 0;
-		   $$.throw = 0;
+		   $$.throwf = 0;
 		   scanner_ignore_typedef();
                 }
 /*                | string {
@@ -5158,7 +5158,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$.type = T_STRING;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
-		   $$.throw = 0;
+		   $$.throwf = 0;
 		}
 */
                 | CHARCONST {
@@ -5173,7 +5173,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.type = T_CHAR;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
-		   $$.throw = 0;
+		   $$.throwf = 0;
 		 }
                 ;
 
@@ -5502,22 +5502,22 @@ opt_virtual    : VIRTUAL
 cpp_const      : type_qualifier {
                     $$.qualifier = $1;
                     $$.throws = 0;
-                    $$.throw = 0;
+                    $$.throwf = 0;
                }
                | THROW LPAREN parms RPAREN {
                     $$.qualifier = 0;
                     $$.throws = $3;
-                    $$.throw = NewString("1");
+                    $$.throwf = NewString("1");
                }
                | type_qualifier THROW LPAREN parms RPAREN {
                     $$.qualifier = $1;
                     $$.throws = $4;
-                    $$.throw = NewString("1");
+                    $$.throwf = NewString("1");
                }
                | empty { 
                     $$.qualifier = 0; 
                     $$.throws = 0;
-                    $$.throw = 0;
+                    $$.throwf = 0;
                }
                ;
 
@@ -5526,14 +5526,14 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.have_parms = 0; 
                     $$.defarg = 0; 
 		    $$.throws = $1.throws;
-		    $$.throw = $1.throw;
+		    $$.throwf = $1.throwf;
                }
                | cpp_const ctor_initializer LBRACE { 
                     skip_balanced('{','}'); 
                     $$.have_parms = 0; 
                     $$.defarg = 0; 
                     $$.throws = $1.throws;
-                    $$.throw = $1.throw;
+                    $$.throwf = $1.throwf;
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
@@ -5541,7 +5541,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.have_parms = 1; 
                     $$.defarg = 0; 
 		    $$.throws = 0;
-		    $$.throw = 0;
+		    $$.throwf = 0;
                }
                | LPAREN parms RPAREN LBRACE {
                     skip_balanced('{','}'); 
@@ -5549,13 +5549,13 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.have_parms = 1; 
                     $$.defarg = 0; 
                     $$.throws = 0;
-                    $$.throw = 0;
+                    $$.throwf = 0;
                }
                | EQUAL definetype SEMI { 
                     $$.have_parms = 0; 
                     $$.defarg = $2.val; 
                     $$.throws = 0;
-                    $$.throw = 0;
+                    $$.throwf = 0;
                }
                ;
 
