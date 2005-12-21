@@ -155,6 +155,7 @@ CPP_TEST_CASES += \
 	inherit_same_name \
 	inherit_void_arg \
 	inline_initializer \
+	intermediary_classname \
 	kind \
 	langobj \
 	li_attribute \
