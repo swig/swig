@@ -435,6 +435,7 @@ class JAVA : public Language {
 
       // Add the intermediary class methods
       Replaceall(imclass_class_code, "$module", module_class_name);
+      Replaceall(imclass_class_code, "$imclassname", imclass_name);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
       if (Len(imclass_directors) > 0) {
@@ -494,6 +495,9 @@ class JAVA : public Language {
 
       Replaceall(module_class_code, "$module", module_class_name);
       Replaceall(module_class_constants_code, "$module", module_class_name);
+
+      Replaceall(module_class_code, "$imclassname", imclass_name);
+      Replaceall(module_class_constants_code, "$imclassname", imclass_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -1386,6 +1390,7 @@ class JAVA : public Language {
   virtual int insertDirective(Node *n) {
     String *code = Getattr(n,"code");
     Replaceall(code, "$module", module_class_name);
+    Replaceall(code, "$imclassname", imclass_name);
     return Language::insertDirective(n);
   }
 
@@ -1655,6 +1660,9 @@ class JAVA : public Language {
     Replaceall(proxy_class_def,  "$module", module_class_name);
     Replaceall(proxy_class_code, "$module", module_class_name);
 
+    Replaceall(proxy_class_def,  "$imclassname", imclass_name);
+    Replaceall(proxy_class_code, "$imclassname", imclass_name);
+
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
       Printv(imclass_cppcasts_code,"  public final static native long SWIG$javaclassnameUpcast(long jarg1);\n", NIL);
@@ -1740,6 +1748,9 @@ class JAVA : public Language {
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+      Replaceall(proxy_class_def, "$imclassname", imclass_name);
+      Replaceall(proxy_class_code, "$imclassname", imclass_name);
+      Replaceall(proxy_class_constants_code, "$imclassname", imclass_name);
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the constants
@@ -2590,6 +2601,7 @@ class JAVA : public Language {
 
     Replaceall(swigtype, "$javaclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
+    Replaceall(swigtype, "$imclassname", imclass_name);
     Printv(f_swigtype, swigtype, NIL);
 
     Close(f_swigtype);
@@ -3262,6 +3274,7 @@ class JAVA : public Language {
 
             if (din != NULL) {
               Replaceall(din, "$module", module_class_name);
+              Replaceall(din, "$imclassname", imclass_name);
               substituteClassname(pt, din);
               Replaceall(din, "$jniinput", ln);
 

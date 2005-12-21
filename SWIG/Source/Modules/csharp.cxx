@@ -311,6 +311,7 @@ class CSHARP : public Language {
 
       // Add the intermediary class methods
       Replaceall(imclass_class_code, "$module", module_class_name);
+      Replaceall(imclass_class_code, "$imclassname", imclass_name);
       Replaceall(imclass_class_code, "$dllimport", dllimport);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
@@ -353,6 +354,9 @@ class CSHARP : public Language {
 
       Replaceall(module_class_code, "$module", module_class_name);
       Replaceall(module_class_constants_code, "$module", module_class_name);
+
+      Replaceall(module_class_code, "$imclassname", imclass_name);
+      Replaceall(module_class_constants_code, "$imclassname", imclass_name);
 
       Replaceall(module_class_code, "$dllimport", dllimport);
       Replaceall(module_class_constants_code, "$dllimport", dllimport);
@@ -1188,6 +1192,7 @@ class CSHARP : public Language {
   virtual int insertDirective(Node *n) {
     String *code = Getattr(n,"code");
     Replaceall(code, "$module", module_class_name);
+    Replaceall(code, "$imclassname", imclass_name);
     Replaceall(code, "$dllimport", dllimport);
     return Language::insertDirective(n);
   }
@@ -1400,6 +1405,9 @@ class CSHARP : public Language {
     Replaceall(proxy_class_def,  "$module", module_class_name);
     Replaceall(proxy_class_code, "$module", module_class_name);
 
+    Replaceall(proxy_class_def,  "$imclassname", imclass_name);
+    Replaceall(proxy_class_code, "$imclassname", imclass_name);
+
     Replaceall(proxy_class_def,  "$dllimport", dllimport);
     Replaceall(proxy_class_code, "$dllimport", dllimport);
 
@@ -1478,7 +1486,9 @@ class CSHARP : public Language {
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
-
+      Replaceall(proxy_class_def, "$imclassname", imclass_name);
+      Replaceall(proxy_class_code, "$imclassname", imclass_name);
+      Replaceall(proxy_class_constants_code, "$imclassname", imclass_name);
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
@@ -2447,6 +2457,7 @@ class CSHARP : public Language {
 
     Replaceall(swigtype, "$csclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
+    Replaceall(swigtype, "$imclassname", imclass_name);
     Replaceall(swigtype, "$dllimport", dllimport);
     Printv(f_swigtype, swigtype, NIL);
 
