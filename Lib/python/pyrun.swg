@@ -78,6 +78,15 @@ extern "C" {
 
 /*  Safe Py_None and Py_Void accessors */
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+# ifndef SWIG_PYTHON_NO_SAFE_NONE
+#  ifndef SWIG_PYTHON_SAFE_NONE
+#   define SWIG_PYTHON_SAFE_NONE
+#  endif
+# endif
+#endif
+
+#ifdef SWIG_PYTHON_SAFE_NONE
 SWIGRUNTIME PyObject * 
 _SWIG_Py_None(void)
 {
@@ -88,23 +97,22 @@ _SWIG_Py_None(void)
   }
   return none;
 }
-
 SWIGRUNTIMEINLINE PyObject * 
 SWIG_Py_None(void)
 {
   static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
   return none;
 }
-
-#ifdef Py_None
-#  undef Py_None
-#  define Py_None SWIG_Py_None()
+# ifdef Py_None
+#   undef Py_None
+#   define Py_None SWIG_Py_None()
+# endif
 #endif
 
 SWIGRUNTIMEINLINE PyObject * 
 SWIG_Py_Void(void)
 {
-  PyObject *none = SWIG_Py_None();
+  PyObject *none = Py_None;
   Py_INCREF(none);
   return none;
 }
@@ -115,7 +123,7 @@ SWIGINTERN PyObject*
 SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
   if (!result) {
     result = obj;
-  } else if (result == SWIG_Py_None()) {
+  } else if (result == Py_None) {
     Py_DECREF(result);
     result = obj;
   } else {
@@ -867,7 +875,7 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
 SWIGRUNTIME int
 SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   if (!obj) return SWIG_ERROR;
-  if (obj == SWIG_Py_None()) {
+  if (obj == Py_None) {
     if (ptr) *ptr = 0;
     return SWIG_OK;
   } else {
