@@ -355,6 +355,172 @@ ReplaceFormat (const String_or_char *fmt, int j) {
  * ----------------------------------------------------------------------------- */
 
 /*
+  Cast dispatch mechanism.
+*/
+String *
+Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
+  int i,j;
+  
+  *maxargs = 1;
+
+  String *f = NewString("");
+  String *sw = NewString("");
+  Printf(f,"{\n");
+  Printf(f,"unsigned long _index = 0;\n");
+  Printf(f,"double _rank = 0;\n");
+
+  /* Get a list of methods ranked by precedence values and argument count */
+  List *dispatch = Swig_overload_rank(n, true);
+  int   nfunc = Len(dispatch);
+
+  /* Loop over the functions */
+
+  bool emitcheck=1;
+  for (i = 0; i < nfunc; i++) {
+    int fn = 0;
+    Node *ni = Getitem(dispatch,i);
+    Parm *pi = Getattr(ni,"wrap:parms");
+    int num_required = emit_num_required(pi);
+    int num_arguments = emit_num_arguments(pi);
+    if (num_arguments > *maxargs) *maxargs = num_arguments;
+    int varargs = emit_isvarargs(pi);    
+    
+    if (!varargs) {
+      if (num_required == num_arguments) {
+	Printf(f,"if (%s == %d) {\n", argc_template_string, num_required);
+      } else {
+	Printf(f,"if ((%s >= %d) && (%s <= %d)) {\n", 
+	       argc_template_string, num_required, 
+	       argc_template_string, num_arguments);
+      }
+    } else {
+      Printf(f,"if (%s >= %d) {\n", argc_template_string, num_required);
+    }
+    Printf(f,"double _ranki = 0;\n");
+    Printf(f,"double _pi = pow(4,%d);\n",num_arguments);
+
+    /* create a list with the wrappers that collide with the
+       current one based on argument number */
+    List *coll=NewList();
+    for (int k=i+1; k<nfunc; k++) {
+      Node *nk = Getitem(dispatch,k);
+      Parm *pk = Getattr(nk,"wrap:parms");
+      int nrk = emit_num_required(pk);
+      int nak = emit_num_arguments(pk);
+      if ((nrk>=num_required && nrk<=num_arguments) ||
+	  (nak>=num_required && nak<=num_arguments) ||
+	  (nrk<=num_required && nak>=num_arguments))
+	Append(coll, nk);
+    }
+
+    // printf("overload: %s coll=%d\n", Char(Getattr(n, "sym:name")), Len(coll));
+
+    int num_braces = 0;
+    bool test=(num_arguments);
+    if (test) {
+      int need_v = 1;
+      j = 0;
+      Parm *pj = pi;
+      while (pj) {
+	if (checkAttribute(pj,"tmap:in:numinputs","0")) {
+	  pj = Getattr(pj,"tmap:in:next");
+	  continue;
+	}
+
+	String *tm = Getattr(pj,"tmap:typecheck");
+	if (tm) {
+	  /* normalise for comparison later */ 
+	  Replaceid(tm,Getattr(pj,"lname"),"_v");
+
+	  /* if all the wrappers have the same type check on this
+	     argument we can optimize it out */
+	  for (int k=0; k<Len(coll) && !emitcheck; k++) {
+	    Node *nk = Getitem(coll, k);
+	    Parm *pk = Getattr(nk,"wrap:parms");
+	    int nak=emit_num_arguments(pk);
+	    if (nak<=j)  continue;
+	    int l=0;
+	    Parm *pl=pk;
+	    /* finds arg j on the collider wrapper */
+	    while(pl && l<=j) {
+	      if (checkAttribute(pl,"tmap:in:numinputs","0")) {
+		pl = Getattr(pl,"tmap:in:next");
+		continue;
+	      }
+	      if (l==j) {
+		/* we are at arg j, so we compare the tmaps now */
+		String *tml = Getattr(pl, "tmap:typecheck");
+		/* normalise it before comparing */
+		if (tml) Replaceid(tml,Getattr(pl,"lname"),"_v");
+		if (!tml || Cmp(tm, tml)) emitcheck=1;
+		//printf("tmap: %s[%d] (%d) => %s\n\n",
+		//       Char(Getattr(nk, "sym:name")),
+		//       l, emitcheck, tml?Char(tml):0);
+	      }
+	      Parm *pl1 = Getattr(pl,"tmap:in:next");
+	      if (pl1) pl = pl1;
+	      else pl = nextSibling(pl);
+	      l++;
+	    }
+	  }
+
+	  if (emitcheck) {
+	    if (need_v) {
+	      Printf(f,"int _v = 1;\n");
+	      need_v = 0;
+	    }
+	    if (j >= num_required) {
+	      Printf(f, "if (%s > %d) {\n", argc_template_string, j);
+	      num_braces++;
+	    }
+	    String *tmp=NewStringf(argv_template_string, j);
+	    Replaceall(tm,"$input", tmp);
+	    Printv(f,"{\n",tm,"}\n",NIL);
+	    fn = i + 1;
+	    Printf(f, "if (!_v) goto check_%d;\n", fn);
+	    Printf(f, "_ranki += _0.25*v*_pi;\n", fn);
+	    Printf(f, "_pi *= 0.25;\n", fn);
+	  }
+	}
+	if (!Getattr(pj,"tmap:in:SWIGTYPE") && Getattr(pj,"tmap:typecheck:SWIGTYPE")) {
+	  /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
+		       "Overloaded %s(%s) with no explicit typecheck typemap for arg %d of type '%s'\n", 
+		       Getattr(n,"name"),ParmList_str_defaultargs(pi),
+		       j+1, SwigType_str(Getattr(pj,"type"),0));
+	}
+	Parm *pj1 = Getattr(pj,"tmap:in:next");
+	if (pj1) pj = pj1;
+	else pj = nextSibling(pj);
+	j++;
+      }
+    }
+
+    /* close braces */
+    for (/* empty */; num_braces > 0; num_braces--) Printf(f, "}\n");
+
+    Printf(f,"if (_ranki > _rank) { _rank = _ranki; _index = %d;}\n",i+1);
+    String *lfmt = ReplaceFormat (fmt, num_arguments);
+    Printf(sw, "case %d:\n", i+1);
+    Printf(sw, Char(lfmt),Getattr(ni,"wrap:name"));
+    Printf(sw, "\n");
+
+    Printf(f,"}\n"); /* braces closes "if" for this method */
+    if (fn) Printf(f, "check_%d:\n\n", fn);
+
+    Delete (lfmt);
+    Delete(coll);
+  }
+  Delete(dispatch);
+  Printf(f,"switch(_index) {\n");
+  Printf(f,"%s",sw);
+  Printf(f,"}\n");
+
+  Printf(f,"}\n");
+  return f;
+}
+
+/*
   Fast dispatch mechanism, provided by  Salvador Fandi~no Garc'ia (#930586).
 */
 String *
