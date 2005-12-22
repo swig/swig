@@ -85,8 +85,7 @@ static const char *usage2 = (const char*)"\
      -nocontract     - Turn off contract checking \n\
      -nodefault      - Do not generate constructors, destructor or copy constructors (dangerous, don't use it)\n\
      -nodefaultctor  - Do not generate implicit default constructors\n\
-     -nodefaultdctor - Do not generate implicit default destructors (dangerous, use %nodefaultdtor instead)\n\
-     -nocopyctor     - Do not generate implicit copy constructors\n\
+     -nodefaultdtor  - Do not generate implicit default destructors (dangerous, use %nodefaultdtor instead)\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -addextern      - Add extra extern declarations\n\
@@ -448,7 +447,7 @@ void SWIG_getoptions(int argc, char *argv[])
           } else if ((strcmp(argv[i],"-no_default") == 0) || (strcmp(argv[i],"-nodefault") == 0)) {
 	    GenerateDefault = 0;
 	    Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG",1, 
-			 "dangerous, use -nodefaultctor, -nodefaultdtor or -nocopyctor instead.\n");
+			 "dangerous, use -nodefaultctor, -nodefaultdtor instead.\n");
 	    Swig_mark_arg(i);
           } else if ((strcmp(argv[i],"-nodefaultctor") == 0)) {
 	    SWIG_setfeature("feature:nodefaultctor","1");
@@ -456,9 +455,11 @@ void SWIG_getoptions(int argc, char *argv[])
           } else if ((strcmp(argv[i],"-nodefaultdtor") == 0)) {
 	    SWIG_setfeature("feature:nodefaultdtor","1");
 	    Swig_mark_arg(i);
+#if 0
           } else if ((strcmp(argv[i],"-nocopyctor") == 0)) {
 	    SWIG_setfeature("feature:nocopyctor","1");
 	    Swig_mark_arg(i);
+#endif
 	  } else if (strcmp(argv[i],"-noexcept") == 0) {
 	    NoExcept = 1;
 	    Swig_mark_arg(i);
