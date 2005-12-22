@@ -37,6 +37,7 @@
 </ul>
 <li><a href="#examples_cygwin">Running the examples on Windows using Cygwin</a>
 </ul>
+<li><a href="#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -238,6 +239,24 @@ file in order to build swig.exe from the Visual C++ IDE.
 The examples and test-suite work as successfully on Cygwin as on any other Unix operating system. 
 The modules which are known to work are Python, Tcl, Perl, Ruby, Java and C#.
 Follow the Unix instructions in the README file in the SWIG root directory to build the examples.
+</p>
+
+<H2><a name="Windows_interface_file"></a>3.4 Microsoft extensions and other Windows quirks</H2>
+
+
+<p>
+A common problem when using SWIG on Windows are the Microsoft function calling conventions which are not in the C++ standard.
+SWIG parses ISO C/C++ so cannot deal with proprietary conventions such as <tt>__declspec(dllimport)</tt>, <tt>__stdcall</tt> etc.
+There is a Windows interface file, <tt>windows.i</tt>, to deal with these calling conventions though.
+The file also contains typemaps for handling commonly used Windows specific types such as <tt>__int64</tt>, <tt>BOOL</tt>, <tt>DWORD</tt> etc.
+Include it like you would any other interface file, for example:
+
+<div class="code"><pre>
+%include &lt;windows.i&gt;
+
+__declspec(dllexport) ULONG __stdcall foo(DWORD, __int32);
+</pre></div>
+
 </p>
 
 </body>
