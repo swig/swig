@@ -570,8 +570,7 @@ public:
       /* If class is abstract.  No default constructor. Sorry */
       if (Getattr(n,"abstract")) {
 	Delattr(n,"allocate:default_constructor");
-      } 
-      if (!Getattr(n,"allocate:default_constructor")) {
+      } else if (!Getattr(n,"allocate:default_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n,"allbases");
 	int   allows_default = 1;
@@ -587,7 +586,26 @@ public:
 	  Setattr(n,"allocate:default_constructor","1");
 	}
       }
+    }    
+    if (!Getattr(n,"allocate:has_copy_constructor")) {
+      if (!Getattr(n,"allocate:copy_constructor") && !Getattr(n,"abstract")) {
+	/* Check base classes */
+	List *bases = Getattr(n,"allbases");
+	int   allows_copy = 1;
+	
+	for (int i = 0; i < Len(bases); i++) {
+	  Node *n = Getitem(bases,i);
+	  /* If base class does not allow copy constructor, we don't allow it either */
+	  if (!Getattr(n,"allocate:copy_constructor") && (!Getattr(n,"allocate:copy_base_constructor"))) {
+	    allows_copy = 0;
+	  }
+	}
+	if (allows_copy) {
+	  Setattr(n,"allocate:copy_constructor","1");
+	}
+      }
     }
+    
     if (!Getattr(n,"allocate:has_destructor")) {
       /* No destructor was defined.  We need to check a few things here too */
       List *bases = Getattr(n,"allbases");
@@ -797,24 +815,36 @@ public:
     /* See if this is a copy constructor */
     if (parms && (ParmList_numrequired(parms) == 1)) {
       /* Look for a few cases. X(const X &), X(X &), X(X *) */
-
+      int copy_constructor = 0;
       String *cc = NewStringf("r.q(const).%s", Getattr(inclass,"name"));
       if (Strcmp(cc,Getattr(parms,"type")) == 0) {
-	Setattr(n,"copy_constructor","1");
+	copy_constructor = 1;
+      } else {
+	Delete(cc);
+	cc = NewStringf("r.%s", Getattr(inclass,"name"));
+	if (Strcmp(cc,Getattr(parms,"type")) == 0) {
+	  copy_constructor = 1;
+	} else {
+	  Delete(cc);
+	  cc = NewStringf("p.%s", Getattr(inclass,"name"));
+	  String *ty = SwigType_strip_qualifiers(Getattr(parms,"type"));
+	  if (Strcmp(cc,ty) == 0) {
+	    copy_constructor = 1;
+	  }
+	  Delete(cc);
+	  Delete(ty);
+	}
       }
-      Delete(cc);
-      cc = NewStringf("r.%s", Getattr(inclass,"name"));
-      if (Strcmp(cc,Getattr(parms,"type")) == 0) {
+      
+      if (copy_constructor) {
 	Setattr(n,"copy_constructor","1");
+	Setattr(inclass,"allocate:has_copy_constructor","1");
+	if (cplus_mode == PUBLIC) {
+	  Setattr(inclass,"allocate:copy_constructor","1");
+	} else if (cplus_mode == PROTECTED) {
+	  Setattr(inclass,"allocate:copy_base_constructor","1");
+	}
       }
-      Delete(cc);
-      cc = NewStringf("p.%s", Getattr(inclass,"name"));
-      String *ty = SwigType_strip_qualifiers(Getattr(parms,"type"));
-      if (Strcmp(cc,ty) == 0) {
-	Setattr(n,"copy_constructor","1");
-      }
-      Delete(cc);
-      Delete(ty);
     }
     return SWIG_OK;
   }

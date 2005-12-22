@@ -47,18 +47,28 @@
 #define %clearimmutable  %feature("immutable","")
 #define %mutable         %clearimmutable
 
-/* Generation of default constructors */
+/* Generation of default constructors/destructors (old form, don't use) */
 #define %nodefault       %feature("nodefault","1")
 #define %default         %feature("nodefault","0")
 #define %clearnodefault  %feature("nodefault","")
 #define %makedefault     %cleardefault
 
-/* Disable the generation of implicit/default destructor */
+/* Disable the generation of implicit default constructor */
+#define %nodefaultctor       %feature("nodefaultctor","1")
+#define %defaultctor         %feature("nodefaultctor","0")
+#define %clearnodefaultctor  %feature("nodefaultctor","")
+
+/* Disable the generation of implicit default destructor */
 #define %nodefaultdtor       %feature("nodefaultdtor","1")
 #define %defaultdtor         %feature("nodefaultdtor","0")
 #define %clearnodefaultdtor  %feature("nodefaultdtor","")
 
-/* Force the old nodefault behavior */
+/* Disable the generation of copy constructor */
+#define %nocopyctor       %feature("nocopyctor","1")
+#define %copyctor         %feature("nocopyctor","0")
+#define %clearnocopyctor  %feature("nocopyctor","")
+
+/* Force the old nodefault behavior, ie disable both constructor and destructor */
 #define %oldnodefault       %feature("oldnodefault","1")
 #define %nooldnodefault     %feature("oldnodefault","0")
 #define %clearoldnodefault  %feature("oldnodefault","")

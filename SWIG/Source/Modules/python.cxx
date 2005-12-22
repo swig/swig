@@ -234,10 +234,10 @@ public:
         } else if (strcmp(argv[i],"-apply") == 0) {
           apply = 1;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i],"-new_repr") == 0) {
+        } else if ((strcmp(argv[i],"-new_repr") == 0) || (strcmp(argv[i],"-newrepr") == 0)) {
           new_repr = 1;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i],"-old_repr") == 0) {
+        } else if ((strcmp(argv[i],"-old_repr") == 0) || (strcmp(argv[i],"-oldrepr") == 0)) {
           new_repr = 0;
           Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-classptr") == 0) {
@@ -325,7 +325,7 @@ public:
 	} else if (strcmp(argv[i],"-noh") == 0) {
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i],"-new_vwm") == 0) {
+	} else if ((strcmp(argv[i],"-new_vwm") == 0) || (strcmp(argv[i],"-newvwm") == 0)) {
 	  /* Turn on new value wrapper mpde */
 	  Swig_value_wrapper_mode(1); 
 	  no_header_file = 1;
