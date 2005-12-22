@@ -7,8 +7,6 @@
 
 %inline %{
 class RB {
-  static char *prberror[];
-public:
   static char *rberror[];
 };
 %}
