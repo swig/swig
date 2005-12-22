@@ -2097,6 +2097,7 @@ SWIG uses Java code wherever possible as it is compiled into byte code which req
 The functions in the intermediary JNI class cannot be accessed outside of its package. Access to them is gained through the module class for globals otherwise the appropriate proxy class.
 </p>
 
+<a name="java_module_directive"></a>
 <p>
 The name of the intermediary JNI class can be changed from its default, that is, the module name with JNI appended after it. 
 The module directive attribute <tt>jniclassname</tt> is used to achieve this:
@@ -2150,7 +2151,7 @@ The pragma code appears in the generated intermediary JNI class where you would 
 <div class="code">
 <pre>
 [ jniclassimports pragma ]
-[ jniclassmodifiers pragma ] jniclassname extends [ jniclassbase pragma ]
+[ jniclassclassmodifiers pragma ] jniclassname extends [ jniclassbase pragma ]
                                           implements [ jniclassinterfaces pragma ] {
 [ jniclasscode pragma ]
 ... SWIG generated native methods ...
@@ -4639,7 +4640,12 @@ These special variables are used in the directors typemaps. See <a href="#java_d
 <p>
 <b><tt>$module</tt></b><br>
 This special variable expands to the module name, as specified by <tt>%module</tt> or the <tt>-module</tt> commandline option.
-Useful for constructing the intermediary classname, which is just <tt>$moduleJNI</tt>.
+</p>
+
+<p>
+<b><tt>$imclassname</tt></b><br>
+This special variable expands to the intermediary class name. Usually this is the same as '$moduleJNI',
+unless the jniclassname attribute is specified in the <a href="Java.html#java_module_directive">%module directive</a>.
 </p>
 
 <H3><a name="typemaps_for_c_and_c++"></a>20.8.7 Typemaps for both C and C++ compilation</H3>

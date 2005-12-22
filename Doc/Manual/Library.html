@@ -1423,7 +1423,7 @@ For example:
 %module example
 %include "std_string.i"
 
-%apply const std::string& {std::string* foo};
+%apply const std::string&amp; {std::string* foo};
 
 struct my_struct
 {
@@ -1441,10 +1441,6 @@ In the target language:
 x = my_struct();
 x.foo="Hello World";      # assign with string
 print x.foo;              # print as string
-</pre>
-</div>
-
-<p>
 </pre>
 </div>
 
