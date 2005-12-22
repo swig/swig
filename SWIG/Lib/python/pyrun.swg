@@ -236,7 +236,7 @@ PySwigClientData_Del(PySwigClientData* data)
   free(data);
 }
 
-/* PySwigObject */
+/* =============== PySwigObject =====================*/
 
 typedef struct {
   PyObject_HEAD
@@ -840,6 +840,15 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
       }
 #endif
+      if (!obj) {
+	obj = PyObject_GetAttr(pyobj,SWIG_This());
+	if (obj) {
+	  Py_DECREF(obj);
+	} else {
+	  if (PyErr_Occurred()) PyErr_Clear();
+	  return 0;
+	}
+      }
     }
 #else
     obj = PyObject_GetAttr(pyobj,SWIG_This());
@@ -984,7 +993,7 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 	  *dictptr = dict;
 	  PyDict_SetItem(dict, SWIG_This(), swig_this);
 	}
-      }      
+      }
 #else
       PyObject *key = SWIG_This();
       PyObject_SetAttr(inst, key, swig_this);
