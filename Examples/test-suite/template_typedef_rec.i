@@ -1,4 +1,4 @@
-%module Tree
+%module template_typedef_rec
 
 %inline %{
 // --- includes required to compile the wrapper code ---
