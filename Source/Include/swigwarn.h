@@ -44,6 +44,7 @@
 #define WARN_DEPRECATED_OPTC          120
 #define WARN_DEPRECATED_NAME          121
 #define WARN_DEPRECATED_NOEXTERN      122
+#define WARN_DEPRECATED_NODEFAULT     123
 
 /* -- Preprocessor -- */
 

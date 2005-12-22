@@ -83,7 +83,10 @@ static const char *usage2 = (const char*)"\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -module <name>  - Set module name to <name>\n\
      -nocontract     - Turn off contract checking \n\
-     -nodefault      - Do not generate constructors/destructors\n\
+     -nodefault      - Do not generate constructors, destructor or copy constructors (dangerous, don't use it)\n\
+     -nodefaultctor  - Do not generate implicit default constructors\n\
+     -nodefaultdctor - Do not generate implicit default destructors (dangerous, use %nodefaultdtor instead)\n\
+     -nocopyctor     - Do not generate implicit copy constructors\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -addextern      - Add extra extern declarations\n\
@@ -241,7 +244,20 @@ void SWIG_config_cppext(const char *ext) {
   cpp_extension = (char *) ext;
 }
 
-void SWIG_getfeatures(const char *c) 
+void SWIG_setfeature(const char *cfeature, const char *cvalue) 
+{
+  Hash *features_hash = Swig_cparse_features();
+  String *name = NewString("");
+  String *fname = NewString(cfeature);
+  String *fvalue = NewString(cvalue);
+  Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+  Delete(name);
+  Delete(fname);
+  Delete(fvalue);
+}
+
+
+void SWIG_setfeatures(const char *c) 
 {
   char feature[64];
   char *fb = feature;
@@ -397,16 +413,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Wrapper_fast_dispatch_mode_set(0);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-directors") == 0) {
-	    Hash *features_hash = Swig_cparse_features();
-	    String *name = NewString("");
-	    String *fname = NewString("feature:director");
-	    String *fvalue = NewString("1");
-	    Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+	    SWIG_setfeature("feature:director","1");
 	    Wrapper_director_mode_set(1);
 	    Swig_mark_arg(i);
-	    Delete(name);
-	    Delete(fname);
-	    Delete(fvalue);
 	  } else if (strcmp(argv[i],"-dirprot") == 0) {
 	    Wrapper_director_protected_mode_set(1);
 	    Swig_mark_arg(i);
@@ -438,6 +447,17 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
           } else if ((strcmp(argv[i],"-no_default") == 0) || (strcmp(argv[i],"-nodefault") == 0)) {
 	    GenerateDefault = 0;
+	    Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG",1, 
+			 "dangerous, use -nodefaultctor, -nodefaultdtor or -nocopyctor instead.\n");
+	    Swig_mark_arg(i);
+          } else if ((strcmp(argv[i],"-nodefaultctor") == 0)) {
+	    SWIG_setfeature("feature:nodefaultctor","1");
+	    Swig_mark_arg(i);
+          } else if ((strcmp(argv[i],"-nodefaultdtor") == 0)) {
+	    SWIG_setfeature("feature:nodefaultdtor","1");
+	    Swig_mark_arg(i);
+          } else if ((strcmp(argv[i],"-nocopyctor") == 0)) {
+	    SWIG_setfeature("feature:nocopyctor","1");
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-noexcept") == 0) {
 	    NoExcept = 1;
@@ -510,7 +530,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-features") == 0) {
 	    Swig_mark_arg(i);
 	    if (argv[i+1]) {
-	      SWIG_getfeatures(argv[i+1]);
+	      SWIG_setfeatures(argv[i+1]);
 	      Swig_mark_arg(i+1);
 	    } else {
 	      Swig_arg_error();
