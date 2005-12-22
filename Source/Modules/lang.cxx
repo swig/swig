@@ -352,7 +352,7 @@ void swig_pragma(char *lang, char *name, char *value) {
       GenerateDefault = 1;
     } else if ((strcmp(name,"no_default") == 0) || ((strcmp(name,"nodefault") == 0))) {
       Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG",1, 
-		   "dangerous, use %nodefaultctor, %nodefaultdtor or %nocopyctor instead.\n");
+		   "dangerous, use %nodefaultctor, %nodefaultdtor instead.\n");
       GenerateDefault = 0;
     } else if (strcmp(name,"attributefunction") == 0) {
       String *nvalue = NewString(value);
@@ -2050,7 +2050,7 @@ static Node *makeCopyConstructor(Node *n)
   Swig_symbol_setscope(oldscope);
   return cn;
 }
-
+/*
 static Node *makeConstructor(Node *n) 
 {
   Node *cn = NewHash();
@@ -2065,6 +2065,30 @@ static Node *makeConstructor(Node *n)
   Symtab *oldscope = Swig_symbol_setscope(Getattr(n,"symtab"));
   Swig_symbol_add(symname, cn);
   Swig_symbol_setscope(oldscope);
+  return cn;
+}
+*/
+
+static Node *makeConstructor(Node *n) 
+{
+  Node *cn = Copy(n);
+  String *name = Getattr(n,"name");
+  String *rname = 0;
+  String *dname = NewStringf("%s::",name);
+  
+  if (SwigType_istemplate(name)) {
+    rname = SwigType_templateprefix(name);
+    name = rname;
+  }
+  String *lname = Swig_scopename_last(name);
+  Append(dname,lname);
+  SetFlag(cn,"feature:new");
+  Setattr(cn,"decl","f().");
+  Swig_features_get(Swig_cparse_features(), 0, dname, Getattr(cn,"decl"), cn);
+  Delete(rname);
+  Delete(dname);
+  Delete(lname);
+
   return cn;
 }
 
@@ -2095,28 +2119,6 @@ int Language::classHandler(Node *n) {
 
   bool hasDirector = Swig_directorclass(n) ? true : false;
 
-  int odefault = (GenerateDefault && !GetFlag(n,"feature:nodefault"));
-  if (!ImportMode && (!GetFlag(n,"feature:nocopyctor")) && odefault) {
-    if (!Getattr(n,"has_copy_constructor") && !Getattr(n,"allocate:has_copy_constructor") 
-	&& (Getattr(n,"allocate:copy_constructor"))) {
-      if (!Abstract) {
-	Node *cn = makeCopyConstructor(CurrentClass);
-	appendChild(n,cn);
-      }
-    }
-  }
-  cplus_mode = PUBLIC;
-  if (!ImportMode  && !GetFlag(n,"feature:nodefaultctor") && odefault) {
-    if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") 
-	&& (Getattr(n,"allocate:default_constructor"))) {
-      /* Note: will need to change this to support different kinds of classes */
-      if (!Abstract) {
-	Node *cn = makeConstructor(CurrentClass);
-	appendChild(n,cn);
-      }
-    }
-  }
-
   /* Emit all of the class members */
   emit_children(n);
 
@@ -2132,6 +2134,18 @@ int Language::classHandler(Node *n) {
     SmartPointer = 0;
   }
 
+  cplus_mode = PUBLIC;
+  int odefault = (GenerateDefault && !GetFlag(n,"feature:nodefault"));
+  if (!ImportMode && (GenerateDefault && !GetFlag(n,"feature:nodefault"))) {
+    if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
+      /* Note: will need to change this to support different kinds of classes */
+      if (!Abstract) {
+	Node *cn = makeConstructor(CurrentClass);
+	constructorHandler(cn);
+	Delete(cn);
+      }
+    }
+  }
   if (!ImportMode && !GetFlag(n,"feature:nodefaultdtor") && odefault) {
     if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) 
 	&& (Getattr(n,"allocate:default_destructor"))) {

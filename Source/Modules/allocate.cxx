@@ -570,7 +570,8 @@ public:
       /* If class is abstract.  No default constructor. Sorry */
       if (Getattr(n,"abstract")) {
 	Delattr(n,"allocate:default_constructor");
-      } else if (!Getattr(n,"allocate:default_constructor")) {
+      }
+      if (!Getattr(n,"allocate:default_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n,"allbases");
 	int   allows_default = 1;
@@ -588,7 +589,10 @@ public:
       }
     }    
     if (!Getattr(n,"allocate:has_copy_constructor")) {
-      if (!Getattr(n,"allocate:copy_constructor") && !Getattr(n,"abstract")) {
+      if (Getattr(n,"abstract")) {
+	Delattr(n,"allocate:copy_constructor");
+      }
+      if (!Getattr(n,"allocate:copy_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n,"allbases");
 	int   allows_copy = 1;

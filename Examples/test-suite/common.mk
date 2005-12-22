@@ -90,7 +90,6 @@ CPP_TEST_CASES += \
 	const_const_2 \
 	constant_pointers \
 	constover \
-	constructor_copy \
 	constructor_exception \
 	constructor_explicit \
 	constructor_value \

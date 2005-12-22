@@ -334,11 +334,11 @@ disable the implicit constructor/desctructor generation manually.
 </p>
 
 <p>
-To do so, the <tt>%nodefaultctor</tt>, <tt>%nodefaultdtor</tt> and
-<tt>%nocopyctor</tt>directives can be used. Note that these directives
-only affects the implicit generation, and they have no effect if
-the default/copy constructors or destructor are explicitly declared in
-the class interface.
+To do so, the <tt>%nodefaultctor</tt> and <tt>%nodefaultdtor</tt>
+directives can be used. Note that these directives only affects the
+implicit generation, and they have no effect if the default/copy
+constructors or destructor are explicitly declared in the class
+interface.
 </p>
 
 <p>
@@ -371,7 +371,7 @@ class Bar {
 public:
   Bar();        // The default constructor is generated, since is declared
 };
-%defaultctor; // Enable the creation of default constructors again
+%clearnodefaultctor; // Enable the creation of default constructors again
 </pre>
 </div>
 
@@ -391,30 +391,6 @@ class Foo {           // No destructor is generated, unless is declared
 };
 </pre>
 </div>
-
-<p>
-The <tt>%nocopyctor</tt> disable the automatic generation of the copy
-constructor, but also has no effect over classes that explicitly
-declare a public copy constructor:
-</p>
-
-<div class="code">
-<pre>
-%nocopytor Foo;      // Disable the copy constructor for class Foo.
-class Foo {                 
-public:
-  Foo();
-};
-%nocopytor Bar;      // Has no effect on Bar
-class Bar {                 
-public:
-  Bar(const Bar& b); // Copy constructor is generated
-};
-</pre>
-</div>
-
-<p>
-</p>
 
 <p>
 <b>Compatibility Note:</b> The generation of default
