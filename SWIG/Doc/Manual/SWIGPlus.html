@@ -270,21 +270,33 @@ void delete_List(List *l) {
 
 </pre></div>
 
-<H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors and implicit destructors</H3>
+<H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors, copy constructors and implicit destructors</H3>
 
+Following the C++ rules for implicit constructor and destructors, SWIG
+will try to automatically generate them even when they are not
+explicitly declared in the class interface.
+
+In general then:
+
+<ul>
+<li>
+If a C++ class does not declare any explicit constructor, SWIG will
+automatically generate one.
+</li>
+
+<li>
+If a C++ class does not declare a explicit copy constructor, SWIG will
+automatically generate one.
+</li>
+
+<li>
+If a C++ class does not declare an explicit destructor, SWIG will
+automatically create one.
+</li>
+</ul>
 
 <p>
-If a C++ class does not define a destructor, SWIG will automatically
-create one following the implicit destructor rule from C++.
-</p>
-
-<p>
-If a C++ class does not define any public constructors, SWIG will
-automatically create a default constructor. 
-</p>
-
-<p>
- There are, however, a few rules that alters the previous behavior:
+ And as in C++, a few rules that alters the previous behavior:
 </p>
 
 <ul>
@@ -300,7 +312,7 @@ default constructor.
 </li>
 
 <li>Default constructors and implicit destructors are not created if a class
-defines constructors or destructors in a <tt>private</tt> or <tt>protected</tt> section.
+defines them in a <tt>private</tt> or <tt>protected</tt> section.
 </li>
 
 <li>Default constructors and implicit destructors are not created if any base
@@ -309,58 +321,58 @@ class defines a non-public default constructor or destructor.
 </ul>
 
 <p>
-SWIG should never generate a default constructor for a class in which
-it is illegal to do so.  In some cases, however, it could be necessary
-or desired to disable the default constructor. Then the
-<tt>%nodefault</tt> directive can be used:
+SWIG should never generate a default constructor, copy constructor or
+default destructor for a class in which it is illegal to do so.  In
+some cases, however, it could be necessary (if the complete class
+declaration is not visible from SWIG, and one of the above rules is
+violated) or desired (to reduce the size of the final interface) to
+disable the implicit constructor/desctructor generation manually. 
+</p>
+
+<p>
+To do so, the <tt>%nodefaultctor</tt>, <tt>%nodefaultdtor</tt> and
+<tt>%nocopyctor</tt>directives can be used. Note that these directives
+only affects the implicit generation, and they have no effect if
+the default/copy constructors or destructor are explicitly declared in
+the class interface.
+</p>
+
+<p>
+For example:
 </p>
 
 <div class="code">
 <pre>
-%nodefault Foo;     // Disable the default constructor for class Foo.
-class Foo {         // No default constructor is generated, unless is declared
+%nodefaultctor Foo;  // Disable the default constructor for class Foo.
+class Foo {          // No default constructor is generated, unless is declared
 ...
 };
-class Bar {         // A default constructor is generated, if possible
+class Bar {          // A default constructor is generated, if possible
 ...
 };
-</pre>
-</div>
-<p>
-The directive <tt>%nodefault</tt> can also be applied "globally", as in:
-</p>
-<div class="code">
-<pre>
-%nodefault;   // Disable creation of default constructors
-class Foo {   // No default constructor is generated, unless is declared
-...
-};
-class Bar {   // No default constructor is generated, unless is declared
-...
-};
-%makedefault; // Enable the creation of default constructors again
 </pre>
 </div>
 
 <p>
-Note that the <tt>%nodefault</tt> has no effect if the default
-constructor is explicitly declared, as in the following case:
+The directive <tt>%nodefaultctor</tt> can also be applied "globally", as in:
 </p>
+
 <div class="code">
 <pre>
-%nodefault;   // Disable creation of default constructors
-class Foo {   
+%nodefaultctor; // Disable creation of default constructors
+class Foo {     // No default constructor is generated, unless is declared
+...
+};
+class Bar {   
 public:
-  Foo();      // The default constructor is generated, since is declared
+  Bar();        // The default constructor is generated, since is declared
 };
-%makedefault; // Enable the creation of default constructors again
+%defaultctor; // Enable the creation of default constructors again
 </pre>
 </div>
 
-
-
 <p>
-The correspondig <tt>%nodefaultdtor</tt> directive can be used
+The corresponding <tt>%nodefaultdtor</tt> directive can be used
 to disable the generation of the default or implicit destructor, if
 needed. Be aware, however, that this could lead to memory leaks in the
 target language. Hence, it is recommended to use this directive only
@@ -369,33 +381,35 @@ in well known cases. For example:
 
 <div class="code">
 <pre>
-%nodefaultdtor Foo;   // Disable the implictit/default destructor for class Foo.
-class Foo {                 // No destructor is generated, unless is declared
+%nodefaultdtor Foo;   // Disable the implicit/default destructor for class Foo.
+class Foo {           // No destructor is generated, unless is declared
 ...
 };
 </pre>
 </div>
 
 <p>
-As in the <tt>%nodefault</tt> case, the <tt>%nodefaultdtor</tt>
-has no effect over classes that explicitly declare a public
-destructor:
+The <tt>%nocopyctor</tt> disable the automatic generation of the copy
+constructor, but also has no effect over classes that explicitly
+declare a public copy constructor:
 </p>
 
 <div class="code">
 <pre>
-%nodefaultdtor Foo;   // Try to disable the implictit/default destructor for class Foo.
+%nocopytor Foo;      // Disable the copy constructor for class Foo.
 class Foo {                 
 public:
-  ~Foo();                   // The destructor is generated, since is declared
+  Foo();
+};
+%nocopytor Bar;      // Has no effect on Bar
+class Bar {                 
+public:
+  Bar(const Bar& b); // Copy constructor is generated
 };
 </pre>
 </div>
 
 <p>
-If you still need to prevent the generation of the default constructor
-or destructor, even when they are declared in the class, you need to
-use the <tt>%ignore</tt> directive.
 </p>
 
 <p>
@@ -416,12 +430,11 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 </p>
 
 <p>
-<b>Compatibility Note:</b> Prior to 1.3.28, the <tt>%nodefault</tt>
-directive and the <tt>-nodefault</tt> option also disable the
-generation of the implicit destructors. This produced memory leaks
-across the target langauges in an indiscriminated way. If your
-interface needs the old behavior, use the <tt>-oldnodefault</tt>
-option.
+<b>Note:</b> The above described <tt>%nodefault</tt>
+directive/<tt>-nodefault</tt> option, which disable both the default
+constructor and the the implicit destructors, could lead to memory
+leaks across the target languages, and is highly recommended you don't
+use them.
 </p>
 
 

@@ -6123,8 +6123,8 @@ The following interface file code should be placed before SWIG parses the above 
 %module example
 
 // Do not generate the default proxy constructor or destructor
-%nodefault Butler;
-%nodefaultdestructor Butler;
+%nodefaultctor Butler;
+%nodefaultdtor Butler;
 
 // Add in pure Java code proxy constructor
 %typemap(javacode) Butler %{
@@ -6161,9 +6161,10 @@ The <tt>swigCMemOwn</tt> remains unchanged (at false), so that the proxy does no
 </p>
 
 <p>
-Note: prior to 1.3.28, the %nodefault directive disabled the default
-constructor and destructor at the same time. Now it is required to explicitly use
-%nodefault and %nodefaultdestructor to achieve the same result.
+Note: The old %nodefault directive disabled the default constructor
+and destructor at the same time. This is unsafe in most of the cases,
+and you can use the explicit %nodefaultctor and %nodefaultdtor
+directives to achieve the same result.
 </p>
 
 <p>

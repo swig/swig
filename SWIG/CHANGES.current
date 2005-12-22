@@ -1,6 +1,30 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/21/2005: mmatus
+	  - The '-nodefault' flag (pragma and features) now generates
+	    a warning, and recommends to use the explicit
+	    -nodefaultctor and  -nodefaultdtor options.
+	    
+	    The reason to split the 'nodefault' behavior is that, in
+	    general, ignoring the default destructor generates memory
+	    leaks in the target language. Hence, is to risky just to
+	    disable the both the default constructor and destructor
+	    at the same time.
+
+	    If you need to disable the default destructor, it is
+	    also recommended you use the directive form:
+
+	       %nodefaultdtor  MyVerySpecialClass;
+
+            for specific classes, and always avoid using the global
+            -nodefault and -nodefaultdtor options.
+	    
+          - SWIG now also generates the implicit copy constructor,
+	    and that can be also disabled using the corresponding 
+	    -nocopyctor option and/or %nocopyctor directive.
+   
+
 12/17/2005: mmatus
 	  [Python]
 	  - Add the -aliasobj0/-noaliasobj0 options to use with
@@ -67,42 +91,6 @@ Version 1.3.28 (unreleased).
 	    at once, initially equivalent to
 
 	    -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual
-
-12/09/2005: mmatus
-	    The '-nodefault' flag (pragma and features) now only
-	    disable the default constructor, but not the default
-	    destructor. The reason is that ignoring the default
-	    destructor generates memory leaks, impossible to 
-	    work around, in all the languages. Hence, is to risky
-	    just to disable the destructor  when the flag is mainly 
-	    used to ignore the default constructor. 
-
-	    If needed, you can still disable the destructor, by using
-	    the feature form:
-
-	       %nodefaultdtor  MyVerySpecialClass;
-	    
-	    Note: if you really really need it, you can still disable
-	    the implicit destructors at the command line using
-   	   
-               swig  -nodefaultdtor
-
-	    But really, don't do that please.
-
-	    Also, you can force the old 'nodefault' behavior by using
-
-	       swig -oldnodefault
-   
-
-            *** POTENTIAL INCOMPATIBILITY ***
-
-	    If you use -nodefault in your interface, now some new
-	    destructors could be generated in the interface. This
-	    could solve some memory leaks but also produce some
-	    conflicts.
-
-	    To restore old behavior, you can use -oldnodefault.
- 
 
 12/08/2005: mmatus 
 

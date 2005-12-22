@@ -5,7 +5,7 @@
 
 %module cplusplus_throw
 
-%nodefault;
+%nodefaultctor;
 
 %inline %{
 
