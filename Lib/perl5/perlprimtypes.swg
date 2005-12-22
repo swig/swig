@@ -47,7 +47,7 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
     return SWIG_OK;
   } else  if (SvIOK(obj)) {
     long v = SvIV(obj);
-    if (v > 0) {
+    if (v >= 0) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
