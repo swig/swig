@@ -9,8 +9,10 @@
 
 %warnfilter(813,833,870) E; /* C#, Java, Php4 multiple inheritance */
 
-%nodefault C;
-%nodefault E;
+%nodefaultctor C;
+%nodefaultdtor C;
+%nodefaultctor E;
+%nodefaultdtor E;
 
 %inline %{
 

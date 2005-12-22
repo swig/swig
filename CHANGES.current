@@ -20,10 +20,6 @@ Version 1.3.28 (unreleased).
             for specific classes, and always avoid using the global
             -nodefault and -nodefaultdtor options.
 	    
-          - SWIG now also generates the implicit copy constructor,
-	    and that can be also disabled using the corresponding 
-	    -nocopyctor option and/or %nocopyctor directive.
-   
 
 12/17/2005: mmatus
 	  [Python]
