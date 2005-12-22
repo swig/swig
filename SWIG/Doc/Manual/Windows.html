@@ -250,6 +250,7 @@ SWIG parses ISO C/C++ so cannot deal with proprietary conventions such as <tt>__
 There is a Windows interface file, <tt>windows.i</tt>, to deal with these calling conventions though.
 The file also contains typemaps for handling commonly used Windows specific types such as <tt>__int64</tt>, <tt>BOOL</tt>, <tt>DWORD</tt> etc.
 Include it like you would any other interface file, for example:
+</p>
 
 <div class="code"><pre>
 %include &lt;windows.i&gt;
@@ -257,7 +258,6 @@ Include it like you would any other interface file, for example:
 __declspec(dllexport) ULONG __stdcall foo(DWORD, __int32);
 </pre></div>
 
-</p>
 
 </body>
 </html>
