@@ -250,22 +250,23 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   } else {
     *ptr = voidptr;
   }
+
   /* 
-     DISOWN implementation: we need a perl guru to check this one.
-  */
+   *  DISOWN implementation: we need a perl guru to check this one.
+   */
   if (tsv && (flags & SWIG_POINTER_DISOWN)) {
     /* 
-       almost copy paste code from bellow SWIG_POINTER_OWN setting
-    */
+     *  almost copy paste code from below SWIG_POINTER_OWN setting
+     */
     SV *obj = sv;
     HV *stash = SvSTASH(SvRV(obj));
     GV *gv = *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
     if (isGV(gv)) {
       HV *hv = GvHVn(gv);
       /*
-	To set ownership (see bellow), an newSViv(1) entry is added. 
-	Hence, to remove ownership, we delete the entry.
-      */
+       * To set ownership (see below), a newSViv(1) entry is added. 
+       * Hence, to remove ownership, we delete the entry.
+       */
       if (hv_exists_ent(hv, obj, 0)) {
 	hv_delete_ent(hv, obj, 0, 0);
       }
