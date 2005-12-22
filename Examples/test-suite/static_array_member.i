@@ -5,9 +5,10 @@
 
 %module static_array_member
 
-%nodefault;
 %inline %{
 class RB {
+  static char *prberror[];
+public:
   static char *rberror[];
 };
 %}
