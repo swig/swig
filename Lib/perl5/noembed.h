@@ -52,9 +52,6 @@
 #ifdef ref
   #undef ref
 #endif
-#ifdef ENTER
-  #undef ENTER
-#endif
 #ifdef read
   #undef read
 #endif
