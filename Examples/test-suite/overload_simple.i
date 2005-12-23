@@ -106,6 +106,23 @@ static char *bar(void *) {
    return (char *) "bar:void *";
 }
 };
+
+
+char *fint(int) {
+   return (char*) "fint:int";
+}
+
+char *fdouble(double) {
+   return (char*) "fdouble:double";
+}
+
+char *num(int) {
+   return (char*) "num:int";
+}
+char *num(double) {
+   return (char*) "num:double";
+}
+
 %}
 
 %inline %{
