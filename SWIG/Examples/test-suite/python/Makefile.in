@@ -35,6 +35,7 @@ CPP_TEST_CASES += \
 	li_std_wstream \
 	li_std_wstring \
 	nondynamic \
+	overload_simple_cast \
 	primitive_types \
 	std_containers \
 	swigobject \
@@ -99,4 +100,5 @@ cvsignore:
 	@echo imports_a.py 
 	@echo imports_b.py 
 	@echo template_typedef_import.py
+
 

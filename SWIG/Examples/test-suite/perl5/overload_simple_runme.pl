@@ -4,9 +4,6 @@ $f = new overload_simple::Foo();
 $b = new overload_simple::Bar();
 $v = overload_simple::malloc_void(32);
 
-#
-# 'simple' dispatch (no overload) of int and double arguments
-#
 
 #
 # Silence warnings about bad types
@@ -39,6 +36,10 @@ if (!$@) {
 #enable the warnings again
 #
 $DOWARN =1;
+
+#
+# 'simple' dispatch (no overload) of int and double arguments
+#
 
 if (!(overload_simple::fint(3) eq "fint:int")) {
     die("fint(int)");
@@ -159,6 +160,8 @@ if (!($s->foo(3.0) eq "foo:double")) {
 }
 
 if (!($s->foo("hello") eq "foo:char *")) {
+    $r = $s->foo("hello");
+    print "res $r\n";
     die("Spam::foo(char *)");
 }
 
@@ -275,6 +278,8 @@ if (!(overload_simple::fid(3.0, "3") eq "fid:doubleint")) {
 }
 
 if (!(overload_simple::fid("3.0", "3.0") eq "fid:doubledouble")) {
+    $r  = overload_simple::fid("3.0", "3.0");
+    print "$r \n";
     die("fid(double,double)");
 }
 
