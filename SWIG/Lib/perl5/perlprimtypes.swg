@@ -62,7 +62,8 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
 
 /* unsigned long */
 
-%fragment(SWIG_From_frag(unsigned long),"header") {
+%fragment(SWIG_From_frag(unsigned long),"header",
+	  fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long)(unsigned long value)
 {    
@@ -72,7 +73,8 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(unsigned long),"header") {
+%fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val) 
 {
@@ -88,6 +90,7 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
       return SWIG_OverflowError;
     }
   } else {
+    int dispatch = 0;
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
@@ -99,6 +102,23 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
 	if (*endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_AddCast(SWIG_OK);
+	}
+      }
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AsVal(double)(obj,&d);
+      if (SWIG_IsOK(res) && (d >= 0)) {
+	if (d <= ULONG_MAX) {
+	  double rd = rint(d);
+	  if (errno) {
+	    errno = 0;
+	  } else {
+	    if (rd == d) {
+	      if (val) *val = (long)(rd);
+	      return SWIG_AddCast(res);
+	    }
+	  }
 	}
       }
     }
@@ -128,7 +148,10 @@ SWIG_From_dec(long long)(long long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(long long),"header") {
+%fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment=SWIG_AsVal_frag(double),
+	  fragment="<limits.h>") {
+
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 {
@@ -136,6 +159,7 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
     if (val) *val = SvIV(obj);
     return SWIG_OK;
   } else {
+    int dispatch = 0;
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
@@ -147,6 +171,23 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 	if (*endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_AddCast(SWIG_OK);
+	}
+      }
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AsVal(double)(obj,&d);
+      if (SWIG_IsOK(res)) {
+	if (LLONG_MIN <= d && d <= LLONG_MAX) {
+	  double rd = rint(d);
+	  if (errno) {
+	    errno = 0;
+	  } else {
+	    if (rd == d) {
+	      if (val) *val = (long long)(rd);
+	      return SWIG_AddCast(res);
+	    }
+	  }
 	}
       }
     }
@@ -175,7 +216,9 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(unsigned long long),"header") {
+%fragment(SWIG_AsVal_frag(unsigned long long),"header",
+	  fragment=SWIG_AsVal_frag(double),
+	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 { 
@@ -183,6 +226,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
     if (val) *val = SvUV(obj);
     return SWIG_OK;
   } else {
+    int dispatch = 0;
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
@@ -194,6 +238,23 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 	if (*endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_AddCast(SWIG_OK);
+	}
+      }
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AsVal(double)(obj,&d);
+      if (SWIG_IsOK(res) && (d >=0 )) {
+	if (d <= ULLONG_MAX) {
+	  double rd = rint(d);
+	  if (errno) {
+	    errno = 0;
+	  } else {
+	    if (rd == d) {
+	      if (val) *val = (unsigned long long)(rd);
+	      return SWIG_AddCast(res);
+	    }
+	  }
 	}
       }
     }
