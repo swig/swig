@@ -1,4 +1,4 @@
-%module li_implicit
+%module("nocastmode") li_implicit
 %include implicit.i
 
 %inline 
