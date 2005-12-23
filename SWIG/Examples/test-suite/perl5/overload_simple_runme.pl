@@ -235,6 +235,49 @@ if (!($s->{type} eq "void *")) {
     die("Spam(void *)");
 }
 
+#
+# Combine dispatch
+#
 
 
+if (!(overload_simple::fid(3, 3.0) eq "fid:intdouble")) {
+    die("fid(int,double)");
+}
 
+if (!(overload_simple::fid(3.0, 3) eq "fid:doubleint")) {
+    die("fid(double,int)");
+}
+
+if (!(overload_simple::fid(3.0, 3.0) eq "fid:doubledouble")) {
+    die("fid(double,double)");
+}
+
+if (!(overload_simple::fid(3, 3) eq "fid:intint")) {
+    die("fid(int,int)");
+}
+
+# with strings now
+
+if (!(overload_simple::fid(3, "3.0") eq "fid:intdouble")) {
+    die("fid(int,double)");
+}
+
+if (!(overload_simple::fid("3", 3.0) eq "fid:intdouble")) {
+    die("fid(int,double)");
+}
+
+if (!(overload_simple::fid("3", "3.0") eq "fid:intdouble")) {
+    die("fid(int,double)");
+}
+
+if (!(overload_simple::fid(3.0, "3") eq "fid:doubleint")) {
+    die("fid(double,int)");
+}
+
+if (!(overload_simple::fid("3.0", "3.0") eq "fid:doubledouble")) {
+    die("fid(double,double)");
+}
+
+if (!(overload_simple::fid("3", 3) eq "fid:intint")) {
+    die("fid(int,int)");
+}
