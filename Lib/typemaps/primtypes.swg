@@ -205,7 +205,7 @@ SWIGINTERNINLINE int
 SWIG_CanCastAsInteger(double *d, double min, double max) {
   double x = *d;
   if (min <= x && x <= max) {
-%#ifndef SWIG_HAS_NO_RINT
+%#ifdef SWIG_HAS_NO_RINT
     /* Use the python mechanism to round, or so */
     double rd = (x < 0) ? ceil(x) : floor(x);
 %#else
