@@ -123,6 +123,21 @@ char *num(double) {
    return (char*) "num:double";
 }
 
+char *fid(int, int) {
+   return (char*) "fid:intint";
+}
+char *fid(int, double) {
+   return (char*) "fid:intdouble";
+}
+
+char *fid(double, int) {
+   return (char*) "fid:doubleint";
+}
+
+char *fid(double, double) {
+   return (char*) "fid:doubledouble";
+}
+
 %}
 
 %inline %{
