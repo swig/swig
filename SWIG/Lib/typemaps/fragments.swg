@@ -357,12 +357,11 @@ SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
 {
   Base v;
   int res = SWIG_AsVal(Base)(obj, &v);
-  if (res == SWIG_OK) {
+  if (SWIG_IsOK(res)) {
     if (OverflowCond) {
       return SWIG_OverflowError;
     } else {
       if (val) *val = %numeric_cast(v, Type);
-      return SWIG_OK;
     }
   }  
   return res;

@@ -540,10 +540,10 @@ SWIGINTERN int
 SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 {    
   int res = SWIG_As##CharName##Array(obj, val, 1);
-  if (res != SWIG_OK) {
+  if (!SWIG_IsOK(res)) {
     long v;
     res = SWIG_AsVal(long)(obj, &v);
-    if (res == SWIG_OK) {
+    if (SWIG_IsOK(res)) {
       if ((CHAR_MIN <= v) && (v <= CHAR_MAX)) {
 	if (val) *val = %numeric_cast(v, Char);
       } else {

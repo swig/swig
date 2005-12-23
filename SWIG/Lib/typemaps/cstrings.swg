@@ -182,7 +182,7 @@
 
 %define Name ## _output_maxsize(TYPEMAP, SIZE)                       
 %typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t size, Char *buff = 0) {   
-  if (SWIG_AsVal(size_t)($input, &size) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsVal(size_t)($input, &size))) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   buff= %new_array(size+1, Char);
@@ -212,7 +212,7 @@
 
 %define Name ## _output_withsize(TYPEMAP, SIZE)                        
 %typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t n, Char *buff = 0, $*2_ltype size) {    
-  if (SWIG_AsVal(size_t)($input, &n) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsVal(size_t)($input, &n))) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   buff= %new_array(n+1, Char);

@@ -7,7 +7,7 @@
 
 %typemap(in,fragment=SWIG_AsVal_frag(int),noblock=1) const enum SWIGTYPE& (int val, int ecode, $basetype temp) {  
   ecode = SWIG_AsVal(int)($input, &val);
-  if (ecode != SWIG_OK) {
+  if (!SWIG_IsOK(ecode)) {
     %argument_fail(ecode, "$type", $argnum);
   } else {
     temp = %static_cast(val,$basetype);
@@ -21,7 +21,7 @@
     %variable_fail(SWIG_AttributeError,"$type", "arch, read-only $name");
   }  else {
     int ecode = SWIG_AsVal(int)($input, %reinterpret_cast(&$1,int*));
-    if (ecode != SWIG_OK) {
+    if (!SWIG_IsOK(ecode)) {
       %variable_fail(ecode, "$type", "$name");
     }
   }

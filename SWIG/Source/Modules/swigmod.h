@@ -321,6 +321,8 @@ void   emit_mark_varargs(ParmList *l);
 void   emit_action(Node *n, Wrapper *f);
 void   Swig_overload_check(Node *n);
 String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
+String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *);
+String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *);
 SwigType *cplus_value_type(SwigType *t);
 
 /* directors.cxx start */
@@ -351,6 +353,7 @@ void Wrapper_virtual_elimination_mode_set(int);
 void Wrapper_director_mode_set(int);
 void Wrapper_director_protected_mode_set(int);
 void Wrapper_fast_dispatch_mode_set(int);
+void Wrapper_cast_dispatch_mode_set(int);
 
 void clean_overloaded(Node *n);
 

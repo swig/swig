@@ -33,7 +33,7 @@
 %define %value_in_typemap(asval_meth,frag,Type...)
   %typemap(in,noblock=1,fragment=frag) Type (Type val, int ecode = 0) {
     ecode = asval_meth($input, &val);
-    if (ecode != SWIG_OK) {
+    if (!SWIG_IsOK(ecode)) {
       %argument_fail(ecode, "$ltype", $argnum);
     } 
     $1 = %static_cast(val,$ltype);
@@ -41,7 +41,7 @@
   %typemap(freearg) Type "";
   %typemap(in,noblock=1,fragment=frag) const Type & ($*ltype temp, Type val, int ecode = 0) {  
     ecode = asval_meth($input, &val);
-    if (ecode != SWIG_OK) {
+    if (!SWIG_IsOK(ecode)) {
       %argument_fail(ecode, "$*ltype", $argnum);
     } 
     temp = %static_cast(val, $*ltype);
@@ -67,7 +67,7 @@
   %typemap(varin,noblock=1,fragment=frag) Type {
     Type val;
     int res = asval_meth($input, &val);
-    if (res != SWIG_OK) {
+    if (!SWIG_IsOK(res)) {
       %variable_fail(res, "$type", "$name");
     }
     $1 = %static_cast(val,$ltype);
@@ -110,7 +110,7 @@
   %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT {
     Type val;
     int res = asval_meth($input, &val);
-    if (res != SWIG_OK) {
+    if (!SWIG_IsOK(res)) {
       %dirout_fail(res, "$type");
     } 
     *$result = %static_cast(val, $type);
@@ -118,7 +118,7 @@
   %typemap(directorout,noblock=1,fragment=frag) Type {
     Type val;
     int res = asval_meth($input, &val);
-    if (res != SWIG_OK) {
+    if (!SWIG_IsOK(res)) {
       %dirout_fail(res, "$type");
     }
     $result = %static_cast(val,$type);
@@ -126,7 +126,7 @@
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {  
     Type val;
     int res = asval_meth($input, &val);
-    if (res != SWIG_OK) {
+    if (!SWIG_IsOK(res)) {
       %dirout_fail(res, "$type");
     } 
     $basetype *temp = new $basetype(($basetype)val);
@@ -161,7 +161,8 @@
 
 %define %value_typecheck_typemap(check,asval_meth,frag,Type...)
   %typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {
-    $1 = (asval_meth($input, 0) == SWIG_OK);
+    int res = asval_meth($input, NULL);
+    $1 = SWIG_GetCastRank(res);
   }
 %enddef
 

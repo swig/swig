@@ -81,7 +81,7 @@ or you can use the %apply directive :
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val; 
       int ecode = asval_meth($input, &val);
-      if (ecode != SWIG_OK) { 
+      if (!SWIG_IsOK(ecode)) { 
 	%argument_fail(ecode, "$*ltype",$argnum);
       }
       temp = %static_cast(val, $*ltype);
@@ -93,7 +93,7 @@ or you can use the %apply directive :
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val;
       int ecode = asval_meth($input, &val);
-      if (ecode != SWIG_OK) { 
+      if (!SWIG_IsOK(ecode)) { 
 	%argument_fail(ecode, "$*ltype",$argnum);
       }
       temp = %static_cast(val, $*ltype);
@@ -103,7 +103,12 @@ or you can use the %apply directive :
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr;
-    $1 = ((asval_meth($input, 0) == SWIG_OK) || (%check_input_ptr($input,&ptr,$1_descriptor,0)));
+    int res = asval_meth($input, 0);
+    if (SWIG_IsOK(res)) {
+      $1 = SWIG_GetCastRank(res);
+    } else {
+      $1 = %check_input_ptr($input,&ptr,$1_descriptor,0);
+    }
   }
 %enddef
 

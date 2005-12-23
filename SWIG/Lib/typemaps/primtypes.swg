@@ -106,9 +106,10 @@ SWIGINTERN int
 SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 {
   long v;
-  if (SWIG_AsVal(long)(obj, val ? &v : 0) == SWIG_OK) {    
+  int res = SWIG_IsOK(SWIG_AsVal(long)(obj, val ? &v : 0));
+  if (SWIG_IsOK(res)) {    
     if (val) *val = v ? true : false;
-    return SWIG_OK;
+    return res;
   }  
   return SWIG_TypeError;
 }
@@ -170,7 +171,7 @@ SWIG_AsVal_dec(size_t)(SWIG_Object obj, size_t *val)
 {
   unsigned long v;
   int res = SWIG_AsVal(unsigned long)(obj, val ? &v : 0);
-  if ((res == SWIG_OK) && val) *val = %numeric_cast(v, size_t);
+  if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, size_t);
   return res;
 }
 }
@@ -191,7 +192,7 @@ SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 {
   long v;
   int res = SWIG_AsVal(long)(obj, val ? &v : 0);
-  if ((res == SWIG_OK) && val) *val = %numeric_cast(v, ptrdiff_t);
+  if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, ptrdiff_t);
   return res;
 }
 }
