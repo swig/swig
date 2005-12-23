@@ -19,6 +19,7 @@ char cvsroot_fragment_c[] = "$Header$";
 #include "swig.h"
 
 static Hash *fragments = 0;
+static Hash *looking_fragments = 0;
 static int debug = 0;
 
 
@@ -106,11 +107,16 @@ Swig_fragment_emit(Node *n) {
   while (tok) {
     String *name = NewString(tok);
     if (mangle) Append(name,mangle);
+    if (looking_fragments && Getattr(looking_fragments,name)) {
+      return;
+    }    
     code = Getattr(fragments,name);
     if (debug) Printf(stdout,"looking subfragment %s\n", name);
     if (code && (Strcmp(code,"ignore") != 0)) {
       String *section = Getmeta(code,"section");
       Hash *n = Getmeta(code,"kwargs");
+      if (!looking_fragments) looking_fragments = NewHash();
+      Setattr(looking_fragments,name,"1");      
       while (n) {
 	if (Cmp(Getattr(n,"name"),"fragment") == 0) {
 	  if (debug) Printf(stdout,"emitting fragment %s %s\n",n, type);
@@ -129,6 +135,7 @@ Swig_fragment_emit(Node *n) {
 	  Printf(f,"%s\n",code);
 	  if (debug) Printf(f,"/* end fragment %s */\n\n",name);
 	  Setattr(fragments,name,"ignore");
+	  Delattr(looking_fragments,name);      
 	}
       }
     } else {
