@@ -161,8 +161,8 @@
 
 %define %value_typecheck_typemap(check,asval_meth,frag,Type...)
   %typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {
-    int res = asval_meth($input, NULL);
-    $1 = SWIG_GetCastRank(res);
+    int res = SWIG_CastRank(asval_meth($input, NULL));
+    $1 = SWIG_IsOK(res) ? res : 0;
   }
 %enddef
 

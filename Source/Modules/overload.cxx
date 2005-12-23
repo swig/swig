@@ -372,7 +372,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
   String *sw = NewString("");
   Printf(f,"{\n");
   Printf(f,"unsigned long _index = 0;\n");
-  Printf(f,"double _rank = 0; \n");
+  Printf(f,"SWIG_TypeRank _rank = 0; \n");
 
   /* Get a list of methods ranked by precedence values and argument count */
   List *dispatch = Swig_overload_rank(n, true);
@@ -401,8 +401,8 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     } else {
       Printf(f,"if (%s >= %d) {\n", argc_template_string, num_required);
     }
-    Printf(f,"double _ranki = 0;\n");
-    Printf(f,"double _pi = 1;\n",num_arguments);
+    Printf(f,"SWIG_TypeRank _ranki = 0;\n");
+    Printf(f,"SWIG_TypeRank _pi = 1;\n",num_arguments);
 
     /* create a list with the wrappers that collide with the
        current one based on argument number */
@@ -471,7 +471,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
 
 	  if (emitcheck) {
 	    if (need_v) {
-	      Printf(f,"int _v;\n");
+	      Printf(f,"int _v = 0;\n");
 	      need_v = 0;
 	    }
 	    if (j >= num_required) {
@@ -631,7 +631,7 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
 
 	  if (emitcheck) {
 	    if (need_v) {
-	      Printf(f,"int _v = 1;\n");
+	      Printf(f,"int _v = 0;\n");
 	      need_v = 0;
 	    }
 	    if (j >= num_required) {

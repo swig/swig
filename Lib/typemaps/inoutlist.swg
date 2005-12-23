@@ -103,9 +103,9 @@ or you can use the %apply directive :
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr;
-    int res = asval_meth($input, 0);
+    int res = SWIG_CastRank(asval_meth($input, 0));
     if (SWIG_IsOK(res)) {
-      $1 = SWIG_GetCastRank(res);
+      $1 = res;
     } else {
       $1 = %check_input_ptr($input,&ptr,$1_descriptor,0);
     }

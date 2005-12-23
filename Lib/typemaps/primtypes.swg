@@ -197,6 +197,40 @@ SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 }
 }
 
+%fragment("SWIG_CanCastAsInteger","header",
+	  fragment=SWIG_AsVal_frag(double),
+	  fragment="<float.h>",
+	  fragment="<math.h>") {
+SWIGINTERNINLINE int
+SWIG_CanCastAsInteger(double *d, double min, double max) {
+  double x = *d;
+  if (min <= x && x <= max) {
+%#ifndef SWIG_HAS_NO_RINT
+    /* Use the python mechanism to round, or so */
+    double rd = (x < 0) ? ceil(x) : floor(x);
+%#else
+    double rd = rint(x);
+%#endif
+    if ((errno == EDOM) || (errno == ERANGE)) {
+      errno = 0;
+    } else {
+      if (rd == x) {
+	return 1;
+      } else {
+	double diff = rd - x;
+	double summ = rd + x;
+	double reps = diff/summ;
+	if (fabs(reps) < 8*DBL_EPSILON) {
+	  *d = rd;
+	  return 1;
+	}
+      }
+    }
+  }
+  return 0;
+}
+}
+
 /* ------------------------------------------------------------
  * Generate the typemaps for primitive type 
  * ------------------------------------------------------------ */

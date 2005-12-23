@@ -27,8 +27,8 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
     return SWIG_OK;
   } else {
     long v = 0;
-    int res = SWIG_AsVal(long)(obj, val ? &v : 0);
-    if (res == SWIG_OK && val) *val = v ? true : false;
+    int res = SWIG_CastRank(SWIG_AsVal(long)(obj, val ? &v : 0));
+    if (SWIG_IsOK(res) && val) *val = v ? true : false;
     return res;
   }
 }
@@ -41,7 +41,8 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
   %define_as(SWIG_From_dec(long),           PyInt_FromLong)
 }
 
-%fragment(SWIG_AsVal_frag(long),"header") {
+%fragment(SWIG_AsVal_frag(long),"header",
+	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(PyObject *obj, long* val)
 {
@@ -57,6 +58,26 @@ SWIG_AsVal_dec(long)(PyObject *obj, long* val)
       PyErr_Clear();
     }
   }
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    long v = PyInt_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_CastRank(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, LONG_MAX)) {
+	if (val) *val = (long)(d);
+	return res;
+      }
+    }
+  }
+%#endif
   return SWIG_TypeError;
 }
 }
@@ -73,7 +94,8 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(unsigned long),"header") {
+%fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
@@ -94,6 +116,30 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
       PyErr_Clear();
     }
   }
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    long v = PyInt_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (v >= 0) {
+	if (val) *val = v;
+	return SWIG_CastRank(SWIG_OK);
+      } else {
+	return SWIG_OverflowError;
+      }
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
+	if (val) *val = (unsigned long)(d);
+	return res;
+      }
+    }
+  }
+%#endif
   return SWIG_TypeError;
 }
 }
@@ -111,7 +157,9 @@ SWIG_From_dec(long long)(long long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(long long),"header") {
+%fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment="SWIG_CanCastAsInteger",
+	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
@@ -127,6 +175,26 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
       PyErr_Clear();
     }
   } 
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    long v = PyInt_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_CastRank(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LLONG_MIN, LLONG_MAX)) {
+	if (val) *val = (long long)(d);
+	return res;
+      }
+    }
+  }
+%#endif
   return SWIG_TypeError;
 }
 }
@@ -145,7 +213,9 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-	  fragment=SWIG_AsVal_frag(unsigned long)) {
+	  fragment=SWIG_AsVal_frag(unsigned long),
+	  fragment="SWIG_CanCastAsInteger",
+	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
@@ -160,9 +230,33 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
   } else {
     unsigned long v;
     int res = SWIG_AsVal(unsigned long)(obj,&v);
-    if (res == SWIG_OK && val) *val = v;
+    if (SWIG_IsOK(res) && val) *val = v;
     return res;
   }
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    long v = PyInt_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (v >= 0) {
+	if (val) *val = v;
+	return SWIG_CastRank(SWIG_OK);
+      } else {
+	return SWIG_OverflowError;
+      }
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULLONG_MAX)) {
+	if (val) *val = (unsigned long)(d);
+	return res;
+      }
+    }
+  }
+%#endif
   return SWIG_TypeError;
 }
 }
@@ -192,6 +286,27 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
       PyErr_Clear();
     }
   }
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    double d = PyFloat_AsDouble(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = d;
+      return SWIG_CastRank(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      long v = PyInt_AsLong(obj);
+      if (!PyErr_Occurred()) {
+	if (val) *val = v;
+	return SWIG_CastRank(SWIG_CastRank(SWIG_OK));
+      } else {
+	PyErr_Clear();
+      }
+    }
+  }
+%#endif
   return SWIG_TypeError;
 }
 }

@@ -69,6 +69,7 @@ static  int       proxydel = 1;
 static  int       fastunpack = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
+static  int       castmode = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -114,6 +115,8 @@ Python Options (available with -python)\n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
+     -castmode       - Enable the casting mode, which allows implicit cast between types\n\
+     -nocastmode     - Disable the casting mode (default)\n\
      -O              - Enable all the optimizations options: \n\
                        -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack -modernargs\n\
 \n";
@@ -294,6 +297,12 @@ public:
 	} else if (strcmp(argv[i],"-nofastunpack") == 0) {
 	  fastunpack = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-castmode") == 0) {
+	  castmode = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nocastmode") == 0) {
+	  castmode = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modernargs") == 0) {
 	  modernargs = 1;
 	  Swig_mark_arg(i);
@@ -394,6 +403,12 @@ public:
           if (Getattr(options, "threads")) {
             threads = 1;
           }
+          if (Getattr(options, "castmode")) {
+            castmode = 1;
+          }
+          if (Getattr(options, "nocastmode")) {
+            castmode = 0;
+          }
           mod_docstring = Getattr(options, "docstring");
           package = Getattr(options, "package");
         }
@@ -462,6 +477,10 @@ public:
 
     if (!dirvtable) {
       Printf(f_runtime,"#define SWIG_PYTHON_DIRECTOR_NO_VTABLE\n");
+    }
+
+    if (castmode) {
+      Printf(f_runtime,"#define SWIG_PYTHON_CAST_MODE\n");
     }
 
 
@@ -1301,11 +1320,14 @@ public:
     int allow_thread = threads_enable(n);
 
     String *tmp = NewString("");
-    
-    String *dispatch = funpack ?
-      Swig_overload_dispatch(n,"return %s(self, argv);",&maxargs)
-      : Swig_overload_dispatch(n,"return %s(self, args);",&maxargs);
-    
+    String *dispatch;
+    const char *dispatch_code = funpack ? "return %s(self, argv);" : "return %s(self, args);";
+
+    if (castmode) {
+      dispatch = Swig_overload_dispatch_cast(n,dispatch_code,&maxargs);
+    } else {
+      dispatch = Swig_overload_dispatch(n,dispatch_code,&maxargs);
+    }
 	
     /* Generate a dispatch wrapper for all overloaded functions */
 

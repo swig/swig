@@ -15,7 +15,7 @@ SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
-	  fragment=SWIG_AsVal_frag(double)) {
+	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(SV *obj, long* val)
 {
@@ -34,25 +34,16 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
       } else {
 	if (*endptr == '\0') {
 	  if (val) *val = v;
-	  return SWIG_AddCast(SWIG_OK);
+	  return SWIG_CastRank(SWIG_OK);
 	}
       }
     }
     if (!dispatch) {
       double d;
-      int res = SWIG_AsVal(double)(obj,&d);
-      if (SWIG_IsOK(res)) {
-	if (LONG_MIN <= d && d <= LONG_MAX) {
-	  double rd = rint(d);
-	  if (errno) {
-	    errno = 0;
-	  } else {
-	    if (rd == d) {
-	      if (val) *val = (long)(rd);
-	      return SWIG_AddCast(res);
-	    }
-	  }
-	}
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, LONG_MAX)) {
+	if (val) *val = (long)(d);
+	return res;
       }
     }
   }
@@ -74,7 +65,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
-	  fragment=SWIG_AsVal_frag(double)) {
+	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val) 
 {
@@ -101,29 +92,19 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
       } else {
 	if (*endptr == '\0') {
 	  if (val) *val = v;
-	  return SWIG_AddCast(SWIG_OK);
+	  return SWIG_CastRank(SWIG_OK);
 	}
       }
     }
     if (!dispatch) {
       double d;
-      int res = SWIG_AsVal(double)(obj,&d);
-      if (SWIG_IsOK(res) && (d >= 0)) {
-	if (d <= ULONG_MAX) {
-	  double rd = rint(d);
-	  if (errno) {
-	    errno = 0;
-	  } else {
-	    if (rd == d) {
-	      if (val) *val = (long)(rd);
-	      return SWIG_AddCast(res);
-	    }
-	  }
-	}
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
+	if (val) *val = (unsigned long)(d);
+	return res;
       }
     }
   }
-
   return SWIG_TypeError;
 }
 }
@@ -149,8 +130,8 @@ SWIG_From_dec(long long)(long long value)
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
-	  fragment=SWIG_AsVal_frag(double),
-	  fragment="<limits.h>") {
+	  fragment="<limits.h>",
+	  fragment="SWIG_CanCastAsInteger") {
 
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(SV *obj, long long *val)
@@ -170,25 +151,16 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
       } else {
 	if (*endptr == '\0') {
 	  if (val) *val = v;
-	  return SWIG_AddCast(SWIG_OK);
+	  return SWIG_CastRank(SWIG_OK);
 	}
       }
     }
     if (!dispatch) {
       double d;
-      int res = SWIG_AsVal(double)(obj,&d);
-      if (SWIG_IsOK(res)) {
-	if (LLONG_MIN <= d && d <= LLONG_MAX) {
-	  double rd = rint(d);
-	  if (errno) {
-	    errno = 0;
-	  } else {
-	    if (rd == d) {
-	      if (val) *val = (long long)(rd);
-	      return SWIG_AddCast(res);
-	    }
-	  }
-	}
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LLONG_MIN, LLONG_MAX)) {
+	if (val) *val = (long long)(d);
+	return res;
       }
     }
   }
@@ -217,8 +189,8 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-	  fragment=SWIG_AsVal_frag(double),
-	  fragment="<limits.h>") {
+	  fragment="<limits.h>",
+	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 { 
@@ -237,25 +209,16 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
       } else {
 	if (*endptr == '\0') {
 	  if (val) *val = v;
-	  return SWIG_AddCast(SWIG_OK);
+	  return SWIG_CastRank(SWIG_OK);
 	}
       }
     }
     if (!dispatch) {
       double d;
-      int res = SWIG_AsVal(double)(obj,&d);
-      if (SWIG_IsOK(res) && (d >=0 )) {
-	if (d <= ULLONG_MAX) {
-	  double rd = rint(d);
-	  if (errno) {
-	    errno = 0;
-	  } else {
-	    if (rd == d) {
-	      if (val) *val = (unsigned long long)(rd);
-	      return SWIG_AddCast(res);
-	    }
-	  }
-	}
+      int res = SWIG_CastRank(SWIG_AsVal(double)(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULLONG_MAX)) {
+	if (val) *val = (unsigned long long)(d);
+	return res;
       }
     }
   }
@@ -283,8 +246,8 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
     if (val) *val = SvNV(obj);
     return SWIG_OK;
   } else if (SvIOK(obj)) {
-    if (val) *val = SvIV(obj);
-    return SWIG_AddCast(SWIG_OK);
+    if (val) *val = (double) SvIV(obj);
+    return SWIG_CastRank(SWIG_OK);
   } else {
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
@@ -296,7 +259,7 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
       } else {
 	if (*endptr == '\0') {
 	  if (val) *val = v;
-	  return SWIG_AddCast(SWIG_OK);
+	  return SWIG_CastRank(SWIG_OK);
 	}
       }
     }

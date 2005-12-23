@@ -99,7 +99,7 @@ namespace swig {
   struct traits_as<Type, value_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type v;
-      if (!obj || (asval(obj, &v) != SWIG_OK)) {
+      if (!obj || !SWIG_IsOK(asval(obj, &v))) {
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
@@ -160,7 +160,7 @@ namespace swig {
   template <class Type> 
   struct traits_check<Type, value_category> {
     static bool check(PyObject *obj) {
-      return obj && (asval(obj, (Type *)(0)) == SWIG_OK);
+      return obj && SWIG_IsOK(asval(obj, (Type *)(0)));
     }
   };
 

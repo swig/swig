@@ -32,11 +32,12 @@ SWIG_AsVal(Type) (PyObject *o, Type* val)
     return SWIG_OK;
   } else {
     double d;    
-    if (SWIG_AsVal(double)(o, &d) == SWIG_OK) {
+    int res = SWIG_CastRank(SWIG_AsVal(double)(o, &d));
+    if (SWIG_IsOK(res)) {
       if (val) *val = Constructor(d, 0.0);
-      return SWIG_OK;
+      return res;
     }
-  }  
+  }
   return SWIG_TypeError;
 }
 }
@@ -61,10 +62,11 @@ SWIG_AsVal(Type)(PyObject *o, Type *val)
       return SWIG_OverflowError;
     }    
   } else {
-    float re;    
-    if (SWIG_AsVal(float)(o, &re) == SWIG_OK) {
+    float re;
+    int res = SWIG_CastRank(SWIG_AsVal(float)(o, &re));
+    if (SWIG_IsOK(res)) {
       if (val) *val = Constructor(re, 0.0);
-      return SWIG_OK;
+      return res;
     }
   }
   return SWIG_TypeError;
