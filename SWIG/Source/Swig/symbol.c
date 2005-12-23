@@ -1058,8 +1058,8 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   if (!s) {
     if (SwigType_istemplate(name)) {
-      SwigType *qt = Swig_symbol_type_qualify(name,hsym);
-      SwigType *rt = Swig_symbol_template_reduce(qt, hsym);
+      SwigType *qt = Swig_symbol_template_reduce(name, hsym);
+      SwigType *rt = Swig_symbol_type_qualify(qt,hsym);
       if (!Equal(rt,name)) {
 	s = Swig_symbol_clookup(rt, hsym);
       }
