@@ -243,7 +243,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
       if (pendingException != null)
         throw new ApplicationException("FATAL: An earlier pending exception from unmanaged code was missed and thus not thrown (" + pendingException.ToString() + ")", e);
       pendingException = e;
-      lock(typeof($modulePINVOKE)) {
+      lock(typeof($imclassname)) {
         numExceptionsPending++;
       }
     }
@@ -254,7 +254,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
         if (pendingException != null) {
           e = pendingException;
           pendingException = null;
-          lock(typeof($modulePINVOKE)) {
+          lock(typeof($imclassname)) {
             numExceptionsPending--;
           }
         }
