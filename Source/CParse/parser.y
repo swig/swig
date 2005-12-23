@@ -4440,6 +4440,20 @@ def_args       : EQUAL definetype {
 		    $$.throwf = 0;
 		  }
                }
+               | EQUAL definetype LBRACKET expr RBRACKET { 
+		  $$ = $2;
+		  if ($2.type == T_ERROR) {
+		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
+		    $$ = $2;
+		    $$.val = 0;
+		    $$.rawval = 0;
+		    $$.bitfield = 0;
+		    $$.throws = 0;
+		    $$.throwf = 0;
+		  } else {
+		    $$.val = NewStringf("%s[%s]",$2.val,$4.val); 
+		  }		  
+               }
                | EQUAL LBRACE {
 		 skip_balanced('{','}');
 		 $$.val = 0;
@@ -5318,9 +5332,11 @@ expr           :  exprnum { $$ = $1; }
 		 }
  	       }
                | AND expr {
+		 $$ = $2;
                  $$.val = NewStringf("&%s",$2.val);
 	       }
                | STAR expr {
+		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
 	       }
                ;

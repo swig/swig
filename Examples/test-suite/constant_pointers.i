@@ -113,6 +113,9 @@ int* const globalRet2() {return &GlobalInt;}
 %{
 static int wxEVT_COMMAND_BUTTON_CLICKEDv;
 static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
+char *langs[] ={"Hello"};
+ 
+     
 %}
 
 
@@ -121,6 +124,7 @@ static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
 
   const int* wxEVENT_COMMAND_BUTTON_CLICKEDr = (int*) &wxEVT_COMMAND_BUTTON_CLICKEDv;
   const int* wxEVENT_COMMAND_BUTTON_CLICKEDp = (int*) *wxEVT_COMMAND_BUTTON_CLICKEDp;
-
+  char **languages1 = &langs[0];
+  char **languages2 = (char **)&langs[0];
 }
 
