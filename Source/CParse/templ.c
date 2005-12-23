@@ -383,8 +383,8 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 
 	if (name) {
 	  if (!value) value = Getattr(p,k_type);
-	  qvalue = Swig_symbol_type_qualify(value,tsdecl); 
-	  dvalue = Swig_symbol_typedef_reduce(qvalue, tsdecl);
+	  qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
+	  dvalue = Swig_symbol_type_qualify(qvalue,tsdecl); 
 	  if (SwigType_istemplate(dvalue)) {
 	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
 	    Delete(dvalue);
