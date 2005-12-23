@@ -169,7 +169,7 @@ namespace swig {
   template <class Type> 
   struct traits_checkval {
     static bool check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
-      return obj && (asval SWIG_AS_CALL_ARGS(obj, (Type *)(0)) == SWIG_OK);
+      return obj && SWIG_IsOK(asval SWIG_AS_CALL_ARGS(obj, (Type *)(0)));
     }
   };
 

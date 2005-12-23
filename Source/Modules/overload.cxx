@@ -29,10 +29,15 @@ struct Overloaded {
 };
 
 static int fast_dispatch_mode = 0;
+static int cast_dispatch_mode = 0;
 
 /* Set fast_dispatch_mode */
 void Wrapper_fast_dispatch_mode_set(int flag) {
   fast_dispatch_mode = flag;
+}
+
+void Wrapper_cast_dispatch_mode_set(int flag) {
+  cast_dispatch_mode = flag;
 }
 
 /* -----------------------------------------------------------------------------
@@ -367,7 +372,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
   String *sw = NewString("");
   Printf(f,"{\n");
   Printf(f,"unsigned long _index = 0;\n");
-  Printf(f,"double _rank = 0;\n");
+  Printf(f,"double _rank = 0; \n");
 
   /* Get a list of methods ranked by precedence values and argument count */
   List *dispatch = Swig_overload_rank(n, true);
@@ -397,7 +402,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
       Printf(f,"if (%s >= %d) {\n", argc_template_string, num_required);
     }
     Printf(f,"double _ranki = 0;\n");
-    Printf(f,"double _pi = pow(4,%d);\n",num_arguments);
+    Printf(f,"double _pi = 1;\n",num_arguments);
 
     /* create a list with the wrappers that collide with the
        current one based on argument number */
@@ -466,7 +471,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
 
 	  if (emitcheck) {
 	    if (need_v) {
-	      Printf(f,"int _v = 1;\n");
+	      Printf(f,"int _v;\n");
 	      need_v = 0;
 	    }
 	    if (j >= num_required) {
@@ -478,8 +483,8 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
 	    Printv(f,"{\n",tm,"}\n",NIL);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
-	    Printf(f, "_ranki += _0.25*v*_pi;\n", fn);
-	    Printf(f, "_pi *= 0.25;\n", fn);
+	    Printf(f, "_ranki += _v*_pi;\n", fn);
+	    Printf(f, "_pi *= SWIG_MAX_CAST_RANK;\n", fn);
 	  }
 	}
 	if (!Getattr(pj,"tmap:in:SWIGTYPE") && Getattr(pj,"tmap:typecheck:SWIGTYPE")) {
@@ -499,7 +504,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     /* close braces */
     for (/* empty */; num_braces > 0; num_braces--) Printf(f, "}\n");
 
-    Printf(f,"if (_ranki > _rank) { _rank = _ranki; _index = %d;}\n",i+1);
+    Printf(f,"if (!_index || (_ranki < _rank)) { _rank = _ranki; _index = %d;}\n",i+1);
     String *lfmt = ReplaceFormat (fmt, num_arguments);
     Printf(sw, "case %d:\n", i+1);
     Printf(sw, Char(lfmt),Getattr(ni,"wrap:name"));

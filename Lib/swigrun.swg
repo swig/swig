@@ -57,6 +57,12 @@
 #define  SWIG_OK                   0 
 #define  SWIG_ERROR               -1
 
+/* Flags to manage cast and return states */
+#define SWIG_MAX_CAST_RANK         4
+#define SWIG_IsOK(r)              (r >= 0)
+#define SWIG_AddCast(r)           (SWIG_IsOK(r) ? (r + 1) : r)
+#define SWIG_GetCastRank(r)       (SWIG_IsOK(r) ? ((r < SWIG_MAX_CAST_RANK) ? (r + 1) : 0) : 0)
+
 
 #include <string.h>
 
