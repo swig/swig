@@ -321,6 +321,15 @@
 
 %fragment("<limits.h>","header") %{
 #include <limits.h>
+#ifndef LLONG_MIN
+# define LLONG_MIN	LONG_LONG_MIN
+#endif
+#ifndef LLONG_MAX
+# define LLONG_MAX	LONG_LONG_MAX
+#endif
+#ifndef ULLONG_MAX
+# define ULLONG_MAX	ULONG_LONG_MAX
+#endif
 %}
 
 %fragment("<wchar.h>","header") %{

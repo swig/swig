@@ -1,15 +1,68 @@
 Version 1.3.28 (unreleased).
 ===========================
 
-12/21/2005: wsfulton
-            [Java, C#]
-            Fix incorrect code generation when the intermediary classname is changed
-            in the module directive from its default. For example:
+12/22/2005: mmatus
+	    Add the cast and rank mechanism to dispatch overloading
+	    functions. The UTF supports it now, but for each language
+	    it must be decided how to implement and/or when to use it.
 
-              %module(jniclassname="myimclassnewname") "mymodule" // Java
-              %module(imclassname="myimclassnewname") "mymodule" // C#
+	    [perl] Now perl uses the new cast and rank dispatch
+	    mechanism, which solves all the past problems known 
+	    in perl, such as the old '+ 1' problem:
 
-            Add in new special variable $imclassname. See docs.
+	        int foo(int);
+	    
+		$n = 1
+                $n = $n + 1
+                $r = foo(n)
+
+            also works:
+
+                 foo(1);
+                 foo("1");
+                 foo(1.0);
+                 foo("1.0");
+
+             but fails
+
+                 foo("l");
+
+             and when overloading  foo(int) and foo(double);
+
+                 foo(1) -> foo(int)
+                 foo(1.0) -> foo(double)
+                 foo("1") -> foo(int)
+                 foo("1.0") -> foo(double)
+                 foo("l") -> error
+		 foo($n) -> foo(int)  for good perl versions
+		 foo($n) -> foo(double)  for old bad perl versions
+
+	     when overloading foo(int), foo(char*) and foo(double):
+
+                 foo(1) -> foo(int)
+                 foo(1.0) -> foo(double)
+                 foo("1") -> foo(char*)
+                 foo("1.0") -> foo(char*)
+                 foo("l") -> foo(char*)
+
+             Note: In perl the old dispatch mechanism was broken,
+             so, we don't provide and option to enable the old one
+	     since, again, was really really broken.
+
+	     See 'overload_simple_runme.pl' for more cases and tests.
+
+	     PS: all the old known issues are declared resolved, any
+	     new "problem" that could be discovered is declared, 
+	     a priori, as "features" of the new dispatch mechanism
+	     (until we find another solution at least).
+	     
+	     
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+	    As with the introduction of the UTF, some things could
+	    now start to work as expected, and people used to deal or
+	    workaround previous bugs related to the dispatch
+	    mechanism, could see now a difference in perl behavior.
 
 12/21/2005: mmatus
 	  - The '-nodefault' flag (pragma and features) now generates
@@ -239,9 +292,7 @@ Version 1.3.28 (unreleased).
             [Java, C#]
             Typesafe enums and proper enums have an extra constructor so that enum item values that
             are initialised by another enum item value can be wrapped without having to use %javaconstvalue/
-            %csconstvalue for when using %javaconst(1)/%csconst(1). Suggestion by
-            Bob Marinier/Douglas Pearson.
-
+            %csconstvalue for when using %javaconst(1)/%csconst(1). Suggestion by Bob Marinier.
             For example:
 
               typedef enum
