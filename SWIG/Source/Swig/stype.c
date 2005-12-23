@@ -355,7 +355,7 @@ void SwigType_add_default(String *def, SwigType *nr)
 
 
 SwigType *SwigType_default(SwigType *t) {
-  String *r1, *def, *cdef;
+  String *r1, *def;
   String *r = 0;
   char *cr;
 
@@ -474,7 +474,7 @@ SwigType *SwigType_default(SwigType *t) {
 #ifdef SWIG_DEFAULT_CACHE
   /* The cache produces strange results, see enum_template.i case */
   if (def) {
-    cdef  = Copy(def);
+    String *cdef  = Copy(def);
     Setattr(default_cache,t, cdef); 
     Delete(cdef);
   }
@@ -513,7 +513,7 @@ SwigType_namestr(const SwigType *t) {
   Putc(' ',r);
   Putc('<',r);
   
-  p = SwigType_parmlist(t);
+  p = SwigType_parmlist(c+1);
   sz = Len(p);
   for (i = 0; i < sz; i++) {
     String *str = SwigType_str(Getitem(p,i),0);
