@@ -38,6 +38,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
+		Modules/cffi.cxx		\
 		Modules/chicken.cxx		\
 		Modules/clisp.cxx		\
 		Modules/contract.cxx		\
