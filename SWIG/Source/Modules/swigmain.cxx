@@ -50,6 +50,7 @@ extern "C" {
   Language *swig_allegrocl(void);
   Language *swig_lua(void);
   Language *swig_clisp(void);
+  Language *swig_cffi(void);  
   Language *swig_uffi(void);
 }
 
@@ -67,6 +68,7 @@ static swig_module  modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
   {"-chicken",   swig_chicken,   "CHICKEN"},
   {"-clisp",     swig_clisp,     "CLISP"},
+  {"-cffi",      swig_cffi,     "CFFI"},
   {"-csharp",    swig_csharp,    "C#"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},

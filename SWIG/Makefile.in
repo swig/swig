@@ -329,7 +329,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml \
-	pike chicken csharp modula3 allegrocl clisp lua
+	pike chicken csharp modula3 allegrocl clisp lua cffi
 
 lib-modules = std
 
