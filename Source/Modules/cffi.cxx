@@ -15,7 +15,7 @@ char cvsroot_cffi_cxx[] = "$Header$";
 #include "swigmod.h"
 #include "cparse.h"
 
-#define CFFI_DEBUG
+//#define CFFI_DEBUG
 class CFFI : public Language {
 public:
   File *f_cl;
@@ -420,14 +420,17 @@ int CFFI :: typedefHandler(Node *n) {
 int CFFI :: enumDeclaration(Node *n) {
   String *name=Getattr(n, "sym:name");
   
-  Printf(f_cl,"\n(defcenum %s ",name);
+  Printf(f_cl,"\n(defcenum %s",name);
 
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 
     String *slot_name = Getattr(c, "name");
     String *value = Getattr(c, "enumvalue");
-	
-    Printf(f_cl,"(:%s %s)",slot_name,value);
+
+    if(!value)
+      Printf(f_cl,"\n\t:%s",slot_name,value);
+    else
+      Printf(f_cl,"\n\t(:%s %s)",slot_name,value);
 
     Delete(value);
   }
