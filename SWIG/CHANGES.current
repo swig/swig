@@ -1,10 +1,23 @@
 Version 1.3.28 (unreleased).
 ===========================
+
+12/26/2005: wsfulton
+            [C#]
+            Modify std::vector wrappers to use std::vector::value_type as this is
+            closer to the real STL declarations for some methods, eg for push_back().
+            Fixes some compilation errors for some compilers eg when the templated
+            type is a pointer.
+
+12/26/2005: wsfulton
+            [Java, C#]
+            Add in pointer reference typemaps. This also enables one to easily wrap
+            std::vector<T> where T is a pointer.
+
 12/24/2005: efuzzyone
-       [CFFI] The cffi module for SWIG:
-         - Fully supports C, but provides limited supports for C++, in
-          particular C++ support for templates and overloading needs to
-          be worked upon. 
+            [CFFI] The cffi module for SWIG:
+              - Fully supports C, but provides limited supports for C++, in
+               particular C++ support for templates and overloading needs to
+               be worked upon. 
 
 12/23/2005: mmatus
 	    [python] Add the castmode that allows the python
