@@ -6,6 +6,12 @@
  * The C# wrapper is made to look and feel like a typesafe C# System.Collections.ArrayList
  * All the methods in IList are defined, but we don't derive from IList as this is a typesafe collection.
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
+ *
+ * Very often the C# generated code will not compile as the C++ template type is not the same as the C# 
+ * proxy type, so use the SWIG_STD_VECTOR_SPECIALIZE or SWIG_STD_VECTOR_SPECIALIZE_MINIMUM macro, eg
+ *
+ *   SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Klass, SomeNamespace::Klass)
+ *   %template(VectKlass) std::vector<SomeNamespace::Klass>;
  */
 
 %include <std_common.i>
@@ -163,15 +169,16 @@
 
   public:
     typedef size_t size_type;
+    typedef CTYPE value_type;
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
-    void push_back(const CTYPE& value);
+    void push_back(const value_type& value);
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
-    %newobject Repeat(const CTYPE& value, int count);
+    %newobject Repeat(const value_type& value, int count);
     vector();
     %extend {
       vector(int capacity) throw (std::out_of_range) {
@@ -190,13 +197,13 @@
         else
           throw std::out_of_range("index");
       }
-      const CTYPE& getitem(int index) throw (std::out_of_range) {
+      const value_type& getitem(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, const CTYPE& value) throw (std::out_of_range) {
+      void setitem(int index, const value_type& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           (*self)[index] = value;
         else
@@ -216,7 +223,7 @@
           throw std::invalid_argument("invalid range");
         return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
-      void Insert(int index, const CTYPE& value) throw (std::out_of_range) {
+      void Insert(int index, const value_type& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, value);
         else
@@ -244,7 +251,7 @@
           throw std::invalid_argument("invalid range");
         self->erase(self->begin()+index, self->begin()+index+count);
       }
-      static std::vector<CTYPE > *Repeat(const CTYPE& value, int count) throw (std::out_of_range) {
+      static std::vector<CTYPE > *Repeat(const value_type& value, int count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("count");
         return new std::vector<CTYPE >(count, value);
@@ -276,24 +283,24 @@
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CSTYPE, CTYPE...)
     %extend {
-      bool Contains(const CTYPE& value) {
+      bool Contains(const value_type& value) {
         return std::find(self->begin(), self->end(), value) != self->end();
       }
-      int IndexOf(const CTYPE& value) {
+      int IndexOf(const value_type& value) {
         int index = -1;
         std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
         if (it != self->end())
           index = it - self->begin();
         return index;
       }
-      int LastIndexOf(const CTYPE& value) {
+      int LastIndexOf(const value_type& value) {
         int index = -1;
         std::vector<CTYPE >::reverse_iterator rit = std::find(self->rbegin(), self->rend(), value);
         if (rit != self->rend())
           index = self->rend() - 1 - rit;
         return index;
       }
-      void Remove(const CTYPE& value) {
+      void Remove(const value_type& value) {
         std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
         if (it != self->end())
           self->erase(it);
