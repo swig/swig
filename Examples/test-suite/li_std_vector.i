@@ -18,13 +18,9 @@ namespace std {
 typedef float Real;
 %}
 
-/*
 namespace std {
     %template(RealVector) vector<Real>;
 }
-*/
-// change back to above
-    %template(RealVector) std::vector<Real>;
 
 %inline %{
 
