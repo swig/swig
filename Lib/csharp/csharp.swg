@@ -530,6 +530,22 @@ $1 = &temp; %}
       return ret;
     } %}
 
+/* Pointer reference typemaps */
+%typemap(ctype) SWIGTYPE *& "void *"
+%typemap(imtype, out="IntPtr") SWIGTYPE *& "HandleRef"
+%typemap(cstype) SWIGTYPE *& "$*csclassname"
+%typemap(csin) SWIGTYPE *& "$*csclassname.getCPtr($csinput)"
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *& {
+    IntPtr cPtr = $imcall;
+    $*csclassname ret = (cPtr == IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
+    return ret;
+  }
+%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%{ temp = ($*1_ltype)$input;
+   $1 = &temp; %}
+%typemap(out) SWIGTYPE *&
+%{ $result = (void *)*$1; %} 
+
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
