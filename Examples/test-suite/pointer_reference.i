@@ -16,3 +16,27 @@
 %inline %{
 void foo(int *&XYZZY) {}
 %}
+
+
+// Test pointer reference typemaps shipped with SWIG (add in SWIG 1.3.28 for many languages)
+%inline %{
+struct Struct {
+  int value;
+  Struct(int v) : value(v) {}
+  static Struct instance;
+  static Struct *pInstance;
+};
+
+void set(Struct *& s) {
+  Struct::instance = *s;
+}
+Struct *& get() {
+  return Struct::pInstance;
+}
+%}
+
+%{
+Struct Struct::instance = Struct(10);
+Struct *Struct::pInstance = &Struct::instance;
+%}
+
