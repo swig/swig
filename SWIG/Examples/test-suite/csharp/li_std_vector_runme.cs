@@ -516,6 +516,89 @@ public class li_std_vector_runme {
       li_std_vector.halve_in_place(dvec);
     }
 
+    // More wrapped methods
+    {
+      RealVector v0 = li_std_vector.vecreal(new RealVector());
+      float flo = 123.456f;
+      v0.Add(flo);
+      flo = v0[0];
+
+      IntVector v1 = li_std_vector.vecintptr(new IntVector());
+      IntPtrVector v2 = li_std_vector.vecintptr(new IntPtrVector());
+      IntConstPtrVector v3 = li_std_vector.vecintconstptr(new IntConstPtrVector());
+
+      v1.Add(123);
+      v2.Clear();
+      v3.Clear();
+
+      StructVector v4 = li_std_vector.vecstruct(new StructVector());
+      StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());
+      StructConstPtrVector v6 = li_std_vector.vecstructconstptr(new StructConstPtrVector());
+
+      v4.Add(new Struct(123));
+      v5.Add(new Struct(123));
+      v6.Add(new Struct(123));
+    }
+
+    // Test vectors of pointers
+    {
+      StructPtrVector inputvector = new StructPtrVector();
+      int arrayLen = 10;
+      for (int i=0; i<arrayLen; i++) {
+        inputvector.Add(new Struct(i/10.0));
+      }
+      Struct[] outputarray = new Struct[arrayLen];
+      inputvector.CopyTo(outputarray);
+      for(int i=0; i<arrayLen; i++) {
+        if (outputarray[i].num != inputvector[i].num)
+          throw new Exception("StructPtrVector test (1) failed, i:" + i);
+      }
+      foreach (Struct s in inputvector) {
+        s.num += 20.0;
+      }
+      for(int i=0; i<arrayLen; i++) {
+        if (outputarray[i].num != 20.0 + i/10.0)
+          throw new Exception("StructPtrVector test (2) failed (a deep copy was incorrectly made), i:" + i);
+      }
+
+      int rangeSize = 5;
+      int mid = arrayLen/2;
+      StructPtrVector returnedVec = inputvector.GetRange(mid, rangeSize);
+      for (int i=0; i<rangeSize; i++) {
+        if (inputvector[i+mid].num != returnedVec[i].num)
+          throw new Exception("StructPtrVector test (3) failed, i:" + i);
+      }
+    }
+
+    // Test vectors of const pointers
+    {
+      StructConstPtrVector inputvector = new StructConstPtrVector();
+      int arrayLen = 10;
+      for (int i=0; i<arrayLen; i++) {
+        inputvector.Add(new Struct(i/10.0));
+      }
+      Struct[] outputarray = new Struct[arrayLen];
+      inputvector.CopyTo(outputarray);
+      for(int i=0; i<arrayLen; i++) {
+        if (outputarray[i].num != inputvector[i].num)
+          throw new Exception("StructConstPtrVector test (1) failed, i:" + i);
+      }
+      foreach (Struct s in inputvector) {
+        s.num += 20.0;
+      }
+      for(int i=0; i<arrayLen; i++) {
+        if (outputarray[i].num != 20.0 + i/10.0)
+          throw new Exception("StructConstPtrVector test (2) failed (a deep copy was incorrectly made), i:" + i);
+      }
+
+      int rangeSize = 5;
+      int mid = arrayLen/2;
+      StructConstPtrVector returnedVec = inputvector.GetRange(mid, rangeSize);
+      for (int i=0; i<rangeSize; i++) {
+        if (inputvector[i+mid].num != returnedVec[i].num)
+          throw new Exception("StructConstPtrVector test (3) failed, i:" + i);
+      }
+    }
 
   }
 
