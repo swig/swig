@@ -1036,6 +1036,21 @@
     return (cPtr == 0) ? null : new $javaclassname(cPtr, $owner);
   }
 
+/* Pointer reference typemaps */
+%typemap(jni) SWIGTYPE *& "jlong"
+%typemap(jtype) SWIGTYPE *& "long"
+%typemap(jstype) SWIGTYPE *& "$*javaclassname"
+%typemap(javain) SWIGTYPE *& "$*javaclassname.getCPtr($javainput)"
+%typemap(javaout) SWIGTYPE *& {
+    long cPtr = $jnicall;
+    return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
+  }
+%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%{ temp = *($1_ltype)(void *)&$input;
+   $1 = &temp; %}
+%typemap(out) SWIGTYPE *&
+%{ *($1_ltype)(void *)&$result = *$1; %} 
+
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
