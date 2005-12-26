@@ -128,6 +128,15 @@ Version 1.3.28 (unreleased).
             for specific classes, and always avoid using the global
             -nodefault and -nodefaultdtor options.
 	    
+12/21/2005: wsfulton
+            [Java, C#]
+            Fix incorrect code generation when the intermediary classname is changed
+            in the module directive from its default. For example:
+
+              %module(jniclassname="myimclassnewname") "mymodule" // Java
+              %module(imclassname="myimclassnewname") "mymodule" // C#
+
+            Add in new special variable $imclassname. See docs.
 
 12/17/2005: mmatus
 	  [Python]
@@ -337,7 +346,8 @@ Version 1.3.28 (unreleased).
             [Java, C#]
             Typesafe enums and proper enums have an extra constructor so that enum item values that
             are initialised by another enum item value can be wrapped without having to use %javaconstvalue/
-            %csconstvalue for when using %javaconst(1)/%csconst(1). Suggestion by Bob Marinier.
+            %csconstvalue for when using %javaconst(1)/%csconst(1). Suggestion by
+            Bob Marinier/Douglas Pearson.
             For example:
 
               typedef enum
