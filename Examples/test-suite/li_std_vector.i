@@ -18,9 +18,13 @@ namespace std {
 typedef float Real;
 %}
 
+/*
 namespace std {
     %template(RealVector) vector<Real>;
 }
+*/
+// change back to above
+    %template(RealVector) std::vector<Real>;
 
 %inline %{
 
@@ -46,13 +50,28 @@ struct Struct {
   Struct(double d) : num(d) {}
 //  bool operator==(const Struct &other) { return (num == other.num); }
 };
+
+const std::vector<Real> & vecreal(const std::vector<Real> & vec) { return vec; }
+
+const std::vector<int> & vecintptr(const std::vector<int> & vec) { return vec; }
+const std::vector<int *> & vecintptr(const std::vector<int *> & vec) { return vec; }
+const std::vector<const int *> & vecintconstptr(const std::vector<const int *> & vec) { return vec; }
+
+const std::vector<Struct> & vecstruct(const std::vector<Struct> & vec) { return vec; }
+const std::vector<Struct *> & vecstructptr(const std::vector<Struct *> & vec) { return vec; }
+const std::vector<const Struct *> & vecstructconstptr(const std::vector<const Struct *> & vec) { return vec; }
 %}
 
-#ifndef SWIGCSHARP
-// Can't do vectors of pointers yet
-%template(IntPtrVector) std::vector<int *>;
+#if defined(SWIGCSHARP)
+SWIG_STD_VECTOR_SPECIALIZE(Struct, Struct *)
+SWIG_STD_VECTOR_SPECIALIZE(Struct, const Struct *)
+SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, int *)
+SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, const int *)
 #endif
 
+%template(IntPtrVector) std::vector<int *>;
+%template(IntConstPtrVector) std::vector<const int *>;
 %template(StructVector) std::vector<Struct>;
-
+%template(StructPtrVector) std::vector<Struct *>;
+%template(StructConstPtrVector) std::vector<const Struct *>;
 
