@@ -411,6 +411,12 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-nofastdispatch") == 0) {
 	    Wrapper_fast_dispatch_mode_set(0);
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-naturalvar") == 0) {
+	    Wrapper_naturalvar_mode_set(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-nonaturalvar") == 0) {
+	    Wrapper_naturalvar_mode_set(0);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-directors") == 0) {
 	    SWIG_setfeature("feature:director","1");
 	    Wrapper_director_mode_set(1);

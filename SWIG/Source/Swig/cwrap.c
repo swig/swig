@@ -101,7 +101,7 @@ Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value
  * This function only converts user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-static int varref = 0;
+static int varcref = 0;
 String *
 Swig_wrapped_var_type(SwigType *t) {
   SwigType *ty;
@@ -114,9 +114,29 @@ Swig_wrapped_var_type(SwigType *t) {
   }
 
   if (SwigType_isclass(t)) {
-    if (varref) {
-      if (!SwigType_isconst(ty)) SwigType_add_qualifier(ty, "const");
-      SwigType_add_reference(ty);
+    SwigType_add_pointer(ty);
+  }
+  return ty;
+}
+
+String *
+Swig_wrapped_member_var_type(SwigType *t) {
+  SwigType *ty;
+
+  if (!Strstr(t,"enum $unnamed")) {
+    ty = Copy(t);
+  } else {
+    /* Change the type for unnamed enum instance variables */
+    ty = NewString("int");
+  }
+  if (SwigType_isclass(t)) {
+    if (varcref) {
+      if (cparse_cplusplus) {
+	if (!SwigType_isconst(ty)) SwigType_add_qualifier(ty, "const");
+	SwigType_add_reference(ty);
+      } else {
+	return Copy(ty);
+      }
     } else {
       SwigType_add_pointer(ty);
     }
@@ -124,10 +144,19 @@ Swig_wrapped_var_type(SwigType *t) {
   return ty;
 }
 
+
 static String *
 Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
   if (SwigType_isclass(t)) {
-    return NewStringf("*%s",name);
+    if (varcref) {
+      if (cparse_cplusplus) {
+	return NewStringf("*%s",name);
+      } else{
+	return NewStringf("%s",name);
+      }      
+    } else {
+      return NewStringf("*%s",name);
+    }
   } else {
     return SwigType_rcaststr(t,name);
   }
@@ -136,9 +165,8 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
 static String *
 Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
   if (SwigType_isclass(t)) {
-    if (varref) {
-      String* ty = SwigType_lstr(t,0);
-      return NewStringf("(const %s&)%s",ty, name);
+    if (varcref) {
+      return NewStringf("%s",name);
     } else {
       return NewStringf("&%s",name);
     }
@@ -1176,7 +1204,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   String   *self= 0;
   String   *sname;
   
-  varref = flags & CWRAP_VAR_REFERENCE;  
+  varcref = flags & CWRAP_NATURAL_VAR;  
 
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
@@ -1195,7 +1223,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Setattr(parms,"self","1");
   Delete(t);
 
-  ty = Swig_wrapped_var_type(type);
+  ty = Swig_wrapped_member_var_type(type);
   p = NewParm(ty,name);
   set_nextSibling(parms,p);
 
@@ -1233,7 +1261,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(sname);
   Delete(mangled);
   Delete(self);
-  varref = 0;
+  varcref = 0;
   return SWIG_OK;
 }
 
@@ -1254,7 +1282,8 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   String   *mangled;
   String   *self = 0;
   String   *gname;
-  varref = flags & CWRAP_VAR_REFERENCE;  
+
+  varcref = flags & CWRAP_NATURAL_VAR;  
 
   if (flags & CWRAP_SMART_POINTER) {
     if (checkAttribute(n, "storage", "static")) {
@@ -1279,7 +1308,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   Setattr(parms,"self","1");
   Delete(t);
 
-  ty = Swig_wrapped_var_type(type);
+  ty = Swig_wrapped_member_var_type(type);
   if (flags & CWRAP_EXTEND) {
     String *call;
     String *cres;
@@ -1307,7 +1336,9 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   Delete(membername);
   Delete(gname);
   Delete(mangled);
-  varref = 0;
+
+  varcref = 0;  
+
   return SWIG_OK;
 }
 

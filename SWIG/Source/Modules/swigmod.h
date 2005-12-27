@@ -354,6 +354,8 @@ void Wrapper_director_mode_set(int);
 void Wrapper_director_protected_mode_set(int);
 void Wrapper_fast_dispatch_mode_set(int);
 void Wrapper_cast_dispatch_mode_set(int);
+void Wrapper_naturalvar_mode_set(int);
+
 
 void clean_overloaded(Node *n);
 
