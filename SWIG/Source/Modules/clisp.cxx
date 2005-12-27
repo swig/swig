@@ -221,7 +221,7 @@ int CLISP :: variableWrapper(Node *n) {
 
   String *var_name=Getattr(n, "sym:name");
   String *lisp_type=get_ffi_type(Getattr(n, "type"));
-  Printf(f_cl,"\n(ffi:def-c-var %s\n (:type %s)\n",var_name,lisp_type);
+  Printf(f_cl,"\n(ffi:def-c-var %s\n (:name \"%s\")\n (:type %s)\n",var_name,var_name,lisp_type);
   Printf(f_cl, "\t(:library +library-name+))\n");
   Append(entries,var_name);
 
