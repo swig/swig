@@ -703,10 +703,10 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   } else {
     fhash = Getattr(n,decl);
     if (!fhash) {
-      String *cdecl = Copy(decl);
+      String *cdecl_ = Copy(decl);
       fhash = NewHash();
-      Setattr(n,cdecl,fhash);
-      Delete(cdecl);
+      Setattr(n,cdecl_,fhash);
+      Delete(cdecl_);
       Delete(fhash);
     }
   }
