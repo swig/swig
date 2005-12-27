@@ -11,5 +11,6 @@
 #define  SWIG_SystemError    	   -10
 #define  SWIG_AttributeError 	   -11
 #define  SWIG_MemoryError    	   -12 
+#define  SWIG_NullReferenceError   -13
 
 
