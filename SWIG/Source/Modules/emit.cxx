@@ -440,6 +440,7 @@ void emit_action(Node *n, Wrapper *f) {
         } else {
           Printf(eaction,"catch(%s) {", SwigType_str(et, "&_e"));
         }
+	Replaceall(em,"$exception","_e");
 	Printv(eaction,em,"\n",NIL);
 	Printf(eaction,"}\n");
       } else {

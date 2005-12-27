@@ -17,6 +17,7 @@ namespace swig
   */
   %ignore stop_iteration;
   %typemap(throws) stop_iteration {
+    (void)$exception;
     SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
     SWIG_fail;
   }
