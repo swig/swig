@@ -754,13 +754,6 @@ public:
 	Replaceall(tm,"$disown","0");
       }
 
-      if (trackType(pt)) {
-	Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
-      }	else {
-	Replaceall(tm, "$track","0");
-      }
-      
-		
       Setattr(p,"emit:input",Copy(source));
       Printf(f->code,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");
@@ -936,15 +929,6 @@ public:
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
 	     
-	     /* Are we tracking the type that is being returned
-	      * by this output parameter? */
-	SwigType *pt = Getattr(p,"type");
-	if (trackType(pt)) {
-	  Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
-	} else {
-	  Replaceall(tm, "$track","0");
-	}
-     
 	Printv(outarg,tm,"\n",NIL);
 	need_result = 1;
 	p = Getattr(p,"tmap:argout:next");
@@ -981,94 +965,6 @@ public:
     return 1;
   }
   
-  /* ---------------------------------------------------------------------
-   * trackType()
-   *
-   * Returns whether this type should be tracked.
-   * --------------------------------------------------------------------- */
-  bool trackType(SwigType* aType) {
-    /* Get the base type */
-    SwigType* baseType = SwigType_base(aType);
-    Node* classNode =  classLookup(baseType);
-    
-    if (classNode && GetFlag(classNode, "feature:trackobjects")) {
-      return true;
-    } else {
-      return false;
-    }
-  }    
-    
-#if 0
-  /* ---------------------------------------------------------------------
-   * setTrackObjectsFlagForConvertPtr()
-   *
-   * Adds "|SWIG_TRACK_OBJECTS" flag to be passed to SWIG_ConvertPtr
-   * --------------------------------------------------------------------- */
-  void setTrackObjectsFlagForConvertPtr(String* originalString) {
-    /* If feature:trackobjects is defined for a class and an object
-     * of that class is giving up ownership of the underlying C++
-     * object, then we need to set the SWIG_TRACK_OBJECTS flag.
-	  * This notifies the SWIG_ConvertPtr method so that it can
-	  * appropriately reset the free function of the object.*/
-	  
-    Replaceall(originalString, "SWIG_POINTER_DISOWN",
-               "SWIG_POINTER_DISOWN | SWIG_TRACK_OBJECTS");
-  }	
-  	
-  /* ---------------------------------------------------------------------
-   * setTrackObjectsFlagForNewPointer()
-   *
-   * Adds "|SWIG_TRACK_OBJECTS" flag to be passed to SWIG_NewPointer
-   * --------------------------------------------------------------------- */
-  void setTrackObjectsFlagForNewPointer(String* originalString) {
-    /* If feature:trackobjects is defined for a class then
-	  * we want to send a flag to the SWIG_NewPointerObj method.
-	  * Unfortunately, this implementation is quite awful. 
-     * We want to change code like this:
-     * 
-	  * 	SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Foo,0);
-	  * 
-	  * To this:
-	  * 
-	  * 	SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Foo,0|SWIG_TRACK_OBJECTS);
-	  *
-	  * A better implemenation would be to introduce a $track_objects
-	  * marker, similar to how $disown and $owner now work.  However,
-	  * that would require changing all typemaps that currently
-	  * call SWIG_NewPointerObj which did not seem like a good idea.
-	  * 
-	  * The reason why passing a flag to SWIG_NewPointerObj is the best
-	  * implemenation is that:
-	  * 	- it already is aware of object tracking since it uses
-	  *     the SWIG_RubyInstanceFor method - thus this is more 
-	  *     cohesive
-	  * 	- it centers most object tracking code in SWIG_NewPointerObj and
-	  *     SWIG_ConvertPtr as opposed to scattering it all over the place.
-	  *   - it allows SWIG_NewPointerObj to be optimized so that
-	  * 	  SWIG_RubyInstanceFor is called only for objects that the
-	  *     user as marked to track */
-		
-     /* Look for the string SWIG_NewPointerObj */
-     char* start = Strstr(originalString, "SWIG_NewPointerObj");
-			
-     if (start) {
-       /* Okay - found it.  We now replace ); with "|SWIG_TRACK_OBJECTS);"
-        * Of course, we only want to replace the first occurence we see.
-        * Note this code is easily subverted if a user types in 
-        * "SWIG_NewPointerObj(a,b) ;
-        * 
-        * It would be best if we could call the replace method
-		  * on start, but that does not work because replace only
-		  * works on string objects (although the documenation 
-		  * implies otherwise.*/
-   	  String* replaceString = NewString(start);
-		  Replace(replaceString, ");", "|SWIG_TRACK_OBJECTS);", DOH_REPLACE_FIRST);
-		  Replace(originalString, start, replaceString, DOH_REPLACE_FIRST);
-	  }
-  }	
-  
-#endif
-
   /* ---------------------------------------------------------------------
    * functionWrapper()
    *
@@ -1281,12 +1177,6 @@ public:
           else
             Replaceall(tm,"$owner", "0");
 
-          if (trackType(t)) {
-	    Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
-          } else {
-	    Replaceall(tm, "$track","0");
-	  }
-	  
 #if 1            
           // FIXME: this will not try to unwrap directors returned as non-director
           //        base class pointers!
@@ -1523,12 +1413,6 @@ public:
       Replaceall(tm,"$result","_val");
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
-      if (trackType(t)) {
-	Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
-      } else {
-	Replaceall(tm, "$track","0");
-      }
-
       Printv(getf->code,tm, NIL);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
@@ -1550,11 +1434,6 @@ public:
 	Replaceall(tm,"$input","_val");
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
-	if (trackType(t)) {
-	  Replaceall(tm, "$track","SWIG_TRACK_OBJECTS");
-	} else {
-	  Replaceall(tm, "$track","0");
-	}
 	Printv(setf->code,tm,"\n",NIL);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
@@ -1840,7 +1719,19 @@ public:
     }
   }
   
-  /* ----------------------------------------------------------------------
+  /**
+   * Check to see if tracking is enabled for this class.
+   */
+  void handleTrackDirective(Node *n) {
+    int trackObjects = GetFlag(n, "feature:trackobjects");
+    if (trackObjects) {
+      Printf(klass->init, "c%s.trackObjects = 1;\n", klass->name);
+    } else {
+      Printf(klass->init, "c%s.trackObjects = 0;\n", klass->name);
+    }
+  }
+
+	/* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
 
@@ -1898,6 +1789,7 @@ public:
     handleBaseClasses(n);
     handleMarkFuncDirective(n);
     handleFreeFuncDirective(n);
+    handleTrackDirective(n);
     
     if (multipleInheritance) {
       Printv(klass->init, "rb_include_module(", klass->vname, ", ", klass->mImpl, ");\n", NIL);
@@ -2463,7 +2355,6 @@ public:
         sprintf(source, "obj%d", idx++);
         Replaceall(tm, "$input", source);
         Replaceall(tm, "$owner", "0");
-        Replaceall(tm, "$track", "0");
         Printv(wrap_args, tm, "\n", NIL);
         Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
         Printv(arglist, source, NIL);
@@ -2616,7 +2507,6 @@ public:
 	} else {
 	  Replaceall(tm,"$disown","0");
 	}
-	Replaceall(tm,"$track","0");
 	Replaceall(tm, "$result", "c_result");
 	Printv(w->code, tm, "\n", NIL);
       } else {
@@ -2704,9 +2594,9 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("rubydef.swg");
+    String *s = Swig_include_sys("rubyrun.swg");
     if (!s) {
-      Printf(stderr, "*** Unable to open 'rubydef.swg'\n");
+      Printf(stderr, "*** Unable to open 'rubyruntime.swg'\n");
       s = NewString("");
     }
     return s;
