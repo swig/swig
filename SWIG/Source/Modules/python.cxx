@@ -115,7 +115,7 @@ Python Options (available with -python)\n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
-     -castmode       - Enable the casting mode, which allows implicit cast between types\n\
+     -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
      -nocastmode     - Disable the casting mode (default)\n\
      -O              - Enable all the optimizations options: \n\
                        -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack -modernargs\n\
@@ -361,7 +361,7 @@ public:
     if (cppcast) {
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
-    
+
     if (!global_name) global_name = NewString("cvar");
     Preprocessor_define("SWIGPYTHON 1", 0);
     SWIG_typemap_lang("python");
@@ -480,6 +480,7 @@ public:
     }
 
     if (castmode) {
+      Printf(f_runtime,"#define SWIG_CASTRANK_MODE\n");
       Printf(f_runtime,"#define SWIG_PYTHON_CAST_MODE\n");
     }
 
@@ -1398,6 +1399,17 @@ public:
   /* ------------------------------------------------------------
    * functionWrapper()
    * ------------------------------------------------------------ */
+  
+
+  const char *get_implicitconv_flag(Node *klass) 
+  {
+    int conv = 0;
+    if (klass &&  Getattr(klass,"feature:implicitconv")) {
+	conv = 1;
+    }
+    return conv ? "SWIG_POINTER_IMPLICIT_CONV" : "0";
+  }
+  
 
   virtual int functionWrapper(Node *n) {
   
@@ -1522,6 +1534,15 @@ public:
       }
     }
 
+
+    if (constructor && num_arguments == 1 && num_required == 1) {
+      if (Cmp(storage,"explicit") == 0) {
+	String *desc = NewStringf("SWIGTYPE%s", SwigType_manglestr(Getattr(n,"type")));
+	Printf(f->code, "if (SWIG_CheckImplicit(%s)) SWIG_fail;\n", desc);
+	Delete(desc);
+      }
+    }
+
     int use_parse = 0;
     Printf(kwargs,"{");
     for (i = 0, p=l; i < num_arguments; i++) {      
@@ -1578,6 +1599,16 @@ public:
 	  } else {
 	    Replaceall(tm,"$disown","0");
 	  }
+	  
+	  if (Getattr(p,"tmap:in:implicitconv")) {
+	    const char *convflag = "0";
+	    if (!Getattr(p,"self")) {
+	      SwigType *ptype =  Getattr(p,"type");
+	      convflag = get_implicitconv_flag(classLookup(ptype));
+	    }
+	    Replaceall(tm,"$implicitconv", convflag);
+	    Setattr(p,"implicitconv",convflag);
+	  }
 
 	  Putc('O',parse_args);
 	  if (!funpack) {
@@ -1613,7 +1644,7 @@ public:
 
     if (use_parse || allow_kwargs || !modernargs) {
       Printf(parse_args,":%s\"", iname);
-      Printv(parse_args,arglist, ")) goto fail;\n",NIL);
+      Printv(parse_args,arglist, ")) SWIG_fail;\n",NIL);
       funpack = 0;
     } else {
       Clear(parse_args);
@@ -1636,15 +1667,15 @@ public:
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
 	  }
 	  if (onearg) {
-	    Printf(parse_args,"if (!args) { goto fail; } else { swig_obj[0] = args; }\n");
+	    Printf(parse_args,"if (!args) { SWIG_fail; } else { swig_obj[0] = args; }\n");
 	  } else if (!noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) goto fail;\n", 
+	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
       } else {	
 	Printf(parse_args,"if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_required, num_arguments);
-	Printv(parse_args,arglist, ")) goto fail;\n",NIL);
+	Printv(parse_args,arglist, ")) SWIG_fail;\n",NIL);
       }
     }
 
@@ -2008,6 +2039,9 @@ public:
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
 	Replaceall(tm,"$input","_val");
+	if (Getattr(n,"tmap:varin:implicitconv")) {
+	  Replaceall(tm,"$implicitconv", get_implicitconv_flag(n));
+	}
 	Printf(setf->code,"%s\n",tm);
 	Delete(tm);
       } else {
@@ -2458,7 +2492,7 @@ public:
                tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
                NIL);
       } else {
-	Printv(f_shadow, tab4, "if _newclass: thisown = property(lambda x: x.this.own(), ",
+	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ",
 	       "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n,"feature:python:nondynamic")) {
@@ -3415,6 +3449,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
       } else {
 	Replaceall(tm,"$disown","0");
+      }
+      if (Getattr(n,"tmap:directorout:implicitconv")) {	    
+	Replaceall(tm,"$implicitconv", get_implicitconv_flag(n));
       }
       Replaceall(tm, "$result", "swig_c_result");
       Printv(w->code, tm, "\n", NIL);
