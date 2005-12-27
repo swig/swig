@@ -170,6 +170,7 @@
   public:
     typedef size_t size_type;
     typedef CTYPE value_type;
+    typedef const value_type& const_reference;
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -197,7 +198,7 @@
         else
           throw std::out_of_range("index");
       }
-      const value_type& getitem(int index) throw (std::out_of_range) {
+      const_reference getitem(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
