@@ -465,15 +465,19 @@ you can use it in Lua like this:
 </p>
 <div class="targetlang"><pre>
 &gt; l = example.List()
-&gt; l.insert("Ale")
-&gt; l.insert("Stout")
-&gt; l.insert("Lager")
-&gt; print(l.get(1))
+&gt; l:insert("Ale")
+&gt; l:insert("Stout")
+&gt; l:insert("Lager")
+&gt; print(l:get(1))
 Stout
-&gt; print(l.length)
+&gt; print(l:length)
 3
 &gt;
 </pre></div>
+<p>
+<p>
+(Note: for calling methods of a class, you use <tt>class:method(args)</tt>, not <tt>class.method(args)</tt>, its an easy mistake to make. However for data attributes it is <tt>class.attribute</tt>)
+</p>
 <p>
 Class data members are accessed in the same manner as C structures. Static class members present a special problem for Lua, as Lua doesn't have support for such features. Therefore, SWIG generates wrappers that try to work around some of these issues. To illustrate, suppose you have a class like this:
 </p>
@@ -679,9 +683,6 @@ When wrapped, it works like you expect:
 &gt; e:im()
 12.0
 </pre></div>
-<p>
-(Note: for calling methods of a class, you use <tt>class:method(args)</tt>, not <tt>class.method(args)</tt>, its an easy mistake to make.)
-</p>
 <p>
 One restriction with operator overloading support is that SWIG is not able to fully handle operators that aren't defined as part of the class. For example, if you had code like this
 </p>
