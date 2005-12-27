@@ -1437,7 +1437,7 @@ static void default_arguments(Node *n) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -1970,6 +1970,7 @@ inline_directive : INLINE HBLOCK {
 	       }
                | INLINE LBRACE {
                  String *cpps;
+		 int start_line = cparse_line;
 		 skip_balanced('{','}');
 		 if (Namespaceprefix) {
 		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
@@ -1984,7 +1985,7 @@ inline_directive : INLINE HBLOCK {
 		   Setattr($$,"code", code);
 		   Delete(code);		   
 		   cpps=Copy(scanner_ccode);
-		   start_inline(Char(cpps), cparse_start_line);
+		   start_inline(Char(cpps), start_line);
 		   Delete(cpps);
 		 }
                }
@@ -3956,6 +3957,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (Classprefix) {
 		 SwigType *decl = NewStringEmpty();
 		 $$ = new_node("constructor");
+		 Setattr($$,"storage",$1);
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
@@ -4293,6 +4295,7 @@ storage_class  : EXTERN { $$ = "extern"; }
                | TYPEDEF { $$ = "typedef"; }
                | VIRTUAL { $$ = "virtual"; }
                | FRIEND { $$ = "friend"; }
+               | EXPLICIT { $$ = "explicit"; }
                | empty { $$ = 0; }
                ;
 
