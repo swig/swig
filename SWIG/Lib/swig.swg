@@ -116,6 +116,15 @@
 #define %nofastdispatch      %feature("fastdispatch","0")
 #define %clearfastdispatch   %feature("fastdispatch","")
 
+/* directors directives */
+#define %director      %feature("director")
+#define %nodirector    %feature("director","0")
+#define %cleardirector %feature("director","")
+
+/* naturalvar directives */
+#define %naturalvar      %feature("naturalvar")
+#define %nonaturalvar    %feature("naturalvar","0")
+#define %clearnaturalvar %feature("naturalvar","")
 
 /* Common features */
 
@@ -123,7 +132,10 @@
 #define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
 
 /* Warnings used in typemaps. Macro names are the same as those in swigwarn.h but prefixed by SWIG_. */
+%define SWIG_WARN_TYPEMAP_CHARLEAK "451:Setting const char * member may leak memory." %enddef
+%define SWIG_WARN_TYPEMAP_SWIGTYPELEAK "454:Setting a pointer/reference variable may leak memory." %enddef
 %define SWIG_WARN_TYPEMAP_THREAD_UNSAFE "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
+%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR "473:Returning a pointer or reference is not recommended, consider returning 'by value' instead." %enddef
 
 /* Contract support - Experimental and undocumented */
 
