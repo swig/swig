@@ -1,6 +1,7 @@
 %module li_std_vector
 
 %include "std_vector.i"
+%include "std_string.i"
 
 %{
 #include <algorithm>
@@ -12,7 +13,17 @@ namespace std {
     %template(IntVector) vector<int>;
 }
 
+%template(BoolVector) std::vector<bool>;
+%template(CharVector) std::vector<char>;
+%template(ShortVector) std::vector<short>;
+%template(LongVector) std::vector<long>;
+%template(UCharVector) std::vector<unsigned char>;
+%template(UIntVector) std::vector<unsigned int>;
+%template(UShortVector) std::vector<unsigned short>;
+%template(ULongVector) std::vector<unsigned long>;
 %template(DoubleVector) std::vector<double>;
+%template(StringVector) std::vector<std::string>;
+
 
 %inline %{
 typedef float Real;
