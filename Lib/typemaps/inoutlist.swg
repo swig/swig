@@ -71,13 +71,13 @@ or you can use the %apply directive :
 
 */
 #if defined(SWIG_INPUT_ACCEPT_PTRS)
-#define %check_input_ptr(input,arg,desc,disown) (SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown) == SWIG_OK)
+#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK(res = SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown)))
 #else
-#define %check_input_ptr(input,arg,desc,disown) (0)
+#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK(res = SWIG_ERROR))
 #endif
 
 %define %_value_input_typemap(code, asval_meth, asval_frag, Type)
-  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0) {
+  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res) {
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val; 
       int ecode = asval_meth($input, &val);
@@ -86,10 +86,10 @@ or you can use the %apply directive :
       }
       temp = %static_cast(val, $*ltype);
       $1 = &temp;
-      res = SWIG_NEWOBJ;
+      res = SWIG_AddTmpMask(ecode);
     }
   }
-  %typemap(in,noblock=1,fragment=asval_frag) Type &INPUT($*ltype temp, int res = 0) {
+  %typemap(in,noblock=1,fragment=asval_frag) Type &INPUT($*ltype temp, int res) {
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val;
       int ecode = asval_meth($input, &val);
@@ -98,41 +98,46 @@ or you can use the %apply directive :
       }
       temp = %static_cast(val, $*ltype);
       $1 = &temp;
-      res = SWIG_NEWOBJ;
+      res = SWIG_AddTmpMask(ecode);
     }
+  }
+  %typemap(freearg,noblock=1,match="in") Type *INPUT, Type &INPUT {
+    if (SWIG_IsNewObj(res$argnum)) %delete($1);
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr;
-    int res = SWIG_CastRank(asval_meth($input, 0));
-    if (SWIG_IsOK(res)) {
-      $1 = res;
-    } else {
+    int res = asval_meth($input, 0);
+    $1 = SWIG_CheckState(res);
+    if (!$1) {
       $1 = %check_input_ptr($input,&ptr,$1_descriptor,0);
     }
   }
 %enddef
 
 %define %_ptr_input_typemap(code,asptr_meth,asptr_frag,Type)
-  %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res = 0) {  
+  %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res) {  
     res = asptr_meth($input, &$1);
-    if (!res) {
+    if (!SWIG_IsOK(res)) {
       %argument_fail(SWIG_TypeError,"$type",$argnum);
     }
+    res = SWIG_AddTmpMask(res);
   }
-  %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res = 0) {  
+  %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res) {  
     res = asptr_meth($input, &$1);
-    if (!res) { 
+    if (!SWIG_IsOK(res)) { 
       %argument_fail(SWIG_TypeError,"$type",$argnum);
     }     
     if (!$1) { 
       %argument_nullref("$type",$argnum);
     }
+    res = SWIG_AddTmpMask(res);
   }
-  %typemap(freearg,noblock=1) Type *INPUT, Type &INPUT {
-    if (res$argnum == SWIG_NEWOBJ) %delete($1);
+  %typemap(freearg,noblock=1,match="in") Type *INPUT, Type &INPUT {
+    if (SWIG_IsNewObj(res$argnum)) %delete($1);
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asptr_frag) Type *INPUT, Type &INPUT {
-    $1 = asptr_meth($input, (Type**)0) != 0;
+    int res = asptr_meth($input, (Type**)0);
+    $1 = SWIG_CheckState(res);
   }
 %enddef
 
@@ -174,10 +179,11 @@ values.
    $1 = &temp;
  }
  %typemap(argout,noblock=1,fragment=from_frag) Type *OUTPUT, Type &OUTPUT {
-   if (res$argnum == SWIG_NEWOBJ) {
+   if (SWIG_IsTmpObj(res$argnum)) {
      %append_output(from_meth((*$1)));
    } else {
-     %append_output(SWIG_NewPointerObj((void*)($1), $1_descriptor, %newpointer_flags));
+     int new_flags = SWIG_IsNewObj(res$argnum) ? (SWIG_POINTER_OWN | %newpointer_flags) : %newpointer_flags;
+     %append_output(SWIG_NewPointerObj((void*)($1), $1_descriptor, new_flags));
    }
  }
 %enddef
@@ -233,6 +239,8 @@ phased out in future releases.
 
 %define %_ptr_inout_typemap(Type)
  %_value_inout_typemap(%arg(Type))
+ %typemap(typecheck) Type *INOUT = Type *INPUT;
+ %typemap(typecheck) Type &INOUT = Type &INPUT;
  %typemap(freearg) Type *INOUT = Type *INPUT;
  %typemap(freearg) Type &INOUT = Type &INPUT;
 %enddef

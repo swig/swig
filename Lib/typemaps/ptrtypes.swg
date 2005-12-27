@@ -28,20 +28,20 @@
   %typemap(in,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) { %argument_fail(SWIG_TypeError, "$type", $argnum); }
+    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(SWIG_TypeError, "$type", $argnum); }
     $1 = *ptr;
-    if (res == SWIG_NEWOBJ) %delete(ptr);
+    if (SWIG_IsNewObj(res)) %delete(ptr);
   }
   %typemap(freearg) Type "";
-  %typemap(in,fragment=frag) const Type & (int res = 0) {
+  %typemap(in,fragment=frag) const Type & (int res = SWIG_OLDOBJ) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
-    if (!res) { %argument_fail(SWIG_TypeError,"$type",$argnum); }
+    if (!SWIG_IsOK(res)) { %argument_fail(SWIG_TypeError,"$type",$argnum); }
     if (!ptr) { %argument_nullref("$type",$argnum); }
     $1 = ptr;
   }
   %typemap(freearg,noblock=1) const Type &  {
-    if (res$argnum == SWIG_NEWOBJ) %delete($1);
+    if (SWIG_IsNewObj(res$argnum)) %delete($1);
   }
 %enddef
 
@@ -51,9 +51,11 @@
   %typemap(varin,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) { %variable_fail(SWIG_TypeError, "$type", "$name"); }
+    if (!SWIG_IsOK(res) || !ptr) { %variable_fail(SWIG_TypeError, "$type", "$name"); }
     $1 = *ptr;
-    if (res == SWIG_NEWOBJ) %delete(ptr);
+    if (SWIG_IsNewObj(res)) { 
+      %delete(ptr);
+    }
   }
 %enddef
 
@@ -64,32 +66,32 @@
   %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp) {
     Type *optr = 0;
     int ores = $input ? asptr_meth($input, &optr) : 0;
-    if (!ores || !optr) { 
+    if (!SWIG_IsOK(ores) || !optr) { 
       %dirout_fail(SWIG_TypeError,"$type");
     }
     temp = *optr;
     $result = &temp;
-    if (ores == SWIG_NEWOBJ) %delete(optr);
+    if (SWIG_IsNewObj(ores)) %delete(optr);
   }
 
   %typemap(directorout,noblock=1,fragment=frag) Type {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
-    if (!ores || !optr) { 
+    if (!SWIG_IsOK(ores) || !optr) { 
       %dirout_fail(SWIG_TypeError,"$type");
     }
     $result = *optr;
-    if (ores == SWIG_NEWOBJ) %delete(optr);
+    if (SWIG_IsNewObj(ores)) %delete(optr);
   }
 
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) Type* {
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) Type* {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
-    if (!ores) { 
+    if (!SWIG_IsOK(ores)) { 
       %dirout_fail(SWIG_TypeError,"$type");
     }    
     $result = optr;
-    if (ores == SWIG_NEWOBJ) {
+    if (SWIG_IsNewObj(ores)) {
       swig_acquire_ownership(optr);
     }
   }
@@ -100,10 +102,10 @@
     }
   }
 
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) Type& {
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) Type& {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
-    if (!ores) { 
+    if (!SWIG_IsOK(ores)) { 
       %dirout_fail(SWIG_TypeError,"$type");
     } else {
       if (!optr) { 
@@ -111,7 +113,7 @@
       } 
     }    
     $result = optr;
-    if (ores == SWIG_NEWOBJ) {
+    if (SWIG_IsNewObj(ores)) {
       swig_acquire_ownership(optr);
     }
   }
@@ -136,12 +138,15 @@
 /* typecheck */
 
 %define %ptr_typecheck_typemap(check,asptr_meth,frag,Type...)
-%typemap(typecheck,precedence=check,fragment=frag) 
-   Type *
-   "$1 = asptr_meth($input, (Type**)(0)) != 0;";
-%typemap(typecheck,precedence=check,fragment=frag) 
-  Type, const Type&   
-  "$1 = asptr_meth($input, (Type**)(0)) != 0;";
+%typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type * {
+  int res = asptr_meth($input, (Type**)(0));
+  $1 = SWIG_CheckState(res);
+}
+
+%typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {  
+  int res = asptr_meth($input, (Type**)(0));
+  $1 = SWIG_CheckState(res);
+}
 %enddef
 
 
@@ -156,12 +161,16 @@
     {
       Type *v = (Type *)0;
       int res = SWIG_AsPtr(Type)(obj, &v);
-      if (!res || !v) return SWIG_ERROR;
-      if (val) {
-	*val = *v;
-	if (res == SWIG_NEWOBJ) %delete(v);
+      if (!SWIG_IsOK(res)) return res;
+      if (v) {
+	if (val) *val = *v;
+	if (SWIG_IsNewObj(res)) {
+	  %delete(v);
+	  res = SWIG_DelNewMask(res);
+	}
+	return res;
       }
-      return SWIG_OK;
+      return SWIG_ERROR;
     }
   }
   %ptr_in_typemap(%arg(AsPtrMeth), %arg(AsPtrFrag), Type);

@@ -58,6 +58,7 @@
 
 /*==== flags for new/convert methods ====*/
 
+
 #ifndef %convertptr_flags
 %define %convertptr_flags  0 %enddef
 #endif

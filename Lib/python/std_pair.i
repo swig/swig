@@ -17,22 +17,20 @@
       {
 	if (val) {
 	  T *pfirst = &(val->first);
+	  int res1 = swig::asval((PyObject*)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
 	  U *psecond = &(val->second);
-	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
-	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
-	    return SWIG_OK;
-	  } else {
-	    return SWIG_ERROR;
-	  }
+	  int res2 = swig::asval((PyObject*)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
 	} else {
 	  T *pfirst = 0;
+	  int res1 = swig::asval((PyObject*)first, 0);
+	  if (!SWIG_IsOK(res1)) return res1;
 	  U *psecond = 0;
-	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
-	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
-	    return SWIG_OK;
-	  } else {
-	    return SWIG_ERROR;
-	  }
+	  int res2 = swig::asval((PyObject*)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
 	}	
       }
 
@@ -50,13 +48,8 @@
 	  }
 	} else {
 	  value_type *p;
-	  if (SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0) == SWIG_OK) {
-	    if (val) *val = *p;
-	    res = SWIG_OK;
-	  }	  
-	}
-	if ((res == SWIG_ERROR) && val) {
-	  PyErr_Format(PyExc_TypeError, "a %s is expected", swig::type_name<value_type>());
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = *p;
 	}
 	return res;
       }
@@ -73,29 +66,26 @@
 	if (val) {
 	  value_type *vp = %new_instance(std::pair<T,U>);
 	  T *pfirst = &(vp->first);
+	  int res1 = swig::asval((PyObject*)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
 	  U *psecond = &(vp->second);
-	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
-	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
-	    *val = vp;
-	    return SWIG_NEWOBJ;
-	  } else {
-	    %delete(vp);
-	    return SWIG_BADOBJ;
-	  }
+	  int res2 = swig::asval((PyObject*)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  *val = vp;
+	  return SWIG_AddNewMask(res1 > res2 ? res1 : res2);
 	} else {
 	  T *pfirst = 0;
+	  int res1 = swig::asval((PyObject*)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
 	  U *psecond = 0;
-	  if ((swig::asval((PyObject*)first, pfirst) == SWIG_OK) 
-	      && (swig::asval((PyObject*)second, psecond) == SWIG_OK)) {
-	    return SWIG_NEWOBJ;
-	  } else {
-	    return SWIG_BADOBJ;
-	  }
+	  int res2 = swig::asval((PyObject*)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
 	}	
       }
 
       static int asptr(PyObject *obj, std::pair<T,U> **val) {
-	int res = SWIG_BADOBJ;
+	int res = SWIG_ERROR;
 	if (PyTuple_Check(obj)) {
 	  if (PyTuple_GET_SIZE(obj) == 2) {
 	    res = get_pair(PyTuple_GET_ITEM(obj,0),PyTuple_GET_ITEM(obj,1), val);
@@ -108,13 +98,8 @@
 	  }
 	} else {
 	  value_type *p;
-	  if (SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0) == SWIG_OK) {
-	    if (val) *val = p;
-	    res = SWIG_OLDOBJ;
-	  }	  
-	}
-	if ((res == SWIG_BADOBJ) && val) {
-	  PyErr_Format(PyExc_TypeError, "a %s is expected", swig::type_name<value_type>());
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	return res;
       }

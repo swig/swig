@@ -32,7 +32,7 @@ SWIG_AsVal(Type) (PyObject *o, Type* val)
     return SWIG_OK;
   } else {
     double d;    
-    int res = SWIG_CastRank(SWIG_AsVal(double)(o, &d));
+    int res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
     if (SWIG_IsOK(res)) {
       if (val) *val = Constructor(d, 0.0);
       return res;
@@ -63,7 +63,7 @@ SWIG_AsVal(Type)(PyObject *o, Type *val)
     }    
   } else {
     float re;
-    int res = SWIG_CastRank(SWIG_AsVal(float)(o, &re));
+    int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {
       if (val) *val = Constructor(re, 0.0);
       return res;

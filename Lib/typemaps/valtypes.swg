@@ -123,7 +123,7 @@
     }
     $result = %static_cast(val,$type);
   }
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {  
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) const Type& {  
     Type val;
     int res = asval_meth($input, &val);
     if (!SWIG_IsOK(res)) {
@@ -161,8 +161,8 @@
 
 %define %value_typecheck_typemap(check,asval_meth,frag,Type...)
   %typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {
-    int res = SWIG_CastRank(asval_meth($input, NULL));
-    $1 = SWIG_IsOK(res) ? res : 0;
+    int res = asval_meth($input, NULL);
+    $1 = SWIG_CheckState(res);
   }
 %enddef
 

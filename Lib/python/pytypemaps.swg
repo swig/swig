@@ -41,6 +41,10 @@
 #define SWIG_Object                     PyObject *
 #define VOID_Object                     SWIG_Py_Void()
 
+/* Python allows implicit conversion */
+#define %implicitconv_flag              $implicitconv 
+
+
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
@@ -61,6 +65,7 @@
   SWIG_PYTHON_THREAD_END_BLOCK;
   Py_DECREF(_obj);
   SWIG_fail %enddef
+
 
 
 /* Include the unified typemap library */

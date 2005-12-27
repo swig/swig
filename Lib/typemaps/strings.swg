@@ -30,22 +30,22 @@
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) 
   Char * (Char *buf = 0, int alloc = 0),
   const Char * (Char *buf = 0, int alloc = 0) {
-  if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtr($input, &buf, &alloc))) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
   $1 = buf;
 }
-%typemap(freearg,noblock=1) Char *, const Char * {
+%typemap(freearg,noblock=1,match="in") Char *, const Char * {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (Char *buf = 0, int alloc = 0) {
-  if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtr($input, &buf, &alloc))) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
   $1 = &temp;
 }    
-%typemap(freearg, noblock=1) Char const*& {
+%typemap(freearg, noblock=1,match="in") Char const*& {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 
@@ -65,7 +65,7 @@
 
 %typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize) Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
-  if (SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc))) {
     %variable_fail(SWIG_TypeError,"$type","$name");
   }
   if ($1) %delete_array($1);
@@ -76,9 +76,9 @@
   }
 }
 
-%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize,warning="451:Setting const Char * variable may leak memory") const Char * {
+%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
-  if (SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc))) {
     %variable_fail(SWIG_TypeError, "$type", "$name");
   }
   if (alloc == SWIG_NEWOBJ) {
@@ -106,7 +106,7 @@
   }
 }
 
-%typemap(memberin,noblock=1,warning="451:Setting const char * member may leak memory.") const Char * {
+%typemap(memberin,noblock=1,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
     $1 = %new_copy_array($input, size, Char);
@@ -127,7 +127,7 @@
   }
 }
 
-%typemap(globalin,noblock=1,warning="451:Setting const char * variable may leak memory.") const Char * {
+%typemap(globalin,noblock=1,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
     $1 = %new_copy_array($input, size, Char);
@@ -157,9 +157,9 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE)
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR)
   Char * (Char* buf = 0, int alloc = SWIG_NEWOBJ) {
-  if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtr($input, &buf, &alloc))) {
     %dirout_fail(SWIG_TypeError, "$type");
   }
   if (alloc == SWIG_NEWOBJ) {
@@ -175,10 +175,10 @@
 }
 
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) 
   Char * const& (Char* buf = 0, int alloc = SWIG_NEWOBJ),
   Char const* const& (Char* buf = 0, int alloc = SWIG_NEWOBJ) { 
-  if (SWIG_AsCharPtr($input, &buf, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtr($input, &buf, &alloc))) {
     %dirout_fail(SWIG_TypeError, "$type");
   }
   static $*ltype tmp = buf;
@@ -200,7 +200,8 @@
 
 %typemap(typecheck,noblock=1,precedence=SWIG_TYPECHECK_STRING,
 	 fragment=#SWIG_AsCharPtr) Char *, Char const*& {
-  $1 = (SWIG_AsCharPtr($input, 0, 0) == SWIG_OK);
+  int res = SWIG_AsCharPtr($input, 0, 0);
+  $1 = SWIG_CheckState(res);
 }
 
 
@@ -248,7 +249,7 @@
   Char [ANY] (Char temp[$1_dim0]), 
   const Char [ANY](Char temp[$1_dim0])
 {  
-  if (SWIG_AsCharArray($input, temp, $1_dim0) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharArray($input, temp, $1_dim0))) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
   $1 = temp;
@@ -257,7 +258,7 @@
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray) const Char (&)[ANY] (Char temp[$1_dim0])
 {  
-  if (SWIG_AsCharArray($input, temp, $1_dim0) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharArray($input, temp, $1_dim0))) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
   $1 = &temp;
@@ -278,7 +279,7 @@
 
 %typemap(varin,noblock=1,fragment=#SWIG_AsCharArray) Char [ANY]
 {
-  if (SWIG_AsCharArray($input, $1, $1_dim0) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharArray($input, $1, $1_dim0))) {
     %variable_fail(SWIG_TypeError, "$type", "$name");
   }
 }
@@ -326,7 +327,7 @@
   Char [ANY] (Char temp[$result_dim0]),
   const Char [ANY] (Char temp[$result_dim0])
 { 
-  if (SWIG_AsCharArray($input, temp, $result_dim0) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharArray($input, temp, $result_dim0))) {
     %dirout_fail(SWIG_TypeError, "$type");
   }
   $result = temp;
@@ -339,7 +340,8 @@
 %typemap(typecheck,noblock=1,precedence=SWIG_TYPECHECK_STRING,
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
-  $1 = (SWIG_AsCharArray($input, (Char *)0, $1_dim0) == SWIG_OK);
+  int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
+  $1 = SWIG_CheckState(res);
 }
 
 
@@ -395,13 +397,13 @@
   (Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = 0),
   (const Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
-  if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) { 
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc))) { 
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }  
   $1 = %static_cast(buf, $1_ltype);
   $2 = %numeric_cast(size - 1, $2_ltype);
 }
-%typemap(freearg,noblock=1) (Char *STRING, size_t LENGTH) {
+%typemap(freearg,noblock=1,match="in") (Char *STRING, size_t LENGTH) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 /* old 'int' form */
@@ -414,13 +416,13 @@
   (Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = 0),
   (const Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
-  if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc))) {
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }
   $1 = %static_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
 }
-%typemap(freearg, noblock=1) (Char *STRING, size_t SIZE) {
+%typemap(freearg, noblock=1,match="in") (Char *STRING, size_t SIZE) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 /* old 'int' form */
@@ -435,13 +437,13 @@
   (size_t LENGTH, Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0),
   (size_t LENGHT, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
-  if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) { 
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc))) { 
     %argument_fail(SWIG_TypeError,"$type",$argnum);
   }  
   $2 = %static_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size - 1, $1_ltype) ;
 }
-%typemap(freearg, noblock=1) (size_t LENGTH, Char *STRING) {
+%typemap(freearg, noblock=1, match="in") (size_t LENGTH, Char *STRING) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 /* old 'int' form */
@@ -453,13 +455,13 @@
   (size_t SIZE, Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0),
   (size_t SIZE, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
-  if (SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc) != SWIG_OK) {
+  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc))) {
     %argument_fail(SWIG_TypeError, "$type",$argnum);
   }
   $2 = %static_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size, $1_ltype) ;
 }
-%typemap(freearg, noblock=1) (size_t SIZE, Char *STRING) {
+%typemap(freearg, noblock=1, match="in") (size_t SIZE, Char *STRING) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 /* old 'int' form */
@@ -506,15 +508,19 @@ SWIGINTERN int
 SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
 { 
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
-  if (SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc) == SWIG_OK) {
+  int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
+  if (SWIG_IsOK(res)) {
     if ((csize == size + 1) && cptr && !(cptr[csize-1])) --csize;
     if (csize <= size) {
       if (val) {
 	if (csize) memcpy(val, cptr, csize*sizeof(Char));
 	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
       }
-      if (alloc == SWIG_NEWOBJ) %delete_array(cptr);
-      return SWIG_OK;
+      if (alloc == SWIG_NEWOBJ) {
+	%delete_array(cptr);
+	res = SWIG_DelNewMask(res);
+      }      
+      return res;
     }
     if (alloc == SWIG_NEWOBJ) %delete_array(cptr);
   }
@@ -542,7 +548,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
   int res = SWIG_As##CharName##Array(obj, val, 1);
   if (!SWIG_IsOK(res)) {
     long v;
-    res = SWIG_AsVal(long)(obj, &v);
+    res = SWIG_AddCast(SWIG_AsVal(long)(obj, &v));
     if (SWIG_IsOK(res)) {
       if ((CHAR_MIN <= v) && (v <= CHAR_MAX)) {
 	if (val) *val = %numeric_cast(v, Char);

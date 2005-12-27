@@ -15,6 +15,7 @@
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Python_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Python_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(ptr, type, flags)
+#define SWIG_CheckImplicit(ty)                          SWIG_Python_CheckImplicit(ty) 
 #define SWIG_AcquirePtr(ptr, src)                       SWIG_Python_AcquirePtr(ptr, src)
 #define swig_owntype                                    int
 
@@ -41,12 +42,20 @@
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Python_SetModule(pointer)
 #define SWIG_NewClientData(obj)                         PySwigClientData_New(obj)
 
+/* A functor is a function object with one single object argument */
+#if PY_VERSION_HEX >= 0x02020000
+#define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunctionObjArgs(functor, obj, NULL);
+#else
+#define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, "O", obj);
+#endif
+
 /* Error manipulation */
 #define SWIG_SetErrorObj(type, obj)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetObject(type, obj); SWIG_PYTHON_THREAD_END_BLOCK; }
 #define SWIG_SetErrorMsg(type, msg)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetString(type, msg); SWIG_PYTHON_THREAD_END_BLOCK; }
 #define SWIG_ErrorType(code)                            SWIG_Python_ErrorType(code)                       
 #define SWIG_Error(code, msg)            		SWIG_SetErrorMsg(SWIG_Python_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail					   
+
 
 /*
   Helper for static pointer initialization for both C and C++ code, for example
@@ -63,8 +72,10 @@
  * ----------------------------------------------------------------------------- */
 
 /* Flags for new pointer objects */
-#define SWIG_POINTER_NOSHADOW      SWIG_POINTER_OWN << 1
-#define SWIG_POINTER_NEW           SWIG_POINTER_NOSHADOW | SWIG_POINTER_OWN
+#define SWIG_POINTER_NOSHADOW       (SWIG_POINTER_OWN      << 1)
+#define SWIG_POINTER_NEW            (SWIG_POINTER_NOSHADOW | SWIG_POINTER_OWN)
+
+#define SWIG_POINTER_IMPLICIT_CONV  (SWIG_POINTER_DISOWN   << 1)
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
@@ -175,7 +186,16 @@ typedef struct {
   PyObject *newargs;
   PyObject *destroy;
   int delargs;
+  int implicitconv;
 } PySwigClientData;
+
+SWIGRUNTIME int 
+SWIG_Python_CheckImplicit(swig_type_info *ty)
+{
+  PySwigClientData *data = (PySwigClientData *)ty->clientdata;
+  return data ? data->implicitconv : 0;
+}
+
 
 SWIGRUNTIME PySwigClientData * 
 PySwigClientData_New(PyObject* obj)
@@ -222,6 +242,7 @@ PySwigClientData_New(PyObject* obj)
     } else {
       data->delargs = 0;
     }
+    data->implicitconv = 0;
     return data;
   }
 }
@@ -358,11 +379,7 @@ PySwigObject_dealloc(PyObject *v)
       if (data->delargs) {
 	/* we need to create a temporal object to carry the destroy operation */
 	PyObject *tmp = PySwigObject_New(sobj->ptr, ty, 0);
-#if PY_VERSION_HEX >= 0x02020000
-	res = PyObject_CallFunctionObjArgs(destroy, tmp, NULL);
-#else
-	res = PyObject_CallFunction(destroy, "O", tmp);
-#endif
+	res = SWIG_Python_CallFunctor(destroy, tmp);
 	Py_DECREF(tmp);
       } else {
 	PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
@@ -902,7 +919,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	  if (!tc) {
 	    sobj = (PySwigObject *)sobj->next;
 	  } else {
-	    *ptr = SWIG_TypeCast(tc,vptr);
+	    if (ptr) *ptr = SWIG_TypeCast(tc,vptr);
 	    break;
 	  }
 	}
@@ -918,7 +935,42 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
       }
       return SWIG_OK;
     } else {
-      return SWIG_ERROR;
+      int res = SWIG_ERROR;
+      if (flags & SWIG_POINTER_IMPLICIT_CONV) {
+	PySwigClientData *data = ty ? (PySwigClientData *) ty->clientdata : 0;
+	if (data && !data->implicitconv) {
+	  PyObject *klass = data->klass;
+	  if (klass) {
+	    PyObject *impconv;
+	    data->implicitconv = 1; /* avoid recursion and call 'explicit' constructors*/
+	    impconv = SWIG_Python_CallFunctor(klass, obj);
+	    data->implicitconv = 0;
+	    if (PyErr_Occurred()) {
+	      PyErr_Clear();
+	      impconv = 0;
+	    }
+	    if (impconv) {
+	      PySwigObject *sobj = SWIG_Python_GetSwigThis(impconv);
+	      if (sobj) {
+		void *vptr;
+		res = SWIG_Python_ConvertPtrAndOwn((PyObject*)sobj, &vptr, ty, 0, 0);
+		if (SWIG_IsOK(res)) {
+		  if (ptr) {
+		    *ptr = vptr;
+		    /* transfer the ownership to 'ptr' */
+		    sobj->own = 0;
+		    res = SWIG_AddNewMask(SWIG_AddCast(res));		    
+		  } else {
+		    res = SWIG_AddCast(res);		    
+		  }
+		}
+	      }
+	      Py_DECREF(impconv);
+	    }
+	  }
+	}
+      }
+      return res;
     }
   }
 }
