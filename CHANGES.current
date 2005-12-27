@@ -8,6 +8,11 @@ Version 1.3.28 (unreleased).
             Fixes some compilation errors for some compilers eg when the templated
             type is a pointer.
 
+            [Java]
+            std::vector improvements - a few more methods are wrapped and specializations are
+            no longer required. The specialize_std_vector macro is no longer needed (a
+            warning is issued if an attempt is made to use it).
+
 12/26/2005: wsfulton
             [Java, C#]
             Add in pointer reference typemaps. This also enables one to easily wrap
