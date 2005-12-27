@@ -140,6 +140,7 @@
 #define WARN_TYPEMAP_CHARLEAK         451
 #define WARN_TYPEMAP_SWIGTYPE         452
 #define WARN_TYPEMAP_APPLY_UNDEF      453
+#define WARN_TYPEMAP_SWIGTYPELEAK     454
 
 #define WARN_TYPEMAP_IN_UNDEF         460
 #define WARN_TYPEMAP_OUT_UNDEF        461
@@ -153,7 +154,8 @@
 #define WARN_TYPEMAP_DIRECTORIN_UNDEF  469
 #define WARN_TYPEMAP_THREAD_UNSAFE     470 /* mostly used in directorout typemaps */
 #define WARN_TYPEMAP_DIRECTOROUT_UNDEF 471
-#define WARN_TYPEMAP_TYPECHECK_UNDEF  472
+#define WARN_TYPEMAP_TYPECHECK_UNDEF   472
+#define WARN_TYPEMAP_DIRECTOROUT_PTR   473 
 
 /* -- General code generation -- */
 
