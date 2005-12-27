@@ -181,6 +181,7 @@ CPP_TEST_CASES += \
 	namespace_typedef_class \
 	namespace_typemap \
 	namespace_virtual_method \
+	naturalvar \
 	newobject1 \
 	ordering \
 	operator_overload \
@@ -329,6 +330,7 @@ CPP_STD_TEST_CASES += \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
+	naturalvar \
 	template_typedef_fnc \
 	template_type_namespace \
 	template_opaque

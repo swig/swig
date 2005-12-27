@@ -20,6 +20,7 @@ char cvsroot_lang_cxx[] = "$Header$";
 
 static int director_mode = 0;   /* set to 0 on default */
 static int director_protected_mode = 0;   /* set to 0 on default */
+static int naturalvar_mode = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -28,6 +29,10 @@ void Wrapper_director_mode_set(int flag) {
 
 void Wrapper_director_protected_mode_set(int flag) {
   director_protected_mode = flag;
+}
+
+void Wrapper_naturalvar_mode_set(int flag) {
+  naturalvar_mode = flag;
 }
 
 extern "C" {
@@ -377,6 +382,18 @@ void swig_pragma(char *lang, char *name, char *value) {
  * ---------------------------------------------------------------------- */
 
 int Language::top(Node *n) {
+  Node *mod = Getattr(n, "module");
+  if (mod) {
+    Node *options = Getattr(mod, "options");
+    if (options) {
+      if (Getattr(options, "naturalvar")) {
+	naturalvar_mode = 1;
+      }
+      if (Getattr(options, "nonaturalvar")) {
+	naturalvar_mode = 0;
+      }
+    }
+  }  
   return emit_children(n);
 }
 
@@ -1251,7 +1268,11 @@ Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
       int flags = Extend | SmartPointer;
-      //if (CPlusPlus) flags |= CWRAP_VAR_REFERENCE;
+      
+      if (naturalvar_mode || GetFlag(n,"feature:naturalvar")) {
+	flags |= CWRAP_NATURAL_VAR;
+      }
+
       Swig_MembersetToFunction(n,ClassType, flags);
       if (!Extend) {
 	/* Check for a member in typemap here */
@@ -1296,7 +1317,12 @@ Language::membervariableHandler(Node *n) {
     }
     /* Emit get function */
     {
-      Swig_MembergetToFunction(n,ClassType, Extend | SmartPointer);
+      int flags = Extend | SmartPointer;
+      if (naturalvar_mode || GetFlag(n,"feature:naturalvar")) {
+	flags |= CWRAP_NATURAL_VAR;
+      }
+
+      Swig_MembergetToFunction(n,ClassType, flags);
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }

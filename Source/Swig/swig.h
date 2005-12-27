@@ -499,7 +499,7 @@ extern int        Swig_VarsetToFunction(Node *n);
 
 #define  CWRAP_EXTEND             0x01
 #define  CWRAP_SMART_POINTER      0x02
-#define  CWRAP_VAR_REFERENCE      0x04
+#define  CWRAP_NATURAL_VAR        0x04
 
 /* --- Director Helpers --- */
 extern Node      *Swig_methodclass(Node *n);
