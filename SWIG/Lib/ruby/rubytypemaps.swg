@@ -39,11 +39,6 @@
 #define SWIG_Object                      VALUE
 #define VOID_Object                      Qnil
 
-/* Ruby $track flag */
-#define %convertptr_flags                $track
-#define %newpointer_flags                $track
-#define %newinstance_flags               $track
-
 /* Simple overload of the output/constant/exception handling */
 #define SWIG_AppendOutput(result,obj)    SWIG_Ruby_AppendOutput(result, obj)
 #define SWIG_SetConstant(name, obj)      rb_define_const($module, name, obj)

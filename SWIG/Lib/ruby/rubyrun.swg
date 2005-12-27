@@ -64,14 +64,12 @@ extern "C" {
 #endif
 #endif
 
-/* Flags for new pointer objects */
-#define SWIG_TRACK_OBJECTS	 0x4
-
 typedef struct {
   VALUE klass;
   VALUE mImpl;
   void  (*mark)(void *);
   void  (*destroy)(void *);
+  int trackObjects;
 } swig_class;
 
 
@@ -108,7 +106,6 @@ SWIGRUNTIME VALUE
 SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
 {
   int own =  flags & SWIG_POINTER_OWN; 
-  int track = flags & SWIG_TRACK_OBJECTS;
   
   char *klass_name;
   swig_class *sklass;
@@ -118,17 +115,24 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
   if (!ptr)
     return Qnil;
   
-  /* Have we already wrapped this pointer? */
-  if (track) {
-    obj = SWIG_RubyInstanceFor(ptr);
-    if (obj != Qnil) {
-      return obj;
-    }
-  }
-  
   if (type->clientdata) {
     sklass = (swig_class *) type->clientdata;
+		
+    /* Are we tracking this class and have we already returned this Ruby object? */
+    if (sklass->trackObjects) {
+      obj = SWIG_RubyInstanceFor(ptr);
+      if (obj != Qnil) {
+        return obj;
+      }
+    }
+
+    /* Create a new Ruby object */
     obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
+
+    /* If tracking is on for this class then track this object. */
+    if (sklass->trackObjects) {
+      SWIG_RubyAddTracking(ptr, obj);
+    }
   } else {
     klass_name = (char *) malloc(4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
@@ -137,11 +141,6 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     obj = Data_Wrap_Struct(klass, 0, 0, ptr);
   }
   rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
-  
-  /* Keep track of this object if necessary */
-  if (track) {
-    SWIG_RubyAddTracking(ptr, obj);
-  }
   
   return obj;
 }
@@ -198,16 +197,22 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     Data_Get_Struct(obj, void, vptr);
   }
   
-
+  if (own) *own = RDATA(obj)->dfree;
+    
   /* Check to see if the input object is giving up ownership
      of the underlying C struct or C++ object.  If so then we
      need to reset the destructor since the Ruby object no 
      longer owns the underlying C++ object.*/ 
-  if (own) *own = RDATA(obj)->dfree;
-    
   if (flags & SWIG_POINTER_DISOWN) {
-    if (flags & SWIG_TRACK_OBJECTS) {
-      /* We are tracking objects.  Thus we change the destructor
+    /* Is tracking on for this class? */
+    int track = 0;
+    if (ty && ty->clientdata) {
+      swig_class *sklass = (swig_class *) ty->clientdata;
+      track = sklass->trackObjects;
+    }
+		
+    if (track) {
+      /* We are tracking objects for this class.  Thus we change the destructor
        * to SWIG_RubyRemoveTracking.  This allows us to
        * remove the mapping from the C++ to Ruby object
        * when the Ruby object is garbage collected.  If we don't
@@ -218,16 +223,16 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       RDATA(obj)->dfree = 0;
     }
   }
-  
+
   /* Do type-checking if type info was provided */
   if (ty) {
     if (ty->clientdata) {
       if (rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
-	if (vptr == 0) {
-	  return SWIG_ERROR;
-	}
-	*ptr = vptr;
-	return SWIG_OK;
+        if (vptr == 0) {
+          return SWIG_ERROR;
+        }
+	      *ptr = vptr;
+	      return SWIG_OK;
       }
     }
     if ((c = SWIG_MangleStr(obj)) == NULL) {
