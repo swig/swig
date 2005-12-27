@@ -7,7 +7,7 @@ SWIGINTERN int
 SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val) 
 {
   Char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
-  if (SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
+  if (SWIG_IsOK(SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc))) {
     if (buf) {
       if (val) *val = new String(buf, size - 1);
       if (alloc == SWIG_NEWOBJ) %delete_array(buf);
@@ -24,14 +24,13 @@ SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val)
       init = 1;
     }
     if (descriptor) {
-      String *vptr;    
-      if ((SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0) == SWIG_OK)) {
-	if (val) *val = vptr;
-	return SWIG_OLDOBJ;
-      }
+      String *vptr;
+      int res = SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0);
+      if (SWIG_IsOK(res) && val) *val = vptr;
+      return res;
     }
   }
-  return 0;
+  return SWIG_ERROR;
 }
 }
 %enddef
@@ -51,14 +50,18 @@ SWIG_From_dec(String)(const String& s)
 SWIGINTERN int
 SWIG_AsVal_dec(String)(SWIG_Object obj, String *val)
 {
-  String* s;
-  int res = SWIG_AsPtr(String)(obj, &s);
-  if ((res != 0) && s) {
-    if (val) *val = *s;
-    if (res == SWIG_NEWOBJ) delete s;
-    return SWIG_OK;
+  String* v = (String *) 0;
+  int res = SWIG_AsPtr(String)(obj, &v);
+  if (!SWIG_IsOK(res)) return res;
+  if (v) {
+    if (val) *val = *v;
+    if (SWIG_IsNewObj(res)) {
+      %delete(v);
+      res = SWIG_DelNewMask(res);
+    }
+    return res;
   }
-  return SWIG_TypeError;
+  return SWIG_ERROR;
 }
 }
 %enddef

@@ -152,11 +152,9 @@ These methods "may be called" if needed.
 
 /* ------------------------------------------------------------------------- */
 /*
-  Directors
+  Implicit Conversion using the C++ constructor mechanism
 */
 
-#define %director      %feature("director")
-#define %nodirector    %feature("director","0")
-#define %cleardirector %feature("director","")
-
-
+#define %implicitconv      %feature("implicitconv") 
+#define %noimplicitconv    %feature("implicitconv", "0")
+#define %clearimplicitconv %feature("implicitconv", "")

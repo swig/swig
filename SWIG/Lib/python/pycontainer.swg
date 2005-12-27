@@ -702,7 +702,7 @@ namespace swig {
 	      PyErr_SetString(PyExc_TypeError, e.what());
 	    }
 	  }
-	  return 0;
+	  return SWIG_ERROR;
 	}
       } else {
 	sequence *p;
@@ -716,7 +716,7 @@ namespace swig {
 	PyErr_Format(PyExc_TypeError, "a %s is expected",
 		     swig::type_name<sequence>());
       }
-      return 0;
+      return SWIG_ERROR;
     }
   };
 

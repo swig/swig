@@ -124,9 +124,8 @@ namespace swig {
   struct traits_asptr {   
     static int asptr SWIG_AS_DECL_ARGS (SWIG_Object obj, Type **val) {
       Type *p;
-      int res = (SWIG_ConvertPtr(obj, %as_voidptrptr(&p), 
-				 type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
-      if (res && val) *val = p;
+      int res = SWIG_ConvertPtr(obj, %as_voidptrptr(&p), type_info<Type>(), 0);
+      if (SWIG_IsOK(res) && val) *val = p;
       return res;
     }
   }; 
@@ -142,15 +141,16 @@ namespace swig {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr SWIG_AS_CALL_ARGS(obj, &p);
-	if ((res != 0) && p) {
+	if (SWIG_IsOK(res) && p) {
 	  *val = *p;
-	  if (res == SWIG_NEWOBJ) %delete(p);
-	  return SWIG_OK;
-	} else {
-	  return SWIG_ERROR;
+	  if (SWIG_IsNewObj(res)) {
+	    %delete(p);
+	    res = SWIG_DelNewMask(res);
+	  }
 	}
+	return res;
       } else {
-	return traits_asptr<Type>::asptr SWIG_AS_CALL_ARGS(obj, (Type **)(0)) ? SWIG_OK : SWIG_ERROR;
+	return traits_asptr<Type>::asptr SWIG_AS_CALL_ARGS(obj, (Type **)(0));
       }
     }
   };
@@ -168,15 +168,25 @@ namespace swig {
 
   template <class Type> 
   struct traits_checkval {
-    static bool check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
-      return obj && SWIG_IsOK(asval SWIG_AS_CALL_ARGS(obj, (Type *)(0)));
+    static int check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
+      if (obj) {
+	int res = asval SWIG_AS_CALL_ARGS(obj, (Type *)(0));
+	return SWIG_CheckState(res);
+      } else {
+	return 0;
+      }
     }
   };
 
   template <class Type> 
   struct traits_checkptr {
-    static bool check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
-      return obj && asptr SWIG_AS_CALL_ARGS(obj, (Type **)(0));
+    static int check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
+      if (obj) {
+	int res = asptr SWIG_AS_CALL_ARGS(obj, (Type **)(0));
+	return SWIG_CheckState(res);
+      } else {
+	return 0;
+      }
     }
   };
 
@@ -189,7 +199,7 @@ namespace swig {
   };
 
   template <class Type>
-  inline bool check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
+  inline int check SWIG_CHECK_DECL_ARGS(SWIG_Object obj) {
     return traits_check<Type>::check SWIG_CHECK_CALL_ARGS(obj);
   }
 

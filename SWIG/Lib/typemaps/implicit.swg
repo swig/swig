@@ -46,9 +46,9 @@
 %define %implicit_code(Type...)
   if (SWIG_IsOK(swig::asval<Type >(obj, 0))) {
     Type _v;
-    swig::asval<Type >(obj, &_v);
+    int res = swig::asval<Type >(obj, &_v);
     if (val) *val = %new_copy(_v, value_type);
-    return SWIG_NEWOBJ;
+    return SWIG_AddNewMask(res);
   }
 %enddef
 
@@ -72,13 +72,14 @@ namespace swig {
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) == SWIG_OK)) {
+    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
-      return SWIG_OLDOBJ;
+      return res;
     } else {
       %formacro_1(%implicit_code,__VA_ARGS__)
     }
-    return 0;
+    return SWIG_TypeError;
   }
  };
 }
@@ -107,13 +108,14 @@ namespace swig {
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) == SWIG_OK)) {
+    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
-      return SWIG_OLDOBJ;
+      return res;
     } else {
       %implicit_code(Imp1);
     }
-    return 0;
+    return SWIG_TypeError;
   }
  };
 }
@@ -144,14 +146,15 @@ namespace swig {
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) == SWIG_OK)) {
+    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
       return SWIG_OLDOBJ;
     } else {
       %implicit_code(Imp1);
       %implicit_code(Imp2);
     }
-    return 0;
+    return SWIG_TypeError;
   }
  };
 }
@@ -184,15 +187,16 @@ namespace swig {
     static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) == SWIG_OK)) {
+    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
-      return SWIG_OLDOBJ;
+      return res;
     } else {
       %implicit_code(Imp1);
       %implicit_code(Imp2);
       %implicit_code(Imp3);
     }
-    return 0;
+    return SWIG_TypeError;
   }
  };
 }

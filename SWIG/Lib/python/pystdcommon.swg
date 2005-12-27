@@ -40,7 +40,7 @@ namespace swig {
     static int asptr(PyObject *obj, Type **val) {
       Type *p;
       int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
-      if (res) {
+      if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }
       return res;
@@ -57,17 +57,21 @@ namespace swig {
     static int asval(PyObject *obj, Type *val) {
       if (val) {
 	Type *p = 0;
-	int res = traits_asptr<Type>::asptr(obj, (val ? &p : 0));
-	if ((res != 0) && p) {
+	int res = traits_asptr<Type>::asptr(obj, &p);
+	if (!SWIG_IsOK(res)) return res;	
+	if (p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
-	  if (res == SWIG_NEWOBJ) %delete(p);
-	  return SWIG_OK;
+	  if (SWIG_IsNewObj(res)){
+	    %delete(p);
+	    res = SWIG_DelNewMask(res);
+	  }
+	  return res;
 	} else {
 	  return SWIG_ERROR;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? SWIG_OK : SWIG_ERROR;
+	return traits_asptr<Type>::asptr(obj, (Type **)(0));
       }
     }
   };
@@ -77,15 +81,13 @@ namespace swig {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
-        int res = traits_asptr<noconst_type>::asptr(obj, (val ? &p : 0));
-        if (res) {
+        int res = traits_asptr<noconst_type>::asptr(obj,  &p);
+        if (SWIG_IsOK(res)) {
           *(const_cast<noconst_type**>(val)) = p;
-     	  return SWIG_OK;
-	} else {
-	  return SWIG_ERROR;
 	}
+	return res;
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? SWIG_OK : SWIG_ERROR;
+	return traits_asptr<Type>::asptr(obj, (Type **)(0));
       }
     }
   };
@@ -113,9 +115,9 @@ namespace swig {
   struct traits_as<Type, pointer_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0);
-      if (res && v) {
-	if (res == SWIG_NEWOBJ) {
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      if (SWIG_IsOK(res) && v) {
+	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
 	  %delete(v);
 	  return r;
@@ -139,8 +141,8 @@ namespace swig {
   struct traits_as<Type*, pointer_category> {
     static Type* as(PyObject *obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0);
-      if (res) {
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      if (SWIG_IsOK(res)) {
 	return v;
       } else {
 	if (!PyErr_Occurred()) {
@@ -215,7 +217,7 @@ namespace swig {
     typedef Type value_type;
     static int asval(PyObject *obj, value_type *val) {
       if (Check(obj)) {
-	*val = As(obj);
+	if (val) *val = As(obj);
 	return SWIG_OK;
       }
       return SWIG_ERROR;

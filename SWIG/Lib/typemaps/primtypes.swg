@@ -106,7 +106,7 @@ SWIGINTERN int
 SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 {
   long v;
-  int res = SWIG_IsOK(SWIG_AsVal(long)(obj, val ? &v : 0));
+  int res = SWIG_AsVal(long)(obj, val ? &v : 0);
   if (SWIG_IsOK(res)) {    
     if (val) *val = v ? true : false;
     return res;

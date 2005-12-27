@@ -14,7 +14,6 @@
     $1 = &temp;
   }
 }
-%typemap(freearg) const enum SWIGTYPE& "";
 
 %typemap(varin,fragment=SWIG_AsVal_frag(int),noblock=1) enum SWIGTYPE {
   if (sizeof(int) != sizeof($1)) {
