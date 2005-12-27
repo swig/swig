@@ -4,8 +4,11 @@
 #######################################################################
 
 LANGUAGE     = python
-#PYTHON      = valgrind --leak-check=full --show-reachable=yes @PYTHON@
+ifneq (,$(USE_VALGRIND))
+PYTHON       = valgrind --leak-check=full --suppressions=pyswig.supp @PYTHON@
+else
 PYTHON       = @PYTHON@
+endif
 SCRIPTSUFFIX = _runme.py
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -24,6 +27,7 @@ CPP_TEST_CASES += \
 	inout \
 	input \
 	inplaceadd \
+	implicittest \
 	kwargs \
 	li_cstring \
 	li_cwstring \
@@ -40,7 +44,8 @@ CPP_TEST_CASES += \
 	std_containers \
 	swigobject \
 	template_matrix \
-	simutry 
+	simutry \
+	vector
 
 
 C_TEST_CASES += \
