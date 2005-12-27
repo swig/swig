@@ -1,5 +1,7 @@
 %module(directors="1") director_profile
 
+%include std_string.i
+
 %feature("director") B;
 
 
@@ -47,6 +49,14 @@
     static B* get_self(B *b) 
     {
       return b;
+    }
+
+    virtual std::string vfs(const std::string& a) {
+      return a;
+    }
+    
+    std::string fs(const std::string& a) {
+      return vfs(a);
     }
     
   };
