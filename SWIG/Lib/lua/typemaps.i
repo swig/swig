@@ -283,7 +283,7 @@ for array handling
 %{	SWIG_FREE_ARRAY($1);%}
 
 // out fixed arrays
-%typemap(in,numargs=0) TYPE OUTPUT[ANY]
+%typemap(in,numinputs=0) TYPE OUTPUT[ANY]
 %{  $1 = SWIG_ALLOC_ARRAY(TYPE,$1_dim0); %}
 
 %typemap(argout) TYPE OUTPUT[ANY]
@@ -337,7 +337,7 @@ SWIG_TYPEMAP_NUM_ARR(double,double);
 %{	SWIG_FREE_ARRAY($1);%}
 
 // out fixed arrays
-%typemap(in,numargs=0) enum SWIGTYPE OUTPUT[ANY]
+%typemap(in,numinputs=0) enum SWIGTYPE OUTPUT[ANY]
 %{  $1 = SWIG_ALLOC_ARRAY(enum SWIGTYPE,$1_dim0); %}
 
 %typemap(argout) enum SWIGTYPE OUTPUT[ANY]
@@ -469,7 +469,7 @@ void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_type_info *typ
 %{	SWIG_FREE_ARRAY($1);%}
 
 // out fixed arrays
-%typemap(in,numargs=0) SWIGTYPE* OUTPUT[ANY]
+%typemap(in,numinputs=0) SWIGTYPE* OUTPUT[ANY]
 %{  $1 = SWIG_ALLOC_ARRAY($*1_type,$1_dim0); %}
 
 %typemap(argout) SWIGTYPE* OUTPUT[ANY]
