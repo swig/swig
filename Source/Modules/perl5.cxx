@@ -230,6 +230,10 @@ public:
 
     Swig_banner(f_runtime);
   
+    Printf(f_runtime,"#define SWIGPERL\n");
+    Printf(f_runtime,"#define SWIG_CASTRANK_MODE\n");
+
+
     module = Copy(Getattr(n,"name"));
 
   /* If we're in blessed mode, change the package name to "packagec" */
