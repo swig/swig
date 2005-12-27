@@ -2,6 +2,48 @@ Version 1.3.28 (unreleased).
 ===========================
 
 12/27/2005: mmatus
+	  - Add the 'math' option to typemaps. Assume you have:
+
+	      %typemap(in) SWIGTYPE * (int res) {..}
+	      %typemap(freearg) SWIGTYPE * { if (res$argnum) ...}
+
+	    then if you do
+ 
+	      %typemap(in) A * {...}
+
+	    swig will 'overload the 'in' typemap, but the 'freearg' 
+	    typemap will be also applied, even when is wrong. The old
+	    solutions is to write:
+
+	      %typemap(in) A * {...}
+  	      %typemap(freeag) A * "";
+
+	    overload 'freearg' with an empty definition.
+
+	    The problem is, however, there is no way to know you need
+	    to do that until you start getting broken C++ code, or
+	    worse,  broken runtime code.
+
+	    The same applies to the infamous 'typecheck' typemap,
+	    which always confuses people, since the first thing you do
+	    is just to write the 'in' typemap.
+
+	    Well, the 'match' option solve the problem, and if you
+	    write instead
+
+	      %typemap(in) SWIGTYPE * (int res) {..}
+	      %typemap(freearg,match="in") SWIGTYPE * { if (res$argnum) ...}
+	      %typemap(typecheck,match="in",precedence...) SWIGTYPE * {...}
+	    
+	    that will tell swig to apply the 'freearg/typecheck'
+	    typemaps only if they 'match' the type of the 'in'
+	    typemap. The same can be done with other typemaps as:
+
+	      %typemap(directorout) SWIGTYPE * {...}
+	      %typemap(directorfree,match="directorout") SWIGTYPE * {...}
+	    
+
+12/27/2005: mmatus
 	  - Add the 'naturalvar' option/mode/feature to treat member
 	    variables in a more natural way, ie, similar to the global
 	    variable behavior.
