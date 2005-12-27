@@ -1458,6 +1458,20 @@ Swig_typemap_emit_code_fragments(const String_or_char *op, Parm *p) {
  * given typemap type
  * ----------------------------------------------------------------------------- */
 
+String *
+Swig_typemap_get_option(Hash *tm, String *name) 
+{
+  Parm *kw = Getattr(tm,k_kwargs);
+  while (kw) {
+    String *kname = Getattr(kw,k_name);
+    if (Equal(kname,name)) {
+      return Getattr(kw,k_value);
+    }
+    kw = nextSibling(kw);
+  }
+  return 0;
+}
+
 void
 Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f) {
   Parm *p, *firstp;
@@ -1469,7 +1483,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   int   argnum = 0;
   char  temp[256];
   char *cop = Char(op);
-
+  String *kwmatch = 0;
   p = parms;
   while (p) {
     argnum++;
@@ -1479,18 +1493,39 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       p = nextSibling(p);
       continue;
     }
+    /*
+      Check if the typemap requires to match the type of another
+      typemap, for example:
+
+        %typemap(in) SWIGTYPE * (int var) {...}
+	%typemap(freearg,match="in") SWIGTYPE * {if (var$argnum) ...}
+
+      here, the freearg typemap requires the "in" typemap to match,
+      or the 'var$argnum' variable will not exist.
+    */
+    kwmatch = Swig_typemap_get_option(tm,"match");
+    if (kwmatch) {
+      String *tmname = NewStringf("tmap:%s",kwmatch);
+      Hash *tmin = Getattr(p,tmname);
+      if (!tmin || !Equal(Getattr(tmin,k_type),Getattr(tm,k_type))) {
+	p = nextSibling(p);
+	continue;
+      }
+      Delete(tmname);
+    }
+    
     s = Getattr(tm,k_code);
     if (!s) {
       p = nextSibling(p);
       continue;
     }
-
+    
     /* Empty typemap. No match */
     if (Cmp(s,"pass") == 0) {
       p = nextSibling(p);
       continue;
     }
-
+    
     s = Copy(s);
     locals = Getattr(tm,k_locals);
     if (locals) locals = CopyParmList(locals);
