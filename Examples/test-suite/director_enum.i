@@ -7,7 +7,7 @@
 %warnfilter(801) EnumDirector::Foo::ciao; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::Foo::aufwiedersehen; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::Foo::adios; /* Ruby, wrong constant name */
-%warnfilter(470) EnumDirector::Foo; /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
+%warnfilter(470,473) EnumDirector::Foo; /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
 
 
 
