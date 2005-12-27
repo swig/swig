@@ -1,6 +1,204 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/27/2005: mmatus
+	  - Add the 'naturalvar' option/mode/feature to treat member
+	    variables in a more natural way, ie, similar to the global
+	    variable behavior.
+
+	    If you use  
+
+	      swig -naturalvar ...
+
+	    or
+ 
+	      %module(naturalvar="1")
+
+	    or 
+
+	      %naturalvar std::string
+	      
+	    then, in the following case:
+
+	       std::string s;
+	       struct Bar {
+		 std::string s;
+               };
+
+            you can do:  
+
+	       b = Bar()
+	       b.s ="hello"
+	       cvar.s = "hello"
+	       
+	       if (b.s != cvar.s):
+	          raise RuntimeError
+
+		  
+            This is valid for all the languages, and the
+            implementation is based simply in forcing to use the
+            typemaps const SWIGTYPE& (C++)/SWIGTYPE (C) for the
+            get/set methods instead of the old SWIGTYPE *.
+	  
+12/27/2005: mmatus
+	  - Add more 'expressive' result states for the typemap
+            libraries.
+
+	    In the old times, you just check something like:
+
+	      if (ConvertPtr(obj,&vptr,ty,flags) != -1) {
+	        // success
+              } else {
+	        // error
+	      }
+
+	    Now the result state can carry more information,
+	    including:
+
+	      - Error state: as the old -1/0, but with error codes from swigerrors.swg.
+
+	         int res = ConvertPtr(obj,&vptr,ty,flags);
+		 if (SWIG_IsOK(res)) {
+		   // success code
+                 } else {
+		   SWIG_Error(res); // res carries the error code
+                 }
+
+	      - Cast rank: when returning a simple successful
+                conversion, you just return SWIG_OK, but if you need
+                to do a 'cast', you can add the casting rank, ie:
+		
+		  if (PyFloat_Check(obj)) {
+		    value = PyFloat_AsDouble(obj);
+		    return SWIG_OK;
+		  } else if (PyInt_Check(obj)) {
+		    value = (double) PyInt_AsLong(obj);
+		    return SWIG_AddCast(SWIG_OK);		    
+                  }
+		
+		later, the casting rank is used to properly dispatch
+		the overloaded function, for example. This of course
+		requires your language to support and use the new
+		dispatch cast/rank mechanism (Now mainly supported in
+		perl and python, and easily expandable to ruby and tcl).
+	      
+	  - [UTL] Add support for the new 'expressive' result states.
+
+12/27/2005: mmatus
+	  - Add support for the C++ implicit conversion mechanism, which
+            required some modifications in parser.y (to recognize
+            'explicit') and overload.cxx (to replace $implicitconv as
+            needed).
+	    
+	    Still, real support in each target language requires to modify
+	    each module language. Python provides an example, see bellow.
+
+
+	  - Add support for native C++ implicit conversions, ie, if you
+            have
+
+	        %implicitconv A;
+
+	        struct A {
+		   int ii;
+		   A() {ii = 1;}
+		   A(int) {ii = 2;}
+		   A(double) {ii = 3;}
+		   explicit A(char *s) {ii = 4;}
+		};
+		
+		int get(const A& a) {return a.ii;}
+
+            you can call:
+
+	        a = A()
+	        ai = A(1)
+	        ad = A(1.0)
+	        as = A("hello")
+		
+		# old forms
+	        get(a)  -> 1
+	        get(ai) -> 2
+	        get(ad) -> 3
+	        get(as) -> 4
+		
+		#implicit conversions
+	        get(1)       -> 2
+	        get(1.0)     -> 3
+	        get("hello") -> Error, explicit constructor
+
+
+	    This support now makes the old '%implicit' macro, which
+	    was found in 'implicit.i' and it was fragile in many ways,
+	    obsolete, and you should use the new '%implicitconv'
+	    directive instead.
+
+	    Note that we follow the C++ conventions, ie, in the
+	    following the implicit conversion is allowed:
+
+		int get(A a) {return a.ii;}
+		int get(const A& a) {return a.ii;}
+	    
+	    but not in this cases:
+
+		int get(A *a) {return a->ii;}
+		int get(A& a) {return a.ii;}
+		
+	    Also, it works for director methods that return a by value
+	    result, ie, the following will work:
+
+                virtual A get_a() = 0;
+
+		def get_a(self):
+		   return 1
+
+            but not in this cases:
+
+                virtual const A& get_a() = 0;
+                virtual A& get_a() = 0;
+                virtual A* get_a() = 0;
+	    
+	  Notes:
+
+	  - the implicitconv mechanism is implemented by directly
+	    calling/dispatching the python constructor, triggering a
+	    call to the __init__method. Hence, if you expanded the
+	    __init__ method, like in:
+
+	        class A:
+		   def __init__(self,args):
+		      <swig code>
+		      <my code here>
+
+            then 'my code' will also be executed.
+	    
+	  - Since the %implicitconv directive is based in SWIG
+            features, if you type:
+	    
+  	       %implicitconv;  
+
+	    that will enable implicit conversion for all the classes in
+	    your module.
+
+	    But if you are worry about performance, maybe that will be
+	    too much, especially if you have overloaded methods, since
+	    to resolve the dispatching problem, python will efectively
+	    try to call all the implicit constructors as needed.
+
+	  - For the same reason, it is highly recommended that you use
+            the new 'castmode' when mixing implicit conversion and
+            overloading.
+
+	 - [python] The %implicit directive is declared obsolete, and
+           you should use %implicitconv instead. If you include
+	   the implicit.i file, a warning will remind you this.
+
+	   Note: Since %implicit is fragile, just replacing it by
+	   %implicitconv could lead to different behavior. Hence, we
+	   don't automatically switch one by the other, and the user
+	   must migrate to the new %implicitconv directive manually.
+
+
 12/26/2005: wsfulton
             [C#]
             Modify std::vector wrappers to use std::vector::value_type as this is
