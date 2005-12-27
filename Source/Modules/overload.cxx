@@ -313,6 +313,12 @@ print_typecheck(String *f, int j, Parm *pj) {
   String *tm = Getattr(pj,"tmap:typecheck");
   if (tm) {
     Replaceid(tm,Getattr(pj,"lname"),"_v");
+    String *conv = Getattr(pj,"implicitconv");
+    if (conv) {
+      Replaceall(tm,"$implicitconv", conv);
+    } else {
+      Replaceall(tm,"$implicitconv", "0");
+    }
     Replaceall(tm,"$input", tmp);
     Printv(f,tm,"\n",NIL);
     return true;
@@ -479,12 +485,19 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
 	      num_braces++;
 	    }
 	    String *tmp=NewStringf(argv_template_string, j);
+
+	    String *conv = Getattr(pj,"implicitconv");
+	    if (conv) {
+	      Replaceall(tm,"$implicitconv", conv);
+	    } else {
+	      Replaceall(tm,"$implicitconv", "0");
+	    }
 	    Replaceall(tm,"$input", tmp);
 	    Printv(f,"{\n",tm,"}\n",NIL);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	    Printf(f, "_ranki += _v*_pi;\n", fn);
-	    Printf(f, "_pi *= SWIG_MAX_CAST_RANK;\n", fn);
+	    Printf(f, "_pi *= SWIG_MAXCASTRANK;\n", fn);
 	  }
 	}
 	if (!Getattr(pj,"tmap:in:SWIGTYPE") && Getattr(pj,"tmap:typecheck:SWIGTYPE")) {
@@ -639,6 +652,13 @@ Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
 	      num_braces++;
 	    }
 	    String *tmp=NewStringf(argv_template_string, j);
+
+	    String *conv = Getattr(pj,"implicitconv");
+	    if (conv) {
+	      Replaceall(tm,"$implicitconv", conv);
+	    } else {
+	      Replaceall(tm,"$implicitconv", "0");
+	    }
 	    Replaceall(tm,"$input", tmp);
 	    Printv(f,"{\n",tm,"}\n",NIL);
 	    fn = i + 1;
