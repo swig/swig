@@ -4,7 +4,7 @@
 %include std_wstring.i
 
 // Using thread unsafe wrapping
-%warnfilter(470) A;
+%warnfilter(470,473) A;
 
 %{
 #include <vector>

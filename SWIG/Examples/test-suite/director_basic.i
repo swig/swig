@@ -1,5 +1,5 @@
  %module(directors="1") director_basic
- #pragma SWIG nowarn=470
+ #pragma SWIG nowarn=470,473
 
  %{
  #include <string>

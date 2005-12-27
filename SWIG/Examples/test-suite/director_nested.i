@@ -1,5 +1,5 @@
 %module(directors="1",dirprot="1") director_nested
-#pragma SWIG nowarn=470
+#pragma SWIG nowarn=470,473
 
 %{
 #include <string>

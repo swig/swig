@@ -1,5 +1,7 @@
 /* This is a basic test of proxy classes, used by chicken */
 
+%warnfilter(454);                   /* memory leak when setting a ptr/ref variable */
+
 %warnfilter(801) global_cint;       /* Ruby, wrong constant name */
 
 %module cpp_basic

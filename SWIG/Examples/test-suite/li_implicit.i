@@ -1,4 +1,5 @@
 %module("nocastmode") li_implicit
+#pragma SWIG nowarn=204
 %include implicit.i
 
 %inline 

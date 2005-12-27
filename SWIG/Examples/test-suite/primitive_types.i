@@ -5,7 +5,7 @@
 #pragma SWIG nowarn=801
 
 // Using thread unsafe wrapping
-#pragma SWIG nowarn=470
+#pragma SWIG nowarn=470,473
  /*
 
  if your language has problems with MyInt* and/or Hello*,

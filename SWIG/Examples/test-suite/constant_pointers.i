@@ -4,6 +4,8 @@ This testcase primarily test constant pointers, eg int* const.  Only a getter is
 
 %module constant_pointers
 
+%warnfilter(454);                   /* memory leak when setting a ptr/ref variable */
+
 %inline %{
 
 int        GlobalInt;
