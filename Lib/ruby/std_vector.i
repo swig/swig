@@ -225,7 +225,7 @@ namespace std {
         %typemap(out) vector<T*> {
             $result = rb_ary_new2($1.size());
             for (unsigned int i=0; i<$1.size(); i++) {
-                T* x = new T((($1_type &)$1)[i]);
+                T* x = (($1_type &)$1)[i];
                 rb_ary_store($result,i,
                              SWIG_NewPointerObj((void *) x, 
                                                 $descriptor(T *), 0));
