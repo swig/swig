@@ -81,6 +81,24 @@ Version 1.3.28 (unreleased).
             implementation is based simply in forcing to use the
             typemaps const SWIGTYPE& (C++)/SWIGTYPE (C) for the
             get/set methods instead of the old SWIGTYPE *.
+	    Hence, for 'naturalvar' to work, each target language
+	    must implement 'typemap(in/out) const Type&' properly.
+
+	    The 'naturalvar' option makes (little dangerous)
+	    workarounds such as:
+	    
+		%apply(const std::string &) { std::string *}
+
+            obsoletes.
+
+	    Note1: If your interface has other kind of workarounds to
+	    deal with the old 'unnatural' way to deal with member
+	    variables (returning/expexting pointers), the
+	    'narturalvar' option could break them.
+	    
+	    Note2: the option has no effect over unnamed types, such
+	    as unnamed nested unions.
+	    
 	  
 12/27/2005: mmatus
 	  - Add more 'expressive' result states for the typemap
@@ -169,6 +187,30 @@ Version 1.3.28 (unreleased).
 	        get(1.0)     -> 3
 	        get("hello") -> Error, explicit constructor
 
+            Also, as in C++, now implicit conversions are supported in
+            variable assigments, and if you have:
+
+	      A ga;
+	      struct Bar {
+	        A a;
+              };
+
+	    you can do:
+
+	      cvar.ga = A(1)
+	      cvar.ga = 1
+	      cvar.ga = 1.0
+	      cvar.ga = A("hello") 
+	      cvar.ga = "hello" -> error, explicit constructor
+
+	      b = Bar()
+	      b.a = A("hello")
+	      b.a = 1
+	      b.a = 1.0
+	      b.a = "hello" -> error, explicit constructor
+
+	    Note that the last case, assigning directly a member var, 
+	    requires also the 'naturalvar' option.
 
 	    This support now makes the old '%implicit' macro, which
 	    was found in 'implicit.i' and it was fragile in many ways,
