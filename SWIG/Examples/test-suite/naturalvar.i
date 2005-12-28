@@ -9,6 +9,7 @@
   };
   
 
+  Foo f;
   std::string s;
   struct Bar
   {
@@ -24,7 +25,8 @@
   {
   }Foo;
   
-  
+
+  Foo f;
   char *s;
   typedef struct _bar
   {
