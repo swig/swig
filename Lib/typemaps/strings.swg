@@ -422,7 +422,7 @@
   $1 = %static_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
 }
-%typemap(freearg, noblock=1,match="in") (Char *STRING, size_t SIZE) {
+%typemap(freearg,noblock=1,match="in") (Char *STRING, size_t SIZE) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 /* old 'int' form */
