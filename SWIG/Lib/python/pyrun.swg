@@ -189,7 +189,7 @@ typedef struct {
   int implicitconv;
 } PySwigClientData;
 
-SWIGRUNTIME int 
+SWIGRUNTIMEINLINE int 
 SWIG_Python_CheckImplicit(swig_type_info *ty)
 {
   PySwigClientData *data = (PySwigClientData *)ty->clientdata;

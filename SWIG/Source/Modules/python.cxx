@@ -1404,7 +1404,7 @@ public:
   const char *get_implicitconv_flag(Node *klass) 
   {
     int conv = 0;
-    if (klass &&  Getattr(klass,"feature:implicitconv")) {
+    if (klass &&  GetFlag(klass,"feature:implicitconv")) {
 	conv = 1;
     }
     return conv ? "SWIG_POINTER_IMPLICIT_CONV" : "0";
@@ -1537,9 +1537,12 @@ public:
 
     if (constructor && num_arguments == 1 && num_required == 1) {
       if (Cmp(storage,"explicit") == 0) {
-	String *desc = NewStringf("SWIGTYPE%s", SwigType_manglestr(Getattr(n,"type")));
-	Printf(f->code, "if (SWIG_CheckImplicit(%s)) SWIG_fail;\n", desc);
-	Delete(desc);
+	Node *parent = Swig_methodclass(n);
+	if (GetFlag(parent,"feature:implicitconv")) {
+	  String *desc = NewStringf("SWIGTYPE%s", SwigType_manglestr(Getattr(n,"type")));
+	  Printf(f->code, "if (SWIG_CheckImplicit(%s)) SWIG_fail;\n", desc);
+	  Delete(desc);
+	}
       }
     }
 
@@ -1703,9 +1706,19 @@ public:
   
     /* Insert cleanup code */
     for (p = l; p;) {
-      if (!checkAttribute(p,"tmap:in:numinputs","0") && 
-	  !Getattr(p,"tmap:in:parse") && (tm = Getattr(p,"tmap:freearg"))) {
-	if (Len(tm) != 0) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0") && !Getattr(p,"tmap:in:parse")) {
+	tm = Getattr(p,"tmap:freearg");
+	if (Getattr(p,"tmap:freearg:implicitconv")) {
+	  const char *convflag = "0";
+	  if (!Getattr(p,"self")) {
+	    SwigType *ptype =  Getattr(p,"type");
+	    convflag = get_implicitconv_flag(classLookup(ptype));
+	  }
+	  tm = (strcmp(convflag,"0") != 0) ? Getattr(p,"tmap:freearg") : 0;
+	} else {
+	  tm = Getattr(p,"tmap:freearg");
+	}	
+	if (tm && (Len(tm) != 0)) {
 	  Replaceall(tm,"$source",Getattr(p,"lname"));
 	  Printv(cleanup,tm,"\n",NIL);
 	}

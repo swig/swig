@@ -299,7 +299,11 @@ Version 1.3.28 (unreleased).
 	    entire test-suite compiles fine with and without the
 	    castmode.
 
-	    Note2: the castmode disables the -fatdispatch option.
+ 	    Note2: the cast mode can't be comnined with the fast
+	    dispatch mode, ie, the -fastdispatch option has no effect
+	    when the cast mode is selected. The penalties, however,
+	    are minimum since the cast dispatch code is already based
+	    in the same fast dispatch mechanism.
 
 	    See the file overload_dispatch_cast_runme.py file for
 	    new cases and examples.

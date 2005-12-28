@@ -1421,6 +1421,9 @@ Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
     Delete(value);
     kw = nextSibling(kw);
   }
+  Clear(temp);
+  Printf(temp,"%s:match_type",op);
+  Setattr(p,tmop_name(temp),Getattr(tm,k_type));
   Delete(temp);
 }
 
@@ -1507,8 +1510,31 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     if (kwmatch) {
       String *tmname = NewStringf("tmap:%s",kwmatch);
       Hash *tmin = Getattr(p,tmname);
-      if (!tmin || !Equal(Getattr(tmin,k_type),Getattr(tm,k_type))) {
+      if (tmin) {
+	SwigType *typetm = Getattr(tm,k_type);
+	SwigType *typein = Getattr(tmin,k_type);
+	if (!typein) {
+	  String *temp = NewStringf("tmap:%s:match_type",kwmatch);
+	  typein = Getattr(p,temp);
+	  Delete(temp);
+	}
+	if (!typetm) {
+	  Printf(stderr,"notm %s\n",tm);
+	}
+
+	if (!typein) {
+	  Printf(stderr,"noin %s\n",tmin);
+	}
+	
+	if (!Equal(typein,typetm)) {
+	  Printf(stderr,"type in %s tm %s\n", typein, typetm);
+	  p = nextSibling(p);
+	  Delete(tmname);
+	  continue;
+	}
+      } else {
 	p = nextSibling(p);
+	Delete(tmname);
 	continue;
       }
       Delete(tmname);
