@@ -408,6 +408,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
       Printf(f,"if (%s >= %d) {\n", argc_template_string, num_required);
     }
     Printf(f,"SWIG_TypeRank _ranki = 0;\n");
+    Printf(f,"SWIG_TypeRank _rankm = 0;\n");
     Printf(f,"SWIG_TypeRank _pi = 1;\n",num_arguments);
 
     /* create a list with the wrappers that collide with the
@@ -497,6 +498,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	    Printf(f, "_ranki += _v*_pi;\n", fn);
+	    Printf(f, "_rankm += _pi;\n", fn);
 	    Printf(f, "_pi *= SWIG_MAXCASTRANK;\n", fn);
 	  }
 	}
@@ -517,7 +519,10 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     /* close braces */
     for (/* empty */; num_braces > 0; num_braces--) Printf(f, "}\n");
 
-    Printf(f,"if (!_index || (_ranki < _rank)) { _rank = _ranki; _index = %d;}\n",i+1);
+    Printf(f,"if (!_index || (_ranki < _rank)) {\n",i+1);
+    Printf(f," _rank = _ranki; _index = %d;\n",i+1);
+    Printf(f," if (_rank == _rankm) goto dispatch;\n",i+1);
+    Printf(f,"}\n",i+1);
     String *lfmt = ReplaceFormat (fmt, num_arguments);
     Printf(sw, "case %d:\n", i+1);
     Printf(sw, Char(lfmt),Getattr(ni,"wrap:name"));
@@ -530,6 +535,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     Delete(coll);
   }
   Delete(dispatch);
+  Printf(f,"dispatch:\n");
   Printf(f,"switch(_index) {\n");
   Printf(f,"%s",sw);
   Printf(f,"}\n");
