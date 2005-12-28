@@ -174,8 +174,8 @@ values.
 
 %define %_value_output_typemap(from_meth, from_frag, Type)
  %typemap(in,numinputs=0,noblock=1) 
-   Type *OUTPUT ($*1_ltype temp, int res = SWIG_NEWOBJ), 
-   Type &OUTPUT ($*1_ltype temp, int res = SWIG_NEWOBJ) {
+   Type *OUTPUT ($*1_ltype temp, int res = SWIG_TMPOBJ), 
+   Type &OUTPUT ($*1_ltype temp, int res = SWIG_TMPOBJ) {
    $1 = &temp;
  }
  %typemap(argout,noblock=1,fragment=from_frag) Type *OUTPUT, Type &OUTPUT {
