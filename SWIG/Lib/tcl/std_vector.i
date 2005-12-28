@@ -41,6 +41,15 @@ Tcl_Obj* SwigString_FromString(std::string s) {
     return Tcl_NewStringObj(s.c_str(), s.length());
 }
 
+int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
+  int v;
+  int res = Tcl_GetBooleanFromObj(interp, o, &v);
+  if (res == TCL_OK) {
+    *val = v ? true : false;
+  }
+  return res;  
+}
+ 
 int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
     int len;
     const char* temp = Tcl_GetStringFromObj(o, &len);
@@ -391,7 +400,7 @@ namespace std {
     %enddef
 
     specialize_std_vector(bool, Tcl_GetBoolFromObj, Tcl_NewBooleanObj);
-    specialize_std_vector(char, Tcl_GetIntFromObj,Tcl_NewIntObj);
+    specialize_std_vector(char, SwigInt_As<char>,Tcl_NewIntObj);
     specialize_std_vector(int, Tcl_GetIntFromObj,Tcl_NewIntObj);
     specialize_std_vector(short, SwigInt_As<short>, Tcl_NewIntObj);
     specialize_std_vector(long, SwigInt_As<long>, Tcl_NewIntObj);
