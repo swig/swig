@@ -54,7 +54,7 @@
   if (SWIG_IsNewObj(res$argnum)) %delete($1);
 }
 #else
-%typemap(in, noblock=1) const SWIGTYPE & (void *argp) {
+%typemap(in,noblock=1) const SWIGTYPE & (void *argp) {
   if (!SWIG_IsOK(SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags))) {
     %argument_fail(SWIG_TypeError, "$type", $argnum); 
   }
@@ -92,8 +92,8 @@
     $1 = *(%reinterpret_cast(argp, $&ltype));
   }
 }
-%typemap(freearg) SWIGTYPE  "";
 #endif
+
 
 /* -----------------------------------------------------------------------------
  * --- Output arguments --- 
