@@ -939,8 +939,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     Node *top = Swig_cparse(cpps);
-    Delete(cpps);
-
 
     if (Verbose) {
       Printf(stdout,"Processing types...\n");
