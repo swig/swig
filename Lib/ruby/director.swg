@@ -244,19 +244,33 @@ namespace Swig {
 
   /* Simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__
-#define __PTHREAD__
-#if defined(_WIN32) || defined(__WIN32__)
-#define pthread_mutex_lock EnterCriticalSection
-#define pthread_mutex_unlock LeaveCriticalSection
-#define pthread_mutex_t CRITICAL_SECTION
-#define MUTEX_INIT(var) CRITICAL_SECTION var
-#else
-#include <pthread.h>
-#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER 
-#endif
+# define __PTHREAD__
+# if defined(_WIN32) || defined(__WIN32__)
+#  define pthread_mutex_lock EnterCriticalSection
+#  define pthread_mutex_unlock LeaveCriticalSection
+#  define pthread_mutex_t CRITICAL_SECTION
+#  define SWIG_MUTEX_INIT(var) var
+# else
+#  include <pthread.h>
+#  define SWIG_MUTEX_INIT(var) var = PTHREAD_MUTEX_INITIALIZER 
+# endif
 #endif
 
 #ifdef  __PTHREAD__
+  struct Guard
+  {
+    pthread_mutex_t *_mutex;
+    
+    Guard(pthread_mutex_t &mutex) : _mutex(&mutex)
+    {
+      pthread_mutex_lock(_mutex);
+    }
+    
+    ~Guard()
+    {
+      pthread_mutex_unlock(_mutex);
+    }
+  };
 # define SWIG_GUARD(mutex) Guard _guard(mutex)
 #else
 # define SWIG_GUARD(mutex) 
@@ -371,7 +385,9 @@ namespace Swig {
   private:
     typedef std::map<void*, GCItem_var> ownership_map;
     mutable ownership_map owner;
-    mutable pthread_mutex_t swig_mutex_own;
+#ifdef __PTHREAD__
+    static pthread_mutex_t swig_mutex_own;
+#endif
     
 
   public:

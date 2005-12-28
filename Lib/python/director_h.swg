@@ -463,7 +463,9 @@ namespace Swig {
   private:
     typedef std::map<void*, GCItem_var> ownership_map;
     mutable ownership_map owner;
+#ifdef __PTHREAD__
     static pthread_mutex_t swig_mutex_own;
+#endif
 
   public:
     template <typename Type>
