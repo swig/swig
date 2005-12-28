@@ -1373,11 +1373,11 @@ public:
     if (allow_thread) thread_end_block(n, f->code);
 
     if (GetFlag(n,"feature:python:maybecall")) {
-      Printf(f->code,"fail:;\n");
+      Printf(f->code,"fail:\n");
       Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Printf(f->code,"return Py_NotImplemented;\n");
     } else {
-      Printf(f->code,"fail:;\n");
+      Printf(f->code,"fail:\n");
       Printf(f->code,"SWIG_SetErrorMsg(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
       Printf(f->code,"return NULL;\n");
     }
