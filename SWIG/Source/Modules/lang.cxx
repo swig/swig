@@ -1269,7 +1269,7 @@ Language::membervariableHandler(Node *n) {
       }
       int flags = Extend | SmartPointer;
       
-      if (naturalvar_mode || GetFlag(n,"feature:naturalvar")) {
+      if ((naturalvar_mode || GetFlag(n,"feature:naturalvar")) && !Getattr(n,"unnamed")) {
 	flags |= CWRAP_NATURAL_VAR;
       }
 
@@ -1318,7 +1318,7 @@ Language::membervariableHandler(Node *n) {
     /* Emit get function */
     {
       int flags = Extend | SmartPointer;
-      if (naturalvar_mode || GetFlag(n,"feature:naturalvar")) {
+      if ((naturalvar_mode || GetFlag(n,"feature:naturalvar")) && !Getattr(n,"unnamed")) {
 	flags |= CWRAP_NATURAL_VAR;
       }
 

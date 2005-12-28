@@ -1014,6 +1014,7 @@ typedef struct Nested {
   int      line;         /* line number where it starts */
   char     *name;        /* Name associated with this nested class */
   char     *kind;        /* Kind of class */
+  int      unnamed;      /* unnamed class */
   SwigType *type;        /* Datatype associated with the name */
   struct Nested   *next;        /* Next code fragment in list */
 } Nested;
@@ -1066,6 +1067,10 @@ static Node *dump_nested(const char *parent) {
     Setattr(retx,"type",nt);
     Delete(nt);
     Setattr(retx,"nested",parent);
+    if (n->unnamed) {
+      Setattr(retx,"unnamed","1");
+    }
+    
     add_symbols(retx);
     if (ret) {
       set_nextSibling(retx,ret);
@@ -4152,6 +4157,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		      n->line = cparse_start_line;
 		      n->type = NewStringEmpty();
 		      n->kind = $2;
+		      n->unnamed = 0;
 		      SwigType_push(n->type, $6.type);
 		      n->next = 0;
 		      add_nested(n);
@@ -4179,6 +4185,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		    n->line = cparse_start_line;
 		    n->type = NewStringEmpty();
 		    n->kind = $2;
+		    n->unnamed = 1;
 		    SwigType_push(n->type,$5.type);
 		    n->next = 0;
 		    add_nested(n);
