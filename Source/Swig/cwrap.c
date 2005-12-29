@@ -741,7 +741,7 @@ Swig_extension_code(const String *function_name, ParmList *parms,
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
   String *sig = NewStringf("%s(%s)", function_name, parms_str);
   String *rt_sig = SwigType_str(return_type,sig);
-  String *body = NewStringf("static %s", rt_sig);
+  String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
   Delete(parms_str);
   Delete(sig);
