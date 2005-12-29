@@ -23,12 +23,13 @@ namespace Foo {
     %typemap(jni) Str1 * = char *;
     %typemap(jtype) Str1 * = char *;
     %typemap(jstype) Str1 * = char *;
-    %typemap(freearg) Str1 * = char *;
     %typemap(javain) Str1 * = char *;
     %typemap(javaout) Str1 * = char *;
 #endif
     %typemap(in) Str1 * = char *;
+#if !defined(SWIGCSHARP)
     %typemap(freearg) Str1 * = char *;
+#endif
     %typemap(typecheck) Str1 * = char *;
     %apply char * { Str2 * };
 }
