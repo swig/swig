@@ -18,6 +18,8 @@
 #    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
 #    c) Define srcdir, top_srcdir and top_builddir (these are the
 #       equivalent to configure's variables of the same name).
+# 3) One off special commandline options can be achieved by adding a
+#    test case to CUSTOM_TEST_CASES and defining rules to run and test.
 #
 # The variables below can be overridden after including this makefile
 #######################################################################
@@ -141,6 +143,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
+	extend_variable \
 	extern_namespace \
 	extern_throws \
 	features \
@@ -155,7 +158,6 @@ CPP_TEST_CASES += \
 	inherit_same_name \
 	inherit_void_arg \
 	inline_initializer \
-	intermediary_classname \
 	kind \
 	langobj \
 	li_attribute \
@@ -383,7 +385,8 @@ MULTI_CPP_TEST_CASES += \
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
-			$(MULTI_CPP_TEST_CASES:=.multicpptest)
+			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
+			$(CUSTOM_TEST_CASES:=.customtest)
 
 BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 			$(C_TEST_BROKEN:=.ctest)
@@ -391,6 +394,7 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
+			$(CUSTOM_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
 			$(C_TEST_BROKEN:=.clean)
 
