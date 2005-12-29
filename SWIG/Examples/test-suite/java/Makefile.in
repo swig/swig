@@ -17,6 +17,7 @@ CPP_TEST_CASES = \
 	enum_thorough_proper \
 	enum_thorough_simple \
 	enum_thorough_typeunsafe \
+	intermediary_classname \
 	java_constants \
 	java_director \
 	java_enums \
