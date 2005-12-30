@@ -1,6 +1,26 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+12/30/2005: mmatus
+
+	  - Add initial support for gcj and Java -> Python. See
+	  
+		  Examples/python/java
+
+            to see how to use gcj and how to export java classes into
+            python.
+	    
+	    The idea is to put all the common code for gcj inside
+
+	          Lib/gcj
+
+            such that it can be used from other languages.
+	    
+	    Python provide a simple jstring.i interface, which can be
+	    used as a modelo to ruby,tcl and perl, ie, the languages
+	    that use the UTL.
+
+	    
 
 12/29/2005: mmatus
 	  - Add the copyctor feature/directive to enable the automatic
@@ -80,7 +100,7 @@ Version 1.3.28 (unreleased).
 	    which always confuses people, since the first thing you do
 	    is just to write the 'in' typemap.
 
-	    Well, the 'match' option solve the problem, and if you
+	    Well, the 'match' option solves the problem, and if you
 	    write instead
 
 	      %typemap(in) SWIGTYPE * (int res) {..}
