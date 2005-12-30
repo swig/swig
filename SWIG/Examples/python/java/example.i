@@ -1,6 +1,6 @@
 %module example
-%include <gcj/cni.i>
 
+%include <gcj/cni.i>
 %include <jstring.i>
 
 %{
