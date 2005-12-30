@@ -417,6 +417,12 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
     the rest seems not caring very much,
   */
   if (SwigType_istemplate(name)) {
+    /* fix for compilers like gcc 3.3.5 + operator() */
+    if (strstr(Char(nname),"operator ()") != 0) {
+      String *tprefix = SwigType_templateprefix(nname);
+      Delete(nname);
+      nname = tprefix;
+    }
     Printf(func,"SWIGTEMPLATEDISAMBIGUATOR %s(", nname);
   } else {
     Printf(func,"%s(", nname);
