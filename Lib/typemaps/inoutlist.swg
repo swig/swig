@@ -71,9 +71,9 @@ or you can use the %apply directive :
 
 */
 #if defined(SWIG_INPUT_ACCEPT_PTRS)
-#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK(res = SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown)))
+#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK((res = SWIG_ConvertPtr(input,%as_voidptrptr(arg),desc,disown))))
 #else
-#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK(res = SWIG_ERROR))
+#define %check_input_ptr(input,arg,desc,disown) (SWIG_IsOK((res = SWIG_ERROR)))
 #endif
 
 %define %_value_input_typemap(code, asval_meth, asval_frag, Type)

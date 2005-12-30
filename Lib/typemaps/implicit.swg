@@ -44,12 +44,14 @@
 %define %implicit_frag(Type...) ,fragment=SWIG_Traits_frag(Type) %enddef
 
 %define %implicit_code(Type...)
-  if (SWIG_IsOK(swig::asval<Type >(obj, 0))) {
-    Type _v;
-    int res = swig::asval<Type >(obj, &_v);
+{
+  Type _v;
+  int res = swig::asval<Type >(obj, &_v);  
+  if (SWIG_IsOK(res)) {
     if (val) *val = %new_copy(_v, value_type);
     return SWIG_AddNewMask(res);
   }
+}
 %enddef
 
 /* implicit */
