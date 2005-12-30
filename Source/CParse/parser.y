@@ -217,6 +217,11 @@ Hash *Swig_cparse_features() {
   return features_hash;
 }
 
+Hash *Swig_cparse_rename() {
+  if (!rename_hash) rename_hash = NewHash();
+  return rename_hash;
+}
+
 static String *feature_identifier_fix(String *s) {
   if (SwigType_istemplate(s)) {
     String *tp, *ts, *ta, *tq;
@@ -238,13 +243,12 @@ static String *feature_identifier_fix(String *s) {
 static void single_rename_add(const char *name, SwigType *decl, const char *cnewname) {
   String *nname;
   String *newname = NewString(cnewname);
-  if (!rename_hash) rename_hash = NewHash();
   if (Namespaceprefix) {
     nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
-  Swig_name_object_set(rename_hash,nname,decl,newname);
+  Swig_name_object_set(Swig_cparse_rename(),nname,decl,newname);
   Delete(newname);
   Delete(nname);
 }
@@ -298,7 +302,7 @@ static void namewarn_add(const char *name, SwigType *decl, const char *warning) 
 
 static void rename_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
-  Swig_name_object_inherit(rename_hash,base,derived);
+  Swig_name_object_inherit(Swig_cparse_rename(),base,derived);
   Swig_name_object_inherit(Swig_cparse_namewarn(),base,derived);
   Swig_name_object_inherit(features_hash,base,derived);
 }
@@ -330,7 +334,7 @@ static String *make_name(String *name,SwigType *decl) {
     if (add_oldname) return Copy(add_oldname);
     return Copy(origname);
   }
-  rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
+  rn = Swig_name_object_get(Swig_cparse_rename(), Namespaceprefix, name, decl);
   if (!rn) {
     if (add_oldname) return Copy(add_oldname);
     return Copy(name);

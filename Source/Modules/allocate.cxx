@@ -820,8 +820,19 @@ public:
     if (parms && (ParmList_numrequired(parms) == 1)) {
       /* Look for a few cases. X(const X &), X(X &), X(X *) */
       int copy_constructor = 0;
-      String *cc = NewStringf("r.q(const).%s", Getattr(inclass,"name"));
-      if (Strcmp(cc,Getattr(parms,"type")) == 0) {
+      SwigType *type = Getattr(inclass,"name");
+      String *tn = NewStringf("r.q(const).%s", type);
+      String *cc = SwigType_typedef_resolve_all(tn);
+      SwigType *rt = SwigType_typedef_resolve_all(Getattr(parms,"type"));
+      if (SwigType_istemplate(type)) {
+	String *tmp = Swig_symbol_template_deftype(cc, 0);
+	Delete(cc);
+	cc = tmp;
+	tmp = Swig_symbol_template_deftype(rt, 0);
+	Delete(rt);
+	rt = tmp;
+      }      
+      if (Strcmp(cc,rt) == 0) {
 	copy_constructor = 1;
       } else {
 	Delete(cc);
@@ -835,10 +846,12 @@ public:
 	  if (Strcmp(cc,ty) == 0) {
 	    copy_constructor = 1;
 	  }
-	  Delete(cc);
 	  Delete(ty);
 	}
       }
+      Delete(cc);
+      Delete(rt);
+      Delete(tn);
       
       if (copy_constructor) {
 	Setattr(n,"copy_constructor","1");
