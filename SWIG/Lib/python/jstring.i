@@ -42,18 +42,18 @@ SWIG_AsVal(jstring)(PyObject *obj, jstring *val)
 
 %fragment(SWIG_From_frag(jstring),"header") {
 SWIGINTERNINLINE PyObject *
-SWIG_From(jstring)(jstring js)
+SWIG_From(jstring)(jstring val)
 {
-  if (!js) {
+  if (!val) {
     return SWIG_Py_Void();
   } 
   if (sizeof(Py_UNICODE) == sizeof(jchar)) {    
-    return PyUnicode_FromUnicode((const Py_UNICODE *) JvGetStringChars(js),
-				 js->length());
+    return PyUnicode_FromUnicode((const Py_UNICODE *) JvGetStringChars(val),
+				 JvGetStringUTFLength(val));
   } else {
-    int len = js->length();
+    int len = JvGetStringUTFLength(val);
     Py_UNICODE pchars[len];
-    jchar *jchars = JvGetStringChars(js);
+    jchar *jchars = JvGetStringChars(val);
     
     for (int i = 0; i < len; i++) {      
       pchars[i] = jchars[i];
