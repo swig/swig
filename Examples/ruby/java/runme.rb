@@ -12,5 +12,7 @@ e3 = e1.Add(e1,e2)
 print e3.mPublicInt,"\n"
 
 
+print e1.Add("1","2"),"\n"
+
 Example.JvDetachCurrentThread()
 
