@@ -63,10 +63,10 @@
 #define %defaultdtor         %feature("nodefaultdtor","0")
 #define %clearnodefaultdtor  %feature("nodefaultdtor","")
 
-/* Disable the generation of copy constructor */
-#define %nocopyctor       %feature("nocopyctor","1")
-#define %copyctor         %feature("nocopyctor","0")
-#define %clearnocopyctor  %feature("nocopyctor","")
+/* Enable the generation of copy constructor */
+#define %copyctor       %feature("copyctor","1")
+#define %nocopyctor     %feature("copyctor","0")
+#define %clearcopyctor  %feature("copyctor","")
 
 /* Force the old nodefault behavior, ie disable both constructor and destructor */
 #define %oldnodefault       %feature("oldnodefault","1")

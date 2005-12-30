@@ -80,6 +80,9 @@ namespace std {
   protected:
     basic_streambuf();
 
+  private:
+    basic_streambuf(const basic_streambuf&);
+
   }; 
 }
 

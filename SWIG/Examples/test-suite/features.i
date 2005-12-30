@@ -7,6 +7,7 @@
 %exception "this_will_not_compile";
 
 // Test 1: Test for no user supplied constructors and destructor
+%exception Simple::Simple(const Simple&) "$action /*Simple::Simple*/";
 %exception Simple::Simple() "$action /*Simple::Simple*/";
 %exception Simple::~Simple() "$action /*Simple::~Simple*/";
 
@@ -15,6 +16,7 @@ class Simple {};
 %}
 
 
+%exception NS::SimpleNS::SimpleNS(const NS::SimpleNS&) "$action /*NS::SimpleNS::SimpleNS*/";
 %exception NS::SimpleNS::SimpleNS() "$action /*NS::SimpleNS::SimpleNS*/";
 %exception NS::SimpleNS::~SimpleNS() "$action /*NS::SimpleNS::~SimpleNS*/";
 // method tests
@@ -46,6 +48,7 @@ template<class T> void foobar(T t) {}
 %template(FooBarInt) foobar<int>;
 
 // Test 3: Test templates with no user supplied constructors and destructor
+%exception SimpleTemplate<int>::SimpleTemplate(const SimpleTemplate<int>&) "$action /*SimpleTemplate<int>::SimpleTemplate<int>*/";
 %exception SimpleTemplate<int>::SimpleTemplate() "$action /*SimpleTemplate<int>::SimpleTemplate<int>*/";
 %exception SimpleTemplate<int>::~SimpleTemplate() "$action /*SimpleTemplate<int>::~SimpleTemplate*/";
 
@@ -92,6 +95,7 @@ public:
 %template(TemplateInt) Template<int>; 
 
 // Test 5: wildcards
+%exception Space::WildCards::WildCards(const Space::WildCards&) "$action /* Space::WildCards::WildCards() */";
 %exception Space::WildCards::WildCards() "$action /* Space::WildCards::WildCards() */";
 %exception Space::WildCards::~WildCards() "$action /* Space::WildCards::WildCards() */";
 %exception *::incy              "_failure_ /* *::incy */";
@@ -113,6 +117,7 @@ namespace Space {
 %}
 
 // Test 6: default arguments
+%exception Space::Animals::Animals(const Space::Animals&) "$action /* Space::Animals::Animals(int a = 0, double d = 0.0) */";
 %exception Space::Animals::Animals(int a = 0, double d = 0.0) "$action /* Space::Animals::Animals(int a = 0, double d = 0.0) */";
 %exception Space::Animals::~Animals() "$action /* Space::Animals::~Animals() */";
 %exception Space::Animals::lions(int a = 0, double d = 0.0) const "$action /* Space::Animals::lions(int a = 0, double d = 0.0) const */";
@@ -132,8 +137,10 @@ namespace Space {
 %}
 
 // Test 7: inheritance
+%exception Space::Base::Base(const Space::Base&) "$action /* Space::Base::Base() */";
 %exception Space::Base::Base() "$action /* Space::Base::Base() */";
 %exception Space::Base::~Base() "$action /* Space::Base::~Base() */";
+%exception Space::Derived::Derived(const Space::Derived&) "$action /* Space::Derived::Derived() */";
 %exception Space::Derived::Derived() "$action /* Space::Derived::Derived() */";
 %exception Space::Derived::~Derived() "$action /* Space::Derived::~Derived() */";
 // The following should apply to both Base and Derived

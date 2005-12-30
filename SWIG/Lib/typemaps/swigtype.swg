@@ -155,6 +155,7 @@
   }
 }
 
+
 /* memberin/globalin/varin, for fix double arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
