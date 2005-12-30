@@ -3,24 +3,31 @@ Version 1.3.28 (unreleased).
 
 12/30/2005: mmatus
 
-	  - Add initial support for gcj and Java -> Python. See
-	  
-		  Examples/python/java
+	  - Add initial support for gcj and Java -> <target language> mechanism.
 
-            to see how to use gcj and how to export java classes into
-            python.
+	    See	examples in:  
+	  
+		Examples/python/java
+		Examples/ruby/java
+		Examples/tcl/java
+
+            to see how to use gcj+swig to export java classes into
+            python/ruby/tcl.
 	    
 	    The idea is to put all the common code for gcj inside
 
 	          Lib/gcj
 
-            such that it can be used from other languages.
-	    
-	    Python provide a simple jstring.i interface, which can be
-	    used as a modelo to ruby,tcl and perl, ie, the languages
-	    that use the UTL.
+            and localize especific issues as jstring, as can be found
+            in
 
-	    
+	         Lib/python/jstring.i
+	         Lib/ruby/jstring.i
+	         Lib/tcl/jstring.i
+
+            Using the UTL, this is very easy, and the perl version for
+            jstring.i will be next.
+		 	    
 
 12/29/2005: mmatus
 	  - Add the copyctor feature/directive to enable the automatic

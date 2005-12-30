@@ -26,8 +26,7 @@ SWIG_From(jstring)(jstring val)
 {
   if (!val) {
     return Qnil;
-  }
-  else {
+  } else {
     jint len = JvGetStringUTFLength(val);
     char buf[len];
     JvGetStringUTFRegion(val, 0, len, buf);
