@@ -3,6 +3,7 @@
 
 /* Warnings for Php keywords */
 #define PHPKW(x) %namewarn("314:" #x " is a php keyword")  #x
+#define PHPBN(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
 
 /*
    from
@@ -83,8 +84,8 @@ PHPKW(while);
 PHPKW(xor);
 
 
-// This is conflicting with _std_deque.i!.
-PHPKW(empty);
+// This is a bad name only if is global, but is ok as member.
+PHPBN(empty);
 
 
 #undef PHPKW
