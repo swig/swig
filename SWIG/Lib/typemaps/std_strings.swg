@@ -7,7 +7,7 @@ SWIGINTERN int
 SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val) 
 {
   Char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
-  if (SWIG_IsOK(SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc))) {
+  if (SWIG_IsOK((SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc)))) {
     if (buf) {
       if (val) *val = new String(buf, size - 1);
       if (alloc == SWIG_NEWOBJ) %delete_array(buf);

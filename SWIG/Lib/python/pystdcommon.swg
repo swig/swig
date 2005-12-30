@@ -101,7 +101,8 @@ namespace swig {
   struct traits_as<Type, value_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type v;
-      if (!obj || !SWIG_IsOK(asval(obj, &v))) {
+      int res = asval(obj, &v);
+      if (!obj || !SWIG_IsOK(res)) {
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
@@ -161,20 +162,22 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(PyObject *obj) {
-      return obj && SWIG_IsOK(asval(obj, (Type *)(0)));
+    static int check(PyObject *obj) {
+      int res = asval(obj, (Type *)(0));
+      return obj && SWIG_IsOK(res) ? res : 0;
     }
   };
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(PyObject *obj) {
-      return obj && asptr(obj, (Type **)(0));
+    static int check(PyObject *obj) {
+      int res = asptr(obj, (Type **)(0));
+      return obj && SWIG_IsOK(res) ? res : 0;
     }
   };
 
   template <class Type>
-  inline bool check(PyObject *obj) {
+  inline int check(PyObject *obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -232,8 +235,9 @@ namespace swig {
 
   template <> 
   struct traits_check<Type, value_category> {
-    static bool check(PyObject *obj) {
-      return obj && Check(obj);
+    static int check(PyObject *obj) {
+      int res = Check(obj);
+      return obj && res ? res : 0;
     }
   };
 }

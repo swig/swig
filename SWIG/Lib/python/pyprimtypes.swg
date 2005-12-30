@@ -36,8 +36,7 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
 
 /* long */
 
-%fragment(SWIG_From_frag(long),"header",
-	  fragment="<limits.h>") {
+%fragment(SWIG_From_frag(long),"header") {
   %define_as(SWIG_From_dec(long),           PyInt_FromLong)
 }
 

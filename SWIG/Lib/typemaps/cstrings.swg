@@ -31,7 +31,7 @@
 %define Name ## _input_binary(TYPEMAP, SIZE)                   
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) (TYPEMAP, SIZE) 
   (Char *buf = 0, size_t size = 0, int alloc = 0)  {
-  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc))) {
+  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   $1 = ($1_ltype) buf;					       
@@ -114,7 +114,7 @@
 %define Name ## _bounded_mutable(TYPEMAP,MAX)                              
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
   (Char temp[MAX+1], Char *t = 0, size_t n = 0, int alloc = 0) {  
-  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &t, &n, &alloc))) {
+  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &t, &n, &alloc)))) {
     %argument_fail(SWIG_TypeError, "TYPEMAP", $argnum);
   }
   if ( n > (size_t) MAX ) n = (size_t) MAX;
@@ -153,7 +153,7 @@
 #if #EXP != ""
   expansion += EXP;
 #endif
-  if (!SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &t, &n, &alloc))) {
+  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &t, &n, &alloc)))) {
     %argument_fail(SWIG_TypeError, "TYPEMAP", $argnum);
   }
   $1 = %new_array(n+expansion, $*1_ltype);          
@@ -182,7 +182,7 @@
 
 %define Name ## _output_maxsize(TYPEMAP, SIZE)                       
 %typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t size, Char *buff = 0) {   
-  if (!SWIG_IsOK(SWIG_AsVal(size_t)($input, &size))) {
+  if (!SWIG_IsOK((SWIG_AsVal(size_t)($input, &size)))) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   buff= %new_array(size+1, Char);
@@ -212,7 +212,7 @@
 
 %define Name ## _output_withsize(TYPEMAP, SIZE)                        
 %typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t n, Char *buff = 0, $*2_ltype size) {    
-  if (!SWIG_IsOK(SWIG_AsVal(size_t)($input, &n))) {
+  if (!SWIG_IsOK((SWIG_AsVal(size_t)($input, &n)))) {
     %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $argnum);
   }
   buff= %new_array(n+1, Char);
