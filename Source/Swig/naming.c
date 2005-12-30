@@ -18,7 +18,7 @@ char cvsroot_naming_c[] = "$Header$";
 
 static Hash *naming_hash = 0;
 
-/* #define SWIG_DEBUG */
+/* #define SWIG_DEBUG  */
 /* -----------------------------------------------------------------------------
  * Swig_name_register()
  *
@@ -460,7 +460,6 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   }
   */
 
-  
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
     if (Len(prefix)) {
@@ -476,11 +475,21 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
 	}
 	Delete(cls);
       }    
+      /* A template-based class lookup, check name first */
+      if (!rn && SwigType_istemplate(name)) {
+	String *tname = SwigType_templateprefix(name);
+	if (Strcmp(tname,name) != 0) {
+	  rn = Swig_name_object_get(namehash, prefix, tname, decl);
+	}
+	Delete(tname);
+      }
       /* A template-based class lookup */
       if (!rn && SwigType_istemplate(prefix)) {
 	String *tprefix = SwigType_templateprefix(prefix);
 	if (Strcmp(tprefix,prefix) != 0) {
-	  rn = Swig_name_object_get(namehash, tprefix, name, decl);
+	  String *tname = SwigType_templateprefix(name);
+	  rn = Swig_name_object_get(namehash, tprefix, tname, decl);
+	  Delete(tname);
 	}
 	Delete(tprefix);
       }
@@ -608,7 +617,21 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   if (name && SwigType_istemplate(name) &&
       ((Strcmp(nodeType(node),"constructor") == 0)
 	|| (Strcmp(nodeType(node),"destructor") == 0))) {
-    rname = SwigType_templateprefix(name);
+    String *prefix = NewStringEmpty();
+    String *last = NewStringEmpty();
+    String *tprefix;
+    Swig_scopename_split(name, &prefix, &last);    
+    tprefix = SwigType_templateprefix(last);
+    Delete(last);
+    if (Len(prefix)) {
+      Append(prefix,"::");
+      Append(prefix,tprefix);
+      Delete(tprefix);
+      rname = prefix;      
+    } else {
+      rname = tprefix;
+      Delete(prefix);
+    }
     rdecl = Copy(decl);
     Replaceall(rdecl,name,rname);
     decl = rdecl;
