@@ -146,9 +146,12 @@ namespace Space {
 // The following should apply to both Base and Derived
 %exception Space::Base::virtualmethod(int a) const "$action /* Space::Base::virtualmethod(int a) const */";
 
+%exception Space::Base::operator+=(int) "$action /* Space::Base::Base() */";
+
 %inline %{
 namespace Space {
   struct Base {
+    int operator+=(int) { return 0; }    
     virtual const char** virtualmethod(int a) const { return 0; }
     virtual ~Base() {}
   };
