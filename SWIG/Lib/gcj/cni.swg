@@ -1,0 +1,14 @@
+/*
+  Swig especial 
+*/
+
+#ifdef SWIG
+
+#define __attribute__(...)
+%ignore class$;
+#pragma SWIG nowarn=313,402
+
+%nodefaultdtor;
+
+#endif
+
