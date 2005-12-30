@@ -216,7 +216,7 @@ perl5_clean:
 ##################################################################
 
 # Make sure these locate your Python installation
-PYTHON_INCLUDE= -DHAVE_CONFIG_H @PYINCLUDE@
+PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
 PYTHON_LIB    = @PYLIB@
 
 # Extra Python specific dynamic linking options
