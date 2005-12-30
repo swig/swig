@@ -1445,8 +1445,16 @@ public:
     int isVirtual = (Cmp(storage,"virtual") == 0);
     /* Only the first constructor is handled as init method. Others
        constructor can be emitted via %rename */
-    int handled_as_init = !have_constructor &&(constructor || Getattr(n,"handled_as_constructor"))
-      && ((shadow & PYSHADOW_MEMBER));
+    int handled_as_init = 0;
+    if (!have_constructor &&(constructor || Getattr(n,"handled_as_constructor"))
+	&& ((shadow & PYSHADOW_MEMBER))) {
+      String *nname = Getattr(n,"sym:name");
+      String *sname = Getattr(getCurrentClass(),"sym:name");
+      String *cname = Swig_name_construct(sname);
+      handled_as_init = (Strcmp(nname,sname) == 0) || (Strcmp(nname,cname) == 0);
+      Delete(cname);
+    }
+    
       
     if (Getattr(n,"sym:overloaded")) {
       overname = Getattr(n,"sym:overname");
@@ -2806,7 +2814,16 @@ public:
     if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
 	int allow_kwargs = (check_kwargs(n) && (!Getattr(n,"sym:overloaded"))) ? 1 : 0;
+	int handled_as_init = 0;
 	if (!have_constructor) {
+	  String *nname = Getattr(n,"sym:name");
+	  String *sname = Getattr(getCurrentClass(),"sym:name");
+	  String *cname = Swig_name_construct(sname);
+	  handled_as_init = (Strcmp(nname,sname) == 0) || (Strcmp(nname,cname) == 0);
+	  Delete(cname);
+	}
+
+	if (!have_constructor && handled_as_init) {
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
 	    String *pyaction = NewStringf("%s.%s",module, Swig_name_construct(symname));
