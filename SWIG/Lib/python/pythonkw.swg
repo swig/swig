@@ -2,8 +2,8 @@
   Warnings for Python keywords, built-in names and bad names.
 */
 
-#define PYTHONKW(x) %namewarn("314:" #x " is a python keyword")  #x
-#define PYTHONBN(x) %namewarn("321:" #x " conflicts with a built-in name in python")  "::"#x
+#define PYTHONKW(x) %namewarn("314:" `x` " is a python keyword, symbol will be renamed as '_" `x`"'", rename="_%s")  `x`
+#define PYTHONBN(x) %namewarn("321:" `x` " conflicts with a built-in name in python")  "::"`x`
 
 
 /*
@@ -40,7 +40,6 @@ PYTHONKW(return);
 PYTHONKW(try);
 PYTHONKW(while);
 PYTHONKW(yield);
-PYTHONKW(staticmethod);
 
 /*
   built-in functions
@@ -49,20 +48,26 @@ PYTHONKW(staticmethod);
 
 PYTHONBN(abs);
 PYTHONBN(apply);
+PYTHONBN(bool);
 PYTHONBN(buffer);
 PYTHONBN(callable);
 PYTHONBN(chr);
+PYTHONBN(classmethod);
 PYTHONBN(cmp);
 PYTHONBN(coerce);
 PYTHONBN(compile);
 PYTHONBN(complex);
 PYTHONBN(delattr);
+PYTHONBN(dict);
 PYTHONBN(dir);
 PYTHONBN(divmod);
+PYTHONBN(enumerate);
 PYTHONBN(eval);
 PYTHONBN(execfile);
+PYTHONBN(file);
 PYTHONBN(filter);
 PYTHONBN(float);
+PYTHONBN(frozenset);
 PYTHONBN(getattr);
 PYTHONBN(globals);
 PYTHONBN(hasattr);
@@ -74,6 +79,7 @@ PYTHONBN(int);
 PYTHONBN(intern);
 PYTHONBN(isinstance);
 PYTHONBN(issubclass);
+PYTHONBN(iter);
 PYTHONBN(len);
 PYTHONBN(list);
 PYTHONBN(locals);
@@ -81,21 +87,32 @@ PYTHONBN(long);
 PYTHONBN(map);
 PYTHONBN(max);
 PYTHONBN(min);
+PYTHONBN(object);
 PYTHONBN(oct);
 PYTHONBN(open);
 PYTHONBN(ord);
 PYTHONBN(pow);
+PYTHONBN(property);
 PYTHONBN(range);
 PYTHONBN(raw_input);
 PYTHONBN(reduce);
 PYTHONBN(reload);
 PYTHONBN(repr);
+PYTHONBN(reversed);
 PYTHONBN(round);
+PYTHONBN(set);
 PYTHONBN(setattr);
 PYTHONBN(slice);
+PYTHONBN(sorted);
+PYTHONBN(staticmethod);
+PYTHONBN(staticmethod);
 PYTHONBN(str);
+PYTHONBN(sum);
+PYTHONBN(super);
 PYTHONBN(tuple);
 PYTHONBN(type);
+PYTHONBN(unichr);
+PYTHONBN(unicode);
 PYTHONBN(vars);
 PYTHONBN(xrange);
 PYTHONBN(zip);
@@ -108,6 +125,7 @@ PYTHONBN(zip);
 PYTHONBN(True);
 PYTHONBN(False);
 PYTHONBN(None);
+
 
 /* 
    'self' is also a bad Name
