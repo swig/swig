@@ -166,7 +166,7 @@ namespace Swig {
 	swig_msg += msg;
       }
       if (swig_msg.size()) {
-	VALUE str = rb_str_new2(swig_msg.c_str());
+	VALUE str = rb_str_new(swig_msg.data(), swig_msg.size());
 	swig_error = rb_exc_new3(error, str);
       } else {
 	swig_error = error;
