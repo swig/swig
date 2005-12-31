@@ -1,6 +1,7 @@
 %module "enum_thorough"
 
 // Suppress warning messages from the Ruby module for all of the following...
+%warnfilter(801);
 %warnfilter(801) red;
 %warnfilter(801) blue;
 %warnfilter(801) green;
