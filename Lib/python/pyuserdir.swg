@@ -158,3 +158,14 @@ These methods "may be called" if needed.
 #define %implicitconv      %feature("implicitconv") 
 #define %noimplicitconv    %feature("implicitconv", "0")
 #define %clearimplicitconv %feature("implicitconv", "")
+
+
+/* ------------------------------------------------------------------------- */
+/*
+  Enable keywords paramaters
+*/
+
+#define %kwargs      %feature("kwargs") 
+#define %nokwargs    %feature("kwargs", "0")
+#define %clearkwargs %feature("kwargs", "")
+
