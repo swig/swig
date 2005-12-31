@@ -240,23 +240,23 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
-static void single_rename_add(const char *name, SwigType *decl, const char *cnewname) {
+static void single_rename_add(const char *name, SwigType *decl, Hash *newname) {
   String *nname;
-  String *newname = NewString(cnewname);
   if (Namespaceprefix) {
     nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
   Swig_name_object_set(Swig_cparse_rename(),nname,decl,newname);
-  Delete(newname);
   Delete(nname);
 }
 
 /* Add a new rename. Works much like new_feature including default argument handling. */
-static void rename_add(const char *name, SwigType *decl, const char *newname, ParmList *declaratorparms) {
+static void rename_add(const char *name, SwigType *decl, Hash *kwargs, ParmList *declaratorparms) {
 
   ParmList *declparms = declaratorparms;
+
+  String *newname = kwargs;
 
   /* Add the name */
   single_rename_add(name, decl, newname);
@@ -288,7 +288,7 @@ static void rename_add(const char *name, SwigType *decl, const char *newname, Pa
   }
 }
 
-static void namewarn_add(const char *name, SwigType *decl, const char *warning) {
+static void namewarn_add(const char *name, SwigType *decl, Hash *warning) {
   String *nname;
   if (Namespaceprefix) {
     nname = NewStringf("%s::%s",Namespaceprefix, name);
@@ -296,7 +296,7 @@ static void namewarn_add(const char *name, SwigType *decl, const char *warning) 
     nname = NewString(name);
   }
 
-  Swig_name_object_set(Swig_cparse_namewarn(),nname,decl,NewString(warning));
+  Swig_name_object_set(Swig_cparse_namewarn(),nname,decl,warning);
   Delete(nname);
 }
 
@@ -311,14 +311,123 @@ static void rename_inherit(String *base, String *derived) {
 /* This is a bit of a mess. Need to clean up */
 static String *add_oldname = 0;
 
-static String *make_name(String *name,SwigType *decl) {
-  String *rn = 0;
-  String *origname = name;
-  int     destructor = 0;
 
-  if (name && (*(Char(name)) == '~')) {
-    destructor = 1;
+/* Return the node name when it requires to emit a name warning */
+String *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType *decl) {
+  if (n) {
+    /* Return in the obvious cases */
+    if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
+      return 0;
+    } else {
+      String *access = Getattr(n,"access");	
+      int is_public = !access || (Strcmp(access,"public") == 0);
+      if (!is_public && !need_protected(n,dirprot_mode)) {
+	return 0;
+      }
+    }
   }
+  if (name) {
+    /* Check to see if the name is in the hash */
+    Hash *res = Swig_name_object_get(Swig_cparse_namewarn(),prefix,name,decl);
+    return res ? Getattr(res,"name"): 0;
+  } else {
+    return 0;
+  }
+}
+
+/* Create a name applying rename/namewarn if needed */
+String *Swig_cparse_symbol_name(Node *n, String *prefix, String *name, SwigType *decl, String *oldname) {
+  String *rn = 0;
+  Hash *wrn;
+  int destructor = name && (*(Char(name)) == '~');
+  int need_wrn = 1;
+  if (n) {
+    /* Return in the obvious cases */
+    if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
+      need_wrn = 0;
+    } else {
+      String *access = Getattr(n,"access");	
+      int is_public = !access || (Strcmp(access,"public") == 0);
+      if (!is_public && !need_protected(n,dirprot_mode)) {
+	need_wrn = 0;
+      }
+    }
+  }
+  wrn = need_wrn ? Swig_name_object_get(Swig_cparse_namewarn(),prefix,name,decl) : 0;
+  if (wrn) {
+    String *fmt = 0;
+    Hash *kw = nextSibling(wrn);
+    while (kw) {
+      String *kname = Getattr(kw,"name");
+      if (kname && (Cmp(kname,"rename") == 0)) {
+	fmt = Getattr(kw,"value");
+	break;
+      }
+      kw = nextSibling(kw);
+    }
+    if (fmt) {
+      char *cprefix = prefix ? Char(prefix) : "";
+      if ((wrn) && (Len(wrn))) {
+	if (n) {
+	  SWIG_WARN_NODE_BEGIN(n);
+	  Swig_warning(0,Getfile(n),Getline(n), "%s\n", Getattr(wrn,"name"));
+	  SWIG_WARN_NODE_END(n);
+	} else {
+	  Swig_warning(0,Getfile(name),Getline(name), "%s\n", Getattr(wrn,"name"));
+	}
+      }
+      return NewStringf(fmt,name,cprefix);
+    }
+  }
+
+  rn = Swig_name_object_get(Swig_cparse_rename(), prefix, name, decl);
+  if (!rn) {
+    return oldname ? Copy(oldname): Copy(name);
+  } else {
+    String *type = 0;
+    String *newname = Getattr(rn,"name");
+    Hash *kw = nextSibling(rn);
+    while (kw) {
+      String *kname = Getattr(kw,"name");
+      if (kname && (Cmp(kname,"match") == 0)) {
+	type = Getattr(kw,"value");
+	break;
+      }
+      kw = nextSibling(kw);
+    }
+    if (type){
+      int match = 0;
+      if (n) {
+	String *ntype = Getattr(n,"nodeType");
+	if (ntype && Equal(ntype,type)) {
+	  match = 1;
+	}
+      }
+      if (!match) {
+	return oldname ? Copy(oldname): Copy(name);
+      }
+    }
+    if (Strcmp(newname,"$ignore") == 0) {
+      return Copy(newname);
+    } else {    
+      char *cprefix = prefix ? Char(prefix) : "";
+      if (destructor && (*(Char(newname)) != '~')) {
+	String *fmt = NewStringf("~%s", newname);
+	String *res = NewStringf(fmt,name,cprefix);
+	Delete(fmt);
+	return res;
+      } else {
+	String *res = NewStringf(newname,name,cprefix);
+	return res;
+      }
+    }
+  }
+} 
+
+static String *make_name(Node *n, String *name,SwigType *decl) {
+  String *origname = name;
+  int destructor = name && (*(Char(name)) == '~');
+
   if (yyrename) {
     String *s = (yyrename);
     yyrename = 0;
@@ -334,41 +443,13 @@ static String *make_name(String *name,SwigType *decl) {
     if (add_oldname) return Copy(add_oldname);
     return Copy(origname);
   }
-  rn = Swig_name_object_get(Swig_cparse_rename(), Namespaceprefix, name, decl);
-  if (!rn) {
-    if (add_oldname) return Copy(add_oldname);
-    return Copy(name);
-  }
-  if (destructor) {
-    if (Strcmp(rn,"$ignore") != 0) {
-      String *s = NewStringf("~%s", rn);
-      return s;
-    }
-  }
-  return Copy(rn);
+  return Swig_cparse_symbol_name(n,Namespaceprefix,name,decl,add_oldname);
 }
 
 /* Generate an unnamed identifier */
 static String *make_unnamed() {
   unnamed++;
   return NewStringf("$unnamed%d$",unnamed);
-}
-
-/* Return the node name when it requires to emit a name warning */
-static String *name_warning(Node *n,String *name,SwigType *decl) {
-  /* Return in the obvious cases */
-  if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
-    return 0;
-  } else {
-    String *access = Getattr(n,"access");	
-    int is_public = !access || (Strcmp(access,"public") == 0);
-    if (!is_public && !need_protected(n,dirprot_mode)) {
-      return 0;
-    }
-  }
-  
-  /* Check to see if the name is in the hash */
-  return Swig_name_object_get(Swig_cparse_namewarn(),Namespaceprefix,name,decl);
 }
 
 /* Return if the node is a friend declaration */
@@ -469,26 +550,26 @@ static void add_symbols(Node *n) {
     if (!SwigType_isfunction(decl)) {
       String *makename = Getattr(n,"parser:makename");
       if (makename) {
-	symname = make_name(makename,0);
+	symname = make_name(n, makename,0);
         Delattr(n,"parser:makename"); /* temporary information, don't leave it hanging around */
       } else {
         makename = Getattr(n,"name");
-	symname = make_name(makename,0);
+	symname = make_name(n, makename,0);
       }
       
       if (!symname) {
 	symname = Copy(Getattr(n,"unnamed"));
       }
       if (symname) {
-	wrn = name_warning(n,symname,0);
+	wrn = Swig_cparse_name_warning(n, Namespaceprefix, symname,0);
 	Swig_features_get(features_hash, Namespaceprefix, Getattr(n,"name"), 0, n);
       }
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
 
-      symname = make_name(Getattr(n,"name"),fun);
-      wrn = name_warning(n,symname,fun);
+      symname = make_name(n, Getattr(n,"name"),fun);
+      wrn = Swig_cparse_name_warning(n, Namespaceprefix,symname,fun);
       
       Swig_features_get(features_hash,Namespaceprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
@@ -2163,16 +2244,19 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
 
 rename_directive : rename_namewarn declarator idstring SEMI {
                     SwigType *t = $2.type;
+		    Hash *kws = NewHash();
+		    Setattr(kws,"name",$3);
+
 		    if (!Len(t)) t = 0;
 		    if ($1) {
-		      rename_add($2.id,t,$3,$2.parms);
+		      rename_add($2.id,t,kws,$2.parms);
 		    } else {
-		      namewarn_add($2.id,t,$3);
+		      namewarn_add($2.id,t,kws);
 		    }
 		    $$ = 0;
 		    scanner_clear_rename();
               }
-              | rename_namewarn LPAREN idstring RPAREN declarator cpp_const SEMI {
+              | rename_namewarn LPAREN kwargs RPAREN declarator cpp_const SEMI {
 		String *fixname;
 		SwigType *t = $5.type;
 		fixname = feature_identifier_fix($5.id);
@@ -2217,7 +2301,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
                 $$ = 0;
 		scanner_clear_rename();
               }
-              | rename_namewarn LPAREN idstring RPAREN string SEMI {
+              | rename_namewarn LPAREN kwargs RPAREN string SEMI {
 		if ($1) {
 		  rename_add($5,0,$3,0);
 		} else {
@@ -3145,7 +3229,7 @@ cpp_class_decl  :
 		   }
 
 		   Delete(class_rename);
-                   class_rename = make_name($3,0);
+                   class_rename = make_name(0,$3,0);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4) {
@@ -3330,7 +3414,7 @@ cpp_class_decl  :
 
              | storage_class cpptype LBRACE {
 	       Delete(class_rename);
-	       class_rename = make_name(0,0);
+	       class_rename = make_name(0,0,0);
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3925,7 +4009,7 @@ cpp_member   : c_declaration { $$ = $1; }
                  $$ = $1; 
 		 if (extendmode) {
 		   String *symname;
-		   symname= make_name(Getattr($$,"name"), Getattr($$,"decl"));
+		   symname= make_name(0,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
 		     /* No renaming operation.  Set name to class name */
 		     Delete(yyrename);

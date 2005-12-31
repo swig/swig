@@ -43,9 +43,9 @@ extern int       yylex();
 /* parser.y */
 extern SwigType *Swig_cparse_type(String *);
 extern Node     *Swig_cparse(File *);
-extern Hash     *Swig_cparse_namewarn();
+extern String   *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType *decl);
+extern String   *Swig_cparse_symbol_name(Node *n,String *prefix, String *name, SwigType *decl, String *oldname);
 extern Hash     *Swig_cparse_features();
-extern Hash     *Swig_cparse_rename();
 extern void      SWIG_cparse_set_compact_default_args(int defargs);
 extern int       SWIG_cparse_template_reduce(int treduce);
 
