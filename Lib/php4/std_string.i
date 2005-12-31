@@ -25,21 +25,21 @@ namespace std {
 
     %typemap(in) string {
         convert_to_string_ex($input);
-        $1 = std::string(Z_STRVAL_PP($input));
+        $1 = std::string(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
     }
 
     %typemap(in) const string & (std::string temp) {
         convert_to_string_ex($input);
-        temp = std::string(Z_STRVAL_PP($input));
+        temp = std::string(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
         $1 = &temp;
     }
 
     %typemap(out) string {
-        ZVAL_STRINGL($result,const_cast<char*>($1.c_str()),$1.length(),1);
+        ZVAL_STRINGL($result,const_cast<char*>($1.data()),$1.length(),1);
     }
 
     %typemap(out) const string & {
-        ZVAL_STRINGL($result,const_cast<char*>($1->c_str()),$1->length(),1);
+        ZVAL_STRINGL($result,const_cast<char*>($1->data()),$1->length(),1);
     }
 
     %typemap(throws) string %{
