@@ -34,6 +34,25 @@ see bottom for a set of possible tests
 %rename(GreaterThanEqual) operator >=;
 %rename(And) operator and;
 %rename(Or) operator or;
+%rename(PlusPlusPrefix) operator++();
+%rename(PlusPlusPostfix) operator++(int);
+%rename(MinusMinusPrefix) operator--();
+%rename(MinusMinusPostfix) operator--(int);
+#endif
+
+#ifdef SWIGCSHARP
+%csmethodmodifiers operator++() "protected";
+%csmethodmodifiers operator++(int) "private";
+%csmethodmodifiers operator--() "private";
+%csmethodmodifiers operator--(int) "protected";
+%typemap(cscode) Op %{
+  public static Op operator++(Op op) {
+    return op.PlusPlusPostfix(0);
+  }
+  public static Op operator--(Op op) {
+    return op.MinusMinusPrefix();
+  }
+%}
 #endif
 
 %inline %{
@@ -86,7 +105,13 @@ public:
   int operator()(int a=0){return i+a;}
   int operator()(int a,int b){return i+a+b;}
 
-  // TODO: ++,--,<<,<<=
+  // increment/decrement operators
+  Op& operator++(){++i; return *this;} // prefix ++
+  Op& operator++(int){i++; return *this;} // postfix ++
+  Op& operator--(){--i; return *this;} // prefix --
+  Op& operator--(int){i--; return *this;} // postfix --
+
+  // TODO: <<,<<=
 };
 
 // just to complicate matters
