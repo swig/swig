@@ -27,3 +27,8 @@ extern Point            pt;
 extern int  status;
 extern char path[256];
 
+extern void print_vars();
+extern int *new_int(int value);
+extern Point *new_Point(int x, int y);
+extern char *Point_print(Point *p);
+extern void pt_print();
