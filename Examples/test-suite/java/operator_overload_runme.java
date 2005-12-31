@@ -76,7 +76,14 @@ public class operator_overload_runme {
     Assert(i.Functor(1)==4);
     Assert(i.Functor(1,2)==6);
 
-
+    // test ++ --
+    Op j = new Op(10);
+    j.PlusPlusPrefix();
+    j.PlusPlusPostfix(0);
+    Assert(j.getI() == 12);
+    j.MinusMinusPrefix();
+    j.MinusMinusPostfix(0);
+    Assert(j.getI() == 10);
   }
 
   public static void Assert(boolean b) {
