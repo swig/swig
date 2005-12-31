@@ -21,4 +21,18 @@
 %rename("^")         *::operator^;
 %rename("%")         *::operator%;
 %rename("=")         *::operator=;
+
+/* Ignored operators */
+%ignorewarn("378:operator!= ignored")  operator!=;
+%ignorewarn("365:operator+= ignored")  operator+=;
+%ignorewarn("366:operator-= ignored")  operator-=;
+%ignorewarn("367:operator*= ignored")  operator*=;
+%ignorewarn("368:operator/= ignored")  operator/=;
+%ignorewarn("369:operator%= ignored")  operator%=;
+%ignorewarn("375:operator<<= ignored") operator<<=;
+%ignorewarn("376:operator>>= ignored") operator>>=;
+%ignorewarn("371:operator&= ignored")  operator&=;
+%ignorewarn("372:operator|= ignored")  operator|=;
+%ignorewarn("370:operator^= ignored")  operator^=;
+
 #endif
