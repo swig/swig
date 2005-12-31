@@ -1575,7 +1575,7 @@ public:
       if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
 
       /* Keyword argument handling */
-      String *wrn = (allow_kwargs && pn) ? Swig_name_object_get(Swig_cparse_namewarn(),0,pn,0) : 0; 
+      String *wrn = (allow_kwargs && pn) ? Swig_cparse_name_warning(0,0,pn,0) : 0; 
       if (!wrn && Len(pn)) {
 	Printf(kwargs,"(char *) \"%s\",", pn);
       } else {

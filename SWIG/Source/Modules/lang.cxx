@@ -1970,6 +1970,10 @@ int Language::classDirector(Node *n) {
  * ---------------------------------------------------------------------- */
 static void addCopyConstructor(Node *n) 
 {
+  Node *cn = NewHash();
+  set_nodeType(cn,"constructor");
+  Setattr(cn,"access","public");
+
   String *cname = Getattr(n,"name");
   SwigType *type = Copy(cname);
   String *last = Swig_scopename_last(cname);
@@ -1977,14 +1981,12 @@ static void addCopyConstructor(Node *n)
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).",cc);
   String *csymname = Getattr(n,"sym:name");
-  String *symname = Swig_name_object_get(Swig_cparse_rename(), cname, last, decl);
+  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
   if (!symname) {
     symname = Copy(csymname);
   }
   Parm *p = NewParm(cc,"_swig_self");
 
-  Node *cn = NewHash();
-  set_nodeType(cn,"constructor");
   Setattr(cn,"name",name);
   Setattr(cn,"sym:name",symname);
   SetFlag(cn,"feature:new");
@@ -2018,18 +2020,20 @@ static void addCopyConstructor(Node *n)
 
 static void addDefaultConstructor(Node *n) 
 {
+  Node *cn = NewHash();
+  set_nodeType(cn,"constructor");
+  Setattr(cn,"access","public");
+
   String *cname = Getattr(n,"name");
   String *last = Swig_scopename_last(cname);
   String *name = NewStringf("%s::%s",cname,last);
   String *decl = NewString("f().");
   String *csymname = Getattr(n,"sym:name");
-  String *symname = Swig_name_object_get(Swig_cparse_rename(), cname, last, decl);
+  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
   if (!symname) {
     symname = Copy(csymname);
   }
   
-  Node *cn = NewHash();
-  set_nodeType(cn,"constructor");
   Setattr(cn,"name",name);
   Setattr(cn,"sym:name",symname);
   SetFlag(cn,"feature:new");
@@ -2061,18 +2065,20 @@ static void addDefaultConstructor(Node *n)
 
 static void addDestructor(Node *n) 
 {
+  Node *cn = NewHash();
+  set_nodeType(cn,"destructor");
+  Setattr(cn,"access","public");
+
   String *cname = Getattr(n,"name");
   String *last = Swig_scopename_last(cname);
   Insert(last,0,"~");
   String *name = NewStringf("%s::%s",cname,last);
   String *decl = NewString("f().");
-  String *symname = Swig_name_object_get(Swig_cparse_rename(), cname, last, decl);
+  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
   if (!symname) {
     symname = NewStringf("~%s",Getattr(n,"sym:name"));
   }
 
-  Node *cn = NewHash();
-  set_nodeType(cn,"destructor");
   Setattr(cn,"name",name);
   Setattr(cn,"sym:name",symname);
   Setattr(cn,"decl","f().");
