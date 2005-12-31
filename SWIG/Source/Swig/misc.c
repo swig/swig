@@ -12,8 +12,10 @@
 char cvsroot_misc_c[] = "$Header$";
 
 #include "swig.h"
+#include <errno.h>
 #include <ctype.h>
 #include <limits.h>
+
 
 /* -----------------------------------------------------------------------------
  * Swig_copy_string()
@@ -355,6 +357,11 @@ String *Swig_string_mangle(const String *s) {
 #endif
 }
 
+String *Swig_string_emangle(String *s) {
+  return Swig_string_mangle(s);
+}
+
+
 /* -----------------------------------------------------------------------------
  * Swig_scopename_prefix()
  *
@@ -614,6 +621,36 @@ int Swig_scopename_check(String *s) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_string_command()
+ *
+ * ----------------------------------------------------------------------------- */
+
+#if defined(HAVE_POPEN)
+extern FILE *popen(const char *command, const char *type);
+extern int pclose(FILE *stream);
+
+String *Swig_string_command(String *s) {
+  String *res = NewStringEmpty();
+  if (Len(s)) {
+    char *command = Char(s);
+    FILE *fp = popen(command,"r");
+    if (fp) {
+      char buffer[1025];
+      while(fscanf(fp,"%1024s",buffer) != EOF) {
+	Append(res,buffer);      
+      }
+      pclose(fp);
+    }
+    if (!fp || (errno) || (StringLen(res) == 0)) {
+      Swig_error("SWIG",Getline(s), "Command encoder fails attempting '%s'.\n", s);
+      exit(1);
+    }
+  }  
+  return res;
+}
+#endif
+
 
 /* -----------------------------------------------------------------------------
  * Swig_init()
@@ -629,6 +666,10 @@ Swig_init() {
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
   DohEncoding("typecode",Swig_string_typecode);
+  DohEncoding("mangle",Swig_string_emangle);
+#if defined(HAVE_POPEN)
+  DohEncoding("command",Swig_string_command);
+#endif
 
   /* Initialize typemaps */
   Swig_typemap_init();
@@ -636,10 +677,12 @@ Swig_init() {
   /* Initialize symbol table */
   Swig_symbol_init();
 
+  /* Initialize naming system */
+  Swig_naming_init();
+
   /* Initialize type system */
   SwigType_typesystem_init();
 
   /* Initialize template system */
   SwigType_template_init();
-
 }

@@ -544,6 +544,10 @@ extern  int   Swig_director_mode();
 extern void SwigType_template_init();
 
 
+/* -- naming init -- */
+extern void Swig_naming_init();
+  
+
 #ifdef __cplusplus
 }
 #endif
