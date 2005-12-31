@@ -1,5 +1,6 @@
 %module features
 
+%warnfilter(365);
 
 // This testcase checks that %feature is working for templates and non user supplied constructors/destructors and is just generally working
 
