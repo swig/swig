@@ -55,14 +55,24 @@ static DOH *encode(char *name,  DOH *s) {
   DOH *handle, *ns;
   DOH *(*fn)(DOH *);
   long  pos;
+  char *cfmt = strstr(name,":");
+  DOH *tmp = 0;  
+  if (cfmt) {
+    tmp = NewStringf(cfmt + 1, s);
+    Setfile(tmp,Getfile((DOH *)s));
+    Setline(tmp,Getline((DOH *)s));
+    *cfmt = '\0';
+  }
   if (!encodings || !(handle = Getattr(encodings,name))) {
     return Copy(s);
   }
+  if (tmp) s = tmp;
   pos = Tell(s);
   Seek(s,0,SEEK_SET);
   fn = (DOH *(*)(DOH *)) Data(handle);
   ns = (*fn)(s);
   Seek(s,pos,SEEK_SET);
+  if (tmp) Delete(tmp);
   return ns;
 }
 
@@ -104,6 +114,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
   char  *stemp;
   int   nbytes = 0;
   char  encoder[128], *ec = 0;
+  int   plevel = 0;
 
   memset (newformat, 0, sizeof (newformat));
 
@@ -146,6 +157,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	nbytes++;
 	state = 0;
       } else if (*p == '(') {
+	++plevel;
 	ec = encoder;
 	state = 60;
       } else {
@@ -246,9 +258,19 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 
       /* Got an encoding header */
     case 60:
-      if (*p == ')') {
-	*ec = 0;
-	state = 10;
+      if (*p == '(') {
+	++plevel;
+	*ec = *p;
+	ec++;
+      } else if (*p == ')') {
+	--plevel;
+	if (plevel <= 0) {
+	  *ec = 0;
+	  state = 10;
+	} else {
+	  *ec = *p;
+	  ec++;
+	}
       } else {
 	*ec = *p;
 	ec++;
