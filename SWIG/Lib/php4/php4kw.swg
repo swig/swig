@@ -2,7 +2,7 @@
 #define __php_phpkw_swg__
 
 /* Warnings for Php keywords */
-#define PHPKW(x) %namewarn("314:" #x " is a php keyword")  #x
+#define PHPKW(x) %namewarn("314:" `x` " is a php keyword")  `x`
 #define PHPBN(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
 
 /*
@@ -67,7 +67,6 @@ PHPKW(parent);
 PHPKW(PHP_OS);
 PHPKW($PHP_SELF);
 PHPKW(PHP_VERSION);
-PHPKW(print);
 PHPKW(require);
 PHPKW(require_once);
 PHPKW(return);
@@ -84,8 +83,9 @@ PHPKW(while);
 PHPKW(xor);
 
 
-// This is a bad name only if is global, but is ok as member.
+// These are bad names only if global.
 PHPBN(empty);
+PHPBN(print);
 
 
 #undef PHPKW
