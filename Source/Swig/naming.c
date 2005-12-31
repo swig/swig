@@ -19,6 +19,44 @@ char cvsroot_naming_c[] = "$Header$";
 static Hash *naming_hash = 0;
 
 /* #define SWIG_DEBUG  */
+
+/* -----------------------------------------------------------------------------
+ * Swig_naming_init()
+ *
+ * Init the naming system
+ * ----------------------------------------------------------------------------- */
+static String *k_construct = 0;
+static String *k_constructor = 0;
+static String *k_destroy=  0;
+static String *k_destructor = 0;
+static String *k_disown = 0;
+static String *k_name = 0;
+static String *k_start = 0;
+static String *k_value = 0;
+static String *k_wrapper = 0;
+static String *k_nodetype = 0;
+static String *k_member = 0;
+static String *k_get = 0;
+static String *k_set = 0;
+
+void
+Swig_naming_init() {
+  k_construct = NewString("construct");
+  k_constructor = NewString("constructor");
+  k_destroy = NewString("destroy");
+  k_destructor = NewString("destructor");
+  k_disown = NewString("disown");
+  k_name = NewString("name");
+  k_nodetype = NewString("nodeType");
+  k_start = NewString("*");
+  k_value = NewString("value");
+  k_wrapper = NewString("wrapper");
+  k_member = NewString("member");
+  k_set = NewString("set");
+  k_get = NewString("get");
+}
+
+
 /* -----------------------------------------------------------------------------
  * Swig_name_register()
  *
@@ -149,7 +187,7 @@ Swig_name_wrapper(const String_or_char *fname) {
 
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"wrapper");
+  f = Getattr(naming_hash,k_wrapper);
   if (!f) {
     Append(r,"_wrap_%f");
   } else {
@@ -177,7 +215,7 @@ Swig_name_member(const String_or_char *classname, const String_or_char *mname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"member");
+  f = Getattr(naming_hash,k_member);
   if (!f) {
     Append(r,"%c_%m");
   } else {
@@ -213,7 +251,7 @@ Swig_name_get(const String_or_char *vname) {
 
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"get");
+  f = Getattr(naming_hash,k_get);
   if (!f) {
     Append(r,"%v_get");
   } else {
@@ -237,7 +275,7 @@ Swig_name_set(const String_or_char *vname) {
 
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"set");
+  f = Getattr(naming_hash,k_set);
   if (!f) {
     Append(r,"%v_set");
   } else {
@@ -264,7 +302,7 @@ Swig_name_construct(const String_or_char *classname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"construct");
+  f = Getattr(naming_hash,k_construct);
   if (!f) {
     Append(r,"new_%c");
   } else {
@@ -299,7 +337,7 @@ Swig_name_copyconstructor(const String_or_char *classname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"construct");
+  f = Getattr(naming_hash,k_construct);
   if (!f) {
     Append(r,"copy_%c");
   } else {
@@ -332,7 +370,7 @@ String *Swig_name_destroy(const String_or_char *classname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"destroy");
+  f = Getattr(naming_hash,k_destroy);
   if (!f) {
     Append(r,"delete_%c");
   } else {
@@ -365,7 +403,7 @@ String *Swig_name_disown(const String_or_char *classname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"disown");
+  f = Getattr(naming_hash,k_disown);
   if (!f) {
     Append(r,"disown_%c");
   } else {
@@ -405,7 +443,7 @@ Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) 
   }
   /* Add an object based on the declarator value */
   if (!decl) {
-    Setattr(n,"*",object);
+    Setattr(n,k_start,object);
   } else {
     SwigType *cd = Copy(decl);
     Setattr(n,cd,object);
@@ -427,7 +465,7 @@ static DOH *get_object(Hash *n, String *decl) {
   if (decl) {
     rn = Getattr(n,decl);
   } else {
-    rn = Getattr(n,"*");
+    rn = Getattr(n,k_start);
   }
   return rn;
 }
@@ -447,7 +485,7 @@ name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigType *ncdecl)
 
 DOH *
 Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
-  String *tname;
+  String *tname = NewStringEmpty();
   DOH    *rn = 0;
   char   *ncdecl = 0;
 
@@ -463,53 +501,61 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
     if (Len(prefix)) {
-      tname = NewStringf("%s::%s",prefix,name);
+      Printf(tname,"%s::%s", prefix, name);
       rn = name_object_get(namehash, tname, decl, ncdecl);
-      Delete(tname);
       if (!rn) {
 	String *cls = Swig_scopename_last(prefix);
-	if (Strcmp(cls,prefix)!= 0) {
-	  tname = NewStringf("*::%s::%s",cls,name);
+	if (!Equal(cls,prefix)) {
+	  Clear(tname);
+	  Printf(tname,"*::%s::%s",cls,name);
 	  rn = name_object_get(namehash, tname, decl, ncdecl);
-	  Delete(tname);
 	}
 	Delete(cls);
-      }    
+      }
       /* A template-based class lookup, check name first */
       if (!rn && SwigType_istemplate(name)) {
-	String *tname = SwigType_templateprefix(name);
-	if (Strcmp(tname,name) != 0) {
-	  rn = Swig_name_object_get(namehash, prefix, tname, decl);
+	String *t_name = SwigType_templateprefix(name);
+	if (!Equal(t_name,name)) {
+	  rn = Swig_name_object_get(namehash, prefix, t_name, decl);
 	}
-	Delete(tname);
+	Delete(t_name);
       }
       /* A template-based class lookup */
       if (!rn && SwigType_istemplate(prefix)) {
-	String *tprefix = SwigType_templateprefix(prefix);
-	if (Strcmp(tprefix,prefix) != 0) {
-	  String *tname = SwigType_templateprefix(name);
-	  rn = Swig_name_object_get(namehash, tprefix, tname, decl);
-	  Delete(tname);
+	String *t_prefix = SwigType_templateprefix(prefix);
+	if (Strcmp(t_prefix,prefix) != 0) {
+	  String *t_name = SwigType_templateprefix(name);
+	  rn = Swig_name_object_get(namehash, t_prefix, t_name, decl);
+	  Delete(t_name);
 	}
-	Delete(tprefix);
+	Delete(t_prefix);
+      }
+      /* A wildcard-based class lookup */
+      if (!rn) {
+	if (!Equal(name,k_start)) {
+	  rn = Swig_name_object_get(namehash, prefix, k_start, decl);
+	}
       }
     }
-    /* A wildcard-based class lookup */
     if (!rn) {
-      tname = NewStringf("*::%s",name);
+      Clear(tname);
+      Printf(tname,"*::%s",name);
       rn = name_object_get(namehash, tname, decl, ncdecl);
-      Delete(tname);
     }
   } else {
     /* Lookup in the global namespace only */
-    tname = NewStringf("::%s",name);
+    Clear(tname);
+    Printf(tname,"::%s",name);
     rn = name_object_get(namehash, tname, decl, ncdecl);
-    Delete(tname);
   }
   /* Catch-all */
   if (!rn) {
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
+  if (!rn) {
+    rn = name_object_get(namehash, k_start, decl, ncdecl);
+  }
+  Delete(tname);
   return rn;
 }
 
@@ -536,13 +582,10 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k,cbprefix,plen) == 0) {
-      Hash *n, *newh;
-      String *nkey;
       Iterator oi;
-
-      nkey = NewStringf("%s%s",dprefix,k+plen);
-      n = ki.item;
-      newh = Getattr(namehash,nkey);
+      String *nkey = NewStringf("%s%s",dprefix,k+plen);
+      Hash *n = ki.item;
+      Hash *newh = Getattr(namehash,nkey);
       if (!newh) {
 	newh = NewHash();
 	Setattr(namehash,nkey,newh);
@@ -555,8 +598,11 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
 	  Delete(ci);
 	}
       }
+      Delete(nkey);
     }
   }
+  Delete(bprefix);
+  Delete(dprefix);
 }
 
 /* -----------------------------------------------------------------------------
@@ -599,7 +645,6 @@ void features_get(Hash *features, String *tname, SwigType *decl, SwigType *ncdec
 
 void
 Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
-  String *tname;
   char   *ncdecl = 0;
   String *rdecl = 0;
   SwigType *rname = 0;
@@ -615,22 +660,22 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
 
   /* very specific hack for template constructors/destructors */
   if (name && SwigType_istemplate(name) &&
-      ((Strcmp(nodeType(node),"constructor") == 0)
-	|| (Strcmp(nodeType(node),"destructor") == 0))) {
-    String *prefix = NewStringEmpty();
-    String *last = NewStringEmpty();
+      (HashCheckAttr(node,k_nodetype,k_constructor)
+       || HashCheckAttr(node, k_nodetype,k_destructor))) {
+    String *nprefix = NewStringEmpty();
+    String *nlast = NewStringEmpty();
     String *tprefix;
-    Swig_scopename_split(name, &prefix, &last);    
-    tprefix = SwigType_templateprefix(last);
-    Delete(last);
-    if (Len(prefix)) {
-      Append(prefix,"::");
-      Append(prefix,tprefix);
+    Swig_scopename_split(name, &nprefix, &nlast);    
+    tprefix = SwigType_templateprefix(nlast);
+    Delete(nlast);
+    if (Len(nprefix)) {
+      Append(nprefix,"::");
+      Append(nprefix,tprefix);
       Delete(tprefix);
-      rname = prefix;      
+      rname = nprefix;      
     } else {
       rname = tprefix;
-      Delete(prefix);
+      Delete(nprefix);
     }
     rdecl = Copy(decl);
     Replaceall(rdecl,name,rname);
@@ -645,40 +690,41 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   /* Global features */
   features_get(features, "", 0, 0, node);
   if (name) {
+    String *tname = NewStringEmpty();
     /* Catch-all */
     features_get(features, name, decl, ncdecl, node);
     /* Perform a class-based lookup (if class prefix supplied) */
     if (prefix) {
       /* A class-generic feature */
       if (Len(prefix)) {
-	tname = NewStringf("%s::",prefix);
+	Printf(tname,"%s::",prefix);
 	features_get(features, tname, decl, ncdecl, node);
-	Delete(tname);
       }
       /* A wildcard-based class lookup */
-      tname = NewStringf("*::%s",name);
+      Clear(tname);
+      Printf(tname,"*::%s",name);
       features_get(features, tname, decl, ncdecl, node);
-      Delete(tname);      
       /* A specific class lookup */
       if (Len(prefix)) {
 	/* A template-based class lookup */
 	if (SwigType_istemplate(prefix)) {
 	  String *tprefix = SwigType_templateprefix(prefix);
-	  tname = NewStringf("%s::%s",tprefix,name);
+	  Clear(tname);
+	  Printf(tname,"%s::%s",tprefix,name);
 	  features_get(features, tname, decl, ncdecl, node);
-	  Delete(tname);
 	  Delete(tprefix);
 	}
-	tname = NewStringf("%s::%s",prefix,name);
+	Clear(tname);
+	Printf(tname,"%s::%s",prefix,name);
 	features_get(features, tname, decl, ncdecl, node);
-	Delete(tname);
       }
     } else {
       /* Lookup in the global namespace only */
-      tname = NewStringf("::%s",name);
+      Clear(tname);
+      Printf(tname,"::%s",name);
       features_get(features, tname, decl, ncdecl, node);
-      Delete(tname);
     }
+    Delete(tname);
   }
   if (name && SwigType_istemplate(name)) {
     String *dname = Swig_symbol_template_deftype(name,0);
@@ -717,10 +763,10 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
     Delete(n);
   }
   if (!decl) {
-    fhash = Getattr(n,"*");
+    fhash = Getattr(n,k_start);
     if (!fhash) {
       fhash = NewHash();
-      Setattr(n,"*",fhash);
+      Setattr(n,k_start,fhash);
       Delete(fhash);
     }
   } else {
@@ -743,15 +789,16 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
     /* Add in the optional feature attributes */
     Hash *attribs = featureattribs;
     while(attribs) {
-      String *attribname = Getattr(attribs,"name");
+      String *attribname = Getattr(attribs,k_name);
       String *featureattribname = NewStringf("%s:%s", featurename, attribname);
       if (value) {
-        String *attribvalue = Getattr(attribs,"value");
+        String *attribvalue = Getattr(attribs,k_value);
         Setattr(fhash,featureattribname,attribvalue);
       } else {
         Delattr(fhash,featureattribname);
       }
       attribs = nextSibling(attribs);
+      Delete(featureattribname);
     }
   }
 

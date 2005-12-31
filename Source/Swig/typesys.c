@@ -121,6 +121,7 @@ static String *k_inherit = 0;
 static String *k_parent = 0;
 static String *k_value = 0;
 static String *k_nodetype = 0;
+static String *k_class = 0;
 
 /* 
    Enable this one if your language fully support SwigValueWrapper<T>.
@@ -159,6 +160,7 @@ void SwigType_typesystem_init() {
   k_parent = NewString("parent");
   k_value = NewString("value");
   k_nodetype = NewString("nodeType");
+  k_class = NewString("class");
 
   if (global_scope) Delete(global_scope);
   if (scopes)       Delete(scopes);
@@ -1284,7 +1286,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	if (GetFlag(n,"feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
-	  if ((Strcmp(nodeType(n),"class") == 0) 
+	  if (HashCheckAttr(n,k_nodetype,k_class)
 	      && (!Getattr(n,"allocate:default_constructor") 
 	      || (Getattr(n,"allocate:noassign")))) {
 	    use_wrapper = !GetFlag(n,"feature:novaluewrapper") || GetFlag(n,"feature:nodefault");
@@ -1313,7 +1315,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
     SwigType *td = SwigType_strip_qualifiers(ftd);
     if (SwigType_type(td) == T_USER) {
       if ((n = Swig_symbol_clookup(td,0))) {
-	if (((Strcmp(nodeType(n),"class") == 0) 
+	if ((HashCheckAttr(n,k_nodetype,k_class)
 	    && !Getattr(n,"allocate:noassign")
 	    && (Getattr(n,"allocate:default_constructor")))
 	    || (GetFlag(n,"feature:novaluewrapper"))) {
