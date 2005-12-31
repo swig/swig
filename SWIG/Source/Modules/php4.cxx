@@ -1918,7 +1918,7 @@ public:
   //virtual int destructorHandler(Node *n) {
   //}
   int CreateZendListDestructor(Node *n) {
-    String *name    = GetChar(n,"name");
+    String *name    = GetChar(Swig_methodclass(n),"name");
     String *iname   = GetChar(n,"sym:name");
     SwigType *d     = Getattr(n,"type");
     ParmList *l     = Getattr(n,"parms");
