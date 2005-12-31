@@ -2,7 +2,7 @@
 #define __ruby_rubykw_swg__
 
 /* Warnings for Ruby keywords */
-#define RUBYKW(x) %namewarn("314:" #x " is a ruby keyword")  #x
+#define RUBYKW(x) %namewarn("314:'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s")  `x`
 
 
 /*
@@ -49,11 +49,7 @@ RUBYKW(end);
 RUBYKW(next);
 RUBYKW(return);
 RUBYKW(until);
-
-/* swig doesn't like this one in a macro, adding it by hand */
-//RUBYKW(defined);
-%namewarn("314: defined is a ruby keyword") "defined";
-
+RUBYKW("defined");
 
 #undef RUBYKW
 
