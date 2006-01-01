@@ -696,11 +696,12 @@ expand_macro(String *name, List *args)
     ns = NewStringEmpty();
     StringAppend(ns,name);
     if (args) {
-      if (Len(args))
+      int lenargs = Len(args);
+      if (lenargs)
 	StringPutc('(',ns);
-      for (i = 0; i < Len(args); i++) {
+      for (i = 0; i < lenargs; i++) {
 	StringAppend(ns,Getitem(args,i));
-	if (i < (Len(args) -1)) StringPutc(',',ns);
+	if (i < (lenargs -1)) StringPutc(',',ns);
       }
       if (i)
 	StringPutc(')',ns);
@@ -970,6 +971,7 @@ Preprocessor_replace(DOH *s)
 	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
 	if (StringEqual(k_defined,id)) {
+	  int lenargs = 0;
 	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
 	  skip_whitespace(s,0);
@@ -993,19 +995,20 @@ Preprocessor_replace(DOH *s)
 	  } else {
 	    Seek(s,-1,SEEK_CUR);
 	  }
-	  if ((!args) || (!Len(args))) {
+	  lenargs = Len(args);
+	  if ((!args) || (!lenargs)) {
 	    /* This is not a defined() macro. */
 	    StringAppend(ns,id);
 	    state = 0;
 	    break;
 	  }
-	  for (i = 0; i < Len(args); i++) {
+	  for (i = 0; i < lenargs; i++) {
 	    DOH *o = Getitem(args,i);
 	    if (!HashGetAttr(symbols,o)) {
 	      break;
 	    }
 	  }
-	  if (i < Len(args)) StringPutc('0',ns);
+	  if (i < lenargs) StringPutc('0',ns);
 	  else StringPutc('1',ns);
 	  Delete(args);
 	  state = 0;

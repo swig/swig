@@ -152,6 +152,33 @@ String *Swig_string_title(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_ctitle()
+ *
+ * Takes a string object and returns a copy that is lowercase with thefirst letter
+ * capitalized and the one following '_', which are removed.
+ *
+ *      camel_case -> CamelCase
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_ctitle(String *s) {
+  String *ns;
+  int first = 1;
+  int c;
+  ns = NewStringEmpty();
+
+  Seek(s,0,SEEK_SET);
+  while ((c = Getc(s)) != EOF) {
+    if (c == '_') { 
+      first = 1;
+      continue;
+    }
+    Putc(first ? toupper(c) : tolower(c),ns);
+    first = 0;
+  }
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
  * Takes a string with possible type-escapes in it and replaces them with
@@ -642,11 +669,11 @@ String *Swig_string_command(String *s) {
       }
       pclose(fp);
     }
-    if (!fp || (errno) || (StringLen(res) == 0)) {
+    if (!fp || (errno)) {
       Swig_error("SWIG",Getline(s), "Command encoder fails attempting '%s'.\n", s);
       exit(1);
     }
-  }  
+  }
   return res;
 }
 #endif
@@ -665,6 +692,7 @@ Swig_init() {
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
+  DohEncoding("ctitle", Swig_string_ctitle);
   DohEncoding("typecode",Swig_string_typecode);
   DohEncoding("mangle",Swig_string_emangle);
 #if defined(HAVE_POPEN)

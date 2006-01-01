@@ -141,7 +141,7 @@ Swig_search_path_any(int syspath) {
   String *filename;
   String *dirname;
   List   *slist, *llist;
-  int i;
+  int i, ilen;
 
   llist = 0;
   slist = NewList();
@@ -160,8 +160,8 @@ Swig_search_path_any(int syspath) {
   } else {
     Append(slist,filename);
   }  
-  
-  for (i = 0; i < Len(directories); i++) {
+  ilen = Len(directories);
+  for (i = 0; i < ilen; i++) {
     dirname =  Getitem(directories,i);
     filename = NewStringEmpty();
     assert(filename);
@@ -174,7 +174,8 @@ Swig_search_path_any(int syspath) {
     Delete(filename);
   }
   if (syspath) {
-    for (i = 0; i < Len(llist); i++) {
+    int ilen = Len(llist);
+    for (i = 0; i < ilen; i++) {
       Append(slist,Getitem(llist,i));
     }
     Delete(llist);
@@ -202,7 +203,7 @@ Swig_open_any(const String_or_char *name, int sysfile) {
   String   *filename;
   List     *spath = 0;
   char        *cname;
-  int          i;
+  int          i, ilen;
 
   if (!directories) directories = NewList();
   assert(directories);
@@ -213,7 +214,8 @@ Swig_open_any(const String_or_char *name, int sysfile) {
   f = fopen(Char(filename),"r");
   if (!f) {
       spath = Swig_search_path_any(sysfile);
-      for (i = 0; i < Len(spath); i++) {
+      ilen = Len(spath);
+      for (i = 0; i < ilen; i++) {
 	  Clear(filename);
 	  Printf(filename,"%s%s", Getitem(spath,i), cname);
 	  f = fopen(Char(filename),"r");
@@ -349,13 +351,14 @@ char *
 Swig_file_suffix(const String_or_char *filename) {
   char *d;
   char *c = Char(filename);
+  int len = Len(filename);
   if (strlen(c)) {
-    d = c + Len(filename) - 1;
+    d = c + len - 1;
     while (d != c) {
       if (*d == '.') return d;
       d--;
     }
-    return c+Len(filename);  
+    return c+len;  
   }
   return c;
 }

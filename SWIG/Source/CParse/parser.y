@@ -1,4 +1,7 @@
 %{
+#if 0
+} /* cc-mode */
+#endif
 /* -----------------------------------------------------------------------------
  * parser.y
  *
@@ -42,7 +45,7 @@ static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
-       String  *ModuleName = 0;
+String  *ModuleName = 0;
 static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
@@ -205,11 +208,19 @@ static Hash   *rename_hash = 0;
 static Hash   *namewarn_hash = 0;
 static Hash   *features_hash = 0;
 
+static List   *rename_list = 0;
+static List   *namewarn_list = 0;
+
 static String *resolve_node_scope(String *cname);
 
-Hash *Swig_cparse_namewarn() {
+Hash *Swig_cparse_namewarn_hash() {
   if (!namewarn_hash) namewarn_hash = NewHash();
   return namewarn_hash;
+}
+
+Hash *Swig_cparse_rename_hash() {
+  if (!rename_hash) rename_hash = NewHash();
+  return rename_hash;
 }
 
 Hash *Swig_cparse_features() {
@@ -217,10 +228,16 @@ Hash *Swig_cparse_features() {
   return features_hash;
 }
 
-Hash *Swig_cparse_rename() {
-  if (!rename_hash) rename_hash = NewHash();
-  return rename_hash;
+List *Swig_cparse_namewarn_list() {
+  if (!namewarn_list) namewarn_list = NewList();
+  return namewarn_list;
 }
+
+List *Swig_cparse_rename_list() {
+  if (!rename_list) rename_list = NewList();
+  return rename_list;
+}
+
 
 static String *feature_identifier_fix(String *s) {
   if (SwigType_istemplate(s)) {
@@ -240,44 +257,86 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
-static void single_rename_add(const char *name, SwigType *decl, Hash *newname) {
-  String *nname;
-  if (Namespaceprefix) {
-    nname = NewStringf("%s::%s",Namespaceprefix, name);
-  } else {
-    nname = NewString(name);
+static void 
+Swig_cparse_add_name_object(Hash *name_hash, List *name_list,
+			    String *prefix, const char *name, SwigType *decl, Hash *nameobj) {
+  String *nname = 0;
+
+  if (name && Len(name)) {
+    String *target_fmt = Getattr(nameobj,"target_fmt");
+    nname = prefix ? NewStringf("%s::%s",prefix, name) : NewString(name);
+    if (target_fmt) {
+      String *tmp = NewStringf(Getattr(nameobj,"target_fmt"), nname);
+      Delete(nname);
+      nname = tmp;
+    }
   }
-  Swig_name_object_set(Swig_cparse_rename(),nname,decl,newname);
+  
+  if (!nname || !Len(nname) || Getattr(nameobj,"source_fmt")) {
+    if (decl) Setattr(nameobj,"decl", decl);
+    if (nname && Len(nname)) Setattr(nameobj,"target_name", nname);
+    Append(name_list, nameobj);
+  } else {  
+    Swig_name_object_set(name_hash,nname,decl,nameobj);
+  }
   Delete(nname);
 }
 
+
+static void single_rename_add(const char *name, SwigType *decl, Hash *newname) {
+  Swig_cparse_add_name_object(Swig_cparse_rename_hash(), Swig_cparse_rename_list(),
+			      Namespaceprefix, name, decl, newname);
+}
+
+
+static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) 
+{
+  Node *kw = nextSibling(nameobj);
+  while (kw) {
+    Node *next = nextSibling(kw);
+    String *kname = Getattr(kw,"name");
+    char *ckey = kname ? Char(kname) :  0;
+    if (ckey) {
+      const char **rkey;
+      for (rkey = keys; *rkey != 0; ++rkey) {
+	if (strcmp(ckey,*rkey) == 0) {
+	  Setattr(nameobj, *rkey, Getattr(kw,"value"));
+	  deleteNode(kw);
+	}
+      }
+    }
+    kw = next;
+  }
+}
+
 /* Add a new rename. Works much like new_feature including default argument handling. */
-static void rename_add(const char *name, SwigType *decl, Hash *kwargs, ParmList *declaratorparms) {
-
+static void rename_add(const char *name, SwigType *decl, Hash *newname, ParmList *declaratorparms) {
+  
   ParmList *declparms = declaratorparms;
-
-  String *newname = kwargs;
-
+  
+  const char *rename_keys[] = {"fullname", "source_fmt", "target_fmt", 0};
+  Swig_name_object_attach_keys(rename_keys, newname);
+  
   /* Add the name */
   single_rename_add(name, decl, newname);
-
+  
   /* Add extra names if there are default parameters in the parameter list */
   if (decl) {
     int constqualifier = SwigType_isconst(decl);
     while (declparms) {
       if (ParmList_has_defaultargs(declparms)) {
-
+	
         /* Create a parameter list for the new rename by copying all
            but the last (defaulted) parameter */
         ParmList* newparms = ParmList_copy_all_except_last_parm(declparms);
-
+	
         /* Create new declaration - with the last parameter removed */
         SwigType *newdecl = Copy(decl);
         Delete(SwigType_pop_function(newdecl)); /* remove the old parameter list from newdecl */
         SwigType_add_function(newdecl,newparms);
         if (constqualifier)
           SwigType_add_qualifier(newdecl,"const");
-
+	
         single_rename_add(name, newdecl, newname);
         declparms = newparms;
         Delete(newdecl);
@@ -288,22 +347,17 @@ static void rename_add(const char *name, SwigType *decl, Hash *kwargs, ParmList 
   }
 }
 
-static void namewarn_add(const char *name, SwigType *decl, Hash *warning) {
-  String *nname;
-  if (Namespaceprefix) {
-    nname = NewStringf("%s::%s",Namespaceprefix, name);
-  } else {
-    nname = NewString(name);
-  }
-
-  Swig_name_object_set(Swig_cparse_namewarn(),nname,decl,warning);
-  Delete(nname);
+static void namewarn_add(const char *name, SwigType *decl, Hash *namewrn) {
+  const char *namewrn_keys[] = {"rename", "error", "fullname", "source_fmt", "target_fmt", 0};
+  Swig_name_object_attach_keys(namewrn_keys, namewrn);
+  Swig_cparse_add_name_object(Swig_cparse_namewarn_hash(), Swig_cparse_namewarn_list(),
+			      Namespaceprefix, name, decl, namewrn);
 }
 
 static void rename_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
-  Swig_name_object_inherit(Swig_cparse_rename(),base,derived);
-  Swig_name_object_inherit(Swig_cparse_namewarn(),base,derived);
+  Swig_name_object_inherit(Swig_cparse_rename_hash(),base,derived);
+  Swig_name_object_inherit(Swig_cparse_namewarn_hash(),base,derived);
   Swig_name_object_inherit(features_hash,base,derived);
 }
 
@@ -311,12 +365,93 @@ static void rename_inherit(String *base, String *derived) {
 /* This is a bit of a mess. Need to clean up */
 static String *add_oldname = 0;
 
+DOH *Swig_node_getattr(Node *n, const char *cattr)
+{
+  const char *rattr = strstr(cattr,"$");
+  if (rattr) {
+    String *nattr = NewStringWithSize(cattr, rattr-cattr);
+    Node *rn = Getattr(n,nattr);
+    if (rn) {
+      DOH *res = Swig_node_getattr(rn, rattr + 1);
+      Delete(nattr);
+      return res;
+    } else {
+      return 0;
+    }  
+  } else {
+    return Getattr(n,cattr);
+  }
+}
+
+int Swig_cparse_match(Hash *rn, Node *n) {
+  int match = 1;
+  Node *kw = nextSibling(rn);
+  while (match && kw) {
+    String *key = Getattr(kw,"name");
+    char *ckey = key ? Char(key) : 0;
+    if (ckey && (strncmp(ckey,"match",5) == 0)) {
+      match = 0;
+      if (n) {
+	const char *csep = strstr(ckey,"$");
+	const char *cattr = csep ? csep + 1 : "nodeType";
+	String *nval = Swig_node_getattr(n,cattr);
+	String *kwval = Getattr(kw,"value");
+	if (nval && Equal(nval, kwval)) {
+	  match = 1;
+	}
+      }
+    }
+    kw = nextSibling(kw);
+  }
+  return match;
+}
+
+Hash *Swig_cparse_name_object(List *namelist, Node *n, String *prefix, String *name, String *decl) {
+  Hash *res = 0;
+  if (namelist) {
+    int len = Len(namelist);
+    int i;
+    int match = 0;
+    for (i = 0; !match && (i < len); i++) {
+      Hash *rn = Getitem(namelist,i);
+      String *rdecl = Getattr(rn,"decl");
+      if (rdecl && (!decl || !Equal(rdecl,decl))) {
+	continue;
+      } else {
+	String *tname = Getattr(rn,"target_name");
+	String *sfmt = Getattr(rn,"source_fmt");
+	String *sname = 0;
+	int fullname = GetFlag(namelist,"fullname");
+	if (sfmt) {
+	  if (fullname && prefix) {
+	    sname = NewStringf(sfmt, prefix, name);
+	  } else {
+	    sname = NewStringf(sfmt, name);
+	  }
+	} else {
+	  if (fullname && prefix) {
+	    sname = NewStringf("%s::%s", prefix, name);
+	  } else {
+	    sname = NewString(name);
+	  }
+	}
+	match = (!tname || Equal(sname,tname)) && Swig_cparse_match(rn, n);
+	Delete(sname);
+      }
+      if (match) {
+	res = rn;
+	break;
+      }
+    }
+  }
+  return res;
+}
 
 /* Return the node name when it requires to emit a name warning */
-String *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType *decl) {
+Hash *Swig_cparse_warning_object(Node *n, String *prefix, String *name,SwigType *decl) {
   if (n) {
     /* Return in the obvious cases */
-    if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
+    if (!Swig_cparse_namewarn_hash() || !name || !need_name_warning(n)) {
       return 0;
     } else {
       String *access = Getattr(n,"access");	
@@ -328,101 +463,97 @@ String *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType 
   }
   if (name) {
     /* Check to see if the name is in the hash */
-    Hash *res = Swig_name_object_get(Swig_cparse_namewarn(),prefix,name,decl);
-    return res ? Getattr(res,"name"): 0;
+    Hash *wrn = Swig_name_object_get(Swig_cparse_namewarn_hash(),prefix,name,decl);
+    if (!wrn || !Swig_cparse_match(wrn, n)) {
+      wrn = Swig_cparse_name_object(Swig_cparse_namewarn_list(), n, prefix, name, decl);
+    }
+    if (wrn && Getattr(wrn,"error")) {
+      if (n) {
+	Swig_error(Getfile(n), Getline(n), "%s\n", Getattr(wrn,"name"));
+      } else {
+	Swig_error(cparse_file, cparse_line,"%s\n", Getattr(wrn,"name"));
+      }
+    } 
+    return wrn;
   } else {
     return 0;
   }
 }
 
+String *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType *decl) {
+  Hash *wrn = Swig_cparse_warning_object(n, prefix, name,decl);
+  return (name && wrn) ? Getattr(wrn,"name") : 0;
+}
+
+
 /* Create a name applying rename/namewarn if needed */
-String *Swig_cparse_symbol_name(Node *n, String *prefix, String *name, SwigType *decl, String *oldname) {
-  String *rn = 0;
-  Hash *wrn;
-  int destructor = name && (*(Char(name)) == '~');
-  int need_wrn = 1;
-  if (n) {
-    /* Return in the obvious cases */
-    if (!Swig_cparse_namewarn() || !name || !need_name_warning(n)) {
-      need_wrn = 0;
+String *apply_rename(String *newname, int fullname, String *prefix, String *name)
+{
+  String *result = 0;
+  if (newname) {
+    if (Strcmp(newname,"$ignore") == 0) {
+      result = Copy(newname);
     } else {
-      String *access = Getattr(n,"access");	
-      int is_public = !access || (Strcmp(access,"public") == 0);
-      if (!is_public && !need_protected(n,dirprot_mode)) {
-	need_wrn = 0;
+      int destructor = name && (*(Char(name)) == '~');
+      String *fmt = newname;
+      String *tmp = 0;
+      if (destructor && (*(Char(newname)) != '~')) {
+	fmt = tmp = NewStringf("~%s", newname);
       }
+      if (fullname && prefix) {
+	result = NewStringf(fmt,prefix,name);
+      } else {
+	result = NewStringf(fmt,name);
+      }
+      if (tmp) Delete(tmp);
     }
   }
-  wrn = need_wrn ? Swig_name_object_get(Swig_cparse_namewarn(),prefix,name,decl) : 0;
+  return result;
+}
+
+String *
+Swig_cparse_symbol_name(Node *n, String *prefix, String *name, SwigType *decl, String *oldname) {
+  String *nname = 0;
+  String *result = 0;
+  Hash *wrn = 0;
+
+  Hash *rn =  Swig_name_object_get(Swig_cparse_rename_hash(), prefix, name, decl);
+  if (!rn || !Swig_cparse_match(rn,n)) {
+    rn = Swig_cparse_name_object(Swig_cparse_rename_list(), n, prefix, name, decl);
+  }
+  if (rn) {
+    String *newname = Getattr(rn,"name");
+    int fullname = GetFlag(rn,"fullname");
+    result = apply_rename(newname, fullname, prefix, name);
+  }
+
+  nname = result ? result : name;
+  wrn = Swig_cparse_warning_object(n, prefix, nname, decl);
   if (wrn) {
-    String *fmt = 0;
-    Hash *kw = nextSibling(wrn);
-    while (kw) {
-      String *kname = Getattr(kw,"name");
-      if (kname && (Cmp(kname,"rename") == 0)) {
-	fmt = Getattr(kw,"value");
-	break;
-      }
-      kw = nextSibling(kw);
-    }
-    if (fmt) {
-      char *cprefix = prefix ? Char(prefix) : "";
-      if ((wrn) && (Len(wrn))) {
+    String *rename = Getattr(wrn,"rename");
+    if (rename) {
+      String *msg = Getattr(wrn,"name");
+      int fullname = GetFlag(wrn,"fullname");
+      if (result) Delete(result);
+      result = apply_rename(rename, fullname, prefix, name);
+      if ((msg) && (Len(msg))) {
 	if (n) {
 	  SWIG_WARN_NODE_BEGIN(n);
-	  Swig_warning(0,Getfile(n),Getline(n), "%s\n", Getattr(wrn,"name"));
+	  Swig_warning(0,Getfile(n), Getline(n), "%s\n", msg);
 	  SWIG_WARN_NODE_END(n);
 	} else {
-	  Swig_warning(0,Getfile(name),Getline(name), "%s\n", Getattr(wrn,"name"));
+	  Swig_warning(0,Getfile(name),Getline(name), "%s\n", msg);
 	}
       }
-      return NewStringf(fmt,name,cprefix);
     }
   }
 
-  rn = Swig_name_object_get(Swig_cparse_rename(), prefix, name, decl);
-  if (!rn) {
-    return oldname ? Copy(oldname): Copy(name);
-  } else {
-    String *type = 0;
-    String *newname = Getattr(rn,"name");
-    Hash *kw = nextSibling(rn);
-    while (kw) {
-      String *kname = Getattr(kw,"name");
-      if (kname && (Cmp(kname,"match") == 0)) {
-	type = Getattr(kw,"value");
-	break;
-      }
-      kw = nextSibling(kw);
-    }
-    if (type){
-      int match = 0;
-      if (n) {
-	String *ntype = Getattr(n,"nodeType");
-	if (ntype && Equal(ntype,type)) {
-	  match = 1;
-	}
-      }
-      if (!match) {
-	return oldname ? Copy(oldname): Copy(name);
-      }
-    }
-    if (Strcmp(newname,"$ignore") == 0) {
-      return Copy(newname);
-    } else {    
-      char *cprefix = prefix ? Char(prefix) : "";
-      if (destructor && (*(Char(newname)) != '~')) {
-	String *fmt = NewStringf("~%s", newname);
-	String *res = NewStringf(fmt,name,cprefix);
-	Delete(fmt);
-	return res;
-      } else {
-	String *res = NewStringf(newname,name,cprefix);
-	return res;
-      }
-    }
+  if (!result || !Len(result)) {
+    if (result) Delete(result);
+    result = oldname ? Copy(oldname): Copy(name);
   }
-} 
+  return result;
+}
 
 static String *make_name(Node *n, String *name,SwigType *decl) {
   String *origname = name;
@@ -454,11 +585,11 @@ static String *make_unnamed() {
 
 /* Return if the node is a friend declaration */
 static int is_friend(Node *n) {
- return Cmp(Getattr(n,"storage"),"friend") == 0;
+  return Cmp(Getattr(n,"storage"),"friend") == 0;
 }
 
 static int is_operator(String *name) {
- return Strncmp(name,"operator ", 9) == 0;
+  return Strncmp(name,"operator ", 9) == 0;
 }
 
 
@@ -506,7 +637,7 @@ static void add_symbols(Node *n) {
 	   class scope if provided, as in
 	   
 	   struct Foo {
-	      int Foo::method(int a);
+	   int Foo::method(int a);
 	   };
 	   
 	*/
@@ -838,120 +969,121 @@ static void append_previous_extension(Node *cls, Node *am) {
 /* Check for unused %extend.  Special case, don't report unused
    extensions for templates */
  
- static void check_extensions() {
-   Iterator ki;
+static void check_extensions() {
+  Iterator ki;
 
-   if (!extendhash) return;
-   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
-     if (!Strstr(ki.key,"<")) {
-       SWIG_WARN_NODE_BEGIN(ki.item);
-       Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
-       SWIG_WARN_NODE_END(ki.item);
-     }
-   }
- }
+  if (!extendhash) return;
+  for (ki = First(extendhash); ki.key; ki = Next(ki)) {
+    if (!Strstr(ki.key,"<")) {
+      SWIG_WARN_NODE_BEGIN(ki.item);
+      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
+      SWIG_WARN_NODE_END(ki.item);
+    }
+  }
+}
 
 /* Check a set of declarations to see if any are pure-abstract */
 
- static List *pure_abstract(Node *n) {
-   List *abs = 0;
-   while (n) {
-     if (Cmp(nodeType(n),"cdecl") == 0) {
-       String *decl = Getattr(n,"decl");
-       if (SwigType_isfunction(decl)) {
-	 String *init = Getattr(n,"value");
-	 if (Cmp(init,"0") == 0) {
-	   if (!abs) {
-	     abs = NewList();
-	   }
-	   Append(abs,n);
-	   Setattr(n,"abstract","1");
-	 }
-       }
-     } else if (Cmp(nodeType(n),"destructor") == 0) {
-       if (Cmp(Getattr(n,"value"),"0") == 0) {
-	 if (!abs) {
-	   abs = NewList();
-	 }
-	 Append(abs,n);
-	 Setattr(n,"abstract","1");
-       }
-     }
-     n = nextSibling(n);
-   }
-   return abs;
- }
+static List *pure_abstract(Node *n) {
+  List *abs = 0;
+  while (n) {
+    if (Cmp(nodeType(n),"cdecl") == 0) {
+      String *decl = Getattr(n,"decl");
+      if (SwigType_isfunction(decl)) {
+	String *init = Getattr(n,"value");
+	if (Cmp(init,"0") == 0) {
+	  if (!abs) {
+	    abs = NewList();
+	  }
+	  Append(abs,n);
+	  Setattr(n,"abstract","1");
+	}
+      }
+    } else if (Cmp(nodeType(n),"destructor") == 0) {
+      if (Cmp(Getattr(n,"value"),"0") == 0) {
+	if (!abs) {
+	  abs = NewList();
+	}
+	Append(abs,n);
+	Setattr(n,"abstract","1");
+      }
+    }
+    n = nextSibling(n);
+  }
+  return abs;
+}
 
- /* Make a classname */
+/* Make a classname */
 
- static String *make_class_name(String *name) {
-   String *nname = 0;
-   if (Namespaceprefix) {
-     nname= NewStringf("%s::%s", Namespaceprefix, name);
-   } else {
-     nname = NewString(name);
-   }
-   if (SwigType_istemplate(nname)) {
-     String *prefix, *args, *qargs;
-     prefix = SwigType_templateprefix(nname);
-     args   = SwigType_templateargs(nname);
-     qargs  = Swig_symbol_type_qualify(args,0);
-     Append(prefix,qargs);
-     Delete(nname);
-     Delete(args);
-     Delete(qargs);
-     nname = prefix;
-   }
-   return nname;
- }
+static String *make_class_name(String *name) {
+  String *nname = 0;
+  if (Namespaceprefix) {
+    nname= NewStringf("%s::%s", Namespaceprefix, name);
+  } else {
+    nname = NewString(name);
+  }
+  if (SwigType_istemplate(nname)) {
+    String *prefix, *args, *qargs;
+    prefix = SwigType_templateprefix(nname);
+    args   = SwigType_templateargs(nname);
+    qargs  = Swig_symbol_type_qualify(args,0);
+    Append(prefix,qargs);
+    Delete(nname);
+    Delete(args);
+    Delete(qargs);
+    nname = prefix;
+  }
+  return nname;
+}
 
- static List *make_inherit_list(String *clsname, List *names) {
-   int i;
-   String *derived;
-   List *bases = NewList();
+static List *make_inherit_list(String *clsname, List *names) {
+  int i, ilen;
+  String *derived;
+  List *bases = NewList();
 
-   if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
-   else derived = NewString(clsname);
+  if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
+  else derived = NewString(clsname);
 
-   for (i = 0; i < Len(names); i++) {
-     Node *s;
-     String *base;
-     String *n = Getitem(names,i);
-     /* Try to figure out where this symbol is */
-     s = Swig_symbol_clookup(n,0);
-     if (s) {
-       while (s && (Strcmp(nodeType(s),"class") != 0)) {
-	 /* Not a class.  Could be a typedef though. */
-	 String *storage = Getattr(s,"storage");
-	 if (storage && (Strcmp(storage,"typedef") == 0)) {
-	   String *nn = Getattr(s,"type");
-	   s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
-	 } else {
-	   break;
-	 }
-       }
-       if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
-	 String *q = Swig_symbol_qualified(s);
-	 Append(bases,s);
-	 if (q) {
-	   base = NewStringf("%s::%s", q, Getattr(s,"name"));
-	   Delete(q);
-	 } else {
-	   base = NewString(Getattr(s,"name"));
-	 }
-       } else {
-	 base = NewString(n);
-       }
-     } else {
-       base = NewString(n);
-     }
-     if (base) {
-       rename_inherit(base,derived);
-       Delete(base);
-     }
-   }
-   return bases;
- }
+  ilen = Len(names);
+  for (i = 0; i < ilen; i++) {
+    Node *s;
+    String *base;
+    String *n = Getitem(names,i);
+    /* Try to figure out where this symbol is */
+    s = Swig_symbol_clookup(n,0);
+    if (s) {
+      while (s && (Strcmp(nodeType(s),"class") != 0)) {
+	/* Not a class.  Could be a typedef though. */
+	String *storage = Getattr(s,"storage");
+	if (storage && (Strcmp(storage,"typedef") == 0)) {
+	  String *nn = Getattr(s,"type");
+	  s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
+	} else {
+	  break;
+	}
+      }
+      if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
+	String *q = Swig_symbol_qualified(s);
+	Append(bases,s);
+	if (q) {
+	  base = NewStringf("%s::%s", q, Getattr(s,"name"));
+	  Delete(q);
+	} else {
+	  base = NewString(Getattr(s,"name"));
+	}
+      } else {
+	base = NewString(n);
+      }
+    } else {
+      base = NewString(n);
+    }
+    if (base) {
+      rename_inherit(base,derived);
+      Delete(base);
+    }
+  }
+  return bases;
+}
 
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
@@ -1165,12 +1297,12 @@ static Node *dump_nested(const char *parent) {
 
     /* Insert a forward class declaration */
     /* Disabled: [ 597599 ] union in class: incorrect scope 
-    retx = new_node("classforward");
-    Setattr(retx,"kind",n->kind);
-    Setattr(retx,"name",Copy(n->type));
-    Setattr(retx,"sym:name", make_name(n->type,0));
-    set_nextSibling(retx,ret);
-    ret = retx; 
+       retx = new_node("classforward");
+       Setattr(retx,"kind",n->kind);
+       Setattr(retx,"name",Copy(n->type));
+       Setattr(retx,"sym:name", make_name(n->type,0));
+       set_nextSibling(retx,ret);
+       ret = retx; 
     */
 
     /* Make all SWIG created typedef structs/unions/classes unnamed else 
@@ -1181,24 +1313,24 @@ static Node *dump_nested(const char *parent) {
       int i;
       for (i=0; i<3; i++) {
 	char* code_ptr = Char(n->code);
-      while (code_ptr) {
-        /* Replace struct name (as in 'struct name {' ) with whitespace
-           name will be between struct and { */
+	while (code_ptr) {
+	  /* Replace struct name (as in 'struct name {' ) with whitespace
+	     name will be between struct and { */
 	
-        code_ptr = strstr(code_ptr, types_array[i]);
-        if (code_ptr) {
-	  char *open_bracket_pos;
-          code_ptr += strlen(types_array[i]);
-          open_bracket_pos = strstr(code_ptr, "{");
-          if (open_bracket_pos) { 
-            /* Make sure we don't have something like struct A a; */
-            char* semi_colon_pos = strstr(code_ptr, ";");
-            if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
-              while (code_ptr < open_bracket_pos)
-                *code_ptr++ = ' ';
-          }
-        }
-      }
+	  code_ptr = strstr(code_ptr, types_array[i]);
+	  if (code_ptr) {
+	    char *open_bracket_pos;
+	    code_ptr += strlen(types_array[i]);
+	    open_bracket_pos = strstr(code_ptr, "{");
+	    if (open_bracket_pos) { 
+	      /* Make sure we don't have something like struct A a; */
+	      char* semi_colon_pos = strstr(code_ptr, ";");
+	      if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
+		while (code_ptr < open_bracket_pos)
+		  *code_ptr++ = ' ';
+	    }
+	  }
+	}
       }
     }
     
@@ -1261,33 +1393,33 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
     fixname = NewStringEmpty();
   }
   if (Namespaceprefix) {
-   name = NewStringf("%s::%s",Namespaceprefix, fixname);
+    name = NewStringf("%s::%s",Namespaceprefix, fixname);
   } else {
-   name = fixname;
+    name = fixname;
   }
 
   if (declaratorparms) Setmeta(val,"parms",declaratorparms);
   if (!Len(t)) t = 0;
   if (t) {
-   if (qualifier) SwigType_push(t,qualifier);
-   if (SwigType_isfunction(t)) {
-     SwigType *decl = SwigType_pop_function(t);
-     if (SwigType_ispointer(t)) {
-       String *nname = NewStringf("*%s",name);
-       Swig_feature_set(features_hash, nname, decl, fname, val, featureattribs);
-       Delete(nname);
-     } else {
-       Swig_feature_set(features_hash, name, decl, fname, val, featureattribs);
-     }
-     Delete(decl);
-   } else if (SwigType_ispointer(t)) {
-     String *nname = NewStringf("*%s",name);
-     Swig_feature_set(features_hash,nname,0,fname,val, featureattribs);
-     Delete(nname);
-   }
+    if (qualifier) SwigType_push(t,qualifier);
+    if (SwigType_isfunction(t)) {
+      SwigType *decl = SwigType_pop_function(t);
+      if (SwigType_ispointer(t)) {
+	String *nname = NewStringf("*%s",name);
+	Swig_feature_set(features_hash, nname, decl, fname, val, featureattribs);
+	Delete(nname);
+      } else {
+	Swig_feature_set(features_hash, name, decl, fname, val, featureattribs);
+      }
+      Delete(decl);
+    } else if (SwigType_ispointer(t)) {
+      String *nname = NewStringf("*%s",name);
+      Swig_feature_set(features_hash,nname,0,fname,val, featureattribs);
+      Delete(nname);
+    }
   } else {
-   /* Global feature, that is, feature not associated with any particular symbol */
-   Swig_feature_set(features_hash,name,0,fname,val, featureattribs);
+    /* Global feature, that is, feature not associated with any particular symbol */
+    Swig_feature_set(features_hash,name,0,fname,val, featureattribs);
   }
   Delete(fname);
   Delete(name);
@@ -1368,7 +1500,7 @@ static void default_arguments(Node *n) {
     }
 
     /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
-      (one wrapped method per function irrespective of number of default arguments) */
+       (one wrapped method per function irrespective of number of default arguments) */
     if (compact_default_args 
 	|| is_cfunction(function) 
 	|| GetFlag(function,"feature:compactdefaultargs") 
@@ -1468,6 +1600,9 @@ static void default_arguments(Node *n) {
   }
 }
 
+#if 0
+{ /* cc-mode */
+#endif
 %}
 
 %union {
@@ -3058,8 +3193,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		  appendChild($$,$5);
 		  add_symbols($$);       /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
-	       }
-
+               }
                | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
@@ -3132,7 +3266,6 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 add_symbols($$);       /* Add enum to tag space */
 		 set_nextSibling($$,n);
 		 Delete(n);
-
 		 add_symbols($5);       /* Add enum values to id space */
 	         add_symbols(n);
 		 Delete(unnamed);
@@ -3696,14 +3829,15 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    String *ffname = 0;
 
 			    char   tmp[32];
-			    int    i;
+			    int    i, ilen;
 			    while (p) {
 			      String *n = Getattr(p,"name");
 			      if (!n) {
 				p = nextSibling(p);
 				continue;
 			      }
-			      for (i = 0; i < Len(tlist); i++) {
+			      ilen = Len(tlist);
+			      for (i = 0; i < ilen; i++) {
 				if (Strstr(Getitem(tlist,i),n)) {
 				  sprintf(tmp,"$%d",i+1);
 				  Replaceid(fname,n,tmp);

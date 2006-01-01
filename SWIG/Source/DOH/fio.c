@@ -58,7 +58,8 @@ static DOH *encode(char *name,  DOH *s) {
   char *cfmt = strstr(name,":");
   DOH *tmp = 0;  
   if (cfmt) {
-    tmp = NewStringf(cfmt + 1, s);
+    tmp = NewString(cfmt + 1);
+    Append(tmp,s);
     Setfile(tmp,Getfile((DOH *)s));
     Setline(tmp,Getline((DOH *)s));
     *cfmt = '\0';
