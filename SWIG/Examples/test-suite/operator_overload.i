@@ -7,7 +7,7 @@ see bottom for a set of possible tests
 %module operator_overload
 
 #if defined(SWIGPYTHON)
-%warnfilter(362,389);
+%warnfilter(362,389,383,384);
 #endif
 
 #if !defined(SWIGLUA)
