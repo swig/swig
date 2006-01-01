@@ -500,10 +500,15 @@ String *apply_rename(String *newname, int fullname, String *prefix, String *name
       if (destructor && (*(Char(newname)) != '~')) {
 	fmt = tmp = NewStringf("~%s", newname);
       }
-      if (fullname && prefix) {
-	result = NewStringf(fmt,prefix,name);
+      /* use name as a fmt, but avoid C++ "%" and "%=" operators */
+      if (Len(newname) > 1 && strstr(Char(newname),"%") && !Equal(newname,"%=")) { 
+	if (fullname && prefix) {
+	  result = NewStringf(fmt,prefix,name);
+	} else {
+	  result = NewStringf(fmt,name);
+	}
       } else {
-	result = NewStringf(fmt,name);
+	result = Copy(newname);
       }
       if (tmp) Delete(tmp);
     }
