@@ -10,7 +10,7 @@
 %rename("%(title)s",match$parentNode$type="enum HelloEnum") "";
 %rename("%(ctitle)s",match$parentNode$type="enum ChaoEnum") "";
 
-#define awk_cmd "%(command:awk '/^i/{print toupper($1)}' <<<)s"
+%define awk_cmd "%(command:awk '/^i/{print toupper($1)}' <<<)s" %enddef
 
 %rename(awk_cmd) "";
 
