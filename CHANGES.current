@@ -15,42 +15,133 @@ Version 1.3.28 (unreleased).
 	    Now, since the format is processed via swig Printf, you
 	    can use encoder as follows:
 
-	       %rename("%(title)s") import; -> Import
-	       %rename("%(upper)s") import; -> IMPORT
-	       %rename("%(lower)s") Import; -> import
-
-	    This will allow us to add more encoders, as the next
-	    expected 'regexp'.
-
-	  - In the meantime, add the 'command' encoder, you can use it as follows
-
-               %rename(%(command:sed -e 's/\([a-z]\)/\U\\1/' <<< %s)s) import;  -> Import
-
-	    where swig executes the command defined as %(command:<command here>)s.
-	    Note that swig pass the name and the prefix as parameters
-	    that can capture via '%s'. Another example
-
-	       #define awk_cmd "%(command:awk '{if (NF==2) {print $2_$1} else {print _$1}}' <<< %s %s)s"
+	       %rename("%(title)s")  import;     -> Import
+	       %rename("%(upper)s")  import;     -> IMPORT
+	       %rename("%(lower)s")  Import;     -> import
+	       %rename("%(ctitle)s") camel_case; -> CamelCase
 	       
-	       %rename(awk_cmd) ns1::import; -> ns1_import;
-	       %rename(awk_cmd) import; -> _import
-	      	      
-	    Just remember, first parameter is the name, the second is
-	    the prefix. If you don't need the prefix, just put one '%s'
-	    argument in your command.
+	    This will allow us to add more encoders, as the 
+	    expected one for regular expressions. 
 
-	    Note that the 'command' encoder requires popen in your platform.
+	  - Add the above 'ctitle' encoder, which does the camel case:
 
-           - The rename directive has its first option 'match', to
-             match  the node type, for example:
+	        camel_case -> CamelCase
+  
+	  - Also, while we get the regexp support, add the 'command' encoder,
+            you can use it as follows
 
-		 %rename(%(title)s,match="enumitem") *;
+               %rename("%(command:sed -e 's/\([a-z]\)/\U\\1/' <<< )s") import; 
+
+	    then swig will popen the command
+	    
+		"sed -e 's/\([a-z]\)/\U\\1/' <<< import"
+		
+            see below for anonymous renames for better examples.		
+
+          - The rename directive now also allows:
+
+	    - simple match: only apply the rename if a type match
+	      happen, for example
+
+		 %rename(%(title)s,match="enumitem") hello;
 
 		 enum Hello {
-		   hi, hello     ->  Hi, Hello
+		   hi, hello  ->  hi, Hello  
+		 };
+		 int hello()  ->  hello; 
+
+	    - extended match: only apply the rename if the 'extended attribute' match
+	      occurred, for example: 
+
+	         // same as simple match 		
+		 %rename(%(title)s,match$nodeType="enumitem") hello; 
+
+		 enum Hello {
+		   hi, hello  ->  hi, Hello  
+		 };
+
+	       Note that the symbol '$' is used to define the attribute name in
+	       a 'recursive' way, for example:
+
+		 // match only hello in 'enum Hello'
+		 %rename(%(title)s,match$parentNode$type="enum Hello") hello; 
+
+		 enum Hello {
+ 		   hi, hello  ->  hi, Hello   // match
+		 };
+
+
+		 enum Hi {
+ 		   hi, hello  ->  hi, hello   // no match
+		 };
+
+               here, for Hello::hi, the "parentNode" is "Hello", and its "type"
+               is "enum Hello".
+	       
+	       
+            - Anonymous renames: you can use 'anonymous' rename directives, for example: 
+
+	         // rename all the enum items in Hello
+		 %rename(%(title)s,match$parentNode$type="enum Hello") ""; 
+
+		 enum Hello {
+ 		   hi, hello  ->  Hi, Hello   // match both
+		 };
+
+		 enum Hi {
+ 		   hi, hello  ->  hi, hello   // no match
 		 };
 		 
+	         // rename all the enum items 
+		 %rename(%(title)s,match$nodeType="enumitem") ""; 
 
+	         // rename all the items in given command (sloooow, but...)
+		 %rename(%(command:<my external cmd>)s) ""; 
+
+	
+	      Anonymous renames with commands can be very powerful, since you
+	      can 'outsource' all the renaming mechanism (or part of it) to an
+	      external program:
+	      
+	        // Uppercase all (and only) the names that start with 'i'
+	        %rename("%(command:awk '/^i/{print toupper($1)}' <<<)s") "";   
+	       
+	        int imported() -> IMPORTED;
+	        int hello()    -> hello
+
+	      Note that if the 'command' encoder returns an empty string, swig
+	      understand that no rename is necessary.
+
+	      Also note that %rename 'passes' the matched name. For example, in
+	      this case
+
+	        namespace ns1 {
+		  int foo();
+		}
+
+	        namespace ns2 {
+		  int bar();
+		}
+
+	      the external program only receives "foo" and "bar". If needed,
+	      however, you can request the 'fullname' 
+	       	
+	        %rename("%(command:awk 'awk '/ns1::/{l=split($1,a,"::"); print toupper(a[l])}'' <<<)s",fullname=1) "";   
+                
+		ns1::foo -> FOO
+		ns2::bar -> bar	
+	
+	    - Mixing encoders and matching: of course, you can do mix commands
+	      and match fields, for example:
+
+	        %rename("%(<my encoder for fncs>)",match="cdecl") "";
+	        %rename("%(<my encoder for enums>)",match="enumitem") "";
+	        %rename("%(<my encoder for enums inside a class>)",match="enumitem",
+		        match$parentNode$parentNode$nodeType="class") "";
+		
+	      Use "swig -dump_tree" to see the attributes names you can use to
+	      match an specific case.
+	
 12/30/2005: mmatus
 
 	  - Add initial support for gcj and Java -> <target language> mechanism.
