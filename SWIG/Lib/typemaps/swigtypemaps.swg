@@ -34,7 +34,7 @@
       Lib/python/pytypemaps.swg
       Lib/tcl/tcltypemaps.swg
       Lib/ruby/rubytypemaps.swg
-      Lib/perl5/perl5typemaps.swg
+      Lib/perl5/perltypemaps.swg
     
 */
 
