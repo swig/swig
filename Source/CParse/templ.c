@@ -171,7 +171,8 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
 	List *bases = Getattr(n,baselists[b]);
 	if (bases) {
 	  int i;
-	  for (i = 0; i < Len(bases); i++) {
+	  int ilen = Len(bases); 
+	  for (i = 0; i < ilen; i++) {
 	    String *name = Copy(Getitem(bases,i));
 	    Setitem(bases,i,name);
 	    Append(typelist,name);

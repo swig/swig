@@ -474,7 +474,7 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
-  int i;
+  int i, ilen;
   List *inherit = HashGetAttr(current_symtab,k_inherit);
   if (!inherit) {
     inherit = NewList();
@@ -482,7 +482,8 @@ void Swig_symbol_inherit(Symtab *s) {
     Delete(inherit);
   }
   assert(s != current_symtab);
-  for (i = 0; i < Len(inherit); i++) {
+  ilen = Len(inherit);
+  for (i = 0; i < ilen; i++) {
     Node *n = Getitem(inherit,i);
     if (n == s) return;              /* Already inherited */
   }

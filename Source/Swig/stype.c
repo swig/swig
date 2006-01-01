@@ -987,7 +987,7 @@ String *SwigType_manglestr(SwigType *s) {
 void
 SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   String *nt;
-  int    i;
+  int    i, ilen;
   List   *elem;
 
   if (!Strstr(t,pat)) return;
@@ -998,7 +998,8 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   }
   nt = NewStringEmpty();
   elem = SwigType_split(t);
-  for (i = 0; i < Len(elem); i++) {
+  ilen = Len(elem);
+  for (i = 0; i < ilen; i++) {
     String *e = Getitem(elem,i);
     if (SwigType_issimple(e)) {
       if (StringEqual(e,pat)) {
@@ -1014,13 +1015,14 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	{
 	  String *tsuffix;
 	  List *tparms = SwigType_parmlist(e);
-	  int j;
+	  int j, jlen;
 	  String *nt = SwigType_templateprefix(e);
 	  StringAppend(nt,"<(");
-	  for (j = 0; j < Len(tparms); j++) {
+	  jlen = Len(tparms);
+	  for (j = 0; j < jlen; j++) {
 	    SwigType_typename_replace(Getitem(tparms,j), pat, rep);
 	    StringAppend(nt,Getitem(tparms,j));
-	    if (j < (Len(tparms)-1)) Putc(',',nt);
+	    if (j < (jlen-1)) Putc(',',nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
 	  Printf(nt,")>%s", tsuffix);
@@ -1042,14 +1044,15 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	Delete(rest);
       }
     } else if (SwigType_isfunction(e)) {
-      int j;
+      int j, jlen;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
       StringAppend(e,"f(");
-      for (j = 0; j < Len(fparms); j++) {
+      jlen = Len(fparms);
+      for (j = 0; j < jlen; j++) {
 	SwigType_typename_replace(Getitem(fparms,j), pat, rep);
 	StringAppend(e,Getitem(fparms,j));
-	if (j < (Len(fparms)-1)) Putc(',',e);
+	if (j < (jlen-1)) Putc(',',e);
       }
       StringAppend(e,").");
       Delete(fparms);

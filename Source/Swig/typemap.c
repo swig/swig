@@ -1724,11 +1724,12 @@ static void replace_embedded_typemap(String *s) {
       List   *l;
       Hash   *vars;
       String *method;
-      int i;
+      int i, ilen;
 
       l = split_embedded(tmp);
       vars = NewHash();
-      for (i = 1; i < Len(l); i++) {
+      ilen = Len(l);
+      for (i = 1; i < ilen; i++) {
 	String *n, *v;
 	split_var(Getitem(l,i),&n,&v);
 	if (n && v) {
