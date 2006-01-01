@@ -174,7 +174,7 @@
   Fragments can be "type specialized". The syntax is as follows
  									   
     %fragment("name","header") { a type independent fragment }
-    %fragment("name" {Type}, "header") {typethe dependent fragment  }
+    %fragment("name" {Type}, "header") { a type dependent fragment  }
  									   
   and they can also, as typemaps, be used inside templates, for exampe:
  									   
@@ -194,7 +194,7 @@
    fundamental for automatic typemap and template specialization.
 
 
-  Fragments and automatic typemap specialozation:
+  Fragments and automatic typemap specialization:
   ===============================================
 
   Since fragments can be type specialized, they can be elegantly used
@@ -203,13 +203,13 @@
   For example, if you have something like:
 
     %fragment("incode"{float}, "header") {
-      float in_mehtod_float(PyObject *obj) {
+      float in_method_float(PyObject *obj) {
         ...
       }
     }
 
     %fragment("incode"{long}, "header") {
-      float in_mehtod_long(PyObject *obj) {
+      float in_method_long(PyObject *obj) {
         ...
       }
     }
@@ -226,7 +226,7 @@
   then the proper "incode"{float,double} fragment will be included,
   and the proper in_method_{float,double} will be called.
 
-  Since this is a recurrent fragmen use, we provide a couple of
+  Since this is a recurrent fragment use, we provide a couple of
   macros that make the automatic generation of typemaps easier:
 
 
