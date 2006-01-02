@@ -3,8 +3,16 @@
 // when used as class methods.
 //
 
-#define PHPKW(x) %namewarn("314:" `x` " is a php keyword",rename="_%s")  "::" `x`
-#define PHPBN(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
+#define PHPKW(x) %namewarn("314:" `x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s")  `x`
+
+%define PHPCN(x) 
+%namewarn("314:" `x` " is a php reserved class name, class renamed as c_"`x`,match="class",rename="c_%s") `x`;
+%namewarn("314:" `x` " is a php reserved class name, constructor renamed as c_"`x`,match="constructor",rename="c_%s") `x`;
+%enddef
+
+#define PHPBN1(x) %namewarn("321:" `x` " conflicts with a built-in name in php",sourcefmt="%(lower)s")  "::" `x`
+#define PHPBN2(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
+
 
 /*
    From
@@ -61,17 +69,30 @@ PHPKW(var);
 PHPKW(while);
 PHPKW(xor);
 
-/* we catalog these as built-in names since they conflicts, but PHP still runs */
-PHPBN(E_ALL);
-PHPBN(E_ERROR);
-PHPBN(E_PARSE);
-PHPBN(E_WARNING);
-PHPBN(FALSE);
-PHPBN(PHP_OS);
-PHPBN(PHP_VERSION);
-PHPBN(TRUE);
-PHPBN(__sleep);
-PHPBN(__wakeup);
+/* we catalog these as built-in names since they conflict, but PHP still runs */
+
+/* Type 1: case insensitive */
+PHPBN1(__sleep);
+PHPBN1(__wakeup);
+PHPBN1(not);
+PHPBN1(virtual);
+PHPBN1(TRUE);
+PHPBN1(FALSE);
+PHPBN1(__FILE__);
+PHPBN1(__LINE__);
+
+/* Type 2: case sensitive */
+PHPBN2(E_ALL);
+PHPBN2(E_ERROR);
+PHPBN2(E_PARSE);
+PHPBN2(E_WARNING);
+PHPBN2(PHP_OS);
+PHPBN2(PHP_VERSION);
+PHPBN2(NULL);
+
+/* Class names not allowed */
+PHPCN(stdClass);
+
 
 #undef PHPKW
 #undef PHPBN
