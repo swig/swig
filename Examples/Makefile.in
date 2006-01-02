@@ -589,7 +589,7 @@ ocaml_clean:
 ##################################################################
 
 # Make sure these locate your Ruby installation
-RUBY_CFLAGS= @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
+RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
 RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
 RUBY_DLNK = @RUBYDYNAMICLINKING@
