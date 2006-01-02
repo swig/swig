@@ -435,8 +435,13 @@ DohGetChar(DOH *obj, const DOH *name) {
 DOH *
 DohGetFlagAttr(DOH *obj, const DOH *name) {
   DOH *val = Getattr(obj,(DOH *) name);
-  if (!val) return NULL;
-  return (Strcmp(val, "0") != 0) ? val : NULL;
+  if (!val) {
+    return NULL;
+  } else {
+    const char *cval = Char(val);
+    if (!cval) return val;
+    return (strcmp(cval, "0") != 0) ? val : NULL;
+  }
 }
 
 int
