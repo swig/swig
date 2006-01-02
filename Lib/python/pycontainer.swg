@@ -392,6 +392,11 @@ namespace swig
       return _index - ri._index;
     }
 
+    bool operator < (const self& ri) const
+    {
+      return _index < ri._index;
+    }
+
     reference
     operator[](difference_type n) const
     {
@@ -531,14 +536,14 @@ namespace swig
     const_iterator(swig::PySwigIterator *iter),
     const_reverse_iterator(swig::PySwigIterator *iter) {
     if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0) != SWIG_OK) {
-      %argument_fail(SWIG_TypeError, "$type", $argnum);
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
     if (iter) {
       swig::PySwigIterator_T<$type > *iter_t 
 	= dynamic_cast<swig::PySwigIterator_T<$type > *>(iter);
       $1 = iter_t->get_current();
     } else {
-      %argument_fail(SWIG_TypeError, "$type", $argnum);
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
   }
 
