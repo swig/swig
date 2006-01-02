@@ -277,10 +277,10 @@ Hash_getattr(DOH *h, DOH *k) {
 }
 
 DOH *
-DohHashGetAttr(DOH *h, DOH *k) {
+DohHashGetAttr(DOH *h, const DOH *k) {
   DOH *obj = 0;
   Hash *ho = (Hash *) ObjData(h);
-  _Hash_getattr(ho, k, obj);
+  _Hash_getattr(ho, (DOH *) k, obj);
   return obj;
 }
 

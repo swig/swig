@@ -341,7 +341,7 @@ extern void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *));
  * ----------------------------------------------------------------------------- */
 
 extern DOHHash   *DohNewHash();
-extern DOH       *DohHashGetAttr(DOH *hash, DOH *key);
+extern DOH       *DohHashGetAttr(DOH *hash, const DOH *key);
 extern int       DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
 
 /* -----------------------------------------------------------------------------
