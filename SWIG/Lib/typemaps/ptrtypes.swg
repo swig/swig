@@ -28,7 +28,7 @@
   %typemap(in,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(SWIG_TypeError, "$type", $argnum); }
+    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); }
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
@@ -36,8 +36,8 @@
   %typemap(in,fragment=frag) const Type & (int res = SWIG_OLDOBJ) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res)) { %argument_fail(SWIG_TypeError,"$type",$argnum); }
-    if (!ptr) { %argument_nullref("$type",$argnum); }
+    if (!SWIG_IsOK(res)) { %argument_fail(SWIG_TypeError,"$type",$symname, $argnum); }
+    if (!ptr) { %argument_nullref("$type",$symname, $argnum); }
     $1 = ptr;
   }
   %typemap(freearg,noblock=1) const Type &  {

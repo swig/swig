@@ -6,14 +6,14 @@
 
 %typemap(in,noblock=1) void * {
   if (!SWIG_IsOK((SWIG_ConvertPtr($input,%as_voidptrptr(&$1), 0, $disown)))) { 
-    %argument_fail(SWIG_TypeError, "$type", $argnum); 
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
   }
 }
 %typemap(freearg) void * "";
 
 %typemap(in,noblock=1) void * const& ($*ltype temp) {
   if (!SWIG_IsOK((SWIG_ConvertPtr($input, %as_voidptrptr(&temp), 0, $disown)))) { 
-    %argument_fail(SWIG_TypeError, "Stype", $argnum); 
+    %argument_fail(SWIG_TypeError, "Stype", $symname, $argnum); 
   }
   $1 =  &temp;
 }

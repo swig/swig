@@ -31,7 +31,7 @@
   Char * (Char *buf = 0, int alloc = 0),
   const Char * (Char *buf = 0, int alloc = 0) {
   if (!SWIG_IsOK(SWIG_AsCharPtr($input, &buf, &alloc))) {
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }
   $1 = buf;
 }
@@ -41,7 +41,7 @@
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (Char *buf = 0, int alloc = 0) {
   if (!SWIG_IsOK((SWIG_AsCharPtr($input, &buf, &alloc)))) {
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }
   $1 = &temp;
 }    
@@ -250,7 +250,7 @@
   const Char [ANY](Char temp[$1_dim0])
 {  
   if (!SWIG_IsOK((SWIG_AsCharArray($input, temp, $1_dim0)))) {
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }
   $1 = temp;
 }
@@ -259,7 +259,7 @@
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray) const Char (&)[ANY] (Char temp[$1_dim0])
 {  
   if (!SWIG_IsOK((SWIG_AsCharArray($input, temp, $1_dim0)))) {
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }
   $1 = &temp;
 }
@@ -398,7 +398,7 @@
   (const Char *STRING, size_t LENGTH) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) { 
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }  
   $1 = %static_cast(buf, $1_ltype);
   $2 = %numeric_cast(size - 1, $2_ltype);
@@ -417,7 +417,7 @@
   (const Char *STRING, size_t SIZE) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) {
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }
   $1 = %static_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
@@ -438,7 +438,7 @@
   (size_t LENGHT, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) { 
-    %argument_fail(SWIG_TypeError,"$type",$argnum);
+    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
   }  
   $2 = %static_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size - 1, $1_ltype) ;
@@ -456,7 +456,7 @@
   (size_t SIZE, const Char *STRING) (Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) {
-    %argument_fail(SWIG_TypeError, "$type",$argnum);
+    %argument_fail(SWIG_TypeError, "$type",$symname, $argnum);
   }
   $2 = %static_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size, $1_ltype) ;

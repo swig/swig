@@ -57,7 +57,7 @@ SWIG_AsArgcArgv(PyObject* input,
   argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
   if (!argv) { 
     $1 = 0; $2 = 0;
-    %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV", $argnum);
+    %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV", $symname, $argnum);
   } else {  
     $1 = ($1_ltype) argc;
     $2 = ($2_ltype) argv;

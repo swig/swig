@@ -131,11 +131,11 @@
  *  Language independent definitions
  * ----------------------------------------------------------------------------- */
 
-#define %error_block(Block...)            %block(Block)
-#define %argument_fail(code, type, argn)  SWIG_exception(code, %argfail_fmt(type, argn))
-#define %argument_nullref(type, argn)     SWIG_exception(SWIG_ValueError, %argnullref_fmt(type, argn))
-#define %variable_fail(code, type, name)  SWIG_exception(code, %varfail_fmt(type, name))
-#define %variable_nullref(type, name)     SWIG_exception(SWIG_ValueError, %varnullref_fmt(type, name))
+#define %error_block(Block...)                 %block(Block)
+#define %argument_fail(code, type, name, argn) SWIG_exception(code, %argfail_fmt(type, name, argn))
+#define %argument_nullref(type, name, argn)    SWIG_exception(SWIG_ValueError, %argnullref_fmt(type, name, argn))
+#define %variable_fail(code, type, name)       SWIG_exception(code, %varfail_fmt(type, name))
+#define %variable_nullref(type, name)          SWIG_exception(SWIG_ValueError, %varnullref_fmt(type, name))
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 #define %dirout_fail(code, type)          SWIG_DirOutFail(code, %outfail_fmt(type))

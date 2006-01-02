@@ -3,13 +3,13 @@
 
 
 /* macros for error manipulation */
-#define %nullref_fmt()                    "invalid null reference "		   
-#define %varfail_fmt(_type,_name)         "in variable '"_name"' of type '"_type"'"  	 		   
-#define %argfail_fmt(_type,_argn)         "in argument " #_argn" of type '" _type"'" 	 		   
-#define %outfail_fmt(_type)               "in output value of type '"_type"'"	   
-#define %argnullref_fmt(_type, _argn)     %nullref_fmt() %argfail_fmt(_type, _argn)  
-#define %varnullref_fmt(_type, _name)     %nullref_fmt() %varfail_fmt(_type, _name)  		   
-#define %outnullref_fmt(_type)            %nullref_fmt() %outfail_fmt(_type)         
+#define %nullref_fmt()                     "invalid null reference "		   
+#define %varfail_fmt(_type,_name)          "in variable '"`_name`"' of type '"`_type`"'"
+#define %argfail_fmt(_type,_name,_argn)    "in method '" `_name` "', argument " `_argn`" of type '" `_type`"'"
+#define %outfail_fmt(_type)                "in output value of type '"_type"'"	   
+#define %argnullref_fmt(_type,_name,_argn) %nullref_fmt() %argfail_fmt(_type, _name, _argn)  
+#define %varnullref_fmt(_type,_name)       %nullref_fmt() %varfail_fmt(_type, _name)  		   
+#define %outnullref_fmt(_type)             %nullref_fmt() %outfail_fmt(_type)         
 
 /* setting an error */
 #define %error(code,msg...)               SWIG_Error(code, msg)
