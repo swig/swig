@@ -12,6 +12,7 @@
 char cvsroot_typemap_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include "cparse.h"
 #include <ctype.h>
 
@@ -85,16 +86,6 @@ static void set_typemap(int tm_scope, SwigType* type, Hash* tm)
  *
  * Initialize the typemap system
  * ----------------------------------------------------------------------------- */
-static String *k_type = 0;
-static String *k_code = 0;
-static String *k_name = 0;
-static String *k_lname = 0;
-static String *k_locals = 0;
-static String *k_value = 0;
-static String *k_tmapmatch = 0;
-static String *k_kwargs = 0;
-static String *k_SWIGTYPE = 0;
-static String *k_one = 0;
 
 void Swig_typemap_init() {
   int i;
@@ -103,17 +94,6 @@ void Swig_typemap_init() {
   }
   typemaps[0] = NewHash();
   tm_scope = 0;
-
-  k_type = NewString("type");
-  k_code = NewString("code");
-  k_name = NewString("name");
-  k_lname = NewString("lname");
-  k_locals = NewString("locals");
-  k_value = NewString("value");
-  k_tmapmatch = NewString("tmap:match");
-  k_SWIGTYPE = NewString("SWIGTYPE");
-  k_kwargs = NewString("kwargs");
-  k_one = NewString("1");
 }
 
 static String *tmop_name(const String_or_char *op) {
@@ -1338,7 +1318,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
 
   if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
     sprintf(temp,"%s:SWIGTYPE", cop);
-    Setattr(node,tmop_name(temp),k_one);
+    Setattr(node,tmop_name(temp),k_1);
   }
 
   /* Attach kwargs */
@@ -1565,7 +1545,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 
       if (HashCheckAttr(tm,k_type,k_SWIGTYPE)) {
 	sprintf(temp,"%s:SWIGTYPE", cop);
-	Setattr(p,tmop_name(temp),k_one);
+	Setattr(p,tmop_name(temp),k_1);
       }
       p = nextSibling(p);
     }

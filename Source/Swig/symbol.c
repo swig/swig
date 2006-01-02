@@ -13,6 +13,7 @@ char cvsroot_symbol_c[] = "$Header$";
 
 #include "swig.h"
 #include "swigwarn.h"
+#include "swigkeys.h"
 #include <ctype.h>
 
 /* #define SWIG_DEBUG*/
@@ -176,41 +177,6 @@ static Hash *global_scope = 0;    /* Global scope */
 
 /* common attribute keys, to avoid calling find_key all the times */
 
-static String *empty_string = 0;
-static String *k_allowstypedef = 0;
-static String *k_cdecl = 0;
-static String *k_coloncolon = 0;
-static String *k_constructor = 0;
-static String *k_csymnextSibling = 0;
-static String *k_csympreviousSibling = 0;
-static String *k_csymtab = 0;
-static String *k_decl = 0;
-static String *k_enumitem = 0;
-static String *k_inherit = 0;
-static String *k_name = 0;
-static String *k_namespace = 0;
-static String *k_nodetype = 0;
-static String *k_parentnode = 0;
-static String *k_storage = 0;
-static String *k_symboltable = 0;
-static String *k_symname = 0;
-static String *k_symnextSibling = 0;
-static String *k_symoverloaded = 0;
-static String *k_symovername = 0;
-static String *k_sympreviousSibling = 0;
-static String *k_symsymtab = 0;
-static String *k_symtab = 0;
-static String *k_symtypename = 0;
-static String *k_symweak = 0;
-static String *k_template = 0;
-static String *k_templateparm = 0;
-static String *k_templateparms = 0;
-static String *k_templatetype = 0;
-static String *k_type = 0;
-static String *k_typedef = 0;
-static String *k_uname = 0;
-static String *k_using = 0;
-static String *k_value = 0;
 
 
 #if 0
@@ -236,41 +202,6 @@ Swig_symbol_dump_symtable() {
 
 void
 Swig_symbol_init() {
-  empty_string = NewString("");
-  k_allowstypedef = NewString("allows_typedef");
-  k_cdecl = NewString("cdecl");
-  k_coloncolon = NewString("::");
-  k_constructor = NewString("constructor");
-  k_csymnextSibling = NewString("csym:nextSibling");
-  k_csympreviousSibling = NewString("csym:previousSibling");
-  k_csymtab = NewString("csymtab");
-  k_decl = NewString("decl");
-  k_enumitem = NewString("enumitem");
-  k_inherit = NewString("inherit");
-  k_name = NewString("name");
-  k_namespace = NewString("namespace");
-  k_nodetype = NewString("nodeType");
-  k_parentnode = NewString("parentNode");
-  k_storage = NewString("storage");
-  k_symboltable = NewString("symboltable");
-  k_symname = NewString("sym:name");
-  k_symnextSibling = NewString("sym:nextSibling");
-  k_symoverloaded = NewString("sym:overloaded");
-  k_symovername = NewString("sym:overname");
-  k_sympreviousSibling = NewString("sym:previousSibling");
-  k_symsymtab = NewString("sym:symtab");
-  k_symtab = NewString("symtab");
-  k_symtypename = NewString("sym:typename");
-  k_symweak = NewString("sym:weak");
-  k_template = NewString("template");
-  k_templateparm = NewString("templateparm");
-  k_templateparms = NewString("templateparms");
-  k_templatetype = NewString("templatetype");
-  k_type = NewString("type");
-  k_typedef = NewString("typedef");
-  k_uname = NewString("uname");
-  k_using = NewString("using");
-  k_value = NewString("value");
 
   current = NewHash();
   current_symtab = NewHash();
@@ -1947,3 +1878,6 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab)
   }
   return value;
 }
+
+
+

@@ -12,78 +12,16 @@
 char cvsroot_templ_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include "cparse.h"
 
 static int template_debug = 0;
 
-static String *k_baselist = 0;
-static String *k_cdecl = 0;
-static String *k_class = 0;
-static String *k_code = 0;
-static String *k_constructor = 0;
-static String *k_conversionoperator = 0;
-static String *k_decl = 0;
-static String *k_destructor = 0;
-static String *k_error = 0;
-static String *k_kwargs = 0;
-static String *k_name = 0;
-static String *k_namespace = 0;
-static String *k_nodetype = 0;
-static String *k_parms = 0;
-static String *k_partialargs = 0;
-static String *k_partials = 0;
-static String *k_pattern = 0;
-static String *k_privatebaselist = 0;
-static String *k_protectedbaselist = 0;
-static String *k_symname = 0;
-static String *k_symnextSibling = 0;
-static String *k_symsymtab = 0;
-static String *k_template = 0;
-static String *k_templateparms = 0;
-static String *k_templatetype = 0;
-static String *k_throws = 0;
-static String *k_type = 0;
-static String *k_typedef = 0;
-static String *k_uname = 0;
-static String *k_using = 0;
-static String *k_value = 0;
 
 String *baselists[3];
 
 void SwigType_template_init()
 {
-  k_baselist = NewString("baselist");
-  k_cdecl = NewString("cdecl");
-  k_class = NewString("class");
-  k_code = NewString("code");
-  k_constructor = NewString("constructor");
-  k_conversionoperator = NewString("conversion_operator");
-  k_decl = NewString("decl");
-  k_destructor = NewString("destructor");
-  k_error = NewString("error");
-  k_kwargs = NewString("kwargs");
-  k_name = NewString("name");
-  k_namespace = NewString("namespace");
-  k_nodetype = NewString("nodeType");
-  k_parms = NewString("parms");
-  k_partialargs = NewString("partialargs");
-  k_partials = NewString("partials");
-  k_pattern = NewString("pattern");
-  k_privatebaselist = NewString("privatebaselist");
-  k_protectedbaselist = NewString("protectedbaselist");
-  k_symname = NewString("sym:name");
-  k_symnextSibling = NewString("sym:nextSibling");
-  k_symsymtab = NewString("sym:symtab");
-  k_template = NewString("template");
-  k_templateparms = NewString("templateparms");
-  k_templatetype = NewString("templatetype");
-  k_throws = NewString("throws");
-  k_type = NewString("type");
-  k_typedef = NewString("typedef");
-  k_uname = NewString("uname");
-  k_using = NewString("using");
-  k_value = NewString("value");
-
   baselists[0] = k_baselist;
   baselists[1] = k_protectedbaselist;
   baselists[2] = k_privatebaselist;

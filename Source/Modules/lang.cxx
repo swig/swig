@@ -40,11 +40,6 @@ extern "C" {
   {
     return director_mode;
   }
-
-  int Swig_need_protected() 
-  {
-    return director_protected_mode;
-  }
 }
 
   
@@ -1973,6 +1968,8 @@ static void addCopyConstructor(Node *n)
   Node *cn = NewHash();
   set_nodeType(cn,"constructor");
   Setattr(cn,"access","public");
+  Setfile(cn,Getfile(n));
+  Setline(cn,Getline(n));
 
   String *cname = Getattr(n,"name");
   SwigType *type = Copy(cname);
@@ -1981,7 +1978,7 @@ static void addCopyConstructor(Node *n)
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).",cc);
   String *csymname = Getattr(n,"sym:name");
-  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
+  String *symname = Swig_name_make(cn, cname, last, decl, 0);
   if (!symname) {
     symname = Copy(csymname);
   }
@@ -2023,13 +2020,15 @@ static void addDefaultConstructor(Node *n)
   Node *cn = NewHash();
   set_nodeType(cn,"constructor");
   Setattr(cn,"access","public");
+  Setfile(cn,Getfile(n));
+  Setline(cn,Getline(n));
 
   String *cname = Getattr(n,"name");
   String *last = Swig_scopename_last(cname);
   String *name = NewStringf("%s::%s",cname,last);
   String *decl = NewString("f().");
   String *csymname = Getattr(n,"sym:name");
-  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
+  String *symname = Swig_name_make(cn, cname, last, decl, 0);
   if (!symname) {
     symname = Copy(csymname);
   }
@@ -2068,13 +2067,15 @@ static void addDestructor(Node *n)
   Node *cn = NewHash();
   set_nodeType(cn,"destructor");
   Setattr(cn,"access","public");
+  Setfile(cn,Getfile(n));
+  Setline(cn,Getline(n));
 
   String *cname = Getattr(n,"name");
   String *last = Swig_scopename_last(cname);
   Insert(last,0,"~");
   String *name = NewStringf("%s::%s",cname,last);
   String *decl = NewString("f().");
-  String *symname = Swig_cparse_symbol_name(cn, cname, last, decl, 0);
+  String *symname = Swig_name_make(cn, cname, last, decl, 0);
   if (!symname) {
     symname = NewStringf("~%s",Getattr(n,"sym:name"));
   }

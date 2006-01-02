@@ -12,6 +12,7 @@
 char cvsroot_misc_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
@@ -656,9 +657,11 @@ int Swig_scopename_check(String *s) {
 #if defined(HAVE_POPEN)
 extern FILE *popen(const char *command, const char *type);
 extern int pclose(FILE *stream);
+#endif
 
 String *Swig_string_command(String *s) {
   String *res = NewStringEmpty();
+#if defined(HAVE_POPEN)
   if (Len(s)) {
     char *command = Char(s);
     FILE *fp = popen(command,"r");
@@ -669,14 +672,14 @@ String *Swig_string_command(String *s) {
       }
       pclose(fp);
     }
-    if (!fp || (errno)) {
+    if (!fp || errno) {
       Swig_error("SWIG",Getline(s), "Command encoder fails attempting '%s'.\n", s);
       exit(1);
     }
   }
+#endif
   return res;
 }
-#endif
 
 
 /* -----------------------------------------------------------------------------
@@ -695,18 +698,16 @@ Swig_init() {
   DohEncoding("ctitle", Swig_string_ctitle);
   DohEncoding("typecode",Swig_string_typecode);
   DohEncoding("mangle",Swig_string_emangle);
-#if defined(HAVE_POPEN)
   DohEncoding("command",Swig_string_command);
-#endif
+
+  /* Initialize the swig keys */
+  Swig_keys_init();
 
   /* Initialize typemaps */
   Swig_typemap_init();
 
   /* Initialize symbol table */
   Swig_symbol_init();
-
-  /* Initialize naming system */
-  Swig_naming_init();
 
   /* Initialize type system */
   SwigType_typesystem_init();

@@ -43,8 +43,6 @@ extern int       yylex();
 /* parser.y */
 extern SwigType *Swig_cparse_type(String *);
 extern Node     *Swig_cparse(File *);
-extern String   *Swig_cparse_name_warning(Node *n, String *prefix, String *name,SwigType *decl);
-extern String   *Swig_cparse_symbol_name(Node *n,String *prefix, String *name, SwigType *decl, String *oldname);
 extern Hash     *Swig_cparse_features();
 extern void      SWIG_cparse_set_compact_default_args(int defargs);
 extern int       SWIG_cparse_template_reduce(int treduce);
@@ -52,10 +50,7 @@ extern int       SWIG_cparse_template_reduce(int treduce);
 /* util.c */
 extern void      Swig_cparse_replace_descriptor(String *s);
 extern void      cparse_normalize_void(Node *);
-extern int       need_protected(Node *n, int dirprot_mode);
 extern Parm     *Swig_cparse_parm(String *s);
-extern int       need_name_warning(Node *n);
-extern int       need_redefined_warn(Node* a, Node* b, int InClass);
 
 
 /* templ.c */
@@ -66,6 +61,15 @@ extern void      Swig_cparse_debug_templates(int);
 #ifdef __cplusplus
 }
 #endif
+
+#define SWIG_WARN_NODE_BEGIN(Node) \
+ { \
+  String *wrnfilter = Node ? Getattr(Node,"feature:warnfilter") : 0; \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,1) 
+
+#define SWIG_WARN_NODE_END(Node) \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,0); \
+ }
 
 
 #endif

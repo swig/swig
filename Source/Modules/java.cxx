@@ -2546,7 +2546,7 @@ class JAVA : public Language {
           count++;
         plist = nextSibling(plist);
       }
-      String *wrn = pn ? Swig_cparse_name_warning(0, 0, pn, 0) : 0;
+      String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
       arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d",arg_num) : Copy(pn);
     }
 
