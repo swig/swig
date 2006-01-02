@@ -1147,6 +1147,7 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
   Setattr(p,"self","1");
+  Setattr(p,"hidden","1");
   Setattr(p,"wrap:disown","1");
   Delete(type);
   type = NewString("void");
