@@ -1,7 +1,10 @@
 %module "enum_thorough"
 
-// Suppress warning messages from the Ruby module for all of the following...
-%warnfilter(314);
+// Suppress warning messages from the Ruby module for all of the
+// following...
+
+#pragma SWIG nowarn=314
+
 %warnfilter(801);
 %warnfilter(801) red;
 %warnfilter(801) blue;
