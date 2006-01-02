@@ -82,7 +82,7 @@ or you can use the %apply directive :
       Type val; 
       int ecode = asval_meth($input, &val);
       if (!SWIG_IsOK(ecode)) { 
-	%argument_fail(ecode, "$*ltype",$argnum);
+	%argument_fail(ecode, "$*ltype",$symname, $argnum);
       }
       temp = %static_cast(val, $*ltype);
       $1 = &temp;
@@ -94,7 +94,7 @@ or you can use the %apply directive :
       Type val;
       int ecode = asval_meth($input, &val);
       if (!SWIG_IsOK(ecode)) { 
-	%argument_fail(ecode, "$*ltype",$argnum);
+	%argument_fail(ecode, "$*ltype",$symname, $argnum);
       }
       temp = %static_cast(val, $*ltype);
       $1 = &temp;
@@ -118,17 +118,17 @@ or you can use the %apply directive :
   %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res) {  
     res = asptr_meth($input, &$1);
     if (!SWIG_IsOK(res)) {
-      %argument_fail(SWIG_TypeError,"$type",$argnum);
+      %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
     }
     res = SWIG_AddTmpMask(res);
   }
   %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res) {  
     res = asptr_meth($input, &$1);
     if (!SWIG_IsOK(res)) { 
-      %argument_fail(SWIG_TypeError,"$type",$argnum);
+      %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
     }     
     if (!$1) { 
-      %argument_nullref("$type",$argnum);
+      %argument_nullref("$type",$symname, $argnum);
     }
     res = SWIG_AddTmpMask(res);
   }

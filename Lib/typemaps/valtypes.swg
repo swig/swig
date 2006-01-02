@@ -34,7 +34,7 @@
   %typemap(in,noblock=1,fragment=frag) Type (Type val, int ecode = 0) {
     ecode = asval_meth($input, &val);
     if (!SWIG_IsOK(ecode)) {
-      %argument_fail(ecode, "$ltype", $argnum);
+      %argument_fail(ecode, "$ltype", $symname, $argnum);
     } 
     $1 = %static_cast(val,$ltype);
   }
@@ -42,7 +42,7 @@
   %typemap(in,noblock=1,fragment=frag) const Type & ($*ltype temp, Type val, int ecode = 0) {  
     ecode = asval_meth($input, &val);
     if (!SWIG_IsOK(ecode)) {
-      %argument_fail(ecode, "$*ltype", $argnum);
+      %argument_fail(ecode, "$*ltype", $symname, $argnum);
     } 
     temp = %static_cast(val, $*ltype);
     $1 = &temp;

@@ -205,27 +205,23 @@ SWIGINTERNINLINE int
 SWIG_CanCastAsInteger(double *d, double min, double max) {
   double x = *d;
   if (min <= x && x <= max) {
-%#ifdef SWIG_HAS_NO_RINT
-    /* Use the python mechanism to round, or so */
-    double rd = (x < 0) ? ceil(x) : floor(x);
-%#else
-    double rd = rint(x);
-%#endif
-    if ((errno == EDOM) || (errno == ERANGE)) {
-      errno = 0;
-    } else {
-      if (rd == x) {
-	return 1;
-      } else {
-	double diff = rd - x;
-	double summ = rd + x;
-	double reps = diff/summ;
-	if (fabs(reps) < 8*DBL_EPSILON) {
-	  *d = rd;
-	  return 1;
-	}
-      }
-    }
+   double fx = floor(x);   
+   double rd =  ((x - fx) < 0.5) ? fx : ceil(x); /* simple rint */
+   if ((errno == EDOM) || (errno == ERANGE)) {
+     errno = 0;
+   } else {
+     if (rd == x) {
+       return 1;
+     } else {
+       double diff = rd - x;
+       double summ = rd + x;
+       double reps = diff/summ;
+       if (fabs(reps) < 8*DBL_EPSILON) {
+	 *d = rd;
+	 return 1;
+       }
+     }
+   }
   }
   return 0;
 }
