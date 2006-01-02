@@ -995,9 +995,11 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj)
       const char **rkey;
       if (strncmp(ckey,"match",5) == 0) {
 	Hash *mi = NewHash();
+	List *attrlist = Swig_make_attrlist(ckey);
 	if (!matchlist) matchlist = NewList();
 	Setattr(mi,k_value,Getattr(kw,k_value));
-	Setattr(mi,k_attrlist,Swig_make_attrlist(ckey));
+	Setattr(mi,k_attrlist,attrlist);
+	Delete(attrlist);
 	Append(matchlist,mi);
 	Delete(mi);
 	deleteNode(kw);
@@ -1019,22 +1021,27 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj)
 }
 
 void Swig_name_nameobj_add(Hash *name_hash, List *name_list,
-			   String *prefix, const char *name, SwigType *decl, Hash *nameobj) {
+			   String *prefix, String *name, SwigType *decl, Hash *nameobj) {
   String *nname = 0;
   if (name && Len(name)) {
     String *target_fmt = Getattr(nameobj,k_targetfmt);
     nname = prefix ? NewStringf("%s::%s",prefix, name) : NewString(name);
     if (target_fmt) {
-      String *tmp = NewStringf(Getattr(nameobj,k_targetfmt), nname);
+      String *tmp = NewStringf(target_fmt, nname);
       Delete(nname);
       nname = tmp;
     }
   }  
-  if (!nname || !Len(nname) || Getattr(nameobj,k_sourcefmt) || Getattr(nameobj,k_matchlist)) {
+  
+  if (!nname || !Len(nname) || 
+      Getattr(nameobj,k_fullname)  ||  /* any of these options trigger a 'list' nameobj */
+      Getattr(nameobj,k_sourcefmt) || 
+      Getattr(nameobj,k_matchlist)) {
     if (decl) Setattr(nameobj,k_decl, decl);
     if (nname && Len(nname)) Setattr(nameobj,k_targetname, nname);
     Append(name_list, nameobj);
-  } else {  
+  } else {
+    /* here we add an old 'hash' nameobj, simple and fast */
     Swig_name_object_set(name_hash,nname,decl,nameobj);
   }
   Delete(nname);
@@ -1113,10 +1120,11 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	  if (fullname && prefix) {
 	    sname = NewStringf("%s::%s", prefix, name);
 	  } else {
-	    sname = NewString(name);
+	    sname = name;
+	    DohIncref(name);
 	  }
 	}
-	match = !tname || Equal(sname,tname);
+	match = !tname || StringEqual(sname,tname);
 	Delete(sname);
       }
       if (match) {
