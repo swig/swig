@@ -17,8 +17,7 @@
 char cvsroot_parms_c[] = "$Header$";
 
 #include "swig.h"
-
-#define MAXPARMS 16
+#include "swigkeys.h"
 
 /* ------------------------------------------------------------------------
  * NewParm()
@@ -28,13 +27,13 @@ char cvsroot_parms_c[] = "$Header$";
 
 Parm *NewParm(SwigType *type, const String_or_char *name) {
   Parm *p = NewHash();
-  
+  Setattr(p,k_nodetype,k_parm);
   if (type) {
     SwigType *ntype = Copy(type);
-    Setattr(p,"type",ntype);
+    Setattr(p,k_type,ntype);
     Delete(ntype);
   }
-  Setattr(p,"name",name);
+  Setattr(p,k_name,name);
   return p;
 }
 
@@ -60,59 +59,59 @@ Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
 
 Parm *CopyParm(Parm *p) {
   Parm     *np = NewHash();
-  SwigType *t = Getattr(p,"type");
-  String   *name = Getattr(p,"name");
-  String   *lname = Getattr(p,"lname");
-  String   *value = Getattr(p,"value");
-  String   *ignore = Getattr(p,"ignore");
-  String   *alttype = Getattr(p,"alttype");
-  String   *byname = Getattr(p, "arg:byname");
-  String   *compactdefargs = Getattr(p, "compactdefargs");
-  String   *self = Getattr(p, "self");
+  SwigType *t = HashGetAttr(p,k_type);
+  String   *name = HashGetAttr(p,k_name);
+  String   *lname = HashGetAttr(p,k_lname);
+  String   *value = HashGetAttr(p,k_value);
+  String   *ignore = HashGetAttr(p,k_ignore);
+  String   *alttype = HashGetAttr(p,k_alttype);
+  String   *byname = HashGetAttr(p, k_argbyname);
+  String   *compactdefargs = HashGetAttr(p, k_compactdefargs);
+  String   *self = HashGetAttr(p, k_self);
 
   if (t) {
     SwigType *nt = Copy(t);
-    Setattr(np,"type",nt);
+    Setattr(np,k_type,nt);
     Delete(nt);
   }
   if (name) {
     String *str = Copy(name);
-    Setattr(np,"name",str);
+    Setattr(np,k_name,str);
     Delete(str);
   }
   if (lname) {
     String *str = Copy(lname);
-    Setattr(np,"lname", str);
+    Setattr(np,k_lname, str);
     Delete(str);
   }
   if (value) {
     String *str = Copy(value);
-    Setattr(np,"value", str);
+    Setattr(np,k_value, str);
     Delete(str);
   }
   if (ignore) {
     String *str = Copy(ignore);
-    Setattr(np,"ignore", str);
+    Setattr(np,k_ignore, str);
     Delete(str);
   }
   if (alttype) {
     String *str = Copy(alttype);
-    Setattr(np,"alttype", str);
+    Setattr(np,k_alttype, str);
     Delete(str);
   }
   if (byname) {
     String *str = Copy(byname);
-    Setattr(np, "arg:byname", str);
+    Setattr(np, k_argbyname, str);
     Delete(str);
   }
   if (compactdefargs) {
     String *str = Copy(compactdefargs);    
-    Setattr(np, "compactdefargs", str);
+    Setattr(np, k_compactdefargs, str);
     Delete(str);
   }
   if (self) {
     String *str = Copy(self);
-    Setattr(np, "self", str);
+    Setattr(np, k_self, str);
     Delete(str);
   }
       
@@ -155,7 +154,7 @@ CopyParmList(ParmList *p) {
 int ParmList_numarg(ParmList *p) {
   int  n = 0;
   while (p) {
-    if (!Getattr(p,"ignore")) n++;
+    if (!HashGetAttr(p,k_ignore)) n++;
     p = nextSibling(p);
   }
   return n;
@@ -168,8 +167,8 @@ int ParmList_numarg(ParmList *p) {
 int ParmList_numrequired(ParmList *p) {
   int i = 0;
   while (p) {
-    SwigType *t = Getattr(p,"type");
-    String   *value = Getattr(p,"value");
+    SwigType *t = HashGetAttr(p,k_type);
+    String   *value = HashGetAttr(p,k_value);
     if (value) return i;
     if (!(SwigType_type(t) == T_VOID)) i++;
     else break;
@@ -200,7 +199,7 @@ int ParmList_len(ParmList *p) {
 String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while(p) {
-    String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
+    String *pstr = SwigType_str(HashGetAttr(p,k_type), HashGetAttr(p,k_name));
     StringAppend(out,pstr);
     p = nextSibling(p);
     if (p) {
@@ -220,8 +219,8 @@ String *ParmList_str(ParmList *p) {
 String *ParmList_str_defaultargs(ParmList *p) {
   String *out = NewStringEmpty();
   while(p) {
-    String *value = Getattr(p,"value");
-    String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
+    String *value = HashGetAttr(p,k_value);
+    String *pstr = SwigType_str(HashGetAttr(p,k_type), HashGetAttr(p,k_name));
     StringAppend(out,pstr);
     if (value) {
       Printf(out,"=%s", value);
@@ -244,10 +243,10 @@ String *ParmList_str_defaultargs(ParmList *p) {
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
   while(p) {
-    if (Getattr(p,"hidden")) {
+    if (HashGetAttr(p,k_hidden)) {
       p = nextSibling(p);
     } else {
-      String *pstr = SwigType_str(Getattr(p,"type"), 0);
+      String *pstr = SwigType_str(HashGetAttr(p,k_type), 0);
       StringAppend(out,pstr);
       p = nextSibling(p);
       if (p) {
@@ -270,14 +269,14 @@ int ParmList_is_compactdefargs(ParmList *p) {
   int compactdefargs = 0;
   
   if (p) {
-    compactdefargs = Getattr(p,"compactdefargs") ? 1 : 0;
+    compactdefargs = HashGetAttr(p,k_compactdefargs) ? 1 : 0;
 
     /* The "compactdefargs" attribute should only be set on the first parameter in the list.
      * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
      * so we check the 2nd parameter too. */
     if (!compactdefargs) {
       Parm *nextparm = nextSibling(p);
-      compactdefargs = (nextparm && Getattr(nextparm,"compactdefargs")) ? 1 : 0;
+      compactdefargs = (nextparm && HashGetAttr(nextparm,k_compactdefargs)) ? 1 : 0;
     }
   }
 
@@ -295,7 +294,7 @@ int ParmList_is_compactdefargs(ParmList *p) {
 int ParmList_has_defaultargs(ParmList *p) {
     int default_args = 0;
     while (p) {
-      if (Getattr(p, "value")) {
+      if (HashGetAttr(p, k_value)) {
         default_args = 1;
         break;
       }
@@ -330,4 +329,3 @@ ParmList *ParmList_copy_all_except_last_parm(ParmList *p) {
   newparms = fp;
   return newparms;
 }
-

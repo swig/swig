@@ -247,9 +247,7 @@ Swig_tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 int
 checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
   String *v = Getattr(n,name);
-  if (!v) return 0;
-  if (Equal(v,value)) return 1;
-  return 0;
+  return v ? Equal(v,value) : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -410,3 +408,5 @@ Swig_restore(Node *n) {
   }
   Delete(l);
 }
+
+

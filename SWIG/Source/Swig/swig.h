@@ -22,6 +22,9 @@
 
 #ifdef __cplusplus
 extern "C" {
+#if 0
+} /* cc-mode*/
+#endif
 #endif
 
 #ifndef MACSWIG
@@ -421,6 +424,18 @@ extern String  *Swig_name_copyconstructor(const String_or_char *classname);
 extern String  *Swig_name_destroy(const String_or_char *classname);
 extern String  *Swig_name_disown(const String_or_char *classname);
 
+extern void     Swig_naming_init();
+extern void     Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn);
+extern Hash    *Swig_name_namewarn_get(Node *n, String *prefix, String *name,SwigType *decl);
+extern void     Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *namewrn, ParmList *declaratorparms);
+extern void     Swig_name_inherit(String *base, String *derived);
+extern int      Swig_need_protected(Node *n);
+extern int      Swig_need_name_warning(Node *n);
+extern int      Swig_need_redefined_warn(Node* a, Node* b, int InClass);
+
+extern String  *Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *oldname);  
+extern String  *Swig_name_warning(Node *n, String *prefix, String *name,SwigType *decl);
+
 /* --- parameterized rename functions --- */
 
 extern void      Swig_name_object_set(Hash *namehash, String_or_char *name, SwigType *decl, DOH *object);
@@ -536,19 +551,18 @@ extern  void  Swig_fragment_register(Node* fragment);
 extern  void  Swig_fragment_emit(String *name);
 
 /* hacks defined in C++ ! */
-extern  int   Swig_need_protected();
-extern  int   Swig_director_mode();
+extern  int  Swig_director_mode();
+extern void  Wrapper_director_mode_set(int);
 
 
 /* -- template init -- */
 extern void SwigType_template_init();
 
 
-/* -- naming init -- */
-extern void Swig_naming_init();
-  
-
 #ifdef __cplusplus
+#if 0
+{ /* cc-mode*/
+#endif
 }
 #endif
 

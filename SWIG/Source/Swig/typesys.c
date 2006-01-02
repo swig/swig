@@ -15,6 +15,7 @@
 char cvsroot_typesys_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include "cparse.h"
 
 /* -----------------------------------------------------------------------------
@@ -111,17 +112,6 @@ static Hash     *typedef_all_cache = 0;
 static Hash     *typedef_qualified_cache = 0;
 
 /* common attribute keys, to avoid calling find_key all the times */
-static String *k_name = 0;
-static String *k_qname = 0;
-static String *k_symtab = 0;
-static String *k_using = 0;
-static String *k_scope = 0;
-static String *k_typetab = 0;
-static String *k_inherit = 0;
-static String *k_parent = 0;
-static String *k_value = 0;
-static String *k_nodetype = 0;
-static String *k_class = 0;
 
 /* 
    Enable this one if your language fully support SwigValueWrapper<T>.
@@ -150,18 +140,6 @@ static void flush_cache() {
 /* Initialize the scoping system */
 
 void SwigType_typesystem_init() {
-  k_name = NewString("name");
-  k_qname = NewString("qname");
-  k_symtab = NewString("symtab");
-  k_using = NewString("using");
-  k_scope = NewString("scope");
-  k_typetab = NewString("typetab");
-  k_inherit = NewString("inherit");
-  k_parent = NewString("parent");
-  k_value = NewString("value");
-  k_nodetype = NewString("nodeType");
-  k_class = NewString("class");
-
   if (global_scope) Delete(global_scope);
   if (scopes)       Delete(scopes);
 
