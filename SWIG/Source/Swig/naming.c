@@ -1102,7 +1102,7 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	String *tname = HashGetAttr(rn,k_targetname);
 	String *sfmt = HashGetAttr(rn,k_sourcefmt);
 	String *sname = 0;
-	int fullname = GetFlag(namelist,k_fullname);
+	int fullname = GetFlag(rn,k_fullname);
 	if (sfmt) {
 	  if (fullname && prefix) {
 	    sname = NewStringf(sfmt, prefix, name);
@@ -1271,7 +1271,7 @@ static String *apply_rename(String *newname, int fullname, String *prefix, Strin
 	}
 	/* use name as a fmt, but avoid C++ "%" and "%=" operators */
 	if (Len(newname) > 1 && strstr(cnewname,"%") && !(strcmp(cnewname,"%=") == 0)) { 
-	  if (fullname && prefix) {
+ 	  if (fullname && prefix) {
 	    result = NewStringf(fmt,prefix,name);
 	  } else {
 	    result = NewStringf(fmt,name);
