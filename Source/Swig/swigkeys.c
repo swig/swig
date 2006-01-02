@@ -7,10 +7,13 @@ String *k_access = 0;
 String *k_allowstypedef = 0;
 String *k_alttype = 0;
 String *k_argbyname = 0;
+String *k_attrlist = 0;
 String *k_baselist = 0;
+String *k_bases = 0;
 String *k_cdecl = 0;
 String *k_class = 0;
 String *k_classforward = 0;
+String *k_classname = 0;
 String *k_code = 0;
 String *k_coloncolon = 0;
 String *k_compactdefargs = 0;
@@ -52,7 +55,9 @@ String *k_privatebaselist = 0;
 String *k_protectedbaselist = 0;
 String *k_public = 0;
 String *k_qname = 0;
+String *k_qualifier = 0;
 String *k_rename = 0;
+String *k_result = 0;
 String *k_scope = 0;
 String *k_self = 0;
 String *k_set = 0;
@@ -86,6 +91,8 @@ String *k_using = 0;
 String *k_value = 0;
 String *k_virtual = 0;
 String *k_wrapper = 0;
+String *k_wrapaction = 0;
+String *k_wrapdisown = 0;
 
 void Swig_keys_init() {
   empty_string = NewString("");
@@ -95,9 +102,12 @@ void Swig_keys_init() {
   k_allowstypedef = NewString("allows_typedef");
   k_alttype = NewString("alttype");
   k_argbyname = NewString("arg:byname");
+  k_attrlist = NewString("attrlist");
   k_baselist = NewString("baselist");
+  k_bases = NewString("bases");
   k_cdecl = NewString("cdecl");
   k_class = NewString("class");
+  k_classname = NewString("classname");
   k_classforward = NewString("classforward");
   k_code = NewString("code");
   k_coloncolon = NewString("::");
@@ -139,6 +149,8 @@ void Swig_keys_init() {
   k_protectedbaselist = NewString("protectedbaselist");
   k_public = NewString("public");
   k_qname = NewString("qname");
+  k_qualifier = NewString("qualifier");
+  k_result = NewString("result");
   k_rename = NewString("rename");
   k_scope = NewString("scope");
   k_self = NewString("self");
@@ -173,4 +185,6 @@ void Swig_keys_init() {
   k_value = NewString("value");
   k_virtual = NewString("virtual");
   k_wrapper = NewString("wrapper");
+  k_wrapaction = NewString("wrap:action");
+  k_wrapdisown = NewString("wrap:disown");
 }
