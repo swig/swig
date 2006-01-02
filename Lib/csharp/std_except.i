@@ -4,6 +4,12 @@
 // These typemaps are used when methods are declared with an STL exception specification, such as
 //   size_t at() const throw (std::out_of_range);
 
+namespace std 
+{
+  %ignore exception;
+  struct exception {};
+}
+
 %typemap(throws, canthrow=1) std::out_of_range %{
   SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, $1.what());
   return $null; %}
