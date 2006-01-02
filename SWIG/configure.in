@@ -51,7 +51,7 @@ AC_CHECK_TYPES([bool])
 AC_LANG_POP([C++])
 
 
-# Check for popen
+# Check for functions
 AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]))
 
 # Set info about shared libraries.
