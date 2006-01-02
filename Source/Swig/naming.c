@@ -495,13 +495,8 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
 	}
 	Delete(t_prefix);
       }
-      /* A wildcard-based class lookup */
-      if (!rn) {
-	if (!Equal(name,k_start)) {
-	  rn = Swig_name_object_get(namehash, prefix, k_start, decl);
-	}
-      }
-    }
+    } 
+    /* A wildcard-based class lookup */
     if (!rn) {
       Clear(tname);
       Printf(tname,"*::%s",name);
@@ -516,9 +511,6 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   /* Catch-all */
   if (!rn) {
     rn = name_object_get(namehash, name, decl, ncdecl);
-  }
-  if (!rn) {
-    rn = name_object_get(namehash, k_start, decl, ncdecl);
   }
   Delete(tname);
   return rn;
@@ -776,10 +768,11 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   }
 }
 
-
-/*
-  The rename/namewarn engine
-*/
+/* -----------------------------------------------------------------------------
+ * The rename/namewarn engine
+ *
+ * Code below was in parser.y for a while
+ * ----------------------------------------------------------------------------- */
 
 static Hash   *namewarn_hash = 0;
 Hash *Swig_name_namewarn_hash() {
@@ -804,7 +797,6 @@ List *Swig_name_rename_list() {
   if (!rename_list) rename_list = NewList();
   return rename_list;
 }
-
 
 /* -----------------------------------------------------------------------------
  * int Swig_need_name_warning(Node *n)
@@ -837,8 +829,10 @@ int Swig_need_name_warning(Node *n)
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_nodes_are_equivalent(Node* a, Node* b, int a_inclass)
- * Restores attributes saved by a previous call to Swig_require() or Swig_save().
+ * int Swig_need_redefined_warn()
+ *
+ * Detects when a redefined object needs a warning
+ * 
  * ----------------------------------------------------------------------------- */
 
 static int nodes_are_equivalent(Node* a, Node* b, int a_inclass)
@@ -960,6 +954,34 @@ int Swig_need_protected(Node* n)
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * void Swig_name_nameobj_add()
+ *
+ * Add nameobj (rename/namewarn)
+ * 
+ * ----------------------------------------------------------------------------- */
+
+static List *Swig_make_attrlist(const char *ckey) {
+  List *list = NewList();
+  const char *cattr = strstr(ckey,"$");
+  if (cattr) {
+    String *nattr;
+    const char *rattr = strstr(++cattr,"$");
+    while (rattr) {
+      nattr = NewStringWithSize(cattr, rattr-cattr);
+      Append(list,nattr);
+      Delete(nattr);
+      cattr = rattr + 1;
+      rattr = strstr(cattr,"$");
+    }
+    nattr = NewString(cattr);
+    Append(list,nattr);
+    Delete(nattr);
+  } else {
+    Append(list,k_nodetype);
+  }
+  return list;
+}
 
 static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) 
 {
@@ -972,8 +994,12 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj)
     if (ckey) {
       const char **rkey;
       if (strncmp(ckey,"match",5) == 0) {
+	Hash *mi = NewHash();
 	if (!matchlist) matchlist = NewList();
-	Append(matchlist,kw);
+	Setattr(mi,k_value,Getattr(kw,k_value));
+	Setattr(mi,k_attrlist,Swig_make_attrlist(ckey));
+	Append(matchlist,mi);
+	Delete(mi);
 	deleteNode(kw);
       } else {
 	for (rkey = keys; *rkey != 0; ++rkey) {
@@ -990,16 +1016,11 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj)
     Setattr(nameobj,k_matchlist,matchlist);
     Delete(matchlist);
   }
-  
 }
 
-
-
-void 
-Swig_name_nameobj_add(Hash *name_hash, List *name_list,
-		      String *prefix, const char *name, SwigType *decl, Hash *nameobj) {
+void Swig_name_nameobj_add(Hash *name_hash, List *name_list,
+			   String *prefix, const char *name, SwigType *decl, Hash *nameobj) {
   String *nname = 0;
-
   if (name && Len(name)) {
     String *target_fmt = Getattr(nameobj,k_targetfmt);
     nname = prefix ? NewStringf("%s::%s",prefix, name) : NewString(name);
@@ -1008,8 +1029,7 @@ Swig_name_nameobj_add(Hash *name_hash, List *name_list,
       Delete(nname);
       nname = tmp;
     }
-  }
-  
+  }  
   if (!nname || !Len(nname) || Getattr(nameobj,k_sourcefmt) || Getattr(nameobj,k_matchlist)) {
     if (decl) Setattr(nameobj,k_decl, decl);
     if (nname && Len(nname)) Setattr(nameobj,k_targetname, nname);
@@ -1020,51 +1040,52 @@ Swig_name_nameobj_add(Hash *name_hash, List *name_list,
   Delete(nname);
 }
 
+/* -----------------------------------------------------------------------------
+ * int Swig_name_match_nameobj()
+ *
+ * Apply and check the nameobj's math list to the node
+ * 
+ * ----------------------------------------------------------------------------- */
 
-DOH *Swig_node_getattr(Node *n, const char *cattr)
+static DOH *Swig_get_lattr(Node *n, List *lattr)
 {
-  const char *rattr = strstr(cattr,"$");
-  if (rattr) {
-    String *nattr = NewStringWithSize(cattr, rattr-cattr);
-    Node *rn = Getattr(n,nattr);
-    if (rn) {
-      DOH *res = Swig_node_getattr(rn, rattr + 1);
-      Delete(nattr);
-      return res;
-    } else {
-      return 0;
-    }  
-  } else {
-    DOH *res = Getattr(n,cattr);
-    return res;
+  DOH *res = 0;
+  int ilen = Len(lattr);
+  int i;
+  for (i = 0; n && (i < ilen); ++i) {
+    String *nattr = Getitem(lattr,i);
+    res = Getattr(n,nattr);
+    n = res;
   }
+  return res;
 }
 
 int Swig_name_match_nameobj(Hash *rn, Node *n) {
   int match = 1;
   List *matchlist = HashGetAttr(rn,k_matchlist);
   if (matchlist) {
-    int i;
     int ilen = Len(matchlist);
+    int i;
     for (i = 0; match && (i < ilen); ++i) {
       Node *kw = Getitem(matchlist,i);
-      String *key = Getattr(kw,k_name);
-      char *ckey = key ? Char(key) : 0;
-      if (ckey && (strncmp(ckey,"match",5) == 0)) {
-	match = 0;
-	if (n) {
-	  const char *csep = strstr(ckey,"$");
-	  String *nval = csep ? Swig_node_getattr(n,csep + 1) : Getattr(n,k_nodetype);
-	  String *kwval = Getattr(kw,k_value);
-	  if (nval && Equal(nval, kwval)) {
-	    match = 1;
-	  }
-	}
+      List *lattr = Getattr(kw,k_attrlist);
+      String *nval = Swig_get_lattr(n,lattr);
+      match = 0;
+      if (nval) {
+	String *kwval = Getattr(kw,k_value);
+	match = Equal(nval, kwval);
       }
     }
   }
   return match;
 }
+
+/* -----------------------------------------------------------------------------
+ * Hash *Swig_name_nameobj_lget()
+ *
+ * Get a nameobj (rename/namewarn) from the list of filters
+ * 
+ * ----------------------------------------------------------------------------- */
 
 Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *name, String *decl) {
   Hash *res = 0;
@@ -1107,6 +1128,12 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
   return res;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_name_namewarn_add
+ *
+ * Add a namewarn objects
+ * 
+ * ----------------------------------------------------------------------------- */
 
 void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn) {
   const char *namewrn_keys[] = {"rename", "error", "fullname", "sourcefmt", "targetfmt", 0};
@@ -1115,7 +1142,13 @@ void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *
 			prefix, name, decl, namewrn);
 }
 
-/* Return the node name when it requires to emit a name warning */
+/* -----------------------------------------------------------------------------
+ * Hash *Swig_name_namewarn_get()
+ *
+ * Return the namewarn object, if there is one.
+ * 
+ * ----------------------------------------------------------------------------- */
+
 Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name,SwigType *decl) {
   if (!namewarn_hash && !namewarn_list) return 0;
   if (n) {
@@ -1150,12 +1183,24 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name,SwigType *dec
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * String *Swig_name_warning()
+ *
+ * Return the name warning, if there is one.
+ * 
+ * ----------------------------------------------------------------------------- */
+
 String *Swig_name_warning(Node *n, String *prefix, String *name,SwigType *decl) {
   Hash *wrn = Swig_name_namewarn_get(n, prefix, name,decl);
   return (name && wrn) ? HashGetAttr(wrn,k_name) : 0;
 }
 
-
+/* -----------------------------------------------------------------------------
+ * Swig_name_rename_add()
+ *
+ * Manage the rename objects
+ * 
+ * ----------------------------------------------------------------------------- */
 
 static void single_rename_add(String *prefix, String *name, SwigType *decl, Hash *newname) {
   Swig_name_nameobj_add(Swig_name_rename_hash(), Swig_name_rename_list(),
@@ -1201,6 +1246,12 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * String *Swig_name_make()
+ *
+ * Make a name after applying all the rename/namewarn objects
+ * 
+ * ----------------------------------------------------------------------------- */
 
 /* Create a name applying rename/namewarn if needed */
 static String *apply_rename(String *newname, int fullname, String *prefix, String *name)
@@ -1250,7 +1301,6 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
       int fullname = GetFlag(rn,k_fullname);
       result = apply_rename(newname, fullname, prefix, name);
     }
-    
     nname = result ? result : name;
     wrn = Swig_name_namewarn_get(n, prefix, nname, decl);
     if (wrn) {
@@ -1282,9 +1332,12 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
   return result;
 }
 
-
-
-
+/* -----------------------------------------------------------------------------
+ * void Swig_name_inherit()
+ *
+ * Inherit namewarn,rename, and feature objects
+ * 
+ * ----------------------------------------------------------------------------- */
 
 void Swig_name_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
