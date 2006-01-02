@@ -993,12 +993,13 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj)
     char *ckey = kname ? Char(kname) :  0;
     if (ckey) {
       const char **rkey;
-      if (strncmp(ckey,"match",5) == 0) {
+      if ((strncmp(ckey,"match",5) == 0) || (strncmp(ckey,"notmatch",8) == 0)) {
 	Hash *mi = NewHash();
 	List *attrlist = Swig_make_attrlist(ckey);
 	if (!matchlist) matchlist = NewList();
 	Setattr(mi,k_value,Getattr(kw,k_value));
 	Setattr(mi,k_attrlist,attrlist);
+	if (strncmp(ckey,"not",3) == 0) SetFlag(mi,k_notmatch);
 	Delete(attrlist);
 	Append(matchlist,mi);
 	Delete(mi);
@@ -1077,11 +1078,13 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
       Node *kw = Getitem(matchlist,i);
       List *lattr = Getattr(kw,k_attrlist);
       String *nval = Swig_get_lattr(n,lattr);
+      int notmatch = GetFlag(kw,k_notmatch);
       match = 0;
       if (nval) {
 	String *kwval = Getattr(kw,k_value);
 	match = Equal(nval, kwval);
       }
+      if (!notmatch) match = !match;
     }
   }
   return match;

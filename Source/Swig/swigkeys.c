@@ -44,6 +44,7 @@ String *k_member = 0;
 String *k_name = 0;
 String *k_namespace = 0;
 String *k_nodetype = 0;
+String *k_notmatch = 0;
 String *k_parent = 0;
 String *k_parentnode = 0;
 String *k_parm = 0;
@@ -90,9 +91,9 @@ String *k_uname = 0;
 String *k_using = 0;
 String *k_value = 0;
 String *k_virtual = 0;
-String *k_wrapper = 0;
 String *k_wrapaction = 0;
 String *k_wrapdisown = 0;
+String *k_wrapper = 0;
 
 void Swig_keys_init() {
   empty_string = NewString("");
@@ -107,8 +108,8 @@ void Swig_keys_init() {
   k_bases = NewString("bases");
   k_cdecl = NewString("cdecl");
   k_class = NewString("class");
-  k_classname = NewString("classname");
   k_classforward = NewString("classforward");
+  k_classname = NewString("classname");
   k_code = NewString("code");
   k_coloncolon = NewString("::");
   k_compactdefargs = NewString("compactdefargs");
@@ -138,6 +139,7 @@ void Swig_keys_init() {
   k_name = NewString("name");
   k_namespace = NewString("namespace");
   k_nodetype = NewString("nodeType");
+  k_notmatch = NewString("notmatch");
   k_parent = NewString("parent");
   k_parentnode = NewString("parentNode");
   k_parm = NewString("parm");
@@ -150,8 +152,8 @@ void Swig_keys_init() {
   k_public = NewString("public");
   k_qname = NewString("qname");
   k_qualifier = NewString("qualifier");
-  k_result = NewString("result");
   k_rename = NewString("rename");
+  k_result = NewString("result");
   k_scope = NewString("scope");
   k_self = NewString("self");
   k_set = NewString("set");
@@ -184,7 +186,7 @@ void Swig_keys_init() {
   k_using = NewString("using");
   k_value = NewString("value");
   k_virtual = NewString("virtual");
-  k_wrapper = NewString("wrapper");
   k_wrapaction = NewString("wrap:action");
   k_wrapdisown = NewString("wrap:disown");
+  k_wrapper = NewString("wrapper");
 }
