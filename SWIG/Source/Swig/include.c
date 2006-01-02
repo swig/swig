@@ -271,13 +271,16 @@ static String *
 Swig_include_any(const String_or_char *name, int sysfile) {
   FILE         *f;
   String    *str;
+  String    *file;
 
   f = Swig_open_any(name, sysfile);
   if (!f) return 0;
   str = Swig_read_file(f);
   fclose(f);
   Seek(str,0,SEEK_SET);
-  Setfile(str,lastpath);
+  file = Copy(lastpath);
+  Setfile(str,file);
+  Delete(file);
   Setline(str,1);
   return str;
 }
