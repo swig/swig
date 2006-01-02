@@ -85,7 +85,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/typemap.c			\
 		Swig/typesys.c			\
 		Swig/warn.c			\
-		Swig/wrapfunc.c
+		Swig/wrapfunc.c			\
+		Swig/swigkeys.c
 
 bin_PROGRAMS = eswig
 eswig_LDADD   = @SWIGLIBS@
