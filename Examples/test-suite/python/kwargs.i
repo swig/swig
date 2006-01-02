@@ -1,6 +1,6 @@
 %module kwargs
 
-%feature("kwargs");
+%kwargs;
 
 // Simple class
 %extend Foo 
@@ -25,7 +25,7 @@
       return new Foo(a, b);
     }
 
-    virtual ~Foo(){
+    virtual ~Foo() {
     }
     
   };
