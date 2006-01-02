@@ -1348,9 +1348,10 @@ public:
 
     if (!fastunpack) {
       Wrapper_add_local(f,"ii","int ii");
+      Printf(f->code,"if (!PyTuple_Check(args)) SWIG_fail;\n");
       Printf(f->code,"argc = PyObject_Length(args);\n");
       Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n",maxargs);
-      Printf(f->code,"argv[ii] = PyTuple_GetItem(args,ii);\n");
+      Printf(f->code,"argv[ii] = PyTuple_GET_ITEM(args,ii);\n");
       Printf(f->code,"}\n");
     } else {
       String  *iname = Getattr(n,"sym:name");
