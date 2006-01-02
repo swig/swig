@@ -10,4 +10,11 @@
   {
   };
 
+  struct Hello 
+  {
+    void empty() {}    
+  };
+  
+  
+
 %}

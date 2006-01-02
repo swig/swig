@@ -3,14 +3,14 @@
 // when used as class methods.
 //
 
-#define PHPKW(x) %namewarn("314:" `x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s")  `x`
+#define PHPKW(x) %namewarn("314:" `x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
 
 %define PHPCN(x) 
 %namewarn("314:" `x` " is a php reserved class name, class renamed as c_"`x`,match="class",rename="c_%s") `x`;
 %namewarn("314:" `x` " is a php reserved class name, constructor renamed as c_"`x`,match="constructor",rename="c_%s") `x`;
 %enddef
 
-#define PHPBN1(x) %namewarn("321:" `x` " conflicts with a built-in name in php",sourcefmt="%(lower)s")  "::" `x`
+#define PHPBN1(x) %namewarn("321:" `x` " conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
 #define PHPBN2(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
 
 
