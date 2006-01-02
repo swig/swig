@@ -28,6 +28,9 @@ The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://www.php.net/">PHP</a> homepage. <br>
 <a href="http://www.call-with-current-continuation.org/chicken.html">CHICKEN</a> homepage. <br>
 <a href="http://www.schemers.org/"> schemers.org </a> - a collection of resources for the Scheme programming language <br>
+<a href="http://msdn.microsoft.com/netframework">MS .NET</a>, 
+<a href="http://www.mono-project.com/">Mono</a> and 
+<a href="http://www.dotgnu.org/pnet.html">Portable .NET</a> for the .NET framework (C#).<br>
 </blockquote>
 
 <h3> Code generators and other interesting packages</h3>
@@ -83,6 +86,9 @@ sure to check it out.
 <a href="http://elmer.sourceforge.net">Elmer</a>. Glue code generator so that Python modules can run in C and Tcl programs.<br>
 
 <a href="http://www.sourceforge.net/projects/swigxmltocom">SwigXmlToCom</a>. Tool that uses SWIG to generate COM wrappers.<br>
+
+<a href="http://codeworker.free.fr/">CodeWorker</a>. A universal parsing tool and source code generator.
+It lets you generate code by parsing existing languages or by creating and parsing your own language.<br>
 
 </blockquote>
 
