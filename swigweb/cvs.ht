@@ -107,17 +107,17 @@ For example <tt>aclocal --version</tt> should report a matching version of Autom
 </li>
 </ol>
 
-If you are still having problems, send an email to <a href="mail.html">swig-dev</a> mailing list.
+If you are still having problems, send an email to <a href="mail.html">swig-devel</a> mailing list.
 
 <h3>Developer Access</h3>
 
 We are always looking for people to help out with various projects. 
 
 <ul>
-<li><p> Send email to to the <a href="mail.html">swig-dev</a> mailing list.
+<li><p> Send email to to the <a href="mail.html">swig-devel</a> mailing list.
 if you are interested in doing developer work and gaining write access to the CVS repository.
 
-<li><p> The <a href="mail.html">swig-dev</a> mailing list is the developer mailing list
+<li><p> The <a href="mail.html">swig-devel</a> mailing list is the developer mailing list
 and should be used to discuss coding issues, bugs, patches, and so forth.  
 Subscription information and archives of recent activity can be found on the <a href="mail.html">mailing lists</a> page.
 </ul>
