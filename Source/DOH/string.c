@@ -1134,7 +1134,13 @@ DohNewStringf(const DOH *fmt, ...)
  * ----------------------------------------------------------------------------- */
 
 int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2) {
-  return strcmp(Char(s1),Char(s2));
+  const char *c1 = Char(s1);
+  const char *c2 = Char(s2);
+  if (c1 && c2) {
+    return strcmp(c1, c2);
+  } else {
+    return c1 < c2;
+  }
 }
 
 int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n) {

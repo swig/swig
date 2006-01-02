@@ -1293,7 +1293,7 @@ public:
       Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, ", name, function);
     }
     
-    if (n && GetFlag(n,"feature:callback")) {
+    if (n && Getattr(n,"feature:callback")) {
       if (have_docstring(n)) {
         String* ds = docstring(n, AUTODOC_FUNC, "", false);
         Replaceall(ds, "\n", "\\n");
