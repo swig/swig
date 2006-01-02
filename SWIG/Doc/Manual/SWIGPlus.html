@@ -17,7 +17,7 @@
 <li><a href="#SWIGPlus_nn6">Simple C++ wrapping</a>
 <ul>
 <li><a href="#SWIGPlus_nn7">Constructors and destructors</a>
-<li><a href="#SWIGPlus_nn8">Default constructors and destructors</a>
+<li><a href="#SWIGPlus_nn8">Default constructors, copy constructors and implicit destructors</a>
 <li><a href="#SWIGPlus_nn9">When constructor wrappers aren't created</a>
 <li><a href="#SWIGPlus_nn10">Copy constructors</a>
 <li><a href="#SWIGPlus_nn11">Member functions</a>
@@ -271,6 +271,7 @@ void delete_List(List *l) {
 </pre></div>
 
 <H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors, copy constructors and implicit destructors</H3>
+
 
 <p>
 Following the C++ rules for implicit constructor and destructors, SWIG
@@ -1954,7 +1955,7 @@ members (of all classes):
 Note: the <tt>*::</tt> syntax is non-standard C++, but the '*' is meant to be a
 wildcard that matches any class name (we couldn't think of a better
 alternative so if you have a better idea, send email to
-the <a href="http://www.swig.org/mail.html">swig-dev mailing list</a>.
+the <a href="http://www.swig.org/mail.html">swig-devel mailing list</a>.
 </p>
 
 <p>
