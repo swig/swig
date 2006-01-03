@@ -166,20 +166,11 @@ SWIGINTERNINLINE int SWIG_AddCast(int r) {
   return SWIG_IsOK(r) ? ((SWIG_CastRank(r) < SWIG_MAXCASTRANK) ? (r + 1) : SWIG_ERROR) : r;
 }
 SWIGINTERNINLINE int SWIG_CheckState(int r) { 
-#if 1
-  if (SWIG_IsOK(r)) {
-    int rank =  SWIG_CastRank(r);
-    return rank + 1;
-  } else {
-    return 0;
-  }
-#else
-return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0; 
-#endif
+  return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0; 
 }
 #else /* no cast-rank mode */
-#define SWIG_AddCast
-#define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
+#  define SWIG_AddCast
+#  define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
 #endif
 
 
