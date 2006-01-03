@@ -14,6 +14,7 @@
 char cvsroot_include_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 
 /* Delimeter used in accessing files and directories */
 
@@ -166,7 +167,7 @@ Swig_search_path_any(int syspath) {
     filename = NewStringEmpty();
     assert(filename);
     Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
-    if (syspath && !Getattr(dirname,"sysdir")) {
+    if (syspath && !Getattr(dirname,k_sysdir)) {
       Append(llist,filename);
     } else {
       Append(slist,filename);

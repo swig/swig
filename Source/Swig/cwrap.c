@@ -849,7 +849,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     /* Methods with default arguments are wrapped with additional methods for each default argument,
      * however, only one extra %extend method is generated. */
 
-    String *defaultargs = Getattr(n,"defaultargs");
+    String *defaultargs = Getattr(n,k_defaultargs);
     String *code = Getattr(n,k_code);
     String *cname = Getattr(n,k_classname) ? Getattr(n,k_classname) : classname;
     String *membername = Swig_name_member(cname, name);
@@ -938,21 +938,21 @@ Swig_methodclass(Node *n) {
 int
 Swig_directorbase(Node *n) {
   Node *classNode = Swig_methodclass(n);
-  return (classNode && (Getattr(classNode, "directorBase") != 0));
+  return (classNode && (Getattr(classNode, k_directorbase) != 0));
 }
 
 int
 Swig_directorclass(Node *n) {
   Node *classNode = Swig_methodclass(n);
   assert(classNode != 0);
-  return (Getattr(classNode, "vtable") != 0);
+  return (Getattr(classNode, k_vtable) != 0);
 }
 
 int
 Swig_directormethod(Node *n) {
   Node *classNode = Swig_methodclass(n);
   if (classNode) {
-    Node *vtable = Getattr(classNode, "vtable");
+    Node *vtable = Getattr(classNode, k_vtable);
     if (vtable) {
       String *name = Getattr(n, k_name);
       String *decl = Getattr(n, k_decl);
@@ -962,7 +962,7 @@ Swig_directormethod(Node *n) {
       Delete(method_id);
       Delete(local_decl);
       if (item) {
-        return (Getattr(item, "director") != 0);
+        return (Getattr(item, k_director) != 0);
       }
     }
   }
@@ -977,7 +977,7 @@ Swig_directormap(Node *module, String *type) {
 
     String* base = SwigType_base(type);
 
-    Node *directormap = Getattr(module, "wrap:directormap");
+    Node *directormap = Getattr(module, k_wrapdirectormap);
     if (directormap)
       return Getattr(directormap, base);
   }
@@ -1009,7 +1009,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   parms = CopyParmList(nonvoid_parms(Getattr(n,k_parms)));
 
   /* Prepend the list of prefix_args (if any) */
-  prefix_args = Getattr(n,"director:prefix_args");
+  prefix_args = Getattr(n,k_directorprefixargs);
   if (prefix_args != NIL) {
     Parm *p2, *p3;
 
@@ -1032,7 +1032,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
      * however, only one extra %extend method is generated. */
     String *call;
     String *cres;
-    String *defaultargs = Getattr(n,"defaultargs");
+    String *defaultargs = Getattr(n,k_defaultargs);
     String *code = Getattr(n,k_code);
     String *membername = Swig_name_construct(classname);
     String *mangled = Swig_name_mangle(membername);
@@ -1061,7 +1061,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
       /* if a C++ director class exists, create it rather than the original class */
       if (use_director) {
 	Node *parent = Swig_methodclass(n);
-  	int abstract = Getattr(parent, "abstract") != 0;
+  	int abstract = Getattr(parent, k_abstract) != 0;
 	String *name = Getattr(parent, k_symname);
         String* directorname = NewStringf("SwigDirector_%s", name);
 	String* action = NewStringEmpty();
@@ -1295,7 +1295,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
   if (flags & CWRAP_SMART_POINTER) {
     if (checkAttribute(n, k_storage, k_static)) {
-      Node *sn = Getattr(n,"cplus:staticbase");
+      Node *sn = Getattr(n,k_cplusstaticbase);
       String *base = Getattr(sn,k_name); 
       self = NewStringf("%s::", base);
     } else {

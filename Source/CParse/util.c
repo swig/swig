@@ -12,6 +12,7 @@
 char cvsroot_util_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include "cparse.h"
 
 /* -----------------------------------------------------------------------------
@@ -77,13 +78,13 @@ void Swig_cparse_replace_descriptor(String *s) {
  * ----------------------------------------------------------------------------- */
 
 void cparse_normalize_void(Node *n) {
-  String *decl = Getattr(n,"decl");
-  Parm   *parms = Getattr(n,"parms");
+  String *decl = Getattr(n,k_decl);
+  Parm   *parms = Getattr(n,k_parms);
 
   if (SwigType_isfunction(decl)) {
-    if ((ParmList_len(parms) == 1) && (SwigType_type(Getattr(parms,"type")) == T_VOID)) {
+    if ((ParmList_len(parms) == 1) && (SwigType_type(Getattr(parms,k_type)) == T_VOID)) {
       Replaceall(decl,"f(void).","f().");
-      Delattr(n,"parms");
+      Delattr(n,k_parms);
     }
   }
 }

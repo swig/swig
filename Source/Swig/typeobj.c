@@ -15,6 +15,7 @@
 char cvsroot_typeobj_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 #include <ctype.h>
 
 /* -----------------------------------------------------------------------------
@@ -663,7 +664,7 @@ SwigType_add_function(SwigType *t, ParmList *parms) {
   p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms) Putc(',',pstr);
-    Append(pstr, Getattr(p,"type"));
+    Append(pstr, Getattr(p,k_type));
   }
   Insert(t,0,pstr);
   Delete(pstr);
@@ -757,13 +758,13 @@ SwigType_add_template(SwigType *t, ParmList *parms) {
   p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     String *v;
-    if (Getattr(p,"default")) continue;
+    if (Getattr(p,k_default)) continue;
     if (p != parms) Append(t,",");
-    v = Getattr(p,"value");
+    v = Getattr(p,k_value);
     if (v) {
       Append(t,v);
     } else {
-      Append(t,Getattr(p,"type"));
+      Append(t,Getattr(p,k_type));
     }
   }
   Append(t,")>");
