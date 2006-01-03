@@ -104,6 +104,13 @@ static const char *usage2 = (const char*)"\
      -Werror         - Treat warnings as errors\n\
      -w<list>        - Suppress/add warning messages eg -w401,+321 - see Warnings.html\n\
      -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
+     -dump_top       - Print information of the entire node tree, including system nodes\n\
+     -dump_module    - Print information of the module node tree, avoiding system nodes\n\
+     -dump_classes   - Print information about the classes found in the interface\n\
+     -dump_typedef   - Print information about the types and typedefs found in the interface\n\
+     -dump_tags      - Print information about the tags found in the interface\n\
+     -debug_typemap  - Print information for debugging typemaps\n\
+     -debug_template - Print information for debugging templates\n\
 \n";
 
 // Local variables
@@ -123,7 +130,7 @@ static char   *outfile_name_h = 0;
 static int     tm_debug = 0;
 static int     dump_tags = 0;
 static int     dump_tree = 0;
-static int     dump_module_tree = 0;
+static int     dump_module = 0;
 static int     dump_xml = 0;
 static int     browse = 0;
 static int     dump_typedef = 0;
@@ -477,7 +484,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-addextern") == 0) {
 	    AddExtern = 1;
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-show_templates") == 0) {
+	  } else if ((strcmp(argv[i],"-show_templates") == 0) || (strcmp(argv[i],"-debug_template") == 0)) {
 	    Swig_cparse_debug_templates(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-templatereduce") == 0) {
@@ -561,7 +568,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-nocpperraswarn") == 0) {
 	    Preprocessor_error_as_warning(0);
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-tm_debug") == 0) {
+	  } else if ((strcmp(argv[i],"-tm_debug") == 0) || (strcmp(argv[i],"-debug_typemap") == 0)) {
 	    tm_debug = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-module") == 0) {
@@ -617,11 +624,11 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-dump_tags") == 0) {
 	    dump_tags = 1;
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
+	  } else if ((strcmp(argv[i],"-dump_tree") == 0) || (strcmp(argv[i],"-dump_top") == 0)) {
 	    dump_tree = 1;
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_module_tree") == 0) {
-	    dump_module_tree = 1;
+	  } else if (strcmp(argv[i],"-dump_module") == 0) {
+	    dump_module = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dump_xml") == 0) {
 	    dump_xml = 1;
@@ -1011,7 +1018,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_tree) {
       Swig_print_tree(top);
     }
-    if (dump_module_tree) {
+    if (dump_module) {
       Swig_print_tree(Getattr(top,"module"));
     }
     if (dump_xml) {
