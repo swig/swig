@@ -1,14 +1,6 @@
 %module example
 
-%{
-#undef STATIC
-%}
-%include <gcj/cni.i>
-%include <jstring.i>
-%{
-#undef TRUE
-#define TRUE 1
-%}
+%include <cni.i>
 
 %{
 #include "Example.h"
