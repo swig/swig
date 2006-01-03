@@ -11,6 +11,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include "swigkeys.h"
 #include <stdarg.h>
 #include <assert.h>
 
@@ -304,16 +305,16 @@ Swig_require(const char *ns, Node *n, ...) {
 
   /* Save the view */
   {
-    String *view = Getattr(n,"view");
+    String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
 	strcpy(temp,ns);
 	strcat(temp,":view");
 	Setattr(n,temp,view);
-	Setattr(n,"view",ns);
+	Setattr(n,k_view,ns);
       }
     } else {
-      Setattr(n,"view",ns);
+      Setattr(n,k_view,ns);
     }
   }
 
@@ -358,16 +359,16 @@ Swig_save(const char *ns, Node *n, ...) {
 
   /* Save the view */
   {
-    String *view = Getattr(n,"view");
+    String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
 	strcpy(temp,ns);
 	strcat(temp,":view");
 	Setattr(n,temp,view);
-	Setattr(n,"view",ns);
+	Setattr(n,k_view,ns);
       }
     } else {
-      Setattr(n,"view",ns);
+      Setattr(n,k_view,ns);
     }
   }
 
@@ -387,7 +388,7 @@ Swig_restore(Node *n) {
   String *ns;
   Iterator ki;
 
-  ns = Getattr(n,"view");
+  ns = Getattr(n,k_view);
   assert(ns);
 
   l = NewList();

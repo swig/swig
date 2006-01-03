@@ -17,6 +17,7 @@
 char cvsroot_fragment_c[] = "$Header$";
 
 #include "swig.h"
+#include "swigkeys.h"
 
 static Hash *fragments = 0;
 static Hash *looking_fragments = 0;
@@ -32,12 +33,12 @@ static int debug = 0;
 
 void
 Swig_fragment_register(Node* fragment) {
-  if (Getattr(fragment,"emitonly")) {
+  if (Getattr(fragment,k_emitonly)) {
     Swig_fragment_emit(fragment);
     return;
   } else {
-    String *name = Copy(Getattr(fragment,"value"));
-    String *type = Getattr(fragment,"type");
+    String *name = Copy(Getattr(fragment,k_value));
+    String *type = Getattr(fragment,k_type);
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       String *mangle = Swig_string_mangle(type);
@@ -50,12 +51,12 @@ Swig_fragment_register(Node* fragment) {
       fragments = NewHash();
     }
     if (!Getattr(fragments,name)) {
-      String *section = Copy(Getattr(fragment,"section"));
-      String *ccode = Copy(Getattr(fragment,"code"));
-      Hash *kwargs = Getattr(fragment,"kwargs");
-      Setmeta(ccode,"section",section);
+      String *section = Copy(Getattr(fragment,k_section));
+      String *ccode = Copy(Getattr(fragment,k_code));
+      Hash *kwargs = Getattr(fragment,k_kwargs);
+      Setmeta(ccode,k_section,section);
       if (kwargs) {
-	Setmeta(ccode,"kwargs",kwargs);
+	Setmeta(ccode,k_kwargs,kwargs);
       }
       Setattr(fragments,name,ccode);
       if (debug) Printf(stdout,"registering fragment %s %s\n",name,section);
@@ -90,11 +91,11 @@ Swig_fragment_emit(Node *n) {
 
   if (!fragments) return;
 
-  name = Getattr(n,"value");
+  name = Getattr(n,k_value);
   if (!name) {
     name = n;
   }
-  type = Getattr(n,"type");
+  type = Getattr(n,k_type);
   if (type) {
     mangle = Swig_string_mangle(type);
   }
@@ -112,13 +113,13 @@ Swig_fragment_emit(Node *n) {
     }    
     code = Getattr(fragments,name);
     if (debug) Printf(stdout,"looking subfragment %s\n", name);
-    if (code && (Strcmp(code,"ignore") != 0)) {
-      String *section = Getmeta(code,"section");
-      Hash *n = Getmeta(code,"kwargs");
+    if (code && (Strcmp(code,k_ignore) != 0)) {
+      String *section = Getmeta(code,k_section);
+      Hash *n = Getmeta(code,k_kwargs);
       if (!looking_fragments) looking_fragments = NewHash();
       Setattr(looking_fragments,name,"1");      
       while (n) {
-	if (Cmp(Getattr(n,"name"),"fragment") == 0) {
+	if (Equal(Getattr(n,k_name),k_fragment)) {
 	  if (debug) Printf(stdout,"emitting fragment %s %s\n",n, type);
 	  Swig_fragment_emit(n);
 	}
@@ -134,7 +135,7 @@ Swig_fragment_emit(Node *n) {
 	  if (debug) Printf(f,"/* begin fragment %s */\n",name);
 	  Printf(f,"%s\n",code);
 	  if (debug) Printf(f,"/* end fragment %s */\n\n",name);
-	  Setattr(fragments,name,"ignore");
+	  Setattr(fragments,name,k_ignore);
 	  Delattr(looking_fragments,name);      
 	}
       }
@@ -142,7 +143,7 @@ Swig_fragment_emit(Node *n) {
       if (code && type) {
 	SwigType *rtype = SwigType_typedef_resolve_all(type);
 	if (!Equal(type,rtype)) {
-	  String *name = Copy(Getattr(n,"value"));
+	  String *name = Copy(Getattr(n,k_value));
 	  Append(name,rtype);
 	  Swig_fragment_emit(name);
 	  Delete(name);
