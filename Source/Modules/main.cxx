@@ -123,6 +123,7 @@ static char   *outfile_name_h = 0;
 static int     tm_debug = 0;
 static int     dump_tags = 0;
 static int     dump_tree = 0;
+static int     dump_module_tree = 0;
 static int     dump_xml = 0;
 static int     browse = 0;
 static int     dump_typedef = 0;
@@ -619,6 +620,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
 	    dump_tree = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_module_tree") == 0) {
+	    dump_module_tree = 1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dump_xml") == 0) {
 	    dump_xml = 1;
 	    Swig_mark_arg(i);
@@ -1006,6 +1010,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     if (dump_tree) {
       Swig_print_tree(top);
+    }
+    if (dump_module_tree) {
+      Swig_print_tree(Getattr(top,"module"));
     }
     if (dump_xml) {
       Swig_print_xml(top, xmlout);
