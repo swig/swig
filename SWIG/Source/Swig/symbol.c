@@ -989,19 +989,6 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
     }
   }
   if (!s) {
-    if (SwigType_istemplate(name)) {
-      SwigType *rt = Swig_symbol_template_reduce(name, hsym);
-      SwigType *qt = Swig_symbol_type_qualify(rt,hsym);
-      if (!Equal(rt,name)) {
-	s = Swig_symbol_clookup(qt, hsym);
-      }
-      Delete(qt);
-      Delete(rt);
-    }
-    
-  }
-  
-  if (!s) {
     while (hsym) {
       s = symbol_lookup(name,hsym,0);
       if (s) break;
@@ -1009,6 +996,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
       if (!hsym) break;
     }
   }
+
   if (!s) {
     return 0;
   }
