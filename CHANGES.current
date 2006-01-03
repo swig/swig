@@ -3,6 +3,18 @@ Version 1.3.28 (unreleased).
 
 12/30/2005: mmatus
 
+	  - Add info for old and new debug options:
+              
+            -dump_top       - Print information of the entire node tree, including system nodes    
+     	    -dump_module    - Print information of the module node tree, avoiding system nodes     
+     	    -dump_classes   - Print information about the classes found in the interface	       
+     	    -dump_typedef   - Print information about the types and typedefs found in the interface
+     	    -dump_tags      - Print information about the tags found in the interface	       
+     	    -debug_typemap  - Print information for debugging typemaps			       
+            -debug_template - Print information for debugging templates			        
+
+12/30/2005: mmatus
+
 	  - Add option/format support to %rename and %namewarn.	
 	    Now %namewarn can force renaming, for example:
 
@@ -138,7 +150,7 @@ Version 1.3.28 (unreleased).
 	        %rename("%(<my encoder for enums inside a class>)",match="enumitem",
 		        match$parentNode$parentNode$nodeType="class") "";
 		
-	      Use "swig -dump_tree" to see the attributes names you can use to
+	      Use "swig -dump_module" to see the attribute names you can use to
 	      match an specific case.
 	
             - 'sourcefmt' and 'targetfmt': sometimes you need to
