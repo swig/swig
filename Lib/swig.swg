@@ -135,7 +135,7 @@
 %define SWIG_WARN_TYPEMAP_CHARLEAK "451:Setting const char * member may leak memory." %enddef
 %define SWIG_WARN_TYPEMAP_SWIGTYPELEAK "454:Setting a pointer/reference variable may leak memory." %enddef
 %define SWIG_WARN_TYPEMAP_THREAD_UNSAFE "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
-%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR "473:Returning a pointer or reference is not recommended, consider returning 'by value' instead." %enddef
+%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR "473:Returning a pointer or reference in a director method is not recommended." %enddef
 
 /* Contract support - Experimental and undocumented */
 
