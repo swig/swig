@@ -98,26 +98,23 @@ extern "C" {
 #endif
 
 #ifdef SWIG_PYTHON_SAFE_NONE
-SWIGRUNTIME PyObject * 
+SWIGRUNTIMEINLINE PyObject * 
 _SWIG_Py_None(void)
 {
-  static PyObject *none = 0;
-  if (!none) {
-    none = Py_BuildValue("");
-    Py_DECREF(none);
-  }
+  PyObject *none = Py_BuildValue("");
+  Py_DECREF(none);
   return none;
 }
-SWIGRUNTIMEINLINE PyObject * 
+SWIGRUNTIME PyObject * 
 SWIG_Py_None(void)
 {
   static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
   return none;
 }
-# ifdef Py_None
-#   undef Py_None
-#   define Py_None SWIG_Py_None()
-# endif
+#  ifdef Py_None
+#    undef Py_None
+#    define Py_None SWIG_Py_None()
+#  endif
 #endif
 
 SWIGRUNTIMEINLINE PyObject * 
@@ -348,7 +345,7 @@ PySwigObject_compare(PySwigObject *v, PySwigObject *w)
 
 SWIGRUNTIME PyTypeObject* _PySwigObject_type(void);
 
-SWIGRUNTIMEINLINE PyTypeObject*
+SWIGRUNTIME PyTypeObject*
 PySwigObject_type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigObject_type();
   return type;
@@ -688,7 +685,7 @@ PySwigPacked_compare(PySwigPacked *v, PySwigPacked *w)
 
 SWIGRUNTIME PyTypeObject* _PySwigPacked_type(void);
 
-SWIGRUNTIMEINLINE PyTypeObject*
+SWIGRUNTIME PyTypeObject*
 PySwigPacked_type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigPacked_type();
   return type;
@@ -799,7 +796,7 @@ PySwigPacked_New(void *ptr, size_t size, swig_type_info *ty)
   return (PyObject *) sobj;
 }
 
-SWIGRUNTIMEINLINE swig_type_info *
+SWIGRUNTIME swig_type_info *
 PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
 {
   if (PySwigPacked_Check(obj)) {
@@ -826,7 +823,7 @@ _SWIG_This(void)
   return _this;
 }
 
-SWIGRUNTIMEINLINE PyObject *
+SWIGRUNTIME PyObject *
 SWIG_This(void)
 {
   static PyObject *SWIG_STATIC_POINTER(swig_this) = _SWIG_This();
@@ -835,7 +832,7 @@ SWIG_This(void)
 
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
 
-SWIGRUNTIMEINLINE PySwigObject *
+SWIGRUNTIME PySwigObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
   if (PySwigObject_Check(pyobj)) {
@@ -1027,7 +1024,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
   'this' attribute.
 */
 
-SWIGRUNTIMEINLINE PyObject* 
+SWIGRUNTIME PyObject* 
 SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 {
 #if (PY_VERSION_HEX >= 0x02020000)
