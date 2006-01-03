@@ -65,10 +65,10 @@
        done
 
 
-  Swig flags:
-  -----------
+  Flags and conditional macros:
+  -----------------------------
 
-     %swig_mark_flag(flag)
+     %mark_flag(flag)
        flag := True
 
      %evalif(flag,expr) 
@@ -225,7 +225,7 @@ macro(arg1, arg2)
   the flag can be later used with %evalif
 */
 
-%define %swig_mark_flag(x)
+%define %mark_flag(x)
 %define x 1 %enddef
 %enddef
 
