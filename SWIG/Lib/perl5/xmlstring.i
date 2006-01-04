@@ -1,43 +1,66 @@
-%include <typemaps/ptrtypes.swg>
 %include <perlstrings.swg>
 
+%fragment("<XMLCh.h>","header") 
 %{
-/* include here XMLCh/XMString declaration */
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/TransService.hpp>
+#include <xercesc/util/XMLUTF8Transcoder.hpp>
 %}
 
+%fragment("SWIG_UTF8Transcoder","header",fragment="<XMLCh.h>") {
+SWIGINTERN XERCES_CPP_NAMESPACE::XMLTranscoder* 
+SWIG_UTF8Transcoder() {
+  using namespace XERCES_CPP_NAMESPACE;
+  static int init = 0;
+  static XMLTranscoder* UTF8_TRANSCODER  = NULL;
+  static XMLCh* UTF8_ENCODING = NULL;  
+  if (!init) {
+    XMLTransService::Codes failReason;
+    XMLPlatformUtils::Initialize(); // first we must create the transservice
+    UTF8_ENCODING = XMLString::transcode("UTF-8");
+    UTF8_TRANSCODER = XMLPlatformUtils::fgTransService->makeNewTranscoderFor(UTF8_ENCODING,
+									     failReason,
+									     1024);
+    init = 1;
+  }
+  return UTF8_TRANSCODER;
+}
+}
    
-%fragment("SWIG_AsPtrXMLChPtr","header",fragment="SWIG_AsCharPtrAndSize") {
+%fragment("SWIG_AsXMLChPtrAndSize","header",fragment="SWIG_AsCharPtrAndSize",fragment="SWIG_UTF8Transcoder") {
 SWIGINTERN int
-SWIG_AsPtrXMLChPtr(SV *obj, XMLCh **val)
+SWIG_AsXMLChPtrAndSize(SV *obj, XMLCh **val, size_t* psize, int *alloc)
 {
   if (!val) {
     return SWIG_AsCharPtrAndSize(obj, 0,  0, 0);
   } else {
     size_t size;
-    char *ptr = 0;
-    int alloc = SWIG_OLDOBJ;
-    int res = SWIG_AsCharPtrAndSize(obj, &ptr, &size, &alloc);
+    char *cptr = 0;
+    int calloc = SWIG_OLDOBJ;
+    int res = SWIG_AsCharPtrAndSize(obj, &cptr, &size, &calloc);
     if (SWIG_IsOK(res)) {
       STRLEN length = size - 1;
-      if (SvUTF8(input)) {
+      if (SvUTF8(obj)) {
 	unsigned int charsEaten = 0;
 	unsigned char* sizes = %new_array(size, unsigned char);
 	*val = %new_array(size, XMLCh);
 	unsigned int chars_stored = 
-	  UTF8_TRANSCODER->transcodeFrom((const XMLByte*) ptr,
-					 (unsigned int) length,
-					 (XMLCh*) *val, 
-					 (unsigned int) length,
-					 charsEaten,
-					 (unsigned char*)sizes
-					 );
+	  SWIG_UTF8Transcoder()->transcodeFrom((const XMLByte*) cptr,
+					       (unsigned int) length,
+					       (XMLCh*) *val, 
+					       (unsigned int) length,
+					       charsEaten,
+					       (unsigned char*)sizes
+					       );
 	%delete_array(sizes);
 	// indicate the end of the string
 	(*val)[chars_stored] = '\0';
       } else {
-	*val = XMLChPtr::transcode(ptr);
+	*val = XERCES_CPP_NAMESPACE::XMLString::transcode(cptr);
       }
-      if (SWIG_IsNewObj(res)) %delete_array(ptr);
+      if (psize) *psize = size;
+      if (alloc) *alloc = SWIG_NEWOBJ;
+      if (calloc == SWIG_NEWOBJ) %delete_array(cptr);
       return SWIG_NEWOBJ;    
     } else {
       return res;
@@ -46,34 +69,36 @@ SWIG_AsPtrXMLChPtr(SV *obj, XMLCh **val)
 }
 }
 
-%fragment("SWIG_FromXMLChPtr","header") {
+%fragment("SWIG_FromXMLChPtrAndSize","header",fragment="SWIG_UTF8Transcoder") {
 SWIGINTERNINLINE SV *
-SWIG_FromXMLChPtr(XMLCh* input)
+SWIG_FromXMLChPtrAndSize(const XMLCh* input, size_t size)
 {
   SV *output = sv_newmortal();
   unsigned int charsEaten = 0;
-  int length  = XMLChPtr::stringLen(input);      // string length
-  XMLByte* res = new XMLByte[length * UTF8_MAXLEN];          // output string
+  int length  = size;                                        // string length
+  XMLByte* res = %new_array(length * UTF8_MAXLEN, XMLByte);          // output string
   unsigned int total_chars =
-    UTF8_TRANSCODER->transcodeTo((const XMLCh*) input, 
-				 (unsigned int) length,
-				 (XMLByte*) res,
-				 (unsigned int) length*UTF8_MAXLEN,
-				 charsEaten,
-				 XMLTranscoder::UnRep_Throw
-				 );
+    SWIG_UTF8Transcoder()->transcodeTo((const XMLCh*) input, 
+				       (unsigned int) length,
+				       (XMLByte*) res,
+				       (unsigned int) length*UTF8_MAXLEN,
+				       charsEaten,
+				       XERCES_CPP_NAMESPACE::XMLTranscoder::UnRep_Throw
+				       );
   res[total_chars] = '\0';
   sv_setpv((SV*)output, (char *)res );
   SvUTF8_on((SV*)output);
-  delete[] res;
+  %delete_array(res);
   return output;
 }
 }
 
 
-%typemaps_asptrfrom(%checkcode(STRING),
-		    SWIG_AsPtrXMLChPtr, 
-		    SWIG_FromXMLChPtr, 
-		    "SWIG_AsPtrXMLChPtr", 
-		    "SWIG_FromXMLChPtr", 
-		    XMLCh *);
+%include <typemaps/strings.swg>
+%typemaps_string(XMLCh, XMLCh, 
+		 SWIG_AsXMLChPtrAndSize, 
+		 SWIG_FromXMLChPtrAndSize,
+		 XERCES_CPP_NAMESPACE::XMLString::stringLen,
+		 "<XMLCh.h>", INT_MIN, INT_MAX);
+
+
