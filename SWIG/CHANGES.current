@@ -13,6 +13,24 @@ Version 1.3.28 (unreleased).
      	    -debug_typemap  - Print information for debugging typemaps			       
             -debug_template - Print information for debugging templates			        
 
+	  - Add the fakeversion. If you have a project that uses
+            configure/setup.py, or another automatic building system
+            and requires a specific swig version, let say 1.3.22 
+	    you can use:
+
+	       SWIG_FEATURES="-fakeversion 1.3.22"
+
+	     or
+ 
+               swig -fakeversion 1.3.22
+
+             and then swig -version will report 1.3.22 instead of the
+             current version.
+
+	     Tipical use could be
+
+	       SWIG_FEATURES="-fakeversion 1.3.22" ./configure 	     
+
 12/30/2005: mmatus
 
 	  - Add option/format support to %rename and %namewarn.	
