@@ -30,6 +30,7 @@ namespace swig
   %newobject PySwigIterator::operator - (ptrdiff_t n) const;
 }
 
+%nodirector swig::PySwigIterator;
 %inline {
 namespace swig {
   struct stop_iteration
