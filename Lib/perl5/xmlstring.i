@@ -93,6 +93,12 @@ SWIG_FromXMLChPtrAndSize(const XMLCh* input, size_t size)
 }
 }
 
+%init {
+  if (!SWIG_UTF8Transcoder()) {
+    croak("ERROR: XML::Xerces: INIT: Could not create UTF-8 transcoder");
+  }
+}
+
 
 %include <typemaps/strings.swg>
 %typemaps_string(XMLCh, XMLCh, 
