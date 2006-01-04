@@ -4,6 +4,14 @@
 SWIGINTERN int
 SWIG_AsVal_dec(jstring)(SV *obj, jstring *val)
 {
+  if (SvPOK(obj)) {
+    if (val) {
+      STRLEN len = 0;
+      char *cstr = SvPV(obj, len); 
+      *val = JvNewStringLatin1(cstr, len);
+    }
+    return SWIG_OK;
+  }
   return SWIG_ERROR;
 }
 }
@@ -12,8 +20,22 @@ SWIG_AsVal_dec(jstring)(SV *obj, jstring *val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(jstring)(jstring val)
 {
-
   SV *obj = sv_newmortal();
+  if (!val) {
+    sv_setsv(obj, &PL_sv_undef);
+  } else {
+    jsize len = JvGetStringUTFLength(val);
+    if (!len) {
+      sv_setsv(obj, &PL_sv_undef);
+    } else {
+      char *tmp = %new_array(len + 1, char);
+      JvGetStringUTFRegion(val, 0, len, tmp);
+      tmp[len] = 0;
+      sv_setpv(obj, tmp);
+      SvUTF8_on(obj);
+      %delete_array(tmp);
+    }
+  }
   return obj;
 }
 }

@@ -22,5 +22,8 @@ $e3 = $e1->Add($e1,$e2);
 print $e3->{mPublicInt},"\n";
 
 
+$s = $e2->Add("a","b");
+print $s,"\n";
+
 
 example::JvDetachCurrentThread()
