@@ -53,9 +53,7 @@
     int res = asptr_meth($input, &ptr);
     if (!SWIG_IsOK(res) || !ptr) { %variable_fail(SWIG_TypeError, "$type", "$name"); }
     $1 = *ptr;
-    if (SWIG_IsNewObj(res)) { 
-      %delete(ptr);
-    }
+    if (SWIG_IsNewObj(res)) %delete(ptr);
   }
 %enddef
 
