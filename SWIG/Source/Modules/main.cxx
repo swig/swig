@@ -49,15 +49,15 @@ static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -c++            - Enable C++ processing\n\
      -co <file>      - Check <file> out of the SWIG library\n\
-     -directors      - Turn on director mode for all the classes, mainly for testing \n\
+     -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -E              - Preprocess only, does not generate wrapper code\n\
-     -external-runtime [file] - Export the swig runtime stack \n\
+     -external-runtime [file] - Export the swig runtime stack\n\
      -fcompact       - Compile in compact mode\n\
-     -features list  - Set a list of global features, where the syntax list is \n\
-                       -features directors,autodoc=1      \n\
-                       if not explicit value is given to the feature, a '1' is used \n\
+     -features list  - Set a list of global features, where the syntax list is\n\
+                       -features directors,autodoc=1\n\
+                       if not explicit value is given to the feature, a '1' is used\n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -fastdispatch   - Enable fast dispatch mode, which produces faster overload dispatcher code\n\
      -nofastdispatch - Disable fast dispatch mode (default)\n\
@@ -72,9 +72,9 @@ static const char *usage1 = (const char*)"\
      -cpperraswarn   - Treat the CPP #error statement as #warning instead\n\
      -nocpperraswarn - Don't treat the CPP #error statement as #warning, i.e., crash as CPP\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
-     -M              - List all dependencies \n\
+     -M              - List all dependencies\n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
-     -MF <file>      - Generate dependencies into <file> and continue generating wrappers \n\
+     -MF <file>      - Generate dependencies into <file> and continue generating wrappers\n\
      -MM             - List dependencies, but omit files in SWIG library\n\
      -MMD            - Like `-MD', but omit files in SWIG library\n\
 ";
@@ -82,23 +82,24 @@ static const char *usage1 = (const char*)"\
 static const char *usage2 = (const char*)"\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -module <name>  - Set module name to <name>\n\
-     -nocontract     - Turn off contract checking \n\
-     -nodefault      - Do not generate constructors, destructor or copy constructors (dangerous, don't use it)\n\
+     -nocontract     - Turn off contract checking\n\
+     -nodefault      - Do not generate default constructors nor default destructors\n\
      -nodefaultctor  - Do not generate implicit default constructors\n\
-     -nodefaultdtor  - Do not generate implicit default destructors (dangerous, use %nodefaultdtor instead)\n\
+     -nodefaultdtor  - Do not generate implicit default destructors\n\
+     -copctor        - Generate copy constructor automatically when is possible\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -addextern      - Add extra extern declarations\n\
      -nopreprocess   - Skip the preprocessor step\n\
-     -notemplatereduce - Disable reduction of the typedefs in templates \n\
+     -notemplatereduce - Disable reduction of the typedefs in templates\n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
-     -templatereduce - Reduce all the typedefs in templates \n\
+     -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
-     -fakeversion <v>- Make swig to fake a different version \n\
+     -fakeversion <v>- Make swig to fake a different version\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
@@ -478,11 +479,9 @@ void SWIG_getoptions(int argc, char *argv[])
           } else if ((strcmp(argv[i],"-nodefaultdtor") == 0)) {
 	    SWIG_setfeature("feature:nodefaultdtor","1");
 	    Swig_mark_arg(i);
-#if 0
-          } else if ((strcmp(argv[i],"-nocopyctor") == 0)) {
-	    SWIG_setfeature("feature:nocopyctor","1");
+          } else if ((strcmp(argv[i],"-copyctor") == 0)) {
+	    SWIG_setfeature("feature:copyctor","1");
 	    Swig_mark_arg(i);
-#endif
 	  } else if (strcmp(argv[i],"-noexcept") == 0) {
 	    NoExcept = 1;
 	    Swig_mark_arg(i);
