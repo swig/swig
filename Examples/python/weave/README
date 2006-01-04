@@ -18,3 +18,8 @@ information on Weave may be had from here:
 As of November 22, 2004, this example only works with weave from CVS.
 If there is a more recent release of SciPy after this date, it should
 work fine.
+
+
+Also, you need to replace the weave file swigptr2.py by the one
+provided here.
+
