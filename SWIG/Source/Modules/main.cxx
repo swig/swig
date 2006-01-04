@@ -98,6 +98,7 @@ static const char *usage2 = (const char*)"\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates \n\
      -v              - Run in verbose mode\n\
+     -fakeversion <v>- Make swig to fake a different version \n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
@@ -146,6 +147,14 @@ static String  *dependencies_file = 0;
 static File    *f_dependencies_file = 0;
 static int     external_runtime = 0;
 static String *external_runtime_name = 0;
+static char   *fake_version = 0;
+
+static const char *swig_package_version() 
+{
+  return fake_version ? fake_version : PACKAGE_VERSION;
+}
+
+
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -526,8 +535,17 @@ void SWIG_getoptions(int argc, char *argv[])
 	    } else {
 	      Swig_arg_error();
 	    }
+	  } else if (strcmp(argv[i],"-fakeversion") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      fake_version = Swig_copy_string(argv[i+1]);
+	      Swig_mark_arg(i+1);
+	      i++;
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-version") == 0) {
-	      fprintf(stdout,"\nSWIG Version %s\n", PACKAGE_VERSION);
+	      fprintf(stdout,"\nSWIG Version %s\n", swig_package_version());
 	      fprintf(stdout,"Copyright (c) 1995-1998\n");
 	      fprintf(stdout,"University of Utah and the Regents of the University of California\n");
 	      fprintf(stdout,"Copyright (c) 1998-2005\n");
@@ -718,7 +736,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 #endif
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
-  String *package_version = NewString(PACKAGE_VERSION);
+  String *package_version = NewString(swig_package_version());
   char *token = strtok(Char(package_version), ".");
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;
