@@ -17,7 +17,8 @@
  *  String typemaps for type Char (char or wchar_t)
  * ------------------------------------------------------------ */
 
-%define %_typemap_string(Char,
+%define %_typemap_string(StringCode, 
+			 Char,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
@@ -198,7 +199,7 @@
 
 /* typecheck */
 
-%typemap(typecheck,noblock=1,precedence=SWIG_TYPECHECK_STRING,
+%typemap(typecheck,noblock=1,precedence=StringCode,
 	 fragment=#SWIG_AsCharPtr) Char *, Char const*& {
   int res = SWIG_AsCharPtr($input, 0, 0);
   $1 = SWIG_CheckState(res);
@@ -337,7 +338,7 @@
 
 /* typecheck */
 
-%typemap(typecheck,noblock=1,precedence=SWIG_TYPECHECK_STRING,
+%typemap(typecheck,noblock=1,precedence=StringCode,
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
   int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
@@ -477,12 +478,13 @@
  * ------------------------------------------------------------ */
 
 
-%define %typemaps_string(Char, CharName,
-			SWIG_AsCharPtrAndSize,
-			SWIG_FromCharPtrAndSize,
-			SWIG_CharPtrLen,
-			FragLimits, CHAR_MIN, CHAR_MAX)
-
+%define %typemaps_string(StringCode, CharCode,
+			 Char, CharName,
+			 SWIG_AsCharPtrAndSize,
+			 SWIG_FromCharPtrAndSize,
+			 SWIG_CharPtrLen,
+			 FragLimits, CHAR_MIN, CHAR_MAX)
+  
 %fragment("SWIG_From"#CharName"Ptr","header",fragment=#SWIG_FromCharPtrAndSize) {
 SWIGINTERNINLINE SWIG_Object 
 SWIG_From##CharName##Ptr(const Char *cptr)
@@ -561,8 +563,10 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 }
 }
 
+%typemaps_asvalfromn(CharCode, Char);
 
-%_typemap_string(Char,
+%_typemap_string(StringCode, 
+		 Char,
 		 SWIG_AsCharPtrAndSize,
 		 SWIG_FromCharPtrAndSize,
 		 SWIG_CharPtrLen,
