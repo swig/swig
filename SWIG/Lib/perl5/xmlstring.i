@@ -101,7 +101,8 @@ SWIG_FromXMLChPtrAndSize(const XMLCh* input, size_t size)
 
 
 %include <typemaps/strings.swg>
-%typemaps_string(XMLCh, XMLCh, 
+%typemaps_string(%checkcode(UNISTRING), %checkcode(UNICHAR),
+		 XMLCh, XMLCh,
 		 SWIG_AsXMLChPtrAndSize, 
 		 SWIG_FromXMLChPtrAndSize,
 		 XERCES_CPP_NAMESPACE::XMLString::stringLen,
