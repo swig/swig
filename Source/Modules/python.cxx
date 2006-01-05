@@ -81,7 +81,7 @@ enum autodoc_t {
   AUTODOC_METHOD
 };
 
-static const char *usage = (char *)"\
+static const char *usage1 = (char *)"\
 Python Options (available with -python)\n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
@@ -99,7 +99,8 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -threads        - Add thread support for all the interface\n\
      -nothreads      - Disable thread support for all the interface\n\
-     -noexcept       - No automatic exception handling\n\
+     -noexcept       - No automatic exception handling\n";
+static const char *usage2 = (char *)"\
      -noh            - Don't generate the output header file\n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
@@ -118,7 +119,8 @@ Python Options (available with -python)\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
      -nocastmode     - Disable the casting mode (default)\n\
      -O              - Enable all the optimizations options: \n\
-                       -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel -fastunpack -modernargs\n\
+                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual \n\
+                         -noproxydel -fastunpack -modernargs\n\
 \n";
 
 class PYTHON : public Language {
@@ -353,7 +355,8 @@ public:
 	  Wrapper_virtual_elimination_mode_set(1);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
-	  fputs(usage,stdout);
+	  fputs(usage1,stdout);
+	  fputs(usage2,stdout);
 	}
       }
     }
