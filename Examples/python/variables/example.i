@@ -4,6 +4,8 @@
 #include "example.h"
 %}
 
+#pragma SWIG nowarn=454
+
 /* Some global variable declarations */
 %inline %{
 extern int              ivar;
