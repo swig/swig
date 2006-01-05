@@ -592,7 +592,7 @@ _PySwigObject_type(void) {
 	0,				    /* tp_init */	    	
 	0,				    /* tp_alloc */	    	
 	0,			            /* tp_new */	    	
-	PyObject_Del,	                    /* tp_free */	   
+	0,	                            /* tp_free */	   
         0,                                  /* tp_is_gc */  
 	0,				    /* tp_bases */   
 	0,				    /* tp_mro */
@@ -755,7 +755,7 @@ _PySwigPacked_type(void) {
 	0,				    /* tp_init */	    	
 	0,				    /* tp_alloc */	    	
 	0,			            /* tp_new */	    	
-	PyObject_Del, 	                    /* tp_free */	   
+	0, 	                            /* tp_free */	   
         0,                                  /* tp_is_gc */  
 	0,				    /* tp_bases */   
 	0,				    /* tp_mro */
