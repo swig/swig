@@ -14,9 +14,9 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(tcl8,arginit) (int argc, char *argv[]) "$2 = 0;";
+%typemap(arginit) (int argc, char *argv[]) "$2 = 0;";
 
-%typemap(tcl8,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   Tcl_Obj **listobjv = 0;
   int i;
   if (Tcl_ListObjGetElements(interp,$input, &$1, &listobjv) == TCL_ERROR) {
@@ -30,7 +30,7 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(tcl8,freearg) char *argv[] {
+%typemap(freearg) char *argv[] {
   if ($1) {
     free($1);
   }
@@ -38,7 +38,7 @@ extern int    gcd(int x, int y);
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(tcl8,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   $1 = Tcl_GetStringFromObj($input,&$2);
 }
 
@@ -47,7 +47,7 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(tcl8,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
   char *temp;
   temp = Tcl_GetStringFromObj($input,&$2);
   $1 = (char *) malloc($2+1);
@@ -56,7 +56,7 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.   */
 
-%typemap(tcl8,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
  Tcl_Obj *o;
  o = Tcl_NewStringObj($1,$2);
  Tcl_ListObjAppendElement(interp,$result,o);

@@ -2333,6 +2333,9 @@ typemap_type   : kwargs {
 		 String *name;
 		 p = nextSibling($1);
 		 if (p && (!Getattr(p,k_value))) {
+ 		   /* this is the deprecated two argument typemap form */
+ 		   Swig_warning(WARN_DEPRECATED_TYPEMAP_LANG,cparse_file, cparse_line,
+				"Specifying the language name in %%typemap is deprecated - use #ifdef SWIG<LANG> instead.\n");
 		   /* two argument typemap form */
 		   name = Getattr($1,k_name);
 		   if (!name || (Strcmp(name,typemap_lang))) {
