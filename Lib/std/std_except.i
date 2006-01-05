@@ -1,3 +1,7 @@
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#error "do not use this version of std_except.i"
+#endif
+
 %{
 #include <stdexcept>
 %}
