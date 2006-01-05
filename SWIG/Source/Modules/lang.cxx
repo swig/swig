@@ -754,7 +754,7 @@ int Language::cDeclaration(Node *n) {
   if (ImportMode) return SWIG_NOWRAP;
 
   /* If we're in extend mode and there is code, replace the $descriptor macros */
-  if (Getattr(n,"feature:extend")) {
+  if (Extend) {
     String *code = Getattr(n,"code");
     if (code) {
       Setfile(code,Getfile(n));
@@ -1426,7 +1426,7 @@ Language::staticmembervariableHandler(Node *n)
 
     String *name    = Getattr(n,"name");
     String *cname   = NewStringf("%s::%s", classname,name);
-    if (Getattr(n,"feature:extend")) {
+    if (Extend) {
         /* the variable is a synthesized one.
            There's nothing we can do; we just keep the given value */
     } else {
@@ -1515,30 +1515,25 @@ int Language::enumforwardDeclaration(Node *n) {
 
 int Language::memberconstantHandler(Node *n) {
 
-  Swig_require("memberconstantHandler",n,"*name","*sym:name","*value",NIL);
+  Swig_require("memberconstantHandler",n,"*name","*sym:name","value",NIL);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
   String *value   = Getattr(n,"value");
 
-  String *mrename;
-  String *new_value;
-
-  mrename = Swig_name_member(ClassPrefix, symname);
-  /*  Fixed by namespace-enum patch
-      if ((!value) || (Cmp(value,name) == 0)) {
-      new_value = NewStringf("%s::%s",ClassName,name);
-      } else {
-      new_value = NewString(value);
-      }
-  */
-  new_value = Copy(value);
+  String *mrename = Swig_name_member(ClassPrefix, symname);
   Setattr(n,"sym:name", mrename);
-  Setattr(n,"value", new_value);
-  Setattr(n,"name", NewStringf("%s::%s", ClassName,name));
+
+  String *new_name = 0;
+  if (Extend)
+    new_name = Copy(value);
+  else
+    new_name = NewStringf("%s::%s", ClassName, name);
+  Setattr(n,"name", new_name);
+
   constantWrapper(n);
   Delete(mrename);
-  Delete(new_value);
+  Delete(new_name);
   Swig_restore(n);
   return SWIG_OK;
 }
