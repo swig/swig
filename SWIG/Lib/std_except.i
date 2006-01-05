@@ -1,3 +1,9 @@
+#if defined(SWIGJAVA)
+%include <java/std_except.i>
+#elif defined(SWIGCSHARP)
+%include <csharp/std_except.i>
+#else
+
 %include <std/std_except.i>
 
 // Typemaps used by the STL wrappers that throw exceptions.
@@ -20,7 +26,7 @@
   %exceptionclass  Exception; 
 #if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
   %typemap(throws,noblock=1) Exception {
-    SWIG_exception(Code, $1.what());
+    SWIG_exception(Code, $1.what())
   }
   %ignore Exception;
   struct Exception {
@@ -42,4 +48,5 @@ namespace std {
   %std_exception_map(underflow_error,    SWIG_OverflowError);
 }
 
+#endif
 
