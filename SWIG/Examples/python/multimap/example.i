@@ -38,7 +38,7 @@ extern int    gcd(int x, int y);
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(python,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   if (!PyString_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
     return NULL;
@@ -55,7 +55,7 @@ extern int count(char *bytes, int len, char c);
 /* Since str is modified, we make a copy of the Python object
    so that we don't violate it's mutability */
 
-%typemap(python,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
    $2 = PyString_Size($input);
    $1 = (char *) malloc($2+1);
    memmove($1,PyString_AsString($input),$2);
@@ -65,7 +65,7 @@ extern int count(char *bytes, int len, char c);
    function takes an object and appends it to the output object
    to create a tuple */
 
-%typemap(python,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
    PyObject *o;
    o = PyString_FromStringAndSize($1,$2);
    $result = t_output_helper($result,o);

@@ -45,6 +45,7 @@
 #define WARN_DEPRECATED_NAME          121
 #define WARN_DEPRECATED_NOEXTERN      122
 #define WARN_DEPRECATED_NODEFAULT     123
+#define WARN_DEPRECATED_TYPEMAP_LANG  124
 
 /* -- Preprocessor -- */
 

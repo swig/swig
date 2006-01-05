@@ -15,9 +15,9 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(perl5,arginit) (int argc, char *argv[]) "$2 = 0;";
+%typemap(arginit) (int argc, char *argv[]) "$2 = 0;";
 
-%typemap(perl5,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   AV *tempav;
   SV **tv;
   I32 len;
@@ -39,13 +39,13 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(perl5,freearg) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
   free($2);
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(perl5,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   STRLEN temp;
   $1 = (char *) SvPV($input, temp);
   $2 = (int) temp;
@@ -56,7 +56,7 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(perl5,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
   STRLEN templen;
   char *temp;
   temp = (char *) SvPV($input,templen);
@@ -67,7 +67,7 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  */
 
-%typemap(perl5,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
   if (argvi >= items) {
     EXTEND(sp,1);
   }
