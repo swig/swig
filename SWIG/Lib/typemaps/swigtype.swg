@@ -131,7 +131,7 @@
 %typemap(globalin) SWIGTYPE [ANY] {
   if (inp) {
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
@@ -145,7 +145,7 @@
   } else if (inp) {
     size_t ii = 0;
     $basetype *dest = %static_cast($1, $basetype *);
-    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+    for (; ii < (size_t)$dim0; ++ii) dest[ii] = inp[ii];
   } else {
     %variable_nullref("$type", "$name");
   }
@@ -159,12 +159,12 @@
   if (inp) {
     $basetype (*dest)[$dim1] = %static_cast($1, $basetype (*)[$dim1]);
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) {
+    for (; ii < (size_t)$dim0; ++ii) {
       $basetype *ip = inp[ii];
       if (ip) {
 	$basetype *dp = dest[ii];
 	size_t jj = 0;
-	for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+	for (; jj < (size_t)$dim1; ++jj) dp[jj] = ip[jj];
       } else {
 	%variable_nullref("$type","$name");
       }
@@ -179,12 +179,12 @@
   if (inp) {
     $basetype (*dest)[$dim1] = %static_cast($1, $basetype (*)[$dim1]);
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) {
+    for (; ii < (size_t)$dim0; ++ii) {
       $basetype *ip = inp[ii];
       if (ip) {
 	$basetype *dp = dest[ii];
 	size_t jj = 0;
-	for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+	for (; jj < (size_t)$dim1; ++jj) dp[jj] = ip[jj];
       } else {
 	%variable_nullref("$type","$name");
       }
