@@ -94,6 +94,7 @@ int* const globalRet2() {return &GlobalInt;}
 
   struct B
   {
+    B() : ca() {}
     const A ca;
     A a;
     A* ap;
