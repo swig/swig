@@ -84,6 +84,14 @@ public class operator_overload_runme {
     j.MinusMinusPrefix();
     j.MinusMinusPostfix(0);
     Assert(j.getI() == 10);
+    {
+      Op op = j.PlusPlusPostfix(0);
+      Assert(j.getI() == op.getI()+1);
+    }
+    {
+      Op op = j.MinusMinusPostfix(0);
+      Assert(j.getI() == op.getI()-1);
+    }
   }
 
   public static void Assert(boolean b) {
