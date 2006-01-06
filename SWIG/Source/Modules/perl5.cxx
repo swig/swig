@@ -7,7 +7,7 @@
  *             Loic Dachary (loic@ceic.com)
  *             David Fletcher
  *             Gary Holt
- *             Jason Stewart (jason@openinformatics.com)
+ *             Jason Stewart (jasons@apache.org)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
@@ -726,7 +726,7 @@ public:
 	   "XSRETURN(argvi);\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(\"swig/perl error\");\n"
+	   "croak(Nullch);\n"
 	   "XSRETURN(0);\n"
 	   "}\n",
 	   "}\n",
@@ -1177,20 +1177,53 @@ public:
 	for (ki = First(operators); ki.key; ki = Next(ki)) {
 	  char *name = Char(ki.key);
 	  //	    fprintf(stderr,"found name: <%s>\n", name);
-	  if (strstr(name, "operator_equal_to")) {
-	    Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",NIL);
-	  } else if (strstr(name, "operator_not_equal_to")) {
-	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",NIL);
-	  } else if (strstr(name, "operator_assignment")) {
-	    Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",NIL);
+	  if (strstr(name, "__eq__")) {
+	    Printv(pm, tab4, "\"==\" => sub { $_[0]->__eq__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__ne__")) {
+	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->__ne__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__assign__")) {
+	    Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__str__")) {
+	    Printv(pm, tab4, "'\"\"' => sub { $_[0]->__str__()},\n",NIL);
+	  } else if (strstr(name, "__plusplus__")) {
+	    Printv(pm, tab4, "\"++\" => sub { $_[0]->__plusplus__()},\n",NIL);
+	  } else if (strstr(name, "__minmin__")) {
+	    Printv(pm, tab4, "\"--\" => sub { $_[0]->__minmin__()},\n",NIL);
+	  } else if (strstr(name, "__add__")) {
+	    Printv(pm, tab4, "\"+\" => sub { $_[0]->__add__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__sub__")) {
+	    Printv(pm, tab4, "\"-\" => sub { $_[0]->__sub__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__mul__")) {
+	    Printv(pm, tab4, "\"*\" => sub { $_[0]->__mul__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__div__")) {
+	    Printv(pm, tab4, "\"/\" => sub { $_[0]->__div__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__mod__")) {
+	    Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__and__")) {
+	    Printv(pm, tab4, "\"&&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__or__")) {
+	    Printv(pm, tab4, "\"||\" => sub { $_[0]->__or__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__gt__")) {
+	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__lt__")) {
+	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__pluseq__")) {
+	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__mineq__")) {
+	    Printv(pm, tab4, "\"-=\" => sub { $_[0]->__mineq__($_[1])},\n",NIL);
+	  } else if (strstr(name, "__neg__")) {
+	    Printv(pm, tab4, "\"neg\" => sub { $_[0]->__neg__()},\n",NIL);
 	  } else {
 	    fprintf(stderr,"Unknown operator: %s\n", name);
 	  }
 	}
 	Printv(pm, tab4, "\"fallback\" => 1;\n",NIL);	    
       }
-      /* If we are inheriting from a base class, set that up */
 
+      // make use strict happy
+      Printv(pm, "use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);\n", NIL);
+
+      /* If we are inheriting from a base class, set that up */
 
       Printv(pm, "@ISA = qw(", NIL);
 
@@ -1262,20 +1295,77 @@ public:
 
     if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
   
-      if (Strstr(symname, "operator") == symname) {
-	if (Strstr(symname, "operator_equal_to")) {
-	  DohSetInt(operators,"operator_equal_to",1);
-	  have_operators = 1;
-	} else if (Strstr(symname, "operator_not_equal_to")) {
-	  DohSetInt(operators,"operator_not_equal_to",1);
-	  have_operators = 1;
-	} else if (Strstr(symname, "operator_assignment")) {
-	  DohSetInt(operators,"operator_assignment",1);
-	  have_operators = 1;
-	} else {
-	  Printf(stderr,"Unknown operator: %s\n", symname);
-	}
-	//      fprintf(stderr,"Found member_func operator: %s\n", symname);
+      if (Strstr(symname, "__eq__")) {
+	DohSetInt(operators,"__eq__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__ne__")) {
+	DohSetInt(operators,"__ne__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__assign__")) {
+	DohSetInt(operators,"__assign__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__str__")) {
+	DohSetInt(operators,"__str__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+      } else if (Strstr(symname, "__add__")) {
+	DohSetInt(operators,"__add__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__sub__")) {
+	DohSetInt(operators,"__sub__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__mul__")) {
+	DohSetInt(operators,"__mul__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__div__")) {
+	DohSetInt(operators,"__div__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__mod__")) {
+	DohSetInt(operators,"__mod__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__and__")) {
+	DohSetInt(operators,"__and__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__or__")) {
+	DohSetInt(operators,"__or__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__gt__")) {
+	DohSetInt(operators,"__gt__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__lt__")) {
+	DohSetInt(operators,"__lt__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__neg__")) {
+	DohSetInt(operators,"__neg__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__plusplus__")) {
+	DohSetInt(operators,"__plusplus__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__minmin__")) {
+	DohSetInt(operators,"__minmin__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__mineq__")) {
+	DohSetInt(operators,"__mineq__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
+      } else if (Strstr(symname, "__pluseq__")) {
+	DohSetInt(operators,"__pluseq__",1);
+	Printf(stderr,"Found member_func operator: %s\n", symname);
+	have_operators = 1;
       }
 
       if (Getattr(n,"feature:shadow")) {

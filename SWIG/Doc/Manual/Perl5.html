@@ -1228,36 +1228,29 @@ Please refer to the "SWIG Basics" chapter for more information.
 
 <H3><a name="Perl5_nn23"></a>26.4.9 Operators</H3>
 
+    <p>
+As of version 1.3.27 SWIG automatically renames the most common C++ operators, and maps them into the perl module with the proper 'use overload ...' so you don't need to do any work.
+    </p>
 
-<p>
-C++ operators can also be wrapped using the <tt>%rename</tt> directive.  All you need to do is
-give the operator the name of a valid Perl identifier.  For example:
-</p>
+    <p>
+The following C++ operators are currently supported by the Perl module:
+    </p>
 
-<div class="code">
-<pre>
-%rename(add_complex) operator+(Complex &amp;, Complex &amp;);
-...
-Complex operator+(Complex &amp;, Complex &amp;);
-</pre>
-</div>
-
-<p>
-Now, in Perl, you can do this:
-</p>
-
-<div class="targetlang">
-<pre>
-use example;
-$a = example::new_Complex(2,3);
-$b = example::new_Complex(4,-1);
-$c = example::add_complex($a,$b);
-</pre>
-</div>
-
-<p>
-Some preliminary work on mapping C++ operators into Perl operators has been completed. This is covered later.
-</p>
+    <ul>
+<li>operator++	 </li>
+<li>operator--	 </li>
+<li>operator+	 </li>
+<li>operator-	 </li>
+<li>operator*	 </li>
+<li>operator/	 </li>
+<li>operator==	 </li>
+<li>operator!=	 </li>
+<li>operator%	 </li>
+<li>operator>	 </li>
+<li>operator<	 </li>
+<li>operator and </li>
+<li>operator or  </li>
+    </ul>
 
 <H3><a name="Perl5_nn24"></a>26.4.10 Modules and packages</H3>
 
