@@ -1270,6 +1270,7 @@ Language::membervariableHandler(Node *n) {
       }
 
       Swig_MembersetToFunction(n,ClassType, flags);
+      Setattr(n,"memberset", "1");
       if (!Extend) {
 	/* Check for a member in typemap here */
 
@@ -1320,6 +1321,7 @@ Language::membervariableHandler(Node *n) {
 
       Swig_MembergetToFunction(n,ClassType, flags);
       Setattr(n,"sym:name",  mrename_get);
+      Setattr(n,"memberget", "1");
       functionWrapper(n);
     }
     Delete(mrename_get);

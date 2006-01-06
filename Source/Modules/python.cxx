@@ -1269,7 +1269,9 @@ public:
    * ------------------------------------------------------------ */
 
   int check_kwargs(Node *n) {
-    return (use_kw || GetFlag(n,"feature:kwargs"));
+    return (use_kw || GetFlag(n,"feature:kwargs")) 
+      && !GetFlag(n,"memberset") && !GetFlag(n,"memberget") 
+      && !checkAttribute(n,"nodeType","destructor");
   }
 
 
