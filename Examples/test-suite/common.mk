@@ -126,6 +126,7 @@ CPP_TEST_CASES += \
 	director_protected \
 	director_redefined \
 	director_unroll \
+	director_using \
 	director_wombat \
 	disown \
 	dynamic_cast \
