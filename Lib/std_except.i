@@ -35,7 +35,7 @@
   %exceptionclass  Exception; 
 #if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
   %typemap(throws,noblock=1) Exception {
-    SWIG_exception(Code, $1.what())
+    SWIG_exception(Code, $1.what());
   }
   %ignore Exception;
   struct Exception {
