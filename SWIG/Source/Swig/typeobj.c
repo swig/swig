@@ -462,7 +462,7 @@ SwigType_del_qualifier(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c,"q(",2);
   assert(check == 0);
-  Delslice(t,0,element_size(Char(t)));
+  Delslice(t,0,element_size(c));
   return t;
 }
 
