@@ -7,7 +7,10 @@ see bottom for a set of possible tests
 %module operator_overload
 
 #if defined(SWIGPYTHON)
-%warnfilter(362,389,383,384);
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ,
+	    SWIGWARN_IGNORE_OPERATOR_INDEX,
+	    SWIGWARN_IGNORE_OPERATOR_PLUSPLUS,
+	    SWIGWARN_IGNORE_OPERATOR_MINUSMINUS);
 #endif
 
 #if !defined(SWIGLUA) || !defined(SWIGPERL)
@@ -87,10 +90,7 @@ public:
   friend Op operator/(const Op& a,const Op& b){return Op(a.i/b.i);}
   friend Op operator%(const Op& a,const Op& b){return Op(a.i%b.i);}
 
-
   // unary operators
-  Op operator++() {i++; return *this;}
-  Op operator--() {i--; return *this;}
   Op operator-() const {return Op(-i);}
   bool operator !() const {return !(i);}
 
@@ -108,17 +108,13 @@ public:
   int operator()(int a=0){return i+a;}
   int operator()(int a,int b){return i+a+b;}
 
-<<<<<<< operator_overload.i
-  // TODO: <<,<<=
-=======
   // increment/decrement operators
   Op& operator++(){++i; return *this;} // prefix ++
-  Op& operator++(int){i++; return *this;} // postfix ++
+  Op operator++(int){return Op(i++);} // postfix ++
   Op& operator--(){--i; return *this;} // prefix --
-  Op& operator--(int){i--; return *this;} // postfix --
+  Op operator--(int){return Op(i++);} // postfix --
 
   // TODO: <<,<<=
->>>>>>> 1.6
 };
 
 // just to complicate matters

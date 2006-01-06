@@ -82,7 +82,7 @@
     if (SWIG_IsNewObj(ores)) %delete(optr);
   }
 
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) Type* {
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Type* {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores)) { 
@@ -100,7 +100,7 @@
     }
   }
 
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) Type& {
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Type& {
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores)) { 

@@ -2,9 +2,9 @@
 
 %module extend_default
 
-%warnfilter(302) Override::over; 
-%warnfilter(302) Override::overload; 
-%warnfilter(302) Override::ride; 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) Override::over; 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) Override::overload; 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) Override::ride; 
 
 // %extend before the class definition
 %extend Before {

@@ -1,6 +1,6 @@
 %module using1
 
-%warnfilter(801) X::_FooImpl;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) X::_FooImpl;	/* Ruby, wrong class name */
 
 %inline %{
 

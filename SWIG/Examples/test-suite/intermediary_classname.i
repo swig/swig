@@ -2,7 +2,7 @@
 // This test is to check the intermediary class name can be changed (C# and Java only use intermediary classes at time of writing)
 %module(directors="1", jniclassname="intermediary_classname", imclassname="intermediary_classname") "intermediary_classname"
 
-%warnfilter(470,473);
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR);
 
 // change the access to the intermediary class for testing purposes
 %pragma(java) jniclassclassmodifiers="public class";

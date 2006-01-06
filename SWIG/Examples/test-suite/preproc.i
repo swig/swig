@@ -1,11 +1,11 @@
 %module preproc
 
-%warnfilter(801) one; /* Ruby, wrong constant name */
-%warnfilter(801) two; /* Ruby, wrong constant name */
-%warnfilter(801) three; /* Ruby, wrong constant name */
-%warnfilter(801) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
-%warnfilter(801) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
-%warnfilter(801) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) one; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) two; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) three; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
 
 /* check __cplusplus case */
 %header
@@ -103,10 +103,10 @@ int f(int min);
 
 // preproc_5
 
-%warnfilter(801) a5;	// Ruby, wrong constant name
-%warnfilter(801) b5;	// Ruby, wrong constant name
-%warnfilter(801) c5;	// Ruby, wrong constant name
-%warnfilter(801) d5;	// Ruby, wrong constant name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) a5;	// Ruby, wrong constant name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) b5;	// Ruby, wrong constant name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) c5;	// Ruby, wrong constant name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) d5;	// Ruby, wrong constant name
 
 // Various preprocessor bits of nastiness.
 
@@ -150,10 +150,10 @@ NAME 42
 
 // preproc_6
 
-%warnfilter(801) a6; /* Ruby, wrong constant name */
-%warnfilter(801) b6; /* Ruby, wrong constant name */
-%warnfilter(801) c6; /* Ruby, wrong constant name */
-%warnfilter(801) d6; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) a6; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) b6; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) c6; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) d6; /* Ruby, wrong constant name */
 
 #define add(a, b) (a + b)
 #define times(a, b) (a * b)
@@ -279,7 +279,7 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 
 #ifdef SWIGCHICKEN
 /* define is a scheme keyword (and thus an invalid variable name), so SWIG warns about it */
-%warnfilter(314) define; 
+%warnfilter(SWIGWARN_PARSE_KEYWORD) define; 
 #endif
 
 #ifdef SWIGRUBY

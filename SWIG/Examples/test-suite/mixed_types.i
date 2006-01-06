@@ -1,7 +1,7 @@
 %module mixed_types
 
-%warnfilter(801) hi; /* Ruby, wrong constant name */
-%warnfilter(801) hello; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) hello; /* Ruby, wrong constant name */
 
 %inline 
 {

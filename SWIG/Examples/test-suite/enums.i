@@ -3,11 +3,11 @@
 %module "enums"
 
 /* Suppress warning messages from the Ruby module for all of the following.. */
-%warnfilter(801) boo;
-%warnfilter(801) hoo;
-%warnfilter(801) globalinstance1;
-%warnfilter(801) globalinstance2;
-%warnfilter(801) globalinstance3;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) boo;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) hoo;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance2;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance3;
 
 %inline %{
 

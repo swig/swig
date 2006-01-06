@@ -6,7 +6,7 @@
 
 %module pointer_reference
 
-%warnfilter(454);                   /* memory leak when setting a ptr/ref variable */
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
 
 #ifdef SWIGGUILE
 /* A silly testing typemap for feeding a doubly indirect integer */

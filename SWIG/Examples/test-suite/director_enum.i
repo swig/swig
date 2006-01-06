@@ -1,13 +1,14 @@
 %module(directors="1") director_enum
 
-%warnfilter(801) EnumDirector::hi; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::hello; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::yo; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::awright; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::Foo::ciao; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::Foo::aufwiedersehen; /* Ruby, wrong constant name */
-%warnfilter(801) EnumDirector::Foo::adios; /* Ruby, wrong constant name */
-%warnfilter(470,473) EnumDirector::Foo; /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::hi; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::hello; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::yo; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::awright; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::Foo::ciao; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::Foo::aufwiedersehen; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EnumDirector::Foo::adios; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,
+	    SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) EnumDirector::Foo; /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
 
 
 

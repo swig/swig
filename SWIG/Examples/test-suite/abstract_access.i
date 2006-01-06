@@ -1,6 +1,6 @@
 %module abstract_access
 
-%warnfilter(517) A;
+%warnfilter(SWIGWARN_LANG_DIRECTOR_ABSTRACT) A;
 
 %inline %{
 class A {

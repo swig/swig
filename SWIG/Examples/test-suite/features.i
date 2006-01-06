@@ -1,6 +1,6 @@
 %module features
 
-%warnfilter(503,365);
+%warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_IGNORE_OPERATOR_PLUSEQ);
 
 // This testcase checks that %feature is working for templates and non user supplied constructors/destructors and is just generally working
 

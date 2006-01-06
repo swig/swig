@@ -210,7 +210,7 @@ namespace a
  
 %}
 
-#pragma SWIG nowarn=312
+#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
 
 %inline %{
   class Ala {

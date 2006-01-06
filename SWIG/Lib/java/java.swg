@@ -390,7 +390,7 @@
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const bool &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const bool &
 %{ static $*1_ltype temp;
    temp = $input ? true : false; 
    $1 = &temp; %}
@@ -413,7 +413,7 @@
 %{ temp = ($*1_ltype)$input; 
    $1 = &temp; %}
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const char &,
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const char &,
              const signed char &,
              const unsigned char &,
              const short &,
@@ -520,7 +520,7 @@
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const unsigned long long & { 
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const unsigned long long & { 
   static $*1_ltype temp;
   jclass clazz;
   jmethodID mid;

@@ -6,7 +6,7 @@ below.
 
 %module char_strings
 
-%warnfilter(462) global_char_array1;  // Unable to set variable of type char[]
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) global_char_array1;  // Unable to set variable of type char[]
 
 %{
 #define OTHERLAND_MSG "Little message from the the safe world."

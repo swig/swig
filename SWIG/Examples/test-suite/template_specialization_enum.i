@@ -1,7 +1,7 @@
 %module template_specialization_enum
 
-%warnfilter(801) Hello;	/* Ruby, wrong class name */
-%warnfilter(801) Hi;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Hello;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Hi;	/* Ruby, wrong class name */
 
 
 %inline %{

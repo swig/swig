@@ -65,7 +65,7 @@
   $result = %reinterpret_cast(argp, $ltype);
 }
 
-%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) void * const& (void *argp) {
+%typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) void * const& (void *argp) {
   if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, 0, $disown)))) { 
     %dirout_fail(SWIG_TypeError,"$type");
   }

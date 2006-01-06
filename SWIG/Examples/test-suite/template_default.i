@@ -2,7 +2,7 @@
 
 
 
-%warnfilter(801) ns1::Traits::c; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) ns1::Traits::c; /* Ruby, wrong constant name */
 namespace ns1 {
   namespace ns2 {
   

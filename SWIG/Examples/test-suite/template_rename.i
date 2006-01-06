@@ -1,7 +1,7 @@
 %module template_rename
 
-%warnfilter(801) Foo<int>;    /* Ruby, wrong class name */
-%warnfilter(801) Foo<double>; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Foo<int>;    /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Foo<double>; /* Ruby, wrong class name */
 
 %rename(blah_test) Foo::blah(int);
 %rename(spam_test) Foo<int>::spam(int);

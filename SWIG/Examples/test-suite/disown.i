@@ -4,7 +4,7 @@
 #include <iostream>
 %}
 
-#pragma SWIG nowarn=453
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_APPLY_UNDEF
 
 %apply SWIGTYPE *DISOWN { A *disown };
 

@@ -1,6 +1,6 @@
 %module li_cpointer
 
-%warnfilter(801) doublep; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) doublep; /* Ruby, wrong class name */
 
 %include "cpointer.i"
 

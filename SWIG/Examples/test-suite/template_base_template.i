@@ -1,8 +1,8 @@
 %module template_base_template
 
-%warnfilter(801) traits<double, double>; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) traits<double, double>; /* Ruby, wrong class name */
 
-%warnfilter(320);
+%warnfilter(SWIGWARN_PARSE_EXPLICIT_TEMPLATE);
 
 %inline %{
   template <class ArgType, class ResType>

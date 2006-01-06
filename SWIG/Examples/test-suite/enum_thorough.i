@@ -3,45 +3,45 @@
 // Suppress warning messages from the Ruby module for all of the
 // following...
 
-#pragma SWIG nowarn=314
+#pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
 
-%warnfilter(801);
-%warnfilter(801) red;
-%warnfilter(801) blue;
-%warnfilter(801) green;
-%warnfilter(801) SpeedClass::slow;
-%warnfilter(801) SpeedClass::medium;
-%warnfilter(801) SpeedClass::fast;
-%warnfilter(801) SpeedClass::lightning;
-%warnfilter(801) TemplateClass::einstein;
-%warnfilter(801) TemplateClass::galileo;
-%warnfilter(801) Name::TClass::faraday;
-%warnfilter(801) Name::TClass::bell;
-%warnfilter(801) argh;
-%warnfilter(801) eek;
-%warnfilter(801) OldNameStruct::whizz;
-%warnfilter(801) OldNameStruct::kerboom;
-%warnfilter(801) OldNameStruct::pop;
-%warnfilter(801) OldNameStruct::simple1;
-%warnfilter(801) OldNameStruct::singlename1;
-%warnfilter(801) OldNameStruct::doublename1;
-%warnfilter(801) TreesClass::oak;
-%warnfilter(801) TreesClass::fir;
-%warnfilter(801) TreesClass::pine;
-%warnfilter(801) curly::greasy::HairStruct::blonde;
-%warnfilter(801) curly::greasy::HairStruct::ginger;
-%warnfilter(801) Obscure::one;
-%warnfilter(801) Obscure::onetrail;
-%warnfilter(801) Obscure::two;
-%warnfilter(801) Obscure::twoagain;
-%warnfilter(801) Obscure::twotrail;
-%warnfilter(801) Obscure::twotrailagain;
-%warnfilter(801) globalinstance1;
-%warnfilter(801) globalinstance2;
-%warnfilter(801) globalinstance3;
-%warnfilter(801) Instances::memberinstance1;
-%warnfilter(801) Instances::memberinstance2;
-%warnfilter(801) Instances::memberinstance3;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME);
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) red;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) blue;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) green;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) SpeedClass::slow;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) SpeedClass::medium;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) SpeedClass::fast;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) SpeedClass::lightning;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) TemplateClass::einstein;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) TemplateClass::galileo;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Name::TClass::faraday;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Name::TClass::bell;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) argh;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) eek;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::whizz;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::kerboom;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::pop;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::simple1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::singlename1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) OldNameStruct::doublename1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) TreesClass::oak;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) TreesClass::fir;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) TreesClass::pine;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) curly::greasy::HairStruct::blonde;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) curly::greasy::HairStruct::ginger;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::one;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::onetrail;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::two;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::twoagain;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::twotrail;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Obscure::twotrailagain;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance2;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance3;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Instances::memberinstance1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Instances::memberinstance2;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Instances::memberinstance3;
 
 %inline %{
 

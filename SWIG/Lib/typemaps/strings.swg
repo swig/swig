@@ -77,7 +77,7 @@
   }
 }
 
-%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
+%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc)))) {
     %variable_fail(SWIG_TypeError, "$type", "$name");
@@ -107,7 +107,7 @@
   }
 }
 
-%typemap(memberin,noblock=1,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
+%typemap(memberin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
     $1 = %new_copy_array($input, size, Char);
@@ -128,7 +128,7 @@
   }
 }
 
-%typemap(globalin,noblock=1,warning=SWIG_WARN_TYPEMAP_CHARLEAK) const Char * {
+%typemap(globalin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
     $1 = %new_copy_array($input, size, Char);
@@ -158,7 +158,7 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR)
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG)
   Char * (Char* buf = 0, int alloc = SWIG_NEWOBJ) {
   if (!SWIG_IsOK((SWIG_AsCharPtr($input, &buf, &alloc)))) {
     %dirout_fail(SWIG_TypeError, "$type");
@@ -176,7 +176,7 @@
 }
 
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
   Char * const& (Char* buf = 0, int alloc = SWIG_NEWOBJ),
   Char const* const& (Char* buf = 0, int alloc = SWIG_NEWOBJ) { 
   if (!SWIG_IsOK((SWIG_AsCharPtr($input, &buf, &alloc)))) {

@@ -2,8 +2,8 @@
 
 %module typedef_funcptr
 
-%warnfilter(801) addf; /* Ruby, wrong constant name */
-%warnfilter(801) subf; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) addf; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) subf; /* Ruby, wrong constant name */
 
 %{
 int addf(int x, int y) {

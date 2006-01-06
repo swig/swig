@@ -10,7 +10,7 @@
 */
 
 /* activate all the name warnings */
-%warnfilter(+314,+321,-403);
+%warnfilter(+SWIGWARN_PARSE_KEYWORD,+SWIGWARN_PARSE_BUILTIN_NAME,-SWIGWARN_TYPE_ABSTRACT);
 
 %{
 #ifdef max

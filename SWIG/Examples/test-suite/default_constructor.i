@@ -3,9 +3,15 @@
 
 %module(ruby_minherit="1") default_constructor
 
-%warnfilter(813,833,870) EB; /* C#, Java, Php4 multiple inheritance */
-%warnfilter(813,833,870) AD; /* C#, Java, Php4 multiple inheritance */
-%warnfilter(510) F; /* friend function */
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) EB; /* C#, Java, Php4 multiple inheritance */
+
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) AD; /* C#, Java, Php4 multiple inheritance */
+
+%warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
 
 %inline %{
 

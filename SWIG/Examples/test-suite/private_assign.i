@@ -24,7 +24,7 @@
 
 %}
 
-#pragma SWIG nowarn=350 // operator new
+#pragma SWIG nowarn=SWIGWARN_IGNORE_OPERATOR_NEW // operator new
 
 %inline %{
   class TROOT {

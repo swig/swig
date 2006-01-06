@@ -1,9 +1,9 @@
 %module redefined
 
-%warnfilter(801) agua;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) agua;
 
 /* no redundant warnings */
-%warnfilter(322);
+%warnfilter(SWIGWARN_PARSE_REDUNDANT);
 
 #if 1
  //

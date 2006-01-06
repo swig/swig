@@ -1,7 +1,7 @@
 // bool typemaps check
 %module bools
-%warnfilter(454);                   /* memory leak when setting a ptr/ref variable */
-%warnfilter(801) constbool;         /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) constbool;         /* Ruby, wrong class name */
 
 // bool constant
 %constant bool constbool=false;

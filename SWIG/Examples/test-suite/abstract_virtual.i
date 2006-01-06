@@ -1,7 +1,11 @@
 %module(ruby_minherit="1") abstract_virtual
 
-%warnfilter(813,833,870) D; /* C#, Java, Php4 multiple inheritance */
-%warnfilter(813,833,870) E; /* C#, Java, Php4 multiple inheritance */
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) D; /* C#, Java, Php4 multiple inheritance */
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) E; /* C#, Java, Php4 multiple inheritance */
 
 %inline %{
   struct A 
