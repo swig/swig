@@ -2,7 +2,7 @@
 
 %include "cstring.i"
 
-#ifndef _CSTRING_UNIMPL
+#ifndef SWIG_CSTRING_UNIMPL
 
 %cstring_input_binary(char *in, int n);
 %cstring_bounded_output(char *out1, 512);
