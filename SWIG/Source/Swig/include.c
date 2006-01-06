@@ -77,7 +77,7 @@ Swig_add_directory(const String_or_char *dirname) {
   if (dirname) {
     dir = NewString((char *) dirname);
     assert(dir);
-    Setattr(dir,"sysdir","1");
+    Setattr(dir,k_sysdir,"1");
     Append(directories, dir);
     Delete(dir);
   }
@@ -156,7 +156,7 @@ Swig_search_path_any(int syspath) {
 #endif
   if (syspath) {
     llist = NewList();
-    assert(slist);
+    assert(llist);
     Append(llist,filename);
   } else {
     Append(slist,filename);
