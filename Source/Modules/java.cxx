@@ -1500,7 +1500,7 @@ class JAVA : public Language {
           } 
           else if (Strcmp(code,"shadowclassmodifiers") == 0) {
             Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaclassmodifiers).\n", input_file, line_number);
-          }  else {
+          } else {
             Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
           }
         } else {
@@ -3460,7 +3460,7 @@ class JAVA : public Language {
     Delete(class_desc);
 
     /* Terminate wrapper code */
-    Printf(w->code, "}  else {\n");
+    Printf(w->code, "} else {\n");
     Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
     Printf(w->code, "}\n");
 
