@@ -351,7 +351,15 @@
 %typemap(javadirectorout) unsigned long long "$javacall"
 
 /* char * - treat as String */
-%typemap(in) char * { 
+%typemap(in, noblock=1) char * {
+ $1 = 0;
+  if ($input) {
+    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1) return $null;
+  }
+}
+
+%typemap(directorout, noblock=1) char * {
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
@@ -359,24 +367,16 @@
   }
 }
 
-%typemap(directorout) char * { 
-  $1 = 0;
-  if ($input) {
-    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$1) return $null;
-  }
-}
-
-%typemap(directorin, descriptor="Ljava/lang/String;") char * { 
-  $input = 0;
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * {
+ $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, $1);
     if (!$input) return $null;
   }
 }
 
-%typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
+%typemap(out, noblock=1) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 %typemap(javadirectorin) char * "$jniinput"
 %typemap(javadirectorout) char * "$javacall"
 
@@ -593,7 +593,7 @@
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{*($&1_ltype*)(void *)&$result = new $1_ltype(($1_ltype &)$1); %}
+%{ *($&1_ltype*)(void *)&$result = new $1_ltype(($1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -637,7 +637,7 @@
 %typemap(freearg) SWIGTYPE [ANY], SWIGTYPE [] ""
 
 /* char arrays - treat as String */
-%typemap(in) char[ANY], char[] { 
+%typemap(in, noblock=1) char[ANY], char[] {
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
@@ -645,7 +645,7 @@
   }
 }
 
-%typemap(directorout) char[ANY], char[] { 
+%typemap(directorout, noblock=1) char[ANY], char[] {
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
@@ -653,7 +653,7 @@
   }
 }
 
-%typemap(directorin, descriptor="Ljava/lang/String;") char[ANY], char[] { 
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char[ANY], char[] {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, $1);
@@ -662,8 +662,8 @@
 }
 
 %typemap(argout) char[ANY], char[] ""
-%typemap(freearg) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(freearg, noblock=1) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
+%typemap(out, noblock=1) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 %typemap(javadirectorin) char[ANY], char[] "$jniinput"
 %typemap(javadirectorout) char[ANY], char[] "$javacall"
 
@@ -918,23 +918,20 @@
                  short, 
                  unsigned int, 
                  unsigned long, 
-                 unsigned short {
-  char error_msg[256];
-  sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
-  return $null;
-}
+                 unsigned short
+%{ char error_msg[256];
+   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
+   return $null; %}
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
-  (void)$1;
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-  return $null;
-%}
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
+%{ (void)$1;
+   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+   return $null; %}
 
-%typemap(throws) char * %{
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
-  return $null;
-%}
+%typemap(throws) char *
+%{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
+   return $null; %}
 
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */

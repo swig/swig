@@ -147,7 +147,7 @@
              const float & ($*1_ltype temp), 
              const double & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
-$1 = &temp; %}
+   $1 = &temp; %}
 
 %typemap(out) const bool &               %{ $result = *$1; %}
 %typemap(out) const char &               %{ $result = *$1; %}
@@ -167,14 +167,14 @@ $1 = &temp; %}
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in, canthrow=1) SWIGTYPE ($&1_type argp)
 %{ argp = ($&1_ltype)$input; 
-  if (!argp) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null $1_type", 0);
-    return $null;
-  }
-  $1 = *argp; %}
+   if (!argp) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null $1_type", 0);
+     return $null;
+   }
+   $1 = *argp; %}
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{$result = new $1_ltype(($1_ltype &)$1); %}
+%{ $result = new $1_ltype(($1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -292,23 +292,20 @@ $1 = &temp; %}
                  short, 
                  unsigned int, 
                  unsigned long, 
-                 unsigned short {
-  char error_msg[256];
-  sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, error_msg);
-  return $null;
-}
+                 unsigned short
+%{ char error_msg[256];
+   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, error_msg);
+   return $null; %}
 
-%typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
-  (void)$1;
-  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, "C++ $1_type exception thrown");
-  return $null;
-%}
+%typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY]
+%{ (void)$1;
+   SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, "C++ $1_type exception thrown");
+   return $null; %}
 
-%typemap(throws, canthrow=1) char * %{
-  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1);
-  return $null;
-%}
+%typemap(throws, canthrow=1) char *
+%{ SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1);
+   return $null; %}
 
 
 /* Typemaps for code generation in proxy classes and C# type wrapper classes */
