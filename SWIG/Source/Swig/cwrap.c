@@ -393,7 +393,14 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
   if (!self) self = (char *) "(this)->";
   Append(func,self);
 
-  nname = SwigType_namestr(name);
+  if (SwigType_istemplate(name) && (strncmp(Char(name),"operator ",9) == 0)) {
+    /* fix for template + operators and compilers like gcc 3.3.5 */
+    String *tprefix = SwigType_templateprefix(name);
+    nname = tprefix;
+  } else {
+    nname = SwigType_namestr(name);
+  }
+  
   pt = Getattr(p,k_type);
 
   /* If the method is invoked through a dereferenced pointer, we don't add any casts
@@ -418,12 +425,6 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
     the rest seems not caring very much,
   */
   if (SwigType_istemplate(name)) {
-    /* fix for compilers like gcc 3.3.5 + operator() */
-    if (strstr(Char(nname),"operator ()") != 0) {
-      String *tprefix = SwigType_templateprefix(nname);
-      Delete(nname);
-      nname = tprefix;
-    }
     Printf(func,"SWIGTEMPLATEDISAMBIGUATOR %s(", nname);
   } else {
     Printf(func,"%s(", nname);
