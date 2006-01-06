@@ -147,56 +147,25 @@ namespace swig {
 %fragment("PySwigIterator_T","header",fragment="StdTraits") {
 #include <iterator>  
 namespace swig {
+
   template<typename OutIterator>
   class PySwigIterator_T :  public PySwigIterator
   {
   public:
     typedef OutIterator out_iterator;
-    typedef typename std::iterator_traits<out_iterator>::value_type value_type;
-    
+    typedef typename std::iterator_traits<out_iterator>::value_type value_type;    
     typedef PySwigIterator_T<out_iterator> self_type;
-    
-    PySwigIterator_T(out_iterator curr, out_iterator first, out_iterator last, PyObject *seq)
-      : PySwigIterator(seq), current(curr), begin(first), end(last)
+
+    PySwigIterator_T(out_iterator curr, PyObject *seq)
+      : PySwigIterator(seq), current(curr)
     {
-    }
-    
-    PyObject *value() const throw (stop_iteration) {
-      if (current == end) {
-	throw stop_iteration();
-      } else {
-	return swig::from((const value_type&)*(current));
-      }
-    }
-    
-    PySwigIterator *copy() const
-    {
-      return new self_type(*this);
     }
 
-    PySwigIterator *incr(size_t n = 1) throw (stop_iteration)
+    const out_iterator& get_current() const
     {
-      while (n--) {
-	if (current == end) {
-	  throw stop_iteration();
-	} else {
-	  ++current;
-	}
-      }
-      return this;
+      return current;
     }
 
-    PySwigIterator *decr(size_t n = 1) throw (stop_iteration)
-    {
-      while (n--) {
-	if (current == begin) {
-	  throw stop_iteration();
-	} else {
-	  --current;
-	}
-      }
-      return this;
-    }
     
     bool equal (const PySwigIterator &iter) const throw (std::invalid_argument)
     {
@@ -216,25 +185,121 @@ namespace swig {
       } else {
 	throw std::invalid_argument("bad iterator type");
       }
+    }    
+    
+  protected:
+    out_iterator current;
+  };
+  
+
+  template<typename OutIterator>
+  class PySwigIteratorOpen_T :  public PySwigIterator_T<OutIterator>
+  {
+  public:
+    typedef OutIterator out_iterator;
+    typedef typename std::iterator_traits<out_iterator>::value_type value_type;
+    typedef PySwigIterator_T<out_iterator>  base;
+    typedef PySwigIteratorOpen_T<out_iterator> self_type;
+    
+    PySwigIteratorOpen_T(out_iterator curr, PyObject *seq)
+      : PySwigIterator_T<OutIterator>(curr, seq)
+    {
     }
     
-    const out_iterator& get_current() const
+    PyObject *value() const throw (stop_iteration) {
+      return swig::from((const value_type&)*(base::current));
+    }
+    
+    PySwigIterator *copy() const
     {
-      return current;
+      return new self_type(*this);
+    }
+
+    PySwigIterator *incr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	++base::current;
+      }
+      return this;
+    }
+
+    PySwigIterator *decr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	--base::current;
+      }
+      return this;
+    }
+  };
+
+  template<typename OutIterator>
+  class PySwigIteratorClosed_T :  public PySwigIterator_T<OutIterator>
+  {
+  public:
+    typedef OutIterator out_iterator;
+    typedef typename std::iterator_traits<out_iterator>::value_type value_type;
+    typedef PySwigIterator_T<out_iterator>  base;    
+    typedef PySwigIteratorClosed_T<out_iterator> self_type;
+    
+    PySwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, PyObject *seq)
+      : PySwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
+    {
+    }
+    
+    PyObject *value() const throw (stop_iteration) {
+      if (base::current == end) {
+	throw stop_iteration();
+      } else {
+	return swig::from((const value_type&)*(base::current));
+      }
+    }
+    
+    PySwigIterator *copy() const
+    {
+      return new self_type(*this);
+    }
+
+    PySwigIterator *incr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	if (base::current == end) {
+	  throw stop_iteration();
+	} else {
+	  ++base::current;
+	}
+      }
+      return this;
+    }
+
+    PySwigIterator *decr(size_t n = 1) throw (stop_iteration)
+    {
+      while (n--) {
+	if (base::current == begin) {
+	  throw stop_iteration();
+	} else {
+	  --base::current;
+	}
+      }
+      return this;
     }
     
   private:
-    out_iterator current;
     out_iterator begin;
     out_iterator end;
   };
 
   template<typename OutIter>
   inline PySwigIterator*
-  make_output_iterator(const OutIter& current, const OutIter& begin = OutIter(), 
-		       const OutIter& end = OutIter(), PyObject *seq = 0)
+  make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, PyObject *seq = 0)
   {
-    return new PySwigIterator_T<OutIter>(current, begin, end, seq);
+    return new PySwigIteratorClosed_T<OutIter>(current, begin, end, seq);
+  }
+
+  template<typename OutIter>
+  inline PySwigIterator*
+  make_output_iterator(const OutIter& current, PyObject *seq = 0)
+  {
+    return new PySwigIteratorOpen_T<OutIter>(current, seq);
   }
 }
 }
