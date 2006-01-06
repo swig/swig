@@ -1,46 +1,36 @@
-#if defined(SWIGJAVA)
-%include <java/std_except.i>
-#elif defined(SWIGCSHARP)
-%include <csharp/std_except.i>
-#else
-
-
-/* avoid to include std/std_except.i unless we really need it */
-#if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
-%{
-#include <stdexcept>
-%}
-#else
-%include <std/std_except.i>
-#endif
-
-
-// Typemaps used by the STL wrappers that throw exceptions.
-// These typemaps are used when methods are declared with an STL
+// Typemaps used to handle and throw STD exceptions in a language
+// and STL independent way, i.e., the target language doesn't
+// require to support STL but only the 'exception.i' mechanism.
+//
+// These typemaps are used when methods are declared with an STD
 // exception specification, such as
 //
 //   size_t at() const throw (std::out_of_range);
 //
+//
+// As was said, the typemaps here are based in the language independent
+// 'exception.i' library. If that is working in your target language,
+// this file will work.
+// 
+// If the target language doesn't implement a robust 'exception.i'
+// mechanism, or you prefer other ways to map the STD exceptions, write
+// a new std_except.i file in the target library directory.
+//
+
+%{
+#include <stdexcept>
+%}
 
 %include <exception.i>
 
-/* 
-   Mark all of std exception classes as "exception classes" via
-   the "exceptionclass" feature.
-   
-   If needed, you can disable it by using %noexceptionclass.
-*/
 
 %define %std_exception_map(Exception, Code)
-  %exceptionclass  Exception; 
-#if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
   %typemap(throws,noblock=1) Exception {
     SWIG_exception(Code, $1.what());
   }
   %ignore Exception;
   struct Exception {
   };
-#endif
 %enddef
 
 namespace std {
@@ -56,6 +46,4 @@ namespace std {
   %std_exception_map(runtime_error,      SWIG_RuntimeError);
   %std_exception_map(underflow_error,    SWIG_OverflowError);
 }
-
-#endif
 
