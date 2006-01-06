@@ -1230,6 +1230,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t,k_self);
   Setattr(parms,k_self,"1");
+  Setattr(parms,k_hidden,"1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type);
@@ -1315,6 +1316,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t,k_self);
   Setattr(parms,k_self,"1");
+  Setattr(parms,k_hidden,"1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type);
