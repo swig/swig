@@ -22,3 +22,23 @@ int get_value(int *x, int i) {
 
 
 
+
+#ifdef __cplusplus
+%inline 
+{
+
+  struct Material
+  {
+  };
+
+  class RayPacketData {
+  public:
+  enum {
+    Size = 32
+  };
+
+    Material const* hitMatl[Size];
+  };
+}
+
+#endif

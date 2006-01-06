@@ -120,22 +120,18 @@
 /* memberin/globalin/varin, for fix arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY] {
-  $basetype *inp = %static_cast($input, $basetype *);
-  if (inp) {
-    $basetype *dest = %static_cast($1, $basetype *);
+  if ($input) {
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+    for (; ii < $dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
 }
 
 %typemap(globalin) SWIGTYPE [ANY] {
-  $basetype *inp = %static_cast($input, $basetype *);
   if (inp) {
-    $basetype *dest = %static_cast($1, $basetype *);
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) dest[ii] = inp[ii];
+    for (; ii < $dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
