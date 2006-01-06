@@ -63,7 +63,6 @@ see bottom for a set of possible tests
 class Op{
 public:
   int i;
-  int j;
   Op(int a=0):i(a)
   {}
   Op(const Op& o):i(o.i)
@@ -109,10 +108,10 @@ public:
   int operator()(int a,int b){return i+a+b;}
 
   // increment/decrement operators
-  Op& operator++(){++i; return *this;} // prefix ++
-  Op operator++(int){return Op(i++);} // postfix ++
-  Op& operator--(){--i; return *this;} // prefix --
-  Op operator--(int){return Op(i++);} // postfix --
+  Op& operator++() {++i; return *this;} // prefix ++
+  Op operator++(int) {Op o = *this; ++(*this); return o;} // postfix ++
+  Op& operator--() {--i; return *this;} // prefix --
+  Op operator--(int) {Op o = *this; --(*this); return o;} // postfix --
 
   // TODO: <<,<<=
 };
