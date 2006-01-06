@@ -583,13 +583,12 @@
    }
    $1 = *argp; %}
 
-%typemap(directorout) SWIGTYPE ($1_ltype argp)
-%{ argp = *($&1_ltype)(void *)&$input; 
-   if (!argp) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+%typemap(directorout) SWIGTYPE
+%{ if (!$input) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
    }
-   $1 = argp; %}
+   $1 = *($&1_ltype)(void *)&$input; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
