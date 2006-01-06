@@ -30,24 +30,24 @@ class string;
 %typemap(javadirectorout) string "$javacall"
 
 %typemap(in) string 
-%{if(!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
-    return $null;
-  } 
-  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-  if (!$1_pstr) return $null;
-  $1 =  std::string($1_pstr);
-  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+%{ if(!$input) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+     return $null;
+    } 
+    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+    if (!$1_pstr) return $null;
+    $1 =  std::string($1_pstr);
+    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorout) string 
-%{if(!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
-    return $null;
-  } 
-  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-  if (!$1_pstr) return $null;
-  $1 =  std::string($1_pstr);
-  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+%{ if(!$input) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+     return $null;
+   } 
+   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   if (!$1_pstr) return $null;
+   $1 =  std::string($1_pstr);
+   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") string 
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
@@ -63,10 +63,9 @@ class string;
 
 %typemap(typecheck) string = char *;
 
-%typemap(throws) string %{
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
-  return $null;
-%}
+%typemap(throws) string
+%{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
+   return $null; %}
 
 // const string &
 %typemap(jni) const string & "jstring"
@@ -76,27 +75,27 @@ class string;
 %typemap(javadirectorout) const string & "$javacall"
 
 %typemap(in) const string &
-%{if(!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
-    return $null;
-  }
-  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-  if (!$1_pstr) return $null;
-  std::string $1_str($1_pstr);
-  $1 = &$1_str;
-  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+%{ if(!$input) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+     return $null;
+   }
+   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   if (!$1_pstr) return $null;
+   std::string $1_str($1_pstr);
+   $1 = &$1_str;
+   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
-%{if(!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
-    return $null;
-  }
-  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-  if (!$1_pstr) return $null;
-  /* possible thread/reentrant code problem */
-  static std::string $1_str($1_pstr);
-  $1 = &$1_str;
-  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+%{ if(!$input) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+     return $null;
+   }
+   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   if (!$1_pstr) return $null;
+   /* possible thread/reentrant code problem */
+   static std::string $1_str($1_pstr);
+   $1 = &$1_str;
+   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const string &
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
@@ -112,10 +111,9 @@ class string;
 
 %typemap(typecheck) const string & = char *;
 
-%typemap(throws) const string & %{
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
-  return $null;
-%}
+%typemap(throws) const string &
+%{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
+   return $null; %}
 
 }
 
