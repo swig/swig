@@ -2,6 +2,12 @@
 
 %kwargs;
 
+%inline 
+{
+  struct s { int a; };
+}
+
+
 // Simple class
 %extend Foo 
 {
@@ -90,7 +96,7 @@
   
 
 // Functions with keywords
-%warnfilter(-314);
+%warnfilter(SWIGWARN_PARSE_KEYWORD);
 %inline %{
   /* silently rename the parameter names in python */
 
