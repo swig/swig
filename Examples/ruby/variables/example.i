@@ -3,7 +3,7 @@
 %{
 #include "example.h"
 %}
-#pragma SWIG nowarn=454
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_SWIGTYPELEAK
 
 /* Some global variable declarations */
 %inline %{

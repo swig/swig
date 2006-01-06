@@ -86,7 +86,7 @@ class string;
   $1 = &$1_str;
   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const string &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
     return $null;

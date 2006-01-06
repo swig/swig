@@ -4,7 +4,7 @@
 %typemap(default) double y "$1=1000;";
 #endif
 
-%warnfilter(302) Foo::test; 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) Foo::test; 
 
 
 

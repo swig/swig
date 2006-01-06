@@ -7,7 +7,7 @@
 %include std_string.i
 
 // Using thread unsafe wrapping
-%warnfilter(470,473) A;
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) A;
 
 %{
 #include <vector>

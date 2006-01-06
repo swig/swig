@@ -1,13 +1,13 @@
 /* File : example.i */
 %module "template_explicit"
 
-%warnfilter(801) vector<int>;         /* Ruby, wrong class name */
-%warnfilter(801) vector<double>;      /* Ruby, wrong class name */
-%warnfilter(801) vector<int (*)[10]>; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) vector<int>;         /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) vector<double>;      /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) vector<int (*)[10]>; /* Ruby, wrong class name */
 
 // #pragma is used for warnings that are not associated to
 // specific nodes.
-#pragma SWIG nowarn=-320
+#pragma SWIG nowarn=-SWIGWARN_PARSE_EXPLICIT_TEMPLATE
 
 
 /* Let's just grab the original header file here */

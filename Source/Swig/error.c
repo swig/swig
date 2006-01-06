@@ -173,10 +173,20 @@ Swig_error_silent(int s) {
 void
 Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
+  char *cw;
   String *s;
 
   if (!filter) filter = NewStringEmpty();
-  s = NewString(wlist);
+  
+  s = NewString("");
+  Clear(s);
+  cw = Char(wlist);
+  while (*cw != '\0') {
+    if (*cw != ' ') {
+      Putc(*cw, s);
+    }
+    ++cw;
+  }
   c = Char(s);
   c = strtok(c,", ");
   while (c) {

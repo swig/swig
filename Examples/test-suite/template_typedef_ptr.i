@@ -1,6 +1,6 @@
 %module("templatereduce") template_typedef_ptr
 
-%warnfilter(801) Test<int, C*>; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Test<int, C*>; /* Ruby, wrong constant name */
 
  /*
    Use the "templatereduce" feature to force swig to reduce the template

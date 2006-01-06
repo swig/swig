@@ -4,12 +4,12 @@
 
 %module long_long
 
-%warnfilter(801) lconst1; /* Ruby, wrong constant name */
-%warnfilter(801) lconst2; /* Ruby, wrong constant name */
-%warnfilter(801) lconst3; /* Ruby, wrong constant name */
-%warnfilter(801) lconst4; /* Ruby, wrong constant name */
-%warnfilter(801) lconst5; /* Ruby, wrong constant name */
-%warnfilter(801) lconst6; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst1; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst2; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst3; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst4; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst5; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) lconst6; /* Ruby, wrong constant name */
 
 %inline %{
 void foo1(long long x) {}

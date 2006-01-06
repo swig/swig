@@ -223,7 +223,7 @@
 
 /* Pointers, references, and variable size arrays */
 
-%typemap(varin,noblock=1,warning=SWIG_WARN_TYPEMAP_SWIGTYPELEAK) SWIGTYPE * {
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE * {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);  
   if (!SWIG_IsOK(res)) {
@@ -237,7 +237,7 @@
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }
 
-%typemap(varin,noblock=1,warning=SWIG_WARN_TYPEMAP_SWIGTYPELEAK) SWIGTYPE & {
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE & {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -381,7 +381,7 @@
 }
 #endif
 
-%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) 
+%typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
   SWIGTYPE *(void *argp, swig_owntype own) {
   if (!SWIG_IsOK((SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own)))) {
     %dirout_fail(SWIG_TypeError,"$type");
@@ -395,7 +395,7 @@
   }
 }
 
-%typemap(directorout,noblock=1,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) 
+%typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
   SWIGTYPE &(void *argp, swig_owntype own) {
   if (!SWIG_IsOK((SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own)))) {
     %dirout_fail(SWIG_TypeError,"$type");

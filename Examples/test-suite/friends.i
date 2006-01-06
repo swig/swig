@@ -3,7 +3,7 @@
 #include <iostream>
 %}
 
-%warnfilter(503);
+%warnfilter(SWIGWARN_LANG_IDENTIFIER);
 
   
 %inline 

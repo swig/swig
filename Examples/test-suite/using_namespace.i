@@ -1,9 +1,11 @@
 %module(ruby_minherit="1") using_namespace
 
-%warnfilter(801) hi::hi0;	/* Ruby, wrong class name */
-%warnfilter(801) hi::hi1;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi::hi0;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi::hi1;	/* Ruby, wrong class name */
 
-%warnfilter(813,833,870) Hi<hello::Hello, hi::hi0>; // C#, Java, Php4 multiple inheritance
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) Hi<hello::Hello, hi::hi0>; // C#, Java, Php4 multiple inheritance
 
 %inline %{
   namespace hello

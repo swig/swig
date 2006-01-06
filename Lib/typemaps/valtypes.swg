@@ -123,7 +123,7 @@
     }
     $result = %static_cast(val,$type);
   }
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR) const Type& {  
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) const Type& {  
     Type val;
     int res = asval_meth($input, &val);
     if (!SWIG_IsOK(res)) {

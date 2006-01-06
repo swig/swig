@@ -1,6 +1,6 @@
 %module template_default_inherit
 
-%warnfilter(801) A::nindex;	/* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) A::nindex;	/* Ruby, wrong constant name */
  
 %inline %{
   template <class C>

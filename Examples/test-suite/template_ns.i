@@ -3,8 +3,8 @@
 
 %module template_ns
 
-%warnfilter(801) std::my_pair<int, int>;       /* Ruby, wrong class name */
-%warnfilter(801) std::my_pair<double, double>; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) std::my_pair<int, int>;       /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) std::my_pair<double, double>; /* Ruby, wrong class name */
 
 %ignore std::my_pair::my_pair();
 

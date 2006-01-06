@@ -90,7 +90,7 @@ class wstring;
 %typemap(javadirectorin) const wstring & "$jniinput"
 %typemap(javadirectorout) const wstring & "$javacall"
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const wstring &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const wstring &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;

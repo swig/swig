@@ -15,7 +15,7 @@
    $1 = &temp; %}
 %typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
 
-%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const enum SWIGTYPE &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $1 = &temp; %}
 %typemap(directorin, descriptor="I") const enum SWIGTYPE &    "$input = (jint)$1_name;"

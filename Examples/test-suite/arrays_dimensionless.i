@@ -1,8 +1,8 @@
 
 %module arrays_dimensionless
 
-%warnfilter(462) globalints;    /* Unable to set variable of type int [] */
-%warnfilter(462) ints;          /* Unable to set variable of type int [] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) globalints;    /* Unable to set variable of type int [] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) ints;          /* Unable to set variable of type int [] */
 
 %inline %{
 

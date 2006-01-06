@@ -1,5 +1,5 @@
 %module(directors="1") director_frob;
-#pragma SWIG nowarn=470,473
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
 
 %header %{
 #include <iostream>

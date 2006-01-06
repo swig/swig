@@ -43,7 +43,7 @@ typedef float Real;
 #if 1
 //fails
 namespace std {
-    %template(RealVector) vector<int>;
+    %template(RealVector) vector<Real>;
 }
 #else
 //works

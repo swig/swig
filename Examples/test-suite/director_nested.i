@@ -1,5 +1,5 @@
 %module(directors="1",dirprot="1") director_nested
-#pragma SWIG nowarn=470,473
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
 
 %{
 #include <string>

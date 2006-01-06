@@ -1,9 +1,12 @@
 %module(ruby_minherit="1") evil_diamond_ns
 
-%warnfilter(801) Blah::foo;		// Ruby, wrong class name
-%warnfilter(801) Blah::bar;		// Ruby, wrong class name
-%warnfilter(801) Blah::baz;		// Ruby, wrong class name
-%warnfilter(801,813,833,870) Blah::spam;	// Ruby, wrong class name - C# & Java, Php4 multiple inheritance
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Blah::foo;		// Ruby, wrong class name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Blah::bar;		// Ruby, wrong class name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Blah::baz;		// Ruby, wrong class name
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME,
+	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) Blah::spam;	// Ruby, wrong class name - C# & Java, Php4 multiple inheritance
 
 %inline %{
 namespace Blah {

@@ -1,6 +1,9 @@
 %module contract
 
-%warnfilter(802,813,833,870) C; /* Ruby, C#, Java, Php4 multiple inheritance */
+%warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
+	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) C; /* Ruby, C#, Java, Php4 multiple inheritance */
 
 #ifdef SWIGCSHARP
 %ignore B::bar; // otherwise get a warning: `C.bar' no suitable methods found to override

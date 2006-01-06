@@ -1,7 +1,7 @@
 %module throw_exception
 
-%warnfilter(801) Namespace::enum1;
-%warnfilter(801) Namespace::enum2;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Namespace::enum1;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Namespace::enum2;
 
 // Tests SWIG's automatic exception mechanism
 

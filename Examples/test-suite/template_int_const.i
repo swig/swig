@@ -1,7 +1,7 @@
 %module template_int_const
 
-%warnfilter(801) interface_traits;	/* Ruby, wrong class name */
-%warnfilter(801) module_traits;		/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) interface_traits;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) module_traits;		/* Ruby, wrong class name */
 
 %inline %{ 
   enum Polarization { UnaryPolarization, BinaryPolarization }; 

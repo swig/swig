@@ -2,10 +2,10 @@
 %module(directors="1") primitive_types
 
 // Ruby constant names
-#pragma SWIG nowarn=801
+#pragma SWIG nowarn=SWIGWARN_RUBY_WRONG_NAME
 
 // Using thread unsafe wrapping
-#pragma SWIG nowarn=470,473
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
  /*
 
  if your language has problems with MyInt* and/or Hello*,
@@ -87,9 +87,7 @@
 // Try your language module with and without 
 // these nowarn flags.
 //
-%warnfilter(451);
-//%warnfilter(515);
-//%warnfilter(509);
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK);
 
 %{
 #include <stddef.h>

@@ -310,6 +310,18 @@ noskip-%-test-suite:
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
 
+############################################################################
+# Update the Lib/swigwarn.swg file
+############################################################################
+
+Lib/swigwarn.swg: Source/Include/swigwarn.h
+	@echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
+	@echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
+	@echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
+	@echo >> $@; echo >> $@
+	@awk '/#define WARN/{$$1="%define"; $$2="SWIG"$$2; $$3=sprintf("%d %%enddef", $$3); print $$0; next;}\
+	      /#/{next;} {print $0}' < $? >> $@
+
 #####################################################################
 # TARGETS: install & friends
 #####################################################################
@@ -333,7 +345,8 @@ lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocam
 
 lib-modules = std
 
-install-lib:
+
+install-lib: 
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
@@ -415,4 +428,7 @@ configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.sub -O Tools/config/config.sub
 	chmod a+x Tools/config/config.sub
 
+
 # Makefile ends here
+
+

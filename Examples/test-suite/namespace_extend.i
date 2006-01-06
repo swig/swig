@@ -1,6 +1,6 @@
 %module namespace_extend
 
-%warnfilter(801) bar; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) bar; /* Ruby, wrong class name */
 
 %{
 namespace foo {

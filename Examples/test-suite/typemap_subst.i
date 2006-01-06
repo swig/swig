@@ -3,7 +3,7 @@
 
 %module typemap_subst
 
-%warnfilter(801) xyzzy; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) xyzzy; /* Ruby, wrong class name */
 
 %inline %{
   struct xyzzy {

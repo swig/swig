@@ -5,10 +5,10 @@
 
 %module kind
 
-%warnfilter(801) foo;  /* Ruby, wrong class name */
-%warnfilter(801) bar;  /* Ruby, wrong class name */
-%warnfilter(801) uni;  /* Ruby, wrong class name */
-%warnfilter(801) test; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) foo;  /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) bar;  /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) uni;  /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test; /* Ruby, wrong class name */
 
 %inline %{
 

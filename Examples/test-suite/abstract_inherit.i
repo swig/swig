@@ -1,7 +1,7 @@
 %module abstract_inherit
 
-%warnfilter(403) Spam;
-%warnfilter(403) Bar;
+%warnfilter(SWIGWARN_TYPE_ABSTRACT) Spam;
+%warnfilter(SWIGWARN_TYPE_ABSTRACT) Bar;
 
 %inline %{
 

@@ -1,6 +1,6 @@
 %module template_arg_replace
 
-%warnfilter(801) Matrix<float, 3, 3>;	/* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) Matrix<float, 3, 3>;	/* Ruby, wrong class name */
 
 %inline %{
 

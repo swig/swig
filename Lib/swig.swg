@@ -129,13 +129,65 @@
 /* Common features */
 
 /* Warnings */
-#define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
+#define %_warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
+#define %warnfilter(...) %_warnfilter(__VA_ARGS__)
 
-/* Warnings used in typemaps. Macro names are the same as those in swigwarn.h but prefixed by SWIG_. */
-%define SWIG_WARN_TYPEMAP_CHARLEAK "451:Setting const char * member may leak memory." %enddef
-%define SWIG_WARN_TYPEMAP_SWIGTYPELEAK "454:Setting a pointer/reference variable may leak memory." %enddef
-%define SWIG_WARN_TYPEMAP_THREAD_UNSAFE "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
-%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR "473:Returning a pointer or reference in a director method is not recommended." %enddef
+
+/*
+  Include the internal swig macro codes. These macros correspond to
+  the one found in Source/Include/swigwarn.h plus the 'SWIG'prefix.
+  
+  For example, in the include file you will find
+
+     WARN_TYPEMAP_CHARLEAK
+
+  and in the interface you use the code for filters as
+
+     %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK);
+
+*/
+%include <swigwarn.swg>
+
+/* Warnings messages used in typemaps. Message names will be the same
+   as those in Lib/swigwarn.swg but with the suffix _MSG.
+   
+   For example, for the code SWIGWARN_TYPEMAP_CHARLEAK, once you use
+
+      %warning_msg(SWIGWARN_TYPEMAP_CHARLEAK,<msg>);
+
+   you use the message in your typemap as
+
+     %typemap(varin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) char * 
+
+   while you suppress the warning using
+
+     %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK);
+
+   as described above.     
+   
+*/
+
+
+/* macros to create warning messages */
+%define %_warning_msg(Def, Val, Msg)
+%define Def `Val`":"`Msg` %enddef
+%enddef
+%define %warning_msg(x,msg) 
+%_warning_msg(x##_MSG, x, msg)
+%enddef
+
+/* specific warning messages */
+%warning_msg(SWIGWARN_TYPEMAP_CHARLEAK,        "Setting const char * member may leak memory.")
+%warning_msg(SWIGWARN_TYPEMAP_SWIGTYPELEAK,    "Setting a pointer/reference variable may leak memory.");
+%warning_msg(SWIGWARN_TYPEMAP_THREAD_UNSAFE,   "Thread/reentrant unsafe wrapping, consider returning by value instead.");
+%warning_msg(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR, "Returning a pointer or reference in a director method is not recommended.");
+
+
+/* Old warning messages names, for compatibility */
+%define SWIG_WARN_TYPEMAP_CHARLEAK        SWIGWARN_TYPEMAP_CHARLEAK_MSG        %enddef
+%define SWIG_WARN_TYPEMAP_SWIGTYPELEAK    SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG    %enddef
+%define SWIG_WARN_TYPEMAP_THREAD_UNSAFE   SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG   %enddef
+%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG %enddef
 
 /* Contract support - Experimental and undocumented */
 
@@ -518,6 +570,8 @@ static int NAME(TYPE x) {
 }
 %}
 %enddef
+
+
 
 %insert("runtime") "swiglabels.swg"
 

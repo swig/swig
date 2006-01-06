@@ -1581,7 +1581,11 @@ Preprocessor_parse(String *s)
 	  while (*c && (isspace((int)*c))) c++;
 	  if (*c) {
 	    if (strncmp(c,"nowarn=",7) == 0) {
-	      Swig_warnfilter(c+7,1);
+	      String *val = NewString(c+7);
+	      String *nowarn = Preprocessor_replace(val);
+	      Swig_warnfilter(nowarn,1);
+	      Delete(nowarn);
+	      Delete(val);
 	    }
 	    else if (strncmp(c,"cpperraswarn=",7) == 0) {
 	      error_as_warning = atoi(c+13);

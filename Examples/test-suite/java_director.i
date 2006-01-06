@@ -2,7 +2,7 @@
  * Test Java director typemaps and features
  */
 
-%warnfilter(470,473); /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR); /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
 
 %module(directors="1") java_director
 

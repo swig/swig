@@ -1,6 +1,6 @@
 %module bloody_hell
 
-%warnfilter(801) kMaxIOCTLSpaceParmsSize;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) kMaxIOCTLSpaceParmsSize;
 
 #define kMaxIOCTLSpaceParmsSize 128 
 
