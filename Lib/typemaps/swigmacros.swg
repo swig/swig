@@ -89,8 +89,12 @@
 
 #define %arg(Arg...)        Arg
 #define %str(Arg)           `Arg`
-#define %begin_block        do {
-#define %end_block          } while(0)
+#ifndef %begin_block
+#  define %begin_block      do {
+#endif
+#ifndef %end_block
+#  define %end_block        } while(0)
+#endif
 #define %block(Block...)    %begin_block Block; %end_block
 
 /* define a new macro */
