@@ -1,5 +1,8 @@
 %module(directors="1") director_wstring;
 %include stl.i
+
+#ifndef SWIG_STL_UNIMPL
+
 %include std_vector.i
 %include std_wstring.i
 
@@ -47,3 +50,5 @@ struct A
  %}
 
 %template(StringVector) std::vector<std::wstring>;
+
+#endif
