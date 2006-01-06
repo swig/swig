@@ -496,21 +496,14 @@ SwigType_namestr(const SwigType *t) {
   String *r;
   String *suffix;
   List   *p;
-  char   tmp[256];
-  char   *c, *d, *e;
   int     i, sz;
+  char   *d = Char(t);
+  char   *c = strstr(d,"<(");
 
-  if (!SwigType_istemplate(t)) return NewString(t);
+  if (!c) return NewString(t);
 
-  d = Char(t);
-  c = strstr(d,"<(");
-  e = tmp;
-  while (d != c) {
-    *(e++) = *(d++);
-  }
-  *e = 0;
-  r = NewString(tmp);
-  Putc(' ',r);
+  r = NewStringWithSize(d, c - d);
+  if (*(c - 1) == '<')  Putc(' ',r);
   Putc('<',r);
   
   p = SwigType_parmlist(c+1);
@@ -527,13 +520,6 @@ SwigType_namestr(const SwigType *t) {
   StringAppend(r,suffix);
   Delete(suffix);
   Delete(p);
-#if 0
-  if (SwigType_istemplate(r)) {
-    SwigType *rr = SwigType_namestr(r);
-    Delete(r);
-    return rr;
-  }
-#endif
   return r;
 }
 
