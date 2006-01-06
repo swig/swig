@@ -4,7 +4,16 @@
 %include <csharp/std_except.i>
 #else
 
+
+/* avoid to include std/std_except.i unless we really need it */
+#if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
+%{
+#include <stdexcept>
+%}
+#else
 %include <std/std_except.i>
+#endif
+
 
 // Typemaps used by the STL wrappers that throw exceptions.
 // These typemaps are used when methods are declared with an STL
