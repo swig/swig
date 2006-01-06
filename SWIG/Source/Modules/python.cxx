@@ -1270,8 +1270,7 @@ public:
 
   int check_kwargs(Node *n) {
     return (use_kw || GetFlag(n,"feature:kwargs")) 
-      && !GetFlag(n,"memberset") && !GetFlag(n,"memberget") 
-      && !checkAttribute(n,"nodeType","destructor");
+      && !GetFlag(n,"memberset") && !GetFlag(n,"memberget");
   }
 
 
@@ -1490,6 +1489,8 @@ public:
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
+    if (((num_arguments == 0) && (num_required == 0)) || 
+	((num_arguments == 1) && (num_required == 1) && Getattr(l,"self"))) allow_kwargs = 0;
     varargs = emit_isvarargs(l);
     int funpack = modernargs && fastunpack &&  !varargs && !allow_kwargs ;
     int noargs = funpack && (num_required == 0 && num_arguments == 0);
