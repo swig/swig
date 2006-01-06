@@ -10,7 +10,7 @@ see bottom for a set of possible tests
 %warnfilter(362,389,383,384);
 #endif
 
-#if !defined(SWIGLUA)
+#if !defined(SWIGLUA) || !defined(SWIGPERL)
 %rename(Equal) operator =;
 %rename(PlusEqual) operator +=;
 %rename(MinusEqual) operator -=;
@@ -60,6 +60,7 @@ see bottom for a set of possible tests
 class Op{
 public:
   int i;
+  int j;
   Op(int a=0):i(a)
   {}
   Op(const Op& o):i(o.i)
@@ -88,6 +89,8 @@ public:
 
 
   // unary operators
+  Op operator++() {i++; return *this;}
+  Op operator--() {i--; return *this;}
   Op operator-() const {return Op(-i);}
   bool operator !() const {return !(i);}
 
@@ -105,6 +108,9 @@ public:
   int operator()(int a=0){return i+a;}
   int operator()(int a,int b){return i+a+b;}
 
+<<<<<<< operator_overload.i
+  // TODO: <<,<<=
+=======
   // increment/decrement operators
   Op& operator++(){++i; return *this;} // prefix ++
   Op& operator++(int){i++; return *this;} // postfix ++
@@ -112,6 +118,7 @@ public:
   Op& operator--(int){i--; return *this;} // postfix --
 
   // TODO: <<,<<=
+>>>>>>> 1.6
 };
 
 // just to complicate matters
@@ -129,6 +136,9 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 // we need to extend the class
 // to make the friends & non members part of the class
 %extend Op{
+        Op operator and(const Op& b){return Op(self->i&&b.i);}
+        Op operator or(const Op& b){return Op(self->i||b.i);}
+
 	Op operator+(const Op& b){return Op(self->i+b.i);}
 	Op operator-(const Op& b){return Op(self->i-b.i);}
 	Op operator*(const Op& b){return Op(self->i*b.i);}
