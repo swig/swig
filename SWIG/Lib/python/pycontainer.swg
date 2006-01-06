@@ -699,7 +699,7 @@ namespace swig {
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return pyseq.check();
+	    return pyseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq) {
