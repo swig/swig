@@ -785,18 +785,9 @@ SwigType_add_template(SwigType *t, ParmList *parms) {
 
 String *
 SwigType_templateprefix(const SwigType *t) {
-  const char *c;
-  const char *s;
-
-  s = Char(t);
-  c = s;
-  while (*c) {
-    if (*c == '<') {
-      return NewStringWithSize(s,c-s);
-    }
-    c++;
-  }
-  return NewString(s);
+  const char *s = Char(t);
+  const char *c = strstr(s,"<(");
+  return c ? NewStringWithSize(s, c-s) : NewString(s);
 }
 
 /* -----------------------------------------------------------------------------
