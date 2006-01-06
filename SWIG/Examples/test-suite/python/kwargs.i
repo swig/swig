@@ -2,9 +2,10 @@
 
 %kwargs;
 
+%rename(myDel) del;
 %inline 
 {
-  struct s { int a; };
+  struct s { int del; };
 }
 
 
