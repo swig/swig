@@ -184,7 +184,7 @@ int main(int margc, char **margv) {
 	    Printf(stderr,"swig: Warning. %s option deprecated.\n",argv[i]);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
-	    Printf(stdout,"Target Language Options:\n");
+	    Printf(stdout,"Target Language Options\n");
 	    for (int j = 0; modules[j].name; j++) {
 	      if (modules[j].help) {
 		Printf(stdout,"     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
