@@ -40,6 +40,10 @@ int get_value(int *x, int i) {
     const Material * chitMat[Size];
     Material hitMat_val[Size];
     Material *hitMat[Size];
+
+    const Material * chitMat2[Size][Size];
+    Material hitMat_val2[Size][Size];
+    Material *hitMat2[Size][Size];
   };
 }
 

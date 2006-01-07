@@ -40,3 +40,22 @@ int get_2d_array(int (*array)[ARRAY_LEN_Y], int x, int y){
 }
 %}
 
+#ifdef __cplusplus
+%inline 
+{
+
+  struct Material
+  {
+  };
+
+  enum {
+    Size = 32
+  };
+  
+  const Material * chitMat[Size][Size];
+  Material hitMat_val[Size][Size];
+  Material *hitMat[Size][Size];
+}
+
+#endif
+
