@@ -428,7 +428,10 @@ configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.sub -O Tools/config/config.sub
 	chmod a+x Tools/config/config.sub
 
+# This target is usually called from Source/Makefile when configure.in has changed
+am--refresh:
+	@echo "Build system is out of date. Please reconfigure (rerun: ./autogen.sh && ./configure)"
+	@exit 1
 
 # Makefile ends here
-
 
