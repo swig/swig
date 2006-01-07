@@ -122,7 +122,7 @@
 %typemap(memberin) SWIGTYPE [ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
