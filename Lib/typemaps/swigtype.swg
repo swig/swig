@@ -192,10 +192,10 @@
     %variable_fail(SWIG_TypeError, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < $dim0; ++ii) {
+    for (; ii < (size_t)$dim0; ++ii) {
       if (inp[ii]) {
 	size_t jj = 0;
-	for (; jj < $dim1; ++jj) $1[ii][jj] = inp[ii][jj];
+	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = inp[ii][jj];
       } else {
 	%variable_nullref("$type", "$name");
       }
