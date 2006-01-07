@@ -47,72 +47,72 @@ extern String  *ModuleName;
 
 static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
+     -addextern      - Add extra extern declarations\ndirectory \
      -c++            - Enable C++ processing\n\
      -co <file>      - Check <file> out of the SWIG library\n\
+     -copyctor       - Automatically generate copy constructors wherever possible\n\
+     -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
+     -debug_template - Display information for debugging templates\n\
+     -debug_typemap  - Display information for debugging typemaps\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
+     -dump_classes   - Display information about the classes found in the interface\n\
+     -dump_module    - Display information on the module node tree avoiding system nodes\n\
+     -dump_tags      - Display information about the tags found in the interface\n\
+     -dump_top       - Display information on the entire node tree including system nodes\n\
+     -dump_typedef   - Display information about the types and typedefs in the interface\n\
      -E              - Preprocess only, does not generate wrapper code\n\
-     -external-runtime [file] - Export the swig runtime stack\n\
+     -external-runtime [file] - Export the SWIG runtime stack\n\
+     -fakeversion <v>- Make SWIG fake the program version number to <v>\n\
      -fcompact       - Compile in compact mode\n\
-     -features list  - Set a list of global features, where the syntax list is\n\
-                       -features directors,autodoc=1\n\
-                       if not explicit value is given to the feature, a '1' is used\n\
-     -fvirtual       - Compile in virtual elimination mode\n\
-     -fastdispatch   - Enable fast dispatch mode, which produces faster overload dispatcher code\n\
-     -nofastdispatch - Disable fast dispatch mode (default)\n\
-     -Fstandard      - Display error/warning messages in commonly used format\n\
+     -features <list>- Set global features, where <list> is a comma separated list of\n\
+                       features, eg -features directors,autodoc=1\n\
+                       If no explicit value is given to the feature, a default of 1 is used\n\
+     -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
+     -Fstandard      - Display error/warning messages in commonly used format\n\
+     -fvirtual       - Compile in virtual elimination mode\n\
      -help           - This output\n\
-     -I<dir>         - Look for SWIG files in <dir>\n\
+     -I<dir>         - Look for SWIG files in directory <dir>\n\
      -I-             - Don't search the current directory\n\
      -ignoremissing  - Ignore missing include files\n\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
-     -cpperraswarn   - Treat the CPP #error statement as #warning instead\n\
-     -nocpperraswarn - Don't treat the CPP #error statement as #warning, i.e., crash as CPP\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
-     -M              - List all dependencies\n\
-     -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
-     -MF <file>      - Generate dependencies into <file> and continue generating wrappers\n\
-     -MM             - List dependencies, but omit files in SWIG library\n\
-     -MMD            - Like `-MD', but omit files in SWIG library\n\
 ";
 // usage string split in two otherwise string is too big for some compilers
 static const char *usage2 = (const char*)"\
      -makedefault    - Create default constructors/destructors (the default)\n\
+     -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
+     -MF <file>      - Generate dependencies into <file> and continue generating wrappers\n\
+     -M              - List all dependencies\n\
+     -MMD            - Like `-MD', but omit files in SWIG library\n\
+     -MM             - List dependencies, but omit files in SWIG library\n\
      -module <name>  - Set module name to <name>\n\
      -nocontract     - Turn off contract checking\n\
-     -nodefault      - Do not generate default constructors nor default destructors\n\
+     -nocpperraswarn - Do not treat the preprocessor #error statement as #warning\n\
      -nodefaultctor  - Do not generate implicit default constructors\n\
+     -nodefault      - Do not generate default constructors nor default destructors\n\
      -nodefaultdtor  - Do not generate implicit default destructors\n\
-     -copctor        - Generate copy constructor automatically when is possible\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
-     -addextern      - Add extra extern declarations\n\
+     -nofastdispatch - Disable fast dispatch mode (default)\n\
      -nopreprocess   - Skip the preprocessor step\n\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
-     -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
-     -outdir <dir>   - Set language specific files output directory\n\
+     -o <outfile>    - Set name of the output file to <outfile>\n\
+     -outdir <dir>   - Set language specific files output directory <dir>\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
+     -version        - Display SWIG version number\n\
      -v              - Run in verbose mode\n\
-     -fakeversion <v>- Make swig to fake a different version\n\
-     -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
      -Werror         - Treat warnings as errors\n\
-     -w<list>        - Suppress/add warning messages eg -w401,+321 - see Warnings.html\n\
+     -w<list>        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html\n\
      -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
-     -dump_top       - Print information of the entire node tree, including system nodes\n\
-     -dump_module    - Print information of the module node tree, avoiding system nodes\n\
-     -dump_classes   - Print information about the classes found in the interface\n\
-     -dump_typedef   - Print information about the types and typedefs found in the interface\n\
-     -dump_tags      - Print information about the tags found in the interface\n\
-     -debug_typemap  - Print information for debugging typemaps\n\
-     -debug_template - Print information for debugging templates\n\
 \n";
 
 // Local variables
