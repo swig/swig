@@ -10,7 +10,9 @@ see bottom for a set of possible tests
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ,
 	    SWIGWARN_IGNORE_OPERATOR_INDEX,
 	    SWIGWARN_IGNORE_OPERATOR_PLUSPLUS,
-	    SWIGWARN_IGNORE_OPERATOR_MINUSMINUS);
+	    SWIGWARN_IGNORE_OPERATOR_MINUSMINUS,
+	    SWIGWARN_IGNORE_OPERATOR_LAND,
+	    SWIGWARN_IGNORE_OPERATOR_LOR);
 #endif
 
 #if !defined(SWIGLUA) || !defined(SWIGPERL)
@@ -35,8 +37,8 @@ see bottom for a set of possible tests
 %rename(LessThanEqual) operator <=;
 %rename(GreaterThan) operator >;
 %rename(GreaterThanEqual) operator >=;
-%rename(And) operator and;
-%rename(Or) operator or;
+%rename(And) operator &&;
+%rename(Or) operator ||;
 %rename(PlusPlusPrefix) operator++();
 %rename(PlusPlusPostfix) operator++(int);
 %rename(MinusMinusPrefix) operator--();
@@ -76,7 +78,7 @@ public:
   Op(const Op& o):i(o.i)
   {}
 
-  friend Op operator and(const Op& a,const Op& b){return Op(a.i&&b.i);}
+  friend Op operator &&(const Op& a,const Op& b){return Op(a.i&&b.i);}
   friend Op operator or(const Op& a,const Op& b){return Op(a.i||b.i);}
 
   Op &operator=(const Op& o) {
@@ -142,7 +144,7 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 // we need to extend the class
 // to make the friends & non members part of the class
 %extend Op{
-        Op operator and(const Op& b){return Op(self->i&&b.i);}
+        Op operator &&(const Op& b){return Op(self->i&&b.i);}
         Op operator or(const Op& b){return Op(self->i||b.i);}
 
 	Op operator+(const Op& b){return Op(self->i+b.i);}
