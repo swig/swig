@@ -10,6 +10,8 @@ public class operator_overload_runme {
 
     // Java does not support operators, so we just check that these can be called as methods.
 
+    Op.sanity_check();
+
     //test routine:
     Op a = new Op();
     Op b = new Op(5);
