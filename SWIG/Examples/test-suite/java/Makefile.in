@@ -29,9 +29,6 @@ CPP_TEST_CASES = \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper
 
-# This testcase requires Java 1.5
-#	enum_thorough_proper \
-
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -68,10 +65,10 @@ setup = \
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
-	(cd $* && javac *.java; ) && \
+	(cd $* && javac -classpath . *.java; ) && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  javac -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && 	  \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" java $*\_runme;) \
+	  javac -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && 	  \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" java -classpath . $*\_runme;) \
 	fi;
 
 # Clean: remove testcase directories
