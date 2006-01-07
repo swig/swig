@@ -1,6 +1,6 @@
 /* Warnings for Perl keywords */
-#define PERLKW(x) %namewarn("314:" `x` " is a perl keyword")  `x`
-#define PERLBN(x) %namewarn("321:" `x` " conflicts with a built-in name in perl")  "::" `x`
+#define PERLKW(x) %keywordwarn(`x` " is a perl keyword")  `x`
+#define PERLBN(x) %builtinwarn(`x` " conflicts with a built-in name in perl")  "::" `x`
 
 
 /*

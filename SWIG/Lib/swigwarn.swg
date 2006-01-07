@@ -128,8 +128,8 @@
 %define SWIGWARN_IGNORE_OPERATOR_UMUL 392 %enddef /* * */
 %define SWIGWARN_IGNORE_OPERATOR_UAND 393 %enddef /* & */
 %define SWIGWARN_IGNORE_OPERATOR_NEWARR 394 %enddef /* new [] */
-%define SWIGWARN_IGNORE_OEPRATOR_DELARR 395 %enddef /* delete [] */
-%define SWIGWARN_IGNORE_OEPRATOR_REF 396 %enddef /* operator *() */
+%define SWIGWARN_IGNORE_OPERATOR_DELARR 395 %enddef /* delete [] */
+%define SWIGWARN_IGNORE_OPERATOR_REF 396 %enddef /* operator *() */
 
 /* 394-399 are reserved */
 

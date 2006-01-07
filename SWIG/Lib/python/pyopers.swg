@@ -38,14 +38,14 @@
 %rename(__call__)       *::operator();
 
 /* Ignored operators */
-%ignorewarn("361:operator! ignored") operator!;
-%ignorewarn("381:operator&& ignored") operator&&;
-%ignorewarn("382:operator|| ignored") operator||;
-%ignorewarn("362:operator= ignored") *::operator=;
-%ignorewarn("383:operator++ ignored") *::operator++;
-%ignorewarn("384:operator-- ignored") *::operator--;
-%ignorewarn("386:operator->* ignored") *::operator->*;
-%ignorewarn("389:operator[] ignored (consider using %extend)") *::operator[];
+%ignoreoperator(LNOT)       operator!;
+%ignoreoperator(LAND)       operator&&;
+%ignoreoperator(LOR)        operator||;
+%ignoreoperator(EQ)         *::operator=;
+%ignoreoperator(PLUSPLUS)   *::operator++;
+%ignoreoperator(MINUSMINUS) *::operator--;
+%ignoreoperator(ARROWSTAR)  *::operator->*;
+%ignoreoperator(INDEX)      *::operator[];
 
 /*
   Inplace operator declarations.
@@ -107,17 +107,18 @@
 
 /* C++ operator aliases */
 
-%ignorewarn("381:operator and ignored")    operator and;     // `and'     `&&'
-%ignorewarn("361:operator not ignored")    operator not;     // `not'     `!'
-%ignorewarn("382:operator or ignored")     operator or;	     // `or'      `||'
-%pyinplaceoper(__iand__,                *::operator and_eq); // `and_eq'  `&='
-%pybinoperator(__and__,                 *::operator bitand)  // `bitand'  `&'
-%pybinoperator(__or__,                  *::operator bitor);  // `bitor'   `|'
-%rename(__invert__)                     *::operator compl;   // `compl'   `~'
-%pybinoperator(__ne__,                  *::operator not_eq); // `not_eq'  `!='
-%pyinplaceoper(__ior__,                 *::operator or_eq);  // `or_eq'   `|='
-%pybinoperator(__xor__,                 *::operator xor);    // `xor'     `^'
-%pyinplaceoper(__ixor__,                *::operator xor_eq); // `xor_eq'  `^='
+%ignoreoperator(LAND) operator and; // `and'  `&&'
+%ignoreoperator(LNOT) operator not; // `not'  `!'
+%ignoreoperator(LOR)  operator or;  // `or'   `||'
+
+%pyinplaceoper(__iand__,  *::operator and_eq); // `and_eq'  `&='
+%pybinoperator(__and__,   *::operator bitand)  // `bitand'  `&'
+%pybinoperator(__or__,    *::operator bitor);  // `bitor'   `|'
+%rename(__invert__)       *::operator compl;   // `compl'   `~'
+%pybinoperator(__ne__,    *::operator not_eq); // `not_eq'  `!='
+%pyinplaceoper(__ior__,   *::operator or_eq);  // `or_eq'   `|='
+%pybinoperator(__xor__,   *::operator xor);    // `xor'     `^'
+%pyinplaceoper(__ixor__,  *::operator xor_eq); // `xor_eq'  `^='
 
 
 /* Finally, in python we need to mark the binary operations to fail as

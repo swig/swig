@@ -1,4 +1,4 @@
-%warnfilter(314) java::lang::ref;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) java::lang::ref;
 
 %{
 #undef STATIC
