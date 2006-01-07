@@ -73,3 +73,23 @@ int test_b(int a)  {
 #endif
 %}
 
+
+
+#ifdef __cplusplus
+%inline 
+{
+
+  struct Material
+  {
+  };
+
+  enum {
+    Size = 32
+  };
+  
+  const Material * chitMat[Size];
+  Material hitMat_val[Size];
+  Material *hitMat[Size];
+}
+
+#endif

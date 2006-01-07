@@ -33,11 +33,13 @@ int get_value(int *x, int i) {
 
   class RayPacketData {
   public:
-  enum {
-    Size = 32
-  };
-
-    Material const* hitMatl[Size];
+    enum {
+      Size = 32
+    };
+    
+    const Material * chitMat[Size];
+    Material hitMat_val[Size];
+    Material *hitMat[Size];
   };
 }
 

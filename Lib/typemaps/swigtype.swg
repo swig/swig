@@ -129,7 +129,7 @@
 }
 
 %typemap(globalin) SWIGTYPE [ANY] {
-  if (inp) {
+  if ($input) {
     size_t ii = 0;
     for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
   } else {
@@ -144,8 +144,7 @@
     %variable_fail(SWIG_TypeError, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    $basetype *dest = %static_cast($1, $basetype *);
-    for (; ii < (size_t)$dim0; ++ii) dest[ii] = inp[ii];
+    for (; ii < (size_t)$dim0; ++ii) $1[ii] = inp[ii];
   } else {
     %variable_nullref("$type", "$name");
   }
