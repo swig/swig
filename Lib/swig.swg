@@ -207,6 +207,19 @@ static int NAME(TYPE x) {
 %ignoreoperator(NEWARR)  operator new[];
 %ignoreoperator(DELARR)  operator delete[];
 
+/* add C++ operator aliases */
+%rename("operator &&") operator and;    // `and'    `&&'
+%rename("operator ||") operator or;     // `or'     `||'
+%rename("operator !")  operator not;    // `not'     `!'
+%rename("operator &=") operator and_eq; // `and_eq'  `&='
+%rename("operator &")  operator bitand; // `bitand'  `&'
+%rename("operator |")  operator bitor;  // `bitor'   `|'
+%rename("operator ~")  operator compl;  // `compl'   `~'
+%rename("operator !=") operator not_eq; // `not_eq'  `!='
+%rename("operator |=") operator or_eq;  // `or_eq'   `|='
+%rename("operator ^")  operator xor;    // `xor'     `^'
+%rename("operator ^=") operator xor_eq; // `xor_eq'  `^='
+
 /* Smart pointer handling */
 
 %rename(__deref__) *::operator->;
