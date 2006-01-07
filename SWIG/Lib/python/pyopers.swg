@@ -104,23 +104,6 @@
 %pyinplaceoper(__irshift__, *::operator >>=);
 
 
-
-/* C++ operator aliases */
-
-%ignoreoperator(LAND) operator and; // `and'  `&&'
-%ignoreoperator(LNOT) operator not; // `not'  `!'
-%ignoreoperator(LOR)  operator or;  // `or'   `||'
-
-%pyinplaceoper(__iand__,  *::operator and_eq); // `and_eq'  `&='
-%pybinoperator(__and__,   *::operator bitand)  // `bitand'  `&'
-%pybinoperator(__or__,    *::operator bitor);  // `bitor'   `|'
-%rename(__invert__)       *::operator compl;   // `compl'   `~'
-%pybinoperator(__ne__,    *::operator not_eq); // `not_eq'  `!='
-%pyinplaceoper(__ior__,   *::operator or_eq);  // `or_eq'   `|='
-%pybinoperator(__xor__,   *::operator xor);    // `xor'     `^'
-%pyinplaceoper(__ixor__,  *::operator xor_eq); // `xor_eq'  `^='
-
-
 /* Finally, in python we need to mark the binary operations to fail as
  'maybecall' methods */
 

@@ -1312,6 +1312,19 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
       int fullname = GetFlag(rn,k_fullname);
       result = apply_rename(newname, fullname, prefix, name);
     }
+    if (result) {
+      /* operators in C++ allow aliases, we look for them */
+      char *cresult = Char(result);
+      if (cresult && (strncmp(cresult,"operator ",9) == 0)) {
+	String *nresult = Swig_name_make(n, prefix, result, decl, oldname);
+	if (!Equal(nresult,result)) {
+	  Delete(result);
+	  result = nresult;
+	} else {
+	  Delete(nresult);
+	}
+      }
+    }
     nname = result ? result : name;
     wrn = Swig_name_namewarn_get(n, prefix, nname, decl);
     if (wrn) {
