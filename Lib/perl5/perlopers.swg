@@ -33,23 +33,26 @@
 %rename(__call__)     *::operator();
 
 /* Ignored operators */
-%ignorewarn("390:operator+  ignored")  operator+();
-%ignorewarn("390:operator+  ignored")  operator+() const;
-%ignorewarn("362:operator=  ignored")  operator=;
-%ignorewarn("365:operator+= ignored")  operator+=;
-%ignorewarn("366:operator-= ignored")  operator-=;
-%ignorewarn("367:operator*= ignored")  operator*=;
-%ignorewarn("368:operator/= ignored")  operator/=;
-%ignorewarn("369:operator%= ignored")  operator%=;
-%ignorewarn("375:operator<<= ignored") operator<<=;
-%ignorewarn("376:operator>>= ignored") operator>>=;
-%ignorewarn("371:operator&= ignored")  operator&=;
-%ignorewarn("372:operator|= ignored")  operator|=;
-%ignorewarn("370:operator^= ignored")  operator^=;
-%ignorewarn("381:operator&& ignored")  operator&&;
-%ignorewarn("382:operator|| ignored")  operator||;
-%ignorewarn("387:operator-> ignored")  operator->;
-%ignorewarn("386:operator->* ignored") operator->*;
-%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
+%ignoreoperator(PLUS)       operator+();
+%ignoreoperator(PLUS)       operator+() const;
+%ignoreoperator(PLUSEQ)     operator+=;  
+%ignoreoperator(MINUSEQ)    operator-=;  
+%ignoreoperator(MULEQ)      operator*=;  
+%ignoreoperator(DIVEQ)      operator/=;  
+%ignoreoperator(MODEQ)      operator%=;  
+%ignoreoperator(LSHIFTEQ)   operator<<=; 
+%ignoreoperator(RSHIFTEQ)   operator>>=; 
+%ignoreoperator(ANDEQ)      operator&=;  
+%ignoreoperator(OREQ)       operator|=;  
+%ignoreoperator(XOREQ)      operator^=;  
+%ignoreoperator(LNOT)       operator!;
+%ignoreoperator(LAND)       operator&&;
+%ignoreoperator(LOR)        operator||;
+%ignoreoperator(EQ)         operator=;
+%ignoreoperator(PLUSPLUS)   operator++;
+%ignoreoperator(MINUSMINUS) operator--;
+%ignoreoperator(ARROWSTAR)  operator->*;
+%ignoreoperator(INDEX)      operator[];
+
 
 #endif /* __cplusplus */

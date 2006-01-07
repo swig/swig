@@ -13,7 +13,7 @@ namespace swig {
 }
 }
 
-%warnfilter(389) std::carray::operator[];
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX) std::carray::operator[];
 
 %extend std::carray {
   %fragment(SWIG_Traits_frag(std::carray<_Type, _Size >), "header",

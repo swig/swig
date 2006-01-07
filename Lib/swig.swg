@@ -7,6 +7,10 @@
  * included at the top of each input file.
  * ----------------------------------------------------------------------------- */
 
+/* -----------------------------------------------------------------------------
+ * User Directives 
+ * ----------------------------------------------------------------------------- */
+
 /* Deprecated SWIG directives */
 
 #define %disabledoc     %warn "104:%disabledoc is deprecated"
@@ -126,91 +130,97 @@
 #define %nonaturalvar    %feature("naturalvar","0")
 #define %clearnaturalvar %feature("naturalvar","")
 
-/* Common features */
-
-/* Warnings */
-#define %_warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
-#define %warnfilter(...) %_warnfilter(__VA_ARGS__)
-
-
-/*
-  Include the internal swig macro codes. These macros correspond to
-  the one found in Source/Include/swigwarn.h plus the 'SWIG'prefix.
-  
-  For example, in the include file you will find
-
-     WARN_TYPEMAP_CHARLEAK
-
-  and in the interface you use the code for filters as
-
-     %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK);
-
-*/
-%include <swigwarn.swg>
-
-/* Warnings messages used in typemaps. Message names will be the same
-   as those in Lib/swigwarn.swg but with the suffix _MSG.
-   
-   For example, for the code SWIGWARN_TYPEMAP_CHARLEAK, once you use
-
-      %warning_msg(SWIGWARN_TYPEMAP_CHARLEAK,<msg>);
-
-   you use the message in your typemap as
-
-     %typemap(varin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) char * 
-
-   while you suppress the warning using
-
-     %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK);
-
-   as described above.     
-   
-*/
-
-
-/* macros to create warning messages */
-%define %_warning_msg(Def, Val, Msg)
-%define Def `Val`":"`Msg` %enddef
-%enddef
-%define %warning_msg(x,msg) 
-%_warning_msg(x##_MSG, x, msg)
-%enddef
-
-/* specific warning messages */
-%warning_msg(SWIGWARN_TYPEMAP_CHARLEAK,        "Setting const char * member may leak memory.")
-%warning_msg(SWIGWARN_TYPEMAP_SWIGTYPELEAK,    "Setting a pointer/reference variable may leak memory.");
-%warning_msg(SWIGWARN_TYPEMAP_THREAD_UNSAFE,   "Thread/reentrant unsafe wrapping, consider returning by value instead.");
-%warning_msg(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR, "Returning a pointer or reference in a director method is not recommended.");
-
-
-/* Old warning messages names, for compatibility */
-%define SWIG_WARN_TYPEMAP_CHARLEAK        SWIGWARN_TYPEMAP_CHARLEAK_MSG        %enddef
-%define SWIG_WARN_TYPEMAP_SWIGTYPELEAK    SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG    %enddef
-%define SWIG_WARN_TYPEMAP_THREAD_UNSAFE   SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG   %enddef
-%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG %enddef
-
 /* Contract support - Experimental and undocumented */
-
 #define %contract    %feature("contract")
 
-/* Default handling of certain overloaded operators */
+/* Macro for setting a dynamic cast function */
+%define DYNAMIC_CAST(mangle,func)
+%init %{
+   mangle->dcast = (swig_dycast_func) func;
+%}
+%enddef
+
+/* aggregation support */
+/*
+   This macro performs constant aggregation.  Basically the idea of
+   constant aggregation is that you can group a collection of constants 
+   together.  For example, suppose you have some code like this:
+
+       #define UP  1
+       #define DOWN 2
+       #define LEFT 3
+       #define RIGHT 4
+
+   Now, suppose you had a function like this:
+
+       int move(int direction)
+
+   In this case, you might want to restrict the direction argument to one of the supplied
+   constant names. To do this, you could write some typemap code by hand.  Alternatively,
+   you can use the %aggregate_check macro defined here to create a simple check function
+   for you.  Here is an example:
+
+      %aggregate_check(int, check_direction, UP, DOWN, LEFT, RIGHT);
+
+   Now, using a typemap
+
+       %typemap(check) int direction {
+            if (!check_direction($1)) SWIG_exception(SWIG_ValueError,"Bad direction.");
+       }
+
+   or a contract (better)
+
+       %contract move(int x) {
+       require:
+           check_direction(x);
+       }
+*/
+   
+%define %aggregate_check(TYPE, NAME, FIRST, ...)
+%wrapper %{
+static int NAME(TYPE x) {
+    static  TYPE values[] = { FIRST, ##__VA_ARGS__ };
+    static  int size = sizeof(values);
+    int     i,j;
+    for (i = 0, j = 0; i < size; i+=sizeof(TYPE),j++) {
+        if (x == values[j]) return 1; 
+    }
+    return 0;
+}
+%}
+%enddef
+
+
+/* -----------------------------------------------------------------------------
+ * Include all the warnings labels and macros 
+ * ----------------------------------------------------------------------------- */
+
+%include <swigwarnings.swg>
+
+/* -----------------------------------------------------------------------------
+ * Default handling of certain overloaded operators 
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-%ignorewarn("350:operator new ignored")     operator new;
-%ignorewarn("351:operator delete ignored")  operator delete;
-%ignorewarn("394:operator new[] ignored")   operator new[];
-%ignorewarn("395:operator delete[] ignored") operator delete[];
+%ignorewarn(SWIGWARN_IGNORE_OPERATOR_NEW_MSG)     operator new;
+%ignorewarn(SWIGWARN_IGNORE_OPERATOR_DELETE_MSG)  operator delete;
+%ignorewarn(SWIGWARN_IGNORE_OPERATOR_NEWARR_MSG)  operator new[];
+%ignorewarn(SWIGWARN_IGNORE_OPERATOR_DELARR_MSG)  operator delete[];
 
 /* Smart pointer handling */
 
 %rename(__deref__) *::operator->;
-%rename(__ref__) *::operator*();
-%rename(__ref__) *::operator*() const;
+%rename(__ref__)   *::operator*();
+%rename(__ref__)   *::operator*() const;
 
 /* Define std namespace */
 namespace std {
 }
 #endif
+
+/* -----------------------------------------------------------------------------
+ * Default char * and C array typemaps
+ * ----------------------------------------------------------------------------- */
 
 /* Set up the typemap for handling new return strings */
 
@@ -232,7 +242,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
+%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
      $1 = ($1_type) (new char[strlen($input)+1]);
      strcpy((char *) $1,$input);
@@ -249,7 +259,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
+%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
      $1 = ($1_type) (new char[strlen($input)+1]);
      strcpy((char *) $1,$input);
@@ -267,7 +277,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
+%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
      $1 = ($1_type) malloc(strlen($input)+1);
      strcpy((char*)$1,$input);
@@ -284,7 +294,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
+%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
      $1 = ($1_type) malloc(strlen($input)+1);
      strcpy((char*)$1,$input);
@@ -363,6 +373,10 @@ namespace std {
 %typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 
+/* -----------------------------------------------------------------------------
+ * Overloading support
+ * ----------------------------------------------------------------------------- */
+
 /*
  * Function/method overloading support.   This is done through typemaps,
  * but also involve a precedence level. 
@@ -370,12 +384,8 @@ namespace std {
 
 /* Macro for overload resolution */
 
-%define %typecheck(_x, _opt...) 
-#if #_opt != ""
-%typemap(typecheck, precedence=_x, _opt)
-#else
+%define %typecheck(_x...) 
 %typemap(typecheck, precedence=_x)
-#endif
 %enddef
 
 /* Macros for precedence levels */
@@ -441,6 +451,13 @@ namespace std {
 %define SWIG_TYPECHECK_FLOAT_PTR         2080    %enddef
 %define SWIG_TYPECHECK_DOUBLE_PTR        2090    %enddef
 %define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
+
+
+/* -----------------------------------------------------------------------------
+ *  Runtime code
+ * ----------------------------------------------------------------------------- */
+
+/*  The SwigValueWrapper class  */
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
@@ -514,64 +531,7 @@ private:
 %}
 #endif
 
-/* Macro for setting a dynamic cast function */
-%define DYNAMIC_CAST(mangle,func)
-%init %{
-   mangle->dcast = (swig_dycast_func) func;
-%}
-%enddef
-
-/*
-
-   This macro performs constant aggregation.  Basically the idea of
-   constant aggregation is that you can group a collection of constants 
-   together.  For example, suppose you have some code like this:
-
-       #define UP  1
-       #define DOWN 2
-       #define LEFT 3
-       #define RIGHT 4
-
-   Now, suppose you had a function like this:
-
-       int move(int direction)
-
-   In this case, you might want to restrict the direction argument to one of the supplied
-   constant names. To do this, you could write some typemap code by hand.  Alternatively,
-   you can use the %aggregate_check macro defined here to create a simple check function
-   for you.  Here is an example:
-
-      %aggregate_check(int, check_direction, UP, DOWN, LEFT, RIGHT);
-
-   Now, using a typemap
-
-       %typemap(check) int direction {
-            if (!check_direction($1)) SWIG_exception(SWIG_ValueError,"Bad direction.");
-       }
-
-   or a contract (better)
-
-       %contract move(int x) {
-       require:
-           check_direction(x);
-       }
-*/
-   
-%define %aggregate_check(TYPE, NAME, FIRST, ...)
-%wrapper %{
-static int NAME(TYPE x) {
-    static  TYPE values[] = { FIRST, ##__VA_ARGS__ };
-    static  int size = sizeof(values);
-    int     i,j;
-    for (i = 0, j = 0; i < size; i+=sizeof(TYPE),j++) {
-        if (x == values[j]) return 1; 
-    }
-    return 0;
-}
-%}
-%enddef
-
-
+/*  The swiglabels  */
 
 %insert("runtime") "swiglabels.swg"
 

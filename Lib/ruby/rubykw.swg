@@ -2,7 +2,7 @@
 #define __ruby_rubykw_swg__
 
 /* Warnings for Ruby keywords */
-#define RUBYKW(x) %namewarn("314:'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s")  `x`
+#define RUBYKW(x) %keywordwanr("'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s")  `x`
 
 
 /*
