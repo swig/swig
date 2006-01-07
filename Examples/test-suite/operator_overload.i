@@ -50,15 +50,23 @@ see bottom for a set of possible tests
 %csmethodmodifiers operator--(int) "protected";
 %typemap(cscode) Op %{
   public static Op operator++(Op op) {
-    return op.PlusPlusPostfix(0);
+    // Unlike C++, operator++ must not modify the parameter and both prefix and postfix operations call this method
+    Op newOp = new Op(op.i);
+    newOp.PlusPlusPostfix(0);
+    return newOp;
   }
   public static Op operator--(Op op) {
-    return op.MinusMinusPrefix();
+    // Unlike C++, operator-- must not modify the parameter and both prefix and postfix operations call this method
+    Op newOp = new Op(op.i);
+    newOp.MinusMinusPrefix();
+    return newOp;
   }
 %}
 #endif
 
 %inline %{
+
+#include <assert.h>
 
 class Op{
 public:
@@ -114,6 +122,9 @@ public:
   Op operator--(int) {Op o = *this; --(*this); return o;} // postfix --
 
   // TODO: <<,<<=
+
+  // This method just checks that the operators are implemented correctly
+  static void sanity_check();
 };
 
 // just to complicate matters
@@ -185,12 +196,11 @@ __concat__ for contatenation (if language supports)
 */
 
 
-/* Sample test code in C++
+%{
 
 #include <assert.h>
-#include <stdio.h>
 
-int main(int argc,char** argv)
+void Op::sanity_check()
 {
 	// test routine:
 	Op a;
@@ -261,6 +271,34 @@ int main(int argc,char** argv)
 	//assert(str(Op(1))=="Op(1)");
 	//assert(str(Op(-3))=="Op(-3)");
 
-	printf("ok\n");
+        // test ++ and --
+        Op j(100);
+        int original = j.i;
+        {
+          Op newOp = j++;
+          int newInt = original++;
+          assert(j.i == original);
+          assert(newOp.i == newInt);
+        }
+        {
+          Op newOp = j--;
+          int newInt = original--;
+          assert(j.i == original);
+          assert(newOp.i == newInt);
+        }
+        {
+          Op newOp = ++j;
+          int newInt = ++original;
+          assert(j.i == original);
+          assert(newOp.i == newInt);
+        }
+        {
+          Op newOp = --j;
+          int newInt = --original;
+          assert(j.i == original);
+          assert(newOp.i == newInt);
+        }
 }
-*/
+
+%}
+
