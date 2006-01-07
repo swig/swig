@@ -202,10 +202,10 @@ static int NAME(TYPE x) {
  * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-%ignorewarn(SWIGWARN_IGNORE_OPERATOR_NEW_MSG)     operator new;
-%ignorewarn(SWIGWARN_IGNORE_OPERATOR_DELETE_MSG)  operator delete;
-%ignorewarn(SWIGWARN_IGNORE_OPERATOR_NEWARR_MSG)  operator new[];
-%ignorewarn(SWIGWARN_IGNORE_OPERATOR_DELARR_MSG)  operator delete[];
+%ignoreoperator(NEW)     operator new;
+%ignoreoperator(DELETE)  operator delete;
+%ignoreoperator(NEWARR)  operator new[];
+%ignoreoperator(DELARR)  operator delete[];
 
 /* Smart pointer handling */
 
