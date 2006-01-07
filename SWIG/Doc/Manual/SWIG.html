@@ -92,17 +92,31 @@ chapters.
 
 
 <p>
-To run SWIG, use the <tt>swig</tt> command with one or more of the
-following options and a filename like this:
+To run SWIG, use the <tt>swig</tt> command with options options and a filename like this:
 </p>
 
 <div class="shell"><pre>
 swig [ <em>options</em> ] filename
+</pre></div>
 
+<p>
+where <tt>filename</tt> is a SWIG interface file or a C/C++ header file.
+Below is a subset of <em>options</em> that can be used.
+Additional options are also defined for each target language.  A full list
+can be obtained by typing <tt>swig -help</tt> or <tt>swig
+-<em>lang</em> -help</tt>.
+</p>
+
+<div class="shell"><pre>
+-allegrocl            Generate ALLEGROCL wrappers
 -chicken              Generate CHICKEN wrappers
+-clisp                Generate CLISP wrappers
+-cffi                 Generate CFFI wrappers
 -csharp               Generate C# wrappers
 -guile                Generate Guile wrappers
 -java                 Generate Java wrappers
+-lua                  Generate Lua wrappers
+-modula3              Generate Modula 3 wrappers
 -mzscheme             Generate Mzscheme wrappers
 -ocaml                Generate Ocaml wrappers
 -perl                 Generate Perl wrappers
@@ -112,7 +126,9 @@ swig [ <em>options</em> ] filename
 -ruby                 Generate Ruby wrappers
 -sexp                 Generate Lisp S-Expressions wrappers
 -tcl                  Generate Tcl wrappers
+-uffi                 Generate Common Lisp / UFFI wrappers
 -xml                  Generate XML wrappers
+
 -c++                  Enable C++ parsing
 -D<em>symbol</em>              Define a preprocessor symbol
 -Fstandard            Display error/warning messages in commonly used format
@@ -127,12 +143,6 @@ swig [ <em>options</em> ] filename
 -version              Show SWIG version number
 
 </pre></div>
-<p>
-This is a subset of commandline options.
-Additional options are also defined for each target language.  A full list
-can be obtained by typing <tt>swig -help</tt> or <tt>swig
--<em>lang</em> -help</tt>.
-</p>
 
 <H3><a name="SWIG_nn3"></a>5.1.1 Input format</H3>
 
