@@ -22,7 +22,6 @@ run:
 	perl runme.pl
 
 Example.class: Example.java
-	gcj -v || exit 0
 	gcj -fPIC -C -c -g Example.java
 	gcjh  Example
 
