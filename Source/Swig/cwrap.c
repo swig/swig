@@ -330,14 +330,14 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   */
   if (SwigType_istemplate(name)) {
     String *prefix = Swig_scopename_prefix(nname);
-    String *last = Swig_scopename_last(nname);
     if (!prefix || Len(prefix) == 0) {
-      Printf(func,"%s(", last);
+      Printf(func,"%s(", nname);
     } else {
+      String *last = Swig_scopename_last(nname);
       Printf(func,"%s::SWIGTEMPLATEDISAMBIGUATOR %s(", prefix, last);
+      Delete(last);
     }
     Delete(prefix);
-    Delete(last);
   } else {
     Printf(func,"%s(", nname);
   }
