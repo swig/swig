@@ -1876,7 +1876,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     /* we save the original type and the fully resolved version */
     ln = SwigType_lstr(lt,0);
     rn = SwigType_lstr(rt,0);
-    if (Strcmp(ln,rn) == 0) {
+    if (Equal(ln,rn)) {
       nt = NewString(ln);
     } else {
       nt = NewStringf("%s|%s", rn, ln);
@@ -1884,7 +1884,9 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     if (SwigType_istemplate(rt)) {
       String *dt = Swig_symbol_template_deftype(rt, 0);
       String *dn = SwigType_lstr(dt,0);
-      Printf(nt,"|%s",dn);
+      if (!Equal(dn,rn) || !Equal(dn,ln)) {
+	Printf(nt,"|%s",dn);
+      }
       Delete(dt);
       Delete(dn);
     }
