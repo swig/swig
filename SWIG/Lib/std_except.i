@@ -8,7 +8,7 @@
 //   size_t at() const throw (std::out_of_range);
 //
 //
-// As was said, the typemaps here are based in the language independent
+// The typemaps here are based on the language independent
 // 'exception.i' library. If that is working in your target language,
 // this file will work.
 // 
@@ -17,7 +17,7 @@
 // a new std_except.i file in the target library directory.
 //
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE)
 #error "This version of std_except.i should not be used"
 #endif
 
