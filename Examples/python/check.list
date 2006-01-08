@@ -23,6 +23,7 @@ shadow
 simple
 smartptr
 std_vector
+std_map
 swigrun
 template
 varargs
