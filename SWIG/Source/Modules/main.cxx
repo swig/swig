@@ -113,6 +113,16 @@ static const char *usage2 = (const char*)"\
      -Werror         - Treat warnings as errors\n\
      -w<list>        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html\n\
      -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
+\n\
+Options can also be defined using the SWIG_FEATURES environment variable, for example:\n\
+\n\
+  $ SWIG_FEATURES=\"-Wall\"\n\
+  $ swig -python interface.i \n\
+\n\
+is equivalent to: \n\
+\n\
+  $ swig -Wall -python interface.i \n\
+\n\
 \n";
 
 // Local variables
@@ -680,7 +690,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if (strcmp(argv[i],"-Fmicrosoft") == 0) {
             Swig_error_msg_format(EMF_MICROSOFT);
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-help") == 0) {
+	  } else if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0)) {
 	    fputs(usage1,stdout);
 	    fputs(usage2,stdout);
 	    Swig_mark_arg(i);
@@ -883,7 +893,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       String *fs = NewString("");
       FILE *df = Swig_open(input_file);
       if (!df) {
-	Printf(stderr,"Unable to find '%s'\n", input_file);
+	char *cfile = Char(input_file);
+	if (cfile && cfile[0] == '-') {
+	  Printf(stderr,"Unable to find option or file '%s', ", input_file);
+	  Printf(stderr,"use 'swig -help' for more information.\n", input_file);
+	} else {	
+	  Printf(stderr,"Unable to find file '%s'.\n", input_file);
+	}
 	SWIG_exit (EXIT_FAILURE);
       }
       fclose(df);
