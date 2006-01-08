@@ -177,10 +177,42 @@
       return keyTuple;
 %#endif
     }
+    PyObject* value_iterator() {
+      Map::size_type size = self->size();
+      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      if (pysize < 0) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	PyErr_SetString(PyExc_OverflowError,
+			"map size not valid in python");
+	SWIG_PYTHON_THREAD_END_BLOCK;
+	return NULL;
+      }
+      PyObject* keyTuple = PyTuple_New(pysize);
+      Map::const_iterator i = self->begin();
+      for (int j = 0; j < pysize; ++i, ++j) {
+	PyTuple_SET_ITEM(keyTuple, j, swig::from(i->second));
+      }
+%#if PY_VERSION_HEX >= 0x02020000
+      PyObject* iter = PyObject_GetIter(keyTuple);
+      Py_DECREF(keyTuple);
+      return iter;
+%#else
+      return keyTuple;
+%#endif
+    }
 #if !defined(SWIG_USE_STD_MAP_ITERATOR)
     %pythoncode {
       def __iter__(self):
         return self.key_iterator()
+
+      def iterkeys(self):
+        return self.key_iterator()
+
+      def itervalues(self):
+        return self.value_iterator()
+
+      def iteritems(self):
+        return self.iterator()
     }    
 #endif
   }
