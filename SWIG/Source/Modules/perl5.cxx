@@ -726,7 +726,7 @@ public:
 	   "XSRETURN(argvi);\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(\"swig/perl error\");\n"
+	   "croak(Nullch);\n"
 	   "XSRETURN(0);\n"
 	   "}\n",
 	   "}\n",
@@ -1297,74 +1297,56 @@ public:
   
       if (Strstr(symname, "__eq__")) {
 	DohSetInt(operators,"__eq__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__ne__")) {
 	DohSetInt(operators,"__ne__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__assign__")) {
 	DohSetInt(operators,"__assign__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__str__")) {
 	DohSetInt(operators,"__str__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
       } else if (Strstr(symname, "__add__")) {
 	DohSetInt(operators,"__add__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__sub__")) {
 	DohSetInt(operators,"__sub__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__mul__")) {
 	DohSetInt(operators,"__mul__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__div__")) {
 	DohSetInt(operators,"__div__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__mod__")) {
 	DohSetInt(operators,"__mod__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__and__")) {
 	DohSetInt(operators,"__and__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__or__")) {
 	DohSetInt(operators,"__or__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__gt__")) {
 	DohSetInt(operators,"__gt__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__lt__")) {
 	DohSetInt(operators,"__lt__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__neg__")) {
 	DohSetInt(operators,"__neg__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__plusplus__")) {
 	DohSetInt(operators,"__plusplus__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__minmin__")) {
 	DohSetInt(operators,"__minmin__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__mineq__")) {
 	DohSetInt(operators,"__mineq__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       } else if (Strstr(symname, "__pluseq__")) {
 	DohSetInt(operators,"__pluseq__",1);
-	Printf(stderr,"Found member_func operator: %s\n", symname);
 	have_operators = 1;
       }
 
