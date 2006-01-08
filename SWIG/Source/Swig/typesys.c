@@ -1881,6 +1881,14 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     } else {
       nt = NewStringf("%s|%s", rn, ln);
     }
+    if (SwigType_istemplate(rt)) {
+      String *dt = Swig_symbol_template_deftype(rt, 0);
+      String *dn = SwigType_lstr(dt,0);
+      Printf(nt,"|%s",dn);
+      Delete(dt);
+      Delete(dn);
+    }
+    
     Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item,0,0);
