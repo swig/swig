@@ -47,7 +47,7 @@ extern String  *ModuleName;
 
 static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
-     -addextern      - Add extra extern declarations\ndirectory \
+     -addextern      - Add extra extern declarations\n\
      -c++            - Enable C++ processing\n\
      -co <file>      - Check <file> out of the SWIG library\n\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
