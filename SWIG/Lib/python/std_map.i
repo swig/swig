@@ -19,17 +19,16 @@
     struct traits_asptr<std::map<K,T> >  {
       typedef std::map<K,T> map_type;
       static int asptr(PyObject *obj, map_type **val) {
+	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
 	  PyObject_var items = PyMapping_Items(obj);
-	  return traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >
-	    ::asptr(items, val);
+	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
+	} else {
+	  map_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
-	if (val) {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	  PyErr_SetString(PyExc_TypeError, "a dictionary is expected");
-	  SWIG_PYTHON_THREAD_END_BLOCK;
-	}
-	return 0;
+	return res;
       }      
     };
       
@@ -40,22 +39,27 @@
       typedef typename map_type::size_type size_type;
             
       static PyObject *from(const map_type& map) {
-	size_type size = map.size();
-	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
-	if (pysize < 0) {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	  PyErr_SetString(PyExc_OverflowError,
-			  "map size not valid in python");
-	  SWIG_PYTHON_THREAD_END_BLOCK;
-	  return NULL;
+	swig_type_info *desc = swig::type_info<map_type>();
+	if (desc && desc->clientdata) {
+	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	} else {
+	  size_type size = map.size();
+	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	  if (pysize < 0) {
+	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	    PyErr_SetString(PyExc_OverflowError,
+			    "map size not valid in python");
+	    SWIG_PYTHON_THREAD_END_BLOCK;
+	    return NULL;
+	  }
+	  PyObject *obj = PyDict_New();
+	  for (const_iterator i= map.begin(); i!= map.end(); ++i) {
+	    swig::PyObject_var key = swig::from(i->first);
+	    swig::PyObject_var val = swig::from(i->second);
+	    PyDict_SetItem(obj, key, val);
+	  }
+	  return obj;
 	}
-	PyObject *obj = PyDict_New();
-	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
-	  swig::PyObject_var key = swig::from(i->first);
-	  swig::PyObject_var val = swig::from(i->second);
-	  PyDict_SetItem(obj, key, val);
-	}
-	return obj;
       }
     };
   }
@@ -104,7 +108,7 @@
       PyObject* keyList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (int j = 0; j < pysize; ++i, ++j) {
-	PyList_SetItem(keyList, j, swig::from(i->first));
+	PyList_SET_ITEM(keyList, j, swig::from(i->first));
       }
       return keyList;
     }
@@ -119,10 +123,10 @@
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
-      PyObject* valList = PyTuple_New(pysize);
+      PyObject* valList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(valList, j, swig::from(i->second));
+	PyList_SET_ITEM(valList, j, swig::from(i->second));
       }
       return valList;
     }
@@ -137,10 +141,10 @@
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }    
-      PyObject* itemList = PyTuple_New(pysize);
+      PyObject* itemList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(itemList, j, swig::from(*i));
+	PyList_SET_ITEM(itemList, j, swig::from(*i));
       }
       return itemList;
     }
@@ -163,7 +167,7 @@
       PyObject* keyTuple = PyTuple_New(pysize);
       Map::const_iterator i = self->begin();
       for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(keyTuple, j, swig::from(i->first));
+	PyTuple_SET_ITEM(keyTuple, j, swig::from(i->first));
       }
 %#if PY_VERSION_HEX >= 0x02020000
       PyObject* iter = PyObject_GetIter(keyTuple);
