@@ -18,18 +18,18 @@
 
     template <class K, class T>
     struct traits_asptr<std::multimap<K,T> >  {
+      typedef std::multimap<K,T> map_type;
       static int asptr(PyObject *obj, std::multimap<K,T> **val) {
+	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
 	  PyObject_var items = PyMapping_Items(obj);
-	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >
-	    ::asptr(items, val);
+	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
+	} else {
+	  map_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
-	if (val) {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	  PyErr_SetString(PyExc_TypeError, "a dictionary is expected");
-	  SWIG_PYTHON_THREAD_END_BLOCK;
-	}
-	return 0;
+	return res;
       }
     };
       
@@ -40,22 +40,27 @@
       typedef typename multimap_type::size_type size_type;
             
       static PyObject *from(const multimap_type& multimap) {
-	size_type size = multimap.size();
-	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
-	if (pysize < 0) {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	  PyErr_SetString(PyExc_OverflowError,
-			  "multimap size not valid in python");
-	  SWIG_PYTHON_THREAD_END_BLOCK;
-	  return NULL;
+	swig_type_info *desc = swig::type_info<map_type>();
+	if (desc && desc->clientdata) {
+	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	} else {
+	  size_type size = multimap.size();
+	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	  if (pysize < 0) {
+	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	    PyErr_SetString(PyExc_OverflowError,
+			    "multimap size not valid in python");
+	    SWIG_PYTHON_THREAD_END_BLOCK;
+	    return NULL;
+	  }
+	  PyObject *obj = PyDict_New();
+	  for (const_iterator i= multimap.begin(); i!= multimap.end(); ++i) {
+	    swig::PyObject_var key = swig::from(i->first);
+	    swig::PyObject_var val = swig::from(i->second);
+	    PyDict_SetItem(obj, key, val);
+	  }
+	  return obj;
 	}
-	PyObject *obj = PyDict_New();
-	for (const_iterator i= multimap.begin(); i!= multimap.end(); ++i) {
-	  PyDict_SetItem(obj,
-			 swig::from(i->first),
-			 swig::from(i->second));
-	}
-	return obj;
       }
     };
   }
