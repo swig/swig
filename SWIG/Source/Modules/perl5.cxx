@@ -724,9 +724,10 @@ public:
 
     Printv(f->code,
 	   "XSRETURN(argvi);\n",
+	   "return;\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(\"\");\n"
+	   "croak(Nullch);\n"
 	   "XSRETURN(0);\n"
 	   "}\n",
 	   "}\n",
