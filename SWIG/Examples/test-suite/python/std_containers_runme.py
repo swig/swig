@@ -4,9 +4,10 @@ import std_containers
 
 cube = (((1, 2), (3, 4)), ((5, 6), (7, 8)))
 
-
-if cube != std_containers.cident(cube):
-  raise RuntimeError, "bad cident"
+icube = std_containers.cident(cube)
+for i in range(0,len(cube)):
+  if cube[i] != icube[i]:
+    raise RuntimeError, "bad cident"
 
 
 p = (1,2)
@@ -14,13 +15,18 @@ if p != std_containers.pident(p):
   raise RuntimeError, "bad pident"
 
 v = (1,2,3,4,5,6)
+iv = std_containers.vident(v)
+for i in range(0,len(v)):
+  if v[i] != iv[i]:
+    raise RuntimeError, "bad vident"
 
-if v != std_containers.vident(v):
-  raise RuntimeError, "bad pident"
 
 
-if v != std_containers.videntu(v):
-  raise RuntimeError, "bad videntu"
+iv = std_containers.videntu(v)
+for i in range(0,len(v)):
+  if v[i] != iv[i]:
+    raise RuntimeError, "bad videntu"
+
 
 vu = std_containers.vector_ui(v)
 if vu[2] != std_containers.videntu(vu)[2]:
@@ -33,12 +39,19 @@ if v[0:3][1] != vu[0:3][1]:
   
 
 m = ((1,2,3),(2,3),(3,4))
-if m != std_containers.midenti(m):
-  raise RuntimeError, "bad getslice"
+im = std_containers.midenti(m)
 
-mb = ((1,0,1),(1,1),(1,1))
-if mb != std_containers.midentb(mb):
-  raise RuntimeError, "bad getslice"
+for i in range(0,len(m)):
+  for j in range(0,len(m[i])):
+    if m[i][j] != im[i][j]:
+      raise RuntimeError, "bad getslice"
+
+m = ((1,0,1),(1,1),(1,1))
+im = std_containers.midentb(m)
+for i in range(0,len(m)):
+  for j in range(0,len(m[i])):
+    if m[i][j] != im[i][j]:
+      raise RuntimeError, "bad getslice"
 
 
 mi = std_containers.imatrix(m)
@@ -52,8 +65,10 @@ map['hello'] = 1
 map['hi'] = 2
 map['3'] = 2
 
-if map != std_containers.mapident(map):
-  raise RuntimeError, "bad map"
+imap = std_containers.mapident(map)
+for k in map:
+  if map[k] != imap[k]:
+    raise RuntimeError, "bad map"
 
 
 mapc ={}

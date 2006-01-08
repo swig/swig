@@ -717,10 +717,6 @@ namespace swig {
 	  return SWIG_OLDOBJ;
 	}
       }
-      if (seq) {
-	PyErr_Format(PyExc_TypeError, "a %s is expected",
-		     swig::type_name<sequence>());
-      }
       return SWIG_ERROR;
     }
   };
@@ -733,19 +729,23 @@ namespace swig {
     typedef typename sequence::const_iterator const_iterator;
 
     static PyObject *from(const sequence& seq) {
-      size_type size = seq.size();
-      if (size <= (size_type)INT_MAX) {
-	PyObject *obj = PyTuple_New((int)size);
-	int i = 0;
-	for (const_iterator it = seq.begin();
-	     it != seq.end(); ++it, ++i) {
-	  PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
-	}
-	return obj;
+      swig_type_info *desc = swig::type_info<sequence>();
+      if (desc && desc->clientdata) {
+	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       } else {
-	PyErr_SetString(PyExc_OverflowError,
-			"sequence size not valid in python");
-	return NULL;
+	size_type size = seq.size();
+	if (size <= (size_type)INT_MAX) {
+	  PyObject *obj = PyTuple_New((int)size);
+	  int i = 0;
+	  for (const_iterator it = seq.begin();
+	       it != seq.end(); ++it, ++i) {
+	    PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
+	  }
+	return obj;
+	} else {
+	  PyErr_SetString(PyExc_OverflowError,"sequence size not valid in python");
+	  return NULL;
+	}
       }
     }
   };
