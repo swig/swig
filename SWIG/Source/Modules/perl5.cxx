@@ -726,7 +726,7 @@ public:
 	   "XSRETURN(argvi);\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(Nullch);\n"
+	   "croak(\"\");\n"
 	   "XSRETURN(0);\n"
 	   "}\n",
 	   "}\n",
@@ -954,11 +954,21 @@ public:
       Replaceall(tm,"$source",value);
       Replaceall(tm,"$target",name);
       Replaceall(tm,"$value",value);
+      if (is_shadow(type)) {
+	Replaceall(tm, "$shadow", "SWIG_SHADOW");
+      } else {
+	Replaceall(tm, "$shadow", "0");
+      }
       Printf(constant_tab,"%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
       Replaceall(tm,"$source", value);
       Replaceall(tm,"$target", name);
       Replaceall(tm,"$value",value);
+      if (is_shadow(type)) {
+	Replaceall(tm, "$shadow", "SWIG_SHADOW");
+      } else {
+	Replaceall(tm, "$shadow", "0");
+      }
       Printf(f_init, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
