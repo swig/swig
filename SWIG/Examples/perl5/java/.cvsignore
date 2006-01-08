@@ -1,0 +1,12 @@
+example.pm
+*_wrap.c
+*_wrap.cxx
+example.dll
+example.dsw
+example.ncb
+example.opt
+example.plg
+Release
+Debug
+Example.class
+Example.h
