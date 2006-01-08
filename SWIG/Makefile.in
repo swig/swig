@@ -44,6 +44,9 @@ skip-modula3	= test -n "@SKIP_MODULA3@"
 skip-lua    	= test -n "@SKIP_LUA@"
 skip-allegrocl  = test -n "@SKIP_ALLEGROCL@"
 
+# Additional dependencies for some tests
+skip-gcj        = test -n "@SKIP_GCJ@"
+
 #####################################################################
 # CHECK
 #####################################################################
@@ -102,9 +105,13 @@ check-%-examples:
 	else							\
 	  all=`sed '/^#/d' $$dir/check.list`;			\
 	  for a in $$all; do					\
+            if $(skip-gcj) && test $$a = "java"; then		\
+              echo "skipping $* $$dir/$$a $(ACTION) (gcj test)";\
+            else						\
 	    echo $(ACTION)ing $$dir/$$a;			\
 	    (cd $$dir/$$a && $(chk))				\
 	    || passed=false;					\
+	    fi;							\
 	  done;							\
 	fi;							\
 	test $$passed = true
