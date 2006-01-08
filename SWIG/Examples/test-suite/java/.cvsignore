@@ -27,6 +27,7 @@ char_strings
 class_ignore
 class_scope_weird
 clientdata_prop
+compactdefaultargs
 constant_pointers
 const_const
 const_const_2
@@ -66,8 +67,11 @@ director_protected
 director_redefined
 director_string
 director_unroll
+director_using
 director_wombat
+disown
 dynamic_cast
+empty
 enum_plus
 enums
 enum_scope_template
@@ -96,6 +100,7 @@ global_ns_arg
 global_vars
 grouping
 ignore_parameter
+immutable
 import_nomodule
 imports
 inctest
@@ -104,6 +109,7 @@ inherit_missing
 inherit_same_name
 inherit_void_arg
 inline_initializer
+intermediary_classname
 java_constants
 java_director
 java_enums
@@ -116,7 +122,9 @@ java_throws
 java_typemaps_proxy
 java_typemaps_typewrapper
 kind
+langobj
 lextype
+li_attribute
 li_carrays
 li_cdata
 li_cmalloc
@@ -124,10 +132,13 @@ li_constraints
 li_cpointer
 li_math
 li_std_deque
+li_std_except
+li_stdint
 li_std_pair
 li_std_string
 li_std_vector
 li_typemaps
+li_windows
 long_long
 long_long_apply
 member_template
@@ -146,6 +157,7 @@ namespace_typedef_class
 namespace_typemap
 namespace_virtual_method
 name_warnings
+naturalvar
 nested
 newobject1
 newobject2
@@ -158,6 +170,7 @@ overload_rename
 overload_simple
 overload_subtype
 overload_template
+overload_template_fast
 pointer_reference
 preproc
 primitive_ref
@@ -165,6 +178,7 @@ private_assign
 protected_rename
 pure_virtual
 redefined
+refcount
 reference_global_vars
 register_par
 rename_scope
@@ -251,6 +265,7 @@ template_typedef_fnc
 template_typedef_import
 template_typedef_ns
 template_typedef_ptr
+template_typedef_rec
 template_type_namespace
 template_using
 template_virtual
@@ -265,6 +280,8 @@ typedef_inherit
 typedef_mptr
 typedef_reference
 typedef_scope
+typedef_sizet
+typedef_struct
 typemap_namespace
 typemap_ns_using
 typemap_numinputs
