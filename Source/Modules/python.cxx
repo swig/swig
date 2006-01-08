@@ -63,6 +63,8 @@ static  int       nothreads = 0;
 static  int       classptr = 0;
 /* Other options */
 static  int       shadowimport = 1;
+static  int       buildnone = 0;
+static  int       nobuildnone = 0;
 static  int       safecstrings = 0;
 static  int       dirvtable = 0;
 static  int       proxydel = 1;
@@ -81,46 +83,49 @@ enum autodoc_t {
   AUTODOC_METHOD
 };
 
+
 static const char *usage1 = (char *)"\
 Python Options (available with -python)\n\
+     -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
+     -apply          - Use apply() in proxy classes\n\
+     -buildnone      - Use Py_BuildValue("") to obtain Py_None (default in Windows)\n\
+     -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
+     -classic        - Use classic classes only\n\
+     -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
+     -cppcast        - Enable C++ casting operators (default) \n\
+     -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+     -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
-     -classic        - Use classic classes only\n\
-     -cppcast        - Enable C++ casting operators (default) \n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -modern         - Use modern python features only, without compatibility code\n\
-     -nomodern       - Don't use modern python features which are not back compatible \n\
-     -apply          - Use apply() in proxy classes\n\
-     -new_vwm        - New value wrapper mode, use only when everything else fails \n\
-     -new_repr       - Use more informative version of __repr__ in proxy classes (default) \n\
-     -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
-     -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
-     -threads        - Add thread support for all the interface\n\
-     -nothreads      - Disable thread support for all the interface\n\
-     -noexcept       - No automatic exception handling\n";
-static const char *usage2 = (char *)"\
-     -noh            - Don't generate the output header file\n\
-     -noproxy        - Don't generate proxy classes \n\
-     -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
-     -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
-     -nosafecstrings - Avoid extra strings copies when possible (default)\n\
-     -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
-     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
-     -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
-     -noproxydel     - Don't generate the redundant __del__ method \n\
      -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments \n\
-     -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
-     -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
-     -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
-     -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
+     -new_repr       - Use more informative version of __repr__ in proxy classes (default) \n\
+     -new_vwm        - New value wrapper mode, use only when everything else fails \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
-     -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
-     -nocastmode     - Disable the casting mode (default)\n\
+     -nobuildnone    - Access Py_None directly (default in non-Windows systems)\n\
+     -nocastmode     - Disable the casting mode (default)\n";
+static const char *usage2 = (char *)"\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
+     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
+     -noexcept       - No automatic exception handling\n\
+     -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
+     -noh            - Don't generate the output header file\n\
+     -nomodern       - Don't use modern python features which are not back compatible \n\
+     -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
+     -noproxy        - Don't generate proxy classes \n\
+     -noproxydel     - Don't generate the redundant __del__ method \n\
+     -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
+     -nortti         - Disable the use of the native C++ RTTI with directors\n\
+     -nosafecstrings - Avoid extra strings copies when possible (default)\n\
+     -nothreads      - Disable thread support for all the interface\n\
+     -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
+     -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
+     -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
+     -threads        - Add thread support for all the interface\n\
      -O              - Enable all the optimizations options: \n\
                          -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual \n\
-                         -noproxydel -fastunpack -modernargs\n\
+                         -noproxydel -fastunpack -modernargs -nobuildnone \n\
 \n";
 
 class PYTHON : public Language {
@@ -287,6 +292,14 @@ public:
 	} else if (strcmp(argv[i],"-nosafecstrings") == 0) {
 	  safecstrings = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-buildnone") == 0) {
+	  buildnone = 1;
+	  nobuildnone = 0;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nobuildnone") == 0) {
+	  buildnone = 0;
+	  nobuildnone = 1;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-dirvtable") == 0) {
 	  dirvtable = 1;
 	  Swig_mark_arg(i);
@@ -347,6 +360,8 @@ public:
 	  modern = 1;
 	  dirvtable = 1;
 	  safecstrings = 0;
+	  buildnone = 0;
+	  nobuildnone = 1;
 	  classptr = 0;
 	  proxydel = 0;
 	  fastunpack = 1;
@@ -476,6 +491,14 @@ public:
 
     if (safecstrings) {
       Printf(f_runtime,"#define SWIG_PYTHON_SAFE_CSTRINGS\n");
+    }
+
+    if (buildnone) {
+      Printf(f_runtime,"#define SWIG_PYTHON_BUILD_NONE\n");
+    }
+
+    if (nobuildnone) {
+      Printf(f_runtime,"#define SWIG_PYTHON_NO_BUILD_NONE\n");
     }
 
     if (!dirvtable) {

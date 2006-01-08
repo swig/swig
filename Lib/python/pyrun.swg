@@ -87,17 +87,20 @@ extern "C" {
 #endif
 #endif
 
-/*  Safe Py_None and Py_Void accessors */
-
+/*  How to access Py_None */
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-# ifndef SWIG_PYTHON_NO_SAFE_NONE
-#  ifndef SWIG_PYTHON_SAFE_NONE
-#   define SWIG_PYTHON_SAFE_NONE
+#  ifndef SWIG_PYTHON_NO_BUILD_NONE
+#    ifndef SWIG_PYTHON_BUILD_NONE
+#      define SWIG_PYTHON_BUILD_NONE
+#    endif
 #  endif
-# endif
 #endif
 
-#ifdef SWIG_PYTHON_SAFE_NONE
+#ifdef SWIG_PYTHON_BUILD_NONE
+#  ifdef Py_None
+#   undef Py_None
+#   define Py_None SWIG_Py_None()
+#  endif
 SWIGRUNTIMEINLINE PyObject * 
 _SWIG_Py_None(void)
 {
@@ -111,11 +114,9 @@ SWIG_Py_None(void)
   static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
   return none;
 }
-#  ifdef Py_None
-#    undef Py_None
-#    define Py_None SWIG_Py_None()
-#  endif
 #endif
+
+/* The python void return value */
 
 SWIGRUNTIMEINLINE PyObject * 
 SWIG_Py_Void(void)
@@ -356,7 +357,6 @@ PySwigObject_Check(PyObject *op) {
   return ((op)->ob_type == PySwigObject_type()) 
     || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
 }
-
 
 SWIGRUNTIME PyObject *
 PySwigObject_New(void *ptr, swig_type_info *ty, int own);
@@ -813,14 +813,10 @@ PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIME PyObject *
+SWIGRUNTIMEINLINE PyObject *
 _SWIG_This(void)
 {
-  static PyObject *_this = 0;
-  if (!_this) {
-    _this = PyString_FromString("this");
-  }
-  return _this;
+  return PyString_FromString("this");
 }
 
 SWIGRUNTIME PyObject *
