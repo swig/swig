@@ -12,6 +12,7 @@ funcptr2
 functor
 import
 import_template
+java
 #libffi
 mpointer
 multimap

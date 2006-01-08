@@ -703,8 +703,8 @@ AC_SUBST(PERL5CCFLAGS)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(java, AS_HELP_STRING([--without-java], [Disable Java])
-AS_HELP_STRING([--with-java=path], [Set location of Java executable]),[JAVABIN="$withval"], [JAVABIN=yes])
-AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
+AS_HELP_STRING([--with-java=path], [Set location of java executable]),[JAVABIN="$withval"], [JAVABIN=yes])
+AC_ARG_WITH(javac, [  --with-javac=path       Set location of javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
 
 # First, check for "--without-java" or "--with-java=no".
 if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -812,6 +812,34 @@ AC_SUBST(JAVASO)
 AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVACFLAGS)
+
+#----------------------------------------------------------------
+# Look for gcj
+#----------------------------------------------------------------
+
+AC_ARG_WITH(gcj, AS_HELP_STRING([--without-gcj], [Disable GCJ])
+AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$withval"], [GCJBIN=yes])
+AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
+
+# First, check for "--without-gcj" or "--with-gcj=no".
+if test x"${GCJBIN}" = xno -o x"${with_alllang}" = xno ; then 
+  AC_MSG_NOTICE([Disabling GCJ])
+else
+  if test "x$GCJBIN" = xyes; then
+    AC_CHECK_PROGS(GCJ, gcj)
+  else
+    GCJ="$GCJBIN"
+  fi
+
+  if test -z "$GCJCBIN"; then
+    AC_CHECK_PROGS(GCJH, gcjh)
+  else
+    GCJH="$GCJHBIN"
+  fi
+fi
+
+AC_SUBST(GCJ)
+AC_SUBST(GCJH)
 
 #----------------------------------------------------------------
 # Look for Guile
@@ -1776,6 +1804,16 @@ if test -z "$ALLEGROCLBIN" ; then
     SKIP_ALLEGROCL="1"
 fi
 AC_SUBST(SKIP_ALLEGROCL)
+
+#----------------------------------------------------------------
+# Additional language dependencies
+#----------------------------------------------------------------
+SKIP_GCJ=
+if test -z "$GCJ" || test -z "$GCJH" ; then
+    SKIP_GCJ="1"
+fi
+AC_SUBST(SKIP_GCJ)
+
 
 #----------------------------------------------------------------
 # Miscellaneous

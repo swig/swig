@@ -5,6 +5,7 @@ contract
 enum
 funcptr
 import
+java
 mpointer
 multimap
 operator
