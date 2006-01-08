@@ -19,6 +19,7 @@
 <li><a href="#Preprocessor_nn8">Preprocessing and %{ ... %} blocks</a>
 <li><a href="#Preprocessor_nn9">Preprocessing and { ... }</a>
 <li><a href="#Preprocessor_nn10">Viewing preprocessor output</a>
+<li><a href="#Preprocessor_warning_error">The #error and #warning directives</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -380,6 +381,35 @@ When the <tt>-E</tt> switch is used, SWIG will not generate any wrappers.
 Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>
+
+<H2><a name="Preprocessor_warning_error"></a>7.10 The #error and #warning directives</H2>
+<p>
+SWIG supports the commonly used <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
+The <tt>#warning</tt> directive will cause SWIG to issue a warning then continue processing.
+The <tt>#error</tt> directive will cause SWIG to exit with a fatal error.
+Example usage:
+</p>
+
+<div class="code">
+<pre>
+#error "This is a fatal error message"
+#warning "This is a warning message"
+</pre>
+</div>
+
+<p>
+The <tt>#error</tt> behaviour can be made to work like <tt>#warning</tt> if the <tt>-cpperraswarn</tt>
+commandline option is used. Alternatively, the <tt>#pragma</tt> directive can be used to the same effect, for example:
+</p>
+
+<div class="code">
+<pre>
+  /* Modified behaviour: #error does not cause SWIG to exit with error */
+  #pragma SWIG cpperraswarn=1
+  /* Normal behaviour: #error does cause SWIG to exit with error */
+  #pragma SWIG cpperraswarn=0
+</pre>
+</div>
 
 </body>
 </html>
