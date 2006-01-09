@@ -76,6 +76,7 @@ private:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  File *f_initbeforefunc;
   String *PrefixPlusUnderscore;
   String *s_cmd_tab;				// table of command names
   String *s_var_tab;				// table of global variables
@@ -102,6 +103,7 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
+    f_initbeforefunc = 0;
     PrefixPlusUnderscore = 0;
 
     s_cmd_tab=s_var_tab=s_const_tab=0;
@@ -185,12 +187,14 @@ NEW LANGUAGE NOTE:END ************************************************/
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
+    f_initbeforefunc = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
 
 /* NEW LANGUAGE NOTE:***********************************************
  s_cmd_tab,s_var_tab & s_const_tab hold the names of the fns for
@@ -226,8 +230,11 @@ NEW LANGUAGE NOTE:END ************************************************/
 //    Swig_name_register("construct","%c_create");
 //    Swig_name_register("destroy","%c_destroy");
 
-    /* Emit code for children */
+    /* %init code inclusion, effectively in the SWIG_init function */
+    Printf(f_init,"#ifdef __cplusplus\nextern \"C\"\n#endif\n");
+    Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
     Language::top(n);
+    Printf(f_init, "}\n" );
 
     Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
 
@@ -238,6 +245,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab,NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
+    //
     /* Close the initialization function */
 //    Printf(f_init, "}\n");
 
@@ -251,10 +259,12 @@ NEW LANGUAGE NOTE:END ************************************************/
     Delete(s_const_tab);
     Dump(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
+    Dump(f_initbeforefunc, f_runtime);
     Wrapper_pretty_print(f_init, f_runtime);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
+    Delete(f_initbeforefunc);
     Close(f_runtime);
     Delete(f_runtime);
 
@@ -542,10 +552,10 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     /* Close the function */
     Printv(f->code, "return SWIG_arg;\n",NIL);
-//    Printf(f->code, "return %d;\n",returnval);
     // add the failure cleanup code:
     Printv(f->code, "\nfail:\n",NIL);
     Printv(f->code, "$cleanup","lua_error(L);\n",NIL);
+    Printv(f->code, "return SWIG_arg;\n",NIL);
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
