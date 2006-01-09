@@ -835,7 +835,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     return (PySwigObject *) pyobj;
   } else {
     PyObject *obj = 0;
-#if (!defined(SWIG_PYTHON_SLOW_GETSET_THIS) && !(PY_VERSION_HEX < 0x02020000))
+#if (!defined(SWIG_PYTHON_SLOW_GETSET_THIS) && (PY_VERSION_HEX >= 0x02030000))
     if (PyInstance_Check(pyobj)) {
       obj = _PyInstance_Lookup(pyobj, SWIG_This());
     } else {
