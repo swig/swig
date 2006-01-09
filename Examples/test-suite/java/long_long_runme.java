@@ -22,11 +22,44 @@ public class long_long_runme {
     check_ll(0x7FFFFFFFFFFFFFFFL);
     check_ll(-10);
 
-    check_ull(new BigInteger("0"));
-    check_ull(new BigInteger("127"));
-    check_ull(new BigInteger("128"));
-    check_ull(new BigInteger("9223372036854775807")); //0x7FFFFFFFFFFFFFFFL
-    check_ull(new BigInteger("18446744073709551615")); //0xFFFFFFFFFFFFFFFFL
+    BigInteger testNumber = new BigInteger("0");
+    final int COUNT = 1025;
+
+    for (long i=0; i<COUNT; i++) {
+      check_ull(testNumber);
+      testNumber = testNumber.add(BigInteger.ONE);
+    }
+
+    testNumber = new BigInteger(Long.toString(256*256/2-COUNT));
+    for (long i=0; i<COUNT*2; i++) {
+      check_ull(testNumber);
+      testNumber = testNumber.add(BigInteger.ONE);
+    }
+
+    testNumber = new BigInteger(Long.toString(256*256-COUNT));
+    for (long i=0; i<COUNT*2; i++) {
+      check_ull(testNumber);
+      testNumber = testNumber.add(BigInteger.ONE);
+    }
+
+    testNumber = new BigInteger(Long.toString(0x7FFFFFFFFFFFFFFFL-COUNT));
+    for (long i=0; i<COUNT*2; i++) {
+      check_ull(testNumber);
+      testNumber = testNumber.add(BigInteger.ONE);
+    }
+
+    testNumber = new BigInteger("18446744073709551615"); //0xFFFFFFFFFFFFFFFFL
+    testNumber = testNumber.add(BigInteger.valueOf(1-COUNT));
+    for (long i=0; i<COUNT; i++) {
+      check_ull(testNumber);
+      testNumber = testNumber.add(BigInteger.ONE);
+    }
+    
+    try {
+      long_long.setUll(null);
+      throw new RuntimeException("null check failed");
+    } catch (NullPointerException e) {
+    }
   }
 
   public static void check_ll(long ll) {
