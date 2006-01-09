@@ -28,7 +28,9 @@
   %typemap(in,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(res, "$type", $symname, $argnum); }
+    if (!SWIG_IsOK(res) || !ptr) { 
+      %argument_fail((ptr ? res : SWIG_TypeError), "$type", $symname, $argnum); 
+    }
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
@@ -51,7 +53,9 @@
   %typemap(varin,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) { %variable_fail(res, "$type", "$name"); }
+    if (!SWIG_IsOK(res) || !ptr) { 
+      %variable_fail((ptr ? res : SWIG_TypeError), "$type", "$name"); 
+    }
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
@@ -65,7 +69,7 @@
     Type *optr = 0;
     int ores = $input ? asptr_meth($input, &optr) : 0;
     if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail(ores,"$type");
+      %dirout_fail((optr ? ores : SWIG_TypeError),"$type");
     }
     temp = *optr;
     $result = &temp;
@@ -76,7 +80,7 @@
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail(ores,"$type");
+      %dirout_fail((optr ? ores : SWIG_TypeError),"$type");
     }
     $result = *optr;
     if (SWIG_IsNewObj(ores)) %delete(optr);
