@@ -1884,7 +1884,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     if (SwigType_istemplate(rt)) {
       String *dt = Swig_symbol_template_deftype(rt, 0);
       String *dn = SwigType_lstr(dt,0);
-      if (!Equal(dn,rn) || !Equal(dn,ln)) {
+      if (!Equal(dn,rn) && !Equal(dn,ln)) {
 	Printf(nt,"|%s",dn);
       }
       Delete(dt);
