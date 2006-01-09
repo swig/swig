@@ -462,6 +462,9 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
     ncdecl++;
   }
   */
+#ifdef SWIG_DEBUG
+  Printf(stdout,"Swig_name_object_get:  '%s', '%s'\n", name, decl); 
+#endif
 
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
@@ -513,6 +516,11 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
   Delete(tname);
+
+#ifdef SWIG_DEBUG
+  Printf(stdout,"Swig_name_object_get:  found %d\n", rn ? 1 : 0); 
+#endif
+
   return rn;
 }
 
@@ -1302,7 +1310,7 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
   String *nname = 0;
   String *result = 0;
   Hash *wrn = 0;
-  if (namewarn_hash || namewarn_list) {
+  if (rename_hash || rename_list) {
     Hash *rn =  Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
     if (!rn || !Swig_name_match_nameobj(rn,n)) {
       rn = Swig_name_nameobj_lget(Swig_name_rename_list(), n, prefix, name, decl);
@@ -1353,6 +1361,10 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
     if (result) Delete(result);
     result = oldname ? Copy(oldname): Copy(name);
   }
+#ifdef SWIG_DEBUG
+  Printf(stdout,"Swig_name_make:  '%s' '%s'\n", name, result); 
+#endif
+  
   return result;
 }
 
