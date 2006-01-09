@@ -30,7 +30,8 @@ static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 static SwigScanner *id_scan = 0;
-static int       error_as_warning = 1;    /* Understand the cpp #error directive as a #warning */
+static int       error_as_warning = 1;    /* Understand the cpp #error
+					     directive as a special #warning */
 
 /* Test a character to see if it starts an identifier */
 #define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
@@ -1524,14 +1525,14 @@ Preprocessor_parse(String *s)
   	}
       } else if (StringEqual(id,k_warning)) {
 	if (allow) {
-	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"CPP #warning: %s\n", value);
+	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"CPP #warning, %s\n", value);
 	}
       } else if (StringEqual(id,k_error)) {
 	if (allow) {
 	  if (error_as_warning) {
-	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error: %s\n", value);
+	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error, %s\n", value);
 	  } else {
-	    Swig_error(Getfile(s),Getline(id),"%s\n",value);
+	    Swig_error(Getfile(s),Getline(id),"CPP #error, %s\n", value);
 	  }
 	}
       } else if (StringEqual(id,k_line)) {
