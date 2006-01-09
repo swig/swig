@@ -118,14 +118,14 @@ or you can use the %apply directive :
   %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res) {  
     res = asptr_meth($input, &$1);
     if (!SWIG_IsOK(res)) {
-      %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
+      %argument_fail(res,"$type",$symname, $argnum);
     }
     res = SWIG_AddTmpMask(res);
   }
   %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res) {  
     res = asptr_meth($input, &$1);
     if (!SWIG_IsOK(res)) { 
-      %argument_fail(SWIG_TypeError,"$type",$symname, $argnum);
+      %argument_fail(res,"$type",$symname, $argnum);
     }     
     if (!$1) { 
       %argument_nullref("$type",$symname, $argnum);
