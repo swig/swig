@@ -1,5 +1,9 @@
 Version 1.3.28 (unreleased).
 ===========================
+01/05/2006: wsfulton
+            [Java] Fix unsigned long long and const unsigned long long & typemaps
+            - Bug #1398394  with patch from Dries Decock
+
 01/06/2006: mmatus
 	    Add 'named' warning codes, now besides of:
 	    
@@ -18,8 +22,6 @@ Version 1.3.28 (unreleased).
 
 	    in the swig root directory and commit both files. You need
 	    a machine with awk/echo to do that.
-	    
-	    
 
 01/05/2006: wsfulton
             Fix for %extend and static const integral types, eg:
