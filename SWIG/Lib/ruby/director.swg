@@ -276,21 +276,6 @@ namespace Swig {
 # define SWIG_GUARD(mutex) 
 #endif
 
-  struct Guard
-  {
-    pthread_mutex_t *_mutex;
-    
-    Guard(pthread_mutex_t &mutex) : _mutex(&mutex)
-    {
-      pthread_mutex_lock(_mutex);
-    }
-    
-    ~Guard()
-    {
-      pthread_mutex_unlock(_mutex);
-    }
-  };
-
   /* director base class */
   class Director {
     private:
