@@ -918,6 +918,10 @@ int
 Language::functionHandler(Node *n) {
   Parm *p;
   p = Getattr(n,"parms");
+  if (GetFlag(n,"feature:del")) {
+    /* the method acts like a delete operator, ie, we need to disown the parameter */
+    if (p) Setattr(p,"wrap:disown","1");
+  }
   if (!CurrentClass) {
     globalfunctionHandler(n);
   } else {

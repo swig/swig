@@ -99,6 +99,12 @@
 #define %nonewobject      %feature("new","0")
 #define %clearnewobject   %feature("new","")
 
+/* the %delobject directive */
+
+#define %delobject        %feature("del")
+#define %nodelobject      %feature("del","0")
+#define %cleardelobject   %feature("del","")
+
 /* the %refobject/%unrefobject directives */
 
 #define %refobject         %feature("ref")
