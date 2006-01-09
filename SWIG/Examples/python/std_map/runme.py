@@ -17,6 +17,13 @@ dmap = example.DoubleMap()
 dmap["hello"] = 1.0
 dmap["hi"] = 2.0
 
+for i in dmap.iterkeys():
+    print "key", i
+
+for i in dmap.itervalues():
+    print "val", i
+
+
 print dmap.items()
 print dmap.keys()
 print dmap.values()
@@ -24,6 +31,7 @@ print dmap.values()
 hmap = example.halfd(dmap)
 print hmap.keys()
 print hmap.values()
+
 
 
 dmap = {}
@@ -34,3 +42,12 @@ hmap = example.halfi(dmap)
 print hmap
 print hmap.keys()
 print hmap.values()
+
+
+dmap = hmap
+
+for i in dmap.iterkeys():
+    print "key", i
+
+for i in dmap.itervalues():
+    print "val", i
