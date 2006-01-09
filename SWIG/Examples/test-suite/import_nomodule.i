@@ -18,6 +18,8 @@
  */
 
 %newobject create_Foo;
+%delobject delete_Foo;
+
 %inline %{
 Foo *create_Foo() {
    return new Foo();

@@ -19,6 +19,7 @@ public:
 class Foo;
 
 %newobject new_Foo;
+%delobject delete_Foo;
 %inline %{
 
 class Bar : public Foo {
