@@ -124,15 +124,8 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
-  if (bae[0] == 0) {
-    for(i=sz-1; i>0; i-- ) {
-      temp = (temp << 8) | (unsigned char)bae[sz-i];
-    }
-  } 
-  else {
-    for(i=sz; i>=0; i-- ) {
-      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
-    }
+  for(i=0; i<sz; i++) {
+    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
@@ -422,15 +415,8 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
-  if (bae[0] == 0) {
-    for(i=sz-1; i>0; i-- ) {
-      temp = (temp << 8) | (unsigned char)bae[sz-i];
-    }
-  } 
-  else {
-    for(i=sz; i>=0; i-- ) {
-      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
-    }
+  for(i=0; i<sz; i++) {
+    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
