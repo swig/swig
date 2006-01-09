@@ -12,7 +12,7 @@ Lots of people <a href="projects.html">use SWIG</a>.
 
 <blockquote>
 
-The <a href="http://www.scriptics.com"> Tcl/Tk </a> homepage at Scriptics<br>
+The <a href="http://www.scriptics.com"> Tcl/Tk </a> homepage at Scriptics. <br>
 The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://www.perl.org"> The Perl Institute</a> <br>
 <a href="http://republic.perl.com"> The Programming Republic of Perl</a>. <br>
@@ -22,7 +22,7 @@ The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://www.neosoft.com/tcl/default.html"> Tcl/Tk Contributed Sources Archive </a> <br>
 <a href="http://www.sco.com/Technology/tcl/Tcl.html"> Tcl/Tk Information </a> <br>
 <a href="http://www.gnu.org/software/guile/guile.html">Guile</a> homepage. <br>
-<a href="http://www.cs.rice.edu/CS/PLT/packages/mzscheme/">MzScheme</a> homepage<br>
+<a href="http://www.cs.rice.edu/CS/PLT/packages/mzscheme/">MzScheme</a> homepage. <br>
 <a href="http://www.ruby-lang.org/">Ruby</a> homepage. <br>
 <a href="http://java.sun.com/">Java</a> homepage at Sun. <br>
 <a href="http://www.php.net/">PHP</a> homepage. <br>
@@ -31,6 +31,10 @@ The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://msdn.microsoft.com/netframework">MS .NET</a>, 
 <a href="http://www.mono-project.com/">Mono</a> and 
 <a href="http://www.dotgnu.org/pnet.html">Portable .NET</a> for the .NET framework (C#).<br>
+<a href="http://www.lua.org">Lua</a> homepage. <br>
+<a href="http://clisp.cons.org">CLISP</a> homepage. <br>
+<a href="http://common-lisp.net/project/cffi">CFFI</a> homepage. <br>
+<a href="http://www.franz.com/products/allegrocl">AllegroCL</a> homepage. <br>
 </blockquote>
 
 <h3> Code generators and other interesting packages</h3>

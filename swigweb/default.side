@@ -18,16 +18,23 @@
 <tr><td><a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SwigWiki</a></td></tr>
 
 <tr><td bgcolor="#000000" align=center><font color="#ffffff"><b>Exits</b></font></td></tr>
-<tr><td><a href="http://www.perl.com">Perl</a></td></tr>
-<tr><td><a href="http://www.python.org">Python</a></td></tr>
-<tr><td><a href="http://www.tcl.tk">Tcl/Tk</a></td></tr>
-<tr><td><a href="http://www.gnu.org/software/guile/guile.html">Guile</a></td></tr>
-<tr><td><a href="http://www.plt-scheme.org/software/mzscheme/">MzScheme</a></td></tr>
-<tr><td><a href="http://www.ruby-lang.org">Ruby</a></td></tr>
-<tr><td><a href="http://java.sun.com">Java</a></td></tr>
-<tr><td><a href="http://www.php.net">PHP</a></td></tr>
+<tr><td><a href="http://www.franz.com/products/allegrocl">AllegroCL</a></td></tr>
+<tr><td><a href="http://www.mono-project.com/">C# - Mono</a></td></tr>
+<tr><td><a href="http://msdn.microsoft.com/netframework">C# - MS .NET</a></td></tr>
+<tr><td><a href="http://common-lisp.net/project/cffi">CFFI</a></td></tr>
 <tr><td><a href="http://www.call-with-current-continuation.org/chicken.html">CHICKEN</a></td></tr>
+<tr><td><a href="http://clisp.cons.org">CLISP</a></td></tr>
+<tr><td><a href="http://www.gnu.org/software/guile/guile.html">Guile</a></td></tr>
+<tr><td><a href="http://java.sun.com">Java</a></td></tr>
+<tr><td><a href="http://www.lua.org">Lua</a></td></tr>
+<tr><td><a href="http://www.plt-scheme.org/software/mzscheme/">MzScheme</a></td></tr>
 <tr><td><a href="http://www.ocaml.org/">Ocaml</a></td></tr>
+<tr><td><a href="http://www.perl.com">Perl</a></td></tr>
+<tr><td><a href="http://www.php.net">PHP</a></td></tr>
+<tr><td><a href="http://www.python.org">Python</a></td></tr>
+<tr><td><a href="http://www.ruby-lang.org">Ruby</a></td></tr>
+<tr><td><a href="http://www.tcl.tk">Tcl/Tk</a></td></tr>
+
 
 <tr><td bgcolor="#000000" align=center><font color="#ffffff"><b>Our Generous Host</b></font></td></tr>
 <tr><td align=center><a href="http://sourceforge.net"><img src="http://sourceforge.net/images/sflogo2-steel.png" vspace="0" border=0 alt="SourceForge logo"></A></td></tr>
