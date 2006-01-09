@@ -344,7 +344,11 @@ what is generated when parsing C code:
 </pre>
 </div>
 
-<p>In this case, the 
+<p>In this case, the interface generates two swig-defmethod forms and
+a swig-dispatcher form. This provides a single functional interface for
+all overloaded routines. A more detailed description of this features 
+is to be found in the section titled <b>Function overloading/Parameter defaulting</b>.
+
 <p>
 In order to load a C++ interface, you will need to build a shared library
 from example_wrap.cxx. Be sure to link in the actual library you created
@@ -358,7 +362,7 @@ the C++ wrapper will be what you then load into Allegro CL.
 
 
 <p>
-Currently there is only one Allegro CL specific command-line option:
+There are three Allegro CL specific command-line option:
 </p>
 
 <div class="shell">
@@ -369,6 +373,14 @@ swig -allegrocl [ options ] filename
                                   in the generated .cl file to <tt>name</tt>.
 				  This function is used to generate symbols
 				  for the lisp side of the interface. 
+
+   -cwrap - Generate a .cxx file containing C wrapper function when wrapping
+            C code. The default is to only generate such a file for C++ wrapping.
+            This will change how the C interface is generated for many constructs,
+            such as enums and global variables.
+
+   -nocwrap - explicitly turnoff generation of .cxx wrappers for C code.
+
 </pre>
 </div>
 
@@ -408,7 +420,7 @@ generated lisp interface file
 </p>
 <ul>
   <li><tt>lisphead</tt> - inserts before type declarations</li>
-  <li><tt>lispwrap</tt> - inserts after type declarations according to
+  <li><tt>lisp</tt> - inserts after type declarations according to
     where it appears in the .i file</li>
 </ul>
 <p>
@@ -1270,7 +1282,7 @@ synonym>
       generic functions is defined for each possible arity the
       overloaded/defaulted call may have. Each distinct wrapper is
       then called from within a defmethod on the appropriate generic
-      function. These are further wrapped inside a dispatch funtion
+      function. These are further wrapped inside a dispatch function
       that checks the number of arguments it is called with and passes
       them via apply to the appropriate generic-function. This allows
       for a single entry point to overloaded functions on the lisp

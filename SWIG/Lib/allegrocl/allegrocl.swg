@@ -469,6 +469,7 @@ $body)"
                   collect sym))))
 
 (in-package #.*swig-module-name*)
+
 %}
 
 
