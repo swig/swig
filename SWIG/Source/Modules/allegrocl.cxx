@@ -704,13 +704,14 @@ String *internal_compose_foreign_type(SwigType *ty) {
       // temp
       Printf(ffiType, "(* %s)", internal_compose_foreign_type(ty));
     } else {
-      String *res = 0;
-      if ((res = get_ffi_type(tok, ""))) {
+      String *res = get_ffi_type(tok, "");
+      if (res) {
         Printf(ffiType, "%s", res);
       } else {
-        SwigType *resolved_type = 0;
-	if(resolved_type = SwigType_typedef_resolve(tok)) {
-	  if(res = get_ffi_type(resolved_type, "")) {
+        SwigType *resolved_type = SwigType_typedef_resolve(tok);
+	if(resolved_type) {
+	  res = get_ffi_type(resolved_type, "");
+	  if(res) {
 	  } else {
 	    res = internal_compose_foreign_type(resolved_type);
 	  }
@@ -863,12 +864,12 @@ String * convert_literal(String *num_param, String *type) {
   // very basic parsing of infix expressions.
   if( (res = infix_to_prefix(num, '|', "logior", type)) ) return res;
   if( (res = infix_to_prefix(num, '&', "logand", type)) ) return res;
-  if(res = infix_to_prefix(num, '^', "logxor", type)) return res;
+  if( (res = infix_to_prefix(num, '^', "logxor", type)) ) return res;
   if( (res = infix_to_prefix(num, '*', "*", type)) ) return res;  
   if( (res = infix_to_prefix(num, '/', "/", type)) ) return res;  
   if( (res = infix_to_prefix(num, '+', "+", type)) ) return res;
   if( (res = infix_to_prefix(num, '-', "-", type)) ) return res;  
-  //  if(res = infix_to_prefix(num, '<<', "ash", type)) return res;  
+  //  if( (res = infix_to_prefix(num, '<<', "ash", type)) ) return res;  
 
   if (SwigType_type(type) == T_FLOAT ||
       SwigType_type(type) == T_DOUBLE ||
