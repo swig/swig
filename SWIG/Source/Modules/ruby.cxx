@@ -739,13 +739,14 @@ public:
    * parameters, and dump the resulting code to the wrapper file.
    * --------------------------------------------------------------------- */
 
-  Parm *applyInputTypemap(Parm *p, String *ln, String *source, Wrapper *f) {
+  Parm *applyInputTypemap(Parm *p, String *ln, String *source, Wrapper *f, String *symname) {
     String *tm;
     SwigType *pt = Getattr(p,"type");
     if ((tm = Getattr(p,"tmap:in"))) {
       Replaceall(tm,"$target",ln);
       Replaceall(tm,"$source",source);
       Replaceall(tm,"$input",source);
+      Replaceall(tm,"$symname", symname);
 
       if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
 	Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
@@ -837,7 +838,7 @@ public:
       }
 
       /* Look for an input typemap */
-      p = applyInputTypemap(p, ln, source, f);
+      p = applyInputTypemap(p, ln, source, f, Getattr(n,"name"));
       if (i >= numreq) {
 	Printf(f->code,"}\n");
       }
