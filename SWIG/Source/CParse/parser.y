@@ -2043,21 +2043,54 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
    ------------------------------------------------------------ */
 
 rename_directive : rename_namewarn declarator idstring SEMI {
-                    SwigType *t = $2.type;
-		    Hash *kws = NewHash();
-		    Setattr(kws,k_name,$3);
-
-		    if (!Len(t)) t = 0;
-		    if ($1) {
-		      Swig_name_rename_add(Namespaceprefix,$2.id,t,kws,$2.parms);
+                SwigType *t = $2.type;
+		Hash *kws = NewHash();
+		String *fixname;
+		fixname = feature_identifier_fix($2.id);
+		Setattr(kws,k_name,$3);
+		if (!Len(t)) t = 0;
+		/* Special declarator check */
+		if (t) {
+		  if (SwigType_isfunction(t)) {
+		    SwigType *decl = SwigType_pop_function(t);
+		    if (SwigType_ispointer(t)) {
+		      String *nname = NewStringf("*%s",fixname);
+		      if ($1) {
+			Swig_name_rename_add(Namespaceprefix, nname,decl,kws,$2.parms);
+		      } else {
+			Swig_name_namewarn_add(Namespaceprefix,nname,decl,kws);
+		      }
+		      Delete(nname);
 		    } else {
-		      Swig_name_namewarn_add(Namespaceprefix,$2.id,t,kws);
+		      if ($1) {
+			Swig_name_rename_add(Namespaceprefix,(fixname),decl,kws,$2.parms);
+		      } else {
+			Swig_name_namewarn_add(Namespaceprefix,(fixname),decl,kws);
+		      }
 		    }
-		    $$ = 0;
-		    scanner_clear_rename();
+		    Delete(decl);
+		  } else if (SwigType_ispointer(t)) {
+		    String *nname = NewStringf("*%s",fixname);
+		    if ($1) {
+		      Swig_name_rename_add(Namespaceprefix,(nname),0,kws,$2.parms);
+		    } else {
+		      Swig_name_namewarn_add(Namespaceprefix,(nname),0,kws);
+		    }
+		    Delete(nname);
+		  }
+		} else {
+		  if ($1) {
+		    Swig_name_rename_add(Namespaceprefix,(fixname),0,kws,$2.parms);
+		  } else {
+		    Swig_name_namewarn_add(Namespaceprefix,(fixname),0,kws);
+		  }
+		}
+                $$ = 0;
+		scanner_clear_rename();
               }
               | rename_namewarn LPAREN kwargs RPAREN declarator cpp_const SEMI {
 		String *fixname;
+		Hash *kws = $3;
 		SwigType *t = $5.type;
 		fixname = feature_identifier_fix($5.id);
 		if (!Len(t)) t = 0;
@@ -2069,33 +2102,33 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		    if (SwigType_ispointer(t)) {
 		      String *nname = NewStringf("*%s",fixname);
 		      if ($1) {
-			Swig_name_rename_add(Namespaceprefix, nname,decl,$3,$5.parms);
+			Swig_name_rename_add(Namespaceprefix, nname,decl,kws,$5.parms);
 		      } else {
-			Swig_name_namewarn_add(Namespaceprefix,nname,decl,$3);
+			Swig_name_namewarn_add(Namespaceprefix,nname,decl,kws);
 		      }
 		      Delete(nname);
 		    } else {
 		      if ($1) {
-			Swig_name_rename_add(Namespaceprefix,(fixname),decl,$3,$5.parms);
+			Swig_name_rename_add(Namespaceprefix,(fixname),decl,kws,$5.parms);
 		      } else {
-			Swig_name_namewarn_add(Namespaceprefix,(fixname),decl,$3);
+			Swig_name_namewarn_add(Namespaceprefix,(fixname),decl,kws);
 		      }
 		    }
 		    Delete(decl);
 		  } else if (SwigType_ispointer(t)) {
 		    String *nname = NewStringf("*%s",fixname);
 		    if ($1) {
-		      Swig_name_rename_add(Namespaceprefix,(nname),0,$3,$5.parms);
+		      Swig_name_rename_add(Namespaceprefix,(nname),0,kws,$5.parms);
 		    } else {
-		      Swig_name_namewarn_add(Namespaceprefix,(nname),0,$3);
+		      Swig_name_namewarn_add(Namespaceprefix,(nname),0,kws);
 		    }
 		    Delete(nname);
 		  }
 		} else {
 		  if ($1) {
-		    Swig_name_rename_add(Namespaceprefix,(fixname),0,$3,$5.parms);
+		    Swig_name_rename_add(Namespaceprefix,(fixname),0,kws,$5.parms);
 		  } else {
-		    Swig_name_namewarn_add(Namespaceprefix,(fixname),0,$3);
+		    Swig_name_namewarn_add(Namespaceprefix,(fixname),0,kws);
 		  }
 		}
                 $$ = 0;
