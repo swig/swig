@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(chicken,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   if (!C_swig_is_vector ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a vector");
@@ -35,12 +35,12 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(chicken,freear) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
   free($2);
 }
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(chicken,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   if (!C_swig_is_string ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a string");
   }	
@@ -53,7 +53,7 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(chicken,in) (char *str, int len) 
+%typemap(in) (char *str, int len) 
 %{  if (!C_swig_is_string ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a string");
   }
@@ -64,7 +64,7 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  Notice the if MANY construct ... they must be at column 0. */
 
-%typemap(chicken,argout) (char *str, int len) (C_word *scmstr) 
+%typemap(argout) (char *str, int len) (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING ($2));
   SWIG_APPEND_VALUE(C_string (&scmstr, $2, $1));
   free ($1);

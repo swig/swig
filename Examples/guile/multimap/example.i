@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(guile,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   SCM *v;
   if (!(SCM_NIMP($input) && SCM_VECTORP($input))) {
@@ -39,13 +39,13 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(guile,freearg) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
    free($2);
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(guile,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   if (!(SCM_NIMP($input) && SCM_STRINGP($input))) {
     SWIG_exception(SWIG_ValueError, "Expecting a string");
   }
@@ -57,13 +57,13 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(guile,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
   $1 = gh_scm2newstr($input,&$2);
 }
 
 /* Return the mutated string as a new object.  */
 
-%typemap(guile,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
   SWIG_APPEND_VALUE(gh_str2scm($1,$2));
   if ($1) scm_must_free($1);
 }   

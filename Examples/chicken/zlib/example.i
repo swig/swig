@@ -13,7 +13,7 @@
 
 /* Allow the sourceLen to be automatically filled in from the length
    of the 'source' string */
-%typemap(chicken,in) (const Bytef *source, uLong sourceLen)
+%typemap(in) (const Bytef *source, uLong sourceLen)
 %{  if (!C_swig_is_string ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a string");
   }
@@ -24,7 +24,7 @@
 /* Allocate space the size of which is determined by the Scheme
    integer argument, and make a temporary integer so we can set
    destLen. */
-%typemap(chicken,in) (Bytef *dest, uLongf *destLen) (uLong len)
+%typemap(in) (Bytef *dest, uLongf *destLen) (uLong len)
 %{  if (!C_swig_is_fixnum ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a integer");
   }
@@ -34,7 +34,7 @@
 %}
 
 /* Return the mutated string as a new object. */
-%typemap(chicken,argout) (Bytef *dest, uLongf *destLen) 
+%typemap(argout) (Bytef *dest, uLongf *destLen) 
 (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
   SWIG_APPEND_VALUE(C_string (&scmstr, *$2, $1));
@@ -46,11 +46,11 @@
 
 /* Ignore destLen as an input argument, and make a temporary integer so
    we can set destLen. */
-%typemap(in, numinputs=0) uLongf *destLen (uLong len)
+%typemap(numinputs=0) uLongf *destLen (uLong len)
 "$1 = &len;";
 
 /* Return a sized string as a new object. */
-%typemap(chicken,argout)
+%typemap(argout)
 (void *outstr, uLongf *destLen) (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
   SWIG_APPEND_VALUE(C_string (&scmstr, *$2, $1));

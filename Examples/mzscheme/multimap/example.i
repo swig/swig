@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(mzscheme,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   Scheme_Object **elms;
   if (!SCHEME_VECTORP($input)) {
@@ -37,12 +37,12 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(mzscheme,freear) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
   free($2);
 }
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(mzscheme,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   if (!SCHEME_STRINGP($input)) {
      scheme_wrong_type("$name","string",1,argc,argv);
   }	
@@ -55,7 +55,7 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(mzscheme,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
   if (!SCHEME_STRINGP($input)) {
      scheme_wrong_type("$name","string",1,argc,argv);
   }	
@@ -66,7 +66,7 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  */
 
-%typemap(mzscheme,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
    Scheme_Object *s;
    s = scheme_make_sized_string($1,$2,1);
    SWIG_APPEND_VALUE(s);
