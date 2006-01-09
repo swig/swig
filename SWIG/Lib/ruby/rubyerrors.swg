@@ -6,6 +6,12 @@
 
 %insert("header") %{
 
+#ifdef __cplusplus
+/* Define custom error for SWIG_NullReferenceError since Ruby does not have a 
+   built-in error that seems appropriate. */
+static VALUE rb_eNullReferenceError = rb_define_class("NullReferenceError", rb_eRuntimeError);
+#endif
+
 SWIGINTERN VALUE
 SWIG_Ruby_ErrorType(int SWIG_code) {
   VALUE type;
@@ -44,7 +50,11 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
     type = rb_eRuntimeError;
     break;
   case SWIG_NullReferenceError:
+#ifdef __cplusplus
+    type = rb_eNullReferenceError;
+#else
     type = rb_eRuntimeError;
+#endif
     break;
   case SWIG_UnknownError:
     type = rb_eRuntimeError;
