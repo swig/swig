@@ -28,7 +28,7 @@
   %typemap(in,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); }
+    if (!SWIG_IsOK(res) || !ptr) { %argument_fail(res, "$type", $symname, $argnum); }
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
@@ -36,7 +36,7 @@
   %typemap(in,fragment=frag) const Type & (int res = SWIG_OLDOBJ) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res)) { %argument_fail(SWIG_TypeError,"$type",$symname, $argnum); }
+    if (!SWIG_IsOK(res)) { %argument_fail(res,"$type",$symname, $argnum); }
     if (!ptr) { %argument_nullref("$type",$symname, $argnum); }
     $1 = ptr;
   }
@@ -51,7 +51,7 @@
   %typemap(varin,fragment=frag) Type {
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) { %variable_fail(SWIG_TypeError, "$type", "$name"); }
+    if (!SWIG_IsOK(res) || !ptr) { %variable_fail(res, "$type", "$name"); }
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
@@ -65,7 +65,7 @@
     Type *optr = 0;
     int ores = $input ? asptr_meth($input, &optr) : 0;
     if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(ores,"$type");
     }
     temp = *optr;
     $result = &temp;
@@ -76,7 +76,7 @@
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(ores,"$type");
     }
     $result = *optr;
     if (SWIG_IsNewObj(ores)) %delete(optr);
@@ -86,7 +86,7 @@
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores)) { 
-      %dirout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(ores,"$type");
     }    
     $result = optr;
     if (SWIG_IsNewObj(ores)) {
@@ -104,7 +104,7 @@
     Type *optr = 0;
     int ores = asptr_meth($input, &optr);
     if (!SWIG_IsOK(ores)) { 
-      %dirout_fail(SWIG_TypeError,"$type");
+      %dirout_fail(ores,"$type");
     } else {
       if (!optr) { 
 	%dirout_nullref("$type");

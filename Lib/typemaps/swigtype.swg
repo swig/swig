@@ -1,28 +1,30 @@
 /* -----------------------------------------------------------------------------
  * --- Input arguments --- 
  * ----------------------------------------------------------------------------- */
-
 /* Pointers and arrays */
-%typemap(in, noblock=1) SWIGTYPE *(void  *argp = 0) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags)))) { 
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+%typemap(in, noblock=1) SWIGTYPE *(void  *argp = 0, int res) {
+  res = SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags);
+  if (!SWIG_IsOK(res)) { 
+    %argument_fail(res, "$type", $symname, $argnum); 
   }
   $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg) SWIGTYPE * "";
 
-%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags)))) { 
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res) {
+  res = SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags);
+  if (!SWIG_IsOK(res)) { 
+    %argument_fail(res, "$type", $symname, $argnum); 
   } 
   $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg) SWIGTYPE [] "";
 
 
-%typemap(in, noblock=1) SWIGTYPE* const&  (void *argp = 0, $*ltype temp) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, $*descriptor, $disown | %convertptr_flags)))) {
-    %argument_fail(SWIG_TypeError, "$*ltype", $symname, $argnum); 
+%typemap(in, noblock=1) SWIGTYPE* const&  (void *argp = 0, int res, $*ltype temp) {
+  res = SWIG_ConvertPtr($input, &argp, $*descriptor, $disown | %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$*ltype", $symname, $argnum); 
   }
   temp = %reinterpret_cast(argp, $*ltype);
   $1 = &temp;
@@ -31,9 +33,10 @@
 
 
 /* Reference */
-%typemap(in, noblock=1) SWIGTYPE & (void *argp = 0) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags)))) {
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+%typemap(in, noblock=1) SWIGTYPE & (void *argp = 0, int res) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   $1 = %reinterpret_cast(argp, $ltype);
@@ -44,7 +47,7 @@
 %typemap(in,implicitconv=1) const SWIGTYPE & (void *argp = 0, int res) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   $1 = %reinterpret_cast(argp, $ltype);
@@ -54,9 +57,10 @@
   if (SWIG_IsNewObj(res$argnum)) %delete($1);
 }
 #else
-%typemap(in,noblock=1) const SWIGTYPE & (void *argp) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags)))) {
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+%typemap(in,noblock=1) const SWIGTYPE & (void *argp, int res) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   $1 = %reinterpret_cast(argp, $ltype);
@@ -69,7 +73,7 @@
   void *argp;
   int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum); 
   }  
   if (!argp) { 
     %argument_nullref("$type", $symname, $argnum);
@@ -83,8 +87,9 @@
 %typemap(in) SWIGTYPE {
   void *argp;
   $&ltype temp;
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags)))) {
-    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum); 
+  int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);  
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
   }  
   if (!argp) { 
     %argument_nullref("$type", $symname, $argnum);
@@ -141,7 +146,7 @@
   $basetype *inp = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
     for (; ii < (size_t)$dim0; ++ii) $1[ii] = inp[ii];
@@ -189,7 +194,7 @@
   $basetype (*inp)[$dim1] = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
     for (; ii < (size_t)$dim0; ++ii) {
@@ -211,7 +216,7 @@
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);  
   if (!SWIG_IsOK(res)) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(res, "$type", "$name");
   }
   $1 = %reinterpret_cast(argp, $ltype);
 }
@@ -225,7 +230,7 @@
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
     %variable_nullref("$type", "$name");
@@ -238,7 +243,7 @@
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+    %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
     %variable_nullref("$type", "$name");
@@ -252,8 +257,9 @@
 #else
 %typemap(varin,noblock=1) SWIGTYPE {
   void *argp = 0;
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags)))) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+  int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
     %variable_nullref("$type", "$name");
@@ -351,24 +357,26 @@
 %typemap(directorout,noblock=1,implicitconv=1) SWIGTYPE (void * argp, int res) {
   res = SWIG_ConvertPtr($input,&argp,$&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
-    %dirout_fail(SWIG_TypeError,"$type");
+    %dirout_fail(res,"$type");
   }
   $result = *(%reinterpret_cast(argp, $&ltype));
   if (SWIG_IsNewObj(res)) %delete(%reinterpret_cast(argp, $&ltype));
 }
 #else
-%typemap(directorout,noblock=1) SWIGTYPE (void * argp) {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input,&argp,$&descriptor, %convertptr_flags)))) {
-    %dirout_fail(SWIG_TypeError,"$type");
+%typemap(directorout,noblock=1) SWIGTYPE (void * argp, int res) {
+  res = SWIG_ConvertPtr($input,&argp,$&descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %dirout_fail(res,"$type");
   }
   $result = *(%reinterpret_cast(argp, $&ltype));
 }
 #endif
 
 %typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
-  SWIGTYPE *(void *argp, swig_owntype own) {
-  if (!SWIG_IsOK((SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own)))) {
-    %dirout_fail(SWIG_TypeError,"$type");
+  SWIGTYPE *(void *argp, int res, swig_owntype own) {
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own);
+  if (!SWIG_IsOK(res)) {
+    %dirout_fail(res,"$type");
   }
   $result = %reinterpret_cast(argp, $ltype);
   swig_acquire_ownership_obj(%as_voidptr($result), own);
@@ -380,9 +388,10 @@
 }
 
 %typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
-  SWIGTYPE &(void *argp, swig_owntype own) {
-  if (!SWIG_IsOK((SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own)))) {
-    %dirout_fail(SWIG_TypeError,"$type");
+  SWIGTYPE &(void *argp, int res, swig_owntype own) {
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own);
+  if (!SWIG_IsOK(res)) {
+    %dirout_fail(res,"$type");
   }
   if (!argp) { %dirout_nullref("$type"); }
   $result = %reinterpret_cast(argp, $ltype);
@@ -433,9 +442,10 @@
  * --- CLASS::* typemaps --- 
  * ------------------------------------------------------------ */
 
-%typemap(in,noblock=1) SWIGTYPE (CLASS::*) {  
-  if (!SWIG_IsOK((SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($type),$descriptor)))) {
-    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum); 
+%typemap(in) SWIGTYPE (CLASS::*) {  
+  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($type),$descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res,"$type",$symname, $argnum); 
   }
 }
 
@@ -443,9 +453,10 @@
   %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
 }
 
-%typemap(varin,noblock=1) SWIGTYPE (CLASS::*) {
-  if (!SWIG_IsOK((SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($type), $descriptor)))) {
-    %variable_fail(SWIG_TypeError, "$type", "$name"); 
+%typemap(varin) SWIGTYPE (CLASS::*) {
+  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($type), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name"); 
   }
 }
 
@@ -467,9 +478,10 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1) SWIGTYPE (CLASS::*)  {
-  if (!SWIG_IsOK((SWIG_ConvertMember($input,%as_voidptr(&$result), sizeof($type), $descriptor)))) {
-    %dirout_fail(SWIG_TypeError,"$type");
+%typemap(directorout) SWIGTYPE (CLASS::*) {
+  int res = SWIG_ConvertMember($input,%as_voidptr(&$result), sizeof($type), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %dirout_fail(res,"$type");
   }
   $result = %reinterpret_cast(argp, $ltype);
 }
@@ -484,9 +496,10 @@
   ptr. So, maybe the ptr sizes are not the same, and we need to take
   some providences.
  */
-%typemap(in, noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (!SWIG_IsOK((SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor)))) {
-    %argument_fail(SWIG_TypeError,"$type",$symname, $argnum); 
+%typemap(in) SWIGTYPE ((*)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res,"$type",$symname, $argnum); 
   }
 }
 
@@ -501,9 +514,10 @@
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
 
-%typemap(varin,noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (!SWIG_IsOK((SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor)))) {
-    %variable_fail(SWIG_TypeError, "$type", "$name"); 
+%typemap(varin) SWIGTYPE ((*)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name"); 
   }
 }
 
@@ -525,9 +539,10 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1) SWIGTYPE ((*)(ANY)) {
-  if (!SWIG_IsOK((SWIG_ConvertFunctionPtr($input,(void**)(&$result),$descriptor)))) {
-    %dirout_fail(SWIG_TypeError,"$type");
+%typemap(directorout) SWIGTYPE ((*)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input,(void**)(&$result),$descriptor);
+  if (!SWIG_IsOK(res)) {
+    %dirout_fail(res,"$type");
   }
 }
 #endif
@@ -544,16 +559,18 @@
 
 /* DISOWN typemap */
 
-%typemap(in, noblock=1) SWIGTYPE *DISOWN {
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, %as_voidptrptr(&$1), $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags)))) {
-    %argument_fail(SWIG_TypeError,"$type", $symname, $argnum);
+%typemap(in, noblock=1) SWIGTYPE *DISOWN (int res) {
+  res = SWIG_ConvertPtr($input, %as_voidptrptr(&$1), $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res,"$type", $symname, $argnum);
   }
 }
 
 %typemap(varin,noblock=1) SWIGTYPE *DISOWN {
   void *temp = 0;
-  if (!SWIG_IsOK((SWIG_ConvertPtr($input, &temp, $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags)))) {
-    %variable_fail(SWIG_TypeError, "$type", "$name");
+  int res = SWIG_ConvertPtr($input, &temp, $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
   }
   $1 = ($ltype) temp;
 }

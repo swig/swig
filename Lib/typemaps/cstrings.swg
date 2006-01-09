@@ -30,9 +30,10 @@
 
 %define Name ## _input_binary(TYPEMAP, SIZE)                   
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) (TYPEMAP, SIZE) 
-  (Char *buf = 0, size_t size = 0, int alloc = 0)  {
-  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc)))) {
-    %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $symname, $argnum);
+  (int res, Char *buf = 0, size_t size = 0, int alloc = 0)  {
+  res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   $1 = ($1_ltype) buf;					       
   $2 = ($2_ltype) size - 1;				       
@@ -113,9 +114,10 @@
 
 %define Name ## _bounded_mutable(TYPEMAP,MAX)                              
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
-  (Char temp[MAX+1], Char *t = 0, size_t n = 0, int alloc = 0) {  
-  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &t, &n, &alloc)))) {
-    %argument_fail(SWIG_TypeError, "TYPEMAP", $symname, $argnum);
+  (int res,Char temp[MAX+1], Char *t = 0, size_t n = 0, int alloc = 0) {  
+  res = SWIG_AsCharPtrAndSize($input, &t, &n, &alloc);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "TYPEMAP", $symname, $argnum);
   }
   if ( n > (size_t) MAX ) n = (size_t) MAX;
   memcpy(temp, t, sizeof(Char)*n);
@@ -149,12 +151,13 @@
 
 %define Name ## _mutable(TYPEMAP,EXP...)                  
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
- (Char* t = 0, size_t n = 0, int alloc = 0, size_t expansion = 0) {
+ (int res, Char* t = 0, size_t n = 0, int alloc = 0, size_t expansion = 0) {
 #if #EXP != ""
   expansion += EXP;
 #endif
-  if (!SWIG_IsOK((SWIG_AsCharPtrAndSize($input, &t, &n, &alloc)))) {
-    %argument_fail(SWIG_TypeError, "TYPEMAP", $symname, $argnum);
+  res = SWIG_AsCharPtrAndSize($input, &t, &n, &alloc);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "TYPEMAP", $symname, $argnum);
   }
   $1 = %new_array(n+expansion, $*1_ltype);          
   memcpy($1,t,sizeof(Char)*n);
@@ -181,9 +184,10 @@
  */
 
 %define Name ## _output_maxsize(TYPEMAP, SIZE)                       
-%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t size, Char *buff = 0) {   
-  if (!SWIG_IsOK((SWIG_AsVal(size_t)($input, &size)))) {
-    %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $symname, $argnum);
+%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (int res, size_t size, Char *buff = 0) {   
+  res = SWIG_AsVal(size_t)($input, &size);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   buff= %new_array(size+1, Char);
   $2 = %numeric_cast(size, $2_ltype);
@@ -211,9 +215,10 @@
  */
 
 %define Name ## _output_withsize(TYPEMAP, SIZE)                        
-%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (size_t n, Char *buff = 0, $*2_ltype size) {    
-  if (!SWIG_IsOK((SWIG_AsVal(size_t)($input, &n)))) {
-    %argument_fail(SWIG_TypeError, "(TYPEMAP, SIZE)", $symname, $argnum);
+%typemap(in,noblock=1,fragment=SWIG_AsVal_frag(size_t)) (TYPEMAP, SIZE) (int res, size_t n, Char *buff = 0, $*2_ltype size) {    
+  res = SWIG_AsVal(size_t)($input, &n);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   buff= %new_array(n+1, Char);
   $1 = %static_cast(buff, $1_ltype);
