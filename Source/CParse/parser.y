@@ -1344,7 +1344,7 @@ static void default_arguments(Node *n) {
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
-%token PARSETYPE PARSEPARM
+%token PARSETYPE PARSEPARM PARSEPARMS
 
 %left  CAST
 %left  LOR
@@ -1444,6 +1444,12 @@ program        :  interface {
                  top = $2;
                }
                | PARSEPARM error {
+                 top = 0;
+               }
+               | PARSEPARMS LPAREN parms RPAREN SEMI {
+                 top = $3;
+               }
+               | PARSEPARMS error SEMI {
                  top = 0;
                }
                ;
@@ -5743,6 +5749,23 @@ Parm *Swig_cparse_parm(String *s) {
    return top;
 }
 
+
+ParmList *Swig_cparse_parms(String *s) {
+   String *ns;
+   char *cs = Char(s);
+   if (cs && cs[0] != '(') {
+     ns = NewStringf("(%s);",s);
+   } else {
+     ns = NewStringf("%s;",s);
+   }   
+   Seek(ns,0,SEEK_SET);
+   scanner_file(ns);
+   top = 0;
+   scanner_next_token(PARSEPARMS);
+   yyparse();
+   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   return top;
+}
 
 
 

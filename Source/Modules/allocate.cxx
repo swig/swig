@@ -19,6 +19,7 @@
 char cvsroot_allocate_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
 
 static int virtual_elimination_mode = 0;   /* set to 0 on default */
 
@@ -463,21 +464,34 @@ class Allocate : public Dispatcher {
     return methods;
   }
 
-  void mark_exception_classes(ParmList *p) {
-    while(p) {
-      SwigType *ty = Getattr(p,"type");      
-      SwigType *t = SwigType_typedef_resolve_all(ty);
-      if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
-	Delete(SwigType_pop(t));
-      }
-      Node *c = Swig_symbol_clookup(t,0);
-      if (c) {
-	if (!GetFlag(c,"feature:exceptionclass")) {
-	  SetFlag(c,"feature:exceptionclass");
+  void mark_exception_classes(Node *n) {
+    ParmList *throws = Getattr(n,"throws");
+    if (!throws) {
+      String *sthrows = Getattr(n,"feature:throws");
+      if (sthrows) {
+	throws = Swig_cparse_parms(sthrows);
+	if (throws) {
+	  Setattr(n,"throws",throws);
 	}
       }
-      p = nextSibling(p);
-      Delete(t);
+    }
+    if (throws) {
+      ParmList *p = throws;
+      while(p) {
+	SwigType *ty = Getattr(p,"type");      
+	SwigType *t = SwigType_typedef_resolve_all(ty);
+	if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
+	  Delete(SwigType_pop(t));
+	}
+	Node *c = Swig_symbol_clookup(t,0);
+	if (c) {
+	  if (!GetFlag(c,"feature:exceptionclass")) {
+	    SetFlag(c,"feature:exceptionclass");
+	  }
+	}
+	p = nextSibling(p);
+	Delete(t);
+      }
     }
   }
 
@@ -702,7 +716,7 @@ public:
     Node *c = 0;
     for (c = firstChild(n); c; c = nextSibling(c)) {
       if (Strcmp(nodeType(c),"cdecl") == 0) {
-	mark_exception_classes(Getattr(c,"throws"));
+	mark_exception_classes(c);
 
 	if (inclass)
 	  class_member_is_defined_in_bases(c, inclass);
@@ -714,7 +728,7 @@ public:
 
   virtual int cDeclaration(Node *n) {
     
-    mark_exception_classes(Getattr(n,"throws"));
+    mark_exception_classes(n);
 
     if (inclass) {
       /* check whether the member node n is defined in class node in class's bases */
@@ -798,7 +812,7 @@ public:
     if (!inclass) return SWIG_OK;
     Parm   *parms = Getattr(n,"parms");
 
-    mark_exception_classes(Getattr(n,"throws"));
+    mark_exception_classes(n);
     if (!extendmode) {
 	if (!ParmList_numrequired(parms)) {
 	    /* Class does define a default constructor */
