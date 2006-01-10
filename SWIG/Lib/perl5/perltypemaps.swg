@@ -80,8 +80,7 @@
 
 /* raise exception */
 %define %raise(obj, type, desc)
-  sv_setsv(perl_get_sv("@", TRUE), obj); 
-  croak(Nullch);
+  sv_setsv(GvSV(PL_errgv), obj); 
   SWIG_fail %enddef
 
 /* Include the unified typemap library */
