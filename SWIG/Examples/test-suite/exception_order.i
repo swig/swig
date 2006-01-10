@@ -15,7 +15,7 @@
   }
 }
 
-%throws(E1,E2) A::barfoo(int i);
+%throws(E1,E2*,ET<int>,ET<double>) A::barfoo(int i);
 
 
 %inline %{
@@ -28,6 +28,11 @@
   };
 
   struct E3 
+  {
+  };
+
+  template <class T>
+  struct ET 
   {
   };
 
@@ -58,10 +63,18 @@
     {
       if (i == 1) {
 	throw E1();
-      } else {
-	throw E2();
+      } else if (i == 2) {
+	static E2 *ep = new E2();
+	throw ep;
+      } else if (i == 3) {
+	throw ET<int>();
+      } else  {
+	throw ET<double>();
       }
       return 0;
     }
   };
 %}
+
+%template(ET_i) ET<int>;
+%template(ET_d) ET<double>;

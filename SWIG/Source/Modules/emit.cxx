@@ -346,18 +346,6 @@ void emit_action(Node *n, Wrapper *f) {
   String *wrap;
   SwigType *rt;
   ParmList *throws = Getattr(n,"throws");
-  if (!throws) {
-    String *tmp = 0;
-    String *sthrows = Getattr(n,"feature:throws");
-    if (sthrows) {
-      char *cthrows = Char(sthrows);
-      if (cthrows && cthrows[0] != '(') {
-	sthrows = tmp = NewStringf("(%s)",sthrows);
-      }
-      throws = SwigType_function_parms(sthrows);
-      if (tmp) Delete (tmp);
-    }
-  }
 
   /* Look for fragments */
   {
