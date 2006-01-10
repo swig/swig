@@ -15,7 +15,7 @@
   }
 }
 
-%catchs(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
+%catches(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
 
 
 %inline %{

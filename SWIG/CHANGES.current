@@ -1,5 +1,17 @@
 Version 1.3.28 (unreleased).
 ===========================
+01/10/2006: mmatus
+	    - Ass the 'utitle' encoder, as an example of how to add
+	      your own encoder. I added the encoder method in misc.c 
+	      but you can add another one, the same way, inside any
+	      target language.
+	      
+	      Well, 'utitle' is the reverse of 'ctitle', ie:
+
+	         %rename("%(ctitle)s") camel_case;  -> CamelCase;
+	         %rename("%(utitle)s") CamelCase;   -> camel_case;
+		 
+
 01/10/2006: cfisavage
 		Updated Ruby Exception handling.  Classes that are specified in throws clauses, 
 		or are marked as %exceptionclass, are now inherited from rb_eRuntimeError. 
@@ -10,7 +22,7 @@ Version 1.3.28 (unreleased).
 
 01/10/2006: mmatus
 	    
-            - Add the %catchs directive, which complements the %exception
+            - Add the %catches directive, which complements the %exception
 	    directive in a more automatic way. For example, if you have
 
                 int foo() throw(E1);
@@ -39,7 +51,7 @@ Version 1.3.28 (unreleased).
 	         } catch(E2) {	... }				  
 	       }				
 	    
-	    which is very tedious. Well, the %catchs directive defines
+	    which is very tedious. Well, the %catches directive defines
 	    the list of exception to catch, and from swig:
  	
 	       %catch(E1,E2) barfoo(int i);
@@ -49,7 +61,7 @@ Version 1.3.28 (unreleased).
 
 	       int barfoo(int i) throw(E1,E2);
 
-	    Note, however, that the %catchs list doesn't have to
+	    Note, however, that the %catches list doesn't have to
 	    correspond to the C++ 'throw' list. For example, if you
 	    have:
 
@@ -61,7 +73,7 @@ Version 1.3.28 (unreleased).
 
             you can define
 	        
-		%catchs(E) barfoo(int i);
+		%catches(E) barfoo(int i);
 	
 	    and swig will generate an action code equivalent to
 
@@ -78,9 +90,9 @@ Version 1.3.28 (unreleased).
 	    Also, you can now specify that you want to catch the
 	    unknown exception '...', for example:
 
-	       %catchs(E1,E2,...) barfoo(int);
+	       %catches(E1,E2,...) barfoo(int);
 
-	    In any case, the %catchs directive will emit the
+	    In any case, the %catches directive will emit the
 	    'rethrowing' code using the 'throw' typemap.
 
 	    For the same, for the '...' case to work, you need to

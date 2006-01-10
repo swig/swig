@@ -467,7 +467,7 @@ class Allocate : public Dispatcher {
   void mark_exception_classes(Node *n) {
     ParmList *throws = 0;
     /* the "catchs" feature take precedence over the original throw  list */
-    String *sthrows = Getattr(n,"feature:catchs");
+    String *sthrows = Getattr(n,"feature:catches");
     if (sthrows) {
       throws = Swig_cparse_parms(sthrows);
       if (throws) {
