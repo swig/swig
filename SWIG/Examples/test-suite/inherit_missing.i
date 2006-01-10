@@ -42,7 +42,7 @@ Foo *new_Foo() {
 }
 
 void delete_Foo(Foo *f) {
-   return delete f;
+   delete f;
 }
 
 char *do_blah(Foo *f) {
