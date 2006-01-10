@@ -35,6 +35,15 @@ VALUE getObjectPreviouslyDeletedError() {
   return rb_eObjectPreviouslyDeleted;
 } 
 
+VALUE getExceptionClass() {
+  static int init = 0;
+  static VALUE rubyExceptionClass ;
+  if (!init) {
+    init = 1;
+    rubyExceptionClass = rb_const_get(_mSWIG, rb_intern("Exception"));
+  }
+  return rubyExceptionClass;
+} 
 
 SWIGINTERN VALUE
 SWIG_Ruby_ErrorType(int SWIG_code) {
@@ -86,6 +95,21 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
     type = rb_eRuntimeError;
   }
   return type;
+}
+
+
+/* This code checks to see if the Ruby object being raised as part
+   of an exception inherits from the Ruby class Exception.  If so,
+   the object is simply returned.  If not, then a new Ruby exception
+   object is created and that will be returned to Ruby.*/
+SWIGINTERN VALUE
+SWIG_Ruby_ExceptionType(swig_type_info *desc, VALUE obj) {
+  VALUE exceptionClass = getExceptionClass();
+  if (rb_obj_is_kind_of(obj, exceptionClass)) {
+    return obj;
+  }  else {
+    return rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(obj));
+  }
 }
 
 %}

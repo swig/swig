@@ -42,7 +42,11 @@
 /* Simple overload of the output/constant/exception handling */
 #define SWIG_AppendOutput(result,obj)    SWIG_Ruby_AppendOutput(result, obj)
 #define SWIG_SetConstant(name, obj)      rb_define_const($module, name, obj)
-#define SWIG_Raise(obj, type, desc)      rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(obj)))
+
+/* raise */
+%define SWIG_Raise(obj, type, desc)
+	VALUE exc = SWIG_Ruby_ExceptionType(desc, obj);
+	rb_exc_raise(exc)%enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
