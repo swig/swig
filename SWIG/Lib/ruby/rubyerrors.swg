@@ -14,10 +14,27 @@
 /* Define custom exceptions for errors that do not map to existing Ruby
    exceptions.  Note this only works for C++ since a global cannot be
    initialized by a funtion in C.  For C, fallback to rb_eRuntimeError.*/
-#ifdef __cplusplus
-static VALUE rb_eNullReferenceError = rb_define_class("NullReferenceError", rb_eRuntimeError);
-static VALUE rb_eObjectPreviouslyDeleted = rb_define_class("ObjectPreviouslyDeleted", rb_eRuntimeError);
-#endif
+
+VALUE getNullReferenceError() {
+  static int init = 0;
+  static VALUE rb_eNullReferenceError ;
+  if (!init) {
+    init = 1;
+    rb_eNullReferenceError = rb_define_class("NullReferenceError", rb_eRuntimeError);
+  }
+  return rb_eNullReferenceError;
+} 
+
+VALUE getObjectPreviouslyDeletedError() {
+  static int init = 0;
+  static VALUE rb_eObjectPreviouslyDeleted ;
+  if (!init) {
+    init = 1;
+    rb_eObjectPreviouslyDeleted = rb_define_class("ObjectPreviouslyDeleted", rb_eRuntimeError);
+  }
+  return rb_eObjectPreviouslyDeleted;
+} 
+
 
 SWIGINTERN VALUE
 SWIG_Ruby_ErrorType(int SWIG_code) {
@@ -56,14 +73,12 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
   case SWIG_AttributeError:
     type = rb_eRuntimeError;
     break;
-#ifdef __cplusplus
   case SWIG_NullReferenceError:
-    type = rb_eNullReferenceError;
+    type = getNullReferenceError();
     break;
   case SWIG_ObjectPreviouslyDeletedError:
-    type = rb_eObjectPreviouslyDeleted;
+    type = getObjectPreviouslyDeletedError();
     break;
-#endif
   case SWIG_UnknownError:
     type = rb_eRuntimeError;
     break;
