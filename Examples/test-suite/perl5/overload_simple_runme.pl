@@ -286,3 +286,12 @@ if (!(overload_simple::fid("3.0", "3.0") eq "fid:doubledouble")) {
 if (!(overload_simple::fid("3", 3) eq "fid:intint")) {
     die("fid(int,int)");
 }
+
+
+if (!(overload_simple::fbool(0)) != overload_simple::fbool(1)) {
+    die("fbool(bool)");
+}
+
+if (2 != overload_simple::fbool(2)) {
+    die("fbool(int)");
+}
