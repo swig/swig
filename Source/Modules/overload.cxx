@@ -428,7 +428,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     // printf("overload: %s coll=%d\n", Char(Getattr(n, "sym:name")), Len(coll));
 
     int num_braces = 0;
-    bool test=(num_arguments);
+    bool test=(num_arguments > 0);
     if (test) {
       int need_v = 1;
       j = 0;
