@@ -230,8 +230,9 @@ PySwigClientData_New(PyObject* obj)
       data->destroy = 0;
     }
     if (data->destroy) {
+      int flags;
       Py_INCREF(data->destroy);
-      int flags = PyCFunction_GET_FLAGS(data->destroy);
+      flags = PyCFunction_GET_FLAGS(data->destroy);
 #ifdef METH_O
       data->delargs = !(flags & (METH_O));
 #else

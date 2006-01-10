@@ -160,7 +160,7 @@
 /* typecheck */
 
 %define %value_typecheck_typemap(check,asval_meth,frag,Type...)
-  %typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {
+  %typemap(typecheck,precedence=check,fragment=frag) Type, const Type& {
     int res = asval_meth($input, NULL);
     $1 = SWIG_CheckState(res);
   }
