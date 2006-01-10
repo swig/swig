@@ -180,6 +180,32 @@ String *Swig_string_ctitle(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_utitle()
+ *
+ * This is the reverse case of ctitle, ie
+ *
+ *      CamelCase -> camel_case 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_utitle(String *s) {
+  String *ns;
+  int first = 0;
+  int c;
+  ns = NewStringEmpty();
+
+  Seek(s,0,SEEK_SET);
+  while ((c = Getc(s)) != EOF) {
+    if (isupper(c)) {
+      if (!first) Putc('_',ns);
+      first = 1;
+      continue;
+    }
+    Putc(tolower(c),ns);
+  }
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
  * Takes a string with possible type-escapes in it and replaces them with
@@ -696,6 +722,7 @@ Swig_init() {
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
   DohEncoding("ctitle", Swig_string_ctitle);
+  DohEncoding("utitle", Swig_string_utitle);
   DohEncoding("typecode",Swig_string_typecode);
   DohEncoding("mangle",Swig_string_emangle);
   DohEncoding("command",Swig_string_command);
