@@ -726,9 +726,13 @@ public:
 	   "XSRETURN(argvi);\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(\"\");\n"
-	   "XSRETURN(0);\n"
-	   "}\n",
+	   "if (SvTRUE( GvSV(PL_errgv))) {\n"
+	   "  croak(SvPV(GvSV(PL_errgv), PL_na)); /* propagate exception */\n",
+	   "} else {\n"
+	   "  sv_setpv(GvSV(PL_errgv), \"TRUE\");\n"
+	   "  croak(Nullch);\n"
+	   "};\n"
+	   "XSRETURN(0); }\n"
 	   "}\n",
 	   NIL);
 	   
