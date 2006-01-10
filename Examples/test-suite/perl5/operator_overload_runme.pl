@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 26;
+use Test::More tests => 28;
 use operator_overload;
 
 pass("loaded");
@@ -108,10 +108,18 @@ $op->{i} = 7;
 $op--;
 is($op->{i}, 6, "operator decrement");
 
-# inverse operator
+# neg operator
 $op->{i} = 3;
 $op2 = -$op;
-is($op2->{i}, -3, "operator inverse");
+is($op2->{i}, -3, "operator neg");
+
+# not operator
+$op->{i} = 0;
+is(!$op, !0, "operator not");
+
+$op->{i} = 1;
+is(!$op, !1, "operator not");
+
 
 # TODO : {
 #   local $TODO = "I can't get Perl to trigger overloaded 'and' and 'or'";

@@ -1214,12 +1214,14 @@ public:
 	  } else if (strstr(name, "__mod__")) {
 	    Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__and__")) {
-	    Printv(pm, tab4, "\"&&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
+	    Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__or__")) {
-	    Printv(pm, tab4, "\"||\" => sub { $_[0]->__or__($_[1])},\n",NIL);
+	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__gt__")) {
 	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__lt__")) {
+	  } else if (strstr(name, "__not__")) {
+	    Printv(pm, tab4, "\"!\" => sub { $_[0]->__not__()},\n",NIL);
+	  }else if (strstr(name, "__lt__")) {
 	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__pluseq__")) {
 	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n",NIL);
@@ -1340,6 +1342,9 @@ public:
 	have_operators = 1;
       } else if (Strstr(symname, "__or__")) {
 	DohSetInt(operators,"__or__",1);
+	have_operators = 1;
+      } else if (Strstr(symname, "__not__")) {
+	DohSetInt(operators,"__not__",1);
 	have_operators = 1;
       } else if (Strstr(symname, "__gt__")) {
 	DohSetInt(operators,"__gt__",1);
