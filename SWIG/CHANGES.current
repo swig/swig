@@ -79,7 +79,7 @@ Version 1.3.28 (unreleased).
 	    write the proper typemap in your target language. In the
 	    UTL, this looks like:
 
-	      %typemap(throws,noblock=1) (...) {
+	      %typemap(throws) (...) {
                 %raise(SWIG_ErrorType(SWIG_UnknownError), "UnknownError", 0);
               }
 
