@@ -17,10 +17,10 @@
 /* The EmpytError doesn't appear in a throw declaration, and hence
   we need to tell SWIG that the dequeue method throws it.  This can
   now be done via the %catchs feature. */
-%catchs(EmptyError) *::dequeue();
+%catches(EmptyError) *::dequeue();
 
 
-/* What the catchs clause is doing under the covers is this:
+/* What the catches clause is doing under the covers is this:
 
 %exceptionclass EmptyError;
 
@@ -28,11 +28,12 @@
    try {
       $action
    } catch(EmptyError& e) {
-		  // Create a new instance of the EmptyError, wrap it as a Ruby object that Ruby owns,
-		  // and return it as the exception.  For this to work EmtpyError must inherit from
-		  // a standard Ruby exception class such as rb_eRuntimeError.  SWIG automatically does
-		  // this when the class is marked as %exceptionclass or is a throws specification.
- 		%raise(SWIG_NewPointerObj(new EmptyError(e), SWIGTYPE_p_EmptyError, SWIG_POINTER_OWN), "EmptyError", SWIGTYPE_p_EmptyError);
+     // Create a new instance of the EmptyError, wrap it as a Ruby object that Ruby owns,
+     // and return it as the exception.  For this to work EmtpyError must inherit from
+     // a standard Ruby exception class such as rb_eRuntimeError.  SWIG automatically does
+     // this when the class is marked as %exceptionclass or is a throws specification.
+     %raise(SWIG_NewPointerObj(new EmptyError(e),SWIGTYPE_p_EmptyError, SWIG_POINTER_OWN), 
+            "EmptyError", SWIGTYPE_p_EmptyError);
    }
 }
 */

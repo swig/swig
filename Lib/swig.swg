@@ -88,10 +88,10 @@
 #define %clearexception %feature("except","")
 
 
-/* the %catchs directive */
+/* the %catches directive */
 
-#define %catchs(tlist...)    %feature("catchs","("`tlist`")")
-#define %clearcatchs         %feature("catchs","")
+#define %catches(tlist...)    %feature("catches","("`tlist`")")
+#define %clearcatches         %feature("catches","")
 
 /* the %exceptionclass directive */
 
