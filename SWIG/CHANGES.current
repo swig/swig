@@ -1,5 +1,13 @@
 Version 1.3.28 (unreleased).
 ===========================
+01/10/2006: cfisavage
+		Updated Ruby Exception handling.  Classes that are specified in throws clauses, 
+		or are marked as %exceptionclass, are now inherited from rb_eRuntimeError. 
+		This allows instances of these classes to be returned to Ruby as exceptions. 
+		Thus if a C++ method throws an instance of MyException, the calling Ruby 
+		method will get back a MyException object.  To see an example, 
+		ook at ruby/examples/exception_class.
+
 01/10/2006: mmatus
 	    
             - Add the %catchs directive, which complements the %exception
@@ -107,6 +115,13 @@ Version 1.3.28 (unreleased).
 	    in the swig root directory and commit both files. You need
 	    a machine with awk/echo to do that.
 
+01/05/2006: cfisavage
+		Reimplemented object tracking for Ruby.  The new implementation works
+		by expanding the swig_class structure for Ruby by adding a trackObjects
+		field.  This field can be set/unset via %trackobjects as explained
+		in the Ruby documentation.  The new implementation is more robust
+		and takes less code to implement.
+		
 01/05/2006: wsfulton
             Fix for %extend and static const integral types, eg:
 
