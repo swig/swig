@@ -391,8 +391,8 @@ void add_defined_foreign_type(Node *n,
     Setattr(defined_foreign_ltypes,Copy(k),Copy(mangled_lname_gen));
 
     if(CPlusPlus) {
-      bool cpp_struct = Strstr(k, "struct ");
-      bool cpp_union =  Strstr(k, "union ");
+      bool cpp_struct = Strstr(k, "struct ") ? true : false;
+      bool cpp_union =  Strstr(k, "union ") ? true : false;
 
       String *cpp_type = 0;
       if(cpp_struct) {
