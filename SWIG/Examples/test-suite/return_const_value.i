@@ -20,7 +20,7 @@ class Foo_ptr {
     mutable bool _own;
   
 public:
-  Foo_ptr(Foo *p, int own = false): _ptr(p), _own(own) {}
+  Foo_ptr(Foo *p, bool own = false): _ptr(p), _own(own) {}
   static Foo_ptr getPtr() {
     return Foo_ptr(new Foo(17), true);
   }
