@@ -465,15 +465,18 @@ class Allocate : public Dispatcher {
   }
 
   void mark_exception_classes(Node *n) {
-    ParmList *throws = Getattr(n,"throws");
-    if (!throws) {
-      String *sthrows = Getattr(n,"feature:throws");
-      if (sthrows) {
-	throws = Swig_cparse_parms(sthrows);
-	if (throws) {
-	  Setattr(n,"throws",throws);
-	}
+    ParmList *throws = 0;
+    /* the "catchs" feature take precedence over the original throw  list */
+    String *sthrows = Getattr(n,"feature:catchs");
+    if (sthrows) {
+      throws = Swig_cparse_parms(sthrows);
+      if (throws) {
+	Setattr(n,"throws",throws);
+	Delete(throws);
       }
+    }
+    if (!throws) {
+      throws = Getattr(n,"throws");
     }
     if (throws) {
       ParmList *p = throws;
