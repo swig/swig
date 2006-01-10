@@ -87,6 +87,12 @@
 #define %noexception    %feature("except","0")
 #define %clearexception %feature("except","")
 
+
+/* the %throws directive */
+
+#define %throws(tlist...)       %feature("throws","("`tlist`")")
+#define %clearthrows         %feature("throws","")
+
 /* the %exceptionclass directive */
 
 #define %exceptionclass      %feature("exceptionclass")

@@ -15,6 +15,8 @@
   }
 }
 
+%throws(E1,E2) A::barfoo(int i);
+
 
 %inline %{
   struct E1
@@ -48,6 +50,17 @@
     int foobar()
     {
       throw E3();
+      return 0;
+    }
+
+
+    int barfoo(int i)
+    {
+      if (i == 1) {
+	throw E1();
+      } else {
+	throw E2();
+      }
       return 0;
     }
   };
