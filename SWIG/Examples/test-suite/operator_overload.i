@@ -68,6 +68,10 @@ see bottom for a set of possible tests
 
 %inline %{
 
+#if defined(_MSC_VER)
+  #include <iso646.h> /* for named logical operator, eg 'operator or' */
+#endif
+
 #include <assert.h>
 
 class Op{
@@ -94,7 +98,7 @@ public:
   // the +,-,*,... are friends
   // (just to make life harder)
   friend Op operator+(const Op& a,const Op& b){return Op(a.i+b.i);}
-  friend Op operator-(const Op& a,const Op& b){return Op(a.i-b.i);}
+  friend Op operator-(const Op& a,const Op& b);
   friend Op operator*(const Op& a,const Op& b){return Op(a.i*b.i);}
   friend Op operator/(const Op& a,const Op& b){return Op(a.i/b.i);}
   friend Op operator%(const Op& a,const Op& b){return Op(a.i%b.i);}
@@ -138,6 +142,11 @@ inline bool operator<=(const Op& a,const Op& b){return a.i<=b.i;}
 inline bool operator> (const Op& a,const Op& b){return a.i>b.i;}
 inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 
+%}
+
+%{
+  // This one is not declared inline as VC++7.1 gets mixed up with the unary operator-
+  Op operator-(const Op& a,const Op& b){return Op(a.i-b.i);}
 %}
 
 // in order to wrapper this correctly
