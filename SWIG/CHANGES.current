@@ -1,5 +1,71 @@
 Version 1.3.28 (unreleased).
 ===========================
+01/10/2006: mmatus
+
+            - Add the %throws directive, which complements the %exception
+	    directive in a more automatic way. For example, if you have
+
+                int foo() throw(E1);
+
+            swig generates the proper try/catch code to dispatch E1.
+	    
+	    But if you have:
+
+
+	          int barfoo(int i) {
+                    if (i == 1) {
+	               throw E1();
+                    } else {
+	              throw E2();
+                    }
+                    return 0;
+                  }
+
+            ie, where there is no explicit throw list in the decl, you 
+	    end doing:
+		  
+               %exception barfoo {			
+	         try {				
+	           $action			
+	         } catch(E1) {	... }				  
+	         } catch(E2) {	... }				  
+	       }				
+	    
+	    which is very tedious. Well, the %throws directive adds the
+            'missing' throw list, and from swig:
+ 	
+	       %throws(E1,E2) barfoo(int i);
+	       int barfoo(int i);
+
+            is equivalent to 
+
+	       int barfoo(int i) throw(E1,E2);
+
+            and then, swig will generate the proper try/catch code
+            automatically.
+
+	    The complementing part refers to the fact that you use the
+	    %exception and %throws directive togheter:
+
+	       %throws(E1,E2) barfoo(int i);
+               %exception barfoo(int i) {
+	         try {				
+	           $action			
+	         } catch(...) {	
+		    <SWIG fail>;
+                 }				  
+	       }				
+	     
+	       int barfoo(int i);
+
+	     and swig, besides adding the code to catch E1,E2, will add the
+	     code to catch the "unknown" exception case.
+
+	     And not, you can't use it as
+
+	       %throws(E1,E2,...) barfoo(); // ERROR!!!!
+
+
 01/05/2006: wsfulton
             [Java] Fix unsigned long long and const unsigned long long & typemaps
             - Bug #1398394  with patch from Dries Decock
