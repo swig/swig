@@ -17,6 +17,10 @@ extern "C" {
    structs to Ruby Objects. */
 static VALUE swig_ruby_trackings;
 
+/* Global variable that stores a reference to the ruby
+   hash table delete function. */
+static ID swig_ruby_hash_delete = 0;
+
 /* Setup a Ruby hash table to store Trackings */
 SWIGRUNTIME void SWIG_RubyInitializeTrackings() {
   /* Create a ruby hash table to store Trackings from C++ 
@@ -24,6 +28,10 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings() {
      the garabage collector about the hash table. */
   swig_ruby_trackings = rb_hash_new();
   rb_gc_register_address(&swig_ruby_trackings);
+  
+  /* Now store a reference to the hash table delete function
+     so that we only have to look it up once.*/
+  swig_ruby_hash_delete = rb_intern("delete");
 }
 
 /* Get a Ruby number to reference a pointer */
@@ -95,18 +103,17 @@ SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
   }
 }
 
-/* Remove a Tracking from a C/C++ struct to a Ruby object */
+/* Remove a Tracking from a C/C++ struct to a Ruby object.  It
+   is very important to remove objects once they are destroyed
+   since the same memory address may be reused later to create
+   a new object. */
 SWIGRUNTIME void SWIG_RubyRemoveTracking(void* ptr) {
   /* Get a reference to the pointer as a Ruby number */
   VALUE key = SWIG_RubyPtrToReference(ptr);
 
-  /* Define delete method - in C++ this could be marked as
-     static but unfortunately not in C. */
-  VALUE delete_function = rb_intern("delete");
-
   /* Delete the object from the hash table by calling Ruby's
      do this we need to call the Hash.delete method.*/
-  rb_funcall(swig_ruby_trackings, delete_function, 1, key);
+  rb_funcall(swig_ruby_trackings, swig_ruby_hash_delete, 1, key);
 }
 
 /* This is a helper method that unlinks a Ruby object from its
