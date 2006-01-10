@@ -437,8 +437,10 @@ void emit_action(Node *n, Wrapper *f) {
         SwigType *etr = SwigType_typedef_resolve_all(et);
         if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
           Printf(eaction,"catch(%s) {", SwigType_str(et, "_e"));
-        } else {
-          Printf(eaction,"catch(%s) {", SwigType_str(et, "&_e"));
+        } else if (SwigType_isvarargs(etr)) {
+	  Printf(eaction,"catch(...) {");
+	} else {
+	  Printf(eaction,"catch(%s) {", SwigType_str(et, "&_e"));
         }
 	Printv(eaction,em,"\n",NIL);
 	Printf(eaction,"}\n");

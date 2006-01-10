@@ -1,8 +1,8 @@
 Version 1.3.28 (unreleased).
 ===========================
 01/10/2006: mmatus
-
-            - Add the %throws directive, which complements the %exception
+	    
+            - Add the %catchs directive, which complements the %exception
 	    directive in a more automatic way. For example, if you have
 
                 int foo() throw(E1);
@@ -31,39 +31,57 @@ Version 1.3.28 (unreleased).
 	         } catch(E2) {	... }				  
 	       }				
 	    
-	    which is very tedious. Well, the %throws directive adds the
-            'missing' throw list, and from swig:
+	    which is very tedious. Well, the %catchs directive defines
+	    the list of exception to catch, and from swig:
  	
-	       %throws(E1,E2) barfoo(int i);
+	       %catch(E1,E2) barfoo(int i);
 	       int barfoo(int i);
 
             is equivalent to 
 
 	       int barfoo(int i) throw(E1,E2);
 
-            and then, swig will generate the proper try/catch code
-            automatically.
+	    Note, however, that the %catchs list doesn't have to
+	    correspond to the C++ 'throw' list. For example, if you
+	    have:
 
-	    The complementing part refers to the fact that you use the
-	    %exception and %throws directive togheter:
+		struct E {};
+		struct E1 : E {};
+		struct E2 : E {};
 
-	       %throws(E1,E2) barfoo(int i);
-               %exception barfoo(int i) {
+  	        int barfoo(int i) throw(E1,E2);
+
+            you can define
+	        
+		%catchs(E) barfoo(int i);
+	
+	    and swig will generate an action code equivalent to
+
 	         try {				
 	           $action			
-	         } catch(...) {	
-		    <SWIG fail>;
-                 }				  
-	       }				
-	     
-	       int barfoo(int i);
+	         } catch(E &_e) { 
+		   <raise _e>;
+		 }	
 
-	     and swig, besides adding the code to catch E1,E2, will add the
-	     code to catch the "unknown" exception case.
+            Of course, you still have to satisfy the C++ restrictions,
+	    and the catchs list must be compatible (not the same)
+	    than the original C++ throw list.
 
-	     And not, you can't use it as
+	    Also, you can now specify that you want to catch the
+	    unknown exception '...', for example:
 
-	       %throws(E1,E2,...) barfoo(); // ERROR!!!!
+	       %catchs(E1,E2,...) barfoo(int);
+
+	    In any case, the %catchs directive will emit the
+	    'rethrowing' code using the 'throw' typemap.
+
+	    For the same, for the '...' case to work, you need to
+	    write the proper typemap in your target language. In the
+	    UTL, this looks like:
+
+	      %typemap(throws,noblock=1) (...) {
+                %raise(SWIG_ErrorType(SWIG_UnknownError), "UnknownError", 0);
+              }
 
 
 01/05/2006: wsfulton
