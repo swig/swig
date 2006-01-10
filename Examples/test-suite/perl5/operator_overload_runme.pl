@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 26;
 use operator_overload;
 
 pass("loaded");
@@ -98,31 +98,6 @@ $op2->{i} = 3;
 ok(not ($op2 < $op), "operator lesser than");
 ok(not ($op < $op2), "operator lesser than");
 
-TODO : {
-  local $TODO = "I can't get Perl to trigger overloaded 'and' and 'or'";
-
-  # operator and
-  $op->{i} = 0;
-  $op2->{i} = 1;
-  ok(not ($op && $op2), "operator and");
-  $op->{i} = 0;
-  $op2->{i} = 0;
-  ok(not ($op && $op2), "operator and");
-  $op->{i} = 1;
-  $op2->{i} = 1;
-  ok(($op && $op2), "operator and");
-
-  # operator or
-  $op->{i} = 0;
-  $op2->{i} = 1;
-  ok(($op || $op2), "operator or");
-  $op->{i} = 1;
-  ok(($op || $op2), "operator or");
-  $op->{i} = 0;
-  $op2->{i} = 0;
-  ok(not ($op || $op2), "operator or");
-};
-
 # increment operator
 $op->{i} = 7;
 $op++;
@@ -137,4 +112,29 @@ is($op->{i}, 6, "operator decrement");
 $op->{i} = 3;
 $op2 = -$op;
 is($op2->{i}, -3, "operator inverse");
+
+# TODO : {
+#   local $TODO = "I can't get Perl to trigger overloaded 'and' and 'or'";
+
+#   # operator and
+#   $op->{i} = 0;
+#   $op2->{i} = 1;
+#   ok(not ($op && $op2), "operator and");
+#   $op->{i} = 0;
+#   $op2->{i} = 0;
+#   ok(not ($op && $op2), "operator and");
+#   $op->{i} = 1;
+#   $op2->{i} = 1;
+#   ok(($op && $op2), "operator and");
+
+#   # operator or
+#   $op->{i} = 0;
+#   $op2->{i} = 1;
+#   ok(($op || $op2), "operator or");
+#   $op->{i} = 1;
+#   ok(($op || $op2), "operator or");
+#   $op->{i} = 0;
+#   $op2->{i} = 0;
+#   ok(not ($op || $op2), "operator or");
+# };
 
