@@ -1140,7 +1140,7 @@ public:
 	}
 	if (action) {
 	  Append(action,"DATA_PTR(self) = result;\n");
-	  if (GetFlag(n,"feature:trackobjects")) {
+	  if (GetFlag(pn,"feature:trackobjects")) {
 	    Append(action,"SWIG_RubyAddTracking(result, self);\n");
 	  }
 	}
@@ -1947,6 +1947,14 @@ public:
 	   freefunc, "(", klass->type, " *", pname0, ") {\n",
 	   tab4, NIL);
 
+    /* Check to see if object tracking is activated for the class
+       that owns this destructor. */
+    Node *pn = Swig_methodclass(n);
+    if (GetFlag(pn,"feature:trackobjects")) {
+      Printf(freebody, "SWIG_RubyRemoveTracking(%s);\n", pname0);
+			Printv(freebody, tab4, NIL);
+    }
+
     if (Extend) {
       String *wrap = Getattr(n, "wrap:code");
       if (wrap) {
@@ -1967,9 +1975,6 @@ public:
       }
     }
     
-    if (GetFlag(n,"feature:trackobjects")) {
-      Printf(freebody, "    SWIG_RubyRemoveTracking(%s);\n", pname0);
-    }
     Printv(freebody, "}\n\n", NIL);
   
     Printv(f_wrappers, freebody, NIL);
