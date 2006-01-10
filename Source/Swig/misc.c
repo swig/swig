@@ -196,9 +196,8 @@ String *Swig_string_utitle(String *s) {
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     if (isupper(c)) {
-      if (!first) Putc('_',ns);
+      if (first) Putc('_',ns);
       first = 1;
-      continue;
     }
     Putc(tolower(c),ns);
   }
