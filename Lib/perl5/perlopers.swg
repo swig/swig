@@ -18,15 +18,13 @@
 %rename(__mod__)      *::operator%;
 %rename(__gt__)       *::operator>;
 %rename(__lt__)       *::operator<;
-%rename(__and__)      *::operator&&;
-%rename(__or__)       *::operator||;
 %rename(__not__)      *::operator!;
 
 // These are renamed, but no 'use overload...' is added
 %rename(__lshift__)   *::operator<<;
 %rename(__rshift__)   *::operator>>;
-%rename(__band__)     *::operator&;
-%rename(__bor__)      *::operator|;
+%rename(__and__)      *::operator&;
+%rename(__or__)       *::operator|;
 %rename(__xor__)      *::operator^;
 %rename(__invert__)   *::operator~;
 %rename(__le__)       *::operator<=;
@@ -34,6 +32,8 @@
 %rename(__call__)     *::operator();
 
 /* Ignored operators */
+%ignoreoperator(LAND)       operator&&;
+%ignoreoperator(LOR)        operator||;
 %ignoreoperator(PLUS)       operator+();
 %ignoreoperator(PLUS)       operator+() const;
 %ignoreoperator(PLUSEQ)     operator+=;  
