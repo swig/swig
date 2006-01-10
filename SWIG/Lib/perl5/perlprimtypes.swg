@@ -2,6 +2,42 @@
  * Primitive Types
  * ------------------------------------------------------------ */
 
+/* bool */
+
+%fragment(SWIG_From_frag(bool),"header") {
+SWIGINTERNINLINE SV *
+SWIG_From_dec(bool)(bool value)
+{    
+  SV *obj = sv_newmortal();
+  if (value) {
+    sv_setsv(obj, &PL_sv_yes);
+  } else {
+    sv_setsv(obj, &PL_sv_no); 
+  }
+  return obj;
+}
+}
+
+%fragment(SWIG_AsVal_frag(bool),"header",
+	  fragment="SWIG_CanCastAsInteger") {
+SWIGINTERN int
+SWIG_AsVal_dec(bool)(SV *obj, bool* val)
+{
+  if (obj == &PL_sv_yes) {
+    if (val) *val = true;
+    return SWIG_OK;
+  } else if (obj == &PL_sv_no) { 
+    if (val) *val = false;
+    return SWIG_OK;
+  } else {
+    if (val) *val = SvTRUE(obj) ? true: false;
+    return SWIG_AddCast(SWIG_OK);    
+  }
+  return SWIG_TypeError;
+}
+}
+
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {

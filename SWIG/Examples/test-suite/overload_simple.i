@@ -108,6 +108,14 @@ static char *bar(void *) {
 };
 
 
+bool fbool(bool b) {
+   return b;
+}
+
+int fbool(int b) {
+   return b;
+}
+
 char *fint(int) {
    return (char*) "fint:int";
 }
