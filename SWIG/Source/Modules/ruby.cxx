@@ -1800,7 +1800,13 @@ public:
     Printv(s, tab4, "rb_undef_alloc_func(", klass->vname, ");\n", NIL);
     Replaceall(klass->init,"$allocator", s);
     Replaceall(klass->init,"$initializer", "");
-    Replaceall(klass->init,"$super", "rb_cObject");
+
+    if (GetFlag(n,"feature:exceptionclass")) {
+      Replaceall(klass->init,"$super", "rb_eRuntimeError");
+    }
+    else {
+      Replaceall(klass->init,"$super", "rb_cObject");
+    }	
     Delete(s);
 
     Printv(f_init,klass->init,NIL);
