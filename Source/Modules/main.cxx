@@ -45,6 +45,7 @@ extern "C" {
 extern String  *ModuleName;
 }
 
+// usage string split into multiple parts otherwise string is too big for some compilers
 static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -addextern      - Add extra extern declarations\n\
@@ -71,6 +72,9 @@ static const char *usage1 = (const char*)"\
                        If no explicit value is given to the feature, a default of 1 is used\n\
      -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
+";
+
+static const char *usage2 = (const char*)"\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -help           - This output\n\
@@ -80,9 +84,6 @@ static const char *usage1 = (const char*)"\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
-";
-// usage string split in two otherwise string is too big for some compilers
-static const char *usage2 = (const char*)"\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -M              - List all dependencies\n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
@@ -104,6 +105,9 @@ static const char *usage2 = (const char*)"\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory <dir>\n\
      -small          - Compile in virtual elimination & compact mode\n\
+";
+
+static const char *usage3 = (const char*)"\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
@@ -693,6 +697,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	  } else if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0)) {
 	    fputs(usage1,stdout);
 	    fputs(usage2,stdout);
+	    fputs(usage3,stdout);
 	    Swig_mark_arg(i);
 	    help = 1;
 	  }
