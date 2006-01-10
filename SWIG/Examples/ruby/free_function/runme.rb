@@ -4,8 +4,8 @@ begin
   begin
     # Create an animal and zoo
     tiger1 = Example::Animal.new("tiger1")
-	  zoo = Example::Zoo.new
-	
+    zoo = Example::Zoo.new
+  
     # At the animal to the zoo - this will transfer ownership
     # of the underlying C++ object to the C++ zoo object
     zoo.add_animal(tiger1)
@@ -36,10 +36,11 @@ GC.start
 
 # This method is no longer valid since the zoo freed the underlying
 # C++ object
+ok = false
 begin
-	puts tiger2.get_name
-rescue RuntimeError => error
-  if not error.message == "This Animal * already released"
-    raise
-  end
+  puts tiger2.get_name
+rescue ObjectPreviouslyDeleted => error
+  ok = true
 end
+
+raise(RuntimeError, "Incorrect exception raised - should be ObjectPreviouslyDeleted") unless ok
