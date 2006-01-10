@@ -4,12 +4,19 @@
 
 %insert("runtime") "swigerrors.swg"
 
+/* Define some additional error types */
+%insert("runtime") %{
+#define SWIG_ObjectPreviouslyDeletedError  -100
+%}
+
 %insert("header") %{
 
+/* Define custom exceptions for errors that do not map to existing Ruby
+   exceptions.  Note this only works for C++ since a global cannot be
+   initialized by a funtion in C.  For C, fallback to rb_eRuntimeError.*/
 #ifdef __cplusplus
-/* Define custom error for SWIG_NullReferenceError since Ruby does not have a 
-   built-in error that seems appropriate. */
 static VALUE rb_eNullReferenceError = rb_define_class("NullReferenceError", rb_eRuntimeError);
+static VALUE rb_eObjectPreviouslyDeleted = rb_define_class("ObjectPreviouslyDeleted", rb_eRuntimeError);
 #endif
 
 SWIGINTERN VALUE
@@ -49,13 +56,14 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
   case SWIG_AttributeError:
     type = rb_eRuntimeError;
     break;
-  case SWIG_NullReferenceError:
 #ifdef __cplusplus
+  case SWIG_NullReferenceError:
     type = rb_eNullReferenceError;
-#else
-    type = rb_eRuntimeError;
-#endif
     break;
+  case SWIG_ObjectPreviouslyDeletedError:
+    type = rb_eObjectPreviouslyDeleted;
+    break;
+#endif
   case SWIG_UnknownError:
     type = rb_eRuntimeError;
     break;
