@@ -464,37 +464,56 @@ class Allocate : public Dispatcher {
     return methods;
   }
 
-  void mark_exception_classes(Node *n) {
-    ParmList *throws = 0;
-    /* the "catchs" feature take precedence over the original throw  list */
-    String *sthrows = Getattr(n,"feature:catches");
-    if (sthrows) {
-      throws = Swig_cparse_parms(sthrows);
-      if (throws) {
-	Setattr(n,"throws",throws);
-	Delete(throws);
+  void mark_exception_classes(ParmList *p) 
+  {
+    while(p) {
+      SwigType *ty = Getattr(p,"type");      
+      SwigType *t = SwigType_typedef_resolve_all(ty);
+      if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
+	Delete(SwigType_pop(t));
+      }
+      Node *c = Swig_symbol_clookup(t,0);
+      if (c) {
+	if (!GetFlag(c,"feature:exceptionclass")) {
+	  SetFlag(c,"feature:exceptionclass");
+	}
+      }
+      p = nextSibling(p);
+      Delete(t);
+    }
+  }
+  
+
+  void process_exceptions(Node *n) {
+    ParmList *catchlist = 0;    
+    /* 
+       the "catchlist" attribute is used to emit the block
+
+       try {$action;} 
+       catch <list of catches>;
+       
+       in emit.cxx
+
+       and is either constructued from the "feature:catches" feature
+       or copied from the node "throws" list.
+    */
+    String *scatchlist = Getattr(n,"feature:catches");
+    if (scatchlist) {
+      catchlist = Swig_cparse_parms(scatchlist);
+      if (catchlist) {
+	Setattr(n,"catchlist",catchlist);
+	mark_exception_classes(catchlist);
+	Delete(catchlist);
       }
     }
-    if (!throws) {
-      throws = Getattr(n,"throws");
-    }
+    ParmList *throws = Getattr(n,"throws");
     if (throws) {
-      ParmList *p = throws;
-      while(p) {
-	SwigType *ty = Getattr(p,"type");      
-	SwigType *t = SwigType_typedef_resolve_all(ty);
-	if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
-	  Delete(SwigType_pop(t));
-	}
-	Node *c = Swig_symbol_clookup(t,0);
-	if (c) {
-	  if (!GetFlag(c,"feature:exceptionclass")) {
-	    SetFlag(c,"feature:exceptionclass");
-	  }
-	}
-	p = nextSibling(p);
-	Delete(t);
+      /* if there is no an explicit catchlist, 
+	 we catch everything in the throwlist */
+      if (!catchlist) {
+	Setattr(n,"catchlist",throws);
       }
+      mark_exception_classes(throws);      
     }
   }
 
@@ -719,7 +738,7 @@ public:
     Node *c = 0;
     for (c = firstChild(n); c; c = nextSibling(c)) {
       if (Strcmp(nodeType(c),"cdecl") == 0) {
-	mark_exception_classes(c);
+	process_exceptions(c);
 
 	if (inclass)
 	  class_member_is_defined_in_bases(c, inclass);
@@ -731,7 +750,7 @@ public:
 
   virtual int cDeclaration(Node *n) {
     
-    mark_exception_classes(n);
+    process_exceptions(n);
 
     if (inclass) {
       /* check whether the member node n is defined in class node in class's bases */
@@ -815,7 +834,7 @@ public:
     if (!inclass) return SWIG_OK;
     Parm   *parms = Getattr(n,"parms");
 
-    mark_exception_classes(n);
+    process_exceptions(n);
     if (!extendmode) {
 	if (!ParmList_numrequired(parms)) {
 	    /* Class does define a default constructor */
