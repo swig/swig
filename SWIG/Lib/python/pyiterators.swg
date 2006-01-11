@@ -26,6 +26,9 @@ namespace swig
      Mark methods that return new objects
   */
   %newobject PySwigIterator::copy;
+  %newobject PySwigIterator::value;
+  %newobject PySwigIterator::next;
+  %newobject PySwigIterator::previous;
   %newobject PySwigIterator::operator + (ptrdiff_t n) const;
   %newobject PySwigIterator::operator - (ptrdiff_t n) const;
 }
