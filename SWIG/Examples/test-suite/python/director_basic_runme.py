@@ -34,7 +34,7 @@ class PyClass(director_basic.MyClass):
 		pass
 	
 	def vmethod(self, b):
-		b.x += 31
+		b.x = b.x + 31
 		return b
 
 
@@ -69,7 +69,7 @@ class PyMulti(director_basic.Foo, director_basic.MyClass):
 
 		
 	def vmethod(self, b):
-		b.x += 31
+		b.x = b.x  + 31
 		return b
 
 	

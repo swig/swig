@@ -1,10 +1,10 @@
-import li_std_stream as std
+from li_std_stream import *
 
 
 
-a = std.A()
+a = A()
 
-o = std.ostringstream()
+o = ostringstream()
 
 o << a << " " << 2345 << " " << 1.435
 

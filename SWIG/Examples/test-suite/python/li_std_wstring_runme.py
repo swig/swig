@@ -22,7 +22,7 @@ if li_std_wstring.test_const_reference(x) != x:
 
 
 s = li_std_wstring.wstring(u"he")
-s += u"llo"
+s = s + u"llo"
 
 if s != x:
   print s, x

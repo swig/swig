@@ -8,7 +8,7 @@ s.append("c")
 
 sum = ""
 for i in s:
-    sum += i
+    sum = sum + i
 
 if sum != "abc":
     raise RuntimeError
@@ -26,7 +26,7 @@ b = s.begin()
 e = s.end()
 sum = ""
 while (b != e):    
-    sum += b.next()
+    sum = sum + b.next()
 if sum != "abc":
     raise RuntimeError
 
@@ -34,7 +34,7 @@ b = s.rbegin()
 e = s.rend()
 sum = ""
 while (b != e):    
-    sum += b.next()
+    sum = sum  + b.next()
 
 if sum != "cba":
     raise RuntimeError
@@ -66,7 +66,7 @@ b = s.begin()
 e = s.end()
 sum = ""
 while (b != e):    
-    sum += b.next()
+    sum = sum + b.next()
 if sum != "ac":
     raise RuntimeError
 
@@ -90,7 +90,7 @@ s.insert("hello")
 
 sum = ()
 for i in s:
-    sum += (i,)
+    sum = sum  + (i,)
 
 if sum != (1, 'hello', (1, 2)):
     raise RuntimeError
