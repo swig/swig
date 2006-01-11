@@ -1,5 +1,14 @@
 %module rename_camel
 
+%rename("%(utitle)s",match="cdecl") ""; 
+
+%inline {
+  struct GeometryFactory 
+  {
+    void createPointFromInternalCoord(int);
+  };  
+}
+
 
 %define SedCmd "%(command:sed -e 's/\([a-z]\)/\U\\1/' -e 's/\(_\)\([a-z]\)/\U\\2/g' <<<)s" %enddef
 
@@ -40,3 +49,5 @@
   int foo(int);
   
 }
+
+
