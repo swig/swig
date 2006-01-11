@@ -1,12 +1,20 @@
 %module rename_camel
 
-%rename("%(utitle)s",match="cdecl",match$parentNode$nodeType="class") ""; 
+%rename("%(utitle)s",match="cdecl",notmatch$decl="",match$parentNode$nodeType="class") ""; 
 
 %inline {
   struct GeometryFactory 
   {
     void createPointFromInternalCoord(int);
   };  
+
+  class ByteOrderValues {
+    
+  public:
+    void readHEX();
+    static int ENDIAN_BIG;
+  };
+  
 }
 
 
