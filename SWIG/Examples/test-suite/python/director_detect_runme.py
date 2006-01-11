@@ -6,15 +6,15 @@ class MyBar(director_detect.Bar):
     self.val = val
 
   def get_value(self):
-    self.val += 1
+    self.val = self.val + 1
     return self.val
   
   def get_class(self):
-    self.val += 1
+    self.val = self.val + 1
     return director_detect.A()
 
   def just_do_it(self):
-    self.val += 1
+    self.val = self.val + 1
 
   def clone(self):
     return MyBar(self.val)
