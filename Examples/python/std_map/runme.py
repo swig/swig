@@ -2,6 +2,13 @@
 
 import example
 
+pmap = example.pymap()
+pmap["hi"] = 1
+pmap["hello"] = 2
+
+
+
+
 dmap = {}
 dmap["hello"] = 1.0
 dmap["hi"] = 2.0
