@@ -42,6 +42,18 @@ namespace swig {
   struct PyObject_ptr {};
   %apply PyObject * {PyObject_ptr};
   %apply PyObject * const& {PyObject_ptr const&};
+
+  /* For output */
+  %typemap(out,noblock=1)  PyObject_ptr {
+    $result = (PyObject *)$1;
+    Py_INCREF($result);
+  }
+  
+  %typemap(out,noblock=1)  PyObject_ptr const & {
+    $result = (PyObject *)*$1;
+    Py_INCREF($result);
+  }
+  
 }
 
 %{

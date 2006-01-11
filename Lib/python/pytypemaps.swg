@@ -85,13 +85,18 @@
 
 /* For output, we increase the reference object */
 %typemap(out,noblock=1)  PyObject * {
-  Py_XINCREF($1);
+  /* hello */
   $result = $1;
+%#if !($owner) 
+  Py_XINCREF($result);
+%#endif
 }
 
 %typemap(out,noblock=1)  PyObject * const & {
-  Py_XINCREF(*$1);
   $result = *$1;
+%#if !($owner) 
+  Py_XINCREF($result);
+%#endif
 }
 
 /* Consttab, needed for callbacks, it should be removed later */
