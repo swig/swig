@@ -345,7 +345,7 @@ void emit_action(Node *n, Wrapper *f) {
   String *action;
   String *wrap;
   SwigType *rt;
-  ParmList *throws = Getattr(n,"throws");
+  ParmList *catchlist = Getattr(n,"catchlist");
 
   /* Look for fragments */
   {
@@ -421,16 +421,16 @@ void emit_action(Node *n, Wrapper *f) {
   
   /* If we are in C++ mode and there is an exception specification. We're going to
      enclose the block in a try block */
-  if (throws) {
+  if (catchlist) {
     Printf(eaction,"try {\n");
   }
 
   Printv(eaction, action, NIL);
 
-  if (throws) {
+  if (catchlist) {
     int unknown_catch = 0;
     Printf(eaction,"}\n");
-    for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
+    for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
       if (em) {
         SwigType *et = Getattr(ep,"type");
