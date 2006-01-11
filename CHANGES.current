@@ -100,7 +100,7 @@ Version 1.3.28 (unreleased).
 	    UTL, this looks like:
 
 	      %typemap(throws) (...) {
-                %raise(SWIG_ErrorType(SWIG_UnknownError), "UnknownError", 0);
+	        SWIG_exception(SWIG_RuntimeError,"unknown exception");
               }
 
 
