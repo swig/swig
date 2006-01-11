@@ -100,6 +100,8 @@ namespace swig {
 
 %fragment("PySequence_Base","header")
 {
+#include <functional>
+
 namespace std {
   template <>
   struct less <PyObject *>: public binary_function<PyObject *, PyObject *, bool>
