@@ -20,7 +20,9 @@ char cvsroot_naming_c[] = "$Header$";
 
 static Hash *naming_hash = 0;
 
-/* #define SWIG_DEBUG  */
+#if 0
+#define SWIG_DEBUG 
+#endif
 
 /* -----------------------------------------------------------------------------
  * Swig_name_register()
@@ -1079,6 +1081,9 @@ static DOH *Swig_get_lattr(Node *n, List *lattr)
 int Swig_name_match_nameobj(Hash *rn, Node *n) {
   int match = 1;
   List *matchlist = HashGetAttr(rn,k_matchlist);
+#ifdef SWIG_DEBUG 
+  Printf(stderr,"Swig_name_match_nameobj: %s\n",Getattr(n,"name"));
+#endif
   if (matchlist) {
     int ilen = Len(matchlist);
     int i;
@@ -1091,10 +1096,16 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
       if (nval) {
 	String *kwval = Getattr(kw,k_value);
 	match = Equal(nval, kwval);
+#ifdef SWIG_DEBUG 
+	Printf(stderr,"val %s %s %d %d \n",nval, kwval,match, notmatch);
+#endif
       }
-      if (!notmatch) match = !match;
+      if (notmatch) match = !match;
     }
   }
+#ifdef SWIG_DEBUG 
+  Printf(stderr,"Swig_name_match_nameobj: %d\n",match);
+#endif
   return match;
 }
 
