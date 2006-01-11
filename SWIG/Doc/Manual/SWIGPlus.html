@@ -3693,9 +3693,10 @@ public:
 </div>
 
 <p>
-If an exception specification is used, SWIG automatically generates wrapper code for catching the
-indicated exception and converting it into an error in the target language.   In certain language
-modules, wrapped exception classes themselves can be used to catch errors.  For example, in Python, you can
+If an exception specification is used, SWIG automatically generates
+wrapper code for catching the indicated exception and, when possible,
+rethrowing it into the target language, or converting it into an error
+in the target language otherwise. For example, in Python, you can
 write code like this:
 </p>
 
@@ -3718,6 +3719,46 @@ Since exception specifications are sometimes only used sparingly, this alone may
 properly handle C++ exceptions. To do that, a different set of special SWIG directives are used.
 Consult the "<a href="Customization.html#Customization">Customization features</a>" chapter for details.
 </p>
+
+<p>
+Additionally, since SWIG 1.3.28, it is possible to use the
+<tt>%catches</tt> directive to define the desired "catch list". For
+example, if you have
+</p>
+
+<div class="code">
+<pre>
+class EBase
+class Error1 : EBase { };
+class Error2 : EBase { };
+class Error3 : EBase { };
+class Error4 : EBase { };
+
+%catches(EBase) Foo::blah();
+%catches(Error1,Error2,...) Foo::bar();
+
+class Foo {
+public:
+    ...
+    void blah() throw(Error1,Error2,Error3,Error4);
+    void bar();
+    ...
+};
+</pre>
+</div>
+
+<p>
+ For the method <tt> Foo::blah() </tt> SWIG will catch (and try to
+rethrow) only the base part of the exceptions, <tt>EBase</tt>, and not
+the entire list specified in via the throw statement, i.e., <tt> Error1,Error2,Error3,Error4</tt>.
+ </p>
+
+<p> For the <tt> Foo::bar() </tt> method, which can throw anything,
+SWIG will try to catch and rethrow <tt> Error1</tt> and
+<tt>Error2</tt>, while any other exceptions will be caught by the
+anonymous specification "..." and treated as an unknown exception.
+</p>
+
 
 <H2><a name="SWIGPlus_nn33"></a>6.21 Pointers to Members</H2>
 
