@@ -245,6 +245,9 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
 
   if (!name) return 0;
   /* Check to see if the name is in the hash */
+  if (inclass) {
+    Setattr(n,"parentNode",current_class);
+  }
   return Swig_name_make(n,Namespaceprefix,name,decl,add_oldname);
 }
 
@@ -512,6 +515,7 @@ static void add_symbols_copy(Node *n) {
       }
       if (strcmp(cnodeType,"class") == 0) {
 	inclass = 1;
+	current_class = n;
 	if (Strcmp(Getattr(n,k_kind),"class") == 0) {
 	  cplus_mode = CPLUS_PRIVATE;
 	} else {
@@ -537,6 +541,7 @@ static void add_symbols_copy(Node *n) {
       }
       if (strcmp(cnodeType,"class") == 0) {
 	inclass = 0;
+	current_class = 0;
       }
       add_oldname = 0;
     } else {
@@ -3043,6 +3048,14 @@ cpp_class_decl  :
                    List *bases = 0;
 		   Node *scope = 0;
 		   $$ = new_node("class");
+		   Setline($$,cparse_start_line);
+		   Setattr($$,k_kind,$2);
+		   if ($4) {
+		     Setattr($$,k_baselist, Getattr($4,"public"));
+		     Setattr($$,"protectedbaselist", Getattr($4,"protected"));
+		     Setattr($$,"privatebaselist", Getattr($4,"private"));
+		   }
+		   Setattr($$,"allows_typedef","1");
 
 		   /* preserve the current scope */
 		   prev_symtab = Swig_symbol_current();
@@ -3071,6 +3084,7 @@ cpp_class_decl  :
 		       nscope_inner = 0;
 		     }
 		   }
+		   Setattr($$,k_name,$3);
 
 		   Delete(class_rename);
                    class_rename = make_name($$,$3,0);
@@ -3130,23 +3144,16 @@ cpp_class_decl  :
 		     }
 		   }
 		   inclass = 1;
+		   current_class = $$;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
 		 SwigType *ty;
 		 Symtab *cscope = prev_symtab;
 		 Node *am = 0;
 		 String *scpname = 0;
+		 $$ = current_class;
 		 inclass = 0;
-		 $$ = new_node("class");
-		 Setline($$,cparse_start_line);
-		 Setattr($$,k_name,$3);
-		 Setattr($$,k_kind,$2);
-		 if ($4) {
-		   Setattr($$,k_baselist, Getattr($4,"public"));
-		   Setattr($$,"protectedbaselist", Getattr($4,"protected"));
-		   Setattr($$,"privatebaselist", Getattr($4,"private"));
-		 }
-		 Setattr($$,"allows_typedef","1");
+		 current_class = 0;
 		 /* Check for pure-abstract class */
 		 Setattr($$,k_abstract, pure_abstract($7));
 		 
@@ -3257,7 +3264,14 @@ cpp_class_decl  :
 /* An unnamed struct, possibly with a typedef */
 
              | storage_class cpptype LBRACE {
+	       String *unnamed;
+	       unnamed = make_unnamed();
 	       $$ = new_node("class");
+	       Setline($$,cparse_start_line);
+	       Setattr($$,k_kind,$2);
+	       Setattr($$,k_storage,$1);
+	       Setattr($$,k_unnamed,unnamed);
+	       Setattr($$,"allows_typedef","1");
 	       Delete(class_rename);
 	       class_rename = make_name($$,0,0);
 	       if (strcmp($2,"class") == 0) {
@@ -3268,6 +3282,7 @@ cpp_class_decl  :
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
 	       inclass = 1;
+	       current_class = $$;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -3275,14 +3290,10 @@ cpp_class_decl  :
 	       String *unnamed;
 	       Node *n;
 	       Classprefix = 0;
+	       $$ = current_class;
 	       inclass = 0;
-	       $$ = new_node("class");
-	       unnamed = make_unnamed();
-	       Setline($$,cparse_start_line);
-	       Setattr($$,k_kind,$2);
-	       Setattr($$,k_storage,$1);
-	       Setattr($$,k_unnamed,unnamed);
-	       Setattr($$,"allows_typedef","1");
+	       current_class = 0;
+	       unnamed = Getattr($$,k_unnamed);
 
 	       /* Check for pure-abstract class */
 	       Setattr($$,k_abstract, pure_abstract($5));

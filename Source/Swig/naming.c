@@ -1073,6 +1073,14 @@ static DOH *Swig_get_lattr(Node *n, List *lattr)
   for (i = 0; n && (i < ilen); ++i) {
     String *nattr = Getitem(lattr,i);
     res = Getattr(n,nattr);
+#ifdef SWIG_DEBUG 
+    if (!res) {
+      Node *pn = Getattr(n,k_parentnode);
+      Printf(stderr,"missing %s %s %s\n",nattr, Getattr(n,"name"), Getattr(n,"member"));
+    } else {    
+      Printf(stderr,"lattr %d %s %s\n",i, nattr, DohIsString(res) ? res : Getattr(res,"name"));
+    }
+#endif
     n = res;
   }
   return res;
@@ -1097,7 +1105,7 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
 	String *kwval = Getattr(kw,k_value);
 	match = Equal(nval, kwval);
 #ifdef SWIG_DEBUG 
-	Printf(stderr,"val %s %s %d %d \n",nval, kwval,match, notmatch);
+	Printf(stderr,"val %s %s %d %d \n",nval, kwval,match, ilen);
 #endif
       }
       if (notmatch) match = !match;
