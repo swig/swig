@@ -197,8 +197,8 @@ String *Swig_string_utitle(String *s) {
   while ((c = Getc(s)) != EOF) {
     if (isupper(c)) {
       if (first) Putc('_',ns);
-      first = 1;
     }
+    first = 1;
     Putc(tolower(c),ns);
   }
   return ns;
