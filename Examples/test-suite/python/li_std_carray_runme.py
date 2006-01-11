@@ -9,7 +9,7 @@ i = 0
 for d in v3:
     if d != i:
         raise RuntimeError
-    i += 1
+    i = i + 1
 
 
 m3 = Matrix3()
@@ -25,9 +25,9 @@ for v3 in m3:
     for d in v3:
         if d != i + j:
             raise RuntimeError
-        j += 1
+        j = j + 1
         pass
-    i += 1
+    i = i + 1
     pass
 
 for i in range(0,len(m3)):

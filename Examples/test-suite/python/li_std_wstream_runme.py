@@ -1,12 +1,12 @@
-import li_std_wstream as std
+from li_std_wstream import *
 
 
 
-a = std.A()
+a = A()
 
-o = std.wostringstream()
+o = wostringstream()
 
-o << a << u" " << 2345 << u" " << 1.435 << std.wends
+o << a << u" " << 2345 << u" " << 1.435 << wends
 
 if o.str() !=  "A class 2345 1.435\0":
   print "\"%s\"" % (o.str(),)

@@ -21,7 +21,7 @@ if li_std_string.test_const_reference(x) != x:
 s = li_std_string.string("he")
 #s += "ll"
 #s.append('o')
-s += "llo"
+s = s + "llo"
 
 if s != x:
   print s, x
