@@ -1,6 +1,6 @@
 %module rename_camel
 
-%rename("%(utitle)s",match="cdecl") ""; 
+%rename("%(utitle)s",match="cdecl",match$parentNode$nodeType="class") ""; 
 
 %inline {
   struct GeometryFactory 
