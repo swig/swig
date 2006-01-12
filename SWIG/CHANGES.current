@@ -1,5 +1,12 @@
 Version 1.3.28 (unreleased).
 ===========================
+01/12/2006: mgossage
+	    -	Partial fixed of errors under C89, bug #1356574
+	    	(converted C++ style comments to C style)
+	    -	Added patches from neomantra@users.sf.net #1379988 and #1388343
+	    	missing a 'return' statement for error conditions
+	    	also updated the %init block bug #1356586
+		 
 01/10/2006: mmatus
 	    - Ass the 'utitle' encoder, as an example of how to add
 	      your own encoder. I added the encoder method in misc.c 
