@@ -18,7 +18,7 @@
 
 %typemap(cin) int ":int";
 %typemap(cin) signed int ":int";
-%typemap(cin) unsigned int ":unsigned-nt";
+%typemap(cin) unsigned int ":unsigned-int";
 
 %typemap(cin) long ":long";
 %typemap(cin) signed long ":long";
@@ -41,7 +41,7 @@
 
 %typemap(cout) int ":int";
 %typemap(cout) signed int ":int";
-%typemap(cout) unsigned int ":unsigned-nt";
+%typemap(cout) unsigned int ":unsigned-int";
 
 %typemap(cout) long ":long";
 %typemap(cout) signed long ":long";
