@@ -60,6 +60,8 @@ static const char *usage1 = (const char*)"\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -dump_classes   - Display information about the classes found in the interface\n\
      -dump_module    - Display information on the module node tree avoiding system nodes\n\
+     -dump_parse_module - Display information on the module node tree after parsing avoiding system nodes\n\
+     -dump_parse_top - Display information on the node tree after parsing including system nodes\n\
      -dump_tags      - Display information about the tags found in the interface\n\
      -dump_top       - Display information on the entire node tree including system nodes\n\
      -dump_typedef   - Display information about the types and typedefs in the interface\n\
@@ -70,11 +72,11 @@ static const char *usage1 = (const char*)"\
      -features <list>- Set global features, where <list> is a comma separated list of\n\
                        features, eg -features directors,autodoc=1\n\
                        If no explicit value is given to the feature, a default of 1 is used\n\
-     -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
-     -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
 ";
 
 static const char *usage2 = (const char*)"\
+     -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
+     -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -help           - This output\n\
@@ -100,14 +102,14 @@ static const char *usage2 = (const char*)"\
      -noexcept       - Do not wrap exception specifiers\n\
      -nofastdispatch - Disable fast dispatch mode (default)\n\
      -nopreprocess   - Skip the preprocessor step\n\
+";
+
+static const char *usage3 = (const char*)"\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory <dir>\n\
      -small          - Compile in virtual elimination & compact mode\n\
-";
-
-static const char *usage3 = (const char*)"\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
@@ -145,8 +147,10 @@ static char   *outfile_name = 0;
 static char   *outfile_name_h = 0;
 static int     tm_debug = 0;
 static int     dump_tags = 0;
-static int     dump_tree = 0;
+static int     dump_top = 0;
 static int     dump_module = 0;
+static int     dump_parse_module = 0;
+static int     dump_parse_top = 0;
 static int     dump_xml = 0;
 static int     browse = 0;
 static int     dump_typedef = 0;
@@ -656,10 +660,16 @@ void SWIG_getoptions(int argc, char *argv[])
 	    dump_tags = 1;
 	    Swig_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-dump_tree") == 0) || (strcmp(argv[i],"-dump_top") == 0)) {
-	    dump_tree = 1;
+	    dump_top = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dump_module") == 0) {
 	    dump_module = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_parse_module") == 0) {
+	    dump_parse_module = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_parse_top") == 0) {
+	    dump_parse_top = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dump_xml") == 0) {
 	    dump_xml = 1;
@@ -989,6 +999,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     Node *top = Swig_cparse(cpps);
 
+    if (dump_parse_top) {
+      Swig_print_tree(top);
+    }
+    if (dump_parse_module) {
+      Swig_print_tree(Getattr(top,"module"));
+    }
+
     if (Verbose) {
       Printf(stdout,"Processing types...\n");
     }
@@ -1053,7 +1070,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	}
       }
     }
-    if (dump_tree) {
+    if (dump_top) {
       Swig_print_tree(top);
     }
     if (dump_module) {

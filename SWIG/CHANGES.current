@@ -2,6 +2,19 @@ Version 1.3.28 (unreleased).
 ===========================
 
 01/12/2006: mmatus
+	    - Add the -dump_parse_module and -dump_parse_top options,
+	    which are similar to -dump_module and -dump_top, but they
+	    dump the node trees just after parsing, showing only the 
+	    attributes visible at the parsing stage, and not the added
+	    later in typemap.cxx, allocate.cxx, lang.cxx or elsewhere.
+	    
+	    Besides debugging porpuses, these options are very useful
+	    if you plan to use %rename in an "advance way", since it
+	    shows only and all the node's attributes you can use
+	    inside the match rules.
+
+
+01/12/2006: mmatus
 	    - Add predicates to %rename, so, you don't need to
 	      remember, for example, how to match a member function.
 
@@ -381,8 +394,8 @@ Version 1.3.28 (unreleased).
 	        %rename("%(<my encoder for enums inside a class>)",match="enumitem",
 		        match$parentNode$parentNode$nodeType="class") "";
 		
-	      Use "swig -dump_module" to see the attribute names you can use to
-	      match an specific case.
+	      Use "swig -dump_parse_module" to see the attribute names you can use to
+	      match a specific case.
 	
             - 'sourcefmt' and 'targetfmt': sometimes you need to
               process the 'source' name before comparing, for example
