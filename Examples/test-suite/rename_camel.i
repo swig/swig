@@ -1,6 +1,7 @@
 %module rename_camel
 
 %rename("%(utitle)s",%isfunction,%ismember) ""; 
+%rename("%(ctitle)s",%isvariable,%ismember) ""; 
 
 %inline {
   struct GeometryFactory 

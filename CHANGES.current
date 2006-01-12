@@ -8,7 +8,11 @@ Version 1.3.28 (unreleased).
 	      Now it is easy, for example to use the 'utitle' encoder 
 	      in all the member methods, you type:
 
-	        %rename("%(utitle)s",%isfunction,%ismember) ""; 
+	        %rename("%(utitle)s",%isfunction,%ismember) "";
+
+	      or to ignore all the enumitems in a given class:
+
+	        %rename("$ignore", %isenumitem, %classname="MyClass") "";  
 
 	      Available predicates are (see swig.swg):
 
@@ -38,6 +42,13 @@ Version 1.3.28 (unreleased).
 					
 		%ismember       
 		%isglobal 
+		%innamespace
+
+		%ispublic    
+		%isprotected 
+		%isprivate   
+				     
+		%classname   
 
               These predicates correspond to specific 'match'
               declarations, which sometimes are not as evident as the
