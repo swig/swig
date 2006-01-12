@@ -6,6 +6,5 @@
 # Typical usage: make check | vcfilter
 
 # dos2unix needed for ^ and $ to work.
-# warning C4290: C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-2>&1 dos2unix | grep -v "\.cxx$" | grep -v "\.c$" | grep -v "^   Creating library" | grep -v "^Generating Code" | grep -v "warning C4290:"
+2>&1 dos2unix | grep -v "\.cxx$" | grep -v "\.c$" | grep -v "^   Creating library" | grep -v "^Generating Code"
 
