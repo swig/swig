@@ -221,6 +221,10 @@ static int NAME(TYPE x) {
 
      %rename("g_%(utitle)s", %isfunction, %isglobal) "";
 
+   - to ignore the enumitems in a given class:
+
+     %rename("$ignore", %isenumitem, %classname="MyClass") "";
+
 
 */
 
@@ -250,6 +254,13 @@ static int NAME(TYPE x) {
 
 %define %ismember       match$parentNode$nodeType="class"  %enddef
 %define %isglobal       notmatch$parentNode$nodeType="class"  %enddef
+%define %innamespace    match$parentNode$nodeType="namespace"  %enddef
+
+%define %ispublic       match$access="public"  %enddef
+%define %isprotected    match$access="protected"  %enddef
+%define %isprivate      match$access="public"  %enddef
+
+%define %classname      %ismember,match$parentNode$name  %enddef
 
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 
