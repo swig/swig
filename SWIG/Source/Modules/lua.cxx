@@ -221,7 +221,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* SWIG_import is a special function name for importing within Lua5.1 */
     Printf(f_header, "#define SWIG_import  luaopen_%s\n\n", module);
 
-    Printf(s_cmd_tab,   "\nstatic swig_lua_command_info swig_commands[] = {\n");
+    Printf(s_cmd_tab,   "\nstatic const struct luaL_reg swig_commands[] = {\n");
     Printf(s_var_tab,   "\nstatic swig_lua_var_info swig_variables[] = {\n");
     Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
     Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
@@ -577,7 +577,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n,"sym:overloaded")) {
 //      add_method(n, iname, wname, description);
-      Printv(s_cmd_tab, tab4, "{ \"", iname, "\", (swig_lua_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
+      Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
 //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
     } else {
 //      Setattr(n,"wrap:name", wname);
@@ -645,7 +645,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
     //add_method(symname,wname,0);
-	Printv(s_cmd_tab, tab4, "{ \"", symname, "\", (swig_lua_wrapper_func) ", wname, "},\n", NIL);
+	Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
 
     DelWrapper(f);
     Delete(dispatch);
