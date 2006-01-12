@@ -114,6 +114,11 @@ String *k_wrapdirectormap = 0;
 String *k_wrapdisown = 0;
 String *k_wrapper = 0;
 
+String *k_previoussibling = 0;
+String *k_nextsibling = 0;
+String *k_firstchild = 0;
+String *k_lastchild = 0;
+
 void Swig_keys_init() {
   empty_string = NewString("");
   k_1 = NewString("1");
@@ -227,4 +232,10 @@ void Swig_keys_init() {
   k_wrapdirectormap = NewString("wrap:directormap");
   k_wrapdisown = NewString("wrap:disown");
   k_wrapper = NewString("wrapper");
+
+
+  k_previoussibling = NewString("previousSibling");
+  k_nextsibling = NewString("nextSibling");
+  k_firstchild = NewString("firstChild");  
+  k_lastchild =	NewString("lastChild");
 }

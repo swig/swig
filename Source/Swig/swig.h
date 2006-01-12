@@ -353,13 +353,13 @@ extern ParmList   *ParmList_copy_all_except_last_parm(ParmList *p);
 /* --- Parse tree support --- */
 
 /* DOM-like node access */
-
-#define  nodeType(x)               Getattr(x,"nodeType")
-#define  parentNode(x)             Getattr(x,"parentNode")
-#define  previousSibling(x)        Getattr(x,"previousSibling")
-#define  nextSibling(x)            Getattr(x,"nextSibling")
-#define  firstChild(x)             Getattr(x,"firstChild")
-#define  lastChild(x)              Getattr(x,"lastChild")
+#include "swigkeys.h"
+#define  nodeType(x)               Getattr(x,k_nodetype)
+#define  parentNode(x)             Getattr(x,k_parentnode)
+#define  previousSibling(x)        Getattr(x,k_previoussibling)
+#define  nextSibling(x)            Getattr(x,k_nextsibling)
+#define  firstChild(x)             Getattr(x,k_firstchild)
+#define  lastChild(x)              Getattr(x,k_lastchild)
 extern int checkAttribute(Node *obj, const String_or_char *name, const String_or_char *value);
 
 /* Macros to set up the DOM tree (mostly used by the parser) */
