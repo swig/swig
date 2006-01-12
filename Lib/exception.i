@@ -258,6 +258,11 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
   }
 %enddef
 
+/* rethrow the unknown exception */
+
+%typemap(throws,noblock=1) (...) {
+  SWIG_exception(SWIG_RuntimeError,"unknown exception");
+}
 
 #endif /* __cplusplus */
 
