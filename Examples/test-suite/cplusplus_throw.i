@@ -5,6 +5,12 @@
 
 %module cplusplus_throw
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+%}
+
 %nodefaultctor;
 
 %inline %{
