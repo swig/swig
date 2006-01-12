@@ -45,6 +45,21 @@ namespace swig
 }  
 }
 
+namespace swig {
+  %catches(swig::stop_iteration) PySwigIterator::value() const;
+  %catches(swig::stop_iteration) PySwigIterator::incr(size_t n = 1);
+  %catches(swig::stop_iteration) PySwigIterator::decr(size_t n = 1);
+  %catches(std::invalid_argument) PySwigIterator::distance(const PySwigIterator &x) const;
+  %catches(std::invalid_argument) PySwigIterator::equal (const PySwigIterator &x) const;
+  %catches(swig::stop_iteration) PySwigIterator::next();
+  %catches(swig::stop_iteration) PySwigIterator::previous();
+  %catches(swig::stop_iteration) PySwigIterator::advance(ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator += (ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator -= (ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator + (ptrdiff_t n) const;
+  %catches(swig::stop_iteration) PySwigIterator::operator - (ptrdiff_t n) const;
+}
+
 %inline {
 namespace swig {
   struct stop_iteration
@@ -65,24 +80,24 @@ namespace swig {
     virtual ~PySwigIterator() {}
 
     // Access iterator method, required by Python
-    virtual PyObject *value() const throw (stop_iteration) = 0;
+    virtual PyObject *value() const = 0;
 
     // Forward iterator method, required by Python
-    virtual PySwigIterator *incr(size_t n = 1) throw (stop_iteration) = 0;
+    virtual PySwigIterator *incr(size_t n = 1) = 0;
     
     // Backward iterator method, very common in C++, but not required in Python
-    virtual PySwigIterator *decr(size_t n = 1) throw (stop_iteration) 
+    virtual PySwigIterator *decr(size_t n = 1)
     {
       throw stop_iteration();
     }
 
     // Random access iterator methods, but not required in Python
-    virtual ptrdiff_t distance(const PySwigIterator &x) const throw (std::invalid_argument)
+    virtual ptrdiff_t distance(const PySwigIterator &x) const
     {
       throw std::invalid_argument("operation not supported");
     }
 
-    virtual bool equal (const PySwigIterator &x) const throw (std::invalid_argument) 
+    virtual bool equal (const PySwigIterator &x) const
     {
       throw std::invalid_argument("operation not supported");
     }
@@ -90,24 +105,20 @@ namespace swig {
     // C++ common/needed methods
     virtual PySwigIterator *copy() const = 0;
 
-  public:
-
-
-      
-    PyObject *next() throw (stop_iteration)
+    PyObject *next()
     {
       PyObject *obj = value();
       incr();
       return obj;
     }
 
-    PyObject *previous() throw (stop_iteration)
+    PyObject *previous()
     {
       decr();
       return value();
     }
 
-    PySwigIterator *advance(ptrdiff_t n) throw (stop_iteration)
+    PySwigIterator *advance(ptrdiff_t n)
     {
       return  (n > 0) ?  incr(n) : decr(-n);
     }
@@ -122,22 +133,22 @@ namespace swig {
       return ! operator==(x);
     }
       
-    PySwigIterator& operator += (ptrdiff_t n) throw (stop_iteration)
+    PySwigIterator& operator += (ptrdiff_t n)
     {
       return *advance(n);
     }
 
-    PySwigIterator& operator -= (ptrdiff_t n) throw (stop_iteration)
+    PySwigIterator& operator -= (ptrdiff_t n)
     {
       return *advance(-n);
     }
       
-    PySwigIterator* operator + (ptrdiff_t n) const throw (stop_iteration)
+    PySwigIterator* operator + (ptrdiff_t n) const
     {
       return copy()->advance(n);
     }
 
-    PySwigIterator* operator - (ptrdiff_t n) const throw (stop_iteration)
+    PySwigIterator* operator - (ptrdiff_t n) const
     {
       return copy()->advance(-n);
     }
