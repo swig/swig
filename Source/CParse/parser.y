@@ -230,7 +230,6 @@ static String *add_oldname = 0;
 
 
 
-
 static String *make_name(Node *n, String *name,SwigType *decl) {
   int destructor = name && (*(Char(name)) == '~');
 
@@ -244,10 +243,6 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
   }
 
   if (!name) return 0;
-  /* Check to see if the name is in the hash */
-  if (inclass) {
-    set_parentNode(n,current_class);
-  }
   return Swig_name_make(n,Namespaceprefix,name,decl,add_oldname);
 }
 
@@ -282,6 +277,7 @@ static void add_symbols(Node *n) {
     String *old_prefix = 0;
     Symtab *old_scope = 0;
     int isfriend = inclass && is_friend(n);
+    int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     if (inclass) {
       String *name = Getattr(n, k_name);
       if (isfriend) {
@@ -324,27 +320,34 @@ static void add_symbols(Node *n) {
 	  }
 	  Delete(prefix);
 	}
+
+	set_parentNode(n,current_class);
+	Setattr(n,"memberof",current_class);
       }
     }
-    if (!isfriend && inclass && (cplus_mode != CPLUS_PUBLIC)) {
-      int only_csymbol = 1;
-      if (cplus_mode == CPLUS_PROTECTED) {
-	Setattr(n,k_access, "protected");
-	only_csymbol = !Swig_need_protected(n);
-      } else {
-	/* private are needed only when they are pure virtuals */
-	Setattr(n,k_access, "private");
+    if (!isfriend && inclass) {
+      if ((cplus_mode != CPLUS_PUBLIC)) {
+	int only_csymbol = 1;
+	if (cplus_mode == CPLUS_PROTECTED) {
+	  Setattr(n,k_access, "protected");
+	  only_csymbol = !Swig_need_protected(n);
+	} else {
+	  /* private are needed only when they are pure virtuals */
+	  Setattr(n,k_access, "private");
 	if ((Cmp(Getattr(n,k_storage),"virtual") == 0) 
 	    && (Cmp(Getattr(n,k_value),"0") == 0)) {
 	  only_csymbol = !Swig_need_protected(n);
 	}    
-      }
-      if (only_csymbol) {
-	/* Only add to C symbol table and continue */
-	Swig_symbol_add(0, n); 
-	if (add_only_one) break;
-	n = nextSibling(n);
-	continue;
+	}
+	if (only_csymbol) {
+	  /* Only add to C symbol table and continue */
+	  Swig_symbol_add(0, n); 
+	  if (add_only_one) break;
+	  n = nextSibling(n);
+	  continue;
+	}
+      } else {
+	  Setattr(n,k_access, "public");
       }
     }
     if (Getattr(n,k_symname)) {
@@ -354,6 +357,21 @@ static void add_symbols(Node *n) {
     decl = Getattr(n,k_decl);
     if (!SwigType_isfunction(decl)) {
       String *makename = Getattr(n,"parser:makename");
+      if (iscdecl) {	
+	String *storage = Getattr(n, k_storage);
+	if (Cmp(storage,"typedef") == 0) {
+	  Setattr(n,k_kind,"typedef");
+	} else {
+	  SwigType *type  = Getattr(n, k_type);
+	  Setattr(n,k_kind,"variable");
+	  if (type && !SwigType_ismutable(type)) {
+	    SetFlag(n,"feature:immutable");
+	  }
+	  if (!type) {
+	    Printf(stderr,"notype name %s\n", Getattr(n,"name"));
+	  }
+	}
+      }
       if (makename) {
 	symname = make_name(n, makename,0);
         Delattr(n,"parser:makename"); /* temporary information, don't leave it hanging around */
@@ -372,6 +390,9 @@ static void add_symbols(Node *n) {
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
+      if (iscdecl) {	
+	Setattr(n,k_kind,"function");
+      }
 
       symname = make_name(n, Getattr(n,k_name),fun);
       wrn = Swig_name_warning(n, Namespaceprefix,symname,fun);
