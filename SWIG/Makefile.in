@@ -78,6 +78,7 @@ check-aliveness:
 	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 	@$(skip-lua)      || ./$(TARGET) -lua      -help
 
+# Checks examples for compilation (does not run them)
 check-examples:					\
 	check-tcl-examples			\
 	check-perl5-examples			\
@@ -114,38 +115,6 @@ check-%-examples:
 	    fi;							\
 	  done;							\
 	fi;							\
-	test $$passed = true
-
-# Checks testcases in the test-suite excluding those which are known to be broken
-check-test-suite:				\
-	check-tcl-test-suite			\
-	check-perl5-test-suite			\
-	check-python-test-suite			\
-	check-java-test-suite			\
-	check-guilescm-test-suite		\
-	check-guile-test-suite			\
-	check-mzscheme-test-suite		\
-	check-ruby-test-suite			\
-	check-ocaml-test-suite			\
-	check-php4-test-suite			\
-	check-pike-test-suite			\
-	check-csharp-test-suite			\
-	check-modula3-test-suite		\
-	check-lua-test-suite			\
-	check-allegrocl-test-suite		\
-#	check-chicken-test-suite
-
-check-%-test-suite:
-	@passed=true;							\
-	dir="Examples/test-suite/$*";					\
-	if $(skip-$*); then						\
-	  echo skipping $* test-suite $(ACTION);			\
-	elif [ ! -d $$dir ]; then					\
-	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
-	else								\
-	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
-	  || passed=false;						\
-	fi;								\
 	test $$passed = true
 
 gifplot-library:
@@ -186,12 +155,41 @@ check-%-gifplot: gifplot-library
 	fi;							\
 	test $$passed = true
 
+# Checks testcases in the test-suite excluding those which are known to be broken
+check-test-suite:				\
+	check-tcl-test-suite			\
+	check-perl5-test-suite			\
+	check-python-test-suite			\
+	check-java-test-suite			\
+	check-guilescm-test-suite		\
+	check-guile-test-suite			\
+	check-mzscheme-test-suite		\
+	check-ruby-test-suite			\
+	check-ocaml-test-suite			\
+	check-php4-test-suite			\
+	check-pike-test-suite			\
+	check-csharp-test-suite			\
+	check-modula3-test-suite		\
+	check-lua-test-suite			\
+	check-allegrocl-test-suite		\
+#	check-chicken-test-suite
+
+check-%-test-suite:
+	@passed=true;							\
+	dir="Examples/test-suite/$*";					\
+	if $(skip-$*); then						\
+	  echo skipping $* test-suite $(ACTION);			\
+	elif [ ! -d $$dir ]; then					\
+	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
+	else								\
+	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
+	  || passed=false;						\
+	fi;								\
+	test $$passed = true
+
 check: check-aliveness check-examples check-gifplot check-test-suite
 
-#####################################################################
-# ALL TEST SUITE: Known broken and broken testcases in the test-suite
-#####################################################################
-
+# Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
 	all-tcl-test-suite			\
 	all-perl5-test-suite			\
@@ -213,10 +211,7 @@ all-test-suite:					\
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
 
-#####################################################################
-# BROKEN: Known broken tests in the test-suite
-#####################################################################
-
+# Run known-to-be-broken testcases in the test-suite
 broken-test-suite:				\
 	broken-tcl-test-suite			\
 	broken-perl5-test-suite			\
