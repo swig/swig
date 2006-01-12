@@ -440,6 +440,12 @@ int CFFI :: enumDeclaration(Node *n) {
 
 // Includes structs
 void CFFI :: emit_struct_union(Node *n, bool un=false) {
+#ifdef CFFI_DEBUG
+  Printf(stderr, "struct/union %s\n", Getattr(n, "name"));
+  Printf(stderr, "struct/union %s\n and %s",
+         Getattr(n,"kind"),Getattr(n,"sym:name"));
+#endif
+
   String *name=Getattr(n, "sym:name");
   String *kind = Getattr(n,"kind");
   
@@ -454,19 +460,24 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
     Printf(f_cl,"\n(defcunion %s",name);
   else
     Printf(f_cl,"\n(defcstruct %s",name);
-
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
+#ifdef CFFI_DEBUG
+    Printf(stderr, "%d struct/union %s\n", Getattr(c, "name"));
+    Printf(stderr, "%d struct/union %s and %s \n",
+         Getattr(c,"kind"),Getattr(c,"sym:name"));
+#endif
 
-    if (Strcmp(nodeType(c), "cdecl")) {
-      Printf(stderr, "Structure %s has a slot that we can't deal with.\n",
-             name);
-      Printf(stderr, "nodeType: %s, name: %s, type: %s\n", 
-             nodeType(c),
-             Getattr(c, "name"),
-             Getattr(c, "type"));
-      SWIG_exit(EXIT_FAILURE);
-    }
-
+     if (Strcmp(nodeType(c), "cdecl")) {
+       //C declaration ignore
+//        Printf(stderr, "Structure %s has a slot that we can't deal with.\n",
+//               name);
+//        Printf(stderr, "nodeType: %s, name: %s, type: %s\n", 
+//               nodeType(c),
+//               Getattr(c, "name"),
+//               Getattr(c, "type"));
+       //       SWIG_exit(EXIT_FAILURE);
+     }
+     else{
     String *temp=Copy(Getattr(c,"decl"));
     Append(temp,Getattr(c,"type")); //appending type to the end, otherwise wrong type
     String *lisp_type=Swig_typemap_lookup_new("cin",c, "",0);
@@ -479,6 +490,7 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
            lisp_type);
 
     Delete(lisp_type);
+     }
   }
   
   Printf(f_cl, ")\n");
