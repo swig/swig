@@ -1050,7 +1050,9 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list,
       Getattr(nameobj,k_matchlist)) {
     if (decl) Setattr(nameobj,k_decl, decl);
     if (nname && Len(nname)) Setattr(nameobj,k_targetname, nname);
-    Append(name_list, nameobj);
+    /* put the new nameobj at the beginnig of the list, such that the
+       last inserted rule take precedence */
+    Insert(name_list, 0, nameobj);
   } else {
     /* here we add an old 'hash' nameobj, simple and fast */
     Swig_name_object_set(name_hash,nname,decl,nameobj);
