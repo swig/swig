@@ -219,34 +219,37 @@ static int NAME(TYPE x) {
 
    - to rename only the global functions:
 
-     %rename("g_%(utitle)s", %isfunction, %isnotmember) "";
+     %rename("g_%(utitle)s", %isfunction, %isglobal) "";
 
 
 */
 
-#define %isenum         match="enum"
-#define %isenumitem     match="enumitem"
-#define %isaccess       match="access" 
-#define %isclass        match="class" 
-#define %isextend       match="extend"
-#define %isextend       match="extend"
-#define %isconstructor  match="constructor"
-#define %isdestructor   match="destructor"
-#define %isnamespace    match="namespace"
-#define %istemplate     match="template"
+%define %isenum         match="enum"  %enddef
+%define %isenumitem     match="enumitem"  %enddef
+%define %isaccess       match="access"   %enddef
+%define %isclass        match="class"   %enddef
+%define %isextend       match="extend"  %enddef
+%define %isextend       match="extend"  %enddef
+%define %isconstructor  match="constructor"  %enddef
+%define %isdestructor   match="destructor"  %enddef
+%define %isnamespace    match="namespace"  %enddef
+%define %istemplate     match="template"  %enddef
+%define %isconstant     match="constant"  %enddef
 
-#define %isunion        match$kind="union"
-#define %isfunction     match="cdecl",notmatch$decl=""
+%define %isunion        match$kind="union"  %enddef
+%define %isfunction     match$kind="function"  %enddef
+%define %isvariable     match$kind="variable"  %enddef
+%define %isimmutable    "match$feature:immutable"="1"  %enddef
 
-#define %isstatic       match$storage="static"
-#define %isfriend       match$storage="friend"
-#define %istypedef      match$storage="typedef"
-#define %isvirtual      match$storage="virtual"
-#define %isexplicit     match$storage="explicit"
-#define %isextern       match$storage="extern"
+%define %isstatic       match$storage="static"  %enddef
+%define %isfriend       match$storage="friend"  %enddef
+%define %istypedef      match$storage="typedef"  %enddef
+%define %isvirtual      match$storage="virtual"  %enddef
+%define %isexplicit     match$storage="explicit"  %enddef
+%define %isextern       match$storage="extern"  %enddef
 
-#define %ismember       match$parentNode$nodeType="class"     
-#define %isnotmember    notmatch$parentNode$nodeType="class"
+%define %ismember       match$parentNode$nodeType="class"  %enddef
+%define %isglobal       notmatch$parentNode$nodeType="class"  %enddef
 
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 

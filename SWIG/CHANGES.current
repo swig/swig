@@ -1,5 +1,57 @@
 Version 1.3.28 (unreleased).
 ===========================
+
+01/12/2006: mmatus
+	    - Add predicates to %rename, so, you don't need to
+	      remember, for example, how to match a member function.
+
+	      Now it is easy, for example to use the 'utitle' encoder 
+	      in all the member methods, you type:
+
+	        %rename("%(utitle)s",%isfunction,%ismember) ""; 
+
+	      Available predicates are (see swig.swg):
+
+                %isenum         
+		%isenumitem     
+		%isaccess       
+		%isclass        
+		%isextend       
+		%isextend       
+		%isconstructor  
+		%isdestructor   
+		%isnamespace    
+		%istemplate     
+		%isconstant     
+					
+		%isunion        
+		%isfunction     
+		%isvariable     
+		%isimmutable    
+					
+		%isstatic       
+		%isfriend       
+		%istypedef      
+		%isvirtual      
+		%isexplicit     
+		%isextern       
+					
+		%ismember       
+		%isglobal 
+
+              These predicates correspond to specific 'match'
+              declarations, which sometimes are not as evident as the
+              predicates names.
+
+
+            - Add the or '|' operation in %rename match, for
+              example to capitalize all the constants (%constant or
+              const cdecl):
+
+                 %rename("%(upper)s",match="cdecl|constant",%isimmutable) "";
+                
+
+
 01/12/2006: mgossage
 	    -	Partial fixed of errors under C89, bug #1356574
 	    	(converted C++ style comments to C style)

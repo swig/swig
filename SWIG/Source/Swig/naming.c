@@ -1086,6 +1086,23 @@ static DOH *Swig_get_lattr(Node *n, List *lattr)
   return res;
 }
 
+int Swig_name_match_value(String *mvalue, String *value)
+{
+  int match = 0;
+  char *cvalue = Char(value);
+  char *cmvalue = Char(mvalue);
+  char *sep = strstr(cmvalue,"|");
+  while (sep && !match) {
+    match = strncmp(cvalue,cmvalue, sep - cmvalue) == 0;
+    cmvalue = sep + 1;
+    sep = strstr(cmvalue,"|");
+  }
+  if (!match) {
+    match = strcmp(cvalue,cmvalue) == 0;    
+  }
+  return match;
+}
+
 int Swig_name_match_nameobj(Hash *rn, Node *n) {
   int match = 1;
   List *matchlist = HashGetAttr(rn,k_matchlist);
@@ -1103,7 +1120,7 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
       match = 0;
       if (nval) {
 	String *kwval = Getattr(kw,k_value);
-	match = Equal(nval, kwval);
+	match = Swig_name_match_value(kwval, nval);
 #ifdef SWIG_DEBUG 
 	Printf(stderr,"val %s %s %d %d \n",nval, kwval,match, ilen);
 #endif
