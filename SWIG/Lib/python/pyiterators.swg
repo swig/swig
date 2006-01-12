@@ -161,7 +161,7 @@ namespace swig {
 }
 
 %fragment("PySwigIterator_T","header",fragment="StdTraits") {
-#include <iterator>  
+%#include <iterator>  
 namespace swig {
 
   template<typename OutIterator>
@@ -183,7 +183,7 @@ namespace swig {
     }
 
     
-    bool equal (const PySwigIterator &iter) const throw (std::invalid_argument)
+    bool equal (const PySwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -193,7 +193,7 @@ namespace swig {
       }
     }
     
-    ptrdiff_t distance(const PySwigIterator &iter) const throw (std::invalid_argument)
+    ptrdiff_t distance(const PySwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -237,7 +237,7 @@ namespace swig {
     {
     }
     
-    PyObject *value() const throw (stop_iteration) {
+    PyObject *value() const {
       return from(static_cast<const value_type&>(*(base::current)));
     }
     
@@ -246,7 +246,7 @@ namespace swig {
       return new self_type(*this);
     }
 
-    PySwigIterator *incr(size_t n = 1) throw (stop_iteration)
+    PySwigIterator *incr(size_t n = 1)
     {
       while (n--) {
 	++base::current;
@@ -254,7 +254,7 @@ namespace swig {
       return this;
     }
 
-    PySwigIterator *decr(size_t n = 1) throw (stop_iteration)
+    PySwigIterator *decr(size_t n = 1)
     {
       while (n--) {
 	--base::current;
@@ -280,7 +280,7 @@ namespace swig {
     {
     }
     
-    PyObject *value() const throw (stop_iteration) {
+    PyObject *value() const {
       if (base::current == end) {
 	throw stop_iteration();
       } else {
@@ -293,7 +293,7 @@ namespace swig {
       return new self_type(*this);
     }
 
-    PySwigIterator *incr(size_t n = 1) throw (stop_iteration)
+    PySwigIterator *incr(size_t n = 1)
     {
       while (n--) {
 	if (base::current == end) {
@@ -305,7 +305,7 @@ namespace swig {
       return this;
     }
 
-    PySwigIterator *decr(size_t n = 1) throw (stop_iteration)
+    PySwigIterator *decr(size_t n = 1)
     {
       while (n--) {
 	if (base::current == begin) {
