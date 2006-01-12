@@ -8,6 +8,10 @@
  * The Ruby global rename rules 
  * ------------------------------------------------------------ */
 
+/* Method names should be changed so that they are 
+   lower_case_with_underscores */
+%rename("%(utitle)s", %isfunction, %ismember) ""; 
+
 
 /* ------------------------------------------------------------
  *  Inner macros 
