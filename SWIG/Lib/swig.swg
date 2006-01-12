@@ -204,6 +204,51 @@ static int NAME(TYPE x) {
 
 
 /* -----------------------------------------------------------------------------
+ * %rename predicates
+ * ----------------------------------------------------------------------------- */
+/* 
+   Predicates to be used with %rename, for example:
+
+   - to rename all the functions:
+
+     %rename("%(utitle)s", %isfunction) "";
+
+   - to rename only the member methods:
+
+     %rename("m_%(utitle)s", %isfunction, %ismember) "";
+
+   - to rename only the global functions:
+
+     %rename("g_%(utitle)s", %isfunction, %isnotmember) "";
+
+
+*/
+
+#define %isenum         match="enum"
+#define %isenumitem     match="enumitem"
+#define %isaccess       match="access" 
+#define %isclass        match="class" 
+#define %isextend       match="extend"
+#define %isextend       match="extend"
+#define %isconstructor  match="constructor"
+#define %isdestructor   match="destructor"
+#define %isnamespace    match="namespace"
+#define %istemplate     match="template"
+
+#define %isunion        match$kind="union"
+#define %isfunction     match="cdecl",notmatch$decl=""
+
+#define %isstatic       match$storage="static"
+#define %isfriend       match$storage="friend"
+#define %istypedef      match$storage="typedef"
+#define %isvirtual      match$storage="virtual"
+#define %isexplicit     match$storage="explicit"
+#define %isextern       match$storage="extern"
+
+#define %ismember       match$parentNode$nodeType="class"     
+#define %isnotmember    notmatch$parentNode$nodeType="class"
+
+/* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 
  * ----------------------------------------------------------------------------- */
 
