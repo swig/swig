@@ -119,4 +119,8 @@ extern String *k_wrapdirectormap;
 extern String *k_wrapdisown;
 extern String *k_wrapper;
 
+extern String *k_previoussibling;
+extern String *k_nextsibling;
+extern String *k_firstchild;
+extern String *k_lastchild;
 #endif /* __Swig_swigkeys_h__ */

@@ -246,7 +246,7 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (inclass) {
-    Setattr(n,"parentNode",current_class);
+    set_parentNode(n,current_class);
   }
   return Swig_name_make(n,Namespaceprefix,name,decl,add_oldname);
 }
