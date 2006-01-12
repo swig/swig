@@ -195,11 +195,13 @@ String *Swig_string_utitle(String *s) {
 
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
-    if (isupper(c)) {
-      if (first) Putc('_',ns);
-      first = 0;
-    } else {
-      first = 1;
+    if (isalpha(c)) {
+      if (isupper(c)) {
+	if (first) Putc('_',ns);
+	first = 0;
+      } else {
+	first = 1;
+      }
     }
     Putc(tolower(c),ns);
   }
