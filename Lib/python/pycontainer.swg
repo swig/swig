@@ -100,7 +100,7 @@ namespace swig {
 
 %fragment("PySequence_Base","header")
 {
-#include <functional>
+%#include <functional>
 
 namespace std {
   template <>
