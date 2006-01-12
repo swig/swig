@@ -32,6 +32,14 @@ and non-commercial use.
 
 
 <p>
+<b>2006/01/12</b>
+SWIG has made it into the <a href="http://en.wikipedia.org/wiki/SWIG">Wikipedia</a>.
+
+<p>
+<b>2005/12/12</b>
+CodeGuru features an article on SWIG, <a href="http://codeguru.com/csharp/.net/net_asp/scripting/article.php/c11103">Expose Your C/C++ Program's Internal API with a Quick SWIG</a>.
+
+<p>
 <b>2005/10/29</b>
 The swig and swig-dev mailing lists hosted at the University of Chicago are being shut down. Please use the new swig-user and swig-devel lists at SourceForge, details on the <a href="http://www.swig.org/mail.html">mailing list page</a>.
 
