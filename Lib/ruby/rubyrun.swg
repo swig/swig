@@ -7,6 +7,9 @@
  *
  ************************************************************************/
 
+/* For backward compatibility only */
+#define SWIG_POINTER_EXCEPTION  0
+
 /* for raw pointers */
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Ruby_ConvertPtrAndOwn(obj, pptr, type, flags, 0)
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Ruby_ConvertPtrAndOwn(obj, pptr, type, flags, own)
