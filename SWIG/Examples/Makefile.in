@@ -938,7 +938,7 @@ lua_clean:
 allegrocl: $(SRCS)
 	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
-	$(LDSHARED) $(OBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 allegrocl_cpp: $(SRCS)
 	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACE)
