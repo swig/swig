@@ -65,11 +65,19 @@ std::string& test_reference_out() {
    return x;
 }
 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
 void test_throw() throw(std::string){
   static std::string x = "x";
   
   throw x;
 }
+
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
 
 
 std::basic_string<char> test_value_basic1(std::basic_string<char> x) {
