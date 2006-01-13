@@ -945,3 +945,5 @@ allegrocl_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
 
+allegrocl_clean:
+
