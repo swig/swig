@@ -221,14 +221,14 @@ String *Swig_string_ucase(String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_first_ucase(String *s) {
- String *ns = NewStringEmpty();
- char *cs = Char(s);
- if (cs) {
-   Putc(toupper(cs[0]),ns);
-   Append(ns, cs + 1);
+  String *ns = NewStringEmpty();
+  char *cs = Char(s);
+  if (cs && cs[0] != 0) {
+    Putc(toupper(cs[0]),ns);
+    Append(ns, cs + 1);
+  }
+  return ns;
 }
- return ns;
-} 
 
 /* -----------------------------------------------------------------------------
  * Swig_string_typecode()
