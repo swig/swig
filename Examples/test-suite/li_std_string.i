@@ -35,6 +35,10 @@ std::string& test_reference_out() {
    return x;
 }
 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
 void test_throw() throw(std::string){
   static std::string x = "test_throw message";
   throw x;
@@ -52,6 +56,10 @@ void test_pointer_throw() throw(std::string *) {
 void test_const_pointer_throw() throw(const std::string *) {
   throw new std::string("foo");
 }
+
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
 
 %}
 
