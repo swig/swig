@@ -363,8 +363,9 @@ static void add_symbols(Node *n) {
 	  Setattr(n,k_kind,"typedef");
 	} else {
 	  SwigType *type  = Getattr(n, k_type);
+	  String *value = Getattr(n,k_value);
 	  Setattr(n,k_kind,"variable");
-	  if (Getattr(n,k_value)) {
+	  if (value && Len(value)) {
 	    Setattr(n,"hasvalue","1");
 	  }
 	  if (type && !SwigType_ismutable(type)) {
