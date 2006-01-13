@@ -2,6 +2,15 @@ Version 1.3.28 (unreleased).
 ===========================
 
 01/12/2006: mmatus
+	    - Add aliases for 'case' encoders used with %rename/%namewarn
+
+	      %(uppercase)s   hello_world -> HELLO_WORLD
+	      %(lowercase)s   HelloWorld  -> helloworld
+	      %(camelcase)s   hello_world -> HelloWorld
+	      %(undercase)s   HelloWorld  -> hello_world
+
+
+01/12/2006: mmatus
 	    - Add the -dump_parse_module and -dump_parse_top options,
 	    which are similar to -dump_module and -dump_top, but they
 	    dump the node trees just after parsing, showing only the 

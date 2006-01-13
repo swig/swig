@@ -7,6 +7,7 @@
   struct GeometryFactory 
   {
     void createPointFromInternalCoord(int);
+    void BIG_METHOD(int);
   };  
 
   class ByteOrderValues {
