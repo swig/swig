@@ -6,7 +6,10 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 {
-  if (TYPE(obj) == T_STRING) {
+  /* Check for nil object first */
+  if (obj == Qnil) {
+    return SWIG_BADOBJ;
+  } else if (TYPE(obj) == T_STRING) {
     char *cstr = rb_string_value_ptr(&(obj)); 
     size_t size = RSTRING(obj)->len + 1;
     if (cptr)  {
