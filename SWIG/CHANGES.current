@@ -1,6 +1,11 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/12/2006: cfisavage
+	    Updated the Ruby module to automatically convert
+	    method names to lower_case_with_underscores using the
+	    new %rename functionality.
+
 01/12/2006: mmatus
 	    - Add aliases for 'case' encoders used with %rename/%namewarn
 
