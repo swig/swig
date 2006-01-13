@@ -936,14 +936,14 @@ lua_clean:
 ##################################################################
 
 allegrocl: $(SRCS)
-	$(SWIG) -allegrocl $(SWIGOPT) $(INTERFACE)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(SRCS) 
+	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
 	$(LDSHARED) $(OBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 allegrocl_cpp: $(SRCS)
 	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 allegrocl_clean:
 
