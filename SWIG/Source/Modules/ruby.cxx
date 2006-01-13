@@ -1521,15 +1521,11 @@ public:
     if (!name || name[0] == '\0')
       return name;
     
+    /* Check to see that constants start with an upper case
+       letter and if they don't raise a warning.  Note that 
+       renames are specified via %renames in ruby.swg. */
     if (isupper(name[0]))
       return name;
-    
-    if (islower(name[0])) {
-      name[0] = toupper(name[0]);
-      Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
-		   "Wrong %s name (corrected to `%s')\n", reason, name);
-      return name;
-    }
     
     Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
 		 "Wrong %s name %s\n", reason, name);
