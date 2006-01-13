@@ -159,6 +159,7 @@ String *Swig_string_title(String *s) {
  * capitalized and the one following '_', which are removed.
  *
  *      camel_case -> CamelCase
+ *      camelCase  -> CamelCase
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_ctitle(String *s) {
@@ -173,7 +174,7 @@ String *Swig_string_ctitle(String *s) {
       first = 1;
       continue;
     }
-    Putc(first ? toupper(c) : tolower(c),ns);
+    Putc(first ? toupper(c) : c, ns);
     first = 0;
   }
   return ns;
