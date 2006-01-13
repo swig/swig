@@ -149,10 +149,10 @@ char *fid(double, double) {
 %}
 
 %inline %{
-void ull() {}
-void ull(unsigned long long ull) {}
-void ll() {}
-void ll(long long ull) {}
+unsigned long long ull() { return 0ULL; }
+unsigned long long ull(unsigned long long ull) { return ull; }
+long long ll() { return 0LL; }
+long long ll(long long ull) { return ull; }
 %}
 
 %include cmalloc.i
