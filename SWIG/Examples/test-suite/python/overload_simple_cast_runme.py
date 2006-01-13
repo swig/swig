@@ -159,7 +159,33 @@ if s.type != "void *":
     raise RuntimeError, "Spam(void *)"
 
 
+# unsigned long long
+ullmax = 9223372036854775807 #0xffffffffffffffff
+ullmaxd = 9223372036854775807.0
+ullmin = 0
+ullmind = 0.0
+if ull(ullmin) != ullmin:
+    raise runtimeerror, "ull(ullmin)"
+if ull(ullmax) != ullmax:
+    raise runtimeerror, "ull(ullmax)"
+if ull(ullmind) != ullmind:
+    raise RuntimeError, "ull(ullmind)"
+if ull(ullmaxd) != ullmaxd:
+    raise RuntimeError, "ull(ullmaxd)"
 
+# long long
+llmax = 9223372036854775807 #0x7fffffffffffffff
+llmaxd = 9223372036854775807.0
+llmin = -9223372036854775808
+llmind = -9223372036854775808.0
+if ll(llmin) != llmin:
+    raise runtimeerror, "ll(llmin)"
+if ll(llmax) != llmax:
+    raise runtimeerror, "ll(llmax)"
+if ll(llmind) != llmind:
+    raise RuntimeError, "ll(llmind)"
+if ll(llmaxd) != llmaxd:
+    raise RuntimeError, "ll(llmaxd)"
 
 
 free_void(v)
