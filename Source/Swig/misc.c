@@ -210,6 +210,27 @@ String *Swig_string_ucase(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_first_ucase()
+ *
+ * Make the first character in the string uppercase, leave all the 
+ * rest the same.  This is used by the Ruby module to provide backwards
+ * compatibility with the old way of naming classes and constants.  For
+ * more info see the Ruby documentation.
+ *
+ *      firstUpper -> FirstUpper 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_first_ucase(String *s) {
+ String *ns = NewStringEmpty();
+ char *cs = Char(s);
+ if (cs) {
+   Putc(toupper(cs[0]),ns);
+   Append(ns, cs + 1);
+}
+ return ns;
+} 
+
+/* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
  * Takes a string with possible type-escapes in it and replaces them with
@@ -736,6 +757,7 @@ Swig_init() {
   DohEncoding("lowercase", Swig_string_lower);
   DohEncoding("camelcase", Swig_string_ccase);
   DohEncoding("undercase", Swig_string_ucase);
+  DohEncoding("firstuppercase", Swig_string_first_ucase);
 
   /* Initialize the swig keys */
   Swig_keys_init();
