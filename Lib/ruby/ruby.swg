@@ -7,6 +7,11 @@
 /* ------------------------------------------------------------
  * The Ruby global rename rules 
  * ------------------------------------------------------------ */
+/* Class names are CamelCase */
+%rename("%(ctitle)s", %isclass) ""; 
+
+/* Constants are UPPER_CASE */
+%rename("%(upper)s", %isconstant) ""; 
 
 /* Method names should be changed so that they are 
    lower_case_with_underscores */
