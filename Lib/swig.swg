@@ -246,6 +246,7 @@ static int NAME(TYPE x) {
 %define %isfunction     match$kind="function"  %enddef
 %define %isvariable     match$kind="variable"  %enddef
 %define %isimmutable    "match$feature:immutable"="1"  %enddef
+%define %hasvalue       match$hasvalue="1"  %enddef
 
 %define %isstatic       match$storage="static"  %enddef
 %define %isfriend       match$storage="friend"  %enddef
@@ -254,7 +255,7 @@ static int NAME(TYPE x) {
 %define %isexplicit     match$storage="explicit"  %enddef
 %define %isextern       match$storage="extern"  %enddef
 
-%define %ismember       match$parentNode$nodeType="class"  %enddef
+%define %ismember       match$ismember="1"  %enddef
 %define %isglobal       notmatch$parentNode$nodeType="class"  %enddef
 %define %innamespace    match$parentNode$nodeType="namespace"  %enddef
 

@@ -322,7 +322,7 @@ static void add_symbols(Node *n) {
 	}
 
 	set_parentNode(n,current_class);
-	Setattr(n,"memberof",current_class);
+	Setattr(n,"ismember","1");
       }
     }
     if (!isfriend && inclass) {
@@ -364,6 +364,9 @@ static void add_symbols(Node *n) {
 	} else {
 	  SwigType *type  = Getattr(n, k_type);
 	  Setattr(n,k_kind,"variable");
+	  if (Getattr(n,k_value)) {
+	    Setattr(n,"hasvalue","1");
+	  }
 	  if (type && !SwigType_ismutable(type)) {
 	    SetFlag(n,"feature:immutable");
 	  }
