@@ -111,77 +111,77 @@ List *Preprocessor_depend(void) {
 /* -----------------------------------------------------------------------------
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
-static String *k_args = 0;
-static String *k_define = 0;
-static String *k_defined = 0;
-static String *k_elif = 0;
-static String *k_else = 0;
-static String *k_endif = 0;
-static String *k_expanded = 0;
-static String *k_if = 0;
-static String *k_ifdef = 0;
-static String *k_ifndef = 0;
-static String *k_name = 0;
-static String *k_swigmacro = 0;
-static String *k_symbols = 0;
-static String *k_undef = 0;
-static String *k_value = 0;
-static String *k_varargs = 0;
-static String *k_error = 0;
-static String *k_warning = 0;
-static String *k_line = 0;
-static String *k_include = 0;
-static String *k_pragma = 0;
-static String *k_level = 0;
+static String *kpp_args = 0;
+static String *kpp_define = 0;
+static String *kpp_defined = 0;
+static String *kpp_elif = 0;
+static String *kpp_else = 0;
+static String *kpp_endif = 0;
+static String *kpp_expanded = 0;
+static String *kpp_if = 0;
+static String *kpp_ifdef = 0;
+static String *kpp_ifndef = 0;
+static String *kpp_name = 0;
+static String *kpp_swigmacro = 0;
+static String *kpp_symbols = 0;
+static String *kpp_undef = 0;
+static String *kpp_value = 0;
+static String *kpp_varargs = 0;
+static String *kpp_error = 0;
+static String *kpp_warning = 0;
+static String *kpp_line = 0;
+static String *kpp_include = 0;
+static String *kpp_pragma = 0;
+static String *kpp_level = 0;
 
-static String *k_dline = 0;
-static String *k_ddefine = 0;
-static String *k_dinclude = 0;
-static String *k_dimport = 0;
-static String *k_dextern = 0;
+static String *kpp_dline = 0;
+static String *kpp_ddefine = 0;
+static String *kpp_dinclude = 0;
+static String *kpp_dimport = 0;
+static String *kpp_dextern = 0;
 
-static String *k_LINE = 0;
-static String *k_FILE = 0;
+static String *kpp_LINE = 0;
+static String *kpp_FILE = 0;
 
 void Preprocessor_init(void) {
   Hash *s;
 
-  k_args = NewString("args");
-  k_define = NewString("define");
-  k_defined = NewString("defined");
-  k_else = NewString("else");
-  k_elif = NewString("elif");
-  k_endif = NewString("endif");
-  k_expanded = NewString("*expanded*");
-  k_if = NewString("if");
-  k_ifdef = NewString("ifdef");
-  k_ifndef = NewString("ifndef");
-  k_name = NewString("name");
-  k_swigmacro = NewString("swigmacro");
-  k_symbols = NewString("symbols");
-  k_undef = NewString("undef");
-  k_value = NewString("value");
-  k_error = NewString("error");
-  k_warning = NewString("warning");
-  k_pragma = NewString("pragma");
-  k_level = NewString("level");
-  k_line = NewString("line");
-  k_include = NewString("include");
-  k_varargs = NewString("varargs");
+  kpp_args = NewString("args");
+  kpp_define = NewString("define");
+  kpp_defined = NewString("defined");
+  kpp_else = NewString("else");
+  kpp_elif = NewString("elif");
+  kpp_endif = NewString("endif");
+  kpp_expanded = NewString("*expanded*");
+  kpp_if = NewString("if");
+  kpp_ifdef = NewString("ifdef");
+  kpp_ifndef = NewString("ifndef");
+  kpp_name = NewString("name");
+  kpp_swigmacro = NewString("swigmacro");
+  kpp_symbols = NewString("symbols");
+  kpp_undef = NewString("undef");
+  kpp_value = NewString("value");
+  kpp_error = NewString("error");
+  kpp_warning = NewString("warning");
+  kpp_pragma = NewString("pragma");
+  kpp_level = NewString("level");
+  kpp_line = NewString("line");
+  kpp_include = NewString("include");
+  kpp_varargs = NewString("varargs");
 
-  k_dinclude = NewString("%include");
-  k_dimport = NewString("%import");
-  k_dextern = NewString("%extern");
-  k_ddefine = NewString("%define");
-  k_dline = NewString("%line");
+  kpp_dinclude = NewString("%include");
+  kpp_dimport = NewString("%import");
+  kpp_dextern = NewString("%extern");
+  kpp_ddefine = NewString("%define");
+  kpp_dline = NewString("%line");
 
 
-  k_LINE = NewString("__LINE__");
-  k_FILE = NewString("__FILE__");
+  kpp_LINE = NewString("__LINE__");
+  kpp_FILE = NewString("__FILE__");
 
   cpp = NewHash();
   s =   NewHash();
-  Setattr(cpp,k_symbols,s);
+  Setattr(cpp,kpp_symbols,s);
   Delete(s);
   Preprocessor_expr_init();            /* Initialize the expression evaluator */
   included_files = NewHash();
@@ -191,38 +191,38 @@ void Preprocessor_init(void) {
 }
 
 void Preprocessor_delete(void) {
-  Delete(k_args);
-  Delete(k_define);
-  Delete(k_defined);
-  Delete(k_else);
-  Delete(k_elif);
-  Delete(k_endif);
-  Delete(k_expanded);
-  Delete(k_if);
-  Delete(k_ifdef);
-  Delete(k_ifndef);
-  Delete(k_name);
-  Delete(k_swigmacro);
-  Delete(k_symbols);
-  Delete(k_undef);
-  Delete(k_value);
-  Delete(k_error);
-  Delete(k_warning);
-  Delete(k_pragma);
-  Delete(k_level);
-  Delete(k_line);
-  Delete(k_include);
-  Delete(k_varargs);
+  Delete(kpp_args);
+  Delete(kpp_define);
+  Delete(kpp_defined);
+  Delete(kpp_else);
+  Delete(kpp_elif);
+  Delete(kpp_endif);
+  Delete(kpp_expanded);
+  Delete(kpp_if);
+  Delete(kpp_ifdef);
+  Delete(kpp_ifndef);
+  Delete(kpp_name);
+  Delete(kpp_swigmacro);
+  Delete(kpp_symbols);
+  Delete(kpp_undef);
+  Delete(kpp_value);
+  Delete(kpp_error);
+  Delete(kpp_warning);
+  Delete(kpp_pragma);
+  Delete(kpp_level);
+  Delete(kpp_line);
+  Delete(kpp_include);
+  Delete(kpp_varargs);
 
-  Delete(k_dinclude);
-  Delete(k_dimport);
-  Delete(k_dextern);
-  Delete(k_ddefine);
-  Delete(k_dline);
+  Delete(kpp_dinclude);
+  Delete(kpp_dimport);
+  Delete(kpp_dextern);
+  Delete(kpp_ddefine);
+  Delete(kpp_dline);
 
 
-  Delete(k_LINE);
-  Delete(k_FILE);
+  Delete(kpp_LINE);
+  Delete(kpp_FILE);
   Delete(cpp);
   Delete(included_files);
   Preprocessor_expr_delete();
@@ -473,24 +473,24 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* Go create the macro */
   macro = NewHash();
-  Setattr(macro,k_name,macroname);
+  Setattr(macro,kpp_name,macroname);
 
   if (arglist) {
-    Setattr(macro,k_args,arglist);
+    Setattr(macro,kpp_args,arglist);
     Delete(arglist);
     if (varargs) {
-      Setattr(macro,k_varargs,"1");
+      Setattr(macro,kpp_varargs,"1");
     }
   }
-  Setattr(macro,k_value,macrovalue);
+  Setattr(macro,kpp_value,macrovalue);
   Setline(macro,line);
   Setfile(macro,file);
   if (swigmacro) {
-    Setattr(macro,k_swigmacro,"1");
+    Setattr(macro,kpp_swigmacro,"1");
   }
-  symbols = HashGetAttr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,kpp_symbols);
   if ((m1 = HashGetAttr(symbols,macroname))) {
-    if (!HashCheckAttr(m1,k_value,macrovalue)) {
+    if (!HashCheckAttr(m1,kpp_value,macrovalue)) {
       Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
       Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
       goto macro_error;
@@ -525,7 +525,7 @@ void Preprocessor_undef(const String_or_char *str)
 {
   Hash *symbols;
   assert(cpp);
-  symbols = HashGetAttr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,kpp_symbols);
   Delattr(symbols,str);
 }
 
@@ -687,13 +687,13 @@ expand_macro(String *name, List *args)
   int i, l;
   int isvarargs = 0;
 
-  symbols = HashGetAttr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,kpp_symbols);
   if (!symbols) return 0;
 
   /* See if the name is actually defined */
   macro = HashGetAttr(symbols,name);
   if (!macro) return 0;
-  if (HashGetAttr(macro,k_expanded)) {
+  if (HashGetAttr(macro,kpp_expanded)) {
     ns = NewStringEmpty();
     StringAppend(ns,name);
     if (args) {
@@ -711,11 +711,11 @@ expand_macro(String *name, List *args)
   }
 
   /* Get macro arguments and value */
-  mvalue = HashGetAttr(macro,k_value);
+  mvalue = HashGetAttr(macro,kpp_value);
   assert(mvalue);
-  margs = HashGetAttr(macro,k_args);
+  margs = HashGetAttr(macro,kpp_args);
 
-  if (args && HashGetAttr(macro,k_varargs)) {
+  if (args && HashGetAttr(macro,kpp_varargs)) {
     isvarargs = 1;
     /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
     if (Len(args) >= (Len(margs)-1)) {
@@ -869,14 +869,14 @@ expand_macro(String *name, List *args)
   Replace(ns,"\004","#@",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
 
   /* Expand this macro even further */
-  Setattr(macro,k_expanded,"1"); 
+  Setattr(macro,kpp_expanded,"1"); 
 
   e = Preprocessor_replace(ns);
 
-  Delattr(macro,k_expanded);
+  Delattr(macro,kpp_expanded);
   Delete(ns);
 
-  if (HashGetAttr(macro,k_swigmacro)) {
+  if (HashGetAttr(macro,kpp_swigmacro)) {
     String *g;
     String *f = NewStringEmpty();
     Seek(e,0,SEEK_SET);
@@ -936,7 +936,7 @@ Preprocessor_replace(DOH *s)
   String   *id = NewStringEmpty();
   
   assert(cpp);
-  symbols = HashGetAttr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,kpp_symbols);
 
   ns = NewStringEmpty();
   copy_location(s,ns);
@@ -971,7 +971,7 @@ Preprocessor_replace(DOH *s)
 	/* We found the end of a valid identifier */
 	StringUngetc(c,s);
 	/* See if this is the special "defined" macro */
-	if (StringEqual(k_defined,id)) {
+	if (StringEqual(kpp_defined,id)) {
 	  int lenargs = 0;
 	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
@@ -1015,12 +1015,12 @@ Preprocessor_replace(DOH *s)
 	  state = 0;
 	  break;
 	}
-	if (StringEqual(k_LINE,id)) {
+	if (StringEqual(kpp_LINE,id)) {
 	  Printf(ns,"%d",Getline(s));
 	  state = 0;
 	  break;
 	}
-	if (StringEqual(k_FILE,id)) {
+	if (StringEqual(kpp_FILE,id)) {
 	  String *fn = Copy(Getfile(s));
 	  Replaceall(fn,"\\","\\\\");
 	  Printf(ns,"\"%s\"",fn);
@@ -1033,7 +1033,7 @@ Preprocessor_replace(DOH *s)
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
-	  if (HashGetAttr(m,k_args)) {
+	  if (HashGetAttr(m,kpp_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
 	    args = find_args(s);
 	    if (!Len(args)) {
@@ -1087,7 +1087,7 @@ Preprocessor_replace(DOH *s)
   /* Identifier at the end */
   if (state == 1) {
     /* See if this is the special "defined" macro */
-    if (StringEqual(k_defined,id)) {
+    if (StringEqual(kpp_defined,id)) {
       Swig_error(Getfile(s),Getline(s),"No arguments given to defined()\n");
     } else if ((m = HashGetAttr(symbols,id))) {
 	DOH *e;
@@ -1109,14 +1109,14 @@ Preprocessor_replace(DOH *s)
 
 
 /* -----------------------------------------------------------------------------
- * int check_id(DOH *s)
+ * int checkpp_id(DOH *s)
  *
  * Checks the string s to see if it contains any unresolved identifiers.  This
  * function contains the heuristic that determines whether or not a macro
  * definition passes through the preprocessor as a constant declaration.
  * ----------------------------------------------------------------------------- */
 static int
-check_id(DOH *s)
+checkpp_id(DOH *s)
 {
   int c;
   int hastok = 0;
@@ -1227,7 +1227,7 @@ Preprocessor_parse(String *s)
   chunk = NewStringEmpty();
   copy_location(s,chunk);
   copy_location(s,ns);
-  symbols = HashGetAttr(cpp,k_symbols);
+  symbols = HashGetAttr(cpp,kpp_symbols);
 
   state = 0;
   while ((c = StringGetc(s)) != EOF) {
@@ -1405,23 +1405,23 @@ Preprocessor_parse(String *s)
     case 50:
       /* Check for various preprocessor directives */
       Chop(value);
-      if (StringEqual(id,k_define)) {
+      if (StringEqual(id,kpp_define)) {
 	if (allow) {
 	  DOH *m, *v, *v1;
 	  Seek(value,0,SEEK_SET);
 	  m = Preprocessor_define(value,0);
-	  if ((m) && !(HashGetAttr(m,k_args))) {
-	    v = Copy(HashGetAttr(m,k_value));
+	  if ((m) && !(HashGetAttr(m,kpp_args))) {
+	    v = Copy(HashGetAttr(m,kpp_value));
 	    if (Len(v)) {
 	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);
 	      Swig_error_silent(0);
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
-	      if (!check_id(v1)) {
+	      if (!checkpp_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns,"%%constant %s = %s;\n", HashGetAttr(m,k_name), v1);
+		  Printf(ns,"%%constant %s = %s;\n", HashGetAttr(m,kpp_name), v1);
 		else
-		  Printf(ns,"%%constant %s = %s; /*%s*/\n", HashGetAttr(m,k_name),v1,comment);
+		  Printf(ns,"%%constant %s = %s; /*%s*/\n", HashGetAttr(m,kpp_name),v1,comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
@@ -1429,9 +1429,9 @@ Preprocessor_parse(String *s)
 	    Delete(v);
 	  }
 	}
-      } else if (StringEqual(id,k_undef)) {
+      } else if (StringEqual(id,kpp_undef)) {
 	if (allow) Preprocessor_undef(value);
-      } else if (StringEqual(id,k_ifdef)) {
+      } else if (StringEqual(id,kpp_ifdef)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1440,7 +1440,7 @@ Preprocessor_parse(String *s)
 	  if (!HashGetAttr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
-      } else if (StringEqual(id,k_ifndef)) {
+      } else if (StringEqual(id,kpp_ifndef)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1449,7 +1449,7 @@ Preprocessor_parse(String *s)
 	  if (HashGetAttr(symbols,value)) allow = 0;
 	  mask = 1;
 	}
-      } else if (StringEqual(id,k_else)) {
+      } else if (StringEqual(id,kpp_else)) {
 	if (level <= 0) {
 	  Swig_error(Getfile(s),Getline(id),"Misplaced #else.\n");
 	} else {
@@ -1461,7 +1461,7 @@ Preprocessor_parse(String *s)
 	    allow = 1*mask;
 	  }
 	}
-      } else if (StringEqual(id,k_endif)) {
+      } else if (StringEqual(id,kpp_endif)) {
 	level--;
 	if (level < 0) {
 	  Swig_error(Getfile(id),Getline(id),"Extraneous #endif.\n");
@@ -1472,7 +1472,7 @@ Preprocessor_parse(String *s)
 	    start_level--;
 	  }
 	}
-      } else if (StringEqual(id,k_if)) {
+      } else if (StringEqual(id,kpp_if)) {
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1495,7 +1495,7 @@ Preprocessor_parse(String *s)
   	  }
   	  mask = 1;
   	}
-      } else if (StringEqual(id,k_elif)) {
+      } else if (StringEqual(id,kpp_elif)) {
   	if (level == 0) {
   	  Swig_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
   	} else {
@@ -1523,11 +1523,11 @@ Preprocessor_parse(String *s)
   	    }
   	  }
   	}
-      } else if (StringEqual(id,k_warning)) {
+      } else if (StringEqual(id,kpp_warning)) {
 	if (allow) {
 	  Swig_warning(WARN_PP_CPP_WARNING,Getfile(s),Getline(id),"CPP #warning, %s\n", value);
 	}
-      } else if (StringEqual(id,k_error)) {
+      } else if (StringEqual(id,kpp_error)) {
 	if (allow) {
 	  if (error_as_warning) {
 	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error, %s\n", value);
@@ -1535,8 +1535,8 @@ Preprocessor_parse(String *s)
 	    Swig_error(Getfile(s),Getline(id),"CPP #error, %s\n", value);
 	  }
 	}
-      } else if (StringEqual(id,k_line)) {
-      } else if (StringEqual(id,k_include)) {
+      } else if (StringEqual(id,kpp_line)) {
+      } else if (StringEqual(id,kpp_include)) {
   	if (((include_all) || (import_all)) && (allow)) {
   	  String *s1, *s2, *fn;
 	  char *dirname; int sysfile = 0;
@@ -1576,7 +1576,7 @@ Preprocessor_parse(String *s)
 	  Delete(s1);
  	  Delete(fn);
   	}
-      } else if (StringEqual(id,k_pragma)) {
+      } else if (StringEqual(id,kpp_pragma)) {
 	if (Strncmp(value,"SWIG ",5) == 0) {
 	  char *c = Char(value)+5;
 	  while (*c && (isspace((int)*c))) c++;
@@ -1593,7 +1593,7 @@ Preprocessor_parse(String *s)
 	    }
 	  }
 	}
-      } else if (StringEqual(id,k_level)) {
+      } else if (StringEqual(id,kpp_level)) {
 	Swig_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }
       for (i = 0; i < cpp_lines; i++)
@@ -1667,12 +1667,12 @@ Preprocessor_parse(String *s)
       if (!isidchar(c)) {
   	StringUngetc(c,s);
   	/* Look for common Swig directives  */
-  	if (StringEqual(decl,k_dinclude) || StringEqual(decl,k_dimport) || StringEqual(decl,k_dextern)) {
+  	if (StringEqual(decl,kpp_dinclude) || StringEqual(decl,kpp_dimport) || StringEqual(decl,kpp_dextern)) {
   	  /* Got some kind of file inclusion directive  */
   	  if (allow) {
   	    DOH *s1, *s2, *fn, *opt; int sysfile = 0;
 
-	    if (StringEqual(decl,k_dextern)) {
+	    if (StringEqual(decl,kpp_dextern)) {
 	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
 	      Clear(decl);
 	      StringAppend(decl,"%%import");
@@ -1685,7 +1685,7 @@ Preprocessor_parse(String *s)
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
   	      Printf(ns,"%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
-	      if (StringEqual(decl,k_dimport)) {
+	      if (StringEqual(decl,kpp_dimport)) {
 		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
@@ -1698,7 +1698,7 @@ Preprocessor_parse(String *s)
 	      if (dirname) {
 		Swig_pop_directory();
 	      }
-	      if (StringEqual(decl,k_dimport)) {
+	      if (StringEqual(decl,kpp_dimport)) {
 		pop_imported();
 	      }
   	      addline(ns,s2,allow);
@@ -1709,10 +1709,10 @@ Preprocessor_parse(String *s)
 	    Delete(fn);
   	  }
   	  state = 1;
-  	} else if (StringEqual(decl,k_dline)) {
+  	} else if (StringEqual(decl,kpp_dline)) {
   	  /* Got a line directive  */
   	  state = 1;
-  	} else if (StringEqual(decl,k_ddefine)) {
+  	} else if (StringEqual(decl,kpp_ddefine)) {
   	  /* Got a define directive  */
 	  dlevel++;	  
   	  add_chunk(ns,chunk,allow);
