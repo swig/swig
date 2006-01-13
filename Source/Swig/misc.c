@@ -153,7 +153,7 @@ String *Swig_string_title(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_string_ctitle()
+ * Swig_string_ccase()
  *
  * Takes a string object and returns a copy that is lowercase with thefirst letter
  * capitalized and the one following '_', which are removed.
@@ -162,7 +162,7 @@ String *Swig_string_title(String *s) {
  *      camelCase  -> CamelCase
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_ctitle(String *s) {
+String *Swig_string_ccase(String *s) {
   String *ns;
   int first = 1;
   int c;
@@ -181,14 +181,14 @@ String *Swig_string_ctitle(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_string_utitle()
+ * Swig_string_ucase()
  *
- * This is the reverse case of ctitle, ie
+ * This is the reverse case of ccase, ie
  *
  *      CamelCase -> camel_case 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_utitle(String *s) {
+String *Swig_string_ucase(String *s) {
   String *ns;
   int first = 0;
   int c;
@@ -725,11 +725,17 @@ Swig_init() {
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
-  DohEncoding("ctitle", Swig_string_ctitle);
-  DohEncoding("utitle", Swig_string_utitle);
+  DohEncoding("ctitle", Swig_string_ccase);
+  DohEncoding("utitle", Swig_string_ucase);
   DohEncoding("typecode",Swig_string_typecode);
   DohEncoding("mangle",Swig_string_emangle);
   DohEncoding("command",Swig_string_command);
+
+  /* aliases for the case encoders */
+  DohEncoding("uppercase", Swig_string_upper);
+  DohEncoding("lowercase", Swig_string_lower);
+  DohEncoding("camelcase", Swig_string_ccase);
+  DohEncoding("undercase", Swig_string_ucase);
 
   /* Initialize the swig keys */
   Swig_keys_init();
