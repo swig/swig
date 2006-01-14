@@ -25,7 +25,7 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -norename
+SWIGOPT += -noautorename
 
 # Rules for the different types of tests
 %.cpptest: 
