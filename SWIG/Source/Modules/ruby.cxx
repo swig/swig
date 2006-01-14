@@ -123,8 +123,8 @@ Ruby Options (available with -ruby)\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -cppcast        - Enable C++ casting operators\n\
-     -autorename     - Enable the automatice rename mechanism\n\
-     -noautorename   - Disable the automatice rename mechanism (default)\n\
+     -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
+     -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -feature <name> - Set feature name to <name> (used by `require')\n";
 
