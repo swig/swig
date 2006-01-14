@@ -850,7 +850,11 @@ public:
 	if (cplus_mode == PUBLIC) {
 	  Setattr(inclass,"allocate:public_constructor","1");
 	}
+    } else {
+      Setattr(inclass,"allocate:has_constructor","1");
+      Setattr(inclass,"allocate:public_constructor","1");
     }
+    
 
     /* See if this is a copy constructor */
     if (parms && (ParmList_numrequired(parms) == 1)) {
