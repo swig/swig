@@ -1,10 +1,10 @@
 #######################################################################
 # $Header$
-# Makefile for allegrocl test-suite
+# Makefile for clisp test-suite
 #######################################################################
 
-LANGUAGE     = allegrocl
-ALLEGROCL          = @ALLEGROCLBIN@
+LANGUAGE     = clisp
+CLISP          = @CLISPBIN@
 SCRIPTSUFFIX = _runme.lisp
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -12,7 +12,8 @@ top_builddir = @top_builddir@
 
 include $(srcdir)/../common.mk
 
-#CPP_TEST_CASES +=
+# no C++ tests for now
+CPP_TEST_CASES =
 #C_TEST_CASES += 
 
 # Rules for the different types of tests
@@ -35,13 +36,13 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.lisp appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(ALLEGROCLBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(CLISPBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
-# Clean: (does nothing, we dont generate extra allegrocl code)
+# Clean: (does nothing, we dont generate extra clisp code)
 %.clean:
 
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile allegrocl_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile clisp_clean
 

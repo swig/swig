@@ -947,3 +947,49 @@ allegrocl_cpp: $(SRCS)
 
 allegrocl_clean:
 
+##################################################################
+#####                      CLISP                            ######
+##################################################################
+
+clisp: $(SRCS)
+	$(SWIG) -clisp $(SWIGOPT) $(INTERFACE)
+
+clisp_cpp: $(SRCS)
+	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACE)
+
+clisp_clean:
+
+##################################################################
+#####                      CFFI                             ######
+##################################################################
+
+cffi: $(SRCS)
+	$(SWIG) -cffi $(SWIGOPT) $(INTERFACE)
+#	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
+#	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+cffi_cpp: $(SRCS)
+	$(SWIG) -c++ -cffi $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+cffi_clean:
+
+##################################################################
+#####                      UFFI                             ######
+##################################################################
+
+uffi: $(SRCS)
+	$(SWIG) -uffi $(SWIGOPT) $(INTERFACE)
+#	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
+#	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+uffi_cpp: $(SRCS)
+	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACE)
+#	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
+#	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+uffi_clean:
+
+
+

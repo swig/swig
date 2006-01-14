@@ -1,4 +1,4 @@
-*-guile
-*wrap*
+*.lisp
+*_wrap.c*
 Makefile
 SunWS_cache
