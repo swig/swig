@@ -2479,7 +2479,8 @@ int ALLEGROCL :: functionWrapper(Node *n) {
   // Emit the function definition
   String *signature = SwigType_str(return_type, name_and_parms);
   Printf(wrap->def, "EXPORT %s {", signature);
-  Printf(wrap->code,"  try {\n");
+  if (CPlusPlus)
+    Printf(wrap->code,"  try {\n");
   emit_action(n, wrap);
   if (!is_void_return)
   {
@@ -2489,10 +2490,12 @@ int ALLEGROCL :: functionWrapper(Node *n) {
     Printf(wrap->code, "    return lresult;\n");
     Delete(result_convert);
   }
-  Printf(wrap->code,"  } catch (...) {\n");
-  if (!is_void_return)
-    Printf(wrap->code,"    return (%s)0;\n", raw_return_type);
-  Printf(wrap->code,"  }\n");
+  if (CPlusPlus) {
+    Printf(wrap->code,"  } catch (...) {\n");
+    if (!is_void_return)
+      Printf(wrap->code,"    return (%s)0;\n", raw_return_type);
+    Printf(wrap->code,"  }\n");
+  }
   Printf(wrap->code,"}\n");
 
   /* print this when in C mode? make this a command-line arg? */
