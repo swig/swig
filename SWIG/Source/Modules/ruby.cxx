@@ -123,6 +123,8 @@ Ruby Options (available with -ruby)\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -cppcast        - Enable C++ casting operators\n\
+     -autorename     - Enable the automatice rename mechanism\n\
+     -noautorename   - Disable the automatice rename mechanism (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -feature <name> - Set feature name to <name> (used by `require')\n";
 
@@ -211,6 +213,7 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     int cppcast = 1;
+    int autorename = 0;
 
     /* Set location of SWIG library */
     SWIG_library_directory("ruby");
@@ -241,6 +244,12 @@ public:
 	} else if (strcmp(argv[i],"-nocppcast") == 0) {
 	  cppcast = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-autorename") == 0) {
+	  autorename = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-noautorename") == 0) {
+	  autorename = 0;
+	  Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-prefix") == 0) {
           if (argv[i+1]) {
             char *name = argv[i+1];
@@ -258,8 +267,13 @@ public:
     }
 
     if (cppcast) {
-      /* Turn on new value wrapper mpde */
+      /* Turn on cppcast mode */
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+    }
+
+    if (autorename) {
+      /* Turn on the autorename mode */
+      Preprocessor_define((DOH *) "SWIG_RUBY_AUTORENAME", 0);
     }
 
     /* Add a symbol to the parser for conditional compilation */
@@ -1374,6 +1388,7 @@ public:
     
     Replaceall(dispatch, "$args", "nargs, args, self");
     Printv(f->code, dispatch, "\n", NIL);
+    Printf(f->code,"fail:\n");
     Printf(f->code, "rb_raise(rb_eArgError, \"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"return Qnil;\n");
     Printv(f->code, "}\n", NIL);
@@ -1521,11 +1536,15 @@ public:
     if (!name || name[0] == '\0')
       return name;
     
-    /* Check to see that constants start with an upper case
-       letter and if they don't raise a warning.  Note that 
-       renames are specified via %renames in ruby.swg. */
     if (isupper(name[0]))
       return name;
+    
+    if (islower(name[0])) {
+      name[0] = toupper(name[0]);
+      Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
+		   "Wrong %s name (corrected to `%s')\n", reason, name);
+      return name;
+    }
     
     Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
 		 "Wrong %s name %s\n", reason, name);
