@@ -131,3 +131,27 @@ protected:
 
 %template(HH) HH_T<int>;
 
+
+%{
+  class OSRSpatialReferenceShadow {
+  private:
+    OSRSpatialReferenceShadow();
+  public:
+  };
+%}
+
+typedef void OSRSpatialReferenceShadow; 
+
+class OSRSpatialReferenceShadow {
+private:
+  OSRSpatialReferenceShadow();
+public:
+  %extend {
+    OSRSpatialReferenceShadow( char const * wkt = "" ) {
+      return 0;
+    }
+  } 
+};
+
+
+  
