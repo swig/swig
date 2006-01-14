@@ -218,7 +218,7 @@ Swig_name_get(const String_or_char *vname) {
 
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = HashGetAttr(naming_hash,k_get);
+  f = Getattr(naming_hash,k_get);
   if (!f) {
     Append(r,"%v_get");
   } else {
@@ -441,7 +441,7 @@ static
 DOH *
 name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigType *ncdecl) {
   DOH* rn = 0;
-  Hash   *n = HashGetAttr(namehash,tname);
+  Hash   *n = Getattr(namehash,tname);
   if (n) {
     rn = get_object(n,decl);
     if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
@@ -929,12 +929,18 @@ static int nodes_are_equivalent(Node* a, Node* b, int a_inclass)
 
 int Swig_need_redefined_warn(Node* a, Node* b, int InClass)
 {
+  String *a_name = Getattr(a,k_name);
+  String *b_name = Getattr(b,k_name);
   String *a_symname = Getattr(a,k_symname);
   String *b_symname = Getattr(b,k_symname);
   /* always send a warning if a 'rename' is involved */
-  if ((a_symname && Cmp(a_symname,Getattr(a,k_name)))
-      || (b_symname && Cmp(b_symname,Getattr(b,k_name))))
-    return 1;
+  if ((a_symname && !Equal(a_symname,a_name))
+      || (b_symname && !Equal(b_symname,b_name))) {
+    if (!Equal(a_name,b_name)) {
+      return 1;
+    }
+  }
+  
 
   return !nodes_are_equivalent(a, b, InClass);
 }
@@ -1093,6 +1099,7 @@ int Swig_name_match_value(String *mvalue, String *value)
   int match = 0;
   char *cvalue = Char(value);
   char *cmvalue = Char(mvalue);
+#if 1
   char *sep = strstr(cmvalue,"|");
   while (sep && !match) {
     match = strncmp(cvalue,cmvalue, sep - cmvalue) == 0;
@@ -1102,6 +1109,9 @@ int Swig_name_match_value(String *mvalue, String *value)
   if (!match) {
     match = strcmp(cvalue,cmvalue) == 0;    
   }
+#else
+
+#endif
   return match;
 }
 
@@ -1344,9 +1354,10 @@ static String *apply_rename(String *newname, int fullname, String *prefix, Strin
 }
 
 String *
-Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *oldname) {
+Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, String *oldname) {
   String *nname = 0;
   String *result = 0;
+  String *name = NewString(cname);
   Hash *wrn = 0;
   if (rename_hash || rename_list) {
     Hash *rn =  Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
@@ -1358,7 +1369,7 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
       int fullname = GetFlag(rn,k_fullname);
       result = apply_rename(newname, fullname, prefix, name);
     }
-    if (result) {
+    if (result && !Equal(result,name)) {
       /* operators in C++ allow aliases, we look for them */
       char *cresult = Char(result);
       if (cresult && (strncmp(cresult,"operator ",9) == 0)) {
@@ -1397,8 +1408,16 @@ Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *ol
   }
   if (!result || !Len(result)) {
     if (result) Delete(result);
-    result = oldname ? Copy(oldname): Copy(name);
+    if (oldname) {
+      result = NewString(oldname);
+      Delete(name);
+    } else {
+      result = name;
+    }
+  } else {
+    Delete(name);
   }
+  
 #ifdef SWIG_DEBUG
   Printf(stdout,"Swig_name_make:  '%s' '%s'\n", name, result); 
 #endif
