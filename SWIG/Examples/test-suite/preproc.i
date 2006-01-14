@@ -103,6 +103,7 @@ int f(int min);
 
 // preproc_5
 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) A5;	// Ruby, wrong constant name
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) a5;	// Ruby, wrong constant name
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) b5;	// Ruby, wrong constant name
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) c5;	// Ruby, wrong constant name
@@ -150,6 +151,7 @@ NAME 42
 
 // preproc_6
 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) A6; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) a6; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) b6; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) c6; /* Ruby, wrong constant name */
