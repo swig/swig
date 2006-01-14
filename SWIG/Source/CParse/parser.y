@@ -278,6 +278,10 @@ static void add_symbols(Node *n) {
     Symtab *old_scope = 0;
     int isfriend = inclass && is_friend(n);
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
+    if (extendmode) {
+      Setattr(n,"isextension","1");
+    }
+    
     if (inclass) {
       String *name = Getattr(n, k_name);
       if (isfriend) {
@@ -356,31 +360,37 @@ static void add_symbols(Node *n) {
     }
     decl = Getattr(n,k_decl);
     if (!SwigType_isfunction(decl)) {
+      String *name = Getattr(n,k_name);
       String *makename = Getattr(n,"parser:makename");
       if (iscdecl) {	
 	String *storage = Getattr(n, k_storage);
 	if (Cmp(storage,"typedef") == 0) {
 	  Setattr(n,k_kind,"typedef");
 	} else {
-	  SwigType *type  = Getattr(n, k_type);
+	  SwigType *type = Getattr(n,"type");
 	  String *value = Getattr(n,k_value);
 	  Setattr(n,k_kind,"variable");
 	  if (value && Len(value)) {
 	    Setattr(n,"hasvalue","1");
 	  }
-	  if (type && !SwigType_ismutable(type)) {
-	    SetFlag(n,"feature:immutable");
+	  if (type) {
+	    SwigType *rt = SwigType_typedef_resolve_all(type);
+	    if (SwigType_isconst(rt)) {
+	      SetFlag(n,"hasconsttype");
+	    }
+	    Delete(rt);
 	  }
 	  if (!type) {
-	    Printf(stderr,"notype name %s\n", Getattr(n,"name"));
+	    Printf(stderr,"notype name %s\n", name);
 	  }
 	}
       }
+      Swig_features_get(Swig_cparse_features(), Namespaceprefix, name, 0, n);
       if (makename) {
 	symname = make_name(n, makename,0);
         Delattr(n,"parser:makename"); /* temporary information, don't leave it hanging around */
       } else {
-        makename = Getattr(n,k_name);
+        makename = name;
 	symname = make_name(n, makename,0);
       }
       
@@ -389,19 +399,20 @@ static void add_symbols(Node *n) {
       }
       if (symname) {
 	wrn = Swig_name_warning(n, Namespaceprefix, symname,0);
-	Swig_features_get(Swig_cparse_features(), Namespaceprefix, Getattr(n,k_name), 0, n);
       }
     } else {
+      String *name = Getattr(n,k_name);
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
       if (iscdecl) {	
 	Setattr(n,k_kind,"function");
       }
+      
+      Swig_features_get(Swig_cparse_features(),Namespaceprefix,name,fun,n);
 
-      symname = make_name(n, Getattr(n,k_name),fun);
+      symname = make_name(n, name,fun);
       wrn = Swig_name_warning(n, Namespaceprefix,symname,fun);
       
-      Swig_features_get(Swig_cparse_features(),Namespaceprefix,Getattr(n,k_name),fun,n);
       Delete(fdecl);
       Delete(fun);
       
@@ -2605,8 +2616,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,k_symtypename,"1");
                           }
                           if ($3) {
-                            Swig_cparse_template_expand(templnode,$3,temparms,tscope);
-                            Setattr(templnode,k_symname,$3);
+			    String *symname = Swig_name_make(templnode,0,$3,0,0);
+                            Swig_cparse_template_expand(templnode,symname,temparms,tscope);
+                            Setattr(templnode,k_symname,symname);
+			    Delete(symname);
                           } else {
                             static int cnt = 0;
                             String *nname = NewStringf("__dummy_%d__", cnt++);
