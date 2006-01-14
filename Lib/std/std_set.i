@@ -16,9 +16,9 @@
   void erase(iterator pos);
   void erase(iterator first, iterator last);
 
-  iterator find(const key_type& x) const;
-  iterator lower_bound(const key_type& x) const;
-  iterator upper_bound(const key_type& x) const;
+  iterator find(const key_type& x);
+  iterator lower_bound(const key_type& x);
+  iterator upper_bound(const key_type& x);
   std::pair<iterator,iterator> equal_range(const key_type& x);
 #endif
 %enddef
