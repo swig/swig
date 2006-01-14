@@ -1693,6 +1693,28 @@ fi
 AC_SUBST(ALLEGROCLBIN)
 
 #----------------------------------------------------------------
+# Look for GNU CLISP
+#----------------------------------------------------------------
+
+CLISPBIN=
+
+AC_ARG_WITH(clisp, AS_HELP_STRING([--without-clisp], [Disable CLISP])
+AS_HELP_STRING([--with-clisp=path], [Set location of CLISP executable (clisp)]),[ CLISPBIN="$withval"], [CLISPBIN=yes])
+
+# First, check for "--without-clisp" or "--with-clisp=no".
+if test x"${CLISPBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling CLISP])
+else
+
+# can we find clisp?
+if test "x$CLISPBIN" = xyes; then
+   AC_PATH_PROG(CLISPBIN, clisp)
+fi
+fi
+
+AC_SUBST(CLISPBIN)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -1805,6 +1827,18 @@ if test -z "$ALLEGROCLBIN" ; then
 fi
 AC_SUBST(SKIP_ALLEGROCL)
 
+SKIP_CLISP=
+if test -z "$CLISPBIN" ; then
+    SKIP_CLISP="1"
+fi
+AC_SUBST(SKIP_CLISP)
+
+SKIP_CFFI=
+AC_SUBST(SKIP_CFFI)
+
+SKIP_UFFI=
+AC_SUBST(SKIP_UFFI)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -1874,6 +1908,9 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/tcl/Makefile	        \
     Examples/test-suite/lua/Makefile	        \
     Examples/test-suite/allegrocl/Makefile	\
+    Examples/test-suite/clisp/Makefile		\
+    Examples/test-suite/cffi/Makefile		\
+    Examples/test-suite/uffi/Makefile		\
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT
