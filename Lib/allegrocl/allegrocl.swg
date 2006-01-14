@@ -138,7 +138,14 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
               float, double, long double, char *, void *, void,
               enum SWIGTYPE, SWIGTYPE *,
               SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
+#ifdef __cplusplus
 %typemap(out) SWIGTYPE                     "$result = new $1_type($1);";
+#else
+%typemap(out) SWIGTYPE {
+  $result = ($&1_ltype) malloc(sizeof($1_type));
+  memmove($result, &$1, sizeof($1_type));
+}
+#endif
 
 //////////////////////////////////////////////////////////////
 // UCS-2 string conversion
@@ -484,4 +491,6 @@ $body)"
 
 #define EXPORT   EXTERN SWIGEXPORT
 
+#include <string.h>
+#include <stdlib.h>
 %}
