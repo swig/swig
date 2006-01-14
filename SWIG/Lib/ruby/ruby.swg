@@ -5,8 +5,9 @@
  * ------------------------------------------------------------ */
 
 /* ------------------------------------------------------------
- * The Ruby global rename rules 
+ * The Ruby auto rename rules 
  * ------------------------------------------------------------ */
+#if defined(SWIG_RUBY_AUTORENAME)
 /* Class names are CamelCase */
 %rename("%(camelcase)s", %isclass) ""; 
 
@@ -16,7 +17,8 @@
 
 /* Method names should be changed so that they are 
    lower_case_with_underscores */
-%rename("%(undercase)s", %isfunction, %ismember) ""; 
+%rename("%(undercase)s", %isfunction, %ismember) "";
+#endif
 
 /* ------------------------------------------------------------
  *  Inner macros 

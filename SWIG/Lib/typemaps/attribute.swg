@@ -67,7 +67,7 @@
 */
 
 #ifndef %attribute_exception
-#define %attribute_exception(code,msg) SWIG_exception(code,msg)
+#define %attribute_exception(code,msg) SWIG_exception_fail(code,msg)
 #endif
 
 //

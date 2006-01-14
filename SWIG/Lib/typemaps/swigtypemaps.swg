@@ -133,10 +133,10 @@
 
 #define %error_block(Block...)                 %block(Block)
 #define %default_code(code)                    ((code != SWIG_ERROR) ? code : SWIG_TypeError)  
-#define %argument_fail(code, type, name, argn) SWIG_exception(%default_code(code), %argfail_fmt(type, name, argn))
-#define %argument_nullref(type, name, argn)    SWIG_exception(SWIG_ValueError, %argnullref_fmt(type, name, argn))
-#define %variable_fail(code, type, name)       SWIG_exception(%default_code(code), %varfail_fmt(type, name))
-#define %variable_nullref(type, name)          SWIG_exception(SWIG_ValueError, %varnullref_fmt(type, name))
+#define %argument_fail(code, type, name, argn) SWIG_exception_fail(%default_code(code), %argfail_fmt(type, name, argn))
+#define %argument_nullref(type, name, argn)    SWIG_exception_fail(SWIG_ValueError, %argnullref_fmt(type, name, argn))
+#define %variable_fail(code, type, name)       SWIG_exception_fail(%default_code(code), %varfail_fmt(type, name))
+#define %variable_nullref(type, name)          SWIG_exception_fail(SWIG_ValueError, %varnullref_fmt(type, name))
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 #define %dirout_fail(code, type)          SWIG_DirOutFail(%default_code(code), %outfail_fmt(type))

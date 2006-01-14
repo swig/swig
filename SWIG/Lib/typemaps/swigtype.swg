@@ -439,7 +439,7 @@
 }
 
 %typemap(throws,noblock=1) (...) {
-  SWIG_exception(SWIG_RuntimeError,"unknown exception");
+  SWIG_exception_fail(SWIG_RuntimeError,"unknown exception");
 }
 
 /* ------------------------------------------------------------
