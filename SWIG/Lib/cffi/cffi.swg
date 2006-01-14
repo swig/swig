@@ -93,4 +93,5 @@
 
 #define EXPORT   EXTERN SWIGEXPORT
 
+#include <string.h>
 %}
