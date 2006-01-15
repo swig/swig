@@ -5,6 +5,10 @@
 //
 // This SWIG library file provides language independent exception handling
 
+#if defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGRUBY) || defined(SWIGPYTHON)
+#error "This version of exception.i should not be used"
+#endif
+
 
 %insert("runtime") "swigerrors.swg"
 
