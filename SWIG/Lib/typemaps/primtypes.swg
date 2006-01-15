@@ -204,7 +204,7 @@ SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 SWIGINTERNINLINE int
 SWIG_CanCastAsInteger(double *d, double min, double max) {
   double x = *d;
-  if (min <= x && x <= max) {
+  if ((min <= x && x <= max)) {
    double fx = floor(x);   
    double rd =  ((x - fx) < 0.5) ? fx : ceil(x); /* simple rint */
    if ((errno == EDOM) || (errno == ERANGE)) {

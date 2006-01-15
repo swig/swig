@@ -185,9 +185,11 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
       PyErr_Clear();
     }
     if (!dispatch) {
+      const double mant_max = 1LL << DBL_MANT_DIG;
+      const double mant_min = -mant_max;
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LLONG_MIN, LLONG_MAX)) {
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
 	if (val) *val = (long long)(d);
 	return res;
       }
@@ -247,9 +249,10 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
       PyErr_Clear();
     }
     if (!dispatch) {
+      const double mant_max = 1LL << DBL_MANT_DIG;
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULLONG_MAX)) {
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
 	if (val) *val = (unsigned long long)(d);
 	return res;
       }
