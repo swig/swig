@@ -1,5 +1,5 @@
 %module li_constraints
-%include constraints.i
+%include <constraints.i>
 
 %inline %{
 void test_nonnegative(double NONNEGATIVE) {
