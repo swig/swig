@@ -36,51 +36,60 @@
 <li><a href="#Ruby_nn21">C++ Operators</a>
 <li><a href="#Ruby_nn22">C++ namespaces</a>
 <li><a href="#Ruby_nn23">C++ templates</a>
-<li><a href="#ruby_cpp_smart_pointers">C++ Smart Pointers</a>
+<li><a href="#Ruby_nn24">C++ Smart Pointers</a>
 <li><a href="#Ruby_nn25">Cross-Language Polymorphism</a>
 <ul>
 <li><a href="#Ruby_nn26">Exception Unrolling</a>
 </ul>
 </ul>
-<li><a href="#Ruby_nn27">Input and output parameters</a>
-<li><a href="#Ruby_nn29">Typemaps</a>
+<li><a href="#Ruby_nn27">Naming</a>
 <ul>
-<li><a href="#Ruby_nn30">What is a typemap?</a>
-<li><a href="#Ruby_nn31">Ruby typemaps</a>
-<li><a href="#Ruby_nn32">Typemap variables</a>
-<li><a href="#Ruby_nn33">Useful Functions</a>
-<ul>
-<li><a href="#Ruby_nn34">C Datatypes to Ruby Objects</a>
-<li><a href="#Ruby_nn35">Ruby Objects to C Datatypes</a>
-<li><a href="#Ruby_nn36">Macros for VALUE</a>
-<li><a href="#Ruby_nn37">Exceptions</a>
-<li><a href="#Ruby_nn38">Iterators</a>
+<li><a href="#Ruby_nn28">Defining Aliases</a>
+<li><a href="#Ruby_nn29">Predicate Methods</a>
+<li><a href="#Ruby_nn30">Bang Methods</a>
+<li><a href="#Ruby_nn31"></a>
 </ul>
-<li><a href="#ruby_typemap_examples">Typemap Examples</a>
-<li><a href="#Ruby_nn40">Converting a Ruby array to a char **</a>
-<li><a href="#Ruby_nn41">Collecting arguments in a hash</a>
-<li><a href="#Ruby_nn42">Pointer handling</a>
+<li><a href="#Ruby_nn32">Input and output parameters</a>
+<li><a href="#Ruby_nn33">Simple exception handling		</a>
+<li><a href="#Ruby_nn34">Typemaps</a>
 <ul>
-<li><a href="#Ruby_nn43">Ruby Datatype Wrapping</a>
+<li><a href="#Ruby_nn35">What is a typemap?</a>
+<li><a href="#Ruby_nn36">Ruby typemaps</a>
+<li><a href="#Ruby_nn37">Typemap variables</a>
+<li><a href="#Ruby_nn38">Useful Functions</a>
+<ul>
+<li><a href="#Ruby_nn39">C Datatypes to Ruby Objects</a>
+<li><a href="#Ruby_nn40">Ruby Objects to C Datatypes</a>
+<li><a href="#Ruby_nn41">Macros for VALUE</a>
+<li><a href="#Ruby_nn42">Exceptions</a>
+<li><a href="#Ruby_nn43">Iterators</a>
+</ul>
+<li><a href="#Ruby_nn44">Typemap Examples</a>
+<li><a href="#Ruby_nn45">Converting a Ruby array to a char **</a>
+<li><a href="#Ruby_nn46">Collecting arguments in a hash</a>
+<li><a href="#Ruby_nn47">Pointer handling</a>
+<ul>
+<li><a href="#Ruby_nn48">Ruby Datatype Wrapping</a>
 </ul>
 </ul>
-<li><a href="#ruby_operator_overloading">Operator overloading</a>
+<li><a href="#Ruby_nn49">Operator overloading</a>
 <ul>
-<li><a href="#Ruby_nn45">Example: STL Vector to Ruby Array</a>
+<li><a href="#Ruby_nn50">Example: STL Vector to Ruby Array</a>
 </ul>
-<li><a href="#Ruby_nn46">Advanced Topics</a>
+<li><a href="#Ruby_nn51">Advanced Topics</a>
 <ul>
-<li><a href="#Ruby_nn47">Creating Multi-Module Packages</a>
-<li><a href="#Ruby_nn48">Defining Aliases</a>
-<li><a href="#Ruby_nn49">Predicate Methods</a>
-<li><a href="#Ruby_nn50">Specifying Mixin Modules</a>
+<li><a href="#Ruby_nn52">Creating Multi-Module Packages</a>
+<li><a href="#Ruby_nn53">Defining Aliases</a>
+<li><a href="#Ruby_nn54">Predicate Methods</a>
+<li><a href="#Ruby_nn55">Specifying Mixin Modules</a>
 </ul>
-<li><a href="#Ruby_nn51">Memory Management</a>
+<li><a href="#Ruby_nn56">Memory Management</a>
 <ul>
-<li><a href="#Ruby_nn53">Object Ownership</a>
-<li><a href="#Ruby_nn54">Object Tracking</a>
-<li><a href="#Ruby_nn55">Mark Functions</a>
-<li><a href="#Ruby_nn56">Free Functions</a>
+<li><a href="#Ruby_nn57">Mark and Sweep Garbage Collector		</a>
+<li><a href="#Ruby_nn58">Object Ownership</a>
+<li><a href="#Ruby_nn59">Object Tracking</a>
+<li><a href="#Ruby_nn60">Mark Functions</a>
+<li><a href="#Ruby_nn61">Free Functions</a>
 </ul>
 </ul>
 </div>
@@ -88,141 +97,7 @@
 
 
 
-		<div class="sectiontoc">
-			<ul>
-				<li>
-					<a href="#Ruby_nn2">Preliminaries</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn3">Running SWIG</a>
-						<li>
-							<a href="#Ruby_nn4">Getting the right header files</a>
-						<li>
-							<a href="#Ruby_nn5">Compiling a dynamic module</a>
-						<li>
-							<a href="#Ruby_nn6">Using your module</a>
-						<li>
-							<a href="#Ruby_nn7">Static linking</a>
-						<li>
-							<a href="#Ruby_nn8">Compilation of C++ extensions</a>
-					</ul>
-				<li>
-					<a href="#Ruby_nn9">Building Ruby Extensions under Windows 95/NT</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn10">Running SWIG from Developer Studio</a>
-					</ul>
-				<li>
-					<a href="#Ruby_nn11">The Ruby-to-C/C++ Mapping</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn12">Modules</a>
-						<li>
-							<a href="#Ruby_nn13">Functions</a>
-						<li>
-							<a href="#Ruby_nn14">Variable Linking</a>
-						<li>
-							<a href="#Ruby_nn15">Constants</a>
-						<li>
-							<a href="#Ruby_nn16">Pointers</a>
-						<li>
-							<a href="#Ruby_nn17">Structures</a>
-						<li>
-							<a href="#Ruby_nn18">C++ classes</a>
-						<li>
-							<a href="#Ruby_nn19">C++ Inheritance</a>
-						<li>
-							<a href="#Ruby_nn20">C++ Overloaded Functions</a>
-						<li>
-							<a href="#Ruby_nn21">C++ Operators</a>
-						<li>
-							<a href="#Ruby_nn22">C++ namespaces</a>
-						<li>
-							<a href="#Ruby_nn23">C++ templates</a>
-						<li>
-							<a href="#ruby_cpp_smart_pointers">C++ Smart Pointers</a>
-						<li>
-							<a href="#Ruby_nn25">Cross-Language Polymorphism</a>
-							<ul>
-								<li>
-									<a href="#Ruby_nn26">Exception Unrolling</a>
-							</ul>
-					</ul>
-				<li>
-					<a href="#Ruby_nn27">Input and output parameters</a>
-				<li>
-					<a href="#Ruby_nn28">Simple exception handling </a>
-				<li>
-					<a href="#Ruby_nn29">Typemaps</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn30">What is a typemap?</a>
-						<li>
-							<a href="#Ruby_nn31">Ruby typemaps</a>
-						<li>
-							<a href="#Ruby_nn32">Typemap variables</a>
-						<li>
-							<a href="#Ruby_nn33">Useful Functions</a>
-							<ul>
-								<li>
-									<a href="#Ruby_nn34">C Datatypes to Ruby Objects</a>
-								<li>
-									<a href="#Ruby_nn35">Ruby Objects to C Datatypes</a>
-								<li>
-									<a href="#Ruby_nn36">Macros for VALUE</a>
-								<li>
-									<a href="#Ruby_nn37">Exceptions</a>
-								<li>
-									<a href="#Ruby_nn38">Iterators</a>
-							</ul>
-						<li>
-							<a href="#ruby_typemap_examples">Typemap Examples</a>
-						<li>
-							<a href="#Ruby_nn40">Converting a Ruby array to a char **</a>
-						<li>
-							<a href="#Ruby_nn41">Collecting arguments in a hash</a>
-						<li>
-							<a href="#Ruby_nn42">Pointer handling</a>
-							<ul>
-								<li>
-									<a href="#Ruby_nn43">Ruby Datatype Wrapping</a>
-							</ul>
-					</ul>
-				<li>
-					<a href="#ruby_operator_overloading">Operator overloading</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn45">Example: STL Vector to Ruby Array</a>
-					</ul>
-				<li>
-					<a href="#Ruby_nn46">Advanced Topics</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn47">Creating Multi-Module Packages</a>
-						<li>
-							<a href="#Ruby_nn48">Defining Aliases</a>
-						<li>
-							<a href="#Ruby_nn49">Predicate Methods</a>
-						<li>
-							<a href="#Ruby_nn50">Specifying Mixin Modules</a>
-					</ul>
-				<li>
-					<a href="#Ruby_nn51">Memory Management</a>
-					<ul>
-						<li>
-							<a href="#Ruby_nn52">Mark and Sweep Garbage Collector </a>
-						<li>
-							<a href="#Ruby_nn53">Object Ownership</a>
-						<li>
-							<a href="#Ruby_nn54">Object Tracking</a>
-						<li>
-							<a href="#Ruby_nn55">Mark Functions</a>
-						<li>
-							<a href="#Ruby_nn56">Free Functions</a>
-					</ul>
-			</ul>
-		</div> <!-- INDEX -->
-		<p>This chapter describes SWIG's support of Ruby.</p>
+<p>This chapter describes SWIG's support of Ruby.</p>
 <H2><a name="Ruby_nn2"></a>30.1 Preliminaries</H2>
 
 
@@ -433,7 +308,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			</li>
 			<li>
 				Add both the SWIG interface file (the .i file), any supporting C files, and the 
-				name of the wrapper file that will be created by SWIG (i.e.. <tt>example_wrap.c</tt>). 
+				name of the wrapper file that will be created by SWIG (i.e. <tt>example_wrap.c</tt>). 
 				Note : If using C++, choose a different suffix for the wrapper file such as <tt>example_wrap.cxx</tt>. 
 				Don't worry if the wrapper file doesn't exist yet--Developer Studio will keep a 
 				reference to it around.
@@ -1014,7 +889,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			examples. More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG 
 				and C++</a> chapter.
 		</p>
-<H3><a name="ruby_cpp_smart_pointers"></a>30.3.13 C++ Smart Pointers</H3>
+<H3><a name="Ruby_nn24"></a>30.3.13 C++ Smart Pointers</H3>
 
 
 		<p>
@@ -1083,7 +958,105 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			Ruby exception is raised, it will be caught here and a C++ exception is raised 
 			in its place.
 		</p>
-<H2><a name="Ruby_nn27"></a>30.4 Input and output parameters</H2>
+<H2><a name="Ruby_nn27"></a>30.4 Naming</H2>
+
+
+		<p>Ruby has several common naming conventions. Constants are generally in  upper case, module and class names are  in camel case and methods are in lower case with underscores. For example: </p>
+		<div class="code">
+		<ul>
+		<li><strong>MATH::PI</strong> is a constant name</li>
+	    <li><strong>MyClass</strong> is a class name</li>
+        <li><strong>my_method</strong> is a method name</li>
+	    </ul>
+		</div>
+	<p>Prior to version 1.3.28, SWIG did not support these Ruby conventions. The only modifications it made to names was to capitalize the first letter of constants (which includes module and class names).</p>
+	<p>SWIG 1.3.28 introduces the new -autorename command line parameter. When this parameter is specified, SWIG will automatically change constant, class and method names to conform with the standard Ruby naming conventions. For example: </p>
+					<div class="code">
+			<pre>$ <b>swig -ruby -autorename example.i</b>
+</pre>
+		</div>
+
+<p>To disable renaming use the -noautorename command line option.</p>
+<p>Since this change significantly changes the wrapper code generated by SWIG, it is turned off by default in SWIG 1.3.28. However, it is planned to become the default option in future releases.</p>
+<H3><a name="Ruby_nn28"></a>30.4.1 Defining Aliases</H3>
+
+
+<p> It's a fairly common practice in the Ruby built-ins and standard library to 
+		  provide aliases for method names. For example, <em>Array#size</em> is an alias 
+		  for <em>Array#length</em>. If you would like to provide an alias for one of your 
+		  class' instance methods, one approach is to use SWIG's <tt>%extend</tt> directive 
+		  to add a new method of the aliased name that calls the original function. For 
+		  example: </p>
+		<div class="code">
+          <pre>class MyArray {<br>public:<br> // Construct an empty array<br> MyArray();<br> <br> // Return the size of this array<br> size_t length() const;<br>};<br><br>%extend MyArray {<br> // MyArray#size is an alias for MyArray#length<br> size_t size() const {<br> return self-&gt;length();<br> }<br>}
+        </pre>
+        </div>
+		<p> A better solution is to  use the <tt>%alias</tt> directive (unique to 
+		  SWIG's Ruby module). The previous example could then be rewritten as: </p>
+		<div class="code">
+          <pre>// MyArray#size is an alias for MyArray#length<br>%alias MyArray::length "size";<br><br>class MyArray {<br>public:<br> // Construct an empty array<br> MyArray();<br> <br> // Return the size of this array<br> size_t length() const;<br>};<br>
+        </pre>
+        </div>
+		<p> Multiple aliases can be associated with a method by providing a comma-separated 
+		  list of aliases to the <tt>%alias</tt> directive, e.g. </p>
+		<div class="code">
+          <pre>%alias MyArray::length "amount,quantity,size";</pre>
+        </div>
+		<p> From an end-user's standpoint, there's no functional difference between these 
+		  two approaches; i.e. they should get the same result from calling either <em>MyArray#size</em> or <em>MyArray#length</em>. However, when the <tt>%alias</tt> directive is 
+		  used, SWIG doesn't need to generate all of the wrapper code that's usually 
+		  associated with added methods like our <em>MyArray::size()</em> example. </p>
+		<p>Note that the <tt>%alias</tt> directive is implemented using SWIG's "features" 
+		  mechanism and so the same name matching rules used for other kinds of features 
+		  apply (see the chapter on <a href="Customization.html#Customization">"Customization 
+		    Features"</a>) for more details).</p>
+<H3><a name="Ruby_nn29"></a>30.4.2 Predicate Methods</H3>
+
+
+		<p> Ruby methods that return a boolean value and end in a question mark are known as predicate methods. Examples of predicate methods in standard Ruby classes include <em>Array#empty?</em> (which returns <tt>true</tt> for an array containing no elements) and <em>Object#instance_of?</em> (which 
+		  returns <tt>true</tt> if the object is an instance of the specified class). For 
+		  consistency with Ruby conventions, methods that return boolean values  should be marked as predicate methods.</p>
+		<p>One cumbersome solution to this problem is to rename the method (using SWIG's <tt>%rename</tt> directive) and provide a custom typemap that converts the function's actual 
+		  return type to Ruby's <tt>true</tt> or <tt>false</tt>. For example: </p>
+		<div class="code">
+          <pre>%rename("is_it_safe?") is_it_safe();<br><br>%typemap(out) int is_it_safe <br> "$result = ($1 != 0) ? Qtrue : Qfalse;";<br><br>int is_it_safe();<br>
+        </pre>
+        </div>
+		<p> A better solution is to  use the <tt>%predicate</tt> directive (unique 
+		  to SWIG's Ruby module) to designate a method as a predicate method. For 
+		  the previous example, this would look like: </p>
+		<div class="code">
+          <pre>%predicate is_it_safe();<br><br>int is_it_safe();<br>
+        </pre>
+        </div>
+		<p>This method would be invoked from Ruby code like this:</p>
+		<div class="code">
+          <pre>irb(main):001:0&gt; <b>Example::is_it_safe?</b><br>true<br>
+        </pre>
+        </div>
+		<p> The <tt>%predicate</tt> directive is implemented using SWIG's 
+		  "features" mechanism and so the same name matching rules used for other kinds 
+		  of features apply (see the chapter on <a href="Customization.html#Customization">"Customization 
+		    Features"</a>) for more details). </p>
+<H3><a name="Ruby_nn30"></a>30.4.3 Bang Methods</H3>
+
+
+        <p> Ruby methods that modify an object in-place and end in an exclamation mark are known as bang methods. An example of a bang method is  <em>Array#sort!</em> which changes the ordering of items in an array. Contrast this with  <em>Array#sort</em>, which returns a copy of the array with the items sorted instead of modifying the original array. For 
+        consistency with Ruby conventions, methods that modify objects in place should be marked as bang methods.</p>
+        <p>Bang methods can be marked using the <tt>%bang</tt> directive which is unique 
+        to the Ruby module and was introduced in SWIG 1.3.28. For example:</p>
+        <div class="code">
+          <pre>%bang sort!(arr);<br><br>int sort(int arr[]);        </pre>
+        </div>
+        <p>This method would be invoked from Ruby code like this:</p>
+        <div class="code">
+          <pre>irb(main):001:0&gt; <b>Example::sort!(arr)</b></pre>
+        </div>
+        <p> The <tt>%bang</tt> directive is implemented using SWIG's 
+          "features" mechanism and so the same name matching rules used for other kinds 
+          of features apply (see the chapter on <a href="Customization.html#Customization">"Customization 
+            Features"</a>) for more details). </p>
+        <H2><a name="Ruby_nn32"></a>30.5 Input and output parameters</H2>
 
 
 		<p>
@@ -1162,8 +1135,9 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="code">
 			<pre>r, c = Example.get_dimensions(m)<br></pre>
 		</div>
-		<H2><a name="Ruby_nn28"></a>27.5 Simple exception handling
-		</H2>
+<H2><a name="Ruby_nn33"></a>30.6 Simple exception handling		</H2>
+
+
 		<p>
 			The SWIG <tt>%exception</tt> directive can be used to define a user-definable 
 			exception handler that can convert C/C++ errors into Ruby exceptions. The 
@@ -1209,7 +1183,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			the standard Ruby exception classes, consult a Ruby reference such as <a href="http://www.rubycentral.com/book">
 				<em>Programming Ruby</em></a>.
 		</p>
-<H2><a name="Ruby_nn29"></a>30.5 Typemaps</H2>
+<H2><a name="Ruby_nn34"></a>30.7 Typemaps</H2>
 
 
 		<p>
@@ -1222,7 +1196,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			of using SWIG---the default wrapping behavior is enough in most cases. Typemaps 
 			are only used if you want to change some aspect of the primitive C-Ruby 
 			interface.</p>
-<H3><a name="Ruby_nn30"></a>30.5.1 What is a typemap?</H3>
+<H3><a name="Ruby_nn35"></a>30.7.1 What is a typemap?</H3>
 
 
 		<p>
@@ -1289,7 +1263,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="code">
 			<pre>puts Example.count('o','Hello World')<br>2<br></pre>
 		</div>
-<H3><a name="Ruby_nn31"></a>30.5.2 Ruby typemaps</H3>
+<H3><a name="Ruby_nn36"></a>30.7.2 Ruby typemaps</H3>
 
 
 		<p>
@@ -1346,7 +1320,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			Examples of these typemaps appears in the <a href="#ruby_typemap_examples">section 
 				on typemap examples</a>
 		</p>
-<H3><a name="Ruby_nn32"></a>30.5.3 Typemap variables</H3>
+<H3><a name="Ruby_nn37"></a>30.7.3 Typemap variables</H3>
 
 
 		Within a typemap, a number of special variables prefaced with a <tt>$</tt> may 
@@ -1382,7 +1356,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<p><tt>$symname</tt></p>
 		<div class="indent">The Ruby name of the wrapper function being created.
 		</div>
-<H3><a name="Ruby_nn33"></a>30.5.4 Useful Functions</H3>
+<H3><a name="Ruby_nn38"></a>30.7.4 Useful Functions</H3>
 
 
 		<p>
@@ -1391,20 +1365,20 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			can be found in <a href="http://www.rubycentral.com/book"><em>Programming Ruby</em></a>, 
 			by David Thomas and Andrew Hunt.)
 		</p>
-		<p><a name="n34"></a></p>
-<H4><a name="Ruby_nn34"></a>30.5.4.1 C Datatypes to Ruby Objects</H4>
+		<p>&nbsp;</p>
+<H4><a name="Ruby_nn39"></a>30.7.4.1 C Datatypes to Ruby Objects</H4>
 
 
 		<div class="code">
 			<pre>INT2NUM(long or int) - int to Fixnum or Bignum<br>INT2FIX(long or int) - int to Fixnum (faster than INT2NUM)<br>CHR2FIX(char) - char to Fixnum<br>rb_str_new2(char*) - char* to String<br>rb_float_new(double) - double to Float<br></pre>
 		</div>
-<H4><a name="Ruby_nn35"></a>30.5.4.2 Ruby Objects to C Datatypes</H4>
+<H4><a name="Ruby_nn40"></a>30.7.4.2 Ruby Objects to C Datatypes</H4>
 
 
 		<div class="code">
 			<pre> int NUM2INT(Numeric)<br> int FIX2INT(Numeric)<br> unsigned int NUM2UINT(Numeric)<br> unsigned int FIX2UINT(Numeric)<br> long NUM2LONG(Numeric)<br> long FIX2LONG(Numeric)<br>unsigned long FIX2ULONG(Numeric)<br> char NUM2CHR(Numeric or String)<br> char * STR2CSTR(String)<br> char * rb_str2cstr(String, int*length)<br> double NUM2DBL(Numeric)<br><br></pre>
 		</div>
-<H4><a name="Ruby_nn36"></a>30.5.4.3 Macros for VALUE</H4>
+<H4><a name="Ruby_nn41"></a>30.7.4.3 Macros for VALUE</H4>
 
 
 		<p>
@@ -1419,7 +1393,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="indent">capacity of the Ruby array</div>
 		<p><tt>RARRAY(arr)-&gt;ptr</tt></p>
 		<div class="indent">pointer to array storage</div>
-<H4><a name="Ruby_nn37"></a>30.5.4.4 Exceptions</H4>
+<H4><a name="Ruby_nn42"></a>30.7.4.4 Exceptions</H4>
 
 
 		<p>
@@ -1486,7 +1460,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			with the <tt>-w</tt> flag. The given format string <i>fmt</i> and remaining 
 			arguments are interpreted as with <tt>printf()</tt>.
 		</div>
-<H4><a name="Ruby_nn38"></a>30.5.4.5 Iterators</H4>
+<H4><a name="Ruby_nn43"></a>30.7.4.5 Iterators</H4>
 
 
 		<p>
@@ -1525,14 +1499,14 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="indent">
 			Equivalent to Ruby's <tt>throw</tt>.
 		</div>
-<H3><a name="ruby_typemap_examples"></a>30.5.5 Typemap Examples</H3>
+<H3><a name="Ruby_nn44"></a>30.7.5 Typemap Examples</H3>
 
 
 		<p>
 			This section includes a few examples of typemaps. For more examples, you might 
 			look at the examples in the <tt>Example/ruby</tt> directory.
 		</p>
-<H3><a name="Ruby_nn40"></a>30.5.6 Converting a Ruby array to a char **</H3>
+<H3><a name="Ruby_nn45"></a>30.7.6 Converting a Ruby array to a char **</H3>
 
 
 		<p>
@@ -1556,7 +1530,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			allocation is used to allocate memory for the array, the "freearg" typemap is 
 			used to later release this memory after the execution of the C function.
 		</p>
-<H3><a name="Ruby_nn41"></a>30.5.7 Collecting arguments in a hash</H3>
+<H3><a name="Ruby_nn46"></a>30.7.7 Collecting arguments in a hash</H3>
 
 
 		<p>
@@ -1669,7 +1643,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			the extension, can be found in the <tt>Examples/ruby/hashargs</tt> directory of 
 			the SWIG distribution.
 		</p>
-<H3><a name="Ruby_nn42"></a>30.5.8 Pointer handling</H3>
+<H3><a name="Ruby_nn47"></a>30.7.8 Pointer handling</H3>
 
 
 		<p>
@@ -1716,7 +1690,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="indent">
 			<pre>%typemap(in) Foo * {<br> SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 1);<br>}<br></pre>
 		</div>
-<H4><a name="Ruby_nn43"></a>30.5.8.1 Ruby Datatype Wrapping</H4>
+<H4><a name="Ruby_nn48"></a>30.7.8.1 Ruby Datatype Wrapping</H4>
 
 
 		<p>
@@ -1737,7 +1711,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="indent">Retrieves the original C pointer of type <i>c-type</i> from the 
 			data object <i>obj</i> and assigns that pointer to <i>ptr</i>.
 		</div>
-<H2><a name="ruby_operator_overloading"></a>30.6 Operator overloading</H2>
+<H2><a name="Ruby_nn49"></a>30.8 Operator overloading</H2>
 
 
 		<p>
@@ -1752,7 +1726,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			defining an equivalence operator, there is no separate method for handling <i>inequality</i>
 			since Ruby parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 		</p>
-<H3><a name="Ruby_nn45"></a>30.6.1 Example: STL Vector to Ruby Array</H3>
+<H3><a name="Ruby_nn50"></a>30.8.1 Example: STL Vector to Ruby Array</H3>
 
 
 		<p>
@@ -1789,10 +1763,10 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="code">
 			<pre>%define VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(out) vectorclassname &amp;, const vectorclassname &amp; {<br> VALUE arr = rb_ary_new2($1-&gt;size()); <br> vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%typemap(out) vectorclassname, const vectorclassname {<br> VALUE arr = rb_ary_new2($1.size()); <br> vectorclassname::iterator i = $1.begin(), iend = $1.end();<br> for ( ; i!=iend; i++ )<br> rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));<br> $result = arr;<br>}<br>%enddef<br></pre>
 		</div>
-<H2><a name="Ruby_nn46"></a>30.7 Advanced Topics</H2>
+<H2><a name="Ruby_nn51"></a>30.9 Advanced Topics</H2>
 
 
-<H3><a name="Ruby_nn47"></a>30.7.1 Creating Multi-Module Packages</H3>
+<H3><a name="Ruby_nn52"></a>30.9.1 Creating Multi-Module Packages</H3>
 
 
 		<p>
@@ -1863,7 +1837,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<div class="code">
 			<pre>$ <b>irb</b><br>irb(main):001:0&gt; <b>require 'shape'</b><br>true<br>irb(main):002:0&gt; <b>require 'circle'</b><br>true<br>irb(main):003:0&gt; <b>c = Circle::Circle.new(5, 5, 20)</b><br>#&lt;Circle::Circle:0xa097208&gt;<br>irb(main):004:0&gt; <b>c.kind_of? Shape::Shape</b><br>true<br>irb(main):005:0&gt; <b>c.getX()</b><br>5.0<br></pre>
 		</div>
-<H3><a name="Ruby_nn48"></a>30.7.2 Defining Aliases</H3>
+<H3><a name="Ruby_nn53"></a>30.9.2 Defining Aliases</H3>
 
 
 		<p>
@@ -1902,7 +1876,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			mechanism and so the same name matching rules used for other kinds of features 
 			apply (see the chapter on <a href="Customization.html#Customization">"Customization 
 				Features"</a>) for more details).</p>
-<H3><a name="Ruby_nn49"></a>30.7.3 Predicate Methods</H3>
+<H3><a name="Ruby_nn54"></a>30.9.3 Predicate Methods</H3>
 
 
 		<p>
@@ -1939,7 +1913,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			of features apply (see the chapter on <a href="Customization.html#Customization">"Customization 
 				Features"</a>) for more details).
 		</p>
-<H3><a name="Ruby_nn50"></a>30.7.4 Specifying Mixin Modules</H3>
+<H3><a name="Ruby_nn55"></a>30.9.4 Specifying Mixin Modules</H3>
 
 
 		<p>
@@ -1980,7 +1954,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			apply (see the chapter on <a href="Customization.html#Customization">"Customization 
 				Features"</a>) for more details).
 		</p>
-<H2><a name="Ruby_nn51"></a>30.8 Memory Management</H2>
+<H2><a name="Ruby_nn56"></a>30.10 Memory Management</H2>
 
 
 		<p>One of the most common issues in generating SWIG bindings for Ruby is proper 
@@ -1999,8 +1973,9 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			versa) depending on what function or methods are invoked. Clearly, developing a 
 			SWIG wrapper requires a thorough understanding of how the underlying library 
 			manages memory.</p>
-		<h3><a name="Ruby_nn52" id="Ruby_nn52"></a>27.9.1 Mark and Sweep Garbage Collector
-		</h3>
+<H3><a name="Ruby_nn57"></a>30.10.1 Mark and Sweep Garbage Collector		</H3>
+
+
 		<p>Ruby uses a mark and sweep garbage collector. When the garbage collector runs, 
 			it finds all the "root" objects, including local variables, global variables, 
 			global constants, hardware registers and the C stack. For each root object, the 
@@ -2024,7 +1999,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			allocated in creating the underlying C struct or C++ struct, then a "free" 
 			function must be defined that deallocates this memory.
 		</p>
-<H3><a name="Ruby_nn53"></a>30.8.1 Object Ownership</H3>
+<H3><a name="Ruby_nn58"></a>30.10.2 Object Ownership</H3>
 
 
 		<p>As described above, memory management depends on clearly defining who is 
@@ -2099,7 +2074,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		<p>
 			This code can be seen in swig/examples/ruby/tracking.</p>
 		<br>
-<H3><a name="Ruby_nn54"></a>30.8.2 Object Tracking</H3>
+<H3><a name="Ruby_nn59"></a>30.10.3 Object Tracking</H3>
 
 
 		<p>The remaining parts of this section will use the class library shown below to 
@@ -2168,7 +2143,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 			implement your own free functions (see below) you may also have to call the<tt>SWIG_RubyRemoveTracking</tt>
 			and <tt>RubyUnlinkObjects</tt> methods.</p>
 
-<H3><a name="Ruby_nn55"></a>30.8.3 Mark Functions</H3>
+<H3><a name="Ruby_nn60"></a>30.10.4 Mark Functions</H3>
 
 
 		<p>With a bit more testing, we see that our class library still has problems. For 
@@ -2210,7 +2185,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		</div>
 		<br>
 		<p>This code can be seen in swig/examples/ruby/mark_function.</p>
-<H3><a name="Ruby_nn56"></a>30.8.4 Free Functions</H3>
+<H3><a name="Ruby_nn61"></a>30.10.5 Free Functions</H3>
 
 
 		<p>By default, SWIG creates a "free" function that is called when a Ruby object is 
