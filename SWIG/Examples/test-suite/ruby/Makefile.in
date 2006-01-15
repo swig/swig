@@ -16,7 +16,8 @@ CPP_TEST_CASES = \
 	track_objects_directors \
 	primitive_types \
 	li_cdata \
-	li_cstring
+	li_cstring \
+	naming
 
 C_TEST_CASES += \
 	li_cdata \
@@ -27,7 +28,12 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -noautorename
 
+
 # Rules for the different types of tests
+
+# make sure -autorename is true for the naming test
+naming.cpptest: SWIGOPT = -autorename
+
 %.cpptest: 
 	$(setup) \
 	($(swig_and_compile_cpp); ) &&\
