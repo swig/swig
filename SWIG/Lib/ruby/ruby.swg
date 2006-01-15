@@ -12,7 +12,7 @@
 %rename("%(camelcase)s", %isclass) ""; 
 
 /* Constants are UPPER_CASE */
-%rename("%(uppercase)s",%isvariable,%isimmutable) ""; 
+%rename("%(uppercase)s",%hasconsttype) ""; 
 %rename("%(uppercase)s", %isconstant) "";
 
 /* Method names should be changed so that they are 
