@@ -250,7 +250,7 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
       if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULLONG_MAX)) {
-	if (val) *val = (unsigned long)(d);
+	if (val) *val = (unsigned long long)(d);
 	return res;
       }
     }
