@@ -1099,19 +1099,21 @@ int Swig_name_match_value(String *mvalue, String *value)
   int match = 0;
   char *cvalue = Char(value);
   char *cmvalue = Char(mvalue);
-#if 1
   char *sep = strstr(cmvalue,"|");
   while (sep && !match) {
     match = strncmp(cvalue,cmvalue, sep - cmvalue) == 0;
+#ifdef SWIG_DEBUG 
+    Printf(stderr,"match_value: %s %s %d\n",cvalue,cmvalue, match);
+#endif
     cmvalue = sep + 1;
     sep = strstr(cmvalue,"|");
   }
   if (!match) {
     match = strcmp(cvalue,cmvalue) == 0;    
-  }
-#else
-
+#ifdef SWIG_DEBUG 
+    Printf(stderr,"match_value: %s %s %d\n",cvalue,cmvalue, match);
 #endif
+  }
   return match;
 }
 
