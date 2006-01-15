@@ -12,9 +12,10 @@
 %rename("%(camelcase)s", %isclass) ""; 
 
 /* Constants are UPPER_CASE */
+%rename("%(uppercase)s", %isconstant) "";
+%rename("%(undercase)s", %isvariable,%ismember) ""; 
 %rename("%(uppercase)s", %isvariable,%isimmutable) ""; 
 %rename("%(uppercase)s", %isvariable,%isstatic,%hasvalue,%hasconsttype) ""; 
-%rename("%(uppercase)s", %isconstant) "";
 
 /* Method names should be changed so that they are 
    lower_case_with_underscores */
