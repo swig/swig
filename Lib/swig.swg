@@ -265,6 +265,12 @@ static int NAME(TYPE x) {
 %define %isprotected    match$access="protected"  %enddef
 %define %isprivate      match$access="public"  %enddef
 
+
+%define %ismemberget      match$memberget="1"  %enddef
+%define %ismemberset      match$memberset="1"  %enddef
+%define %isnotmemberget   notmatch$memberget="1"  %enddef
+%define %isnotmemberset   notmatch$memberset="1"  %enddef
+
 %define %classname      %ismember,match$parentNode$name  %enddef
 
 /* -----------------------------------------------------------------------------
