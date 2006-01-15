@@ -19,7 +19,7 @@
 
 /* Method names should be changed so that they are 
    lower_case_with_underscores */
-%rename("%(undercase)s", %isfunction, %ismember, %isnotmemberget, %isnotmemberset) "";
+%rename("%(undercase)s", %isfunction, %ismember, %not %ismemberget, %not %ismemberset) "";
 #endif
 
 /* ------------------------------------------------------------
