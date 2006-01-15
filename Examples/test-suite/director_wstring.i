@@ -1,5 +1,5 @@
 %module(directors="1") director_wstring;
-%include stl.i
+%include <stl.i>
 
 #ifndef SWIG_STL_UNIMPL
 

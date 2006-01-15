@@ -144,7 +144,6 @@ typedef void OSRSpatialReferenceShadow;
 
 class OSRSpatialReferenceShadow {
 private:
-  OSRSpatialReferenceShadow();
 public:
   %extend {
     OSRSpatialReferenceShadow( char const * wkt = "" ) {

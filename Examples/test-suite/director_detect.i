@@ -9,7 +9,7 @@
 #include <iostream>
 %}
 
-%include "std_string.i"
+%include <std_string.i>
 
 %feature("director") Bar;
 

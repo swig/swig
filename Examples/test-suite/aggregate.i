@@ -17,7 +17,7 @@
 
 %module aggregate
 
-%include "exception.i"
+%include <exception.i>
 %aggregate_check(int, check_direction, UP, DOWN, LEFT, RIGHT)
 
 %contract move(int x) {
