@@ -204,6 +204,10 @@ String *Swig_string_ucase(String *s) {
 	first = 1;
       }
     }
+    else if (c == '_') {
+      /* We don't want two underscores in a row */
+      first = 0;
+    }
     Putc(tolower(c),ns);
   }
   return ns;
@@ -729,7 +733,6 @@ int Swig_scopename_check(String *s) {
 #if defined(HAVE_POPEN)
 extern FILE *popen(const char *command, const char *type);
 extern int pclose(FILE *stream);
-#endif
 
 String *Swig_string_command(String *s) {
   String *res = NewStringEmpty();
