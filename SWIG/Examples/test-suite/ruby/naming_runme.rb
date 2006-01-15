@@ -9,11 +9,6 @@ if not Naming::MyClass
   raise RuntimeError, 'Invalid class name for MyClass'
 end
 
-# Check constant names
-if not Naming::MyClass::CONST1
-  raise RuntimeError, 'Invalid constant name for CONST1'
-end
-
 
 # Check method names
 if not Naming::MyClass.instance_methods.include?('method_one')
@@ -40,11 +35,6 @@ end
 # Check bang methods
 if not Naming::MyClass.instance_methods.include?('bang_method!')
   raise RuntimeError, 'Invalid method name for bang_method!'
-end
-
-# Run all these methods as a sanity check
-if Naming::MyClass::CONST1 != 1
-  raise RuntimeError, "Incorrect value for CONST1" 
 end
 
 my_class = Naming::MyClass.new()
