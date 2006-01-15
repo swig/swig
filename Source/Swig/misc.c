@@ -729,10 +729,15 @@ int Swig_scopename_check(String *s) {
  * Swig_string_command()
  *
  * ----------------------------------------------------------------------------- */
-
 #if defined(HAVE_POPEN)
 extern FILE *popen(const char *command, const char *type);
 extern int pclose(FILE *stream);
+#else
+#  if defined_MSC_VER
+#    define HAVE_POPEN 1
+#    define popen _popen
+#    define pclose _pclose
+#  endif
 #endif
 
 String *Swig_string_command(String *s) {
