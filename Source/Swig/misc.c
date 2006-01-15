@@ -733,6 +733,7 @@ int Swig_scopename_check(String *s) {
 #if defined(HAVE_POPEN)
 extern FILE *popen(const char *command, const char *type);
 extern int pclose(FILE *stream);
+#endif
 
 String *Swig_string_command(String *s) {
   String *res = NewStringEmpty();
