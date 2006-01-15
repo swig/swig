@@ -16,13 +16,17 @@ char cvsroot_typemap_c[] = "$Header$";
 #include "cparse.h"
 #include <ctype.h>
 
+#if 0
+#define SWIG_DEBUG 
+#endif
+
 static void replace_embedded_typemap(String *s);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
  * this:
  *
- * [ type ]
+xo * [ type ]
  *    +-------- [ name ]
  *    +-------- [ name ]
  *    
@@ -1468,10 +1472,21 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   char *cop = Char(op);
   String *kwmatch = 0;
   p = parms;
+
+#ifdef SWIG_DEBUG
+    Printf(stdout,"Swig_typemap_attach_parms:  %s\n", op); 
+#endif
+
   while (p) {
     argnum++;
     nmatch = 0;
+#ifdef SWIG_DEBUG
+    Printf(stdout,"parms:  %s %s %s\n", op, Getattr(p,k_name), Getattr(p,k_type)); 
+#endif
     tm = Swig_typemap_search_multi(op,p,&nmatch);
+#ifdef SWIG_DEBUG
+    if (tm) Printf(stdout,"found:  %s\n", tm); 
+#endif
     if (!tm) {
       p = nextSibling(p);
       continue;
@@ -1491,6 +1506,9 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       String *tmname = NewStringf("tmap:%s",kwmatch);
       Hash *tmin = Getattr(p,tmname);
       Delete(tmname);
+#ifdef SWIG_DEBUG
+      if (tm) Printf(stdout,"matching:  %s\n", kwmatch); 
+#endif
       if (tmin) {
 	SwigType *typetm = Getattr(tm,k_type);
 	SwigType *typein = Getattr(tmin,k_type);
@@ -1510,10 +1528,13 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     }
     
     s = Getattr(tm,k_code);
-    if (!s) {
+    if (!s || !Len(s)) {
       p = nextSibling(p);
       continue;
     }
+#ifdef SWIG_DEBUG
+    if (s) Printf(stdout,"code:  %s\n", s); 
+#endif
     
     /* Empty typemap. No match */
     if (Cmp(s,"pass") == 0) {
@@ -1525,11 +1546,15 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     locals = Getattr(tm,k_locals);
     if (locals) locals = CopyParmList(locals);
     firstp = p;
+#ifdef SWIG_DEBUG
+    Printf(stdout,"nmatch:  %d\n", nmatch); 
+#endif
     for (i = 0; i < nmatch; i++) {
       SwigType *type;
       String   *pname;
       String   *lname;
       SwigType *mtype;
+
 
       type = Getattr(p,k_type);
       pname = Getattr(p,k_name);
@@ -1561,6 +1586,9 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     Replace(s,"$argnum",temp, DOH_REPLACE_ANY);
 
     /* Attach attributes to object */
+#ifdef SWIG_DEBUG
+    Printf(stdout,"attach: %s %s %s\n", Getattr(firstp,k_name), tmop_name(op), s); 
+#endif
     Setattr(firstp,tmop_name(op),s);           /* Code object */
 
     if (locals) {
@@ -1585,7 +1613,15 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     /* increase argnum to consider numinputs */
     argnum += nmatch - 1;
     Delete(s);
+#ifdef SWIG_DEBUG
+    Printf(stdout,"res: %s %s %s\n", Getattr(firstp,k_name), tmop_name(op), Getattr(firstp,tmop_name(op))); 
+#endif
+
   }
+#ifdef SWIG_DEBUG
+  Printf(stdout,"Swig_typemap_attach_parms: end\n"); 
+#endif
+
 }
 
 /* -----------------------------------------------------------------------------
@@ -1752,6 +1788,9 @@ static void replace_embedded_typemap(String *s) {
 	}
 	/* Perform a typemap search */
 	if (first) {
+#ifdef SWIG_DEBUG
+	  Printf(stdout,"Swig_typemap_attach_parms:  embedded\n"); 
+#endif	  
 	  Swig_typemap_attach_parms(method,first,0);
 	  {
 	    String *tm;
