@@ -8,7 +8,7 @@
 #endif
 %}
 
-%include "std_string.i"
+%include <std_string.i>
 
 %inline %{
   #include <string>

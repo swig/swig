@@ -1,6 +1,6 @@
 %module csharp_exceptions
 
-%include "exception.i"
+%include <exception.i>
 
 %inline %{
   class Ex {
@@ -64,7 +64,7 @@ void ExceptionSpecificationEnumReference() throw(TestEnum&) { throw TestEnumItem
 %}
 
 // std::string
-%include "std_string.i"
+%include <std_string.i>
 %inline %{
 void ExceptionSpecificationStdStringValue() throw(std::string) { throw std::string("ExceptionSpecificationStdStringValue"); }
 void ExceptionSpecificationStdStringReference() throw(const std::string&) { throw std::string("ExceptionSpecificationStdStringReference"); }
