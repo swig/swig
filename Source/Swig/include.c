@@ -71,15 +71,17 @@ Swig_swiglib_get() {
 
 List *
 Swig_add_directory(const String_or_char *dirname) {
-  String *dir = 0;  
   if (!directories) directories = NewList();
   assert(directories);
   if (dirname) {
-    dir = NewString((char *) dirname);
+    String *sdir = NewString(dirname);
+    Hash *dir = NewHash();
     assert(dir);
-    Setattr(dir,k_sysdir,"1");
+    SetFlag(dir, k_sysdir);
+    Setattr(dir, k_name, sdir);
     Append(directories, dir);
     Delete(dir);
+    Delete(sdir);
   }
   return directories;
 }
@@ -95,14 +97,20 @@ Swig_add_directory(const String_or_char *dirname) {
 
 void 
 Swig_push_directory(const String_or_char *dirname) {
+  String *tmp = 0;
   if (!Swig_get_push_dir()) return;
   if (!directories) directories = NewList();
   assert(directories);
   if (!DohIsString(dirname)) {
-    dirname = NewString((char *) dirname);
+    dirname = tmp = NewString(dirname);
     assert(dirname);
+  } 
+  if (dirname) {
+    Hash *dir = NewHash();
+    Setattr(dir, k_name, dirname);
+    Insert(directories, 0, dir);
+    if (tmp) Delete(tmp);
   }
-  Insert(directories, 0, dirname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -163,14 +171,23 @@ Swig_search_path_any(int syspath) {
   }  
   ilen = Len(directories);
   for (i = 0; i < ilen; i++) {
+    int issimple = 0;
     dirname =  Getitem(directories,i);
     filename = NewStringEmpty();
     assert(filename);
-    Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
-    if (syspath && !Getattr(dirname,k_sysdir)) {
+    if (DohIsString(dirname)) {
+      filename = Copy(dirname);
+      issimple = 1;
+    } else {
+      filename = Copy(Getattr(dirname,k_name));
+    }
+    StringAppend(filename, SWIG_FILE_DELIMETER);
+
+    if (syspath && (issimple || !GetFlag(dirname,k_sysdir))) {
       Append(llist,filename);
     } else {
       Append(slist,filename);
+      /* Insert(slist,0,filename); */
     }
     Delete(filename);
   }
