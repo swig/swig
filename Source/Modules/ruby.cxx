@@ -965,7 +965,7 @@ public:
    * predicate methods that return true or false (e.g. Array#empty?).
    *
    * Methods whose names end with exclamation points are, by convention,
-   * "mutators" that modify the instance in place (e.g. Array#sort!).
+   * called bang methods that modify the instance in place (e.g. Array#sort!).
    *
    * Methods whose names end with an equals sign are attribute setters
    * (e.g. Thread#critical=).
@@ -1036,6 +1036,11 @@ public:
     /* Rename predicate methods */
     if (GetFlag(n, "feature:predicate")) {
       Append(symname, "?");
+    }
+
+    /* Rename bang methods */
+    if (GetFlag(n, "feature:bang")) {
+      Append(symname, "!");
     }
 
     /* Determine the name of the SWIG wrapper function */

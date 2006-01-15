@@ -1,6 +1,12 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/14/2006: cfisavage
+	    Added support for Ruby bang! methods via a new %bang feature.
+	    Bang methods end in exclamation points and indicate that the
+	    object being processed will be modified in-place as 
+	    opposed to being copied.
+
 01/12/2006: cfisavage
 	    Updated the Ruby module to automatically convert
 	    method names to lower_case_with_underscores using the
