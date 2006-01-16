@@ -1,6 +1,6 @@
 require 'naming'
 
-
+# Check class names
 if not Naming
   raise RuntimeError, 'Invalid module name for Naming'
 end
@@ -10,33 +10,73 @@ if not Naming::MyClass
 end
 
 
+# Check constant names / values
+if Naming::CONSTANT1 != 1
+  raise RuntimeError, "Incorrect value for CONSTANT1" 
+end
+
+if Naming::CONSTANT2 != 2
+  raise RuntimeError, "Incorrect value for CONSTANT2" 
+end
+
+# Check constant names / values
+if Naming::CONSTANT3 != 3
+  raise RuntimeError, "Incorrect value for CONSTANT3" 
+end
+
+if not Naming::methods.include?("constant4")
+  raise RuntimeError, "Incorrect mapping for constant4" 
+end
+
+if not Naming::methods.include?("constant5")
+  raise RuntimeError, "Incorrect mapping for constant5" 
+end
+
+if not Naming::methods.include?("constant6")
+  raise RuntimeError, "Incorrect mapping for constant6" 
+end
+
+if not Naming::TestConstants.instance_methods.include?("constant7")
+  raise RuntimeError, "Incorrect mapping for constant7" 
+end
+
+if not Naming::TestConstants.methods.include?("constant8")
+  raise RuntimeError, "Incorrect mapping for constant8" 
+end
+
+# There is no constant9 because it is illegal C++
+#if not Naming::TestConstants.instance_methods.include?("constant9")
+#  raise RuntimeError, "Incorrect mapping for constant9" 
+#end
+
+if Naming::TestConstants::CONSTANT10 != 10
+  raise RuntimeError, "Incorrect value for CONSTANT10" 
+end
+
+if not Naming::methods.include?("constant11")
+  raise RuntimeError, "Incorrect mapping for constant11" 
+end
+
+
+# Check enums
+if Naming::constants.include?("Color")
+  raise RuntimeError, "Color enum should not be exposed to Ruby" 
+end
+
+if Naming::RED != 0
+  raise RuntimeError, "Incorrect value for enum RED" 
+end
+
+if Naming::GREEN != 1
+  raise RuntimeError, "Incorrect value for enum GREEN" 
+end
+
+if Naming::BLUE != 2
+  raise RuntimeError, "Incorrect value for enum BLUE" 
+end
+
+
 # Check method names
-if not Naming::MyClass.instance_methods.include?('method_one')
-  raise RuntimeError, 'Invalid method name for method_one'
-end
-
-if not Naming::MyClass.instance_methods.include?('method_two')
-  raise RuntimeError, 'Invalid method name for method_two'
-end
-
-if not Naming::MyClass.instance_methods.include?('method_three')
-  raise RuntimeError, 'Invalid method name for method_three'
-end
-
-if not Naming::MyClass.instance_methods.include?('method44_4')
-  raise RuntimeError, 'Invalid method name for method44_4'
-end
-
-# Check predicate methods
-if not Naming::MyClass.instance_methods.include?('predicate_method?')
-  raise RuntimeError, 'Invalid method name for predicate_method?'
-end
-
-# Check bang methods
-if not Naming::MyClass.instance_methods.include?('bang_method!')
-  raise RuntimeError, 'Invalid method name for bang_method!'
-end
-
 my_class = Naming::MyClass.new()
 
 if my_class.method_one != 1 
