@@ -378,6 +378,9 @@ static void add_symbols(Node *n) {
 	    if (SwigType_isconst(rt)) {
 	      SetFlag(n,"hasconsttype");
 	    }
+	    if (!SwigType_ismutable(rt)) {
+	      SetFlag(n,"feature:immutable");
+	    }
 	    Delete(rt);
 	  }
 	  if (!type) {
