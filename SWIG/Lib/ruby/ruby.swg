@@ -11,14 +11,18 @@
 /* Class names are CamelCase */
 %rename("%(camelcase)s", %isclass) ""; 
 
-/* Constants are UPPER_CASE */
+/* Constants created by %constant or #define are UPPER_CASE */
 %rename("%(uppercase)s", %isconstant) "";
-%rename("%(undercase)s", %isvariable,%ismember) ""; 
-%rename("%(uppercase)s", %isvariable,%isimmutable) ""; 
-%rename("%(uppercase)s", %isvariable,%isstatic,%hasvalue,%hasconsttype) ""; 
 
-/* Method names should be changed so that they are 
-   lower_case_with_underscores */
+/* SWIG only considers static class members with inline intializers
+	 to be constants.  For examples of what is and isn't considered
+	 a constant by SWIG see naming.i in the Ruby test suite. */
+%rename("%(uppercase)s", %ismember, %isvariable,%isimmutable,%isstatic,%hasvalue,%hasconsttype) ""; 
+
+/* Enums are mapped to constants and thus should be UPPER_CASE */
+%rename("%(uppercase)s", %isenumitem) "";
+
+/* Method names should be lower_case_with_underscores */
 %rename("%(undercase)s", %isfunction, %ismember, %not %ismemberget, %not %ismemberset) "";
 #endif
 
