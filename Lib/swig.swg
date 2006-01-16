@@ -213,63 +213,65 @@ static int NAME(TYPE x) {
 
    - to rename all the functions:
 
-     %rename("%(utitle)s", %isfunction) "";
+     %rename("%(utitle)s", %$isfunction) "";
 
    - to rename only the member methods:
 
-     %rename("m_%(utitle)s", %isfunction, %ismember) "";
+     %rename("m_%(utitle)s", %$isfunction, %$ismember) "";
 
    - to rename only the global functions:
 
-     %rename("g_%(utitle)s", %isfunction, %isglobal) "";
+     %rename("g_%(utitle)s", %$isfunction, %$isglobal) "";
 
    - to ignore the enumitems in a given class:
 
-     %rename("$ignore", %isenumitem, %classname="MyClass") "";
+     %rename("$ignore", %$isenumitem, %$classname="MyClass") "";
 
+   we use the prefix '%$' to avoid clashings with other swig
+   macros/directives.
 
 */
 
-%define %not            "not" %enddef 
-%define %isenum         "match"="enum"  %enddef
-%define %isenumitem     "match"="enumitem"  %enddef
-%define %isaccess       "match"="access"   %enddef
-%define %isclass        "match"="class"   %enddef
-%define %isextend       "match"="extend"  %enddef
-%define %isextend       "match"="extend"  %enddef
-%define %isconstructor  "match"="constructor"  %enddef
-%define %isdestructor   "match"="destructor"  %enddef
-%define %isnamespace    "match"="namespace"  %enddef
-%define %istemplate     "match"="template"  %enddef
-%define %isconstant     "match"="constant"  %enddef  /* %constant definition */
+%define %$not           "not" %enddef 
+%define %$isenum         "match"="enum"  %enddef
+%define %$isenumitem     "match"="enumitem"  %enddef
+%define %$isaccess       "match"="access"   %enddef
+%define %$isclass        "match"="class"   %enddef
+%define %$isextend       "match"="extend"  %enddef
+%define %$isextend       "match"="extend"  %enddef
+%define %$isconstructor  "match"="constructor"  %enddef
+%define %$isdestructor   "match"="destructor"  %enddef
+%define %$isnamespace    "match"="namespace"  %enddef
+%define %$istemplate     "match"="template"  %enddef
+%define %$isconstant     "match"="constant"  %enddef  /* %constant definition */
 
-%define %isunion        "match$kind"="union"  %enddef
-%define %isfunction     "match$kind"="function"  %enddef
-%define %isvariable     "match$kind"="variable"  %enddef
-%define %isimmutable    "match$feature:immutable"="1"  %enddef
-%define %hasconsttype   "match$hasconsttype"="1"  %enddef
-%define %hasvalue       "match$hasvalue"="1"  %enddef
-%define %isextension    "match$isextension"="1"  %enddef
+%define %$isunion        "match$kind"="union"  %enddef
+%define %$isfunction     "match$kind"="function"  %enddef
+%define %$isvariable     "match$kind"="variable"  %enddef
+%define %$isimmutable    "match$feature:immutable"="1"  %enddef
+%define %$hasconsttype   "match$hasconsttype"="1"  %enddef
+%define %$hasvalue       "match$hasvalue"="1"  %enddef
+%define %$isextension    "match$isextension"="1"  %enddef
 
-%define %isstatic       "match$storage"="static"  %enddef
-%define %isfriend       "match$storage"="friend"  %enddef
-%define %istypedef      "match$storage"="typedef"  %enddef
-%define %isvirtual      "match$storage"="virtual"  %enddef
-%define %isexplicit     "match$storage"="explicit"  %enddef
-%define %isextern       "match$storage"="extern"  %enddef
+%define %$isstatic       "match$storage"="static"  %enddef
+%define %$isfriend       "match$storage"="friend"  %enddef
+%define %$istypedef      "match$storage"="typedef"  %enddef
+%define %$isvirtual      "match$storage"="virtual"  %enddef
+%define %$isexplicit     "match$storage"="explicit"  %enddef
+%define %$isextern       "match$storage"="extern"  %enddef
 
-%define %ismember       "match$ismember"="1"  %enddef
-%define %isglobal       %not %ismember  %enddef
-%define %innamespace    "match$parentNode$nodeType"="namespace"  %enddef
+%define %$ismember       "match$ismember"="1"  %enddef
+%define %$isglobal       %not %ismember  %enddef
+%define %$innamespace    "match$parentNode$nodeType"="namespace"  %enddef
 
-%define %ispublic       "match$access"="public"  %enddef
-%define %isprotected    "match$access"="protected"  %enddef
-%define %isprivate      "match$access"="public"  %enddef
+%define %$ispublic       "match$access"="public"  %enddef
+%define %$isprotected    "match$access"="protected"  %enddef
+%define %$isprivate      "match$access"="public"  %enddef
 
-%define %ismemberget    "match$memberget"="1"  %enddef
-%define %ismemberset    "match$memberset"="1"  %enddef
+%define %$ismemberget    "match$memberget"="1"  %enddef
+%define %$ismemberset    "match$memberset"="1"  %enddef
 
-%define %classname      %ismember,match$parentNode$name  %enddef
+%define %$classname      %ismember,match$parentNode$name  %enddef
 
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 

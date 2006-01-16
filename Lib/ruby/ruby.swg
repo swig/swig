@@ -9,21 +9,21 @@
  * ------------------------------------------------------------ */
 #if defined(SWIG_RUBY_AUTORENAME)
 /* Class names are CamelCase */
-%rename("%(camelcase)s", %isclass) ""; 
+%rename("%(camelcase)s", %$isclass) ""; 
 
 /* Constants created by %constant or #define are UPPER_CASE */
-%rename("%(uppercase)s", %isconstant) "";
+%rename("%(uppercase)s", %$isconstant) "";
 
 /* SWIG only considers static class members with inline intializers
 	 to be constants.  For examples of what is and isn't considered
 	 a constant by SWIG see naming.i in the Ruby test suite. */
-%rename("%(uppercase)s", %ismember, %isvariable,%isimmutable,%isstatic,%hasvalue,%hasconsttype) ""; 
+%rename("%(uppercase)s", %$ismember, %$isvariable,%$isimmutable,%$isstatic,%$hasvalue,%$hasconsttype) ""; 
 
 /* Enums are mapped to constants and thus should be UPPER_CASE */
-%rename("%(uppercase)s", %isenumitem) "";
+%rename("%(uppercase)s", %$isenumitem) "";
 
 /* Method names should be lower_case_with_underscores */
-%rename("%(undercase)s", %isfunction, %ismember, %not %ismemberget, %not %ismemberset) "";
+%rename("%(undercase)s", %$isfunction, %$ismember, %$not %$ismemberget, %$not %$ismemberset) "";
 #endif
 
 /* ------------------------------------------------------------
