@@ -6,8 +6,8 @@
 #define PHPKW(x) %namewarn("314:" `x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
 
 %define PHPCN(x) 
-%namewarn("314:" `x` " is a php reserved class name, class renamed as c_"`x`,match="class",rename="c_%s") `x`;
-%namewarn("314:" `x` " is a php reserved class name, constructor renamed as c_"`x`,match="constructor",rename="c_%s") `x`;
+%namewarn("314:" `x` " is a php reserved class name, class renamed as c_"`x`,%$isclass,rename="c_%s") `x`;
+%namewarn("314:" `x` " is a php reserved class name, constructor renamed as c_"`x`,%$isconstructor,rename="c_%s") `x`;
 %enddef
 
 #define PHPBN1(x) %namewarn("321:" `x` " conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
