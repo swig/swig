@@ -19,11 +19,12 @@
 	 a constant by SWIG see naming.i in the Ruby test suite. */
 %rename("%(uppercase)s", %$ismember, %$isvariable,%$isimmutable,%$isstatic,%$hasvalue,%$hasconsttype) ""; 
 
-/* Enums are mapped to constants and thus should be UPPER_CASE */
-%rename("%(uppercase)s", %$isenumitem) "";
+/* Enums are mapped to constants but we all we do is make sure the
+   first letter is uppercase */
+%rename("%(firstuppercase)s", %$isenumitem) "";
 
 /* Method names should be lower_case_with_underscores */
-%rename("%(undercase)s", %$isfunction, %$ismember, %$not %$ismemberget, %$not %$ismemberset) "";
+%rename("%(undercase)s", %$isfunction, %$not %$ismemberget, %$not %$ismemberset) "";
 #endif
 
 /* ------------------------------------------------------------
