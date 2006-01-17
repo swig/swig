@@ -728,6 +728,10 @@ int Swig_scopename_check(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_command()
  *
+ * Executes a external command via popen with the string as a command
+ * line parameter. For example:
+ *
+ *  Printf(stderr,"%(command:sed 's/[a-z]/\U\\1/' <<<)s","hello") -> Hello
  * ----------------------------------------------------------------------------- */
 #if defined(HAVE_POPEN)
 #  if defined(_MSC_VER)
@@ -769,6 +773,108 @@ String *Swig_string_command(String *s) {
 
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_rxspencer()
+ *
+ * Executes a regexp substitution via the RxSpencer library. For example:
+ *
+ *   Printf(stderr,"gsl%(rxspencer:[GSL_.*_][@1])s","GSL_Hello_") -> gslHello
+ * ----------------------------------------------------------------------------- */
+#if defined(HAVE_RXSPENCER)
+#include <sys/types.h>
+#include <rxspencer/regex.h>
+#define USE_RXSPENCER
+#endif
+
+const char *skip_delim(char pb, char pe, const char *ce) 
+{
+  int end = 0;
+  int lb = 0;
+  while (!end && *ce != '\0') {
+    if (*ce == pb) {
+      ++lb;
+    }
+    if (*ce == pe) {
+      if (!lb) {
+	end = 1;
+	--ce;
+      } else {
+	--lb;
+      }
+    }
+    ++ce;
+  }
+  return end ? ce : 0;
+}
+
+
+String *Swig_string_rxspencer(String *s) {
+  String *res = 0;
+#if defined(USE_RXSPENCER)
+  if (Len(s)) {
+    const char *cs = Char(s);
+    const char *cb;
+    const char *ce;
+    if (*cs == '[') {
+      int retval;
+      regex_t compiled;
+      cb = ++cs;
+      ce = skip_delim('[',']', cb);
+      if (ce) {
+	char bregexp[512];
+	strncpy(bregexp, cb, ce - cb);
+	bregexp[ce - cb] = '\0';
+	++ce;
+	retval = regcomp(&compiled, bregexp, REG_EXTENDED);
+	if(retval == 0) {
+	  cs = ce;
+	  if (*cs == '[') {
+	    cb = ++cs;
+	    ce = skip_delim('[',']', cb) ;
+	    if (ce) {
+	      const char *cvalue = ce + 1;
+	      int nsub = (int) compiled.re_nsub+1;
+	      regmatch_t *pmatch = (regmatch_t *)malloc(sizeof(regmatch_t)*(nsub));
+	      retval = regexec(&compiled,cvalue,nsub,pmatch,0);
+	      if (retval != REG_NOMATCH) {
+		char *spos = 0;
+		res = NewStringWithSize(cb, ce - cb);
+		spos = Strstr(res,"@");
+		while (spos) {
+		  char cd = *(++spos);
+		  if (isdigit(cd)) {
+		    char arg[8];
+		    size_t len;
+		    int i = cd - '0';
+		    sprintf(arg,"@%d", i);
+		    if (i < nsub && (len = pmatch[i].rm_eo - pmatch[i].rm_so)) {
+		      char value[256];
+		      strncpy(value,cvalue + pmatch[i].rm_so, len);
+		      value[len] = 0;
+		      Replaceall(res,arg,value);
+		    } else {
+		      Replaceall(res,arg,"");
+		    }
+		    spos = Strstr(res,"@");
+		  } else if (cd == '@') {
+		    spos = strstr(spos + 1,"@");
+		  }
+		}
+	      }
+	      free(pmatch);
+	    }
+	  }
+	}
+	regfree(&compiled);
+      }
+    }
+  }
+#endif
+  if (!res) res = NewStringEmpty();
+  return res;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_init()
  *
  * Initialize the SWIG core
@@ -784,8 +890,9 @@ Swig_init() {
   DohEncoding("ctitle", Swig_string_ccase);
   DohEncoding("utitle", Swig_string_ucase);
   DohEncoding("typecode",Swig_string_typecode);
-  DohEncoding("mangle",Swig_string_emangle);
-  DohEncoding("command",Swig_string_command);
+  DohEncoding("mangle", Swig_string_emangle);
+  DohEncoding("command", Swig_string_command);
+  DohEncoding("rxspencer", Swig_string_rxspencer);
 
   /* aliases for the case encoders */
   DohEncoding("uppercase", Swig_string_upper);
@@ -794,6 +901,7 @@ Swig_init() {
   DohEncoding("undercase", Swig_string_ucase);
   DohEncoding("firstuppercase", Swig_string_first_upper);
   DohEncoding("firstlowercase", Swig_string_first_lower);
+
 
   /* Initialize the swig keys */
   Swig_keys_init();

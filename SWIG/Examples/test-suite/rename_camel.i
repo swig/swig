@@ -1,7 +1,7 @@
 %module rename_camel
 
-%rename("%(utitle)s",%isfunction,%ismember) ""; 
-%rename("%(ctitle)s",%isvariable,%ismember) ""; 
+%rename("%(utitle)s",%$isfunction,%$ismember) ""; 
+%rename("%(ctitle)s",%$isvariable,%$ismember) ""; 
 
 %inline {
   struct GeometryFactory 
@@ -26,8 +26,6 @@
 %rename(SedCmd)     camel_case_2;
 %rename("%(ctitle)s") camel_case_3;
 
-%rename("%(title)s",match$parentNode$type="enum HelloEnum") "";
-%rename("%(ctitle)s",match$parentNode$type="enum ChaoEnum") "";
 
 %rename("%(utitle)s") CamelCase_5;
 
@@ -35,6 +33,7 @@
 
 %rename(awk_cmd) "";
 
+%rename("%(title)s",rxsmatch$parentNode$type="enum .*") "";
 
 %inline 
 {
@@ -59,5 +58,11 @@
   int foo(int);
   
 }
+
+%rename("%(lowercase)s",sourcefmt="%(rxspencer:[GSL_(.*)][@1])s",%$isfunction) "";
+%inline {
+  void GSL_Hello() {}
+}
+
 
 
