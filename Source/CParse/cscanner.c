@@ -663,7 +663,7 @@ int yylook(void) {
 	  } else if (c == '/') {
 
 	    /* Look for locator markers */
-	    {
+	    if (0) {
 	      char *loc = Char(comment);
 	      if (Len(comment)) {
 		if ((*loc == '@') && (*(loc+Len(comment)-1) == '@')) {
