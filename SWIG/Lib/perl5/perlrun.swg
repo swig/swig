@@ -65,6 +65,9 @@
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
+/* For backward compatibility only */
+#define SWIG_POINTER_EXCEPTION  0
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
