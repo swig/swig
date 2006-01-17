@@ -1,6 +1,85 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/16/2006: mmatus
+	    Add initial support for regexp via the external library
+	    RxSpencer. SWIG doesn't require this library to compile
+	    and/or run. But if you specify --with-rxspencer, and the
+	    library is found during installation, then swig will use
+	    it in three places:
+
+	    - In %renames rules, via the new rxsmatch rules, for example:
+	    	  
+	    	  %rename("%(lowercase)",rxsmatch$name="GSL_.*") "";
+	    	  %rename("%(lowercase)",rxsmatch$nodeType="enum GSL_.*") "";
+	    	 
+              rxsmatch is similar to the match rule, it just uses
+              the RxSpencer regexp library to decide if there is a
+              match with the provided regexp. As with the match
+              rule, you can also use the negate rule notrxsmatch.
+
+	    - In the %rename target name via the rxstarget option, for example:
+	    		 
+	    	  %rename("%(lowercase)",rxstarget=1) "GSL_.*";
+
+	    	where the target name "GSL.*" is now understood as a
+	    	regexp to be matched.  
+	    	 
+            - In the new encoder "rxspencer", which looks like:
+
+	    	  %(rxspencer:[regexp][replace])s
+
+	    	where "regexp" is the regular expression and "replace"
+	    	is a string used as a replacement, where the @0,@1,...,@9
+	    	pseudo arguments are used to represent the
+	    	corresponding matching items in the reg expression.
+
+	    	For example:
+	    		      
+	        %(rxspencer:[GSL.*][@0])s       <- Hello    -> 
+	        %(rxspencer:[GSL.*][@0])s       <- GSLHello -> GSLHello
+	        %(rxspencer:[GSL(.*)][@1])s     <- GSLHello -> Hello
+	        %(rxspencer:[GSL(.*)][gsl@1])s  <- GSLHello -> gslHello
+
+	    	Another example could be:
+
+                %rename("%(lowercase)s",sourcefmt="%(rxspencer:[GSL_(.*)][@1])s",%$isfunction) "";
+
+	    	which take out the prefix "GSL_" and returns all the
+	    	function names in lower cases, as following:
+
+	    	    void GSL_Hello();   ->   hello();
+	    	    void GSL_Hi();      ->   hi();
+	    	    const int GSL_MAX;  ->   GSL_MAX;  // no change, is not a function
+	
+	    We use the RxSpencer as an initial test bed to
+            implemention while we decide which library will be
+            finally added to swig.
+
+            You can obtain the RxSpencer library from 
+	    
+	      http://arglist.com/regex (Unix)
+
+	    or
+	     
+	      http://gnuwin32.sourceforge.net/packages.html (Windows)
+
+	    Once installed, use "man rxspencer" to get more info
+	    about the regexp format, or just google rxspencer.
+
+	    Since now you can enable the rxsmatch rules (see above),
+            the simple or '|' support for the match rules
+            (01/12/2006: mmatus) is disabled. Still, if you have
+            problems with the rxspencer library, you can re-enable
+            the simple 'match or' support using -DSWIG_USE_SIMPLE_MATCHOR.
+
+01/16/2006: mmatus
+	    Change the %rename predicates to use the prefix '%$', as in:
+	    
+	      %rename("%(utitle)s",%$isfunction,%$ismember) ""; 
+	   	
+            to avoid clashings with other swig macros/directives.
+
 01/14/2006: cfisavage
 	    Added support for Ruby bang! methods via a new %bang feature.
 	    Bang methods end in exclamation points and indicate that the
