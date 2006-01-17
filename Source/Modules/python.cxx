@@ -1745,15 +1745,16 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       //      if (!checkAttribute(p,"tmap:in:numinputs","0") && !Getattr(p,"tmap:in:parse")) {
-      if (!Getattr(p,"tmap:in:parse")) {
-	tm = Getattr(p,"tmap:freearg");
+      if (!Getattr(p,"tmap:in:parse") && (tm = Getattr(p,"tmap:freearg"))) {
 	if (Getattr(p,"tmap:freearg:implicitconv")) {
 	  const char *convflag = "0";
 	  if (!Getattr(p,"self")) {
 	    SwigType *ptype =  Getattr(p,"type");
 	    convflag = get_implicitconv_flag(classLookup(ptype));
 	  }
-	  tm = (strcmp(convflag,"0") != 0) ? tm : 0;
+	  if (strcmp(convflag,"0") == 0) {
+	    tm = 0;
+	  }
 	}
 	if (tm && (Len(tm) != 0)) {
 	  Replaceall(tm,"$source",Getattr(p,"lname"));
