@@ -22,7 +22,7 @@ namespace toto {
       template<class T>
       static double bar(int i) {
 	return 1.0;
-      };
+      }
 
     private:
       int i;

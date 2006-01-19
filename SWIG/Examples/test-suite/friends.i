@@ -153,7 +153,7 @@
     }
 
     
-  };
+  }
 %}
 
 %template(D_i) D<int>;

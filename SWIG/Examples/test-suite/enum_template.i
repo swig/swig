@@ -31,8 +31,8 @@ eTest1,
 eTest2
 };
 
-void TakeETest(ETest test) {};
-ETest MakeETest(void) {return eTest1;};
+void TakeETest(ETest test) {}
+ETest MakeETest(void) {return eTest1;}
 
 template<class T> class CTempl
 {

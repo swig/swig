@@ -5,7 +5,7 @@
     
     extern int bar(int blah = 1);
     
-  };
+  }
 
   extern "C" int foobar(int i) {
     return i;
