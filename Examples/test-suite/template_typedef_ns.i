@@ -3,15 +3,14 @@
 %inline {
   namespace Alpha {
     typedef int Integer;
-  };
+  }
   
   namespace Beta {
     template <typename Value>
     struct Alpha {
       Value x;
     };
-  };
-
+  }
 }
 
 
