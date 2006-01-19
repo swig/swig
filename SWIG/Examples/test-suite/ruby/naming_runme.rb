@@ -63,15 +63,15 @@ if Naming::constants.include?("Color")
   raise RuntimeError, "Color enum should not be exposed to Ruby" 
 end
 
-if Naming::RED != 0
+if Naming::Red != 0
   raise RuntimeError, "Incorrect value for enum RED" 
 end
 
-if Naming::GREEN != 1
+if Naming::Green != 1
   raise RuntimeError, "Incorrect value for enum GREEN" 
 end
 
-if Naming::BLUE != 2
+if Naming::Blue != 2
   raise RuntimeError, "Incorrect value for enum BLUE" 
 end
 
