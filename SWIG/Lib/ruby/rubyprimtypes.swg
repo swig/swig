@@ -74,7 +74,9 @@ SWIG_AsVal_dec(long)(VALUE obj, long* val)
   VALUE type = TYPE(obj);
   if ((type == T_FIXNUM) || (type == T_BIGNUM)) {
     long v;
-    VALUE a[2] = { obj, (VALUE)(&v) };
+    VALUE a[2];
+    a[0] = obj;
+    a[1] = (VALUE)(&v);
     if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2LONG), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
@@ -104,7 +106,9 @@ SWIG_AsVal_dec(unsigned long)(VALUE obj, unsigned long *val)
   VALUE type = TYPE(obj);
   if ((type == T_FIXNUM) || (type == T_BIGNUM)) {
     unsigned long v;
-    VALUE a[2] = { obj, (VALUE)(&v) };
+    VALUE a[2];
+    a[0] = obj;
+    a[1] = (VALUE)(&v);
     if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2ULONG), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
@@ -135,7 +139,9 @@ SWIG_AsVal_dec(long long)(VALUE obj, long long *val)
   VALUE type = TYPE(obj);
   if ((type == T_FIXNUM) || (type == T_BIGNUM)) {
     long long v;
-    VALUE a[2] = { obj, (VALUE)(&v) };
+    VALUE a[2];
+    a[0] = obj;
+    a[1] = (VALUE)(&v);
     if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2LL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
@@ -166,7 +172,9 @@ SWIG_AsVal_dec(unsigned long long)(VALUE obj, unsigned long long *val)
   VALUE type = TYPE(obj);
   if ((type == T_FIXNUM) || (type == T_BIGNUM)) {
     unsigned long long v;
-    VALUE a[2] = { obj, (VALUE)(&v) };
+    VALUE a[2];
+    a[0] = obj;
+    a[1] = (VALUE)(&v);
     if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2ULL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
@@ -191,7 +199,9 @@ SWIG_AsVal_dec(double)(VALUE obj, double *val)
   VALUE type = TYPE(obj);
   if ((type == T_FLOAT) || (type == T_FIXNUM) || (type == T_BIGNUM)) {
     double v;
-    VALUE a[2] = { obj, (VALUE)(&v) };
+    VALUE a[2];
+    a[0] = obj;
+    a[1] = (VALUE)(&v);
     if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2DBL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
