@@ -374,7 +374,6 @@ static void add_symbols(Node *n) {
 	    Setattr(n,"hasvalue","1");
 	  }
 	  if (type) {
-	    SwigType *rt;
 	    SwigType *ty;
 	    SwigType *tmp = 0;
 	    if (decl) {
@@ -383,14 +382,10 @@ static void add_symbols(Node *n) {
 	    } else {
 	      ty = type;
 	    }
-	    rt = SwigType_typedef_resolve_all(ty);
-	    if (SwigType_isconst(ty)) {
+	    if (!SwigType_ismutable(ty)) {
 	      SetFlag(n,"hasconsttype");
-	    }
-	    if (!SwigType_ismutable(rt)) {
 	      SetFlag(n,"feature:immutable");
 	    }
-	    Delete(rt);
 	    if (tmp) Delete(tmp);
 	  }
 	  if (!type) {
