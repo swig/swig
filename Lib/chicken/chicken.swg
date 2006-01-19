@@ -187,7 +187,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
 
 /* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void * {
-  $1 = SWIG_MustGetPtr($input, NULL, $argnum, 0);
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
 
 %typemap(varin,closcode="(slot-ref $input 'swig-this)") SWIGTYPE * {
