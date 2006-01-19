@@ -306,9 +306,8 @@ public:
 	   "#else\n",
 	   "#define MAGIC_CLASS\n",
 	   "#endif\n",
-	   "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *sv, MAGIC *mg) {\n",
+	   "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
 	   tab4, "MAGIC_PPERL\n",
-	   tab4, "sv = sv; mg = mg;\n",
 	   tab4, "croak(\"Value is read-only.\");\n",
 	   tab4, "return 0;\n",
 	   "}\n",
@@ -821,10 +820,9 @@ public:
     /* Create a Perl function for setting the variable value */
 
     if (!GetFlag(n,"feature:immutable")) {
-      Printf(setf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC *mg) {\n", set_name);
+      Printf(setf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
       Printv(setf->code,
 	     tab4, "MAGIC_PPERL\n",
-	     tab4, "mg = mg;\n",
 	     NIL);
 
       /* Check for a few typemaps */
@@ -847,10 +845,9 @@ public:
 
     /* Now write a function to evaluate the variable */
 
-    Printf(getf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *mg) {\n", val_name);
+    Printf(getf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", val_name);
     Printv(getf->code,
 	   tab4, "MAGIC_PPERL\n",
-	   tab4, "mg = mg;\n",
 	   NIL);
 
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
