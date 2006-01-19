@@ -64,7 +64,7 @@
 /* varin */
 
 %define %value_varin_typemap(asval_meth,frag,Type...)
-  %typemap(varin,noblock=1,fragment=frag) Type {
+  %typemap(varin,fragment=frag) Type {
     Type val;
     int res = asval_meth($input, &val);
     if (!SWIG_IsOK(res)) {
