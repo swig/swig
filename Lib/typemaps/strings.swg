@@ -63,6 +63,9 @@
   %set_output(SWIG_FromCharPtr(*$1));
 }
 
+%typemap(newfree,noblock=1) Char * {
+  %delete_array($1);
+}
 
 /* varin */
 
