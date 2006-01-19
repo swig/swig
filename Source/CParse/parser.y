@@ -374,14 +374,24 @@ static void add_symbols(Node *n) {
 	    Setattr(n,"hasvalue","1");
 	  }
 	  if (type) {
-	    SwigType *rt = SwigType_typedef_resolve_all(type);
-	    if (SwigType_isconst(rt)) {
+	    SwigType *rt;
+	    SwigType *ty;
+	    SwigType *tmp = 0;
+	    if (decl) {
+	      ty = tmp = Copy(type);
+	      SwigType_push(ty,decl);
+	    } else {
+	      ty = type;
+	    }
+	    rt = SwigType_typedef_resolve_all(ty);
+	    if (SwigType_isconst(ty)) {
 	      SetFlag(n,"hasconsttype");
 	    }
 	    if (!SwigType_ismutable(rt)) {
 	      SetFlag(n,"feature:immutable");
 	    }
 	    Delete(rt);
+	    if (tmp) Delete(tmp);
 	  }
 	  if (!type) {
 	    Printf(stderr,"notype name %s\n", name);
