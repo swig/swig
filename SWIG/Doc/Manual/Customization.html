@@ -546,8 +546,8 @@ void destroy_foo(Foo *foo);
 </div>
 
 <p>
-which instructs SWIG that the pointer passed <tt>destroy_foo</tt> will
-be destroyed and therefore, the target language should not attemp to
+which instructs SWIG that the pointer passed to <tt>destroy_foo</tt> will
+be destroyed, and therefore, the target language should not attemp to
 deallocate it twice. This is similar to the DISOWN typemap, and in
 fact, it also depends on the target language to implement the 'disown'
 mechanism properly.
