@@ -131,3 +131,13 @@ char *langs[] ={"Hello"};
   char **languages2 = (char **)&langs[0];
 }
 
+%inline %{
+struct Foo {
+  const int *icap;
+};
+const int* icap;
+const Foo *cap;
+%}
+
+
+
