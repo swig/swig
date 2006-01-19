@@ -113,3 +113,15 @@ const char global_const_char_array1[] = CPLUSPLUS_MSG;
 const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 
 %}
+
+
+// %typemap(newfree) char *GetNewCharString() { /* hello */ delete[] $1; }
+%newobject GetNewCharString();
+
+%inline {
+  char *GetNewCharString() {
+    char *nstr = new char[sizeof(CPLUSPLUS_MSG)+1];
+    strcpy(nstr, CPLUSPLUS_MSG);
+    return nstr;
+  }
+}
