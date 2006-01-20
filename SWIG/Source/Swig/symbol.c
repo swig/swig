@@ -473,9 +473,25 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
     if (checkAttribute(cn,k_nodetype,k_template) 
 	&& checkAttribute(cn,k_templatetype,k_classforward)) {
       /* The node is a template clasforward declaration, and the
-	 template parameters here take precedence over the new ones */
+	 default template parameters here take precedence. */
+      ParmList *pc = Getattr(cn,k_templateparms);
+      ParmList *pn = Getattr(n,k_templateparms);
+#ifdef SWIG_DEBUG
+      Printf(stderr,"found template classforward %s\n",Getattr(cn,k_name));
+#endif
+      while (pc && pn) {
+	String *value = Getattr(pc,k_value);
+	if (value) {
+#ifdef SWIG_DEBUG
+	  Printf(stderr,"add default template value %s %s\n",Getattr(pc,k_name), value);
+#endif
+	  Setattr(pn,k_value, value);
+	}	
+	pc = nextSibling(pc);	
+	pn = nextSibling(pn);	
+      }
       Setattr(n,k_templateparms,Getattr(cn,k_templateparms));
-    }    
+    }
     Setattr(ccurrent,name, n);
 
   } else if (cn && (HashGetAttr(n,k_symweak))) {
