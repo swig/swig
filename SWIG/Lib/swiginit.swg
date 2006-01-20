@@ -123,17 +123,23 @@ SWIG_InitializeModule(void *clientdata) {
 	if (ret) printf("SWIG_InitializeModule: found cast %s\n", ret->name);
 #endif
       }
-      if (ret && type == swig_module.type_initial[i]) {
+      if (ret) {
+	if (type == swig_module.type_initial[i]) {
 #ifdef SWIGRUNTIME_DEBUG
-	if (ret) printf("SWIG_InitializeModule: skip old cast %s\n", ret->name);
+	  printf("SWIG_InitializeModule: skip old type %s\n", ret->name);
 #endif
-        cast->type = ret;
-        ret = 0;
-      } else {
-	/* Fix PyICU and many others */
-	ret = 0;
+	  cast->type = ret;
+	  ret = 0;
+	} else {
+	  /* Check for casting already in the list */
+	  swig_cast_info *ocast = SWIG_TypeCheck(ret->name, type);
+#ifdef SWIGRUNTIME_DEBUG
+	  if (ocast) printf("SWIG_InitializeModule: skip old cast %s\n", ret->name);
+#endif
+	  if (!ocast) ret = 0;
+	}
       }
-      
+
       if (!ret) {
 #ifdef SWIGRUNTIME_DEBUG
 	printf("SWIG_InitializeModule: adding cast %s\n", cast->type->name);
@@ -146,11 +152,26 @@ SWIG_InitializeModule(void *clientdata) {
       }
       cast++;
     }
-
     /* Set entry in modules->types array equal to the type */
     swig_module.types[i] = type;
   }
   swig_module.types[i] = 0;
+
+#ifdef SWIGRUNTIME_DEBUG
+  printf("**** SWIG_InitializeModule: Cast List ******\n");
+  for (i = 0; i < swig_module.size; ++i) {
+    int j = 0;
+    swig_cast_info *cast = swig_module.cast_initial[i];
+    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+    while (cast->type) {
+      printf("SWIG_InitializeModule: cast type %s\n", cast->type->name);
+      cast++;
+      ++j;
+    }
+  printf("---- Total casts: %d\n",j);
+  }
+  printf("**** SWIG_InitializeModule: Cast List ******\n");
+#endif
 }
 
 /* This function will propagate the clientdata field of type to
