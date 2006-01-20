@@ -69,7 +69,7 @@
 
 /* varin */
 
-%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize) Char * {
+%typemap(varin,fragment=#SWIG_AsCharPtrAndSize) Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -83,7 +83,7 @@
   }
 }
 
-%typemap(varin,noblock=1,fragment=#SWIG_AsCharPtrAndSize,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
+%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -289,7 +289,7 @@
 
 /* varin */
 
-%typemap(varin,noblock=1,fragment=#SWIG_AsCharArray) Char [ANY]
+%typemap(varin,fragment=#SWIG_AsCharArray) Char [ANY]
 {
   int res = SWIG_AsCharArray($input, $1, $1_dim0);
   if (!SWIG_IsOK(res)) {

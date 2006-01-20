@@ -142,7 +142,7 @@
   }
 }
 
-%typemap(varin,noblock=1) SWIGTYPE [ANY] {
+%typemap(varin) SWIGTYPE [ANY] {
   $basetype *inp = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -190,7 +190,7 @@
   }
 }
 
-%typemap(varin,noblock=1) SWIGTYPE [ANY][ANY] {
+%typemap(varin) SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$dim1] = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -212,7 +212,7 @@
 
 /* Pointers, references, and variable size arrays */
 
-%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE * {
+%typemap(varin,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE * {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);  
   if (!SWIG_IsOK(res)) {
@@ -226,7 +226,7 @@
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }
 
-%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE & {
+%typemap(varin,warning=SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) SWIGTYPE & {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -239,7 +239,7 @@
 }
 
 #if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(varin,noblock=1,implicitconv=1) SWIGTYPE {
+%typemap(varin,implicitconv=1) SWIGTYPE {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
@@ -255,7 +255,7 @@
   }
 }
 #else
-%typemap(varin,noblock=1) SWIGTYPE {
+%typemap(varin) SWIGTYPE {
   void *argp = 0;
   int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -570,7 +570,7 @@
   }
 }
 
-%typemap(varin,noblock=1) SWIGTYPE *DISOWN {
+%typemap(varin) SWIGTYPE *DISOWN {
   void *temp = 0;
   int res = SWIG_ConvertPtr($input, &temp, $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags);
   if (!SWIG_IsOK(res)) {
