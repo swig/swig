@@ -470,7 +470,14 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
     append = n;
   } else if (cn && (HashGetAttr(cn,k_symweak))) {
     /* The node in the symbol table is weak. Replace it */
+    if (checkAttribute(cn,k_nodetype,k_template) 
+	&& checkAttribute(cn,k_templatetype,k_classforward)) {
+      /* The node is a template clasforward declaration, and the
+	 template parameters here take precedence over the new ones */
+      Setattr(n,k_templateparms,Getattr(cn,k_templateparms));
+    }    
     Setattr(ccurrent,name, n);
+
   } else if (cn && (HashGetAttr(n,k_symweak))) {
     /* The node being added is weak.  Don't worry about it */
   } else if (cn && (HashGetAttr(n,k_symtypename))) {
