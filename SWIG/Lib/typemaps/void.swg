@@ -32,7 +32,7 @@
 
 /* varin */
 
-%typemap(varin,noblock=1) void * {
+%typemap(varin) void * {
   void *temp = 0;
   int res = SWIG_ConvertPtr($input, &temp, 0, SWIG_POINTER_DISOWN);
   if (!SWIG_IsOK(res)) {
