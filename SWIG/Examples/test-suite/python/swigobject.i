@@ -10,7 +10,7 @@
 
   const char* pointer_str(A *a){
     static char result[1024];
-    sprintf(result,"%p",a);
+    sprintf(result,"%p", (void *)a);
     return result;
   }
 
