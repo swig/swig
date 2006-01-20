@@ -382,7 +382,8 @@ C_TEST_CASES += \
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
-	template_typedef_import
+	template_typedef_import \
+	mod
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
