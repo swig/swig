@@ -41,12 +41,17 @@
 
 #ifdef __cplusplus
 extern "C" {
+#if 0
+} /* c-mode */
+#endif
+#endif
+
+#if 0
+#define SWIGRUNTIME_DEBUG
 #endif
 
 SWIGRUNTIME void
 SWIG_InitializeModule(void *clientdata) {
-  swig_type_info *type, *ret;
-  swig_cast_info *cast;
   size_t i;
   swig_module_info *module_head;
   static int init_run = 0;
@@ -72,8 +77,17 @@ SWIG_InitializeModule(void *clientdata) {
   }
 		 
   /* Now work on filling in swig_module.types */
+#ifdef SWIGRUNTIME_DEBUG
+  printf("SWIG_InitializeModule: size %d\n", swig_module.size);
+#endif
   for (i = 0; i < swig_module.size; ++i) {
-    type = 0;
+    swig_type_info *type = 0;
+    swig_type_info *ret;
+    swig_cast_info *cast;
+  
+#ifdef SWIGRUNTIME_DEBUG
+    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+#endif
 
     /* if there is another module already loaded */
     if (swig_module.next != &swig_module) {
@@ -81,7 +95,15 @@ SWIG_InitializeModule(void *clientdata) {
     }
     if (type) {
       /* Overwrite clientdata field */
-      if (swig_module.type_initial[i]->clientdata) type->clientdata = swig_module.type_initial[i]->clientdata;
+#ifdef SWIGRUNTIME_DEBUG
+      printf("SWIG_InitializeModule: found type %s\n", type->name);
+#endif
+      if (swig_module.type_initial[i]->clientdata) {
+	type->clientdata = swig_module.type_initial[i]->clientdata;
+#ifdef SWIGRUNTIME_DEBUG
+      printf("SWIG_InitializeModule: found and overwrite type %s \n", type->name);
+#endif
+      }
     } else {
       type = swig_module.type_initial[i];
     }
@@ -92,22 +114,36 @@ SWIG_InitializeModule(void *clientdata) {
     
       /* Don't need to add information already in the list */
       ret = 0;
+#ifdef SWIGRUNTIME_DEBUG
+      printf("SWIG_InitializeModule: look cast %s\n", cast->type->name);
+#endif
       if (swig_module.next != &swig_module) {
         ret = SWIG_MangledTypeQueryModule(swig_module.next, &swig_module, cast->type->name);
+#ifdef SWIGRUNTIME_DEBUG
+	if (ret) printf("SWIG_InitializeModule: found cast %s\n", ret->name);
+#endif
       }
       if (ret && type == swig_module.type_initial[i]) {
+#ifdef SWIGRUNTIME_DEBUG
+	if (ret) printf("SWIG_InitializeModule: skip old cast %s\n", ret->name);
+#endif
         cast->type = ret;
         ret = 0;
+      } else {
+	/* Fix PyICU and many others */
+	ret = 0;
       }
       
       if (!ret) {
+#ifdef SWIGRUNTIME_DEBUG
+	printf("SWIG_InitializeModule: adding cast %s\n", cast->type->name);
+#endif
         if (type->cast) {
           type->cast->prev = cast;
           cast->next = type->cast;
         }
         type->cast = cast;
       }
-
       cast++;
     }
 
@@ -146,5 +182,8 @@ SWIG_PropagateClientData(void) {
 }
 
 #ifdef __cplusplus
+#if 0
+{ /* c-mode */
+#endif
 }
 #endif
