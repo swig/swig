@@ -25,10 +25,10 @@ typedef struct {
 	unsigned long  array_ul[ARRAY_LEN];
 	long long      array_ll[ARRAY_LEN];
 	float          array_f [ARRAY_LEN];
-	double         array_d [ARRAY_LEN];
-    SimpleStruct   array_struct[ARRAY_LEN];
-    SimpleStruct*  array_structpointers[ARRAY_LEN];
-	int*           array_ipointers [ARRAY_LEN];
+        double         array_d [ARRAY_LEN];
+        SimpleStruct   array_struct[ARRAY_LEN];
+        SimpleStruct*  array_structpointers[ARRAY_LEN];
+        int*           array_ipointers [ARRAY_LEN];
 	finger         array_enum[ARRAY_LEN];
 	finger*        array_enumpointers[ARRAY_LEN];
 	const int      array_const_i[ARRAY_LEN];

@@ -47,6 +47,9 @@ public class java_lib_arrays_runme {
     if (another_struct[0].getSimple().getDouble_field() != 222.333) throw new RuntimeException("AnotherStruct[0] failed");
     if (another_struct[1].getSimple().getDouble_field() != 444.555) throw new RuntimeException("AnotherStruct[1] failed");
 
+    if (java_lib_arrays.extract(another_struct, 0) != 222.333) throw new RuntimeException("extract 0 failed");
+    if (java_lib_arrays.extract(another_struct, 1) != 444.555) throw new RuntimeException("extract 1 failed");
+
     // Now set the array members and check that they have been set correctly
     as.setArray_c(array_c);
     check_string(array_c, as.getArray_c());

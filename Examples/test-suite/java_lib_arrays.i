@@ -17,5 +17,8 @@ JAVA_ARRAYSOFCLASSES(struct AnotherStruct)
 struct AnotherStruct {
 	SimpleStruct  simple;
 };
+double extract(struct AnotherStruct as[], int index) {
+  return as[index].simple.double_field;
+}
 %}
 
