@@ -325,7 +325,7 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	set_parentNode(n,current_class);
+	if (!Getattr(n,k_parentnode)) set_parentNode(n,current_class);	
 	Setattr(n,"ismember","1");
       }
     }
