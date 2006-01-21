@@ -2,7 +2,7 @@
  * --- Input arguments --- 
  * ----------------------------------------------------------------------------- */
 /* Pointers and arrays */
-%typemap(in, noblock=1) SWIGTYPE *(void  *argp = 0, int res) {
+%typemap(in, noblock=1) SWIGTYPE *(void  *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags);
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -11,7 +11,7 @@
 }
 %typemap(freearg) SWIGTYPE * "";
 
-%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res) {
+%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp,$descriptor, $disown | %convertptr_flags);
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -21,7 +21,7 @@
 %typemap(freearg) SWIGTYPE [] "";
 
 
-%typemap(in, noblock=1) SWIGTYPE* const&  (void *argp = 0, int res, $*ltype temp) {
+%typemap(in, noblock=1) SWIGTYPE* const&  (void *argp = 0, int res = 0, $*ltype temp) {
   res = SWIG_ConvertPtr($input, &argp, $*descriptor, $disown | %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$*ltype", $symname, $argnum); 
@@ -33,7 +33,7 @@
 
 
 /* Reference */
-%typemap(in, noblock=1) SWIGTYPE & (void *argp = 0, int res) {
+%typemap(in, noblock=1) SWIGTYPE & (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -44,7 +44,7 @@
 %typemap(freearg) SWIGTYPE & "";
 
 #if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(in,implicitconv=1) const SWIGTYPE & (void *argp = 0, int res) {
+%typemap(in,implicitconv=1) const SWIGTYPE & (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -57,7 +57,7 @@
   if (SWIG_IsNewObj(res$argnum)) %delete($1);
 }
 #else
-%typemap(in,noblock=1) const SWIGTYPE & (void *argp, int res) {
+%typemap(in,noblock=1) const SWIGTYPE & (void *argp, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -354,7 +354,7 @@
 
 /* directorout */
 #if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(directorout,noblock=1,implicitconv=1) SWIGTYPE (void * argp, int res) {
+%typemap(directorout,noblock=1,implicitconv=1) SWIGTYPE (void * argp, int res = 0) {
   res = SWIG_ConvertPtr($input,&argp,$&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res,"$type");
@@ -363,7 +363,7 @@
   if (SWIG_IsNewObj(res)) %delete(%reinterpret_cast(argp, $&ltype));
 }
 #else
-%typemap(directorout,noblock=1) SWIGTYPE (void * argp, int res) {
+%typemap(directorout,noblock=1) SWIGTYPE (void * argp, int res = 0) {
   res = SWIG_ConvertPtr($input,&argp,$&descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res,"$type");
@@ -563,7 +563,7 @@
 
 /* DISOWN typemap */
 
-%typemap(in, noblock=1) SWIGTYPE *DISOWN (int res) {
+%typemap(in, noblock=1) SWIGTYPE *DISOWN (int res = 0) {
   res = SWIG_ConvertPtr($input, %as_voidptrptr(&$1), $descriptor, SWIG_POINTER_DISOWN | %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type", $symname, $argnum);
