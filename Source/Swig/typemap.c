@@ -1510,16 +1510,24 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       if (tm) Printf(stdout,"matching:  %s\n", kwmatch); 
 #endif
       if (tmin) {
-	SwigType *typetm = Getattr(tm,k_type);
-	SwigType *typein = Getattr(tmin,k_type);
-	if (!typein) {
-	  String *temp = NewStringf("tmap:%s:match_type",kwmatch);
-	  typein = Getattr(p,temp);
-	  Delete(temp);
-	}
-	if (!Equal(typein,typetm)) {
+	String *tmninp = NewStringf("tmap:%s:numinputs",kwmatch);
+	String *ninp = Getattr(p,tmninp);
+	Delete(tmninp);
+	if (ninp && Equal(ninp, "0")) {
 	  p = nextSibling(p);
 	  continue;
+	} else {
+	  SwigType *typetm = Getattr(tm,k_type);
+	  SwigType *typein = Getattr(tmin,k_type);
+	  if (!typein) {
+	    String *temp = NewStringf("tmap:%s:match_type",kwmatch);
+	    typein = Getattr(p,temp);
+	    Delete(temp);
+	  }
+	  if (!Equal(typein,typetm)) {
+	    p = nextSibling(p);
+	    continue;
+	  }
 	}
       } else {
 	p = nextSibling(p);
