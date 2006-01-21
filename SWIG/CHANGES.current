@@ -1,7 +1,7 @@
 Version 1.3.28 (unreleased).
 ===========================
 
-01/16/2006: mmatus
+01/16/2006: mmatus (Change disabled)
 	    Add initial support for regexp via the external library
 	    RxSpencer. SWIG doesn't require this library to compile
 	    and/or run. But if you specify --with-rxspencer, and the
@@ -71,7 +71,9 @@ Version 1.3.28 (unreleased).
             the simple or '|' support for the match rules
             (01/12/2006: mmatus) is disabled. Still, if you have
             problems with the rxspencer library, you can re-enable
-            the simple 'match or' support using -DSWIG_USE_SIMPLE_MATCHOR.
+            the simple 'match or' support using
+            -DSWIG_USE_SIMPLE_MATCHOR.
+	  
 
 01/16/2006: mmatus
 	    Change the %rename predicates to use the prefix '%$', as in:
