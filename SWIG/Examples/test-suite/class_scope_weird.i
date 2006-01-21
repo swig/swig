@@ -1,6 +1,7 @@
 %module class_scope_weird
 
-%inline %{
+%inline {
+#if !defined(SWIG_NOEXTRA_QUALIFICATION)
 class Foo {
 public:
   Foo::Foo(void)
@@ -15,11 +16,28 @@ public:
     return x;
   }
 };
+#else
+class Foo {
+public:
+  Foo(void)
+  {
+  }
+
+  Foo(int)
+  {
+  }
+  
+  int bar(int x) {
+    return x;
+  }
+};
+#endif
 
 class Quat;
 class matrix4;
 class tacka3;
 
+#if !defined(SWIG_NOEXTRA_QUALIFICATION)
 class Quat {
 public:
   Quat::Quat(void){}  
@@ -27,5 +45,14 @@ public:
   Quat::Quat(const tacka3& axis, float angle){}
   Quat::Quat(const matrix4& m){}
 };
-%}
+#else
+class Quat {
+public:
+  Quat(void){}  
+  Quat(float in_w, float x, float y, float z){}
+  Quat(const tacka3& axis, float angle){}
+  Quat(const matrix4& m){}
+};
+#endif
+}
 
