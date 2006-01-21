@@ -619,7 +619,7 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
-         PYINCLUDE="-DUSE_DL_IMPORT $PYINCLUDE"
+         DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
          ;;
 *)PYTHONDYNAMICLINKING="";;
 esac
