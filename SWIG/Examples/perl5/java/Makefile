@@ -9,7 +9,7 @@ LIBS       = -lm
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	CXXSHARED="gcj -fPIC -shared Example.class -lstdc++ " PERL5_CCFLAGS='' PERL5_EXP='' perl5_cpp
+	CXXSHARED="gcj -fPIC -shared Example.class -lstdc++ " PERL5_CCFLAGS='' PERL5_EXP='' LIBS="-lstdc++" perl5_cpp
 
 
 clean::

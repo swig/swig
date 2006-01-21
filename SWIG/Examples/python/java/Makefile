@@ -9,7 +9,7 @@ LIBS       = -lm
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	CXXSHARED="gcj -fPIC -shared Example.class" DEFS='' python_cpp
+	CXXSHARED="gcj -fPIC -shared Example.class -lstdc++" DEFS='' LIBS="-lstdc++" python_cpp
 
 
 clean::

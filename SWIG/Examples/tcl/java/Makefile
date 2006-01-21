@@ -9,7 +9,7 @@ LIBS       = -lm
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	TCL_CXXSHARED="gcj -fPIC -shared Example.class -lstdc++ " DEFS='' tcl_cpp
+	TCL_CXXSHARED="gcj -fPIC -shared Example.class -lgcj " LIBS="-lstdc++" DEFS='' tcl_cpp
 
 
 clean::
