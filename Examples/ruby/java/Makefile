@@ -9,7 +9,7 @@ LIBS       = -lm
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	CXXSHARED="gcj -fPIC -shared Example.class" DEFS='' ruby_cpp
+	CXXSHARED="gcj -fPIC -shared Example.class" LIBS="-lstdc++" DEFS='' ruby_cpp
 
 
 clean::
