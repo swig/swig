@@ -96,8 +96,14 @@ public:
 
 void bar(F *) { }
 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4624) // : destructor could not be generated because a base class destructor is inaccessible
+#endif
 class FFF : public F { 
 };
+#if defined(_MSC_VER)
+  #pragma warning(default: 4624) // : destructor could not be generated because a base class destructor is inaccessible
+#endif
 
 /* A class with a protected destructor */
 class G {
