@@ -1844,9 +1844,15 @@ fi
 AC_SUBST(SKIP_CLISP)
 
 SKIP_CFFI=
+#if test -z "$CFFIBIN" ; then
+    SKIP_CFFI="1"
+#fi
 AC_SUBST(SKIP_CFFI)
 
 SKIP_UFFI=
+#if test -z "$UFFIBIN" ; then
+    SKIP_UFFI="1"
+#fi
 AC_SUBST(SKIP_UFFI)
 
 #----------------------------------------------------------------
