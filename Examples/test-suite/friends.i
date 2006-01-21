@@ -7,7 +7,7 @@
 
   
 %inline 
-%{
+{
 
   void globalscope(); // forward declaration needed for some compilers
 
@@ -138,7 +138,8 @@
     void bas() {}
 
     void baz() {}
-    
+
+#if !defined(SWIG_NOEXTRA_QUALIFICATION)
     namespace ns2 {
       class Foo {
       public:
@@ -148,13 +149,24 @@
 	void Foo::member() { }
 	
       };
-      void bar() {}
-    
+      void bar() {}    
     }
-
+#else
+    namespace ns2 {
+      class Foo {
+      public:
+	Foo() {};
+	friend void bar();
+	friend void ns1::baz();	
+	void member() { }
+	
+      };
+      void bar() {}    
+    }
+#endif
     
   }
-%}
+}
 
 %template(D_i) D<int>;
 %template(D_d) D<double>;
