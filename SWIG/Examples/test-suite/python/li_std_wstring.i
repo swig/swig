@@ -70,11 +70,19 @@ std::wstring& test_reference_out() {
    return x;
 }
 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
 void test_throw() throw(std::wstring){
   static std::wstring x = L"x";
   
   throw x;
 }
+
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
 
 %}
 
