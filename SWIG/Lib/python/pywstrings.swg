@@ -23,7 +23,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
     }
     if (psize) *psize = (size_t) len + 1;
     if (alloc) *alloc = cptr ? SWIG_NEWOBJ : 0;
-    if (tmp) Py_DECREF(tmp);
+    Py_XDECREF(tmp);
     return SWIG_OK;
   } else {
     swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
