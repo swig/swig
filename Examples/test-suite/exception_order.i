@@ -13,6 +13,15 @@
    user's throw declarations.
 */
 
+#if defined(SWIGPERL) || defined(SWIGRUBY)
+%exception {
+  try {
+    $action
+  } catch(...) {
+    SWIG_exception_fail(SWIG_RuntimeError,"postcatch unknown");
+  }
+}
+#else
 %exception {
   try {
     $action
@@ -20,6 +29,7 @@
     SWIG_exception(SWIG_RuntimeError,"postcatch unknown");
   }
 }
+#endif
 
 %catches(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
 
