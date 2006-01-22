@@ -52,7 +52,8 @@ SWIG_AsVal_dec(long)(Tcl_Obj *obj, long* val)
 /* unsigned long */
 
 %fragment(SWIG_From_frag(unsigned long),"header",
-	  fragment=SWIG_From_frag(long)) {
+	  fragment=SWIG_From_frag(long),
+	  fragment="<stdio.h>") {
 SWIGINTERNINLINE Tcl_Obj* 
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
@@ -103,7 +104,8 @@ SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
 
 %fragment(SWIG_From_frag(long long),"header",
 	  fragment=SWIG_From_frag(long),
-	  fragment="<limits.h>") {
+	  fragment="<limits.h>",
+	  fragment="<stdio.h>") {
 SWIGINTERNINLINE Tcl_Obj* 
 SWIG_From_dec(long long)(long long value)
 {
@@ -117,7 +119,8 @@ SWIG_From_dec(long long)(long long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(long long),"header") {
+%fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment="<stdlib.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
 {
@@ -150,7 +153,8 @@ SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
 	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>") {
+	  fragment="<limits.h>",
+	  fragment="<stdio.h>") {
 SWIGINTERNINLINE Tcl_Obj* 
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
@@ -165,7 +169,8 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-	  fragment=SWIG_AsVal_frag(unsigned long)) {
+	  fragment=SWIG_AsVal_frag(unsigned long),
+	  fragment="<stdlib.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(Tcl_Obj *obj, unsigned long long *val)
 {
