@@ -94,6 +94,7 @@ director_nested.py
 director_protected.py
 director_redefined.py
 director_unroll.py
+director_using.py
 director_wombat.py
 disown.py
 dynamic_cast.py
@@ -498,4 +499,6 @@ clientdata_prop_a.py
 clientdata_prop_b.py
 imports_a.py
 imports_b.py
+mod_a.py
+mod_b.py
 template_typedef_import.py
