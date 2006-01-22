@@ -2212,7 +2212,6 @@ public:
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
       if (argc > 0) {
-        Wrapper_add_localv(w, "i", "int", "i", NIL);
         Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
         for (int i = 0; i < argc; i++) {
           Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
