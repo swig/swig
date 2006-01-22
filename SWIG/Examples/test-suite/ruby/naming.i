@@ -26,17 +26,19 @@ static const int constant6 = 6;
 
 class TestConstants {
 public:
-	/* This gets mapped to a method */
+  TestConstants() : constant7(7) {}
+  
+  /* This gets mapped to a method */
   const int constant7;
   
-	/* This gets mapped to a singleton method, but this is not legal C++ */
+  /* This gets mapped to a singleton method, but this is not legal C++ */
   static const int constant8;
   
-	/* This gets mapped to a method, but this it not legal C++ */
- 	/*const int constant9 = 9;*/
- 	
-	/* This gets mapped to a constant */
- 	static const int constant10 = 10;
+  /* This gets mapped to a method, but this it not legal C++ */
+  /*const int constant9 = 9;*/
+  
+  /* This gets mapped to a constant */
+  static const int constant10 = 10;
 };
 
 const int TestConstants::constant8 = 8;
