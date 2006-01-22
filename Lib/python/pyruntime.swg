@@ -4,10 +4,11 @@
 
 /* Add PyOS_snprintf for old Pythons */
 #if PY_VERSION_HEX < 0x02020000
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
-#  define PyOS_snprintf _snprintf
-#else
+# if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+#   define PyOS_snprintf _snprintf
+# else
 #  define PyOS_snprintf snprintf
+# endif
 #endif
 
 /* A crude PyString_FromFormat implementation for old Pythons */
