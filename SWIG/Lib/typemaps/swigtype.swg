@@ -86,7 +86,6 @@
 #else
 %typemap(in) SWIGTYPE {
   void *argp;
-  $&ltype temp;
   int res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);  
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
