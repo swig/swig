@@ -81,11 +81,3 @@
 #   define SWIGSTDCALL
 # endif 
 #endif
-
-
-#if defined(_MSC_VER)
-# define SWIGINTPTR long
-#else
-# include <inttypes.h>
-# define SWIGINTPTR intptr_t
-#endif
