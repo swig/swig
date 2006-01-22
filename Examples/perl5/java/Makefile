@@ -1,4 +1,3 @@
-CXX        = gcj 
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = 
@@ -8,8 +7,8 @@ LIBS       = -lm
 
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	CXXSHARED="gcj -fPIC -shared Example.class -lstdc++ " PERL5_CCFLAGS='' PERL5_EXP='' LIBS="-lstdc++" perl5_cpp
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" \
+	CXXSHARED="gcj -fpic -shared Example.class" PERL5_CCFLAGS='' PERL5_EXP='' LIBS="-lstdc++" perl5_cpp
 
 
 clean::

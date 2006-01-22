@@ -1,4 +1,3 @@
-CXX        = gcj 
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = 
@@ -8,8 +7,8 @@ LIBS       = -lm
 
 all:: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" CFLAGS="-fPIC" \
-	CXXSHARED="gcj -fPIC -shared Example.class" LIBS="-lstdc++" DEFS='' ruby_cpp
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj" \
+	CXXSHARED="gcj -fpic -shared Example.class" LIBS="-lstdc++" DEFS='' ruby_cpp
 
 
 clean::
