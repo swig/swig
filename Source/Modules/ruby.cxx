@@ -1382,12 +1382,14 @@ public:
     if (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) {
       Printf(f->code, "argc = nargs + 1;\n");
       Printf(f->code, "argv[0] = self;\n");
-      Printf(f->code, "for (ii = 1; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
+      Printf(f->code, "if (argc > %d) SWIG_fail;\n", maxargs + 1);
+      Printf(f->code, "for (ii = 1; (ii < argc); ii++) {\n");
       Printf(f->code, "argv[ii] = args[ii-1];\n");
       Printf(f->code, "}\n");
     } else {
       Printf(f->code, "argc = nargs;\n");
-      Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
+      Printf(f->code, "if (argc > %d) SWIG_fail;\n", maxargs);
+      Printf(f->code, "for (ii = 0; (ii < argc); ii++) {\n");
       Printf(f->code, "argv[ii] = args[ii];\n");
       Printf(f->code, "}\n");
     }
