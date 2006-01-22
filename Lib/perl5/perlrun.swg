@@ -232,7 +232,7 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
     } else {
       tmp = SvIV(tsv);
     }
-    voidptr = (void *)(SWIGINTPTR)tmp;
+    voidptr = INT2PTR(void *,tmp);
   } else if (! SvOK(sv)) {            /* Check for undef */
     *(ptr) = (void *) 0;
     return SWIG_OK;
