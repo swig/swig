@@ -176,6 +176,10 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 #  endif
 #endif
 
+#ifndef SvUOK
+# define SvUOK(sv)           SvIOK_UV(sv)
+#endif
+
 #include <stdlib.h>
 
 SWIGRUNTIME const char *
