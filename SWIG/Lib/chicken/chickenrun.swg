@@ -9,6 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+# ifndef snprintf
+#  define snprintf _snprintf
+# endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {
