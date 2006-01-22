@@ -285,7 +285,7 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
+	sprintf(msg, "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<T>());
 	}
@@ -485,7 +485,7 @@ namespace swig
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
-	    snprintf(msg, sizeof(msg), "in sequence element %d of type %s", i, swig::type_name<value_type>());
+	    sprintf(msg, "in sequence element %d", i);
 	    SWIG_Error(SWIG_RuntimeError, msg);
 	  }
 	  return false;

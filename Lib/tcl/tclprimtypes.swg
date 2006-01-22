@@ -61,7 +61,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
     return SWIG_From(long)(%numeric_cast(value, long));
   } else {
     char temp[256]; 
-    snprintf(temp, sizeof(temp),"%lu", value);
+    sprintf(temp, "%lu", value);
     return Tcl_NewStringObj(temp,-1);
   }
 }
@@ -113,7 +113,7 @@ SWIG_From_dec(long long)(long long value)
     return SWIG_From(long)(%numeric_cast(value,long));
   } else {    
     char temp[256]; 
-    snprintf(temp, sizeof(temp),"%lld", value);
+    sprintf(temp, "%lld", value);
     return Tcl_NewStringObj(temp,-1);
   }
 }
@@ -162,7 +162,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
     return SWIG_From(long long)(%numeric_cast(value, long long));
   } else {
     char temp[256]; 
-    snprintf(temp, sizeof(temp),"%llu", value);
+    sprintf(temp, "%llu", value);
     return Tcl_NewStringObj(temp,-1);
   }
 }

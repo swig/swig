@@ -159,7 +159,7 @@ SWIG_From_dec(long long)(long long value)
   } else {    
     char temp[256]; 
     SV *obj = sv_newmortal();
-    snprintf(temp, sizeof(temp),"%lld", value);
+    sprintf(temp, "%lld", value);
     sv_setpv(obj, temp);
     return obj;
   }
@@ -222,7 +222,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
   } else {
     char temp[256]; 
     SV *obj = sv_newmortal();
-    snprintf(temp, sizeof(temp),"%llu", value);
+    sprintf(temp, "%llu", value);
     sv_setpv(obj, temp);
     return obj;
   }

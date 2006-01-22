@@ -343,15 +343,21 @@
 %fragment("<stdio.h>","header") %{
 #include <stdio.h>
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+# ifndef snprintf
 #  define snprintf _snprintf
+# endif
 #endif
 %}
 
 %fragment("<stdlib.h>","header") %{
 #include <stdlib.h>
 #ifdef _MSC_VER
+# ifndef strtoull
 #  define strtoull _strtoui64
+# endif
+# ifndef strtoll
 #  define strtoll _strtoi64
+# endif
 #endif
 %}
 
