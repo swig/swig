@@ -521,7 +521,7 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
-	String *dispatch = Swig_overload_dispatch(n,"return %s(clientData, interp, objc, objv);",&maxargs);
+	String *dispatch = Swig_overload_dispatch(n,"return %s(clientData, interp, objc, argv - 1);",&maxargs);
 	
 	/* Generate a dispatch wrapper for all overloaded functions */
 
@@ -614,7 +614,7 @@ public:
 	Printf(setf->code,"name1o = Tcl_NewStringObj(name1,-1);\n");
 	Printf(setf->code,"value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
 	Printf(setf->code,"Tcl_DecrRefCount(name1o);\n");
-	Printf(setf->code,"if (!value) return NULL;\n");
+	Printf(setf->code,"if (!value) SWIG_fail;\n");
 	Printf(setf->code,"%s\n", tm);
 	Printf(setf->code,"return NULL;\n");
 	Printf(setf->code,"fail:\n");
