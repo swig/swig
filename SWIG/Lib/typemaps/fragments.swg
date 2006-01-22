@@ -340,6 +340,14 @@
 #include <float.h>
 %}
 
+%fragment("<stdio.h>","header") %{
+#include <stdio.h>
+%}
+
+%fragment("<stdlib.h>","header") %{
+#include <stdlib.h>
+%}
+
 /* -----------------------------------------------------------------------------
  * special macros for fragments
  * ----------------------------------------------------------------------------- */
