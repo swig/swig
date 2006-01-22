@@ -104,6 +104,8 @@ cvsignore:
 	@echo clientdata_prop_b.py 
 	@echo imports_a.py 
 	@echo imports_b.py 
+	@echo mod_a.py 
+	@echo mod_b.py 
 	@echo template_typedef_import.py
 
 
