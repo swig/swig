@@ -13,27 +13,27 @@
   };
  
   template <class ArgType, class ResType>
-  struct Function
+  struct Funktion
   {
   };
 
   // Egad!
   template <class AF, class AG>
-  struct Class
-    : Function<typename traits<AF, AG>::arg_type,
+  struct Klass
+    : Funktion<typename traits<AF, AG>::arg_type,
                                 typename traits<AF, AG>::res_type>
   {
   };
 %}
 
 %{
- template struct Function <double, double>;
- template struct Class <double, double>;
+ template struct Funktion <double, double>;
+ template struct Klass <double, double>;
 %}
  
 %template(traits_dd) traits <double, double>;
-%template(Function_dd) Function <double, double>;
-%template(Class_dd) Class <double, double>;
+%template(Funktion_dd) Funktion <double, double>;
+%template(Klass_dd) Klass <double, double>;
 
 
 
