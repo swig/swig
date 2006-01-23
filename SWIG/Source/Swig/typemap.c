@@ -26,7 +26,7 @@ static void replace_embedded_typemap(String *s);
  * Typemaps are stored in a collection of nested hash tables.  Something like
  * this:
  *
-xo * [ type ]
+ * [ type ]
  *    +-------- [ name ]
  *    +-------- [ name ]
  *    
@@ -1504,7 +1504,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     kwmatch = Swig_typemap_get_option(tm,"match");
     if (kwmatch) {
       String *tmname = NewStringf("tmap:%s",kwmatch);
-      Hash *tmin = Getattr(p,tmname);
+      String *tmin = Getattr(p,tmname);
       Delete(tmname);
 #ifdef SWIG_DEBUG
       if (tm) Printf(stdout,"matching:  %s\n", kwmatch); 
@@ -1518,16 +1518,23 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 	  continue;
 	} else {
 	  SwigType *typetm = Getattr(tm,k_type);
-	  SwigType *typein = Getattr(tmin,k_type);
-	  if (!typein) {
-	    String *temp = NewStringf("tmap:%s:match_type",kwmatch);
-	    typein = Getattr(p,temp);
-	    Delete(temp);
-	  }
+	  String *temp = NewStringf("tmap:%s:match_type",kwmatch);
+	  SwigType *typein = Getattr(p,temp);
+	  Delete(temp);
 	  if (!Equal(typein,typetm)) {
 	    p = nextSibling(p);
 	    continue;
+	  } else {
+	    int nnmatch;
+	    Hash *tmapin = Swig_typemap_search_multi(kwmatch,p,&nnmatch);
+	    String *tmname = Getattr(tm,"pname");
+	    String *tnname = Getattr(tmapin,"pname");
+	    if (!(tmname && tnname && Equal(tmname, tnname)) && !(!tmname && !tnname)) {
+	      p = nextSibling(p);
+	      continue;
+	    }
 	  }
+	  
 	}
       } else {
 	p = nextSibling(p);
