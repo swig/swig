@@ -118,14 +118,10 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
 %#ifdef SWIG_PYTHON_CAST_MODE
   {
     int dispatch = 0;
-    long v = PyInt_AsLong(obj);
+    unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {
-      if (v >= 0) {
-	if (val) *val = v;
-	return SWIG_AddCast(SWIG_OK);
-      } else {
-	return SWIG_OverflowError;
-      }
+      if (val) *val = v;
+      return SWIG_AddCast(SWIG_OK);
     } else {
       PyErr_Clear();
     }
@@ -157,15 +153,14 @@ SWIG_From_dec(long long)(long long value)
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment=SWIG_AsVal_frag(long),
 	  fragment="SWIG_CanCastAsInteger",
 	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
-  if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
-    return SWIG_OK;
-  } else if (PyLong_Check(obj)) {
+  int res = SWIG_TypeError;
+  if (PyLong_Check(obj)) {
     long long v = PyLong_AsLongLong(obj);
     if (!PyErr_Occurred()) {
       if (val) *val = v;
@@ -173,30 +168,28 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
     } else {
       PyErr_Clear();
     }
-  } 
-%#ifdef SWIG_PYTHON_CAST_MODE
-  {
-    int dispatch = 0;
-    long v = PyInt_AsLong(obj);
-    if (!PyErr_Occurred()) {
+  } else {
+    long v;
+    res = SWIG_AsVal(long)(obj,&v);
+    if (SWIG_IsOK(res)) {
       if (val) *val = v;
-      return SWIG_AddCast(SWIG_OK);
-    } else {
-      PyErr_Clear();
-    }
-    if (!dispatch) {
-      const double mant_max = 1LL << DBL_MANT_DIG;
-      const double mant_min = -mant_max;
-      double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
-	if (val) *val = (long long)(d);
-	return res;
-      }
+      return res;
     }
   }
+%#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    const double mant_min = -mant_max;
+    double d;
+    res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
+      if (val) *val = (long long)(d);
+      return SWIG_AddCast(res);
+    }
+    res = SWIG_TypeError;
+  }
 %#endif
-  return SWIG_TypeError;
+  return res;
 }
 }
 
@@ -220,6 +213,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
+  int res = SWIG_TypeError;
   if (PyLong_Check(obj)) {
     unsigned long long v = PyLong_AsUnsignedLongLong(obj);
     if (!PyErr_Occurred()) {
@@ -230,36 +224,25 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
     }
   } else {
     unsigned long v;
-    int res = SWIG_AsVal(unsigned long)(obj,&v);
-    if (SWIG_IsOK(res) && val) *val = v;
-    return res;
+    res = SWIG_AsVal(unsigned long)(obj,&v);
+    if (SWIG_IsOK(res)) {
+      if (val) *val = v;
+      return res;
+    }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
   {
-    int dispatch = 0;
-    long v = PyInt_AsLong(obj);
-    if (!PyErr_Occurred()) {
-      if (v >= 0) {
-	if (val) *val = v;
-	return SWIG_AddCast(SWIG_OK);
-      } else {
-	return SWIG_OverflowError;
-      }
-    } else {
-      PyErr_Clear();
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    double d;
+    res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
+      if (val) *val = (unsigned long long)(d);
+      return SWIG_AddCast(res);
     }
-    if (!dispatch) {
-      const double mant_max = 1LL << DBL_MANT_DIG;
-      double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
-	if (val) *val = (unsigned long long)(d);
-	return res;
-      }
-    }
+    res = SWIG_TypeError;
   }
 %#endif
-  return SWIG_TypeError;
+  return res;
 }
 }
 
@@ -273,6 +256,7 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 SWIGINTERN int
 SWIG_AsVal_dec(double)(PyObject *obj, double *val)
 {
+  int res = SWIG_TypeError;
   if (PyFloat_Check(obj)) {
     if (val) *val = PyFloat_AsDouble(obj);
     return SWIG_OK;
@@ -299,7 +283,7 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
       PyErr_Clear();
     }
     if (!dispatch) {
-      long v = PyInt_AsLong(obj);
+      long v = PyLong_AsLong(obj);
       if (!PyErr_Occurred()) {
 	if (val) *val = v;
 	return SWIG_AddCast(SWIG_AddCast(SWIG_OK));
@@ -309,7 +293,7 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
     }
   }
 %#endif
-  return SWIG_TypeError;
+  return res;
 }
 }
 

@@ -197,6 +197,7 @@ SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 }
 }
 
+
 %fragment("SWIG_CanCastAsInteger","header",
 	  fragment=SWIG_AsVal_frag(double),
 	  fragment="<float.h>",
@@ -205,21 +206,25 @@ SWIGINTERNINLINE int
 SWIG_CanCastAsInteger(double *d, double min, double max) {
   double x = *d;
   if ((min <= x && x <= max)) {
-   double fx = floor(x);   
-   double rd =  ((x - fx) < 0.5) ? fx : ceil(x); /* simple rint */
+   double fx = floor(x);
+   double cx = ceil(x);
+   double rd =  ((x - fx) < 0.5) ? fx : cx; /* simple rint */
    if ((errno == EDOM) || (errno == ERANGE)) {
      errno = 0;
    } else {
-     if (rd == x) {
-       return 1;
+     double summ, reps, diff;
+     if (rd < x) {
+       diff = x - rd;
+     } else if (rd > x) {
+       diff = rd - x;
      } else {
-       double diff = rd - x;
-       double summ = rd + x;
-       double reps = diff/summ;
-       if (fabs(reps) < 8*DBL_EPSILON) {
-	 *d = rd;
-	 return 1;
-       }
+       return 1;
+     }
+     summ = rd + x;
+     reps = diff/summ;
+     if (reps < 8*DBL_EPSILON) {
+       *d = rd;
+       return 1;
      }
    }
   }

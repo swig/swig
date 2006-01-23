@@ -161,7 +161,7 @@ if s.type != "void *":
 
 # unsigned long long
 ullmax = 9223372036854775807 #0xffffffffffffffff
-ullmaxd = 922337203685477580.0
+ullmaxd = 9007199254740992.0
 ullmin = 0
 ullmind = 0.0
 if ull(ullmin) != ullmin:
@@ -177,8 +177,8 @@ if ull(ullmaxd) != ullmaxd:
 llmax = 9223372036854775807 #0x7fffffffffffffff
 llmin = -9223372036854775808
 # these are near the largest  floats we can still convert into long long
-llmaxd = 922337203685477580.0
-llmind = -922337203685477580.0
+llmaxd = 9007199254740992.0
+llmind = -9007199254740992.0
 if ll(llmin) != llmin:
     raise runtimeerror, "ll(llmin)"
 if ll(llmax) != llmax:
