@@ -30,8 +30,9 @@ public:
       throw(Exc(42,"Hosed"));
       return 1;
   } 
-  int unknown() throw(A) {
-      throw A();
+  int unknown() throw(A*) {
+      static A a;
+      throw &a;
       return 1;
   }
   int multi(int x) throw(int, const char *, Exc) {
