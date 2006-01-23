@@ -57,8 +57,17 @@ print "You should see the value", example::Point_print($example::ptptr), "\n";
 
 print "\nNow I'm going to try and modify some read only variables\n";
 
-print "     Tring to set 'path'\n";
-$example::path = "Whoa!";
 
 print "     Trying to set 'status'\n";
-$example::status = 0;
+eval { $example::status = 0; };
+if (!$@) {
+    die("status");
+}
+print "     get error for 'status'\n";
+
+print "     Tring to set 'path'\n";
+eval { $example::path = "Whoa!";};
+if (!$@) {
+    die("path");
+}
+print "     get error for 'path'\n";
