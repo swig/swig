@@ -11,7 +11,7 @@
 %typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
 
 %typemap(in) void * {
-  $1 = SWIG_MustGetPtr($input, NULL, $argnum, 0);
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
 %typemap(freearg) void * "";
 
