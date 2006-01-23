@@ -1536,7 +1536,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     }
     
     s = Getattr(tm,k_code);
-    if (!s || !Len(s)) {
+    if (!s) {
       p = nextSibling(p);
       continue;
     }
