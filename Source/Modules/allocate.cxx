@@ -187,9 +187,7 @@ class Allocate : public Dispatcher {
 
 	  if (decl_match && returntype_match) {
 	    // Found an identical method in the base class
-	    String *this_access = Getattr(n, "access");
-	    String *base_access = Getattr(base, "access");
-	    bool both_have_public_access = !this_access && !base_access;
+	    bool both_have_public_access = is_public(n) && is_public(base);
 	    if (checkAttribute(base, "storage", "virtual")) {
 	      // Found a polymorphic method.
 	      // Mark the polymorphic method, in case the virtual keyword was not used.
