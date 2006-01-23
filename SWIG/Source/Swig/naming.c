@@ -655,7 +655,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
 #endif
 
   /* Global features */
-  features_get(features, "", 0, 0, node);
+  features_get(features, empty_string, 0, 0, node);
   if (name) {
     String *tname = NewStringEmpty();
     /* Catch-all */
@@ -1092,9 +1092,9 @@ static DOH *Swig_get_lattr(Node *n, List *lattr)
     res = Getattr(n,nattr);
 #ifdef SWIG_DEBUG 
     if (!res) {
-      Printf(stderr,"missing %s %s %s\n",nattr, Getattr(n,"name"), Getattr(n,"member"));
+      Printf(stderr,"missing %s %s %s\n",nattr, Getattr(n,k_name), Getattr(n,"member"));
     } else {    
-      Printf(stderr,"lattr %d %s %s\n",i, nattr, DohIsString(res) ? res : Getattr(res,"name"));
+      Printf(stderr,"lattr %d %s %s\n",i, nattr, DohIsString(res) ? res : Getattr(res,k_name));
     }
 #endif
     n = res;
@@ -1108,10 +1108,10 @@ static DOH *Swig_get_lattr(Node *n, List *lattr)
 #define USE_RXSPENCER
 #endif
 
+#if defined(USE_RXSPENCER)
 int Swig_name_rxsmatch_value(String *mvalue, String *value)
 {
   int match = 0;
-#if defined(USE_RXSPENCER)
   char *cvalue = Char(value);
   char *cmvalue = Char(mvalue);
   regex_t compiled;
@@ -1123,9 +1123,16 @@ int Swig_name_rxsmatch_value(String *mvalue, String *value)
   Printf(stderr,"rxsmatch_value: %s %s %d\n",cvalue,cmvalue, match);
 #endif
   regfree(&compiled);
-#endif
   return match;
 }
+#else
+int Swig_name_rxsmatch_value(String *mvalue, String *value)
+{
+  (void)mvalue;
+  (void)value;  
+  return 0;
+}
+#endif
 
 int Swig_name_match_value(String *mvalue, String *value)
 {

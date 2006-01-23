@@ -1778,7 +1778,7 @@ void SwigType_inherit_equiv(File *out) {
 
 /* Helper function to sort the mangled list */
 static int SwigType_compare_mangled(const DOH *a, const DOH *b) {
-  return strcmp(Data(a), Data(b));
+  return strcmp((char *)Data(a), (char *)Data(b));
 }
 
 /* -----------------------------------------------------------------------------
@@ -1843,7 +1843,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   types = NewStringEmpty();
   cast = NewStringEmpty();
   cast_init = NewStringEmpty();
-  imported_types = NewHash("");
+  imported_types = NewHash();
   
   Printf(table,"static swig_type_info *swig_type_initial[] = {\n");
   Printf(cast_init, "static swig_cast_info *swig_cast_initial[] = {\n");
