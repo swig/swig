@@ -66,6 +66,11 @@ see bottom for a set of possible tests
 %}
 #endif
 
+#ifdef SWIGPHP4
+%rename(AndOperator) operator &&;
+%rename(OrOperator) operator ||;
+#endif
+
 %inline %{
 
 #if defined(_MSC_VER)

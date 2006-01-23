@@ -2,12 +2,12 @@
 
 // Ruby used to fail on the ordering of the two Class declarations below
 
-struct Class {
+struct Klass {
   int variable;
 };
 
 %{
-struct Class {
+struct Klass {
   int variable;
 };
 %}
