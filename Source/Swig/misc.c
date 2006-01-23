@@ -807,9 +807,9 @@ const char *skip_delim(char pb, char pe, const char *ce)
 }
 
 
+#if defined(USE_RXSPENCER)
 String *Swig_string_rxspencer(String *s) {
   String *res = 0;
-#if defined(USE_RXSPENCER)
   if (Len(s)) {
     const char *cs = Char(s);
     const char *cb;
@@ -868,10 +868,15 @@ String *Swig_string_rxspencer(String *s) {
       }
     }
   }
-#endif
   if (!res) res = NewStringEmpty();
   return res;
 }
+#else
+String *Swig_string_rxspencer(String *s) {
+  (void)s;  
+  return NewStringEmpty();
+}
+#endif
 
 
 /* -----------------------------------------------------------------------------

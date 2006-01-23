@@ -241,9 +241,9 @@ Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char 
     
     Setattr(tm2,k_code, code);
     Setattr(tm2,k_type, type);
-    Setattr(tm2,"typemap", typemap);
+    Setattr(tm2,k_typemap, typemap);
     if (pname) {
-      Setattr(tm2,"pname", pname);
+      Setattr(tm2,k_pname, pname);
     }
     Setattr(tm2,k_locals, clocals);
     Setattr(tm2,k_kwargs, ckwargs);
@@ -1248,7 +1248,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
   unqualified name.  Need to check non-simple return types, eg
   pointers/references.
   */
-  st = Getattr(node,"sym:symtab");
+  st = Getattr(node,k_symsymtab);
   qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
   if (qsn && StringLen(qsn)) {
     /* look qualified names first, such as
@@ -1308,7 +1308,7 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
 
   Replace(s,"$name",pname,DOH_REPLACE_ANY);
   
-  symname = Getattr(node,"sym:name");
+  symname = Getattr(node,k_symname);
   if (symname) {
     Replace(s,"$symname",symname, DOH_REPLACE_ANY);
   }
@@ -1501,7 +1501,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       here, the freearg typemap requires the "in" typemap to match,
       or the 'var$argnum' variable will not exist.
     */
-    kwmatch = Swig_typemap_get_option(tm,"match");
+    kwmatch = Swig_typemap_get_option(tm,k_match);
     if (kwmatch) {
       String *tmname = NewStringf("tmap:%s",kwmatch);
       String *tmin = Getattr(p,tmname);
@@ -1527,8 +1527,8 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 	  } else {
 	    int nnmatch;
 	    Hash *tmapin = Swig_typemap_search_multi(kwmatch,p,&nnmatch);
-	    String *tmname = Getattr(tm,"pname");
-	    String *tnname = Getattr(tmapin,"pname");
+	    String *tmname = Getattr(tm,k_pname);
+	    String *tnname = Getattr(tmapin,k_pname);
 	    if (!(tmname && tnname && Equal(tmname, tnname)) && !(!tmname && !tnname)) {
 	      p = nextSibling(p);
 	      continue;

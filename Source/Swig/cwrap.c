@@ -38,7 +38,7 @@ String *
 Swig_cparm_name(Parm *p, int i) {
   String *name = NewStringf("arg%d",i+1);
   if (p) {
-    Setattr(p,"lname",name);
+    Setattr(p,k_lname,name);
   }
 
   return name;
@@ -770,7 +770,7 @@ int
 Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms,
 			SwigType *return_type, const String *code, int cplusplus) {
   String *body = Swig_extension_code(function_name, parms, return_type, code, cplusplus);
-  Setattr(n,"wrap:code",body);
+  Setattr(n,k_wrapcode,body);
   Delete(body);
   return SWIG_OK;
 }

@@ -212,7 +212,7 @@ DohString_append(DOH *so, DOH *str) {
 
   if (DohCheck(str)) {
     String *ss = (String *) ObjData(str);
-    newstr = String_data((DOH*)str);
+    newstr = (char*) String_data((DOH*)str);
     l = ss->len;
   } else {
     newstr = (char *) (str);
@@ -282,7 +282,7 @@ String_insert(DOH *so, int pos, DOH *str)
   s->hashkey = -1;
   if (DohCheck(str)) {
     String *ss = (String *) ObjData(str);
-    data = String_data(str);
+    data = (char *)String_data(str);
     len = ss->len;
   } else {
     data = (char *) (str);
@@ -1015,7 +1015,7 @@ DohNewString(const DOH *so)
     int hashkey = -1;
     if (DohCheck(so)) {
       str = (String *) ObjData(so);
-      s = String_data((String *)so);
+      s = (char *)String_data((String *)so);
       l = s ? str->len : 0;
       hashkey = str->hashkey;
     } else {
@@ -1077,7 +1077,7 @@ DohNewStringWithSize(const DOH *so, int len)
     String *str;
     char *s;
     if (DohCheck(so)) {
-      s = String_data((String *)so);
+      s = (char *)String_data((String *)so);
     }
     else {
       s = (char *) so;
