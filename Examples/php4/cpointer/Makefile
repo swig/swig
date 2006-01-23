@@ -4,7 +4,7 @@ SWIGFLAGS   =
 C_SOURCES   = example.c
 CXX_SOURCES =
 
-SWIG = ../../../swig
+SWIG = ../../../preinst-swig
 
 all: check
 

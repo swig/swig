@@ -4,7 +4,7 @@ SWIGFLAGS   = -c++ -noproxy
 C_SOURCES   = 
 CXX_SOURCES = example.cxx
 
-SWIG = ../../../swig
+SWIG = ../../../preinst-swig
 
 all: check
 
