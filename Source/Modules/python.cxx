@@ -1515,9 +1515,6 @@ public:
     if (((num_arguments == 0) && (num_required == 0)) || 
 	((num_arguments == 1) && (num_required == 1) && Getattr(l,"self"))) allow_kwargs = 0;
     varargs = emit_isvarargs(l);
-    int funpack = modernargs && fastunpack &&  !varargs && !allow_kwargs ;
-    int noargs = funpack && (num_required == 0 && num_arguments == 0);
-    int onearg = funpack && (num_required == 1 && num_arguments == 1);
 
     String *nw = Swig_name_wrapper(iname);
     strcpy(wname,Char(nw));
@@ -1556,6 +1553,10 @@ public:
       Printf(parse_args,"    if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
       Printf(arglist,",kwnames");
     }
+
+    int funpack = modernargs && fastunpack &&  !varargs && !allow_kwargs ;
+    int noargs = funpack && (num_required == 0 && num_arguments == 0);
+    int onearg = funpack && (num_required == 1 && num_arguments == 1);
 
     /* Generate code for argument marshalling */
     if (funpack) {
@@ -1605,17 +1606,15 @@ public:
       if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
 
       /* Keyword argument handling */
-      String *wrn = (allow_kwargs && pn) ? Swig_name_warning(p,0,pn,0) : 0; 
-      if (!wrn && Len(pn)) {
-	Printf(kwargs,"(char *) \"%s\",", pn);
-      } else {
-	if (wrn) {
-	  /*
-	    we change the parameter name just a little.
-	    do we need to emit a warning?
-	  */
-	  Printf(kwargs,"(char *) \"_%s\",", pn);
-	  Swig_warning(0,Getfile(n),Getline(n), "314:, '%s' is a renaming parameter to _%s\n", wrn, pn);
+      if (allow_kwargs) {
+	if (Len(pn)) {
+	  String *tmp = 0;
+	  String *name =  pn;
+	  if (!Getattr(p,"self")) {
+	    name = tmp = Swig_name_make(p,0,pn,0, 0); 
+	  }      
+	  Printf(kwargs,"(char *) \"%s\",", name);
+	  if (tmp) Delete(tmp);	
 	} else {
 	  Printf(kwargs,"(char *)\"arg%d\",", i+1);
 	}
