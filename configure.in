@@ -1860,7 +1860,11 @@ AC_SUBST(SKIP_UFFI)
 #----------------------------------------------------------------
 SKIP_GCJ=
 if test -z "$GCJ" || test -z "$GCJH" ; then
+  SKIP_GCJ="1"
+else
+  if test "$GCC" != yes; then
     SKIP_GCJ="1"
+  fi
 fi
 AC_SUBST(SKIP_GCJ)
 
