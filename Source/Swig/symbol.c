@@ -1729,7 +1729,6 @@ Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *t
  * Apply default args to generic template type
  * ----------------------------------------------------------------------------- */
 
-
 #define SWIG_TEMPLATE_DEFTYPE_CACHE
 SwigType*
 Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
@@ -1787,8 +1786,12 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *tsuffix  = SwigType_templatesuffix(base);
       ParmList *tparms = SwigType_function_parms(targs);
       Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
+      if (!tempn && tsuffix && Len(tsuffix)) {
+	tempn = Swig_symbol_clookup(tprefix,0);
+      }
+      
 #ifdef SWIG_DEBUG
-      Printf(stderr,"deftype type %s \n", e);
+      Printf(stderr,"deftype type %s %s %d\n", e, tprefix, (long) tempn);
 #endif
       if (tempn) {
 	ParmList *tnargs = HashGetAttr(tempn,k_templateparms);

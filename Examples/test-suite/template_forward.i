@@ -32,12 +32,14 @@ namespace foo {
   // Class Describable
   class Describable {
   public:
+    void describe() {}
   };
   
   // Class LinearOpBase
   template<class RangeScalar, class DomainScalar> 
     class LinearOpBase : virtual public Describable {
     public:
+      
     }; // end class LinearOpBase<RangeScalar,DomainScalar>
   
   // Class VectorBase
@@ -45,6 +47,7 @@ namespace foo {
     class VectorBase : virtual public LinearOpBase<Scalar>
     {
     public:
+      using LinearOpBase<Scalar>::describe;
     }; // end class VectorBase<Scalar>
   
 }

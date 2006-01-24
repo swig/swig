@@ -778,9 +778,17 @@ class TypePass : private Dispatcher {
     } else {
       Node *ns;
       /* using id */
-
-      if (Getattr(n,"sym:symtab")) {
-	ns = Swig_symbol_clookup(Getattr(n,"uname"), Getattr(n,"sym:symtab"));
+      Symtab *stab = Getattr(n,"sym:symtab");
+      if (stab) {
+	String *uname = Getattr(n,"uname");
+	ns = Swig_symbol_clookup(uname, stab);
+	if (!ns && SwigType_istemplate(uname)) {
+	  String *tmp = Swig_symbol_template_deftype(uname, 0);
+	  if (!Equal(tmp, uname)) {
+	    ns = Swig_symbol_clookup(tmp, stab);
+	  }	  
+	  Delete(tmp);
+	}
       } else {
 	ns = 0;
       }
