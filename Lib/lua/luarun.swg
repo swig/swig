@@ -14,7 +14,6 @@ extern "C" {
 
 #include "lua.h"
 #include "lauxlib.h"
-/*#include "stdio.h"	debug printing */
 #include <assert.h>	/* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
@@ -27,20 +26,17 @@ extern "C" {
 #define SWIG_LUA_POINTER 4
 #define SWIG_LUA_BINARY  5
 
-/* type for all wrapper fns */
-typedef int (*swig_lua_wrapper_func)(lua_State*);
-
-/* Structure for command table */
-typedef struct {
+/* Structure for command table (replaced by luaLib's luaL_reg) */
+/*typedef struct {
   const char *name;
-  swig_lua_wrapper_func wrapper;
-} swig_lua_command_info;
+  lua_CFunction wrapper;
+} swig_lua_command_info;*/
 
 /* Structure for variable linking table */
 typedef struct {
   const char *name;
-  swig_lua_wrapper_func get;
-  swig_lua_wrapper_func set;
+  lua_CFunction get;
+  lua_CFunction set;
 } swig_lua_var_info;
 
 /* Constant information structure */
@@ -55,19 +51,19 @@ typedef struct {
 
 typedef struct {
   const char     *name;
-  swig_lua_wrapper_func   method;
+  lua_CFunction   method;
 } swig_lua_method;
 
 typedef struct {
   const char     *name;
-  swig_lua_wrapper_func   getmethod;
-  swig_lua_wrapper_func   setmethod;
+  lua_CFunction   getmethod;
+  lua_CFunction   setmethod;
 } swig_lua_attribute;
 
 typedef struct swig_lua_class {
   const char         *name;
   swig_type_info   **type;
-  swig_lua_wrapper_func       constructor;
+  lua_CFunction       constructor;
   void              (*destructor)(void *);
   swig_lua_method        *methods;
   swig_lua_attribute     *attributes;
@@ -111,26 +107,6 @@ typedef struct {
 		   (lua_pushstring(L, n), \
 			lua_pushcfunction(L, f), \
 			lua_rawset(L,-3))
-
-
-/* debug routine*/
-#if 0
-#define DEBUG_PRINT(X)	{printf(X);fflush(stdout);}
-#define DEBUG_STACK(X)	{swig_print_stack(L);}
-
-void swig_print_stack(lua_State* L)
-{
-	int i=lua_gettop(L);
-	printf("stack is size %d==============\n",i);
-	for( ; i>0;i--)
-		printf("  %d %p(%s)\n",i,lua_topointer(L,i),lua_typename(L,lua_type(L,i)));
-	printf("end stack==============\n");
-	fflush(stdout);
-}
-#else
-#define DEBUG_PRINT(X)	{}
-#define DEBUG_STACK(X)	{}
-#endif
 
 /* -----------------------------------------------------------------------------
  * global variable support code: modules
@@ -230,7 +206,7 @@ SWIGINTERN void  SWIG_Lua_module_end(lua_State* L)
 }
 
 /* adding a linked variable to the module */
-SWIGINTERN void SWIG_Lua_module_add_variable(lua_State* L,const char* name,swig_lua_wrapper_func getFn,swig_lua_wrapper_func setFn)
+SWIGINTERN void SWIG_Lua_module_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
 	assert(lua_istable(L,-1));	/* just in case */
 	lua_getmetatable(L,-1);	/* get the metatable */
@@ -250,7 +226,7 @@ SWIGINTERN void SWIG_Lua_module_add_variable(lua_State* L,const char* name,swig_
 }
 
 /* adding a function module */
-SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,swig_lua_wrapper_func fn)
+SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,lua_CFunction fn)
 {
 	SWIG_Lua_add_function(L,name,fn);
 }
@@ -289,8 +265,6 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
 	lua_pushvalue(L,2);  /* key */
 	lua_rawget(L,-2);	/* look for the fn */
 	lua_remove(L,-2); /* stack tidy, remove .fn table */
-	DEBUG_PRINT("check .fn\n");
-	DEBUG_STACK(L);
 	if (lua_iscfunction(L,-1))
 	{	/* found it so return the fn & let lua call it */
 		lua_remove(L,-2); /* stack tidy, remove metatable */
@@ -300,15 +274,12 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
 	/* NEW: looks for the __getitem() fn
 	this is a user provided get fn */
 	SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
-	DEBUG_PRINT("check __getitem\n");
-	DEBUG_STACK(L);
 	if (lua_iscfunction(L,-1))	/* if its there */
 	{	/* found it so call the fn & return its value */
 		lua_pushvalue(L,1);  /* the userdata */
 		lua_pushvalue(L,2);  /* the parameter */
 		lua_call(L,2,1);	/* 2 value in (userdata),1 out (result) */
 		lua_remove(L,-2); /* stack tidy, remove metatable */
-		/*DEBUG_STACK(L); */
 		return 1;
 	}
 	return 0;	/* sorry not known */
@@ -368,8 +339,6 @@ SWIGINTERN int  SWIG_Lua_class_destruct(lua_State* L)
 	(1) userdata (not the meta table) */
 	swig_lua_userdata* usr;
 	swig_lua_class* clss;
-	DEBUG_PRINT("SWIG_Lua_class_destruct\n");
-	DEBUG_STACK(L);
 	assert(lua_isuserdata(L,-1));	/* just in case */
 	usr=(swig_lua_userdata*)lua_touserdata(L,-1);	/* get it */
 	/* if must be destroyed & has a destructor */
@@ -412,7 +381,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
 }
 
 /* helper add a variable to a registered class */
-SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,swig_lua_wrapper_func getFn,swig_lua_wrapper_func setFn)
+SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
 	assert(lua_istable(L,-1));	/* just in case */
 	SWIG_Lua_get_table(L,".get"); /* find the .get table */

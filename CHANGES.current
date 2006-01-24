@@ -1,6 +1,14 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/24/2006: mgossage
+	    - Removed the type swig_lua_command_info & replace with luaL_reg
+	      (which then broke the code), fixed this
+	    - added an additional cast in the typemaps for enum's
+	      due to the issue that VC.Net will not allow casting of
+	      a double to an enum directly. Therefore cast to int then to enum
+	      (thenks to Jason Rego for this observation)
+
 01/16/2006: mmatus (Change disabled)
 	    Add initial support for regexp via the external library
 	    RxSpencer. SWIG doesn't require this library to compile

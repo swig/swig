@@ -31,14 +31,25 @@
 %typemap(in,checkfn="lua_isnumber") int,short,long,
              unsigned int,unsigned short,unsigned long,
              signed char,unsigned char,
-             float,double,enum SWIGTYPE
+             float,double
 %{$1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
              unsigned int,unsigned short,unsigned long,
              signed char,unsigned char,
-             float,double,enum SWIGTYPE
+             float,double
 %{  lua_pushnumber(L, (double) $1); SWIG_arg++;%}
+
+/* enums have to be handled slightly differently
+	VC++ .net will not allow a cast from double to enum directly
+	therefore cast to an int first.
+	Thanks to Jason Rego <JasonR@rainbowstudios.com> for finding this.
+*/
+%typemap(in,checkfn="lua_isnumber") enum SWIGTYPE
+%{$1 = ($type)(int)lua_tonumber(L, $input);%}
+
+%typemap(out) enum SWIGTYPE
+%{  lua_pushnumber(L, (double)(int)($1)); SWIG_arg++;%}
 
 // boolean (which is a special type in lua)
 // note: 1 & 0 are not booleans in lua, only true & false
@@ -429,8 +440,11 @@ SWIGEXPORT int SWIG_init(lua_State* L)
 	SWIG_Lua_module_begin(L,SWIG_name);
 	/* add commands/functions */
 	for (i = 0; swig_commands[i].name; i++){
-		SWIG_Lua_module_add_function(L,swig_commands[i].name,swig_commands[i].wrapper);
+		SWIG_Lua_module_add_function(L,swig_commands[i].name,swig_commands[i].func);
 	}
+	/*luaL_openlib(L,NULL,swig_commands,0);*/
+	/* all in one */
+	/*luaL_openlib(L,SWIG_name,swig_commands,0);*/
 	/* add variables */
 	for (i = 0; swig_variables[i].name; i++){
 		SWIG_Lua_module_add_variable(L,swig_variables[i].name,swig_variables[i].get,swig_variables[i].set);
@@ -447,8 +461,8 @@ SWIGEXPORT int SWIG_init(lua_State* L)
 	SWIG_Lua_InstallConstants(L,swig_constants);
 
 	/* end module */
-	SWIG_Lua_module_end(L);
-
+	/*SWIG_Lua_module_end(L);*/
+	lua_pop(L,1);  /* tidy stack (remove module table)*/
 	lua_pop(L,1);  /* tidy stack (remove global table)*/
 
 	return 1;
