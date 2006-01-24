@@ -7,6 +7,10 @@
 %{
 #define TYPEMAP_VARIABLES_FAIL goto fail;
 %}
+#else
+%{
+#define TYPEMAP_VARIABLES_FAIL goto fail;
+%}
 #endif
 
 // Scripting languages use varin/varout for variables (except non-static member variables where in/out are used ???)
