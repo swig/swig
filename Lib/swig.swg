@@ -55,14 +55,14 @@
 #define %nodefault       %feature("nodefault","1")
 #define %default         %feature("nodefault","0")
 #define %clearnodefault  %feature("nodefault","")
-#define %makedefault     %cleardefault
+#define %makedefault     %clearnodefault
 
 /* Disable the generation of implicit default constructor */
 #define %nodefaultctor       %feature("nodefaultctor","1")
 #define %defaultctor         %feature("nodefaultctor","0")
 #define %clearnodefaultctor  %feature("nodefaultctor","")
 
-/* Disable the generation of implicit default destructor */
+/* Disable the generation of implicit default destructor (dangerous) */
 #define %nodefaultdtor       %feature("nodefaultdtor","1")
 #define %defaultdtor         %feature("nodefaultdtor","0")
 #define %clearnodefaultdtor  %feature("nodefaultdtor","")
@@ -221,7 +221,11 @@ static int NAME(TYPE x) {
 
    - to rename only the global functions:
 
-     %rename("g_%(utitle)s", %$isfunction, %$isglobal) "";
+      %rename("m_%(utitle)s", %$isfunction, %$not %$ismember) "";
+
+     or
+
+      %rename("g_%(utitle)s", %$isfunction, %$isglobal) "";
 
    - to ignore the enumitems in a given class:
 
@@ -232,7 +236,7 @@ static int NAME(TYPE x) {
 
 */
 
-%define %$not           "not" %enddef 
+%define %$not            "not" %enddef 
 %define %$isenum         "match"="enum"  %enddef
 %define %$isenumitem     "match"="enumitem"  %enddef
 %define %$isaccess       "match"="access"   %enddef
