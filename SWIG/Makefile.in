@@ -191,6 +191,7 @@ check-%-test-suite:
 	elif [ ! -d $$dir ]; then					\
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
+	  echo $(ACTION)ing $* test-suite;				\
 	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
 	  || passed=false;						\
 	fi;								\
@@ -268,7 +269,6 @@ clean-gifplot:
 	@$(MAKE) -k -s check-gifplot ACTION=clean
 
 clean-test-suite:
-	@echo cleaning Examples/test-suite
 	@$(MAKE) -k -s check-test-suite ACTION=clean
 
 clean-%-examples:
