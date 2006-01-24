@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use Test::More tests => 28;
+
 use operator_overload;
 
 pass("loaded");
@@ -120,29 +121,4 @@ is(!$op, !0, "operator not");
 $op->{i} = 1;
 is(!$op, !1, "operator not");
 
-
-# TODO : {
-#   local $TODO = "I can't get Perl to trigger overloaded 'and' and 'or'";
-
-#   # operator and
-#   $op->{i} = 0;
-#   $op2->{i} = 1;
-#   ok(not ($op && $op2), "operator and");
-#   $op->{i} = 0;
-#   $op2->{i} = 0;
-#   ok(not ($op && $op2), "operator and");
-#   $op->{i} = 1;
-#   $op2->{i} = 1;
-#   ok(($op && $op2), "operator and");
-
-#   # operator or
-#   $op->{i} = 0;
-#   $op2->{i} = 1;
-#   ok(($op || $op2), "operator or");
-#   $op->{i} = 1;
-#   ok(($op || $op2), "operator or");
-#   $op->{i} = 0;
-#   $op2->{i} = 0;
-#   ok(not ($op || $op2), "operator or");
-# };
-
+# fail("testing failed condition");
