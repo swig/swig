@@ -3,16 +3,22 @@
 // Check typemap name matching rules for variables
 // Some of these are using qualified names, which is not right... the test will be adjusted as these get fixed
 
+#if defined(SWIGPYTHON) || defined(SWIGRUBY)
+%{
+#define TYPEMAP_VARIABLES_FAIL goto fail;
+%}
+#endif
+
 // Scripting languages use varin/varout for variables (except non-static member variables where in/out are used ???)
 %typemap(varin)  int                           "this_will_not_compile_varin "
 %typemap(varout) int                           "this_will_not_compile_varout"
-%typemap(varin)  int globul                    "/*int globul varin */"
+%typemap(varin)  int globul                    "/*int globul varin */ TYPEMAP_VARIABLES_FAIL"
 %typemap(varout) int globul                    "/*int globul varout*/ $result=0;"
-%typemap(varin)  int Space::nspace             "/*int nspace varin */"
+%typemap(varin)  int Space::nspace             "/*int nspace varin */ TYPEMAP_VARIABLES_FAIL"
 %typemap(varout) int Space::nspace             "/*int nspace varout*/ $result=0;"
 //%typemap(varin)  int member                    "/*int member varin */"
 //%typemap(varout) int member                    "/*int member varout*/ $result=0;"
-%typemap(varin)  int Space::Struct::smember    "/*int smember varin */"
+%typemap(varin)  int Space::Struct::smember    "/*int smember varin */ TYPEMAP_VARIABLES_FAIL"
 %typemap(varout) int Space::Struct::smember    "/*int smember varout*/ $result=0;"
 
 // Statically typed languages use in/out for variables
