@@ -240,7 +240,7 @@ namespace std {
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
                     if (CHECK_T(*tv)) {
-                        $1.push_back(TO_T(*tv));
+                        $1.push_back((T)TO_T(*tv));
                     } else {
                         SWIG_croak("Type error in argument $argnum of "
                                    "$symname. "
@@ -269,7 +269,7 @@ namespace std {
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
                     if (CHECK_T(*tv)) {
-                        temp.push_back(TO_T(*tv));
+                        temp.push_back((T)TO_T(*tv));
                     } else {
                         SWIG_croak("Type error in argument $argnum of "
                                    "$symname. "
