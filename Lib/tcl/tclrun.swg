@@ -133,7 +133,7 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
   c++;
   c = SWIG_UnpackData(c,ptr,sizeof(void *));
   if (ty) {
-    tc = SWIG_TypeCheck(c,ty);
+    tc = c ? SWIG_TypeCheck(c,ty) : 0;
     if (!tc) {
       return SWIG_ERROR;
     }
