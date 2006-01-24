@@ -36,6 +36,11 @@
 }
 
 %inline %{
+
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
 // %exception tests
 void ThrowByValue()                                     { throw Ex("ThrowByValue"); }
 void ThrowByReference()                                 { throw Ex("ThrowByReference"); }
@@ -101,6 +106,10 @@ struct constructor {
   constructor(std::string s) {}
   constructor() throw(int) { throw 10; }
 };
+
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
 %}
 
 // test exception pending in the csout typemaps

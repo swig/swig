@@ -32,6 +32,10 @@ template<class T> class vector {
   void testconst(const T x) { }
 };
 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
 class Base {
 public:
   Base() : mVectInt(0) {}
@@ -53,6 +57,9 @@ public:
 //  virtual Base m3(Base b) { return b; }
   void throwspec() throw (int, Base) {}
 };
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
 %}
 
 %template(maxint) maximum<int>;
