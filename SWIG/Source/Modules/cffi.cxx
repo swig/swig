@@ -449,7 +449,7 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
   String *name=Getattr(n, "sym:name");
   String *kind = Getattr(n,"kind");
   
-  if (Strcmp(kind, "struct")) {
+  if (Strcmp(kind, "struct")!=0  && Strcmp(kind, "union")!=0) {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n",
            kind);
     Printf(stderr, " (name: %s)\n", name);
@@ -460,10 +460,11 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
     Printf(f_cl,"\n(defcunion %s",name);
   else
     Printf(f_cl,"\n(defcstruct %s",name);
+
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 #ifdef CFFI_DEBUG
-    Printf(stderr, "%d struct/union %s\n", Getattr(c, "name"));
-    Printf(stderr, "%d struct/union %s and %s \n",
+    Printf(stderr, "struct/union %s\n", Getattr(c, "name"));
+    Printf(stderr, "struct/union %s and %s \n",
          Getattr(c,"kind"),Getattr(c,"sym:name"));
 #endif
 
@@ -478,23 +479,18 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
        //       SWIG_exit(EXIT_FAILURE);
      }
      else{
-       //    String *temp=Copy(Getattr(c,"decl"));
-       //    Append(temp,Getattr(c,"type")); //appending type to the end, otherwise wrong type
-       //    String *lisp_type=Swig_typemap_lookup_new("cin",c, "",0);
-       //    Delete(temp);
        SwigType *childType=NewStringf("%s%s", Getattr(c,"decl"),
                                       Getattr(c,"type"));
 
        Hash *typemap = Swig_typemap_search("cin", childType,"", 0);
        String *typespec = NewString("");
        if (typemap) {
-         typespec=Getattr(typemap, "code");
+         typespec = NewString(Getattr(typemap, "code"));
        }
 
        String *slot_name = Getattr(c, "sym:name");
        Printf(f_cl, "\n\t(%s %s)", slot_name, typespec); 
 
-       Delete(slot_name);
        Delete(typespec);
     }
   }
