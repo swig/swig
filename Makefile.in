@@ -16,12 +16,14 @@ BIN_DIR     = @bindir@
 TARGET      = swig@release_suffix@@EXEEXT@
 SOURCE      = Source
 
-swig: source
+swig: libfiles source
 
 source:
 	@cd $(SOURCE) && $(MAKE)
 
-.PHONY: source
+libfiles: Lib/swigwarn.swg
+
+.PHONY: source libfiles
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -253,7 +255,7 @@ broken-%-test-suite:
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-examples clean-gifplot clean-test-suite
+clean: clean-objects clean-libfiles clean-examples clean-gifplot clean-test-suite
 
 clean-objects: clean-source
 
@@ -261,6 +263,9 @@ clean-source:
 	@echo cleaning Source
 	@cd $(SOURCE) && $(MAKE) -s clean
 	@rm -f $(TARGET)
+
+clean-libfiles:
+	@rm -f Lib/swigwarn.swg
 
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
@@ -330,16 +335,16 @@ noskip-%-test-suite:
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
 
-############################################################################
+#####################################################################
 # Update the Lib/swigwarn.swg file
-############################################################################
+#####################################################################
 
 Lib/swigwarn.swg: Source/Include/swigwarn.h
-	@echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
-	@echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
-	@echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
-	@echo >> $@; echo >> $@
-	@awk '/#define WARN/{$$1="%define"; $$2="SWIG"$$2; $$3=sprintf("%d %%enddef", $$3); print $$0; next;}\
+	echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
+	echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
+	echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
+	echo >> $@; echo >> $@
+	awk '/#define WARN/{$$1="%define"; $$2="SWIG"$$2; $$3=sprintf("%d %%enddef", $$3); print $$0; next;}\
 	      /#/{next;} {print $0}' < $? >> $@
 
 #####################################################################
