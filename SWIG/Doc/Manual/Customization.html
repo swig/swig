@@ -18,7 +18,7 @@
 <li><a href="#Customization_nn6">Defining different exception handlers</a>
 <li><a href="#Customization_nn7">Using The SWIG exception library</a>
 </ul>
-<li><a href="#ownership">Object ownership, %newobject and %delobject </a>
+<li><a href="#ownership">Object ownership and %newobject</a>
 <li><a href="#features">Features and the %feature directive</a>
 <ul>
 <li><a href="#Customization_feature_flags">Feature flags</a>
@@ -547,7 +547,7 @@ void destroy_foo(Foo *foo);
 
 <p>
 which instructs SWIG that the pointer passed to <tt>destroy_foo</tt> will
-be destroyed, and therefore, the target language should not attemp to
+be destroyed, and therefore, the target language should not attempt to
 deallocate it twice. This is similar to the DISOWN typemap, and in
 fact, it also depends on the target language to implement the 'disown'
 mechanism properly.
