@@ -96,7 +96,7 @@
 %ignoreopermsg(PLUSPLUS,  "operator++ ignored");
 %ignoreopermsg(MINUSMINUS,"operator-- ignored");
 %ignoreopermsg(ARROWSTAR, "operator->* ignored");
-%ignoreopermsg(INDEX,     "operator[] ignored (consider using %extend)");
+%ignoreopermsg(INDEX,     "operator[] ignored (consider using %%extend)");
 %ignoreopermsg(NOTEQUAL,  "operator!= ignored");
 %ignoreopermsg(PLUSEQ,    "operator+= ignored");
 %ignoreopermsg(MINUSEQ,   "operator-= ignored");
