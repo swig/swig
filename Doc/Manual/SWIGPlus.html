@@ -3728,11 +3728,11 @@ example, if you have
 
 <div class="code">
 <pre>
-class EBase
-class Error1 : EBase { };
-class Error2 : EBase { };
-class Error3 : EBase { };
-class Error4 : EBase { };
+struct EBase { virtual ~Base(); };
+struct Error1 : EBase { };
+struct Error2 : EBase { };
+struct Error3 : EBase { };
+struct Error4 : EBase { };
 
 %catches(EBase) Foo::blah();
 %catches(Error1,Error2,...) Foo::bar();
