@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.27 (October 15, 2005)
+Version: 1.3.28 (February 5, 2006)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
@@ -17,17 +17,15 @@ The guilty parties working on this are:
 
 Active Developers:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
+ Marcelo Matus                                          (Python, core)
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
  Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
- Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
- Mark Rose (mrose@stm.lbl.gov)                          (Directors)
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
  Ahmon Dancy (dancy@franz.com)				(Allegro CL)
- Marcelo Matus                                          (Python, Evil C++ testing)
- John Lenz                                              (Guile, MzScheme updates, Chicken module)
+ John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
  Surendra Singhi (efuzzyone@netscape.net)               (CLISP)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
 
@@ -41,6 +39,8 @@ Major contributors include:
  Masaki Fukushima                                       (Ruby)
  Scott Michel (scottm@cs.ucla.edu)                      (Java directors)
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
+ Mark Rose (mrose@stm.lbl.gov)                          (Directors)
+ Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
  
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
@@ -71,6 +71,18 @@ Information about SWIG is also available in Japanese translation at
 
 What's New?
 ===========
+
+SWIG-1.3.28 summary:
+- Minor bug fixes and improvements to the Lua, Ruby, Java, 
+modules.
+- Support for Ruby bang methods.
+- More powerful renaming (%rename) capability.
+- More user friendly warning handling.
+- Initial GCJ/Java to scripting language support.
+- Copy constructor generation if none declared.
+- Explicit conversions (python)
+- Better handling of std::string variables.
+- Unified typemap library (UTL) providing core typemaps for all scripting languages.
 
 SWIG-1.3.27 summary:
 - Fix bug in anonymous typedef structures which was leading to strange behaviour
