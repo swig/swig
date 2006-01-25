@@ -478,19 +478,25 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
        //       SWIG_exit(EXIT_FAILURE);
      }
      else{
-    String *temp=Copy(Getattr(c,"decl"));
-    Append(temp,Getattr(c,"type")); //appending type to the end, otherwise wrong type
-    String *lisp_type=Swig_typemap_lookup_new("cin",c, "",0);
-    Delete(temp);
+       //    String *temp=Copy(Getattr(c,"decl"));
+       //    Append(temp,Getattr(c,"type")); //appending type to the end, otherwise wrong type
+       //    String *lisp_type=Swig_typemap_lookup_new("cin",c, "",0);
+       //    Delete(temp);
+       SwigType *childType=NewStringf("%s%s", Getattr(c,"decl"),
+                                      Getattr(c,"type"));
 
-    String *slot_name = Getattr(c, "sym:name");
-    Printf(f_cl, 
-           "\n\t(%s %s)", 
-           slot_name,
-           lisp_type);
+       Hash *typemap = Swig_typemap_search("cin", childType,"", 0);
+       String *typespec = NewString("");
+       if (typemap) {
+         typespec=Getattr(typemap, "code");
+       }
 
-    Delete(lisp_type);
-     }
+       String *slot_name = Getattr(c, "sym:name");
+       Printf(f_cl, "\n\t(%s %s)", slot_name, typespec); 
+
+       Delete(slot_name);
+       Delete(typespec);
+    }
   }
   
   Printf(f_cl, ")\n");
