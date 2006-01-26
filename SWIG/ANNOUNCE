@@ -14,7 +14,7 @@ SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
 Scheme (Guile, MzScheme, CHICKEN), Ocaml, Lua, Pike, C#, Modula-3, and
-Common Lisp (CLISP, Allegro CL, UFFI). SWIG can also export its parse
+Common Lisp (CLISP, Allegro CL, CFFI, UFFI). SWIG can also export its parse
 tree in the form of XML and Lisp s-expressions.  Major applications of
 SWIG include generation of scripting language extension modules, rapid
 prototyping, testing, and user interface development for large C/C++
