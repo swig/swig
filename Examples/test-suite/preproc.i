@@ -301,4 +301,11 @@ int test(int defined)
  
 %}
 
+#pragma SWIG nowarn=SWIGWARN_PP_CPP_WARNING
+#warning "Some warning"
+
+/* check that #error can be turned into a warning, but suppress the warning message for the test-suite! */
+#pragma SWIG nowarn=SWIGWARN_PP_CPP_ERROR
+#pragma SWIG cpperraswarn=1
+#error "Some error"
 
