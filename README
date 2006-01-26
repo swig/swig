@@ -5,7 +5,7 @@ Version: 1.3.28 (February 5, 2006)
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
          Scheme (Guile, MzScheme, CHICKEN), Pike, C#, Modula-3, and
-         Common Lisp (CLISP, Allegro CL, UFFI).
+         Common Lisp (CLISP, Allegro CL, CFFI, UFFI).
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -26,7 +26,7 @@ Active Developers:
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
  Ahmon Dancy (dancy@franz.com)				(Allegro CL)
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
- Surendra Singhi (efuzzyone@netscape.net)               (CLISP)
+ Surendra Singhi (efuzzyone@netscape.net)               (CLISP, CFFI)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
 
@@ -74,6 +74,7 @@ What's New?
 ===========
 
 SWIG-1.3.28 summary:
+- New language module: Common Lisp with CFFI.
 - Minor bug fixes and improvements to the Lua, Ruby, Java, 
 modules.
 - Support for Ruby bang methods.
@@ -84,6 +85,7 @@ modules.
 - Explicit conversions (python)
 - Better handling of std::string variables.
 - Unified typemap library (UTL) providing core typemaps for all scripting languages.
+
 
 SWIG-1.3.27 summary:
 - Fix bug in anonymous typedef structures which was leading to strange behaviour
