@@ -230,7 +230,6 @@ void Preprocessor_delete(void) {
 
   Delete(dependencies);
 
-  Delete(Swig_last_file());
   Delete(Swig_add_directory(0));
 }
 
