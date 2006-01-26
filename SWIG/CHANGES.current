@@ -655,19 +655,23 @@ Version 1.3.28 (unreleased).
 	    variables in a more natural way, ie, similar to the global
 	    variable behavior.
 
-	    If you use  
+	    You cam use it in a global way via the command line
 
 	      swig -naturalvar ...
 
-	    or
+	    or the module mode option
  
-	      %module(naturalvar="1")
+	      %module(naturalvar=1)
 
-	    or 
+	    both forms make swig to treat all the member variables in the
+	    same way it treats global variables. 
 
-	      %naturalvar std::string
+	    Also, you can use it in a case by case approach for
+	    specific member variables using the directive form:
+
+	      %naturalvar Bar::s;
 	      
-	    then, in the following case:
+	    Then, in the following case for example:
 
 	       std::string s;
 	       struct Bar {
@@ -691,12 +695,11 @@ Version 1.3.28 (unreleased).
 	    Hence, for 'naturalvar' to work, each target language
 	    must implement 'typemap(in/out) const Type&' properly.
 
-	    The 'naturalvar' option makes (little dangerous)
-	    workarounds such as:
+	    The 'naturalvar' option replaces or makes workarounds such  as:
 	    
-		%apply(const std::string &) { std::string *}
+		%apply const std::string & { std::string *}
 
-            obsoletes.
+            unnecessary.
 
 	    Note1: If your interface has other kind of workarounds to
 	    deal with the old 'unnatural' way to deal with member
