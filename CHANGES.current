@@ -2,6 +2,7 @@ Version 1.3.28 (unreleased).
 ===========================
 
 01/24/2006: mgossage
+            [Lua]
 	    - Removed the type swig_lua_command_info & replace with luaL_reg
 	      (which then broke the code), fixed this
 	    - added an additional cast in the typemaps for enum's
@@ -91,12 +92,14 @@ Version 1.3.28 (unreleased).
             to avoid clashings with other swig macros/directives.
 
 01/14/2006: cfisavage
+            [Ruby]
 	    Added support for Ruby bang! methods via a new %bang feature.
 	    Bang methods end in exclamation points and indicate that the
 	    object being processed will be modified in-place as 
 	    opposed to being copied.
 
 01/12/2006: cfisavage
+            [Ruby]
 	    Updated the Ruby module to automatically convert
 	    method names to lower_case_with_underscores using the
 	    new %rename functionality.
@@ -193,9 +196,9 @@ Version 1.3.28 (unreleased).
 	    	also updated the %init block bug #1356586
 		 
 01/10/2006: mmatus
-	    - Ass the 'utitle' encoder, as an example of how to add
+	    - Add the 'utitle' encoder, as an example of how to add
 	      your own encoder. I added the encoder method in misc.c 
-	      but you can add another one, the same way, inside any
+	      but developers can add others, the same way, inside any
 	      target language.
 	      
 	      Well, 'utitle' is the reverse of 'ctitle', ie:
@@ -205,12 +208,13 @@ Version 1.3.28 (unreleased).
 		 
 
 01/10/2006: cfisavage
-		Updated Ruby Exception handling.  Classes that are specified in throws clauses, 
-		or are marked as %exceptionclass, are now inherited from rb_eRuntimeError. 
-		This allows instances of these classes to be returned to Ruby as exceptions. 
-		Thus if a C++ method throws an instance of MyException, the calling Ruby 
-		method will get back a MyException object.  To see an example, 
-		ook at ruby/examples/exception_class.
+            [Ruby]
+            Updated Ruby Exception handling.  Classes that are specified in throws clauses, 
+            or are marked as %exceptionclass, are now inherited from rb_eRuntimeError. 
+            This allows instances of these classes to be returned to Ruby as exceptions. 
+            Thus if a C++ method throws an instance of MyException, the calling Ruby 
+            method will get back a MyException object.  To see an example, 
+            look at ruby/examples/exception_class.
 
 01/10/2006: mmatus
 	    
@@ -233,8 +237,8 @@ Version 1.3.28 (unreleased).
                     return 0;
                   }
 
-            ie, where there is no explicit throw list in the decl, you 
-	    end doing:
+            ie, where there is no explicit exception specification in the decl, you 
+	    end up doing:
 		  
                %exception barfoo {			
 	         try {				
@@ -244,9 +248,9 @@ Version 1.3.28 (unreleased).
 	       }				
 	    
 	    which is very tedious. Well, the %catches directive defines
-	    the list of exception to catch, and from swig:
+	    the list of exceptions to catch, and from swig:
  	
-	       %catch(E1,E2) barfoo(int i);
+	       %catches(E1,E2) barfoo(int i);
 	       int barfoo(int i);
 
             is equivalent to 
@@ -254,7 +258,7 @@ Version 1.3.28 (unreleased).
 	       int barfoo(int i) throw(E1,E2);
 
 	    Note, however, that the %catches list doesn't have to
-	    correspond to the C++ 'throw' list. For example, if you
+	    correspond to the C++ exception specification. For example, if you
 	    have:
 
 		struct E {};
@@ -276,8 +280,8 @@ Version 1.3.28 (unreleased).
 		 }	
 
             Of course, you still have to satisfy the C++ restrictions,
-	    and the catchs list must be compatible (not the same)
-	    than the original C++ throw list.
+	    and the catches list must be compatible (not the same)
+	    as the original list of types in the exception specification.
 
 	    Also, you can now specify that you want to catch the
 	    unknown exception '...', for example:
@@ -285,9 +289,10 @@ Version 1.3.28 (unreleased).
 	       %catches(E1,E2,...) barfoo(int);
 
 	    In any case, the %catches directive will emit the
-	    'rethrowing' code using the 'throw' typemap.
+	    code to convert into the target language error/exception
+            using the 'throws' typemap.
 
-	    For the same, for the '...' case to work, you need to
+	    For the '...' case to work, you need to
 	    write the proper typemap in your target language. In the
 	    UTL, this looks like:
 
@@ -301,7 +306,7 @@ Version 1.3.28 (unreleased).
             - Bug #1398394  with patch from Dries Decock
 
 01/06/2006: mmatus
-	    Add 'named' warning codes, now besides of:
+	    Add 'named' warning codes, now in addition to:
 	    
 	      %warnfilter(813);
 	   
@@ -312,19 +317,16 @@ Version 1.3.28 (unreleased).
 	    just use the same code name found in  Source/Include/swigwarn.h 
 	    plus the 'SWIG' prefix.
 
-	    If you add a new warning code, remember to run:
-
-	       make Lib/swigwarn.swg
-
-	    in the swig root directory and commit both files. You need
-	    a machine with awk/echo to do that.
+	    If a developer adds a new warning code, the Lib/swigwarn.swg file
+            will be generated when running the top level make.
 
 01/05/2006: cfisavage
-		Reimplemented object tracking for Ruby.  The new implementation works
-		by expanding the swig_class structure for Ruby by adding a trackObjects
-		field.  This field can be set/unset via %trackobjects as explained
-		in the Ruby documentation.  The new implementation is more robust
-		and takes less code to implement.
+            [Ruby]
+	    Reimplemented object tracking for Ruby.  The new implementation works
+	    by expanding the swig_class structure for Ruby by adding a trackObjects
+	    field.  This field can be set/unset via %trackobjects as explained
+	    in the Ruby documentation.  The new implementation is more robust
+	    and takes less code to implement.
 		
 01/05/2006: wsfulton
             Fix for %extend and static const integral types, eg:
@@ -362,7 +364,7 @@ Version 1.3.28 (unreleased).
              and then swig -version will report 1.3.22 instead of the
              current version.
 
-	     Tipical use could be
+	     Typical use would be
 
 	       SWIG_FEATURES="-fakeversion 1.3.22" ./configure 	     
 
@@ -378,7 +380,7 @@ Version 1.3.28 (unreleased).
 	       %rename("swig_%s") import;
 
 	    Now, since the format is processed via swig Printf, you
-	    can use encoder as follows:
+	    can use encoders as follows:
 
 	       %rename("%(title)s")  import;     -> Import
 	       %rename("%(upper)s")  import;     -> IMPORT
@@ -474,7 +476,7 @@ Version 1.3.28 (unreleased).
 	        int hello()    -> hello
 
 	      Note that if the 'command' encoder returns an empty string, swig
-	      understand that no rename is necessary.
+	      understands that no rename is necessary.
 
 	      Also note that %rename 'passes' the matched name. For example, in
 	      this case
@@ -546,7 +548,7 @@ Version 1.3.28 (unreleased).
 
 	          Lib/gcj
 
-            and localize especific issues as jstring, as can be found
+            and localize specific types such as jstring, as can be found
             in
 
 	         Lib/python/jstring.i
@@ -572,12 +574,12 @@ Version 1.3.28 (unreleased).
 	      a1 = A();
 	      a2 = A(a1);
 
-	    Also, since is a feature, if you type just
+	    Also, since it is a feature, if you just type
 
 	      %copyctor;
 
 	    that will  enable the automatic generation for all the
-	    classes. That is also equivalent to
+	    classes. It is also equivalent to
 
 	       swig -copyctor -c++ ...
 
@@ -590,17 +592,17 @@ Version 1.3.28 (unreleased).
 	        language doesn't support overloading, a special name
 	        will be used (A_copy).
 	    
-	    3.- For the same above, probably is not a good idea to
-	        use the flag when, for example, in python if you are
-		using keywords.
+	    3.- For the overloading reasons above, it is probably not
+                a good idea to use the flag when, for example, you are
+		using keywords in Python.
 
             4.- The copyctor automatic mechanism follows more or less
-	        the same rules than the default constructor mechanism,
+	        the same rules as the default constructor mechanism,
 	        i.e., a copy constructor will not be added if the
 	        class is abstract or if there is a pertinent non-public 
 		copy ctor in the class or its hierarchy.
 
-		Hence, it could be necessary for you to complete the
+		Hence, it might be necessary for you to complete the
 		class declaration with the proper non-public copy ctor
 		to avoid a wrong constructor addition.
 		
@@ -609,7 +611,7 @@ Version 1.3.28 (unreleased).
 	    
 
 12/27/2005: mmatus
-	  - Add the 'math' option to typemaps. Assume you have:
+	  - Add the 'match' option to typemaps. Assume you have:
 
 	      %typemap(in) SWIGTYPE * (int res) {..}
 	      %typemap(freearg) SWIGTYPE * { if (res$argnum) ...}
@@ -619,7 +621,7 @@ Version 1.3.28 (unreleased).
 	      %typemap(in) A * {...}
 
 	    swig will 'overload the 'in' typemap, but the 'freearg' 
-	    typemap will be also applied, even when is wrong. The old
+	    typemap will be also applied, even when this is wrong. The old
 	    solutions is to write:
 
 	      %typemap(in) A * {...}
@@ -629,20 +631,19 @@ Version 1.3.28 (unreleased).
 
 	    The problem is, however, there is no way to know you need
 	    to do that until you start getting broken C++ code, or
-	    worse,  broken runtime code.
+	    worse, broken runtime code.
 
 	    The same applies to the infamous 'typecheck' typemap,
 	    which always confuses people, since the first thing you do
-	    is just to write the 'in' typemap.
+	    is to just write the 'in' typemap.
 
-	    Well, the 'match' option solves the problem, and if you
-	    write instead
+	    The 'match' option solves the problem, and if instead you write:
 
 	      %typemap(in) SWIGTYPE * (int res) {..}
 	      %typemap(freearg,match="in") SWIGTYPE * { if (res$argnum) ...}
 	      %typemap(typecheck,match="in",precedence...) SWIGTYPE * {...}
 	    
-	    that will tell swig to apply the 'freearg/typecheck'
+	    it will tell swig to apply the 'freearg/typecheck'
 	    typemaps only if they 'match' the type of the 'in'
 	    typemap. The same can be done with other typemaps as:
 
@@ -655,7 +656,7 @@ Version 1.3.28 (unreleased).
 	    variables in a more natural way, ie, similar to the global
 	    variable behavior.
 
-	    You cam use it in a global way via the command line
+	    You can use it in a global way via the command line
 
 	      swig -naturalvar ...
 
@@ -663,7 +664,7 @@ Version 1.3.28 (unreleased).
  
 	      %module(naturalvar=1)
 
-	    both forms make swig to treat all the member variables in the
+	    both forms make swig treat all the member variables in the
 	    same way it treats global variables. 
 
 	    Also, you can use it in a case by case approach for
@@ -689,9 +690,9 @@ Version 1.3.28 (unreleased).
 
 		  
             This is valid for all the languages, and the
-            implementation is based simply in forcing to use the
-            typemaps const SWIGTYPE& (C++)/SWIGTYPE (C) for the
-            get/set methods instead of the old SWIGTYPE *.
+            implementation is based on forcing the use of the 
+            const SWIGTYPE& (C++)/SWIGTYPE (C) typemaps for the
+            get/set methods instead of the SWIGTYPE * typemaps.
 	    Hence, for 'naturalvar' to work, each target language
 	    must implement 'typemap(in/out) const Type&' properly.
 
@@ -701,12 +702,12 @@ Version 1.3.28 (unreleased).
 
             unnecessary.
 
-	    Note1: If your interface has other kind of workarounds to
+	    Note1: If your interface has other kinds of workarounds to
 	    deal with the old 'unnatural' way to deal with member
-	    variables (returning/expexting pointers), the
-	    'narturalvar' option could break them.
+	    variables (returning/expecting pointers), the
+	    'naturalvar' option could break them.
 	    
-	    Note2: the option has no effect over unnamed types, such
+	    Note2: the option has no effect on unnamed types, such
 	    as unnamed nested unions.
 	    
 	  
@@ -714,7 +715,7 @@ Version 1.3.28 (unreleased).
 	  - Add more 'expressive' result states for the typemap
             libraries.
 
-	    In the old times, you just check something like:
+	    In the past, for scripting languages, you would do checking something like:
 
 	      if (ConvertPtr(obj,&vptr,ty,flags) != -1) {
 	        // success
@@ -725,7 +726,7 @@ Version 1.3.28 (unreleased).
 	    Now the result state can carry more information,
 	    including:
 
-	      - Error state: as the old -1/0, but with error codes from swigerrors.swg.
+	      - Error state: like the old -1/0, but with error codes from swigerrors.swg.
 
 	         int res = ConvertPtr(obj,&vptr,ty,flags);
 		 if (SWIG_IsOK(res)) {
@@ -760,8 +761,9 @@ Version 1.3.28 (unreleased).
             'explicit') and overload.cxx (to replace $implicitconv as
             needed).
 	    
-	    Still, real support in each target language requires to modify
-	    each module language. Python provides an example, see bellow.
+	    Still, real support in each target language requires each
+	    target language to be modified. Python provides an example,
+            see below.
 
 
 	  - Add support for native C++ implicit conversions, ie, if you
@@ -819,8 +821,8 @@ Version 1.3.28 (unreleased).
 	      b.a = 1.0
 	      b.a = "hello" -> error, explicit constructor
 
-	    Note that the last case, assigning directly a member var, 
-	    requires also the 'naturalvar' option.
+	    Note that the last case, assigning a member var directly, 
+	    also requires the 'naturalvar' option.
 
 	    This support now makes the old '%implicit' macro, which
 	    was found in 'implicit.i' and it was fragile in many ways,
@@ -833,7 +835,7 @@ Version 1.3.28 (unreleased).
 		int get(A a) {return a.ii;}
 		int get(const A& a) {return a.ii;}
 	    
-	    but not in this cases:
+	    but not in these cases:
 
 		int get(A *a) {return a->ii;}
 		int get(A& a) {return a.ii;}
@@ -846,7 +848,7 @@ Version 1.3.28 (unreleased).
 		def get_a(self):
 		   return 1
 
-            but not in this cases:
+            but not in this case:
 
                 virtual const A& get_a() = 0;
                 virtual A& get_a() = 0;
@@ -866,15 +868,14 @@ Version 1.3.28 (unreleased).
 
             then 'my code' will also be executed.
 	    
-	  - Since the %implicitconv directive is based in SWIG
-            features, if you type:
+	  - Since the %implicitconv directive is a SWIG feature, if you type:
 	    
   	       %implicitconv;  
 
 	    that will enable implicit conversion for all the classes in
 	    your module.
 
-	    But if you are worry about performance, maybe that will be
+	    But if you are worried about performance, maybe that will be
 	    too much, especially if you have overloaded methods, since
 	    to resolve the dispatching problem, python will efectively
 	    try to call all the implicit constructors as needed.
@@ -885,11 +886,11 @@ Version 1.3.28 (unreleased).
 
 	 - [python] The %implicit directive is declared obsolete, and
            you should use %implicitconv instead. If you include
-	   the implicit.i file, a warning will remind you this.
+	   the implicit.i file, a warning will remind you of this.
 
 	   Note: Since %implicit is fragile, just replacing it by
 	   %implicitconv could lead to different behavior. Hence, we
-	   don't automatically switch one by the other, and the user
+	   don't automatically switch from to the other, and the user
 	   must migrate to the new %implicitconv directive manually.
 
 
@@ -918,7 +919,7 @@ Version 1.3.28 (unreleased).
 
 12/23/2005: mmatus
 	    [python] Add the castmode that allows the python
-	    type casting to occurr.
+	    type casting to occur.
 
 	    For example, if you have 'int foo(int)', now
 	    
@@ -934,7 +935,7 @@ Version 1.3.28 (unreleased).
 	      a = Ai(4)
               foo(ai)  // Ok
 
-            The castmode, which can be enable either with the
+            The castmode, which can be enabled either with the
             '-castmode' option or the %module("castmode") option, uses
             the new cast/rank dispatch mechanism. Hence, now if you
             have 'int foo(int); int foo(double);', the following works
@@ -951,11 +952,11 @@ Version 1.3.28 (unreleased).
 	    entire test-suite compiles fine with and without the
 	    castmode.
 
- 	    Note2: the cast mode can't be comnined with the fast
+ 	    Note2: the cast mode can't be combined with the fast
 	    dispatch mode, ie, the -fastdispatch option has no effect
 	    when the cast mode is selected. The penalties, however,
 	    are minimum since the cast dispatch code is already based
-	    in the same fast dispatch mechanism.
+	    on the same fast dispatch mechanism.
 
 	    See the file overload_dispatch_cast_runme.py file for
 	    new cases and examples.
@@ -1005,8 +1006,8 @@ Version 1.3.28 (unreleased).
                  foo("l") -> foo(char*)
 
              Note: In perl the old dispatch mechanism was broken,
-             so, we don't provide and option to enable the old one
-	     since, again, was really really broken.
+             so, we don't provide an option to enable the old one
+	     since, again, it was really really broken.
 
 	     See 'overload_simple_runme.pl' for more cases and tests.
 
@@ -1024,14 +1025,14 @@ Version 1.3.28 (unreleased).
 	    mechanism, could see now a difference in perl behavior.
 
 12/21/2005: mmatus
-	  - The '-nodefault' flag (pragma and features) now generates
+	  - The '-nodefault' flag (pragma and feature) now generates
 	    a warning, and recommends to use the explicit
 	    -nodefaultctor and  -nodefaultdtor options.
 	    
 	    The reason to split the 'nodefault' behavior is that, in
 	    general, ignoring the default destructor generates memory
-	    leaks in the target language. Hence, is to risky just to
-	    disable the both the default constructor and destructor
+	    leaks in the target language. Hence, is too risky just to
+	    disable both the default constructor and destructor
 	    at the same time.
 
 	    If you need to disable the default destructor, it is
@@ -1084,8 +1085,8 @@ Version 1.3.28 (unreleased).
 	  [Python]
 	  - Add the -proxydel/-noproxydel options to enable/disable
 	    the generation of proxy/shadow __del__ methods, even
-	    when now are redundant, since they are empty.
-	    However, old interfaces could relay in calling them.
+	    when now they are redundant, since they are empty.
+	    However, old interfaces could rely on calling them.
 
 	    The default behavior is to generate the __del__ methods
 	    as in 1.3.27 or older swig versions.
@@ -1094,7 +1095,7 @@ Version 1.3.28 (unreleased).
 
 12/10/2005: mmatus 
 	  [UTF]
-          - Fix inneccessary calls to SWIG_TypeQuery for 'char *'
+          - Fix unneccessary calls to SWIG_TypeQuery for 'char *'
 	    and 'wchar_t *', problem found by Clay Culver while
 	    profiling the PyOgre project.
 
@@ -1102,17 +1103,17 @@ Version 1.3.28 (unreleased).
 	  [Python] 
 	  - Add the -dirvtable/-nodirvtable to enable/disable
 	    a pseudo virtual table used for directors, avoiding
-	    to resolv the python method at each call.
+	    the need to resolve the python method at each call.
 	    
 	  - Add the -safecstrings/-nosafecstrings options to
 	    enable/disable the use of safe conversions from PyString
-	    to char *. Python requires you never change the internal
-	    buffer directly, and henve 'safectrings' warranties that
+	    to char *. Python requires you to never change the internal
+	    buffer directly, and hence 'safectrings' warranties that
 	    but returning a copy of the internal python string buffer.
 
 	    The default, as in previous releases, is to return a
-	    pointer to the buffer (nosafecstrings), so, is the user
-	    responsability to avoid its modification.
+	    pointer to the buffer (nosafecstrings), so, it is the user's
+	    responsibility to avoid its modification.
 	    
 	  - Add the -O option to enable all the optimization options
 	    at once, initially equivalent to
@@ -1122,11 +1123,11 @@ Version 1.3.28 (unreleased).
 12/08/2005: mmatus 
 
 	  - Add the -fastdispatch option (fastdispatch feature). This
-	    enable the "fast dispatch" mechanism for overloaded
+	    enables the "fast dispatch" mechanism for overloaded
 	    methods provided by Salvador Fandi~no Garc'ia (#930586).
 
 	    The resulting code is smaller and faster since less type
-	    checking are performed. However, the error messages you
+	    checking is performed. However, the error messages you
 	    get when the overloading is not resolved could be
 	    different from what the traditional method returns.
 
@@ -1140,10 +1141,9 @@ Version 1.3.28 (unreleased).
 
 	    See bug report #930586 for more details.
             
-  	    So, we let to the user the option to enable this
-  	    optimization.
+  	    So, this optimization must be explicitly enabled by users.
 
-	    You use this new mechanism as
+	    The new mechanism can be used as:
 
               swig -fastdispatch
 
@@ -1163,14 +1163,10 @@ Version 1.3.28 (unreleased).
 
 	    Memory footprint is also reduced in consideration of small
 	    pcs/architectures.
-	    
 
-	  - add options "cpperraswarn/nocpperraswarn" to force the swig
-	    preprocessor to treat the #error directive as a #warning.
+	  - add commandline options -cpperraswarn and -nocpperraswarn" to force
+            the swig preprocessor to treat the #error directive as a #warning.
 	    
-	    the default behavior is cpperraswarn, so, swig doesn't
-	    stop while encountering an #error directive.
-
 	    the pragmas
 
                #pragma SWIG cpperraswarn=1
@@ -1180,7 +1176,7 @@ Version 1.3.28 (unreleased).
              
 
 12/06/2005: mmatus
-	    [Python] The generated code is now more portable, specially
+	    [Python] The generated code is now more portable, especially
 	    for Windows. Following 
 
                  http://www.python.org/doc/faq/windows.html
@@ -1241,7 +1237,7 @@ Version 1.3.28 (unreleased).
 		nothreadallow     13.6s  (only 'block' code)
                 full thread       15.5s  ('allow' + 'block' code)
 	    
-	    i.e., full thread code decreases the wrapping performance
+	    i.e., full thread code decreases the wrapping performance by
 	    around 60%. If that is important to your application, you
 	    can tune each method using the different 'nothread',
 	    'nothreadblock' or 'nothreadallow' features as
@@ -1273,7 +1269,7 @@ Version 1.3.28 (unreleased).
 11/21/2005: mmatus
 	    [ruby + python]
 
-	    Fixes for directors + pointers, ugly problem with not easy
+	    Fixes for directors + pointers. This is an ugly problem without an easy
 	    solution. Before we identified this case as problematic:
 
 	          virtual const MyClass& my_method();
@@ -1286,15 +1282,15 @@ Version 1.3.28 (unreleased).
 	    'directorfree', which is used to 'free' the resources
 	    allocated during the 'directorout' phase. At the same
 	    time, a primitive garbage collector engine was added to
-	    deal with orphans addresses, when needed.
+	    deal with orphaned addresses, when needed.
 	    
-	    The situation now is much better, but still you can have
-	    memory exaustation if recursion is used.
+	    The situation is much better now, but still it is possible to have
+	    memory exhaustation if recursion is used.
 
 	    So, still you need to avoid returning pointers, arrays or
 	    references when using director methods.
 
-	    - Added stdint.i
+	    - Added stdint.i - typemaps for latest C99 integral types found in stdint.h.
 	    
 11/14/2005: wsfulton
             More types added to windows.i, eg UINT8, WORD, BYTE etc. 
@@ -1360,9 +1356,9 @@ Version 1.3.28 (unreleased).
 
             will properly work, even with directors, and the
             deallocation of Foo.this and Bar.this will follow
-            correctly. Before, since a class can only have one 'this'
-            instance (not as in C++), only the last base class was
-            properly deletted, or detected with directors.
+            correctly. Before, a class could only have one 'this'
+            instance (unlike C++), only the last base class was
+            properly deleted, or detected with directors.
 
 	    Now 'self.this' can be a list, which will contain the C++
 	    instance pointers for all the base classes.
@@ -1371,16 +1367,16 @@ Version 1.3.28 (unreleased).
 	    instance(s), and the __del__ method is not emitted unless
 	    the user preppend/append some code to it.
 
-	  - Swig now can detect memory leaks, ie, if you still
-	    use the non-shadow module, and type something like
+	  - Swig can now detect memory leaks, ie, if you still
+	    don't use proxy/shadow classes, and type something like
 	    
 	         import _example
 	         f = _example.new_Foo()
 
-	    and forgot to call _example.delete_Foo(f), then swig will
+	    and forget to call _example.delete_Foo(f), then swig will
 	    tell you that there is a memory leak.
 
-	    Otherwise, if you always use the shadow module, probably
+	    Otherwise, if you always use the proxy classes, you probably
 	    you will never ever see this warning unless there is
 	    something wrong inside the swig wrapping code.
 	       
@@ -1499,14 +1495,14 @@ Version 1.3.28 (unreleased).
 	      calling map.iterator(), as with map.begin(), map.end(), etc.
 
 	      The difference is that map.iterator() returns a safe
-	      'close' iterator, while map.begin() and map.end() are
+	      'closed' iterator, while map.begin() and map.end() are
 	      'open' iterators.
 
-	      A 'close' iterator knows the begin and the end of the
-	      sequence, and it never can seg. fault. A 'open'
+	      A 'closed' iterator knows the begin and the end of the
+	      sequence, and it never can seg. fault. An 'open'
 	      iterator, as in C++, can seg. fault at the C++ side.
 
-	         # a close iterator is safe in the following example.
+	         # a closed iterator is safe in the following example.
 		 # the next() method will throw a StopIteration
 	         # exception as needed
 	
@@ -1593,12 +1589,12 @@ Version 1.3.28 (unreleased).
 	         swig-1.3.26     0.80s 
                  swig-CVS        0.60s 
 
-	       Hence, now for practical porpuses, the proxy overhead
+	       Hence, now for practical purposes, the proxy overhead
 	       is insignificant.
 
 	       Note that the performance numbers we are showing is for
 	       a simple module (two types) and a simple function (one
-	       argument). For real situations, with modules with many
+	       argument). For real situations, for modules with many
 	       more types and/or functions with many more parameters,
 	       you will see even better results.
 	       
@@ -1606,8 +1602,8 @@ Version 1.3.28 (unreleased).
 10/31/2005: mmatus
 	    [Python]
 
-	    - Finally, no more ClassPtr shadow classes. You will see
-	      only a clean Class shadow class in the .py file.
+	    - Finally, no more ClassPtr proxy classes. You will see
+	      only a clean Class proxy class in the .py file.
 
 	    - No more 'real' thisown attribute either, the PySwigObject now
               carries the ownership info.
@@ -1640,7 +1636,7 @@ Version 1.3.28 (unreleased).
 	          print self.thisown
 		  >>> True
 
-              is supported, and python dispatch the proper method
+              is supported, and python dispatches the proper method
               calls as needed. 		  
 	       
 
@@ -1700,11 +1696,11 @@ Version 1.3.28 (unreleased).
                          sum += i        
                            
                 Note 1: Iterators in C++ are very powerful, but
-                dangerous too. And in python you can shoot your foot
-                as well as in C++, so, be careful.
+                dangerous too. And in python you can shoot yourself in the foot
+                just like in C++, so, be careful.
 		
 		Note 2: the iterators are 'light', ie, they do not
-		convert sequence elements until you request so, via
+		convert sequence elements until you request to do so, via
 		next(), value() or previous(). If you just increment/decrement one
 		no conversion is performed, for example:
 
@@ -1750,18 +1746,18 @@ Version 1.3.28 (unreleased).
 		self.thisown = 1     ==>   self.this.own(1)
                 self.thisown = 0     ==>   self.this.own(0)
 
-	    Still, maybe in some strange case the translation is not
-	    100% secure,so if you have a problem, please report it
+	    Still, maybe in some unusual cases the translation will not be
+	    100% correct, so if you have a problem, please report it
 	    and/or use the new 'self.this.own()' accessor.
 	    
 	    
             *** POTENTIAL INCOMPATIBILITY ***
 	    
 	    There is no more ClassPtr classes in the python code. Hence,
-	    if in the past you needed to resort in some kind of trick
-	    to use them, or overcome their presence, it is no longer
+	    if in the past you needed to resort to some kind of trickery
+	    with them, or overcome their presence, it is no longer
 	    required, but the extra code you added could now break
-	    things arounds.
+	    things.
 
 	    If needed, you can use the option -classptr, i.e.,
 
@@ -1825,7 +1821,7 @@ Version 1.3.28 (unreleased).
 	    - added the attribute.i file to the unified typemap
               library (before was only usable from python).
 
-	    - uniform the names for the setter and getter methods in
+	    - unify the names for the setter and getter methods in
 	      perl,tcl,ruby and python, so, the attribute.i library
 	      can work across them.
 	      
@@ -1840,7 +1836,7 @@ Version 1.3.28 (unreleased).
 
 10/24/2005: mmatus
 
-	    - Perl uses now the unified typemap library.
+	    - Perl now uses the unified typemap library.
 
 	    - Changes in ruby to use the $track option in typemaps.
 
@@ -1921,7 +1917,7 @@ Version 1.3.28 (unreleased).
 	    - More valgrind fixes
 
 	    - Simplify the inline use, it seems a small interface of
-	      20,000 lines (plus many many templates0 can break 
+	      20,000 lines (plus many many templates) can break 
 	      gcc -O3 easily.
 
 	    - Finalize the typemaps library. All the old  *.i files
@@ -1950,22 +1946,22 @@ Version 1.3.28 (unreleased).
 
 10/18/2005: mmatus
 	    
-	    Unifying the typemaps for
+	    Added the Unified Typemap Library (UTL). It unifies the typemaps for
 
  	        python, ruby, tcl
 
-	    and in the process, fix several problems in three
-	    languages to work in the "canonical" way now stablished in
+	    and in the process, fixes several problems in each of the three
+	    languages to work in a "canonical" way now established in
 	    the typemap library
 	    
 	       SWIG/Lib/typempas
 
 	    The current status of the unification is that everything
 	    compiles and runs inside the test-suite and examples
-	    directories. And for the first type we have three
+	    directories. And for the first time we have three
 	    languages than pass the primitive_types.i case.
 
-	    Also, we have uniform way to treat the errors, for example
+	    Also, we have a uniform way to treat the errors, for example
 	    if you do something like
 
 	      >>> from primitive_types import *
@@ -1979,16 +1975,16 @@ Version 1.3.28 (unreleased).
 	    you get the same exception in all the three languages.
 	    
 	    And well, many more good things will come from this
-	    unification, as proper support of the STL/STD classes
+	    unification, for example, proper support of the STL/STD classes
 	    for all the languages, and hopefully, we can keep
 	    adding other languages.
 
-	    The hardest part, writting a common typemap library
+	    The hardest part, writing a common typemap library
 	    that suites the three different languages, is done,
-	    and adding another language it is easy now. 
+	    and adding another language should now be easy. 
 
 	    Still the global unification is not complete, the STL/STD 
-	    part is next, and probably adding one or two more
+	    part is next, and probably as well as adding one or two more
 	    languages.
 
 	    If you are curious, look at the python, ruby and/or tcl
@@ -2000,7 +1996,5 @@ Version 1.3.28 (unreleased).
             *** POTENTIAL INCOMPATIBILITY in Ruby/Tcl ***
 
 	    Some missing/wrong typemaps could start working properly,
-	    and change the old expected behavior, specially in ruby
-	    and tcl.
+	    and change the old behavior, specially in ruby and tcl.
 
-	    	    
