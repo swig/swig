@@ -28,6 +28,7 @@ Active Developers:
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
  Surendra Singhi (efuzzyone@netscape.net)               (CLISP)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
+ Mark Gossage (mark@gossage.cjb.net)                    (Lua)
 
 Major contributors include:
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
