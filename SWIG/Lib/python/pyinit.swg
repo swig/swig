@@ -36,15 +36,25 @@ swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
   return PyString_FromString("<Swig global variables>");
 }
 
+SWIGINTERN PyObject *
+swig_varlink_str(swig_varlinkobject *v) {
+  PyObject *str = PyString_FromString("(");
+  swig_globalvar  *var;
+  for (var = v->vars; var; var=var->next) {
+    PyString_ConcatAndDel(&str,PyString_FromString(var->name));
+    if (var->next) PyString_ConcatAndDel(&str,PyString_FromString(", "));
+  }
+  PyString_ConcatAndDel(&str,PyString_FromString(")"));
+  return str;
+}
+
 SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
   swig_globalvar  *var;
-  fprintf(fp,"Swig global variables { ");
-  for (var = v->vars; var; var=var->next) {
-    fprintf(fp,"%s", var->name);
-    if (var->next) fprintf(fp,", ");
-  }
-  fprintf(fp," }\n");
+  PyObject *str = swig_varlink_str(v);
+  fprintf(fp,"Swig global variables ");
+  fprintf(fp,"%s\n", PyString_AsString(str));
+  Py_DECREF(str);
   return 0;
 }
 
@@ -117,7 +127,7 @@ swig_varlink_type(void) {
       0,                                  /* tp_as_mapping */
       0,                                  /* tp_hash */
       0,                                  /* tp_call */
-      0,                                  /* tp_str */
+      (reprfunc)swig_varlink_str,        /* tp_str */
       0,                                  /* tp_getattro */
       0,                                  /* tp_setattro */
       0,                                  /* tp_as_buffer */
