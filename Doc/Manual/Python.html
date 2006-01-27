@@ -2986,6 +2986,101 @@ what can be done without having to rely on any of the more advanced
 customization features.
 </p>
 
+<p>Sometimes you may want to replace or modify the wrapper function
+that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
+in SWIG provides some features that enable you do do this.  First, to
+entirely replace a proxy function you can use
+<tt>%feature("shadow")</tt>.  For example:</p>
+
+<div class="code">
+<pre>
+%module example
+
+// Rewrite bar() python code
+
+%feature("shadow") Foo::bar(int) %{
+def bar(*args):
+    #do something before
+    $action
+    #do something after
+%}
+    
+class Foo {
+public:
+    int bar(int x);
+}
+</pre>
+</div>
+
+<p> where <tt>$action</tt> will be replaced by the call to
+the C/C++ proper method. 
+</p>
+
+<p>
+Often the proxy function created by SWIG is fine, but you simply want
+to add code to it without touching the rest of the generated function
+body.  For these cases SWIG provides the <tt>pythonprepend</tt> and
+<tt>pythonappend</tt> features which do exactly as their names suggest.  The
+<tt>pythonprepend</tt> feature will insert its value at the begining of the
+proxy function, and <tt>pythonappend</tt> will insert code at the end of the
+proxy, just before the return statement.
+</p>
+
+
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar() 
+
+%feature("pythonpreppend") Foo::bar(int) %{
+   #do something before C++ call
+%}
+
+%feature("pythonappend") Foo::bar(int) %{
+   #do something after C++ call
+%}
+
+    
+class Foo {
+public:
+    int bar(int x);
+}
+</pre>
+</div>
+
+<p>
+Notes: Usually the <tt>pythonappend</tt> and <tt>pythonpreppend</tt>
+features are safer to use than the <tt>shadow</tt> feature. Also, from
+SWIG version 1.3.28 you can use the directive forms
+<tt>%pythonappend</tt>  and <tt>%pythonpreppend</tt> as follows:</p>
+
+
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar() 
+
+%pythonpreppend Foo::bar(int) %{
+   #do something before C++ call
+%}
+
+%pythonappend Foo::bar(int) %{
+   #do something after C++ call
+%}
+
+    
+class Foo {
+public:
+    int bar(int x);
+}
+</pre>
+</div>
+
+
+
+
 <H3><a name="Python_nn43"></a>29.6.3 Class extension with %extend</H3>
 
 

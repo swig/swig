@@ -169,3 +169,20 @@ These methods "may be called" if needed.
 #define %nokwargs    %feature("kwargs", "0")
 #define %clearkwargs %feature("kwargs", "")
 
+/* ------------------------------------------------------------------------- */
+/*
+  Add python code to the proxy/shadow code 
+  
+   %pythonpreppend  - Add code before the C++ function is called
+   %pythonappend    - Add code after the C++ function is called
+*/
+
+#define %pythonpreppend       %feature("pythonpreppend") 
+#define %clearpythonpreppend  %feature("pythonpreppend","")
+
+#define %pythonappend         %feature("pythonappend") 
+#define %clearpythonappend    %feature("pythonappend","")
+
+
+
+
