@@ -671,6 +671,11 @@ Version 1.3.28 (unreleased).
 	    specific member variables using the directive form:
 
 	      %naturalvar Bar::s;
+	    
+            or specific classes:
+	    
+	      %naturalvar std::string;
+	      %include <std_string.i>
 	      
 	    Then, in the following case for example:
 
