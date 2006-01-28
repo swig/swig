@@ -506,7 +506,8 @@ public:
 	  Replaceall(tm,"$source","argv[0]");
 	  Replaceall(tm,"$target",name);
 	  Replaceall(tm,"$input","argv[0]");
-	  Printv(f->code, tm, "\n",NIL);
+	  /* Printv(f->code, tm, "\n",NIL); */
+	  emit_action_code(n, f, tm);
 	}
 	else {
 	  throw_unhandled_mzscheme_type_error (t);
@@ -521,7 +522,8 @@ public:
 	Replaceall(tm,"$source",name);
 	Replaceall(tm,"$target","swig_result");
 	Replaceall(tm,"$result","swig_result");
-	Printf (f->code, "%s\n", tm);
+	/* Printf (f->code, "%s\n", tm); */
+	emit_action_code(n, f, tm);
       }
       else {
 	throw_unhandled_mzscheme_type_error (t);

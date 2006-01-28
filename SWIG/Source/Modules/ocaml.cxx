@@ -886,7 +886,8 @@ public:
 		Replaceall(tm,"$source","args");
 		Replaceall(tm,"$target",name);
 		Replaceall(tm,"$input","args");
-		Printv(f->code, tm, "\n",NIL);
+		/* Printv(f->code, tm, "\n",NIL); */
+		emit_action_code(n, f, tm);
 	    } else if ((tm = Swig_typemap_lookup_new("in",n,name,0))) {
 		Replaceall(tm,"$source","args");
 		Replaceall(tm,"$target",name);
@@ -905,7 +906,8 @@ public:
 	    Replaceall(tm,"$source",name);
 	    Replaceall(tm,"$target","swig_result");
 	    Replaceall(tm,"$result","swig_result");
-	    Printf (f->code, "%s\n", tm);
+	    /* Printf (f->code, "%s\n", tm); */
+	    emit_action_code(n, f, tm);
 	} else if ((tm   = Swig_typemap_lookup_new("out",n,name,0))) {
 	    Replaceall(tm,"$source",name);
 	    Replaceall(tm,"$target","swig_result");

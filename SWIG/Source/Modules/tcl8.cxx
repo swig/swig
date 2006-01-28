@@ -583,7 +583,8 @@ public:
       Replaceall(tm,"$source", name);
       Replaceall(tm,"$target","value");
       Replaceall(tm,"$result", "value");
-      Printf(getf->code, "%s\n",tm);
+      /* Printf(getf->code, "%s\n",tm); */
+      emit_action_code(n, getf, tm);
       Printf(getf->code, "if (value) {\n");
       Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n");
       Printf(getf->code, "Tcl_DecrRefCount(value);\n");
@@ -615,7 +616,8 @@ public:
 	Printf(setf->code,"value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
 	Printf(setf->code,"Tcl_DecrRefCount(name1o);\n");
 	Printf(setf->code,"if (!value) SWIG_fail;\n");
-	Printf(setf->code,"%s\n", tm);
+	/* Printf(setf->code,"%s\n", tm);*/
+	emit_action_code(n, setf, tm);
 	Printf(setf->code,"return NULL;\n");
 	Printf(setf->code,"fail:\n");
 	Printf(setf->code,"return \"%s\";\n", iname);
