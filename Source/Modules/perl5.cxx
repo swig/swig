@@ -851,6 +851,7 @@ public:
 	   tab4, "MAGIC_PPERL\n",
 	   NIL);
 
+    int addfail = 0;
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       SwigType *t = Getattr(n,"type");
       Replaceall(tm,"$target","sv");
@@ -862,13 +863,19 @@ public:
 	Replaceall(tm, "$shadow", "0");
       }
       /* Printf(getf->code,"%s\n", tm);*/
-      emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
       return SWIG_NOWRAP;
     }
-    Printf(getf->code,"    return 1;\n}\n");
+    Printf(getf->code,"    return 1;\n");
+    if (addfail) {
+      Append(getf->code,"fail:\n");
+      Append(getf->code,"  return 0;\n");
+    }
+    Append(getf->code,"}\n");
+
 
     Replaceall(getf->code,"$symname",iname);
     Wrapper_print(getf,magic);
