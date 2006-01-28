@@ -1433,17 +1433,24 @@ public:
     Wrapper_add_local(getf,"_val","VALUE _val");
 
     tm = Swig_typemap_lookup_new("varout",n, name, 0);
+    int addfail = 0;
     if (tm) {
       Replaceall(tm,"$result","_val");
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
       /* Printv(getf->code,tm, NIL); */
-      emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-    Printv(getf->code, tab4, "return _val;\n}\n", NIL);
+    Printv(getf->code, tab4, "return _val;\n", NIL);
+    if (addfail) {
+      Append(getf->code,"fail:\n");
+      Append(getf->code,"  return Qnil;\n");
+    }
+    Append(getf->code,"}\n");
+
     Wrapper_print(getf,f_wrappers);
 
     if (!is_assignable(n)) {
