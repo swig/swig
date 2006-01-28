@@ -3,16 +3,12 @@
  * ------------------------------------------------------------ */
 
 %typemap(in)   SWIG_Object "$1 = $input;";
-%typemap(freearg) SWIG_Object "";
 
 %typemap(in,noblock=1)   SWIG_Object const & ($*ltype temp)
 {
   temp = %static_cast($input, $*ltype);
   $1 = &temp;
 }
-
-%typemap(freearg) SWIG_Object const & "";
-
 
 %typemap(out,noblock=1) SWIG_Object {
   %set_output($1);

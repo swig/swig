@@ -27,12 +27,15 @@
 %}
 
 
-%inline %{
+%inline {
 
   SWIG_Object identity(SWIG_Object x) {
+#ifdef SWIGPYTHON
+    Py_XINCREF(x);
+#endif
     return x;    
   }
 
-%}
+}
 
   
