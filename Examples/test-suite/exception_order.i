@@ -1,5 +1,7 @@
 %module exception_order
 
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME);
+
 %include "exception.i"
 
 %{
@@ -13,7 +15,7 @@
    user's throw declarations.
 */
 
-#if defined(SWIGPERL) || defined(SWIGRUBY)
+#if defined(SWIGUTL)
 %exception {
   try {
     $action

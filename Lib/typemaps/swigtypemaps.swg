@@ -38,6 +38,7 @@
     
 */
 
+#define SWIGUTL SWIGUTL
 
 /* -----------------------------------------------------------------------------
  *   Language specialization section. 
