@@ -2,5 +2,5 @@
 
 
 %insert("runtime") {
-  %define_as(SWIG_exception(code, msg), %block(%error(code, msg); return TCL_ERROR;))
+  %define_as(SWIG_exception(code, msg), %block(%error(code, msg); SWIG_fail;))
 }
