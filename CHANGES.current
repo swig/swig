@@ -1,6 +1,50 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/24/2006: mmatus
+	    - Better support for the %naturalvar directive, now it
+	      works along the scripting languages as well as
+	      java/csharp.
+	      
+	      Now, it can also be applied to class types:
+
+	        %naturalvar std::string;
+	        %include <std_string.i>
+	      
+              that will tell swig to use the the 'natural' wrapping
+              mechanism to all std::string global and member
+              variables. Just remember to use the directive before
+	      the class declaration.
+
+	    - Add support for the %allowexcept feature along the
+              scripting languages, which allows the %exception feature
+              to be applied to the variable access methods. Also, add
+              the %exceptionvar directive to specify a distintic
+              exception mechanism only for variables.
+	      
+	    
+	    - Add more docs for the %delobject directive to mark a method as a
+	      destructor, 'disowning' the first argument. For example:
+
+	        %newobject create_foo;
+	        %delobject destroy_foo;
+
+	        Foo *create_foo() { return new Foo(); }
+	        void destroy_foo(Foo *foo) { delete foo; }
+
+	      or in a member method as:
+
+	        %delobject Foo::destroy;
+
+	        class Foo {
+	        public:
+	          void destroy() { delete this;}
+
+	        private:
+	          ~Foo();
+               };
+
+
 01/24/2006: mgossage
             [Lua]
 	    - Removed the type swig_lua_command_info & replace with luaL_reg
@@ -10,7 +54,7 @@ Version 1.3.28 (unreleased).
 	      a double to an enum directly. Therefore cast to int then to enum
 	      (thenks to Jason Rego for this observation)
 
-01/16/2006: mmatus (Change disabled)
+01/16/2006: mmatus (Change disabled... will be back in CVS soon)
 	    Add initial support for regexp via the external library
 	    RxSpencer. SWIG doesn't require this library to compile
 	    and/or run. But if you specify --with-rxspencer, and the
@@ -672,11 +716,6 @@ Version 1.3.28 (unreleased).
 
 	      %naturalvar Bar::s;
 	    
-            or specific classes:
-	    
-	      %naturalvar std::string;
-	      %include <std_string.i>
-	      
 	    Then, in the following case for example:
 
 	       std::string s;

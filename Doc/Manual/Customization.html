@@ -545,12 +545,28 @@ void destroy_foo(Foo *foo);
 </pre>
 </div>
 
+<p> or in a member method as: </p>
+<div class="code">
+<pre>
+%delobject Foo::destroy;
+
+class Foo {
+public:
+  void destroy() { delete this;}
+
+private:
+  ~Foo();
+};
+</pre>
+</div>
+
 <p>
-which instructs SWIG that the pointer passed to <tt>destroy_foo</tt> will
-be destroyed, and therefore, the target language should not attempt to
-deallocate it twice. This is similar to the DISOWN typemap, and in
-fact, it also depends on the target language to implement the 'disown'
-mechanism properly.
+<tt>%delobject</tt> instructs SWIG that the first argument passed to
+the method will be destroyed, and therefore, the target language
+should not attempt to deallocate it twice. This is similar to use the
+DISOWN typemap in the first method argument, and in fact, it also
+depends on the target language to implement the 'disown' mechanism
+properly.
 </p>
 
 <p>
