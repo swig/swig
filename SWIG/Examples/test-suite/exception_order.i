@@ -34,7 +34,14 @@
 %catches(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
 
 
+%allowexception efoovar;
+%allowexception A::efoovar;
+
 %inline %{
+  int efoovar;
+  int foovar;
+  const int cfoovar = 1;
+  
   struct E1
   {
   };
@@ -54,6 +61,11 @@
 
   struct A 
   {
+    static int sfoovar;
+    static const int csfoovar = 1;
+    int foovar;
+    int efoovar;
+
     /* caught by the user's throw definition */
     int foo() throw(E1) 
     {
@@ -90,6 +102,7 @@
       return 0;
     }
   };
+  int A::sfoovar = 1;
 %}
 
 %template(ET_i) ET<int>;
