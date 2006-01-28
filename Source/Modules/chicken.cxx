@@ -773,7 +773,8 @@ CHICKEN::variableWrapper(Node *n)  {
         Replaceall(tm,"$source","value");
         Replaceall(tm,"$target",name);
         Replaceall(tm,"$input","value");
-        Printv(f->code, tm, "\n",NIL);
+        /* Printv(f->code, tm, "\n",NIL); */
+	emit_action_code(n, f, tm);
       }
       else {
         Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
@@ -797,7 +798,8 @@ CHICKEN::variableWrapper(Node *n)  {
       Replaceall(tm,"$varname",varname);
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$result","resultobj");
-      Printf(f->code, "%s\n", tm);
+      /* Printf(f->code, "%s\n", tm); */
+      emit_action_code(n, f, tm);
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
@@ -983,7 +985,8 @@ CHICKEN::constantWrapper(Node *n)
       Replaceall(tm,"$varname",source);
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$result","resultobj");
-      Printf(f->code, "%s\n", tm);
+      /* Printf(f->code, "%s\n", tm); */
+      emit_action_code(n, f, tm);
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
