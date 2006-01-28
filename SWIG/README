@@ -77,22 +77,41 @@ SWIG-1.3.28 summary:
 - New language module: Common Lisp with CFFI.
 - More powerful renaming (%rename) capability.
 - More user friendly warning handling.
-- Initial GCJ/Java to scripting language support.
+- Add finer control for default constructors and destructors. We discourage
+  the use of the 'nodefault' option, which disable both constructors and
+  destructors, leading to possible memory leaks. Use instead 'nodefaultctor'
+  and/or 'nodefaultdtor'.
 - Optional automatic copy constructor wrapper generation.
-- Explicit conversions (python).
+- Python implicit conversion mechanism similar to C++, via the %implicitconv
+  directive (replaces and improves the implicit.i library). 
 - Python threading support added.
 - Support for Ruby bang methods.
 - Better handling of std::string variables.
 - Unified typemap library (UTL) potentially providing core typemaps for all
   scripting languages based on the recently evolving Python typemaps.
-- Python, Ruby, Perl and Tcl using using the UTL.
+- Python, Ruby, Perl and Tcl use the new UTL.
+- Initial GCJ/Java support for languages using the UTL.
 - Improved dispatching in overloaded functions by using a cast and rank
-  mechanism.
+  mechanism in perl and optionally in python via the -castmode option.
 - Better handling of Windows extensions and types.
 - C++ support added to the Allegrocl module, also enhanced C support.
-- Python STL support improved, eg performance improvements and addition of
-  iterators and STL containers of native Python types.
+- Python STL support improved, addition of iterators and STL containers of 
+  native Python types.
+- Python performance options and improvements, try the -O option to test
+  all of them. Python runtime benchmarks shows upto 20 times better performance
+  compared to 1.3.27 and older versions.
+- Python support for 'multi-inheritance' at the python side.
+- Python simplified proxy classes, now swig doesn't need to generate the auxiliar
+  'ClassPtr' clasess.
+- Python backward compatibility improved, many projects that used to work
+  only with  swig-1.3.21 to swig-1.3.24 are working again with swig-1.3.28
 - Better runtime error reporting.
+- Add the %catches directive to catch and dispatch exceptions.
+- Add the %naturalval directive for more 'natural' variable wrapping.
+- Add the %allowexcept and %exceptionvar directives to handle exceptions when
+  accesing a variable.
+- Add the %delobject directive to mark methods that act like destructors.
+- Add/doc more debug options.
 - Minor bug fixes and improvements to the Lua, Ruby, Java, C#, Python, Guile,
   Chicken, Tcl and Perl modules.
 
