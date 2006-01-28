@@ -480,7 +480,7 @@ extern void       Swig_error_msg_format(ErrorMessageFormat format);
 
 /* --- C Wrappers --- */
 extern String    *Swig_cparm_name(Parm *p, int i);
-extern String    *Swig_wrapped_var_type(SwigType *t);
+extern String    *Swig_wrapped_var_type(SwigType *t, int varcref);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
 
@@ -492,8 +492,8 @@ extern String    *Swig_unref_call(Node *n);
 extern String    *Swig_ref_call(Node *n, const String* lname);
 extern String    *Swig_cdestructor_call(Node *n);
 extern String    *Swig_cppdestructor_call(Node *n);
-extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self);
-extern String    *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self);
+extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self, int varcref);
+extern String    *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self, int varcref);
 
 extern String    *Swig_extension_code(const String *function_name,
 ParmList *parms, SwigType* return_type, const String *code, int cplusplus);
@@ -509,8 +509,8 @@ extern int        Swig_ConstructorToFunction(Node *n, String *classname,
 extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
 extern int        Swig_MembersetToFunction(Node *n, String *classname, int flags);
 extern int        Swig_MembergetToFunction(Node *n, String *classname, int flags);
-extern int        Swig_VargetToFunction(Node *n);
-extern int        Swig_VarsetToFunction(Node *n);
+extern int        Swig_VargetToFunction(Node *n, int flags);
+extern int        Swig_VarsetToFunction(Node *n, int flags);
 
 #define  CWRAP_EXTEND             0x01
 #define  CWRAP_SMART_POINTER      0x02
