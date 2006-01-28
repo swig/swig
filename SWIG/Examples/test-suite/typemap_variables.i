@@ -3,9 +3,9 @@
 // Check typemap name matching rules for variables
 // Some of these are using qualified names, which is not right... the test will be adjusted as these get fixed
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY)
+#if defined(SWIGUTL)
 %{
-#define TYPEMAP_VARIABLES_FAIL goto fail;
+#define TYPEMAP_VARIABLES_FAIL SWIG_fail;
 %}
 #else
 %{
