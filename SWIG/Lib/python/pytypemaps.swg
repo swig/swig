@@ -85,7 +85,6 @@
 
 /* For output, we increase the reference object */
 %typemap(out,noblock=1)  PyObject * {
-  /* hello */
   $result = $1;
 %#if !($owner) 
   Py_XINCREF($result);
