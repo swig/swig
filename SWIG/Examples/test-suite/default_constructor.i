@@ -13,6 +13,9 @@
 
 %warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
 
+%delobject F::destroy;
+%delobject G::destroy;
+
 %inline %{
 
 /* A class with a public default constructor */
@@ -92,6 +95,8 @@ private:
 public:
    void foo(int, int) { }
    friend void bar(F *);
+   void destroy() { delete this; }
+    
 };
 
 void bar(F *) { }
@@ -109,6 +114,9 @@ class FFF : public F {
 class G {
 protected:
    ~G() { }
+
+public:
+  void destroy() { delete this; }
 };
 
 class GG : public G { 
