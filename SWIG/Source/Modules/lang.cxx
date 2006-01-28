@@ -59,6 +59,7 @@ static Node    *CurrentClass = 0;
 int             line_number = 0;
 char           *input_file = 0;
 int             SmartPointer = 0;
+static Hash    *classhash;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -373,6 +374,31 @@ void swig_pragma(char *lang, char *name, char *value) {
   }
 }
 
+/* --------------------------------------------------------------------------
+ * swig_pragma()
+ *
+ * Handle swig pragma directives.  
+ * -------------------------------------------------------------------------- */
+int use_naturalvar_mode(Node *n) {
+  if (Getattr(n,"unnamed")) return 0;
+  int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
+  if (!nvar) {
+    /* look for feature in the class */
+    SwigType *ty = Getattr(n,"type");
+    if (SwigType_isclass(ty)) {
+      SwigType *rty = SwigType_typedef_resolve_all(ty);
+      SwigType *qty = SwigType_typedef_qualified(rty);
+      Node *cn = classhash ? Getattr(classhash,qty) : 0;
+      if (cn) {
+	nvar = GetFlag(cn,"feature:naturalvar");
+      }
+      Delete(rty);
+      Delete(qty);
+    }
+  }
+  return nvar ? CWRAP_NATURAL_VAR : 0;
+}
+
 /* ----------------------------------------------------------------------
  * Language::top()   - Top of parsing tree 
  * ---------------------------------------------------------------------- */
@@ -389,7 +415,8 @@ int Language::top(Node *n) {
 	naturalvar_mode = 0;
       }
     }
-  }  
+  }
+  classhash = Getattr(n,"classes");
   return emit_children(n);
 }
 
@@ -1168,6 +1195,25 @@ Language::staticmemberfunctionHandler(Node *n) {
 
 int
 Language::variableHandler(Node *n) {
+
+  /* If not a smart-pointer access or added method. We clear
+     feature:except.   There is no way C++ or C would throw
+     an exception merely for accessing a member data.
+
+     Caveat:  Some compilers seem to route attribute access through
+     methods which can generate exceptions.  The feature:allowexcept
+     allows this. Also, the feature:exceptvar can be used to match
+     only variables.
+  */
+  if (!(Extend | SmartPointer)) {
+    if (GetFlag(n,"feature:allowexcept")) {
+      UnsetFlag(n,"feature:except");
+    } 
+    if (Getattr(n,"feature:exceptvar")) {
+      Setattr(n,"feature:except",Getattr(n,"feature:exceptvar"));
+    }
+  }
+
   if (!CurrentClass) {
     globalvariableHandler(n);
   } else {
@@ -1216,19 +1262,6 @@ Language::membervariableHandler(Node *n) {
   String   *symname = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
 
-  /* If not a smart-pointer access or added method. We clear
-     feature:except.   There is no way C++ or C would throw
-     an exception merely for accessing a member data.
-
-     Caveat:  Some compilers seem to route attribute access through
-     methods which can generate exceptions.  The feature:allowexcept
-     allows this. 
-  */
-
-  if (!(Extend | SmartPointer) && (!GetFlag(n,"feature:allowexcept"))) {
-    UnsetFlag(n,"feature:except");
-  }
-
   if (!AttributeFunctionGet) {
     String *mname = Swig_name_member(ClassPrefix, symname);
     String *mrename_get = Swig_name_get(mname);
@@ -1267,11 +1300,7 @@ Language::membervariableHandler(Node *n) {
 	}	
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
-      int flags = Extend | SmartPointer;
-      
-      if ((naturalvar_mode || GetFlag(n,"feature:naturalvar")) && !Getattr(n,"unnamed")) {
-	flags |= CWRAP_NATURAL_VAR;
-      }
+      int flags = Extend | SmartPointer | use_naturalvar_mode(n);
 
       Swig_MembersetToFunction(n,ClassType, flags);
       Setattr(n,"memberset", "1");
@@ -1318,11 +1347,7 @@ Language::membervariableHandler(Node *n) {
     }
     /* Emit get function */
     {
-      int flags = Extend | SmartPointer;
-      if ((naturalvar_mode || GetFlag(n,"feature:naturalvar")) && !Getattr(n,"unnamed")) {
-	flags |= CWRAP_NATURAL_VAR;
-      }
-
+      int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       Swig_MembergetToFunction(n,ClassType, flags);
       Setattr(n,"sym:name",  mrename_get);
       Setattr(n,"memberget", "1");
@@ -1383,10 +1408,8 @@ Language::staticmembervariableHandler(Node *n)
 {
   Swig_require("staticmembervariableHandler",n,"*name","*sym:name","*type", "?value", NIL);
   String *value = Getattr(n,"value");
-  SwigType *type = SwigType_typedef_resolve_all(Getattr(n,"type"));
-
   String *classname = !SmartPointer ? ClassName : Getattr(CurrentClass,"allocate:smartpointerbase");
-  if (!value || !(SwigType_isconst(type))) {
+  if (!value || !Getattr(n,"hasconsttype")) {
     String *name    = Getattr(n,"name");
     String *symname = Getattr(n,"sym:name");
     String *cname, *mrename;
@@ -1427,7 +1450,7 @@ Language::staticmembervariableHandler(Node *n)
 
       in which there's no actual Foo::x variable to refer to. In this case,
       the best we can do is to wrap the given value verbatim.
- */
+    */
 
 
     String *name    = Getattr(n,"name");
@@ -1451,7 +1474,6 @@ Language::staticmembervariableHandler(Node *n)
     Delete(cname);
   }  
   
-  Delete(type);
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -2626,11 +2648,12 @@ int Language::variableWrapper(Node *n) {
 
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
+  int flags = use_naturalvar_mode(n);
   if (assignable) {
     int make_set_wrapper = 1;
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 
-    Swig_VarsetToFunction(n);
+    Swig_VarsetToFunction(n, flags);
     String *sname = Swig_name_set(symname);
     Setattr(n,"sym:name", sname);
     Delete(sname);
@@ -2667,7 +2690,7 @@ int Language::variableWrapper(Node *n) {
 	Delattr(n, ki.key);
     }
   }
-  Swig_VargetToFunction(n);
+  Swig_VargetToFunction(n, flags);
   String *gname = Swig_name_get(symname);
   Setattr(n,"sym:name", gname);
   Delete(gname);
