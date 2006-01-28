@@ -95,3 +95,17 @@
 
 #include <string.h>
 %}
+
+%insert("lisphead") %{
+;;;SWIG wrapper code starts here
+
+(defmacro defanonenum (&body enums)
+   "Converts anonymous enums to defconstants."
+  `(progn ,@(loop for value in enums
+                  for index = 0 then (1+ index)
+                  when (listp value) do (setf index (second value)
+                                              value (first value))
+                  collect `(defconstant ,value ,index))))
+
+;;;SWIG wrapper code ends here
+%}

@@ -20,7 +20,7 @@ public:
   File *f_cl;
   String *f_clhead;
   String *f_clwrap;
-  
+  bool CWrap;  // generate wrapper file for C code?  
   File *f_cxx;
   File *f_cxx_header;
   File *f_cxx_wrapper;
@@ -59,7 +59,7 @@ void CFFI :: main(int argc, char *argv[]) {
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;
   extern_all_flag=0;
-  
+  CWrap = false;
   for(i=1; i<argc; i++) {
     if (!Strcmp(argv[i], "-help")) {
       Printf(stdout, "cffi Options (available with -cffi)\n");
@@ -71,17 +71,25 @@ void CFFI :: main(int argc, char *argv[]) {
              " -generate-typedef\n"
              "\t If this option is given then defctype will be used to generate shortcuts\n"
              "according to the typedefs in the input.\n"
-             " -lispify-identifiers\n"
-             "\t If this option is given then while converting C identified to symbols they"
-             "will be lispified.\n"
+             "   -[no]cwrap\n"
+             "\tTurn on or turn off generation of an intermediate C file when\n"
+             "\tcreating a C interface. By default this is only done for C++ code.\n"
              );
     }
     else if ( (Strcmp(argv[i],"-extern-all") == 0)) {
       extern_all_flag = 1;
       Swig_mark_arg(i);
     }
+    else if (!strcmp(argv[i], "-cwrap")) {
+      CWrap = true;
+      Swig_mark_arg(i);
+    }
     else if ( (Strcmp(argv[i],"-generate-typedef") == 0)) {
       generate_typedef_flag = 1;
+      Swig_mark_arg(i);
+    }
+    else if (!strcmp(argv[i], "-nocwrap")) {
+      CWrap = false;
       Swig_mark_arg(i);
     }
   }
@@ -102,15 +110,14 @@ int CFFI :: top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  if (CPlusPlus)
-    {
+  if (CPlusPlus || CWrap)  {
       f_cxx=NewFile(cxx_filename, "w");
       if (!f_cxx) {
         Close(f_cl); Delete(f_cl);
         Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
         SWIG_exit(EXIT_FAILURE);
       }
-    }
+  }
   else
     f_cxx=NewString("");
 
@@ -418,8 +425,16 @@ int CFFI :: typedefHandler(Node *n) {
 
 int CFFI :: enumDeclaration(Node *n) {
   String *name=Getattr(n, "sym:name");
+  const char* slot_name_prefix;
   
-  Printf(f_cl,"\n(defcenum %s",name);
+  if(name && Len(name)!=0) {
+    Printf(f_cl,"\n(defcenum %s",name);
+    slot_name_prefix = ":";
+  }
+  else {
+    Printf(f_cl,"\n(defanonenum %s",name);
+    slot_name_prefix = "";
+  }
 
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 
@@ -427,9 +442,9 @@ int CFFI :: enumDeclaration(Node *n) {
     String *value = Getattr(c, "enumvalue");
 
     if(!value)
-      Printf(f_cl,"\n\t:%s",slot_name,value);
+      Printf(f_cl,"\n\t%s%s",slot_name_prefix, slot_name);
     else
-      Printf(f_cl,"\n\t(:%s %s)",slot_name,value);
+      Printf(f_cl,"\n\t(%s%s %s)",slot_name_prefix, slot_name,value);
 
     Delete(value);
   }
