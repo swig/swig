@@ -83,21 +83,6 @@
 }
 
 
-/* For output, we increase the reference object */
-%typemap(out,noblock=1)  PyObject * {
-  $result = $1;
-%#if !($owner) 
-  Py_XINCREF($result);
-%#endif
-}
-
-%typemap(out,noblock=1)  PyObject * const & {
-  $result = *$1;
-%#if !($owner) 
-  Py_XINCREF($result);
-%#endif
-}
-
 /* Consttab, needed for callbacks, it should be removed later */
 
 %typemap(consttab) SWIGTYPE ((*)(ANY))  
