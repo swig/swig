@@ -78,7 +78,6 @@
 #define %clearoldnodefault  %feature("oldnodefault","")
 
 /* the %exception directive */
-
 #ifdef SWIGCSHARP
 #define %exception      %feature("except", canthrow=1)
 #else
@@ -87,32 +86,44 @@
 #define %noexception    %feature("except","0")
 #define %clearexception %feature("except","")
 
+/* the %allowexception directive allows the %exception feature to
+   be applied to set/get variable methods */
+#define %allowexception      %feature("allowexcept")
+#define %noallowexception    %feature("allowexcept","0")
+#define %clearallowexception %feature("allowexcept","")
+
+/* the %exceptionvar directive, as %exception but it is only applied
+   to set/get variable methods. You don't need to use the
+   %allowexception directive when using %exceptionvar.
+*/
+#ifdef SWIGCSHARP
+#define %exceptionvar      %feature("exceptvar", canthrow=1)
+#else
+#define %exceptionvar      %feature("exceptvar")
+#endif
+#define %noexceptionvar    %feature("exceptvar","0")
+#define %clearexceptionvar %feature("exceptvar","")
 
 /* the %catches directive */
-
 #define %catches(tlist...)    %feature("catches","("`tlist`")")
 #define %clearcatches         %feature("catches","")
 
 /* the %exceptionclass directive */
-
 #define %exceptionclass      %feature("exceptionclass")
 #define %noexceptionclass    %feature("exceptionclass","0")
 #define %clearexceptionclass %feature("exceptionclass","")
 
 /* the %newobject directive */
-
 #define %newobject        %feature("new")
 #define %nonewobject      %feature("new","0")
 #define %clearnewobject   %feature("new","")
 
 /* the %delobject directive */
-
 #define %delobject        %feature("del")
 #define %nodelobject      %feature("del","0")
 #define %cleardelobject   %feature("del","")
 
 /* the %refobject/%unrefobject directives */
-
 #define %refobject         %feature("ref")
 #define %norefobject       %feature("ref","0")
 #define %clearrefobject    %feature("ref","")
@@ -122,7 +133,6 @@
 #define %clearunrefobject  %feature("unref","")
 
 /* Directives for callback functions (experimental) */
-
 #define %callback(x)    %feature("callback",`x`)
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
