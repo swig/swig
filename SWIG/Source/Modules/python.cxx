@@ -72,6 +72,7 @@ static  int       fastunpack = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 static  int       castmode = 0;
+static  int       outputtuple = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -113,6 +114,7 @@ static const char *usage2 = (char *)"\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
+     -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
@@ -120,6 +122,7 @@ static const char *usage2 = (char *)"\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
      -nothreads      - Disable thread support for all the interface\n\
      -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
+     -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carfuly with legacy interfaces) \n\
      -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
@@ -275,6 +278,12 @@ public:
 	} else if (strcmp(argv[i],"-nocppcast") == 0) {
 	  cppcast = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-outputtuple") == 0) {
+	  outputtuple = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nooutputtuple") == 0) {
+	  outputtuple = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
 	  /* Turn on no-RTTI mode */
 	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
@@ -427,6 +436,12 @@ public:
           if (Getattr(options, "nocastmode")) {
             castmode = 0;
           }
+          if (Getattr(options, "outputtuple")) {
+            outputtuple = 1;
+          }
+          if (Getattr(options, "nooutputtuple")) {
+            outputtuple = 0;
+          }
           mod_docstring = Getattr(options, "docstring");
           package = Getattr(options, "package");
         }
@@ -503,6 +518,10 @@ public:
 
     if (!dirvtable) {
       Printf(f_runtime,"#define SWIG_PYTHON_DIRECTOR_NO_VTABLE\n");
+    }
+
+    if (outputtuple) {
+      Printf(f_runtime,"#define SWIG_PYTHON_OUTPUT_TUPLE\n");
     }
 
     if (castmode) {
@@ -2092,7 +2111,7 @@ public:
 	if (Getattr(n,"tmap:varin:implicitconv")) {
 	  Replaceall(tm,"$implicitconv", get_implicitconv_flag(n));
 	}
-	Printf(setf->code,"%s\n",tm);
+	emit_action_code(n, setf, tm);
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
@@ -2120,18 +2139,25 @@ public:
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"SWIGINTERN PyObject *%s(void) {", getnamef);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
+    int addfail = 0;
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","pyobj");
       Replaceall(tm,"$result","pyobj");
-      Printf(getf->code,"%s\n", tm);
+      addfail = emit_action_code(n, getf, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-    
-    Printf(getf->code,"    return pyobj;\n}\n");
+
+    Append(getf->code,"  return pyobj;\n");
+    if (addfail) {
+      Append(getf->code,"fail:\n");
+      Append(getf->code,"  return NULL;\n");
+    }
+    Append(getf->code,"}\n");
+
     Wrapper_print(getf,f_wrappers);
 
     /* Now add this to the variable linking mechanism */
