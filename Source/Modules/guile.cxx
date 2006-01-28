@@ -568,6 +568,7 @@ public:
         Printf(scmstubfile, "\n(export %s)\n", ex);
         Delete(ex);
       }
+      Delete(scmstubfile);
     }
 
     if (goops) {
