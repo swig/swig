@@ -9,7 +9,7 @@
 %}
 #else
 %{
-#define TYPEMAP_VARIABLES_FAIL goto fail;
+#define TYPEMAP_VARIABLES_FAIL
 %}
 #endif
 
