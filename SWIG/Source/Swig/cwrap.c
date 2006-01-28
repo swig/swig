@@ -102,9 +102,8 @@ Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value
  * This function only converts user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-static int varcref = 0;
 String *
-Swig_wrapped_var_type(SwigType *t) {
+Swig_wrapped_var_type(SwigType *t, int varcref) {
   SwigType *ty;
 
   if (!Strstr(t,"enum $unnamed")) {
@@ -115,13 +114,22 @@ Swig_wrapped_var_type(SwigType *t) {
   }
 
   if (SwigType_isclass(t)) {
-    SwigType_add_pointer(ty);
+    if (varcref) {
+      if (cparse_cplusplus) {
+	if (!SwigType_isconst(ty)) SwigType_add_qualifier(ty, "const");
+	SwigType_add_reference(ty);
+      } else {
+	return Copy(ty);
+      }
+    } else {
+      SwigType_add_pointer(ty);
+    }
   }
   return ty;
 }
 
 String *
-Swig_wrapped_member_var_type(SwigType *t) {
+Swig_wrapped_member_var_type(SwigType *t, int varcref) {
   SwigType *ty;
 
   if (!Strstr(t,"enum $unnamed")) {
@@ -147,7 +155,7 @@ Swig_wrapped_member_var_type(SwigType *t) {
 
 
 static String *
-Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
+Swig_wrapped_var_deref(SwigType *t, String_or_char *name, int varcref) {
   if (SwigType_isclass(t)) {
     if (varcref) {
       if (cparse_cplusplus) {
@@ -164,7 +172,7 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
 }
 
 static String *
-Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
+Swig_wrapped_var_assign(SwigType *t, const String_or_char *name, int varcref) {
   if (SwigType_isclass(t)) {
     if (varcref) {
       return NewStringf("%s",name);
@@ -683,7 +691,7 @@ Swig_cppdestructor_call(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self) {
+Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self, int varcref) {
   String *func;
   String *pname0 = Swig_cparm_name(0,0);
   String *pname1 = Swig_cparm_name(0,1);
@@ -693,7 +701,7 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
   Replaceall(self,"this",pname0);
   if (SwigType_type(type) != T_ARRAY) {
     if (!Strstr(type,"enum $unnamed")) {
-      String *dref = Swig_wrapped_var_deref(type, pname1);
+      String *dref = Swig_wrapped_var_deref(type, pname1, varcref);
       Printf(func,"if (%s) %s%s = %s",pname0, self,name,dref);
       Delete(dref);
     } else {
@@ -719,7 +727,7 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
 
 String *
 Swig_cmemberget_call(const String_or_char *name, SwigType *t,
-		     String_or_char *self) {
+		     String_or_char *self, int varcref) {
   String *func;
   String *call;
   String *pname0 = Swig_cparm_name(0,0);
@@ -727,7 +735,7 @@ Swig_cmemberget_call(const String_or_char *name, SwigType *t,
   else self = NewString(self);
   Replaceall(self,"this",pname0);
   func = NewStringEmpty();
-  call = Swig_wrapped_var_assign(t,"");
+  call = Swig_wrapped_var_assign(t,"", varcref);
   Printf(func,"%s (%s%s)", call,self, name);
   Delete(self);
   Delete(call);
@@ -1213,7 +1221,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   String   *self= 0;
   String   *sname;
   
-  varcref = flags & CWRAP_NATURAL_VAR;  
+  int varcref = flags & CWRAP_NATURAL_VAR;  
 
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
@@ -1233,7 +1241,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Setattr(parms,k_hidden,"1");
   Delete(t);
 
-  ty = Swig_wrapped_member_var_type(type);
+  ty = Swig_wrapped_member_var_type(type, varcref);
   p = NewParm(ty,name);
   Setattr(parms,k_hidden,"1");
   set_nextSibling(parms,p);
@@ -1257,7 +1265,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     Delete(call);
     Delete(cres);
   } else {
-    String *call = Swig_cmemberset_call(name,type,self);
+    String *call = Swig_cmemberset_call(name,type,self, varcref);
     String *cres = NewStringf("%s;\n", call);
     Setattr(n,k_wrapaction, cres);
     Delete(call);
@@ -1272,7 +1280,6 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(sname);
   Delete(mangled);
   Delete(self);
-  varcref = 0;
   return SWIG_OK;
 }
 
@@ -1294,7 +1301,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   String   *self = 0;
   String   *gname;
 
-  varcref = flags & CWRAP_NATURAL_VAR;  
+  int varcref = flags & CWRAP_NATURAL_VAR;  
 
   if (flags & CWRAP_SMART_POINTER) {
     if (checkAttribute(n, k_storage, k_static)) {
@@ -1320,7 +1327,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   Setattr(parms,k_hidden,"1");
   Delete(t);
 
-  ty = Swig_wrapped_member_var_type(type);
+  ty = Swig_wrapped_member_var_type(type, varcref);
   if (flags & CWRAP_EXTEND) {
     String *call;
     String *cres;
@@ -1335,7 +1342,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     Delete(cres);
     Delete(call);
   } else {
-    String *call = Swig_cmemberget_call(name,type,self);
+    String *call = Swig_cmemberget_call(name,type,self, varcref);
     String *cres = Swig_cresult(ty,k_result,call);
     Setattr(n,k_wrapaction, cres);
     Delete(call);
@@ -1349,8 +1356,6 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   Delete(gname);
   Delete(mangled);
 
-  varcref = 0;  
-
   return SWIG_OK;
 }
 
@@ -1361,23 +1366,25 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_VarsetToFunction(Node *n) {
+Swig_VarsetToFunction(Node *n, int flags) {
   String   *name,*nname;
   ParmList *parms;
   SwigType *type, *ty;
+
+  int varcref = flags & CWRAP_NATURAL_VAR;  
 
   name = Getattr(n,k_name);
   type = Getattr(n,k_type);
 
   nname = SwigType_namestr(name);
 
-  ty = Swig_wrapped_var_type(type);
+  ty = Swig_wrapped_var_type(type, varcref);
   parms = NewParm(ty,name);
   Delete(ty);
   
   if (!Strstr(type,"enum $unnamed")) {
     String *pname = Swig_cparm_name(0,0);
-    String *dref = Swig_wrapped_var_deref(type,pname);
+    String *dref = Swig_wrapped_var_deref(type,pname, varcref);
     String *call = NewStringf("%s = %s;\n", nname, dref);
     Setattr(n,k_wrapaction, call);
     Delete(call);
@@ -1403,17 +1410,19 @@ Swig_VarsetToFunction(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_VargetToFunction(Node *n) {
+Swig_VargetToFunction(Node *n, int flags) {
   String *cres, *call;
   String   *name, *nname;
   SwigType *type, *ty;
+
+  int varcref = flags & CWRAP_NATURAL_VAR;  
 
   name = Getattr(n,k_name);
   type = Getattr(n,k_type);
 
   nname = SwigType_namestr(name);
-  ty = Swig_wrapped_var_type(type);
-  call = Swig_wrapped_var_assign(type,nname);
+  ty = Swig_wrapped_var_type(type, varcref);
+  call = Swig_wrapped_var_assign(type,nname, varcref);
   cres = Swig_cresult(ty,k_result,call);
   Setattr(n,k_wrapaction, cres);
   Delete(cres);
