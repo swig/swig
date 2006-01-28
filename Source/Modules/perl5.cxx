@@ -831,7 +831,8 @@ public:
 	Replaceall(tm,"$source","sv");
 	Replaceall(tm,"$target",name);
 	Replaceall(tm,"$input","sv");
-	Printf(setf->code,"%s\n", tm);
+	/* Printf(setf->code,"%s\n", tm); */
+	emit_action_code(n, setf, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
 		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
@@ -860,7 +861,8 @@ public:
       } else {
 	Replaceall(tm, "$shadow", "0");
       }
-      Printf(getf->code,"%s\n", tm);
+      /* Printf(getf->code,"%s\n", tm);*/
+      emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));

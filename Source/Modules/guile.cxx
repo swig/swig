@@ -1261,7 +1261,8 @@ public:
 	  Replaceall(tm,"$source","s_0");
 	  Replaceall(tm,"$input","s_0");
 	  Replaceall(tm,"$target",name);
-	  Printv(f->code,tm,"\n",NIL);
+	  /* Printv(f->code,tm,"\n",NIL); */
+	  emit_action_code(n, f, tm);
 	}
 	else {
 	  throw_unhandled_guile_type_error (t);
@@ -1276,7 +1277,8 @@ public:
 	Replaceall(tm,"$source",name);
 	Replaceall(tm,"$target","gswig_result");
 	Replaceall(tm,"$result", "gswig_result");
-	Printv(f->code,tm,"\n",NIL);
+	/* Printv(f->code,tm,"\n",NIL); */
+	emit_action_code(n, f, tm);
       }
       else {
 	throw_unhandled_guile_type_error (t);

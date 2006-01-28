@@ -339,6 +339,23 @@ void replace_contract_args(Parm *cp, Parm *rp, String *s) {
  *
  * Emits action code for a wrapper and checks for exception handling
  * ----------------------------------------------------------------------------- */
+int emit_action_code(Node *n, Wrapper *f, String *eaction) {
+  /* Look for except feature */
+  String *tm = GetFlagAttr(n,"feature:except");
+  if (tm) tm = Copy(tm);
+  if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {
+    Replaceall(tm,"$name",Getattr(n,"name"));
+    Replaceall(tm,"$symname", Getattr(n,"sym:name"));
+    Replaceall(tm,"$function", eaction);
+    Replaceall(tm,"$action", eaction);
+    Printv(f->code,tm,"\n", NIL);
+    Delete(tm);
+    return 1;
+  } else {
+    Printv(f->code,eaction,"\n", NIL);
+    return 0;
+  }
+}
 
 void emit_action(Node *n, Wrapper *f) {
   String *tm;
@@ -458,22 +475,14 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Look for except typemap (Deprecated) */
   tm = Swig_typemap_lookup_new("except",n,"result",0);
-
-  /* Look for except feature */
-  if (!tm) {
-    tm = GetFlagAttr(n,"feature:except");
-    if (tm) tm = Copy(tm);
-  }  
-  if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {
-    Replaceall(tm,"$name",Getattr(n,"name"));
-    Replaceall(tm,"$symname", Getattr(n,"sym:name"));
-    Replaceall(tm,"$function", eaction);
-    Replaceall(tm,"$action", eaction);
-    Printv(f->code,tm,"\n", NIL);
-    Delete(tm);
-  } else {
-    Printv(f->code,eaction,"\n",NIL);
+  if (tm) {
+    Setattr(n,"feature:except", tm);
+    tm = 0;
   }
+  
+  /* emit the except feature code */
+  emit_action_code(n, f, eaction);
+  
   Delete(eaction);
 
   /* Emit contract code (if any) */
@@ -486,3 +495,5 @@ void emit_action(Node *n, Wrapper *f) {
   }
 
 }
+
+

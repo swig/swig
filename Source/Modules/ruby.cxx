@@ -1437,7 +1437,8 @@ public:
       Replaceall(tm,"$result","_val");
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
-      Printv(getf->code,tm, NIL);
+      /* Printv(getf->code,tm, NIL); */
+      emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
@@ -1451,14 +1452,14 @@ public:
       /* create setter */
       setfname = Swig_name_set(iname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
-      Printf(setf->def, "VALUE _val) {");
-    
+      Printf(setf->def, "VALUE _val) {");    
       tm = Swig_typemap_lookup_new("varin",n,name,0);
       if (tm) {
 	Replaceall(tm,"$input","_val");
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
-	Printv(setf->code,tm,"\n",NIL);
+	/* Printv(setf->code,tm,"\n",NIL); */
+	emit_action_code(n, setf, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
 		     "Unable to set variable of type %s\n", SwigType_str(t,0));
