@@ -319,6 +319,7 @@ int    emit_isvarargs(ParmList *);
 void   emit_attach_parmmaps(ParmList *, Wrapper *f);
 void   emit_mark_varargs(ParmList *l);
 void   emit_action(Node *n, Wrapper *f);
+int    emit_action_code(Node *n, Wrapper *f, String *action);
 void   Swig_overload_check(Node *n);
 String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
 String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *);
@@ -349,6 +350,8 @@ int is_private(Node* n);
 int is_protected(Node* n); 
 int is_member_director(Node* parentnode, Node* member); 
 int is_member_director(Node* member); 
+int use_naturalvar_mode(Node *n);
+
 void Wrapper_virtual_elimination_mode_set(int);
 void Wrapper_director_mode_set(int);
 void Wrapper_director_protected_mode_set(int);
