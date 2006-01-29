@@ -63,9 +63,11 @@ void test_const_pointer_throw() throw(const std::string *) {
 
 %}
 
+/* Old way, now std::string is a %naturalvar by default
 %apply const std::string& { std::string *GlobalString2, 
                             std::string *MemberString2, 
                             std::string *Structure::StaticMemberString2 };
+*/
 
 %inline %{
 std::string GlobalString;
