@@ -13,8 +13,7 @@ Version 1.3.28 (unreleased).
 	      
               that will tell swig to use the the 'natural' wrapping
               mechanism to all std::string global and member
-              variables. Just remember to use the directive before
-	      the class declaration.
+              variables.
 
 	    - Add support for the %allowexcept feature along the
               scripting languages, which allows the %exception feature
