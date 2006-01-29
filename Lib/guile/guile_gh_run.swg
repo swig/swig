@@ -126,24 +126,24 @@ SWIG_Guile_ConvertPtr(swig_module_info *module, SCM s, void **result, swig_type_
   swig_type_info *from;
   if (SCM_NULLP(s)) {
     *result = NULL;
-    return 0;
+    return SWIG_OK;
   } else if (SCM_NIMP(s)) {
     from = SWIG_Guile_LookupType(module, s, 1);
-    if (!from) return 1;
+    if (!from) return SWIG_ERROR;
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, (void *) SCM_CDR(s));
-        return 0;
+        return SWIG_OK;
       } else {
-        return 1;
+        return SWIG_ERROR;
       }
     } else {
       *result = (void *) SCM_CDR(s);
-      return 0;
+      return SWIG_OK;
     }
   }
-  return 1;
+  return SWIG_ERROR;
 }
 
 static void *
@@ -151,7 +151,8 @@ SWIG_Guile_MustGetPtr (swig_module_info *module, SCM s, swig_type_info *type,
                        int argnum, int flags, const char *func_name)
 {
   void *result;
-  if (SWIG_Guile_ConvertPtr(module, s, &result, type, flags)) {
+  int res = SWIG_Guile_ConvertPtr(module, s, &result, type, flags);
+  if (!SWIG_IsOK(res)) {
     /* type mismatch */
     scm_wrong_type_arg((char *) func_name, argnum, s);
   }

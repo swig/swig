@@ -143,7 +143,6 @@ SWIG_Guile_PointerType(SCM object)
   else scm_wrong_type_arg("SWIG-Guile-PointerType", 1, object);
 }
   
-/* Return 0 if successful. */
 static int
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
@@ -153,25 +152,25 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 
   if (SCM_NULLP(smob)) {
     *result = NULL;
-    return 0;
+    return SWIG_OK;
   } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
     /* we do not accept smobs representing destroyed pointers */
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
-    if (!from) return 1;
+    if (!from) return SWIG_ERROR;
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob));
-        return 0;
+        return SWIG_OK;
       } else {
-        return 1;
+        return SWIG_ERROR;
       }
     } else {
       *result = (void *) SCM_CELL_WORD_1(smob);
-      return 0;
+      return SWIG_OK;
     }
   }
-  return 1;
+  return SWIG_ERROR;
 }
 
 static SWIGINLINE void *
@@ -179,7 +178,8 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, int flags, const char *func_name)
 {
   void *result;
-  if (SWIG_Guile_ConvertPtr(s, &result, type, flags)) {
+  int res = SWIG_Guile_ConvertPtr(s, &result, type, flags);
+  if (!SWIG_IsOK(res)) {
     /* type mismatch */
     scm_wrong_type_arg((char *) func_name, argnum, s);
   }
@@ -251,15 +251,15 @@ SWIG_Guile_ConvertMember(SCM smob, void *ptr, size_t sz, swig_type_info *type,
 
   if (SCM_SMOB_PREDICATE(swig_member_function_tag, smob)) {
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
-    if (!from) return 1;
+    if (!from) return SWIG_ERROR;
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
-      if (!cast) return 1;
+      if (!cast) return SWIG_ERROR;
     }
     memcpy(ptr, (void *) SCM_CELL_WORD_1(smob), sz);
-    return 0;
+    return SWIG_OK;
   }
-  return 1;
+  return SWIG_ERROR;
 }
      
 
