@@ -12,6 +12,7 @@
 
 namespace std
 {
+  %naturalvar wstring;
   class wstring;
 }
 

@@ -5,6 +5,7 @@
 namespace std
 {
   %std_comp_methods(basic_string<char>);
+  %naturalvar string;
   typedef basic_string<char> string;
 }
 

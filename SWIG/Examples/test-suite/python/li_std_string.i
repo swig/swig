@@ -1,6 +1,11 @@
 %module li_std_string
+
+%naturalvar;
+
+
 %include <std_basic_string.i>
 %include <std_string.i>
+
 
 %inline %{
 
