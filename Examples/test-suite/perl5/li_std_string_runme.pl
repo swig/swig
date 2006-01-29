@@ -5,7 +5,7 @@ use li_std_string;
 li_std_string::test_value("Fee");
 
 # Checking expected result of %typemap(out) std::string {}
-if (li_std_string::test_value("Fi") != "Fi") {
+if (li_std_string::test_value("Fi") ne "Fi") {
   die "Test 1 failed";
 }
 
@@ -20,7 +20,7 @@ if (li_std_string::test_value("Fi") != "Fi") {
 li_std_string::test_const_reference("Fo");
 
 # Checking expected result of %typemap(out) const std::string& {}
-if (li_std_string::test_const_reference("Fum") != "Fum") {
+if (li_std_string::test_const_reference("Fum") ne "Fum") {
   die "Test 3 failed";
 }
 
@@ -61,3 +61,39 @@ if (!$@) {
   die "Test 6 failed";
 }
 
+# Global variables
+$s = "initial string";
+if ($li_std_string::GlobalString2 ne "global string 2") {
+  die ("GlobalString2 test 1");
+}
+$li_std_string::GlobalString2 = $s;
+if ($li_std_string::GlobalString2 ne $s) {
+  die ("GlobalString2 test 2");
+}
+if ($li_std_string::ConstGlobalString ne "const global string") {
+  die ("ConstGlobalString test");
+}
+
+# Member variables
+$myStructure = new li_std_string::Structure();
+if ($myStructure->{MemberString2} ne "member string 2") {
+  die ("MemberString2 test 1");
+}
+$myStructure->{MemberString2} = $s;
+if ($myStructure->{MemberString2} ne $s) {
+  die ("MemberString2 test 2");
+}
+if ($myStructure->{ConstMemberString} ne "const member string") {
+  die ("ConstMemberString test");
+}
+
+if ($li_std_string::Structure::StaticMemberString2 ne "static member string 2") {
+  die ("StaticMemberString2 test 1");
+}
+$li_std_string::Structure::StaticMemberString2 = $s;
+if ($li_std_string::Structure::StaticMemberString2 ne $s) {
+  die ("StaticMemberString2 test 2");
+}
+if ($li_std_string::Structure::ConstStaticMemberString ne "const static member string") {
+  die ("ConstStaticMemberString test");
+}
