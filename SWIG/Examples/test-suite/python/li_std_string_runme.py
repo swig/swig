@@ -84,3 +84,26 @@ if li_std_string.test_value_basic2(x) != x:
 
 if li_std_string.test_value_basic3(x) != x:
   raise RuntimeError, "bad string mapping"
+
+# Global variables
+s = "initial string"
+if li_std_string.cvar.GlobalString2 != "global string 2":
+  raise RuntimeError, "GlobalString2 test 1"
+li_std_string.cvar.GlobalString2 = s
+if li_std_string.cvar.GlobalString2 != s:
+  raise RuntimeError, "GlobalString2 test 2"
+
+# Member variables
+myStructure = li_std_string.Structure()
+if myStructure.MemberString2 != "member string 2":
+  raise RuntimeError, "MemberString2 test 1"
+myStructure.MemberString2 = s
+if myStructure.MemberString2 != s:
+  raise RuntimeError, "MemberString2 test 2"
+
+if li_std_string.cvar.Structure_StaticMemberString2 != "static member string 2":
+  raise RuntimeError, "StaticMemberString2 test 1"
+li_std_string.cvar.Structure_StaticMemberString2 = s
+if li_std_string.cvar.Structure_StaticMemberString2 != s:
+  raise RuntimeError, "StaticMemberString2 test 2"
+
