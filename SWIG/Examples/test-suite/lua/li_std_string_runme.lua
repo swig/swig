@@ -64,7 +64,7 @@ s=Structure()
 
 -- testing std::string
 assert(type(s.MemberString2)=="string") -- typemaps make this a string
-assert(is_std_string(s.ConstMemberString)) -- std::string*
+assert(type(s.ConstMemberString)=="string")
 
 -- set them
 s.MemberString2="b"	-- typemaps ok
@@ -73,19 +73,18 @@ s.ConstMemberString="c"	-- silently ignored
 
 --check type again
 assert(type(s.MemberString2)=="string") -- typemaps make this a string
-assert(is_std_string(s.ConstMemberString)) -- std::string*
+assert(type(s.ConstMemberString)=="string")
 
 -- for static types: they are really variables, 
 -- so we must still use the module name
 
 -- check static type
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
-assert(is_std_string(li_std_string.Structure_ConstStaticMemberString))
+assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
 
 -- try setting
 li_std_string.Structure_StaticMemberString2='e'
 li_std_string.Structure_ConstStaticMemberString='f' -- silently ignored
-li_std_string.Structure_ConstStaticMemberString:assign('f')	-- works (oops!!!)
 --[[print(li_std_string.Structure_StaticMemberString:data(),
 		li_std_string.Structure_StaticMemberString2,
 		li_std_string.Structure_ConstStaticMemberString:data())]]
@@ -93,5 +92,5 @@ li_std_string.Structure_ConstStaticMemberString:assign('f')	-- works (oops!!!)
 -- check static type again
 assert(type(li_std_string.Structure_StaticMemberString)=="string")
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
-assert(is_std_string(li_std_string.Structure_ConstStaticMemberString))
+assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
 
