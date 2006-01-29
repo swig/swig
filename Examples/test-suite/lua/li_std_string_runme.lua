@@ -62,21 +62,16 @@ assert(ok==false and type(ex)=="userdata")	-- failed & threw object
 
 s=Structure()
 
--- because of the SWIG's 'everything else is a ptr'
--- member strings are a little unusal
-assert(is_std_string(s.MemberString))	-- std::string*
+-- testing std::string
 assert(type(s.MemberString2)=="string") -- typemaps make this a string
 assert(is_std_string(s.ConstMemberString)) -- std::string*
 
 -- set them
-s.MemberString:assign("a")	-- as its std::string* must use assign
 s.MemberString2="b"	-- typemaps ok
 s.ConstMemberString="c"	-- silently ignored
-s.ConstMemberString:assign("c")	-- works (oops!!!)
 --print(s.MemberString:data(),s.MemberString2,s.ConstMemberString:data())
 
 --check type again
-assert(is_std_string(s.MemberString))	-- std::string*
 assert(type(s.MemberString2)=="string") -- typemaps make this a string
 assert(is_std_string(s.ConstMemberString)) -- std::string*
 
@@ -84,12 +79,10 @@ assert(is_std_string(s.ConstMemberString)) -- std::string*
 -- so we must still use the module name
 
 -- check static type
-assert(is_std_string(li_std_string.Structure_StaticMemberString))
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(is_std_string(li_std_string.Structure_ConstStaticMemberString))
 
 -- try setting
-li_std_string.Structure_StaticMemberString:assign('d')
 li_std_string.Structure_StaticMemberString2='e'
 li_std_string.Structure_ConstStaticMemberString='f' -- silently ignored
 li_std_string.Structure_ConstStaticMemberString:assign('f')	-- works (oops!!!)
@@ -98,7 +91,7 @@ li_std_string.Structure_ConstStaticMemberString:assign('f')	-- works (oops!!!)
 		li_std_string.Structure_ConstStaticMemberString:data())]]
 
 -- check static type again
-assert(is_std_string(li_std_string.Structure_StaticMemberString))
+assert(type(li_std_string.Structure_StaticMemberString)=="string")
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(is_std_string(li_std_string.Structure_ConstStaticMemberString))
 
