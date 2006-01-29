@@ -11,6 +11,8 @@
 
 namespace std {
 
+    %naturalvar string;
+
     class string;
 
     /* Overloading check */
