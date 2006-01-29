@@ -20,6 +20,8 @@
 
 namespace std {
 
+    %naturalvar string;
+
     class string;
 
     %typemap(typecheck) string = char *;
