@@ -48,6 +48,10 @@ typedef struct swig_guile_clientdata {
 	      (char *) FUNC_NAME, (char *) msg,			\
 	      SCM_EOL, SCM_BOOL_F); else
 
+/* for C++ member pointers, ie, member methods */
+#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Guile_ConvertMember(obj, ptr, sz, ty, FUNC_NAME)
+#define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Guile_NewMemberObj(ptr, sz, type, FUNC_NAME)
+  
 /* Runtime API */
 #define SWIG_GetModule(clientdata) SWIG_Guile_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Guile_SetModule(pointer)
@@ -75,6 +79,7 @@ static int swig_initialized = 0;
 static scm_t_bits swig_tag = 0;
 static scm_t_bits swig_collectable_tag = 0;
 static scm_t_bits swig_destroyed_tag = 0;
+static scm_t_bits swig_member_function_tag = 0;
 static SCM swig_make_func = SCM_EOL;
 static SCM swig_keyword = SCM_EOL;
 static SCM swig_symbol = SCM_EOL;
@@ -224,6 +229,40 @@ SWIG_Guile_MarkPointerDestroyed(SCM s)
   }
 }
 
+/* Member functions */
+
+static SCM
+SWIG_Guile_NewMemberObj(void *ptr, size_t sz, swig_type_info *type,
+			const char *func_name)
+{
+  SCM smob;
+  void *copy = malloc(sz);
+  memcpy(copy, ptr, sz);
+  SCM_NEWSMOB2(smob, swig_member_function_tag, copy, (void *) type);
+  return smob;
+}
+
+static int
+SWIG_Guile_ConvertMember(SCM smob, void *ptr, size_t sz, swig_type_info *type,
+			 const char *func_name)
+{
+  swig_cast_info *cast;
+  swig_type_info *from;
+
+  if (SCM_SMOB_PREDICATE(swig_member_function_tag, smob)) {
+    from = (swig_type_info *) SCM_CELL_WORD_2(smob);
+    if (!from) return 1;
+    if (type) {
+      cast = SWIG_TypeCheckStruct(from, type);
+      if (!cast) return 1;
+    }
+    memcpy(ptr, (void *) SCM_CELL_WORD_1(smob), sz);
+    return 0;
+  }
+  return 1;
+}
+     
+
 /* Init */
 
 static int
@@ -266,6 +305,23 @@ print_destroyed_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
   return print_swig_aux(swig_smob, port, pstate, "destroyed-");
 }
 
+static int
+print_member_function_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
+{
+  swig_type_info *type;
+  type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
+  if (type) {
+    scm_puts((char *) "#<", port);
+    scm_puts((char *) "swig-member-function-pointer ", port);
+    scm_puts((char *) SWIG_TypePrettyName(type), port);
+    scm_puts((char *) " >", port);
+    /* non-zero means success */
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 static SCM
 equalp_swig (SCM A, SCM B)
 {
@@ -284,6 +340,12 @@ free_swig(SCM A)
       ((swig_guile_clientdata *)type->clientdata)->destroy(A);
   } 
   return 0;
+}
+
+static size_t
+free_swig_member_function(SCM A)
+{
+  free((swig_type_info *) SCM_CELL_WORD_1(A));
 }
 
 static int
@@ -332,6 +394,11 @@ SWIG_Guile_Init ()
 		      "destroyed-swig-pointer", "destroyed-swig-pointer-tag")) {
     scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
     scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
+  }
+  if (ensure_smob_tag(swig_module, &swig_member_function_tag,
+		      "swig-member-function-pointer", "swig-member-function-pointer-tag")) {
+    scm_set_smob_print(swig_member_function_tag, print_member_function_swig);
+    scm_set_smob_free(swig_member_function_tag, free_swig_member_function);
   }
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));

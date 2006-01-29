@@ -347,6 +347,36 @@ typedef unsigned long SCM;
 }
 
 /* ------------------------------------------------------------
+ * CLASS::* (member function pointer) typemaps
+ * taken from typemaps/swigtype.swg
+ * ------------------------------------------------------------ */
+
+#define %set_output(obj)                  $result = obj
+#define %set_varoutput(obj)               $result = obj
+
+%typemap(in) SWIGTYPE (CLASS::*) {  
+  int res = SWIG_ConvertMember($input, (void*)(&$1), sizeof($type),$descriptor);
+  if (res) {
+    scm_wrong_type_arg((char *) FUNC_NAME, $argnum, $input);
+  }
+}
+
+%typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
+  %set_output(SWIG_NewMemberObj((void*)(&$1), sizeof($type), $descriptor));
+}
+
+%typemap(varin) SWIGTYPE (CLASS::*) {
+  int res = SWIG_ConvertMember($input,(void*)(&$1), sizeof($type), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    scm_wrong_type_arg((char *) FUNC_NAME, 1, $input);
+  }
+}
+
+%typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {
+  %set_varoutput(SWIG_NewMemberObj((void*)(&$1), sizeof($type), $descriptor));
+}
+
+/* ------------------------------------------------------------
  * Typechecking rules
  * ------------------------------------------------------------ */
 

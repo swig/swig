@@ -1,6 +1,10 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/28/2006: mkoeppe
+	    [Guile -scm] 
+	    Add typemaps for handling of member function pointers.
+
 01/24/2006: mmatus
 	    - Better support for the %naturalvar directive, now it
 	      works along the scripting languages as well as
