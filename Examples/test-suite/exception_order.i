@@ -64,7 +64,7 @@
   struct A 
   {
     static int sfoovar;
-    static const int csfoovar = 1;
+    static const int CSFOOVAR = 1;
     int foovar;
     int efoovar;
 
