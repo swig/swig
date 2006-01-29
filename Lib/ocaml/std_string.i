@@ -25,6 +25,7 @@
 %include <std_vector.i>
 
 %naturalvar std::string;
+%naturalvar std::wstring;
 
 namespace std {
     template <class charT> class basic_string {
