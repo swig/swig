@@ -1,6 +1,10 @@
 // Simple tests of overloaded functions
 %module overload_simple
 
+#ifdef SWIGCHICKEN
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fbool;
+#endif
+
 #ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
