@@ -353,27 +353,29 @@ typedef unsigned long SCM;
 
 #define %set_output(obj)                  $result = obj
 #define %set_varoutput(obj)               $result = obj
+#define %argument_fail(code, type, name, argn)	scm_wrong_type_arg((char *) FUNC_NAME, argn, $input);
+#define %as_voidptr(ptr)		(void*)(ptr)
 
 %typemap(in) SWIGTYPE (CLASS::*) {  
-  int res = SWIG_ConvertMember($input, (void*)(&$1), sizeof($type),$descriptor);
-  if (res) {
-    scm_wrong_type_arg((char *) FUNC_NAME, $argnum, $input);
+  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($type),$descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res,"$type",$symname, $argnum); 
   }
 }
 
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_output(SWIG_NewMemberObj((void*)(&$1), sizeof($type), $descriptor));
+  %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
 }
 
 %typemap(varin) SWIGTYPE (CLASS::*) {
-  int res = SWIG_ConvertMember($input,(void*)(&$1), sizeof($type), $descriptor);
+  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($type), $descriptor);
   if (!SWIG_IsOK(res)) {
     scm_wrong_type_arg((char *) FUNC_NAME, 1, $input);
   }
 }
 
 %typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_varoutput(SWIG_NewMemberObj((void*)(&$1), sizeof($type), $descriptor));
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
 }
 
 /* ------------------------------------------------------------
@@ -422,17 +424,20 @@ typedef unsigned long SCM;
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
-  $1 = !SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
+  $1 = SWIG_CheckState(res);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  $1 = !SWIG_ConvertPtr($input, &ptr, $&descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &ptr, $&descriptor, 0);
+  $1 = SWIG_CheckState(res);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  $1 = !SWIG_ConvertPtr($input, &ptr, 0, 0);
+  int res = SWIG_ConvertPtr($input, &ptr, 0, 0);
+  $1 = SWIG_CheckState(res);
 }
 
 /* typemaps.i ends here */
