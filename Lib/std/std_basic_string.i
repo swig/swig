@@ -8,6 +8,11 @@
 #include <string>
 %}
 
+namespace std
+{
+  %naturalvar basic_string;
+}
+
 
 namespace std {
 

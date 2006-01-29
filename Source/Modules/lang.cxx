@@ -386,14 +386,12 @@ int use_naturalvar_mode(Node *n) {
     /* look for feature in the class */
     SwigType *ty = Getattr(n,"type");
     if (SwigType_isclass(ty)) {
-      SwigType *rty = SwigType_typedef_resolve_all(ty);
-      SwigType *qty = SwigType_typedef_qualified(rty);
-      Node *cn = classhash ? Getattr(classhash,qty) : 0;
-      if (cn) {
-	nvar = GetFlag(cn,"feature:naturalvar");
-      }
-      Delete(rty);
-      Delete(qty);
+      Node *m = Copy(n);
+      SwigType *tys = SwigType_strip_qualifiers(ty);
+      Swig_features_get(Swig_cparse_features(), 0, tys, 0, m);
+      nvar = GetFlag(m,"feature:naturalvar");      
+      Delete(tys);
+      Delete(m);
     }
   }
   return nvar ? CWRAP_NATURAL_VAR : 0;

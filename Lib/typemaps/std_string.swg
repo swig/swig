@@ -1,6 +1,8 @@
 //
 // String
 //
+
+
 #ifndef SWIG_STD_BASIC_STRING
 #define SWIG_STD_STRING
 
@@ -12,6 +14,7 @@
   
 namespace std
 {
+  %naturalvar string;
   class string;
 }
 
