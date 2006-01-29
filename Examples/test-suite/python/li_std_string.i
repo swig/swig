@@ -94,4 +94,33 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
 
 %}
 
+/* Old way, now std::string is a %naturalvar by default
+%apply const std::string& { std::string *GlobalString2, 
+                            std::string *MemberString2, 
+                            std::string *Structure::StaticMemberString2 };
+*/
+
+%inline %{
+std::string GlobalString;
+std::string GlobalString2 = "global string 2";
+
+struct Structure {
+  std::string MemberString;
+  std::string MemberString2;
+  static std::string StaticMemberString;
+  static std::string StaticMemberString2;
+
+  const std::string ConstMemberString;
+  static const std::string ConstStaticMemberString;
+
+  Structure() : MemberString2("member string 2"), ConstMemberString("const member string") {}
+};
+%}
+
+%{
+  std::string Structure::StaticMemberString = "static member string";
+  std::string Structure::StaticMemberString2 = "static member string 2";
+  const std::string Structure::ConstStaticMemberString = "const static member string";
+%}
+
 
