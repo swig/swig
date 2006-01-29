@@ -92,6 +92,8 @@ if li_std_string.cvar.GlobalString2 != "global string 2":
 li_std_string.cvar.GlobalString2 = s
 if li_std_string.cvar.GlobalString2 != s:
   raise RuntimeError, "GlobalString2 test 2"
+if li_std_string.cvar.ConstGlobalString != "const global string":
+  raise RuntimeError, "ConstGlobalString test"
 
 # Member variables
 myStructure = li_std_string.Structure()
@@ -100,10 +102,14 @@ if myStructure.MemberString2 != "member string 2":
 myStructure.MemberString2 = s
 if myStructure.MemberString2 != s:
   raise RuntimeError, "MemberString2 test 2"
+if myStructure.ConstMemberString != "const member string":
+  raise RuntimeError, "ConstMemberString test"
 
 if li_std_string.cvar.Structure_StaticMemberString2 != "static member string 2":
   raise RuntimeError, "StaticMemberString2 test 1"
 li_std_string.cvar.Structure_StaticMemberString2 = s
 if li_std_string.cvar.Structure_StaticMemberString2 != s:
   raise RuntimeError, "StaticMemberString2 test 2"
+if li_std_string.cvar.Structure_ConstStaticMemberString != "const static member string":
+  raise RuntimeError, "ConstStaticMemberString test"
 
