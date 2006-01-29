@@ -108,6 +108,7 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
 %inline %{
 std::string GlobalString;
 std::string GlobalString2 = "global string 2";
+const std::string ConstGlobalString = "const global string";
 
 struct Structure {
   std::string MemberString;
