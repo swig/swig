@@ -58,22 +58,40 @@ assert(ok==false and type(ex)=="userdata")	-- failed & threw object
 ok,ex=pcall(test_pointer_throw)
 assert(ok==false and type(ex)=="userdata")	-- failed & threw object
 
--- testing the structure:
+-- testing std::string variables
+-- Global variables
+s = "initial string"
+assert (li_std_string.GlobalString2 == "global string 2")
+li_std_string.GlobalString2 = s
+assert (li_std_string.GlobalString2 == s)
+assert (li_std_string.ConstGlobalString == "const global string")
 
-s=Structure()
+-- Member variables
+myStructure = Structure()
+assert(myStructure.MemberString2 == "member string 2")
+myStructure.MemberString2 = s
+assert (myStructure.MemberString2 == s)
+assert (myStructure.ConstMemberString == "const member string")
 
--- testing std::string
-assert(type(s.MemberString2)=="string") -- typemaps make this a string
-assert(type(s.ConstMemberString)=="string")
+assert (li_std_string.Structure_StaticMemberString2 == "static member string 2")
+li_std_string.Structure_StaticMemberString2 = s
+assert (li_std_string.Structure_StaticMemberString2 == s)
+assert (li_std_string.Structure_ConstStaticMemberString == "const static member string")
+
+
+-- testing the structure (these are some old tests which predated the std::string variable tests above)
+struc=Structure()
+
+assert(type(struc.MemberString2)=="string") -- typemaps make this a string
+assert(type(struc.ConstMemberString)=="string")
 
 -- set them
-s.MemberString2="b"	-- typemaps ok
-s.ConstMemberString="c"	-- silently ignored
---print(s.MemberString:data(),s.MemberString2,s.ConstMemberString:data())
+struc.ConstMemberString="c"	-- silently ignored
+--print(struc.MemberString:data(),struc.MemberString2,struc.ConstMemberString:data())
 
 --check type again
-assert(type(s.MemberString2)=="string") -- typemaps make this a string
-assert(type(s.ConstMemberString)=="string")
+assert(type(struc.MemberString2)=="string") -- typemaps make this a string
+assert(type(struc.ConstMemberString)=="string")
 
 -- for static types: they are really variables, 
 -- so we must still use the module name
@@ -83,7 +101,7 @@ assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
 
 -- try setting
-li_std_string.Structure_StaticMemberString2='e'
+--li_std_string.Structure_StaticMemberString2='e'
 li_std_string.Structure_ConstStaticMemberString='f' -- silently ignored
 --[[print(li_std_string.Structure_StaticMemberString:data(),
 		li_std_string.Structure_StaticMemberString2,
