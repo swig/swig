@@ -24,6 +24,8 @@
 
 %include <std_vector.i>
 
+%naturalvar std::string;
+
 namespace std {
     template <class charT> class basic_string {
     public:
