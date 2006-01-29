@@ -26,6 +26,9 @@ s2=test_value(s)
 assert(s==s2)
 
 */
+
+%naturalvar std::string;
+
 %typemap(in,checkfn="lua_isstring") std::string
 %{$1 = (char*)lua_tostring(L, $input);%}
 
