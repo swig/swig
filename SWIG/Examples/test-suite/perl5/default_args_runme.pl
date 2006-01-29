@@ -30,15 +30,15 @@ if (default_args::casts1() != null) {
   die "casts1 failed";
 }
 
-if (default_args::casts2() != "Hello") {
+if (default_args::casts2() ne "Hello") {
   die "casts2 failed";
 }
 
-if (default_args::casts1("Ciao") != "Ciao") {
+if (default_args::casts1("Ciao") ne "Ciao") {
   die "casts1 not default failed";
 }
 
-if (default_args::chartest1() != 'x') {
+if (default_args::chartest1() ne 'x') {
   die "chartest1 failed";
 }
 
@@ -46,11 +46,11 @@ if (default_args::chartest2() != '\0') {
   die "chartest2 failed";
 }
 
-if (default_args::chartest1('y') != 'y') {
+if (default_args::chartest1('y') ne 'y') {
   die "chartest1 not default failed";
 }
 
-if (default_args::chartest1('y') != 'y') {
+if (default_args::chartest1('y') ne 'y') {
   die "chartest1 not default failed";
 }
 
@@ -62,7 +62,7 @@ if (default_args::reftest1(400) != 400) {
   die "reftest1 not default failed";
 }
 
-if (default_args::reftest2() != "hello") {
+if (default_args::reftest2() ne "hello") {
   die "reftest2 failed";
 }
 
@@ -134,7 +134,7 @@ if ($tricky->protecteddouble() != 987.654) {
 if ($tricky->functiondefault() != 500) {
   die "functiondefault failed";
 }
-if ($tricky->contrived() != 'X') {
+if ($tricky->contrived() ne 'X') {
   die "contrived failed";
 }
 
