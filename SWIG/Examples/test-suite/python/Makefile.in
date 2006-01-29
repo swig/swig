@@ -3,6 +3,9 @@
 # Makefile for python test-suite
 #######################################################################
 
+srcdir       = @srcdir@
+include $(srcdir)/../../Makefile
+
 LANGUAGE     = python
 ifneq (,$(USE_VALGRIND))
 PYTHON       = valgrind --leak-check=full --suppressions=pyswig.supp @PYTHON@
@@ -10,7 +13,6 @@ else
 PYTHON       = @PYTHON@
 endif
 SCRIPTSUFFIX = _runme.py
-srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -68,13 +70,27 @@ LIBS       = -L.
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup) \
-	($(swig_and_compile_cpp); ) &&\
+	$(SWIG) -c++ -python $(SWIGOPT) $*.i && \
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $*_wrap.cxx  $(INCLUDES) $(PYTHON_INCLUDE) && \
+	$(CXXSHARED) $(OBJS) $*_wrap.o $(PYTHON_DLNK) $(LIBS) -o _$*$(PYTHON_SO) && \
 	$(run_testcase)
+
+#%.cpptest: 
+#	$(setup) \
+#	($(swig_and_compile_cpp); ) &&\
+#	$(run_testcase)
 
 %.ctest:
 	$(setup) \
-	($(swig_and_compile_c); ) &&\
+	$(SWIG) -python $(SWIGOPT) $*.i && \
+	$(CC) -c $(CCSHARED) $(CFLAGS) $*_wrap.c $(INCLUDES) $(PYTHON_INCLUDE) && \
+	$(LDSHARED) $(OBJS) $*_wrap.o $(PYTHON_DLNK) $(LIBS) -o _$*$(PYTHON_SO) && \
 	$(run_testcase)
+
+#%.ctest:
+#	$(setup) \
+#	($(swig_and_compile_c); ) &&\
+#	$(run_testcase)
 
 %.multicpptest: 
 	$(setup) \
