@@ -72,6 +72,7 @@ void test_const_pointer_throw() throw(const std::string *) {
 %inline %{
 std::string GlobalString;
 std::string GlobalString2 = "global string 2";
+const std::string ConstGlobalString = "const global string";
 
 struct Structure {
   std::string MemberString;
