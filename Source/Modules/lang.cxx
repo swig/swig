@@ -943,20 +943,25 @@ int Language::cDeclaration(Node *n) {
 
 int
 Language::functionHandler(Node *n) {
-  Parm *p;
-  p = Getattr(n,"parms");
+  String *storage = Getattr(n,"storage");
+  int isfriend = CurrentClass && Cmp(storage,"friend") == 0;
+  int isstatic = CurrentClass && Cmp(storage,"static") == 0 &&
+	!(SmartPointer && Getattr(n,"allocate:smartpointeraccess"));
+  Parm *p= Getattr(n,"parms");
   if (GetFlag(n,"feature:del")) {
     /* the method acts like a delete operator, ie, we need to disown the parameter */
-    if (p) Setattr(p,"wrap:disown","1");
+    if (CurrentClass && !isstatic && !isfriend) {
+      SetFlag(n,"feature:self:disown");
+    } else {
+      if (p) SetFlag(p,"wrap:disown");
+    }
   }
   if (!CurrentClass) {
     globalfunctionHandler(n);
   } else {
-    String *storage   = Getattr(n,"storage");
-    if (Cmp(storage,"static") == 0 &&
-	!(SmartPointer && Getattr(n,"allocate:smartpointeraccess"))) {
+    if (isstatic) {
       staticmemberfunctionHandler(n);
-    } else if (Cmp(storage,"friend") == 0) {
+    } else if (isfriend) {
       globalfunctionHandler(n);
     } else {
       memberfunctionHandler(n);

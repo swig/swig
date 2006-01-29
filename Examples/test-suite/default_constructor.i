@@ -116,7 +116,7 @@ protected:
    ~G() { }
 
 public:
-  void destroy() { delete this; }
+  static void destroy(G *g) { delete g; }
 };
 
 class GG : public G { 
