@@ -21,6 +21,8 @@
 
 namespace std {
 
+    %naturalvar string;
+
     class string;
 
     %typemap(in) string {
