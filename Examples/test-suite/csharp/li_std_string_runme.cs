@@ -76,6 +76,8 @@ public class runme
         li_std_string.GlobalString2 = s;
         if (li_std_string.GlobalString2 != s)
           throw new Exception("GlobalString2 test 2");
+        if (li_std_string.ConstGlobalString != "const global string")
+          throw new Exception("ConstGlobalString test");
 
         // Member variables
         Structure myStructure = new Structure();
@@ -84,11 +86,15 @@ public class runme
         myStructure.MemberString2 = s;
         if (myStructure.MemberString2 != s)
           throw new Exception("MemberString2 test 2");
+        if (myStructure.ConstMemberString != "const member string")
+          throw new Exception("ConstMemberString test");
 
         if (Structure.StaticMemberString2 != "static member string 2")
           throw new Exception("StaticMemberString2 test 1");
         Structure.StaticMemberString2 = s;
         if (Structure.StaticMemberString2 != s)
           throw new Exception("StaticMemberString2 test 2");
+      if (Structure.ConstStaticMemberString != "const static member string")
+        throw new Exception("ConstStaticMemberString test");
     }
 }
