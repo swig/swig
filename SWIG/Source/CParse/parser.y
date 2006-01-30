@@ -3448,21 +3448,12 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 		/* Ignore */
                 $$ = 0; 
 	      } else {
-		String *scpname = Swig_symbol_qualifiedscopename(0);
 		$$ = new_node("classforward");
 		Setfile($$,cparse_file);
 		Setline($$,cparse_line);
 		Setattr($$,k_kind,$2);
 		Setattr($$,k_name,$3);
 		Setattr($$,k_symweak, "1");
-		if (!classes) classes = NewHash();
-		if (scpname && Len(scpname)) {
-		  String *fname = NewStringf("%s::%s",scpname,$3);
-		  Setattr(classes,fname,$$);
-		  Delete(fname);
-		} else {
-		  Setattr(classes,$3,$$);
-		}
 		add_symbols($$);
 	      }
              }
