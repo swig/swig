@@ -1472,7 +1472,7 @@ Language::staticmembervariableHandler(Node *n)
     Setattr(n, "type", t2);
     Delete(t1);
     Delete(t2);
-    
+    SetFlag(n,"wrappedasconstant");
     memberconstantHandler(n);
     Delete(cname);
   }  
