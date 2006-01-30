@@ -62,7 +62,7 @@ namespace std {
 
     %fragment(SWIG_Traits_frag(std::multimap<_Key, _Tp, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),
-	      fragment="StdMultiapTraits") {
+	      fragment="StdMultimapTraits") {
       namespace swig {
 	template <>  struct traits<std::multimap<_Key, _Tp, _Compare, _Alloc > > {
 	  typedef pointer_category category;

@@ -158,6 +158,9 @@
 #define WARN_TYPEMAP_TYPECHECK_UNDEF   472
 #define WARN_TYPEMAP_DIRECTOROUT_PTR   473 
 
+/* -- Fragments -- */
+#define WARN_FRAGMENT_NOT_FOUND       490
+
 /* -- General code generation -- */
 
 #define WARN_LANG_OVERLOAD_DECL       501

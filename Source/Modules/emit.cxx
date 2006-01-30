@@ -374,7 +374,11 @@ void emit_action(Node *n, Wrapper *f) {
       c = Char(t);
       tok = strtok(c,",");
       while (tok) {
-	Swig_fragment_emit(tok);
+	String *fname = NewString(tok);
+	Setfile(fname, Getfile(n));
+	Setline(fname, Getline(n));
+	Swig_fragment_emit(fname);
+	Delete(fname);
 	tok = strtok(NULL,",");
       }
       Delete(t);
