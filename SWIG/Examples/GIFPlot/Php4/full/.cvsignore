@@ -1,7 +1,8 @@
-simple.py
-simple.pyc
+php_gifplot.h
+gifplot.php
 *_wrap.c
 *_wrap.cxx
+*_wrap.cpp
 *.dll
 *.dsw
 *.exp
