@@ -18,6 +18,7 @@ char cvsroot_fragment_c[] = "$Header$";
 
 #include "swig.h"
 #include "swigkeys.h"
+#include "swigwarn.h"
 
 static Hash *fragments = 0;
 static Hash *looking_fragments = 0;
@@ -89,7 +90,11 @@ Swig_fragment_emit(Node *n) {
   String *name = 0;
   String *type = 0;
 
-  if (!fragments) return;
+  if (!fragments) {
+    Swig_warning(WARN_FRAGMENT_NOT_FOUND, Getfile(n), Getline(n), "Fragment '%s' not found.\n", name);
+    return;
+  }
+  
 
   name = Getattr(n,k_value);
   if (!name) {
@@ -139,19 +144,24 @@ Swig_fragment_emit(Node *n) {
 	  Delattr(looking_fragments,name);      
 	}
       }
-    } else {
-      if (code && type) {
-	SwigType *rtype = SwigType_typedef_resolve_all(type);
-	if (!Equal(type,rtype)) {
-	  String *name = Copy(Getattr(n,k_value));
-	  Append(name,rtype);
-	  Swig_fragment_emit(name);
-	  Delete(name);
-	}
-	Delete(rtype);
-      }      
+    } else if (!code && type) {
+      SwigType *rtype = SwigType_typedef_resolve_all(type);
+      if (!Equal(type,rtype)) {
+	String *name = Copy(Getattr(n,k_value));
+	String *mangle = Swig_string_mangle(type);
+	Append(name,mangle);
+	Setfile(name, Getfile(n));
+	Setline(name, Getline(n));
+	Swig_fragment_emit(name);
+	Delete(mangle);
+	Delete(name);
+      }
+      Delete(rtype);
     }
     
+    if (!code) {
+      Swig_warning(WARN_FRAGMENT_NOT_FOUND, Getfile(n), Getline(n), "Fragment '%s' not found.\n", name);
+    }
     tok = pc ? pc + 1 : 0;
     if (tok) {
       pc = char_index(tok,',');

@@ -1358,7 +1358,11 @@ Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NO
     sprintf(temp,"%s:fragment", cop);
     f = Getattr(node,tmop_name(temp));
     if (f) {
-      Swig_fragment_emit(f);
+      String *fname = Copy(f);
+      Setfile(fname, Getfile(node));
+      Setline(fname, Getline(node));
+      Swig_fragment_emit(fname);
+      Delete(fname);
     }
   }
     
@@ -1433,7 +1437,11 @@ Swig_typemap_emit_code_fragments(const String_or_char *op, Parm *p) {
   String *temp = NewStringf("%s:fragment",op);
   String *f = Getattr(p,tmop_name(temp));
   if (f) {
-    Swig_fragment_emit(f);
+    String *fname = Copy(f);
+    Setfile(fname, Getfile(p));
+    Setline(fname, Getline(p));
+    Swig_fragment_emit(fname);
+    Delete(fname);
   }
   Delete(temp);
 }
