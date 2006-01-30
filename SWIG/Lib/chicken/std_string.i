@@ -6,6 +6,8 @@
 %}
 
 namespace std {
+    %naturalvar string;
+  
 
     %insert(closprefix) %{ (declare (hide <std-string>)) %}
     %nodefault string;
