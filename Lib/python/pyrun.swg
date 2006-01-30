@@ -237,7 +237,7 @@ PySwigClientData_New(PyObject* obj)
       data->newargs = obj;
       Py_INCREF(obj);
 #else
-      data->newraw = PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, "__new__");
+      data->newraw = PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, (char *)"__new__");
       Py_INCREF(data->newraw);
       data->newargs = PyTuple_New(1);
       PyTuple_SetItem(data->newargs, 0, obj);
@@ -245,7 +245,7 @@ PySwigClientData_New(PyObject* obj)
 #endif
     }
     /* the destroy method, aka as the C++ delete method */
-    data->destroy = PyObject_GetAttrString(data->klass, "__swig_destroy__");
+    data->destroy = PyObject_GetAttrString(data->klass, (char *)"__swig_destroy__");
     if (PyErr_Occurred()) {
       PyErr_Clear();
       data->destroy = 0;
@@ -520,20 +520,20 @@ _PySwigObject_type(void) {
   static PyMethodDef
 #ifdef METH_O
     swigobject_methods[] = {
-      {"disown",  (PyCFunction)PySwigObject_disown,  METH_NOARGS,  "releases ownership of the pointer"},
-      {"acquire", (PyCFunction)PySwigObject_acquire, METH_NOARGS,  "aquires ownership of the pointer"},
-      {"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
-      {"append",  (PyCFunction)PySwigObject_append,  METH_O,       "appends another 'this' object"},
-      {"next",    (PyCFunction)PySwigObject_next,    METH_NOARGS,  "returns the next 'this' object"},
+      {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_NOARGS,  (char *)"releases ownership of the pointer"},
+      {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_NOARGS,  (char *)"aquires ownership of the pointer"},
+      {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, (char *)"returns/sets ownership of the pointer"},
+      {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_O,       (char *)"appends another 'this' object"},
+      {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_NOARGS,  (char *)"returns the next 'this' object"},
       {0, 0, 0, 0}  
     };
 #else
     swigobject_methods[] = {
-      {"disown",  (PyCFunction)PySwigObject_disown,  METH_VARARGS,  "releases ownership of the pointer"},
-      {"acquire", (PyCFunction)PySwigObject_acquire, METH_VARARGS,  "aquires ownership of the pointer"},
-      {"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
-      {"append",  (PyCFunction)PySwigObject_append,  METH_VARARGS,       "appends another 'this' object"},
-      {"next",    (PyCFunction)PySwigObject_next,    METH_VARARGS,  "returns the next 'this' object"},
+      {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_VARARGS,  (char *)"releases ownership of the pointer"},
+      {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_VARARGS,  (char *)"aquires ownership of the pointer"},
+      {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS,  (char *)"returns/sets ownership of the pointer"},
+      {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_VARARGS,  (char *)"appends another 'this' object"},
+      {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_VARARGS,  (char *)"returns the next 'this' object"},
       {0, 0, 0, 0}  
     };
 #endif
