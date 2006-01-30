@@ -24,6 +24,7 @@ String *k_construct = 0;
 String *k_constructor = 0;
 String *k_continue = 0;
 String *k_conversionoperator = 0;
+String *k_copy = 0;
 String *k_csymnextSibling = 0;
 String *k_csympreviousSibling = 0;
 String *k_csymtab = 0;
@@ -151,6 +152,7 @@ void Swig_keys_init() {
   k_constructor = NewString("constructor");
   k_continue = NewString("continue");
   k_conversionoperator = NewString("conversion_operator");
+  k_copy = NewString("copy");
   k_csymnextSibling = NewString("csym:nextSibling");
   k_csympreviousSibling = NewString("csym:previousSibling");
   k_csymtab = NewString("csymtab");

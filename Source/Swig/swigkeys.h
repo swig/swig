@@ -21,6 +21,7 @@ extern String *k_cdecl;
 extern String *k_class;
 extern String *k_classforward;
 extern String *k_classname;
+extern String *k_copy;
 extern String *k_cplusstaticbase;
 extern String *k_code;
 extern String *k_coloncolon;
