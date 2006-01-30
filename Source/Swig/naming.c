@@ -304,7 +304,7 @@ Swig_name_copyconstructor(const String_or_char *classname) {
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash) naming_hash = NewHash();
-  f = HashGetAttr(naming_hash,k_construct);
+  f = HashGetAttr(naming_hash,k_copy);
   if (!f) {
     Append(r,"copy_%c");
   } else {
