@@ -332,6 +332,10 @@
 #endif
 %}
 
+%fragment("<math.h>","header") %{
+#include <math.h>
+%}
+
 %fragment("<wchar.h>","header") %{
 #include <wchar.h>
 %}
