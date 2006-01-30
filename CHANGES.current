@@ -1,14 +1,24 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+01/30/2006: wsfulton
+            std::string and std::wstring member variables and global variables now use
+            %naturalvar by default, meaning they will now be wrapped as expected in all languages.
+            Previously these were wrapped as a pointer rather than a target language string.
+            It is no longer necessary to add the following workaround to wrap these as strings:
+
+		%apply const std::string & { std::string *}
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 01/28/2006: mkoeppe
 	    [Guile -scm] 
 	    Add typemaps for handling of member function pointers.
 
 01/24/2006: mmatus
 	    - Better support for the %naturalvar directive, now it
-	      works along the scripting languages as well as
-	      java/csharp.
+	      works with the scripting languages as well as
+	      Java/C#.
 	      
 	      Now, it can also be applied to class types:
 
@@ -55,7 +65,7 @@ Version 1.3.28 (unreleased).
 	    - added an additional cast in the typemaps for enum's
 	      due to the issue that VC.Net will not allow casting of
 	      a double to an enum directly. Therefore cast to int then to enum
-	      (thenks to Jason Rego for this observation)
+	      (thanks to Jason Rego for this observation)
 
 01/16/2006: mmatus (Change disabled... will be back in CVS soon)
 	    Add initial support for regexp via the external library
