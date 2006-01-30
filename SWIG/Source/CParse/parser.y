@@ -429,7 +429,9 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-    if (strncmp(Char(symname),"$ignore",7) == 0) {
+    if (GetFlag(n,"feature:ignore")) {
+      Swig_symbol_add(0, n);
+    } else if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
       SetFlag(n,"feature:ignore");
       if (strlen(c)) {
@@ -2625,10 +2627,17 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,k_symtypename,"1");
                           }
                           if ($3) {
-			    String *symname = Swig_name_make(templnode,0,$3,0,0);
+			    /* 
+			       Comment this out for 1.3.28. We need to
+			       renable it later but first we need to
+			       move %ignore from using %rename to use
+			       %feature(ignore).
+			  
+			       String *symname = Swig_name_make(templnode,0,$3,0,0);
+			    */
+			    String *symname = $3;
                             Swig_cparse_template_expand(templnode,symname,temparms,tscope);
                             Setattr(templnode,k_symname,symname);
-			    Delete(symname);
                           } else {
                             static int cnt = 0;
                             String *nname = NewStringf("__dummy_%d__", cnt++);
