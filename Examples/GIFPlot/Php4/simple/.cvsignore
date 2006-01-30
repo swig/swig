@@ -1,7 +1,8 @@
-simple.py
-simple.pyc
+php_simple.h
+simple.php
 *_wrap.c
 *_wrap.cxx
+*_wrap.cpp
 *.dll
 *.dsw
 *.exp
