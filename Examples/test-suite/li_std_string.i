@@ -1,5 +1,11 @@
 %module li_std_string
-%include "std_string.i"
+%include <std_string.i>
+
+#if defined(SWIGUTL)
+%apply std::string& INPUT { std::string &input }
+%apply std::string& INOUT { std::string &inout }
+#endif
+
 
 %inline %{
 
@@ -33,6 +39,14 @@ void test_reference(std::string &x) {
 std::string& test_reference_out() {
    static std::string x = "test_reference_out message";
    return x;
+}
+
+std::string test_reference_input(std::string &input) {
+  return input;
+}
+
+void test_reference_inout(std::string &inout) {
+  inout += inout;
 }
 
 #if defined(_MSC_VER)
