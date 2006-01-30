@@ -1272,7 +1272,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	}
       } else {
 	if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-	  use_wrapper = !GetFlag(n,"feature:novaluewrapper");
+	  use_wrapper = !n || !GetFlag(n,"feature:novaluewrapper");
 	}
       }
       if (use_wrapper) {
