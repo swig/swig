@@ -26,12 +26,11 @@
 (define struct (make <Structure>))
 
 ;; MemberString should be a wrapped class
-(define scl (slot-ref struct 'MemberString))
-(if (not (string=? (slot-ref scl 'str) ""))
+(if (not (string=? (slot-ref struct 'MemberString) ""))
   (error "Error 4.5"))
-(slot-set! scl 'str "and how")
-(if (not (string=? (slot-ref (slot-ref struct 'MemberString) 'str) "and how"))
-  (error "Error 5"))
+;(slot-set! (slot-ref struct 'MemberString) "and how")
+;;(if (not (string=? (slot-ref struct 'MemberString) "and how"))
+;;  (error "Error 5"))
 (if (not (string=? (slot-ref struct 'MemberString2) "member string 2"))
   (error "Error 6"))
 (Structure-StaticMemberString "static str")
