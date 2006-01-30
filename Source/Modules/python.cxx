@@ -3056,21 +3056,63 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmembervariableHandler(Node *n) {
-    String *symname;
-    SwigType *t;
-    
     Language::staticmembervariableHandler(n);
-    if (shadow) {
-      t = Getattr(n,"type");
-      symname = Getattr(n,"sym:name");
-      if (SwigType_isconst(t) && !Getattr(n, "value")) {
+
+    if (shadow && !GetFlag(n,"wrappedasconstant")) {
+      String *symname = Getattr(n,"sym:name");
+      if (GetFlag(n,"hasconsttype")) {
 	String *mname = Swig_name_member(class_name,symname);
 	Printf(f_shadow_stubs,"%s.%s = %s.%s.%s\n", class_name, symname, module, global_name, mname);
 	Delete(mname);
+      } else {
+	String *mname = Swig_name_member(class_name,symname);
+	String *gname = Swig_name_get(mname);
+	String *wgname = Swig_name_wrapper(gname);
+	String *sname = Swig_name_set(mname);
+	String *wsname = Swig_name_wrapper(sname);
+	
+	Wrapper *f = NewWrapper();
+	Printv(f->def, "SWIGINTERN PyObject *", wgname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(args)) {", NIL);
+	Printv(f->code,"  return ", gname,"();\n", NIL);
+	Append(f->code,"}\n");
+	add_method(gname, wgname, 0);
+	Wrapper_print(f,f_wrappers);
+	Delete(f);
+	int assignable = is_assignable(n);
+	if (assignable) {
+	  Wrapper *f = NewWrapper();
+	  Printv(f->def, "SWIGINTERN PyObject *", wsname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
+	  Wrapper_add_local(f,"value","PyObject *value");
+	  Wrapper_add_local(f,"res","int res");
+	  Append(f->code,"if (!PyArg_ParseTuple(args,(char *)\"O:set\",&value)) return NULL;\n");
+	  Printv(f->code,"res = ", sname,"(value);\n", NIL);
+	  Append(f->code,"return !res ? SWIG_Py_Void() : NULL;\n");
+	  Append(f->code,"}\n");
+	  Wrapper_print(f,f_wrappers);
+	  add_method(sname, wsname, 0);
+	  Delete(f);
+	}
+	if (!modern) {
+	  if (assignable) {
+	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL); 
+	  } 
+	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname,"\n", NIL);
+	}
+	if (!classic) {
+	  if (!assignable) {
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
+	  } else {
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
+	  }
+	}
+	Delete(mname);
+	Delete(gname); 
+	Delete(wgname);
+	Delete(sname);
+	Delete(wsname);
       }
     }
     return SWIG_OK;
-
   }
 
   /* ------------------------------------------------------------
