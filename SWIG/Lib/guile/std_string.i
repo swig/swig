@@ -49,12 +49,40 @@ namespace std {
         }
     }
 
+    %typemap(in) string * (char* tempptr) {
+        if (gh_string_p($input)) {
+            tempptr = SWIG_scm2str($input);
+            $1 = new std::string(tempptr);
+            if (tempptr) SWIG_free(tempptr);
+        } else {
+            SWIG_exception(SWIG_TypeError, "string expected");
+        }
+    }
+
     %typemap(out) string {
         $result = gh_str02scm($1.c_str());
     }
 
     %typemap(out) const string & {
         $result = gh_str02scm($1->c_str());
+    }
+
+    %typemap(out) string * {
+        $result = gh_str02scm($1->c_str());
+    }
+
+    %typemap(varin) string {
+        if (gh_string_p($input)) {
+	    char *tempptr = SWIG_scm2str($input);
+            $1 = std::string(tempptr);
+            if (tempptr) SWIG_free(tempptr);
+        } else {
+            SWIG_exception(SWIG_TypeError, "string expected");
+        }
+    }
+
+    %typemap(varout) string {
+        $result = gh_str02scm($1.c_str());
     }
 
 }
