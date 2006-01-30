@@ -256,6 +256,21 @@ String *Swig_string_first_lower(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_schemify()
+ *
+ * Replace underscores with dashes, to make identifiers look nice to Schemers.
+ *
+ *      under_scores -> under-scores
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_schemify(String *s) {
+  String *ns = NewString(s);
+  Replaceall(ns, "_", "-");
+  return ns;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
  * Takes a string with possible type-escapes in it and replaces them with
@@ -898,6 +913,7 @@ Swig_init() {
   DohEncoding("mangle", Swig_string_emangle);
   DohEncoding("command", Swig_string_command);
   DohEncoding("rxspencer", Swig_string_rxspencer);
+  DohEncoding("schemify", Swig_string_schemify);
 
   /* aliases for the case encoders */
   DohEncoding("uppercase", Swig_string_upper);
@@ -906,7 +922,6 @@ Swig_init() {
   DohEncoding("undercase", Swig_string_ucase);
   DohEncoding("firstuppercase", Swig_string_first_upper);
   DohEncoding("firstlowercase", Swig_string_first_lower);
-
 
   /* Initialize the swig keys */
   Swig_keys_init();
