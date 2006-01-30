@@ -37,9 +37,6 @@
 #undef SWIG_DIRECTOR_TYPEMAPS
 #endif
 
-#ifndef SWIG_INOUT_NODEF
-#define SWIG_INOUT_NODEF
-#endif
 
 /* Tcl types */
 #define SWIG_Object                      Tcl_Obj *

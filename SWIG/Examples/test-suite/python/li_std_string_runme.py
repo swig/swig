@@ -113,3 +113,9 @@ if li_std_string.cvar.Structure_StaticMemberString2 != s:
 if li_std_string.cvar.Structure_ConstStaticMemberString != "const static member string":
   raise RuntimeError, "ConstStaticMemberString test"
 
+
+if li_std_string.test_reference_input("hello") != "hello":
+  raise RuntimeError
+s = li_std_string.test_reference_inout("hello")
+if s != "hellohello":
+  raise RuntimeError

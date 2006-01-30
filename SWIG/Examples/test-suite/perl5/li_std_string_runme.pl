@@ -97,3 +97,11 @@ if ($li_std_string::Structure::StaticMemberString2 ne $s) {
 if ($li_std_string::Structure::ConstStaticMemberString ne "const static member string") {
   die ("ConstStaticMemberString test");
 }
+
+if (li_std_string::test_reference_input("hello") ne "hello") {
+  die ("reference_input");
+}
+
+if (li_std_string::test_reference_inout("hello") ne "hellohello") {
+  die ("reference_inout");
+}

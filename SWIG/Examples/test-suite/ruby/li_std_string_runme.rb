@@ -102,3 +102,12 @@ end
 if (Structure.ConstStaticMemberString != "const static member string")
   raise RuntimeError
 end
+
+
+if (test_reference_input("hello") != "hello")
+  raise RuntimeError
+end
+s = test_reference_inout("hello")
+if (s != "hellohello")
+  raise RuntimeError
+end
