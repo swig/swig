@@ -1911,6 +1911,7 @@ AC_CONFIG_FILES([			        \
     Source/Makefile			        \
     Examples/Makefile			        \
     Examples/guile/Makefile		        \
+    Examples/xml/Makefile		        \
     Examples/GIFPlot/Makefile		        \
     Examples/GIFPlot/Lib/Makefile	        \
     Examples/test-suite/chicken/Makefile	\
