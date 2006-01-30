@@ -52,7 +52,7 @@
 <li><a href="#SWIG_nn32">Typedef and structures</a>
 <li><a href="#SWIG_nn33">Character strings and structures</a>
 <li><a href="#SWIG_nn34">Array members</a>
-<li><a href="#SWIG_nn35">Structure data members</a>
+<li><a href="#SWIG_structure_data_members">Structure data members</a>
 <li><a href="#SWIG_nn36">C constructors and destructors </a>
 <li><a href="#SWIG_adding_member_functions">Adding member functions to C structures</a>
 <li><a href="#SWIG_nn38">Nested structures</a>
@@ -2114,7 +2114,7 @@ discussed in a later chapter.  In many cases, the warning message is
 harmless.
 </p>
 
-<H3><a name="SWIG_nn35"></a>5.5.4 Structure data members</H3>
+<H3><a name="SWIG_structure_data_members"></a>5.5.4 Structure data members</H3>
 
 
 <p>
@@ -2135,8 +2135,9 @@ typedef struct Bar {
 </div>
 
 <p>
-When a structure member is wrapped, it is always handled as a pointer.
-For example:
+When a structure member is wrapped, it is handled as a pointer, unless the <tt>%naturalvar</tt> directive
+is used where it is handled more like a C++ reference (see <a href="SWIGPlus.html#SWIGPlus_member_data">C++ Member data</a>).
+The accessors to the member variable as a pointer is effectively wrapped as follows:
 </p>
 
 <div class="code">
@@ -2210,6 +2211,7 @@ void Foo_w_set(FOO *f, WORD value) {
 }
 </pre>
 </div>
+
 
 <p>
 <b>Compatibility Note: </b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes

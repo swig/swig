@@ -22,7 +22,7 @@
 <li><a href="#SWIGPlus_nn10">Copy constructors</a>
 <li><a href="#SWIGPlus_nn11">Member functions</a>
 <li><a href="#SWIGPlus_nn12">Static members</a>
-<li><a href="#SWIGPlus_nn13">Member data</a>
+<li><a href="#SWIGPlus_member_data">Member data</a>
 </ul>
 <li><a href="#SWIGPlus_default_args">Default arguments</a>
 <li><a href="#SWIGPlus_nn15">Protection</a>
@@ -622,12 +622,12 @@ Usually, static members are accessed as functions with names in which the class 
 prepended with an underscore. For example, <tt>List_print</tt>.
 </p>
 
-<H3><a name="SWIGPlus_nn13"></a>6.5.7 Member data</H3>
+<H3><a name="SWIGPlus_member_data"></a>6.5.7 Member data</H3>
 
 
 <p>
 Member data is handled in exactly the same manner as for C
-structures. A pair of accessor functions are created. For example
+structures. A pair of accessor functions are effectively created. For example
 :</p>
 
 <div class="code"><pre>
@@ -708,8 +708,67 @@ void Foo_items_set(Foo *self, List *value) {
 </div>
 
 <p>
-More information about this can be found in the "Structure data
-members" section of the <a href="SWIG.html#SWIG">SWIG Basics</a> chapter. 
+More information about this can be found in the SWIG Basics chapter,
+<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a> section. 
+</p>
+
+<p>
+The wrapper code to generate the accessors for classes comes from the pointer typemaps. 
+This can be somewhat unnatural for some types.
+For example, a user would expect the STL std::string class member variables to be wrapped as a string in the target language,
+rather than a pointer to this class.
+The const reference typemaps offer this type of marshalling, so there is a feature to tell SWIG to use the const reference typemaps rather than the pointer typemaps.
+It is the <tt>%naturalvar</tt> feature and is used as follows:
+</p>
+
+<div class="code">
+<pre>
+// All List variables will use const List&amp; typemaps
+%naturalvar List;
+
+// Only Foo::myList will use const List&amp; typemaps
+%naturalvar Foo::myList;
+struct Foo {
+  List myList;
+};
+
+// All variables will use const reference typemaps
+%naturalvar;
+</pre>
+</div>
+
+<p>
+The observant reader will notice that <tt>%naturalvar</tt> works like any other <a href="Customization.html#features">feature</a>, except it can also be attached to class types.
+The first of the example usages above show <tt>%naturalvar</tt> attaching to the <tt>List</tt> class.
+Effectively this feature changes the way accessors are generated to the following:
+</p>
+
+<div class="code">
+<pre>
+const List &amp;Foo_items_get(Foo *self) {
+    return self-&gt;items;
+}
+void Foo_items_set(Foo *self, const List &amp;value) {
+    self-&gt;items = value;
+}
+</pre>
+</div>
+
+<p>
+In fact it is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
+A pointer can be NULL, whereas a reference cannot, so the extra checking ensures that the target language user does not pass in a value that translates
+to a NULL pointer and thereby preventing any potential NULL pointer dereferences.
+The <tt>%naturalvar</tt> feature will also apply to global variables in some language modules, eg C# and Java.
+</p>
+
+<p>
+Other alternatives for turning this feature on globally are to use the <tt>swig -naturalvar</tt> commandline option 
+or the module mode option, <tt>%module(naturalvar=1)</tt>
+</p>
+
+<p>
+<b>Compatibility note:</b> The <tt>%naturalvar</tt> feature was introduced in SWIG-1.3.28, prior to which it was necessary to manually apply the const reference
+typemaps, eg <tt>%apply const std::string &amp; { std::string * }</tt>, but this example would also apply the typemaps to methods taking a </tt>std::string</tt> pointer.
 </p>
 
 <p>
