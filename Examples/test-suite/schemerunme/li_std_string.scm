@@ -25,10 +25,10 @@
 
 ;; MemberString should be a wrapped class
 (define scl (Structure-MemberString-get struct))
-(if (not (string=? (std-string-str-get scl) ""))
+(if (not (string=? scl ""))
   (error "Error 4.5"))
-(std-string-str-set scl "and how")
-(if (not (string=? (std-string-str-get (Structure-MemberString-get struct)) "and how"))
+(Structure-MemberString-set struct "and how")
+(if (not (string=? (Structure-MemberString-get struct) "and how"))
   (error "Error 5"))
 (if (not (string=? (Structure-MemberString2-get struct) "member string 2"))
   (error "Error 6"))
