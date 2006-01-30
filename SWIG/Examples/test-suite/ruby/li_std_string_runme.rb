@@ -76,3 +76,29 @@ end
 result = test_reference_out()
 raise RuntimeError if result.is_a? String
 
+
+# Member Strings
+myStructure = Structure.new
+if (myStructure.MemberString2 != "member string 2")
+  raise RuntimeError
+end
+s = "Hello"
+myStructure.MemberString2 = s
+if (myStructure.MemberString2 != s)
+  raise RuntimeError
+end
+if (myStructure.ConstMemberString != "const member string")
+  raise RuntimeError 
+end
+
+
+if (Structure.StaticMemberString2 != "static member string 2")
+  raise RuntimeError
+end
+Structure.StaticMemberString2 = s
+if (Structure.StaticMemberString2 != s)
+  raise RuntimeError
+end
+if (Structure.ConstStaticMemberString != "const static member string")
+  raise RuntimeError
+end
