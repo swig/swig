@@ -9,7 +9,7 @@
     template <class PySeq, class K, class T >
     inline void 
     assign(const PySeq& pyseq, std::multimap<K,T > *multimap) {
-      typedef typename std::map<K,T>::value_type value_type;
+      typedef typename std::multimap<K,T>::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
       for (;it != pyseq.end(); ++it) {
 	multimap->insert(value_type(it->first, it->second));
@@ -18,15 +18,15 @@
 
     template <class K, class T>
     struct traits_asptr<std::multimap<K,T> >  {
-      typedef std::multimap<K,T> map_type;
+      typedef std::multimap<K,T> multimap_type;
       static int asptr(PyObject *obj, std::multimap<K,T> **val) {
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
 	  PyObject_var items = PyMapping_Items(obj);
 	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
-	  map_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  multimap_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<multimap_type>(),0);
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	return res;
@@ -40,9 +40,9 @@
       typedef typename multimap_type::size_type size_type;
             
       static PyObject *from(const multimap_type& multimap) {
-	swig_type_info *desc = swig::type_info<map_type>();
+	swig_type_info *desc = swig::type_info<multimap_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	  return SWIG_NewPointerObj(new multimap_type(multimap), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = multimap.size();
 	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
