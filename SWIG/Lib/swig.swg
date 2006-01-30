@@ -152,6 +152,12 @@
 #define %nonaturalvar    %feature("naturalvar","0")
 #define %clearnaturalvar %feature("naturalvar","")
 
+/* valuewrapper directives */
+#define %valuewrapper        %feature("valuewrapper",)
+#define %clearvaluewrapper   %feature("valuewrapper","")
+#define %novaluewrapper      %feature("novaluewrapper")
+#define %clearnovaluewrapper %feature("novaluewrapper","")
+
 /* Contract support - Experimental and undocumented */
 #define %contract    %feature("contract")
 
