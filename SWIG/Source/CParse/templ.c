@@ -625,9 +625,9 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
 Node *
 Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Node *n  = template_locate(name, tparms, tscope); /* this function does what we want for templated classes */
-  String *nodeType = Getattr(n,k_nodetype);
 
   if (n) {
+    String *nodeType = Getattr(n,k_nodetype);
     int isclass = 0;
     assert(StringEqual(nodeType,k_template));
     isclass = (StringEqual(Getattr(n,k_templatetype),k_class));
