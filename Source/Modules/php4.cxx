@@ -840,6 +840,8 @@ public:
     int maxargs;
     String *tmp = NewString("");
     String *dispatch = Swig_overload_dispatch(n,"return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);",&maxargs);
+
+    int has_this_ptr = (wrapperType==memberfn)?shadow:0;
         
     /* Generate a dispatch wrapper for all overloaded functions */
     
@@ -858,7 +860,15 @@ public:
     Wrapper_add_local(f,"ii","int ii");
 
     Printf(f->code,"argc = ZEND_NUM_ARGS();\n");
-    Printf(f->code,"zend_get_parameters_array_ex(argc,argv);\n");
+
+    if ( has_this_ptr ) {
+      Printf(f->code,"argv[0] = &this_ptr;\n");
+      Printf(f->code,"zend_get_parameters_array_ex(argc,argv+1);\n");
+      Printf(f->code,"argc++;\n");
+    }
+    else {
+      Printf(f->code,"zend_get_parameters_array_ex(argc,argv);\n");
+    }
     
     Replaceall(dispatch,"$args","self,args");
 
@@ -1685,7 +1695,10 @@ public:
     this->Language::memberfunctionHandler(n);
     wrapperType = standard;
     
-    if(shadow) {
+    // Only declare the member function if
+    // we are doing shadow classes, and the function
+    // is not overloaded, or if it is overloaded, it is the dispatch function.
+    if(shadow && (!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling"))) {
       char *realname = iname ? iname : name;
       String *php_function_name = Swig_name_member(shadow_classname, realname);
       create_command(realname,Swig_name_wrapper(php_function_name));
