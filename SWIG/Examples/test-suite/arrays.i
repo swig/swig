@@ -3,6 +3,9 @@ This test case tests that various types of arrays are working.
 */
 
 %module arrays
+%{
+#include <stdlib.h>
+%}
 
 %inline %{
 #define ARRAY_LEN 2

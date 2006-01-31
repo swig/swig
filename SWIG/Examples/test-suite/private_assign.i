@@ -3,6 +3,9 @@
 // objects that have complicated state.
 
 %module private_assign
+%{
+#include <stdlib.h>
+%}
 
 %inline %{
    class Foo {

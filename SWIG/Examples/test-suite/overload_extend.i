@@ -1,6 +1,10 @@
 %module overload_extend
 
 #ifndef __cplusplus
+%{
+#include <stdlib.h>
+%}
+
 %typemap(default) double y "$1=1000;";
 #endif
 

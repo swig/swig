@@ -23,6 +23,9 @@ code is not functioning properly it will fail to compile.
 */
 
 %module lextype
+%{
+#include <stdlib.h>
+%}
 
 %typemap(in) Animal ()
 {
