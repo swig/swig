@@ -190,7 +190,8 @@ static swig_module_info *SWIG_Php4_GetModule() {
       ret = (swig_module_info *) pointer->value.lval;
     }
   } 
-  return 0;
+  FREE_ZVAL(pointer);
+  return ret; 
 }
 
 static void SWIG_Php4_SetModule(swig_module_info *pointer) {
