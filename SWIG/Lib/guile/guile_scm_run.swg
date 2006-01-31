@@ -346,6 +346,7 @@ static size_t
 free_swig_member_function(SCM A)
 {
   free((swig_type_info *) SCM_CELL_WORD_1(A));
+  return 0;
 }
 
 static int
