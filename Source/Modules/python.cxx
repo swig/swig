@@ -73,6 +73,7 @@ static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 static  int       castmode = 0;
 static  int       outputtuple = 0;
+static  int       nortti = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -285,8 +286,7 @@ public:
 	  outputtuple = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nortti") == 0) {
-	  /* Turn on no-RTTI mode */
-	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
+	  nortti = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-threads") == 0) {
 	  threads = 1;
@@ -524,6 +524,13 @@ public:
       Printf(f_runtime,"#define SWIG_PYTHON_OUTPUT_TUPLE\n");
     }
 
+    if (nortti) {
+      Printf(f_runtime,"#ifndef SWIG_DIRECTOR_NORTTI\n");
+      Printf(f_runtime,"#define SWIG_DIRECTOR_NORTTI\n");
+      Printf(f_runtime,"#endif\n");
+    }
+
+
     if (castmode) {
       Printf(f_runtime,"#define SWIG_CASTRANK_MODE\n");
       Printf(f_runtime,"#define SWIG_PYTHON_CAST_MODE\n");
@@ -573,7 +580,7 @@ public:
       Swig_register_filebyname("shadow",f_shadow);
       Swig_register_filebyname("python",f_shadow);
 
-      Printv(f_shadow_py,
+      Printv(f_shadow,
 	     "# This file was created automatically by SWIG ", PACKAGE_VERSION, ".\n",
 	     "# Don't modify this file, modify the SWIG interface instead.\n",
 	     NIL);
@@ -589,6 +596,8 @@ public:
         Delete(mod_docstring); mod_docstring = NULL;
       }
       
+      Printf(f_shadow,"\nimport %s\n", module);
+
       Printv(f_shadow,"import new\n",NULL);
       Printv(f_shadow,"new_instancemethod = new.instancemethod\n",NULL);
       /* if (!modern) */
@@ -710,7 +719,6 @@ public:
       Printf(f_shadow_imports,"\nimport %s\n", module);
       Printv(f_shadow_py, f_shadow_imports, "\n",NIL);
       */
-      Printf(f_shadow_py,"\nimport %s\n", module);
       Printv(f_shadow_py, f_shadow, "\n",NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n",NIL);
 
@@ -3156,10 +3164,34 @@ public:
   }
 
   virtual String *runtimeCode() {
-    String *s = Swig_include_sys("pyrun.swg");
-    if (!s) {
-      Append(stderr, "*** Unable to open 'pyrun.swg'\n");
-      s = NewString("");
+    String *s = NewString("");
+    String *shead = Swig_include_sys("pyhead.swg");
+    if (!shead) {
+      Printf(stderr, "*** Unable to open 'pyhead.swg'\n");
+    } else {
+      Append(s, shead);
+      Delete(shead);
+    }
+    String *sthread = Swig_include_sys("pythreads.swg");
+    if (!sthread) {
+      Printf(stderr, "*** Unable to open 'pythreads.swg'\n");
+    } else {
+      Append(s, sthread);
+      Delete(sthread);
+    }
+    String *sapi = Swig_include_sys("pyapi.swg");
+    if (!sapi) {
+      Printf(stderr, "*** Unable to open 'pyapi.swg'\n");
+    } else {
+      Append(s, sapi);
+      Delete(sapi);
+    }
+    String *srun = Swig_include_sys("pyrun.swg");
+    if (!srun) {
+      Printf(stderr, "*** Unable to open 'pyrun.swg'\n");
+    } else {
+      Append(s, srun);
+      Delete(srun);
     }
     return s;
   }
