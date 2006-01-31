@@ -7,6 +7,10 @@
 %module newobject2
 
 %{
+#include <stdlib.h>
+%}
+
+%{
 /* Global initialization (not wrapped) */
 int g_fooCount = 0;
 %}
