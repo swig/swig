@@ -1273,11 +1273,22 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("swigtcl8.swg");
-    if (!s) {
-      Printf(stderr, "*** Unable to open 'swigtcl8.swg'\n");
-      s = NewString("");
+    String *s = NewString("");
+    String *sapi = Swig_include_sys("tclapi.swg");
+    if (!sapi) {
+      Printf(stderr, "*** Unable to open 'tclapi.swg'\n");
+    } else {
+      Append(s, sapi);
+      Delete(sapi);
     }
+    String *srun = Swig_include_sys("tclrun.swg");
+    if (!srun) {
+      Printf(stderr, "*** Unable to open 'tclrun.swg'\n");
+    } else {
+      Append(s, srun);
+      Delete(srun);
+    }
+    
     return s;
   }
 

@@ -2636,10 +2636,34 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("rubyrun.swg");
-    if (!s) {
-      Printf(stderr, "*** Unable to open 'rubyruntime.swg'\n");
-      s = NewString("");
+    String *s = NewString("");
+    String *shead = Swig_include_sys("rubyhead.swg");
+    if (!shead) {
+      Printf(stderr, "*** Unable to open 'rubyhead.swg'\n");
+    } else {
+      Append(s, shead);
+      Delete(shead);
+    }
+    String *strack = Swig_include_sys("rubytracking.swg");
+    if (!strack) {
+      Printf(stderr, "*** Unable to open 'rubytracking.swg'\n");
+    } else {
+      Append(s, strack);
+      Delete(strack);
+    }
+    String *sapi = Swig_include_sys("rubyapi.swg");
+    if (!sapi) {
+      Printf(stderr, "*** Unable to open 'rubyapi.swg'\n");
+    } else {
+      Append(s, sapi);
+      Delete(sapi);
+    }
+    String *srun = Swig_include_sys("rubyrun.swg");
+    if (!srun) {
+      Printf(stderr, "*** Unable to open 'rubyrun.swg'\n");
+    } else {
+      Append(s, srun);
+      Delete(srun);
     }
     return s;
   }
