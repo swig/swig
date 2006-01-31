@@ -25,9 +25,17 @@ namespace std {
 
     class string;
 
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) string {
+      $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
+    }
+
     %typemap(in) string {
         convert_to_string_ex($input);
         $1 = std::string(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
+    }
+
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& {
+      $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
     }
 
     %typemap(in) const string & (std::string temp) {
