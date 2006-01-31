@@ -318,7 +318,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     we need to add a couple of local variables
 NEW LANGUAGE NOTE:END ************************************************/
     Wrapper *f = NewWrapper();
-    Wrapper_add_local(f,"SWIG_arg", "int SWIG_arg");
+    Wrapper_add_local(f,"SWIG_arg", "int SWIG_arg = -1");
 
 
     String *wname = Swig_name_wrapper(iname);
