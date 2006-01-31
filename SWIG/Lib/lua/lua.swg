@@ -480,7 +480,7 @@ SWIGEXPORT int SWIG_import(lua_State* L)
 }
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 %}
