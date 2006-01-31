@@ -164,7 +164,6 @@ PERL5_INCLUDE= @PERL5EXT@
 # Extra Perl specific dynamic linking options
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
-PERL5_EXP = -Dexplicit=
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
@@ -181,7 +180,7 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(PERL5_EXP) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -203,7 +202,7 @@ perl5_static: $(SRCS)
 
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(PERL5_EXP) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
 
 # -----------------------------------------------------------------
 # Cleaning the Perl5 examples
