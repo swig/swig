@@ -1209,7 +1209,7 @@ Language::variableHandler(Node *n) {
      only variables.
   */
   if (!(Extend | SmartPointer)) {
-    if (GetFlag(n,"feature:allowexcept")) {
+    if (!GetFlag(n,"feature:allowexcept")) {
       UnsetFlag(n,"feature:except");
     } 
     if (Getattr(n,"feature:exceptvar")) {
