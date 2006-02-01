@@ -1668,10 +1668,20 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("perlrun.swg");
-    if (!s) {
+    String *s = NewString("");
+    String *serrors = Swig_include_sys("perlerrors.swg");
+    if (!serrors) {
+      Printf(stderr, "*** Unable to open 'perlerrors.swg'\n");
+    } else {
+      Append(s, serrors);
+      Delete(serrors);
+    }
+    String *srun = Swig_include_sys("perlrun.swg");
+    if (!srun) {
       Printf(stderr, "*** Unable to open 'perlrun.swg'\n");
-      s = NewString("");
+    } else {
+      Append(s, srun);
+      Delete(srun);
     }
     return s;
   }

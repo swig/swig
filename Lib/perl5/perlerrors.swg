@@ -2,10 +2,6 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
-%insert("runtime") "swigerrors.swg"
-
-%insert("header") %{
-
 SWIGINTERN const char*
 SWIG_Perl_ErrorType(int code) {
   const char* type = 0;
@@ -49,6 +45,5 @@ SWIG_Perl_ErrorType(int code) {
   return type;
 }
 
-%}
 
 

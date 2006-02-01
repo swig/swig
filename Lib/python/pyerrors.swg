@@ -2,9 +2,7 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
-%insert("header") %{
-
-SWIGINTERN PyObject*
+SWIGRUNTIME PyObject*
 SWIG_Python_ErrorType(int code) {
   PyObject* type = 0;
   switch(code) {
@@ -47,14 +45,8 @@ SWIG_Python_ErrorType(int code) {
   return type;
 }
 
-SWIGINTERNINLINE PyObject *
-SWIG_Python_ExceptionType(swig_type_info *desc) {
-  PySwigClientData *data = desc ? (PySwigClientData *) desc->clientdata : 0;
-  PyObject *klass = data ? data->klass : 0;
-  return (klass ? klass : PyExc_RuntimeError);
-}
 
-SWIGINTERN void
+SWIGRUNTIME void
 SWIG_Python_AddErrorMsg(const char* mesg)
 {
   PyObject *type = 0;
@@ -74,5 +66,4 @@ SWIG_Python_AddErrorMsg(const char* mesg)
   }
 }
 
-%}
 

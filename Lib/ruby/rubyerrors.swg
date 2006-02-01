@@ -2,20 +2,17 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
-%insert("runtime") "swigerrors.swg"
 
 /* Define some additional error types */
-%insert("runtime") %{
 #define SWIG_ObjectPreviouslyDeletedError  -100
-%}
 
-%insert("header") %{
 
 /* Define custom exceptions for errors that do not map to existing Ruby
    exceptions.  Note this only works for C++ since a global cannot be
    initialized by a funtion in C.  For C, fallback to rb_eRuntimeError.*/
 
-VALUE getNullReferenceError() {
+SWIGINTERN VALUE 
+getNullReferenceError(void) {
   static int init = 0;
   static VALUE rb_eNullReferenceError ;
   if (!init) {
@@ -25,7 +22,8 @@ VALUE getNullReferenceError() {
   return rb_eNullReferenceError;
 } 
 
-VALUE getObjectPreviouslyDeletedError() {
+SWIGINTERN VALUE 
+getObjectPreviouslyDeletedError(void) {
   static int init = 0;
   static VALUE rb_eObjectPreviouslyDeleted ;
   if (!init) {
@@ -35,15 +33,6 @@ VALUE getObjectPreviouslyDeletedError() {
   return rb_eObjectPreviouslyDeleted;
 } 
 
-VALUE getExceptionClass() {
-  static int init = 0;
-  static VALUE rubyExceptionClass ;
-  if (!init) {
-    init = 1;
-    rubyExceptionClass = rb_const_get(_mSWIG, rb_intern("Exception"));
-  }
-  return rubyExceptionClass;
-} 
 
 SWIGINTERN VALUE
 SWIG_Ruby_ErrorType(int SWIG_code) {
@@ -98,18 +87,4 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
 }
 
 
-/* This code checks to see if the Ruby object being raised as part
-   of an exception inherits from the Ruby class Exception.  If so,
-   the object is simply returned.  If not, then a new Ruby exception
-   object is created and that will be returned to Ruby.*/
-SWIGINTERN VALUE
-SWIG_Ruby_ExceptionType(swig_type_info *desc, VALUE obj) {
-  VALUE exceptionClass = getExceptionClass();
-  if (rb_obj_is_kind_of(obj, exceptionClass)) {
-    return obj;
-  }  else {
-    return rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(obj));
-  }
-}
 
-%}

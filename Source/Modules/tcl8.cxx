@@ -1274,6 +1274,13 @@ public:
 
   String *runtimeCode() {
     String *s = NewString("");
+    String *serrors = Swig_include_sys("tclerrors.swg");
+    if (!serrors) {
+      Printf(stderr, "*** Unable to open 'tclerrors.swg'\n");
+    } else {
+      Append(s, serrors);
+      Delete(serrors);
+    }
     String *sapi = Swig_include_sys("tclapi.swg");
     if (!sapi) {
       Printf(stderr, "*** Unable to open 'tclapi.swg'\n");

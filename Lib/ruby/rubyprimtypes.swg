@@ -7,7 +7,7 @@
 %fragment("SWIG_ruby_failed","header")
 {
 SWIGINTERN VALUE
-SWIG_ruby_failed()
+SWIG_ruby_failed(void)
 {
   return Qnil;
 } 
