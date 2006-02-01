@@ -73,6 +73,7 @@ CPP_TEST_CASES += \
 	access_change \
 	add_link \
 	aggregate \
+	allowexcept \
 	anonymous_bitfield \
 	argout \
 	array_member \
