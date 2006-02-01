@@ -22,7 +22,7 @@ static VALUE swig_ruby_trackings;
 static ID swig_ruby_hash_delete = 0;
 
 /* Setup a Ruby hash table to store Trackings */
-SWIGRUNTIME void SWIG_RubyInitializeTrackings() {
+SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   /* Create a ruby hash table to store Trackings from C++ 
      objects to Ruby objects.  Also make sure to tell
      the garabage collector about the hash table. */

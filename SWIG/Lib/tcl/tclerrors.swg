@@ -2,11 +2,6 @@
  * error manipulation
  * ----------------------------------------------------------------------------- */
 
-%insert("runtime") "swigerrors.swg"
-
-%insert("header") %{
-
-
 SWIGINTERN const char*
 SWIG_Tcl_ErrorType(int code) {
   const char* type = 0;
@@ -76,5 +71,3 @@ SWIG_Tcl_AddErrorMsg(Tcl_Interp *interp, const char* mesg)
 }
 
 
-
-%}

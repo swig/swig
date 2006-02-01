@@ -80,6 +80,31 @@ static VALUE _mSWIG = Qnil;
 static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
 
+SWIGRUNTIME VALUE 
+getExceptionClass(void) {
+  static int init = 0;
+  static VALUE rubyExceptionClass ;
+  if (!init) {
+    init = 1;
+    rubyExceptionClass = rb_const_get(_mSWIG, rb_intern("Exception"));
+  }
+  return rubyExceptionClass;
+} 
+
+/* This code checks to see if the Ruby object being raised as part
+   of an exception inherits from the Ruby class Exception.  If so,
+   the object is simply returned.  If not, then a new Ruby exception
+   object is created and that will be returned to Ruby.*/
+SWIGRUNTIME VALUE
+SWIG_Ruby_ExceptionType(swig_type_info *desc, VALUE obj) {
+  VALUE exceptionClass = getExceptionClass();
+  if (rb_obj_is_kind_of(obj, exceptionClass)) {
+    return obj;
+  }  else {
+    return rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(obj));
+  }
+}
+
 /* Initialize Ruby runtime support */
 SWIGRUNTIME void
 SWIG_Ruby_InitRuntime(void)
@@ -294,7 +319,7 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
 }
 
 SWIGRUNTIME swig_module_info *
-SWIG_Ruby_GetModule()
+SWIG_Ruby_GetModule(void)
 {
   VALUE pointer;
   swig_module_info *ret = 0;

@@ -3172,6 +3172,13 @@ public:
       Append(s, shead);
       Delete(shead);
     }
+    String *serrors = Swig_include_sys("pyerrors.swg");
+    if (!serrors) {
+      Printf(stderr, "*** Unable to open 'pyerrors.swg'\n");
+    } else {
+      Append(s, serrors);
+      Delete(serrors);
+    }
     String *sthread = Swig_include_sys("pythreads.swg");
     if (!sthread) {
       Printf(stderr, "*** Unable to open 'pythreads.swg'\n");

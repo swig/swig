@@ -215,6 +215,13 @@ SWIG_Python_CheckImplicit(swig_type_info *ty)
   return data ? data->implicitconv : 0;
 }
 
+SWIGRUNTIMEINLINE PyObject *
+SWIG_Python_ExceptionType(swig_type_info *desc) {
+  PySwigClientData *data = desc ? (PySwigClientData *) desc->clientdata : 0;
+  PyObject *klass = data ? data->klass : 0;
+  return (klass ? klass : PyExc_RuntimeError);
+}
+
 
 SWIGRUNTIME PySwigClientData * 
 PySwigClientData_New(PyObject* obj)
@@ -965,15 +972,15 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	      impconv = 0;
 	    }
 	    if (impconv) {
-	      PySwigObject *sobj = SWIG_Python_GetSwigThis(impconv);
-	      if (sobj) {
+	      PySwigObject *iobj = SWIG_Python_GetSwigThis(impconv);
+	      if (iobj) {
 		void *vptr;
-		res = SWIG_Python_ConvertPtrAndOwn((PyObject*)sobj, &vptr, ty, 0, 0);
+		res = SWIG_Python_ConvertPtrAndOwn((PyObject*)iobj, &vptr, ty, 0, 0);
 		if (SWIG_IsOK(res)) {
 		  if (ptr) {
 		    *ptr = vptr;
 		    /* transfer the ownership to 'ptr' */
-		    sobj->own = 0;
+		    iobj->own = 0;
 		    res = SWIG_AddNewMask(SWIG_AddCast(res));		    
 		  } else {
 		    res = SWIG_AddCast(res);		    

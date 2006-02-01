@@ -2644,6 +2644,13 @@ public:
       Append(s, shead);
       Delete(shead);
     }
+    String *serrors = Swig_include_sys("rubyerrors.swg");
+    if (!serrors) {
+      Printf(stderr, "*** Unable to open 'rubyerrors.swg'\n");
+    } else {
+      Append(s, serrors);
+      Delete(serrors);
+    }
     String *strack = Swig_include_sys("rubytracking.swg");
     if (!strack) {
       Printf(stderr, "*** Unable to open 'rubytracking.swg'\n");
