@@ -168,8 +168,7 @@ namespace swig {
 }
 }
 
-%fragment("PySwigIterator_T","header",fragment="StdTraits") {
-%#include <iterator>  
+%fragment("PySwigIterator_T","header",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
 
   template<typename OutIterator>
