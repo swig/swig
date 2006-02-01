@@ -19,7 +19,7 @@ private:
    $action
   */
 }
-%feature("allowexcept");
+%allowexception;
 
 %inline %{
 XYZ global_variable;
