@@ -53,7 +53,7 @@
 /* set constant */
 %define %set_constant(name, obj) %begin_block
   PyObject *_obj = obj; 
-  PyDict_SetItemString(d, name, _obj); 
+  PyDict_SetItemString(d, (char*) name, _obj); 
   Py_DECREF(_obj);
 %end_block %enddef
 
