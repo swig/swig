@@ -47,6 +47,7 @@ if test -f "$tarball"; then
       echo "Creating $swigwinbasename.zip..."
       cd ..
       cp $swigbasename/swig.exe $swigwinbasename
+      cp $swigbasename/Lib/swigwarn.swg $swigwinbasename/Lib
       sleep 2 # fix strange not finding swig.exe
       echo "Unzip into a directory of your choice. Please read the README file as well as Doc\Manual\Windows.html for installation instructions." > swig_windows_zip_comments.txt
       rm -f ../$swigwinbasename.zip
