@@ -55,7 +55,7 @@
     int ii;
     Foo f;
     Bar() {ii = -1;}
-    Bar(const Foo& f){ ii = f.ii;}
+    Bar(const Foo& ff){ ii = ff.ii;}
   };
 
 
