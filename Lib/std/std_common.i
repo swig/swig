@@ -11,11 +11,11 @@
 // Here, we identify compilers we now have problems with STL.
 %{
   
-#if defined(__SUNPRO_CC) 
+#if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
 #define SWIG_STD_NOASSIGN_STL
 #define SWIG_STD_NOINSERT_TEMPLATE_STL
+#define SWIG_STD_NOITERATOR_TRAITS_STL
 #endif
-
 
 #if defined(__GNUC__)
 #  if __GNUC__ == 2 && __GNUC_MINOR <= 96
@@ -36,9 +36,23 @@
 %}
 
 
+%fragment("StdIteratorTraits","header") %{
+#if !defined(SWIG_STD_NOITERATOR_TRAITS_STL)
+#include <iterator>
+#else
+  template <class Iterator>
+  struct iterator_traits {
+    typedef typename Iterator::value_type value_type;
+  };
 
-%fragment("StdTraitsCommon","header") 
-%{
+  template <class T>
+  struct iterator_traits<T*> {
+    typedef T value_type;
+  };
+#endif
+%}
+
+%fragment("StdTraitsCommon","header") %{
 namespace swig {  
   template <class Type>
   struct noconst_traits {
