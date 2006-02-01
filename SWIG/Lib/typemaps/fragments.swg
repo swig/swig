@@ -338,6 +338,15 @@
 
 %fragment("<wchar.h>","header") %{
 #include <wchar.h>
+#include <limits.h>
+#ifndef WCHAR_MIN
+#warning "WCHAR_MIN not found, using value 0"
+#define WCHAR_MIN 0
+#endif
+#ifndef WCHAR_MAX
+#warning "WCHAR_MAX not found, using value 65535"
+#define WCHAR_MAX 65535
+#endif
 %}
 
 %fragment("<float.h>","header") %{
