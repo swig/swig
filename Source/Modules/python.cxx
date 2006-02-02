@@ -72,6 +72,7 @@ static  int       fastunpack = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 static  int       castmode = 0;
+static  int       extranative = 0;
 static  int       outputtuple = 0;
 static  int       nortti = 0;
 
@@ -96,6 +97,7 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+     -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
@@ -111,6 +113,7 @@ static const char *usage2 = (char *)"\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
+     -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
@@ -327,6 +330,12 @@ public:
 	} else if (strcmp(argv[i],"-nocastmode") == 0) {
 	  castmode = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-extranative") == 0) {
+	  extranative = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-noextranative") == 0) {
+	  extranative = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modernargs") == 0) {
 	  modernargs = 1;
 	  Swig_mark_arg(i);
@@ -436,6 +445,12 @@ public:
           if (Getattr(options, "nocastmode")) {
             castmode = 0;
           }
+          if (Getattr(options, "extranative")) {
+            extranative = 1;
+          }
+          if (Getattr(options, "noextranative")) {
+            extranative = 0;
+          }
           if (Getattr(options, "outputtuple")) {
             outputtuple = 1;
           }
@@ -530,12 +545,14 @@ public:
       Printf(f_runtime,"#endif\n");
     }
 
-
     if (castmode) {
       Printf(f_runtime,"#define SWIG_CASTRANK_MODE\n");
       Printf(f_runtime,"#define SWIG_PYTHON_CAST_MODE\n");
     }
 
+    if (extranative) {
+      Printf(f_runtime,"#define SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS\n");
+    }
 
     /* Set module name */
     module = Copy(Getattr(n,"name"));
