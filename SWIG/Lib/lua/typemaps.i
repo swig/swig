@@ -48,15 +48,17 @@ or provide a %apply statement
 
 
 %define SWIG_NUMBER_TYPEMAP(TYPE)
-%typemap(in,checkfn="lua_isnumber")	TYPE *INPUT($*type temp), TYPE &INPUT($*type temp)
-%{ temp = ($*type)lua_tonumber(L,$input);
+%typemap(in,checkfn="lua_isnumber")	TYPE *INPUT($*ltype temp), TYPE &INPUT($*ltype temp)
+%{ temp = ($*ltype)lua_tonumber(L,$input);
    $1 = &temp; %}
-%typemap(in, numinputs=0) TYPE *OUTPUT ($*type temp)
+%typemap(in, numinputs=0) TYPE *OUTPUT ($*ltype temp)
 %{ $1 = &temp; %}
 %typemap(argout) TYPE *OUTPUT
-%{  lua_pushnumber(L, (double) *$1); SWIG_arg++;%}
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 %typemap(in) TYPE *INOUT = TYPE *INPUT;
 %typemap(argout) TYPE *INOUT = TYPE *OUTPUT;
+%typemap(in) TYPE &INOUT = TYPE *INPUT;
+%typemap(argout) TYPE &INOUT = TYPE *OUTPUT;
 // const version (the $*ltype is the basic number without ptr or const's)
 %typemap(in,checkfn="lua_isnumber")	const TYPE *INPUT($*ltype temp)
 %{ temp = ($*ltype)lua_tonumber(L,$input);
@@ -253,7 +255,7 @@ int SWIG_table_size(lua_State* L, int index)
 		int i;\
 		lua_newtable(L);\
 		for (i = 0; i < size; i++){\
-			lua_pushnumber(L,(double)array[i]);\
+			lua_pushnumber(L,(lua_Number)array[i]);\
 			lua_rawseti(L,-2,i+1);/* -1 is the number, -2 is the table*/ \
 		}\
 	}

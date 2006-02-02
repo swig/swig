@@ -38,7 +38,7 @@
              unsigned int,unsigned short,unsigned long,
              signed char,unsigned char,
              float,double
-%{  lua_pushnumber(L, (double) $1); SWIG_arg++;%}
+%{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
 
 /* enums have to be handled slightly differently
 	VC++ .net will not allow a cast from double to enum directly
@@ -49,7 +49,7 @@
 %{$1 = ($type)(int)lua_tonumber(L, $input);%}
 
 %typemap(out) enum SWIGTYPE
-%{  lua_pushnumber(L, (double)(int)($1)); SWIG_arg++;%}
+%{  lua_pushnumber(L, (lua_Number)(int)($1)); SWIG_arg++;%}
 
 // boolean (which is a special type in lua)
 // note: 1 & 0 are not booleans in lua, only true & false
@@ -234,7 +234,7 @@ parmeters match which function
 %typemap(in,checkfn="lua_isnumber") const TYPE &($basetype temp)
 %{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const TYPE&
-%{  lua_pushnumber(L, (double) *$1); SWIG_arg++;%}
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 %enddef
 
 SWIG_NUMBER_BY_CONST_REF(int);
@@ -260,7 +260,7 @@ SWIG_NUMBER_BY_CONST_REF(enum SWIGTYPE);
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE* const &($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
 $1=&temp;%}
-// and the pytcheck code
+// and the typecheck code
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE* const &
 %{
   void *ptr;
@@ -374,7 +374,7 @@ use %include <std_except.i> instead
 				long long,unsigned long long,
 				char, unsigned char, signed char,
 				enum SWIGTYPE
-%{lua_pushfstring(L,"exception thrown of value %d",(long)$1);
+%{lua_pushfstring(L,"exception thrown of value %f",(double)$1);
 SWIG_fail; %}
 
 // strings are just sent as errors
