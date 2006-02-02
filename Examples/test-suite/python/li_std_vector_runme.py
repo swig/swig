@@ -102,3 +102,12 @@ pv = pyvector([1, "hello", (1,2)])
 if pv[1] != "hello":
     raise RuntimeError
 
+
+iv = IntVector(5)
+for i in range(0,5):
+    iv[i] = i
+
+iv[1:3] = []
+if iv[1] != 3:
+    raise RuntimeError
+
