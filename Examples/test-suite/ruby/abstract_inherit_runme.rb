@@ -1,4 +1,4 @@
-	require 'abstract_inherit'
+require 'abstract_inherit'
 
 include Abstract_inherit
 
