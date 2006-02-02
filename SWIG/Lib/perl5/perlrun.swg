@@ -422,7 +422,7 @@ SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, i
 
 
 SWIGRUNTIME swig_module_info *
-SWIG_Perl_GetModule() {
+SWIG_Perl_GetModule(void) {
   static void *type_pointer = (void *)0;
   SV *pointer;
 
