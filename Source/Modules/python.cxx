@@ -2164,12 +2164,11 @@ public:
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"SWIGINTERN PyObject *%s(void) {", getnamef);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
-    int addfail = 0;
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","pyobj");
       Replaceall(tm,"$result","pyobj");
-      addfail = emit_action_code(n, getf, tm);
+      emit_action_code(n, getf, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
@@ -2177,10 +2176,8 @@ public:
     }
 
     Append(getf->code,"  return pyobj;\n");
-    if (addfail) {
-      Append(getf->code,"fail:\n");
-      Append(getf->code,"  return NULL;\n");
-    }
+    Append(getf->code,"fail:\n");
+    Append(getf->code,"  return NULL;\n");
     Append(getf->code,"}\n");
 
     Wrapper_print(getf,f_wrappers);
