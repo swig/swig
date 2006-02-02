@@ -23,7 +23,7 @@ private:
 
 %inline %{
 XYZ global_variable;
-struct ABC {
+struct Foo {
   XYZ member_variable;
   static XYZ static_member_variable;
 };
