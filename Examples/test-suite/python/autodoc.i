@@ -1,4 +1,4 @@
-%module autodoc
+%module(docstring="hello") autodoc
 
 %feature("autodoc");
 
