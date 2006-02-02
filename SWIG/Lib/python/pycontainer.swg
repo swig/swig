@@ -731,23 +731,24 @@ namespace swig {
     typedef typename sequence::const_iterator const_iterator;
 
     static PyObject *from(const sequence& seq) {
+#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
-      } else {
-	size_type size = seq.size();
-	if (size <= (size_type)INT_MAX) {
-	  PyObject *obj = PyTuple_New((int)size);
-	  int i = 0;
-	  for (const_iterator it = seq.begin();
-	       it != seq.end(); ++it, ++i) {
-	    PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
-	  }
-	return obj;
-	} else {
-	  PyErr_SetString(PyExc_OverflowError,"sequence size not valid in python");
-	  return NULL;
+      }
+#endif
+      size_type size = seq.size();
+      if (size <= (size_type)INT_MAX) {
+	PyObject *obj = PyTuple_New((int)size);
+	int i = 0;
+	for (const_iterator it = seq.begin();
+	     it != seq.end(); ++it, ++i) {
+	  PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
 	}
+	return obj;
+      } else {
+	PyErr_SetString(PyExc_OverflowError,"sequence size not valid in python");
+	return NULL;
       }
     }
   };
