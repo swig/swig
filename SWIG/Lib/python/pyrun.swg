@@ -383,8 +383,7 @@ PySwigObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 PySwigObject_Check(PyObject *op) {
-  return ((op)->ob_type == PySwigObject_type()) 
-    || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
+  return (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
 }
 
 SWIGRUNTIME PyObject *
@@ -866,7 +865,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     PyObject *obj = 0;
 #if (!defined(SWIG_PYTHON_SLOW_GETSET_THIS) && (PY_VERSION_HEX >= 0x02030000))
     if (PyInstance_Check(pyobj)) {
-      obj = _PyInstance_Lookup(pyobj, SWIG_This());
+      obj = _PyInstance_Lookup(pyobj, SWIG_This());      
     } else {
       PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
       if (dictptr != NULL) {
@@ -898,6 +897,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       return 0;
     }
 #endif
+    if (obj && !PySwigObject_Check(obj)) {
+      /* a PyObject is called 'this', try to get the 'real this'
+	 PySwigObject from it */ 
+      return SWIG_Python_GetSwigThis(obj);
+    }
     return (PySwigObject *)obj;
   }
 }
