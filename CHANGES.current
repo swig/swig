@@ -1,6 +1,10 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+02/02/2006: mgossage
+            bugfix #1356577, changed double=>lua_number in a few places.
+            added the std::pair wrapping
+
 01/30/2006: wsfulton
             std::string and std::wstring member variables and global variables now use
             %naturalvar by default, meaning they will now be wrapped as expected in all languages.

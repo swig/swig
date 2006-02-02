@@ -44,6 +44,11 @@ assert(s==s2)
 %{lua_pushstring(L,$1.c_str());
 SWIG_fail; %}
 
+// and the typechecks
+%typecheck(SWIG_TYPECHECK_STRING) std::string,const std::string& {
+  $1 = lua_isstring(L,$input);
+}
+
 /*
 std::string& can be wrappered, but you must inform SWIG if it is in or out
 
@@ -100,6 +105,8 @@ This provides basic mapping of lua strings <-> std::string
 and little else
 (the std::string has a lot of unneeded functions anyway)
 
+note: no fn's taking the const string&
+as this is overloaded by the const char* version
 */
 namespace std {
 
@@ -107,7 +114,7 @@ namespace std {
       public:
         string();
         string(const char*);
-        string(const string&);
+        //string(const string&);
         unsigned int size() const;
         unsigned int length() const;
         bool empty() const;
@@ -117,7 +124,7 @@ namespace std {
         // assign does not return a copy of this object
         // (no point in a scripting language)
         void assign(const char*);
-        void assign(const string&);
+        //void assign(const string&);
         // no support for all the other features
         // its probably better to do it in lua
     };
