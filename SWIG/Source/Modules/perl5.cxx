@@ -726,7 +726,7 @@ public:
 	   "fail:\n",
 	   cleanup,
 	   "croak(Nullch);\n"
-	   "XSRETURN(0); }\n"
+	   "}\n"
 	   "}\n",
 	   NIL);
 	   
@@ -801,7 +801,6 @@ public:
   /* ------------------------------------------------------------
    * variableWrapper()
    * ------------------------------------------------------------ */
-
   virtual int variableWrapper(Node *n) {
     String *name  = Getattr(n,"name");
     String *iname = Getattr(n,"sym:name");
@@ -809,8 +808,8 @@ public:
     Wrapper  *getf, *setf;
     String  *tm;
 
-    String *set_name = Swig_name_set(iname);
-    String *val_name = Swig_name_get(iname);
+    String *set_name = Swig_name_wrapper(Swig_name_set(iname));
+    String *val_name = Swig_name_wrapper(Swig_name_get(iname));
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
 
@@ -853,7 +852,6 @@ public:
 
     int addfail = 0;
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-      SwigType *t = Getattr(n,"type");
       Replaceall(tm,"$target","sv");
       Replaceall(tm,"$result","sv");
       Replaceall(tm,"$source",name);
