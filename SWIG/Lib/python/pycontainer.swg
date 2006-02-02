@@ -239,11 +239,21 @@ namespace swig {
     typename Sequence::size_type ii = swig::check_index(i, size, true);
     typename Sequence::size_type jj = swig::slice_index(j, size);
     if (jj < ii) jj = ii;
-    typename Sequence::iterator sb = self->begin();
-    typename InputSeq::const_iterator vmid = v.begin();
-    std::advance(sb,ii);
-    std::advance(vmid, jj - ii);
-    self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+    size_t ssize = jj - ii;
+    if (ssize <= v.size()) {
+      typename Sequence::iterator sb = self->begin();
+      typename InputSeq::const_iterator vmid = v.begin();
+      std::advance(sb,ii);
+      std::advance(vmid, jj - ii);
+      self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+    } else {
+      typename Sequence::iterator sb = self->begin();
+      typename Sequence::iterator se = self->begin();
+      std::advance(sb,ii);
+      std::advance(se,jj);
+      self->erase(sb,se);
+      self->insert(sb, v.begin(), v.end());
+    }
   }
 
   template <class Sequence, class Difference>
