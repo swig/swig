@@ -190,24 +190,32 @@ String *Swig_string_ccase(String *s) {
 
 String *Swig_string_ucase(String *s) {
   String *ns;
-  int first = 0;
   int c;
+  int lastC = 0;
+	int underscore = 0;
   ns = NewStringEmpty();
 
+  /* We insert a underscore when:
+    1. Lower case char followed by upper case char
+       getFoo > get_foo; getFOo > get_foo; GETFOO > getfoo
+    2. Number proceded by char
+       get2D > get_2d; get22D > get_22d; GET2D > get_2d */
+
   Seek(s,0,SEEK_SET);
+
   while ((c = Getc(s)) != EOF) {
-    if (isalpha(c)) {
-      if (isupper(c)) {
-	if (first) Putc('_',ns);
-	first = 0;
-      } else {
-	first = 1;
-      }
-    }
-    else if (c == '_') {
-      /* We don't want two underscores in a row */
-      first = 0;
-    }
+    if (isdigit(c) && isalpha(lastC))
+      underscore = 1;
+    else if (isupper(c) && isalpha(lastC) && !isupper(lastC))
+      underscore = 1;
+      
+    lastC = c;
+
+    if (underscore) {
+      Putc('_',ns);
+      underscore = 0;
+    }	
+
     Putc(tolower(c),ns);
   }
   return ns;
