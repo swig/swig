@@ -91,8 +91,8 @@ if my_class.method_three != 3
   raise RuntimeError, "Incorrect value for method_three" 
 end
 
-if my_class.method44_4 != 4
-  raise RuntimeError, "Incorrect value for method44_4" 
+if my_class.method_44_4 != 4
+  raise RuntimeError, "Incorrect value for method_44_4" 
 end
 
 if my_class.predicate_method? != true
