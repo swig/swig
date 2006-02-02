@@ -50,7 +50,6 @@ swig_varlink_str(swig_varlinkobject *v) {
 
 SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
-  swig_globalvar  *var;
   PyObject *str = swig_varlink_str(v);
   fprintf(fp,"Swig global variables ");
   fprintf(fp,"%s\n", PyString_AsString(str));
