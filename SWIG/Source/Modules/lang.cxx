@@ -2008,7 +2008,7 @@ static void addCopyConstructor(Node *n)
   if (!symname) {
     symname = Copy(csymname);
   }
-  Parm *p = NewParm(cc,"_swig_self");
+  Parm *p = NewParm(cc,"other");
 
   Setattr(cn,"name",name);
   Setattr(cn,"sym:name",symname);
