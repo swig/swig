@@ -3,6 +3,9 @@
 
 %module template_classes
 
+
+#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
+
 %{
 %}
 
@@ -23,6 +26,22 @@ public:
   void setPoint(Point<T>& value) {point = value;}
 private:
   Point<T> point;
+
+
+  template <class Data>
+  struct pair2nd_eq
+  {
+  };
+  
+  
+
+
+  struct Foo : Point<int>
+  {
+  };
+  
+  Foo foo;
+  
 };
 
 %}
