@@ -46,6 +46,7 @@ static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
+static Node    *class_decl = 0;
 String  *ModuleName = 0;
 static Node    *module_node = 0;
 static String  *Classprefix = 0;  
@@ -325,7 +326,7 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	if (!Getattr(n,k_parentnode)) set_parentNode(n,current_class);	
+	if (!Getattr(n,k_parentnode)) set_parentNode(n,current_class ? current_class : class_decl);	
 	Setattr(n,"ismember","1");
       }
     }
@@ -3200,14 +3201,14 @@ cpp_class_decl  :
 		     }
 		   }
 		   inclass = 1;
-		   current_class = $$;
+		   current_class = class_decl = $$;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
 		 SwigType *ty;
 		 Symtab *cscope = prev_symtab;
 		 Node *am = 0;
 		 String *scpname = 0;
-		 $$ = current_class;
+		 $$ = class_decl;
 		 inclass = 0;
 		 current_class = 0;
 		 /* Check for pure-abstract class */
@@ -3338,7 +3339,7 @@ cpp_class_decl  :
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
 	       inclass = 1;
-	       current_class = $$;
+	       current_class = class_decl = $$;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -3346,7 +3347,7 @@ cpp_class_decl  :
 	       String *unnamed;
 	       Node *n;
 	       Classprefix = 0;
-	       $$ = current_class;
+	       $$ = class_decl;
 	       inclass = 0;
 	       current_class = 0;
 	       unnamed = Getattr($$,k_unnamed);
