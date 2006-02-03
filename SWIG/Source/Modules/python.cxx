@@ -1745,7 +1745,7 @@ public:
 	} else {
 	  if (noargs) {
 	    Printv(f->def, "SWIGINTERN PyObject *", wname,
-		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(args)) {", NIL);
+		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
 	  } else {
 	    Printv(f->def, "SWIGINTERN PyObject *", wname,
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
@@ -1754,6 +1754,9 @@ public:
 	    Printf(parse_args,"if (!args) { SWIG_fail; } else { swig_obj[0] = args; }\n");
 	  } else if (!noargs) {
 	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", 
+		   iname, num_required, num_arguments);
+	  } else if (noargs) {
+	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
