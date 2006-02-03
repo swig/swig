@@ -8,4 +8,8 @@ typedef int Integer;
    return x;
 }
 
+::Integer bar() {
+   return 1;
+}
+
 %}
