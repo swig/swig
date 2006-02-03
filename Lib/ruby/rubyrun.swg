@@ -272,7 +272,10 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       return SWIG_ERROR;
     }
     *ptr = SWIG_TypeCast(tc, vptr);
+  } else {
+    *ptr = vptr;
   }
+  
   return SWIG_OK;
 }
 
