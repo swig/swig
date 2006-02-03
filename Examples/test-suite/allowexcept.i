@@ -1,6 +1,26 @@
-// Test the allowexcept feature by making the usual $action uncompileable and ensuring the %exception is picked up
+// Test allowexcept feature
 
 %module allowexcept
+
+// First make sure %exception is not used by default for variable wrappers
+
+%nodefaultctor;
+%nodefaultdtor;
+%exception {
+   This will not compile
+}
+
+%inline %{
+struct UVW {};
+UVW uvw_global_variable;
+struct Bar {
+  UVW member_variable;
+  static UVW static_member_variable;
+};
+%}
+
+
+// Now test the allowexcept feature by making the usual $action uncompileable and ensuring the %exception is picked up
 
 struct XYZ {
 };
