@@ -1265,6 +1265,14 @@ SWIG_Python_ArgFail(int argnum)
   }
 }
 
+SWIGRUNTIMEINLINE const char *
+PySwigObject_GetDesc(PyObject *self)
+{
+  PySwigObject *v = (PySwigObject *)self;
+  swig_type_info *ty = v ? v->ty : 0;
+  return ty ? ty->str : (char*)"";
+}
+
 SWIGRUNTIME void
 SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
