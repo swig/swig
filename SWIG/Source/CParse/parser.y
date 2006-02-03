@@ -46,7 +46,6 @@ static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
-static Node    *class_decl = 0;
 String  *ModuleName = 0;
 static Node    *module_node = 0;
 static String  *Classprefix = 0;  
@@ -59,6 +58,9 @@ static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
+
+static int      class_level = 0;
+static Node    *class_decl[16];
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -326,7 +328,7 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	if (!Getattr(n,k_parentnode)) set_parentNode(n,current_class ? current_class : class_decl);	
+	if (0 && !Getattr(n,k_parentnode) && class_level) set_parentNode(n,class_decl[class_level - 1]);
 	Setattr(n,"ismember","1");
       }
     }
@@ -3200,17 +3202,17 @@ cpp_class_decl  :
 		       Delete(tpname);
 		     }
 		   }
+		   class_decl[class_level++] = $$;
 		   inclass = 1;
-		   current_class = class_decl = $$;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
 		 SwigType *ty;
 		 Symtab *cscope = prev_symtab;
 		 Node *am = 0;
 		 String *scpname = 0;
-		 $$ = class_decl;
+		 $$ = class_decl[--class_level];
 		 inclass = 0;
-		 current_class = 0;
+		 
 		 /* Check for pure-abstract class */
 		 Setattr($$,k_abstract, pure_abstract($7));
 		 
@@ -3338,8 +3340,8 @@ cpp_class_decl  :
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
+	       class_decl[class_level++] = $$;
 	       inclass = 1;
-	       current_class = class_decl = $$;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -3347,9 +3349,8 @@ cpp_class_decl  :
 	       String *unnamed;
 	       Node *n;
 	       Classprefix = 0;
-	       $$ = class_decl;
+	       $$ = class_decl[--class_level];
 	       inclass = 0;
-	       current_class = 0;
 	       unnamed = Getattr($$,k_unnamed);
 
 	       /* Check for pure-abstract class */
