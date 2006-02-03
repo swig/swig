@@ -840,7 +840,7 @@ expand_macro(String *name, List *args)
 	a = strstr(s,name);
 	while (a) {
 	  char ca = a[namelen+1];
-          if (!isidchar(ca)) {
+          if (!isidchar((int)ca)) {
           /* Matched the entire vararg name, not just a prefix */
 	    t = a-1;
 	    if (*t == '\002') {

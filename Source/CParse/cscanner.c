@@ -1177,8 +1177,8 @@ int yylex(void) {
 		if ((c == '<') && !start_template) {
 		  int fcount = 1;
 		  char c = nextchar();
-		  while (isspace(c)) {c = nextchar(); ++fcount;}
-		  if (isalpha(c)|| c == ':') {
+		  while (isspace((int)c)) {c = nextchar(); ++fcount;}
+		  if (isalpha((int)c)|| c == ':') {
 		    start_template = count;
 		  }
 		  retract(fcount);
@@ -1214,7 +1214,7 @@ int yylex(void) {
 		int nlen = len - tlen;
 		if (nlen) {
 		  String *ns = 0;		
-		  while (isspace(end[--nlen]));
+		  while (isspace((int)end[--nlen]));
 		  ns = NewStringWithSize(s, nlen + 1);
 		  retract(count - start_template);
 		  Delete(s);
