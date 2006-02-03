@@ -49,6 +49,7 @@ LIBPREFIX  = lib
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	ignore_template_constructor \
 	namespace_union \
 	nested_comment \
 	overload_complicated \
