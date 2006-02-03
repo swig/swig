@@ -120,15 +120,17 @@ Swig_fragment_emit(Node *n) {
     if (debug) Printf(stdout,"looking subfragment %s\n", name);
     if (code && (Strcmp(code,k_ignore) != 0)) {
       String *section = Getmeta(code,k_section);
-      Hash *n = Getmeta(code,k_kwargs);
+      Hash *nn = Getmeta(code,k_kwargs);
       if (!looking_fragments) looking_fragments = NewHash();
       Setattr(looking_fragments,name,"1");      
-      while (n) {
-	if (Equal(Getattr(n,k_name),k_fragment)) {
-	  if (debug) Printf(stdout,"emitting fragment %s %s\n",n, type);
-	  Swig_fragment_emit(n);
+      while (nn) {
+	if (Equal(Getattr(nn,k_name),k_fragment)) {
+	  if (debug) Printf(stdout,"emitting fragment %s %s\n",nn, type);
+	  Setfile(nn, Getfile(n));
+	  Setline(nn, Getline(n));
+	  Swig_fragment_emit(nn);
 	}
-	n = nextSibling(n);
+	nn = nextSibling(nn);
       }
       if (section) {
 	File *f = Swig_filebyname(section);
