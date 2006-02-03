@@ -5682,7 +5682,7 @@ allow the calling function to read the double * value after returning from the f
     jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
     jlong cPtr = jenv-&gt;GetLongField($input, fid);
     MyDouble *pMyDouble = NULL;
-    *(MyDouble **)&amp;pMyDouble = *(MyDouble **)&amp;cPtr;
+    *(MyDouble **)(void *)&amp;pMyDouble = *(MyDouble **)(void *)&amp;cPtr;
     $1 = &amp;pMyDouble-&gt;value;
 }
 
@@ -5847,7 +5847,7 @@ Add the following before the definition of <tt>vehicle_factory</tt>:
 <div class="code"><pre>
 %typemap(out) Vehicle * {
     Ambulance *downcast = dynamic_cast&lt;Ambulance *&gt;($1);
-    *(Ambulance **)&amp;$result = downcast;
+    *(Ambulance **)(void *)&amp;$result = downcast;
 }
 
 %typemap(javaout) Vehicle * {
@@ -5915,7 +5915,7 @@ Note that in this case, the Java class is constructed using JNI code rather than
             jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
             if (mid) {
                 jlong cptr = 0;
-                *(Ambulance **)&amp;cptr = ambulance; 
+                *(Ambulance **)(void *)&amp;cptr = ambulance; 
                 $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
             }
         }
@@ -5926,7 +5926,7 @@ Note that in this case, the Java class is constructed using JNI code rather than
             jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
             if (mid) {
                 jlong cptr = 0;
-                *(FireEngine **)&amp;cptr = fireengine; 
+                *(FireEngine **)(void *)&amp;cptr = fireengine; 
                 $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
             }
         }
