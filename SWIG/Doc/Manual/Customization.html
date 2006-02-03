@@ -15,6 +15,7 @@
 <li><a href="#Customization_nn3">Handling exceptions in C code</a>
 <li><a href="#Customization_nn4">Exception handling with longjmp()</a>
 <li><a href="#Customization_nn5">Handling C++ exceptions</a>
+<li><a href="#Customization_allowexcept">Exception handlers for variables</a>
 <li><a href="#Customization_nn6">Defining different exception handlers</a>
 <li><a href="#Customization_nn7">Using The SWIG exception library</a>
 </ul>
@@ -255,7 +256,32 @@ class OutOfMemory {};
 </pre>
 </div>
 
-<H3><a name="Customization_nn6"></a>11.1.4 Defining different exception handlers</H3>
+<H3><a name="Customization_allowexcept"></a>11.1.4 Exception handlers for variables</H3>
+
+
+<p>
+By default all variables will ignore <tt>%exception</tt>, so it is effectively turned off for all variables wrappers.
+This applies to global variables, member variables and static member variables.
+The approach is certainly a logical one when wrapping variables in C.
+However, in C++, it is quite possible for an exception to be thrown while the variable is being assigned.
+To ensure <tt>%exception</tt> is used when wrapping variables, it needs to be 'turned on' using the <tt>%allowexception</tt> feature.
+Note that <tt>%allowexception</tt> is just a macro for <tt>%feature("allowexcept")</tt>, that is, it is a feature called "allowexcept".
+Any variable which has this feature attached to it, will then use the <tt>%exception</tt> feature, but of course,
+only if there is a <tt>%exception</tt> attached to the variable in the first place.
+The <tt>%allowexception</tt> feature works like any other feature and so can be used globally or for selective variables.
+</p>
+
+<div class="code">
+<pre>
+%allowexception;                // turn on globally
+%allowexception Klass::MyVar;   // turn on for a specific variable
+
+%noallowexception Klass::MyVar; // turn off for a specific variable
+%noallowexception;              // turn off globally
+</pre>
+</div>
+
+<H3><a name="Customization_nn6"></a>11.1.5 Defining different exception handlers</H3>
 
 
 <p>
@@ -392,7 +418,7 @@ declarations.  However, it never really worked that well and the new
 %exception directive is much better.
 </p>
 
-<H3><a name="Customization_nn7"></a>11.1.5 Using The SWIG exception library</H3>
+<H3><a name="Customization_nn7"></a>11.1.6 Using The SWIG exception library</H3>
 
 
 <p>
@@ -428,7 +454,7 @@ integer) and an error message string.  The currently supported error
 types are :</p>
 
 <div class="diagram"><pre>
-SWIG_MemoryError
+SWIG_UnknownError
 SWIG_IOError
 SWIG_RuntimeError
 SWIG_IndexError
@@ -438,7 +464,9 @@ SWIG_OverflowError
 SWIG_SyntaxError
 SWIG_ValueError
 SWIG_SystemError
-SWIG_UnknownError
+SWIG_AttributeError
+SWIG_MemoryError
+SWIG_NullReferenceError
 </pre></div>
 
 <p>
@@ -565,7 +593,7 @@ private:
 the method will be destroyed, and therefore, the target language
 should not attempt to deallocate it twice. This is similar to use the
 DISOWN typemap in the first method argument, and in fact, it also
-depends on the target language to implement the 'disown' mechanism
+depends on the target language on implementing the 'disown' mechanism
 properly.
 </p>
 
