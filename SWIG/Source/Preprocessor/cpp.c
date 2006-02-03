@@ -1528,9 +1528,9 @@ Preprocessor_parse(String *s)
       } else if (StringEqual(id,kpp_error)) {
 	if (allow) {
 	  if (error_as_warning) {
-	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error, %s\n", value);
+	    Swig_warning(WARN_PP_CPP_ERROR,Getfile(s),Getline(id),"CPP #error \"%s\".\n", value);
 	  } else {
-	    Swig_error(Getfile(s),Getline(id),"CPP #error, %s\n", value);
+	    Swig_error(Getfile(s),Getline(id),"CPP #error \"%s\". Use the -cpperraswarn option to continue swig processing.\n", value);
 	  }
 	}
       } else if (StringEqual(id,kpp_line)) {
