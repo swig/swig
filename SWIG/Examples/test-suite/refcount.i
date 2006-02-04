@@ -1,6 +1,6 @@
 %module refcount
 
-%warnfilter(362);
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ,SWIGWARN_LANG_IDENTIFIER);
 
 %{ 
 #include <iostream> 
@@ -20,6 +20,8 @@
 %newobject B::create(A* a);
 %newobject B::cloner();
 
+
+ 
 %inline %{
 
   struct A : RCObj
@@ -50,6 +52,15 @@
   struct A3 : A1, private A2
   {    
   };
+
+%}
+
+#ifdef SWIGPYTHON
+%extend_smart_pointer(RCPtr<A>);
+%template(RCPtr_A) RCPtr<A>;
+#endif
+
+%inline %{
   
   struct B : RCObj
   {
@@ -75,8 +86,19 @@
       // std::cout << "deleting b" << std::endl;
     }
 
+    RCPtr<A> get_rca() {
+      return _a;      
+    }
+
   private:
     RCPtr<A> _a;
   };
 
 %}
+
+#ifdef SWIGPYTHON
+
+%include <std_vector.i>
+%template(vector_A) std::vector<RCPtr<A> >;
+
+#endif
