@@ -87,13 +87,13 @@
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
-    "sv_setiv(SvRV($result),(IV) $1);"; 
+    "sv_setiv(SvRV($result),PTR2IV($1));"; 
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
-    "sv_setiv(SvRV($result),(IV) &$1);"; 
+    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
-    "sv_setiv(SvRV($result), (IV) &$1);";
+    "sv_setiv(SvRV($result), PTR2IV(&$1));";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);
