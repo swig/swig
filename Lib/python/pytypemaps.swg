@@ -91,6 +91,26 @@
 %typemap(constcode) SWIGTYPE ((*)(ANY)) "";
 
 
+/* Smart Pointers */
+%typemap(out,noblock=1) const SWIGTYPE & SMARTPOINTER  {
+  $result = SWIG_NewPointerObj(%new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+}
 
+%typemap(ret,noblock=1) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {
+  if ($result) {
+    PyObject *robj = PyObject_CallMethod($result, "__deref__", NULL);
+    if (robj && !PyErr_Occurred()) {
+      PySwigObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
+			  (PyObject *) SWIG_Python_GetSwigThis(robj));
+      Py_DECREF(robj);
+    }
+  }
+}
 
+/* Use this macro to extend the smart pointer support */
+%define %extend_smart_pointer(Type...)
+%implicitconv Type;
+%apply const SWIGTYPE& SMARTPOINTER { const Type& };
+%apply SWIGTYPE SMARTPOINTER { Type };
+%enddef
 
