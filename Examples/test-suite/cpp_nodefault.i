@@ -9,9 +9,7 @@ class Foo {
 public:
    int a;
    Foo(int x, int y) { }
-  ~Foo() {
-      printf("Destroying foo\n");
-   }
+  ~Foo() {}
 };
 
 Foo create(int x, int y) {
