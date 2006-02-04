@@ -17,6 +17,7 @@ struct Bar {
   UVW member_variable;
   static UVW static_member_variable;
 };
+UVW Bar::static_member_variable;
 %}
 
 
@@ -47,5 +48,6 @@ struct Foo {
   XYZ member_variable;
   static XYZ static_member_variable;
 };
+XYZ Foo::static_member_variable;
 %}
 
