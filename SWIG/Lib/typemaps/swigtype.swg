@@ -599,7 +599,7 @@
 }
 
 %typemap(varout,noblock=1) SWIGTYPE &INSTANCE {
-  %set_varoutput(SWIG_NewInstanceObj(%as_voidptr(&$1), $1_descriptor, %newinstance_flags));
+  %set_varoutput(SWIG_NewInstanceObj(%as_voidptr($1), $1_descriptor, %newinstance_flags));
 }
 
 %typemap(varout,noblock=1) SWIGTYPE INSTANCE {
