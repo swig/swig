@@ -107,10 +107,4 @@
   }
 }
 
-/* Use this macro to extend the smart pointer support */
-%define %extend_smart_pointer(Type...)
-%implicitconv Type;
-%apply const SWIGTYPE& SMARTPOINTER { const Type& };
-%apply SWIGTYPE SMARTPOINTER { Type };
-%enddef
 
