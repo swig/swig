@@ -55,7 +55,7 @@
     
    // these don't
    %ignore Bar<One>::Bar(); 
-   %rename(create) Bar<One>::Bar(int); 
+   %rename(Bar_create) Bar<One>::Bar(int); 
  
    template <Test T>   
    struct Bar { 
