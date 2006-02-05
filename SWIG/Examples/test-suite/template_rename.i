@@ -22,3 +22,28 @@ public:
 %template(iFoo) Foo<int>;
 %template(dFoo) Foo<double>;
 
+
+// Testing ignore
+
+%ignore std::vector<Flow>::vector(size_type);
+
+%inline %{
+
+namespace std {
+    
+    template<class T> class vector {
+      public:
+        typedef size_t size_type;
+        vector() {}
+        vector(size_type n) { T t = T(); }
+    };
+}
+
+class Flow {
+  Flow() {}
+public:
+  Flow(double d) {}
+};
+%}
+
+%template(VectFlow) std::vector<Flow>;

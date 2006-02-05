@@ -418,6 +418,7 @@ Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) 
   }
 }
 
+
 /* -----------------------------------------------------------------------------
  * Swig_name_object_get()
  *
@@ -468,6 +469,7 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   Printf(stderr,"Swig_name_object_get:  '%s', '%s'\n", name, decl); 
 #endif
 
+
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
     if (Len(prefix)) {
@@ -491,7 +493,7 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
 	Delete(t_name);
       }
       /* A template-based class lookup */
-      if (!rn && SwigType_istemplate(prefix)) {
+      if (0 && !rn && SwigType_istemplate(prefix)) {
 	String *t_prefix = SwigType_templateprefix(prefix);
 	if (Strcmp(t_prefix,prefix) != 0) {
 	  String *t_name = SwigType_templateprefix(name);
@@ -614,7 +616,7 @@ void
 Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
   char   *ncdecl = 0;
   String *rdecl = 0;
-  SwigType *rname = 0;
+  String *rname = 0;
   if (!features) return;
 
   /* MM: This removed to more tightly control feature/name matching */
@@ -626,29 +628,31 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   */
 
   /* very specific hack for template constructors/destructors */
-  if (name && SwigType_istemplate(name) &&
-      (HashCheckAttr(node,k_nodetype,k_constructor)
-       || HashCheckAttr(node, k_nodetype,k_destructor))) {
-    String *nprefix = NewStringEmpty();
-    String *nlast = NewStringEmpty();
-    String *tprefix;
-    Swig_scopename_split(name, &nprefix, &nlast);    
-    tprefix = SwigType_templateprefix(nlast);
-    Delete(nlast);
-    if (Len(nprefix)) {
-      Append(nprefix,"::");
-      Append(nprefix,tprefix);
-      Delete(tprefix);
-      rname = nprefix;      
-    } else {
-      rname = tprefix;
-      Delete(nprefix);
+  if (name && SwigType_istemplate(name)) {
+    String *nodetype = Getattr(node, k_nodetype);
+    if (nodetype && (Equal(nodetype,k_constructor) || Equal(nodetype,k_destructor))) {
+      String *nprefix = NewStringEmpty();
+      String *nlast = NewStringEmpty();
+      String *tprefix;
+      Swig_scopename_split(name, &nprefix, &nlast);    
+      tprefix = SwigType_templateprefix(nlast);
+      Delete(nlast);
+      if (Len(nprefix)) {
+	Append(nprefix,"::");
+	Append(nprefix,tprefix);
+	Delete(tprefix);
+	rname = nprefix;      
+      } else {
+	rname = tprefix;
+	Delete(nprefix);
+      }
+      rdecl = Copy(decl);
+      Replaceall(rdecl,name,rname);
+      decl = rdecl;
+      name = rname;
     }
-    rdecl = Copy(decl);
-    Replaceall(rdecl,name,rname);
-    decl = rdecl;
-    name = rname;
   }
+
   
 #ifdef SWIG_DEBUG
   Printf(stderr,"Swig_features_get: %s %s %s\n", prefix, name, decl);
@@ -658,6 +662,12 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   features_get(features, empty_string, 0, 0, node);
   if (name) {
     String *tname = NewStringEmpty();
+    /* add features for 'root' template */
+    if (SwigType_istemplate(name)) {
+      String *dname = SwigType_templateprefix(name);
+      features_get(features, dname, decl, ncdecl, node);
+      Delete(dname);
+    }
     /* Catch-all */
     features_get(features, name, decl, ncdecl, node);
     /* Perform a class-based lookup (if class prefix supplied) */
@@ -694,15 +704,16 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     Delete(tname);
   }
   if (name && SwigType_istemplate(name)) {
+    /* add features for complete template type */
     String *dname = Swig_symbol_template_deftype(name,0);
-    if (Strcmp(dname,name)) {    
+    if (!Equal(dname,name)) {    
       Swig_features_get(features, prefix, dname, decl, node);
     }
     Delete(dname);
   }
 
-  Delete(rname);
-  Delete(rdecl);
+  if (rname) Delete(rname);
+  if (rdecl) Delete(rdecl);
 }
 
 
@@ -1421,6 +1432,44 @@ Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, S
   String *result = 0;
   String *name = NewString(cname);
   Hash *wrn = 0;
+  String *rdecl = 0;
+  String *rname = 0;
+
+  /* very specific hack for template constructors/destructors */
+#ifdef SWIG_DEBUG
+  Printf(stderr,"SWIG_name_make: looking for %s %s %s %s\n", prefix, name, decl, oldname);
+#endif
+
+  if (name && n && SwigType_istemplate(name)) {
+    String *nodetype = Getattr(n, k_nodetype);
+    if (nodetype && (Equal(nodetype,k_constructor) || Equal(nodetype,k_destructor))) {
+      String *nprefix = NewStringEmpty();
+      String *nlast = NewStringEmpty();
+      String *tprefix;
+      Swig_scopename_split(name, &nprefix, &nlast);    
+      tprefix = SwigType_templateprefix(nlast);
+      Delete(nlast);
+      if (Len(nprefix)) {
+	Append(nprefix,"::");
+	Append(nprefix,tprefix);
+	Delete(tprefix);
+	rname = nprefix;      
+      } else {
+	rname = tprefix;
+	Delete(nprefix);
+      }
+      rdecl = Copy(decl);
+      Replaceall(rdecl,name,rname);
+#ifdef SWIG_DEBUG
+      Printf(stderr,"SWIG_name_make: use new name %s %s : %s %s\n",name, decl, rname, rdecl);
+#endif
+      decl = rdecl;
+      Delete(name);
+      name = rname;
+    }
+  }
+  
+
   if (rename_hash || rename_list) {
     Hash *rn =  Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
     if (!rn || !Swig_name_match_nameobj(rn,n)) {
@@ -1487,17 +1536,16 @@ Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, S
     if (result) Delete(result);
     if (oldname) {
       result = NewString(oldname);
-      Delete(name);
     } else {
-      result = name;
+      result = NewString(cname);
     }
-  } else {
-    Delete(name);
   }
+  Delete(name);
   
 #ifdef SWIG_DEBUG
-  Printf(stderr,"Swig_name_make:  '%s' '%s'\n", cname, result); 
+  Printf(stderr,"Swig_name_make: result  '%s' '%s'\n", cname, result); 
 #endif
+
   return result;
 }
 
