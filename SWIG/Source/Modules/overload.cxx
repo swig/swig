@@ -409,7 +409,7 @@ Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
     }
     Printf(f,"SWIG_TypeRank _ranki = 0;\n");
     Printf(f,"SWIG_TypeRank _rankm = 0;\n");
-    Printf(f,"SWIG_TypeRank _pi = 1;\n",num_arguments);
+    if (num_arguments) Printf(f,"SWIG_TypeRank _pi = 1;\n");
 
     /* create a list with the wrappers that collide with the
        current one based on argument number */
