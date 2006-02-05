@@ -63,7 +63,19 @@ static Hash* get_typemap(int tm_scope, SwigType* type)
     Delete(ty);
   }
   tm = Getattr(typemaps[tm_scope],type);
-  Delete(dtype);
+
+  
+  if (dtype) {
+    if (!tm) {
+      String *t_name = SwigType_templateprefix(type);
+      if (!Equal(t_name,type)) {
+	tm = Getattr(typemaps[tm_scope],t_name);
+      }
+      Delete(t_name);
+    }    
+    Delete(dtype);
+  }
+  
   return tm;
 }
 
@@ -1215,10 +1227,6 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   String   *cname = 0;
   String   *clname = 0;
   char     *cop = Char(op);
-#if 0
-  String   *qsn;
-  Symtab   *st;
-#endif
   /* special case, we need to check for 'ref' call 
      and set the default code 'sdef' */
   if (Cmp(op,"newfree") == 0) { 
@@ -1230,40 +1238,27 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
 
   pname = Getattr(node,k_name);
 
-#if 0
-  /* removed for now as it breaks old code and introduces
-  inconsistencies and adds about 25% to the execution time of the
-  test-suite - WSF This is my plan to fix this longer term: The
-  following debug shows that some typemap lookups use fully qualified
-  names and some do not.
-
-Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NONAME");
-
-  So even the current typemap lookups are inconsistent.  The "name"
-  attribute is often changed, particularly in lang.cxx. I hope to
-  either remove this name changing to fix this or introduce a new
-  attribute to use for the name.  Possibly introduce a new attribute
-  called fqname - fully qualified name, that holds the name to use for
-  the Swig_typemap_search.  If this typemap search fails then use the
-  unqualified name.  Need to check non-simple return types, eg
-  pointers/references.
-  */
-  st = Getattr(node,k_symsymtab);
-  qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
-  if (qsn && StringLen(qsn)) {
-    /* look qualified names first, such as
+#if 1
+  if (pname && node && checkAttribute(node,k_kind,"function")) {
+    /* 
+       For functions, look qualified names first, such as
        
-         int *Foo::foo(int bar)   ->  Foo::foo
+       struct Foo {
+          int *foo(int bar)   ->  Foo::foo
+       };
     */
-    String *qname = NewStringf("%s::%s",qsn,pname);
-    tm = Swig_typemap_search(op,type,qname,&mtype);
-    Delete(qname);
+    Symtab *st = Getattr(node,k_symsymtab);
+    String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;
+    if (qsn) {
+      if (StringLen(qsn) && !Equal(qsn,pname)) {
+	tm = Swig_typemap_search(op,type,qsn,&mtype);
+	if (tm && strstr(Char(Getattr(tm,k_type)),"SWIGTYPE")) {
+	  tm = 0;
+	}
+      }
+      Delete(qsn);
+    }
   }
-  Delete(qsn);
-  
-  /* look now for simple name, such as
-       int *Foo::foo(int bar)   ->  foo
-  */
   if (!tm)
 #endif
   tm = Swig_typemap_search(op,type,pname,&mtype);

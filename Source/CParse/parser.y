@@ -237,7 +237,8 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
   int destructor = name && (*(Char(name)) == '~');
 
   if (yyrename) {
-    String *s = (yyrename);
+    String *s = NewString(yyrename);
+    Delete(yyrename);
     yyrename = 0;
     if (destructor  && (*(Char(s)) != '~')) {
       Insert(s,0,"~");
@@ -539,11 +540,14 @@ static void add_symbols_copy(Node *n) {
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
       if (add_oldname) {
 	DohIncref(add_oldname);
-	/* If already renamed, we used that name */
+	/*  Disable this, it prevents %rename to work with templates */
+	/* If already renamed, we used that name  */
+	/*
 	if (Strcmp(add_oldname, Getattr(n,k_name)) != 0) {
 	  Delete(yyrename);
 	  yyrename = Copy(add_oldname);
 	}
+	*/
       }
       Delattr(n,"sym:needs_symtab");
       Delattr(n,k_symname);
@@ -587,12 +591,12 @@ static void add_symbols_copy(Node *n) {
       }
       if (add_oldname) {
 	Delete(add_oldname);
+	add_oldname = 0;
       }
       if (strcmp(cnodeType,"class") == 0) {
 	inclass = 0;
 	current_class = 0;
       }
-      add_oldname = 0;
     } else {
       if (strcmp(cnodeType,"extend") == 0) {
 	emode = cplus_mode;
