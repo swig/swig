@@ -170,7 +170,16 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
 
 SWIGINTERN int
 SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyObject **objs)
-{    
+{
+  if (!args) {
+    if (!min && !max) {
+      return 1;
+    } else {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got none", 
+		   name, (min == max ? "" : "at least "), min);
+      return 0;
+    }
+  }  
   if (!PyTuple_Check(args)) {
     PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
     return 0;
