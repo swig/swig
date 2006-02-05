@@ -574,6 +574,7 @@ public:
     if (!addSymbol(iname,n)) return SWIG_ERROR;
 
   /* Create a function for getting a variable */
+    int addfail = 0;
     getf = NewWrapper();
     getname = Swig_name_get(iname);
     Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
@@ -583,14 +584,16 @@ public:
       Replaceall(tm,"$target","value");
       Replaceall(tm,"$result", "value");
       /* Printf(getf->code, "%s\n",tm); */
-      emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf, tm);
       Printf(getf->code, "if (value) {\n");
       Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n");
       Printf(getf->code, "Tcl_DecrRefCount(value);\n");
       Printf(getf->code, "}\n");
       Printf(getf->code, "return NULL;\n");
-      Append(getf->code,"fail:\n");
-      Printf(getf->code,"return \"%s\";\n", iname);
+      if (addfail) {
+	Append(getf->code,"fail:\n");
+	Printf(getf->code,"return \"%s\";\n", iname);
+      }      
       Printf(getf->code,"}\n");
       Wrapper_print(getf,f_wrappers);
     } else {

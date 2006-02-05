@@ -1393,7 +1393,7 @@ public:
 
     String *tmp = NewString("");
     String *dispatch;
-    const char *dispatch_code = funpack ? "return %s(self, argv);" : "return %s(self, args);";
+    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" : "return %s(self, args);";
 
     if (castmode) {
       dispatch = Swig_overload_dispatch_cast(n,dispatch_code,&maxargs);
@@ -1737,11 +1737,12 @@ public:
 	if (overname) {
 	  if (noargs) {
 	    Printv(f->def, "SWIGINTERN PyObject *", wname,
-		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
+		   "(PyObject *SWIGUNUSEDPARM(self), int nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
 	  } else{
 	    Printv(f->def, "SWIGINTERN PyObject *", wname,
-		   "(PyObject *SWIGUNUSEDPARM(self), PyObject **swig_obj) {", NIL);
+		   "(PyObject *SWIGUNUSEDPARM(self), int nobjs, PyObject **swig_obj) {", NIL);
 	  }
+	  Printf(parse_args,"if ((nobjs < %d) || (nobjs > %d)) SWIG_fail;\n", num_required, num_arguments);
 	} else {
 	  if (noargs) {
 	    Printv(f->def, "SWIGINTERN PyObject *", wname,
@@ -1751,12 +1752,13 @@ public:
 		   "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
 	  }
 	  if (onearg) {
-	    Printf(parse_args,"if (!args) { SWIG_fail; } else { swig_obj[0] = args; }\n");
+	    Printf(parse_args,"if (!args) SWIG_fail;\n");
+	    Printf(parse_args,"swig_obj[0] = args;\n");
 	  } else if (!noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", 
+	    Printf(parse_args,"if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", 
 		   iname, num_required, num_arguments);
 	  } else if (noargs) {
-	    Printf(parse_args,"if(!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", 
+	    Printf(parse_args,"if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", 
 		   iname, num_required, num_arguments);
 	  }
 	}
@@ -2129,7 +2131,6 @@ public:
     setnamef = Swig_name_set(iname);
 
     /* Create a function for setting the value of the variable */
-
     if (assignable) {
       Printf(setf->def,"SWIGINTERN int %s(PyObject *_val) {", setnamef);
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
@@ -2165,22 +2166,24 @@ public:
     Wrapper_print(setf,f_wrappers);
 
     /* Create a function for getting the value of a variable */
+    int addfail = 0;
     Printf(getf->def,"SWIGINTERN PyObject *%s(void) {", getnamef);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = 0");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","pyobj");
       Replaceall(tm,"$result","pyobj");
-      emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-
     Append(getf->code,"  return pyobj;\n");
-    Append(getf->code,"fail:\n");
-    Append(getf->code,"  return NULL;\n");
+    if (addfail) {
+      Append(getf->code,"fail:\n");
+      Append(getf->code,"  return NULL;\n");
+    }
     Append(getf->code,"}\n");
 
     Wrapper_print(getf,f_wrappers);

@@ -34,12 +34,20 @@ private:
   XYZ* operator&(); // prevent dereferencing used in normally generated  get method
 };
 %}
-
+#if defined(SWIGUTL)
+%exception {
+  /* 
+   $action
+  */
+  SWIG_fail;
+}
+#else
 %exception {
   /* 
    $action
   */
 }
+#endif
 %allowexception;
 
 %inline %{

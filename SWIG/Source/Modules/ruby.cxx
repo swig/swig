@@ -1426,6 +1426,7 @@ public:
     setf = NewWrapper();
 
     /* create getter */
+    int addfail = 0;
     getfname = Swig_name_get(iname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
@@ -1438,14 +1439,16 @@ public:
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
       /* Printv(getf->code,tm, NIL); */
-      emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
     Printv(getf->code, tab4, "return _val;\n", NIL);
-    Append(getf->code,"fail:\n");
-    Append(getf->code,"  return Qnil;\n");
+    if (addfail) {
+      Append(getf->code,"fail:\n");
+      Append(getf->code,"  return Qnil;\n");
+    }
     Append(getf->code,"}\n");
 
     Wrapper_print(getf,f_wrappers);
