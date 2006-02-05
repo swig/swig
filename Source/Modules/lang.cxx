@@ -479,6 +479,13 @@ int Language::constantDirective(Node *n) {
 
   if (CurrentClass && (cplus_mode != PUBLIC)) return SWIG_NOWRAP;
 
+  if (!GetFlag(n,"feature:allowexcept")) {
+    UnsetFlag(n,"feature:except");
+  } 
+  if (Getattr(n,"feature:exceptvar")) {
+    Setattr(n,"feature:except",Getattr(n,"feature:exceptvar"));
+  }
+  
   if (!ImportMode) {
     Swig_require("constantDirective",n,"name", "?value",NIL);
     String *name = Getattr(n,"name");
@@ -1547,6 +1554,13 @@ int Language::enumforwardDeclaration(Node *n) {
 int Language::memberconstantHandler(Node *n) {
 
   Swig_require("memberconstantHandler",n,"*name","*sym:name","value",NIL);
+
+  if (!GetFlag(n,"feature:allowexcept")) {
+    UnsetFlag(n,"feature:except");
+  } 
+  if (Getattr(n,"feature:exceptvar")) {
+    Setattr(n,"feature:except",Getattr(n,"feature:exceptvar"));
+  }
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
