@@ -55,8 +55,7 @@ Version 1.3.28 (unreleased).
 
 	    %extend_smart_pointer is just a collections of new/old
 	    tricks, including %typemaps and the new %implicitconv
-	    directive. You can see what it really does looking at the
-	    end of the Lib/pytypemaps.swg file.
+	    directive.
 
 02/02/2006: mgossage
             bugfix #1356577, changed double=>lua_number in a few places.
