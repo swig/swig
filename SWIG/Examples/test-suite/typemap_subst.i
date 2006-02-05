@@ -22,6 +22,11 @@
     $*ltype e = *a;
     $basetype f;
     f.member = 42;
+    (void)a;
+    (void)b;
+    (void)c;
+    (void)d;
+    (void)e;
   }
   { /* Test locals */
     basetemp.member = 0;
@@ -33,13 +38,19 @@
     void *desc = $descriptor;
     void *stardesc = $*descriptor;
     void *ampdesc = $&descriptor;
+    (void)desc;
+    (void)stardesc;
+    (void)ampdesc;
   }
   { /* Test mangled names */
     void *desc = SWIGTYPE$mangle;
     void *stardesc = SWIGTYPE$*mangle;
     void *ampdesc = SWIGTYPE$&mangle;
+    (void)desc;
+    (void)stardesc;
+    (void)ampdesc;
   }
-  $1 = ($ltype) temp;
+  $1 = ($ltype) temp;  
 }
 
 /* Java and C# modules don't use SWIG's runtime type system */
