@@ -17,7 +17,7 @@ char cvsroot_cffi_cxx[] = "$Header$";
 //#define CFFI_DEBUG
 class CFFI : public Language {
 public:
-  File *f_cl;
+  String *f_cl;
   String *f_clhead;
   String *f_clwrap;
   bool CWrap;  // generate wrapper file for C code?  
@@ -95,6 +95,7 @@ void CFFI :: main(int argc, char *argv[]) {
   }
   f_clhead = NewString("");
   f_clwrap = NewString("");
+  f_cl = NewString("");
 }
 
 int CFFI :: top(Node *n) {
@@ -104,8 +105,8 @@ int CFFI :: top(Node *n) {
   String *lisp_filename=NewString("");
 
   Printf(lisp_filename, "%s%s.lisp", SWIG_output_directory(), module);
-  f_cl=NewFile(lisp_filename, "w");
-  if (!f_cl) {
+  File *f_lisp=NewFile(lisp_filename, "w");
+  if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
     SWIG_exit(EXIT_FAILURE);
   }
@@ -113,7 +114,7 @@ int CFFI :: top(Node *n) {
   if (CPlusPlus || CWrap)  {
       f_cxx=NewFile(cxx_filename, "w");
       if (!f_cxx) {
-        Close(f_cl); Delete(f_cl);
+        Close(f_lisp); Delete(f_lisp);
         Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
         SWIG_exit(EXIT_FAILURE);
       }
@@ -127,17 +128,18 @@ int CFFI :: top(Node *n) {
   Swig_register_filebyname("header",f_cxx_header);
   Swig_register_filebyname("wrapper",f_cxx_wrapper);
   Swig_register_filebyname("runtime",f_cxx);
-  Swig_register_filebyname("lisp", f_clwrap);
-  Swig_register_filebyname("lisphead", f_cl);
+  Swig_register_filebyname("lisphead", f_clhead);
+  Swig_register_filebyname("swiglisp", f_cl);
 
   Language::top(n);
-
-  Printf(f_cl, "%s\n", f_clhead);
-  Printf(f_cl, "%s\n", f_clwrap);
+  Printf(f_lisp, "%s\n", f_clhead);
+  Printf(f_lisp, "%s\n", f_cl);
+  Printf(f_lisp, "%s\n", f_clwrap);
 
   Printf(stderr, "All done now!\n");
-  Close(f_cl);
-  Delete(f_cl); // Deletes the handle, not the file
+  Close(f_lisp);
+  Delete(f_lisp); // Deletes the handle, not the file
+  Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
   Close(f_cxx);
@@ -443,9 +445,12 @@ int CFFI :: enumDeclaration(Node *n) {
 
     if(!value)
       Printf(f_cl,"\n\t%s%s",slot_name_prefix, slot_name);
-    else
-      Printf(f_cl,"\n\t(%s%s %s)",slot_name_prefix, slot_name,value);
-
+    else {
+      String *type=Getattr(c, "type");
+      String *converted_value=convert_literal(value, type);
+      Printf(f_cl,"\n\t(%s%s %s)",slot_name_prefix, slot_name,converted_value);
+      Delete(converted_value);
+    }
     Delete(value);
   }
  
