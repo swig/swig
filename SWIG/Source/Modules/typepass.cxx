@@ -353,9 +353,9 @@ class TypePass : private Dispatcher {
 	// We need to fully resolve the name to make templates work correctly */
 	Node *cn;
 	fname = SwigType_typedef_resolve_all(name);
-	if (Strcmp(fname,name) != 0) {
-	  cn = Swig_symbol_clookup_local(fname,0);
-	  if ((!cn) || (Strcmp(nodeType(cn),"template") == 0)
+	if (Strcmp(fname,name) != 0 && (cn = Swig_symbol_clookup_local(fname,0))) {
+	  if ((n == cn) 
+	      || (Strcmp(nodeType(cn),"template") == 0)
 	      || (Getattr(cn,"feature:onlychildren") != 0)
 	      || (Getattr(n,"feature:onlychildren") != 0)) {
 	    Swig_symbol_cadd(fname,n);
