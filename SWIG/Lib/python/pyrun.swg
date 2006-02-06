@@ -424,12 +424,8 @@ PySwigObject_dealloc(PyObject *v)
       Py_XDECREF(res);
     } else {
       const char *name = SWIG_TypePrettyName(ty);
-#if (PY_VERSION_HEX >= 0x02020000)
-      PyObject *wrn = PyString_FromFormat("swig/python detected a memory leak of type '%s'.", name);
-      PyErr_Warn(PyExc_RuntimeWarning, PyString_AsString(wrn));
-      Py_DECREF(wrn);
-#else
-      printf("swig/python detected a memory leak of type '%s'.", name);
+#if !defined(SWIG_PYTHON_SILENT_MEMLEAK)
+      printf("swig/python detected a memory leak of type '%s', no destructor found.\n", name);
 #endif
     }
   } 
