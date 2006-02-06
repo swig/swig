@@ -5,7 +5,7 @@ class Derived(Foo) :
         Foo.__init__(self)
 
     def do_foo(self):
-        self.val -= 1
+        self.val = self.val - 1
 
 
 d = Derived()
