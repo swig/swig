@@ -66,6 +66,9 @@
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
+#define SWIG_GetConstant        SWIG_GetConstantObj
+#define SWIG_Tcl_GetConstant    SWIG_Tcl_GetConstantObj
+
 
 #ifdef __cplusplus
 extern "C" {
