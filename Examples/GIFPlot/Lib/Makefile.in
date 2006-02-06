@@ -1,4 +1,5 @@
 CC      = @CC@
+CCSHARED= @CCSHARED@ 
 INCLUDES= -I../Include
 CFLAGS  = -O
 SRCS    = frame.c color.c plot2d.c plot3d.c font.c pixmap.c matrix.c gif.c
