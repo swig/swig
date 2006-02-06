@@ -8,63 +8,12 @@
 //  
 %include <std_common.i>
 
-
-
-namespace swig 
-{
-  /*
-    Throw a StopIteration exception
-  */
-  %ignore stop_iteration;
-  %typemap(throws) stop_iteration {
-    (void)$1;
-    SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
-    SWIG_fail;
-  }
-
-  /* 
-     Mark methods that return new objects
-  */
-  %newobject PySwigIterator::copy;
-  %newobject PySwigIterator::operator + (ptrdiff_t n) const;
-  %newobject PySwigIterator::operator - (ptrdiff_t n) const;
-}
-
-namespace swig 
-{
-%nodirector PySwigIterator;
-%extend PySwigIterator 
-{
-  %pythoncode {
-    def __iter__(self):
-      return self
-  }
-}  
-}
-
+%fragment("PySwigIterator","header") {  
 namespace swig {
-  %catches(swig::stop_iteration) PySwigIterator::value() const;
-  %catches(swig::stop_iteration) PySwigIterator::incr(size_t n = 1);
-  %catches(swig::stop_iteration) PySwigIterator::decr(size_t n = 1);
-  %catches(std::invalid_argument) PySwigIterator::distance(const PySwigIterator &x) const;
-  %catches(std::invalid_argument) PySwigIterator::equal (const PySwigIterator &x) const;
-  %catches(swig::stop_iteration) PySwigIterator::next();
-  %catches(swig::stop_iteration) PySwigIterator::previous();
-  %catches(swig::stop_iteration) PySwigIterator::advance(ptrdiff_t n);
-  %catches(swig::stop_iteration) PySwigIterator::operator += (ptrdiff_t n);
-  %catches(swig::stop_iteration) PySwigIterator::operator -= (ptrdiff_t n);
-  %catches(swig::stop_iteration) PySwigIterator::operator + (ptrdiff_t n) const;
-  %catches(swig::stop_iteration) PySwigIterator::operator - (ptrdiff_t n) const;
-}
-
-%inline {
-namespace swig {
-  struct stop_iteration
-  {
+  struct stop_iteration {
   };
 
-  struct PySwigIterator
-  {
+  struct PySwigIterator {
   private:
     PyObject_ptr _seq;
 
@@ -168,9 +117,8 @@ namespace swig {
 }
 }
 
-%fragment("PySwigIterator_T","header",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("PySwigIterator_T","header",fragment="PySwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
-
   template<typename OutIterator>
   class PySwigIterator_T :  public PySwigIterator
   {
@@ -224,8 +172,6 @@ namespace swig {
       return swig::from(v);
     }
   };
-  
-  
 
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
@@ -343,5 +289,89 @@ namespace swig {
     return new PySwigIteratorOpen_T<OutIter>(current, seq);
   }
 }
+}
+
+
+%fragment("PySwigIterator");
+namespace swig 
+{
+  /*
+    Throw a StopIteration exception
+  */
+  %ignore stop_iteration;
+  struct stop_iteration {};
+  
+  %typemap(throws) stop_iteration {
+    (void)$1;
+    SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
+    SWIG_fail;
+  }
+
+  /* 
+     Mark methods that return new objects
+  */
+  %newobject PySwigIterator::copy;
+  %newobject PySwigIterator::operator + (ptrdiff_t n) const;
+  %newobject PySwigIterator::operator - (ptrdiff_t n) const;
+
+  %nodirector PySwigIterator;
+  %extend PySwigIterator {
+  %pythoncode {
+    def __iter__(self):
+      return self
+  }
+  }
+
+  %catches(swig::stop_iteration) PySwigIterator::value() const;
+  %catches(swig::stop_iteration) PySwigIterator::incr(size_t n = 1);
+  %catches(swig::stop_iteration) PySwigIterator::decr(size_t n = 1);
+  %catches(std::invalid_argument) PySwigIterator::distance(const PySwigIterator &x) const;
+  %catches(std::invalid_argument) PySwigIterator::equal (const PySwigIterator &x) const;
+  %catches(swig::stop_iteration) PySwigIterator::next();
+  %catches(swig::stop_iteration) PySwigIterator::previous();
+  %catches(swig::stop_iteration) PySwigIterator::advance(ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator += (ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator -= (ptrdiff_t n);
+  %catches(swig::stop_iteration) PySwigIterator::operator + (ptrdiff_t n) const;
+  %catches(swig::stop_iteration) PySwigIterator::operator - (ptrdiff_t n) const;
+
+
+  struct PySwigIterator
+  {
+  protected:
+    PySwigIterator(PyObject *seq);
+
+  public:
+    virtual ~PySwigIterator();
+
+    // Access iterator method, required by Python
+    virtual PyObject *value() const = 0;
+
+    // Forward iterator method, required by Python
+    virtual PySwigIterator *incr(size_t n = 1) = 0;
+    
+    // Backward iterator method, very common in C++, but not required in Python
+    virtual PySwigIterator *decr(size_t n = 1);
+
+    // Random access iterator methods, but not required in Python
+    virtual ptrdiff_t distance(const PySwigIterator &x) const;
+
+    virtual bool equal (const PySwigIterator &x) const;
+    
+    // C++ common/needed methods
+    virtual PySwigIterator *copy() const = 0;
+
+    PyObject *next();
+    PyObject *previous();
+    PySwigIterator *advance(ptrdiff_t n);
+
+    bool operator == (const PySwigIterator& x)  const;
+    bool operator != (const PySwigIterator& x) const;
+    PySwigIterator& operator += (ptrdiff_t n);
+    PySwigIterator& operator -= (ptrdiff_t n);
+    PySwigIterator* operator + (ptrdiff_t n) const;
+    PySwigIterator* operator - (ptrdiff_t n) const;
+    ptrdiff_t operator - (const PySwigIterator& x) const;
+  };
 }
 
