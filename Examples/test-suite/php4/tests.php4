@@ -85,7 +85,7 @@ class check {
     if ($message) {
       return check::fail("Class %s %s\nFull class list:\n  %s\n",$classname,join("\nbut ",$message),join("\n  ",get_class_methods($classname)));
     }
-    if ($extra) $message[]="does have these extra methods:\n  ".join(",",$extra);
+    if ($extra) $message[]="Class ".$classname." has these extra methods:\n  ".join(",",$extra);
     if ($message) return check::warn(join("\n  ",$message));
     return TRUE;
   }
@@ -152,7 +152,7 @@ class check {
     }
     if ($missing) $message[]=sprintf("Functions missing: %s",join(",",$missing));
     if ($message) return check::fail(join("\n  ",$message));
-    if ($extra) $message[]=sprintf("These extra methods are defined: %s",join(",",array_keys($extra)));
+    if ($extra) $message[]=sprintf("These extra functions are defined: %s",join(",",array_keys($extra)));
     if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
   }
@@ -217,7 +217,7 @@ class check {
   function warn($pattern) {
     $args=func_get_args();
     print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
-    exit(0);
+    return FALSE;
   }
 
   function done() {
