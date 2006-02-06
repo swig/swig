@@ -96,7 +96,7 @@
 #include <string.h>
 %}
 
-%insert("lisphead") %{
+%insert("swiglisp") %{
 ;;;SWIG wrapper code starts here
 
 (defmacro defanonenum (&body enums)
