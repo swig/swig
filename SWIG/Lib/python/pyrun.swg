@@ -392,7 +392,8 @@ PySwigObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 PySwigObject_Check(PyObject *op) {
-  return (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
+  return ((op)->ob_type == PySwigObject_type())
+    || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
 }
 
 SWIGRUNTIME PyObject *
@@ -498,7 +499,7 @@ PySwigObject_own(PyObject *v, PyObject *args)
 {
   PyObject *val = 0;
 #if (PY_VERSION_HEX < 0x02020000)
-  if (!PyArg_ParseTuple(args,(char *)"O:own",&val))
+  if (!PyArg_ParseTuple(args,(char *)"|O:own",&val))
 #else
   if (!PyArg_UnpackTuple(args, (char *)"own", 0, 1, &val)) 
 #endif
@@ -529,29 +530,39 @@ PySwigObject_own(PyObject *v, PyObject *args)
     }
 }
 
+#ifdef METH_O
+static PyMethodDef
+swigobject_methods[] = {
+  {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_NOARGS,  (char *)"releases ownership of the pointer"},
+  {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_NOARGS,  (char *)"aquires ownership of the pointer"},
+  {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, (char *)"returns/sets ownership of the pointer"},
+  {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_O,       (char *)"appends another 'this' object"},
+  {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_NOARGS,  (char *)"returns the next 'this' object"},
+  {0, 0, 0, 0}  
+};
+#else
+static PyMethodDef
+swigobject_methods[] = {
+  {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_VARARGS,  (char *)"releases ownership of the pointer"},
+  {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_VARARGS,  (char *)"aquires ownership of the pointer"},
+  {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS,  (char *)"returns/sets ownership of the pointer"},
+  {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_VARARGS,  (char *)"appends another 'this' object"},
+  {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_VARARGS,  (char *)"returns the next 'this' object"},
+  {0, 0, 0, 0}  
+};
+#endif
+
+#if PY_VERSION_HEX < 0x02020000
+SWIGINTERN PyObject *
+PySwigObject_getattr(PySwigObject *sobj,char *name)
+{
+  return Py_FindMethod(swigobject_methods, (PyObject *)sobj, name);
+}
+#endif
+
 SWIGRUNTIME PyTypeObject*
 _PySwigObject_type(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
-  static PyMethodDef
-#ifdef METH_O
-    swigobject_methods[] = {
-      {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_NOARGS,  (char *)"releases ownership of the pointer"},
-      {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_NOARGS,  (char *)"aquires ownership of the pointer"},
-      {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, (char *)"returns/sets ownership of the pointer"},
-      {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_O,       (char *)"appends another 'this' object"},
-      {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_NOARGS,  (char *)"returns the next 'this' object"},
-      {0, 0, 0, 0}  
-    };
-#else
-    swigobject_methods[] = {
-      {(char *)"disown",  (PyCFunction)PySwigObject_disown,  METH_VARARGS,  (char *)"releases ownership of the pointer"},
-      {(char *)"acquire", (PyCFunction)PySwigObject_acquire, METH_VARARGS,  (char *)"aquires ownership of the pointer"},
-      {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS,  (char *)"returns/sets ownership of the pointer"},
-      {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_VARARGS,  (char *)"appends another 'this' object"},
-      {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_VARARGS,  (char *)"returns the next 'this' object"},
-      {0, 0, 0, 0}  
-    };
-#endif
   
   static PyNumberMethods PySwigObject_as_number = {
     (binaryfunc)0, /*nb_add*/
@@ -595,8 +606,12 @@ _PySwigObject_type(void) {
 	sizeof(PySwigObject),		    /* tp_basicsize */
 	0,			            /* tp_itemsize */
 	(destructor)PySwigObject_dealloc,   /* tp_dealloc */
-	(printfunc)PySwigObject_print,	    /* tp_print */   
+	(printfunc)PySwigObject_print,	    /* tp_print */
+#if PY_VERSION_HEX < 0x02020000
+	(getattrfunc)PySwigObject_getattr,  /* tp_getattr */ 
+#else
 	(getattrfunc)0,			    /* tp_getattr */ 
+#endif
 	(setattrfunc)0,			    /* tp_setattr */ 
 	(cmpfunc)PySwigObject_compare,	    /* tp_compare */ 
 	(reprfunc)PySwigObject_repr,	    /* tp_repr */    
@@ -606,7 +621,7 @@ _PySwigObject_type(void) {
 	(hashfunc)0,			    /* tp_hash */
 	(ternaryfunc)0,			    /* tp_call */
 	(reprfunc)PySwigObject_str,	    /* tp_str */
-	PyObject_GenericGetAttr,	    /* tp_getattro */
+	0,	                            /* tp_getattro */
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
@@ -769,7 +784,7 @@ _PySwigPacked_type(void) {
 	(hashfunc)0,			    /* tp_hash */	
 	(ternaryfunc)0,			    /* tp_call */	
 	(reprfunc)PySwigPacked_str,	    /* tp_str */	
-	PyObject_GenericGetAttr,            /* tp_getattro */
+	0,                                  /* tp_getattro */
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
