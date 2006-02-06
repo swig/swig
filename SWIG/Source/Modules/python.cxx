@@ -69,6 +69,7 @@ static  int       safecstrings = 0;
 static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
+static  int       fastproxy = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 static  int       castmode = 0;
@@ -99,6 +100,7 @@ Python Options (available with -python)\n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
+     -fastproxy      - Use fast proxy mechanism for member methods \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
@@ -115,6 +117,7 @@ static const char *usage2 = (char *)"\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
+     -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
@@ -132,7 +135,7 @@ static const char *usage2 = (char *)"\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable all the optimizations options: \n\
                          -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual \n\
-                         -noproxydel -fastunpack -modernargs -nobuildnone \n\
+                         -noproxydel -fastproxy -fastunpack -modernargs -nobuildnone \n\
 \n";
 
 class PYTHON : public Language {
@@ -324,6 +327,12 @@ public:
 	} else if (strcmp(argv[i],"-nofastunpack") == 0) {
 	  fastunpack = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-fastproxy") == 0) {
+	  fastproxy = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nofastproxy") == 0) {
+	  fastproxy = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-castmode") == 0) {
 	  castmode = 1;
 	  Swig_mark_arg(i);
@@ -383,6 +392,7 @@ public:
 	  classptr = 0;
 	  proxydel = 0;
 	  fastunpack = 1;
+	  fastproxy = 1;
 	  modernargs = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -2703,12 +2713,13 @@ public:
 	}
       }
       
-      
-      List *shadow_list = Getattr(n,"shadow_methods");
-      for (int i = 0; i < Len(shadow_list); ++i) {
-	String *symname = Getitem(shadow_list,i);
-	Printf(f_shadow_file,"%s.%s = new_instancemethod(%s.%s,None,%s)\n", 
-	       class_name, symname, module, Swig_name_member(class_name,symname), class_name,0);
+      if (fastproxy) {
+	List *shadow_list = Getattr(n,"shadow_methods");
+	for (int i = 0; i < Len(shadow_list); ++i) {
+	  String *symname = Getitem(shadow_list,i);
+	  Printf(f_shadow_file,"%s.%s = new_instancemethod(%s.%s,None,%s)\n", 
+		 class_name, symname, module, Swig_name_member(class_name,symname), class_name,0);
+	}
       }
       Printf(f_shadow_file,"%s.%s_swigregister(%s)\n", module, class_name, class_name,0);
       
@@ -2783,10 +2794,9 @@ public:
 		Delete(shadow_list);
 	      }
 	      Append(shadow_list, symname);
-	    } else {
-	      Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
-	      Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
-	    }
+	    } 
+	    Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
+	    Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
             Printv(f_shadow, "\n", NIL);
