@@ -119,20 +119,22 @@
      This bit should go in arginit if arginit support init-ing scripting args */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
-    if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
-#ifdef __cplusplus
-      ptr=new $*1_ltype;
-#else
-      ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
-#endif
-      $1=&ptr;
-      /* have to passback arg$arg too */
-      force=1;
-    } else {  /* wasn't a pre/ref/thing, OR anything like an int thing */
-      force=0;
-          SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    if (!((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input))) {
+      /* wasn't a pre/ref/thing, OR anything like an int thing */
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $arg of $symname.");
     }
-  } else force=0;
+  }
+  force=0;
+  if (arg1==NULL) {
+#ifdef __cplusplus
+    ptr=new $*1_ltype;
+#else
+    ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
+#endif
+    $1=&ptr;
+    /* have to passback arg$arg too */
+    force=1;
+  }
 }
 %typemap(argout) void **,
                  void *&
