@@ -621,7 +621,7 @@ _PySwigObject_type(void) {
 	(hashfunc)0,			    /* tp_hash */
 	(ternaryfunc)0,			    /* tp_call */
 	(reprfunc)PySwigObject_str,	    /* tp_str */
-	0,	                            /* tp_getattro */
+	PyObject_GenericGetAttr,            /* tp_getattro */
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
@@ -784,7 +784,7 @@ _PySwigPacked_type(void) {
 	(hashfunc)0,			    /* tp_hash */	
 	(ternaryfunc)0,			    /* tp_call */	
 	(reprfunc)PySwigPacked_str,	    /* tp_str */	
-	0,                                  /* tp_getattro */
+	PyObject_GenericGetAttr,            /* tp_getattro */
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
