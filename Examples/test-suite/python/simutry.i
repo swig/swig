@@ -2,16 +2,15 @@
 
 %include "std_vector.i"
 
-%inline
-{
-#include <iostream>
+%inline {
 
 namespace simuPOP
 {
   // some simple pop class
-  struct pop {
+  template <class Type>
+  struct Population {
     int m_a;
-    pop(int a):m_a(a){}
+    Population(int a):m_a(a){}
   };
 
   // base operator, output pop.m_a
@@ -32,8 +31,39 @@ namespace simuPOP
     virtual int func() const 
     { return 2*this->m_pop.m_a; }
   };
+
 }
+
 }
+
+#if 1
+namespace simuPOP
+{
+  %template(population)   Population< std::pair<unsigned long,unsigned long> >;
+}      
+
+%inline 
+{
+  namespace simuPOP
+  {
+    typedef Population< std::pair<unsigned long,unsigned long> > pop;
+  }
+}
+#else
+%inline 
+{
+  namespace simuPOP
+  {
+    //  %template(population)          Population< std::pair<unsigned long,unsigned long> >;
+    
+    struct pop {
+      int m_a;
+      pop(int a):m_a(a){}
+    };
+  }
+}
+#endif
+
 
 namespace simuPOP
 {
