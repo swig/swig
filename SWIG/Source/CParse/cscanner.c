@@ -210,7 +210,7 @@ char nextchar() {
     }
     if (!LEX_in) return 0;
     if (yylen >= YYBSIZE) {
-      Printf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.cxx.\nReport this to swig-dev@cs.uchicago.edu.\n");
+      Printf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.c.\nPlease report to the SWIG developers.\n");
       exit (EXIT_FAILURE);
     }
     yytext[yylen] = c;
