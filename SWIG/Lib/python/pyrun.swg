@@ -290,7 +290,6 @@ PySwigClientData_Del(PySwigClientData* data)
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
-  free(data);
 }
 
 /* =============== PySwigObject =====================*/
@@ -1219,7 +1218,6 @@ SWIG_Python_DestroyModule(void *vptr)
     if (ty->owndata) {
       PySwigClientData *data = (PySwigClientData *) ty->clientdata;
       if (data) PySwigClientData_Del(data);
-      ty->clientdata = 0;
     }
   }
   Py_DECREF(SWIG_This());
