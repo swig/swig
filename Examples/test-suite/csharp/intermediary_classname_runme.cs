@@ -1,3 +1,8 @@
+
+/***********************************************************************************************
+   NOTE: This is a custom testcase and should be run using make intermediary_classname.customtest
+ ***********************************************************************************************/
+
 using System;
 using intermediary_classnameNamespace;
 
