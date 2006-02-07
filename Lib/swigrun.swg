@@ -131,6 +131,7 @@
 #define SWIG_OK                    (0) 
 #define SWIG_ERROR                 (-1)
 #define SWIG_IsOK(r)               (r >= 0)
+#define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)  
 
 /* The CastRankLimit says how many bits are used for the cast rank */
 #define SWIG_CASTRANKLIMIT         (1 << 8)

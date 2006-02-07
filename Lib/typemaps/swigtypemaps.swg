@@ -133,7 +133,7 @@
  * ----------------------------------------------------------------------------- */
 
 #define %error_block(Block...)                 %block(Block)
-#define %default_code(code)                    ((code != SWIG_ERROR) ? code : SWIG_TypeError)  
+#define %default_code(code)                    SWIG_ArgError(code)  
 #define %argument_fail(code, type, name, argn) SWIG_exception_fail(%default_code(code), %argfail_fmt(type, name, argn))
 #define %argument_nullref(type, name, argn)    SWIG_exception_fail(SWIG_ValueError, %argnullref_fmt(type, name, argn))
 #define %variable_fail(code, type, name)       SWIG_exception_fail(%default_code(code), %varfail_fmt(type, name))
