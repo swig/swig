@@ -41,6 +41,7 @@ abstract_virtual.py
 access_change.py
 add_link.py
 aggregate.py
+allowexcept.py
 anonymous_bitfield.py
 argout.py
 array_member.py
@@ -397,6 +398,7 @@ extend_template_runme.py
 extend_template_ns_runme.py
 extend_variable_runme.py
 friends_runme.py
+global_ns_arg_runme.py
 global_vars_runme.py
 grouping_runme.py
 import_nomodule_runme.py
