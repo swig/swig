@@ -18,16 +18,16 @@
 #endif
 %}
 
+class string; // csharp keyword
+namespace std 
+{
+  template <class T>
+    class complex;
+}
+
 %inline 
 {
-  class string; // csharp keyword
   class complex; // python built-in
-
-  namespace std 
-  {
-    template <class T>
-    class complex;
-  }
 
   typedef complex None;  // python built-in
   
