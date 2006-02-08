@@ -765,8 +765,9 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend ) {
       /* we check what director needs. If the method is  pure virtual,
 	 it is  always needed. */ 
-      if (!(directorsEnabled() && is_member_director(CurrentClass,n) && need_nonpublic_member(n)))
+      if (!(directorsEnabled() && Getattr(n,"director")) ) {
 	return SWIG_NOWRAP;
+      }
     }
   }
 

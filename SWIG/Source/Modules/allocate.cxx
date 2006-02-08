@@ -146,17 +146,22 @@ class Allocate : public Dispatcher {
 	    //  3) a non-matching method (ie an overloaded method of some sort)
 	    //  4) a matching method which is not polymorphic, ie it hides the base class' method
 
-	    // Check if fully resolved return types match (including covariant return types)
-	    String *this_returntype = function_return_type(n);
-	    String *base_returntype = function_return_type(base);
-	    returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
+	    // Check if fully resolved return types match (including
+	    // covariant return types)
 	    if (!returntype_match) {
-	      covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
-	      returntype_match = covariant_returntype;
+	      String *this_returntype = function_return_type(n);
+	      String *base_returntype = function_return_type(base);
+	      returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
+	      if (!returntype_match) {
+		covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
+		returntype_match = covariant_returntype;
+	      }
+	      Delete(this_returntype);
+	      Delete(base_returntype);
 	    }
 
 	    // The return types must match at this point, for the whole method to match
-	    if (returntype_match) {
+	    if (returntype_match && !decl_match) {
 	      // Now need to check the parameter list
 	      // First do an inexpensive parameter count
 	      ParmList *this_parms = Getattr(n,"parms");
@@ -181,9 +186,8 @@ class Allocate : public Dispatcher {
 		Delete(this_fn);
 	      }
 	    }
-	    Delete(this_returntype);
-	    Delete(base_returntype);
 	  }
+	  //Printf(stderr,"look %s %s %d %d\n",base_decl, this_decl, returntype_match, decl_match);
 
 	  if (decl_match && returntype_match) {
 	    // Found an identical method in the base class
@@ -283,9 +287,10 @@ class Allocate : public Dispatcher {
       if (is_member_director(classnode, member))
 	virtual_elimination_mode = 0;
       
-      if (function_is_defined_in_bases(member, bases))
+      if (function_is_defined_in_bases(member, bases)) {
 	defined = 1;
-
+      }
+      
       virtual_elimination_mode = old_mode;
     }
 
