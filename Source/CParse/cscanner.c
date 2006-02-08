@@ -365,7 +365,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      Swig_error(cparse_file,cparse_line,"Missing semicolon. Reached end of input.\n");
+      Swig_error(cparse_file,cparse_line - 2,"Missing semicolon. Reached end of input.\n");
       return;
     }
     if (c == '{') {
@@ -379,7 +379,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	Swig_error(cparse_file,cparse_line,"Missing '}'. Reached end of input.\n");
+	Swig_error(cparse_file,cparse_line - 2,"Missing '}'. Reached end of input.\n");
 	return;
       }
       if (c == '{') num_brace++;
@@ -546,6 +546,7 @@ int yylook(void) {
 	    }
 	  }
 	  else if (c == '{') {
+	    cparse_start_line = cparse_line;
 	    last_brace = num_brace;
 	    num_brace++;
 	    return (LBRACE);
