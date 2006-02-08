@@ -1562,7 +1562,7 @@ Preprocessor_parse(String *s)
 	    }
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
-  	    Printf(ns,"\n]");
+  	    StringAppend(ns,"\n]");
 	    if (dirname) {
 	      Swig_pop_directory();
 	    }
