@@ -39,3 +39,13 @@ enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
 enum { AnonEnum1, AnonEnum2 = 100 };
 
 %}
+
+%inline %{
+
+typedef struct _Foo {
+  enum { BAR1, BAR2 } e;
+} Foo;
+
+%}
+
+  

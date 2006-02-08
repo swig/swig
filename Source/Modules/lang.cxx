@@ -1527,7 +1527,7 @@ int Language::enumvalueDeclaration(Node *n) {
     tmpValue = NewString(name);
   Setattr(n, "value", tmpValue);
 
-  if (!CurrentClass) {
+  if (!CurrentClass || !cparse_cplusplus) {
     Setattr(n,"name",tmpValue); /* for wrapping of enums in a namespace when emit_action is used */
     constantWrapper(n);
   } else {

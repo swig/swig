@@ -20,6 +20,7 @@
 char cvsroot_typepass_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
 
 struct normal_node {
     Symtab *symtab;
@@ -726,7 +727,7 @@ class TypePass : private Dispatcher {
     if (!value) value = name;
     if (Strcmp(value,name) == 0) {
       String *new_value;
-      if ((nsname) || (inclass)) {
+      if (((nsname) || (inclass)) && cparse_cplusplus ) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
