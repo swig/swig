@@ -47,12 +47,12 @@ namespace std {
         %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                $1 = std::vector<T >(size);
+                $1;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     T* x;
 		    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
-                    (($1_type &)$1)[i] = *x;
+                    $1.push_back(*x);
                 }
             } else {
 	        void *ptr;
@@ -64,13 +64,12 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     T* x;
                     SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
-                    temp[i] = *x;
+                    temp.push_back(*x);
                 }
             } else {
                 SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);
@@ -141,7 +140,8 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size);
         vector(unsigned int size, const T& value);
         vector(const vector<T> &);
 
@@ -287,7 +287,8 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size);
         vector(unsigned int size, T * &value);
         vector(const vector<T*> &);
 
@@ -433,7 +434,8 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size);
         vector(unsigned int size, const T& value);
         vector(const vector<T> &);
 

@@ -7,7 +7,7 @@
 %ignore std::vector<Flow>::resize(size_type);
 #endif
 
-#if defined(SWIGTCL) || defined(SWIGPERL)
+#if defined(SWIGTCL) || defined(SWIGPERL) || defined(SWIGRUBY) 
 #define SWIG_GOOD_VECTOR
 /* here, for languages with bad declaration */
 %ignore std::vector<Flow>::vector(unsigned int);
