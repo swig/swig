@@ -55,7 +55,12 @@ struct Struct {
   double num;
   Struct() : num(0.0) {}
   Struct(double d) : num(d) {}
-//  bool operator==(const Struct &other) { return (num == other.num); }
+};
+
+struct Structure {
+  double num;
+  Structure() : num(0.0) {}
+  Structure(double d) : num(d) {}
 };
 
 const std::vector<Real> & vecreal(const std::vector<Real> & vec) { return vec; }
@@ -74,6 +79,10 @@ SWIG_STD_VECTOR_SPECIALIZE(Struct, Struct *)
 SWIG_STD_VECTOR_SPECIALIZE(Struct, const Struct *)
 SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, int *)
 SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, const int *)
+
+// Also test non-specialized versions
+%template(StructurePtrVector) std::vector<Structure *>;
+%template(StructureConstPtrVector) std::vector<const Structure *>;
 #endif
 
 %template(IntPtrVector) std::vector<int *>;
