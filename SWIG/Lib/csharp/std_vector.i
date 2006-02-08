@@ -348,6 +348,13 @@ namespace std {
   template<class T> class vector {
     SWIG_STD_VECTOR_MINIMUM(T, T)
   };
+  // specializations for pointers
+  template<class T> class vector<T*> {
+    SWIG_STD_VECTOR_MINIMUM(T, T*)
+  };
+  template<class T> class vector<const T*> {
+    SWIG_STD_VECTOR_MINIMUM(T, const T*)
+  };
 }
 
 // template specializations for std::vector
