@@ -1,5 +1,4 @@
 %module(directors="1",dirprot="1") director_protected
-
 %{
 #include <string>
 #include <iostream>
@@ -89,4 +88,50 @@ class FooBar : private Foo
 };
 
 }
+
+
+%director A;
+%director B;
+
+%inline %{
+  class A {
+  public:
+    A() {};
+    virtual ~A() {};
+  protected:
+    virtual void draw() {};
+  };
+
+  class B : public A {
+  public:
+    B() {};
+    virtual ~B() {};
+  protected:
+    void draw() {};
+    void draw(int arg1) {};
+  };
+
+%}
+
+
+%cleardirector;
+
+%inline %{
+  class AA {
+  public:
+    AA() {};
+    virtual ~AA() {};
+  protected:
+    virtual void draw() {};
+  };
+
+  class BB : public AA {
+  public:
+    BB() {};
+    virtual ~BB() {};
+  protected:
+    void draw() {};
+    void draw(int arg1) {};
+  };
+%}
 
