@@ -1,16 +1,17 @@
 %module ignore_template_constructor
+%include std_vector.i
 
-%include <std_vector.i>
+%ignore std::vector<Flow>::vector(size_type);
+%ignore std::vector<Flow>::resize(size_type);
 
-// Check common problem for vector wrappers - the default constructor is not available, so it must be ignored
-//%feature("ignore") std::vector<Flow>::vector(size_type); // works
-%ignore std::vector<Flow>::vector(size_type); // does not work
 
 %inline %{
+
+
 class Flow {
- Flow() {}
+  Flow() {}
 public:
- Flow(double d) {}
+  Flow(double d) {}
 };
 %}
 

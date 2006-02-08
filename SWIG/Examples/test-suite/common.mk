@@ -49,7 +49,6 @@ LIBPREFIX  = lib
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
-	ignore_template_constructor \
 	namespace_union \
 	nested_comment \
 	overload_complicated \
@@ -155,6 +154,7 @@ CPP_TEST_CASES += \
 	global_vars \
 	grouping \
 	ignore_parameter \
+	ignore_template_constructor \
 	import_nomodule \
 	inherit \
 	inherit_missing \
