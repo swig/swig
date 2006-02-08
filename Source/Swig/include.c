@@ -273,9 +273,8 @@ Swig_read_file(FILE *f) {
 
   assert(str);
   while (fgets(buffer,4095,f)) {
-    Append(str,buffer);
+    StringAppend(str,buffer);
   }
-  /* Append(str,"\n"); */
   return str;
 }
 
