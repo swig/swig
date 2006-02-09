@@ -256,7 +256,7 @@ static int NAME(TYPE x) {
 %define %$isenum         "match"="enum"  %enddef
 %define %$isenumitem     "match"="enumitem"  %enddef
 %define %$isaccess       "match"="access"   %enddef
-%define %$isclass        "match"="class"   %enddef
+%define %$isclass        "match"="class","notmatch$template$templatetype"="class"   %enddef
 %define %$isextend       "match"="extend"  %enddef
 %define %$isextend       "match"="extend"  %enddef
 %define %$isconstructor  "match"="constructor"  %enddef
