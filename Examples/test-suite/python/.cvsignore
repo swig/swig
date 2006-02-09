@@ -122,6 +122,7 @@ global_ns_arg.py
 global_vars.py
 grouping.py
 ignore_parameter.py
+ignore_template_constructor.py
 import_nomodule.py
 inherit.py
 inherit_missing.py
