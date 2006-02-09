@@ -85,3 +85,13 @@ public:
 };
 
 %}
+
+%inline 
+{
+  template <class _Type>
+  struct A 
+  {
+  };
+}
+
+%template(A_i) A<int>;
