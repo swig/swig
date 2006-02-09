@@ -519,7 +519,7 @@ SWIG_From##CharName##Array(const Char *cptr, size_t size)
 }
 
 %fragment("SWIG_As" #CharName "Ptr","header",fragment=#SWIG_AsCharPtrAndSize) {
-  %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_AsCharPtrAndSize(obj, val, NULL, alloc))
+%define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_AsCharPtrAndSize(obj, val, NULL, alloc))
 }
 
 %fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize) {
