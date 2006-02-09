@@ -1530,12 +1530,7 @@ declaration    : swig_directive { $$ = $1; }
                | error {
                   $$ = 0;
 		  if (!Swig_error_count()) {
-		    static int last_error_line = -1;
-		    if (last_error_line != cparse_line) {
-		      Swig_error(cparse_file, cparse_line,"Syntax error in input(1).\n");
-		      last_error_line = cparse_line;
-		      skip_decl();
-		    }
+		    Swig_error(cparse_file, cparse_line,"Syntax error in input(1).\n");
 		  }
                }
 /* Out of class constructor/destructor declarations */
@@ -3087,7 +3082,9 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		      }
 		    }
 		    if (err) {
-		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
+		      if (!Swig_error_count()) {
+			Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
+		      }
 		    }
                 }
                 ;
@@ -3904,14 +3901,11 @@ cpp_members  : cpp_member cpp_members {
 	     }
              | empty { $$ = 0;}
 	     | error {
+	       int start_line = cparse_line;
 	       skip_decl();
-		   {
-		     static int last_error_line = -1;
-		     if (last_error_line != cparse_line) {
-		       Swig_error(cparse_file, cparse_line,"Syntax error in input(3).\n");
-		       last_error_line = cparse_line;
-		     }
-		   }
+	       if (!Swig_error_count()) {
+		 Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
+	       }
 	     } cpp_members { 
                 $$ = $3;
              }

@@ -881,13 +881,18 @@ expand_macro(String *name, List *args)
     copy_location(macro,e);
     g = Preprocessor_parse(e);
 
-    /* Drop the macro in place, but with a marker around it */
 #if 0
+    /* Drop the macro in place, but with a marker around it */
     Printf(f,"/*@%s,%d,%s@*/%s/*@@*/", Getfile(macro), Getline(macro), name, g);
 #else
-    Append(f,g);
+    /* Use simplified around markers to properly count lines in cscanner.c */
+    if (strstr(Char(g),"\n")) {
+      Printf(f,"/*@SWIG:%s@*/%s/*@SWIG@*/", name, g);
+    } else {
+      StringAppend(f,g);
+    }
 #endif
-    /*    Printf(f," }\n"); */
+
     Delete(g);
     Delete(e);
     e = f;

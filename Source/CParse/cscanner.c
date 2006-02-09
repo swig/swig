@@ -41,6 +41,7 @@ static int     yylen = 0;
 int            cparse_line = 1;
 char          *cparse_file;
 int            cparse_start_line = 0;
+
 static  int    comment_start;
 static  int    scan_init  = 0;
 static  int    num_brace = 0;
@@ -49,7 +50,7 @@ static  int    last_id = 0;
 static  int    rename_active = 0;
 static  int    swigtemplate_active = 0;
         int    cparse_cplusplus = 0;
-
+static  int    expanding_macro = 0;
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
  * ----------------------------------------------------------------------------- */
@@ -66,6 +67,22 @@ Swig_cparse_cplusplus(int v) {
  * @filename,line,id@ emitted by the SWIG preprocessor.  They
  * are primarily used for macro line number reporting 
  * ---------------------------------------------------------------------- */
+#if 1
+
+/* we just use the locator to mark when active/deactive the linecounting */
+
+static void
+scanner_locator(String *loc) {
+  if (Equal(loc,"@SWIG@"))  {    
+    /* End locator. */
+    expanding_macro = 0;
+  } else {
+    /* Begin locator. */
+    expanding_macro = 1;
+  }
+}
+
+#else
 
 typedef struct Locator {
   char           *filename;
@@ -133,6 +150,7 @@ scanner_locator(String *loc) {
     Delete(fn);
   }
 }
+#endif
 
 /**************************************************************
  * scanner_init()
@@ -216,7 +234,7 @@ char nextchar() {
     yytext[yylen] = c;
     yylen++;
     if (c == '\n') {
-      cparse_line++;
+      if (!expanding_macro) cparse_line++;
     }
     return(c);
 }
@@ -228,7 +246,7 @@ void retract(int n) {
     if (yylen >= 0) {
       Ungetc(yytext[yylen],LEX_in);
       if (yytext[yylen] == '\n') {
-	cparse_line--;
+	if (!expanding_macro)  cparse_line--;
       }
     }
   }
@@ -304,7 +322,7 @@ skip_balanced(int startchar, int endchar) {
       case 0:
 	if (c == startchar) num_levels++;
 	else if (c == endchar) num_levels--;
-	    else if (c == '/') state = 10;
+	else if (c == '/') state = 10;
 	else if (c == '\"') state = 20;
 	else if (c == '\'') state = 30;
 	break;
@@ -362,10 +380,15 @@ skip_balanced(int startchar, int endchar) {
 
 void skip_decl(void) {
   char c;
-  int  done = 0;
+  int  done = 0;  
+  int start_line = cparse_line;
+
   while (!done) {
     if ((c = nextchar()) == 0) {
-      Swig_error(cparse_file,cparse_line - 2,"Missing semicolon. Reached end of input.\n");
+      if (!Swig_error_count()) {
+	Swig_error(cparse_file,start_line - 1,"Missing semicolon. Reached end of input.\n");
+      }
+      
       return;
     }
     if (c == '{') {
@@ -379,7 +402,9 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	Swig_error(cparse_file,cparse_line - 2,"Missing '}'. Reached end of input.\n");
+	if (!Swig_error_count()) {
+	  Swig_error(cparse_file,start_line - 1,"Missing '}'. Reached end of input.\n");
+	}
 	return;
       }
       if (c == '{') num_brace++;
@@ -662,20 +687,17 @@ int yylook(void) {
 	    Putc(c,comment);
 	    state = 13;
 	  } else if (c == '/') {
-
 	    /* Look for locator markers */
-	    if (0) {
-	      char *loc = Char(comment);
-	      if (Len(comment)) {
-		if ((*loc == '@') && (*(loc+Len(comment)-1) == '@')) {
-		  /* Locator */
-		  scanner_locator(comment);
-		}
-	      }
+	    char *loc = Char(comment);
+	    if (loc && (strncmp(loc,"@SWIG",4) == 0)&& (*(loc+Len(comment)-1) == '@')) {
+	      /* Locator */
+	      scanner_locator(comment);
+	      Clear(comment);
+	      state = 0;
+	    } else {
+	      yylen = 0;
+	      state = 0;
 	    }
-	    /*	    yycomment(Char(comment),comment_start,column_start); */
-	    yylen = 0;
-	    state = 0;
 	  } else {
 	    Putc('*',comment);
 	    Putc(c,comment);
