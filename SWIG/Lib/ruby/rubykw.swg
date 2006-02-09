@@ -6,8 +6,7 @@
 
 /*
 
-   from
-   http://www.ruby-lang.org/en/man-1.4/syntax.html#resword
+   from http://www.rubycentral.com/book/language.html
 
 */
 
