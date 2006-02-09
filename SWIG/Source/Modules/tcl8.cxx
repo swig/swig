@@ -672,6 +672,7 @@ public:
     String *tm;
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
+    if (nspace) Setattr(n,"sym:name",nsname);
 
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
