@@ -17,7 +17,8 @@ CPP_TEST_CASES = \
 	primitive_types \
 	li_cdata \
 	li_cstring \
-	naming
+	naming \
+	keywords
 
 C_TEST_CASES += \
 	li_cdata \
