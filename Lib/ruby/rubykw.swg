@@ -2,9 +2,7 @@
 #define __ruby_rubykw_swg__
 
 /* Warnings for Ruby keywords */
-#define RUBYKW(x) %keywordwarn("'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s")  `x`
-#define RUBYBN(x) %builtinwarn("'" `x` "' is a built-in name")  "::"`x`
-
+#define RUBYKW(x) %keywordwarn("'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s",fullname=1)  `x`
 
 /*
 
@@ -14,44 +12,44 @@
 */
 
 RUBYKW(BEGIN);
-RUBYKW(class);
-RUBYKW(ensure);
-RUBYKW(nil);
-RUBYKW(self);
-RUBYKW(when);
 RUBYKW(END);
-RUBYKW(def);
-RUBYKW(false);
-RUBYKW(not);
-RUBYKW(super);
-RUBYKW(while);
 RUBYKW(alias);
-RUBYKW(for);
-RUBYKW(or);
-RUBYKW(then);
-RUBYKW(yield);
 RUBYKW(and);
-RUBYKW(do);
-RUBYKW(if);
-RUBYKW(redo);
-RUBYKW(true);
-RUBYKW(else);
-RUBYKW(in);
-RUBYKW(rescue);
-RUBYKW(undef);
+RUBYKW(begin);
 RUBYKW(break);
-RUBYKW(elsif);
-RUBYKW(module);
-RUBYKW(retry);
-RUBYKW(unless);
 RUBYKW(case);
-RUBYKW(next);
-RUBYKW(return);
-RUBYKW(until);
+RUBYKW(class);
+RUBYKW(def);
 RUBYKW("defined");
+RUBYKW(do);
+RUBYKW(else);
+RUBYKW(elsif);
+RUBYKW(end);
+RUBYKW(ensure);
+RUBYKW(false);
+RUBYKW(for);
+RUBYKW(if);
+RUBYKW(in);
+RUBYKW(module);
+RUBYKW(next);
+RUBYKW(nil);
+RUBYKW(not);
+RUBYKW(or);
+RUBYKW(redo);
+RUBYKW(rescue);
+RUBYKW(retry);
+RUBYKW(return);
+RUBYKW(self);
+RUBYKW(super);
+RUBYKW(then);
+RUBYKW(true);
+RUBYKW(undef);
+RUBYKW(unless);
+RUBYKW(until);
+RUBYKW(when);
+RUBYKW(while);
+RUBYKW(yield);
 
-RUBYBN(begin);
-RUBYBN(end);
 
 #undef RUBYKW
 

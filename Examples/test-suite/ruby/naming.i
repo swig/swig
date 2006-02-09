@@ -82,6 +82,16 @@ public:
 	{
 		return true;
 	}
+  int begin() 
+  {
+    return 1;
+  }
+
+  int end() 
+  {
+    return 1;
+  }
+  
 };
 
 %}
