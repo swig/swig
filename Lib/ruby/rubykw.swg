@@ -3,6 +3,7 @@
 
 /* Warnings for Ruby keywords */
 #define RUBYKW(x) %keywordwarn("'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s")  `x`
+#define RUBYBN(x) %builtinwarn("'" `x` "' is a built-in name")  "::"`x`
 
 
 /*
@@ -34,7 +35,6 @@ RUBYKW(do);
 RUBYKW(if);
 RUBYKW(redo);
 RUBYKW(true);
-RUBYKW(begin);
 RUBYKW(else);
 RUBYKW(in);
 RUBYKW(rescue);
@@ -45,11 +45,13 @@ RUBYKW(module);
 RUBYKW(retry);
 RUBYKW(unless);
 RUBYKW(case);
-RUBYKW(end);
 RUBYKW(next);
 RUBYKW(return);
 RUBYKW(until);
 RUBYKW("defined");
+
+RUBYBN(begin);
+RUBYBN(end);
 
 #undef RUBYKW
 
