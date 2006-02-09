@@ -2396,7 +2396,7 @@ class JAVA : public Language {
         value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
       } else {
         // Get the enumvalue from a JNI call
-        if (!getCurrentClass()) {
+        if (!getCurrentClass() || !cparse_cplusplus) {
           // Strange hack to change the name
           Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
           constantWrapper(n);
