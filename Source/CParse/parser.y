@@ -879,7 +879,7 @@ static String *resolve_node_scope(String *cname) {
 	Delete(nname);
       }
       if (ns) {
-	/* we will to try to create a new node using the namespaces we
+	/* we will try to create a new node using the namespaces we
 	   can find in the scope name */
 	List *scopes;
 	String *sname;
@@ -2509,7 +2509,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified.  We need to create or lookup namespace entries */
-		  $5 = resolve_node_scope($5);
+		  if (!inclass) {
+		    $5 = resolve_node_scope($5);
+		  }
 
 		  /*
 		    we use the new namespace entry 'nscope' only to
