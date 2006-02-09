@@ -98,9 +98,7 @@
 #define %block(Block...)    %begin_block Block; %end_block
 
 /* define a new macro */
-%define %define_as(Def, Val...)
-%#define Def Val
-%enddef
+%define %define_as(Def, Val...)%#define Def Val %enddef
 
 /* include C++ or else value */
 %define %ifcplusplus(cppval, nocppval)
@@ -114,7 +112,7 @@ nocppval
 /* insert the SWIGVERSION in the interface and the wrapper code */
 #if SWIG_VERSION
 %insert("header") {
-  %define_as(SWIGVERSION,  SWIG_VERSION)
+%define_as(SWIGVERSION,  SWIG_VERSION)
 }
 #endif  
 
@@ -148,8 +146,8 @@ nocppval
 #define %as_voidptrptr(a)            SWIG_as_voidptrptr(a)
 
 %insert("header") {
-  %define_as(SWIG_as_voidptr(a),    %const_cast(%static_cast(a,const void *), void *))
-  %define_as(SWIG_as_voidptrptr(a), ((void)%as_voidptr(*a),%reinterpret_cast(a, void**)))
+%define_as(SWIG_as_voidptr(a),    %const_cast(%static_cast(a,const void *), void *))
+%define_as(SWIG_as_voidptrptr(a), ((void)%as_voidptr(*a),%reinterpret_cast(a, void**)))
 }
 
 
