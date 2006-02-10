@@ -82,3 +82,6 @@
 #ifdef Stat
   #undef Stat
 #endif
+#ifdef check
+  #undef check
+#endif
