@@ -2384,8 +2384,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 			     --len; ++cstr; 
 			     if (len && cstr[len - 1] == '}') { --len; }
 			     /* we now remove the extra spaces */
-			     while (len && isspace(cstr[0])) { --len; ++cstr; }
-			     while (len && isspace(cstr[len - 1])) { --len; }
+			     while (len && isspace((int)cstr[0])) { --len; ++cstr; }
+			     while (len && isspace((int)cstr[len - 1])) { --len; }
 			     code = NewStringWithSize(cstr, len);
 			     break;
 			   }
