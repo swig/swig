@@ -102,6 +102,7 @@ global_ns_arg
 global_vars
 grouping
 ignore_parameter
+ignore_template_constructor
 immutable
 import_nomodule
 imports
