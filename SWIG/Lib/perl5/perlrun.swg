@@ -165,6 +165,10 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 
 /* Add in functionality missing in older versions of Perl. Much of this is based on Devel-PPPort on cpan. */
 
+#ifndef SvIOK_UV
+# define SvIOK_UV(sv)       (SvIOK(sv) && (SvUVX(sv) == SvIVX(sv)))
+#endif
+
 #ifndef SvUOK
 # define SvUOK(sv)           SvIOK_UV(sv)
 #endif
