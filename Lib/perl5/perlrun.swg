@@ -159,22 +159,7 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 #endif
 #endif
 
-#if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
-#define PerlIO_exportFILE(fh,fl) (FILE*)(fh)
-#endif
-
-
-/* Add in functionality missing in older versions of Perl. Much of this is based on Devel-PPPort on cpan. */
-
-#ifndef SvIOK_UV
-# define SvIOK_UV(sv)       (SvIOK(sv) && (SvUVX(sv) == SvIVX(sv)))
-#endif
-
-#ifndef SvUOK
-# define SvUOK(sv)           SvIOK_UV(sv)
-#endif
-
-/* Salvador's workaround for bug in perl 5.6.x croak and below*/
+/* Workaround for bug in perl 5.6.x croak and earlier */
 #if !defined(PERL_VERSION) || (PERL_VERSION < 8)
 #  ifdef PERL_OBJECT
 #    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
@@ -195,7 +180,21 @@ static void SWIG_croak_null()
 #define SWIG_croak_null() croak(Nullch)
 #endif
 
-/* Fix for old Perls (except 5.005_04...) */
+
+/* Add in functionality missing in older versions of Perl. Much of this is based on Devel-PPPort on cpan. */
+
+#if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
+#define PerlIO_exportFILE(fh,fl) (FILE*)(fh)
+#endif
+
+#ifndef SvIOK_UV
+# define SvIOK_UV(sv)       (SvIOK(sv) && (SvUVX(sv) == SvIVX(sv)))
+#endif
+
+#ifndef SvUOK
+# define SvUOK(sv)           SvIOK_UV(sv)
+#endif
+
 #if !((PATCHLEVEL == 5) && (SUBVERSION == 4))
 # ifndef PL_markstack_ptr
 #  define PL_markstack_ptr Perl_markstack_ptr
