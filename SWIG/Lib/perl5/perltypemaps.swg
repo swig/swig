@@ -52,9 +52,7 @@
 /* Complete overload of the output/constant/exception macros */
 
 /* output */
-%define %set_output(obj) 
-  $result = obj;
-  argvi++ %enddef
+%define %set_output(obj) $result = obj; argvi++ %enddef
 
 /* append output */
 %define %append_output(obj)              
@@ -75,9 +73,7 @@
 %end_block %enddef
 
 /* raise exception */
-%define %raise(obj, type, desc)
-  sv_setsv(GvSV(PL_errgv), obj); 
-  SWIG_fail %enddef
+%define %raise(obj, type, desc) sv_setsv(GvSV(PL_errgv), obj); SWIG_fail %enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

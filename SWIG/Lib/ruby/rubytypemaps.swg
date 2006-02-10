@@ -41,9 +41,7 @@
 #define SWIG_SetConstant(name, obj)      rb_define_const($module, name, obj)
 
 /* raise */
-%define SWIG_Raise(obj, type, desc)
-	VALUE exc = SWIG_Ruby_ExceptionType(desc, obj);
-	rb_exc_raise(exc)%enddef
+#define SWIG_Raise(obj, type, desc)      rb_exc_raise(SWIG_Ruby_ExceptionType(desc, obj)) 
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
