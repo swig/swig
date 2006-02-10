@@ -241,3 +241,29 @@ public:
   
 }
 
+%rename(FLACFile) TagLib::FLAC::File;
+
+%inline {
+namespace TagLib
+{
+  class File {
+  public:
+    File() {}
+  };
+  class AudioProperties { };
+  
+  namespace FLAC
+  {
+    class File;
+    class Properties : public AudioProperties  {
+    public:
+      Properties(File *) {}
+    };
+
+    class File {
+    public:
+      File() {}
+    };
+  }
+}
+}
