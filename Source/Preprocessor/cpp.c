@@ -1763,7 +1763,7 @@ Preprocessor_parse(String *s)
 		  Seek(value,0,SEEK_SET);
 		  Preprocessor_define(value,1);
 		}
-		StringPutc('\n',ns);
+		/* StringPutc('\n',ns);*/
 		addline(ns,value,0);
 		state = 0;
 	      }

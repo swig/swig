@@ -499,9 +499,7 @@ namespace std {
 
 /* Macro for overload resolution */
 
-%define %typecheck(_x...) 
-%typemap(typecheck, precedence=_x)
-%enddef
+%define %typecheck(_x...) %typemap(typecheck, precedence=_x) %enddef
 
 /* Macros for precedence levels */
 

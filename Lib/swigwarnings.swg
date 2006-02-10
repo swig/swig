@@ -32,31 +32,29 @@
   as described above.
 */
 
+/* -----------------------------------------------------------------------------
+ * SWIG warning codes
+ * ----------------------------------------------------------------------------- */
+
 %include <swigwarn.swg>
-
-
 
 /* -----------------------------------------------------------------------------
  * Auxiliar macros
  * ----------------------------------------------------------------------------- */
 
 /* Macro to define warning messages */
-%define %_warningmsg(Val, Msg...) `Val`":"Msg %enddef
-%define %warningmsg(Val, Msg...) %_warningmsg(Val, Msg) %enddef
+#define %_warningmsg(Val, Msg...) `Val`":"Msg 
+#define %warningmsg(Val, Msg...) %_warningmsg(Val, Msg)
 
 /* Macro to define warning macros */
-%define %_warningmacro(Def, Val, Msg)
-%define Def %warningmsg(Val, Msg)  %enddef
-%enddef
-%define %warningmacro(x,msg) 
-%_warningmacro(x##_MSG, x, msg)
-%enddef
+%define %_warningmacro(Def, Val, Msg) %define Def %warningmsg(Val, Msg) %enddef %enddef
+#define %warningmacro(x,msg) %_warningmacro(x##_MSG, x, msg)
 
 /* -----------------------------------------------------------------------------
  *  Define typemap macro messages
  * ----------------------------------------------------------------------------- */
 
-%define %typemapmsg(TMap, msg) %warningmacro(SWIGWARN_TYPEMAP_##TMap,msg) %enddef  
+#define %typemapmsg(TMap, msg) %warningmacro(SWIGWARN_TYPEMAP_##TMap,msg)
 
 %typemapmsg(CHARLEAK,        "Setting a const char * variable may leak memory.")
 %typemapmsg(SWIGTYPELEAK,    "Setting a pointer/reference variable may leak memory.");
@@ -73,13 +71,12 @@
  *  Define operator warning macro messages 
  * ----------------------------------------------------------------------------- */
 
-%define %ignoreopermsg(Oper, msg) %warningmacro(SWIGWARN_IGNORE_OPERATOR_##Oper,msg) %enddef  
+#define %ignoreopermsg(Oper, msg) %warningmacro(SWIGWARN_IGNORE_OPERATOR_##Oper,msg) 
 
 %ignoreopermsg(NEW,       "operator new ignored");
 %ignoreopermsg(DELETE,    "operator delete ignored");
 %ignoreopermsg(NEWARR,    "operator new[] ignored");
 %ignoreopermsg(DELARR,    "operator delete[] ignored");
-
 %ignoreopermsg(PLUS,      "operator+ ignored");
 %ignoreopermsg(MINUS,     "operator- ignored");
 %ignoreopermsg(MUL,       "operator* ignored");
@@ -109,14 +106,14 @@
 %ignoreopermsg(OREQ,      "operator|= ignored");
 %ignoreopermsg(XOREQ,     "operator^= ignored");
 
-%define %ignoreoperator(Oper) %ignorewarn(SWIGWARN_IGNORE_OPERATOR_##Oper##_MSG) %enddef
+#define %ignoreoperator(Oper) %ignorewarn(SWIGWARN_IGNORE_OPERATOR_##Oper##_MSG)
 
 /* -----------------------------------------------------------------------------
  * Macros for keyword and built-in names 
  * ----------------------------------------------------------------------------- */
 
-%define %keywordwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_KEYWORD, msg)) %enddef  
-%define %builtinwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, msg)) %enddef  
+#define %keywordwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_KEYWORD, msg)) 
+#define %builtinwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, msg))
 
 
 /* -----------------------------------------------------------------------------

@@ -5,10 +5,7 @@
 
 #ifdef __cplusplus
 
-%define %pybinoperator(pyname,oper) 
-%rename(pyname) oper;
-%pythonmaybecall oper;
-%enddef
+#define %pybinoperator(pyname,oper) %rename(pyname) oper; %pythonmaybecall oper
 
 %pybinoperator(__add__,      *::operator+);
 %pybinoperator(__pos__,      *::operator+());
@@ -55,7 +52,7 @@
   disabling the ownership of the input 'self' pointer, and assigning
   it to the returning object:  
 
-     %feature("self:disown") *::Operator;
+     %feature("del") *::Operator;
      %feature("new") *::Operator;
   
   This makes the most common case safe, ie:
@@ -75,22 +72,18 @@
   that never get deleted (maybe, not sure, it depends). But if that is
   the case, you could recover the old behaviour using
 
-     %feature("self:disown","") A::operator+=;
+     %feature("del","") A::operator+=;
      %feature("new","") A::operator+=;
 
   which recovers the old behaviour for the class 'A', or if you are
   100% sure your entire system works fine in the old way, use:
 
-    %feature("self:disown","") *::operator+=;
+    %feature("del","") *::operator+=;
     %feature("new","") *::operator+=;
 
 */
 
-%define %pyinplaceoper(PyOper, Oper)
-%feature("self:disown") Oper;
-%feature("new") Oper;
-%rename(PyOper) Oper;
-%enddef
+#define %pyinplaceoper(PyOper, Oper) %delobject Oper; %newobject Oper; %rename(PyOper) Oper
 
 %pyinplaceoper(__iadd__   , *::operator +=);
 %pyinplaceoper(__isub__   , *::operator -=);
@@ -107,10 +100,7 @@
 /* Finally, in python we need to mark the binary operations to fail as
  'maybecall' methods */
 
-%define %pybinopermaybecall(oper)
-%pythonmaybecall __ ## oper ## __;
-%pythonmaybecall __r ## oper ## __;
-%enddef
+#define %pybinopermaybecall(oper) %pythonmaybecall __ ## oper ## __;  %pythonmaybecall __r ## oper ## __
 
 %pybinopermaybecall(add);
 %pybinopermaybecall(pos);
