@@ -239,17 +239,17 @@ TClass<int>::scientiststd3                  scientistsNameSpaceTestL(TClass<int>
 
 // %rename tests
 %rename(NewNameStruct) OldNameStruct;
-%rename(newname) oldname;
+%rename(newname) old_name;
 %rename(doublenamerenamed) doublename;
 %rename(simplerenamed) simple;
 %rename(singlenamerenamed) singlename;
 %rename(bang) OldNameStruct::kerboom;
 
 %inline %{
-enum oldname { argh, eek = -1 };
-typedef oldname oldnametd;
-oldname                             renameTest1(oldname e) { return e; }
-oldnametd                           renameTest2(oldnametd e) { return e; }
+enum old_name { argh, eek = -1 };
+typedef old_name old_nametd;
+old_name                            renameTest1(old_name e) { return e; }
+old_nametd                          renameTest2(old_nametd e) { return e; }
 
 struct OldNameStruct {
   enum enumeration {whizz, kerboom, pop};
