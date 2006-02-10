@@ -725,7 +725,7 @@ public:
 	   "XSRETURN(argvi);\n",
 	   "fail:\n",
 	   cleanup,
-	   "croak(Nullch);\n"
+	   "SWIG_croak_null();\n"
 	   "}\n"
 	   "}\n",
 	   NIL);

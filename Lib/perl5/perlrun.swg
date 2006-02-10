@@ -90,6 +90,7 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "patchlevel.h"
 
 #ifndef pTHX_
 #define pTHX_
@@ -173,8 +174,32 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 # define SvUOK(sv)           SvIOK_UV(sv)
 #endif
 
-#ifndef PL_markstack_ptr
+/* Salvador's workaround for bug in perl 5.6.x croak and below*/
+#if !defined(PERL_VERSION) || (PERL_VERSION < 8)
+#  ifdef PERL_OBJECT
+#    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
+static void SWIG_Perl_croak_null(CPerlObj *pPerl)
+#  else
+static void SWIG_croak_null()
+#  endif
+{
+  SV *err=ERRSV;
+#  if !defined(PERL_VERSION) || (PERL_VERSION < 6)
+  croak("%_", err);
+#  else
+  if (SvOK(err) && !SvROK(err)) croak("%_", err);
+  croak(Nullch);
+#  endif
+}
+#else
+#define SWIG_croak_null() croak(Nullch)
+#endif
+
+/* Fix for old Perls (except 5.005_04...) */
+#if !((PATCHLEVEL == 5) && (SUBVERSION == 4))
+# ifndef PL_markstack_ptr
 #  define PL_markstack_ptr Perl_markstack_ptr
+# endif
 #endif
 
 #if !defined(PERL_REVISION) || ((PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5)))
