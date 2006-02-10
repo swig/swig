@@ -507,24 +507,25 @@ typedef_resolve(Typetab *s, String *base) {
       resolved_scope = s;
       Setmark(s,0);
     } else {
-      /* Hmmm. Not found in my scope.  It could be in an inherited scope */
-      inherit = Getattr(s,k_inherit);
-      if (inherit) {
-        int i,len;
-        len = Len(inherit);
-        for (i = 0; i < len; i++) {
-          type = typedef_resolve(Getitem(inherit,i), base);
-          if (type) {
-            Setmark(s,0);
-            break;
-          }
-        }
-      }
+      /* Hmmm. Not found in my scope.  check parent */
+      parent = Getattr(s,k_parent);
+      type = parent ? typedef_resolve(parent, base) : 0;
       if (!type) {
-        parent = Getattr(s,k_parent);
-        type = parent ? typedef_resolve(parent, base) : 0;
-        Setmark(s,0);
+	/* Hmmm. Not found in my scope.  It could be in an inherited scope */
+	inherit = Getattr(s,k_inherit);
+	if (inherit) {
+	  int i,len;
+	  len = Len(inherit);
+	  for (i = 0; i < len; i++) {
+	    type = typedef_resolve(Getitem(inherit,i), base);
+	    if (type) {
+	      Setmark(s,0);
+	      break;
+	    }
+	  }
+	}
       }
+      Setmark(s,0);
     }
   }
   return type;
