@@ -236,9 +236,7 @@ SWIG_CanCastAsInteger(double *d, double min, double max) {
  * Generate the typemaps for primitive type 
  * ------------------------------------------------------------ */
 
-%define %typemaps_primitive(Code, Type)
-  %typemaps_asvalfromn(%arg(Code), Type);
-%enddef
+#define %typemaps_primitive(Code, Type) %typemaps_asvalfromn(%arg(Code), Type)
 
 /* ------------------------------------------------------------
  * Primitive Type Macros
@@ -248,9 +246,9 @@ SWIG_CanCastAsInteger(double *d, double min, double max) {
 
 %define _apply_macro(macro, arg2, arg1...)
 #if #arg1 != ""
-  macro(%arg(arg1),arg2);
+macro(%arg(arg1),arg2);
 #else
-  macro(arg2);
+macro(arg2);
 #endif
 %enddef
 
@@ -276,9 +274,8 @@ _apply_macro(Macro, ptrdiff_t          , Arg2);
 %enddef
 
 /* apply the Macro2(Type1, Type2) to all  C types  */
-%define %apply_ctypes_2(Macro2)
-%apply_ctypes(%apply_ctypes, Macro2)
-%enddef
+#define %apply_ctypes_2(Macro2) %apply_ctypes(%apply_ctypes, Macro2)
+
 
 /* apply the Macro(Type) to all  C++ types  */
 %define %apply_cpptypes(Macro, Arg2...)
@@ -291,9 +288,7 @@ _apply_macro(Macro, std::complex<double>, Arg2);
 %enddef
 
 /* apply the Macro2(Type1, Type2) to all  C++ types  */
-%define %apply_cpptypes_2(Macro2)
-%apply_cpptypes(%apply_cpptypes, Macro2)
-%enddef
+#define %apply_cpptypes_2(Macro2) %apply_cpptypes(%apply_cpptypes, Macro2)
 
 /* apply the Macro2(CheckCode,Type) to all  Checked Types */
 %define %apply_checkctypes(Macro2)

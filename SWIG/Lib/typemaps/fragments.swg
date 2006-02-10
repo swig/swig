@@ -412,13 +412,11 @@ SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
 }
 %enddef
 
-%define %numeric_signed_type_asval(Type, Base, Frag, Min, Max)
+#define %numeric_signed_type_asval(Type, Base, Frag, Min, Max) \
 %numeric_type_asval(Type, Base, Frag, (v < Min || v > Max))
-%enddef
 
-%define %numeric_unsigned_type_asval(Type, Base, Frag, Max)
+#define %numeric_unsigned_type_asval(Type, Base, Frag, Max) \
 %numeric_type_asval(Type, Base, Frag, (v > Max))
-%enddef
 
 
 /* Macro for 'signed long' derived types */
