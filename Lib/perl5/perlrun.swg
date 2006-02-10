@@ -95,15 +95,6 @@ extern "C" {
 #define pTHX_
 #endif   
 
-#ifndef PTR2IV
-# define PTR2IV(d) (IV)(d)
-#endif
- 
-#ifndef INT2PTR
-# define INT2PTR(any,d) (any)(d)
-#endif
-
-
 #include <string.h>
 #ifdef __cplusplus
 }
@@ -171,23 +162,62 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 #define PerlIO_exportFILE(fh,fl) (FILE*)(fh)
 #endif
 
-/* Modifications for newer Perl 5.005 releases */
 
-#if !defined(PERL_REVISION) || ((PERL_REVISION >= 5) && ((PERL_VERSION < 5) || ((PERL_VERSION == 5) && (PERL_SUBVERSION < 50))))
-#  ifndef PL_sv_yes
-#    define PL_sv_yes sv_yes
-#  endif
-#  ifndef PL_sv_undef
-#    define PL_sv_undef sv_undef
-#  endif
-#  ifndef PL_na
-#    define PL_na na
-#  endif
-#endif
+/* Add in functionality missing in older versions of Perl. Much of this is based on Devel-PPPort on cpan. */
 
 #ifndef SvUOK
 # define SvUOK(sv)           SvIOK_UV(sv)
 #endif
+
+#ifndef PL_markstack_ptr
+#  define PL_markstack_ptr Perl_markstack_ptr
+#endif
+
+#if !defined(PERL_REVISION) || ((PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5)))
+#  define PL_sv_undef               sv_undef
+#  define PL_na	                    na
+#  define PL_errgv                  errgv
+#  define PL_sv_no                  sv_no
+#  define PL_sv_yes                 sv_yes
+#endif
+
+#ifndef IVSIZE
+#  ifdef LONGSIZE
+#    define IVSIZE LONGSIZE
+#  else
+#    define IVSIZE 4 /* A bold guess, but the best we can make. */
+#  endif
+#endif
+
+#ifndef INT2PTR
+#  if (IVSIZE == PTRSIZE) && (UVSIZE == PTRSIZE)
+#    define PTRV                  UV
+#    define INT2PTR(any,d)        (any)(d)
+#  else
+#    if PTRSIZE == LONGSIZE
+#      define PTRV                unsigned long
+#    else
+#      define PTRV                unsigned
+#    endif
+#    define INT2PTR(any,d)        (any)(PTRV)(d)
+#  endif
+
+#  define NUM2PTR(any,d)  (any)(PTRV)(d)
+#  define PTR2IV(p)       INT2PTR(IV,p)
+#  define PTR2UV(p)       INT2PTR(UV,p)
+#  define PTR2NV(p)       NUM2PTR(NV,p)
+
+#  if PTRSIZE == LONGSIZE
+#    define PTR2ul(p)     (unsigned long)(p)
+#  else
+#    define PTR2ul(p)     INT2PTR(unsigned long,p)
+#  endif
+#endif /* !INT2PTR */
+
+#ifndef get_sv
+#  define get_sv perl_get_sv
+#endif
+
 
 #include <stdlib.h>
 
