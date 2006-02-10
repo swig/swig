@@ -93,7 +93,16 @@ extern "C" {
 
 #ifndef pTHX_
 #define pTHX_
+#endif   
+
+#ifndef PTR2IV
+# define PTR2IV(d) (IV)(d)
 #endif
+ 
+#ifndef INT2PTR
+# define INT2PTR(any,d) (any)(d)
+#endif
+
 
 #include <string.h>
 #ifdef __cplusplus
