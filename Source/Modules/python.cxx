@@ -2636,7 +2636,7 @@ public:
 	SwigType  *ct = NewStringf("p.%s", real_classname);
 	SwigType_remember(ct);
 	Printv(f_wrappers,
-	       "SWIGINTERN PyObject * ", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
+	       "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, tab4, "PyObject *obj;\n", NIL);
 	if (modernargs) {
 	  if (fastunpack) {
@@ -2651,7 +2651,7 @@ public:
 	Printv(f_wrappers,
 	       tab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
 	       tab4, "return SWIG_Py_Void();\n",
-	       "}\n",NIL);
+	       "}\n\n",NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
 	Delete(cname);
