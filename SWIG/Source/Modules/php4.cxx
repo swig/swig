@@ -1750,7 +1750,7 @@ public:
     if ( SwigType_isconst(type) )
       return SWIG_OK;
 
-    // This duplicates the logic from Langauge::variableWrapper() to test if the set wrapper
+    // This duplicates the logic from Language::variableWrapper() to test if the set wrapper
     // is made.
     int assignable = is_assignable(n);
     if (assignable) {
@@ -1760,13 +1760,14 @@ public:
       }
     }
 
-    create_command( iname, Swig_name_wrapper(iname) );
+    String *class_iname = Swig_name_member(class_name,iname);
+    create_command( iname, Swig_name_wrapper(class_iname) );
 
     Wrapper *f = NewWrapper();
 
-    Printv(f->def, "ZEND_NAMED_FUNCTION(",Swig_name_wrapper(iname), ") {\n", NIL );
-    String *mget = Swig_name_wrapper(Swig_name_get( Swig_name_member(class_name,iname)));
-    String *mset = Swig_name_wrapper(Swig_name_set( Swig_name_member(class_name,iname)));
+    Printv(f->def, "ZEND_NAMED_FUNCTION(",Swig_name_wrapper(class_iname), ") {\n", NIL );
+    String *mget = Swig_name_wrapper(Swig_name_get(class_iname));
+    String *mset = Swig_name_wrapper(Swig_name_set(class_iname));
 
     if ( assignable ) {
       Printf(f->code, "if (ZEND_NUM_ARGS() > 0 ) {\n" );
@@ -1781,6 +1782,10 @@ public:
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
+
+    Delete(class_iname);
+    Delete(mget);
+    Delete(mset);
 
     return SWIG_OK;
   }
@@ -1896,6 +1901,7 @@ public:
       Printf(f->def, "}\n\n");
       Wrapper_print(f,s_wrappers);
       DelWrapper(f);
+      Delete(wname);
     }
     return SWIG_OK;
   }
@@ -1919,6 +1925,7 @@ public:
     if(shadow) {
       String *wname = NewStringf( "_wrap_new_%s", iname );
       create_command( iname, wname );
+      Delete(wname);
     }
     
     native_constructor = 0;
@@ -1926,7 +1933,7 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * constructorHandler()
+   * CreateZendListDestructor()
    * ------------------------------------------------------------ */
   //virtual int destructorHandler(Node *n) {
   //}
