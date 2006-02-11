@@ -1,6 +1,24 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+02/11/2006: mmatus
+	    Fix many issues with line counting and error reports.
+
+02/11/2006: mmatus
+	    [Python] Better static data member support, if you have
+	    
+                struct Foo {
+                  static int bar;
+                };
+
+            then now is valid to access the static data member, ie:
+
+                f = Foo()
+                f.bar = 3
+
+	    just as in C++.
+
+
 02/11/2006: wsfulton
             [Perl]
             Fixed code generation to work again with old versions of Perl
