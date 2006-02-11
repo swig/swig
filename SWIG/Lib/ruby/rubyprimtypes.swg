@@ -22,7 +22,6 @@ SWIGINTERN VALUE SWIG_AUX_##Method##(VALUE *args)
   *res = Action;
   return obj;
 }
-
 %enddef
 
 

@@ -36,8 +36,12 @@
 #define SWIG_Object                      VALUE
 #define VOID_Object                      Qnil
 
-/* Simple overload of the output/constant/exception handling */
+/* Overload of the output/constant/exception handling */
+
+/* append output */
 #define SWIG_AppendOutput(result,obj)    SWIG_Ruby_AppendOutput(result, obj)
+
+/* set constant */
 #define SWIG_SetConstant(name, obj)      rb_define_const($module, name, obj)
 
 /* raise */

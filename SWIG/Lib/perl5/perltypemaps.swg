@@ -55,20 +55,15 @@
 %define %set_output(obj) $result = obj; argvi++ %enddef
 
 /* append output */
-%define %append_output(obj)              
-  if (argvi >= items) {
-    EXTEND(sp,1);
-  }
-  %set_output(obj) %enddef
+%define %append_output(obj) if (argvi >= items) EXTEND(sp,1); %set_output(obj) %enddef
 
 /* variable output */
 %define %set_varoutput(obj) sv_setsv($result,obj)  %enddef
 
 /* constant */
 %define %set_constant(name, obj) %begin_block
-  SV *_obj = obj;
   SV *sv = get_sv((char*) SWIG_prefix name, TRUE | 0x2);
-  sv_setsv(sv, _obj);
+  sv_setsv(sv, obj);
   SvREADONLY_on(sv);
 %end_block %enddef
 
