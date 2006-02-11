@@ -564,6 +564,18 @@ public:
       Printf(f_runtime,"#define SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS\n");
     }
 
+    if (classic) {
+      Printf(f_runtime,"#define SWIG_PYTHON_CLASSIC\n");
+    }
+
+    Printf(f_header,"#if (PY_VERSION_HEX <= 0x02000000)\n");
+    Printf(f_header,"# if !defined(SWIG_PYTHON_CLASSIC)\n");
+    Printf(f_header,"#  warning \"This python version probably requires to use swig with the '-classic' option\"\n");
+    Printf(f_header,"# endif\n");
+    Printf(f_header,"#endif\n");
+    
+
+
     /* Set module name */
     module = Copy(Getattr(n,"name"));
     mainmodule = Getattr(n,"name");
