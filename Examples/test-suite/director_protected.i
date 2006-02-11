@@ -123,6 +123,7 @@ class FooBar : private Foo
     virtual ~AA() {};
   protected:
     virtual void draw() {};
+    virtual void plot() {};
   };
 
   class BB : public AA {
@@ -132,6 +133,9 @@ class FooBar : private Foo
   protected:
     void draw() {};
     void draw(int arg1) {};
+
+    void plot(int arg1) {};
+    void plot() {};
   };
 %}
 

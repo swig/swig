@@ -765,9 +765,17 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend ) {
       /* we check what director needs. If the method is  pure virtual,
 	 it is  always needed. */ 
-      if (!(directorsEnabled() && Getattr(n,"director")) ) {
+      if (!(directorsEnabled() && is_member_director(CurrentClass,n) && need_nonpublic_member(n))) {
 	return SWIG_NOWRAP;
       }
+      /* prevent wrapping the method twice due to overload */
+      String *wrapname = NewStringf("nonpublic_%s%s",Getattr(n,"sym:name"), Getattr(n,"sym:overname"));
+      if (Getattr(CurrentClass,wrapname)) {
+	Delete(wrapname);
+	return SWIG_NOWRAP;	
+      }
+      SetFlag(CurrentClass,wrapname);
+      Delete(wrapname);
     }
   }
 
@@ -2305,8 +2313,7 @@ int Language::classHandler(Node *n) {
 	if (Strcmp(type,"cdecl") !=0 ) continue;
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
-	if (!Getattr(symbols,wrapname) 
-	    && (!is_public(method))) {
+	if (!Getattr(symbols,wrapname) && (!is_public(method))) {
 	  Node* m = Copy(method);
 	  Setattr(m, "director", "1");
 	  Setattr(m,"parentNode", n);
