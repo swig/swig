@@ -250,7 +250,14 @@ namespace TagLib
   public:
     File() {}
   };
-  class AudioProperties { };
+
+  class AudioProperties {
+  };
+
+  class AudioPropertiesFile {
+  public:
+    typedef TagLib::File File;
+  };
   
   namespace FLAC
   {
@@ -258,6 +265,27 @@ namespace TagLib
     class Properties : public AudioProperties  {
     public:
       Properties(File *) {}
+    };
+
+    class PropertiesFile : public AudioPropertiesFile  {
+    public:
+      PropertiesFile(File * = 0) {}
+    };
+
+
+    class PropertiesFree   {
+    public:
+      PropertiesFree(File *) {}
+    };
+
+    class FooFilePrivate : private PropertiesFile  {
+    public:
+      FooFilePrivate(File *) {}
+    };
+
+    class FooFile : PropertiesFile  {
+    public:
+      FooFile(File *) {}
     };
 
     class File {
