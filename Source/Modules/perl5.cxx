@@ -1666,6 +1666,13 @@ public:
 
   String *runtimeCode() {
     String *s = NewString("");
+    String *shead = Swig_include_sys("perlhead.swg");
+    if (!shead) {
+      Printf(stderr, "*** Unable to open 'perlhead.swg'\n");
+    } else {
+      Append(s, shead);
+      Delete(shead);
+    }
     String *serrors = Swig_include_sys("perlerrors.swg");
     if (!serrors) {
       Printf(stderr, "*** Unable to open 'perlerrors.swg'\n");
