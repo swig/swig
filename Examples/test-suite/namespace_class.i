@@ -272,11 +272,12 @@ namespace TagLib
       PropertiesFile(File * = 0) {}
     };
 
-
-    class PropertiesFree   {
-    public:
-      PropertiesFree(File *) {}
-    };
+    namespace bar {
+      class PropertiesFree  : public AudioProperties  {
+      public:
+	PropertiesFree(File *) {}
+      };
+    }
 
     class FooFilePrivate : private PropertiesFile  {
     public:
