@@ -283,7 +283,7 @@ namespace TagLib
       FooFilePrivate(File *) {}
     };
 
-    class FooFile : PropertiesFile  {
+    class FooFile : public PropertiesFile  {
     public:
       FooFile(File *) {}
     };
