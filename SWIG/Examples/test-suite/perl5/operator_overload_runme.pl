@@ -5,7 +5,7 @@ use Test::More tests => 28;
 use operator_overload;
 
 # Workaround for 
-#   ok( not (expression) );
+#   ok( not (expression) , "test description" );
 # does not working in older versions of Perl, eg 5.004_04
 sub ok_not ($;$) {
     my($test, $name) = @_;
