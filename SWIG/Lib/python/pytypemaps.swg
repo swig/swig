@@ -48,25 +48,13 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result,obj)   SWIG_Python_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj)
 
 /* set constant */
-%define %set_constant(name, obj) %begin_block
-  PyObject *_obj = obj; 
-  PyDict_SetItemString(d, (char*) name, _obj); 
-  Py_DECREF(_obj);
-%end_block %enddef
+#define SWIG_SetConstant(name, obj)     SWIG_Python_SetConstant(d, name,obj) 
 
 /* raise */
-%define %raise(obj, type, desc)
-  PyObject *_obj = obj; 
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  PyErr_SetObject(SWIG_Python_ExceptionType(desc), _obj);
-  SWIG_PYTHON_THREAD_END_BLOCK;
-  Py_DECREF(_obj);
-  SWIG_fail %enddef
-
-
+#define SWIG_Raise(obj, type, desc)     SWIG_Python_Raise(obj, type, desc)
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

@@ -113,7 +113,7 @@
 #ifndef %raise
 #if defined(SWIG_Raise)
 /* simple raise operation */
-#define %raise(obj, type, desc)           %error_block(SWIG_Raise(obj, type, desc); SWIG_fail)
+#define %raise(obj, type, desc)           SWIG_Raise(obj, type, desc); SWIG_fail
 #else
 #error "Language must define SWIG_Raise or %raise"
 #endif
