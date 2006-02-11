@@ -489,7 +489,7 @@ static Typetab  *resolved_scope = 0;
 /* Internal function */
 
 static SwigType *
-typedef_resolve(Typetab *s, String *base) {
+_typedef_resolve(Typetab *s, String *base, int look_parent) {
   Hash     *ttab;
   SwigType *type = 0;
   List     *inherit;
@@ -507,22 +507,24 @@ typedef_resolve(Typetab *s, String *base) {
       resolved_scope = s;
       Setmark(s,0);
     } else {
-      /* Hmmm. Not found in my scope.  check parent */
-      parent = Getattr(s,k_parent);
-      type = parent ? typedef_resolve(parent, base) : 0;
-      if (!type) {
-	/* Hmmm. Not found in my scope.  It could be in an inherited scope */
-	inherit = Getattr(s,k_inherit);
-	if (inherit) {
-	  int i,len;
-	  len = Len(inherit);
-	  for (i = 0; i < len; i++) {
-	    type = typedef_resolve(Getitem(inherit,i), base);
-	    if (type) {
-	      Setmark(s,0);
-	      break;
-	    }
+      /* Hmmm. Not found in my scope.  It could be in an inherited scope */
+      inherit = Getattr(s,k_inherit);
+      if (inherit) {
+	int i,len;
+	len = Len(inherit);
+	for (i = 0; i < len; i++) {
+	  type = _typedef_resolve(Getitem(inherit,i), base, 0);
+	  if (type) {
+	    Setmark(s,0);
+	    break;
 	  }
+	}
+      }
+      if (!type) {
+	/* Hmmm. Not found in my scope.  check parent */
+	if (look_parent) {
+	  parent = Getattr(s,k_parent);
+	  type = parent ? _typedef_resolve(parent, base, 1) : 0;
 	}
       }
       Setmark(s,0);
@@ -530,6 +532,12 @@ typedef_resolve(Typetab *s, String *base) {
   }
   return type;
 }
+
+static SwigType *
+typedef_resolve(Typetab *s, String *base) {
+  return _typedef_resolve(s, base, 1);
+}
+
 
 /* ----------------------------------------------------------------------------- 
  * SwigType_typedef_resolve()
