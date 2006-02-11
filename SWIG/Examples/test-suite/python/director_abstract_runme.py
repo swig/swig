@@ -60,3 +60,9 @@ try:
 except:
 	error = 0
 if (error): raise RuntimeError
+
+
+try:
+	f = director_abstract.A.f
+except:
+	raise RuntimeError
