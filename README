@@ -17,7 +17,7 @@ The guilty parties working on this are:
 
 Active Developers:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
- Marcelo Matus                                          (Python, core)
+ Marcelo Matus                                          (Python, core, UTL[python,perl,tcl,ruby])
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
@@ -74,44 +74,58 @@ What's New?
 ===========
 
 SWIG-1.3.28 summary:
-- New language module: Common Lisp with CFFI.
 - More powerful renaming (%rename) capability.
 - More user friendly warning handling.
 - Add finer control for default constructors and destructors. We discourage
   the use of the 'nodefault' option, which disables both constructors and
   destructors, leading to possible memory leaks. Use instead 'nodefaultctor'
   and/or 'nodefaultdtor'.
-- Optional automatic copy constructor wrapper generation.
+- Automatic copy constructor wrapper generation via the 'copyctor' option/feature.
+- Better handling of Windows extensions and types.
+- Better runtime error reporting.
+- Add the %catches directive to catch and dispatch exceptions.
+- Add the %naturalvar directive for more 'natural' variable wrapping.
+- Better default handling of std::string variables using the %naturalvar directive.
+- Add the %allowexcept and %exceptionvar directives to handle exceptions when
+  accessing a variable.
+- Add the %delobject directive to mark methods that act like destructors.
+- Add the -fastdispatch option to enable smaller and faster overload dispatch
+  mechanism.
+- Template support for %rename, %feature and %typemap improved.
+- Add/doc more debug options, such as -dump_module, -debug_typemaps, etc.
+- Unified typemap library (UTL) potentially providing core typemaps for all
+  scripting languages based on the recently evolving Python typemaps.
+- New language module: Common Lisp with CFFI.
+- Python, Ruby, Perl and Tcl use the new UTL, many old reported and hidden 
+  errors with typemaps are now fixed.
+- Initial Java support for languages using the UTL via GCJ, you can now use 
+  Java libraries in your favorite script language using gcj + swig.
+- PHP4 module update, many error fixes and actively maintained again.
+- Allegrocl support for C++, also enhanced C support.
+- Ruby support for bang methods.
+- Ruby support for user classes as native exceptions.
+- Perl improved dispatching in overloaded functions via the new cast and rank
+  mechanism.
+- Perl improved backward compatibility, 5.004 and later tested and working.
+- Python improved backward compatibility, 1.5.2 and later tested and working.
+- Python can use the same cast/rank mechanism via the -castmode option.
 - Python implicit conversion mechanism similar to C++, via the %implicitconv
   directive (replaces and improves the implicit.i library). 
 - Python threading support added.
-- Support for Ruby bang methods.
-- Better default handling of std::string variables.
-- Unified typemap library (UTL) potentially providing core typemaps for all
-  scripting languages based on the recently evolving Python typemaps.
-- Python, Ruby, Perl and Tcl use the new UTL.
-- Initial GCJ/Java support for languages using the UTL.
-- Improved dispatching in overloaded functions by using a cast and rank
-  mechanism in perl and optionally in python via the -castmode option.
-- Better handling of Windows extensions and types.
-- C++ support added to the Allegrocl module, also enhanced C support.
-- Python STL support improved, addition of iterators and STL containers of 
-  native Python types.
-- Python performance options and improvements, try the -O option to test
-  all of them. Python runtime benchmarks show upto 20 times better performance
+- Python STL support improved, iterators are supported and STL containers can
+  use now the native PyObject type.
+- Python many performance options and improvements, try the -O option to test
+  all of them. Python runtime benchmarks show up to 20 times better performance
   compared to 1.3.27 and older versions.
 - Python support for 'multi-inheritance' on the python side.
 - Python simplified proxy classes, now swig doesn't need to generate the
   additional 'ClassPtr' classes.
+- Python extended support for smart pointers.
+- Python better support for static member variables.
 - Python backward compatibility improved, many projects that used to work
   only with  swig-1.3.21 to swig-1.3.24 are working again with swig-1.3.28
-- Better runtime error reporting.
-- Add the %catches directive to catch and dispatch exceptions.
-- Add the %naturalvar directive for more 'natural' variable wrapping.
-- Add the %allowexcept and %exceptionvar directives to handle exceptions when
-  accesing a variable.
-- Add the %delobject directive to mark methods that act like destructors.
-- Add/doc more debug options.
+- Python test-suite is now 'valgrinded' before release, and swig also
+  reports memory leaks due to missing destructors.
 - Minor bug fixes and improvements to the Lua, Ruby, Java, C#, Python, Guile,
   Chicken, Tcl and Perl modules.
 
