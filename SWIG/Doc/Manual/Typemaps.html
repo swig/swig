@@ -2199,7 +2199,7 @@ language when reading a C/C++ global variable.  This is implementation specific.
 
 
 <p>
-The "throws" typemap is only used when SWIG parses a C++ method with an exception specification.
+The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method.
 It provides a default mechanism for handling C++ methods that have declared the exceptions it will throw.
 The purpose of this typemap is to convert a C++ exception into an error or exception in the target language.
 It is slightly different to the other typemaps as it is based around the exception type rather than the type of a parameter or variable.
