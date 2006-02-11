@@ -45,6 +45,7 @@
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <li><a href="#SWIGPlus_nn31">Namespaces</a>
 <li><a href="#SWIGPlus_exception_specifications">Exception specifications</a>
+<li><a href="#SWIGPlus_catches">Exception handling with %catches</a>
 <li><a href="#SWIGPlus_nn33">Pointers to Members</a>
 <li><a href="#SWIGPlus_nn34">Smart pointers and operator-&gt;()</a>
 <li><a href="#SWIGPlus_nn35">Using declarations and inheritance</a>
@@ -3770,56 +3771,68 @@ except Error,e:
 </div>
 
 <p>
-Obviously, the exact details of how exceptions are handled depend on the target language module.
+Details of how to tailor code for handling the caught C++ exception and converts it into the target language's exception/error handling mechanism
+is outlined in the <a href="Typemaps.html#throws_typemap">"throws" typemap</a> section.
 </p>
 
 <p>
 Since exception specifications are sometimes only used sparingly, this alone may not be enough to
 properly handle C++ exceptions. To do that, a different set of special SWIG directives are used.
-Consult the "<a href="Customization.html#Customization">Customization features</a>" chapter for details.
+Consult the "<a href="Customization.html#exception">Exception handling with %exception</a>" section for details.
+The next section details a way of simulating an exception specification or replacing an existing one.
 </p>
 
+<H2><a name="SWIGPlus_catches"></a>6.21 Exception handling with %catches</H2>
+
+
 <p>
-Additionally, since SWIG 1.3.28, it is possible to use the
-<tt>%catches</tt> directive to define the desired "catch list". For
-example, if you have
+Exceptions are automatically handled for methods with an exception specification.
+Similar handling can be achieved for methods without exception specifications through the <tt>%catches</tt> feature.
+It is also possible to replace any declared exception specification using the <tt>%catches</tt> feature.
+In fact, <tt>%catches</tt> uses the same <a href="Typemaps.html#throws_typemap">"throws" typemaps</a> that SWIG uses for exception specifications in handling exceptions.
+The <tt>%catches</tt> feature must contain a list of possible types that can be thrown.
+For each type that is in the list, SWIG will generate a catch handler, in the same way that it would for types declared in the exception specification.
+Note that the list can also include the catch all specification "...".
+For example,
 </p>
 
 <div class="code">
 <pre>
-struct EBase { virtual ~Base(); };
+struct EBase { virtual ~EBase(); };
 struct Error1 : EBase { };
 struct Error2 : EBase { };
 struct Error3 : EBase { };
 struct Error4 : EBase { };
 
-%catches(EBase) Foo::blah();
 %catches(Error1,Error2,...) Foo::bar();
+%catches(EBase) Foo::blah();
 
 class Foo {
 public:
     ...
-    void blah() throw(Error1,Error2,Error3,Error4);
     void bar();
+    void blah() throw(Error1,Error2,Error3,Error4);
     ...
 };
 </pre>
 </div>
 
 <p>
- For the method <tt> Foo::blah() </tt> SWIG will catch (and try to
-rethrow) only the base part of the exceptions, <tt>EBase</tt>, and not
-the entire list specified in via the throw statement, i.e., <tt> Error1,Error2,Error3,Error4</tt>.
- </p>
+For the <tt>Foo::bar()</tt> method, which can throw anything,
+SWIG will generate catch handlers for <tt>Error1</tt>, <tt>Error2</tt> as well as a catch all handler (...).
+Each catch handler will convert the caught exception and convert it into a target language error/exception.
+The catch all handler will convert the caught exception into an unknown error/exception.
+</p>
 
-<p> For the <tt> Foo::bar() </tt> method, which can throw anything,
-SWIG will try to catch and rethrow <tt> Error1</tt> and
-<tt>Error2</tt>, while any other exceptions will be caught by the
-anonymous specification "..." and treated as an unknown exception.
+<p>
+Without the <tt>%catches</tt> feature being attached to <tt>Foo::blah()</tt>,
+SWIG will generate catch handlers for all of the types in the exception specification, that is, <tt>Error1, Error2, Error3, Error4</tt>.
+However, with the <tt>%catches</tt> feature above,
+just a single catch handler for the base class, <tt>EBase</tt> will be generated to convert the C++ exception into a target language error/exception.
 </p>
 
 
-<H2><a name="SWIGPlus_nn33"></a>6.21 Pointers to Members</H2>
+<H2><a name="SWIGPlus_nn33"></a>6.22 Pointers to Members</H2>
 
 
 <p>
@@ -3869,7 +3882,7 @@ when checking types.  However, no such support is currently provided
 for member pointers.
 </p>
 
-<H2><a name="SWIGPlus_nn34"></a>6.22 Smart pointers and operator-&gt;()</H2>
+<H2><a name="SWIGPlus_nn34"></a>6.23 Smart pointers and operator-&gt;()</H2>
 
 
 <p>
@@ -4079,7 +4092,7 @@ p = f.__deref__()       # Raw pointer from operator-&gt;
 </p>
 
 
-<H2><a name="SWIGPlus_nn35"></a>6.23 Using declarations and inheritance</H2>
+<H2><a name="SWIGPlus_nn35"></a>6.24 Using declarations and inheritance</H2>
 
 
 <p>
@@ -4242,7 +4255,7 @@ public:
 </div>
 </ul>
 
-<H2><a name="SWIGPlus_nn36"></a>6.24 Partial class definitions</H2>
+<H2><a name="SWIGPlus_nn36"></a>6.25 Partial class definitions</H2>
 
 
 <p>
@@ -4275,7 +4288,7 @@ Also, as a rule of thumb, SWIG should not be used on raw C++ source
 files. 
 </p>
 
-<H2><a name="SWIGPlus_nn37"></a>6.25 A brief rant about const-correctness</H2>
+<H2><a name="SWIGPlus_nn37"></a>6.26 A brief rant about const-correctness</H2>
 
 
 <p>
@@ -4333,7 +4346,7 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
-<H2><a name="SWIGPlus_nn38"></a>6.26 Proxy classes</H2>
+<H2><a name="SWIGPlus_nn38"></a>6.27 Proxy classes</H2>
 
 
 <p>
@@ -4345,7 +4358,7 @@ wrapped by a Python class.  Or if you're building a Java module, each
 C++ class is wrapped by a Java class.  
 </p>
 
-<H3><a name="SWIGPlus_nn39"></a>6.26.1 Construction of proxy classes</H3>
+<H3><a name="SWIGPlus_nn39"></a>6.27.1 Construction of proxy classes</H3>
 
 
 <p>
@@ -4430,7 +4443,7 @@ Whenever possible, proxies try to take advantage of language features that are s
 might include operator overloading,  exception handling, and other features.
 </p>
 
-<H3><a name="SWIGPlus_nn40"></a>6.26.2 Resource management in proxies</H3>
+<H3><a name="SWIGPlus_nn40"></a>6.27.2 Resource management in proxies</H3>
 
 
 <p>
@@ -4584,7 +4597,7 @@ every possible memory management problem.  However, proxies do provide a mechani
 can be used (if necessary) to address some of the more tricky memory management problems.
 </p>
 
-<H3><a name="SWIGPlus_nn41"></a>6.26.3 Language specific details</H3>
+<H3><a name="SWIGPlus_nn41"></a>6.27.3 Language specific details</H3>
 
 
 <p>
@@ -4592,7 +4605,7 @@ Language specific details on proxy classes are contained in the chapters describ
 chapter has merely introduced the topic in a very general way.
 </p>
 
-<H2><a name="SWIGPlus_nn42"></a>6.27 Where to go for more information</H2>
+<H2><a name="SWIGPlus_nn42"></a>6.28 Where to go for more information</H2>
 
 
 <p>
