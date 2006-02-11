@@ -3,15 +3,15 @@
 // when used as class methods.
 //
 
-#define PHPKW(x) %namewarn("314:" `x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
+#define PHPKW(x) %keywordwarn(`x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
 
 %define PHPCN(x) 
-%namewarn("314:" `x` " is a php reserved class name, class renamed as c_"`x`,%$isclass,rename="c_%s") `x`;
-%namewarn("314:" `x` " is a php reserved class name, constructor renamed as c_"`x`,%$isconstructor,rename="c_%s") `x`;
+%keywordwarn(`x` " is a php reserved class name, class renamed as c_"`x`,%$isclass,rename="c_%s") `x`;
+%keywordwarn(`x` " is a php reserved class name, constructor renamed as c_"`x`,%$isconstructor,rename="c_%s") `x`;
 %enddef
 
-#define PHPBN1(x) %namewarn("321:" `x` " conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
-#define PHPBN2(x) %namewarn("321:" `x` " conflicts with a built-in name in php")  "::" `x`
+#define PHPBN1(x) %builtinwarn(`x` " conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
+#define PHPBN2(x) %builtinwarn(`x` " conflicts with a built-in name in php")  "::" `x`
 
 
 /*
@@ -75,7 +75,9 @@ PHPKW(xor);
 PHPBN1(__sleep);
 PHPBN1(__wakeup);
 PHPBN1(not);
+PHPBN1(parent);
 PHPBN1(virtual);
+PHPBN1(NULL);
 PHPBN1(TRUE);
 PHPBN1(FALSE);
 PHPBN1(__FILE__);
@@ -88,13 +90,12 @@ PHPBN2(E_PARSE);
 PHPBN2(E_WARNING);
 PHPBN2(PHP_OS);
 PHPBN2(PHP_VERSION);
-PHPBN2(NULL);
 
 /* Class names not allowed */
 PHPCN(stdClass);
 
 
 #undef PHPKW
-#undef PHPBN
-
-
+#undef PHPBN1
+#undef PHPBN2
+#undef PHPCN
