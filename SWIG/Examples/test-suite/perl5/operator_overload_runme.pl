@@ -4,6 +4,15 @@ use Test::More tests => 28;
 
 use operator_overload;
 
+# Workaround for 
+#   ok( not (expression) );
+# does not working in older versions of Perl, eg 5.004_04
+sub ok_not ($;$) {
+    my($test, $name) = @_;
+    $test = not $test;
+    ok($test, $name);
+}
+
 pass("loaded");
 
 # first check all the operators are implemented correctly from pure C++ code
@@ -21,7 +30,7 @@ isa_ok($op2, "operator_overload::Op");
 $op->{i} = 5;
 $op2->{i} = 3;
 
-ok(not ($op == $op2), "operator equal: not equal");
+ok_not(($op == $op2), "operator equal: not equal");
 
 $op->{i} = 3;
 ok(($op == $op2), "operator equal: equal");
@@ -33,7 +42,7 @@ $op2->{i} = 3;
 ok(($op != $op2), "operator not equal: not equal");
 
 $op->{i} = 3;
-ok(not ($op != $op2), "operator not equal: equal");
+ok_not(($op != $op2), "operator not equal: equal");
 
 # stringify operator
 $op->{i} = 3;
@@ -85,19 +94,19 @@ is($op3->{i}, 2, "operator modulus");
 $op->{i} = 8;
 $op2->{i} = 3;
 ok($op > $op2, "operator greater than");
-ok(not ($op2 > $op), "operator greater than");
+ok_not(($op2 > $op), "operator greater than");
 $op->{i} = 3;
-ok(not ($op2 > $op), "operator greater than");
-ok(not ($op > $op2), "operator greater than");
+ok_not(($op2 > $op), "operator greater than");
+ok_not(($op > $op2), "operator greater than");
 
 # lesser than operator
 $op2->{i} = 8;
 $op->{i} = 3;
 ok($op < $op2, "operator lesser than");
-ok(not ($op2 < $op), "operator lesser than");
+ok_not(($op2 < $op), "operator lesser than");
 $op2->{i} = 3;
-ok(not ($op2 < $op), "operator lesser than");
-ok(not ($op < $op2), "operator lesser than");
+ok_not(($op2 < $op), "operator lesser than");
+ok_not(($op < $op2), "operator lesser than");
 
 # increment operator
 $op->{i} = 7;
@@ -122,3 +131,4 @@ $op->{i} = 1;
 is(!$op, !1, "operator not");
 
 # fail("testing failed condition");
+
