@@ -1,6 +1,11 @@
 Version 1.3.28 (unreleased).
 ===========================
 
+02/11/2006: wsfulton
+            [Perl]
+            Fixed code generation to work again with old versions of Perl
+            (5.004 and later tested)
+
 02/04/2006: mmatus
 	    [Python] Add the %extend_smart_pointer() directive to extend
 	    SWIG smart pointer support in python. 
