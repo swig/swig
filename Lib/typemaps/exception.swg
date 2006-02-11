@@ -21,8 +21,7 @@
 
 %define_as(SWIG_exception_fail(code, msg), %block(%error(code, msg); SWIG_fail))
 
-%define_as(SWIG_contract_assert(expr, msg),  
-	   if (!(expr)) { %error(SWIG_RuntimeError, msg); SWIG_fail; } else)
+%define_as(SWIG_contract_assert(expr, msg), if (!(expr)) { %error(SWIG_RuntimeError, msg); SWIG_fail; } else)
 
 }
 

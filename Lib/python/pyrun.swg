@@ -42,20 +42,133 @@
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Python_SetModule(pointer)
 #define SWIG_NewClientData(obj)                         PySwigClientData_New(obj)
 
+#define SWIG_SetErrorObj                                SWIG_Python_SetErrorObj                            
+#define SWIG_SetErrorMsg                        	SWIG_Python_SetErrorMsg				   
+#define SWIG_ErrorType(code)                    	SWIG_Python_ErrorType(code)                        
+#define SWIG_Error(code, msg)            		SWIG_Python_SetErrorMsg(SWIG_ErrorType(code), msg) 
+#define SWIG_fail                        		goto fail					   
+
+
+/* Runtime API implementation */
+
+/* Error manipulation */
+
+SWIGINTERN void 
+SWIG_Python_SetErrorObj(PyObject *errtype, PyObject *obj) {
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
+  PyErr_SetObject(errtype, obj);
+  Py_DECREF(obj);
+  SWIG_PYTHON_THREAD_END_BLOCK;
+}
+
+SWIGINTERN void 
+SWIG_Python_SetErrorMsg(PyObject *errtype, const char *msg) {
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  PyErr_SetString(errtype, (char *) msg);
+  SWIG_PYTHON_THREAD_END_BLOCK;
+}
+
+#define SWIG_Python_Raise(obj, type, desc)  SWIG_Python_SetErrorObj(SWIG_Python_ExceptionType(desc), obj)
+
+/* Set a constant value */
+
+SWIGINTERN void
+SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {   
+  PyDict_SetItemString(d, (char*) name, obj);
+  Py_DECREF(obj);                            
+}
+
+/* Append a value to the result obj */
+
+SWIGINTERN PyObject*
+SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
+#if !defined(SWIG_PYTHON_OUTPUT_TUPLE)
+  if (!result) {
+    result = obj;
+  } else if (result == Py_None) {
+    Py_DECREF(result);
+    result = obj;
+  } else {
+    if (!PyList_Check(result)) {
+      PyObject *o2 = result;
+      result = PyList_New(1);
+      PyList_SetItem(result, 0, o2);
+    }
+    PyList_Append(result,obj);
+    Py_DECREF(obj);
+  }
+  return result;
+#else
+  PyObject*   o2;
+  PyObject*   o3;
+  if (!result) {
+    result = obj;
+  } else if (result == Py_None) {
+    Py_DECREF(result);
+    result = obj;
+  } else {
+    if (!PyTuple_Check(result)) {
+      o2 = result;
+      result = PyTuple_New(1);
+      PyTuple_SET_ITEM(result, 0, o2);
+    }
+    o3 = PyTuple_New(1);
+    PyTuple_SET_ITEM(o3, 0, obj);
+    o2 = result;
+    result = PySequence_Concat(o2, o3);
+    Py_DECREF(o2);
+    Py_DECREF(o3);
+  }
+  return result;
+#endif
+}
+
+/* Unpack the argument tuple */
+
+SWIGINTERN int
+SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyObject **objs)
+{
+  if (!args) {
+    if (!min && !max) {
+      return 1;
+    } else {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got none", 
+		   name, (min == max ? "" : "at least "), min);
+      return 0;
+    }
+  }  
+  if (!PyTuple_Check(args)) {
+    PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
+    return 0;
+  } else {
+    register int l = PyTuple_GET_SIZE(args);
+    if (l < min) {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
+		   name, (min == max ? "" : "at least "), min, l);
+      return 0;
+    } else if (l > max) {
+      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
+		   name, (min == max ? "" : "at most "), max, l);
+      return 0;
+    } else {
+      register int i;
+      for (i = 0; i < l; ++i) {
+	objs[i] = PyTuple_GET_ITEM(args, i);
+      }
+      for (; l < max; ++l) {
+	objs[l] = 0;
+      }
+      return i + 1;
+    }    
+  }
+}
+
 /* A functor is a function object with one single object argument */
 #if PY_VERSION_HEX >= 0x02020000
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunctionObjArgs(functor, obj, NULL);
 #else
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, "O", obj);
 #endif
-
-/* Error manipulation */
-#define SWIG_SetErrorObj(type, obj)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetObject(type, obj); SWIG_PYTHON_THREAD_END_BLOCK; }
-#define SWIG_SetErrorMsg(type, msg)            		{SWIG_PYTHON_THREAD_BEGIN_BLOCK; PyErr_SetString(type, msg); SWIG_PYTHON_THREAD_END_BLOCK; }
-#define SWIG_ErrorType(code)                            SWIG_Python_ErrorType(code)                       
-#define SWIG_Error(code, msg)            		SWIG_SetErrorMsg(SWIG_Python_ErrorType(code), msg)
-#define SWIG_fail                        		goto fail					   
-
 
 /*
   Helper for static pointer initialization for both C and C++ code, for example
@@ -123,88 +236,6 @@ SWIG_Py_Void(void)
   return none;
 }
 
-/* Append a value to the result obj */
-
-SWIGINTERN PyObject*
-SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
-#if !defined(SWIG_PYTHON_OUTPUT_TUPLE)
-  if (!result) {
-    result = obj;
-  } else if (result == Py_None) {
-    Py_DECREF(result);
-    result = obj;
-  } else {
-    if (!PyList_Check(result)) {
-      PyObject *o2 = result;
-      result = PyList_New(1);
-      PyList_SetItem(result, 0, o2);
-    }
-    PyList_Append(result,obj);
-    Py_DECREF(obj);
-  }
-  return result;
-#else
-  PyObject*   o2;
-  PyObject*   o3;
-  if (!result) {
-    result = obj;
-  } else if (result == Py_None) {
-    Py_DECREF(result);
-    result = obj;
-  } else {
-    if (!PyTuple_Check(result)) {
-      o2 = result;
-      result = PyTuple_New(1);
-      PyTuple_SET_ITEM(result, 0, o2);
-    }
-    o3 = PyTuple_New(1);
-    PyTuple_SET_ITEM(o3, 0, obj);
-    o2 = result;
-    result = PySequence_Concat(o2, o3);
-    Py_DECREF(o2);
-    Py_DECREF(o3);
-  }
-  return result;
-#endif
-}
-
-SWIGINTERN int
-SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyObject **objs)
-{
-  if (!args) {
-    if (!min && !max) {
-      return 1;
-    } else {
-      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got none", 
-		   name, (min == max ? "" : "at least "), min);
-      return 0;
-    }
-  }  
-  if (!PyTuple_Check(args)) {
-    PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
-    return 0;
-  } else {
-    register int l = PyTuple_GET_SIZE(args);
-    if (l < min) {
-      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
-		   name, (min == max ? "" : "at least "), min, l);
-      return 0;
-    } else if (l > max) {
-      PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
-		   name, (min == max ? "" : "at most "), max, l);
-      return 0;
-    } else {
-      register int i;
-      for (i = 0; i < l; ++i) {
-	objs[i] = PyTuple_GET_ITEM(args, i);
-      }
-      for (; l < max; ++l) {
-	objs[l] = 0;
-      }
-      return i + 1;
-    }    
-  }
-}
 
 /* PySwigClientData */
 
