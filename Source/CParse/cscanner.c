@@ -75,10 +75,10 @@ static void
 scanner_locator(String *loc) {
   if (Equal(loc,"@SWIG@"))  {    
     /* End locator. */
-    expanding_macro = 0;
+    if (expanding_macro) --expanding_macro;
   } else {
     /* Begin locator. */
-    expanding_macro = 1;
+    ++expanding_macro;
   }
 }
 
