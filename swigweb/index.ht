@@ -10,7 +10,7 @@ C and C++ with a variety of high-level programming
 languages.  SWIG is used with different types of languages including common scripting languages such as
 Perl, PHP, Python, Tcl, Ruby and PHP. The list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
-non-scripting languages such as C#, Common Lisp (CLISP, Allegro CL, UFFI), Java, Modula-3 and OCAML. Also several
+non-scripting languages such as C#, Common Lisp (CLISP, Allegro CL, CFFI, UFFI), Java, Modula-3 and OCAML. Also several
 interpreted and compiled Scheme implementations (Guile, MzScheme, Chicken)
 are supported. SWIG is most
 commonly used to create high-level interpreted or compiled programming
@@ -30,6 +30,9 @@ and non-commercial use.
 
 <h3>News</h3>
 
+<p>
+<b>2006/02/11</b>
+SWIG-1.3.28 has been released.  Many new features, improvements and bug fixes are in this release. New language support has also been added for Common Lisp with CFFI.
 
 <p>
 <b>2006/01/12</b>
