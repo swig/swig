@@ -31,7 +31,7 @@
 <ul>
 <li><a href="#swig_exe">Building swig.exe on Windows</a>
 <ul>
-<li><a href="#Windows_nn15">Building swig.exe using MinGW and MSYS</a>
+<li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="#Windows_nn16">Building swig.exe using Cygwin</a>
 <li><a href="#Windows_nn17">Building swig.exe alternatives</a>
 </ul>
@@ -229,8 +229,6 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
   or <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">MinGW SourceForge download page</a>.
   Note that at the time of writing, the majority of these are in the Current
   release list and some are in the Snapshot or Previous release list.
-  </li>
-
   <ul>
     <li>MinGW-3.1.0-1.exe</li>
     <li>MSYS-1.0.11-2004.04.30-1.exe</li>
@@ -239,6 +237,7 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
     <li>msys-autoconf-2.59.tar.bz2</li>
     <li>msys-automake-1.8.2.tar.bz2</li>
   </ul>
+  </li>
 
   <li>
   Install MinGW-3.1.0-1.exe (C:\MinGW is default location.)
@@ -248,12 +247,12 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
   Install MSYS-1.0.11-2004.04.30-1.exe. Make sure you install it on the same
   windows drive letter as MinGW (C:\msys\1.0 is default).
   In the post install script,
-  </li>
   <ul>
     <li>Answer y to the "do you wish to continue with the post install?"</li>
     <li>Answer y to the "do you have MinGW installed?"</li>
     <li>Type in the the folder in which you installed MinGW (C:/MinGW is default)</li>
   </ul>
+  </li>
 
   <li>
   Install msysDTK-1.0.1.exe to the same folder that you installed MSYS (C:\msys\1.0 is default).
@@ -261,12 +260,12 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
 
   <li>
   Copy the followig to the MSYS install folder (C:\msys\1.0 is default):
-  </li>
   <ul>
     <li>msys-automake-1.8.2.tar.bz2</li>
     <li>msys-autoconf-2.59.tar.bz2</li>
     <li>bison-2.0-MSYS.tar.gz</li>
   </ul>
+  </li>
 
   <li>
   Start the MSYS command prompt and execute:
