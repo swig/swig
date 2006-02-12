@@ -202,13 +202,110 @@ This information is provided for those that want to modify the SWIG source code 
 Normally this is not needed, so most people will want to ignore this section. 
 </p>
 
-<H4><a name="Windows_nn15"></a>3.3.1.1 Building swig.exe using MinGW and MSYS</H4>
+<H4><a name="Windows_mingw_msys"></a>3.3.1.1 Building swig.exe using MinGW and MSYS</H4>
 
+
+<p>
+The short abbreviated instructions follow...
+</p>
 
 <ul>
     <li>Install MinGW and MSYS from the <a href="http://www.mingw.org">MinGW</a> site. This provides a Unix environment on Windows.
     <li>Follow the usual Unix instructions in the README file in the SWIG root directory to build swig.exe from the MinGW command prompt.
 </ul>
+
+<p>
+The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from cvs follow...
+</p>
+
+<p>
+<b>Pitfall note:</b>
+Execute the steps in the order shown and don't use spaces in path names. In fact it is best to use the default installation directories.
+</p>
+
+<ol>
+  <li>
+  Download the following packages from the <a href="http://www.mingw.org/download.shtml">MinGW download page</a>
+  or <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">MinGW SourceForge download page</a>.
+  Note that at the time of writing, the majority of these are in the Current
+  release list and some are in the Snapshot or Previous release list.
+  </li>
+
+  <ul>
+    <li>MinGW-3.1.0-1.exe</li>
+    <li>MSYS-1.0.11-2004.04.30-1.exe</li>
+    <li>msysDTK-1.0.1.exe</li>
+    <li>bison-2.0-MSYS.tar.gz</li>
+    <li>msys-autoconf-2.59.tar.bz2</li>
+    <li>msys-automake-1.8.2.tar.bz2</li>
+  </ul>
+
+  <li>
+  Install MinGW-3.1.0-1.exe (C:\MinGW is default location.)
+  </li>
+
+  <li>
+  Install MSYS-1.0.11-2004.04.30-1.exe. Make sure you install it on the same
+  windows drive letter as MinGW (C:\msys\1.0 is default).
+  In the post install script,
+  </li>
+  <ul>
+    <li>Answer y to the "do you wish to continue with the post install?"</li>
+    <li>Answer y to the "do you have MinGW installed?"</li>
+    <li>Type in the the folder in which you installed MinGW (C:/MinGW is default)</li>
+  </ul>
+
+  <li>
+  Install msysDTK-1.0.1.exe to the same folder that you installed MSYS (C:\msys\1.0 is default).
+  </li>
+
+  <li>
+  Copy the followig to the MSYS install folder (C:\msys\1.0 is default):
+  </li>
+  <ul>
+    <li>msys-automake-1.8.2.tar.bz2</li>
+    <li>msys-autoconf-2.59.tar.bz2</li>
+    <li>bison-2.0-MSYS.tar.gz</li>
+  </ul>
+
+  <li>
+  Start the MSYS command prompt and execute:
+<div class="shell"><pre>
+cd /
+tar -jxf msys-automake-1.8.2.tar.bz2 
+tar -jxf msys-autoconf-2.59.tar.bz2
+tar -zxf bison-2.0-MSYS.tar.gz   
+</pre></div>
+  </li>
+
+  <li>
+  To get the latest SWIG CVS, type in the following:
+<div class="shell"><pre>
+mkdir /usr/src
+cd /usr/src
+export CVSROOT=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/swig
+cvs login
+ (Logging in to anonymous@cvs.sourceforge.net)
+ CVS password: &lt;Just Press Return Here&gt;
+cvs -z3 co SWIG
+</pre></div>
+
+  <b>Pitfall note:</b>
+If you want to check out SWIG to a different folder to the proposed
+/usr/src/SWIG, do not use MSYS emulated windows drive letters, because
+the autotools will fail miserably on those.
+  </li>
+
+  <li>
+  You are now ready to build SWIG. Execute the following commands to build swig.exe:
+<div class="shell"><pre>
+cd /usr/src/SWIG
+./autogen.sh
+./configure
+make
+</pre></div>
+  </li>
+</ol>
 
 
 <H4><a name="Windows_nn16"></a>3.3.1.2 Building swig.exe using Cygwin</H4>
@@ -216,7 +313,7 @@ Normally this is not needed, so most people will want to ignore this section.
 
 <p>
 Note that SWIG can also be built using Cygwin.
-However, the SWIG will then require the Cygwin DLL when executing. 
+However, SWIG will then require the Cygwin DLL when executing. 
 Follow the Unix instructions in the README file in the SWIG root directory.
 Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution. 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
