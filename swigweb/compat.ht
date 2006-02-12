@@ -23,9 +23,11 @@ version of Unix such as AIX or HPUX).
 
 <blockquote>
 SWIG works on 32 bit versions of Windows such as Windows 95/98/NT/2000/XP. 
-However, given that SWIG is primarily developed under Unix, the Windows
-version is not as thoroughly tested, but is used widely and successfully under Windows.
-Currently the Windows version of SWIG 1.3 is compiled and tested under <a href="http://www.cygwin.com">Cygwin</a> and <a href="http://www.mingw.org">Mingw</a> using gcc, but should be compilable by any other Windows C++ compiler. SWIG 1.1 can be compiled with Visual C++ 4.x/5.x/6.x or with the Borland C++ 5.x
+Currently the Windows version of SWIG 1.3 is compiled and tested under
+Visual Studio compilers, <a href="http://www.cygwin.com">Cygwin</a> and
+<a href="http://www.mingw.org">Mingw</a> using gcc, but should be
+compilable by any other Windows C++ compiler.
+SWIG 1.1 can be compiled with Visual C++ 4.x/5.x/6.x or with the Borland C++ 5.x
 compiler.   However, SWIG 1.1 has only been officially tested using the
 Visual C++ compiler.   You may also need to determine which compiler
 has been used to compile the various scripting languages that you will
@@ -74,6 +76,7 @@ Objective Caml (Ocaml) and Pike support was added in SWIG 1.3.14.<br>
 Support for C# and the Chicken scheme compiler was added in SWIG 1.3.18.<br>
 Support for Allegro CL and Modula-3 was added in SWIG-1.3.22.<br>
 Support for Lua, CLISP and Common Lisp with UFFI was added in SWIG-1.3.26.<br>
+Support for Common Lisp with CFFI was added in SWIG-1.3.28.<br>
 <p>
 
 Any newer versions of these languages should be assumed to be
