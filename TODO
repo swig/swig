@@ -99,11 +99,19 @@ defer  ready to go.  The primary obstacle lies in the target language
 
                $typemap(in,1=int foo, input=x)
 
+       Note: This is partially implemented in the new Unified Typemap
+       Library(python,tcl,ruby and perl) via %fragments and the
+       SWIG_From/SWIG_AsVal methdos.
+
 ***    Implement $fail special variable substitution in wrappers. Used
        to properly transfer control out of a wrapper function while
        reclaiming resources.
 
-***    Better targeting of output typemaps. For example:
+       Note: Implemented in languages that uses the UTL via the
+       'SWIG_fail' macro.
+
+
+[done] Better targeting of output typemaps. For example:
        It is not possible to target an output typemap for function
        Foo::func() and not Bar::func(). Output typemaps need to support
        syntax something along the lines of:
@@ -125,6 +133,8 @@ defer  ready to go.  The primary obstacle lies in the target language
        an implementation that is better integrated with symbol table
        management.  Continue to consolidate SWIG directives to %feature.
 
+       Note: Initial implementation in the %rename directive.
+
 [done] Bring Aquinas' contract/assertion checking code online.
 
 ***    Add more intelligent information related to object ownership.
@@ -132,9 +142,11 @@ defer  ready to go.  The primary obstacle lies in the target language
        objects when they are assigned to pointer variables and structure
        members as well as stored in a container (i.e., an array of pointers).
 
-       [ Partially finished for Tcl/Python. ]
+       [ Partially finished for Ruby/Perl/Tcl/Python. ]
 
 **     Restoration of the documentation system.
+       [ Partially done for Python. ]
+              
 
 **     Restoration of Objective-C support.
 
