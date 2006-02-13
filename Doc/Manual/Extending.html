@@ -147,7 +147,7 @@ Code generation modules can look for these attributes to guide the wrapping proc
 </li>
 
 <li><b>Class extension</b>. SWIG allows classes and structures to be extended with new
-methods and attributes (the <tt>%extend</tt> directive).   This has the effect of altering 
+methods and attributes (the <tt>%extend</tt> directive).   This has the effect of altering
 the API in the target language and can be used to generate OO interfaces to C libraries.
 </ul>
 
@@ -303,8 +303,8 @@ subtle aspects of how SWIG parses declarations.  Specifically, SWIG expects all 
 datatype such as <tt>int</tt> or <tt>void</tt>.   <tt><em>type</em></tt> may be optionally
 qualified with a qualifier such as <tt>const</tt> or <tt>volatile</tt>. <tt><em>declarator</em></tt>
 is a name with additional type-construction modifiers attached to it (pointers, arrays, references,
-functions, etc.).  Examples of declarators include <tt>*x</tt>, <tt>**x</tt>, <tt>x[20]</tt>, and 
-<tt>(*x)(int,double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or 
+functions, etc.).  Examples of declarators include <tt>*x</tt>, <tt>**x</tt>, <tt>x[20]</tt>, and
+<tt>(*x)(int,double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or
 body of code enclosed in braces <tt>{ ... }</tt>.
 </p>
 
@@ -332,13 +332,13 @@ been previously defined as types either using a <tt>class</tt>
 definition or a <tt>typedef</tt>.  The reasons for this are subtle,
 but this treatment of typenames is normally integrated at the level of the C
 tokenizer---when a typename appears, a different token is returned to the parser
-instead of an identifier.  
+instead of an identifier.
 </p>
 
 <p>
 SWIG does not operate in this manner--any legal identifier can be used
 as a type name.  The reason for this is primarily motivated by the use
-of SWIG with partially defined data.  Specifically, 
+of SWIG with partially defined data.  Specifically,
 SWIG is supposed to be easy to use on interfaces with missing type information.
 </p>
 
@@ -462,10 +462,10 @@ $ swig -c++ -python -dump_tree example.i
 
             +++ module ----------------------------------------
             | name         - "example"
-            | 
+            |
             +++ insert ----------------------------------------
             | code         - "\n#include \"example.h\"\n"
-            | 
+            |
             +++ include ----------------------------------------
             | name         - "example.h"
 
@@ -479,63 +479,63 @@ $ swig -c++ -python -dump_tree example.i
 
                         +++ access ----------------------------------------
                         | kind         - "public"
-                        | 
+                        |
                         +++ constructor ----------------------------------------
                         | sym:name     - "Shape"
                         | name         - "Shape"
                         | decl         - "f()."
                         | code         - "{\n    nshapes++;\n  }"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ destructor ----------------------------------------
                         | sym:name     - "~Shape"
                         | name         - "~Shape"
                         | storage      - "virtual"
                         | code         - "{\n    nshapes--;\n  }"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "x"
                         | name         - "x"
                         | decl         - ""
                         | type         - "double"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "y"
                         | name         - "y"
                         | decl         - ""
                         | type         - "double"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "move"
                         | name         - "move"
                         | decl         - "f(double,double)."
-                        | parms        - double ,double 
+                        | parms        - double ,double
                         | type         - "void"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "area"
                         | name         - "area"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | value        - "0"
                         | type         - "double"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "perimeter"
                         | name         - "perimeter"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | value        - "0"
                         | type         - "double"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "nshapes"
                         | name         - "nshapes"
@@ -543,7 +543,7 @@ $ swig -c++ -python -dump_tree example.i
                         | storage      - "static"
                         | type         - "int"
                         | sym:symtab   - 0x40194140
-                        | 
+                        |
                   +++ class ----------------------------------------
                   | sym:name     - "Circle"
                   | name         - "Circle"
@@ -554,41 +554,41 @@ $ swig -c++ -python -dump_tree example.i
 
                         +++ access ----------------------------------------
                         | kind         - "private"
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | name         - "radius"
                         | decl         - ""
                         | type         - "double"
-                        | 
+                        |
                         +++ access ----------------------------------------
                         | kind         - "public"
-                        | 
+                        |
                         +++ constructor ----------------------------------------
                         | sym:name     - "Circle"
                         | name         - "Circle"
-                        | parms        - double 
+                        | parms        - double
                         | decl         - "f(double)."
                         | code         - "{ }"
                         | sym:symtab   - 0x40194538
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "area"
                         | name         - "area"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | type         - "double"
                         | sym:symtab   - 0x40194538
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "perimeter"
                         | name         - "perimeter"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | type         - "double"
                         | sym:symtab   - 0x40194538
-                        | 
+                        |
                   +++ class ----------------------------------------
                   | sym:name     - "Square"
                   | name         - "Square"
@@ -599,37 +599,37 @@ $ swig -c++ -python -dump_tree example.i
 
                         +++ access ----------------------------------------
                         | kind         - "private"
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | name         - "width"
                         | decl         - ""
                         | type         - "double"
-                        | 
+                        |
                         +++ access ----------------------------------------
                         | kind         - "public"
-                        | 
+                        |
                         +++ constructor ----------------------------------------
                         | sym:name     - "Square"
                         | name         - "Square"
-                        | parms        - double 
+                        | parms        - double
                         | decl         - "f(double)."
                         | code         - "{ }"
                         | sym:symtab   - 0x40194788
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "area"
                         | name         - "area"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | type         - "double"
                         | sym:symtab   - 0x40194788
-                        | 
+                        |
                         +++ cdecl ----------------------------------------
                         | sym:name     - "perimeter"
                         | name         - "perimeter"
                         | decl         - "f(void)."
-                        | parms        - void 
+                        | parms        - void
                         | storage      - "virtual"
                         | type         - "double"
                         | sym:symtab   - 0x40194788
@@ -691,18 +691,18 @@ $ swig -dump_tree example.i
             | sym:name     - "foo_i"
             | name         - "foo"
             | decl         - "f(int)."
-            | parms        - int 
+            | parms        - int
             | type         - "void"
             | sym:symtab   - 0x40165078
-            | 
+            |
             +++ cdecl ----------------------------------------
             | sym:name     - "foo_d"
             | name         - "foo"
             | decl         - "f(double)."
-            | parms        - double 
+            | parms        - double
             | type         - "void"
             | sym:symtab   - 0x40165078
-            | 
+            |
             +++ cdecl ----------------------------------------
             | sym:name     - "foo"
             | name         - "foo"
@@ -783,18 +783,18 @@ You can see this when running with the <tt>-dump_tree</tt> option.   For example
  | sym:name     - "getitem"
  | name         - "getitem"
  | decl         - "f(int).p."
- | parms        - int 
+ | parms        - int
  | type         - "Object"
  | feature:except - "{\n    try {\n       $action\n    } catc..."
  | sym:symtab   - 0x40168ac8
- | 
+ |
 </pre>
 </div>
 
 <p>
 Feature names are completely arbitrary and a target language module can be
-programmed to respond to any feature name that it wants to recognized.  The 
-data stored in a feature attribute is usually just a raw unparsed string.   
+programmed to respond to any feature name that it wants to recognized.  The
+data stored in a feature attribute is usually just a raw unparsed string.
 For example, the exception code above is simply
 stored without any modifications.
 </p>
@@ -805,7 +805,7 @@ stored without any modifications.
 <p>
 Language modules work by defining handler functions that know how to respond to
 different types of parse-tree nodes.  These handlers simply look at the
-attributes of each node in order to produce low-level code. 
+attributes of each node in order to produce low-level code.
 </p>
 
 <p>
@@ -887,7 +887,7 @@ node is then used to generate a wrapper.
 
 <p>
 Language modules work by registering handler functions for dealing with
-various types of nodes at different stages of transformation.   This is done by 
+various types of nodes at different stages of transformation.   This is done by
 inheriting from a special <tt>Language</tt> class and defining a collection
 of virtual methods.   For example, the Python module defines a class as
 follows:
@@ -899,7 +899,7 @@ class PYTHON : public Language {
 protected:
 public :
   virtual void main(int, char *argv[]);
-  virtual int  top(Node *); 
+  virtual int  top(Node *);
   virtual int  functionWrapper(Node *);
   virtual int  constantWrapper(Node *);
   virtual int  variableWrapper(Node *);
@@ -965,7 +965,7 @@ used:
 </ul>
 
 <p>
-In most cases, other typenames in the source are aliases for one of these 
+In most cases, other typenames in the source are aliases for one of these
 primitive types.   Specifically:
 </p>
 
@@ -1103,7 +1103,7 @@ Chops trailing whitespace off the end of <tt>s</tt>.
 
 <div class="indent">
 <p>
-Replaces the pattern <tt>pat</tt> with <tt>rep</tt> in string <tt>s</tt>.  
+Replaces the pattern <tt>pat</tt> with <tt>rep</tt> in string <tt>s</tt>.
 <tt>flags</tt> is a combination of the following flags:</p>
 
 <div class="code">
@@ -1248,7 +1248,7 @@ negative, the first item is returned.
 </p>
 
 <div class="indent">
-Stores <tt>val</tt> in <tt>x</tt>. 
+Stores <tt>val</tt> in <tt>x</tt>.
 If <tt>val</tt> is not a standard
 object (String, Hash, or List) it is assumed to be a <tt>char *</tt> in which
 case it is used to construct a <tt>String</tt> that is stored in the list.
@@ -1260,7 +1260,7 @@ case it is used to construct a <tt>String</tt> that is stored in the list.
 </p>
 
 <div class="indent">
-Deletes item <tt>n</tt> from the list, shifting items down if necessary.  
+Deletes item <tt>n</tt> from the list, shifting items down if necessary.
 To delete the last item in the list, use the special value <tt>DOH_END</tt>
 for <tt>n</tt>.
 </div>
@@ -1400,7 +1400,7 @@ work on C <tt>FILE *</tt> objects, String objects, and special <tt>File</tt> obj
 
 <div class="indent">
 Formatted I/O.   Same as the C <tt>fprintf()</tt> function except that output
-can also be directed to a string object.  Note:  the <tt>%s</tt> format 
+can also be directed to a string object.  Note:  the <tt>%s</tt> format
 specifier works with both strings and <tt>char *</tt>.  All other format
 operators have the same meaning.
 </div>
@@ -1480,7 +1480,7 @@ Same as the C <tt>tell()</tt> function.
 <div class="indent">
 Create a File object using the <tt>fopen()</tt> library call.  This
 file differs from <tt>FILE *</tt> in that it can be placed in the standard
-SWIG containers (lists, hashes, etc.). 
+SWIG containers (lists, hashes, etc.).
 </div>
 
 <p>
@@ -1582,7 +1582,7 @@ Returns the parent of node <tt>n</tt>.  Use this to move up the pass tree.
 </div>
 
 <p>
-The following macros can be used to change all of the above attributes.  
+The following macros can be used to change all of the above attributes.
 Normally, these functions are only used by the parser.  Changing them without
 knowing what you are doing is likely to be dangerous.
 </p>
@@ -1678,7 +1678,7 @@ int functionHandler(Node *n) {
 
 <p>
 New attributes can be freely attached to a node as needed.   However, when new attributes
-are attached during code generation, they should be prepended with a namespace prefix. 
+are attached during code generation, they should be prepended with a namespace prefix.
 For example:
 </p>
 
@@ -1715,10 +1715,10 @@ the following functions are used:
 </p>
 
 <div class="indent">
-Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>. 
-Copies of the attributes are actually resaved in the node in a different namespace which is 
-set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo",n,"type",NIL)</tt>, 
-then the "type" attribute will be copied and saved as "foo:type".  The namespace name itself is stored in 
+Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>.
+Copies of the attributes are actually resaved in the node in a different namespace which is
+set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo",n,"type",NIL)</tt>,
+then the "type" attribute will be copied and saved as "foo:type".  The namespace name itself is stored in
 the "view" attribute of the node.  If necessary, this can be examined to find out where previous
 values of attributes might have been saved.
 </div>
@@ -1812,7 +1812,7 @@ vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
 <p>
 Reading the SWIG encoding is often easier than figuring out the C code---just
 read it from left to right.  For a type of "p.f(int,double).int" is
-a "pointer to a function(int,double) that returns int".  
+a "pointer to a function(int,double) that returns int".
 </p>
 
 <p>
@@ -2016,7 +2016,7 @@ opposite of <tt>SwigType_pop()</tt>.
 </p>
 
 <div class="indent">
-Removes all leading array operators from <tt>ty</tt> and returns them. 
+Removes all leading array operators from <tt>ty</tt> and returns them.
 <tt>ty</tt> is modified.   For example, if <tt>ty</tt> is <tt>"a(20).a(10).p.int"</tt>,
 then this function would return <tt>"a(20).a(10)."</tt> and modify <tt>ty</tt>
 so that it has the value <tt>"p.int"</tt>.
@@ -2137,7 +2137,7 @@ Checks if <tt>ty</tt> is a varargs type.
 </p>
 
 <div class="indent">
-Checks if <tt>ty</tt> is a templatized type. 
+Checks if <tt>ty</tt> is a templatized type.
 </div>
 
 <H3><a name="Extending_nn27"></a>32.8.4 Typedef and inheritance</H3>
@@ -2145,7 +2145,7 @@ Checks if <tt>ty</tt> is a templatized type.
 
 <p>
 The behavior of <tt>typedef</tt> declaration is to introduce a type alias.
-For instance, <tt>typedef int Integer</tt> makes the identifier 
+For instance, <tt>typedef int Integer</tt> makes the identifier
 <tt>Integer</tt> an alias for <tt>int</tt>.  The treatment of typedef in
 SWIG is somewhat complicated due to the pattern matching rules that get applied
 in typemaps and the fact that SWIG prefers to generate wrapper code
@@ -2174,7 +2174,7 @@ produces two trees like this:
 <div class="diagram">
 <pre>
                  int               p.Integer
-               ^  ^  ^                 ^ 
+               ^  ^  ^                 ^
               /   |   \                |
              /    |    \               |
         Integer  Size   Number    IntegerPtr
@@ -2196,7 +2196,7 @@ returns the new type.  If not, returns NULL.
 
 <p>
 Typedefs are only resolved in simple typenames that appear in a type.
-For example, the type base name and in function parameters.   When 
+For example, the type base name and in function parameters.   When
 resolving types, the process starts in the leaf nodes and moves up
 the tree towards the root.   Here are a few examples that show how it works:
 </p>
@@ -2248,7 +2248,7 @@ will consist only of primitive typenames.
 <p>
 When generating wrapper code, it is necessary to emit datatypes that can
 be used on the left-hand side of an assignment operator (an lvalue). However,
-not all C datatypes can be used in this way---especially arrays and 
+not all C datatypes can be used in this way---especially arrays and
 const-qualified types.  To generate a type that can be used as an lvalue,
 use the following function:
 </p>
@@ -2260,7 +2260,7 @@ use the following function:
 <div class="indent">
 Converts type <tt>ty</tt> to a type that can be used as an lvalue in
 assignment.  The resulting type is stripped of qualifiers and arrays are
-converted to a pointers.  
+converted to a pointers.
 </div>
 
 <p>
@@ -2488,7 +2488,7 @@ public:
     printf("Generating code.\n");
     return SWIG_OK;
   }
-  
+
 };
 
 extern "C" Language *
@@ -2578,7 +2578,7 @@ messages from your new module should appear.
 
 
 <p>
-When SWIG starts, the command line options are passed to your language module.  This occurs 
+When SWIG starts, the command line options are passed to your language module.  This occurs
 before any other processing occurs (preprocessing, parsing, etc.).   To capture the
 command line options, simply use code similar to this:
 </p>
@@ -2648,11 +2648,11 @@ void main(int argc, char *argv[]) {
    ... command line options ...
 
    /* Set language-specific subdirectory in SWIG library */
-   SWIG_library_directory("python"); 
+   SWIG_library_directory("python");
 
    /* Set language-specific preprocessing symbol */
    Preprocessor_define("SWIGPYTHON 1", 0);
-   
+
    /* Set language-specific configuration file */
    SWIG_config_file("python.swg");
 
@@ -2663,7 +2663,7 @@ void main(int argc, char *argv[]) {
 </div>
 
 <p>
-The above code does several things--it registers the name of the 
+The above code does several things--it registers the name of the
 language module with the core, it supplies some preprocessor macro definitions
 for use in input files (so that they can determine the target language), and
 it registers a start-up file.   In this case, the file <tt>python.swg</tt> will
@@ -2673,7 +2673,7 @@ be parsed before any part of the user-supplied input file.
 <p>
 Before proceeding any further, create a directory for your module in the SWIG
 library (The <tt>Lib</tt> directory).   Now, create a configuration file in the
-directory.  For example, <tt>python.swg</tt>.  
+directory.  For example, <tt>python.swg</tt>.
 </p>
 
 <p>
@@ -2717,7 +2717,7 @@ An outline of <tt>top()</tt> might be as follows:
 int Python::top(Node *n) {
 
    /* Get the module name */
-   String *module = Getattr(n,"name");  
+   String *module = Getattr(n,"name");
 
    /* Get the output file name */
    String *outfile = Getattr(n,"outfile");
@@ -2729,7 +2729,7 @@ int Python::top(Node *n) {
    ...
 
    /* Emit code for children */
-   Language::top(n); 
+   Language::top(n);
 
    ...
    /* Cleanup files */
@@ -2742,8 +2742,296 @@ int Python::top(Node *n) {
 
 <H3><a name="Extending_nn37"></a>32.10.6 Module I/O and wrapper skeleton</H3>
 
+<!-- please report bugs in this section to mgossage -->
+
+
+<p>
+Within SWIG wrappers, there are four main sections. These are (in order)
+
+<ul>
+<li>runtime: This section has most of the common SWIG runtime code
+<li>header: This section holds declarations and inclusions from the .i file
+<li>wrapper: This section holds all the wrappering code
+<li>init: This section holds the module initalisation function
+(the entry point for the interpreter)
+</ul>
+</p>
+<p>
+Different parts of the SWIG code will fill different sections,
+then upon completion of the wrappering all the sections will be saved
+to the wrapper file.
+</p>
+<p>
+To perform this will require several additions to the code in various places,
+such as:
+</p>
+
+<div class="code">
+<pre>
+class PYTHON : public Language {
+protected:
+   /* General DOH objects used for holding the strings */
+   File *f_runtime;
+   File *f_header;
+   File *f_wrappers;
+   File *f_init;
+
+public:
+   ...
+
+};
+
+int Python::top(Node *n) {
+
+   ...
+
+   /* Initialize I/O */
+   f_runtime = NewFile(outfile, "w");
+   if (!f_runtime) {
+      FileErrorDisplay(outfile);
+      SWIG_exit(EXIT_FAILURE);
+   }
+   f_init = NewString("");
+   f_header = NewString("");
+   f_wrappers = NewString("");
+
+   /* Register file targets with the SWIG file handler */
+   Swig_register_filebyname("header", f_header);
+   Swig_register_filebyname("wrapper", f_wrappers);
+   Swig_register_filebyname("runtime", f_runtime);
+   Swig_register_filebyname("init", f_init);
+
+   /* Output module initialization code */
+   ...
+
+   /* Emit code for children */
+   Language::top(n);
+
+   ...
+   /* Write all to the file */
+   Dump(f_header, f_runtime);
+   Dump(f_wrappers, f_runtime);
+   Wrapper_pretty_print(f_init, f_runtime);
+
+   /* Cleanup files */
+   Delete(f_header);
+   Delete(f_wrappers);
+   Delete(f_init);
+   Close(f_runtime);
+   Delete(f_runtime);
+
+   return SWIG_OK;
+}
+</pre>
+</div>
+
+<p>
+Using this to process a file will generate a wrapper file, however the
+wrapper will only consist of the common SWIG code as well as any inline
+code which was written in the .i file. It does not contain any wrappers for
+any of the functions of classes.
+</p>
+
+<p>
+The code to generate the wrappers are the various member functions, which
+currently have not been touched. We will look at functionWrapper() as this
+is the most commonly used function. In fact many of the other wrapper routines
+will call this to do their work.
+</p>
+<p>
+A simple modification to write some basic details to the wrapper looks like this:
+</p>
+
+<div class="code">
+<pre>
+int Python::functionWrapper(Node *n) {
+  /* Get some useful attributes of this function */
+  String   *name   = Getattr(n,"sym:name");
+  SwigType *type   = Getattr(n,"type");
+  ParmList *parms  = Getattr(n,"parms");
+  String   *parmstr= ParmList_str_defaultargs(parms); // to string
+  String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
+  String   *action = Getattr(n,"wrap:action");
+
+  Printf(f_wrappers,"functionWrapper   : %s\n", func);
+  Printf(f_wrappers,"           action : %s\n", action);
+  return SWIG_OK;
+}
+</pre>
+</div>
+
+<p>
+This will now produce some useful information within your wrapper file.
+</p>
+
+<div class="shell">
+<pre>
+functionWrapper   : void delete_Shape(Shape *self)
+           action : delete arg1;
+
+functionWrapper   : void Shape_x_set(Shape *self,double x)
+           action : if (arg1) (arg1)->x = arg2;
+
+functionWrapper   : double Shape_x_get(Shape *self)
+           action : result = (double) ((arg1)->x);
+
+functionWrapper   : void Shape_y_set(Shape *self,double y)
+           action : if (arg1) (arg1)->y = arg2;
+...
+</pre>
+</div>
 
 <H3><a name="Extending_nn38"></a>32.10.7 Low-level code generators</H3>
+
+<!-- please report bugs in this section to mgossage -->
+
+<p>
+As ingenious as SWIG is, and despite all its capabilities and the power of
+its parser, the Low-level code generation takes a lot of work to write
+properly. Mainly because every language insists on its own manner of
+interfacing to C/C++. To write the code generators you will need a good
+understanding of how to manually write an interface to your chosen
+language, so make sure you have your documentation handy.
+</p>
+<p>
+At this point is also probably a good idea to take a very simple file
+(just one function), and try letting SWIG generate up wrappers for many
+different languages. Take a look at all of the wrappers generated, and decide
+which one looks closest to the language you are trying to wrapper.
+This may help you to decide which code to look at.
+</p>
+<p>
+In general most language wrappers look a little like this:
+</p>
+<div class="code">
+<pre>
+/* wrapper for TYPE3 some_function(TYPE1,TYPE2); */
+RETURN_TYPE _wrap_some_function(ARGS){
+  TYPE1 arg1;
+  TYPE2 arg2;
+  TYPE3 result;
+
+  if(ARG1 is not of TYPE1) goto fail;
+  arg1=(convert ARG1);
+  if(ARG2 is not of TYPE2) goto fail;
+  arg2=(convert ARG2);
+
+  result=some_function(arg1,arg2);
+
+  convert 'result' to whatever the language wants;
+
+  do any tidy up;
+
+  return ALL_OK;
+
+  fail:
+  do any tidy up;
+  return ERROR;
+}
+</pre>
+</div>
+
+<p>
+Yes, it is rather vague and not very clear. But each language works differently
+so this will have to do for now.
+</p>
+<p>
+To tackle this problem will be done in two stages:
+<ul>
+<li>The skeleton: the function wrapper, and call, but without the conversion
+<li>The conversion: converting the arguments to-from what the language wants
+</ul>
+</p>
+<p>
+The first step will be done in the code, the second will be done in typemaps.
+</p>
+<p>
+Our first step will be to write the code for functionWrapper(). What is
+shown below is _NOT_ the solution, merely a step in the right direction.
+There are a lot of issues to address.
+</p>
+<ul>
+<li>Variable length and default parameters
+<li>Typechecking and number of argument checks
+<li>Overloaded functions
+<li>Inout and Output only arguments
+</ul>
+<div class="code">
+<pre>
+virtual int functionWrapper(Node *n) {
+  /* get useful atributes */
+  String   *name   = Getattr(n,"sym:name");
+  SwigType *type   = Getattr(n,"type");
+  ParmList *parms  = Getattr(n,"parms");
+  ...
+
+  /* create the wrapper object */
+  Wrapper *wrapper = NewWrapper();
+
+  /* create the functions wrappered name */
+  String *wname = Swig_name_wrapper(iname);
+
+  /* deal with overloading */
+  ....
+
+  /* write the wrapper function definition */
+  Printv(wrapper->def,"RETURN_TYPE ", wname, "(ARGS) {",NIL);
+
+  /* if any additional local variable needed, add them now */
+  ...
+
+  /* write the list of locals/arguments required */
+  emit_args(type, parms, wrapper);
+
+  /* check arguments */
+  ...
+
+  /* write typemaps(in) */
+  ....
+
+  /* write constriants */
+  ....
+
+  /* Emit the function call */
+  emit_action(n,wrapper);
+
+  /* return value if necessary  */
+  ....
+
+  /* write typemaps(out) */
+  ....
+
+  /* add cleanup code */
+  ....
+
+  /* Close the function(ok) */
+  Printv(wrapper->code, "return ALL_OK;\n", NIL);
+
+  /* add the failure cleanup code */
+  ...
+
+  /* Close the function(error) */
+  Printv(wrapper->code, "return ERROR;\n", "}\n", NIL);
+
+  /* final substititions if applicable */
+  ...
+
+  /* Dump the function out */
+  Wrapper_print(wrapper,f_wrappers);
+
+  /* tidy up */
+  Delete(wname);
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+</pre>
+</div>
+
+<p>
+Executing this code will produce wrappers which have our basic skeleton
+but without the typemaps, there are still work to do.
+</p>
 
 
 <H3><a name="Extending_nn39"></a>32.10.8 Configuration files</H3>
@@ -2827,7 +3115,7 @@ the code, ping me and I'll expand on this further.  --ttn]
 </p>
 
 <dt> <b>Makefile.in</b>
-<dd> 
+<dd>
 
 <p>
 Some of the variables AC_SUBSTitutued are essential to the
@@ -3203,7 +3491,7 @@ A forward C++ class declaration.
 </p>
 
 <p>
-Code insertion directive.  For example, %{ ... %} or 
+Code insertion directive.  For example, %{ ... %} or
 %insert(section).
 </p>
 
