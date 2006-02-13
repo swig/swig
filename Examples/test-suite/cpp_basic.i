@@ -82,8 +82,9 @@ int test_func_ptr(Foo *f, int a) {
 %}
 
 
+#ifdef __cplusplus
 %define MACRO_WINDOW_SHOW
-void show(PyObject *count = 0, PyObject *data = 0)
+void show(void *count = 0, void *data = 0)
 {
   return;
 }
@@ -101,3 +102,4 @@ void show(PyObject *count = 0, PyObject *data = 0)
   MACRO_WINDOW_SHOW
 }
 
+#endif
