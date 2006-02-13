@@ -80,3 +80,24 @@ int test_func_ptr(Foo *f, int a) {
 }
 
 %}
+
+
+%define MACRO_WINDOW_SHOW
+void show(PyObject *count = 0, PyObject *data = 0)
+{
+  return;
+}
+%enddef
+
+%inline %{
+  class Fl_Window {
+  public:
+    Fl_Window() {};
+    ~Fl_Window() {};
+  };
+%}
+
+%extend Fl_Window {
+  MACRO_WINDOW_SHOW
+}
+
