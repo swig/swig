@@ -692,7 +692,7 @@ int yylook(void) {
 	    if (loc && (strncmp(loc,"@SWIG",4) == 0)&& (*(loc+Len(comment)-1) == '@')) {
 	      /* Locator */
 	      scanner_locator(comment);
-	      Clear(comment);
+	      yylen = 0;
 	      state = 0;
 	    } else {
 	      yylen = 0;
