@@ -1910,6 +1910,7 @@ public:
    * ------------------------------------------------------------ */
   
   virtual int constructorHandler(Node *n) {
+    char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
 
     if (shadow) {
@@ -1924,7 +1925,11 @@ public:
     
     if(shadow) {
       String *wname = NewStringf( "_wrap_new_%s", iname );
-      create_command( iname, wname );
+      if(!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling")) {
+        char *realname = iname ? iname : name;
+        String *php_function_name = Swig_name_member(shadow_classname, realname);
+        create_command(realname,Swig_name_wrapper(php_function_name));
+      }
       Delete(wname);
     }
     
