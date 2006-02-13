@@ -298,12 +298,11 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
     if (!((*c == ';') || (*c == '}')))
       Append(fcall, ";");
   }
-  Append(fcall,"\n");
 
   if (SwigType_type(t) == T_REFERENCE) {
     String *lstr = SwigType_lstr(t,0);
-    Printf(fcall,"%s = (%s) &_result_ref;\n", name, lstr);
-    Append(fcall,"}\n");
+    Printf(fcall,"\n%s = (%s) &_result_ref;\n", name, lstr);
+    Append(fcall,"}");
     Delete(lstr);
   }
   return fcall;
