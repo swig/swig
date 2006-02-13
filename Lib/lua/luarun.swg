@@ -524,7 +524,7 @@ SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *typ
 	void* result;
 	if (SWIG_ConvertPtr(L,index,&result,type,flags)){
 		lua_pushfstring(L,"Error in %s, expected a %s at argument number %d\n",
-			func_name,type->str?type->str:"void*",argnum);
+			func_name,(type && type->str)?type->str:"void*",argnum);
 		lua_error(L);
 	}
 	return result;
