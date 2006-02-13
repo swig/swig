@@ -89,7 +89,6 @@
 %typemap(out) const char&
 %{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
 
-
 // pointers and references
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE*,SWIGTYPE&,SWIGTYPE[]
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
@@ -128,6 +127,13 @@
 
 // void (must be empty without the SWIG_arg++)
 %typemap(out) void "";
+
+/* void* is a special case
+A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
+but if its an output, then it should be wrappered like any other SWIG object (using default typemap)
+*/
+%typemap(in,checkfn="lua_isuserdata") void*
+%{$1=((swig_lua_userdata*)(lua_touserdata(L,$input)))->ptr;%}
 
 
 /* -----------------------------------------------------------------------------
@@ -252,6 +258,7 @@ SWIG_NUMBER_BY_CONST_REF(signed char);
 SWIG_NUMBER_BY_CONST_REF(float);
 SWIG_NUMBER_BY_CONST_REF(double);
 SWIG_NUMBER_BY_CONST_REF(enum SWIGTYPE);
+
 
 // Also needed for object ptrs by const ref
 // eg const A* ref_pointer(A* const& a);
