@@ -3,12 +3,53 @@ The SWIG Files
 <p><img src="images/projects.png" alt="Projects">
 
 <p>
-SWIG is being used in an increasing number of applications, most of
-which are related to research and development, prototyping, software testing,
-and construction of specialized systems.  This page describes
-some of the ways in which SWIG is currently being used. 
+SWIG is being used in an increasing number of applications. Applications cover the broad spectrum of
+open source projects, inhouse projects within corporations or organisations as well as commercial software projects.
 
+<h1>Open source projects using SWIG</h1>
+The following are some of the large open source projects which use SWIG.
+These can be a useful reference for seeing how SWIG used in real projects as the source is available.
+
+<li>
+  <a href="http://subversion.tigris.org/">Subversion</a> Version control system.
+</li>
+
+<li>
+  <a href="http://www.ogre3d.org/wiki/index.php/PyOgre">PyOgre</a> 3D graphics engine.
+</li>
+
+<li>
+  <a href="http://www.remotesensing.org/gdal/">GDAL</a> Geospatial Data Abstraction library.
+</li>
+
+<li>
+  <a href="http://www.scipy.org/documentation/weave/">Weave</a> Scientific tools library.
+</li>
+
+<li>
+  <a href="http://www.xapian.org/">Xapian</a> Probabilistic Information Retrieval library.
+</li>
+
+<li>
+  <a href="http://pyicu.osafoundation.org/">PyICU</a> Unicode support library.
+</li>
+
+<li>
+  <a href="http://quantlib.org/">QuantLib</a> Quantitive finance library.
+</li>
+
+<li>
+  <a href="http://pyopengl.sourceforge.net/">PyOpenGL</a> OpenGL graphics.
+</li>
+
+<li>
+  <a href="http://www.wxwindows.org/">wxWindows</a> GUI framework.
+</li>
+
+
+<h1>Other projects using SWIG</h1>
 <p>
+Below are some comments received on usage of SWIG by various organisations.
 (Note : the
 opinions expressed here do not necessarily reflect those of any
 given employer or organization).
