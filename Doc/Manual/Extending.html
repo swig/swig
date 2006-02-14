@@ -1,12 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>Extending SWIG</title>
+<title>Extending SWIG to support new languages</title>
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Extending"></a>32 Extending SWIG</H1>
+<H1><a name="Extending"></a>32 Extending SWIG to support new languages</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -59,6 +59,7 @@
 <li><a href="#Extending_nn41">Standard library files</a>
 <li><a href="#Extending_nn42">Examples and test cases</a>
 <li><a href="#Extending_nn43">Documentation</a>
+<li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 </ul>
 <li><a href="#Extending_nn44">Typemaps</a>
 <ul>
@@ -71,18 +72,14 @@
 
 
 
-<p>
-<b>Caution: This chapter is being rewritten! (11/25/01)</b>
-</p>
-
 <H2><a name="Extending_nn2"></a>32.1 Introduction</H2>
 
 
 <p>
 This chapter describes SWIG's internal organization and the process by which
 new target languages can be developed.    First, a brief word of warning---SWIG
-has been undergoing a massive redevelopment effort that has focused extensively
-on its internal organization.   The information in this chapter is mostly up to
+is continually evolving.
+The information in this chapter is mostly up to
 date, but changes are ongoing.   Expect a few inconsistencies.
 </p>
 
@@ -110,8 +107,8 @@ Since SWIG is essentially a specialized C++ compiler, it may be useful
 to have some prior experience with compiler design (perhaps even a
 compilers course) to better understand certain parts of the system.  A
 number of books will also be useful.  For example, "The C Programming
-Language" by Kernighan and Ritchie (a.k.a, "K&amp;R") and the "C++
-Annotated Reference Manual" by Stroustrup (a.k.a, the "ARM") will be of great use.
+Language" by Kernighan and Ritchie (a.k.a, "K&amp;R") and the C++ standard,
+"ISO/IEC 14882 Programming Languages - C++" will be of great use.
 </p>
 
 <p>
@@ -195,7 +192,7 @@ would determine whether or not a class allows a default constructor.
 <li>A code generation pass is made using a specific target language
 module.  This phase is responsible for generating the actual wrapper
 code.  All of SWIG's user-defined modules are invoked during this
-stage of compilation.
+latter stage of compilation.
 </li>
 </ul>
 
@@ -450,13 +447,14 @@ of the output.
 <p>
 The contents of each parse tree node consist of a collection of attribute/value
 pairs.  Internally, the nodes are simply represented by hash tables.  A display of
-the parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. For example:
+the entire parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. 
+There are a number of other parse tree display options, for example, <tt>swig -dump_module</tt> will
+avoid displaying system parse information and only display the parse tree pertaining to the user's module.
 </p>
 
 <div class="shell">
 <pre>
-$ swig -c++ -python -dump_tree example.i
-...
+$ swig -c++ -python -dump_module example.i
       +++ include ----------------------------------------
       | name         - "example.i"
 
@@ -793,8 +791,8 @@ You can see this when running with the <tt>-dump_tree</tt> option.   For example
 
 <p>
 Feature names are completely arbitrary and a target language module can be
-programmed to respond to any feature name that it wants to recognized.  The
-data stored in a feature attribute is usually just a raw unparsed string.
+programmed to respond to any feature name that it wants to recognize.  The 
+data stored in a feature attribute is usually just a raw unparsed string.   
 For example, the exception code above is simply
 stored without any modifications.
 </p>
@@ -930,7 +928,7 @@ interest in using XML to represent SWIG parse trees.  Although XML is
 not currently used in any direct manner, the parse tree structure, use
 of node tags, attributes, and attribute namespaces are all influenced
 by aspects of XML parsing.  Therefore, in trying to understand SWIG's
-internal data structures, it may be useful keep XML in the back of
+internal data structures, it may be useful to keep XML in the back of
 your mind as a model.
 </p>
 
@@ -2444,9 +2442,13 @@ Returns the number of required (non-optional) arguments in <tt>p</tt>.
 
 
 <p>
-This section briefly outlines the steps needed to create a bare-bones
-language module.  For more advanced techniques, you should look at the implementation
-of existing modules.   Since the code is relatively easy to read, this section
+One of the easiest routes to supporting a new language module is to copy an already
+supported language module implementation and modify it.
+Be sure to choose a language that is similar in nature to the new language.
+All language modules follow a similar structure and 
+this section briefly outlines the steps needed to create a bare-bones
+language module from scratch.
+Since the code is relatively easy to read, this section
 describes the creation of a minimal Python module.   You should be able to extrapolate
 this to other languages.
 </p>
@@ -2456,7 +2458,7 @@ this to other languages.
 
 <p>
 Code generation modules are defined by inheriting from the <tt>Language</tt> class,
-currently defined in the <tt>Source/Modules1.1</tt> directory of SWIG.  Starting from
+currently defined in the <tt>Source/Modules</tt> directory of SWIG.  Starting from
 the parsing of command line options, all aspects of code generation are controlled by
 different methods of the <tt>Language</tt> that must be defined by your module.
 </p>
@@ -2472,10 +2474,6 @@ this example as a guide:
 <div class="code">
 <pre>
 #include "swigmod.h"
-
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 
 class PYTHON : public Language {
 public:
@@ -2529,11 +2527,10 @@ also return a pointer to the base class (<tt>Language</tt>) so that only the int
 
 <p>
 Save the code for your language module in a file named "<tt>python.cxx</tt>" and.
-place this file in the <tt>Source/Modules1.1</tt> directory of the SWIG distribution.
+place this file in the <tt>Source/Modules</tt> directory of the SWIG distribution.
 To ensure that your module is compiled into SWIG along with the other language modules,
-modify the file <tt>Source/Modules1.1/Makefile.in</tt> to include the additional source
-files. Look for the lines that define the <tt>SRCS</tt> and <tt>OBJS</tt> variables and
-add entries for your language. In addition, modify the file <tt>Source/Modules1.1/swigmain.cxx</tt>
+modify the file <tt>Source/Modules/Makefile.am</tt> to include the additional source
+files.  In addition, modify the file <tt>Source/Modules/swigmain.cxx</tt>
 with an additional command line option that activates the module. Read the source---it's straightforward.
 </p>
 
@@ -2544,7 +2541,7 @@ to regenerate the various build files:
 
 <div class="shell">
 <pre>
-$ <b>sh autogen.sh</b>
+$ <b>./autogen.sh</b>
 </pre>
 </div>
 
@@ -2742,11 +2739,13 @@ int Python::top(Node *n) {
 
 <H3><a name="Extending_nn37"></a>32.10.6 Module I/O and wrapper skeleton</H3>
 
+
 <!-- please report bugs in this section to mgossage -->
 
 
 <p>
 Within SWIG wrappers, there are four main sections. These are (in order)
+</p>
 
 <ul>
 <li>runtime: This section has most of the common SWIG runtime code
@@ -2755,7 +2754,6 @@ Within SWIG wrappers, there are four main sections. These are (in order)
 <li>init: This section holds the module initalisation function
 (the entry point for the interpreter)
 </ul>
-</p>
 <p>
 Different parts of the SWIG code will fill different sections,
 then upon completion of the wrappering all the sections will be saved
@@ -2829,12 +2827,12 @@ int Python::top(Node *n) {
 Using this to process a file will generate a wrapper file, however the
 wrapper will only consist of the common SWIG code as well as any inline
 code which was written in the .i file. It does not contain any wrappers for
-any of the functions of classes.
+any of the functions or classes.
 </p>
 
 <p>
 The code to generate the wrappers are the various member functions, which
-currently have not been touched. We will look at functionWrapper() as this
+currently have not been touched. We will look at <tt>functionWrapper()</tt> as this
 is the most commonly used function. In fact many of the other wrapper routines
 will call this to do their work.
 </p>
@@ -2883,6 +2881,7 @@ functionWrapper   : void Shape_y_set(Shape *self,double y)
 
 <H3><a name="Extending_nn38"></a>32.10.7 Low-level code generators</H3>
 
+
 <!-- please report bugs in this section to mgossage -->
 
 <p>
@@ -2894,10 +2893,10 @@ understanding of how to manually write an interface to your chosen
 language, so make sure you have your documentation handy.
 </p>
 <p>
-At this point is also probably a good idea to take a very simple file
-(just one function), and try letting SWIG generate up wrappers for many
+At this point it is also probably a good idea to take a very simple file
+(just one function), and try letting SWIG generate wrappers for many
 different languages. Take a look at all of the wrappers generated, and decide
-which one looks closest to the language you are trying to wrapper.
+which one looks closest to the language you are trying to wrap.
 This may help you to decide which code to look at.
 </p>
 <p>
@@ -2936,18 +2935,18 @@ Yes, it is rather vague and not very clear. But each language works differently
 so this will have to do for now.
 </p>
 <p>
-To tackle this problem will be done in two stages:
+Tackling this problem will be done in two stages:
+</p>
 <ul>
 <li>The skeleton: the function wrapper, and call, but without the conversion
 <li>The conversion: converting the arguments to-from what the language wants
 </ul>
-</p>
 <p>
 The first step will be done in the code, the second will be done in typemaps.
 </p>
 <p>
-Our first step will be to write the code for functionWrapper(). What is
-shown below is _NOT_ the solution, merely a step in the right direction.
+Our first step will be to write the code for <tt>functionWrapper()</tt>. What is
+shown below is <b>NOT</b> the solution, merely a step in the right direction.
 There are a lot of issues to address.
 </p>
 <ul>
@@ -3030,7 +3029,7 @@ virtual int functionWrapper(Node *n) {
 
 <p>
 Executing this code will produce wrappers which have our basic skeleton
-but without the typemaps, there are still work to do.
+but without the typemaps, there is still work to do.
 </p>
 
 
@@ -3172,22 +3171,17 @@ subdirectory of <TT>Lib</TT>.  Use (optional) file
 <TT>extra-install.list</TT> in that directory to name
 additional files to install (see ruby for example).
 
-<dt> <b>Runtime/Makefile.in</b>
-<dd> Add another <TT>make</TT> invocation to <TT>all</TT>, and
-a section for your language module.
+<dt> <b>Source/Modules/Makefile.am</b>
+<dd> Add appropriate files to this Automake file. That's it!
 
-<dt> <b>Source/Modules1.1/Makefile.in</b>
-<dd> Add appropriate entries for vars <TT>OBJS</TT> and <TT>SRCS</TT>.
-That's it!
+<p>
+When you have modified these files, please make sure that the new language module is completely
+ignored if it is not installed and detected on a box, that is, <tt>make check-examples</tt> and <tt>make check-test-suite</tt>
+politely displays the ignoring language message.
+</p>
 
 </dl>
 
-<p>
-At some point it would be a good idea to use
-<A HREF="http://www.gnu.org/software/automake/">automake</A>
-to handle some of these configuration tasks, but that point is now
-long past.  If you are interested in working on that, feel free to
-raise the issue in the context of a next-generation clean-slate SWIG.
 
 <H3><a name="Extending_nn40"></a>32.10.9 Runtime support</H3>
 
@@ -3202,7 +3196,8 @@ the SWIG files that implement those functions.
 
 
 <p>
-Discuss the standard library files that most language modules provide, e.g.
+The standard library files that most languages supply keeps growing as SWIG matures.
+The following are the minimum that are usually supported:
 </p>
 
 <ul>
@@ -3211,6 +3206,10 @@ Discuss the standard library files that most language modules provide, e.g.
 <li> std_vector.i </li>
 <li> stl.i </li>
 </ul>
+
+<p>
+Please copy these and modify for any new language.
+</p>
 
 <H3><a name="Extending_nn42"></a>32.10.11 Examples and test cases</H3>
 
@@ -3228,8 +3227,10 @@ Each example is self-contained and consists of (at least) a <tt>Makefile</tt>,
 a SWIG interface file for the example module, and a script that demonstrates
 the functionality for that module. All of these files are stored in the same
 subdirectory, and that directory should be nested under <tt>Examples/python</tt>.
-For example, the files for the Python "simple" example are found in
-<tt>Examples/python/simple</tt>.
+There are two classic examples which should be the first to convert to a new
+language module. These are the "simple" C example and the "class" C++ example.
+These can be found, for example for Python, in
+<tt>Examples/python/simple</tt> and <tt>Examples/python/class</tt>.
 </p>
 
 <p>
@@ -3244,8 +3245,8 @@ files</a>.
 
 <p>
 Don't forget to write end-user documentation for your language module. Currently,
-each language module has a dedicated chapter (although this structure may change
-in the future). You shouldn't rehash things that are already covered in sufficient
+each language module has a dedicated chapter 
+You shouldn't rehash things that are already covered in sufficient
 detail in the <a href="SWIG.html#SWIG">SWIG Basics</a> and <a href="SWIGPlus.html#SWIGPlus">SWIG
 and C++</a> chapters. There is no fixed format for <em>what</em>, exactly, you should
 document about your language module, but you'll obviously want to cover issues that
@@ -3258,11 +3259,11 @@ Some topics that you'll want to be sure to address include:
 
 <ul>
 <li> Command line options unique to your language module.
-<li> Non-obvious mappings between C/C++ and scripting language concepts.
-     For example, if your scripting language provides a single floating
+<li> Non-obvious mappings between C/C++ and target language concepts.
+     For example, if your target language provides a single floating
      point type, it should be no big surprise to find that C/C++
      <tt>float</tt> and <tt>double</tt> types are mapped to it. On the other
-     hand, if your scripting language doesn't provide support for "classes"
+     hand, if your target language doesn't provide support for "classes"
      or something similar, you'd want to discuss how C++ classes are handled.
 <li> How to compile the SWIG-generated wrapper code into shared libraries
      that can actually be used. For some languages, there are well-defined
@@ -3270,6 +3271,58 @@ Some topics that you'll want to be sure to address include:
      Provide as much detail as appropriate, and links to other resources
      if available.
 </ul>
+
+<H3><a name="Extending_prerequisites"></a>32.10.13 Prerequisites for adding a new language module to the SWIG distribution</H3>
+
+
+<p>
+If you wish for a new language module to be distributed with SWIG,
+which we encourage for all popular languages, there are a few requirements.
+While we appreciate that getting all aspects of a new language working
+won't happen at the outset, there are a set of minimum requirements before
+a module can be committed into the cvs repository for distribution with future
+versions of SWIG. The following are really a summary of this whole section with
+details being outlined earlier on.
+</p>
+
+<ol>
+  <li>
+  Demonstrate basic C code working by porting the "simple" example, see
+  for example <tt>Examples/python/simple</tt>.
+  </li>
+  <li>
+  Demonstrate basic C++ code working by porting the "class" example,
+  see for example <tt>Examples/python/simple</tt>.
+  </li>
+  <li>
+  Modify <tt>configure.in</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
+  these examples. Please make sure that if the new language is not
+  installed properly on a box, <tt>make -k check</tt> should still work by
+  skipping the tests and examples for the new language module.
+  </li>
+  <li>
+  Get the test-suite running for the new language (<tt>make check-[lang]-test-suite</tt>).
+  While the test-suite tests many corner cases,
+  we'd expect the majority of it to work by compiling the generated code
+  correctly as most of the corner cases are covered in the SWIG core. Get
+  at least one C and one C++ runtime test running in the test-suite.
+  </li>
+  <li>
+  Provide a chapter in the html documentation on the basics of using
+  the language module.
+  </li>
+  <li>
+  Finally, email the SWIG developers with a patch and a demonstration of
+  commitment to maintaining the language module,
+  certainly in the short term and ideally long term.
+  </li>
+</ol>
+
+<p>
+Once accepted into CVS, development efforts should concentrate on
+getting the entire test-suite to work with plenty of runtime tests.
+</p>
+
 
 <H2><a name="Extending_nn44"></a>32.11 Typemaps</H2>
 
