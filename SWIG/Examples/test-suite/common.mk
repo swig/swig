@@ -357,6 +357,7 @@ C_TEST_CASES += \
 	function_typedef \
 	immutable \
 	inctest \
+	integers \
 	lextype \
 	li_carrays \
 	li_cdata \
