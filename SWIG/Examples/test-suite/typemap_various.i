@@ -22,3 +22,33 @@ void foo1(Foo<int> f, const Foo<int>& ff) {}
 void foo2(Foo<short> f, const Foo<short>& ff) {}
 %}
 
+#ifdef SWIGUTL
+%typemap(ret) int Bar1::foo() { /* hello1 */ };
+%typemap(ret) int Bar2::foo() { /* hello2 */ };
+%typemap(ret) int foo() {/* hello3 */ };
+#endif
+
+%inline %{
+  struct Bar1 {
+    int foo() { return 1;}    
+  };
+
+  struct Bar2 {
+    int foo() { return 1;}    
+  };
+%}
+
+
+
+%newobject FFoo::Bar(bool) const ;
+%typemap(newfree) char* Bar(bool)  {
+   /* hello */ delete[] result;
+}
+
+%inline {
+  class FFoo {
+  public:
+    char * Bar(bool b) const { return "x"; }
+  };
+}
+
