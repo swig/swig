@@ -1252,7 +1252,8 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     if (qsn) {
       if (StringLen(qsn) && !Equal(qsn,pname)) {
 	tm = Swig_typemap_search(op,type,qsn,&mtype);
-	if (tm && strstr(Char(Getattr(tm,k_type)),"SWIGTYPE")) {
+	if (tm && (!Getattr(tm,k_pname) || 
+		   strstr(Char(Getattr(tm,k_type)),"SWIGTYPE"))) {
 	  tm = 0;
 	}
       }

@@ -115,7 +115,7 @@ const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 %}
 
 
-// %typemap(newfree) char *GetNewCharString() { /* hello */ delete[] $1; }
+%typemap(newfree) char *GetNewCharString() { /* hello */ delete[] $1; }
 %newobject GetNewCharString();
 
 %inline {
