@@ -2027,7 +2027,7 @@ static void addCopyConstructor(Node *n)
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).",cc);
   String *csymname = Getattr(n,"sym:name");
-  String *oldname = Getattr(n,"template") ? csymname : 0;
+  String *oldname = csymname;
   String *symname = Swig_name_make(cn, cname, last, decl, oldname);
   if (!symname) {
     symname = Copy(csymname);
