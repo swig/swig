@@ -69,21 +69,7 @@ public:
 
 
 
-%{
-#include <vector>
-%}
-
-namespace std {
-    
-  template<class T> class vector {
-  public:
-    typedef size_t size_type;
-    typedef T value_type;
-    typedef const value_type& const_reference;
-    vector();
-    vector(size_type n);
-  };
-}
+%include "std_vector.i"
 
     
   
@@ -98,9 +84,10 @@ namespace std {
 namespace Space {
 class Flow {
 public:
-  Flow() {}
   Flow(int i) {}
   Flow(const Flow& other) {}
+private:
+  Flow() {}
 };
 }
 
