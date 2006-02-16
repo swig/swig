@@ -1,5 +1,6 @@
 %module constructor_copy
 
+%copyctor;
 %nocopyctor Foo8;
 %nocopyctor Bar<double>;
 
@@ -67,3 +68,42 @@ public:
 %template(Bard) Bar<double>;
 
 
+
+%{
+#include <vector>
+%}
+
+namespace std {
+    
+  template<class T> class vector {
+  public:
+    typedef size_t size_type;
+    typedef T value_type;
+    typedef const value_type& const_reference;
+    vector();
+    vector(size_type n);
+  };
+}
+
+    
+  
+%copyctor;
+
+//%ignore std::vector<Space::Flow>::vector(size_type); 
+%ignore std::vector<Space::Flow>::resize(size_type); 
+//Ignore as Flow does not have a default constructor
+
+%inline %{
+
+namespace Space {
+class Flow {
+public:
+  Flow() {}
+  Flow(int i) {}
+  Flow(const Flow& other) {}
+};
+}
+
+%}
+
+%template (VectFlow) std::vector<Space::Flow>;
