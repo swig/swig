@@ -288,7 +288,7 @@ the main SWIG distribution. There is no need to download anything else.
 
 Unix Installation
 =================
-You must use GNU `make' to build Swig.
+You must use GNU `make' to build SWIG.
 
 http://www.gnu.org/software/make/
 
@@ -320,6 +320,9 @@ uses.  Don't panic if you get 'not found' messages--SWIG does not need these
 packages to compile or run.   The configure script is actually looking for
 these packages so that you can try out the SWIG examples contained
 in the 'Examples' directory without having to hack Makefiles.
+
+Please see the Documentation section below on installing documentation as
+none is installed by default.
 
 SWIG used to include a set of runtime libraries for some languages for working
 with multiple modules. These are no longer built during the installation stage.
@@ -385,10 +388,6 @@ Note: The test-suite currently contains around 250 tests.  If you
 have many different target languages installed and a slow machine, it
 might take more than an hour to run the test-suite.
 
-Note: Some of the tests and examples may depend on SWIG runtime libraries.
-These are not built by default.  Type 'make -k runtime' to build the libraries
-if needed.
-
 Examples
 ========
 The Examples directory contains a variety of examples of using SWIG
@@ -400,7 +399,7 @@ building some of the examples on Windows.
 
 Known Issues
 ============
-There are minor bugs, details of which are in the bug tracker, see
+There are minor known bugs, details of which are in the bug tracker, see
 http://www.swig.org/bugs.html.
 
 Troubleshooting
@@ -438,17 +437,17 @@ http://www.dabeaz.com/cgi-bin/wiki.pl.
 Documentation
 =============
 The Doc/Manual directory contains the most recent set of updated
-documentation for this release.  The documentation is available in
-a single page html format, multiple page html format or pdf format,
-see Doc/Manual/index.html.
+documentation for this release. The documentation is available in
+three different formats, each of which contains identical content.
+These format are, pdf (SWIGDocumentation.pdf), single
+page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
+(other files in Doc/Manual). Please select your chosen format and
+copy/install to wherever takes your fancy.
 
 This is a development release and the documentation is largely, but 
 not entirely up to date.  We are working on it, but there
 was a lot of old documentation and it is taking some time to
 update and complete. Please be patient or volunteer to help.
-
-!! The most up-to-date information concerning new features in SWIG-1.3 is the
-!! file Doc/Manual/SWIG.html.
 
 There is some technical developer documentation available in the
 Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
