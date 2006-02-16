@@ -89,7 +89,7 @@ namespace std {
   
 %copyctor;
 
-//%ignore std::vector<Space::Flow>::vector(size_type); 
+%ignore std::vector<Space::Flow>::vector(size_type);
 %ignore std::vector<Space::Flow>::resize(size_type); 
 //Ignore as Flow does not have a default constructor
 
