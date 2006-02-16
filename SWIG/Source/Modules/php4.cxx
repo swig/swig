@@ -671,6 +671,9 @@ public:
     Printf(f_h, "#else\n" );
     Printf(f_h, "# define PHP_%s_API\n", cap_module );
     Printf(f_h, "#endif\n\n" );
+    Printf(f_h, "#ifdef ZTS\n" );
+    Printf(f_h, "#include \"TSRM.h\"\n" );
+    Printf(f_h, "#endif\n\n" );
     Printf(f_h, "PHP_MINIT_FUNCTION(%s);\n", module );
     Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module );
     Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module );
