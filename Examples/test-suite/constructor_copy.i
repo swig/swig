@@ -84,10 +84,8 @@ public:
 namespace Space {
 class Flow {
 public:
-  Flow(int i) {}
+  Flow(int i = 0) {}
   Flow(const Flow& other) {}
-private:
-  Flow() {}
 };
 }
 
