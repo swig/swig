@@ -47,3 +47,22 @@ namespace oss
     %template(Natural_BP) Natural<BinaryPolarization>; 
   } 
 } 
+
+%rename("equals") operator==;
+
+%inline %{
+
+  namespace Utilities {
+    class Bucket
+    {
+    public:
+      Bucket() : m_left(0) {}
+      friend bool operator==(const Bucket& lhs, const Bucket& rhs){
+	return ( rhs.m_left == lhs.m_left );
+      }
+    private:
+      int m_left;
+    };
+  }
+  
+%}
