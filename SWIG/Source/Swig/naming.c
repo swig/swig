@@ -519,6 +519,15 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   if (!rn) {
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
+  if (!rn && Swig_scopename_check(name)) {
+    String *nprefix = NewStringEmpty();
+    String *nlast = NewStringEmpty();
+    Swig_scopename_split(name, &nprefix, &nlast);
+    rn = name_object_get(namehash, nlast, decl, ncdecl);
+    Delete(nlast);
+    Delete(nprefix);
+  }
+  
   Delete(tname);
 
 #ifdef SWIG_DEBUG

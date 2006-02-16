@@ -310,6 +310,7 @@ static void add_symbols(Node *n) {
 	  Delete(base);
 	  Delete(prefix);
 	}
+	Namespaceprefix = 0;
       } else {
 	/* for member functions, we need to remove the redundant
 	   class scope if provided, as in
