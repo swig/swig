@@ -2679,6 +2679,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                                   for (s = First(bases); s.item; s = Next(s)) {
                                     Symtab *st = Getattr(s.item,k_symtab);
                                     if (st) {
+				      Setfile(st,Getfile(s.item));
+				      Setline(st,Getline(s.item));				      
                                       Swig_symbol_inherit(st);
                                     }
                                   }
@@ -3183,6 +3185,8 @@ cpp_class_decl  :
 		     for (s = First(bases); s.item; s = Next(s)) {
 		       Symtab *st = Getattr(s.item,k_symtab);
 		       if (st) {
+			 Setfile(st,Getfile(s.item));
+			 Setline(st,Getline(s.item));
 			 Swig_symbol_inherit(st); 
 		       }
 		     }
@@ -3784,10 +3788,14 @@ cpp_using_decl : USING idcolon SEMI {
 		 }
 		 if (n) {
 		   if (Strcmp(nodeType(n),"namespace") == 0) {
+		     Symtab *current = Swig_symbol_current();
+		     Symtab *symtab = Getattr(n,k_symtab);
 		     $$ = new_node("using");
 		     Setattr($$,"node",n);
 		     Setattr($$,k_namespace, $3);
-		     Swig_symbol_inherit(Getattr(n,k_symtab));
+		     if (current != symtab) {
+		       Swig_symbol_inherit(symtab);
+		     }
 		   } else {
 		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", $3);
 		     $$ = 0;
