@@ -577,7 +577,7 @@ public:
     int addfail = 0;
     getf = NewWrapper();
     getname = Swig_name_get(iname);
-    Printv(getf->def,"SWIGINTERN char *",getname,"(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
+    Printv(getf->def,"SWIGINTERN const char *",getname,"(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NIL);
     Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source", name);
@@ -608,7 +608,7 @@ public:
     if (is_assignable(n)) {
       setf = NewWrapper();
       setname = Swig_name_set(iname);
-      Printv(setf->def,"SWIGINTERN char *",setname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {",NIL);
+      Printv(setf->def,"SWIGINTERN const char *",setname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {",NIL);
       Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
       Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");
 
@@ -644,7 +644,7 @@ public:
       if (!readonlywrap) {
 	Wrapper *ro = NewWrapper();
 	Printf(ro->def, "SWIGINTERN const char *swig_readonly(ClientData clientData SWIGUNUSED, Tcl_Interp *interp SWIGUNUSED, char *name1 SWIGUNUSED, char *name2 SWIGUNUSED, int flags SWIGUNUSED) {");
-	Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", NIL);
+	Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", NIL);
 	Wrapper_print(ro,f_wrappers);
 	readonlywrap = 1;
 	DelWrapper(ro);
