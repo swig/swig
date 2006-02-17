@@ -412,6 +412,12 @@ void Swig_symbol_inherit(Symtab *s) {
     Setattr(current_symtab,k_inherit, inherit);
     Delete(inherit);
   }
+
+  if (s == current_symtab) {
+    Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(s), Getline(s), 
+		 "Recursive scope inheritance of '%s'.\n", HashGetAttr(s,k_name));
+    return;
+  }
   assert(s != current_symtab);
   ilen = Len(inherit);
   for (i = 0; i < ilen; i++) {

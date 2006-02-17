@@ -236,10 +236,16 @@ class TypePass : private Dispatcher {
 	SwigType_inherit_scope(scopes);
       }
       /* Set up inheritance in the symbol table */
-      Symtab *s = Swig_symbol_current();
       Symtab *st = Getattr(cls,"symtab");
+      Symtab *bst = Getattr(bclass,"symtab");
+      if (st == bst) {
+	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), 
+		     "Recursive scope inheritance of '%s'.\n", HashGetAttr(cls,k_name));
+	continue;
+      }
+      Symtab *s = Swig_symbol_current();
       Swig_symbol_setscope(st);
-      Swig_symbol_inherit(Getattr(bclass,"symtab"));
+      Swig_symbol_inherit(bst);
       Swig_symbol_setscope(s);
 
       /* Recursively hit base classes */
