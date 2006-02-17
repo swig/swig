@@ -235,12 +235,11 @@ SWIG_Tcl_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
 
 SWIGRUNTIME swig_module_info * 
 SWIG_Tcl_GetModule(Tcl_Interp *interp) {
-  char *data;
+  const char *data;
   swig_module_info *ret = 0;
   
   /* first check if pointer already created */
-  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME,
-			     TCL_GLOBAL_ONLY);
+  data = Tcl_GetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TCL_GLOBAL_ONLY);
   if (data) {
     SWIG_UnpackData(data, &ret, sizeof(swig_type_info **));
   }
@@ -256,7 +255,7 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
   /* create a new pointer */
   data = SWIG_PackData(buf, &module, sizeof(swig_type_info **));
   *data = 0;
-  Tcl_SetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
+  Tcl_SetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
 }
 
 /* -----------------------------------------------------------------------------*
