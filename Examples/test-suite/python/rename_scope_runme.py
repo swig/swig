@@ -8,3 +8,5 @@ if a.rtest() != 1:
 
 if b.rtest() != 1:
     raise RuntimeError
+
+f = equals
