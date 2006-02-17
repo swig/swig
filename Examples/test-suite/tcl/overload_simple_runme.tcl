@@ -160,7 +160,7 @@ if {$x != "void *"} {
     puts stderr "Spam(void *) test failed"
 }
 
-
+free_void $v
 
 
 
