@@ -749,7 +749,7 @@ public:
     } else if (!Getattr(n,"sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs, ii;
-      String *dispatch = Swig_overload_dispatch_cast(n,"(*PL_markstack_ptr++);SWIG_CALLXS(%s); return;",&maxargs);
+      String *dispatch = Swig_overload_dispatch_cast(n,"++PL_markstack_ptr; SWIG_CALLXS(%s); return;",&maxargs);
 	
       /* Generate a dispatch wrapper for all overloaded functions */
 
