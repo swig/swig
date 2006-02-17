@@ -19,6 +19,7 @@ public:
   abstract_bar() { }; 
  
   virtual ~abstract_bar() { }; 
+  virtual int   meth(int meth_param) = 0; 
   int           meth(int meth_param_1, int meth_param_2) { return 0; }
 }; 
 
