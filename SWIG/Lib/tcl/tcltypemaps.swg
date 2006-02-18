@@ -64,14 +64,26 @@
  *  Tcl extra typemaps
  * ------------------------------------------------------------ */
 
+#if 1
+// Old 1.3.25 typemaps needed to avoid premature object deletion
+%typemap(out,noblock=1) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[] {
+  Tcl_SetObjResult(interp, SWIG_NewInstanceObj( %as_voidptr($1), $1_descriptor,0));
+}
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,%as_voidptrptr(&$1));
+  Tcl_SetObjResult(interp,SWIG_NewInstanceObj(%as_voidptr($1), ty,0));
+}
+
+#endif
+
+%typemap(throws,noblock=1) SWIGTYPE CLASS {
+  SWIG_set_result(SWIG_NewInstanceObj(%as_voidptr(SWIG_new_copy($1, $1_ltype)), $&1_descriptor, 1));
+  SWIG_fail;
+}
+
 %typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
 %typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;
 %typemap(out)    SWIGTYPE [] =  SWIGTYPE INSTANCE[];
 %typemap(varout) SWIGTYPE    =  SWIGTYPE INSTANCE;
-
-%typemap(throws,noblock=1) SWIGTYPE CLASS {
-  SWIG_set_result(SWIG_NewInstanceObj(SWIG_as_voidptr(SWIG_new_copy($1, $1_ltype)), $&1_descriptor, 1));
-  SWIG_fail;
-}
-
