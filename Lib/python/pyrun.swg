@@ -272,7 +272,7 @@ PySwigClientData_New(PyObject* obj)
     PySwigClientData *data = (PySwigClientData *)malloc(sizeof(PySwigClientData));
     /* the klass element */
     data->klass = obj;
-    Py_INCREF(obj);
+    Py_INCREF(data->klass);
     /* the newraw method and newargs arguments used to create a new raw instance */
     if (PyClass_Check(obj)) {
       data->newraw = 0;
@@ -317,7 +317,6 @@ PySwigClientData_New(PyObject* obj)
 SWIGRUNTIME void 
 PySwigClientData_Del(PySwigClientData* data)
 {
-  Py_XDECREF(data->klass);
   Py_XDECREF(data->newraw);
   Py_XDECREF(data->newargs);
   Py_XDECREF(data->destroy);
