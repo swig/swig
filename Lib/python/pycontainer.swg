@@ -334,7 +334,7 @@ namespace swig
     typedef Reference reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef ptrdiff_t difference_type;
+    typedef int difference_type;
 
     PySequence_InputIterator()
     {
@@ -417,7 +417,7 @@ namespace swig
 
   private:
     PyObject* _seq;
-    int _index;
+    difference_type _index;
   };
 
   template <class T>
