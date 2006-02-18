@@ -48,7 +48,7 @@
   Type _v;
   int res = swig::asval<Type >(obj, &_v);  
   if (SWIG_IsOK(res)) {
-    if (val) *val = %new_copy(_v, value_type);
+    if (val) *val = new value_type(static_cast<const Type& >(_v));
     return SWIG_AddNewMask(res);
   }
 }
