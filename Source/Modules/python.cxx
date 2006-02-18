@@ -676,6 +676,13 @@ public:
                tab4, "raise AttributeError,name\n\n",
                NIL);
 
+        Printv(f_shadow,
+	       "def _swig_repr(self):\n",
+	       tab4, "try: strthis = \"at 0x%x\" %( self.this, )\n",
+	       tab4, "except: strthis = \"\"\n",
+	       tab4, "return \"<%s.%s; proxy of C++ swig::PySwigIterator instance %s>\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n",
+	       NIL);
+
         if (!classic) {
           Printv(f_shadow,
                  "import types\n",
@@ -2678,10 +2685,7 @@ public:
 	String *rname = SwigType_namestr(real_classname);
 	if (new_repr) {
 	  Printv(f_shadow_file,
-                 tab4, "def __repr__(self):\n",
-		 tab8, "try: strthis = \"at 0x%x\" %( self.this, ) \n",
-		 tab8, "except: strthis = \"\" \n",
-                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance %s>\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n",
+                 tab4, "__repr__ = lambda self: _swig_repr(self)\n",
                  NIL);
 	}
 	else {
@@ -2730,10 +2734,11 @@ public:
 	for (int i = 0; i < Len(shadow_list); ++i) {
 	  String *symname = Getitem(shadow_list,i);
 	  Printf(f_shadow_file,"%s.%s = new_instancemethod(%s.%s,None,%s)\n", 
-		 class_name, symname, module, Swig_name_member(class_name,symname), class_name,0);
+		 class_name, symname, module, Swig_name_member(class_name,symname), class_name);
 	}
       }
       Printf(f_shadow_file,"%s.%s_swigregister(%s)\n", module, class_name, class_name,0);
+      Printf(f_shadow_file,"%s_swigregister = %s.%s_swigregister\n", class_name, module, class_name);
       
       shadow_indent = 0;
       Printf(f_shadow_file,"%s\n", f_shadow_stubs);
