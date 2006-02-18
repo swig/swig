@@ -2685,7 +2685,7 @@ public:
 	String *rname = SwigType_namestr(real_classname);
 	if (new_repr) {
 	  Printv(f_shadow_file,
-                 tab4, "__repr__ = lambda self: _swig_repr(self)\n",
+                 tab4, "__repr__ = _swig_repr\n",
                  NIL);
 	}
 	else {
@@ -2737,8 +2737,8 @@ public:
 		 class_name, symname, module, Swig_name_member(class_name,symname), class_name);
 	}
       }
-      Printf(f_shadow_file,"%s.%s_swigregister(%s)\n", module, class_name, class_name,0);
       Printf(f_shadow_file,"%s_swigregister = %s.%s_swigregister\n", class_name, module, class_name);
+      Printf(f_shadow_file,"%s_swigregister(%s)\n", class_name, class_name,0);
       
       shadow_indent = 0;
       Printf(f_shadow_file,"%s\n", f_shadow_stubs);
