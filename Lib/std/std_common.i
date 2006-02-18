@@ -12,9 +12,9 @@
 %{
   
 #if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
-#define SWIG_STD_NOASSIGN_STL
-#define SWIG_STD_NOINSERT_TEMPLATE_STL
-#define SWIG_STD_NOITERATOR_TRAITS_STL
+#  define SWIG_STD_NOASSIGN_STL
+#  define SWIG_STD_NOINSERT_TEMPLATE_STL
+#  define SWIG_STD_NOITERATOR_TRAITS_STL
 #endif
 
 #if defined(__GNUC__)
@@ -40,15 +40,39 @@
 #if !defined(SWIG_STD_NOITERATOR_TRAITS_STL)
 #include <iterator>
 #else
+namespace std  {
   template <class Iterator>
   struct iterator_traits {
+    typedef ptrdiff_t difference_type;
     typedef typename Iterator::value_type value_type;
   };
+
+#if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
+  template <class Iterator, class Category,class T, class Reference, class Pointer, class Distance>
+  struct iterator_traits<__reverse_bi_iterator<Iterator,Category,T,Reference,Pointer,Distance> > {
+    typedef Distance difference_type;
+    typedef T value_type;
+  };
+#endif  
 
   template <class T>
   struct iterator_traits<T*> {
     typedef T value_type;
+    typedef ptrdiff_t difference_type;
   };
+
+  template<typename _InputIterator>
+  inline typename iterator_traits<_InputIterator>::difference_type
+  distance(_InputIterator __first, _InputIterator __last)
+  {
+    typename iterator_traits<_InputIterator>::difference_type __n = 0;
+    while (__first != __last) {
+      ++__first; ++__n;
+    }
+    return __n;
+  }
+
+} 
 #endif
 %}
 

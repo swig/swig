@@ -20,9 +20,7 @@
 # endif
 #endif
 
-#if defined(SWIG_EXPORT_ITERATOR_METHODS)
 %include <pyiterators.swg>
-#endif 
 
 /**** The PySequence C++ Wrap ***/
 
@@ -520,7 +518,7 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="PySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator((const $type &)$1),
+    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
 				 swig::PySwigIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="PySequence_Cont")
