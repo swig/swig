@@ -14,14 +14,14 @@ if {[fooCount] != 2} {
     exit 1
 }
 
-$foo1 -delete
-if {[fooCount] != 1} {
-    puts stderr "newobject2 test 3 failed"
-    exit 1
-}
+#$foo1 -delete
+#if {[fooCount] != 1} {
+#    puts stderr "newobject2 test 3 failed"
+#    exit 1
+#}
 
-$foo2 -delete
-if {[fooCount] != 0} {
-    puts stderr "newobject2 test 4 failed"
-    exit 1
-}
+#$foo2 -delete
+#if {[fooCount] != 0} {
+#    puts stderr "newobject2 test 4 failed"
+#    exit 1
+#}
