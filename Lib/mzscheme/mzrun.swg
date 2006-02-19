@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <escheme.h>
 
 #ifdef __cplusplus
@@ -46,6 +47,50 @@ extern "C" {
 #define MAXVALUES 6
 #define swig_make_boolean(b) (b ? scheme_true : scheme_false)
 
+static long
+SWIG_convert_integer(Scheme_Object *o,
+		     long lower_bound, long upper_bound, 
+		     const char *func_name, int argnum, int argc,
+		     Scheme_Object **argv)
+{
+  long value;
+  int status = scheme_get_int_val(o, &value);
+  if (!status)
+    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
+  if (value < lower_bound || value > upper_bound)
+    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
+  return value;
+}
+
+static int
+SWIG_is_integer(Scheme_Object *o)
+{
+  long value;
+  return scheme_get_int_val(o, &value);
+}
+
+static unsigned long
+SWIG_convert_unsigned_integer(Scheme_Object *o,
+			      unsigned long lower_bound, unsigned long upper_bound, 
+			      const char *func_name, int argnum, int argc,
+			      Scheme_Object **argv)
+{
+  unsigned long value;
+  int status = scheme_get_unsigned_int_val(o, &value);
+  if (!status)
+    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
+  if (value < lower_bound || value > upper_bound)
+    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
+  return value;
+}
+
+static int
+SWIG_is_unsigned_integer(Scheme_Object *o)
+{
+  unsigned long value;
+  return scheme_get_unsigned_int_val(o, &value);
+}
+  
 /* ----------------------------------------------------------------------- 
  * mzscheme 30X support code
  * Contributed by Hans Oesterholt

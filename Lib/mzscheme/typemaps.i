@@ -1,5 +1,5 @@
 /* typemaps.i --- mzscheme typemaps -*- c -*-
-   Copyright 2000, 2001, 2004 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
+   Copyright 2000, 2001, 2004, 2006 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
    Based on code written by Oleg Tolmatcev.
 
    $Id$
@@ -89,15 +89,15 @@
 
 /* Enums */
 %typemap(in) enum SWIGTYPE {
-  if (!SCHEME_INTP($input)) 
+  if (!SWIG_is_integer($input)) 
       scheme_wrong_type(FUNC_NAME, "integer", $argnum - 1, argc, argv);
-  $1 = ($1_type) SCHEME_INT_VAL($input);
+  $1 = ($1_type) SWIG_convert_int($input);
 }
 
 %typemap(varin) enum SWIGTYPE {
-  if (!SCHEME_INTP($input)) 
+  if (!SWIG_is_integer($input)) 
       scheme_wrong_type(FUNC_NAME, "integer", 0, argc, argv);
-  $1 = ($1_type) SCHEME_INT_VAL($input);
+  $1 = ($1_type) SWIG_convert_int($input);
 }
 
 %typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
@@ -194,21 +194,21 @@ SIMPLE_MAP(char, SCHEME_CHARP, SCHEME_CHAR_VAL,
 	   scheme_make_character, character);
 SIMPLE_MAP(unsigned char, SCHEME_CHARP, SCHEME_CHAR_VAL,
 	   scheme_make_character, character);
-SIMPLE_MAP(int, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(int, SWIG_is_integer, SWIG_convert_int,
 	   scheme_make_integer_value, integer);
-SIMPLE_MAP(short, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(short, SWIG_is_integer, SWIG_convert_short,
 	   scheme_make_integer_value, integer);
-SIMPLE_MAP(long, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(long, SWIG_is_integer, SWIG_convert_long,
 	   scheme_make_integer_value, integer);
-SIMPLE_MAP(ptrdiff_t, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(ptrdiff_t, SWIG_is_integer, SWIG_convert_long,
 	   scheme_make_integer_value, integer);
-SIMPLE_MAP(unsigned int, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer, SWIG_convert_unsigned_int,
 	   scheme_make_integer_value_from_unsigned, integer);
-SIMPLE_MAP(unsigned short, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer, SWIG_convert_unsigned_short,
 	   scheme_make_integer_value_from_unsigned, integer);
-SIMPLE_MAP(unsigned long, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer, SWIG_convert_unsigned_long,
 	   scheme_make_integer_value_from_unsigned, integer);
-SIMPLE_MAP(size_t, SCHEME_INTP, SCHEME_INT_VAL,
+SIMPLE_MAP(size_t, SWIG_is_unsigned_integer, SWIG_convert_unsigned_long,
 	   scheme_make_integer_value_from_unsigned, integer);
 SIMPLE_MAP(float, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
@@ -248,17 +248,17 @@ REF_MAP(char, SCHEME_CHARP, SCHEME_CHAR_VAL,
 	   scheme_make_character, character);
 REF_MAP(unsigned char, SCHEME_CHARP, SCHEME_CHAR_VAL,
 	   scheme_make_character, character);
-REF_MAP(int, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(int, SWIG_is_integer, SWIG_convert_int,
 	   scheme_make_integer_value, integer);
-REF_MAP(short, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(short, SWIG_is_integer, SWIG_convert_short,
 	   scheme_make_integer_value, integer);
-REF_MAP(long, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(long, SWIG_is_integer, SWIG_convert_long,
 	   scheme_make_integer_value, integer);
-REF_MAP(unsigned int, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(unsigned int, SWIG_is_unsigned_integer, SWIG_convert_unsigned_int,
 	   scheme_make_integer_value_from_unsigned, integer);
-REF_MAP(unsigned short, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(unsigned short, SWIG_is_unsigned_integer, SWIG_convert_unsigned_short,
 	   scheme_make_integer_value_from_unsigned, integer);
-REF_MAP(unsigned long, SCHEME_INTP, SCHEME_INT_VAL,
+REF_MAP(unsigned long, SWIG_is_unsigned_integer, SWIG_convert_unsigned_long,
 	   scheme_make_integer_value_from_unsigned, integer);
 REF_MAP(float, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
@@ -301,7 +301,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	 const long long &, const unsigned long long &,
 	 enum SWIGTYPE
 {
-  $1 = (SCHEME_INTP($input)) ? 1 : 0;
+  $1 = (SWIG_is_integer($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_BOOL) bool, bool &, const bool &

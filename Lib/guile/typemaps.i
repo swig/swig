@@ -263,11 +263,11 @@
  SIMPLE_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
  SIMPLE_MAP(signed char, gh_scm2char, gh_char2scm, char);
  SIMPLE_MAP(int, gh_scm2int, gh_int2scm, integer);
- SIMPLE_MAP(short, gh_scm2int, gh_int2scm, integer);
+ SIMPLE_MAP(short, gh_scm2short, gh_int2scm, integer);
  SIMPLE_MAP(long, gh_scm2long, gh_long2scm, integer);
  SIMPLE_MAP(ptrdiff_t, gh_scm2long, gh_long2scm, integer);
- SIMPLE_MAP(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
- SIMPLE_MAP(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
+ SIMPLE_MAP(unsigned int, gh_scm2uint, gh_ulong2scm, integer);
+ SIMPLE_MAP(unsigned short, gh_scm2ushort, gh_ulong2scm, integer);
  SIMPLE_MAP(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
  SIMPLE_MAP(size_t, gh_scm2ulong, gh_ulong2scm, integer);
  SIMPLE_MAP(float, gh_scm2double, gh_double2scm, real);
