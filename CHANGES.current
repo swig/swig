@@ -1,6 +1,12 @@
 Version 1.3.29 (In progress)
 ============================
 
+02/17/2006: mkoeppe
+	    [MzScheme] Typemaps for all integral types now accept the full range of integral
+	    values, and they signal an error when a value outside the valid range is passed.
+	    [Guile] Typemaps for all integral types now signal an error when a value outside
+	    the valid range is passed.
+
 02/13/2006: mgossage
             [Documents] updated the extending documents to give a skeleton swigging code
             with a few typemaps.
