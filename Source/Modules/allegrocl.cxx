@@ -11,9 +11,9 @@
 
 char cvsroot_allegrocl_cxx[] = "$Header$";
 
-#include <ctype.h>
 #include "swigmod.h"
 #include "cparse.h"
+#include <ctype.h>
 
 // #define ALLEGROCL_DEBUG
 // #define ALLEGROCL_WRAP_DEBUG

@@ -45,9 +45,6 @@
 char cvsroot_lua_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 
 /* NEW LANGUAGE NOTE:***********************************************
  most of the default options are handled by SWIG

@@ -17,10 +17,6 @@
 #ifndef SWIGMOD_H_
 #define SWIGMOD_H_
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "swig.h"
 #include "preprocessor.h"
 #include "swigwarn.h"

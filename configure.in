@@ -14,6 +14,11 @@ dnl Some extra defines for the config file
 AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
+
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+#if defined(_MSC_VER)
+# define _CRT_SECURE_NO_DEPRECATE
+#endif
 ])
 
 dnl Checks for programs.

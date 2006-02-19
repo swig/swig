@@ -10,9 +10,9 @@
 
 char cvsroot_cffi_cxx[] = "$Header$";
 
-#include <ctype.h>
 #include "swigmod.h"
 #include "cparse.h"
+#include <ctype.h>
 
 //#define CFFI_DEBUG
 class CFFI : public Language {

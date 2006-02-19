@@ -22,8 +22,8 @@
 
 char cvsroot_swigmain_cxx[] = "$Header$";
 
-#include <ctype.h>
 #include "swigmod.h"
+#include <ctype.h>
 
 /* Module factories.  These functions are used to instantiate
    the built-in language modules.    If adding a new language
