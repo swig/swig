@@ -15,14 +15,14 @@
 #ifndef _DOHINT_H
 #define _DOHINT_H
 
+#include "doh.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
-
-#include "doh.h"
 
 /* Hash objects */
 typedef struct {

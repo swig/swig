@@ -15,6 +15,10 @@
 #ifndef SWIGCORE_H_
 #define SWIGCORE_H_
 
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,13 +26,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode*/
-#endif
-#endif
-
-#ifndef MACSWIG
-#include "swigconfig.h"
 #endif
 
 #include "doh.h"
@@ -560,9 +557,6 @@ extern void SwigType_template_init();
 
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode*/
-#endif
 }
 #endif
 

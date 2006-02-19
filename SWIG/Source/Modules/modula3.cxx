@@ -124,12 +124,9 @@ char cvsroot_modula3_cxx[] =
       - no exception can be raised in the body (empty RAISES) list
 */
 
-#include <limits.h>             // for INT_MAX
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-// toupper, tolower, isalpha
+
+#include <limits.h>             // for INT_MAX
 #include <ctype.h>
 
 const char usageArgDir[] =

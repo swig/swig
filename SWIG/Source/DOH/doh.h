@@ -14,6 +14,13 @@
 #ifndef _DOH_H
 #define _DOH_H
 
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
+
+#include <stdio.h>
+#include <stdarg.h>
+
 /* Set the namespace prefix for DOH API functions. This can be used to control
    visibility of the functions in libraries */
 
@@ -130,9 +137,6 @@
 #define DohFirst           DOH_NAMESPACE(First)
 #define DohNext            DOH_NAMESPACE(Next)
 #endif
-
-#include <stdio.h>
-#include <stdarg.h>
 
 #define DOH_MAJOR_VERSION 0
 #define DOH_MINOR_VERSION 1
