@@ -71,21 +71,21 @@ public:
 
 %include "std_vector.i"
 
-    
-  
+#if defined(SWIGCSHARP)
+SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Flow, Space::Flow)
+#endif
+
 %copyctor;
 
 %ignore std::vector<Space::Flow>::vector(size_type);
-%ignore std::vector<Space::Flow>::resize(size_type); 
-//Ignore as Flow does not have a default constructor
+%ignore std::vector<Space::Flow>::resize(size_type); //Ignore as Flow does not have a default constructor
 
 %inline %{
 
 namespace Space {
 class Flow {
 public:
-  Flow(int i = 0) {}
-  Flow(const Flow& other) {}
+  Flow(int i) {}
 };
 }
 
