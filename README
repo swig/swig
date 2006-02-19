@@ -100,6 +100,7 @@ SWIG-1.3.28 summary:
   errors with typemaps are now fixed.
 - Initial Java support for languages using the UTL via GCJ, you can now use 
   Java libraries in your favorite script language using gcj + swig.
+- Tcl support for std::wstring.
 - PHP4 module update, many error fixes and actively maintained again.
 - Allegrocl support for C++, also enhanced C support.
 - Ruby support for bang methods.
