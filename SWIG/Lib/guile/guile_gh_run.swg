@@ -68,6 +68,29 @@ GSWIG_scm2char (SCM s)
 #  define SCM_OUTPUT_PORT_P SCM_OUTPORTP
 #endif
 
+static long
+SWIG_convert_integer(SCM o,
+		     long lower_bound, long upper_bound, 
+		     const char *func_name, int argnum)
+{
+  long value = gh_scm2long(o);
+  if (value < lower_bound || value > upper_bound)
+    scm_wrong_type_arg((char *) func_name, argnum, o);
+  return value;
+}
+  
+static unsigned long
+SWIG_convert_unsigned_integer(SCM o,
+			      unsigned long lower_bound,
+			      unsigned long upper_bound, 
+			      const char *func_name, int argnum)
+{
+  unsigned long value = gh_scm2ulong(o);
+  if (value < lower_bound || value > upper_bound)
+    scm_wrong_type_arg((char *) func_name, argnum, o);
+  return value;
+}
+
 static swig_type_info *SWIG_Guile_LookupType(swig_module_info *module, SCM s, int normal) {
   swig_module_info *iter;
   if (!module) return 0;

@@ -19,8 +19,11 @@
 #define gh_scm2double(a) scm_num2dbl(a, FUNC_NAME) 
 #define gh_scm2int(a) scm_num2int(a, SCM_ARG1, FUNC_NAME) 
 #define gh_scm2long(a) scm_num2long(a, SCM_ARG1, FUNC_NAME) 
+#define gh_scm2short(a) scm_num2short(a, SCM_ARG1, FUNC_NAME)
 #define gh_scm2newstr SWIG_Guile_scm2newstr
-#define gh_scm2ulong(a) scm_num2ulong(a, SCM_ARG1, FUNC_NAME) 
+#define gh_scm2ulong(a) scm_num2ulong(a, SCM_ARG1, FUNC_NAME)
+#define gh_scm2ushort(a) scm_num2ushort(a, SCM_ARG1, FUNC_NAME)
+#define gh_scm2uint(a) scm_num2uint(a, SCM_ARG1, FUNC_NAME)
 #define gh_ulong2scm scm_ulong2num
 #define gh_long2scm scm_long2num
 #define gh_str02scm scm_makfrom0str 

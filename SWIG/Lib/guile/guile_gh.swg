@@ -7,6 +7,23 @@
 
 %runtime "swigrun.swg"
 %runtime "guile_gh_run.swg"
+
+#define SWIG_convert_short(o)					\
+  SWIG_convert_integer(o, - (1 << (8 * sizeof(short) - 1)),	\
+		       (1 << (8 * sizeof(short) - 1)) - 1,	\
+		       FUNC_NAME, $argnum)
+#define SWIG_convert_unsigned_short(o)			\
+  SWIG_convert_unsigned_integer(o, 0,				\
+		       (1 << (8 * sizeof(short))) - 1,	\
+		       FUNC_NAME, $argnum)
+#define SWIG_convert_unsigned_int(o)		\
+  SWIG_convert_unsigned_integer(o, 0, UINT_MAX,	\
+		       FUNC_NAME, $argnum)
+
+#define gh_scm2short(a) SWIG_convert_short(a)
+#define gh_scm2ushort(a) SWIG_convert_unsigned_short(a)
+#define gh_scm2uint(a)   SWIG_convert_unsigned_int(a)
+
 %include <guile.i>
 
 %runtime %{

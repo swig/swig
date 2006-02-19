@@ -9,8 +9,8 @@
 (define-macro (check-range function from to)
   `(begin (check-equality (,function ,from) ,from)
 	  (check-equality (,function ,to)   ,to)
-	  (check-equality (throws-exception? (- ,from 1)) #t)
-	  (check-equality (throws-exception? (+ ,to 1)) #t)))
+	  (check-equality (throws-exception? (,function (- ,from 1))) #t)
+	  (check-equality (throws-exception? (,function (+ ,to 1))) #t)))
 
 ;;; signed char, unsigned char typemaps deal with characters, not integers.
 ;; (check-range signed-char-identity (- (expt 2 7)) (- (expt 2 7) 1))
@@ -21,7 +21,8 @@
 (check-range unsigned-int-identity 0 (- (expt 2 32) 1))
 (check-range signed-long-identity (- (expt 2 31)) (- (expt 2 31) 1))
 (check-range unsigned-long-identity 0 (- (expt 2 32) 1))
-;;; long long not implemented in Guile.
+;;; long long not implemented in Guile and MzScheme.
 ;; (check-range signed-long-long-identity (- (expt 2 63)) (- (expt 2 63) 1))
 ;; (check-range unsigned-long-long-identity 0 (- (expt 2 64) 1))
-(quit)
+
+(exit 0)
