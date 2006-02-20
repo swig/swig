@@ -58,7 +58,7 @@ static const char *usage1 = (const char*)"\
      -debug_template - Display information for debugging templates\n\
      -debug_typemap  - Display information for debugging typemaps\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
-     -dirprot        - Turn on wrapping of protected members for director classes\n\
+     -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -dump_classes   - Display information about the classes found in the interface\n\
      -dump_module    - Display information on the module node tree avoiding system nodes\n\
@@ -790,7 +790,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);
-  Wrapper_director_protected_mode_set(0);
+  Wrapper_director_protected_mode_set(1);
 
   // Check for SWIG_LIB environment variable
 

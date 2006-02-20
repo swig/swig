@@ -19,7 +19,7 @@ char cvsroot_lang_cxx[] = "$Header$";
 #include <ctype.h>
 
 static int director_mode = 0;   /* set to 0 on default */
-static int director_protected_mode = 0;   /* set to 0 on default */
+static int director_protected_mode = 1;   /* set to 1 on default */
 static int naturalvar_mode = 0;
 
 /* Set director_protected_mode */
