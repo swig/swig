@@ -59,9 +59,12 @@ SWIG_Tcl_SetErrorMsg(Tcl_Interp *interp, const char *ctype, const char *mesg)
 {
   Tcl_ResetResult(interp);
   Tcl_SetErrorCode(interp, "SWIG", ctype, NULL);
+  Tcl_AppendResult(interp, ctype, " ", mesg, NULL);
+  /*
   Tcl_AddErrorInfo(interp, ctype);
   Tcl_AddErrorInfo(interp, " ");
   Tcl_AddErrorInfo(interp, mesg);
+  */
 }
 
 SWIGINTERNINLINE void
