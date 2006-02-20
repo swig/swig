@@ -96,3 +96,7 @@ if s.type != "void *":
 
 
 free_void(v)
+
+
+a = ClassA()
+b = a.method1(1)

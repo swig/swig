@@ -165,3 +165,15 @@ long long ll(long long ull) { return ull; }
 
 #endif
 
+
+%inline {  
+  class ClassA
+  {
+  public:
+    ClassA() {}  
+    int method1( int arg1 ) {return arg1;}
+  protected:
+    int method1( int arg1, int arg2 ) {return arg1 + arg2;}
+    
+  };
+}

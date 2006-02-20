@@ -49,10 +49,12 @@ void clean_overloaded(Node *n) {
   Node *first = 0;
   int   cnt = 0;
   while (nn) {
-    if ((Strcmp(nodeType(nn),"template") == 0) ||
-	(GetFlag(nn,"feature:ignore")) ||
+    String *ntype = nodeType(nn);
+    if ((GetFlag(nn,"feature:ignore")) ||
 	(Getattr(nn,"error")) ||
-	((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn))) {
+	(Strcmp(ntype,"template") == 0) ||
+	((Strcmp(ntype,"cdecl") == 0) && is_protected(n) && !is_member_director(n)) ||
+	((Strcmp(ntype,"using") == 0) && !firstChild(nn))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn,"sym:previousSibling");
       Node *ns = Getattr(nn,"sym:nextSibling");
@@ -67,7 +69,7 @@ void clean_overloaded(Node *n) {
       Delattr(nn,"sym:overloaded");
       nn = ns;
       continue;
-    } else if ((Strcmp(nodeType(nn),"using") == 0)) {
+    } else if ((Strcmp(ntype,"using") == 0)) {
       /* A possibly dangerous parse tree hack.  We're going to
 	 cut the parse tree node out and stick in the resolved
 	 using declarations */
