@@ -1340,7 +1340,7 @@ public:
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
     if (Getattr(n,"feature:python:callback") || ! have_addtofunc(n) ) {
       /* If there is no addtofunc directive then just assign from the extension module */
-      Printv(f_dest, "\n", name, " = ", module, ".", name, "\n", NIL);
+      Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     } else {
       /* Otherwise make a wrapper function to insert the code into */
       Printv(f_dest, "\ndef ", name, "(*args", (kw ? ", **kwargs" : ""), "):\n", NIL);
@@ -2296,7 +2296,7 @@ public:
 
     add_method(name, wrapname,0);
     if (shadow) {
-      Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NIL);
+      Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n", NIL);
     }
     return SWIG_OK;
   }
@@ -2791,9 +2791,10 @@ public:
     if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
 	int allow_kwargs = (check_kwargs(n) && !Getattr(n,"sym:overloaded")) ? 1 : 0;
-	if (Strcmp(symname,"__repr__") == 0)
+	int fproxy = fastproxy;
+	if (Strcmp(symname,"__repr__") == 0) {
 	  have_repr = 1;
-	
+	}
 	if (Getattr(n,"feature:shadow")) {
 	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
 	  String *pyaction = NewStringf("%s.%s", module, Swig_name_member(class_name,symname));
@@ -2801,17 +2802,9 @@ public:
 	  Delete(pyaction);
 	  Printv(f_shadow,pycode,"\n",NIL);
 	  Delete(pycode);
+	  fproxy = 0;
 	} else {
 	  if (!have_addtofunc(n)) {
-	    if (!allow_kwargs) {
-	      List *shadow_list = Getattr(getCurrentClass(),"shadow_methods");
-	      if (!shadow_list) {
-		shadow_list = NewList();
-		Setattr(getCurrentClass(),"shadow_methods", shadow_list);
-		Delete(shadow_list);
-	      }
-	      Append(shadow_list, symname);
-	    } 
 	    Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
 	    Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
 	  } else {
@@ -2819,9 +2812,12 @@ public:
             Printv(f_shadow, "\n", NIL);
             if ( have_docstring(n) )
               Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
-            if ( have_pythonprepend(n) )
+            if ( have_pythonprepend(n) ) {
+	      fproxy = 0;
               Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+	    }
             if ( have_pythonappend(n) ) {
+	      fproxy = 0;
               Printv(f_shadow, tab8, "val = ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
               Printv(f_shadow, tab8, pythonappend(n), "\n", NIL);
               Printv(f_shadow, tab8, "return val\n\n", NIL);
@@ -2829,6 +2825,15 @@ public:
               Printv(f_shadow, tab8, "return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n\n", NIL);
             }
 	  }
+	}
+	if (fproxy) {
+	  List *shadow_list = Getattr(getCurrentClass(),"shadow_methods");
+	  if (!shadow_list) {
+	    shadow_list = NewList();
+	    Setattr(getCurrentClass(),"shadow_methods", shadow_list);
+	    Delete(shadow_list);
+	  }
+	  Append(shadow_list, symname);
 	}
       }
     }
