@@ -574,10 +574,7 @@ namespace swig
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
-    %pythoncode {
-      def __iter__(self):
-        return self.iterator()
-    }
+    %pythoncode {def __iter__(self): return self.iterator()}
   }
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
