@@ -120,10 +120,9 @@
 
 %define %swig_pair_methods(pair...)
 %extend {      
-%pythoncode {
-def __len__(self):
-  return 2
-def __getitem__(self, index):
+%pythoncode {def __len__(self): return 2
+def __repr__(self): return str((self.first, self.second))
+def __getitem__(self, index): 
   if not (index % 2): 
     return self.first
   else:
@@ -132,13 +131,9 @@ def __setitem__(self, index, val):
   if not (index % 2): 
     self.first = val
   else:
-    self.second = val
-def __repr__(self):
-  return str((self.first, self.second))
-}
+    self.second = val}
 }
 %enddef
-
 
 %include <std/std_pair.i>
 

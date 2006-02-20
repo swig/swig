@@ -316,10 +316,7 @@ namespace swig
 
   %nodirector PySwigIterator;
   %extend PySwigIterator {
-  %pythoncode {
-    def __iter__(self):
-      return self
-  }
+  %pythoncode {def __iter__(self): return self}
   }
 
   %catches(swig::stop_iteration) PySwigIterator::value() const;

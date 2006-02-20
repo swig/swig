@@ -231,19 +231,10 @@
       return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
-    %pythoncode {
-      def __iter__(self):
-        return self.key_iterator()
-
-      def iterkeys(self):
-        return self.key_iterator()
-
-      def itervalues(self):
-        return self.value_iterator()
-
-      def iteritems(self):
-        return self.iterator()
-    }    
+    %pythoncode {def __iter__(self): return self.key_iterator()}    
+    %pythoncode {def iterkeys(self): return self.key_iterator()}
+    %pythoncode {def itervalues(self): return self.value_iterator()}
+    %pythoncode {def iteritems(self): return self.iterator()}
   }
 %enddef
 
