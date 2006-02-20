@@ -68,6 +68,8 @@ public:
 %template(Bard) Bar<double>;
 
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGUTL)
+
 
 %include "std_vector.i"
 
@@ -75,10 +77,21 @@ public:
 SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Flow, Space::Flow)
 #endif
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#define SWIG_GOOD_VECTOR
+%ignore std::vector<Space::Flow>::vector(size_type);
+%ignore std::vector<Space::Flow>::resize(size_type);
+#endif
+
+#if defined(SWIGTCL) || defined(SWIGPERL) || defined(SWIGRUBY) 
+#define SWIG_GOOD_VECTOR
+/* here, for languages with bad declaration */
+%ignore std::vector<Space::Flow>::vector(unsigned int);
+%ignore std::vector<Space::Flow>::resize(unsigned int);
+#endif
+
 %copyctor;
 
-%ignore std::vector<Space::Flow>::vector(size_type);
-%ignore std::vector<Space::Flow>::resize(size_type); //Ignore as Flow does not have a default constructor
 
 %inline %{
 
@@ -92,3 +105,7 @@ public:
 %}
 
 %template (VectFlow) std::vector<Space::Flow>;
+
+#endif
+
+
