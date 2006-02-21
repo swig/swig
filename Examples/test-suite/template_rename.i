@@ -25,17 +25,17 @@ public:
 
 // Testing ignore
 
-%ignore std::vector<Flow>::vector(size_type);
+%ignore std::tvector<Flow>::tvector(size_type);
 
 %inline %{
 
 namespace std {
     
-    template<class T> class vector {
+    template<class T> class tvector {
       public:
         typedef size_t size_type;
-        vector() {}
-        vector(size_type n) { T t = T(); }
+        tvector() {}
+        tvector(size_type n) { T t = T(); }
     };
 }
 
@@ -46,4 +46,4 @@ public:
 };
 %}
 
-%template(VectFlow) std::vector<Flow>;
+%template(VectFlow) std::tvector<Flow>;

@@ -1657,7 +1657,10 @@ String *vtable_method_id(Node *n)
   String *name = Getattr(n, "name");
   String *decl = Getattr(n, "decl");
   String *local_decl = SwigType_typedef_resolve_all(decl);
-  Node *method_id = NewStringf("%s|%s", name, local_decl);
+  String *tmp = SwigType_pop_function(local_decl);
+  Delete(local_decl);
+  local_decl = tmp;
+  Node *method_id = NewStringf("%s|%s", name, local_decl); 
   Delete(local_decl);
   return method_id;
 }

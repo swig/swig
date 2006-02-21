@@ -9,7 +9,13 @@ include Abstract_signature
 
 exceptionRaised = false
 begin
-  Abstract_foo.new
+  foo = Abstract_foo.new
+  begin
+    foo.meth(1)
+  rescue RuntimeError 
+    # here we are using directors
+    exceptionRaised = true
+  end
 rescue NameError
   exceptionRaised = true
 rescue TypeError
@@ -27,7 +33,13 @@ end
 
 exceptionRaised = false
 begin
-  Abstract_bar.new
+  bar = Abstract_bar.new
+  begin
+    bar.meth(1)
+  rescue RuntimeError 
+    # here we are using directors
+    exceptionRaised = true
+  end
 rescue NameError
   exceptionRaised = true
 rescue TypeError

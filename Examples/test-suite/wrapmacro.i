@@ -50,3 +50,8 @@ type SWIGMACRO_##name(lparams) {
 
 */
 
+%{
+#ifdef max
+#undef max
+#endif
+%}
