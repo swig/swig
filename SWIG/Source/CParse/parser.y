@@ -1997,7 +1997,7 @@ module_directive: MODULE options idstring {
 		 if ($2) {
 		   Setattr($$,"options",$2);
 		   if (Getattr($2,"directors")) {
-		     /* Wrapper_director_mode_set(1);*/
+		     Wrapper_director_mode_set(1);
 		   } 
 		   if (Getattr($2,"templatereduce")) {
 		     template_reduce = 1;

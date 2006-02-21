@@ -1175,7 +1175,8 @@ public:
       emit_action(n,f);
       
       if (director_method) {
-	Printf(f->code, "} catch (Swig::DirectorException&) {\n");
+	Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
+	Printf(f->code, "  rb_exc_raise(e.getError());\n");
 	Printf(f->code, "  SWIG_fail;\n");
 	Printf(f->code, "}\n");
       }
