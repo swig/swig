@@ -5182,7 +5182,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
 		   if ($$.type == T_STRING) {
 		     $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
-		   } else {
+		   } else if ($$.type != T_CHAR) {
 		     $$.rawval = 0;
 		   }
 		   $$.bitfield = 0;
@@ -5190,7 +5190,8 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.throwf = 0;
 		   scanner_ignore_typedef();
                 }
-/*                | string {
+/*
+                | string {
                    $$.val = NewString($1);
 		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
@@ -5199,20 +5200,6 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.throwf = 0;
 		}
 */
-                | CHARCONST {
-                   $$.val = NewString($1);
-		   /*		   $$.rawval = NewStringf("\'%(escape)s\'",$$.val); */
-		   /*		   Printf(stdout,"rawval = '%s'\n", $$.rawval); */
-		   if (Len($$.val)) {
-		     $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
-		   } else {
-		     $$.rawval = NewString("\'\\0'");
-		   }
-		   $$.type = T_CHAR;
-		   $$.bitfield = 0;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		 }
                 ;
 
 /* Some stuff for handling enums */
@@ -5279,11 +5266,7 @@ etype            : expr {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
 		   }
                 }
-                | CHARCONST {
-                   $$.val  = NewString($1);
-		   $$.type = T_INT;
-		 }
-                ;
+               ;
 
 /* Arithmetic expressions.   Used for constants and other cool stuff.
    Really, we're not doing anything except string concatenation, but
@@ -5301,6 +5284,18 @@ expr           :  exprnum { $$ = $1; }
 		  $$.type = T_INT;
                }
                | exprcompound { $$ = $1; }
+               | CHARCONST {
+		  $$.val = NewString($1);
+		  if (Len($$.val)) {
+		    $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
+		  } else {
+		    $$.rawval = NewString("\'\\0'");
+		  }
+		  $$.type = T_CHAR;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+	       }
                | type {
 		 Node *n;
 		 $$.val = $1;

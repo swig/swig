@@ -13,3 +13,8 @@
 #define NULL_CONST '\0'
 #define SPECIALCHAR 'á'
 
+%inline 
+{
+  const int ia = (int)'a';
+  const int ib = 'b';
+}
