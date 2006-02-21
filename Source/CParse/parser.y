@@ -295,7 +295,7 @@ static void add_symbols(Node *n) {
 	old_scope = Swig_symbol_popscope();
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	if (!prefix) {
-	  if (name && Namespaceprefix) {
+	  if (name && !is_operator(name) && Namespaceprefix) {
 	    String *nname = NewStringf("%s::%s", Namespaceprefix, name);
 	    Setattr(n,k_name,nname);
 	    Delete(nname);
