@@ -27,7 +27,7 @@ int is_member_director(Node* parentnode, Node* member)
   if (parentnode && checkAttribute(member, "storage", "virtual")) {
     int parent_nodirector = GetFlag(parentnode,"feature:nodirector");
     if (parent_nodirector) return 0;
-    int parent_director = director_mode || GetFlag(parentnode,"feature:director");
+    int parent_director = director_mode && GetFlag(parentnode,"feature:director");
     int cdecl_director = parent_director || GetFlag(member,"feature:director");
     int cdecl_nodirector = GetFlag(member,"feature:nodirector");
     return cdecl_director && !cdecl_nodirector;
@@ -53,7 +53,7 @@ void clean_overloaded(Node *n) {
     if ((GetFlag(nn,"feature:ignore")) ||
 	(Getattr(nn,"error")) ||
 	(Strcmp(ntype,"template") == 0) ||
-	((Strcmp(ntype,"cdecl") == 0) && is_protected(n) && !is_member_director(n)) ||
+	((Strcmp(ntype,"cdecl") == 0) && is_protected(nn) && !is_member_director(nn)) ||
 	((Strcmp(ntype,"using") == 0) && !firstChild(nn))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn,"sym:previousSibling");
