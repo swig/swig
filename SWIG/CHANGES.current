@@ -4,6 +4,35 @@ Version 1.3.29 (In progress)
 02/22/2006: mmatus 
 
 	    Fix all the errors reported for 1.3.28.
+	    
+	    - fix copyctor + template bug #1432125
+	    - fix [ 1432152 ] %rename friend operators in namespace
+	    - fix gcc warning reported by R. Bernstein
+	    - avoid assert when finding a recursive scope inheritance,
+	      emit a warning in the worst case, reported by Nitro 
+	    - fix premature object deletion reported by Paul in tcl3d
+	    - fix warning reported by Nitro in VC7
+	    - more fixes for old Solaris compiler
+	    - fix for python 2.3 and gc_refs issue reported by Luigi
+	    - fix fastproxy for methods using kwargs
+	    - fix overload + protected member issue reported by Colin McDonald
+	    - fix seterrormsg as reported by Colin McDonald
+	    - fix directors, now the test-suite runs again using -directors
+	    - fix for friend operator and Visual studio and bug 1432152
+	    - fix bug #1435090
+	    - fix using + %extend as reported by William
+	    - fix bug #1094964
+	    - fix for Py_NotImplemented as reported by Olly and Amaury
+	    - fix nested namespace issue reported by Charlie
+
+	    and also:
+	    
+	    - allow director protected members by default
+	    - delete extra new lines in swigmacros[UTL]
+	    - cosmetic for generated python code
+	    - add the factory.i library for UTL
+	    - add swigregister proxy method and move __repr__ to a
+	      single global module  [python]
 
 02/22/2006: mmatus 
 
