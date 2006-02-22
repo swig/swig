@@ -75,6 +75,10 @@ namespace oss
     
     namespace planargraph { // geos.planargraph
       namespace algorithm { // geos.planargraph.algorithm
+	class Bar {
+	};
+      }
+      namespace algorithm { // geos.planargraph.algorithm
 
 	class Foo {
 	public:
