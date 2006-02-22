@@ -3811,7 +3811,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
                 Hash *h;
                 $1 = Swig_symbol_current();
 		h = Swig_symbol_clookup($2,0);
-		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
+		if (h && ($1 == Getattr(h,k_symsymtab)) && (Strcmp(nodeType(h),"namespace") == 0)) {
 		  if (Getattr(h,k_alias)) {
 		    h = Getattr(h,k_namespace);
 		    Swig_warning(WARN_PARSE_NAMESPACE_ALIAS, cparse_file, cparse_line, "Namespace alias '%s' not allowed here. Assuming '%s'\n",
