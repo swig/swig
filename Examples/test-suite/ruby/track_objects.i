@@ -18,6 +18,10 @@
 
 %apply SWIGTYPE *DISOWN {Foo* ownedFoo};
 
+
+%trackobjects ItemA;
+%trackobjects ItemB;
+
 %inline %{
 
 class Foo
@@ -92,4 +96,30 @@ public:
 		unowned_ = foo;
 	}
 };
+
+class ItemA
+{
+};
+
+class ItemB: public ItemA
+{
+public:
+};
+
+ItemB* downcast(ItemA* item)
+{
+	return static_cast<ItemB*>(item);
+}
+
+class Factory
+{
+public:
+	Factory() {}
+
+	ItemA* createItem()
+	{
+		return new ItemB;
+	}
+};
+
 %}

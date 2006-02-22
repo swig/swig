@@ -149,8 +149,17 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     /* Are we tracking this class and have we already returned this Ruby object? */
     if (sklass->trackObjects) {
       obj = SWIG_RubyInstanceFor(ptr);
+      
+      /* Check the object's type and make sure it has the correct type.
+        It might not in cases where methods do things like 
+        downcast methods. */
       if (obj != Qnil) {
-        return obj;
+        VALUE value = rb_iv_get(obj, "__swigtype__");
+        char* type_name = RSTRING(value)->ptr;
+				
+        if (strcmp(type->name, type_name) == 0) {
+          return obj;
+        }
       }
     }
 
