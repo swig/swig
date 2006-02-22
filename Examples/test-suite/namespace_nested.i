@@ -60,3 +60,38 @@ namespace oss
 {
   %template(hi1_hi0) hi1<hello::Hi0 >;
 }
+
+
+%rename(MyFoo) geos::algorithm::Foo;
+
+%inline 
+{
+  namespace geos {
+    namespace algorithm {
+      class Foo 
+      {
+      };
+    }
+    
+    namespace planargraph { // geos.planargraph
+      namespace algorithm { // geos.planargraph.algorithm
+
+	class Foo {
+	public:
+	  typedef int size_type;
+	};
+      }
+      namespace algorithm { // geos.planargraph.algorithm
+
+	class ConnectedSubgraphFinder : public Foo {
+	public:
+	  ConnectedSubgraphFinder(size_type)
+	  {
+	  }
+	  
+	};
+      }
+    }
+  }
+}
+
