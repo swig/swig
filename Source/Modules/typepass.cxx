@@ -854,7 +854,20 @@ class TypePass : private Dispatcher {
 		      if (!Getattr(nn,"sym:name")) Setattr(nn,"sym:name", symname);
 
 		      if (!GetFlag(nn,"feature:ignore")) {
-			Setattr(nn,"parms",CopyParmList(Getattr(c,"parms")));
+			ParmList *parms = CopyParmList(Getattr(c,"parms"));
+			Setattr(nn,"parms",parms);
+			Delete(parms);
+			if (Getattr(n,"feature:extend")) {
+			  String *ucode = NewStringf("{ self->%s(",Getattr(n,"uname"));
+			  for (ParmList *p = parms; p;) {
+			    StringAppend(ucode,HashGetAttr(p,k_name));
+			    p = nextSibling(p);
+			    if (p) StringAppend(ucode,",");
+			  }
+			  StringAppend(ucode,"); }");
+			  Setattr(nn,"code",ucode);
+			  Delete(ucode);
+			}
 			ParmList *throw_parm_list = Getattr(c,"throws");
 			if (throw_parm_list)
 			  Setattr(nn,"throws",CopyParmList(throw_parm_list));
