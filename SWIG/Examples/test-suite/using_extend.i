@@ -25,6 +25,7 @@ public:
 
 class Bar {
 public:
+     int duh(int x) { return x; }
      double blah(double x) { return x; }
 };
 
@@ -36,4 +37,10 @@ public:
 };
 
 %}
+
+%extend FooBar 
+{
+  using Bar::duh;
+}
+
 
