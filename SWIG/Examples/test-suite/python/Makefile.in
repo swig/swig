@@ -31,6 +31,7 @@ CPP_TEST_CASES += \
 	kwargs \
 	li_cstring \
 	li_cwstring \
+	li_factory \
 	li_implicit \
 	li_std_vectora \
 	li_std_map \
