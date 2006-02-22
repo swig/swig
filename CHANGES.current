@@ -1,6 +1,100 @@
 Version 1.3.29 (In progress)
 ============================
 
+02/22/2006: mmatus 
+
+	    Fix all the errors reported for 1.3.28.
+
+02/22/2006: mmatus 
+
+	    When using directors, now swig will emit all the virtual
+	    protected methods by default. 
+
+	    In previous releases, you needed to use the 'dirprot'
+	    option to acheive the same.
+
+	    If you want, you can disable the new default behaviour,
+	    use the 'nodirprot' option: 
+
+	       swig -nodirprot ...
+
+	    and/or the %nodirector feature for specific methods, i.e.:
+
+	       %nodirector Foo::bar;
+
+	       struct Foo {
+	         virtual ~Foo();
+
+	       protected:
+	         virtual void bar();
+	       };
+	    
+
+	    As before, pure abstract protected members are allways
+	    emitted, independent of the 'dirprot/nodirprot' options.
+
+
+02/22/2006: mmatus
+	    Add the factory.i library for languages using the UTL (python,tcl,ruby,perl).
+	    
+            factory.i implements a more natural wrap for factory methods. 
+
+	    For example, if you have:							    
+	    								    
+  	    ----  geometry.h --------					    
+  	         struct Geometry {                          		    
+  	           enum GeomType{			     			    
+  	             POINT,				     		    
+  	             CIRCLE				     		    
+  	           };					     		    
+  	           					     		    
+  	           virtual ~Geometry() {}    		     		    
+  	           virtual int draw() = 0;				    
+  	    	 							    
+  	    	 //							    
+  	    	 // Factory method for all the Geometry objects		    
+  	    	 //							    
+  	           static Geometry *create(GeomType i);     		    
+  	         };					     		    
+  	         					     			    
+  	         struct Point : Geometry  {		     		    
+  	           int draw() { return 1; }		     		    
+  	           double width() { return 1.0; }    	     		    
+  	         };					     		    
+  	         					     			    
+  	         struct Circle : Geometry  {		     		    
+  	           int draw() { return 2; }		     		    
+  	           double radius() { return 1.5; }          		    
+  	         }; 					     		    
+  	         								    
+  	         //							    
+  	         // Factory method for all the Geometry objects		    
+  	         //							    
+  	         Geometry *Geometry::create(GeomType type) {		    
+  	           switch (type) {			     		    
+  	           case POINT: return new Point();	     		    
+  	           case CIRCLE: return new Circle(); 	     		    
+  	           default: return 0;			     		    
+  	           }					     		    
+  	         }					    		    
+  	    ----  geometry.h --------					    
+	    								    
+	    								    
+	    You can use the %factory with the Geometry::create method as follows:
+	    								    
+  	      %newobject Geometry::create;				    
+  	      %factory(Geometry *Geometry::create, Point, Circle);	    
+  	      %include "geometry.h"					    
+	    								    
+  	    and Geometry::create will return a 'Point' or 'Circle' instance   
+  	    instead of the plain 'Geometry' type. For example, in python:	    
+	    								    
+  	      circle = Geometry.create(Geometry.CIRCLE)			    
+  	      r = circle.radius()						    
+	    								    
+  	    where 'circle' now is a Circle proxy instance.	    		    
+
+
 02/17/2006: mkoeppe
 	    [MzScheme] Typemaps for all integral types now accept the full range of integral
 	    values, and they signal an error when a value outside the valid range is passed.
