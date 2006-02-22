@@ -188,33 +188,25 @@ nocppval
 
 
 /* for loop for macro with one argument */
-%define %_formacro_1(macro, arg1,...)
-macro(arg1)
+%define %_formacro_1(macro, arg1,...)macro(arg1)
 #if #__VA_ARGS__ != "__fordone__"
 %_formacro_1(macro, __VA_ARGS__)
 #endif
 %enddef
 
 /* for loop for macro with one argument */
-%define %formacro_1(macro,...)
-%_formacro_1(macro,__VA_ARGS__,__fordone__)
-%enddef
-%define %formacro(macro,...)
-%_formacro_1(macro,__VA_ARGS__,__fordone__)
-%enddef
+%define %formacro_1(macro,...)%_formacro_1(macro,__VA_ARGS__,__fordone__)%enddef
+%define %formacro(macro,...)%_formacro_1(macro,__VA_ARGS__,__fordone__)%enddef
 
 /* for loop for macro with two arguments */
-%define %_formacro_2(macro, arg1, arg2, ...)
-macro(arg1, arg2)
+%define %_formacro_2(macro, arg1, arg2, ...)macro(arg1, arg2)
 #if #__VA_ARGS__ != "__fordone__"
 %_formacro_2(macro, __VA_ARGS__)
 #endif
 %enddef
 
 /* for loop for macro with two arguments */
-%define %formacro_2(macro,...)
-%_formacro_2(macro, __VA_ARGS__, __fordone__)
-%enddef
+%define %formacro_2(macro,...)%_formacro_2(macro, __VA_ARGS__, __fordone__)%enddef
 
 /* -----------------------------------------------------------------------------
  * Swig flags
@@ -227,9 +219,7 @@ macro(arg1, arg2)
   the flag can be later used with %evalif
 */
 
-%define %mark_flag(x)
-%define x 1 %enddef
-%enddef
+%define %mark_flag(x) %define x 1 %enddef %enddef
 
 
 /*
@@ -248,11 +238,7 @@ _expr
 #endif
 %enddef
 
-%define %evalif(_x,_expr...) 
-  %_evalif(%arg(_x),%arg(_expr)) 
-%enddef
+%define %evalif(_x,_expr...) %_evalif(%arg(_x),%arg(_expr)) %enddef
 
-%define %evalif_2(_x,_y,_expr...) 
-  %_evalif_2(%arg(_x),%arg(_y),%arg(_expr)) 
-%enddef
+%define %evalif_2(_x,_y,_expr...) %_evalif_2(%arg(_x),%arg(_y),%arg(_expr)) %enddef
 
