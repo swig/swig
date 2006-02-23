@@ -125,3 +125,15 @@ const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
     return nstr;
   }
 }
+
+%inline {
+  struct Formatpos;
+  struct OBFormat;
+  
+  static int GetNextFormat(Formatpos& itr, const  char*& str,OBFormat*& pFormat) {
+    return 0;
+  }
+  
+
+
+}
