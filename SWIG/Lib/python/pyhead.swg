@@ -68,3 +68,15 @@ PyString_FromFormat(const char *fmt, ...) {
 # endif
 #endif
 
+
+/* PyBool_FromLong for old Pythons */
+#if PY_VERSION_HEX < 0x02030000
+static
+PyObject *PyBool_FromLong(long ok)
+{
+  PyObject *result = ok ? Py_True : Py_False;
+  Py_INCREF(result);
+  return result;
+}
+#endif
+

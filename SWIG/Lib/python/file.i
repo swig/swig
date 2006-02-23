@@ -12,10 +12,10 @@
 SWIGINTERN int
 SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
   static swig_type_info* desc = 0;
-  FILE *ptr = 0;
+  void *vptr = 0;
   if (!desc) desc = SWIG_TypeQuery("FILE *");
-  if ((SWIG_ConvertPtr(obj,(void **)(&ptr), desc, 0)) == SWIG_OK) {
-    if (val) *val = ptr;
+  if ((SWIG_ConvertPtr(obj, &vptr, desc, 0)) == SWIG_OK) {
+    if (val) *val = (FILE *)vptr;
     return SWIG_OK;
   } 
   if (PyFile_Check(obj)) {
