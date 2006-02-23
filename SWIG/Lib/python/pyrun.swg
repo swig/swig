@@ -1135,6 +1135,14 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
   }
   return inst;
 #else
+#if (PY_VERSION_HEX >= 0x02010000)
+  PyObject *inst;
+  PyObject *dict = PyDict_New();
+  PyDict_SetItem(dict, SWIG_This(), swig_this);
+  inst = PyInstance_NewRaw(data->newargs, dict);
+  Py_DECREF(dict);
+  return (PyObject *) inst;
+#else
   PyInstanceObject *inst = PyObject_NEW(PyInstanceObject, &PyInstance_Type);
   if (inst == NULL) {
     return NULL;
@@ -1146,8 +1154,15 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
     Py_DECREF(inst);
     return NULL;
   }
+#ifdef Py_TPFLAGS_HAVE_WEAKREFS
+  inst->in_weakreflist = NULL;
+#endif
+#ifdef Py_TPFLAGS_GC
+  PyObject_GC_Init(inst);
+#endif
   PyDict_SetItem(inst->in_dict, SWIG_This(), swig_this);
   return (PyObject *) inst;
+#endif
 #endif
 }
 

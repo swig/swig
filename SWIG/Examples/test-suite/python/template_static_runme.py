@@ -1,3 +1,3 @@
 from template_static import  *
 
-Foo.bar_double(1)
+Foo_bar_double(1)

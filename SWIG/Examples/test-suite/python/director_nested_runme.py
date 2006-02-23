@@ -53,7 +53,7 @@ class C(FooBar_int):
   pass
 
 cc = C()
-c = C.get_self(cc)
+c = FooBar_int_get_self(cc)
 c.advance()
 
 if c.get_name() != "FooBar::get_name hello":

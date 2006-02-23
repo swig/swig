@@ -29,7 +29,7 @@ class MyExample3(director_abstract.Example3_i):
 		return b
 
 me1 = MyExample1()
-if MyExample1.get_color(me1, 1,2,3) != 1:
+if MyExample1_get_color(me1, 1,2,3) != 1:
 	raise RuntimeError
 
 me2 = MyExample2(1,2)
