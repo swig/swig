@@ -582,7 +582,7 @@ class TypePass : private Dispatcher {
       SwigType *t = Copy(ty);
       {
 	/* If the typename is qualified, make sure the scopename is fully qualified when making a typedef */
-	if (Swig_scopename_check(t)) {
+	if (Swig_scopename_check(t) && strncmp(Char(t),"::",2)) {
 	  String *base, *prefix, *qprefix;
 	  base = Swig_scopename_last(t);
 	  prefix = Swig_scopename_prefix(t);

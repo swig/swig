@@ -846,6 +846,11 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   List   *elements;
   String *result;
   int     i,len;
+
+  if (t && strncmp(Char(t),"::",2) == 0) {
+    return Copy(t);
+  }
+  
   if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
   result = HashGetAttr(typedef_qualified_cache,t);
   if (result) {

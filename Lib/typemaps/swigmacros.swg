@@ -130,10 +130,10 @@ nocppval
 #endif
 
 #if defined(__cplusplus) && defined(SWIG_CPLUSPLUS_CAST)
-# define %const_cast(a,Type...)       const_cast<Type >(a)
-# define %static_cast(a,Type...)      static_cast<Type >(a)
-# define %reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
-# define %numeric_cast(a,Type...)     static_cast<Type >(a)
+# define %const_cast(a,Type...)       const_cast< Type >(a)
+# define %static_cast(a,Type...)      static_cast< Type >(a)
+# define %reinterpret_cast(a,Type...) reinterpret_cast< Type >(a)
+# define %numeric_cast(a,Type...)     static_cast< Type >(a)
 #else /* C case */
 # define %const_cast(a,Type...)       (Type)(a)
 # define %static_cast(a,Type...)      (Type)(a)
