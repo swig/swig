@@ -34,6 +34,7 @@ const_const
 const_const_2
 const_const_2/CVS
 constover
+constructor_copy
 constructor_exception
 constructor_explicit
 constructor_value
@@ -111,6 +112,7 @@ inherit_missing
 inherit_same_name
 inherit_void_arg
 inline_initializer
+integers
 intermediary_classname
 java_constants
 java_director
