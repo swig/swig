@@ -5,6 +5,7 @@ Version 1.3.29 (In progress)
 
 	    Fix all the errors reported for 1.3.28.
 	    
+	    - fix 'const  char*&' typemap in the UTL, reported by Geoff Hutchison
 	    - fixes for python 2.1 and the runtime library
 	    - fix copyctor + template bug #1432125
 	    - fix [ 1432152 ] %rename friend operators in namespace
