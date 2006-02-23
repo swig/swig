@@ -855,10 +855,14 @@ class TypePass : private Dispatcher {
 
 		      if (!GetFlag(nn,"feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c,"parms"));
+			int is_pointer = SwigType_ispointer_return(Getattr(nn,"decl"));
+			int is_void = checkAttribute(nn,"type", "void") && !is_pointer;
 			Setattr(nn,"parms",parms);
 			Delete(parms);
 			if (Getattr(n,"feature:extend")) {
-			  String *ucode = NewStringf("{ self->%s(",Getattr(n,"uname"));
+			  String *ucode = is_void ? NewStringf("{ self->%s(",Getattr(n,"uname")) :
+			    NewStringf("{ return self->%s(",Getattr(n,"uname"));
+
 			  for (ParmList *p = parms; p;) {
 			    StringAppend(ucode,HashGetAttr(p,k_name));
 			    p = nextSibling(p);
