@@ -613,8 +613,8 @@ public:
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module );
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n",module );
     Printf(s_header, "#ifdef ZTS\n" );
-    Printf(s_header, "#define ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg );\n",module,module);
-    Printf(s_header, "#define ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code );\n",module,module);
+    Printf(s_header, "#define ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg )\n",module,module);
+    Printf(s_header, "#define ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code )\n",module,module);
     Printf(s_header, "#else\n" );
     Printf(s_header, "#define ErrorMsg() (%s_globals.error_msg)\n",module);
     Printf(s_header, "#define ErrorCode() (%s_globals.error_code)\n",module);
@@ -629,6 +629,7 @@ public:
 
     Printf(s_header, "\n");
     Printf(s_header, "void SWIG_ResetError() {\n");
+    Printf(s_header, "  TSRMLS_FETCH();\n");
     Printf(s_header, "  ErrorMsg() = default_error_msg;\n");
     Printf(s_header, "  ErrorCode() = default_error_code;\n");
     Printf(s_header, "}\n");
@@ -2047,3 +2048,4 @@ extern "C" Language * swig_php(void) {
   return new_swig_php();
 }
  
+
