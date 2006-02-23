@@ -2806,8 +2806,10 @@ public:
 	  fproxy = 0;
 	} else {
 	  if (!have_addtofunc(n)) {
-	    Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
-	    Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
+	    if (!fastproxy) {
+	      Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
+	      Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
+	    }
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
             Printv(f_shadow, "\n", NIL);
