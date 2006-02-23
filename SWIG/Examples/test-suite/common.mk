@@ -155,7 +155,6 @@ CPP_TEST_CASES += \
 	global_vars \
 	grouping \
 	ignore_parameter \
-	ignore_template_constructor \
 	import_nomodule \
 	inherit \
 	inherit_missing \
@@ -331,6 +330,7 @@ CPP_TEST_CASES += \
 #
 CPP_STD_TEST_CASES += \
 	director_string \
+	ignore_template_constructor \
 	li_std_deque \
 	li_std_except \
         li_std_pair \
