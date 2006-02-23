@@ -16,6 +16,7 @@ implicittest.py
 kwargs.py
 li_cstring.py
 li_cwstring.py
+li_factory.py
 li_implicit.py
 li_std_vectora.py
 li_std_map.py
@@ -61,6 +62,7 @@ class_scope_weird.py
 const_const_2.py
 constant_pointers.py
 constover.py
+constructor_copy.py
 constructor_exception.py
 constructor_explicit.py
 constructor_value.py
@@ -122,7 +124,6 @@ global_ns_arg.py
 global_vars.py
 grouping.py
 ignore_parameter.py
-ignore_template_constructor.py
 import_nomodule.py
 inherit.py
 inherit_missing.py
@@ -293,6 +294,7 @@ virtual_poly.py
 voidtest.py
 wrapmacro.py
 director_string.py
+ignore_template_constructor.py
 li_std_deque.py
 li_std_except.py
 li_std_pair.py
@@ -315,6 +317,7 @@ extern_declaration.py
 function_typedef.py
 immutable.py
 inctest.py
+integers.py
 lextype.py
 li_carrays.py
 li_cdata.py
@@ -350,6 +353,7 @@ inplaceadd_runme.py
 kwargs_runme.py
 li_cstring_runme.py
 li_cwstring_runme.py
+li_factory_runme.py
 li_implicit_runme.py
 li_std_map_runme.py
 li_std_set_runme.py
@@ -372,6 +376,7 @@ arrays_global_runme.py
 class_ignore_runme.py
 class_scope_weird_runme.py
 constover_runme.py
+constructor_copy_runme.py
 contract_runme.py
 compactdefaultargs_runme.py
 cpp_enum_runme.py
