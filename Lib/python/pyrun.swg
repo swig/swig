@@ -281,15 +281,17 @@ PySwigClientData_New(PyObject* obj)
     } else {
 #if (PY_VERSION_HEX < 0x02020000)
       data->newraw = 0;
-      data->newargs = obj;
-      Py_INCREF(obj);
 #else
-      data->newraw = PyObject_GetAttrString((PyObject*)&PyBaseObject_Type, (char *)"__new__");
-      Py_INCREF(data->newraw);
-      data->newargs = PyTuple_New(1);
-      PyTuple_SetItem(data->newargs, 0, obj);
-      Py_INCREF(data->newargs);
+      data->newraw = PyObject_GetAttrString(data->klass, (char *)"__new__");
 #endif
+      if (data->newraw) {
+	Py_INCREF(data->newraw);
+	data->newargs = PyTuple_New(1);
+	PyTuple_SetItem(data->newargs, 0, obj);
+      } else {
+	data->newargs = obj;
+      }
+      Py_INCREF(data->newargs);
     }
     /* the destroy method, aka as the C++ delete method */
     data->destroy = PyObject_GetAttrString(data->klass, (char *)"__swig_destroy__");
@@ -534,7 +536,7 @@ PySwigObject_own(PyObject *v, PyObject *args)
   else
     {
       PySwigObject *sobj = (PySwigObject *)v;
-      PyObject *obj = sobj->own ? Py_True : Py_False;
+      PyObject *obj = PyBool_FromLong(sobj->own);
       if (val) {
 #ifdef METH_NOARGS
 	if (PyObject_IsTrue(val)) {
@@ -550,7 +552,6 @@ PySwigObject_own(PyObject *v, PyObject *args)
 	}
 #endif
       } 
-      Py_INCREF(obj);
       return obj;
     }
 }

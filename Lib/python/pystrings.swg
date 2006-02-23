@@ -41,10 +41,10 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
   } else {
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
-      char* vptr = 0;
-      if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK) {
-	if (cptr) *cptr = vptr;
-	if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
+      void* vptr = 0;
+      if (SWIG_ConvertPtr(obj, &vptr, pchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = (char *) vptr;
+	if (psize) *psize = vptr ? (strlen((char *)vptr) + 1) : 0;
 	if (alloc) *alloc = SWIG_OLDOBJ;
 	return SWIG_OK;
       }
