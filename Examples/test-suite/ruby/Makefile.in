@@ -4,8 +4,11 @@
 #######################################################################
 
 LANGUAGE     = ruby
-#RUBY         = valgrind ruby
-RUBY         = ruby
+ifneq (,$(USE_VALGRIND))
+RUBY       = valgrind --leak-check=full ruby
+else
+RUBY       = ruby
+endif
 SCRIPTSUFFIX = _runme.rb
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
