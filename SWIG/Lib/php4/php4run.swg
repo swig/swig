@@ -185,6 +185,8 @@ static swig_module_info *SWIG_Php4_GetModule() {
 
   MAKE_STD_ZVAL(pointer);
 
+  TSRMLS_FETCH();
+
   if (zend_get_constant(const_name, sizeof(const_name), pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {
       ret = (swig_module_info *) pointer->value.lval;
@@ -195,5 +197,6 @@ static swig_module_info *SWIG_Php4_GetModule() {
 }
 
 static void SWIG_Php4_SetModule(swig_module_info *pointer) {
+  TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
