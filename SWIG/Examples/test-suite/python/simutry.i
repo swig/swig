@@ -19,6 +19,10 @@ namespace simuPOP
   {
     Pop m_pop;
     Operator(int a):m_pop(a){}
+    virtual ~Operator()
+    {
+    }
+    
     virtual int func() const 
     { return m_pop.m_a; }
   };
