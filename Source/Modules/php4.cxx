@@ -1931,7 +1931,7 @@ public:
       String *wname = NewStringf( "_wrap_new_%s", iname );
       if(!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling")) {
         char *realname = iname ? iname : name;
-        String *php_function_name = Swig_name_member(shadow_classname, realname);
+        String *php_function_name = Swig_name_construct(realname);
         create_command(realname,Swig_name_wrapper(php_function_name));
       }
       Delete(wname);
