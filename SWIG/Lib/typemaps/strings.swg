@@ -46,7 +46,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = &temp;
+  $1 = &buf;
 }    
 %typemap(freearg, noblock=1,match="in") Char const*& {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
