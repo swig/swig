@@ -2446,27 +2446,28 @@ public:
       Printf(f_directors_h,"    mutable std::map<std::string, bool> inner;\n");
 
     }
-
-    Printf(f_directors_h,"\n\n");
-    Printf(f_directors_h,"#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
-    Printf(f_directors_h,"/* VTable implementation */\n");
-    Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
-    Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
-    Printf(f_directors_h,"      if (!method) {\n");
-    Printf(f_directors_h,"        swig::PyObject_var name = PyString_FromString(method_name);\n");
-    Printf(f_directors_h,"        method = PyObject_GetAttr(swig_get_self(), name);\n");
-    Printf(f_directors_h,"        if (method == NULL) {\n");
-    Printf(f_directors_h,"          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
-    Printf(f_directors_h,"          msg += method_name;\n");
-    Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
-    Printf(f_directors_h,"        }\n");
-    Printf(f_directors_h,"        vtable[method_index] = method;\n");
-    Printf(f_directors_h,"      };\n");
-    Printf(f_directors_h,"      return method;\n");
-    Printf(f_directors_h,"    }\n");
-    Printf(f_directors_h,"private:\n");
-    Printf(f_directors_h,"    mutable swig::PyObject_var vtable[%d];\n", director_method_index);
-    Printf(f_directors_h,"#endif\n\n");
+    if (director_method_index) {
+      Printf(f_directors_h,"\n\n");
+      Printf(f_directors_h,"#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
+      Printf(f_directors_h,"/* VTable implementation */\n");
+      Printf(f_directors_h,"    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
+      Printf(f_directors_h,"      PyObject *method = vtable[method_index];\n");
+      Printf(f_directors_h,"      if (!method) {\n");
+      Printf(f_directors_h,"        swig::PyObject_var name = PyString_FromString(method_name);\n");
+      Printf(f_directors_h,"        method = PyObject_GetAttr(swig_get_self(), name);\n");
+      Printf(f_directors_h,"        if (method == NULL) {\n");
+      Printf(f_directors_h,"          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
+      Printf(f_directors_h,"          msg += method_name;\n");
+      Printf(f_directors_h,"          Swig::DirectorMethodException::raise(msg.c_str());\n");
+      Printf(f_directors_h,"        }\n");
+      Printf(f_directors_h,"        vtable[method_index] = method;\n");
+      Printf(f_directors_h,"      };\n");
+      Printf(f_directors_h,"      return method;\n");
+      Printf(f_directors_h,"    }\n");
+      Printf(f_directors_h,"private:\n");
+      Printf(f_directors_h,"    mutable swig::PyObject_var vtable[%d];\n", director_method_index);
+      Printf(f_directors_h,"#endif\n\n");
+    }
       
     Printf(f_directors_h, "};\n\n");
     return Language::classDirectorEnd(n);
