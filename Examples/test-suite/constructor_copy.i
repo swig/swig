@@ -43,7 +43,7 @@ struct Foo5 : Foo4 {
 };
 
 struct Foo6 : Foo4 {
-  Foo6(const Foo6& ) { }
+  Foo6(const Foo6& f) : Foo4(f) { }
 };
 
 struct Foo7 : Foo5 {

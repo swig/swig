@@ -3,6 +3,7 @@
 %inline %{
   struct Base {
     Base() : MethodOrVariable(0) {}
+    virtual ~Base() {}
   protected:
     int MethodOrVariable;
   };
