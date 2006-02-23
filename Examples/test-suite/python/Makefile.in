@@ -91,6 +91,7 @@ run_testcase = \
 
 # Clean: remove the generated .py file
 %.clean:
+	@rm -f hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
 	@rm -f $*.py;
 
 clean:
@@ -105,8 +106,14 @@ cvsignore:
 	@echo clientdata_prop_b.py 
 	@echo imports_a.py 
 	@echo imports_b.py 
-	@echo mod_a.py 
-	@echo mod_b.py 
+	@echo mod_a.py mod_b.py 
+	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
 	@echo template_typedef_import.py
 
 
+hugemod:
+	perl hugemod.pl
+	make hugemod_a.cpptest
+	make hugemod_b.cpptest
+	time $(PYTHON) hugemod_runme.py
+	time $(PYTHON) hugemod_runme.py

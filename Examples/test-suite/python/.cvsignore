@@ -507,6 +507,6 @@ clientdata_prop_a.py
 clientdata_prop_b.py
 imports_a.py
 imports_b.py
-mod_a.py
-mod_b.py
+mod_a.py mod_b.py
+hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
 template_typedef_import.py
