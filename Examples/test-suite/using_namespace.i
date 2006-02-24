@@ -62,7 +62,7 @@ namespace hello
 %inline {
 namespace foo {
   typedef double mytype;
-};
+}
 
 // global namespace
 typedef float mytype;
