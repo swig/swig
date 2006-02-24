@@ -500,7 +500,7 @@ SwigType_namestr(const SwigType *t) {
   char   *d = Char(t);
   char   *c = strstr(d,"<(");
 
-  if (!c) return NewString(t);
+  if (!c || !strstr(c+2,")>")) return NewString(t);
 
   r = NewStringWithSize(d, c - d);
   if (*(c - 1) == '<')  Putc(' ',r);
