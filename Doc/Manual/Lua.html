@@ -173,6 +173,37 @@ The wrappers produced by SWIG can be compiled and linked with Lua 5.1. The loadi
 require("example")
 </pre></div>
 
+<p>
+If the code didn't work, don't panic. The best thing to do is to copy the module and your interpreter into a single directory and then execute the interpreter and try to manually load the module (take care, all this code is case sensitive).
+</p>
+<div class="targetlang"><pre>
+a,b,c=loadlib("example.so","Example_Init") -- for Unix/Linux
+--a,b,c=loadlib("example.dll","Example_Init") -- for Windows
+print(a,b,c)
+</pre></div>
+<p>
+Note: for Lua 5.1:<br>
+The loadlib() function has been moved into the package table, so you must use package.loadlib() instead.
+</p>
+<p>
+if 'a' is a function, this its all working fine, all you need to do is call it
+<div class="targetlang"><pre>
+  a()
+</pre></div>
+to load your library which will add a table 'example' with all the functions added.
+</p>
+<p>
+If it doesn't work, look at the error messages, in particular mesage 'b'<br>
+<tt>  The specified module could not be found.</tt><br>
+Means that is cannot find the module, check your the location and spelling of the module.<br>
+<tt>  The specified procedure could not be found.</tt><br>
+Means that it loaded the module, but cannot find the named function. Again check the spelling, and if possible check to make sure the functions were exported correctly.<br>
+<tt>  'loadlib' not installed/supported</tt><br>
+Is quite obvious (Go back and consult the Lua documents on how to enable loadlib for your platform).
+</p>
+
+
+
 <H3><a name="Lua_nn6"></a>22.2.3 Using your module</H3>
 
 
