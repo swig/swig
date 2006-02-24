@@ -5398,11 +5398,11 @@ exprcompound   : expr PLUS expr {
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr LSHIFT expr {
-		 $$.val = NewStringf("%s<<%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s << %s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr RSHIFT expr {
-		 $$.val = NewStringf("%s>>%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s >> %s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr LAND expr {
