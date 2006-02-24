@@ -646,7 +646,7 @@ SwigType_ltype(SwigType *s) {
   }
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
-    td = SwigType_typedef_resolve(tc);
+    td = SwigType_typedef_resolve_all(tc);
     if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       /* We need to use the typedef type */
       Delete(tc);

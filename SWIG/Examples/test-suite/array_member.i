@@ -48,3 +48,27 @@ int get_value(int *x, int i) {
 }
 
 #endif
+
+
+
+%inline %{
+#define BUFF_LEN 12
+
+typedef unsigned char BUFF[BUFF_LEN]; 
+
+typedef BUFF MY_BUFF;
+
+typedef struct _m {
+  int i;
+  MY_BUFF x;
+} MyBuff;
+
+
+typedef char SBUFF[BUFF_LEN];
+typedef SBUFF MY_SBUFF;
+typedef struct _sm {
+  int i;
+  MY_SBUFF x;
+} MySBuff;
+
+%}
