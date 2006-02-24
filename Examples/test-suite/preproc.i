@@ -309,3 +309,6 @@ int test(int defined)
 #pragma SWIG cpperraswarn=1
 #error "Some error"
 
+
+#define MASK(shift, size) (((1 << (size)) - 1) <<(shift))
+#define SOME_MASK_DEF (80*MASK(8, 10))
