@@ -46,6 +46,21 @@ These can be a useful reference for seeing how SWIG used in real projects as the
   <a href="http://www.wxwindows.org/">wxWindows</a> GUI framework.
 </li>
 
+<li>
+  <a href="http://www.tcl3d.org">Tcl3D</a> 3D libraries for use with Tcl/Tk.
+</li>
+
+<li>
+  <a href="http://software.sandia.gov/trilinos">Trilinos</a> Parallel, matrix OO solver packages.
+</li>
+ 
+<li>
+  <a href="http://www.vscp.org">VSCP</a> Very Simple Control Protocol  - Automation software suite for TCP/IP, CAN, PLC and more.
+</li>
+
+<li>
+  <a href="http://openbabel.sf.net/">OpenBabel</a> Chemistry open  source package,  used in molecular modeling, computational chemistry, and many related areas
+</li>
 
 <h1>Other projects using SWIG</h1>
 <p>
