@@ -546,7 +546,7 @@ namespace swig
     const_iterator(swig::PySwigIterator *iter = 0, int res),
     const_reverse_iterator(swig::PySwigIterator *iter = 0, int res) {
     res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0);
-    if (!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
       swig::PySwigIterator_T<$type > *iter_t = dynamic_cast<swig::PySwigIterator_T<$type > *>(iter);
