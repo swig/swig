@@ -541,29 +541,28 @@ namespace swig
   }
 
   %typemap(in,noblock=1,fragment="PySequence_Cont")
-    iterator(swig::PySwigIterator *iter = 0),
-    reverse_iterator(swig::PySwigIterator *iter = 0),
-    const_iterator(swig::PySwigIterator *iter = 0),
-    const_reverse_iterator(swig::PySwigIterator *iter = 0) {
-    if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0) != SWIG_OK) {
+    iterator(swig::PySwigIterator *iter = 0, int res),
+    reverse_iterator(swig::PySwigIterator *iter = 0, int res),
+    const_iterator(swig::PySwigIterator *iter = 0, int res),
+    const_reverse_iterator(swig::PySwigIterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0);
+    if (!SWIG_IsOK(res)) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
-    }
-    if (iter) {
-      swig::PySwigIterator_T<$type > *iter_t 
-	= dynamic_cast<swig::PySwigIterator_T<$type > *>(iter);
-      $1 = iter_t->get_current();
     } else {
-      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      swig::PySwigIterator_T<$type > *iter_t = dynamic_cast<swig::PySwigIterator_T<$type > *>(iter);
+      if (iter_t) {
+	$1 = iter_t->get_current();
+      } else {
+	%argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
     }
   }
 
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="PySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::PySwigIterator *iter = 0;
-    $1 = ((SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
-			   swig::PySwigIterator::descriptor(), 0) == SWIG_OK)
-	  && iter
-	  && (dynamic_cast<swig::PySwigIterator_T<$type > *>(iter) != 0));
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::PySwigIterator_T<$type > *>(iter) != 0));
   }
 
   %fragment("PySequence_Cont");
