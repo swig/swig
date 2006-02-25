@@ -541,10 +541,10 @@ namespace swig
   }
 
   %typemap(in,noblock=1,fragment="PySequence_Cont")
-    iterator(swig::PySwigIterator *iter),
-    reverse_iterator(swig::PySwigIterator *iter),
-    const_iterator(swig::PySwigIterator *iter),
-    const_reverse_iterator(swig::PySwigIterator *iter) {
+    iterator(swig::PySwigIterator *iter = 0),
+    reverse_iterator(swig::PySwigIterator *iter = 0),
+    const_iterator(swig::PySwigIterator *iter = 0),
+    const_reverse_iterator(swig::PySwigIterator *iter = 0) {
     if (SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0) != SWIG_OK) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
