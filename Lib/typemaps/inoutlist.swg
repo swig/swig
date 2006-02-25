@@ -105,7 +105,7 @@ or you can use the %apply directive :
     if (SWIG_IsNewObj(res$argnum)) %delete($1);
   }
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
-    void *ptr;
+    void *ptr = 0;
     int res = asval_meth($input, 0);
     $1 = SWIG_CheckState(res);
     if (!$1) {
