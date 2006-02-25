@@ -12,7 +12,7 @@
 }
 %typemap(freearg) void * "";
 
-%typemap(in,noblock=1) void * const& ($*ltype temp, int res) {
+%typemap(in,noblock=1) void * const& ($*ltype temp = 0, int res) {
   res = SWIG_ConvertPtr($input, %as_voidptrptr(&temp), 0, $disown);
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res, "Stype", $symname, $argnum); 
