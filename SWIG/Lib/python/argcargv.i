@@ -3,47 +3,58 @@
  * ------------------------------------------------------------ */
 
 %fragment("SWIG_AsArgcArgv","header",fragment="SWIG_AsCharPtrAndSize") {
-SWIGINTERN char**
-SWIG_AsArgcArgv(PyObject* input,
-		swig_type_info* ppchar_info,
-		size_t* argc, int* owner)
+SWIGINTERN int
+SWIG_AsArgcArgv(PyObject *input,
+		swig_type_info *ppchar_info,
+		size_t *argc, char ***argv, int *owner)
 {  
-  char **argv = 0;
-  size_t i = 0;
-  if (SWIG_ConvertPtr(input, (void **)&argv, ppchar_info, 0) != SWIG_OK) {
+  void *vptr;
+  int res = SWIG_ConvertPtr(input, &vptr, ppchar_info, 0);
+  if (!SWIG_IsOK(res)) {
     int list = 0;
     PyErr_Clear();
     list = PyList_Check(input);
     if (list || PyTuple_Check(input)) {
-      *argc = list ? PyList_Size(input) : PyTuple_Size(input);
-      argv = %new_array(*argc + 1, char*);
-      *owner = 1;
-      for (; i < *argc; ++i) {
-	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
-	char *cptr = 0; size_t size = 0; int alloc = 0;
-	if (SWIG_AsCharPtrAndSize(obj, &cptr, &size, &alloc) == SWIG_OK) {
-	  if (cptr && size) {
-	    argv[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, size, char);
+      size_t i = 0;
+      size_t size = list ? PyList_Size(input) : PyTuple_Size(input);
+      if (argc) *argc = size;
+      if (argv) {
+	*argv = %new_array(size + 1, char*);
+	for (; i < size; ++i) {
+	  PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
+	  char *cptr = 0; size_t size = 0; int alloc = 0;
+	  res = SWIG_AsCharPtrAndSize(obj, &cptr, &size, &alloc);
+	  if (SWIG_IsOK(res)) {
+	    if (cptr && size) {
+	      (*argv)[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, size, char);
+	    } else {
+	      (*argv)[i] = 0;
+	    }
 	  } else {
-	    argv[i] = 0;
+	    return SWIG_TypeError;
 	  }
-	} else {
-	  SWIG_Error(SWIG_TypeError,"list or tuple must contain strings only");
-	}	
+	}
+	(*argv)[i] = 0;
+	if (owner) *owner = 1;
+      } else {
+	for (; i < size; ++i) {
+	  PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
+	  res = SWIG_AsCharPtrAndSize(obj, 0, 0, 0);
+	  if (!SWIG_IsOK(res)) return SWIG_TypeError;
+	}
+	if (owner) *owner = 0;
       }
-      argv[i] = 0;
-      return argv;
+      return SWIG_OK;
     } else {
-      *argc = 0;
-      SWIG_Error(SWIG_TypeError,"a list or tuple is expected");
-      return 0;
+      return SWIG_TypeError;
     }
   } else {
     /* seems dangerous, but the user asked for it... */
-    while (argv[i] != 0) ++i;
-    *argc = i;
-    owner = 0;
-    return argv;
+    size_t i = 0;
+    if (argv) { while (*argv[i] != 0) ++i;}    
+    if (argc) *argc = i;
+    if (owner) *owner = 0;
+    return SWIG_OK;
   }
 }
 }
@@ -53,15 +64,20 @@ SWIG_AsArgcArgv(PyObject* input,
   tuple
  */
 
-%typemap(in,noblock=0,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV) (char **argv = 0, size_t argc = 0, int owner= 0) {
-  argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
-  if (!argv) { 
+%typemap(in,noblock=0,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV) (int res,char **argv = 0, size_t argc = 0, int owner= 0) {
+  res = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &argv, &owner);
+  if (!SWIG_IsOK(res)) { 
     $1 = 0; $2 = 0;
     %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV", $symname, $argnum);
   } else {  
-    $1 = ($1_ltype) argc;
-    $2 = ($2_ltype) argv;
+    $1 = %static_cast(argc,$1_ltype);
+    $2 = %static_cast(argv, $2_ltype);
   }
+}
+
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_ARRAY) (int ARGC, char **ARGV) {
+  int res = SWIG_AsArgcArgv($input, $descriptor(char**), 0, 0, 0);
+  $1 = SWIG_IsOK(res);
 }
 
 %typemap(freearg,noblock=1) (int ARGC, char **ARGV)  {
