@@ -63,7 +63,8 @@ These can be a useful reference for seeing how SWIG used in real projects as the
 </li>
 
 <li>
-  <a href="http://www.pygtk.org/">PyGTK</a> GTK+ for Python.
+  <a href="https://pse.cheme.cmu.edu/wiki/view/Ascend/PythonWrapper">Python Ascend</a>  Python Interface for ASCEND.
+  ASCEND is both a large-scale object-oriented mathematical modeling environment and a strongly typed mathematical modeling language
 </li>
 
 <li>
@@ -82,6 +83,44 @@ These can be a useful reference for seeing how SWIG used in real projects as the
 Ruby-VTK is an one-to-one wrapper of The Visualization ToolKit (VTK) for Ruby.
 </li>
 
+<li>
+  <a href="http://www.gnu.org/software/gnuradio/">GNURadio</a>: GNU Radio - The GNU Software Radio.
+</li>
+
+<li> <a href="http://www.mic.atr.co.jp/~gulliver/WTK/www/">PyWTK</a>: A Python
+interface to the WorldToolKit (a virtual reality modeling
+toolkit). (Roberto Lopez Gulliver) </li>
+
+
+<li> <a href="http://www.wxPython.org/">wxPython</a>: A Python extension
+module that encapsulates the wxWindows GUI classes. </li>
+
+<li> <a
+href="http://search.cpan.org/~jhpb/X11-Wcl-0.3/Wcl.pm">X11::Wcl</a>: A
+Perl interface to the Widget Creation Library (Joe Buehler). </li>
+
+<li> <a href="http://xml.apache.org/xerces-p/">XML::Xerces</a>:
+XML::Xerces is the Perl API to the Apache project's Xerces XML parser.
+</li>
+
+<li> <a
+href="http://mpa.itc.it/markus/grass61progman/swig/main.html">GRASS-SWIG</a>: 
+GRASS GIS (Geographic Resources Analysis Support System)- SWIG interface.</li>
+
+
+<li> <a
+href="http://www.opensourcepartners.nl/~costar/gramofile/">Gramofile</a>:
+The main goal of Gramofile is putting the sound of for example
+gramophone records on CDs, and includes a Perl port.
+</li>
+
+<li> <a href="http://pivy.tammura.at/">Pivy</a>:Coin3D (a high-level
+3D graphics toolkit) binding for Python.
+</li>
+
+<li> <a href="http://www.crystalspace3d.org">Crystal Space 3D</a>:
+Crystal Space is a free (LGPL) and portable 3D Game Development Kit written in C++.
+</li>
 
 
 <h1>Other projects using SWIG</h1>
@@ -473,33 +512,7 @@ I got a page for
 using SWIG.
 
 <hr>
-<h3> Tools and Modules </h3>
-The following tools and modules have been produced using SWIG
-or are related to SWIG.
 
-<ul>
-<li><p><a href="http://www.thestuff.net/bob/projects/blade">BLADE</a>. A web publishing environment.
-
-<li><p><a href="http://students.cs.byu.edu/~butler/jni/PyJava.html">PyJava</a>. Provides
-Python access to Java methods (Kevin Butler). 
-
-<li><p><a href="http://playground.sun.com/~bharat/pilotmgr.html">Pilot Manager</a>. Hook
-your US Robotics PalmPilot up to your Sun workstation (Bharat Mediratta).
-
-<li><p> <a href="http://www.mic.atr.co.jp/~gulliver/WTK/www">PyWTK</a>.  A Python
-interface to the WorldToolKit (a virtual reality modeling toolkit). (Roberto Lopez Gulliver)
-
-<li><p> A Python interface to
-<a href="http://starship.python.net/crew/robind/index.html">BSD DB 2.7.x</a> (Robin Dunn).
-
-<li><p><a href="http://alldunn.com/wxPython/index.html">wxPython</a>. A Python extension
-module that encapsulates the wxWindows GUI classes.
-
-<li><p> Net-Pcap.  A Perl interface to the libpcap library (Peter Lister).
-
-<li><p> X11::Wcl. A Perl interface to the Widget Creation Library (Joe Buehler).
-
-</ul>
 
 <hr>
 <h3> Other Application Areas </h3>
