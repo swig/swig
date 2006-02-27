@@ -12,8 +12,6 @@
 /* instantiate the required template specializations */
 namespace std {
   /* remember to instantiate the key,value pair! */
-  %template() pair<std::string,double>;
-  %template() pair<std::string,int>;
   %template(DoubleMap) map<std::string,double>;
   %template() map<std::string,int>;
 }
