@@ -62,6 +62,23 @@ These can be a useful reference for seeing how SWIG used in real projects as the
   <a href="http://openbabel.sf.net/">OpenBabel</a> Chemistry open  source package,  used in molecular modeling, computational chemistry, and many related areas
 </li>
 
+<li>
+  <a href="http://www.pygtk.org">PyGTK</a> GTK+ for Python.
+</li>
+
+<li>
+  <a href="http://www.quantlib.org">QuantLib</a> A free/open-source
+  library for quantitative finance with ports for C#, Guile, Java, MzScheme, Perl, Python, and Ruby.
+</li>
+
+<li>
+  <a href="http://geos.refractions.net/">GEOS</a>: GEOS (Geometry Engine - Open Source) is a C++ port of the 
+  <a href="http://www.jump-project.org/project.php?PID=JTS&SID=OVER">Java
+  Topology Suite with ports for Python and Ruby</a>. 
+</li>
+
+
+
 <h1>Other projects using SWIG</h1>
 <p>
 Below are some comments received on usage of SWIG by various organisations.
