@@ -35,10 +35,6 @@ These can be a useful reference for seeing how SWIG used in real projects as the
 </li>
 
 <li>
-  <a href="http://quantlib.org/">QuantLib</a> Quantitive finance library.
-</li>
-
-<li>
   <a href="http://pyopengl.sourceforge.net/">PyOpenGL</a> OpenGL graphics.
 </li>
 
