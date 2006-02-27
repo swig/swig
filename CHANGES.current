@@ -3,7 +3,28 @@ Version 1.3.29 (In progress)
 02/26/2006: mmatus
 
 	    [Ruby] add argcargv.i library file.
+	    
+	    Use it as follow:
 
+		%include argcargv.i
+	      									 
+   	        %apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) } 
+	      									 
+   	        %inline {				
+   	          int mainApp(size_t argc, const char **argv) 	
+   	          {						
+   	            return argc;					
+   	          }
+                }							
+	      							
+   	    then in the ruby side:					
+	      								
+   	        args = ["asdf", "asdf2"]				
+   	        n = mainApp(args);
+	
+
+	    This is the similar to the python version Lib/python/argcargv.i
+   	      									 
 02/24/2006: mgossage
 
 	    Small update Lua documents on troubleshooting problems
