@@ -91,3 +91,12 @@ SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, const int *)
 %template(StructPtrVector) std::vector<Struct *>;
 %template(StructConstPtrVector) std::vector<const Struct *>;
 
+#if defined(SWIGCSHARP)
+SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
+#endif
+
+%inline {
+  struct MyClass {};
+  typedef MyClass *MyClassPtr;
+}
+%template(MyClassPtrVector) std::vector<MyClassPtr>;
