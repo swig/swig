@@ -22,3 +22,6 @@ except TypeError:
 if error:
   raise RuntimeError, "bad main typemap"
 
+
+
+initializeApp(largs)
