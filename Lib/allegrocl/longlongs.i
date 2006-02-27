@@ -8,7 +8,7 @@
 */
 
 %typemap(in) long long, unsigned long long "$1 = $input;";
-%typemap(out) long long, unsigned long long "$result = $1;";
+%typemap(out) long long, unsigned long long "$result = &$1;";
 
 %typemap(ffitype) long long "(:struct (l1 :long) (l2 :long))";
 %typemap(ffitype) unsigned long long "(:struct (l1 :unsigned-long)

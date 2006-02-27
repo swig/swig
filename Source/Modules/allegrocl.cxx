@@ -626,12 +626,15 @@ String *get_ffi_type(SwigType *ty, const String_or_char *name) {
      into lisp code to generate the def-foreign-type name */
   
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "inside g_f_t: looking up %s\n", ty);
+  Printf(stderr, "inside g_f_t: looking up '%s' '%s'\n", ty, name);
 #endif
 
   String *found_type = lookup_defined_foreign_type(ty);
 
   if (found_type) {
+#ifdef ALLEGROCL_TYPE_DEBUG
+    Printf(stderr, "found_type '%s'\n", found_type);
+#endif
     return (Strcmp(found_type,"forward-reference") ?
             Copy(found_type) : NewString(":void"));
   } else {
@@ -639,7 +642,10 @@ String *get_ffi_type(SwigType *ty, const String_or_char *name) {
 
     if (typemap) {
       String *typespec = Getattr(typemap, "code");
-      
+
+#ifdef ALLEGROCL_TYPE_DEBUG
+    Printf(stderr, "found typemap '%s'\n", typespec);
+#endif
       return NewString(typespec);
     }     
 
@@ -1066,9 +1072,10 @@ void emit_full_class(Node *n) {
         (!storage_type || Strcmp(storage_type,"typedef")))) {
       String *access = Getattr(c,"access");
 
-      // hack. why would decl have a value of "variableHandler"?
+      // hack. why would decl have a value of "variableHandler" and now "0"?
       String *childDecl = Getattr(c,"decl");
-      if(!Strcmp(childDecl,"variableHandler"))
+      // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
+      if(!Strcmp(childDecl,"0"))
 	childDecl = NewString("");
 
       SwigType *childType=NewStringf("%s%s", childDecl,
@@ -1487,6 +1494,8 @@ int ALLEGROCL :: top(Node *n) {
                "  (:use :common-lisp :swig :ff :excl))\n\n",
          module);
 
+  // Swig_print_tree(n);
+
   Language::top(n);
 
   //  SwigType_emit_type_table(f_cxx,f_cxx_wrapper);
@@ -1838,6 +1847,39 @@ Node *parent_node_skipping_extends(Node* n)
   return result;
 }
 
+/* -----------------------------------------------------------------------------
+ * emit_num_lin_arguments()
+ *
+ * Calculate the total number of arguments.   This function is safe for use
+ * with multi-valued typemaps which may change the number of arguments in
+ * strange ways.
+ * ----------------------------------------------------------------------------- */
+
+int emit_num_lin_arguments(ParmList *parms) {
+  Parm *p = parms;
+  int   nargs = 0;
+
+  while (p) {
+    // Printf(stderr,"enla: '%s' lin='%x'\n", Getattr(p,"name"), Getattr(p,"tmap:lin"));
+    if (Getattr(p,"tmap:lin")) {
+      nargs += GetInt(p,"tmap:lin:numinputs");
+      p = Getattr(p,"tmap:lin:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
+  /*
+  if (parms && (p = Getattr(parms,"emit:varargs"))) {
+    if (!nextSibling(p)) {
+      nargs--;
+    }
+  }
+  */
+  return nargs;
+}
+
 String *id_converter_type(SwigType const *type)
 {
   SwigType *t = Copy(type);
@@ -1942,6 +1984,12 @@ static ParmList *parmlist_with_names(ParmList *pl)
       Setattr(p2, "name", Getattr(p2, "lname"));
     Setattr(p2, "name", strip_namespaces(Getattr(p2, "name")));
     Setattr(p2, "tmap:ctype", Getattr(p, "tmap:ctype"));
+    
+    String *temp = Getattr(p,"tmap:lin");
+    if (temp) {
+      Setattr(p2, "tmap:lin", temp);
+      Setattr(p2, "tmap:lin:next", Getattr(p,"tmap:lin:next"));
+    }
   }
   return pl2;
 }
@@ -2059,7 +2107,8 @@ IDargs* id_converter_arguments(Node *n)
   if (Getattr(n, "sym:overloaded")) {
     if(result->arity) Delete(result->arity);
     result->arity = NewStringf("%d",
-                 emit_num_arguments(Getattr(n, "wrap:parms")));
+			       // emit_num_arguments(Getattr(n, "wrap:parms")));
+			       emit_num_lin_arguments(Getattr(n, "wrap:parms")));
   }
 
   SetVoid(n, "allegrocl:id-converter-args", result);
@@ -2158,7 +2207,7 @@ int ALLEGROCL :: emit_dispatch_defun(Node *n) {
 
   int last_arity = -1;
   for (Iterator i = First(overloads); i.item; i = Next(i)) {
-    int arity = emit_num_arguments(Getattr(i.item, "wrap:parms"));
+    int arity = emit_num_lin_arguments(Getattr(i.item, "wrap:parms"));
     if (arity == last_arity) continue;
 
     Printf(f_clwrap, "%s%d", last_arity == -1 ? "" : " ", arity);
@@ -2200,10 +2249,11 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   // attach typemap info.
   Wrapper *wrap = NewWrapper();
   Swig_typemap_attach_parms("lin", pl, wrap);
+  // Swig_typemap_attach_parms("in", pl, wrap);
   Swig_typemap_lookup_new("lout",n,"result",0);
 
-  // prime the pump.
-  Printf(wrap->code,"$body");
+  // prime the pump, with support for OUTPUT, INOUT typemaps.
+  Printf(wrap->code,"(let (ACL_result)\n  $body\n  (values-list ACL_result))");
 
   Parm *p;
   int largnum = 0, argnum=0, first=1;
@@ -2224,7 +2274,8 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   // Just C
   else
   {
-    Printf(f_cl, "(swig-defun (\"%s\")\n", funcname);
+    Printf(f_cl, "(swig-defun (\"%s\" \"%s\")\n", funcname,
+	   Generate_Wrapper ? mangled_name : "");
   }
 
   //////////////////////////////////////
@@ -2243,7 +2294,8 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
     String *largs = NewString("");
 
     for (p=pl; p; p=nextSibling(p), argnum++, largnum++) {
-      SwigType *argtype=Getattr(p, "type");
+      // SwigType *argtype=Getattr(p, "type");
+      SwigType *argtype = Swig_cparse_type(Getattr(p,"tmap:ctype"));
 
       if (!first) {
 	Printf(f_cl, "\n   ");
@@ -2254,8 +2306,20 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
       } else {
 	String *argname=NewStringf("PARM%d_%s", largnum, Getattr(p, "name"));
 
-	// String *ffitype=get_ffi_type(argtype, argname);
-	String *ffitype=compose_foreign_type(argtype);
+	String *ffitype = compose_foreign_type(argtype);
+
+	String *deref_ffitype;
+	String *temp = Copy(argtype);
+
+	if(SwigType_ispointer(temp)) {
+	  SwigType_pop(temp);
+	  deref_ffitype = compose_foreign_type(temp);
+	} else {
+	  deref_ffitype = Copy(ffitype);
+	}
+
+	Delete(temp);
+
 	String *lisptype=get_lisp_type(argtype, argname);
       
 	// while we're walking the parameters, generating LIN
@@ -2269,16 +2333,25 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 	  Printf(largs," %s",lname);
 	  Replaceall(parm_code,"$in", argname);
 	  Replaceall(parm_code,"$out", lname);
-	  
+	  Replaceall(parm_code,"$in_fftype", ffitype);
+	  Replaceall(parm_code,"$*in_fftype", deref_ffitype);
 	  Replaceall(wrap->code,"$body", parm_code);
 	}
 	
 	String *dispatchtype=Getattr(n, "sym:overloaded") ?
 	  dispatching_type(p) :
 	  NewString("");
-      
-	Printf(f_cl, "(%s %s %s %s)", argname, dispatchtype, ffitype, lisptype);
-	first=0;
+
+	// if this parameter has been removed from the C/++ wrapper
+	// it shouldn't be in the lisp wrapper either.
+	if(!checkAttribute(p,"tmap:in:numinputs","0")) {
+	  Printf(f_cl, "(%s %s %s %s %s)", 
+		 // parms in the ff wrapper, but not in the lisp wrapper.
+		 (checkAttribute(p,"tmap:lin:numinputs","0") ? ":p-" : ":p+"),
+		 argname, dispatchtype, ffitype, lisptype);
+	
+	  first=0;
+	}
 
 	Delete(ffitype);
 	Delete(lisptype);
@@ -2329,8 +2402,11 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   //                 Getattr(n,"name"), cl_t);
   //  }
 
-  Replaceall(wrap->code,"$body", NewStringf("(swig-ff-call%s)",
-                                            wrap->locals));
+  Replaceall(wrap->code,"$body", NewStringf("(swig-ff-call%s)", wrap->locals));
+//   Replaceall(wrap->code,"$body", 
+// 	     (!Strcmp(result_type,"void") ?
+// 	      NewStringf("(swig-ff-call%s)", wrap->locals) :
+//	      NewStringf("(push (swig-ff-call%s) ACL_result)", wrap->locals)));
   String* ldestructor = Copy(lclass);
   if (ff_foreign_ptr)
     Replaceall(ldestructor, ldestructor, "identity");
@@ -2402,6 +2478,7 @@ int ALLEGROCL :: functionWrapper(Node *n) {
 
   // Attach the standard typemaps 
   Swig_typemap_attach_parms("ctype", parms, wrap);
+  Swig_typemap_attach_parms("lin", parms, wrap);
   emit_attach_parmmaps(parms, wrap);
 
   String *mangled = mangle_name(n);
@@ -2442,9 +2519,11 @@ int ALLEGROCL :: functionWrapper(Node *n) {
   int i; Parm *p;
   for (i = 0, p=parms; i < num_arguments; i++) {
 
-    while (checkAttribute(p,"tmap:in:numinputs","0")) {
+    while (p && checkAttribute(p,"tmap:in:numinputs","0")) {
       p = Getattr(p,"tmap:in:next");
     }
+
+    if(!p) break;
 
     SwigType *c_parm_type = Swig_cparse_type(Getattr(p, "tmap:ctype"));
     String *arg = NewStringf("l%s", Getattr(p,"lname"));
@@ -2868,6 +2947,8 @@ int ALLEGROCL :: cppClassHandler(Node *n) {
 				     Getattr(c,"type"));
     if(!SwigType_isfunction(childType))
       Delete(compose_foreign_type(childType));
+
+    Delete(childType);
   }
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "   MANUAL walk DONE.\n");

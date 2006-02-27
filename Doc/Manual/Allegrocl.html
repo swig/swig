@@ -1793,6 +1793,11 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
 	<li><tt>$out</tt> - expands to the name of the local variable
 	  assigned to this typemap
 	</li>
+	<li><tt>$in_fftype</tt> - the foreign function type of the C type.</li>
+	<li><tt>$*in_fftype</tt> - the foreign function type of the C type
+	  with one pointer removed. If there is no pointer, then $*in_fftype
+	  is the same as $in_fftype.
+	</li>
 	<li><tt>$body</tt> - very important. Instructs SWIG where
 	  subsequent code generation steps should be inserted into the
 	  current typemap.  Leaving out a <tt>$body</tt> reference

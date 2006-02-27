@@ -444,6 +444,21 @@ Version 1.3.28 (February 12, 2006)
 	        SWIG_exception(SWIG_RuntimeError,"unknown exception");
               }
 
+01/09/2006: mutandiz
+	    [Allegrocl]
+
+            Fixes a number of SEGVs primarily in the handling of
+            various anonymous types. Found in a pass through the
+            swig test-suite. Still more to do here, but this is a
+            good checkpoint.
+
+            Adds -cwrap and -nocwrap as an allegrocl specific
+            command-line argument. Controls generating of a C
+            wrapper file when wrapping C code. By default only a
+            lisp file is created for C code wrapping.
+
+            Doc updates for the command-line arguments and fixes as
+            pointed out on swig-devel
 
 01/05/2006: wsfulton
             [Java] Fix unsigned long long and const unsigned long long & typemaps

@@ -7,17 +7,19 @@
 %ffargs(strings_convert="t");
 
 /* typemaps for argument and result type conversions. */
-%typemap(lin)	SWIGTYPE 	"(let (($out $in))\n  $body)";
+%typemap(lin,numinputs=1)	SWIGTYPE 	"(let (($out $in))\n  $body)";
 
 %typemap(lout) bool, char, unsigned char, signed char,
                short, signed short, unsigned short,
                int, signed int, unsigned int,
                long, signed long, unsigned long,
-               float, double, long double, char *, void *, void,
-               enum SWIGTYPE    "$body";
+               float, double, long double, char *, void *,
+               enum SWIGTYPE    "(push $body ACL_result)";
+%typemap(lout) void "$body";
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
-               SWIGTYPE &       "(make-instance '$lclass :foreign-address $body)";
-%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (ACL_result (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization ACL_result #'$ldestructor))\n    ACL_result)";
+               SWIGTYPE &       "(push (make-instance '$lclass :foreign-address $body) ACL_result)";
+
+%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization ACL_result #'$ldestructor))\n    (push new-inst ACL_result))";
 
 %typemap(lisptype) bool "boolean";
 %typemap(lisptype) char "character";
@@ -154,15 +156,15 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 %typecheck(SWIG_TYPECHECK_UNICHAR) wchar_t { $1 = 1; };
 
 %typemap(in)        wchar_t "$1 = $input;";
-%typemap(lin)       wchar_t "(let (($out (char-code $in)))\n  $body)";
-%typemap(lin)       wchar_t* "(excl:with-native-string ($out $in
+%typemap(lin,numinputs=1)       wchar_t "(let (($out (char-code $in)))\n  $body)";
+%typemap(lin,numinputs=1)       wchar_t* "(excl:with-native-string ($out $in
 :external-format #+little-endian :fat-le #-little-endian :fat)\n
 $body)"
 
 %typemap(out)       wchar_t "$result = $1;";
-%typemap(lout)      wchar_t "(code-char $body)";
-%typemap(lout)      wchar_t* "(excl:native-to-string $body
-:external-format #+little-endian :fat-le #-little-endian :fat)";
+%typemap(lout)      wchar_t "(push (code-char $body) ACL_result)";
+%typemap(lout)      wchar_t* "(push (excl:native-to-string $body
+:external-format #+little-endian :fat-le #-little-endian :fat) ACL_result)";
 
 %typemap(ffitype)   wchar_t ":unsigned-short";
 %typemap(lisptype)  wchar_t "";
@@ -342,7 +344,7 @@ $body)"
 
 (defmacro swig-defun ((name &optional (mangled-name name)
                             &key (type :operator) class arity)
-                      ffargs kwargs
+                      arglist kwargs
 		      &body body)
   (let* ((symbol (id-convert-and-export name :type type
                           :arity arity :class class))
@@ -355,9 +357,13 @@ $body)"
                       else (intern mangled-name)))
          (defun-args (maybe-reorder-args
                       symbol
-		      (mapcar #'car (and (not (equal ffargs '(:void)))
-					      ffargs))
-                      ))
+		      (mapcar #'car (and (not (equal arglist '(:void)))
+					 (loop as i in arglist
+					       when (eq (car i) :p+)
+					       collect (cdr i))))))
+	 (ffargs (if (equal arglist '(:void))
+	 	      arglist
+		    (mapcar #'cdr arglist)))
 	 )
     (when (swig-anyvarargs-p ffargs)
       (setq ffargs '()))
@@ -380,11 +386,12 @@ $body)"
          (defmethod-args (maybe-reorder-args
                           symbol
                           (unless (equal ffargs '(:void))
-                            (loop for (name dispatch) in ffargs
+                            (loop for (lisparg name dispatch) in ffargs
+			    	  when (eq lisparg :p+)
                                   collect `(,name ,dispatch)))))
          (ffargs (if (equal ffargs '(:void))
                      ffargs
-                     (loop for (name nil . ffi) in ffargs
+                     (loop for (nil name nil . ffi) in ffargs
                            collect `(,name ,@ffi)))))
     `(eval-when (compile load eval)
        (excl::compiler-let ((*record-xref-info* nil))
