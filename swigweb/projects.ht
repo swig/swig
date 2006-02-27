@@ -47,15 +47,15 @@ These can be a useful reference for seeing how SWIG used in real projects as the
 </li>
 
 <li>
-  <a href="http://www.tcl3d.org">Tcl3D</a> 3D libraries for use with Tcl/Tk.
+  <a href="http://www.tcl3d.org/">Tcl3D</a> 3D libraries for use with Tcl/Tk.
 </li>
 
 <li>
-  <a href="http://software.sandia.gov/trilinos">Trilinos</a> Parallel, matrix OO solver packages.
+  <a href="http://software.sandia.gov/trilinos;">Trilinos</a> Parallel, matrix OO solver packages.
 </li>
  
 <li>
-  <a href="http://www.vscp.org">VSCP</a> Very Simple Control Protocol  - Automation software suite for TCP/IP, CAN, PLC and more.
+  <a href="http://www.vscp.org/">VSCP</a> Very Simple Control Protocol  - Automation software suite for TCP/IP, CAN, PLC and more.
 </li>
 
 <li>
@@ -63,11 +63,11 @@ These can be a useful reference for seeing how SWIG used in real projects as the
 </li>
 
 <li>
-  <a href="http://www.pygtk.org">PyGTK</a> GTK+ for Python.
+  <a href="http://www.pygtk.org/">PyGTK</a> GTK+ for Python.
 </li>
 
 <li>
-  <a href="http://www.quantlib.org">QuantLib</a> A free/open-source
+  <a href="http://www.quantlib.org/">QuantLib</a> A free/open-source
   library for quantitative finance with ports for C#, Guile, Java, MzScheme, Perl, Python, and Ruby.
 </li>
 
@@ -75,6 +75,11 @@ These can be a useful reference for seeing how SWIG used in real projects as the
   <a href="http://geos.refractions.net/">GEOS</a>: GEOS (Geometry Engine - Open Source) is a C++ port of the 
   <a href="http://www.jump-project.org/project.php?PID=JTS&SID=OVER">Java
   Topology Suite with ports for Python and Ruby</a>. 
+</li>
+
+<li>
+  <a href="http://www.gfd-dennou.org/arch/ruby/products/ruby-vtk/">Ruby-VTK</a>:
+Ruby-VTK is an one-to-one wrapper of The Visualization ToolKit (VTK) for Ruby.
 </li>
 
 
