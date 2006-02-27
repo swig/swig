@@ -1,5 +1,11 @@
 Version 1.3.29 (In progress)
 ============================
+02/27/2006: mutandiz
+	    [allegrocl]
+	    Add support for INPUT, OUTPUT, and INOUT typemaps.
+	    For OUTPUT variables, the lisp wrapper returns multiple
+	    values.
+
 02/26/2006: mmatus
 
 	    [Ruby] add argcargv.i library file.
@@ -24,7 +30,7 @@ Version 1.3.29 (In progress)
 	
 
 	    This is the similar to the python version Lib/python/argcargv.i
-   	      									 
+
 02/24/2006: mgossage
 
 	    Small update Lua documents on troubleshooting problems
