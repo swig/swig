@@ -70,6 +70,7 @@ static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
 static  int       fastproxy = 0;
+static  int       olddefs = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
 static  int       castmode = 0;
@@ -106,8 +107,8 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments \n\
-     -new_repr       - Use more informative version of __repr__ in proxy classes (default) \n\
-     -new_vwm        - New value wrapper mode, use only when everything else fails \n\
+     -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
+     -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
      -nobuildnone    - Access Py_None directly (default in non-Windows systems)\n\
      -nocastmode     - Disable the casting mode (default)\n";
@@ -121,6 +122,7 @@ static const char *usage2 = (char *)"\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
+     -noolddefs      - Don't emmit the old method definitions even when using fastproxy (default) \n\
      -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
@@ -128,7 +130,8 @@ static const char *usage2 = (char *)"\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
      -nothreads      - Disable thread support for all the interface\n\
-     -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
+     -olddefs        - Keep the old method definitions even when using fastproxy\n\
+     -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carfuly with legacy interfaces) \n\
      -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
@@ -332,6 +335,12 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-nofastproxy") == 0) {
 	  fastproxy = 0;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-olddefs") == 0) {
+	  olddefs = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-noolddefs") == 0) {
+	  olddefs = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-castmode") == 0) {
 	  castmode = 1;
@@ -2806,7 +2815,7 @@ public:
 	  fproxy = 0;
 	} else {
 	  if (!have_addtofunc(n)) {
-	    if (!fastproxy) {
+	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
 	      Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
 	    }
