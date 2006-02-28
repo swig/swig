@@ -380,6 +380,11 @@ void CFFI::emit_defun(Node *n,String *name)
       argname=NewStringf("arg%d", argnum);
       tempargname=1;
     }
+    else if(Strcmp(argname,"t")==0 || Strcmp(argname,"T")==0) {
+      argname=NewStringf("t_arg%d", argnum);
+      tempargname=1;
+    }
+    
       
     Printf(f_cl, "\n  (%s %s)", argname, ffitype);
     first=0;
@@ -398,6 +403,9 @@ int CFFI :: constantWrapper(Node *n) {
   String *converted_value=convert_literal(Getattr(n, "value"), type);
   String *name=Getattr(n, "sym:name");
 
+  if(Strcmp(name,"t")==0 || Strcmp(name,"T")==0) 
+    name=NewStringf("t_var");
+      
   Printf(f_cl, "\n(defconstant %s %s)\n", name, converted_value);
   Delete(converted_value);
  
@@ -412,6 +420,9 @@ int CFFI :: variableWrapper(Node *n) {
 
   String *var_name=Getattr(n, "sym:name");
   String *lisp_type = Swig_typemap_lookup_new("cin",n, "",0);
+  if(Strcmp(var_name,"t")==0 || Strcmp(var_name,"T")==0) 
+    var_name=NewStringf("t_var");
+
   Printf(f_cl,"\n(defcvar (\"%s\" %s)\n %s)\n",var_name,var_name,lisp_type);
 
   Delete(lisp_type);
@@ -509,6 +520,9 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
        }
 
        String *slot_name = Getattr(c, "sym:name");
+       if(Strcmp(slot_name,"t")==0 || Strcmp(slot_name,"T")==0) 
+         slot_name=NewStringf("t_var");
+
        Printf(f_cl, "\n\t(%s %s)", slot_name, typespec); 
 
        Delete(typespec);
