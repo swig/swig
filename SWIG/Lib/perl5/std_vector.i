@@ -126,7 +126,7 @@ namespace std {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_&descriptor,0) != -1) {
+                                    $&1_descriptor,0) != -1) {
                     $1 = 1;
                 } else if (SvROK($input)) {
                     /* native sequence? */
@@ -300,7 +300,7 @@ namespace std {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_&descriptor,0) != -1) {
+                                    $&1_descriptor,0) != -1) {
                     $1 = 1;
                 } else if (SvROK($input)) {
                     /* native sequence? */
