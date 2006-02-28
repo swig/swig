@@ -46,3 +46,12 @@
 %include <typecheck.i>
 %include <exception.i>
 %include <preamble.swg>
+
+/* ocaml keywords */
+/* There's no need to use this, because of my rewriting machinery.  C++
+ * words never collide with ocaml keywords */
+
+/* still we include the file, but the warning says that the offending
+   name will be properly renamed. Just to let the user to know about
+   it. */
+%include <ocamlkw.swg>
