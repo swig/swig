@@ -9,11 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#ifdef WIN32
+#ifndef DllExport
+# ifdef WIN32
 #  define DllExport   __declspec( dllexport )
-#else
+# else
 #  define DllExport  
-#endif 
+# endif
+#endif
 %}
 
 #if 0
