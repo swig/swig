@@ -122,12 +122,8 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 }
 %}
 
-%define SWIG_exception(code, msg)
-{
-  SWIG_JavaException(jenv, code, msg);
-  return $null;
-}
-%enddef
+#define SWIG_exception(code, msg)\
+{ SWIG_JavaException(jenv, code, msg); return $null; }
 #endif // SWIGJAVA
 
 #ifdef SWIGOCAML
@@ -197,12 +193,8 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 }
 %}
 
-%define SWIG_exception(code, msg)
-{
-  SWIG_CSharpException(code, msg);
-  return $null;
-}
-%enddef
+#define SWIG_exception(code, msg)\
+{ SWIG_CSharpException(code, msg); return $null; }
 #endif // SWIGCSHARP
 
 #ifdef SWIGLUA
