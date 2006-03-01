@@ -566,6 +566,9 @@ namespace std {
 %define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
 
 
+%define SWIG_TYPECHECK_SWIGOBJECT        5000    %enddef
+
+
 /* -----------------------------------------------------------------------------
  *  Runtime code
  * ----------------------------------------------------------------------------- */
