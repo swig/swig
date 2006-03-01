@@ -18,7 +18,7 @@
   %set_output(*$1);
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIG_Object "$1 = ($input != 0);";
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = ($input != 0);";
 
 %typemap(throws,noblock=1) SWIG_Object {
   %raise($1, "$type", 0);
