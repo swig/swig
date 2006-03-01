@@ -3,7 +3,7 @@ Version 1.3.29 (In progress)
 03/01/2006: mmatus
 	    Use the GCC visibility attribute in SWIGEXPORT.
 
-	    Now you can compile (with gcc 4.0 or later) using
+	    Now you can compile (with gcc 3.4 or later) using
 	    CFLAGS="-fvisibility=hidden".
 	    
 	    Check the difference for the 'std_containers.i' python 
