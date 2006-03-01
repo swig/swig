@@ -50,11 +50,6 @@
 # endif
 #endif
 
-#if (__GNUC__ >= 4)
-# ifndef GCC_HASCLASSVISIBILITY
-#  define GCC_HASCLASSVISIBILITY
-# endif
-#endif
 
 /* internal SWIG method */
 #ifndef SWIGINTERN
@@ -66,7 +61,13 @@
 # define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
 #endif
 
-/* exporting methods for Windows DLLs */
+/* exporting methods */
+#if (__GNUC__ >= 4)
+#  ifndef GCC_HASCLASSVISIBILITY
+#    define GCC_HASCLASSVISIBILITY
+#  endif
+#endif
+
 #ifndef SWIGEXPORT
 # if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #   if defined(STATIC_LINKED)
