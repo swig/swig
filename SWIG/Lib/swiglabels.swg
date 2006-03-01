@@ -50,6 +50,12 @@
 # endif
 #endif
 
+#if (__GNUC__ >= 4)
+# ifndef GCC_HASCLASSVISIBILITY
+#  define GCC_HASCLASSVISIBILITY
+# endif
+#endif
+
 /* internal SWIG method */
 #ifndef SWIGINTERN
 # define SWIGINTERN static SWIGUNUSED
@@ -69,7 +75,11 @@
 #     define SWIGEXPORT __declspec(dllexport)
 #   endif
 # else
-#   define SWIGEXPORT
+#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)
+#     define SWIGEXPORT __attribute__ ((visibility("default")))
+#   else
+#     define SWIGEXPORT
+#   endif
 # endif
 #endif
 
