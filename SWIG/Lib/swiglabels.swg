@@ -89,9 +89,5 @@
 
 /* Add DllExport for backward compatibility */
 #ifndef DllExport
-# if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#   define DllExport   __declspec( dllexport )
-# else
-#  define DllExport
-# endif
+# define DllExport  SWIGEXPORT
 #endif
