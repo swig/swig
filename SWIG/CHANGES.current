@@ -2,6 +2,12 @@ Version 1.3.29 (In progress)
 ============================
 
 03/02/2006: wsfulton
+            [C#]
+            Add support for inner exceptions. If any of the delegates are called which construct
+            a pending exception and there is already a pending exception, it will create the new
+            exception with the pending exception as an inner exception.
+
+03/02/2006: wsfulton
             [Php]
             Added support for Php5 exceptions if compiling against Php5 (patch from Olly Betts).
 
