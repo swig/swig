@@ -108,7 +108,7 @@ SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
   public:
     MyClassVector GetAllResources(int n) const
     {
-      return MyClassVector(n);
+      return MyClassVector(n, 0);
     }
   };
 }
