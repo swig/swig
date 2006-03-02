@@ -1384,7 +1384,7 @@ MODULA3 ():
       Wrapper_add_localv (f, "cresult", c_return_type, "cresult = 0", NIL);
     }
 
-    Printv (f->def, " DllExport ", c_return_type, " ", wname, "(", NIL);
+    Printv (f->def, " SWIGEXPORT ", c_return_type, " ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args (t, l, f);
@@ -2486,7 +2486,7 @@ MODULA3 ():
       Replaceall (m3raw_cppcasts_code, "$baseclass", baseclass);
 
       Printv (upcasts_code,
-              "DllExport long Modula3_$imclazznameTo$imbaseclass",
+              "SWIGEXPORT long Modula3_$imclazznameTo$imbaseclass",
               "(long objectRef) {\n",
               "    long baseptr = 0;\n"
               "    *($cbaseclass **)&baseptr = *($cclass **)&objectRef;\n"
