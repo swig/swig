@@ -178,3 +178,19 @@ long long ll(long long ull) { return ull; }
     
   };
 }
+
+#ifdef SWIGPYTHON
+%inline 
+{
+  class Graph {
+  public:
+    int val;
+    Graph(int i) : val(i) {};
+  };
+}
+
+%extend Graph {
+  Graph(PyObject* p) { return new Graph(123);}
+} 
+
+#endif
