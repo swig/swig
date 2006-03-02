@@ -646,13 +646,22 @@ SwigType_ltype(SwigType *s) {
   }
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
-    td = SwigType_typedef_resolve_all(tc);
-    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
-      /* We need to use the typedef type */
+    SwigType *tt  = Copy(tc);
+    td = 0;
+    while ((td = SwigType_typedef_resolve(tt))) {      
+      if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
+	/* We need to use the typedef type */
+	Delete(tt);
+	tt = td;
+	break;
+      } else if (td) {
+	Delete(tt);
+	tt = td;
+      }
+    }
+    if (td) {
       Delete(tc);
-      tc = td;
-    } else if (td) {
-      Delete(td);
+      tc = td;      
     }
   }
   elements = SwigType_split(tc);

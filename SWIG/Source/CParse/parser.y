@@ -2530,8 +2530,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    if (!value) {
 		      SwigType *ty = Getattr(p,k_type);
 		      if (ty) {
-			SwigType *rty = Swig_symbol_typedef_reduce(ty,tscope);
-			int reduce = template_reduce || SwigType_ispointer(rty) || SwigType_isarray(rty) || SwigType_isreference(rty);
+			SwigType *rty = 0;
+			int reduce = template_reduce;
+			if (reduce || !SwigType_ispointer(ty)) {
+			  rty = Swig_symbol_typedef_reduce(ty,tscope);
+			  if (!reduce) reduce = SwigType_ispointer(rty);
+			}
 			ty = reduce ? Swig_symbol_type_qualify(rty,tscope) : Swig_symbol_type_qualify(ty,tscope);
 			Setattr(p,k_type,ty);
 			Delete(ty);
