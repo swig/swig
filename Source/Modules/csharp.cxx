@@ -12,8 +12,8 @@
 
 char cvsroot_csharp_cxx[] = "$Header$";
 
-#include <limits.h> // for INT_MAX
 #include "swigmod.h"
+#include <limits.h> // for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
 
