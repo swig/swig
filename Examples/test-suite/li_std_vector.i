@@ -98,5 +98,18 @@ SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
 %inline {
   struct MyClass {};
   typedef MyClass *MyClassPtr;
+  typedef std::vector<MyClassPtr> MyClassVector;
 }
 %template(MyClassPtrVector) std::vector<MyClassPtr>;
+
+%inline {
+  class RetsMetadata
+  {
+  public:
+    MyClassVector GetAllResources(int n) const
+    {
+      return MyClassVector(n);
+    }
+  };
+}
+
