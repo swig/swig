@@ -162,43 +162,47 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 ExceptionArgumentDelegate argumentOutOfRangeDelegate);
 
     static void SetPendingApplicationException(string message) {
-      SWIGPendingException.Set(new System.ApplicationException(message));
+      SWIGPendingException.Set(new System.ApplicationException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingArithmeticException(string message) {
-      SWIGPendingException.Set(new System.ArithmeticException(message));
+      SWIGPendingException.Set(new System.ArithmeticException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingDivideByZeroException(string message) {
-      SWIGPendingException.Set(new System.DivideByZeroException(message));
+      SWIGPendingException.Set(new System.DivideByZeroException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingIndexOutOfRangeException(string message) {
-      SWIGPendingException.Set(new System.IndexOutOfRangeException(message));
+      SWIGPendingException.Set(new System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingInvalidOperationException(string message) {
-      SWIGPendingException.Set(new System.InvalidOperationException(message));
+      SWIGPendingException.Set(new System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingIOException(string message) {
-      SWIGPendingException.Set(new System.IO.IOException(message));
+      SWIGPendingException.Set(new System.IO.IOException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingNullReferenceException(string message) {
-      SWIGPendingException.Set(new System.NullReferenceException(message));
+      SWIGPendingException.Set(new System.NullReferenceException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingOutOfMemoryException(string message) {
-      SWIGPendingException.Set(new System.OutOfMemoryException(message));
+      SWIGPendingException.Set(new System.OutOfMemoryException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingOverflowException(string message) {
-      SWIGPendingException.Set(new System.OverflowException(message));
+      SWIGPendingException.Set(new System.OverflowException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingSystemException(string message) {
-      SWIGPendingException.Set(new System.SystemException(message));
+      SWIGPendingException.Set(new System.SystemException(message, SWIGPendingException.Retrieve()));
     }
 
     static void SetPendingArgumentException(string message, string paramName) {
-      SWIGPendingException.Set(new System.ArgumentException(message, paramName));
+      SWIGPendingException.Set(new System.ArgumentException(message, paramName, SWIGPendingException.Retrieve()));
     }
     static void SetPendingArgumentNullException(string message, string paramName) {
+      Exception e = SWIGPendingException.Retrieve();
+      if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new System.ArgumentNullException(paramName, message));
     }
     static void SetPendingArgumentOutOfRangeException(string message, string paramName) {
+      Exception e = SWIGPendingException.Retrieve();
+      if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new System.ArgumentOutOfRangeException(paramName, message));
     }
 
@@ -240,8 +244,6 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     }
 
     public static void Set(Exception e) {
-      if (pendingException != null)
-        throw new ApplicationException("FATAL: An earlier pending exception from unmanaged code was missed and thus not thrown (" + pendingException.ToString() + ")", e);
       pendingException = e;
       lock(typeof($imclassname)) {
         numExceptionsPending++;
