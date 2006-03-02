@@ -403,7 +403,6 @@ namespace std {
     specialize_std_vector(unsigned long,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(float,SvNIOK,SwigSvToNumber,sv_setnv);
     specialize_std_vector(double,SvNIOK,SwigSvToNumber,sv_setnv);
-    specialize_std_vector(std::string,SvPOK,SvPVX,SwigSvFromString);
-
+    specialize_std_vector(std::string,SvPOK,SwigSvToString,SwigSvFromString);
 }
 

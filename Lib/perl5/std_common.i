@@ -20,7 +20,7 @@ std::string SwigSvToString(SV* sv) {
     return SvPV(sv,len);
 }
 void SwigSvFromString(SV* sv, const std::string& s) {
-    sv_setpv(sv,s.c_str());
+    sv_setpvn(sv,s.data(),s.size());
 }
 %}
 
