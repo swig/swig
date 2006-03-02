@@ -223,3 +223,17 @@ struct ThrowsClass {
   }
 };
 %}
+
+// test inner exceptions
+%exception InnerExceptionTest() {
+  try {
+    $action
+  } catch(Ex &e) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
+    SWIG_CSharpSetPendingException(SWIG_CSharpInvalidOperationException, "My OuterException message");
+  }
+}
+
+%inline %{
+void InnerExceptionTest() { throw Ex("My InnerException message"); }
+%}

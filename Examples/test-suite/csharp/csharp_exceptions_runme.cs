@@ -291,6 +291,16 @@ public class runme
             if (testThreads[i].Failed) throw new Exception("Test Failed");
         }
       }
+
+
+      // test inner exceptions
+      try {
+        csharp_exceptions.InnerExceptionTest();
+        throw new Exception("InnerExceptionTest exception not caught");
+      } catch (InvalidOperationException e) {
+        if (e.Message != "My OuterException message") throw new Exception("OuterException msg incorrect");
+        if (e.InnerException.Message != "My InnerException message") throw new Exception("InnerException msg incorrect");
+      }
     }
     public static string CRLF = "\r\n"; // Some CLR implementations use a CRLF instead of just CR
 }
@@ -316,6 +326,8 @@ public class TestThread {
              throw new Exception("Exception message incorrect. Expected:\n[" + expectedMessage + "]\n" + "Received:\n[" + e.Message + "]");
            if (e.ParamName != "input")
              throw new Exception("Exception ParamName incorrect. Expected:\n[input]\n" + "Received:\n[" + e.ParamName + "]");
+           if (e.InnerException != null)
+             throw new Exception("Unexpected inner exception");
          }
          if (throwsClass.dub != 1234.5678) // simple check which attempts to catch memory corruption
            throw new Exception("throwsException.dub = " + throwsClass.dub + " expected: 1234.5678");
