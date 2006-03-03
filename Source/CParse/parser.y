@@ -3375,6 +3375,7 @@ cpp_class_decl  :
 		 set_nextSibling(n,p);
 		 while (p) {
 		   String *type = Copy(unnamed);
+		   Setattr(p,k_name,$7.id);
 		   Setattr(p,k_unnamed,unnamed);
 		   Setattr(p,k_type,type);
 		   Delete(type);
