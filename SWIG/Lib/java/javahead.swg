@@ -68,7 +68,7 @@ typedef struct {
 %}
 
 %insert(runtime) {
-static void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
+static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
   jclass excep;
   static const SWIG_JavaExceptions_t java_exceptions[] = {
     { SWIG_JavaOutOfMemoryError, "java/lang/OutOfMemoryError" },
