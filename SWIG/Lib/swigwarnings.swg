@@ -113,7 +113,7 @@
  * ----------------------------------------------------------------------------- */
 
 #define %keywordwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_KEYWORD, msg)) 
-#define %builtinwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, msg))
+#define %builtinwarn(msg...) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, msg), %$isfunction)
 
 
 /* -----------------------------------------------------------------------------

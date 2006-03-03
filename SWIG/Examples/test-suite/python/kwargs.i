@@ -106,4 +106,6 @@
 
   int foo_nu(int from = 1, int = 0) {return from; }
 
+  int foo_mm(int min = 1, int max = 2) {return min + max; }
+
 %}
