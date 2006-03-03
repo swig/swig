@@ -58,3 +58,10 @@ if foo_kw(_from=2) != 4:
 
 if foo_nu(_from=2, arg2=3) != 2:
   raise RuntimeError
+
+if foo_mm(min=2) != 4:
+  raise RuntimeError
+
+if foo_mm(max=3) != 4:
+  raise RuntimeError
+  
