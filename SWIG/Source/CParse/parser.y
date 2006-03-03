@@ -3364,7 +3364,7 @@ cpp_class_decl  :
 	       Setattr($$,k_abstract, pure_abstract($5));
 
 	       n = new_node("cdecl");
-	       //Setattr(n,k_name,$7.id);
+	       Setattr(n,k_name,$7.id);
 	       Setattr(n,k_unnamed,unnamed);
 	       Setattr(n,k_type,unnamed);
 	       Setattr(n,k_decl,$7.type);
@@ -3375,7 +3375,7 @@ cpp_class_decl  :
 		 set_nextSibling(n,p);
 		 while (p) {
 		   String *type = Copy(unnamed);
-		   //Setattr(p,k_name,$7.id);
+		   Setattr(p,k_name,$7.id);
 		   Setattr(p,k_unnamed,unnamed);
 		   Setattr(p,k_type,type);
 		   Delete(type);
