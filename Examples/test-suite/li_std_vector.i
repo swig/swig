@@ -95,6 +95,7 @@ SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, const int *)
 SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
 #endif
 
+#if !defined(SWIGTCL)
 %inline {
   struct MyClass {};
   typedef MyClass *MyClassPtr;
@@ -112,4 +113,4 @@ SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
     }
   };
 }
-
+#endif
