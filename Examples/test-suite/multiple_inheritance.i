@@ -65,10 +65,12 @@ public:
 class IgnoreMe {
 public:
   virtual int ignoreme() { return 5; }
+  virtual ~IgnoreMe() {}
 };
 class IgnoreMeToo {
 public:
   virtual int ignoremetoo() { return 6; }
+  virtual ~IgnoreMeToo() {}
 };
 class IgnoreDerived1 : public IgnoreMe, public Bar {
 public:
