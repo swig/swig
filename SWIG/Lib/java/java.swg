@@ -548,7 +548,7 @@
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = *($&1_ltype*)(void *)&$input; 
+%{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
      return $null;
@@ -560,51 +560,51 @@
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
    }
-   $1 = *($&1_ltype)(void *)&$input; %}
+   $1 = *($&1_ltype)&$input; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ *($&1_ltype*)(void *)&$result = new $1_ltype(($1_ltype &)$1); %}
+%{ *($&1_ltype*)&$result = new $1_ltype(($1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  *($&1_ltype*)(void *)&$result = $1ptr;
+  *($&1_ltype*)&$result = $1ptr;
 }
 #endif
 
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
-   *(($&1_ltype*)(void *)&$input) = &$1; %}
+   *(($&1_ltype*)&$input) = &$1; %}
 %typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)(void *)&$input; %}
-%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)(void *)&$input;
+%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if(!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ *($&1_ltype)(void *)&$result = $1; %} 
+%{ *($&1_ltype)&$result = $1; %} 
 %typemap(out) SWIGTYPE &
-%{ *($&1_ltype)(void *)&$result = $1; %} 
+%{ *($&1_ltype)&$result = $1; %} 
 
 %typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ $1 = *($&1_ltype)(void *)&$input; %}
+%{ $1 = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ *(($&1_ltype)(void *)&$input) = ($1_ltype) $1; %}
+%{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &
-%{ *($&1_ltype)(void *)&$input = ($1_ltype) &$1; %}
+%{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
 %typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "new $javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "$javaclassname.getCPtr($javacall)"
 
 /* Default array handling */
-%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)(void *)&$input; %}
-%typemap(out) SWIGTYPE [] %{ *($&1_ltype)(void *)&$result = $1; %} 
+%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
+%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 %typemap(freearg) SWIGTYPE [ANY], SWIGTYPE [] ""
 
 /* char arrays - treat as String */
@@ -1014,10 +1014,10 @@
     return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
   }
 %typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
-%{ temp = *($1_ltype)(void *)&$input;
+%{ temp = *($1_ltype)&$input;
    $1 = &temp; %}
 %typemap(out) SWIGTYPE *&
-%{ *($1_ltype)(void *)&$result = *$1; %} 
+%{ *($1_ltype)&$result = *$1; %} 
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
