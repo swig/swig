@@ -275,6 +275,13 @@
 // SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
 // SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
 
+/* Define long long typemaps -- uses functions that are only defined
+   in recent versions of Guile, availability also depends on Guile's
+   configuration. */
+
+SIMPLE_MAP(long long, gh_scm2long_long, gh_long_long2scm, integer);
+SIMPLE_MAP(unsigned long long, gh_scm2ulong_long, gh_ulong_long2scm, integer);
+
 /* Strings */
 
  %typemap (in,     doc="$NAME is a string")      char *(int must_free = 0) {

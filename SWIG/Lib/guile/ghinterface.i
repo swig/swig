@@ -27,6 +27,10 @@
 #define gh_ulong2scm scm_ulong2num
 #define gh_long2scm scm_long2num
 #define gh_str02scm scm_makfrom0str 
+#define gh_long_long2scm scm_long_long2num
+#define gh_scm2long_long(a) scm_num2long_long(a, SCM_ARG1, FUNC_NAME)
+#define gh_ulong_long2scm scm_ulong_long2num
+#define gh_scm2ulong_long(a) scm_num2ulong_long(a, SCM_ARG1, FUNC_NAME)
 #define gh_string_p SCM_STRINGP 
 #define gh_vector_length SCM_VECTOR_LENGTH 
 #define gh_vector_p SCM_VECTORP 
