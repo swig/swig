@@ -107,7 +107,7 @@ SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
   class RetsMetadata
   {
   public:
-    MyClassVector GetAllResources(int n) const
+    MyClassVector GetAllResources(size_t n) const
     {
       return MyClassVector(n, 0);
     }
