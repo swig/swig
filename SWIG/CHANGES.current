@@ -1,6 +1,11 @@
 Version 1.3.29 (In progress)
 ============================
 
+03/02/2006: mkoeppe
+	    [Guile -scm]
+	    Add typemaps for "long long"; whether the generated code compiles, however, depends
+	    on the version and configuration of Guile.
+
 03/02/2006: wsfulton
             [C#]
             Add support for inner exceptions. If any of the delegates are called which construct
