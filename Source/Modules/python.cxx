@@ -70,6 +70,7 @@ static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
 static  int       fastproxy = 0;
+static  int       fastinit = 0;
 static  int       olddefs = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
@@ -100,6 +101,7 @@ Python Options (available with -python)\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
+     -fastinit       - Use fast init mechanism for classes \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -fastproxy      - Use fast proxy mechanism for member methods \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
@@ -117,6 +119,7 @@ static const char *usage2 = (char *)"\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
+     -nofastinit     - Use traditional init mechanism for classes (default) \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
      -noh            - Don't generate the output header file\n\
@@ -138,7 +141,7 @@ static const char *usage2 = (char *)"\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable all the optimizations options: \n\
                          -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual \n\
-                         -noproxydel -fastproxy -fastunpack -modernargs -nobuildnone \n\
+                         -noproxydel -fastproxy -fastinit -fastunpack -modernargs -nobuildnone \n\
 \n";
 
 class PYTHON : public Language {
@@ -336,6 +339,12 @@ public:
 	} else if (strcmp(argv[i],"-nofastproxy") == 0) {
 	  fastproxy = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-fastinit") == 0) {
+	  fastinit = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nofastinit") == 0) {
+	  fastinit = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-olddefs") == 0) {
 	  olddefs = 1;
 	  Swig_mark_arg(i);
@@ -402,6 +411,7 @@ public:
 	  proxydel = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
+	  fastinit = 1;
 	  modernargs = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -2688,8 +2698,15 @@ public:
       }
       if (!have_constructor) {
 	Printv(f_shadow_file, tab4,"def __init__(self): raise AttributeError, \"No constructor defined\"\n", NIL);
+      } else if (fastinit) {
+	
+	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
+	Printv(f_wrappers, tab4, "return SWIG_Python_InitShadowInstance(args);\n",
+	       "}\n\n",NIL);
+	String *cname = NewStringf("%s_swiginit", class_name);
+	add_method(cname, cname, 0);
+	Delete(cname);
       }
-
       if (!have_repr) {
 	/* Supply a repr method for this class  */
 	String *rname = SwigType_namestr(real_classname);
@@ -2974,31 +2991,22 @@ public:
                                 NIL);
  	    }
 
-            Printv(f_shadow, tab4, "def __init__(self, *args",
-		   (allow_kwargs ? ", **kwargs" : ""),"):\n", NIL);
+            Printv(f_shadow, tab4, "def __init__(self, *args",(allow_kwargs ? ", **kwargs" : ""),"): \n", NIL);
             if ( have_docstring(n) )
-              Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
+              Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8),"\n",NIL);
             if ( have_pythonprepend(n) )
               Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
             Printv(f_shadow, pass_self, NIL);
-	    Printv(f_shadow, tab8, "this = ", funcCallHelper(Swig_name_construct(symname), allow_kwargs),"\n", NIL);
-            if (!modern) {
-              Printv(f_shadow, tab8, "try: self.this.append(this)\n", NIL);
-              Printv(f_shadow, tab8, "except: self.this = this\n", NIL);
-              Printv(f_shadow, 
-#ifdef USE_THISOWN
-                     tab8, "_swig_setattr(self, ", rclassname, ", 'thisown', 1)\n",
-#endif
-                     NIL);
-            } else {
-              Printv(f_shadow, tab8, "try: self.this.append(this)\n", NIL);
-              Printv(f_shadow, tab8, "except: self.this = this\n", NIL);
-#ifdef USE_THISOWN
-              Printv(f_shadow, tab8, "self.thisown = 1\n", NIL);
-              Printv(f_shadow, tab8, "del newobj.thisown\n", NIL);
-#endif
-            }
-            if ( have_pythonappend(n) )
+	    if (fastinit) {
+	      Printv(f_shadow, 
+		     tab8, module, ".", class_name, "_swiginit(self,", funcCallHelper(Swig_name_construct(symname), allow_kwargs),")\n", NIL);
+	    } else {
+	      Printv(f_shadow,  
+		     tab8, "this = ", funcCallHelper(Swig_name_construct(symname), allow_kwargs),"\n",
+		     tab8, "try: self.this.append(this)\n",
+		     tab8, "except: self.this = this\n", NIL);
+	    }
+	    if ( have_pythonappend(n) )
               Printv(f_shadow, tab8, pythonappend(n), "\n\n", NIL);
   	    Delete(pass_self);
   	  }

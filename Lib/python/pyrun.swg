@@ -1167,6 +1167,47 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 #endif
 }
 
+SWIGRUNTIME void
+SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
+{
+#if (PY_VERSION_HEX >= 0x02020000) && !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
+  PyObject **dictptr = _PyObject_GetDictPtr(inst);
+  if (dictptr != NULL) {
+    PyObject *dict = *dictptr;
+    if (dict == NULL) {
+      dict = PyDict_New();
+      *dictptr = dict;
+      PyDict_SetItem(dict, SWIG_This(), swig_this);
+    }    
+  } else {
+    PyObject *dict = PyObject_GetAttrString(inst, "__dict__");
+    PyDict_SetItem(dict, SWIG_This(), swig_this);
+    Py_DECREF(dict);
+  }
+#else
+  PyObject *dict = PyObject_GetAttrString(inst, "__dict__");
+  PyDict_SetItem(dict, SWIG_This(), swig_this);
+  Py_DECREF(dict);
+#endif
+}
+
+
+SWIGINTERN PyObject *
+SWIG_Python_InitShadowInstance(PyObject *args) {
+  PyObject *obj[2];
+  if (!SWIG_Python_UnpackTuple(args,(char*)"swiginit", 2, 2, obj)) {
+    return NULL;
+  } else {
+    PySwigObject *sthis = SWIG_Python_GetSwigThis(obj[0]);
+    if (sthis) {
+      PySwigObject_append((PyObject*) sthis, obj[1]);
+    } else {
+      SWIG_Python_SetSwigThis(obj[0], obj[1]);
+    }
+    return SWIG_Py_Void();
+  }
+}
+
 /* Create a new pointer object */
 
 SWIGRUNTIME PyObject *

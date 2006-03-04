@@ -1,6 +1,13 @@
 Version 1.3.29 (In progress)
 ============================
 
+03/04/2006: mmatus
+	    [Python]
+	    Add the -fastinit option to enable faster __init__ methods.
+	    As with the other 'fast' options, this one also gets
+	    enabled when using -O.
+
+
 03/02/2006: wsfulton
             [Java]
             Removed extra (void *) cast when casting pointers to and from jlong as this
