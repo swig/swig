@@ -101,6 +101,7 @@
 <li><a href="#java_typemaps">Java typemaps</a>
 <ul>
 <li><a href="#default_primitive_type_mappings">Default primitive type mappings</a>
+<li><a href="#Java_default_non_primitive_typemaps">Default typemaps for non-primitive types</a>
 <li><a href="#jvm64">Sixty four bit JVMs</a>
 <li><a href="#what_is_typemap">What is a typemap?</a>
 <li><a href="#typemaps_c_to_java_types">Typemaps for mapping C/C++ types to Java types</a>
@@ -314,6 +315,12 @@ check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
 additional information.
 <a href="http://weblogs.java.net/blog/kellyohair/archive/2006/01/compilation_of.html">JNI compilation</a>
 is a useful reference for compiling on different platforms.
+</p>
+
+<p>
+<b>Important</b> <br>
+If you are going to use optimisations turned on with gcc (for example -O2), ensure you also compile with -fno-strict-aliasing. The GCC optimisations have become 
+more aggressive from gcc-4.0 onwards and will result in code that fails with strict aliasing optimisations turned on. See the <a href="#typemaps_c_to_java_types">C/C++ to Java typemaps</a> section for more details.
 </p>
 
 <p>
@@ -4154,7 +4161,23 @@ There is no perfect mapping between Java and C as Java doesn't support all the u
 However, the mappings allow the full range of values for each C type from Java. 
 </p>
 
-<H3><a name="jvm64"></a>20.8.2 Sixty four bit JVMs</H3>
+
+<H3><a name="Java_default_non_primitive_typemaps"></a>20.8.2 Default typemaps for non-primitive types</H3>
+
+
+<p>
+The previous section covered the primitive type mappings.
+Non-primitive types such as classes and structs are mapped using pointers on the C/C++ side and storing the pointer into a Java <tt>long</tt> variable which is held by
+the proxy class or type wrapper class. This applies whether the type is marshalled as a pointer, by reference or by value.
+It also applies for any unknown/incomplete types which use type wrapper classes.
+</p>
+
+<p>
+So in summary, the C/C++ pointer to non-primitive types is cast into the 64 bit Java <tt>long</tt> type and therefore the JNI type is a <tt>jlong</tt>.
+The Java type is either the proxy class or type wrapper class.
+</p>
+
+<H3><a name="jvm64"></a>20.8.3 Sixty four bit JVMs</H3>
 
 
 <p>
@@ -4167,7 +4190,7 @@ Unfortunately it won't of course hold true for JNI code.
 </p>
 
 
-<H3><a name="what_is_typemap"></a>20.8.3 What is a typemap?</H3>
+<H3><a name="what_is_typemap"></a>20.8.4 What is a typemap?</H3>
 
 
 <p>
@@ -4290,7 +4313,7 @@ int c = example.count('e',"Hello World");
 </pre>
 </div>
 
-<H3><a name="typemaps_c_to_java_types"></a>20.8.4 Typemaps for mapping C/C++ types to Java types</H3>
+<H3><a name="typemaps_c_to_java_types"></a>20.8.5 Typemaps for mapping C/C++ types to Java types</H3>
 
 
 <p>
@@ -4381,9 +4404,73 @@ The "argout" typemap sometimes sets values in function parameters which are pass
 </p>
 
 <p>
+Note that the "in" typemap marshals the JNI type held in the "jni" typemap to the real C/C++ type and for the opposite direction,
+the "out" typemap marshals the real C/C++ type to the JNI type held in the "jni" typemap.
+For <a href="#Java_default_non_primitive_typemaps">non-primitive types</a> 
+the "in" and "out" typemaps are responsible for casting between the C/C++ pointer and the 64 bit <tt>jlong</tt> type.
+There is no portable way to cast a pointer into a 64 bit integer type and the approach taken by SWIG is mostly portable, but breaks C/C++ aliasing rules.
+In summary, these rules state that a pointer to any type must never be dereferenced by a pointer to any other incompatible type.
+The following code snippet might aid in understand aliasing rules better:
+</p>
+
+<div class="code"><pre>
+    short a;
+    short* pa = 0;
+    int i = 0x1234;
+
+    a = (short)i;    /* okay */
+    a = *(short*)&amp;i; /* breaks aliasing rules */
+</pre></div>
+
+<p>
+An email posting, <a href="http://mail-index.netbsd.org/tech-kern/2003/08/11/0001.html">Aliasing, pointer casts and gcc 3.3</a> elaborates further on the subject.
+In SWIG, the "in" and "out" typemaps for pointers are typically
+</p>
+
+<div class="code"><pre>
+    %typemap(in) struct Foo * %{
+      $1 = *(struct Foo **)&amp;$input; /* cast jlong into C ptr */
+    %}
+    %typemap(out) struct Bar * %{
+      *(struct Bar **)&amp;$result = $1; /* cast C ptr into jlong */
+    %} 
+    struct Bar {...};
+    struct Foo {...};
+    struct Bar * FooBar(struct Foo *f);
+</pre></div>
+
+<p>
+resulting in the following code which breaks the aliasing rules:
+</p>
+
+<div class="code"><pre>
+JNIEXPORT jlong JNICALL Java_exampleJNI_FooBar(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  jlong jresult = 0 ;
+  struct Foo *arg1 = (struct Foo *) 0 ;
+  struct Bar *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  
+  arg1 = *(struct Foo **)&amp;jarg1; /* cast jlong into C ptr */
+  
+  result = (struct Bar *)FooBar(arg1);
+  
+  *(struct Bar **)&amp;jresult = result; /* cast C ptr into jlong */
+  
+  return jresult;
+}
+</pre></div>
+
+<p>
+If you are using gcc as your C compiler, you might get a "dereferencing type-punned pointer will break strict-aliasing rules" warning about this.
+Please see <a href="#compiling_dynamic">Compiling a dynamic module</a> to avoid runtime problems with these strict aliasing rules.
+</p>
+
+<p>
 The default code generated by SWIG for the Java module comes from the typemaps in the "<tt>java.swg</tt>" library file which implements the 
-<a href="#default_primitive_type_mappings">Default primitive type mappings</a>
-covered earlier.
+<a href="#default_primitive_type_mappings">Default primitive type mappings</a> and 
+<a href="#Java_default_non_primitive_typemaps">Default typemaps for non-primitive types</a> covered earlier.
 There are other type mapping typemaps in the Java library. 
 These are listed below:
 </p>
@@ -4480,7 +4567,7 @@ These are listed below:
 
 </table>
 
-<H3><a name="typemap_attributes"></a>20.8.5 Java typemap attributes</H3>
+<H3><a name="typemap_attributes"></a>20.8.6 Java typemap attributes</H3>
 
 
 <p>
@@ -4510,7 +4597,7 @@ the union of the exception classes is added to the throws clause ensuring there 
 See the <a href="#nan_exception_typemap">NaN exception example</a> for further usage.
 </p>
 
-<H3><a name="special_variables"></a>20.8.6 Java special variables</H3>
+<H3><a name="special_variables"></a>20.8.7 Java special variables</H3>
 
 
 <p>
@@ -4650,7 +4737,7 @@ This special variable expands to the intermediary class name. Usually this is th
 unless the jniclassname attribute is specified in the <a href="Java.html#java_module_directive">%module directive</a>.
 </p>
 
-<H3><a name="typemaps_for_c_and_c++"></a>20.8.7 Typemaps for both C and C++ compilation</H3>
+<H3><a name="typemaps_for_c_and_c++"></a>20.8.8 Typemaps for both C and C++ compilation</H3>
 
 
 <p>
@@ -4687,7 +4774,7 @@ If you do not intend your code to be targeting both C and C++ then your typemaps
 </p>
 
 
-<H3><a name="java_code_typemaps"></a>20.8.8 Java code typemaps</H3>
+<H3><a name="java_code_typemaps"></a>20.8.9 Java code typemaps</H3>
 
 
 <p>
@@ -4877,7 +4964,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
 Again this is the same that is in "<tt>java.swg</tt>", barring the method modifier for <tt>getCPtr</tt>.
 </p>
 
-<H3><a name="java_directors_typemaps"></a>20.8.9 Director specific typemaps</H3>
+<H3><a name="java_directors_typemaps"></a>20.8.10 Director specific typemaps</H3>
 
 
 <p>
@@ -5684,7 +5771,7 @@ allow the calling function to read the double * value after returning from the f
     jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
     jlong cPtr = jenv-&gt;GetLongField($input, fid);
     MyDouble *pMyDouble = NULL;
-    *(MyDouble **)(void *)&amp;pMyDouble = *(MyDouble **)(void *)&amp;cPtr;
+    *(MyDouble **)&amp;pMyDouble = *(MyDouble **)&amp;cPtr;
     $1 = &amp;pMyDouble-&gt;value;
 }
 
@@ -5849,7 +5936,7 @@ Add the following before the definition of <tt>vehicle_factory</tt>:
 <div class="code"><pre>
 %typemap(out) Vehicle * {
     Ambulance *downcast = dynamic_cast&lt;Ambulance *&gt;($1);
-    *(Ambulance **)(void *)&amp;$result = downcast;
+    *(Ambulance **)&amp;$result = downcast;
 }
 
 %typemap(javaout) Vehicle * {
@@ -5917,7 +6004,7 @@ Note that in this case, the Java class is constructed using JNI code rather than
             jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
             if (mid) {
                 jlong cptr = 0;
-                *(Ambulance **)(void *)&amp;cptr = ambulance; 
+                *(Ambulance **)&amp;cptr = ambulance; 
                 $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
             }
         }
@@ -5928,7 +6015,7 @@ Note that in this case, the Java class is constructed using JNI code rather than
             jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
             if (mid) {
                 jlong cptr = 0;
-                *(FireEngine **)(void *)&amp;cptr = fireengine; 
+                *(FireEngine **)&amp;cptr = fireengine; 
                 $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
             }
         }
@@ -6156,7 +6243,7 @@ The following interface file code should be placed before SWIG parses the above 
   jclass clazz = (*jenv)-&gt;FindClass(jenv, "Butler");
   jfieldID fid = (*jenv)-&gt;GetFieldID(jenv, clazz, "swigCPtr", "J");
   jlong cPtr = 0;
-  *(Butler **)(void *)&amp;cPtr = *$1;
+  *(Butler **)&amp;cPtr = *$1;
   (*jenv)-&gt;SetLongField(jenv, $input, fid, cPtr);
 }
 %typemap(javain) Butler ** "$javainput"
