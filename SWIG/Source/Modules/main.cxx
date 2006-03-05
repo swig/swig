@@ -108,6 +108,8 @@ static const char *usage2 = (const char*)"\
 
 static const char *usage3 = (const char*)"\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
+     -O              - Enable the optimizations options: \n\
+                        -fastdispatch -fvirtual \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory <dir>\n\
@@ -712,6 +714,10 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Fmicrosoft") == 0) {
             Swig_error_msg_format(EMF_MICROSOFT);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-O") == 0) {
+	    Wrapper_virtual_elimination_mode_set(1);
+	    Wrapper_fast_dispatch_mode_set(1);
 	    Swig_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0)) {
 	    fputs(usage1,stdout);
