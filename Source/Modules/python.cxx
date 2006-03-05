@@ -108,13 +108,13 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -modern         - Use modern python features only, without compatibility code\n\
-     -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments \n\
+     -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments\n";
+static const char *usage2 = (char *)"\
      -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
      -nobuildnone    - Access Py_None directly (default in non-Windows systems)\n\
-     -nocastmode     - Disable the casting mode (default)\n";
-static const char *usage2 = (char *)"\
+     -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
@@ -125,7 +125,8 @@ static const char *usage2 = (char *)"\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
-     -noolddefs      - Don't emmit the old method definitions even when using fastproxy (default) \n\
+     -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n";
+static const char *usage3 = (char *)"\
      -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
@@ -419,6 +420,7 @@ public:
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage1,stdout);
 	  fputs(usage2,stdout);
+	  fputs(usage3,stdout);
 	}
       }
     }
