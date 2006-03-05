@@ -35,9 +35,9 @@ typedef struct {
 
 a_t* make_a() {
     return (a_t*)malloc(sizeof(a_t));
-}; 
+} 
 
 b_t make_b() {
     return make_a();
-}; 
+}
 %} 
