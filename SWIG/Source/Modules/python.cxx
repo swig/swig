@@ -12,6 +12,13 @@
 char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#undef tab2
+#undef tab4
+#undef tab8
+#define tab2  " "
+#define tab4  "  "
+#define tab8  "    "
+
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
 
@@ -70,7 +77,8 @@ static  int       dirvtable = 0;
 static  int       proxydel = 1;
 static  int       fastunpack = 0;
 static  int       fastproxy = 0;
-static  int       fastinit = 0;
+static  int       fastquery = 0;
+static  int       fastinit = 1;
 static  int       olddefs = 0;
 static  int       modernargs = 0;
 static  int       aliasobj0 = 0;
@@ -101,9 +109,10 @@ Python Options (available with -python)\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
-     -fastinit       - Use fast init mechanism for classes \n\
+     -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -fastproxy      - Use fast proxy mechanism for member methods \n\
+     -fastquery      - Use fast query mechanism for types \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
@@ -119,14 +128,15 @@ static const char *usage2 = (char *)"\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
-     -nofastinit     - Use traditional init mechanism for classes (default) \n\
+     -nofastinit     - Use traditional init mechanism for classes \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
+     -nofastquery    - Use traditional query mechanism for types (default) \n\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not back compatible \n\
-     -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n\
-     -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n";
+     -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n";
 static const char *usage3 = (char *)"\
+     -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
      -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxydel     - Don't generate the redundant __del__ method \n\
@@ -340,6 +350,12 @@ public:
 	} else if (strcmp(argv[i],"-nofastproxy") == 0) {
 	  fastproxy = 0;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-fastquery") == 0) {
+	  fastquery = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nofastquery") == 0) {
+	  fastquery = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-fastinit") == 0) {
 	  fastinit = 1;
 	  Swig_mark_arg(i);
@@ -413,6 +429,7 @@ public:
 	  fastunpack = 1;
 	  fastproxy = 1;
 	  fastinit = 1;
+	  fastquery = 1;
 	  modernargs = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -591,10 +608,34 @@ public:
 
     Printf(f_header,"#if (PY_VERSION_HEX <= 0x02000000)\n");
     Printf(f_header,"# if !defined(SWIG_PYTHON_CLASSIC)\n");
-    Printf(f_header,"#  warning \"This python version probably requires to use swig with the '-classic' option\"\n");
+    Printf(f_header,"#  error \"This python version requires to use swig with the '-classic' option\"\n");
     Printf(f_header,"# endif\n");
     Printf(f_header,"#endif\n");
     
+    if (modern) {
+      Printf(f_header,"#if (PY_VERSION_HEX <= 0x02020000)\n");
+      Printf(f_header,"# error \"This python version requires to use swig with the '-nomodern' option\"\n");
+      Printf(f_header,"#endif\n");
+    }
+
+    if (modernargs) {
+      Printf(f_header,"#if (PY_VERSION_HEX <= 0x02020000)\n");
+      Printf(f_header,"# error \"This python version requires to use swig with the '-nomodernargs' option\"\n");
+      Printf(f_header,"#endif\n");
+    }
+    
+    if (fastunpack) {
+      Printf(f_header,"#ifndef METH_O\n");
+      Printf(f_header,"# error \"This python version requires to use swig with the '-nofastunpack' option\"\n");
+      Printf(f_header,"#endif\n");
+    }
+
+    if (fastquery) {
+      Printf(f_header,"#ifdef SWIG_TypeQuery\n");
+      Printf(f_header,"# undef SWIG_TypeQuery\n");
+      Printf(f_header,"#endif\n");
+      Printf(f_header,"#define SWIG_TypeQuery SWIG_Python_TypeQuery\n");
+    }
 
 
     /* Set module name */
@@ -2739,21 +2780,13 @@ public:
 	  Printv(f_shadow_file,
 		 tab8, "try: self.this.append(this)\n",
 		 tab8, "except: self.this = this\n",
-#ifdef USE_THISOWN
-		 tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
-#else
 		 tab8, "self.this.own(0)\n",
-#endif
 		 tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	} else {
 	  Printv(f_shadow_file,
 		 tab8, "try: self.this.append(this)\n",
 		 tab8, "except: self.this = this\n",
-#ifdef USE_THISOWN
-		 tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
-#else
 		 tab8, "self.this.own(0)\n",
-#endif
 		 tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	}
       }
@@ -3590,7 +3623,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     }
   } else {
     Append(w->code, "swig::PyObject_var args = PyTuple_New(0);\n");
-    Append(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
+    if (modernargs) {
+      Append(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
+    } else {
+      Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, NULL, NULL);\n");
+    }
   }
   Append(w->code,"#else\n");
   if (Len(parse_args) > 0) {
