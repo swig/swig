@@ -1,6 +1,6 @@
 from li_factory import *
 
-circle = Geometry.create(Geometry.CIRCLE)
+circle = Geometry_create(Geometry.CIRCLE)
 r = circle.radius()
 if (r != 1.5):
     raise RuntimeError
