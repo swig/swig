@@ -236,7 +236,6 @@ SWIG_Py_Void(void)
   return none;
 }
 
-
 /* PySwigClientData */
 
 typedef struct {
@@ -921,14 +920,13 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       if (dictptr != NULL) {
 	PyObject *dict = *dictptr;
 	obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
-      }      
+      } else {
 #ifdef PyWeakref_CheckProxy
-      else if (PyWeakref_CheckProxy(pyobj)) {
-	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
-	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
-      }
+	if (PyWeakref_CheckProxy(pyobj)) {
+	  PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+	  return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
+	}
 #endif
-      if (!obj) {
 	obj = PyObject_GetAttr(pyobj,SWIG_This());
 	if (obj) {
 	  Py_DECREF(obj);
@@ -955,7 +953,6 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     return (PySwigObject *)obj;
   }
 }
-
 
 /* Acquire a pointer value */
 
@@ -1325,6 +1322,29 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   }
 }
 
+/* The python cached type query */
+
+SWIGRUNTIME swig_type_info *
+SWIG_Python_TypeQuery(const char *type)
+{
+  static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
+  PyObject *key = PyString_FromString(type); 
+  PyObject *obj = PyDict_GetItem(cache, key);
+  swig_type_info *descriptor;
+  if (obj) {
+    descriptor = (swig_type_info *) PyCObject_AsVoidPtr(obj);
+  } else {
+    swig_module_info *swig_module = SWIG_Python_GetModule();
+    descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
+    if (descriptor) {
+      obj = PyCObject_FromVoidPtr(descriptor, NULL);
+      PyDict_SetItem(cache, key, obj);
+      Py_DECREF(obj);
+    }
+  }
+  Py_DECREF(key);
+  return descriptor;
+}
 
 /* 
    For backward compatibility only

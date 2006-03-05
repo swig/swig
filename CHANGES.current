@@ -2,12 +2,21 @@ Version 1.3.29 (In progress)
 ============================
 
 03/04/2006: mmatus
+	    - Add -O to the main program, which now enables -fastdispatch
+	    
 	    [Python]
-	    Add the -fastinit option to enable faster __init__ methods.
-	    As with the other 'fast' options, this one also gets
-	    enabled when using -O.
 
+	    - Add the -fastinit option to enable faster __init__
+              methods. Setting 'this' as 'self.this.append(this)' in the python
+	      code confuses PyLucene. Now the initialization is done in the
+	      the C++ side, as reported by Andi and Robin.
 
+	    - Add the -fastquery option to enable faster SWIG_TypeQuery via a
+              python dict cache, as proposed by Andi Vajda
+
+	    - Avoid to call PyObject_GetAttr inside SWIG_Python_GetSwigThis,
+	      since this confuses PyLucene, as reported by Andi Vajda.
+	    
 03/02/2006: wsfulton
             [Java]
             Removed extra (void *) cast when casting pointers to and from jlong as this
