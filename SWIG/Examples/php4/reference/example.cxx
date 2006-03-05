@@ -1,5 +1,10 @@
 /* File : example.cxx */
 
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+#if !defined(SWIG_NO_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER)
+# define _CRT_SECURE_NO_DEPRECATE
+#endif
+
 #include "example.h"
 #include <stdio.h>
 #include <stdlib.h>
