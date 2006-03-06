@@ -370,14 +370,22 @@ PySwigObject_hex(PySwigObject *v)
 }
 
 SWIGRUNTIME PyObject *
+#ifdef METH_NOARGS
 PySwigObject_repr(PySwigObject *v)
+#else
+PySwigObject_repr(PySwigObject *v, PyObject *args)
+#endif
 {
   const char *name = SWIG_TypePrettyName(v->ty);
   PyObject *hex = PySwigObject_hex(v);    
   PyObject *repr = PyString_FromFormat("<Swig Object of type '%s' at 0x%s>", name, PyString_AsString(hex));
   Py_DECREF(hex);
   if (v->next) {
+#ifdef METH_NOARGS
     PyObject *nrep = PySwigObject_repr((PySwigObject *)v->next);
+#else
+    PyObject *nrep = PySwigObject_repr((PySwigObject *)v->next, args);
+#endif
     PyString_ConcatAndDel(&repr,nrep);
   }
   return repr;  
@@ -386,7 +394,11 @@ PySwigObject_repr(PySwigObject *v)
 SWIGRUNTIME int
 PySwigObject_print(PySwigObject *v, FILE *fp, int SWIGUNUSEDPARM(flags))
 {
+#ifdef METH_NOARGS
   PyObject *repr = PySwigObject_repr(v);
+#else
+  PyObject *repr = PySwigObject_repr(v, NULL);
+#endif
   if (repr) {
     fputs(PyString_AsString(repr), fp);
     Py_DECREF(repr);
@@ -563,6 +575,7 @@ swigobject_methods[] = {
   {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS, (char *)"returns/sets ownership of the pointer"},
   {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_O,       (char *)"appends another 'this' object"},
   {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_NOARGS,  (char *)"returns the next 'this' object"},
+  {(char *)"__repr__",(PyCFunction)PySwigObject_repr,    METH_NOARGS,  (char *)"returns object representation"},
   {0, 0, 0, 0}  
 };
 #else
@@ -573,6 +586,7 @@ swigobject_methods[] = {
   {(char *)"own",     (PyCFunction)PySwigObject_own,     METH_VARARGS,  (char *)"returns/sets ownership of the pointer"},
   {(char *)"append",  (PyCFunction)PySwigObject_append,  METH_VARARGS,  (char *)"appends another 'this' object"},
   {(char *)"next",    (PyCFunction)PySwigObject_next,    METH_VARARGS,  (char *)"returns the next 'this' object"},
+  {(char *)"__repr__",(PyCFunction)PySwigObject_repr,   METH_VARARGS,  (char *)"returns object representation"},
   {0, 0, 0, 0}  
 };
 #endif
