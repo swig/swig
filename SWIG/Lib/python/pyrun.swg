@@ -1320,11 +1320,16 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 }
 
 /* The python cached type query */
+SWIGRUNTIME PyObject *
+SWIG_Python_TypeCache() {
+  static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
+  return cache;
+}
 
 SWIGRUNTIME swig_type_info *
 SWIG_Python_TypeQuery(const char *type)
 {
-  static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
+  PyObject *cache = SWIG_Python_TypeCache();
   PyObject *key = PyString_FromString(type); 
   PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
