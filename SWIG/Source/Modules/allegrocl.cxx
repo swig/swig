@@ -1,13 +1,11 @@
-/********************************************************************
- * ALLEGROCL module for SWIG
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author : Ahmon Dancy
- * Major restructuring: Mikel Bancroft (mikel@franz.com) and Dirk Gerrits.
+ * allegrocl.cxx
  *
- * Please read the file LICENSE for the copyright and terms by which
- * SWIG can be used and distributed.
- *
- ********************************************************************/
+ * ALLEGROCL language module for SWIG.
+ * ----------------------------------------------------------------------------- */
 
 char cvsroot_allegrocl_cxx[] = "$Header$";
 

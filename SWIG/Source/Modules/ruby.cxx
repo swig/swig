@@ -1,14 +1,11 @@
-/********************************************************************
- * Ruby module for SWIG
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * $Header$
+ * ruby.cxx
  *
- * Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
- * Copyright (C) 2000  Information-technology Promotion Agency, Japan
- *
- * Masaki Fukushima
- *
- ********************************************************************/
+ * Ruby language module for SWIG.
+ * ----------------------------------------------------------------------------- */
 
 char cvsroot_ruby_cxx[] = "$Header$";
 

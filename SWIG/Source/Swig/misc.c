@@ -1,12 +1,10 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * misc.c
  *
- *     Miscellaneous functions that don't really fit anywhere else.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Miscellaneous functions that don't really fit anywhere else.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_misc_c[] = "$Header$";

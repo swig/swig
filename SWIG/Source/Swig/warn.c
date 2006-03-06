@@ -1,13 +1,11 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * warn.c
  *
- *     SWIG warning framework.  This was added to warn developers about 
- *     deprecated APIs and other features.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2001.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * SWIG warning framework.  This was added to warn developers about 
+ * deprecated APIs and other features.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_warn_c[] = "$Header$";

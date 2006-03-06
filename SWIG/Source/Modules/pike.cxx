@@ -1,6 +1,13 @@
-/***********************************************************************
- * Pike language module for SWIG
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
+ * pike.cxx
+ *
+ * Pike language module for SWIG.
+ * ----------------------------------------------------------------------------- */
+
+/*
  * Notes:
  *
  * - The current approach used for "out" typemaps is inconsistent with
@@ -16,7 +23,7 @@
  * - Pike doesn't seem to provide any default way to print the memory
  *   address, etc. for extension objects. Should we do something here?
  *
- ***********************************************************************/
+ */
  
 char cvsroot_pike_cxx[] = "$Header$";
 

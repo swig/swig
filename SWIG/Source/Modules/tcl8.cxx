@@ -1,23 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * tcl8.cxx
  *
- *     Tcl8.0 wrapper module.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
- *
- * Incr Tcl 3.x support by Alexey Dyachenko (dyachenko@fromru.com) 
- *
- * Based on 
- * itcl.cxx
- *  Author:  Bob Techentin
- *           based on tcl8 and python modules by David Beazley
- *
- * Module for creating Incr Tcl 3.x shadow classes
- * and Tcl 8.x native wrapper functions.
- *
+ * Tcl8 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_tcl8_cxx[] = "$Header$";

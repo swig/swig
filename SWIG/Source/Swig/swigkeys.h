@@ -1,5 +1,14 @@
-#ifndef __Swig_swigkeys_h__
-#define __Swig_swigkeys_h__
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * swigkeys.h
+ * ----------------------------------------------------------------------------- */
+
+/* $Header$ */
+
+#ifndef SWIG_SWIGKEYS_H_
+#define SWIG_SWIGKEYS_H_
 
 #include "swig.h"
 
@@ -131,4 +140,4 @@ extern String *k_previoussibling;
 extern String *k_nextsibling;
 extern String *k_firstchild;
 extern String *k_lastchild;
-#endif /* __Swig_swigkeys_h__ */
+#endif /* SWIG_SWIGKEYS_H_ */

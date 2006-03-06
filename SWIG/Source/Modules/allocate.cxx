@@ -1,19 +1,14 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * allocate.cxx
  *
- *     This module tries to figure out which classes and structures support
- *     default constructors and destructors in C++.   There are several rules that
- *     define this behavior including pure abstract methods, private sections,
- *     and non-default constructors in base classes.  See the ARM or
- *     Doc/Manual/SWIGPlus.html for details.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1998-2002.  The University of Chicago
- * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
- *                           University of California.
- *
- * See the file LICENSE for information on usage and redistribution.	
+ * This module tries to figure out which classes and structures support
+ * default constructors and destructors in C++.   There are several rules that
+ * define this behavior including pure abstract methods, private sections,
+ * and non-default constructors in base classes.  See the ARM or
+ * Doc/Manual/SWIGPlus.html for details.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_allocate_cxx[] = "$Header$";

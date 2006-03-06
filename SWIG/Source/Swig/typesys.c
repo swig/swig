@@ -1,15 +1,13 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * typesys.c
  *
- *     SWIG type system management.   These functions are used to manage
- *     the C++ type system including typenames, typedef, type scopes, 
- *     inheritance, and namespaces.   Generation of support code for the
- *     run-time type checker is also handled here.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * SWIG type system management.   These functions are used to manage
+ * the C++ type system including typenames, typedef, type scopes, 
+ * inheritance, and namespaces.   Generation of support code for the
+ * run-time type checker is also handled here.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_typesys_c[] = "$Header$";

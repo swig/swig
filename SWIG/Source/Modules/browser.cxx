@@ -1,13 +1,11 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * browser.cxx
  *
- *     A web-base parse tree browser using SWILL.   This is an optional
- *     feature that's normally disabled.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 2002.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * A web-base parse tree browser using SWILL.   This is an optional
+ * feature that's normally disabled.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_browser_cxx[] = "$Header$";

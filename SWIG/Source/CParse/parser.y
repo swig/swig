@@ -1,22 +1,15 @@
-%{
-#if 0
-} /* cc-mode */
-#endif
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * parser.y
  *
- *     YACC parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
- *     This file is a bit of a mess and probably needs to be rewritten at
- *     some point.  Beware.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1998-2001.  The University of Chicago
- * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
- *                           University of California.
- *
- * See the file LICENSE for information on usage and redistribution.
+ * YACC parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
+ * This file is a bit of a mess and probably needs to be rewritten at
+ * some point.  Beware.
  * ----------------------------------------------------------------------------- */
+
+%{
 
 #define yylex yylex
 
@@ -5839,11 +5832,4 @@ ParmList *Swig_cparse_parms(String *s) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
 }
-
-
-
-
-
-
-
 

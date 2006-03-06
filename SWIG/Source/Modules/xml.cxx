@@ -1,16 +1,14 @@
 /* -----------------------------------------------------------------------------
- * Xml.cxx
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- *     An Xml parse tree generator
-
- * Author(s) : Swig base: David Beazley (beazley@cs.uchicago.edu)
- *		Xml module: Klaus Wiederaenders (kwconsulting@compuserve.com
+ * xml.cxx
  *
- * Copyright (C) 2002.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * An Xml parse tree generator.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_xml_cxx[] = "$Header$";
+
 static const char *usage = "\
 XML Options (available with -xml)\n\
      -xmllang <lang> - Typedef language\n\
@@ -21,7 +19,6 @@ XML Options (available with -xml)\n\
 
 #include "swigmod.h"
 
-//static Node *view_top = 0;
 static File *out = 0;
 static int xmllite = 0;
 
@@ -29,9 +26,6 @@ static int xmllite = 0;
 class XML
 : public Language
 {
-
-
-
 public:
 
 	int indent_level;

@@ -1,14 +1,12 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * overload.cxx
  *
- *     This file is used to analyze overloaded functions and methods.
- *     It looks at signatures and tries to gather information for
- *     building a dispatch function.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * This file is used to analyze overloaded functions and methods.
+ * It looks at signatures and tries to gather information for
+ * building a dispatch function.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_overload_cxx[] = "$Header$";

@@ -1,15 +1,13 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * modula3.cxx
  *
- *     Modula3 wrapper module.
- *
- * Author(s) : Henning Thielemann
- *
- * Adapted from csharp.cxx
+ * Modula3 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_modula3_cxx[] =
-  "$Header$";
+char cvsroot_modula3_cxx[] = "$Header$";
 
 /*
   Text formatted with

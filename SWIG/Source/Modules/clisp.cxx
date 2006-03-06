@@ -1,11 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * clisp.cxx
  *
- *     clisp module.
- *
- * Author(s) : Surendra Singhi (surendra@asu.edu)
- *
- * See the file LICENSE for information on usage and redistribution.
+ * clisp language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_clisp_cxx[] = "$Header$";

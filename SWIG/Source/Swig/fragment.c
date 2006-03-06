@@ -1,17 +1,15 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * fragment.c
  *
- *     This file manages named code fragments.  Code fragments are typically
- *     used to hold helper-code that may or may not be included in the wrapper
- *     file (depending on what features are actually used in the interface).
+ * This file manages named code fragments.  Code fragments are typically
+ * used to hold helper-code that may or may not be included in the wrapper
+ * file (depending on what features are actually used in the interface).
  *
- *     By using fragments, it's possible to greatly reduce the amount of
- *     wrapper code and to generate cleaner wrapper files. 
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * By using fragments, it's possible to greatly reduce the amount of
+ * wrapper code and to generate cleaner wrapper files. 
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_fragment_c[] = "$Header$";

@@ -1,15 +1,12 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * directors.cxx
  *
- *     Director support functions.
- *
- *     Not all of these may be necessary, and some may duplicate existing functionality
- *     in SWIG.  --MR
- *
- * Author(s) : Mark Rose
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * Director support functions.
+ * Not all of these may be necessary, and some may duplicate existing functionality
+ * in SWIG.  --MR
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_directors_cxx[] = "$Header";

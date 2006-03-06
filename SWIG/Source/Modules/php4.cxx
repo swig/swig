@@ -1,18 +1,14 @@
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * php4.cxx
+ *
+ * Php language module for SWIG.
+ * ----------------------------------------------------------------------------- */
+
 /*
- * PHP4 Support
- *
- * Richard Palmer
- * richard@magicality.org
- * Nov 2001
- *
- * Portions copyright Sun Microsystems (c) 2001
- * Tim Hockin <thockin@sun.com>
- *
- * Portions copyright Ananova Ltd (c) 2002
- * Sam Liddicott <sam@ananova.com>
- *
  * TODO: Replace stderr messages with Swig_warning
- *
  */
 
 char cvsroot_php4_cxx[] = "$Header$";

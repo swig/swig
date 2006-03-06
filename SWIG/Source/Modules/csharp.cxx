@@ -1,13 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * csharp.cxx
  *
- *     CSharp wrapper module.
- *
- * Author(s) : William Fulton
- *             Neil Cawse
- *
- * Copyright (C) 1999-2002.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * C# language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_csharp_cxx[] = "$Header$";

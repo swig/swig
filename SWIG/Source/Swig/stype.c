@@ -1,13 +1,11 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * stype.c
  *
- *     This file provides general support for datatypes that are encoded in
- *     the form of simple strings.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * This file provides general support for datatypes that are encoded in
+ * the form of simple strings.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_stype_c[] = "$Header$";

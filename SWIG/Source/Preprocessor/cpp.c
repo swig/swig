@@ -1,18 +1,16 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * cpp.c
  *
- *     An implementation of a C preprocessor plus some support for additional
- *     SWIG directives.
+ * An implementation of a C preprocessor plus some support for additional
+ * SWIG directives.
  *
- *         - SWIG directives such as %include, %extern, and %import are handled
- *         - A new macro %define ... %enddef can be used for multiline macros
- *         - No preprocessing is performed in %{ ... %} blocks
- *         - Lines beginning with %# are stripped down to #... and passed through.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * - SWIG directives such as %include, %extern, and %import are handled
+ * - A new macro %define ... %enddef can be used for multiline macros
+ * - No preprocessing is performed in %{ ... %} blocks
+ * - Lines beginning with %# are stripped down to #... and passed through.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_cpp_c[] = "$Header$";

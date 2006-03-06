@@ -1,14 +1,12 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * include.c
  *
- *     The functions in this file are used to manage files in the SWIG library.
- *     General purpose functions for opening, including, and retrieving pathnames
- *     are provided.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * The functions in this file are used to manage files in the SWIG library.
+ * General purpose functions for opening, including, and retrieving pathnames
+ * are provided.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_include_c[] = "$Header$";

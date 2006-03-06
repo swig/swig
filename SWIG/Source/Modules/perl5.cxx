@@ -1,16 +1,10 @@
 /* ----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * perl5.cxx
  *
- *     Generate Perl5 wrappers
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *             Loic Dachary (loic@ceic.com)
- *             David Fletcher
- *             Gary Holt
- *             Jason Stewart (jasons@apache.org)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * Perl5 language module for SWIG.
  * ------------------------------------------------------------------------- */
 
 char cvsroot_perl5_cxx[] = "$Header$";
