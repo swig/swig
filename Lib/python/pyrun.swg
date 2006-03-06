@@ -1167,26 +1167,23 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 SWIGRUNTIME void
 SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 {
+ PyObject *dict;
 #if (PY_VERSION_HEX >= 0x02020000) && !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
-  PyObject **dictptr = _PyObject_GetDictPtr(inst);
-  if (dictptr != NULL) {
-    PyObject *dict = *dictptr;
-    if (dict == NULL) {
-      dict = PyDict_New();
-      *dictptr = dict;
-      PyDict_SetItem(dict, SWIG_This(), swig_this);
-    }    
-  } else {
-    PyObject *dict = PyObject_GetAttrString(inst, "__dict__");
-    PyDict_SetItem(dict, SWIG_This(), swig_this);
-    Py_DECREF(dict);
-  }
-#else
-  PyObject *dict = PyObject_GetAttrString(inst, "__dict__");
-  PyDict_SetItem(dict, SWIG_This(), swig_this);
-  Py_DECREF(dict);
+ PyObject **dictptr = _PyObject_GetDictPtr(inst);
+ if (dictptr != NULL) {
+   dict = *dictptr;
+   if (dict == NULL) {
+     dict = PyDict_New();
+     *dictptr = dict;
+   }
+   PyDict_SetItem(dict, SWIG_This(), swig_this);
+   return;
+ }
 #endif
-}
+ dict = PyObject_GetAttrString(inst, "__dict__");
+ PyDict_SetItem(dict, SWIG_This(), swig_this);
+ Py_DECREF(dict);
+} 
 
 
 SWIGINTERN PyObject *
