@@ -1,19 +1,17 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * getopt.c
  *
- *     Handles the parsing of command line options.  This is particularly nasty
- *     compared to other utilities given that command line options can potentially
- *     be read by many different modules within SWIG.  Thus, in order to make sure
- *     there are no unrecognized options, each module is required to "mark"
- *     the options that it uses.  Afterwards, we can make a quick scan to make
- *     sure there are no unmarked options.
+ * Handles the parsing of command line options.  This is particularly nasty
+ * compared to other utilities given that command line options can potentially
+ * be read by many different modules within SWIG.  Thus, in order to make sure
+ * there are no unrecognized options, each module is required to "mark"
+ * the options that it uses.  Afterwards, we can make a quick scan to make
+ * sure there are no unmarked options.
  * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
- *
- * To do: 
+ * TODO: 
  *     - This module needs to be modified so that it doesn't call exit().
  *       Should have cleaner error handling in general.
  * ----------------------------------------------------------------------------- */

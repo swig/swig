@@ -1,16 +1,13 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * swig.h
  *
- *     Header file for the SWIG core.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *             Dustin Mitchell (djmitche@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
- *
- * $Header$
+ * Header file for the SWIG core.
  * ----------------------------------------------------------------------------- */
+
+/* $Header$ */
 
 #ifndef SWIGCORE_H_
 #define SWIGCORE_H_

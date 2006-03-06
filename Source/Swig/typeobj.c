@@ -1,15 +1,13 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * typeobj.c
  *
- *     This file provides functions for constructing, manipulating, and testing
- *     type objects.   Type objects are merely the raw low-level representation
- *     of C++ types.   They do not incorporate high-level type system features
- *     like typedef, namespaces, etc.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2003.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * This file provides functions for constructing, manipulating, and testing
+ * type objects.   Type objects are merely the raw low-level representation
+ * of C++ types.   They do not incorporate high-level type system features
+ * like typedef, namespaces, etc.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_typeobj_c[] = "$Header$";

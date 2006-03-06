@@ -1,18 +1,16 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * cparse.h
  *
- *     SWIG parser module.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2003.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
- *
- * $Header$
+ * SWIG parser module.
  * ----------------------------------------------------------------------------- */
 
-#ifndef CPARSE_H_
-#define CPARSE_H_
+/* $Header$ */
+
+#ifndef SWIG_CPARSE_H_
+#define SWIG_CPARSE_H_
 
 #include "swig.h"
 #include "swigwarn.h"

@@ -1,16 +1,10 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * contract.cxx
  *
- *     Support for Wrap by Contract in SWIG
- * 
- * Author(s) : Songyan Feng (Tiger) (songyanf@cs.uchicago.edu)
- *             David Beazley (beazley@cs.uchicago.edu)
- *
- * Department of Computer Science
- * University of Chicago
- *
- * Copyright (C) 1999-2003.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Support for Wrap by Contract in SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_contract_cxx[] = "$Header$";

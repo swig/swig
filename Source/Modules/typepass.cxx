@@ -1,20 +1,15 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * typepass.cxx
  *
- *     This module builds all of the internal type information by collecting
- *     typedef declarations as well as registering classes, structures, and unions.
- *     This information is needed to correctly handle shadow classes and other
- *     advanced features.   This phase of compilation is also used to perform
- *     type-expansion.  All types are fully qualified with namespace prefixes
- *     and other information needed for compilation.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1998-2002.  The University of Chicago
- * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
- *                           University of California.
- *
- * See the file LICENSE for information on usage and redistribution.	
+ * This module builds all of the internal type information by collecting
+ * typedef declarations as well as registering classes, structures, and unions.
+ * This information is needed to correctly handle shadow classes and other
+ * advanced features.   This phase of compilation is also used to perform
+ * type-expansion.  All types are fully qualified with namespace prefixes
+ * and other information needed for compilation.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_typepass_cxx[] = "$Header$";

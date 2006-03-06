@@ -1,15 +1,13 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * scanner.c
  *
- *     This file implements a general purpose C/C++ compatible lexical scanner.
- *     This scanner isn't intended to be plugged directly into a parser built
- *     with yacc. Rather, it contains a lot of generic code that could be used
- *     to easily construct yacc-compatible scanners.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * This file implements a general purpose C/C++ compatible lexical scanner.
+ * This scanner isn't intended to be plugged directly into a parser built
+ * with yacc. Rather, it contains a lot of generic code that could be used
+ * to easily construct yacc-compatible scanners.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_scanner_c[] = "$Header$";

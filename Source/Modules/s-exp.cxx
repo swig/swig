@@ -1,17 +1,14 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * s-exp.cxx
  *
- *     A parse tree represented as Lisp s-expressions.
- * 
- * Author(s) : Matthias Koeppe (mkoeppe@mail.math.uni-magdeburg.de)
- *
- * Copyright (C) 2002.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * A parse tree represented as Lisp s-expressions.
  * ----------------------------------------------------------------------------- */
 
-/* Derived from xml.cxx 1.1.2.2 */
-
 char cvsroot_s_exp_cxx[] = "$Header$";
+
 static const char *usage = "\
 S-Exp Options (available with -sexp)\n\
      -typemaplang <lang> - Typemap language\n\n";

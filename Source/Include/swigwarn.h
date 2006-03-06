@@ -1,22 +1,25 @@
-/* SWIG warning message numbers
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * swigwarn.h
+ *
+ * SWIG warning message numbers
+ * This file serves as the main registry of warning message numbers.  Some of these
+ * numbers are used internally in the C/C++ source code of SWIG.   However, some
+ * of the numbers are used in SWIG configuration files (swig.swg and others).
+ *
+ * The numbers are roughly organized into a few different classes by functionality.
+ *
+ * Even though symbolic constants are used in the SWIG source, this is
+ * not always the case in SWIG interface files.  Do not change the
+ * numbers in this file.
+ * ----------------------------------------------------------------------------- */
 
-   This file serves as the main registry of warning message numbers.  Some of these
-   numbers are used internally in the C/C++ source code of SWIG.   However, some
-   of the numbers are used in SWIG configuration files (swig.swg and others).
+/* $Header$ */
 
-   The numbers are roughly organized into a few different classes by functionality.
-
-   Even though symbolic constants are used in the SWIG source, this is
-   not always the case in SWIG interface files.  Do not change the
-   numbers in this file.
-
- */
-
-
-
-
-#ifndef _SWIGWARN_H
-#define _SWIGWARN_H 1
+#ifndef SWIGWARN_H_
+#define SWIGWARN_H_
 
 #define WARN_NONE                     0
 

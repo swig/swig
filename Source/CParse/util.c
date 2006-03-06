@@ -1,12 +1,10 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * util.c
  *
- *     Parsing utilities
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Parsing utilities.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_util_c[] = "$Header$";

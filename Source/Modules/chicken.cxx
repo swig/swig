@@ -1,27 +1,13 @@
-/********************************************************************
- * CHICKEN module for SWIG
- *
- * Author : Jonah Beckford
- * 
- * Major restructuring: John Lenz
- *
- * Modified from mzscheme.cxx, guile.cxx and python.cxx : David
- * Beazley
- *
- * Please read the file LICENSE for the copyright and terms by which
- * SWIG can be used and distributed.
- *
- ********************************************************************/
-
-char cvsroot_chicken_cxx[] = "$Header$";
-
-/***********************************************************************
- * $Header$
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
  * chicken.cxx
  *
- * Definitions for adding functions to CHICKEN
- ***********************************************************************/
+ * CHICKEN language module for SWIG.
+ * ----------------------------------------------------------------------------- */
+
+char cvsroot_chicken_cxx[] = "$Header$";
 
 #include "swigmod.h"
 

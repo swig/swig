@@ -1,24 +1,16 @@
-/*******************************************************************************
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * Simplified Wrapper and Interface Generator  (SWIG)
  *
  * swigmain.cxx
  *
- *     This file is the main entry point to SWIG.  It collects the command
- *     line options, registers built-in language modules, and instantiates
- *     a module for code generation.   If adding new language modules
- *     to SWIG, you would modify this file.
- *
- * Author : David Beazley
- *
- * Department of Computer Science
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * This file is the main entry point to SWIG.  It collects the command
+ * line options, registers built-in language modules, and instantiates
+ * a module for code generation.   If adding new language modules
+ * to SWIG, you would modify this file.
+ * ----------------------------------------------------------------------------- */
 
 char cvsroot_swigmain_cxx[] = "$Header$";
 

@@ -1,21 +1,19 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * tree.c
  *
- *     This file provides some general purpose functions for manipulating 
- *     parse trees.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * This file provides some general purpose functions for manipulating 
+ * parse trees.
  * ----------------------------------------------------------------------------- */
+
+char cvsroot_tree_c[] = "$Header$";
 
 #include "swig.h"
 #include "swigkeys.h"
 #include <stdarg.h>
 #include <assert.h>
-
-char cvsroot_tree_c[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
  * Swig_print_tags()

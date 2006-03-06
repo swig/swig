@@ -1,12 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * python.cxx
  *
- *     Python module.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * Python language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_python_cxx[] = "$Header$";

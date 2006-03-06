@@ -1,20 +1,18 @@
 /* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * error.c
  *
- *     Error handling functions.   These are used to issue warnings and
- *     error messages.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Error handling functions.   These are used to issue warnings and
+ * error messages.
  * ----------------------------------------------------------------------------- */
+
+char cvsroot_error_c[] = "$Header$";
 
 #include "swig.h"
 #include <stdarg.h>
 #include <ctype.h>
-
-char cvsroot_error_c[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
  * Commentary on the warning filter.

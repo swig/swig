@@ -1,12 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * symbol.c
  *
- *     This file implements the SWIG symbol table.  See details below.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
+ * This file implements the SWIG symbol table.  See details below.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_symbol_c[] = "$Header$";

@@ -1,11 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * cffi.cxx
  *
- *     cffi module.
- *
- * Author(s) : Surendra Singhi (surendra@asu.edu)
- *
- * See the file LICENSE for information on usage and redistribution.
+ * cffi language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_cffi_cxx[] = "$Header$";

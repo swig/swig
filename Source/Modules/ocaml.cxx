@@ -1,22 +1,13 @@
-/******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
- *
- * Author : Art Yerkes
- * Modified from mzscheme.cxx : David Beazley
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *****************************************************************************/
-
-char cvsroot_ocaml_cxx[] = "$Header$";
-
-/***********************************************************************
- * $Header$
+/* ----------------------------------------------------------------------------- 
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
  * ocaml.cxx
  *
- * Definitions for adding functions to Ocaml 101
- ***********************************************************************/
+ * Ocaml language module for SWIG.
+ * ----------------------------------------------------------------------------- */
+
+char cvsroot_ocaml_cxx[] = "$Header$";
 
 #include "swigmod.h"
 

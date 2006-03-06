@@ -1,15 +1,10 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * main.cxx
  *
- *     Main entry point to the SWIG core.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1998-2000.  The University of Chicago
- * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
- *                           University of California.
- *
- * See the file LICENSE for information on usage and redistribution.
+ * Main entry point to the SWIG core.
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_main_cxx[] = "$Header$";

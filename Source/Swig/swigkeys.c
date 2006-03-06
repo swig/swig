@@ -1,3 +1,12 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * swigkeys.c
+ * ----------------------------------------------------------------------------- */
+
+char cvsroot_keys_c[] = "$Header$";
+
 #include "swigkeys.h"
 
 String *empty_string = 0;

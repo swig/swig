@@ -1,18 +1,16 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * preprocessor.h
  *
- *     SWIG preprocessor module.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
- *
- * $Header$
+ * SWIG preprocessor module.
  * ----------------------------------------------------------------------------- */
 
-#ifndef PREPROCESSOR_H_
-#define PREPROCESSOR_H_
+/* $Header$ */
+
+#ifndef SWIG_PREPROCESSOR_H_
+#define SWIG_PREPROCESSOR_H_
 
 #include "swigwarn.h"
 
