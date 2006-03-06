@@ -12,12 +12,9 @@
 char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#undef tab2
-#undef tab4
-#undef tab8
-#define tab2  " "
-#define tab4  "  "
-#define tab8  "    "
+#define ctab2  " "
+#define ctab4  "  "
+#define ctab8  "    "
 
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
@@ -1407,15 +1404,15 @@ public:
       /* Otherwise make a wrapper function to insert the code into */
       Printv(f_dest, "\ndef ", name, "(*args", (kw ? ", **kwargs" : ""), "):\n", NIL);
       if ( have_docstring(n) )
-        Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+        Printv(f_dest, ctab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
       if ( have_pythonprepend(n) )
-        Printv(f_dest, tab4, pythonprepend(n), "\n", NIL);
+        Printv(f_dest, ctab4, pythonprepend(n), "\n", NIL);
       if ( have_pythonappend(n) ) {
-        Printv(f_dest, tab4, "val = ", funcCallHelper(name, kw), "\n", NIL);
-        Printv(f_dest, tab4, pythonappend(n), "\n", NIL);
-        Printv(f_dest, tab4, "return val\n", NIL);
+        Printv(f_dest, ctab4, "val = ", funcCallHelper(name, kw), "\n", NIL);
+        Printv(f_dest, ctab4, pythonappend(n), "\n", NIL);
+        Printv(f_dest, ctab4, "return val\n", NIL);
       } else {
-        Printv(f_dest, tab4, "return ", funcCallHelper(name, kw), "\n", NIL);
+        Printv(f_dest, ctab4, "return ", funcCallHelper(name, kw), "\n", NIL);
       }        
     }
   }
@@ -1814,7 +1811,7 @@ public:
     /* finish argument marshalling */
     Append(kwargs," NULL }");
     if (allow_kwargs) {
-      Printv(f->locals,tab4, "char *  kwnames[] = ", kwargs, ";\n", NIL);
+      Printv(f->locals,ctab4, "char *  kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     if (use_parse || allow_kwargs || !modernargs) {
@@ -2102,7 +2099,7 @@ public:
       Printv(f->code,cleanup,NIL);
     }
     if (allow_thread) thread_end_block(n, f->code);
-    Printv(f->code,tab4,"return NULL;\n",NIL);
+    Printv(f->code,ctab4,"return NULL;\n",NIL);
     
 
     if (funpack) {
@@ -2237,9 +2234,9 @@ public:
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
 		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
       }
-      Printv(setf->code,tab4,"return 0;\n",NULL);
+      Printv(setf->code,ctab4,"return 0;\n",NULL);
       Append(setf->code,"fail:\n");
-      Printv(setf->code,tab4,"return 1;\n",NULL);
+      Printv(setf->code,ctab4,"return 1;\n",NULL);
     } else {
       /* Is a readonly variable.  Issue an error */
       if (CPlusPlus) {
@@ -2248,8 +2245,8 @@ public:
 	Printf(setf->def,"SWIGINTERN int %s(PyObject *_val SWIGUNUSED) {", setnamef);
       }
       Printv(setf->code,
-	     tab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname," is read-only.\");\n",
-	     tab4, "return 1;\n",
+	     ctab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname," is read-only.\");\n",
+	     ctab4, "return 1;\n",
 	     NIL);
     }
 
@@ -2719,20 +2716,20 @@ public:
 	SwigType_remember(ct);
 	Printv(f_wrappers,
 	       "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
-	Printv(f_wrappers, tab4, "PyObject *obj;\n", NIL);
+	Printv(f_wrappers, ctab4, "PyObject *obj;\n", NIL);
 	if (modernargs) {
 	  if (fastunpack) {
-	    Printv(f_wrappers, tab4, "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	    Printv(f_wrappers, ctab4, "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
 	  } else {
-	    Printv(f_wrappers, tab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	    Printv(f_wrappers, ctab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
 	  }
 	} else {
-	  Printv(f_wrappers, tab4, "if (!PyArg_ParseTuple(args,(char*)\"O|swigregister\", &obj)) return NULL;\n", NIL);
+	  Printv(f_wrappers, ctab4, "if (!PyArg_ParseTuple(args,(char*)\"O|swigregister\", &obj)) return NULL;\n", NIL);
 	}
 
 	Printv(f_wrappers,
-	       tab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
-	       tab4, "return SWIG_Py_Void();\n",
+	       ctab4, "SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct),", SWIG_NewClientData(obj));\n",
+	       ctab4, "return SWIG_Py_Void();\n",
 	       "}\n\n",NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
@@ -2744,7 +2741,7 @@ public:
       } else if (fastinit) {
 	
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
-	Printv(f_wrappers, tab4, "return SWIG_Python_InitShadowInstance(args);\n",
+	Printv(f_wrappers, ctab4, "return SWIG_Python_InitShadowInstance(args);\n",
 	       "}\n\n",NIL);
 	String *cname = NewStringf("%s_swiginit", class_name);
 	add_method(cname, cname, 0);
