@@ -151,8 +151,8 @@ static const char *usage3 = (char *)"\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable all the optimizations options: \n\
-                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual \n\
-                         -noproxydel -fastproxy -fastinit -fastunpack -modernargs -nobuildnone \n\
+                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel \n\
+                         -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
 \n";
 
 class PYTHON : public Language {
@@ -740,9 +740,9 @@ public:
 
         Printv(f_shadow,
 	       "def _swig_repr(self):\n",
-	       tab4, "try: strthis = \"at 0x%x\" %( self.this, )\n",
+	       tab4, "try: strthis = \"proxy of \" + self.this.__repr__()\n",
 	       tab4, "except: strthis = \"\"\n",
-	       tab4, "return \"<%s.%s; proxy of C++ swig::PySwigIterator instance %s>\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n",
+	       tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n",
 	       NIL);
 
         if (!classic) {
