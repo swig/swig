@@ -5,7 +5,7 @@ int add(int x, int y) {
    return x+y;
 }
 
-int sub(int x, int y) {
+int subtract(int x, int y) {
    return x-y;
 }
 int mul(int x, int y) {
@@ -21,7 +21,7 @@ int divide(int x, int y) {
 typedef int binop(int,int);
 %}
 
-binop add,sub,mul,divide;
+binop add,subtract,mul,divide;
 
 
 
