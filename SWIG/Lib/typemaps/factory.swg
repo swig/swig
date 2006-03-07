@@ -54,6 +54,19 @@
     r = circle.radius()
 
   where circle is a Circle proxy instance.
+
+  NOTES: remember to fully qualify all the type names and don't
+  use %factory inside a namespace declaration, ie, instead of
+  
+     namespace Foo {
+       %factory(Geometry *Geometry::create, Point, Circle);
+     }
+
+  use
+
+     %factory(Foo::Geometry *Foo::Geometry::create, Foo::Point,  Foo::Circle);   
+
+     
 */
 
 %define %_factory_dispatch(Type) 
