@@ -1,13 +1,12 @@
-/* typemaps.i --- ocaml typemaps -*- c -*-
-   Ocaml conversion by Art Yerkes, modified from mzscheme/typemaps.i
-   Copyright 2000, 2001 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-   Based on code written by Oleg Tolmatcev.
-
-   $Id$
-*/
-
-/* The Ocaml module handles all types uniformly via typemaps. Here
-   are the definitions.  */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * The Ocaml module handles all types uniformly via typemaps. Here
+ * are the definitions.
+ * ----------------------------------------------------------------------------- */
 
 /* Pointers */
 

@@ -1,10 +1,11 @@
-/* -*-c-*-
- * -----------------------------------------------------------------------
- * ocaml/ocamldec.swg
- * Copyright (C) 2000, 2001 Matthias Koeppe
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * ocamldec.swg
  *
  * Ocaml runtime code -- declarations
- * ----------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 #include <stdio.h>
 #include <string.h>

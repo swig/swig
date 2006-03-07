@@ -1,13 +1,11 @@
-//
-// SWIG typemaps for std::vector types
-// Luigi Ballabio
-// May 7, 2002
-// Chris Seatory 
-// August 5, 2002
-// Igor Bely
-// May 16, 2003
-//
-// Perl implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_vector.i
+ *
+ * SWIG typemaps for std::vector types
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 

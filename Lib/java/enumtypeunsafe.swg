@@ -1,4 +1,9 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * enumtypeunsafe.swg
+ *
  * Include this file in order for C/C++ enums to be wrapped by integers values.
  * Each enum has an equivalent class named after the enum and the enum items are
  * wrapped by constant integers within this class. The enum items are not

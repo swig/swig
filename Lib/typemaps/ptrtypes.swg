@@ -1,4 +1,9 @@
-/*---------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * ptrtypes.swg
+ *
  * Value typemaps (Type, const Type&) for "Ptr" types, such as swig
  * wrapped classes, that define the AsPtr/From methods
  *
@@ -17,8 +22,7 @@
  *    %ptr_varin_typemap(asptr_meth,frag,Type)
  *    %ptr_typecheck_typemap(check,asptr_meth,frag,Type)
  *    %ptr_directorout_typemap(asptr_meth,frag,Type)
- *
- *---------------------------------------------------------------------*/
+ * ----------------------------------------------------------------------------- */
 
 %include <typemaps/valtypes.swg>
 

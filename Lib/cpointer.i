@@ -1,12 +1,11 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * cpointer.i
  *
- * Author(s):  David Beazley (beazley@cs.uchicago.edu)
- *
- * This library file contains macros that can be used to manipulate simple
+ * SWIG library file containing macros that can be used to manipulate simple
  * pointer objects.
- *
- * $Header$
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------

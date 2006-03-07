@@ -1,10 +1,11 @@
-//
-// SWIG typemaps for std::list types
-// Lluis Padro
-// June 3, 2003
-// based on existing std_vector.i
-
-// Perl implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_list.i
+ *
+ * SWIG typemaps for std::list types
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 %include <exception.i>

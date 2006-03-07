@@ -1,5 +1,5 @@
-#ifndef __tcl_tclkw_swg__
-#define __tcl_tclkw_swg__
+#ifndef TCL_TCLKW_SWG_
+#define TCL_TCLKW_SWG_
 
 // Some special reserved words in classes
 
@@ -7,4 +7,4 @@
 %keywordwarn("configure is a tcl reserved method name") *::configure;
 
 
-#endif //__tcl_tclkw_swg__
+#endif //_TCL_TCLKW_SWG_

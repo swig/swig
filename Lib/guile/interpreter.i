@@ -1,20 +1,11 @@
-//
-// $Header$
-//
-// SWIG file for a simple Guile interpreter
-//
-/* Revision History
- * $Log$
- * Revision 1.1  2000/01/11 21:15:50  beazley
- * Added files
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Revision 1.1.1.1  1999/02/28 02:00:54  beazley
- * Swig1.1
+ * interpreter.i
  *
- * Revision 1.1  1996/05/22 20:02:10  beazley
- * Initial revision
- *
- */
+ * SWIG file for a simple Guile interpreter
+ * ----------------------------------------------------------------------------- */
 
 %{
 

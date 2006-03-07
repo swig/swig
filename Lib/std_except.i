@@ -1,21 +1,26 @@
-// Typemaps used to handle and throw STD exceptions in a language
-// and STL independent way, i.e., the target language doesn't
-// require to support STL but only the 'exception.i' mechanism.
-//
-// These typemaps are used when methods are declared with an STD
-// exception specification, such as
-//
-//   size_t at() const throw (std::out_of_range);
-//
-//
-// The typemaps here are based on the language independent
-// 'exception.i' library. If that is working in your target language,
-// this file will work.
-// 
-// If the target language doesn't implement a robust 'exception.i'
-// mechanism, or you prefer other ways to map the STD exceptions, write
-// a new std_except.i file in the target library directory.
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_except.i
+ *
+ * SWIG library file with typemaps to handle and throw STD exceptions in a
+ * language and STL independent way, i.e., the target language doesn't
+ * require to support STL but only the 'exception.i' mechanism.
+ *
+ * These typemaps are used when methods are declared with an STD
+ * exception specification, such as
+ *
+ *   size_t at() const throw (std::out_of_range);
+ *
+ * The typemaps here are based on the language independent
+ * 'exception.i' library. If that is working in your target language,
+ * this file will work.
+ * 
+ * If the target language doesn't implement a robust 'exception.i'
+ * mechanism, or you prefer other ways to map the STD exceptions, write
+ * a new std_except.i file in the target library directory.
+ * ----------------------------------------------------------------------------- */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL)
 #error "This version of std_except.i should not be used"

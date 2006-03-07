@@ -1,9 +1,11 @@
-//
-// SWIG typemaps for std::vector
-// Luigi Ballabio
-// Apr 8, 2002
-//
-// MzScheme implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_vector.i
+ *
+ * SWIG typemaps for std::vector
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 

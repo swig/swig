@@ -1,17 +1,15 @@
-//
-// SWIG Typemap library
-// William Fulton
-// 4 January 2002
-//
-// Java implementation
-//
-
-// ------------------------------------------------------------------------
-// Pointer and reference handling
-//
-// These mappings provide support for input/output arguments and common
-// uses for C/C++ pointers and C++ references.
-// ------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * SWIG Java typemap library
+ * Pointer and reference handling
+ *
+ * These mappings provide support for input/output arguments and common
+ * uses for C/C++ pointers and C++ references.
+ * ----------------------------------------------------------------------------- */
 
 // INPUT typemaps.
 // These remap a C pointer or C++ reference to be an "INPUT" value which is passed by value

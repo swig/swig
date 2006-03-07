@@ -1,10 +1,11 @@
-/***********************************************************************
- * _std_stl.i
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- *     std::helpers for LUA
+ * _std_common.i
  *
- * Author : Mark Gossage (mark@gossage.cjb.net)
- ************************************************************************/
+ * std::helpers for LUA
+ * ----------------------------------------------------------------------------- */
 
 %include <std_except.i> // the general exepctions
 

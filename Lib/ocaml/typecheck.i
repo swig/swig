@@ -1,8 +1,11 @@
-/* -*- C++ -*- */
-/* Type checking code adapted from python backend. */
-/* ------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typecheck.i
+ *
  * Typechecking rules
- * ------------------------------------------------------------ */
+ * ----------------------------------------------------------------------------- */
 
 %typecheck(SWIG_TYPECHECK_INTEGER) char, signed char, const char &, const signed char & {
   if( !Is_block($input) ) $1 = 0;

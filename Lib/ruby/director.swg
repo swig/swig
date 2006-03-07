@@ -1,13 +1,12 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * director.swg
  *
  * This file contains support for director classes that proxy
  * method calls from C++ to Ruby extensions.
- *
- * Author : Lyle Johnson (lyle@users.sourceforge.net)
- *          Based on the original Python implementation by
- *          Mark Rose (mrose@stm.lbl.gov).
- ************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 /*
   Use -DSWIG_DIRECTOR_NOUEH if you prefer to avoid the use of the

@@ -1,25 +1,30 @@
-/* 32bit/64bit code specialization and checking 
- 
-   Use only in extreme cases, when no arch. independent code can be
-   generated
-   
-   To activate architecture specific code, use
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * swigarch.i
+ *
+ * SWIG library file for 32bit/64bit code specialization and checking.
+ *
+ * Use only in extreme cases, when no arch. independent code can be
+ * generated
+ * 
+ * To activate architecture specific code, use
+ *
+ *     swig -DSWIGWORDSIZE32
+ *
+ * or
+ *
+ *     swig -DSWIGWORDSIZE64
+ *
+ * Note that extra checking code will be added to the wrapped code,
+ * which will prevent the compilation in a different architecture.
+ *
+ * If you don't specify the SWIGWORDSIZE (the default case), swig will
+ * generate architecture independent and/or 32bits code, with no extra
+ * checking code added.
+ * ----------------------------------------------------------------------------- */
 
-       swig -DSWIGWORDSIZE32
-
-   or
-
-       swig -DSWIGWORDSIZE64
-
-
-   Note that extra checking code will be added to the wrapped code,
-   which will prevent the compilation in a different architecture.
-
-   If you don't specify the SWIGWORDSIZE (the default case), swig will
-   generate architecture independent and/or 32bits code, with no extra
-   checking code added.
-
-*/
 #if !defined(SWIGWORDSIZE32) &&  !defined(SWIGWORDSIZE64)
 # if (__WORDSIZE == 32)
 #  define SWIGWORDSIZE32

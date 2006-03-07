@@ -1,8 +1,12 @@
-/*
- * SWIG Typemap library for Java
- * Various useful typemaps.
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
-*/
+ * various.i
+ *
+ * SWIG Typemap library for Java.
+ * Various useful typemaps.
+ * ----------------------------------------------------------------------------- */
 
 /* 
  * char **STRING_ARRAY typemaps. 

@@ -1,10 +1,11 @@
-// -*- C++ -*-
-// SWIG typemaps for std::vector types
-// Art Yerkes
-// Modified from: Luigi Ballabio
-// Apr 8, 2002
-//
-// Ocaml implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_vector.i
+ *
+ * SWIG typemaps for std::vector types
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 

@@ -1,9 +1,9 @@
-/* -*- c -*-
- * -----------------------------------------------------------------------
- * swig_lib/mzscheme/mzrun.swg
- * 
- * Author: John Lenz <lenz@cs.wisc.edu>
- * ----------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * mzrun.swg
+ * ----------------------------------------------------------------------------- */
 
 #include <stdio.h>
 #include <string.h>

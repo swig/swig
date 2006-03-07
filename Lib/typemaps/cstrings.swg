@@ -1,14 +1,14 @@
-/*
- * cstring.i
- * $Header$
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author(s): David Beazley (beazley@cs.uchicago.edu)
+ * cstrings.swg
  *
  * This file provides typemaps and macros for dealing with various forms
  * of C character string handling.   The primary use of this module
  * is in returning character data that has been allocated or changed in
  * some way.
- */
+ * ----------------------------------------------------------------------------- */
 
 %define %typemaps_cstring(Name, Char,
 			  SWIG_AsCharPtr,

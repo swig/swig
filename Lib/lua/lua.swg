@@ -1,12 +1,12 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * lua.swg
  *
- *     SWIG Configuration File for Lua
- *     This file is parsed by SWIG before reading any other interface
- *     file.
- *
- * Author : Mark Gossage (mark@gossage.cjb.net)
- ************************************************************************/
+ * SWIG Configuration File for Lua.
+ * This file is parsed by SWIG before reading any other interface file.
+ * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
  *                          includes

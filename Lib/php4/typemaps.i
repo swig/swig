@@ -1,33 +1,32 @@
-//
-// SWIG Typemap library
-// Richard Palmer
-// Oct 3, 2001
-//
-// PHP4 implementation
-//
-//
-// This library provides standard typemaps for modifying SWIG's behavior.
-// With enough entries in this file, I hope that very few people actually
-// ever need to write a typemap.
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i.
+ *
+ * SWIG Typemap library for PHP4.
+ *
+ * This library provides standard typemaps for modifying SWIG's behavior.
+ * With enough entries in this file, I hope that very few people actually
+ * ever need to write a typemap.
+ *
+ * Define macros to define the following typemaps:
+ *
+ * TYPE *INPUT.   Argument is passed in as native variable by value.
+ * TYPE *OUTPUT.  Argument is returned as an array from the function call.
+ * TYPE *INOUT.   Argument is passed in by value, and out as part of returned list
+ * TYPE *REFERENCE.  Argument is passed in as native variable with value
+ *                   semantics.  Variable value is changed with result.
+ *                   Use like this:
+ *                   int foo(int *REFERENCE);
+ *
+ *                   $a = 0;
+ *                   $rc = foo($a);
+ *
+ *                   Even though $a looks like it's passed by value,
+ *                   it's value can be changed by foo().
+ * ----------------------------------------------------------------------------- */
 
-//
-// Define macros to define the following typemaps:
-//
-// TYPE *INPUT.   Argument is passed in as native variable by value.
-// TYPE *OUTPUT.  Argument is returned as an array from the function call.
-// TYPE *INOUT.   Argument is passed in by value, and out as part of returned list
-// TYPE *REFERENCE.  Argument is passed in as native variable with value
-//                   semantics.  Variable value is changed with result.
-//                   Use like this:
-//                   int foo(int *REFERENCE);
-//
-//                   $a = 0;
-//                   $rc = foo($a);
-//
-//                   Even though $a looks like it's passed by value,
-//                   it's value can be changed by foo().
-//
 %define double_typemap(TYPE)
 %typemap(in) TYPE *INPUT(TYPE temp)
 {

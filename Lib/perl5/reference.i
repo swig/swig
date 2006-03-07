@@ -1,5 +1,11 @@
-// REFERENCE
-// Accept Perl references as pointers
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * reference.i
+ *
+ * Accept Perl references as pointers
+ * ----------------------------------------------------------------------------- */
 
 /*
 The following methods make Perl references work like simple C

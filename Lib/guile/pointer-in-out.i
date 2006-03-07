@@ -1,9 +1,11 @@
-/* pointer-in-out.i --- Guile typemaps for passing -*- c -*- pointers indirectly 
-
-   Copyright (C) 2001, 2003 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-
-   $Header$
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * pointer-in-out.i
+ *
+ * Guile typemaps for passing pointers indirectly 
+ * ----------------------------------------------------------------------------- */
 
 /* Here is a macro that will define typemaps for passing C pointers indirectly.
   

@@ -1,3 +1,10 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * clisp.swg
+ * ----------------------------------------------------------------------------- */
+
 /* Define a C preprocessor symbol that can be used in interface files
    to distinguish between the SWIG language modules. */ 
 

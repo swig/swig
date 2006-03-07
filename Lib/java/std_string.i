@@ -1,17 +1,15 @@
-//
-// SWIG typemaps for std::string
-// Luigi Ballabio, Tal Shalif and William Fulton
-// May 7, 2002
-//
-// Java implementation
-//
-/* ------------------------------------------------------------------------
-  Typemaps for std::string and const std::string&
-  These are mapped to a Java String and are passed around by value.
-
-  To use non-const std::string references use the following %apply.  Note 
-  that they are passed by value.
-  %apply const std::string & {std::string &};
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_string.i
+ *
+ * Typemaps for std::string and const std::string&
+ * These are mapped to a Java String and are passed around by value.
+ *
+ * To use non-const std::string references use the following %apply.  Note 
+ * that they are passed by value.
+ * %apply const std::string & {std::string &};
   ------------------------------------------------------------------------ */
 
 %{

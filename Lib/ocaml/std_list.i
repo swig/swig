@@ -1,10 +1,11 @@
-// -*- C++ -*-
-// SWIG typemaps for std::list types
-// Art Yerkes
-// Modified from: Jing Cao
-// Aug 1st, 2002
-//
-// Python implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_list.i
+ *
+ * SWIG typemaps for std::list types
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 

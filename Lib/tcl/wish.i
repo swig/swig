@@ -1,34 +1,11 @@
-//
-// $Header$
-//
-// SWIG File for making wish
-// Dave Beazley
-// April 25, 1996
-//
-/* Revision History
- * $Log$
- * Revision 1.4  2005/11/26 09:28:20  wsfulton
- * Use the system angle brackets for %include
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Revision 1.3  2002/11/30 22:10:09  beazley
- * *** empty log message ***
+ * wish.i
  *
- * Revision 1.1.2.1  2001/06/20 11:47:29  mkoeppe
- * Portability fixes
- *
- * Revision 1.1  2000/01/11 21:15:54  beazley
- * Added files
- *
- * Revision 1.2  1999/11/05 21:45:14  beazley
- * Minor Changes
- *
- * Revision 1.1.1.1  1999/02/28 02:00:56  beazley
- * Swig1.1
- *
- * Revision 1.1  1996/05/22 19:47:45  beazley
- * Initial revision
- *
- */
+ * SWIG File for making wish
+ * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
 %subsection "wish.i"

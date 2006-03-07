@@ -1,4 +1,9 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * enums.swg
+ *
  * Include this file in order for C/C++ enums to be wrapped by proper Java enums.
  * Note that the JNI layer handles the enum as an int. The Java enum has extra
  * code generated to store the C++ int value. This is required for C++ enums that

@@ -1,5 +1,5 @@
-#ifndef __pike_pikekw_swg__
-#define __pike_pikekw_swg__
+#ifndef PIKE_PIKEKW_SWG_
+#define PIKE_PIKEKW_SWG_
 
 /* Warnings for Pike keywords */
 #define PIKEKW(x) %namewarn("314:" #x " is a pike keyword")  #x
@@ -52,4 +52,4 @@ PIKEKW(while);
 
 #undef PIKEKW
 
-#endif //__pike_pikekw_swg__
+#endif //PIKE_PIKEKW_SWG_

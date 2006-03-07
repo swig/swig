@@ -1,11 +1,10 @@
 /* -----------------------------------------------------------------------------
- * cdata.i
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author(s):  David Beazley (beazley@cs.uchicago.edu)
+ * cdata.swg
  *
  * This library file contains macros for manipulating raw C data as strings.
- *
- * $Header$
  * ----------------------------------------------------------------------------- */
 
 %{

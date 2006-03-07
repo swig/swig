@@ -1,6 +1,11 @@
-// $Header$
-// Code to statically rebuild perl5.
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * perlmain.i
+ *
+ * Code to statically rebuild perl5.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
 %subsection "perlmain.i"

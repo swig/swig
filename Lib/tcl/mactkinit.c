@@ -1,6 +1,13 @@
-/* This is a support file needed to build a new version of Wish
-   Normally, this capability is found in TkAppInit.c, but this creates
-   tons of namespace problems for many applications. */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * mactkinit.c
+ *
+ * This is a support file needed to build a new version of Wish.
+ * Normally, this capability is found in TkAppInit.c, but this creates
+ * tons of namespace problems for many applications.
+ * ----------------------------------------------------------------------------- */
    
 #include <Gestalt.h>
 #include <ToolUtils.h>

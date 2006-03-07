@@ -1,5 +1,13 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * typemaps.swg
+ *
+ * SWIG Library file containing the main typemap code to support Lua modules.
+ * ----------------------------------------------------------------------------- */
+
+/***********************************************************************
  *
  *     This file contains the main typemap code to support Lua modules
  *

@@ -1,4 +1,12 @@
-/* Default std_deque wrapper */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_deque.i
+ *
+ * Default std_deque wrapper
+ * ----------------------------------------------------------------------------- */
+
 %module std_deque
 
 %rename(__getitem__) std::deque::getitem;

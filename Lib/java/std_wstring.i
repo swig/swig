@@ -1,14 +1,19 @@
-/* ------------------------------------------------------------------------
-  Typemaps for std::wstring and const std::wstring&
-
-  These are mapped to a Java String and are passed around by value.
-  Warning: Unicode / multibyte characters are handled differently on different 
-  OSs so the std::wstring typemaps may not always work as intended.
-
-  To use non-const std::wstring references use the following %apply.  Note 
-  that they are passed by value.
-  %apply const std::wstring & {std::wstring &};
-  ------------------------------------------------------------------------ */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_wstring.i
+ *
+ * Typemaps for std::wstring and const std::wstring&
+ *
+ * These are mapped to a Java String and are passed around by value.
+ * Warning: Unicode / multibyte characters are handled differently on different 
+ * OSs so the std::wstring typemaps may not always work as intended.
+ *
+ * To use non-const std::wstring references use the following %apply.  Note 
+ * that they are passed by value.
+ * %apply const std::wstring & {std::wstring &};
+ * ----------------------------------------------------------------------------- */
 
 namespace std {
 

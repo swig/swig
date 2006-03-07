@@ -1,10 +1,11 @@
-// -*- C++ -*-
-// SWIG typemaps for std::string
-// Art Yerkes
-// Modified from: Luigi Ballabio
-// Apr 8, 2002
-//
-// Ocaml implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_string.i
+ *
+ * SWIG typemaps for std::string
+ * ----------------------------------------------------------------------------- */
 
 // ------------------------------------------------------------------------
 // std::string is typemapped by value

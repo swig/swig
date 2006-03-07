@@ -1,11 +1,11 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
  * perlrun.swg
  *
- *     This file contains the runtime support for Perl modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- ************************************************************************/
+ * This file contains the runtime support for Perl modules
+ * and includes code for managing global variables and pointer
+ * type checking.
+ * ----------------------------------------------------------------------------- */
+
 #ifdef PERL_OBJECT
 #define SWIG_PERL_OBJECT_DECL CPerlObj *SWIGUNUSEDPARM(pPerl),
 #define SWIG_PERL_OBJECT_CALL pPerl,

@@ -1,6 +1,12 @@
-/*
- *	ISO C99: 7.8 Format conversion of integer types	<inttypes.h>
- */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * inttypes.i
+ *
+ * SWIG library file  for ISO C99 types: 7.8 Format conversion of integer types <inttypes.h>
+ * ----------------------------------------------------------------------------- */
+
 %{
 #include <inttypes.h>
 %}

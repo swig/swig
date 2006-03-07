@@ -1,15 +1,16 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * Swig typemap library for Tcl8.  This file contains various sorts
+ * of typemaps for modifying Swig's code generation.
+ * ----------------------------------------------------------------------------- */
+
 #if !defined(SWIG_USE_OLD_TYPEMAPS)
 %include <typemaps/typemaps.swg>
 #else
-/* -----------------------------------------------------------------------------
- * typemaps.i
- *
- *      Swig typemap library for Tcl8.  This file contains various sorts
- *      of typemaps for modifying Swig's code generation.
- *
- * Author: David Beazley (beazley@cs.uchicago.edu)
- *
- * ----------------------------------------------------------------------------- */
 
 /*
 The SWIG typemap library provides a language independent mechanism for

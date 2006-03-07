@@ -1,12 +1,11 @@
 /* -----------------------------------------------------------------------------
- * cmalloc.i
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author(s):  David Beazley (beazley@cs.uchicago.edu)
+ * cmalloc.swg
  *
  * This library file contains macros that can be used to create objects using
  * the C malloc function.
- *
- * $Header$
  * ----------------------------------------------------------------------------- */
 
 %{

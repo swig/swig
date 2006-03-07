@@ -1,12 +1,13 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * luarun.swg
  *
- *     This file contains the runtime support for Lua modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- * Author : Mark Gossage (mark@gossage.cjb.net)
- ************************************************************************/
+ * This file contains the runtime support for Lua modules
+ * and includes code for managing global variables and pointer
+ * type checking.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 extern "C" {

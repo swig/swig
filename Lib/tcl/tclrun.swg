@@ -1,11 +1,12 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * tclrun.swg
  *
- *     This file contains the runtime support for Tcl modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- ************************************************************************/
+ * This file contains the runtime support for Tcl modules and includes
+ * code for managing global variables and pointer type checking.
+ * ----------------------------------------------------------------------------- */
 
 /* Common SWIG API */
 
