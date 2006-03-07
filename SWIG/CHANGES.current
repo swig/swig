@@ -1,6 +1,11 @@
 Version 1.3.29 (In progress)
 ============================
 
+03/07/2006: mkoeppe
+	    [Guile] 
+	    Fix for module names containing a "-" in non-"shadow" mode.
+	    Patch from Aaron VanDevender (#1441474).
+
 03/04/2006: mmatus
 	    - Add -O to the main program, which now enables -fastdispatch
 	    
