@@ -34,19 +34,34 @@ Major contributors include:
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Richard Palmer (richard@magicality.org)                (PHP)
- Sam Liddicott (saml@liddicott.com)                     (PHP)
+ Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)
+ Tim Hockin - Sun Microsystems (thockin@sun.com)        (PHP)
  Shibukawa Yoshiki                                      (Japanese Translation)
  Loic Dachary                                           (Perl5)
+ David Fletcher                                         (Perl5)
+ Gary Holt                                              (Perl5)
  Masaki Fukushima                                       (Ruby)
  Scott Michel (scottm@cs.ucla.edu)                      (Java directors)
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
  Mark Rose (mrose@stm.lbl.gov)                          (Directors)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
- 
+ Mikel Bancroft(mikel@franz.com)                        (Allegrocl)
+ Dirk Gerrits                                           (Allegrocl)
+ Neil Cawse                                             (C#)
+ Harco de Hilster                                       (Java)
+ Alexey Dyachenko (dyachenko@fromru.com)                (Tcl)
+ Bob Techentin                                          (Tcl)
+ Dr.-Ing. Martin Froehlich <MartinFroehlich@ACM.org>    (Guile)
+ Marcio Luis Teixeira <marciot@holly.colostate.edu>     (Guile)
+
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
- Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
+ Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn
  (See CHANGES for a more complete list).
+
+Portions also copyrighted by companies/corporations;
+ Network Applied Communication Laboratory, Inc
+ Information-technology Promotion Agency, Japan
 
 Up-to-date SWIG related information can be found at
 
