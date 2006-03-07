@@ -9,7 +9,7 @@
 
  
   template <class ArgType, class ResType>
-  struct Function
+  struct Funktion
   {
 	char *test() { return (char *) "test"; }
   };
@@ -19,13 +19,13 @@
   {
     typedef ArgType arg_type;
     typedef ResType res_type;
-    typedef Function<ArgType, double> base;	
+    typedef Funktion<ArgType, double> base;	
   };
 
   // Egad!
   template <class AF, class AG>
-  struct Class
-    : Function<typename traits<AF, AG>::arg_type,
+  struct Class_
+    : Funktion<typename traits<AF, AG>::arg_type,
                                 typename traits<AF, AG>::res_type>
   {
   };
@@ -34,16 +34,16 @@
   typename traits<AF, RF>::base
   make_Class()
   {
-    return Class<AF, RF>();
+    return Class_<AF, RF>();
   }
 
 %}
 %{
-  template struct Function <Double, Double>;
-  template struct Class <Double, Double>; 
+  template struct Funktion <Double, Double>;
+  template struct Class_ <Double, Double>; 
 %}
  
 %template(traits_dd) traits <Double, Double>;
-%template(Function_dd) Function <Double, Double>;
-%template(Class_dd) Class <Double, Double>;
+%template(Funktion_dd) Funktion <Double, Double>;
+%template(Class_dd) Class_ <Double, Double>;
 %template(make_Class_dd) make_Class<Double,Double>;
