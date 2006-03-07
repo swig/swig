@@ -1,7 +1,7 @@
-#ifndef __csharp_csharpkw_swg__
-#define __csharp_csharpkw_swg__
+#ifndef CSHARP_CSHARPKW_SWG_
+#define CSHARP_CSHARPKW_SWG_
 
-/* Warnings for Csharp keywords */
+/* Warnings for C# keywords */
 #define CSHARPKW(x) %namewarn("314:" #x " is a csharp keyword")  #x
 
 /*
@@ -91,4 +91,4 @@ CSHARPKW(while);
 
 #undef CSHARPKW
 
-#endif //__csharp_csharpkw_swg__
+#endif //CSHARP_CSHARPKW_SWG_
