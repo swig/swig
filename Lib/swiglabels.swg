@@ -1,9 +1,7 @@
-/***********************************************************************
- *
+/* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
- *
- ************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 /* template workaround for compilers that cannot correctly implement the C++ standard */
 #ifndef SWIGTEMPLATEDISAMBIGUATOR

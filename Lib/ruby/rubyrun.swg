@@ -4,14 +4,10 @@
  *
  * rubyrun.swg
  *
+ * This file contains the runtime support for Ruby modules
+ * and includes code for managing global variables and pointer
+ * type checking.
  * ----------------------------------------------------------------------------- */
-/***********************************************************************
- *
- *     This file contains the runtime support for Ruby modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- ************************************************************************/
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0

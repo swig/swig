@@ -1061,38 +1061,38 @@ public:
     return SWIG_OK;
   }
 
-  /****************************************************************************
-   ***                      OBJECT-ORIENTED FEATURES
-   ****************************************************************************
-   *** These extensions provide a more object-oriented interface to C++
-   *** classes and structures.    The code here is based on extensions
-   *** provided by David Fletcher and Gary Holt.
-   ***
-   *** I have generalized these extensions to make them more general purpose
-   *** and to resolve object-ownership problems.
-   ***
-   *** The approach here is very similar to the Python module :
-   ***       1.   All of the original methods are placed into a single
-   ***            package like before except that a 'c' is appended to the
-   ***            package name.
-   ***
-   ***       2.   All methods and function calls are wrapped with a new
-   ***            perl function.   While possibly inefficient this allows
-   ***            us to catch complex function arguments (which are hard to
-   ***            track otherwise).
-   ***
-   ***       3.   Classes are represented as tied-hashes in a manner similar
-   ***            to Gary Holt's extension.   This allows us to access
-   ***            member data.
-   ***
-   ***       4.   Stand-alone (global) C functions are modified to take
-   ***            tied hashes as arguments for complex datatypes (if
-   ***            appropriate).
-   ***
-   ***       5.   Global variables involving a class/struct is encapsulated
-   ***            in a tied hash.
-   ***
-   ****************************************************************************/
+/* ----------------------------------------------------------------------------
+ *                      OBJECT-ORIENTED FEATURES
+ *
+ * These extensions provide a more object-oriented interface to C++
+ * classes and structures.    The code here is based on extensions
+ * provided by David Fletcher and Gary Holt.
+ *
+ * I have generalized these extensions to make them more general purpose
+ * and to resolve object-ownership problems.
+ *
+ * The approach here is very similar to the Python module :
+ *       1.   All of the original methods are placed into a single
+ *            package like before except that a 'c' is appended to the
+ *            package name.
+ *
+ *       2.   All methods and function calls are wrapped with a new
+ *            perl function.   While possibly inefficient this allows
+ *            us to catch complex function arguments (which are hard to
+ *            track otherwise).
+ *
+ *       3.   Classes are represented as tied-hashes in a manner similar
+ *            to Gary Holt's extension.   This allows us to access
+ *            member data.
+ *
+ *       4.   Stand-alone (global) C functions are modified to take
+ *            tied hashes as arguments for complex datatypes (if
+ *            appropriate).
+ *
+ *       5.   Global variables involving a class/struct is encapsulated
+ *            in a tied hash.
+ *
+ * ------------------------------------------------------------------------- */
   
   
   void setclassname(Node *n) {

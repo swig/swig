@@ -623,4 +623,4 @@ SWIG_Lua_SetModule(lua_State* L, swig_module_info *module) {
 }
 #endif
 
-/*************************** end luarun.swg ******************************/
+/* ------------------------------ end luarun.swg  ------------------------------ */

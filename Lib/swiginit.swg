@@ -1,4 +1,4 @@
-/*************************************************************************
+/* -----------------------------------------------------------------------------
  * Type initialization:
  * This problem is tough by the requirement that no dynamic 
  * memory is used. Also, since swig_type_info structures store pointers to 
@@ -10,7 +10,7 @@
  * swig_module, and does all the lookup, filling in the swig_module.types
  * array with the correct data and linking the correct swig_cast_info
  * structures together.
-
+ *
  * The generated swig_type_info structures are assigned staticly to an initial 
  * array. We just loop though that array, and handle each type individually.
  * First we lookup if this type has been already loaded, and if so, use the
@@ -24,7 +24,7 @@
  * we find the array of casts associated with the type, and loop through it 
  * adding the casts to the list. The one last trick we need to do is making
  * sure the type pointer in the swig_cast_info struct is correct.
-
+ *
  * First off, we lookup the cast->type name to see if it is already loaded. 
  * There are three cases to handle:
  *  1) If the cast->type has already been loaded AND the type we are adding
@@ -37,7 +37,7 @@
  *  3) Finally, if cast->type has not already been loaded, then we add that
  *     swig_cast_info to the linked list (because the cast->type) pointer will
  *     be correct.
-**/
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 extern "C" {
