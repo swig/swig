@@ -27,12 +27,12 @@ static contract Rules[] = {
   { NULL, NULL}
 };
 
-/************************************************************************
+/* ----------------------------------------------------------------------------
  * class Contracts:
  *
  * This class defines the functions that need to be used in 
  *         "wrap by contract" module.
- *************************************************************************/
+ * ------------------------------------------------------------------------- */
 
 class Contracts : public Dispatcher {
   String *make_expression(String *s, Node *n);

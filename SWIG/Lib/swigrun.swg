@@ -1,10 +1,9 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
  * swigrun.swg
  *
- *     This file contains generic CAPI SWIG runtime support for pointer
- *     type checking.
- *
- ************************************************************************/
+ * This file contains generic CAPI SWIG runtime support for pointer
+ * type checking.
+ * ----------------------------------------------------------------------------- */
 
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */

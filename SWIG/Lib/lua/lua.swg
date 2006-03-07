@@ -495,4 +495,4 @@ SWIGEXPORT int SWIG_import(lua_State* L)
 /* Note: the initialization function is closed after all code is generated */
 
 
-/*************************** end lua.swg ******************************/
+/* ------------------------------ end lua.swg  ------------------------------ */

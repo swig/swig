@@ -102,13 +102,13 @@ protected:
   AccessMode cplus_mode;
 };
 
-/************************************************************************
+/* ----------------------------------------------------------------------------
  * class language:
  *
  * This class defines the functions that need to be supported by the
  * scripting language being used.    The translator calls these virtual
  * functions to output different types of code for different languages.
- *************************************************************************/
+ * ------------------------------------------------------------------------- */
 
 class Language : public Dispatcher {
 public:

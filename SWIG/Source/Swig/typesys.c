@@ -1324,14 +1324,14 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
   }
 }
 
-/******************************************************************************
- ***                         * * * WARNING * * *                            ***
- ***                                                                        ***
- *** Don't even think about modifying anything below this line unless you   ***
- *** are completely on top of *EVERY* subtle aspect of the C++ type system  ***
- *** and you are prepared to suffer endless hours of agony trying to        ***
- *** debug the SWIG run-time type checker after you break it.               ***
- ******************************************************************************/
+/* ----------------------------------------------------------------------------
+ *                         * * * WARNING * * *                            ***
+ *                                                                        ***
+ * Don't even think about modifying anything below this line unless you   ***
+ * are completely on top of *EVERY* subtle aspect of the C++ type system  ***
+ * and you are prepared to suffer endless hours of agony trying to        ***
+ * debug the SWIG run-time type checker after you break it.               ***
+ * ------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
  * SwigType_remember()
