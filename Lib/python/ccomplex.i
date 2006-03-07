@@ -1,7 +1,12 @@
-/*
- *  C complex typemaps
- *  ISO C99:  7.3 Complex arithmetic <complex.h>
- */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * ccomplex.i
+ *
+ * C complex typemaps
+ * ISO C99:  7.3 Complex arithmetic <complex.h>
+ * ----------------------------------------------------------------------------- */
 
 
 %include <pycomplex.swg>

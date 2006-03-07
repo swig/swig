@@ -1,14 +1,20 @@
-//
-// Python sequence <-> C++ container wrapper
-//
-// This wrapper, and its iterator, allows a general use (and reuse) of
-// the the mapping between C++ and Python, thanks to the C++
-// templates.
-//
-// Of course, it needs the C++ compiler to support templates, but
-// since we will use this wrapper with the STL containers, that should
-// be the case.
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * pycontainer.swg
+ *
+ * Python sequence <-> C++ container wrapper
+ *
+ * This wrapper, and its iterator, allows a general use (and reuse) of
+ * the the mapping between C++ and Python, thanks to the C++
+ * templates.
+ *
+ * Of course, it needs the C++ compiler to support templates, but
+ * since we will use this wrapper with the STL containers, that should
+ * be the case.
+ * ----------------------------------------------------------------------------- */
+
 %{
 #include <iostream>
 %}

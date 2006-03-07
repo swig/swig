@@ -1,5 +1,11 @@
-// SWIG typemaps for std::string
-// copied from the guile std_string.i and modified
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_string.i
+ *
+ * SWIG typemaps for std::string
+ * ----------------------------------------------------------------------------- */
 
 %{
 #include <string>

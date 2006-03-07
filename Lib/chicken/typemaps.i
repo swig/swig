@@ -1,26 +1,15 @@
-//
-// SWIG Typemap library
-// Jonah Beckford
-// Nov 22, 2002
-// Derived: Dave Beazley (Author); Lib/python/typemaps.i; May 5, 1997
-//
-// CHICKEN implementation
-//
-// This library provides standard typemaps for modifying SWIG's behavior.
-// With enough entries in this file, I hope that very few people actually
-// ever need to write a typemap.
-//
-// Disclaimer : Unless you really understand how typemaps work, this file
-// probably isn't going to make much sense.
-//
-
-// ------------------------------------------------------------------------
-// Pointer handling
-//
-// These mappings provide support for input/output arguments and
-// common uses for C/C++ pointers.  INOUT mappings allow for C/C++
-// pointer variables in addition to input/output arguments.
-// ------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * Pointer handling
+ *
+ * These mappings provide support for input/output arguments and
+ * common uses for C/C++ pointers.  INOUT mappings allow for C/C++
+ * pointer variables in addition to input/output arguments.
+ * ----------------------------------------------------------------------------- */
 
 // INPUT typemaps.
 // These remap a C pointer to be an "INPUT" value which is passed by value

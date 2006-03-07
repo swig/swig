@@ -1,9 +1,12 @@
-/*
-  Typemaps for FILE*
-
-  From the ideas of Luigi 
-  luigi.ballabio@fastwebnet.it
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * file.i
+ *
+ * Typemaps for FILE*
+ * From the ideas of Luigi Ballabio
+ * ----------------------------------------------------------------------------- */
 
 %types(FILE *);
 

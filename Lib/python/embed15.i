@@ -1,13 +1,16 @@
-//
-// embed15.i
-// SWIG file embedding the Python interpreter in something else.
-// This file is based on Python-1.5.  It will not work with
-// earlier versions.
-//
-// This file makes it possible to extend Python and all of its
-// built-in functions without having to hack it's setup script.
-//
-
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * embed15.i
+ *
+ * SWIG file embedding the Python interpreter in something else.
+ * This file is based on Python-1.5.  It will not work with
+ * earlier versions.
+ *
+ * This file makes it possible to extend Python and all of its
+ * built-in functions without having to hack it's setup script.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
 %subsection "embed.i"

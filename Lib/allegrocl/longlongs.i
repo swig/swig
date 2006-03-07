@@ -1,11 +1,14 @@
-/* longlongs.i
-
-   Typemap addition for support of 'long long' type and 'unsigned long long 
-   Makes use of swig-def-foreign-class, so this header should be loaded
-   after allegrocl.swg and after any custom user identifier-conversion
-   functions have been defined.
-
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * longlongs.i
+ *
+ * Typemap addition for support of 'long long' type and 'unsigned long long 
+ * Makes use of swig-def-foreign-class, so this header should be loaded
+ * after allegrocl.swg and after any custom user identifier-conversion
+ * functions have been defined.
+ * ----------------------------------------------------------------------------- */
 
 %typemap(in) long long, unsigned long long "$1 = $input;";
 %typemap(out) long long, unsigned long long "$result = &$1;";

@@ -1,11 +1,17 @@
-//
-//  Implemet a python 'output' iterator for Python 2.2 or higher.
-//
-//  Users can derive form the PySwigIterator to implemet their
-//  own iterators. As an example (real one since we use it for STL/STD
-//  containers), the template PySwigIterator_T does the
-//  implementation for genereic C++ iterators.
-//  
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * pyiterators.swg
+ *
+ * Implement a python 'output' iterator for Python 2.2 or higher.
+ *
+ * Users can derive form the PySwigIterator to implemet their
+ * own iterators. As an example (real one since we use it for STL/STD
+ * containers), the template PySwigIterator_T does the
+ * implementation for genereic C++ iterators.
+ * ----------------------------------------------------------------------------- */
+
 %include <std_common.i>
 
 %fragment("PySwigIterator","header") {  
