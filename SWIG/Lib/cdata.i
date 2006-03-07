@@ -7,14 +7,6 @@
  * SWIG library file containing macros for manipulating raw C data as strings.
  * ----------------------------------------------------------------------------- */
 
-/* -----------------------------------------------------------------------------
- *
- * Author(s):  David Beazley (beazley@cs.uchicago.edu)
- *
- *
- * $Header$
- * ----------------------------------------------------------------------------- */
-
 %{
 typedef struct SWIGCDATA {
     char *data;

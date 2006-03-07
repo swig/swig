@@ -1,16 +1,19 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * Pointer handling
+ *
+ * These mappings provide support for input/output arguments and
+ * common uses for C/C++ pointers.  INOUT mappings allow for C/C++
+ * pointer variables in addition to input/output arguments.
+ * ----------------------------------------------------------------------------- */
+
 #if !defined(SWIG_USE_OLD_TYPEMAPS)
 %include <typemaps/typemaps.swg>
 #else
-//
-// typemaps for Ruby
-//
-// $Header$
-//
-// Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
-// Copyright (C) 2000  Information-technology Promotion Agency, Japan
-//
-// Masaki Fukushima
-//
 
 /*
 The SWIG typemap library provides a language independent mechanism for
