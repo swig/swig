@@ -7,15 +7,6 @@
  * SWIG library file for floating point operations.
  * ----------------------------------------------------------------------------- */
 
-/*
- * $Header$
- *
- * math.i
- * Dave Beazley
- * March 24, 1996
- *
- */
-
 %module math
 %{
 #include <math.h>
