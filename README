@@ -17,7 +17,7 @@ The guilty parties working on this are:
 
 Active Developers:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
- Marcelo Matus                                          (Python, core, UTL[python,perl,tcl,ruby])
+ Marcelo Matus (mmatus@acms.arizona.edu)                (SWIG core, Python, UTL[python,perl,tcl,ruby])
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile, MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
