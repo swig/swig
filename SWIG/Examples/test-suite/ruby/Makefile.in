@@ -21,7 +21,8 @@ CPP_TEST_CASES = \
 	li_cdata \
 	li_cstring \
 	naming \
-	keywords
+	keywords \
+	li_factory 
 
 C_TEST_CASES += \
 	li_cdata \
