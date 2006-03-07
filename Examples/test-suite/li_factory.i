@@ -2,7 +2,11 @@
 %include factory.i
 
 %newobject Geometry::create;
-%factory(Geometry *Geometry::create, Point, Circle);
+
+%newobject Geometry::clone;
+%factory(Geometry *Geometry::clone, Point, Circle);
+%factory(Geometry *Point::clone, Point, Circle);
+%factory(Geometry *Circle::clone, Point, Circle);
 
 %inline {
   struct Geometry {
@@ -14,16 +18,19 @@
     virtual ~Geometry() {}    
     virtual int draw() = 0;
     static Geometry *create(GeomType i);
+		virtual Geometry *clone() = 0;
   };
 
   struct Point : Geometry  {
     int draw() { return 1; }
     double width() { return 1.0; }    
+		Geometry *clone() { return new Point(); }
   };
 
   struct Circle : Geometry  {
     int draw() { return 2; }
     double radius() { return 1.5; }      
+		Geometry *clone() { return new Circle(); }
   }; 
 
   Geometry *Geometry::create(GeomType type) {
@@ -34,4 +41,5 @@
     }
   }
 }
+
 
