@@ -1,4 +1,9 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * enumsimple.swg
+ *
  * This file provides backwards compatible enum wrapping. SWIG versions 1.3.21
  * and earlier wrapped global enums with constant integers in the module
  * class. Enums declared within a C++ class were wrapped by constant integers

@@ -1,4 +1,9 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * enums.swg
+ *
  * Include this file in order for C/C++ enums to be wrapped by proper C# enums.
  * Note that the PINVOKE layer handles the enum as an int.
  * ----------------------------------------------------------------------------- */

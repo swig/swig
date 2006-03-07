@@ -1,14 +1,14 @@
-//
-// SWIG Typemap library
-// C# implementation
-//
-
-// ------------------------------------------------------------------------
-// Pointer and reference handling
-//
-// These mappings provide support for input/output arguments and common
-// uses for C/C++ pointers and C++ references.
-// ------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * Pointer and reference handling typemap library
+ *
+ * These mappings provide support for input/output arguments and common
+ * uses for C/C++ pointers and C++ references.
+ * ----------------------------------------------------------------------------- */
 
 /*
 INPUT typemaps

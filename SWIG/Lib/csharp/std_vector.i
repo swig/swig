@@ -1,6 +1,9 @@
-// Warning: Use the typemaps here in the expectation that the macros they are in will change name.
-
-/*
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_vector.i
+ *
  * SWIG typemaps for std::vector
  * C# implementation
  * The C# wrapper is made to look and feel like a typesafe C# System.Collections.ArrayList
@@ -12,7 +15,10 @@
  *
  *   SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Klass, SomeNamespace::Klass)
  *   %template(VectKlass) std::vector<SomeNamespace::Klass>;
- */
+ * ----------------------------------------------------------------------------- */
+
+// Warning: Use the typemaps here in the expectation that the macros they are in will change name.
+
 
 %include <std_common.i>
 
