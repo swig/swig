@@ -102,7 +102,6 @@ or you can use the %apply directive :
 // T_OUTPUT typemap (and helper function) to return multiple argouts as
 // a tuple instead of a list.
 //
-// Author: Robin Dunn
 //----------------------------------------------------------------------
 
 // Simple types
