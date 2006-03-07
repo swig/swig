@@ -433,7 +433,6 @@ public:
     }
     
     Printv(module_func,module_name,NIL);
-    if (goops)
     Replaceall(module_func,"-", "_");
     
     switch (linkage) {
