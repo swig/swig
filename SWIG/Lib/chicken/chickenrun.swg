@@ -1,9 +1,10 @@
-/* -*- c -*-
- * -----------------------------------------------------------------------
- * swig_lib/chicken/chickenrun.swg
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author: John Lenz <lenz@cs.wisc.edu>
- * ----------------------------------------------------------------------- */
+ * chickenrun.swg
+ *
+ * ----------------------------------------------------------------------------- */
 
 #include <chicken.h>
 #include <stdio.h>

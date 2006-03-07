@@ -1,12 +1,14 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * pyrun.swg
  *
- *     This file contains the runtime support for Python modules
- *     and includes code for managing global variables and pointer
- *     type checking.
+ * This file contains the runtime support for Python modules
+ * and includes code for managing global variables and pointer
+ * type checking.
  *
- * Author : David Beazley (beazley@cs.uchicago.edu)
- ************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 /* Common SWIG API */
 

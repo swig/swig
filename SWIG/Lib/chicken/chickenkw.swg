@@ -1,5 +1,5 @@
-#ifndef __chicken_chickenkw_swg__
-#define __chicken_chickenkw_swg__
+#ifndef CHICKEN_CHICKENKW_SWG_
+#define CHICKEN_CHICKENKW_SWG_
 
 /* Warnings for certain CHICKEN keywords. From Section 7.1.1 of
    Revised^5 Report on the Algorithmic Language Scheme */
@@ -28,4 +28,4 @@ CHICKENKW(quasiquote);
 
 #undef CHICKENKW 
 
-#endif //__chicken_chickenkw_swg__
+#endif //CHICKEN_CHICKENKW_SWG_
