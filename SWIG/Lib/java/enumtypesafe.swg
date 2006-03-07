@@ -1,4 +1,9 @@
 /* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * enumtypesafe.swg
+ *
  * Include this file in order for C/C++ enums to be wrapped by the so called
  * typesafe enum pattern. Each enum has an equivalent Java class named after the
  * enum and each enum item is a static instance of this class.

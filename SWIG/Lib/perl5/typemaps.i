@@ -1,26 +1,20 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * The SWIG typemap library provides a language independent mechanism for
+ * supporting output arguments, input values, and other C function
+ * calling mechanisms.  The primary use of the library is to provide a
+ * better interface to certain C function--especially those involving
+ * pointers.
+ * ----------------------------------------------------------------------------- */
+
 #if !defined(SWIG_USE_OLD_TYPEMAPS)
 %include <typemaps/typemaps.swg>
 #else
 
-//
-// SWIG Typemap library
-// Dave Beazley
-// May 5, 1997
-//
-// Perl5 implementation
-//
-// This library provides standard typemaps for modifying SWIG's behavior.
-// With enough entries in this file, I hope that very few people actually
-// ever need to write a typemap.
-//
-
-/*
-The SWIG typemap library provides a language independent mechanism for
-supporting output arguments, input values, and other C function
-calling mechanisms.  The primary use of the library is to provide a
-better interface to certain C function--especially those involving
-pointers.
-*/
 
 // INPUT typemaps.
 // These remap a C pointer to be an "INPUT" value which is passed by value

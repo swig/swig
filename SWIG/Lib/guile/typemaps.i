@@ -1,7 +1,11 @@
-/* typemaps.i --- guile-specific typemaps -*- c -*-
-   Copyright (C) 2000 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-
-   $Header$  */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ *
+ * Guile-specific typemaps
+ * ----------------------------------------------------------------------------- */
 
 /* Pointers */
 

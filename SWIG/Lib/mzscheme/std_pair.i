@@ -1,9 +1,11 @@
-//
-// SWIG typemaps for std::pair
-// Luigi Ballabio
-// July 2003
-//
-// MzScheme implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_pair.i
+ *
+ * SWIG typemaps for std::pair
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 %include <exception.i>

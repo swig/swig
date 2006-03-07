@@ -1,24 +1,28 @@
-/* arrays_java.i
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * arrays_java.i
+ *
  * These typemaps give more natural support for arrays. The typemaps are not efficient
  * as there is a lot of copying of the array values whenever the array is passed to C/C++ 
  * from Java and visa versa. The Java array is expected to be the same size as the C array.
  * An exception is thrown if they are not.
-
-   Example usage:
-   Wrapping:
-
-     %include <arrays_java.i>
-     %inline %{
-         short FiddleSticks[3];
-     %}
-
-   Use from Java like this:
-
-     short[] fs = new short[] {10, 11, 12};
-     example.setFiddleSticks(fs);
-     fs = example.getFiddleSticks();
-
- */
+ *
+ * Example usage:
+ * Wrapping:
+ *
+ *   %include <arrays_java.i>
+ *   %inline %{
+ *       short FiddleSticks[3];
+ *   %}
+ *
+ * Use from Java like this:
+ *
+ *   short[] fs = new short[] {10, 11, 12};
+ *   example.setFiddleSticks(fs);
+ *   fs = example.getFiddleSticks();
+ * ----------------------------------------------------------------------------- */
 
 /* Primitive array support is a combination of SWIG macros and functions in order to reduce 
  * code bloat and aid maintainability. The SWIG preprocessor expands the macros into functions 

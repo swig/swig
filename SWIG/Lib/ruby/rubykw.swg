@@ -1,5 +1,5 @@
-#ifndef __ruby_rubykw_swg__
-#define __ruby_rubykw_swg__
+#ifndef RUBY_RUBYKW_SWG_
+#define RUBY_RUBYKW_SWG_
 
 /* Warnings for Ruby keywords */
 #define RUBYKW(x) %keywordwarn("'" `x` "' is a ruby keyword, and it will renamed as 'C_"`x`"'",rename="C_%s",fullname=1)  `x`
@@ -52,4 +52,4 @@ RUBYKW(yield);
 
 #undef RUBYKW
 
-#endif //__ruby_rubykw_swg__
+#endif //RUBY_RUBYKW_SWG_

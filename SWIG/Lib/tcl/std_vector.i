@@ -1,9 +1,9 @@
-//
-// SWIG typemaps for std::vector
-// Luigi Ballabio and Manu ??? and Kristopher Blom
-// Apr 26, 2002, updated Nov 13, 2002[blom]
-//
-// Tcl implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_vector.i
+ * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 

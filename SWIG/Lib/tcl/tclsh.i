@@ -1,9 +1,11 @@
-// $Header$
-//
-// SWIG File for building new tclsh program
-// Dave Beazley
-// April 25, 1996
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * tclsh.i
+ *
+ * SWIG File for building new tclsh program
+ * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
 %subsection "tclsh.i"

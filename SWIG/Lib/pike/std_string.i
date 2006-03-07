@@ -1,9 +1,11 @@
-//
-// SWIG typemaps for std::string
-// Lyle Johnson
-// May 1, 2003
-//
-// Pike implementation
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * std_string.i
+ *
+ * SWIG typemaps for std::string
+ * ----------------------------------------------------------------------------- */
 
 %{
 #include <string>

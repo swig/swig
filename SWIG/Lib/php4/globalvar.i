@@ -1,4 +1,11 @@
-/* Global variables - add the variable to PHP */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * globalvar.i
+ *
+ * Global variables - add the variable to PHP
+ * ----------------------------------------------------------------------------- */
 
 %typemap(varinit) char *,
                   char []

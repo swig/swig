@@ -1,9 +1,11 @@
-/*
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * php4.swg
  *
- * PHP 4 configuration file
- *
- */
+ * PHP4 configuration file
+ * ----------------------------------------------------------------------------- */
 
 %runtime "swigrun.swg"  // Common C API type-checking code
 %runtime "php4run.swg"	// Php4 runtime functions

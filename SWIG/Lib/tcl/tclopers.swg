@@ -1,9 +1,17 @@
-/* C++ overloaded operators.
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * tclopers.swg
+ *
+ * C++ overloaded operators.
+ *
+ * These declarations define how SWIG is going to rename C++
+ * overloaded operators in Tcl.  Since Tcl allows identifiers
+ * to be essentially any valid string, we'll just use the
+ * normal operator names.
+ * ----------------------------------------------------------------------------- */
 
-   These declarations define how SWIG is going to rename C++
-   overloaded operators in Tcl.  Since Tcl allows identifiers
-   to be essentially any valid string, we'll just use the
-   normal operator names */
 
 #ifdef __cplusplus
 %rename("+")         *::operator+;

@@ -1,11 +1,15 @@
-// 
-// SWIG constraint library
-// Dave Beazley
-// May 4, 1997
-//
-// This library file contains typemaps for implementing various kinds of 
-// constraints.  Depends upon the SWIG exception library for generating
-// errors in a language-independent manner.
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * constraints.i
+ *
+ * SWIG constraints library.
+ *
+ * SWIG library file containing typemaps for implementing various kinds of 
+ * constraints.  Depends upon the SWIG exception library for generating
+ * errors in a language-independent manner.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC
 %text %{

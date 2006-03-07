@@ -1,5 +1,5 @@
-#ifndef __java_javakw_swg__
-#define __java_javakw_swg__
+#ifndef JAVA_JAVAKW_SWG_
+#define JAVA_JAVAKW_SWG_
 
 /* Warnings for Java keywords */
 #define JAVAKW(x) %namewarn("314:" #x " is a java keyword")  #x
@@ -67,4 +67,4 @@ JAVAKW(while);
 
 #undef JAVAKW
 
-#endif //__java_javakw_swg__
+#endif //JAVA_JAVAKW_SWG_

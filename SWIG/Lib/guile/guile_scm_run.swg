@@ -1,9 +1,9 @@
-/* -*- c -*-
- * -----------------------------------------------------------------------
- * swig_lib/guile/guile_scm_run.swg
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * Author: John Lenz <jelenz@wisc.edu>
- * ----------------------------------------------------------------------- */
+ * guile_scm_run.swg
+ * ----------------------------------------------------------------------------- */
 
 #include <libguile.h>
 #include <stdio.h>

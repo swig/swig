@@ -1,5 +1,13 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * attribute.i
+ *
+ * SWIG library file for implementing attributes.
+ * ----------------------------------------------------------------------------- */
+
 /*
-  Attribute implementation using JOHN E LENZ ideas.
 
   The following macros convert a pair of set/get methods
   into a "native" attribute.

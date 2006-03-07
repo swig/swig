@@ -1,13 +1,13 @@
-/* -*- C++ -*- */
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * director.swg
  *
- *     This file contains support for director classes that proxy
- *     method calls from C++ to Ocaml extensions.
+ * This file contains support for director classes that proxy
+ * method calls from C++ to Ocaml extensions.
  *
- * Modified for Ocaml by : Art Yerkes
- * Original Author : Mark Rose (mrose@stm.lbl.gov)
- ************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 

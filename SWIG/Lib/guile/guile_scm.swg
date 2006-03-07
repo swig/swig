@@ -1,7 +1,12 @@
-/* -*- c -*-
-   This SWIG interface file is processed if the Guile module is run
-   with SCM_ flavor.
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * guile_scm.swg
+ *
+ * This SWIG interface file is processed if the Guile module is run
+ * with SCM_ flavor.
+ * ----------------------------------------------------------------------------- */
 
 #define SWIGGUILE_SCM
 

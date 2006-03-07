@@ -1,7 +1,12 @@
-//
-// The 'keywords' in PHP are global, ie, the following names are fine
-// when used as class methods.
-//
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * php4kw.swg
+ *
+ * The 'keywords' in PHP are global, ie, the following names are fine
+ * when used as class methods.
+ * ----------------------------------------------------------------------------- */
 
 #define PHPKW(x) %keywordwarn(`x` " is a php keyword, renamed as c_"`x`,sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
 

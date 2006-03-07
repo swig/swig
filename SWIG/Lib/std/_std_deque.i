@@ -1,7 +1,13 @@
-/* This file contains a generic definition of std::deque along with
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * _std_deque.i
+ *
+ * This file contains a generic definition of std::deque along with
  * some helper functions.  Specific language modules should include
  * this file to generate wrappers. 
- */
+ * ----------------------------------------------------------------------------- */
 
 %include <std_except.i>
 

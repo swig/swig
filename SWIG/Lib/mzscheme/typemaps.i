@@ -1,9 +1,9 @@
-/* typemaps.i --- mzscheme typemaps -*- c -*-
-   Copyright 2000, 2001, 2004, 2006 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-   Based on code written by Oleg Tolmatcev.
-
-   $Id$
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * typemaps.i
+ * ----------------------------------------------------------------------------- */
 
 /* The MzScheme module handles all types uniformly via typemaps. Here
    are the definitions.  */

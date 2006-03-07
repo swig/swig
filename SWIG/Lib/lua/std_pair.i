@@ -1,10 +1,11 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * std_pair.i
  *
- *     std::pair typemaps for LUA
- *
- * Author : Mark Gossage (mark@gossage.cjb.net)
- ************************************************************************/
+ * std::pair typemaps for LUA
+ * ----------------------------------------------------------------------------- */
 
 %{
 #include <utility>

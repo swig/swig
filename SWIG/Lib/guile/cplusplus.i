@@ -1,6 +1,11 @@
-/* SWIG typemaps for C++ */
-
-/* By Marcio Luis Teixeira <marciot@holly.colostate.edu>: */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * cplusplus.i
+ *
+ * SWIG typemaps for C++
+ * ----------------------------------------------------------------------------- */
 
 %typemap(guile,out) string, std::string {
   $result = gh_str02scm(const_cast<char*>($1.c_str()));

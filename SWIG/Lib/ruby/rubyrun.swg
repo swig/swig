@@ -1,5 +1,11 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * rubyrun.swg
+ *
+ * ----------------------------------------------------------------------------- */
+/***********************************************************************
  *
  *     This file contains the runtime support for Ruby modules
  *     and includes code for managing global variables and pointer

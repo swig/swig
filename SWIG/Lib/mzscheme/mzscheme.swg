@@ -1,6 +1,12 @@
-/* SWIG Configuration File for MzScheme. -*-c-*-
-   This file is parsed by SWIG before reading any other interface
-   file. */
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * mzscheme.swg
+ *
+ * SWIG Configuration File for MzScheme.
+ * This file is parsed by SWIG before reading any other interface file.
+ * ----------------------------------------------------------------------------- */
 
 /* Include headers */
 %runtime "swigrun.swg"     // Common C API type-checking code

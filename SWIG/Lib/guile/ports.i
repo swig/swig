@@ -1,8 +1,11 @@
-/* ports.i --- Guile typemaps for handling ports -*- c -*-
-   Copyright (C) 2000, 2004 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-
-   $Header$
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * ports.i
+ *
+ * Guile typemaps for handling ports
+ * ----------------------------------------------------------------------------- */
 
 %{
   #ifndef _POSIX_SOURCE

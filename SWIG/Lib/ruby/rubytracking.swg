@@ -1,12 +1,14 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * rubytracking.swg
  *
  * This file contains support for tracking mappings from 
  * Ruby objects to C++ objects.  This functionality is needed
  * to implement mark functions for Ruby's mark and sweep
  * garbage collector.
- ************************************************************************/
-
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 extern "C" {

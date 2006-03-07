@@ -1,10 +1,11 @@
-/* -*- c -*-
- * -----------------------------------------------------------------------
- * Lib/guile/guile_gh_run.swg
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * guile_gh_run.swg
  *
  * Guile GH runtime file
- * Copyright (C) 2004 John Lenz <lenz@cs.wisc.edu>
- * ----------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 #define SWIGGUILE
 #include "guile/gh.h"

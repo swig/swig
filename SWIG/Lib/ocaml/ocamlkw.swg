@@ -1,5 +1,5 @@
-#ifndef __ocaml_ocamlkw_swg__
-#define __ocaml_ocamlkw_swg__
+#ifndef OCAML_OCAMLKW_SWG_
+#define OCAML_OCAMLKW_SWG_
 
 /* Warnings for Ocaml keywords */
 #define OCAMLKW(x) %namewarn("314:" #x " is a ocaml keyword and it will properly renamed")  #x
@@ -61,4 +61,4 @@ OCAMLKW(with);
 
 #undef OCAMLKW
 
-#endif //__ocaml_ocamlkw_swg__
+#endif //OCAML_OCAMLKW_SWG_

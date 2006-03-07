@@ -1,14 +1,12 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * director.swg
  *
- *     This file contains support for director classes that proxy
- *     method calls from C++ to Java extensions.
- *
- * Author : Scott Michel (scottm@aero.org)
- *
- * This file was adapted from the python director.swg, written by
- * Mark Rose (mrose@stm.lbl.gov)
- ************************************************************************/
+ * This file contains support for director classes that proxy
+ * method calls from C++ to Java extensions.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 

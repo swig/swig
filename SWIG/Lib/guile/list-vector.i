@@ -1,10 +1,11 @@
-/* list-vector.i --- Guile typemaps for converting between -*- c -*- arrays
-		     and Scheme lists or vectors  
-
-   Copyright (C) 2001, 2002 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
-
-   $Header$
-*/
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * list_vector.i
+ *
+ * Guile typemaps for converting between arrays and Scheme lists or vectors  
+ * ----------------------------------------------------------------------------- */
 
 /* Here is a macro that will define typemaps for converting between C
    arrays and Scheme lists or vectors when passing arguments to the C

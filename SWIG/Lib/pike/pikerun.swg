@@ -1,12 +1,13 @@
-/***********************************************************************
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
  * pikerun.swg
  *
- *     This file contains the runtime support for Pike modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- * Author : Lyle Johnson (lyle@users.sourceforge.net)
- ************************************************************************/
+ * This file contains the runtime support for Pike modules
+ * and includes code for managing global variables and pointer
+ * type checking.
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 extern "C" {
