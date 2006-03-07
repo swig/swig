@@ -50,6 +50,7 @@ static const char *usage1 = (const char*)"\
      -co <file>      - Check <file> out of the SWIG library\n\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
      -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
+     -copyright      - Display copyright notices\n\
      -debug_template - Display information for debugging templates\n\
      -debug_typemap  - Display information for debugging typemaps\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
@@ -569,12 +570,17 @@ void SWIG_getoptions(int argc, char *argv[])
 	    }
 	  } else if (strcmp(argv[i],"-version") == 0) {
 	      fprintf(stdout,"\nSWIG Version %s\n", swig_package_version());
+	      fprintf(stdout,"\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
+	      fprintf(stdout,"Please see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
+	      SWIG_exit (EXIT_SUCCESS);
+	  } else if (strcmp(argv[i],"-copyright") == 0) {
+	      fprintf(stdout,"\nSWIG Version %s\n", swig_package_version());
 	      fprintf(stdout,"Copyright (c) 1995-1998\n");
 	      fprintf(stdout,"University of Utah and the Regents of the University of California\n");
 	      fprintf(stdout,"Copyright (c) 1998-2005\n");
 	      fprintf(stdout,"University of Chicago\n");
-	      fprintf(stdout,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
-	      fprintf(stdout,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
+	      fprintf(stdout,"Copyright (c) 2005-2006\n");
+	      fprintf(stdout,"Arizona Board of Regents (University of Arizona)\n");
 	      SWIG_exit (EXIT_SUCCESS);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path
