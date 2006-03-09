@@ -7,7 +7,11 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 {
   if (TYPE(obj) == T_STRING) {
+    #if defined(StringValuePtr)
     char *cstr = rb_string_value_ptr(&(obj)); 
+    #else
+    char *cstr = STR2CSTR(obj);
+    #endif
     size_t size = RSTRING(obj)->len + 1;
     if (cptr)  {
       if (alloc) {
