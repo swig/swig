@@ -1329,7 +1329,6 @@ AC_SUBST(PIKEDYNAMICLINKING)	dnl XXX: where is this used/defined?
 #----------------------------------------------------------------
 
 CHICKEN=
-CHICKEN_CONFIG=
 CHICKENHOME=
 CHICKENOPTS=
 CHICKENLIB=
@@ -1365,15 +1364,8 @@ else
 CHICKEN_CSI="$CHICKEN_CSI"
 fi
 
-AC_ARG_WITH(chickencfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
 
-if test -z "$CHICKEN_CONFIG"; then
-AC_CHECK_PROGS(CHICKEN_CONFIG, chicken-config)
-else
-CHICKEN_CONFIG="$CHICKEN_CONFIG"
-fi
-
-if test -n "$CHICKEN_CONFIG" ; then
+if test -n "$CHICKEN_CSC" ; then
 
   AC_ARG_WITH(chickenhome,[  --with-chickenhome=path Set location of CHICKEN home directory],[
 	CHICKENHOME="$withval"], [CHICKENHOME=])
@@ -1387,7 +1379,7 @@ if test -n "$CHICKEN_CONFIG" ; then
 	CHICKENLIB="$withval"], [CHICKENLIB=])
 
   AC_MSG_CHECKING(for CHICKEN home directory)
-  dirs="$CHICKENHOME `chicken-config -home | sed s/CHICKEN_HOME=//`"
+  dirs="$CHICKENHOME `csc -home | sed s/CHICKEN_HOME=//`"
   for i in $dirs ; do
   	if test -d $i; then
   		AC_MSG_RESULT($i)
@@ -1401,9 +1393,9 @@ if test -n "$CHICKEN_CONFIG" ; then
 
   AC_MSG_CHECKING(for compiler options for shared CHICKEN generated code)
   if test -z "$CHICKENSHAREDOPTS"; then
-        CHICKENSHAREDOPTS="`chicken-config -shared -cflags`"
+        CHICKENSHAREDOPTS="`csc -s -cflags`"
   else
-        CHICKENSHAREDOPTS="`chicken-config -shared -cflags` $CHICKENSHAREDOPTS"
+        CHICKENSHAREDOPTS="`csc -s -cflags` $CHICKENSHAREDOPTS"
   fi
   if test -z "$CHICKENSHAREDOPTS"; then
         AC_MSG_RESULT(not found)
@@ -1413,9 +1405,9 @@ if test -n "$CHICKEN_CONFIG" ; then
 
   AC_MSG_CHECKING(for compiler options for static CHICKEN generated code)
   if test -z "$CHICKENOPTS"; then
-        CHICKENOPTS="`chicken-config -cflags`"
+        CHICKENOPTS="`csc -cflags`"
   else
-        CHICKENOPTS="`chicken-config -cflags` $CHICKENOPTS"
+        CHICKENOPTS="`csc -cflags` $CHICKENOPTS"
   fi
   if test -z "$CHICKENOPTS"; then
         AC_MSG_RESULT(not found)
@@ -1424,12 +1416,11 @@ if test -n "$CHICKEN_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for shared CHICKEN generated code)
-  dirs="$CHICKENSHAREDLIB `chicken-config -shared -libs -extra-libs | sed s/-L//g` /usr/lib"
+  dirs="$CHICKENSHAREDLIB `csc -s -ldflags -libs | sed s/-L//g` /usr/lib"
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
-  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `chicken-config -shared -extra-libs`"
-  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `chicken-config -shared -libs`"
+  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `csc -s -ldflags -libs`"
   	    break
   	fi
   done
@@ -1438,12 +1429,11 @@ if test -n "$CHICKEN_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for static CHICKEN generated code)
-  dirs="$CHICKENLIB `chicken-config -libs -extra-libs | sed s/-L//g` /usr/lib "
+  dirs="$CHICKENLIB `csc -ldflags -libs | sed s/-L//g` /usr/lib "
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
-  	    CHICKENLIB="$CHICKENLIB `chicken-config -extra-libs`"
-  	    CHICKENLIB="$CHICKENLIB `chicken-config -libs`"
+  	    CHICKENLIB="$CHICKENLIB `csc -ldflags -libs`"
   	    break
   	fi
   done
@@ -1451,13 +1441,12 @@ if test -n "$CHICKEN_CONFIG" ; then
   	AC_MSG_RESULT(not found)
   fi
 
-fi # have CHICKEN_CONFIG
+fi # have CHICKEN_CSC
 fi # Check for --without-chicken
 
 AC_SUBST(CHICKEN)
 AC_SUBST(CHICKEN_CSC)
 AC_SUBST(CHICKEN_CSI)
-AC_SUBST(CHICKEN_CONFIG)
 AC_SUBST(CHICKENHOME)
 AC_SUBST(CHICKENOPTS)
 AC_SUBST(CHICKENSHAREDOPTS)
@@ -1480,7 +1469,18 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs cscc);;
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs cscc)
+    if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
+      AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
+      csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
+      if test -z "$CSHARPCOMPILER" ; then
+        AC_MSG_RESULT(no)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc)
+      else
+        AC_MSG_RESULT(yes)
+      fi
+    fi
+    ;;
   *)AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc);;
   esac
 else
