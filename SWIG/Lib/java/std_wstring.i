@@ -66,14 +66,15 @@ class wstring;
   jenv->ReleaseStringChars($input, $1_pstr);
  %}
 
-%typemap(directorin,descriptor="Ljava/lang/String;") wstring 
-%{jsize $1_len = $1.length();
+%typemap(directorin,descriptor="Ljava/lang/String;") wstring {
+  jsize $1_len = $1.length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)$1[i];
   }
   $input = jenv->NewString(conv_buf, $1_len);
-  delete [] conv_buf; %}
+  delete [] conv_buf;
+}
 
 %typemap(out) wstring
 %{jsize $1_len = $1.length();
@@ -137,14 +138,15 @@ class wstring;
   $1 = &$1_str;
   jenv->ReleaseStringChars($input, $1_pstr); %}
 
-%typemap(directorin,descriptor="Ljava/lang/String;") const wstring &
-%{jsize $1_len = $1.length();
+%typemap(directorin,descriptor="Ljava/lang/String;") const wstring & {
+  jsize $1_len = $1.length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)($1)[i];
   }
   $input = jenv->NewString(conv_buf, $1_len);
-  delete [] conv_buf; %}
+  delete [] conv_buf;
+}
 
 %typemap(out) const wstring & 
 %{jsize $1_len = $1->length();
