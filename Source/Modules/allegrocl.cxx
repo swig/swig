@@ -2273,7 +2273,7 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   else
   {
     Printf(f_cl, "(swig-defun (\"%s\" \"%s\")\n", funcname,
-	   Generate_Wrapper ? mangled_name : "");
+	   Generate_Wrapper ? mangled_name : funcname);
   }
 
   //////////////////////////////////////
