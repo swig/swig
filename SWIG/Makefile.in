@@ -13,7 +13,8 @@ srcdir      = @srcdir@
 SHELL       = /bin/sh
 SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
-TARGET      = swig@release_suffix@@EXEEXT@
+TARGET_NOEXE= swig
+TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 
 swig: libfiles source
@@ -355,6 +356,8 @@ INSTALL         = @abs_srcdir@/Tools/config/install-sh -c
 INSTALL_DATA    = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL} -m 755
 MKINSTDIRS      = @abs_srcdir@/Tools/config/install-sh -m 0755 -d
+# Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
+transform	= @program_transform_name@
 
 install: install-main install-lib
 	@echo "Installation complete"
@@ -362,8 +365,8 @@ install: install-main install-lib
 install-main:
 	@echo "Installing SWIG executable"
 	@$(MKINSTDIRS) $(DESTDIR)$(BIN_DIR)
-	@echo "Installing $(BIN_DIR)/$(TARGET)"
-	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
+	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
+	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi
@@ -409,8 +412,8 @@ uninstall: uninstall-main uninstall-lib
 	@echo "Uninstall complete"
 
 uninstall-main:
-	@echo "Uninstalling $(DESTDIR)$(BIN_DIR)/$(TARGET)"
-	rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET)
+	@echo "Uninstalling SWIG executable $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
+	rm -f $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
