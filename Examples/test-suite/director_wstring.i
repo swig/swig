@@ -44,6 +44,12 @@ struct A
   {
   }
 
+  virtual std::wstring multiple_params_val(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
+  { return get_first(); }
+  
+  virtual const std::wstring& multiple_params_ref(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
+  { return get_first(); }
+  
   void call_process_func() { process_text(L"hello"); }
  };
  
