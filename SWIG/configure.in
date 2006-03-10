@@ -1329,6 +1329,7 @@ AC_SUBST(PIKEDYNAMICLINKING)	dnl XXX: where is this used/defined?
 #----------------------------------------------------------------
 
 CHICKEN=
+CHICKEN_CONFIG=
 CHICKENHOME=
 CHICKENOPTS=
 CHICKENLIB=
@@ -1364,8 +1365,15 @@ else
 CHICKEN_CSI="$CHICKEN_CSI"
 fi
 
+AC_ARG_WITH(chickencfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
 
-if test -n "$CHICKEN_CSC" ; then
+if test -z "$CHICKEN_CONFIG"; then
+AC_CHECK_PROGS(CHICKEN_CONFIG, chicken-config)
+else
+CHICKEN_CONFIG="$CHICKEN_CONFIG"
+fi
+
+if test -n "$CHICKEN_CONFIG" ; then
 
   AC_ARG_WITH(chickenhome,[  --with-chickenhome=path Set location of CHICKEN home directory],[
 	CHICKENHOME="$withval"], [CHICKENHOME=])
@@ -1379,7 +1387,7 @@ if test -n "$CHICKEN_CSC" ; then
 	CHICKENLIB="$withval"], [CHICKENLIB=])
 
   AC_MSG_CHECKING(for CHICKEN home directory)
-  dirs="$CHICKENHOME `csc -home | sed s/CHICKEN_HOME=//`"
+  dirs="$CHICKENHOME `chicken-config -home | sed s/CHICKEN_HOME=//`"
   for i in $dirs ; do
   	if test -d $i; then
   		AC_MSG_RESULT($i)
@@ -1393,9 +1401,9 @@ if test -n "$CHICKEN_CSC" ; then
 
   AC_MSG_CHECKING(for compiler options for shared CHICKEN generated code)
   if test -z "$CHICKENSHAREDOPTS"; then
-        CHICKENSHAREDOPTS="`csc -s -cflags`"
+        CHICKENSHAREDOPTS="`chicken-config -shared -cflags`"
   else
-        CHICKENSHAREDOPTS="`csc -s -cflags` $CHICKENSHAREDOPTS"
+        CHICKENSHAREDOPTS="`chicken-config -shared -cflags` $CHICKENSHAREDOPTS"
   fi
   if test -z "$CHICKENSHAREDOPTS"; then
         AC_MSG_RESULT(not found)
@@ -1405,9 +1413,9 @@ if test -n "$CHICKEN_CSC" ; then
 
   AC_MSG_CHECKING(for compiler options for static CHICKEN generated code)
   if test -z "$CHICKENOPTS"; then
-        CHICKENOPTS="`csc -cflags`"
+        CHICKENOPTS="`chicken-config -cflags`"
   else
-        CHICKENOPTS="`csc -cflags` $CHICKENOPTS"
+        CHICKENOPTS="`chicken-config -cflags` $CHICKENOPTS"
   fi
   if test -z "$CHICKENOPTS"; then
         AC_MSG_RESULT(not found)
@@ -1416,11 +1424,12 @@ if test -n "$CHICKEN_CSC" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for shared CHICKEN generated code)
-  dirs="$CHICKENSHAREDLIB `csc -s -ldflags -libs | sed s/-L//g` /usr/lib"
+  dirs="$CHICKENSHAREDLIB `chicken-config -shared -libs -extra-libs | sed s/-L//g` /usr/lib"
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
-  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `csc -s -ldflags -libs`"
+  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `chicken-config -shared -extra-libs`"
+  	    CHICKENSHAREDLIB="$CHICKENSHAREDLIB `chicken-config -shared -libs`"
   	    break
   	fi
   done
@@ -1429,11 +1438,12 @@ if test -n "$CHICKEN_CSC" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for static CHICKEN generated code)
-  dirs="$CHICKENLIB `csc -ldflags -libs | sed s/-L//g` /usr/lib "
+  dirs="$CHICKENLIB `chicken-config -libs -extra-libs | sed s/-L//g` /usr/lib "
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
-  	    CHICKENLIB="$CHICKENLIB `csc -ldflags -libs`"
+  	    CHICKENLIB="$CHICKENLIB `chicken-config -extra-libs`"
+  	    CHICKENLIB="$CHICKENLIB `chicken-config -libs`"
   	    break
   	fi
   done
@@ -1441,12 +1451,13 @@ if test -n "$CHICKEN_CSC" ; then
   	AC_MSG_RESULT(not found)
   fi
 
-fi # have CHICKEN_CSC
+fi # have CHICKEN_CONFIG
 fi # Check for --without-chicken
 
 AC_SUBST(CHICKEN)
 AC_SUBST(CHICKEN_CSC)
 AC_SUBST(CHICKEN_CSI)
+AC_SUBST(CHICKEN_CONFIG)
 AC_SUBST(CHICKENHOME)
 AC_SUBST(CHICKENOPTS)
 AC_SUBST(CHICKENSHAREDOPTS)
