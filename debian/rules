@@ -12,7 +12,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	./autogen-debian.sh
-	./configure --prefix=/usr --mandir=/usr/share/man --with-swiglibdir=/usr/share/swig1.3 --with-release-suffix=-1.3
+	./configure --prefix=/usr --mandir=/usr/share/man --with-swiglibdir=/usr/share/swig1.3 --program-suffix=-1.3
 	touch configure-stamp
 
 build: configure-stamp build-stamp

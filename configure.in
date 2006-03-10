@@ -1913,14 +1913,6 @@ AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent li
 AC_SUBST(swig_lib)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
-# Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
-
-AC_ARG_WITH(release-suffix,
-  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary. ],
-  [release_suffix="$withval"], [release_suffix=""])
-AC_SUBST(release_suffix)
-AC_DEFINE_UNQUOTED(RELEASE_SUFFIX, "$release_suffix", [Executable release suffix for co-existence with older versions])
-
 AC_CONFIG_FILES([			        \
     Makefile				        \
     swig.spec				        \
