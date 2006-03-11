@@ -183,7 +183,7 @@ class JAVA : public Language {
     String *dirclassname;
     const char *attrib = "director:classname";
 
-    if ((dirclassname = Getattr(n, attrib)) == NULL) {
+    if (!(dirclassname = Getattr(n, attrib))) {
       String *classname = Getattr(n, "sym:name");
 
       dirclassname = NewStringf("SwigDirector_%s", classname);
@@ -646,7 +646,7 @@ class JAVA : public Language {
     String             *key = NewStringf("%s|%s", imclass_method, decl);
     
     /* Do we know about this director class already? */
-    if ((udata = Getattr(dmethods_table, key)) != NULL) {
+    if ((udata = Getattr(dmethods_table, key))) {
       Delete(key);
       return Getattr(udata, "methodoff");
     }
@@ -2102,13 +2102,13 @@ class JAVA : public Language {
       javaconstruct_attrs = NewHash();
       javaconstruct_tm = Copy(typemapLookup("javaconstruct", Getattr(n,"name"),
                                             WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, javaconstruct_attrs));
-      if (javaconstruct_tm != NULL) {
+      if (javaconstruct_tm) {
         if (!feature_director) {
           Replaceall(javaconstruct_tm, "$directorconnect", "");
         } else {
           String *connect_attr = Getattr(javaconstruct_attrs, "tmap:javaconstruct:directorconnect");
 
-          if (connect_attr != NULL) {
+          if (connect_attr) {
             Replaceall(javaconstruct_tm, "$directorconnect", connect_attr);
           } else {
             Swig_warning(WARN_JAVA_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorconnect\" attribute missing in %s \"javaconstruct\" typemap.\n", Getattr(n,"name"));
@@ -2771,10 +2771,10 @@ class JAVA : public Language {
       Wrapper_add_local(w, "i", "int i");
 
       Printf(w->code, "Swig::jclass_%s = (jclass) jenv->NewGlobalRef(jcls);\n", imclass_name);
-      Printf(w->code, "if (Swig::jclass_%s == NULL) return;\n", imclass_name);
+      Printf(w->code, "if (!Swig::jclass_%s) return;\n", imclass_name);
       Printf(w->code, "for (i = 0; i < (int) (sizeof(methods)/sizeof(methods[0])); ++i) {\n");
       Printf(w->code, "  Swig::director_methids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
-      Printf(w->code, "  if (Swig::director_methids[i] == NULL) return;\n");
+      Printf(w->code, "  if (!Swig::director_methids[i]) return;\n");
       Printf(w->code, "}\n");
 
       Printf(w->code, "}\n");
@@ -2886,7 +2886,7 @@ class JAVA : public Language {
     method_attr = Getattr(tmattrs, method_attr_name);
 
     if (*Char(tm)) {
-      if (method_attr != NULL) {
+      if (method_attr) {
         String *codebody = Copy(tm);
         Replaceall(codebody, "$methodname", method_attr);
         Replaceall(codebody, "$jnicall", jnicall);
@@ -3022,7 +3022,7 @@ class JAVA : public Language {
             Symtab *symtab = Getattr(n, "sym:symtab");
             Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
 
-            if (SwigType_ispointer(returntype) || (typenode != NULL && Getattr(typenode, "abstract"))) {
+            if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
               /* initialize pointers to something sane. Same for abstract
                  classes when a reference is returned. */
               Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= 0", NIL);
@@ -3049,7 +3049,7 @@ class JAVA : public Language {
           SwigType *vt;
 
           vt = cplus_value_type(returntype);
-          if (vt == NULL) {
+          if (!vt) {
             Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
           } else {
             Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), NIL);
@@ -3061,7 +3061,7 @@ class JAVA : public Language {
         Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
         tm = Swig_typemap_lookup_new("jtype", tp, "", 0);
-        if (tm != NULL) {
+        if (tm) {
           Printf(imw->def, "public static %s %s(%s self", tm, imclass_dmethod, classname);
         } else {
           Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
@@ -3075,7 +3075,7 @@ class JAVA : public Language {
 
       Parm  *retpm = NewParmFromNode(returntype, empty_str, n);
       
-      if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0)) != NULL) {
+      if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0))) {
         String *jdesc;
         Parm *tp = NewParmFromNode(jniret_type, empty_str, n);
 
@@ -3085,8 +3085,8 @@ class JAVA : public Language {
           Delete(jretval_decl);
         }
 
-        if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
-            && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
+        if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+            && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
           String *jnidesc_canon;
 
           jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
@@ -3111,8 +3111,8 @@ class JAVA : public Language {
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
       Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
 
-      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0)) != NULL
-          && (jdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor")) != NULL) {
+      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0))
+          && (jdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
         String *jnidesc_canon;
 
         // Note that in the case of polymorphic (covariant) return types, the
@@ -3136,7 +3136,7 @@ class JAVA : public Language {
       String *arg = Getattr(p, "name");
       String *lname = NewString("");
 
-      if (arg == NULL && Cmp(Getattr(p, "type"), "void")) {
+      if (!arg && Cmp(Getattr(p, "type"), "void")) {
         lname = NewStringf("arg%d", i);
         Setattr(p, "name", lname);
       } else
@@ -3191,14 +3191,14 @@ class JAVA : public Language {
     Printf(w->code, "}\n");
     Printf(w->code, "jenv = swig_acquire_jenv();\n");
     Printf(w->code, "jobj = swig_get_self(jenv);\n");
-    Printf(w->code, "if (jobj != NULL && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {\n");
+    Printf(w->code, "if (jobj && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {\n");
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
     Parm *tp = NewParmFromNode(c_classname, empty_str, n);
     String *jdesc;
 
-    if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
-        && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
+    if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+        && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
       String *jni_canon;
         
       jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
@@ -3214,7 +3214,7 @@ class JAVA : public Language {
     Delete(tp);
 
     /* Go through argument list, convert from native to Java */
-    for (p=l; p != NULL; /* empty */) {
+    for (p=l; p; /* empty */) {
       /* Is this superfluous? */
       while (checkAttribute(p,"tmap:directorin:numinputs","0")) {
         p = Getattr(p,"tmap:directorin:next");
@@ -3236,7 +3236,7 @@ class JAVA : public Language {
       Printf(jupcall_args, ", %s", arg);
 
       /* Get parameter's JNI C type */
-      if ((c_param_type = Getattr(p, "tmap:jni")) != NULL) {
+      if ((c_param_type = Getattr(p, "tmap:jni"))) {
         Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
         String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
 
@@ -3245,10 +3245,10 @@ class JAVA : public Language {
         Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
         /* Add input marshalling code and update JNI field descriptor */
-        if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
-            && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL
-            && (tm = Getattr(p, "tmap:directorin")) != NULL
-            && (cdesc = Getattr(p, "tmap:directorin:descriptor")) != NULL) {
+        if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+            && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))
+            && (tm = Getattr(p, "tmap:directorin"))
+            && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
           String *jni_canon;
         
           jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
@@ -3264,12 +3264,12 @@ class JAVA : public Language {
 
           /* Add parameter to the intermediate class code if generating the
            * intermediate's upcall code */
-          if ((tm = Getattr(p, "tmap:jtype")) != NULL) {
+          if ((tm = Getattr(p, "tmap:jtype"))) {
             String   *din;
             
             din = Copy(Getattr(p, "tmap:javadirectorin"));
 
-            if (din != NULL) {
+            if (din) {
               Replaceall(din, "$module", module_class_name);
               Replaceall(din, "$imclassname", imclass_name);
               substituteClassname(pt, din);
@@ -3302,20 +3302,20 @@ class JAVA : public Language {
 
           Delete(desc_tm);
         } else {
-          if (desc_tm == NULL) {
+          if (!desc_tm) {
             Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, 
                          "No or improper directorin typemap defined for %s\n", SwigType_str(c_param_type, 0));
             p = nextSibling(p);
-          } else if (jdesc == NULL) {
+          } else if (!jdesc) {
             Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number, 
                          "Missing JNI descriptor in directorin typemap defined for %s\n",
                          SwigType_str(c_param_type, 0));
             p = Getattr(p, "tmap:directorin:next");
-          } else if (tm == NULL) {
+          } else if (!tm) {
             Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, 
                          "No or improper directorin typemap defined for argument %s\n", SwigType_str(pt, 0));
             p = nextSibling(p);
-          } else if (cdesc == NULL) {
+          } else if (!cdesc) {
             Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number, 
                          "Missing JNI descriptor in directorin typemap defined for %s\n", SwigType_str(pt, 0));
             p = Getattr(p, "tmap:directorin:next");
@@ -3400,7 +3400,7 @@ class JAVA : public Language {
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0);
-      if (tm != NULL) {
+      if (tm) {
         substituteClassname(returntype, tm);
         Replaceall(tm, "$javacall", upcall);
 
@@ -3460,6 +3460,8 @@ class JAVA : public Language {
     Printf(w->code, "} else {\n");
     Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
     Printf(w->code, "}\n");
+
+    Printf(w->code, "if (jobj) jenv->DeleteLocalRef(jobj);\n");
 
     if (!is_void)
       Printf(w->code, "return %s;", qualified_return);
@@ -3530,7 +3532,7 @@ class JAVA : public Language {
     for (p = superparms; p; p = nextSibling(p)) {
       String   *pname = Getattr(p, "name");
 
-      if (pname == NULL) {
+      if (!pname) {
         pname = NewStringf("arg%d", argidx++);
         Setattr(p, "name", pname);
       }
@@ -3708,9 +3710,9 @@ class JAVA : public Language {
     }
 
     Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
-    Printf(w->code, "if (baseclass == NULL) {\n");
+    Printf(w->code, "if (!baseclass) {\n");
     Printf(w->code, "baseclass = jenv->FindClass(\"%s\");\n", internal_classname);
-    Printf(w->code, "if (baseclass == NULL) return;\n");
+    Printf(w->code, "if (!baseclass) return;\n");
     Printf(w->code, "baseclass = (jclass) jenv->NewGlobalRef(baseclass);\n");
     Printf(w->code, "}\n");
 
@@ -3729,9 +3731,9 @@ class JAVA : public Language {
 
       Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
       Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
-      Printf(w->code, "  if (methods[i].base_methid == NULL) {\n");
+      Printf(w->code, "  if (!methods[i].base_methid) {\n");
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
-      Printf(w->code, "    if (methods[i].base_methid == NULL) return;\n");
+      Printf(w->code, "    if (!methods[i].base_methid) return;\n");
       Printf(w->code, "  }\n");
       Printf(w->code, "  swig_override[i] = false;\n");
       Printf(w->code, "  if (derived) {\n");
