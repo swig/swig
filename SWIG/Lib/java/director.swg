@@ -27,7 +27,7 @@ namespace Swig {
     }
 
     bool set(JNIEnv *jenv, jobject jobj, bool mem_own, bool weak_global) {
-      if (jthis_ == NULL) {
+      if (!jthis_) {
         weak_global_ = weak_global;
         if (jobj)
           jthis_ = ((weak_global_ || !mem_own) ? jenv->NewWeakGlobalRef(jobj) : jenv->NewGlobalRef(jobj));
@@ -59,7 +59,7 @@ namespace Swig {
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "JObjectWrapper::release(" << jthis_ << "): " << (weak_global_ ? "weak global ref" : "global ref") << std::endl;
 #endif
-      if (jthis_ != NULL) {
+      if (jthis_) {
         if (weak_global_) {
           if (jenv->IsSameObject(jthis_, NULL) == JNI_FALSE)
             jenv->DeleteWeakGlobalRef((jweak)jthis_);
