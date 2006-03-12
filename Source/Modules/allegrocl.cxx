@@ -2839,7 +2839,7 @@ int ALLEGROCL :: classHandler(Node *n) {
       Strcmp(kind, "class") == 0 ||
       Strcmp(kind, "union") == 0)
   {
-    if (CPlusPlus)
+    if (Generate_Wrapper)
       return cppClassHandler(n);
     else
       return cClassHandler(n);
