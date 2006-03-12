@@ -1,6 +1,12 @@
 Version 1.3.29 (March 8, 2006)
 ==============================
 
+03/12/2006: mutandiz
+	    [allegrocl]
+	    fix up INPUT/OUTPUT typemaps for bool.
+	    Generate c++ style wrapper functions for struct/union members
+	    when -cwrap option specified.
+
 03/10/2006: mutandiz
 	    [allegrocl]
 	    Fix bug in C wrapper generation introduced by last allegrocl
