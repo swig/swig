@@ -4,7 +4,7 @@ void add(int *x, int *y, int *result) {
   *result = *x + *y;
 }
 
-void sub(int *x, int *y, int *result) {
+void subtract(int *x, int *y, int *result) {
   *result = *x - *y;
 }
 
