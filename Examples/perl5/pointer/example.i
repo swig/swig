@@ -3,7 +3,7 @@
 
 %{
 extern void add(int *, int *, int *);
-extern void sub(int *, int *, int *);
+extern void subtract(int *, int *, int *);
 extern int divide(int, int, int *);
 %}
 
@@ -18,7 +18,7 @@ extern void add(int *x, int *y, int *result);
 /* Next we'll use some typemaps */
 
 %include typemaps.i
-extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
+extern void subtract(int *INPUT, int *INPUT, int *OUTPUT);
 
 /* Next we'll use typemaps and the %apply directive */
 

@@ -31,7 +31,7 @@ example::delete_intp($c);
 # necessary to manufacture pointers.
 
 print "Trying the typemap library\n";
-$r = example::sub(37,42);
+$r = example::subtract(37,42);
 print "     37 - 42 = $r\n";
 
 # Now try the version with multiple return values
