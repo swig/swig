@@ -3033,7 +3033,7 @@ proxy, just before the return statement.
 
 // Add python code to bar() 
 
-%feature("pythonpreppend") Foo::bar(int) %{
+%feature("pythonprepend") Foo::bar(int) %{
    #do something before C++ call
 %}
 
@@ -3050,10 +3050,10 @@ public:
 </div>
 
 <p>
-Notes: Usually the <tt>pythonappend</tt> and <tt>pythonpreppend</tt>
+Notes: Usually the <tt>pythonappend</tt> and <tt>pythonprepend</tt>
 features are safer to use than the <tt>shadow</tt> feature. Also, from
 SWIG version 1.3.28 you can use the directive forms
-<tt>%pythonappend</tt>  and <tt>%pythonpreppend</tt> as follows:</p>
+<tt>%pythonappend</tt>  and <tt>%pythonprepend</tt> as follows:</p>
 
 
 <div class="code">
@@ -3062,7 +3062,7 @@ SWIG version 1.3.28 you can use the directive forms
 
 // Add python code to bar() 
 
-%pythonpreppend Foo::bar(int) %{
+%pythonprepend Foo::bar(int) %{
    #do something before C++ call
 %}
 
