@@ -173,12 +173,12 @@ These methods "may be called" if needed.
 /*
   Add python code to the proxy/shadow code 
   
-   %pythonpreppend  - Add code before the C++ function is called
+   %pythonprepend   - Add code before the C++ function is called
    %pythonappend    - Add code after the C++ function is called
 */
 
-#define %pythonpreppend       %feature("pythonpreppend") 
-#define %clearpythonpreppend  %feature("pythonpreppend","")
+#define %pythonprepend       %feature("pythonprepend") 
+#define %clearpythonprepend  %feature("pythonprepend","")
 
 #define %pythonappend         %feature("pythonappend") 
 #define %clearpythonappend    %feature("pythonappend","")
