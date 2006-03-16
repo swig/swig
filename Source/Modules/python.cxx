@@ -3617,8 +3617,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
     }
   } else {
-    Append(w->code, "swig::PyObject_var args = PyTuple_New(0);\n");
     if (modernargs) {
+      Append(w->code, "swig::PyObject_var args = PyTuple_New(0);\n");
       Append(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
     } else {
       Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, NULL, NULL);\n");
