@@ -19,7 +19,7 @@
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
                SWIGTYPE &       "(push (make-instance '$lclass :foreign-address $body) ACL_result)";
 
-%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization ACL_result #'$ldestructor))\n    (push new-inst ACL_result))";
+%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (push new-inst ACL_result))";
 
 %typemap(lisptype) bool "boolean";
 %typemap(lisptype) char "character";

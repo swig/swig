@@ -27,7 +27,7 @@ static File *f_cxx_wrapper=0;
 
 const char *identifier_converter="identifier-convert-null";
 
-static bool CWrap = false;  // generate wrapper file for C code?
+static bool CWrap = true;  // generate wrapper file for C code by default. most correct.
 static bool Generate_Wrapper = false;
 
 static String *current_namespace=NewString("");
@@ -43,7 +43,7 @@ static String *anon_type_name=NewString("anontype");
 static int anon_type_count=0;
 
 // stub
-String * convert_literal(String *num_param, String *type);
+String * convert_literal(String *num_param, String *type, bool try_to_split = true);
 
 class ALLEGROCL : public Language {
 public:
@@ -832,26 +832,59 @@ String *strip_parens(String *string) {
 
 int ALLEGROCL :: validIdentifier(String *s) {
   char *c = Char(s);
-  if (*c && !isalpha(*c) && *c != '_') return 0;
+
+  bool got_dot = false;
+  bool only_dots = true;
+
+  /* Check that s is a valid common lisp symbol. There's a lot of leeway here.
+     A common lisp symbol is essentially any token that's not a number and
+     does not consist of only dots. 
+
+     We are expressly not allowing spaces in identifiers here, but spaces
+     could be added via the identifier converter. */
   while (*c) {
-    if (!isalnum(*c) && *c != '_') return 0;
+    if (*c == '.') {
+      got_dot = true;
+    } else {
+      only_dots = false;
+    }
+    if (!isgraph(*c)) return 0;
     c++;
   }
-  return 1;
+
+  return (got_dot && only_dots) ? 0 : 1;
 }
 
 String *infix_to_prefix(String *val, char split_op, const String *op, String *type) {
   List *ored = Split(val, split_op, -1);
+
+  // some float hackery
+  if ( ((split_op == '+') || (split_op == '-')) && Len(ored) == 2 &&
+       (SwigType_type(type) == T_FLOAT || SwigType_type(type) == T_DOUBLE ||
+	SwigType_type(type) == T_LONGDOUBLE) ) {
+    // check that we're not splitting a float
+    String *possible_result = convert_literal(val, type, false);
+    if (possible_result) return possible_result;
+   
+  }
+
+  // try parsing the split results. if any part fails, kick out.
+  bool part_failed = false;
   if (Len(ored) > 1) {
     String *result = NewStringf("(%s", op);
     for (Iterator i = First(ored); i.item; i = Next(i)) {
       String *converted = convert_literal(i.item, type);
-      Printf(result, " %s", converted);
-      Delete(converted);
+      if(converted) {
+	Printf(result, " %s", converted);
+	Delete(converted);
+      } else {
+	part_failed = true;
+	break;
+      }
     }
     Printf(result, ")");
     Delete(ored);
-    return result;
+    return part_failed ? 0 : result;
   }
   else {
     Delete(ored);
@@ -859,39 +892,76 @@ String *infix_to_prefix(String *val, char split_op, const String *op, String *ty
   return 0;
 }
 
-/* to be called by code generating the lisp interface */
-String * convert_literal(String *num_param, String *type) {
+/* To be called by code generating the lisp interface
+   Will return a containing the literal based on type.
+   Will return null if there are problems.
+
+   try_to_split defaults to true (see stub above).
+ */
+String * convert_literal(String *literal, String *type, bool try_to_split) {
+  String *num_param = Copy(literal);
   String *trimmed = trim(num_param);
   String *num=strip_parens(trimmed), *res=0;
   char *s=Char(num);
 
+  String *ns = listify_namespace(current_namespace);
+
   // very basic parsing of infix expressions.
-  if( (res = infix_to_prefix(num, '|', "logior", type)) ) return res;
-  if( (res = infix_to_prefix(num, '&', "logand", type)) ) return res;
-  if( (res = infix_to_prefix(num, '^', "logxor", type)) ) return res;
-  if( (res = infix_to_prefix(num, '*', "*", type)) ) return res;  
-  if( (res = infix_to_prefix(num, '/', "/", type)) ) return res;  
-  if( (res = infix_to_prefix(num, '+', "+", type)) ) return res;
-  if( (res = infix_to_prefix(num, '-', "-", type)) ) return res;  
-  //  if( (res = infix_to_prefix(num, '<<', "ash", type)) ) return res;  
+  if(try_to_split) {
+    if( (res = infix_to_prefix(num, '|', "logior", type)) ) return res;
+    if( (res = infix_to_prefix(num, '&', "logand", type)) ) return res;
+    if( (res = infix_to_prefix(num, '^', "logxor", type)) ) return res;
+    if( (res = infix_to_prefix(num, '*', "*", type)) ) return res;  
+    if( (res = infix_to_prefix(num, '/', "/", type)) ) return res;  
+    if( (res = infix_to_prefix(num, '+', "+", type)) ) return res;
+    if( (res = infix_to_prefix(num, '-', "-", type)) ) return res;  
+    //  if( (res = infix_to_prefix(num, '<<', "ash", type)) ) return res;  
+  }
 
   if (SwigType_type(type) == T_FLOAT ||
       SwigType_type(type) == T_DOUBLE ||
       SwigType_type(type) == T_LONGDOUBLE) {
     // Use CL syntax for float literals 
     String *oldnum = Copy(num);
-    int fsuffixes = Replaceall(num, "f", "") + Replaceall(num, "F", "");
-    int lsuffixes = Replaceall(num, "l", "") + Replaceall(num, "L", "");
-    char const *lisp_exp = fsuffixes ? "f" : (lsuffixes ? "l" : "d");
-    int exponents = Replaceall(num, "e", lisp_exp) +
-                    Replaceall(num, "E", lisp_exp);
-    if ((fsuffixes + lsuffixes) > 1 || exponents > 1) {
-      Printf(stderr, "Weird!! number %s looks invalid.\n", oldnum);
-      SWIG_exit(EXIT_FAILURE);
+
+    // careful. may be a float identifier or float constant.
+    char *num_start = Char(num);
+    char *num_end = num_start + strlen(num_start) -1;
+
+    bool is_literal = isdigit(*num_start) || (*num_start == '.');
+
+    String *lisp_exp = 0;
+    if(is_literal) {
+      if (*num_end == 'f' || *num_end == 'F') {
+	lisp_exp = NewString("f");
+      } else {
+	lisp_exp = NewString("d");
+      }
+
+      if (*num_end == 'l' || *num_end == 'L' || *num_end == 'f' || *num_end == 'F') {
+	*num_end = '\0';
+	num_end--;
+      }
+
+      int exponents = Replaceall(num, "e", lisp_exp) +
+	              Replaceall(num, "E", lisp_exp);
+
+      if (!exponents)
+	Printf(num, "%s0", lisp_exp);
+
+      if (exponents > 1 || (exponents + Replaceall(num,".",".") == 0)) {
+	// Printf(stderr, "Can't parse '%s' as type '%s'.\n", oldnum, type);
+	Delete(num);
+	num = 0;
+      }
+    } else {
+      String *id = NewStringf("#.(swig-insert-id \"%s\" %s :type :constant)",
+			      num, ns);
+      Delete(num);
+      num = id;
     }
-    if (!exponents)
-      Printf(num, "%s0", lisp_exp);
-    Delete(oldnum); Delete(trimmed);
+
+    Delete(oldnum); Delete(trimmed); Delete(ns);
     return num;
   }
   else if (SwigType_type(type) == T_CHAR) {
@@ -906,7 +976,6 @@ String * convert_literal(String *num_param, String *type) {
   }
   else if (allegrocl->validIdentifier(num)) {
     /* convert C/C++ identifiers to CL symbols */
-    String *ns = listify_namespace(current_namespace);
     res = NewStringf("#.(swig-insert-id \"%s\" %s :type :constant)", num, ns);
     Delete(num); Delete(trimmed); Delete(ns);
     return res;
@@ -1247,11 +1316,17 @@ void emit_enum_type_no_wrap(Node *n) {
       if(!Getattr(c,"error")) {
 	String *val = Getattr(c,"enumvalue");
 	if(!val) val = Getattr(c,"enumvalueex");
-
-	val = convert_literal(val,Getattr(c,"type"));
-
+	String *converted_val = convert_literal(val,Getattr(c,"type"));
 	String *valname = Getattr(c,"sym:name");
-	Printf(f_clhead,"(swig-defconstant \"%s\" %s)\n", valname, val);
+
+	if(converted_val) { 
+	  Printf(f_clhead,"(swig-defconstant \"%s\" %s)\n", valname, converted_val);
+	  Delete(converted_val);
+	} else {
+	  Swig_warning(WARN_LANG_DISCARD_CONST, Getfile(n), Getline(n),
+		       "Unable to parse enum value '%s'. Setting to NIL\n", val);
+	  Printf(f_clhead,"(swig-defconstant \"%s\" nil #| %s |#)\n", valname, val);
+	}
       }
     }
   }
@@ -2240,14 +2315,12 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
   String *funcname = Getattr(n, "allegrocl:old-sym:name");
   if (!funcname) funcname = Getattr(n, "sym:name");
-  String *mangled_name=mangle_name(n, "ACL", Getattr(n,"allegrocl:package"));
-  // SwigType *type=Copy(Getattr(n, "type"));
+  String *mangled_name = Getattr(n,"wrap:name");
   ParmList *pl = parmlist_with_names(Getattr(n, "wrap:parms"));
 
   // attach typemap info.
   Wrapper *wrap = NewWrapper();
   Swig_typemap_attach_parms("lin", pl, wrap);
-  // Swig_typemap_attach_parms("in", pl, wrap);
   Swig_typemap_lookup_new("lout",n,"result",0);
 
   // prime the pump, with support for OUTPUT, INOUT typemaps.
@@ -2257,8 +2330,7 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   int largnum = 0, argnum=0, first=1;
   // int varargs=0;
   SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
-
-  if (CPlusPlus)
+  if (Generate_Wrapper)
   {
     String *extra_parms = id_converter_arguments(n)->noname_str();
     if (Getattr(n, "sym:overloaded"))
@@ -2659,8 +2731,19 @@ int ALLEGROCL :: constantWrapper(Node *n) {
 #ifdef ALLEGROCL_DEBUG
   Printf(stderr, "constant %s\n", Getattr(n, "name"));
 #endif
+
+  if(Generate_Wrapper) {
+    // Setattr(n,"wrap:name",mangle_name(n, "ACLPP"));
+    Printf(f_cxx,"static const %s %s = %s;\n", Getattr(n,"type"),
+	   Getattr(n,"sym:name"), Getattr(n,"value"));
+
+    SetFlag(n,"feature:immutable");
+    return variableWrapper(n);
+  }
+
   String *type=Getattr(n, "type");
-  String *converted_value=convert_literal(Getattr(n, "value"), type);
+  String *value = Getattr(n,"value");
+  String *converted_value=convert_literal(value, type);
   String *name=Getattr(n, "sym:name");
 
   Setattr(n, "allegrocl:kind", "constant");
@@ -2671,8 +2754,14 @@ int ALLEGROCL :: constantWrapper(Node *n) {
          name, type, converted_value);
 #endif
 
-  Printf(f_clwrap, "(swig-defconstant \"%s\" %s)\n",
-         name, converted_value);
+  if(converted_value) {
+    Printf(f_clwrap, "(swig-defconstant \"%s\" %s)\n",
+	   name, converted_value);
+  } else {
+    Swig_warning(WARN_LANG_DISCARD_CONST, Getfile(n), Getline(n),
+		 "Unable to parse constant value '%s'. Setting to NIL\n", value);
+    Printf(f_clwrap, "(swig-defconstant \"%s\" nil #| %s |#)\n", name, value);
+  }
 
   Delete(converted_value);
  
@@ -2716,13 +2805,14 @@ int ALLEGROCL :: variableWrapper(Node *n) {
   Setattr(n, "allegrocl:old-sym:name", Getattr(n, "sym:name"));
 
   // Let SWIG generate a get/set function pair.
-  if(CPlusPlus) return Language::variableWrapper(n);
+  if(Generate_Wrapper) return Language::variableWrapper(n);
 
-  /*
   String *name = Getattr(n, "name");
   SwigType *type = Getattr(n,"type");
   SwigType *ctype;
   SwigType *rtype = SwigType_typedef_resolve_all(type);
+
+  String *mangled_name = mangle_name(n);
 
   int pointer_added = 0;
 
@@ -2735,20 +2825,18 @@ int ALLEGROCL :: variableWrapper(Node *n) {
   ctype = SwigType_str(type,0);
   // EXPORT <SwigType_str> <mangled_name>;
   // <SwigType_str> <mangled_name> = <name>;
-  //  Printf(f_cxx, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
-  //	 ctype, mangled_name, (pointer_added ? "&" : ""), name);
+   Printf(f_cxx, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
+	  ctype, mangled_name, (pointer_added ? "&" : ""), name);
 
   Printf(f_cl, "(swig-defvar \"%s\" :type %s)\n",
-	 Getattr(n,"sym:name"), 
+	 mangled_name,
 	 ((SwigType_isconst(type)) ? ":constant" : ":variable"));
-  */
-
   /*
   Printf(f_cxx, "// swigtype: %s\n", SwigType_typedef_resolve_all(Getattr(n,"type")));
   Printf(f_cxx, "// vwrap: %s\n", compose_foreign_type(SwigType_strip_qualifiers(Copy(rtype))));
   */
 
-  // Delete(mangled_name);
+  Delete(mangled_name);
 
   return SWIG_OK;
 }
