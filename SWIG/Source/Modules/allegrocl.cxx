@@ -2323,13 +2323,17 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   Swig_typemap_attach_parms("lin", pl, wrap);
   Swig_typemap_lookup_new("lout",n,"result",0);
 
+  SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
-  Printf(wrap->code,"(let (ACL_result)\n  $body\n  (values-list ACL_result))");
+  if(Strcmp(result_type,"void")) {
+    Printf(wrap->code,"(let (ACL_result ACL_ffresult)\n  $body\n  (values-list (cons ACL_ffresult ACL_result)))");
+  } else {
+    Printf(wrap->code,"(let (ACL_result ACL_ffresult)\n  $body\n  (values-list ACL_result))");
+  }
 
   Parm *p;
   int largnum = 0, argnum=0, first=1;
   // int varargs=0;
-  SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   if (Generate_Wrapper)
   {
     String *extra_parms = id_converter_arguments(n)->noname_str();
@@ -2390,7 +2394,9 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
 	Delete(temp);
 
-	String *lisptype=get_lisp_type(argtype, argname);
+	// String *lisptype=get_lisp_type(argtype, argname);
+	String *lisptype=get_lisp_type(Getattr(p,"type"), Getattr(p,"name"));
+	Printf(stderr,"lisptype of '%s' '%s' = '%s'\n", argtype, Getattr(p,"name"), lisptype);
       
 	// while we're walking the parameters, generating LIN
 	// wrapper code...
@@ -2734,9 +2740,11 @@ int ALLEGROCL :: constantWrapper(Node *n) {
 
   if(Generate_Wrapper) {
     // Setattr(n,"wrap:name",mangle_name(n, "ACLPP"));
+    String *ppcname = NewStringf("ACLppc_%s",Getattr(n,"name"));
     Printf(f_cxx,"static const %s %s = %s;\n", Getattr(n,"type"),
-	   Getattr(n,"sym:name"), Getattr(n,"value"));
+	   ppcname, Getattr(n,"value"));
 
+    Setattr(n,"name",ppcname);
     SetFlag(n,"feature:immutable");
     return variableWrapper(n);
   }
