@@ -14,12 +14,12 @@
                int, signed int, unsigned int,
                long, signed long, unsigned long,
                float, double, long double, char *, void *,
-               enum SWIGTYPE    "(push $body ACL_result)";
+               enum SWIGTYPE    "(setq ACL_ffresult $body)";
 %typemap(lout) void "$body";
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
-               SWIGTYPE &       "(push (make-instance '$lclass :foreign-address $body) ACL_result)";
+               SWIGTYPE &       "(setq ACL_ffresult (make-instance '$lclass :foreign-address $body))";
 
-%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (push new-inst ACL_result))";
+%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (setq ACL_ffresult new-inst))";
 
 %typemap(lisptype) bool "boolean";
 %typemap(lisptype) char "character";
@@ -162,9 +162,9 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 $body)"
 
 %typemap(out)       wchar_t "$result = $1;";
-%typemap(lout)      wchar_t "(push (code-char $body) ACL_result)";
-%typemap(lout)      wchar_t* "(push (excl:native-to-string $body
-:external-format #+little-endian :fat-le #-little-endian :fat) ACL_result)";
+%typemap(lout)      wchar_t "(setq ACL_ffresult (code-char $body))";
+%typemap(lout)      wchar_t* "(setq ACL_ffresult (excl:native-to-string $body
+:external-format #+little-endian :fat-le #-little-endian :fat))";
 
 %typemap(ffitype)   wchar_t ":unsigned-short";
 %typemap(lisptype)  wchar_t "";
