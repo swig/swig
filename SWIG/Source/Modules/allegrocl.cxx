@@ -2396,8 +2396,10 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
 	// String *lisptype=get_lisp_type(argtype, argname);
 	String *lisptype=get_lisp_type(Getattr(p,"type"), Getattr(p,"name"));
+#ifdef ALLEGROCL_DEBUG
 	Printf(stderr,"lisptype of '%s' '%s' = '%s'\n", argtype, Getattr(p,"name"), lisptype);
-      
+#endif
+	
 	// while we're walking the parameters, generating LIN
 	// wrapper code...
 	Setattr(p,"lname",NewStringf("SWIG_arg%d", largnum));
