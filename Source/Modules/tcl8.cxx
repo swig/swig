@@ -1231,7 +1231,7 @@ public:
     if (!temp) temp = NewString("");
     Clear(temp);
     if (nspace) {
-      Printf(temp,"%s::%s", ns_name,iname);
+      Printf(temp,"%s::%s ", ns_name,iname);
     } else {
       Printf(temp,"%s ", iname);
     }
