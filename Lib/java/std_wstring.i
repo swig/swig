@@ -39,9 +39,9 @@ class wstring;
   if ($1_len) {
     wchar_t *conv_buf = new wchar_t[$1_len];
     for (jsize i = 0; i < $1_len; ++i) {
-       conv_buf[i] = $1_pstr[i];
+      conv_buf[i] = $1_pstr[i];
     }
-    $1 =  std::wstring(conv_buf, $1_len);
+    $1 = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -58,9 +58,9 @@ class wstring;
   if ($1_len) {
     wchar_t *conv_buf = new wchar_t[$1_len];
     for (jsize i = 0; i < $1_len; ++i) {
-       conv_buf[i] = $1_pstr[i];
+      conv_buf[i] = $1_pstr[i];
     }
-    $1 =  std::wstring(conv_buf, $1_len);
+    $1 = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -98,7 +98,7 @@ class wstring;
 %typemap(javadirectorin) const wstring & "$jniinput"
 %typemap(javadirectorout) const wstring & "$javacall"
 
-%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const wstring &
+%typemap(in) const wstring &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
@@ -106,17 +106,18 @@ class wstring;
   const jchar *$1_pstr = jenv->GetStringChars($input, 0);
   if (!$1_pstr) return $null;
   jsize $1_len = jenv->GetStringLength($input);
-  static std::wstring $1_str;
+  std::wstring $1_str;
   if ($1_len) {
     wchar_t *conv_buf = new wchar_t[$1_len];
     for (jsize i = 0; i < $1_len; ++i) {
-       conv_buf[i] = $1_pstr[i];
+      conv_buf[i] = $1_pstr[i];
     }
     $1_str = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
   }
   $1 = &$1_str;
-  jenv->ReleaseStringChars($input, $1_pstr); %}
+  jenv->ReleaseStringChars($input, $1_pstr);
+ %}
 
 %typemap(directorout) const wstring & 
 %{if(!$input) {
@@ -130,7 +131,7 @@ class wstring;
   if ($1_len) {
     wchar_t *conv_buf = new wchar_t[$1_len];
     for (jsize i = 0; i < $1_len; ++i) {
-       conv_buf[i] = $1_pstr[i];
+      conv_buf[i] = $1_pstr[i];
     }
     $1_str = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
