@@ -2518,7 +2518,6 @@ Language::copyconstructorHandler(Node *n) {
   Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor,
 			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
-  Printf(stderr,"Hello\n");
   functionWrapper(n);
   Delete(mrename);
   Swig_restore(n);
