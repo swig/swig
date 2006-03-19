@@ -31,13 +31,13 @@
 typedef struct {
     int a;
     int b;
-} a_t, *b_t;
+} A_t, *B_t;
 
-a_t* make_a() {
-    return (a_t*)malloc(sizeof(a_t));
+A_t* make_a() {
+    return (A_t*)malloc(sizeof(A_t));
 } 
 
-b_t make_b() {
+B_t make_b() {
     return make_a();
 }
 %} 
