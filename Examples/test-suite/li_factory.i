@@ -4,6 +4,7 @@
 %newobject Geometry::create;
 
 %newobject Geometry::clone;
+%factory(Geometry *Geometry::create, Point, Circle);
 %factory(Geometry *Geometry::clone, Point, Circle);
 %factory(Geometry *Point::clone, Point, Circle);
 %factory(Geometry *Circle::clone, Point, Circle);
