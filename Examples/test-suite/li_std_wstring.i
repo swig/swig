@@ -3,6 +3,7 @@
 
 
 %inline %{
+#include <string>
 
 typedef std::wstring A;
 
