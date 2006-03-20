@@ -1,6 +1,6 @@
 %module typemap_various
 
-// %copyctor need to be disables since 'const SWIGTYPE &' generates errors
+// %copyctor need to be disables since 'const SWIGTYPE &' is intended to generate errors
 %nocopyctor;
 
 %typemap(in) SWIGTYPE "_this_will_not_compile_SWIGTYPE_"
