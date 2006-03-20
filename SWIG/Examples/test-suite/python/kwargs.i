@@ -1,5 +1,6 @@
 %module kwargs
 
+%nocopyctor;
 %kwargs;
 
 %rename(myDel) del;
