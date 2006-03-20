@@ -765,7 +765,12 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     rs = s;
   }
 
-  td = SwigType_typedef_resolve(rs);
+  if ((SwigType_isconst(rs) || SwigType_isarray(rs) || SwigType_isreference(rs))) {
+    td = 0;
+  } else {
+    td = SwigType_typedef_resolve(rs);
+  }
+  
   if (td) {
     if ((SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       elements = SwigType_split(td);
