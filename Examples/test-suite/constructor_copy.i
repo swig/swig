@@ -109,3 +109,13 @@ public:
 #endif
 
 
+%rename(ABC_Libor_ModelUtils) ABC_Nam::ABC_Libor::ModelUtils;
+
+%copyctor;
+%inline %{
+  namespace ABC_Nam {
+    namespace ABC_Libor {
+      struct ModelUtils {};
+    }    
+  }
+%}

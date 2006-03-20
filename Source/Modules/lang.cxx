@@ -2076,7 +2076,8 @@ static void addDefaultConstructor(Node *n)
   String *name = NewStringf("%s::%s",cname,last);
   String *decl = NewString("f().");
   String *csymname = Getattr(n,"sym:name");
-  String *symname = Swig_name_make(cn, cname, last, decl, 0);
+  String *oldname = csymname;
+  String *symname = Swig_name_make(cn, cname, last, decl, oldname);
   if (!symname) {
     symname = Copy(csymname);
   }
