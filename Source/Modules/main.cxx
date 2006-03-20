@@ -720,7 +720,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Wrapper_virtual_elimination_mode_set(1);
 	    Wrapper_fast_dispatch_mode_set(1);
 	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0)) {
+	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage1,stdout);
 	    fputs(usage2,stdout);
 	    fputs(usage3,stdout);
