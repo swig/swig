@@ -874,7 +874,9 @@ public:
 
     Printv(f->code,dispatch,"\n",NIL);
 
-    Printf(f->code,"/*No matching function for overloaded '%s'*/\n", symname);
+    Printf(f->code,"ErrorCode() = E_ERROR;\n");
+    Printf(f->code,"ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
+    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());",NIL);
     Printf(f->code,"\n");
 
     Printv(f->code,"}\n",NIL);
