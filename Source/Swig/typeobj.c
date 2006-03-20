@@ -595,7 +595,17 @@ SwigType_array_getdim(SwigType *t, int n) {
     c++;
     n--;
   }
-  if (n == 0) return SwigType_parm(c);
+  if (n == 0) {
+    String *dim =  SwigType_parm(c);
+    if (SwigType_istemplate(dim)) {
+      String *ndim = SwigType_namestr(dim);
+      Delete(dim);
+      dim = ndim;
+    }
+    
+    return dim;
+  }
+  
   return 0;
 }
 

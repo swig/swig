@@ -1415,6 +1415,11 @@ Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List   *elements;
   String *result = NewStringEmpty();
   int     i,len;
+  char  *c = Char(t);
+  if (strncmp(c,"::",2) == 0) {
+    StringAppend(result, t);
+    return result;
+  } 
 
   elements = SwigType_split(t);
 
