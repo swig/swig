@@ -1,6 +1,20 @@
 Version 1.3.29 (March 21, 2006)
 ===============================
 
+03/20/2005: mutandiz
+	    [allegrocl]
+	    More tweaks to INPUT/OUTPUT typemaps for bool.
+
+	    Fix constantWrapper for char and string literals.
+
+	    find-definition keybindings should work in ELI/SLIME.
+	    Output (in-package <module-name>) to lisp wrapper
+	    instead of (in-package #.*swig-module-name*).
+
+	    slight rework of multiple return values.
+
+	    doc updates.
+
 03/17/2005: mutandiz
 	    [allegrocl]
 	    mangle names of constants generated via constantWrapper.
