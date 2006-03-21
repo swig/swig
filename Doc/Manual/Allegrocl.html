@@ -242,14 +242,6 @@ swig using the <tt>-allegrocl</tt> option, as below:
 </div>
 
 <p>
-In C mode, a single <tt>example.cl</tt> file will be generated,
-containing declarations that when compiled/loaded into the Allegro CL
-environment will define an interface for calling into the foreign
-library. To actually use the interface, you'll also need to load the
-foreign library into lisp.
-</p>
-
-<p>
 When building an interface to C++ code, include the <tt>-c++</tt> option:
 </p>
 
@@ -260,14 +252,24 @@ When building an interface to C++ code, include the <tt>-c++</tt> option:
 </div>
 
 <p>
-In C++ mode, the same <tt>example.cl</tt> file will be generated, but
-SWIG will also generate <tt>example_wrap.cxx</tt>, containing C/C++
-wrapper code to facilitate access to C++ methods and enumeration values.
-Wrapper functions are necessary due to the lack of a standard for mangling 
+As a result of running one of the above commands, a file named <tt>example.cl</tt> 
+will be generated containing the lisp side of the interface. As well, a file 
+<tt>example_wrap.cxx</tt> is also generated, containing C/C++ wrapper code to
+facilitate access to C++ methods, enumeration values, and constant values.
+Wrapper functions are necessary in C++ due to the lack of a standard for mangling 
 the names of symbols across all C++ compilers. These wrapper functions are
 exported from the shared library as appropriate, using the C name mangling
 convention. The lisp code that is generated will interface to your foreign
 library through these wrappers.
+</p>
+
+<p>
+It is possible to disable the creation of the .cxx file when generating a C
+interface by using the -nocwrap command-line argument. For interfaces that
+don't contain complex enum or constant expressions, contain nested struct/union
+declarations, or doesn't need to use many of the SWIG customization featuers, 
+this will result in a more streamlined, direct interface to the
+intended module.
 </p>
 
 <p>
@@ -374,12 +376,12 @@ swig -allegrocl [ options ] filename
 				  This function is used to generate symbols
 				  for the lisp side of the interface. 
 
-   -cwrap - Generate a .cxx file containing C wrapper function when wrapping
-            C code. The default is to only generate such a file for C++ wrapping.
-            This will change how the C interface is generated for many constructs,
-            such as enums and global variables.
-
-   -nocwrap - explicitly turnoff generation of .cxx wrappers for C code.
+   -cwrap - [default] Generate a .cxx file containing C wrapper function when
+            wrapping C code. The interface generated is similar to what is
+	    done for C++ code.
+   -nocwrap - Explicitly turn off generation of .cxx wrappers for C code. Reasonable
+              for modules with simple interfaces. Can not handle all legal enum
+	      and constant constructs, or take advantage of SWIG customization features.
 
 </pre>
 </div>
@@ -468,7 +470,7 @@ interested in generating an interface to C++.
 	       |
         _______v______
        |              |  (foreign side)
-       | Wrapper code |  C++ only. extern "C" wrappers calling C++ 
+       | Wrapper code |  extern "C" wrappers calling C++ 
        |______________|  functions and methods.
                |
     .  . . - - + - - . .  .
@@ -619,11 +621,11 @@ char *xxx();
 
 
   <p>
-    Along with the described functional layering, this module will
-    also generate <tt>defconstant</tt> and, for C,
-    <tt>ff:def-foreign-variable</tt> forms for accessing constants and
-    global variables. For C++, getter and--if not immutable--setter,
-    functions are generated for variables as well. These, along with
+    Along with the described functional layering, when creating a .cxx wrapper, 
+    this module will generate getter and--if not immutable--setter,
+    functions for variables and constants. If the -nocwrap option is used,
+    <tt>defconstant</tt> and <tt>ff:def-foreign-variable</tt> forms will be
+    generated for accessing constants and global variables. These, along with
     the <tt>defuns</tt> listed above are the intended API for calling
     into the foreign module.
   </p>
@@ -632,13 +634,13 @@ char *xxx();
 
 
   <p>
-  All non-primitive types (Classes in C++, and types declared via
-  typedef) having a corresponding foreign-type defined on the lisp
-  side via ff:def-foreign-type.
+  All non-primitive types (Classes, structs, unions, and typedefs
+  involving same) have a corresponding foreign-type defined on the
+  lisp side via ff:def-foreign-type.
   </p>
 
   <p>
-  For C++, all classes are further represented by a CLOS class,
+  All non-primitive types are further represented by a CLOS class,
   created via defclass. An attempt is made to create the same class
   hierarchy, with all classes inheriting directly or indirectly from
   ff:foreign-pointer. Further, wherever it is apparent, all pointers
@@ -646,7 +648,8 @@ char *xxx();
   appropriate class. For ff:def-foreign-calls that have been defined
   to expect a :foreign-address type as argument, these CLOS instances
   can legally be passed and the pointer to the C++ object
-  automatically extracted.
+  automatically extracted. This is a natural feature of Allegro's
+  foreign function interface.
   </p>
 
 <H2><a name="Allegrocl_nn14"></a>16.3 Wrapping Details</H2>
@@ -732,10 +735,12 @@ namespace car {
       <tt>%constant</tt> directive, are included in SWIGs parse tree
       when it can be determined that they are, or could be reduced to,
       a literal value. Such values are translated into defconstant
-      forms in the generated lisp wrapper.
+      forms in the generated lisp wrapper when the -nocwrap command-line
+      options is used. Else, wrapper functions are generated as in the
+      case of variable access (see section below).
     </p>
     <p>
-      Here are examples of simple preprocessor constants.
+      Here are examples of simple preprocessor constants when using -nocwrap.
     </p>
       <div class="code">
       <pre>
@@ -760,8 +765,10 @@ namespace car {
       For preprocessor constants containing expressions which can be
       reduced to literal values, nodes are created, but with no simplification
       of the constant value. A very very simple infix to prefix converter
-      has been implemented that does the right thing for simple cases, but
-      does not for more complex expressoins.
+      has been implemented that tries to do the right thing for simple cases, but
+      does not for more complex expressoins. If the literal parser determines
+      that something is wrong, a warning will be generated and the literal 
+      expression will be included in the generated code, but commented out.
     </p>
       
       <div class="code">
@@ -865,18 +872,19 @@ globalvar> (globalvar.nnn::glob_float)
       enumeration value is implicitly convertible to an integer value,
       but can also be distinguished by it's enum type. For each enum
       declaration a def-foreign-type is generated, assigning the enum
-      a default type of :int.
+      a default type of :int. Users may adjust the foreign type of
+      enums via SWIG <tt>typemaps</tt>.
     </p>
 
     <p>
       Enum values are a bit trickier as they can be initialized using
-      any valid C/C++ expression. In C, we handle the typical cases
-      (simple integer initialization) and generate a defconstant form
-      for each enum value. This has the advantage of it not being necessary
-      to probe into foreign space to retrieve enum values. For C++, a more
-      general solution is employed. A wrapper variable is created in the
-      module_wrap.cxx file, and a ff:def-foreign-variable call is
-      generated to retrieve it's value into lisp. 
+      any valid C/C++ expression. In C with the -nocwrap command-line option,
+      we handle the typical cases (simple integer initialization) and
+      generate a defconstant form for each enum value. This has the advantage
+      of it not being necessary to probe into foreign space to retrieve enum
+      values. When generating a .cxx wrapper file, a more general solution is
+      employed. A wrapper variable is created in the module_wrap.cxx file, and
+      a ff:def-foreign-variable call is generated to retrieve it's value into lisp. 
     </p>
 
     <p>For example, the following header file
@@ -887,7 +895,7 @@ enum FOO { FOO1 = 10, FOO2, FOO3 };
       </pre>
       </div>
       <p>
-      Processed as a C header, generates
+      In -nocwrap mode, generates
       </p>
       <div class="targetlang">enum.cl:
       <pre>
@@ -903,7 +911,7 @@ enum FOO { FOO1 = 10, FOO2, FOO3 };
       </pre>
       </div>
 
-    <p>And for C++ generates
+    <p>And when generating a .cxx wrapper
       <div class="code">enum_wrap.cxx:
       <pre>
 EXPORT const int ACL_ENUM___RED__SWIG_0 = RED;
@@ -1176,7 +1184,7 @@ namespace BAR {
 
 
     <p>
-      In C++ it is possible, via typedef, to have many names refer to
+      In C/C++ it is possible, via typedef, to have many names refer to
       the same <tt>type</tt>. In general, this is not a problem, though
       it can lead to confusion.  Assume the below C++ header file:
     </p>
@@ -1610,7 +1618,9 @@ opoverload>
       Each C++ wrapper includes a handler to catch any exceptions that may
       be thrown while in foreign code. This helps prevent simple C++ errors
       from killing the entire lisp process. There is currently no mechanism
-      to have these exceptions forwarded to the lisp condition system.
+      to have these exceptions forwarded to the lisp condition system, nor
+      has any explicit support of the exception related SWIG typemaps been
+      implemented.
     </p>
 
 <H3><a name="Allegrocl_nn34"></a>16.3.13 Pass by value, pass by reference</H3>
@@ -1641,7 +1651,7 @@ opoverload>
 
     
     <p>
-      Every C++ wrapper generated by SWIG has the following form:
+      Every C++ wrapper generated by SWIG takes the following form:
     </p>
 
     <div class="diagram">

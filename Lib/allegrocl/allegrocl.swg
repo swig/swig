@@ -251,6 +251,25 @@ $body)"
 (eval-when (:compile-toplevel :load-toplevel :execute)
    (defparameter *swig-export-list* nil))
 
+(defconstant *void* :..void..)
+
+;; parsers to aid in finding SWIG definitions in files.
+(defun scm-p1 (form)
+  (let* ((info (second form))
+	 (id (car info))
+	 (id-args (cddr info)))
+    (apply swig:*swig-identifier-converter* id id-args)))
+
+(defmacro defswig1 (name (&rest args) &body body)
+  `(progn (defmacro ,name ,args
+	    ,@body)
+	  (excl::define-simple-parser ,name scm-p1)) )
+
+(defmacro defswig2 (name (&rest args) &body body)
+  `(progn (defmacro ,name ,args
+	    ,@body)
+	  (excl::define-simple-parser ,name second)))
+
 (defun read-symbol-from-string (string)
   (multiple-value-bind (result position)
       (read-from-string string nil "eof" :preserve-whitespace t)
@@ -320,7 +339,7 @@ $body)"
   `(let ((*package* (find-package ,(package-name-for-namespace namespace))))
     (id-convert-and-export ,name :type ,type :class ,class)))
 
-(defmacro swig-defconstant (string value)
+(defswig2 swig-defconstant (string value)
   (let ((symbol (id-convert-and-export string :type :constant)))
     `(eval-when (compile load eval)
        (defconstant ,symbol ,value))))
@@ -342,7 +361,7 @@ $body)"
 (defun swig-anyvarargs-p (arglist)
   (member :SWIG__varargs_ arglist))
 
-(defmacro swig-defun ((name &optional (mangled-name name)
+(defswig1 swig-defun ((name &optional (mangled-name name)
                             &key (type :operator) class arity)
                       arglist kwargs
 		      &body body)
@@ -376,7 +395,7 @@ $body)"
            ,@body
            ,@(maybe-return-value symbol defun-args))))))
 
-(defmacro swig-defmethod ((name &optional (mangled-name name)
+(defswig1 swig-defmethod ((name &optional (mangled-name name)
                            &key (type :operator) class arity)
                           ffargs kwargs
                           &body body)
@@ -402,7 +421,7 @@ $body)"
            ,@body
            ,@(maybe-return-value symbol defmethod-args))))))
 
-(defmacro swig-dispatcher ((name &key (type :operator) class arities))
+(defswig1 swig-dispatcher ((name &key (type :operator) class arities))
   (let ((symbol (id-convert-and-export name
                          :type type :class class)))
     `(eval-when (compile load eval)
@@ -415,14 +434,14 @@ $body)"
 	   (t (error "No applicable wrapper-methods for foreign call ~a with args ~a of classes ~a" ',symbol args (mapcar #'(lambda (x) (class-name (class-of x))) args)))
 	   )))))
 
-(defmacro swig-def-foreign-stub (name)
+(defswig2 swig-def-foreign-stub (name)
   (let ((lsymbol (id-convert-and-export name :type :class))
 	(symbol (id-convert-and-export name :type :type)))
     `(eval-when (compile load eval)
 	(ff:def-foreign-type ,symbol (:class ))
 	(defclass ,lsymbol (ff:foreign-pointer) ()))))
 
-(defmacro swig-def-foreign-class (name supers &rest rest)
+(defswig2 swig-def-foreign-class (name supers &rest rest)
   (let ((lsymbol (id-convert-and-export name :type :class))
 	(symbol (id-convert-and-export name :type :type)))
     `(eval-when (compile load eval)
@@ -431,12 +450,12 @@ $body)"
 	 ((foreign-type :initform ',symbol :initarg :foreign-type
 			:accessor foreign-pointer-type))))))
 
-(defmacro swig-def-foreign-type (name &rest rest)
+(defswig2 swig-def-foreign-type (name &rest rest)
   (let ((symbol (id-convert-and-export name :type :type)))
     `(eval-when (compile load eval)
        (ff:def-foreign-type ,symbol ,@rest))))
 
-(defmacro swig-def-synonym-type (synonym of ff-synonym)
+(defswig2 swig-def-synonym-type (synonym of ff-synonym)
   `(eval-when (compile load eval)
      (setf (find-class ',synonym) (find-class ',of))
      (ff:def-foreign-type ,ff-synonym (:struct ))))
@@ -466,7 +485,7 @@ $body)"
   `(eval-when (compile load eval)
     (in-package ,(package-name-for-namespace namespace))))
 
-(defmacro swig-defvar (name mangled-name &key type)
+(defswig2 swig-defvar (name mangled-name &key type)
   (let ((symbol (id-convert-and-export name :type type)))
     `(eval-when (compile load eval)
       (ff:def-foreign-variable (,symbol ,mangled-name)))))
@@ -481,8 +500,6 @@ $body)"
                   when (or (starts-with-p (symbol-name sym) (symbol-name :swig-))
                            (starts-with-p (symbol-name sym) (symbol-name :identifier-convert-)))
                   collect sym))))
-
-(in-package #.*swig-module-name*)
 
 %}
 

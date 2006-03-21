@@ -25,6 +25,7 @@ static File *f_cxx;
 static File *f_cxx_header=0;
 static File *f_cxx_wrapper=0;
 
+static String *module_name=0;
 const char *identifier_converter="identifier-convert-null";
 
 static bool CWrap = true;  // generate wrapper file for C code by default. most correct.
@@ -1519,11 +1520,11 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
 }
 
 int ALLEGROCL :: top(Node *n) {
-  String *module=Getattr(n, "name");  
+  module_name=Getattr(n, "name");  
   String *cxx_filename=Getattr(n, "outfile");  
   String *cl_filename=NewString("");
 
-  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module);
+  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
 
   f_cl=NewFile(cl_filename, "w");
   if (!f_cl) {
@@ -1557,15 +1558,18 @@ int ALLEGROCL :: top(Node *n) {
                ";; the definition file, not here.\n\n"
                "(defpackage :swig\n"
                "  (:use :common-lisp :ff :excl)\n"
-               "  (:export #:*swig-identifier-converter* #:*swig-module-name*))\n"
+               "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
+	       "           #:*void*))\n"
                "(in-package :swig)\n\n"  
                "(eval-when (compile load eval)\n"
                "  (defparameter *swig-identifier-converter* '%s)\n"
                "  (defparameter *swig-module-name* :%s))\n\n",
-         identifier_converter, module);
+         identifier_converter, module_name);
   Printf(f_cl, "(defpackage :%s\n"
                "  (:use :common-lisp :swig :ff :excl))\n\n",
-         module);
+         module_name);
+
+  Printf(f_clhead, "(in-package :%s)\n", module_name);
 
   // Swig_print_tree(n);
 
@@ -2325,11 +2329,7 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
   SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
-  if(Strcmp(result_type,"void")) {
-    Printf(wrap->code,"(let (ACL_result ACL_ffresult)\n  $body\n  (values-list (cons ACL_ffresult ACL_result)))");
-  } else {
-    Printf(wrap->code,"(let (ACL_result ACL_ffresult)\n  $body\n  (values-list ACL_result))");
-  }
+  Printf(wrap->code,"(let ((ACL_ffresult swig:*void*)\n        ACL_result)\n  $body\n  (if (eq ACL_ffresult swig:*void*)\n    (values-list ACL_result)\n   (values-list (cons ACL_ffresult ACL_result))))");
 
   Parm *p;
   int largnum = 0, argnum=0, first=1;
@@ -2381,7 +2381,6 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 	String *argname=NewStringf("PARM%d_%s", largnum, Getattr(p, "name"));
 
 	String *ffitype = compose_foreign_type(argtype);
-
 	String *deref_ffitype;
 	String *temp = Copy(argtype);
 
@@ -2396,8 +2395,9 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
 	// String *lisptype=get_lisp_type(argtype, argname);
 	String *lisptype=get_lisp_type(Getattr(p,"type"), Getattr(p,"name"));
+	
 #ifdef ALLEGROCL_DEBUG
-	Printf(stderr,"lisptype of '%s' '%s' = '%s'\n", argtype, Getattr(p,"name"), lisptype);
+	Printf(stderr,"lisptype of '%s' '%s' = '%s'\n", Getattr(p,"type"), Getattr(p,"name"), lisptype);
 #endif
 	
 	// while we're walking the parameters, generating LIN
@@ -2742,12 +2742,30 @@ int ALLEGROCL :: constantWrapper(Node *n) {
 
   if(Generate_Wrapper) {
     // Setattr(n,"wrap:name",mangle_name(n, "ACLPP"));
+    String *const_type = Getattr(n,"type");
+
+    String *const_val = 0;
+    String *raw_const = Getattr(n,"value");
+
+    if(SwigType_type(const_type) == T_STRING) {
+      const_val = NewStringf("\"%s\"",raw_const);
+    } else if (SwigType_type(const_type) == T_CHAR) {
+      const_val = NewStringf("'%s'",raw_const);
+    } else {
+      const_val = Copy(raw_const);
+    }
+
+    SwigType_add_qualifier(const_type,"const");
+    SwigType_add_qualifier(const_type,"static");
+   
     String *ppcname = NewStringf("ACLppc_%s",Getattr(n,"name"));
-    Printf(f_cxx,"static const %s %s = %s;\n", Getattr(n,"type"),
-	   ppcname, Getattr(n,"value"));
+    Printf(f_cxx,"static const %s = %s;\n", SwigType_lstr(const_type,ppcname),
+	   const_val);
 
     Setattr(n,"name",ppcname);
     SetFlag(n,"feature:immutable");
+
+    Delete(const_val);
     return variableWrapper(n);
   }
 
