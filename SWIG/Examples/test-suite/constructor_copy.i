@@ -116,6 +116,39 @@ public:
   namespace ABC_Nam {
     namespace ABC_Libor {
       struct ModelUtils {};
+
+      template <class T>
+      struct ModelUtils_T {};
+
     }    
   }
 %}
+
+%template(ModelUtils_i) ABC_Nam::ABC_Libor::ModelUtils_T<int>;
+
+
+%rename(Space1Space2_TotalReturnSwap) Space1::Space2::TotalReturnSwap;
+
+%copyctor;
+
+%inline %{
+namespace Space1 {
+  namespace Space2 {
+
+    class TotalReturnSwap {
+    public:
+      TotalReturnSwap() {}
+    };    
+
+    template <class T>
+    class TotalReturnSwap_T {
+    public:
+      TotalReturnSwap_T() {}
+    };    
+
+  }
+}
+%}
+
+%template(Total_i) Space1::Space2::TotalReturnSwap_T<int>;
+
