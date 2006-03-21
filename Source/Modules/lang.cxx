@@ -2021,10 +2021,10 @@ static void addCopyConstructor(Node *n)
   String *cname = Getattr(n,"name");
   SwigType *type = Copy(cname);
   String *last = Swig_scopename_last(cname);
-  String *name = NewStringf("%s::%s",cname);
+  String *name = NewStringf("%s::%s",cname,last);
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).",cc);
-  String *csymname = Getattr(n,k_symname);
+  String *csymname = Getattr(n,"sym:name");
   String *oldname = csymname;
 
   if (Getattr(n,"allocate:has_constructor")) {
