@@ -2021,11 +2021,31 @@ static void addCopyConstructor(Node *n)
   String *cname = Getattr(n,"name");
   SwigType *type = Copy(cname);
   String *last = Swig_scopename_last(cname);
-  String *name = NewStringf("%s::%s",cname,last);
+  String *name = NewStringf("%s::%s",cname);
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).",cc);
-  String *csymname = Getattr(n,"sym:name");
+  String *csymname = Getattr(n,k_symname);
   String *oldname = csymname;
+
+  if (Getattr(n,"allocate:has_constructor")) {
+    // to work properly with '%rename Class', we must look
+    // for any other constructor in the class, which has not been
+    // renamed, and use its name as oldname.
+    Node *c;
+    for (c = firstChild(n); c; c = nextSibling(c)) {
+      const char *tag = Char(nodeType(c));
+      if (strcmp(tag,"constructor") == 0) {
+	String *cname = Getattr(c,k_name);
+	String *csname = Getattr(c,k_symname);
+	String *clast = Swig_scopename_last(cname);  
+	if (Equal(csname, clast)) {
+	  oldname = csname;
+	  break;
+	}
+      }
+    }
+  }
+
   String *symname = Swig_name_make(cn, cname, last, decl, oldname);
   if (!symname) {
     symname = Copy(csymname);
