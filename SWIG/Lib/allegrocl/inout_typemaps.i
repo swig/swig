@@ -66,6 +66,8 @@ INOUT_TYPEMAP(bool,
 		    ACL_result),
 	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) (if $in 1 0)));
 
+%typemap(lisptype) bool *INPUT, bool &INPUT "boolean";
+
 // long long support not yet complete
 // INOUT_TYPEMAP(long long);
 // INOUT_TYPEMAP(unsigned long long);
