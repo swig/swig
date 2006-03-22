@@ -266,6 +266,7 @@ Swig_open(const String_or_char *name) {
 
 String *
 Swig_read_file(FILE *f) {
+  int len;  
   char       buffer[4096];
   String *str = NewStringEmpty();
 
@@ -273,6 +274,14 @@ Swig_read_file(FILE *f) {
   while (fgets(buffer,4095,f)) {
     StringAppend(str,buffer);
   }
+  len = StringLen(str);
+  if (len) {
+    char *cstr = Char(str);
+    if (cstr[len - 1] != '\n') {
+      StringAppend(str, "\n");
+    }    
+  }
+  
   return str;
 }
 
