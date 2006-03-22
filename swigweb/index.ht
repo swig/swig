@@ -31,6 +31,10 @@ and non-commercial use.
 <h3>News</h3>
 
 <p>
+<b>2006/03/21</b>
+SWIG-1.3.29 has been released. This is a bug fix release.
+
+<p>
 <b>2006/02/11</b>
 SWIG-1.3.28 has been released.  Many new features, improvements and bug fixes are in this release. New language support has also been added for Common Lisp with CFFI.
 
