@@ -1,3 +1,5 @@
+#ifndef a_h
+#define a_h
 enum GlobalEnum { globalenum1=1, globalenum2 };
 
 /* This function should be static as it will be emitted into the code for
@@ -15,5 +17,5 @@ class A {
   enum MemberEnum { memberenum1=10, memberenum2 };
   virtual MemberEnum member_virtual_test(MemberEnum e) { return e; }
   virtual GlobalEnum global_virtual_test(GlobalEnum e) { return global_test(e); }
-}; 
-
+};
+#endif
