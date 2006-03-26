@@ -81,7 +81,7 @@ extern "C" {
 /* Object support */
 
 SWIGRUNTIME Tcl_HashTable*
-SWIG_Tcl_ObjectTable() {
+SWIG_Tcl_ObjectTable(void) {
   static Tcl_HashTable  swigobjectTable;
   static int            swigobjectTableinit = 0;
   if (!swigobjectTableinit) {
