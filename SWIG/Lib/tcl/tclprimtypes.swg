@@ -73,7 +73,7 @@ SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
   long v;
   if (Tcl_GetLongFromObj(0,obj, &v) == TCL_OK) {
     if (v >= 0) {
-      if (val) *val = (long) v;
+      if (val) *val = (unsigned long) v;
       return SWIG_OK;
     } else {
       return SWIG_OverflowError;
