@@ -181,7 +181,7 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
 }
 
 SWIGINTERN PyObject *
-SWIG_globals() {
+SWIG_globals(void) {
   static PyObject *_SWIG_globals = 0; 
   if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
   return _SWIG_globals;
