@@ -1337,7 +1337,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 
 /* The python cached type query */
 SWIGRUNTIME PyObject *
-SWIG_Python_TypeCache() {
+SWIG_Python_TypeCache(void) {
   static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
   return cache;
 }

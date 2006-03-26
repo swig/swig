@@ -5,7 +5,7 @@
 
 %fragment("SWIG_pchar_descriptor","header") {
 SWIGINTERN swig_type_info*
-SWIG_pchar_descriptor()
+SWIG_pchar_descriptor(void)
 {
   static int init = 0;
   static swig_type_info* info = 0;
