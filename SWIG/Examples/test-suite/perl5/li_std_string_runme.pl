@@ -105,3 +105,16 @@ if (li_std_string::test_reference_input("hello") ne "hello") {
 if (li_std_string::test_reference_inout("hello") ne "hellohello") {
   die ("reference_inout");
 }
+
+
+$gen1 = new li_std_string::Foo();
+if ($gen1->test(1) ne 2) {
+  die ("ulonglong");
+}
+if ($gen1->test("1") ne "11") {
+  die ("ulonglong");
+}
+if ($gen1->testl(9234567890121111113) ne 9234567890121111114) {
+  die ("ulonglong");
+}
+
