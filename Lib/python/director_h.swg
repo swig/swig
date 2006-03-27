@@ -194,27 +194,6 @@ namespace Swig {
     Type *_ptr;
   };
 
-
-  /* unknown exception handler  */
-  class UnknownExceptionHandler 
-  {
-    static void handler();    
-  public:
-    
-#ifdef SWIG_DIRECTOR_UEH
-    std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler)
-    {
-      old = std::set_unexpected(nh);
-    }
-
-    ~UnknownExceptionHandler()
-    {
-      std::set_unexpected(old);
-    }
-#endif
-  };
-
   /* base class for director exceptions */
   class DirectorException {
   protected:
@@ -252,6 +231,48 @@ namespace Swig {
     }
   };
 
+  /* unknown exception handler  */
+  class UnknownExceptionHandler 
+  {
+#ifdef SWIG_DIRECTOR_UEH
+    static void handler()  {
+      try {
+	throw;
+      } catch (DirectorException& e) {
+	std::cerr << "Swig Director exception caught:" << std::endl
+		  << e.getMessage() << std::endl;
+      } catch (std::exception& e) {
+	std::cerr << "std::exception caught: "<< e.what() << std::endl;
+      } catch (...) {
+	std::cerr << "Unknown exception caught." << std::endl;
+      }
+      
+      std::cerr << std::endl
+		<< "Python interpreter traceback:" << std::endl;
+      PyErr_Print();
+      std::cerr << std::endl;
+      
+      std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
+		<< "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
+		<< std::endl
+		<< "Exception is being re-thrown, program will like abort/terminate." << std::endl;
+      throw;
+    }
+
+  public:
+    
+    std::unexpected_handler old;
+    UnknownExceptionHandler(std::unexpected_handler nh = handler)
+    {
+      old = std::set_unexpected(nh);
+    }
+
+    ~UnknownExceptionHandler()
+    {
+      std::set_unexpected(old);
+    }
+#endif
+  };
 
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
