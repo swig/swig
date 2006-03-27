@@ -158,6 +158,35 @@ static void SWIG_croak_null()
 #endif
 
 
+/* 
+   Define how strict is the cast between strings an integers/doubles
+   when overloading between these types occurs.
+   
+   The default is making it as strict as possible by using SWIG_AddCast
+   when needed.
+   
+   You can use -DSWIG_PERL_NO_STRICT_STR2NUM at compilation time to
+   disable the SWIG_AddCast, making the casting between string and
+   numbers less strict.
+
+   In the end, we try to solve the overloading between strings and
+   numerical types in the more natural way, but if you can avoid it,
+   well, avoid it using %rename, for example.
+*/
+#ifndef SWIG_PERL_NO_STRICT_STR2NUM
+# ifndef SWIG_PERL_STRICT_STR2NUM
+#  define SWIG_PERL_STRICT_STR2NUM
+# endif
+#endif
+#ifdef SWIG_PERL_STRICT_STR2NUM
+/* string takes precedence */
+#define SWIG_Str2NumCast(x) SWIG_AddCast(x)  
+#else
+/* number takes precedence */
+#define SWIG_Str2NumCast(x) x
+#endif
+
+
 
 #include <stdlib.h>
 

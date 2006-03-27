@@ -107,3 +107,23 @@ struct Structure {
   const std::string Structure::ConstStaticMemberString = "const static member string";
 %}
 
+
+%inline %{
+class Foo {
+public:
+   unsigned long long  test(unsigned long long l)
+   {
+       return l + 1;
+   }
+   std::string test(std::string l)
+   {
+       return l + "1";
+   }
+
+   unsigned long long  testl(unsigned long long l)
+   {
+       return l + 1;
+   }
+
+}; 
+%}
