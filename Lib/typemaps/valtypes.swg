@@ -108,28 +108,28 @@
 
 %define %value_directorout_typemap(asval_meth,frag,Type...)
   %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT {
-    Type val;
-    int res = asval_meth($input, &val);
-    if (!SWIG_IsOK(res)) {
-      %dirout_fail(res, "$type");
+    Type swig_val;
+    int swig_res = asval_meth($input, &swig_val);
+    if (!SWIG_IsOK(swig_res)) {
+      %dirout_fail(swig_res, "$type");
     } 
-    *$result = %static_cast(val, $type);
+    *$result = %static_cast(swig_val, $type);
   }
   %typemap(directorout,noblock=1,fragment=frag) Type {
-    Type val;
-    int res = asval_meth($input, &val);
-    if (!SWIG_IsOK(res)) {
-      %dirout_fail(res, "$type");
+    Type swig_val;
+    int swig_res = asval_meth($input, &swig_val);
+    if (!SWIG_IsOK(swig_res)) {
+      %dirout_fail(swig_res, "$type");
     }
-    $result = %static_cast(val,$type);
+    $result = %static_cast(swig_val,$type);
   }
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) const Type& {  
-    Type val;
-    int res = asval_meth($input, &val);
-    if (!SWIG_IsOK(res)) {
-      %dirout_fail(res, "$type");
+    Type swig_val;
+    int swig_res = asval_meth($input, &swig_val);
+    if (!SWIG_IsOK(swig_res)) {
+      %dirout_fail(swig_res, "$type");
     } 
-    $basetype *temp = new $basetype(($basetype)val);
+    $basetype *temp = new $basetype(($basetype)swig_val);
     swig_acquire_ownership(temp);
     $result = temp;
   }

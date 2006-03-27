@@ -70,35 +70,35 @@
 
 %define %ptr_directorout_typemap(asptr_meth,frag,Type...)
   %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp) {
-    Type *optr = 0;
-    int ores = $input ? asptr_meth($input, &optr) : 0;
-    if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail((optr ? ores : SWIG_TypeError),"$type");
+    Type *swig_optr = 0;
+    int swig_ores = $input ? asptr_meth($input, &swig_optr) : 0;
+    if (!SWIG_IsOK(swig_ores) || !swig_optr) { 
+      %dirout_fail((swig_optr ? swig_ores : SWIG_TypeError),"$type");
     }
-    temp = *optr;
+    temp = *swig_optr;
     $result = &temp;
-    if (SWIG_IsNewObj(ores)) %delete(optr);
+    if (SWIG_IsNewObj(swig_ores)) %delete(swig_optr);
   }
 
   %typemap(directorout,noblock=1,fragment=frag) Type {
-    Type *optr = 0;
-    int ores = asptr_meth($input, &optr);
-    if (!SWIG_IsOK(ores) || !optr) { 
-      %dirout_fail((optr ? ores : SWIG_TypeError),"$type");
+    Type *swig_optr = 0;
+    int swig_ores = asptr_meth($input, &swig_optr);
+    if (!SWIG_IsOK(swig_ores) || !swig_optr) { 
+      %dirout_fail((swig_optr ? swig_ores : SWIG_TypeError),"$type");
     }
-    $result = *optr;
-    if (SWIG_IsNewObj(ores)) %delete(optr);
+    $result = *swig_optr;
+    if (SWIG_IsNewObj(swig_ores)) %delete(swig_optr);
   }
 
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Type* {
-    Type *optr = 0;
-    int ores = asptr_meth($input, &optr);
-    if (!SWIG_IsOK(ores)) { 
-      %dirout_fail(ores,"$type");
+    Type *swig_optr = 0;
+    int swig_ores = asptr_meth($input, &swig_optr);
+    if (!SWIG_IsOK(swig_ores)) { 
+      %dirout_fail(swig_ores,"$type");
     }    
-    $result = optr;
-    if (SWIG_IsNewObj(ores)) {
-      swig_acquire_ownership(optr);
+    $result = swig_optr;
+    if (SWIG_IsNewObj(swig_ores)) {
+      swig_acquire_ownership(swig_optr);
     }
   }
   %typemap(directorfree,noblock=1) Type*
@@ -109,18 +109,18 @@
   }
 
   %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Type& {
-    Type *optr = 0;
-    int ores = asptr_meth($input, &optr);
-    if (!SWIG_IsOK(ores)) { 
-      %dirout_fail(ores,"$type");
+    Type *swig_optr = 0;
+    int swig_ores = asptr_meth($input, &swig_optr);
+    if (!SWIG_IsOK(swig_ores)) { 
+      %dirout_fail(swig_ores,"$type");
     } else {
-      if (!optr) { 
+      if (!swig_optr) { 
 	%dirout_nullref("$type");
       } 
     }    
-    $result = optr;
-    if (SWIG_IsNewObj(ores)) {
-      swig_acquire_ownership(optr);
+    $result = swig_optr;
+    if (SWIG_IsNewObj(swig_ores)) {
+      swig_acquire_ownership(swig_optr);
     }
   }
   %typemap(directorfree,noblock=1) Type&
