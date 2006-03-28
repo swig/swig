@@ -5274,7 +5274,7 @@ expr           :  exprnum { $$ = $1; }
                |  SIZEOF LPAREN type parameter_declarator RPAREN {
   		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
-		  $$.type = T_INT;
+		  $$.type = T_ULONG;
                }
                | exprcompound { $$ = $1; }
                | CHARCONST {
