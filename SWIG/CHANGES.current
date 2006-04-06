@@ -1,6 +1,15 @@
 Version 1.3.29 (March 21, 2006)
 ===============================
 
+04/05/2006: mutandiz
+	    [allegrocl]
+	    Fix output typemap of char so it produces a character instead
+	    of an integer. Also adds input/output typemaps for 'char *'.
+
+	    add command-line argument -isolate to generate an interface
+	    file that won't interfere with other SWIG generated files that
+	    may be used in the same application.
+
 03/20/2005: mutandiz
 	    [allegrocl]
 	    More tweaks to INPUT/OUTPUT typemaps for bool.

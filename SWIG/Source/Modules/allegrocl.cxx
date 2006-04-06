@@ -26,10 +26,13 @@ static File *f_cxx_header=0;
 static File *f_cxx_wrapper=0;
 
 static String *module_name=0;
+static String *swig_package=0;
+
 const char *identifier_converter="identifier-convert-null";
 
 static bool CWrap = true;  // generate wrapper file for C code by default. most correct.
 static bool Generate_Wrapper = false;
+static bool unique_swig_package = false;
 
 static String *current_namespace=NewString("");
 static String *current_package=NewString("");
@@ -1496,6 +1499,9 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
     } else if (!strcmp(argv[i], "-nocwrap")) {
       CWrap = false;
       Swig_mark_arg(i);
+    } else if (!strcmp(argv[i], "-isolate")) {
+      unique_swig_package = true;
+      Swig_mark_arg(i);
     }
 
     if (!strcmp(argv[i], "-help")) {
@@ -1523,6 +1529,9 @@ int ALLEGROCL :: top(Node *n) {
   module_name=Getattr(n, "name");  
   String *cxx_filename=Getattr(n, "outfile");  
   String *cl_filename=NewString("");
+
+  swig_package = unique_swig_package ?
+    NewStringf("swig.%s", module_name) : NewString("swig");
 
   Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
 
@@ -1556,18 +1565,18 @@ int ALLEGROCL :: top(Node *n) {
 
   Printf(f_cl, ";; This is an automatically generated file.  Make changes in\n"
                ";; the definition file, not here.\n\n"
-               "(defpackage :swig\n"
+               "(defpackage :%s\n"
                "  (:use :common-lisp :ff :excl)\n"
                "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
-	       "           #:*void*))\n"
-               "(in-package :swig)\n\n"  
+	       "           #:*void* #:*swig-expoert-list*))\n"
+               "(in-package :%s)\n\n"  
                "(eval-when (compile load eval)\n"
                "  (defparameter *swig-identifier-converter* '%s)\n"
                "  (defparameter *swig-module-name* :%s))\n\n",
-         identifier_converter, module_name);
+         swig_package, swig_package, identifier_converter, module_name);
   Printf(f_cl, "(defpackage :%s\n"
-               "  (:use :common-lisp :swig :ff :excl))\n\n",
-         module_name);
+               "  (:use :common-lisp :%s :ff :excl))\n\n",
+         module_name, swig_package);
 
   Printf(f_clhead, "(in-package :%s)\n", module_name);
 
@@ -1583,7 +1592,7 @@ int ALLEGROCL :: top(Node *n) {
 #endif
   emit_linked_types();
 
-  Printf(f_clwrap, "\n(in-package :swig)\n");
+  Printf(f_clwrap, "\n(in-package :%s)\n", swig_package);
   Printf(f_clwrap, "\n(macrolet ((swig-do-export ()\n");
   Printf(f_clwrap, "                 `(dolist (s ',*swig-export-list*)\n");
   Printf(f_clwrap, "                    (apply #'export s))))\n");
@@ -2329,7 +2338,7 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
   SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
-  Printf(wrap->code,"(let ((ACL_ffresult swig:*void*)\n        ACL_result)\n  $body\n  (if (eq ACL_ffresult swig:*void*)\n    (values-list ACL_result)\n   (values-list (cons ACL_ffresult ACL_result))))");
+  Printf(wrap->code,"(let ((ACL_ffresult %s:*void*)\n        ACL_result)\n  $body\n  (if (eq ACL_ffresult %s:*void*)\n    (values-list ACL_result)\n   (values-list (cons ACL_ffresult ACL_result))))", swig_package, swig_package);
 
   Parm *p;
   int largnum = 0, argnum=0, first=1;
