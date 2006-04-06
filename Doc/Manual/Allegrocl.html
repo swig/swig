@@ -383,6 +383,11 @@ swig -allegrocl [ options ] filename
               for modules with simple interfaces. Can not handle all legal enum
 	      and constant constructs, or take advantage of SWIG customization features.
 
+   -isolate - With this command-line argument, all lisp helper functions are defined
+              in a unique package named <tt>swig.&lt;module-name&gt;</tt> rather than
+	      <tt>swig</tt>. This prevents conflicts when the module is
+	      intended to be used with other swig generated interfaces that may, 
+	      for instance, make use of different identifier converters.
 </pre>
 </div>
 

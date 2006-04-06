@@ -242,7 +242,7 @@ $body)"
 %insert("lisphead") %{
 ;; $Id$
 
-(eval-when (compile eval)
+(eval-when (compile load eval)
 
 ;;; You can define your own identifier converter if you want.
 ;;; Use the -identifier-converter command line argument to
@@ -258,7 +258,7 @@ $body)"
   (let* ((info (second form))
 	 (id (car info))
 	 (id-args (cddr info)))
-    (apply swig:*swig-identifier-converter* id id-args)))
+    (apply *swig-identifier-converter* id id-args)))
 
 (defmacro defswig1 (name (&rest args) &body body)
   `(progn (defmacro ,name ,args
@@ -268,7 +268,7 @@ $body)"
 (defmacro defswig2 (name (&rest args) &body body)
   `(progn (defmacro ,name ,args
 	    ,@body)
-	  (excl::define-simple-parser ,name second)))
+b	  (excl::define-simple-parser ,name second)))
 
 (defun read-symbol-from-string (string)
   (multiple-value-bind (result position)
@@ -332,7 +332,7 @@ $body)"
     (let ((args (list (if (consp symbol) (cadr symbol) symbol)
                       (or package *package*))))
       (apply #'export args)
-      (pushnew args swig::*swig-export-list*))
+      (pushnew args *swig-export-list*))
     symbol))
 
 (defmacro swig-insert-id (name namespace &key (type :type) class)

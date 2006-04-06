@@ -53,7 +53,8 @@ INOUT_TYPEMAP(unsigned long,
 	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
 	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(char,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
+	      (push (code-char (ff:fslot-value-typed (quote $*in_fftype) :c $out))
+		    ACL_result),
 	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(float,
 	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
@@ -65,6 +66,12 @@ INOUT_TYPEMAP(bool,
 	      (push (not (zerop (ff:fslot-value-typed (quote $*in_fftype) :c $out)))
 		    ACL_result),
 	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) (if $in 1 0)));
+
+INOUT_TYPEMAP(char *,
+              (push (ff:char*-to-string (ff:fslot-value-typed (quote $*in_fftype) :c $out))
+		    ACL_result),
+	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out)
+		    (ff:string-to-char* $in)))
 
 %typemap(lisptype) bool *INPUT, bool &INPUT "boolean";
 
