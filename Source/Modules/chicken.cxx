@@ -443,6 +443,7 @@ CHICKEN::functionWrapper(Node *n)
                       class_node = classLookup(pt);
                       if (clos_code && class_node) {
                           String *class_name = NewStringf("<%s>", Getattr(class_node, "sym:name"));
+			  Replaceall(class_name, "_", "-");
                           Append(function_arg_types, class_name);
                           Append(function_arg_types, Copy(clos_code));
                           any_specialized_arg = true;
