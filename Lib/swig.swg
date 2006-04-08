@@ -286,7 +286,7 @@ static int NAME(TYPE x) {
 
 %define %$ispublic       "match$access"="public"  %enddef
 %define %$isprotected    "match$access"="protected"  %enddef
-%define %$isprivate      "match$access"="public"  %enddef
+%define %$isprivate      "match$access"="private"  %enddef
 
 %define %$ismemberget    "match$memberget"="1"  %enddef
 %define %$ismemberset    "match$memberset"="1"  %enddef
