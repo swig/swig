@@ -179,6 +179,40 @@ String *Swig_string_ccase(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_lccase()
+ *
+ * Takes a string object and returns a copy with the character after
+ * each '_' capitalised, and the '_' removed.  The first character is
+ * also forced to lowercase.
+ *
+ *      camel_case -> camelCase
+ *      CamelCase  -> camelCase
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_lccase(String *s) {
+  String *ns;
+  int first = 1;
+  int after_underscore = 0;
+  int c;
+  ns = NewStringEmpty();
+
+  Seek(s,0,SEEK_SET);
+  while ((c = Getc(s)) != EOF) {
+    if (c == '_') {
+      after_underscore = 1;
+      continue;
+    }
+    if (first) {
+      Putc(tolower(c), ns);
+      first = 0;
+    } else {
+      Putc(after_underscore ? toupper(c) : c, ns);
+    }
+    after_underscore = 0;
+  }
+  return ns;
+}
+/* -----------------------------------------------------------------------------
  * Swig_string_ucase()
  *
  * This is the reverse case of ccase, ie
@@ -782,8 +816,7 @@ String *Swig_string_command(String *s) {
 	Append(res,buffer);      
       }
       pclose(fp);
-    }
-    if (!fp || errno) {
+    } else {
       Swig_error("SWIG",Getline(s), "Command encoder fails attempting '%s'.\n", s);
       exit(1);
     }
@@ -914,6 +947,7 @@ Swig_init() {
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
   DohEncoding("ctitle", Swig_string_ccase);
+  DohEncoding("lctitle", Swig_string_lccase);
   DohEncoding("utitle", Swig_string_ucase);
   DohEncoding("typecode",Swig_string_typecode);
   DohEncoding("mangle", Swig_string_emangle);
@@ -925,6 +959,7 @@ Swig_init() {
   DohEncoding("uppercase", Swig_string_upper);
   DohEncoding("lowercase", Swig_string_lower);
   DohEncoding("camelcase", Swig_string_ccase);
+  DohEncoding("lowercamelcase", Swig_string_lccase);
   DohEncoding("undercase", Swig_string_ucase);
   DohEncoding("firstuppercase", Swig_string_first_upper);
   DohEncoding("firstlowercase", Swig_string_first_lower);
