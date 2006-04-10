@@ -216,7 +216,7 @@ extern "C" {
 SWIGRUNTIMEINLINE PyObject * 
 _SWIG_Py_None(void)
 {
-  PyObject *none = Py_BuildValue("");
+  PyObject *none = Py_BuildValue((char*)"");
   Py_DECREF(none);
   return none;
 }
@@ -1196,7 +1196,7 @@ SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
    return;
  }
 #endif
- dict = PyObject_GetAttrString(inst, "__dict__");
+ dict = PyObject_GetAttrString(inst, (char*)"__dict__");
  PyDict_SetItem(dict, SWIG_This(), swig_this);
  Py_DECREF(dict);
 } 
