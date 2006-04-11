@@ -1,6 +1,6 @@
 /* This interface file checks how well SWIG handles passing data back
-   through arguments WITHOUT returning it seperatly; for the cases where
-   maybe multiple values are passed by refernce and all want changing */
+   through arguments WITHOUT returning it separately; for the cases where
+   maybe multiple values are passed by reference and all want changing */
 
 %module argout
 

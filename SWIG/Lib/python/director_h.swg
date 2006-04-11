@@ -22,7 +22,7 @@
 
 /*
   Use -DSWIG_PYTHON_DIRECTOR_NO_VTABLE if you don't want to generate a 'virtual
-  table', and avoid multiple GetAttr calls to retreive the python
+  table', and avoid multiple GetAttr calls to retrieve the python
   methods.
 */
 

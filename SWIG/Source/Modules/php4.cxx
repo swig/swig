@@ -1048,13 +1048,13 @@ public:
     }
     
     /* Now convert from php to C variables */
-    // At this point, argcount if used is the number of deliberatly passed args
+    // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
     // It means error messages may be out by argbase with error
     // reports.  We can either take argbase into account when raising 
     // errors, or find a better way of dealing with _thisptr
     // I would like, if objects are wrapped, to assume _thisptr is always
-    // _this and the and not the first argument
+    // _this and not the first argument
     // This may mean looking at Lang::memberfunctionhandler
 
     for (i = 0, p = l; i < num_arguments; i++) {

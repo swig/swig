@@ -14,7 +14,7 @@
    }
   }
   
-  this will replace the code used to retreive an integer value for all
+  this will replace the code used to retrieve an integer value for all
   the typemaps that need it, including:
   
     int, std::vector<int>, std::list<std::pair<int,int> >, etc.
