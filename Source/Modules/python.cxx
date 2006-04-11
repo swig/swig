@@ -1535,9 +1535,21 @@ public:
       Append(f->code,"Py_INCREF(Py_NotImplemented);\n");
       Append(f->code,"return Py_NotImplemented;\n");
     } else {
+      Node *sibl = n;
+      while (Getattr(sibl,"sym:previousSibling"))
+	sibl = Getattr(sibl,"sym:previousSibling"); // go all the way up
+      String *protoTypes = NewString("");
+      do {
+	Printf(protoTypes, "    %s(%s)\\n",
+	       Getattr(sibl,"name"),ParmList_protostr(Getattr(sibl,"wrap:parms")));
+      } while ((sibl = Getattr(sibl,"sym:nextSibling")));
       Append(f->code,"fail:\n");
-      Printf(f->code,"SWIG_SetErrorMsg(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
+      Printf(f->code, "SWIG_SetErrorMsg(PyExc_NotImplementedError,"
+	     "\"Wrong number of arguments for overloaded function '%s'.\\n"
+	     "  Possible C/C++ prototypes are:\\n%s\");\n",
+	     symname, protoTypes);
       Append(f->code,"return NULL;\n");
+      Delete(protoTypes);
     }
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
@@ -3603,7 +3615,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   
 
   Append(w->code, "if (!swig_get_self()) {\n");
-  Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
+  Printf(w->code, "  Swig::DirectorException::raise(\"'self' uninitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Append(w->code, "}\n");  
   Append(w->code,"#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
   Printf(w->code, "const size_t swig_method_index = %d;\n", director_method_index++);
