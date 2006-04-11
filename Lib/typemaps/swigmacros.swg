@@ -49,8 +49,8 @@
     %delete_array(cptr)             Delete an array
 
 
-  Auxiliar loop macros:
-  ---------------------
+  Auxiliary loop macros:
+  ----------------------
 
     %formacro(Macro, Args...) or %formacro_1(Macro, Args...)
        for i in Args

@@ -93,7 +93,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
 
 /* This is a new pointer conversion routine
    Taking the native pointer p (which would have been converted from the old
-   string pointer) and it's php type id, and it's type name (which also would
+   string pointer) and its php type id, and its type name (which also would
    have come from the old string pointer) it converts it to ptr calling 
    appropriate casting functions according to ty
    Sadly PHP has no API to find a type name from a type id, only from an instance

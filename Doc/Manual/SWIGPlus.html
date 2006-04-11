@@ -822,7 +822,7 @@ public:
 
 <p>
 SWIG handles default arguments by generating an extra overloaded method for each defaulted argument.
-SWIG is effectively handling methods with default arguments as if it had wrapped the equivalent overloaded methods.
+SWIG is effectively handling methods with default arguments as if it was wrapping the equivalent overloaded methods.
 Thus for the example above, it is as if we had instead given the following to SWIG:
 </p>
 
@@ -839,7 +839,7 @@ public:
 
 <p>
 The wrappers produced are exactly the same as if the above code was instead fed into SWIG.
-Details of this is covered later in the <a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a> section.
+Details of this are covered later in the <a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a> section.
 This approach allows SWIG to wrap all possible default arguments, but can be verbose.
 For example if a method has ten default arguments, then eleven wrapper methods are generated.
 </p>
