@@ -153,8 +153,8 @@ String *Swig_string_title(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_ccase()
  *
- * Takes a string object and returns a copy that is lowercase with thefirst letter
- * capitalized and the one following '_', which are removed.
+ * Takes a string object and returns a copy that is lowercase with the first
+ * letter capitalized and the one following '_', which are removed.
  *
  *      camel_case -> CamelCase
  *      camelCase  -> CamelCase
