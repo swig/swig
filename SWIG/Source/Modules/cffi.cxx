@@ -49,6 +49,7 @@ private:
   String* strip_parens(String *string);
   int extern_all_flag;
   int generate_typedef_flag;
+  bool no_swig_lisp;
 };
 
 void CFFI :: main(int argc, char *argv[]) {
@@ -58,6 +59,7 @@ void CFFI :: main(int argc, char *argv[]) {
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;
   extern_all_flag=0;
+  no_swig_lisp = false;
   CWrap = false;
   for(i=1; i<argc; i++) {
     if (!Strcmp(argv[i], "-help")) {
@@ -65,14 +67,17 @@ void CFFI :: main(int argc, char *argv[]) {
       Printf(stdout, 
              " -extern-all\n"
              "\t If this option is given then cffi definitions for all the functions\n"
-             "and global variables will be created otherwise only definitions for \n"
-             "externed functions and variables are created.\n"
+             "will be created otherwise only definitions for externed functions are created.\n"
              " -generate-typedef\n"
              "\t If this option is given then defctype will be used to generate shortcuts\n"
              "according to the typedefs in the input.\n"
              "   -[no]cwrap\n"
              "\tTurn on or turn off generation of an intermediate C file when\n"
              "\tcreating a C interface. By default this is only done for C++ code.\n"
+             "   -[no]swig-lisp\n"
+             "\tTurns on or off generation of code for helper lisp macro, functions,\n"
+             "\tetc. which SWIG uses while generating wrappers. These macros, functions\n"
+             "\tmay still be used by generated wrapper code.\n"
              );
     }
     else if ( (Strcmp(argv[i],"-extern-all") == 0)) {
@@ -90,7 +95,14 @@ void CFFI :: main(int argc, char *argv[]) {
     else if (!strcmp(argv[i], "-nocwrap")) {
       CWrap = false;
       Swig_mark_arg(i);
+    } else if (!strcmp(argv[i], "-swig-lisp")) {
+      no_swig_lisp = false;
+      Swig_mark_arg(i);
+    } else if (!strcmp(argv[i], "-noswig-lisp")) {
+      no_swig_lisp = true;
+      Swig_mark_arg(i);
     }
+
   }
   f_clhead = NewString("");
   f_clwrap = NewString("");
@@ -98,6 +110,7 @@ void CFFI :: main(int argc, char *argv[]) {
 }
 
 int CFFI :: top(Node *n) {
+  File *f_null=NewString("");
   module=Getattr(n, "name");
 
   String *cxx_filename=Getattr(n, "outfile");  
@@ -128,7 +141,10 @@ int CFFI :: top(Node *n) {
   Swig_register_filebyname("wrapper",f_cxx_wrapper);
   Swig_register_filebyname("runtime",f_cxx);
   Swig_register_filebyname("lisphead", f_clhead);
-  Swig_register_filebyname("swiglisp", f_cl);
+  if(!no_swig_lisp)
+    Swig_register_filebyname("swiglisp", f_cl);
+  else
+    Swig_register_filebyname("swiglisp", f_null);
 
   Language::top(n);
   Printf(f_lisp, "%s\n", f_clhead);
@@ -144,6 +160,7 @@ int CFFI :: top(Node *n) {
   Close(f_cxx);
   Delete(f_cxx);
   Delete(f_cxx_wrapper);
+  Delete(f_null);
 
   return SWIG_OK;
 }
