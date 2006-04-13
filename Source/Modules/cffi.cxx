@@ -412,10 +412,11 @@ int CFFI :: constantWrapper(Node *n) {
 }
 
 int CFFI :: variableWrapper(Node *n) {
-  String *storage=Getattr(n,"storage");
+  //  String *storage=Getattr(n,"storage");
+  //  Printf(stdout,"\"%s\" %s)\n",storage,Getattr(n, "sym:name"));
   
-  if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
-    return SWIG_OK;
+  //  if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+  //    return SWIG_OK;
 
   String *var_name=Getattr(n, "sym:name");
   String *lisp_type = Swig_typemap_lookup_new("cin",n, "",0);
