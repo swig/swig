@@ -49,3 +49,27 @@ typedef struct _Foo {
 %}
 
   
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) iFoo; /* Ruby, wrong constant name */
+
+#ifndef __cplusplus
+%inline %{
+typedef struct _iFoo 
+{ 
+    enum { 
+      Phoo = +50,
+      Char = 'a'
+    } e; 
+} iFoo; 
+%}
+#else
+%inline %{
+struct iFoo 
+{ 
+    enum { 
+      Phoo = +50,
+      Char = 'a'
+    }; 
+}; 
+%}
+
+#endif
