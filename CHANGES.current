@@ -1,11 +1,24 @@
 Version 1.3.29 (March 21, 2006)
 ===============================
 
+04/14/2006: efuzzyone
+	    [cffi]
+       Thanks to Thomas Weidner for the patch.
+       - when feature export is set (export 'foo) is 
+         generated for every symbol
+       - when feature inline is set (declaim (inline foo)) is 
+         generated before every function definition
+       - when feature intern_function is set 
+         #.(value-of-intern-function "name" "nodeType" package)
+         is emitted instead of the plain symbol. A sample swig-lispify 
+         is provided.
+       - every symbol is prefixed by it's package.
+
 04/13/2006: efuzzyone
 	    [cffi]
 	    Fixed the generation of wrappers for global variables. 
        Added the option [no]swig-lisp which turns on/off generation 
-       of code for helper lisp macro, functions, etc.
+       of code for swig helper lisp macro, functions, etc.
 
 04/05/2006: mutandiz
 	    [allegrocl]
