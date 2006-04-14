@@ -44,10 +44,12 @@ public:
 private:
   void emit_defun(Node *n, String *name);
   void emit_struct_union(Node *n, bool un);
-  String* lispify_name(String *ty);
+  void emit_export(Node *n,String *name);
+  void emit_inline(Node *n,String *name);
+  String* lispify_name(Node* n,String *ty,const char* flag,bool kw=false);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
-  int extern_all_flag;
+  bool extern_all;
   int generate_typedef_flag;
   bool no_swig_lisp;
 };
@@ -58,7 +60,7 @@ void CFFI :: main(int argc, char *argv[]) {
   SWIG_library_directory("cffi"); 
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;
-  extern_all_flag=0;
+  extern_all = false;
   no_swig_lisp = false;
   CWrap = false;
   for(i=1; i<argc; i++) {
@@ -81,7 +83,7 @@ void CFFI :: main(int argc, char *argv[]) {
              );
     }
     else if ( (Strcmp(argv[i],"-extern-all") == 0)) {
-      extern_all_flag = 1;
+      extern_all = true;
       Swig_mark_arg(i);
     }
     else if (!strcmp(argv[i], "-cwrap")) {
@@ -369,7 +371,7 @@ void CFFI::emit_defun(Node *n,String *name)
 {
 
 //   String *storage=Getattr(n,"storage");
-//   if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+//   if(!extern_all && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
 //     return SWIG_OK;
      
   String *func_name=Getattr(n, "sym:name");
@@ -378,6 +380,10 @@ void CFFI::emit_defun(Node *n,String *name)
 
   int argnum=0, first=1;
 
+  func_name=lispify_name(n, func_name, "'function");
+  
+  emit_inline(n, func_name);
+  
   Printf(f_cl, "\n(cffi:defcfun (\"%s\" %s)", name, func_name);
   String *ffitype= Swig_typemap_lookup_new("cout",n,":pointer",0);
 
@@ -411,20 +417,23 @@ void CFFI::emit_defun(Node *n,String *name)
       Delete(argname);
   }
   Printf(f_cl, ")\n"); /* finish arg list */
+
+  emit_export(n, func_name);
 }
 
 
 int CFFI :: constantWrapper(Node *n) {
   String *type=Getattr(n, "type");
   String *converted_value=convert_literal(Getattr(n, "value"), type);
-  String *name=Getattr(n, "sym:name");
-
+  String *name=lispify_name(n, Getattr(n, "sym:name"), "'constant");
+  
   if(Strcmp(name,"t")==0 || Strcmp(name,"T")==0) 
     name=NewStringf("t_var");
       
   Printf(f_cl, "\n(cl:defconstant %s %s)\n", name, converted_value);
   Delete(converted_value);
- 
+
+  emit_export(n, name);
   return SWIG_OK;
 }
 
@@ -432,57 +441,76 @@ int CFFI :: variableWrapper(Node *n) {
   //  String *storage=Getattr(n,"storage");
   //  Printf(stdout,"\"%s\" %s)\n",storage,Getattr(n, "sym:name"));
   
-  //  if(!extern_all_flag && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+  //  if(!extern_all && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
   //    return SWIG_OK;
 
   String *var_name=Getattr(n, "sym:name");
   String *lisp_type = Swig_typemap_lookup_new("cin",n, "",0);
-  if(Strcmp(var_name,"t")==0 || Strcmp(var_name,"T")==0) 
-    var_name=NewStringf("t_var");
+  String* lisp_name = lispify_name(n, var_name, "'variable");
+  
+  if(Strcmp(lisp_name,"t")==0 || Strcmp(lisp_name,"T")==0) 
+    lisp_name=NewStringf("t_var");
 
-  Printf(f_cl,"\n(cffi:defcvar (\"%s\" %s)\n %s)\n",var_name,var_name,lisp_type);
+  Printf(f_cl,"\n(cffi:defcvar (\"%s\" %s)\n %s)\n",var_name,lisp_name,lisp_type);
 
   Delete(lisp_type);
+
+  emit_export(n, var_name);
   return SWIG_OK;
 }
 
 int CFFI :: typedefHandler(Node *n) {
   if(generate_typedef_flag) {
-    Printf(f_cl,"\n(cffi:defctype %s %s)\n",Getattr(n,"name"),Swig_typemap_lookup_new("cin",n, "",0));
+    Printf(f_cl,"\n(cffi:defctype %s %s)\n",
+           Getattr(n,"name"),
+           Swig_typemap_lookup_new("cin",n, "",0));
+    
+    emit_export(n, Getattr(n,"name"));
   }
   return Language::typedefHandler(n);
 }
 
 int CFFI :: enumDeclaration(Node *n) {
-  String *name=Getattr(n, "sym:name");
-  const char* slot_name_prefix;
+  String *name = Getattr(n, "sym:name");
+  bool slot_name_keywords;
   
   if(name && Len(name)!=0) {
+    name = lispify_name(n, name, "'enumname");
     Printf(f_cl,"\n(cffi:defcenum %s",name);
-    slot_name_prefix = ":";
+    slot_name_keywords = true;
   }
   else {
     Printf(f_cl,"\n(defanonenum %s",name);
-    slot_name_prefix = "";
+    slot_name_keywords = false;
   }
 
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 
-    String *slot_name = Getattr(c, "name");
+    String *slot_name = lispify_name(c, Getattr(c, "name"), "'enumvalue", slot_name_keywords);
     String *value = Getattr(c, "enumvalue");
 
     if(!value)
-      Printf(f_cl,"\n\t%s%s",slot_name_prefix, slot_name);
+      Printf(f_cl,"\n\t%s",slot_name);
     else {
       String *type=Getattr(c, "type");
       String *converted_value=convert_literal(value, type);
-      Printf(f_cl,"\n\t(%s%s %s)",slot_name_prefix, slot_name,converted_value);
+      Printf(f_cl,"\n\t(%s %s)",slot_name, converted_value);
       Delete(converted_value);
     }
     Delete(value);
   }
  
   Printf(f_cl, ")\n");
+
+  // No need to export keywords
+  if (name && Len(name)!=0) {
+    emit_export(n, name);
+  }
+  else {
+    for (Node *c=firstChild(n); c; c=nextSibling(c)) 
+      emit_export(c, lispify_name(c, Getattr(c, "name"), "'enumvalue"));
+  }
+
   return SWIG_OK;
 }
 
@@ -494,7 +522,7 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
          Getattr(n,"kind"),Getattr(n,"sym:name"));
 #endif
 
-  String *name=Getattr(n, "sym:name");
+  String *name = Getattr(n, "sym:name");
   String *kind = Getattr(n,"kind");
   
   if (Strcmp(kind, "struct")!=0  && Strcmp(kind, "union")!=0) {
@@ -504,6 +532,8 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
     SWIG_exit(EXIT_FAILURE);
   }
 
+  name = lispify_name(n, name, "'classname");
+  
   if(un)
     Printf(f_cl,"\n(cffi:defcunion %s",name);
   else
@@ -536,7 +566,7 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
          typespec = NewString(Getattr(typemap, "code"));
        }
 
-       String *slot_name = Getattr(c, "sym:name");
+       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
        if(Strcmp(slot_name,"t")==0 || Strcmp(slot_name,"T")==0) 
          slot_name=NewStringf("t_var");
 
@@ -548,10 +578,40 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
   
   Printf(f_cl, ")\n");
 
+  emit_export(n, name);
+  for (Node *c=firstChild(n); c; c=nextSibling(c)) {
+    if (!Strcmp(nodeType(c), "cdecl")) {
+      emit_export(c, lispify_name(c, Getattr(c, "sym:name"), "'slotname"));
+    }
+  }
+
   /* Add this structure to the known lisp types */
   //Printf(stdout, "Adding %s foreign type\n", name);
   //  add_defined_foreign_type(name);
   
+}
+
+void CFFI :: emit_export(Node *n,String *name) {
+  if (GetInt(n, "feature:export"))
+    Printf(f_cl, "\n(cl:export '%s)\n", name);
+}
+
+void CFFI :: emit_inline(Node *n,String *name) {
+  if (GetInt(n, "feature:inline"))
+    Printf(f_cl, "\n(cl:declaim (cl:inline %s))\n", name);
+}
+
+String* CFFI :: lispify_name(Node *n,String* ty,const char* flag,bool kw) {
+  String* intern_func = Getattr(n, "feature:intern_function");
+  if (intern_func) {
+    if(Strcmp(intern_func,"1") == 0)
+      intern_func = NewStringf("swig-lispify");
+    return NewStringf("#.(%s \"%s\" %s%s)", intern_func, ty, flag, kw? " :keyword":"");
+  }
+  else if(kw)
+    return NewStringf(":%s",ty);
+  else
+    return ty;
 }
 
 /* utilities */
