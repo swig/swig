@@ -133,7 +133,6 @@ CPP_TEST_CASES += \
 	disown \
 	dynamic_cast \
 	empty \
-	enum_plus \
 	enum_scope_template \
 	enum_template \
 	enum_thorough \
