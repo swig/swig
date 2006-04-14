@@ -378,7 +378,7 @@ void CFFI::emit_defun(Node *n,String *name)
 
   int argnum=0, first=1;
 
-  Printf(f_cl, "\n(defcfun (\"%s\" %s)", name, func_name);
+  Printf(f_cl, "\n(cffi:defcfun (\"%s\" %s)", name, func_name);
   String *ffitype= Swig_typemap_lookup_new("cout",n,":pointer",0);
 
   Printf(f_cl, " %s", ffitype);
@@ -422,7 +422,7 @@ int CFFI :: constantWrapper(Node *n) {
   if(Strcmp(name,"t")==0 || Strcmp(name,"T")==0) 
     name=NewStringf("t_var");
       
-  Printf(f_cl, "\n(defconstant %s %s)\n", name, converted_value);
+  Printf(f_cl, "\n(cl:defconstant %s %s)\n", name, converted_value);
   Delete(converted_value);
  
   return SWIG_OK;
@@ -440,7 +440,7 @@ int CFFI :: variableWrapper(Node *n) {
   if(Strcmp(var_name,"t")==0 || Strcmp(var_name,"T")==0) 
     var_name=NewStringf("t_var");
 
-  Printf(f_cl,"\n(defcvar (\"%s\" %s)\n %s)\n",var_name,var_name,lisp_type);
+  Printf(f_cl,"\n(cffi:defcvar (\"%s\" %s)\n %s)\n",var_name,var_name,lisp_type);
 
   Delete(lisp_type);
   return SWIG_OK;
@@ -448,7 +448,7 @@ int CFFI :: variableWrapper(Node *n) {
 
 int CFFI :: typedefHandler(Node *n) {
   if(generate_typedef_flag) {
-    Printf(f_cl,"\n(defctype %s %s)\n",Getattr(n,"name"),Swig_typemap_lookup_new("cin",n, "",0));
+    Printf(f_cl,"\n(cffi:defctype %s %s)\n",Getattr(n,"name"),Swig_typemap_lookup_new("cin",n, "",0));
   }
   return Language::typedefHandler(n);
 }
@@ -458,7 +458,7 @@ int CFFI :: enumDeclaration(Node *n) {
   const char* slot_name_prefix;
   
   if(name && Len(name)!=0) {
-    Printf(f_cl,"\n(defcenum %s",name);
+    Printf(f_cl,"\n(cffi:defcenum %s",name);
     slot_name_prefix = ":";
   }
   else {
@@ -505,9 +505,9 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
   }
 
   if(un)
-    Printf(f_cl,"\n(defcunion %s",name);
+    Printf(f_cl,"\n(cffi:defcunion %s",name);
   else
-    Printf(f_cl,"\n(defcstruct %s",name);
+    Printf(f_cl,"\n(cffi:defcstruct %s",name);
 
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 #ifdef CFFI_DEBUG
