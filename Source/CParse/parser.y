@@ -5236,7 +5236,7 @@ edecl          :  ID {
 		   Setattr($$,"enumvalue", $3.val);
 	           if ($3.type == T_CHAR) {
 		     SwigType *type = NewSwigType(T_CHAR);
-		     Setattr($$,k_value,$3.val);
+		     Setattr($$,k_value,NewStringf("\'%(escape)s\'", $3.val));
 		     Setattr($$,k_type,type);
 		     Delete(type);
 		   } else {
@@ -5255,9 +5255,11 @@ etype            : expr {
 		   if (($$.type != T_INT) && ($$.type != T_UINT) &&
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
-		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
+		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) && 
+		       ($$.type != T_CHAR)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
 		   }
+		   if ($$.type == T_CHAR) $$.type = T_INT;
                 }
                ;
 
