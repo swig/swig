@@ -298,6 +298,27 @@ AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), A
 fi
 
 #----------------------------------------------------------------
+# Look for RxSpencer 
+#----------------------------------------------------------------
+
+AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
+if test x"${with_rxspencer}" = xyes ; then 
+#check first for the header
+ AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
+ if test x"${with_rxspencer}" = xyes ; then 
+# now check for the library
+  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
+ fi
+ if test x"${with_rxspencer}" = xyes ; then 
+# library and header are available
+  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
+  LIBS="$LIBS -lrxspencer"
+ else
+  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
+ fi
+fi
+
+#----------------------------------------------------------------
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
