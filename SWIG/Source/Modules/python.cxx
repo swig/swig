@@ -3147,29 +3147,31 @@ public:
     Language::membervariableHandler(n);
     shadow = oldshadow;
 
-    String *mname = Swig_name_member(class_name,symname);
-    String *sname = Swig_name_set(mname);
-    String *gname = Swig_name_get(mname);
     if (shadow) {
-      int assignable = is_assignable(n);
-      if (!modern) {
-        if (assignable) {
-          Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL); 
-        } 
-        Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname,"\n", NIL);
-      }
-      if (!classic) {
-	if (!assignable) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
-	} else {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
+      String *mname = Swig_name_member(class_name,symname);
+      String *sname = Swig_name_set(mname);
+      String *gname = Swig_name_get(mname);
+      if (shadow) {
+	int assignable = is_assignable(n);
+	if (!modern) {
+	  if (assignable) {
+	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL); 
+	  } 
+	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname,"\n", NIL);
+	}
+	if (!classic) {
+	  if (!assignable) {
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
+	  } else {
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
+	  }
 	}
       }
+      Delete(mname);
+      Delete(sname);
+      Delete(gname);
     }
-    Delete(mname);
-    Delete(sname);
-    Delete(gname);
-
+    
     return SWIG_OK;
   }
 
