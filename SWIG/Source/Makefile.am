@@ -102,3 +102,4 @@ all-local: eswig@EXEEXT@
 
 clean-local:
 	rm -f ../swig@EXEEXT@
+	rm -f core @EXTRA_CLEAN@
