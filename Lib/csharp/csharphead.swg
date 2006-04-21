@@ -4,7 +4,8 @@
  *
  * csharphead.swg
  *
- * C# support code
+ * Support code for exceptions if the SWIG_CSHARP_NO_EXCEPTION_HELPER is not defined
+ * Support code for strings if the SWIG_CSHARP_NO_STRING_HELPER is not defined
  * ----------------------------------------------------------------------------- */
 
 %insert(runtime) %{
@@ -13,6 +14,7 @@
 #include <stdio.h>
 %}
 
+#if !defined(SWIG_CSHARP_NO_EXCEPTION_HELPER)
 %insert(runtime) %{
 /* Support for throwing C# exceptions from C/C++. There are two types: 
  * Exceptions that take a message and ArgumentExceptions that take a message and a parameter name. */
@@ -270,7 +272,9 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     }
   }
 %}
+#endif // SWIG_CSHARP_NO_EXCEPTION_HELPER
 
+#if !defined(SWIG_CSHARP_NO_STRING_HELPER)
 %insert(runtime) %{
 /* Callback for returning strings to C# without leaking memory */
 typedef char * (SWIGSTDCALL* SWIG_CSharpStringHelperCallback)(const char *);
@@ -305,7 +309,10 @@ extern "C"
 SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringHelperCallback callback) {
   SWIG_csharp_string_callback = callback;
 }
+%}
+#endif // SWIG_CSHARP_NO_STRING_HELPER
 
+%insert(runtime) %{
 /* Contract support */
 
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, msg, ""); return nullreturn; } else
