@@ -75,6 +75,7 @@ CPP_TEST_CASES += \
 	aggregate \
 	allowexcept \
 	anonymous_bitfield \
+	apply_strings \
 	argout \
 	array_member \
 	array_typedef_memberin \
