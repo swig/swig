@@ -506,7 +506,7 @@
 SWIGINTERNINLINE SWIG_Object 
 SWIG_From##CharName##Ptr(const Char *cptr)
 { 
-  return SWIG_FromCharPtrAndSize(cptr, (cptr ? SWIG_CharPtrLen(cptr) + 1: 0));
+  return SWIG_FromCharPtrAndSize(cptr, (cptr ? SWIG_CharPtrLen(cptr) : 0));
 }
 }
 
