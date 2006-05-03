@@ -191,7 +191,7 @@
   }
   buff= %new_array(size+1, Char);
   $2 = %numeric_cast(size, $2_ltype);
-  $1 = %static_cast(buff,$1_ltype);
+  $1 = %static_cast(buff, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (TYPEMAP,SIZE) {
   if (buff$argnum) %delete_array(buff$argnum);
