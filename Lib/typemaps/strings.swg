@@ -35,7 +35,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = buf;
+  $1 = ($1_type)buf;
 }
 %typemap(freearg,noblock=1,match="in") Char *, const Char * {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
@@ -55,7 +55,7 @@
 /* out */
 
 %typemap(out,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char* {
-  %set_output(SWIG_FromCharPtr($1));
+  %set_output(SWIG_FromCharPtr((const Char *)$1));
 }
 
 
@@ -102,7 +102,7 @@
   %set_varoutput(SWIG_FromCharPtr($1));
 }
 
-/* meberin */
+/* memberin */
 
 %typemap(memberin,noblock=1) Char * {
   if ($1) %delete_array($1);
@@ -159,7 +159,7 @@
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtr)
   Char *, Char const*, Char *const, Char const *const, 
   Char const *&, Char *const &, Char const *const & {
-  $input = SWIG_FromCharPtr($1_name);
+  $input = SWIG_FromCharPtr((const Char *)$1_name);
 }
 
 
@@ -174,7 +174,7 @@
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);
   }
-  $result = buf;
+  $result = ($1_type)buf;
 }
 %typemap(directorfree,noblock=1) Char *
 {
