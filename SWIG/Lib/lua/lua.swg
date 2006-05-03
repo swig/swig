@@ -67,10 +67,16 @@
 %{  lua_pushboolean(L,(int)*$1); SWIG_arg++;%}
 
 // strings (char* and char[])
-%typemap(in,checkfn="lua_isstring") const char*, char*, const char[ANY], char[ANY]
+%typemap(in,checkfn="lua_isstring") const char*, char*
+%{$1 = ($1_type)lua_tostring(L, $input);%}
+
+%typemap(in,checkfn="lua_isstring") const char[ANY], char[ANY]
 %{$1 = (char*)lua_tostring(L, $input);%}
 
-%typemap(out) const char*, char*, const char[ANY], char[ANY]
+%typemap(out) const char*, char*
+%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
+
+%typemap(out) const char[ANY], char[ANY]
 %{  lua_pushstring(L,$1); SWIG_arg++;%}
 
 // char's

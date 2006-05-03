@@ -358,13 +358,13 @@
 %typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * {
  $input = 0;
   if ($1) {
-    $input = JCALL1(NewStringUTF, jenv, $1);
+    $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
 }
 
-%typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out, noblock=1) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
+%typemap(out, noblock=1) char * { if($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char * "$jniinput"
 %typemap(javadirectorout) char * "$javacall"
 
@@ -629,14 +629,14 @@
 %typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char[ANY], char[] {
   $input = 0;
   if ($1) {
-    $input = JCALL1(NewStringUTF, jenv, $1);
+    $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
 }
 
 %typemap(argout) char[ANY], char[] ""
-%typemap(freearg, noblock=1) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out, noblock=1) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(freearg, noblock=1) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
+%typemap(out, noblock=1) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char[ANY], char[] "$jniinput"
 %typemap(javadirectorout) char[ANY], char[] "$javacall"
 
