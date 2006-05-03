@@ -67,9 +67,6 @@ void CFFI :: main(int argc, char *argv[]) {
     if (!Strcmp(argv[i], "-help")) {
       Printf(stdout, "cffi Options (available with -cffi)\n");
       Printf(stdout, 
-             " -extern-all\n"
-             "\t If this option is given then cffi definitions for all the functions\n"
-             "will be created otherwise only definitions for externed functions are created.\n"
              " -generate-typedef\n"
              "\t If this option is given then defctype will be used to generate shortcuts\n"
              "according to the typedefs in the input.\n"
@@ -455,7 +452,7 @@ int CFFI :: variableWrapper(Node *n) {
 
   Delete(lisp_type);
 
-  emit_export(n, var_name);
+  emit_export(n, lisp_name);
   return SWIG_OK;
 }
 
@@ -531,7 +528,6 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
     Printf(stderr, " (name: %s)\n", name);
     SWIG_exit(EXIT_FAILURE);
   }
-
   name = lispify_name(n, name, "'classname");
   
   if(un)
