@@ -35,7 +35,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = ($1_type)buf;
+  $1 = %static_cast(buf, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") Char *, const Char * {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
@@ -174,7 +174,7 @@
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);
   }
-  $result = ($1_type)buf;
+  $result = %static_cast(buf, $ltype);
 }
 %typemap(directorfree,noblock=1) Char *
 {
