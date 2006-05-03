@@ -458,11 +458,11 @@ int CFFI :: variableWrapper(Node *n) {
 
 int CFFI :: typedefHandler(Node *n) {
   if(generate_typedef_flag) {
+    String *lisp_name = lispify_name(n,Getattr(n,"name"),"'typename");
     Printf(f_cl,"\n(cffi:defctype %s %s)\n",
-           Getattr(n,"name"),
+           lisp_name,
            Swig_typemap_lookup_new("cin",n, "",0));
-    
-    emit_export(n, Getattr(n,"name"));
+    emit_export(n, lisp_name);
   }
   return Language::typedefHandler(n);
 }
@@ -470,11 +470,23 @@ int CFFI :: typedefHandler(Node *n) {
 int CFFI :: enumDeclaration(Node *n) {
   String *name = Getattr(n, "sym:name");
   bool slot_name_keywords;
-  
+  String *lisp_name;
   if(name && Len(name)!=0) {
-    name = lispify_name(n, name, "'enumname");
-    Printf(f_cl,"\n(cffi:defcenum %s",name);
+    lisp_name = lispify_name(n, name, "'enumname");
+    Printf(f_cl,"\n(cffi:defcenum %s",lisp_name);
     slot_name_keywords = true;
+
+    //Registering the enum name to the cin and cout typemaps
+    Parm *pattern = NewParm(name,NULL);
+    Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
+    Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
+    Delete(pattern);
+    //Registering with the kind, i.e., enum
+    pattern = NewParm(NewStringf("enum %s",name),NULL);
+    Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
+    Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
+    Delete(pattern);
+
   }
   else {
     Printf(f_cl,"\n(defanonenum %s",name);
@@ -500,8 +512,8 @@ int CFFI :: enumDeclaration(Node *n) {
   Printf(f_cl, ")\n");
 
   // No need to export keywords
-  if (name && Len(name)!=0) {
-    emit_export(n, name);
+  if (lisp_name && Len(lisp_name)!=0) {
+    emit_export(n, lisp_name);
   }
   else {
     for (Node *c=firstChild(n); c; c=nextSibling(c)) 
@@ -528,13 +540,27 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
     Printf(stderr, " (name: %s)\n", name);
     SWIG_exit(EXIT_FAILURE);
   }
-  name = lispify_name(n, name, "'classname");
-  
-  if(un)
-    Printf(f_cl,"\n(cffi:defcunion %s",name);
-  else
-    Printf(f_cl,"\n(cffi:defcstruct %s",name);
+  String *lisp_name = lispify_name(n, name, "'classname");
 
+  //Register the struct/union name to the cin and cout typemaps
+  
+  Parm *pattern = NewParm(name,NULL);
+  Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
+  Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
+  Delete(pattern);
+  //Registering with the kind, i.e., struct or union
+  pattern = NewParm(NewStringf("%s %s",kind,name),NULL);
+  Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
+  Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
+  Delete(pattern);
+  
+  if(un) {
+    Printf(f_cl,"\n(cffi:defcunion %s",lisp_name);
+  }
+  else
+    Printf(f_cl,"\n(cffi:defcstruct %s",lisp_name);
+
+  
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
 #ifdef CFFI_DEBUG
     Printf(stderr, "struct/union %s\n", Getattr(c, "name"));
@@ -574,7 +600,7 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
   
   Printf(f_cl, ")\n");
 
-  emit_export(n, name);
+  emit_export(n, lisp_name);
   for (Node *c=firstChild(n); c; c=nextSibling(c)) {
     if (!Strcmp(nodeType(c), "cdecl")) {
       emit_export(c, lispify_name(c, Getattr(c, "sym:name"), "'slotname"));
