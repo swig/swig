@@ -119,3 +119,14 @@ if li_std_string.test_reference_input("hello") != "hello":
 s = li_std_string.test_reference_inout("hello")
 if s != "hellohello":
   raise RuntimeError
+
+
+if li_std_string.empty() != "":
+  raise RuntimeError
+  
+
+if li_std_string.c_empty() != "":
+  raise RuntimeError
+
+if li_std_string.c_null() != None:
+  raise RuntimeError
