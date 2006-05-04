@@ -66,7 +66,14 @@
   }
 }
 
-#define %swig_multimap_methods(Type...) %swig_map_methods(Type)
+%define %swig_multimap_methods(Type...) 
+  %swig_map_common(Type);
+  %extend {
+    void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
+      self->insert(Type::value_type(key,x));
+    }
+  }
+%enddef
 
 %include <std/std_multimap.i>
 

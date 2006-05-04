@@ -132,7 +132,7 @@
   }
 }
 
-%define %swig_map_methods(Map...)
+%define %swig_map_common(Map...)
   %swig_sequence_iterator(Map);
   %swig_container_methods(Map)
 
@@ -143,10 +143,6 @@
 	return i->second;
       else
 	throw std::out_of_range("key not found");
-    }
-    
-    void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
-      self->insert(Map::value_type(key,x));
     }
     
     void __delitem__(const key_type& key) throw (std::out_of_range) {
@@ -235,6 +231,15 @@
     %pythoncode {def iterkeys(self): return self.key_iterator()}
     %pythoncode {def itervalues(self): return self.value_iterator()}
     %pythoncode {def iteritems(self): return self.iterator()}
+  }
+%enddef
+
+%define %swig_map_methods(Map...)
+  %swig_map_common(Map)
+  %extend {
+    void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
+      (*self)[key] = x;
+    }
   }
 %enddef
 
