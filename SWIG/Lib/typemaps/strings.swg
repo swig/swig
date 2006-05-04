@@ -35,7 +35,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = %static_cast(buf, $1_ltype);
+  $1 = %reinterpret_cast(buf, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") Char *, const Char * {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
@@ -174,7 +174,7 @@
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);
   }
-  $result = %static_cast(buf, $ltype);
+  $result = %reinterpret_cast(buf, $ltype);
 }
 %typemap(directorfree,noblock=1) Char *
 {
@@ -415,7 +415,7 @@
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res,"$type",$symname, $argnum);
   }  
-  $1 = %static_cast(buf, $1_ltype);
+  $1 = %reinterpret_cast(buf, $1_ltype);
   $2 = %numeric_cast(size - 1, $2_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (Char *STRING, size_t LENGTH) {
@@ -435,7 +435,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = %static_cast(buf, $1_ltype);
+  $1 = %reinterpret_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (Char *STRING, size_t SIZE) {
@@ -457,7 +457,7 @@
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res,"$type",$symname, $argnum);
   }  
-  $2 = %static_cast(buf, $2_ltype) ;
+  $2 = %reinterpret_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size - 1, $1_ltype) ;
 }
 %typemap(freearg, noblock=1, match="in") (size_t LENGTH, Char *STRING) {
@@ -476,7 +476,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type",$symname, $argnum);
   }
-  $2 = %static_cast(buf, $2_ltype) ;
+  $2 = %reinterpret_cast(buf, $2_ltype) ;
   $1 = %numeric_cast(size, $1_ltype) ;
 }
 %typemap(freearg, noblock=1, match="in") (size_t SIZE, Char *STRING) {
