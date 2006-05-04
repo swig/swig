@@ -111,3 +111,23 @@ s = test_reference_inout("hello")
 if (s != "hellohello")
   raise RuntimeError
 end
+
+
+if (empty() != "")
+  raise RuntimeError
+end
+
+if (c_empty() != "") 
+  raise RuntimeError
+end
+
+
+if (c_null() != nil) 
+  raise RuntimeError
+end
+
+
+if (get_null(c_null()) != nil) 
+  raise RuntimeError
+end
+

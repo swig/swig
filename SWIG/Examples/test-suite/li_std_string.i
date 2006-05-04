@@ -127,3 +127,23 @@ public:
 
 }; 
 %}
+
+%inline %{
+  std::string empty() {
+    return std::string();
+  }
+
+  char *c_empty() {
+    return "";
+  }
+
+  char *c_null() {
+    return 0;
+  }
+
+  const char *get_null(const char *a) {
+    return a == 0 ? a : "non-null";
+  }
+
+
+%}

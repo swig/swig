@@ -43,8 +43,8 @@ SWIGINTERNINLINE SV *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SV *obj = sv_newmortal();
-  if (size && carray) {
-    if (carray[size - 1] == 0) {
+  if (carray) {
+    if (size && (carray[size - 1] == 0)) {
       sv_setpv(obj, carray);
     } else {
       char *tmp = %new_array(size + 1, char);

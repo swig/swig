@@ -118,3 +118,29 @@ if ($gen1->testl(9234567890121111113) ne 9234567890121111114) {
   die ("ulonglong");
 }
 
+
+if (li_std_string::empty() ne "") {
+    die ("empty");
+}
+
+if (li_std_string::c_empty() ne "") {
+    die ("c_empty");
+}
+
+
+if (li_std_string::c_null() ne undef) {
+    die ("c_empty");
+}
+
+
+if (li_std_string::get_null(li_std_string::c_null()) ne undef) {
+    die ("c_empty");
+}
+
+if (li_std_string::get_null(li_std_string::c_empty()) ne "non-null") {
+    die ("c_empty");
+}
+
+if (li_std_string::get_null(li_std_string::empty()) ne "non-null") {
+    die ("c_empty");
+}
