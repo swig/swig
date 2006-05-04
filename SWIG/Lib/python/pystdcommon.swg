@@ -22,6 +22,13 @@ namespace swig {
     }
   };
 
+  template <class Type> struct traits_from<const Type *> {
+    static PyObject *from(const Type* val) {
+      return traits_from_ptr<Type>::from(const_cast<Type*>(val), 0);
+    }
+  };
+
+
   template <class Type>
   inline PyObject *from(const Type& val) {
     return traits_from<Type>::from(val);

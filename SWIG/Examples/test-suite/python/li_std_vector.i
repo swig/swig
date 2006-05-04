@@ -122,3 +122,7 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 
 
 %template(pyvector) std::vector<swig::PyObject_ptr>; 
+
+namespace std {
+   %template(ConstIntVector) vector<const int *>;
+}
