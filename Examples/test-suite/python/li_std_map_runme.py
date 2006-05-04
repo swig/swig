@@ -46,3 +46,13 @@ for k in pm:
   if (pm[k] != m[k]):
     raise RuntimeError
 
+
+
+mii = li_std_map.mapii()
+
+mii[1] = 1
+mii[1] = 2
+
+if mii[1] != 2:
+  raise RuntimeError
+  

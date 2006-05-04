@@ -52,4 +52,7 @@ std::map<int,A*> m_identa(const std::map<int,A*>& v)
 
 
 
-
+namespace std
+{
+%template(mapii) map<int,int>;
+}
