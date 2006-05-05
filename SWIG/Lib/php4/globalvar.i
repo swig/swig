@@ -68,8 +68,8 @@
   c[0] = $1;
   c[1] = 0;
   z_var->type = IS_STRING;
-  z_var->value.str.val = estrdup(c);
-  z_var->value.str.len = 2;
+  z_var->value.str.val = estrndup(c, 1);
+  z_var->value.str.len = 1;
   zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void *)&z_var,
   sizeof(zval *), NULL);
 }
