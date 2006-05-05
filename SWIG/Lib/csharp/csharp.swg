@@ -126,7 +126,7 @@
 %typemap(out) double             %{ $result = $1; %}
 
 /* char * - treat as String */
-%typemap(in) char * %{ $1 = ($1_type)$input; %}
+%typemap(in) char * %{ $1 = ($1_ltype)$input; %}
 %typemap(out) char * %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
 
 %typemap(out, null="") void ""

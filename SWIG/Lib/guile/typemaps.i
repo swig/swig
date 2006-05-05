@@ -289,7 +289,7 @@ SIMPLE_MAP(unsigned long long, gh_scm2ulong_long, gh_ulong_long2scm, integer);
 /* Strings */
 
  %typemap (in,     doc="$NAME is a string")      char *(int must_free = 0) {
-  $1 = ($1_type)SWIG_scm2str($input);
+  $1 = ($1_ltype)SWIG_scm2str($input);
   must_free = 1;
  }
  %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = SWIG_scm2str($input);}
