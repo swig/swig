@@ -23,6 +23,7 @@
 
 %typemap(freearg) SWIGTYPE * ""
 %apply SWIGTYPE* {CharPtr};
+%apply SWIGTYPE* {CCharPtr};
 
 %inline %{
   typedef char* CharPtr;
