@@ -998,7 +998,7 @@ public:
 
     int has_this_ptr = (wrapperType==memberfn)?shadow:0;
 
-    sprintf(args, "%s[%d]", "zval **args", num_arguments-has_this_ptr); 
+    sprintf(args, "zval **args[%d]", num_arguments-has_this_ptr);
 
     Wrapper_add_local(f, "args",args);
 
