@@ -68,7 +68,7 @@
 
 // strings (char* and char[])
 %typemap(in,checkfn="lua_isstring") const char*, char*
-%{$1 = ($1_type)lua_tostring(L, $input);%}
+%{$1 = ($1_ltype)lua_tostring(L, $input);%}
 
 %typemap(in,checkfn="lua_isstring") const char[ANY], char[ANY]
 %{$1 = (char*)lua_tostring(L, $input);%}

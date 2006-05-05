@@ -174,7 +174,7 @@
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);
   }
-  $result = %reinterpret_cast(buf, $ltype);
+  $result = %reinterpret_cast(buf, $1_ltype);
 }
 %typemap(directorfree,noblock=1) Char *
 {
@@ -191,7 +191,7 @@
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res, "$type");
   }
-  static $*ltype tmp = buf;
+  static $*1_ltype tmp = buf;
   $result = &tmp;
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);
