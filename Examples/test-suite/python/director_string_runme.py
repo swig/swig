@@ -8,6 +8,7 @@ class B(A):
     return A.get_first(self) + " world!"
 
   def process_text(self, string):
+    A.process_text(self, string)
     self.smem = "hello"
     
 
