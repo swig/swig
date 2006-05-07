@@ -1,4 +1,4 @@
-This file describes the necissary functions and interfaces a language module
+This file describes the necessary functions and interfaces a language module
 needs to implement to take advantage of the run time type system.  I assume you
 have read the run-time section of the Typemaps chapter in the SWIG
 documentation.
@@ -45,14 +45,14 @@ swig_module_info *SWIG_GetModule(void *clientdata);
 void SWIG_SetModule(void *clientdata, swig_module_info *mod);
 
 The SetModule function should store the mod argument into some globally
-accessable variable in the target language.  The action of these two functions
+accessible variable in the target language.  The action of these two functions
 is to provide a way for multiple modules to share information.  The SetModule
 function should create a new global var named something like
 "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME
 SWIG_RUNTIME_VERSION is currently defined as "2", and SWIG_TYPE_TABLE_NAME is
 defined by the -DSWIG_TYPE_TABLE=mytable option when compiling the wrapper.
 
-Alternativly, if the language supports modules, a module named
+Alternatively, if the language supports modules, a module named
 "swig_runtime_data" SWIG_RUNTIME_VERSION can be created, and a global variable
 named "type_table" SWIG_TYPE_TABLE_NAME can be created inside it.  The most
 common approach is to store the mod pointer in some global variable in the
@@ -61,12 +61,12 @@ target language, but if the language provides an alternative place to store data
 
 The way the code is set up, SetModule should only be called when GetModule
 returns NULL, and if SetModule is called a second time, the behavior is
-undefined. Just make sure it doesn't crash in the random chance occurance that
+undefined. Just make sure it doesn't crash in the random chance occurrence that
 SetModule is called twice.
 
 There are two options here.  
 
-1) The perferred approach is for GetModule and SetModule to not require a
+1) The preferred approach is for GetModule and SetModule to not require a
 clientdata pointer.  If you can at all avoid it, please do so.  Here, you would
 write swig_module_info *SWIG_Language_GetModule(); 
 void SWIG_Language_SetModule(swig_module_info *mod);
@@ -79,9 +79,9 @@ SWIG_InitializeModule(0)
 2) If GetModule and SetModule need to take a custom pointer (most notably an
 environment pointer, see tcl or mzscheme), then you should write
 swig_module_info *SWIG_Language_GetModule(void *clientdata)
-void SWIG_Langauge_SetModule(void *clientdata, swig_module_info *mod);
+void SWIG_Language_SetModule(void *clientdata, swig_module_info *mod);
 and also define
-#define SWIG_GetModule(cd) SWIG_Langauge_GetModule(cd)
+#define SWIG_GetModule(cd) SWIG_Language_GetModule(cd)
 #define SWIG_SetModule(cd, ptr) SWIG_Language_SetModule(cd, ptr)
 #define SWIG_MODULE_CLIENTDATA_TYPE Whatever
 SWIG_MODULE_CLIENTDATA_TYPE should be defined to whatever the type of
@@ -103,7 +103,7 @@ SWIG_MODULE_CLIENTDATA_TYPE.
 Standard Functions
 -------------------------------------------------------------------------------
 These functions are not required and their API is not formalized, but almost all
-language modules implement them for consistancy across languages.  Throughout
+language modules implement them for consistency across languages.  Throughout
 this discussion, I will use LangType to represent the underlying language type
 (C_word in chicken, Scheme_Object * in mzscheme, PyObject * in python, etc)
 
@@ -148,7 +148,7 @@ ConvertPtr function.  The pointer is still valid in the target language, but
 when the target language type is garbage collected, it will not call the
 associated destructor.  Languages have a special typemap called DISOWN that can be
 applied which passes this argument.  All the languages have the flags argument
-for consistancy, and the flags argument can be ignored or used for some other
+for consistency, and the flags argument can be ignored or used for some other
 purpose.
 
 
