@@ -15,7 +15,7 @@
 %include <globalvar.i>	// Global variables.
 %include <const.i>
 
-// use %init %{ "/*code goes here*/ " %} 
+// use %init %{ "/*code goes here*/ " %}
 // or  %minit %{ "/* code goes here*/ " %} to
 // insert code in the PHP_MINIT_FUNCTION
 #define %minit %insert("init")
@@ -76,21 +76,29 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 {
-	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor, 0) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
           SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
 	}
 	$1 = *tmp;
 }
 
 %typemap(in) SWIGTYPE *,
-             SWIGTYPE [],
-             SWIGTYPE &
+	     SWIGTYPE []
 {
-        /* typemap(in) SWIGTYPE * */
+        /* typemap(in) SWIGTYPE * or SWIGTYPE [] */
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
             SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
 }
+
+%typemap(in) SWIGTYPE &
+{
+	/* typemap(in) SWIGTYPE & */
+	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
+	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+	}
+}
+
 %typemap(in) SWIGTYPE *DISOWN
 {
   /* typemap(in) SWIGTYPE *DISOWN */
@@ -101,7 +109,7 @@
 %typemap(argout) SWIGTYPE *,
                  SWIGTYPE [],
                  SWIGTYPE&;
-	
+
 %typemap(in) void *
 {
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0, 0) < 0) {
@@ -163,7 +171,7 @@
 	ZVAL_LONG(return_value,$1);
 }
 
-%typemap(out) bool 
+%typemap(out) bool
 {
 	ZVAL_BOOL(return_value,($1)?1:0);
 }
@@ -268,7 +276,7 @@
   void *tmp;
   _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) < 0)? 0:1;
 }
-	
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
  " /* tyepcheck void * */ "
 

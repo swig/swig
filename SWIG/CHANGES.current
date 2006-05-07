@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+05/07/2006: olly
+	    [php] Don't segfault if PHP Null is passed where a C++ reference
+	    is wanted.
+
 05/05/2006: olly
 	    [php] Fix wrappers generated for global 'char' variables to not
 	    include a terminating zero in the PHP string.
