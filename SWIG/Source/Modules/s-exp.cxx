@@ -9,12 +9,12 @@
 
 char cvsroot_s_exp_cxx[] = "$Header$";
 
+#include "swigmod.h"
+#include "dohint.h"
+
 static const char *usage = "\
 S-Exp Options (available with -sexp)\n\
      -typemaplang <lang> - Typemap language\n\n";
-
-#include "swigmod.h"
-#include "dohint.h"
 
 //static Node *view_top = 0;
 static File *out = 0;

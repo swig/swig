@@ -10,7 +10,7 @@
  * To use non-const std::string references use the following %apply.  Note 
  * that they are passed by value.
  * %apply const std::string & {std::string &};
-  ------------------------------------------------------------------------ */
+ * ----------------------------------------------------------------------------- */
 
 %{
 #include <string>

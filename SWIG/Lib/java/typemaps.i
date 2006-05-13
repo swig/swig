@@ -4,20 +4,21 @@
  *
  * typemaps.i
  *
- * SWIG Java typemap library
- * Pointer and reference handling
+ * Pointer and reference handling typemap library
  *
  * These mappings provide support for input/output arguments and common
  * uses for C/C++ pointers and C++ references.
  * ----------------------------------------------------------------------------- */
 
-// INPUT typemaps.
-// These remap a C pointer or C++ reference to be an "INPUT" value which is passed by value
-// instead of reference.
-
 /*
-The following methods can be applied to turn a pointer or reference into a simple
-"input" value.  That is, instead of passing a pointer or reference to an object,
+INPUT typemaps
+--------------
+
+These typemaps remap a C pointer or C++ reference to be an "INPUT" value which is
+passed by value instead of reference.
+
+The following typemaps can be applied to turn a pointer or reference into a simple
+input value.  That is, instead of passing a pointer or reference to an object,
 you would use a real value instead.
 
         bool               *INPUT, bool               &INPUT
@@ -71,6 +72,8 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
+%typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
+
 %typemap(directorout) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
@@ -79,8 +82,6 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) $1; %}
-
-%typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -134,7 +135,10 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
 // The output value is returned in this array passed in. 
 
 /*
-The following methods can be applied to turn a pointer or reference into an "output"
+OUTPUT typemaps
+---------------
+
+The following typemaps can be applied to turn a pointer or reference into an "output"
 value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  This works by a 
 Java array being passed as a parameter where a c pointer or reference is required. 
@@ -210,6 +214,14 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   $1 = &temp; 
 }
 
+%typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
+
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT 
+{
+  JNITYPE jvalue = (JNITYPE)temp$argnum;
+  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
+}
+
 %typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
 }
 
@@ -218,14 +230,6 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %typemap(directorin,descriptor=JNIDESC,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
 {
-}
-
-%typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
-
-%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT 
-{
-  JNITYPE jvalue = (JNITYPE)temp$argnum;
-  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
@@ -269,14 +273,15 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleAr
   JCALL3(SetObjectArrayElement, jenv, $input, 0, bigint);
 }
 
-// INOUT
-// Mappings for an argument that is both an input and output
-// parameter
-
 /*
-The following methods can be applied to make a function parameter both
+INOUT typemaps
+--------------
+
+Mappings for a parameter that is both an input and an output parameter
+
+The following typemaps can be applied to make a function parameter both
 an input and output value.  This combines the behavior of both the
-"INPUT" and "OUTPUT" methods described earlier.  Output values are
+"INPUT" and "OUTPUT" typemaps described earlier.  Output values are
 returned as an element in a Java array.
 
         bool               *INOUT, bool               &INOUT
@@ -348,6 +353,11 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
   $1 = ($1_ltype) JCALL2(Get##JAVATYPE##ArrayElements, jenv, $input, 0); 
 }
 
+%typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
+
+%typemap(argout) TYPE *INOUT, TYPE &INOUT
+{ JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
+
 %typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
 
 }
@@ -358,11 +368,6 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(directorin,descriptor=JNIDESC,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
 {
 }
-
-%typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
-
-%typemap(argout) TYPE *INOUT, TYPE &INOUT
-{ JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
 %typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
