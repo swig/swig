@@ -6,7 +6,7 @@
  *
  * Typemaps for std::string and const std::string&
  * These are mapped to a C# String and are passed around by value.
- * 
+ *
  * To use non-const std::string references use the following %apply.  Note 
  * that they are passed by value.
  * %apply const std::string & {std::string &};
@@ -26,6 +26,8 @@ class string;
 %typemap(ctype) string "char *"
 %typemap(imtype) string "string"
 %typemap(cstype) string "string"
+%typemap(csdirectorin) string "$iminput"
+%typemap(csdirectorout) string "$cscall"
 
 %typemap(in, canthrow=1) string 
 %{ if (!$input) {
@@ -34,6 +36,15 @@ class string;
    }
    $1 = std::string($input); %}
 %typemap(out) string %{ $result = SWIG_csharp_string_callback($1.c_str()); %}
+
+%typemap(directorout, canthrow=1) string 
+%{ if (!$input) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return $null;
+   }
+   $1 = std::string($input); %}
+
+%typemap(directorin) string %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
 
 %typemap(csin) string "$csinput"
 %typemap(csout, excode=SWIGEXCODE) string {
@@ -61,6 +72,8 @@ class string;
 %typemap(ctype) const string & "char *"
 %typemap(imtype) const string & "string"
 %typemap(cstype) const string & "string"
+%typemap(csdirectorin) const string & "$iminput"
+%typemap(csdirectorout) const string & "$cscall"
 
 %typemap(in, canthrow=1) const string &
 %{ if (!$input) {
@@ -76,6 +89,17 @@ class string;
     string ret = $imcall;$excode
     return ret;
   }
+
+%typemap(directorout, canthrow=1, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
+%{ if (!$input) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return $null;
+   }
+   /* possible thread/reentrant code problem */
+   static std::string $1_str($input);
+   $1 = &$1_str; %}
+
+%typemap(directorin) const string & %{ $input = SWIG_csharp_string_callback($1->c_str()); %}
 
 %typemap(csvarin, excode=SWIGEXCODE2) const string & %{
     set {
