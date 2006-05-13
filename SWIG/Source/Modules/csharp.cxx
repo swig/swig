@@ -14,6 +14,8 @@ char cvsroot_csharp_cxx[] = "$Header$";
 #include "cparse.h"
 #include <ctype.h>
 
+/* Hash type used for upcalls from C/C++ */
+typedef DOH UpcallData;
 
 class CSHARP : public Language {
   static const char *usage;
@@ -23,9 +25,12 @@ class CSHARP : public Language {
 
   Hash   *swig_types_hash;
   File   *f_runtime;
+  File   *f_runtime_h;
   File   *f_header;
   File   *f_wrappers;
   File   *f_init;
+  File   *f_directors;
+  File   *f_directors_h;
   List   *filenames_list;
 
   bool   proxy_flag; // Flag for generating proxy classes
@@ -61,7 +66,22 @@ class CSHARP : public Language {
   String *module_class_modifiers; //class modifiers for module class overriden by %pragma
   String *upcasts_code; //C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code; //C++ casts up inheritance hierarchies intermediary class code
+  String *director_callback_typedefs; // Director function pointer typedefs for callbacks
+  String *director_callbacks; // Director callback function pointer member variables
+  String *director_delegate_callback; // Director callback method that delegates are set to call
+  String *director_delegate_definitions; // Director delegates definitions in proxy class
+  String *director_delegate_instances; // Director delegates member variables in proxy class
+  String *director_method_types; // Director method types
+  String *director_connect_parms; // Director delegates parameter list for director connect call
   String *destructor_call; //C++ destructor call if any
+
+  // Director method stuff:
+  List   *dmethods_seq;
+  Hash   *dmethods_table;
+  int     n_dmethods;
+  int     n_directors;
+  int     first_class_dmethod;
+  int     curr_class_dmethod;
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
@@ -78,9 +98,12 @@ class CSHARP : public Language {
 
     swig_types_hash(NULL),
     f_runtime(NULL),
+    f_runtime_h(NULL),
     f_header(NULL),
     f_wrappers(NULL),
     f_init(NULL),
+    f_directors(NULL),
+    f_directors_h(NULL),
     filenames_list(NULL),
 
     proxy_flag(true),
@@ -116,9 +139,24 @@ class CSHARP : public Language {
     module_class_modifiers(NULL),
     upcasts_code(NULL),
     imclass_cppcasts_code(NULL),
-    destructor_call(NULL)
+    director_callback_typedefs(NULL),
+    director_callbacks(NULL),
+    director_delegate_callback(NULL),
+    director_delegate_definitions(NULL),
+    director_delegate_instances(NULL),
+    director_method_types(NULL),
+    director_connect_parms(NULL),
+    destructor_call(NULL),
 
+    dmethods_seq(NULL),
+    dmethods_table(NULL),
+    n_dmethods(0),
+    n_directors(0)
     {
+      /* for now, multiple inheritance in directors is disabled, this
+         should be easy to implement though */
+      director_multiple_inheritance = 0;
+      director_language = 1;
     }
 
   /* -----------------------------------------------------------------------------
@@ -136,6 +174,24 @@ class CSHARP : public Language {
       }
     }
     return NULL;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * directorClassName()
+   * ----------------------------------------------------------------------------- */
+
+  String *directorClassName(Node *n) {
+    String *dirclassname;
+    const char *attrib = "director:classname";
+
+    if (!(dirclassname = Getattr(n, attrib))) {
+      String *classname = Getattr(n, "sym:name");
+
+      dirclassname = NewStringf("SwigDirector_%s", classname);
+      Setattr(n, attrib, dirclassname);
+    }
+
+    return dirclassname;
   }
 
   /* ------------------------------------------------------------
@@ -203,25 +259,53 @@ class CSHARP : public Language {
     if (optionsnode) {
         if (Getattr(optionsnode,"imclassname"))
           imclass_name = Copy(Getattr(optionsnode,"imclassname"));
+      /* check if directors are enabled for this module.  note: this 
+       * is a "master" switch, without which no director code will be
+       * emitted.  %feature("director") statements are also required
+       * to enable directors for individual classes or methods.
+       *
+       * use %module(directors="1") modulename at the start of the 
+       * interface file to enable director generation.
+       */
+      if (Getattr(optionsnode, "directors")) {
+        allow_directors();
+      }
+      if (Getattr(optionsnode, "dirprot")) {
+        allow_dirprot();
+      }
     }
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
+    String *outfile_h = Getattr(n, "outfile_h");
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+
+    if (directorsEnabled()) {
+      f_runtime_h = NewFile(outfile_h,"w");
+      if (!f_runtime_h) {
+        FileErrorDisplay(outfile_h);
+        SWIG_exit(EXIT_FAILURE);
+      }
+    }
+
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
+    f_directors_h = NewString("");
+    f_directors = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header",f_header);
     Swig_register_filebyname("wrapper",f_wrappers);
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",f_init);
+    Swig_register_filebyname("director",f_directors);
+    Swig_register_filebyname("director_h",f_directors_h);
 
     swig_types_hash = NewHash();
     filenames_list = NewList();
@@ -252,11 +336,31 @@ class CSHARP : public Language {
     module_class_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
+    director_connect_parms = NewString("");
     upcasts_code = NewString("");
+    dmethods_seq = NewList();
+    dmethods_table = NewHash();
+    n_dmethods = 0;
+    n_directors = 0;
     if (!namespce) namespce = NewString("");
     if (!dllimport) dllimport = Copy(module_class_name);
 
     Swig_banner(f_runtime);               // Print the SWIG banner message
+
+    if (directorsEnabled()) {
+      Printf(f_runtime,"#define SWIG_DIRECTORS\n");
+
+      /* Emit initial director header and director code: */
+      Swig_banner(f_directors_h);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
+
+      Printf(f_directors, "\n\n");
+      Printf(f_directors, "/* ---------------------------------------------------\n");
+      Printf(f_directors, " * C++ director class methods\n");
+      Printf(f_directors, " * --------------------------------------------------- */\n\n");
+      Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+    }
 
     String *wrapper_name = NewString("");
 
@@ -275,6 +379,11 @@ class CSHARP : public Language {
 
     /* Emit code */
     Language::top(n);
+
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director.swg", f_runtime);
+    }
 
     // Generate the intermediary class
     {
@@ -421,10 +530,27 @@ class CSHARP : public Language {
     Delete(imclass_imports); imclass_imports = NULL;
     Delete(imclass_cppcasts_code); imclass_cppcasts_code = NULL;
     Delete(upcasts_code); upcasts_code = NULL;
+    Delete(dmethods_seq); dmethods_seq = NULL;
+    Delete(dmethods_table); dmethods_table = NULL;
     Delete(namespce); namespce = NULL;
+    n_dmethods = 0;
 
     /* Close all of the files */
     Dump(f_header,f_runtime);
+
+    if (directorsEnabled()) {
+      Dump(f_directors, f_runtime);
+      Dump(f_directors_h, f_runtime_h);
+
+      Printf(f_runtime_h, "\n");
+      Printf(f_runtime_h, "#endif\n");
+
+      Close(f_runtime_h);
+      Delete(f_runtime_h); f_runtime_h = NULL;
+      Delete(f_directors); f_directors = NULL;
+      Delete(f_directors_h); f_directors_h = NULL;
+    }
+
     Dump(f_wrappers,f_runtime);
     Wrapper_pretty_print(f_init,f_runtime);
     Delete(f_header);
@@ -448,6 +574,58 @@ class CSHARP : public Language {
     Printf(f, " * the SWIG interface file instead.\n");
     Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
   }
+
+  /*-----------------------------------------------------------------------
+   * Add new director upcall signature
+   *----------------------------------------------------------------------*/
+
+  UpcallData * addUpcallMethod(String *imclass_method, String *class_method, String *decl, String *overloaded_name) {
+    UpcallData         *udata;
+    String             *imclass_methodidx;
+    String             *class_methodidx;
+    Hash               *new_udata;
+    String             *key = NewStringf("%s|%s", imclass_method, decl);
+    
+    /* Do we know about this director class already? */
+    if ((udata = Getattr(dmethods_table, key))) {
+      Delete(key);
+      return Getattr(udata, "methodoff");
+    }
+
+    imclass_methodidx = NewStringf("%d", n_dmethods);
+    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    n_dmethods++;
+
+    new_udata = NewHash();
+    Append(dmethods_seq, new_udata);
+    Setattr(dmethods_table, key, new_udata);
+
+    Setattr(new_udata, "method", Copy(class_method));
+    // TODO: remove fdesc
+//    Setattr(new_udata, "fdesc", Copy(class_desc));
+//    Setattr(new_udata, "imclass_method", Copy(imclass_method));
+//    Setattr(new_udata, "imclass_methodidx", imclass_methodidx);
+    Setattr(new_udata, "class_methodidx", class_methodidx);
+    Setattr(new_udata, "decl", Copy(decl));
+    Setattr(new_udata, "overname", Copy(overloaded_name));
+
+    Delete(key);
+    return new_udata;
+  }
+
+  /*-----------------------------------------------------------------------
+   * Get director upcall signature
+   *----------------------------------------------------------------------*/
+
+  /*
+  UpcallData * getUpcallMethodData(String *director_class, String *decl) {
+    String             *key = NewStringf("%s|%s", director_class, decl);
+    UpcallData         *udata = Getattr(dmethods_table, key);
+
+    Delete(key);
+    return udata;
+  }
+  */
 
   /* ----------------------------------------------------------------------
    * nativeWrapper()
@@ -1279,6 +1457,7 @@ class CSHARP : public Language {
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
     String *typemap_lookup_type = Getattr(n,"classtypeobj");
+    bool    feature_director = Swig_directorclass(n) ? true : false;
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -1386,6 +1565,70 @@ class CSHARP : public Language {
       if (*Char(destruct))
         Printv(proxy_class_def, "\n  public ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
+
+    if (feature_director) {
+      // Generate director connect method
+      // put this in classDirectorEnd ???
+      Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
+
+      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+        UpcallData *udata = Getitem(dmethods_seq, i);
+        String *method = Getattr(udata, "method");
+        String *methid = Getattr(udata, "class_methodidx");
+        Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
+        Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, method);
+      }
+      Printf(proxy_class_code, "    %s.%s_director_connect(swigCPtr", imclass_name, proxy_class_name);
+      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+        UpcallData *udata = Getitem(dmethods_seq, i);
+        String *methid = Getattr(udata, "class_methodidx");
+        Printf(proxy_class_code, ", swigDelegate%s", methid);
+      }
+      Printf(proxy_class_code, ");\n");
+      Printf(proxy_class_code, "  }\n\n");
+      Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {\n");
+      Printf(proxy_class_code, "    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);\n");
+      Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
+      /* Could add this code to cover corner case where the GetMethod() returns a method which allows type
+       * promotion, eg it will return foo(double), if looking for foo(int).
+        if (hasDerivedMethod) {
+            hasDerivedMethod = false;
+            if (methodInfo != null)
+            {
+                hasDerivedMethod = true;
+                ParameterInfo[] parameterArray1 = methodInfo.GetParameters();
+                for (int i=0; i<methodTypes.Length; i++)
+                {
+                    if (parameterArray1[0].ParameterType != methodTypes[0])
+                    {
+                        hasDerivedMethod = false;
+                        break;
+                    }
+                }
+            }
+        }
+      */
+      Printf(proxy_class_code, "    return hasDerivedMethod;\n");
+      Printf(proxy_class_code, "  }\n");
+
+      if (Len(director_delegate_callback) > 0)
+        Printv(proxy_class_code, director_delegate_callback, NIL);
+      if (Len(director_delegate_definitions) > 0)
+        Printv(proxy_class_code, "\n", director_delegate_definitions, NIL);
+      if (Len(director_delegate_instances) > 0)
+        Printv(proxy_class_code, "\n", director_delegate_instances, NIL);
+      if (Len(director_method_types) > 0)
+        Printv(proxy_class_code, "\n", director_method_types, NIL);
+
+      Delete(director_callback_typedefs); director_callback_typedefs = NULL;
+      Delete(director_callbacks); director_callbacks = NULL;
+      Delete(director_delegate_callback); director_delegate_callback = NULL;
+      Delete(director_delegate_definitions); director_delegate_definitions = NULL;
+      Delete(director_delegate_instances); director_delegate_instances = NULL;
+      Delete(director_method_types); director_method_types = NULL;
+      Delete(director_connect_parms); director_connect_parms = NULL;
+    }
+
     Delete(attributes);
     Delete(destruct);
 
@@ -1501,10 +1744,39 @@ class CSHARP : public Language {
       Close(f_proxy);
       f_proxy = NULL;
 
+      /* Output the downcast method, if necessary. Note: There's no other really
+         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
+         downcasts, making the constructorHandler() a bad place (because ABCs don't get to
+         have constructors emitted.) */
+      if (GetFlag(n, "feature:javadowncast")) {
+        String *norm_name = SwigType_namestr(Getattr(n, "name"));
+
+        Printf(imclass_class_code, "  public final static native %s downcast%s(long cPtrBase, boolean cMemoryOwn);\n",
+               proxy_class_name, proxy_class_name);
+
+        Wrapper *dcast_wrap = NewWrapper();
+
+        Printf(dcast_wrap->def, "SWIGEXPORT jobject SWIGSTDCALL CSharp_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
+               proxy_class_name);
+        Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
+        Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
+        Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
+        Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
+        Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
+        Printf(dcast_wrap->code, "  return jresult;\n");
+        Printf(dcast_wrap->code, "}\n");
+
+        Wrapper_print(dcast_wrap, f_wrappers);
+        DelWrapper(dcast_wrap);
+      }
+
+      emitDirectorExtraMethods(n);
+
       Delete(proxy_class_name); proxy_class_name = NULL;
       Delete(destructor_call); destructor_call = NULL;
       Delete(proxy_class_constants_code); proxy_class_constants_code = NULL;
     }
+
     return SWIG_OK;
   }
 
@@ -1634,7 +1906,6 @@ class CSHARP : public Language {
     }
     if (static_flag)
       Printf(function_code, "static ");
-
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
     Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
@@ -1800,6 +2071,7 @@ class CSHARP : public Language {
     Parm      *p;
     int       i;
     String    *function_code = NewString("");
+    bool      feature_director = (parentNode(n) && Swig_directorclass(n));
 
     Language::constructorHandler(n);
 
@@ -1887,12 +2159,32 @@ class CSHARP : public Language {
 
       Printf(function_code, ")");
 
-      Node *attributes = NewHash();
-      Printv(function_code, " ", typemapLookup("csconstruct", Getattr(n,"name"), WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes), NIL);
+      /* Insert the csconstruct typemap, doing the replacement for $directorconnect, as needed */
+      Hash *attributes = NewHash();
+      String *construct_tm = Copy(typemapLookup("csconstruct", Getattr(n,"name"),
+                                            WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes));
+      if (construct_tm) {
+        if (!feature_director) {
+          Replaceall(construct_tm, "$directorconnect", "");
+        } else {
+          String *connect_attr = Getattr(attributes, "tmap:csconstruct:directorconnect");
+
+          if (connect_attr) {
+            Replaceall(construct_tm, "$directorconnect", connect_attr);
+          } else {
+            Swig_warning(WARN_CSHARP_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorconnect\" attribute missing in %s \"csconstruct\" typemap.\n", Getattr(n,"name"));
+            Replaceall(construct_tm, "$directorconnect", "");
+          }
+        }
+
+        Printv(function_code, " ", construct_tm, NIL);
+      }
+
       Replaceall(function_code, "$imcall", imcall);
       excodeSubstitute(n, function_code, "csconstruct", attributes);
       Printv(proxy_class_code, function_code, "\n", NIL);
 
+      Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
       Delete(imcall);
@@ -2486,6 +2778,13 @@ class CSHARP : public Language {
   }
 
   /* -----------------------------------------------------------------------------
+   * addThrows()
+  // TODO: remove
+   * ----------------------------------------------------------------------------- */
+  void addThrows(Node *, const String *, Node *) {
+  }
+
+  /* -----------------------------------------------------------------------------
    * canThrow()
    * Determine whether the code in the typemap can throw a C# exception.
    * If so, note it for later when excodeSubstitute() is called.
@@ -2520,6 +2819,820 @@ class CSHARP : public Language {
       Replaceall(code, "$excode", empty_string);
     }
     Delete(excode_attribute);
+  }
+
+  /*----------------------------------------------------------------------
+   * Start of director methods
+   *--------------------------------------------------------------------*/
+
+#if 0
+  /*----------------------------------------------------------------------
+   * emitDirectorUpcalls()
+   *--------------------------------------------------------------------*/
+
+  void emitDirectorUpcalls() {
+    if (n_dmethods) {
+      Wrapper          *w = NewWrapper();
+      String           *dmethod_data = NewString("");
+      int               n_methods = 0;
+      Iterator          udata_iter;
+
+      udata_iter = First(dmethods_seq);
+      while (udata_iter.item) {
+        UpcallData     *udata = udata_iter.item;
+        Printf(dmethod_data, "  { \"%s\", \"%s\" }", Getattr(udata, "imclass_method"), Getattr(udata, "imclass_fdesc"));
+        ++n_methods;
+
+        udata_iter = Next(udata_iter);
+
+        if (udata_iter.item)
+          Putc(',', dmethod_data);
+        Putc('\n', dmethod_data);
+      }
+
+
+      Wrapper_print(w, f_wrappers);
+      Delete(dmethod_data);
+      Delete(swig_module_init);
+      DelWrapper(w);
+    }
+  }
+#endif
+
+  /*----------------------------------------------------------------------
+   * emitDirectorExtraMethods()
+   *
+   * This is where the director connect method is
+   * generated.
+   *--------------------------------------------------------------------*/
+  void emitDirectorExtraMethods(Node *n)
+  {
+    if (!Swig_directorclass(n))
+      return;
+
+    // Output the director connect method:
+    String *norm_name = SwigType_namestr(Getattr(n, "name"));
+    String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
+    String *sym_name = Getattr(n, "sym:name");
+    Wrapper *code_wrap;
+
+    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", swig_director_connect, "\")]\n", NIL);
+    Printf(imclass_class_code, "  public static extern void %s(HandleRef jarg1", swig_director_connect);
+
+    code_wrap = NewWrapper();
+    Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL CSharp_%s(void *objarg", swig_director_connect);
+
+    Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
+    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
+	   sym_name, sym_name);
+    // TODO: if statement not needed?? - Java too
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_connect_director(");
+
+    for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      UpcallData *udata = Getitem(dmethods_seq, i);
+      String *methid = Getattr(udata, "class_methodidx");
+
+      Printf(code_wrap->def, ", ");
+      if (i != first_class_dmethod)
+        Printf(code_wrap->code, ", ");
+      Printf(code_wrap->def, "SwigDirector_%s::SWIG_Callback%s_t callback%s", sym_name, methid, methid);
+      Printf(code_wrap->code, "callback%s", methid);
+      Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", sym_name, sym_name, methid, methid);
+    }
+
+    Printf(code_wrap->def, ") {\n");
+    Printf(code_wrap->code, ");\n");
+    Printf(imclass_class_code, ");\n");
+    Printf(code_wrap->code, "  }\n");
+    Printf(code_wrap->code, "}\n");
+
+    Wrapper_print(code_wrap, f_wrappers);
+    DelWrapper(code_wrap);
+
+    Delete(swig_director_connect);
+  }
+
+  /* ---------------------------------------------------------------
+   * classDirectorMethod()
+   *
+   * Emit a virtual director method to pass a method call on to the 
+   * underlying Java object.
+   *
+   * --------------------------------------------------------------- */
+
+  int classDirectorMethod(Node *n, Node *parent, String *super) {
+    String     *empty_str = NewString("");
+    String     *classname = Getattr(parent, "sym:name");
+    String     *name = Getattr(n, "name");
+    String     *symname = Getattr(n, "sym:name");
+    SwigType   *type = Getattr(n, "type");
+    SwigType   *returntype = Getattr(n,"returntype");
+    String     *c_classname = NULL;
+    String     *overloaded_name = getOverloadedName(n);
+    String     *storage = Getattr(n, "storage");
+    String     *value = Getattr(n, "value");
+    String     *decl = Getattr(n, "decl");
+    String     *declaration = NewString("");
+    String     *tm;
+    Parm       *p;
+    int         i;
+    Wrapper    *w = NewWrapper();
+    ParmList   *l = Getattr(n, "parms");
+    bool        is_void = !(Cmp(returntype, "void"));
+    String     *qualified_return = NewString("");
+    bool        pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
+    int         status = SWIG_OK;
+    bool        output_director = true;
+    String     *dirclassname = directorClassName(parent);
+    String     *qualified_name = NewStringf("%s::%s", dirclassname, name);
+    SwigType   *c_ret_type = NULL;
+    String     *jupcall_args = NewString("");
+    String     *imclass_dmethod;
+    String     *callback_typedef_parms = NewString("");
+    String     *delegate_parms = NewString("");
+    String     *proxy_method_types = NewString("");
+    String     *callback_def = NewString("");
+    String     *callback_code = NewString("");
+    String     *imcall_args = NewString("");
+    int         gencomma = 0;
+
+
+    // Kludge Alert: functionWrapper sets sym:overload properly, but it
+    // isn't at this point, so we have to manufacture it ourselves. At least
+    // we're consistent with the sym:overload name in functionWrapper. (?? when
+    // does the overloaded method name get set?)
+
+    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(classname, overloaded_name));
+
+    // Get the C++ name for the parent node (should be a class... hint)
+
+    c_classname = Getattr(parent, "name");
+    if (!(Cmp(type, "class")))
+      c_classname = classname;
+
+    if (returntype) {
+      if (!is_void) {
+
+        qualified_return = SwigType_rcaststr(returntype, "result");
+        if (!SwigType_isclass(returntype)) {
+          if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
+          } else {
+            String *base_typename = SwigType_base(returntype);
+            String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
+            Symtab *symtab = Getattr(n, "sym:symtab");
+            Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
+
+            if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
+              /* initialize pointers to something sane. Same for abstract
+                 classes when a reference is returned. */
+              Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= 0", NIL);
+            } else {
+              /* If returning a reference, initialize the pointer to a sane
+                 default - if a C# exception occurs, then the pointer returns
+                 something other than a NULL-initialized reference. */
+              String *non_ref_type = Copy(returntype);
+
+              /* Remove reference and const qualifiers */
+              Replaceall(non_ref_type, "r.", "");
+              Replaceall(non_ref_type, "q(const).", "");
+              Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), 
+                  "=", SwigType_str(non_ref_type, "()"), NIL);
+              Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= &result_default", NIL);
+
+              Delete(non_ref_type);
+            }
+
+            Delete(base_typename);
+            Delete(resolved_typename);
+          }
+        } else {
+          SwigType *vt;
+
+          vt = cplus_value_type(returntype);
+          if (!vt) {
+            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
+          } else {
+            Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), NIL);
+            Delete(vt);
+          }
+        }
+
+        /* Create the intermediate class wrapper */
+        Parm *tp = NewParmFromNode(returntype, empty_str, n);
+
+        tm = Swig_typemap_lookup_new("imtype", tp, "", 0);
+        if (tm) {
+          String *imtypeout = Getattr(tp,"tmap:imtype:out"); // the type in the imtype typemap's out attribute overrides the type in the typemap
+          if (imtypeout)
+            tm = imtypeout;
+          Printf(callback_def, "  private %s SwigDirector%s(", tm, symname);
+          Printf(director_delegate_definitions, "  public delegate %s", tm);
+        } else {
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
+              "No imtype typemap defined for %s\n", SwigType_str(returntype,0));
+        }
+      } else {
+        Printf(callback_def, "  private void SwigDirector%s(", symname);
+        Printf(director_delegate_definitions, "  public delegate void");
+      }
+
+      Parm  *retpm = NewParmFromNode(returntype, empty_str, n);
+      
+      if ((c_ret_type = Swig_typemap_lookup_new("ctype", retpm, "", 0))) {
+
+        if (!is_void) {
+          String *jretval_decl = NewStringf("%s jresult", c_ret_type);
+          Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
+          Delete(jretval_decl);
+        }
+
+        Printf(director_callback_typedefs, "    typedef %s", c_ret_type);
+
+      } else {
+        Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, 
+                     "No ctype typemap defined for %s\n", SwigType_str(returntype,0));
+        output_director = false;
+      }
+
+      Delete(retpm);
+    }
+
+    /* Go through argument list, attach lnames for arguments */
+    for (i = 0, p=l; p; p = nextSibling(p), ++i) {
+      String *arg = Getattr(p, "name");
+      String *lname = NewString("");
+
+      if (!arg && Cmp(Getattr(p, "type"), "void")) {
+        lname = NewStringf("arg%d", i);
+        Setattr(p, "name", lname);
+      } else
+        lname = arg;
+
+      Setattr(p, "lname", lname);
+    }
+
+    /* Attach the standard typemaps */
+    Swig_typemap_attach_parms("out", l, 0);
+    Swig_typemap_attach_parms("ctype", l, 0);
+    Swig_typemap_attach_parms("imtype", l, 0);
+    Swig_typemap_attach_parms("cstype", l, 0);
+    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("csdirectorin", l, 0);
+
+    /* Preamble code */
+
+    Printf(w->code, "if (!swig_callback%s) {\n", overloaded_name);
+
+    if (!pure_virtual) {
+      if (is_void) {
+        Printf(w->code, "%s;\n", Swig_method_call(super,l));
+        Printf(w->code, "return;\n");
+      } else {
+        String *super_call = Swig_method_call(super, l);
+        Printf(w->code, "return %s;\n", super_call);
+        Delete(super_call);
+      }
+    } else {
+      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", c_classname, name);
+
+      /* Make sure that we return something in the case of a pure
+       * virtual method call for syntactical reasons. */
+      if (!is_void)
+        Printf(w->code, "return %s;", qualified_return);
+      else
+        Printf(w->code, "return;\n");
+    }
+
+    Printf(w->code, "} else {\n");
+
+    /* Go through argument list, convert from native to Java */
+    for (p=l; p; /* empty */) {
+      /* Is this superfluous? */
+      while (checkAttribute(p,"tmap:directorin:numinputs","0")) {
+        p = Getattr(p,"tmap:directorin:next");
+      }
+
+      SwigType *pt = Getattr(p,"type");
+      String   *ln = Copy(Getattr(p,"name"));
+      String   *c_param_type = NULL;
+      String   *c_decl = NewString("");
+      String   *arg = NewString("");
+
+      Printf(arg, "j%s", ln);
+
+      /* Add various typemap's 'throws' clauses */
+      addThrows(n, "tmap:directorin", p);
+      addThrows(n, "tmap:out", p);
+
+      /* And add to the upcall args */
+      if (gencomma > 0)
+        Printf(jupcall_args, ", ");
+      Printf(jupcall_args, "%s", arg);
+
+      /* Get parameter's intermediary C type */
+      if ((c_param_type = Getattr(p, "tmap:ctype"))) {
+        String *ctypeout = Getattr(p,"tmap:ctype:out"); // the type in the ctype typemap's out attribute overrides the type in the typemap
+        if (ctypeout)
+          c_param_type = ctypeout;
+
+        Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+        String *desc_tm = NULL;
+
+        /* Add to local variables */
+        Printf(c_decl, "%s %s", c_param_type, arg);
+        Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
+
+        /* Add input marshalling code */
+        if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+            && (tm = Getattr(p, "tmap:directorin"))) {
+
+          Replaceall(tm,"$input", arg);
+
+          if (Len(tm))
+            Printf(w->code,"%s\n", tm);
+
+          Delete(tm);
+
+          /* Add C type to callback typedef */
+          if (gencomma > 0)
+            Printf(callback_typedef_parms, ", ");
+          Printf(callback_typedef_parms, "%s", c_param_type);
+
+          /* Add parameter to the intermediate class code if generating the
+           * intermediate's upcall code */
+          if ((tm = Getattr(p, "tmap:imtype"))) {
+
+            String *imtypeout = Getattr(p,"tmap:imtype:out"); // the type in the imtype typemap's out attribute overrides the type in the typemap
+            if (imtypeout)
+              tm = imtypeout;
+
+            String   *din = Copy(Getattr(p, "tmap:csdirectorin"));
+
+            if (din) {
+              Replaceall(din, "$module", module_class_name);
+              Replaceall(din, "$imclassname", imclass_name);
+              substituteClassname(pt, din);
+              Replaceall(din, "$iminput", ln);
+
+              if (gencomma > 0) {
+                Printf(delegate_parms, ", ");
+                Printf(proxy_method_types, ", ");
+                Printf(imcall_args, ", ");
+              }
+              Printf(delegate_parms, "%s %s", tm, ln);
+
+              if (Cmp(din, ln)) {
+                Printv(imcall_args, din, NIL);
+              } else
+                Printv(imcall_args, ln, NIL);
+
+              /* Get the C# parameter type */
+              if ((tm = Getattr(p,"tmap:cstype"))) {
+                substituteClassname(pt, tm);
+                Printf(proxy_method_types, "typeof(%s)", tm);
+              } else {
+                Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
+                    "No cstype typemap defined for %s\n", SwigType_str(pt,0));
+              }
+            } else {
+              Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, 
+                           "No csdirectorin typemap defined for %s\n", SwigType_str(pt,0));
+              output_director = false;
+            }
+          } else {
+            Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
+                "No imtype typemap defined for %s\n", SwigType_str(pt,0));
+            output_director = false;
+          }
+
+          p = Getattr(p, "tmap:directorin:next");
+
+          Delete(desc_tm);
+        } else {
+          if (!desc_tm) {
+            Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, 
+                         "No or improper directorin typemap defined for %s\n", SwigType_str(c_param_type, 0));
+            p = nextSibling(p);
+          } else if (!tm) {
+            Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, 
+                         "No or improper directorin typemap defined for argument %s\n", SwigType_str(pt, 0));
+            p = nextSibling(p);
+          }
+
+          output_director = false;
+        }
+
+        Delete(tp);
+      } else {
+        Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, 
+            "No ctype typemap defined for %s\n", SwigType_str(pt,0));
+        output_director = false;
+        p = nextSibling(p);
+      }
+
+      gencomma++;
+      Delete(arg);
+      Delete(c_decl);
+      Delete(c_param_type);
+    }
+
+    /* header declaration, start wrapper definition */
+    String *target;
+
+    target = Swig_method_decl(decl, qualified_name, l, 0, 0);
+    String *rtype = SwigType_str(type, 0);
+
+    Printf(w->def, "%s %s", rtype, target);
+    Delete(qualified_name);
+    Delete(target);
+
+    target = Swig_method_decl(decl, name, l, 0, 1);
+    Printf(declaration, "    virtual %s %s", rtype, target);
+    Delete(rtype);
+    Delete(target);
+
+    // Get any Java exception classes in the throws typemap
+    ParmList *throw_parm_list = NULL;
+
+    if ((tm = Swig_typemap_lookup_new("out",n,"",0)))
+      addThrows(n, "tmap:out", n);
+
+    if ((throw_parm_list = Getattr(n,"throws")) || Getattr(n,"throw")) {
+      int       gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      if (throw_parm_list) Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      for (p = throw_parm_list; p; p=nextSibling(p)) {
+        if ((tm = Getattr(p,"tmap:throws"))) {
+          addThrows(n, "tmap:throws", p);
+
+          if (gencomma++) {
+            Append(w->def, ", ");
+            Append(declaration, ", ");
+          }
+
+          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"),0));
+          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"),0));
+        }
+      }
+
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+
+    Append(w->def, " {");
+    Append(declaration, ";\n");
+
+    /* Finish off the inherited upcall's definition */
+
+    Printf(callback_def, "%s)", delegate_parms);
+    Printf(callback_def, " {\n");
+    
+    /* Emit the intermediate class's upcall to the actual class */
+
+    String *upcall = NewStringf("%s(%s)", symname, imcall_args);
+
+    if (!is_void) {
+      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+
+      tm = Swig_typemap_lookup_new("csdirectorout", tp, "", 0);
+      if (tm) {
+        substituteClassname(returntype, tm);
+        Replaceall(tm, "$cscall", upcall);
+
+        Printf(callback_code, "    return %s;\n", tm);
+      }
+
+      Delete(tm);
+      Delete(tp);
+    } else
+      Printf(callback_code, "    %s;\n", upcall);
+
+    Printf(callback_code, "  }\n");
+    Delete(upcall);
+
+    /* Emit the actual upcall through */
+    UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
+    String *methid = Getattr(udata, "class_methodidx");
+
+    if (!is_void) Printf(w->code, "jresult = (%s) ", c_ret_type);
+    
+    Printf(w->code, "swig_callback%s(%s);\n",
+           overloaded_name, jupcall_args);
+
+    if (!is_void) {
+      String *jresult_str = NewString("jresult");
+      String *result_str = NewString("result");
+      Parm *tp = NewParmFromNode(returntype, result_str, n);
+
+      /* Copy jresult into result... */
+      if ((tm = Swig_typemap_lookup_new("directorout", tp, result_str, w))) {
+        addThrows(n, "tmap:directorout", tp);
+        Replaceall(tm,"$source", jresult_str); /* deprecated */
+        Replaceall(tm,"$target", result_str); /* deprecated */
+        Replaceall(tm,"$arg", jresult_str); /* deprecated? */
+        Replaceall(tm,"$input", jresult_str);
+        Printf(w->code, "%s\n", tm);
+      } else {
+        Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, 
+		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), classname, name);
+        output_director = false;
+      }
+
+      Delete(tp);
+      Delete(jresult_str);
+      Delete(result_str);
+    }
+
+
+    /* Terminate wrapper code */
+    Printf(w->code, "}\n");
+    if (!is_void)
+      Printf(w->code, "return %s;", qualified_return);
+
+    Printf(w->code, "}");
+
+    /* emit code */
+    if (status == SWIG_OK && output_director) {
+      if(!is_void) {
+        Replaceall(w->code,"$null", qualified_return);
+      } else {
+        Replaceall(w->code,"$null","");
+      }
+      Printv(director_delegate_callback, "\n", callback_def, callback_code, NIL);
+      if (!Getattr(n,"defaultargs")) {
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+      }
+    }
+
+    Printf(director_callback_typedefs, " (SWIGSTDCALL* SWIG_Callback%s_t)(", methid);
+    Printf(director_callback_typedefs, "%s);\n", callback_typedef_parms);
+    Printf(director_callbacks, "    SWIG_Callback%s_t swig_callback%s;\n", methid, overloaded_name);
+
+    Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
+    Printf(director_delegate_instances, "  private SwigDelegate%s_%s swigDelegate%s;\n", classname, methid, methid);
+    Printf(director_method_types, "  private static Type[] swigMethodTypes%s = new Type[] { %s };\n", methid, proxy_method_types);
+    Printf(director_connect_parms, "SwigDirector%s%s delegate%s", classname, methid, methid);
+
+    Delete(qualified_return);
+    Delete(c_ret_type);
+    Delete(declaration);
+    Delete(callback_typedef_parms);
+    Delete(delegate_parms);
+    Delete(proxy_method_types);
+    Delete(callback_def);
+    Delete(callback_code);
+    DelWrapper(w);
+
+    ++curr_class_dmethod;
+    return status;
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorConstructor()
+   * ------------------------------------------------------------ */
+
+  int classDirectorConstructor(Node *n) {
+    Node *parent = parentNode(n);
+    String *decl = Getattr(n, "decl");;
+    String *supername = Swig_class_name(parent);
+    String *classname = directorClassName(parent);
+    String *sub = NewString("");
+    Parm *p;
+    ParmList *superparms = Getattr(n, "parms");
+    ParmList *parms;
+    int argidx = 0;
+
+    /* Assign arguments to superclass's parameters, if not already done */
+    for (p = superparms; p; p = nextSibling(p)) {
+      String   *pname = Getattr(p, "name");
+
+      if (!pname) {
+        pname = NewStringf("arg%d", argidx++);
+        Setattr(p, "name", pname);
+      }
+    }
+
+    // TODO: Is this copy needed?
+    parms = CopyParmList(superparms);
+
+    if (!Getattr(n,"defaultargs")) {
+      /* constructor */
+      {
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(decl, classname, parms, 0, 0);
+        String *call = Swig_csuperclass_call(0, basetype, superparms);
+        String *classtype = SwigType_namestr(Getattr(n, "name"));
+        String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
+
+        Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+        Printf(f_directors, "  swig_init_callbacks();\n");
+        Printf(f_directors, "}\n\n");
+
+        Delete(dirclass_type);
+        Delete(classtype);
+        Delete(target);
+        Delete(call);
+      }
+
+      /* constructor header */
+      {
+        String *target = Swig_method_decl(decl, classname, parms, 0, 1);
+        Printf(f_directors_h, "    %s;\n", target);
+        Delete(target);
+      }
+    }
+
+    Delete(sub);
+    Delete(supername);
+    Delete(parms);
+    return Language::classDirectorConstructor(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorDefaultConstructor()
+   * ------------------------------------------------------------ */
+   
+  int classDirectorDefaultConstructor(Node *n) {
+    String *classname = Swig_class_name(n);
+    String *classtype = SwigType_namestr(Getattr(n, "name"));
+    String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
+    Wrapper *w = NewWrapper();
+
+    Printf(w->def, "SwigDirector_%s::SwigDirector_%s() : %s {",
+           classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->code, "}\n");
+    Wrapper_print(w, f_directors);
+
+    Printf(f_directors_h, "    SwigDirector_%s();\n", classname);
+    DelWrapper(w);
+    Delete(dirclass_type);
+    Delete(classtype);
+    Delete(classname);
+    return Language::classDirectorDefaultConstructor(n);
+  }
+
+
+  /* ------------------------------------------------------------
+   * classDirectorInit()
+   * ------------------------------------------------------------ */
+
+  int classDirectorInit(Node *n) {
+    Delete(none_comparison);
+    none_comparison = NewString("");            // not used
+
+    Delete(director_ctor_code);
+    director_ctor_code = NewString("$director_new");
+
+    Java_director_declaration(n);
+
+    Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
+    Printf(f_directors_h, "\npublic:\n");
+
+    /* Keep track of the director methods for this class */
+    first_class_dmethod = curr_class_dmethod = n_dmethods;
+   
+    director_callback_typedefs = NewString("");
+    director_callbacks = NewString("");
+    director_delegate_callback = NewString("");
+    director_delegate_definitions = NewString("");
+    director_delegate_instances = NewString("");
+    director_method_types = NewString("");
+    director_connect_parms = NewString("");
+
+    return Language::classDirectorInit(n);
+  }
+
+  /* ----------------------------------------------------------------------
+   * classDirectorDestructor()
+   * ---------------------------------------------------------------------- */
+
+  int classDirectorDestructor(Node *n) {
+    Node *current_class = getCurrentClass();
+    String *full_classname = Getattr(current_class, "name");
+    String *classname= Swig_class_name(current_class);
+    Wrapper *w = NewWrapper();
+
+    if (Getattr(n,"throw")) {
+      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
+      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+    } else {
+      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
+      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+    }
+
+    /* Ensure that correct directordisconnect typemap's method name is called
+     * here: */
+
+    const String *disconn_tm = NULL;
+    Node *disconn_attr = NewHash();
+    String *disconn_methodname = NULL;
+
+    disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
+
+    Printv(w->code,
+           "}\n",
+           NIL);
+
+    Wrapper_print(w, f_directors);
+
+    DelWrapper(w);
+    Delete(disconn_attr);
+    Delete(classname);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorEnd()
+   * ------------------------------------------------------------ */
+
+  int classDirectorEnd(Node *n) {
+    String *director_classname = directorClassName(n);
+
+    Wrapper *w = NewWrapper();
+
+    if (Len(director_callback_typedefs) > 0) {
+      Printf(f_directors_h, "\n%s", director_callback_typedefs);
+    }
+
+    Printf(f_directors_h, "    void swig_connect_director(");
+
+    Printf(w->def, "void %s::swig_connect_director(", director_classname);
+
+    for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      UpcallData *udata = Getitem(dmethods_seq, i);
+      String *methid = Getattr(udata, "class_methodidx");
+      String *overname = Getattr(udata, "overname");
+
+      Printf(f_directors_h, "SWIG_Callback%s_t callback%s", methid, overname);
+      Printf(w->def, "SWIG_Callback%s_t callback%s", methid, overname);
+      Printf(w->code, "swig_callback%s = callback%s;\n", overname, overname);
+      if (i != curr_class_dmethod - 1) {
+        Printf(f_directors_h, ", ");
+        Printf(w->def, ", ");
+      }
+    }
+
+    Printf(f_directors_h, ");\n");
+    Printf(w->def, ") {");
+
+
+    if (Len(director_callback_typedefs) > 0) {
+      Printf(f_directors_h, "\nprivate:\n%s", director_callbacks);
+    }
+    Printf(f_directors_h, "    void swig_init_callbacks();\n");
+    Printf(f_directors_h, "};\n\n");
+    Printf(w->code, "}\n\n");
+
+    Printf(w->code, "void %s::swig_init_callbacks() {\n", director_classname);
+    for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      UpcallData *udata = Getitem(dmethods_seq, i);
+      String *overname = Getattr(udata, "overname");
+      Printf(w->code, "swig_callback%s = 0;\n", overname);
+    }
+    Printf(w->code, "}");
+
+    Wrapper_print(w, f_directors);
+
+    DelWrapper(w);
+
+    return Language::classDirectorEnd(n);
+  }
+
+  /* --------------------------------------------------------------------
+   * classDirectorDisown()
+   * ------------------------------------------------------------------*/
+  virtual int classDirectorDisown(Node *n) {
+    (void)n;
+    return SWIG_OK;
+  }
+    
+  /* --------------------------------------------------------------------
+   * Java_director_declaration()
+   *
+   * Generate the director class's declaration
+   * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
+   * ------------------------------------------------------------------*/
+
+  void Java_director_declaration(Node *n) {
+    String *base = Getattr(n, "classtype");
+    String *class_ctor = NewString("Swig::Director()");
+
+    String* classname = Swig_class_name(n);
+    String *directorname = NewStringf("SwigDirector_%s", classname);
+    String *declaration = Swig_class_declaration(n, directorname);
+
+    Printf(declaration, " : public %s, public Swig::Director", base);
+
+    // Stash stuff for later.
+    Setattr(n, "director:decl", declaration);
+    Setattr(n, "director:ctor", class_ctor);
   }
 
 };   /* class CSHARP */
