@@ -226,6 +226,7 @@
 #define WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF 843
 #define WARN_CSHARP_EXCODE                    844
 #define WARN_CSHARP_CANTHROW                  845
+#define WARN_CSHARP_NO_DIRECTORCONNECT_ATTR   846
 
 /* please leave 830-849 free for C# */
 
