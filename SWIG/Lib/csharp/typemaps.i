@@ -15,7 +15,7 @@ INPUT typemaps
 --------------
 
 These typemaps are used for pointer/reference parameters that are input only
-are mapped to a C# input parameter.
+and are mapped to a C# input parameter.
 
 The following typemaps can be applied to turn a pointer or reference into a simple
 input value.  That is, instead of passing a pointer or reference to an object,
@@ -62,9 +62,20 @@ In C# you could then use it like this:
 %typemap(imtype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(cstype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
+%typemap(csdirectorin) TYPE *INPUT, TYPE &INPUT "$iminput"
+%typemap(csdirectorout) TYPE *INPUT, TYPE &INPUT "$cscall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
+
+%typemap(directorout) TYPE *INPUT, TYPE &INPUT
+%{ $1 = ($1_ltype)&$input; %}
+
+%typemap(directorin) TYPE &INPUT
+%{ $input = (CTYPE *)$1; %}
+
+%typemap(directorin) TYPE *INPUT
+%{ $input = (CTYPE *)$1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -143,9 +154,23 @@ value returned in the second output parameter. In C# you would use it like this:
 %typemap(imtype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(cstype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
+%typemap(csdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$iminput"
+%typemap(csdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$cscall"
+
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
+
+%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
+}
+
+%typemap(directorin) TYPE &OUTPUT
+%{ $input = &$1; %}
+
+%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
+{
+}
+
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *OUTPUT, TYPE &OUTPUT ""
 %enddef
@@ -228,9 +253,22 @@ of the function return value.
 %typemap(imtype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(cstype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
+%typemap(csdirectorin) TYPE *INOUT, TYPE &INOUT "$iminput"
+%typemap(csdirectorout) TYPE *INOUT, TYPE &INOUT "$cscall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
+
+%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
+
+}
+
+%typemap(directorin) TYPE &INOUT
+%{ $input = &$1; %}
+
+%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
+{
+}
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *INOUT, TYPE &INOUT ""
 %enddef

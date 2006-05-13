@@ -18,6 +18,7 @@
 <li><a href="#csharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
 <li><a href="#csharp_custom_application_exception">Custom C# ApplicationException example</a>
 </ul>
+<li><a href="#csharp_directors">C# Directors</a>
 <li><a href="#csharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -55,13 +56,8 @@ Monodoc, available from the Mono project, has a very useful section titled <a hr
 <p>
 The C# module is very similar to the Java module, so until some more complete documentation has been written,
 please use the <a href="Java.html#Java">Java documentation</a> as a guide to using SWIG with C#.
+The C# module has the same major SWIG features as the Java module.
 The rest of this section should be read in conjunction with the Java documentation as it lists the main differences.
-
-<p>
-Director support (virtual method callbacks into C#) has not yet been implemented and is the main missing feature compared to Java.
-Less of the STL is supported and there are also a few minor utility typemaps in the various.i library which are missing.
-
-<p>
 
 The most noteable differences to Java are the following:
 <ul>
@@ -897,6 +893,399 @@ try {
 }
 </pre>
 </div>
+
+<H2><a name="csharp_directors"></a>C# Directors</H2>
+
+<p>
+The SWIG directors feature adds extra code to the generated C# proxy classes that enable these classes to be used in cross-language polymorphism.
+Essentially, it enables unmanaged C++ code to call back into managed code for virtual methods so that a C# class can derive from a wrapped C++ class.
+</p>
+
+<p>
+The following sections provide information on the C# director implementation and contain most of the information required to use the C# directors.
+However, the <a href=Java.html#java_directors>Java directors</a> section should also be read in order to gain more insight into directors.
+</p>
+
+<H3><a name="csharp_directors_example"></a>Directors example</H3>
+
+<p>
+Imagine we are wrapping a C++ base class, <tt>Base</tt>, from which we would like to inherit in C#.
+Such a class is shown below as well as another class, <tt>Caller</tt>, which calls the virtual method <tt>UIntMethod</tt>
+from pure unmanaged C++ code.
+</p>
+
+
+<div class="code">
+<pre>
+// file: example.h
+class Base {
+public:
+  virtual ~Base() {}
+
+  virtual unsigned int UIntMethod(unsigned int x) {
+    std::cout &lt;&lt; "Base - UIntMethod(" &lt;&lt; x &lt;&lt; ")" &lt;&lt; std::endl;
+    return x;
+  }
+  virtual void BaseBoolMethod(const Base &amp;b, bool flag) {}
+};
+
+class Caller {
+public:
+  Caller(): m_base(0) {}
+  ~Caller() { delBase(); }
+  void set(Base *b) { delBase(); m_base = b; }
+  void reset() { m_base = 0; }
+  unsigned int UIntMethodCall(unsigned int x) { return m_base-&gt;UIntMethod(x); }
+
+private:
+  Base *m_base;
+  void delBase() { delete m_base; m_base = 0; }
+};
+</pre>
+</div>
+
+<p>
+The director feature is turned off by default and the following simple interface file shows how directors are enabled
+for the class <tt>Base</tt>.
+</p>
+
+<div class="code">
+<pre>
+/* File : example.i */
+%module(directors="1") example
+%{
+#include "example.h"
+%}
+
+%feature("director") Base;
+
+%include "example.h"
+</pre>
+</div>
+
+<p>
+The following is a C# class inheriting from <tt>Base</tt>:
+</p>
+
+<div class="code">
+<pre>
+public class CSharpDerived : Base
+{
+  public override uint UIntMethod(uint x)
+  {
+    Console.WriteLine("CSharpDerived - UIntMethod({0})", x);
+    return x;
+  }
+}
+</pre>
+</div>
+
+<p>
+The <tt>Caller</tt> class can demonstrate the <tt>UIntMethod</tt> method being called from unmanaged code using the following C# code:
+</p>
+
+<div class="targetlang">
+<pre>
+public class runme
+{
+  static void Main() 
+  {
+    Caller myCaller = new Caller();
+
+    // Test pure C++ class
+    using (Base myBase = new Base())
+    {
+      makeCalls(myCaller, myBase);
+    }
+
+    // Test director / C# derived class
+    using (Base myBase = new CSharpDerived())
+    {
+      makeCalls(myCaller, myBase);
+    }
+  }
+
+  static void makeCalls(Caller myCaller, Base myBase)
+  {
+    myCaller.set(myBase);
+    myCaller.UIntMethodCall(123);
+    myCaller.reset();
+  }
+}
+</pre>
+</div>
+
+<p>
+If the above is run, the output is then:
+</p>
+
+<div class="shell">
+<pre>
+Base - UIntMethod(123)
+CSharpDerived - UIntMethod(123)
+</pre>
+</div>
+
+<H3><a name="csharp_directors_implementation"></a>Directors implementation</H3>
+
+<p>
+The previous section demonstrated a simple example where the virtual <tt>UIntMethod</tt> method was called from
+C++ code, even when the overridden method is implemented in C#.
+The intention of this section is to gain an insight into how the director feature works. 
+It shows the generated code for the two virtual methods, <tt>UIntMethod</tt> and <tt>BaseBoolMethod</tt>,
+when the director feature is enabled for the <tt>Base</tt> class.
+</p>
+
+<p>
+Below is the generated C# <tt>Base</tt> director class.
+</p>
+
+<div class="code">
+<pre>
+using System;
+using System.Runtime.InteropServices;
+
+public class Base : IDisposable {
+  private HandleRef swigCPtr;
+  protected bool swigCMemOwn;
+
+  internal Base(IntPtr cPtr, bool cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = new HandleRef(this, cPtr);
+  }
+
+  internal static HandleRef getCPtr(Base obj) {
+    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  }
+
+  ~Base() {
+    Dispose();
+  }
+
+  public virtual void Dispose() {
+    if(swigCPtr.Handle != IntPtr.Zero &amp;&amp; swigCMemOwn) {
+      swigCMemOwn = false;
+      examplePINVOKE.delete_Base(swigCPtr);
+    }
+    swigCPtr = new HandleRef(null, IntPtr.Zero);
+    GC.SuppressFinalize(this);
+  }
+
+  public virtual uint UIntMethod(uint x) {
+    uint ret = examplePINVOKE.Base_UIntMethod(swigCPtr, x);
+    return ret;
+  }
+
+  public virtual void BaseBoolMethod(Base b, bool flag) {
+    examplePINVOKE.Base_BaseBoolMethod(swigCPtr, Base.getCPtr(b), flag);
+    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public Base() : this(examplePINVOKE.new_Base(), true) {
+    SwigDirectorConnect();
+  }
+
+  private void SwigDirectorConnect() {
+    if (SwigDerivedClassHasMethod("UIntMethod", swigMethodTypes0))
+      swigDelegate0 = new SwigDelegateBase_0(SwigDirectorUIntMethod);
+    if (SwigDerivedClassHasMethod("BaseBoolMethod", swigMethodTypes1))
+      swigDelegate1 = new SwigDelegateBase_1(SwigDirectorBaseBoolMethod);
+    examplePINVOKE.Base_director_connect(swigCPtr, swigDelegate0, swigDelegate1);
+  }
+
+  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {
+    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);
+    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(Base));
+    return hasDerivedMethod;
+  }
+
+  private uint SwigDirectorUIntMethod(uint x) {
+    return UIntMethod(x);
+  }
+
+  private void SwigDirectorBaseBoolMethod(IntPtr b, bool flag) {
+    BaseBoolMethod(new Base(b, false), flag);
+  }
+
+  internal delegate uint SwigDelegateBase_0(uint x);
+  internal delegate void SwigDelegateBase_1(IntPtr b, bool flag);
+
+  private SwigDelegateBase_0 swigDelegate0;
+  private SwigDelegateBase_1 swigDelegate1;
+
+  private static Type[] swigMethodTypes0 = new Type[] { typeof(uint) };
+  private static Type[] swigMethodTypes1 = new Type[] { typeof(Base), typeof(bool) };
+}
+</pre>
+</div>
+
+<p>
+Everything from the <tt>SwigDirectorConnect()</tt> method and below is code that is only generated when
+directors are enabled.
+The design comprises a C# delegate being initialised for each virtual method on construction of the class.
+Let's examine the <tt>BaseBoolMethod</tt>.
+</p>
+
+<p>
+In the <tt>Base</tt> constructor a call is made to <tt>SwigDirectorConnect()</tt> which contains the initialisation code for all the virtual methods.
+It uses a support method, <tt>SwigDerivedClassHasMethod()</tt>, which simply uses reflection to determine if the named method,
+BaseBoolMethod, with the list of required parameter types, exists in a subclass.
+If it does not exist, the delegate is not initialised as there is no need for unmanaged code to call back into managed C# code.
+However, if there is an overridden method in any subclass, the delegate is required. 
+It is then initialised to the <tt>SwigDirectorBaseBoolMethod</tt> which in turn will call <tt>BaseBoolMethod</tt> if invoked.
+The delegate is not initialised to the <tt>BaseBoolMethod</tt> directly as quite often types will need marshalling from the unmanaged type
+to the managed type in which case an intermediary method (<tt>SwigDirectorBaseBoolMethod</tt>) is required for the marshalling.
+In this case, the C# <tt>Base</tt> class needs to be created from the unmanaged <tt>IntPtr</tt> type.
+</p>
+
+<p>
+The last thing that <tt>SwigDirectorConnect()</tt> does is to pass the delegates to the unmanaged code.
+It calls the intermediary method <tt>Base_director_connect()</tt> which is really a call to the C function <tt>CSharp_Base_director_connect()</tt>.
+This method simply maps each C# delegate onto a C function pointer.
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg, 
+                                                         SwigDirector_Base::SWIG_Callback0_t callback0,
+                                                         SwigDirector_Base::SWIG_Callback1_t callback1) {
+  Base *obj = (Base *)objarg;
+  SwigDirector_Base *director = dynamic_cast<SwigDirector_Base *>(obj);
+  if (director) {
+    director-&gt;swig_connect_director(callback0, callback1);
+  }
+}
+
+class SwigDirector_Base : public Base, public Swig::Director {
+public:
+    SwigDirector_Base();
+    virtual unsigned int UIntMethod(unsigned int x);
+    virtual ~SwigDirector_Base();
+    virtual void BaseBoolMethod(Base const &amp;b, bool flag);
+
+    typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
+    typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
+    void swig_connect_director(SWIG_Callback0_t callbackUIntMethod, SWIG_Callback1_t callbackBaseBoolMethod);
+
+private:
+    SWIG_Callback0_t swig_callbackUIntMethod;
+    SWIG_Callback1_t swig_callbackBaseBoolMethod;
+    void swig_init_callbacks();
+};
+
+void SwigDirector_Base::swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
+                                              SWIG_Callback1_t callbackBaseBoolMethod) {
+  swig_callbackUIntMethod = callbackUIntMethod;
+  swig_callbackBaseBoolMethod = callbackBaseBoolMethod;
+}
+</pre>
+</div>
+
+<p>
+Note that for each director class SWIG creates an unmanaged director class for making the callbacks. For example <tt>Base</tt> has <tt>SwigDirector_Base</tt> and <tt>SwigDirector_Base</tt>
+is derived from <tt>Base</tt>.
+Should a C# class be derived from <tt>Base</tt>, the underlying C++ <tt>SwigDirector_Base</tt> is created rather than <tt>Base</tt>.
+The <tt>SwigDirector_Base</tt> class then implements all the virtual methods, redirecting calls up to managed code if the callback/delegate is non-zero.
+The implementation of <tt>SwigDirector_Base::BaseBoolMethod</tt> shows this - the callback is made by invoking the <tt>swig_callbackBaseBoolMethod</tt> function pointer:
+</p>
+
+<div class="code">
+<pre>
+void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
+  void * jb = 0 ;
+  unsigned int jflag  ;
+  
+  if (!swig_callbackBaseBoolMethod) {
+    Base::BaseBoolMethod(b,flag);
+    return;
+  } else {
+    jb = (Base *) &b; 
+    jflag = flag;
+    swig_callbackBaseBoolMethod(jb, jflag);
+  }
+}
+</pre>
+</div>
+
+<H3><a name="csharp_typemap_examples"></a>Director caveats</H3>
+
+<p>
+There are a few gotchas with directors.
+The first is that the base class virtual method should not be called directly otherwise a stack overflow will occur due to recursive calls.
+This might be fixed in a future version of SWIG, but is likely to slow down virtual methods calls.
+For example, given <tt>Base</tt> as a director enabled class:
+</p>
+
+
+<div class="code">
+<pre>
+class Base {
+public:
+  virtual ~Base();
+  virtual unsigned int UIntMethod(unsigned int x);
+};
+</pre>
+</div>
+
+<p>
+Do not directly call the base method from a C# derived class:
+</p>
+
+<div class="code">
+<pre>
+public class CSharpDerived : Base
+{
+  public override uint UIntMethod(uint x)
+  {
+    return base.UIntMethod(x);
+  }
+}
+</pre>
+</div>
+
+<p>
+Secondly, if default parameters are used, it is recommended to follow a pattern of always calling a single method in any C# derived class.
+An example will clarify this and the reasoning behind the recommendation. Consider the following C++ class wrapped as a director class:
+</p>
+
+<div class="code">
+<pre>
+class Defaults {
+public:
+  virtual ~Defaults();
+  virtual void DefaultMethod(int a=-100);
+};
+</pre>
+</div>
+
+<p>
+Recall that C++ methods with default parameters generate overloaded methods for each defaulted parameter, so a C# derived class can be created
+with two <tt>DefaultMethod</tt> override methods:
+</p>
+
+<div class="code">
+<pre>
+public class CSharpDefaults : Defaults
+{
+  public override void DefaultMethod()
+  {
+    DefaultMethod(-100); // note C++ default value used
+  }
+  public override void DefaultMethod(int x)
+  {
+  }
+}
+</pre>
+</div>
+
+<p>
+It may not be clear at first, but should a user intend to call <tt>CSharpDefaults.DefaultMethod()</tt> from C++, a call is actually made to <tt>CSharpDefaults.DefaultMethod(int)</tt>.
+This is because the initial call is made in C++ and therefore the <tt>DefaultMethod(int)</tt> method will be called as is expected with C++ calls to methods with defaults,
+with the default being set to -100.
+The callback/delegate matching this method is of course the overloaded method <tt>DefaultMethod(int)</tt>.
+However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of course call this exact method and in order for behaviour to be consistent with calls from C++, the implementation
+should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
+</p>
 
 <H2><a name="csharp_typemap_examples"></a>17.4 C# Typemap examples</H2>
 
