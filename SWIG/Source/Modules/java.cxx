@@ -9,12 +9,12 @@
 
 char cvsroot_java_cxx[] = "$Header$";
 
-#include <limits.h> // for INT_MAX
 #include "swigmod.h"
+#include <limits.h> // for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
 
-/* Hash type used for JNI upcall data */
+/* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
 
 class JAVA : public Language {
@@ -67,7 +67,7 @@ class JAVA : public Language {
   String *module_class_modifiers; //class modifiers for module class overriden by %pragma
   String *upcasts_code; //C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code; //C++ casts up inheritance hierarchies intermediary class code
-  String *imclass_directors; // Intermediate class director Java code
+  String *imclass_directors; // Intermediate class director code
   String *destructor_call; //C++ destructor call if any
 
   // Director method stuff:
@@ -435,10 +435,8 @@ class JAVA : public Language {
       Replaceall(imclass_class_code, "$imclassname", imclass_name);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
-      if (Len(imclass_directors) > 0) {
-        Printf(f_im, "\n  /* Director upcall methods: */\n\n");
-        Printv(f_im, imclass_directors, NIL);
-      }
+      if (Len(imclass_directors) > 0)
+        Printv(f_im, "\n", imclass_directors, NIL);
 
       if (n_dmethods > 0) {
         Putc('\n', f_im);
@@ -2022,8 +2020,6 @@ class JAVA : public Language {
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(overloaded_name);
       String *imcall = NewString("");
-      String *javaconstruct_tm;
-      Hash *javaconstruct_attrs;
 
       const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
@@ -2099,32 +2095,32 @@ class JAVA : public Language {
       generateThrowsClause(n, function_code);
 
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
-      javaconstruct_attrs = NewHash();
-      javaconstruct_tm = Copy(typemapLookup("javaconstruct", Getattr(n,"name"),
-                                            WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, javaconstruct_attrs));
-      if (javaconstruct_tm) {
+      Hash *attributes = NewHash();
+      String *construct_tm = Copy(typemapLookup("javaconstruct", Getattr(n,"name"),
+                                            WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
+      if (construct_tm) {
         if (!feature_director) {
-          Replaceall(javaconstruct_tm, "$directorconnect", "");
+          Replaceall(construct_tm, "$directorconnect", "");
         } else {
-          String *connect_attr = Getattr(javaconstruct_attrs, "tmap:javaconstruct:directorconnect");
+          String *connect_attr = Getattr(attributes, "tmap:javaconstruct:directorconnect");
 
           if (connect_attr) {
-            Replaceall(javaconstruct_tm, "$directorconnect", connect_attr);
+            Replaceall(construct_tm, "$directorconnect", connect_attr);
           } else {
             Swig_warning(WARN_JAVA_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorconnect\" attribute missing in %s \"javaconstruct\" typemap.\n", Getattr(n,"name"));
-            Replaceall(javaconstruct_tm, "$directorconnect", "");
+            Replaceall(construct_tm, "$directorconnect", "");
           }
         }
 
-        Printv(function_code, " ", javaconstruct_tm, "\n", NIL);
+        Printv(function_code, " ", construct_tm, "\n", NIL);
       }
 
       Replaceall(function_code, "$imcall", imcall);
 
       Printv(proxy_class_code, function_code, "\n", NIL);
 
-      Delete(javaconstruct_tm);
-      Delete(javaconstruct_attrs);
+      Delete(construct_tm);
+      Delete(attributes);
       Delete(overloaded_name);
       Delete(imcall);
     }
@@ -2696,6 +2692,10 @@ class JAVA : public Language {
   }
 
   /*----------------------------------------------------------------------
+   * Start of director methods
+   *--------------------------------------------------------------------*/
+
+  /*----------------------------------------------------------------------
    * getUpcallJNIMethod()
    *--------------------------------------------------------------------*/
 
@@ -2945,10 +2945,6 @@ class JAVA : public Language {
     return descriptor_out;
   }
 
-  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // (scottm) Class director mods:
-  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
@@ -2979,7 +2975,6 @@ class JAVA : public Language {
     String     *qualified_return = NewString("");
     bool        pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
     int         status = SWIG_OK;
-
     bool        output_director = true;
     String     *dirclassname = directorClassName(parent);
     String     *qualified_name = NewStringf("%s::%s", dirclassname, name);
@@ -2987,10 +2982,11 @@ class JAVA : public Language {
     String     *classdesc = NewString("");
     String     *jniret_desc = NewString("");
     String     *classret_desc = NewString("");
-    SwigType   *jniret_type = NULL;
+    SwigType   *c_ret_type = NULL;
     String     *jupcall_args = NewString("jobj");
     String     *imclass_dmethod;
-    Wrapper    *imw = NewWrapper();
+    String     *callback_def = NewString("");
+    String     *callback_code = NewString("");
     String     *imcall_args = NewString("");
     int         gencomma = 0;
     int         classmeth_off = curr_class_dmethod - first_class_dmethod;
@@ -3062,25 +3058,25 @@ class JAVA : public Language {
 
         tm = Swig_typemap_lookup_new("jtype", tp, "", 0);
         if (tm) {
-          Printf(imw->def, "public static %s %s(%s self", tm, imclass_dmethod, classname);
+          Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, classname);
         } else {
           Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
               "No jtype typemap defined for %s\n", SwigType_str(returntype,0));
         }
       } else
-        Printf(imw->def, "public static void %s(%s self", imclass_dmethod, classname);
+        Printf(callback_def, "  public static void %s(%s self", imclass_dmethod, classname);
 
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
 
       Parm  *retpm = NewParmFromNode(returntype, empty_str, n);
-      
-      if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0))) {
+
+      if ((c_ret_type = Swig_typemap_lookup_new("jni", retpm, "", 0))) {
         String *jdesc;
-        Parm *tp = NewParmFromNode(jniret_type, empty_str, n);
+        Parm *tp = NewParmFromNode(c_ret_type, empty_str, n);
 
         if (!is_void) {
-          String *jretval_decl = NewStringf("%s jresult", jniret_type);
+          String *jretval_decl = NewStringf("%s jresult", c_ret_type);
           Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
           Delete(jretval_decl);
         }
@@ -3094,7 +3090,7 @@ class JAVA : public Language {
           Delete(jnidesc_canon);
         } else {
           Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                       "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
+                       "No or improper directorin typemap defined for %s\n", SwigType_str(c_ret_type,0));
           output_director = false;
         }
 
@@ -3123,7 +3119,7 @@ class JAVA : public Language {
         Delete(jnidesc_canon);
       } else {
         Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(returntype,0));
         output_director = false;
       }
 
@@ -3235,7 +3231,7 @@ class JAVA : public Language {
       /* And add to the upcall args */
       Printf(jupcall_args, ", %s", arg);
 
-      /* Get parameter's JNI C type */
+      /* Get parameter's intermediary C type */
       if ((c_param_type = Getattr(p, "tmap:jni"))) {
         Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
         String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
@@ -3265,9 +3261,7 @@ class JAVA : public Language {
           /* Add parameter to the intermediate class code if generating the
            * intermediate's upcall code */
           if ((tm = Getattr(p, "tmap:jtype"))) {
-            String   *din;
-            
-            din = Copy(Getattr(p, "tmap:javadirectorin"));
+            String *din = Copy(Getattr(p, "tmap:javadirectorin"));
 
             if (din) {
               Replaceall(din, "$module", module_class_name);
@@ -3275,9 +3269,9 @@ class JAVA : public Language {
               substituteClassname(pt, din);
               Replaceall(din, "$jniinput", ln);
 
-              Printf(imw->def, ", %s %s", tm, ln);
               if (++gencomma > 1)
                 Printf(imcall_args, ", ");
+              Printf(callback_def, ", %s %s", tm, ln);
 
               if (Cmp(din, ln)) {
                 Printv(imcall_args, din, NIL);
@@ -3388,9 +3382,9 @@ class JAVA : public Language {
 
     /* Finish off the inherited upcall's definition */
 
-    Putc(')', imw->def);
-    generateThrowsClause(n, imw->def);
-    Printf(imw->def, " {");
+    Putc(')', callback_def);
+    generateThrowsClause(n, callback_def);
+    Printf(callback_def, " {\n");
     
     /* Emit the intermediate class's upcall to the actual class */
 
@@ -3404,25 +3398,25 @@ class JAVA : public Language {
         substituteClassname(returntype, tm);
         Replaceall(tm, "$javacall", upcall);
 
-        Printf(imw->code, "return %s;\n", tm);
+        Printf(callback_code, "    return %s;\n", tm);
       }
 
       Delete(tm);
       Delete(tp);
     } else
-      Printf(imw->code, "%s;", upcall);
+      Printf(callback_code, "    %s;\n", upcall);
 
-    Printf(imw->code, " }");
+    Printf(callback_code, "  }\n");
     Delete(upcall);
 
-    /* Emit the actual upcall through JNI */
+    /* Emit the actual upcall through */
     String *imclass_desc = NewStringf("(%s)%s", jnidesc, jniret_desc);
     String *class_desc = NewStringf("(%s)%s", classdesc, classret_desc);
     UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, imclass_desc, class_desc, decl);
     String *methid = Getattr(udata, "imclass_methodidx");
     String *methop = getUpcallJNIMethod(jniret_desc);
 
-    if (!is_void) Printf(w->code, "jresult = (%s) ", jniret_type);
+    if (!is_void) Printf(w->code, "jresult = (%s) ", c_ret_type);
     
     Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
            methop, imclass_name, methid, jupcall_args);
@@ -3444,7 +3438,7 @@ class JAVA : public Language {
         Printf(w->code, "%s\n", tm);
       } else {
         Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, 
-		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(tp, 0), classname, name);
+		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), classname, name);
         output_director = false;
       }
 
@@ -3475,7 +3469,7 @@ class JAVA : public Language {
       } else {
         Replaceall(w->code,"$null","");
       }
-      Wrapper_print(imw, imclass_directors);
+      Printv(imclass_directors, callback_def, callback_code, NIL);
       if (!Getattr(n,"defaultargs")) {
         Wrapper_print(w, f_directors);
         Printv(f_directors_h, declaration, NIL);
@@ -3484,9 +3478,11 @@ class JAVA : public Language {
 
     Delete(qualified_return);
     Delete(jnidesc);
-    Delete(jniret_type);
+    Delete(c_ret_type);
     Delete(jniret_desc);
     Delete(declaration);
+    Delete(callback_def);
+    Delete(callback_code);
     DelWrapper(w);
 
     ++curr_class_dmethod;
@@ -3558,7 +3554,7 @@ class JAVA : public Language {
         String *classtype = SwigType_namestr(Getattr(n, "name"));
         String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
 
-        Printf(f_directors, "%s::%s: %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+        Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
         Printf(f_directors, "}\n\n");
 
         Delete(dirclass_type);
