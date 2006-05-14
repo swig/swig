@@ -476,7 +476,7 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
     /* The node in the symbol table is weak. Replace it */
     if (checkAttribute(cn,k_nodetype,k_template) 
 	&& checkAttribute(cn,k_templatetype,k_classforward)) {
-      /* The node is a template clasforward declaration, and the
+      /* The node is a template classforward declaration, and the
 	 default template parameters here take precedence. */
       ParmList *pc = Getattr(cn,k_templateparms);
       ParmList *pn = Getattr(n,k_templateparms);
@@ -557,7 +557,7 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
       SwigType_push(type,HashGetAttr(td,k_decl));
       td1 = Swig_symbol_clookup(type,0);
  
-      /* Fix patetic case #1214313:
+      /* Fix pathetic case #1214313:
 	 
 	 class Foo
 	 {
