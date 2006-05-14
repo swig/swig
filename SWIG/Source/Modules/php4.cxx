@@ -8,7 +8,8 @@
  * ----------------------------------------------------------------------------- */
 
 /*
- * TODO: Replace stderr messages with Swig_warning
+ * TODO: Replace remaining stderr messages with Swig_warning (need to add more
+ * WARN_XXX codes to be able to...)
  */
 
 char cvsroot_php4_cxx[] = "$Header$";
@@ -1102,8 +1103,9 @@ public:
         }
         continue;
       } else {
-        Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n",
-               input_file, line_number, SwigType_str(pt,0));
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
+		     "Unable to use type %s as a function argument.\n",
+		     SwigType_str(pt,0));
       }
       if (i>= num_required) {
         Printf(f->code,"\t}\n");
@@ -1196,8 +1198,9 @@ public:
         }
       } // end of if-shadow lark
     } else {
-      Printf(stderr,"%s: Line %d, Unable to use return type %s in function %s.\n",
-             input_file, line_number, SwigType_str(d,0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		   "Unable to use return type %s in function %s.\n",
+		   SwigType_str(d,0), name);
     }
     
     if(outarg) {
