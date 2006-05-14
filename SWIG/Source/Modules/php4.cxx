@@ -72,7 +72,7 @@ static String     *pragma_code;
 static String     *pragma_phpinfo;
 
 /* Variables for using PHP classes */
-static String     *class_name = 0;
+static Node       *current_class = 0;
 
 static Hash     *shadow_get_vars;
 static Hash     *shadow_set_vars;
@@ -1394,7 +1394,7 @@ public:
   virtual int classHandler(Node *n) {
     constructors=0;
     //SwigType *t = Getattr(n, "classtype");
-    class_name = Getattr(n, "sym:name");
+    current_class = n;
     // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if(shadow) {
@@ -1764,7 +1764,7 @@ public:
       }
     }
 
-    String *class_iname = Swig_name_member(class_name,iname);
+    String *class_iname = Swig_name_member(Getattr(current_class, "sym:name"), iname);
     create_command( iname, Swig_name_wrapper(class_iname) );
 
     Wrapper *f = NewWrapper();
