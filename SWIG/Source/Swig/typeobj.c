@@ -83,9 +83,9 @@ char cvsroot_typeobj_c[] = "$Header$";
  *
  * In addition, there are query functions
  *
- *       SwigType_is_pointer()
- *       SwigType_is_reference()
- *       SwigType_is_array()
+ *       SwigType_ispointer()
+ *       SwigType_isreference()
+ *       SwigType_isarray()
  *
  * Finally, there are some data extraction functions that can be used to
  * extract array dimensions, template arguments, and so forth.
@@ -97,7 +97,7 @@ char cvsroot_typeobj_c[] = "$Header$";
  *        typedef  int  *intptr;
  *       
  * In this case, a SwigType of type 'intptr' will be treated as a simple type and
- * functions like SwigType_is_pointer() will evaluate as false.  It is strongly
+ * functions like SwigType_ispointer() will evaluate as false.  It is strongly
  * advised that developers use the TypeSys_* interface to check types in a more
  * reliable manner.
  * ----------------------------------------------------------------------------- */
@@ -353,7 +353,7 @@ SwigType_ispointer(SwigType *t) {
  * SwigType_del_reference()
  * SwigType_isreference()
  *
- * Add, remove, and test if a type is a pointer.  The deletion and query
+ * Add, remove, and test if a type is a reference.  The deletion and query
  * functions take into account qualifiers (if any).
  * ----------------------------------------------------------------------------- */
 

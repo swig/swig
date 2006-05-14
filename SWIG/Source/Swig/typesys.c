@@ -118,7 +118,7 @@ static Hash     *typedef_qualified_cache = 0;
    always safe, but is well known.
 
    Setting at '1' activates the new scheme, which is always safe but
-   it requires all the typemaps ready for that.
+   it requires all the typemaps to be ready for that.
   
 */
 static int value_wrapper_mode = 0;
