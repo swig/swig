@@ -1,11 +1,12 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
  * php4.cxx
  *
  * Php language module for SWIG.
- * ----------------------------------------------------------------------------- */
+ * -----------------------------------------------------------------------------
+ */
 
 /*
  * TODO: Replace remaining stderr messages with Swig_warning (need to add more
@@ -26,10 +27,10 @@ PHP4 Options (available with -php4)\n\
      -dlname <name>  - Set module prefix to <name>\n\
      -make           - Create simple makefile\n\
      -phpfull        - Create full make files\n\
-     -withincs <libs>- With -phpfull writes needed incs in config.m4\n\
+     -withincs <incs>- With -phpfull writes needed incs in config.m4\n\
      -withlibs <libs>- With -phpfull writes needed libs in config.m4\n\
-     -withc <libs>   - With -phpfull makes extra c files in Makefile.in\n\
-     -withcxx <libs> - With -phpfull makes extra c++ files in Makefile.in\n\
+     -withc <files>  - With -phpfull makes extra C files in Makefile.in\n\
+     -withcxx <files>- With -phpfull makes extra C++ files in Makefile.in\n\
 \n";
 
 static int constructors=0;
@@ -257,8 +258,8 @@ public:
           } else {
             Swig_arg_error();
           }
-        }  else if((strcmp(argv[i], "-noshadow") == 0)
-                   || (strcmp(argv[i],"-noproxy") == 0)) {
+        } else if((strcmp(argv[i], "-noshadow") == 0) ||
+                  (strcmp(argv[i], "-noproxy") == 0)) {
           shadow = 0;
           Swig_mark_arg(i);
         } else if(strcmp(argv[i], "-make") == 0) {
@@ -305,7 +306,6 @@ public:
     Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
     Printf(f_make, "%%.o: %%.c\n");
     Printf(f_make, "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
-
     Close(f_make);
   }
   
@@ -328,7 +328,7 @@ public:
     // are we a --with- or --enable-
     int with=(withincs || withlibs)?1:0;
     
-    // Note makefile.in only copes with one source file
+    // Note Makefile.in only copes with one source file
     // also withincs and withlibs only take one name each now
     // the code they generate should be adapted to take multiple lines
     
@@ -344,7 +344,7 @@ public:
 	   "LTLIBRARY_NAME          = php_%s.la\n",
 	   module);
     
-    // CPP has more and different entires to C in Makefile.in
+    // C++ has more and different entries to C in Makefile.in
     if (! CPlusPlus) {
       Printf(f_extra,"LTLIBRARY_SOURCES       = %s %s\n", Swig_file_filename(outfile),withc);
       Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s\n", withcxx);
@@ -378,7 +378,7 @@ public:
       
     /* Now config.m4 */
     // Note: # comments are OK in config.m4 if you don't mind them
-    // appearing in the final ./configure file 
+    // appearing in the final ./configure file
     // (which can help with ./configure debugging)
     
     // NOTE2: phpize really ought to be able to write out a sample
@@ -822,9 +822,9 @@ public:
 */
 
   void create_command(String *cname, String *iname) {
-    
+
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
-    
+
     // This is for the single main function_entry record
     if (cs_entry) {
       Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
@@ -1028,7 +1028,7 @@ public:
     if (mvr && ! mvrset) {
       Wrapper_add_local(f, "_return_value", "zval _return_value");
       Wrapper_add_local(f, "return_value", "zval *return_value=&_return_value");
-    };
+    }
 
     if(numopt > 0) { // membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
@@ -1052,10 +1052,10 @@ public:
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
     // It means error messages may be out by argbase with error
-    // reports.  We can either take argbase into account when raising 
-    // errors, or find a better way of dealing with _thisptr
+    // reports.  We can either take argbase into account when raising
+    // errors, or find a better way of dealing with _thisptr.
     // I would like, if objects are wrapped, to assume _thisptr is always
-    // _this and not the first argument
+    // _this and not the first argument.
     // This may mean looking at Lang::memberfunctionhandler
 
     for (i = 0, p = l; i < num_arguments; i++) {
@@ -1210,8 +1210,8 @@ public:
     if(cleanup) {
       Printv(f->code,cleanup,NIL);
     }
-    
-    // Whats this bit for?
+
+    // What's this bit for?
     if((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
       Printf(f->code,"%s\n", tm);
     }
@@ -1455,7 +1455,6 @@ public:
       List *baselist = Getattr(n, "bases");
       Iterator ki, base;
 
-
       // If no constructor was generated (abstract class) we had better
       // generate a constructor that raises an error about instantiating
       // abstract classes
@@ -1538,7 +1537,7 @@ public:
         Printf(s_propset," else");
       }
 
-      // If there is a base class then chain it's handler else set directly
+      // If there is a base class then chain its handler else set directly
       // try each base class handler, else set directly...
       if (base.item) {
         Printf(s_propset,  "  {\n    /* chain to base class */\n");
@@ -1629,7 +1628,7 @@ public:
         Printf(s_propget," else");
       }
 
-      // If there is a base class then chain it's handler else return null
+      // If there is a base class then chain its handler else return null
       if (base.item) {
         Printf(s_propget,  "  {\n    /* chain to base class */\n");
         while(base.item) {
@@ -1672,7 +1671,7 @@ public:
       Printf(s_oinit,"\n");
 
       // Write the enum initialisation code in a static block
-      // These are all the enums defined withing the c++ class.
+      // These are all the enums defined within the C++ class.
       
 
       free(shadow_classname);
@@ -2048,5 +2047,3 @@ static Language * new_swig_php() {
 extern "C" Language * swig_php(void) {
   return new_swig_php();
 }
- 
-
