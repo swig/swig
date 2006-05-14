@@ -192,10 +192,10 @@
 %typemap(out) double             %{ $result = $1; %}
 
 /* char * - treat as String */
-%typemap(in) char * %{ $1 = $input; %}
+%typemap(in) char * %{ $1 = ($1_ltype)$input; %}
 %typemap(out) char * %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
-%typemap(directorout) char * %{ $1 = $input; %}
-%typemap(directorin) char * %{ $input = SWIG_csharp_string_callback($1); %}
+%typemap(directorout) char * %{ $1 = ($1_ltype)$input; %}
+%typemap(directorin) char * %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
 %typemap(csdirectorin) char * "$iminput"
 %typemap(csdirectorout) char * "$cscall"
 
@@ -352,7 +352,7 @@
 %typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ $1 = ($1_ltype)$input; %}
 %typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ $input = ($1_ltype) $1; %}
+%{ $input = (void *) $1; %}
 
 %typemap(directorout) SWIGTYPE &
 %{ if (!$input) {
