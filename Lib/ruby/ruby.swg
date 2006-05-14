@@ -19,7 +19,7 @@
 	 a constant by SWIG see naming.i in the Ruby test suite. */
 %rename("%(uppercase)s", %$ismember, %$isvariable,%$isimmutable,%$isstatic,%$hasvalue,%$hasconsttype) ""; 
 
-/* Enums are mapped to constants but we all we do is make sure the
+/* Enums are mapped to constants but all we do is make sure the
    first letter is uppercase */
 %rename("%(firstuppercase)s", %$isenumitem) "";
 
