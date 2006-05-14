@@ -457,7 +457,9 @@ public:
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
-      Printf(f_directors_h, "class Swig::Director;\n\n");
+      Printf(f_directors_h, "namespace Swig {\n");
+      Printf(f_directors_h, "  class Director;\n");
+      Printf(f_directors_h, "}\n\n");
       Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
