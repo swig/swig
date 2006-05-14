@@ -355,27 +355,27 @@ public:
       
     }
     Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n", module);
-    Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n",module);
+    Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n", cap_module);
     Printf(f_extra,"include $(top_srcdir)/build/dynlib.mk\n");
-    
+
     Printf(f_extra,"\n# patch in .cxx support to php build system to work like .cpp\n");
     Printf(f_extra,".SUFFIXES: .cxx\n\n");
-    
+
     Printf(f_extra,".cxx.o:\n");
-    Printf(f_extra,"  $(CXX_COMPILE) -c $<\n\n");
-    
+    Printf(f_extra,"\t$(CXX_COMPILE) -c $<\n\n");
+
     Printf(f_extra,".cxx.lo:\n");
-    Printf(f_extra,"  $(CXX_PHP_COMPILE)\n\n");
+    Printf(f_extra,"\t$(CXX_PHP_COMPILE)\n\n");
     Printf(f_extra,".cxx.slo:\n");
-    
-    Printf(f_extra,"  $(CXX_SHARED_COMPILE)\n\n");
-    
+
+    Printf(f_extra,"\t$(CXX_SHARED_COMPILE)\n\n");
+
     Printf(f_extra,"\n# make it easy to test module\n");
     Printf(f_extra,"testmodule:\n");
-    Printf(f_extra,"  php -q -d extension_dir=modules %s\n\n",Swig_file_filename(phpfilename));
-    
+    Printf(f_extra,"\tphp -q -d extension_dir=modules %s\n\n",Swig_file_filename(phpfilename));
+
     Close(f_extra);
-      
+
     /* Now config.m4 */
     // Note: # comments are OK in config.m4 if you don't mind them
     // appearing in the final ./configure file
@@ -425,18 +425,18 @@ public:
       Printf(f_extra,"dnl specify it below then we can have a link test to see if it works\n");
       Printf(f_extra,"LIBSYMBOL=\"\"\n\n");
     }
-    
+
     // Now write out tests to find thing.. they may need to extend tests
-    Printf(f_extra,"if test \"$PHP_%(upper)s\" != \"no\"; then\n\n",module);
-    
+    Printf(f_extra,"if test \"$PHP_%s\" != \"no\"; then\n\n", cap_module);
+
     // Ready for when we add libraries as we find them
-    Printf(f_extra,"  PHP_SUBST(%(upper)s_SHARED_LIBADD)\n\n",module);
-    
+    Printf(f_extra,"  PHP_SUBST(%s_SHARED_LIBADD)\n\n", cap_module);
+
     if (withlibs) { // find more than one library
       Printf(f_extra,"  for LIBNAME in $LIBNAMES ; do\n");
       Printf(f_extra,"    LIBDIR=\"\"\n");
       // For each path element to try...
-      Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/lib /usr/local/lib ; do\n",module,module);
+      Printf(f_extra,"    for i in $PHP_%s $PHP_%s/lib /usr/lib /usr/local/lib ; do\n", cap_module, cap_module);
       Printf(f_extra,"      if test -r $i/lib$LIBNAME.a -o -r $i/lib$LIBNAME.so ; then\n");
       Printf(f_extra,"        LIBDIR=\"$i\"\n");
       Printf(f_extra,"        break\n");
@@ -448,7 +448,7 @@ public:
       Printf(f_extra,"      AC_MSG_ERROR(Is the %s distribution installed properly?)\n",module);
       Printf(f_extra,"    else\n");
       Printf(f_extra,"      AC_MSG_RESULT(Library files $LIBNAME found in $LIBDIR)\n");
-      Printf(f_extra,"      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %(upper)s_SHARED_LIBADD)\n",module);
+      Printf(f_extra,"      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %s_SHARED_LIBADD)\n", cap_module);
       Printf(f_extra,"    fi\n");
       Printf(f_extra,"  done\n\n");
     }
@@ -457,7 +457,7 @@ public:
       Printf(f_extra,"  for HNAME in $HNAMES ; do\n");
       Printf(f_extra,"    INCDIR=\"\"\n");
       // For each path element to try...
-      Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include $PHP_%(upper)s/includes $PHP_%(upper)s/inc $PHP_%(upper)s/incs /usr/local/include /usr/include; do\n",module,module,module,module,module);
+      Printf(f_extra,"    for i in $PHP_%s $PHP_%s/include $PHP_%s/includes $PHP_%s/inc $PHP_%s/incs /usr/local/include /usr/include; do\n", cap_module, cap_module, cap_module, cap_module, cap_module);
       // Try and find header files
       Printf(f_extra,"      if test \"$HNAME\" != \"\" -a -r $i/$HNAME ; then\n");
       Printf(f_extra,"        INCDIR=\"$i\"\n");
@@ -492,11 +492,11 @@ public:
       Printf(f_extra,"    LIBS=\"$old_LIBS\"\n");
       Printf(f_extra,"  fi\n\n");
     }
-    
-    Printf(f_extra,"  AC_DEFINE(HAVE_%(upper)s, 1, [ ])\n",module);
-    Printf(f_extra,"dnl  AC_DEFINE_UNQUOTED(PHP_%(upper)s_DIR, \"$%(upper)s_DIR\", [ ])\n",module,module);
+
+    Printf(f_extra,"  AC_DEFINE(HAVE_%s, 1, [ ])\n", cap_module);
+    Printf(f_extra,"dnl  AC_DEFINE_UNQUOTED(PHP_%s_DIR, \"$%s_DIR\", [ ])\n", cap_module, cap_module);
     Printf(f_extra,"  PHP_EXTENSION(%s, $ext_shared)\n",module);
-    
+
     // and thats all!
     Printf(f_extra,"fi\n");
     
