@@ -1031,19 +1031,18 @@ public:
     if(numopt > 0) { // membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code,"arg_count = ZEND_NUM_ARGS();\n");
-      Printf(f->code,"if(arg_count<%d || arg_count>%d)\n",num_required, num_arguments);
+      Printf(f->code,"if(arg_count<%d || arg_count>%d ||\n",num_required, num_arguments);
+      Printf(f->code,"   zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)\n");
       Printf(f->code,"\tWRONG_PARAM_COUNT;\n\n");
-             
-      
-      /* Verified args, retrieve them... */
-      Printf(f->code,"if(zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)\n");
-      Printf(f->code,"\t\tWRONG_PARAM_COUNT;\n\n");
-      
     } else if (!mvr) {
-      Printf(f->code, "if(((ZEND_NUM_ARGS() )!= %d) || (zend_get_parameters_array_ex(%d, args)",
-             num_arguments-has_this_ptr, num_arguments-has_this_ptr);
-      Printf(f->code, "!= SUCCESS)) {\n");
-      Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");     
+      int num = num_arguments - has_this_ptr;
+      if (num == 0) {
+	Printf(f->code, "if(ZEND_NUM_ARGS() != 0) {\n");
+      } else {
+	Printf(f->code, "if(ZEND_NUM_ARGS() != %d || zend_get_parameters_array_ex(%d, args) != SUCCESS) {\n",
+	       num, num);
+      }
+      Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
 
     /* Now convert from php to C variables */
