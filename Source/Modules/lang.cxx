@@ -173,7 +173,7 @@ int Dispatcher::emit_one(Node *n) {
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_children()
  *
- * Emit all children that matches the given type. type = 0 means all types.
+ * Emit all children that match the given type. type = 0 means all types.
  * ---------------------------------------------------------------------- */
 
 int Dispatcher::emit_children(Node *n) {
@@ -254,8 +254,8 @@ Language::Language() :
       "}\n", NIL);
 
   /*
-    Default director 'protected' constructor code, disable by
-    default. Each language that need it, has to define it.
+    Default director 'protected' constructor code, disabled by
+    default. Each language that needs it, has to define it.
   */
   director_prot_ctor_code = 0;
   director_multiple_inheritance = 1;
