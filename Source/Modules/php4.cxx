@@ -120,7 +120,6 @@ static const char *php_header =
 
 void
 SwigPHP_emit_resource_registrations() {
-  DOH *key;
   Iterator ki;
   String *destructor=0;
   String *classname=0;
@@ -131,44 +130,44 @@ SwigPHP_emit_resource_registrations() {
   ki = First(zend_types);
   if (ki.key) Printf(s_oinit,"\n/* Register resource destructors for pointer types */\n");
   while (ki.key) if (1 /* is pointer type*/) {
-    key = ki.key;
-    Node *class_node;
-    if ((class_node=Getattr(zend_types,key))) {
-      // Write out destructor function header
-      Printf(s_wrappers,"/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
+    DOH *key = ki.key;
+    Node *class_node = ki.item;
 
-      // write out body
-      if ((class_node!=NOTCLASS)) {
-        classname = Getattr(class_node,"name");
-        if (! (shadow_classname = Getattr(class_node,"sym:name"))) {
-          shadow_classname=classname;
-        }
-        // Do we have a known destructor for this type?
-        if ((destructor = Getattr(class_node,"destructor"))) {
-          Printf(s_wrappers,"  /* has destructor: %s */\n",destructor);
-          Printf(s_wrappers,"  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
-        } else {
-          Printf(s_wrappers,"  /* bah! No destructor for this wrapped class!! */\n");
-        }
-      } else {
-          Printf(s_wrappers,"  /* bah! No destructor for this simple type!! */\n");
+    // Write out destructor function header
+    Printf(s_wrappers,"/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
+
+    // write out body
+    if ((class_node!=NOTCLASS)) {
+      classname = Getattr(class_node,"name");
+      if (! (shadow_classname = Getattr(class_node,"sym:name"))) {
+	shadow_classname=classname;
       }
-
-      // close function
-      Printf(s_wrappers,"}\n");
-
-      // declare le_swig_<mangled> to store php registration
-      Printf(s_vdecl,"static int le_swig_%s=0; /* handle for %s */\n", key, shadow_classname);
-
-      // register with php
-      Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-             "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
-             key,key,key);
-
-      // store php type in class struct
-      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
-             key,key);
+      // Do we have a known destructor for this type?
+      if ((destructor = Getattr(class_node,"destructor"))) {
+	Printf(s_wrappers,"  /* has destructor: %s */\n",destructor);
+	Printf(s_wrappers,"  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
+      } else {
+	Printf(s_wrappers,"  /* bah! No destructor for this wrapped class!! */\n");
+      }
+    } else {
+	Printf(s_wrappers,"  /* bah! No destructor for this simple type!! */\n");
     }
+
+    // close function
+    Printf(s_wrappers,"}\n");
+
+    // declare le_swig_<mangled> to store php registration
+    Printf(s_vdecl,"static int le_swig_%s=0; /* handle for %s */\n", key, shadow_classname);
+
+    // register with php
+    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+	   "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+	   key,key,key);
+
+    // store php type in class struct
+    Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
+	   key,key);
+
     ki = Next(ki);
   }
 }
@@ -306,6 +305,7 @@ public:
     Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
     Printf(f_make, "%%.o: %%.c\n");
     Printf(f_make, "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
+
     Close(f_make);
   }
   
@@ -327,7 +327,7 @@ public:
     
     // are we a --with- or --enable-
     int with=(withincs || withlibs)?1:0;
-    
+
     // Note Makefile.in only copes with one source file
     // also withincs and withlibs only take one name each now
     // the code they generate should be adapted to take multiple lines
@@ -343,7 +343,7 @@ public:
 	   "# $Id$\n\n"
 	   "LTLIBRARY_NAME          = php_%s.la\n",
 	   module);
-    
+
     // C++ has more and different entries to C in Makefile.in
     if (! CPlusPlus) {
       Printf(f_extra,"LTLIBRARY_SOURCES       = %s %s\n", Swig_file_filename(outfile),withc);
@@ -352,7 +352,6 @@ public:
       Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n", withc );
       Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s %s\n", Swig_file_filename(outfile),withcxx);
       Printf(f_extra,"LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n");
-      
     }
     Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n", module);
     Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n", cap_module);
@@ -592,8 +591,7 @@ public:
     Printf(f_phpcode,"if (!extension_loaded(\"php_%s\")) {\n", module);
     Printf(f_phpcode,"  if (!dl(\"%s\")) return;\n", dlname);
     Printf(f_phpcode,"}\n\n");
-    
-    
+
     /* sub-sections of the php file */
     pragma_code = NewString("");
     pragma_incl = NewString("");
@@ -964,7 +962,7 @@ public:
     
     String *outarg = NewString("");
     String *cleanup = NewString("");
-    
+
     if (mvr) { // do prop[gs]et header
       if (mvrset) {
         Printf(f->def, "static int _wrap_%s(zend_property_reference *property_reference, pval *value) {\n",iname);
@@ -1047,7 +1045,7 @@ public:
       Printf(f->code, "!= SUCCESS)) {\n");
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");     
     }
-    
+
     /* Now convert from php to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
@@ -1526,7 +1524,7 @@ public:
         if (scount++) {
           Printf(s_propset," else");
         }
-        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n",Getattr(shadow_set_vars,key) );
+        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n", ki.item);
         Printf(s_propset,"    return _wrap_%s(property_reference, value);\n",key);
         Printf(s_propset,"  }");
 
@@ -1616,7 +1614,7 @@ public:
         if (gcount++) {
           Printf(s_propget," else");
         }
-        Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n",Getattr(shadow_get_vars,key));
+        Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n", ki.item);
         Printf(s_propget,"    *value=_wrap_%s(property_reference);\n",key);
         Printf(s_propget,"    return SUCCESS;\n");
         Printf(s_propget,"  }");
