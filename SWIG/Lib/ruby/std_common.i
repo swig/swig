@@ -33,9 +33,9 @@ bool SWIG_STRING_P(VALUE x) {
     return TYPE(x) == T_STRING;
 }
 std::string SWIG_RB2STR(VALUE x) {
-    return std::string(StringValuePtr(x));
+    return std::string(RSTRING(x)->ptr, RSTRING(x)->len);
 }
 VALUE SWIG_STR2RB(const std::string& s) {
-    return rb_str_new2(s.c_str());
+    return rb_str_new(s.data(), s.size());
 }
 %}
