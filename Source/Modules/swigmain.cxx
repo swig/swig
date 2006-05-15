@@ -32,7 +32,8 @@ extern "C" {
   Language *swig_modula3(void);
   Language *swig_mzscheme(void);
   Language *swig_java(void);
-  Language *swig_php(void);
+  Language *swig_php4(void);
+  Language *swig_php5(void);
   Language *swig_ocaml(void);
   Language *swig_pike(void);
   Language *swig_sexp(void);
@@ -42,7 +43,7 @@ extern "C" {
   Language *swig_allegrocl(void);
   Language *swig_lua(void);
   Language *swig_clisp(void);
-  Language *swig_cffi(void);  
+  Language *swig_cffi(void);
   Language *swig_uffi(void);
 }
 
@@ -60,7 +61,7 @@ static swig_module  modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
   {"-chicken",   swig_chicken,   "CHICKEN"},
   {"-clisp",     swig_clisp,     "CLISP"},
-  {"-cffi",      swig_cffi,     "CFFI"},
+  {"-cffi",      swig_cffi,      "CFFI"},
   {"-csharp",    swig_csharp,    "C#"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
@@ -70,8 +71,9 @@ static swig_module  modules[] = {
   {"-ocaml",     swig_ocaml,     "Ocaml"},
   {"-perl",      swig_perl5,     "Perl"},
   {"-perl5",     swig_perl5, 0},
-  {"-php",       swig_php,       "PHP"},
-  {"-php4",      swig_php, 0},
+  {"-php",       swig_php4, 0},
+  {"-php4",      swig_php4,      "PHP4"},
+  {"-php5",      swig_php5,      "PHP5"},
   {"-pike",      swig_pike,      "Pike"},
   {"-python",    swig_python,    "Python"},
   {"-ruby",      swig_ruby,      "Ruby"},
