@@ -81,7 +81,7 @@ static Hash     *shadow_set_vars;
 static int      native_constructor=0;
 static Hash     *zend_types = 0;
 
-static int        shadow        = 1;
+static int      shadow = 1;
 
 // These static variables are used to pass some state from Handlers into functionWrapper
 static enum {
@@ -1805,7 +1805,9 @@ public:
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
     
+    wrapperType = staticmemberfn;
     Language::staticmemberfunctionHandler(n);
+    wrapperType = standard;
     
     if(shadow) {
       String *symname = Getattr(n, "sym:name");
