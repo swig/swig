@@ -21,16 +21,16 @@ char cvsroot_php4_cxx[] = "$Header$";
 
 
 static const char *usage = (char*)"\
-PHP4 Options (available with -php4)\n\
-     -cppext         - cpp file extension (default to .cpp)\n\
-     -noproxy        - Don't generate proxy classes.\n\
-     -dlname <name>  - Set module prefix to <name>\n\
-     -make           - Create simple makefile\n\
-     -phpfull        - Create full make files\n\
-     -withincs <incs>- With -phpfull writes needed incs in config.m4\n\
-     -withlibs <libs>- With -phpfull writes needed libs in config.m4\n\
-     -withc <files>  - With -phpfull makes extra C files in Makefile.in\n\
-     -withcxx <files>- With -phpfull makes extra C++ files in Makefile.in\n\
+PHP Options (available with -php4 or -php5)\n\
+     -cppext          - cpp file extension (default to .cpp)\n\
+     -noproxy         - Don't generate proxy classes.\n\
+     -dlname <name>   - Set module prefix to <name>\n\
+     -make            - Create simple makefile\n\
+     -phpfull         - Create full make files\n\
+     -withincs <incs> - With -phpfull writes needed incs in config.m4\n\
+     -withlibs <libs> - With -phpfull writes needed libs in config.m4\n\
+     -withc <files>   - With -phpfull makes extra C files in Makefile.in\n\
+     -withcxx <files> - With -phpfull makes extra C++ files in Makefile.in\n\
 \n";
 
 static int constructors=0;
@@ -172,11 +172,13 @@ SwigPHP_emit_resource_registrations() {
   }
 }
 
-class PHP4 : public Language {
+class PHP : public Language {
+  int php_version;
+
 public:
+  PHP(int php_version_) : php_version(php_version_) { }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class. */
-  
   String *is_shadow(SwigType *t) {
     String *r = 0;
     Node *n = classLookup(t);
@@ -271,7 +273,11 @@ public:
     }
     
     Preprocessor_define((void *) "SWIGPHP 1", 0);
-    Preprocessor_define((void *) "SWIGPHP4 1", 0);
+    if (php_version == 4) {
+      Preprocessor_define((void *) "SWIGPHP4 1", 0);
+    } else if (php_version == 5) {
+      Preprocessor_define((void *) "SWIGPHP5 1", 0);
+    }
     SWIG_typemap_lang("php4");
     /* DB: Suggest using a language configuration file */
     SWIG_config_file("php4.swg");
@@ -1334,7 +1340,7 @@ public:
   }
 
   /*
-   * PHP4::pragma()
+   * PHP::pragma()
    *
    * Pragma directive.
    *
@@ -1999,17 +2005,17 @@ public:
     return SWIG_OK;
   }
 
-};  /* class PHP4 */
+};  /* class PHP */
 
 /* -----------------------------------------------------------------------------
  * swig_php()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-static PHP4 *maininstance=0;
+static PHP *maininstance=0;
 
 // We use this function to be able to write out zend_register_list_destructor_ex
 // lines for most things in the type table
-// NOTE: it's a function NOT A PHP4::METHOD
+// NOTE: it's a function NOT A PHP::METHOD
 extern "C"
 void typetrace(SwigType *ty, String *mangled, String *clientdata) {
   Node *class_node;
@@ -2031,16 +2037,19 @@ void typetrace(SwigType *ty, String *mangled, String *clientdata) {
   if (r_prevtracefunc) (*r_prevtracefunc)(ty, mangled, (String *) clientdata);
 }
 
-static Language * new_swig_php() {
-  maininstance=new PHP4();
+static Language * new_swig_php(int php_version) {
+  maininstance=new PHP(php_version);
   if (! r_prevtracefunc) {
     r_prevtracefunc=SwigType_remember_trace(typetrace);
   } else {
-    Printf(stderr,"php4 Typetrace vector already saved!\n");
+    Printf(stderr,"php Typetrace vector already saved!\n");
     assert(0);
   }
   return maininstance;
 }
-extern "C" Language * swig_php(void) {
-  return new_swig_php();
+extern "C" Language * swig_php4(void) {
+  return new_swig_php(4);
+}
+extern "C" Language * swig_php5(void) {
+  return new_swig_php(5);
 }
