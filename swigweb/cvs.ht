@@ -36,12 +36,20 @@ The instructions below are for those who have read only access for cvs, develope
 consult the generic CVS instructions above.
 
 <ol>
-<li><p> Set the location of CVSROOT
+<li><p> Set the location of CVSROOT, for csh this would be:
 
 <pre>
- % setenv CVSROOT :pserver:anonymous@cvs.sourceforge.net:/cvsroot/swig </pre>
+ % setenv CVSROOT :pserver:anonymous@swig.cvs.sourceforge.net:/cvsroot/swig </pre>
+
+<p>
+If you are using bash, you would use:
+</p>
+<pre>
+ % export CVSROOT=:pserver:anonymous@swig.cvs.sourceforge.net:/cvsroot/swig </pre>
+
 <p>
 (Alternatively, you can use the -d option to CVS)
+</p>
 
 <li><p> Log into the cvs server by issuing the following command:
 

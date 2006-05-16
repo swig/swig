@@ -31,6 +31,10 @@ and non-commercial use.
 <h3>News</h3>
 
 <p>
+<b>2006/05/16</b>
+Sourceforge has changed the way source code can be accessed from cvs. See updated <a href="cvs.html">cvs instructions</a>.
+
+<p>
 <b>2006/03/21</b>
 SWIG-1.3.29 has been released. This is a bug fix release.
 
