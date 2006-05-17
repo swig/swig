@@ -565,7 +565,7 @@ public:
     /* Set the module name */
     module = Copy(Getattr(n,"name"));
     cap_module = NewStringf("%(upper)s",module);
-    
+
     /* Set the dlname */
     if (!dlname) {
 #if defined(_WIN32) || defined(__WIN32__)
@@ -846,8 +846,8 @@ public:
     String *tmp = NewString("");
     String *dispatch = Swig_overload_dispatch(n,"return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);",&maxargs);
 
-    int has_this_ptr = (wrapperType==memberfn)?shadow:0;
-        
+    int has_this_ptr = (wrapperType==memberfn && shadow && php_version == 4);
+
     /* Generate a dispatch wrapper for all overloaded functions */
     
     Wrapper *f       = NewWrapper();
@@ -912,7 +912,7 @@ public:
     int i,numopt;
     String *tm;
     Wrapper *f;
-    bool mvr=(shadow && wrapperType == membervar);
+    bool mvr=(shadow && php_version == 4 && wrapperType == membervar);
     bool mvrset=(mvr && (Strcmp(iname, Swig_name_set(Swig_name_member(shadow_classname, name)))==0) );
 
     char wname[256];
@@ -949,7 +949,7 @@ public:
       strcat(wname,Char(overname));
     }
 
-    // if shadow and variable wrapper we want to snag the main contents
+    // if PHP4, shadow and variable wrapper we want to snag the main contents
     // of this function to stick in to the property handler....    
     if (mvr) {
       String *php_function_name = NewString(iname);
@@ -982,7 +982,7 @@ public:
       // destructors when using shadows.
       // And for static member variables
       if (!overloaded &&
-          !(destructor && shadow) &&
+          !(destructor && shadow && php_version == 4) &&
           wrapperType != staticmembervar ) {
         create_command( iname, wname );
       }
@@ -1001,7 +1001,7 @@ public:
     int num_required  = emit_num_required(l);
     numopt = num_arguments - num_required;
 
-    int has_this_ptr = (wrapperType==memberfn)?shadow:0;
+    int has_this_ptr = (wrapperType==memberfn && shadow && php_version == 4);
 
     sprintf(args, "zval **args[%d]", num_arguments-has_this_ptr);
 
@@ -1179,23 +1179,22 @@ public:
         { // THIS CODE only really needs writing out if the object to be returned
           // Is being shadow-wrap-thingied
           Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
-          // Make object 
+          // Make object
           String *shadowrettype = NewString("");
-          SwigToPhpType(d, iname, shadowrettype, shadow);
-          
+          SwigToPhpType(d, iname, shadowrettype, (shadow && php_version == 4));
+
           Printf(f->code,"zval *obj, *_cPtr;\n");
           Printf(f->code,"MAKE_STD_ZVAL(obj);\n");
           Printf(f->code,"MAKE_STD_ZVAL(_cPtr);\n");
           Printf(f->code,"*_cPtr = *return_value;\n");
           Printf(f->code,"INIT_ZVAL(*return_value);\n");
-          
-          if (! shadow) {
-            Printf(f->code,"*return_value=*_cPtr;\n");
-          } else {
+
+          if (shadow && php_version == 4) {
             Printf(f->code,"object_init_ex(obj,ptr_ce_swig_%s);\n",shadowrettype);
             Printf(f->code,"add_property_zval(obj,\"_cPtr\",_cPtr);\n");
             Printf(f->code,"*return_value=*obj;\n");
-                   
+          } else {
+            Printf(f->code,"*return_value=*_cPtr;\n");
           }
           Printf(f->code, "}\n");
         }
@@ -1400,7 +1399,7 @@ public:
     current_class = n;
     // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
-    if(shadow) {
+    if (shadow && php_version == 4) {
       char *rename = GetChar(n, "sym:name");
 
       if (!addSymbol(rename,n)) return SWIG_ERROR;
@@ -1450,7 +1449,7 @@ public:
     Language::classHandler(n);
     classnode=0;
 
-    if(shadow) {
+    if (shadow && php_version == 4) {
       DOH *key;
       int gcount, scount;
       String      *s_propget=NewString("");
@@ -1705,7 +1704,8 @@ public:
     // Only declare the member function if
     // we are doing shadow classes, and the function
     // is not overloaded, or if it is overloaded, it is the dispatch function.
-    if(shadow && (!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling"))) {
+    if (shadow && php_version == 4 &&
+	(!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling"))) {
       char *realname = iname ? iname : name;
       String *php_function_name = Swig_name_member(shadow_classname, realname);
       create_command(realname,Swig_name_wrapper(php_function_name));
@@ -1808,8 +1808,8 @@ public:
     wrapperType = staticmemberfn;
     Language::staticmemberfunctionHandler(n);
     wrapperType = standard;
-    
-    if(shadow) {
+
+    if (shadow && php_version == 4) {
       String *symname = Getattr(n, "sym:name");
       char *realname = iname ? iname : name;
       String *php_function_name = Swig_name_member(shadow_classname, realname);
@@ -1897,7 +1897,7 @@ public:
   
   int abstractConstructorHandler(Node *n) {
     String *iname = GetChar(n, "sym:name");
-    if (shadow) {
+    if (shadow && php_version == 4) {
       Wrapper *f;
       f   = NewWrapper();
 
@@ -1922,17 +1922,20 @@ public:
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
 
-    if (shadow) {
-      native_constructor = (strcmp(iname, shadow_classname) == 0)?\
-        NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
+    if (shadow && php_version == 4) {
+      if (strcmp(iname, shadow_classname) == 0) {
+	native_constructor = NATIVE_CONSTRUCTOR;
+      } else {
+	native_constructor = ALTERNATIVE_CONSTRUCTOR;
+      }
     }
     else {
       native_constructor=0;
     }
     constructors++;
     Language::constructorHandler(n);
-    
-    if(shadow) {
+
+    if (shadow && php_version == 4) {
       String *wname = NewStringf( "_wrap_new_%s", iname );
       if(!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling")) {
         char *realname = iname ? iname : name;
