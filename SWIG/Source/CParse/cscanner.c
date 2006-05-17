@@ -23,7 +23,7 @@ typedef struct InFile {
   struct InFile *prev;
 } InFile;
 
-InFile  *in_head;
+static InFile  *in_head;
 
 DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
@@ -262,6 +262,7 @@ void retract(int n) {
 void start_inline(char *text, int line) {
   InFile *in;
 
+  if (!in_head) return;
   /* Save current state */
   in_head->line_number = cparse_line;
   in_head->in_file = cparse_file;
