@@ -12,7 +12,7 @@ top_builddir = @top_builddir@
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-TARGETPREFIX = php_
+TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
 makecpptests:
 	@bash -ec 'for test in $(CPP_TEST_CASES) ; do make clean && make $${test}.cpptest; done'

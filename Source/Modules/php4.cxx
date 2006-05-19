@@ -24,7 +24,6 @@ static const char *usage = (char*)"\
 PHP Options (available with -php4 or -php5)\n\
      -cppext          - cpp file extension (default to .cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
-     -dlname <name>   - Set module prefix to <name>\n\
      -make            - Create simple makefile\n\
      -phpfull         - Create full make files\n\
      -withincs <incs> - With -phpfull writes needed incs in config.m4\n\
@@ -38,7 +37,6 @@ static String *NOTCLASS=NewString("Not a class");
 static Node *classnode=0;
 static String *module = 0;
 static String *cap_module = 0;
-static String *dlname = 0;
 static String *withlibs = 0;
 static String *withincs = 0;
 static String *withc = 0;
@@ -206,14 +204,8 @@ public:
           gen_extra = 1;
           Swig_mark_arg(i);
         } else if(strcmp(argv[i], "-dlname") == 0) {
-          if (argv[i+1]) {
-            dlname = NewString(argv[i+1]);
-            Swig_mark_arg(i);
-            Swig_mark_arg(i+1);
-            i++;
-          } else {
-            Swig_arg_error();
-          }
+	  Printf(stderr,"*** -dlname is no longer supported\n*** if you want to change the module name, use -module instead.\n");
+	  SWIG_exit(EXIT_FAILURE);
         } else if(strcmp(argv[i], "-withlibs") == 0) {
           if (argv[i+1]) {
             withlibs = NewString(argv[i+1]);
@@ -293,13 +285,13 @@ public:
     Printf(f_make, "CXX_SOURCES=%s\n", withcxx );
     Printf(f_make, "C_SOURCES=%s\n", withc );
     Printf(f_make, "OBJS=%s_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)\n", module );
-    Printf(f_make, "PROG=%s\n", dlname);
+    Printf(f_make, "MODULE=%s.`php -r 'switch(PHP_SHLIB_SUFFIX){case\"PHP_SHLIB_SUFFIX\":case\"dylib\":echo\"so\";break;default:echo PHP_SHLIB_SUFFIX;}'`\n", module);
     Printf(f_make, "CFLAGS=-fpic\n" );
     Printf(f_make, "LDFLAGS=-shared\n");
     Printf(f_make, "PHP_INC=`php-config --includes`\n");
     Printf(f_make, "EXTRA_INC=\n");
     Printf(f_make, "EXTRA_LIB=\n\n" );
-    Printf(f_make, "$(PROG): $(OBJS)\n");
+    Printf(f_make, "$(MODULE): $(OBJS)\n");
     if ( CPlusPlus || (withcxx != NULL) ) {
       Printf(f_make, "\t$(CXX) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
     } else {
@@ -347,7 +339,7 @@ public:
     
     Printf(f_extra,
 	   "# $Id$\n\n"
-	   "LTLIBRARY_NAME          = php_%s.la\n",
+	   "LTLIBRARY_NAME          = %s.la\n",
 	   module);
 
     // C++ has more and different entries to C in Makefile.in
@@ -359,7 +351,7 @@ public:
       Printf(f_extra,"LTLIBRARY_SOURCES_CPP   = %s %s\n", Swig_file_filename(outfile),withcxx);
       Printf(f_extra,"LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n");
     }
-    Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n", module);
+    Printf(f_extra,"LTLIBRARY_SHARED_NAME   = %s.la\n", module);
     Printf(f_extra,"LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n", cap_module);
     Printf(f_extra,"include $(top_srcdir)/build/dynlib.mk\n");
 
@@ -424,7 +416,7 @@ public:
       if (withlibs)
 	Printf(f_extra,"LIBNAMES=\"%s\"\n\n",withlibs);
       else
-	Printf(f_extra,"LIBNAMES=\"\"; # lib_%s.so ?\n\n",withlibs);
+	Printf(f_extra,"LIBNAMES=\"\"; # lib%s.so ?\n\n",module);
       
       Printf(f_extra,"dnl IF YOU KNOW one of the symbols in the library and you\n");
       Printf(f_extra,"dnl specify it below then we can have a link test to see if it works\n");
@@ -566,15 +558,6 @@ public:
     module = Copy(Getattr(n,"name"));
     cap_module = NewStringf("%(upper)s",module);
 
-    /* Set the dlname */
-    if (!dlname) {
-#if defined(_WIN32) || defined(__WIN32__)
-      dlname = NewStringf("php_%s.dll", module);
-#else
-      dlname = NewStringf("php_%s.so", module);
-#endif
-    }
-    
     /* PHP module file */
     filen = NewString("");
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
@@ -590,12 +573,17 @@ public:
     
     Swig_banner(f_phpcode);
     
-    Printf(f_phpcode,"global $%s_LOADED__;\n", cap_module);
-    Printf(f_phpcode,"if ($%s_LOADED__) return;\n", cap_module);
-    Printf(f_phpcode,"$%s_LOADED__ = true;\n\n", cap_module);
-    Printf(f_phpcode,"/* if our extension has not been loaded, do what we can */\n");
-    Printf(f_phpcode,"if (!extension_loaded(\"php_%s\")) {\n", module);
-    Printf(f_phpcode,"  if (!dl(\"%s\")) return;\n", dlname);
+    Printf(f_phpcode,"// Try to load our extension if it's not already loaded.\n");
+    Printf(f_phpcode,"if (!extension_loaded(\"%s\")) {\n", module);
+    Printf(f_phpcode,"  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
+    Printf(f_phpcode,"    if (!dl('php_%s.dll')) return;\n", module);
+    Printf(f_phpcode,"  } else {\n");
+    Printf(f_phpcode,"    $ext = PHP_SHLIB_SUFFIX;\n");
+    Printf(f_phpcode,"    // PHP_SHLIB_SUFFIX is available as of PHP 4.3.0, for older PHP assume 'so'.\n");
+    Printf(f_phpcode,"    // It gives 'dylib' on MacOS X which is for libraries, modules are 'so'.\n");
+    Printf(f_phpcode,"    if ($ext === 'PHP_SHLIB_SUFFIX' || $ext === 'dylib') $ext = 'so';\n");
+    Printf(f_phpcode,"    if (!dl('%s.'.$ext)) return;\n", module);
+    Printf(f_phpcode,"  }\n");
     Printf(f_phpcode,"}\n\n");
 
     /* sub-sections of the php file */

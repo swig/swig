@@ -1,6 +1,12 @@
 Version 1.3.30 (in progress)
 ============================
 
+05/19/2006: olly
+	    [php] Removed support for -dlname (use -module instead).  Fixed
+	    naming of PHP extension module to be consistent with PHP
+	    conventions (no "php_" prefix on Unix; on PHP >= 4.3.0, handle Unix
+	    platforms which use something other than ".so" as the extension.)
+
 05/07/2006: olly
 	    [php] Don't segfault if PHP Null is passed where a C++ reference
 	    is wanted.
