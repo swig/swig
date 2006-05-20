@@ -617,7 +617,7 @@ public:
     Printf(s_header, "static void %s_destroy_globals(zend_%s_globals *%s_globals) { }\n",module,module,module);
 
     Printf(s_header, "\n");
-    Printf(s_header, "void SWIG_ResetError() {\n");
+    Printf(s_header, "static void SWIG_ResetError() {\n");
     Printf(s_header, "  TSRMLS_FETCH();\n");
     Printf(s_header, "  ErrorMsg() = default_error_msg;\n");
     Printf(s_header, "  ErrorCode() = default_error_code;\n");
@@ -678,7 +678,7 @@ public:
     cs_entry = NULL;
     
     Printf(s_entry,"/* Every non-class user visible function must have an entry here */\n");
-    Printf(s_entry,"function_entry %s_functions[] = {\n", module);
+    Printf(s_entry,"static function_entry %s_functions[] = {\n", module);
     
     /* start the init section */
     if (gen_extra) {
@@ -687,11 +687,13 @@ public:
     Printf(s_init,"#ifdef __cplusplus\n");
     Printf(s_init,"extern \"C\" {\n");
     Printf(s_init,"#endif\n");
-    Printf(s_init,"ZEND_GET_MODULE(%s)\n",module);
+    // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
+    // in PHP5 has "extern "C" { ... }" around it so we can't do that.
+    Printf(s_init,"SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
     Printf(s_init,"#ifdef __cplusplus\n");
     Printf(s_init,"}\n");
     Printf(s_init,"#endif\n\n");
-           
+
     if (gen_extra) {
       Printf(s_init,"#endif\n\n");
     }
@@ -747,8 +749,7 @@ public:
     Printf(s_init,"%s\n",r_shutdown);
     Printf(s_init,"    return SUCCESS;\n");
     Printf(s_init,"}\n");
-           
-    
+
     Printf(s_init,"PHP_MINFO_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s", pragma_phpinfo);
     Printf(s_init,"}\n");
@@ -775,8 +776,9 @@ public:
     Printf(s_header, "    NO_VERSION_YET,\n");
     Printf(s_header, "#endif\n");
     Printf(s_header, "    STANDARD_MODULE_PROPERTIES\n");
-    Printf(s_header, "};\nzend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n",module);
-    
+    Printf(s_header, "};\n");
+    Printf(s_header, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n",module);
+
     String *type_table = NewString("");
     SwigType_emit_type_table(f_runtime,type_table);
     Printf(s_header,"%s",type_table);
@@ -869,8 +871,7 @@ public:
 
     Printf(f->code,"ErrorCode() = E_ERROR;\n");
     Printf(f->code,"ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());",NIL);
-    Printf(f->code,"\n");
+    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());\n",NIL);
 
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,s_wrappers);
@@ -995,7 +996,7 @@ public:
 
     Wrapper_add_local(f, "args",args);
 
-    // This generated code may be called 
+    // This generated code may be called:
     // 1) as an object method, or
     // 2) as a class-method/function (without a "this_ptr")
     // Option (1) has "this_ptr" for "this", option (2) needs it as
@@ -1955,7 +1956,7 @@ public:
     Wrapper *df = NewWrapper();
     Printf(df->def,"/* This function is designed to be called by the zend list destructors */\n");
     Printf(df->def,"/* to typecast and do the actual destruction */\n");
-    Printf(df->def,"void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
+    Printf(df->def,"static void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
 
     Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
     Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NIL);
