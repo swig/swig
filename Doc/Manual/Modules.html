@@ -82,7 +82,7 @@ languages provide.  One solution is to load all modules before spawning any thre
 <p>As described in <a href="Typemaps.html#runtime_type_checker">The run-time type checker</a>,
 the functions <tt>SWIG_TypeQuery</tt>, <tt>SWIG_NewPointerObj</tt>, and others sometimes need
 to be called.  Calling these functions from a typemap is supported, since the typemap code
-is embedded into the <tt>_wrap.c</tt> file, which has those declerations available.  If you need
+is embedded into the <tt>_wrap.c</tt> file, which has those declarations available.  If you need
 to call the SWIG run-time functions from another C file, there is one header you need
 to include.  To generate the header that needs to be included, run the following command:
 
@@ -94,7 +94,7 @@ $ swig -python -external-runtime &lt;filename&gt;
 be something like <tt>swigpyrun.h</tt>, depending on the language.  This header file should
 be treated like any of the other _wrap.c output files, and should be regenerated when the
 _wrap files are.  After including this header, your code will be able to call <tt>SWIG_TypeQuery</tt>,
-<tt>SWIG_NewPointerObj</tt>, <tt>SWIG_ConvertPtr</tt> and others.  The exact argument paramaters
+<tt>SWIG_NewPointerObj</tt>, <tt>SWIG_ConvertPtr</tt> and others.  The exact argument parameters
 for these functions might differ between language modules; please check the language module chapters
 for more information.</p>
 
@@ -104,7 +104,7 @@ need to link against the language libraries like libpython-2.3).  Data is shared
 file and the _wrap.c files through a global variable in the scripting language.  It is also
 possible to copy this header file along with the generated wrapper files into your own package,
 so that you can distribute a package that can be compiled without SWIG installed (this works
-because the header file is self contained, and does not need to link with anything).</p>
+because the header file is self-contained, and does not need to link with anything).</p>
 
 <H2><a name="Modules_nn4"></a>15.3 A word of caution about static libraries</H2>
 
@@ -114,7 +114,7 @@ When working with multiple SWIG modules, you should take care not to use static
 libraries.  For example, if you have a static library <tt>libfoo.a</tt> and you link a collection
 of SWIG modules with that library, each module will get its own private copy of the library code inserted
 into it. This is very often <b>NOT</b> what you want and it can lead to unexpected or bizarre program
-behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libaries.
+behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libraries.
 </p>
 
 <H2><a name="Modules_nn5"></a>15.4 References</H2>
