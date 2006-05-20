@@ -99,7 +99,7 @@ only that, they are an integral part of the SWIG C++ type system (a
 non-trivial topic of its own).  Typemaps are generally
 <em>not</em> a required part of using SWIG.  Therefore, you might want
 to re-read the earlier chapters if you have found your way to this
-chapter with only a vaque idea of what SWIG already does by default.
+chapter with only a vague idea of what SWIG already does by default.
 </p>
 
 <H3><a name="Typemaps_nn3"></a>10.1.1 Type conversion</H3>
@@ -1193,7 +1193,7 @@ int [ANY][ANY]
 </div>
 
 <p>
-For parametized types like templates, the situation is even more complicated.  Suppose you had some declarations
+For parameterized types like templates, the situation is even more complicated.  Suppose you had some declarations
 like this:
 </p>
 
@@ -1777,7 +1777,7 @@ type              ltype
 ------            ----------------
 int               int
 const int         int
-conts int *       int *
+const int *       int *
 int [4]           int *
 int [4][5]        int (*)[5]
 </pre>
@@ -2023,7 +2023,7 @@ int foo(int x, int y, int flags);
 The primary use of this typemap is to either change the wrapping of
 default arguments or specify a default argument in a language where
 they aren't supported (like C). Target languages that do not support
-optional arguments, such as Java and C#, effecively ignore the value specified
+optional arguments, such as Java and C#, effectively ignore the value specified
 by this typemap as all arguments must be given.
 </p>
 
@@ -2200,7 +2200,7 @@ language when reading a C/C++ global variable.  This is implementation specific.
 
 <p>
 The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method.
-It provides a default mechanism for handling C++ methods that have declared the exceptions it will throw.
+It provides a default mechanism for handling C++ methods that have declared the exceptions they will throw.
 The purpose of this typemap is to convert a C++ exception into an error or exception in the target language.
 It is slightly different to the other typemaps as it is based around the exception type rather than the type of a parameter or variable.
 For example:
@@ -3107,8 +3107,8 @@ type tables and improves efficiency.
 </p>
 
 <p>
-Occassionally, you might need to write a typemap that needs to convert
-pointers of other types.  To handle this, a special macro substition
+Occasionally, you might need to write a typemap that needs to convert
+pointers of other types.  To handle this, a special macro substitution
 <tt>$descriptor(type)</tt> can be used to generate the SWIG type
 descriptor name for any C datatype.  For example:
 </p>
