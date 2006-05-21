@@ -728,7 +728,7 @@ $ python
 
 <p>
 If you get an <tt>ImportError</tt> exception when importing the module, you may
-have forgotten to include aditional library files when you built your module.
+have forgotten to include additional library files when you built your module.
 If you get an access violation or some kind of general protection fault 
 immediately upon import, you have a more serious problem.   This 
 is often caused by linking your extension module against the wrong 
@@ -890,7 +890,7 @@ extern char *path;
 <p>
 The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled or cleared using
 <tt>%mutable</tt>.
-See the <a href="SWIG.html#SWIG_readonly_variables">Creatng read-only variables</a> section for further details.
+See the <a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a> section for further details.
 </p>
 
 <p>
@@ -2061,7 +2061,7 @@ exit              # 'a' is released, SWIG unref 'a'
 </div>
 
 <p>
-Note that the user doens't explicitly need to call 'a->ref()' nor 'a->unref()'
+Note that the user doesn't explicitly need to call 'a->ref()' nor 'a->unref()'
 (as neither 'delete a'). Instead, SWIG take cares of executing the "ref"
 and "unref" codes as needed.  If the user doesn't specify the
 "ref/unref" features, SWIG will produce a code equivalent to define
@@ -2469,7 +2469,7 @@ globally, to specific classes, and to specific methods, like this:
 // generate directors for all classes that have virtual methods
 %feature("director");         
 
-// genarate directors for all virtual methods in class Foo
+// generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
 
 // generate a director for just Foo::bar()
@@ -2646,7 +2646,7 @@ likely cause your program to segfault.
 To help ensure that no references to the Python object remain after
 calling <tt>__disown__()</tt>, this method returns a weak reference to
 the Python object. Weak references are only available in Python versions
-2.1 and higher, so for older versions you must exclicitly delete all
+2.1 and higher, so for older versions you must explicitly delete all
 references. Here is an example:
 </p>
 
@@ -2709,7 +2709,7 @@ suffice in most cases:
 
 <p>
 This code will check the Python error state after each method call from
-a director into Python, and throw a C++ exception if an error occured.
+a director into Python, and throw a C++ exception if an error occurred.
 This exception can be caught in C++ to implement an error handler.
 Currently no information about the Python error is stored in the
 Swig::DirectorMethodException object, but this will likely change in
@@ -2764,7 +2764,7 @@ Python. Relative to the speed of Python execution this is probably
 completely negligible. For worst case routing, a method call that
 ultimately resolves in C++ may take one extra detour through Python in
 order to ensure that the method does not have an extended Python
-implementation. This could result in a noticible overhead in some cases.
+implementation. This could result in a noticeable overhead in some cases.
 </p>
 
 <p>
@@ -3021,7 +3021,7 @@ Often the proxy function created by SWIG is fine, but you simply want
 to add code to it without touching the rest of the generated function
 body.  For these cases SWIG provides the <tt>pythonprepend</tt> and
 <tt>pythonappend</tt> features which do exactly as their names suggest.  The
-<tt>pythonprepend</tt> feature will insert its value at the begining of the
+<tt>pythonprepend</tt> feature will insert its value at the beginning of the
 proxy function, and <tt>pythonappend</tt> will insert code at the end of the
 proxy, just before the return statement.
 </p>
@@ -4049,7 +4049,7 @@ int       PyList_Check(PyObject *);
 PyObject *PyTuple_New(int size);
 int       PyTuple_Size(PyObject *);
 PyObject *PyTuple_GetItem(PyObject *, int i);
-int       PyTuple_SetItem(PyObject *, int i, pyObject *item);
+int       PyTuple_SetItem(PyObject *, int i, PyObject *item);
 PyObject *PyTuple_GetSlice(PyObject *t, int i, int j);
 int       PyTuple_Check(PyObject *);
 </pre>
@@ -4609,7 +4609,7 @@ of your users much simpler.
 
 
 <p>
-Python allows a docstring at the begining of the <tt>.py</tt> file
+Python allows a docstring at the beginning of the <tt>.py</tt> file
 before any other statements, and it is typically used to give a
 general description of the entire module.  SWIG supports this by
 setting an option of the <tt>%module</tt> directive.  For example:
@@ -4649,19 +4649,19 @@ option is used) for a parameter list and will then sort out the
 individual parameters in the C wrapper code.  This is nice and simple
 for the wrapper code, but makes it difficult to be programmer and tool
 friendly as anyone looking at the <tt>.py</tt> file will not be able
-to find out anything about the parameters that the fuctions accept.
+to find out anything about the parameters that the functions accept.
 </p>
 
-<p>But since SWIG does know everything about the fucntion it is
+<p>But since SWIG does know everything about the function it is
 possible to generate a docstring containing the parameter types, names
-and default values. Since many of the doctring tools are adopting a
+and default values. Since many of the docstring tools are adopting a
 standard of recognizing if the first thing in the docstring is a
 function prototype then using that instead of what they found from
-introspeciton, then life is good once more.
+introspection, then life is good once more.
 
 <p>SWIG's Python module provides support for the "autodoc" feature,
 which when attached to a node in the parse tree will cause a docstring
-to be generated that includes the name of the funciton, parameter
+to be generated that includes the name of the function, parameter
 names, default values if any, and return type if any. There are also
 three options for autodoc controlled by the value given to the
 feature, described below.
@@ -4700,7 +4700,7 @@ def function_name(*args, **kwargs):
 
 <p>
 When the "1" option is used then the parameter types <em>will</em> be
-used in the autodoc string.  In addition, an atempt is made to
+used in the autodoc string.  In addition, an attempt is made to
 simplify the type name such that it makes more sense to the Python
 user.  Pointer, reference and const info is removed,
 <tt>%rename</tt>'s are evaluated, etc.  (This is not always
@@ -4794,7 +4794,7 @@ if they live in separate Python packages then that won't work.
 However if the importee specifies what its package is with the
 <tt>%module</tt> option then the Python code generated for the
 importer will use that package name when importing the other module
-and also in base class declarations, etc. if the pacakge name is
+and also in base class declarations, etc. if the package name is
 different than its own.
 </p>
 
