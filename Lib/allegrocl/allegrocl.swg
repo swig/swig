@@ -268,7 +268,7 @@ $body)"
 (defmacro defswig2 (name (&rest args) &body body)
   `(progn (defmacro ,name ,args
 	    ,@body)
-b	  (excl::define-simple-parser ,name second)))
+	  (excl::define-simple-parser ,name second)))
 
 (defun read-symbol-from-string (string)
   (multiple-value-bind (result position)

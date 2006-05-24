@@ -316,7 +316,7 @@ void add_defined_foreign_type(Node *n,
   String *templated = n ? Getattr(n,"template") : 0;
   String *cDeclName = n ? Getattr(n,"classDeclaration:name") : 0;
 
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr,"IN A-D-F-T. (n=%x, ow=%d, k=%s, name=%s, ns=%s\n",
 	 n, overwrite, k, name, ns);
   Printf(stderr,"    templated = '%x', classDecl = '%x'\n", templated, cDeclName);
@@ -380,7 +380,7 @@ void add_defined_foreign_type(Node *n,
   if(val) is_fwd_ref = !Strcmp(val,"forward-reference");
 
   if(!val || overwrite || is_fwd_ref) {
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
     Printf(stderr, "Adding defined type '%s' = '%s' '%s' (overwrite=%d)\n", 
            k, ns, name, overwrite);
 #endif
@@ -406,7 +406,7 @@ void add_defined_foreign_type(Node *n,
       }
 
       if(cpp_struct || cpp_union) {
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
     Printf(stderr, " Also adding defined type '%s' = '%s' '%s' (overwrite=%d)\n", 
            cpp_type, ns, name, overwrite);
 #endif
@@ -414,7 +414,7 @@ void add_defined_foreign_type(Node *n,
     Setattr(defined_foreign_ltypes,Copy(cpp_type),Copy(mangled_lname_gen));
       }
     }
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
       Printf(stderr,"looking to add %s/%s(%x) to linked_type_list...\n", k, name, n);
 #endif
       if(is_fwd_ref) {
@@ -480,12 +480,8 @@ void add_defined_foreign_type(Node *n,
 	  if(!Strcmp(nodeType(n),"cdecl") && 
 	     !Strcmp(Getattr(n,"storage"),"typedef")) {
 	    SwigType *type = SwigType_strip_qualifiers(Getattr(n,"type"));
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
 	    Printf(stderr,"Examining typedef '%s' for class references.\n", type);
-	    // Printf(stderr, "type = %s, d-f-t=0x%x\n", type, Getattr(defined_foreign_types,type));
-	    // bool a = Strstr(type,"struct ") && !Strcmp(Getattr(defined_foreign_types,type),Getattr(defined_foreign_types,k));
-	    // bool b = !a;
-	    // Printf(stderr,", and'd=%d, not-and'd=%d\n", a, b);
 #endif
 	    if(SwigType_isclass(type)) {
 #ifdef ALLEGROCL_CLASS_DEBUG
@@ -506,8 +502,8 @@ void add_defined_foreign_type(Node *n,
 	      String *defined_type = lookup_defined_foreign_type(type);
 	      String *defined_key_type = lookup_defined_foreign_type(k);
 
-	      if(Strstr(type,"struct ") && defined_type &&
-		 !Strcmp(defined_type,defined_key_type)) {
+	      if((Strstr(type,"struct ") || Strstr(type,"union ")) 
+		 && defined_type && !Strcmp(defined_type,defined_key_type)) {
 		// mark as a synonym but don't add to linked_type list
 		Setattr(n,"allegrocl:synonym","1");
 	      } else {
@@ -517,6 +513,7 @@ void add_defined_foreign_type(Node *n,
 		if(match) {
 		  Setattr(n,"allegrocl:synonym","1");
 		  Setattr(n,"allegrocl:synonym-of",match);
+		  // Printf(stderr, "*** pre-5: found match of '%s'(%x)\n", Getattr(match,"name"),match);
 		  // if(n == match) Printf(stderr, "Hey-5 * setting synonym of %x to %x\n", n, match);
 		  // Printf(stderr,"*** 5\n");
 		  add_linked_type(n);
@@ -591,7 +588,7 @@ void add_defined_foreign_type(Node *n,
 	    }
 	  } else {
 #ifdef ALLEGROCL_CLASS_DEBUG
-	    Printf(stderr, "linking type %s(%x)\n", k, n);
+	    Printf(stderr, "linking type '%s'(%x)\n", k, n);
 #endif
 	    // Printf(stderr,"*** 8\n");
 	    add_linked_type(n);
@@ -607,7 +604,7 @@ void add_defined_foreign_type(Node *n,
 
   Delete(ns_list);
 
-#ifdef ALLEGROCL_TYPE_DEBUG
+#ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr,"OUT A-D-F-T\n");
 #endif
 }
@@ -1398,7 +1395,7 @@ void emit_default_linked_type(Node *n) {
   // catchall for non class types.
   if(!Strcmp(nodeType(n),"classforward")) {
     Printf(f_clhead,";; forward referenced stub.\n");
-    Printf(f_clhead,"(swig-def-foreign-type \"%s\" (:class ))\n\n",
+    Printf(f_clhead,"(swig-def-foreign-class \"%s\" (ff:foreign-pointer) (:class ))\n\n",
 	   Getattr(n,"sym:name"));
   } else if(!Strcmp(nodeType(n),"enum")) {
     emit_enum_type(n);
