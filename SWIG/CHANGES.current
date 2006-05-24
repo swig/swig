@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+05/24/2005: mutandiz
+	    [allegrocl]
+	    Don't require a full class definition to generate a CLOS wrapper.
+
 05/20/2006: olly
 	    [php] GCC Visibility support now works with PHP.
 
