@@ -78,4 +78,3 @@ INOUT_TYPEMAP(char *,
 // long long support not yet complete
 // INOUT_TYPEMAP(long long);
 // INOUT_TYPEMAP(unsigned long long);
-

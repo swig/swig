@@ -385,7 +385,7 @@ void add_defined_foreign_type(Node *n,
            k, ns, name, overwrite);
 #endif
     String *mangled_name_gen = 
-      NewStringf("#.(swig-insert-id \"%s\" %s)", name, ns_list);
+      NewStringf("#.(swig-insert-id \"%s\" %s :type :type)", name, ns_list);
     String *mangled_lname_gen =
       NewStringf("#.(swig-insert-id \"%s\" %s :type :class)", name, ns_list);
 
@@ -505,6 +505,7 @@ void add_defined_foreign_type(Node *n,
 	      if((Strstr(type,"struct ") || Strstr(type,"union ")) 
 		 && defined_type && !Strcmp(defined_type,defined_key_type)) {
 		// mark as a synonym but don't add to linked_type list
+		// Printf(stderr,"*** 4.8\n");
 		Setattr(n,"allegrocl:synonym","1");
 	      } else {
 		SwigType *lookup_type = SwigType_istemplate(type) ?
@@ -513,8 +514,10 @@ void add_defined_foreign_type(Node *n,
 		if(match) {
 		  Setattr(n,"allegrocl:synonym","1");
 		  Setattr(n,"allegrocl:synonym-of",match);
+		  Setattr(n,"real-name",Copy(lookup_type));
+
 		  // Printf(stderr, "*** pre-5: found match of '%s'(%x)\n", Getattr(match,"name"),match);
-		  // if(n == match) Printf(stderr, "Hey-5 * setting synonym of %x to %x\n", n, match);
+		  // if(n == match) Printf(stderr, "Hey-5 *** setting synonym of %x to %x\n", n, match);
 		  // Printf(stderr,"*** 5\n");
 		  add_linked_type(n);
 		} else {
@@ -1058,21 +1061,33 @@ void emit_synonym(Node *synonym) {
   Node *of = get_primary_synonym_of(synonym);
     
   if(is_tempInst) {
+    // Printf(stderr, "*** using real-name '%s'\n", Getattr(synonym,"real-name"));
     synonym_type = Getattr(synonym,"real-name");
   } else {
+    // Printf(stderr, "*** using name '%s'\n", Getattr(synonym,"name"));
     synonym_type = Getattr(synonym,"name");
   }
 
   String *synonym_ns = listify_namespace(Getattr(synonym,"allegrocl:namespace"));
+  String *syn_ltype, *syn_type, *of_ltype;
   // String *of_cdeclname = Getattr(of,"allegrocl:classDeclarationName");
   String *of_ns = Getattr(of,"allegrocl:namespace");
   String *of_ns_list = listify_namespace(of_ns);
   // String *of_name = of_cdeclname ? NewStringf("struct %s", Getattr(of,"name")) : NewStringf("%s::%s", of_ns, Getattr(of,"sym:name"));
   // String *of_name = NewStringf("%s::%s", of_ns, Getattr(of,"sym:name"));
   String *of_name = namespaced_name(of, of_ns);
-  String *syn_ltype = lookup_defined_foreign_ltype(synonym_type);
-  String *syn_type = lookup_defined_foreign_type(synonym_type);
-  String *of_ltype = lookup_defined_foreign_ltype(of_name);
+
+  if(CPlusPlus && !Strcmp(nodeType(synonym),"cdecl")) {
+    syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)",
+			   Getattr(synonym,"real-name"),synonym_ns);
+    syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)",
+			   Getattr(synonym,"real-name"),synonym_ns);
+  } else {
+    syn_ltype = lookup_defined_foreign_ltype(synonym_type);
+    syn_type = lookup_defined_foreign_type(synonym_type);
+  }
+
+  of_ltype = lookup_defined_foreign_ltype(of_name);
 
   // Printf(f_clhead,";; from emit-synonym\n");
   Printf(f_clhead,"(swig-def-synonym-type %s\n   %s\n   %s)\n", syn_ltype, of_ltype, syn_type);
