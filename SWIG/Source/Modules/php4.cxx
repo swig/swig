@@ -895,16 +895,13 @@ public:
     int newobject   = GetFlag(n,"feature:new");
 
     Parm *p;
-    char source[256];
-    char argnum[32];
-    char args[32];
     int i,numopt;
     String *tm;
     Wrapper *f;
     bool mvr=(shadow && php_version == 4 && wrapperType == membervar);
     bool mvrset=(mvr && (Strcmp(iname, Swig_name_set(Swig_name_member(shadow_classname, name)))==0) );
 
-    char wname[256];
+    String * wname;
     int overloaded = 0;
     String *overname = 0;
 
@@ -933,9 +930,9 @@ public:
         return SWIG_ERROR;
     }
 
-    strcpy(wname,Char(Swig_name_wrapper(iname)));
+    wname = Swig_name_wrapper(iname);
     if (overname) {
-      strcat(wname,Char(overname));
+      Printf(wname, "%s", overname);
     }
 
     // if PHP4, shadow and variable wrapper we want to snag the main contents
@@ -992,9 +989,9 @@ public:
 
     int has_this_ptr = (wrapperType==memberfn && shadow && php_version == 4);
 
-    sprintf(args, "zval **args[%d]", num_arguments-has_this_ptr);
-
+    String * args = NewStringf("zval **args[%d]", num_arguments-has_this_ptr);
     Wrapper_add_local(f, "args",args);
+    Delete(args); args = NULL;
 
     // This generated code may be called:
     // 1) as an object method, or
@@ -1051,6 +1048,8 @@ public:
     // This may mean looking at Lang::memberfunctionhandler
 
     for (i = 0, p = l; i < num_arguments; i++) {
+      String * source;
+
       /* Skip ignored arguments */
       //while (Getattr(p,"tmap:ignore")) { p = Getattr(p,"tmap:ignore:next");}
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
@@ -1058,34 +1057,32 @@ public:
       }
 
       SwigType *pt = Getattr(p,"type");
-      
+
       if (mvr) { // do we assert that numargs=2, that i<2
         if (i==0) {
-          sprintf(source,"&(property_reference->object)");
+          source = NewString("&(property_reference->object)");
         }
         else {
-          sprintf(source,"&value");
+          source = NewString("&value");
         }
       } else {
-        if (i==0 && has_this_ptr ) {
-          sprintf(source,"&this_ptr");
+        if (i==0 && has_this_ptr) {
+          source = NewString("&this_ptr");
         } else {
-          sprintf(source, "args[%d]", i-has_this_ptr);
+          source = NewStringf("args[%d]", i-has_this_ptr);
         }
       }
-      
+
       String *ln = Getattr(p,"lname");
-      sprintf(argnum, "%d", i+1);
-      
-       /* Check if optional */
-      
-      if(i>= (num_required)) {
+
+      /* Check if optional */
+      if(i >= num_required) {
         Printf(f->code,"\tif(arg_count > %d) {\n", i);
       }
-      
+
       if ((tm = Getattr(p,"tmap:in"))) {
-        Replaceall(tm,"$source",source);
-        Replaceall(tm,"$target",ln);
+        Replaceall(tm,"$source", source);
+        Replaceall(tm,"$target", ln);
         Replaceall(tm,"$input", source);
         Setattr(p,"emit:input", source);
         Printf(f->code,"%s\n",tm);
@@ -1102,6 +1099,7 @@ public:
       if (i>= num_required) {
         Printf(f->code,"\t}\n");
       }
+      Delete(source);
     }
     
     /* Insert constraint checking code */
@@ -1238,6 +1236,7 @@ public:
       dispatchFunction(n);
     }
 
+    Delete(wname);
     return SWIG_OK;
   }
   
@@ -1810,19 +1809,18 @@ public:
 
   
   void SwigToPhpType(SwigType *t, String_or_char *pname, String* php_type, int shadow_flag) {
-    char *ptype = 0;
-    
+    String *ptype = 0;
+
     if(shadow_flag) {
-      ptype = PhpTypeFromTypemap((char*)"pstype", t, pname,(char*)"");
+      ptype = PhpTypeFromTypemap((char*)"pstype", t, pname, (char*)"");
     }
     if(!ptype) {
-      ptype = PhpTypeFromTypemap((char*)"ptype",t,pname,(char*)"");
+      ptype = PhpTypeFromTypemap((char*)"ptype", t, pname, (char*)"");
     }
-    
-    
+
     if(ptype) {
-      Printf(php_type, ptype);
-      free(ptype);
+      Printf(php_type, "%s", ptype);
+      Delete(ptype);
     }
     else {
       /* Map type here */
@@ -1862,28 +1860,26 @@ public:
       }
     }
   }
-  
-  
-  char *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
+
+
+  String *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
     String *tms;
-    char bigbuf[1024];
-    char *tm;
-    char *c = bigbuf;
-    if(!(tms = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL))) {
+    tms = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL);
+    if(!tms) {
       return NULL;
     }
-    
-    tm = Char(tms);
-    while(*tm && (isspace(*tm) || *tm == '{')) {
-      tm++;
+
+    char * start = Char(tms);
+    while(isspace(*start) || *start == '{') {
+      start++;
     }
-    while(*tm && *tm != '}') {
-      *c++ = *tm++;
+    char * end = start;
+    while(*end && *end != '}') {
+      end++;
     }
-    *c='\0';
-    return Swig_copy_string(bigbuf);
+    return NewStringWithSize(start, end - start);
   }
-  
+
   int abstractConstructorHandler(Node *n) {
     String *iname = GetChar(n, "sym:name");
     if (shadow && php_version == 4) {
