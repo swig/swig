@@ -1585,31 +1585,36 @@ class CSHARP : public Language {
         Printf(proxy_class_code, ", swigDelegate%s", methid);
       }
       Printf(proxy_class_code, ");\n");
-      Printf(proxy_class_code, "  }\n\n");
-      Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {\n");
-      Printf(proxy_class_code, "    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);\n");
-      Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
-      /* Could add this code to cover corner case where the GetMethod() returns a method which allows type
-       * promotion, eg it will return foo(double), if looking for foo(int).
-        if (hasDerivedMethod) {
-            hasDerivedMethod = false;
-            if (methodInfo != null)
-            {
-                hasDerivedMethod = true;
-                ParameterInfo[] parameterArray1 = methodInfo.GetParameters();
-                for (int i=0; i<methodTypes.Length; i++)
-                {
-                    if (parameterArray1[0].ParameterType != methodTypes[0])
-                    {
-                        hasDerivedMethod = false;
-                        break;
-                    }
-                }
-            }
-        }
-      */
-      Printf(proxy_class_code, "    return hasDerivedMethod;\n");
       Printf(proxy_class_code, "  }\n");
+
+      if (first_class_dmethod < curr_class_dmethod) {
+	// Only emit if there is at least one director method
+	Printf(proxy_class_code, "\n");
+	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {\n");
+	Printf(proxy_class_code, "    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);\n");
+	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
+	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
+	 * promotion, eg it will return foo(double), if looking for foo(int).
+	  if (hasDerivedMethod) {
+	      hasDerivedMethod = false;
+	      if (methodInfo != null)
+	      {
+		  hasDerivedMethod = true;
+		  ParameterInfo[] parameterArray1 = methodInfo.GetParameters();
+		  for (int i=0; i<methodTypes.Length; i++)
+		  {
+		      if (parameterArray1[0].ParameterType != methodTypes[0])
+		      {
+			  hasDerivedMethod = false;
+			  break;
+		      }
+		  }
+	      }
+	  }
+	*/
+	Printf(proxy_class_code, "    return hasDerivedMethod;\n");
+	Printf(proxy_class_code, "  }\n");
+      }
 
       if (Len(director_delegate_callback) > 0)
         Printv(proxy_class_code, director_delegate_callback, NIL);
