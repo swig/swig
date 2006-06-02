@@ -2317,33 +2317,6 @@ int Language::classHandler(Node *n) {
   /* emit director disown method */
   if (hasDirector) {
     classDirectorDisown(n);
-
-    /* emit all the protected virtual members as needed */
-    if (dirprot_mode()) {
-      Node *vtable = Getattr(n, "vtable");
-      String* symname = Getattr(n, "sym:name");
-      Node *item;
-      Iterator k;
-      AccessMode old_mode = cplus_mode;
-      cplus_mode = PROTECTED;
-      for (k = First(vtable); k.key; k = Next(k)) {
-	item = k.item;
-	Node *method = Getattr(item, "methodNode");
-	SwigType *type = Getattr(method,"nodeType");
-	if (Strcmp(type,"cdecl") !=0 ) continue;
-	String* methodname = Getattr(method,"sym:name");
-	String* wrapname = NewStringf("%s_%s", symname,methodname);
-	if (!Getattr(symbols,wrapname) && (!is_public(method))) {
-	  Node* m = Copy(method);
-	  Setattr(m, "director", "1");
-	  Setattr(m,"parentNode", n);
-	  cDeclaration(m);
-	  Delete(m);
-	}
-	Delete(wrapname);
-      }
-      cplus_mode = old_mode;
-    }
   }
 
   return SWIG_OK;
