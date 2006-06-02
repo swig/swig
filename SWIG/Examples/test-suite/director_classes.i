@@ -1,4 +1,4 @@
-// Tests primitives
+// Tests classes passed by value, pointer and reference
 // Note: C# module has a large runtime test
 
 %module(directors="1") director_classes
