@@ -8,6 +8,8 @@
 
 %include "std_string.i"
 
+%feature("director") Bar;
+%feature("director") Foo<int>;
 %feature("director") FooBar<int>;
 
 %newobject *::create();
@@ -49,7 +51,7 @@
     
 
 #if defined(SWIGPYTHON) || defined(SWIGRUBY) || \
-  defined(SWIGJAVA) || defined(SWIGOCAML)
+  defined(SWIGJAVA) || defined(SWIGOCAML) || defined(SWIGCSHARP)
     virtual std::string do_step() const = 0;
 #else
     virtual std::string do_step() const {return "";};
