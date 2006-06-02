@@ -7,7 +7,7 @@
 
 %include "std_string.i"
 
-%feature("director") Bar;
+%feature("director");
 
 %newobject *::create();
 
