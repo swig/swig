@@ -16,6 +16,7 @@ BIN_DIR     = @bindir@
 TARGET_NOEXE= swig
 TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
+DOCS        = Doc/Manual
 
 swig: libfiles source
 
@@ -256,7 +257,7 @@ broken-%-test-suite:
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-libfiles clean-examples clean-gifplot clean-test-suite
+clean: clean-objects clean-libfiles clean-examples clean-gifplot clean-test-suite clean-docs
 
 clean-objects: clean-source
 
@@ -286,13 +287,17 @@ clean-%-test-suite:
 clean-%-gifplot:
 	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
 
+clean-docs:
+	@echo cleaning Docs
+	@cd $(DOCS) && $(MAKE) -s clean
+
 #####################################################################
 # DISTCLEAN
 #####################################################################
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
 
-distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite distclean-dead
+distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite clean-docs distclean-dead
 
 distclean-objects: distclean-source
 
