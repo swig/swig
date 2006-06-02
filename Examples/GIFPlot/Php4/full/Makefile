@@ -15,5 +15,6 @@ all::
 clean::
 	$(MAKE) -f $(TOP)/Makefile php4_clean
 	rm -f *.gif
+	rm -f php_gifplot.h
 
 check: all
