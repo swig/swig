@@ -118,6 +118,7 @@ CPP_TEST_CASES += \
 	destructor_reprotected \
 	director_abstract \
 	director_basic \
+	director_classes \
 	director_constructor \
 	director_detect \
 	director_default \
@@ -126,6 +127,7 @@ CPP_TEST_CASES += \
 	director_frob \
 	director_finalizer \
 	director_nested \
+	director_primitives \
 	director_protected \
 	director_redefined \
 	director_unroll \
