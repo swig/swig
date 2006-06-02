@@ -33,7 +33,6 @@ int is_member_director(Node* parentnode, Node* member)
 {
   int director_mode = Swig_director_mode();
 
-  if (checkAttribute(member,"director","1")) return 1;
   if (parentnode && checkAttribute(member, "storage", "virtual")) {
     int parent_nodirector = GetFlag(parentnode,"feature:nodirector");
     if (parent_nodirector) return 0;
