@@ -19,6 +19,9 @@ Version 1.3.30 (in progress)
 	    conventions (no "php_" prefix on Unix; on PHP >= 4.3.0, handle Unix
 	    platforms which use something other than ".so" as the extension.)
 
+05/13/2006: wsfulton
+            [C#] Director support added
+
 05/07/2006: olly
 	    [php] Don't segfault if PHP Null is passed where a C++ reference
 	    is wanted.
