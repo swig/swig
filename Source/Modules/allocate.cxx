@@ -186,15 +186,25 @@ class Allocate : public Dispatcher {
 
 	  if (decl_match && returntype_match) {
 	    // Found an identical method in the base class
+	    bool this_wrapping_protected_members = is_member_director(n); // This should really check for dirprot rather than just being a director method
+	    bool base_wrapping_protected_members = is_member_director(base); // This should really check for dirprot rather than just being a director method
 	    bool both_have_public_access = is_public(n) && is_public(base);
+	    bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
+	    bool both_have_private_access = is_private(n) && is_private(base);
 	    if (checkAttribute(base, "storage", "virtual")) {
 	      // Found a polymorphic method.
 	      // Mark the polymorphic method, in case the virtual keyword was not used.
 	      Setattr(n, "storage", "virtual");
 
-	      if (both_have_public_access)
+	      if (both_have_public_access || both_have_protected_access) {
                 if (!is_non_public_base(inclass, b))
-                  Setattr(n, "override", base); 
+                  Setattr(n, "override", base); // Note C# definition of override, ie access must be the same
+	      } else if (!both_have_private_access) {
+		// Different access
+		if (this_wrapping_protected_members || base_wrapping_protected_members)
+		  if (!is_non_public_base(inclass, b))
+		    Setattr(n, "hides", base); // Note C# definition of hiding, ie hidden if access is different
+	      }
 
 	      // Try and find the most base's covariant return type
 	      SwigType *most_base_covariant_type = Getattr(base, "covariant");
@@ -214,11 +224,11 @@ class Allocate : public Dispatcher {
 
 	    } else {
 	      // Found an identical method in the base class, but it is not polymorphic.
-	      if (both_have_public_access)
+	      if (both_have_public_access || both_have_protected_access)
                 if (!is_non_public_base(inclass, b))
                   Setattr(n, "hides", base);
 	    }
-	    if (both_have_public_access)
+	    if (both_have_public_access || both_have_protected_access)
 	      return 1;
 	  }
 	}
