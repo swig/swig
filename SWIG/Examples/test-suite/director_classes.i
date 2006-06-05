@@ -1,6 +1,8 @@
 // Tests classes passed by value, pointer and reference
 // Note: C# module has a large runtime test
 
+#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
+
 %module(directors="1") director_classes
 
 %feature("director") Base;
