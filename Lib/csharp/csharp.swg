@@ -194,7 +194,7 @@
 /* char * - treat as String */
 %typemap(in) char * %{ $1 = ($1_ltype)$input; %}
 %typemap(out) char * %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
-%typemap(directorout) char * %{ $1 = ($1_ltype)$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char * %{ $1 = ($1_ltype)$input; %}
 %typemap(directorin) char * %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
 %typemap(csdirectorin) char * "$iminput"
 %typemap(csdirectorout) char * "$cscall"
@@ -349,12 +349,12 @@
   } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE & %{ $result = (void *)$1; %} 
 %typemap(out) SWIGTYPE (CLASS::*) %{ $result = (void *)&$1; %} 
-%typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ $1 = ($1_ltype)$input; %}
 %typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ $input = (void *) $1; %}
 
-%typemap(directorout) SWIGTYPE &
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
      SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Unexpected null return for type $1_type", 0);
      return $null;
