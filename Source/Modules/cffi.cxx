@@ -470,7 +470,7 @@ int CFFI :: typedefHandler(Node *n) {
 int CFFI :: enumDeclaration(Node *n) {
   String *name = Getattr(n, "sym:name");
   bool slot_name_keywords;
-  String *lisp_name;
+  String *lisp_name = 0;
   if(name && Len(name)!=0) {
     lisp_name = lispify_name(n, name, "'enumname");
     Printf(f_cl,"\n(cffi:defcenum %s",lisp_name);
