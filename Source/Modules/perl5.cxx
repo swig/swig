@@ -1314,6 +1314,7 @@ public:
 	have_operators = 1;
       } else if (Strstr(symname, "__str__")) {
 	DohSetInt(operators,"__str__",1);
+	have_operators = 1;
       } else if (Strstr(symname, "__add__")) {
 	DohSetInt(operators,"__add__",1);
 	have_operators = 1;
