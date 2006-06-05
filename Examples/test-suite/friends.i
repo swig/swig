@@ -138,8 +138,11 @@
     void bas() {}
 
     void baz() {}
+  }
+}
 
-#if !defined(SWIG_NOEXTRA_QUALIFICATION)
+// Use this version with extra qualifiers to test SWIG as some compilers accept this
+  namespace ns1 {
     namespace ns2 {
       class Foo {
       public:
@@ -151,7 +154,11 @@
       };
       void bar() {}    
     }
-#else
+  }
+
+// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
+%{
+  namespace ns1 {
     namespace ns2 {
       class Foo {
       public:
@@ -163,10 +170,9 @@
       };
       void bar() {}    
     }
-#endif
-    
   }
-}
+%}
+    
 
 %template(D_i) D<int>;
 %template(D_d) D<double>;
