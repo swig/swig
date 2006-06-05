@@ -19,6 +19,11 @@
 <li><a href="#csharp_custom_application_exception">Custom C# ApplicationException example</a>
 </ul>
 <li><a href="#csharp_directors">C# Directors</a>
+<ul>
+<li><a href="#csharp_directors_example">Directors example</a>
+<li><a href="#csharp_directors_implementation">Directors implementation</a>
+<li><a href="#csharp_typemap_examples">Director caveats</a>
+</ul>
 <li><a href="#csharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -894,7 +899,8 @@ try {
 </pre>
 </div>
 
-<H2><a name="csharp_directors"></a>C# Directors</H2>
+<H2><a name="csharp_directors"></a>17.4 C# Directors</H2>
+
 
 <p>
 The SWIG directors feature adds extra code to the generated C# proxy classes that enable these classes to be used in cross-language polymorphism.
@@ -906,7 +912,8 @@ The following sections provide information on the C# director implementation and
 However, the <a href=Java.html#java_directors>Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="csharp_directors_example"></a>Directors example</H3>
+<H3><a name="csharp_directors_example"></a>17.4.1 Directors example</H3>
+
 
 <p>
 Imagine we are wrapping a C++ base class, <tt>Base</tt>, from which we would like to inherit in C#.
@@ -1026,7 +1033,8 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="csharp_directors_implementation"></a>Directors implementation</H3>
+<H3><a name="csharp_directors_implementation"></a>17.4.2 Directors implementation</H3>
+
 
 <p>
 The previous section demonstrated a simple example where the virtual <tt>UIntMethod</tt> method was called from
@@ -1207,7 +1215,8 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="csharp_typemap_examples"></a>Director caveats</H3>
+<H3><a name="csharp_typemap_examples"></a>17.4.3 Director caveats</H3>
+
 
 <p>
 There are a few gotchas with directors.
@@ -1287,7 +1296,7 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="csharp_typemap_examples"></a>17.4 C# Typemap examples</H2>
+<H2><a name="csharp_typemap_examples"></a>17.5 C# Typemap examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1295,7 +1304,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="csharp_memory_management_member_variables"></a>17.4.1 Memory management when returning references to member variables</H3>
+<H3><a name="csharp_memory_management_member_variables"></a>17.5.1 Memory management when returning references to member variables</H3>
 
 
 <p>
@@ -1419,7 +1428,7 @@ public class Bike : IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="csharp_memory_management_objects"></a>17.4.2 Memory management for objects passed to the C++ layer</H3>
+<H3><a name="csharp_memory_management_objects"></a>17.5.2 Memory management for objects passed to the C++ layer</H3>
 
 
 <p>
