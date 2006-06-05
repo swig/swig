@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+05/13/2006: wsfulton
+            [Perl] Operator overload fix from Daniel Moore.
+
 05/25/2006: mutandiz
 	    [allegrocl]
 	    Fix bug in generation of CLOS type declarations for unions
