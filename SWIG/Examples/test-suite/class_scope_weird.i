@@ -1,43 +1,34 @@
 %module class_scope_weird
 
-%inline {
-#if !defined(SWIG_NOEXTRA_QUALIFICATION)
+// Use this version with extra qualifiers to test SWIG as some compilers accept this
 class Foo {
 public:
-  Foo::Foo(void)
-  {
-  }
-
-  Foo::Foo(int)
-  {
-  }
-  
+  Foo::Foo(void) {}
+  Foo::Foo(int) {}
   int Foo::bar(int x) {
     return x;
   }
 };
-#else
+
+// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
+%{
 class Foo {
 public:
-  Foo(void)
-  {
-  }
-
-  Foo(int)
-  {
-  }
-  
+  Foo(void) {}
+  Foo(int) {}
   int bar(int x) {
     return x;
   }
 };
-#endif
+%}
 
+%inline %{
 class Quat;
 class matrix4;
 class tacka3;
+%}
 
-#if !defined(SWIG_NOEXTRA_QUALIFICATION)
+// Use this version with extra qualifiers to test SWIG as some compilers accept this
 class Quat {
 public:
   Quat::Quat(void){}  
@@ -45,7 +36,9 @@ public:
   Quat::Quat(const tacka3& axis, float angle){}
   Quat::Quat(const matrix4& m){}
 };
-#else
+
+// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
+%{
 class Quat {
 public:
   Quat(void){}  
@@ -53,6 +46,5 @@ public:
   Quat(const tacka3& axis, float angle){}
   Quat(const matrix4& m){}
 };
-#endif
-}
+%}
 
