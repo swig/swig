@@ -347,7 +347,7 @@
   }
 }
 
-%typemap(directorout, noblock=1) char * {
+%typemap(directorout, noblock=1, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char * {
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
@@ -593,12 +593,12 @@
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %} 
 
-%typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ $1 = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
-%typemap(directorout) SWIGTYPE &
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
