@@ -1211,10 +1211,14 @@ public:
 	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__gt__")) {
 	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
+          } else if (strstr(name, "__ge__")) {
+            Printv(pm, tab4, "\">=\" => sub { $_[0]->__ge__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__not__")) {
 	    Printv(pm, tab4, "\"!\" => sub { $_[0]->__not__()},\n",NIL);
-	  }else if (strstr(name, "__lt__")) {
+	  } else if (strstr(name, "__lt__")) {
 	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n",NIL);
+          } else if (strstr(name, "__le__")) {
+            Printv(pm, tab4, "\"<=\" => sub { $_[0]->__le__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__pluseq__")) {
 	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__mineq__")) {
