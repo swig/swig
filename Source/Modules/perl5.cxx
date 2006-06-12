@@ -1346,8 +1346,14 @@ public:
       } else if (Strstr(symname, "__gt__")) {
 	DohSetInt(operators,"__gt__",1);
 	have_operators = 1;
+      } else if (Strstr(symname, "__ge__")) {
+	DohSetInt(operators,"__ge__",1);
+	have_operators = 1;
       } else if (Strstr(symname, "__lt__")) {
 	DohSetInt(operators,"__lt__",1);
+	have_operators = 1;
+      } else if (Strstr(symname, "__le__")) {
+	DohSetInt(operators,"__le__",1);
 	have_operators = 1;
       } else if (Strstr(symname, "__neg__")) {
 	DohSetInt(operators,"__neg__",1);
