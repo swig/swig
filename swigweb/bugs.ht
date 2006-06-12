@@ -2,11 +2,9 @@ SWIG Bug Tracking
 
 <p><img src="images/bugs.png" alt="Bugs">
 
-<p>A <a href="http://sourceforge.net/bugs/?group_id=1645">bug-tracking system</a> for SWIG
+<p>A <a href="http://sourceforge.net/tracker/?group_id=1645">bug-tracking system</a> for SWIG
 is located on <a href="http://sourceforge.net">SourceForge</a>. 
-Please log on to SourceForge before submitting a bug.
-Anonymous bug submitters won't be able to receive emails on the bug progress. 
-This might be a problem should we require further feedback on the bug.
+Note that you need to log on to SourceForge before submitting a bug.
 
 <p>
 Users who have found a bug and fixed it themselves can submit a
