@@ -14,7 +14,7 @@ char cvsroot_cscanner_c[] = "$Header$";
 #include <string.h>
 #include <ctype.h>
 
-#define  YYBSIZE  8192
+#define  YYBSIZE  65536
 
 typedef struct InFile {
   DOHFile *f;
