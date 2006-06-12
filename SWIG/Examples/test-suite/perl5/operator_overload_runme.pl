@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 28;
+use Test::More tests => 36;
 
 use operator_overload;
 
@@ -99,6 +99,15 @@ $op->{i} = 3;
 ok_not(($op2 > $op), "operator greater than");
 ok_not(($op > $op2), "operator greater than");
 
+# greater than or equal operator
+$op->{i} = 8;
+$op2->{i} = 3;
+ok($op >= $op2, "operator greater than or equal");
+ok_not(($op2 >= $op), "operator greater than or equal");
+$op->{i} = 3;
+ok(($op2 >= $op), "operator greater than or equal");
+ok(($op >= $op2), "operator greater than or equal");
+
 # lesser than operator
 $op2->{i} = 8;
 $op->{i} = 3;
@@ -107,6 +116,15 @@ ok_not(($op2 < $op), "operator lesser than");
 $op2->{i} = 3;
 ok_not(($op2 < $op), "operator lesser than");
 ok_not(($op < $op2), "operator lesser than");
+
+# less than or equal operator
+$op2->{i} = 8;
+$op->{i} = 3;
+ok($op <= $op2, "operator lesser than or equal");
+ok_not(($op2 <= $op), "operator lesser than or equal");
+$op2->{i} = 3;
+ok(($op2 <= $op), "operator less than or equal");
+ok(($op <= $op2), "operator less than or equal");
 
 # increment operator
 $op->{i} = 7;
