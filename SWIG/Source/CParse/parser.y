@@ -4014,12 +4014,12 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 
               | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
 		String *name;
-		char *c;
+		char *c = 0;
 		$$ = new_node("destructor");
 	       /* Check for template names.  If the class is a template
 		  and the constructor is missing the template part, we
 		  add it */
-	        if ((c = strstr(Char(Classprefix),"<"))) {
+	        if (Classprefix && (c = strstr(Char(Classprefix),"<"))) {
 		  if (!Strstr($3,"<")) {
 		    $3 = NewStringf("%s%s",$3,c);
 		  }
