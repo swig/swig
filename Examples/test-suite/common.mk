@@ -27,7 +27,7 @@
 #######################################################################
 # Variables
 #######################################################################
-SWIG       = $(top_builddir)preinst-swig
+SWIG       = $(top_builddir)/preinst-swig
 SWIG_LIB   = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
