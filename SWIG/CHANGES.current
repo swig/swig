@@ -2,6 +2,20 @@ Version 1.3.30 (in progress)
 ============================
 
 05/13/2006: wsfulton
+            [Java] Replace JNIEXPORT with SWIGEXPORT, thereby enabling the possibility
+            of using gcc -fvisibility=hidden for potentially smaller faster loading wrappers.
+
+05/13/2006: wsfulton
+            Fix for Makefiles for autoconf-2.60 beta
+
+05/13/2006: wsfulton
+            Vladimir Menshakov patch for compiling wrappers with python-2.5 alpha.
+
+05/12/2006: wsfulton
+            Fix buffer overflow error when using large %feature(docstring) reported
+            by Joseph Winston.
+
+05/12/2006: wsfulton
             [Perl] Operator overload fix from Daniel Moore.
 
 05/25/2006: mutandiz
