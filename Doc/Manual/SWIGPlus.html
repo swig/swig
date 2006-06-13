@@ -49,7 +49,7 @@
 <li><a href="#SWIGPlus_nn33">Pointers to Members</a>
 <li><a href="#SWIGPlus_nn34">Smart pointers and operator-&gt;()</a>
 <li><a href="#SWIGPlus_nn35">Using declarations and inheritance</a>
-<li><a href="#SWIGPlus_nn36">Partial class definitions</a>
+<li><a href="#SWIGPlus_nested_classes">Nested classes</a>
 <li><a href="#SWIGPlus_nn37">A brief rant about const-correctness</a>
 <li><a href="#SWIGPlus_nn38">Proxy classes</a>
 <ul>
@@ -160,29 +160,35 @@ for each target language.
 
 
 <p>
-SWIG's currently supports the following C++ features :</p>
+SWIG currently supports most C++ features including the following:</p>
 
 <ul>
-<li>Classes.
+<li>Classes
 <li>Constructors and destructors
 <li>Virtual functions
 <li>Public inheritance (including multiple inheritance)
 <li>Static functions
-<li>Function and method overloading.
+<li>Function and method overloading
 <li>Operator overloading for many standard operators
 <li>References
-<li>Templates (including specialization and member templates).
+<li>Templates (including specialization and member templates)
 <li>Pointers to members
 <li>Namespaces
+<li>Default parameters
+<li>Smart pointers
 </ul>
 
 <p>
-The following C++ features are not currently supported :</p>
+The following C++ features are not currently supported:</p>
 
 <ul>
-<li>Nested classes
 <li>Overloaded versions of certain operators (new, delete, etc.)
+<li>Nested classes, see <a href="#SWIGPlus_nested_classes">Nested classes</a> for workarounds.
 </ul>
+
+<p>
+As a rule of thumb, SWIG should not be used on raw C++ source files, use header files only.
+</p>
 
 <p>
 SWIG's C++ support is an ongoing project so some of these limitations may be lifted
@@ -4255,15 +4261,18 @@ public:
 </div>
 </ul>
 
-<H2><a name="SWIGPlus_nn36"></a>6.25 Partial class definitions</H2>
-
+<H2><a name="SWIGPlus_nested_classes"></a>6.25 Nested classes</H2>
 
 <p>
-Since SWIG is still limited in its support of C++, it may be necessary
-to use partial class information in an interface file.  However, since
+There is limited support for nested structs and unions when wrapping C code, see <a href="SWIG.html#SWIG_nested_structs">Nested structures</a> for further details.
+However, there is no nested class/struct/union support when wrapping C++ code (using the -c++ commandline option).
+This may be added at a future date, however, until then some of the following workarounds can be applied.
+</p>
+
+<p>
+It might be possible to use partial class information.  Since
 SWIG does not need the entire class specification to work, conditional
-compilation can be used to comment out problematic parts.  For example, if you had a nested
-class definition, you might do this:
+compilation can be used to comment out the problematic nested class definition, you might do this:
 </p>
 
 <div class="code">
@@ -4284,8 +4293,62 @@ public:
 </div>
 
 <p>
-Also, as a rule of thumb, SWIG should not be used on raw C++ source
-files. 
+The next workaround assumes you cannot modify the source code as was done above and it provides a solution for methods that use nested class types.
+Imagine we are wrapping the <tt>Outer</tt> class with a nested class <tt>Inner</tt>:
+</p>
+
+<div class="code">
+<pre>
+// File outer.h
+class Outer {
+public:
+  class Inner {
+    public:
+      int var;
+      Inner(int v = 0) : var(v) {}
+  };
+  void method(Inner inner);
+};
+</pre>
+</div>
+
+<p>
+The following interface file works around SWIG nested class limitations by redefining the nested class as a global class.
+A typedef for the compiler is also required in order for the generated wrappers to compile.
+</p>
+
+<div class="code">
+<pre>
+// File : example.i
+%module example
+
+// Suppress SWIG warning
+#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
+
+// Redefine nested class in global scope in order for SWIG to generate
+// a proxy class. Only SWIG parses this definition.
+class Inner {
+  public:
+    int var;
+    Inner(int v = 0) : var(v) {}
+};
+
+%{
+#include "outer.h"
+%}
+%include "outer.h"
+
+%{
+// SWIG thinks that Inner is a global class, so we need to trick the C++
+// compiler into understanding this so called global type.
+typedef Outer::Inner Inner;
+%}
+
+</pre>
+</div>
+
+<p>
+The downside to this approach is having to maintain two definitions of <tt>Inner</tt>, the real one and the one in the interface file that SWIG parses.
 </p>
 
 <H2><a name="SWIGPlus_nn37"></a>6.26 A brief rant about const-correctness</H2>
