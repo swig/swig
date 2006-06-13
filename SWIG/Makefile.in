@@ -5,6 +5,7 @@
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 srcdir      = @srcdir@
+datarootdir = @datarootdir@
 
 ##############################################################################
 # Compiler and system configuration
