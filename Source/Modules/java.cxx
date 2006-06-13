@@ -769,7 +769,7 @@ class JAVA : public Language {
     if (!is_void_return)
       Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
 
-    Printv(f->def, "JNIEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
+    Printv(f->def, "SWIGEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
 
     // Usually these function parameters are unused - The code below ensures
     // that compilers do not issue such a warning if configured to do so.
@@ -1665,7 +1665,7 @@ class JAVA : public Language {
       Replaceall(imclass_cppcasts_code, "$javaclassname", proxy_class_name);
 
       Printv(upcasts_code,
-          "JNIEXPORT jlong JNICALL Java_$jnipackage$imimclass_SWIG$imclazznameUpcast",
+          "SWIGEXPORT jlong JNICALL Java_$jnipackage$imimclass_SWIG$imclazznameUpcast",
           "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
           "    jlong baseptr = 0;\n"
           "    (void)jenv;\n"
@@ -1770,7 +1770,7 @@ class JAVA : public Language {
 
         Wrapper *dcast_wrap = NewWrapper();
 
-        Printf(dcast_wrap->def, "JNIEXPORT jobject JNICALL Java_%s%s_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
+        Printf(dcast_wrap->def, "SWIGEXPORT jobject JNICALL Java_%s%s_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
                jnipackage, jni_imclass_name, jni_class_name);
         Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
         Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
@@ -2759,7 +2759,7 @@ class JAVA : public Language {
       Printf(f_runtime, "  static jmethodID director_methids[%d];\n", n_methods);
       Printf(f_runtime, "}\n");
 
-      Printf(w->def, "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls) {",
+      Printf(w->def, "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls) {",
              jnipackage, jni_imclass_name, swig_module_init_jni);
       Printf(w->code, "static struct {\n");
       Printf(w->code, "  const char *method;\n");
@@ -2812,7 +2812,7 @@ class JAVA : public Language {
 
     code_wrap = NewWrapper();
     Printf(code_wrap->def,
-	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
+	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
 	   "jboolean jweak_global) {\n",
 	   jnipackage, jni_imclass_name, swig_director_connect_jni);
     Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
@@ -2840,7 +2840,7 @@ class JAVA : public Language {
 
     code_wrap = NewWrapper();
     Printf(code_wrap->def,
-	   "JNIEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
+	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
            jnipackage, jni_imclass_name, changeown_jnimethod_name);
     Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
     Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n",
