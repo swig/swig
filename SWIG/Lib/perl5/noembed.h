@@ -85,3 +85,9 @@
 #ifdef check
   #undef check
 #endif
+#ifdef seekdir
+  #undef seekdir
+#endif
+#ifdef open
+  #undef open
+#endif
