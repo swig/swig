@@ -257,8 +257,13 @@ $body)"
 (defun scm-p1 (form)
   (let* ((info (second form))
 	 (id (car info))
-	 (id-args (cddr info)))
-    (apply *swig-identifier-converter* id id-args)))
+	 (id-args (if (eq (car form) 'swig-dispatcher)
+		      (cdr info)
+		      (cddr info))))
+    (apply *swig-identifier-converter* id 
+	   (progn (when (eq (car form) 'swig-dispatcher)
+		    (remf id-args :arities))
+		  id-args))))
 
 (defmacro defswig1 (name (&rest args) &body body)
   `(progn (defmacro ,name ,args
@@ -275,7 +280,9 @@ $body)"
       (read-from-string string nil "eof" :preserve-whitespace t)
     (if (and (symbolp result) (eql position (length string)))
         result
-        (intern string))))
+	(multiple-value-bind (sym)
+	    (intern string)
+	  sym))))
 
 (defun full-name (id type arity class)
   (case type
@@ -396,7 +403,7 @@ $body)"
            ,@(maybe-return-value symbol defun-args))))))
 
 (defswig1 swig-defmethod ((name &optional (mangled-name name)
-                           &key (type :operator) class arity)
+	  	                &key (type :operator) class arity)
                           ffargs kwargs
                           &body body)
   (let* ((symbol (id-convert-and-export name :type type
