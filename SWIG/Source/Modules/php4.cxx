@@ -1045,7 +1045,7 @@ public:
     // errors, or find a better way of dealing with _thisptr.
     // I would like, if objects are wrapped, to assume _thisptr is always
     // _this and not the first argument.
-    // This may mean looking at Lang::memberfunctionhandler
+    // This may mean looking at Language::memberfunctionHandler
 
     for (i = 0, p = l; i < num_arguments; i++) {
       String * source;
@@ -1086,6 +1086,9 @@ public:
         Replaceall(tm,"$input", source);
         Setattr(p,"emit:input", source);
         Printf(f->code,"%s\n",tm);
+	if (i == 0 && HashGetAttr(p, k_self)) {
+	  Printf(f->code,"\tif(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n");
+	}
         p = Getattr(p,"tmap:in:next");
         if (i >= num_required) {
           Printf(f->code,"}\n");
