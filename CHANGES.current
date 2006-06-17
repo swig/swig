@@ -2,6 +2,12 @@ Version 1.3.30 (in progress)
 ============================
 
 06/17/2006: olly
+	    [php] Added some missing keywords to the PHP4 keyword list, and
+	    fixed __LINE__ and __FILE__ which were in the wrong category.
+	    Also added all the keywords new in PHP5, and added comments
+	    noting the PHP4 keywords which aren't keywords in PHP5.
+
+06/17/2006: olly
 	    [php] Don't segfault if PHP Null is passed as this pointer (e.g.
 	    Class_method(Null)) - give a PHP Error instead.
 	    
