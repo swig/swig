@@ -349,7 +349,7 @@ void swig_pragma(char *lang, char *name, char *value) {
       GenerateDefault = 1;
     } else if ((strcmp(name,"no_default") == 0) || ((strcmp(name,"nodefault") == 0))) {
       Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG",1, 
-		   "dangerous, use %nodefaultctor, %nodefaultdtor instead.\n");
+		   "dangerous, use %%nodefaultctor, %%nodefaultdtor instead.\n");
       GenerateDefault = 0;
     } else if (strcmp(name,"attributefunction") == 0) {
       String *nvalue = NewString(value);
@@ -753,13 +753,13 @@ int Language::cDeclaration(Node *n) {
   File   *f_header = 0;
   SwigType *ty, *fullty;
 
-  /* discarts nodes following the access control rules */
+  /* discards nodes following the access control rules */
   if (cplus_mode != PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
     if (!isfriend ) {
-      /* we check what director needs. If the method is  pure virtual,
-	 it is  always needed. */ 
+      /* we check what the director needs. If the method is pure virtual,
+	 it is always needed. */
       if (!(directorsEnabled() && is_member_director(CurrentClass,n) && need_nonpublic_member(n))) {
 	return SWIG_NOWRAP;
       }
