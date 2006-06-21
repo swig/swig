@@ -1,4 +1,4 @@
-;; This file is no longer neccissary with Chicken versions avove 1.92
+;; This file is no longer necessary with Chicken versions above 1.92
 ;; 
 ;; This file overrides two functions inside TinyCLOS to provide support
 ;; for multi-argument generics.  There are many ways of linking this file
