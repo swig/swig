@@ -335,7 +335,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
     $result = C_SCHEME_FALSE;
   } 
   else {
-    int string_len = strlen ($1);
+    int string_len = strlen ((char *) ($1));
     C_word *string_space = C_alloc (C_SIZEOF_STRING (string_len));
     $result = C_string (&string_space, string_len, s);
   }
