@@ -792,7 +792,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   Parm     *p;
   String   *self = 0;
 
-  /* If smart pointer, change self derefencing */
+  /* If smart pointer, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
   }
