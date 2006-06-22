@@ -1,12 +1,11 @@
 <?php
 // Sample test file
-
 require "tests.php4";
 require "arrays.php";
 
 check::functions(array(fn_taking_arrays,newintpointer,setintfrompointer,getintfrompointer,array_pointer_func));
 check::classes(array(simplestruct,arraystruct,cartposedata_t));
-// now new vars
+// No new vars
 check::globals(array());
 
 $ss=new simplestruct();
