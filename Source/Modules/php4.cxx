@@ -1363,7 +1363,7 @@ public:
 	output = s_fakeoowrappers;
       }
 
-      bool really_overloaded = overloaded;
+      bool really_overloaded = overloaded ? true : false;
       int min_num_of_arguments = emit_num_required(l);
       int max_num_of_arguments = emit_num_arguments(l);
       // For a function with default arguments, we end up with the fullest

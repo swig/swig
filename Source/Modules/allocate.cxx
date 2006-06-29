@@ -186,8 +186,8 @@ class Allocate : public Dispatcher {
 
 	  if (decl_match && returntype_match) {
 	    // Found an identical method in the base class
-	    bool this_wrapping_protected_members = is_member_director(n); // This should really check for dirprot rather than just being a director method
-	    bool base_wrapping_protected_members = is_member_director(base); // This should really check for dirprot rather than just being a director method
+	    bool this_wrapping_protected_members = is_member_director(n) ? true : false; // This should really check for dirprot rather than just being a director method
+	    bool base_wrapping_protected_members = is_member_director(base) ? true : false; // This should really check for dirprot rather than just being a director method
 	    bool both_have_public_access = is_public(n) && is_public(base);
 	    bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
 	    bool both_have_private_access = is_private(n) && is_private(base);
