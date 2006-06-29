@@ -1,6 +1,6 @@
 /* 
  * This interface file tests whether the language modules handle the kind when declared 
- * with the function/member name, especially when used with shadow classes.
+ * with the function/member name, especially when used with proxy classes.
 */
 
 %module kind

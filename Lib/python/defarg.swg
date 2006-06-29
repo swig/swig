@@ -1,11 +1,11 @@
 /* This file defines an internal function for processing default arguments
-   with shadow classes.
+   with proxy classes.
 
-   There seems to be no straightforward way to write a shadow functions
+   There seems to be no straightforward way to write proxy functions
    involving default arguments. For example :
 
              def foo(arg1,arg2,*args):
-                     shadowc.foo(arg1,arg2,args)
+                     proxyc.foo(arg1,arg2,args)
 
    This fails because args is now a tuple and SWIG doesn't know what to
    do with it.
@@ -13,7 +13,7 @@
    This file allows a different approach :
 
             def foo(arg1,arg2,*args):
-                    shadowc.__call_defarg(shadowc.foo,(arg1,arg2,)+args)
+                    proxyc.__call_defarg(proxyc.foo,(arg1,arg2,)+args)
 
    Basically, we form a new tuple from the object, call this special
    __call_defarg method and it passes control to the real wrapper function.
