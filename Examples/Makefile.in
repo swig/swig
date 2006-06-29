@@ -1017,3 +1017,26 @@ uffi_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 
+##################################################################
+#####                      R                                ######
+##################################################################
+
+R = R
+RSRCS = $(INTERFACE:.i=_wrap.c) #special code for R build system
+RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #special code for R build system
+
+r: $(SRCS)
+	$(SWIG) -r $(SWIGOPT)  -o $(RSRCS) $(INTERFACE)
+	PKG_LIBS="$(SRCS)" PKG_CPPFLAGS="$(INCLUDES)" \
+             $(R) CMD SHLIB $(RSRCS)
+
+r_cpp: $(CXXSRCS)
+	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACE)
+	PKG_LIBS="$(CXXSRCS)" PKG_CPPFLAGS="$(INCLUDES)" \
+	     $(R) CMD SHLIB $(RCXXSRCS)
+
+r_clean:
+	rm -f *_wrap* *~ .~* $(RSRCS) $(RCXXSRCS)
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+

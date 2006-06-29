@@ -51,6 +51,7 @@ skip-allegrocl  = test -n "@SKIP_ALLEGROCL@"
 skip-clisp	= test -n "@SKIP_CLISP@"
 skip-cffi	= test -n "@SKIP_CFFI@"
 skip-uffi	= test -n "@SKIP_UFFI@"
+skip-r		= test -n "@SKIP_R@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
@@ -85,6 +86,7 @@ check-aliveness:
 	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
 	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 	@$(skip-lua)      || ./$(TARGET) -lua      -help
+	@$(skip-r) 	  || ./$(TARGET) -lua      -help
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
@@ -105,7 +107,8 @@ check-examples:					\
 	check-allegrocl-examples		\
 	check-clisp-examples			\
 	check-uffi-examples			\
-	check-cffi-examples
+	check-cffi-examples			\
+	check-r-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -186,7 +189,8 @@ check-test-suite:				\
 	check-clisp-test-suite			\
 	check-uffi-test-suite			\
 	check-cffi-test-suite			\
-	check-chicken-test-suite
+	check-chicken-test-suite		\
+	check-r-test-suite
 
 check-%-test-suite:
 	@passed=true;							\
@@ -224,7 +228,8 @@ all-test-suite:					\
 	all-clisp-test-suite			\
 	all-uffi-test-suite			\
 	all-cffi-test-suite			\
-	all-chicken-test-suite
+	all-chicken-test-suite			\
+	all-r-test-suite
 
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
@@ -249,7 +254,8 @@ broken-test-suite:				\
 	broken-clisp-test-suite			\
 	broken-uffi-test-suite			\
 	broken-cffi-test-suite			\
-	broken-chicken-test-suite
+	broken-chicken-test-suite		\
+	broken-r-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
@@ -329,7 +335,8 @@ noskip-test-suite:				\
 	noskip-clisp-test-suite			\
 	noskip-uffi-test-suite			\
 	noskip-cffi-test-suite			\
-	noskip-chicken-test-suite
+	noskip-chicken-test-suite		\
+	noskip-r-test-suite
 
 noskip-%-test-suite:
 	dir="Examples/test-suite/$*";					\
@@ -375,7 +382,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
 
 lib-modules = std
 
