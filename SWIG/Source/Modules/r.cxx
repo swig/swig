@@ -2363,7 +2363,7 @@ int R::classDeclaration(Node *n) {
     //        typedefHandler(n);
   }
 
-  bool opaque = GetFlag(n, "feature:opaque");
+  bool opaque = GetFlag(n, "feature:opaque") ? true : false;
 
   if(opaque)
     opaqueClassDeclaration = name;
