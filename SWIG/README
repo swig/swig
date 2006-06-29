@@ -29,7 +29,7 @@ Active Developers:
  Surendra Singhi (efuzzyone@netscape.net)               (CLISP, CFFI)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
-
+ Joseph Wang (joe@gnacademy.org)                        (R)
 Major contributors include:
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
@@ -53,6 +53,7 @@ Major contributors include:
  Bob Techentin                                          (Tcl)
  Martin Froehlich <MartinFroehlich@ACM.org>             (Guile)
  Marcio Luis Teixeira <marciot@holly.colostate.edu>     (Guile)
+ Duncan Temple Lang                                     (R)
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
