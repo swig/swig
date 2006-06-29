@@ -124,9 +124,8 @@ type checking, error handling, and other low-level details of the C++ binding.
 These wrappers are also sufficient to bind C++ into any target language
 that supports built-in procedures.   In some sense, you might view this
 layer of wrapping as providing a C library interface to C++.
-Optionally, SWIG can also generate proxy classes 
-that provide a natural OO interface to the underlying code.  These proxies
-are built on top of the low-level procedural wrappers and are typically
+On top of the low-level procedural (flattened) interface, SWIG generates proxy classes 
+that provide a natural object-oriented (OO) interface to the underlying code.  The proxy classes are typically
 written in the target language itself.  For instance, in Python, a real
 Python class is used to provide a wrapper around the underlying C++ object.
 </p>
@@ -134,8 +133,8 @@ Python class is used to provide a wrapper around the underlying C++ object.
 <p>
 It is important to emphasize that SWIG takes a deliberately
 conservative and non-intrusive approach to C++ wrapping. SWIG does not
-encapsulate C++ classes inside special C++ adaptor or proxy classes,
-it does not rely upon templates, nor does it use C++ inheritance when
+encapsulate C++ classes inside a special C++ adaptor, it does not rely
+upon templates, nor does it add in additional C++ inheritance when
 generating wrappers.  The last thing that most C++ programs need is
 even more compiler magic.  Therefore, SWIG tries to maintain a very
 strict and clean separation between the implementation of your C++
@@ -148,11 +147,10 @@ with C++, it is safe, simple, portable, and debuggable.
 </p>
 
 <p>
-Most of this chapter focuses on the low-level procedural interface to
+Some of this chapter focuses on the low-level procedural interface to
 C++ that is used as the foundation for all language modules.  Keep in
-mind that most target languages also provide a high-level OO interface via
-proxy classes.  A few general details about proxies can be found at the end of
-this chapter.  However, more detailed coverage can be found in the documentation
+mind that the target languages also provide the high-level OO interface via
+proxy classes.  More detailed coverage can be found in the documentation
 for each target language.
 </p>
 
@@ -221,9 +219,269 @@ $ c++ example_wrap.o $(OBJS) -o example.so
 </div>
 
 <p>
-Unfortunately, the process varies slightly on each machine.  Make sure
+Unfortunately, the process varies slightly on each platform.  Make sure
 you refer to the documentation on each target language for further
 details.  The SWIG Wiki also has further details.
+</p>
+
+<b>Compatibility Note:</b> Early versions of SWIG generated just a flattened low-level C style API to C++ classes by default.
+The <tt>-noproxy</tt> commandline option is recognised by many target languages and will generate just this
+interface as in earlier versions.
+
+<H2><a name="SWIGPlus_nn38"></a>6.27 Proxy classes</H2>
+
+
+<p>
+In order to provide a natural mapping from C++ classes to the target language classes, SWIG's target
+languages mostly wrap C++ classes with special proxy classes.  These
+proxy classes are typically implemented in the target language itself.
+For example, if you're building a Python module, each C++ class is
+wrapped by a Python proxy class.  Or if you're building a Java module, each
+C++ class is wrapped by a Java proxy class.  
+</p>
+
+<H3><a name="SWIGPlus_nn39"></a>6.27.1 Construction of proxy classes</H3>
+
+
+<p>
+Proxy classes are always constructed as an extra layer of wrapping that uses low-level
+accessor functions.  To illustrate, suppose you had a
+C++ class like this:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+      Foo();
+     ~Foo();
+      int  bar(int x);
+      int  x;
+};
+</pre>
+</div>
+
+<p>
+Using C++ as pseudocode, a proxy class looks something like this:
+</p>
+
+<div class="code">
+<pre>
+class FooProxy {
+private:
+      Foo    *self;
+public:
+      FooProxy() {
+            self = new_Foo();
+      }
+     ~FooProxy() {
+            delete_Foo(self);
+      }
+      int bar(int x) {
+            return Foo_bar(self,x);
+      }
+      int x_get() {
+            return Foo_x_get(self);
+      }
+      void x_set(int x) {
+            Foo_x_set(self,x);
+      }
+};
+</pre>
+</div>
+
+<p>
+Of course, always keep in mind that the real proxy class is written in the target language.
+For example, in Python, the proxy might look roughly like this:
+</p>
+
+<div class="targetlang">
+<pre>
+class Foo:
+    def __init__(self):
+         self.this = new_Foo()
+    def __del__(self):
+         delete_Foo(self.this)
+    def bar(self,x):
+         return Foo_bar(self.this,x)
+    def __getattr__(self,name):
+         if name == 'x':
+              return Foo_x_get(self.this)
+         ...
+    def __setattr__(self,name,value):
+         if name == 'x':
+              Foo_x_set(self.this,value)
+         ...
+</pre>
+</div>
+
+<p>
+Again, it's important to emphasize that the low-level accessor functions are always used by the
+proxy classes.
+Whenever possible, proxies try to take advantage of language features that are similar to C++.  This
+might include operator overloading,  exception handling, and other features.
+</p>
+
+<H3><a name="SWIGPlus_nn40"></a>6.27.2 Resource management in proxies</H3>
+
+
+<p>
+A major issue with proxies concerns the memory management of wrapped objects.   Consider the following
+C++ code:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+      Foo();
+     ~Foo();
+      int bar(int x);
+      int x;
+};
+
+class Spam {
+public:
+      Foo *value;
+      ...
+};
+</pre>
+</div>
+
+<p>
+Consider some script code that uses these classes:
+</p>
+
+<div class="targetlang">
+<pre>
+f = Foo()               # Creates a new Foo
+s = Spam()              # Creates a new Spam
+s.value = f             # Stores a reference to f inside s
+g = s.value             # Returns stored reference
+g = 4                   # Reassign g to some other value
+del f                   # Destroy f 
+</pre>
+</div>
+
+<p>
+Now, ponder the resulting memory management issues.  When objects are
+created in the script, the objects are wrapped by newly created proxy
+classes.  That is, there is both a new proxy class instance and a new
+instance of the underlying C++ class.  In this example, both
+<tt>f</tt> and <tt>s</tt> are created in this way.  However, the
+statement <tt>s.value</tt> is rather curious---when executed, a
+pointer to <tt>f</tt> is stored inside another object.  This means
+that the scripting proxy class <em>AND</em> another C++ class share a
+reference to the same object.  To make matters even more interesting,
+consider the statement <tt>g = s.value</tt>.  When executed, this
+creates a new proxy class <tt>g</tt> that provides a wrapper around the
+C++ object stored in <tt>s.value</tt>.  In general, there is no way to
+know where this object came from---it could have been created by the
+script, but it could also have been generated internally.  In this
+particular example, the assignment of <tt>g</tt> results in a second
+proxy class for <tt>f</tt>.  In other words, a reference to <tt>f</tt>
+is now shared by two proxy classes <em>and</em> a C++ class.   
+</p>
+
+<p>
+Finally, consider what happens when objects are destroyed.  In the
+statement, <tt>g=4</tt>, the variable <tt>g</tt> is reassigned.  In
+many languages, this makes the old value of <tt>g</tt> available for
+garbage collection.  Therefore, this causes one of the proxy classes
+to be destroyed.  Later on, the statement <tt>del f</tt> destroys the
+other proxy class.  Of course, there is still a reference to the
+original object stored inside another C++ object.  What happens to it?
+Is the object still valid?
+</p>
+
+<p>
+To deal with memory management problems, proxy classes provide an API
+for controlling ownership.  In C++ pseudocode, ownership control might look
+roughly like this:
+</p>
+
+<div class="code">
+<pre>
+class FooProxy {
+public:
+      Foo    *self;
+      int     thisown;
+
+      FooProxy() {
+            self = new_Foo();
+            thisown = 1;       // Newly created object
+      }
+     ~FooProxy() {
+            if (thisown) delete_Foo(self);
+      }
+      ...
+      // Ownership control API
+      void disown() {
+           thisown = 0;
+      }
+      void acquire() {
+           thisown = 1;
+      }
+};
+
+class FooPtrProxy: public FooProxy {
+public:
+      FooPtrProxy(Foo *s) {
+          self = s;
+          thisown = 0;
+      }
+};
+
+class SpamProxy {
+     ...
+     FooProxy *value_get() {
+          return FooPtrProxy(Spam_value_get(self));
+     }
+     void value_set(FooProxy *v) {
+          Spam_value_set(self,v-&gt;self);
+          v-&gt;disown();
+     }
+     ...
+};
+</pre>
+</div>
+
+<p>
+Looking at this code, there are a few central features:
+</p>
+
+<ul>
+<li>Each proxy class keeps an extra flag to indicate ownership.  C++ objects are only destroyed
+if the ownership flag is set.
+</li>
+
+<li>When new objects are created in the target language, the ownership flag is set.
+</li>
+
+<li>When a reference to an internal C++ object is returned, it is wrapped by a proxy
+class, but the proxy class does not have ownership.  
+</li>
+
+<li>In certain cases, ownership is adjusted.  For instance, when a value is assigned to the member of
+a class, ownership is lost.
+</li>
+
+<li>Manual ownership control is provided by special <tt>disown()</tt> and <tt>acquire()</tt> methods.
+</li>
+</ul>
+
+<p>
+Given the tricky nature of C++ memory management, it is impossible for proxy classes to automatically handle
+every possible memory management problem.  However, proxies do provide a mechanism for manual control that
+can be used (if necessary) to address some of the more tricky memory management problems.
+</p>
+
+<H3><a name="SWIGPlus_nn41"></a>6.27.3 Language specific details</H3>
+
+
+<p>
+Language specific details on proxy classes are contained in the chapters describing each target language.  This
+chapter has merely introduced the topic in a very general way.
 </p>
 
 <H2><a name="SWIGPlus_nn6"></a>6.5 Simple C++ wrapping</H2>
@@ -256,8 +514,7 @@ static void print(List *l);
 
 <p>
 To generate wrappers for this class, SWIG first reduces the class to a collection of low-level C-style
-accessor functions.   The next few sections describe this process.  Later parts of the chapter describe a higher
-level interface based on proxy classes.
+accessor functions which are then used by the proxy classes.
 </p>
 
 <H3><a name="SWIGPlus_nn7"></a>6.5.1 Constructors and destructors</H3>
@@ -282,7 +539,7 @@ void delete_List(List *l) {
 
 <p>
 Following the C++ rules for implicit constructor and destructors, SWIG
-will try to automatically generate them even when they are not
+will automatically assume there is one even when they are not
 explicitly declared in the class interface.
 </p>
 
@@ -293,17 +550,17 @@ In general then:
 <ul>
 <li>
 If a C++ class does not declare any explicit constructor, SWIG will
-automatically generate one.
+automatically generate a wrapper for one.
 </li>
 
 <li>
-If a C++ class does not declare a explicit copy constructor, SWIG will
-automatically generate one.
+If a C++ class does not declare an explicit copy constructor, SWIG will
+automatically generate a wrapper for one if the <tt>%copyctor</tt> is used.
 </li>
 
 <li>
 If a C++ class does not declare an explicit destructor, SWIG will
-automatically create one.
+automatically generate a wrapper for one.
 </li>
 </ul>
 
@@ -334,16 +591,17 @@ class defines a non-public default constructor or destructor.
 
 <p>
 SWIG should never generate a default constructor, copy constructor or
-default destructor for a class in which it is illegal to do so.  In
+default destructor wrapper for a class in which it is illegal to do so.  In
 some cases, however, it could be necessary (if the complete class
 declaration is not visible from SWIG, and one of the above rules is
-violated) or desired (to reduce the size of the final interface) to
-disable the implicit constructor/desctructor generation manually. 
+violated) or desired (to reduce the size of the final interface) by
+manually disabling the implicit constructor/destructor generation.
 </p>
 
 <p>
-To do so, the <tt>%nodefaultctor</tt> and <tt>%nodefaultdtor</tt>
-directives can be used. Note that these directives only affects the
+To manually disable these, the <tt>%nodefaultctor</tt> and <tt>%nodefaultdtor</tt>
+<a href="Customization.html#Customization_feature_flags">feature flag</a> directives
+can be used. Note that these directives only affects the
 implicit generation, and they have no effect if the default/copy
 constructors or destructor are explicitly declared in the class
 interface.
@@ -356,7 +614,7 @@ For example:
 <div class="code">
 <pre>
 %nodefaultctor Foo;  // Disable the default constructor for class Foo.
-class Foo {          // No default constructor is generated, unless is declared
+class Foo {          // No default constructor is generated, unless one is declared
 ...
 };
 class Bar {          // A default constructor is generated, if possible
@@ -372,12 +630,12 @@ The directive <tt>%nodefaultctor</tt> can also be applied "globally", as in:
 <div class="code">
 <pre>
 %nodefaultctor; // Disable creation of default constructors
-class Foo {     // No default constructor is generated, unless is declared
+class Foo {     // No default constructor is generated, unless one is declared
 ...
 };
 class Bar {   
 public:
-  Bar();        // The default constructor is generated, since is declared
+  Bar();        // The default constructor is generated, since one is declared
 };
 %clearnodefaultctor; // Enable the creation of default constructors again
 </pre>
@@ -394,7 +652,7 @@ in well known cases. For example:
 <div class="code">
 <pre>
 %nodefaultdtor Foo;   // Disable the implicit/default destructor for class Foo.
-class Foo {           // No destructor is generated, unless is declared
+class Foo {           // No destructor is generated, unless one is declared
 ...
 };
 </pre>
@@ -418,11 +676,10 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 </p>
 
 <p>
-<b>Note:</b> The above described <tt>%nodefault</tt>
-directive/<tt>-nodefault</tt> option, which disable both the default
-constructor and the the implicit destructors, could lead to memory
-leaks across the target languages, and is highly recommended you don't
-use them.
+<b>Note:</b> The <tt>%nodefault</tt>
+directive/<tt>-nodefault</tt> options described above, which disable both the default
+constructor and the implicit destructors, could lead to memory
+leaks, and so it is strongly recommended to not use them.
 </p>
 
 
@@ -529,8 +786,8 @@ then the copy constructor can be used as follows:
 
 <div class="targetlang">
 <pre>
-x = new_List()               # Create a list
-y = new_List(x)              # Copy list x
+x = List()               # Create a list
+y = List(x)              # Copy list x
 </pre>
 </div>
 
@@ -561,6 +818,23 @@ Constructors such as <tt>X(const X &amp;)</tt>, <tt>X(X &amp;)</tt>, and
 <b>Note:</b> SWIG does <em>not</em> generate a copy constructor
 wrapper unless one is explicitly declared in the class.  This differs
 from the treatment of default constructors and destructors.
+However, copy constructor wrappers can be generated if using the <tt>copyctor</tt>
+<a href="Customization.html#Customization_feature_flags">feature flag</a>. For example:
+</p>
+
+<div class="code">
+<pre>
+%copyctor List;
+
+class List {
+public:
+    List();    
+};
+</pre>
+</div>
+
+<p>
+Will generate a copy constructor wrapper for <tt>List</tt>.
 </p>
 
 <p>
@@ -611,7 +885,7 @@ It should be noted that SWIG does not <em>actually</em> create a C accessor
 function in the code it generates.  Instead, member access such as
 <tt>obj-&gt;search(value)</tt> is directly inlined into the generated
 wrapper functions.  However, the name and calling convention of the
-wrappers match the accessor function prototype described above.
+low-level procedural wrappers match the accessor function prototype described above.
 </p>
 
 <H3><a name="SWIGPlus_nn12"></a>6.5.6 Static members</H3>
@@ -622,11 +896,6 @@ Static member functions are called directly without making any special
 transformations. For example, the static member function
 <tt>print(List *l)</tt> directly invokes <tt>List::print(List *l)</tt>
 in the generated wrapper code.
-</p>
-
-<p>
-Usually, static members are accessed as functions with names in which the class name has been
-prepended with an underscore. For example, <tt>List_print</tt>.
 </p>
 
 <H3><a name="SWIGPlus_member_data"></a>6.5.7 Member data</H3>
@@ -649,8 +918,9 @@ int List_length_set(List *obj, int value) {
 </pre></div>
 
 <p>
-A read-only member can be created using the <tt>%immutable</tt> and
-<tt>%mutable</tt> directives. For example, we probably wouldn't want
+A read-only member can be created using the <tt>%immutable</tt> and <tt>%mutable</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a> directive.
+For example, we probably wouldn't want
 the user to change the length of a list so we could do the following
 to make the value available, but read-only.</p>
 
@@ -700,7 +970,7 @@ public:
 </div>
 
 <p>
-then access to the <tt>items</tt> member actually uses pointers. For example:
+then the low-level accessor to the <tt>items</tt> member actually uses pointers. For example:
 </p>
 
 <div class="code">
@@ -725,7 +995,7 @@ This can be somewhat unnatural for some types.
 For example, a user would expect the STL std::string class member variables to be wrapped as a string in the target language,
 rather than a pointer to this class.
 The const reference typemaps offer this type of marshalling, so there is a feature to tell SWIG to use the const reference typemaps rather than the pointer typemaps.
-It is the <tt>%naturalvar</tt> feature and is used as follows:
+It is the <tt>%naturalvar</tt> directive and is used as follows:
 </p>
 
 <div class="code">
@@ -745,7 +1015,9 @@ struct Foo {
 </div>
 
 <p>
-The observant reader will notice that <tt>%naturalvar</tt> works like any other <a href="Customization.html#features">feature</a>, except it can also be attached to class types.
+The observant reader will notice that <tt>%naturalvar</tt> works like any other
+<a href="Customization.html#Customization_feature_flags">feature flag</a> directive,
+except it can also be attached to class types.
 The first of the example usages above show <tt>%naturalvar</tt> attaching to the <tt>List</tt> class.
 Effectively this feature changes the way accessors are generated to the following:
 </p>
@@ -765,7 +1037,7 @@ void Foo_items_set(Foo *self, const List &amp;value) {
 In fact it is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
 A pointer can be NULL, whereas a reference cannot, so the extra checking ensures that the target language user does not pass in a value that translates
 to a NULL pointer and thereby preventing any potential NULL pointer dereferences.
-The <tt>%naturalvar</tt> feature will also apply to global variables in some language modules, eg C# and Java.
+The <tt>%naturalvar</tt> feature will apply to global variables in addition to member variables in some language modules, eg C# and Java.
 </p>
 
 <p>
@@ -857,7 +1129,7 @@ The <a href="#ambiguity_resolution_renaming">Ambiguity resolution and renaming</
 also deals with using <tt>%rename</tt> and <tt>%ignore</tt> on methods with default arguments.
 If you are writing your own typemaps for types used in methods with default arguments, you may also need to write a <tt>typecheck</tt> typemap.
 See the <a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a> section for details or otherwise
-use the <tt>compactdefaultargs</tt> feature as mentioned below.
+use the <tt>compactdefaultargs</tt> feature flag as mentioned below.
 </p>
 
 <p>
@@ -865,7 +1137,8 @@ use the <tt>compactdefaultargs</tt> feature as mentioned below.
 Instead a single wrapper method was generated and the default values were copied into the C++ wrappers
 so that the method being wrapped was then called with all the arguments specified.
 If the size of the wrappers are a concern then this approach to wrapping methods with default arguments
-can be re-activated by using the <tt>compactdefaultargs</tt> <a href="Customization.html#features">feature</a>.
+can be re-activated by using the <tt>compactdefaultargs</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a>.
 </p>
 
 <div class="code">
@@ -966,7 +1239,7 @@ Members declared as <tt>const</tt> are wrapped as read-only members and do not c
 
 
 <p>
-Friend declarations are not longer ignored by SWIG. For example, if
+Friend declarations are recognised by SWIG. For example, if
 you have this code:
 </p>
 
@@ -999,7 +1272,7 @@ void blah(Foo *f);
 
 <p>
 A friend declaration, as in C++, is understood to be in the same scope
-where the class is declared, hence, you can do
+where the class is declared, hence, you can have
 </p>
 
 <div class="code">
@@ -1038,7 +1311,8 @@ public:
 </pre></div>
 
 <p>
-is accessed using a function similar to this:</p>
+has a low-level accessor
+</p>
 
 <div class="code"><pre>
 double Foo_bar(Foo *obj, double *a) {
@@ -1081,7 +1355,7 @@ public:
 </div>
 
 <p>
-Generates code like this:
+Generates an accessor like this:
 </p>
 
 <div class="code">
@@ -1221,7 +1495,7 @@ multiple inheritance.
 
 <p> SWIG treats private or protected inheritance as close to the C++
 spirit, and target language capabilities, as possible. In most of the
-cases, this means that swig will parse the non-public inheritance
+cases, this means that SWIG will parse the non-public inheritance
 declarations, but that will have no effect in the generated code,
 besides the implicit policies derived for constructor and
 destructors. 
@@ -1263,8 +1537,8 @@ public:
 </pre></div>
 
 <p>
-When wrapped into Python, we can now perform the following operations
-:</p>
+When wrapped into Python, we can perform the following operations (shown using the low level Python accessors):
+</p>
 
 <div class="targetlang"><pre>
 $ python
@@ -1308,20 +1582,20 @@ the attributes <tt>x</tt> and <tt>y</tt> are generated as
 </p>
 
 <p>
-Although the low-level C-like interface is functional, most language
-modules also produce a higher level OO interface using proxy classes.
-This approach is described later and can be used to provide a more natural C++ interface.
+Note that there is a one to one correlation between the low-level accessor functions and
+the proxy methods and therefore there is also a one to one correlation between
+the C++ class methods and the generated proxy class methods.
 </p>
 
 <p>
 <b>Note:</b>  For the best results, SWIG requires all
-base classes to be defined in an interface.  Otherwise, you may get an
+base classes to be defined in an interface.  Otherwise, you may get a
 warning message like this:
 </p>
 
 <div class="shell">
 <pre>
-example:18. Nothing known about class 'Foo'. Ignored.
+example.i:18: Warning(401): Nothing known about base class 'Foo'. Ignored.
 </pre>
 </div>
 
@@ -1335,7 +1609,8 @@ silence the warning, you might consider using the <tt>%import</tt>
 directive to include the file that defines <tt>Foo</tt>.
 <tt>%import</tt> simply gathers type information, but doesn't generate
 wrappers.  Alternatively, you could just define <tt>Foo</tt> as an empty class
-in the SWIG interface.
+in the SWIG interface or use
+<a href="Warnings.html#Warnings_suppression">warning suppression</a>.
 </p>
 
 <p>
@@ -1502,66 +1777,19 @@ generated wrappers to correctly cast pointer values under inheritance
 </p>
 
 <p>
-One might be inclined to fix this problem using some variation of
-<tt>dynamic_cast&lt;&gt;</tt>.  The only problem is that it doesn't
-work with <tt>void</tt> pointers, it requires RTTI support, and it
-only works with polymorphic classes (i.e., classes that define one or
-more virtual functions).
+Some of the language modules are able to solve the problem by storing multiple instance of the pointer, for example, <tt>A *</tt>,
+in the A proxy class and <tt>C *</tt> in the C proxy class. The correct cast can then be made:
 </p>
 
-<p>
-The bottom line: learn to live with type-tagged pointers.
-</p>
-
-<H2><a name="SWIGPlus_nn22"></a>6.14 Renaming</H2>
-
-
-<p>
-C++ member functions and data can be renamed with the <tt>%name</tt>
-directive. The <tt>%name</tt> directive only replaces the member
-function name. For example :</p>
-
-<div class="code"><pre>
-class List {
-public:
-  List();
-%name(ListSize) List(int maxsize);
-  ~List();
-  int  search(char *value); 
-%name(find)    void insert(char *); 
-%name(delete)  void remove(char *); 
-  char *get(int n);
-  int  length;
-static void print(List *l);
-};
-
-</pre></div>
-
-<p>
-This will create the functions <tt>List_find</tt>,
-<tt>List_delete</tt>, and a function named <tt>new_ListSize</tt> for
-the overloaded constructor.</p>
-
-<p>
-The <tt>%name </tt>directive can be applied to all members including
-constructors, destructors, static functions, data members, and
-enumeration values.</p>
-
-<p>
-The class name prefix can also be changed by specifying </p>
-
-<div class="code"><pre>
-%name(newname) class List {
+<div class="code">
+<pre>
+C *c = new C();
+void *p = (void *) c;
 ...
-}
-</pre></div>
-
-<p>
-Although the <tt>%name()</tt> directive can be used to help deal with
-overloaded methods, it really doesn't work very well because it
-requires a lot of additional markup in your interface.  Keep reading
-for a better solution.
-</p>
+int x = A_function((C *) p);
+int y = B_function((C *) p);
+</pre>
+</div>
 
 <H2><a name="SWIGPlus_overloaded_methods"></a>6.15 Wrapping Overloaded Functions and Methods</H2>
 
@@ -2295,7 +2523,7 @@ than dynamically typed languages like Perl, Python, Ruby, and Tcl.
 
 
 <p>
-Starting in SWIG-1.3.10, C++ overloaded operator declarations can be wrapped. 
+C++ overloaded operator declarations can be wrapped. 
 For example, consider a class like this:
 </p>
 
@@ -2534,7 +2762,7 @@ chapter for further details.
 
 <p>
 <b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
-name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
+name for the <tt>%addmethods</tt> directive in SWIG1.1.  Since <tt>%addmethods</tt> could
 be used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
 </p>
@@ -2543,7 +2771,7 @@ directive name has been chosen.
 
 
 <p>
-In all versions of SWIG, template type names may appear anywhere a type
+Template type names may appear anywhere a type
 is expected in an interface file.  For example:
 </p>
 
@@ -3842,7 +4070,7 @@ just a single catch handler for the base class, <tt>EBase</tt> will be generated
 
 
 <p>
-Starting with SWIG1.3.7, there is limited parsing support for pointers to C++ class members.
+Starting with SWIG-1.3.7, there is limited parsing support for pointers to C++ class members.
 For example:
 </p>
 
@@ -4407,265 +4635,6 @@ The bottom line is that this particular issue does not appear to be a problem
 for most SWIG projects.    Of course, you might want to consider
 using another tool if maintaining constness is the most important part
 of your project.
-</p>
-
-<H2><a name="SWIGPlus_nn38"></a>6.27 Proxy classes</H2>
-
-
-<p>
-In order to provide a more natural API, SWIG's target
-languages wrap C++ classes with special proxy classes.  These
-proxy classes are typically implemented in the target language itself.
-For example, if you're building a Python module, each C++ class is
-wrapped by a Python class.  Or if you're building a Java module, each
-C++ class is wrapped by a Java class.  
-</p>
-
-<H3><a name="SWIGPlus_nn39"></a>6.27.1 Construction of proxy classes</H3>
-
-
-<p>
-Proxy classes are always constructed as an extra layer of wrapping that uses the low-level
-accessor functions described in the previous section.  To illustrate, suppose you had a
-C++ class like this:
-</p>
-
-<div class="code">
-<pre>
-class Foo {
-public:
-      Foo();
-     ~Foo();
-      int  bar(int x);
-      int  x;
-};
-</pre>
-</div>
-
-<p>
-Using C++ as pseudocode, a proxy class looks something like this:
-</p>
-
-<div class="code">
-<pre>
-class FooProxy {
-private:
-      Foo    *self;
-public:
-      FooProxy() {
-            self = new_Foo();
-      }
-     ~FooProxy() {
-            delete_Foo(self);
-      }
-      int bar(int x) {
-            return Foo_bar(self,x);
-      }
-      int x_get() {
-            return Foo_x_get(self);
-      }
-      void x_set(int x) {
-            Foo_x_set(self,x);
-      }
-};
-</pre>
-</div>
-
-<p>
-Of course, always keep in mind that the real proxy class is written in the target language.
-For example, in Python, the proxy might look roughly like this:
-</p>
-
-<div class="targetlang">
-<pre>
-class Foo:
-    def __init__(self):
-         self.this = new_Foo()
-    def __del__(self):
-         delete_Foo(self.this)
-    def bar(self,x):
-         return Foo_bar(self.this,x)
-    def __getattr__(self,name):
-         if name == 'x':
-              return Foo_x_get(self.this)
-         ...
-    def __setattr__(self,name,value):
-         if name == 'x':
-              Foo_x_set(self.this,value)
-         ...
-</pre>
-</div>
-
-<p>
-Again, it's important to emphasize that the low-level accessor functions are always used to construct the
-proxy classes.
-</p>
-
-<p>
-Whenever possible, proxies try to take advantage of language features that are similar to C++.  This
-might include operator overloading,  exception handling, and other features.
-</p>
-
-<H3><a name="SWIGPlus_nn40"></a>6.27.2 Resource management in proxies</H3>
-
-
-<p>
-A major issue with proxies concerns the memory management of wrapped objects.   Consider the following
-C++ code:
-</p>
-
-<div class="code">
-<pre>
-class Foo {
-public:
-      Foo();
-     ~Foo();
-      int bar(int x);
-      int x;
-};
-
-class Spam {
-public:
-      Foo *value;
-      ...
-};
-</pre>
-</div>
-
-<p>
-Now, consider some script code that uses these classes:
-</p>
-
-<div class="targetlang">
-<pre>
-f = Foo()               # Creates a new Foo
-s = Spam()              # Creates a new Spam
-s.value = f             # Stores a reference to f inside s
-g = s.value             # Returns stored reference
-g = 4                   # Reassign g to some other value
-del f                   # Destroy f 
-</pre>
-</div>
-
-<p>
-Now, ponder the resulting memory management issues.  When objects are
-created in the script, the objects are wrapped by newly created proxy
-classes.  That is, there is both a new proxy class instance and a new
-instance of the underlying C++ class.  In this example, both
-<tt>f</tt> and <tt>s</tt> are created in this way.  However, the
-statement <tt>s.value</tt> is rather curious---when executed, a
-pointer to <tt>f</tt> is stored inside another object.  This means
-that the scripting proxy class <em>AND</em> another C++ class share a
-reference to the same object.  To make matters even more interesting,
-consider the statement <tt>g = s.value</tt>.  When executed, this
-creates a new proxy class <tt>g</tt> that provides a wrapper around the
-C++ object stored in <tt>s.value</tt>.  In general, there is no way to
-know where this object came from---it could have been created by the
-script, but it could also have been generated internally.  In this
-particular example, the assignment of <tt>g</tt> results in a second
-proxy class for <tt>f</tt>.  In other words, a reference to <tt>f</tt>
-is now shared by two proxy classes <em>and</em> a C++ class.   
-</p>
-
-<p>
-Finally, consider what happens when objects are destroyed.  In the
-statement, <tt>g=4</tt>, the variable <tt>g</tt> is reassigned.  In
-many languages, this makes the old value of <tt>g</tt> available for
-garbage collection.  Therefore, this causes one of the proxy classes
-to be destroyed.  Later on, the statement <tt>del f</tt> destroys the
-other proxy class.  Of course, there is still a reference to the
-original object stored inside another C++ object.  What happens to it?
-Is it the object still valid?
-</p>
-
-<p>
-To deal with memory management problems, proxy classes always provide an API
-for controlling ownership.  In C++ pseudocode, ownership control might look
-roughly like this:
-</p>
-
-<div class="code">
-<pre>
-class FooProxy {
-public:
-      Foo    *self;
-      int     thisown;
-
-      FooProxy() {
-            self = new_Foo();
-            thisown = 1;       // Newly created object
-      }
-     ~FooProxy() {
-            if (thisown) delete_Foo(self);
-      }
-      ...
-      // Ownership control API
-      void disown() {
-           thisown = 0;
-      }
-      void acquire() {
-           thisown = 1;
-      }
-};
-
-class FooPtrProxy: public FooProxy {
-public:
-      FooPtrProxy(Foo *s) {
-          self = s;
-          thisown = 0;
-      }
-};
-
-class SpamProxy {
-     ...
-     FooProxy *value_get() {
-          return FooPtrProxy(Spam_value_get(self));
-     }
-     void value_set(FooProxy *v) {
-          Spam_value_set(self,v-&gt;self);
-          v-&gt;disown();
-     }
-     ...
-};
-</pre>
-</div>
-
-<p>
-Looking at this code, there are a few central features:
-</p>
-
-<ul>
-<li>Each proxy class keeps an extra flag to indicate ownership.  C++ objects are only destroyed
-if the ownership flag is set.
-</li>
-
-<li>When new objects are created in the target language, the ownership flag is set.
-</li>
-
-<li>When a reference to an internal C++ object is returned, it is wrapped by a proxy
-class, but the proxy class does not have ownership.  
-</li>
-
-<li>In certain cases, ownership is adjusted.  For instance, when a value is assigned to the member of
-a class, ownership is lost.
-</li>
-
-<li>Manual ownership control is provided by special <tt>disown()</tt> and <tt>acquire()</tt> methods.
-</li>
-</ul>
-
-<p>
-Given the tricky nature of C++ memory management, it is impossible for proxy classes to automatically handle
-every possible memory management problem.  However, proxies do provide a mechanism for manual control that
-can be used (if necessary) to address some of the more tricky memory management problems.
-</p>
-
-<H3><a name="SWIGPlus_nn41"></a>6.27.3 Language specific details</H3>
-
-
-<p>
-Language specific details on proxy classes are contained in the chapters describing each target language.  This
-chapter has merely introduced the topic in a very general way.
 </p>
 
 <H2><a name="SWIGPlus_nn42"></a>6.28 Where to go for more information</H2>
