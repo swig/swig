@@ -226,15 +226,15 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 
 static const char *usage = (char *)"\
 R Options (available with -r)\n\
-     -dll <name>      -  the name of the DLL (withouth the .dll or .so) included in the PACKAGE argument of the R .Call() invocations\n\
-     -package <name>  -  (not currently used). Typically, same as dll.\n\
-     -no-init-code    -  turn off the generation of the R_init_<pkname>_wrap code. (Registration information still generated.)\n\
-     -namespace       -  output NAMESPACE file.\n\
-     -copystruct      -  emit R code to copy C structs (on by default)\n\
-     -cppcast        - Enable C++ casting operators (default) \n\
-     -debug           -  output debug\n\
-     -memoryprof   -  add memory profile\n\
-     -gc            - aggressive garbage collection\n\
+     -copystruct      - Emit R code to copy C structs (on by default)\n\
+     -cppcast         - Enable C++ casting operators (default) \n\
+     -debug           - Output debug\n\
+     -dll <name>      - The name of the DLL (without the .dll or .so) included in the PACKAGE argument of the R .Call() invocations\n\
+     -gc              - Aggressive garbage collection\n\
+     -memoryprof      - Add memory profile\n\
+     -namespace       - Output NAMESPACE file\n\
+     -no-init-code    - Turn off the generation of the R_init_<pkname>_wrap code (registration information still generated)\n\
+     -package <name>  - Not currently used - typically same as dll\n\
 ";
 
 
