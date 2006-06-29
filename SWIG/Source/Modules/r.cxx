@@ -7,7 +7,7 @@
  * R language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-// Derived from an implementation of SWIG for R by Duncan Temple Lang
+char cvsroot_r_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
