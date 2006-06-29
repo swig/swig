@@ -1,5 +1,5 @@
 
-// This is the cpp_typedef runtime testcase. It checks that shadow classes are
+// This is the cpp_typedef runtime testcase. It checks that proxy classes are
 // generated for typedef'd types.
 
 import cpp_typedef.*;

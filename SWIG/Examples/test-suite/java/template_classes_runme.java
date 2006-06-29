@@ -1,6 +1,6 @@
 
 // This is the template_classes runtime testcase. It checks that SWIG handles a templated 
-// class used by another templated class, in particular that the shadow classes can be used.
+// class used by another templated class, in particular that the proxy classes can be used.
 
 import template_classes.*;
 
