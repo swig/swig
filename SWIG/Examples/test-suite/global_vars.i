@@ -19,7 +19,11 @@
 
   int x;
   int *xp;
+#ifdef SWIGR
+  int& c_member = x;
+#else
   int& c = x;
+#endif
 
   void *vp;
 

@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and R</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body bgcolor="#ffffff">
+<H1>SWIG and R</H1>
+
+<p>
+R is a GPL'ed open source statistical and plotting environment.
+Information about R can be found at <a
+href="http://www.r-project.org/">www.r-project.org</a>.
+
+The R binding are under active development and are extremely
+experimental.  Not all features have been implemented and the API is
+not stable.
+</p>
+
+<H2>Bugs</H2>
+<p>
+Currently the following features are not implemented or broken:
+<ul>
+<li>Garbage collection of created objects
+<li>C Array wrappings
+<li>tested on UNIX only, how well or badly it works on windows is not known
+</ul>
+
+<H2>Using R and SWIG</H2>
+
+<p>
+To use R and SWIG in C mode, execute the following commands where
+example_func.c is the name of the file with the functions in them
+<div class="shell">
+<pre>
+swig -r -o example,c example.i
+PKG_LIBS="example_func.c" R CMD SHLIB example.c
+</pre>
+</div>
+
+The corresponding comments for C++ mode are
+<div class="shell">
+<pre>
+swig -c++ -r -o example.cpp example.i
+PKG_LIBS="example_func.cxx" R CMD SHLIB example.cpp
+</pre>
+</div>
+
+Note that R is sensitive to the name of the file and to the file
+extension in C and C++ mode.  The name of the wrapper file must be the
+name of the library.  Also in C++ mode, the file extension must be cpp
+rather than cxx for the R compile command to recognize it.
+</p>
+
+<p>
+The commands produce two files.  A dynamic shared object file called
+example.so and an R wrapper file called example_wrap.S.  To load these
+files, start up R and type in the following commands
+<div class="shell">
+<pre>
+dyn.load('example.so')
+source('example_wrap.S')
+</pre>
+These two files can be loaded in any order
+</p>
+
+<h2>General policy</h2>
+The general policy of the module is to treat the C/C++ as a basic
+wrapping over the underlying functions and rely on the R type system
+to provide R syntax.
+
+<h2>Language conventions</h2>
+getitem and setitem use C++ conventions (i.e. zero based indices). [<-
+and [ are overloaded to allow for R syntax (one based indices and
+slices)
+
+<h2>C++ classes</h2>
+C++ objects are implemented as external pointer objects with the class
+being the mangled name of the class. The C++ classes are encapsulated
+as an SEXP with an external pointer type. The class is the mangled
+name of the class. The nice thing about R is that is allows you to
+keep track of the pointer object which removes the necessity for a lot
+of the proxy class baggage you see in other languages.
+
+<h2>Enumerations</h2>
+enumerations are characters which are then converted back and forth to
+ints before calling the C routines. All of the enumeration code is
+done in R.
+</body>
+</html>

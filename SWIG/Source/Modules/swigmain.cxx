@@ -45,6 +45,7 @@ extern "C" {
   Language *swig_clisp(void);
   Language *swig_cffi(void);
   Language *swig_uffi(void);
+  Language *swig_r(void);
 }
 
 struct swig_module {
@@ -82,6 +83,7 @@ static swig_module  modules[] = {
   {"-tcl8",      swig_tcl, 0},
   {"-uffi",      swig_uffi,      "Common Lisp / UFFI"},
   {"-xml",       swig_xml,       "XML"},
+  {"-r",         swig_r,         "R (aka GNU S)"},
   {NULL, NULL, NULL}
 };
 

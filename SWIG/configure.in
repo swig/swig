@@ -1923,6 +1923,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/clisp/Makefile		\
     Examples/test-suite/cffi/Makefile		\
     Examples/test-suite/uffi/Makefile		\
+    Examples/test-suite/r/Makefile
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT
