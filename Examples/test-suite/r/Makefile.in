@@ -11,7 +11,7 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-C_TEST_CASES = copyStruct simpleArray legacy
+C_TEST_CASES = copy_struct simple_array legacy
 CPP_TEST_CASES = funcptr double_delete
 
 include $(srcdir)/../common.mk
