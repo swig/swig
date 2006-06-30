@@ -1,6 +1,6 @@
 source('unittest.R')
-dyn.load('simpleArray_wrap.so')
-source('simpleArray_wrap.R')
+dyn.load('simple_array_wrap.so')
+source('simple_array_wrap.R')
 cacheMetaData(1)
 initArray()
 

@@ -1,6 +1,6 @@
 source('unittest.R')
-dyn.load('copyStruct_wrap.so')
-source('copyStruct_wrap.R')
+dyn.load('copy_struct_wrap.so')
+source('copy_struct_wrap.R')
 cacheMetaData(1)
 
 a <- getA()
