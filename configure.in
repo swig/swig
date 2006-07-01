@@ -1724,6 +1724,28 @@ fi
 AC_SUBST(CLISPBIN)
 
 #----------------------------------------------------------------
+# Look for GNU R
+#----------------------------------------------------------------
+
+RBIN=
+
+AC_ARG_WITH(clisp, AS_HELP_STRING([--without-clisp], [Disable R])
+AS_HELP_STRING([--with-clisp=path], [Set location of R executable (clisp)]),[ RBIN="$withval"], [RBIN=yes])
+
+# First, check for "--without-clisp" or "--with-clisp=no".
+if test x"${RBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling R])
+else
+
+# can we find R?
+if test "x$RBIN" = xyes; then
+   AC_PATH_PROG(RBIN, R)
+fi
+fi
+
+AC_SUBST(RBIN)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -1841,6 +1863,12 @@ if test -z "$CLISPBIN" ; then
     SKIP_CLISP="1"
 fi
 AC_SUBST(SKIP_CLISP)
+
+SKIP_R=
+if test -z "$RBIN" ; then
+    SKIP_R="1"
+fi
+AC_SUBST(SKIP_R)
 
 SKIP_CFFI=
 #if test -z "$CFFIBIN" ; then

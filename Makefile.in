@@ -86,7 +86,7 @@ check-aliveness:
 	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
 	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 	@$(skip-lua)      || ./$(TARGET) -lua      -help
-	@$(skip-r) 	  || ./$(TARGET) -lua      -help
+	@$(skip-r) 	  || ./$(TARGET) -r        -help
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
