@@ -300,25 +300,6 @@ $1=&temp;%}
 #ifdef __cplusplus
 // this is extra renaming for lua
 // not all operators are supported, so only those that are, are listed
-
-
-/* Ignored operators */
-%ignorewarn("362:operator= ignored") operator=;
-%ignorewarn("362:operator% ignored") operator%;
-%ignorewarn("383:operator++ ignored") operator++;
-%ignorewarn("384:operator-- ignored") operator--;
-%ignorewarn("361:operator! ignored") operator!;
-%ignorewarn("381:operator&& ignored") operator&&;
-%ignorewarn("382:operator|| ignored") operator||;
-%ignorewarn("386:operator->* ignored") operator->*;
-%ignorewarn("362:operator+= ignored") operator+=;
-%ignorewarn("362:operator-= ignored") operator-=;
-%ignorewarn("362:operator*= ignored") operator*=;
-%ignorewarn("362:operator/= ignored") operator/=;
-%ignorewarn("362:operator%= ignored") operator%=;
-%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
-
-// renaming the main C++ operators
 %rename(__add)			*::operator+;
 %rename(__sub)			*::operator-;
 %rename(__mul)			*::operator*;

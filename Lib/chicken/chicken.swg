@@ -687,15 +687,6 @@ $result = C_SCHEME_UNDEFINED;
 /* Special cases */
 %rename(__call__)     *::operator();
 
-/* Ignored operators */
-%ignorewarn("362:operator= ignored") operator=;
-%ignorewarn("383:operator++ ignored") operator++;
-%ignorewarn("384:operator-- ignored") operator--;
-%ignorewarn("381:operator&& ignored") operator&&;
-%ignorewarn("382:operator|| ignored") operator||;
-%ignorewarn("386:operator->* ignored") operator->*;
-%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
-
 #endif
 /* Warnings for certain CHICKEN keywords */
 %include <chickenkw.swg>
