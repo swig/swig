@@ -18,6 +18,7 @@ public:
      using Foo::defaulted;
      using Foo::virtualmethod;
      virtual void anothervirtual() {}
+     virtual ~FooBar() {}
 };
 
 %}

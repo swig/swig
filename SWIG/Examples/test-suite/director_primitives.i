@@ -68,7 +68,7 @@ private:
   void delBase() { delete m_base; m_base = 0; }
 public:
   Caller(): m_base(0) {}
-  ~Caller() { delBase(); }
+  virtual ~Caller() { delBase(); }
   void set(Base *b) { delBase(); m_base = b; }
   void reset() { m_base = 0; }
 

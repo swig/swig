@@ -12,6 +12,7 @@ public:
 };
 class Derived : private Base {
 public:
+  virtual ~Derived() {}
   virtual void VirtualMethod() {}
   int variable;
 };
