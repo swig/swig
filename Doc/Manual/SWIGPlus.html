@@ -1666,6 +1666,84 @@ functions for virtual members that are already defined in a base
 class.
 </p>
 
+<H3><a name="SWIGPlus_explicitcall"></a>Explicit base class method calls</H3>
+
+<p>
+SWIG uses standard C++ polymorphic behaviour to ensure the correct virtual method is called
+when generating wrappers for virtual methods. 
+However, in C++ it is possible, albeit rare, to call a particular base class method in the inheritance
+hierarchy. This C++ functionality is available to target languages with the
+<tt>explicitcall</tt> <a href="Customization.html#Customization_feature_flags">feature flag</a> directive.
+This feature only works on virtual methods and when it is specified it generates an
+additional wrapper method. By default, the name of this method is the original method name mangled with
+the name of the class as a suffix. However, the name of the method can be controlled by specifying a different
+suffix in the <tt>suffix</tt> 
+<a href="Customization.html#Customization_feature_attributes">feature attribute</a>.
+For example, consider the following code:
+</p>
+
+<div class="code">
+<pre>
+%explicitcall; // enable explicitcall feature for all virtual methods
+%feature("explicitcall", suffix="Bambino") Child::describe;
+
+struct Person {
+  Person() {}
+  virtual const char * describe() { return "Person"; }
+  virtual ~Person() {}
+};
+
+struct Child : Person {
+  virtual const char * describe() { return "Child"; }
+};
+</pre>
+</div>
+
+<p>
+From Python, it is then possible to call explicit methods in the inheritance hierarchy. 
+Note the suffix names:
+</p>
+
+<div class="targetlang">
+<pre>
+$ python
+&gt;&gt;&gt; from example import *
+&gt;&gt;&gt; child = Child()
+&gt;&gt;&gt; print child.describe() # normal polymorphic call
+Child
+&gt;&gt;&gt; print child.describePerson() # explicit Person::describe call
+Person
+&gt;&gt;&gt; print child.describeBambino() # explicit Child::describe call
+Child
+</div>
+
+<p>
+The pseudo C++ code generated for the <tt>Person::describe</tt> methods is as follows:
+</p>
+
+<div class="code">
+<pre>
+// Normal virtual method wrapper
+const char * Person_talk(Person *obj) {
+   const char * ret = obj-&gt;describe();
+   return ret;
+}
+
+// Additional wrapper due to %explicitcall
+const char * Person_talkPerson(Person *obj) {
+   const char * ret = obj-&gt;Person::describe();
+   return ret;
+}
+</pre>
+</div>
+
+<p>
+Please note that if this feature is enabled globally, it will apply to all virtual methods. 
+This includes pure virtual methods which may or may not have a body defined.
+If, as is often the case, your pure virtual methods do not have a body defined you might get unresolved linker errors on some platforms.
+<tt>%noexplicitcall</tt> can then be used to turn this feature off for the problem methods.
+</p>
+
 <H2><a name="SWIGPlus_nn21"></a>6.13 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
 
 
@@ -1777,19 +1855,26 @@ generated wrappers to correctly cast pointer values under inheritance
 </p>
 
 <p>
-Some of the language modules are able to solve the problem by storing multiple instance of the pointer, for example, <tt>A *</tt>,
-in the A proxy class and <tt>C *</tt> in the C proxy class. The correct cast can then be made:
+Some of the language modules are able to solve the problem by storing multiple instances of the pointer, for example, <tt>A *</tt>,
+in the A proxy class as well as <tt>C *</tt> in the C proxy class. The correct cast can then be made by choosing the correct <tt>void *</tt>
+pointer to use and is guaranteed to work as the cast to a void pointer and back to the same type does not lose any type information:
 </p>
 
 <div class="code">
 <pre>
 C *c = new C();
 void *p = (void *) c;
+void *pA = (void *) c;
+void *pB = (void *) c;
 ...
-int x = A_function((C *) p);
-int y = B_function((C *) p);
+int x = A_function((A *) pA);
+int y = B_function((B *) pB);
 </pre>
 </div>
+
+<p>
+In practice, the pointer is held as an integral number in the target language proxy class.
+</p>
 
 <H2><a name="SWIGPlus_overloaded_methods"></a>6.15 Wrapping Overloaded Functions and Methods</H2>
 
@@ -3093,18 +3178,23 @@ you might consider writing a SWIG macro.  For example:
 
 <div class="code">
 <pre>
-%define TEMPLATE_WRAP(T,prefix) 
-%template(prefix ## Foo) Foo&lt;T&gt;;
-%template(prefix ## Bar) Bar&lt;T&gt;;
+%define TEMPLATE_WRAP(prefix, T...) 
+%template(prefix ## Foo) Foo&lt;T &gt;;
+%template(prefix ## Bar) Bar&lt;T &gt;;
 ...
 %enddef
 
 TEMPLATE_WRAP(int, int)
 TEMPLATE_WRAP(double, double)
-TEMPLATE_WRAP(char *, String)
+TEMPLATE_WRAP(String, char *)
+TEMPLATE_WRAP(PairStringInt, std::pair&lt;string, int&gt;)
 ...
 </pre>
 </div>
+
+<p>
+Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in last example would not be possible.
+</p>
 
 <p>
 The SWIG template mechanism <em>does</em> support specialization. For instance, if you define
@@ -3547,7 +3637,7 @@ Similar changes apply to typemaps and other customization features.
 <p>
 Support for C++ namespaces is a relatively late addition to SWIG,
 first appearing in SWIG-1.3.12.  Before describing the implementation,
-it is worth nothing that the semantics of C++ namespaces is extremely
+it is worth noting that the semantics of C++ namespaces is extremely
 non-trivial--especially with regard to the C++ type system and class
 machinery.  At a most basic level, namespaces are sometimes used to 
 encapsulate common functionality.  For example:
@@ -3659,7 +3749,7 @@ void evil(A::Foo *a, B::FooClass *b, B::C::Foo *c, BIGB::FooClass *d,
 Given the possibility for such perversion, it's hard to imagine how
 every C++ programmer might want such code wrapped into the target
 language.  Clearly this code defines three different classes.  However, one
-of those classes is accessible under at least six different class names!
+of those classes is accessible under at least six different names!
 </p>
 
 <p>
@@ -4005,7 +4095,7 @@ except Error,e:
 </div>
 
 <p>
-Details of how to tailor code for handling the caught C++ exception and converts it into the target language's exception/error handling mechanism
+Details of how to tailor code for handling the caught C++ exception and converting it into the target language's exception/error handling mechanism
 is outlined in the <a href="Typemaps.html#throws_typemap">"throws" typemap</a> section.
 </p>
 
@@ -4522,7 +4612,7 @@ public:
 
 <p>
 The next workaround assumes you cannot modify the source code as was done above and it provides a solution for methods that use nested class types.
-Imagine we are wrapping the <tt>Outer</tt> class with a nested class <tt>Inner</tt>:
+Imagine we are wrapping the <tt>Outer</tt> class which contains a nested class <tt>Inner</tt>:
 </p>
 
 <div class="code">

@@ -3203,6 +3203,60 @@ directorDerived::upcall_method() invoked.
 </pre>
 </div>
 
+<H3><a name="java_directors_explicitcall"></a>Director base method calls</H3>
+<p>
+There is a limitation with Java directors when calling a base class method from an overridden method.
+A <tt>java.lang.StackOverflowError</tt> exception will be thrown as the code makes recursive calls from the C++ layer
+to the Java layer and back again in the same method. The <a href="SWIGPlus.html#SWIGPlus_explicitcall">explicitcall feature flag</a>
+is one way to work around this problem.  Consider the following C++ code:
+</p>
+
+<div class="code">
+<pre>
+%feature("director");
+%feature("explicitcall");
+%include &lt;std_string.i&gt;
+
+%inline %{
+struct Thing {
+  virtual std::string getit() { return "Thing"; }
+  virtual ~Thing() {}
+};
+%}
+</pre>
+</div>
+
+<p>
+and the following Java class:
+</p>
+
+<div class="code">
+<pre>
+class JavaThing extends Thing {
+  public String getit() {
+    return "Java" + super.getit();
+  }
+}
+</pre>
+</div>
+
+<p>
+The overridden <tt>JavaThing.getit()</tt> method will throw the <tt>java.lang.StackOverflowError</tt> exception when called.
+Fixing this would impose a performance penalty on all director methods and would not be able to automatically deal with pure
+virtual methods for which a method body is not always defined. Instead, users are advised to use the explicitcall
+feature flag which generates an additional method <tt>getitThing()</tt>. The modified version will then avoid the recursive calls:
+</p>
+
+<div class="code">
+<pre>
+class JavaThing extends Thing {
+  public String getit() {
+    return "Java" + super.getitThing();
+  }
+}
+</pre>
+</div>
+
 <H2><a name="common_customization"></a>20.6 Common customization features</H2>
 
 
