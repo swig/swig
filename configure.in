@@ -1729,10 +1729,10 @@ AC_SUBST(CLISPBIN)
 
 RBIN=
 
-AC_ARG_WITH(clisp, AS_HELP_STRING([--without-clisp], [Disable R])
-AS_HELP_STRING([--with-clisp=path], [Set location of R executable (clisp)]),[ RBIN="$withval"], [RBIN=yes])
+AC_ARG_WITH(r, AS_HELP_STRING([--without-r], [Disable R])
+AS_HELP_STRING([--with-r=path], [Set location of R executable (r)]),[ RBIN="$withval"], [RBIN=yes])
 
-# First, check for "--without-clisp" or "--with-clisp=no".
+# First, check for "--without-r" or "--with-r=no".
 if test x"${RBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling R])
 else
