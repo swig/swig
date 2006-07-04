@@ -1,0 +1,2 @@
+*wrap* *.so *.dll *.exp *.lib
+Makefile
