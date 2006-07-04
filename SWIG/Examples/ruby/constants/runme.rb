@@ -1,4 +1,4 @@
-# file: run.rb
+# file: runme.rb
 
 require 'example'
 

@@ -1,4 +1,4 @@
-# file: runme.py
+# file: runme.tcl
 # Test various properties of classes defined in separate modules
 
 puts "Testing the %import directive"
