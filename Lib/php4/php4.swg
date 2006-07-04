@@ -85,7 +85,6 @@
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 {
-        /* typemap(in) SWIGTYPE * or SWIGTYPE [] */
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
             SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
@@ -93,7 +92,6 @@
 
 %typemap(in) SWIGTYPE &
 {
-	/* typemap(in) SWIGTYPE & */
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
 	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
@@ -101,7 +99,6 @@
 
 %typemap(in) SWIGTYPE *DISOWN
 {
-  /* typemap(in) SWIGTYPE *DISOWN */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0) {
     SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
   }
@@ -184,7 +181,6 @@
 
 %typemap(out) char
 {
-	// out char
 	ZVAL_STRINGL(return_value,&$1, 1, 1);
 }
 
@@ -272,7 +268,6 @@
              SWIGTYPE [],
              SWIGTYPE &
 {
-  /* typecheck SWIGTYPE * */
   void *tmp;
   _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) < 0)? 0:1;
 }
