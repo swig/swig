@@ -1,4 +1,4 @@
-# file: example.py
+# file: runme.py
 
 import example;
 
