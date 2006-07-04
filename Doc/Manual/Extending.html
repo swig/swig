@@ -3224,9 +3224,9 @@ language modules for inspiration.
 
 <p>
 Each example is self-contained and consists of (at least) a <tt>Makefile</tt>,
-a SWIG interface file for the example module, and a script that demonstrates
+a SWIG interface file for the example module, and a 'runme' script that demonstrates
 the functionality for that module. All of these files are stored in the same
-subdirectory, and that directory should be nested under <tt>Examples/python</tt>.
+subdirectory under the <tt>Examples/[lang]</tt> directory.
 There are two classic examples which should be the first to convert to a new
 language module. These are the "simple" C example and the "class" C++ example.
 These can be found, for example for Python, in
@@ -3287,12 +3287,12 @@ details being outlined earlier on.
 
 <ol>
   <li>
-  Demonstrate basic C code working by porting the "simple" example, see
-  for example <tt>Examples/python/simple</tt>.
+  Demonstrate basic C code working by porting the "simple" example including
+  a runtime test, see for example <tt>Examples/python/simple</tt>.
   </li>
   <li>
-  Demonstrate basic C++ code working by porting the "class" example,
-  see for example <tt>Examples/python/simple</tt>.
+  Demonstrate basic C++ code working by porting the "class" example including
+  a runtime test, see for example <tt>Examples/python/class</tt>.
   </li>
   <li>
   Modify <tt>configure.in</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
@@ -3321,6 +3321,9 @@ details being outlined earlier on.
 <p>
 Once accepted into CVS, development efforts should concentrate on
 getting the entire test-suite to work with plenty of runtime tests.
+Runtime tests should be for existing testcases and new test cases 
+should be added should there be an area not already covered by 
+the existing tests.
 </p>
 
 
