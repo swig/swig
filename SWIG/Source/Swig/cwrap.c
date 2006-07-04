@@ -381,8 +381,8 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
  * set to "(*this)->" or some similar sequence.
  * ----------------------------------------------------------------------------- */
 
-String *
-Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
+static String *
+Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self, String *explicit_qualifier) {
   String *func, *nname;
   int i = 0;
   Parm *p = parms;
@@ -426,11 +426,13 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
       - gcc-3.4 forbids the use of 'template'.
     the rest seems not caring very much,
   */
-  if (SwigType_istemplate(name)) {
-    Printf(func,"SWIGTEMPLATEDISAMBIGUATOR %s(", nname);
-  } else {
-    Printf(func,"%s(", nname);
-  }
+  if (SwigType_istemplate(name))
+    Printf(func,"SWIGTEMPLATEDISAMBIGUATOR ");
+
+  if (explicit_qualifier)
+    Printv(func, explicit_qualifier, "::", NIL);
+
+  Printf(func,"%s(", nname);
 
   i++;
   p = nextSibling(p);
@@ -843,11 +845,16 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   
   /* Generate action code for the access */
   if (!(flags & CWRAP_EXTEND)) {
-    String *call = Swig_cmethod_call(name,p,self);
+    /* Call the explicit method rather than allow for a polymorphic call */
+    String *explicit_qualifier = GetFlag(n,"explicitcall") ? 
+    				 SwigType_namestr(Getattr(Getattr(parentNode(n),"typescope"),k_qname)) : 0;
+
+    String *call = Swig_cmethod_call(name,p,self,explicit_qualifier);
     String *cres = Swig_cresult(Getattr(n,k_type),k_result, call);
     Setattr(n,k_wrapaction, cres);
     Delete(call);
     Delete(cres);
+    Delete(explicit_qualifier);
   } else {
     /* Methods with default arguments are wrapped with additional methods for each default argument,
      * however, only one extra %extend method is generated. */
