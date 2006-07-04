@@ -707,7 +707,12 @@ The following are all equivalent:
 
 <p>
 The syntax in the first variation will generate the <tt>{ }</tt> delimiters used whereas the other variations will not.
-The <tt>%feature</tt> directive also accepts XML style attributes in the same way that typemaps will.
+</p>
+
+<H3><a name="Customization_feature_attributes"></a>Feature attributes</H3>
+
+<p>
+The <tt>%feature</tt> directive also accepts XML style attributes in the same way that typemaps do.
 Any number of attributes can be specified.
 The following is the generic syntax for features:
 </p>
@@ -754,11 +759,11 @@ and the feature value should be either <tt>1</tt> to enable or <tt>0</tt> to dis
 
 <div class="code">
 <pre>
-%feature("name")          // enables feature
-%feature("name", "1")     // enables feature
-%feature("name", "x")     // enables feature
-%feature("name", "0")     // disables feature
-%feature("name", "")      // clears feature
+%feature("featurename")          // enables feature
+%feature("featurename", "1")     // enables feature
+%feature("featurename", "x")     // enables feature
+%feature("featurename", "0")     // disables feature
+%feature("featurename", "")      // clears feature
 </pre>
 </div>
 
@@ -825,6 +830,22 @@ int blue;                       // mutable
 </pre>
 </div>
 
+<p>
+As hinted above for <tt>%immutable</tt>, most feature flags can also be specified via alternative syntax. The alternative syntax is just a macro
+in the <tt>swig.swg</tt> Library file. The following shows the alternative syntax for the imaginary <tt>featurename</tt> feature:
+</p>
+
+<div class="code">
+<pre>
+%featurename       // equivalent to %feature("featurename", "1") ie enables feature
+%nofeaturename     // equivalent to %feature("featurename", "0") ie disables feature
+%clearfeaturename  // equivalent to %feature("featurename", "")  ie clears feature
+</pre>
+</div>
+
+<p>
+The concept of clearing features is discussed next.
+</p>
 
 <H3><a name="Customization_clearing_features"></a>11.3.2 Clearing features</H3>
 
