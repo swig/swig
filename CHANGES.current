@@ -1,7 +1,20 @@
 Version 1.3.30 (in progress)
 ============================
+
+07/04/2006: wsfulton
+            New explicitcall feature which generates additional wrappers for virtual methods
+            that call the method explicitly, not relying on polymorphism to make the method
+            call. The feature is a feature flag and is enabled like any other feature flag.
+            It also recognises an attribute, "suffix" for mangling the feature name, see
+            SWIGPlus.html#SWIGPlus_explicitcall documentation for more details.
+
+            [Java, C#]
+            The explicitcall feature is also a workaround for solving the recursive calls
+            problem when a director method makes a call to a base class method. See
+            Java.html#java_directors_explicitcall for updated documentation.
+
 06/28/2006: joe (Joseph Wang)
-	    [r] Did initial check in
+	    [r] Initial support for R
 
 06/20/2006: wuzzeb (John Lenz)
 	    [Chicken]
