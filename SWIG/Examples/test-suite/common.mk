@@ -145,6 +145,7 @@ CPP_TEST_CASES += \
 	evil_diamond_prop \
 	exception_order \
 	exception_partial_info \
+	explicitcall \
 	extend_default \
 	extend_placement \
 	extend_template \
