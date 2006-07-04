@@ -479,7 +479,6 @@ extern int        Swig_cargs(Wrapper *w, ParmList *l);
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
 
 extern String    *Swig_cfunction_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self);
 extern String    *Swig_cconstructor_call(String_or_char *name);
 extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms);
 extern String    *Swig_unref_call(Node *n);

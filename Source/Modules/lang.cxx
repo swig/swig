@@ -973,7 +973,30 @@ Language::functionHandler(Node *n) {
     } else if (isfriend) {
       globalfunctionHandler(n);
     } else {
+      Node* explicit_n = 0;
+      if (GetFlag(n, "feature:explicitcall")) {
+      	// Add in an explicit wrapper call to virtual methods
+      	if (Cmp(storage, "virtual") == 0 && (cplus_mode == PUBLIC))
+          explicit_n = Copy(n);
+      }
+        
       memberfunctionHandler(n);
+      
+      if (explicit_n) {
+        String *new_symname = Copy(Getattr(n,"sym:name"));
+        String *suffix = Getattr(n,"feature:explicitcall:suffix");
+        if (!suffix)
+          suffix = Getattr(parentNode(n),"sym:name");
+        Printv(new_symname, suffix, NIL);
+        Setattr(explicit_n,"sym:name", new_symname);
+        Delattr(explicit_n,"storage");
+        Delattr(explicit_n,"override");
+        Delattr(explicit_n,"hides");
+        SetFlag(explicit_n,"explicitcall");
+        memberfunctionHandler(explicit_n);
+        Delattr(explicit_n,"explicitcall");
+        Delete(explicit_n);
+      }
     }
   }
   return SWIG_OK;

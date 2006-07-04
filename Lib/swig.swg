@@ -159,7 +159,14 @@
 #define %clearnovaluewrapper %feature("novaluewrapper","")
 
 /* Contract support - Experimental and undocumented */
-#define %contract    %feature("contract")
+#define %contract      %feature("contract")
+#define %nocontract    %feature("contract","0")
+#define %clearcontract %feature("contract","")
+
+/* explicitcall directives */
+#define %explicitcall      %feature("explicitcall")
+#define %noexplicitcall    %feature("explicitcall","0")
+#define %clearexplicitcall %feature("explicitcall","")
 
 /* Macro for setting a dynamic cast function */
 %define DYNAMIC_CAST(mangle,func)
