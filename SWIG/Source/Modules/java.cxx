@@ -995,6 +995,9 @@ class JAVA : public Language {
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",symname);
+
     /* Contract macro modification */
     Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
 

@@ -1306,7 +1306,6 @@ public:
 
     Printf(f->code, "}\n");    
 
-    // These were cribbed from python.cxx
     Replaceall(f->code,"$cleanup",cleanup);
     Replaceall(f->code,"$symname",iname);
 
