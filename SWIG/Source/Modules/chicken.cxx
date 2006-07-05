@@ -60,7 +60,8 @@ static  bool         exporting_constructor = false;
 static  String       *constructor_name = 0;
 static String        *member_name = 0;
 
-/* sections of the clos code */
+/* sections of the .scm code */
+static  String       *scm_const_defs = 0;
 static  String       *clos_class_defines = 0;
 static  String       *clos_methods = 0;
 
@@ -217,6 +218,7 @@ CHICKEN::top(Node *n)
     
   clos_class_defines = NewString("");
   clos_methods = NewString("");
+  scm_const_defs = NewString("");
 
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner(f_runtime);
@@ -279,6 +281,8 @@ CHICKEN::top(Node *n)
     Printf (f_scm, "%s\n", closprefix);
     Printf (f_scm, "%s\n", clos_class_defines);
     Printf (f_scm, "%s\n", clos_methods);
+  } else {
+    Printf (f_scm, "%s\n", scm_const_defs);
   }
 
   Printf(f_scm, "%s\n", chickentext);
@@ -304,6 +308,7 @@ CHICKEN::top(Node *n)
 
   Delete(clos_class_defines);
   Delete(clos_methods);
+  Delete(scm_const_defs);
 
   /* Close all of the files */
   Delete(primitive_names);
@@ -824,13 +829,18 @@ CHICKEN::variableWrapper(Node *n)  {
 
         Node *class_node = classLookup(t);
         String *clos_code = Getattr(n, "tmap:varin:closcode");
-        if (class_node && clos_code) {
+        if (class_node && clos_code && !GetFlag(n, "feature:immutable")) {
           Replaceall(clos_code,"$input", "(car lst)");
           Printv(clos_methods, "(define (", clos_name, " . lst) (if (null? lst) (", chickenPrimitiveName(scmname), ") (",
                      chickenPrimitiveName(scmname), " ", clos_code, ")))\n", NIL);
         } else {
           /* Simply re-export the procedure */
-          Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+          if (GetFlag(n, "feature:immutable") && GetFlag(n, "feature:constasvar")) {
+            Printv(clos_methods, "(define ", clos_name, " (", chickenPrimitiveName(scmname), "))\n", NIL);
+            Printv(scm_const_defs, "(set! ", scmname, " (", scmname, "))\n", NIL);
+          } else {
+            Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+          }
         }
         Delete(clos_name);
     }
@@ -1008,7 +1018,12 @@ CHICKEN::constantWrapper(Node *n)
         clos_name = NewString(member_name);
       else
         clos_name = chickenNameMapping(scmname, (char *)"");
-      Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+      if (GetFlag(n,"feature:constasvar")) {
+        Printv(clos_methods, "(define ", clos_name, " (", chickenPrimitiveName(scmname), "))\n", NIL);
+        Printv(scm_const_defs, "(set! ", scmname, " (", scmname, "))\n", NIL);
+      } else {
+        Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+      }
       Delete(clos_name);
     }
 
