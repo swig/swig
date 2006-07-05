@@ -1,5 +1,8 @@
 Version 1.3.30 (in progress)
 ============================
+07/05/2006: wsfulton
+            Fix $symname special variable expansion.
+
 07/04/2006: wuzzeb (John Lenz)
 	    [Chicken]
 	    Add %feature("constasvar"), which instead of exporting a constant as a
