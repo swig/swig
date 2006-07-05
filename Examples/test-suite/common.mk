@@ -230,6 +230,7 @@ CPP_TEST_CASES += \
 	smart_pointer_simple \
 	smart_pointer_static \
 	smart_pointer_typedef \
+	special_variables \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
