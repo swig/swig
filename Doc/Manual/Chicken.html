@@ -217,6 +217,16 @@
       use <tt>(my-variable)</tt>.
     </p>
 
+    <p>
+      The <tt>%feature("constasvar")</tt> can be applied to any constant
+      or immutable variable.  Instead of exporting the constant as
+      as function that must be called, the constant will appear as a
+      scheme variable.  This causes the generated .scm file just contain the code
+      <tt>(set! MYCONSTANT1 (MYCONSTANT1))</tt>. See 
+      <a href="Customization.html#features">Features and the %feature directive</a>
+      for info on how to apply the %feature.
+    </p>
+
 <H3><a name="Chicken_nn9"></a>18.2.4 Functions</H3>
 
 
