@@ -389,6 +389,9 @@ public:
     Printf(f->code, "#undef FUNC_NAME\n");
     Printv(f->code, "}\n",NIL);
     
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",iname);
+
     Wrapper_print(f, f_wrappers);
    
     if (!Getattr(n,"sym:overloaded")) {

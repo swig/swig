@@ -1357,6 +1357,7 @@ MODULA3 ():
     Hash *throws_hash = NewHash ();
     ParmList *l = Getattr (n, "parms");
     SwigType *t = Getattr (n, "type");
+    String   *symname = Getattr(n,"sym:name");
 
     if (!Getattr (n, "sym:overloaded")) {
       if (!addSymbol (wname, n)) {
@@ -1559,6 +1560,9 @@ MODULA3 ():
 
     /* Substitute the cleanup code */
     Replaceall (f->code, "$cleanup", cleanup);
+
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",symname);
 
     if (!is_void_return) {
       Replaceall (f->code, "$null", "0");

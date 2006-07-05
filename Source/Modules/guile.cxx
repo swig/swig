@@ -964,6 +964,8 @@ public:
       Printv(f->code, beforereturn, "\n", NIL);
     Printv(f->code, "return gswig_result;\n", NIL);
     
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",iname);
     // Undefine the scheme name
     
     Printf(f->code, "#undef FUNC_NAME\n");

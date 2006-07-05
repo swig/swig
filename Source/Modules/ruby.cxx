@@ -1322,6 +1322,9 @@ public:
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",symname);
+
     /* Emit the function */
     Wrapper_print(f, f_wrappers);
 

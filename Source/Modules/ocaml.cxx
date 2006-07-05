@@ -749,6 +749,9 @@ public:
 	       tab4, "CAMLreturn(swig_result);\n", NIL );
 	Printv(f->code, "}\n",NIL);
     
+	/* Substitute the function name */
+	Replaceall(f->code,"$symname",iname);
+
 	Wrapper_print(f, f_wrappers);
 
 	if( isOverloaded ) {

@@ -939,6 +939,9 @@ class CSHARP : public Language {
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",symname);
+
     /* Contract macro modification */
     if (Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ") > 0) {
       Setattr(n,"csharp:canthrow","1");

@@ -2000,6 +2000,9 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, "return r_ans;\n}\n", NIL);
   Printv(sfun->code, "\n}", NIL);
 
+  /* Substitute the function name */
+  Replaceall(f->code,"$symname",iname);
+
   Wrapper_print(f, f_wrapper);
   Wrapper_print(sfun, sfile);
 
