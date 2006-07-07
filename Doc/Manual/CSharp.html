@@ -1086,7 +1086,8 @@ public class Base : IDisposable {
 
   public virtual void BaseBoolMethod(Base b, bool flag) {
     examplePINVOKE.Base_BaseBoolMethod(swigCPtr, Base.getCPtr(b), flag);
-    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+    if (examplePINVOKE.SWIGPendingException.Pending)
+      throw examplePINVOKE.SWIGPendingException.Retrieve();
   }
 
   public Base() : this(examplePINVOKE.new_Base(), true) {
@@ -1155,8 +1156,8 @@ This method simply maps each C# delegate onto a C function pointer.
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg, 
-                                                         SwigDirector_Base::SWIG_Callback0_t callback0,
-                                                         SwigDirector_Base::SWIG_Callback1_t callback1) {
+                                        SwigDirector_Base::SWIG_Callback0_t callback0,
+                                        SwigDirector_Base::SWIG_Callback1_t callback1) {
   Base *obj = (Base *)objarg;
   SwigDirector_Base *director = dynamic_cast&lt;SwigDirector_Base *&gt;(obj);
   if (director) {
@@ -1173,7 +1174,8 @@ public:
 
     typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
     typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
-    void swig_connect_director(SWIG_Callback0_t callbackUIntMethod, SWIG_Callback1_t callbackBaseBoolMethod);
+    void swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
+                               SWIG_Callback1_t callbackBaseBoolMethod);
 
 private:
     SWIG_Callback0_t swig_callbackUIntMethod;
