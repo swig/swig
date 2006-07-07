@@ -38,6 +38,9 @@
 <li><a href="#collection">Garbage collection</a>
 </ul>
 <li><a href="#Chicken_nn18">Unsupported features and known problems</a>
+<ul>
+<li><a href="#Chicken_nn19">TinyCLOS problems with Chicken version &lt;= 1.92</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -220,8 +223,8 @@
     <p>
       The <tt>%feature("constasvar")</tt> can be applied to any constant
       or immutable variable.  Instead of exporting the constant as
-      as function that must be called, the constant will appear as a
-      scheme variable.  This causes the generated .scm file just contain the code
+      a function that must be called, the constant will appear as a
+      scheme variable.  This causes the generated .scm file to just contain the code
       <tt>(set! MYCONSTANT1 (MYCONSTANT1))</tt>. See 
       <a href="Customization.html#features">Features and the %feature directive</a>
       for info on how to apply the %feature.
@@ -558,7 +561,8 @@ all the modules.</p>
           <a href="SWIGPlus.html#SWIGPlus_default_args">%feature(compactdefaultargs)</a>.</li>
     </ul>
 
-<h3><a name="Chicken_nn19"></a>18.7.1 TinyCLOS problems with Chicken version &lt;= 1.92</h3>
+<H3><a name="Chicken_nn19"></a>18.7.1 TinyCLOS problems with Chicken version &lt;= 1.92</H3>
+
 
     <p>In Chicken versions equal to or below 1.92, TinyCLOS has a limitation such that generic methods do not properly work on methods
     with different number of specializers: TinyCLOS assumes that every method added to a generic function
