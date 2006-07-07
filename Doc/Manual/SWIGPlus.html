@@ -14,6 +14,12 @@
 <li><a href="#SWIGPlus_nn3">Approach</a>
 <li><a href="#SWIGPlus_nn4">Supported C++ features</a>
 <li><a href="#SWIGPlus_nn5">Command line options and compilation</a>
+<li><a href="#SWIGPlus_nn38">Proxy classes</a>
+<ul>
+<li><a href="#SWIGPlus_nn39">Construction of proxy classes</a>
+<li><a href="#SWIGPlus_nn40">Resource management in proxies</a>
+<li><a href="#SWIGPlus_nn41">Language specific details</a>
+</ul>
 <li><a href="#SWIGPlus_nn6">Simple C++ wrapping</a>
 <ul>
 <li><a href="#SWIGPlus_nn7">Constructors and destructors</a>
@@ -31,8 +37,10 @@
 <li><a href="#SWIGPlus_nn18">References and pointers</a>
 <li><a href="#SWIGPlus_nn19">Pass and return by value</a>
 <li><a href="#SWIGPlus_nn20">Inheritance</a>
+<ul>
+<li><a href="#SWIGPlus_explicitcall">Explicit base class method calls</a>
+</ul>
 <li><a href="#SWIGPlus_nn21">A brief discussion of multiple inheritance, pointers,  and type checking</a>
-<li><a href="#SWIGPlus_nn22">Renaming</a>
 <li><a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a>
 <ul>
 <li><a href="#SWIGPlus_nn24">Dispatch function generation</a>
@@ -51,12 +59,6 @@
 <li><a href="#SWIGPlus_nn35">Using declarations and inheritance</a>
 <li><a href="#SWIGPlus_nested_classes">Nested classes</a>
 <li><a href="#SWIGPlus_nn37">A brief rant about const-correctness</a>
-<li><a href="#SWIGPlus_nn38">Proxy classes</a>
-<ul>
-<li><a href="#SWIGPlus_nn39">Construction of proxy classes</a>
-<li><a href="#SWIGPlus_nn40">Resource management in proxies</a>
-<li><a href="#SWIGPlus_nn41">Language specific details</a>
-</ul>
 <li><a href="#SWIGPlus_nn42">Where to go for more information</a>
 </ul>
 </div>
@@ -228,7 +230,7 @@ details.  The SWIG Wiki also has further details.
 The <tt>-noproxy</tt> commandline option is recognised by many target languages and will generate just this
 interface as in earlier versions.
 
-<H2><a name="SWIGPlus_nn38"></a>6.27 Proxy classes</H2>
+<H2><a name="SWIGPlus_nn38"></a>6.5 Proxy classes</H2>
 
 
 <p>
@@ -240,7 +242,7 @@ wrapped by a Python proxy class.  Or if you're building a Java module, each
 C++ class is wrapped by a Java proxy class.  
 </p>
 
-<H3><a name="SWIGPlus_nn39"></a>6.27.1 Construction of proxy classes</H3>
+<H3><a name="SWIGPlus_nn39"></a>6.5.1 Construction of proxy classes</H3>
 
 
 <p>
@@ -322,7 +324,7 @@ Whenever possible, proxies try to take advantage of language features that are s
 might include operator overloading,  exception handling, and other features.
 </p>
 
-<H3><a name="SWIGPlus_nn40"></a>6.27.2 Resource management in proxies</H3>
+<H3><a name="SWIGPlus_nn40"></a>6.5.2 Resource management in proxies</H3>
 
 
 <p>
@@ -476,7 +478,7 @@ every possible memory management problem.  However, proxies do provide a mechani
 can be used (if necessary) to address some of the more tricky memory management problems.
 </p>
 
-<H3><a name="SWIGPlus_nn41"></a>6.27.3 Language specific details</H3>
+<H3><a name="SWIGPlus_nn41"></a>6.5.3 Language specific details</H3>
 
 
 <p>
@@ -484,7 +486,7 @@ Language specific details on proxy classes are contained in the chapters describ
 chapter has merely introduced the topic in a very general way.
 </p>
 
-<H2><a name="SWIGPlus_nn6"></a>6.5 Simple C++ wrapping</H2>
+<H2><a name="SWIGPlus_nn6"></a>6.6 Simple C++ wrapping</H2>
 
 
 <p>
@@ -517,7 +519,7 @@ To generate wrappers for this class, SWIG first reduces the class to a collectio
 accessor functions which are then used by the proxy classes.
 </p>
 
-<H3><a name="SWIGPlus_nn7"></a>6.5.1 Constructors and destructors</H3>
+<H3><a name="SWIGPlus_nn7"></a>6.6.1 Constructors and destructors</H3>
 
 
 <p>
@@ -534,7 +536,7 @@ void delete_List(List *l) {
 
 </pre></div>
 
-<H3><a name="SWIGPlus_nn8"></a>6.5.2 Default constructors, copy constructors and implicit destructors</H3>
+<H3><a name="SWIGPlus_nn8"></a>6.6.2 Default constructors, copy constructors and implicit destructors</H3>
 
 
 <p>
@@ -683,7 +685,7 @@ leaks, and so it is strongly recommended to not use them.
 </p>
 
 
-<H3><a name="SWIGPlus_nn9"></a>6.5.3 When constructor wrappers aren't created</H3>
+<H3><a name="SWIGPlus_nn9"></a>6.6.3 When constructor wrappers aren't created</H3>
 
 
 <p>
@@ -760,7 +762,7 @@ public:
 More information about <tt>%feature</tt> can be found in the <a href="Customization.html#Customization">Customization features</a> chapter.
 </p>
 
-<H3><a name="SWIGPlus_nn10"></a>6.5.4 Copy constructors</H3>
+<H3><a name="SWIGPlus_nn10"></a>6.6.4 Copy constructors</H3>
 
 
 <p>
@@ -862,7 +864,7 @@ constructor is set to <tt>new_CopyFoo()</tt>.   This is the same as in
 older versions.
 </p>
 
-<H3><a name="SWIGPlus_nn11"></a>6.5.5 Member functions</H3>
+<H3><a name="SWIGPlus_nn11"></a>6.6.5 Member functions</H3>
 
 
 <p>
@@ -888,7 +890,7 @@ wrapper functions.  However, the name and calling convention of the
 low-level procedural wrappers match the accessor function prototype described above.
 </p>
 
-<H3><a name="SWIGPlus_nn12"></a>6.5.6 Static members</H3>
+<H3><a name="SWIGPlus_nn12"></a>6.6.6 Static members</H3>
 
 
 <p>
@@ -898,7 +900,7 @@ transformations. For example, the static member function
 in the generated wrapper code.
 </p>
 
-<H3><a name="SWIGPlus_member_data"></a>6.5.7 Member data</H3>
+<H3><a name="SWIGPlus_member_data"></a>6.6.7 Member data</H3>
 
 
 <p>
@@ -1082,7 +1084,7 @@ a few problems related to structure wrapping and some of SWIG's
 customization features.
 </p>
 
-<H2><a name="SWIGPlus_default_args"></a>6.6 Default arguments</H2>
+<H2><a name="SWIGPlus_default_args"></a>6.7 Default arguments</H2>
 
 
 <p>
@@ -1185,7 +1187,7 @@ Keyword arguments are a language feature of some scripting languages, for exampl
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>
 
-<H2><a name="SWIGPlus_nn15"></a>6.7 Protection</H2>
+<H2><a name="SWIGPlus_nn15"></a>6.8 Protection</H2>
 
 
 <p>
@@ -1205,7 +1207,7 @@ until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).
 </p>
 
-<H2><a name="SWIGPlus_nn16"></a>6.8 Enums and constants</H2>
+<H2><a name="SWIGPlus_nn16"></a>6.9 Enums and constants</H2>
 
 
 <p>
@@ -1235,7 +1237,7 @@ Swig_STOUT = Swig::STOUT
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 </p>
 
-<H2><a name="SWIGPlus_nn17"></a>6.9 Friends</H2>
+<H2><a name="SWIGPlus_nn17"></a>6.10 Friends</H2>
 
 
 <p>
@@ -1296,7 +1298,7 @@ namespace bar {
 and a wrapper for the method 'blah' will not be generated.
 </p>
 
-<H2><a name="SWIGPlus_nn18"></a>6.10 References and pointers</H2>
+<H2><a name="SWIGPlus_nn18"></a>6.11 References and pointers</H2>
 
 
 <p>
@@ -1396,7 +1398,7 @@ templates and the STL.  This was first added in SWIG-1.3.12.
 </p>
 
 
-<H2><a name="SWIGPlus_nn19"></a>6.11 Pass and return by value</H2>
+<H2><a name="SWIGPlus_nn19"></a>6.12 Pass and return by value</H2>
 
 
 <p>
@@ -1480,7 +1482,7 @@ It is not used for C++ pointers or references.
 if possible (consider using references instead).
 </p>
 
-<H2><a name="SWIGPlus_nn20"></a>6.12 Inheritance</H2>
+<H2><a name="SWIGPlus_nn20"></a>6.13 Inheritance</H2>
 
 
 <p>
@@ -1666,7 +1668,8 @@ functions for virtual members that are already defined in a base
 class.
 </p>
 
-<H3><a name="SWIGPlus_explicitcall"></a>Explicit base class method calls</H3>
+<H3><a name="SWIGPlus_explicitcall"></a>6.13.1 Explicit base class method calls</H3>
+
 
 <p>
 SWIG uses standard C++ polymorphic behaviour to ensure the correct virtual method is called
@@ -1715,6 +1718,7 @@ Child
 Person
 &gt;&gt;&gt; print child.describeBambino() # explicit Child::describe call
 Child
+</pre>
 </div>
 
 <p>
@@ -1744,7 +1748,7 @@ If, as is often the case, your pure virtual methods do not have a body defined y
 <tt>%noexplicitcall</tt> can then be used to turn this feature off for the problem methods.
 </p>
 
-<H2><a name="SWIGPlus_nn21"></a>6.13 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
+<H2><a name="SWIGPlus_nn21"></a>6.14 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
 
 
 <p>
@@ -4581,6 +4585,7 @@ public:
 
 <H2><a name="SWIGPlus_nested_classes"></a>6.25 Nested classes</H2>
 
+
 <p>
 There is limited support for nested structs and unions when wrapping C code, see <a href="SWIG.html#SWIG_nested_structs">Nested structures</a> for further details.
 However, there is no nested class/struct/union support when wrapping C++ code (using the -c++ commandline option).
@@ -4727,7 +4732,7 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
-<H2><a name="SWIGPlus_nn42"></a>6.28 Where to go for more information</H2>
+<H2><a name="SWIGPlus_nn42"></a>6.27 Where to go for more information</H2>
 
 
 <p>
