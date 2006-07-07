@@ -557,12 +557,13 @@
    }
    $1 = *argp; %}
 
-%typemap(directorout) SWIGTYPE
-%{ if (!$input) {
+%typemap(directorout) SWIGTYPE ($&1_type argp)
+%{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
    }
-   $1 = *($&1_ltype)&$input; %}
+   $1 = *argp; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
