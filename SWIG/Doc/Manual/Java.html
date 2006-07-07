@@ -83,6 +83,7 @@
 <li><a href="#java_directors_classes">Director classes</a>
 <li><a href="#java_directors_overhead">Overhead and code bloat</a>
 <li><a href="#java_directors_example">Simple directors example</a>
+<li><a href="#java_directors_explicitcall">Director base method calls</a>
 </ul>
 <li><a href="#common_customization">Common customization features</a>
 <ul>
@@ -107,7 +108,7 @@
 <li><a href="#typemaps_c_to_java_types">Typemaps for mapping C/C++ types to Java types</a>
 <li><a href="#typemap_attributes">Java typemap attributes</a>
 <li><a href="#special_variables">Java special variables</a>
-<li><a href="#typemaps_for_c_and_c++">Typemaps for both C and C++ compilation</a>
+<li><a href="#typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a>
 <li><a href="#java_code_typemaps">Java code typemaps</a>
 <li><a href="#java_directors_typemaps">Director specific typemaps</a>
 </ul>
@@ -3203,7 +3204,9 @@ directorDerived::upcall_method() invoked.
 </pre>
 </div>
 
-<H3><a name="java_directors_explicitcall"></a>Director base method calls</H3>
+<H3><a name="java_directors_explicitcall"></a>20.5.5 Director base method calls</H3>
+
+
 <p>
 There is a limitation with Java directors when calling a base class method from an overridden method.
 A <tt>java.lang.StackOverflowError</tt> exception will be thrown as the code makes recursive calls from the C++ layer
@@ -4791,7 +4794,7 @@ This special variable expands to the intermediary class name. Usually this is th
 unless the jniclassname attribute is specified in the <a href="Java.html#java_module_directive">%module directive</a>.
 </p>
 
-<H3><a name="typemaps_for_c_and_c++"></a>20.8.8 Typemaps for both C and C++ compilation</H3>
+<H3><a name="typemaps_for_c_and_cpp"></a>20.8.8 Typemaps for both C and C++ compilation</H3>
 
 
 <p>

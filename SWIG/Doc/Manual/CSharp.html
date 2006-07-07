@@ -22,7 +22,7 @@
 <ul>
 <li><a href="#csharp_directors_example">Directors example</a>
 <li><a href="#csharp_directors_implementation">Directors implementation</a>
-<li><a href="#csharp_typemap_examples">Director caveats</a>
+<li><a href="#csharp_director_caveats">Director caveats</a>
 </ul>
 <li><a href="#csharp_typemap_examples">C# Typemap examples</a>
 <ul>
@@ -909,7 +909,7 @@ Essentially, it enables unmanaged C++ code to call back into managed code for vi
 
 <p>
 The following sections provide information on the C# director implementation and contain most of the information required to use the C# directors.
-However, the <a href=Java.html#java_directors>Java directors</a> section should also be read in order to gain more insight into directors.
+However, the <a href="Java.html#java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
 <H3><a name="csharp_directors_example"></a>17.4.1 Directors example</H3>
@@ -1158,7 +1158,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg,
                                                          SwigDirector_Base::SWIG_Callback0_t callback0,
                                                          SwigDirector_Base::SWIG_Callback1_t callback1) {
   Base *obj = (Base *)objarg;
-  SwigDirector_Base *director = dynamic_cast<SwigDirector_Base *>(obj);
+  SwigDirector_Base *director = dynamic_cast&lt;SwigDirector_Base *&gt;(obj);
   if (director) {
     director-&gt;swig_connect_director(callback0, callback1);
   }
@@ -1207,7 +1207,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
     Base::BaseBoolMethod(b,flag);
     return;
   } else {
-    jb = (Base *) &b; 
+    jb = (Base *) &amp;b; 
     jflag = flag;
     swig_callbackBaseBoolMethod(jb, jflag);
   }
@@ -1215,7 +1215,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="csharp_typemap_examples"></a>17.4.3 Director caveats</H3>
+<H3><a name="csharp_director_caveats"></a>17.4.3 Director caveats</H3>
 
 
 <p>
