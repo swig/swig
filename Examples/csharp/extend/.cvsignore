@@ -1,6 +1,7 @@
 runme
 *_wrap.c
 *_wrap.cxx
+*_wrap.h
 *.iltmp
 *.cs
 *.dll
