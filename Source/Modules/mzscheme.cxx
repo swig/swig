@@ -15,10 +15,13 @@ char cvsroot_mzscheme_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 Mzscheme Options (available with -mzscheme)\n\
-     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -declaremodule  - Create extension that declares a module\n\
-     -noinit         - Do not emit scheme_initialize, scheme_reload,\n\
-                       scheme_module_name functions\n";
+     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
+     -declaremodule                         - Create extension that declares a module\n\
+     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
+                                              scheme_module_name functions\n\
+     -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
+                                              them\n\
+";
 
 static String     *fieldnames_tab = 0;
 static String     *convert_tab = 0;
@@ -29,6 +32,9 @@ static String     *mangled_struct_name = 0;
 static char *prefix=0;
 static bool declaremodule = false;
 static bool noinit = false;
+//DLOPEN PATCH
+static char *load_libraries = NULL;
+//DLOPEN PATCH
 static String *module=0;
 static char *mzscheme_path=(char*)"mzscheme";
 static String *init_func_def = 0;
@@ -79,6 +85,14 @@ public:
 	  noinit = true;
 	  Swig_mark_arg (i);
 	}
+// DLOPEN PATCH
+        else if (strcmp(argv[i],"-dynamic-load") == 0) {
+          load_libraries=new char[strlen(argv[i+1])+2];
+          strcpy(load_libraries,argv[i+1]);
+          Swig_mark_arg(i++);
+          Swig_mark_arg(i);
+        }
+// DLOPEN PATCH
       }
     }
     
@@ -153,6 +167,13 @@ public:
       }
       Printf (f_init, "\treturn scheme_void;\n}\n");
       Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
+
+      // DLOPEN PATCH
+      if (load_libraries) {
+        Printf(f_init,"mz_set_dlopen_libraries(\"%s\");\n",load_libraries);
+      }
+      // DLOPEN PATCH
+
       Printf(f_init, "\treturn scheme_reload(env);\n");
       Printf (f_init, "}\n");
     
@@ -217,6 +238,15 @@ public:
     int numreq;
     String *overname = 0;
 
+    // PATCH DLOPEN
+    if (load_libraries) {
+      ParmList *parms=Getattr(n,"parms");
+      SwigType *type=Getattr(n,"type");
+      String   *name=NewString("caller");
+      Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(name,parms)));
+    }
+    // PATCH DLOPEN
+
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
     if (Getattr(n,"sym:overloaded")) {
@@ -255,10 +285,31 @@ public:
     
     numargs = emit_num_arguments(l);
     numreq  = emit_num_required(l);
+
+    // DLOPEN PATCH
+    /* Add the holder for the pointer to the function to be opened */
+    if (load_libraries) {
+      Wrapper_add_local(f, "_function_loaded","static int _function_loaded=(1==0)");
+      Wrapper_add_local(f, "_the_function", "static void *_the_function=NULL");
+      {
+	String *parms=ParmList_protostr(l);
+	String *func=NewStringf("(*caller)(%s)",parms);
+	Wrapper_add_local(f,"caller",SwigType_lstr(d,func)); /*"(*caller)()"));*/
+      }
+    }
+    // DLOPEN PATCH
     
     // adds local variables
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
+    
+    // DLOPEN PATCH
+    if (load_libraries) {
+      Printf(f->code,"if (!_function_loaded) { _the_function=mz_load_function(\"%s\");_function_loaded=(1==1); }\n",iname);
+      Printf(f->code,"if (!_the_function) { scheme_signal_error(\"Cannot load C function '%s'\"); }\n",iname);
+      Printf(f->code,"caller=_the_function;\n");
+    }
+    // DLOPEN PATCH
     
     // Now write code to extract the parameters (this is super ugly)
     
