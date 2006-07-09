@@ -252,6 +252,199 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
     return new_type;
 }
 
+/*** DLOPEN PATCH ******************************************************
+ * Contributed by Hans Oesterholt-Dijkema (jan. 2006)
+ ***********************************************************************/
+
+#if defined(_WIN32) || defined(__WIN32__)
+#define __OS_WIN32
+#endif
+
+#ifdef __OS_WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+  static char **mz_dlopen_libraries=NULL;
+  static void **mz_libraries=NULL;
+  static char **mz_dynload_libpaths=NULL;
+
+  static void mz_set_dlopen_libraries(const char *_libs)
+  {
+    int   i,k,n;
+    int   mz_dynload_debug=(1==0);
+    char *extra_paths[1000];
+    char *EP;
+    
+    {
+      char *dbg=getenv("MZ_DYNLOAD_DEBUG");
+      if (dbg!=NULL) {
+	mz_dynload_debug=atoi(dbg);
+      }
+    }
+
+    {
+      char *ep=getenv("MZ_DYNLOAD_LIBPATH");
+      int   i,k,j;
+      k=0;
+      if (ep!=NULL) {
+	EP=strdup(ep);
+	for(i=0,j=0;EP[i]!='\0';i++) {
+	  if (EP[i]==':') {
+	    EP[i]='\0';
+	    extra_paths[k++]=&EP[j];
+	    j=i+1;
+	  }
+	}
+	if (j!=i) {
+	  extra_paths[k++]=&EP[j];
+	}
+      }
+      else {
+	EP=strdup("");
+      }
+      extra_paths[k]=NULL;
+      k+=1;
+
+      if (mz_dynload_debug) {
+	fprintf(stderr,"SWIG:mzscheme:MZ_DYNLOAD_LIBPATH=%s\n",(ep==NULL) ? "(null)" : ep);
+	fprintf(stderr,"SWIG:mzscheme:extra_paths[%d]\n",k-1);
+	for(i=0;i<k-1;i++) {
+	  fprintf(stderr,"SWIG:mzscheme:extra_paths[%d]=%s\n",i,extra_paths[i]);
+	}
+      }
+
+      mz_dynload_libpaths=(char **) malloc(sizeof(char *)*k);
+      for(i=0;i<k;i++) {
+	if (extra_paths[i]!=NULL) {
+	  mz_dynload_libpaths[i]=strdup(extra_paths[i]);
+	}
+	else {
+	  mz_dynload_libpaths[i]=NULL;
+	}
+      }
+
+      if (mz_dynload_debug) {
+	int i;
+	for(i=0;extra_paths[i]!=NULL;i++) {
+	  fprintf(stderr,"SWIG:mzscheme:%s\n",extra_paths[i]);
+	}
+      }
+    }
+
+    {
+#ifdef MZ_DYNLOAD_LIBS
+      char *libs=(char *) malloc((strlen(MZ_DYNLOAD_LIBS)+1)*sizeof(char));
+      strcpy(libs,MZ_DYNLOAD_LIBS);
+#else
+      char *libs=(char *) malloc((strlen(_libs)+1)*sizeof(char));
+      strcpy(libs,_libs);
+#endif
+      
+      for(i=0,n=strlen(libs),k=0;i<n;i++) {
+	if (libs[i]==',') { k+=1; }
+      }
+      k+=1;
+      mz_dlopen_libraries=(char **) malloc(sizeof(char *)*(k+1));
+      mz_dlopen_libraries[0]=libs;
+      for(i=0,k=1,n=strlen(libs);i<n;i++) {
+	if (libs[i]==',') {
+	  libs[i]='\0';
+	  mz_dlopen_libraries[k++]=&libs[i+1];
+	  i+=1;
+	}
+      }
+      
+      if (mz_dynload_debug) {
+	fprintf(stderr,"k=%d\n",k);
+      }
+      mz_dlopen_libraries[k]=NULL;
+      
+      free(EP);
+    }
+  }
+
+  static void *mz_load_function(char *function)
+  {
+    int mz_dynload_debug=(1==0);
+    
+    {
+      char *dbg=getenv("MZ_DYNLOAD_DEBUG");
+      if (dbg!=NULL) {
+	mz_dynload_debug=atoi(dbg);
+      }
+    }
+
+    if (mz_dlopen_libraries==NULL) {
+      return NULL;
+    }
+    else {
+      if (mz_libraries==NULL) {
+        int i,n;
+        for(n=0;mz_dlopen_libraries[n]!=NULL;n++);
+	if (mz_dynload_debug) {
+	  fprintf(stderr,"SWIG:mzscheme:n=%d\n",n);
+	}
+        mz_libraries=(void **) malloc(sizeof(void*)*n);
+        for(i=0;i<n;i++) { 
+	  if (mz_dynload_debug) {
+	   fprintf(stderr,"SWIG:mzscheme:loading %s\n",mz_dlopen_libraries[i]);
+	  }
+#ifdef __OS_WIN32
+	  mz_libraries[i]=(void *) LoadLibrary(mz_dlopen_libraries[i]); 
+#else
+	  mz_libraries[i]=(void *) dlopen(mz_dlopen_libraries[i],RTLD_LAZY); 
+#endif
+	  if (mz_libraries[i]==NULL) {
+	    int k;
+	    char *libp;
+	    for(k=0;mz_dynload_libpaths[k]!=NULL && mz_libraries[i]==NULL;k++) {
+	      int L=strlen(mz_dynload_libpaths[k])+strlen("\\")+strlen(mz_dlopen_libraries[i])+1;
+	      libp=(char *) malloc(L*sizeof(char));
+	      sprintf(libp,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
+#ifdef __OS_WIN32
+	      mz_libraries[i]=(void *) LoadLibrary(libp); 
+#else
+	      mz_libraries[i]=(void *) dlopen(libp,RTLD_LAZY); 
+#endif
+	      if (mz_dynload_debug) {
+		fprintf(stderr,"SWIG:mzscheme:trying %s --> %p\n",libp,mz_libraries[i]);
+	      }
+	      free(libp);
+	    }
+	  }
+        }
+      }
+      {
+        int i;
+        void *func=NULL;
+
+        for(i=0;mz_dlopen_libraries[i]!=NULL && func==NULL;i++) {
+          if (mz_libraries[i]!=NULL) {
+#ifdef __OS_WIN32
+            func=GetProcAddress(mz_libraries[i],function);
+#else
+            func=dlsym(mz_libraries[i],function);
+#endif
+          }
+	  if (mz_dynload_debug) {
+	    fprintf(stderr,
+		    "SWIG:mzscheme:library:%s;dlopen=%p,function=%s,func=%p\n",
+		    mz_dlopen_libraries[i],mz_libraries[i],function,func
+		    );
+	  }
+        }
+
+        return func;
+      }
+    }
+  }
+
+/*** DLOPEN PATCH ******************************************************
+ * Contributed by Hans Oesterholt-Dijkema (jan. 2006)
+ ***********************************************************************/
+
 /* The interpreter will store a pointer to this structure in a global
    variable called swig-runtime-data-type-pointer.  The instance of this
    struct is only used if no other module has yet been loaded */
@@ -311,3 +504,4 @@ SWIG_MzScheme_SetModule(Scheme_Env *env, swig_module_info *module) {
 #ifdef __cplusplus
 }
 #endif
+
