@@ -49,7 +49,6 @@ private:
   String* lispify_name(Node* n,String *ty,const char* flag,bool kw=false);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
-  bool extern_all;
   int generate_typedef_flag;
   bool no_swig_lisp;
 };
@@ -60,7 +59,6 @@ void CFFI :: main(int argc, char *argv[]) {
   SWIG_library_directory("cffi"); 
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;
-  extern_all = false;
   no_swig_lisp = false;
   CWrap = false;
   for(i=1; i<argc; i++) {
@@ -78,10 +76,6 @@ void CFFI :: main(int argc, char *argv[]) {
              "\tetc. which SWIG uses while generating wrappers. These macros, functions\n"
              "\tmay still be used by generated wrapper code.\n"
              );
-    }
-    else if ( (Strcmp(argv[i],"-extern-all") == 0)) {
-      extern_all = true;
-      Swig_mark_arg(i);
     }
     else if (!strcmp(argv[i], "-cwrap")) {
       CWrap = true;
@@ -106,6 +100,8 @@ void CFFI :: main(int argc, char *argv[]) {
   f_clhead = NewString("");
   f_clwrap = NewString("");
   f_cl = NewString("");
+
+  allow_overloading();
 }
 
 int CFFI :: top(Node *n) {
@@ -368,7 +364,7 @@ void CFFI::emit_defun(Node *n,String *name)
 {
 
 //   String *storage=Getattr(n,"storage");
-//   if(!extern_all && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+//   if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
 //     return SWIG_OK;
      
   String *func_name=Getattr(n, "sym:name");
@@ -438,7 +434,7 @@ int CFFI :: variableWrapper(Node *n) {
   //  String *storage=Getattr(n,"storage");
   //  Printf(stdout,"\"%s\" %s)\n",storage,Getattr(n, "sym:name"));
   
-  //  if(!extern_all && (!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc"))))
+  //  if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
   //    return SWIG_OK;
 
   String *var_name=Getattr(n, "sym:name");
