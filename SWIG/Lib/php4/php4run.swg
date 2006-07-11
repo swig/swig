@@ -63,12 +63,12 @@ typedef struct _swig_object_wrapper {
 } swig_object_wrapper;
 
 /* empty zend destructor for types without one */
-static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) {};
+static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) { (void)rsrc; }
 
-#define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d, SWIG_module_entry TSRMLS_CC)
+#define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d TSRMLS_CC)
 
 static void
-SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject, zend_module_entry* module_entry TSRMLS_DC) {
+SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject TSRMLS_DC) {
   swig_object_wrapper *value=NULL;
   /*
    * First test for Null pointers.  Return those as PHP native NULL
@@ -85,99 +85,95 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
     value->newobject=newobject;
     ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
     return;
-  } else { /* have to deal with old fashioned string pointer?
-              but this should not get this far */
-    zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
   }
+  zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
 }
 
-/* This is a new pointer conversion routine
-   Taking the native pointer p (which would have been converted from the old
-   string pointer) and its php type id, and its type name (which also would
-   have come from the old string pointer) it converts it to ptr calling 
-   appropriate casting functions according to ty
-   Sadly PHP has no API to find a type name from a type id, only from an instance
-   of a resource of the type id, so we have to pass type_name as well.
+/* This pointer conversion routine takes the native pointer p (along with
+   its type name) and converts it by calling appropriate casting functions
+   according to ty.  The resultant pointer is returned, or NULL is returned
+   if the pointer can't be cast.
+
+   Sadly PHP has no API to find a type name from a type id, only from an
+   instance of a resource of the type id, so we have to pass type_name as well.
+
    The two functions which might call this are:
    SWIG_ZTS_ConvertResourcePtr which gets the type name from the resource
    and the registered zend destructors for which we have one per type each
    with the type name hard wired in. */
-static int
-SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **ptr, swig_type_info *ty TSRMLS_DC) {
+static void *
+SWIG_ZTS_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty TSRMLS_DC) {
   swig_cast_info *tc;
 
-  if (ty) {
-    if (! type_name) {  
-      /* can't convert p to ptr type ty if we don't know what type p is */
-      return -1;
-    } else {
-      /* convert and cast p from type_name to ptr as ty
-         Need to sort out const-ness, can SWIG_TypeCast really not take a const? */
-      tc = SWIG_TypeCheck((char *)type_name,ty);
-      if (!tc) return -1;
-      *ptr = SWIG_TypeCast(tc, (void*)p);
-    }
-  } else {
+  if (!ty) {
     /* They don't care about the target type, so just pass on the pointer! */
-    *ptr = (void *) p;
+    return p;
   }
-  return 0;
+
+  if (! type_name) {  
+    /* can't convert p to ptr type ty if we don't know what type p is */
+    return NULL;
+  }
+
+  /* convert and cast p from type_name to ptr as ty
+     Need to sort out const-ness, can SWIG_TypeCast really not take a const? */
+  tc = SWIG_TypeCheck((char *)type_name,ty);
+  if (!tc) return NULL;
+  return SWIG_TypeCast(tc, p);
 }
 
-/* This function fills ptr with a pointer of type ty by extracting the pointer
-   and type info from the resource in z.  z must be a resource
+/* This function returns a pointer of type ty by extracting the pointer
+   and type info from the resource in z.  z must be a resource.
+   If it fails, NULL is returned.
    It uses SWIG_ZTS_ConvertResourceData to do the real work. */
-static int
-SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC) {
+static void *
+SWIG_ZTS_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags TSRMLS_DC) {
   swig_object_wrapper *value;
   void *p;
   int type;
   char *type_name;
 
-  value = (swig_object_wrapper *) zend_list_find(z->value.lval,&type);
+  value = (swig_object_wrapper *) zend_list_find(z->value.lval, &type);
   if ( flags && SWIG_POINTER_DISOWN ) {
     value->newobject = 0;
   }
   p = value->ptr;
-  if (type==-1) return -1;
+  if (type==-1) return NULL;
 
   type_name=zend_rsrc_list_get_rsrc_type(z->value.lval TSRMLS_CC);
 
-  return SWIG_ZTS_ConvertResourceData(p,type,type_name,ptr,ty TSRMLS_CC);
+  return SWIG_ZTS_ConvertResourceData(p, type_name, ty TSRMLS_CC);
 }
 
-/* We allow passing of a STRING or RESOURCE pointing to the object
-   or an OBJECT whose _cPtr is a string or resource pointing to the object
-   STRING pointers are very depracated */
+/* We allow passing of a RESOURCE pointing to the object or an OBJECT whose
+   _cPtr is a resource pointing to the object */
 static int
 SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC) {
-   char *c;
-   zval *val;
-   
-   if(z == NULL) {
-	*ptr = 0;
-	return 0;
-   }
+  if (z == NULL) {
+    *ptr = 0;
+    return 0;
+  }
 
-   if (z->type==IS_OBJECT) {
-     zval ** _cPtr;
-     if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
-       /* Don't co-erce to string if it isn't */
-       if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
-       else if ((*_cPtr)->type==IS_RESOURCE) {
-         return SWIG_ZTS_ConvertResourcePtr(*_cPtr,ptr,ty, flags TSRMLS_CC);
-       } else goto type_error; /* _cPtr was not string or resource property */
-     } else goto type_error; /* can't find property _cPtr */
-   } else if (z->type==IS_RESOURCE) {
-     return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty, flags TSRMLS_CC);
-   } if (z->type==IS_NULL ) {
-     *ptr = 0;
-     return 0;
-   } else goto type_error;
+  switch (z->type) {
+    case IS_OBJECT: {
+      zval ** _cPtr;
+      if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
+	if ((*_cPtr)->type==IS_RESOURCE) {
+	  *ptr = SWIG_ZTS_ConvertResourcePtr(*_cPtr, ty, flags TSRMLS_CC);
+	  return (ptr == NULL ? -1 : 0);
+	}
+      }
+      break;
+    }
+    case IS_RESOURCE:
+      *ptr = SWIG_ZTS_ConvertResourcePtr(z, ty, flags TSRMLS_CC);
+      return (ptr == NULL ? -1 : 0);
+    case IS_NULL:
+      *ptr = 0;
+      return 0;
+  }
 
-type_error:
-
-    return -1;
+  return -1;
 }
 
 static char const_name[] = "swig_runtime_data_type_pointer";

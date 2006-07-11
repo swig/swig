@@ -667,13 +667,13 @@ public:
     Printf(s_header, "#define ErrorMsg() (%s_globals.error_msg)\n",module);
     Printf(s_header, "#define ErrorCode() (%s_globals.error_code)\n",module);
     Printf(s_header, "#endif\n\n" );
-    
-    Printf(s_header, "static void %s_init_globals(zend_%s_globals *%s_globals ) {\n",module,module,module);
-    Printf(s_header, "  %s_globals->error_msg = default_error_msg;\n", module);
-    Printf(s_header, "  %s_globals->error_code = default_error_code;\n",module);
+
+    Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n",module,module);
+    Printf(s_header, "  globals->error_msg = default_error_msg;\n");
+    Printf(s_header, "  globals->error_code = default_error_code;\n");
     Printf(s_header, "}\n");
-    
-    Printf(s_header, "static void %s_destroy_globals(zend_%s_globals *%s_globals) { }\n",module,module,module);
+
+    Printf(s_header, "static void %s_destroy_globals(zend_%s_globals * globals) { (void)globals; }\n",module,module);
 
     Printf(s_header, "\n");
     Printf(s_header, "static void SWIG_ResetError() {\n");
@@ -920,8 +920,6 @@ public:
     Printf(tmp,"zval **argv[%d]", maxargs);
     Wrapper_add_local(f,"argv",tmp);
 
-    Wrapper_add_local(f,"ii","int ii");
-
     Printf(f->code,"argc = ZEND_NUM_ARGS();\n");
 
     if ( has_this_ptr ) {
@@ -1068,9 +1066,11 @@ public:
 
     int has_this_ptr = (wrapperType==memberfn && shadow && php_version == 4);
 
-    String * args = NewStringf("zval **args[%d]", num_arguments-has_this_ptr);
-    Wrapper_add_local(f, "args",args);
-    Delete(args); args = NULL;
+    if (num_arguments-has_this_ptr > 0) {
+      String * args = NewStringf("zval **args[%d]", num_arguments-has_this_ptr);
+      Wrapper_add_local(f, "args",args);
+      Delete(args); args = NULL;
+    }
 
     // This generated code may be called:
     // 1) as an object method, or
@@ -2701,12 +2701,12 @@ public:
 
     Printf(df->code,"  efree(value);\n");
     Printf(df->code,"  if (! newobject) return; /* can't delete it! */\n");
-    Printf(df->code,"  SWIG_ZTS_ConvertResourceData(ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n",
-           SwigType_manglestr(pt));
+    Printf(df->code,"  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n",
+	SwigType_lstr(pt, 0), SwigType_manglestr(pt));
     Printf(df->code,"  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
 
     emit_action(n,df);
-    
+
     Printf(df->code,"}\n");
 
     Wrapper_print(df,s_wrappers);
