@@ -119,6 +119,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_basic \
 	director_classes \
+	director_classic \
 	director_constructor \
 	director_detect \
 	director_default \
