@@ -1,5 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
+07/14/2006: wuzzeb (John Lenz)
+	    Increment the SWIG_RUNTIME_VERSION to 3, because of the
+	    addition of the owndata member in swig_type_info.
+	    Reported by: Prabhu Ramachandran
+
 07/05/2006: wsfulton
             Fix $symname special variable expansion.
 
