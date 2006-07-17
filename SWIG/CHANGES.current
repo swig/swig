@@ -6,6 +6,15 @@ Version 1.3.30 (in progress)
 	    Reported by: Prabhu Ramachandran
 
 07/05/2006: wsfulton
+            Search path fixes:
+            - Fix search path for library files to behave as documented in Library.html.
+            - Fix mingw/msys builds which did not find the SWIG library when installed.
+            - Windows builds also output the mingw/msys install location when running
+              swig -swiglib.
+            - The non-existent and undocumented config directory in the search path has
+              been removed.
+
+07/05/2006: wsfulton
             Fix $symname special variable expansion.
 
 07/04/2006: wuzzeb (John Lenz)
