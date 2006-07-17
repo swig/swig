@@ -69,8 +69,8 @@ When searching for files, directories are searched in the following order:
 <li>The current directory
 <li>Directories specified with the <tt>-I</tt> command line option
 <li>.<tt>/swig_lib</tt>
-<li><tt>/usr/local/lib/swig_lib</tt> (or wherever you installed SWIG)
-<li>On Windows, SWIG also looks for the library relative to the location of <tt>swig.exe</tt>.
+<li>SWIG library install location as reported by <tt>swig -swiglib</tt>, for example <tt>/usr/local/share/swig/1.3.30</tt>
+<li>On Windows, a directory <tt>Lib</tt> relative to the location of <tt>swig.exe</tt> is also searched.
 </ul>
 
 <p>
@@ -80,8 +80,12 @@ for language-specific implementations of library files.
 </p>
 
 <p>
-You can override the location of the SWIG library by setting the
-<tt>SWIG_LIB</tt> environment variable.
+You can ignore the installed SWIG library by setting the <tt>SWIG_LIB</tt> environment variable.
+Set the environment variable to hold an alternative library directory.
+</p>
+
+<p>
+The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
 <H2><a name="Library_nn3"></a>8.2 C Arrays and Pointers</H2>
