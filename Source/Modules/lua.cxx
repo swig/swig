@@ -1038,6 +1038,38 @@ NEW LANGUAGE NOTE:END ************************************************/
   virtual int staticmembervariableHandler(Node *n) {
     return Language::staticmembervariableHandler(n);
   }
+
+  /* ---------------------------------------------------------------------
+   * external runtime generation
+   * --------------------------------------------------------------------- */
+   
+  /* This is to support the usage
+       SWIG -external-runtime <filename>
+     The code consists of two functions:
+       String *runtimeCode()  // returns a large string with all the runtimes in
+       String *defaultExternalRuntimeFilename() // returns the default filename
+     I an writing a generic solution, even though SWIG-Lua only has one file right now...
+  */
+  String *runtimeCode() {
+    String *s = NewString("");
+    const char* filenames[]={"luarun.swg",0};       // must be 0 termiated
+    String *sfile;
+    for (int i=0;filenames[i]!=0;i++) {
+      sfile = Swig_include_sys(filenames[i]);
+      if (!sfile) {
+        Printf(stderr, "*** Unable to open '%s'\n",filenames[i]);
+      } else {
+        Append(s, sfile);
+        Delete(sfile);
+      }
+    }
+    
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    return NewString("swigluarun.h");
+  }
 };
 
 /* NEW LANGUAGE NOTE:***********************************************
