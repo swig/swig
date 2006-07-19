@@ -7,24 +7,29 @@
 %ffargs(strings_convert="t");
 
 /* typemaps for argument and result type conversions. */
-%typemap(lin,numinputs=1)	SWIGTYPE 	"(let (($out $in))\n  $body)";
+%typemap(lin,numinputs=1)	SWIGTYPE 	"(cl::let (($out $in))\n  $body)";
 
 %typemap(lout) bool, char, unsigned char, signed char,
                short, signed short, unsigned short,
                int, signed int, unsigned int,
                long, signed long, unsigned long,
                float, double, long double, char *, void *,
-               enum SWIGTYPE    "(setq ACL_ffresult $body)";
+               enum SWIGTYPE    "(cl::setq ACL_ffresult $body)";
 %typemap(lout) void "$body";
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
-               SWIGTYPE &       "(setq ACL_ffresult (make-instance '$lclass :foreign-address $body))";
+               SWIGTYPE &       
+%{ (let* ((address $body)
+	  (new-inst (make-instance '$lclass :foreign-address address)))
+     (when (and $owner (not (zerop address)))
+       (excl:schedule-finalization new-inst #'$ldestructor))
+     (setq ACL_ffresult new-inst)) %}
 
-%typemap(lout) SWIGTYPE         "(let* ((address $body)\n         (new-inst (make-instance '$lclass :foreign-address address)))\n    (unless (zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (setq ACL_ffresult new-inst))";
+%typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
 
-%typemap(lisptype) bool "boolean";
-%typemap(lisptype) char "character";
-%typemap(lisptype) unsigned char "integer";
-%typemap(lisptype) signed char "integer";
+%typemap(lisptype) bool "cl:boolean";
+%typemap(lisptype) char "cl:character";
+%typemap(lisptype) unsigned char "cl:integer";
+%typemap(lisptype) signed char "cl:integer";
 
 %typemap(ffitype) bool ":int";
 %typemap(ffitype) char ":char";
@@ -122,15 +127,15 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 /* This maps C/C++ types to Lisp classes for overload dispatch */
 
 %typemap(lispclass) bool "t";
-%typemap(lispclass) char "character";
+%typemap(lispclass) char "cl:character";
 %typemap(lispclass) unsigned char, signed char,
                     short, signed short, unsigned short,
                     int, signed int, unsigned int,
                     long, signed long, unsigned long,
-                    enum SWIGTYPE       "integer";
-%typemap(lispclass) float "single-float";
-%typemap(lispclass) double "double-float";
-%typemap(lispclass) char * "string";
+                    enum SWIGTYPE       "cl:integer";
+%typemap(lispclass) float "cl:single-float";
+%typemap(lispclass) double "cl:double-float";
+%typemap(lispclass) char * "cl:string";
 
 %typemap(out) bool                          "$result = (int)$1;";
 %typemap(out) char, unsigned char, signed char,
@@ -156,21 +161,21 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 %typecheck(SWIG_TYPECHECK_UNICHAR) wchar_t { $1 = 1; };
 
 %typemap(in)        wchar_t "$1 = $input;";
-%typemap(lin,numinputs=1)       wchar_t "(let (($out (char-code $in)))\n  $body)";
+%typemap(lin,numinputs=1)       wchar_t "(cl::let (($out (char-code $in)))\n  $body)";
 %typemap(lin,numinputs=1)       wchar_t* "(excl:with-native-string ($out $in
 :external-format #+little-endian :fat-le #-little-endian :fat)\n
 $body)"
 
 %typemap(out)       wchar_t "$result = $1;";
-%typemap(lout)      wchar_t "(setq ACL_ffresult (code-char $body))";
-%typemap(lout)      wchar_t* "(setq ACL_ffresult (excl:native-to-string $body
+%typemap(lout)      wchar_t "(cl::setq ACL_ffresult (cl::code-char $body))";
+%typemap(lout)      wchar_t* "(cl::setq ACL_ffresult (excl:native-to-string $body
 :external-format #+little-endian :fat-le #-little-endian :fat))";
 
 %typemap(ffitype)   wchar_t ":unsigned-short";
 %typemap(lisptype)  wchar_t "";
 %typemap(ctype)     wchar_t "wchar_t";
-%typemap(lispclass) wchar_t "character";
-%typemap(lispclass) wchar_t* "string";
+%typemap(lispclass) wchar_t "cl:character";
+%typemap(lispclass) wchar_t* "cl:string";
 //////////////////////////////////////////////////////////////
 
 /* name conversion for overloaded operators. */
@@ -249,156 +254,161 @@ $body)"
 ;;; specify its name.
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-   (defparameter *swig-export-list* nil))
+   (cl::defparameter *swig-export-list* nil))
 
-(defconstant *void* :..void..)
+(cl::defconstant *void* :..void..)
 
 ;; parsers to aid in finding SWIG definitions in files.
-(defun scm-p1 (form)
-  (let* ((info (second form))
+(cl::defun scm-p1 (form)
+  (let* ((info (cl::second form))
 	 (id (car info))
-	 (id-args (if (eq (car form) 'swig-dispatcher)
-		      (cdr info)
-		      (cddr info))))
-    (apply *swig-identifier-converter* id 
-	   (progn (when (eq (car form) 'swig-dispatcher)
-		    (remf id-args :arities))
+	 (id-args (if (eq (cl::car form) 'swig-dispatcher)
+		      (cl::cdr info)
+		      (cl::cddr info))))
+    (cl::apply *swig-identifier-converter* id 
+	   (cl::progn (cl::when (cl::eq (cl::car form) 'swig-dispatcher)
+		    (cl::remf id-args :arities))
 		  id-args))))
 
-(defmacro defswig1 (name (&rest args) &body body)
-  `(progn (defmacro ,name ,args
+(cl::defmacro defswig1 (name (&rest args) &body body)
+  `(cl::progn (cl::defmacro ,name ,args
 	    ,@body)
 	  (excl::define-simple-parser ,name scm-p1)) )
 
-(defmacro defswig2 (name (&rest args) &body body)
-  `(progn (defmacro ,name ,args
+(cl::defmacro defswig2 (name (&rest args) &body body)
+  `(cl::progn (cl::defmacro ,name ,args
 	    ,@body)
 	  (excl::define-simple-parser ,name second)))
 
 (defun read-symbol-from-string (string)
-  (multiple-value-bind (result position)
-      (read-from-string string nil "eof" :preserve-whitespace t)
-    (if (and (symbolp result) (eql position (length string)))
+  (cl::multiple-value-bind (result position)
+      (cl::read-from-string string nil "eof" :preserve-whitespace t)
+    (cl::if (cl::and (cl::symbolp result)
+    	             (cl::eql position (cl::length string)))
         result
-	(multiple-value-bind (sym)
-	    (intern string)
+	(cl::multiple-value-bind (sym)
+	    (cl::intern string)
 	  sym))))
 
-(defun full-name (id type arity class)
-  (case type
-    (:getter (format nil "~@[~A_~]~A" class id))
-    (:constructor (format nil "new_~A~@[~A~]" id arity))
-    (:destructor (format nil "delete_~A" id))
-    (:type (format nil "ff_~A" id))
-    (:ff-operator (format nil "ffi_~A" id))
-    (otherwise (format nil "~@[~A_~]~A~@[~A~]"
+(cl::defun full-name (id type arity class)
+  (cl::case type
+    (:getter (cl::format nil "~@[~A_~]~A" class id))
+    (:constructor (cl::format nil "new_~A~@[~A~]" id arity))
+    (:destructor (cl::format nil "delete_~A" id))
+    (:type (cl::format nil "ff_~A" id))
+    (:ff-operator (cl::format nil "ffi_~A" id))
+    (otherwise (cl::format nil "~@[~A_~]~A~@[~A~]"
                        class id arity))))
   
-(defun identifier-convert-null (id &key type class arity)
-  (if (eq type :setter)
-      `(setf ,(identifier-convert-null
+(cl::defun identifier-convert-null (id &key type class arity)
+  (cl::if (cl::eq type :setter)
+      `(cl::setf ,(identifier-convert-null
                id :type :getter :class class :arity arity))
       (read-symbol-from-string (full-name id type arity class))))
 
-(defun identifier-convert-lispify (cname &key type class arity)
-  (assert (stringp cname))
-  (when (eq type :setter)
-    (return-from identifier-convert-lispify
-      `(setf ,(identifier-convert-lispify
+(cl::defun identifier-convert-lispify (cname &key type class arity)
+  (cl::assert (cl::stringp cname))
+  (cl::when (cl::eq type :setter)
+    (cl::return-from identifier-convert-lispify
+      `(cl::setf ,(identifier-convert-lispify
                cname :type :getter :class class :arity arity))))
-  (setq cname (full-name cname type arity class))
-  (if (eq type :constant)
-      (setf cname (format nil "*~A*" cname)))
-  (setf cname (replace-regexp cname "_" "-"))
-  (let ((lastcase :other)
-        newcase char res)
-    (dotimes (n (length cname))
-      (setf char (schar cname n))
-      (if* (alpha-char-p char)
+  (cl::setq cname (full-name cname type arity class))
+  (cl::if (cl::eq type :constant)
+      (cl::setf cname (cl::format nil "*~A*" cname)))
+  (cl::setf cname (excl::replace-regexp cname "_" "-"))
+  (cl::let ((lastcase :other)
+       	    newcase char res)
+    (cl::dotimes (n (cl::length cname))
+      (cl::setf char (cl::schar cname n))
+      (excl::if* (cl::alpha-char-p char)
          then
-              (setf newcase (if (upper-case-p char) :upper :lower))
+              (cl::setf newcase (cl::if (cl::upper-case-p char) :upper :lower))
 
-              (when (or (and (eq lastcase :upper) (eq newcase :lower))
-                        (and (eq lastcase :lower) (eq newcase :upper)))
+              (cl::when (cl::or (cl::and (cl::eq lastcase :upper)
+	      				 (cl::eq newcase :lower))
+                                (cl::and (cl::eq lastcase :lower)
+					 (cl::eq newcase :upper)))
                 ;; case change... add a dash
-                (push #\- res)
-                (setf newcase :other))
+                (cl::push #\- res)
+                (cl::setf newcase :other))
 
-              (push (char-downcase char) res)
+              (cl::push (cl::char-downcase char) res)
 
-              (setf lastcase newcase)
+              (cl::setf lastcase newcase)
 
          else
-              (push char res)
-              (setf lastcase :other)))
-    (read-symbol-from-string (coerce (nreverse res) 'string))))
+              (cl::push char res)
+              (cl::setf lastcase :other)))
+    (read-symbol-from-string (cl::coerce (cl::nreverse res) 'string))))
 
-(defun id-convert-and-export (name &rest kwargs)
-  (multiple-value-bind (symbol package)
-      (apply *swig-identifier-converter* name kwargs)
-    (let ((args (list (if (consp symbol) (cadr symbol) symbol)
-                      (or package *package*))))
-      (apply #'export args)
-      (pushnew args *swig-export-list*))
+(cl::defun id-convert-and-export (name &rest kwargs)
+  (cl::multiple-value-bind (symbol package)
+      (cl::apply *swig-identifier-converter* name kwargs)
+    (cl::let ((args (cl::list (cl::if (cl::consp symbol)
+    	     	    	         (cl::cadr symbol) symbol)
+                      (cl::or package cl::*package*))))
+      (cl::apply #'cl::export args)
+      (cl::pushnew args *swig-export-list*))
     symbol))
 
-(defmacro swig-insert-id (name namespace &key (type :type) class)
-  `(let ((*package* (find-package ,(package-name-for-namespace namespace))))
+(cl::defmacro swig-insert-id (name namespace &key (type :type) class)
+  `(cl::let ((cl::*package* (cl::find-package ,(package-name-for-namespace namespace))))
     (id-convert-and-export ,name :type ,type :class ,class)))
 
 (defswig2 swig-defconstant (string value)
-  (let ((symbol (id-convert-and-export string :type :constant)))
-    `(eval-when (compile load eval)
-       (defconstant ,symbol ,value))))
+  (cl::let ((symbol (id-convert-and-export string :type :constant)))
+    `(cl::eval-when (compile load eval)
+       (cl::defconstant ,symbol ,value))))
 
-(defun maybe-reorder-args (funcname arglist)
+(cl::defun maybe-reorder-args (funcname arglist)
   ;; in the foreign setter function the new value will be the last argument
   ;; in Lisp it needs to be the first
-  (if (consp funcname)
-      (append (last arglist) (butlast arglist))
+  (cl::if (cl::consp funcname)
+      (cl::append (cl::last arglist) (cl::butlast arglist))
       arglist))
 
-(defun maybe-return-value (funcname arglist)
+(cl::defun maybe-return-value (funcname arglist)
   ;; setf functions should return the new value
-  (when (consp funcname)
-    `(,(if (consp (car arglist))
-           (caar arglist)
-           (car arglist)))))
+  (cl::when (cl::consp funcname)
+    `(,(cl::if (cl::consp (cl::car arglist))
+           (cl::caar arglist)
+           (cl::car arglist)))))
 
-(defun swig-anyvarargs-p (arglist)
-  (member :SWIG__varargs_ arglist))
+(cl::defun swig-anyvarargs-p (arglist)
+  (cl::member :SWIG__varargs_ arglist))
 
 (defswig1 swig-defun ((name &optional (mangled-name name)
                             &key (type :operator) class arity)
                       arglist kwargs
 		      &body body)
-  (let* ((symbol (id-convert-and-export name :type type
+  (cl::let* ((symbol (id-convert-and-export name :type type
                           :arity arity :class class))
-         (mangle (if* (eq name mangled-name)
+             (mangle (excl::if* (cl::eq name mangled-name)
                       then (id-convert-and-export 
-				    (cond ((eq type :setter) (format nil "~A-set" name))
-					  ((eq type :getter) (format nil "~A-get" name))
+				    (cl::cond
+					  ((cl::eq type :setter) (cl::format nil "~A-set" name))
+					  ((cl::eq type :getter) (cl::format nil "~A-get" name))
 					  (t name))
 				    :type :ff-operator :arity arity :class class)
-                      else (intern mangled-name)))
+                      else (cl::intern mangled-name)))
          (defun-args (maybe-reorder-args
                       symbol
-		      (mapcar #'car (and (not (equal arglist '(:void)))
-					 (loop as i in arglist
-					       when (eq (car i) :p+)
-					       collect (cdr i))))))
-	 (ffargs (if (equal arglist '(:void))
+		      (cl::mapcar #'cl::car (cl::and (cl::not (cl::equal arglist '(:void)))
+					 (cl::loop as i in arglist
+					       when (cl::eq (cl::car i) :p+)
+					       collect (cl::cdr i))))))
+	 (ffargs (cl::if (cl::equal arglist '(:void))
 	 	      arglist
-		    (mapcar #'cdr arglist)))
+		    (cl::mapcar #'cl::cdr arglist)))
 	 )
-    (when (swig-anyvarargs-p ffargs)
-      (setq ffargs '()))
-    `(eval-when (compile load eval)
+    (cl::when (swig-anyvarargs-p ffargs)
+      (cl::setq ffargs '()))
+    `(cl::eval-when (compile load eval)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
-       (macrolet ((swig-ff-call (&rest args)
-                    (cons ',mangle args)))
-         (defun ,symbol ,defun-args
+       (cl::macrolet ((swig-ff-call (&rest args)
+                      (cl::cons ',mangle args)))
+         (cl::defun ,symbol ,defun-args
            ,@body
            ,@(maybe-return-value symbol defun-args))))))
 
@@ -406,106 +416,107 @@ $body)"
 	  	                &key (type :operator) class arity)
                           ffargs kwargs
                           &body body)
-  (let* ((symbol (id-convert-and-export name :type type
+  (cl::let* ((symbol (id-convert-and-export name :type type
                           :arity arity :class class))
-         (mangle (intern mangled-name))
+         (mangle (cl::intern mangled-name))
          (defmethod-args (maybe-reorder-args
                           symbol
-                          (unless (equal ffargs '(:void))
-                            (loop for (lisparg name dispatch) in ffargs
+                          (cl::unless (cl::equal ffargs '(:void))
+                            (cl::loop for (lisparg name dispatch) in ffargs
 			    	  when (eq lisparg :p+)
                                   collect `(,name ,dispatch)))))
-         (ffargs (if (equal ffargs '(:void))
+         (ffargs (cl::if (cl::equal ffargs '(:void))
                      ffargs
-                     (loop for (nil name nil . ffi) in ffargs
+                     (cl::loop for (nil name nil . ffi) in ffargs
                            collect `(,name ,@ffi)))))
-    `(eval-when (compile load eval)
+    `(cl::eval-when (compile load eval)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
-       (macrolet ((swig-ff-call (&rest args)
-                    (cons ',mangle args)))
-         (defmethod ,symbol ,defmethod-args
+       (cl::macrolet ((swig-ff-call (&rest args)
+                      (cl::cons ',mangle args)))
+         (cl::defmethod ,symbol ,defmethod-args
            ,@body
            ,@(maybe-return-value symbol defmethod-args))))))
 
 (defswig1 swig-dispatcher ((name &key (type :operator) class arities))
-  (let ((symbol (id-convert-and-export name
+  (cl::let ((symbol (id-convert-and-export name
                          :type type :class class)))
-    `(eval-when (compile load eval)
-       (defun ,symbol (&rest args)
-         (case (length args)
-           ,@(loop for arity in arities
+    `(cl::eval-when (compile load eval)
+       (cl::defun ,symbol (&rest args)
+         (cl::case (cl::length args)
+           ,@(cl::loop for arity in arities
                    for symbol-n = (id-convert-and-export name
                                            :type type :class class :arity arity)
-                   collect `(,arity (apply #',symbol-n args)))
-	   (t (error "No applicable wrapper-methods for foreign call ~a with args ~a of classes ~a" ',symbol args (mapcar #'(lambda (x) (class-name (class-of x))) args)))
+                   collect `(,arity (cl::apply #',symbol-n args)))
+	   (t (cl::error "No applicable wrapper-methods for foreign call ~a with args ~a of classes ~a" ',symbol args (cl::mapcar #'(cl::lambda (x) (cl::class-name (cl::class-of x))) args)))
 	   )))))
 
 (defswig2 swig-def-foreign-stub (name)
-  (let ((lsymbol (id-convert-and-export name :type :class))
-	(symbol (id-convert-and-export name :type :type)))
-    `(eval-when (compile load eval)
+  (cl::let ((lsymbol (id-convert-and-export name :type :class))
+	    (symbol (id-convert-and-export name :type :type)))
+    `(cl::eval-when (compile load eval)
 	(ff:def-foreign-type ,symbol (:class ))
-	(defclass ,lsymbol (ff:foreign-pointer) ()))))
+	(cl::defclass ,lsymbol (ff:foreign-pointer) ()))))
 
 (defswig2 swig-def-foreign-class (name supers &rest rest)
-  (let ((lsymbol (id-convert-and-export name :type :class))
-	(symbol (id-convert-and-export name :type :type)))
-    `(eval-when (compile load eval)
+  (cl::let ((lsymbol (id-convert-and-export name :type :class))
+	    (symbol (id-convert-and-export name :type :type)))
+    `(cl::eval-when (compile load eval)
        (ff:def-foreign-type ,symbol ,@rest)
-       (defclass ,lsymbol ,supers
+       (cl::defclass ,lsymbol ,supers
 	 ((foreign-type :initform ',symbol :initarg :foreign-type
 			:accessor foreign-pointer-type))))))
 
 (defswig2 swig-def-foreign-type (name &rest rest)
-  (let ((symbol (id-convert-and-export name :type :type)))
-    `(eval-when (compile load eval)
+  (cl::let ((symbol (id-convert-and-export name :type :type)))
+    `(cl::eval-when (compile load eval)
        (ff:def-foreign-type ,symbol ,@rest))))
 
 (defswig2 swig-def-synonym-type (synonym of ff-synonym)
-  `(eval-when (compile load eval)
-     (setf (find-class ',synonym) (find-class ',of))
+  `(cl::eval-when (compile load eval)
+     (cl::setf (cl::find-class ',synonym) (cl::find-class ',of))
      (ff:def-foreign-type ,ff-synonym (:struct ))))
 
-(defun package-name-for-namespace (namespace)
-  (list-to-delimited-string
-   (cons *swig-module-name*
-         (mapcar #'(lambda (name)
-                     (string
-                      (funcall *swig-identifier-converter*
+(cl::defun package-name-for-namespace (namespace)
+  (excl::list-to-delimited-string
+   (cl::cons *swig-module-name*
+         (cl::mapcar #'(cl::lambda (name)
+                     (cl::string
+                      (cl::funcall *swig-identifier-converter*
                                name
                                :type :namespace)))
                  namespace))
    "."))
 
-(defmacro swig-defpackage (namespace)
-  (let* ((parent-namespaces (maplist #'reverse (cdr (reverse namespace))))
-         (parent-strings (mapcar #'package-name-for-namespace
+(cl::defmacro swig-defpackage (namespace)
+  (cl::let* ((parent-namespaces (cl::maplist #'cl::reverse (cl::cdr (cl::reverse namespace))))
+             (parent-strings (cl::mapcar #'package-name-for-namespace
                                  parent-namespaces))
-         (string (package-name-for-namespace namespace)))
-    `(eval-when (compile load eval)
-      (defpackage ,string
-        (:use :common-lisp :ff :swig :excl
-              ,@parent-strings ,*swig-module-name*)))))
+             (string (package-name-for-namespace namespace)))
+    `(cl::eval-when (compile load eval)
+      (cl::defpackage ,string
+        (:use :swig :ff #+ignore '(:common-lisp :ff :excl)
+              ,@parent-strings ,*swig-module-name*)
+	(:import-from :cl "*")))))
 
-(defmacro swig-in-package (namespace)
-  `(eval-when (compile load eval)
-    (in-package ,(package-name-for-namespace namespace))))
+(cl::defmacro swig-in-package (namespace)
+  `(cl::eval-when (compile load eval)
+    (cl::in-package ,(package-name-for-namespace namespace))))
 
 (defswig2 swig-defvar (name mangled-name &key type)
-  (let ((symbol (id-convert-and-export name :type type)))
-    `(eval-when (compile load eval)
+  (cl::let ((symbol (id-convert-and-export name :type type)))
+    `(cl::eval-when (compile load eval)
       (ff:def-foreign-variable (,symbol ,mangled-name)))))
 
 ) ;; eval-when
 
-(eval-when (compile eval)
-  (flet ((starts-with-p (str prefix)
-           (and (>= (length str) (length prefix))
-                (string= str prefix :end1 (length prefix)))))
-    (export (loop for sym being each present-symbol of *package*
-                  when (or (starts-with-p (symbol-name sym) (symbol-name :swig-))
-                           (starts-with-p (symbol-name sym) (symbol-name :identifier-convert-)))
+(cl::eval-when (compile eval)
+  (cl::flet ((starts-with-p (str prefix)
+              (cl::and (cl::>= (cl::length str) (cl::length prefix))
+                (cl::string= str prefix :end1 (cl::length prefix)))))
+    (cl::export (cl::loop for sym being each present-symbol of cl::*package*
+                  when (cl::or (starts-with-p (cl::symbol-name sym) (cl::symbol-name :swig-))
+                           (starts-with-p (cl::symbol-name sym) (cl::symbol-name :identifier-convert-)))
                   collect sym))))
 
 %}
