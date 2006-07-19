@@ -18,7 +18,6 @@
  * %template (floatlist) std::list<float>;
  * ----------------------------------------------------------------------------- */
 
-%include "inout_typemaps.i"\
 %module std_list
 %warnfilter(468) std::list;
 
@@ -72,6 +71,9 @@ namespace std{
 
 	%extend 
 	    {
+	        %typemap(lout) T &__getitem__ "(cl::setq ACL_ffresult (ff:fslot-value-typed '$*out_fftype :c $body))";
+		%typemap(lout) T *__getitem__ "(cl::setq ACL_ffresult (make-instance '$lclass :foreign-address $body))";
+
 		const_reference __getitem__(int i) throw (std::out_of_range) 
 		    {
 			std::list<T>::iterator first = self->begin(); 

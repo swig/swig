@@ -35,42 +35,42 @@
 // $in_fftype, $*in_fftype
 
 INOUT_TYPEMAP(int,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(short,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(long,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(unsigned int,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(unsigned short,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(unsigned long,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(char,
-	      (push (code-char (ff:fslot-value-typed (quote $*in_fftype) :c $out))
+	      (cl::push (code-char (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out))
 		    ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(float,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(double,
-	      (push (ff:fslot-value-typed (quote $*in_fftype) :c $out) ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) $in));
+	      (cl::push (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) ACL_result),
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) $in));
 INOUT_TYPEMAP(bool,
-	      (push (not (zerop (ff:fslot-value-typed (quote $*in_fftype) :c $out)))
+	      (cl::push (not (zerop (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out)))
 		    ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out) (if $in 1 0)));
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out) (if $in 1 0)));
 
 INOUT_TYPEMAP(char *,
-              (push (ff:char*-to-string (ff:fslot-value-typed (quote $*in_fftype) :c $out))
+              (cl::push (ff:char*-to-string (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out))
 		    ACL_result),
-	      (setf (ff:fslot-value-typed (quote $*in_fftype) :c $out)
+	      (cl::setf (ff:fslot-value-typed (cl::quote $*in_fftype) :c $out)
 		    (ff:string-to-char* $in)))
 
 %typemap(lisptype) bool *INPUT, bool &INPUT "boolean";

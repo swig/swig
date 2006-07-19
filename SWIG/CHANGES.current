@@ -1,5 +1,12 @@
 Version 1.3.30 (in progress)
 ============================
+07/19/2006: mutandiz
+	    [allegrocl]
+	    - Add std_string.i support.
+	    - Add newobject patch submitted by mkoeppe (thanks!)
+	    - Fix type name mismatch issue for nested type definitions.
+	      specifically typedefs in templated class defns.
+
 07/18/2006: mgossage
 	    Bugfix #1522858
 	    updated lua.cxx to support -external-runtime command

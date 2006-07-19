@@ -322,7 +322,7 @@ void add_defined_foreign_type(Node *n,
   Printf(stderr,"    templated = '%x', classDecl = '%x'\n", templated, cDeclName);
 #endif
   if(n) {
-    name=Getattr(n,"sym:name");
+    if(!name) name=Getattr(n,"sym:name");
     if(!name) name = Getattr(n,"name");
     if(templated) {
       k = namespaced_name(n);
@@ -381,8 +381,7 @@ void add_defined_foreign_type(Node *n,
 
   if(!val || overwrite || is_fwd_ref) {
 #ifdef ALLEGROCL_CLASS_DEBUG
-    Printf(stderr, "Adding defined type '%s' = '%s' '%s' (overwrite=%d)\n", 
-           k, ns, name, overwrite);
+    Printf(stderr, "Adding defined type '%s' = '%s' '%s' (overwrite=%d, in-class=%d)\n", k, ns, name, overwrite, in_class);
 #endif
     String *mangled_name_gen = 
       NewStringf("#.(swig-insert-id \"%s\" %s :type :type)", name, ns_list);
@@ -602,7 +601,7 @@ void add_defined_foreign_type(Node *n,
       Delete(mangled_lname_gen);
   } else {
     Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n),
-		 "Attempting to store a foreign type that exists: %s\n", k);
+		 "Attempting to store a foreign type that exists: %s (%s)\n", k, val);
   }
 
   Delete(ns_list);
@@ -2350,7 +2349,7 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 
   SwigType *result_type = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
-  Printf(wrap->code,"(let ((ACL_ffresult %s:*void*)\n        ACL_result)\n  $body\n  (if (eq ACL_ffresult %s:*void*)\n    (values-list ACL_result)\n   (values-list (cons ACL_ffresult ACL_result))))", swig_package, swig_package);
+  Printf(wrap->code,"(cl::let ((ACL_ffresult %s:*void*)\n        ACL_result)\n  $body\n  (cl::if (cl::eq ACL_ffresult %s:*void*)\n    (cl::values-list ACL_result)\n   (cl::values-list (cl::cons ACL_ffresult ACL_result))))", swig_package, swig_package);
 
   Parm *p;
   int largnum = 0, argnum=0, first=1;
@@ -2461,12 +2460,27 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
   }
 
   String *lout = Getattr(n,"tmap:lout");
+  Replaceall(lout, "$owner", GetFlag(n, "feature:new") ? "t" : "nil");
+
   Replaceall(wrap->code,"$body", lout);
   // $lclass handling.
   String *lclass = (String *)0;
   SwigType *parsed = Swig_cparse_type(Getattr(n,"tmap:ctype"));
   //  SwigType *cl_t = SwigType_typedef_resolve_all(parsed);
   SwigType *cl_t = class_from_class_or_class_ref(parsed);
+  String *out_ffitype = compose_foreign_type(parsed);
+  String *deref_out_ffitype;
+  String *out_temp = Copy(parsed);
+
+  if(SwigType_ispointer(out_temp)) {
+    SwigType_pop(out_temp);
+    deref_out_ffitype = compose_foreign_type(out_temp);
+  } else {
+    deref_out_ffitype = Copy(out_ffitype);
+  }
+  
+  Delete(out_temp);
+
   Delete(parsed);
   int isPtrReturn = 0;
 
@@ -2494,7 +2508,8 @@ int ALLEGROCL :: emit_defun(Node *n, File *f_cl) {
 #endif      
 
   if(lclass) Replaceall(wrap->code,"$lclass", lclass);
-
+  if(out_ffitype) Replaceall(wrap->code,"$out_fftype", out_ffitype);
+  if(deref_out_ffitype) Replaceall(wrap->code,"$*out_fftype", deref_out_ffitype);
   //  if(Replaceall(wrap->code,"$lclass", lclass) && !isPtrReturn) {
   //    Swig_warning(WARN_LANG_RETURN_TYPE,Getfile(n), Getline(n),
   //                 "While Wrapping %s, replaced a $lclass reference when return type is non-pointer %s!\n",
