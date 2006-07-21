@@ -14,6 +14,9 @@
 Only std::string and const std::string& are typemaped
 they are converted to the Lua strings automatically
 
+std::string& and std::string* are not
+they must be explicitly managed (see below)
+
 eg.
 
 std::string test_value(std::string x) {
@@ -30,20 +33,35 @@ assert(s==s2)
 
 %naturalvar std::string;
 
-%typemap(in,checkfn="lua_isstring") std::string
-%{$1 = (char*)lua_tostring(L, $input);%}
+/*
+Bug report #1526022 by neomantra
+Lua strings and std::string can contain embeded zero's
+Therefore a standard out typemap should not be:
+  lua_pushstring(L,$1.c_str());
+but
+  lua_pushlstring(L,$1.data(),$1.size());
 
+Similarly for getting the string
+  $1 = (char*)lua_tostring(L, $input);
+becomes
+  $1.assign(lua_tostring(L,$input),lua_strlen(L,$input));
+  
+Not using: lua_tolstring() as this is only found in Lua 5.1 & not 5.0.2
+*/
+
+%typemap(in,checkfn="lua_isstring") std::string
+%{$1.assign(lua_tostring(L,$input),lua_strlen(L,$input));%}
 %typemap(out) std::string
-%{  lua_pushstring(L,$1.c_str()); SWIG_arg++;%}
+%{ lua_pushlstring(L,$1.data(),$1.size()); SWIG_arg++;%}
 
 %typemap(in,checkfn="lua_isstring")	const std::string& (std::string temp)
-%{temp=(char*)lua_tostring(L, $input); $1=&temp;%}
+%{temp.assign(lua_tostring(L,$input),lua_strlen(L,$input)); $1=&temp;%}
+
 %typemap(out) const std::string&
-%{  lua_pushstring(L,$1->c_str()); SWIG_arg++;%}
+%{ lua_pushlstring(L,$1->data(),$1->size()); SWIG_arg++;%}
 
 %typemap(throws) std::string,const std::string&
-%{lua_pushstring(L,$1.c_str());
-SWIG_fail; %}
+%{ lua_pushlstring(L,$1.data(),$1.size()); SWIG_fail;%}
 
 // and the typechecks
 %typecheck(SWIG_TYPECHECK_STRING) std::string,const std::string& {
@@ -68,7 +86,7 @@ typemaps to tell SWIG what to do.
 %typemap(in, numinputs=0) std::string &OUTPUT (std::string temp)
 %{ $1 = &temp; %}
 %typemap(argout) std::string &OUTPUT
-%{  lua_pushstring(L,$1.c_str()); SWIG_arg++;%}
+%{ lua_pushlstring(L,$1->data(),$1->size()); SWIG_arg++;%}
 %typemap(in) std::string &INOUT =const std::string &;
 %typemap(argout) std::string &INOUT = std::string &OUTPUT;
 
