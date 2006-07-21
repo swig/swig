@@ -491,3 +491,37 @@ void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_type_info *typ
 %{	SWIG_write_ptr_array(L,(void**)$1,$2,$*1_descriptor,0); SWIG_arg++; %}
 %typemap(freearg) (SWIGTYPE**INOUT,int)=(SWIGTYPE**INPUT,int);
 
+/* -----------------------------------------------------------------------------
+ *                          Pointer-Pointer typemaps
+ * ----------------------------------------------------------------------------- */
+/*
+This code is to deal with the issue for pointer-pointer's
+In particular for factory methods.
+
+for example take the following code segment:
+
+struct iMath;    // some structure
+int Create_Math(iMath** pptr); // its factory (assume it mallocs)
+
+to use it you might have the following C code:
+
+iMath* ptr;
+int ok;
+ok=Create_Math(&ptr);
+// do things with ptr
+//...
+free(ptr);
+
+With the following SWIG code
+%apply SWIGTYPE** OUTPUT{iMath **pptr };
+
+You can get natural wrappering in Lua as follows:
+ok,ptr=Create_Math() -- ptr is a iMath* which is returned with the int
+ptr=nil -- the iMath* will be GC'ed as normal
+*/
+
+%typemap(in,numinputs=0) SWIGTYPE** OUTPUT ($*ltype temp)
+%{  $1 = &temp; %}
+%typemap(argout) SWIGTYPE** OUTPUT
+%{SWIG_NewPointerObj(L,*$1,$*descriptor,1); SWIG_arg++; %}
+
