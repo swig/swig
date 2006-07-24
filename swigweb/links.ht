@@ -94,7 +94,9 @@ sure to check it out.
 <a href="http://codeworker.free.fr/">CodeWorker</a>. A universal parsing tool and source code generator.
 It lets you generate code by parsing existing languages or by creating and parsing your own language.<br>
 
-<a href="http://www.llnl.gov/casc/components/babel.html">Babel</a>Language interoperability using Interface Definition Language (IDL) techniques.<br>
+<a href="http://www.llnl.gov/casc/components/babel.html">Babel</a>. Language interoperability using Interface Definition Language (IDL) techniques.<br>
+
+<a href="http://pyinstant.sf.net">Instance</a>. Python module that allows for instant inlining of C and C++ code in Python. It is a small Python module built on top of SWIG.<br>
 
 </blockquote>
 
