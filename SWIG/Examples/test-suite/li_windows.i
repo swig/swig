@@ -2,17 +2,19 @@
 
 %include "windows.i"
 
-%inline %{
+%{
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
   #include <windows.h>
 #else
-  // Use equivalent typs for non-windows systems
+  // Use equivalent types for non-windows systems
   #define __int8   char
   #define __int16  short
   #define __int32  int
   #define __int64  long long
 #endif
+%}
 
+%inline %{
 // Non ISO integral types
          __int8   int8_val (         __int8  i) { return i; }
          __int16  int16_val(         __int16 i) { return i; }
