@@ -267,7 +267,7 @@
   sz = JCALL1(GetArrayLength, jenv, ba);
   $1 = 0;
   for(i=0; i<sz; i++) {
-    $1 = ($1 << 8) | (unsigned long long)(unsigned char)bae[i];
+    $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -291,7 +291,7 @@
   sz = JCALL1(GetArrayLength, jenv, ba);
   $1 = 0;
   for(i=0; i<sz; i++) {
-    $1 = ($1 << 8) | (unsigned long long)(unsigned char)bae[i];
+    $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -496,7 +496,7 @@
   $1 = &temp;
   temp = 0;
   for(i=0; i<sz; i++) {
-    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
+    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -522,7 +522,7 @@
   $1 = &temp;
   temp = 0;
   for(i=0; i<sz; i++) {
-    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
+    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }

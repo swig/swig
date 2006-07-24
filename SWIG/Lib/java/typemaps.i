@@ -124,7 +124,7 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
   for(i=0; i<sz; i++) {
-    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
+    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
@@ -419,7 +419,7 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
   for(i=0; i<sz; i++) {
-    temp = (temp << 8) | (unsigned long long)(unsigned char)bae[i];
+    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
