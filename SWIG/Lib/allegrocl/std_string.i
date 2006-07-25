@@ -82,6 +82,7 @@ namespace std {
 	    bool operator >= ( const basic_string<charT> &other ) const {
 		return self->compare( other ) != -1;
 	    }
+
 	}
     };
 
@@ -94,11 +95,19 @@ namespace std {
     typedef basic_string<char> string;
     typedef basic_string<wchar_t> wstring;
 
+    // automatically convert constant std::strings to cl:strings
     %typemap(ctype) string "char *";
     %typemap(in) string "$1 = string($input);";
     %typemap(out) string "$result = (char *)(&$1)->c_str();";
     %typemap(lisptype) string "cl:string";
     %typemap(lout) string "(cl::setq ACL_ffresult $body)";
+
+    %typemap(ctype) wstring "wchar_t *";
+    %typemap(in) wstring "$1 = string($input);";
+    %typemap(out) wstring "$result = (wchar_t *)(&$1)->c_str();";
+    %typemap(lisptype) wstring "cl:string";
+    %typemap(lout) wstring "(cl::setq ACL_ffresult (excl:native-to-string $body
+:external-format #+little-endian :fat-le #-little-endian :fat))";
 
     /* Overloading check */
 //     %typemap(in) string {
