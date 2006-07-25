@@ -977,13 +977,7 @@ String * convert_literal(String *literal, String *type, bool try_to_split) {
     Delete(num); Delete(trimmed);
     return NewStringf("\"%s\"", num_param);
   }
-  else if (allegrocl->validIdentifier(num)) {
-    /* convert C/C++ identifiers to CL symbols */
-    res = NewStringf("#.(swig-insert-id \"%s\" %s :type :constant)", num, ns);
-    Delete(num); Delete(trimmed); Delete(ns);
-    return res;
-  }
-  else if (Len(num) >= 1 && isdigit(s[0])) {
+  else if (Len(num) >= 1 && (isdigit(s[0]) || s[0] == '+' || s[0] == '-')) {
     /* use CL syntax for numbers */
     String *oldnum = Copy(num);
     int usuffixes = Replaceall(num, "u", "") + Replaceall(num, "U", "");
@@ -1005,6 +999,12 @@ String * convert_literal(String *literal, String *type, bool try_to_split) {
       res=num;
     }
     Delete(oldnum); Delete(trimmed);
+    return res;
+  } 
+  else if (allegrocl->validIdentifier(num)) {
+    /* convert C/C++ identifiers to CL symbols */
+    res = NewStringf("#.(swig-insert-id \"%s\" %s :type :constant)", num, ns);
+    Delete(num); Delete(trimmed); Delete(ns);
     return res;
   } else {
     Delete(trimmed);

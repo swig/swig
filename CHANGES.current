@@ -1,5 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
+07/25/2006: mutandiz
+	    [allegrocl]
+	    more additions to std::string, some tweaks and small bug fixes
+	    -nocwrap mode.
+
 07/21/2006: mgossage
 	    Bugfix #1526022 pdated std::string to support strings with '\0' inside them
 	    updated typemaps.i to add support for pointer to pointers

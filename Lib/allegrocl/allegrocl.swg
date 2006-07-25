@@ -18,11 +18,11 @@
 %typemap(lout) void "$body";
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
                SWIGTYPE &       
-%{ (let* ((address $body)
-	  (new-inst (make-instance '$lclass :foreign-address address)))
-     (when (and $owner (not (zerop address)))
+%{ (cl:let* ((address $body)
+	  (new-inst (cl:make-instance '$lclass :foreign-address address)))
+     (cl:when (cl:and $owner (cl:not (cl:zerop address)))
        (excl:schedule-finalization new-inst #'$ldestructor))
-     (setq ACL_ffresult new-inst)) %}
+     (cl:setq ACL_ffresult new-inst)) %}
 
 %typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
 
@@ -161,7 +161,7 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 %typecheck(SWIG_TYPECHECK_UNICHAR) wchar_t { $1 = 1; };
 
 %typemap(in)        wchar_t "$1 = $input;";
-%typemap(lin,numinputs=1)       wchar_t "(cl::let (($out (char-code $in)))\n  $body)";
+%typemap(lin,numinputs=1)       wchar_t "(cl::let (($out (cl:char-code $in)))\n  $body)";
 %typemap(lin,numinputs=1)       wchar_t* "(excl:with-native-string ($out $in
 :external-format #+little-endian :fat-le #-little-endian :fat)\n
 $body)"
@@ -296,6 +296,7 @@ $body)"
     (:constructor (cl::format nil "new_~A~@[~A~]" id arity))
     (:destructor (cl::format nil "delete_~A" id))
     (:type (cl::format nil "ff_~A" id))
+    (:slot id)
     (:ff-operator (cl::format nil "ffi_~A" id))
     (otherwise (cl::format nil "~@[~A_~]~A~@[~A~]"
                        class id arity))))
@@ -383,7 +384,7 @@ $body)"
 		      &body body)
   (cl::let* ((symbol (id-convert-and-export name :type type
                           :arity arity :class class))
-             (mangle (excl::if* (cl::eq name mangled-name)
+             (mangle (excl::if* (cl::string-equal name mangled-name)
                       then (id-convert-and-export 
 				    (cl::cond
 					  ((cl::eq type :setter) (cl::format nil "~A-set" name))
@@ -497,7 +498,7 @@ $body)"
       (cl::defpackage ,string
         (:use :swig :ff #+ignore '(:common-lisp :ff :excl)
               ,@parent-strings ,*swig-module-name*)
-	(:import-from :cl "*")))))
+	(:import-from :cl :* :nil :t)))))
 
 (cl::defmacro swig-in-package (namespace)
   `(cl::eval-when (compile load eval)
