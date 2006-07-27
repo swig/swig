@@ -42,6 +42,45 @@ public class director_classic_runme {
       check(person, "TargetLangGrandChild"); 
       person.delete();
     }
+
+    // Semis - don't override id() in target language
+    { 
+      Person person = new TargetLangSemiPerson();
+      check(person, "Person"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangSemiChild();
+      check(person, "Child"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangSemiGrandChild();
+      check(person, "GrandChild"); 
+      person.delete();
+    }
+
+    // Orphans - don't override id() in C++
+    { 
+      Person person = new OrphanPerson();
+      check(person, "Person"); 
+      person.delete();
+    }
+    { 
+      Person person = new OrphanChild();
+      check(person, "Child"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangOrphanPerson();
+      check(person, "TargetLangOrphanPerson"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangOrphanChild();
+      check(person, "TargetLangOrphanChild"); 
+      person.delete();
+    }
   }
 
   static void check(Person person, String expected) {
@@ -115,6 +154,63 @@ class TargetLangGrandChild extends GrandChild
   public String id()
   {
     String identifier = "TargetLangGrandChild";
+    return identifier;
+  }
+}
+
+// Semis - don't override id() in target language
+class TargetLangSemiPerson extends Person
+{
+  public TargetLangSemiPerson()
+  {
+    super();
+  }
+  // No id() override
+}
+
+class TargetLangSemiChild extends Child
+{
+  public TargetLangSemiChild()
+  {
+    super();
+  }
+  // No id() override
+}
+
+class TargetLangSemiGrandChild extends GrandChild
+{
+  public TargetLangSemiGrandChild()
+  {
+    super();
+  }
+  // No id() override
+}
+
+// Orphans - don't override id() in C++
+class TargetLangOrphanPerson extends OrphanPerson
+{
+  public TargetLangOrphanPerson()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangOrphanPerson";
+    return identifier;
+  }
+}
+
+class TargetLangOrphanChild extends OrphanChild
+{
+  public TargetLangOrphanChild()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangOrphanChild";
     return identifier;
   }
 }
