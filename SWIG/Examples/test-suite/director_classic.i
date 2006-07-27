@@ -10,9 +10,13 @@
 #include <iostream>
 #include <string>
 
-struct Person {
+struct Being {
+  virtual std::string id() { return "Being"; }
+  virtual ~Being() {}
+};
+
+struct Person : Being {
   virtual std::string id() { return "Person"; }
-  virtual ~Person() {}
 };
 
 struct Child : Person {
@@ -21,6 +25,15 @@ struct Child : Person {
 
 struct GrandChild : Child {
   virtual std::string id() { return "GrandChild"; }
+};
+
+// Orphans - don't override id() in C++
+struct OrphanPerson : Person {
+  // no overridden id()
+};
+
+struct OrphanChild : Child {
+  // no overridden id()
 };
 
 class Caller {
