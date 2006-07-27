@@ -36,6 +36,45 @@ public class runme
       check(person, "TargetLangGrandChild"); 
       person.Dispose();
     }
+
+    // Semis - don't override id() in target language
+    { 
+      Person person = new TargetLangSemiPerson();
+      check(person, "Person"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangSemiChild();
+      check(person, "Child"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangSemiGrandChild();
+      check(person, "GrandChild"); 
+      person.Dispose();
+    }
+
+    // Orphans - don't override id() in C++
+    { 
+      Person person = new OrphanPerson();
+      check(person, "Person"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new OrphanChild();
+      check(person, "Child"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangOrphanPerson();
+      check(person, "TargetLangOrphanPerson"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangOrphanChild();
+      check(person, "TargetLangOrphanChild"); 
+      person.Dispose();
+    }
   }
 
   static void check(Person person, String expected) {
@@ -109,6 +148,63 @@ public class TargetLangGrandChild : GrandChild
   public override String id()
   {
     String identifier = "TargetLangGrandChild";
+    return identifier;
+  }
+}
+
+// Semis - don't override id() in target language
+public class TargetLangSemiPerson : Person
+{
+  public TargetLangSemiPerson()
+    : base()
+  {
+  }
+  // No id() override
+}
+
+public class TargetLangSemiChild : Child
+{
+  public TargetLangSemiChild()
+    : base()
+  {
+  }
+  // No id() override
+}
+
+public class TargetLangSemiGrandChild : GrandChild
+{
+  public TargetLangSemiGrandChild()
+    : base()
+  {
+  }
+  // No id() override
+}
+
+// Orphans - don't override id() in C++
+class TargetLangOrphanPerson : OrphanPerson
+{
+  public TargetLangOrphanPerson()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangOrphanPerson";
+    return identifier;
+  }
+}
+
+class TargetLangOrphanChild : OrphanChild
+{
+  public TargetLangOrphanChild()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangOrphanChild";
     return identifier;
   }
 }
