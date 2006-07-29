@@ -1708,8 +1708,6 @@ int R::functionWrapper(Node *n) {
   if (debugMode)
     Printf(stderr, "Adding a .copy argument to %s for %s = %s\n", 
 	   iname, type, addCopyParam ? "yes" : "no");
-  if (inCPlusMode)
-    Printv(f->def, "extern \"C\" ", NIL);
 
   Printv(f->def, "SWIGINTERN SEXP\n", wname, " ( ", NIL);
 
