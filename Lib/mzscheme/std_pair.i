@@ -35,7 +35,7 @@ namespace std {
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                $1 = make_pair(x,y);
+                $1 = std::make_pair(*x,*y);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -53,10 +53,10 @@ namespace std {
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = make_pair(x,y);
+                temp = std::make_pair(*x,*y);
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -75,7 +75,7 @@ namespace std {
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
-                                    $descriptor(T *), 0) != -1 && 
+                                    $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
                         $1 = 1;
@@ -101,7 +101,7 @@ namespace std {
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
-                                    $descriptor(T *), 0) != -1 && 
+                                    $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
                         $1 = 1;
@@ -139,10 +139,10 @@ namespace std {
                 first = scheme_car($input);
                 second = scheme_cdr($input);
                 if (!CHECK(first))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                $1 = make_pair(CONVERT_FROM(first),y);
+                $1 = std::make_pair(CONVERT_FROM(first),*y);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -158,13 +158,13 @@ namespace std {
                 first = scheme_car($input);
                 second = scheme_cdr($input);
                 if (!CHECK(first))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = make_pair(CONVERT_FROM(first),y);
+                temp = std::make_pair(CONVERT_FROM(first),*y);
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -179,7 +179,7 @@ namespace std {
                 U* y;
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
-                if (CHECK(first) && 
+                if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
                         $1 = 1;
@@ -203,7 +203,7 @@ namespace std {
                 U* y;
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
-                if (CHECK(first) && 
+                if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
                         $1 = 1;
@@ -241,9 +241,9 @@ namespace std {
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
-                $1 = make_pair(x,CONVERT_FROM(second));
+                $1 = std::make_pair(*x,CONVERT_FROM(second));
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -260,12 +260,12 @@ namespace std {
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
-                temp = make_pair(x,CONVERT_FROM(second));
+                temp = std::make_pair(*x,CONVERT_FROM(second));
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -281,7 +281,7 @@ namespace std {
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
-                                    $descriptor(T *), 0) != -1 && 
+                                    $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
                         $1 = 1;
                 } else {
@@ -305,7 +305,7 @@ namespace std {
                 Scheme_Object* first = scheme_car($input);
                 Scheme_Object* second = scheme_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
-                                    $descriptor(T *), 0) != -1 && 
+                                    $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
                         $1 = 1;
                 } else {
@@ -341,7 +341,7 @@ namespace std {
                 first = scheme_car($input);
                 second = scheme_cdr($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
                 $1 = make_pair(CONVERT_T_FROM(first),
                                CONVERT_U_FROM(second));
@@ -356,18 +356,18 @@ namespace std {
                                        std::pair<T,U>* m) {
             if (SCHEME_PAIRP($input)) {
                 Scheme_Object *first, *second;
-	        T *x;
+            T *x;
                 first = scheme_car($input);
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK_T(first) || !CHECK_U(second))
-                    SWIG_exception(SWIG_TypeError, 
+                    SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
                 temp = make_pair(CONVERT_T_FROM(first),
                                CONVERT_U_FROM(second));
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
