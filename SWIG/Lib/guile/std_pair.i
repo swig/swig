@@ -34,7 +34,7 @@ namespace std {
                 second = gh_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                $1 = std::make_pair(x,y);
+                $1 = std::make_pair(*x,*y);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -52,10 +52,10 @@ namespace std {
                 second = gh_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = std::make_pair(x,y);
+                temp = std::make_pair(*x,*y);
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -142,7 +142,7 @@ namespace std {
                     SWIG_exception(SWIG_TypeError,
                                    "map<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                $1 = std::make_pair(CONVERT_FROM(first),y);
+                $1 = std::make_pair(CONVERT_FROM(first),*y);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -161,10 +161,10 @@ namespace std {
                     SWIG_exception(SWIG_TypeError,
                                    "map<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = std::make_pair(CONVERT_FROM(first),y);
+                temp = std::make_pair(CONVERT_FROM(first),*y);
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -243,7 +243,7 @@ namespace std {
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
                                    "map<" #T "," #U "> expected");
-                $1 = std::make_pair(x,CONVERT_FROM(second));
+                $1 = std::make_pair(*x,CONVERT_FROM(second));
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
@@ -262,10 +262,10 @@ namespace std {
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
                                    "map<" #T "," #U "> expected");
-                temp = std::make_pair(x,CONVERT_FROM(second));
+                temp = std::make_pair(*x,CONVERT_FROM(second));
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
@@ -365,7 +365,7 @@ namespace std {
                                       CONVERT_U_FROM(second));
                 $1 = &temp;
             } else {
-                $1 = ($1_ltype) 
+                $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }

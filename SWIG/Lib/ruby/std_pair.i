@@ -37,7 +37,7 @@ namespace std {
                 VALUE second = RARRAY($input)->ptr[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                $1 = std::make_pair(x,y);
+                $1 = std::make_pair(*x,*y);
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
                 $1 = *p;
@@ -58,7 +58,7 @@ namespace std {
                 VALUE second = RARRAY($input)->ptr[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                temp = std::make_pair(x,y);
+                temp = std::make_pair(*x,*y);
                 $1 = &temp;
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
@@ -165,7 +165,7 @@ namespace std {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                $1 = std::make_pair(CONVERT_FROM(first),y);
+                $1 = std::make_pair(CONVERT_FROM(first),*y);
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
                 $1 = *p;
@@ -187,7 +187,7 @@ namespace std {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                temp = std::make_pair(CONVERT_FROM(first),y);
+                temp = std::make_pair(CONVERT_FROM(first),*y);
                 $1 = &temp;
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
@@ -287,7 +287,7 @@ namespace std {
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
-                $1 = std::make_pair(x,CONVERT_FROM(second));
+                $1 = std::make_pair(*x,CONVERT_FROM(second));
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
                 $1 = *p;
@@ -310,7 +310,7 @@ namespace std {
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
-                temp = std::make_pair(x,CONVERT_FROM(second));
+                temp = std::make_pair(*x,CONVERT_FROM(second));
                 $1 = &temp;
             } else {
                 SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
