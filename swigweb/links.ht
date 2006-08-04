@@ -98,6 +98,8 @@ It lets you generate code by parsing existing languages or by creating and parsi
 
 <a href="http://pyinstant.sf.net">Instant</a>. Python module that allows for instant inlining of C and C++ code in Python. It is a small Python module built on top of SWIG.<br>
 
+<a href="http://seal-reflex.web.cern.ch/seal-reflex/index.html">Reflex</a>. C++ library which provides reflection information about C++ types.<br>
+
 </blockquote>
 
 <h3> Other interesting links</h3>
