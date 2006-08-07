@@ -1322,9 +1322,6 @@ static void default_arguments(Node *n) {
   }
 }
 
-#if 0
-{ /* cc-mode */
-#endif
 %}
 
 %union {
