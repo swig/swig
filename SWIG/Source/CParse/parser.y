@@ -1037,8 +1037,8 @@ static Node *dump_nested(const char *parent) {
       for (i=0; i<3; i++) {
 	char* code_ptr = Char(n->code);
 	while (code_ptr) {
-	  /* Replace struct name (as in 'struct name {' ) with whitespace
-	     name will be between struct and { */
+	  /* Replace struct name (as in 'struct name {...}' ) with whitespace
+	     name will be between struct and opening brace */
 	
 	  code_ptr = strstr(code_ptr, types_array[i]);
 	  if (code_ptr) {
