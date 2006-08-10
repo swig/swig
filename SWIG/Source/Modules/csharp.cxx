@@ -1594,7 +1594,7 @@ class CSHARP : public Language {
 	// Only emit if there is at least one director method
 	Printf(proxy_class_code, "\n");
 	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {\n");
-	Printf(proxy_class_code, "    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);\n");
+	Printf(proxy_class_code, "    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
 	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
 	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
 	 * promotion, eg it will return foo(double), if looking for foo(int).
