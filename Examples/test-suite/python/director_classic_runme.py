@@ -21,6 +21,38 @@ class TargetLangGrandChild(GrandChild):
 		identifier = "TargetLangGrandChild"
                 return identifier
 
+# Semis - don't override id() in target language
+class TargetLangSemiPerson(Person):
+	def __init__(self):
+		Person.__init__(self)
+        # No id() override
+
+class TargetLangSemiChild(Child):
+	def __init__(self):
+		Child.__init__(self)
+        # No id() override
+
+class TargetLangSemiGrandChild(GrandChild):
+	def __init__(self):
+		GrandChild.__init__(self)
+        # No id() override
+
+# Orphans - don't override id() in C++
+class TargetLangOrphanPerson(OrphanPerson):
+	def __init__(self):
+		OrphanPerson.__init__(self)
+	def id(self):
+		identifier = "TargetLangOrphanPerson"
+                return identifier
+
+class TargetLangOrphanChild(OrphanChild):
+	def __init__(self):
+		Child.__init__(self)
+	def id(self):
+		identifier = "TargetLangOrphanChild"
+                return identifier
+
+
 def check(person, expected):
 
   debug = 0
@@ -78,4 +110,33 @@ person = TargetLangGrandChild();
 check(person, "TargetLangGrandChild"); 
 del person
 
+# Semis - don't override id() in target language
+person = TargetLangSemiPerson();
+check(person, "Person"); 
+del person
+
+person = TargetLangSemiChild();
+check(person, "Child"); 
+del person
+
+person = TargetLangSemiGrandChild();
+check(person, "GrandChild"); 
+del person
+
+# Orphans - don't override id() in C++
+person = OrphanPerson();
+check(person, "Person");
+del person
+
+person = OrphanChild();
+check(person, "Child");
+del person
+
+person = TargetLangOrphanPerson();
+check(person, "TargetLangOrphanPerson"); 
+del person
+
+person = TargetLangOrphanChild();
+check(person, "TargetLangOrphanChild"); 
+del person
 
