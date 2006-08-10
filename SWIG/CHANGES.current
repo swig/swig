@@ -1,5 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
+
+08/10/2006: wsfulton
+            [C#] Fix director protected methods so they work
+
 07/25/2006: mutandiz
 	    [allegrocl]
 	    more additions to std::string, some tweaks and small bug fixes
