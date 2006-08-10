@@ -39,7 +39,8 @@ extern "C" {
 extern String  *ModuleName;
 }
 
-// usage string split into multiple parts otherwise string is too big for some compilers
+/* usage string split into multiple parts otherwise string is too big for some compilers */
+
 static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -addextern      - Add extra extern declarations\n\
