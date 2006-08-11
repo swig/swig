@@ -3155,7 +3155,8 @@ class JAVA : public Language {
     String *jenvstr = NewString("jenv");
     String *jobjstr = NewString("jobj");
 
-    Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= (JNIEnv *) NULL", NIL);
+    Wrapper_add_localv(w, "jnienv", "JNIEnvWrapper", "jnienv(this)", NIL, NIL);
+    Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= jnienv.getJNIEnv()", NIL);
     Wrapper_add_localv(w, jobjstr, "jobject ", jobjstr, "= (jobject) NULL", NIL);
     Delete(jenvstr);
     Delete(jobjstr);
@@ -3174,7 +3175,6 @@ class JAVA : public Language {
         Delete(super_call);
       }
     } else {
-      Printf(w->code, "jenv = swig_acquire_jenv();\n");
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaDirectorPureVirtual,\n");
       Printf(w->code, "      \"Attempted to invoke pure virtual method %s::%s.\");\n",
              c_classname, name);
@@ -3188,7 +3188,6 @@ class JAVA : public Language {
     }
 
     Printf(w->code, "}\n");
-    Printf(w->code, "jenv = swig_acquire_jenv();\n");
     Printf(w->code, "jobj = swig_get_self(jenv);\n");
     Printf(w->code, "if (jobj && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {\n");
 
