@@ -1,4 +1,11 @@
+// This testcase was in the python subdirectory
+
+#if defined(SWIGPYTHON)
+// Is "threads" really needed for Python? It seems to work without it.
 %module(directors="1",threads="1") director_thread
+#else
+%module(directors="1") director_thread
+#endif
 
 %{
 #include <pthread.h>
