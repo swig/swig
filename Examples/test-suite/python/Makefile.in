@@ -20,7 +20,6 @@ CPP_TEST_CASES += \
 	callback \
 	complextest \
 	director_stl \
-	director_thread \
 	director_wstring \
 	file_test \
 	iadd \

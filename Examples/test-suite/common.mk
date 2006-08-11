@@ -133,6 +133,7 @@ CPP_TEST_CASES += \
 	director_primitives \
 	director_protected \
 	director_redefined \
+	director_thread \
 	director_unroll \
 	director_using \
 	director_wombat \
