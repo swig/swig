@@ -103,24 +103,33 @@ namespace Swig {
 
   /* director base class */
   class Director {
-  private:
     /* pointer to Java virtual machine */
     JavaVM *swig_jvm_;
 
   protected:
+    /* Utility class for managing the JNI environment */
+    class JNIEnvWrapper {
+      const Director *director_;
+      JNIEnv *jenv_;
+    public:
+      JNIEnvWrapper(const Director *director) : director_(director), jenv_(0) {
+        director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
+      }
+      ~JNIEnvWrapper() {
+        director_->swig_jvm_->DetachCurrentThread();
+      }
+      JNIEnv *getJNIEnv() const {
+        return jenv_;
+      }
+    };
+
     /* Java object wrapper */
     JObjectWrapper swig_self_;
 
-    /* Acquire Java VM environment from Java VM */
-    JNIEnv *swig_acquire_jenv() const {
-      JNIEnv *env = NULL;
-      swig_jvm_->AttachCurrentThread((void **) &env, NULL);
-      return env;
-    }
-
     /* Disconnect director from Java object */
     void swig_disconnect_director_self(const char *disconn_method) {
-      JNIEnv *jenv = swig_acquire_jenv();
+      JNIEnvWrapper jnienv(this) ;
+      JNIEnv *jenv = jnienv.getJNIEnv() ;
       jobject jobj = swig_self_.peek();
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
@@ -143,7 +152,9 @@ namespace Swig {
     }
 
     virtual ~Director() {
-      swig_self_.release(swig_acquire_jenv());
+      JNIEnvWrapper jnienv(this) ;
+      JNIEnv *jenv = jnienv.getJNIEnv() ;
+      swig_self_.release(jenv);
     }
 
     bool swig_set_self(JNIEnv *jenv, jobject jself, bool mem_own, bool weak_global) {
