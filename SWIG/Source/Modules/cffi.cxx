@@ -14,6 +14,8 @@ char cvsroot_cffi_cxx[] = "$Header$";
 #include <ctype.h>
 
 //#define CFFI_DEBUG
+//#define CFFI_WRAP_DEBUG
+
 class CFFI : public Language {
 public:
   String *f_cl;
@@ -23,6 +25,7 @@ public:
   File *f_cxx;
   File *f_cxx_header;
   File *f_cxx_wrapper;
+  File *f_clos;
 
   String *module;
   virtual void main(int argc, char *argv[]);
@@ -43,9 +46,14 @@ public:
 
 private:
   void emit_defun(Node *n, String *name);
+  void emit_defmethod(Node *n);
+  void emit_getter(Node *n);
+  void emit_setter(Node *n);
+  void emit_class(Node *n);
   void emit_struct_union(Node *n, bool un);
   void emit_export(Node *n,String *name);
   void emit_inline(Node *n,String *name);
+  String* lispy_name(char *name);
   String* lispify_name(Node* n,String *ty,const char* flag,bool kw=false);
   String* convert_literal(String *num_param, String *type);
   String* strip_parens(String *string);
@@ -112,7 +120,9 @@ int CFFI :: top(Node *n) {
   String *lisp_filename=NewString("");
 
   Printf(lisp_filename, "%s%s.lisp", SWIG_output_directory(), module);
+
   File *f_lisp=NewFile(lisp_filename, "w");
+  NewFile(lisp_filename, "w");
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -125,9 +135,20 @@ int CFFI :: top(Node *n) {
         Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
         SWIG_exit(EXIT_FAILURE);
       }
+
+      String *clos_filename=NewString("");
+      Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
+      f_clos=NewFile(clos_filename, "w");
+      if (!f_clos) {
+        Close(f_lisp); Delete(f_lisp);
+        Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
+        SWIG_exit(EXIT_FAILURE);
+      }
   }
-  else
+  else {
     f_cxx=NewString("");
+    f_clos=NewString("");
+  }
 
   f_cxx_header = f_cxx;
   f_cxx_wrapper=NewString("");
@@ -181,6 +202,7 @@ int CFFI :: classHandler(Node *n) {
     }
   else if (Strcmp(kind, "class") == 0)
     {
+      emit_class(n);
       Language::classHandler(n);
     }
   else
@@ -216,23 +238,85 @@ int CFFI :: destructorHandler(Node *n)
   return Language::destructorHandler(n);
 }
 
-int CFFI :: memberfunctionHandler(Node *n) {
-#ifdef CFFI_DEBUG
-  Printf(stderr, "member function %s::%s\n",
-         Getattr(parentNode(n), "name"), Getattr(n, "name"));
-#endif
+void CFFI::emit_defmethod(Node*n) {
+  String *args_placeholder = NewStringf("");
+  String *args_call = NewStringf("");
 
+  ParmList *pl=Getattr(n, "parms");
+  int argnum=0;
+  Node *parent = parentNode(n);
+
+  for (Parm *p=pl; p; p=nextSibling(p), argnum++) {
+
+    String *argname=Getattr(p, "name");
+    String *ffitype = Swig_typemap_lookup_new("lispclass",p, "",0);
+
+        
+    int tempargname=0;
+      
+    if (!argname) {
+      argname=NewStringf("arg%d", argnum);
+      tempargname=1;
+    }
+    else if(Strcmp(argname,"t")==0 || Strcmp(argname,"T")==0) {
+      argname=NewStringf("t-arg%d", argnum);
+      tempargname=1;
+    }
+    if(Len(ffitype) > 0)
+      Printf(args_placeholder, " (%s %s)", argname, ffitype);
+    else
+      Printf(args_placeholder, " %s", argname, ffitype);
+
+    if(Strcmp(ffitype,lispify_name(parent,lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
+      Printf(args_call, " (ff-pointer %s)", argname);
+    else
+      Printf(args_call, " %s", argname);
+      
+    Delete(ffitype);
+
+    if (tempargname) 
+      Delete(argname);
+  }
+
+  String *method_name = Getattr(n, "name");
+  int x = Replace(method_name,"operator ","",DOH_REPLACE_FIRST); //  
+
+  if(x==1)
+    Printf(f_clos, "(shadow \"%s\")\n",method_name);
+
+  Printf(f_clos,"(defmethod %s ((obj %s)%s)\n  (%s (ff-pointer obj)%s))\n\n",
+         lispify_name(n,lispy_name(Char(method_name)),"'method"),
+         lispify_name(parent,lispy_name(Char(Getattr(parent, "sym:name"))),"'class"),args_placeholder,
+         lispify_name(n, Getattr(n, "sym:name"), "'function"),args_call);
+
+}
+
+void  CFFI::emit_setter(Node*n) {
+  Node *p = parentNode(n);
+  Printf(f_clos,"(defmethod (setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
+         lispify_name(n, Getattr(n, "name"), "'method"),
+         lispify_name(p,lispy_name(Char(Getattr(p, "sym:name"))),"'class"),
+         lispify_name(n, Getattr(n, "sym:name"), "'function"));
+}
+
+
+void  CFFI::emit_getter(Node*n) {
+  Node *p = parentNode(n);
+  Printf(f_clos,"(defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
+         lispify_name(n, Getattr(n, "name"), "'method"),
+         lispify_name(p,lispy_name(Char(Getattr(p, "sym:name"))),"'class"),
+         lispify_name(n, Getattr(n, "sym:name"), "'function")); 
+}
+
+int CFFI :: memberfunctionHandler(Node *n) {
   // Let SWIG generate a global forwarding function.
+  Setattr(n,"cffi:memberfunction","1");
   return Language::memberfunctionHandler(n);
 }
 
 int CFFI :: membervariableHandler(Node *n) {
-#ifdef CFFI_DEBUG
-  Printf(stderr, "member variable %s::%s\n",
-         Getattr(parentNode(n), "name"), Getattr(n, "name"));
-#endif
-
   // Let SWIG generate a get/set function pair.
+  Setattr(n,"cffi:membervariable","1");
   return Language::membervariableHandler(n);
 }
 
@@ -284,7 +368,7 @@ int CFFI :: functionWrapper(Node *n) {
   int gencomma = 0;
 
 #ifdef CFFI_DEBUG
-  Printf(stderr, "function %s - %d\n", Getattr(n, "name"),num_arguments);
+  Printf(stderr, "function  -  %s - %d\n", Getattr(n, "name"),num_arguments);
 #endif
   
   for (i = 0, p=parms; i < num_arguments; i++) {
@@ -342,8 +426,17 @@ int CFFI :: functionWrapper(Node *n) {
   if (CPlusPlus)
     Wrapper_print(wrap, f_cxx);
 
-  if (CPlusPlus)
+  if (CPlusPlus) {
     emit_defun(n,wname);
+    if(Getattr(n,"cffi:memberfunction"))
+      emit_defmethod(n);
+    else if(Getattr(n,"cffi:membervariable")) {
+      if(Getattr(n,"memberget"))
+        emit_getter(n);
+      else if(Getattr(n,"memberset"))
+        emit_setter(n);
+    }
+  }
   else
     emit_defun(n,iname);
 
@@ -371,7 +464,7 @@ void CFFI::emit_defun(Node *n,String *name)
 
   ParmList *pl=Getattr(n, "parms");
 
-  int argnum=0, first=1;
+  int argnum=0;
 
   func_name=lispify_name(n, func_name, "'function");
   
@@ -402,7 +495,6 @@ void CFFI::emit_defun(Node *n,String *name)
     
       
     Printf(f_cl, "\n  (%s %s)", argname, ffitype);
-    first=0;
       
     Delete(ffitype);
 
@@ -517,6 +609,115 @@ int CFFI :: enumDeclaration(Node *n) {
   }
 
   return SWIG_OK;
+}
+void CFFI :: emit_class(Node *n) {
+  
+#ifdef CFFI_WRAP_DEBUG
+  Printf(stderr,"emit_class: ENTER... '%s'(%x)\n", Getattr(n,"sym:name"), n);
+#endif
+
+  String *name = Getattr(n, "sym:name");
+  String *lisp_name = lispify_name(n, lispy_name(Char(name)), "'classname");
+
+  String *bases = Getattr(n,"bases");
+  String *supers = NewString("(");
+  if(bases) {
+    int first=1;
+    for (Iterator i=First(bases); i.item; i = Next(i)) {
+      if (!first) Printf(supers," ");
+      String *s = Getattr(i.item,"name");
+      Printf(supers,"%s",lispify_name(i.item, s, "'classname"));
+    }
+  } else {
+    // Printf(supers,"ff:foreign-pointer");
+  }
+
+  Printf(supers,")");
+  Printf(f_clos,"\n(clos:defclass %s%s",lisp_name,supers);
+  Printf(f_clos,"\n  ((ff :reader ff-pointer)))\n\n");
+
+  Parm *pattern = NewParm(Getattr(n, "name"),NULL);
+  
+  Swig_typemap_register("lispclass",pattern,lisp_name,NULL,NULL);
+  SwigType_add_pointer(Getattr(pattern,"type"));
+  Swig_typemap_register("lispclass",pattern,lisp_name,NULL,NULL);  
+  SwigType_add_qualifier(Getattr(pattern,"type"), "const");
+  Swig_typemap_register("lispclass",pattern,lisp_name,NULL,NULL);  
+  SwigType_del_pointer(Getattr(pattern,"type"));
+  SwigType_add_reference(Getattr(pattern,"type"));
+  Swig_typemap_register("lispclass",pattern,lisp_name,NULL,NULL);
+  
+#ifdef CFFI_WRAP_DEBUG
+  Printf(stderr, "  pattern %s  name %s .. ... %s .\n",pattern,lisp_name);
+#endif
+
+  Delete(pattern);
+
+  // Walk children to generate type definition.
+  String *slotdefs = NewString("   ");
+
+#ifdef CFFI_WRAP_DEBUG
+  Printf(stderr, "  walking children...\n");
+#endif
+
+  Node *c;
+  for (c=firstChild(n); c; c=nextSibling(c)) {
+    String *storage_type = Getattr(c,"storage");
+    if((!Strcmp(nodeType(c),"cdecl") && 
+        (!storage_type || Strcmp(storage_type,"typedef")))) {
+      String *access = Getattr(c,"access");
+
+      // hack. why would decl have a value of "variableHandler" and now "0"?
+      String *childDecl = Getattr(c,"decl");
+      // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
+      if(!Strcmp(childDecl,"0"))
+        childDecl = NewString("");
+
+      SwigType *childType=NewStringf("%s%s", childDecl,
+                                     Getattr(c,"type"));
+      String *cname = (access && Strcmp(access,"public")) ? 
+        NewString("nil") : Copy(Getattr(c,"name"));
+
+      if(!SwigType_isfunction(childType)) {
+        // Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
+        // Printf(slotdefs, ";; ");
+        //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
+        String *ns = NewString("");
+#ifdef CFFI_WRAP_DEBUG
+	Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n",
+	       cname, ns, name, childType);
+#endif
+        Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)",
+               cname, ns, name, childType); //compose_foreign_type(childType)
+        Delete(ns);
+        if(access && Strcmp(access,"public"))
+          Printf(slotdefs, " ;; %s member", access);
+
+        Printf(slotdefs, "\n   ");
+      }
+      Delete(childType);
+      Delete(cname);
+    }
+  }
+
+
+//   String *ns_list = listify_namespace(Getattr(n,"cffi:namespace"));
+//   update_package_if_needed(n,f_clhead);
+//   Printf(f_clos, 
+//          "(swig-def-foreign-class \"%s\"\n %s\n  (:%s\n%s))\n\n", 
+//          name, supers, kind, slotdefs);
+
+  Delete(supers);
+  //  Delete(ns_list);
+
+  //  Parm *pattern = NewParm(name,NULL);
+  // Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
+  //Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
+  //Delete(pattern);
+
+#ifdef CFFI_WRAP_DEBUG
+  Printf(stderr,"emit_class: EXIT\n");
+#endif
 }
 
 // Includes structs
@@ -694,6 +895,30 @@ String* CFFI::convert_literal(String *num_param, String *type) {
   Delete(num);
 
   return res;
+}
+
+
+//less flexible as it does the conversion in C, the lispify name does the conversion in lisp
+String* CFFI::lispy_name(char *name) {
+  bool helper=false;
+  String *new_name=NewString("");
+  for(unsigned int i=0;i < strlen(name);i++) {
+    if(name[i] =='_' || name[i] =='-') {
+      Printf(new_name,"%c",'-');
+      helper=false;
+    }
+    else if(name[i]>='A' && name[i]<='Z') {
+      if(helper)
+        Printf(new_name,"%c",'-');
+      Printf(new_name,"%c",('a' + (name[i] - 'A')));
+      helper = false;
+    }
+    else {
+      helper = true;
+      Printf(new_name,"%c",name[i]);
+    }
+  }
+  return new_name;
 }
 
 extern "C" Language *swig_cffi(void) {
