@@ -83,7 +83,7 @@ private:
 };
  
 
-class FooBar : private Foo 
+class PrivateFoo : private Foo 
 {
 };
 
