@@ -20,7 +20,13 @@
 
 class Foo;  
 extern "C" {
-  void* SWIGSTDCALL working(void* t);
+#ifdef _WIN32
+  unsigned int __stdcall working(void* t);
+  unsigned int thread_id(0);
+#else
+  void* working(void* t);
+  pthread_t thread;
+#endif
 }
 %}
 
@@ -28,34 +34,30 @@ extern "C" {
 
 %inline {
   static void MilliSecondSleep(int milliseconds) {
-  #ifdef _WIN32
+  %#ifdef _WIN32
     Sleep(milliseconds);
-  #else
+  %#else
     usleep(milliseconds*1000);
-  #endif
+  %#endif
   }
 
   class Foo {
   public:
     int val;
-    pthread_t *t;
-    unsigned int thread_id;
     
-    Foo() : val(0), thread_id(0) {
-      t = new pthread_t;
+    Foo() : val(0) {
     }
     
     virtual ~Foo()  {
-      delete t;
     }
 
     void run() {
-#ifdef _WIN32
-      _beginthreadex(NULL,0,run,this,0,&thread_id);
-#else
-      pthread_create(t,NULL,working,this);
-#endif
-      MilliSecondSleep(5000);
+%#ifdef _WIN32
+      _beginthreadex(NULL,0,working,this,0,&thread_id);
+%#else
+      pthread_create(&thread,NULL,working,this);
+%#endif
+      MilliSecondSleep(500);
     }
     
     virtual void do_foo() {
@@ -64,12 +66,17 @@ extern "C" {
   };
 }
 
-%inline %{
-  extern "C" {
-    void* working(void* t) {
+%{
+extern "C" {
+#ifdef _WIN32
+  unsigned int __stdcall working(void* t)
+#else
+  void* working(void* t)
+#endif
+  {
     Foo* f = static_cast<Foo*>(t);
     while (1) {
-      MilliSecondSleep(1000);
+      MilliSecondSleep(50);
       f->do_foo();
     }
     return 0;
