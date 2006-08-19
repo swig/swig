@@ -1279,8 +1279,25 @@ public:
 	   value; read-write variables become a simple procedure with
 	   an optional argument. */
         if (use_scm_interface) {
-          Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n",
-                proc_name, !GetFlag(n, "feature:immutable"), var_name);
+
+          if (!goops && GetFlag(n, "feature:constasvar")) {
+            /* need to export this function as a variable instead of a procedure */
+            if (scmstub) {
+              /* export the function in the wrapper, and (set!) it in scmstub */
+              Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n",
+                     proc_name, !GetFlag(n, "feature:immutable"), var_name);
+              Printf(scmtext, "(set! %s (%s))\n", proc_name, proc_name);
+            } else {
+              /* export the variable directly */
+              Printf(f_init, "scm_c_define(\"%s\", %s(SCM_UNDEFINED));\n", proc_name, var_name);
+            }
+
+          } else {
+            /* Export the function as normal */
+            Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n",
+                  proc_name, !GetFlag(n, "feature:immutable"), var_name);
+          }
+          
         } else {
           Printf (f_init, "\t gh_new_procedure(\"%s\", (swig_guile_proc) %s, 0, %d, 0);\n",
 		proc_name, var_name, !GetFlag(n,"feature:immutable"));
@@ -1312,7 +1329,12 @@ public:
 	  Printv(primitive_name, "primitive:", NIL);
 	Printv(primitive_name, proc_name, NIL);
 	/* Simply re-export the procedure */
-        Printv(goopscode, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
+        if ( (!emit_setters || GetFlag(n, "feature:immutable")) 
+            && GetFlag(n, "feature:constasvar")) {
+          Printv(goopscode, "(define ", goops_name, " (", primitive_name, "))\n", NIL);
+        } else {
+          Printv(goopscode, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
+        }
         Printf(goopsexport, "%s ", goops_name);
 	Delete(primitive_name);
         Delete(class_name);
@@ -1327,7 +1349,11 @@ public:
 	
 	if (GetFlag(n,"feature:immutable")) {
 	  Printv(signature, proc_name, NIL);
-	  Printv(doc, "Returns constant ", NIL);
+          if (GetFlag(n, "feature:constasvar")) {
+            Printv(doc, "Is constant ", NIL);
+          } else {
+	    Printv(doc, "Returns constant ", NIL);
+          }
 	  if ((tm = Getattr(n,"tmap:varout:doc"))) {
 	    Printv(doc,tm,NIL);
 	  } else {
@@ -1399,6 +1425,8 @@ public:
     char *iname     = GetChar(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
     String   *value = Getattr(n,"value");
+    int constasvar  = GetFlag(n, "feature:constasvar");
+
     
     String *proc_name;
     char   var_name[256];
@@ -1457,6 +1485,9 @@ public:
       Setattr(n,"sym:name",iname);
       Setattr(n,"type", nctype);
       SetFlag(n,"feature:immutable");
+      if (constasvar) {
+        SetFlag(n,"feature:constasvar");
+      }
       variableWrapper(n);
       Delete(n);
     }
