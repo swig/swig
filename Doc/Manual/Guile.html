@@ -405,6 +405,13 @@ In <code><var>body</var></code>, the first result of
 See also the "multivalue" example.
 </p>
 
+<p>Constants are exported as a function that returns the value.  The
+%feature("constasvar") can be applied to any constant, immutable variable, or enum.
+Instead of exporting the constant as a function that must be called, the
+constant will appear as a scheme variable. See
+<a href="Customization.html#features">Features and the %feature directive</a>
+for info on how to apply the %feature.</p>
+
 <H2><a name="Guile_nn12"></a>19.6 Representation of pointers as smobs</H2>
 
 

@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+08/19/2006: wuzzeb (John Lenz)
+	    [Guile] Add feature:constasvar to export constants as variables instead of functions
+            that return the constant value.
+
 08/11/2006: wsfulton
             [Java] DetachCurrentThread calls have been added so that natively created threads
             no longer prevent the JVM from exiting. Bug reported by Thomas Dudziak and

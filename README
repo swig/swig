@@ -89,6 +89,10 @@ Information about SWIG is also available in Japanese translation at
 What's New?
 ===========
 
+SWIG-1.3.30 summary:
+- Add feature:constasvar to guile and chicken modules, to export constants
+  as variables instead of functions that return the constant value.
+
 SWIG-1.3.29 summary:
 - Numerous important bug fixes
 - Few minor new features
