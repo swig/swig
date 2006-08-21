@@ -96,7 +96,15 @@
 %{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
 
 // pointers and references
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE*,SWIGTYPE&,SWIGTYPE[]
+// under SWIG rules, it is ok, to have a pass in a lua nil, 
+// it should be converted to a SWIG NULL.
+// This will only be allowed for pointers & arrays, not refs or by value
+// the checkfn lua_isuserdata will only work for userdata
+// the checkfn SWIG_isptrtype will work for both userdata and nil's
+%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
+%{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
+
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
 
 %typemap(out) SWIGTYPE*,SWIGTYPE&
@@ -138,9 +146,13 @@
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
 but if its an output, then it should be wrappered like any other SWIG object (using default typemap)
 */
-%typemap(in,checkfn="lua_isuserdata") void*
-%{$1=((swig_lua_userdata*)(lua_touserdata(L,$input)))->ptr;%}
+//%typemap(in,checkfn="lua_isuserdata") void*
+//%typemap(in,checkfn="SWIG_isptrtype") void*
+//%{$1=((swig_lua_userdata*)(lua_touserdata(L,$input)))->ptr;%}
 
+%typemap(in,checkfn="SWIG_isptrtype") void*
+%{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
+//%{SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)); %}
 
 /* -----------------------------------------------------------------------------
  *                          constants typemaps
@@ -206,7 +218,16 @@ parmeters match which function
   $1 = lua_isstring(L,$input);
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
+  void *ptr;
+  if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE, SWIGTYPE & {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
@@ -217,7 +238,7 @@ parmeters match which function
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {
+  if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
