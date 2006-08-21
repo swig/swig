@@ -109,6 +109,9 @@ typedef struct {
 			lua_pushcfunction(L, f), \
 			lua_rawset(L,-3))
 
+/* special helper for allowing 'nil' for usertypes */
+#define SWIG_isptrtype(L,I) (lua_isuserdata(L,I) || lua_isnil(L,I))
+
 /* -----------------------------------------------------------------------------
  * global variable support code: modules
  * ----------------------------------------------------------------------------- */
@@ -507,10 +510,16 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type
 {
 	swig_lua_userdata* usr;
 	swig_cast_info *cast;
+	if (lua_isnil(L,index)){*ptr=0; return 0;}    /* special case: lua nil => NULL pointer */
 	usr=(swig_lua_userdata*)lua_touserdata(L,index);	/* get data */
 	if (usr)
 	{
-		cast=SWIG_TypeCheckStruct(usr->type,type);
+                if (!type)                           /* special cast void*, no casting fn */
+                {
+                    *ptr=usr->ptr;
+                    return 0; /* ok */
+                }
+		cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
 		if (cast)
 		{
 			*ptr=SWIG_TypeCast(cast,usr->ptr);
@@ -553,8 +562,9 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
 		return 0;	/* nil reply */
 	usr1=(swig_lua_userdata*)lua_touserdata(L,1);	/* get data */
 	usr2=(swig_lua_userdata*)lua_touserdata(L,2);	/* get data */
-	result=(usr1->ptr==usr2->ptr && usr1->type==usr2->type);
-	lua_pushboolean(L,result);
+	/*result=(usr1->ptr==usr2->ptr && usr1->type==usr2->type); only works if type is the same*/
+	result=(usr1->ptr==usr2->ptr);
+        lua_pushboolean(L,result);
 	return 1;
 }
 

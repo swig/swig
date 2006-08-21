@@ -1,6 +1,12 @@
 Version 1.3.30 (in progress)
 ============================
 
+08/21/2006: mgossage
+            [Lua]
+	    Bugfix #1542466 added code to allow mapping Lua nil's <-> C/C++ NULL's
+	    updated various typemaps to work correctly with the changes
+	    added voidtest_runme.lua to show the features working
+
 08/19/2006: wuzzeb (John Lenz)
 	    [Guile] Add feature:constasvar to export constants as variables instead of functions
             that return the constant value.
@@ -19,6 +25,7 @@ Version 1.3.30 (in progress)
 	    -nocwrap mode.
 
 07/21/2006: mgossage
+            [Lua]
 	    Bugfix #1526022 pdated std::string to support strings with '\0' inside them
 	    updated typemaps.i to add support for pointer to pointers
 
