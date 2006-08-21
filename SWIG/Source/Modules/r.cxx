@@ -1002,9 +1002,13 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   
   Printf(f->code, "{\n");
   Printf(f->code, "%saccessorFuns = list(", tab8);
-  
+
+  Node *itemList = NewHash();
   for(j = 0; j < numMems; j+=3) {
     String *item = Getitem(el, j);
+    if (Getattr(itemList, item)) 
+      continue;
+    Setattr(itemList, item, "1");
     if (!Strcmp(item, "__getitem__")) has_getitem = 1;
     if (!Strcmp(item, "__setitem__")) has_setitem = 1;
     if (!Strcmp(item, "__str__")) has_str = 1;
@@ -1015,8 +1019,23 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     
     if (!strcmp(ptr, "get"))
       varaccessor++;
-    Printf(f->code, "'%s' = %s%s", item, dup, j < numMems - 3 ? ", " : "");
+
+    String *pitem;
+    if (!Strcmp(item, "operator ()")) {
+      pitem = NewString("call");
+    } else if (!Strcmp(item, "operator ->")) {
+      pitem = NewString("deref");
+    } else if (!Strcmp(item, "operator +")) {
+      pitem = NewString("add");
+    } else if (!Strcmp(item, "operator -")) {
+      pitem = NewString("sub");
+    } else {
+      pitem = Copy(item);
+    }
+    Printf(f->code, "'%s' = %s%s", pitem, dup, j < numMems - 3 ? ", " : "");
+    Delete(pitem);
   }
+  Delete(itemList);
   Printf(f->code, ")\n");
   
   if (!isSet && varaccessor > 0) {
