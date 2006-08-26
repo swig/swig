@@ -15,7 +15,7 @@ see bottom for a set of possible tests
 	    SWIGWARN_IGNORE_OPERATOR_LOR);
 #endif
 
-#if !defined(SWIGLUA) || !defined(SWIGPERL)
+#if !defined(SWIGLUA) && !defined(SWIGPERL) && !defined(SWIGR)
 %rename(Equal) operator =;
 %rename(PlusEqual) operator +=;
 %rename(MinusEqual) operator -=;
