@@ -31,14 +31,40 @@
 %rename(__seteq__)    *::operator=;
 
 
-/* Ignored operators */
-%ignoreoperator(LNOT)       operator!;
-%ignoreoperator(LAND)       operator&&;
-%ignoreoperator(LOR)        operator||;
-%ignoreoperator(EQ)         *::operator=;
-%ignoreoperator(PLUSPLUS)   *::operator++;
-%ignoreoperator(MINUSMINUS) *::operator--;
-%ignoreoperator(ARROWSTAR)  *::operator->*;
-%ignoreoperator(INDEX)      *::operator[];
+%rename(__land__)       operator&&;
+%rename(__lor__)        operator||;
+%rename(__plusplus__)   *::operator++;
+%rename(__minusminus__) *::operator--;
+%rename(__arrowstar__)  *::operator->*;
+%rename(__index__)      *::operator[];
+
+%rename(Equal) operator =;
+%rename(PlusEqual) operator +=;
+%rename(MinusEqual) operator -=;
+%rename(MultiplyEqual) operator *=;
+%rename(DivideEqual) operator /=;
+%rename(PercentEqual) operator %=;
+%rename(Plus) operator +;
+%rename(Minus) operator -;
+%rename(Multiply) operator *;
+%rename(Divide) operator /;
+%rename(Percent) operator %;
+%rename(Not) operator !;
+%rename(IndexIntoConst) operator[](unsigned idx) const;
+%rename(IndexInto) operator[](unsigned idx);
+%rename(Functor) operator ();
+%rename(EqualEqual) operator ==;
+%rename(NotEqual) operator !=;
+%rename(LessThan) operator <;
+%rename(LessThanEqual) operator <=;
+%rename(GreaterThan) operator >;
+%rename(GreaterThanEqual) operator >=;
+%rename(And) operator &&;
+%rename(Or) operator ||;
+%rename(PlusPlusPrefix) operator++();
+%rename(PlusPlusPostfix) operator++(int);
+%rename(MinusMinusPrefix) operator--();
+%rename(MinusMinusPostfix) operator--(int);
+
 
 #endif
