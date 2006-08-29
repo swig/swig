@@ -761,59 +761,55 @@ public:
      * by the pointer typemaps. This all needs re-arranging really as
      * things are being called in the wrong order
      */
-    
     Printf(s_init,"#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n", module);
 
     /* Emit all of the code */
     Language::top(n);
 
-    SwigPHP_emit_resource_registrations();    
+    SwigPHP_emit_resource_registrations();
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");        
+    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
     Printf(s_oinit, "/* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
-    
+
     /* Constants generated during top call */
-    // But save them for RINIT
     Printf(s_cinit, "/* end cinit subsection */\n");
-    
-    /* finish our init section which will have been used by class wrappers */
-    Printf(s_vinit, "/* end vinit subsection */\n");
-    
-    Printf(s_init, "    return SUCCESS;\n");
-    Printf(s_init,"}\n");
-    
-    // Now do REQUEST init which holds cinit and vinit
-    Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n",module);
-    Printf(s_init,"%s\n",r_init);
-    Printf(s_init,"%s\n",s_cinit); 
+    Printf(s_init,"%s\n",s_cinit);
     Clear(s_cinit);
     Delete(s_cinit);
-    
+
+    Printf(s_init, "    return SUCCESS;\n");
+    Printf(s_init,"}\n\n");
+
+    // Now do REQUEST init which holds any user specified %rinit, and also vinit
+    Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n",module);
+    Printf(s_init,"%s\n",r_init);
+
+    /* finish our init section which will have been used by class wrappers */
+    Printf(s_vinit, "/* end vinit subsection */\n");
     Printf(s_init, "%s\n", s_vinit);
     Clear(s_vinit);
     Delete(s_vinit);
-    
+
     Printf(s_init,"    return SUCCESS;\n");
-    Printf(s_init,"}\n");
-    
-    
+    Printf(s_init,"}\n\n");
+
     Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s\n",s_shutdown);
     Printf(s_init,"    return SUCCESS;\n");
-    Printf(s_init,"}\n");
-    
+    Printf(s_init,"}\n\n");
+
     Printf(s_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s\n",r_shutdown);
     Printf(s_init,"    return SUCCESS;\n");
-    Printf(s_init,"}\n");
+    Printf(s_init,"}\n\n");
 
     Printf(s_init,"PHP_MINFO_FUNCTION(%s)\n{\n",module);
     Printf(s_init,"%s", pragma_phpinfo);
     Printf(s_init,"}\n");
     Printf(s_init,"/* end init section */\n");
-           
+
     Printf(f_h, "#endif /* PHP_%s_H */\n",  cap_module);
 
     Close(f_h);

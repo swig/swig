@@ -1,6 +1,12 @@
 Version 1.3.30 (in progress)
 ============================
 
+08/29/2006: olly
+	    [php] Move constant initialisation from RINIT to MINIT to fix a
+	    warning when using Apache and mod_php.  We only need to create
+	    PHP constants once when we're first initialised, not for every HTTP
+	    request.
+
 08/21/2006: mgossage
             [Lua]
 	    Bugfix #1542466 added code to allow mapping Lua nil's <-> C/C++ NULL's
