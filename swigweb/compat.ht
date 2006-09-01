@@ -82,7 +82,8 @@ Support for Common Lisp with CFFI was added in SWIG-1.3.28.<br>
 Any newer versions of these languages should be assumed to be
 supported unless otherwise indicated.   
 
-There is also <a href="http://www.ultravioletconsulting.com/projects/swigjs">SwigJS</a>, a JavaScript module for SWIG 
+There is also <a href="http://www.ultravioletconsulting.com/projects/swigjs">SwigJS</a>, a JavaScript module for SWIG,
+<a href="http://www.dsource.org/projects/swig4d">swig4d</a> for the D programming language
 and <a href="http://efsa.sourceforge.net/archive/cozzi/swigeiffel.htm">SWIGEiffel</a> for Eiffel.
 
 <h3> Compilation Requirements </h3>
