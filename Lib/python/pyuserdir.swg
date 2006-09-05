@@ -11,7 +11,7 @@
 
 /* ------------------------------------------------------------------------- */
 /* 
-Use the "nondynamic" feature to make a wrapped class behaves as a "nondynamic"
+Use the "nondynamic" feature to make a wrapped class behave as a "nondynamic"
 one, ie, a python class that doesn't dynamically add new attributes.
 
 For example, for the class
@@ -36,11 +36,11 @@ Since nondynamic is a feature, if you use it like
 
 it will make all the wrapped classes nondynamic ones.
 
-The implementation is based on the recipe:
+The implementation is based on this recipe:
 
    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252158
 
-and works for modern (-modern) and plain python. We don not use __slots__, 
+and works for modern (-modern) and plain python. We do not use __slots__, 
 so, it works with old python versions.
 
 */
@@ -54,7 +54,7 @@ so, it works with old python versions.
 /* ------------------------------------------------------------------------- */
 /*
 
-Use %pythonmaybecall to flag a method like __add__ or __radd__, which
+Use %pythonmaybecall to flag a method like __add__ or __radd__.  These
 don't produce an error when called, they just return NotImplemented.
 
 These methods "may be called" if needed.
@@ -67,8 +67,8 @@ These methods "may be called" if needed.
 
 /* ------------------------------------------------------------------------- */
 /*
-  The %pythoncallback feature produce a more natural callback wrap
-  than the  %callback mechanism, ie, it use the original name for
+  The %pythoncallback feature produce a more natural callback wrapper
+  than the %callback mechanism, ie, it uses the original name for
   the callback and callable objects. 
 
   Just use it as
@@ -103,7 +103,7 @@ These methods "may be called" if needed.
      r = a.foom(3)             # eval the method
      mptr = A.foom_cb_ptr      # returns the callback pointer
 
-   where the '_cb_ptr' termination is added for the callback pointer.
+   where the '_cb_ptr' suffix is added for the callback pointer.
 
 */
 
