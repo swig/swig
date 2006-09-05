@@ -661,11 +661,11 @@ public:
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module );
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n",module );
     Printf(s_header, "#ifdef ZTS\n" );
-    Printf(s_header, "#define ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg )\n",module,module);
-    Printf(s_header, "#define ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code )\n",module,module);
+    Printf(s_header, "#define SWIG_ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg )\n",module,module);
+    Printf(s_header, "#define SWIG_ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code )\n",module,module);
     Printf(s_header, "#else\n" );
-    Printf(s_header, "#define ErrorMsg() (%s_globals.error_msg)\n",module);
-    Printf(s_header, "#define ErrorCode() (%s_globals.error_code)\n",module);
+    Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n",module);
+    Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n",module);
     Printf(s_header, "#endif\n\n" );
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n",module,module);
@@ -678,8 +678,8 @@ public:
     Printf(s_header, "\n");
     Printf(s_header, "static void SWIG_ResetError() {\n");
     Printf(s_header, "  TSRMLS_FETCH();\n");
-    Printf(s_header, "  ErrorMsg() = default_error_msg;\n");
-    Printf(s_header, "  ErrorCode() = default_error_code;\n");
+    Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
+    Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
     Printf(s_header, "}\n");
 
     Printf(s_header,"#define SWIG_name  \"%s\"\n", module);
@@ -926,14 +926,14 @@ public:
     else {
       Printf(f->code,"zend_get_parameters_array_ex(argc,argv);\n");
     }
-    
+
     Replaceall(dispatch,"$args","self,args");
 
     Printv(f->code,dispatch,"\n",NIL);
 
-    Printf(f->code,"ErrorCode() = E_ERROR;\n");
-    Printf(f->code,"ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());\n",NIL);
+    Printf(f->code,"SWIG_ErrorCode() = E_ERROR;\n");
+    Printf(f->code,"SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
+    Printv(f->code,"zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());\n",NIL);
 
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,s_wrappers);
@@ -1285,7 +1285,7 @@ public:
 
     if (mvr) {
       if (! mvrset) {
-        Printf(f->code,"return _return_value;\n");    
+        Printf(f->code,"return _return_value;\n");
       }
       else{
         Printf(f->code,"return SUCCESS;\n");
@@ -1298,9 +1298,9 @@ public:
     /* Error handling code */
     Printf(f->code,"fail:\n");
     Printv(f->code,cleanup,NIL);
-    Printv(f->code,"zend_error(ErrorCode(),ErrorMsg());",NIL);
+    Printv(f->code,"zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());",NIL);
 
-    Printf(f->code, "}\n");    
+    Printf(f->code, "}\n");
 
     Replaceall(f->code,"$cleanup",cleanup);
     Replaceall(f->code,"$symname",iname);

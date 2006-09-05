@@ -1,6 +1,18 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/05/2006: olly
+	    [php] Rename ErrorCode and ErrorMsg #define-s to SWIG_ErrorCode
+	    and SWIG_ErrorMsg to avoid clashes with code the user might be
+	    wrapping (patch from Darren Warner in SF bug #1466086).  Any
+	    user typemaps which use ErrorCode and/or ErrorMsg directly will
+	    need adjusting - you can easily fix them to work with both old
+	    and new SWIG by changing to use SWIG_ErrorMsg and adding:
+
+		#ifndef SWIG_ErrorMsg
+		#define SWIG_ErrorMsg() ErrorMsg()
+		#endif
+
 08/29/2006: olly
 	    [php] Move constant initialisation from RINIT to MINIT to fix a
 	    warning when using Apache and mod_php.  We only need to create
