@@ -2,6 +2,7 @@
 class
 constants
 functest
+funcptr3
 pointer
 simple
 variables
