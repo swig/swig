@@ -1,6 +1,16 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/11/2006: mgossage
+            [ALL] updated swiginit.swg to allow multiple interpreters to use multiple 
+	    swig modules at once. This has been tested in Lua (mingw & linux), 
+	    perl5 & python (linux) only.
+
+09/11/2006: mgossage
+            [lua] added support for passing function pointers as well as native lua object
+            into wrappered function.
+            Added example funcptr3 to demonstrate this feature
+
 09/05/2006: olly
 	    [php] Rename ErrorCode and ErrorMsg #define-s to SWIG_ErrorCode
 	    and SWIG_ErrorMsg to avoid clashes with code the user might be
