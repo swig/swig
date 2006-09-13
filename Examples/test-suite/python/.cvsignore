@@ -5,7 +5,6 @@ autodoc.py
 callback.py
 complextest.py
 director_stl.py
-director_thread.py
 director_wstring.py
 file_test.py
 iadd.py
@@ -44,6 +43,8 @@ add_link.py
 aggregate.py
 allowexcept.py
 anonymous_bitfield.py
+apply_signed_char.py
+apply_strings.py
 argout.py
 array_member.py
 array_typedef_memberin.py
@@ -86,6 +87,8 @@ derived_nested.py
 destructor_reprotected.py
 director_abstract.py
 director_basic.py
+director_classes.py
+director_classic.py
 director_constructor.py
 director_detect.py
 director_default.py
@@ -93,16 +96,18 @@ director_enum.py
 director_exception.py
 director_frob.py
 director_finalizer.py
+director_namespace_clash.py
 director_nested.py
+director_primitives.py
 director_protected.py
 director_redefined.py
+director_thread.py
 director_unroll.py
 director_using.py
 director_wombat.py
 disown.py
 dynamic_cast.py
 empty.py
-enum_plus.py
 enum_scope_template.py
 enum_template.py
 enum_thorough.py
@@ -111,6 +116,7 @@ evil_diamond.py
 evil_diamond_ns.py
 evil_diamond_prop.py
 exception_order.py
+exception_partial_info.py
 extend_default.py
 extend_placement.py
 extend_template.py
@@ -195,6 +201,7 @@ smart_pointer_rename.py
 smart_pointer_simple.py
 smart_pointer_static.py
 smart_pointer_typedef.py
+special_variables.py
 static_array_member.py
 static_const_member.py
 static_const_member_2.py
@@ -343,7 +350,6 @@ argcargvtest_runme.py
 callback_runme.py
 complextest_runme.py
 director_stl_runme.py
-director_thread_runme.py
 director_wstring_runme.py
 file_test_runme.py
 iadd_runme.py
@@ -385,6 +391,7 @@ default_constructor_runme.py
 default_args_runme.py
 director_abstract_runme.py
 director_basic_runme.py
+director_classic_runme.py
 director_detect_runme.py
 director_default_runme.py
 director_enum_runme.py
@@ -393,6 +400,7 @@ director_frob_runme.py
 director_finalizer_runme.py
 director_nested_runme.py
 director_protected_runme.py
+director_thread_runme.py
 director_unroll_runme.py
 disown_runme.py
 dynamic_cast_runme.py

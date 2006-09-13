@@ -10,6 +10,8 @@ add_link
 aggregate
 allowexcept
 anonymous_bitfield
+apply_signed_char
+apply_strings
 argout
 array_member
 arrayref
@@ -32,7 +34,6 @@ compactdefaultargs
 constant_pointers
 const_const
 const_const_2
-const_const_2/CVS
 constover
 constructor_copy
 constructor_exception
@@ -57,6 +58,10 @@ derived_nested
 destructor_reprotected
 director_abstract
 director_basic
+director_classes
+director_classic
+director_classic_was_temp
+director_classic_withexplicitcall_temp
 director_constructor
 director_default
 director_detect
@@ -64,17 +69,20 @@ director_enum
 director_exception
 director_finalizer
 director_frob
+director_namespace_clash
 director_nested
+director_primitives
 director_protected
 director_redefined
 director_string
+director_thread
 director_unroll
 director_using
 director_wombat
+director_wstring
 disown
 dynamic_cast
 empty
-enum_plus
 enums
 enum_scope_template
 enum_template
@@ -87,6 +95,8 @@ evil_diamond
 evil_diamond_ns
 evil_diamond_prop
 exception_order
+exception_partial_info
+explicitcall
 extend_default
 extend_placement
 extend_template
@@ -209,6 +219,7 @@ smart_pointer_simple
 smart_pointer_static
 smart_pointer_typedef
 sneaky1
+special_variables
 static_array_member
 static_const_member
 static_const_member_2
@@ -277,7 +288,6 @@ template_virtual
 template_whitespace
 threads
 throw_exception
-track_objects
 typedef_array_member
 typedef_class
 typedef_funcptr
