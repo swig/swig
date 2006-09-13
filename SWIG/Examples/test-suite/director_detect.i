@@ -12,6 +12,7 @@
 %include <std_string.i>
 
 %feature("director") Bar;
+%feature("director") Foo;
 
 %newobject Foo::cloner();
 %newobject Bar::cloner();
