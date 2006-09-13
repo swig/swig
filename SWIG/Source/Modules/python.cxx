@@ -1612,7 +1612,6 @@ public:
     int constructor = (!Cmp(nodeType, "constructor")); 
     int destructor = (!Cmp(nodeType, "destructor")); 
     String *storage   = Getattr(n,"storage");
-    int isVirtual = (Cmp(storage,"virtual") == 0);
     /* Only the first constructor is handled as init method. Others
        constructor can be emitted via %rename */
     int handled_as_init = 0;
@@ -1946,25 +1945,21 @@ public:
     // (the smart-pointer) and the director object (the "pointee") are
     // distinct.
 
-    if (directorsEnabled()) {
-      if (!is_smart_pointer()) {
-        if (/*directorbase &&*/ !constructor && !destructor 
-	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
-	  director_method = 1;
-          Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-          Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
-	  if (dirprot_mode() && !is_public(n)) {      
-            Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
-	    Printf(f->code, "SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
-	    Append(f->code, "SWIG_fail;\n");
-	    Append(f->code, "}\n");
-	  }
-	  if (funpack) {
-	    Append(f->code, "if (director && (director->swig_get_self()==swig_obj[0])) director->swig_set_up();\n");
-	  } else {
-	    Append(f->code, "if (director && (director->swig_get_self()==obj0)) director->swig_set_up();\n");
-	  }
-	}
+    director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
+    if (director_method) {
+      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
+      if (dirprot_mode() && !is_public(n)) {      
+	Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
+	Printf(f->code, "SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
+	Append(f->code, "SWIG_fail;\n");
+	Append(f->code, "}\n");
+      }
+      Wrapper_add_local(f, "upcall", "bool upcall = false");
+      if (funpack) {
+	Append(f->code, "upcall = (director && (director->swig_get_self()==swig_obj[0]));\n");
+      } else {
+	Append(f->code, "upcall = (director && (director->swig_get_self()==obj0));\n");
       }
     }
 
@@ -3570,29 +3565,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     p = nextSibling(p);
   }
 
-
-/* add the method name as a PyString */
+  /* add the method name as a PyString */
   String *pyname = Getattr(n,"sym:name");
 
   int allow_thread = threads_enable(n);
 
-  /* direct call to superclass if _up is set */
   if (allow_thread) thread_begin_block(n, w->code);
-  Append(w->code, "if (swig_get_up()) {\n");
-  if (pure_virtual) {
-    Printf(w->code,
-	   "Swig::DirectorPureVirtualException::raise(\"%s.\");\n",Swig_method_call(super,l));
-  } else { 
-    if (allow_thread) thread_begin_allow(n, w->code);
-    if (is_void) {
-      Printf(w->code, "%s;\n", Swig_method_call(super,l));
-      Append(w->code, "return;\n");
-    } else {
-      Printf(w->code, "return %s;\n", Swig_method_call(super,l));
-    }
-    if (allow_thread) thread_end_allow(n, w->code);
-  }
-  Append(w->code, "}\n");
 
   /* declare method return value 
    * if the return value is a reference or const reference, a specialized typemap must
@@ -3784,11 +3762,28 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   }
   Append(w->code, "}\n");
 
+  // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+  String *inline_extra_method = NewString("");
+  if (dirprot_mode() && !is_public(n) && !pure_virtual)
+  {
+    Printv(inline_extra_method, declaration, NIL);
+    String *extra_method_name = NewStringf("%sSwigPublic", name);
+    Replaceall(inline_extra_method, name, extra_method_name);
+    Replaceall(inline_extra_method, ";\n", " {\n      ");
+    if (!is_void)
+      Printf(inline_extra_method, "return ");
+    String *methodcall = Swig_method_call(super, l);
+    Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+    Delete(methodcall);
+    Delete(extra_method_name);
+  }
+
   /* emit the director method */
   if (status == SWIG_OK) {
     if (!Getattr(n,"defaultargs")) {
       Wrapper_print(w, f_directors);
       Printv(f_directors_h, declaration, NIL);
+      Printv(f_directors_h, inline_extra_method, NIL);
     }
   }
 

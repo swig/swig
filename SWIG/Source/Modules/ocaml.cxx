@@ -448,6 +448,7 @@ public:
 	SwigType *d = Getattr(n,"type");
 	String *return_type_normalized = normalizeTemplatedClassName(d);
 	ParmList *l = Getattr(n,"parms");
+	int director_method = 0;
 	Parm *p;
     
 	Wrapper *f = NewWrapper();
@@ -465,10 +466,7 @@ public:
 	int numreq;
 	int newobj = GetFlag(n,"feature:new");
 	String *nodeType = Getattr(n, "nodeType");
-	int constructor = !Cmp(nodeType, "constructor");
 	int destructor = (!Cmp(nodeType, "destructor")); 
-	String *storage = Getattr(n,"storage");
-	int isVirtual = !Cmp(storage,"virtual");
 	String *overname = 0;
 	bool isOverloaded = Getattr(n,"sym:overloaded") ? true : false;
 
@@ -687,18 +685,12 @@ public:
 	// (the smart-pointer) and the director object (the "pointee") are
 	// distinct.
 
-	if (directorsEnabled()) {
-	  if (!is_smart_pointer()) {
-	    if (/*directorbase &&*/ !constructor && !destructor 
-		&& isVirtual  && !Getattr(n,"feature:nodirector")) {
-		    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-		    Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
-			   
-		    Printf(f->code, 
-			   "if (director && !director->swig_get_up(false))"
-			   "director->swig_set_up();\n");
-		}
-	    }
+	director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
+	if (director_method) {
+	  Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+	  Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
+	  Wrapper_add_local(f, "upcall", "bool upcall = false");
+	  Append(f->code, "upcall = (director);\n");
 	}
 
 	// Now write code to make the function call
@@ -1665,17 +1657,6 @@ public:
 	Printv(w->code, "swig_result = Val_unit;\n",0);
 	Printf(w->code,"args = Val_unit;\n");
 
-	/* direct call to superclass if _up is set */
-	if( pure_virtual ) {
-	    Printf(w->code, "if (swig_get_up()) {\n");
-	    Printf(w->code, "  throw Swig::DirectorPureVirtualException();\n");
-	    Printf(w->code, "}\n");
-	} else {
-	    Printf(w->code, "if (swig_get_up()) {\n");
-	    Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
-	    Printf(w->code, "}\n");
-	}
-    
 	/* wrap complex arguments to values */
 	Printv(w->code, wrap_args, NIL);
 
@@ -1778,11 +1759,28 @@ public:
 
 	Printf(w->code, "}\n");
 
+	// We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+	String *inline_extra_method = NewString("");
+	if (dirprot_mode() && !is_public(n) && !pure_virtual)
+	{
+	  Printv(inline_extra_method, declaration, NIL);
+	  String *extra_method_name = NewStringf("%sSwigPublic", name);
+	  Replaceall(inline_extra_method, name, extra_method_name);
+	  Replaceall(inline_extra_method, ";\n", " {\n      ");
+	  if (!is_void)
+	    Printf(inline_extra_method, "return ");
+	  String *methodcall = Swig_method_call(super, l);
+	  Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+	  Delete(methodcall);
+	  Delete(extra_method_name);
+	}
+
 	/* emit the director method */
 	if (status == SWIG_OK) {
           if (!Getattr(n,"defaultargs")) {
 	    Wrapper_print(w, f_directors);
 	    Printv(f_directors_h, declaration, NIL);
+	    Printv(f_directors_h, inline_extra_method, NIL);
           }
 	}
 

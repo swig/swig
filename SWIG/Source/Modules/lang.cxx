@@ -45,6 +45,7 @@ static int      InClass = 0;          /* Parsing C++ or not */
 static String  *ClassName = 0;        /* This is the real name of the current class */
 static String  *ClassPrefix = 0;      /* Class prefix */
 static String  *ClassType = 0;        /* Fully qualified type name to use */
+static String  *DirectorClassName = 0;/* Director name of the current class */
 int             Abstract = 0;
 int             ImportMode = 0;
 int             IsVirtual = 0;
@@ -974,26 +975,27 @@ Language::functionHandler(Node *n) {
       globalfunctionHandler(n);
     } else {
       Node* explicit_n = 0;
-      if (GetFlag(n, "feature:explicitcall")) {
-      	// Add in an explicit wrapper call to virtual methods
-      	if (Cmp(storage, "virtual") == 0 && (cplus_mode == PUBLIC))
-          explicit_n = Copy(n);
+      if (directorsEnabled() && is_member_director(CurrentClass,n) && !Extend && !extraDirectorProtectedCPPMethodsRequired()) {
+	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
+	if (virtual_but_not_pure_virtual) {
+	  // Add additional wrapper which makes an explicit call to the virtual method (ie not a virtual call)
+	  explicit_n = Copy(n);
+	  String *new_symname = Copy(Getattr(n,"sym:name"));
+	  String *suffix = Getattr(parentNode(n),"sym:name");
+	  Printv(new_symname, "SwigExplicit", suffix, NIL);
+	  Setattr(explicit_n,"sym:name", new_symname);
+	  Delattr(explicit_n,"storage");
+	  Delattr(explicit_n,"override");
+	  Delattr(explicit_n,"hides");
+	  SetFlag(explicit_n,"explicitcall");
+	  Setattr(n, "explicitcallnode", explicit_n);
+	}
       }
-        
+
       memberfunctionHandler(n);
-      
+
       if (explicit_n) {
-        String *new_symname = Copy(Getattr(n,"sym:name"));
-        String *suffix = Getattr(n,"feature:explicitcall:suffix");
-        if (!suffix)
-          suffix = Getattr(parentNode(n),"sym:name");
-        Printv(new_symname, suffix, NIL);
-        Setattr(explicit_n,"sym:name", new_symname);
-        Delattr(explicit_n,"storage");
-        Delattr(explicit_n,"override");
-        Delattr(explicit_n,"hides");
-        SetFlag(explicit_n,"explicitcall");
-        memberfunctionHandler(explicit_n);
+	memberfunctionHandler(explicit_n);
         Delattr(explicit_n,"explicitcall");
         Delete(explicit_n);
       }
@@ -1149,12 +1151,31 @@ Language::memberfunctionHandler(Node *n) {
       Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
     }
   }
-  /* Transformation */
-  Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer);
+
+  // Set up the type for the cast to this class for use when wrapping const director (virtual) methods.
+  // Note: protected director methods only.
+  String* director_type = 0;
+  if (!is_public(n) && (is_member_director(CurrentClass,n) || GetFlag(n, "explicitcall"))) {
+    director_type = Copy(DirectorClassName);
+    String *qualifier = Getattr(n,k_qualifier);
+    if (qualifier)
+      SwigType_push(director_type,qualifier);
+    SwigType_add_pointer(director_type);
+  }
+
+  int DirectorExtraCall = 0;
+  if (directorsEnabled() && is_member_director(CurrentClass,n) && !SmartPointer)
+    if (extraDirectorProtectedCPPMethodsRequired())
+      DirectorExtraCall = CWRAP_DIRECTOR_TWO_CALLS;
+
+  if (GetFlag(n, "explicitcall"))
+    DirectorExtraCall = CWRAP_DIRECTOR_ONE_CALL;
+
+  Swig_MethodToFunction(n, ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer | DirectorExtraCall, director_type, is_member_director(CurrentClass,n));
   Setattr(n,"sym:name",fname);
   functionWrapper(n);
 
-  /*  DelWrapper(w);*/
+  Delete(director_type);
   Delete(fname);
   Swig_restore(n);
   return SWIG_OK;
@@ -1970,15 +1991,13 @@ int Language::classDirectorDestructor(Node *n) {
   */
   File *f_directors = Swig_filebyname("director");
   File *f_directors_h = Swig_filebyname("director_h");
-  String *classname= Swig_class_name(getCurrentClass());
   if (Getattr(n,"throw")) {
-    Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() throw () {\n}\n\n", classname, classname);
+    Printf(f_directors_h, "    virtual ~%s() throw ();\n", DirectorClassName);
+    Printf(f_directors, "%s::~%s() throw () {\n}\n\n", DirectorClassName, DirectorClassName);
   } else {
-    Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() {\n}\n\n", classname, classname);
+    Printf(f_directors_h, "    virtual ~%s();\n", DirectorClassName);
+    Printf(f_directors, "%s::~%s() {\n}\n\n", DirectorClassName, DirectorClassName);
   }
-  Delete(classname);
   return SWIG_OK;
 }
 
@@ -2290,6 +2309,7 @@ int Language::classDeclaration(Node *n) {
     }
 
     if (dir) {
+      DirectorClassName = NewStringf("SwigDirector_%s", symname);
       classDirector(n);
     }
     /* check for abstract after resolving directors */
@@ -2306,6 +2326,7 @@ int Language::classDeclaration(Node *n) {
   Delete(ClassType);     ClassType = 0;
   Delete(ClassPrefix);   ClassPrefix = 0;
   Delete(ClassName);     ClassName = 0;
+  Delete(DirectorClassName);     DirectorClassName = 0;
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -2340,6 +2361,35 @@ int Language::classHandler(Node *n) {
   /* emit director disown method */
   if (hasDirector) {
     classDirectorDisown(n);
+
+    /* Emit additional protected virtual methods - only needed if the language module
+     * codes logic in the C++ layer instead of the director proxy class method - primarily
+     * to catch public use of protected methods by the sripting languages. */
+    if (dirprot_mode() && extraDirectorProtectedCPPMethodsRequired()) {
+      Node *vtable = Getattr(n, "vtable");
+      String* symname = Getattr(n, "sym:name");
+      Node *item;
+      Iterator k;
+      AccessMode old_mode = cplus_mode;
+      cplus_mode = PROTECTED;
+      for (k = First(vtable); k.key; k = Next(k)) {
+	item = k.item;
+	Node *method = Getattr(item, "methodNode");
+	SwigType *type = Getattr(method,"nodeType");
+	if (Strcmp(type,"cdecl") !=0 ) continue;
+	String* methodname = Getattr(method,"sym:name");
+	String* wrapname = NewStringf("%s_%s", symname,methodname);
+	if (!Getattr(symbols,wrapname) && (!is_public(method))) {
+	  Node* m = Copy(method);
+	  Setattr(m, "director", "1");
+	  Setattr(m,"parentNode", n);
+	  cDeclaration(m);
+	  Delete(m);
+	}
+	Delete(wrapname);
+      }
+      cplus_mode = old_mode;
+    }
   }
 
   return SWIG_OK;
@@ -3049,7 +3099,7 @@ int Language::need_nonpublic_member(Node *n)
 	   needed. */
 	return 1;
       } else {
-	/* if the method is pure virtual, we needed it. */
+	/* if the method is pure virtual, we need it. */
 	int pure_virtual = (Cmp(Getattr(n,"value"),"0") == 0);
 	return pure_virtual;
       }
@@ -3065,6 +3115,14 @@ int Language::need_nonpublic_member(Node *n)
 
 int Language::is_smart_pointer() const {
     return SmartPointer;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::extraDirectorProtectedCPPMethodsRequired()
+ * ----------------------------------------------------------------------------- */
+
+bool Language::extraDirectorProtectedCPPMethodsRequired() const {
+    return true;
 }
 
 /* -----------------------------------------------------------------------------

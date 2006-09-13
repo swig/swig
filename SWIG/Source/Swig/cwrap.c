@@ -382,7 +382,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
  * ----------------------------------------------------------------------------- */
 
 static String *
-Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self, String *explicit_qualifier) {
+Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self, String *explicit_qualifier, SwigType *director_type) {
   String *func, *nname;
   int i = 0;
   Parm *p = parms;
@@ -402,35 +402,43 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self, S
   } else {
     nname = SwigType_namestr(name);
   }
-  
-  pt = Getattr(p,k_type);
 
-  /* If the method is invoked through a dereferenced pointer, we don't add any casts
-     (needed for smart pointers).  Otherwise, we cast to the appropriate type */
-
-  if (Strstr(func,"*this")) {
-    String *pname = Swig_cparm_name(p,0);
-    Replaceall(func,"this", pname);
-    Delete(pname);
-  } else {
-    String *pname = Swig_cparm_name(p,0);
-    String *rcaststr = SwigType_rcaststr(pt, pname);
+  if (director_type) {
+    const char *pname = "darg";
+    String *rcaststr = SwigType_rcaststr(director_type, pname);
     Replaceall(func,"this", rcaststr);
     Delete(rcaststr);
-    Delete(pname);
+  } else {
+    pt = Getattr(p,k_type);
+
+    /* If the method is invoked through a dereferenced pointer, we don't add any casts
+       (needed for smart pointers).  Otherwise, we cast to the appropriate type */
+
+    if (Strstr(func,"*this")) {
+      String *pname = Swig_cparm_name(p,0);
+      Replaceall(func,"this", pname);
+      Delete(pname);
+    } else {
+      String *pname = Swig_cparm_name(p,0);
+      String *rcaststr = SwigType_rcaststr(pt, pname);
+      Replaceall(func,"this", rcaststr);
+      Delete(rcaststr);
+      Delete(pname);
+    }
+
+    /*
+       SWIGTEMPLATEDESIMBUAGATOR is compiler dependent (swiglabels.swg),
+       - SUN Studio 9 requires 'template', 
+       - gcc-3.4 forbids the use of 'template' (correctly implementing the ISO C++ standard)
+       the others don't seem to care,
+       */
+    if (SwigType_istemplate(name))
+      Printf(func,"SWIGTEMPLATEDISAMBIGUATOR ");
+
+    if (explicit_qualifier) {
+      Printv(func, explicit_qualifier, "::", NIL);
+    }
   }
-
-  /*
-    SWIGTEMPLATEDESIMBUAGATOR is compiler dependent (swiglabels.swg),
-      - SUN Studio 9 requires 'template', 
-      - gcc-3.4 forbids the use of 'template'.
-    the rest seems not caring very much,
-  */
-  if (SwigType_istemplate(name))
-    Printf(func,"SWIGTEMPLATEDISAMBIGUATOR ");
-
-  if (explicit_qualifier)
-    Printv(func, explicit_qualifier, "::", NIL);
 
   Printf(func,"%s(", nname);
 
@@ -787,7 +795,7 @@ Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms,
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_MethodToFunction(Node *n, String *classname, int flags) {
+Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *director_type, int is_director) {
   String   *name, *qualifier;
   ParmList *parms;
   SwigType *type;
@@ -845,13 +853,51 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   
   /* Generate action code for the access */
   if (!(flags & CWRAP_EXTEND)) {
-    /* Call the explicit method rather than allow for a polymorphic call */
-    String *explicit_qualifier = GetFlag(n,"explicitcall") ? 
-    				 SwigType_namestr(Getattr(Getattr(parentNode(n),"typescope"),k_qname)) : 0;
+    String *explicit_qualifier = 0;
+    String *call = 0;
+    String *cres = 0;
+    String *explicitcall_name = 0;
+    int pure_virtual = !(Cmp(Getattr(n,k_storage), "virtual")) && !(Cmp(Getattr(n,k_value), "0"));
 
-    String *call = Swig_cmethod_call(name,p,self,explicit_qualifier);
-    String *cres = Swig_cresult(Getattr(n,k_type),k_result, call);
-    Setattr(n,k_wrapaction, cres);
+    /* Call the explicit method rather than allow for a polymorphic call */
+    if ((flags & CWRAP_DIRECTOR_TWO_CALLS) || (flags & CWRAP_DIRECTOR_ONE_CALL)) {
+      String* access = Getattr(n, "access");
+      if (access && (Cmp(access, "protected") == 0)) {
+        /* If protected access (can only be if a director method) then call the extra public accessor method (language module must provide this) */
+        String *explicit_qualifier_tmp = SwigType_namestr(Getattr(Getattr(parentNode(n),"typescope"),k_qname));
+        explicitcall_name = NewStringf("%sSwigPublic", name);
+        explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
+        Delete(explicit_qualifier_tmp);
+      } else {
+        explicit_qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n),"typescope"),k_qname));
+      }
+    }
+
+    call = Swig_cmethod_call(explicitcall_name ? explicitcall_name : name, p, self, explicit_qualifier, director_type);
+    cres = Swig_cresult(Getattr(n,k_type),k_result, call);
+
+    if (pure_virtual && is_director && (flags & CWRAP_DIRECTOR_TWO_CALLS)) {
+      String *qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n),"typescope"),k_qname));
+      Delete(cres);
+      cres = NewStringf("Swig::DirectorPureVirtualException::raise(\"%s::%s\");", qualifier, name);
+      Delete(qualifier);
+    }
+
+    if (flags & CWRAP_DIRECTOR_TWO_CALLS) {
+      /* Create two method calls, one to call the explicit method, the other a normal polymorphic function call */
+      String *cres_both_calls = NewStringf("");
+      String *call_extra = Swig_cmethod_call(name, p, self, 0, director_type);
+      String *cres_extra = Swig_cresult(Getattr(n,k_type),k_result, call_extra);
+      Printv(cres_both_calls, "if (upcall) {\n", cres, "\n", "} else {", cres_extra, "\n}", NIL);
+      Setattr(n,k_wrapaction, cres_both_calls);
+      Delete(cres_extra);
+      Delete(call_extra);
+      Delete(cres_both_calls);
+    } else {
+      Setattr(n,k_wrapaction, cres);
+    }
+
+    Delete(explicitcall_name);
     Delete(call);
     Delete(cres);
     Delete(explicit_qualifier);

@@ -1859,6 +1859,9 @@ class CSHARP : public Language {
     // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
     if (Getattr(n, "overload:ignore")) return;
 
+    // Don't generate proxy method for additional explicitcall method used in directors
+    if (GetFlag(n, "explicitcall")) return;
+
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
         l = nextSibling(l);
@@ -1993,6 +1996,28 @@ class CSHARP : public Language {
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
+
+      // For director methods: generate code to selectively make a normal polymorphic call or 
+      // an explicit method call - needed to prevent infinite recursion calls in director methods.
+      Node *explicit_n = Getattr(n,"explicitcallnode");
+      if (explicit_n) {
+	String *ex_overloaded_name = getOverloadedName(explicit_n);
+	String *ex_intermediary_function_name = Swig_name_member(proxy_class_name, ex_overloaded_name);
+
+        String *ex_imcall = Copy(imcall);
+        Replaceall(ex_imcall, intermediary_function_name, ex_intermediary_function_name);
+
+        String *excode = NewString("");
+        if (!Cmp(return_type, "void"))
+            Printf(excode, "if (this.GetType() == typeof(%s)) %s; else %s", proxy_class_name, imcall, ex_imcall);
+        else
+            Printf(excode, "((this.GetType() == typeof(%s)) ? %s : %s)", proxy_class_name, imcall, ex_imcall);
+
+        Clear(imcall);
+        Printv(imcall, excode, NIL);
+	Delete(ex_overloaded_name);
+        Delete(excode);
+      }
       Replaceall(tm, "$imcall", imcall);
       excodeSubstitute(n, tm, "csout", n);
     } else {
@@ -3364,6 +3389,22 @@ class CSHARP : public Language {
 
     Printf(w->code, "}");
 
+    // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+    String *inline_extra_method = NewString("");
+    if (dirprot_mode() && !is_public(n) && !pure_virtual)
+    {
+      Printv(inline_extra_method, declaration, NIL);
+      String *extra_method_name = NewStringf("%sSwigPublic", name);
+      Replaceall(inline_extra_method, name, extra_method_name);
+      Replaceall(inline_extra_method, ";\n", " {\n      ");
+      if (!is_void)
+	Printf(inline_extra_method, "return ");
+      String *methodcall = Swig_method_call(super, l);
+      Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+      Delete(methodcall);
+      Delete(extra_method_name);
+    }
+
     /* emit code */
     if (status == SWIG_OK && output_director) {
       if(!is_void) {
@@ -3375,6 +3416,7 @@ class CSHARP : public Language {
       if (!Getattr(n,"defaultargs")) {
         Wrapper_print(w, f_directors);
         Printv(f_directors_h, declaration, NIL);
+        Printv(f_directors_h, inline_extra_method, NIL);
       }
     }
 
@@ -3621,6 +3663,14 @@ class CSHARP : public Language {
     return SWIG_OK;
   }
     
+  /* -----------------------------------------------------------------------------
+   * extraDirectorProtectedCPPMethodsRequired()
+   * ----------------------------------------------------------------------------- */
+
+  bool extraDirectorProtectedCPPMethodsRequired() const {
+      return false;
+  }
+
   /* --------------------------------------------------------------------
    * Java_director_declaration()
    *
