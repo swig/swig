@@ -14,7 +14,7 @@ public class director_thread_runme {
   }
 
   public static void main(String argv[]) {
-    Derived d = new Derived();
+    director_thread_Derived d = new director_thread_Derived();
     d.run();
 
     if (d.getVal() >= 0) {
@@ -23,8 +23,8 @@ public class director_thread_runme {
   }
 }
 
-class Derived extends Foo {
-  Derived() {
+class director_thread_Derived extends Foo {
+  director_thread_Derived() {
     super();
   }
 
