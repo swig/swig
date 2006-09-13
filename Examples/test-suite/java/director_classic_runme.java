@@ -81,6 +81,35 @@ public class director_classic_runme {
       check(person, "TargetLangOrphanChild"); 
       person.delete();
     }
+
+    // Duals - id() makes an upcall to the base id()
+    { 
+      Person person = new TargetLangDualPerson();
+      check(person, "TargetLangDualPerson + Person"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangDualChild();
+      check(person, "TargetLangDualChild + Child"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangDualGrandChild();
+      check(person, "TargetLangDualGrandChild + GrandChild"); 
+      person.delete();
+    }
+
+    // Mix Orphans and Duals
+    { 
+      Person person = new TargetLangDualOrphanPerson();
+      check(person, "TargetLangDualOrphanPerson + Person"); 
+      person.delete();
+    }
+    { 
+      Person person = new TargetLangDualOrphanChild();
+      check(person, "TargetLangDualOrphanChild + Child"); 
+      person.delete();
+    }
   }
 
   static void check(Person person, String expected) {
@@ -211,6 +240,78 @@ class TargetLangOrphanChild extends OrphanChild
   public String id()
   {
     String identifier = "TargetLangOrphanChild";
+    return identifier;
+  }
+}
+
+// Duals - id() makes an upcall to the base id()
+class TargetLangDualPerson extends Person
+{
+  public TargetLangDualPerson()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangDualPerson + " + super.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualChild extends Child
+{
+  public TargetLangDualChild()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangDualChild + " + super.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualGrandChild extends GrandChild
+{
+  public TargetLangDualGrandChild()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangDualGrandChild + " + super.id();
+    return identifier;
+  }
+}
+
+// Mix Orphans and Duals
+class TargetLangDualOrphanPerson extends OrphanPerson
+{
+  public TargetLangDualOrphanPerson()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangDualOrphanPerson + " + super.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualOrphanChild extends OrphanChild
+{
+  public TargetLangDualOrphanChild()
+  {
+    super();
+  }
+
+  public String id()
+  {
+    String identifier = "TargetLangDualOrphanChild + " + super.id();
     return identifier;
   }
 }
