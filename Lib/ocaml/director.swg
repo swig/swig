@@ -61,32 +61,10 @@ namespace Swig {
       CAML_VALUE swig_self;
       /* flag indicating whether the object is owned by ocaml or c++ */
       mutable bool swig_disown_flag;
-      mutable bool swig_up;
-
-#ifdef __PTHREAD__
-      /* locks for sharing the swig_up flag in a threaded environment */
-      static pthread_mutex_t swig_mutex_up;
-      static bool swig_mutex_active;
-      static pthread_t swig_mutex_thread;
-#endif
-
-      /* reset the swig_up flag once the routing direction has been determined */
-#ifdef __PTHREAD__
-      void swig_clear_up() const { 
-        swig_up = false; 
-        Swig::Director::swig_mutex_active = false;
-        pthread_mutex_unlock(&swig_mutex_up);
-      }
-
-#else
-      void swig_clear_up() const { 
-        swig_up = false; 
-      }
-#endif
 
     public:
       /* wrap a ocaml object, optionally taking ownership */
-      Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false), swig_up( false ) {
+      Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
         register_global_root(&swig_self);
       }
 
@@ -103,45 +81,6 @@ namespace Swig {
 	  return swig_self;
       }
 
-      /* get the swig_up flag to determine if the method call should be routed
-       * to the c++ base class or through the wrapped ocaml object
-       */
-#ifdef __PTHREAD__
-      bool swig_get_up( bool clear = true ) const { 
-        if (Swig::Director::swig_mutex_active) {
-          if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
-            bool up = swig_up;
-            if( clear ) swig_clear_up();
-            return up;
-          }
-        }
-        return false;
-      }
-
-#else 
-      bool swig_get_up( bool clear = true ) const { 
-        bool up = swig_up;
-        if( clear ) swig_up = false;
-        return up;
-      }
-#endif
-
-      /* set the swig_up flag if the next method call should be directed to
-       * the c++ base class rather than the wrapped ocaml object
-       */
-#ifdef __PTHREAD__
-      void swig_set_up() const { 
-        pthread_mutex_lock(&Swig::Director::swig_mutex_up);
-        Swig::Director::swig_mutex_thread = pthread_self();
-        Swig::Director::swig_mutex_active = true;
-        swig_up = true; 
-      }
-#else 
-      void swig_set_up() const { 
-        swig_up = true; 
-      }
-#endif
-
       /* acquire ownership of the wrapped ocaml object (the sense of "disown"
        * is from ocaml) */
       void swig_disown() const { 
@@ -151,13 +90,6 @@ namespace Swig {
         } 
       }
   };
-
-#ifdef __PTHREAD__
-  MUTEX_INIT(Swig::Director::swig_mutex_up);
-  pthread_t Swig::Director::swig_mutex_thread;
-  bool Swig::Director::swig_mutex_active = false;
-#endif
-
 }
 
 #endif /* __cplusplus */

@@ -317,7 +317,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg = "") 
-      : DirectorException(PyExc_RuntimeError, "Swig director pure virtal method called", msg)
+      : DirectorException(PyExc_RuntimeError, "Swig director pure virtual method called", msg)
     { 
     }
 
@@ -376,15 +376,6 @@ namespace Swig {
     PyObject* swig_self;
     /* flag indicating whether the object is owned by python or c++ */
     mutable bool swig_disown_flag;
-    /* shared flag for breaking recursive director calls */
-    static bool swig_up;
-
-#ifdef __PTHREAD__
-    /* locks for sharing the swig_up flag in a threaded environment */
-    static pthread_mutex_t swig_mutex_up;
-    static bool swig_mutex_active;
-    static pthread_t swig_mutex_thread;
-#endif
 
     /* decrement the reference count of the wrapped python object */
     void swig_decref() const { 
@@ -394,19 +385,6 @@ namespace Swig {
 	SWIG_PYTHON_THREAD_END_BLOCK; 
       }
     }
-
-    /* reset the swig_up flag once the routing direction has been determined */
-#ifdef __PTHREAD__
-    void swig_clear_up() const { 
-      Swig::Director::swig_up = false; 
-      Swig::Director::swig_mutex_active = false;
-      pthread_mutex_unlock(&swig_mutex_up);
-    }
-#else
-    void swig_clear_up() const { 
-      Swig::Director::swig_up = false; 
-    }
-#endif
 
   public:
     /* wrap a python object, optionally taking ownership */
@@ -419,44 +397,6 @@ namespace Swig {
     PyObject *swig_get_self() const { 
       return swig_self; 
     }
-
-    /* get the swig_up flag to determine if the method call should be routed
-     * to the c++ base class or through the wrapped python object
-     */
-#ifdef __PTHREAD__
-    bool swig_get_up() const { 
-      if (Swig::Director::swig_mutex_active) {
-	if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
-	  bool up = swig_up;
-	  swig_clear_up();
-	  return up;
-	}
-      }
-      return 0;
-    }
-#else 
-    bool swig_get_up() const { 
-      bool up = swig_up;
-      swig_up = false;
-      return up;
-    }
-#endif
-
-    /* set the swig_up flag if the next method call should be directed to
-     * the c++ base class rather than the wrapped python object
-     */
-#ifdef __PTHREAD__
-    void swig_set_up() const { 
-      pthread_mutex_lock(&Swig::Director::swig_mutex_up);
-      Swig::Director::swig_mutex_thread = pthread_self();
-      Swig::Director::swig_mutex_active = true;
-      Swig::Director::swig_up = true; 
-    }
-#else 
-    void swig_set_up() const { 
-      Swig::Director::swig_up = true; 
-    }
-#endif
 
     /* acquire ownership of the wrapped python object (the sense of "disown"
      * is from python) */
@@ -482,7 +422,7 @@ namespace Swig {
     virtual void swig_set_inner(const char* /* name */, bool /* val */) const {
     }
 
-    /* ownership managing */
+  /* ownership management */
   private:
     typedef std::map<void*, GCItem_var> ownership_map;
     mutable ownership_map owner;
@@ -531,7 +471,6 @@ namespace Swig {
       return own;
     }
   };
-
 }
 
 #endif /* __cplusplus */

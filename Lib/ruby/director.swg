@@ -121,7 +121,6 @@ namespace Swig {
 
 
   /* body args */
-
   struct body_args {
     VALUE recv;
     ID id;
@@ -253,7 +252,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg = "") 
-      : DirectorException(rb_eRuntimeError, "Swig director pure virtal method called", msg)
+      : DirectorException(rb_eRuntimeError, "Swig director pure virtual method called", msg)
     { 
     }
 
@@ -299,102 +298,41 @@ namespace Swig {
 
   /* director base class */
   class Director {
-    private:
-      /* pointer to the wrapped Ruby object */
-      VALUE swig_self;
-      /* flag indicating whether the object is owned by Ruby or c++ */
-      mutable bool swig_disown_flag;
-      /* shared flag for breaking recursive director calls */
-      static bool swig_up;
+  private:
+    /* pointer to the wrapped Ruby object */
+    VALUE swig_self;
+    /* flag indicating whether the object is owned by Ruby or c++ */
+    mutable bool swig_disown_flag;
 
-#ifdef __PTHREAD__
-      /* locks for sharing the swig_up flag in a threaded environment */
-      static pthread_mutex_t swig_mutex_up;
-      static bool swig_mutex_active;
-      static pthread_t swig_mutex_thread;
-#endif
+  public:
+    /* wrap a Ruby object, optionally taking ownership */
+    Director(VALUE self) : swig_self(self), swig_disown_flag(false) {
+    }
 
-      /* reset the swig_up flag once the routing direction has been determined */
-#ifdef __PTHREAD__
-      void swig_clear_up() const { 
-        Swig::Director::swig_up = false; 
-        Swig::Director::swig_mutex_active = false;
-        pthread_mutex_unlock(&swig_mutex_up);
-      }
-#else
-      void swig_clear_up() const { 
-        Swig::Director::swig_up = false; 
-      }
-#endif
+    /* discard our reference at destruction */
+    virtual ~Director() {
+    }
 
-    public:
-      /* wrap a Ruby object, optionally taking ownership */
-      Director(VALUE self) : swig_self(self), swig_disown_flag(false) {
-      }
+    /* return a pointer to the wrapped Ruby object */
+    VALUE swig_get_self() const { 
+      return swig_self; 
+    }
 
-      /* discard our reference at destruction */
-      virtual ~Director() {
-      }
+    /* acquire ownership of the wrapped Ruby object (the sense of "disown"
+     * is from Ruby) */
+    void swig_disown() const { 
+      if (!swig_disown_flag) { 
+        swig_disown_flag = true;
+      } 
+    }
 
-      /* return a pointer to the wrapped Ruby object */
-      VALUE swig_get_self() const { 
-        return swig_self; 
-      }
-
-      /* get the swig_up flag to determine if the method call should be routed
-       * to the c++ base class or through the wrapped Ruby object
-       */
-#ifdef __PTHREAD__
-      bool swig_get_up() const { 
-        if (Swig::Director::swig_mutex_active) {
-          if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
-            bool up = swig_up;
-            swig_clear_up();
-            return up;
-          }
-        }
-        return false;
-      }
-#else 
-      bool swig_get_up() const { 
-        bool up = swig_up;
-        swig_up = false;
-        return up;
-      }
-#endif
-
-      /* set the swig_up flag if the next method call should be directed to
-       * the c++ base class rather than the wrapped Ruby object
-       */
-#ifdef __PTHREAD__
-      void swig_set_up() const { 
-        pthread_mutex_lock(&Swig::Director::swig_mutex_up);
-        Swig::Director::swig_mutex_thread = pthread_self();
-        Swig::Director::swig_mutex_active = true;
-        Swig::Director::swig_up = true;
-      }
-#else 
-      void swig_set_up() const { 
-        Swig::Director::swig_up = true; 
-      }
-#endif
-
-      /* acquire ownership of the wrapped Ruby object (the sense of "disown"
-       * is from Ruby) */
-      void swig_disown() const { 
-        if (!swig_disown_flag) { 
-          swig_disown_flag = true;
-        } 
-      }
-
-    /* ownership managing */
+  /* ownership management */
   private:
     typedef std::map<void*, GCItem_var> ownership_map;
     mutable ownership_map owner;
 #ifdef __PTHREAD__
     static pthread_mutex_t swig_mutex_own;
 #endif
-    
 
   public:
     template <typename Type>
@@ -436,16 +374,7 @@ namespace Swig {
       }
       return own;
     }
-
   };
-
-  bool Swig::Director::swig_up = false;
-
-#ifdef __PTHREAD__
-  MUTEX_INIT(Swig::Director::swig_mutex_up);
-  pthread_t Swig::Director::swig_mutex_thread;
-  bool Swig::Director::swig_mutex_active = false;
-#endif
 }
 
 #endif /* __cplusplus */

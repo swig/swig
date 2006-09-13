@@ -26,17 +26,9 @@ namespace Swig {
     swig_incref();
   }
 
-
-
-  bool Director::swig_up = false;
-
 #ifdef __PTHREAD__
-  pthread_mutex_t SWIG_MUTEX_INIT(Director::swig_mutex_up);
   pthread_mutex_t SWIG_MUTEX_INIT(Director::swig_mutex_own);
-  pthread_t Director::swig_mutex_thread;
-  bool Director::swig_mutex_active = false;
 #endif
-
 
 }
 
