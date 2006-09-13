@@ -1251,6 +1251,7 @@ static void default_arguments(Node *n) {
         int constqualifier = SwigType_isconst(decl);
 	String *ccode = Copy(Getattr(function,k_code));
 	String *cstorage = Copy(Getattr(function,k_storage));
+	String *cvalue = Copy(Getattr(function,k_value));
 	SwigType *ctype = Copy(Getattr(function,k_type));
 	String *cthrow = Copy(Getattr(function,k_throw));
 
@@ -1264,11 +1265,13 @@ static void default_arguments(Node *n) {
         Setattr(new_function,k_decl, decl);
         Setattr(new_function,k_parms, newparms);
         Setattr(new_function,k_storage, cstorage);
+        Setattr(new_function,k_value, cvalue);
         Setattr(new_function,k_type, ctype);
         Setattr(new_function,k_throw, cthrow);
 
 	Delete(ccode);
 	Delete(cstorage);
+	Delete(cvalue);
 	Delete(ctype);
 	Delete(cthrow);
 	Delete(decl);
