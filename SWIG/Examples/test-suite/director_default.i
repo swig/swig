@@ -1,4 +1,8 @@
 %module(directors="1") director_default
+
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) DefaultsBase;
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) DefaultsDerived;
+
 %{
 #include <string>
 
@@ -42,3 +46,21 @@ public:
 };
 
 %}
+
+%feature("director") DefaultsBase;
+%feature("director") DefaultsDerived;
+
+%inline %{
+typedef int* IntegerPtr;
+typedef double Double;
+
+struct DefaultsBase {
+	virtual IntegerPtr defaultargs(double d, int * a = 0) = 0;
+        virtual ~DefaultsBase() {}
+};
+
+struct DefaultsDerived : DefaultsBase {
+	int * defaultargs(Double d, IntegerPtr a = 0) { return 0; }
+};
+%}
+
