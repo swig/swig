@@ -49,7 +49,7 @@ typedef struct _Foo {
 %}
 
   
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) iFoo; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) _iFoo;
 
 #ifndef __cplusplus
 %inline %{

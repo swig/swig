@@ -23,7 +23,7 @@ class ex2 : public myException
 %}
 
 %inline %{
-class impl
+class Impl
 {
    public:
       void f1() throw (myException) { ex1 e; throw e; }
