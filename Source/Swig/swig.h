@@ -494,7 +494,7 @@ extern int        Swig_add_extension_code(Node *n, const String *function_name, 
 
 /* --- Transformations --- */
 
-extern int        Swig_MethodToFunction(Node *n, String *classname, int flags);
+extern int        Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *director_type, int is_director);
 extern int        Swig_ConstructorToFunction(Node *n, String *classname, 
 					     String *none_comparison,
 					     String *director_ctor,
@@ -508,6 +508,8 @@ extern int        Swig_VarsetToFunction(Node *n, int flags);
 #define  CWRAP_EXTEND             0x01
 #define  CWRAP_SMART_POINTER      0x02
 #define  CWRAP_NATURAL_VAR        0x04
+#define  CWRAP_DIRECTOR_ONE_CALL  0x08
+#define  CWRAP_DIRECTOR_TWO_CALLS 0x10
 
 /* --- Director Helpers --- */
 extern Node      *Swig_methodclass(Node *n);

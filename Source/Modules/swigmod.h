@@ -272,6 +272,9 @@ protected:
   /* Return true if the current method is part of a smart-pointer */
   int is_smart_pointer() const;
 
+  /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
+  virtual bool extraDirectorProtectedCPPMethodsRequired() const;
+
   /* Director subclass comparison test */
   String *none_comparison;
 
