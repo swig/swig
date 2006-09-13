@@ -885,7 +885,7 @@ csharp_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 csharp_clean:
-	rm -f *_wrap* *~ .~* runme runme.exe gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *_wrap* *~ .~* runme runme.exe *.exe.mdb gc.log `find . -name \*.cs | grep -v runme.cs`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
