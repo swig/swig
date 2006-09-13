@@ -1,9 +1,26 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/13/2006: wsfulton
+            The explicitcall feature has been scrapped. This feature was introduced primarily
+            to solve recursive director method calls. Director upcall improvements made instead:
+
+            [Python, Ruby, Ocaml] The swig_up flag is no longer used. The required mutexes
+            wrapping this flag are also no longer needed. The recursive calls going from C++
+            to the target language and back again etc are now avoided by a subtlely different
+            approach. Instead of using the swig_up flag in each director method to indicate 
+            whether the explicit C++ call to the appropriate base class method or a normal
+            polymorphic C++ call should be made, the new approach makes one of these calls
+            directly from the wrapper method.
+
+            [Java, C#] The recursive call problem when calling a C++ base class method from
+            Java/C# is now fixed. The implementation is slightly different to the other languages
+            as the detection as to whether the explicit call or a normal polymorphic call is made
+            in the Java/C# layer rather than in the C++ layer.
+
 09/11/2006: mgossage
-            [ALL] updated swiginit.swg to allow multiple interpreters to use multiple 
-	    swig modules at once. This has been tested in Lua (mingw & linux), 
+            [ALL] updated swiginit.swg to allow multiple interpreters to use multiple
+	    swig modules at once. This has been tested in Lua (mingw & linux),
 	    perl5 & python (linux) only.
 
 09/11/2006: mgossage
@@ -92,6 +109,7 @@ Version 1.3.30 (in progress)
 	    documentation as well.
 
 07/04/2006: wsfulton
+            [See entry of 09/13/2006 - explicitcall feature and documentation to it removed]
             New explicitcall feature which generates additional wrappers for virtual methods
             that call the method explicitly, not relying on polymorphism to make the method
             call. The feature is a feature flag and is enabled like any other feature flag.
