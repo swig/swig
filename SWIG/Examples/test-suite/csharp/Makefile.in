@@ -82,4 +82,4 @@ run_testcase = \
 	fi;
 
 clean:
-	@rm -f *.exe
+	@rm -f *.exe *.exe.mdb
