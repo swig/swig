@@ -75,6 +75,35 @@ public class runme
       check(person, "TargetLangOrphanChild"); 
       person.Dispose();
     }
+
+    // Duals - id() makes an upcall to the base id()
+    { 
+      Person person = new TargetLangDualPerson();
+      check(person, "TargetLangDualPerson + Person"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangDualChild();
+      check(person, "TargetLangDualChild + Child"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangDualGrandChild();
+      check(person, "TargetLangDualGrandChild + GrandChild"); 
+      person.Dispose();
+    }
+
+    // Mix Orphans and Duals
+    { 
+      Person person = new TargetLangDualOrphanPerson();
+      check(person, "TargetLangDualOrphanPerson + Person"); 
+      person.Dispose();
+    }
+    { 
+      Person person = new TargetLangDualOrphanChild();
+      check(person, "TargetLangDualOrphanChild + Child"); 
+      person.Dispose();
+    }
   }
 
   static void check(Person person, String expected) {
@@ -205,6 +234,79 @@ class TargetLangOrphanChild : OrphanChild
   public override String id()
   {
     String identifier = "TargetLangOrphanChild";
+    return identifier;
+  }
+}
+
+
+// Duals - id() makes an upcall to the base id()
+class TargetLangDualPerson : Person
+{
+  public TargetLangDualPerson()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangDualPerson + " + base.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualChild : Child
+{
+  public TargetLangDualChild()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangDualChild + " + base.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualGrandChild : GrandChild
+{
+  public TargetLangDualGrandChild()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangDualGrandChild + " + base.id();
+    return identifier;
+  }
+}
+
+// Mix Orphans and Duals
+class TargetLangDualOrphanPerson : OrphanPerson
+{
+  public TargetLangDualOrphanPerson()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangDualOrphanPerson + " + base.id();
+    return identifier;
+  }
+}
+
+class TargetLangDualOrphanChild : OrphanChild
+{
+  public TargetLangDualOrphanChild()
+    : base()
+  {
+  }
+
+  public override String id()
+  {
+    String identifier = "TargetLangDualOrphanChild + " + base.id();
     return identifier;
   }
 }
