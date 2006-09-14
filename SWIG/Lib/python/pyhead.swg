@@ -1,5 +1,3 @@
-/* Python.h has to appear first */
-#include <Python.h>
 
 /* Add PyOS_snprintf for old Pythons */
 #if PY_VERSION_HEX < 0x02020000
