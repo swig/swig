@@ -165,9 +165,10 @@ Suppose that you defined a SWIG module such as the following:
 
 <div class="code">
 <pre>
-%module example
+/* File: example.i */
+%module test
 %{
-#include "header.h"
+#include "stuff.h"
 %}
 int fact(int n);
 </pre>
@@ -205,12 +206,9 @@ from the module name specified with <tt>%module</tt>.  If the module name is <tt
 a file <tt>example.py</tt> is created.
 </p>
 
-<H3><a name="Python_nn5"></a>29.2.2 Getting the right header files</H3>
-
-
 <p>
-In order to compile the C/C++ wrappers, the compiler needs the <tt>Python.h</tt> header file.
-This file is usually contained in a directory such as 
+The following sections have further practical examples and details on how you might go about
+compiling and using the generated files.
 </p>
 
 <div class="diagram"><pre>

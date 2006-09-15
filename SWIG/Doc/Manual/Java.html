@@ -207,9 +207,10 @@ Suppose that you defined a SWIG module such as the following:
 
 <div class="code">
 <pre>
-%module example
+/* File: example.i */
+%module test
 %{
-#include "header.h"
+#include "stuff.h"
 %}
 int fact(int n);
 </pre>
@@ -243,6 +244,11 @@ The name of the wrapper file is derived from the name of the input file.  For ex
 input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
 To change this, you can use the <tt>-o</tt> option. 
 It is also possible to change the <a href="SWIG.html#output">output directory </a> that the Java files are generated into using <tt>-outdir</tt>.
+</p>
+
+<p>
+The following sections have further practical examples and details on how you might go about
+compiling and using the generated files.
 </p>
 
 <H3><a name="java_commandline"></a>20.2.2 Additional Commandline Options</H3>
