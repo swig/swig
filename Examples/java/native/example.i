@@ -18,27 +18,29 @@ Point *point_create(int x, int y) {
   return p;
 }
 
-/* this function will be wrapped by SWIG */
-char *point_toString1(Point *p) {
+static char *point_toString(char *format, Point *p) {
   static char buf[80];
 
-  sprintf(buf, "(%d,%d)", p->x, p->y);
+  sprintf(buf, format, p->x, p->y);
 
   return buf;
+}
+
+/* this function will be wrapped by SWIG */
+char *point_toString1(Point *p) {
+  return point_toString("(%d,%d)", p);
 }
 
 /* this one we wrapped manually*/
 JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint) {
     Point * p;
-    char buf[80];
     jstring result;
 
     (void)jcls;
 
     p = *(Point **)&jpoint;
-    sprintf(buf, "[%d,%d]", p->x, p->y);
 
-    result = (*jenv)->NewStringUTF(jenv, buf);
+    result = (*jenv)->NewStringUTF(jenv, point_toString("[%d,%d]", p));
 
     return result;
 }
