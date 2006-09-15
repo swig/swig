@@ -674,7 +674,7 @@ static void append_previous_extension(Node *cls, Node *am) {
   while (n) {
     ne = nextSibling(n);
     set_nextSibling(n,0);
-    /* typemaps and fragments need to be preppended */
+    /* typemaps and fragments need to be prepended */
     if (((Cmp(nodeType(n),"typemap") == 0) || (Cmp(nodeType(n),"fragment") == 0)))  {
       if (!pe) pe = new_node("extend");
       appendChild(pe, n);
@@ -2208,7 +2208,7 @@ rename_namewarn : RENAME {
 
 
 /* ------------------------------------------------------------
-   Feature targetting a symbol name (non-global feature):
+   Feature targeting a symbol name (non-global feature):
 
      %feature(featurename) name "val";
      %feature(featurename, val) name;
@@ -2626,7 +2626,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           if ($3) {
 			    /* 
 			       Comment this out for 1.3.28. We need to
-			       renable it later but first we need to
+			       re-enable it later but first we need to
 			       move %ignore from using %rename to use
 			       %feature(ignore).
 			  
@@ -3040,7 +3040,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 
 c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                    /* This is a sick hack.  If the ctor_end has parameters,
-                      and the parms paremeter only has 1 parameter, this
+                      and the parms parameter only has 1 parameter, this
                       could be a declaration of the form:
 
                          type (id)(parms)
@@ -3131,7 +3131,7 @@ cpp_class_decl  :
 			    Ola() {}
 		         };
 
-		      this should dissapear with a proper implementation is added.
+		      this should disappear when a proper implementation is added.
 		   */
 		   if (nscope_inner && Strcmp(nodeType(nscope_inner),"namespace") != 0) {
 		     if (Namespaceprefix) {
@@ -3389,7 +3389,7 @@ cpp_class_decl  :
 		     Setattr($$,k_name,name);
 		     Swig_symbol_setscopename(name);
 
-		     /* If a proper name given, we use that as the typedef, not unnamed */
+		     /* If a proper name was given, we use that as the typedef, not unnamed */
 		     Clear(unnamed);
 		     Append(unnamed, name);
 		     
