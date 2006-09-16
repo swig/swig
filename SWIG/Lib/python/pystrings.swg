@@ -6,7 +6,7 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 {
   if (PyString_Check(obj)) {
-    char *cstr; int len;
+    char *cstr; Py_ssize_t len;
     PyString_AsStringAndSize(obj, &cstr, &len);
     if (cptr)  {
       if (alloc) {
