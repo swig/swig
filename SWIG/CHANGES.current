@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/16/2006: wsfulton
+            [Python] Patch from Michal Marek for Python 2.5 to fix 64 bit array indexes on
+            64 bit machines.
+
 09/13/2006: wsfulton
             The explicitcall feature has been scrapped. This feature was introduced primarily
             to solve recursive director method calls. Director upcall improvements made instead:
