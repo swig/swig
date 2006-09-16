@@ -696,7 +696,6 @@ CHICKEN::variableWrapper(Node *n)  {
   SwigType *t = Getattr(n,"type");
   ParmList *l    = Getattr(n,"parms");
 
-  char  var_name[256];
   String *wname = NewString("");
   String *mangle = NewString("");
   String *tm;
@@ -737,8 +736,6 @@ CHICKEN::variableWrapper(Node *n)  {
     Append(wname, overname);
   }
 
-  strcpy(var_name, Char(Swig_name_wrapper(iname)));
-    
   // Check for interrupts
   Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
@@ -874,7 +871,6 @@ CHICKEN::constantWrapper(Node *n)
   String   *value = Getattr(n,"value");
 
   String *proc_name = NewString("");
-  char  var_name[256];
   String *wname = NewString("");
   String *mangle = NewString("");
   String *tm;
@@ -952,9 +948,7 @@ CHICKEN::constantWrapper(Node *n)
   num_required  = emit_num_required(l);
 
   // evaluation function names
-    
-  strcpy(var_name, Char(Swig_name_wrapper(iname)));
-    
+
   // Check for interrupts
   Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
