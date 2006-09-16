@@ -130,7 +130,7 @@ is equivalent to: \n\
 \n";
 
 // Local variables
-static char    LangSubDir[512];                 // Target language library subdirectory
+static String *LangSubDir = 0;                  // Target language library subdirectory
 static char   *SwigLib = 0;                     // Library directory
 static String *SwigLibWin = 0;                  // Extra Library directory for Windows
 static int     freeze = 0;
@@ -268,7 +268,7 @@ void SWIG_config_file(const String_or_char *filename) {
 
 /* Sets the target language subdirectory name */
 void SWIG_library_directory(const char *subdirectory) {
-  strcpy(LangSubDir,subdirectory);
+  LangSubDir = NewString(subdirectory);
 }
 
 // Returns the directory for generating language specific files (non C/C++ files)
@@ -409,8 +409,6 @@ static void SWIG_dump_runtime() {
 void SWIG_getoptions(int argc, char *argv[]) 
 {
   int    i;
-  char   *includefiles[256];
-  int     includecount = 0;
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i] && !Swig_check_marked(i)) {
@@ -420,7 +418,7 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-I",2) == 0) {
 	    // Add a new directory search path
-	    includefiles[includecount++] = Swig_copy_string(argv[i]+2);
+	    Swig_add_directory((DOH *) Swig_copy_string(argv[i]+2));
 	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    String *d = NewString(argv[i]+2);
@@ -733,10 +731,6 @@ void SWIG_getoptions(int argc, char *argv[])
 	  }
       }
   }
-
-  for (i = 0; i < includecount; i++) {
-    Swig_add_directory((DOH *) includefiles[i]);
-  }
 }
 
 
@@ -810,8 +804,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       char buf[MAX_PATH];
       char *p;
       if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
-       strcpy(p+1, "Lib");
-       SwigLibWin = NewString(buf); // Native windows installation path
+       *(p+1) = '\0';
+       SwigLibWin = NewStringf("%sLib", buf); // Native windows installation path
       }
       SwigLib = Swig_copy_string(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
 #else
@@ -866,7 +860,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_add_directory((String *) SwigLib);
 
   if (Verbose) {
-    printf ("LangSubDir: %s\n", LangSubDir);
+    printf ("LangSubDir: %s\n", Char(LangSubDir));
     printf ("Search paths:\n");
     List *sp = Swig_search_path();
     Iterator s;
