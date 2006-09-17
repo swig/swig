@@ -402,10 +402,11 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 	    for(k=0;mz_dynload_libpaths[k]!=NULL && mz_libraries[i]==NULL;k++) {
 	      int L=strlen(mz_dynload_libpaths[k])+strlen("\\")+strlen(mz_dlopen_libraries[i])+1;
 	      libp=(char *) malloc(L*sizeof(char));
-	      sprintf(libp,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
 #ifdef __OS_WIN32
+	      sprintf(libp,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
 	      mz_libraries[i]=(void *) LoadLibrary(libp); 
 #else
+	      sprintf(libp,"%s/%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
 	      mz_libraries[i]=(void *) dlopen(libp,RTLD_LAZY); 
 #endif
 	      if (mz_dynload_debug) {
