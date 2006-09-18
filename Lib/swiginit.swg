@@ -50,6 +50,7 @@ extern "C" {
 #define SWIGRUNTIME_DEBUG
 #endif
 
+
 SWIGRUNTIME void
 SWIG_InitializeModule(void *clientdata) {
   size_t i;
@@ -58,6 +59,14 @@ SWIG_InitializeModule(void *clientdata) {
 
   clientdata = clientdata;
 
+  /* check to see if the circular list has been setup, if not, set it up */
+  if (swig_module.next==0) {
+    /* Initialize the swig_module */
+    swig_module.type_initial = swig_type_initial;
+    swig_module.cast_initial = swig_cast_initial;
+    swig_module.next = &swig_module;
+  }
+
   /* Try and load any already created modules */
   module_head = SWIG_GetModule(clientdata);
   if (!module_head) {
@@ -65,13 +74,6 @@ SWIG_InitializeModule(void *clientdata) {
     /* so set the swig module into the interpreter */
     SWIG_SetModule(clientdata, &swig_module);
     module_head = &swig_module;
-    /* check to see if the circular list has been setup, if not, set it up */
-    if (swig_module.next==0) {
-      /* Initialize the swig_module */
-      swig_module.type_initial = swig_type_initial;
-      swig_module.cast_initial = swig_cast_initial;
-      swig_module.next = &swig_module;
-    }
   } else {
     /* the interpreter has loaded a SWIG module, but has it loaded this one? */
     found=0;
