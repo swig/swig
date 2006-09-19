@@ -833,7 +833,6 @@ public:
 	SwigType *t = Getattr(n,"type");
 	
 	String *proc_name = NewString("");
-	char  var_name[256];
 	String *tm;
 	String *tm2 = NewString("");;
 	String *argnum = NewString("0");
@@ -854,8 +853,8 @@ public:
 	f = NewWrapper();
 
 	// evaluation function names
-	strcpy(var_name, Char(Swig_name_wrapper(iname)));
-	
+	String *var_name = Swig_name_wrapper(iname);
+
 	// Build the name for scheme.
 	Printv(proc_name, iname, NIL);
 	
@@ -931,6 +930,7 @@ public:
 		    mname, var_name );
 	}
 
+	Delete(var_name);
 	Delete(proc_name);
 	Delete(argnum);
 	Delete(arg);

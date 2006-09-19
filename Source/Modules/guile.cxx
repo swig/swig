@@ -1211,7 +1211,6 @@ public:
     SwigType *t = Getattr(n,"type");
     
     String *proc_name;
-    char  var_name[256];
     Wrapper *f;
     String  *tm;
     
@@ -1219,9 +1218,9 @@ public:
     
     f = NewWrapper();
     // evaluation function names
-    
-    strcpy(var_name, Char(Swig_name_wrapper(iname))); 
-    
+
+    String *var_name = Swig_name_wrapper(iname);
+
     // Build the name for scheme.
     proc_name = NewString(iname);
     Replaceall(proc_name,"_", "-");
@@ -1409,6 +1408,7 @@ public:
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
 		   "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
     }
+    Delete(var_name);
     Delete(proc_name);
     DelWrapper(f);
     return SWIG_OK;
@@ -1429,18 +1429,17 @@ public:
 
     
     String *proc_name;
-    char   var_name[256];
+    String *var_name;
     String *rvalue;
     Wrapper *f;
     SwigType *nctype;
     String   *tm;
     
     f = NewWrapper();
-    
+
     // Make a static variable;
-    
-    sprintf (var_name, "%sconst_%s", prefix, iname);
-    
+    var_name = NewStringf("%sconst_%s", prefix, iname);
+
     // Strip const qualifier from type if present
     
     nctype = NewString(type);
@@ -1455,6 +1454,7 @@ public:
     if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
 		   "Unsupported constant value.\n");
+      Delete(var_name);
       return SWIG_NOWRAP;
     }
     
@@ -1491,6 +1491,7 @@ public:
       variableWrapper(n);
       Delete(n);
     }
+    Delete(var_name);
     Delete(nctype);
     Delete(proc_name);
     Delete(rvalue);
