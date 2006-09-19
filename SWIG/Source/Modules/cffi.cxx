@@ -325,7 +325,6 @@ int CFFI :: functionWrapper(Node *n) {
   ParmList *parms = Getattr(n,"parms");
   String  *iname = Getattr(n,"sym:name");
   Wrapper *wrap = NewWrapper();
-  char    wname[256];
 
   String *raw_return_type = Swig_typemap_lookup_new("ctype",n,"",0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
@@ -348,11 +347,9 @@ int CFFI :: functionWrapper(Node *n) {
       return SWIG_ERROR;
   }
 
-  String *nw = Swig_name_wrapper(iname);
-  strcpy(wname,Char(nw));
-  Delete(nw);
+  String *wname = Swig_name_wrapper(iname);
   if (overname) {
-    strcat(wname,Char(overname));
+    StringAppend(wname, overname);
   }
 
   // Emit all of the local variables for holding arguments.
@@ -448,6 +445,8 @@ int CFFI :: functionWrapper(Node *n) {
   //       emit_dispatch_defun(n);
   //     }
   //   }
+
+  Delete(wname);
 
   return SWIG_OK;
 }

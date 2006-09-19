@@ -513,7 +513,6 @@ public:
     SwigType *t = Getattr(n,"type");
     
     String *proc_name = NewString("");
-    char  var_name[256];
     String *tm;
     String *tm2 = NewString("");;
     String *argnum = NewString("0");
@@ -523,11 +522,10 @@ public:
     if (!addSymbol(iname,n)) return SWIG_ERROR;
     
     f = NewWrapper();
-    
+
     // evaluation function names
-    
-    strcpy(var_name, Char(Swig_name_wrapper(iname)));
-    
+    String *var_name = Swig_name_wrapper(iname);
+
     // Build the name for scheme.
     Printv(proc_name, iname,NIL);
     Replaceall(proc_name, "_", "-");
@@ -593,6 +591,7 @@ public:
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
 		   "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
     }
+    Delete(var_name);
     Delete(proc_name);
     Delete(argnum);
     Delete(arg);

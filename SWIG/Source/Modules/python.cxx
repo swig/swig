@@ -1591,7 +1591,6 @@ public:
 
     Parm    *p;
     int     i;
-    char    wname[256];
     char    source[64];
     Wrapper *f;
     String *parse_args;
@@ -1657,11 +1656,9 @@ public:
 	((num_arguments == 1) && (num_required == 1) && Getattr(l,"self"))) allow_kwargs = 0;
     varargs = emit_isvarargs(l);
 
-    String *nw = Swig_name_wrapper(iname);
-    strcpy(wname,Char(nw));
-    Delete(nw);
+    String *wname = Swig_name_wrapper(iname);
     if (overname) {
-      strcat(wname,Char(overname));
+      Append(wname, overname);
     }
 
     if (!allow_kwargs || Getattr(n,"sym:overloaded")) {
@@ -2176,6 +2173,7 @@ public:
     Delete(cleanup);
     Delete(outarg);
     Delete(kwargs);
+    Delete(wname);
     DelWrapper(f);
     return SWIG_OK;
   }
