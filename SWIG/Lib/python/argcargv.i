@@ -22,11 +22,11 @@ SWIG_AsArgcArgv(PyObject *input,
 	*argv = %new_array(size + 1, char*);
 	for (; i < size; ++i) {
 	  PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
-	  char *cptr = 0; size_t size = 0; int alloc = 0;
-	  res = SWIG_AsCharPtrAndSize(obj, &cptr, &size, &alloc);
+	  char *cptr = 0; size_t sz = 0; int alloc = 0;
+	  res = SWIG_AsCharPtrAndSize(obj, &cptr, &sz, &alloc);
 	  if (SWIG_IsOK(res)) {
-	    if (cptr && size) {
-	      (*argv)[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, size, char);
+	    if (cptr && sz) {
+	      (*argv)[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, sz, char);
 	    } else {
 	      (*argv)[i] = 0;
 	    }
