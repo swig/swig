@@ -988,14 +988,12 @@ static Node *dump_nested(const char *parent) {
     return 0;
   }
   while (n) {
-    char temp[256];
     Node *retx;
     SwigType *nt;
     /* Token replace the name of the parent class */
     Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
-    /* Fix up the name of the datatype (for building typedefs and other stuff) */
-    sprintf(temp,"%s_%s", parent,n->name);
 
+    /* Fix up the name of the datatype (for building typedefs and other stuff) */
     Append(n->type,parent);
     Append(n->type,"_");
     Append(n->type,n->name);
