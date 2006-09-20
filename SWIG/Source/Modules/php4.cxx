@@ -124,7 +124,7 @@ static Hash     *shadow_set_vars;
 static int      native_constructor=0;
 static Hash     *zend_types = 0;
 
-static int      shadow = 1;
+static int      shadow = 0; // Default set in PHP::main : 1 for C++; 0 for C.
 
 static bool     class_has_ctor = false;
 static String * wrapping_member_constant = NULL;
@@ -240,12 +240,14 @@ public:
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
-  
+
   virtual void main(int argc, char *argv[]) {
     int i;
     SWIG_library_directory("php4");
     SWIG_config_cppext("cpp");
-    
+    // Default to generating shadow classes for C++.
+    shadow = CPlusPlus;
+
     for(i = 1; i < argc; i++) {
       if (argv[i]) {
         if(strcmp(argv[i], "-phpfull") == 0) {
