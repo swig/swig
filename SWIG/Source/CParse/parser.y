@@ -336,10 +336,10 @@ static void add_symbols(Node *n) {
 	} else {
 	  /* private are needed only when they are pure virtuals */
 	  Setattr(n,k_access, "private");
-	if ((Cmp(Getattr(n,k_storage),"virtual") == 0) 
-	    && (Cmp(Getattr(n,k_value),"0") == 0)) {
-	  only_csymbol = !Swig_need_protected(n);
-	}    
+	  if ((Cmp(Getattr(n,k_storage),"virtual") == 0)
+	      && (Cmp(Getattr(n,k_value),"0") == 0)) {
+	    only_csymbol = !Swig_need_protected(n);
+	  }
 	}
 	if (only_csymbol) {
 	  /* Only add to C symbol table and continue */
@@ -1440,7 +1440,7 @@ static void default_arguments(Node *n) {
 %type <type>     type rawtype type_right ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
-%type <dtype>    expr exprnum exprcompound ;
+%type <dtype>    expr exprnum exprcompound valexpr;
 %type <id>       ename ;
 %type <id>       template_decl;
 %type <str>      type_qualifier ;
@@ -4432,24 +4432,16 @@ valparm        : parm {
 		      }
 		    }
 		  }
-		  
-               } 
-               | exprnum {
+
+               }
+               | valexpr {
                   $$ = NewParm(0,0);
                   Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		  Setattr($$,k_value,$1.val);
                }
-               | STRING {
-		  String *v = NewString($1);
-                  $$ = NewParm(0,0);
-                  Setfile($$,cparse_file);
-		  Setline($$,cparse_line);
-		  Setattr($$,k_value,v);
-		  Delete(v);
-               }
                ;
- 
+
 def_args       : EQUAL definetype { 
                   $$ = $2; 
 		  if ($2.type == T_ERROR) {
@@ -5272,29 +5264,7 @@ etype            : expr {
    this does allow us to parse many constant declarations.
  */
 
-expr           :  exprnum { $$ = $1; }
-               |  string { 
-		    $$.val = NewString($1); 
-                    $$.type = T_STRING; 
-               }
-               |  SIZEOF LPAREN type parameter_declarator RPAREN {
-  		  SwigType_push($3,$4.type);
-		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
-		  $$.type = T_ULONG;
-               }
-               | exprcompound { $$ = $1; }
-               | CHARCONST {
-		  $$.val = NewString($1);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
-		  } else {
-		    $$.rawval = NewString("\'\\0'");
-		  }
-		  $$.type = T_CHAR;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-	       }
+expr           :  valexpr { $$ = $1; }
                | type {
 		 Node *n;
 		 $$.val = $1;
@@ -5312,6 +5282,31 @@ expr           :  exprnum { $$ = $1; }
                    }
 		 }
                }
+	       ;
+
+valexpr        :  exprnum { $$ = $1; }
+               |  string {
+		    $$.val = NewString($1);
+                    $$.type = T_STRING;
+               }
+               |  SIZEOF LPAREN type parameter_declarator RPAREN {
+		  SwigType_push($3,$4.type);
+		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
+		  $$.type = T_ULONG;
+               }
+               | exprcompound { $$ = $1; }
+               | CHARCONST {
+		  $$.val = NewString($1);
+		  if (Len($$.val)) {
+		    $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
+		  } else {
+		    $$.rawval = NewString("\'\\0'");
+		  }
+		  $$.type = T_CHAR;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+	       }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -5412,14 +5407,14 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
 		 $$.type = T_INT;
 	       }
-               |  MINUS expr %prec UMINUS {
+               | MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
 		 $$.type = $2.type;
 	       }
                | PLUS expr %prec UMINUS {
                  $$.val = NewStringf("+%s",$2.val);
 		 $$.type = $2.type;
-  	       }
+	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
 		 $$.type = $2.type;

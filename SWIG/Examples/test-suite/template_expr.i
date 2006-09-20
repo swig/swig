@@ -23,7 +23,8 @@ class X {};
 
 %template(X_1) X<1>;
 %template(X_m1) X<-1>;
-
+%template(X_1plus2) X<1+2>;
+%template(X_1024div8) X<1024/8>;
 
 
 // bug 1338527

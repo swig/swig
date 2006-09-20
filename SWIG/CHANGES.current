@@ -1,6 +1,14 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/20/2006: olly
+	    [ALL] Templates can now be instantiated using negative numbers and
+	    constant expressions, e.g.:
+
+	    template<int q> class x {};
+	    %template(x_minus1) x<-1>;
+	    %template(x_1plus2) x<1+2>;
+
 09/20/2006: olly 
 	    [ALL] Treat a nested class definition as a forward declaration rather
 	    than ignoring it completely, so that we generate correct code for
