@@ -24,7 +24,7 @@ swig: libfiles source
 source:
 	@cd $(SOURCE) && $(MAKE)
 
-libfiles: Lib/swigwarn.swg
+libfiles: $(srcdir)/Lib/swigwarn.swg
 
 .PHONY: source libfiles
 
@@ -274,7 +274,7 @@ clean-source:
 	@rm -f $(TARGET)
 
 clean-libfiles:
-	@rm -f Lib/swigwarn.swg
+	@rm -f $(srcdir)/Lib/swigwarn.swg
 
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
@@ -296,7 +296,7 @@ clean-%-gifplot:
 
 clean-docs:
 	@echo cleaning Docs
-	@cd $(DOCS) && $(MAKE) -s clean
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) -s clean
 
 #####################################################################
 # DISTCLEAN
@@ -309,12 +309,12 @@ distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite c
 distclean-objects: distclean-source
 
 distclean-source:
-	@echo dist cleaning Source
+	@echo distcleaning Source
 	@cd $(SOURCE) && $(MAKE) -s distclean
 	@rm -f $(TARGET)
 
 distclean-test-suite:
-	@echo dist cleaning Examples/test-suite
+	@echo distcleaning Examples/test-suite
 	@$(MAKE) -k -s noskip-test-suite ACTION=distclean
 
 noskip-test-suite:				\
@@ -343,6 +343,7 @@ noskip-%-test-suite:
 	if [ ! -d $$dir ]; then						\
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
+	  echo $(ACTION)ing $$dir;					\
 	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
 	fi;
 
@@ -351,12 +352,14 @@ distclean-dead:
 
 #####################################################################
 # Update the Lib/swigwarn.swg file
+# Note: Generated into the source tree rather than build tree
 #####################################################################
 
-Lib/swigwarn.swg: Source/Include/swigwarn.h
+$(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
+	mkdir -p Lib
 	echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
 	echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
-	echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
+	echo "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
 	echo >> $@; echo >> $@
 	awk '/#define WARN/{$$1="%define"; $$2="SWIG"$$2; $$3=sprintf("%d %%enddef", $$3); print $$0; next;}\
 	      /#/{next;} {print $0}' < $? >> $@
