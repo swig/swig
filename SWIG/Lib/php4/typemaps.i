@@ -24,7 +24,7 @@
  *                   $rc = foo($a);
  *
  *                   Even though $a looks like it's passed by value,
- *                   it's value can be changed by foo().
+ *                   its value can be changed by foo().
  * ----------------------------------------------------------------------------- */
 
 %define double_typemap(TYPE)
