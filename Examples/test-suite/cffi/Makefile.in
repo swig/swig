@@ -41,7 +41,7 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra cffi code)
 %.clean:
-
+	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile cffi_clean

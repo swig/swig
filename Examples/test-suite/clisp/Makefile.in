@@ -41,7 +41,7 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra clisp code)
 %.clean:
-
+	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile clisp_clean
