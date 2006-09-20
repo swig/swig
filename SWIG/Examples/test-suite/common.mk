@@ -128,6 +128,7 @@ CPP_TEST_CASES += \
 	director_exception \
 	director_frob \
 	director_finalizer \
+	director_ignore \
 	director_namespace_clash \
 	director_nested \
 	director_primitives \
