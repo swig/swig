@@ -4,13 +4,11 @@
 #######################################################################
 
 LANGUAGE     = allegrocl
-ALLEGROCL          = @ALLEGROCLBIN@
+ALLEGROCL    = @ALLEGROCLBIN@
 SCRIPTSUFFIX = _runme.lisp
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-
-# include $(srcdir)/../common.mk
 
 # these cpp tests aren't working. Fix 'em
 # need to further separate these into tests requiring
@@ -115,181 +113,6 @@ CPP_TEST_CASES_ACL_UNSUPPORTED = \
 	extern_throws \
 	throw_exception
 		
-# C++ test cases. (Can be run individually using make testcase.cpptest.)
-CPP_TEST_CASES = \
-	abstract_access \
-	abstract_inherit \
-	abstract_inherit_ok \
-	abstract_signature \
-	abstract_typedef \
-	abstract_typedef2 \
-	abstract_virtual \
-	access_change \
-	add_link \
-	allowexcept \
-	anonymous_bitfield \
-	argout \
-	array_typedef_memberin \
-	arrayref \
-	arrays_scope \
-	bloody_hell \
-	bools \
-	casts \
-	cast_operator \
-	class_scope_weird \
-	const_const_2 \
-	constover \
-	constructor_copy \
-	constructor_exception \
-	constructor_explicit \
-	constructor_value \
-	compactdefaultargs \
-	conversion \
-	conversion_namespace \
-	conversion_ns_template \
-	cpp_namespace \
-	cpp_nodefault \
-	cpp_static \
-	defvalue_constructor \
-	derived_byvalue \
-	derived_nested \
-	destructor_reprotected \
-	disown \
-	empty \
-	enum_plus \
-	enum_scope_template \
-	enum_template \
-	enum_var \
-	evil_diamond \
-	evil_diamond_ns \
-	evil_diamond_prop \
-	extend_default \
-	extend_placement \
-	extend_template \
-	extend_template_ns \
-	extern_namespace \
-	features \
-	friends \
-	global_ns_arg \
-	grouping \
-	ignore_parameter \
-	inherit \
-	inherit_missing \
-	inherit_same_name \
-	inherit_void_arg \
-	inline_initializer \
-	langobj \
-	li_attribute \
-	li_cpointer \
-	member_template \
-	minherit \
-	multiple_inheritance \
-	name_cxx \
-	name_warnings \
-	namespace_enum \
-	namespace_extend \
-	namespace_nested \
-	namespace_template \
-	namespace_typedef_class \
-	namespace_typemap \
-	namespace_virtual_method \
-	newobject1 \
-	ordering \
-	overload_copy \
-	overload_extend \
-	overload_rename \
-	overload_subtype \
-	overload_template \
-	overload_template_fast \
-	pointer_reference \
-	private_assign \
-        protected_rename \
-	pure_virtual \
-	redefined \
-	refcount \
-	rename_scope \
-	return_const_value \
-	return_value_scope \
-	rname \
-	smart_pointer_const \
-	smart_pointer_const2 \
-	smart_pointer_member \
-	smart_pointer_multi \
-	smart_pointer_multi_typedef \
-	smart_pointer_namespace2 \
-	smart_pointer_not \
-	smart_pointer_overload \
-	smart_pointer_protected \
-	smart_pointer_rename \
-	smart_pointer_simple \
-	smart_pointer_static \
-	smart_pointer_typedef \
-	static_array_member \
-	static_const_member \
-	static_const_member_2 \
-	struct_value \
-	template_array_numeric \
-	template_arg_replace \
-	template_arg_scope \
-	template_arg_typename \
-	template_base_template \
-	template_const_ref \
-	template_construct \
-	template_default2 \
-	template_default_qualify \
-	template_default_vw \
-	template_enum_ns_inherit \
-	template_enum_typedef \
-	template_extend_overload_2 \
-	template_extend1 \
-	template_extend2 \
-	template_forward \
-	template_inherit \
-	template_inherit_abstract \
-	template_int_const \
-	template_ns2 \
-	template_ns3 \
-	template_ns_enum2 \
-	template_ns_inherit \
-	template_ns_scope \
-	template_partial_arg \
-	template_qualifier \
-	template_ref_type \
-	template_specialization \
-	template_specialization_defarg \
-	template_specialization_enum \
-	template_typedef_ptr \
-	template_using \
-	template_virtual \
-	template_whitespace \
-	typedef_class \
-	typedef_funcptr \
-	typedef_inherit \
-	typedef_mptr \
-	typedef_reference \
-	typedef_scope \
-	typedef_struct \
-	typemap_ns_using \
-	typemap_numinputs \
-	typemap_variables \
-	typemap_various \
-	typename \
-	using1 \
-	using2 \
-	using_composition \
-	using_extend \
-	using_inherit \
-	using_namespace \
-	using_private \
-	using_protected \
-	valuewrapper \
-	valuewrapper_base \
-	valuewrapper_const \
-	virtual_destructor
-
-# std lib support hasn't been done yet.
-SKIP_CPP_STD_CASES = Yes
-
 C_TEST_CASES_ACL_BROKEN = \
 	arrays \
 	enums \
@@ -302,37 +125,13 @@ C_TEST_CASES_ACL_BROKEN = \
 C_TEST_BROKEN_LONGLONG = \
 	long_long
 
-C_TEST_CASES = \
-	char_constant \
-	const_const \
-	empty \
-	function_typedef \
-	inctest \
-	lextype \
-	li_carrays \
-	li_cmalloc \
-	li_constraints \
-	li_cpointer \
-	li_math \
-	name \
-	nested \
-	newobject2 \
-	overload_extend \
-	overload_extendc \
-	preproc \
-	ret_by_value \
-	sizeof_pointer \
-	sneaky1 \
-	struct_rename \
-	typedef_struct \
-	unions
 
-NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
-			$(C_TEST_CASES:=.ctest) \
-			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
-			$(CUSTOM_TEST_CASES:=.customtest)
+# std lib support hasn't been done yet.
+SKIP_CPP_STD_CASES = Yes
 
-check: 	$(NOT_BROKEN_TEST_CASES)
+C_TEST_CASES =
+
+CPP_TEST_CASES =
 
 include $(srcdir)/../common.mk
 
@@ -361,7 +160,7 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra allegrocl code)
 %.clean:
-
+	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile allegrocl_clean
