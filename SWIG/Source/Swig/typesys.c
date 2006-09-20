@@ -329,7 +329,7 @@ SwigType_using_scope(Typetab *scope) {
   }
   flush_cache();
 }
- 
+
 /* -----------------------------------------------------------------------------
  * SwigType_pop_scope()
  *
@@ -338,20 +338,14 @@ SwigType_using_scope(Typetab *scope) {
  * ----------------------------------------------------------------------------- */
 
 Typetab *SwigType_pop_scope() {
-  Typetab *s, *s1;
-  s = Getattr(current_scope,k_parent);
-  if (!s) {
-    current_scope = 0;
-    current_typetab = 0;
-    current_symtab = 0;
-    return 0;
-  }
-  s1 = current_scope;
-  current_scope = s;
-  current_typetab = Getattr(s,k_typetab);
-  current_symtab = Getattr(s,k_symtab);
+  Typetab *t, *old = current_scope;
+  t = Getattr(current_scope,k_parent);
+  if (!t) t = global_scope;
+  current_scope = t;
+  current_typetab = Getattr(t,k_typetab);
+  current_symtab = Getattr(t,k_symtab);
   flush_cache();
-  return s1;
+  return old;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1123,7 +1117,7 @@ int SwigType_typedef_using(String_or_char *name) {
   }
 
   if (tt) {
-    /* Using directive had it's own scope.  We need to do create a new scope for it */
+    /* Using directive had its own scope.  We need to create a new scope for it */
     SwigType_new_scope(base);
     SwigType_inherit_scope(tt);
     SwigType_pop_scope();
