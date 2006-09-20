@@ -1,6 +1,15 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/20/2006: wsfulton
+            Fix %ignore on director constructors
+
+09/20/2006: wsfulton
+            Fix seg faults and asserts when director methods are ignored (#1543533)
+
+09/20/2006: wsfulton
+            Fix out of source builds - bug #1544718
+
 09/20/2006: olly
 	    [ALL] Templates can now be instantiated using negative numbers and
 	    constant expressions, e.g.:
