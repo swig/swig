@@ -680,9 +680,10 @@ php4_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 PHP4=@PHP4@
+SCRIPT ?= runme.php4
 
-php4_run: 
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PHP4) -q -d extension_dir=. runme.php4
+php4_run:
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PHP4) -q -d extension_dir=. $(SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the PHP4 examples
