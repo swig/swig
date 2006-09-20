@@ -42,6 +42,10 @@ char *overloaded(double d) {
   return "Overloaded with double";
 }
 
+char *overloaded(const char * str) {
+  return "Overloaded with char *";
+}
+
 char *overloaded( const Circle& ) {
   return "Overloaded with Circle";
 }

@@ -229,17 +229,12 @@
   RETVAL_STRINGL($1,$1_dim0,1);
 }
 
-// This typecheck would do hard checking for proper argument type.
-//%define %php_typecheck(_type,_prec,is)
-//%typemap(typecheck,precedence=_prec) _type
-// " $1 = Z_TYPE_PP($input) == is ? 1 : 0; "
-//%enddef
-
+// This typecheck does hard checking for proper argument type.  If you want
+// an argument to be converted from a different PHP type, you must convert
+// it yourself before passing it (e.g. (string)4.7 or (int)"6").
 %define %php_typecheck(_type,_prec,is)
 %typemap(typecheck,precedence=_prec) _type
- " $1 = (Z_TYPE_PP($input) == IS_LONG ||
-         Z_TYPE_PP($input) == IS_DOUBLE ||
-         Z_TYPE_PP($input) == IS_STRING) ? 1 : 0; "
+ " $1 = (Z_TYPE_PP($input) == is); "
 %enddef
 
 %php_typecheck(int,SWIG_TYPECHECK_INTEGER,IS_LONG)
@@ -269,11 +264,11 @@
              SWIGTYPE &
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) < 0)? 0:1;
+  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
- " /* tyepcheck void * */ "
+ " /* typecheck void * */ "
 
 
 /* Exception handling */

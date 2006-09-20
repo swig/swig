@@ -9,8 +9,8 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
-  double  x, y;   
+  }
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area(void) = 0;
   virtual double perimeter(void) = 0;
@@ -22,8 +22,8 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
-  ~Circle() { };
+  Circle(double r) : radius(r) { }
+  ~Circle() { }
   virtual double area(void);
   virtual double perimeter(void);
 };
@@ -32,7 +32,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   ~Square() { }
   virtual double area(void);
   virtual double perimeter(void);
@@ -40,6 +40,7 @@ public:
 
 char *overloaded( int i );
 char *overloaded( double d );
+char *overloaded( const char * str );
 char *overloaded( const Circle& );
 char *overloaded( const Shape& );
 
