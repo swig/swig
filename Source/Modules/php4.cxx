@@ -366,20 +366,20 @@ public:
   
   void create_extra_files(String *outfile) {
     File *f_extra;
-    
+
     static String *configm4=0;
     static String *makefilein=0;
     static String *credits=0;
-    
-    configm4=NewString("");
+
+    configm4 = NewStringEmpty();
     Printv(configm4, SWIG_output_directory(), "config.m4", NIL);
-    
-    makefilein=NewString("");
+
+    makefilein = NewStringEmpty();
     Printv(makefilein, SWIG_output_directory(), "Makefile.in", NIL);
-    
-    credits=NewString("");
+
+    credits = NewStringEmpty();
     Printv(credits, SWIG_output_directory(), "CREDITS", NIL);
-    
+
     // are we a --with- or --enable-
     int with=(withincs || withlibs)?1:0;
 
@@ -594,15 +594,15 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewString("");
+    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
     s_cinit = NewString("/* cinit subsection */\n");
     s_oinit = NewString("/* oinit subsection */\n");
-    pragma_phpinfo = NewString("");
+    pragma_phpinfo = NewStringEmpty();
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
-    
+
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",s_init);
@@ -618,10 +618,10 @@ public:
     if (!prefix) prefix = Copy(module);
 
     /* PHP module file */
-    filen = NewString("");
+    filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
-    
+
     f_phpcode = NewFile(filen, "w");
     if (!f_phpcode) {
       FileErrorDisplay(filen);
@@ -646,9 +646,9 @@ public:
     Printf(f_phpcode,"}\n\n");
 
     /* sub-sections of the php file */
-    pragma_code = NewString("");
-    pragma_incl = NewString("");
-    
+    pragma_code = NewStringEmpty();
+    pragma_incl = NewStringEmpty();
+
     /* Initialize the rest of the module */
 
     Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, %s_destroy_globals);\n",module,module,module);
@@ -699,14 +699,14 @@ public:
     Printf(s_header,"#endif\n\n");
 
     /* Create the .h file too */
-    filen = NewString("");
+    filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
     f_h = NewFile(filen, "w");
     if (!f_h) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
     }
-    
+
     Swig_banner(f_h);
     Printf(f_h, php_header);
     
@@ -834,11 +834,11 @@ public:
     Printf(s_header, "};\n");
     Printf(s_header, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n",module);
 
-    String *type_table = NewString("");
+    String *type_table = NewStringEmpty();
     SwigType_emit_type_table(f_runtime,type_table);
     Printf(s_header,"%s",type_table);
     Delete(type_table);
-    
+
     /* Oh dear, more things being called in the wrong order. This whole
      * function really needs totally redoing.
      */
@@ -897,7 +897,7 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
-    String *tmp = NewString("");
+    String *tmp = NewStringEmpty();
     String *dispatch = Swig_overload_dispatch(n,"return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);",&maxargs);
 
     int has_this_ptr = (wrapperType==memberfn && shadow && php_version == 4);
@@ -1024,9 +1024,9 @@ public:
 
     f   = NewWrapper();
     numopt = 0;
-    
-    String *outarg = NewString("");
-    String *cleanup = NewString("");
+
+    String *outarg = NewStringEmpty();
+    String *cleanup = NewStringEmpty();
 
     if (mvr) { // do prop[gs]et header
       if (mvrset) {
@@ -1245,7 +1245,7 @@ public:
           // Is being shadow-wrap-thingied
           Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
           // Make object
-          String *shadowrettype = NewString("");
+          String *shadowrettype = NewStringEmpty();
           SwigToPhpType(d, iname, shadowrettype, (shadow && php_version == 4));
 
           Printf(f->code,"zval *obj, *_cPtr;\n");
@@ -1336,7 +1336,7 @@ public:
     // for them all).
     if (overloaded && Getattr(n,"sym:nextSibling") != 0) return SWIG_OK;
 
-    if (!s_oowrappers) s_oowrappers = NewString("");
+    if (!s_oowrappers) s_oowrappers = NewStringEmpty();
     if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard) {
       bool handle_as_overload = false;
       String ** arg_names;
@@ -1354,7 +1354,7 @@ public:
 	methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
       } else { // wrapperType == standard
 	methodname = Char(iname);
-	if (!s_fakeoowrappers) s_fakeoowrappers = NewString("");
+	if (!s_fakeoowrappers) s_fakeoowrappers = NewStringEmpty();
 	output = s_fakeoowrappers;
       }
 
@@ -1667,7 +1667,7 @@ public:
 	  Replaceall(pname, " ", "_");
 	} else {
 	  /* We get here if the SWIG .i file has "int foo(int);" */
-	  pname = NewString("");
+	  pname = NewStringEmpty();
 	  Printf(pname, "arg%d", argno + 1);
 	}
 	// Check if we've already used this parameter name.
@@ -1684,9 +1684,9 @@ public:
       Delete(seen);
       seen = NULL;
 
-      String * invoke = NewString("");
-      String * prepare = NewString("");
-      String * args = NewString("");
+      String * invoke = NewStringEmpty();
+      String * prepare = NewStringEmpty();
+      String * args = NewStringEmpty();
 
       if (!handle_as_overload && !(really_overloaded && max_num_of_arguments > min_num_of_arguments)) {
 	Printf(invoke, "%s(", iname);
@@ -1716,7 +1716,7 @@ public:
 	  if (i) Printf(args, ",");
 	  Printf(args, "$%s", arg_names[i]);
 	}
-	String *invoke_args = NewString("");
+	String *invoke_args = NewStringEmpty();
 	if (wrapperType == memberfn) {
 	  Printf(invoke_args, "$this->%s", SWIG_PTR);
 	  if (min_num_of_arguments > 0) Printf(invoke_args, ",");
@@ -1910,10 +1910,10 @@ public:
 
     if (shadow && php_version == 5) {
       if (wrapping_member_constant) {
-	if (!s_oowrappers) s_oowrappers = NewString("");
+	if (!s_oowrappers) s_oowrappers = NewStringEmpty();
 	Printf(s_oowrappers, "\n\tconst %s = %s;\n", wrapping_member_constant, iname);
       } else {
-	if (!s_fakeoowrappers) s_fakeoowrappers = NewString("");
+	if (!s_fakeoowrappers) s_fakeoowrappers = NewStringEmpty();
 	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", name, iname);
       }
     }
@@ -1987,7 +1987,7 @@ public:
 
       if (!addSymbol(rename,n)) return SWIG_ERROR;
       shadow_classname = Swig_copy_string(rename);
-      cs_entry = NewString("");
+      cs_entry = NewStringEmpty();
       Printf(cs_entry,"/* Function entries for %s */\n",shadow_classname);
       Printf(cs_entry,"static zend_function_entry %s_functions[] = {\n", shadow_classname);
 
@@ -2067,8 +2067,8 @@ public:
     if (shadow && php_version == 4) {
       DOH *key;
       int gcount, scount;
-      String      *s_propget=NewString("");
-      String      *s_propset=NewString("");
+      String      *s_propget = NewStringEmpty();
+      String      *s_propset = NewStringEmpty();
       List *baselist = Getattr(n, "bases");
       Iterator ki, base;
 
@@ -2669,8 +2669,8 @@ public:
     String *iname   = GetChar(n,"sym:name");
     SwigType *d     = Getattr(n,"type");
     ParmList *l     = Getattr(n,"parms");
-    
-    String *destructorname=NewString("");
+
+    String *destructorname = NewStringEmpty();
     Printf(destructorname,"_%s",Swig_name_wrapper(iname));
     Setattr(classnode,"destructor",destructorname);
 
