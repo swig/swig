@@ -2,6 +2,11 @@ Version 1.3.30 (in progress)
 ============================
 
 09/20/2006: olly 
+	    [ALL] Treat a nested class definition as a forward declaration rather
+	    than ignoring it completely, so that we generate correct code for
+	    passing opaque pointers to the nested class (fixes SF bug #909387).
+
+09/20/2006: olly 
             *** POTENTIAL INCOMPATIBILITY ***
 	    [php] Overload resolution now works.  However to allow this, SWIG
 	    generated wrappers no longer coerce PHP types (which reverts a change

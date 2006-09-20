@@ -4148,27 +4148,33 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 	      } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($6.id) {
-		    if (strcmp($2,"class") == 0) {
-		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested classes not currently supported (ignored).\n");
-		      /* Generate some code for a new class */
-		    } else {
-		      Nested *n = (Nested *) malloc(sizeof(Nested));
-		      n->code = NewStringEmpty();
-		      Printv(n->code, "typedef ", $2, " ",
-			     Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
+		  if ($6.id && strcmp($2, "class") != 0) {
+		    Nested *n = (Nested *) malloc(sizeof(Nested));
+		    n->code = NewStringEmpty();
+		    Printv(n->code, "typedef ", $2, " ",
+			   Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
 
-		      n->name = Swig_copy_string($6.id);
-		      n->line = cparse_start_line;
-		      n->type = NewStringEmpty();
-		      n->kind = $2;
-		      n->unnamed = 0;
-		      SwigType_push(n->type, $6.type);
-		      n->next = 0;
-		      add_nested(n);
-		    }
+		    n->name = Swig_copy_string($6.id);
+		    n->line = cparse_start_line;
+		    n->type = NewStringEmpty();
+		    n->kind = $2;
+		    n->unnamed = 0;
+		    SwigType_push(n->type, $6.type);
+		    n->next = 0;
+		    add_nested(n);
 		  } else {
 		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
+		    if (strcmp($2, "class") == 0) {
+		      /* For now, just treat the nested class as a forward
+		       * declaration (SF bug #909387). */
+		      $$ = new_node("classforward");
+		      Setfile($$,cparse_file);
+		      Setline($$,cparse_line);
+		      Setattr($$,k_kind,$2);
+		      Setattr($$,k_name,$3);
+		      Setattr($$,k_symweak, "1");
+		      add_symbols($$);
+		    }
 		  }
 		}
 	      }
@@ -4198,7 +4204,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
-	      } 
+	      }
 /* A  'class name : base_list { };'  declaration, always ignored */
 /*****
      This fix derived_nested.i, but it adds one shift/reduce. Anyway,
