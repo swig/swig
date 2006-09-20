@@ -1,37 +1,24 @@
+TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+SRCS       =
+TARGET     = example
+INTERFACE  = example.i
+LIBS       =
+SWIGOPT    =
 
-SWIGFLAGS   =
+all::
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
+	php4
 
-C_SOURCES   = 
-CXX_SOURCES =
+static::
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='myphp4' INTERFACE='$(INTERFACE)' \
+	php4_static
 
-SWIG = ../../../preinst-swig
+clean::
+	$(MAKE) -f $(TOP)/Makefile php4_clean
+	rm -f $(TARGET).php
 
-all: check
-
-example_wrap.c: example.i
-	$(SWIG) -php4 $(SWIGFLAGS) example.i
-
-OBJS= example_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)
-
-PROG=php_example.so
-
-PHP_INC=`php-config --includes`
-
-CFLAGS  = -fpic
-LDFLAGS = -shared
-
-$(PROG): $(OBJS)
-	$(CXX) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)
-
-%.o: %.cpp
-	$(CXX) $(PHP_INC) $(CFLAGS) -c $<
-%.o: %.cxx
-	$(CXX) $(PHP_INC) $(CFLAGS) -c $<
-%.o: %.c
-	$(CC) $(PHP_INC) $(CFLAGS) -c $<
-
-check: $(PROG)
-	@php -d extension_dir=. runme.php4
-
-clean:
-	rm -f example_wrap.* *.o *~ *.so core example.php php_example.h
+check: all
+	$(MAKE) -f $(TOP)/Makefile php4_run
