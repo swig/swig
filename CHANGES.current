@@ -1,6 +1,11 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/20/2006: olly
+	    [php] Previously -noproxy was required when wrapping some C code
+	    to avoid SWIG generating new_XXX methods.  Now proxy classes are
+	    only ever enabled when wrapping C++ code.
+
 09/18/2006: mgossage
             [ALL] fix on swiginit.swg, has been reported to crash on several test cases
 	    found and fixed problem in imports under python (mingw)
