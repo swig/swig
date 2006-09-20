@@ -159,14 +159,14 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
       if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
 	if ((*_cPtr)->type==IS_RESOURCE) {
 	  *ptr = SWIG_ZTS_ConvertResourcePtr(*_cPtr, ty, flags TSRMLS_CC);
-	  return (ptr == NULL ? -1 : 0);
+	  return (*ptr == NULL ? -1 : 0);
 	}
       }
       break;
     }
     case IS_RESOURCE:
       *ptr = SWIG_ZTS_ConvertResourcePtr(z, ty, flags TSRMLS_CC);
-      return (ptr == NULL ? -1 : 0);
+      return (*ptr == NULL ? -1 : 0);
     case IS_NULL:
       *ptr = 0;
       return 0;
