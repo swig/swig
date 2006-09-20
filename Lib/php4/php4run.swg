@@ -115,9 +115,8 @@ SWIG_ZTS_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty
     return NULL;
   }
 
-  /* convert and cast p from type_name to ptr as ty
-     Need to sort out const-ness, can SWIG_TypeCast really not take a const? */
-  tc = SWIG_TypeCheck((char *)type_name,ty);
+  /* convert and cast p from type_name to ptr as ty. */
+  tc = SWIG_TypeCheck(type_name, ty);
   if (!tc) return NULL;
   return SWIG_TypeCast(tc, p);
 }
