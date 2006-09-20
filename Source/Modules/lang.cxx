@@ -1888,7 +1888,7 @@ int Language::classDirectorConstructors(Node *n) {
   /* emit constructors */
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
-    if (!Cmp(nodeType, "constructor")) { 
+    if (Cmp(nodeType, "constructor") == 0 && !GetFlag(ni, "feature:ignore")) { 
       Parm   *parms = Getattr(ni,"parms");
       if (is_public(ni)) {
 	/* emit public constructor */
@@ -1954,9 +1954,11 @@ int Language::classDirectorMethods(Node *n) {
     item = k.item;
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
+    if (GetFlag(method,"feature:ignore"))
+      continue;
     if (GetFlag(method, "feature:nodirector"))
       continue;
-    
+
     String *type = Getattr(method, "nodeType");
     if (!Cmp(type, "destructor")) { 
       classDirectorDestructor(method);
@@ -2376,7 +2378,10 @@ int Language::classHandler(Node *n) {
 	item = k.item;
 	Node *method = Getattr(item, "methodNode");
 	SwigType *type = Getattr(method,"nodeType");
-	if (Strcmp(type,"cdecl") !=0 ) continue;
+	if (Strcmp(type,"cdecl") !=0 )
+	  continue;
+	if (GetFlag(method, "feature:ignore"))
+	  continue;
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
 	if (!Getattr(symbols,wrapname) && (!is_public(method))) {
