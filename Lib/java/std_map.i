@@ -26,6 +26,10 @@ namespace std {
     template<class K, class T> class map {
         // add typemaps here
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
         map();
         map(const map<K,T> &);
         
@@ -33,7 +37,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& get(const K& key) throw (std::out_of_range) {
+            const T& get(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
