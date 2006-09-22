@@ -1954,8 +1954,8 @@ int Language::classDirectorMethods(Node *n) {
     item = k.item;
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (GetFlag(method,"feature:ignore"))
-      continue;
+//    if (GetFlag(method,"feature:ignore"))
+//      continue;
     if (GetFlag(method, "feature:nodirector"))
       continue;
 
