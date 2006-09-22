@@ -530,7 +530,7 @@ int yylook(void) {
 	case 0 :
 	  if((c = nextchar()) == 0) return (0);
 
-	  /* Process delimeters */
+	  /* Process delimiters */
 
 	  if (c == '\n') {
 	    state = 0;
