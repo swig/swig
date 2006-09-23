@@ -52,8 +52,9 @@ static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
 
+static int      max_class_levels = 0;
 static int      class_level = 0;
-static Node    *class_decl[16];
+static Node   **class_decl = NULL;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -3205,6 +3206,17 @@ cpp_class_decl  :
 		       Delete(tpname);
 		     }
 		   }
+		   if (class_level >= max_class_levels) {
+		       if (!max_class_levels) {
+			   max_class_levels = 16;
+		       } else {
+			   max_class_levels *= 2;
+		       }
+		       class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		       if (!class_decl) {
+			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
+		       }
+		   }
 		   class_decl[class_level++] = $$;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
@@ -3343,6 +3355,17 @@ cpp_class_decl  :
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
+	       if (class_level >= max_class_levels) {
+		   if (!max_class_levels) {
+		       max_class_levels = 16;
+		   } else {
+		       max_class_levels *= 2;
+		   }
+		   class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		   if (!class_decl) {
+		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
+		   }
+	       }
 	       class_decl[class_level++] = $$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
