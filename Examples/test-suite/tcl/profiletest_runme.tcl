@@ -1,5 +1,4 @@
-catch { load ./profiletest.so profiletest}
-catch { load ./profiletest.dll profiletest}    ;# Windows
+catch { load ./profiletest[info sharedlibextension] profiletest}
 
 set  a [new_A]
 set  b [new_B]
