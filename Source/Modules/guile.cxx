@@ -681,7 +681,7 @@ public:
     ParmList *l = Getattr(n,"parms");
     Parm *p;
     String *proc_name = 0;
-    char source[256], target[256];
+    char source[256];
     Wrapper *f = NewWrapper();;
     String *cleanup = NewString("");
     String *outarg = NewString("");
@@ -769,7 +769,6 @@ public:
       }
       
       SwigType *pt = Getattr(p,"type");
-      String   *ln = Getattr(p,"lname");
       int opt_p = (i >= numreq);
       
       // Produce names of source and target
@@ -777,8 +776,8 @@ public:
 	sprintf(source, "argv[%d]", i);
       else
 	sprintf(source,"s_%d",i);
-      sprintf(target,"%s", Char(ln));
-      
+      String *target = Getattr(p,"lname");
+
       if (!args_passed_as_array) {
 	if (i!=0) Printf(f->def,", ");
 	Printf(f->def,"SCM s_%d", i);

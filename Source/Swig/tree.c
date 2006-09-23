@@ -1,10 +1,10 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
  * tree.c
  *
- * This file provides some general purpose functions for manipulating 
+ * This file provides some general purpose functions for manipulating
  * parse trees.
  * ----------------------------------------------------------------------------- */
 
@@ -21,7 +21,7 @@ char cvsroot_tree_c[] = "$Header$";
  * Dump the tag structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 Swig_print_tags(DOH *obj, DOH *root) {
   DOH *croot, *newroot;
   DOH *cobj;
@@ -65,7 +65,7 @@ void
 Swig_print_node(Node *obj) {
   Iterator ki;
   Node   *cobj;
-  
+
   print_indent(0);
   Printf(stdout,"+++ %s ----------------------------------------\n", nodeType(obj));
   ki = First(obj);
@@ -113,7 +113,7 @@ Swig_print_node(Node *obj) {
  * Dump the tree structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 Swig_print_tree(DOH *obj) {
   while (obj) {
     Swig_print_node(obj);
@@ -258,17 +258,17 @@ checkAttribute(Node *n, const String_or_char *name, const String_or_char *value)
  * not. Assert will only occur unless the attribute is optional. An attribute is
  * optional if it is prefixed by ?, eg "?value". If the attribute name is prefixed
  * by * or ?, eg "*value" then a copy of the attribute is saved. The saved
- * attributes will be restored on a subsequent call to Swig_restore(). All the 
+ * attributes will be restored on a subsequent call to Swig_restore(). All the
  * saved attributes are saved in the view namespace (prefixed by ns).
  * This function can be called more than once with different namespaces.
  * ----------------------------------------------------------------------------- */
 
-int 
+int
 Swig_require(const char *ns, Node *n, ...) {
   va_list ap;
   char *name;
   DOH *obj;
-  char   temp[512];
+  String *temp = NewStringEmpty();
 
   va_start(ap, n);
   name = va_arg(ap, char *);
@@ -285,18 +285,17 @@ Swig_require(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n,name);
     if (!opt && !obj) {
-      Printf(stderr,"%s:%d. Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", 
+      Printf(stderr,"%s:%d. Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n",
 	     Getfile(n), Getline(n), name, nodeType(n));
       assert(obj);
     }
     if (!obj) obj = DohNone;
     if (newref) {
       /* Save a copy of the attribute */
-      strcpy(temp,ns);
-      strcat(temp,":");
-      strcat(temp,name);
+      Printf(temp, "%s:%s", ns, name);
       Setattr(n,temp,obj);
-    } 
+      Clear(temp);
+    }
     name = va_arg(ap, char *);
   }
   va_end(ap);
@@ -306,15 +305,17 @@ Swig_require(const char *ns, Node *n, ...) {
     String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
-	strcpy(temp,ns);
-	strcat(temp,":view");
+	Printf(temp, "%s:view", ns);
 	Setattr(n,temp,view);
 	Setattr(n,k_view,ns);
+	Clear(temp);
       }
     } else {
       Setattr(n,k_view,ns);
     }
   }
+
+  Delete(temp);
 
   return 1;
 }
@@ -326,12 +327,12 @@ Swig_require(const char *ns, Node *n, ...) {
  * are saved, ie behaves as if all the attribute names were prefixed by ?.
  * ----------------------------------------------------------------------------- */
 
-int 
+int
 Swig_save(const char *ns, Node *n, ...) {
   va_list ap;
   char *name;
   DOH *obj;
-  char temp[512];
+  String *temp = NewStringEmpty();
 
   va_start(ap, n);
   name = va_arg(ap, char *);
@@ -345,13 +346,12 @@ Swig_save(const char *ns, Node *n, ...) {
     if (!obj) obj = DohNone;
 
     /* Save a copy of the attribute */
-    strcpy(temp,ns);
-    strcat(temp,":");
-    strcat(temp,name);
+    Printf(temp, "%s:%s", ns, name);
     if (Setattr(n,temp,obj)) {
-      Printf(stderr,"Swig_save('%s','%s'): Warning, attribute '%s' was already saved.\n", ns, nodeType(n), name);
+      Printf(stderr,"Swig_save('%s','%s'): Warning, attribute '%s' was already saved. [%s]\n", ns, nodeType(n), name);
     }
     name = va_arg(ap, char *);
+    Clear(temp);
   }
   va_end(ap);
 
@@ -360,15 +360,17 @@ Swig_save(const char *ns, Node *n, ...) {
     String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
-	strcpy(temp,ns);
-	strcat(temp,":view");
+	Printf(temp, "%s:view", ns);
 	Setattr(n,temp,view);
 	Setattr(n,k_view,ns);
+	Clear(temp);
       }
     } else {
       Setattr(n,k_view,ns);
     }
   }
+
+  Delete(temp);
 
   return 1;
 }
@@ -378,9 +380,9 @@ Swig_save(const char *ns, Node *n, ...) {
  * Restores attributes saved by a previous call to Swig_require() or Swig_save().
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 Swig_restore(Node *n) {
-  char  temp[512];
+  String *temp;
   int   len;
   List  *l;
   String *ns;
@@ -391,12 +393,11 @@ Swig_restore(Node *n) {
 
   l = NewList();
 
-  strcpy(temp,Char(ns));
-  strcat(temp,":");
-  len = strlen(temp);
+  temp = NewStringf("%s:", ns);
+  len = Len(temp);
 
   for (ki = First(n); ki.key; ki = Next(ki)) {
-    if (strncmp(temp,Char(ki.key),len) == 0) {
+    if (strncmp(Char(temp),Char(ki.key),len) == 0) {
       Append(l,ki.key);
     }
   }
@@ -406,6 +407,7 @@ Swig_restore(Node *n) {
     Delattr(n,ki.item);
   }
   Delete(l);
+  Delete(temp);
 }
 
 

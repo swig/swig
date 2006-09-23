@@ -510,7 +510,7 @@ public:
     Parm *p;
     int   i;
     Wrapper *f;
-    char  source[256],target[256],temp[256];
+    char  source[256],temp[256];
     String  *tm;
     String *cleanup, *outarg;
     int    num_saved = 0;
@@ -567,11 +567,10 @@ public:
       }
 
       SwigType *pt = Getattr(p,"type");
-      String   *ln = Getattr(p,"lname");
 
       /* Produce string representation of source and target arguments */
       sprintf(source,"ST(%d)",i);
-      sprintf(target,"%s", Char(ln));
+      String   *target = Getattr(p,"lname");
 
       if (i >= num_required) {
 	Printf(f->code,"    if (items > %d) {\n", i);

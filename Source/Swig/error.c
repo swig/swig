@@ -66,28 +66,24 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
   va_list ap;
   if (silence) return;
   if (!init_fmt) Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
-  
+
   va_start(ap,fmt);
 
   out = NewStringEmpty();
   vPrintf(out,fmt,ap);
-  {
-    char temp[64], *t;
-    t = temp;
-    msg = Char(out);
-    while (isdigit((int) *msg)) {
-      *(t++) = *(msg++);
-    }
-    if (t != temp) {
+
+  msg = Char(out);
+  if (isdigit((unsigned char)*msg)) {
+    unsigned long result = strtoul(msg, &msg, 10);
+    if (msg != Char(out)) {
       msg++;
-      *t = 0;
-      wnum = atoi(temp);
+      wnum = result;
     }
   }
 
   /* Check in the warning filter */
   if (filter) {
-    char    temp[32];    
+    char    temp[32];
     char *c;
     char *f = Char(filter);
     sprintf(temp,"%d",wnum);
