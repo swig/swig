@@ -126,6 +126,7 @@ CPP_TEST_CASES += \
 	director_default \
 	director_enum \
 	director_exception \
+	director_extend \
 	director_frob \
 	director_finalizer \
 	director_ignore \
