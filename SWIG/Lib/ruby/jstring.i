@@ -11,7 +11,7 @@ SWIG_AsVal(jstring)(VALUE obj, jstring *val)
   if (TYPE(obj) == T_STRING) {
     if (val) {
       char *cstr = rb_string_value_ptr(&(obj));
-      jsize len = RSTRING(obj)->len;
+      jsize len = RSTRING_LEN(obj);
       *val = JvNewStringLatin1(cstr, len);
     }
     return SWIG_NEWOBJ;

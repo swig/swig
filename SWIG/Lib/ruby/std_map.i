@@ -50,11 +50,11 @@ namespace std {
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 $1 = std::map<K,T >();
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     K* k;
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     SWIG_ConvertPtr(key, (void **) &k, $descriptor(K *), 1);
                     SWIG_ConvertPtr(val, (void **) &x, $descriptor(T *), 1);
@@ -73,11 +73,11 @@ namespace std {
                 temp = std::map<K,T >();
                 $1 = &temp;
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     K* k;
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     SWIG_ConvertPtr(key, (void **) &k, $descriptor(K *), 1);
                     SWIG_ConvertPtr(val, (void **) &x, $descriptor(T *), 1);
@@ -104,7 +104,7 @@ namespace std {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     /* an empty dictionary can be of any type */
                     $1 = 1;
@@ -112,7 +112,7 @@ namespace std {
                     /* check the first element only */
                     K* k;
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (SWIG_ConvertPtr(key,(void **) &k,
                                         $descriptor(K *),0) != -1 &&
@@ -137,7 +137,7 @@ namespace std {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     /* an empty dictionary can be of any type */
                     $1 = 1;
@@ -145,7 +145,7 @@ namespace std {
                     /* check the first element only */
                     K* k;
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (SWIG_ConvertPtr(key,(void **) &k,
                                         $descriptor(K *),0) != -1 &&
@@ -254,10 +254,10 @@ namespace std {
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 $1 = std::map<K,T >();
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!CHECK(key))
                         rb_raise(rb_eTypeError,
@@ -280,10 +280,10 @@ namespace std {
                 temp = std::map<K,T >();
                 $1 = &temp;
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!CHECK(key))
                         rb_raise(rb_eTypeError,
@@ -312,14 +312,14 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (CHECK(key) &&
                         SWIG_ConvertPtr(val,(void **) &x,
@@ -343,14 +343,14 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
                     T* x;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (CHECK(key) &&
                         SWIG_ConvertPtr(val,(void **) &x,
@@ -452,10 +452,10 @@ namespace std {
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 $1 = std::map<K,T >();
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     K* k;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!CHECK(val))
                         rb_raise(rb_eTypeError,
@@ -478,10 +478,10 @@ namespace std {
                 temp = std::map<K,T >();
                 $1 = &temp;
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
                     K* k;
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!CHECK(val))
                         rb_raise(rb_eTypeError,
@@ -510,14 +510,14 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
                     K* k;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                         $descriptor(K *),0) != -1 &&
@@ -541,14 +541,14 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
                     K* k;
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                         $descriptor(K *),0) != -1 &&
@@ -650,9 +650,9 @@ namespace std {
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 $1 = std::map<K,T >();
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!(CHECK_K(key) && CHECK_T(val)))
                         rb_raise(rb_eTypeError,
@@ -674,9 +674,9 @@ namespace std {
                 temp = std::map<K,T >();
                 $1 = &temp;
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 for (unsigned int i=0; i<size; i++) {
-                    VALUE key = RARRAY(keys)->ptr[i];
+                    VALUE key = RARRAY_PTR(keys)[i];
                     VALUE val = rb_hash_aref($input,key);
                     if (!(CHECK_K(key) && CHECK_T(val)))
                         rb_raise(rb_eTypeError,
@@ -701,13 +701,13 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (CHECK_K(key) && CHECK_T(val))
                         $1 = 1;
@@ -729,13 +729,13 @@ namespace std {
             // native sequence?
             if (rb_obj_is_kind_of($input,rb_cHash)) {
                 VALUE keys = rb_funcall($input,rb_intern("keys"),0);
-                unsigned int size = RARRAY(keys)->len;
+                unsigned int size = RARRAY_LEN(keys);
                 if (size == 0) {
                     // an empty dictionary can be of any type
                     $1 = 1;
                 } else {
                     // check the first element only
-                    VALUE key = RARRAY(keys)->ptr[0];
+                    VALUE key = RARRAY_PTR(keys)[0];
                     VALUE val = rb_hash_aref($input,key);
                     if (CHECK_K(key) && CHECK_T(val))
                         $1 = 1;

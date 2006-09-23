@@ -12,7 +12,7 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
     #else
     char *cstr = STR2CSTR(obj);
     #endif
-    size_t size = RSTRING(obj)->len + 1;
+    size_t size = RSTRING_LEN(obj) + 1;
     if (cptr)  {
       if (alloc) {
 	if (*alloc == SWIG_NEWOBJ) {

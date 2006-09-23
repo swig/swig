@@ -27,14 +27,14 @@ namespace std {
     template<class T, class U> struct pair {
         %typemap(in) pair<T,U> (std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2)
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 T* x;
                 U* y;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
                 $1 = std::make_pair(*x,*y);
@@ -48,14 +48,14 @@ namespace std {
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2)
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 T* x;
                 U* y;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
                 temp = std::make_pair(*x,*y);
@@ -79,15 +79,15 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     T* x;
                     U* y;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (SWIG_ConvertPtr(first,(void **) &x,
                                         $descriptor(T *),0) != -1 &&
                         SWIG_ConvertPtr(second,(void **) &y,
@@ -110,15 +110,15 @@ namespace std {
                                         const pair<T,U>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     T* x;
                     U* y;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (SWIG_ConvertPtr(first,(void **) &x,
                                         $descriptor(T *),0) != -1 &&
                         SWIG_ConvertPtr(second,(void **) &y,
@@ -154,13 +154,13 @@ namespace std {
     template<class U> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2)
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 U* y;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
@@ -176,13 +176,13 @@ namespace std {
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2)
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 U* y;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
@@ -205,14 +205,14 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_MAP) pair<T,U> {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     U* y;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (CHECK(first) &&
                         SWIG_ConvertPtr(second,(void **) &y,
                                         $descriptor(U *),0) != -1)
@@ -234,14 +234,14 @@ namespace std {
                                        const pair<T,U>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     U* y;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (CHECK(first) &&
                         SWIG_ConvertPtr(second,(void **) &y,
                                         $descriptor(U *),0) != -1)
@@ -275,14 +275,14 @@ namespace std {
     template<class T> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 }
                 T* x;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError, 
@@ -298,14 +298,14 @@ namespace std {
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 }
                 T* x;
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError, 
@@ -328,14 +328,14 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     T* x;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (SWIG_ConvertPtr(first,(void **) &x,
                                         $descriptor(T *),0) != -1 &&
                         CHECK(second))
@@ -357,14 +357,14 @@ namespace std {
                                         const pair<T,U>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
                     T* x;
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (SWIG_ConvertPtr(first,(void **) &x,
                                         $descriptor(T *),0) != -1 &&
                         CHECK(second))
@@ -398,13 +398,13 @@ namespace std {
     template<> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 }
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
@@ -420,13 +420,13 @@ namespace std {
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
                 }
-                VALUE first = RARRAY($input)->ptr[0];
-                VALUE second = RARRAY($input)->ptr[1];
+                VALUE first = RARRAY_PTR($input)[0];
+                VALUE second = RARRAY_PTR($input)[1];
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError, 
                                    "pair<" #T "," #U "> expected");
@@ -446,13 +446,13 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (CHECK_T(first) && CHECK_U(second))
                         $1 = 1;
                     else
@@ -472,13 +472,13 @@ namespace std {
                                         const pair<T,U>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY($input)->len;
+                unsigned int size = RARRAY_LEN($input);
                 if (size != 2) {
                     /* not a pair */
                     $1 = 0;
                 } else {
-                    VALUE first = RARRAY($input)->ptr[0];
-                    VALUE second = RARRAY($input)->ptr[1];
+                    VALUE first = RARRAY_PTR($input)[0];
+                    VALUE second = RARRAY_PTR($input)[1];
                     if (CHECK_T(first) && CHECK_U(second))
                         $1 = 1;
                     else

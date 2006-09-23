@@ -11,23 +11,23 @@ char **PROG_ARGV
 
 // argc and argv
 %typemap(in,numinputs=0) int PROG_ARGC {
-    $1 = RARRAY(rb_argv)->len + 1;
+    $1 = RARRAY_LEN(rb_argv) + 1;
 }
 
 %typemap(in,numinputs=0) char **PROG_ARGV {
     int i, n;
     VALUE ary = rb_eval_string("[$0] + ARGV");
-    n = RARRAY(ary)->len;
+    n = RARRAY_LEN(ary);
     $1 = (char **)malloc(n + 1);
     for (i = 0; i < n; i++) {
-	VALUE v = rb_obj_as_string(RARRAY(ary)->ptr[i]);
-	$1[i] = (char *)malloc(RSTRING(v)->len + 1);
-	strcpy($1[i], RSTRING(v)->ptr);
+	VALUE v = rb_obj_as_string(RARRAY_PTR(ary)[i]);
+	$1[i] = (char *)malloc(RSTRING_LEN(v) + 1);
+	strcpy($1[i], RSTRING_PTR(v));
     }
 }
 
 %typemap(freearg) char **PROG_ARGV {
-    int i, n = RARRAY(rb_argv)->len + 1;
+    int i, n = RARRAY_LEN(rb_argv) + 1;
     for (i = 0; i < n; i++) free($1[i]);
     free($1);
 }

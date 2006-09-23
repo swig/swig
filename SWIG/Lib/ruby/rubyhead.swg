@@ -20,6 +20,21 @@
 #endif
 #endif
 
+/* RSTRING_LEN, etc are new in Ruby 1.9, but ->ptr and ->len no longer work */
+/* Define these for older versions so we can just write code the new way */
+#ifndef RSTRING_LEN
+# define RSTRING_LEN(x) RSTRING(x)->len
+#endif
+#ifndef RSTRING_PTR
+# define RSTRING_PTR(x) RSTRING(x)->ptr
+#endif
+#ifndef RARRAY_LEN
+# define RARRAY_LEN(x) RARRAY(x)->len
+#endif
+#ifndef RARRAY_PTR
+# define RARRAY_PTR(x) RARRAY(x)->ptr
+#endif
+
 /*
  * Need to be very careful about how these macros are defined, especially
  * when compiling C++ code or C code with an ANSI C compiler.
@@ -63,10 +78,10 @@
 #define StringValue(s) RB_STRING_VALUE(s)
 #endif
 #ifndef StringValuePtr
-#define StringValuePtr(s) RSTRING(RB_STRING_VALUE(s))->ptr
+#define StringValuePtr(s) RSTRING_PTR(RB_STRING_VALUE(s))
 #endif
 #ifndef StringValueLen
-#define StringValueLen(s) RSTRING(RB_STRING_VALUE(s))->len
+#define StringValueLen(s) RSTRING_LEN(RB_STRING_VALUE(s))
 #endif
 #ifndef SafeStringValue
 #define SafeStringValue(v) do {\
