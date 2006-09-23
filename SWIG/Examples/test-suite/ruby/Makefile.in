@@ -5,9 +5,9 @@
 
 LANGUAGE     = ruby
 ifneq (,$(USE_VALGRIND))
-RUBY       = valgrind --leak-check=full ruby
+RUBY       = valgrind --leak-check=full @RUBY@
 else
-RUBY       = ruby
+RUBY       = @RUBY@
 endif
 SCRIPTSUFFIX = _runme.rb
 srcdir       = @srcdir@
