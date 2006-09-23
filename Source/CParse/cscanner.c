@@ -125,7 +125,7 @@ scanner_locator(String *loc) {
 
     cparse_file = Swig_copy_string(Char(fn));
     Clear(fn);
-  
+
     cparse_line = 1;
     /* Get the line number */
     while ((c = Getc(loc)) != EOF) {
@@ -137,7 +137,7 @@ scanner_locator(String *loc) {
     Clear(fn);
 
     /* Get the rest of it */
-    while (( c= Getc(loc)) != EOF) {
+    while ((c = Getc(loc)) != EOF) {
       if (c == '@') break;
       Putc(c,fn);
     }
@@ -203,14 +203,16 @@ void scanner_close() {
 }
 
 /* ----------------------------------------------------------------------------
- * char nextchar()
+ * unsigned char nextchar()
  *
  * gets next character from input.
  * If we're in inlining mode, we actually retrieve a character
  * from inline_yybuffer instead.
+ * Return value is unsigned char since isalpha(), etc aren't defined for the
+ * negative values that we get if char is signed.
  * ------------------------------------------------------------------------- */
 
-char nextchar() {
+unsigned char nextchar() {
     int c = 0;
 
     while (LEX_in) {
@@ -231,7 +233,7 @@ char nextchar() {
     if (c == '\n') {
       if (!expanding_macro) cparse_line++;
     }
-    return(c);
+    return c;
 }
 
 void retract(int n) {
@@ -298,7 +300,7 @@ void yycomment(char *a, int b, int c) {
 
 void
 skip_balanced(int startchar, int endchar) {
-    char c;
+    int  c;
     int  num_levels = 1;
     int  state = 0;
     char temp[2] = {0,0};
@@ -375,8 +377,8 @@ skip_balanced(int startchar, int endchar) {
  * ------------------------------------------------------------------------- */
 
 void skip_decl(void) {
-  char c;
-  int  done = 0;  
+  int c;
+  int done = 0;
   int start_line = cparse_line;
 
   while (!done) {
@@ -528,7 +530,7 @@ int yylook(void) {
 	switch(state) {
 
 	case 0 :
-	  if((c = nextchar()) == 0) return (0);
+	  if ((c = nextchar()) == 0) return (0);
 
 	  /* Process delimiters */
 
@@ -720,7 +722,7 @@ int yylook(void) {
 	  break;
 
 	case 3: /* a CPP directive */
-	  if (( c= nextchar()) == 0) return 0;
+	  if ((c = nextchar()) == 0) return 0;
 	  if (c == '\n') {
 	    retract(1);
 	    yytext[yylen] = 0;
@@ -730,7 +732,7 @@ int yylook(void) {
 	  break;
 
 	case 4: /* A wrapper generator directive (maybe) */
-	  if (( c= nextchar()) == 0) return 0;
+	  if ((c = nextchar()) == 0) return 0;
 	  if (c == '{') {
 	    state = 40;   /* Include block */
 	    Clear(header);
@@ -776,7 +778,7 @@ int yylook(void) {
 
 	case 5: /* Maybe a double colon */
 
-	  if (( c= nextchar()) == 0) return 0;
+	  if ((c = nextchar()) == 0) return 0;
 	  if ( c == ':') {
 	    state = 51;
 	  } else {
@@ -785,7 +787,7 @@ int yylook(void) {
 	  }
 	  break;
 	case 51: /* Maybe a ::*, ::~, or :: */
-	  if (( c = nextchar()) == 0) return 0;
+	  if ((c = nextchar()) == 0) return 0;
 	  if (c == '*') {
 	    return DSTAR;
 	  } else if (c == '~') {
@@ -1208,9 +1210,9 @@ int yylex(void) {
 		}
 		if ((c == '<') && !start_template) {
 		  int fcount = 1;
-		  char c = nextchar();
-		  while (isspace((int)c)) {c = nextchar(); ++fcount;}
-		  if (isalpha((int)c)|| c == ':') {
+		  int c2 = nextchar();
+		  while (isspace(c2)) {c2 = nextchar(); ++fcount;}
+		  if (isalpha(c2) || c2 == ':') {
 		    start_template = count;
 		  }
 		  retract(fcount);
@@ -1245,8 +1247,8 @@ int yylex(void) {
 		int tlen = end_template - start_template + 1;
 		int nlen = len - tlen;
 		if (nlen) {
-		  String *ns = 0;		
-		  while (isspace((int)end[--nlen]));
+		  String *ns = 0;
+		  while (isspace((unsigned char)end[--nlen]));
 		  ns = NewStringWithSize(s, nlen + 1);
 		  retract(count - start_template);
 		  Delete(s);
