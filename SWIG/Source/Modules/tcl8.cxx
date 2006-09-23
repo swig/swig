@@ -170,8 +170,8 @@ public:
 
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (itcl) {
-      char  filen[256];
-      sprintf(filen,"%s%s.itcl", Swig_file_dirname(outfile), Char(module));
+      String *filen;
+      filen = NewStringf("%s%s.itcl", Swig_file_dirname(outfile), module);
 
       Insert( module,0,"_" );
 
@@ -190,8 +190,9 @@ public:
 	     NIL);
 
       Printv(f_shadow,"\npackage require Itcl\n\n", NIL);
-    };
-    
+      Delete(filen);
+    }
+
     /* Generate some macros used throughout code generation */
     
     Printf(f_header,"#define SWIG_init    %s\n", init_name);
