@@ -4975,12 +4975,12 @@ pointer    : STAR type_qualifier pointer {
            }
            ;
 
-type_qualifier : type_qualifier_raw { 
+type_qualifier : type_qualifier_raw {
 	          $$ = NewStringEmpty();
 	          if ($1) SwigType_add_qualifier($$,$1);
                }
-               | type_qualifier_raw type_qualifier { 
-		  $$ = $2; 
+               | type_qualifier_raw type_qualifier {
+		  $$ = $2;
 	          if ($1) SwigType_add_qualifier($$,$1);
                }
                ;
@@ -5004,6 +5004,15 @@ rawtype       : type_qualifier type_right {
 	           SwigType_push($$,$1);
                }
                | type_right { $$ = $1; }
+               | type_right type_qualifier {
+		  $$ = $1;
+	          SwigType_push($$,$2);
+	       }
+               | type_qualifier type_right type_qualifier {
+		  $$ = $2;
+	          SwigType_push($$,$3);
+	          SwigType_push($$,$1);
+	       }
                ;
 
 type_right     : primitive_type { $$ = $1;
@@ -5014,10 +5023,6 @@ type_right     : primitive_type { $$ = $1;
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | ENUM idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
-               | type_right type_qualifier {
-		  $$ = $1;
-	          SwigType_push($$,$2);
-     	       }
 
                | idcolon {
 		  $$ = $1;
