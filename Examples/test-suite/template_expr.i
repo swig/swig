@@ -31,18 +31,8 @@ class X {};
 
 %inline %{
     template<typename Type, short Rank>
-    class Test {
-	/**** conditional return type TestRm1 =
-	  Test<Type,Rank-1> oder Type: ****/
-	template<bool cond, class T1, class T2> class
-	    CondRetType { typedef T1 TestRm1; };
-	template<class T1, class T2> class
-	    CondRetType<false, T1, T2> { typedef T2 TestRm1; };
 	typedef typename CondRetType< Rank!=1,
 		Test<Type,Rank-1>, Type>::TestRm1 TestRm1;
-	public:
-	Test() {};
-    };
 %}
 
 
