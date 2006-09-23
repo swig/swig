@@ -55,7 +55,7 @@ static DOH *encode(char *name,  DOH *s) {
   DOH *handle, *ns;
   DOH *(*fn)(DOH *);
   long  pos;
-  char *cfmt = strstr(name,":");
+  char *cfmt = strchr(name,':');
   DOH *tmp = 0;  
   if (cfmt) {
     tmp = NewString(cfmt + 1);

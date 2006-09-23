@@ -141,16 +141,16 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
 	}
 	Delete(stripped_name);
       }
-      if (strstr(Char(name),"<")) {
+      if (strchr(Char(name),'<')) {
 	Append(patchlist,Getattr(n,k_name));
       } else {
 	Append(name,templateargs);
       }
       name = Getattr(n,k_symname);
       if (name) {
-	if (strstr(Char(name),"<")) {
+	if (strchr(Char(name),'<')) {
 	  Clear(name);
-	  Append(name,rname);   
+	  Append(name,rname);
 	} else {
 	  String *tmp = Copy(name);
 	  Replace(tmp,tname,rname, DOH_REPLACE_ANY);
@@ -167,13 +167,13 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     add_parms(Getattr(n,k_throws), cpatchlist, typelist);
   } else if (StringEqual(nodeType,k_destructor)) {
     String *name = Getattr(n,k_name);
-    if (name && strstr(Char(name),"<")) {
+    if (name && strchr(Char(name),'<')) {
       Append(patchlist,Getattr(n,k_name));
     } else {
       Append(name,templateargs);
     }
     name = Getattr(n,k_symname);
-    if (name && strstr(Char(name),"<")) {
+    if (name && strchr(Char(name),'<')) {
       String *sn = Copy(tname);
       Setattr(n,k_symname, sn);
       Delete(sn);
@@ -184,7 +184,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(cpatchlist,Getattr(n,k_code));
   } else if (StringEqual(nodeType,k_using)) {
     String *uname = Getattr(n,k_uname);
-    if (uname && strstr(Char(uname),"<")) {
+    if (uname && strchr(Char(uname),'<')) {
       Append(patchlist, uname);
     }
     if (Getattr(n,k_namespace)) {
@@ -218,8 +218,8 @@ String *partial_arg(String *s, String *p) {
   String *newarg;
 
   /* Find the prefix on the partial argument */
-  
-  c = strstr(cp,"$");
+
+  c = strchr(cp,'$');
   if (!c) {
     return Copy(s);
   }

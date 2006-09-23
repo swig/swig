@@ -697,7 +697,7 @@ static void check_extensions() {
 
   if (!extendhash) return;
   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
-    if (!Strstr(ki.key,"<")) {
+    if (!Strchr(ki.key,'<')) {
       SWIG_WARN_NODE_BEGIN(ki.item);
       Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
       SWIG_WARN_NODE_END(ki.item);
@@ -1042,10 +1042,10 @@ static Node *dump_nested(const char *parent) {
 	  if (code_ptr) {
 	    char *open_bracket_pos;
 	    code_ptr += strlen(types_array[i]);
-	    open_bracket_pos = strstr(code_ptr, "{");
+	    open_bracket_pos = strchr(code_ptr, '{');
 	    if (open_bracket_pos) { 
 	      /* Make sure we don't have something like struct A a; */
-	      char* semi_colon_pos = strstr(code_ptr, ";");
+	      char* semi_colon_pos = strchr(code_ptr, ';');
 	      if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
 		while (code_ptr < open_bracket_pos)
 		  *code_ptr++ = ' ';
@@ -1061,7 +1061,7 @@ static Node *dump_nested(const char *parent) {
       while (code_ptr) {
 	code_ptr = strstr(code_ptr, "%constant");
 	if (code_ptr) {
-	  char* directive_end_pos = strstr(code_ptr, ";");
+	  char* directive_end_pos = strchr(code_ptr, ';');
 	  if (directive_end_pos) { 
             while (code_ptr <= directive_end_pos)
               *code_ptr++ = ' ';
@@ -2780,8 +2780,8 @@ c_declaration   : c_decl {
                 }
                 | c_enum_decl { $$ = $1; }
                 | c_enum_forward_decl { $$ = $1; }
-                           
-/* A an extern C type declaration, disable cparse_cplusplus if needed. */
+
+/* An extern C type declaration, disable cparse_cplusplus if needed. */
 
                 | EXTERN string LBRACE {
 		  if (Strcmp($2,"C") == 0) {
@@ -3496,7 +3496,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 		      if ($$) tname = Getattr($$,k_name);
 		      
 		      /* Check if the class is a template specialization */
-		      if (($$) && (Strstr(tname,"<")) && (!is_operator(tname))) {
+		      if (($$) && (Strchr(tname,'<')) && (!is_operator(tname))) {
 			/* If a specialization.  Check if defined. */
 			Node *tempn = 0;
 			{
@@ -4022,8 +4022,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       /* Check for template names.  If the class is a template
 		  and the constructor is missing the template part, we
 		  add it */
-	        if (Classprefix && (c = strstr(Char(Classprefix),"<"))) {
-		  if (!Strstr($3,"<")) {
+	        if (Classprefix && (c = strchr(Char(Classprefix),'<'))) {
+		  if (!Strchr($3,'<')) {
 		    $3 = NewStringf("%s%s",$3,c);
 		  }
 		}

@@ -1664,7 +1664,7 @@ static List *split_embedded(String *s) {
   int  leading = 1;
   args = NewList();
   
-  c = strstr(Char(s),"(");
+  c = strchr(Char(s),'(');
   c++;
 
   start = c;
@@ -1703,7 +1703,7 @@ static void split_var(String *s, String **name, String **value) {
   char *eq;
   char *c;
 
-  eq = strstr(Char(s),"=");
+  eq = strchr(Char(s),'=');
   if (!eq) {
     *name = 0;
     *value = 0;
