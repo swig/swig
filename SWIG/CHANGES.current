@@ -10,9 +10,9 @@ Version 1.3.30 (in progress)
 	    %template(x_1plus2) x<1+2>;
 
 	    Also, constant expressions can now include comparisons (>, <, >=,
-	    <=, !=, ==) and modulus (%).
+	    <=, !=, ==), modulus (%), and ternary conditionals (a ? b : c).
 
-	    Fixes bugs #646275, #925555, #956282.
+	    Fixes bugs #646275, #925555, #956282, #994301.
 
 09/22/2006: wsfulton
             Fix %ignore on director methods - Bugs #1546254, #1543533

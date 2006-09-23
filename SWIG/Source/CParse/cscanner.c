@@ -605,6 +605,7 @@ int yylook(void) {
 	  else if (c == '0') state = 83;   /* An octal or hex value */
 	  else if (c == '\'') state = 9;   /* A character constant */
 	  else if (c == '.') state = 100;  /* Maybe a number, maybe just a period */
+	  else if (c == '?') return (QUESTIONMARK); /* Ternary conditional operator */
 	  else if (c == '`') {
 	    state = 200; /* Back-tick type */
 	    yylen = 0;
