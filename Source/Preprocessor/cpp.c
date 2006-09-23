@@ -321,7 +321,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     if (c == '(') {
       argstr = NewStringEmpty();
       copy_location(str,argstr);
-      /* It is a macro.  Go extract it's argument string */
+      /* It is a macro.  Go extract its argument string */
       while ((c = StringGetc(str)) != EOF) {
 	if (c == ')') break;
 	else StringPutc(c,argstr);
@@ -793,7 +793,7 @@ expand_macro(String *name, List *args)
 	 version of the argument except that if the argument is already quoted
 	 nothing happens */
 
-      if (strstr(StringChar(ns),"`")) {
+      if (strchr(StringChar(ns),'`')) {
 	String *rep;
 	char *c;
 	Clear(temp);
@@ -884,7 +884,7 @@ expand_macro(String *name, List *args)
     Printf(f,"/*@%s,%d,%s@*/%s/*@@*/", Getfile(macro), Getline(macro), name, g);
 #else
     /* Use simplified around markers to properly count lines in cscanner.c */
-    if (strstr(Char(g),"\n")) {
+    if (strchr(Char(g),'\n')) {
       Printf(f,"/*@SWIG:%s@*/%s/*@SWIG@*/", name, g);
     } else {
       StringAppend(f,g);

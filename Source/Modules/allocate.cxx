@@ -327,7 +327,7 @@ class Allocate : public Dispatcher {
 	if (!name) continue;
 	String *base_decl = Getattr(nn,"decl");
 	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
-	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
+	if (Strchr(name,'~')) continue;   /* Don't care about destructors */
 
 	if (SwigType_isfunction(base_decl)) {
 	  search_decl = SwigType_pop_function(base_decl);

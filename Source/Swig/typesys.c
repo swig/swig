@@ -1437,7 +1437,7 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   
   if (t) {
     char *ct = Char(t);
-    if (strstr(ct,"<") && !(strstr(ct,"<("))) {
+    if (strchr(ct,'<') && !(strstr(ct,"<("))) {
       Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
       assert(0);
     }

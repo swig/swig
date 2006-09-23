@@ -892,7 +892,7 @@ String *Swig_string_rxspencer(String *s) {
 	      if (retval != REG_NOMATCH) {
 		char *spos = 0;
 		res = NewStringWithSize(cb, ce - cb);
-		spos = Strstr(res,"@");
+		spos = Strchr(res,'@');
 		while (spos) {
 		  char cd = *(++spos);
 		  if (isdigit(cd)) {
@@ -908,9 +908,9 @@ String *Swig_string_rxspencer(String *s) {
 		    } else {
 		      Replaceall(res,arg,"");
 		    }
-		    spos = Strstr(res,"@");
+		    spos = Strchr(res,'@');
 		  } else if (cd == '@') {
-		    spos = strstr(spos + 1,"@");
+		    spos = strchr(spos + 1,'@');
 		  }
 		}
 	      }

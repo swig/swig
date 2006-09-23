@@ -997,16 +997,16 @@ int Swig_need_protected(Node* n)
 
 static List *Swig_make_attrlist(const char *ckey) {
   List *list = NewList();
-  const char *cattr = strstr(ckey,"$");
+  const char *cattr = strchr(ckey,'$');
   if (cattr) {
     String *nattr;
-    const char *rattr = strstr(++cattr,"$");
+    const char *rattr = strchr(++cattr,'$');
     while (rattr) {
       nattr = NewStringWithSize(cattr, rattr-cattr);
       Append(list,nattr);
       Delete(nattr);
       cattr = rattr + 1;
-      rattr = strstr(cattr,"$");
+      rattr = strchr(cattr,'$');
     }
     nattr = NewString(cattr);
     Append(list,nattr);
@@ -1158,14 +1158,14 @@ int Swig_name_match_value(String *mvalue, String *value)
   int match = 0;
   char *cvalue = Char(value);
   char *cmvalue = Char(mvalue);
-  char *sep = strstr(cmvalue,"|");
+  char *sep = strchr(cmvalue,'|');
   while (sep && !match) {
     match = strncmp(cvalue,cmvalue, sep - cmvalue) == 0;
 #ifdef SWIG_DEBUG 
     Printf(stderr,"match_value: %s %s %d\n",cvalue,cmvalue, match);
 #endif
     cmvalue = sep + 1;
-    sep = strstr(cmvalue,"|");
+    sep = strchr(cmvalue,'|');
   }
   if (!match) {
     match = strcmp(cvalue,cmvalue) == 0;    
@@ -1414,7 +1414,7 @@ static String *apply_rename(String *newname, int fullname, String *prefix, Strin
 	int destructor = name && (*(Char(name)) == '~');
 	String *fmt = newname;
 	/* use name as a fmt, but avoid C++ "%" and "%=" operators */
-	if (Len(newname) > 1 && strstr(cnewname,"%") && !(strcmp(cnewname,"%=") == 0)) { 
+	if (Len(newname) > 1 && strchr(cnewname,'%') && !(strcmp(cnewname,"%=") == 0)) { 
  	  if (fullname && prefix) {
 	    result = NewStringf(fmt,prefix,name);
 	  } else {

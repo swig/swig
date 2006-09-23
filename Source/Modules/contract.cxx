@@ -89,15 +89,15 @@ Hash *Contracts::ContractSplit(Node *n) {
   Iterator i;
   for (i = First(l); i.item; i = Next(i)) {
     int found = 0;
-    if (Strstr(i.item,"{")) continue;
-    if (Strstr(i.item,"}")) continue;
+    if (Strchr(i.item,'{')) continue;
+    if (Strchr(i.item,'}')) continue;
     for (int j = 0; Rules[j].section; j++) {
       if (Strstr(i.item,Rules[j].section)) {
 	if (Len(current_section)) {
 	  Setattr(result,current_section_name,current_section);
 	  current_section = Getattr(result,Rules[j].section);
 	  if (!current_section) current_section = NewString("");
-	} 
+	}
 	current_section_name = Rules[j].section;
 	found = 1;
 	break;
