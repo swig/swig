@@ -43,7 +43,7 @@ class X {};
     template<int foo> class X994301 {};
 %}
 
-%template(X994301_ternary) X<(7 >= 4) ? 1 + 1 : 1>;
+%template(X994301_ternary) X<(7 != 4) ? 1 + 1 : 1>;
 
 
 // bug #1338527 (still broken)
