@@ -1390,6 +1390,7 @@ static void default_arguments(Node *n) {
 %token WARN 
 %token LESSTHAN GREATERTHAN MODULO DELETE_KW
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
+%token QUESTIONMARK
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
 %token <ivalue> TEMPLATE
@@ -1398,6 +1399,7 @@ static void default_arguments(Node *n) {
 %token PARSETYPE PARSEPARM PARSEPARMS
 
 %left  CAST
+%left  QUESTIONMARK
 %left  LOR
 %left  LAND
 %left  OR
@@ -5444,6 +5446,12 @@ exprcompound   : expr PLUS expr {
                | expr LESSTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s<=%s",$1.val,$3.val);
 		 $$.type = T_INT;
+	       }
+	       | expr QUESTIONMARK expr COLON expr {
+		 $$.val = NewStringf("%s?%s:%s", $1.val, $3.val, $5.val);
+		 /* This may not be exactly right, but is probably good enough
+		  * for the purposes of parsing constant expressions. */
+		 $$.type = promote($3.type, $5.type);
 	       }
                | MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);

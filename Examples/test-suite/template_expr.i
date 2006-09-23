@@ -46,7 +46,17 @@ class X {};
 %}
 
 
-// bug 1338527
+// bug #994301
+
+
+%inline %{
+    template<int foo> class X994301 {};
+%}
+
+%template(X994301_ternary) X<(7 >= 4) ? 1 + 1 : 1>;
+
+
+// bug #1338527 (still broken)
 
 
 %inline %{
