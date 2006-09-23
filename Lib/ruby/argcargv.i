@@ -25,10 +25,10 @@
 %typemap(in) (int ARGC, char **ARGV) {
   if (rb_obj_is_kind_of($input,rb_cArray)) {
     int i;
-    int size = RARRAY($input)->len;
+    int size = RARRAY_LEN($input);
     $1 = ($1_ltype) size;
     $2 = (char **) malloc((size+1)*sizeof(char *));
-    VALUE *ptr = RARRAY($input)->ptr;
+    VALUE *ptr = RARRAY_PTR($input);
     for (i=0; i < size; i++, ptr++) {
       $2[i]= STR2CSTR(*ptr);
     }    
