@@ -303,12 +303,10 @@ skip_balanced(int startchar, int endchar) {
     int  c;
     int  num_levels = 1;
     int  state = 0;
-    char temp[2] = {0,0};
     int  start_line = cparse_line;
 
     Clear(scanner_ccode);
     Putc(startchar,scanner_ccode);
-    temp[0] = (char) startchar;
     while (num_levels > 0) {
       c = nextchar();
       if (c == 0) {
