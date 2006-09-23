@@ -1389,6 +1389,7 @@ static void default_arguments(Node *n) {
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN MODULO DELETE_KW
+%token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
 %token <ivalue> TEMPLATE
@@ -1402,9 +1403,11 @@ static void default_arguments(Node *n) {
 %left  OR
 %left  XOR
 %left  AND
+%left  EQUALTO NOTEQUALTO
+%left  GREATERTHAN LESSTHAN GREATERTHANOREQUALTO LESSTHANOREQUALTO
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
-%left  STAR SLASH
+%left  STAR SLASH MODULUS
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
@@ -5269,7 +5272,7 @@ etype            : expr {
    this does allow us to parse many constant declarations.
  */
 
-expr           :  valexpr { $$ = $1; }
+expr           : valexpr { $$ = $1; }
                | type {
 		 Node *n;
 		 $$.val = $1;
@@ -5289,12 +5292,12 @@ expr           :  valexpr { $$ = $1; }
                }
 	       ;
 
-valexpr        :  exprnum { $$ = $1; }
-               |  string {
+valexpr        : exprnum { $$ = $1; }
+               | string {
 		    $$.val = NewString($1);
                     $$.type = T_STRING;
                }
-               |  SIZEOF LPAREN type parameter_declarator RPAREN {
+               | SIZEOF LPAREN type parameter_declarator RPAREN {
 		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
@@ -5384,6 +5387,10 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s/%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
+               | expr MODULUS expr {
+		 $$.val = NewStringf("%s%%%s",$1.val,$3.val);
+		 $$.type = promote($1.type,$3.type);
+	       }
                | expr AND expr {
 		 $$.val = NewStringf("%s&%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
@@ -5410,6 +5417,32 @@ exprcompound   : expr PLUS expr {
 	       }
                | expr LOR expr {
 		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+               | expr EQUALTO expr {
+		 $$.val = NewStringf("%s==%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+               | expr NOTEQUALTO expr {
+		 $$.val = NewStringf("%s!=%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+/*
+               | expr GREATERTHAN expr {
+		 $$.val = NewStringf("%s>%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+               | expr LESSTHAN expr {
+		 $$.val = NewStringf("%s<%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+*/
+               | expr GREATERTHANOREQUALTO expr {
+		 $$.val = NewStringf("%s>=%s",$1.val,$3.val);
+		 $$.type = T_INT;
+	       }
+               | expr LESSTHANOREQUALTO expr {
+		 $$.val = NewStringf("%s<=%s",$1.val,$3.val);
 		 $$.type = T_INT;
 	       }
                | MINUS expr %prec UMINUS {

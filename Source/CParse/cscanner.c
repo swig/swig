@@ -572,7 +572,7 @@ int yylook(void) {
 	    num_brace++;
 	    return (LBRACE);
 	  }
-	  else if (c == '=') return (EQUAL);
+	  else if (c == '=') state = 63;
 	  else if (c == '+') return (PLUS);
           else if (c == '-') return (MINUS);
 	  else if (c == '&') {
@@ -587,7 +587,7 @@ int yylook(void) {
 	  else if (c == '~') {
 	    return (NOT);
 	  }
-          else if (c == '!') return (LNOT);
+          else if (c == '!') state = 62;
 	  else if (c == '\\') {
 	    state = 99;
 	  }
@@ -802,20 +802,32 @@ int yylook(void) {
 	  }
 	  break;
 
-	case 60: /* shift operators */
+	case 60: /* < - less than or less than or equal to or left shift operator */
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '<') return LSHIFT;
+	  if (c == '=') return LESSTHANOREQUALTO;
 	  else {
 	    retract(1);
 	    return LESSTHAN;
 	  }
-	case 61:
+	case 61: /* > - greater than or greater or equal to or right shift operator */
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '>') return RSHIFT;
+	  if (c == '=') return GREATERTHANOREQUALTO;
 	  else {
 	    retract(1);
             return GREATERTHAN;
 	  }
+	case 62: /* ! - logical not or not equal to */
+	  if ((c = nextchar()) == 0) return (0);
+	  if (c == '=') return NOTEQUALTO;
+	  retract(1);
+	  return LNOT;
+	case 63: /* = - equal (assignment) or equal to */
+	  if ((c = nextchar()) == 0) return (0);
+	  if (c == '=') return EQUALTO;
+	  retract(1);
+	  return EQUAL;
 	case 7: /* Identifier */
 	  if ((c = nextchar()) == 0) return(0);
 	  if (isalnum(c) || (c == '_') || (c == '.') || (c == '$')) {
