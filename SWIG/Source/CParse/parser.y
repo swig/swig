@@ -5429,7 +5429,7 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s!=%s",$1.val,$3.val);
 		 $$.type = T_INT;
 	       }
-/*
+/* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
                | expr GREATERTHAN expr {
 		 $$.val = NewStringf("%s>%s",$1.val,$3.val);
 		 $$.type = T_INT;
@@ -5447,7 +5447,7 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s<=%s",$1.val,$3.val);
 		 $$.type = T_INT;
 	       }
-	       | expr QUESTIONMARK expr COLON expr {
+	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", $1.val, $3.val, $5.val);
 		 /* This may not be exactly right, but is probably good enough
 		  * for the purposes of parsing constant expressions. */
