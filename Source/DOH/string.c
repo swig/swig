@@ -347,23 +347,28 @@ static int
 String_delslice(DOH *so, int sindex, int eindex) {
   String *s = (String *) ObjData(so);
   int     size;
+  if (s->len == 0) return 0;
   s->hashkey = -1;
   if (eindex == DOH_END) eindex = s->len;
   if (sindex == DOH_BEGIN) sindex = 0;
-  if (s->len == 0) return 0;
-  
+
   size = eindex - sindex;
-  if (s->sp > eindex) {
+  if (s->sp > sindex) {
     /* Adjust the file pointer and line count */
-    char *c = s->str + sindex;
-    int i;
-    for (i = 0; i < size; i++) {
-      if (*c == '\n') s->line--;
+    int i, end;
+    if (s->sp > eindex) {
+	end = eindex;
+	s->sp -= size;
+    } else {
+	end = s->sp;
+	s->sp = sindex;
     }
-    s->sp -= size;
+    for (i = sindex; i < end; i++) {
+      if (s->str[i] == '\n') s->line--;
+    }
     assert(s->sp >= 0);
   }
-  memmove(s->str+sindex,s->str+eindex, ((s->len-size) - sindex));
+  memmove(s->str+sindex, s->str+eindex, s->len-eindex);
   s->len -= size;
   s->str[s->len] = 0;
   return 0;
