@@ -2501,22 +2501,22 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
-		  
+
 		  $$ = 0;
 
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
-		  /* If the class name is qualified.  We need to create or lookup namespace entries */
+		  /* If the class name is qualified, we need to create or lookup namespace entries */
 		  if (!inclass) {
 		    $5 = resolve_node_scope($5);
 		  }
 
 		  /*
-		    we use the new namespace entry 'nscope' only to
+		    We use the new namespace entry 'nscope' only to
 		    emit the template node. The template parameters are
 		    resolved in the current 'tscope'.
-		    
-		    this is closer to the C++ (typedef) behavior.
+
+		    This is closer to the C++ (typedef) behavior.
 		  */
 		  n = Swig_cparse_template_locate($5,$7,tscope);
 
@@ -2543,7 +2543,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      Setattr(p,k_value,value);
 		      Delete(value);
 		    }
-		    
+
 		    p = nextSibling(p);
 		  }
 
@@ -2628,12 +2628,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,k_symtypename,"1");
                           }
                           if ($3) {
-			    /* 
+			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
 			       move %ignore from using %rename to use
 			       %feature(ignore).
-			  
+
 			       String *symname = Swig_name_make(templnode,0,$3,0,0);
 			    */
 			    String *symname = $3;
@@ -2654,14 +2654,14 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
-                          
+
                           add_symbols_copy(templnode);
 
                           if (Strcmp(nodeType(templnode),"class") == 0) {
 
                             /* Identify pure abstract methods */
                             Setattr(templnode,k_abstract, pure_abstract(firstChild(templnode)));
-                            
+
                             /* Set up inheritance in symbol table */
                             {
                               Symtab  *csyms;
@@ -2676,7 +2676,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                                     Symtab *st = Getattr(s.item,k_symtab);
                                     if (st) {
 				      Setfile(st,Getfile(s.item));
-				      Setline(st,Getline(s.item));				      
+				      Setline(st,Getline(s.item));
                                       Swig_symbol_inherit(st);
                                     }
                                   }
@@ -2687,10 +2687,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             }
 
                             /* Merge in addmethods for this class */
-                            
-                            /* !!! This may be broken.  We may have to  add the addmethods at the beginning of
-                               the class */
-                            
+
+			    /* !!! This may be broken.  We may have to add the
+			       addmethods at the beginning of the class */
+
                             if (extendhash) {
                               String *stmp = 0;
                               String *clsname;
@@ -2751,7 +2751,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                       nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
                     }
 		  }
-   	          Swig_symbol_setscope(tscope);
+	          Swig_symbol_setscope(tscope);
 		  Delete(Namespaceprefix);
 		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
                 }
