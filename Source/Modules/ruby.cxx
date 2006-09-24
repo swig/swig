@@ -703,8 +703,19 @@ public:
       break;
     case MEMBER_VAR:
       Append(temp,iname);
-      Replaceall(temp,"_set", "=");
-      Replaceall(temp,"_get", "");
+      /* Check for _set or _get at the end of the name. */
+      if (Len(temp) > 4) {
+	  Printf(stdout, "[%s] temp\n", temp);
+	  const char *p = Char(temp) + (Len(temp) - 4);
+	  Printf(stdout, "[%s] p\n", p);
+	  if (strcmp(p, "_set") == 0) {
+	      Delslice(temp, Len(temp) - 4, DOH_END);
+	      Append(temp, "=");
+	  } else if (strcmp(p, "_get") == 0) {
+	      Delslice(temp, Len(temp) - 4, DOH_END);
+	  }
+	  Printf(stdout, "[%s] temp after\n", temp);
+      }
       if (multipleInheritance) {
         Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"",
                temp, "\", ", wname, ", -1);\n", NIL);
