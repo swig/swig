@@ -495,7 +495,7 @@ int Language::constantDirective(Node *n) {
 	value = NewStringf("%(escape)s", value);
       }
       */
-      Setattr(n,"rawvalue",value);
+      Setattr(n,"rawval",value);
       value = NewStringf("%(escape)s", value);
       if (!Len(value)) Append(value,"\\0");
       /*      Printf(stdout,"'%s' = '%s'\n", name, value); */

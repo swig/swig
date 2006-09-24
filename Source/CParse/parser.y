@@ -185,8 +185,15 @@ int SWIG_cparse_template_reduce(int treduce) {
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
 
+static int promote_type(int t) {
+  if (t <= T_UCHAR || t == T_CHAR) return T_INT;
+  return t;
+}
+
 /* Perform type-promotion for binary operators */
 static int promote(int t1, int t2) {
+  t1 = promote_type(t1);
+  t2 = promote_type(t2);
   return t1 > t2 ? t1 : t2;
 }
 
@@ -5284,7 +5291,7 @@ etype            : expr {
 		   if (($$.type != T_INT) && ($$.type != T_UINT) &&
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
-		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) && 
+		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
 		       ($$.type != T_CHAR)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
 		   }
@@ -5292,12 +5299,17 @@ etype            : expr {
                 }
                ;
 
-/* Arithmetic expressions.   Used for constants and other cool stuff.
-   Really, we're not doing anything except string concatenation, but
-   this does allow us to parse many constant declarations.
- */
+/* Arithmetic expressions.  Used for constants, C++ templates, and other cool stuff. */
 
-expr           : valexpr { $$ = $1; }
+expr           : valexpr {
+		 $$ = $1;
+		 /* We want the rawval for a character constant (e.g. 'x'
+		  * not just x) since we use it in C code. */
+		 if ($$.type == T_CHAR && $$.rawval) {
+		   $$.val = $$.rawval;
+		   $$.rawval = 0;
+		 }
+	       }
                | type {
 		 Node *n;
 		 $$.val = $1;
@@ -5331,9 +5343,9 @@ valexpr        : exprnum { $$ = $1; }
                | CHARCONST {
 		  $$.val = NewString($1);
 		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
+		    $$.rawval = NewStringf("'%(escape)s'", $$.val);
 		  } else {
-		    $$.rawval = NewString("\'\\0'");
+		    $$.rawval = NewString("'\\0'");
 		  }
 		  $$.type = T_CHAR;
 		  $$.bitfield = 0;
@@ -5430,11 +5442,11 @@ exprcompound   : expr PLUS expr {
 	       }
                | expr LSHIFT expr {
 		 $$.val = NewStringf("%s << %s",$1.val,$3.val);
-		 $$.type = promote($1.type,$3.type);
+		 $$.type = promote_type($1.type);
 	       }
                | expr RSHIFT expr {
 		 $$.val = NewStringf("%s >> %s",$1.val,$3.val);
-		 $$.type = promote($1.type,$3.type);
+		 $$.type = promote_type($1.type);
 	       }
                | expr LAND expr {
 		 $$.val = NewStringf("%s&&%s",$1.val,$3.val);
