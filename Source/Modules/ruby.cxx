@@ -454,9 +454,13 @@ public:
     set_module(Char(Getattr(n,"name")));
 
     if (directorsEnabled()) {
+      /* Build a version of the module name for use in a C macro name. */
+      String * module_macro = Copy(module);
+      Replaceall(module_macro, "::", "__");
+
       Swig_banner(f_directors_h);
-      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
-      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_macro);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_macro);
       Printf(f_directors_h, "namespace Swig {\n");
       Printf(f_directors_h, "  class Director;\n");
       Printf(f_directors_h, "}\n\n");
@@ -466,6 +470,8 @@ public:
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
       Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+
+      Delete(module_macro);
     }
 
     Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
