@@ -268,7 +268,6 @@ Swig_require(const char *ns, Node *n, ...) {
   va_list ap;
   char *name;
   DOH *obj;
-  String *temp = NewStringEmpty();
 
   va_start(ap, n);
   name = va_arg(ap, char *);
@@ -292,9 +291,7 @@ Swig_require(const char *ns, Node *n, ...) {
     if (!obj) obj = DohNone;
     if (newref) {
       /* Save a copy of the attribute */
-      Printf(temp, "%s:%s", ns, name);
-      Setattr(n,temp,obj);
-      Clear(temp);
+      Setattr(n, NewStringf("%s:%s", ns, name), obj);
     }
     name = va_arg(ap, char *);
   }
@@ -305,17 +302,13 @@ Swig_require(const char *ns, Node *n, ...) {
     String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
-	Printf(temp, "%s:view", ns);
-	Setattr(n,temp,view);
+	Setattr(n, NewStringf("%s:view", ns), view);
 	Setattr(n,k_view,ns);
-	Clear(temp);
       }
     } else {
       Setattr(n,k_view,ns);
     }
   }
-
-  Delete(temp);
 
   return 1;
 }
@@ -332,7 +325,6 @@ Swig_save(const char *ns, Node *n, ...) {
   va_list ap;
   char *name;
   DOH *obj;
-  String *temp = NewStringEmpty();
 
   va_start(ap, n);
   name = va_arg(ap, char *);
@@ -346,12 +338,10 @@ Swig_save(const char *ns, Node *n, ...) {
     if (!obj) obj = DohNone;
 
     /* Save a copy of the attribute */
-    Printf(temp, "%s:%s", ns, name);
-    if (Setattr(n,temp,obj)) {
-      Printf(stderr,"Swig_save('%s','%s'): Warning, attribute '%s' was already saved. [%s]\n", ns, nodeType(n), name);
+    if (Setattr(n, NewStringf("%s:%s", ns, name), obj)) {
+      Printf(stderr,"Swig_save('%s','%s'): Warning, attribute '%s' was already saved.\n", ns, nodeType(n), name);
     }
     name = va_arg(ap, char *);
-    Clear(temp);
   }
   va_end(ap);
 
@@ -360,17 +350,13 @@ Swig_save(const char *ns, Node *n, ...) {
     String *view = Getattr(n,k_view);
     if (view) {
       if (Strcmp(view,ns) != 0) {
-	Printf(temp, "%s:view", ns);
-	Setattr(n,temp,view);
+	Setattr(n, NewStringf("%s:view", ns), view);
 	Setattr(n,k_view,ns);
-	Clear(temp);
       }
     } else {
       Setattr(n,k_view,ns);
     }
   }
-
-  Delete(temp);
 
   return 1;
 }
@@ -397,7 +383,7 @@ Swig_restore(Node *n) {
   len = Len(temp);
 
   for (ki = First(n); ki.key; ki = Next(ki)) {
-    if (strncmp(Char(temp),Char(ki.key),len) == 0) {
+    if (Strncmp(temp, ki.key, len) == 0) {
       Append(l,ki.key);
     }
   }
