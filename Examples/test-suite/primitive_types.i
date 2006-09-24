@@ -369,8 +369,7 @@ macro(size_t,             pfx, sizet)
     Foo(const Foo&)
     {
     }
-    ;
-    
+
     Foo copy(Foo x) 
     {
       return x;
