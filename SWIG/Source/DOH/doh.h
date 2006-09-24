@@ -263,6 +263,7 @@ extern void DohString_append(DOH *so, DOH *str);
 extern int DohString_len(DOH *s1);
 extern char *DohString_char(DOH *s1);
 extern int DohString_equal(DOH *s1, DOH *s2);
+extern int DohString_delslice(DOH *so, int sindex, int eindex);
 
 #define DohStringPutc(ch,so)    DohString_putc(so, ch)
 #define DohStringGetc(so)       DohString_getc(so)
