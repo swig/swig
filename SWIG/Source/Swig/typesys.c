@@ -1242,7 +1242,7 @@ int SwigType_type(SwigType *t)
  *  1.- swig detects a default_constructor and 'setallocate:default_constructor'
  *      attribute.
  *
- *  2.- swig doesn't mark 'type' as noassignable.
+ *  2.- swig doesn't mark 'type' as non-assignable.
  *
  *  3.- the user specify that the value wrapper is not needed by using
  *      the %feature("novaluewrapper"), in that case the user need to type
