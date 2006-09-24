@@ -3022,7 +3022,7 @@ The basic problem we need to solve is verifying and building arguments passed to
 So going back to the <tt>SWIG_ConvertPtr()</tt> function example from above, we are
 expecting a <tt>Foo *</tt> and need to
 check if <tt>obj0</tt> is in fact a <tt>Foo *</tt>.  From before, <tt>SWIGTYPE_p_Foo</tt> is just
-a pointer to the <tt>swig_type_info</tt> structure describing <tt>Foo *</tt>.  So we loop though the
+a pointer to the <tt>swig_type_info</tt> structure describing <tt>Foo *</tt>.  So we loop through the
 linked list of <tt>swig_cast_info</tt> structures attached to <tt>SWIGTYPE_p_Foo</tt>.  If we see that the type of <tt>obj0</tt> is in the
 linked list, we pass the object through the associated conversion function and
 then return a positive.  If we reach the end of the linked list without a match,
