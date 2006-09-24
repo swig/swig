@@ -664,6 +664,7 @@ AS_HELP_STRING([--with-perl5=path], [Set location of Perl5 executable]),[ PERLBI
 # First, check for "--without-perl5" or "--with-perl5=no".
 if test x"${PERLBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Perl5])
+PERL=
 else
 
 # First figure out what the name of Perl5 is
@@ -741,6 +742,7 @@ AC_ARG_WITH(javac, [  --with-javac=path       Set location of javac executable],
 # First, check for "--without-java" or "--with-java=no".
 if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Java])
+JAVA=
 else
 
 if test "x$JAVABIN" = xyes; then
@@ -1008,6 +1010,7 @@ AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's m
 # First, check for "--without-mzscheme" or "--with-mzscheme=no".
 if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling MzScheme])
+MZC=
 else
 
 if test "x$MZSCHEMEBIN" = xyes; then
@@ -1018,8 +1021,6 @@ fi
 
 if test -z "$MZCBIN"; then
    AC_PATH_PROG(MZC, mzc)
-else
-   MZC="$MZC"
 fi
 
 if test -n "$MZSCHEME"; then
@@ -1042,6 +1043,7 @@ AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN=
 # First, check for "--without-ruby" or "--with-ruby=no".
 if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Ruby])
+RUBY=
 else
 
 # First figure out what the name of Ruby is
@@ -1162,6 +1164,7 @@ AS_HELP_STRING([--with-php4=path], [Set location of PHP4 executable]),[ PHP4BIN=
 # First, check for "--without-php4" or "--with-php4=no".
 if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
       AC_MSG_NOTICE([Disabling PHP4])
+      PHP4=
 else
 
 if test "x$PHP4BIN" = xyes; then
@@ -1209,6 +1212,7 @@ AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop exe
 # First, check for "--without-ocaml" or "--with-ocaml=no".
 if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling OCaml])
+OCAMLBIN=
 else
 
 AC_MSG_CHECKING(for Ocaml DL load generator)
@@ -1292,6 +1296,7 @@ AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="
 # First, check for "--without-pike" or "--with-pike=no".
 if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Pike])
+PIKEBIN=
 else
 
 if test "x$PIKEBIN" = xyes; then
@@ -1454,6 +1459,7 @@ AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of 
 # First, check for "--without-csharp" or "--with-csharp=no".
 if test x"${with_csharp}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CSharp])
+CSHARPCOMPILER=
 else
 
 if test -z "$CSHARPCOMPILERBIN" ; then
@@ -1687,6 +1693,7 @@ AS_HELP_STRING([--with-allegrocl=path], [Set location of Allegro CL executable (
 # First, check for "--without-allegrocl" or "--with-allegrocl=no".
 if test x"${ALLEGROCLBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Allegro CL])
+ALLEGROCLBIN=
 else
 
 # can we find allegrocl?
@@ -1709,6 +1716,7 @@ AS_HELP_STRING([--with-clisp=path], [Set location of CLISP executable (clisp)]),
 # First, check for "--without-clisp" or "--with-clisp=no".
 if test x"${CLISPBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CLISP])
+CLISPBIN=
 else
 
 # can we find clisp?
@@ -1731,6 +1739,7 @@ AS_HELP_STRING([--with-r=path], [Set location of R executable (r)]),[ RBIN="$wit
 # First, check for "--without-r" or "--with-r=no".
 if test x"${RBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling R])
+RBIN=
 else
 
 # can we find R?
