@@ -75,15 +75,19 @@ SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
     if (v >= 0) {
       if (val) *val = (unsigned long) v;
       return SWIG_OK;
-    } else {
-      return SWIG_OverflowError;
     }
-  } else {
+    /* If v is negative, then this could be a negative number, or an
+       unsigned value which doesn't fit in a signed long, so try to
+       get it as a string so we can distinguish these cases. */
+  }
+  {
     int len = 0;
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
-      unsigned long v = strtoul(nptr, &endptr,0);
+      unsigned long v;
+      if (*nptr == '-') return SWIG_OverflowError;
+      v = strtoul(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
@@ -176,18 +180,16 @@ SWIG_AsVal_dec(unsigned long long)(Tcl_Obj *obj, unsigned long long *val)
 {
   long v;
   if (Tcl_GetLongFromObj(0,obj, &v) == TCL_OK) {
-    if (v >= 0) {
-      if (val) *val = (long) v;
-      return SWIG_OK;
-    } else {
-      return SWIG_OverflowError;
-    }
+    if (val) *val = (unsigned long) v;
+    return SWIG_OK;
   } else {
     int len = 0;
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
-      unsigned long long v = strtoull(nptr, &endptr,0);
+      unsigned long long v;
+      if (*nptr == '-') return SWIG_OverflowError;
+      v = strtoull(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
