@@ -359,7 +359,8 @@ class CSHARP : public Language {
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
-      Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+      if (outfile_h)
+	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
 
     String *wrapper_name = NewString("");
