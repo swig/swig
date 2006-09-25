@@ -4089,6 +4089,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
                  $$ = new_node("cdecl");
                  Setattr($$,k_type,$3);
 		 Setattr($$,k_name,$2);
+		 Setattr($$,k_storage,$1);
 
 		 SwigType_add_function($4,$6);
 		 if ($8.qualifier) {
@@ -4104,6 +4105,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
                  $$ = new_node("cdecl");
                  Setattr($$,k_type,$3);
 		 Setattr($$,k_name,$2);
+		 Setattr($$,k_storage,$1);
 		 decl = NewStringEmpty();
 		 SwigType_add_reference(decl);
 		 SwigType_add_function(decl,$6);
@@ -4121,6 +4123,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		$$ = new_node("cdecl");
 		Setattr($$,k_type,$3);
 		Setattr($$,k_name,$2);
+		 Setattr($$,k_storage,$1);
 		SwigType_add_function(t,$5);
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
@@ -4242,7 +4245,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 	      }
 /* A  'class name : base_list { };'  declaration, always ignored */
 /*****
-     This fix derived_nested.i, but it adds one shift/reduce. Anyway,
+     This fixes derived_nested.i, but it adds one shift/reduce. Anyway,
      we are waiting for the nested class support.
  *****/
               | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
