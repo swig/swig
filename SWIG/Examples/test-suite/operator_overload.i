@@ -71,6 +71,9 @@ see bottom for a set of possible tests
 %rename(OrOperator) operator ||;
 #endif
 
+%rename(IntCast) operator int();
+%rename(DoubleCast) operator double();
+
 %inline %{
 
 #if defined(_MSC_VER)
@@ -79,12 +82,14 @@ see bottom for a set of possible tests
 
 #include <assert.h>
 
-class Op{
+class Op {
 public:
   int i;
-  Op(int a=0):i(a)
+  Op(int a=0) : i(a)
   {}
-  Op(const Op& o):i(o.i)
+  Op(const Op& o) : i(o.i)
+  {}
+  virtual ~Op()
   {}
 
   friend Op operator &&(const Op& a,const Op& b){return Op(a.i&&b.i);}
@@ -133,6 +138,10 @@ public:
   Op operator--(int) {Op o = *this; --(*this); return o;} // postfix --
 
   // TODO: <<,<<=
+
+  // cast operators
+  operator double() { return i; }
+  virtual operator int() { return i; }
 
   // This method just checks that the operators are implemented correctly
   static void sanity_check();
@@ -210,6 +219,17 @@ __str__ converts object to a string (should return a const char*)
 __concat__ for contatenation (if language supports)
 
 */
+
+%inline %{
+class OpDerived : public Op {
+public:
+  OpDerived(int a=0) : Op(a)
+  {}
+
+  // overloaded
+  virtual operator int() { return i*2; }
+};
+%}
 
 
 %{
@@ -314,6 +334,15 @@ void Op::sanity_check()
           assert(j.i == original);
           assert(newOp.i == newInt);
         }
+
+        // cast operators
+        Op k=3;
+        int check_k = k;
+        assert (check_k == 3);
+
+        Op l=4;
+        double check_l = l;
+        assert (check_l == 4);
 }
 
 %}

@@ -94,6 +94,16 @@ public class operator_overload_runme {
       Op op = j.MinusMinusPostfix(0);
       Assert(j.getI() == op.getI()-1);
     }
+
+    // cast operators
+    Op k = new Op(3);
+    int check_k = k.IntCast();
+    Assert(check_k == 3);
+
+    Op l = new Op(4);
+    double check_l = l.DoubleCast();
+    Assert(check_l == 4);
+
   }
 
   public static void Assert(boolean b) {

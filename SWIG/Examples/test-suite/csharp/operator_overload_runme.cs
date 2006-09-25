@@ -31,7 +31,16 @@ public class runme
       if (op.i != 99) throw new Exception("operator-- prefix failed (op)");
       if (opNew.i != 99) throw new Exception("operator-- prefix failed (opNew)");
     }
+
+    // overloaded operator class
+    Op k = new OpDerived(3);
+    int check_k = k.IntCast();
+    Assert(check_k == 6);
+  }
+
+  public static void Assert(bool b) {
+    if (!b)
+      throw new Exception("Assertion failed");
   }
 }
-
 
