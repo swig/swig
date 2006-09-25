@@ -295,7 +295,6 @@ public:
 
 	if( directorsEnabled() ) {
 	    Printf( f_runtime, "#define SWIG_DIRECTORS\n");
-	    Swig_insert_file("director.swg", f_directors_h);
 	}
     
 	/* Produce the enum_to_int and int_to_enum functions */
@@ -346,6 +345,11 @@ public:
 	Printf( f_enumtypes_type, "]\n" );
 	Printf( f_enumtypes_value, "]\n\n"
 		"type c_obj = c_enum_value c_obj_t\n" );
+
+	if (directorsEnabled()) {
+	  // Insert director runtime into the f_runtime file (make it occur before %header section)
+	  Swig_insert_file("director.swg", f_runtime);
+	}
 
 	SwigType_emit_type_table (f_runtime, f_wrappers);
 	/* Close all of the files */
