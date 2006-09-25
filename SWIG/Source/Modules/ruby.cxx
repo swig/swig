@@ -464,12 +464,13 @@ public:
       Printf(f_directors_h, "namespace Swig {\n");
       Printf(f_directors_h, "  class Director;\n");
       Printf(f_directors_h, "}\n\n");
-      Swig_insert_file("director.swg", f_directors);
+
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
-      Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+      if (outfile_h)
+	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
 
       Delete(module_macro);
     }
@@ -507,6 +508,11 @@ public:
     Printf(f_init,"SWIG_RubyInitializeTrackings();\n");
     
     Language::top(n);
+
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director.swg", f_runtime);
+    }
 
     /* Finish off our init function */
     Printf(f_init,"}\n");
@@ -711,16 +717,13 @@ public:
       Append(temp,iname);
       /* Check for _set or _get at the end of the name. */
       if (Len(temp) > 4) {
-	  Printf(stdout, "[%s] temp\n", temp);
 	  const char *p = Char(temp) + (Len(temp) - 4);
-	  Printf(stdout, "[%s] p\n", p);
 	  if (strcmp(p, "_set") == 0) {
 	      Delslice(temp, Len(temp) - 4, DOH_END);
 	      Append(temp, "=");
 	  } else if (strcmp(p, "_get") == 0) {
 	      Delslice(temp, Len(temp) - 4, DOH_END);
 	  }
-	  Printf(stdout, "[%s] temp after\n", temp);
       }
       if (multipleInheritance) {
         Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"",
