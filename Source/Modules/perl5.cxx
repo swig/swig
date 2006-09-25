@@ -1373,7 +1373,7 @@ public:
 
       if (Getattr(n,"feature:shadow")) {
 	String *plcode = perlcode(Getattr(n,"feature:shadow"),0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name,symname));
+	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(class_name,symname));
 	Replaceall(plcode,"$action" ,plaction);
 	Delete(plaction);
 	Printv(pcode,plcode,NIL);
