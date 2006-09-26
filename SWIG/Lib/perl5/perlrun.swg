@@ -159,7 +159,7 @@ static void SWIG_croak_null()
 
 
 /* 
-   Define how strict is the cast between strings an integers/doubles
+   Define how strict is the cast between strings and integers/doubles
    when overloading between these types occurs.
    
    The default is making it as strict as possible by using SWIG_AddCast
