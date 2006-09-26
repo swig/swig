@@ -5469,20 +5469,23 @@ exprcompound   : expr PLUS expr {
 	       }
 /* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
                | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s>%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s SWIG_LT %s", $1.val, $3.val);
 		 $$.type = T_INT;
 	       }
                | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s<%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s SWIG_GT %s", $1.val, $3.val);
 		 $$.type = T_INT;
 	       }
 */
                | expr GREATERTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s>=%s",$1.val,$3.val);
+		 /* Putting >= in the expression literally causes an infinite
+		  * loop somewhere in the type system.  Just workaround for now
+		  * - SWIG_GE is defined in swiglabels.swg. */
+		 $$.val = NewStringf("%s SWIG_GE %s", $1.val, $3.val);
 		 $$.type = T_INT;
 	       }
                | expr LESSTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s<=%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s SWIG_LE %s", $1.val, $3.val);
 		 $$.type = T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
