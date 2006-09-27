@@ -63,13 +63,13 @@
 support of Ocaml.  Ocaml     is a relatively recent addition to the ML family,
 and is a recent   addition     to SWIG.  It's the second compiled, typed
 language to be added.    Ocaml   has  widely acknowledged benefits for engineers,
-mostly derived  from  a sophistocated    type system, compile-time checking
+mostly derived  from  a sophisticated    type system, compile-time checking
 which eliminates  several  classes of  common  programming errors, and good
 native performance.   While  all of this  is wonderful,  there are well-written
 C and C++ libraries  that  Ocaml users  will want to  take advantage of as
 part of their arsenal  (such  as SSL and  gdbm), as well  as their own mature
 C and C++ code.  SWIG  allows   this code  to be used in  a natural, type-safe
-way with Ocaml, by  providing   the necessary,   but repetetive  glue code
+way with Ocaml, by  providing   the necessary,   but repetitive  glue code
 which creates and uses Ocaml values  to communicate   with C and C++ code.
  In addition, SWIG also produces the needed Ocaml source   that binds
 variants, functions,  classes, etc.
@@ -264,7 +264,7 @@ Most code meant to be compiled as C++ will not have problems.
 
 <p>
 In order to provide access to overloaded functions, and
-provide sensible outputs from them, all C entites are represented as
+provide sensible outputs from them, all C entities are represented as
 members of the c_obj type:
 </p>
 
@@ -338,7 +338,7 @@ is that  you  must append them to the return list with swig_result = caml_list_a
     ]). &nbsp;This is in order to make return values easier to handle
     when functions have only one return value, such as constructors,
     and operators. &nbsp;In addition, string, pointer, and object
-    values are interchangable with respect to caml_ptr_val, so you can
+    values are interchangeable with respect to caml_ptr_val, so you can
     allocate memory as caml strings and still use the resulting
     pointers for C purposes, even using them to construct simple objects
     on.  Note, though, that foreign C++ code does not respect the garbage
@@ -518,7 +518,7 @@ since the object can provide bounds checking, etc., that prevents crashes.
 
 <p>
 Consider writing an object when the ending condition of your array is complex,
-such as using a required centinel, etc.
+such as using a required sentinel, etc.
 </p>
 
 <H4><a name="Ocaml_nn16"></a>25.2.3.4 Example typemap for a function taking float * and int</H4>
@@ -809,7 +809,7 @@ certain function, all you need to do is to define the function that will
 handle the method calls in terms of the public methods of the object, and
 any other relevant information.  The function <tt>new_derived_object</tt>
 uses a stub class to call your methods in place of the ones provided by the
-underlying implemenation.  The object you receive is the underlying object,
+underlying implementation.  The object you receive is the underlying object,
 so you are free to call any methods you want from within your derived method.
 Note that calls to the underlying object do not invoke Ocaml code.  You need
 to handle that yourself.
@@ -970,7 +970,7 @@ to receive a value from the called function, as well as sending one there.
 Sometimes, this is the main purpose of the argument given.  <tt>directorargout</tt>
 typemaps allow your caml code to emulate this by specifying additional return
 values to be put into the output parameters.  The SWIG ocaml module is a bit
-loose in order to make code eaiser to write.  In this case, your return to
+loose in order to make code easier to write.  In this case, your return to
 the caller must be a list containing the normal function return first, followed
 by any argout values in order.  These argout values will be taken from the
 list and assigned to the values to be returned to C++ through directorargout typemaps.

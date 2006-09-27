@@ -321,7 +321,7 @@
       <p>
       
       Primitive symbols and functions (the interface that would be presented if
-      -proxy was not passed) are hidden and no longer accessable.  If the -unhideprimitive
+      -proxy was not passed) are hidden and no longer accessible.  If the -unhideprimitive
       command line argument is passed to SWIG, then the primitive symbols will be
       available, but each will be prefixed by the string "primitive:"
 
@@ -379,7 +379,7 @@ $ csc -sv example.scm example_wrap.c example_impl.c -o example.so
 </pre>
 </div>
 
-<p>The <tt>exmaple.so</tt> file can then linked with <tt>test_script.scm</tt> when it
+<p>The <tt>example.so</tt> file can then linked with <tt>test_script.scm</tt> when it
 is compiled, in which case <tt>test_script.scm</tt> must have <code>(declare (uses example))</code>.
 Multiple SWIG modules could have been linked into <tt>example.so</tt> and each
 one accessed with a <code>(declare (uses ... ))</code>.
@@ -441,7 +441,7 @@ $ csc -sv mod_load.scm mod1.scm mod2.scm mod1_wrap.c mod2_wrap.c mod1_impl.c mod
 </div>
 
 <p>Then the extension library can be loaded with <code>(require 'mod)</code>.  As we can see here,
-<tt>mod_load.scm</tt> contains the code that gets exectued when the module is loaded.  All this code
+<tt>mod_load.scm</tt> contains the code that gets executed when the module is loaded.  All this code
 does is load both mod1 and mod2.  As we can see, this technique is more useful when you want to
 combine a few SWIG modules into one chicken extension library, especially if modules are related by
 <code>%import</code></p>

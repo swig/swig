@@ -1285,7 +1285,7 @@ irb(main):003:0&gt; <b>puts foo.value</b></pre>
 <H3><a name="Ruby_nn36"></a>30.6.3 Exception classes </H3>
 
 
-		<p>Starting with SWIG 1.3.28, the Ruby module  supports the <tt>%exceptionclass</tt> directive, which is used to identify C++ classes that are used  as exceptions. Classes that are marked with the <tt>%exceptionclass</tt> directive are exposed in Ruby as child classes of <tt>rb_eRuntimeError</tt>. This alows C++ exceptions to be directly mapped to Ruby exceptions, providing for a more natural integration between C++ code and Ruby code.</p>
+		<p>Starting with SWIG 1.3.28, the Ruby module  supports the <tt>%exceptionclass</tt> directive, which is used to identify C++ classes that are used  as exceptions. Classes that are marked with the <tt>%exceptionclass</tt> directive are exposed in Ruby as child classes of <tt>rb_eRuntimeError</tt>. This allows C++ exceptions to be directly mapped to Ruby exceptions, providing for a more natural integration between C++ code and Ruby code.</p>
 		<div class="code">
 		  <pre>	%exceptionclass CustomError;
 		
