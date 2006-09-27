@@ -132,7 +132,7 @@ header file.
 <p>
 The preferred approach to building an extension module is to compile it into
 a shared object file or DLL.   To do this, you will need to compile your program
-using comands like this (shown for Linux):
+using commands like this (shown for Linux):
 </p>
 
 <div class="code"><pre>
@@ -167,7 +167,7 @@ The name of the module is specified using the <tt>%module</tt> directive or the
 <p>
 An alternative approach to dynamic linking is to rebuild the Tcl
 interpreter with your extension module added to it.  In the past,
-this approach was sometimes necesssary due to limitations in dynamic loading
+this approach was sometimes necessary due to limitations in dynamic loading
 support on certain machines.  However, the situation has improved greatly
 over the last few years and you should not consider this approach 
 unless there is really no other option.
@@ -869,7 +869,7 @@ proc blah {} {
 
 <p>
 When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
-conversion.  This allows the <tt>global</tt> statement to be ommitted.
+conversion.  This allows the <tt>global</tt> statement to be omitted.
 </p>
 
 <H3><a name="Tcl_nn19"></a>31.3.5 Pointers</H3>
@@ -2557,7 +2557,7 @@ int count(char c, char *str, int len);
 <p>
 When a multi-argument typemap is defined, the arguments are always handled as a single
 Tcl object.  This allows the function to be used like this (notice how the length
-parameter is ommitted):
+parameter is omitted):
 </p>
 
 <div class="code">
@@ -3312,7 +3312,7 @@ proc new {objectType handle_r args} {
     #
     # Also creates a procedure for the object and a trace on
     # the handle variable that deletes the object when the
-    # handle varibale is overwritten or unset
+    # handle variable is overwritten or unset
     upvar $handle_r handle
     #
     # Create the new object

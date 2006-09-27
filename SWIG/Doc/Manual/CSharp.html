@@ -64,7 +64,7 @@ please use the <a href="Java.html#Java">Java documentation</a> as a guide to usi
 The C# module has the same major SWIG features as the Java module.
 The rest of this section should be read in conjunction with the Java documentation as it lists the main differences.
 
-The most noteable differences to Java are the following:
+The most notable differences to Java are the following:
 <ul>
 
 <li>
@@ -257,7 +257,7 @@ Note that the <tt>DllImport</tt> attribute is always generated, irrespective of 
 </p>
 
 <p>
-These attributes are associated with the C/C++ parameter type or return type, which is subtely different to 
+These attributes are associated with the C/C++ parameter type or return type, which is subtly different to 
 the attribute features and typemaps covered next.
 Note that all these different C# attributes can be combined so that a method has more than one attribute.
 </p>
@@ -380,7 +380,7 @@ However anyone wishing to do this should be familiar with the contents of the se
 
 <p>
 Unfortunately a C# exception cannot simply be thrown from unmanaged code for a variety of reasons.
-Most noteably being that throwing a C# exception results in exceptions being thrown across the C PInvoke interface and C does not understand exceptions.
+Most notably being that throwing a C# exception results in exceptions being thrown across the C PInvoke interface and C does not understand exceptions.
 The design revolves around a C# exception being constructed and stored as a pending exception, to be thrown only when the unmanaged code has completed.
 Implementing this is a tad involved and there are thus some unusual typemap constructs.
 Some practical examples follow and they should be read in conjunction with the rest of this section.

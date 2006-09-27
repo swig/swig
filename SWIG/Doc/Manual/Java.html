@@ -844,7 +844,7 @@ Be careful using the <tt>%javaconst(1)</tt> directive as not all C code will com
 The example demonstrates how you can target particular constants (<tt>BIG</tt> and <tt>LARGE</tt>) with <tt>%javaconst</tt>.
 SWIG doesn't use <tt>%javaconst(1)</tt> as the default as it tries to generate code that will always compile.
 However, using a <tt>%javaconst(1)</tt> at the top of your interface file is strongly recommended as the preferred compile time constants
-will be generated and most C constants will compile as Java code and in anycase the odd constant that doesn't can be fixed using <tt>%javaconst(0)</tt>.
+will be generated and most C constants will compile as Java code and in any case the odd constant that doesn't can be fixed using <tt>%javaconst(0)</tt>.
 </p>
 
 <p>
@@ -2008,7 +2008,7 @@ In the previous section, a high-level view of Java wrapping was
 presented.  A key component of this wrapping is that structures and
 classes are wrapped by Java proxy classes and type wrapper classes are used
 in situations where no proxies are generated.  This provides a very
-natural, type safe Java interface to the C/C++ code and fits in with the Java programing paradigm.
+natural, type safe Java interface to the C/C++ code and fits in with the Java programming paradigm.
 However, a number of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work and then covers the type wrapper classes.
 Finally enum classes are covered.
@@ -2194,7 +2194,7 @@ The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block fo
 </div>
 
 <p>
-Pragmas will take either <tt>""</tt> or <tt>%{ %}</tt> as delimeters. 
+Pragmas will take either <tt>""</tt> or <tt>%{ %}</tt> as delimiters. 
 For example, let's change the intermediary JNI class access to public. 
 </p>
 
@@ -2668,7 +2668,7 @@ Some not so ideal solutions are:
 
 <ol>
 <li><p>
-Call the <tt>System.runFinalizersOnExit(true)</tt> or <tt>Runtime.getRuntime().runFinalizersOnExit(true)</tt> to ensure the finalizers are called before the program exits. The catch is that this is a deprecated function call as the documenation says: </p>
+Call the <tt>System.runFinalizersOnExit(true)</tt> or <tt>Runtime.getRuntime().runFinalizersOnExit(true)</tt> to ensure the finalizers are called before the program exits. The catch is that this is a deprecated function call as the documentation says: </p>
 <div class="code"><i>
 This method is inherently unsafe. It may result in finalizers being called on live objects while other threads are concurrently manipulating those objects, resulting in erratic behavior or deadlock.
 </i></div> 
@@ -2694,7 +2694,7 @@ As the the shutdown hook is guaranteed you could also make a JNI call to clean u
 
 <li>
 <p>Call the <tt>delete()</tt> function manually which will immediately invoke the C++ destructor. 
-As a suggestion it may be a good idea to set the object to null so that should the object be inadvertantly used again a Java null pointer exception is thrown, the alternative would crash the JVM by using a null C pointer. 
+As a suggestion it may be a good idea to set the object to null so that should the object be inadvertently used again a Java null pointer exception is thrown, the alternative would crash the JVM by using a null C pointer. 
 For example given a SWIG generated class A:</p>
 <div class="code"><pre>
 A myA = new A();
@@ -3172,7 +3172,7 @@ void callup(DirectorBase *director) {
 <p>
 The following <code>directorDerived</code> Java class is derived from the Java proxy class <code>DirectorBase</code> and overrides <code>upcall_method()</code>.
 When C++ code invokes <code>upcall_method()</code>, the SWIG-generated C++ code redirects the call via JNI to the Java <code>directorDerived</code> subclass.
-Naturally, the SWIG generated C++ code and the generated Java intermediate class marshall and convert arguments between C++ and Java when needed.
+Naturally, the SWIG generated C++ code and the generated Java intermediate class marshal and convert arguments between C++ and Java when needed.
 </p>
 
 <div class="code">
@@ -5394,7 +5394,7 @@ bool calculate(float first, float second);
 </div>
 
 <p>
-To validate every <tt>float</tt> being passed to C++, we could preceed the code being wrapped by the following typemap which throws a runtime exception whenever the <tt>float</tt> is 'Not a Number':
+To validate every <tt>float</tt> being passed to C++, we could precede the code being wrapped by the following typemap which throws a runtime exception whenever the <tt>float</tt> is 'Not a Number':
 </p>
 
 <div class="code">
@@ -5440,7 +5440,7 @@ public class example {
 
 <p>
 Note that the "javain" typemap is used for every occurrence of a <tt>float</tt> being used as an input.
-Of course, we could have targetted the typemap at a particular parameter by using <tt>float first</tt>, say, instead of just <tt>float</tt>.
+Of course, we could have targeted the typemap at a particular parameter by using <tt>float first</tt>, say, instead of just <tt>float</tt>.
 If we decide that what we actually want is a checked exception instead of a runtime exception, we can change this easily enough.
 The proxy method that uses <tt>float</tt> as an input, must then add the exception class to the throws clause.
 SWIG can handle this as it supports the 'throws' <a href="#typemap_attributes">typemap attribute</a> for specifying classes for the throws clause.
@@ -6632,7 +6632,7 @@ public static void MyClass_method_upcall(MyClass self, long jarg1,
   </p>
 
   <p>
-  The current "type symmetry" design will work for simple C++ inheritance, but will most likely fail for anything more compicated such as tree or diamond C++ inheritance hierarchies.
+  The current "type symmetry" design will work for simple C++ inheritance, but will most likely fail for anything more complicated such as tree or diamond C++ inheritance hierarchies.
   Those who are interested in challenging problems are more than welcome to hack the <code>Java::Java_director_declaration</code> method in <code>Source/Modules/java.cxx</code>.
   </p>
   <p>
@@ -6679,7 +6679,7 @@ public class FooDerived extends Foo {
     }
 
     catch (ClassCastException exc) {
-      // Wasn't a FooDerived object, some other sublcass of Foo
+      // Wasn't a FooDerived object, some other subclass of Foo
       return null;
     }
   }
@@ -6730,7 +6730,7 @@ public abstract class UserVisibleFoo extends Foo {
     }
 
     catch (ClassCastException exc) {
-      // Wasn't a FooDerived object, some other sublcass of Foo
+      // Wasn't a FooDerived object, some other subclass of Foo
       return null;
     }
   }

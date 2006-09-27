@@ -171,7 +171,7 @@ loaded, an easy way to find out is to run Perl itself.
 <p>
 The preferred approach to building an extension module is to compile it into
 a shared object file or DLL.   To do this, you will need to compile your program
-using comands like this (shown for Linux):
+using commands like this (shown for Linux):
 </p>
 
 <div class="code"><pre>
@@ -275,7 +275,7 @@ The same thing can be accomplished by running SWIG as follows :</p>
 </pre></div>
 
 <p>
-The <tt>permain.i</tt> file inserts Perl's <tt>main()</tt> function
+The <tt>perlmain.i</tt> file inserts Perl's <tt>main()</tt> function
 into the wrapper code and automatically initializes the SWIG generated
 module. If you just want to make a quick a dirty module, this may be
 the easiest way. By default, the <tt>perlmain.i</tt> code does not
@@ -567,7 +567,7 @@ can behave strangely when working with multiple modules.
 </p>
 
 <p>
-It should be noted that you may get alot of error messages
+It should be noted that you may get a lot of error messages
 about the `<tt>bool</tt>' datatype when compiling a C++ Perl module. If
 you experience this problem, you can try the following :</p>
 
@@ -1178,7 +1178,7 @@ void spam(Foo *f);
 
 <p>
 then the function <tt>spam()</tt> accepts <tt>Foo *</tt> or a pointer to any class derived from <tt>Foo</tt>.
-If necesssary, the type-checker also adjusts the value of the pointer (as is necessary when
+If necessary, the type-checker also adjusts the value of the pointer (as is necessary when
 multiple inheritance is used).
 </p>
 
@@ -1272,7 +1272,7 @@ print example::fact(4),"\n"       # Call a function in it
 <p>
 Usually, a module consists of a collection of code that is contained
 within a single file. A package, on the other hand, is the Perl
-equivalent of a namespace. A package is alot like a module, except
+equivalent of a namespace. A package is a lot like a module, except
 that it is independent of files. Any number of files may be part of
 the same package--or a package may be broken up into a collection of
 modules if you prefer to think about it in this way.
@@ -1813,7 +1813,7 @@ int count(char c, char *str, unsigned len);
 <p>
 When a multi-argument typemap is defined, the arguments are always handled as a single
 Perl object.  This allows the function to be used like this (notice how the length
-parameter is ommitted):
+parameter is omitted):
 </p>
 
 <div class="targetlang">
@@ -2009,7 +2009,7 @@ When writing typemaps, it is necessary to work directly with Perl5
 objects.  This, unfortunately, can be a daunting task.  Consult the
 "perlguts" man-page for all of the really ugly details.  A short
 summary of commonly used functions is provided here for reference.  It
-should be stressed that SWIG can be usef quite effectively without
+should be stressed that SWIG can be used quite effectively without
 knowing any of these details--especially now that there are typemap
 libraries that can already been written.
 </p>
@@ -2684,7 +2684,7 @@ In fact, it will fail if you create a new C object in Perl, pass it on
 to a C function that remembers the object, and then destroy the
 corresponding Perl object (this situation turns out to come up
 frequently when constructing objects like linked lists and trees).
-When C takes possession of an object, you can change Perl's owership
+When C takes possession of an object, you can change Perl's ownership
 by simply deleting the object from the <tt>%OWNER</tt> hash.  This is
 done using the <tt>DISOWN </tt>method.
 </p>
