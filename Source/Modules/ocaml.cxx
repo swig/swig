@@ -1490,11 +1490,12 @@ public:
 	ParmList *l;
 	Wrapper *w;
 	String *tm;
-	String *wrap_args;
+	String *wrap_args = NewString("");
 	String *return_type;
 	int status = SWIG_OK;
 	int idx;
 	bool pure_virtual = false;
+	bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
 	storage = Getattr(n, "storage");
 	value = Getattr(n, "value");
@@ -1545,205 +1546,223 @@ public:
 	Printf(declaration, "    virtual %s %s;\n", rtype, target);
 	Delete(target);
     
-	/* attach typemaps to arguments (C/C++ -> Ocaml) */
-	String *arglist = NewString("");
-
-	Swig_typemap_attach_parms("in", l, 0);
-	Swig_typemap_attach_parms("directorin", l, 0);
-	Swig_typemap_attach_parms("directorargout", l, w);
-
-	Parm* p;
-	int num_arguments = emit_num_arguments(l);
-	int i;
-	char source[256];
-
-	wrap_args = NewString("");
-	int outputs = 0;
-	if (!is_void) outputs++;
-
-	/* build argument list and type conversion string */
-	for (i=0, idx=0, p = l; i < num_arguments; i++) {
-
-	    while (Getattr(p, "tmap:ignore")) {
-		p = Getattr(p, "tmap:ignore:next");
-	    }
-
-	    if (Getattr(p, "tmap:directorargout") != 0) outputs++;
-      
-	    String* pname = Getattr(p, "name");
-	    String* ptype = Getattr(p, "type");
-      
-	    Putc(',',arglist);
-	    if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-		Replaceall(tm, "$input", pname);
-		Replaceall(tm, "$owner", "0");
-		if (Len(tm) == 0) Append(tm, pname);
-		Printv(wrap_args, tm, "\n", NIL);
-		p = Getattr(p, "tmap:directorin:next");
-		continue;
-	    } else
-		if (Cmp(ptype, "void")) {
-		    /* special handling for pointers to other C++ director classes.
-		     * ideally this would be left to a typemap, but there is currently no
-		     * way to selectively apply the dynamic_cast<> to classes that have
-		     * directors.  in other words, the type "SwigDirector_$1_lname" only exists
-		     * for classes with directors.  we avoid the problem here by checking
-		     * module.wrap::directormap, but it's not clear how to get a typemap to
-		     * do something similar.  perhaps a new default typemap (in addition
-		     * to SWIGTYPE) called DIRECTORTYPE?
-		     */
-		    if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
-			Node *module = Getattr(parent, "module");
-			Node *target = Swig_directormap(module, ptype);
-			sprintf(source, "obj%d", idx++);
-			String *nonconst = 0;
-			/* strip pointer/reference --- should move to Swig/stype.c */
-			String *nptype = NewString(Char(ptype)+2);
-			/* name as pointer */
-			String *ppname = Copy(pname);
-			if (SwigType_isreference(ptype)) {
-			    Insert(ppname,0,"&");
-			}
-			/* if necessary, cast away const since Python doesn't support it! */
-			if (SwigType_isconst(nptype)) {
-			    nonconst = NewStringf("nc_tmp_%s", pname);
-			    String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
-			    Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
-			    Delete(nonconst_i);
-			    Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-					 "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(ptype, pname), classname, name);
-			} else {
-			    nonconst = Copy(ppname);
-			}
-			Delete(nptype);
-			Delete(ppname);
-			String *mangle = SwigType_manglestr(ptype);
-			if (target) {
-			    String *director = NewStringf("director_%s", mangle);
-			    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-			    Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
-			    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
-			    Printf(wrap_args, "if (!%s) {\n", director);
-			    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-			    Printf(wrap_args, "} else {\n");
-			    Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
-			    Printf(wrap_args, "}\n");
-			    Delete(director);
-			    Printv(arglist, source, NIL);
-			} else {
-			    Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
-			    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
-				   source, nonconst, mangle); 
-			    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
-			    //       source, nonconst, base);
-			    Printv(arglist, source, NIL);
-			}
-			Delete(mangle);
-			Delete(nonconst);
-		    } else {
-			Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-				     "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), classname, name);
-			status = SWIG_NOWRAP;
-			break;
-		    }
-		}
-	    p = nextSibling(p);
-	}
-
 	/* declare method return value 
 	 * if the return value is a reference or const reference, a specialized typemap must
 	 * handle it, including declaration of c_result ($result).
 	 */
 	if (!is_void) {
+	  if (!(ignored_method && !pure_virtual)) {
 	    Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+	  }
 	}
 
-	Printv(w->code, "swig_result = Val_unit;\n",0);
-	Printf(w->code,"args = Val_unit;\n");
+	if (ignored_method) {
+	  if (!pure_virtual) {
+	    if (is_void)
+	      Printf(w->code, "return ");
+	    String *super_call = Swig_method_call(super, l);
+	    Printf(w->code, "%s;\n", super_call);
+	    Delete(super_call);
+	  } else {
+	    Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", classname, name);
+	  }
+	} else {
+	  /* attach typemaps to arguments (C/C++ -> Ocaml) */
+	  String *arglist = NewString("");
 
-	/* wrap complex arguments to values */
-	Printv(w->code, wrap_args, NIL);
+	  Swig_typemap_attach_parms("in", l, 0);
+	  Swig_typemap_attach_parms("directorin", l, 0);
+	  Swig_typemap_attach_parms("directorargout", l, w);
 
-	/* pass the method call on to the Python object */
-	Printv(w->code,
-	       "swig_result = caml_swig_alloc(1,C_list);\n"
-	       "SWIG_Store_field(swig_result,0,args);\n"
-	       "args = swig_result;\n"
-	       "swig_result = Val_unit;\n",0);
-	Printf(w->code, 
-	       "swig_result = "
-	       "callback3(*caml_named_value(\"swig_runmethod\"),"
-	       "swig_get_self(),copy_string(\"%s\"),args);\n",
-	       Getattr(n,"name"));
-	/* exception handling */
-	tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
-	if (!tm) {
-	    tm = Getattr(n, "feature:director:except");
-	}
-	if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	    Printf(w->code, "if (result == NULL) {\n");
-	    Printf(w->code, "  CAML_VALUE error = *caml_named_value(\"director_except\");\n");
-	    Replaceall(tm, "$error", "error");
-	    Printv(w->code, Str(tm), "\n", NIL);
-	    Printf(w->code, "}\n");
-	}
+	  Parm* p;
+	  int num_arguments = emit_num_arguments(l);
+	  int i;
+	  char source[256];
 
-	/*
-	 * Python method may return a simple object, or a tuple.
-	 * for in/out aruments, we have to extract the appropriate values from the 
-	 * argument list, then marshal everything back to C/C++ (return value and
-	 * output arguments).
-	 */
+	  int outputs = 0;
+	  if (!is_void) outputs++;
 
-	/* marshal return value and other outputs (if any) from value to C/C++ 
-	 * type */
+	  /* build argument list and type conversion string */
+	  for (i=0, idx=0, p = l; i < num_arguments; i++) {
 
-	String* cleanup = NewString("");
-	String* outarg = NewString("");
+	      while (Getattr(p, "tmap:ignore")) {
+		  p = Getattr(p, "tmap:ignore:next");
+	      }
 
-	idx = 0;
+	      if (Getattr(p, "tmap:directorargout") != 0) outputs++;
+	
+	      String* pname = Getattr(p, "name");
+	      String* ptype = Getattr(p, "type");
+	
+	      Putc(',',arglist);
+	      if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+		  Replaceall(tm, "$input", pname);
+		  Replaceall(tm, "$owner", "0");
+		  if (Len(tm) == 0) Append(tm, pname);
+		  Printv(wrap_args, tm, "\n", NIL);
+		  p = Getattr(p, "tmap:directorin:next");
+		  continue;
+	      } else
+		  if (Cmp(ptype, "void")) {
+		      /* special handling for pointers to other C++ director classes.
+		       * ideally this would be left to a typemap, but there is currently no
+		       * way to selectively apply the dynamic_cast<> to classes that have
+		       * directors.  in other words, the type "SwigDirector_$1_lname" only exists
+		       * for classes with directors.  we avoid the problem here by checking
+		       * module.wrap::directormap, but it's not clear how to get a typemap to
+		       * do something similar.  perhaps a new default typemap (in addition
+		       * to SWIGTYPE) called DIRECTORTYPE?
+		       */
+		      if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
+			  Node *module = Getattr(parent, "module");
+			  Node *target = Swig_directormap(module, ptype);
+			  sprintf(source, "obj%d", idx++);
+			  String *nonconst = 0;
+			  /* strip pointer/reference --- should move to Swig/stype.c */
+			  String *nptype = NewString(Char(ptype)+2);
+			  /* name as pointer */
+			  String *ppname = Copy(pname);
+			  if (SwigType_isreference(ptype)) {
+			      Insert(ppname,0,"&");
+			  }
+			  /* if necessary, cast away const since Python doesn't support it! */
+			  if (SwigType_isconst(nptype)) {
+			      nonconst = NewStringf("nc_tmp_%s", pname);
+			      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
+			      Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
+			      Delete(nonconst_i);
+			      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
+					   "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(ptype, pname), classname, name);
+			  } else {
+			      nonconst = Copy(ppname);
+			  }
+			  Delete(nptype);
+			  Delete(ppname);
+			  String *mangle = SwigType_manglestr(ptype);
+			  if (target) {
+			      String *director = NewStringf("director_%s", mangle);
+			      Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
+			      Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
+			      Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
+			      Printf(wrap_args, "if (!%s) {\n", director);
+			      Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+			      Printf(wrap_args, "} else {\n");
+			      Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
+			      Printf(wrap_args, "}\n");
+			      Delete(director);
+			      Printv(arglist, source, NIL);
+			  } else {
+			      Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
+			      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
+				     source, nonconst, mangle); 
+			      //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+			      //       source, nonconst, base);
+			      Printv(arglist, source, NIL);
+			  }
+			  Delete(mangle);
+			  Delete(nonconst);
+		      } else {
+			  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+				       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), classname, name);
+			  status = SWIG_NOWRAP;
+			  break;
+		      }
+		  }
+	      p = nextSibling(p);
+	  }
 
-	/* this seems really silly.  the node's type excludes 
-	 * qualifier/pointer/reference markers, which have to be retrieved 
-	 * from the decl field to construct return_type.  but the typemap
-	 * lookup routine uses the node's type, so we have to swap in and
-	 * out the correct type.  it's not just me, similar silliness also
-	 * occurs in Language::cDeclaration().
-	 */
-	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup_new("directorout", n, "c_result", w);
-	Setattr(n, "type", type);
-	if (tm == 0) {
-	    String *name = NewString("c_result");
-	    tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	    Delete(name);
-	}
-	if (tm != 0) {
-	    Replaceall(tm, "$input", "swig_result");
-	    /* TODO check this */
-	    if (Getattr(n,"wrap:disown")) {
-		Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
-	    } else {
-		Replaceall(tm,"$disown","0");
-	    }
-	    Replaceall(tm, "$result", "c_result");
-	    Printv(w->code, tm, "\n", NIL);
-	}
-	  
-	/* marshal outputs */
-	for (p = l; p; ) {
-	    if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-		Replaceall(tm, "$input", "swig_result");
-		Replaceall(tm, "$result", Getattr(p, "name"));
-		Printv(w->code, tm, "\n", NIL);
-		p = Getattr(p, "tmap:directorargout:next");
-	    } else {
-		p = nextSibling(p);
-	    }
+	  Printv(w->code, "swig_result = Val_unit;\n",0);
+	  Printf(w->code,"args = Val_unit;\n");
+
+	  /* wrap complex arguments to values */
+	  Printv(w->code, wrap_args, NIL);
+
+	  /* pass the method call on to the Python object */
+	  Printv(w->code,
+		 "swig_result = caml_swig_alloc(1,C_list);\n"
+		 "SWIG_Store_field(swig_result,0,args);\n"
+		 "args = swig_result;\n"
+		 "swig_result = Val_unit;\n",0);
+	  Printf(w->code, 
+		 "swig_result = "
+		 "callback3(*caml_named_value(\"swig_runmethod\"),"
+		 "swig_get_self(),copy_string(\"%s\"),args);\n",
+		 Getattr(n,"name"));
+	  /* exception handling */
+	  tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+	  if (!tm) {
+	      tm = Getattr(n, "feature:director:except");
+	  }
+	  if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	      Printf(w->code, "if (result == NULL) {\n");
+	      Printf(w->code, "  CAML_VALUE error = *caml_named_value(\"director_except\");\n");
+	      Replaceall(tm, "$error", "error");
+	      Printv(w->code, Str(tm), "\n", NIL);
+	      Printf(w->code, "}\n");
+	  }
+
+	  /*
+	   * Python method may return a simple object, or a tuple.
+	   * for in/out aruments, we have to extract the appropriate values from the 
+	   * argument list, then marshal everything back to C/C++ (return value and
+	   * output arguments).
+	   */
+
+	  /* marshal return value and other outputs (if any) from value to C/C++ 
+	   * type */
+
+	  String* cleanup = NewString("");
+	  String* outarg = NewString("");
+
+	  idx = 0;
+
+	  /* this seems really silly.  the node's type excludes 
+	   * qualifier/pointer/reference markers, which have to be retrieved 
+	   * from the decl field to construct return_type.  but the typemap
+	   * lookup routine uses the node's type, so we have to swap in and
+	   * out the correct type.  it's not just me, similar silliness also
+	   * occurs in Language::cDeclaration().
+	   */
+	  Setattr(n, "type", return_type);
+	  tm = Swig_typemap_lookup_new("directorout", n, "c_result", w);
+	  Setattr(n, "type", type);
+	  if (tm == 0) {
+	      String *name = NewString("c_result");
+	      tm = Swig_typemap_search("directorout", return_type, name, NULL);
+	      Delete(name);
+	  }
+	  if (tm != 0) {
+	      Replaceall(tm, "$input", "swig_result");
+	      /* TODO check this */
+	      if (Getattr(n,"wrap:disown")) {
+		  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+	      } else {
+		  Replaceall(tm,"$disown","0");
+	      }
+	      Replaceall(tm, "$result", "c_result");
+	      Printv(w->code, tm, "\n", NIL);
+	  }
+	    
+	  /* marshal outputs */
+	  for (p = l; p; ) {
+	      if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
+		  Replaceall(tm, "$input", "swig_result");
+		  Replaceall(tm, "$result", Getattr(p, "name"));
+		  Printv(w->code, tm, "\n", NIL);
+		  p = Getattr(p, "tmap:directorargout:next");
+	      } else {
+		  p = nextSibling(p);
+	      }
+	  }
+
+	  Delete(arglist);
+	  Delete(cleanup);
+	  Delete(outarg);
 	}
 
 	/* any existing helper functions to handle this? */
 	if (!is_void) {
+	  if (!(ignored_method && !pure_virtual)) {
 	    /* A little explanation:
 	     * The director_enum test case makes a method whose return type
 	     * is an enum type.  return_type here is "int".  gcc complains
@@ -1754,11 +1773,12 @@ public:
 	     * always essentially work.
 	     */
 	    if( !SwigType_isreference(return_type) ) {
-		Printf(w->code, "CAMLreturn((%s)c_result);\n",
-		       SwigType_lstr(return_type, ""));
+	      Printf(w->code, "CAMLreturn((%s)c_result);\n",
+		  SwigType_lstr(return_type, ""));
 	    } else {
-		Printf(w->code, "CAMLreturn(*c_result);\n");
+	      Printf(w->code, "CAMLreturn(*c_result);\n");
 	    }
+	  }
 	}
 
 	Printf(w->code, "}\n");
@@ -1790,12 +1810,9 @@ public:
 
 	/* clean up */
 	Delete(wrap_args);
-	Delete(arglist);
 	Delete(rtype);
 	Delete(return_type);
 	Delete(pclassname);
-	Delete(cleanup);
-	Delete(outarg);
 	DelWrapper(w);
 	return status;
     }

@@ -3118,14 +3118,14 @@ class CSHARP : public Language {
       Printf(w->code, "if (!swig_callback%s) {\n", overloaded_name);
 
     if (!pure_virtual) {
+      String *super_call = Swig_method_call(super, l);
       if (is_void) {
-        Printf(w->code, "%s;\n", Swig_method_call(super,l));
+        Printf(w->code, "%s;\n", super_call);
         Printf(w->code, "return;\n");
       } else {
-        String *super_call = Swig_method_call(super, l);
         Printf(w->code, "return %s;\n", super_call);
-        Delete(super_call);
       }
+      Delete(super_call);
     } else {
       Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", c_classname, name);
     }

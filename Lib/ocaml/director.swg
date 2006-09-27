@@ -38,7 +38,15 @@ namespace Swig {
   class DirectorMethodException : public Swig::DirectorException {};
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {};
+  class DirectorPureVirtualException : public Swig::DirectorException {
+    public:
+      DirectorTypeMismatchException(const char* msg="") {
+      }
+
+      static void raise(const char *msg) {
+        throw DirectorPureVirtualException(msg);
+      }
+  };
 
   /* simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__

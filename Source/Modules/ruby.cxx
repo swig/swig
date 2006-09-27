@@ -2289,7 +2289,7 @@ public:
     ParmList *l;
     Wrapper *w;
     String *tm;
-    String *wrap_args;
+    String *wrap_args = NewString("");
     String *return_type;
     Parm* p;
     String *value = Getattr(n, "value");
@@ -2297,6 +2297,7 @@ public:
     bool pure_virtual = false;
     int status = SWIG_OK;
     int idx;
+    bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
     if (Cmp(storage,"virtual") == 0) {
       if (Cmp(value,"0") == 0) {
@@ -2372,222 +2373,241 @@ public:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
-    
-    /* attach typemaps to arguments (C/C++ -> Ruby) */
-    String *arglist = NewString("");
-
-
-    /**
-     * For each parameter to the C++ member function, copy the parameter name
-     * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
-     * the right thing when it sees strings like "$1" in your "directorin" typemaps.
-     * Not sure if it's OK to leave it like this, but seems OK so far.
-     */
-    typemap_copy_pname_to_lname(l);
-    
-    Swig_typemap_attach_parms("in", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
-    Swig_typemap_attach_parms("directorargout", l, w);
-
-    int num_arguments = emit_num_arguments(l);
-    int i;
-    char source[256];
-
-    wrap_args = NewString("");
-    int outputs = 0;
-    if (!is_void) outputs++;
-	
-    /* build argument list and type conversion string */
-    for (i=0, idx=0, p = l; i < num_arguments; i++) {
-
-      while (Getattr(p, "tmap:ignore")) {
-	p = Getattr(p, "tmap:ignore:next");
-      }
-
-      if (Getattr(p, "tmap:directorargout") != 0) outputs++;
-      
-      String* parameterName = Getattr(p, "name");
-      String* parameterType = Getattr(p, "type");
-      
-      Putc(',',arglist);
-      if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-        sprintf(source, "obj%d", idx++);
-        Replaceall(tm, "$input", source);
-        Replaceall(tm, "$owner", "0");
-        Printv(wrap_args, tm, "\n", NIL);
-        Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-        Printv(arglist, source, NIL);
-	p = Getattr(p, "tmap:directorin:next");
-	continue;
-      } else if (Cmp(parameterType, "void")) {
-	/**
-         * Special handling for pointers to other C++ director classes.
-	 * Ideally this would be left to a typemap, but there is currently no
-	 * way to selectively apply the dynamic_cast<> to classes that have
-	 * directors.  In other words, the type "SwigDirector_$1_lname" only exists
-	 * for classes with directors.  We avoid the problem here by checking
-	 * module.wrap::directormap, but it's not clear how to get a typemap to
-	 * do something similar.  Perhaps a new default typemap (in addition
-	 * to SWIGTYPE) called DIRECTORTYPE?
-	 */
-	if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
-	  Node *modname = Getattr(parent, "module");
-	  Node *target = Swig_directormap(modname, parameterType);
-	  sprintf(source, "obj%d", idx++);
-	  String *nonconst = 0;
-	  /* strip pointer/reference --- should move to Swig/stype.c */
-	  String *nptype = NewString(Char(parameterType)+2);
-	  /* name as pointer */
-	  String *ppname = Copy(parameterName);
-	  if (SwigType_isreference(parameterType)) {
-      	     Insert(ppname,0,"&");
-	  }
-	  /* if necessary, cast away const since Ruby doesn't support it! */
-	  if (SwigType_isconst(nptype)) {
-	    nonconst = NewStringf("nc_tmp_%s", parameterName);
-	    String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(parameterType, 0), ppname);
-	    Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
-	    Delete(nonconst_i);
-	    Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-		         "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(parameterType, parameterName), classname, name);
-	  } else {
-	    nonconst = Copy(ppname);
-	  }
-	  Delete(nptype);
-	  Delete(ppname);
-	  String *mangle = SwigType_manglestr(parameterType);
-	  if (target) {
-	    String *director = NewStringf("director_%s", mangle);
-	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-	    Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
-	    Printf(wrap_args, "if (!%s) {\n", director);
-	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-	    Printf(wrap_args, "} else {\n");
-	    Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
-	    Printf(wrap_args, "}\n");
-	    Delete(director);
-	    Printv(arglist, source, NIL);
-	  } else {
-	    Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
-	           source, nonconst, mangle); 
-	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
-	    //       source, nonconst, base);
-	    Printv(arglist, source, NIL);
-	  }
-	  Delete(mangle);
-	  Delete(nonconst);
-	} else {
-	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(parameterType, 0), classname, name);
-          status = SWIG_NOWRAP;
-	  break;
-	}
-      }
-      p = nextSibling(p);
-    }
-
     /* declare method return value 
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
     if (!is_void) {
-      Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
-    }
-    /* declare Ruby return value */
-    Wrapper_add_local(w, "result", "VALUE result");
-
-    /* wrap complex arguments to VALUEs */
-    Printv(w->code, wrap_args, NIL);
-
-    /* pass the method call on to the Ruby object */
-    exceptionSafeMethodCall(classname, n, w, idx, arglist);
-
-    /*
-    * Ruby method may return a simple object, or an Array of objects.
-    * For in/out arguments, we have to extract the appropriate VALUEs from the Array,
-    * then marshal everything back to C/C++ (return value and output arguments).
-    */
-
-    /* Marshal return value and other outputs (if any) from VALUE to C/C++ type */
-
-    String* cleanup = NewString("");
-    String* outarg = NewString("");
-
-    if (outputs > 1) {
-      Wrapper_add_local(w, "output", "VALUE output");
-      Printf(w->code, "if (TYPE(result) != T_ARRAY) {\n");
-      Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
-      Printf(w->code, "}\n");
+      if (!(ignored_method && !pure_virtual)) {
+	Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+      }
     }
 
-    idx = 0;
+    if (ignored_method) {
+      if (!pure_virtual) {
+	if (is_void)
+	  Printf(w->code, "return ");
+	String *super_call = Swig_method_call(super, l);
+	Printf(w->code, "%s;\n", super_call);
+	Delete(super_call);
+      } else {
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", classname, name);
+      }
+    } else {
+      /* attach typemaps to arguments (C/C++ -> Ruby) */
+      String *arglist = NewString("");
 
-    /* Marshal return value */
-    if (!is_void) {
-      /* This seems really silly.  The node's type excludes qualifier/pointer/reference markers,
-       * which have to be retrieved from the decl field to construct return_type.  But the typemap
-       * lookup routine uses the node's type, so we have to swap in and out the correct type.
-       * It's not just me, similar silliness also occurs in Language::cDeclaration().
+      /**
+       * For each parameter to the C++ member function, copy the parameter name
+       * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
+       * the right thing when it sees strings like "$1" in your "directorin" typemaps.
+       * Not sure if it's OK to leave it like this, but seems OK so far.
        */
-      Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("directorout", n, "result", w);
-      Setattr(n, "type", type);
-      if (tm == 0) {
-        String *name = NewString("result");
-        tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	Delete(name);
-      }
-      if (tm != 0) {
-	if (outputs > 1) {
-	  Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
-	  Replaceall(tm, "$input", "output");
-	} else {
-	  Replaceall(tm, "$input", "result");
-	}
-	/* TODO check this */
-	if (Getattr(n,"wrap:disown")) {
-	  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
-	} else {
-	  Replaceall(tm,"$disown","0");
-	}
-	Replaceall(tm, "$result", "c_result");
-	Printv(w->code, tm, "\n", NIL);
-      } else {
-	Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
-        status = SWIG_ERROR;
-      }
-    }
+      typemap_copy_pname_to_lname(l);
+      
+      Swig_typemap_attach_parms("in", l, 0);
+      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorargout", l, w);
+
+      int num_arguments = emit_num_arguments(l);
+      int i;
+      char source[256];
+
+      int outputs = 0;
+      if (!is_void) outputs++;
 	  
-    /* Marshal outputs */
-    for (p = l; p; ) {
-      if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-	if (outputs > 1) {
-	  Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
-	  Replaceall(tm, "$input", "output");
-	} else {
-	  Replaceall(tm, "$input", "result");
+      /* build argument list and type conversion string */
+      for (i=0, idx=0, p = l; i < num_arguments; i++) {
+
+	while (Getattr(p, "tmap:ignore")) {
+	  p = Getattr(p, "tmap:ignore:next");
 	}
-	Replaceall(tm, "$result", Getattr(p, "name"));
-	Printv(w->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:directorargout:next");
-      } else {
+
+	if (Getattr(p, "tmap:directorargout") != 0) outputs++;
+	
+	String* parameterName = Getattr(p, "name");
+	String* parameterType = Getattr(p, "type");
+	
+	Putc(',',arglist);
+	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	  sprintf(source, "obj%d", idx++);
+	  Replaceall(tm, "$input", source);
+	  Replaceall(tm, "$owner", "0");
+	  Printv(wrap_args, tm, "\n", NIL);
+	  Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+	  Printv(arglist, source, NIL);
+	  p = Getattr(p, "tmap:directorin:next");
+	  continue;
+	} else if (Cmp(parameterType, "void")) {
+	  /**
+	   * Special handling for pointers to other C++ director classes.
+	   * Ideally this would be left to a typemap, but there is currently no
+	   * way to selectively apply the dynamic_cast<> to classes that have
+	   * directors.  In other words, the type "SwigDirector_$1_lname" only exists
+	   * for classes with directors.  We avoid the problem here by checking
+	   * module.wrap::directormap, but it's not clear how to get a typemap to
+	   * do something similar.  Perhaps a new default typemap (in addition
+	   * to SWIGTYPE) called DIRECTORTYPE?
+	   */
+	  if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
+	    Node *modname = Getattr(parent, "module");
+	    Node *target = Swig_directormap(modname, parameterType);
+	    sprintf(source, "obj%d", idx++);
+	    String *nonconst = 0;
+	    /* strip pointer/reference --- should move to Swig/stype.c */
+	    String *nptype = NewString(Char(parameterType)+2);
+	    /* name as pointer */
+	    String *ppname = Copy(parameterName);
+	    if (SwigType_isreference(parameterType)) {
+	       Insert(ppname,0,"&");
+	    }
+	    /* if necessary, cast away const since Ruby doesn't support it! */
+	    if (SwigType_isconst(nptype)) {
+	      nonconst = NewStringf("nc_tmp_%s", parameterName);
+	      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(parameterType, 0), ppname);
+	      Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
+	      Delete(nonconst_i);
+	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
+			   "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(parameterType, parameterName), classname, name);
+	    } else {
+	      nonconst = Copy(ppname);
+	    }
+	    Delete(nptype);
+	    Delete(ppname);
+	    String *mangle = SwigType_manglestr(parameterType);
+	    if (target) {
+	      String *director = NewStringf("director_%s", mangle);
+	      Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
+	      Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+	      Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
+	      Printf(wrap_args, "if (!%s) {\n", director);
+	      Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+	      Printf(wrap_args, "} else {\n");
+	      Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
+	      Printf(wrap_args, "}\n");
+	      Delete(director);
+	      Printv(arglist, source, NIL);
+	    } else {
+	      Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+	      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
+		     source, nonconst, mangle); 
+	      //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+	      //       source, nonconst, base);
+	      Printv(arglist, source, NIL);
+	    }
+	    Delete(mangle);
+	    Delete(nonconst);
+	  } else {
+	    Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+			 "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(parameterType, 0), classname, name);
+	    status = SWIG_NOWRAP;
+	    break;
+	  }
+	}
 	p = nextSibling(p);
       }
+
+      /* declare Ruby return value */
+      Wrapper_add_local(w, "result", "VALUE result");
+
+      /* wrap complex arguments to VALUEs */
+      Printv(w->code, wrap_args, NIL);
+
+      /* pass the method call on to the Ruby object */
+      exceptionSafeMethodCall(classname, n, w, idx, arglist);
+
+      /*
+      * Ruby method may return a simple object, or an Array of objects.
+      * For in/out arguments, we have to extract the appropriate VALUEs from the Array,
+      * then marshal everything back to C/C++ (return value and output arguments).
+      */
+
+      /* Marshal return value and other outputs (if any) from VALUE to C/C++ type */
+
+      String* cleanup = NewString("");
+      String* outarg = NewString("");
+
+      if (outputs > 1) {
+	Wrapper_add_local(w, "output", "VALUE output");
+	Printf(w->code, "if (TYPE(result) != T_ARRAY) {\n");
+	Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
+	Printf(w->code, "}\n");
+      }
+
+      idx = 0;
+
+      /* Marshal return value */
+      if (!is_void) {
+	/* This seems really silly.  The node's type excludes qualifier/pointer/reference markers,
+	 * which have to be retrieved from the decl field to construct return_type.  But the typemap
+	 * lookup routine uses the node's type, so we have to swap in and out the correct type.
+	 * It's not just me, similar silliness also occurs in Language::cDeclaration().
+	 */
+	Setattr(n, "type", return_type);
+	tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+	Setattr(n, "type", type);
+	if (tm == 0) {
+	  String *name = NewString("result");
+	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
+	  Delete(name);
+	}
+	if (tm != 0) {
+	  if (outputs > 1) {
+	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
+	    Replaceall(tm, "$input", "output");
+	  } else {
+	    Replaceall(tm, "$input", "result");
+	  }
+	  /* TODO check this */
+	  if (Getattr(n,"wrap:disown")) {
+	    Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+	  } else {
+	    Replaceall(tm,"$disown","0");
+	  }
+	  Replaceall(tm, "$result", "c_result");
+	  Printv(w->code, tm, "\n", NIL);
+	} else {
+	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
+	  status = SWIG_ERROR;
+	}
+      }
+	    
+      /* Marshal outputs */
+      for (p = l; p; ) {
+	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
+	  if (outputs > 1) {
+	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
+	    Replaceall(tm, "$input", "output");
+	  } else {
+	    Replaceall(tm, "$input", "result");
+	  }
+	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Printv(w->code, tm, "\n", NIL);
+	  p = Getattr(p, "tmap:directorargout:next");
+	} else {
+	  p = nextSibling(p);
+	}
+      }
+
+      Delete(arglist);
+      Delete(cleanup);
+      Delete(outarg);
     }
 
     /* any existing helper functions to handle this? */
     if (!is_void) {
-      String* rettype = SwigType_str(return_type, 0);      
-      if (!SwigType_isreference(return_type)) {
-	Printf(w->code, "return (%s) c_result;\n", rettype);
-      } else {
-	Printf(w->code, "return (%s) *c_result;\n", rettype);
+      if (!(ignored_method && !pure_virtual)) {
+	String* rettype = SwigType_str(return_type, 0);      
+	if (!SwigType_isreference(return_type)) {
+	  Printf(w->code, "return (%s) c_result;\n", rettype);
+	} else {
+	  Printf(w->code, "return (%s) *c_result;\n", rettype);
+	}
+	Delete(rettype);
       }
-      Delete(rettype);
     }
+
     Printf(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
@@ -2617,12 +2637,9 @@ public:
 
     /* clean up */
     Delete(wrap_args);
-    Delete(arglist);
     Delete(rtype);
     Delete(return_type);
     Delete(pclassname);
-    Delete(cleanup);
-    Delete(outarg);
     DelWrapper(w);
     return status;
   }
