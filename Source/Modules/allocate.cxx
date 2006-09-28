@@ -216,7 +216,11 @@ class Allocate : public Dispatcher {
 		if (virtual_elimination_mode)
 		  if (both_have_public_access)
 		    if (!is_non_public_base(inclass, b))
-		      SetFlag(n,"feature:ignore");
+		      if (!Swig_symbol_isoverloaded(n)) {
+		       	// Don't eliminate if an overloaded method as this hides the method
+			// in the scripting languages: the dispatch function will hide the base method if ignored.
+			SetFlag(n,"feature:ignore");
+		      }
 	      } else {
 		// Some languages need to know about covariant return types
 		Setattr(n, "covariant", most_base_covariant_type);
