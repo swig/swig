@@ -232,7 +232,7 @@ look(SwigScanner *s) {
 	case 0 :
 	    if((c = nextchar(s)) == 0) return(0);
       
-	    /* Process delimeters */
+	    /* Process delimiters */
 
 	    if (c == '\n') {
 		return SWIG_TOKEN_ENDLINE;
@@ -529,7 +529,7 @@ look(SwigScanner *s) {
 	    }
 	    break;
 	case 83:
-	    /* Might be a hexidecimal or octal number */
+	    /* Might be a hexadecimal or octal number */
 	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
 	    if (isdigit(c)) state = 84;
 	    else if ((c == 'x') || (c == 'X')) state = 85;
@@ -559,10 +559,7 @@ look(SwigScanner *s) {
 	case 85:
 	    /* This is an hex number */
 	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
-	    if ((isdigit(c)) || (c=='a') || (c=='b') || (c=='c') ||
-		(c=='d') || (c=='e') || (c=='f') || (c=='A') ||
-		(c=='B') || (c=='C') || (c=='D') || (c=='E') ||
-		(c=='F'))
+	    if (isxdigit(c))
 		state = 85;
 	    else if ((c == 'l') || (c == 'L')) {
 		state = 87;
@@ -601,7 +598,7 @@ look(SwigScanner *s) {
 	    } else {
 		retract(s,1);
 		return SWIG_TOKEN_LONG;
-	    } 
+	    }
 	    break;
 
 	    /* A long long integer */

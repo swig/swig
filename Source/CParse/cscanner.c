@@ -886,7 +886,7 @@ int yylook(void) {
 	  }
 	  break;
 	case 83:
-	  /* Might be a hexidecimal or octal number */
+	  /* Might be a hexadecimal or octal number */
 	  if ((c = nextchar()) == 0) return(0);
 	  if (isdigit(c)) state = 84;
 	  else if ((c == 'x') || (c == 'X')) state = 85;
@@ -916,10 +916,7 @@ int yylook(void) {
 	case 85:
 	  /* This is an hex number */
 	  if ((c = nextchar()) == 0) return (0);
-	  if ((isdigit(c)) || (c=='a') || (c=='b') || (c=='c') ||
-	      (c=='d') || (c=='e') || (c=='f') || (c=='A') ||
-	      (c=='B') || (c=='C') || (c=='D') || (c=='E') ||
-	      (c=='F'))
+	  if (isxdigit(c))
 	    state = 85;
 	  else if ((c == 'l') || (c == 'L')) {
 	    state = 87;
@@ -942,7 +939,6 @@ int yylook(void) {
 	    retract(1);
 	    return(NUM_FLOAT);
 	  }
-	  /* Parse a character constant. ie. 'a' */
 	  break;
 
 	case 87 :
@@ -985,8 +981,9 @@ int yylook(void) {
 	    retract(1);
 	    return(NUM_ULONG);
 	  }
-	  
+
 	case 9:
+	  /* Parse a character constant. ie. 'a' */
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '\\') {
 	    yylen--;
