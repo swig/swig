@@ -30,7 +30,7 @@
                     const char *,
                     char [],
                     const char []
-  "REGISTER_STRING_CONSTANT(\"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
+  "REGISTER_STRINGL_CONSTANT(\"$symname\", \"$value\", sizeof(\"$value\") - 1, CONST_CS | CONST_PERSISTENT);";
 
 %typemap(consttab) SWIGTYPE *,
                    SWIGTYPE &,
