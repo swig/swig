@@ -101,6 +101,13 @@ static  int       have_operators = 0;
 class PERL5 : public Language {
 public:
 
+  PERL5() : Language() {
+    Clear(argc_template_string);
+    Printv(argc_template_string, "items", NIL);
+    Clear(argv_template_string);
+    Printv(argv_template_string, "ST(%d)", NIL);
+  }
+
   /* Test to see if a type corresponds to something wrapped with a shadow class */
   Node *is_shadow(SwigType *t) {
     Node *n;
@@ -741,26 +748,17 @@ public:
       Printf(command_tab,"{\"%s::%s\", %s},\n", cmodule, iname, wname);
     } else if (!Getattr(n,"sym:nextSibling")) {
       /* Generate overloaded dispatch function */
-      int maxargs, ii;
+      int maxargs;
       String *dispatch = Swig_overload_dispatch_cast(n,"++PL_markstack_ptr; SWIG_CALLXS(%s); return;",&maxargs);
-	
+
       /* Generate a dispatch wrapper for all overloaded functions */
 
       Wrapper *df       = NewWrapper();
       String  *dname    = Swig_name_wrapper(iname);
 
-      Printv(df->def,	
-	     "XS(", dname, ") {\n", NIL);
-    
+      Printv(df->def, "XS(", dname, ") {\n", NIL);
+
       Wrapper_add_local(df,"dXSARGS", "dXSARGS");
-      Replaceid(dispatch,"argc","items");
-      for (ii = 0; ii < maxargs; ii++) {
-	char pat[128];
-	char rep[128];
-	sprintf(pat,"argv[%d]",ii);
-	sprintf(rep,"ST(%d)",ii);
-	Replaceall(dispatch,pat,rep);
-      }
       Printv(df->code,dispatch,"\n",NIL);
       Printf(df->code,"croak(\"No matching function for overloaded '%s'\");\n", iname);
       Printf(df->code,"XSRETURN(0);\n");
