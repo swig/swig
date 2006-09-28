@@ -159,6 +159,7 @@ CPP_TEST_CASES += \
 	extern_namespace \
 	extern_throws \
 	features \
+	fvirtual \
 	friends \
 	global_ns_arg \
 	global_vars \
