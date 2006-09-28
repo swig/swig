@@ -11,7 +11,7 @@
   This file provides the frontend to the Unified Typemap Library.
 
   When using this library in a SWIG target language, you need to
-  define a minimum set of fragments, specialized a couple of macros,
+  define a minimum set of fragments, specialize a couple of macros,
   and then include this file.
 
   Typically you will create a 'mytypemaps.swg' file in each target

@@ -2,9 +2,9 @@
   Fragments:
   ==========
 
-  Second to typemaps, fragments is one the most powerfull and
-  dangerous swig feature. So, if you are starting to read about them,
-  make sure you read all the document.
+  Second to typemaps, fragments are one the most powerful and
+  dangerous swig features. So, if you are starting to read about them,
+  make sure you read all of this document.
 
   Basics:
   =======
@@ -26,9 +26,9 @@
     $result = value;
   }
 
-  very soon you will discoverd yourself copying the same long
+  very soon you will discover yourself copying the same long
   conversion code in several typemaps, such as varin, directorout,
-  etc. Also, you wil discover that swig copy verbatim the same very
+  etc. Also, you will discover that swig copes verbatim the same very
   long conversion code for every argument that requires it, making the
   code very large too.
 
@@ -111,7 +111,7 @@
       Note that this behavior is opposite to the typemaps, where the
       last typemap applied or defined prevails. Fragment follows the
       first-in-first-out convention since they are intended to be
-      "global", while typemaps intend to be "locally" specialyzed.
+      "global", while typemaps intend to be "locally" specialized.
       
   3.- Fragments names can not contain commas.
  	
