@@ -15,7 +15,7 @@
 %insert("runtime") "swigerrors.swg"
 
 
-#ifdef SWIGPHP4
+#ifdef SWIGPHP
 %{
 #if PHP_MAJOR_VERSION < 5
 # define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
