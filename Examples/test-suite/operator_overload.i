@@ -66,7 +66,7 @@ see bottom for a set of possible tests
 %}
 #endif
 
-#ifdef SWIGPHP4
+#ifdef SWIGPHP
 %rename(AndOperator) operator &&;
 %rename(OrOperator) operator ||;
 #endif

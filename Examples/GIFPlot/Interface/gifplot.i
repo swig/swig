@@ -6,7 +6,7 @@
 #include "gifplot.h"
 %}
 
-#if defined(SWIGJAVA ) || defined(SWIGPHP4)
+#if defined(SWIGJAVA ) || defined(SWIGPHP)
   %rename(make_default) ColorMap::default();
 #endif
 

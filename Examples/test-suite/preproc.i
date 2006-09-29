@@ -287,7 +287,7 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 #ifdef SWIGRUBY
 %rename(ddefined) defined;
 #endif
-#ifdef SWIGPHP4
+#ifdef SWIGPHP
 %rename(endif_) endif;
 #endif
 %inline %{
