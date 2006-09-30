@@ -37,7 +37,7 @@ public:
   virtual int enumDeclaration(Node *n);
   virtual int typedefHandler(Node *n);
 
-    //c++ specific code
+  //c++ specific code
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
   virtual int memberfunctionHandler(Node *n);
@@ -55,8 +55,10 @@ private:
   void emit_inline(Node *n,String *name);
   String* lispy_name(char *name);
   String* lispify_name(Node* n,String *ty,const char* flag,bool kw=false);
-  String* convert_literal(String *num_param, String *type);
+  String* convert_literal(String *num_param, String *type, bool try_to_split = true);
+  String* infix_to_prefix(String *val, char split_op, const String *op, String *type);
   String* strip_parens(String *string);
+  String* trim(String *string);
   int generate_typedef_flag;
   bool no_swig_lisp;
 };
@@ -73,9 +75,9 @@ void CFFI :: main(int argc, char *argv[]) {
     if (!Strcmp(argv[i], "-help")) {
       Printf(stdout, "cffi Options (available with -cffi)\n");
       Printf(stdout, 
-             " -generate-typedef\n"
-             "\t If this option is given then defctype will be used to generate shortcuts\n"
-             "according to the typedefs in the input.\n"
+             "   -generate-typedef\n"
+             "\tIf this option is given then defctype will be used to generate\n"
+             "\tshortcuts according to the typedefs in the input.\n"
              "   -[no]cwrap\n"
              "\tTurn on or turn off generation of an intermediate C file when\n"
              "\tcreating a C interface. By default this is only done for C++ code.\n"
@@ -129,21 +131,21 @@ int CFFI :: top(Node *n) {
   }
 
   if (CPlusPlus || CWrap)  {
-      f_cxx=NewFile(cxx_filename, "w");
-      if (!f_cxx) {
-        Close(f_lisp); Delete(f_lisp);
-        Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-        SWIG_exit(EXIT_FAILURE);
-      }
+    f_cxx=NewFile(cxx_filename, "w");
+    if (!f_cxx) {
+      Close(f_lisp); Delete(f_lisp);
+      Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
 
-      String *clos_filename=NewString("");
-      Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
-      f_clos=NewFile(clos_filename, "w");
-      if (!f_clos) {
-        Close(f_lisp); Delete(f_lisp);
-        Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-        SWIG_exit(EXIT_FAILURE);
-      }
+    String *clos_filename=NewString("");
+    Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
+    f_clos=NewFile(clos_filename, "w");
+    if (!f_clos) {
+      Close(f_lisp); Delete(f_lisp);
+      Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
   }
   else {
     f_cxx=NewString("");
@@ -282,9 +284,9 @@ void CFFI::emit_defmethod(Node*n) {
   int x = Replace(method_name,"operator ","",DOH_REPLACE_FIRST); //  
 
   if(x==1)
-    Printf(f_clos, "(shadow \"%s\")\n",method_name);
+    Printf(f_clos, "(cl:shadow \"%s\")\n",method_name);
 
-  Printf(f_clos,"(defmethod %s ((obj %s)%s)\n  (%s (ff-pointer obj)%s))\n\n",
+  Printf(f_clos,"(clos:defmethod %s ((obj %s)%s)\n  (%s (ff-pointer obj)%s))\n\n",
          lispify_name(n,lispy_name(Char(method_name)),"'method"),
          lispify_name(parent,lispy_name(Char(Getattr(parent, "sym:name"))),"'class"),args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"),args_call);
@@ -293,7 +295,7 @@ void CFFI::emit_defmethod(Node*n) {
 
 void  CFFI::emit_setter(Node*n) {
   Node *p = parentNode(n);
-  Printf(f_clos,"(defmethod (setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
+  Printf(f_clos,"(clos:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(p,lispy_name(Char(Getattr(p, "sym:name"))),"'class"),
          lispify_name(n, Getattr(n, "sym:name"), "'function"));
@@ -302,7 +304,7 @@ void  CFFI::emit_setter(Node*n) {
 
 void  CFFI::emit_getter(Node*n) {
   Node *p = parentNode(n);
-  Printf(f_clos,"(defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
+  Printf(f_clos,"(clos:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(p,lispy_name(Char(Getattr(p, "sym:name"))),"'class"),
          lispify_name(n, Getattr(n, "sym:name"), "'function")); 
@@ -333,11 +335,11 @@ int CFFI :: functionWrapper(Node *n) {
   Delete(resolved);
 
   if (!is_void_return)
-  {
-    String *lresult_init = NewStringf("lresult = (%s)0", raw_return_type);
-    Wrapper_add_localv(wrap,"lresult", raw_return_type, lresult_init, NIL);
-    Delete(lresult_init);
-  }
+    {
+      String *lresult_init = NewStringf("lresult = (%s)0", raw_return_type);
+      Wrapper_add_localv(wrap,"lresult", raw_return_type, lresult_init, NIL);
+      Delete(lresult_init);
+    }
 
   String *overname = 0;
   if (Getattr(n,"sym:overloaded")) {
@@ -455,9 +457,9 @@ int CFFI :: functionWrapper(Node *n) {
 void CFFI::emit_defun(Node *n,String *name)
 {
 
-//   String *storage=Getattr(n,"storage");
-//   if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
-//     return SWIG_OK;
+  //   String *storage=Getattr(n,"storage");
+  //   if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
+  //     return SWIG_OK;
      
   String *func_name=Getattr(n, "sym:name");
 
@@ -477,13 +479,18 @@ void CFFI::emit_defun(Node *n,String *name)
   
   for (Parm *p=pl; p; p=nextSibling(p), argnum++) {
 
+    if (SwigType_isvarargs(Getattr(p, "type"))){
+      Printf(f_cl,"\n  %s",NewString("&rest"));
+      continue;
+    }
+
     String *argname=Getattr(p, "name");
     
     ffitype = Swig_typemap_lookup_new("cin",p, "",0);
-    
+
     int tempargname=0;
-      
     if (!argname) {
+      
       argname=NewStringf("arg%d", argnum);
       tempargname=1;
     }
@@ -492,7 +499,6 @@ void CFFI::emit_defun(Node *n,String *name)
       tempargname=1;
     }
     
-      
     Printf(f_cl, "\n  (%s %s)", argname, ffitype);
       
     Delete(ffitype);
@@ -560,7 +566,12 @@ int CFFI :: enumDeclaration(Node *n) {
   String *lisp_name = 0;
   if(name && Len(name)!=0) {
     lisp_name = lispify_name(n, name, "'enumname");
-    Printf(f_cl,"\n(cffi:defcenum %s",lisp_name);
+    if (GetFlag(n,"feature:bitfield")){
+      Printf(f_cl,"\n(cffi:defbitfield %s",lisp_name);
+    }
+    else{
+      Printf(f_cl,"\n(cffi:defcenum %s",lisp_name);
+    }
     slot_name_keywords = true;
 
     //Registering the enum name to the cin and cout typemaps
@@ -585,7 +596,7 @@ int CFFI :: enumDeclaration(Node *n) {
     String *slot_name = lispify_name(c, Getattr(c, "name"), "'enumvalue", slot_name_keywords);
     String *value = Getattr(c, "enumvalue");
 
-    if(!value)
+    if(!value || GetFlag(n,"feature:bitfield:ignore_values"))
       Printf(f_cl,"\n\t%s",slot_name);
     else {
       String *type=Getattr(c, "type");
@@ -683,8 +694,8 @@ void CFFI :: emit_class(Node *n) {
         //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
         String *ns = NewString("");
 #ifdef CFFI_WRAP_DEBUG
-	Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n",
-	       cname, ns, name, childType);
+        Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n",
+               cname, ns, name, childType);
 #endif
         Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)",
                cname, ns, name, childType); //compose_foreign_type(childType)
@@ -700,11 +711,11 @@ void CFFI :: emit_class(Node *n) {
   }
 
 
-//   String *ns_list = listify_namespace(Getattr(n,"cffi:namespace"));
-//   update_package_if_needed(n,f_clhead);
-//   Printf(f_clos, 
-//          "(swig-def-foreign-class \"%s\"\n %s\n  (:%s\n%s))\n\n", 
-//          name, supers, kind, slotdefs);
+  //   String *ns_list = listify_namespace(Getattr(n,"cffi:namespace"));
+  //   update_package_if_needed(n,f_clhead);
+  //   Printf(f_clos, 
+  //          "(swig-def-foreign-class \"%s\"\n %s\n  (:%s\n%s))\n\n", 
+  //          name, supers, kind, slotdefs);
 
   Delete(supers);
   //  Delete(ns_list);
@@ -761,36 +772,36 @@ void CFFI :: emit_struct_union(Node *n, bool un=false) {
 #ifdef CFFI_DEBUG
     Printf(stderr, "struct/union %s\n", Getattr(c, "name"));
     Printf(stderr, "struct/union %s and %s \n",
-         Getattr(c,"kind"),Getattr(c,"sym:name"));
+           Getattr(c,"kind"),Getattr(c,"sym:name"));
 #endif
 
-     if (Strcmp(nodeType(c), "cdecl")) {
-       //C declaration ignore
-//        Printf(stderr, "Structure %s has a slot that we can't deal with.\n",
-//               name);
-//        Printf(stderr, "nodeType: %s, name: %s, type: %s\n", 
-//               nodeType(c),
-//               Getattr(c, "name"),
-//               Getattr(c, "type"));
-       //       SWIG_exit(EXIT_FAILURE);
-     }
-     else{
-       SwigType *childType=NewStringf("%s%s", Getattr(c,"decl"),
-                                      Getattr(c,"type"));
+    if (Strcmp(nodeType(c), "cdecl")) {
+      //C declaration ignore
+      //        Printf(stderr, "Structure %s has a slot that we can't deal with.\n",
+      //               name);
+      //        Printf(stderr, "nodeType: %s, name: %s, type: %s\n", 
+      //               nodeType(c),
+      //               Getattr(c, "name"),
+      //               Getattr(c, "type"));
+      //       SWIG_exit(EXIT_FAILURE);
+    }
+    else{
+      SwigType *childType=NewStringf("%s%s", Getattr(c,"decl"),
+                                     Getattr(c,"type"));
 
-       Hash *typemap = Swig_typemap_search("cin", childType,"", 0);
-       String *typespec = NewString("");
-       if (typemap) {
-         typespec = NewString(Getattr(typemap, "code"));
-       }
+      Hash *typemap = Swig_typemap_search("cin", childType,"", 0);
+      String *typespec = NewString("");
+      if (typemap) {
+        typespec = NewString(Getattr(typemap, "code"));
+      }
 
-       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
-       if(Strcmp(slot_name,"t")==0 || Strcmp(slot_name,"T")==0) 
-         slot_name=NewStringf("t_var");
+      String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
+      if(Strcmp(slot_name,"t")==0 || Strcmp(slot_name,"T")==0) 
+        slot_name=NewStringf("t_var");
 
-       Printf(f_cl, "\n\t(%s %s)", slot_name, typespec); 
+      Printf(f_cl, "\n\t(%s %s)", slot_name, typespec); 
 
-       Delete(typespec);
+      Delete(typespec);
     }
   }
   
@@ -819,12 +830,12 @@ void CFFI :: emit_inline(Node *n,String *name) {
     Printf(f_cl, "\n(cl:declaim (cl:inline %s))\n", name);
 }
 
-String* CFFI :: lispify_name(Node *n,String* ty,const char* flag,bool kw) {
+String* CFFI ::lispify_name(Node *n, String* ty, const char* flag, bool kw) {
   String* intern_func = Getattr(n, "feature:intern_function");
   if (intern_func) {
     if(Strcmp(intern_func,"1") == 0)
       intern_func = NewStringf("swig-lispify");
-    return NewStringf("#.(%s \"%s\" %s%s)", intern_func, ty, flag, kw? " :keyword":"");
+    return NewStringf("#.(%s \"%s\" %s%s)", intern_func, ty, flag, kw ? " :keyword":"");
   }
   else if(kw)
     return NewStringf(":%s",ty);
@@ -858,44 +869,146 @@ String* CFFI::strip_parens(String *string) {
   return res;
 }
 
-String* CFFI::convert_literal(String *num_param, String *type) {
-  String *num=strip_parens(num_param), *res;
-  char *s=Char(num);
-	
-  /* Make sure doubles use 'd' instead of 'e' */
-  if (!Strcmp(type, "double")) {
-    String *updated=Copy(num);
-    if (Replace(updated, "e", "d", DOH_REPLACE_ANY) > 1) {
-      Printf(stderr, "Weird!! number %s looks invalid.\n", num);
-      SWIG_exit(EXIT_FAILURE);
+String* CFFI::trim(String *str) {
+  char *c = Char(str);
+  while (*c != '\0' && isspace((int)*c))
+    ++c;
+  String *result = NewString(c);
+  Chop(result);
+  return result;
+}
+
+String * CFFI::infix_to_prefix(String *val, char split_op, const String *op, String *type) {
+  List *ored = Split(val, split_op, -1);
+
+  // some float hackery
+  //i don't understand it, if you do then please explain
+  //   if ( ((split_op == '+') || (split_op == '-')) && Len(ored) == 2 &&
+  //        (SwigType_type(type) == T_FLOAT || SwigType_type(type) == T_DOUBLE ||
+  // 	SwigType_type(type) == T_LONGDOUBLE) ) {
+  //     // check that we're not splitting a float
+  //     String *possible_result = convert_literal(val, type, false);
+  //     if (possible_result) return possible_result;
+   
+  //   }
+
+  // try parsing the split results. if any part fails, kick out.
+  bool part_failed = false;
+  if (Len(ored) > 1) {
+    String *result = NewStringf("(%s", op);
+    for(Iterator i = First(ored); i.item; i = Next(i)) {
+      String *converted = convert_literal(i.item, type);
+      if(converted) {
+        Printf(result, " %s", converted);
+        Delete(converted);
+      } else {
+        part_failed = true;
+        break;
+      }
     }
-    Delete(num);
-    return updated;
+    Printf(result, ")");
+    Delete(ored);
+    return part_failed ? 0 : result;
+  }
+  else {
+    Delete(ored);
+  }
+  return 0;
+}
+
+/* To be called by code generating the lisp interface
+   Will return a containing the literal based on type.
+   Will return null if there are problems.
+
+   try_to_split defaults to true (see stub above).
+*/
+String * CFFI::convert_literal(String *literal, String *type, bool try_to_split) {
+  String *num_param = Copy(literal);
+  String *trimmed = trim(num_param);
+  String *num=strip_parens(trimmed), *res=0;
+  Delete(trimmed);
+  char *s=Char(num);
+
+  // very basic parsing of infix expressions.
+  if(try_to_split) {
+    if( (res = infix_to_prefix(num, '|', "cl:logior", type)) ) return res;
+    if( (res = infix_to_prefix(num, '&', "cl:logand", type)) ) return res;
+    if( (res = infix_to_prefix(num, '^', "cl:logxor", type)) ) return res;
+    if( (res = infix_to_prefix(num, '*', "cl:*", type)) ) return res;  
+    if( (res = infix_to_prefix(num, '/', "cl:/", type)) ) return res;  
+    if( (res = infix_to_prefix(num, '+', "cl:+", type)) ) return res;
+    if( (res = infix_to_prefix(num, '-', "cl:-", type)) ) return res;  
   }
 
-  if (SwigType_type(type) == T_CHAR) {
+  if (SwigType_type(type) == T_FLOAT || SwigType_type(type) == T_DOUBLE || SwigType_type(type) == T_LONGDOUBLE) {
+    // Use CL syntax for float literals 
+
+    // careful. may be a float identifier or float constant.
+    char *num_start = Char(num);
+    char *num_end = num_start + strlen(num_start) - 1;
+
+    bool is_literal = isdigit(*num_start) || (*num_start == '.') || (*num_start == '+') || (*num_start == '-');
+
+    String *lisp_exp = 0;
+    if(is_literal) {
+      if (*num_end == 'f' || *num_end == 'F') {
+        lisp_exp = NewString("f");
+      } else {
+        lisp_exp = NewString("d");
+      }
+
+      if (*num_end == 'l' || *num_end == 'L' || *num_end == 'f' || *num_end == 'F') {
+        *num_end = '\0';
+        num_end--;
+      }
+
+      int exponents = Replaceall(num, "e", lisp_exp) + Replaceall(num, "E", lisp_exp);
+
+      if (!exponents)
+        Printf(num, "%s0", lisp_exp);
+
+      if (exponents > 1 || (exponents + Replaceall(num,".",".") == 0)) {
+        Delete(num);
+        num = 0;
+      }
+    }
+    return num;
+  }
+  else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    return NewStringf("#\\%s", num_param);
+    Delete(num);
+    //    Printf(stderr, "%s  %c %d", s, s[2], s);
+    return NewStringf("#\\%c", s[2]);
   }
   else if (SwigType_type(type) == T_STRING) {
     /* Use CL syntax for string literals */
+    Delete(num);
     return NewStringf("\"%s\"", num_param);
   }
-	
-  if (Len(num) < 2 || s[0] != '0') {
-    return num;
+  else if (SwigType_type(type) == T_INT){
+    Replaceall(num, "u", "") + Replaceall(num, "U", "");
+    Replaceall(num, "l", "") + Replaceall(num, "L", "");
+    
+    int i,j;
+    if (sscanf (s,"%d >> %d",&i,&j) == 2){
+      Delete(num);
+      return NewStringf("(cl:ash %d -%d)",i,j);
+    }
+    else if (sscanf(s,"%d << %d",&i,&j) == 2){
+      Delete(num);
+      return NewStringf("(cl:ash %d %d)",i,j);
+    }
   }
-	
-  /* octal or hex */
-	
-  res=NewStringf("#%c%s", 
-                 s[1] == 'x' ? 'x' : 'o', 
-                 s+2);
-  Delete(num);
 
-  return res;
+  if (Len(num) >= 2 && s[0] == '0') {  /* octal or hex */
+    Delete(num);
+    if(s[1] == 'x')
+      return NewStringf("#x%s", s+2);
+    else
+      return NewStringf("#o%s", s+1);
+  }
+  return num;
 }
-
 
 //less flexible as it does the conversion in C, the lispify name does the conversion in lisp
 String* CFFI::lispy_name(char *name) {
