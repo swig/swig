@@ -1,6 +1,11 @@
 Version 1.3.30 (in progress)
 ============================
 
+09/30/2006: efuzzyone
+            [CFFI] Bitfield support and vararg support due to Arthur Smyles.
+            C expression to Lisp conversion, thanks to Arthur Smyles for the initial
+            idea, it now supports conversion for a whole range of C expressions. 
+
 09/28/2006: wsfulton
             Fix #1508327 - Overloaded methods are hidden when using -fvirtual optimisation.
             Overloaded methods are no longer candidates for elimination - this mimics
