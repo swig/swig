@@ -887,15 +887,14 @@ public:
 */
 
   void create_command(String *cname, String *iname) {
+    // This is for the single main function_entry record
     if (wrapperType == standard) {
       Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
-    }
-
-    // This is for the single main function_entry record
-    if (cs_entry && wrapperType == standard) {
-      Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
-    } else {
-      Printf(s_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
+      if (cs_entry) {
+	Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
+      } else {
+        Printf(s_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
+      }
     }
   }
   /* ------------------------------------------------------------
@@ -1546,7 +1545,7 @@ public:
 	  const char *value = GetChar(p,"value");
 	  if (value) {
 	    /* Check that value is a valid constant in PHP (and adjust it if
-	     * necessary, or replace it with "?" is it's just not valid). */
+	     * necessary, or replace it with "?" if it's just not valid). */
 	    SwigType *type = Getattr(p,"type");
 	    switch (SwigType_type(type)) {
 	      case T_BOOL: {
@@ -2297,17 +2296,16 @@ public:
 
       // Write the enum initialisation code in a static block
       // These are all the enums defined within the C++ class.
-      
 
       free(shadow_classname);
       shadow_classname = NULL;
-      
+
       Delete(shadow_set_vars); shadow_set_vars = NULL;
       Delete(shadow_get_vars); shadow_get_vars = NULL;
-      
-      Printf(all_cs_entry,"%s   { NULL, NULL, NULL}\n};\n",cs_entry);
-      //??delete cs_entry;
-      cs_entry=NULL;
+
+      Printv(all_cs_entry, cs_entry, " { NULL, NULL, NULL}\n};\n", NIL);
+      Delete(cs_entry);
+      cs_entry = NULL;
     } else if (shadow && php_version == 5) {
       DOH *key;
       List *baselist = Getattr(n, "bases");
