@@ -30,6 +30,9 @@
  *   a method with two overloaded forms instead of a single method with
  *   a default parameter value).
  *
+ * Create __isset method for PHP 5.1 and later (we can probably just
+ *   always generate as PHP 5.0 should just ignore it).
+ *
  * Long term:
  *
  * Option to generate code to work with PHP4 instead ("public $_cPtr;" ->
@@ -740,6 +743,24 @@ public:
     Printf(s_entry,"static function_entry %s_functions[] = {\n", module);
     
     /* start the init section */
+    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n"
+		   "#if ZEND_MODULE_API_NO > 20010900\n"
+		   "    STANDARD_MODULE_HEADER,\n"
+		   "#endif\n", NIL);
+    Printf(s_init, "    \"%s\",\n", module);
+    Printf(s_init, "    %s_functions,\n", module);
+    Printf(s_init, "    PHP_MINIT(%s),\n", module);
+    Printf(s_init, "    PHP_MSHUTDOWN(%s),\n", module);
+    Printf(s_init, "    PHP_RINIT(%s),\n", module);
+    Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
+    Printf(s_init, "    PHP_MINFO(%s),\n",module);
+    Printf(s_init, "#if ZEND_MODULE_API_NO > 20010900\n");
+    Printf(s_init, "    NO_VERSION_YET,\n");
+    Printf(s_init, "#endif\n");
+    Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
+    Printf(s_init, "};\n");
+    Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n",module);
+
     if (gen_extra) {
       Printf(s_init,"#ifdef COMPILE_DL_%s\n", cap_module);
     }
@@ -814,26 +835,6 @@ public:
 
     Close(f_h);
 
-    Printf(s_header, "%s\n\n",all_cs_entry);
-    Printf(s_header, "%s {NULL, NULL, NULL}\n};\n\n",s_entry);
-    Printf(s_header, "zend_module_entry %s_module_entry = {\n", module );
-    Printf(s_header, "#if ZEND_MODULE_API_NO > 20010900\n" );
-    Printf(s_header, "    STANDARD_MODULE_HEADER,\n");
-    Printf(s_header, "#endif\n");
-    Printf(s_header, "    \"%s\",\n", module);
-    Printf(s_header, "    %s_functions,\n", module);
-    Printf(s_header, "    PHP_MINIT(%s),\n", module);
-    Printf(s_header, "    PHP_MSHUTDOWN(%s),\n", module);
-    Printf(s_header, "    PHP_RINIT(%s),\n", module);
-    Printf(s_header, "    PHP_RSHUTDOWN(%s),\n", module);
-    Printf(s_header, "    PHP_MINFO(%s),\n",module);
-    Printf(s_header, "#if ZEND_MODULE_API_NO > 20010900\n");
-    Printf(s_header, "    NO_VERSION_YET,\n");
-    Printf(s_header, "#endif\n");
-    Printf(s_header, "    STANDARD_MODULE_PROPERTIES\n");
-    Printf(s_header, "};\n");
-    Printf(s_header, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n",module);
-
     String *type_table = NewStringEmpty();
     SwigType_emit_type_table(f_runtime,type_table);
     Printf(s_header,"%s",type_table);
@@ -847,11 +848,17 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
     
-    Printv(f_runtime, s_header, s_vdecl, s_wrappers, s_init, NIL);
+    Printv(f_runtime, s_header, s_vdecl, s_wrappers, NIL);
+    Printv(f_runtime, all_cs_entry, "\n\n",
+		      s_entry,
+		      "{NULL, NULL, NULL}\n};\n\n", NIL);
+    Printv(f_runtime, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
+    Delete(all_cs_entry);
+    Delete(s_entry);
     Close(f_runtime);
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
@@ -880,14 +887,15 @@ public:
 */
 
   void create_command(String *cname, String *iname) {
-
-    Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
+    if (wrapperType == standard) {
+      Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
+    }
 
     // This is for the single main function_entry record
-    if (cs_entry) {
-      Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
+    if (cs_entry && wrapperType == standard) {
+      Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
     } else {
-      Printf(s_entry,"  ZEND_NAMED_FE(%(lower)s,%s, NULL)\n", cname,iname );
+      Printf(s_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
     }
   }
   /* ------------------------------------------------------------
@@ -1043,7 +1051,7 @@ public:
       if (!overloaded &&
           !(destructor && shadow && php_version == 4) &&
           wrapperType != staticmembervar ) {
-        create_command( iname, wname );
+        create_command(iname, wname);
       }
       Printv(f->def, "ZEND_NAMED_FUNCTION(" , wname, ") {\n", NIL);
     }
@@ -2643,7 +2651,9 @@ public:
       native_constructor=0;
     }
     constructors++;
+    wrapperType = constructor;
     Language::constructorHandler(n);
+    wrapperType = standard;
 
     if (shadow && php_version == 4) {
       String *wname = NewStringf( "_wrap_new_%s", iname );
