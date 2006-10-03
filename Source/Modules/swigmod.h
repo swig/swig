@@ -197,7 +197,7 @@ public:
   virtual int classDirectorEnd(Node *n);
   virtual int unrollVirtualMethods(Node *n, 
                                    Node *parent, 
-                                   Hash *vm, 
+                                   List *vm, 
                                    int default_director, 
                                    int &virtual_destructor,
 				   int protectedbase = 0);
