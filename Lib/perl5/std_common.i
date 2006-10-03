@@ -19,7 +19,8 @@ double SwigSvToNumber(SV* sv) {
 }
 std::string SwigSvToString(SV* sv) {
     STRLEN len;
-    return SvPV(sv,len);
+    char *ptr = SvPV(sv, len);
+    return std::string(ptr, len);
 }
 void SwigSvFromString(SV* sv, const std::string& s) {
     sv_setpvn(sv,s.data(),s.size());

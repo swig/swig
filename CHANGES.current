@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/03/2006: olly
+	    [Perl] Fix for handling strings with zero bytes from Stephen Hutsal.
+
 09/30/2006: efuzzyone
             [CFFI] Bitfield support and vararg support due to Arthur Smyles.
             C expression to Lisp conversion, thanks to Arthur Smyles for the initial
