@@ -693,6 +693,9 @@ public:
 
       Printv(f_shadow,"import new\n",NULL);
       Printv(f_shadow,"new_instancemethod = new.instancemethod\n",NULL);
+      if (modern || !classic) {
+	Printv(f_shadow, "_swig_property = property\n", NULL);
+      }
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       { 
@@ -2690,7 +2693,7 @@ public:
                tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
                NIL);
       } else {
-	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ",
+	Printv(f_shadow, tab4, "thisown = _swig_property(lambda x: x.this.own(), ",
 	       "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n,"feature:python:nondynamic")) {
@@ -3156,9 +3159,9 @@ public:
 	}
 	if (!classic) {
 	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = _swig_property(", module, ".",  gname,")\n", NIL);
 	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = _swig_property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
 	  }
 	}
       }
@@ -3219,9 +3222,9 @@ public:
 	}
 	if (!classic) {
 	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(", module, ".",  gname,")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = _swig_property(", module, ".",  gname,")\n", NIL);
 	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname," = _swig_property(",  module, ".", gname,", ", module, ".", sname,")\n", NIL);
 	  }
 	}
 	Delete(mname);
