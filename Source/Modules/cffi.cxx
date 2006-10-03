@@ -986,8 +986,8 @@ String * CFFI::convert_literal(String *literal, String *type, bool try_to_split)
     return NewStringf("\"%s\"", num_param);
   }
   else if (SwigType_type(type) == T_INT){
-    Replaceall(num, "u", "") + Replaceall(num, "U", "");
-    Replaceall(num, "l", "") + Replaceall(num, "L", "");
+    Replaceall(num, "u", ""); Replaceall(num, "U", "");
+    Replaceall(num, "l", ""); Replaceall(num, "L", "");
     
     int i,j;
     if (sscanf (s,"%d >> %d",&i,&j) == 2){
