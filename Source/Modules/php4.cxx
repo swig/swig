@@ -87,7 +87,7 @@ static String *withincs = 0;
 static String *withc = 0;
 static String *withcxx = 0;
 
-static char *shadow_classname;
+static String *shadow_classname = 0;
 
 static int      gen_extra = 0;
 static int      gen_make = 0;
@@ -170,9 +170,6 @@ static const char *php_header =
 void
 SwigPHP_emit_resource_registrations() {
   Iterator ki;
-  String *destructor=0;
-  String *classname=0;
-  String *shadow_classname=0;
 
   if (!zend_types) return;
 
@@ -181,32 +178,31 @@ SwigPHP_emit_resource_registrations() {
   while (ki.key) if (1 /* is pointer type*/) {
     DOH *key = ki.key;
     Node *class_node = ki.item;
+    String *human_name = key;
 
     // Write out destructor function header
     Printf(s_wrappers,"/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
 
     // write out body
     if ((class_node!=NOTCLASS)) {
-      classname = Getattr(class_node,"name");
-      if (! (shadow_classname = Getattr(class_node,"sym:name"))) {
-	shadow_classname=classname;
-      }
+      String *destructor = Getattr(class_node, "destructor");
+      human_name = Getattr(class_node,"sym:name");
+      if (!human_name) human_name = Getattr(class_node,"name");
       // Do we have a known destructor for this type?
-      if ((destructor = Getattr(class_node,"destructor"))) {
-	Printf(s_wrappers,"  /* has destructor: %s */\n",destructor);
+      if (destructor) {
 	Printf(s_wrappers,"  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
       } else {
-	Printf(s_wrappers,"  /* bah! No destructor for this wrapped class!! */\n");
+	Printf(s_wrappers,"  /* No destructor for class %s */\n", human_name);
       }
     } else {
-	Printf(s_wrappers,"  /* bah! No destructor for this simple type!! */\n");
+      Printf(s_wrappers,"  /* No destructor for simple type %s */\n", key);
     }
 
     // close function
     Printf(s_wrappers,"}\n");
 
     // declare le_swig_<mangled> to store php registration
-    Printf(s_vdecl,"static int le_swig_%s=0; /* handle for %s */\n", key, shadow_classname);
+    Printf(s_vdecl,"static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
     Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
@@ -618,7 +614,7 @@ public:
     /* Set the module name */
     module = Copy(Getattr(n,"name"));
     cap_module = NewStringf("%(upper)s",module);
-    if (!prefix) prefix = Copy(module);
+    if (!prefix) prefix = NewStringEmpty();
 
     /* PHP module file */
     filen = NewStringEmpty();
@@ -863,9 +859,9 @@ public:
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
     if (s_fakeoowrappers) {
-      Printf(f_phpcode, "abstract class %s {", prefix);
+      Printf(f_phpcode, "abstract class %s {", Len(prefix) ? prefix : module);
       Printf(f_phpcode, "%s", s_fakeoowrappers);
-      Printf(f_phpcode, "}\n\n", prefix);
+      Printf(f_phpcode, "}\n\n");
       Delete(s_fakeoowrappers);
       s_fakeoowrappers = NULL;
     }
@@ -1016,13 +1012,13 @@ public:
     }
 
     // if PHP4, shadow and variable wrapper we want to snag the main contents
-    // of this function to stick in to the property handler....    
+    // of this function to stick in to the property handler...
     if (mvr) {
       String *php_function_name = NewString(iname);
-      if( Strcmp( iname, Swig_name_set(Swig_name_member(shadow_classname, name)))== 0) {
+      if (Strcmp(iname, Swig_name_set(Swig_name_member(shadow_classname, name)))== 0) {
         Setattr(shadow_set_vars, php_function_name, name);
       }
-      if( Strcmp(iname, Swig_name_get(Swig_name_member(shadow_classname, name))) == 0) {
+      if (Strcmp(iname, Swig_name_get(Swig_name_member(shadow_classname, name))) == 0) {
         Setattr(shadow_get_vars, php_function_name, name);
       }
 
@@ -1993,14 +1989,14 @@ public:
       char *rename = GetChar(n, "sym:name");
 
       if (!addSymbol(rename,n)) return SWIG_ERROR;
-      shadow_classname = Swig_copy_string(rename);
+      shadow_classname = NewStringf("%s", rename);
       cs_entry = NewStringEmpty();
-      Printf(cs_entry,"/* Function entries for %s */\n",shadow_classname);
-      Printf(cs_entry,"static zend_function_entry %s_functions[] = {\n", shadow_classname);
+      Printf(cs_entry, "/* Function entries for %s */\n", shadow_classname);
+      Printf(cs_entry, "static zend_function_entry %s_functions[] = {\n", shadow_classname);
 
-      if(Strcmp(shadow_classname, module) == 0) {
-        Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
-        SWIG_exit(1);
+      if (Strcmp(shadow_classname, module) == 0) {
+	Printf(stderr, "class name cannot be equal to module name: %s\n", module);
+	SWIG_exit(1);
       }
 
       shadow_get_vars = NewHash();
@@ -2073,7 +2069,6 @@ public:
 
     if (shadow && php_version == 4) {
       DOH *key;
-      int gcount, scount;
       String      *s_propget = NewStringEmpty();
       String      *s_propset = NewStringEmpty();
       List *baselist = Getattr(n, "bases");
@@ -2144,21 +2139,13 @@ public:
         }
       }
 
-      scount=0;
       while (ki.key) {
         key = ki.key;
-        if (scount++) {
-          Printf(s_propset," else");
-        }
         Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n", ki.item);
         Printf(s_propset,"    return _wrap_%s(property_reference, value);\n",key);
-        Printf(s_propset,"  }");
+        Printf(s_propset,"  }\n");
 
         ki=Next(ki);
-      }
-
-      if (scount) {
-        Printf(s_propset," else");
       }
 
       // If there is a base class then chain its handler else set directly
@@ -2234,22 +2221,14 @@ public:
         }
       }
 
-      gcount=0;
       while (ki.key) {
         key = ki.key;
-        if (gcount++) {
-          Printf(s_propget," else");
-        }
         Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n", ki.item);
         Printf(s_propget,"    *value=_wrap_%s(property_reference);\n",key);
         Printf(s_propget,"    return SUCCESS;\n");
-        Printf(s_propget,"  }");
+        Printf(s_propget,"  }\n");
 
         ki=Next(ki);
-      }
-
-      if (gcount) {
-        Printf(s_propget," else");
       }
 
       // If there is a base class then chain its handler else return FAILURE.
@@ -2297,7 +2276,7 @@ public:
       // Write the enum initialisation code in a static block
       // These are all the enums defined within the C++ class.
 
-      free(shadow_classname);
+      Delete(shadow_classname);
       shadow_classname = NULL;
 
       Delete(shadow_set_vars); shadow_set_vars = NULL;
@@ -2399,7 +2378,7 @@ public:
 
       Printf(s_phpclasses, "}\n\n");
 
-      free(shadow_classname);
+      Delete(shadow_classname);
       shadow_classname = NULL;
 
       Delete(shadow_set_vars); shadow_set_vars = NULL;
@@ -2633,13 +2612,13 @@ public:
   /* ------------------------------------------------------------
    * constructorHandler()
    * ------------------------------------------------------------ */
-  
+
   virtual int constructorHandler(Node *n) {
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
 
     if (shadow && php_version == 4) {
-      if (strcmp(iname, shadow_classname) == 0) {
+      if (strcmp(iname, Char(shadow_classname)) == 0) {
 	native_constructor = NATIVE_CONSTRUCTOR;
       } else {
 	native_constructor = ALTERNATIVE_CONSTRUCTOR;
