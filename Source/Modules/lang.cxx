@@ -1710,7 +1710,7 @@ String *vtable_method_id(Node *n)
  * ---------------------------------------------------------------------- */
 int Language::unrollVirtualMethods(Node *n, 
                                    Node *parent, 
-                                   Hash *vm, 
+				   List *vm,
                                    int default_director, 
                                    int &virtual_destructor,
 				   int protectedbase) { 
@@ -1750,20 +1750,21 @@ int Language::unrollVirtualMethods(Node *n,
     if ((Cmp(nodeType, "cdecl") == 0)|| is_destructor) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
-      if (SwigType_isfunction(decl) 
-	  && (((!protectedbase || dirprot_mode()) && is_public(ni)) 
-	      || need_nonpublic_member(ni))) {
+      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(ni)) || need_nonpublic_member(ni))) {
 	String *name = Getattr(ni, "name");
-	Node *method_id = is_destructor ? 
-	  NewStringf("~destructor") :  vtable_method_id(ni);
+	Node *method_id = is_destructor ?  NewStringf("~destructor") : vtable_method_id(ni);
 	/* Make sure that the new method overwrites the existing: */
-	Hash *exists_item = Getattr(vm, method_id);
-        if (exists_item) {
-	  /* maybe we should check for precedence here, ie, only
-	     delete the previous method if 'n' is derived from the
-	     previous method parent node. This is almost always true,
-	     so by now, we just delete the entry. */
-	  Delattr(vm, method_id);
+	int len = Len(vm);
+	const int DO_NOT_REPLACE = -1;
+	int replace = DO_NOT_REPLACE;
+	for (int i=0; i<len; i++) {
+	  Node *item = Getitem(vm,i);
+	  String *check_vmid = Getattr(item, "vmid");
+
+	  if (Strcmp(method_id, check_vmid) == 0) {
+	    replace = i;
+	    break;
+	  }
 	}
         /* filling a new method item */
  	String *fqdname = NewStringf("%s::%s", classname, name);
@@ -1784,11 +1785,13 @@ int Language::unrollVirtualMethods(Node *n,
 	/* apply the features of the original method found in the base class */
 	Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m,"decl"), m);
 	Setattr(item, "methodNode", m);
-	Setattr(vm, method_id, item);
+	Setattr(item, "vmid", method_id);
+	if (replace == DO_NOT_REPLACE)
+	  Append(vm, item);
+	else
+	  Setitem(vm, replace, item);
+
 	Delete(mname);
-	Delete(fqdname);
-	Delete(item);
-	Delete(method_id);
       } 
       if (is_destructor) {
 	virtual_destructor = 1;
@@ -1804,9 +1807,10 @@ int Language::unrollVirtualMethods(Node *n,
     an the recursive loop!.
   */
   if (n == parent) {
-    Iterator k;
-    for (k = First(vm); k.key; k = Next(k)) {
-      Node *m = Getattr(k.item, "methodNode");
+    int len = Len(vm);
+    for (int i=0; i<len; i++) {
+      Node *item = Getitem(vm,i);
+      Node *m = Getattr(item, "methodNode");
       /* retrieve the director features */
       int mdir = GetFlag(m, "feature:director");
       int mndir = GetFlag(m, "feature:nodirector");
@@ -1827,7 +1831,7 @@ int Language::unrollVirtualMethods(Node *n,
 	if (mndir) Delattr(m, "feature:nodirector");
       } else {
 	/* or just delete from the vm, since is not a director method */
-	Delattr(vm, k.key);
+	Delitem(vm, i);
       }
     }
   }
@@ -1947,15 +1951,12 @@ int Language::classDirectorConstructors(Node *n) {
 
 int Language::classDirectorMethods(Node *n) {
   Node *vtable = Getattr(n, "vtable");
-  Node *item;
-  Iterator k;
 
-  for (k = First(vtable); k.key; k = Next(k)) {
-    item = k.item;
+  int len = Len(vtable);
+  for (int i=0; i<len; i++) {
+    Node *item = Getitem(vtable,i);
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-//    if (GetFlag(method,"feature:ignore"))
-//      continue;
     if (GetFlag(method, "feature:nodirector"))
       continue;
 
@@ -2027,7 +2028,7 @@ int Language::classDirector(Node *n) {
       Setattr(module, "wrap:directormap", directormap);
     }
   }
-  Hash* vtable = NewHash();
+  List* vtable = NewList();
   int virtual_destructor = 0;
   unrollVirtualMethods(n, n, vtable, 0, virtual_destructor);
   if (virtual_destructor || Len(vtable) > 0) {
@@ -2366,16 +2367,15 @@ int Language::classHandler(Node *n) {
 
     /* Emit additional protected virtual methods - only needed if the language module
      * codes logic in the C++ layer instead of the director proxy class method - primarily
-     * to catch public use of protected methods by the sripting languages. */
+     * to catch public use of protected methods by the scripting languages. */
     if (dirprot_mode() && extraDirectorProtectedCPPMethodsRequired()) {
       Node *vtable = Getattr(n, "vtable");
       String* symname = Getattr(n, "sym:name");
-      Node *item;
-      Iterator k;
       AccessMode old_mode = cplus_mode;
       cplus_mode = PROTECTED;
-      for (k = First(vtable); k.key; k = Next(k)) {
-	item = k.item;
+      int len = Len(vtable);
+      for (int i=0; i<len; i++) {
+	Node *item = Getitem(vtable,i);
 	Node *method = Getattr(item, "methodNode");
 	SwigType *type = Getattr(method,"nodeType");
 	if (Strcmp(type,"cdecl") !=0 )
@@ -3200,14 +3200,15 @@ int Language::abstractClassTest(Node *n) {
       Node *ni = Getitem(abstract,i);
       Node *method_id = vtable_method_id(ni);
       if (!method_id) continue;
-      Hash *exists_item = Getattr(vtable, method_id);
-#ifdef SWIG_DEBUG
-       Printf(stderr,"method %s %d\n",method_id,exists_item ? 1 : 0);
-#endif
-      Delete(method_id);
-      if (!exists_item) {
-	dirabstract = ni;
-	break;
+      bool exists_item = false;
+      int len = Len(vtable);
+      for (int i=0; i<len; i++) {
+	Node *item = Getitem(vtable,i);
+	String *check_item = Getattr(item, "vmid");
+	if (Strcmp(method_id, check_item) == 0) {
+	  exists_item = true;
+	  break;
+	}
       }
     }
     if (dirabstract) {
