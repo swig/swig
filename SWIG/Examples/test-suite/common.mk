@@ -132,6 +132,7 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_namespace_clash \
 	director_nested \
+	director_overload \
 	director_primitives \
 	director_protected \
 	director_redefined \
