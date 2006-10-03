@@ -94,11 +94,3 @@
 #if !defined(SWIG_NO_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif
-
-/* Putting > and < into constant expressions causes problems with code which
- * tries to parse template types, so we use SWIG_GT, etc instead until such
- * code gets enhanced. */
-#define SWIG_GT >
-#define SWIG_LT <
-#define SWIG_GE >=
-#define SWIG_LE <=
