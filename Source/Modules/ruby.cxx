@@ -18,8 +18,10 @@ static int treduce = SWIG_cparse_template_reduce(0);
 #include <ctype.h>
 #include <string.h>
 #include <limits.h> /* for INT_MAX */
+#include <string>
+#include <iostream>
 
- class RClass {
+class RClass {
  private:
   String *temp;
  public:
@@ -143,6 +145,7 @@ private:
 
   File *f_directors;
   File *f_directors_h;
+  File *f_directors_helpers;
   File *f_runtime;
   File *f_runtime_h;
   File *f_header;
@@ -418,6 +421,7 @@ public:
     f_wrappers = NewString("");
     f_directors_h = NewString("");
     f_directors = NewString("");
+    f_directors_helpers = NewString("");
     f_initbeforefunc = NewString("");
 
     /* Register file targets with the SWIG file handler */
@@ -427,6 +431,7 @@ public:
     Swig_register_filebyname("init",f_init);
     Swig_register_filebyname("director",f_directors);
     Swig_register_filebyname("director_h",f_directors_h);
+    Swig_register_filebyname("director_helpers",f_directors_helpers);
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
 
     modvar = 0;
@@ -464,6 +469,10 @@ public:
       Printf(f_directors_h, "namespace Swig {\n");
       Printf(f_directors_h, "  class Director;\n");
       Printf(f_directors_h, "}\n\n");
+
+      Printf(f_directors_helpers, "/* ---------------------------------------------------\n");
+      Printf(f_directors_helpers, " * C++ director class helpers\n");
+      Printf(f_directors_helpers, " * --------------------------------------------------- */\n\n");
 
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -522,6 +531,7 @@ public:
     Dump(f_header,f_runtime);
 
     if (directorsEnabled()) {
+      Dump(f_directors_helpers, f_runtime);
       Dump(f_directors, f_runtime);
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
@@ -2188,11 +2198,11 @@ public:
    * --------------------------------------------------------------- */
 
   void exceptionSafeMethodCall(String *className, Node *n, Wrapper *w, int argc, String *args) {
-
     Wrapper *body = NewWrapper();
     Wrapper *rescue = NewWrapper();
 
     String *methodName = Getattr(n, "sym:name");
+
     String *bodyName = NewStringf("%s_%s_body", className, methodName);
     String *rescueName = NewStringf("%s_%s_rescue", className, methodName);
     String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
@@ -2207,7 +2217,7 @@ public:
     {
       // Declare a global to hold the depth count
       if (!Getattr(n,"sym:nextSibling")) {
-	Printf(f_directors, "static int %s = 0;\n", depthCountName);
+	Printf(body->def, "static int %s = 0;\n", depthCountName);
 
 	// Function body
 	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
@@ -2258,8 +2268,8 @@ public:
       }
 
       // Dump wrapper code
-      Wrapper_print(body, f_directors);
-      Wrapper_print(rescue, f_directors);
+      Wrapper_print(body, f_directors_helpers);
+      Wrapper_print(rescue, f_directors_helpers);
     }
     else
     {
@@ -2303,6 +2313,10 @@ public:
       if (Cmp(value,"0") == 0) {
         pure_virtual = true;
       }
+    }
+    String *overnametmp = NewString(Getattr(n,"sym:name"));
+    if (Getattr(n, "sym:overloaded")) {
+      Printf(overnametmp, "::%s", Getattr(n, "sym:overname"));
     }
 
     classname = Getattr(parent, "sym:name");
