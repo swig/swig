@@ -992,37 +992,10 @@ Swig_methodclass(Node *n) {
 }
 
 int
-Swig_directorbase(Node *n) {
-  Node *classNode = Swig_methodclass(n);
-  return (classNode && (Getattr(classNode, k_directorbase) != 0));
-}
-
-int
 Swig_directorclass(Node *n) {
   Node *classNode = Swig_methodclass(n);
   assert(classNode != 0);
   return (Getattr(classNode, k_vtable) != 0);
-}
-
-int
-Swig_directormethod(Node *n) {
-  Node *classNode = Swig_methodclass(n);
-  if (classNode) {
-    Node *vtable = Getattr(classNode, k_vtable);
-    if (vtable) {
-      String *name = Getattr(n, k_name);
-      String *decl = Getattr(n, k_decl);
-      String *local_decl = SwigType_typedef_resolve_all(decl);
-      String *method_id = NewStringf("%s|%s", name, local_decl);
-      Hash *item = Getattr(vtable, method_id);
-      Delete(method_id);
-      Delete(local_decl);
-      if (item) {
-        return (Getattr(item, k_director) != 0);
-      }
-    }
-  }
-  return 0;
 }
 
 Node *

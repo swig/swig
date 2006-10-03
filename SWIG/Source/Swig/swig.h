@@ -513,9 +513,7 @@ extern int        Swig_VarsetToFunction(Node *n, int flags);
 
 /* --- Director Helpers --- */
 extern Node      *Swig_methodclass(Node *n);
-extern int        Swig_directorbase(Node *n);
 extern int        Swig_directorclass(Node *n);
-extern int        Swig_directormethod(Node *n);
 extern Node      *Swig_directormap(Node *n, String *type);
 
 /* --- Legacy Typemap API (somewhat simplified, ha!) --- */
