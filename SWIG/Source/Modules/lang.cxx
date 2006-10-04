@@ -2299,14 +2299,16 @@ int Language::classDeclaration(Node *n) {
     /* copy constructor */
     if (CPlusPlus && !abstract && GetFlag(n,"feature:copyctor")) {
       if (!Getattr(n,"has_copy_constructor") && !Getattr(n,"allocate:has_copy_constructor") 
-	  && (Getattr(n,"allocate:copy_constructor"))) {
+	  && (Getattr(n,"allocate:copy_constructor"))
+          && (!GetFlag(n,"feature:ignore"))) {
 	addCopyConstructor(n);
       }
     }
     /* default destructor */
     if (!GetFlag(n,"feature:nodefaultdtor") && odefault) {
       if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) 
-	  && (Getattr(n,"allocate:default_destructor"))) {
+	  && (Getattr(n,"allocate:default_destructor"))
+          && (!GetFlag(n,"feature:ignore"))) {
 	addDestructor(n);
       }
     }

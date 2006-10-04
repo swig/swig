@@ -92,6 +92,7 @@ SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Flow, Space::Flow)
 
 %copyctor;
 
+%ignore FlowFlow::FlowFlow;
 
 %inline %{
 
@@ -100,6 +101,13 @@ class Flow {
 public:
   Flow(int i) {}
 };
+
+
+class FlowFlow {
+public:
+  FlowFlow(int i) {}
+};
+
 }
 
 %}
