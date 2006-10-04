@@ -2960,11 +2960,11 @@ class CSHARP : public Language {
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     String     *empty_str = NewString("");
     String     *classname = Getattr(parent, "sym:name");
+    String     *c_classname = Getattr(parent, "name");
     String     *name = Getattr(n, "name");
     String     *symname = Getattr(n, "sym:name");
     SwigType   *type = Getattr(n, "type");
     SwigType   *returntype = Getattr(n,"returntype");
-    String     *c_classname = NULL;
     String     *overloaded_name = getOverloadedName(n);
     String     *storage = Getattr(n, "storage");
     String     *value = Getattr(n, "value");
@@ -3000,12 +3000,6 @@ class CSHARP : public Language {
     // does the overloaded method name get set?)
 
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(classname, overloaded_name));
-
-    // Get the C++ name for the parent node (should be a class... hint)
-
-    c_classname = Getattr(parent, "name");
-    if (!(Cmp(type, "class")))
-      c_classname = classname;
 
     if (returntype) {
 
@@ -3127,7 +3121,7 @@ class CSHARP : public Language {
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", c_classname, name);
+      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
     }
 
     if (!ignored_method)
@@ -3364,7 +3358,7 @@ class CSHARP : public Language {
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, 
-		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), classname, name);
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  output_director = false;
 	}
 
