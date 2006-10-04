@@ -636,11 +636,13 @@ public:
     Printf(f_phpcode,"  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
     Printf(f_phpcode,"    if (!dl('php_%s.dll')) return;\n", module);
     Printf(f_phpcode,"  } else {\n");
-    Printf(f_phpcode,"    $ext = PHP_SHLIB_SUFFIX;\n");
     Printf(f_phpcode,"    // PHP_SHLIB_SUFFIX is available as of PHP 4.3.0, for older PHP assume 'so'.\n");
     Printf(f_phpcode,"    // It gives 'dylib' on MacOS X which is for libraries, modules are 'so'.\n");
-    Printf(f_phpcode,"    if ($ext === 'PHP_SHLIB_SUFFIX' || $ext === 'dylib') $ext = 'so';\n");
-    Printf(f_phpcode,"    if (!dl('%s.'.$ext)) return;\n", module);
+    Printf(f_phpcode,"    if (PHP_SHLIB_SUFFIX === 'PHP_SHLIB_SUFFIX' || PHP_SHLIB_SUFFIX === 'dylib') {\n");
+    Printf(f_phpcode,"      if (!dl('%s.so')) return;\n", module);
+    Printf(f_phpcode,"    } else {\n");
+    Printf(f_phpcode,"      if (!dl('%s.'.PHP_SHLIB_SUFFIX)) return;\n", module);
+    Printf(f_phpcode,"    }\n");
     Printf(f_phpcode,"  }\n");
     Printf(f_phpcode,"}\n\n");
 
