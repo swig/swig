@@ -24,7 +24,7 @@
   "REGISTER_DOUBLE_CONSTANT(\"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
 
 %typemap(consttab) char {
-  char swig_char = $value;
+  static char swig_char = $value;
   REGISTER_STRINGL_CONSTANT("$symname", &swig_char, 1, CONST_CS | CONST_PERSISTENT);
 }
 
