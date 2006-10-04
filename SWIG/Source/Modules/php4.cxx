@@ -2593,14 +2593,13 @@ public:
   int abstractConstructorHandler(Node *n) {
     String *iname = GetChar(n, "sym:name");
     if (shadow && php_version == 4) {
-      Wrapper *f;
-      f   = NewWrapper();
+      Wrapper *f = NewWrapper();
 
       String *wname = NewStringf( "_wrap_new_%s", iname );
       create_command( iname, wname );
 
-      Printf(f->def, "ZEND_NAMED_FUNCTION(_wrap_new_%s) {\n", iname );
-      Printf(f->def, "zend_error(E_ERROR,\"Cannot create swig object type: %s as the underlying object is abstract\");\n",
+      Printf(f->def, "ZEND_NAMED_FUNCTION(_wrap_new_%s) {\n", iname);
+      Printf(f->def, "  zend_error(E_ERROR,\"Cannot create swig object type: %s as the underlying class is abstract\");\n",
              iname);
       Printf(f->def, "}\n\n");
       Wrapper_print(f,s_wrappers);
@@ -2633,15 +2632,13 @@ public:
     wrapperType = standard;
 
     if (shadow && php_version == 4) {
-      String *wname = NewStringf( "_wrap_new_%s", iname );
       if(!Getattr(n,"sym:overloaded") || !Getattr(n,"sym:nextSibling")) {
         char *realname = iname ? iname : name;
         String *php_function_name = Swig_name_construct(realname);
         create_command(realname,Swig_name_wrapper(php_function_name));
       }
-      Delete(wname);
     }
-    
+
     native_constructor = 0;
     return SWIG_OK;
   }
