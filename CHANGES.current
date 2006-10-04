@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/04/2006: mgossage
+            [Lua] Partial Fix #1569587. The type is now correct, but the name is still not correct.
+
 10/03/2006: mmatus
         
             Fix #1486281 and #1471039.
