@@ -1832,6 +1832,8 @@ int Language::unrollVirtualMethods(Node *n,
       } else {
 	/* or just delete from the vm, since is not a director method */
 	Delitem(vm, i);
+	len--;
+	i--;
       }
     }
   }
@@ -2472,9 +2474,8 @@ int Language::constructorDeclaration(Node *n) {
     }
     Delete(base);
   }
+
   /* Only create a constructor if the class is not abstract */
-
-
   if (!Abstract) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
@@ -3211,6 +3212,14 @@ int Language::abstractClassTest(Node *n) {
 	  exists_item = true;
 	  break;
 	}
+      }
+#ifdef SWIG_DEBUG
+      Printf(stderr,"method %s %d\n",method_id,exists_item ? 1 : 0);
+#endif
+      Delete(method_id);
+      if (!exists_item) {
+	dirabstract = ni;
+	break;
       }
     }
     if (dirabstract) {
