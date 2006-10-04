@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/03/2006: mmatus
+        
+            Fix #1486281 and #1471039.
+
 10/03/2006: olly
 	    [Perl] Fix for handling strings with zero bytes from Stephen Hutsal.
 
