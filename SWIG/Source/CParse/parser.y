@@ -5304,15 +5304,7 @@ etype            : expr {
 
 /* Arithmetic expressions.  Used for constants, C++ templates, and other cool stuff. */
 
-expr           : valexpr {
-		 $$ = $1;
-		 /* We want the rawval for a character constant (e.g. 'x'
-		  * not just x) since we use it in C code. */
-		 if ($$.type == T_CHAR && $$.rawval) {
-		   $$.val = $$.rawval;
-		   $$.rawval = 0;
-		 }
-	       }
+expr           : valexpr { $$ = $1; }
                | type {
 		 Node *n;
 		 $$.val = $1;
