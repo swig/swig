@@ -877,22 +877,21 @@ public:
     
     return SWIG_OK;
   }
-  
-/* Just need to append function names to function table to register with
-   PHP
-*/
 
+  /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *iname) {
     // This is for the single main function_entry record
-    if (wrapperType == standard) {
-      Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
-      if (cs_entry) {
-	Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
-      } else {
-        Printf(s_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
-      }
+    if (shadow && php_version == 4) {
+      if (wrapperType != standard) return;
+    }
+    Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
+    if (cs_entry) {
+      Printf(cs_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
+    } else {
+      Printf(s_entry," ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
     }
   }
+
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
@@ -2141,27 +2140,25 @@ public:
 
       while (ki.key) {
         key = ki.key;
-        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n", ki.item);
-        Printf(s_propset,"    return _wrap_%s(property_reference, value);\n",key);
-        Printf(s_propset,"  }\n");
+        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) return _wrap_%s(property_reference, value);\n", ki.item, key);
 
         ki=Next(ki);
       }
 
-      // If there is a base class then chain its handler else set directly
-      // try each base class handler, else set directly...
+      // If the property wasn't in this class, try the handlers of each base
+      // class (if any) in turn until we succeed in setting the property or
+      // have tried all base classes.
       if (base.item) {
-        Printf(s_propset,  "  {\n    /* chain to base class */\n");
-        while(base.item) {
-          Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
+        Printf(s_propset,  "  /* Try base class(es) */\n");
+        while (base.item) {
+          Printf(s_propset,"  if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
                  GetChar(base.item, "sym:name"));
-          
+
           base=Next(base);
           while (base.item && GetFlag(base.item,"feature:ignore")) {
             base=Next(base);
           }
         }
-        Printf(s_propset,"  }\n");
       }
       Printf(s_propset,"  return FAILURE;\n}\n\n");
 
@@ -2231,19 +2228,20 @@ public:
         ki=Next(ki);
       }
 
-      // If there is a base class then chain its handler else return FAILURE.
+      // If the property wasn't in this class, try the handlers of each base
+      // class (if any) in turn until we succeed in setting the property or
+      // have tried all base classes.
       if (base.item) {
-        Printf(s_propget,  "  {\n    /* chain to base class */\n");
-        while(base.item) {
-          Printf(s_propget,"    if (_propget_%s(property_reference,  value)==SUCCESS) return SUCCESS;\n",
-               GetChar(base.item, "sym:name"));
+        Printf(s_propget,  "  /* Try base class(es). */\n");
+        while (base.item) {
+          Printf(s_propget,"  if (_propget_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
+                 GetChar(base.item, "sym:name"));
 
           base=Next(base);
           while (base.item && GetFlag(base.item,"feature:ignore")) {
             base=Next(base);
           }
         }
-        Printf(s_propget,"  }\n");
       }
       Printf(s_propget,"  return FAILURE;\n}\n\n");
 
