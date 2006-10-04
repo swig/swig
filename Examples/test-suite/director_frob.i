@@ -38,3 +38,13 @@
   {
   };
 %}
+
+%rename(OpInt) operator int;
+
+%inline %{
+  class Ops {
+  public:
+    virtual ~Ops() {}
+    virtual operator int() { return 0; }
+  };
+%}
