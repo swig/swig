@@ -164,8 +164,13 @@ but if its an output, then it should be wrappered like any other SWIG object (us
 %typemap(consttab) float, double
        { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) $value, 0, 0}
 
-%typemap(consttab) char, char *
+%typemap(consttab) char *
        { SWIG_LUA_STRING,  (char *)"$symname", 0, 0, (void *)"$value", 0}
+
+// note: char is treated as a seperate special type
+// signed char & unsigned char are numbers
+%typemap(consttab) char
+       { SWIG_LUA_CHAR,  (char *)"$symname", (long)$value, 0, 0, 0}
 
 %typemap(consttab) long long, unsigned long long
        { SWIG_LUA_STRING, (char *) "$symname", 0, 0, (void *)"$value", 0}
