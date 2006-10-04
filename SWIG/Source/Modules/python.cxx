@@ -3394,12 +3394,18 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   String *qualified_name = NewStringf("%s::%s", pclassname, name);
   target = Swig_method_decl(decl, qualified_name, l, 0, 0);
   String *rtype = SwigType_str(type, 0);
-  Printf(w->def, "%s %s", rtype, target);
+  if (Getattr(n, "conversion_operator"))
+    Printf(w->def, "%s", target);
+  else
+    Printf(w->def, "%s %s", rtype, target);
   Delete(qualified_name);
   Delete(target);
   /* header declaration */
   target = Swig_method_decl(decl, name, l, 0, 1);
-  Printf(declaration, "    virtual %s %s", rtype, target);
+  if (Getattr(n, "conversion_operator"))
+    Printf(declaration, "    virtual %s", target);
+  else
+    Printf(declaration, "    virtual %s %s", rtype, target);
   Delete(target);
     
   // Get any exception classes in the throws typemap
