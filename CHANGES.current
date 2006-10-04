@@ -1,6 +1,13 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/04/2006: olly
+	    [php] Fix #1569587 for PHP.  Don't use sizeof() except with string
+	    literals.  Change some "//" comments to "/* */" for portability.
+
+10/04/2006: mgossage
+            [Lua] Partial Fix #1569587. The type is now correct, but the name is still not correct.
+
 10/03/2006: wsfulton
             [Ruby] Fix #1527885 - Overloaded director virtual methods sometimes produced
             uncompileable code when used with the director:except feature.
@@ -8,9 +15,6 @@ Version 1.3.30 (in progress)
 10/03/2006: wsfulton
             Directors: Directors are output in the order in which they are declared in 
             the C++ class rather than in some pseudo-random order.
-
-10/04/2006: mgossage
-            [Lua] Partial Fix #1569587. The type is now correct, but the name is still not correct.
 
 10/03/2006: mmatus
             Fix #1486281 and #1471039.
