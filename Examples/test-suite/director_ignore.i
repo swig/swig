@@ -76,5 +76,21 @@ class DIgnoreOnlyConstructor
     DIgnoreOnlyConstructor(bool b) {}
 };
 
+template <typename T> class DTemplateAbstractIgnores
+{
+  T t;
+  public:
+    virtual ~DTemplateAbstractIgnores() {}
+    virtual double OverloadedMethod(int n, int xoffset = 0, int yoffset = 0) = 0;
+    virtual double OverloadedMethod(bool b) = 0;
+    virtual int Quadruple(int n) { return n*4; }
+    virtual int& References(int& n) { static int nn; nn=n; return nn; }
+    virtual int* Pointers(int* n) { static int nn; nn=*n; return &nn; }
+  protected:
+    virtual double OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0) = 0;
+    virtual double OverloadedProtectedMethod() = 0;
+};
 %}
+
+%template(DTemplateAbstractIgnoresInt) DTemplateAbstractIgnores<int>;
 
