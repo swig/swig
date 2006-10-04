@@ -3344,6 +3344,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   String *type;
   String *name;
   String *classname;
+  String *c_classname = Getattr(parent, "name");
   String *declaration;
   ParmList *l;
   Wrapper *w;
@@ -3452,7 +3453,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "%s;\n", super_call);
       Delete(super_call);
     } else {
-      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", classname, name);
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
     }
   } else {
     /* attach typemaps to arguments (C/C++ -> Python) */
@@ -3549,7 +3550,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	      Delete(nonconst_i);
 	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
 			   "Target language argument '%s' discards const in director method %s::%s.\n", 
-			   SwigType_str(ptype, pname), classname, name);
+			   SwigType_str(ptype, pname), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    } else {
 	      nonconst = Copy(ppname);
 	    }
@@ -3582,7 +3583,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Delete(nonconst);
 	  } else {
 	    Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-			 "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), classname, name);
+			 "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    status = SWIG_NOWRAP;
 	    break;
 	  }
@@ -3739,7 +3740,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
+		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	status = SWIG_ERROR;
       }
     }

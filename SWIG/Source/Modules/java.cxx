@@ -2988,11 +2988,11 @@ class JAVA : public Language {
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     String     *empty_str = NewString("");
     String     *classname = Getattr(parent, "sym:name");
+    String     *c_classname = Getattr(parent, "name");
     String     *name = Getattr(n, "name");
     String     *symname = Getattr(n, "sym:name");
     SwigType   *type = Getattr(n, "type");
     SwigType   *returntype = Getattr(n,"returntype");
-    String     *c_classname = NULL;
     String     *overloaded_name = getOverloadedName(n);
     String     *storage = Getattr(n, "storage");
     String     *value = Getattr(n, "value");
@@ -3030,12 +3030,6 @@ class JAVA : public Language {
     // does the overloaded method name get set?)
 
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(classname, overloaded_name));
-
-    // Get the C++ name for the parent node (should be a class... hint)
-
-    c_classname = Getattr(parent, "name");
-    if (!(Cmp(type, "class")))
-      c_classname = classname;
 
     if (returntype) {
 
@@ -3206,7 +3200,7 @@ class JAVA : public Language {
       Delete(super_call);
     } else {
       Printf(w->code, "SWIG_JavaThrowException(JNIEnvWrapper(this).getJNIEnv(), SWIG_JavaDirectorPureVirtual, ");
-      Printf(w->code, "\"Attempted to invoke pure virtual method %s::%s.\");\n", c_classname, name);
+      Printf(w->code, "\"Attempted to invoke pure virtual method %s::%s.\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
 
       /* Make sure that we return something in the case of a pure
        * virtual method call for syntactical reasons. */
@@ -3235,8 +3229,8 @@ class JAVA : public Language {
       Delete(jni_canon);
       Delete(tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                   "No or improper directorin typemap defined for %s\n", SwigType_str(classname, 0));
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+	  "No or improper directorin typemap for type %s used in director method %s::%s\n", SwigType_str(type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
 
@@ -3474,7 +3468,7 @@ class JAVA : public Language {
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, 
-	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), classname, name);
+	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  output_director = false;
 	}
 
