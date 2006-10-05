@@ -423,13 +423,112 @@ operations that allow them to be used interchangeably with DOH file objects.
 <h3>2.6 Lists</h3>
 </a>
 
-[ TODO ]
+<p>
+Example usage of lists:
+</p>
+
+<blockquote>
+<pre>
+/* Create and populate */
+List *list = NewList();
+Append(list, NewString("listval1"));
+Append(list, NewString("listval2"));
+Append(list, NewString("listval3"));
+Append(list, NewString("listval4"));
+Append(list, NewString("listval5"));
+
+/* Size */
+Printf(stdout, "list len: %d\n", Len(list));
+
+/* Delete */
+Delitem(list, 3);
+
+/* Replace */
+Setitem(list, 0, NewString("newlistval1"));
+
+/* Get */
+String *item = Getitem(list,1);
+if (item)
+  Printf(stdout, "get: %s\n", item);
+else
+  Printf(stdout, "get: [non-existent]\n");
+
+/* Iterate through the container */
+int len = Len(list);
+for (int i=0; i&lt;len; i++) {
+  String *item = Getitem(list,i);
+  Printf(stdout, "list item: %s\n", item);
+}
+</blockquote>
+</pre>
+
+<p>
+Resulting output:
+</p>
+
+<blockquote>
+<pre>
+hash len: 5
+get: hashval2
+hash item: hashval5 [h5]
+hash item: hashval1 [h1]
+hash item: hashval2 [h2]
+hash item: hashval3 [h3]
+</pre>
+</blockquote>
 
 <a name="2.7" href="#i2.7">
 <h3>2.7 Hash tables </h3>
 </a>
 
-[ TODO ]
+<p>
+Example usage of hash tables:
+</p>
+
+<blockquote>
+<pre>
+/* Create and populate */
+Hash *hash = NewHash();
+Setattr(hash, "h1", NewString("hashval1"));
+Setattr(hash, "h2", NewString("hashval2"));
+Setattr(hash, "h3", NewString("hashval3"));
+Setattr(hash, "h4", NewString("hashval4"));
+Setattr(hash, "h5", NewString("hashval5"));
+
+/* Size */
+Printf(stdout, "hash len: %d\n", Len(hash));
+
+/* Delete */
+Delattr(hash, "h4");
+
+/* Get */
+String *item = Getattr(hash, "h2");
+if (item)
+  Printf(stdout, "get: %s\n", item);
+else
+  Printf(stdout, "get: [non-existent]\n");
+
+/* Iterate through the container */
+Iterator it;
+for (it = First(hash); it.key; it= Next(it))
+  Printf(stdout, "hash item: %s [%s]\n", (it.item), (it.key));
+</pre>
+</blockquote>
+
+<p>
+Resulting output:
+</p>
+
+<blockquote>
+<pre>
+list len: 5
+get: listval2
+list item: newlistval1
+list item: listval2
+list item: listval3
+list item: listval5
+</pre>
+</blockquote>
 
 <a name="2.8" href="#i2.8">
 <h3>2.8 Files </h3>
@@ -452,8 +551,6 @@ operations that allow them to be used interchangeably with DOH file objects.
 <a name="3" href="#i3">
 <h2>3. Types and Typemaps</h2>
 </a>
-
-Revised: Dave Beazley (8/14/00)
 
 <p>
 The representation and manipulation of types is currently in the
