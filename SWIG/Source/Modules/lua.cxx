@@ -44,6 +44,33 @@ char cvsroot_lua_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
+/**** Diagnostics:
+  With the #define REPORT(), you can change the amount of diagnostics given
+  This helps me search the parse tree & figure out what is going on inside SWIG
+  (because its not clear or documented)
+*/
+#define REPORT(T,D)	// no info:
+//#define REPORT(T,D)	{Printf(stdout,T"\n");}	// only title
+//#define REPORT(T,D)	{Printf(stdout,T"\n");display_mapping(D);}	// the works
+
+void display_mapping(DOH* d)
+{
+	if (d==0 || !DohIsMapping(d))	return;
+	for(DohIterator it=DohFirst(d);it.item;it=DohNext(it))
+	{
+		if (DohIsString(it.item))
+			Printf(stdout, "  %s = %s\n", it.key,it.item);
+		else if (DohIsMapping(it.item))
+			Printf(stdout, "  %s = <mapping>\n", it.key);
+		else if (DohIsSequence(it.item))
+			Printf(stdout, "  %s = <sequence>\n", it.key);
+		else
+			Printf(stdout, "  %s = <unknown>\n", it.key);
+	}
+}
+  
+
+
 /* NEW LANGUAGE NOTE:***********************************************
  most of the default options are handled by SWIG
  you can add new ones here
@@ -690,15 +717,19 @@ NEW LANGUAGE NOTE:END ************************************************/
   /* ------------------------------------------------------------
    * constantWrapper()
    * ------------------------------------------------------------ */
-
-  virtual int constantWrapper(Node *n) {
+virtual int constantWrapper(Node *n) {
+    REPORT("constantWrapper",n);
     String *name      = Getattr(n,"name");
     String *iname     = Getattr(n,"sym:name");
+    //String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
+    String *nsname    = Copy(iname);
     SwigType *type    = Getattr(n,"type");
-    String   *value   = Getattr(n,"value");
+    String *rawval    = Getattr(n,"rawval");
+    String *value     = rawval ? rawval : Getattr(n,"value");
     String *tm;
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
+    //if (nspace) Setattr(n,"sym:name",nsname);
 
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
@@ -706,61 +737,28 @@ NEW LANGUAGE NOTE:END ************************************************/
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
       value = Char(wname);
     }
+    
     if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
       Replaceall(tm,"$source",value);
       Replaceall(tm,"$target",name);
       Replaceall(tm,"$value",value);
+      Replaceall(tm,"$nsname",nsname);
       Printf(s_const_tab,"%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
       Replaceall(tm,"$source", value);
       Replaceall(tm,"$target", name);
       Replaceall(tm,"$value",value);
+      Replaceall(tm,"$nsname",nsname);
       Printf(f_init, "%s\n", tm);
     } else {
+      Delete(nsname);
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF,
 		   input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
+    Delete(nsname);
     return SWIG_OK;
   }
-#if 0
-  virtual int constantWrapper(Node *n) {
-/* NEW LANGUAGE NOTE:***********************************************
-FIXME
-NEW LANGUAGE NOTE:END ************************************************/
-//     return Language::constantWrapper(n);
-
-    Swig_require(&n, "*sym:name", "type", "value", NIL);
-
-    String *symname = Getattr(n, "sym:name");
-    SwigType *type  = Getattr(n, "type");
-    String *value   = Getattr(n, "value");
-
-    /* Special hook for member pointer */
-    if (SwigType_type(type) == T_MPOINTER) {
-      String *wname = Swig_name_wrapper(symname);
-      Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
-      value = wname;
-    }
-
-    /* Perform constant typemap substitution */
-    String *tm = Swig_typemap_lookup_new("constant", n, value, 0);
-    if (tm) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", symname);
-      Replaceall(tm, "$symname", symname);
-      Replaceall(tm, "$value", value);
-      Printf(f_init, "%s\n", tm);
-    } else {
-      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
-		   "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
-    }
-
-    Swig_restore(&n);
-
-    return SWIG_OK;
-  }
-#endif
 
   /* ------------------------------------------------------------
    * nativeWrapper()
@@ -968,6 +966,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
+    REPORT("membervariableHandler",n);
     String   *symname = Getattr(n,"sym:name");
     String   *rname;
 
@@ -1026,9 +1025,8 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    return constantWrapper(n);
-//    current = NO_CPP;
-//    return SWIG_OK;
+    REPORT("memberconstantHandler",n);
+    return Language::memberconstantHandler(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -1036,6 +1034,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
+    REPORT("staticmembervariableHandler",n);
     return Language::staticmembervariableHandler(n);
   }
 
@@ -1048,7 +1047,7 @@ NEW LANGUAGE NOTE:END ************************************************/
      The code consists of two functions:
        String *runtimeCode()  // returns a large string with all the runtimes in
        String *defaultExternalRuntimeFilename() // returns the default filename
-     I an writing a generic solution, even though SWIG-Lua only has one file right now...
+     I am writing a generic solution, even though SWIG-Lua only has one file right now...
   */
   String *runtimeCode() {
     String *s = NewString("");
@@ -1110,8 +1109,4 @@ extern "C" Language *
 swig_lua(void) {
   return new LUA();
 }
-
-
-
-
 
