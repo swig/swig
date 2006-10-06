@@ -3936,6 +3936,7 @@ cpp_members  : cpp_member cpp_members {
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }
+             | include_directive { $$ = $1; }
              | empty { $$ = 0;}
 	     | error {
 	       int start_line = cparse_line;
