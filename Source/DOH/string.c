@@ -453,8 +453,8 @@ String_seek(DOH *so, long offset, int whence)
   nsp = pos + offset;
   if (nsp < 0)
     nsp = 0;
-  if (s->len > 0 && nsp >= s->len)
-    nsp = s->len-1;
+  if (s->len > 0 && nsp > s->len)
+    nsp = s->len;
 
   inc = (nsp > s->sp) ? 1 : -1;
 
