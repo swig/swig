@@ -14,3 +14,22 @@
  // Also repeats the test for the import directive in subdirectories
 
 %include "testdir/test.i"
+
+
+// Bug #1162194
+%inline %{
+typedef struct {
+#include "inctest.h"
+} MY_TYPES;
+
+%}
+
+%{
+typedef struct {
+#include "inctest.h"
+} MY_THINGS;
+%}
+
+typedef struct {
+%include "inctest.h"
+} MY_THINGS;
