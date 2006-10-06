@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/06/2006: mgossage
+            [Lua] Fix #1569587. The name is now correct.
+
 10/04/2006: wsfulton
             Director fixes for virtual conversion operators
 
