@@ -44,8 +44,8 @@
  */
 
 /*
- * TODO: Replace remaining stderr messages with Swig_warning (need to add more
- * WARN_XXX codes to be able to...)
+ * TODO: Replace remaining stderr messages with Swig_error or Swig_warning
+ * (may need to add more WARN_PHP4_xxx codes...)
  */
 
 char cvsroot_php4_cxx[] = "$Header$";
@@ -1928,7 +1928,6 @@ public:
       String *value = Getattr(n,"value");
 
       if (Strcmp(lang,"php4") == 0) {
-        
         if (Strcmp(type, "code") == 0) {
           if (value) {
             Printf(pragma_code, "%s\n", value);
@@ -1942,8 +1941,8 @@ public:
             Printf(pragma_phpinfo, "%s\n", value);
           }
         } else {
-          Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
-                 input_file, line_number);
+          Swig_warning(WARN_PHP4_UNKNOWN_PRAGMA, input_file, line_number,
+		       "Unrecognized pragma <%s>.\n", type);
         }
       }
     }
