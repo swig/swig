@@ -427,7 +427,7 @@ extern int      Swig_need_protected(Node *n);
 extern int      Swig_need_name_warning(Node *n);
 extern int      Swig_need_redefined_warn(Node* a, Node* b, int InClass);
 
-extern String  *Swig_name_make(Node *n, String *prefix, String *name, SwigType *decl, String *oldname);  
+extern String  *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, String *oldname);
 extern String  *Swig_name_warning(Node *n, String *prefix, String *name,SwigType *decl);
 
 /* --- parameterized rename functions --- */
