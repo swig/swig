@@ -982,20 +982,11 @@ public:
     int overloaded = 0;
     String *overname = 0;
 
-    int destructor = ( Cmp(nodeType, "destructor") == 0 );
-    if ( destructor ) {
-      // We only generate the Zend List Destructor.  Have
-      // Zend manage the reference counting.
+    if (Cmp(nodeType, "destructor") == 0) {
+      // We just generate the Zend List Destructor and let Zend manage the
+      // reference counting.  There's no explicit destructor, but the user can
+      // just do `$obj = null;' to remove a reference to an object.
       return CreateZendListDestructor(n);
-
-#if 0
-      //If a script accessible destructor is desired/required, this code needs to be
-      //put back into play.
-      // Then we modify the wrap_action so it nulls out the self variable.
-      String *del = Getattr(n,"wrap:action");
-      Printf(del,"\nRETVAL_NULL();\n");
-      Setattr(n,"wrap:action",del);
-#endif
     }
 
     // Test for overloading;
@@ -1041,12 +1032,8 @@ public:
       }
     } else {
       // regular header
-      // We don't issue these for overloaded functions.
-      // destructors when using shadows.
-      // And for static member variables
-      if (!overloaded &&
-          !(destructor && shadow && php_version == 4) &&
-          wrapperType != staticmembervar ) {
+      // Not issued for overloaded functions or static member variables.
+      if (!overloaded && wrapperType != staticmembervar ) {
         create_command(iname, wname);
       }
       Printv(f->def, "ZEND_NAMED_FUNCTION(" , wname, ") {\n", NIL);
