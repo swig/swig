@@ -71,6 +71,17 @@ OCAML module.
 Japanese translation.
 </td>
 </tr>
+
+
+<tr>
+<td>
+<img src="blank.jpg" alt="Blank"><br/>
+<b>Surendra Singhi (Kolkota, India).</b> <br/>
+CFFI and Clisp modules.
+</td>
+<td>
+</td>
+</tr>
 </table>
 
 <p>
@@ -111,6 +122,7 @@ Japanese translation.
 <b>Bug reports and patches</b>
 <blockquote>
 Adam Hupp,
+Arthur Smyles,
 Brad Clements,
 Brett Williams,
 Buck Hodges,
@@ -135,10 +147,12 @@ Jim Fulton,
 Joel Reed,
 Jon Travis,
 Junio Hamano,
+Justin Heyes-Jones,
 Karl Forner,
 Keith Davidson,
 Krzysztof Kozminski,
 Larry Virden, 
+Luke J Crook,
 Magnus Ljung,
 Marc Zonzon,
 Marcio Luis Teixeira
@@ -162,6 +176,7 @@ Shaun Lowry,
 Steve Galser, 
 Tal Shalif,
 Tarn Weisner Burton,
+Thomas Weidner,
 Tony Seward,
 Uwe Steinmann,
 Vadim Chugunov,
