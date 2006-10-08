@@ -13,7 +13,7 @@ char cvsroot_overload_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#define MAX_OVERLOAD 256
+#define MAX_OVERLOAD 4096
 
 /* Overload "argc" and "argv" */
 String *argv_template_string;
@@ -78,6 +78,7 @@ Swig_overload_rank(Node *n, bool script_lang_wrapping) {
     /* Make a list of all the declarations (methods) that are overloaded with
      * this one particular method name */
     if (Getattr(c,"wrap:name")) {
+      assert(nnodes < MAX_OVERLOAD);
       nodes[nnodes].n = c;
       nodes[nnodes].parms = Getattr(c,"wrap:parms");
       nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
