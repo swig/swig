@@ -1976,7 +1976,7 @@ public:
       char *rename = GetChar(n, "sym:name");
 
       if (!addSymbol(rename,n)) return SWIG_ERROR;
-      shadow_classname = NewStringf("%s", rename);
+      shadow_classname = NewString(rename);
       cs_entry = NewStringEmpty();
       Printf(cs_entry, "/* Function entries for %s */\n", shadow_classname);
       Printf(cs_entry, "static zend_function_entry %s_functions[] = {\n", shadow_classname);
@@ -2020,7 +2020,7 @@ public:
       char *rename = GetChar(n, "sym:name");
 
       if (!addSymbol(rename,n)) return SWIG_ERROR;
-      shadow_classname = Swig_copy_string(rename);
+      shadow_classname = NewString(rename);
 
       shadow_get_vars = NewHash();
       shadow_set_vars = NewHash();
