@@ -47,4 +47,10 @@
     virtual ~Ops() {}
     virtual operator int() { return 0; }
   };
+
+  struct Prims {
+    virtual ~Prims() {}
+    virtual unsigned long long ull(unsigned long long i, unsigned long long j) { return i + j; }
+    unsigned long long callull(int i, int j) { return ull(i, j); }
+  };
 %}
