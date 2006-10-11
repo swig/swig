@@ -82,7 +82,7 @@ class string;
    }
    std::string $1_str($input);
    $1 = &$1_str; %}
-%typemap(out) const string & %{ $result = SWIG_csharp_string_callback($1.c_str()); %}
+%typemap(out) const string & %{ $result = SWIG_csharp_string_callback($1->c_str()); %}
 
 %typemap(csin) const string & "$csinput"
 %typemap(csout, excode=SWIGEXCODE) const string & {
@@ -99,7 +99,7 @@ class string;
    static std::string $1_str($input);
    $1 = &$1_str; %}
 
-%typemap(directorin) const string & %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
+%typemap(directorin) const string & %{ $input = SWIG_csharp_string_callback($1->c_str()); %}
 
 %typemap(csvarin, excode=SWIGEXCODE2) const string & %{
     set {
