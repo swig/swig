@@ -21,14 +21,6 @@ public class main
     caller.call();
     caller.delCallback();
 
-    // Unlike Python, Java does not automatically support "weak"
-    // references (*), so we're left with managing the memory.
-    //
-    // (*) Yes, there is a WeakReference class, but it doesn't
-    // work exactly the way the Python weak reference works.
-
-    callback.delete();
-
     callback = new JavaCallback();
 
     System.out.println();
@@ -39,6 +31,9 @@ public class main
     caller.call();
     caller.delCallback();
 
+    // Test that a double delete does not occur as the object has already been deleted from the C++ layer.
+    // Note that the garbage collector can also call the delete() method via the finalizer (callback.finalize())
+    // at any point after here.
     callback.delete();
 
     System.out.println();
