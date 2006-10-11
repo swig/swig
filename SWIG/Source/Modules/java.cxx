@@ -3092,13 +3092,32 @@ class JAVA : public Language {
 	    "No jtype typemap defined for %s\n", SwigType_str(returntype,0));
       }
 
+      String *cdesc = NULL;
+      SwigType *covariant = Getattr(n,"covariant");
+      SwigType *adjustedreturntype = covariant ? covariant : returntype;
+      Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
+
+      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0))
+          && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
+
+        // Note that in the case of polymorphic (covariant) return types, the
+        // method's return type is changed to be the base of the C++ return
+        // type
+        String *jnidesc_canon = canonicalizeJNIDescriptor(cdesc, adjustedreturntypeparm);
+        Append(classret_desc, jnidesc_canon);
+        Delete(jnidesc_canon);
+      } else {
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(returntype,0));
+        output_director = false;
+      }
+
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
 
       Parm  *retpm = NewParmFromNode(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup_new("jni", retpm, "", 0))) {
-        String *jdesc;
         Parm *tp = NewParmFromNode(c_ret_type, empty_str, n);
 
         if (!is_void && !ignored_method) {
@@ -3107,11 +3126,15 @@ class JAVA : public Language {
           Delete(jretval_decl);
         }
 
+	String *jdesc = NULL;
         if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
             && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
-          String *jnidesc_canon;
 
-          jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
+	  // Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
+	  // We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
+	  if (GetFlag(tp, "tmap:directorin:nouse"))
+	    jdesc = cdesc;
+          String *jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
           Append(jniret_desc, jnidesc_canon);
           Delete(jnidesc_canon);
         } else {
@@ -3124,28 +3147,6 @@ class JAVA : public Language {
       } else {
         Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
                      "No jni typemap defined for %s\n", SwigType_str(returntype,0));
-        output_director = false;
-      }
-
-      String *jdesc;
-
-      SwigType *covariant = Getattr(n,"covariant");
-      SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
-
-      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0))
-          && (jdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
-        String *jnidesc_canon;
-
-        // Note that in the case of polymorphic (covariant) return types, the
-        // method's return type is changed to be the base of the C++ return
-        // type
-        jnidesc_canon = canonicalizeJNIDescriptor(jdesc, adjustedreturntypeparm);
-        Append(classret_desc, jnidesc_canon);
-        Delete(jnidesc_canon);
-      } else {
-        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                     "No or improper directorin typemap defined for %s\n", SwigType_str(returntype,0));
         output_director = false;
       }
 
@@ -3222,9 +3223,7 @@ class JAVA : public Language {
 
     if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
         && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
-      String *jni_canon;
-        
-      jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
+      String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
       Append(jnidesc, jni_canon);
       Delete(jni_canon);
       Delete(tm);
@@ -3273,9 +3272,12 @@ class JAVA : public Language {
             && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))
             && (tm = Getattr(p, "tmap:directorin"))
             && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
-          String *jni_canon;
         
-          jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
+	  // Objects marshalled by passing a Java class across the JNI boundary use jobject as the JNI type - 
+	  // the nouse flag indicates this. We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
+	  if (GetFlag(tp, "tmap:directorin:nouse"))
+	    jdesc = cdesc;
+          String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
           Append(jnidesc, jni_canon);
           Delete(jni_canon);
 
