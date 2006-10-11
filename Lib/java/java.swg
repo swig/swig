@@ -323,11 +323,11 @@
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
   jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "([B)V");
   jobject bigint;
-  int i;
+  int swig_i;
 
   bae[0] = 0;
-  for(i=1; i<9; i++ ) {
-    bae[i] = (jbyte)($1>>8*(8-i));
+  for(swig_i=1; swig_i<9; swig_i++ ) {
+    bae[swig_i] = (jbyte)($1>>8*(8-swig_i));
   }
 
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
@@ -719,8 +719,8 @@
 %typemap(directorin,descriptor="J")  jlong          "$input = $1;"
 %typemap(directorin,descriptor="F")  jfloat         "$input = $1;"
 %typemap(directorin,descriptor="D")  jdouble        "$input = $1;"
-%typemap(directorin,descriptor="Ljava/lang/String;")  jstring        "$input = $1;"
-%typemap(directorin,descriptor="Ljava/lang/Object;")  jobject        "$input = $1;"
+%typemap(directorin,descriptor="Ljava/lang/String;")            jstring        "$input = $1;"
+%typemap(directorin,descriptor="Ljava/lang/Object;",nouse="1")  jobject        "$input = $1;"
 %typemap(directorin,descriptor="[Z")  jbooleanArray "$input = $1;"
 %typemap(directorin,descriptor="[C")  jcharArray    "$input = $1;"
 %typemap(directorin,descriptor="[B")  jbyteArray    "$input = $1;"
@@ -729,7 +729,7 @@
 %typemap(directorin,descriptor="[J")  jlongArray    "$input = $1;"
 %typemap(directorin,descriptor="[F")  jfloatArray   "$input = $1;"
 %typemap(directorin,descriptor="[D")  jdoubleArray  "$input = $1;"
-%typemap(directorin,descriptor="[Ljava/lang/Object;")  jobjectArray  "$input = $1;"
+%typemap(directorin,descriptor="[Ljava/lang/Object;",nouse="1") jobjectArray   "$input = $1;"
 
 %typemap(javadirectorin) jboolean,
                          jchar,
