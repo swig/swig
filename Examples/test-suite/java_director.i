@@ -114,6 +114,11 @@ namespace hi  {
   };
 }
  
+struct JObjectTest {
+  virtual ~JObjectTest() {}
+  // Test special Java JNI type jobject
+  virtual jobject foo(jobject x) { return x; }
+};
 
 %}
 
