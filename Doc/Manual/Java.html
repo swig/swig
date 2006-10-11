@@ -2518,7 +2518,7 @@ Obj obj = Factory.createObj();   // obj.swigCMemOwn = true;
 
 <p>
 Some memory management issues are quite tricky to fix and may only be noticeable after using for a long time.
-One such issue is early garbage collection of an object created from Java and resultant usage from C++ code.
+One such issue is premature garbage collection of an object created from Java and resultant usage from C++ code.
 The section on typemap examples cover two such scenarios, 
 <a href="#java_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 and 
@@ -6324,7 +6324,7 @@ the Butler class would behave much like any pure Java class and feel more natura
 
 
 <p>
-This example shows how to prevent early garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
+This example shows how to prevent premature garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
 </p>
 
 <p>
@@ -6393,7 +6393,7 @@ is called using the following typemaps.
   }
 %}
 
-// Add a Java reference to prevent early garbage collection and resulting use
+// Add a Java reference to prevent premature garbage collection and resulting use
 // of dangling C++ pointer. Intended for methods that return pointers or
 // references to a member variable.
 %typemap(javaout) Wheel&amp; getWheel {

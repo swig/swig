@@ -1310,7 +1310,7 @@ the SWIG library.
 
 
 <p>
-This example shows how to prevent early garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
+This example shows how to prevent premature garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
 The example is a direct equivalent to this <a href="Java.html#java_memory_management_objects">Java equivalent</a>.
 </p>
 
@@ -1380,7 +1380,7 @@ is called using the following typemaps.
   }
 %}
 
-// Add a C# reference to prevent early garbage collection and resulting use
+// Add a C# reference to prevent premature garbage collection and resulting use
 // of dangling C++ pointer. Intended for methods that return pointers or
 // references to a member variable.
 %typemap(csout, excode=SWIGEXCODE) Wheel&amp; getWheel {
