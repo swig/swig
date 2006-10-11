@@ -694,7 +694,12 @@ public:
       Printv(f_shadow,"import new\n",NULL);
       Printv(f_shadow,"new_instancemethod = new.instancemethod\n",NULL);
       if (modern || !classic) {
-	Printv(f_shadow, "_swig_property = property\n", NULL);
+	Printv(f_shadow,
+	       "try:\n",
+	       tab4, "_swig_property = property\n",
+	       "except NameError:\n",
+	       tab4, "pass # Python < 2.2 doesn't have 'property'.\n",
+	       NULL);
       }
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
