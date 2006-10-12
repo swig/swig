@@ -37,6 +37,9 @@ struct A
   virtual const std::string& call_get(int n) const
   { return get(n); }
 
+  virtual int string_length(const std::string & s) const
+  { return (int)s.size(); }
+
   std::vector<std::string> m_strings;
 
 
