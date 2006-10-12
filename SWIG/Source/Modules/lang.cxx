@@ -975,7 +975,7 @@ Language::functionHandler(Node *n) {
       globalfunctionHandler(n);
     } else {
       Node* explicit_n = 0;
-      if (directorsEnabled() && is_member_director(CurrentClass,n) && !Extend && !extraDirectorProtectedCPPMethodsRequired()) {
+      if (directorsEnabled() && is_member_director(CurrentClass,n) && !extraDirectorProtectedCPPMethodsRequired()) {
 	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
 	if (virtual_but_not_pure_virtual) {
 	  // Add additional wrapper which makes an explicit call to the virtual method (ie not a virtual call)
