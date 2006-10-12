@@ -2317,7 +2317,7 @@ public class Foo {
     delete();
   }
 
-  public void delete() {
+  public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Foo(swigCPtr);
       swigCMemOwn = false;
@@ -2567,7 +2567,7 @@ public class Base {
     delete();
   }
 
-  public void delete() {
+  public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Base(swigCPtr);
       swigCMemOwn = false;
@@ -2606,7 +2606,7 @@ public class Derived extends Base {
     delete();
   }
 
-  public void delete() {
+  public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Derived(swigCPtr);
       swigCMemOwn = false;
