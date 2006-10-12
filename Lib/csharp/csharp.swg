@@ -787,23 +787,27 @@
   }
 %}
 
-%typemap(csdestruct, methodname="Dispose") SWIGTYPE {
-    if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
-      swigCMemOwn = false;
-      $imcall;
+%typemap(csdestruct, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+    lock(this) {
+      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
+        swigCMemOwn = false;
+        $imcall;
+      }
+      swigCPtr = new HandleRef(null, IntPtr.Zero);
+      GC.SuppressFinalize(this);
     }
-    swigCPtr = new HandleRef(null, IntPtr.Zero);
-    GC.SuppressFinalize(this);
   }
 
-%typemap(csdestruct_derived, methodname="Dispose") SWIGTYPE {
-    if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
-      swigCMemOwn = false;
-      $imcall;
+%typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+    lock(this) {
+      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
+        swigCMemOwn = false;
+        $imcall;
+      }
+      swigCPtr = new HandleRef(null, IntPtr.Zero);
+      GC.SuppressFinalize(this);
+      base.Dispose();
     }
-    swigCPtr = new HandleRef(null, IntPtr.Zero);
-    GC.SuppressFinalize(this);
-    base.Dispose();
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{

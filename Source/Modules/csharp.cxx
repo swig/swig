@@ -1542,16 +1542,23 @@ class CSHARP : public Language {
     const String *tm = NULL;
     Node *attributes = NewHash();
     String *destruct_methodname = NULL;
+    String *destruct_methodmodifiers = NULL;
     if (derived) {
       tm = typemapLookup("csdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:csdestruct_derived:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct_derived:methodmodifiers");
     } else {
       tm = typemapLookup("csdestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
     }
     if (!destruct_methodname) {
       Swig_error(input_file, line_number, 
           "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+    }
+    if (!destruct_methodmodifiers) {
+      Swig_error(input_file, line_number, 
+          "No methodmodifier attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
     }
 
     // Emit the Finalize and Dispose methods
@@ -1569,7 +1576,7 @@ class CSHARP : public Language {
       else
         Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-        Printv(proxy_class_def, "\n  public ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
 
     if (feature_director) {
