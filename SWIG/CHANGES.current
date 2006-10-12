@@ -1,6 +1,21 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/12/2006: wsfulton
+            [Java] Remove potential race condition on the proxy class' delete() method 
+            (it is now a synchronized method, but is now customisable by changing the 
+            methodmodifier attribute in the the javadestruct or javadestruct_derived typemap)
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+10/12/2006: wsfulton
+            [Ruby, Python] Remove redundant director code in %extend methods (%extend
+            methods cannot be director methods)
+
+10/12/2006: wsfulton
+            [Ruby, Python] Fix #1505594 - director objects not returned as director objects
+            in %extend methods.
+
 10/11/2006: wsfulton
             [Java] Fix #1238798 - Directors using unsigned long long or any other type
             marshalled across the JNI boundary using a Java class (where the jni typemap 
