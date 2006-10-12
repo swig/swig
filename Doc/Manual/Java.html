@@ -4816,7 +4816,7 @@ class modifiers for the Java class: default is "public class"
 Java code is copied verbatim to the Java class: empty default
 </div>
 
-<p><tt>%typemap(javadestruct, methodname="delete")</tt> <br></p>
+<p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized")</tt> <br></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 used for all proxy classes except those which have a base class
@@ -4824,9 +4824,10 @@ used for all proxy classes except those which have a base class
 <br>
 <br>
 Note that the <tt>delete()</tt> method name is configurable and is specified by the <tt>methodname</tt> attribute.
+The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 </div>
 
-<p><tt>%typemap(javadestruct_derived, methodname="delete")</tt></p>
+<p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized")</tt></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 same as "javadestruct" but only used for derived proxy classes
@@ -4834,6 +4835,7 @@ same as "javadestruct" but only used for derived proxy classes
 <br>
 <br>
 Note that the <tt>delete()</tt> method name is configurable and is specified by the <tt>methodname</tt> attribute.
+The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 </div>
 
 <p><tt>%typemap(javaimports)</tt></p>
@@ -4867,7 +4869,7 @@ In summary the contents of the typemaps make up a proxy class like this:
                                              implements [ javainterfaces typemap ] {
 [ javabody or javabody_derived typemap ]
 [ javafinalize typemap ]
-public void <i>delete</i>() [ javadestruct OR javadestruct_derived typemap ]
+public synchronized void <i>delete</i>() [ javadestruct OR javadestruct_derived typemap ]
 [ javacode typemap ]
 ... proxy functions ...
 }
@@ -4875,7 +4877,7 @@ public void <i>delete</i>() [ javadestruct OR javadestruct_derived typemap ]
 </div>
 
 <p>
-Note the <tt><i>delete</i>()</tt> methodname is configurable, see "javadestruct" and "javadestruct_derived" typemaps above.
+Note the <tt><i>delete</i>()</tt> methodname and method modifiers are configurable, see "javadestruct" and "javadestruct_derived" typemaps above.
 </p>
 
 <p>

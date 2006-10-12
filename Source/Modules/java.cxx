@@ -1595,16 +1595,23 @@ class JAVA : public Language {
     const String *tm = NULL;
     Node *attributes = NewHash();
     String *destruct_methodname = NULL;
+    String *destruct_methodmodifiers = NULL;
     if (derived) {
       tm = typemapLookup("javadestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct_derived:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct_derived:methodmodifiers");
     } else {
       tm = typemapLookup("javadestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct:methodmodifiers");
     }
     if (!destruct_methodname) {
       Swig_error(input_file, line_number, 
           "No methodname attribute defined in javadestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+    }
+    if (!destruct_methodmodifiers) {
+      Swig_error(input_file, line_number, 
+          "No methodmodifier attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
     }
 
     // Emit the finalize and delete methods
@@ -1622,7 +1629,7 @@ class JAVA : public Language {
       else
         Replaceall(destruct, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-        Printv(proxy_class_def, "\n  ", "public void ", destruct_methodname, "() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
 
     /* Insert directordisconnect typemap, if this class has directors enabled */

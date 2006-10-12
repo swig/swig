@@ -1133,7 +1133,7 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 // Set the default for SWIGTYPE: Java owns the C/C++ object.
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
-%typemap(javadestruct, methodname="delete") SWIGTYPE {
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       swigCMemOwn = false;
       $jnicall;
@@ -1141,7 +1141,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     swigCPtr = 0;
   }
 
-%typemap(javadestruct_derived, methodname="delete") SWIGTYPE {
+%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       swigCMemOwn = false;
       $jnicall;
