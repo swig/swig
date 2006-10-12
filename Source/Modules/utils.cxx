@@ -39,7 +39,7 @@ int is_member_director(Node* parentnode, Node* member)
     int parent_director = director_mode && GetFlag(parentnode,"feature:director");
     int cdecl_director = parent_director || GetFlag(member,"feature:director");
     int cdecl_nodirector = GetFlag(member,"feature:nodirector");
-    return cdecl_director && !cdecl_nodirector;
+    return cdecl_director && !cdecl_nodirector && !GetFlag(member, "feature:extend");
   } else {
     return 0;
   }

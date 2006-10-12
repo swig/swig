@@ -986,9 +986,9 @@ Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *director_
 
 Node*
 Swig_methodclass(Node *n) {
-  Node* type = Getattr(n, k_nodetype);
-  if (!Cmp(type, "class")) return n;
-  return Getattr(n, k_parentnode);
+  Node* nodetype = Getattr(n, k_nodetype);
+  if (!Cmp(nodetype, "class")) return n;
+  return GetFlag(n, "feature:extend") ? Getattr(Getattr(n, k_parentnode), k_parentnode) : Getattr(n, k_parentnode);
 }
 
 int
