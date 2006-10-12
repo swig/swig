@@ -1071,12 +1071,14 @@ public class Base : IDisposable {
   }
 
   public virtual void Dispose() {
-    if(swigCPtr.Handle != IntPtr.Zero &amp;&amp; swigCMemOwn) {
-      swigCMemOwn = false;
-      examplePINVOKE.delete_Base(swigCPtr);
+    lock(this) {
+      if(swigCPtr.Handle != IntPtr.Zero &amp;&amp; swigCMemOwn) {
+        swigCMemOwn = false;
+        examplePINVOKE.delete_Base(swigCPtr);
+      }
+      swigCPtr = new HandleRef(null, IntPtr.Zero);
+      GC.SuppressFinalize(this);
     }
-    swigCPtr = new HandleRef(null, IntPtr.Zero);
-    GC.SuppressFinalize(this);
   }
 
   public virtual uint UIntMethod(uint x) {

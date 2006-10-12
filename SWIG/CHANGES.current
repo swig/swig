@@ -6,6 +6,9 @@ Version 1.3.30 (in progress)
             (it is now a synchronized method, but is now customisable by changing the 
             methodmodifier attribute in the the javadestruct or javadestruct_derived typemap)
 
+            [C#] Remove potential race condition on the proxy class' Dispose() method, 
+            similar to Java's delete() above.
+
             *** POTENTIAL INCOMPATIBILITY ***
 
 10/12/2006: wsfulton
