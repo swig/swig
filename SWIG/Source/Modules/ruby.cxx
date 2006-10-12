@@ -1235,7 +1235,7 @@ public:
           int is_reference = SwigType_isreference_return(decl);
           if (is_pointer || is_reference) {
             String *type = Getattr(n, "type");
-	    Node *parent   = Getattr(n,"parentNode");
+	    Node *parent = Swig_methodclass(n);
             Node *modname = Getattr(parent, "module");
             Node *target = Swig_directormap(modname, type);
             if (target) unwrap = true;

@@ -2041,7 +2041,7 @@ public:
         String *type = Getattr(n, "type");
   	//Node *classNode = Swig_methodclass(n);
         //Node *module = Getattr(classNode, "module");
-	Node *parent   = Getattr(n,"parentNode");
+	Node *parent = Swig_methodclass(n);
         Node *module = Getattr(parent, "module");
         Node *target = Swig_directormap(module, type);
 	if (target) unwrap = 1;
