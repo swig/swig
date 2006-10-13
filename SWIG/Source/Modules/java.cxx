@@ -1558,12 +1558,19 @@ class JAVA : public Language {
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE);
+    Node *attributes = NewHash();
+    const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE, attributes);
     if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
-      pure_baseclass = empty_string;
+      if (GetFlag(attributes, "tmap:javabase:replace")) {
+	Delete(baseclass);
+	baseclass = NewString("");
+      } else {
+	Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+	    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
+	pure_baseclass = empty_string;
+      }
     }
+    Delete(attributes);
 
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
@@ -1593,7 +1600,7 @@ class JAVA : public Language {
     // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
     const String *tm = NULL;
-    Node *attributes = NewHash();
+    attributes = NewHash();
     String *destruct_methodname = NULL;
     String *destruct_methodmodifiers = NULL;
     if (derived) {
