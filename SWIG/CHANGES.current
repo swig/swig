@@ -1,6 +1,15 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/13/2006: wsfulton
+            [C#, Java] Marginally better support for multiple inheritance only in that you can
+            control what the base class is. This is done using the new 'replace' attribute in the 
+            javabase/csbase typemap, eg in the following, 'Me' will be the base class,
+            no matter what Foo is really derived from in the C++ layer.
+
+              %typemap(javabase, replace="1") Foo "Me";
+              %typemap(csbase, replace="1") Foo "Me";
+
 10/12/2006: wsfulton
             [Java] Remove potential race condition on the proxy class' delete() method 
             (it is now a synchronized method, but is now customisable by changing the 
