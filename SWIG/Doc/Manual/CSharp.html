@@ -77,6 +77,14 @@ The <tt>-package</tt> command line option does not exist.
 
 <li>
 The <tt>-namespace &lt;name&gt;</tt> commandline option will generate all code into the namespace specified by <tt>&lt;name&gt;</tt>.
+C# supports nested namespaces that are not lexically nested, so nested namespaces will of course also work. For example:
+<tt>-namespace com.bloggs.widget</tt>, will generate code into C# namespaces:
+
+<div class="code"><pre>
+namespace com.bloggs.widget {
+  ...
+}
+</pre></div>
 </li>
 
 <li>
