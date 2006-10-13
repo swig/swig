@@ -400,8 +400,7 @@ class CSHARP : public Language {
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if(Len(namespce) > 0)
-        Printf(f_im, "namespace %s {\n", namespce);
+      addOpenNamespace(namespce, f_im);
 
       if(imclass_imports)
         Printf(f_im, "%s\n", imclass_imports);
@@ -425,7 +424,8 @@ class CSHARP : public Language {
 
       // Finish off the class
       Printf(f_im, "}\n");
-      Printf(f_im, Len(namespce) > 0 ?  "\n}\n" : "");
+      addCloseNamespace(namespce, f_im);
+
       Close(f_im);
     }
 
@@ -443,8 +443,7 @@ class CSHARP : public Language {
       // Start writing out the module class file
       emitBanner(f_module);
 
-      if(Len(namespce) > 0)
-        Printf(f_module, "namespace %s {\n", namespce);
+      addOpenNamespace(namespce, f_module);
 
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
@@ -476,7 +475,7 @@ class CSHARP : public Language {
 
       // Finish off the class
       Printf(f_module, "}\n");
-      Printf(f_module, Len(namespce) > 0 ?  "\n}\n" : "");
+      addCloseNamespace(namespce, f_module);
 
       Close(f_module);
     }
@@ -1142,8 +1141,7 @@ class CSHARP : public Language {
           // Start writing out the enum file
           emitBanner(f_enum);
 
-          if(Len(namespce) > 0)
-            Printf(f_enum, "namespace %s {\n", namespce);
+	  addOpenNamespace(namespce, f_enum);
 
           Printv(f_enum,
               typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
@@ -1152,7 +1150,8 @@ class CSHARP : public Language {
               "\n",
               NIL);
 
-          Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "");
+	  addCloseNamespace(namespce, f_enum);
+
           Close(f_enum);
         }
       } else {
@@ -1498,11 +1497,17 @@ class CSHARP : public Language {
       baseclass = NewString("");
 
     // Inheritance from pure C# classes
-    const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
+    Node *attributes = NewHash();
+    const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE, attributes);
     if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
-      pure_baseclass = empty_string;
+      if (GetFlag(attributes, "tmap:csbase:replace")) {
+	Delete(baseclass);
+	baseclass = NewString("");
+      } else {
+	Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
+	    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
+	pure_baseclass = empty_string;
+      }
     }
 
     // Pure C# interfaces
@@ -1540,7 +1545,7 @@ class CSHARP : public Language {
     // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
     const String *tm = NULL;
-    Node *attributes = NewHash();
+    attributes = NewHash();
     String *destruct_methodname = NULL;
     String *destruct_methodmodifiers = NULL;
     if (derived) {
@@ -1725,8 +1730,7 @@ class CSHARP : public Language {
       // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      if(Len(namespce) > 0)
-        Printf(f_proxy, "namespace %s {\n", namespce);
+      addOpenNamespace(namespce, f_proxy);
 
       Clear(proxy_class_def);
       Clear(proxy_class_code);
@@ -1758,7 +1762,7 @@ class CSHARP : public Language {
         Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
-      Printf(f_proxy, Len(namespce) > 0 ?  "\n}\n" : "");
+      addCloseNamespace(namespce, f_proxy);
       Close(f_proxy);
       f_proxy = NULL;
 
@@ -2749,8 +2753,7 @@ class CSHARP : public Language {
     // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
 
-    if(Len(namespce) > 0)
-      Printf(f_swigtype, "namespace %s {\n", namespce);
+    addOpenNamespace(namespce, f_swigtype);
 
     // Pure C# baseclass and interfaces
     const String *pure_baseclass = typemapLookup("csbase", type, WARN_NONE);
@@ -2782,15 +2785,15 @@ class CSHARP : public Language {
         typemapLookup("csbody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
         typemapLookup("cscode", type, WARN_NONE), // extra C# code
         "}\n",
-        Len(namespce) > 0 ?
-          "\n}\n" :
-          "",
         NIL);
 
     Replaceall(swigtype, "$csclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
     Replaceall(swigtype, "$imclassname", imclass_name);
     Replaceall(swigtype, "$dllimport", dllimport);
+
+    addCloseNamespace(namespce, f_swigtype);
+
     Printv(f_swigtype, swigtype, NIL);
 
     Close(f_swigtype);
@@ -2862,6 +2865,26 @@ class CSHARP : public Language {
       Replaceall(code, "$excode", empty_string);
     }
     Delete(excode_attribute);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addOpenNamespace()
+   * ----------------------------------------------------------------------------- */
+
+  void addOpenNamespace(String *namspace, File *file) {
+    if (namspace)
+      if(Len(namspace) > 0)
+	Printf(file, "namespace %s {\n", namspace);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addCloseNamespace()
+   * ----------------------------------------------------------------------------- */
+
+  void addCloseNamespace(String *namspace, File *file) {
+    if (namspace)
+      if(Len(namspace) > 0)
+	Printf(file, "\n}\n");
   }
 
   /*----------------------------------------------------------------------
