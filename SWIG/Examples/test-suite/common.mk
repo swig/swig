@@ -404,7 +404,8 @@ MULTI_CPP_TEST_CASES += \
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
 			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
-			$(CUSTOM_TEST_CASES:=.customtest)
+			$(CUSTOM_TEST_CASES:=.customtest) \
+			$(EXTRA_TEST_CASES)
 
 BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 			$(C_TEST_BROKEN:=.ctest)
@@ -447,6 +448,17 @@ swig_and_compile_multi_cpp = \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
+
+swig_and_compile_external =  \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	TARGET="$*_wrap_hdr.h" \
+	$(LANGUAGE)$(VARIANT)_externalhdr; \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
+	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_runtime = \
 

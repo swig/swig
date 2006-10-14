@@ -276,7 +276,9 @@ CHICKEN::top(Node *n)
   Printv(f_scm,"(define swig-init-return (swig-init))\n\n", NIL);
 
   if (clos) {
-    Printf (f_scm, "(declare (uses tinyclos))\n");
+    //Printf (f_scm, "(declare (uses tinyclos))\n");
+    //New chicken versions have tinyclos as an egg
+    Printf(f_scm, "(require-extension tinyclos)\n");
     Replaceall(closprefix,"$module", scmmodule);
     Printf (f_scm, "%s\n", closprefix);
     Printf (f_scm, "%s\n", clos_class_defines);
