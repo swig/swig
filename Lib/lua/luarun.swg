@@ -15,6 +15,7 @@ extern "C" {
 
 #include "lua.h"
 #include "lauxlib.h"
+#include <malloc.h>
 #include <assert.h>	/* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
@@ -90,11 +91,13 @@ typedef struct {
 #define SWIG_contract_assert(expr, msg)  \
   if (!(expr)) { lua_pushstring(L, (char *) msg); goto fail; } else
 
-
-
 /* helper #defines */
 #define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(I) {lua_pushfstring(L,"argument %d incorrect/missing",I);goto fail;}
+#define SWIG_fail_ptr(func_name,argnum,type) \
+	{lua_pushfstring(L,"Error in %s, expected a %s at argument number %d\n",\
+	func_name,(type && type->str)?type->str:"void*",argnum);\
+	goto fail;}
 
 #define SWIG_Lua_get_table(L,n) \
 	(lua_pushstring(L, n), lua_rawget(L,-2))
@@ -106,6 +109,12 @@ typedef struct {
 
 /* special helper for allowing 'nil' for usertypes */
 #define SWIG_isptrtype(L,I) (lua_isuserdata(L,I) || lua_isnil(L,I))
+
+#ifdef __cplusplus
+/* Special helper for member function pointers */
+#define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
+#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),reinterpret_cast< void** >(a))
+#endif
 
 /* -----------------------------------------------------------------------------
  * global variable support code: modules
@@ -505,29 +514,29 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type
 {
 	swig_lua_userdata* usr;
 	swig_cast_info *cast;
-	if (lua_isnil(L,index)){*ptr=0; return 0;}    /* special case: lua nil => NULL pointer */
+	if (lua_isnil(L,index)){*ptr=0; return SWIG_OK;}    /* special case: lua nil => NULL pointer */
 	usr=(swig_lua_userdata*)lua_touserdata(L,index);	/* get data */
 	if (usr)
 	{
                 if (!type)                           /* special cast void*, no casting fn */
                 {
                     *ptr=usr->ptr;
-                    return 0; /* ok */
+                    return SWIG_OK; /* ok */
                 }
 		cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
 		if (cast)
 		{
 			*ptr=SWIG_TypeCast(cast,usr->ptr);
-			return 0;	/* ok */
+			return SWIG_OK;	/* ok */
 		}
 	}
-	return 1;	/* error */
+	return SWIG_ERROR;	/* error */
 }
 
 SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *type,int flags,
 						int argnum,const char* func_name){
 	void* result;
-	if (SWIG_ConvertPtr(L,index,&result,type,flags)){
+	if (!SWIG_IsOK(SWIG_ConvertPtr(L,index,&result,type,flags))){
 		lua_pushfstring(L,"Error in %s, expected a %s at argument number %d\n",
 			func_name,(type && type->str)?type->str:"void*",argnum);
 		lua_error(L);
