@@ -52,6 +52,7 @@ char cvsroot_lua_cxx[] = "$Header$";
 #define REPORT(T,D)	// no info:
 //#define REPORT(T,D)	{Printf(stdout,T"\n");}	// only title
 //#define REPORT(T,D)	{Printf(stdout,T"\n");display_mapping(D);}	// the works
+//#define REPORT(T,D)	{Printf(stdout,T"\n");Swig_print_node(D);}	// the works
 
 void display_mapping(DOH* d)
 {
@@ -79,10 +80,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char*)"\
 Lua Options (available with -lua)\n\
      (coming soon.)\n\n";
-//     -ldflags        - Print runtime libraries to link with\n_
-//     -prefix name    - Set a prefix to be appended to all names\n_
-//     -namespace      - Build module into a Tcl 8 namespace. \n_
-//     -pkgversion     - Set package version.\n\n";
+
 
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -585,7 +583,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     /* Substitute the function name */
     Replaceall(f->code,"$symname",iname);
-    Replaceall(f->code,"$result","resultobj");
+    Replaceall(f->code,"$result","result");
 
     /* Dump the function out */
     Wrapper_print(f,f_wrappers);

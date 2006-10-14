@@ -58,6 +58,8 @@ or provide a %apply statement
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 %typemap(in) TYPE *INOUT = TYPE *INPUT;
 %typemap(argout) TYPE *INOUT = TYPE *OUTPUT;
+%typemap(in) TYPE &OUTPUT = TYPE *OUTPUT;
+%typemap(argout) TYPE &OUTPUT = TYPE *OUTPUT;
 %typemap(in) TYPE &INOUT = TYPE *INPUT;
 %typemap(argout) TYPE &INOUT = TYPE *OUTPUT;
 // const version (the $*ltype is the basic number without ptr or const's)
@@ -67,12 +69,16 @@ or provide a %apply statement
 %enddef
 
 // now the code
-SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int);
-SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short);
-SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long);
+SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
+SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short); SWIG_NUMBER_TYPEMAP(signed short);
+SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long); SWIG_NUMBER_TYPEMAP(signed long);
 SWIG_NUMBER_TYPEMAP(float);
 SWIG_NUMBER_TYPEMAP(double);
 SWIG_NUMBER_TYPEMAP(enum SWIGTYPE);
+SWIG_NUMBER_TYPEMAP(enum SWIGTYPE);
+// also for long longs's
+SWIG_NUMBER_TYPEMAP(long long); SWIG_NUMBER_TYPEMAP(unsigned long long); SWIG_NUMBER_TYPEMAP(signed long long);
+
 // note we dont do char, as a char* is probably a string not a ptr to a single char
 
 /* -----------------------------------------------------------------------------

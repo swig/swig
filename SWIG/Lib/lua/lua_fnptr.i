@@ -31,10 +31,10 @@ just push the parameters, call the function and return the result.
     lua_call(fn.L,2,1);    // 2 in, 1 out
     return luaL_checknumber(fn.L,-1);
   }
-  
+
 SWIG will automatically performs the wrappering of the arguments in and out.
 
-However: if you wish to store the function between calls, look to the SWIGLUA_REF below. 
+However: if you wish to store the function between calls, look to the SWIGLUA_REF below.
 
 */
 // this is for the C code only, we don't want SWIG to wrapper it for us.
@@ -69,10 +69,10 @@ note: it should be passed by value, not byref or as a pointer.
 The SWIGLUA_REF holds a pointer to the lua_State, and an integer reference to the object.
 Because it holds a permenet ref to an object, the SWIGLUA_REF must be handled with a bit more care.
 It should be initalised to {0,0}. The function swiglua_ref_set() should be used to set it.
-swiglua_ref_clear() should be used to clear it when not in use, and swiglua_ref_get() to get the 
+swiglua_ref_clear() should be used to clear it when not in use, and swiglua_ref_get() to get the
 data back.
 
-Note: the typemap does not check that the object is in fact a function, 
+Note: the typemap does not check that the object is in fact a function,
 if you need that you must add it yourself.
 
 
@@ -84,10 +84,10 @@ if you need that you must add it yourself.
     lua_call(fn.L,2,1);    // 2 in, 1 out
     return luaL_checknumber(fn.L,-1);
   }
-  
+
 SWIG will automatically performs the wrappering of the arguments in and out.
 
-However: if you wish to store the function between calls, look to the SWIGLUA_REF below. 
+However: if you wish to store the function between calls, look to the SWIGLUA_REF below.
 
 */
 
