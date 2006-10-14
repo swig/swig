@@ -20,6 +20,8 @@ SKIP_CPP_STD_CASES = Yes
 
 CPP_TEST_CASES += li_std_string 
 
+EXTRA_TEST_CASES += ext_test.externaltest
+
 include $(srcdir)/../common.mk
 
 
@@ -50,6 +52,11 @@ SWIGOPT += -nounit
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
 	  $(MAKE) $*.multiproxy; ) \
 	fi;
+
+%.externaltest:
+	$(setup) \
+	($(swig_and_compile_external); ) && \
+	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
