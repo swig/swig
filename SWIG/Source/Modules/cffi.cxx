@@ -550,7 +550,7 @@ int CFFI :: variableWrapper(Node *n) {
 }
 
 int CFFI :: typedefHandler(Node *n) {
-  if(generate_typedef_flag) {
+  if(generate_typedef_flag && strncmp(Char(Getattr(n,"type")),"enum",4)) {
     String *lisp_name = lispify_name(n,Getattr(n,"name"),"'typename");
     Printf(f_cl,"\n(cffi:defctype %s %s)\n",
            lisp_name,
