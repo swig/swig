@@ -4792,6 +4792,10 @@ Elements of proxy classes and type wrapper classes come from the following typem
 <p><tt>%typemap(javabase)</tt></p>
 <div class="indent">
 base (extends) for Java class: empty default
+<br>
+Note that this typemap accepts a <tt>replace</tt> attribute as an optional flag. When set to "1", it will replace/override any C++ base classes
+that might have been parsed. If this flag is not specified and there are C++ base classes, then a multiple inheritance warning
+is issued and the code in the typemap is ignored.
 </div>
 
 <p><tt>%typemap(javabody)</tt></p>
