@@ -184,6 +184,7 @@ CPP_TEST_CASES += \
 	long_long_apply \
 	member_template \
 	minherit \
+	minherit2 \
 	mixed_types \
 	multiple_inheritance \
 	name_cxx \
