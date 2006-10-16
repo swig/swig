@@ -1554,21 +1554,19 @@ class JAVA : public Language {
     }
 
     bool derived = baseclass && getProxyName(c_baseclassname);
-    if (!baseclass)
-      baseclass = NewString("");
-
     // Inheritance from pure Java classes
     Node *attributes = NewHash();
     const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE, attributes);
-    if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      if (GetFlag(attributes, "tmap:javabase:replace")) {
-	Delete(baseclass);
-	baseclass = NewString("");
-      } else {
-	Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-	    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
-	pure_baseclass = empty_string;
-      }
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+
+    if (GetFlag(attributes, "tmap:javabase:replace")) {
+      wanted_base = pure_baseclass;
+      derived = *Char(wanted_base);
+      Delete(baseclass);
+      baseclass = NULL;
+    } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+	  "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
     }
     Delete(attributes);
 
@@ -1581,11 +1579,10 @@ class JAVA : public Language {
         "\n",
         typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " $javaclassname",       // Class name and bases
-        (derived || *Char(pure_baseclass)) ?
+        (*Char(wanted_base)) ?
         " extends " : 
         "",
-        baseclass, // Note only one of these base classes should ever be set as multiple inheritance is not permissible
-        pure_baseclass,
+        wanted_base,
         *Char(pure_interfaces) ?  // Pure Java interfaces
         " implements " :
         "",
@@ -1612,13 +1609,15 @@ class JAVA : public Language {
       destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct:methodmodifiers");
     }
-    if (!destruct_methodname) {
-      Swig_error(input_file, line_number, 
-          "No methodname attribute defined in javadestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
-    }
-    if (!destruct_methodmodifiers) {
-      Swig_error(input_file, line_number, 
-          "No methodmodifier attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+    if (*Char(tm)) {
+      if (!destruct_methodname) {
+	Swig_error(input_file, line_number, 
+	    "No methodname attribute defined in javadestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
+      if (!destruct_methodmodifiers) {
+	Swig_error(input_file, line_number, 
+	    "No methodmodifiers attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
     }
 
     // Emit the finalize and delete methods

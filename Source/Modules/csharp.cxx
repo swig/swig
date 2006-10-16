@@ -1492,22 +1492,20 @@ class CSHARP : public Language {
       }
     }
 
-    bool derived = baseclass && getProxyName(c_baseclassname);
-    if (!baseclass)
-      baseclass = NewString("");
-
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
     const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE, attributes);
-    if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      if (GetFlag(attributes, "tmap:csbase:replace")) {
-	Delete(baseclass);
-	baseclass = NewString("");
-      } else {
-	Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
-	    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
-	pure_baseclass = empty_string;
-      }
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+    bool derived = baseclass && getProxyName(c_baseclassname);
+
+    if (GetFlag(attributes, "tmap:csbase:replace")) {
+      wanted_base = pure_baseclass;
+      derived = *Char(wanted_base);
+      Delete(baseclass);
+      baseclass = NULL;
+    } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
+	  "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
     }
 
     // Pure C# interfaces
@@ -1526,12 +1524,11 @@ class CSHARP : public Language {
     Printv(proxy_class_def,
         typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " $csclassname",       // Class name and base class
-        (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ?
+        (*Char(wanted_base) || *Char(pure_interfaces)) ?
         " : " : 
         "",
-        baseclass, // Note only one of these base classes should ever be set as multiple inheritance is not permissible
-        pure_baseclass,
-        ((derived || *Char(pure_baseclass)) && *Char(pure_interfaces)) ? // Interfaces
+        wanted_base,
+        (*Char(wanted_base) && *Char(pure_interfaces)) ? // Interfaces
         ", " :
         "",
         pure_interfaces,
@@ -1557,13 +1554,15 @@ class CSHARP : public Language {
       destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
     }
-    if (!destruct_methodname) {
-      Swig_error(input_file, line_number, 
-          "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
-    }
-    if (!destruct_methodmodifiers) {
-      Swig_error(input_file, line_number, 
-          "No methodmodifier attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+    if (*Char(tm)) {
+      if (!destruct_methodname) {
+	Swig_error(input_file, line_number, 
+	    "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
+      if (!destruct_methodmodifiers) {
+	Swig_error(input_file, line_number, 
+	    "No methodmodifiers attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
     }
 
     // Emit the Finalize and Dispose methods
@@ -2792,9 +2791,9 @@ class CSHARP : public Language {
     Replaceall(swigtype, "$imclassname", imclass_name);
     Replaceall(swigtype, "$dllimport", dllimport);
 
-    addCloseNamespace(namespce, f_swigtype);
-
     Printv(f_swigtype, swigtype, NIL);
+
+    addCloseNamespace(namespce, f_swigtype);
 
     Close(f_swigtype);
     Delete(swigtype);
