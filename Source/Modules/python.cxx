@@ -603,25 +603,25 @@ public:
 
     Printf(f_header,"#if (PY_VERSION_HEX <= 0x02000000)\n");
     Printf(f_header,"# if !defined(SWIG_PYTHON_CLASSIC)\n");
-    Printf(f_header,"#  error \"This python version requires to use swig with the '-classic' option\"\n");
+    Printf(f_header,"#  error \"This python version requires swig to be run with the '-classic' option\"\n");
     Printf(f_header,"# endif\n");
     Printf(f_header,"#endif\n");
     
     if (modern) {
       Printf(f_header,"#if (PY_VERSION_HEX <= 0x02020000)\n");
-      Printf(f_header,"# error \"This python version requires to use swig with the '-nomodern' option\"\n");
+      Printf(f_header,"# error \"This python version requires swig to be run with the '-nomodern' option\"\n");
       Printf(f_header,"#endif\n");
     }
 
     if (modernargs) {
       Printf(f_header,"#if (PY_VERSION_HEX <= 0x02020000)\n");
-      Printf(f_header,"# error \"This python version requires to use swig with the '-nomodernargs' option\"\n");
+      Printf(f_header,"# error \"This python version requires swig to be run with the '-nomodernargs' option\"\n");
       Printf(f_header,"#endif\n");
     }
     
     if (fastunpack) {
       Printf(f_header,"#ifndef METH_O\n");
-      Printf(f_header,"# error \"This python version requires to use swig with the '-nofastunpack' option\"\n");
+      Printf(f_header,"# error \"This python version requires swig to be run with the '-nofastunpack' option\"\n");
       Printf(f_header,"#endif\n");
     }
 
