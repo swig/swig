@@ -1185,6 +1185,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 /* Some ANSI C typemaps */
 
 %apply unsigned long { size_t };
+%apply const unsigned long & { const size_t & };
 
 /* java keywords */
 %include <javakw.swg>
