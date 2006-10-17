@@ -841,6 +841,7 @@ using System.Runtime.InteropServices;
 /* Some ANSI C typemaps */
 
 %apply unsigned long { size_t };
+%apply const unsigned long & { const size_t & };
 
 /* csharp keywords */
 %include <csharpkw.swg>
