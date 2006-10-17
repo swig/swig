@@ -1,19 +1,22 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/17/2006: wsfulton
+            [C#, Java] Add in const size_t& and const std::size_t& typemaps.
+
 10/15/2006: efuzzyone 
-           [CFFI] Suppress generating defctype for enums, thanks to Arthur Smyles. Patch 1560983. 
+            [CFFI] Suppress generating defctype for enums, thanks to Arthur Smyles. Patch 1560983. 
 
 10/14/2006: wuzzeb (John Lenz)
-  	        [Chicken] Minor fix to make SWIG work with the (as yet unreleased) chicken 2.5
+            [Chicken] Minor fix to make SWIG work with the (as yet unreleased) chicken 2.5
 
-  	        [Guile,Chicken] Fix SF Bug 1573892.  Added an ext_test to the test suite to test
-     	     this bug, but this test can not really be made generic because the external code must
- 	        plug into the target language interpreter directly.
-   	     See Examples/test-suite/chicken/ext_test.i and ext_test_external.cxx
+            [Guile,Chicken] Fix SF Bug 1573892.  Added an ext_test to the test suite to test
+            this bug, but this test can not really be made generic because the external code must
+            plug into the target language interpreter directly.
+            See Examples/test-suite/chicken/ext_test.i and ext_test_external.cxx
 
-	        Added a %.externaltest to common.mk, and any interested language modules can
-  	        copy and slightly modify either the chicken or the guile ext_test.i
+            Added a %.externaltest to common.mk, and any interested language modules can
+            copy and slightly modify either the chicken or the guile ext_test.i
 
 10/14/2006: mgossage
             [Lua] added OUTPUT& for all number types, added a long long type
@@ -29,6 +32,8 @@ Version 1.3.30 (in progress)
 
               %typemap(javabase, replace="1") Foo "Me";
               %typemap(csbase, replace="1") Foo "Me";
+
+            Previously it was not possible for the javabase/csbase typemaps to override the C++ base.
 
 10/12/2006: wsfulton
             [Java] Remove potential race condition on the proxy class' delete() method 
