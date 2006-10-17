@@ -24,6 +24,11 @@
     return s;
   }
 
+  const size_t& test4(const size_t& s)
+  {
+    return s;
+  }
+
 }
 
 #ifdef SWIGPYTHON
