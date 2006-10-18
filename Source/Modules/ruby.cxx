@@ -18,8 +18,6 @@ static int treduce = SWIG_cparse_template_reduce(0);
 #include <ctype.h>
 #include <string.h>
 #include <limits.h> /* for INT_MAX */
-#include <string>
-#include <iostream>
 
 class RClass {
  private:
