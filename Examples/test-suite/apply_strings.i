@@ -33,6 +33,29 @@
   CCharPtr CCharFunction(CCharPtr buffer) { return buffer; }
 %}
 
+// unsigned char* as strings
+#if !defined(SWIGUTL)
+%apply char [ANY] {TAscii[ANY]}
+%apply char [] {TAscii []}
+%apply char * {TAscii *}
+#else
+#warning "UTL needs fixing for these typemaps"
+#endif
+
+%inline %{
+typedef unsigned char TAscii;
+typedef struct {
+   TAscii DigitsMemberA[20];
+   TAscii *DigitsMemberB;
+   TAscii DigitsMemberC[];
+} TNumber;
+ 
+TAscii DigitsGlobalA[20];
+TAscii DigitsGlobalB[] = {(unsigned char)'A', (unsigned char)'B', 0};
+TAscii *DigitsGlobalC;
+
+%} 
+
 // Director test
 %feature("director");
 
@@ -47,3 +70,5 @@
     virtual ~DirectorTest() {}
   };
 %}
+
+
