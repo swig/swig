@@ -1190,7 +1190,6 @@ public:
       /* Emit the function call */
       if (director_method) {
 	Printf(f->code, "try {\n");
-	Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
       }
       
       emit_action(n,f);
