@@ -1984,7 +1984,6 @@ public:
     /* Emit the function call */
     if (director_method) {
       Append(f->code, "try {\n");
-      Append(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     } else {
       if (allow_thread) {
 	Append(f->code, "{\n");
