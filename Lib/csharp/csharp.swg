@@ -371,11 +371,11 @@
 %typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
 /* char arrays - treat as String */
-%typemap(in) char[ANY], char[] %{ $1 = $input; %}
-%typemap(out) char[ANY], char[] %{ $result = SWIG_csharp_string_callback($1); %}
+%typemap(in) char[ANY], char[] %{ $1 = ($1_ltype)$input; %}
+%typemap(out) char[ANY], char[] %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
 
-%typemap(directorout) char[ANY], char[] %{ $1 = $input; %}
-%typemap(directorin) char[ANY], char[] %{ $input = SWIG_csharp_string_callback($1); %}
+%typemap(directorout) char[ANY], char[] %{ $1 = ($1_ltype)$input; %}
+%typemap(directorin) char[ANY], char[] %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
 
 %typemap(csdirectorin) char[ANY], char[] "$iminput"
 %typemap(csdirectorout) char[ANY], char[] "$cscall"

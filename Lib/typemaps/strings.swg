@@ -79,7 +79,7 @@
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? %new_copy_array(cptr, csize, Char) : 0;
+    $1 = csize ? ($1_type)%new_copy_array(cptr, csize, Char) : 0;
   }
 }
 
@@ -92,7 +92,7 @@
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? %new_copy_array(cptr, csize, Char) : 0;
+    $1 = csize ? ($1_type)%new_copy_array(cptr, csize, Char) : 0;
   }
 }
 
@@ -107,8 +107,8 @@
 %typemap(memberin,noblock=1) Char * {
   if ($1) %delete_array($1);
   if ($input) {
-    size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = %new_copy_array($input, size, Char);
+    size_t size = SWIG_CharPtrLen(%reinterpret_cast($input, const Char *)) + 1;
+    $1 = ($1_type)%new_copy_array(%reinterpret_cast($input, const Char *), size, Char);
   } else {
     $1 = 0;
   }
@@ -116,8 +116,8 @@
 
 %typemap(memberin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
-    size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = %new_copy_array($input, size, Char);
+    size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
+    $1 = ($1_type)%new_copy_array($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -128,8 +128,8 @@
 %typemap(globalin,noblock=1) Char * {
   if ($1) %delete_array($1);
   if ($input) {
-    size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = %new_copy_array($input, size, Char);
+    size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
+    $1 = ($1_type)%new_copy_array($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -138,7 +138,7 @@
 %typemap(globalin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = %new_copy_array($input, size, Char);
+    $1 = ($1_type)%new_copy_array($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -263,7 +263,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = temp;
+  $1 = %reinterpret_cast(temp, $1_ltype);
 }
 %typemap(freearg) Char [ANY], const Char [ANY] "";
 
