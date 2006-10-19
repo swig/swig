@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/18/2006: wsfulton
+            Some fixes for applying the char array typemaps to unsigned char arrays.
+
 10/17/2006: wsfulton
             [C#, Java] Add in const size_t& and const std::size_t& typemaps.
 
