@@ -353,16 +353,16 @@ namespace std {
 %typemap(memberin) char * {
   if ($1) delete [] $1;
   if ($input) {
-     $1 = ($1_type) (new char[strlen($input)+1]);
-     strcpy((char *) $1,$input);
+     $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 %typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
-     $1 = ($1_type) (new char[strlen($input)+1]);
-     strcpy((char *) $1,$input);
+     $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
@@ -370,51 +370,51 @@ namespace std {
 %typemap(globalin) char * {
   if ($1) delete [] $1;
   if ($input) {
-     $1 = ($1_type) (new char[strlen($input)+1]);
-     strcpy((char *) $1,$input);
+     $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 %typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
-     $1 = ($1_type) (new char[strlen($input)+1]);
-     strcpy((char *) $1,$input);
+     $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 #else
 %typemap(memberin) char * {
-  if ($1) free((char*)$1);
+  if ($1) free((char *)$1);
   if ($input) {
-     $1 = ($1_type) malloc(strlen($input)+1);
-     strcpy((char*)$1,$input);
+     $1 = ($1_type) malloc(strlen((const char *)$input)+1);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 %typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
-     $1 = ($1_type) malloc(strlen($input)+1);
-     strcpy((char*)$1,$input);
+     $1 = ($1_type) malloc(strlen((const char *)$input)+1);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 %typemap(globalin) char * {
-  if ($1) free((char*)$1);
+  if ($1) free((char *)$1);
   if ($input) {
-     $1 = ($1_type) malloc(strlen($input)+1);
-     strcpy((char*)$1,$input);
+     $1 = ($1_type) malloc(strlen((const char *)$input)+1);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
 }
 %typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
   if ($input) {
-     $1 = ($1_type) malloc(strlen($input)+1);
-     strcpy((char*)$1,$input);
+     $1 = ($1_type) malloc(strlen((const char *)$input)+1);
+     strcpy((char *)$1, (const char *)$input);
   } else {
      $1 = 0;
   }
@@ -425,22 +425,22 @@ namespace std {
 /* Character array handling */
 
 %typemap(memberin) char [ANY] {
-  if ($input) strncpy($1,$input,$1_dim0);
+  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
   else $1[0] = 0;
 }
 
 %typemap(globalin) char [ANY] {
-  if ($input) strncpy($1,$input,$1_dim0);
+  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
   else $1[0] = 0;
 }
 
 %typemap(memberin) char [] {
-  if ($input) strcpy($1,$input);
+  if ($input) strcpy((char *)$1, (const char *)$input);
   else $1[0] = 0;
 }
 
 %typemap(globalin) char [] {
-  if ($input) strcpy($1,$input);
+  if ($input) strcpy((char *)$1, (const char *)$input);
   else $1[0] = 0;
 }
 
