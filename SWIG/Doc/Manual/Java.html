@@ -4388,8 +4388,16 @@ The most important of these implement the mapping of C/C++ types to Java types:
 <tr>
 <td>directorin</td>
 <td>Conversion from C++ type to jni type for director methods.
-  These are C++ typemaps which converts the parameters used in the C++ director method to the appropriate JNI intermediary type.
+  These are C++ typemaps which convert the parameters used in the C++ director method to the appropriate JNI intermediary type.
   The conversion is done in JNI code prior to calling the Java function from the JNI code.
+  See <a href="#java_directors_typemaps">Director typemaps</a>. </td>
+</tr>
+
+<tr>
+<td>directorout</td>
+<td>Conversion from jni type to C++ type for director methods.
+  These are C++ typemaps which convert the JNI return type used in the C++ director method to the appropriate C++ return type.
+  The conversion is done in JNI code after calling the Java function from the JNI code.
   See <a href="#java_directors_typemaps">Director typemaps</a>. </td>
 </tr>
 
@@ -4980,7 +4988,7 @@ Again this is the same that is in "<tt>java.swg</tt>", barring the method modifi
 
 
 <p>
-The Java directors feature requires the "javadirectorin", "javadirectorout" and the "directorin" typemaps in order to work properly.
+The Java directors feature requires the "javadirectorin", "javadirectorout", "directorin" and the "directorout" typemaps in order to work properly.
 The "javapackage" typemap is an optional typemap used to identify the Java package path for individual SWIG generated proxy classes.
 </p>
 
@@ -5021,6 +5029,41 @@ If the <tt>-package</tt> commandline option is not used to specify the package, 
 <b>Do not forget the terminating ';' for JNI field descriptors starting with 'L'.</b>
 If the ';' is left out, Java will generate a "method not found" runtime error.
 </p>
+</div>
+
+
+<p><tt>%typemap(directorout)</tt></p>
+<div class="indent">
+
+<p>
+The "directorout" typemap is used for converting the JNI return type in the C++ director class to the appropriate C++ type after the upcall to Java.
+For example, integers are converted as follows:
+</p>
+
+<div class="code">
+<pre>
+%typemap(directorout) int %{ $result = (int)$input; %}
+</pre>
+</div>
+
+<p>
+<code>$input</code> is the SWIG name of the JNI temporary variable returned from Java after the upcall.
+<code>$result</code> is the resulting output.
+A typemap for C character strings is:
+</p>
+
+<div class="code">
+<pre>
+%typemap(directorout) char * {
+  $1 = 0;
+  if ($input) {
+    $result = (char *)jenv-&gt;GetStringUTFChars($input, 0);
+    if (!$1) return $null;
+  }
+}
+</pre>
+</div>
+
 </div>
 
 
