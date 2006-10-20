@@ -3046,12 +3046,12 @@ class JAVA : public Language {
 
     if (returntype) {
 
-      qualified_return = SwigType_rcaststr(returntype, "result");
+      qualified_return = SwigType_rcaststr(returntype, "c_result");
 
       if (!is_void && (!ignored_method || pure_virtual)) {
         if (!SwigType_isclass(returntype)) {
           if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
+            Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
           } else {
             String *base_typename = SwigType_base(returntype);
             String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
@@ -3061,7 +3061,7 @@ class JAVA : public Language {
             if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
               /* initialize pointers to something sane. Same for abstract
                  classes when a reference is returned. */
-              Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= 0", NIL);
+              Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
             } else {
               /* If returning a reference, initialize the pointer to a sane
                  default - if a Java exception occurs, then the pointer returns
@@ -3073,7 +3073,7 @@ class JAVA : public Language {
               Replaceall(non_ref_type, "q(const).", "");
               Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), 
                   "=", SwigType_str(non_ref_type, "()"), NIL);
-              Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= &result_default", NIL);
+              Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
 
               Delete(non_ref_type);
             }
@@ -3086,9 +3086,9 @@ class JAVA : public Language {
 
           vt = cplus_value_type(returntype);
           if (!vt) {
-            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
+            Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
           } else {
-            Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), NIL);
+            Wrapper_add_localv(w, "c_result", SwigType_lstr(vt, "c_result"), NIL);
             Delete(vt);
           }
         }
@@ -3476,16 +3476,14 @@ class JAVA : public Language {
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
-	String *result_str = NewString("result");
+	String *result_str = NewString("c_result");
 	Parm *tp = NewParmFromNode(returntype, result_str, n);
 
-	/* Copy jresult into result... */
+	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup_new("directorout", tp, result_str, w))) {
 	  addThrows(n, "tmap:directorout", tp);
-	  Replaceall(tm,"$source", jresult_str); /* deprecated */
-	  Replaceall(tm,"$target", result_str); /* deprecated */
-	  Replaceall(tm,"$arg", jresult_str); /* deprecated? */
 	  Replaceall(tm,"$input", jresult_str);
+	  Replaceall(tm,"$result", result_str);
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, 
