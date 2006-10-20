@@ -42,7 +42,7 @@ class string;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
    }
-   $1 = std::string($input); %}
+   $result = std::string($input); %}
 
 %typemap(directorin) string %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
 
@@ -97,7 +97,7 @@ class string;
    }
    /* possible thread/reentrant code problem */
    static std::string $1_str($input);
-   $1 = &$1_str; %}
+   $result = &$1_str; %}
 
 %typemap(directorin) const string & %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
 

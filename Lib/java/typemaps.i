@@ -75,7 +75,7 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $1 = ($1_ltype)&$input; %}
+%{ $result = ($1_ltype)&$input; %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) &$1; %}
@@ -359,7 +359,6 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
 %typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-
 }
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT

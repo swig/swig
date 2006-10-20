@@ -22,7 +22,7 @@
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
-   $1 = &temp; %}
+   $result = &temp; %}
 %typemap(directorin, descriptor="I") const enum SWIGTYPE &    "$input = (jint)$1_name;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$jniinput"
 %typemap(javadirectorout) const enum SWIGTYPE & "$javacall"
@@ -47,7 +47,7 @@
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
-%typemap(directorout) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
+%typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
 %typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$jniinput"
 %typemap(javadirectorout) enum SWIGTYPE "$javacall"

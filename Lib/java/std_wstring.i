@@ -60,7 +60,7 @@ class wstring;
     for (jsize i = 0; i < $1_len; ++i) {
       conv_buf[i] = $1_pstr[i];
     }
-    $1 = std::wstring(conv_buf, $1_len);
+    $result = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -136,7 +136,7 @@ class wstring;
     $1_str = std::wstring(conv_buf, $1_len);
     delete [] conv_buf;
   }
-  $1 = &$1_str;
+  $result = &$1_str;
   jenv->ReleaseStringChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const wstring & {
