@@ -157,7 +157,7 @@
 %{ $1 = $input ? true : false; %}
 
 %typemap(directorout) bool
-%{ $1 = $input ? true : false; %}
+%{ $result = $input ? true : false; %}
 
 %typemap(javadirectorin) bool "$jniinput"
 %typemap(javadirectorout) bool "$javacall"
@@ -188,7 +188,7 @@
              long long, 
              float, 
              double
-%{ $1 = ($1_ltype)$input; %}
+%{ $result = ($1_ltype)$input; %}
 
 %typemap(directorin, descriptor="Z") bool             "$input = (jboolean) $1;"
 %typemap(directorin, descriptor="C") char             "$input = (jint) $1;"
@@ -289,9 +289,9 @@
   ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
-  $1 = 0;
+  $result = 0;
   for(i=0; i<sz; i++) {
-    $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
+    $result = ($result << 8) | ($1_type)(unsigned char)bae[i];
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -350,8 +350,8 @@
 %typemap(directorout, noblock=1, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char * {
   $1 = 0;
   if ($input) {
-    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$1) return $null;
+    $result = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$result) return $null;
   }
 }
 
@@ -381,7 +381,7 @@
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const bool &
 %{ static $*1_ltype temp;
    temp = $input ? true : false; 
-   $1 = &temp; %}
+   $result = &temp; %}
 
 %typemap(javadirectorin) const bool & "$jniinput"
 %typemap(javadirectorout) const bool & "$javacall"
@@ -415,7 +415,7 @@
              const double &
 %{ static $*1_ltype temp;
    temp = ($*1_ltype)$input; 
-   $1 = &temp; %}
+   $result = &temp; %}
 
 %typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1_name;"
 %typemap(directorin, descriptor="C") const char &           "$input = (jchar)$1_name;"
@@ -519,7 +519,7 @@
   ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
-  $1 = &temp;
+  $result = &temp;
   temp = 0;
   for(i=0; i<sz; i++) {
     temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
@@ -563,7 +563,7 @@
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
    }
-   $1 = *argp; %}
+   $result = *argp; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
@@ -595,7 +595,7 @@
 %{ *($&1_ltype)&$result = $1; %} 
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ $1 = *($&1_ltype)&$input; %}
+%{ $result = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
@@ -604,7 +604,7 @@
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
      return $null;
    }
-   $1 = *($&1_ltype)&$input; %}
+   $result = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
@@ -628,8 +628,8 @@
 %typemap(directorout, noblock=1) char[ANY], char[] {
   $1 = 0;
   if ($input) {
-    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$1) return $null;
+    $result = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$result) return $null;
   }
 }
 
@@ -688,7 +688,7 @@
              jfloatArray,
              jdoubleArray,
              jobjectArray
-%{ $1 = $input; %}
+%{ $result = $input; %}
 
 %typemap(out) jboolean,
               jchar,

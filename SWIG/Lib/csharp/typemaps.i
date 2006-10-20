@@ -69,7 +69,7 @@ In C# you could then use it like this:
 %{ $1 = ($1_ltype)&$input; %}
 
 %typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $1 = ($1_ltype)&$input; %}
+%{ $result = ($1_ltype)&$input; %}
 
 %typemap(directorin) TYPE &INPUT
 %{ $input = (CTYPE *)$1; %}
@@ -260,7 +260,6 @@ of the function return value.
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-
 }
 
 %typemap(directorin) TYPE &INOUT
