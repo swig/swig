@@ -2403,7 +2403,7 @@ public:
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (is_void)
+	if (!is_void)
 	  Printf(w->code, "return ");
 	String *super_call = Swig_method_call(super, l);
 	Printf(w->code, "%s;\n", super_call);

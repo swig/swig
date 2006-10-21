@@ -3144,7 +3144,8 @@ class CSHARP : public Language {
       String *super_call = Swig_method_call(super, l);
       if (is_void) {
         Printf(w->code, "%s;\n", super_call);
-        Printf(w->code, "return;\n");
+	if (!ignored_method)
+	  Printf(w->code, "return;\n");
       } else {
         Printf(w->code, "return %s;\n", super_call);
       }
