@@ -194,6 +194,7 @@ sizet.py
 smart_pointer_const.py
 smart_pointer_const2.py
 smart_pointer_extend.py
+smart_pointer_inherit.py
 smart_pointer_member.py
 smart_pointer_multi.py
 smart_pointer_multi_typedef.py
