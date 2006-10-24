@@ -403,8 +403,8 @@ install-lib:
 	    echo "Installing language specific files for $$lang"; \
 	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
-	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null`" || doti="";	\
-	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null`" || dotswg="";	\
+	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null || echo ''`"; \
+	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null || echo ''`"; \
 	      if [ -f $(srcdir)/Lib/$$lang/extra-install.list ]; then	\
 		  extra="`sed '/^#/d' $(srcdir)/Lib/$$lang/extra-install.list`";	\
 	      fi;						\
