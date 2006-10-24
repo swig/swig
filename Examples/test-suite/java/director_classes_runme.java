@@ -101,6 +101,8 @@ public class director_classes_runme {
 
   void makeCalls(Caller myCaller, Base myBase)
   {
+    String baseSimpleName = getSimpleName(myBase.getClass());
+
     myCaller.set(myBase);
 
     DoubleHolder dh = new DoubleHolder(444.555);
@@ -111,25 +113,37 @@ public class director_classes_runme {
     if (myCaller.PtrCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
 
     // Fully overloaded method test (all methods in base class are overloaded)
-    if (!myCaller.FullyOverloadedCall(10).equals(myBase.getClass().getSimpleName() + "::FullyOverloaded(int)")) {
-      System.out.println(myCaller.FullyOverloadedCall(10) + "----" + (myBase.getClass().getSimpleName() + "::FullyOverloaded(int)"));
+    if (!myCaller.FullyOverloadedCall(10).equals(baseSimpleName + "::FullyOverloaded(int)")) {
+      System.out.println(myCaller.FullyOverloadedCall(10) + "----" + (baseSimpleName + "::FullyOverloaded(int)"));
       throw new RuntimeException("failed");
     }
-    if (!myCaller.FullyOverloadedCall(true).equals(myBase.getClass().getSimpleName() + "::FullyOverloaded(bool)")) throw new RuntimeException("failed");
+    if (!myCaller.FullyOverloadedCall(true).equals(baseSimpleName + "::FullyOverloaded(bool)")) throw new RuntimeException("failed");
 
     // Semi overloaded method test (some methods in base class are overloaded)
-    if (!myCaller.SemiOverloadedCall(-678).equals(myBase.getClass().getSimpleName() + "::SemiOverloaded(int)")) throw new RuntimeException("failed");
+    if (!myCaller.SemiOverloadedCall(-678).equals(baseSimpleName + "::SemiOverloaded(int)")) throw new RuntimeException("failed");
     if (!myCaller.SemiOverloadedCall(true).equals("Base" + "::SemiOverloaded(bool)")) throw new RuntimeException("failed");
 
     // Default parameters methods test
-    if (!(myCaller.DefaultParmsCall(10, 2.2)).equals(myBase.getClass().getSimpleName() + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
+    if (!(myCaller.DefaultParmsCall(10, 2.2)).equals(baseSimpleName + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
     if (myBase instanceof JavaDerived) { // special handling for Java derived classes, there is no way to do this any other way
-      if (!myCaller.DefaultParmsCall(10).equals(myBase.getClass().getSimpleName() + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
+      if (!myCaller.DefaultParmsCall(10).equals(baseSimpleName + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
     } else {
-      if (!myCaller.DefaultParmsCall(10).equals(myBase.getClass().getSimpleName() + "::DefaultParms(int)")) throw new RuntimeException("failed");
+      if (!myCaller.DefaultParmsCall(10).equals(baseSimpleName + "::DefaultParms(int)")) throw new RuntimeException("failed");
     }
 
     myCaller.reset();
+  }
+
+  // Same as Class.getSimpleName() which is not present in all jdks
+  static String getSimpleName(Class klass) {
+    String fullName = klass.getName();
+    Package packag = klass.getPackage();
+    String simpleName = null;
+    if (packag != null)
+        simpleName = fullName.replaceAll(packag.getName() + ".", "");
+    else
+        simpleName = fullName;
+    return simpleName;
   }
 }
 
