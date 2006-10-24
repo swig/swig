@@ -33,7 +33,7 @@ class DIgnores
     virtual int Triple(int n) { return n*3; }
     virtual int& References(int& n) { static int nn; nn=n; return nn; }
     virtual int* Pointers(int* n) { static int nn; nn=*n; return &nn; }
-    virtual double PublicMethod1() {}
+    virtual double PublicMethod1() { return 0.0; }
     virtual double PublicPureVirtualMethod1() = 0;
     virtual void PublicMethod2() {}
     virtual void PublicPureVirtualMethod2() = 0;
@@ -41,7 +41,7 @@ class DIgnores
   protected:
     virtual void OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0) {}
     virtual void OverloadedProtectedMethod() {}
-    virtual double ProtectedMethod1() {}
+    virtual double ProtectedMethod1() { return 0.0; }
     virtual double ProtectedPureVirtualMethod1() = 0;
     virtual void ProtectedMethod2() {}
     virtual void ProtectedPureVirtualMethod2() = 0;
