@@ -94,10 +94,13 @@ director_detect.py
 director_default.py
 director_enum.py
 director_exception.py
+director_extend.py
 director_frob.py
 director_finalizer.py
+director_ignore.py
 director_namespace_clash.py
 director_nested.py
+director_overload.py
 director_primitives.py
 director_protected.py
 director_redefined.py
@@ -125,6 +128,7 @@ extend_variable.py
 extern_namespace.py
 extern_throws.py
 features.py
+fvirtual.py
 friends.py
 global_ns_arg.py
 global_vars.py
@@ -148,6 +152,7 @@ li_windows.py
 long_long_apply.py
 member_template.py
 minherit.py
+minherit2.py
 mixed_types.py
 multiple_inheritance.py
 name_cxx.py
@@ -396,6 +401,7 @@ director_detect_runme.py
 director_default_runme.py
 director_enum_runme.py
 director_exception_runme.py
+director_extend_runme.py
 director_frob_runme.py
 director_finalizer_runme.py
 director_nested_runme.py
@@ -411,6 +417,7 @@ extend_placement_runme.py
 extend_template_runme.py
 extend_template_ns_runme.py
 extend_variable_runme.py
+fvirtual_runme.py
 friends_runme.py
 global_ns_arg_runme.py
 global_vars_runme.py

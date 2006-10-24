@@ -14,13 +14,13 @@ apply_signed_char
 apply_strings
 argout
 array_member
+array_typedef_memberin
 arrayref
 arrays
 arrays_dimensionless
 arrays_global
 arrays_global_twodim
 arrays_scope
-array_typedef_memberin
 bloody_hell
 bools
 cast_operator
@@ -31,9 +31,9 @@ class_ignore
 class_scope_weird
 clientdata_prop
 compactdefaultargs
-constant_pointers
 const_const
 const_const_2
+constant_pointers
 constover
 constructor_copy
 constructor_exception
@@ -69,6 +69,7 @@ director_enum
 director_exception
 director_finalizer
 director_frob
+director_ignore
 director_namespace_clash
 director_nested
 director_primitives
@@ -83,7 +84,6 @@ director_wstring
 disown
 dynamic_cast
 empty
-enums
 enum_scope_template
 enum_template
 enum_thorough
@@ -91,6 +91,7 @@ enum_thorough_proper
 enum_thorough_simple
 enum_thorough_typeunsafe
 enum_var
+enums
 evil_diamond
 evil_diamond_ns
 evil_diamond_prop
@@ -147,10 +148,10 @@ li_cpointer
 li_math
 li_std_deque
 li_std_except
-li_stdint
 li_std_pair
 li_std_string
 li_std_vector
+li_stdint
 li_typemaps
 li_windows
 long_long
@@ -162,6 +163,7 @@ mod
 multiple_inheritance
 name
 name_cxx
+name_warnings
 namespace_class
 namespace_enum
 namespace_extend
@@ -171,7 +173,6 @@ namespace_template
 namespace_typedef_class
 namespace_typemap
 namespace_virtual_method
-name_warnings
 naturalvar
 nested
 newobject1
@@ -206,6 +207,7 @@ sizet
 smart_pointer_const
 smart_pointer_const2
 smart_pointer_extend
+smart_pointer_inherit
 smart_pointer_member
 smart_pointer_multi
 smart_pointer_multi_typedef
@@ -271,6 +273,7 @@ template_specialization_defarg
 template_specialization_enum
 template_static
 template_tbase_template
+template_type_namespace
 template_typedef
 template_typedef_cplx
 template_typedef_cplx2
@@ -282,7 +285,6 @@ template_typedef_import
 template_typedef_ns
 template_typedef_ptr
 template_typedef_rec
-template_type_namespace
 template_using
 template_virtual
 template_whitespace
@@ -304,8 +306,8 @@ typemap_subst
 typemap_variables
 typemap_various
 typename
-unions
 union_scope
+unions
 using1
 using2
 using_composition
