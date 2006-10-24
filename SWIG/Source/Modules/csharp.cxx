@@ -1921,12 +1921,15 @@ class CSHARP : public Language {
     } else {
       methodmods = (!is_public(n) ? protected_string : public_string);
       Printf(function_code, "  %s ", methodmods);
-      if (Getattr(n,"override"))
-	Printf(function_code, "override ");
-      else if (checkAttribute(n, "storage", "virtual"))
-	Printf(function_code, "virtual ");
-      if (Getattr(n, "hides"))
-	Printf(function_code, "new ");
+      if (!is_smart_pointer()) {
+        // Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
+        if (Getattr(n,"override"))
+          Printf(function_code, "override ");
+        else if (checkAttribute(n, "storage", "virtual"))
+          Printf(function_code, "virtual ");
+        if (Getattr(n, "hides"))
+          Printf(function_code, "new ");
+      }
     }
     if (static_flag)
       Printf(function_code, "static ");
