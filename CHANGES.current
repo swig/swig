@@ -1,6 +1,11 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/24/2006: wsfulton
+            [C#] Fix smart pointer wrappers. The virtual/override/new keyword is not generated
+            for each method as the smart pointer class does not mirror the underlying pointer
+            class inheritance hierarchy. SF #1496535
+
 10/24/2006: mgossage
             [lua] added support for native methods & member function pointers.
             fixed test cases arrays_dimensionless & cpp_basic. Added new example (functor).
