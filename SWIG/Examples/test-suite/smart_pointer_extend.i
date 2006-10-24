@@ -22,7 +22,7 @@
     class CPtr
     {
     public:
-      CDerived* operator->(void) {return 0;};
+      CDerived* operator->(void) {return 0;}
     };
 
     int get_hello(CPtr ptr)
