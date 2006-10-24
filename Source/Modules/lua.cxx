@@ -315,6 +315,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * --------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
+//    REPORT("functionWrapper",n);
 
     String  *name  = Getattr(n,"name");
     String  *iname = Getattr(n,"sym:name");
@@ -680,36 +681,32 @@ NEW LANGUAGE NOTE:END ************************************************/
 
   virtual int variableWrapper(Node *n) {
 /* NEW LANGUAGE NOTE:***********************************************
-FIXME
-this is mainly guesswork
 Language::variableWrapper(n) will generate two wrapper fns
 Foo_get & Foo_set by calling functionWrapper()
 so we will just add these into the variable lists
-ideally we should not have reghistered these as functions,
-only WRT this variable
-will look into this later
+ideally we should not have registered these as functions,
+only WRT this variable will look into this later.
 NEW LANGUAGE NOTE:END ************************************************/
-//    String *name  = Getattr(n,"name");
+    REPORT("variableWrapper",n);
     String *iname = Getattr(n,"sym:name");
-//   Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
-//	   "variableWrapper %s : %s : %s \n",iname,Swig_name_set(iname),Swig_name_get(iname));
+    SwigType *type  = Getattr(n,"type");
+    // let SWIG generate the wrappers
 	   int result=Language::variableWrapper(n);
-	   if (!GetFlag(n,"feature:immutable")) {
-         Printv(s_var_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(Swig_name_get(iname)),
-      			", ", Swig_name_wrapper(Swig_name_set(iname)),"},\n", NIL);
-       }
-       else { //imutable
-         Printv(s_var_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(Swig_name_get(iname)),
-      			", ","0","},\n", NIL);
-       }
-//      Printf(s_var_tab,"%s{ \"%s\", (swig_wrapper_func)%s, (swig_wrapper_func)%s },\n",
-//      					tab4,iname,iname,iname);
-//      Printv(s_var_tab, tab4, "{ \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
-
+    // normally SWIG will generate 2 wrappers, a get and a set
+    // but in certain scenarios (immutable, or if its arrays), it will not
+    String *getName=Swig_name_wrapper(Swig_name_get(iname));
+    String *setName=0;
+    if (is_assignable(n)==false || SwigType_isarray(type)) {
+        // TODO: how about calling a 'this is not settable' error message?
+        setName=NewString("0");
+    } else {
+        setName=Swig_name_wrapper(Swig_name_set(iname));
+    }
+    // register the variable
+    Printf(s_var_tab,"%s{ \"%s\", %s, %s },\n",tab4,iname,getName,setName);
+    Delete(getName);
+    Delete(setName);
 	   return result;
-     //return Language::variableWrapper(n);
-
-
   }
 
   /* ------------------------------------------------------------
@@ -763,14 +760,14 @@ virtual int constantWrapper(Node *n) {
    * ------------------------------------------------------------ */
 
   virtual int nativeWrapper(Node *n) {
-       return Language::nativeWrapper(n);
-/*    String *name     = Getattr(n,"sym:name");
+    REPORT("nativeWrapper",n);
+    String *symname  = Getattr(n,"sym:name");
     String *wrapname = Getattr(n,"wrap:name");
-
     if (!addSymbol(wrapname,n)) return SWIG_ERROR;
 
-    add_method(n, name, wrapname,0);
-    return SWIG_OK;*/
+    Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
+    //   return Language::nativeWrapper(n); // this does nothing...
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
@@ -802,6 +799,7 @@ virtual int constantWrapper(Node *n) {
    * ------------------------------------------------------------ */
 
     virtual int classHandler(Node *n) {
+    REPORT("classHandler",n);
 
     String     *mangled_classname = 0;
     String     *real_classname = 0;
@@ -816,6 +814,12 @@ virtual int constantWrapper(Node *n) {
     real_classname = Getattr(n,"name");
     mangled_classname = Swig_name_mangle(real_classname);
 
+// note: tcl has a static hashtable of all classes emitted, I wonder why?
+/*    static Hash* emitted = NewHash();
+    Printf(stdout,"classHandler %s\n",mangled_classname);
+    if (Getattr(emitted,mangled_classname)) return SWIG_NOWRAP;
+    Setattr(emitted,mangled_classname,"1");    */
+
     s_attr_tab = NewString("");
     Printf(s_attr_tab, "static swig_lua_attribute swig_");
     Printv(s_attr_tab, mangled_classname, "_attributes[] = {\n", NIL);
@@ -825,13 +829,13 @@ virtual int constantWrapper(Node *n) {
     Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
 
   // Generate normal wrappers
+//return SWIG_OK;
     Language::classHandler(n);
-
+//return SWIG_OK;
     SwigType *t = Copy(Getattr(n,"name"));
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    SwigType_remember(t);
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t,wrap_class);
 
@@ -964,7 +968,7 @@ virtual int constantWrapper(Node *n) {
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
-    REPORT("membervariableHandler",n);
+//    REPORT("membervariableHandler",n);
     String   *symname = Getattr(n,"sym:name");
     String   *rname;
 
@@ -1023,7 +1027,7 @@ virtual int constantWrapper(Node *n) {
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    REPORT("memberconstantHandler",n);
+//    REPORT("memberconstantHandler",n);
     return Language::memberconstantHandler(n);
   }
 
@@ -1032,7 +1036,7 @@ virtual int constantWrapper(Node *n) {
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    REPORT("staticmembervariableHandler",n);
+//    REPORT("staticmembervariableHandler",n);
     return Language::staticmembervariableHandler(n);
   }
 

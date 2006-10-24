@@ -1,0 +1,5 @@
+*wrap*
+*.so
+*.dll
+*.exp
+*.lib

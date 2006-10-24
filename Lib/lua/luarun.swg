@@ -67,20 +67,32 @@ typedef struct swig_lua_class {
   struct swig_lua_class **bases;
 } swig_lua_class;
 
+/* this is the struct for wrappering all pointers in SwigLua
+*/
 typedef struct {
-  void             *ptr;
   swig_type_info   *type;
   int               own;	/* 1 if owned & must be destroyed */
+  void             *ptr;
 } swig_lua_userdata;
 
+/* this is the struct for wrappering arbitary packed binary data
+(currently it is only used for member fn pointers)
+the data ordering is similar to swig_lua_userdata, but its currently not possible
+to tell the two structres apart within Swig, other than by looking at the type
+*/
+typedef struct {
+  swig_type_info   *type;
+  int               own;	/* 1 if owned & must be destroyed */
+  char data[1];            /* arbitary amount of data */    
+} swig_lua_rawdata;
 
 /* Common SWIG API */
-#define SWIG_NewPointerObj(L, ptr, type, owner) \
-  SWIG_Lua_NewPointerObj(L, (void *)ptr, type, owner)
-#define SWIG_ConvertPtr(L,idx, ptr, type, flags) \
-	SWIG_Lua_ConvertPtr(L,idx,ptr,type,flags)
-#define SWIG_MustGetPtr(L,idx, type,flags, argnum,fnname) \
-	SWIG_Lua_MustGetPtr(L,idx, type,flags, argnum,fnname)
+#define SWIG_NewPointerObj(L, ptr, type, owner)            SWIG_Lua_NewPointerObj(L, (void *)ptr, type, owner)
+#define SWIG_ConvertPtr(L,idx, ptr, type, flags)	       SWIG_Lua_ConvertPtr(L,idx,ptr,type,flags)
+#define SWIG_MustGetPtr(L,idx, type,flags, argnum,fnname)  SWIG_Lua_MustGetPtr(L,idx, type,flags, argnum,fnname)
+/* for C++ member pointers, ie, member methods */
+#define SWIG_ConvertMember(L, idx, ptr, sz, ty)            SWIG_Lua_ConvertPacked(L, idx, ptr, sz, ty)
+#define SWIG_NewMemberObj(L, ptr, sz, type)                SWIG_Lua_NewPackedObj(L, ptr, sz, type)
 
 /* Runtime API */
 #define SWIG_GetModule(clientdata) SWIG_Lua_GetModule((lua_State*)(clientdata))
@@ -111,9 +123,9 @@ typedef struct {
 #define SWIG_isptrtype(L,I) (lua_isuserdata(L,I) || lua_isnil(L,I))
 
 #ifdef __cplusplus
-/* Special helper for member function pointers */
-#define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
-#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),reinterpret_cast< void** >(a))
+/* Special helper for member function pointers 
+it gets the address, casts it, then dereferences it */
+#define SWIG_mem_fn_as_voidptr(a)  (*((char**)&(a)))
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -482,18 +494,9 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
  * Class/structure conversion fns
  * ----------------------------------------------------------------------------- */
 
-/* pushes a new object into the lua stack */
-SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type, int own)
+/* helper to add metatable to new lua object */
+SWIGINTERN void _SWIG_Lua_AddMetatable(lua_State* L,swig_type_info *type)
 {
-	swig_lua_userdata* usr;
-	if (!ptr){
-		lua_pushnil(L);
-		return;
-	}
-	usr=(swig_lua_userdata*)lua_newuserdata(L,sizeof(swig_lua_userdata));	/* get data */
-	usr->ptr=ptr;	/* set the ptr */
-	usr->type=type;
-	usr->own=own;
 	if (type->clientdata)	/* there is clientdata: so add the metatable */
 	{
 		SWIG_Lua_get_class_metatable(L,((swig_lua_class*)(type->clientdata))->name);
@@ -506,6 +509,21 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *t
 			lua_pop(L,1);
 		}
 	}
+}
+
+/* pushes a new object into the lua stack */
+SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type, int own)
+{
+	swig_lua_userdata* usr;
+	if (!ptr){
+		lua_pushnil(L);
+		return;
+	}
+	usr=(swig_lua_userdata*)lua_newuserdata(L,sizeof(swig_lua_userdata));	/* get data */
+	usr->ptr=ptr;	/* set the ptr */
+	usr->type=type;
+	usr->own=own;
+    _SWIG_Lua_AddMetatable(L,type); /* add metatable */
 }
 
 /* takes a object from the lua stack & converts it into an object of the correct type
@@ -542,6 +560,33 @@ SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *typ
 		lua_error(L);
 	}
 	return result;
+}
+
+/* pushes a packed userdata. user for member fn pointers only */
+SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State* L,void* ptr,size_t size,swig_type_info *type)
+{
+	swig_lua_rawdata* raw;
+	assert(ptr); /* not acceptable to pass in a NULL value */
+	raw=(swig_lua_rawdata*)lua_newuserdata(L,sizeof(swig_lua_rawdata)-1+size);	/* alloc data */
+	raw->type=type;
+	raw->own=0;
+    memcpy(raw->data,ptr,size); /* copy the data */
+    _SWIG_Lua_AddMetatable(L,type); /* add metatable */
+}
+    
+/* converts a packed userdata. user for member fn pointers only */
+SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State* L,int index,void* ptr,size_t size,swig_type_info *type)
+{
+	swig_lua_rawdata* raw;
+	swig_cast_info *cast;
+	raw=(swig_lua_rawdata*)lua_touserdata(L,index);	/* get data */
+	if (!raw) return SWIG_ERROR;	/* error */
+    if (type==0 || type==raw->type) /* void* or identical type */
+    {
+        memcpy(ptr,raw->data,size); /* copy it */
+        return SWIG_OK; /* ok */
+    }
+    return SWIG_ERROR;	/* error */
 }
 
 /* lua callable function to get the userdata's type */

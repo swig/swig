@@ -1,8 +1,9 @@
 # see top-level Makefile.in
 class
 constants
-functest
 funcptr3
+functest
+functor
 pointer
 simple
 variables
