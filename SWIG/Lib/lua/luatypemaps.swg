@@ -119,25 +119,14 @@
 
 // passing objects by value
 // SWIG expects the object pointer (the $&ltype argp)
-// then dereferences it
+// then dereferences it to get the object
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE ($&ltype argp)
 %{
-   if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)(&argp),$&descriptor,0))){
+   if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&argp,$&descriptor,0))){
      SWIG_fail_ptr("$symname",$argnum,$descriptor);
    }
    $1 = *argp;
 %}
-
-// member function pointer
-// currently does not work as C++ doesn't like casting member fn pointer to void*
-/*%typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
-%{
-  if (SWIG_ConvertPtr(L,$input,(void**)(&$1),$descriptor,0) == -1)
-    SWIG_fail_ptr("$symname",$argnum,$descriptor);
-%}
-
-%typemap(out) SWIGTYPE (CLASS::*)
-%{SWIG_NewPointerObj(L,SWIG_as_voidptr($1),$descriptor,$owner); SWIG_arg++; %}*/
 
 // Primitive types--return by value
 // must make a new object, copy the data & return the new object
@@ -172,6 +161,24 @@
   SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
 %}
 #endif*/
+
+// member function pointer
+// a member fn ptr is not 4 bytes like a normal pointer, but 8 bytes 
+// so the standard wrappering cannot be done
+// nor can you cast a member function pointer to a void* (obviously)
+#ifdef __cplusplus
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
+%{
+  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($type),$descriptor)))
+    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+%}
+
+%typemap(out) SWIGTYPE (CLASS::*)
+%{ 
+  SWIG_NewMemberObj(L,(void*)(&$1),sizeof($type),$descriptor); SWIG_arg++; 
+%}
+#endif
+
 
 // void (must be empty without the SWIG_arg++)
 %typemap(out) void "";

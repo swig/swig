@@ -54,7 +54,7 @@
 /* -----------------------------------------------------------------------------
  *                          Overloaded operator support
  * ----------------------------------------------------------------------------- */
-// lua likes to call the + operator '__add'
+// lua calls the + operator '__add'
 // python likes to call it '__add__'
 // Assuming most SWIGers will probably use the __add__ if they extend their classes
 // we have two sets of renames
@@ -73,13 +73,13 @@
 %rename(__unm)      *::operator-();
 %rename(__unm)      *::operator-() const;
 
-%rename(__eq)			*::operator==;	// note: Lua does not have a not equal
+%rename(__eq)			*::operator==;	
+%ignore *::operator!=;      // note: Lua does not have a notequal operator
 						// it just uses 'not (a==b)'
-%ignore *::operator!=;
-%rename(__lt)			*::operator<;	// ditto less than vs greater than
-%ignore *::operator>;
-%rename(__le)			*::operator<=;	// ditto less than vs greater than
-%ignore *::operator>=;
+%rename(__lt)			*::operator<;
+%ignore *::operator>;   	// ditto less than vs greater than
+%rename(__le)			*::operator<=;	
+%ignore *::operator>=;  // ditto less than vs greater than
 
 %rename(__call)			*::operator();	// the fn call operator
 
