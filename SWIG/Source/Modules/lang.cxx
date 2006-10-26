@@ -1894,7 +1894,7 @@ int Language::classDirectorConstructors(Node *n) {
   /* emit constructors */
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
-    if (Cmp(nodeType, "constructor") == 0 && !GetFlag(ni, "feature:ignore")) { 
+    if (Cmp(nodeType, "constructor") == 0) { 
       Parm   *parms = Getattr(ni,"parms");
       if (is_public(ni)) {
 	/* emit public constructor */

@@ -3507,13 +3507,11 @@ class CSHARP : public Language {
         String *target = Swig_method_decl(decl, classname, parms, 0, 0);
         String *call = Swig_csuperclass_call(0, basetype, superparms);
         String *classtype = SwigType_namestr(Getattr(n, "name"));
-        String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
 
         Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
         Printf(f_directors, "  swig_init_callbacks();\n");
         Printf(f_directors, "}\n\n");
 
-        Delete(dirclass_type);
         Delete(classtype);
         Delete(target);
         Delete(call);
@@ -3540,7 +3538,6 @@ class CSHARP : public Language {
   int classDirectorDefaultConstructor(Node *n) {
     String *classname = Swig_class_name(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
-    String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
     Wrapper *w = NewWrapper();
 
     Printf(w->def, "SwigDirector_%s::SwigDirector_%s() : %s {",
@@ -3550,7 +3547,6 @@ class CSHARP : public Language {
 
     Printf(f_directors_h, "    SwigDirector_%s();\n", classname);
     DelWrapper(w);
-    Delete(dirclass_type);
     Delete(classtype);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
