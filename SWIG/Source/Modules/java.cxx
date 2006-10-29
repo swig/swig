@@ -729,6 +729,7 @@ class JAVA : public Language {
     bool      is_void_return;
     String    *overloaded_name = getOverloadedName(n);
     String    *nondir_args = NewString("");
+    bool      is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     if (!Getattr(n,"sym:overloaded")) {
       if (!addSymbol(Getattr(n,"sym:name"),n)) return SWIG_ERROR;
@@ -843,6 +844,16 @@ class JAVA : public Language {
       Printv(f->def, ", ", c_param_type, " ", arg, NIL);
       
       ++gencomma;
+
+      // Premature garbage collection prevention parameter
+      if (!is_destructor) {
+	String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
+	if (pgc_parameter) {
+	  Printf(imclass_class_code, ", %s %s_", pgc_parameter, arg);
+	  Printf(f->def, ", jobject %s_", arg);
+	  Printf(f->code,"    (void)%s_;\n", arg);
+	}
+      }
 
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
@@ -1897,6 +1908,7 @@ class JAVA : public Language {
 
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms("in", l, NULL);
+    Swig_typemap_attach_parms("jtype", l, NULL);
     Swig_typemap_attach_parms("jstype", l, NULL);
     Swig_typemap_attach_parms("javain", l, NULL);
 
@@ -1928,8 +1940,20 @@ class JAVA : public Language {
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
     Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
-    if (!static_flag)
+    if (!static_flag) {
       Printf(imcall, "swigCPtr");
+      String *this_type = Copy(getClassType());
+      String *name = NewString("self");
+      SwigType_add_pointer(this_type);
+      Parm *this_parm = NewParm(this_type, name);
+      Swig_typemap_attach_parms("jtype", this_parm, NULL);
+
+      if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
+	Printf(imcall, ", this");
+      Delete(name);
+      Delete(this_type);
+      Delete(this_parm);
+    }
 
     emit_mark_varargs(l);
 
@@ -1986,6 +2010,9 @@ class JAVA : public Language {
           Printf(function_code, ", ");
         gencomma = 2;
         Printf(function_code, "%s %s", param_type, arg);
+
+	if (prematureGarbageCollectionPreventionParameter(pt, p))
+	  Printf(imcall, ", %s", arg);
 
         Delete(arg);
         Delete(param_type);
@@ -2073,6 +2100,7 @@ class JAVA : public Language {
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
+      Swig_typemap_attach_parms("jtype", l, NULL);
       Swig_typemap_attach_parms("jstype", l, NULL);
       Swig_typemap_attach_parms("javain", l, NULL);
 
@@ -2128,6 +2156,9 @@ class JAVA : public Language {
           Printf(function_code, ", ");
         Printf(function_code, "%s %s", param_type, arg);
         ++gencomma;
+
+	if (prematureGarbageCollectionPreventionParameter(pt, p))
+	  Printf(imcall, ", %s", arg);
 
         Delete(arg);
         Delete(param_type);
@@ -2352,6 +2383,9 @@ class JAVA : public Language {
         Printf(function_code, ", ");
       gencomma = 2;
       Printf(function_code, "%s %s", param_type, arg);
+
+      if (prematureGarbageCollectionPreventionParameter(pt, p))
+	Printf(imcall, ", %s", arg);
 
       p = Getattr(p,"tmap:in:next");
       Delete(arg);
@@ -2734,6 +2768,28 @@ class JAVA : public Language {
       while ( (cls = Next(cls)).item)
         Printf(code, ", %s", cls.item);
     }
+  }
+
+  /* -----------------------------------------------------------------------------
+   * prematureGarbageCollectionPreventionParameter()
+   *
+   * Get the proxy class name for use in an additional generated parameter. The
+   * additional parameter is added to a native method call purely to prevent 
+   * premature garbage collection of proxy classes which pass their C++ class pointer
+   * in a Java long to the JNI layer.
+   * ----------------------------------------------------------------------------- */
+
+  String *prematureGarbageCollectionPreventionParameter(SwigType *t, Parm *p) {
+    String *jtype = Getattr(p,"tmap:jtype");
+    if (Cmp(jtype, "long") == 0) {
+      if (proxy_flag) {
+	Node *n = classLookup(t);
+	if (n && !GetFlag(p, "tmap:jtype:nopgcpp")) {
+	  return Getattr(n,"sym:name");
+	}
+      }
+    }
+    return NULL;
   }
 
   /*----------------------------------------------------------------------
