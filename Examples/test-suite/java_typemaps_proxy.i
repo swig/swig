@@ -87,4 +87,22 @@ namespace NS {
 
 %template(AdieuIntPtrPtr) NS::Adieu<int**>;
 
+// Check the premature garbage collection prevention parameter can be turned off
+%typemap(jtype, nopgcpp="1") Without * "long";
+%pragma(java) jniclassclassmodifiers="public class"
+
+%inline %{
+struct Without {
+  Without(Without *p) {}
+  static void static_method(Without *p) {}
+  void member_method(Without *p) {}
+};
+void global_method_without(Without *p) {}
+struct With {
+  With(With *p) {}
+  static void static_method(With *p) {}
+  void member_method(With *p) {}
+};
+void global_method_with(With *p) {}
+%}
 
