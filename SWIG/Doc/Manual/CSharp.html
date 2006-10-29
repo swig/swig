@@ -350,6 +350,10 @@ from <tt>modulename</tt> to <tt>modulenameModule</tt>.
 </p>
 </li>
 
+<li>
+There is no additional 'premature garbage collection prevention parameter' as the marshalling of the <tt>HandleRef</tt> object
+takes care of ensuring a reference to the proxy class is held until the unmanaged call completed.
+</li>
 
 </ul>
 

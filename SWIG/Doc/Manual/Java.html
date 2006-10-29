@@ -2067,16 +2067,17 @@ JNI functions. The JNI functions have to follow a particular naming convention s
 
 <div class="code">
 <pre>
-JNIEXPORT jlong JNICALL Java_exampleJNI_new_1Foo(JNIEnv *jenv, jclass jcls);
-JNIEXPORT void JNICALL Java_exampleJNI_delete_1Foo(JNIEnv *jenv, jclass jcls,
-                                                   jlong jarg1);
-JNIEXPORT void JNICALL Java_exampleJNI_Foo_1x_1set(JNIEnv *jenv, jclass jcls,
-                                                   jlong jarg1, jint jarg2);
-JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1x_1get(JNIEnv *jenv, jclass jcls,
-                                                   jlong jarg1);
-JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls,
-                                                 jlong jarg1, jint jarg2, jlong jarg3);
-JNIEXPORT void JNICALL Java_exampleJNI_egg(JNIEnv *jenv, jclass jcls, jlong jarg1);
+SWIGEXPORT jlong JNICALL Java_exampleJNI_new_1Foo(JNIEnv *jenv, jclass jcls);
+SWIGEXPORT void JNICALL Java_exampleJNI_delete_1Foo(JNIEnv *jenv, jclass jcls,
+                                                    jlong jarg1);
+SWIGEXPORT void JNICALL Java_exampleJNI_Foo_1x_1set(JNIEnv *jenv, jclass jcls,
+                                                    jlong jarg1, jobject jarg1_, jint jarg2);
+SWIGEXPORT jint JNICALL Java_exampleJNI_Foo_1x_1get(JNIEnv *jenv, jclass jcls,
+                                                    jlong jarg1, jobject jarg1_);
+SWIGEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls,
+                                                  jlong jarg1, jobject jarg1_, jint jarg2, jlong jarg3, jobject jarg3_);
+SWIGEXPORT void JNICALL Java_exampleJNI_egg(JNIEnv *jenv, jclass jcls,
+                                            jlong jarg1, jobject jarg1_);
 </pre>
 </div>
 
@@ -2089,10 +2090,10 @@ For every JNI C function there has to be a static native Java function. These ap
 class exampleJNI {
   public final static native long new_Foo();
   public final static native void delete_Foo(long jarg1);
-  public final static native void Foo_x_set(long jarg1, int jarg2);
-  public final static native int Foo_x_get(long jarg1);
-  public final static native int Foo_spam(long jarg1, int jarg2, long jarg3);
-  public final static native void egg(long jarg1);
+  public final static native void Foo_x_set(long jarg1, Foo jarg1_, int jarg2);
+  public final static native int Foo_x_get(long jarg1, Foo jarg1_);
+  public final static native int Foo_spam(long jarg1, Foo jarg1_, int jarg2, long jarg3, Foo jarg3_);
+  public final static native void egg(long jarg1, Foo jarg1_);
 }
 </pre>
 </div>
@@ -2103,9 +2104,12 @@ As this class acts as a go-between for all JNI calls to C/C++ code from the Java
 </p>
 
 <p>
-You may notice that SWIG uses a Java long wherever a pointer or class object needs traversing the Java-C/C++ boundary.
+You may notice that SWIG uses a Java long wherever a pointer or class object needs to be marshalled across the Java-C/C++ boundary.
 This approach leads to minimal JNI code which makes for better performance as JNI code involves a lot of string manipulation.
-SWIG uses Java code wherever possible as it is compiled into byte code which requires fewer string operations.
+SWIG favours generating Java code over JNI code as Java code is compiled into byte code and avoids the costly string operations needed in JNI code.
+This approach has a downside though as the proxy class might get collected before the native method has completed.
+You might notice above that there is an additional parameters with a underscore postfix, eg <tt>jarg1_</tt>.
+These are added in order to prevent <a href="java_pgcpp">premature garbage collection when marshalling proxy classes</a>.
 </p>
 
 <p>
@@ -2219,7 +2223,7 @@ All global functions and variable getters/setters appear in the module class. Fo
 <pre>
 public class example {
   public static void egg(Foo chips) {
-    exampleJNI.egg(Foo.getCPtr(chips));
+    exampleJNI.egg(Foo.getCPtr(chips), chips);
   }
 }
 </pre>
@@ -2310,7 +2314,7 @@ public class Foo {
   }
 
   protected static long getCPtr(Foo obj) {
-    return obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigCPtr;
   }
 
   protected void finalize() {
@@ -2319,27 +2323,28 @@ public class Foo {
 
   public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
-      exampleJNI.delete_Foo(swigCPtr);
       swigCMemOwn = false;
+      exampleJNI.delete_Foo(swigCPtr);
     }
     swigCPtr = 0;
   }
 
-  public void setX(int x) {
-    exampleJNI.Foo_x_set(swigCPtr, x);
+  public void setX(int value) {
+    exampleJNI.Foo_x_set(swigCPtr, this, value);
   }
 
   public int getX() {
-    return exampleJNI.Foo_x_get(swigCPtr);
+    return exampleJNI.Foo_x_get(swigCPtr, this);
   }
 
   public int spam(int num, Foo foo) {
-    return exampleJNI.Foo_spam(swigCPtr, num, Foo.getCPtr(foo));
+    return exampleJNI.Foo_spam(swigCPtr, this, num, Foo.getCPtr(foo), foo);
   }
 
   public Foo() {
     this(exampleJNI.new_Foo(), true);
   }
+
 }
 </pre>
 </div>
@@ -2560,7 +2565,7 @@ public class Base {
   }
 
   protected static long getCPtr(Base obj) {
-    return obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigCPtr;
   }
 
   protected void finalize() {
@@ -2569,19 +2574,20 @@ public class Base {
 
   public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
-      exampleJNI.delete_Base(swigCPtr);
       swigCMemOwn = false;
+      exampleJNI.delete_Base(swigCPtr);
     }
     swigCPtr = 0;
   }
 
   public double foo() {
-    return exampleJNI.Base_foo(swigCPtr);
+    return exampleJNI.Base_foo(swigCPtr, this);
   }
 
   public Base() {
     this(exampleJNI.new_Base(), true);
   }
+
 }
 </pre></div>
 
@@ -2599,7 +2605,7 @@ public class Derived extends Base {
   }
 
   protected static long getCPtr(Derived obj) {
-    return obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigCPtr;
   }
 
   protected void finalize() {
@@ -2608,20 +2614,21 @@ public class Derived extends Base {
 
   public synchronized void delete() {
     if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
-      exampleJNI.delete_Derived(swigCPtr);
       swigCMemOwn = false;
+      exampleJNI.delete_Derived(swigCPtr);
     }
     swigCPtr = 0;
     super.delete();
   }
 
   public double foo() {
-    return exampleJNI.Derived_foo(swigCPtr);
+    return exampleJNI.Derived_foo(swigCPtr, this);
   }
 
   public Derived() {
     this(exampleJNI.new_Derived(), true);
   }
+
 }
 </pre></div>
 
@@ -2711,11 +2718,132 @@ The SWIG generated code ensures that the memory is not deleted twice, in the eve
 </li>
 
 <li>
+<p>
 Write your own object manager in Java. 
 You could derive all SWIG classes from a single base class which could track which objects have had their finalizers run, then call the rest of them on program termination.
 The section on <a href="#java_typemaps">Java typemaps</a> details how to specify a pure Java base class.
+</p>
 </li>
 </ol>
+
+<p>
+See the <a href="http://www.devx.com/Java/Article/30192">How to Handle Java Finalization's Memory-Retention Issues</a> article for alternative approaches to managing memory by avoiding finalizers altogether.
+</p>
+
+<H4><a name="java_pgcpp"></a>20.4.3.3 The premature garbage collection prevention parameter for proxy class marshalling</H4>
+<p>
+As covered earlier, the C/C++ struct/class pointer is stored in the proxy class as a Java long and when needed is passed
+into the native method where it is cast into the appropriate type.
+This approach provides very fast marshalling but could be susceptible to premature garbage collection.
+Consider the following C++ code:
+</p>
+
+<div class="code"><pre>
+class Wibble {
+};
+void wobble(Wibble &amp;w);
+</pre></div>
+
+<p>
+The module class contains the Java wrapper for the global <tt>wobble</tt> method:
+</p>
+
+<div class="code"><pre>
+public class example {
+  ...
+  public static void wobble(Wibble w) {
+    exampleJNI.wobble(Wibble.getCPtr(w), w);
+  }
+}
+</pre></div>
+
+<p>
+where <tt>example</tt> is the name of the module. 
+All native methods go through the intermediary class which has the native method declared as such:
+</p>
+
+<div class="code"><pre>
+public class exampleJNI {
+  ...
+  public final static native void wobble(long jarg1, Wibble jarg1_);
+}
+</pre></div>
+
+<p>
+The second parameter, <tt>jarg1_</tt>, is the premature garbage collection prevention parameter and is added to the native method parameter list whenever a C/C++ struct or class is marshalled as a Java long.
+In order to understand why, consider the alternative where the intermediary class method is declared without the additional parameter:
+</p>
+
+<div class="code"><pre>
+public class exampleJNI {
+  ...
+  public final static native void wobble(long jarg1);
+}
+</pre></div>
+
+<p>
+and the following simple call to <tt>wobble</tt>:
+</p>
+
+<div class="code"><pre>
+{
+  Wibble w = new Wibble();
+  example.wobble(w);
+}
+</pre></div>
+
+<p>
+The hotspot compiler effectively sees something like:
+</p>
+
+<div class="code"><pre>
+{
+  Wibble w = new Wibble();
+  long w_ptr = Wibble.getCPtr(w);
+  // w is no longer reachable
+  exampleJNI.wobble(w_ptr);
+}
+</pre></div>
+
+<p>
+The <tt>Wibble</tt> object is no longer reachable after the point shown as in this bit of code, the <tt>Wibble</tt> object is not referenced again after this point.
+This means that it is a candidate for garbage collection.
+Should <tt>wobble</tt> be a long running method, it is quite likely that the finalizer for the <tt>Wibble</tt> instance will be called.
+This in turn will call its underlying C++ destructor which 
+is obviously disastrous while the method <tt>wobble</tt> is running using this object.
+Even if <tt>wobble</tt> is not a long running method, it is possible for the <tt>Wibble</tt> instance to be finalized.
+By passing the <tt>Wibble</tt> instance into the native method, it will not be finalized as the JVM guarantees not to
+finalize any objects until the native method returns.
+Effectively, the code then becomes
+</p>
+
+<div class="code"><pre>
+{
+  Wibble w = new Wibble();
+  long w_ptr = Wibble.getCPtr(w);
+  exampleJNI.wobble(w_ptr, w);
+  // w is no longer reachable
+}
+</pre></div>
+
+<p>
+and therefore there is no possibility of premature garbage collection. In practice, this premature garbage collection was only ever observed in Sun's server JVM from jdk-1.3 onwards and in Sun's client JVM from jdk-1.6 onwards.
+</p>
+
+<p>
+The premature garbage collection prevention parameter for proxy classes is generated by default.
+It does impose a slight overhead and can be suppressed by specifying the 'nopgcpp' attribute in the "jnitype" <a href="#java_typemaps">Java typemap</a>.
+The attribute is a flag and so should be set to "1" to enable the suppression, or it can be omitted or set to "0" to disable.
+For example:
+</p>
+
+<div class="code"><pre>
+%typemap(jtype, nopgcpp="1") Wibble &amp; "long"
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> The generation of this additional parameter did not occur in versions prior to SWIG-1.3.30.
+</p>
 
 <H3><a name="type_wrapper_classes"></a>20.4.4 Type wrapper classes</H3>
 
@@ -4157,7 +4285,7 @@ and the JNI function would look like this:
 </p>
 
 <div class="code"> <pre>
-JNIEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls,
+SWIGEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls,
                 jint jarg1, jstring jarg2, jint jarg3, jobject jarg4) {...}
 </pre> </div>
 
@@ -4458,20 +4586,17 @@ resulting in the following code which breaks the aliasing rules:
 </p>
 
 <div class="code"><pre>
-JNIEXPORT jlong JNICALL Java_exampleJNI_FooBar(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jlong JNICALL Java_exampleJNI_FooBar(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   jlong jresult = 0 ;
   struct Foo *arg1 = (struct Foo *) 0 ;
   struct Bar *result = 0 ;
   
   (void)jenv;
   (void)jcls;
-  
-  arg1 = *(struct Foo **)&amp;jarg1; /* cast jlong into C ptr */
-  
+  (void)jarg1_;
+  arg1 = *(struct Foo **)&amp;jarg1; 
   result = (struct Bar *)FooBar(arg1);
-  
-  *(struct Bar **)&amp;jresult = result; /* cast C ptr into jlong */
-  
+  *(struct Bar **)&amp;jresult = result; 
   return jresult;
 }
 </pre></div>
@@ -4611,6 +4736,10 @@ the union of the exception classes is added to the throws clause ensuring there 
 See the <a href="#nan_exception_typemap">NaN exception example</a> for further usage.
 </p>
 
+<p>
+The "jnitype" typemap has the 'nopgcpp' attribute which can be used to suppress the generation of the <a href="java_pgcpp">premature garbage collection prevention parameter</a>.
+</p>
+
 <H3><a name="special_variables"></a>20.8.7 Java special variables</H3>
 
 
@@ -4650,7 +4779,7 @@ If the typemap gets put into a function with void as return, $null will expand t
 </p>
 
 <div class="code"><pre>
-JNIEXPORT void JNICALL Java_jnifn(...) {
+SWIGEXPORT void JNICALL Java_jnifn(...) {
     if (error) {
       SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
       return ;
@@ -4664,7 +4793,7 @@ otherwise $null expands to <i>NULL</i>
 </p>
 
 <div class="code"><pre>
-JNIEXPORT jobject JNICALL Java_jnifn(...) {
+SWIGEXPORT jobject JNICALL Java_jnifn(...) {
     if (error) {
       SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
       return NULL;
@@ -4704,7 +4833,7 @@ The generated proxy code is then:
 
 <div class="code"><pre>
 public static Class bar(Class cls, int ush) {
-  return new Class(exampleJNI.bar(Class.getCPtr(cls), ush), false);
+  return new Class(exampleJNI.bar(Class.getCPtr(cls), cls, ush), false);
 }
 </pre></div>
 
@@ -4724,7 +4853,7 @@ The generated code constructs the return type using <tt>true</tt> indicating the
 
 <div class="code"><pre>
 public static Class bar(Class cls, int ush) {
-  return new Class(exampleJNI.bar(Class.getCPtr(cls), ush), true);
+  return new Class(exampleJNI.bar(Class.getCPtr(cls), cls, ush), true);
 }
 </pre></div>
 
@@ -5412,7 +5541,7 @@ public class FileException extends java.lang.Exception {
   public FileException(String msg) { ... }
 
   public String what() {
-    return exampleJNI.FileException_what(swigCPtr);
+    return exampleJNI.FileException_what(swigCPtr, this);
   }
 }
 </pre>
@@ -6476,7 +6605,7 @@ public class Wheel {
 public class Bike {
   ...
   public Wheel getWheel() {
-    long cPtr = exampleJNI.Bike_getWheel(swigCPtr);
+    long cPtr = exampleJNI.Bike_getWheel(swigCPtr, this);
     Wheel ret = null;
     if (cPtr != 0) {
       ret = new Wheel(cPtr, false);
@@ -6579,7 +6708,7 @@ public class Container {
   }
 
   public void setElement(Element e) {
-    exampleJNI.Container_setElement(swigCPtr, getCPtrAndAddReference(e));
+    exampleJNI.Container_setElement(swigCPtr, this, getCPtrAndAddReference(e), e);
   }
 }
 </pre>
