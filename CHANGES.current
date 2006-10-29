@@ -1,6 +1,20 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/29/2006: wsfulton
+            [Java] Important fix to prevent early garbage collection of the Java proxy class
+            while it is being used in a native method. The finalizer could destroy the underlying
+            C++ object while it was being used. The problem occurs when the proxy class is no
+            longer strongly reachable after a native call.  The problem seems to occur in
+            memory stress situations on some JVMs. It does not seem to occur on the
+            Sun client JVM up to jdk 1.5. However the 1.6 client jdk has a more aggressive garbage
+            collector and so the problem does occur. It does occur on the Sun server
+            JVMs (certainly 1.4 onwards). The fix entails passing the proxy class into the native
+            method in addition to the C++ pointer in the long parameter, as Java classes are not
+            collected when they are passed into JNI methods. The extra parameter can be suppressed
+            by setting the nopgcpp attribute in the jtype typemap to "1".
+            See Java.html#java_pgcpp for further details on this topic.
+
 10/24/2006: wsfulton
             [C#] Fix smart pointer wrappers. The virtual/override/new keyword is not generated
             for each method as the smart pointer class does not mirror the underlying pointer
