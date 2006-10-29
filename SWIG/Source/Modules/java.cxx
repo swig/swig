@@ -34,6 +34,7 @@ class JAVA : public Language {
   List   *filenames_list;
 
   bool   proxy_flag; // Flag for generating proxy classes
+  bool   nopgcpp_flag; // Flag for suppressing the premature garbage collection prevention parameter
   bool   native_function_flag;     // Flag for when wrapping a native function
   bool   enum_constant_flag; // Flag for when wrapping an enum or constant
   bool   static_flag; // Flag for when wrapping a static functions or member variables
@@ -102,6 +103,7 @@ class JAVA : public Language {
     filenames_list(NULL),
 
     proxy_flag(true),
+    nopgcpp_flag(false),
     native_function_flag(false),
     enum_constant_flag(false),
     static_flag(false),
@@ -221,6 +223,9 @@ class JAVA : public Language {
         } else if ((strcmp(argv[i],"-noproxy") == 0)) {
           Swig_mark_arg(i);
           proxy_flag = false;
+        } else if (strcmp(argv[i],"-nopgcpp") == 0) {
+          Swig_mark_arg(i);
+	  nopgcpp_flag = true;
         } else if (strcmp(argv[i],"-oldvarnames") == 0) {
           Swig_mark_arg(i);
 	  old_variable_names = true;
@@ -2784,7 +2789,7 @@ class JAVA : public Language {
     if (Cmp(jtype, "long") == 0) {
       if (proxy_flag) {
 	Node *n = classLookup(t);
-	if (n && !GetFlag(p, "tmap:jtype:nopgcpp")) {
+	if (n && !GetFlag(p, "tmap:jtype:nopgcpp") && !nopgcpp_flag) {
 	  return Getattr(n,"sym:name");
 	}
       }
@@ -3936,9 +3941,10 @@ extern "C" Language * swig_java(void) {
 
 const char *JAVA::usage = (char*)"\
 Java Options (available with -java)\n\
-     -package <name> - set name of the Java package to <name>\n\
+     -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
      -oldvarnames    - old intermediary method names for variable wrappers\n\
+     -package <name> - set name of the Java package to <name>\n\
 \n";
 
