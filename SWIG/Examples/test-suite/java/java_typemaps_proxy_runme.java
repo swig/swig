@@ -50,7 +50,6 @@ public class java_typemaps_proxy_runme {
 
     // Check the %javamethodmodifiers feature
     try {
-
       Method methodmodifiertest = nullFarewell.getClass().getDeclaredMethod("methodmodifiertest", (java.lang.Class[])null);
       if ( !Modifier.isPrivate(methodmodifiertest.getModifiers()) )
         throw new RuntimeException("NS::Farewell::methodmodifiertest not private" );
@@ -60,6 +59,23 @@ public class java_typemaps_proxy_runme {
     } catch (SecurityException s) {
       throw new RuntimeException("SecurityException caught. Test failed.");
     }
+
+    // Check the premature garbage collection prevention parameter
+    // Check it is normally present
+    long nullPtr = 0;
+    With with = new With(null);
+    java_typemaps_proxyJNI.new_With(nullPtr, with);
+    java_typemaps_proxyJNI.With_static_method(nullPtr, with);
+    java_typemaps_proxyJNI.With_member_method(nullPtr, with, nullPtr, with);
+    java_typemaps_proxyJNI.delete_With(nullPtr);
+    java_typemaps_proxyJNI.global_method_with(nullPtr, with);
+
+    // Check that it can be turned off
+    java_typemaps_proxyJNI.new_Without(nullPtr);
+    java_typemaps_proxyJNI.Without_static_method(nullPtr);
+    java_typemaps_proxyJNI.Without_member_method(nullPtr, nullPtr);
+    java_typemaps_proxyJNI.delete_Without(nullPtr);
+    java_typemaps_proxyJNI.global_method_without(nullPtr);
   }
 }
 
