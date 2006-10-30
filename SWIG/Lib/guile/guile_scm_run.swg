@@ -49,15 +49,17 @@ typedef struct swig_guile_clientdata {
 	      SCM_EOL, SCM_BOOL_F); else
 
 /* for C++ member pointers, ie, member methods */
-#define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Guile_ConvertMember(obj, ptr, sz, ty, FUNC_NAME)
-#define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Guile_NewMemberObj(ptr, sz, type, FUNC_NAME)
+#define SWIG_ConvertMember(obj, ptr, sz, ty) \
+  SWIG_Guile_ConvertMember(obj, ptr, sz, ty, FUNC_NAME)
+#define SWIG_NewMemberObj(ptr, sz, type) \
+  SWIG_Guile_NewMemberObj(ptr, sz, type, FUNC_NAME)
   
 /* Runtime API */
-static swig_module_info *SWIG_Guile_GetModule();
+static swig_module_info *SWIG_Guile_GetModule(void);
 #define SWIG_GetModule(clientdata) SWIG_Guile_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Guile_SetModule(pointer)
   
-static char *
+SWIGINTERN char *
 SWIG_Guile_scm2newstr(SCM str, size_t *len) {
 #define FUNC_NAME "SWIG_Guile_scm2newstr"
   char *ret;
@@ -89,7 +91,7 @@ static SCM swig_symbol = SCM_EOL;
   ( SCM_NNULLP(x) && SCM_INSTANCEP(x) && SCM_NFALSEP(scm_slot_exists_p(x, swig_symbol)) \
       ? scm_slot_ref(x, swig_symbol) : (x) )
 
-static SCM
+SWIGINTERN SCM
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
   if (ptr == NULL)
@@ -118,7 +120,7 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
   }
 }
 
-static unsigned long
+SWIGINTERN unsigned long
 SWIG_Guile_PointerAddress(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
@@ -131,7 +133,7 @@ SWIG_Guile_PointerAddress(SCM object)
   else scm_wrong_type_arg("SWIG-Guile-PointerAddress", 1, object);
 }
 
-static swig_type_info *
+SWIGINTERN swig_type_info *
 SWIG_Guile_PointerType(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
@@ -144,7 +146,7 @@ SWIG_Guile_PointerType(SCM object)
   else scm_wrong_type_arg("SWIG-Guile-PointerType", 1, object);
 }
   
-static int
+SWIGINTERN int
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
   swig_cast_info *cast;
@@ -174,7 +176,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   return SWIG_ERROR;
 }
 
-static SWIGINLINE void *
+SWIGINTERNINLINE void *
 SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, int flags, const char *func_name)
 {
@@ -187,7 +189,7 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
   return result;
 }
 
-static SWIGINLINE int
+SWIGINTERNINLINE int
 SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
 {
   void *result;
@@ -198,7 +200,7 @@ SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
   else return 1;
 }
 
-static SWIGINLINE int
+SWIGINTERNINLINE int
 SWIG_Guile_IsPointer (SCM s)
 {
   /* module might not be initialized yet, so initialize it */
@@ -207,7 +209,7 @@ SWIG_Guile_IsPointer (SCM s)
 }
 
 /* Mark a pointer object non-collectable */
-static void
+SWIGINTERN void
 SWIG_Guile_MarkPointerNoncollectable(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
@@ -220,7 +222,7 @@ SWIG_Guile_MarkPointerNoncollectable(SCM s)
 }
 
 /* Mark a pointer object destroyed */
-static void
+SWIGINTERN void
 SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
@@ -234,7 +236,7 @@ SWIG_Guile_MarkPointerDestroyed(SCM s)
 
 /* Member functions */
 
-static SCM
+SWIGINTERN SCM
 SWIG_Guile_NewMemberObj(void *ptr, size_t sz, swig_type_info *type,
 			const char *func_name)
 {
@@ -245,7 +247,7 @@ SWIG_Guile_NewMemberObj(void *ptr, size_t sz, swig_type_info *type,
   return smob;
 }
 
-static int
+SWIGINTERN int
 SWIG_Guile_ConvertMember(SCM smob, void *ptr, size_t sz, swig_type_info *type,
 			 const char *func_name)
 {
@@ -268,8 +270,9 @@ SWIG_Guile_ConvertMember(SCM smob, void *ptr, size_t sz, swig_type_info *type,
 
 /* Init */
 
-static int
-print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, const char *attribute)
+SWIGINTERN int
+print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, 
+                const char *attribute)
 {
   swig_type_info *type;
   
@@ -290,25 +293,25 @@ print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, const char *at
 }
 
   
-static int
+SWIGINTERN int
 print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   return print_swig_aux(swig_smob, port, pstate, "");
 }
 
-static int
+SWIGINTERN int
 print_collectable_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   return print_swig_aux(swig_smob, port, pstate, "collectable-");
 }
 
-static int
+SWIGINTERN int
 print_destroyed_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   return print_swig_aux(swig_smob, port, pstate, "destroyed-");
 }
 
-static int
+SWIGINTERN int
 print_member_function_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   swig_type_info *type;
@@ -325,7 +328,7 @@ print_member_function_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
   }
 }
 
-static SCM
+SWIGINTERN SCM
 equalp_swig (SCM A, SCM B)
 {
   if (SCM_CELL_WORD_0(A) == SCM_CELL_WORD_0(B) && SCM_CELL_WORD_1(A) == SCM_CELL_WORD_1(B) 
@@ -334,7 +337,7 @@ equalp_swig (SCM A, SCM B)
   else return SCM_BOOL_F;
 }
 
-static size_t
+SWIGINTERN size_t
 free_swig(SCM A)
 {
   swig_type_info *type = (swig_type_info *) SCM_CELL_WORD_2(A);
@@ -345,14 +348,14 @@ free_swig(SCM A)
   return 0;
 }
 
-static size_t
+SWIGINTERN size_t
 free_swig_member_function(SCM A)
 {
   free((swig_type_info *) SCM_CELL_WORD_1(A));
   return 0;
 }
 
-static int
+SWIGINTERN int
 ensure_smob_tag(SCM swig_module,
 		scm_t_bits *tag_variable,
 		const char *smob_name,
@@ -374,7 +377,7 @@ ensure_smob_tag(SCM swig_module,
   }
 }
 
-static SCM
+SWIGINTERN SCM
 SWIG_Guile_Init ()
 {
   static SCM swig_module;
@@ -415,8 +418,8 @@ SWIG_Guile_Init ()
   return swig_module;
 }
 
-static swig_module_info *
-SWIG_Guile_GetModule()
+SWIGINTERN swig_module_info *
+SWIG_Guile_GetModule(void)
 {
   SCM module;
   SCM variable;
@@ -433,7 +436,7 @@ SWIG_Guile_GetModule()
   }
 }
 
-static void
+SWIGINTERN void
 SWIG_Guile_SetModule(swig_module_info *swig_module)
 {
   SCM module;
@@ -448,7 +451,7 @@ SWIG_Guile_SetModule(swig_module_info *swig_module)
   SCM_VARIABLE_SET(variable, scm_ulong2num((unsigned long) swig_module));
 }
 
-static int
+SWIGINTERN int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname)

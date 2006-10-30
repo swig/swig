@@ -52,7 +52,7 @@ typedef SCM (*swig_guile_proc)();
 #endif
 
 /* This function replaces gh_scm2char, which is broken in Guile 1.4 */
-static char
+SWIGINTERN char
 GSWIG_scm2char (SCM s)
 {
   if (SCM_CHARP(s)) return SCM_CHAR(s);
@@ -69,7 +69,7 @@ GSWIG_scm2char (SCM s)
 #  define SCM_OUTPUT_PORT_P SCM_OUTPORTP
 #endif
 
-static long
+SWIGINTERN long
 SWIG_convert_integer(SCM o,
 		     long lower_bound, long upper_bound, 
 		     const char *func_name, int argnum)
@@ -80,7 +80,7 @@ SWIG_convert_integer(SCM o,
   return value;
 }
   
-static unsigned long
+SWIGINTERN unsigned long
 SWIG_convert_unsigned_integer(SCM o,
 			      unsigned long lower_bound,
 			      unsigned long upper_bound, 
@@ -92,7 +92,9 @@ SWIG_convert_unsigned_integer(SCM o,
   return value;
 }
 
-static swig_type_info *SWIG_Guile_LookupType(swig_module_info *module, SCM s, int normal) {
+SWIGINTERN swig_type_info *
+SWIG_Guile_LookupType(swig_module_info *module, SCM s, int normal) 
+{
   swig_module_info *iter;
   if (!module) return 0;
   iter = module;
@@ -114,19 +116,20 @@ static swig_type_info *SWIG_Guile_LookupType(swig_module_info *module, SCM s, in
 
 #ifdef SWIG_GUILE_MODULE_STATIC
 static swig_module_info *swig_guile_module = 0;
-SWIG_GUILE_MODULE_STATIC swig_module_info *SWIG_Guile_GetModule() {
+SWIG_GUILE_MODULE_STATIC swig_module_info *SWIG_Guile_GetModule(void) {
   return swig_guile_module;
 }
 SWIG_GUILE_MODULE_STATIC void SWIG_Guile_SetModule(swig_module_info *pointer) {
   swig_guile_module = pointer;
 }
 #else
-SWIGEXPORT swig_module_info * SWIG_Guile_GetModule();
+SWIGEXPORT swig_module_info * SWIG_Guile_GetModule(void);
 SWIGEXPORT void SWIG_Guile_SetModule(swig_module_info *pointer);
 #endif
 
-static SCM
-SWIG_Guile_NewPointerObj(swig_module_info *module, void *ptr, swig_type_info *type, int owner)
+SWIGINTERN SCM
+SWIG_Guile_NewPointerObj(swig_module_info *module, void *ptr, 
+			 swig_type_info *type, int owner)
 {
   unsigned long tag;
   if (ptr==NULL) return SCM_EOL;
@@ -143,8 +146,9 @@ SWIG_Guile_NewPointerObj(swig_module_info *module, void *ptr, swig_type_info *ty
 }
 
 /* Return 0 if successful. */
-static int
-SWIG_Guile_ConvertPtr(swig_module_info *module, SCM s, void **result, swig_type_info *type, int flags)
+SWIGINTERN int
+SWIG_Guile_ConvertPtr(swig_module_info *module, SCM s, void **result, 
+		      swig_type_info *type, int flags)
 {
   swig_cast_info *cast;
   swig_type_info *from;
@@ -170,7 +174,7 @@ SWIG_Guile_ConvertPtr(swig_module_info *module, SCM s, void **result, swig_type_
   return SWIG_ERROR;
 }
 
-static void *
+SWIGINTERN void *
 SWIG_Guile_MustGetPtr (swig_module_info *module, SCM s, swig_type_info *type,
                        int argnum, int flags, const char *func_name)
 {
@@ -185,7 +189,7 @@ SWIG_Guile_MustGetPtr (swig_module_info *module, SCM s, swig_type_info *type,
 
 /* Init */
 
-static int
+SWIGINTERN int
 print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   swig_type_info *type = SWIG_Guile_LookupType(0, swig_smob, 1);
@@ -205,7 +209,7 @@ print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
   }
 }
 
-static SCM
+SWIGINTERN SCM
 equalp_swig (SCM A, SCM B)
 {
   if (SCM_CAR(A) == SCM_CAR(B)
@@ -214,14 +218,14 @@ equalp_swig (SCM A, SCM B)
   else return SCM_BOOL_F;
 }
 
-static void
+SWIGINTERN void
 SWIG_Guile_Init (swig_module_info *module)
 {
     *((int *)module->clientdata) = 
          scm_make_smob_type_mfpe((char *) "swig", 0, NULL, NULL, print_swig, equalp_swig);
 }
 
-static int
+SWIGINTERN int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname)
