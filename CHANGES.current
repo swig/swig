@@ -1,6 +1,9 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/29/2006: wuzzeb (John Lenz)
+	    [Guile] Patch from Chris Shoemaker to clean up some warnings in the generated code.
+
 10/29/2006: wsfulton
             [Java] Important fix to prevent early garbage collection of the Java proxy class
             while it is being used in a native method. The finalizer could destroy the underlying

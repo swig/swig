@@ -485,7 +485,7 @@ public:
         if (goops)
           Printv(mod,"-",primsuffix,NIL);
 	Replaceall(mod,"/", " ");
-	Printf(f_init, "    SCM module = scm_c_define_module(\"%s\",\n", mod);
+	Printf(f_init, "    scm_c_define_module(\"%s\",\n", mod);
 	Printf(f_init, "      SWIG_init_helper, NULL);\n");
 	Printf(f_init, "    return SCM_UNSPECIFIED;\n");
 	Delete(mod);
@@ -733,7 +733,7 @@ public:
     /* Declare return variable */
     
     Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
-    Wrapper_add_local (f,"gswig_list_p", "int gswig_list_p = 0");
+    Wrapper_add_local (f,"gswig_list_p", "SWIGUNUSED int gswig_list_p = 0");
     
     /* Get the output typemap so we can start generating documentation.  Don't
        worry, the returned string is saved as 'tmap:out' */
