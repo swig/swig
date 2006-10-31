@@ -1881,11 +1881,11 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
                enum SWIGTYPE    "$body";
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
                SWIGTYPE &amp;       "(cl:make-instance '$lclass :foreign-address $body)";
-%typemap(lout) SWIGTYPE         "(cl:let* ((address $body)\n
-                                   (ACL_result (cl:make-instance '$lclass :foreign-address address)))\n
-                                 (cl:unless (cl::zerop address)\n
-                                   (excl:schedule-finalization ACL_result #'$ldestructor))\n
-                                    ACL_result)";
+%typemap(lout) SWIGTYPE    "(cl:let* ((address $body)\n
+                            (ACL_result (cl:make-instance '$lclass :foreign-address address)))\n
+                            (cl:unless (cl::zerop address)\n
+                            (excl:schedule-finalization ACL_result #'$ldestructor))\n
+                             ACL_result)";
     </pre>
     </div>
 
