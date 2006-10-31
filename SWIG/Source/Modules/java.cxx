@@ -1947,17 +1947,22 @@ class JAVA : public Language {
     Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
     if (!static_flag) {
       Printf(imcall, "swigCPtr");
+
       String *this_type = Copy(getClassType());
       String *name = NewString("self");
+      String *qualifier = Getattr(n, k_qualifier);
+      if (qualifier)
+	SwigType_push(this_type, qualifier);
       SwigType_add_pointer(this_type);
       Parm *this_parm = NewParm(this_type, name);
       Swig_typemap_attach_parms("jtype", this_parm, NULL);
 
       if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
 	Printf(imcall, ", this");
+
+      Delete(this_parm);
       Delete(name);
       Delete(this_type);
-      Delete(this_parm);
     }
 
     emit_mark_varargs(l);
@@ -3567,7 +3572,9 @@ class JAVA : public Language {
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
       Printf(w->code, "}\n");
 
+      /* This makes all the director methods segfault on Solaris 8
       Printf(w->code, "if (jobj) jenv->DeleteLocalRef(jobj);\n");
+      */
 
       if (!is_void)
 	Printf(w->code, "return %s;", qualified_return);
