@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ============================
 
+10/29/2006: wsfulton
+            [Java] Remove DeleteLocalRef from end of director methods for now as it is causing a
+            seg fault when run on Solaris 8.
+
 10/29/2006: wuzzeb (John Lenz)
 	    [Guile] Patch from Chris Shoemaker to clean up some warnings in the generated code.
 
