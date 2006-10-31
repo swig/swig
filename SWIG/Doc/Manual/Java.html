@@ -68,6 +68,7 @@
 <li><a href="#memory_management">Memory management</a>
 <li><a href="#inheritance_mirroring">Inheritance</a>
 <li><a href="#proxy_classes_gc">Proxy classes and garbage collection</a>
+<li><a href="#java_pgcpp">The premature garbage collection prevention parameter for proxy class marshalling</a>
 </ul>
 <li><a href="#type_wrapper_classes">Type wrapper classes</a>
 <li><a href="#enum_classes">Enum classes</a>
@@ -2735,7 +2736,9 @@ The section on <a href="#java_typemaps">Java typemaps</a> details how to specify
 See the <a href="http://www.devx.com/Java/Article/30192">How to Handle Java Finalization's Memory-Retention Issues</a> article for alternative approaches to managing memory by avoiding finalizers altogether.
 </p>
 
-<H4><a name="java_pgcpp"></a>20.4.3.3 The premature garbage collection prevention parameter for proxy class marshalling</H4>
+<H4><a name="java_pgcpp"></a>20.4.3.4 The premature garbage collection prevention parameter for proxy class marshalling</H4>
+
+
 <p>
 As covered earlier, the C/C++ struct/class pointer is stored in the proxy class as a Java long and when needed is passed
 into the native method where it is cast into the appropriate type.
