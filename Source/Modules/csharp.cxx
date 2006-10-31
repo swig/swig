@@ -1917,9 +1917,20 @@ class CSHARP : public Language {
       Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
     if (methodmods) {
-      Printf(function_code, "  %s ", methodmods);
+      if (is_smart_pointer()) {
+        // Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
+	String *mmods = Copy(methodmods);
+        Replaceall(mmods, "override", "");
+        Replaceall(mmods, "virtual", "");
+        Replaceall(mmods, "new", "");
+        Chop(mmods); // remove trailing whitespace
+        Printf(function_code, "  %s ", mmods);
+	Delete(mmods);
+      } else {
+        Printf(function_code, "  %s ", methodmods);
+      }
     } else {
-      methodmods = (!is_public(n) ? protected_string : public_string);
+      methodmods = (is_public(n) ? public_string : protected_string);
       Printf(function_code, "  %s ", methodmods);
       if (!is_smart_pointer()) {
         // Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
@@ -2062,11 +2073,10 @@ class CSHARP : public Language {
           Printf(proxy_class_code, "  %s\n", csattributes);
 	const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
 	if (!methodmods)
-	  methodmods = (!is_public(n) ? protected_string : public_string);
+	  methodmods = (is_public(n) ? public_string : protected_string);
 	Printf(proxy_class_code, "  %s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
-
 
       if(setter_flag) {
         // Setter method
@@ -2137,7 +2147,7 @@ class CSHARP : public Language {
       if (csattributes)
         Printf(function_code, "  %s\n", csattributes);
       const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-      methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
+      methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
       Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
 
@@ -2394,7 +2404,7 @@ class CSHARP : public Language {
     if (csattributes)
       Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
@@ -2490,7 +2500,7 @@ class CSHARP : public Language {
           Printf(module_class_code, "  %s\n", csattributes);
 	const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
 	if (!methodmods)
-	  methodmods = (!is_public(n) ? protected_string : public_string);
+	  methodmods = (is_public(n) ? public_string : protected_string);
 	Printf(module_class_code, "  %s static %s %s {", methodmods, variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
