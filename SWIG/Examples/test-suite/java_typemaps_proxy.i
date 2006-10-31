@@ -93,10 +93,12 @@ namespace NS {
 
 %inline %{
 struct Without {
-  Without(Without *p) {}
+  Without(Without *p) : var(0) {}
   static void static_method(Without *p) {}
   void member_method(Without *p) {}
+  Without *var;
 };
+Without *global_without = 0;
 void global_method_without(Without *p) {}
 struct With {
   With(With *p) {}
@@ -105,4 +107,20 @@ struct With {
 };
 void global_method_with(With *p) {}
 %}
+
+%typemap(jtype, nopgcpp="1") const ConstWithout * "long";
+%inline %{
+class ConstWithout {
+public:
+  ConstWithout(const ConstWithout *p) : const_var(0), var_const(0) {}
+  static void static_method(const ConstWithout *p) {}
+  void member_method(const ConstWithout *p) {}
+  void const_member_method(const ConstWithout *p) const {}
+  const ConstWithout * const_var;
+  const ConstWithout * const var_const;
+};
+const ConstWithout * global_constwithout = 0;
+void global_method_constwithout(const ConstWithout *p) {}
+%}
+
 
