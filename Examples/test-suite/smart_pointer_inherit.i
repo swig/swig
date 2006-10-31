@@ -1,5 +1,10 @@
 %module smart_pointer_inherit
 
+#ifdef SWIGCSHARP
+// Test that the override is removed in the smart pointer for custom method modifiers
+%csmethodmodifiers hi::Derived::value3 "/*csmethodmodifiers*/ public override";
+#endif
+
 %inline %{
 
   namespace hi
@@ -10,6 +15,7 @@
       virtual ~Base() { }
       virtual int value() = 0;
       virtual int value2() { return val; }
+      virtual int value3() { return val; }
       int valuehide() { return val; }
       int val;
     };    
@@ -18,6 +24,7 @@
     {
       Derived(int i) : Base(i) {}
       virtual int value() { return val; }
+      virtual int value3() { return Base::value3(); }
       int valuehide() { return -1; }
     };
 
