@@ -446,7 +446,9 @@ namespace OpenDemo {
 
         static float distance (const Test&amp; a, const Test&amp; b){return(a-b).length();}
 
-      inline Test parallelComponent (const Test&amp; unitBasis) const {  return unitBasis * projection; }
+        inline Test parallelComponent (const Test&amp; unitBasis) const {
+          return unitBasis * projection;
+        }
 
         Test setYtoZero (void) const {return Test (this-&gt;x);}
 

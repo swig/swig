@@ -2081,7 +2081,8 @@ SWIGEXPORT void JNICALL Java_exampleJNI_Foo_1x_1set(JNIEnv *jenv, jclass jcls,
 SWIGEXPORT jint JNICALL Java_exampleJNI_Foo_1x_1get(JNIEnv *jenv, jclass jcls,
                                                     jlong jarg1, jobject jarg1_);
 SWIGEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls,
-                                                  jlong jarg1, jobject jarg1_, jint jarg2, jlong jarg3, jobject jarg3_);
+                                                  jlong jarg1, jobject jarg1_, jint jarg2,
+                                                  jlong jarg3, jobject jarg3_);
 SWIGEXPORT void JNICALL Java_exampleJNI_egg(JNIEnv *jenv, jclass jcls,
                                             jlong jarg1, jobject jarg1_);
 </pre>
@@ -2098,7 +2099,8 @@ class exampleJNI {
   public final static native void delete_Foo(long jarg1);
   public final static native void Foo_x_set(long jarg1, Foo jarg1_, int jarg2);
   public final static native int Foo_x_get(long jarg1, Foo jarg1_);
-  public final static native int Foo_spam(long jarg1, Foo jarg1_, int jarg2, long jarg3, Foo jarg3_);
+  public final static native int Foo_spam(long jarg1, Foo jarg1_, int jarg2,
+                                          long jarg3, Foo jarg3_);
   public final static native void egg(long jarg1, Foo jarg1_);
 }
 </pre>
@@ -4595,7 +4597,8 @@ resulting in the following code which breaks the aliasing rules:
 </p>
 
 <div class="code"><pre>
-SWIGEXPORT jlong JNICALL Java_exampleJNI_FooBar(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+SWIGEXPORT jlong JNICALL Java_exampleJNI_FooBar(JNIEnv *jenv, jclass jcls,
+                                                jlong jarg1, jobject jarg1_) {
   jlong jresult = 0 ;
   struct Foo *arg1 = (struct Foo *) 0 ;
   struct Bar *result = 0 ;
