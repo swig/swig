@@ -23,8 +23,8 @@ struct contract {
 
 static contract Rules[] = {
   {"require:", "&&"},
-  {"ensure:",  "||"},
-  { NULL, NULL}
+  {"ensure:", "||"},
+  {NULL, NULL}
 };
 
 /* ----------------------------------------------------------------------------
@@ -34,14 +34,14 @@ static contract Rules[] = {
  *         "wrap by contract" module.
  * ------------------------------------------------------------------------- */
 
-class Contracts : public Dispatcher {
+class Contracts:public Dispatcher {
   String *make_expression(String *s, Node *n);
-  void    substitute_parms(String *s, ParmList *p, int method);
+  void substitute_parms(String *s, ParmList *p, int method);
 public:
   Hash *ContractSplit(Node *n);
   int emit_contract(Node *n, int method);
   int cDeclaration(Node *n);
-  int constructorDeclaration(Node  *n);
+  int constructorDeclaration(Node *n);
   int externDeclaration(Node *n);
   int extendDirective(Node *n);
   int importDirective(Node *n);
@@ -50,16 +50,17 @@ public:
   virtual int top(Node *n);
 };
 
-static int      Contract_Mode = 0;    /* contract option */
-static int      InClass       = 0;    /* Parsing C++ or not */
-static int      InConstructor = 0;
-static Node    *CurrentClass  = 0;
+static int Contract_Mode = 0;	/* contract option */
+static int InClass = 0;		/* Parsing C++ or not */
+static int InConstructor = 0;
+static Node *CurrentClass = 0;
 
 /* Set the contract mode, default is 0 (not open) */
 /* Normally set in main.cxx, when get the "-contracts" option */
 void Swig_contract_mode_set(int flag) {
   Contract_Mode = flag;
 }
+
 /* Get the contract mode */
 int Swig_contract_mode_get() {
   return Contract_Mode;
@@ -76,50 +77,56 @@ void Swig_contracts(Node *n) {
 /* Split the whole contract into preassertion, postassertion and others */
 Hash *Contracts::ContractSplit(Node *n) {
 
-  String *contract   = Getattr(n, "feature:contract");  
-  Hash   *result;
+  String *contract = Getattr(n, "feature:contract");
+  Hash *result;
   if (!contract)
     return NULL;
 
   result = NewHash();
   String *current_section = NewString("");
-  const char   *current_section_name = Rules[0].section;
+  const char *current_section_name = Rules[0].section;
   List *l = SplitLines(contract);
 
   Iterator i;
   for (i = First(l); i.item; i = Next(i)) {
     int found = 0;
-    if (Strchr(i.item,'{')) continue;
-    if (Strchr(i.item,'}')) continue;
+    if (Strchr(i.item, '{'))
+      continue;
+    if (Strchr(i.item, '}'))
+      continue;
     for (int j = 0; Rules[j].section; j++) {
-      if (Strstr(i.item,Rules[j].section)) {
+      if (Strstr(i.item, Rules[j].section)) {
 	if (Len(current_section)) {
-	  Setattr(result,current_section_name,current_section);
-	  current_section = Getattr(result,Rules[j].section);
-	  if (!current_section) current_section = NewString("");
+	  Setattr(result, current_section_name, current_section);
+	  current_section = Getattr(result, Rules[j].section);
+	  if (!current_section)
+	    current_section = NewString("");
 	}
 	current_section_name = Rules[j].section;
 	found = 1;
 	break;
       }
     }
-    if (!found) Append(current_section, i.item);
+    if (!found)
+      Append(current_section, i.item);
   }
-  if (Len(current_section)) Setattr(result, current_section_name, current_section);
+  if (Len(current_section))
+    Setattr(result, current_section_name, current_section);
   return result;
 }
 
 /* This function looks in base classes and collects contracts found */
 void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
-  
+
   Node *b, *temp;
   String *name, *type, *local_decl, *base_decl;
-  List   *bases;
-  int     found = 0;
+  List *bases;
+  int found = 0;
 
-  bases = Getattr(c,"bases");
-  if (!bases) return;
-    
+  bases = Getattr(c, "bases");
+  if (!bases)
+    return;
+
   name = Getattr(n, "name");
   type = Getattr(n, "type");
   local_decl = Getattr(n, "decl");
@@ -130,19 +137,17 @@ void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
   }
   /* Width first search */
   for (int i = 0; i < Len(bases); i++) {
-    b = Getitem(bases,i);
-    temp = firstChild (b);
+    b = Getitem(bases, i);
+    temp = firstChild(b);
     while (temp) {
       base_decl = Getattr(temp, "decl");
       if (base_decl) {
 	base_decl = SwigType_typedef_resolve_all(base_decl);
-	if ( (checkAttribute(temp, "storage", "virtual")) &&
-	     (checkAttribute(temp, "name", name)) &&
-	     (checkAttribute(temp, "type", type)) &&
-	     (!Strcmp(local_decl, base_decl)) ) {
+	if ((checkAttribute(temp, "storage", "virtual")) &&
+	    (checkAttribute(temp, "name", name)) && (checkAttribute(temp, "type", type)) && (!Strcmp(local_decl, base_decl))) {
 	  /* Yes, match found. */
-	  Hash *icontracts = Getattr(temp,"contract:rules");
-	  Hash *imessages = Getattr(temp,"contract:messages");
+	  Hash *icontracts = Getattr(temp, "contract:rules");
+	  Hash *imessages = Getattr(temp, "contract:messages");
 	  found = 1;
 	  if (icontracts && imessages) {
 	    /* Add inherited contracts and messages to the contract rules above */
@@ -152,13 +157,13 @@ void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
 	      String *s = Getattr(icontracts, Rules[j].section);
 	      if (s) {
 		if (t) {
-		  Insert(t,0,"(");
-		  Printf(t,") %s (%s)", Rules[j].combiner, s);
+		  Insert(t, 0, "(");
+		  Printf(t, ") %s (%s)", Rules[j].combiner, s);
 		  String *m = Getattr(messages, Rules[j].section);
-		  Printf(m," %s [%s from %s]", Rules[j].combiner, Getattr(imessages,Rules[j].section), Getattr(b,"name"));
+		  Printf(m, " %s [%s from %s]", Rules[j].combiner, Getattr(imessages, Rules[j].section), Getattr(b, "name"));
 		} else {
 		  Setattr(contracts, Rules[j].section, NewString(s));
-		  Setattr(messages,Rules[j].section,NewStringf("[%s from %s]", Getattr(imessages,Rules[j].section), Getattr(b,"name")));
+		  Setattr(messages, Rules[j].section, NewStringf("[%s from %s]", Getattr(imessages, Rules[j].section), Getattr(b, "name")));
 		}
 	      }
 	    }
@@ -172,8 +177,8 @@ void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
   Delete(local_decl);
   if (!found) {
     for (int j = 0; j < Len(bases); j++) {
-      b = Getitem(bases,j);
-      inherit_contracts(b,n,contracts,messages);
+      b = Getitem(bases, j);
+      inherit_contracts(b, n, contracts, messages);
     }
   }
 }
@@ -182,8 +187,8 @@ void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
    Splitting the assertion into pieces */
 
 String *Contracts::make_expression(String *s, Node *n) {
-  String   *str_assert, *expr = 0;
-  List     *list_assert;
+  String *str_assert, *expr = 0;
+  List *list_assert;
 
   str_assert = NewString(s);
   /* Omit all useless characters and split by ; */
@@ -195,7 +200,7 @@ String *Contracts::make_expression(String *s, Node *n) {
 
   list_assert = Split(str_assert, ';', -1);
   Delete(str_assert);
-  
+
   /* build up new assertion */
   str_assert = NewString("");
   Iterator ei;
@@ -203,7 +208,7 @@ String *Contracts::make_expression(String *s, Node *n) {
   for (ei = First(list_assert); ei.item; ei = Next(ei)) {
     expr = ei.item;
     if (Len(expr)) {
-      Replaceid(expr, Getattr(n,"name"), "result");
+      Replaceid(expr, Getattr(n, "name"), "result");
       if (Len(str_assert))
 	Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);
@@ -218,18 +223,18 @@ String *Contracts::make_expression(String *s, Node *n) {
    uses arg1--argn for arguments. */
 
 void Contracts::substitute_parms(String *s, ParmList *p, int method) {
-  int   argnum = 1;
-  char  argname[32];
+  int argnum = 1;
+  char argname[32];
 
   if (method) {
-    Replaceid(s,"self","arg0");
+    Replaceid(s, "self", "arg0");
     argnum++;
   }
   while (p) {
-    sprintf(argname,"arg%d",argnum);
-    String *name = Getattr(p,"name");
+    sprintf(argname, "arg%d", argnum);
+    String *name = Getattr(p, "name");
     if (name) {
-      Replaceid(s,name,argname);
+      Replaceid(s, name, argname);
     }
     argnum++;
     p = nextSibling(p);
@@ -237,8 +242,8 @@ void Contracts::substitute_parms(String *s, ParmList *p, int method) {
 }
 
 int Contracts::emit_contract(Node *n, int method) {
-  Hash  *contracts;
-  Hash  *messages;
+  Hash *contracts;
+  Hash *messages;
   String *c;
 
   ParmList *cparms;
@@ -249,9 +254,10 @@ int Contracts::emit_contract(Node *n, int method) {
   /* Get contract parameters */
   cparms = Getmeta(Getattr(n, "feature:contract"), "parms");
 
-  /*  Split contract into preassert & postassert */    
+  /*  Split contract into preassert & postassert */
   contracts = ContractSplit(n);
-  if (!contracts) return SWIG_ERROR;
+  if (!contracts)
+    return SWIG_ERROR;
 
   /* This messages hash is used to hold the error messages that will be displayed on
      failed contract. */
@@ -263,66 +269,71 @@ int Contracts::emit_contract(Node *n, int method) {
   for (i = First(contracts); i.item; i = Next(i)) {
     String *e = make_expression(i.item, n);
     substitute_parms(e, cparms, method);
-    Setattr(contracts,i.key,e);
+    Setattr(contracts, i.key, e);
 
     /* Make a string containing error messages */
-    Setattr(messages,i.key, NewString(e));
+    Setattr(messages, i.key, NewString(e));
   }
-   
+
   /* If we're in a class. We need to inherit other assertions. */
   if (InClass) {
     inherit_contracts(CurrentClass, n, contracts, messages);
   }
 
   /* Save information */
-  Setattr(n,"contract:rules", contracts);
-  Setattr(n,"contract:messages", messages);
+  Setattr(n, "contract:rules", contracts);
+  Setattr(n, "contract:messages", messages);
 
   /* Okay.  Generate the contract runtime code. */
-  
-  if ((c = Getattr(contracts,"require:"))) {
-    Setattr(n,"contract:preassert",
-	    NewStringf("SWIG_contract_assert(%s, \"Contract violation: require: %s\");\n",
-		       c, Getattr(messages,"require:")));
+
+  if ((c = Getattr(contracts, "require:"))) {
+    Setattr(n, "contract:preassert", NewStringf("SWIG_contract_assert(%s, \"Contract violation: require: %s\");\n", c, Getattr(messages, "require:")));
   }
-  if ((c = Getattr(contracts,"ensure:"))) {
-    Setattr(n,"contract:postassert",
-	    NewStringf("SWIG_contract_assert(%s, \"Contract violation: ensure: %s\");\n",
-		       c, Getattr(messages,"ensure:")));
+  if ((c = Getattr(contracts, "ensure:"))) {
+    Setattr(n, "contract:postassert", NewStringf("SWIG_contract_assert(%s, \"Contract violation: ensure: %s\");\n", c, Getattr(messages, "ensure:")));
   }
   return SWIG_OK;
 }
 
 int Contracts::cDeclaration(Node *n) {
   int ret = SWIG_OK;
-  String *decl = Getattr(n,"decl");
+  String *decl = Getattr(n, "decl");
 
   /* Not a function.  Don't even bother with it (for now) */
-  if (!SwigType_isfunction(decl)) return SWIG_OK;
+  if (!SwigType_isfunction(decl))
+    return SWIG_OK;
 
   if (Getattr(n, "feature:contract"))
-    ret = emit_contract(n, (InClass && !checkAttribute(n,"storage","static")));
+    ret = emit_contract(n, (InClass && !checkAttribute(n, "storage", "static")));
   return ret;
 }
 
-int Contracts::constructorDeclaration(Node  *n){
+int Contracts::constructorDeclaration(Node *n) {
   int ret = SWIG_OK;
   InConstructor = 1;
   if (Getattr(n, "feature:contract"))
-    ret = emit_contract(n,0);
+    ret = emit_contract(n, 0);
   InConstructor = 0;
   return ret;
 }
 
-int Contracts::externDeclaration(Node *n) { return emit_children(n); }
-int Contracts::extendDirective(Node *n)   { return emit_children(n); }
-int Contracts::importDirective(Node *n)   { return emit_children(n); }
-int Contracts::includeDirective(Node *n)  { return emit_children(n); }
+int Contracts::externDeclaration(Node *n) {
+  return emit_children(n);
+}
+int Contracts::extendDirective(Node *n) {
+  return emit_children(n);
+}
+int Contracts::importDirective(Node *n) {
+  return emit_children(n);
+}
+int Contracts::includeDirective(Node *n) {
+  return emit_children(n);
+}
 
 int Contracts::classDeclaration(Node *n) {
   int ret = SWIG_OK;
   InClass = 1;
-  CurrentClass = n; 
+  CurrentClass = n;
   emit_children(n);
   InClass = 0;
   CurrentClass = 0;

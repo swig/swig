@@ -26,18 +26,18 @@ typedef int bool;
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern  char     *input_file;
-extern  int       line_number;
-extern  int       start_line;
-extern  int       CPlusPlus;                        // C++ mode
-extern  int       Extend;                           // Extend mode
-extern  int       Verbose;
-extern  int       IsVirtual;
-extern  int       ImportMode;
-extern  int       NoExcept;                         // -no_except option
-extern  int       Abstract;                         // abstract base class
-extern  int       SmartPointer;                     // smart pointer methods being emitted
-extern  int       SwigRuntime;
+extern char *input_file;
+extern int line_number;
+extern int start_line;
+extern int CPlusPlus;		// C++ mode
+extern int Extend;		// Extend mode
+extern int Verbose;
+extern int IsVirtual;
+extern int ImportMode;
+extern int NoExcept;		// -no_except option
+extern int Abstract;		// abstract base class
+extern int SmartPointer;	// smart pointer methods being emitted
+extern int SwigRuntime;
 
 /* Overload "argc" and "argv" */
 extern String *argv_template_string;
@@ -50,18 +50,19 @@ extern String *argc_template_string;
 #define  tab8   "        "
 
 class Dispatcher {
- public:
+public:
 
-  Dispatcher() : cplus_mode(PUBLIC) {}
-  virtual ~Dispatcher() {}
+  Dispatcher ():cplus_mode(PUBLIC) {
+  } virtual ~ Dispatcher () {
+  }
 
   virtual int emit_one(Node *n);
   virtual int emit_children(Node *n);
   virtual int defaultHandler(Node *n);
 
   /* Top of the parse tree */
-  virtual int  top(Node *n) = 0;
-  
+  virtual int top(Node *n) = 0;
+
   /* SWIG directives */
 
   virtual int applyDirective(Node *n);
@@ -81,7 +82,7 @@ class Dispatcher {
   virtual int typesDirective(Node *n);
 
   /* C/C++ parsing */
-  
+
   virtual int cDeclaration(Node *n);
   virtual int externDeclaration(Node *n);
   virtual int enumDeclaration(Node *n);
@@ -110,10 +111,10 @@ protected:
  * functions to output different types of code for different languages.
  * ------------------------------------------------------------------------- */
 
-class Language : public Dispatcher {
+class Language:public Dispatcher {
 public:
-  Language();
-  virtual ~Language();
+  Language ();
+   virtual ~ Language ();
   virtual int emit_one(Node *n);
 
   /* Parse command line options */
@@ -122,10 +123,10 @@ public:
 
   /* Top of the parse tree */
 
-  virtual int  top(Node *n);
-  
+  virtual int top(Node *n);
+
   /* SWIG directives */
-  
+
 
   virtual int applyDirective(Node *n);
   virtual int clearDirective(Node *n);
@@ -143,7 +144,7 @@ public:
   virtual int typesDirective(Node *n);
 
   /* C/C++ parsing */
-  
+
   virtual int cDeclaration(Node *n);
   virtual int externDeclaration(Node *n);
   virtual int enumDeclaration(Node *n);
@@ -195,12 +196,7 @@ public:
   virtual int classDirector(Node *n);
   virtual int classDirectorInit(Node *n);
   virtual int classDirectorEnd(Node *n);
-  virtual int unrollVirtualMethods(Node *n, 
-                                   Node *parent, 
-                                   List *vm, 
-                                   int default_director, 
-                                   int &virtual_destructor,
-				   int protectedbase = 0);
+  virtual int unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_director, int &virtual_destructor, int protectedbase = 0);
   virtual int classDirectorConstructor(Node *n);
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);
@@ -210,16 +206,16 @@ public:
   virtual int classDirectorDisown(Node *n);
 
   /* Miscellaneous */
-  virtual  int  validIdentifier(String *s);                 /* valid identifier? */
-  virtual  int  addSymbol(const String *s, const Node *n);  /* Add symbol        */
-  virtual  Node *symbolLookup(String *s);                   /* Symbol lookup     */
-  virtual  Node *classLookup(SwigType *s);                  /* Class lookup      */
-  virtual  Node *enumLookup(SwigType *s);                   /* Enum lookup       */
-  virtual  int  abstractClassTest(Node *n);	            /* Is class really abstract? */
-  virtual  int  is_assignable(Node *n);	                   /* Is variable assignable? */
-  virtual  String *runtimeCode();                          /* returns the language specific runtime code */
-  virtual  String *defaultExternalRuntimeFilename();       /* the default filename for the external runtime */
-  
+  virtual int validIdentifier(String *s);	/* valid identifier? */
+  virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
+  virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
+  virtual Node *classLookup(SwigType *s);	/* Class lookup      */
+  virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
+  virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
+  virtual int is_assignable(Node *n);	/* Is variable assignable? */
+  virtual String *runtimeCode();	/* returns the language specific runtime code */
+  virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
+
   /* Allow director related code generation */
   void allow_directors(int val = 1);
 
@@ -227,10 +223,10 @@ public:
   int directorsEnabled() const;
 
   /* Allow director protected members related code generation */
-  void allow_dirprot(int val = 1);  
+  void allow_dirprot(int val = 1);
 
   /* Returns the dirprot mode */
-  int dirprot_mode() const;  
+  int dirprot_mode() const;
 
   /* Check if the non public constructor is  needed (for directors) */
   int need_nonpublic_ctor(Node *n);
@@ -246,10 +242,10 @@ public:
 
 protected:
   /* Allow multiple-input typemaps */
-  void   allow_multiple_input(int val = 1);
+  void allow_multiple_input(int val = 1);
 
   /* Allow overloaded functions */
-  void   allow_overloading(int val = 1);
+  void allow_overloading(int val = 1);
 
   /* Wrapping class query */
   int is_wrapping_class();
@@ -281,7 +277,7 @@ protected:
   /* Director constructor "template" code */
   String *director_ctor_code;
 
-  /* Director 'protected' constructor "template" code*/
+  /* Director 'protected' constructor "template" code */
   String *director_prot_ctor_code;
 
   /* Director allows multiple inheritance */
@@ -291,37 +287,37 @@ protected:
   int director_language;
 
 private:
-  Hash   *symbols;
-  Hash   *classtypes;
-  Hash   *enumtypes;
-  int     overloading;
-  int     multiinput;
-  int     directors;
+  Hash *symbols;
+  Hash *classtypes;
+  Hash *enumtypes;
+  int overloading;
+  int multiinput;
+  int directors;
 };
 
-int   SWIG_main(int, char **, Language *);
-void  emit_args(SwigType *, ParmList *, Wrapper *f);
-void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
-void  SWIG_config_file(const String_or_char *);
+int SWIG_main(int, char **, Language *);
+void emit_args(SwigType *, ParmList *, Wrapper *f);
+void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
+void SWIG_config_file(const String_or_char *);
 const String *SWIG_output_directory();
-void  SWIG_config_cppext(const char *ext);
+void SWIG_config_cppext(const char *ext);
 
-void   SWIG_library_directory(const char *);
-int    emit_num_arguments(ParmList *);
-int    emit_num_required(ParmList *);
-int    emit_isvarargs(ParmList *);
-void   emit_attach_parmmaps(ParmList *, Wrapper *f);
-void   emit_mark_varargs(ParmList *l);
-void   emit_action(Node *n, Wrapper *f);
-int    emit_action_code(Node *n, Wrapper *f, String *action);
-void   Swig_overload_check(Node *n);
+void SWIG_library_directory(const char *);
+int emit_num_arguments(ParmList *);
+int emit_num_required(ParmList *);
+int emit_isvarargs(ParmList *);
+void emit_attach_parmmaps(ParmList *, Wrapper *f);
+void emit_mark_varargs(ParmList *l);
+void emit_action(Node *n, Wrapper *f);
+int emit_action_code(Node *n, Wrapper *f, String *action);
+void Swig_overload_check(Node *n);
 String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
 String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *);
 String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *);
 SwigType *cplus_value_type(SwigType *t);
 
 /* directors.cxx start */
-String *Swig_csuperclass_call(String* base, String* method, ParmList* l);
+String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
 String *Swig_method_call(String_or_char *name, ParmList *parms);
@@ -330,20 +326,18 @@ String *Swig_director_declaration(Node *n);
 /* directors.cxx end */
 
 extern "C" {
-  void  SWIG_typemap_lang(const char *);
-  typedef Language *(*ModuleFactory)(void);
-}
-
-void   Swig_register_module(const char *name, ModuleFactory fac);
+  void SWIG_typemap_lang(const char *);
+  typedef Language *(*ModuleFactory) (void);
+} void Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */
 
-int is_public(Node* n); 
-int is_private(Node* n); 
-int is_protected(Node* n); 
-int is_member_director(Node* parentnode, Node* member); 
-int is_member_director(Node* member); 
+int is_public(Node *n);
+int is_private(Node *n);
+int is_protected(Node *n);
+int is_member_director(Node *parentnode, Node *member);
+int is_member_director(Node *member);
 int use_naturalvar_mode(Node *n);
 
 void Wrapper_virtual_elimination_mode_set(int);
@@ -360,7 +354,7 @@ void clean_overloaded(Node *n);
 
 void Swig_contracts(Node *n);
 void Swig_contract_mode_set(int flag);
-int  Swig_contract_mode_get();
+int Swig_contract_mode_get();
 
 /* Browser */
 
@@ -370,7 +364,3 @@ void Swig_process_types(Node *n);
 
 
 #endif
-
-
-
-

@@ -30,35 +30,36 @@ static int debug = 0;
  * changed, lang.cxx doesn't nedd to be touched again.
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_fragment_register(Node* fragment) {
-  if (Getattr(fragment,k_emitonly)) {
+void Swig_fragment_register(Node *fragment) {
+  if (Getattr(fragment, k_emitonly)) {
     Swig_fragment_emit(fragment);
     return;
   } else {
-    String *name = Copy(Getattr(fragment,k_value));
-    String *type = Getattr(fragment,k_type);
+    String *name = Copy(Getattr(fragment, k_value));
+    String *type = Getattr(fragment, k_type);
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       String *mangle = Swig_string_mangle(type);
-      Append(name,mangle);
+      Append(name, mangle);
       Delete(mangle);
       Delete(rtype);
-      if (debug) Printf(stdout,"register fragment %s %s\n",name,type);
+      if (debug)
+	Printf(stdout, "register fragment %s %s\n", name, type);
     }
     if (!fragments) {
       fragments = NewHash();
     }
-    if (!Getattr(fragments,name)) {
-      String *section = Copy(Getattr(fragment,k_section));
-      String *ccode = Copy(Getattr(fragment,k_code));
-      Hash *kwargs = Getattr(fragment,k_kwargs);
-      Setmeta(ccode,k_section,section);
+    if (!Getattr(fragments, name)) {
+      String *section = Copy(Getattr(fragment, k_section));
+      String *ccode = Copy(Getattr(fragment, k_code));
+      Hash *kwargs = Getattr(fragment, k_kwargs);
+      Setmeta(ccode, k_section, section);
       if (kwargs) {
-	Setmeta(ccode,k_kwargs,kwargs);
+	Setmeta(ccode, k_kwargs, kwargs);
       }
-      Setattr(fragments,name,ccode);
-      if (debug) Printf(stdout,"registering fragment %s %s\n",name,section);
+      Setattr(fragments, name, ccode);
+      if (debug)
+	Printf(stdout, "registering fragment %s %s\n", name, section);
       Delete(section);
       Delete(ccode);
     }
@@ -73,16 +74,15 @@ Swig_fragment_register(Node* fragment) {
  * ----------------------------------------------------------------------------- */
 
 static
-char* char_index(char* str, char c)
-{
-  while (*str && (c != *str)) ++str;
+char *char_index(char *str, char c) {
+  while (*str && (c != *str))
+    ++str;
   return (c == *str) ? str : 0;
 }
 
-void
-Swig_fragment_emit(Node *n) {
+void Swig_fragment_emit(Node *n) {
   String *code;
-  char   *pc, *tok;
+  char *pc, *tok;
   String *t;
   String *mangle = 0;
   String *name = 0;
@@ -92,38 +92,44 @@ Swig_fragment_emit(Node *n) {
     Swig_warning(WARN_FRAGMENT_NOT_FOUND, Getfile(n), Getline(n), "Fragment '%s' not found.\n", name);
     return;
   }
-  
 
-  name = Getattr(n,k_value);
+
+  name = Getattr(n, k_value);
   if (!name) {
     name = n;
   }
-  type = Getattr(n,k_type);
+  type = Getattr(n, k_type);
   if (type) {
     mangle = Swig_string_mangle(type);
   }
 
-  if (debug) Printf(stdout,"looking fragment %s %s\n",name, type);
+  if (debug)
+    Printf(stdout, "looking fragment %s %s\n", name, type);
   t = Copy(name);
   tok = Char(t);
-  pc = char_index(tok,',');
-  if (pc) *pc = 0;
+  pc = char_index(tok, ',');
+  if (pc)
+    *pc = 0;
   while (tok) {
     String *name = NewString(tok);
-    if (mangle) Append(name,mangle);
-    if (looking_fragments && Getattr(looking_fragments,name)) {
+    if (mangle)
+      Append(name, mangle);
+    if (looking_fragments && Getattr(looking_fragments, name)) {
       return;
-    }    
-    code = Getattr(fragments,name);
-    if (debug) Printf(stdout,"looking subfragment %s\n", name);
-    if (code && (Strcmp(code,k_ignore) != 0)) {
-      String *section = Getmeta(code,k_section);
-      Hash *nn = Getmeta(code,k_kwargs);
-      if (!looking_fragments) looking_fragments = NewHash();
-      Setattr(looking_fragments,name,"1");      
+    }
+    code = Getattr(fragments, name);
+    if (debug)
+      Printf(stdout, "looking subfragment %s\n", name);
+    if (code && (Strcmp(code, k_ignore) != 0)) {
+      String *section = Getmeta(code, k_section);
+      Hash *nn = Getmeta(code, k_kwargs);
+      if (!looking_fragments)
+	looking_fragments = NewHash();
+      Setattr(looking_fragments, name, "1");
       while (nn) {
-	if (Equal(Getattr(nn,k_name),k_fragment)) {
-	  if (debug) Printf(stdout,"emitting fragment %s %s\n",nn, type);
+	if (Equal(Getattr(nn, k_name), k_fragment)) {
+	  if (debug)
+	    Printf(stdout, "emitting fragment %s %s\n", nn, type);
 	  Setfile(nn, Getfile(n));
 	  Setline(nn, Getline(n));
 	  Swig_fragment_emit(nn);
@@ -133,23 +139,25 @@ Swig_fragment_emit(Node *n) {
       if (section) {
 	File *f = Swig_filebyname(section);
 	if (!f) {
-	  Swig_error(Getfile(code),Getline(code),
-		     "Bad section '%s' for code fragment '%s'\n", section,name);
+	  Swig_error(Getfile(code), Getline(code), "Bad section '%s' for code fragment '%s'\n", section, name);
 	} else {
-	  if (debug) Printf(stdout,"emitting subfragment %s %s\n",name, section);
-	  if (debug) Printf(f,"/* begin fragment %s */\n",name);
-	  Printf(f,"%s\n",code);
-	  if (debug) Printf(f,"/* end fragment %s */\n\n",name);
-	  Setattr(fragments,name,k_ignore);
-	  Delattr(looking_fragments,name);      
+	  if (debug)
+	    Printf(stdout, "emitting subfragment %s %s\n", name, section);
+	  if (debug)
+	    Printf(f, "/* begin fragment %s */\n", name);
+	  Printf(f, "%s\n", code);
+	  if (debug)
+	    Printf(f, "/* end fragment %s */\n\n", name);
+	  Setattr(fragments, name, k_ignore);
+	  Delattr(looking_fragments, name);
 	}
       }
     } else if (!code && type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
-      if (!Equal(type,rtype)) {
-	String *name = Copy(Getattr(n,k_value));
+      if (!Equal(type, rtype)) {
+	String *name = Copy(Getattr(n, k_value));
 	String *mangle = Swig_string_mangle(type);
-	Append(name,mangle);
+	Append(name, mangle);
 	Setfile(name, Getfile(n));
 	Setline(name, Getline(n));
 	Swig_fragment_emit(name);
@@ -158,17 +166,17 @@ Swig_fragment_emit(Node *n) {
       }
       Delete(rtype);
     }
-    
+
     if (!code) {
       Swig_warning(WARN_FRAGMENT_NOT_FOUND, Getfile(n), Getline(n), "Fragment '%s' not found.\n", name);
     }
     tok = pc ? pc + 1 : 0;
     if (tok) {
-      pc = char_index(tok,',');
-      if (pc) *pc = 0;
+      pc = char_index(tok, ',');
+      if (pc)
+	*pc = 0;
     }
     Delete(name);
   }
   Delete(t);
 }
-

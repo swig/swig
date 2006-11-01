@@ -24,24 +24,23 @@ char cvsroot_main_cxx[] = "$Header$";
 
 // Global variables
 
-    Language  *lang;                            // Language method
-    int        CPlusPlus = 0;
-    int        Extend = 0;                      // Extend flag
-    int        ForceExtern = 0;                 // Force extern mode
-    int        GenerateDefault = 1;             // Generate default constructors
-    int        Verbose = 0;
-    int        AddExtern = 0;
-    int        NoExcept = 0;
-    int        SwigRuntime = 0;                 // 0 = no option, 1 = -c or -runtime, 2 = -noruntime
+Language *lang;			// Language method
+int CPlusPlus = 0;
+int Extend = 0;			// Extend flag
+int ForceExtern = 0;		// Force extern mode
+int GenerateDefault = 1;	// Generate default constructors
+int Verbose = 0;
+int AddExtern = 0;
+int NoExcept = 0;
+int SwigRuntime = 0;		// 0 = no option, 1 = -c or -runtime, 2 = -noruntime
 
 
 extern "C" {
-extern String  *ModuleName;
+  extern String *ModuleName;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
-
-static const char *usage1 = (const char*)"\
+static const char *usage1 = (const char *) "\
 \nGeneral Options\n\
      -addextern      - Add extra extern declarations\n\
      -c++            - Enable C++ processing\n\
@@ -70,7 +69,7 @@ static const char *usage1 = (const char*)"\
                        If no explicit value is given to the feature, a default of 1 is used\n\
 ";
 
-static const char *usage2 = (const char*)"\
+static const char *usage2 = (const char *) "\
      -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
@@ -100,7 +99,7 @@ static const char *usage2 = (const char*)"\
      -nopreprocess   - Skip the preprocessor step\n\
 ";
 
-static const char *usage3 = (const char*)"\
+static const char *usage3 = (const char *) "\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
      -O              - Enable the optimizations options: \n\
                         -fastdispatch -fvirtual \n\
@@ -130,47 +129,46 @@ is equivalent to: \n\
 \n";
 
 // Local variables
-static String *LangSubDir = 0;                  // Target language library subdirectory
-static char   *SwigLib = 0;                     // Library directory
-static String *SwigLibWin = 0;                  // Extra Library directory for Windows
-static int     freeze = 0;
-static String  *lang_config = 0;
-static char    *hpp_extension = (char *) "h";
-static char    *cpp_extension = (char *) "cxx";
-static char    *depends_extension = (char *) "d";
-static String  *outdir = 0;
-static String  *xmlout = 0;
-static int     help = 0;
-static int     checkout = 0;
-static int     cpp_only = 0;
-static int     no_cpp = 0;
-static char   *outfile_name = 0;
-static char   *outfile_name_h = 0;
-static int     tm_debug = 0;
-static int     dump_tags = 0;
-static int     dump_top = 0;
-static int     dump_module = 0;
-static int     dump_parse_module = 0;
-static int     dump_parse_top = 0;
-static int     dump_xml = 0;
-static int     browse = 0;
-static int     dump_typedef = 0;
-static int     dump_classes = 0;
-static int     werror = 0;
-static int     depend = 0;
-static int     depend_only = 0;
-static int     memory_debug = 0;
-static int     allkw = 0;
-static DOH    *libfiles = 0;
-static DOH    *cpps = 0 ;
-static String  *dependencies_file = 0;
-static File    *f_dependencies_file = 0;
-static int     external_runtime = 0;
+static String *LangSubDir = 0;	// Target language library subdirectory
+static char *SwigLib = 0;	// Library directory
+static String *SwigLibWin = 0;	// Extra Library directory for Windows
+static int freeze = 0;
+static String *lang_config = 0;
+static char *hpp_extension = (char *) "h";
+static char *cpp_extension = (char *) "cxx";
+static char *depends_extension = (char *) "d";
+static String *outdir = 0;
+static String *xmlout = 0;
+static int help = 0;
+static int checkout = 0;
+static int cpp_only = 0;
+static int no_cpp = 0;
+static char *outfile_name = 0;
+static char *outfile_name_h = 0;
+static int tm_debug = 0;
+static int dump_tags = 0;
+static int dump_top = 0;
+static int dump_module = 0;
+static int dump_parse_module = 0;
+static int dump_parse_top = 0;
+static int dump_xml = 0;
+static int browse = 0;
+static int dump_typedef = 0;
+static int dump_classes = 0;
+static int werror = 0;
+static int depend = 0;
+static int depend_only = 0;
+static int memory_debug = 0;
+static int allkw = 0;
+static DOH *libfiles = 0;
+static DOH *cpps = 0;
+static String *dependencies_file = 0;
+static File *f_dependencies_file = 0;
+static int external_runtime = 0;
 static String *external_runtime_name = 0;
-static char   *fake_version = 0;
+static char *fake_version = 0;
 
-static const char *swig_package_version() 
-{
+static const char *swig_package_version() {
   return fake_version ? fake_version : PACKAGE_VERSION;
 }
 
@@ -184,14 +182,11 @@ static const char *swig_package_version()
 
 static int check_suffix(char *name) {
   char *c;
-  if (!name) return 0;
+  if (!name)
+    return 0;
   c = Swig_file_suffix(name);
-  if ((strcmp(c,".c") == 0) ||
-      (strcmp(c,".C") == 0) ||
-      (strcmp(c,".cc") == 0) ||
-      (strcmp(c,".cxx") == 0) ||
-      (strcmp(c,".c++") == 0) ||
-      (strcmp(c,".cpp") == 0)) {
+  if ((strcmp(c, ".c") == 0) ||
+      (strcmp(c, ".C") == 0) || (strcmp(c, ".cc") == 0) || (strcmp(c, ".cxx") == 0) || (strcmp(c, ".c++") == 0) || (strcmp(c, ".cpp") == 0)) {
     return 1;
   }
   return 0;
@@ -206,11 +201,11 @@ static void install_opts(int argc, char *argv[]) {
   int i;
   int noopt = 0;
   char *c;
-  for (i = 1; i < (argc-1); i++) {
+  for (i = 1; i < (argc - 1); i++) {
     if (argv[i]) {
-      if ((*argv[i] == '-') && (!isupper(*(argv[i]+1)))) {
+      if ((*argv[i] == '-') && (!isupper(*(argv[i] + 1)))) {
 	String *opt = NewStringf("SWIGOPT%(upper)s", argv[i]);
-	Replaceall(opt,"-","_");
+	Replaceall(opt, "-", "_");
 	c = Char(opt);
 	noopt = 0;
 	while (*c) {
@@ -220,14 +215,14 @@ static void install_opts(int argc, char *argv[]) {
 	  }
 	  c++;
 	}
-	if (((i+1) < (argc-1)) && (argv[i+1]) && (*argv[i+1] != '-')) {
-	  Printf(opt," %s", argv[i+1]);
+	if (((i + 1) < (argc - 1)) && (argv[i + 1]) && (*argv[i + 1] != '-')) {
+	  Printf(opt, " %s", argv[i + 1]);
 	  i++;
 	} else {
-	  Printf(opt," 1");
+	  Printf(opt, " 1");
 	}
 	if (!noopt) {
-	  /*	  Printf(stdout,"%s\n", opt); */
+	  /*      Printf(stdout,"%s\n", opt); */
 	  Preprocessor_define(opt, 0);
 	}
 	Delete(opt);
@@ -243,15 +238,15 @@ static void install_opts(int argc, char *argv[]) {
 
 static void set_outdir(const String *c_wrapper_file_dir) {
 
-    // Add file delimiter if not present in output directory name
-    if (outdir && Len(outdir) != 0) {
-        const char* outd = Char(outdir);
-        if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMETER), SWIG_FILE_DELIMETER) != 0)
-            Printv(outdir, SWIG_FILE_DELIMETER, NIL);
-    }
-    // Use the C wrapper file's directory if the output directory has not been set by user
-    if (!outdir)
-        outdir = NewString(c_wrapper_file_dir);
+  // Add file delimiter if not present in output directory name
+  if (outdir && Len(outdir) != 0) {
+    const char *outd = Char(outdir);
+    if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMETER), SWIG_FILE_DELIMETER) != 0)
+      Printv(outdir, SWIG_FILE_DELIMETER, NIL);
+  }
+  // Use the C wrapper file's directory if the output directory has not been set by user
+  if (!outdir)
+    outdir = NewString(c_wrapper_file_dir);
 }
 
 //-----------------------------------------------------------------
@@ -273,29 +268,27 @@ void SWIG_library_directory(const char *subdirectory) {
 
 // Returns the directory for generating language specific files (non C/C++ files)
 const String *SWIG_output_directory() {
-    assert(outdir);
-    return outdir;
+  assert(outdir);
+  return outdir;
 }
 
 void SWIG_config_cppext(const char *ext) {
   cpp_extension = (char *) ext;
 }
 
-void SWIG_setfeature(const char *cfeature, const char *cvalue) 
-{
+void SWIG_setfeature(const char *cfeature, const char *cvalue) {
   Hash *features_hash = Swig_cparse_features();
   String *name = NewString("");
   String *fname = NewString(cfeature);
   String *fvalue = NewString(cvalue);
-  Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+  Swig_feature_set(features_hash, name, 0, fname, fvalue, 0);
   Delete(name);
   Delete(fname);
   Delete(fvalue);
 }
 
 
-void SWIG_setfeatures(const char *c) 
-{
+void SWIG_setfeatures(const char *c) {
   char feature[64];
   char *fb = feature;
   char *fe = fb + 63;
@@ -310,21 +303,21 @@ void SWIG_setfeatures(const char *c)
       *(f++) = *(c++);
     }
     *f = 0;
-    Printf(fname,"%s",feature);
+    Printf(fname, "%s", feature);
     if (*c && *(c++) == '=') {
       char value[64];
       char *v = value;
       char *ve = v + 63;
-      while ((v != ve) &&  *c != ',' && *c && !isspace(*c)) {
+      while ((v != ve) && *c != ',' && *c && !isspace(*c)) {
 	*(v++) = *(c++);
       }
       *v = 0;
-      Printf(fvalue,"%s",value);
+      Printf(fvalue, "%s", value);
     } else {
-      Printf(fvalue,"1");
-    }    
+      Printf(fvalue, "1");
+    }
     /* Printf(stderr,"%s %s\n", fname, fvalue);  */
-    Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+    Swig_feature_set(features_hash, name, 0, fname, fvalue, 0);
     Delete(fname);
     Delete(fvalue);
   }
@@ -362,7 +355,7 @@ static void SWIG_dump_runtime() {
   }
   Printf(runtime, "%s", s);
   Delete(s);
-  
+
   s = Swig_include_sys("swigerrors.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigerrors.swg'\n");
@@ -371,7 +364,7 @@ static void SWIG_dump_runtime() {
   }
   Printf(runtime, "%s", s);
   Delete(s);
-  
+
   s = Swig_include_sys("swigerrors.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigerrors.swg'\n");
@@ -400,336 +393,333 @@ static void SWIG_dump_runtime() {
   }
   Printf(runtime, "%s", s);
   Delete(s);
-  
+
   Close(runtime);
   Delete(runtime);
   SWIG_exit(EXIT_SUCCESS);
 }
 
-void SWIG_getoptions(int argc, char *argv[]) 
-{
-  int    i;
+void SWIG_getoptions(int argc, char *argv[]) {
+  int i;
   // Get options
   for (i = 1; i < argc; i++) {
-      if (argv[i] && !Swig_check_marked(i)) {
-	  if (strncmp(argv[i],"-I-",3) == 0) {
-	    // Don't push/pop directories
-	    Swig_set_push_dir(0);
-	    Swig_mark_arg(i);
-	  } else if (strncmp(argv[i],"-I",2) == 0) {
-	    // Add a new directory search path
-	    Swig_add_directory((DOH *) Swig_copy_string(argv[i]+2));
-	    Swig_mark_arg(i);
-	  } else if (strncmp(argv[i],"-D",2) == 0) {
-	    String *d = NewString(argv[i]+2);
-	    Replace(d,(char*)"=",(char*)" ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-	    Preprocessor_define((DOH *) d,0);
-	    Delete(d);
-	    // Create a symbol
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-E") == 0) {
-	    cpp_only = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nopreprocess") == 0) {
-	    no_cpp = 1;
-	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-verbose") == 0) ||
-		     (strcmp(argv[i],"-v") == 0)) {
-	      Verbose = 1;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-c++") == 0) {
-	      CPlusPlus=1;
-	      Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
-	      Swig_cparse_cplusplus(1);
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-fcompact") == 0) {
-	    Wrapper_compact_print_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-fvirtual") == 0) {
-	    Wrapper_virtual_elimination_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-fastdispatch") == 0) {
-	    Wrapper_fast_dispatch_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nofastdispatch") == 0) {
-	    Wrapper_fast_dispatch_mode_set(0);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-naturalvar") == 0) {
-	    Wrapper_naturalvar_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nonaturalvar") == 0) {
-	    Wrapper_naturalvar_mode_set(0);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-directors") == 0) {
-	    SWIG_setfeature("feature:director","1");
-	    Wrapper_director_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dirprot") == 0) {
-	    Wrapper_director_protected_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nodirprot") == 0) {
-	    Wrapper_director_protected_mode_set(0);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-small") == 0) {
-	    Wrapper_compact_print_mode_set(1);
-	    Wrapper_virtual_elimination_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i], "-runtime") == 0) {
-	      Swig_mark_arg(i);
-	      Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c, -runtime, -noruntime command line options are deprecated.\n");
-	      SwigRuntime = 1;
-	  } else if ((strcmp(argv[i],"-c") == 0) || (strcmp(argv[i],"-noruntime") == 0)) {
-	      Swig_mark_arg(i);
-	      Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c, -runtime, -noruntime command line options are deprecated.\n");
-	      SwigRuntime = 2;
-	  } else if (strcmp(argv[i], "-external-runtime") == 0) {
-              external_runtime = 1;
-              Swig_mark_arg(i);
-              if (argv[i+1]) {
-                external_runtime_name = NewString(argv[i+1]);
-                Swig_mark_arg(i+1);
-                i++;
-              }
-          } else if ((strcmp(argv[i],"-make_default") == 0) || (strcmp(argv[i],"-makedefault") == 0)) {
-	    GenerateDefault = 1;
-	    Swig_mark_arg(i);
-          } else if ((strcmp(argv[i],"-no_default") == 0) || (strcmp(argv[i],"-nodefault") == 0)) {
-	    GenerateDefault = 0;
-	    Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG",1, 
-			 "dangerous, use -nodefaultctor, -nodefaultdtor instead.\n");
-	    Swig_mark_arg(i);
-          } else if ((strcmp(argv[i],"-nodefaultctor") == 0)) {
-	    SWIG_setfeature("feature:nodefaultctor","1");
-	    Swig_mark_arg(i);
-          } else if ((strcmp(argv[i],"-nodefaultdtor") == 0)) {
-	    SWIG_setfeature("feature:nodefaultdtor","1");
-	    Swig_mark_arg(i);
-          } else if ((strcmp(argv[i],"-copyctor") == 0)) {
-	    SWIG_setfeature("feature:copyctor","1");
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-noexcept") == 0) {
-	    NoExcept = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-noextern") == 0) {
-	    Swig_warning(WARN_DEPRECATED_NOEXTERN, "SWIG",1, "-noextern command line option is deprecated; extern is no longer generated by default.\n");
-	    AddExtern = 0;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-addextern") == 0) {
-	    AddExtern = 1;
-	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-show_templates") == 0) || (strcmp(argv[i],"-debug_template") == 0)) {
-	    Swig_cparse_debug_templates(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-templatereduce") == 0) {
-	    SWIG_cparse_template_reduce(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-notemplatereduce") == 0) {
-	    SWIG_cparse_template_reduce(0);
-	    Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-swiglib") == 0) {
-	    if (SwigLibWin)
-              printf("%s\n", Char(SwigLibWin));
-	    printf("%s\n", SwigLib);
-	    SWIG_exit (EXIT_SUCCESS);
-	  } else if (strcmp(argv[i],"-o") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      outfile_name = Swig_copy_string(argv[i+1]);
-	      if (!outfile_name_h || !dependencies_file) {
-		char *ext = strrchr(outfile_name, '.');
-		String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
-                if (!dependencies_file) {
-                  dependencies_file = NewStringf("%s.%s", basename, depends_extension);
-                }
-                if (!outfile_name_h) {
-                  Printf(basename, ".%s", hpp_extension);
-                  outfile_name_h = Swig_copy_string(Char(basename));
-                }
-		Delete(basename);
-	      }
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
+    if (argv[i] && !Swig_check_marked(i)) {
+      if (strncmp(argv[i], "-I-", 3) == 0) {
+	// Don't push/pop directories
+	Swig_set_push_dir(0);
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-I", 2) == 0) {
+	// Add a new directory search path
+	Swig_add_directory((DOH *) Swig_copy_string(argv[i] + 2));
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-D", 2) == 0) {
+	String *d = NewString(argv[i] + 2);
+	Replace(d, (char *) "=", (char *) " ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+	Preprocessor_define((DOH *) d, 0);
+	Delete(d);
+	// Create a symbol
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-E") == 0) {
+	cpp_only = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nopreprocess") == 0) {
+	no_cpp = 1;
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-verbose") == 0) || (strcmp(argv[i], "-v") == 0)) {
+	Verbose = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++") == 0) {
+	CPlusPlus = 1;
+	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+	Swig_cparse_cplusplus(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-fcompact") == 0) {
+	Wrapper_compact_print_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-fvirtual") == 0) {
+	Wrapper_virtual_elimination_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-fastdispatch") == 0) {
+	Wrapper_fast_dispatch_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nofastdispatch") == 0) {
+	Wrapper_fast_dispatch_mode_set(0);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-naturalvar") == 0) {
+	Wrapper_naturalvar_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nonaturalvar") == 0) {
+	Wrapper_naturalvar_mode_set(0);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-directors") == 0) {
+	SWIG_setfeature("feature:director", "1");
+	Wrapper_director_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dirprot") == 0) {
+	Wrapper_director_protected_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nodirprot") == 0) {
+	Wrapper_director_protected_mode_set(0);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-small") == 0) {
+	Wrapper_compact_print_mode_set(1);
+	Wrapper_virtual_elimination_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-runtime") == 0) {
+	Swig_mark_arg(i);
+	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	SwigRuntime = 1;
+      } else if ((strcmp(argv[i], "-c") == 0) || (strcmp(argv[i], "-noruntime") == 0)) {
+	Swig_mark_arg(i);
+	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	SwigRuntime = 2;
+      } else if (strcmp(argv[i], "-external-runtime") == 0) {
+	external_runtime = 1;
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  external_runtime_name = NewString(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	  i++;
+	}
+      } else if ((strcmp(argv[i], "-make_default") == 0) || (strcmp(argv[i], "-makedefault") == 0)) {
+	GenerateDefault = 1;
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-no_default") == 0) || (strcmp(argv[i], "-nodefault") == 0)) {
+	GenerateDefault = 0;
+	Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use -nodefaultctor, -nodefaultdtor instead.\n");
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-nodefaultctor") == 0)) {
+	SWIG_setfeature("feature:nodefaultctor", "1");
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-nodefaultdtor") == 0)) {
+	SWIG_setfeature("feature:nodefaultdtor", "1");
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-copyctor") == 0)) {
+	SWIG_setfeature("feature:copyctor", "1");
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-noexcept") == 0) {
+	NoExcept = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-noextern") == 0) {
+	Swig_warning(WARN_DEPRECATED_NOEXTERN, "SWIG", 1, "-noextern command line option is deprecated; extern is no longer generated by default.\n");
+	AddExtern = 0;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-addextern") == 0) {
+	AddExtern = 1;
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-show_templates") == 0) || (strcmp(argv[i], "-debug_template") == 0)) {
+	Swig_cparse_debug_templates(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-templatereduce") == 0) {
+	SWIG_cparse_template_reduce(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-notemplatereduce") == 0) {
+	SWIG_cparse_template_reduce(0);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-swiglib") == 0) {
+	if (SwigLibWin)
+	  printf("%s\n", Char(SwigLibWin));
+	printf("%s\n", SwigLib);
+	SWIG_exit(EXIT_SUCCESS);
+      } else if (strcmp(argv[i], "-o") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  outfile_name = Swig_copy_string(argv[i + 1]);
+	  if (!outfile_name_h || !dependencies_file) {
+	    char *ext = strrchr(outfile_name, '.');
+	    String *basename = ext ? NewStringWithSize(outfile_name, ext - outfile_name) : NewString(outfile_name);
+	    if (!dependencies_file) {
+	      dependencies_file = NewStringf("%s.%s", basename, depends_extension);
 	    }
-	  } else if (strcmp(argv[i],"-oh") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      outfile_name_h = Swig_copy_string(argv[i+1]);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
+	    if (!outfile_name_h) {
+	      Printf(basename, ".%s", hpp_extension);
+	      outfile_name_h = Swig_copy_string(Char(basename));
 	    }
-	  } else if (strcmp(argv[i],"-fakeversion") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      fake_version = Swig_copy_string(argv[i+1]);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-version") == 0) {
-	      fprintf(stdout,"\nSWIG Version %s\n", swig_package_version());
-	      fprintf(stdout,"\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
-	      fprintf(stdout,"Please see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
-	      SWIG_exit (EXIT_SUCCESS);
-	  } else if (strcmp(argv[i],"-copyright") == 0) {
-	      fprintf(stdout,"\nSWIG Version %s\n", swig_package_version());
-	      fprintf(stdout,"Copyright (c) 1995-1998\n");
-	      fprintf(stdout,"University of Utah and the Regents of the University of California\n");
-	      fprintf(stdout,"Copyright (c) 1998-2005\n");
-	      fprintf(stdout,"University of Chicago\n");
-	      fprintf(stdout,"Copyright (c) 2005-2006\n");
-	      fprintf(stdout,"Arizona Board of Regents (University of Arizona)\n");
-	      SWIG_exit (EXIT_SUCCESS);
-	  } else if (strncmp(argv[i],"-l",2) == 0) {
-	    // Add a new directory search path
-	    Append(libfiles,argv[i]+2);
-	    Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-co") == 0) {
-	    checkout = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-features") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      SWIG_setfeatures(argv[i+1]);
-	      Swig_mark_arg(i+1);
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-freeze") == 0) {
-	    freeze = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-includeall") == 0) {
-	    Preprocessor_include_all(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-importall") == 0) {
-	    Preprocessor_import_all(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-ignoremissing") == 0) {
-	    Preprocessor_ignore_missing(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-cpperraswarn") == 0) {
-	    Preprocessor_error_as_warning(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nocpperraswarn") == 0) {
-	    Preprocessor_error_as_warning(0);
-	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-tm_debug") == 0) || (strcmp(argv[i],"-debug_typemap") == 0)) {
-	    tm_debug = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-module") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      ModuleName = NewString(argv[i+1]);	    
-	      Swig_mark_arg(i+1);
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-M") == 0) {
-	    depend = 1;
-	    depend_only = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-MM") == 0) {
-	    depend = 2;
-	    depend_only = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-MF") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      dependencies_file = NewString(argv[i+1]);	    
-	      Swig_mark_arg(i+1);
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-MD") == 0) {
-	    depend = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-MMD") == 0) {
-	    depend = 2;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-outdir") == 0) {
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      outdir = NewString(argv[i+1]);	    
-	      Swig_mark_arg(i+1);
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-Wall") == 0) {
-	    Swig_mark_arg(i);
-	    Swig_warnall();
-	  } else if (strcmp(argv[i],"-Wallkw") == 0) {
-	    allkw = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-Werror") == 0) {
-	    werror = 1;
-	    Swig_mark_arg(i);
-	  } else if (strncmp(argv[i],"-w",2) == 0) {
-	    Swig_mark_arg(i);
-	    Swig_warnfilter(argv[i]+2,1);
-	  } else if (strcmp(argv[i],"-dump_tags") == 0) {
-	    dump_tags = 1;
-	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-dump_tree") == 0) || (strcmp(argv[i],"-dump_top") == 0)) {
-	    dump_top = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_module") == 0) {
-	    dump_module = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_parse_module") == 0) {
-	    dump_parse_module = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_parse_top") == 0) {
-	    dump_parse_top = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_xml") == 0) {
-	    dump_xml = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-xmlout") == 0) {
-	    dump_xml = 1;
-	    Swig_mark_arg(i);
-	    if (argv[i+1]) {
-	      xmlout = NewString(argv[i+1]);	    
-	      Swig_mark_arg(i+1);
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if (strcmp(argv[i],"-nocontract") == 0) {
-	    Swig_mark_arg(i);
-	    Swig_contract_mode_set(0);
-	  } else if (strcmp(argv[i],"-browse") == 0) {
-	    browse = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_typedef") == 0) {
-	    dump_typedef = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_classes") == 0) {
-	    dump_classes = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dump_memory") == 0) {
-	    memory_debug =1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-Fstandard") == 0) {
-            Swig_error_msg_format(EMF_STANDARD);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-Fmicrosoft") == 0) {
-            Swig_error_msg_format(EMF_MICROSOFT);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-O") == 0) {
-	    Wrapper_virtual_elimination_mode_set(1);
-	    Wrapper_fast_dispatch_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage1,stdout);
-	    fputs(usage2,stdout);
-	    fputs(usage3,stdout);
-	    Swig_mark_arg(i);
-	    help = 1;
+	    Delete(basename);
 	  }
+	  Swig_mark_arg(i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-oh") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  outfile_name_h = Swig_copy_string(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-fakeversion") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  fake_version = Swig_copy_string(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-version") == 0) {
+	fprintf(stdout, "\nSWIG Version %s\n", swig_package_version());
+	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
+	fprintf(stdout, "Please see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
+	SWIG_exit(EXIT_SUCCESS);
+      } else if (strcmp(argv[i], "-copyright") == 0) {
+	fprintf(stdout, "\nSWIG Version %s\n", swig_package_version());
+	fprintf(stdout, "Copyright (c) 1995-1998\n");
+	fprintf(stdout, "University of Utah and the Regents of the University of California\n");
+	fprintf(stdout, "Copyright (c) 1998-2005\n");
+	fprintf(stdout, "University of Chicago\n");
+	fprintf(stdout, "Copyright (c) 2005-2006\n");
+	fprintf(stdout, "Arizona Board of Regents (University of Arizona)\n");
+	SWIG_exit(EXIT_SUCCESS);
+      } else if (strncmp(argv[i], "-l", 2) == 0) {
+	// Add a new directory search path
+	Append(libfiles, argv[i] + 2);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-co") == 0) {
+	checkout = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-features") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  SWIG_setfeatures(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-freeze") == 0) {
+	freeze = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-includeall") == 0) {
+	Preprocessor_include_all(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-importall") == 0) {
+	Preprocessor_import_all(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-ignoremissing") == 0) {
+	Preprocessor_ignore_missing(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-cpperraswarn") == 0) {
+	Preprocessor_error_as_warning(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nocpperraswarn") == 0) {
+	Preprocessor_error_as_warning(0);
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-tm_debug") == 0) || (strcmp(argv[i], "-debug_typemap") == 0)) {
+	tm_debug = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-module") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  ModuleName = NewString(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-M") == 0) {
+	depend = 1;
+	depend_only = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-MM") == 0) {
+	depend = 2;
+	depend_only = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-MF") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  dependencies_file = NewString(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-MD") == 0) {
+	depend = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-MMD") == 0) {
+	depend = 2;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-outdir") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  outdir = NewString(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-Wall") == 0) {
+	Swig_mark_arg(i);
+	Swig_warnall();
+      } else if (strcmp(argv[i], "-Wallkw") == 0) {
+	allkw = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-Werror") == 0) {
+	werror = 1;
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-w", 2) == 0) {
+	Swig_mark_arg(i);
+	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-dump_tags") == 0) {
+	dump_tags = 1;
+	Swig_mark_arg(i);
+      } else if ((strcmp(argv[i], "-dump_tree") == 0) || (strcmp(argv[i], "-dump_top") == 0)) {
+	dump_top = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_module") == 0) {
+	dump_module = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_parse_module") == 0) {
+	dump_parse_module = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_parse_top") == 0) {
+	dump_parse_top = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_xml") == 0) {
+	dump_xml = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-xmlout") == 0) {
+	dump_xml = 1;
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  xmlout = NewString(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-nocontract") == 0) {
+	Swig_mark_arg(i);
+	Swig_contract_mode_set(0);
+      } else if (strcmp(argv[i], "-browse") == 0) {
+	browse = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_typedef") == 0) {
+	dump_typedef = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_classes") == 0) {
+	dump_classes = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-dump_memory") == 0) {
+	memory_debug = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-Fstandard") == 0) {
+	Swig_error_msg_format(EMF_STANDARD);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-Fmicrosoft") == 0) {
+	Swig_error_msg_format(EMF_MICROSOFT);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-O") == 0) {
+	Wrapper_virtual_elimination_mode_set(1);
+	Wrapper_fast_dispatch_mode_set(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-help") == 0) {
+	fputs(usage1, stdout);
+	fputs(usage2, stdout);
+	fputs(usage3, stdout);
+	Swig_mark_arg(i);
+	help = 1;
       }
+    }
   }
 }
 
@@ -738,11 +728,11 @@ void SWIG_getoptions(int argc, char *argv[])
 
 
 int SWIG_main(int argc, char *argv[], Language *l) {
-  char   *c;
+  char *c;
 
   /* Initialize the SWIG core */
   Swig_init();
-  
+
   /* Suppress warning messages for private inheritance, preprocessor
      evaluation, might be abstract, overloaded const, and ...
 
@@ -752,8 +742,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
      WARN_LANG_OVERLOAD_CONST      512
      WARN_PARSE_BUILTIN_NAME       321
      WARN_PARSE_REDUNDANT          322
-  */
-  Swig_warnfilter("202,309,403,512,321,322",1);
+   */
+  Swig_warnfilter("202,309,403,512,321,322", 1);
 
   // Initialize the preprocessor
   Preprocessor_init();
@@ -785,12 +775,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     count++;
   }
   Delete(package_version);
-  assert(count == 3); // Check version format is correct
+  assert(count == 3);		// Check version format is correct
 
   /* Turn on contracts */
 
   Swig_contract_mode_set(1);
-  Preprocessor_define(vers,0);
+  Preprocessor_define(vers, 0);
 
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);
@@ -801,18 +791,18 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check for SWIG_LIB environment variable
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
 #if defined(_WIN32)
-      char buf[MAX_PATH];
-      char *p;
-      if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
-       *(p+1) = '\0';
-       SwigLibWin = NewStringf("%sLib", buf); // Native windows installation path
-      }
-      SwigLib = Swig_copy_string(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
+    char buf[MAX_PATH];
+    char *p;
+    if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
+      *(p + 1) = '\0';
+      SwigLibWin = NewStringf("%sLib", buf);	// Native windows installation path
+    }
+    SwigLib = Swig_copy_string(SWIG_LIB_WIN_UNIX);	// Unix installation path using a drive letter (for msys/mingw)
 #else
-      SwigLib = Swig_copy_string(SWIG_LIB);
+    SwigLib = Swig_copy_string(SWIG_LIB);
 #endif
   } else {
-      SwigLib = Swig_copy_string(c);
+    SwigLib = Swig_copy_string(c);
   }
 
   libfiles = NewList();
@@ -826,13 +816,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 
   // Parse language dependent options
-  lang->main(argc,argv);
+  lang->main(argc, argv);
 
   if (help) {
-    Printf(stdout,"\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
-    SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
+    Printf(stdout, "\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
+    SWIG_exit(EXIT_SUCCESS);	// Exit if we're in help mode
   }
-
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
@@ -842,15 +831,15 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Add language dependent directory to the search path
   {
     String *rl = NewString("");
-    Printf(rl,".%sswig_lib%s%s", SWIG_FILE_DELIMETER, SWIG_FILE_DELIMETER, LangSubDir);
+    Printf(rl, ".%sswig_lib%s%s", SWIG_FILE_DELIMETER, SWIG_FILE_DELIMETER, LangSubDir);
     Swig_add_directory(rl);
     if (SwigLibWin) {
       rl = NewString("");
-      Printf(rl,"%s%s%s", SwigLibWin, SWIG_FILE_DELIMETER, LangSubDir);
+      Printf(rl, "%s%s%s", SwigLibWin, SWIG_FILE_DELIMETER, LangSubDir);
       Swig_add_directory(rl);
     }
     rl = NewString("");
-    Printf(rl,"%s%s%s", SwigLib, SWIG_FILE_DELIMETER, LangSubDir);
+    Printf(rl, "%s%s%s", SwigLib, SWIG_FILE_DELIMETER, LangSubDir);
     Swig_add_directory(rl);
   }
 
@@ -860,22 +849,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_add_directory((String *) SwigLib);
 
   if (Verbose) {
-    printf ("LangSubDir: %s\n", Char(LangSubDir));
-    printf ("Search paths:\n");
+    printf("LangSubDir: %s\n", Char(LangSubDir));
+    printf("Search paths:\n");
     List *sp = Swig_search_path();
     Iterator s;
     for (s = First(sp); s.item; s = Next(s)) {
-      Printf(stdout,"   %s\n", s.item);
+      Printf(stdout, "   %s\n", s.item);
     }
   }
-
   // handle the -external-runtime argument
   if (external_runtime)
     SWIG_dump_runtime();
 
   // If we made it this far, looks good. go for it....
 
-  input_file = argv[argc-1];
+  input_file = argv[argc - 1];
 
   // If the user has requested to check out a file, handle that
   if (checkout) {
@@ -885,24 +873,24 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       outfile = outfile_name;
 
     if (Verbose)
-      printf ("Handling checkout...\n");
+      printf("Handling checkout...\n");
 
     s = Swig_include(input_file);
     if (!s) {
-      fprintf(stderr,"Unable to locate '%s' in the SWIG library.\n", input_file);
+      fprintf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
-      FILE *f = fopen(outfile,"r");
+      FILE *f = fopen(outfile, "r");
       if (f) {
 	fclose(f);
-	fprintf(stderr,"File '%s' already exists. Checkout aborted.\n", outfile);
+	fprintf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
       } else {
-	f = fopen(outfile,"w");
+	f = fopen(outfile, "w");
 	if (!f) {
-	  fprintf(stderr,"Unable to create file '%s'\n", outfile);
+	  fprintf(stderr, "Unable to create file '%s'\n", outfile);
 	} else {
 	  if (Verbose)
-	    fprintf(stdout,"'%s' checked out from the SWIG library.\n", input_file);
-	  fputs(Char(s),f);
+	    fprintf(stdout, "'%s' checked out from the SWIG library.\n", input_file);
+	  fputs(Char(s), f);
 	  fclose(f);
 	}
       }
@@ -915,7 +903,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     // Run the preprocessor
     if (Verbose)
-      printf ("Preprocessing...\n");
+      printf("Preprocessing...\n");
     {
       int i;
       String *fs = NewString("");
@@ -923,46 +911,46 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (!df) {
 	char *cfile = Char(input_file);
 	if (cfile && cfile[0] == '-') {
-	  Printf(stderr,"Unable to find option or file '%s', ", input_file);
-	  Printf(stderr,"use 'swig -help' for more information.\n", input_file);
-	} else {	
-	  Printf(stderr,"Unable to find file '%s'.\n", input_file);
+	  Printf(stderr, "Unable to find option or file '%s', ", input_file);
+	  Printf(stderr, "use 'swig -help' for more information.\n", input_file);
+	} else {
+	  Printf(stderr, "Unable to find file '%s'.\n", input_file);
 	}
-	SWIG_exit (EXIT_FAILURE);
+	SWIG_exit(EXIT_FAILURE);
       }
       fclose(df);
-      if(!no_cpp) {
-        Printf(fs,"%%include <swig.swg>\n");
-        if (allkw) {
-          Printf(fs,"%%include <allkw.swg>\n");
-        }
-        if (lang_config) {
-          Printf(fs,"\n%%include <%s>\n", lang_config);
-        }
-        Printf(fs,"%%include \"%s\"\n", Swig_last_file());
-        for (i = 0; i < Len(libfiles); i++) {
-          Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
-        }
-        Seek(fs,0,SEEK_SET);
-        cpps = Preprocessor_parse(fs);
+      if (!no_cpp) {
+	Printf(fs, "%%include <swig.swg>\n");
+	if (allkw) {
+	  Printf(fs, "%%include <allkw.swg>\n");
+	}
+	if (lang_config) {
+	  Printf(fs, "\n%%include <%s>\n", lang_config);
+	}
+	Printf(fs, "%%include \"%s\"\n", Swig_last_file());
+	for (i = 0; i < Len(libfiles); i++) {
+	  Printf(fs, "\n%%include \"%s\"\n", Getitem(libfiles, i));
+	}
+	Seek(fs, 0, SEEK_SET);
+	cpps = Preprocessor_parse(fs);
 	Delete(fs);
       } else {
-        df = Swig_open(input_file);
-        cpps = NewFileFromFile(df);
+	df = Swig_open(input_file);
+	cpps = NewFileFromFile(df);
       }
       if (Swig_error_count()) {
-        SWIG_exit(EXIT_FAILURE);
+	SWIG_exit(EXIT_FAILURE);
       }
       if (cpp_only) {
-	Printf(stdout,"%s", cpps);
+	Printf(stdout, "%s", cpps);
 	while (freeze);
-	SWIG_exit (EXIT_SUCCESS);
+	SWIG_exit(EXIT_SUCCESS);
       }
       if (depend) {
 	String *outfile;
 	if (!outfile_name) {
 	  if (CPlusPlus) {
-	    outfile = NewStringf("%s_wrap.%s", Swig_file_basename(input_file),cpp_extension);
+	    outfile = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), cpp_extension);
 	  } else {
 	    outfile = NewStringf("%s_wrap.c", Swig_file_basename(input_file));
 	  }
@@ -970,29 +958,28 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  outfile = NewString(outfile_name);
 	}
 	if (dependencies_file && Len(dependencies_file) != 0) {
-	  f_dependencies_file = NewFile(dependencies_file,"w");
+	  f_dependencies_file = NewFile(dependencies_file, "w");
 	  if (!f_dependencies_file) {
 	    FileErrorDisplay(dependencies_file);
 	    SWIG_exit(EXIT_FAILURE);
 	  }
 	} else if (!depend_only) {
 	  String *filename = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), depends_extension);
-	  f_dependencies_file = NewFile(filename,"w");
+	  f_dependencies_file = NewFile(filename, "w");
 	  if (!f_dependencies_file) {
 	    FileErrorDisplay(filename);
 	    SWIG_exit(EXIT_FAILURE);
 	  }
-	} 
-	else
+	} else
 	  f_dependencies_file = stdout;
-	Printf(f_dependencies_file,"%s: ", outfile);
+	Printf(f_dependencies_file, "%s: ", outfile);
 	List *files = Preprocessor_depend();
 	for (int i = 0; i < Len(files); i++) {
-	  if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files,i), SwigLib, Len(SwigLib)) != 0))) {
-	    Printf(f_dependencies_file,"\\\n %s ", Getitem(files,i));
+	  if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) != 0))) {
+	    Printf(f_dependencies_file, "\\\n %s ", Getitem(files, i));
 	  }
 	}
-	Printf(f_dependencies_file,"\n");
+	Printf(f_dependencies_file, "\n");
 	if (f_dependencies_file != stdout)
 	  Close(f_dependencies_file);
 	if (depend_only)
@@ -1006,8 +993,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     // Pass control over to the specific language interpreter
     if (Verbose) {
-      fprintf (stdout, "Starting language-specific parse...\n");
-      fflush (stdout);
+      fprintf(stdout, "Starting language-specific parse...\n");
+      fflush(stdout);
     }
 
     Node *top = Swig_cparse(cpps);
@@ -1016,33 +1003,33 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Swig_print_tree(top);
     }
     if (dump_parse_module) {
-      Swig_print_tree(Getattr(top,"module"));
+      Swig_print_tree(Getattr(top, "module"));
     }
 
     if (Verbose) {
-      Printf(stdout,"Processing types...\n");
+      Printf(stdout, "Processing types...\n");
     }
     Swig_process_types(top);
 
     if (Verbose) {
-      Printf(stdout,"C++ analysis...\n");
+      Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
 
     if (Verbose) {
-      Printf(stdout,"Generating wrappers...\n");
+      Printf(stdout, "Generating wrappers...\n");
     }
 
     if (dump_classes) {
-      Hash *classes = Getattr(top,"classes");
+      Hash *classes = Getattr(top, "classes");
       if (classes) {
-	Printf(stdout,"Classes\n");
-	Printf(stdout,"------------\n");
+	Printf(stdout, "Classes\n");
+	Printf(stdout, "------------\n");
 	Iterator ki;
 	for (ki = First(classes); ki.key; ki = Next(ki)) {
-	  Printf(stdout,"%s\n", ki.key);
+	  Printf(stdout, "%s\n", ki.key);
 	}
-      }	       
+      }
     }
 
     if (dump_typedef) {
@@ -1050,36 +1037,36 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (dump_tags) {
-      Swig_print_tags(top,0);
+      Swig_print_tags(top, 0);
     }
     if (top) {
-      if (!Getattr(top,"name")) {
-	Printf(stderr,"*** No module name specified using %%module or -module.\n");
+      if (!Getattr(top, "name")) {
+	Printf(stderr, "*** No module name specified using %%module or -module.\n");
 	SWIG_exit(EXIT_FAILURE);
       } else {
 	/* Set some filename information on the object */
-	Setattr(top,"infile", input_file);
+	Setattr(top, "infile", input_file);
 	if (!outfile_name) {
 	  if (CPlusPlus) {
-	    Setattr(top,"outfile", NewStringf("%s_wrap.%s", Swig_file_basename(input_file),cpp_extension));
+	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", Swig_file_basename(input_file), cpp_extension));
 	  } else {
-	    Setattr(top,"outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
+	    Setattr(top, "outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
 	  }
 	} else {
-	  Setattr(top,"outfile", outfile_name);
+	  Setattr(top, "outfile", outfile_name);
 	}
 	if (!outfile_name_h) {
-	  Setattr(top,"outfile_h", NewStringf("%s_wrap.%s", Swig_file_basename(input_file),hpp_extension));
+	  Setattr(top, "outfile_h", NewStringf("%s_wrap.%s", Swig_file_basename(input_file), hpp_extension));
 	} else {
-	  Setattr(top,"outfile_h", outfile_name_h);
+	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-        set_outdir(Swig_file_dirname(Getattr(top,"outfile")));
+	set_outdir(Swig_file_dirname(Getattr(top, "outfile")));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}
 	lang->top(top);
 	if (browse) {
-	  Swig_browser(top,0);
+	  Swig_browser(top, 0);
 	}
       }
     }
@@ -1087,15 +1074,17 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Swig_print_tree(top);
     }
     if (dump_module) {
-      Swig_print_tree(Getattr(top,"module"));
+      Swig_print_tree(Getattr(top, "module"));
     }
     if (dump_xml) {
       Swig_print_xml(top, xmlout);
     }
     Delete(top);
   }
-  if (tm_debug) Swig_typemap_debug();
-  if (memory_debug) DohMemoryDebug();
+  if (tm_debug)
+    Swig_typemap_debug();
+  if (memory_debug)
+    DohMemoryDebug();
 
   // Deletes
   Delete(libfiles);
@@ -1118,6 +1107,5 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
 void SWIG_exit(int exit_code) {
   while (freeze);
-  exit (exit_code);
+  exit(exit_code);
 }
-

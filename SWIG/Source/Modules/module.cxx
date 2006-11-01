@@ -12,19 +12,16 @@ char cvsroot_module_cxx[] = "$Header$";
 #include "swigmod.h"
 
 struct Module {
-  ModuleFactory   fac;
-  char            *name;
-  Module          *next;
-  Module(const char *n, ModuleFactory f) {
+  ModuleFactory fac;
+  char *name;
+  Module *next;
+   Module(const char *n, ModuleFactory f) {
     fac = f;
-    name = new char[strlen(n)+1];
-    strcpy(name, n);
-    next = 0;
-  }
-
-  ~Module()
-  {
-    delete[] name;
+    name = new char[strlen(n) + 1];
+     strcpy(name, n);
+     next = 0;
+  } ~Module() {
+    delete[]name;
   }
 };
 
@@ -37,7 +34,7 @@ static Module *modules = 0;
  * ----------------------------------------------------------------------------- */
 
 void Swig_register_module(const char *n, ModuleFactory f) {
-  Module *m = new Module(n,f);
+  Module *m = new Module(n, f);
   m->next = modules;
   modules = m;
 }
@@ -51,7 +48,7 @@ void Swig_register_module(const char *n, ModuleFactory f) {
 ModuleFactory Swig_find_module(const char *name) {
   Module *m = modules;
   while (m) {
-    if (strcmp(m->name,name) == 0) {
+    if (strcmp(m->name, name) == 0) {
       return m->fac;
     }
     m = m->next;

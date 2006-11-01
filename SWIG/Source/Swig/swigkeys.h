@@ -140,4 +140,4 @@ extern String *k_previoussibling;
 extern String *k_nextsibling;
 extern String *k_firstchild;
 extern String *k_lastchild;
-#endif /* SWIG_SWIGKEYS_H_ */
+#endif				/* SWIG_SWIGKEYS_H_ */

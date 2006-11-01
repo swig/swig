@@ -320,10 +320,9 @@ public:
     return status;
   }
 
-
-  // Grab the name of the current class being processed so that we can 
-  // deal with members of that class.
-  int classHandler(Node *n){ 
+  /* Grab the name of the current class being processed so that we can 
+     deal with members of that class. */
+  int classHandler(Node *n){
     if(!ClassMemberTable) 
       ClassMemberTable = NewHash();
     
@@ -333,6 +332,7 @@ public:
     class_name = NULL;
     return status;
   };
+
   // Not used:
   String *runtimeCode();
   
@@ -362,6 +362,7 @@ protected:
       namespaceFunctions = NewList();
     Append(namespaceFunctions, name);
   }
+
   void addNamespaceMethod(String *name) {
     if(!namespaceMethods)
       namespaceMethods = NewList();
@@ -474,8 +475,7 @@ static int getFunctionPointerNumArgs(Node *n, SwigType *tt) {
 }
 
 
-void 
-R::addSMethodInfo(String *name, String *argType, int nargs) {
+void R::addSMethodInfo(String *name, String *argType, int nargs) {
   (void) argType;
   
   if(!SMethodInfo)
@@ -2953,8 +2953,7 @@ void R::main(int argc, char *argv[]) {
   Could make this work for String or File and then just store the resulting string
   rather than the collection of arguments and argc.
 */
-int 
-R::outputCommandLineArguments(File *out)
+int R::outputCommandLineArguments(File *out)
 {
   if(argc < 1 || !argv || !argv[0])
     return(-1);
@@ -2973,8 +2972,7 @@ R::outputCommandLineArguments(File *out)
 /* How SWIG instantiates an object from this module. 
    See swigmain.cxx */
 extern "C" 
-Language *swig_r(void)
-{
+Language *swig_r(void) {
   return new R();
 }
 

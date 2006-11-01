@@ -261,6 +261,6 @@ void Swig_keys_init() {
 
   k_previoussibling = NewString("previousSibling");
   k_nextsibling = NewString("nextSibling");
-  k_firstchild = NewString("firstChild");  
-  k_lastchild =	NewString("lastChild");
+  k_firstchild = NewString("firstChild");
+  k_lastchild = NewString("lastChild");
 }

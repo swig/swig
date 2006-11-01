@@ -38,8 +38,8 @@ char cvsroot_error_c[] = "$Header$";
 #  define  DEFAULT_ERROR_MSG_FORMAT EMF_STANDARD
 #endif
 static ErrorMessageFormat msg_format = DEFAULT_ERROR_MSG_FORMAT;
-static int silence = 0;            /* Silent operation */
-static String *filter = 0;         /* Warning filter */
+static int silence = 0;		/* Silent operation */
+static String *filter = 0;	/* Warning filter */
 static int warnall = 0;
 static int nwarning = 0;
 static int nerrors = 0;
@@ -58,22 +58,23 @@ static String *format_filename(const String_or_char *filename);
  * Issue a warning message
  * ----------------------------------------------------------------------------- */
 
-void 
-Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
   String *out;
-  char   *msg;
-  int     wrn = 1;
+  char *msg;
+  int wrn = 1;
   va_list ap;
-  if (silence) return;
-  if (!init_fmt) Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
+  if (silence)
+    return;
+  if (!init_fmt)
+    Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
 
-  va_start(ap,fmt);
+  va_start(ap, fmt);
 
   out = NewStringEmpty();
-  vPrintf(out,fmt,ap);
+  vPrintf(out, fmt, ap);
 
   msg = Char(out);
-  if (isdigit((unsigned char)*msg)) {
+  if (isdigit((unsigned char) *msg)) {
     unsigned long result = strtoul(msg, &msg, 10);
     if (msg != Char(out)) {
       msg++;
@@ -83,13 +84,15 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
 
   /* Check in the warning filter */
   if (filter) {
-    char    temp[32];
+    char temp[32];
     char *c;
     char *f = Char(filter);
-    sprintf(temp,"%d",wnum);
-    while(*f != '\0' && (c = strstr(f,temp))) {
-      if (*(c-1) == '-') wrn = 0;     /* Warning disabled */
-      if (*(c-1) == '+') wrn = 1;     /* Warning enabled */
+    sprintf(temp, "%d", wnum);
+    while (*f != '\0' && (c = strstr(f, temp))) {
+      if (*(c - 1) == '-')
+	wrn = 0;		/* Warning disabled */
+      if (*(c - 1) == '+')
+	wrn = 1;		/* Warning enabled */
       f += strlen(temp);
     }
   }
@@ -100,7 +103,7 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
     } else {
       Printf(stderr, wrn_nnum_fmt, formatted_filename, line);
     }
-    Printf(stderr,"%s",msg);
+    Printf(stderr, "%s", msg);
     nwarning++;
     Delete(formatted_filename);
   }
@@ -114,22 +117,23 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
  * Issue an error message
  * ----------------------------------------------------------------------------- */
 
-void 
-Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
   va_list ap;
   String *formatted_filename = NULL;
 
-  if (silence) return;
-  if (!init_fmt) Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
-  
-  va_start(ap,fmt);
+  if (silence)
+    return;
+  if (!init_fmt)
+    Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
+
+  va_start(ap, fmt);
   formatted_filename = format_filename(filename);
   if (line > 0) {
     Printf(stderr, err_line_fmt, formatted_filename, line);
   } else {
     Printf(stderr, err_eof_fmt, formatted_filename);
   }
-  vPrintf(stderr,fmt,ap);
+  vPrintf(stderr, fmt, ap);
   va_end(ap);
   nerrors++;
   Delete(formatted_filename);
@@ -141,8 +145,7 @@ Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
  * Returns number of errors received.
  * ----------------------------------------------------------------------------- */
 
-int
-Swig_error_count(void) {
+int Swig_error_count(void) {
   return nerrors;
 }
 
@@ -152,8 +155,7 @@ Swig_error_count(void) {
  * Set silent flag
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_error_silent(int s) {
+void Swig_error_silent(int s) {
   silence = s;
 }
 
@@ -164,14 +166,14 @@ Swig_error_silent(int s) {
  * Takes a comma separate list of warning numbers and puts in the filter.
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_warnfilter(const String_or_char *wlist, int add) {
+void Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
   char *cw;
   String *s;
 
-  if (!filter) filter = NewStringEmpty();
-  
+  if (!filter)
+    filter = NewStringEmpty();
+
   s = NewString("");
   Clear(s);
   cw = Char(wlist);
@@ -182,31 +184,30 @@ Swig_warnfilter(const String_or_char *wlist, int add) {
     ++cw;
   }
   c = Char(s);
-  c = strtok(c,", ");
+  c = strtok(c, ", ");
   while (c) {
     if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
       if (add) {
-	Insert(filter,0,c);
+	Insert(filter, 0, c);
 	if (isdigit((int) *c)) {
-	  Insert(filter,0,"-");
+	  Insert(filter, 0, "-");
 	}
       } else {
 	char temp[32];
 	if (isdigit((int) *c)) {
-	  sprintf(temp,"-%s",c);
+	  sprintf(temp, "-%s", c);
 	} else {
-	  strcpy(temp,c);
+	  strcpy(temp, c);
 	}
-	Replace(filter,temp,"", DOH_REPLACE_FIRST);
+	Replace(filter, temp, "", DOH_REPLACE_FIRST);
       }
     }
-    c = strtok(NULL,", ");
+    c = strtok(NULL, ", ");
   }
   Delete(s);
 }
 
-void
-Swig_warnall(void) {
+void Swig_warnall(void) {
   warnall = 1;
 }
 
@@ -217,8 +218,7 @@ Swig_warnall(void) {
  * Return the number of warnings
  * ----------------------------------------------------------------------------- */
 
-int
-Swig_warn_count(void) {
+int Swig_warn_count(void) {
   return nwarning;
 }
 
@@ -228,31 +228,30 @@ Swig_warn_count(void) {
  * Set the type of error/warning message display
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_error_msg_format(ErrorMessageFormat format) {
-  const char* error    = "Error";
-  const char* warning  = "Warning";
+void Swig_error_msg_format(ErrorMessageFormat format) {
+  const char *error = "Error";
+  const char *warning = "Warning";
 
-  const char* fmt_eof  = 0;
-  const char* fmt_line = 0;
+  const char *fmt_eof = 0;
+  const char *fmt_line = 0;
 
   /* here 'format' could be directly a string instead of an enum, but
      by now a switch is used to translated into one. */
   switch (format) {
   case EMF_MICROSOFT:
     fmt_line = "%s(%d)";
-    fmt_eof  = "%s(999999)"; /* Is there a special character for EOF? Just use a large number. */
+    fmt_eof = "%s(999999)";	/* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:
     fmt_line = "%s:%d";
-    fmt_eof  = "%s:EOF";
+    fmt_eof = "%s:EOF";
   }
 
   sprintf(wrn_wnum_fmt, "%s: %s(%%d): ", fmt_line, warning);
-  sprintf(wrn_nnum_fmt, "%s: %s: ",      fmt_line, warning);
-  sprintf(err_line_fmt, "%s: %s: ",      fmt_line, error);
-  sprintf(err_eof_fmt,  "%s: %s: ",      fmt_eof,  error);
+  sprintf(wrn_nnum_fmt, "%s: %s: ", fmt_line, warning);
+  sprintf(err_line_fmt, "%s: %s: ", fmt_line, error);
+  sprintf(err_eof_fmt, "%s: %s: ", fmt_eof, error);
 
   msg_format = format;
   init_fmt = 1;
@@ -263,12 +262,10 @@ Swig_error_msg_format(ErrorMessageFormat format) {
  *
  * Remove double backslashes in Windows filename paths for display
  * ----------------------------------------------------------------------------- */
-static String *
-format_filename(const String_or_char *filename) {
+static String *format_filename(const String_or_char *filename) {
   String *formatted_filename = NewString(filename);
 #if defined(_WIN32)
-    Replaceall(formatted_filename,"\\\\","\\");
+  Replaceall(formatted_filename, "\\\\", "\\");
 #endif
-    return formatted_filename;
+  return formatted_filename;
 }
-

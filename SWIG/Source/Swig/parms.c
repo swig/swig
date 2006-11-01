@@ -20,13 +20,13 @@ char cvsroot_parms_c[] = "$Header$";
 
 Parm *NewParm(SwigType *type, const String_or_char *name) {
   Parm *p = NewHash();
-  Setattr(p,k_nodetype,k_parm);
+  Setattr(p, k_nodetype, k_parm);
   if (type) {
     SwigType *ntype = Copy(type);
-    Setattr(p,k_type,ntype);
+    Setattr(p, k_type, ntype);
     Delete(ntype);
   }
-  Setattr(p,k_name,name);
+  Setattr(p, k_name, name);
   return p;
 }
 
@@ -42,7 +42,7 @@ Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
   Parm *p = NewParm(type, name);
   Setfile(p, Getfile(n));
   Setline(p, Getline(n));
-  
+
   return p;
 }
 
@@ -51,45 +51,45 @@ Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
  * ------------------------------------------------------------------------ */
 
 Parm *CopyParm(Parm *p) {
-  Parm     *np = NewHash();
-  SwigType *t = HashGetAttr(p,k_type);
-  String   *name = HashGetAttr(p,k_name);
-  String   *lname = HashGetAttr(p,k_lname);
-  String   *value = HashGetAttr(p,k_value);
-  String   *ignore = HashGetAttr(p,k_ignore);
-  String   *alttype = HashGetAttr(p,k_alttype);
-  String   *byname = HashGetAttr(p, k_argbyname);
-  String   *compactdefargs = HashGetAttr(p, k_compactdefargs);
-  String   *self = HashGetAttr(p, k_self);
+  Parm *np = NewHash();
+  SwigType *t = HashGetAttr(p, k_type);
+  String *name = HashGetAttr(p, k_name);
+  String *lname = HashGetAttr(p, k_lname);
+  String *value = HashGetAttr(p, k_value);
+  String *ignore = HashGetAttr(p, k_ignore);
+  String *alttype = HashGetAttr(p, k_alttype);
+  String *byname = HashGetAttr(p, k_argbyname);
+  String *compactdefargs = HashGetAttr(p, k_compactdefargs);
+  String *self = HashGetAttr(p, k_self);
 
   if (t) {
     SwigType *nt = Copy(t);
-    Setattr(np,k_type,nt);
+    Setattr(np, k_type, nt);
     Delete(nt);
   }
   if (name) {
     String *str = Copy(name);
-    Setattr(np,k_name,str);
+    Setattr(np, k_name, str);
     Delete(str);
   }
   if (lname) {
     String *str = Copy(lname);
-    Setattr(np,k_lname, str);
+    Setattr(np, k_lname, str);
     Delete(str);
   }
   if (value) {
     String *str = Copy(value);
-    Setattr(np,k_value, str);
+    Setattr(np, k_value, str);
     Delete(str);
   }
   if (ignore) {
     String *str = Copy(ignore);
-    Setattr(np,k_ignore, str);
+    Setattr(np, k_ignore, str);
     Delete(str);
   }
   if (alttype) {
     String *str = Copy(alttype);
-    Setattr(np,k_alttype, str);
+    Setattr(np, k_alttype, str);
     Delete(str);
   }
   if (byname) {
@@ -98,7 +98,7 @@ Parm *CopyParm(Parm *p) {
     Delete(str);
   }
   if (compactdefargs) {
-    String *str = Copy(compactdefargs);    
+    String *str = Copy(compactdefargs);
     Setattr(np, k_compactdefargs, str);
     Delete(str);
   }
@@ -107,9 +107,9 @@ Parm *CopyParm(Parm *p) {
     Setattr(np, k_self, str);
     Delete(str);
   }
-      
-  Setfile(np,Getfile(p));
-  Setline(np,Getline(p));
+
+  Setfile(np, Getfile(p));
+  Setline(np, Getline(p));
 
   return np;
 }
@@ -118,19 +118,19 @@ Parm *CopyParm(Parm *p) {
  * CopyParmList()
  * ------------------------------------------------------------------ */
 
-ParmList *
-CopyParmList(ParmList *p) {
+ParmList *CopyParmList(ParmList *p) {
   Parm *np;
   Parm *pp = 0;
   Parm *fp = 0;
 
-  if (!p) return 0;
+  if (!p)
+    return 0;
 
   while (p) {
     np = CopyParm(p);
     if (pp) {
-      set_nextSibling(pp,np);
-      Delete(np);      
+      set_nextSibling(pp, np);
+      Delete(np);
     } else {
       fp = np;
     }
@@ -145,9 +145,10 @@ CopyParmList(ParmList *p) {
  * ------------------------------------------------------------------ */
 
 int ParmList_numarg(ParmList *p) {
-  int  n = 0;
+  int n = 0;
   while (p) {
-    if (!HashGetAttr(p,k_ignore)) n++;
+    if (!HashGetAttr(p, k_ignore))
+      n++;
     p = nextSibling(p);
   }
   return n;
@@ -160,11 +161,14 @@ int ParmList_numarg(ParmList *p) {
 int ParmList_numrequired(ParmList *p) {
   int i = 0;
   while (p) {
-    SwigType *t = HashGetAttr(p,k_type);
-    String   *value = HashGetAttr(p,k_value);
-    if (value) return i;
-    if (!(SwigType_type(t) == T_VOID)) i++;
-    else break;
+    SwigType *t = HashGetAttr(p, k_type);
+    String *value = HashGetAttr(p, k_value);
+    if (value)
+      return i;
+    if (!(SwigType_type(t) == T_VOID))
+      i++;
+    else
+      break;
     p = nextSibling(p);
   }
   return i;
@@ -191,12 +195,12 @@ int ParmList_len(ParmList *p) {
 
 String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
-  while(p) {
-    String *pstr = SwigType_str(HashGetAttr(p,k_type), HashGetAttr(p,k_name));
-    StringAppend(out,pstr);
+  while (p) {
+    String *pstr = SwigType_str(HashGetAttr(p, k_type), HashGetAttr(p, k_name));
+    StringAppend(out, pstr);
     p = nextSibling(p);
     if (p) {
-      StringAppend(out,",");
+      StringAppend(out, ",");
     }
     Delete(pstr);
   }
@@ -211,18 +215,18 @@ String *ParmList_str(ParmList *p) {
 
 String *ParmList_str_defaultargs(ParmList *p) {
   String *out = NewStringEmpty();
-  while(p) {
-    String *value = HashGetAttr(p,k_value);
-    String *pstr = SwigType_str(HashGetAttr(p,k_type), HashGetAttr(p,k_name));
-    StringAppend(out,pstr);
+  while (p) {
+    String *value = HashGetAttr(p, k_value);
+    String *pstr = SwigType_str(HashGetAttr(p, k_type), HashGetAttr(p, k_name));
+    StringAppend(out, pstr);
     if (value) {
-      Printf(out,"=%s", value);
+      Printf(out, "=%s", value);
     }
     p = nextSibling(p);
     if (p) {
-      StringAppend(out,",");
+      StringAppend(out, ",");
     }
-    Delete(pstr);    
+    Delete(pstr);
   }
   return out;
 }
@@ -235,15 +239,15 @@ String *ParmList_str_defaultargs(ParmList *p) {
 
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
-  while(p) {
-    if (HashGetAttr(p,k_hidden)) {
+  while (p) {
+    if (HashGetAttr(p, k_hidden)) {
       p = nextSibling(p);
     } else {
-      String *pstr = SwigType_str(HashGetAttr(p,k_type), 0);
-      StringAppend(out,pstr);
+      String *pstr = SwigType_str(HashGetAttr(p, k_type), 0);
+      StringAppend(out, pstr);
       p = nextSibling(p);
       if (p) {
-	StringAppend(out,",");
+	StringAppend(out, ",");
       }
       Delete(pstr);
     }
@@ -260,16 +264,16 @@ String *ParmList_protostr(ParmList *p) {
 
 int ParmList_is_compactdefargs(ParmList *p) {
   int compactdefargs = 0;
-  
+
   if (p) {
-    compactdefargs = HashGetAttr(p,k_compactdefargs) ? 1 : 0;
+    compactdefargs = HashGetAttr(p, k_compactdefargs) ? 1 : 0;
 
     /* The "compactdefargs" attribute should only be set on the first parameter in the list.
      * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
      * so we check the 2nd parameter too. */
     if (!compactdefargs) {
       Parm *nextparm = nextSibling(p);
-      compactdefargs = (nextparm && HashGetAttr(nextparm,k_compactdefargs)) ? 1 : 0;
+      compactdefargs = (nextparm && HashGetAttr(nextparm, k_compactdefargs)) ? 1 : 0;
     }
   }
 
@@ -285,15 +289,15 @@ int ParmList_is_compactdefargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 int ParmList_has_defaultargs(ParmList *p) {
-    int default_args = 0;
-    while (p) {
-      if (HashGetAttr(p, k_value)) {
-        default_args = 1;
-        break;
-      }
-      p = nextSibling(p);
+  int default_args = 0;
+  while (p) {
+    if (HashGetAttr(p, k_value)) {
+      default_args = 1;
+      break;
     }
-    return default_args;
+    p = nextSibling(p);
+  }
+  return default_args;
 }
 
 /* ---------------------------------------------------------------------
@@ -304,14 +308,14 @@ int ParmList_has_defaultargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 ParmList *ParmList_copy_all_except_last_parm(ParmList *p) {
-  ParmList* newparms = 0;
+  ParmList *newparms = 0;
   Parm *newparm = 0;
   Parm *pp = 0;
   Parm *fp = 0;
   while (nextSibling(p)) {
     newparm = CopyParm(p);
     if (pp) {
-      set_nextSibling(pp,newparm);
+      set_nextSibling(pp, newparm);
       Delete(newparm);
     } else {
       fp = newparm;

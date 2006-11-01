@@ -21,8 +21,8 @@ char cvsroot_getopt_c[] = "$Header$";
 #include "swig.h"
 
 static char **args;
-static int    numargs;
-static int   *marked;
+static int numargs;
+static int *marked;
 
 /* -----------------------------------------------------------------------------
  * Swig_init_args()
@@ -30,8 +30,7 @@ static int   *marked;
  * Initialize the argument list handler.
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_init_args(int argc, char **argv) {
+void Swig_init_args(int argc, char **argv) {
   int i;
   assert(argc > 0);
   assert(argv);
@@ -51,11 +50,10 @@ Swig_init_args(int argc, char **argv) {
  * Marks an argument as being parsed.
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_mark_arg(int n) {
-   assert(marked);
-   assert((n >= 0) && (n < numargs)); 
-   marked[n] = 1;
+void Swig_mark_arg(int n) {
+  assert(marked);
+  assert((n >= 0) && (n < numargs));
+  marked[n] = 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -64,9 +62,8 @@ Swig_mark_arg(int n) {
  * Checks to see if argument has been picked up.
  * ----------------------------------------------------------------------------- */
 
-int
-Swig_check_marked(int n) {
-  assert((n>=0) && (n < numargs));
+int Swig_check_marked(int n) {
+  assert((n >= 0) && (n < numargs));
   return marked[n];
 }
 
@@ -75,27 +72,26 @@ Swig_check_marked(int n) {
  * 
  * Checkers for unprocessed command line options and errors.
  * ----------------------------------------------------------------------------- */
- 
-void
-Swig_check_options(int check_input) {
-    int error = 0;
-    int i;
-    int max = check_input ? numargs - 1 : numargs;
-    assert(marked);
-    for (i = 1; i < max; i++) {
-      if (!marked[i]) {
-	Printf(stderr,"swig error : Unrecognized option %s\n", args[i]);
-	error=1;
-      }
+
+void Swig_check_options(int check_input) {
+  int error = 0;
+  int i;
+  int max = check_input ? numargs - 1 : numargs;
+  assert(marked);
+  for (i = 1; i < max; i++) {
+    if (!marked[i]) {
+      Printf(stderr, "swig error : Unrecognized option %s\n", args[i]);
+      error = 1;
     }
-    if (error) {
-      Printf(stderr,"Use 'swig -help' for available options.\n");
-      exit(1);
-    }
-    if (check_input && marked[numargs-1]) {
-      Printf(stderr,"Must specify an input file. Use -help for available options.\n");
-      exit(1);
-    }
+  }
+  if (error) {
+    Printf(stderr, "Use 'swig -help' for available options.\n");
+    exit(1);
+  }
+  if (check_input && marked[numargs - 1]) {
+    Printf(stderr, "Must specify an input file. Use -help for available options.\n");
+    exit(1);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -104,13 +100,8 @@ Swig_check_options(int check_input) {
  * Generates a generic error message and exits.
  * ----------------------------------------------------------------------------- */
 
-void 
-Swig_arg_error() {
-  Printf(stderr,"SWIG : Unable to parse command line options.\n");
-  Printf(stderr,"Use 'swig -help' for available options.\n");
+void Swig_arg_error() {
+  Printf(stderr, "SWIG : Unable to parse command line options.\n");
+  Printf(stderr, "Use 'swig -help' for available options.\n");
   exit(1);
 }
-	
-		
-
-

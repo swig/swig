@@ -18,40 +18,39 @@ char cvsroot_memory_c[] = "$Header$";
 #define DOH_POOL_SIZE         16384
 #endif
 
-static int   PoolSize = DOH_POOL_SIZE;
+static int PoolSize = DOH_POOL_SIZE;
 
-DOH    *DohNone = 0;    /* The DOH None object */
+DOH *DohNone = 0;		/* The DOH None object */
 
 typedef struct pool {
-  DohBase       *ptr;            /* Start of pool */
-  int            len;            /* Length of pool */
-  int            blen;           /* Byte length of pool */
-  int            current;        /* Current position for next allocation */
-  char*          pbeg;           /* Beg of pool */
-  char*          pend;           /* End of pool */
-  struct  pool  *next;           /* Next pool */
+  DohBase *ptr;			/* Start of pool */
+  int len;			/* Length of pool */
+  int blen;			/* Byte length of pool */
+  int current;			/* Current position for next allocation */
+  char *pbeg;			/* Beg of pool */
+  char *pend;			/* End of pool */
+  struct pool *next;		/* Next pool */
 } Pool;
 
-static DohBase  *FreeList = 0;          /* List of free objects */
-static Pool    *Pools = 0;
-static int      pools_initialized = 0;
+static DohBase *FreeList = 0;	/* List of free objects */
+static Pool *Pools = 0;
+static int pools_initialized = 0;
 
 /* ----------------------------------------------------------------------
  * CreatePool() - Create a new memory pool 
  * ---------------------------------------------------------------------- */
 
-static void
-CreatePool() {
+static void CreatePool() {
   Pool *p = 0;
   p = (Pool *) DohMalloc(sizeof(Pool));
   assert(p);
-  p->ptr = (DohBase *) DohMalloc(sizeof(DohBase)*PoolSize);
+  p->ptr = (DohBase *) DohMalloc(sizeof(DohBase) * PoolSize);
   assert(p->ptr);
-  memset(p->ptr,0,sizeof(DohBase)*PoolSize);
+  memset(p->ptr, 0, sizeof(DohBase) * PoolSize);
   p->len = PoolSize;
-  p->blen = PoolSize*sizeof(DohBase);
+  p->blen = PoolSize * sizeof(DohBase);
   p->current = 0;
-  p->pbeg = ((char *)p->ptr);
+  p->pbeg = ((char *) p->ptr);
   p->pend = p->pbeg + p->blen;
   p->next = Pools;
   Pools = p;
@@ -61,12 +60,12 @@ CreatePool() {
  * InitPools() - Initialize the memory allocator
  * ---------------------------------------------------------------------- */
 
-static void 
-InitPools() {
-  if (pools_initialized) return;
-  CreatePool();                       /* Create initial pool */
+static void InitPools() {
+  if (pools_initialized)
+    return;
+  CreatePool();			/* Create initial pool */
   pools_initialized = 1;
-  DohNone = NewVoid(0,0);             /* Create the None object */
+  DohNone = NewVoid(0, 0);	/* Create the None object */
   DohIntern(DohNone);
 }
 
@@ -76,15 +75,15 @@ InitPools() {
  * Returns 1 if an arbitrary pointer is a DOH object.
  * ---------------------------------------------------------------------- */
 
-int 
-DohCheck(const DOH *ptr) {
+int DohCheck(const DOH *ptr) {
   register Pool *p = Pools;
   register char *cptr = (char *) ptr;
   while (p) {
-    if ((cptr >= p->pbeg) && (cptr < p->pend)) return 1;
+    if ((cptr >= p->pbeg) && (cptr < p->pend))
+      return 1;
     /*
-    pptr = (char *) p->ptr;
-    if ((cptr >= pptr) && (cptr < (pptr+(p->current*sizeof(DohBase))))) return 1; */
+       pptr = (char *) p->ptr;
+       if ((cptr >= pptr) && (cptr < (pptr+(p->current*sizeof(DohBase))))) return 1; */
     p = p->next;
   }
   return 0;
@@ -94,8 +93,7 @@ DohCheck(const DOH *ptr) {
  * DohIntern()
  * ----------------------------------------------------------------------------- */
 
-void
-DohIntern(DOH *obj) {
+void DohIntern(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   b->flag_intern = 1;
 }
@@ -106,10 +104,10 @@ DohIntern(DOH *obj) {
  * Allocate memory for a new object.
  * ---------------------------------------------------------------------- */
 
-DOH *
-DohObjMalloc(DohObjInfo *type, void *data) {
+DOH *DohObjMalloc(DohObjInfo *type, void *data) {
   DohBase *obj;
-  if (!pools_initialized) InitPools();
+  if (!pools_initialized)
+    InitPools();
   if (FreeList) {
     obj = FreeList;
     FreeList = (DohBase *) obj->data;
@@ -135,12 +133,12 @@ DohObjMalloc(DohObjInfo *type, void *data) {
  * DohObjFree() - Free a DOH object
  * ---------------------------------------------------------------------- */
 
-void 
-DohObjFree(DOH *ptr) {
-  DohBase  *b, *meta;
+void DohObjFree(DOH *ptr) {
+  DohBase *b, *meta;
   b = (DohBase *) ptr;
-  if (b->flag_intern) return;
-  meta = (DohBase *)b->meta;
+  if (b->flag_intern)
+    return;
+  meta = (DohBase *) b->meta;
   b->data = (void *) FreeList;
   b->meta = 0;
   b->type = 0;
@@ -156,42 +154,45 @@ DohObjFree(DOH *ptr) {
  * Display memory usage statistics
  * ---------------------------------------------------------------------- */
 
-void
-DohMemoryDebug(void) {
+void DohMemoryDebug(void) {
   extern DohObjInfo DohStringType;
   extern DohObjInfo DohListType;
   extern DohObjInfo DohHashType;
 
   Pool *p;
-  int   totsize = 0;
-  int   totused = 0;
-  int   totfree = 0;
+  int totsize = 0;
+  int totused = 0;
+  int totfree = 0;
 
-  int   numstring = 0;
-  int   numlist   = 0;
-  int   numhash   = 0;
+  int numstring = 0;
+  int numlist = 0;
+  int numhash = 0;
 
   printf("Memory statistics:\n\n");
   printf("Pools:\n");
-  
+
   p = Pools;
-  while(p) {
+  while (p) {
     /* Calculate number of used, free items */
     int i;
     int nused = 0, nfree = 0;
     for (i = 0; i < p->len; i++) {
-      if (p->ptr[i].refcount <= 0) nfree++;
+      if (p->ptr[i].refcount <= 0)
+	nfree++;
       else {
 	nused++;
-	if (p->ptr[i].type == &DohStringType) numstring++;
-	else if (p->ptr[i].type == &DohListType) numlist++;
-	else if (p->ptr[i].type == &DohHashType) numhash++;
+	if (p->ptr[i].type == &DohStringType)
+	  numstring++;
+	else if (p->ptr[i].type == &DohListType)
+	  numlist++;
+	else if (p->ptr[i].type == &DohHashType)
+	  numhash++;
       }
     }
-    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *)p, p->len, nused, nfree);
+    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *) p, p->len, nused, nfree);
     totsize += p->len;
-    totused+= nused;
-    totfree+= nfree;
+    totused += nused;
+    totfree += nfree;
     p = p->next;
   }
   printf("\n    Total:          size = %10d, used = %10d, free = %10d\n", totsize, totused, totfree);
@@ -203,12 +204,12 @@ DohMemoryDebug(void) {
 
 #if 0
   p = Pools;
-  while(p) {
+  while (p) {
     int i;
     for (i = 0; i < p->len; i++) {
       if (p->ptr[i].refcount > 0) {
 	if (p->ptr[i].type == &DohStringType) {
-	  Printf(stdout,"%s\n", p->ptr+i);
+	  Printf(stdout, "%s\n", p->ptr + i);
 	}
       }
     }

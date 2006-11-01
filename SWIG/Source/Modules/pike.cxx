@@ -24,19 +24,19 @@
  *   address, etc. for extension objects. Should we do something here?
  *
  */
- 
+
 char cvsroot_pike_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#include <ctype.h> // for isalnum()
+#include <ctype.h>		// for isalnum()
 
-static const char *usage = (char *)"\
+static const char *usage = (char *) "\
 Pike Options (available with -pike)\n\
      [None]\n\
 \n";
 
-class PIKE : public Language {
+class PIKE:public Language {
 private:
 
   File *f_runtime;
@@ -47,7 +47,7 @@ private:
 
   String *PrefixPlusUnderscore;
   int current;
-  
+
   // Wrap modes
   enum {
     NO_CPP,
@@ -68,7 +68,7 @@ public:
    * Initialize member data
    * --------------------------------------------------------------------- */
 
-  PIKE() {
+   PIKE() {
     f_runtime = 0;
     f_header = 0;
     f_wrappers = 0;
@@ -83,8 +83,8 @@ public:
    *
    * Parse command line options and initializes variables.
    * --------------------------------------------------------------------- */
-
-  virtual void main(int argc, char *argv[]) {
+  
+   virtual void main(int argc, char *argv[]) {
 
     /* Set location of SWIG library */
     SWIG_library_directory("pike");
@@ -92,8 +92,8 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i],"-help") == 0) {
-	  fputs(usage,stdout);
+	if (strcmp(argv[i], "-help") == 0) {
+	  fputs(usage, stdout);
 	}
       }
     }
@@ -101,12 +101,12 @@ public:
     /* Add a symbol to the parser for conditional compilation */
     Preprocessor_define("SWIGPIKE 1", 0);
 
-    /* Set language-specific configuration file */    
+    /* Set language-specific configuration file */
     SWIG_config_file("pike.swg");
 
     /* Set typemap language */
     SWIG_typemap_lang("pike");
-    
+
     /* Enable overloaded methods support */
     allow_overloading();
   }
@@ -118,10 +118,10 @@ public:
   virtual int top(Node *n) {
     /* Get the module name */
     String *module = Getattr(n, "name");
-    
+
     /* Get the output file name */
     String *outfile = Getattr(n, "outfile");
-    
+
     /* Open the output file */
     f_runtime = NewFile(outfile, "w");
     if (!f_runtime) {
@@ -140,26 +140,26 @@ public:
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("classInit", f_classInit);
 
-    /* Standard stuff for the SWIG runtime section */    
+    /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
 
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
-    
+
     /* Change naming scheme for constructors and destructors */
-    Swig_name_register("construct","%c_create");
-    Swig_name_register("destroy","%c_destroy");
-    
+    Swig_name_register("construct", "%c_create");
+    Swig_name_register("destroy", "%c_destroy");
+
     /* Current wrap type */
     current = NO_CPP;
 
     /* Emit code for children */
     Language::top(n);
-    
+
     /* Close the initialization function */
     Printf(f_init, "}\n");
     SwigType_emit_type_table(f_runtime, f_wrappers);
-    
+
     /* Close all of the files */
     Dump(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
@@ -176,7 +176,7 @@ public:
     /* Done */
     return SWIG_OK;
   }
-  
+
   /* ------------------------------------------------------------
    * validIdentifier()
    * ------------------------------------------------------------ */
@@ -187,10 +187,12 @@ public:
     const char *c1 = c0 + 1;
     while (*c) {
       if (*c == '`' && c == c0) {
-	c++; continue;
+	c++;
+	continue;
       }
       if ((*c == '+' || *c == '-' || *c == '*' || *c == '/') && c == c1) {
-	c++; continue;
+	c++;
+	continue;
       }
       if (!(isalnum(*c) || (*c == '_')))
 	return 0;
@@ -198,19 +200,19 @@ public:
     }
     return 1;
   }
-  
+
   /* ------------------------------------------------------------
    * importDirective()
    * ------------------------------------------------------------ */
 
   virtual int importDirective(Node *n) {
-    String *modname = Getattr(n,"module");
+    String *modname = Getattr(n, "module");
     if (modname) {
-      Printf(f_init,"pike_require(\"%s\");\n", modname);
+      Printf(f_init, "pike_require(\"%s\");\n", modname);
     }
     return Language::importDirective(n);
   }
-  
+
   /* ------------------------------------------------------------
    * strip()
    *
@@ -235,26 +237,26 @@ public:
   void add_method(const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
     String *rename = NULL;
     switch (current) {
-      case NO_CPP:
-        rename = NewString(name);
-        Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
-        break;
-      case STATIC_FUNC:
-      case STATIC_VAR:
-        rename = NewString(name);
-        Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
-        break;
-      case CONSTRUCTOR:
-      case DESTRUCTOR:
-      case MEMBER_FUNC:
-      case MEMBER_VAR:
-        rename = strip(name);
-        Printf(f_classInit, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
-        break;
-      case CLASS_CONST:
-        assert(false); // shouldn't have gotten here for CLASS_CONST nodes
-      default:
-        assert(false); // what is this?
+    case NO_CPP:
+      rename = NewString(name);
+      Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+      break;
+    case STATIC_FUNC:
+    case STATIC_VAR:
+      rename = NewString(name);
+      Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+      break;
+    case CONSTRUCTOR:
+    case DESTRUCTOR:
+    case MEMBER_FUNC:
+    case MEMBER_VAR:
+      rename = strip(name);
+      Printf(f_classInit, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+      break;
+    case CLASS_CONST:
+      assert(false);		// shouldn't have gotten here for CLASS_CONST nodes
+    default:
+      assert(false);		// what is this?
     }
     Delete(rename);
   }
@@ -267,83 +269,83 @@ public:
 
   virtual int functionWrapper(Node *n) {
 
-    String  *name  = Getattr(n,"name");
-    String  *iname = Getattr(n,"sym:name");
-    SwigType *d    = Getattr(n,"type");
-    ParmList *l    = Getattr(n,"parms");
+    String *name = Getattr(n, "name");
+    String *iname = Getattr(n, "sym:name");
+    SwigType *d = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
 
     Parm *p;
-    String *tm;    
+    String *tm;
     int i;
 
     String *overname = 0;
-    if (Getattr(n,"sym:overloaded")) {
-      overname = Getattr(n,"sym:overname");
+    if (Getattr(n, "sym:overloaded")) {
+      overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname,n)) return SWIG_ERROR;
+      if (!addSymbol(iname, n))
+	return SWIG_ERROR;
     }
 
     Wrapper *f = NewWrapper();
-    
+
     /* Write code to extract function parameters. */
     emit_args(d, l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l,f);
-    Setattr(n,"wrap:parms",l);
+    emit_attach_parmmaps(l, f);
+    Setattr(n, "wrap:parms", l);
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
     int varargs = emit_isvarargs(l);
-    
+
     /* Which input argument to start with? */
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
 
-    /* Offset to skip over the attribute name */    
+    /* Offset to skip over the attribute name */
     // int offset = (current == MEMBER_VAR) ? 1 : 0;
     int offset = 0;
-    
+
     String *wname = Swig_name_wrapper(iname);
     if (overname) {
-      Append(wname,overname);
+      Append(wname, overname);
     }
-    
+
     Printv(f->def, "static void ", wname, "(INT32 args) {", NIL);
-    
+
     /* Generate code for argument marshalling */
     String *description = NewString("");
     char source[64];
     for (i = 0, p = l; i < num_arguments; i++) {
 
-      while (checkAttribute(p,"tmap:in:numinputs","0")) {
-	p = Getattr(p,"tmap:in:next");
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
       }
-      
-      SwigType *pt = Getattr(p,"type");
-      String   *ln = Getattr(p,"lname");
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = Getattr(p, "lname");
 
       if (i < start) {
-        String *lstr = SwigType_lstr(pt,0);
-        Printf(f->code, "%s = (%s) THIS;\n", ln, lstr);
+	String *lstr = SwigType_lstr(pt, 0);
+	Printf(f->code, "%s = (%s) THIS;\n", ln, lstr);
 	Delete(lstr);
-      } else {      
+      } else {
 	/* Look for an input typemap */
-	sprintf(source, "Pike_sp[%d-args]", i-start+offset);
-	if ((tm = Getattr(p,"tmap:in"))) {
-          Replaceall(tm, "$source", source);
+	sprintf(source, "Pike_sp[%d-args]", i - start + offset);
+	if ((tm = Getattr(p, "tmap:in"))) {
+	  Replaceall(tm, "$source", source);
 	  Replaceall(tm, "$target", ln);
 	  Replaceall(tm, "$input", source);
 	  Setattr(p, "emit:input", source);
 	  Printf(f->code, "%s\n", tm);
-          String *pikedesc = Getattr(p, "tmap:in:pikedesc");
+	  String *pikedesc = Getattr(p, "tmap:in:pikedesc");
 	  if (pikedesc) {
 	    Printv(description, pikedesc, " ", NIL);
 	  }
-	  p = Getattr(p,"tmap:in:next");
+	  p = Getattr(p, "tmap:in:next");
 	  continue;
 	} else {
-	  Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
-		       "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
+	  Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
 	  break;
 	}
       }
@@ -352,30 +354,30 @@ public:
 
     /* Check for trailing varargs */
     if (varargs) {
-      if (p && (tm = Getattr(p,"tmap:in"))) {
-	Replaceall(tm,"$input", "varargs");
-	Printv(f->code,tm,"\n",NIL);
+      if (p && (tm = Getattr(p, "tmap:in"))) {
+	Replaceall(tm, "$input", "varargs");
+	Printv(f->code, tm, "\n", NIL);
       }
     }
 
     /* Insert constraint checking code */
     for (p = l; p;) {
-      if ((tm = Getattr(p,"tmap:check"))) {
-	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NIL);
-	p = Getattr(p,"tmap:check:next");
+      if ((tm = Getattr(p, "tmap:check"))) {
+	Replaceall(tm, "$target", Getattr(p, "lname"));
+	Printv(f->code, tm, "\n", NIL);
+	p = Getattr(p, "tmap:check:next");
       } else {
 	p = nextSibling(p);
       }
     }
-  
+
     /* Insert cleanup code */
     String *cleanup = NewString("");
     for (p = l; p;) {
-      if ((tm = Getattr(p,"tmap:freearg"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NIL);
-	p = Getattr(p,"tmap:freearg:next");
+      if ((tm = Getattr(p, "tmap:freearg"))) {
+	Replaceall(tm, "$source", Getattr(p, "lname"));
+	Printv(cleanup, tm, "\n", NIL);
+	p = Getattr(p, "tmap:freearg:next");
       } else {
 	p = nextSibling(p);
       }
@@ -384,20 +386,20 @@ public:
     /* Insert argument output code */
     String *outarg = NewString("");
     for (p = l; p;) {
-      if ((tm = Getattr(p,"tmap:argout"))) {
-	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Replaceall(tm,"$target","resultobj");
-	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Printv(outarg,tm,"\n",NIL);
-	p = Getattr(p,"tmap:argout:next");
+      if ((tm = Getattr(p, "tmap:argout"))) {
+	Replaceall(tm, "$source", Getattr(p, "lname"));
+	Replaceall(tm, "$target", "resultobj");
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(outarg, tm, "\n", NIL);
+	p = Getattr(p, "tmap:argout:next");
       } else {
 	p = nextSibling(p);
       }
     }
 
     /* Emit the function call */
-    emit_action(n,f);
+    emit_action(n, f);
 
     /* Clear the return stack */
     Printf(f->code, "pop_n_elems(args);\n");
@@ -411,65 +413,64 @@ public:
     } else {
       // Wrapper_add_local(f, "resultobj", "struct object *resultobj");
       Printv(description, ", ", NIL);
-      if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-	Replaceall(tm,"$source", "result");
-	Replaceall(tm,"$target", "resultobj");
-	Replaceall(tm,"$result", "resultobj");
-	if (GetFlag(n,"feature:new")) {
-	  Replaceall(tm,"$owner","1");
+      if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+	Replaceall(tm, "$source", "result");
+	Replaceall(tm, "$target", "resultobj");
+	Replaceall(tm, "$result", "resultobj");
+	if (GetFlag(n, "feature:new")) {
+	  Replaceall(tm, "$owner", "1");
 	} else {
-	  Replaceall(tm,"$owner","0");
+	  Replaceall(tm, "$owner", "0");
 	}
 	String *pikedesc = Getattr(n, "tmap:out:pikedesc");
 	if (pikedesc) {
 	  Printv(description, pikedesc, NIL);
 	}
-	Printf(f->code,"%s\n", tm);
+	Printf(f->code, "%s\n", tm);
       } else {
-	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		     "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
       }
     }
 
     /* Output argument output code */
-    Printv(f->code,outarg,NIL);
+    Printv(f->code, outarg, NIL);
 
     /* Output cleanup code */
-    Printv(f->code,cleanup,NIL);
+    Printv(f->code, cleanup, NIL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (GetFlag(n,"feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
-	Replaceall(tm,"$source","result");
-	Printf(f->code,"%s\n",tm);
+    if (GetFlag(n, "feature:new")) {
+      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+	Replaceall(tm, "$source", "result");
+	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
-      Replaceall(tm,"$source","result");
-      Printf(f->code,"%s\n",tm);
+      Replaceall(tm, "$source", "result");
+      Printf(f->code, "%s\n", tm);
     }
-    
+
     /* Close the function */
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
-    Replaceall(f->code,"$cleanup",cleanup);
-    
+    Replaceall(f->code, "$cleanup", cleanup);
+
     /* Substitute the function name */
-    Replaceall(f->code,"$symname",iname);
-    Replaceall(f->code,"$result","resultobj");
+    Replaceall(f->code, "$symname", iname);
+    Replaceall(f->code, "$result", "resultobj");
 
     /* Dump the function out */
-    Wrapper_print(f,f_wrappers);
+    Wrapper_print(f, f_wrappers);
 
     /* Now register the function with the interpreter. */
-    if (!Getattr(n,"sym:overloaded")) {
+    if (!Getattr(n, "sym:overloaded")) {
       add_method(iname, wname, description);
     } else {
-      Setattr(n,"wrap:name", wname);
-      if (!Getattr(n,"sym:nextSibling")) {
+      Setattr(n, "wrap:name", wname);
+      if (!Getattr(n, "sym:nextSibling")) {
 	dispatchFunction(n);
       }
     }
@@ -495,32 +496,32 @@ public:
     int maxargs;
     String *tmp = NewString("");
     String *dispatch = Swig_overload_dispatch(n, "%s(args); return;", &maxargs);
-	
+
     /* Generate a dispatch wrapper for all overloaded functions */
 
-    Wrapper *f       = NewWrapper();
-    String  *symname = Getattr(n,"sym:name");
-    String  *wname   = Swig_name_wrapper(symname);
+    Wrapper *f = NewWrapper();
+    String *symname = Getattr(n, "sym:name");
+    String *wname = Swig_name_wrapper(symname);
 
     Printf(f->def, "static void %s(INT32 args) {", wname);
-    
+
     Wrapper_add_local(f, "argc", "INT32 argc");
     Printf(tmp, "struct svalue argv[%d]", maxargs);
     Wrapper_add_local(f, "argv", tmp);
     Wrapper_add_local(f, "ii", "INT32 ii");
-    
+
     Printf(f->code, "argc = args;\n");
     Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
     Printf(f->code, "argv[ii] = Pike_sp[ii-args];\n");
     Printf(f->code, "}\n");
-    
+
     Replaceall(dispatch, "$args", "self, args");
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "Pike_error(\"No matching function for overloaded '%s'.\");\n", symname);
     Printv(f->code, "}\n", NIL);
-    
+
     Wrapper_print(f, f_wrappers);
-    
+
     String *description = NewString("");
     Printf(description, "tAny,");
     if (current == CONSTRUCTOR || current == DESTRUCTOR) {
@@ -553,12 +554,12 @@ public:
 
   virtual int constantWrapper(Node *n) {
 
-    Swig_require("constantWrapper",n, "*sym:name", "type", "value", NIL);
-    
+    Swig_require("constantWrapper", n, "*sym:name", "type", "value", NIL);
+
     String *symname = Getattr(n, "sym:name");
-    SwigType *type  = Getattr(n, "type");
-    String *value   = Getattr(n, "value");
-    
+    SwigType *type = Getattr(n, "type");
+    String *value = Getattr(n, "value");
+
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(symname);
@@ -575,12 +576,11 @@ public:
       Replaceall(tm, "$value", value);
       Printf(f_init, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
-		   "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
+      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
     }
 
     Swig_restore(n);
-    
+
     return SWIG_OK;
   }
 
@@ -590,19 +590,20 @@ public:
 
   virtual int nativeWrapper(Node *n) {
     //   return Language::nativeWrapper(n);
-    String *name     = Getattr(n,"sym:name");
-    String *wrapname = Getattr(n,"wrap:name");
+    String *name = Getattr(n, "sym:name");
+    String *wrapname = Getattr(n, "wrap:name");
 
-    if (!addSymbol(wrapname,n)) return SWIG_ERROR;
+    if (!addSymbol(wrapname, n))
+      return SWIG_ERROR;
 
-    add_method(name, wrapname,0);
+    add_method(name, wrapname, 0);
     return SWIG_OK;
-  }  
+  }
 
   /* ------------------------------------------------------------
    * enumDeclaration()
    * ------------------------------------------------------------ */
-  
+
   virtual int enumDeclaration(Node *n) {
     return Language::enumDeclaration(n);
   }
@@ -610,7 +611,7 @@ public:
   /* ------------------------------------------------------------
    * enumvalueDeclaration()
    * ------------------------------------------------------------ */
-   
+
   virtual int enumvalueDeclaration(Node *n) {
     return Language::enumvalueDeclaration(n);
   }
@@ -622,7 +623,7 @@ public:
   virtual int classDeclaration(Node *n) {
     return Language::classDeclaration(n);
   }
-  
+
   /* ------------------------------------------------------------
    * classHandler()
    * ------------------------------------------------------------ */
@@ -632,45 +633,45 @@ public:
     String *symname = Getattr(n, "sym:name");
     if (!addSymbol(symname, n))
       return SWIG_ERROR;
-      
+
     PrefixPlusUnderscore = NewStringf("%s_", getClassPrefix());
 
     Printf(f_classInit, "start_new_program();\n");
 
     /* Handle inheritance */
-    List *baselist = Getattr(n,"bases");
+    List *baselist = Getattr(n, "bases");
     if (baselist && Len(baselist) > 0) {
       Iterator base = First(baselist);
       while (base.item) {
-        String *basename = Getattr(base.item,"name");
-        SwigType *basetype = NewString(basename);
-        SwigType_add_pointer(basetype);
-        SwigType_remember(basetype);
-        String *basemangle = SwigType_manglestr(basetype);
-        Printf(f_classInit, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
+	String *basename = Getattr(base.item, "name");
+	SwigType *basetype = NewString(basename);
+	SwigType_add_pointer(basetype);
+	SwigType_remember(basetype);
+	String *basemangle = SwigType_manglestr(basetype);
+	Printf(f_classInit, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
 	Delete(basemangle);
 	Delete(basetype);
-        base = Next(base);
+	base = Next(base);
       }
     } else {
       Printf(f_classInit, "ADD_STORAGE(swig_object_wrapper);\n");
     }
-        
+
     Language::classHandler(n);
-    
+
     /* Accessors for member variables */
     /*
-    List *membervariables = Getattr(n,"membervariables");
-    if (membervariables && Len(membervariables) > 0) {
-      membervariableAccessors(membervariables);
-    }
-    */
-    
+       List *membervariables = Getattr(n,"membervariables");
+       if (membervariables && Len(membervariables) > 0) {
+       membervariableAccessors(membervariables);
+       }
+     */
+
     /* Done, close the class and dump its definition to the init function */
     Printf(f_classInit, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);
     Dump(f_classInit, f_init);
     Clear(f_classInit);
-    
+
     SwigType *tt = NewString(symname);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
@@ -678,8 +679,9 @@ public:
     Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) pr);\n", tm);
     Delete(tm);
     Delete(tt);
-    
-    Delete(PrefixPlusUnderscore); PrefixPlusUnderscore = 0;
+
+    Delete(PrefixPlusUnderscore);
+    PrefixPlusUnderscore = 0;
 
     return SWIG_OK;
   }
@@ -720,7 +722,7 @@ public:
     current = NO_CPP;
     return SWIG_OK;
   }
-  
+
   /* ------------------------------------------------------------
    * membervariableAccessors()
    * ------------------------------------------------------------ */
@@ -730,18 +732,18 @@ public:
     Iterator i;
     bool need_setter;
     String *funcname;
-    
+
     /* If at least one of them is mutable, we need a setter */
     need_setter = false;
     i = First(membervariables);
     while (i.item) {
       if (!GetFlag(i.item, "feature:immutable")) {
-        need_setter = true;
+	need_setter = true;
 	break;
       }
       i = Next(i);
     }
-    
+
     /* Create a function to set the values of the (mutable) variables */
     if (need_setter) {
       Wrapper *wrapper = NewWrapper();
@@ -749,7 +751,7 @@ public:
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
-      
+
       i = First(membervariables);
       while (i.item) {
 	if (!GetFlag(i.item, "feature:immutable")) {
@@ -770,7 +772,7 @@ public:
 
       /* Dump wrapper code to the output file */
       Wrapper_print(wrapper, f_wrappers);
-      
+
       /* Register it with Pike */
       String *description = NewString("tStr tFloat, tVoid");
       add_method("`->=", wname, description);
@@ -781,7 +783,7 @@ public:
       Delete(setter);
       DelWrapper(wrapper);
     }
-    
+
     /* Create a function to get the values of the (mutable) variables */
     Wrapper *wrapper = NewWrapper();
     String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
@@ -807,12 +809,12 @@ public:
 
     /* Dump wrapper code to the output file */
     Wrapper_print(wrapper, f_wrappers);
-    
+
     /* Register it with Pike */
     String *description = NewString("tStr, tMix");
     add_method("`->", wname, description);
     Delete(description);
-    
+
     /* Clean up */
     Delete(wname);
     Delete(getter);
@@ -824,12 +826,12 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
-    List *membervariables = Getattr(getCurrentClass(),"membervariables");
+    List *membervariables = Getattr(getCurrentClass(), "membervariables");
     if (!membervariables) {
       membervariables = NewList();
-      Setattr(getCurrentClass(),"membervariables",membervariables);
+      Setattr(getCurrentClass(), "membervariables", membervariables);
     }
-    Append(membervariables,n);
+    Append(membervariables, n);
     current = MEMBER_VAR;
     Language::membervariableHandler(n);
     current = NO_CPP;
@@ -848,7 +850,7 @@ public:
     current = NO_CPP;
     return SWIG_OK;
   }
-  
+
   /* ------------------------------------------------------------
    * memberconstantHandler()
    *
@@ -878,9 +880,9 @@ public:
  * swig_pike()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-static Language * new_swig_pike() {
+static Language *new_swig_pike() {
   return new PIKE();
 }
-extern "C" Language * swig_pike(void) {
+extern "C" Language *swig_pike(void) {
   return new_swig_pike();
 }

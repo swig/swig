@@ -16,7 +16,7 @@ char cvsroot_fio_c[] = "$Header$";
 
 #define OBUFLEN  512
 
-static DOH *encodings = 0;              /* Encoding hash */
+static DOH *encodings = 0;	/* Encoding hash */
 
 /* -----------------------------------------------------------------------------
  * Writen()
@@ -29,8 +29,9 @@ static int Writen(DOH *out, void *buffer, int len) {
   int nw = len, ret;
   char *cb = (char *) buffer;
   while (nw) {
-    ret = Write(out,cb,nw);
-    if (ret < 0) return -1;
+    ret = Write(out, cb, nw);
+    if (ret < 0)
+      return -1;
     nw = nw - ret;
     cb += ret;
   }
@@ -44,36 +45,38 @@ static int Writen(DOH *out, void *buffer, int len) {
  * two file-like objects and operate as a filter.
  * ----------------------------------------------------------------------------- */
 
-void 
-DohEncoding(char *name, DOH *(*fn)(DOH *s)) {
-  if (!encodings) encodings = NewHash();
-  Setattr(encodings,(void *) name, NewVoid((void *)fn,0));
+void DohEncoding(char *name, DOH *(*fn) (DOH *s)) {
+  if (!encodings)
+    encodings = NewHash();
+  Setattr(encodings, (void *) name, NewVoid((void *) fn, 0));
 }
 
 /* internal function for processing an encoding */
-static DOH *encode(char *name,  DOH *s) {
+static DOH *encode(char *name, DOH *s) {
   DOH *handle, *ns;
-  DOH *(*fn)(DOH *);
-  long  pos;
-  char *cfmt = strchr(name,':');
-  DOH *tmp = 0;  
+  DOH *(*fn) (DOH *);
+  long pos;
+  char *cfmt = strchr(name, ':');
+  DOH *tmp = 0;
   if (cfmt) {
     tmp = NewString(cfmt + 1);
-    Append(tmp,s);
-    Setfile(tmp,Getfile((DOH *)s));
-    Setline(tmp,Getline((DOH *)s));
+    Append(tmp, s);
+    Setfile(tmp, Getfile((DOH *) s));
+    Setline(tmp, Getline((DOH *) s));
     *cfmt = '\0';
   }
-  if (!encodings || !(handle = Getattr(encodings,name))) {
+  if (!encodings || !(handle = Getattr(encodings, name))) {
     return Copy(s);
   }
-  if (tmp) s = tmp;
+  if (tmp)
+    s = tmp;
   pos = Tell(s);
-  Seek(s,0,SEEK_SET);
+  Seek(s, 0, SEEK_SET);
   fn = (DOH *(*)(DOH *)) Data(handle);
-  ns = (*fn)(s);
-  Seek(s,pos,SEEK_SET);
-  if (tmp) Delete(tmp);
+  ns = (*fn) (s);
+  Seek(s, pos, SEEK_SET);
+  if (tmp)
+    Delete(tmp);
   return ns;
 }
 
@@ -95,37 +98,35 @@ static DOH *encode(char *name,  DOH *s) {
  * It's better to use Dump() or some other method instead.
  * ----------------------------------------------------------------------------- */
 
-int
-DohvPrintf(DOH *so, const char *format, va_list ap)
-{
+int DohvPrintf(DOH *so, const char *format, va_list ap) {
   static char *fmt_codes = "dioxXucsSfeEgGpn";
   int state = 0;
   const char *p = format;
-  char  newformat[256];
-  char  obuffer[OBUFLEN];
+  char newformat[256];
+  char obuffer[OBUFLEN];
   char *fmt = 0;
-  char  temp[64];
-  int   widthval = 0;
-  int   precval = 0;
-  int   maxwidth;
-  char  *w = 0;
-  int   ivalue;
+  char temp[64];
+  int widthval = 0;
+  int precval = 0;
+  int maxwidth;
+  char *w = 0;
+  int ivalue;
   double dvalue;
-  void  *pvalue;
-  char  *stemp;
-  int   nbytes = 0;
-  char  encoder[128], *ec = 0;
-  int   plevel = 0;
+  void *pvalue;
+  char *stemp;
+  int nbytes = 0;
+  char encoder[128], *ec = 0;
+  int plevel = 0;
 
-  memset (newformat, 0, sizeof (newformat));
+  memset(newformat, 0, sizeof(newformat));
 
   while (*p) {
-    switch(state) {
-    case 0:  /* Ordinary text */
+    switch (state) {
+    case 0:			/* Ordinary text */
       if (*p != '%') {
-	Putc(*p,so);
+	Putc(*p, so);
 	nbytes++;
-      } else{
+      } else {
 	fmt = newformat;
 	widthval = 0;
 	precval = 0;
@@ -134,26 +135,26 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	state = 10;
       }
       break;
-    case 10: /* Look for a width and precision */
-      if (isdigit((int)*p) && (*p != '0')) {
+    case 10:			/* Look for a width and precision */
+      if (isdigit((int) *p) && (*p != '0')) {
 	w = temp;
 	*(w++) = *p;
 	*(fmt++) = *p;
 	state = 20;
-      } else if (strchr(fmt_codes,*p)) {
+      } else if (strchr(fmt_codes, *p)) {
 	/* Got one of the formatting codes */
 	p--;
 	state = 100;
       } else if (*p == '*') {
 	/* Width field is specified in the format list */
-	widthval = va_arg(ap,int);
-	sprintf(temp,"%d",widthval);
+	widthval = va_arg(ap, int);
+	sprintf(temp, "%d", widthval);
 	for (w = temp; *w; w++) {
 	  *(fmt++) = *w;
 	}
 	state = 30;
       } else if (*p == '%') {
-	Putc(*p,so);
+	Putc(*p, so);
 	fmt = newformat;
 	nbytes++;
 	state = 0;
@@ -165,12 +166,12 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	*(fmt++) = *p;
       }
       break;
-      
-    case 20: /* Hmmm. At the start of a width field */
-      if (isdigit((int)*p)) {
+
+    case 20:			/* Hmmm. At the start of a width field */
+      if (isdigit((int) *p)) {
 	*(w++) = *p;
 	*(fmt++) = *p;
-      } else if (strchr(fmt_codes,*p)) {
+      } else if (strchr(fmt_codes, *p)) {
 	/* Got one of the formatting codes */
 	/* Figure out width */
 	*w = 0;
@@ -191,12 +192,12 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       }
       break;
 
-    case 30:   /* Parsed a width from an argument.  Look for a . */
+    case 30:			/* Parsed a width from an argument.  Look for a . */
       if (*p == '.') {
 	w = temp;
 	*(fmt++) = *p;
 	state = 40;
-      } else if (strchr(fmt_codes,*p)) {
+      } else if (strchr(fmt_codes, *p)) {
 	/* Got one of the formatting codes */
 	/* Figure out width */
 	p--;
@@ -209,19 +210,19 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 
     case 40:
       /* Start of precision expected */
-      if (isdigit((int)*p) && (*p != '0')) {
+      if (isdigit((int) *p) && (*p != '0')) {
 	*(fmt++) = *p;
 	*(w++) = *p;
 	state = 41;
       } else if (*p == '*') {
 	/* Precision field is specified in the format list */
-	precval = va_arg(ap,int);
-	sprintf(temp,"%d",precval);
+	precval = va_arg(ap, int);
+	sprintf(temp, "%d", precval);
 	for (w = temp; *w; w++) {
 	  *(fmt++) = *w;
 	}
 	state = 50;
-      } else if (strchr(fmt_codes,*p)) {
+      } else if (strchr(fmt_codes, *p)) {
 	p--;
 	state = 100;
       } else {
@@ -230,10 +231,10 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       }
       break;
     case 41:
-      if (isdigit((int)*p)) {
+      if (isdigit((int) *p)) {
 	*(fmt++) = *p;
 	*(w++) = *p;
-      } else if (strchr(fmt_codes,*p)) {
+      } else if (strchr(fmt_codes, *p)) {
 	/* Got one of the formatting codes */
 	/* Figure out width */
 	*w = 0;
@@ -249,7 +250,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       break;
       /* Hang out, wait for format specifier */
     case 50:
-      if (strchr(fmt_codes,*p)) {
+      if (strchr(fmt_codes, *p)) {
 	p--;
 	state = 100;
       } else {
@@ -279,43 +280,47 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       break;
     case 100:
       /* Got a formatting code */
-      if (widthval < precval) maxwidth = precval;
-      else maxwidth = widthval;
-      if ((*p == 's') || (*p == 'S')) {       /* Null-Terminated string */
-	DOH    *doh;
-	DOH    *Sval;
-	DOH    *enc = 0;
+      if (widthval < precval)
+	maxwidth = precval;
+      else
+	maxwidth = widthval;
+      if ((*p == 's') || (*p == 'S')) {	/* Null-Terminated string */
+	DOH *doh;
+	DOH *Sval;
+	DOH *enc = 0;
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
 	  /* Is a DOH object. */
- 	  if (DohIsString(doh)) {
+	  if (DohIsString(doh)) {
 	    Sval = doh;
 	  } else {
 	    Sval = Str(doh);
 	  }
 	  if (strlen(encoder)) {
-	    enc = encode(encoder,Sval);
-	    maxwidth = maxwidth+strlen(newformat)+Len(enc);
+	    enc = encode(encoder, Sval);
+	    maxwidth = maxwidth + strlen(newformat) + Len(enc);
 	  } else {
-	    maxwidth = maxwidth+strlen(newformat)+Len(Sval);
+	    maxwidth = maxwidth + strlen(newformat) + Len(Sval);
 	  }
 	  *(fmt++) = 's';
 	  *fmt = 0;
 	  if ((maxwidth + 1) < OBUFLEN) {
 	    stemp = obuffer;
 	  } else {
-	    stemp = (char *) DohMalloc(maxwidth+1);
+	    stemp = (char *) DohMalloc(maxwidth + 1);
 	  }
 	  if (enc) {
-	    nbytes+=sprintf(stemp,newformat,Data(enc));
+	    nbytes += sprintf(stemp, newformat, Data(enc));
 	  } else {
-	    nbytes+=sprintf(stemp,newformat,Data(Sval));
+	    nbytes += sprintf(stemp, newformat, Data(Sval));
 	  }
-	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
+	  if (Writen(so, stemp, strlen(stemp)) < 0)
+	    return -1;
 	  if ((DOH *) Sval != doh) {
 	    Delete(Sval);
 	  }
-	  if (enc) Delete(enc);
+	  if (enc)
+	    Delete(enc);
 	  if (*p == 'S') {
 	    Delete(doh);
 	  }
@@ -323,45 +328,48 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	    DohFree(stemp);
 	  }
 	} else {
-	  if (!doh) doh = (char *)"";
-	  
+	  if (!doh)
+	    doh = (char *) "";
+
 	  if (strlen(encoder)) {
 	    DOH *s = NewString(doh);
-	    Seek(s,0, SEEK_SET);
-	    enc = encode(encoder,s);
+	    Seek(s, 0, SEEK_SET);
+	    enc = encode(encoder, s);
 	    Delete(s);
 	    doh = Char(enc);
 	  } else {
 	    enc = 0;
 	  }
-	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
+	  maxwidth = maxwidth + strlen(newformat) + strlen((char *) doh);
 	  *(fmt++) = 's';
 	  *fmt = 0;
-	  if ((maxwidth+1) < OBUFLEN) {
+	  if ((maxwidth + 1) < OBUFLEN) {
 	    stemp = obuffer;
 	  } else {
 	    stemp = (char *) DohMalloc(maxwidth + 1);
 	  }
-	  nbytes+=sprintf(stemp,newformat,doh);
-	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
+	  nbytes += sprintf(stemp, newformat, doh);
+	  if (Writen(so, stemp, strlen(stemp)) < 0)
+	    return -1;
 	  if (stemp != obuffer) {
 	    DohFree(stemp);
 	  }
-	  if (enc) Delete(enc);
+	  if (enc)
+	    Delete(enc);
 	}
       } else {
 	*(fmt++) = *p;
 	*fmt = 0;
-	maxwidth = maxwidth+strlen(newformat)+64;
-	
+	maxwidth = maxwidth + strlen(newformat) + 64;
+
 	/* Only allocate a buffer if it is too big to fit.  Shouldn't have to do
-           this very often */
+	   this very often */
 
 	if (maxwidth < OBUFLEN)
 	  stemp = obuffer;
-	else 
-	  stemp = (char *) DohMalloc(maxwidth+1);
-	switch(*p) {
+	else
+	  stemp = (char *) DohMalloc(maxwidth + 1);
+	switch (*p) {
 	case 'd':
 	case 'i':
 	case 'o':
@@ -369,26 +377,28 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	case 'x':
 	case 'X':
 	case 'c':
-	  ivalue = va_arg(ap,int);
-	  nbytes+=sprintf(stemp,newformat,ivalue);
+	  ivalue = va_arg(ap, int);
+	  nbytes += sprintf(stemp, newformat, ivalue);
 	  break;
 	case 'f':
 	case 'g':
 	case 'e':
 	case 'E':
 	case 'G':
-	  dvalue = va_arg(ap,double);
-	  nbytes+=sprintf(stemp,newformat,dvalue);
+	  dvalue = va_arg(ap, double);
+	  nbytes += sprintf(stemp, newformat, dvalue);
 	  break;
 	case 'p':
-	  pvalue = va_arg(ap,void *);
-	  nbytes+=sprintf(stemp,newformat,pvalue);	  
+	  pvalue = va_arg(ap, void *);
+	  nbytes += sprintf(stemp, newformat, pvalue);
 	  break;
 	default:
 	  break;
 	}
-	if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
-	if (stemp != obuffer) DohFree(stemp);
+	if (Writen(so, stemp, strlen(stemp)) < 0)
+	  return -1;
+	if (stemp != obuffer)
+	  DohFree(stemp);
       }
       state = 0;
       break;
@@ -398,8 +408,9 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
   if (state) {
     int r;
     *fmt = 0;
-    r = Writen(so,fmt,strlen(fmt));
-    if (r < 0) return -1;
+    r = Writen(so, fmt, strlen(fmt));
+    if (r < 0)
+      return -1;
     nbytes += r;
   }
   return nbytes;
@@ -411,12 +422,11 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
  * Variable length argument entry point to Printf
  * ----------------------------------------------------------------------------- */
 
-int
-DohPrintf(DOH *obj, const char *format, ...) {
+int DohPrintf(DOH *obj, const char *format, ...) {
   va_list ap;
   int ret;
-  va_start(ap,format);
-  ret = DohvPrintf(obj,format,ap);
+  va_start(ap, format);
+  ret = DohvPrintf(obj, format, ap);
   va_end(ap);
   return ret;
 }
@@ -427,18 +437,19 @@ DohPrintf(DOH *obj, const char *format, ...) {
  * Print a null-terminated variable length list of DOH objects
  * ----------------------------------------------------------------------------- */
 
-int DohPrintv(DOHFile *f, ...) {
+int DohPrintv(DOHFile * f, ...) {
   va_list ap;
   int ret = 0;
   DOH *obj;
-  va_start(ap,f);
-  while(1) {
-    obj = va_arg(ap,void *);
-    if ((!obj) || (obj == DohNone)) break;
+  va_start(ap, f);
+  while (1) {
+    obj = va_arg(ap, void *);
+    if ((!obj) || (obj == DohNone))
+      break;
     if (DohCheck(obj)) {
-      ret += DohDump(obj,f);
+      ret += DohDump(obj, f);
     } else {
-      ret += DohWrite(f,obj,strlen((char *) obj));
+      ret += DohWrite(f, obj, strlen((char *) obj));
     }
   }
   va_end(ap);
@@ -452,22 +463,23 @@ int DohPrintv(DOHFile *f, ...) {
  * number of bytes copied.
  * ----------------------------------------------------------------------------- */
 
-int
-DohCopyto(DOH *in, DOH *out) {
+int DohCopyto(DOH *in, DOH *out) {
   int nbytes = 0, ret;
   int nwrite = 0, wret;
   char *cw;
   char buffer[16384];
 
-  if ((!in) || (!out)) return 0;
+  if ((!in) || (!out))
+    return 0;
   while (1) {
-    ret = Read(in,buffer,16384);
+    ret = Read(in, buffer, 16384);
     if (ret > 0) {
       nwrite = ret;
       cw = buffer;
       while (nwrite) {
-	wret = Write(out,cw,nwrite);
-	if (wret < 0) return -1;
+	wret = Write(out, cw, nwrite);
+	if (wret < 0)
+	  return -1;
 	nwrite = nwrite - wret;
 	cw += wret;
       }
@@ -486,16 +498,15 @@ DohCopyto(DOH *in, DOH *out) {
  * character.  Optionally accepts a maximum number of splits to perform.
  * ----------------------------------------------------------------------------- */
 
-DOH *
-DohSplit(DOH *in, char ch, int nsplits) {
+DOH *DohSplit(DOH *in, char ch, int nsplits) {
   DOH *list;
   DOH *str;
   int c;
-  
+
   list = NewList();
 
   if (DohIsString(in)) {
-    Seek(in,0,SEEK_SET);
+    Seek(in, 0, SEEK_SET);
   }
 
   while (1) {
@@ -504,17 +515,19 @@ DohSplit(DOH *in, char ch, int nsplits) {
       c = Getc(in);
     } while ((c != EOF) && (c == ch));
     if (c != EOF) {
-      Putc(c,str);
+      Putc(c, str);
       while (1) {
 	c = Getc(in);
-	if ((c == EOF) || ((c == ch) && (nsplits != 0))) break;
-	Putc(c,str);
+	if ((c == EOF) || ((c == ch) && (nsplits != 0)))
+	  break;
+	Putc(c, str);
       }
       nsplits--;
     }
-    Append(list,str);
+    Append(list, str);
     Delete(str);
-    if (c == EOF) break;
+    if (c == EOF)
+      break;
   }
   return list;
 }
@@ -525,16 +538,15 @@ DohSplit(DOH *in, char ch, int nsplits) {
  * Split an input stream into a list of strings delimited by newline characters.
  * ----------------------------------------------------------------------------- */
 
-DOH *
-DohSplitLines(DOH *in) {
+DOH *DohSplitLines(DOH *in) {
   DOH *list;
   DOH *str;
-  int  c = 0;
+  int c = 0;
 
   list = NewList();
 
   if (DohIsString(in)) {
-    Seek(in,0,SEEK_SET);
+    Seek(in, 0, SEEK_SET);
   }
 
   while (c != EOF) {
@@ -542,7 +554,7 @@ DohSplitLines(DOH *in) {
     while ((c = Getc(in)) != '\n' && c != EOF) {
       Putc(c, str);
     }
-    Append(list,str);
+    Append(list, str);
     Delete(str);
   }
   return list;
@@ -555,24 +567,23 @@ DohSplitLines(DOH *in) {
  * Read a single input line and return it as a string.
  * ----------------------------------------------------------------------------- */
 
-DOH *
-DohReadline(DOH *in) {
+DOH *DohReadline(DOH *in) {
   char c;
   int n = 0;
   DOH *s = NewStringEmpty();
   while (1) {
-    if (Read(in,&c,1) < 0) {
+    if (Read(in, &c, 1) < 0) {
       if (n == 0) {
 	Delete(s);
 	return 0;
       }
       return s;
     }
-    if (c == '\n') return s;
-    if (c == '\r') continue;
-    Putc(c,s);
+    if (c == '\n')
+      return s;
+    if (c == '\r')
+      continue;
+    Putc(c, s);
     n++;
   }
 }
-
-  
