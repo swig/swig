@@ -104,3 +104,41 @@ all-local: eswig@EXEEXT@
 clean-local:
 	rm -f ../swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
+
+
+# Beautify the code.
+# Note that this works well on C code, but does some odd joining of lines for C++ code.
+# Compiling with -DNDEBUG and no optimisations will allow one to do a binary diff of the
+# swig executable as a way of checking before and after the 'beautifying'.
+# Single files can be beautified with the beautify-file target, eg: 'make beautify-file INDENTFILE=chosenfile.c'
+
+SWIGTYPEDEFS=-T File -T DohObjInfo -T Parm -T Language -T List -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHString_or_char
+INDENTBAKSDIR=../IndentBaks
+
+beautify:
+	rm -rf $(INDENTBAKSDIR)
+	mkdir $(INDENTBAKSDIR)
+	mkdir $(INDENTBAKSDIR)/CParse
+	mkdir $(INDENTBAKSDIR)/DOH
+	mkdir $(INDENTBAKSDIR)/Modules
+	mkdir $(INDENTBAKSDIR)/Preprocessor
+	mkdir $(INDENTBAKSDIR)/Swig
+	mkdir $(INDENTBAKSDIR)/Include
+	(csources=`find . -name "*.c"` && \
+	hsources=`find . -name "*.h"` && \
+	cxxsources=`find . -name "*.cxx"` && \
+	for file in $$csources $$hsources $$cxxsources; do \
+	  $(MAKE) beautify-file INDENTFILE=$$file; \
+	done; )
+
+beautify-file:
+	test -e $(INDENTBAKSDIR) || (echo $(INDENTBAKSDIR) directory does not exist && exit 1;)
+	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
+	test -e $(INDENTFILE) || (echo File does not exist: $(INDENTFILE) && exit 1;)
+	cp $(INDENTFILE) $(INDENTBAKSDIR)/$(INDENTFILE);
+	unix2dos $(INDENTFILE)
+	dos2unix $(INDENTFILE)
+	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
+	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
+	rm $(INDENTFILE).tmp;
+
