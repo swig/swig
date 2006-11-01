@@ -21,16 +21,17 @@ char cvsroot_util_c[] = "$Header$";
  * ----------------------------------------------------------------------------- */
 
 void Swig_cparse_replace_descriptor(String *s) {
-  char   tmp[512];
+  char tmp[512];
   String *arg = 0;
   SwigType *t;
   char *c = 0;
 
-  while ((c = strstr(Char(s),"$descriptor("))) {
+  while ((c = strstr(Char(s), "$descriptor("))) {
     char *d = tmp;
-    int  level = 0;
+    int level = 0;
     while (*c) {
-      if (*c == '(') level++;
+      if (*c == '(')
+	level++;
       if (*c == ')') {
 	level--;
 	if (level == 0) {
@@ -42,7 +43,7 @@ void Swig_cparse_replace_descriptor(String *s) {
       c++;
     }
     *d = 0;
-    arg = NewString(tmp+12);
+    arg = NewString(tmp + 12);
     t = Swig_cparse_type(arg);
     Delete(arg);
     arg = 0;
@@ -50,19 +51,19 @@ void Swig_cparse_replace_descriptor(String *s) {
     if (t) {
       String *mangle;
       String *descriptor;
-      
+
       mangle = SwigType_manglestr(t);
-      descriptor = NewStringf("SWIGTYPE%s",mangle);
+      descriptor = NewStringf("SWIGTYPE%s", mangle);
       SwigType_remember(t);
       *d = ')';
       d++;
       *d = 0;
-      Replace(s,tmp,descriptor,DOH_REPLACE_ANY);
+      Replace(s, tmp, descriptor, DOH_REPLACE_ANY);
       Delete(mangle);
       Delete(descriptor);
       Delete(t);
     } else {
-      Swig_error(Getfile(s),Getline(s),"Bad $descriptor() macro.\n");
+      Swig_error(Getfile(s), Getline(s), "Bad $descriptor() macro.\n");
       break;
     }
   }
@@ -76,15 +77,13 @@ void Swig_cparse_replace_descriptor(String *s) {
  * ----------------------------------------------------------------------------- */
 
 void cparse_normalize_void(Node *n) {
-  String *decl = Getattr(n,k_decl);
-  Parm   *parms = Getattr(n,k_parms);
+  String *decl = Getattr(n, k_decl);
+  Parm *parms = Getattr(n, k_parms);
 
   if (SwigType_isfunction(decl)) {
-    if ((ParmList_len(parms) == 1) && (SwigType_type(Getattr(parms,k_type)) == T_VOID)) {
-      Replaceall(decl,"f(void).","f().");
-      Delattr(n,k_parms);
+    if ((ParmList_len(parms) == 1) && (SwigType_type(Getattr(parms, k_type)) == T_VOID)) {
+      Replaceall(decl, "f(void).", "f().");
+      Delattr(n, k_parms);
     }
   }
 }
-    
-

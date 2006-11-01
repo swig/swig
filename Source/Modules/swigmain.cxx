@@ -49,41 +49,41 @@ extern "C" {
 }
 
 struct swig_module {
-  const char     *name;
-  ModuleFactory   fac;
-  const char      *help;
+  const char *name;
+  ModuleFactory fac;
+  const char *help;
 };
 
 /* Association of command line options to language modules.
    Place an entry for new language modules here, keeping the
    list sorted alphabetically. */
 
-static swig_module  modules[] = {
+static swig_module modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL"},
-  {"-chicken",   swig_chicken,   "CHICKEN"},
-  {"-clisp",     swig_clisp,     "CLISP"},
-  {"-cffi",      swig_cffi,      "CFFI"},
-  {"-csharp",    swig_csharp,    "C#"},
-  {"-guile",     swig_guile,     "Guile"},
-  {"-java",      swig_java,      "Java"},
-  {"-lua",       swig_lua,       "Lua"},
-  {"-modula3",   swig_modula3,   "Modula 3"},
-  {"-mzscheme",  swig_mzscheme,  "Mzscheme"},
-  {"-ocaml",     swig_ocaml,     "Ocaml"},
-  {"-perl",      swig_perl5,     "Perl"},
-  {"-perl5",     swig_perl5, 0},
-  {"-php",       swig_php4, 0},
-  {"-php4",      swig_php4,      "PHP4"},
-  {"-php5",      swig_php5,      "PHP5"},
-  {"-pike",      swig_pike,      "Pike"},
-  {"-python",    swig_python,    "Python"},
-  {"-ruby",      swig_ruby,      "Ruby"},
-  {"-sexp",      swig_sexp,      "Lisp S-Expressions"},
-  {"-tcl",       swig_tcl,       "Tcl"},
-  {"-tcl8",      swig_tcl, 0},
-  {"-uffi",      swig_uffi,      "Common Lisp / UFFI"},
-  {"-xml",       swig_xml,       "XML"},
-  {"-r",         swig_r,         "R (aka GNU S)"},
+  {"-chicken", swig_chicken, "CHICKEN"},
+  {"-clisp", swig_clisp, "CLISP"},
+  {"-cffi", swig_cffi, "CFFI"},
+  {"-csharp", swig_csharp, "C#"},
+  {"-guile", swig_guile, "Guile"},
+  {"-java", swig_java, "Java"},
+  {"-lua", swig_lua, "Lua"},
+  {"-modula3", swig_modula3, "Modula 3"},
+  {"-mzscheme", swig_mzscheme, "Mzscheme"},
+  {"-ocaml", swig_ocaml, "Ocaml"},
+  {"-perl", swig_perl5, "Perl"},
+  {"-perl5", swig_perl5, 0},
+  {"-php", swig_php4, 0},
+  {"-php4", swig_php4, "PHP4"},
+  {"-php5", swig_php5, "PHP5"},
+  {"-pike", swig_pike, "Pike"},
+  {"-python", swig_python, "Python"},
+  {"-ruby", swig_ruby, "Ruby"},
+  {"-sexp", swig_sexp, "Lisp S-Expressions"},
+  {"-tcl", swig_tcl, "Tcl"},
+  {"-tcl8", swig_tcl, 0},
+  {"-uffi", swig_uffi, "Common Lisp / UFFI"},
+  {"-xml", swig_xml, "XML"},
+  {"-r", swig_r, "R (aka GNU S)"},
   {NULL, NULL, NULL}
 };
 
@@ -102,9 +102,7 @@ static swig_module  modules[] = {
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
 
-void SWIG_merge_envopt(const char *env, int oargc, char *oargv[],
-		       int *nargc, char ***nargv)
-{
+void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, char ***nargv) {
   if (!env) {
     *nargc = oargc;
     *nargv = oargv;
@@ -113,13 +111,14 @@ void SWIG_merge_envopt(const char *env, int oargc, char *oargv[],
 
   int argc = 1;
   int arge = oargc + 1024;
-  char **argv = (char **) malloc(sizeof(char*)*(arge));
-  char *buffer = (char*)  malloc(2048);
+  char **argv = (char **) malloc(sizeof(char *) * (arge));
+  char *buffer = (char *) malloc(2048);
   char *b = buffer;
   char *be = b + 1023;
   const char *c = env;
   while ((b != be) && *c && (argc < arge)) {
-    while (isspace(*c) && *c) ++c;
+    while (isspace(*c) && *c)
+      ++c;
     if (*c) {
       argv[argc] = b;
       ++argc;
@@ -159,33 +158,30 @@ int main(int margc, char **margv) {
     Swig_register_module(modules[i].name, modules[i].fac);
   }
 
-  Swig_init_args(argc,argv);
+  Swig_init_args(argc, argv);
 
   /* Get options */
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       fac = Swig_find_module(argv[i]);
       if (fac) {
-	dl = (fac)();
+	dl = (fac) ();
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i],"-nolang") == 0) {
+      } else if (strcmp(argv[i], "-nolang") == 0) {
 	dl = new Language;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i],"-dnone") == 0) ||
-		 (strcmp(argv[i],"-dhtml") == 0) ||
-		 (strcmp(argv[i],"-dlatex") == 0) ||
-		 (strcmp(argv[i],"-dascii") == 0) ||
-		 (strcmp(argv[i],"-stat") == 0))
-      {
-	Printf(stderr,"swig: Warning. %s option deprecated.\n",argv[i]);
+      } else if ((strcmp(argv[i], "-dnone") == 0) ||
+		 (strcmp(argv[i], "-dhtml") == 0) ||
+		 (strcmp(argv[i], "-dlatex") == 0) || (strcmp(argv[i], "-dascii") == 0) || (strcmp(argv[i], "-stat") == 0)) {
+	Printf(stderr, "swig: Warning. %s option deprecated.\n", argv[i]);
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0)) {
-        if (strcmp(argv[i],"--help") == 0)
+      } else if ((strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0)) {
+	if (strcmp(argv[i], "--help") == 0)
 	  strcpy(argv[i], "-help");
-	Printf(stdout,"Target Language Options\n");
+	Printf(stdout, "Target Language Options\n");
 	for (int j = 0; modules[j].name; j++) {
 	  if (modules[j].help) {
-	    Printf(stdout,"     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
 	  }
 	}
 	// Swig_mark_arg not called as the general -help options also need to be displayed later on
@@ -195,11 +191,10 @@ int main(int margc, char **margv) {
   if (!dl) {
     fac = Swig_find_module(SWIG_LANG);
     if (fac) {
-      dl = (fac)();
+      dl = (fac) ();
     }
   }
-  int res = SWIG_main(argc,argv,dl);
+  int res = SWIG_main(argc, argv, dl);
   delete dl;
-  return res;  
+  return res;
 }
-

@@ -34,11 +34,11 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     SwigType *vt = cplus_value_type(rt);
     SwigType *tt = vt ? vt : rt;
     SwigType *lt = SwigType_ltype(tt);
-    String *lstr = SwigType_str(lt,"result");
+    String *lstr = SwigType_str(lt, "result");
     if (SwigType_ispointer(lt)) {
-      Wrapper_add_localv(f,"result", lstr, "= 0", NULL);
-    } else{
-      Wrapper_add_local(f,"result", lstr);
+      Wrapper_add_localv(f, "result", lstr, "= 0", NULL);
+    } else {
+      Wrapper_add_local(f, "result", lstr);
     }
     if (vt) {
       Delete(vt);
@@ -46,21 +46,21 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     Delete(lt);
     Delete(lstr);
   }
-  
+
   /* Attach typemaps to parameters */
   /*  Swig_typemap_attach_parms("ignore",l,f); */
 
-  Swig_typemap_attach_parms("default",l,f);
-  Swig_typemap_attach_parms("arginit",l,f);
+  Swig_typemap_attach_parms("default", l, f);
+  Swig_typemap_attach_parms("arginit", l, f);
 
   /* Apply the arginit and default */
   p = l;
   while (p) {
-    tm = Getattr(p,"tmap:arginit");
+    tm = Getattr(p, "tmap:arginit");
     if (tm) {
-      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NIL);
-      p = Getattr(p,"tmap:arginit:next");
+      Replace(tm, "$target", Getattr(p, "lname"), DOH_REPLACE_ANY);
+      Printv(f->code, tm, "\n", NIL);
+      p = Getattr(p, "tmap:arginit:next");
     } else {
       p = nextSibling(p);
     }
@@ -69,11 +69,11 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   /* Apply the default typemap */
   p = l;
   while (p) {
-    tm = Getattr(p,"tmap:default");
+    tm = Getattr(p, "tmap:default");
     if (tm) {
-      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NIL);
-      p = Getattr(p,"tmap:default:next");
+      Replace(tm, "$target", Getattr(p, "lname"), DOH_REPLACE_ANY);
+      Printv(f->code, tm, "\n", NIL);
+      p = Getattr(p, "tmap:default:next");
     } else {
       p = nextSibling(p);
     }
@@ -88,11 +88,11 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
  * ----------------------------------------------------------------------------- */
 
 void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
-  Swig_typemap_attach_parms("in",l,f);
-  Swig_typemap_attach_parms("typecheck",l,0);
-  Swig_typemap_attach_parms("argout",l,f);
-  Swig_typemap_attach_parms("check",l,f);
-  Swig_typemap_attach_parms("freearg",l,f);
+  Swig_typemap_attach_parms("in", l, f);
+  Swig_typemap_attach_parms("typecheck", l, 0);
+  Swig_typemap_attach_parms("argout", l, f);
+  Swig_typemap_attach_parms("check", l, f);
+  Swig_typemap_attach_parms("freearg", l, f);
 
   {
     /* This is compatibility code to deal with the deprecated "ignore" typemap */
@@ -100,17 +100,17 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *np;
     String *tm;
     while (p) {
-      tm = Getattr(p,"tmap:in");
-      if (tm && checkAttribute(p,"tmap:in:numinputs","0")) {
-	Replaceall(tm,"$target", Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NIL);
-	np = Getattr(p,"tmap:in:next");
+      tm = Getattr(p, "tmap:in");
+      if (tm && checkAttribute(p, "tmap:in:numinputs", "0")) {
+	Replaceall(tm, "$target", Getattr(p, "lname"));
+	Printv(f->code, tm, "\n", NIL);
+	np = Getattr(p, "tmap:in:next");
 	while (p && (p != np)) {
-	  Setattr(p,"ignore","1");
+	  Setattr(p, "ignore", "1");
 	  p = nextSibling(p);
 	}
       } else if (tm) {
-	p = Getattr(p,"tmap:in:next");
+	p = Getattr(p, "tmap:in:next");
       } else {
 	p = nextSibling(p);
       }
@@ -125,22 +125,22 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *p = l;
     Parm *npin, *npfreearg;
     while (p) {
-      npin = Getattr(p,"tmap:in:next");
-      
-      /*
-      if (Getattr(p,"tmap:ignore")) {
-	npin = Getattr(p,"tmap:ignore:next");
-      } else if (Getattr(p,"tmap:in")) {
-	npin = Getattr(p,"tmap:in:next");
-      }
-      */
+      npin = Getattr(p, "tmap:in:next");
 
-      if (Getattr(p,"tmap:freearg")) {
-	npfreearg = Getattr(p,"tmap:freearg:next");
+      /*
+         if (Getattr(p,"tmap:ignore")) {
+         npin = Getattr(p,"tmap:ignore:next");
+         } else if (Getattr(p,"tmap:in")) {
+         npin = Getattr(p,"tmap:in:next");
+         }
+       */
+
+      if (Getattr(p, "tmap:freearg")) {
+	npfreearg = Getattr(p, "tmap:freearg:next");
 	if (npin != npfreearg) {
 	  while (p != npin) {
-	    Delattr(p,"tmap:freearg");
-	    Delattr(p,"tmap:freearg:next");
+	    Delattr(p, "tmap:freearg");
+	    Delattr(p, "tmap:freearg:next");
 	    p = nextSibling(p);
 	  }
 	}
@@ -148,7 +148,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       p = npin;
     }
   }
-      
+
   /* Check for variable length arguments with no input typemap.
      If no input is defined, we set this to ignore and print a
      message.
@@ -157,25 +157,25 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *p = l;
     Parm *lp = 0;
     while (p) {
-      if (!checkAttribute(p,"tmap:in:numinputs","0")) {
+      if (!checkAttribute(p, "tmap:in:numinputs", "0")) {
 	lp = p;
-	p = Getattr(p,"tmap:in:next");
+	p = Getattr(p, "tmap:in:next");
 	continue;
       }
-      if (SwigType_isvarargs(Getattr(p,"type"))) {
-	Swig_warning(WARN_LANG_VARARGS,input_file,line_number,"Variable length arguments discarded.\n");
-	Setattr(p,"tmap:in","");
+      if (SwigType_isvarargs(Getattr(p, "type"))) {
+	Swig_warning(WARN_LANG_VARARGS, input_file, line_number, "Variable length arguments discarded.\n");
+	Setattr(p, "tmap:in", "");
       }
       lp = 0;
       p = nextSibling(p);
     }
-    
+
     /* Check if last input argument is variable length argument */
     if (lp) {
       p = lp;
       while (p) {
-	if (SwigType_isvarargs(Getattr(p,"type"))) {
-	  Setattr(l,"emit:varargs",lp);
+	if (SwigType_isvarargs(Getattr(p, "type"))) {
+	  Setattr(l, "emit:varargs", lp);
 	  break;
 	}
 	p = nextSibling(p);
@@ -194,12 +194,12 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
 
 int emit_num_arguments(ParmList *parms) {
   Parm *p = parms;
-  int   nargs = 0;
+  int nargs = 0;
 
   while (p) {
-    if (Getattr(p,"tmap:in")) {
-      nargs += GetInt(p,"tmap:in:numinputs");
-      p = Getattr(p,"tmap:in:next");
+    if (Getattr(p, "tmap:in")) {
+      nargs += GetInt(p, "tmap:in:numinputs");
+      p = Getattr(p, "tmap:in:next");
     } else {
       p = nextSibling(p);
     }
@@ -207,12 +207,12 @@ int emit_num_arguments(ParmList *parms) {
 
   /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
   /*
-  if (parms && (p = Getattr(parms,"emit:varargs"))) {
-    if (!nextSibling(p)) {
-      nargs--;
-    }
-  }
-  */
+     if (parms && (p = Getattr(parms,"emit:varargs"))) {
+     if (!nextSibling(p)) {
+     nargs--;
+     }
+     }
+   */
   return nargs;
 }
 
@@ -227,23 +227,25 @@ int emit_num_arguments(ParmList *parms) {
 
 int emit_num_required(ParmList *parms) {
   Parm *p = parms;
-  int   nargs = 0;
+  int nargs = 0;
   Parm *first_default_arg = 0;
-  int   compactdefargs = ParmList_is_compactdefargs(p);
+  int compactdefargs = ParmList_is_compactdefargs(p);
 
   while (p) {
-    if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
-      p = Getattr(p,"tmap:in:next");
+    if (Getattr(p, "tmap:in") && checkAttribute(p, "tmap:in:numinputs", "0")) {
+      p = Getattr(p, "tmap:in:next");
     } else {
-      if (Getattr(p,"tmap:default")) break;
-      if (Getattr(p,"value")) {
-        if (!first_default_arg)
-          first_default_arg = p;
-        if (compactdefargs) break;
+      if (Getattr(p, "tmap:default"))
+	break;
+      if (Getattr(p, "value")) {
+	if (!first_default_arg)
+	  first_default_arg = p;
+	if (compactdefargs)
+	  break;
       }
-      nargs+= GetInt(p,"tmap:in:numinputs");
-      if (Getattr(p,"tmap:in")) {
-	p = Getattr(p,"tmap:in:next");
+      nargs += GetInt(p, "tmap:in:numinputs");
+      if (Getattr(p, "tmap:in")) {
+	p = Getattr(p, "tmap:in:next");
       } else {
 	p = nextSibling(p);
       }
@@ -255,29 +257,29 @@ int emit_num_required(ParmList *parms) {
   if (first_default_arg) {
     p = first_default_arg;
     while (p) {
-      if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
-        p = Getattr(p,"tmap:in:next");
+      if (Getattr(p, "tmap:in") && checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
       } else {
-        if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
-          Swig_error(Getfile(p),Getline(p),"Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
-        }
-        if (Getattr(p,"tmap:in")) {
-          p = Getattr(p,"tmap:in:next");
-        } else {
-          p = nextSibling(p);
-        }
+	if (!Getattr(p, "value") && (!Getattr(p, "tmap:default"))) {
+	  Swig_error(Getfile(p), Getline(p), "Non-optional argument '%s' follows an optional argument.\n", Getattr(p, "name"));
+	}
+	if (Getattr(p, "tmap:in")) {
+	  p = Getattr(p, "tmap:in:next");
+	} else {
+	  p = nextSibling(p);
+	}
       }
     }
   }
 
   /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
   /*
-  if (parms && (p = Getattr(parms,"emit:varargs"))) {
-    if (!nextSibling(p)) {
-      nargs--;
-    }
-  }
-  */
+     if (parms && (p = Getattr(parms,"emit:varargs"))) {
+     if (!nextSibling(p)) {
+     nargs--;
+     }
+     }
+   */
   return nargs;
 }
 
@@ -287,10 +289,11 @@ int emit_num_required(ParmList *parms) {
  * Checks if a function is a varargs function
  * ----------------------------------------------------------------------------- */
 
-int
-emit_isvarargs(ParmList *p) {
-  if (!p) return 0;
-  if (Getattr(p,"emit:varargs")) return 1;
+int emit_isvarargs(ParmList *p) {
+  if (!p)
+    return 0;
+  if (Getattr(p, "emit:varargs"))
+    return 1;
   return 0;
 }
 
@@ -305,9 +308,9 @@ emit_isvarargs(ParmList *p) {
 void emit_mark_varargs(ParmList *l) {
   Parm *p = l;
   while (p) {
-    if (SwigType_isvarargs(Getattr(p,"type")))
-      if (!Getattr(p,"tmap:in"))
-        Setattr(p,"varargs:ignore","1");
+    if (SwigType_isvarargs(Getattr(p, "type")))
+      if (!Getattr(p, "tmap:in"))
+	Setattr(p, "varargs:ignore", "1");
     p = nextSibling(p);
   }
 }
@@ -316,12 +319,11 @@ void emit_mark_varargs(ParmList *l) {
 /* replace_contract_args.  This function replaces argument names in contract
    specifications.   Used in conjunction with the %contract directive. */
 
-static
-void replace_contract_args(Parm *cp, Parm *rp, String *s) {
+static void replace_contract_args(Parm *cp, Parm *rp, String *s) {
   while (cp && rp) {
-    String *n = Getattr(cp,"name");
+    String *n = Getattr(cp, "name");
     if (n) {
-      Replace(s,n,Getattr(rp,"lname"), DOH_REPLACE_ID);
+      Replace(s, n, Getattr(rp, "lname"), DOH_REPLACE_ID);
     }
     cp = nextSibling(cp);
     rp = nextSibling(rp);
@@ -336,18 +338,19 @@ void replace_contract_args(Parm *cp, Parm *rp, String *s) {
  * ----------------------------------------------------------------------------- */
 int emit_action_code(Node *n, Wrapper *f, String *eaction) {
   /* Look for except feature */
-  String *tm = GetFlagAttr(n,"feature:except");
-  if (tm) tm = Copy(tm);
-  if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {
-    Replaceall(tm,"$name",Getattr(n,"name"));
-    Replaceall(tm,"$symname", Getattr(n,"sym:name"));
-    Replaceall(tm,"$function", eaction);
-    Replaceall(tm,"$action", eaction);
-    Printv(f->code,tm,"\n", NIL);
+  String *tm = GetFlagAttr(n, "feature:except");
+  if (tm)
+    tm = Copy(tm);
+  if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+    Replaceall(tm, "$name", Getattr(n, "name"));
+    Replaceall(tm, "$symname", Getattr(n, "sym:name"));
+    Replaceall(tm, "$function", eaction);
+    Replaceall(tm, "$action", eaction);
+    Printv(f->code, tm, "\n", NIL);
     Delete(tm);
     return 1;
   } else {
-    Printv(f->code,eaction,"\n", NIL);
+    Printv(f->code, eaction, "\n", NIL);
     return 0;
   }
 }
@@ -357,120 +360,118 @@ void emit_action(Node *n, Wrapper *f) {
   String *action;
   String *wrap;
   SwigType *rt;
-  ParmList *catchlist = Getattr(n,"catchlist");
+  ParmList *catchlist = Getattr(n, "catchlist");
 
   /* Look for fragments */
   {
     String *f;
-    f = Getattr(n,"feature:fragment");
+    f = Getattr(n, "feature:fragment");
     if (f) {
-      char  *c, *tok;
+      char *c, *tok;
       String *t = Copy(f);
       c = Char(t);
-      tok = strtok(c,",");
+      tok = strtok(c, ",");
       while (tok) {
 	String *fname = NewString(tok);
 	Setfile(fname, Getfile(n));
 	Setline(fname, Getline(n));
 	Swig_fragment_emit(fname);
 	Delete(fname);
-	tok = strtok(NULL,",");
+	tok = strtok(NULL, ",");
       }
       Delete(t);
     }
   }
 
   /* Emit wrapper code (if any) */
-  wrap = Getattr(n,"wrap:code");
-  if (wrap && Swig_filebyname("header")!=Getattr(n,"wrap:code:done") ) {
+  wrap = Getattr(n, "wrap:code");
+  if (wrap && Swig_filebyname("header") != Getattr(n, "wrap:code:done")) {
     File *f_code = Swig_filebyname("header");
     if (f_code) {
-      Printv(f_code,wrap,NIL);
+      Printv(f_code, wrap, NIL);
     }
-    Setattr(n,"wrap:code:done",f_code);
+    Setattr(n, "wrap:code:done", f_code);
   }
-  action = Getattr(n,"feature:action");
+  action = Getattr(n, "feature:action");
   if (!action)
-    action = Getattr(n,"wrap:action");
+    action = Getattr(n, "wrap:action");
   assert(action != 0);
 
   if (!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) {
     /* In order to call protected virtual director methods from the target language, we need
      * to add an extra dynamic_cast to call the public C++ wrapper in the director class. */
-    Node* parent = Getattr(n,"parentNode");
-    String* symname = Getattr(parent, "sym:name");
-    String* dirname = NewStringf("SwigDirector_%s", symname);
-    String* dirdecl = NewStringf("%s *darg = 0", dirname);    
+    Node *parent = Getattr(n, "parentNode");
+    String *symname = Getattr(parent, "sym:name");
+    String *dirname = NewStringf("SwigDirector_%s", symname);
+    String *dirdecl = NewStringf("%s *darg = 0", dirname);
     Wrapper_add_local(f, "darg", dirdecl);
-    Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n",dirname); 
+    Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
     Delete(dirdecl);
   }
 
   /* Get the return type */
 
-  rt = Getattr(n,"type");
+  rt = Getattr(n, "type");
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
     /* Preassertion */
     tm = Getattr(n, "contract:preassert");
     if (Len(tm)) {
-      Printv(f->code,tm,"\n",NIL);
+      Printv(f->code, tm, "\n", NIL);
     }
   }
   /* Exception handling code */
 
   /* saves action -> eaction for postcatching exception */
   String *eaction = NewString("");
-  
+
   /* If we are in C++ mode and there is an exception specification. We're going to
      enclose the block in a try block */
   if (catchlist) {
-    Printf(eaction,"try {\n");
+    Printf(eaction, "try {\n");
   }
 
   Printv(eaction, action, NIL);
 
   if (catchlist) {
     int unknown_catch = 0;
-    Printf(eaction,"}\n");
+    Printf(eaction, "}\n");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
-      String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
+      String *em = Swig_typemap_lookup_new("throws", ep, "_e", 0);
       if (em) {
-        SwigType *et = Getattr(ep,"type");
-        SwigType *etr = SwigType_typedef_resolve_all(et);
-        if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-          Printf(eaction,"catch(%s) {", SwigType_str(et, "_e"));
-        } else if (SwigType_isvarargs(etr)) {
-	  Printf(eaction,"catch(...) {");
+	SwigType *et = Getattr(ep, "type");
+	SwigType *etr = SwigType_typedef_resolve_all(et);
+	if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
+	  Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+	} else if (SwigType_isvarargs(etr)) {
+	  Printf(eaction, "catch(...) {");
 	} else {
-	  Printf(eaction,"catch(%s) {", SwigType_str(et, "&_e"));
-        }
-	Printv(eaction,em,"\n",NIL);
-	Printf(eaction,"}\n");
+	  Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+	}
+	Printv(eaction, em, "\n", NIL);
+	Printf(eaction, "}\n");
       } else {
-	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
-		     "No 'throws' typemap defined for exception type '%s'\n", 
-		     SwigType_str(Getattr(ep,"type"),0));
+	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
 	unknown_catch = 1;
       }
     }
     if (unknown_catch) {
-      Printf(eaction,"catch(...) { throw; }\n");
+      Printf(eaction, "catch(...) { throw; }\n");
     }
   }
 
   /* Look for except typemap (Deprecated) */
-  tm = Swig_typemap_lookup_new("except",n,"result",0);
+  tm = Swig_typemap_lookup_new("except", n, "result", 0);
   if (tm) {
-    Setattr(n,"feature:except", tm);
+    Setattr(n, "feature:except", tm);
     tm = 0;
   }
-  
+
   /* emit the except feature code */
   emit_action_code(n, f, eaction);
-  
+
   Delete(eaction);
 
   /* Emit contract code (if any) */
@@ -478,10 +479,8 @@ void emit_action(Node *n, Wrapper *f) {
     /* Postassertion */
     tm = Getattr(n, "contract:postassert");
     if (Len(tm)) {
-      Printv(f->code,tm,"\n",NIL);
+      Printv(f->code, tm, "\n", NIL);
     }
   }
 
 }
-
-

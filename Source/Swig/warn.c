@@ -20,21 +20,15 @@ static Hash *warnings = 0;
  * Issue a warning
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_warn(const char *filename, int line, const char *msg) {
+void Swig_warn(const char *filename, int line, const char *msg) {
   String *key;
   if (!warnings) {
     warnings = NewHash();
   }
-  key = NewStringf("%s:%d", filename,line);
-  if (!Getattr(warnings,key)) {
-    Printf(stderr,"swig-dev warning:%s:%d:%s\n", filename, line, msg);
-    Setattr(warnings,key,key);
+  key = NewStringf("%s:%d", filename, line);
+  if (!Getattr(warnings, key)) {
+    Printf(stderr, "swig-dev warning:%s:%d:%s\n", filename, line, msg);
+    Setattr(warnings, key, key);
   }
   Delete(key);
 }
-
-	
-		
-
-

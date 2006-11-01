@@ -165,11 +165,11 @@ typedef void DOH;
 /* Iterator objects */
 
 typedef struct {
-  void   *key;             /* Current key (if any)       */
-  void   *item;            /* Current item               */
-  void   *object;          /* Object being iterated over */
-  void   *_current;        /* Internal use */
-  int    _index;           /* Internal use */
+  void *key;			/* Current key (if any)       */
+  void *item;			/* Current item               */
+  void *object;			/* Object being iterated over */
+  void *_current;		/* Internal use */
+  int _index;			/* Internal use */
 } DohIterator;
 
 /* Memory management */
@@ -184,77 +184,77 @@ typedef struct {
 #define DohFree free
 #endif
 
-extern int           DohCheck(const DOH *ptr);           /* Check if a DOH object */
-extern void          DohIntern(DOH *);                   /* Intern an object      */
+extern int DohCheck(const DOH *ptr);	/* Check if a DOH object */
+extern void DohIntern(DOH *);	/* Intern an object      */
 
 /* Basic object methods.  Common to most objects */
 
-extern void          DohDelete(DOH *obj);                /* Delete an object      */
-extern DOH          *DohCopy(const DOH *obj);
-extern void          DohClear(DOH *obj);
-extern DOHString    *DohStr(const DOH *obj);
-extern void         *DohData(const DOH *obj);
-extern int           DohDump(const DOH *obj, DOHFile *out);
-extern int           DohLen(const DOH *obj);
-extern int           DohHashval(const DOH *obj);
-extern int           DohCmp(const DOH *obj1, const DOH *obj2);
-extern int           DohEqual(const DOH *obj1, const DOH *obj2);
-extern void          DohIncref(DOH *obj);
+extern void DohDelete(DOH *obj);	/* Delete an object      */
+extern DOH *DohCopy(const DOH *obj);
+extern void DohClear(DOH *obj);
+extern DOHString *DohStr(const DOH *obj);
+extern void *DohData(const DOH *obj);
+extern int DohDump(const DOH *obj, DOHFile * out);
+extern int DohLen(const DOH *obj);
+extern int DohHashval(const DOH *obj);
+extern int DohCmp(const DOH *obj1, const DOH *obj2);
+extern int DohEqual(const DOH *obj1, const DOH *obj2);
+extern void DohIncref(DOH *obj);
 
 /* Mapping methods */
 
-extern DOH          *DohGetattr(DOH *obj, const DOHString_or_char *name);
-extern int           DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char *value);
-extern int           DohDelattr(DOH *obj, const DOHString_or_char *name);
-extern DOH          *DohKeys(DOH *obj);
-extern int           DohGetInt(DOH *obj, const DOHString_or_char *name);
-extern void          DohSetInt(DOH *obj, const DOHString_or_char *name, int);
-extern double        DohGetDouble(DOH *obj, const DOHString_or_char *name);
-extern void          DohSetDouble(DOH *obj, const DOHString_or_char *name, double);
-extern char         *DohGetChar(DOH *obj, const DOHString_or_char *name);
-extern void          DohSetChar(DOH *obj, const DOH *name, char *value);
-extern void         *DohGetFlagAttr(DOH *obj, const DOHString_or_char *name);
-extern int           DohGetFlag(DOH *obj, const DOHString_or_char *name);
-extern void          DohSetFlagAttr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *attr);
-extern void          DohSetFlag(DOH *obj, const DOHString_or_char *name);
-extern void         *DohGetVoid(DOH *obj, const DOHString_or_char *name);
-extern void          DohSetVoid(DOH *obj, const DOHString_or_char *name, void *value);
+extern DOH *DohGetattr(DOH *obj, const DOHString_or_char *name);
+extern int DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char * value);
+extern int DohDelattr(DOH *obj, const DOHString_or_char *name);
+extern DOH *DohKeys(DOH *obj);
+extern int DohGetInt(DOH *obj, const DOHString_or_char *name);
+extern void DohSetInt(DOH *obj, const DOHString_or_char *name, int);
+extern double DohGetDouble(DOH *obj, const DOHString_or_char *name);
+extern void DohSetDouble(DOH *obj, const DOHString_or_char *name, double);
+extern char *DohGetChar(DOH *obj, const DOHString_or_char *name);
+extern void DohSetChar(DOH *obj, const DOH *name, char *value);
+extern void *DohGetFlagAttr(DOH *obj, const DOHString_or_char *name);
+extern int DohGetFlag(DOH *obj, const DOHString_or_char *name);
+extern void DohSetFlagAttr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *attr);
+extern void DohSetFlag(DOH *obj, const DOHString_or_char *name);
+extern void *DohGetVoid(DOH *obj, const DOHString_or_char *name);
+extern void DohSetVoid(DOH *obj, const DOHString_or_char *name, void *value);
 
 /* Sequence methods */
 
-extern DOH          *DohGetitem(DOH *obj, int index);
-extern int           DohSetitem(DOH *obj, int index, const DOHObj_or_char *value);
-extern int           DohDelitem(DOH *obj, int index);
-extern int           DohInsertitem(DOH *obj, int index, const DOHObj_or_char *value);
-extern int           DohDelslice(DOH *obj, int sindex, int eindex);
+extern DOH *DohGetitem(DOH *obj, int index);
+extern int DohSetitem(DOH *obj, int index, const DOHObj_or_char * value);
+extern int DohDelitem(DOH *obj, int index);
+extern int DohInsertitem(DOH *obj, int index, const DOHObj_or_char * value);
+extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int           DohWrite(DOHFile *obj, void *buffer, int length);
-extern int           DohRead(DOHFile *obj, void *buffer, int length);
-extern int           DohSeek(DOHFile *obj, long offset, int whence);
-extern long          DohTell(DOHFile *obj);
-extern int           DohGetc(DOHFile *obj);
-extern int           DohPutc(int ch, DOHFile *obj);
-extern int           DohUngetc(int ch, DOHFile *obj);
+extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohRead(DOHFile * obj, void *buffer, int length);
+extern int DohSeek(DOHFile * obj, long offset, int whence);
+extern long DohTell(DOHFile * obj);
+extern int DohGetc(DOHFile * obj);
+extern int DohPutc(int ch, DOHFile * obj);
+extern int DohUngetc(int ch, DOHFile * obj);
 
 
 
 /* Iterators */
-extern DohIterator   DohFirst(DOH *obj);
-extern DohIterator   DohNext(DohIterator x);
+extern DohIterator DohFirst(DOH *obj);
+extern DohIterator DohNext(DohIterator x);
 
 /* Positional */
 
-extern int           DohGetline(DOH *obj);
-extern void          DohSetline(DOH *obj, int line);
-extern DOH          *DohGetfile(DOH *obj);
-extern void          DohSetfile(DOH *obj, DOH *file);
+extern int DohGetline(DOH *obj);
+extern void DohSetline(DOH *obj, int line);
+extern DOH *DohGetfile(DOH *obj);
+extern void DohSetfile(DOH *obj, DOH *file);
 
   /* String Methods */
 
-extern int           DohReplace(DOHString *src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
-extern void          DohChop(DOHString *src);
+extern int DohReplace(DOHString * src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
+extern void DohChop(DOHString * src);
 
 extern int DohString_putc(DOH *so, int ch);
 extern int DohString_getc(DOH *so);
@@ -274,39 +274,39 @@ extern int DohString_delslice(DOH *so, int sindex, int eindex);
 #define DohStringEqual(s1,s2)   DohString_equal((DOH *)s1, (DOH *)s2)
 
 /* Meta-variables */
-extern DOH          *DohGetmeta(DOH *, const DOH *);
-extern int           DohSetmeta(DOH *, const DOH *, const DOH *value);
-extern int           DohDelmeta(DOH *, const DOH *);
+extern DOH *DohGetmeta(DOH *, const DOH *);
+extern int DohSetmeta(DOH *, const DOH *, const DOH *value);
+extern int DohDelmeta(DOH *, const DOH *);
 
   /* Utility functions */
 
-extern void          DohEncoding(char *name, DOH *(*fn)(DOH *s));
-extern int           DohPrintf(DOHFile *obj, const char *format, ...);
-extern int           DohvPrintf(DOHFile *obj, const char *format, va_list ap);
-extern int           DohPrintv(DOHFile *obj, ...);
-extern DOH          *DohReadline(DOHFile *in);
+extern void DohEncoding(char *name, DOH *(*fn) (DOH *s));
+extern int DohPrintf(DOHFile * obj, const char *format, ...);
+extern int DohvPrintf(DOHFile * obj, const char *format, va_list ap);
+extern int DohPrintv(DOHFile * obj, ...);
+extern DOH *DohReadline(DOHFile * in);
 
   /* Miscellaneous */
 
-extern int           DohIsMapping(const DOH *obj);
-extern int           DohIsSequence(const DOH *obj);
-extern int           DohIsString(const DOH *obj);
-extern int           DohIsFile(const DOH *obj);
+extern int DohIsMapping(const DOH *obj);
+extern int DohIsSequence(const DOH *obj);
+extern int DohIsString(const DOH *obj);
+extern int DohIsFile(const DOH *obj);
 
-extern void          DohSetmark(DOH *obj, int x);
-extern int           DohGetmark(DOH *obj);
+extern void DohSetmark(DOH *obj, int x);
+extern int DohGetmark(DOH *obj);
 
 /* -----------------------------------------------------------------------------
  * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOHString    *DohNewStringEmpty();
-extern DOHString    *DohNewString(const DOH *c);
-extern DOHString    *DohNewStringWithSize(const DOH *c, int len);
-extern DOHString    *DohNewStringf(const DOH *fmt, ...);
+extern DOHString *DohNewStringEmpty();
+extern DOHString *DohNewString(const DOH *c);
+extern DOHString *DohNewStringWithSize(const DOH *c, int len);
+extern DOHString *DohNewStringf(const DOH *fmt, ...);
 
-extern int   DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
-extern int   DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);
+extern int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
+extern int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);
 extern char *DohStrstr(const DOHString_or_char *s1, const DOHString_or_char *s2);
 extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 
@@ -329,36 +329,36 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 extern DOHFile *DohNewFile(DOH *file, const char *mode);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
-extern void     DohFileErrorDisplay(DOHString *filename);
-extern int      DohClose(DOH *file);
-extern int      DohCopyto(DOHFile *input, DOHFile *output);
+extern void DohFileErrorDisplay(DOHString * filename);
+extern int DohClose(DOH *file);
+extern int DohCopyto(DOHFile * input, DOHFile * output);
 
 
 /* -----------------------------------------------------------------------------
  * List
  * ----------------------------------------------------------------------------- */
 
-extern DOHList  *DohNewList();
-extern void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *));
+extern DOHList *DohNewList();
+extern void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
  * ----------------------------------------------------------------------------- */
 
-extern DOHHash   *DohNewHash();
-extern DOH       *DohHashGetAttr(DOH *hash, const DOH *key);
-extern int       DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
+extern DOHHash *DohNewHash();
+extern DOH *DohHashGetAttr(DOH *hash, const DOH *key);
+extern int DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
 
 /* -----------------------------------------------------------------------------
  * Void
  * ----------------------------------------------------------------------------- */
 
-extern DOHVoid  *DohNewVoid(void *ptr, void (*del)(void *));
-extern DOHList  *DohSplit(DOHFile *input, char ch, int nsplits);
-extern DOHList  *DohSplitLines(DOHFile *input);
-extern DOH      *DohNone;
+extern DOHVoid *DohNewVoid(void *ptr, void (*del) (void *));
+extern DOHList *DohSplit(DOHFile * input, char ch, int nsplits);
+extern DOHList *DohSplitLines(DOHFile * input);
+extern DOH *DohNone;
 
-extern void      DohMemoryDebug(void);
+extern void DohMemoryDebug(void);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
@@ -468,8 +468,4 @@ extern void      DohMemoryDebug(void);
 #define NIL  (char *) NULL
 
 
-#endif /* DOH_H */
-
-
-
-
+#endif				/* DOH_H */
