@@ -3,6 +3,12 @@
 // This produced compileable code for Tcl, Python in 1.3.27, fails in 1.3.29
 
 %{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+%}
+
+%{
 class myException
 {
    public:
