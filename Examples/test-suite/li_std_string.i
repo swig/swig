@@ -134,7 +134,7 @@ public:
   }
 
   char *c_empty() {
-    return "";
+    return (char *)"";
   }
 
   char *c_null() {
