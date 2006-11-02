@@ -51,7 +51,7 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
 %inline {
   class FFoo {
   public:
-    char * Bar(bool b) const { return "x"; }
+    char * Bar(bool b) const { return (char *)"x"; }
   };
 }
 
