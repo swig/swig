@@ -1491,7 +1491,7 @@ public:
 
     if (GetFlag(attributes, "tmap:csbase:replace")) {
       wanted_base = pure_baseclass;
-      derived = *Char(wanted_base);
+      derived = *Char(wanted_base) ? true : false;
       Delete(baseclass);
       baseclass = NULL;
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
