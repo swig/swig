@@ -203,7 +203,7 @@ Ruby
 
 ***    Add support for keyword arguments (by collecting them in a hash?).
 
-*      Add some special directives to automatically rename declarations to
+DONE   Add some special directives to automatically rename declarations to
        or from CamelCase.
 
 Java
@@ -218,6 +218,10 @@ DONE   Implement director support for C# so that virtual methods work seemlessly
 
 PHP
 ---
+
+****   Look at moving to using the UTL.
+
+***    Director support.
 
 **     When returning wrapped objects via alternate constructors if that
        pointer value already exists "out there" as a resource we should
@@ -234,7 +238,7 @@ PHP
        Make sometype& and sometype* to be autoallocated IF THEY ARE NOT
        ALREADY swigtype wrapped.
 
-*      Overloading, callbacks, really review to see what else is missed
+*      Review to see what else is missing!
 
 Guile
 -----
