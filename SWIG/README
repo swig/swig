@@ -97,7 +97,7 @@ SWIG-1.3.30 summary:
 - Improved mingw/msys support
 - Better constants support in Guile and chicken modules
 - Minor improvements/fixes in cffi, php, allegrocl, perl, chicken, lua, ruby,
-  ocaml, python, java, c# language modules, guile
+  ocaml, python, java, c# and guile language modules
 - Many many other bug fixes
 
 SWIG-1.3.29 summary:
