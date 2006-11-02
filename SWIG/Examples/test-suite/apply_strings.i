@@ -47,7 +47,6 @@ typedef unsigned char TAscii;
 typedef struct {
    TAscii DigitsMemberA[20];
    TAscii *DigitsMemberB;
-   TAscii DigitsMemberC[];
 } TNumber;
  
 TAscii DigitsGlobalA[20];
