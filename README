@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.29 (March 21, 2006)
+Version: 1.3.30rc1 (November 1, 2006)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
@@ -90,8 +90,15 @@ What's New?
 ===========
 
 SWIG-1.3.30 summary:
-- Add feature:constasvar to guile and chicken modules, to export constants
-  as variables instead of functions that return the constant value.
+- Python-2.5 support
+- New language module: R
+- Director support added for C#
+- Numerous director fixes and improvements
+- Improved mingw/msys support
+- Better constants support in Guile and chicken modules
+- Minor improvements/fixes in cffi, php, allegrocl, perl, chicken, lua, ruby,
+  ocaml, python, java, c# language modules, guile
+- Many many other bug fixes
 
 SWIG-1.3.29 summary:
 - Numerous important bug fixes
