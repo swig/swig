@@ -444,8 +444,8 @@ protected:
   
   // Store a copy of the command line. 
   // Need only keep a string that has it formatted. 
-  char **argv;
-  int    argc;
+  char **Argv;
+  int    Argc;
   bool inCPlusMode;
   
   // State variables that we remember from the command line settings
@@ -2883,8 +2883,8 @@ void R::main(int argc, char *argv[]) {
   outputNamespaceInfo = false;
   noInitializationCode = false;
 
-  this->argc = argc;
-  this->argv = argv;
+  this->Argc = argc;
+  this->Argv = argv;
 
   allow_overloading();// can we support this?    
 
@@ -2955,16 +2955,16 @@ void R::main(int argc, char *argv[]) {
 */
 int R::outputCommandLineArguments(File *out)
 {
-  if(argc < 1 || !argv || !argv[0])
+  if(Argc < 1 || !Argv || !Argv[0])
     return(-1);
 
   Printf(out, "##   Generated via the command line invocation:\n##\t");
-  for(int i = 0; i < argc ; i++) {
-    Printf(out, " %s", argv[i]);
+  for(int i = 0; i < Argc ; i++) {
+    Printf(out, " %s", Argv[i]);
   }
   Printf(out, "\n\n\n");
 
-  return argc;
+  return Argc;
 }
 
 
