@@ -96,7 +96,8 @@ class string;
     return $null;
    }
    /* possible thread/reentrant code problem */
-   static std::string $1_str($input);
+   static std::string $1_str;
+   $1_str = $input;
    $result = &$1_str; %}
 
 %typemap(directorin) const string & %{ $input = SWIG_csharp_string_callback($1.c_str()); %}

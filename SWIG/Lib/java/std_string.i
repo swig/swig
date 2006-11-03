@@ -93,7 +93,8 @@ class string;
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
    /* possible thread/reentrant code problem */
-   static std::string $1_str($1_pstr);
+   static std::string $1_str;
+   $1_str = $1_pstr;
    $result = &$1_str;
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
