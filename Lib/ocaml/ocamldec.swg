@@ -75,6 +75,34 @@ SWIGEXT {
                                                  /* Also an l-value. */
 #endif
 
+#ifdef CAMLreturn0
+#undef CAMLreturn0
+#endif
+#define CAMLreturn0 do{ \
+  caml_local_roots = caml__frame; \
+  return; \
+}while (0)
+
+#ifdef CAMLreturn
+#undef CAMLreturn
+#endif
+#define CAMLreturn(result) do{ \
+  caml_value_t caml__temp_result = (result); \
+  caml_local_roots = caml__frame; \
+  return (caml__temp_result); \
+}while(0)
+
+#define CAMLreturn_type(result) do{ \
+  caml_local_roots = caml__frame; \
+  return result; \
+}while(0)
+
+#ifdef CAMLnoreturn
+#undef CAMLnoreturn
+#endif
+#define CAMLnoreturn ((void) caml__frame)
+
+
 #ifndef ARCH_ALIGN_INT64
 #define SWIG_Int64_val(v) (*((int64 *) SWIG_Data_custom_val(v)))
 #else

@@ -429,15 +429,15 @@ extern "C" {
 	case C_short:
 	case C_ushort:
 	case C_int:
-	    CAMLreturn(Int_val(SWIG_Field(v,0)));
+	    CAMLreturn_type(Int_val(SWIG_Field(v,0)));
 	case C_uint:
 	case C_int32:
-	    CAMLreturn(Int32_val(SWIG_Field(v,0)));
+	    CAMLreturn_type(Int32_val(SWIG_Field(v,0)));
 	case C_int64:
-	    CAMLreturn(SWIG_Int64_val(SWIG_Field(v,0)));
+	    CAMLreturn_type(SWIG_Int64_val(SWIG_Field(v,0)));
 	case C_float:
 	case C_double:
-	    CAMLreturn(Double_val(SWIG_Field(v,0)));
+	    CAMLreturn_type(Double_val(SWIG_Field(v,0)));
 	default:
 	    fprintf( stderr, "Unknown block tag %d\n", SWIG_Tag_val(v) );
 	    failwith("No conversion to double");
@@ -487,13 +487,13 @@ extern "C" {
     }
 
     SWIGSTATIC void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor ) {
-	CAMLparam0();
+        CAMLparam0();
 #ifdef TYPE_CAST_VERBOSE
 	caml_print_val( v );
 #endif
 	void *out = NULL;
 	if( !caml_ptr_val_internal( v, &out, descriptor ) )
-	    CAMLreturn(out);
+	    CAMLreturn_type(out);
 	else
 	    failwith( "No appropriate conversion found." );
     }

@@ -1680,9 +1680,9 @@ public:
 	 * always essentially work.
 	 */
 	if (!SwigType_isreference(return_type)) {
-	  Printf(w->code, "CAMLreturn((%s)c_result);\n", SwigType_lstr(return_type, ""));
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(return_type, ""));
 	} else {
-	  Printf(w->code, "CAMLreturn(*c_result);\n");
+	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}
       }
     }
