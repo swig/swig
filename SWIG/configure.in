@@ -1217,58 +1217,68 @@ else
 
 AC_MSG_CHECKING(for Ocaml DL load generator)
 if test -z "$OCAMLDLGEN"; then
-AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, ocamldlgen)
+AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
 else
 OCAMLDLGEN="$OCAMLDLGEN"
 fi
 
 AC_MSG_CHECKING(for Ocaml package tool)
 if test -z "$OCAMLFIND"; then
-AC_CHECK_PROGS(OCAMLFIND, ocamlfind, ocamlfind)
+AC_CHECK_PROGS(OCAMLFIND, ocamlfind, :)
 else
 OCAMLFIND="$OCAMLFIND"
 fi
 
 AC_MSG_CHECKING(for Ocaml compiler)
 if test -z "$OCAMLC"; then
-AC_CHECK_PROGS(OCAMLC, ocamlc, ocamlc)
+AC_CHECK_PROGS(OCAMLC, ocamlc, :)
 else
 OCAMLC="$OCAMLC"
 fi
 
 AC_MSG_CHECKING(for Ocaml interpreter)
 if test "x$OCAMLBIN" = xyes; then
-AC_CHECK_PROGS(OCAMLBIN, ocaml, ocaml)
+AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
 else
 OCAMLBIN="$OCAMLBIN"
 fi
 
 AC_MSG_CHECKING(for Ocaml toplevel creator)
 if test -z "$OCAMLMKTOP"; then
-AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, ocamlmktop)
+AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
 else
 OCAMLMKTOP="$OCAMLMKTOP"
 fi
 
-AC_MSG_CHECKING(for Ocaml header files)
-dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
-dir="`$OCAMLC -where 2>/dev/null`"
-if test "$dir"; then
-	dirs="$dir/caml $dirs"
-fi
-for i in $dirs; do
-	if test -r $i/mlvalues.h; then
-		AC_MSG_RESULT($i)
-		OCAMLEXT="$i"
-		OCAMLINC="-I$OCAMLEXT"
-		break;
+OCAMLLOC=loc
+if test "$OCAMLC" != ":" ; then
+	AC_MSG_CHECKING(for Ocaml header files)
+	dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
+	dir="`$OCAMLC -where 2>/dev/null`"
+	if test "$dir"; then
+		dirs="$dir/caml $dirs"
 	fi
-done
-if test -z "$OCAMLINC"; then
-	AC_MSG_RESULT(not found)
-fi
-fi
+	for i in $dirs; do
+		if test -r $i/mlvalues.h; then
+			AC_MSG_RESULT($i)
+			OCAMLEXT="$i"
+			OCAMLINC="-I$OCAMLEXT"
+			break;
+		fi
+	done
+	if test -z "$OCAMLINC"; then
+		AC_MSG_RESULT(not found)
+	fi
 
+	AC_MSG_CHECKING(for Ocaml version 3.08.2 or higher)
+	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
+	AC_COMPARE_VERSION([$OCAMLVER],[3.08.2],[:],[:],[OCAMLLOC=_loc])
+	AC_MSG_RESULT($OCAMLVER)
+fi
+fi # Disabling ocaml
+
+export OCAMLLOC
+export OCAMLVER
 export OCAMLINC
 export OCAMLBIN
 export OCAMLC
@@ -1276,6 +1286,8 @@ export OCAMLDLGEN
 export OCAMLFIND
 export OCAMLMKTOP
 
+AC_SUBST(OCAMLLOC)
+AC_SUBST(OCAMLVER)
 AC_SUBST(OCAMLINC)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
@@ -1965,7 +1977,8 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/clisp/Makefile		\
     Examples/test-suite/cffi/Makefile		\
     Examples/test-suite/uffi/Makefile		\
-    Examples/test-suite/r/Makefile
+    Examples/test-suite/r/Makefile		\
+    Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT

@@ -40,7 +40,7 @@ namespace Swig {
   /* attempt to call a pure virtual method via a director method */
   class DirectorPureVirtualException : public Swig::DirectorException {
     public:
-      DirectorTypeMismatchException(const char* msg="") {
+      DirectorPureVirtualException(const char* msg="") {
       }
 
       static void raise(const char *msg) {
