@@ -1,4 +1,4 @@
-%module minherit
+%module minherit2
 
 // A multiple inheritance example, mainly for Java and C#.
 // The example shows how it is possible to turn C++ abstract base classes into Java/C# interface.
