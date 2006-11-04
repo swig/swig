@@ -23,6 +23,7 @@ typedef enum {
   SWIG_CSharpArithmeticException,
   SWIG_CSharpDivideByZeroException,
   SWIG_CSharpIndexOutOfRangeException,
+  SWIG_CSharpInvalidCastException,
   SWIG_CSharpInvalidOperationException,
   SWIG_CSharpIOException,
   SWIG_CSharpNullReferenceException,
@@ -55,6 +56,7 @@ static SWIG_CSharpException_t SWIG_csharp_exceptions[] = {
   { SWIG_CSharpArithmeticException, NULL },
   { SWIG_CSharpDivideByZeroException, NULL },
   { SWIG_CSharpIndexOutOfRangeException, NULL },
+  { SWIG_CSharpInvalidCastException, NULL },
   { SWIG_CSharpInvalidOperationException, NULL },
   { SWIG_CSharpIOException, NULL },
   { SWIG_CSharpNullReferenceException, NULL },
@@ -95,6 +97,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
                                                 SWIG_CSharpExceptionCallback_t arithmeticCallback,
                                                 SWIG_CSharpExceptionCallback_t divideByZeroCallback, 
                                                 SWIG_CSharpExceptionCallback_t indexOutOfRangeCallback, 
+                                                SWIG_CSharpExceptionCallback_t invalidCastCallback,
                                                 SWIG_CSharpExceptionCallback_t invalidOperationCallback,
                                                 SWIG_CSharpExceptionCallback_t ioCallback,
                                                 SWIG_CSharpExceptionCallback_t nullReferenceCallback,
@@ -105,6 +108,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
   SWIG_csharp_exceptions[SWIG_CSharpArithmeticException].callback = arithmeticCallback;
   SWIG_csharp_exceptions[SWIG_CSharpDivideByZeroException].callback = divideByZeroCallback;
   SWIG_csharp_exceptions[SWIG_CSharpIndexOutOfRangeException].callback = indexOutOfRangeCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpInvalidCastException].callback = invalidCastCallback;
   SWIG_csharp_exceptions[SWIG_CSharpInvalidOperationException].callback = invalidOperationCallback;
   SWIG_csharp_exceptions[SWIG_CSharpIOException].callback = ioCallback;
   SWIG_csharp_exceptions[SWIG_CSharpNullReferenceException].callback = nullReferenceCallback;
@@ -136,6 +140,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
     static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
     static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
+    static ExceptionDelegate invalidCastDelegate = new ExceptionDelegate(SetPendingInvalidCastException);
     static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
     static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
     static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
@@ -153,6 +158,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 ExceptionDelegate arithmeticDelegate,
                                 ExceptionDelegate divideByZeroDelegate, 
                                 ExceptionDelegate indexOutOfRangeDelegate, 
+                                ExceptionDelegate invalidCastDelegate,
                                 ExceptionDelegate invalidOperationDelegate,
                                 ExceptionDelegate ioDelegate,
                                 ExceptionDelegate nullReferenceDelegate,
@@ -177,6 +183,9 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     }
     static void SetPendingIndexOutOfRangeException(string message) {
       SWIGPendingException.Set(new System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
+    }
+    static void SetPendingInvalidCastException(string message) {
+      SWIGPendingException.Set(new System.InvalidCastException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingInvalidOperationException(string message) {
       SWIGPendingException.Set(new System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
@@ -217,6 +226,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 arithmeticDelegate,
                                 divideByZeroDelegate,
                                 indexOutOfRangeDelegate,
+                                invalidCastDelegate,
                                 invalidOperationDelegate,
                                 ioDelegate,
                                 nullReferenceDelegate,
