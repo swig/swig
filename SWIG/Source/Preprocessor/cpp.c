@@ -1588,7 +1588,7 @@ String *Preprocessor_parse(String *s) {
 	  char *dirname;
 	  int sysfile = 0;
 	  if (include_all && import_all) {
-	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall");
+	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall\n");
 	    import_all = 0;
 	  }
 	  Seek(value, 0, SEEK_SET);
