@@ -1,6 +1,12 @@
 Version 1.3.30 (in progress)
 ===========================
 
+11/07/2006: mutandiz
+	    [allegrocl] 
+	    allegrocl.swg: swig-defvar updated to allow specifying of
+	    		   non-default foreign type (via :ftype keyword arg).
+	    allegrocl.cxx: Specify proper access type for enum values.
+
 11/03/2006: wsfulton
             [Java/C#] Fix const std::string& return types for directors as reported by
             Mark Donselzmann

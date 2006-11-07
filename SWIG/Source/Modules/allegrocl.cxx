@@ -1353,9 +1353,9 @@ void emit_enum_type(Node *n) {
 
     // walk children.
     Node *c;
-    for (c = firstChild(n); c; c = nextSibling(c)) {
-      String *mangled_name = mangle_name(c, "ACL_ENUM", Getattr(c, "allegrocl:package"));
-      Printf(f_clhead, "(swig-defvar \"%s\" \"%s\" :type :constant)\n", Getattr(c, "sym:name"), mangled_name);
+    for(c = firstChild(n); c; c=nextSibling(c)) {
+      String *mangled_name = mangle_name(c, "ACL_ENUM", Getattr(c,"allegrocl:package"));
+      Printf(f_clhead, "(swig-defvar \"%s\" \"%s\" :type :constant :ftype :signed-long)\n", Getattr(c, "sym:name"), mangled_name);
       Delete(mangled_name);
     }
   }
@@ -2129,6 +2129,7 @@ IDargs *id_converter_arguments(Node *n) {
     result->arity = NewStringf("%d",
 			       // emit_num_arguments(Getattr(n, "wrap:parms")));
 			       emit_num_lin_arguments(Getattr(n, "wrap:parms")));
+    Printf(stderr, "got arity of '%s' node '%s' '%x'\n", result->arity, Getattr(n,"name"), Getattr(n,"wrap:parms"));
   }
 
   SetVoid(n, "allegrocl:id-converter-args", result);
