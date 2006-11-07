@@ -504,10 +504,10 @@ $body)"
   `(cl::eval-when (compile load eval)
     (cl::in-package ,(package-name-for-namespace namespace))))
 
-(defswig2 swig-defvar (name mangled-name &key type)
+(defswig2 swig-defvar (name mangled-name &key type (ftype :unsigned-natural))
   (cl::let ((symbol (id-convert-and-export name :type type)))
     `(cl::eval-when (compile load eval)
-      (ff:def-foreign-variable (,symbol ,mangled-name)))))
+      (ff:def-foreign-variable (,symbol ,mangled-name) :type ,ftype))))
 
 ) ;; eval-when
 
