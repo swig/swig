@@ -824,11 +824,11 @@ Now we extend it with some new code
 <div class="code"><pre>%extend Complex {
    const char *__str__() {
        static char tmp[1024];
-       sprintf(tmp,"Complex(%g,%g)", self-&gt;re(),self-&gt;im());
+       sprintf(tmp,"Complex(%g,%g)", $self-&gt;re(),$self-&gt;im());
        return tmp;
    }
    bool operator==(const Complex&amp; c)
-   {    return (self-&gt;re()==c.re() &amp;&amp; self-&gt;im()==c.im();}
+   {    return ($self-&gt;re()==c.re() &amp;&amp; $self-&gt;im()==c.im();}
 };
 </pre></div>
 <p>
@@ -846,7 +846,7 @@ true
 true
 </pre></div>
 <p>
-Extend works with both C and C++ code, on classes and structs. It does not modify the underlying object in any way---the extensions only show up in the Lua interface. The only item to take note of is the code has to use the 'self' instead of 'this', and that you cannot access protected/private members of the code (as you are not officially part of the class).
+Extend works with both C and C++ code, on classes and structs. It does not modify the underlying object in any way---the extensions only show up in the Lua interface. The only item to take note of is the code has to use the '$self' instead of 'this', and that you cannot access protected/private members of the code (as you are not officially part of the class).
 </p>
 <H3><a name="Lua_nn20"></a>22.3.13 C++ templates</H3>
 

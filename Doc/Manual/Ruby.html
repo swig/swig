@@ -989,7 +989,7 @@ $ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/
 		  to add a new method of the aliased name that calls the original function. For 
 		  example: </p>
 		<div class="code">
-          <pre>class MyArray {<br>public:<br> // Construct an empty array<br> MyArray();<br> <br> // Return the size of this array<br> size_t length() const;<br>};<br><br>%extend MyArray {<br> // MyArray#size is an alias for MyArray#length<br> size_t size() const {<br> return self-&gt;length();<br> }<br>}
+          <pre>class MyArray {<br>public:<br> // Construct an empty array<br> MyArray();<br> <br> // Return the size of this array<br> size_t length() const;<br>};<br><br>%extend MyArray {<br> // MyArray#size is an alias for MyArray#length<br> size_t size() const {<br> return $self-&gt;length();<br> }<br>}
         </pre>
   </div>
 		<p> A better solution is to  use the <tt>%alias</tt> directive (unique to 

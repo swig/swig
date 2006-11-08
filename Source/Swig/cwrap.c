@@ -737,19 +737,21 @@ String *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_extension_code()
+ * extension_code()
  *
  * Generates an extension function (a function defined in %extend)
  *
  *        return_type function_name(parms) code
  *
  * ----------------------------------------------------------------------------- */
-String *Swig_extension_code(const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus) {
+static String *extension_code(const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
   String *sig = NewStringf("%s(%s)", function_name, parms_str);
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
+  if (self)
+    Replaceall(body, "$self", self);
   Delete(parms_str);
   Delete(sig);
   Delete(rt_sig);
@@ -762,11 +764,11 @@ String *Swig_extension_code(const String *function_name, ParmList *parms, SwigTy
  * Generates an extension function (a function defined in %extend) and
  * adds it to the "wrap:code" attribute of a node
  *
- * See also Swig_extension_code()
+ * See also extension_code()
  *
  * ----------------------------------------------------------------------------- */
-int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus) {
-  String *body = Swig_extension_code(function_name, parms, return_type, code, cplusplus);
+int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
+  String *body = extension_code(function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, k_wrapcode, body);
   Delete(body);
   return SWIG_OK;
@@ -790,8 +792,8 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
   }
-  /* If node is a member template expansion, we don't allow added code */
 
+  /* If node is a member template expansion, we don't allow added code */
   if (Getattr(n, k_templatetype))
     flags &= ~(CWRAP_EXTEND);
 
@@ -908,8 +910,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code && !is_smart_pointer) {
-      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus);
-
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, k_self);
     }
     if (is_smart_pointer) {
       int i = 0;
@@ -1057,7 +1058,7 @@ int Swig_ConstructorToFunction(Node *n, String *classname, String *none_comparis
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
-      Swig_add_extension_code(n, mangled, parms, type, code, cparse_cplusplus);
+      Swig_add_extension_code(n, mangled, parms, type, code, cparse_cplusplus, k_self);
     }
 
     call = Swig_cfunction_call(mangled, parms);
@@ -1170,7 +1171,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
     mangled = Swig_name_mangle(membername);
     code = Getattr(n, k_code);
     if (code) {
-      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus);
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, k_self);
     }
     call = Swig_cfunction_call(mangled, p);
     cres = NewStringf("%s;\n", call);
@@ -1256,7 +1257,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, k_code);
     if (code) {
-      Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus);
+      Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, k_self);
     }
     call = Swig_cfunction_call(mangled, parms);
     cres = NewStringf("%s;\n", call);
@@ -1332,7 +1333,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
     String *code = Getattr(n, k_code);
     if (code) {
-      Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus);
+      Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus, k_self);
     }
     call = Swig_cfunction_call(mangled, parms);
     cres = Swig_cresult(ty, k_result, call);

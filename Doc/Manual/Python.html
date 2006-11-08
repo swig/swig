@@ -3101,7 +3101,7 @@ struct Vector {
 %extend Vector {
    char *__str__() {
        static char tmp[1024];
-       sprintf(tmp,"Vector(%g,%g,%g)", self-&gt;x,self-&gt;y,self-&gt;z);
+       sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
        return tmp;
    }
    Vector(double x, double y, double z) {
@@ -3138,9 +3138,9 @@ For example, if you wanted to overload a Python operator, you might do this:
 %extend Vector {
     Vector __add__(Vector *other) {
          Vector v;
-         v.x = self-&gt;x + other-&gt;x;
-         v.y = self-&gt;y + other-&gt;y;
-         v.z = self-&gt;z + other-&gt;z;
+         v.x = $self-&gt;x + other-&gt;x;
+         v.y = $self-&gt;y + other-&gt;y;
+         v.z = $self-&gt;z + other-&gt;z;
          return v;
     }
 };
