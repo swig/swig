@@ -1276,7 +1276,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
     if (!defaultargs && code) {
       /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus);
+      Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus, 0);
     }
   }
 

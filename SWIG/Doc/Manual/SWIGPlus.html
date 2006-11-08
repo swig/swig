@@ -2734,7 +2734,7 @@ public:
 	%extend {
 		char *__str__() {
 			static char temp[256];
-			sprintf(temp,"[ %g, %g, %g ]", self-&gt;x,self-&gt;y,self-&gt;z);
+			sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
 			return &amp;temp[0];
 		}
 	}
@@ -2761,9 +2761,36 @@ command.
 </pre></div>
 
 <p>
+The C++ 'this' pointer is often needed to access member variables, methods etc.
+The <tt>$self</tt> special variable should be used wherever you could use 'this'.
+The example above demonstrates this for accessing member variables.
+The implicit 'this' pointer that is present in C++ methods is not present in <tt>%extend</tt> methods.
+In order to access anything in the extended class or its base class, an explicit 'this' is required.
+The following example shows how one could access base class members:
+</p>
+
+<div class="code"><pre>
+struct Base {
+  virtual void method(int v) {
+    ...
+  }
+  int value;
+};
+struct Derived : Base {
+};
+%extend Derived {
+  virtual void method(int v) {
+    $self-&gt;Base::method(v);
+    $self-&gt;value = v;
+    ...
+  }
+}
+</pre></div>
+
+<p>
 The<tt> %extend</tt> directive follows all of the same conventions
-as its use with C structures. Please refer to the <a href="SWIG.html#SWIG">SWIG Basics</a>
-chapter for further details.
+as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
+section for further details.
 </p>
 
 <p>
@@ -3446,7 +3473,7 @@ It is also possible to separate these declarations from the template class.  For
     }
     /* Make a copy */
     T *__copy__() {
-       return new List&lt;T&gt;(*self);
+       return new List&lt;T&gt;(*$self);
     }
 };
 
