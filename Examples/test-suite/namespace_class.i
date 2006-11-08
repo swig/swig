@@ -221,6 +221,7 @@ namespace a
     class Ola {
     public:
       Ola() {}
+      void eek() {}
     };
     
     template <class T>
@@ -234,6 +235,7 @@ namespace a
 class Ala::Ola {
 public:
   Ola() {}
+  void eek() {}
 };
 
 %template(hi) Ala::hi<int>;
