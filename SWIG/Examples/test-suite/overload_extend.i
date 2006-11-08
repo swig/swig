@@ -40,14 +40,14 @@ struct Foo {
     return new Bar();
   }
   ~Bar() {
-    if (self) delete self;
+    delete $self;
   }
 #else
   Bar() {
     return (Bar *) malloc(sizeof(Bar));
   }
   ~Bar() {
-    if (self) free(self);
+    free($self);
   }
 #endif
 }

@@ -18,7 +18,7 @@
 %extend Complex {
    char *__str__() {
        static char temp[512];
-       sprintf(temp,"(%g,%g)", self->re(), self->im());
+       sprintf(temp,"(%g,%g)", $self->re(), $self->im());
        return temp;
    }
 };

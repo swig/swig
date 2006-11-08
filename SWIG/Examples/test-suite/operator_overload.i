@@ -167,36 +167,36 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 // we need to extend the class
 // to make the friends & non members part of the class
 %extend Op{
-        Op operator &&(const Op& b){return Op(self->i&&b.i);}
-        Op operator or(const Op& b){return Op(self->i||b.i);}
+        Op operator &&(const Op& b){return Op($self->i&&b.i);}
+        Op operator or(const Op& b){return Op($self->i||b.i);}
 
-	Op operator+(const Op& b){return Op(self->i+b.i);}
-	Op operator-(const Op& b){return Op(self->i-b.i);}
-	Op operator*(const Op& b){return Op(self->i*b.i);}
-	Op operator/(const Op& b){return Op(self->i/b.i);}
-	Op operator%(const Op& b){return Op(self->i%b.i);}
+	Op operator+(const Op& b){return Op($self->i+b.i);}
+	Op operator-(const Op& b){return Op($self->i-b.i);}
+	Op operator*(const Op& b){return Op($self->i*b.i);}
+	Op operator/(const Op& b){return Op($self->i/b.i);}
+	Op operator%(const Op& b){return Op($self->i%b.i);}
 
-	bool operator==(const Op& b){return self->i==b.i;}
-	bool operator!=(const Op& b){return self->i!=b.i;}
-	bool operator< (const Op& b){return self->i<b.i;}
-	bool operator<=(const Op& b){return self->i<=b.i;}
-	bool operator> (const Op& b){return self->i>b.i;}
-	bool operator>=(const Op& b){return self->i>=b.i;}
+	bool operator==(const Op& b){return $self->i==b.i;}
+	bool operator!=(const Op& b){return $self->i!=b.i;}
+	bool operator< (const Op& b){return $self->i<b.i;}
+	bool operator<=(const Op& b){return $self->i<=b.i;}
+	bool operator> (const Op& b){return $self->i>b.i;}
+	bool operator>=(const Op& b){return $self->i>=b.i;}
 
 	// we also add the __str__() fn to the class
 	// this allows it to be converted to a string (so it can be printed)
 	const char* __str__()
 	{
 		static char buffer[255];
-		sprintf(buffer,"Op(%d)",self->i);
+		sprintf(buffer,"Op(%d)",$self->i);
 		return buffer;
 	}
 	// to get the [] operator working correctly we need to extend with two function
 	// __getitem__ & __setitem__
 	int __getitem__(unsigned i)
-	{	return (*self)[i];	}
+	{	return (*$self)[i];	}
 	void __setitem__(unsigned i,int v)
-	{	(*self)[i]=v;	}
+	{	(*$self)[i]=v;	}
 }
 
 /*

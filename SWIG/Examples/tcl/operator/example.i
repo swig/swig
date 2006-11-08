@@ -20,7 +20,7 @@
 %extend Complex {
    char *str() {
        static char temp[512];
-       sprintf(temp,"(%g,%g)", self->re(), self->im());
+       sprintf(temp,"(%g,%g)", $self->re(), $self->im());
        return temp;
    }
 };

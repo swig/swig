@@ -21,10 +21,10 @@ template<class T> class vector {
 #ifdef SWIG
   %extend {
     T getitem(int index) {
-      return self->get(index);
+      return $self->get(index);
     }
     void setitem(int index, T val) {
-      self->set(index,val);
+      $self->set(index,val);
     }
   }
 #endif
