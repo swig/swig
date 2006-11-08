@@ -1,6 +1,10 @@
 Version 1.3.30 (in progress)
 ===========================
 
+11/07/2006: wsfulton
+            Add $self special variable for %extend methods. Please use this instead of just 'self'
+            as the C++ 'this' pointer.
+
 11/07/2006: mutandiz
 	    [allegrocl] 
 	    allegrocl.swg: swig-defvar updated to allow specifying of
