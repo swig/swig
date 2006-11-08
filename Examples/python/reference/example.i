@@ -35,10 +35,10 @@ public:
   /* This wrapper provides an alternative to the [] operator */
   %extend {
     Vector &get(int index) {
-      return (*self)[index];
+      return (*$self)[index];
     }
     void set(int index, Vector &a) {
-      (*self)[index] = a;
+      (*$self)[index] = a;
     }
   }
 };

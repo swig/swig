@@ -6,7 +6,7 @@
 
 %extend Foo {
   Foo(int a) { return new Foo(); }
-  ~Foo() { delete self;}
+  ~Foo() { delete $self;}
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
@@ -41,7 +41,7 @@ public:
 
 %extend Bar {
   Bar(int a) { return new Bar(); }
-  ~Bar() { delete self;}
+  ~Bar() { delete $self;}
   int spam() { return 1}
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
@@ -56,7 +56,7 @@ public:
 
 %extend FooT {
   FooT(int a) { return new FooT<T>(); }
-  ~FooT() { delete self;}
+  ~FooT() { delete $self;}
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
@@ -96,7 +96,7 @@ public:
 
 %extend BarT {
   BarT(int a) { return new BarT<T>(); }
-  ~BarT() { delete self;}
+  ~BarT() { delete $self;}
   int spam() { return 1}
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }

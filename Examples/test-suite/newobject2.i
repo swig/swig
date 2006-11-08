@@ -41,7 +41,7 @@ void do_stuff(Foo *f) {
 
 %extend Foo {
     ~Foo() {
-        free((void *) self);
+        free((void *) $self);
 	g_fooCount--;
     }
 }

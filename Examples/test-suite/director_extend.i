@@ -5,7 +5,7 @@
 {
    virtual int dummy()          // Had to remove virtual to work
    {
-      return self->getFooBar();
+      return $self->getFooBar();
    }
 };
 
