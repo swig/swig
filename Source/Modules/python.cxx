@@ -3111,7 +3111,7 @@ public:
 	Append(f->code, "}\n");
 	add_method(gname, wgname, 0);
 	Wrapper_print(f, f_wrappers);
-	Delete(f);
+	DelWrapper(f);
 	int assignable = is_assignable(n);
 	if (assignable) {
 	  Wrapper *f = NewWrapper();
@@ -3124,7 +3124,7 @@ public:
 	  Append(f->code, "}\n");
 	  Wrapper_print(f, f_wrappers);
 	  add_method(sname, wsname, 0);
-	  Delete(f);
+	  DelWrapper(f);
 	}
 	if (!modern) {
 	  if (assignable) {
