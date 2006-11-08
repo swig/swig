@@ -171,6 +171,7 @@ unsigned short ushorttest() { return 100; }
     case UnmanagedArithmeticException:           SWIG_CSharpSetPendingException(SWIG_CSharpArithmeticException,         "msg"); return $null; break;
     case UnmanagedDivideByZeroException:         SWIG_CSharpSetPendingException(SWIG_CSharpDivideByZeroException,       "msg"); return $null; break;
     case UnmanagedIndexOutOfRangeException:      SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException,    "msg"); return $null; break;
+    case UnmanagedInvalidCastException:          SWIG_CSharpSetPendingException(SWIG_CSharpInvalidCastException,        "msg"); return $null; break;
     case UnmanagedInvalidOperationException:     SWIG_CSharpSetPendingException(SWIG_CSharpInvalidOperationException,   "msg"); return $null; break;
     case UnmanagedIOException:                   SWIG_CSharpSetPendingException(SWIG_CSharpIOException,                 "msg"); return $null; break;
     case UnmanagedNullReferenceException:        SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException,      "msg"); return $null; break;
@@ -188,6 +189,7 @@ enum UnmanagedExceptions {
   UnmanagedArithmeticException,
   UnmanagedDivideByZeroException,
   UnmanagedIndexOutOfRangeException,
+  UnmanagedInvalidCastException,
   UnmanagedInvalidOperationException,
   UnmanagedIOException,
   UnmanagedNullReferenceException,
