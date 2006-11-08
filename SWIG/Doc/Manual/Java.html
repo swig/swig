@@ -3449,7 +3449,7 @@ struct Vector {
 %extend Vector {
    char *toString() {
        static char tmp[1024];
-       sprintf(tmp,"Vector(%g,%g,%g)", self-&gt;x,self-&gt;y,self-&gt;z);
+       sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
        return tmp;
    }
    Vector(double x, double y, double z) {
@@ -6239,7 +6239,9 @@ Note that the JNI code above uses a number of string lookups to call a construct
 When a pointer is returned from a JNI function, it is wrapped using a new Java proxy class or type wrapper class. 
 Even when the pointers are the same, it will not be possible to know that the two Java classes containing those pointers are actually the same object.
 It is common in Java to use the <tt>equals()</tt> method to check whether two objects are equivalent.
-An equals method is easily added to all proxy classes. For example:
+The <tt>equals()</tt> method is usually accompanied by a <tt>hashCode()</tt> method in order to fulfill
+the requirement that the hash code is equal for equal objects.
+Pure Java code methods like these can be easily added:
 </p>
 
 <div class="code">
@@ -6250,6 +6252,9 @@ An equals method is easily added to all proxy classes. For example:
     if (obj instanceof $javaclassname)
       equal = ((($javaclassname)obj).swigCPtr == this.swigCPtr);
     return equal;
+  }
+  public int hashCode() {
+     return (int)getPointer();
   }
 %}
 
@@ -6497,7 +6502,7 @@ To implement this, we use the above interface file code but remove the <tt>javac
     return pButler;
   }
   ~Butler() {
-     FireButler(self);
+     FireButler($self);
    }
 }
 </pre>
