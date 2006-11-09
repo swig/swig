@@ -39,13 +39,32 @@
   };
 %}
 
-%rename(OpInt) operator int;
+%rename(OpInt) operator int();
+%rename(OpIntStarStarConst) operator int **() const;
+%rename(OpIntAmp) operator int &();
+%rename(OpIntStar) operator void *();
+%rename(OpConstIntIntStar) operator const int *();
 
 %inline %{
   class Ops {
   public:
+    Ops() : num(0) {}
     virtual ~Ops() {}
     virtual operator int() { return 0; }
+    virtual operator int **() const {
+      return (int **) 0;
+    }
+    virtual operator int &() {
+      return num;
+    }
+    virtual operator void *() {
+      return (void *) this;
+    }
+    virtual operator const int *() {
+      return &num;
+    }
+  private:
+    int num;
   };
 
   struct Prims {
