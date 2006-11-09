@@ -321,7 +321,7 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
 String *Swig_method_call(String_or_char *name, ParmList *parms);
-String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int strip, int values);
+String *Swig_method_decl(SwigType *rtype, SwigType *decl, const String_or_char *id, List *args, int strip, int values);
 String *Swig_director_declaration(Node *n);
 /* directors.cxx end */
 

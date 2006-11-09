@@ -3370,23 +3370,13 @@ public:
 
     /* header declaration, start wrapper definition */
     String *target;
-
-    target = Swig_method_decl(decl, qualified_name, l, 0, 0);
-    String *rtype = SwigType_str(type, 0);
-
-    if (Getattr(n, "conversion_operator"))
-      Printf(w->def, "%s", target);
-    else
-      Printf(w->def, "%s %s", rtype, target);
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-
-    target = Swig_method_decl(decl, name, l, 0, 1);
-    if (Getattr(n, "conversion_operator"))
-      Printf(declaration, "    virtual %s", target);
-    else
-      Printf(declaration, "    virtual %s %s", rtype, target);
-    Delete(rtype);
+    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    Printf(declaration, "    virtual %s", target);
     Delete(target);
 
     // Get any Java exception classes in the throws typemap
@@ -3613,7 +3603,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
@@ -3627,7 +3617,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }

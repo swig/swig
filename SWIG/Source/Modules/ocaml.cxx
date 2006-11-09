@@ -1440,20 +1440,14 @@ public:
     String *target;
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
-    target = Swig_method_decl(decl, qualified_name, l, 0, 0);
-    String *rtype = SwigType_str(type, 0);
-    if (Getattr(n, "conversion_operator"))
-      Printf(w->def, "%s {", target);
-    else
-      Printf(w->def, "%s %s {", rtype, target);
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    Printf(w->def, "%s {", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(decl, name, l, 0, 1);
-    if (Getattr(n, "conversion_operator"))
-      Printf(declaration, "    virtual %s;", target);
-    else
-      Printf(declaration, "    virtual %s %s;\n", rtype, target);
+    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    Printf(declaration, "    virtual %s;", target);
     Delete(target);
 
     /* declare method return value 
@@ -1715,7 +1709,6 @@ public:
 
     /* clean up */
     Delete(wrap_args);
-    Delete(rtype);
     Delete(return_type);
     Delete(pclassname);
     DelWrapper(w);
@@ -1751,7 +1744,7 @@ public:
 	Wrapper *w = NewWrapper();
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
 	Delete(target);
@@ -1762,7 +1755,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
