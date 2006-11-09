@@ -128,7 +128,7 @@ String *Swig_method_call(String_or_char *name, ParmList *parms) {
  *
  */
 
-String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int strip, int values) {
+String *Swig_method_decl(SwigType *returntype, SwigType *decl, const String_or_char *id, List *args, int strip, int values) {
   String *result;
   List *elements;
   String *element = 0, *nextelement;
@@ -143,7 +143,7 @@ String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int 
     result = NewString("");
   }
 
-  elements = SwigType_split(s);
+  elements = SwigType_split(decl);
   nelements = Len(elements);
   if (nelements > 0) {
     element = Getitem(elements, 0);
@@ -172,31 +172,6 @@ String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int 
 	}
 	Delete(q);
       }
-    } else if (SwigType_ispointer(element)) {
-      Insert(result, 0, "*");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-	Insert(result, 0, "(");
-	Append(result, ")");
-      }
-    } else if (SwigType_ismemberpointer(element)) {
-      String *q;
-      q = SwigType_parm(element);
-      Insert(result, 0, "::*");
-      Insert(result, 0, q);
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-	Insert(result, 0, "(");
-	Append(result, ")");
-      }
-      Delete(q);
-    } else if (SwigType_isreference(element)) {
-      Insert(result, 0, "&");
-    } else if (SwigType_isarray(element)) {
-      DOH *size;
-      Append(result, "[");
-      size = SwigType_parm(element);
-      Append(result, size);
-      Append(result, "]");
-      Delete(size);
     } else if (SwigType_isfunction(element)) {
       Parm *parm;
       String *p;
@@ -224,19 +199,48 @@ String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int 
 	  Append(result, ", ");
       }
       Append(result, ")");
-    } else {
-      if (Strcmp(element, "v(...)") == 0) {
-	Insert(result, 0, "...");
+    } else if (returntype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
+      if (SwigType_ispointer(element)) {
+	Insert(result, 0, "*");
+	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	  Insert(result, 0, "(");
+	  Append(result, ")");
+	}
+      } else if (SwigType_ismemberpointer(element)) {
+	String *q;
+	q = SwigType_parm(element);
+	Insert(result, 0, "::*");
+	Insert(result, 0, q);
+	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	  Insert(result, 0, "(");
+	  Append(result, ")");
+	}
+	Delete(q);
+      } else if (SwigType_isreference(element)) {
+	Insert(result, 0, "&");
+      } else if (SwigType_isarray(element)) {
+	DOH *size;
+	Append(result, "[");
+	size = SwigType_parm(element);
+	Append(result, size);
+	Append(result, "]");
+	Delete(size);
       } else {
-	String *bs = SwigType_namestr(element);
-	Insert(result, 0, " ");
-	Insert(result, 0, bs);
-	Delete(bs);
+	if (Strcmp(element, "v(...)") == 0) {
+	  Insert(result, 0, "...");
+	} else {
+	  String *bs = SwigType_namestr(element);
+	  Insert(result, 0, " ");
+	  Insert(result, 0, bs);
+	  Delete(bs);
+	}
       }
     }
     element = nextelement;
   }
+
   Delete(elements);
+
   if (is_const) {
     if (is_func) {
       Append(result, " ");
@@ -245,6 +249,15 @@ String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int 
       Insert(result, 0, "const ");
     }
   }
+
   Chop(result);
+
+  if (returntype) {
+    Insert(result, 0, " ");
+    String *rtype = SwigType_str(returntype, 0);
+    Insert(result, 0, rtype);
+    Delete(rtype);
+  }
+
   return result;
 }
