@@ -41,3 +41,26 @@
 %template(SmartBase) hi::SmartPtr<hi::Base>;
 %template(SmartDerived) hi::SmartPtr<hi::Derived>;
 
+
+
+%include std_vector.i
+
+%inline %{
+class itkLevelSetNodeUS2 {
+};
+%}
+
+%template(vectorLevelSetNodeUS2) std::vector< itkLevelSetNodeUS2 >;
+
+
+%inline %{
+class itkVectorContainerUILSNUS2 : public std::vector< itkLevelSetNodeUS2 > {
+};
+
+class itkVectorContainerUILSNUS2_Pointer {
+  public:
+    itkVectorContainerUILSNUS2 * operator->() const { return 0; }
+};
+
+%}
+
