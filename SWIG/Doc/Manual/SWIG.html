@@ -1701,7 +1701,8 @@ to ignore declarations that match a given identifier.  For example:
 </div>
 
 <p>
-One use of <tt>%ignore</tt> is to selectively remove certain declarations from a header file without having
+Any function, variable etc which matches <tt>%ignore</tt> will not be wrapped and therefore will not be available from the target language.
+A common usage of <tt>%ignore</tt> is to selectively remove certain declarations from a header file without having
 to add conditional compilation to the header.   However, it should be stressed that this only works for simple
 declarations.  If you need to remove a whole section of problematic code, the SWIG preprocessor should be used instead.
 </p>
