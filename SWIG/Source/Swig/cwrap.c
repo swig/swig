@@ -920,8 +920,10 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
 
       if (Cmp(Getattr(n, k_storage), k_static) != 0) {
 	String *pname = Swig_cparm_name(pp, i);
-	String *fadd = NewStringf("(%s*)(%s)->operator ->()", cname, pname);
+        String *ctname = SwigType_namestr(cname);
+	String *fadd = NewStringf("(%s*)(%s)->operator ->()", ctname, pname);
 	Append(func, fadd);
+        Delete(ctname);
 	Delete(fadd);
 	Delete(pname);
 	pp = nextSibling(pp);
