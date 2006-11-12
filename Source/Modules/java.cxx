@@ -3489,9 +3489,7 @@ public:
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
       Printf(w->code, "}\n");
 
-      /* This makes all the director methods segfault on Solaris 8
-         Printf(w->code, "if (jobj) jenv->DeleteLocalRef(jobj);\n");
-       */
+      Printf(w->code, "if (jobj) jenv->DeleteLocalRef(jobj);\n");
 
       if (!is_void)
 	Printf(w->code, "return %s;", qualified_return);
