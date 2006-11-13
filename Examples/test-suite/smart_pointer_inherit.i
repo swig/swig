@@ -46,20 +46,30 @@
 %include std_vector.i
 
 %inline %{
-class itkLevelSetNodeUS2 {
+class ItkLevelSetNodeUS2 {
 };
 %}
 
-%template(vectorLevelSetNodeUS2) std::vector< itkLevelSetNodeUS2 >;
+#ifdef SWIGCSHARP
+// Get rid of C# compiler warnings.
+// Really the itkVectorContainerUILSNUS2_Pointer class should be manually modified to contain the same %extend methods that are in std_vector.i
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::getitemcopy "protected"
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::getitem "protected"
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::setitem "protected"
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::size "protected"
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::capacity "protected"
+%csmethodmodifiers std::vector<ItkLevelSetNodeUS2>::reserve "protected"
+#endif
 
+%template(VectorLevelSetNodeUS2) std::vector< ItkLevelSetNodeUS2 >;
 
 %inline %{
-class itkVectorContainerUILSNUS2 : public std::vector< itkLevelSetNodeUS2 > {
+class ItkVectorContainerUILSNUS2 : public std::vector< ItkLevelSetNodeUS2 > {
 };
 
-class itkVectorContainerUILSNUS2_Pointer {
+class ItkVectorContainerUILSNUS2_Pointer {
   public:
-    itkVectorContainerUILSNUS2 * operator->() const { return 0; }
+    ItkVectorContainerUILSNUS2 * operator->() const { return 0; }
 };
 
 %}
