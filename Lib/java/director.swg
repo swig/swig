@@ -116,7 +116,7 @@ namespace Swig {
         director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
       }
       ~JNIEnvWrapper() {
-        director_->swig_jvm_->DetachCurrentThread();
+        //director_->swig_jvm_->DetachCurrentThread();
       }
       JNIEnv *getJNIEnv() const {
         return jenv_;
