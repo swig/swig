@@ -60,16 +60,16 @@
 
 // strings (char* and char[])
 %typemap(in,checkfn="lua_isstring") const char*, char*
-%{$1 = ($1_ltype)lua_tostring(L, $input);%}
+%{$1 = ($ltype)lua_tostring(L, $input);%}
 
 %typemap(in,checkfn="lua_isstring") const char[ANY], char[ANY]
-%{$1 = (char*)lua_tostring(L, $input);%}
+%{$1 = ($ltype)lua_tostring(L, $input);%}
 
 %typemap(out) const char*, char*
 %{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
 
 %typemap(out) const char[ANY], char[ANY]
-%{  lua_pushstring(L,$1); SWIG_arg++;%}
+%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
 
 // char's
 // currently treating chars as small strings, not as numbers
@@ -130,37 +130,24 @@
 
 // Primitive types--return by value
 // must make a new object, copy the data & return the new object
+// Note: the brackets are {...} and not %{..%}, because we want them to be included in the wrapper
+// this is because out tpyemaps do not support local variables, like in typemaps do
+// and we need the $&1_ltype resultptr; to be declared
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
-%{
-  $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
+{
+  $&1_ltype resultptr = new $1_ltype(($1_ltype &) $1);
   SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
-%}
+}
 #else
 %typemap(out) SWIGTYPE
-%{
+{
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
   SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
-%}
+}
 #endif
-
-/*#ifdef __cplusplus
-%typemap(out) SWIGTYPE ($&1_ltype resultptr)
-%{
-  resultptr = new $1_ltype(($1_ltype &) $1);
-  SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
-%}
-#else
-%typemap(out) SWIGTYPE ($&1_ltype resultptr)
-%{
-  resultptr = ($&1_ltype) malloc(sizeof($1_type));
-  memmove(resultptr, &$1, sizeof($1_type));
-  SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
-%}
-#endif*/
 
 // member function pointer
 // a member fn ptr is not 4 bytes like a normal pointer, but 8 bytes 
