@@ -166,13 +166,6 @@ static String *dependencies_file = 0;
 static File *f_dependencies_file = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
-static char *fake_version = 0;
-
-static const char *swig_package_version() {
-  return fake_version ? fake_version : PACKAGE_VERSION;
-}
-
-
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -249,14 +242,7 @@ static void set_outdir(const String *c_wrapper_file_dir) {
     outdir = NewString(c_wrapper_file_dir);
 }
 
-//-----------------------------------------------------------------
-// main()
-//
-// Main program.    Initializes the files and starts the parser.
-//-----------------------------------------------------------------
-
 /* This function sets the name of the configuration file */
-
 void SWIG_config_file(const String_or_char *filename) {
   lang_config = NewString(filename);
 }
@@ -554,19 +540,19 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-fakeversion") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
-	  fake_version = Swig_copy_string(argv[i + 1]);
+	  Swig_set_fakeversion(argv[i + 1]);
 	  Swig_mark_arg(i + 1);
 	  i++;
 	} else {
 	  Swig_arg_error();
 	}
       } else if (strcmp(argv[i], "-version") == 0) {
-	fprintf(stdout, "\nSWIG Version %s\n", swig_package_version());
+	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
 	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	fprintf(stdout, "Please see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-copyright") == 0) {
-	fprintf(stdout, "\nSWIG Version %s\n", swig_package_version());
+	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
 	fprintf(stdout, "Copyright (c) 1995-1998\n");
 	fprintf(stdout, "University of Utah and the Regents of the University of California\n");
 	fprintf(stdout, "Copyright (c) 1998-2005\n");
@@ -763,7 +749,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 #endif
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
-  String *package_version = NewString(swig_package_version());
+  String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
   char *token = strtok(Char(package_version), ".");
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;

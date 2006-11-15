@@ -441,6 +441,8 @@ extern "C" {
 
 /* --- Misc --- */
   extern char *Swig_copy_string(const char *c);
+  extern void Swig_set_fakeversion(const char *version);
+  extern const char *Swig_package_version(void);
   extern void Swig_banner(File *f);
   extern String *Swig_string_escape(String *s);
   extern String *Swig_string_mangle(const String *s);
