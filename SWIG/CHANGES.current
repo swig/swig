@@ -1,6 +1,10 @@
 Version 1.3.31 (in progress)
 ============================
 
+11/12/2006: wsfulton
+            -fakeversion commandline option now generates the fake version into the generated wrappers
+            as well as displaying it when the -version commandline option is used.
+
 14/11/2006: mgossage
 	    [lua] update to typemap for object by value, to make it c89 compliant
 
