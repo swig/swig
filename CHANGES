@@ -2,6 +2,472 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.30 (November 13, 2006)
+=================================
+
+14/11/2006: mgossage
+	    [lua] update to typemap for object by value, to make it c89 compliant
+	    
+11/12/2006: wsfulton
+            [java] Remove DetachCurrentThread patch from  08/11/2006 - it causes segfaults
+            on some systems.
+
+11/12/2006: wsfulton
+            [python] Fix #1578346 - Python exceptions with -modern
+
+11/10/2006: wsfulton
+            Fix #1593291 - Smart pointers and inheriting from templates 
+
+11/09/2006: wsfulton
+            Fix director operator pointer/reference casts - #1592173.
+
+11/07/2006: wsfulton
+            Add $self special variable for %extend methods. Please use this instead of just 'self'
+            as the C++ 'this' pointer.
+
+11/07/2006: mutandiz
+	    [allegrocl] 
+	    allegrocl.swg: swig-defvar updated to allow specifying of
+	    		   non-default foreign type (via :ftype keyword arg).
+	    allegrocl.cxx: Specify proper access type for enum values.
+
+11/03/2006: wsfulton
+            [Java/C#] Fix const std::string& return types for directors as reported by
+            Mark Donselzmann
+
+10/29/2006: wsfulton
+            [Java] Remove DeleteLocalRef from end of director methods for now as it is causing a
+            seg fault when run on Solaris 8.
+
+10/29/2006: wuzzeb (John Lenz)
+	    [Guile] Patch from Chris Shoemaker to clean up some warnings in the generated code.
+
+10/29/2006: wsfulton
+            [Java] Important fix to prevent early garbage collection of the Java proxy class
+            while it is being used in a native method. The finalizer could destroy the underlying
+            C++ object while it was being used. The problem occurs when the proxy class is no
+            longer strongly reachable after a native call.  The problem seems to occur in
+            memory stress situations on some JVMs. It does not seem to occur on the
+            Sun client JVM up to jdk 1.5. However the 1.6 client jdk has a more aggressive garbage
+            collector and so the problem does occur. It does occur on the Sun server
+            JVMs (certainly 1.4 onwards). The fix entails passing the proxy class into the native
+            method in addition to the C++ pointer in the long parameter, as Java classes are not
+            collected when they are passed into JNI methods. The extra parameter can be suppressed
+            by setting the nopgcpp attribute in the jtype typemap to "1" or using the new -nopgcpp
+            commandline option.
+
+            See Java.html#java_pgcpp for further details on this topic.
+
+10/24/2006: wsfulton
+            [C#] Fix smart pointer wrappers. The virtual/override/new keyword is not generated
+            for each method as the smart pointer class does not mirror the underlying pointer
+            class inheritance hierarchy. SF #1496535
+
+10/24/2006: mgossage
+            [lua] added support for native methods & member function pointers.
+            fixed test cases arrays_dimensionless & cpp_basic. Added new example (functor).
+            tidied up a little of the code (around classHandler).
+
+10/17/2006: wsfulton
+            [C#, Java] directorout typemap changes to fall in line with the other director
+            languages. $result is now used where $1 used to be used. Please change your typemaps
+            if you have a custom directorout typemap.
+
+10/18/2006: wsfulton
+            Some fixes for applying the char array typemaps to unsigned char arrays.
+
+10/17/2006: wsfulton
+            [C#, Java] Add in const size_t& and const std::size_t& typemaps.
+
+10/15/2006: efuzzyone 
+            [CFFI] Suppress generating defctype for enums, thanks to Arthur Smyles. Patch 1560983. 
+
+10/14/2006: wuzzeb (John Lenz)
+            [Chicken] Minor fix to make SWIG work with the (as yet unreleased) chicken 2.5
+
+            [Guile,Chicken] Fix SF Bug 1573892.  Added an ext_test to the test suite to test
+            this bug, but this test can not really be made generic because the external code must
+            plug into the target language interpreter directly.
+            See Examples/test-suite/chicken/ext_test.i and ext_test_external.cxx
+
+            Added a %.externaltest to common.mk, and any interested language modules can
+            copy and slightly modify either the chicken or the guile ext_test.i
+
+10/14/2006: mgossage
+            [Lua] added OUTPUT& for all number types, added a long long type
+            fixed several test cases.
+            update: changed typemaps to use SWIG_ConvertPtr rather than SWIG_MustGetPointer
+            started spliting lua.swg into smaller parts to make it neater
+
+10/13/2006: wsfulton
+            [C#, Java] Marginally better support for multiple inheritance only in that you can
+            control what the base class is. This is done using the new 'replace' attribute in the 
+            javabase/csbase typemap, eg in the following, 'Me' will be the base class,
+            no matter what Foo is really derived from in the C++ layer.
+
+              %typemap(javabase, replace="1") Foo "Me";
+              %typemap(csbase, replace="1") Foo "Me";
+
+            Previously it was not possible for the javabase/csbase typemaps to override the C++ base.
+
+10/12/2006: wsfulton
+            [Java] Remove potential race condition on the proxy class' delete() method 
+            (it is now a synchronized method, but is now customisable by changing the 
+            methodmodifier attribute in the the javadestruct or javadestruct_derived typemap)
+
+            [C#] Remove potential race condition on the proxy class' Dispose() method, 
+            similar to Java's delete() above.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+10/12/2006: wsfulton
+            [Ruby, Python] Remove redundant director code in %extend methods (%extend
+            methods cannot be director methods)
+
+10/12/2006: wsfulton
+            [Ruby, Python] Fix #1505594 - director objects not returned as director objects
+            in %extend methods.
+
+10/11/2006: wsfulton
+            [Java] Fix #1238798 - Directors using unsigned long long or any other type
+            marshalled across the JNI boundary using a Java class (where the jni typemap 
+            contains jobject).
+
+10/06/2006: wsfulton
+            Fix #1162194 - #include/%include within a structure
+
+10/06/2006: wsfulton
+            Fix #1450661, string truncation in String_seek truncating Java/C# enums.
+
+10/06/2006: mgossage
+            [Lua] Fix #1569587. The name is now correct.
+
+10/04/2006: wsfulton
+            Director fixes for virtual conversion operators
+
+10/04/2006: olly
+	    [php] Fix #1569587 for PHP.  Don't use sizeof() except with string
+	    literals.  Change some "//" comments to "/* */" for portability.
+
+10/04/2006: mgossage
+            [Lua] Partial Fix #1569587. The type is now correct, but the name is still not correct.
+
+10/03/2006: wsfulton
+            [Ruby] Fix #1527885 - Overloaded director virtual methods sometimes produced
+            uncompileable code when used with the director:except feature.
+
+10/03/2006: wsfulton
+            Directors: Directors are output in the order in which they are declared in 
+            the C++ class rather than in some pseudo-random order.
+
+10/03/2006: mmatus
+            Fix #1486281 and #1471039.
+
+10/03/2006: olly
+	    [Perl] Fix for handling strings with zero bytes from Stephen Hutsal.
+
+09/30/2006: efuzzyone
+            [CFFI] Bitfield support and vararg support due to Arthur Smyles.
+            C expression to Lisp conversion, thanks to Arthur Smyles for the initial
+            idea, it now supports conversion for a whole range of C expressions. 
+
+09/28/2006: wsfulton
+            Fix #1508327 - Overloaded methods are hidden when using -fvirtual optimisation.
+            Overloaded methods are no longer candidates for elimination - this mimics
+            C++ behaviour where all overloaded methods must be defined and implemented
+            in a derived class in order for them to be available.
+
+09/25/2006: wsfulton
+            [Ruby, Python, Ocaml] Fix #1505591 Throwing exceptions in extended directors
+
+09/25/2006: wsfulton
+            Fix #1056100 - virtual operators. 
+
+09/24/2006: olly
+	    Don't accidentally create a "<:" token (which is the same as "[" in C++).
+	    Fixes bug # 1521788.
+
+09/23/2006: olly
+	    [Ruby] Support building with recent versions of the Ruby 1.9
+	    development branch.  Fixes bug #1560092.
+
+09/23/2006: olly
+	    Templates can now be instantiated using negative numbers and
+	    constant expressions, e.g.:
+
+	    template<int q> class x {};
+	    %template(x_minus1) x<-1>;
+	    %template(x_1plus2) x<1+2>;
+
+	    Also, constant expressions can now include comparisons (>, <, >=,
+	    <=, !=, ==), modulus (%), and ternary conditionals (a ? b : c).
+
+	    Fixes bugs #646275, #925555, #956282, #994301.
+
+09/22/2006: wsfulton
+            Fix %ignore on director methods - Bugs #1546254, #1543533
+
+09/20/2006: wsfulton
+            Fix %ignore on director constructors
+
+09/20/2006: wsfulton
+            Fix seg faults and asserts when director methods are ignored (#1543533)
+
+09/20/2006: wsfulton
+            Fix out of source builds - bug #1544718
+
+09/20/2006: olly
+	    Treat a nested class definition as a forward declaration rather
+	    than ignoring it completely, so that we generate correct code for
+	    passing opaque pointers to the nested class (fixes SF bug #909387).
+
+09/20/2006: olly
+            *** POTENTIAL INCOMPATIBILITY ***
+	    [php] Overload resolution now works.  However to allow this, SWIG
+	    generated wrappers no longer coerce PHP types (which reverts a change
+	    made in 1.3.26).  So for example, if a method takes a string, you
+	    can no longer pass a number without explicitly converting it to a
+	    string in PHP using: (string)x
+
+09/18/2006: mgossage
+            [ALL] fix on swiginit.swg, has been reported to crash on several test cases
+	    found and fixed problem in imports under python (mingw)
+
+09/16/2006: wsfulton
+            [Python] Patch from Michal Marek for Python 2.5 to fix 64 bit array indexes on
+            64 bit machines.
+
+09/13/2006: wsfulton
+            The explicitcall feature has been scrapped. This feature was introduced primarily
+            to solve recursive director method calls. Director upcall improvements made instead:
+
+            [Python, Ruby, Ocaml] The swig_up flag is no longer used. The required mutexes
+            wrapping this flag are also no longer needed. The recursive calls going from C++
+            to the target language and back again etc are now avoided by a subtlely different
+            approach. Instead of using the swig_up flag in each director method to indicate
+            whether the explicit C++ call to the appropriate base class method or a normal
+            polymorphic C++ call should be made, the new approach makes one of these calls
+            directly from the wrapper method.
+
+            [Java, C#] The recursive call problem when calling a C++ base class method from
+            Java/C# is now fixed. The implementation is slightly different to the other languages
+            as the detection as to whether the explicit call or a normal polymorphic call is made
+            in the Java/C# layer rather than in the C++ layer.
+
+09/11/2006: mgossage
+            [ALL] updated swiginit.swg to allow multiple interpreters to use multiple
+	    swig modules at once. This has been tested in Lua (mingw & linux),
+	    perl5 & python (linux) only.
+
+09/11/2006: mgossage
+            [lua] added support for passing function pointers as well as native lua object
+            into wrappered function.
+            Added example funcptr3 to demonstrate this feature
+
+09/05/2006: olly
+	    [php] Rename ErrorCode and ErrorMsg #define-s to SWIG_ErrorCode
+	    and SWIG_ErrorMsg to avoid clashes with code the user might be
+	    wrapping (patch from Darren Warner in SF bug #1466086).  Any
+	    user typemaps which use ErrorCode and/or ErrorMsg directly will
+	    need adjusting - you can easily fix them to work with both old
+	    and new SWIG by changing to use SWIG_ErrorMsg and adding:
+
+		#ifndef SWIG_ErrorMsg
+		#define SWIG_ErrorMsg() ErrorMsg()
+		#endif
+
+08/29/2006: olly
+	    [php] Move constant initialisation from RINIT to MINIT to fix a
+	    warning when using Apache and mod_php.  We only need to create
+	    PHP constants once when we're first initialised, not for every HTTP
+	    request.
+
+08/21/2006: mgossage
+            [Lua]
+	    Bugfix #1542466 added code to allow mapping Lua nil's <-> C/C++ NULL's
+	    updated various typemaps to work correctly with the changes
+	    added voidtest_runme.lua to show the features working
+
+08/19/2006: wuzzeb (John Lenz)
+	    [Guile] Add feature:constasvar to export constants as variables instead of functions
+            that return the constant value.
+
+08/11/2006: wsfulton
+            [Java] DetachCurrentThread calls have been added so that natively created threads
+            no longer prevent the JVM from exiting. Bug reported by Thomas Dudziak and
+            Paul Noll.
+
+08/10/2006: wsfulton
+            [C#] Fix director protected methods so they work
+
+07/25/2006: mutandiz
+	    [allegrocl]
+	    more additions to std::string, some tweaks and small bug fixes
+	    -nocwrap mode.
+
+07/21/2006: mgossage
+            [Lua]
+	    Bugfix #1526022 pdated std::string to support strings with '\0' inside them
+	    updated typemaps.i to add support for pointer to pointers
+
+07/19/2006: mutandiz
+	    [allegrocl]
+	    - Add std_string.i support.
+	    - Add newobject patch submitted by mkoeppe (thanks!)
+	    - Fix type name mismatch issue for nested type definitions.
+	      specifically typedefs in templated class defns.
+
+07/18/2006: mgossage
+	    Bugfix #1522858
+	    updated lua.cxx to support -external-runtime command
+
+07/14/2006: wuzzeb (John Lenz)
+	    Increment the SWIG_RUNTIME_VERSION to 3, because of the
+	    addition of the owndata member in swig_type_info.
+	    Reported by: Prabhu Ramachandran
+
+07/05/2006: wsfulton
+            Search path fixes:
+            - Fix search path for library files to behave as documented in Library.html.
+            - Fix mingw/msys builds which did not find the SWIG library when installed.
+            - Windows builds also output the mingw/msys install location when running
+              swig -swiglib.
+            - The non-existent and undocumented config directory in the search path has
+              been removed.
+
+07/05/2006: wsfulton
+            Fix $symname special variable expansion.
+
+07/04/2006: wuzzeb (John Lenz)
+	    [Chicken]
+	    Add %feature("constasvar"), which instead of exporting a constant as a
+	    scheme function, exports the constant as a scheme variable.  Update the
+	    documentation as well.
+
+07/04/2006: wsfulton
+            [See entry of 09/13/2006 - explicitcall feature and documentation to it removed]
+            New explicitcall feature which generates additional wrappers for virtual methods
+            that call the method explicitly, not relying on polymorphism to make the method
+            call. The feature is a feature flag and is enabled like any other feature flag.
+            It also recognises an attribute, "suffix" for mangling the feature name, see
+            SWIGPlus.html#SWIGPlus_explicitcall documentation for more details.
+
+            [Java, C#]
+            The explicitcall feature is also a workaround for solving the recursive calls
+            problem when a director method makes a call to a base class method. See
+            Java.html#java_directors_explicitcall for updated documentation.
+
+06/28/2006: joe (Joseph Wang)
+	    [r] Initial support for R
+
+06/20/2006: wuzzeb (John Lenz)
+	    [Chicken]
+            Minor fixes to get apply_strings.i testsuite to pass
+	    Remove integers_runme.scm from the testsuite, because SWIG and Chicken does
+            handle overflows.
+
+06/19/2005: olly
+	    [php] Add support for generating PHP5 class wrappers for C++
+	    classes (use "swig -php5").
+
+06/17/2006: olly
+	    [php] Added some missing keywords to the PHP4 keyword list, and
+	    fixed __LINE__ and __FILE__ which were in the wrong category.
+	    Also added all the keywords new in PHP5, and added comments
+	    noting the PHP4 keywords which aren't keywords in PHP5.
+
+06/17/2006: olly
+	    [php] Don't segfault if PHP Null is passed as this pointer (e.g.
+	    Class_method(Null)) - give a PHP Error instead.
+
+06/15/2006: mutandiz
+	    [allegrocl]
+	    Add initial support for std::list container class.
+	    Fix a few bugs in helper functions.
+
+05/13/2006: wsfulton
+            [Java] Replace JNIEXPORT with SWIGEXPORT, thereby enabling the possibility
+            of using gcc -fvisibility=hidden for potentially smaller faster loading wrappers.
+
+05/13/2006: wsfulton
+            Fix for Makefiles for autoconf-2.60 beta
+
+05/13/2006: wsfulton
+            Vladimir Menshakov patch for compiling wrappers with python-2.5 alpha.
+
+05/12/2006: wsfulton
+            Fix buffer overflow error when using large %feature(docstring) reported
+            by Joseph Winston.
+
+05/12/2006: wsfulton
+            [Perl] Operator overload fix from Daniel Moore.
+
+05/25/2006: mutandiz
+	    [allegrocl]
+	    Fix bug in generation of CLOS type declarations for unions
+	    and equivalent types.
+
+05/24/2006: mutandiz
+	    [allegrocl]
+	    Don't require a full class definition to generate a CLOS wrapper.
+
+05/20/2006: olly
+	    [php] GCC Visibility support now works with PHP.
+
+05/19/2006: olly
+	    [php] Removed support for -dlname (use -module instead).  Fixed
+	    naming of PHP extension module to be consistent with PHP
+	    conventions (no "php_" prefix on Unix; on PHP >= 4.3.0, handle Unix
+	    platforms which use something other than ".so" as the extension.)
+
+05/13/2006: wsfulton
+            [C#] Director support added
+
+05/07/2006: olly
+	    [php] Don't segfault if PHP Null is passed where a C++ reference
+	    is wanted.
+
+05/05/2006: olly
+	    [php] Fix wrappers generated for global 'char' variables to not
+	    include a terminating zero byte in the PHP string.
+
+05/03/2006: wsfulton
+            Modify typemaps so that char * can be applied to unsigned char * or signed char *
+            types and visa versa.
+
+05/03/2006: efuzzyone
+	    [cffi]Thanks to Luke J Crook for this idea.
+             - a struct/enum/union is replaced with :pointer only if
+               that slot is actually a pointer to that type. So,: 
+                    struct a_struct { int x; } and
+                    struct b_struct { a_struct struct_1; }; 
+               will be converted as:
+                   (cffi:defcstruct b_struct
+                           (struct_1 a_struct))
+             - Other minor fixes in lispifying names.
+
+05/02/2006: wsfulton
+            Fix possible redefinition of _CRT_SECURE_NO_DEPRECATE for VC++.
+
+04/14/2006: efuzzyone
+	    [cffi]
+            Thanks to Thomas Weidner for the patch.
+            - when feature export is set (export 'foo) is 
+              generated for every symbol
+            - when feature inline is set (declaim (inline foo)) is 
+              generated before every function definition
+            - when feature intern_function is set 
+              #.(value-of-intern-function "name" "nodeType" package)
+              is emitted instead of the plain symbol. A sample swig-lispify 
+              is provided.
+            - every symbol is prefixed by it's package.
+
+04/13/2006: efuzzyone
+	    [cffi]
+	    Fixed the generation of wrappers for global variables. 
+            Added the option [no]swig-lisp which turns on/off generation 
+            of code for swig helper lisp macro, functions, etc.
+
 Version 1.3.29 (March 21, 2006)
 ===============================
 
