@@ -1171,7 +1171,7 @@ MODULA3():
  *\n\
  * Do not make changes to this file unless you know what you are doing --\n\
  * modify the SWIG interface file instead.\n\
- *******************************************************************************)\n\n", PACKAGE_VERSION);
+ *******************************************************************************)\n\n", Swig_package_version());
   }
 
   /* ----------------------------------------------------------------------

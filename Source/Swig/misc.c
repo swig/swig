@@ -15,6 +15,7 @@ char cvsroot_misc_c[] = "$Header$";
 #include <ctype.h>
 #include <limits.h>
 
+static char *fake_version = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_copy_string()
@@ -32,6 +33,26 @@ char *Swig_copy_string(const char *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_set_fakeversion()
+ *
+ * Version string override
+ * ----------------------------------------------------------------------------- */
+
+void Swig_set_fakeversion(const char *version) {
+  fake_version = Swig_copy_string(version);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_package_version()
+ *
+ * Return the package string containing the version number
+ * ----------------------------------------------------------------------------- */
+
+const char *Swig_package_version(void) {
+  return fake_version ? fake_version : PACKAGE_VERSION;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_banner()
  *
  * Emits the SWIG identifying banner.
@@ -45,7 +66,7 @@ void Swig_banner(File *f) {
  * This file is not intended to be easily readable and contains a number of \n\
  * coding conventions designed to improve portability and efficiency. Do not make\n\
  * changes to this file unless you know what you are doing--modify the SWIG \n\
- * interface file instead. \n", PACKAGE_VERSION);
+ * interface file instead. \n", Swig_package_version());
   /* String too long for ISO compliance */
   Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
 
