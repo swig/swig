@@ -2612,9 +2612,10 @@ public:
 	if (str != NULL && Len(str))
 	  Printv(f_shadow, tab4, str, "\n", NIL);
       }
+      if (!modern) {
 	Printv(f_shadow, tab4, "__swig_setmethods__ = {}\n", NIL);
 	if (Len(base_class)) {
-	  Printf(f_shadow, "%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n", tab4, base_class);
+	  Printf(f_shadow, "%sfor _s in [%s]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))\n", tab4, base_class);
 	}
 
 	if (!GetFlag(n, "feature:python:nondynamic")) {
@@ -2625,11 +2626,11 @@ public:
 
 	Printv(f_shadow, tab4, "__swig_getmethods__ = {}\n", NIL);
 	if (Len(base_class)) {
-	  Printf(f_shadow, "%sfor _s in [%s]: __swig_getmethods__.update(_s.__swig_getmethods__)\n", tab4, base_class);
+	  Printf(f_shadow, "%sfor _s in [%s]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))\n", tab4, base_class);
 	}
 
 	Printv(f_shadow, tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n", NIL);
-      if (modern) {
+      } else {
 	Printv(f_shadow, tab4, "thisown = _swig_property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n, "feature:python:nondynamic")) {
