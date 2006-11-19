@@ -42,6 +42,8 @@ unittest(d$u, 0)
 
 la <- new("A");
 la@ui <- 5
+# Removing the next line makes this fail in R 2.4
+la@str <- ""
 
 other = A()
 foo <- copyToC(la, other)
