@@ -3,6 +3,7 @@ example.pyc
 *_wrap.c
 *_wrap.cxx
 *_wrap.h
+*.pyd
 *.dll
 *.dsw
 *.exp

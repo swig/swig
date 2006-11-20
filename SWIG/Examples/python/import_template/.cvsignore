@@ -8,6 +8,7 @@ foo.pyc
 spam.pyc
 *_wrap.c
 *_wrap.cxx
+*.pyd
 *.dll
 example.dsw
 *.exp
