@@ -271,7 +271,7 @@ python_static_cpp: $(SRCS)
 python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
 
 ##################################################################
 #####                       GUILE                           ######
@@ -950,7 +950,7 @@ lua_static_cpp: $(SRCS)
 lua_clean:
 	rm -f *_wrap* *~ .~* mylua@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@CSHARPSO@
+	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                   ALLEGRO CL                          ######
