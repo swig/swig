@@ -31,6 +31,10 @@ and non-commercial use.
 <h3>News</h3>
 
 <p>
+<b>2006/11/20</b>
+SWIG-1.3.31 has been released. This fixes a Python regression in the last version.
+
+<p>
 <b>2006/11/13</b>
 SWIG-1.3.30 has been released. This release adds support for R and directors for C# amongst a round of bug fixes.
 
