@@ -46,7 +46,7 @@ The header file Include/gifplot.h contains the full API.
 
 The original documentation for the library can be found online at:
 
-          http://islab.cs.uchicago.edu/gifplot
+          http://www.dabeaz.com/gifplot/index.html
 
 
 Let me know what you think!
@@ -54,6 +54,6 @@ Let me know what you think!
 If you found this example to be useful, confusing, or otherwise, I would like to know
 about it.   Suggestions for improvement are welcome.
 
--- Dave (beazley@cs.uchicago.edu)
+-- Dave (dave@dabeaz.com)
 
 
