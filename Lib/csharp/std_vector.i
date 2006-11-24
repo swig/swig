@@ -297,14 +297,14 @@
         int index = -1;
         std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
         if (it != self->end())
-          index = it - self->begin();
+          index = (int)(it - self->begin());
         return index;
       }
       int LastIndexOf(const value_type& value) {
         int index = -1;
         std::vector<CTYPE >::reverse_iterator rit = std::find(self->rbegin(), self->rend(), value);
         if (rit != self->rend())
-          index = self->rend() - 1 - rit;
+          index = (int)(self->rend() - 1 - rit);
         return index;
       }
       void Remove(const value_type& value) {
