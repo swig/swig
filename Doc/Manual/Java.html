@@ -1745,15 +1745,15 @@ Method spam(int) at example.i:11 used.
 </div>
 
 <p>
-To fix this, you either need to ignore or rename one of the methods.  For example:
+To fix this, you either need to <a href="SWIG.html#SWIG_rename_ignore">rename or ignore</a> one of the methods.  For example:
 </p>
 
 <div class="code">
 <pre>
-%rename(spam_short) spam(short);
+%rename(spam_ushort) spam(unsigned short);
 ...
 void spam(int);    
-void spam(short);   // Accessed as spam_short
+void spam(unsigned short);   // Noew renamed to spam_ushort
 </pre>
 </div>
 
@@ -1763,10 +1763,10 @@ or
 
 <div class="code">
 <pre>
-%ignore spam(short);
+%ignore spam(unsigned short);
 ...
 void spam(int);    
-void spam(short);   // Ignored
+void spam(unsigned short);   // Ignored
 </pre>
 </div>
 
