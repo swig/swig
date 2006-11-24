@@ -1745,7 +1745,7 @@ Method spam(int) at example.i:11 used.
 </div>
 
 <p>
-To fix this, you either need to <a href="SWIG.html#SWIG_rename_ignore">rename or ignore</a> one of the methods.  For example:
+To fix this, you either need to either <a href="SWIG.html#SWIG_rename_ignore">rename or ignore</a> one of the methods.  For example:
 </p>
 
 <div class="code">
@@ -1753,7 +1753,7 @@ To fix this, you either need to <a href="SWIG.html#SWIG_rename_ignore">rename or
 %rename(spam_ushort) spam(unsigned short);
 ...
 void spam(int);    
-void spam(unsigned short);   // Noew renamed to spam_ushort
+void spam(unsigned short);   // Now renamed to spam_ushort
 </pre>
 </div>
 
