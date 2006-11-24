@@ -700,8 +700,9 @@ case of multi-argument typemaps. In addition, each type pattern can be parameter
 variables (parms).   The purpose of these variables will be explained shortly.
 </p>
 
-<p><em>code</em> specifies the C code used in the typemap.   It can take any one of the following
-forms:
+<p><em>code</em> specifies the code used in the typemap.
+Usually this is C/C++ code, but in the strongly typed target languages, such as Java and C#, this can contain target language code for certain typemaps.
+It can take any one of the following forms:
 </p>
 
 <div class="diagram">
@@ -713,6 +714,7 @@ code       : { ... }
 </div>
 
 <p>
+Note that the preprocessor will expand code within the {} delimiters, but not in the last two styles of delimiters.
 Here are some examples of valid typemap specifications:
 </p>
 
