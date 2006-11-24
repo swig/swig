@@ -55,7 +55,7 @@ public:
 	const std::string &invoke(int idx) {
 	  return quuxen_[idx]->director_method();
         }
-	int size() {
+	size_t size() {
 	  return quuxen_.size();
         }
 private:
@@ -86,7 +86,7 @@ public:
 	void push(Quux *elem);
 	Quux *get(int idx);
 	const std::string &invoke(int idx);
-	int size();
+	size_t size();
 };
 
 

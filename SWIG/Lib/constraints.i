@@ -195,8 +195,8 @@ If you have used typedef to change type-names, you can also do this :
                 void *            ALIGN8,
                 Pointer           ALIGN8
 {
-   long tmp;
-   tmp = (long) $1;
+   unsigned long long tmp;
+   tmp = (unsigned long long) $1;
    if (tmp & 7) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 8-byte aligned.");
    }
@@ -206,8 +206,8 @@ If you have used typedef to change type-names, you can also do this :
                 void *            ALIGN4,
                 Pointer           ALIGN4
 {
-   long tmp;
-   tmp = (long) $1;
+   unsigned long long tmp;
+   tmp = (unsigned long long) $1;
    if (tmp & 3) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 4-byte aligned.");
    }
@@ -217,8 +217,8 @@ If you have used typedef to change type-names, you can also do this :
                 void *            ALIGN2,
                 Pointer           ALIGN2
 {
-   long tmp;
-   tmp = (long) $1;
+   unsigned long long tmp;
+   tmp = (unsigned long long) $1;
    if (tmp & 1) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 2-byte aligned.");
    }

@@ -21,6 +21,7 @@ struct Base {
   Base(int v = 0) : value(v) {}
   int value;
   virtual int method(int v) {
+    return v;
   }
 };
 struct Derived : Base {
