@@ -12,7 +12,7 @@ If you like you can skip it and go straight to the <a href="download.html">Downl
 <td bgcolor="#000000" align=center><font color="#ffffff"><b>SWIG Usage Survey</b></font></td>
 </tr> </table>
  
-<form method=post action="http://www.swig.org/cgi-bin/surveyresponse.pl">
+<form method=post action="http://oligarchy.co.uk/swigsurveyresponse.cgi">
 <b>
 Which target languages will you be using SWIG for? Please select all that apply.
 </b>
