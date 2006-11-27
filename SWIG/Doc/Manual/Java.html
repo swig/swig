@@ -3561,7 +3561,7 @@ void *malloc(size_t nbytes);
 </div>
 
 <p>
-No declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
+If no declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
 The <tt> $action </tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
 The <tt> return $null; </tt> handles all native method return types, namely those that have a void return and those that do not. 
 This is useful for typemaps that will be used in native method returning all return types. 
