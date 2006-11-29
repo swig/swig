@@ -1259,6 +1259,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, k_code);
     if (code) {
+      /* I don't think this ever gets run - WSF */
       Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, k_self);
     }
     call = Swig_cfunction_call(mangled, parms);
@@ -1335,6 +1336,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
     String *code = Getattr(n, k_code);
     if (code) {
+      /* I don't think this ever gets run - WSF */
       Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus, k_self);
     }
     call = Swig_cfunction_call(mangled, parms);
@@ -1363,7 +1365,8 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 /* -----------------------------------------------------------------------------
  * Swig_VarsetToFunction()
  *
- * This function creates a C wrapper for setting a global variable.
+ * This function creates a C wrapper for setting a global variable or static member
+ * variable.
  * ----------------------------------------------------------------------------- */
 
 int Swig_VarsetToFunction(Node *n, int flags) {
@@ -1375,30 +1378,41 @@ int Swig_VarsetToFunction(Node *n, int flags) {
 
   name = Getattr(n, k_name);
   type = Getattr(n, k_type);
-
   nname = SwigType_namestr(name);
-
   ty = Swig_wrapped_var_type(type, varcref);
   parms = NewParm(ty, name);
-  Delete(ty);
 
-  if (!Strstr(type, "enum $unnamed")) {
-    String *pname = Swig_cparm_name(0, 0);
-    String *dref = Swig_wrapped_var_deref(type, pname, varcref);
-    String *call = NewStringf("%s = %s;\n", nname, dref);
-    Setattr(n, k_wrapaction, call);
+  if (flags & CWRAP_EXTEND) {
+    String *sname = Swig_name_set(name);
+    String *mangled = Swig_name_mangle(sname);
+    String *call = Swig_cfunction_call(mangled, parms);
+    String *cres = NewStringf("%s;\n", call);
+    Setattr(n, k_wrapaction, cres);
+    Delete(cres);
     Delete(call);
-    Delete(dref);
-    Delete(pname);
+    Delete(mangled);
+    Delete(sname);
   } else {
-    String *pname = Swig_cparm_name(0, 0);
-    String *call = NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;\n", nname, nname, pname);
-    Setattr(n, k_wrapaction, call);
-    Delete(call);
+    if (!Strstr(type, "enum $unnamed")) {
+      String *pname = Swig_cparm_name(0, 0);
+      String *dref = Swig_wrapped_var_deref(type, pname, varcref);
+      String *call = NewStringf("%s = %s;\n", nname, dref);
+      Setattr(n, k_wrapaction, call);
+      Delete(call);
+      Delete(dref);
+      Delete(pname);
+    } else {
+      String *pname = Swig_cparm_name(0, 0);
+      String *call = NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;\n", nname, nname, pname);
+      Setattr(n, k_wrapaction, call);
+      Delete(pname);
+      Delete(call);
+    }
   }
   Setattr(n, k_type, "void");
   Setattr(n, k_parms, parms);
   Delete(parms);
+  Delete(ty);
   Delete(nname);
   return SWIG_OK;
 }
@@ -1406,29 +1420,42 @@ int Swig_VarsetToFunction(Node *n, int flags) {
 /* -----------------------------------------------------------------------------
  * Swig_VargetToFunction()
  *
- * This function creates a C wrapper for getting a global variable.
+ * This function creates a C wrapper for getting a global variable or static member
+ * variable.
  * ----------------------------------------------------------------------------- */
 
 int Swig_VargetToFunction(Node *n, int flags) {
   String *cres, *call;
-  String *name, *nname;
-  SwigType *type, *ty;
+  String *name;
+  SwigType *type;
+  SwigType *ty = 0;
 
   int varcref = flags & CWRAP_NATURAL_VAR;
 
   name = Getattr(n, k_name);
   type = Getattr(n, k_type);
-
-  nname = SwigType_namestr(name);
   ty = Swig_wrapped_var_type(type, varcref);
-  call = Swig_wrapped_var_assign(type, nname, varcref);
-  cres = Swig_cresult(ty, k_result, call);
-  Setattr(n, k_wrapaction, cres);
-  Delete(cres);
-  Delete(call);
+
+  if (flags & CWRAP_EXTEND) {
+    String *sname = Swig_name_get(name);
+    String *mangled = Swig_name_mangle(sname);
+    call = Swig_cfunction_call(mangled, 0);
+    cres = Swig_cresult(ty, k_result, call);
+    Setattr(n, k_wrapaction, cres);
+    Delete(mangled);
+    Delete(sname);
+  } else {
+    String *nname = SwigType_namestr(name);
+    call = Swig_wrapped_var_assign(type, nname, varcref);
+    cres = Swig_cresult(ty, k_result, call);
+    Setattr(n, k_wrapaction, cres);
+    Delete(nname);
+  }
+
   Setattr(n, k_type, ty);
   Delattr(n, k_parms);
-  Delete(nname);
+  Delete(cres);
+  Delete(call);
   Delete(ty);
   return SWIG_OK;
 }

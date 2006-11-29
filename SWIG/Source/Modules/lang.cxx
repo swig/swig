@@ -2789,6 +2789,9 @@ int Language::variableWrapper(Node *n) {
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
   int flags = use_naturalvar_mode(n);
+  if (!GetFlag(n, "wrappedasconstant"))
+    flags = flags | Extend;
+
   if (assignable) {
     int make_set_wrapper = 1;
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
@@ -2829,6 +2832,7 @@ int Language::variableWrapper(Node *n) {
 	Delattr(n, ki.key);
     }
   }
+
   Swig_VargetToFunction(n, flags);
   String *gname = Swig_name_get(symname);
   Setattr(n, "sym:name", gname);
