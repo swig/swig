@@ -41,14 +41,39 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
   };
 %}
 
+#if SWIGJAVA
+%javaconst(1) AllBarOne;
+#elif SWIGCSHARP
+%csconst(1) AllBarOne;
+#endif
+
 
 class Foo {
   public:
     %extend {
         static const int Bar = 42;
+        static const int AllBarOne = 4422;
+        static const int StaticConstInt;
+        static int StaticInt;
     }
 }; 
   
+%{
+  int globalVariable = 1111;
+
+  void Foo_StaticInt_set(int value) {
+    globalVariable = value;
+  }
+
+  int Foo_StaticInt_get() {
+    return globalVariable;
+  }
+
+  int Foo_StaticConstInt_get() {
+    static int var = 2222;
+    return var;
+  }
+%}
 
 %inline {
   namespace ns1 
@@ -67,8 +92,8 @@ class Foo {
 
   void ns1_Bar_x_set(ns1::Bar *self, int x) {
   }
-  
 %}
+  
 %extend ns1::Bar 
 {
   int x;
