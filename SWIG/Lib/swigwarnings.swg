@@ -46,65 +46,66 @@
 #define %_warningmsg(Val, Msg...) `Val`":"Msg 
 #define %warningmsg(Val, Msg...) %_warningmsg(Val, Msg)
 
-/* Macro to define warning macros */
-%define %_warningmacro(Def, Val, Msg) %define Def %warningmsg(Val, Msg) %enddef %enddef
-#define %warningmacro(x,msg) %_warningmacro(x##_MSG, x, msg)
-
 /* -----------------------------------------------------------------------------
- *  Define typemap macro messages
+ *  Typemap related warning messages
  * ----------------------------------------------------------------------------- */
 
-#define %typemapmsg(TMap, msg) %warningmacro(SWIGWARN_TYPEMAP_##TMap,msg)
-
-%typemapmsg(CHARLEAK,        "Setting a const char * variable may leak memory.")
-%typemapmsg(SWIGTYPELEAK,    "Setting a pointer/reference variable may leak memory.");
-%typemapmsg(THREAD_UNSAFE,   "Thread/reentrant unsafe wrapping, consider returning by value instead.");
-%typemapmsg(DIRECTOROUT_PTR, "Returning a pointer or reference in a director method is not recommended.");
-
-/* Old warning messages names, for compatibility */
-%define SWIG_WARN_TYPEMAP_CHARLEAK        SWIGWARN_TYPEMAP_CHARLEAK_MSG        %enddef
-%define SWIG_WARN_TYPEMAP_SWIGTYPELEAK    SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG    %enddef
-%define SWIG_WARN_TYPEMAP_THREAD_UNSAFE   SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG   %enddef
-%define SWIG_WARN_TYPEMAP_DIRECTOROUT_PTR SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG %enddef
+%define SWIGWARN_TYPEMAP_CHARLEAK_MSG         "451:Setting a const char * variable may leak memory." %enddef
+%define SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG     "454:Setting a pointer/reference variable may leak memory." %enddef
+%define SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG    "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
+%define SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG  "473:Returning a pointer or reference in a director method is not recommended." %enddef
 
 /* -----------------------------------------------------------------------------
- *  Define operator warning macro messages 
+ * Operator related warning messages 
  * ----------------------------------------------------------------------------- */
 
-#define %ignoreopermsg(Oper, msg) %warningmacro(SWIGWARN_IGNORE_OPERATOR_##Oper,msg) 
-
-%ignoreopermsg(NEW,       "operator new ignored");
-%ignoreopermsg(DELETE,    "operator delete ignored");
-%ignoreopermsg(NEWARR,    "operator new[] ignored");
-%ignoreopermsg(DELARR,    "operator delete[] ignored");
-%ignoreopermsg(PLUS,      "operator+ ignored");
-%ignoreopermsg(MINUS,     "operator- ignored");
-%ignoreopermsg(MUL,       "operator* ignored");
-%ignoreopermsg(DIV,       "operator/ ignored");
-%ignoreopermsg(MOD,       "operator% ignored");
-%ignoreopermsg(XOR,       "operator^ ignored");
-%ignoreopermsg(AND,       "operator& ignored");
-%ignoreopermsg(OR,        "operator| ignored");
-%ignoreopermsg(NOT,       "operator~ ignored");
-%ignoreopermsg(LNOT,      "operator! ignored");
-%ignoreopermsg(LAND,      "operator&& ignored");
-%ignoreopermsg(LOR,       "operator|| ignored");
-%ignoreopermsg(EQ,        "operator= ignored");
-%ignoreopermsg(PLUSPLUS,  "operator++ ignored");
-%ignoreopermsg(MINUSMINUS,"operator-- ignored");
-%ignoreopermsg(ARROWSTAR, "operator->* ignored");
-%ignoreopermsg(INDEX,     "operator[] ignored (consider using %%extend)");
-%ignoreopermsg(NOTEQUAL,  "operator!= ignored");
-%ignoreopermsg(PLUSEQ,    "operator+= ignored");
-%ignoreopermsg(MINUSEQ,   "operator-= ignored");
-%ignoreopermsg(MULEQ,     "operator*= ignored");
-%ignoreopermsg(DIVEQ,     "operator/= ignored");
-%ignoreopermsg(MODEQ,     "operator%= ignored");
-%ignoreopermsg(LSHIFTEQ,  "operator<<= ignored");
-%ignoreopermsg(RSHIFTEQ,  "operator>>= ignored");
-%ignoreopermsg(ANDEQ,     "operator&= ignored");
-%ignoreopermsg(OREQ,      "operator|= ignored");
-%ignoreopermsg(XOREQ,     "operator^= ignored");
+%define SWIGWARN_IGNORE_OPERATOR_NEW_MSG        "350:operator new ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_DELETE_MSG     "351:operator delete ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_PLUS_MSG       "352:operator+ ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MINUS_MSG      "353:operator- ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MUL_MSG        "354:operator* ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_DIV_MSG        "355:operator/ ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MOD_MSG        "356:operator% ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_XOR_MSG        "357:operator^ ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_AND_MSG        "358:operator& ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_OR_MSG         "359:operator| ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_NOT_MSG        "360:operator~ ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LNOT_MSG       "361:operator! ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_EQ_MSG         "362:operator= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LT_MSG         "363:operator< ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_GT_MSG         "364:operator> ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_PLUSEQ_MSG     "365:operator+= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MINUSEQ_MSG    "366:operator-= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MULEQ_MSG      "367:operator*= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_DIVEQ_MSG      "368:operator/= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MODEQ_MSG      "369:operator%= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_XOREQ_MSG      "370:operator^= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_ANDEQ_MSG      "371:operator&= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_OREQ_MSG       "372:operator|= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LSHIFT_MSG     "373:operator<< ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_RSHIFT_MSG     "374:operator>> ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LSHIFTEQ_MSG   "375:operator<<= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_RSHIFTEQ_MSG   "376:operator>>= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_EQUALTO_MSG    "377:operator== ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_NOTEQUAL_MSG   "378:operator!= ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LTEQUAL_MSG    "379:operator<= ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_GTEQUAL_MSG    "380:operator>= ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LAND_MSG       "381:operator&& ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LOR_MSG        "382:operator|| ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_PLUSPLUS_MSG   "383:operator++ ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_MINUSMINUS_MSG "384:operator-- ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_COMMA_MSG      "385:operator-- ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_ARROWSTAR_MSG  "386:operator->* ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_ARROW_MSG      "387:operator-> ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_CALL_MSG       "388:operator() ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_INDEX_MSG      "389:operator[] ignored (consider using %%extend)"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_UPLUS_MSG      "390:operator+ ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_UMINUS_MSG     "391:operator- ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_UMUL_MSG       "392:operator* ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_UAND_MSG       "393:operator& ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_NEWARR_MSG     "394:operator new[] ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_DELARR_MSG     "395:operator delete[] ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_REF_MSG        "396:operator*() ignored" %enddef
 
 #define %ignoreoperator(Oper) %ignorewarn(SWIGWARN_IGNORE_OPERATOR_##Oper##_MSG)
 
@@ -122,5 +123,6 @@
 
 #define %_warnfilter(filter...) %feature("warnfilter",`filter`)
 #define %warnfilter(filter...) %_warnfilter(filter)
+
 
 
