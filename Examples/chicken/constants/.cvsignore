@@ -1,7 +1,0 @@
-constants
-csi.c
-example.scm
-example_wrap.c
-my-guile
-oexample.c
-precsi.c

@@ -1,8 +1,0 @@
-simple.py
-simple.pyc
-simple_wrap.c
-*.so
-*.dll
-*.gif
-*.exp
-*.lib

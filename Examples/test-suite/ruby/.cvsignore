@@ -1,7 +1,0 @@
-*wrap*
-*.bundle
-*.so
-*.dll
-*.lib
-*.exp
-Makefile

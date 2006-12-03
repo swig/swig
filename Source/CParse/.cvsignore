@@ -1,8 +1,0 @@
-.deps
-.dirstamp
-parser.c
-parser.h
-cscanner.o
-parser.o
-y.tab.c
-y.tab.h

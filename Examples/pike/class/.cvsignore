@@ -1,9 +1,0 @@
-*_wrap.c
-*_wrap.cxx
-*.dll
-*.dsw
-*.ncb
-*.opt
-*.plg
-Release
-Debug

@@ -1,7 +1,0 @@
-Makefile
-Makefile.in
-.deps
-swig
-eswig
-*.ilk
-*.pdb
