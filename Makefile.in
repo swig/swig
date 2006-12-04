@@ -444,19 +444,12 @@ dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
 srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
-	@echo 'Dave, what do you want to do w/ "make dist"?'
-	@echo 'See Makefile.in target "dist-suggested" for an idea.'
-	@echo '    --thi'
+	@echo "not implemented"
 	false
-
-dist-suggested:
-	rm -rf $(dd) $(dd).tar.gz
-	cvs export -d $(dd) -r HEAD SWIG
-	tar cf - $(dd) | gzip --best > $(dd).tar.gz
-	rm -rf $(dd)
 
 srcrpm:
 	rm -fr $(srpm) $(srpm).src.rpm
+	echo "TODO: update to use svn instead of cvs"
 	cvs export -d $(srpm) -r HEAD SWIG
 	cp swig.spec $(srpm)
 	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
