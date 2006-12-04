@@ -56,7 +56,7 @@ aspects of SWIG development.  SWIG is an unfunded project that would
 not exist without volunteers.  We are also looking for the developers
 of other SWIG language modules.  If you have developed a SWIG module
 and would like to see it incorporated into the new release, please
-contact us to obtain SWIG-CVS access.  We are also more than willing
+contact us to obtain SWIG-SVN access.  We are also more than willing
 to help port your module from SWIG-1.1 to SWIG-1.3.  Please send email
 to beazley@cs.uchicago.edu for further information.
 
