@@ -7,7 +7,7 @@
  * SWIG preprocessor module.
  * ----------------------------------------------------------------------------- */
 
-/* $Header$ */
+/* $Id$ */
 
 #ifndef SWIG_PREPROCESSOR_H_
 #define SWIG_PREPROCESSOR_H_

@@ -8,7 +8,7 @@
  * encountered during preprocessing.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_expr_c[] = "$Header$";
+char cvsroot_expr_c[] = "$Id$";
 
 #include "swig.h"
 #include "preprocessor.h"
