@@ -7,7 +7,7 @@
  * Header file for the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-/* $Header$ */
+/* $Id$ */
 
 #ifndef SWIGCORE_H_
 #define SWIGCORE_H_
