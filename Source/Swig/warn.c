@@ -8,7 +8,7 @@
  * deprecated APIs and other features.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_warn_c[] = "$Header$";
+char cvsroot_warn_c[] = "$Id$";
 
 #include "swig.h"
 

@@ -7,7 +7,7 @@
  * A somewhat generalized implementation of SWIG1.1 typemaps.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typemap_c[] = "$Header$";
+char cvsroot_typemap_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

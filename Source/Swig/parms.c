@@ -7,7 +7,7 @@
  * Parameter list class.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_parms_c[] = "$Header$";
+char cvsroot_parms_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

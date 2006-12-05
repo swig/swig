@@ -10,7 +10,7 @@
  * like typedef, namespaces, etc.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typeobj_c[] = "$Header$";
+char cvsroot_typeobj_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

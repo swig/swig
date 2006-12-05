@@ -7,7 +7,7 @@
  * Miscellaneous functions that don't really fit anywhere else.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_misc_c[] = "$Header$";
+char cvsroot_misc_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

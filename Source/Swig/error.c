@@ -8,7 +8,7 @@
  * error messages.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_error_c[] = "$Header$";
+char cvsroot_error_c[] = "$Id$";
 
 #include "swig.h"
 #include <stdarg.h>

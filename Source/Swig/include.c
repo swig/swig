@@ -9,7 +9,7 @@
  * are provided.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_include_c[] = "$Header$";
+char cvsroot_include_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

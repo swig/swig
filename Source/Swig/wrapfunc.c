@@ -9,7 +9,7 @@
  * to be created in a piecemeal manner.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_wrapfunc_c[] = "$Header$";
+char cvsroot_wrapfunc_c[] = "$Id$";
 
 #include "swig.h"
 #include <ctype.h>

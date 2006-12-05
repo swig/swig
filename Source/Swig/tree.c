@@ -8,7 +8,7 @@
  * parse trees.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tree_c[] = "$Header$";
+char cvsroot_tree_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

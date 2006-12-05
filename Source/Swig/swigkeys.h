@@ -5,7 +5,7 @@
  * swigkeys.h
  * ----------------------------------------------------------------------------- */
 
-/* $Header$ */
+/* $Id$ */
 
 #ifndef SWIG_SWIGKEYS_H_
 #define SWIG_SWIGKEYS_H_

@@ -5,7 +5,7 @@
  * swigkeys.c
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_keys_c[] = "$Header$";
+char cvsroot_keys_c[] = "$Id$";
 
 #include "swigkeys.h"
 
