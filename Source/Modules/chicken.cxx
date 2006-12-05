@@ -1162,6 +1162,8 @@ int CHICKEN::membervariableHandler(Node *n) {
   }
 
   Delete(proc);
+  Delete(setfunc);
+  Delete(getfunc);
   return SWIG_OK;
 }
 

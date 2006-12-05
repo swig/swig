@@ -1416,7 +1416,8 @@ public:
 
     /* create getter */
     int addfail = 0;
-    getfname = Swig_name_get(iname);
+    String *getname = Swig_name_get(iname);
+    getfname = Swig_name_wrapper(getname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
     Printf(getf->def, ") {");
@@ -1445,7 +1446,8 @@ public:
       setfname = NewString("NULL");
     } else {
       /* create setter */
-      setfname = Swig_name_set(iname);
+      String *setname = Swig_name_set(iname);
+      setfname = Swig_name_wrapper(setname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
       tm = Swig_typemap_lookup_new("varin", n, name, 0);
@@ -1463,6 +1465,7 @@ public:
       Printv(setf->code, tab4, "return Qnil;\n", NIL);
       Printf(setf->code, "}\n");
       Wrapper_print(setf, f_wrappers);
+      Delete(setname);
     }
 
     /* define accessor method */
@@ -1502,6 +1505,7 @@ public:
       Delete(s);
       break;
     }
+    Delete(getname);
     Delete(getfname);
     Delete(setfname);
     DelWrapper(setf);

@@ -765,9 +765,11 @@ public:
     SwigType *t = Getattr(n, "type");
     Wrapper *getf, *setf;
     String *tm;
+    String *getname = Swig_name_get(iname);
+    String *setname = Swig_name_set(iname);
 
-    String *set_name = Swig_name_wrapper(Swig_name_set(iname));
-    String *val_name = Swig_name_wrapper(Swig_name_get(iname));
+    String *get_name = Swig_name_wrapper(getname);
+    String *set_name = Swig_name_wrapper(setname);
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
@@ -801,7 +803,7 @@ public:
 
     /* Now write a function to evaluate the variable */
     int addfail = 0;
-    Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", val_name);
+    Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", get_name);
     Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
 
     if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
@@ -850,10 +852,10 @@ public:
     }
     /* Now add symbol to the PERL interpreter */
     if (GetFlag(n, "feature:immutable")) {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name, ",", tt, " },\n", NIL);
+      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
 
     } else {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n", NIL);
+      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
     }
 
     /* If we're blessed, try to figure out what to do with the variable
@@ -876,8 +878,10 @@ public:
 
     DelWrapper(setf);
     DelWrapper(getf);
+    Delete(getname);
+    Delete(setname);
     Delete(set_name);
-    Delete(val_name);
+    Delete(get_name);
     return SWIG_OK;
   }
 
