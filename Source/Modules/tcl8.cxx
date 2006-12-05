@@ -549,7 +549,7 @@ public:
     SwigType *t = Getattr(n, "type");
 
     String *setname = 0;
-    String *getname = 0;
+    String *setfname = 0;
     Wrapper *setf = 0, *getf = 0;
     int readonly = 0;
     String *tm;
@@ -560,8 +560,9 @@ public:
     /* Create a function for getting a variable */
     int addfail = 0;
     getf = NewWrapper();
-    getname = Swig_name_get(iname);
-    Printv(getf->def, "SWIGINTERN const char *", getname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
+    String *getname = Swig_name_get(iname);
+    String *getfname = Swig_name_wrapper(getname);
+    Printv(getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
     Wrapper_add_local(getf, "value", "Tcl_Obj *value = 0");
     if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
@@ -591,7 +592,8 @@ public:
     if (is_assignable(n)) {
       setf = NewWrapper();
       setname = Swig_name_set(iname);
-      Printv(setf->def, "SWIGINTERN const char *", setname,
+      setfname = Swig_name_wrapper(setname);
+      Printv(setf->def, "SWIGINTERN const char *", setfname,
 	     "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {", NIL);
       Wrapper_add_local(setf, "value", "Tcl_Obj *value = 0");
       Wrapper_add_local(setf, "name1o", "Tcl_Obj *name1o = 0");
@@ -622,7 +624,7 @@ public:
     }
 
 
-    Printv(var_tab, tab4, "{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", NIL);
+    Printv(var_tab, tab4, "{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getfname, ",", NIL);
     if (readonly) {
       static int readonlywrap = 0;
       if (!readonlywrap) {
@@ -636,8 +638,10 @@ public:
       }
       Printf(var_tab, "(swig_variable_func) swig_readonly},\n");
     } else {
-      Printv(var_tab, "(swig_variable_func) ", setname, "},\n", NIL);
+      Printv(var_tab, "(swig_variable_func) ", setfname, "},\n", NIL);
     }
+    Delete(getfname);
+    Delete(setfname);
     Delete(setname);
     Delete(getname);
     return SWIG_OK;

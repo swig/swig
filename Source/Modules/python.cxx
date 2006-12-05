@@ -2139,8 +2139,6 @@ public:
     String *iname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
 
-    String *getnamef;
-    String *setnamef;
     static int have_globals = 0;
     String *tm;
     Wrapper *getf, *setf;
@@ -2169,12 +2167,14 @@ public:
       }
     }
 
-    getnamef = Swig_name_get(iname);
-    setnamef = Swig_name_set(iname);
+    String *getname = Swig_name_get(iname);
+    String *setname = Swig_name_set(iname);
+    String *vargetname = NewStringf("Swig_var_%s", getname);
+    String *varsetname = NewStringf("Swig_var_%s", setname);
 
     /* Create a function for setting the value of the variable */
     if (assignable) {
-      Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", setnamef);
+      Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
       if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "_val");
 	Replaceall(tm, "$target", name);
@@ -2193,9 +2193,9 @@ public:
     } else {
       /* Is a readonly variable.  Issue an error */
       if (CPlusPlus) {
-	Printf(setf->def, "SWIGINTERN int %s(PyObject *) {", setnamef);
+	Printf(setf->def, "SWIGINTERN int %s(PyObject *) {", varsetname);
       } else {
-	Printf(setf->def, "SWIGINTERN int %s(PyObject *_val SWIGUNUSED) {", setnamef);
+	Printf(setf->def, "SWIGINTERN int %s(PyObject *_val SWIGUNUSED) {", varsetname);
       }
       Printv(setf->code, ctab4, "SWIG_Error(SWIG_AttributeError,\"Variable ", iname, " is read-only.\");\n", ctab4, "return 1;\n", NIL);
     }
@@ -2205,7 +2205,7 @@ public:
 
     /* Create a function for getting the value of a variable */
     int addfail = 0;
-    Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", getnamef);
+    Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");
     if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
@@ -2226,10 +2226,12 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, getnamef, setnamef);
+    Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, vargetname, varsetname);
 
-    Delete(getnamef);
-    Delete(setnamef);
+    Delete(vargetname);
+    Delete(varsetname);
+    Delete(getname);
+    Delete(setname);
     DelWrapper(setf);
     DelWrapper(getf);
     return SWIG_OK;
@@ -3061,27 +3063,27 @@ public:
 
     if (shadow) {
       String *mname = Swig_name_member(class_name, symname);
-      String *sname = Swig_name_set(mname);
-      String *gname = Swig_name_get(mname);
+      String *setname = Swig_name_set(mname);
+      String *getname = Swig_name_get(mname);
       if (shadow) {
 	int assignable = is_assignable(n);
 	if (!modern) {
 	  if (assignable) {
-	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL);
+	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", setname, "\n", NIL);
 	  }
-	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname, "\n", NIL);
+	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
 	if (!classic) {
 	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", gname, ")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
 	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", gname, ", ", module, ".", sname, ")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
 	  }
 	}
       }
       Delete(mname);
-      Delete(sname);
-      Delete(gname);
+      Delete(setname);
+      Delete(getname);
     }
 
     return SWIG_OK;
@@ -3102,50 +3104,54 @@ public:
 	Delete(mname);
       } else {
 	String *mname = Swig_name_member(class_name, symname);
-	String *gname = Swig_name_get(mname);
-	String *wgname = Swig_name_wrapper(gname);
-	String *sname = Swig_name_set(mname);
-	String *wsname = Swig_name_wrapper(sname);
+	String *getname = Swig_name_get(mname);
+	String *wrapgetname = Swig_name_wrapper(getname);
+        String *vargetname = NewStringf("Swig_var_%s", getname);
+	String *setname = Swig_name_set(mname);
+	String *wrapsetname = Swig_name_wrapper(setname);
+        String *varsetname = NewStringf("Swig_var_%s", setname);
 
 	Wrapper *f = NewWrapper();
-	Printv(f->def, "SWIGINTERN PyObject *", wgname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(args)) {", NIL);
-	Printv(f->code, "  return ", gname, "();\n", NIL);
+	Printv(f->def, "SWIGINTERN PyObject *", wrapgetname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(args)) {", NIL);
+	Printv(f->code, "  return ", vargetname, "();\n", NIL);
 	Append(f->code, "}\n");
-	add_method(gname, wgname, 0);
+	add_method(getname, wrapgetname, 0);
 	Wrapper_print(f, f_wrappers);
 	DelWrapper(f);
 	int assignable = is_assignable(n);
 	if (assignable) {
 	  Wrapper *f = NewWrapper();
-	  Printv(f->def, "SWIGINTERN PyObject *", wsname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
+	  Printv(f->def, "SWIGINTERN PyObject *", wrapsetname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
 	  Wrapper_add_local(f, "value", "PyObject *value");
 	  Wrapper_add_local(f, "res", "int res");
 	  Append(f->code, "if (!PyArg_ParseTuple(args,(char *)\"O:set\",&value)) return NULL;\n");
-	  Printv(f->code, "res = ", sname, "(value);\n", NIL);
+	  Printv(f->code, "res = ", varsetname, "(value);\n", NIL);
 	  Append(f->code, "return !res ? SWIG_Py_Void() : NULL;\n");
 	  Append(f->code, "}\n");
 	  Wrapper_print(f, f_wrappers);
-	  add_method(sname, wsname, 0);
+	  add_method(setname, wrapsetname, 0);
 	  DelWrapper(f);
 	}
 	if (!modern) {
 	  if (assignable) {
-	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", sname, "\n", NIL);
+	    Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", setname, "\n", NIL);
 	  }
-	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", gname, "\n", NIL);
+	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
 	if (!classic) {
 	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", gname, ")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
 	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", gname, ", ", module, ".", sname, ")\n", NIL);
+	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
 	  }
 	}
 	Delete(mname);
-	Delete(gname);
-	Delete(wgname);
-	Delete(sname);
-	Delete(wsname);
+	Delete(getname);
+	Delete(wrapgetname);
+	Delete(vargetname);
+	Delete(setname);
+	Delete(wrapsetname);
+	Delete(varsetname);
       }
     }
     return SWIG_OK;
