@@ -1538,7 +1538,7 @@ int Language::staticmembervariableHandler(Node *n) {
 
        class Foo {
        public:
-       static const int x = 3;
+         static const int x = 3;
        };
 
        Some discussion of this in section 9.4 of the C++ draft standard.
@@ -1548,7 +1548,7 @@ int Language::staticmembervariableHandler(Node *n) {
        class Foo {
        public:
        %extend {
-       static const int x = 3;
+         static const int x = 3;
        }
        };
 
