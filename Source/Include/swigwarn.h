@@ -16,7 +16,7 @@
  * numbers in this file.
  * ----------------------------------------------------------------------------- */
 
-/* $Header$ */
+/* $Id$ */
 
 #ifndef SWIGWARN_H_
 #define SWIGWARN_H_
