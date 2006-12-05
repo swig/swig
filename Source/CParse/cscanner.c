@@ -7,7 +7,7 @@
  * SWIG tokenizer.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cscanner_c[] = "$Header$";
+char cvsroot_cscanner_c[] = "$Id$";
 
 #include "cparse.h"
 #include "parser.h"

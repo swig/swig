@@ -7,7 +7,7 @@
  * SWIG parser module.
  * ----------------------------------------------------------------------------- */
 
-/* $Header$ */
+/* $Id$ */
 
 #ifndef SWIG_CPARSE_H_
 #define SWIG_CPARSE_H_

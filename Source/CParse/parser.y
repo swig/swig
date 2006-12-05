@@ -13,7 +13,7 @@
 
 #define yylex yylex
 
-char cvsroot_parser_y[] = "$Header$";
+char cvsroot_parser_y[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"

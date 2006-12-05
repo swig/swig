@@ -7,7 +7,7 @@
  * Parsing utilities.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_util_c[] = "$Header$";
+char cvsroot_util_c[] = "$Id$";
 
 #include "swig.h"
 #include "swigkeys.h"
