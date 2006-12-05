@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_list_c[] = "$Header$";
+char cvsroot_list_c[] = "$Id$";
 
 #include "dohint.h"
 

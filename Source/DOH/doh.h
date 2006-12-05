@@ -8,7 +8,7 @@
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
  *
- * $Header$
+ * $Id$
  * ----------------------------------------------------------------------------- */
 
 #ifndef _DOH_H

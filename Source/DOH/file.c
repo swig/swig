@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_file_c[] = "$Header$";
+char cvsroot_file_c[] = "$Id$";
 
 #include "dohint.h"
 
