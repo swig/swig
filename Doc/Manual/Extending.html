@@ -60,6 +60,7 @@
 <li><a href="#Extending_nn42">Examples and test cases</a>
 <li><a href="#Extending_nn43">Documentation</a>
 <li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
+<li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
 </ul>
 <li><a href="#Extending_nn44">Typemaps</a>
 <ul>
@@ -3312,6 +3313,9 @@ details being outlined earlier on.
   the language module.
   </li>
   <li>
+  Ensure your source code is formatted according to the <a href="#Extending_coding_style_guidelines">coding style guidelines</a>.
+  </li>
+  <li>
   Finally, email the SWIG developers with a patch and a demonstration of
   commitment to maintaining the language module,
   certainly in the short term and ideally long term.
@@ -3326,6 +3330,29 @@ should be added should there be an area not already covered by
 the existing tests.
 </p>
 
+<H3><a name="Extending_coding_style_guidelines"></a>33.10.14 Coding style guidelines</H3>
+
+
+<p>
+The coding guidelines for the C/C++ source code are pretty much K&amp;R C style.
+The style can be inferred from the existing code base and is
+largely dictated by the <tt>indent</tt> code beautifier tool set to K&amp;R style.
+The code can formatted using the make targets in the Source directory.
+Below is an example of how to format the emit.cxx file:
+</p>
+
+<blockquote>
+<pre>
+$ cd Source
+$ make beautify-file INDENTFILE=Modules/emit.cxx
+</pre>
+</blockquote>
+
+<p>
+Of particular note is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
+The generated C/C++ code should also follow this style as close as possible. However, tabs
+should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
+</p>
 
 <H2><a name="Extending_nn44"></a>33.11 Typemaps</H2>
 
