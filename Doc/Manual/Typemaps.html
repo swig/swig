@@ -2579,9 +2579,9 @@ For example, the "in" typemap for Perl and Ruby could be written as:
 
 <div class="code"><pre>
 #if defined(SWIGPERL)
-  %typemap(in) int "$1 = NUM2INT($input);"
-#elif defined(SWIGRUBY)
   %typemap(in) int "$1 = ($1_ltype) SvIV($input);"
+#elif defined(SWIGRUBY)
+  %typemap(in) int "$1 = NUM2INT($input);"
 #else
   #warning no "in" typemap defined
 #endif
