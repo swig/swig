@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+12/14/2006: olly
+	    [php] Fix bug #1613673 (bad PHP5 code generated for getters and
+	    setters).
+
 12/02/2006: wsfulton, John Lenz, Dave Beazley
             Move from cvs to Subversion for source control
 

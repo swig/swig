@@ -2325,7 +2325,7 @@ public:
 	  }
 	} else {
 	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_set';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func) call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\tif (function_exists($func)) call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
 	}
 	Printf(s_phpclasses, "\t}\n");
 	/* FIXME: also create __isset for PHP 5.1 and later? */
@@ -2346,7 +2346,7 @@ public:
 	  }
 	} else {
 	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func) return call_user_func($func,$this->%s);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
 	}
 	// Reading an unknown property name gives null in PHP.
 	Printf(s_phpclasses, "\t\treturn null;\n");
