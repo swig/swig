@@ -216,7 +216,7 @@ The short abbreviated instructions follow...
 
 <p>
 The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from SVN follow...
-Note that the instructions for obtaining SWIG from SVN are also online at <a href="http://www.swig.org/cvs.html">SWIG SVN</a>.
+Note that the instructions for obtaining SWIG from SVN are also online at <a href="http://www.swig.org/svn.html">SWIG SVN</a>.
 </p>
 
 <p>
@@ -279,27 +279,23 @@ tar -zxf bison-2.0-MSYS.tar.gz
   </li>
 
   <li>
-  To get the latest SWIG CVS, type in the following:
+  To get the latest SWIG SVN, type in the following:
 <div class="shell"><pre>
 mkdir /usr/src
 cd /usr/src
-export CVSROOT=:pserver:anonymous@swig.cvs.sourceforge.net:/cvsroot/swig
-cvs login
- (Logging in to anonymous@swig.cvs.sourceforge.net)
- CVS password: &lt;Just Press Return Here&gt;
-cvs -z3 checkout SWIG
+svn co https://swig.svn.sourceforge.net/svnroot/swig/trunk swig
 </pre></div>
 
   <b>Pitfall note:</b>
 If you want to check out SWIG to a different folder to the proposed
-/usr/src/SWIG, do not use MSYS emulated windows drive letters, because
+/usr/src/swig, do not use MSYS emulated windows drive letters, because
 the autotools will fail miserably on those.
   </li>
 
   <li>
   You are now ready to build SWIG. Execute the following commands to build swig.exe:
 <div class="shell"><pre>
-cd /usr/src/SWIG
+cd /usr/src/swig
 ./autogen.sh
 ./configure
 make
