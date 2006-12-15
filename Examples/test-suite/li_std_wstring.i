@@ -16,9 +16,17 @@ struct B
   char *cname;
   std::wstring name;
   A a;
-
+  A typedefmethod(A a) {
+    return a;
+  }
 };
+
+A globala;
  
+
+wchar_t test_wcvalue_w() {
+   return L'W';
+}
 
 wchar_t test_wcvalue(wchar_t x) {
    return x;
