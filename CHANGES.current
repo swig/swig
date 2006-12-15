@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+12/14/2006: wsfulton
+            [C#] Add std::wstring and wchar_t typemaps
+
 12/14/2006: olly
 	    [php] Fix bug #1613673 (bad PHP5 code generated for getters and
 	    setters).
