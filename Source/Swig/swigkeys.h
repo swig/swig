@@ -109,7 +109,6 @@ extern String *k_symsymtab;
 extern String *k_symtab;
 extern String *k_symtypename;
 extern String *k_symweak;
-extern String *k_sysdir;
 extern String *k_targetfmt;
 extern String *k_targetname;
 extern String *k_template;

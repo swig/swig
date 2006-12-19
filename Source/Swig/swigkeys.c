@@ -104,7 +104,6 @@ String *k_symsymtab = 0;
 String *k_symtab = 0;
 String *k_symtypename = 0;
 String *k_symweak = 0;
-String *k_sysdir = 0;
 String *k_targetfmt = 0;
 String *k_targetname = 0;
 String *k_template = 0;
@@ -231,7 +230,6 @@ void Swig_keys_init() {
   k_symtab = NewString("symtab");
   k_symtypename = NewString("sym:typename");
   k_symweak = NewString("sym:weak");
-  k_sysdir = NewString("sysdir");
   k_targetfmt = NewString("targetfmt");
   k_targetname = NewString("targetname");
   k_template = NewString("template");
