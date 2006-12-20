@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+12/20/2006: wsfulton
+            Fix typedef'd variable wrappers that use %naturalvar, eg, std::string.
+
 12/14/2006: wsfulton
             [C#] Add std::wstring and wchar_t typemaps
 
