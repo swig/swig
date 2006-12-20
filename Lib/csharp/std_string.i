@@ -26,6 +26,7 @@ class string;
 %typemap(ctype) string "char *"
 %typemap(imtype) string "string"
 %typemap(cstype) string "string"
+
 %typemap(csdirectorin) string "$iminput"
 %typemap(csdirectorout) string "$cscall"
 
@@ -52,16 +53,6 @@ class string;
     return ret;
   }
 
-%typemap(csvarin, excode=SWIGEXCODE2) string %{
-    set {
-      $imcall;$excode
-    } %}
-%typemap(csvarout, excode=SWIGEXCODE2) string %{
-    get {
-      string ret = $imcall;$excode
-      return ret;
-    } %}
-
 %typemap(typecheck) string = char *;
 
 %typemap(throws, canthrow=1) string
@@ -72,6 +63,7 @@ class string;
 %typemap(ctype) const string & "char *"
 %typemap(imtype) const string & "string"
 %typemap(cstype) const string & "string"
+
 %typemap(csdirectorin) const string & "$iminput"
 %typemap(csdirectorout) const string & "$cscall"
 
