@@ -125,12 +125,26 @@ typedef struct {
 #ifdef __cplusplus
 /* Special helper for member function pointers 
 it gets the address, casts it, then dereferences it */
-#define SWIG_mem_fn_as_voidptr(a)  (*((char**)&(a)))
+//#define SWIG_mem_fn_as_voidptr(a)  (*((char**)&(a)))
 #endif
 
 /* -----------------------------------------------------------------------------
  * global variable support code: modules
  * ----------------------------------------------------------------------------- */
+
+/* this function is called when trying to set an immutable.
+default value is to print an error.
+This can removed with a compile flag SWIGLUA_IGNORE_SET_IMMUTABLE */
+SWIGINTERN int SWIG_Lua_set_immutable(lua_State* L)
+{
+/*	there should be 1 param passed in: the new value */
+#ifndef SWIGLUA_IGNORE_SET_IMMUTABLE
+	lua_pop(L,1);	/* remove it */
+	lua_pushstring(L,"This variable is immutable");
+	lua_error(L);
+#endif
+    return 0;   /* should not return anything */
+}
 
 /* the module.get method used for getting linked data */
 SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
@@ -192,10 +206,11 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
 			lua_call(L,1,0);
 			return 0;
 		}
-		lua_pop(L,1);	/* remove the top */
 	}
-	lua_pop(L,1);	/* remove the .set */
-    return 0;
+	lua_settop(L,3);	/* reset back to start */
+	/* we now have the table, key & new value, so just set directly */
+	lua_rawset(L,1);       /* add direct */
+	return 0;
 }
 
 /* registering a module in lua */

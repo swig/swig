@@ -678,18 +678,27 @@ only WRT this variable will look into this later.
 NEW LANGUAGE NOTE:END ************************************************/
     REPORT("variableWrapper", n);
     String *iname = Getattr(n, "sym:name");
-    SwigType *type = Getattr(n, "type");
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
     // normally SWIG will generate 2 wrappers, a get and a set
     // but in certain scenarios (immutable, or if its arrays), it will not
     String *getName = Swig_name_wrapper(Swig_name_get(iname));
     String *setName = 0;
-    if (is_assignable(n) == false || SwigType_isarray(type)) {
-      // TODO: how about calling a 'this is not settable' error message?
-      setName = NewString("0");
-    } else {
+    // checking whether it can be set to or not appears to be a very error prone issue
+    // I refered to the Language::variableWrapper() to find this out
+    bool assignable=is_assignable(n);
+    SwigType *type = Getattr(n, "type");
+    String *tm = Swig_typemap_lookup_new("globalin", n, iname, 0);
+    if (!tm && SwigType_isarray(type))
+      assignable=false;
+    Delete(tm);
+   
+    if (assignable) {
       setName = Swig_name_wrapper(Swig_name_set(iname));
+    } else {
+      // TODO: how about calling a 'this is not settable' error message?
+      setName = NewString("SWIG_Lua_set_immutable"); // error message
+      //setName = NewString("0");
     }
     // register the variable
     Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
@@ -960,20 +969,19 @@ NEW LANGUAGE NOTE:END ************************************************/
   virtual int membervariableHandler(Node *n) {
 //    REPORT("membervariableHandler",n);
     String *symname = Getattr(n, "sym:name");
-    String *rname;
+    String *gname, *sname;
 
     Language::membervariableHandler(n);
-    Printv(s_attr_tab, tab4, "{ \"", symname, "\",", NIL);
-    rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
-    Printv(s_attr_tab, rname, ", ", NIL);
-    Delete(rname);
+    gname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
     if (!GetFlag(n, "feature:immutable")) {
-      rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
-      Printv(s_attr_tab, rname, "},\n", NIL);
-      Delete(rname);
+      sname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
     } else {
-      Printf(s_attr_tab, "0 },\n");
+      //sname = NewString("0");
+      sname = NewString("SWIG_Lua_set_immutable"); // error message
     }
+    Printf(s_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,gname,sname);
+    Delete(gname);
+    Delete(sname);
     return SWIG_OK;
   }
 

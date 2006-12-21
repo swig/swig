@@ -85,8 +85,8 @@ struc=Structure()
 assert(type(struc.MemberString2)=="string") -- typemaps make this a string
 assert(type(struc.ConstMemberString)=="string")
 
--- set them
-struc.ConstMemberString="c"	-- silently ignored
+-- set a const (should fail with error)
+assert(pcall(function () struc.ConstMemberString="c" end)==false)
 --print(struc.MemberString:data(),struc.MemberString2,struc.ConstMemberString:data())
 
 --check type again
@@ -100,9 +100,9 @@ assert(type(struc.ConstMemberString)=="string")
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
 
--- try setting
+-- try setting (should fail with error)
 --li_std_string.Structure_StaticMemberString2='e'
-li_std_string.Structure_ConstStaticMemberString='f' -- silently ignored
+assert(pcall(function () li_std_string.Structure_ConstStaticMemberString='f' end)==false)
 --[[print(li_std_string.Structure_StaticMemberString:data(),
 		li_std_string.Structure_StaticMemberString2,
 		li_std_string.Structure_ConstStaticMemberString:data())]]
@@ -111,4 +111,3 @@ li_std_string.Structure_ConstStaticMemberString='f' -- silently ignored
 assert(type(li_std_string.Structure_StaticMemberString)=="string")
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
-

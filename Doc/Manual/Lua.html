@@ -311,20 +311,39 @@ Its is therefore not possible to 'move' the global variable into the global name
 4
 </pre></div>
 <p>
-If a variable is marked with the immutable directive then any attempts to set this variable are silently ignored.
+If a variable is marked with the %immutable directive then any attempts to set this variable will cause an lua error. Given a global variable:
+</p>
+
+<div class="code"><pre>%module example
+%immutable;
+extern double Foo;
+%mutable;
+</pre></div>
+<p>
+SWIG will generate the <tt>example.Foo_get()</tt> but instead of a set function an error function will be called instead.
+</p>
+<div class="targetlang"><pre>
+&gt; print(e.Foo) -- reading works ok
+4
+&gt; example.Foo=40 -- but writing does not
+This variable is immutable
+stack traceback:
+        [C]: ?
+        [C]: ?
+        stdin:1: in main chunk
+        [C]: ?
+</pre></div>
+<p>
+For those people who would rather that SWIG silently ignore the setting of immutables (as previous versions of the lua bindings did), adding a <tt>-DSWIGLUA_IGNORE_SET_IMMUTABLE</tt> compile option will remove this.
 </p>
 <p>
-Another interesting feature is that it is not possible to add new values into the module from within the interpreter, this is because of the metatable to deal with global variables. It is possible (though not recommended) to use rawset() to add a new value.
+Unlike earlier versions of the binding, it is now possible to add new functions or variables to the module, just as if it were a normal table. This does allow the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so.
 </p>
 <div class="targetlang"><pre>
 &gt; -- example.PI does not exist
 &gt; print(example.PI)
 nil
-&gt; example.PI=3.142 -- assign failed, example.PI does still not exist
-&gt; print(example.PI)
-nil
-&gt; -- a rawset will work, after this the value is added
-&gt; rawset(example,"PI",3.142)
+&gt; example.PI=3.142 -- new value added
 &gt; print(example.PI)
 3.142
 </pre></div>
@@ -426,7 +445,7 @@ userdata: 003FA320
 Like the pointer in the previous section, this is held as a userdata. However, additional features have been added to make this more usable. SWIG creates some accessor/mutator functions <tt>Point_set_x()</tt> and <tt>Point_get_x()</tt>. These will be wrappered, and then added to the metatable added to the userdata. This provides the natural access to the member variables that were shown above (see end of the document for full details).
 </p>
 <p>
-<tt>const</tt> members of a structure are read-only. Data members can also be forced to be read-only using the immutable directive. As with other immutable's, setting attempts will be silently ignored. For example:
+<tt>const</tt> members of a structure are read-only. Data members can also be forced to be read-only using the immutable directive. As with other immutable's, setting attempts will be cause an error. For example:
 </p>
 <div class="code"><pre>struct Foo {
    ...
@@ -999,7 +1018,8 @@ function __newindex(mod,name,value)
         if not s then return end
         local f=s[name] -- looks for the function
         -- calls it to set the value
-        if type(f)=="function" then f(value) end
+        if type(f)=="function" then f(value)
+        else rawset(mod,name,value) end
 end
 </pre></div>
 <p>
