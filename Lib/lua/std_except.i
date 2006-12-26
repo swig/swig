@@ -15,11 +15,29 @@
 %}
 %include <exception.i>
 
-%typemap(throws) std::out_of_range %{
-SWIG_exception(SWIG_IndexError, $1.what()); %}
+namespace std 
+{
+  %ignore exception; // not sure if I should ignore this...
+  class exception 
+  {
+  public:
+    exception() throw() { }
+    virtual ~exception() throw();
+    virtual const char* what() const throw();
+  }; 
+}
 
-%typemap(throws) std::exception %{
-SWIG_exception(SWIG_SystemError, $1.what()); %}
-
-%typemap(throws) std::exception& %{
-SWIG_exception(SWIG_SystemError, ($1)->what()); %}
+// normally object whihc are thrown are returned to interpreter as errors
+// (which potentally may have problems if they are not copied)
+// therefore all classes based upon std::exception are converted to their strings & returned as errors
+%typemap(throws) std::bad_exception     "SWIG_exception(SWIG_RuntimeError, $1.what());"
+%typemap(throws) std::domain_error      "SWIG_exception(SWIG_ValueError, $1.what());"
+%typemap(throws) std::exception         "SWIG_exception(SWIG_SystemError, $1.what());"
+%typemap(throws) std::invalid_argument  "SWIG_exception(SWIG_ValueError, $1.what());"
+%typemap(throws) std::length_error      "SWIG_exception(SWIG_IndexError, $1.what());"
+%typemap(throws) std::logic_error       "SWIG_exception(SWIG_RuntimeError, $1.what());"
+%typemap(throws) std::out_of_range      "SWIG_exception(SWIG_IndexError, $1.what());"
+%typemap(throws) std::overflow_error    "SWIG_exception(SWIG_OverflowError, $1.what());"
+%typemap(throws) std::range_error       "SWIG_exception(SWIG_IndexError, $1.what());"
+%typemap(throws) std::runtime_error     "SWIG_exception(SWIG_RuntimeError, $1.what());"
+%typemap(throws) std::underflow_error   "SWIG_exception(SWIG_RuntimeError, $1.what());"

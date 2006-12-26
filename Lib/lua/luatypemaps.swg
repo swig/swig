@@ -43,6 +43,9 @@
 %typemap(out) enum SWIGTYPE
 %{  lua_pushnumber(L, (lua_Number)(int)($1)); SWIG_arg++;%}
 
+// size_t (which is just a unsigned long
+%apply unsigned long { size_t };
+
 // boolean (which is a special type in lua)
 // note: 1 & 0 are not booleans in lua, only true & false
 %typemap(in,checkfn="lua_isboolean") bool
@@ -209,7 +212,8 @@ parmeters match which function
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
 	 enum SWIGTYPE,	float, double,
-	 const float &, const double &
+	 const float &, const double&,
+	 size_t,const size_t&
 {
   $1 = lua_isnumber(L,$input);
 }
@@ -300,6 +304,8 @@ SWIG_NUMBER_BY_CONST_REF(enum SWIGTYPE);
 SWIG_NUMBER_BY_CONST_REF(long long);
 SWIG_NUMBER_BY_CONST_REF(signed long long);
 SWIG_NUMBER_BY_CONST_REF(unsigned long long);
+
+%apply const unsigned long & { const size_t & };
 
 
 // Also needed for object ptrs by const ref

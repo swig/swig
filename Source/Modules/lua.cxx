@@ -52,7 +52,7 @@ char cvsroot_lua_cxx[] = "$Header$";
 #define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
 //#define REPORT(T,D)   {Printf(stdout,T"\n");display_mapping(D);}      // the works
-//#define REPORT(T,D)   {Printf(stdout,T"\n");Swig_print_node(D);}      // the works
+//#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
 
 void display_mapping(DOH *d) {
   if (d == 0 || !DohIsMapping(d))
@@ -107,6 +107,7 @@ private:
   int have_destructor;
   String *destructor_action;
   String *class_name;
+  String *constructor_name;
 
 
 public:
@@ -126,7 +127,6 @@ public:
     PrefixPlusUnderscore = 0;
 
     s_cmd_tab = s_var_tab = s_const_tab = 0;
-
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
@@ -321,7 +321,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *iname = Getattr(n, "sym:name");
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-
+//Printf(stdout,"functionWrapper %s %s\n",name,iname);
     Parm *p;
     String *tm;
     int i;
@@ -332,7 +332,10 @@ NEW LANGUAGE NOTE:END ************************************************/
       overname = Getattr(n, "sym:overname");
     } else {
       if (!addSymbol(iname, n))
+      {
+	Printf(stderr,"addSymbol(%s) failed\n",iname);
 	return SWIG_ERROR;
+      }
     }
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -676,7 +679,7 @@ so we will just add these into the variable lists
 ideally we should not have registered these as functions,
 only WRT this variable will look into this later.
 NEW LANGUAGE NOTE:END ************************************************/
-    REPORT("variableWrapper", n);
+//    REPORT("variableWrapper", n);
     String *iname = Getattr(n, "sym:name");
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
@@ -696,7 +699,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     if (assignable) {
       setName = Swig_name_wrapper(Swig_name_set(iname));
     } else {
-      // TODO: how about calling a 'this is not settable' error message?
+      // how about calling a 'this is not settable' error message?
       setName = NewString("SWIG_Lua_set_immutable"); // error message
       //setName = NewString("0");
     }
@@ -711,7 +714,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * constantWrapper()
    * ------------------------------------------------------------ */
   virtual int constantWrapper(Node *n) {
-    REPORT("constantWrapper", n);
+//    REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     //String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
@@ -758,7 +761,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int nativeWrapper(Node *n) {
-    REPORT("nativeWrapper", n);
+//    REPORT("nativeWrapper", n);
     String *symname = Getattr(n, "sym:name");
     String *wrapname = Getattr(n, "wrap:name");
     if (!addSymbol(wrapname, n))
@@ -803,6 +806,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *mangled_classname = 0;
     String *real_classname = 0;
 
+    constructor_name = 0;
     have_constructor = 0;
     have_destructor = 0;
     destructor_action = 0;
@@ -925,10 +929,13 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f_wrappers, "swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
-      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(class_name)));
+      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(constructor_name)));
+      Delete(constructor_name);
+      constructor_name = 0;
     } else {
       Printf(f_wrappers, "0");
     }
+
     if (have_destructor) {
       Printv(f_wrappers, ", swig_delete_", class_name, NIL);
     } else {
@@ -948,6 +955,7 @@ NEW LANGUAGE NOTE:END ************************************************/
   virtual int memberfunctionHandler(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
+//Printf(stdout,"memberfunctionHandler %s %s\n",name,iname);
 
     String *realname, *rname;
 
@@ -992,7 +1000,9 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
+    REPORT("constructorHandler", n);
     Language::constructorHandler(n);
+    constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
     return SWIG_OK;
   }
