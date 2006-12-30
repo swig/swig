@@ -51,7 +51,7 @@ void Swig_cparse_debug_templates(int x) {
 static int cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   int ret;
-  String *nodeType = Getattr(n, k_nodetype);
+  String *nodeType = nodeType(n);
   if (!n)
     return 0;
   if (Getattr(n, k_error))
@@ -61,7 +61,7 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
     /* Change the node type back to normal */
     if (!expanded) {
       expanded = 1;
-      Setattr(n, k_nodetype, Getattr(n, k_templatetype));
+      set_nodeType(n, Getattr(n, k_templatetype));
       ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       expanded = 0;
       return ret;
@@ -69,9 +69,9 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
       /* Called when template appears inside another template */
       /* Member templates */
 
-      Setattr(n, k_nodetype, Getattr(n, k_templatetype));
+      set_nodeType(n, Getattr(n, k_templatetype));
       ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
-      Setattr(n, k_nodetype, k_template);
+      set_nodeType(n, k_template);
       return ret;
     }
   } else if (StringEqual(nodeType, k_cdecl)) {
@@ -482,7 +482,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     }
     if (n) {
       Node *tn;
-      String *nodeType = Getattr(n, k_nodetype);
+      String *nodeType = nodeType(n);
       if (StringEqual(nodeType, k_template))
 	goto success;
       tn = Getattr(n, k_template);
@@ -490,7 +490,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	n = tn;
 	goto success;		/* Previously wrapped by a template return that */
       }
-      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, Getattr(n, k_nodetype));
+      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
       Delete(tname);
       Delete(parms);
       return 0;			/* Found a match, but it's not a template of any kind. */
@@ -591,7 +591,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   if (!n) {
     Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
   } else if (n) {
-    String *nodeType = Getattr(n, k_nodetype);
+    String *nodeType = nodeType(n);
     if (!StringEqual(nodeType, k_template)) {
       Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType);
       n = 0;
@@ -623,7 +623,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Node *n = template_locate(name, tparms, tscope);	/* this function does what we want for templated classes */
 
   if (n) {
-    String *nodeType = Getattr(n, k_nodetype);
+    String *nodeType = nodeType(n);
     int isclass = 0;
     assert(StringEqual(nodeType, k_template));
     isclass = (StringEqual(Getattr(n, k_templatetype), k_class));

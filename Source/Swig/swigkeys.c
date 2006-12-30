@@ -10,7 +10,6 @@ char cvsroot_keys_c[] = "$Id$";
 #include "swigkeys.h"
 
 String *empty_string = 0;
-String *k_1 = 0;
 String *k_SWIGTYPE = 0;
 String *k_abstract = 0;
 String *k_access = 0;
@@ -66,10 +65,8 @@ String *k_matchlist = 0;
 String *k_member = 0;
 String *k_name = 0;
 String *k_namespace = 0;
-String *k_nodetype = 0;
 String *k_notmatch = 0;
 String *k_parent = 0;
-String *k_parentnode = 0;
 String *k_parm = 0;
 String *k_parms = 0;
 String *k_partialarg = 0;
@@ -121,7 +118,6 @@ String *k_uname = 0;
 String *k_unnamed = 0;
 String *k_using = 0;
 String *k_value = 0;
-String *k_view = 0;
 String *k_virtual = 0;
 String *k_vtable = 0;
 String *k_wrapaction = 0;
@@ -130,14 +126,8 @@ String *k_wrapdirectormap = 0;
 String *k_wrapdisown = 0;
 String *k_wrapper = 0;
 
-String *k_previoussibling = 0;
-String *k_nextsibling = 0;
-String *k_firstchild = 0;
-String *k_lastchild = 0;
-
 void Swig_keys_init() {
   empty_string = NewString("");
-  k_1 = NewString("1");
   k_SWIGTYPE = NewString("SWIGTYPE");
   k_abstract = NewString("abstract");
   k_access = NewString("access");
@@ -192,10 +182,8 @@ void Swig_keys_init() {
   k_member = NewString("member");
   k_name = NewString("name");
   k_namespace = NewString("namespace");
-  k_nodetype = NewString("nodeType");
   k_notmatch = NewString("notmatch");
   k_parent = NewString("parent");
-  k_parentnode = NewString("parentNode");
   k_parm = NewString("parm");
   k_parms = NewString("parms");
   k_partialarg = NewString("partialarg");
@@ -247,7 +235,6 @@ void Swig_keys_init() {
   k_unnamed = NewString("unnamed");
   k_using = NewString("using");
   k_value = NewString("value");
-  k_view = NewString("view");
   k_virtual = NewString("virtual");
   k_vtable = NewString("vtable");
   k_wrapaction = NewString("wrap:action");
@@ -255,10 +242,4 @@ void Swig_keys_init() {
   k_wrapdirectormap = NewString("wrap:directormap");
   k_wrapdisown = NewString("wrap:disown");
   k_wrapper = NewString("wrapper");
-
-
-  k_previoussibling = NewString("previousSibling");
-  k_nextsibling = NewString("nextSibling");
-  k_firstchild = NewString("firstChild");
-  k_lastchild = NewString("lastChild");
 }

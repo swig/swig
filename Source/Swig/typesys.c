@@ -853,7 +853,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 
   if (!typedef_qualified_cache)
     typedef_qualified_cache = NewHash();
-  result = HashGetAttr(typedef_qualified_cache, t);
+  result = Getattr(typedef_qualified_cache, t);
   if (result) {
     String *rc = Copy(result);
     return rc;
@@ -953,7 +953,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 		  break;
 		lastnode = n;
 		if (n) {
-		  char *ntype = Char(Getattr(n, k_nodetype));
+		  char *ntype = Char(nodeType(n));
 		  if (strcmp(ntype, "enumitem") == 0) {
 		    /* An enum item.   Generate a fully qualified name */
 		    String *qn = Swig_symbol_qualified(n);
@@ -1313,7 +1313,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	if (GetFlag(n, "feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
-	  if (HashCheckAttr(n, k_nodetype, k_class)
+	  if (Checkattr(n, "nodeType", k_class)
 	      && (!Getattr(n, "allocate:default_constructor")
 		  || (Getattr(n, "allocate:noassign")))) {
 	    use_wrapper = !GetFlag(n, "feature:novaluewrapper") || GetFlag(n, "feature:nodefault");
@@ -1342,7 +1342,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
     SwigType *td = SwigType_strip_qualifiers(ftd);
     if (SwigType_type(td) == T_USER) {
       if ((n = Swig_symbol_clookup(td, 0))) {
-	if ((HashCheckAttr(n, k_nodetype, k_class)
+	if ((Checkattr(n, "nodeType", k_class)
 	     && !Getattr(n, "allocate:noassign")
 	     && (Getattr(n, "allocate:default_constructor")))
 	    || (GetFlag(n, "feature:novaluewrapper"))) {

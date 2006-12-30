@@ -1142,7 +1142,7 @@ public:
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
-	if (i == 0 && HashGetAttr(p, k_self)) {
+	if (i == 0 && Getattr(p, k_self)) {
 	  Printf(f->code, "\tif(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n");
 	}
 	p = Getattr(p, "tmap:in:next");

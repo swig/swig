@@ -15,7 +15,6 @@
 extern void Swig_keys_init();
 
 extern String *empty_string;
-extern String *k_1;
 extern String *k_SWIGTYPE;
 extern String *k_abstract;
 extern String *k_access;
@@ -71,10 +70,8 @@ extern String *k_matchlist;
 extern String *k_member;
 extern String *k_name;
 extern String *k_namespace;
-extern String *k_nodetype;
 extern String *k_notmatch;
 extern String *k_parent;
-extern String *k_parentnode;
 extern String *k_parm;
 extern String *k_parms;
 extern String *k_partialarg;
@@ -127,16 +124,10 @@ extern String *k_unnamed;
 extern String *k_using;
 extern String *k_value;
 extern String *k_virtual;
-extern String *k_view;
 extern String *k_vtable;
 extern String *k_wrapaction;
 extern String *k_wrapcode;
 extern String *k_wrapdirectormap;
 extern String *k_wrapdisown;
 extern String *k_wrapper;
-
-extern String *k_previoussibling;
-extern String *k_nextsibling;
-extern String *k_firstchild;
-extern String *k_lastchild;
 #endif				/* SWIG_SWIGKEYS_H_ */

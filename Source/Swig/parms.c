@@ -20,7 +20,7 @@ char cvsroot_parms_c[] = "$Id$";
 
 Parm *NewParm(SwigType *type, const String_or_char *name) {
   Parm *p = NewHash();
-  Setattr(p, k_nodetype, k_parm);
+  set_nodeType(p, "parm");
   if (type) {
     SwigType *ntype = Copy(type);
     Setattr(p, k_type, ntype);
@@ -52,15 +52,15 @@ Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
 
 Parm *CopyParm(Parm *p) {
   Parm *np = NewHash();
-  SwigType *t = HashGetAttr(p, k_type);
-  String *name = HashGetAttr(p, k_name);
-  String *lname = HashGetAttr(p, k_lname);
-  String *value = HashGetAttr(p, k_value);
-  String *ignore = HashGetAttr(p, k_ignore);
-  String *alttype = HashGetAttr(p, k_alttype);
-  String *byname = HashGetAttr(p, k_argbyname);
-  String *compactdefargs = HashGetAttr(p, k_compactdefargs);
-  String *self = HashGetAttr(p, k_self);
+  SwigType *t = Getattr(p, k_type);
+  String *name = Getattr(p, k_name);
+  String *lname = Getattr(p, k_lname);
+  String *value = Getattr(p, k_value);
+  String *ignore = Getattr(p, k_ignore);
+  String *alttype = Getattr(p, k_alttype);
+  String *byname = Getattr(p, k_argbyname);
+  String *compactdefargs = Getattr(p, k_compactdefargs);
+  String *self = Getattr(p, k_self);
 
   if (t) {
     SwigType *nt = Copy(t);
@@ -147,7 +147,7 @@ ParmList *CopyParmList(ParmList *p) {
 int ParmList_numarg(ParmList *p) {
   int n = 0;
   while (p) {
-    if (!HashGetAttr(p, k_ignore))
+    if (!Getattr(p, k_ignore))
       n++;
     p = nextSibling(p);
   }
@@ -161,8 +161,8 @@ int ParmList_numarg(ParmList *p) {
 int ParmList_numrequired(ParmList *p) {
   int i = 0;
   while (p) {
-    SwigType *t = HashGetAttr(p, k_type);
-    String *value = HashGetAttr(p, k_value);
+    SwigType *t = Getattr(p, k_type);
+    String *value = Getattr(p, k_value);
     if (value)
       return i;
     if (!(SwigType_type(t) == T_VOID))
@@ -196,7 +196,7 @@ int ParmList_len(ParmList *p) {
 String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *pstr = SwigType_str(HashGetAttr(p, k_type), HashGetAttr(p, k_name));
+    String *pstr = SwigType_str(Getattr(p, k_type), Getattr(p, k_name));
     StringAppend(out, pstr);
     p = nextSibling(p);
     if (p) {
@@ -216,8 +216,8 @@ String *ParmList_str(ParmList *p) {
 String *ParmList_str_defaultargs(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *value = HashGetAttr(p, k_value);
-    String *pstr = SwigType_str(HashGetAttr(p, k_type), HashGetAttr(p, k_name));
+    String *value = Getattr(p, k_value);
+    String *pstr = SwigType_str(Getattr(p, k_type), Getattr(p, k_name));
     StringAppend(out, pstr);
     if (value) {
       Printf(out, "=%s", value);
@@ -240,10 +240,10 @@ String *ParmList_str_defaultargs(ParmList *p) {
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    if (HashGetAttr(p, k_hidden)) {
+    if (Getattr(p, k_hidden)) {
       p = nextSibling(p);
     } else {
-      String *pstr = SwigType_str(HashGetAttr(p, k_type), 0);
+      String *pstr = SwigType_str(Getattr(p, k_type), 0);
       StringAppend(out, pstr);
       p = nextSibling(p);
       if (p) {
@@ -266,14 +266,14 @@ int ParmList_is_compactdefargs(ParmList *p) {
   int compactdefargs = 0;
 
   if (p) {
-    compactdefargs = HashGetAttr(p, k_compactdefargs) ? 1 : 0;
+    compactdefargs = Getattr(p, k_compactdefargs) ? 1 : 0;
 
     /* The "compactdefargs" attribute should only be set on the first parameter in the list.
      * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
      * so we check the 2nd parameter too. */
     if (!compactdefargs) {
       Parm *nextparm = nextSibling(p);
-      compactdefargs = (nextparm && HashGetAttr(nextparm, k_compactdefargs)) ? 1 : 0;
+      compactdefargs = (nextparm && Getattr(nextparm, k_compactdefargs)) ? 1 : 0;
     }
   }
 
@@ -291,7 +291,7 @@ int ParmList_is_compactdefargs(ParmList *p) {
 int ParmList_has_defaultargs(ParmList *p) {
   int default_args = 0;
   while (p) {
-    if (HashGetAttr(p, k_value)) {
+    if (Getattr(p, k_value)) {
       default_args = 1;
       break;
     }

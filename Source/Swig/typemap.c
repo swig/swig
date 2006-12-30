@@ -1342,9 +1342,9 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Delete(locals);
   }
 
-  if (HashCheckAttr(tm, k_type, k_SWIGTYPE)) {
+  if (Checkattr(tm, k_type, k_SWIGTYPE)) {
     sprintf(temp, "%s:SWIGTYPE", cop);
-    Setattr(node, tmop_name(temp), k_1);
+    Setattr(node, tmop_name(temp), "1");
   }
 
   /* Attach kwargs */
@@ -1614,9 +1614,9 @@ void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrappe
 	typemap_replace_vars(s, locals, type, type, pname, lname, i + 1);
       }
 
-      if (HashCheckAttr(tm, k_type, k_SWIGTYPE)) {
+      if (Checkattr(tm, k_type, k_SWIGTYPE)) {
 	sprintf(temp, "%s:SWIGTYPE", cop);
-	Setattr(p, tmop_name(temp), k_1);
+	Setattr(p, tmop_name(temp), "1");
       }
       p = nextSibling(p);
     }

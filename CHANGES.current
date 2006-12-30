@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+12/30/2006: beazley
+            Internal API functions HashGetAttr() and HashCheckAttr() have been revoked.
+            Please use Getattr() to retrieve attributes.  The function Checkattr() can
+            be used to check attributes.  Note:  These functions have been revoked 
+            because they only added a marginal performance improvement at the expense
+            code clarity. 
+
 12/26/2006: mgossage
             [Lua] Added more STL (more exceptions, map, size_t), 
 	    fixed test case: conversion_ns_template.

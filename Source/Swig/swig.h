@@ -99,11 +99,7 @@ extern "C" {
 
 /* --- Command line parsing --- */
 
-  extern void Swig_init_args(int argc, char **argv);
-  extern void Swig_mark_arg(int n);
-  extern int Swig_check_marked(int n);
-  extern void Swig_check_options(int check_input);
-  extern void Swig_arg_error();
+#include "swigopt.h"
 
 /* --- Scanner Interface --- */
 
@@ -318,42 +314,8 @@ extern "C" {
 
 /* --- Parse tree support --- */
 
-/* DOM-like node access */
-#include "swigkeys.h"
-#define  nodeType(x)               Getattr(x,k_nodetype)
-#define  parentNode(x)             Getattr(x,k_parentnode)
-#define  previousSibling(x)        Getattr(x,k_previoussibling)
-#define  nextSibling(x)            Getattr(x,k_nextsibling)
-#define  firstChild(x)             Getattr(x,k_firstchild)
-#define  lastChild(x)              Getattr(x,k_lastchild)
-  extern int checkAttribute(Node *obj, const String_or_char *name, const String_or_char *value);
-
-/* Macros to set up the DOM tree (mostly used by the parser) */
-
-#define  set_nodeType(x,v)         Setattr(x,"nodeType",v)
-#define  set_parentNode(x,v)       Setattr(x,"parentNode",v)
-#define  set_previousSibling(x,v)  Setattr(x,"previousSibling",v)
-#define  set_nextSibling(x,v)      Setattr(x,"nextSibling",v)
-#define  set_firstChild(x,v)       Setattr(x,"firstChild",v)
-#define  set_lastChild(x,v)        Setattr(x,"lastChild",v)
-
-  extern void appendChild(Node *node, Node *child);
-  extern void preppendChild(Node *node, Node *child);
-  extern void deleteNode(Node *node);
-  extern Node *copyNode(Node *node);
-
-  extern void Swig_tag_nodes(Node *node, const String_or_char *attrname, DOH *value);
-
-  extern int Swig_require(const char *ns, Node *node, ...);
-  extern int Swig_save(const char *ns, Node *node, ...);
-  extern void Swig_restore(Node *node);
-
-/* Debugging of parse trees */
-  extern void Swig_print_tags(File *obj, Node *root);
-  extern void Swig_print_tree(Node *obj);
-  extern void Swig_print_node(Node *obj);
-
-  extern void Swig_print_xml(Node *obj, String *filename);
+#include "swigkeys.h"      /* This file is likely going to go away */
+#include "swigtree.h"
 
 /* -- Wrapper function Object */
 

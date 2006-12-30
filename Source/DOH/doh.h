@@ -118,8 +118,6 @@
 #define DohCopyto          DOH_NAMESPACE(Copyto)
 #define DohNewList         DOH_NAMESPACE(NewList)
 #define DohNewHash         DOH_NAMESPACE(NewHash)
-#define DohHashGetAttr     DOH_NAMESPACE(HashGetAttr)
-#define DohHashCheckAttr   DOH_NAMESPACE(HashCheckAttr)
 #define DohNewVoid         DOH_NAMESPACE(NewVoid)
 #define DohSplit           DOH_NAMESPACE(Split)
 #define DohSplitLines      DOH_NAMESPACE(SplitLines)
@@ -206,6 +204,7 @@ extern void DohIncref(DOH *obj);
 extern DOH *DohGetattr(DOH *obj, const DOHString_or_char *name);
 extern int DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char * value);
 extern int DohDelattr(DOH *obj, const DOHString_or_char *name);
+extern int DohCheckattr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *value);
 extern DOH *DohKeys(DOH *obj);
 extern int DohGetInt(DOH *obj, const DOHString_or_char *name);
 extern void DohSetInt(DOH *obj, const DOHString_or_char *name, int);
@@ -346,8 +345,6 @@ extern void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
  * ----------------------------------------------------------------------------- */
 
 extern DOHHash *DohNewHash();
-extern DOH *DohHashGetAttr(DOH *hash, const DOH *key);
-extern int DohHashCheckAttr(DOH *hash, DOH *key, DOH *value);
 
 /* -----------------------------------------------------------------------------
  * Void
@@ -372,6 +369,7 @@ extern void DohMemoryDebug(void);
 #define Getattr            DohGetattr
 #define Setattr            DohSetattr
 #define Delattr            DohDelattr
+#define Checkattr          DohCheckattr
 #define Hashval            DohHashval
 #define Getitem            DohGetitem
 #define Setitem            DohSetitem
@@ -434,8 +432,6 @@ extern void DohMemoryDebug(void);
 #define NewStringWithSize  DohNewStringWithSize
 #define NewStringf         DohNewStringf
 #define NewHash            DohNewHash
-#define HashGetAttr        DohHashGetAttr
-#define HashCheckAttr      DohHashCheckAttr
 #define NewList            DohNewList
 #define NewFile            DohNewFile
 #define NewFileFromFile    DohNewFileFromFile

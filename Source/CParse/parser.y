@@ -331,7 +331,7 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	if (0 && !Getattr(n,k_parentnode) && class_level) set_parentNode(n,class_decl[class_level - 1]);
+	if (0 && !Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
 	Setattr(n,"ismember","1");
       }
     }
@@ -692,7 +692,7 @@ static void append_previous_extension(Node *cls, Node *am) {
     }    
     n = ne;
   }
-  if (pe) preppendChild(cls,pe);
+  if (pe) prependChild(cls,pe);
   if (ae) appendChild(cls,ae);
 }
  
@@ -1331,6 +1331,20 @@ static void default_arguments(Node *n) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * tag_nodes()
+ *
+ * Used by the parser to mark subtypes with extra information.
+ * ----------------------------------------------------------------------------- */
+
+static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
+  while (n) {
+    Setattr(n, attrname, value);
+    tag_nodes(firstChild(n), attrname, value);
+    n = nextSibling(n);
+  }
+}
+
 %}
 
 %union {
@@ -1634,7 +1648,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 
 	       /* Mark members as extend */
 
-	       Swig_tag_nodes($6,"feature:extend",(char*) "1");
+	       tag_nodes($6,"feature:extend",(char*) "1");
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
 		 appendChild($$,$6);
@@ -3932,7 +3946,7 @@ cpp_members  : cpp_member cpp_members {
 		  }
              } cpp_members RBRACE cpp_members {
 	       $$ = new_node("extend");
-	       Swig_tag_nodes($4,"feature:extend",(char*) "1");
+	       tag_nodes($4,"feature:extend",(char*) "1");
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }

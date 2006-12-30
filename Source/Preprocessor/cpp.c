@@ -498,9 +498,9 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro) {
   if (swigmacro) {
     Setattr(macro, kpp_swigmacro, "1");
   }
-  symbols = HashGetAttr(cpp, kpp_symbols);
-  if ((m1 = HashGetAttr(symbols, macroname))) {
-    if (!HashCheckAttr(m1, kpp_value, macrovalue)) {
+  symbols = Getattr(cpp, kpp_symbols);
+  if ((m1 = Getattr(symbols, macroname))) {
+    if (!Checkattr(m1, kpp_value, macrovalue)) {
       Swig_error(Getfile(str), Getline(str), "Macro '%s' redefined,\n", macroname);
       Swig_error(Getfile(m1), Getline(m1), "previous definition of '%s'.\n", macroname);
       goto macro_error;
@@ -534,7 +534,7 @@ macro_error:
 void Preprocessor_undef(const String_or_char *str) {
   Hash *symbols;
   assert(cpp);
-  symbols = HashGetAttr(cpp, kpp_symbols);
+  symbols = Getattr(cpp, kpp_symbols);
   Delattr(symbols, str);
 }
 
@@ -702,15 +702,15 @@ static String *expand_macro(String *name, List *args) {
   int i, l;
   int isvarargs = 0;
 
-  symbols = HashGetAttr(cpp, kpp_symbols);
+  symbols = Getattr(cpp, kpp_symbols);
   if (!symbols)
     return 0;
 
   /* See if the name is actually defined */
-  macro = HashGetAttr(symbols, name);
+  macro = Getattr(symbols, name);
   if (!macro)
     return 0;
-  if (HashGetAttr(macro, kpp_expanded)) {
+  if (Getattr(macro, kpp_expanded)) {
     ns = NewStringEmpty();
     StringAppend(ns, name);
     if (args) {
@@ -729,11 +729,11 @@ static String *expand_macro(String *name, List *args) {
   }
 
   /* Get macro arguments and value */
-  mvalue = HashGetAttr(macro, kpp_value);
+  mvalue = Getattr(macro, kpp_value);
   assert(mvalue);
-  margs = HashGetAttr(macro, kpp_args);
+  margs = Getattr(macro, kpp_args);
 
-  if (args && HashGetAttr(macro, kpp_varargs)) {
+  if (args && Getattr(macro, kpp_varargs)) {
     isvarargs = 1;
     /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
     if (Len(args) >= (Len(margs) - 1)) {
@@ -896,7 +896,7 @@ static String *expand_macro(String *name, List *args) {
   Delattr(macro, kpp_expanded);
   Delete(ns);
 
-  if (HashGetAttr(macro, kpp_swigmacro)) {
+  if (Getattr(macro, kpp_swigmacro)) {
     String *g;
     String *f = NewStringEmpty();
     Seek(e, 0, SEEK_SET);
@@ -959,7 +959,7 @@ DOH *Preprocessor_replace(DOH *s) {
   String *id = NewStringEmpty();
 
   assert(cpp);
-  symbols = HashGetAttr(cpp, kpp_symbols);
+  symbols = Getattr(cpp, kpp_symbols);
 
   ns = NewStringEmpty();
   copy_location(s, ns);
@@ -1029,7 +1029,7 @@ DOH *Preprocessor_replace(DOH *s) {
 	  }
 	  for (i = 0; i < lenargs; i++) {
 	    DOH *o = Getitem(args, i);
-	    if (!HashGetAttr(symbols, o)) {
+	    if (!Getattr(symbols, o)) {
 	      break;
 	    }
 	  }
@@ -1055,11 +1055,11 @@ DOH *Preprocessor_replace(DOH *s) {
 	  break;
 	}
 	/* See if the macro is defined in the preprocessor symbol table */
-	if ((m = HashGetAttr(symbols, id))) {
+	if ((m = Getattr(symbols, id))) {
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
-	  if (HashGetAttr(m, kpp_args)) {
+	  if (Getattr(m, kpp_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
 	    args = find_args(s);
 	    if (!Len(args)) {
@@ -1121,7 +1121,7 @@ DOH *Preprocessor_replace(DOH *s) {
     /* See if this is the special "defined" macro */
     if (StringEqual(kpp_defined, id)) {
       Swig_error(Getfile(s), Getline(s), "No arguments given to defined()\n");
-    } else if ((m = HashGetAttr(symbols, id))) {
+    } else if ((m = Getattr(symbols, id))) {
       DOH *e;
       /* Yes.  There is a macro here */
       /* See if the macro expects arguments */
@@ -1254,7 +1254,7 @@ String *Preprocessor_parse(String *s) {
   chunk = NewStringEmpty();
   copy_location(s, chunk);
   copy_location(s, ns);
-  symbols = HashGetAttr(cpp, kpp_symbols);
+  symbols = Getattr(cpp, kpp_symbols);
 
   state = 0;
   while ((c = StringGetc(s)) != EOF) {
@@ -1453,8 +1453,8 @@ String *Preprocessor_parse(String *s) {
 	  DOH *m, *v, *v1;
 	  Seek(value, 0, SEEK_SET);
 	  m = Preprocessor_define(value, 0);
-	  if ((m) && !(HashGetAttr(m, kpp_args))) {
-	    v = Copy(HashGetAttr(m, kpp_value));
+	  if ((m) && !(Getattr(m, kpp_args))) {
+	    v = Copy(Getattr(m, kpp_value));
 	    if (Len(v)) {
 	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);
@@ -1462,9 +1462,9 @@ String *Preprocessor_parse(String *s) {
 	      /*              Printf(stdout,"checking '%s'\n", v1); */
 	      if (!checkpp_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns, "%%constant %s = %s;\n", HashGetAttr(m, kpp_name), v1);
+		  Printf(ns, "%%constant %s = %s;\n", Getattr(m, kpp_name), v1);
 		else
-		  Printf(ns, "%%constant %s = %s; /*%s*/\n", HashGetAttr(m, kpp_name), v1, comment);
+		  Printf(ns, "%%constant %s = %s; /*%s*/\n", Getattr(m, kpp_name), v1, comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
@@ -1481,7 +1481,7 @@ String *Preprocessor_parse(String *s) {
 	if (allow) {
 	  start_level = level;
 	  /* See if the identifier is in the hash table */
-	  if (!HashGetAttr(symbols, value))
+	  if (!Getattr(symbols, value))
 	    allow = 0;
 	  mask = 1;
 	}
@@ -1491,7 +1491,7 @@ String *Preprocessor_parse(String *s) {
 	if (allow) {
 	  start_level = level;
 	  /* See if the identifier is in the hash table */
-	  if (HashGetAttr(symbols, value))
+	  if (Getattr(symbols, value))
 	    allow = 0;
 	  mask = 1;
 	}
