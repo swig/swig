@@ -1371,7 +1371,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
 	/* Create a parameter list for the new rename by copying all
 	   but the last (defaulted) parameter */
-	ParmList *newparms = ParmList_copy_all_except_last_parm(declparms);
+	ParmList *newparms = CopyParmListMax(declparms,ParmList_len(declparms)-1);
 
 	/* Create new declaration - with the last parameter removed */
 	SwigType *newdecl = Copy(decl);

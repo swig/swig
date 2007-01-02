@@ -1170,7 +1170,7 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
 
         /* Create a parameter list for the new feature by copying all
            but the last (defaulted) parameter */
-        ParmList* newparms = ParmList_copy_all_except_last_parm(declparms);
+        ParmList* newparms = CopyParmListMax(declparms, ParmList_len(declparms)-1);
 
         /* Create new declaration - with the last parameter removed */
         SwigType *newtype = Copy(type);
@@ -1246,7 +1246,7 @@ static void default_arguments(Node *n) {
 
       /* Create a parameter list for the new function by copying all
          but the last (defaulted) parameter */
-      ParmList* newparms = ParmList_copy_all_except_last_parm(parms);
+      ParmList* newparms = CopyParmListMax(parms,ParmList_len(parms)-1);
 
       /* Create new function and add to symbol table */
       {

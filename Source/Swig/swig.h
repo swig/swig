@@ -295,22 +295,7 @@ extern "C" {
 
 /* --- Parameters and Parameter Lists --- */
 
-/* Parameters are really just hidden behind a DOH object.  The following
-   interface will probably be simplified even further. */
-
-  extern Parm *NewParm(SwigType *type, const String_or_char *name);
-  extern Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n);
-  extern Parm *CopyParm(Parm *p);
-  extern ParmList *CopyParmList(ParmList *);
-  extern int ParmList_len(ParmList *);
-  extern int ParmList_numarg(ParmList *);
-  extern int ParmList_numrequired(ParmList *);
-  extern String *ParmList_str(ParmList *);
-  extern String *ParmList_str_defaultargs(ParmList *);
-  extern String *ParmList_protostr(ParmList *);
-  extern int ParmList_is_compactdefargs(ParmList *p);
-  extern int ParmList_has_defaultargs(ParmList *p);
-  extern ParmList *ParmList_copy_all_except_last_parm(ParmList *p);
+#include "swigparm.h"
 
 /* --- Parse tree support --- */
 

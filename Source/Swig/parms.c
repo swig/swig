@@ -23,10 +23,10 @@ Parm *NewParm(SwigType *type, const String_or_char *name) {
   set_nodeType(p, "parm");
   if (type) {
     SwigType *ntype = Copy(type);
-    Setattr(p, k_type, ntype);
+    Setattr(p, "type", ntype);
     Delete(ntype);
   }
-  Setattr(p, k_name, name);
+  Setattr(p, "name", name);
   return p;
 }
 
@@ -52,59 +52,59 @@ Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
 
 Parm *CopyParm(Parm *p) {
   Parm *np = NewHash();
-  SwigType *t = Getattr(p, k_type);
-  String *name = Getattr(p, k_name);
-  String *lname = Getattr(p, k_lname);
-  String *value = Getattr(p, k_value);
-  String *ignore = Getattr(p, k_ignore);
-  String *alttype = Getattr(p, k_alttype);
-  String *byname = Getattr(p, k_argbyname);
-  String *compactdefargs = Getattr(p, k_compactdefargs);
-  String *self = Getattr(p, k_self);
+  SwigType *t = Getattr(p, "type");
+  String *name = Getattr(p, "name");
+  String *lname = Getattr(p, "lname");
+  String *value = Getattr(p, "value");
+  String *ignore = Getattr(p, "ignore");
+  String *alttype = Getattr(p, "alttype");
+  String *byname = Getattr(p, "arg:byname");
+  String *compactdefargs = Getattr(p, "compactdefargs");
+  String *self = Getattr(p, "self");
 
   if (t) {
     SwigType *nt = Copy(t);
-    Setattr(np, k_type, nt);
+    Setattr(np, "type", nt);
     Delete(nt);
   }
   if (name) {
     String *str = Copy(name);
-    Setattr(np, k_name, str);
+    Setattr(np, "name", str);
     Delete(str);
   }
   if (lname) {
     String *str = Copy(lname);
-    Setattr(np, k_lname, str);
+    Setattr(np, "lname", str);
     Delete(str);
   }
   if (value) {
     String *str = Copy(value);
-    Setattr(np, k_value, str);
+    Setattr(np, "value", str);
     Delete(str);
   }
   if (ignore) {
     String *str = Copy(ignore);
-    Setattr(np, k_ignore, str);
+    Setattr(np, "ignore", str);
     Delete(str);
   }
   if (alttype) {
     String *str = Copy(alttype);
-    Setattr(np, k_alttype, str);
+    Setattr(np, "alttype", str);
     Delete(str);
   }
   if (byname) {
     String *str = Copy(byname);
-    Setattr(np, k_argbyname, str);
+    Setattr(np, "arg:byname", str);
     Delete(str);
   }
   if (compactdefargs) {
     String *str = Copy(compactdefargs);
-    Setattr(np, k_compactdefargs, str);
+    Setattr(np, "compactdefargs", str);
     Delete(str);
   }
   if (self) {
     String *str = Copy(self);
-    Setattr(np, k_self, str);
+    Setattr(np, "self", str);
     Delete(str);
   }
 
@@ -115,10 +115,11 @@ Parm *CopyParm(Parm *p) {
 }
 
 /* ------------------------------------------------------------------
+ * CopyParmListMax()
  * CopyParmList()
  * ------------------------------------------------------------------ */
 
-ParmList *CopyParmList(ParmList *p) {
+ParmList *CopyParmListMax(ParmList *p, int count) {
   Parm *np;
   Parm *pp = 0;
   Parm *fp = 0;
@@ -127,6 +128,7 @@ ParmList *CopyParmList(ParmList *p) {
     return 0;
 
   while (p) {
+    if (count == 0) break;
     np = CopyParm(p);
     if (pp) {
       set_nextSibling(pp, np);
@@ -136,8 +138,13 @@ ParmList *CopyParmList(ParmList *p) {
     }
     pp = np;
     p = nextSibling(p);
+    count--;
   }
   return fp;
+}
+
+ParmList *CopyParmList(ParmList *p) {
+  return CopyParmListMax(p,-1);
 }
 
 /* ------------------------------------------------------------------
@@ -147,7 +154,7 @@ ParmList *CopyParmList(ParmList *p) {
 int ParmList_numarg(ParmList *p) {
   int n = 0;
   while (p) {
-    if (!Getattr(p, k_ignore))
+    if (!Getattr(p, "ignore"))
       n++;
     p = nextSibling(p);
   }
@@ -161,8 +168,8 @@ int ParmList_numarg(ParmList *p) {
 int ParmList_numrequired(ParmList *p) {
   int i = 0;
   while (p) {
-    SwigType *t = Getattr(p, k_type);
-    String *value = Getattr(p, k_value);
+    SwigType *t = Getattr(p, "type");
+    String *value = Getattr(p, "value");
     if (value)
       return i;
     if (!(SwigType_type(t) == T_VOID))
@@ -196,7 +203,7 @@ int ParmList_len(ParmList *p) {
 String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *pstr = SwigType_str(Getattr(p, k_type), Getattr(p, k_name));
+    String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
     StringAppend(out, pstr);
     p = nextSibling(p);
     if (p) {
@@ -216,8 +223,8 @@ String *ParmList_str(ParmList *p) {
 String *ParmList_str_defaultargs(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *value = Getattr(p, k_value);
-    String *pstr = SwigType_str(Getattr(p, k_type), Getattr(p, k_name));
+    String *value = Getattr(p, "value");
+    String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
     StringAppend(out, pstr);
     if (value) {
       Printf(out, "=%s", value);
@@ -240,10 +247,10 @@ String *ParmList_str_defaultargs(ParmList *p) {
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    if (Getattr(p, k_hidden)) {
+    if (Getattr(p, "hidden")) {
       p = nextSibling(p);
     } else {
-      String *pstr = SwigType_str(Getattr(p, k_type), 0);
+      String *pstr = SwigType_str(Getattr(p, "type"), 0);
       StringAppend(out, pstr);
       p = nextSibling(p);
       if (p) {
@@ -266,14 +273,14 @@ int ParmList_is_compactdefargs(ParmList *p) {
   int compactdefargs = 0;
 
   if (p) {
-    compactdefargs = Getattr(p, k_compactdefargs) ? 1 : 0;
+    compactdefargs = Getattr(p, "compactdefargs") ? 1 : 0;
 
     /* The "compactdefargs" attribute should only be set on the first parameter in the list.
      * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
      * so we check the 2nd parameter too. */
     if (!compactdefargs) {
       Parm *nextparm = nextSibling(p);
-      compactdefargs = (nextparm && Getattr(nextparm, k_compactdefargs)) ? 1 : 0;
+      compactdefargs = (nextparm && Getattr(nextparm, "compactdefargs")) ? 1 : 0;
     }
   }
 
@@ -291,38 +298,11 @@ int ParmList_is_compactdefargs(ParmList *p) {
 int ParmList_has_defaultargs(ParmList *p) {
   int default_args = 0;
   while (p) {
-    if (Getattr(p, k_value)) {
+    if (Getattr(p, "value")) {
       default_args = 1;
       break;
     }
     p = nextSibling(p);
   }
   return default_args;
-}
-
-/* ---------------------------------------------------------------------
- * ParmList_copy_all_except_last_parm()
- *
- * Create a new parameter list by copying all the parameters barring the
- * last parameter.
- * ---------------------------------------------------------------------- */
-
-ParmList *ParmList_copy_all_except_last_parm(ParmList *p) {
-  ParmList *newparms = 0;
-  Parm *newparm = 0;
-  Parm *pp = 0;
-  Parm *fp = 0;
-  while (nextSibling(p)) {
-    newparm = CopyParm(p);
-    if (pp) {
-      set_nextSibling(pp, newparm);
-      Delete(newparm);
-    } else {
-      fp = newparm;
-    }
-    pp = newparm;
-    p = nextSibling(p);
-  }
-  newparms = fp;
-  return newparms;
 }
