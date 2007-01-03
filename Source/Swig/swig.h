@@ -299,7 +299,6 @@ extern "C" {
 
 /* --- Parse tree support --- */
 
-#include "swigkeys.h"      /* This file is likely going to go away */
 #include "swigtree.h"
 
 /* -- Wrapper function Object */

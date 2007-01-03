@@ -1210,7 +1210,7 @@ int Language::memberfunctionHandler(Node *n) {
   String *director_type = 0;
   if (!is_public(n) && (is_member_director(CurrentClass, n) || GetFlag(n, "explicitcall"))) {
     director_type = Copy(DirectorClassName);
-    String *qualifier = Getattr(n, k_qualifier);
+    String *qualifier = Getattr(n, "qualifier");
     if (qualifier)
       SwigType_push(director_type, qualifier);
     SwigType_add_pointer(director_type);
@@ -2119,8 +2119,8 @@ static void addCopyConstructor(Node *n) {
     for (c = firstChild(n); c; c = nextSibling(c)) {
       const char *tag = Char(nodeType(c));
       if (strcmp(tag, "constructor") == 0) {
-	String *cname = Getattr(c, k_name);
-	String *csname = Getattr(c, k_symname);
+	String *cname = Getattr(c, "name");
+	String *csname = Getattr(c, "sym:name");
 	String *clast = Swig_scopename_last(cname);
 	if (Equal(csname, clast)) {
 	  oldname = csname;

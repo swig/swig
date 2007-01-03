@@ -13,7 +13,6 @@
 char cvsroot_typesys_c[] = "$Id$";
 
 #include "swig.h"
-#include "swigkeys.h"
 #include "cparse.h"
 
 /* -----------------------------------------------------------------------------
@@ -145,9 +144,9 @@ void SwigType_typesystem_init() {
   current_scope = NewHash();
   global_scope = current_scope;
 
-  Setattr(current_scope, k_name, "");	/* No name for global scope */
+  Setattr(current_scope, "name", "");	/* No name for global scope */
   current_typetab = NewHash();
-  Setattr(current_scope, k_typetab, current_typetab);
+  Setattr(current_scope, "typetab", current_typetab);
 
   current_symtab = 0;
   scopes = NewHash();
@@ -213,10 +212,10 @@ int SwigType_typedef_class(String_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_scope_name(Typetab *ttab) {
-  String *qname = NewString(Getattr(ttab, k_name));
+  String *qname = NewString(Getattr(ttab, "name"));
   ttab = Getattr(ttab, "parent");
   while (ttab) {
-    String *pname = Getattr(ttab, k_name);
+    String *pname = Getattr(ttab, "name");
     if (Len(pname)) {
       Insert(qname, 0, "::");
       Insert(qname, 0, pname);
@@ -241,15 +240,15 @@ void SwigType_new_scope(const String_or_char *name) {
     name = "<unnamed>";
   }
   s = NewHash();
-  Setattr(s, k_name, name);
+  Setattr(s, "name", name);
   Setattr(s, "parent", current_scope);
   ttab = NewHash();
-  Setattr(s, k_typetab, ttab);
+  Setattr(s, "typetab", ttab);
 
   /* Build fully qualified name and */
   qname = SwigType_scope_name(s);
   Setattr(scopes, qname, s);
-  Setattr(s, k_qname, qname);
+  Setattr(s, "qname", qname);
   Delete(qname);
 
   current_scope = s;
@@ -268,10 +267,10 @@ void SwigType_new_scope(const String_or_char *name) {
 void SwigType_inherit_scope(Typetab *scope) {
   List *inherits;
   int i, len;
-  inherits = Getattr(current_scope, k_inherit);
+  inherits = Getattr(current_scope, "inherit");
   if (!inherits) {
     inherits = NewList();
-    Setattr(current_scope, k_inherit, inherits);
+    Setattr(current_scope, "inherit", inherits);
     Delete(inherits);
   }
   assert(scope != current_scope);
@@ -314,10 +313,10 @@ void SwigType_using_scope(Typetab *scope) {
   {
     List *ulist;
     int i, len;
-    ulist = Getattr(current_scope, k_using);
+    ulist = Getattr(current_scope, "using");
     if (!ulist) {
       ulist = NewList();
-      Setattr(current_scope, k_using, ulist);
+      Setattr(current_scope, "using", ulist);
       Delete(ulist);
     }
     assert(scope != current_scope);
@@ -345,8 +344,8 @@ Typetab *SwigType_pop_scope() {
   if (!t)
     t = global_scope;
   current_scope = t;
-  current_typetab = Getattr(t, k_typetab);
-  current_symtab = Getattr(t, k_symtab);
+  current_typetab = Getattr(t, "typetab");
+  current_symtab = Getattr(t, "symtab");
   flush_cache();
   return old;
 }
@@ -362,8 +361,8 @@ Typetab *SwigType_set_scope(Typetab *t) {
   if (!t)
     t = global_scope;
   current_scope = t;
-  current_typetab = Getattr(t, k_typetab);
-  current_symtab = Getattr(t, k_symtab);
+  current_typetab = Getattr(t, "typetab");
+  current_symtab = Getattr(t, "symtab");
   flush_cache();
   return old;
 }
@@ -375,7 +374,7 @@ Typetab *SwigType_set_scope(Typetab *t) {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_attach_symtab(Symtab *sym) {
-  Setattr(current_scope, k_symtab, sym);
+  Setattr(current_scope, "symtab", sym);
   current_symtab = sym;
 }
 
@@ -391,15 +390,15 @@ void SwigType_print_scope(Typetab *t) {
 
   for (i = First(scopes); i.key; i = Next(i)) {
     t = i.item;
-    ttab = Getattr(i.item, k_typetab);
+    ttab = Getattr(i.item, "typetab");
 
     Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);
     {
-      List *inherit = Getattr(i.item, k_inherit);
+      List *inherit = Getattr(i.item, "inherit");
       if (inherit) {
 	Iterator j;
 	for (j = First(inherit); j.item; j = Next(j)) {
-	  Printf(stdout, "    Inherits from '%s' (%x)\n", Getattr(j.item, k_qname), j.item);
+	  Printf(stdout, "    Inherits from '%s' (%x)\n", Getattr(j.item, "qname"), j.item);
 	}
       }
     }
@@ -425,7 +424,7 @@ Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
   ss = s;
   while (ss) {
     String *full;
-    String *qname = Getattr(ss, k_qname);
+    String *qname = Getattr(ss, "qname");
     if (qname) {
       full = NewStringf("%s::%s", qname, nameprefix);
     } else {
@@ -445,7 +444,7 @@ Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
     if (!s) {
       /* Check inheritance */
       List *inherit;
-      inherit = Getattr(ss, k_using);
+      inherit = Getattr(ss, "using");
       if (inherit) {
 	Typetab *ttab;
 	int i, len;
@@ -497,14 +496,14 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   if (!Getmark(s)) {
     Setmark(s, 1);
 
-    ttab = Getattr(s, k_typetab);
+    ttab = Getattr(s, "typetab");
     type = Getattr(ttab, base);
     if (type) {
       resolved_scope = s;
       Setmark(s, 0);
     } else {
       /* Hmmm. Not found in my scope.  It could be in an inherited scope */
-      inherit = Getattr(s, k_inherit);
+      inherit = Getattr(s, "inherit");
       if (inherit) {
 	int i, len;
 	len = Len(inherit);
@@ -579,7 +578,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     ttab = current_typetab;
     if (strncmp(Char(base), "::", 2) == 0) {
       s = global_scope;
-      ttab = Getattr(s, k_typetab);
+      ttab = Getattr(s, "typetab");
       Delitem(base, 0);
       Delitem(base, 0);
     }
@@ -627,7 +626,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 #endif
 	  if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
 	    Typetab *rtab = resolved_scope;
-	    String *qname = Getattr(resolved_scope, k_qname);
+	    String *qname = Getattr(resolved_scope, "qname");
 	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
 	    if ((qname) && typedef_resolve(resolved_scope, type)) {
 	      type = Copy(type);
@@ -876,7 +875,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	resolved_scope = 0;
 	if (typedef_resolve(current_scope, e)) {
 	  /* resolved_scope contains the scope that actually resolved the symbol */
-	  String *qname = Getattr(resolved_scope, k_qname);
+	  String *qname = Getattr(resolved_scope, "qname");
 	  if (qname) {
 	    Insert(e, 0, "::");
 	    Insert(e, 0, qname);
@@ -959,7 +958,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 		    String *qn = Swig_symbol_qualified(n);
 		    if (Len(qn)) {
 		      Append(qn, "::");
-		      Append(qn, Getattr(n, k_name));
+		      Append(qn, Getattr(n, "name"));
 		      Delete(value);
 		      value = qn;
 		      continue;
@@ -967,9 +966,9 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 		      Delete(qn);
 		      break;
 		    }
-		  } else if ((strcmp(ntype, "cdecl") == 0) && (Getattr(n, k_value))) {
+		  } else if ((strcmp(ntype, "cdecl") == 0) && (Getattr(n, "value"))) {
 		    Delete(value);
-		    value = Copy(Getattr(n, k_value));
+		    value = Copy(Getattr(n, "value"));
 		    continue;
 		  }
 		}
@@ -1103,7 +1102,7 @@ int SwigType_typedef_using(String_or_char *name) {
   td = SwigType_typedef_resolve(name);
   /*  Printf(stdout,"td = '%s' %x\n", td, resolved_scope); */
   if (resolved_scope) {
-    defined_name = Getattr(resolved_scope, k_qname);
+    defined_name = Getattr(resolved_scope, "qname");
     if (defined_name) {
       defined_name = Copy(defined_name);
       Append(defined_name, "::");
@@ -1121,7 +1120,7 @@ int SwigType_typedef_using(String_or_char *name) {
     prefix = Swig_scopename_prefix(name);
     s = SwigType_find_scope(current_scope, prefix);
     if (s) {
-      Hash *ttab = Getattr(s, k_typetab);
+      Hash *ttab = Getattr(s, "typetab");
       if (!Getattr(ttab, base) && defined_name) {
 	Setattr(ttab, base, defined_name);
       }
@@ -1313,7 +1312,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	if (GetFlag(n, "feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
-	  if (Checkattr(n, "nodeType", k_class)
+	  if (Checkattr(n, "nodeType", "class")
 	      && (!Getattr(n, "allocate:default_constructor")
 		  || (Getattr(n, "allocate:noassign")))) {
 	    use_wrapper = !GetFlag(n, "feature:novaluewrapper") || GetFlag(n, "feature:nodefault");
@@ -1342,7 +1341,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
     SwigType *td = SwigType_strip_qualifiers(ftd);
     if (SwigType_type(td) == T_USER) {
       if ((n = Swig_symbol_clookup(td, 0))) {
-	if ((Checkattr(n, "nodeType", k_class)
+	if ((Checkattr(n, "nodeType", "class")
 	     && !Getattr(n, "allocate:noassign")
 	     && (Getattr(n, "allocate:default_constructor")))
 	    || (GetFlag(n, "feature:novaluewrapper"))) {

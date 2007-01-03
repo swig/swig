@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+01/03/2007: beazley
+            [Internals].  Use of swigkeys.c/.h variables is revoked.  Please use
+            simple strings for attribute names.
+
 12/30/2006: beazley
             Internal API functions HashGetAttr() and HashCheckAttr() have been revoked.
             Please use Getattr() to retrieve attributes.  The function Checkattr() can

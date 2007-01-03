@@ -10,7 +10,6 @@
 char cvsroot_templ_c[] = "$Id$";
 
 #include "swig.h"
-#include "swigkeys.h"
 #include "cparse.h"
 
 static int template_debug = 0;
@@ -19,16 +18,16 @@ static int template_debug = 0;
 String *baselists[3];
 
 void SwigType_template_init() {
-  baselists[0] = k_baselist;
-  baselists[1] = k_protectedbaselist;
-  baselists[2] = k_privatebaselist;
+  baselists[0] = "baselist";
+  baselists[1] = "protectedbaselist";
+  baselists[2] = "privatebaselist";
 }
 
 
 static void add_parms(ParmList *p, List *patchlist, List *typelist) {
   while (p) {
-    SwigType *ty = Getattr(p, k_type);
-    SwigType *val = Getattr(p, k_value);
+    SwigType *ty = Getattr(p, "type");
+    SwigType *val = Getattr(p, "value");
     Append(typelist, ty);
     Append(typelist, val);
     Append(patchlist, val);
@@ -54,14 +53,14 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
   String *nodeType = nodeType(n);
   if (!n)
     return 0;
-  if (Getattr(n, k_error))
+  if (Getattr(n, "error"))
     return 0;
 
-  if (Equal(nodeType, k_template)) {
+  if (Equal(nodeType, "template")) {
     /* Change the node type back to normal */
     if (!expanded) {
       expanded = 1;
-      set_nodeType(n, Getattr(n, k_templatetype));
+      set_nodeType(n, Getattr(n, "templatetype"));
       ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       expanded = 0;
       return ret;
@@ -69,37 +68,37 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
       /* Called when template appears inside another template */
       /* Member templates */
 
-      set_nodeType(n, Getattr(n, k_templatetype));
+      set_nodeType(n, Getattr(n, "templatetype"));
       ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
-      set_nodeType(n, k_template);
+      set_nodeType(n, "template");
       return ret;
     }
-  } else if (Equal(nodeType, k_cdecl)) {
+  } else if (Equal(nodeType, "cdecl")) {
     /* A simple C declaration */
     SwigType *t, *v, *d;
     String *code;
-    t = Getattr(n, k_type);
-    v = Getattr(n, k_value);
-    d = Getattr(n, k_decl);
+    t = Getattr(n, "type");
+    v = Getattr(n, "value");
+    d = Getattr(n, "decl");
 
-    code = Getattr(n, k_code);
+    code = Getattr(n, "code");
 
     Append(typelist, t);
     Append(typelist, d);
     Append(patchlist, v);
     Append(cpatchlist, code);
 
-    if (Getattr(n, k_conversionoperator)) {
-      Append(cpatchlist, Getattr(n, k_name));
-      if (Getattr(n, k_symname)) {
-	Append(cpatchlist, Getattr(n, k_symname));
+    if (Getattr(n, "conversion_operator")) {
+      Append(cpatchlist, Getattr(n, "name"));
+      if (Getattr(n, "sym:name")) {
+	Append(cpatchlist, Getattr(n, "sym:name"));
       }
     }
 
-    add_parms(Getattr(n, k_parms), cpatchlist, typelist);
-    add_parms(Getattr(n, k_throws), cpatchlist, typelist);
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
 
-  } else if (Equal(nodeType, k_class)) {
+  } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
     {
       int b = 0;
@@ -125,15 +124,15 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
       }
     }
   } else if (Equal(nodeType, "constructor")) {
-    String *name = Getattr(n, k_name);
-    if (!(Getattr(n, k_templatetype))) {
+    String *name = Getattr(n, "name");
+    if (!(Getattr(n, "templatetype"))) {
       String *symname;
       String *stripped_name = SwigType_templateprefix(name);
       if (Strstr(tname, stripped_name)) {
 	Replaceid(name, stripped_name, tname);
       }
       Delete(stripped_name);
-      symname = Getattr(n, k_symname);
+      symname = Getattr(n, "sym:name");
       if (symname) {
 	stripped_name = SwigType_templateprefix(symname);
 	if (Strstr(tname, stripped_name)) {
@@ -142,11 +141,11 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
 	Delete(stripped_name);
       }
       if (strchr(Char(name), '<')) {
-	Append(patchlist, Getattr(n, k_name));
+	Append(patchlist, Getattr(n, "name"));
       } else {
 	Append(name, templateargs);
       }
-      name = Getattr(n, k_symname);
+      name = Getattr(n, "sym:name");
       if (name) {
 	if (strchr(Char(name), '<')) {
 	  Clear(name);
@@ -159,48 +158,48 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
 	  Delete(tmp);
 	}
       }
-      /* Setattr(n,k_symname,name); */
+      /* Setattr(n,"sym:name",name); */
     }
-    Append(cpatchlist, Getattr(n, k_code));
-    Append(typelist, Getattr(n, k_decl));
-    add_parms(Getattr(n, k_parms), cpatchlist, typelist);
-    add_parms(Getattr(n, k_throws), cpatchlist, typelist);
+    Append(cpatchlist, Getattr(n, "code"));
+    Append(typelist, Getattr(n, "decl"));
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
   } else if (Equal(nodeType, "destructor")) {
-    String *name = Getattr(n, k_name);
+    String *name = Getattr(n, "name");
     if (name && strchr(Char(name), '<')) {
-      Append(patchlist, Getattr(n, k_name));
+      Append(patchlist, Getattr(n, "name"));
     } else {
       Append(name, templateargs);
     }
-    name = Getattr(n, k_symname);
+    name = Getattr(n, "sym:name");
     if (name && strchr(Char(name), '<')) {
       String *sn = Copy(tname);
-      Setattr(n, k_symname, sn);
+      Setattr(n, "sym:name", sn);
       Delete(sn);
     } else {
       Replace(name, tname, rname, DOH_REPLACE_ANY);
     }
-    /* Setattr(n,k_symname,name); */
-    Append(cpatchlist, Getattr(n, k_code));
-  } else if (Equal(nodeType, k_using)) {
-    String *uname = Getattr(n, k_uname);
+    /* Setattr(n,"sym:name",name); */
+    Append(cpatchlist, Getattr(n, "code"));
+  } else if (Equal(nodeType, "using")) {
+    String *uname = Getattr(n, "uname");
     if (uname && strchr(Char(uname), '<')) {
       Append(patchlist, uname);
     }
-    if (Getattr(n, k_namespace)) {
+    if (Getattr(n, "namespace")) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
 
     }
   } else {
     /* Look for obvious parameters */
     Node *cn;
-    Append(cpatchlist, Getattr(n, k_code));
-    Append(typelist, Getattr(n, k_type));
-    Append(typelist, Getattr(n, k_decl));
-    add_parms(Getattr(n, k_parms), cpatchlist, typelist);
-    add_parms(Getattr(n, k_kwargs), cpatchlist, typelist);
+    Append(cpatchlist, Getattr(n, "code"));
+    Append(typelist, Getattr(n, "type"));
+    Append(typelist, Getattr(n, "decl"));
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
+    add_parms(Getattr(n, "kwargs"), cpatchlist, typelist);
     add_parms(Getattr(n, "pattern"), cpatchlist, typelist);
-    add_parms(Getattr(n, k_throws), cpatchlist, typelist);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
     cn = firstChild(n);
     while (cn) {
       cparse_template_expand(cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
@@ -249,25 +248,25 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     Delete(tmp);
   }
 
-  tname = Copy(Getattr(n, k_name));
+  tname = Copy(Getattr(n, "name"));
   tbase = Swig_scopename_last(tname);
 
   /* Look for partial specialization matching */
-  if (Getattr(n, k_partialargs)) {
+  if (Getattr(n, "partialargs")) {
     Parm *p, *tp;
-    ParmList *ptargs = SwigType_function_parms(Getattr(n, k_partialargs));
+    ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"));
     p = ptargs;
     tp = tparms;
     while (p && tp) {
       SwigType *ptype;
       SwigType *tptype;
       SwigType *partial_type;
-      ptype = Getattr(p, k_type);
-      tptype = Getattr(tp, k_type);
+      ptype = Getattr(p, "type");
+      tptype = Getattr(tp, "type");
       if (ptype && tptype) {
 	partial_type = partial_arg(tptype, ptype);
 	/*      Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
-	Setattr(tp, k_type, partial_type);
+	Setattr(tp, "type", partial_type);
 	Delete(partial_type);
       }
       p = nextSibling(p);
@@ -280,7 +279,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   if (0) {
     Parm *p = tparms;
     while (p) {
-      Printf(stdout, "tparm: '%s' '%s' '%s'\n", Getattr(p, k_name), Getattr(p, k_type), Getattr(p, k_value));
+      Printf(stdout, "tparm: '%s' '%s' '%s'\n", Getattr(p, "name"), Getattr(p, "type"), Getattr(p, "value"));
       p = nextSibling(p);
     }
   }
@@ -292,7 +291,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
   /* Set the name */
   {
-    String *name = Getattr(n, k_name);
+    String *name = Getattr(n, "name");
     if (name) {
       Append(name, templateargs);
     }
@@ -301,25 +300,25 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
   /* Patch all of the types */
   {
-    Parm *tp = Getattr(n, k_templateparms);
+    Parm *tp = Getattr(n, "templateparms");
     Parm *p = tparms;
     /*    Printf(stdout,"%s\n", ParmList_str_defaultargs(tp)); */
 
     if (tp) {
-      Symtab *tsdecl = Getattr(n, k_symsymtab);
+      Symtab *tsdecl = Getattr(n, "sym:symtab");
       while (p && tp) {
 	String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
 	int sz, i;
 	String *dvalue = 0;
 	String *qvalue = 0;
 
-	name = Getattr(tp, k_name);
-	value = Getattr(p, k_value);
-	tydef = Getattr(p, k_typedef);
+	name = Getattr(tp, "name");
+	value = Getattr(p, "value");
+	tydef = Getattr(p, "typedef");
 
 	if (name) {
 	  if (!value)
-	    value = Getattr(p, k_type);
+	    value = Getattr(p, "type");
 	  qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
 	  dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
 	  if (SwigType_istemplate(dvalue)) {
@@ -334,7 +333,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  {
 	    Parm *rp = nextSibling(p);
 	    while (rp) {
-	      String *rvalue = Getattr(rp, k_value);
+	      String *rvalue = Getattr(rp, "value");
 	      if (rvalue) {
 		Replace(rvalue, name, dvalue, DOH_REPLACE_ID);
 	      }
@@ -393,7 +392,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
   /* Patch bases */
   {
-    List *bases = Getattr(n, k_baselist);
+    List *bases = Getattr(n, "baselist");
     if (bases) {
       Iterator b;
       for (b = First(bases); b.item; b = Next(b)) {
@@ -411,7 +410,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tname);
   Delete(templateargs);
 
-  /*  set_nodeType(n,k_template); */
+  /*  set_nodeType(n,"template"); */
   return 0;
 }
 
@@ -438,9 +437,9 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 
   /* Add default values from generic template */
   if (templ) {
-    Symtab *tsdecl = Getattr(templ, k_symsymtab);
+    Symtab *tsdecl = Getattr(templ, "sym:symtab");
 
-    targs = Getattr(templ, k_templateparms);
+    targs = Getattr(templ, "templateparms");
     Swig_symbol_template_defargs(parms, targs, tscope, tsdecl);
   }
 
@@ -448,10 +447,10 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   /* reduce the typedef */
   p = parms;
   while (p) {
-    SwigType *ty = Getattr(p, k_type);
+    SwigType *ty = Getattr(p, "type");
     if (ty) {
       SwigType *nt = Swig_symbol_type_qualify(ty, tscope);
-      Setattr(p, k_type, nt);
+      Setattr(p, "type", nt);
       Delete(nt);
     }
     p = nextSibling(p);
@@ -483,9 +482,9 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     if (n) {
       Node *tn;
       String *nodeType = nodeType(n);
-      if (Equal(nodeType, k_template))
+      if (Equal(nodeType, "template"))
 	goto success;
-      tn = Getattr(n, k_template);
+      tn = Getattr(n, "template");
       if (tn) {
 	n = tn;
 	goto success;		/* Previously wrapped by a template return that */
@@ -506,9 +505,9 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   p = parms;
   while (p) {
     String *t;
-    t = Getattr(p, k_type);
+    t = Getattr(p, "type");
     if (!t)
-      t = Getattr(p, k_value);
+      t = Getattr(p, "value");
     if (t) {
       String *ty = Swig_symbol_typedef_reduce(t, tscope);
       String *tb = SwigType_base(ty);
@@ -537,7 +536,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     String *ss;
     Iterator pi;
 
-    partials = Getattr(templ, k_partials);
+    partials = Getattr(templ, "partials");
     if (partials) {
       for (pi = First(partials); pi.item; pi = Next(pi)) {
 	ss = Copy(pi.item);
@@ -546,9 +545,9 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	while (p) {
 	  String *t, *tn;
 	  sprintf(tmp, "$%d", i);
-	  t = Getattr(p, k_type);
+	  t = Getattr(p, "type");
 	  if (!t)
-	    t = Getattr(p, k_value);
+	    t = Getattr(p, "value");
 	  if (t) {
 	    String *ty = Swig_symbol_typedef_reduce(t, tscope);
 	    tn = SwigType_base(ty);
@@ -580,7 +579,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     if (Len(mpartials) > 1) {
       if (n) {
 	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, cparse_file, cparse_line, "Instantiation of template '%s' is ambiguous,\n", SwigType_namestr(tname));
-	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(n), Getline(n), "  instantiation '%s' is used.\n", SwigType_namestr(Getattr(n, k_name)));
+	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(n), Getline(n), "  instantiation '%s' is used.\n", SwigType_namestr(Getattr(n, "name")));
       }
     }
   }
@@ -592,7 +591,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
   } else if (n) {
     String *nodeType = nodeType(n);
-    if (!Equal(nodeType, k_template)) {
+    if (!Equal(nodeType, "template")) {
       Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType);
       n = 0;
     }
@@ -625,8 +624,8 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
   if (n) {
     String *nodeType = nodeType(n);
     int isclass = 0;
-    assert(Equal(nodeType, k_template));
-    isclass = (Equal(Getattr(n, k_templatetype), k_class));
+    assert(Equal(nodeType, "template"));
+    isclass = (Equal(Getattr(n, "templatetype"), "class"));
     if (!isclass) {
       /* If not a templated class we must have a templated function.
          The template found is not necessarily the one we want when dealing with templated
@@ -641,13 +640,13 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
 
       n = Swig_symbol_clookup_local(name, 0);
       while (n) {
-	Parm *tparmsfound = Getattr(n, k_templateparms);
+	Parm *tparmsfound = Getattr(n, "templateparms");
 	if (ParmList_len(tparms) == ParmList_len(tparmsfound)) {
 	  /* successful match */
 	  break;
 	}
 	/* repeat until we find a match with correct number of templated parameters */
-	n = Getattr(n, k_symnextSibling);
+	n = Getattr(n, "sym:nextSibling");
       }
 
       if (!n) {

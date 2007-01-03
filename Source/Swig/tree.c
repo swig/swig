@@ -11,7 +11,6 @@
 char cvsroot_tree_c[] = "$Id$";
 
 #include "swig.h"
-#include "swigkeys.h"
 #include <stdarg.h>
 #include <assert.h>
 

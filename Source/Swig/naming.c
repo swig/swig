@@ -11,7 +11,6 @@ char cvsroot_naming_c[] = "$Id$";
 
 #include "swig.h"
 #include "cparse.h"
-#include "swigkeys.h"
 #include <ctype.h>
 
 /* Hash table containing naming data */
@@ -151,7 +150,7 @@ String *Swig_name_wrapper(const String_or_char *fname) {
   r = NewStringEmpty();
   if (!naming_hash)
     naming_hash = NewHash();
-  f = Getattr(naming_hash, k_wrapper);
+  f = Getattr(naming_hash, "wrapper");
   if (!f) {
     Append(r, "_wrap_%f");
   } else {
@@ -767,10 +766,10 @@ void Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl
     /* Add in the optional feature attributes */
     Hash *attribs = featureattribs;
     while (attribs) {
-      String *attribname = Getattr(attribs, k_name);
+      String *attribname = Getattr(attribs, "name");
       String *featureattribname = NewStringf("%s:%s", featurename, attribname);
       if (value) {
-	String *attribvalue = Getattr(attribs, k_value);
+	String *attribvalue = Getattr(attribs, "value");
 	Setattr(fhash, featureattribname, attribvalue);
       } else {
 	Delattr(fhash, featureattribname);
@@ -838,15 +837,15 @@ int Swig_need_name_warning(Node *n) {
      - template declarations, only for real instances using %template(name).
      - typedefs, they have no effect at the target language.
    */
-  if (checkAttribute(n, "nodeType", k_classforward)) {
+  if (checkAttribute(n, "nodeType", "classforward")) {
     need = 0;
-  } else if (checkAttribute(n, k_storage, k_typedef)) {
+  } else if (checkAttribute(n, "storage", "typedef")) {
     need = 0;
-  } else if (Getattr(n, k_hidden)) {
+  } else if (Getattr(n, "hidden")) {
     need = 0;
-  } else if (Getattr(n, k_ignore)) {
+  } else if (Getattr(n, "ignore")) {
     need = 0;
-  } else if (Getattr(n, k_templatetype)) {
+  } else if (Getattr(n, "templatetype")) {
     need = 0;
   }
   return need;
@@ -867,16 +866,16 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     return 0;
 
   /* cdecl case */
-  if (Cmp(ta, k_cdecl) == 0) {
+  if (Cmp(ta, "cdecl") == 0) {
     /* typedef */
-    String *a_storage = Getattr(a, k_storage);
-    String *b_storage = Getattr(b, k_storage);
+    String *a_storage = Getattr(a, "storage");
+    String *b_storage = Getattr(b, "storage");
 
-    if ((Cmp(a_storage, k_typedef) == 0)
-	|| (Cmp(b_storage, k_typedef) == 0)) {
+    if ((Cmp(a_storage, "typedef") == 0)
+	|| (Cmp(b_storage, "typedef") == 0)) {
       if (Cmp(a_storage, b_storage) == 0) {
-	String *a_type = (Getattr(a, k_type));
-	String *b_type = (Getattr(b, k_type));
+	String *a_type = (Getattr(a, "type"));
+	String *b_type = (Getattr(b, "type"));
 	if (Cmp(a_type, b_type) == 0)
 	  return 1;
       }
@@ -884,30 +883,30 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
 
     /* static functions */
-    if ((Cmp(a_storage, k_static) == 0)
-	|| (Cmp(b_storage, k_static) == 0)) {
+    if ((Cmp(a_storage, "static") == 0)
+	|| (Cmp(b_storage, "static") == 0)) {
       if (Cmp(a_storage, b_storage) != 0)
 	return 0;
     }
 
     /* friend methods */
 
-    if (!a_inclass || (Cmp(a_storage, k_friend) == 0)) {
+    if (!a_inclass || (Cmp(a_storage, "friend") == 0)) {
       /* check declaration */
 
-      String *a_decl = (Getattr(a, k_decl));
-      String *b_decl = (Getattr(b, k_decl));
+      String *a_decl = (Getattr(a, "decl"));
+      String *b_decl = (Getattr(b, "decl"));
       if (Cmp(a_decl, b_decl) == 0) {
 	/* check return type */
-	String *a_type = (Getattr(a, k_type));
-	String *b_type = (Getattr(b, k_type));
+	String *a_type = (Getattr(a, "type"));
+	String *b_type = (Getattr(b, "type"));
 	if (Cmp(a_type, b_type) == 0) {
 	  /* check parameters */
-	  Parm *ap = (Getattr(a, k_parms));
-	  Parm *bp = (Getattr(b, k_parms));
+	  Parm *ap = (Getattr(a, "parms"));
+	  Parm *bp = (Getattr(b, "parms"));
 	  while (ap && bp) {
-	    SwigType *at = Getattr(ap, k_type);
-	    SwigType *bt = Getattr(bp, k_type);
+	    SwigType *at = Getattr(ap, "type");
+	    SwigType *bt = Getattr(bp, "type");
 	    if (Cmp(at, bt) != 0)
 	      return 0;
 	    ap = nextSibling(ap);
@@ -916,8 +915,8 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 	  if (ap || bp) {
 	    return 0;
 	  } else {
-	    Node *a_template = Getattr(a, k_template);
-	    Node *b_template = Getattr(b, k_template);
+	    Node *a_template = Getattr(a, "template");
+	    Node *b_template = Getattr(b, "template");
 	    /* Not equivalent if one is a template instantiation (via %template) and the other is a non-templated function */
 	    if ((a_template && !b_template) || (!a_template && b_template))
 	      return 0;
@@ -928,15 +927,15 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
   } else {
     /* %constant case */
-    String *a_storage = Getattr(a, k_storage);
-    String *b_storage = Getattr(b, k_storage);
+    String *a_storage = Getattr(a, "storage");
+    String *b_storage = Getattr(b, "storage");
     if ((Cmp(a_storage, "%constant") == 0)
 	|| (Cmp(b_storage, "%constant") == 0)) {
       if (Cmp(a_storage, b_storage) == 0) {
-	String *a_type = (Getattr(a, k_type));
-	String *b_type = (Getattr(b, k_type));
+	String *a_type = (Getattr(a, "type"));
+	String *b_type = (Getattr(b, "type"));
 	if ((Cmp(a_type, b_type) == 0)
-	    && (Cmp(Getattr(a, k_value), Getattr(b, k_value)) == 0))
+	    && (Cmp(Getattr(a, "value"), Getattr(b, "value")) == 0))
 	  return 1;
       }
       return 0;
@@ -946,10 +945,10 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 }
 
 int Swig_need_redefined_warn(Node *a, Node *b, int InClass) {
-  String *a_name = Getattr(a, k_name);
-  String *b_name = Getattr(b, k_name);
-  String *a_symname = Getattr(a, k_symname);
-  String *b_symname = Getattr(b, k_symname);
+  String *a_name = Getattr(a, "name");
+  String *b_name = Getattr(b, "name");
+  String *a_symname = Getattr(a, "sym:name");
+  String *b_symname = Getattr(b, "sym:name");
   /* always send a warning if a 'rename' is involved */
   if ((a_symname && !Equal(a_symname, a_name))
       || (b_symname && !Equal(b_symname, b_name))) {
@@ -974,11 +973,11 @@ int Swig_need_protected(Node *n) {
   /* First, 'n' looks like a function */
   /* if (!Swig_director_mode()) return 0; */
   String *nodetype = nodeType(n);
-  if ((Equal(nodetype, k_cdecl)) && SwigType_isfunction(Getattr(n, k_decl))) {
-    String *storage = Getattr(n, k_storage);
+  if ((Equal(nodetype, "cdecl")) && SwigType_isfunction(Getattr(n, "decl"))) {
+    String *storage = Getattr(n, "storage");
     /* and the function is declared like virtual, or it has no
        storage. This eliminates typedef, static and so on. */
-    return !storage || Equal(storage, k_virtual);
+    return !storage || Equal(storage, "virtual");
   } else if (Equal(nodetype, "constructor") || Equal(nodetype, "destructor")) {
     return 1;
   }
@@ -1020,7 +1019,7 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
   List *matchlist = 0;
   while (kw) {
     Node *next = nextSibling(kw);
-    String *kname = Getattr(kw, k_name);
+    String *kname = Getattr(kw, "name");
     char *ckey = kname ? Char(kname) : 0;
     if (ckey) {
       const char **rkey;
@@ -1034,11 +1033,11 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
 	List *attrlist = Swig_make_attrlist(ckey);
 	if (!matchlist)
 	  matchlist = NewList();
-	Setattr(mi, k_value, Getattr(kw, k_value));
+	Setattr(mi, "value", Getattr(kw, "value"));
 	Setattr(mi, "attrlist", attrlist);
 #ifdef SWIG_DEBUG
 	if (isrxsmatch)
-	  Printf(stderr, "rxsmatch to use: %s %s %s\n", ckey, Getattr(kw, k_value), attrlist);
+	  Printf(stderr, "rxsmatch to use: %s %s %s\n", ckey, Getattr(kw, "value"), attrlist);
 #endif
 	if (isnotmatch)
 	  SetFlag(mi, "notmatch");
@@ -1051,7 +1050,7 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
       } else {
 	for (rkey = keys; *rkey != 0; ++rkey) {
 	  if (strcmp(ckey, *rkey) == 0) {
-	    Setattr(nameobj, *rkey, Getattr(kw, k_value));
+	    Setattr(nameobj, *rkey, Getattr(kw, "value"));
 	    removeNode(kw);
 	  }
 	}
@@ -1077,10 +1076,10 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, Str
     }
   }
 
-  if (!nname || !Len(nname) || Getattr(nameobj, k_fullname) ||	/* any of these options trigger a 'list' nameobj */
+  if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
       Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist")) {
     if (decl)
-      Setattr(nameobj, k_decl, decl);
+      Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
       Setattr(nameobj, "targetname", nname);
     /* put the new nameobj at the beginnig of the list, such that the
@@ -1109,9 +1108,9 @@ static DOH *Swig_get_lattr(Node *n, List *lattr) {
     res = Getattr(n, nattr);
 #ifdef SWIG_DEBUG
     if (!res) {
-      Printf(stderr, "missing %s %s %s\n", nattr, Getattr(n, k_name), Getattr(n, "member"));
+      Printf(stderr, "missing %s %s %s\n", nattr, Getattr(n, "name"), Getattr(n, "member"));
     } else {
-      Printf(stderr, "lattr %d %s %s\n", i, nattr, DohIsString(res) ? res : Getattr(res, k_name));
+      Printf(stderr, "lattr %d %s %s\n", i, nattr, DohIsString(res) ? res : Getattr(res, "name"));
     }
 #endif
     n = res;
@@ -1200,7 +1199,7 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
 #endif
       match = 0;
       if (nval) {
-	String *kwval = Getattr(mi, k_value);
+	String *kwval = Getattr(mi, "value");
 	match = rxsmatch ? Swig_name_rxsmatch_value(kwval, nval)
 	    : Swig_name_match_value(kwval, nval);
 #ifdef SWIG_DEBUG
@@ -1232,7 +1231,7 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
     int match = 0;
     for (i = 0; !match && (i < len); i++) {
       Hash *rn = Getitem(namelist, i);
-      String *rdecl = Getattr(rn, k_decl);
+      String *rdecl = Getattr(rn, "decl");
       if (rdecl && (!decl || !Equal(rdecl, decl))) {
 	continue;
       } else if (Swig_name_match_nameobj(rn, n)) {
@@ -1240,7 +1239,7 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	if (tname) {
 	  String *sfmt = Getattr(rn, "sourcefmt");
 	  String *sname = 0;
-	  int fullname = GetFlag(rn, k_fullname);
+	  int fullname = GetFlag(rn, "fullname");
 	  int rxstarget = GetFlag(rn, "rxstarget");
 	  if (sfmt) {
 	    if (fullname && prefix) {
@@ -1301,8 +1300,8 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *de
     if (!name || !Swig_need_name_warning(n)) {
       return 0;
     } else {
-      String *access = Getattr(n, k_access);
-      int is_public = !access || Equal(access, k_public);
+      String *access = Getattr(n, "access");
+      int is_public = !access || Equal(access, "public");
       if (!is_public && !Swig_need_protected(n)) {
 	return 0;
       }
@@ -1316,11 +1315,11 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *de
     if (!wrn) {
       wrn = Swig_name_nameobj_lget(Swig_name_namewarn_list(), n, prefix, name, decl);
     }
-    if (wrn && Getattr(wrn, k_error)) {
+    if (wrn && Getattr(wrn, "error")) {
       if (n) {
-	Swig_error(Getfile(n), Getline(n), "%s\n", Getattr(wrn, k_name));
+	Swig_error(Getfile(n), Getline(n), "%s\n", Getattr(wrn, "name"));
       } else {
-	Swig_error(cparse_file, cparse_line, "%s\n", Getattr(wrn, k_name));
+	Swig_error(cparse_file, cparse_line, "%s\n", Getattr(wrn, "name"));
       }
     }
     return wrn;
@@ -1338,7 +1337,7 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *de
 
 String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType *decl) {
   Hash *wrn = Swig_name_namewarn_get(n, prefix, name, decl);
-  return (name && wrn) ? Getattr(wrn, k_name) : 0;
+  return (name && wrn) ? Getattr(wrn, "name") : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1477,7 +1476,7 @@ String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType 
       rn = Swig_name_nameobj_lget(Swig_name_rename_list(), n, prefix, name, decl);
       if (rn) {
 	String *sfmt = Getattr(rn, "sourcefmt");
-	int fullname = GetFlag(rn, k_fullname);
+	int fullname = GetFlag(rn, "fullname");
 	if (fullname && prefix) {
 	  String *sname = NewStringf("%s::%s", prefix, name);
 	  Delete(name);
@@ -1492,8 +1491,8 @@ String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType 
       }
     }
     if (rn) {
-      String *newname = Getattr(rn, k_name);
-      int fullname = GetFlag(rn, k_fullname);
+      String *newname = Getattr(rn, "name");
+      int fullname = GetFlag(rn, "fullname");
       result = apply_rename(newname, fullname, prefix, name);
     }
     if (result && !Equal(result, name)) {
@@ -1512,10 +1511,10 @@ String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType 
     nname = result ? result : name;
     wrn = Swig_name_namewarn_get(n, prefix, nname, decl);
     if (wrn) {
-      String *rename = Getattr(wrn, k_rename);
+      String *rename = Getattr(wrn, "rename");
       if (rename) {
-	String *msg = Getattr(wrn, k_name);
-	int fullname = GetFlag(wrn, k_fullname);
+	String *msg = Getattr(wrn, "name");
+	int fullname = GetFlag(wrn, "fullname");
 	if (result)
 	  Delete(result);
 	result = apply_rename(rename, fullname, prefix, name);

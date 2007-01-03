@@ -239,7 +239,7 @@ class TypePass:private Dispatcher {
       Symtab *st = Getattr(cls, "symtab");
       Symtab *bst = Getattr(bclass, "symtab");
       if (st == bst) {
-	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", Getattr(cls, k_name));
+	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", Getattr(cls, "name"));
 	continue;
       }
       Symtab *s = Swig_symbol_current();
@@ -866,7 +866,7 @@ class TypePass:private Dispatcher {
 			  String *ucode = is_void ? NewStringf("{ self->%s(", Getattr(n, "uname")) : NewStringf("{ return self->%s(", Getattr(n, "uname"));
 
 			  for (ParmList *p = parms; p;) {
-			    Append(ucode, Getattr(p, k_name));
+			    Append(ucode, Getattr(p, "name"));
 			    p = nextSibling(p);
 			    if (p)
 			      Append(ucode, ",");

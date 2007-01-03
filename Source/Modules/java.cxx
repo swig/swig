@@ -1920,7 +1920,7 @@ public:
 
       String *this_type = Copy(getClassType());
       String *name = NewString("self");
-      String *qualifier = Getattr(n, k_qualifier);
+      String *qualifier = Getattr(n, "qualifier");
       if (qualifier)
 	SwigType_push(this_type, qualifier);
       SwigType_add_pointer(this_type);

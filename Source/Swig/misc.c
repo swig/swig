@@ -10,7 +10,6 @@
 char cvsroot_misc_c[] = "$Id$";
 
 #include "swig.h"
-#include "swigkeys.h"
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
@@ -1001,9 +1000,6 @@ void Swig_init() {
   DohEncoding("undercase", Swig_string_ucase);
   DohEncoding("firstuppercase", Swig_string_first_upper);
   DohEncoding("firstlowercase", Swig_string_first_lower);
-
-  /* Initialize the swig keys */
-  Swig_keys_init();
 
   /* Initialize typemaps */
   Swig_typemap_init();
