@@ -866,12 +866,12 @@ class TypePass:private Dispatcher {
 			  String *ucode = is_void ? NewStringf("{ self->%s(", Getattr(n, "uname")) : NewStringf("{ return self->%s(", Getattr(n, "uname"));
 
 			  for (ParmList *p = parms; p;) {
-			    StringAppend(ucode, Getattr(p, k_name));
+			    Append(ucode, Getattr(p, k_name));
 			    p = nextSibling(p);
 			    if (p)
-			      StringAppend(ucode, ",");
+			      Append(ucode, ",");
 			  }
-			  StringAppend(ucode, "); }");
+			  Append(ucode, "); }");
 			  Setattr(nn, "code", ucode);
 			  Delete(ucode);
 			}

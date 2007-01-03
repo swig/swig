@@ -122,7 +122,7 @@ static List *Swig_search_path_any(int syspath) {
     ilen = Len(pdirectories);
     for (i = 0; i < ilen; i++) {
       filename = NewString(Getitem(pdirectories,i));
-      StringAppend(filename,SWIG_FILE_DELIMETER);
+      Append(filename,SWIG_FILE_DELIMETER);
       Append(slist,filename);
       Delete(filename);
     }
@@ -131,7 +131,7 @@ static List *Swig_search_path_any(int syspath) {
   ilen = Len(directories);
   for (i = 0; i < ilen; i++) {
     filename = NewString(Getitem(directories,i));
-    StringAppend(filename,SWIG_FILE_DELIMETER);
+    Append(filename,SWIG_FILE_DELIMETER);
     if (syspath) {
       /* If doing a system include, put the system directories first */
       Insert(slist,i,filename);
@@ -214,13 +214,13 @@ String *Swig_read_file(FILE *f) {
 
   assert(str);
   while (fgets(buffer, 4095, f)) {
-    StringAppend(str, buffer);
+    Append(str, buffer);
   }
-  len = StringLen(str);
+  len = Len(str);
   if (len) {
     char *cstr = Char(str);
     if (cstr[len - 1] != '\n') {
-      StringAppend(str, "\n");
+      Append(str, "\n");
     }
   }
   return str;

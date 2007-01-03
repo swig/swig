@@ -323,7 +323,7 @@ static void add_symbols(Node *n) {
 	*/
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
 	if (prefix) {
-	  if (Classprefix && (StringEqual(prefix,Classprefix))) {
+	  if (Classprefix && (Equal(prefix,Classprefix))) {
 	    String *base = Swig_scopename_last(name);
 	    Setattr(n,k_name,base);
 	    Delete(base);
@@ -1235,7 +1235,7 @@ static void default_arguments(Node *n) {
 	|| GetFlag(function,"feature:kwargs")) {
       ParmList *p = Getattr(function,k_parms);
       if (p) 
-        Setattr(p,k_compactdefargs, "1"); /* mark parameters for special handling */
+        Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
       function = 0; /* don't add in extra methods */
     }
   }
@@ -1680,7 +1680,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 
 apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
                     $$ = new_node("apply");
-                    Setattr($$,k_pattern,Getattr($2,k_pattern));
+                    Setattr($$,"pattern",Getattr($2,"pattern"));
 		    appendChild($$,$4);
                };
 
@@ -1830,7 +1830,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
 		   $$ = new_node("fragment");
 		   Setattr($$,k_value,Getattr($3,k_value));
 		   Setattr($$,k_type,Getattr($3,k_type));
-		   Setattr($$,k_section,Getattr(p,k_name));
+		   Setattr($$,"section",Getattr(p,k_name));
 		   Setattr($$,k_kwargs,nextSibling(p));
 		   Setattr($$,k_code,$7);
                  }
@@ -1841,7 +1841,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
 		   $$ = new_node("fragment");
 		   Setattr($$,k_value,Getattr($3,k_value));
 		   Setattr($$,k_type,Getattr($3,k_type));
-		   Setattr($$,k_section,Getattr(p,k_name));
+		   Setattr($$,"section",Getattr(p,k_name));
 		   Setattr($$,k_kwargs,nextSibling(p));
 		   Delitem(scanner_ccode,0);
 		   Delitem(scanner_ccode,DOH_END);
@@ -1980,7 +1980,7 @@ insert_directive : HBLOCK {
                | INSERT LPAREN idstring RPAREN string {
 		 String *code = NewStringEmpty();
 		 $$ = new_node("insert");
-		 Setattr($$,k_section,$3);
+		 Setattr($$,"section",$3);
 		 Setattr($$,k_code,code);
 		 if (Swig_insert_file($5,code) < 0) {
 		   Swig_error(cparse_file, cparse_line, "Couldn't find '%s'.\n", $5);
@@ -1989,14 +1989,14 @@ insert_directive : HBLOCK {
                }
                | INSERT LPAREN idstring RPAREN HBLOCK {
 		 $$ = new_node("insert");
-		 Setattr($$,k_section,$3);
+		 Setattr($$,"section",$3);
 		 Setattr($$,k_code,$5);
                }
                | INSERT LPAREN idstring RPAREN LBRACE {
 		 String *code;
                  skip_balanced('{','}');
 		 $$ = new_node("insert");
-		 Setattr($$,k_section,$3);
+		 Setattr($$,"section",$3);
 		 Delitem(scanner_ccode,0);
 		 Delitem(scanner_ccode,DOH_END);
 		 code = Copy(scanner_ccode);
@@ -2432,7 +2432,7 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   if ($3.op) {
 		     $$ = new_node("typemapcopy");
 		     Setattr($$,"method",$3.op);
-		     Setattr($$,k_pattern, Getattr($7,k_pattern));
+		     Setattr($$,"pattern", Getattr($7,"pattern"));
 		     appendChild($$,$5);
 		   }
 	       }
@@ -2483,7 +2483,7 @@ typemap_parm   : type typemap_parameter_declarator {
 		  SwigType_push($1,$2.type);
 		  $$ = new_node("typemapitem");
 		  parm = NewParm($1,$2.id);
-		  Setattr($$,k_pattern,parm);
+		  Setattr($$,"pattern",parm);
 		  Setattr($$,k_parms, $2.parms);
 		  Delete(parm);
 		  /*		  $$ = NewParm($1,$2.id);
@@ -2491,12 +2491,12 @@ typemap_parm   : type typemap_parameter_declarator {
                 }
                | LPAREN parms RPAREN {
                   $$ = new_node("typemapitem");
-		  Setattr($$,k_pattern,$2);
+		  Setattr($$,"pattern",$2);
 		  /*		  Setattr($$,"multitype",$2); */
                }
                | LPAREN parms RPAREN LPAREN parms RPAREN {
 		 $$ = new_node("typemapitem");
-		 Setattr($$,k_pattern, $2);
+		 Setattr($$,"pattern", $2);
 		 /*                 Setattr($$,"multitype",$2); */
 		 Setattr($$,k_parms,$5);
                }

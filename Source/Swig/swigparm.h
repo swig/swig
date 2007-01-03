@@ -12,7 +12,6 @@
 
 /* Individual parameters */
 extern Parm      *NewParm(SwigType *type, const String_or_char *name);
-extern Parm      *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n);
 extern Parm      *CopyParm(Parm *p);
 
 /* Parameter lists */
@@ -26,4 +25,3 @@ extern String    *ParmList_str_defaultargs(ParmList *);
 extern String    *ParmList_protostr(ParmList *);
 extern int        ParmList_is_compactdefargs(ParmList *p);
 extern int        ParmList_has_defaultargs(ParmList *p);
-extern ParmList  *ParmList_copy_all_except_last_parm(ParmList *p);

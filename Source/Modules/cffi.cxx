@@ -333,7 +333,7 @@ int CFFI::functionWrapper(Node *n) {
 
   String *wname = Swig_name_wrapper(iname);
   if (overname) {
-    StringAppend(wname, overname);
+    Append(wname, overname);
   }
   // Emit all of the local variables for holding arguments.
   emit_args(Getattr(n, "type"), parms, wrap);

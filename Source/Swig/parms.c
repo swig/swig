@@ -10,7 +10,6 @@
 char cvsroot_parms_c[] = "$Id$";
 
 #include "swig.h"
-#include "swigkeys.h"
 
 /* ------------------------------------------------------------------------
  * NewParm()
@@ -31,86 +30,21 @@ Parm *NewParm(SwigType *type, const String_or_char *name) {
 }
 
 /* ------------------------------------------------------------------------
- * NewParmFromNode()
- *
- * Create a new parameter from datatype 'type' and name 'name'.
- * Sets the file and line number for the parameter for error handling by
- * making a (shallow) copy of file and line number from Node 'n'.
- * ------------------------------------------------------------------------ */
-
-Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
-  Parm *p = NewParm(type, name);
-  Setfile(p, Getfile(n));
-  Setline(p, Getline(n));
-
-  return p;
-}
-
-/* ------------------------------------------------------------------------
  * CopyParm()
  * ------------------------------------------------------------------------ */
 
 Parm *CopyParm(Parm *p) {
   Parm *np = NewHash();
-  SwigType *t = Getattr(p, "type");
-  String *name = Getattr(p, "name");
-  String *lname = Getattr(p, "lname");
-  String *value = Getattr(p, "value");
-  String *ignore = Getattr(p, "ignore");
-  String *alttype = Getattr(p, "alttype");
-  String *byname = Getattr(p, "arg:byname");
-  String *compactdefargs = Getattr(p, "compactdefargs");
-  String *self = Getattr(p, "self");
-
-  if (t) {
-    SwigType *nt = Copy(t);
-    Setattr(np, "type", nt);
-    Delete(nt);
+  Iterator ki;
+  for (ki = First(p); ki.key; ki = Next(ki)) {
+    if (DohIsString(ki.item)) {
+      DOH *c = Copy(ki.item);
+      Setattr(np,ki.key,c);
+      Delete(c);
+    }
   }
-  if (name) {
-    String *str = Copy(name);
-    Setattr(np, "name", str);
-    Delete(str);
-  }
-  if (lname) {
-    String *str = Copy(lname);
-    Setattr(np, "lname", str);
-    Delete(str);
-  }
-  if (value) {
-    String *str = Copy(value);
-    Setattr(np, "value", str);
-    Delete(str);
-  }
-  if (ignore) {
-    String *str = Copy(ignore);
-    Setattr(np, "ignore", str);
-    Delete(str);
-  }
-  if (alttype) {
-    String *str = Copy(alttype);
-    Setattr(np, "alttype", str);
-    Delete(str);
-  }
-  if (byname) {
-    String *str = Copy(byname);
-    Setattr(np, "arg:byname", str);
-    Delete(str);
-  }
-  if (compactdefargs) {
-    String *str = Copy(compactdefargs);
-    Setattr(np, "compactdefargs", str);
-    Delete(str);
-  }
-  if (self) {
-    String *str = Copy(self);
-    Setattr(np, "self", str);
-    Delete(str);
-  }
-
   Setfile(np, Getfile(p));
   Setline(np, Getline(p));
-
   return np;
 }
 
@@ -204,10 +138,10 @@ String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
     String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
-    StringAppend(out, pstr);
+    Append(out, pstr);
     p = nextSibling(p);
     if (p) {
-      StringAppend(out, ",");
+      Append(out, ",");
     }
     Delete(pstr);
   }
@@ -225,13 +159,13 @@ String *ParmList_str_defaultargs(ParmList *p) {
   while (p) {
     String *value = Getattr(p, "value");
     String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
-    StringAppend(out, pstr);
+    Append(out, pstr);
     if (value) {
       Printf(out, "=%s", value);
     }
     p = nextSibling(p);
     if (p) {
-      StringAppend(out, ",");
+      Append(out, ",");
     }
     Delete(pstr);
   }
@@ -251,42 +185,16 @@ String *ParmList_protostr(ParmList *p) {
       p = nextSibling(p);
     } else {
       String *pstr = SwigType_str(Getattr(p, "type"), 0);
-      StringAppend(out, pstr);
+      Append(out, pstr);
       p = nextSibling(p);
       if (p) {
-	StringAppend(out, ",");
+	Append(out, ",");
       }
       Delete(pstr);
     }
   }
   return out;
 }
-
-/* ---------------------------------------------------------------------
- * ParmList_is_compactdefargs()
- *
- * Returns 1 if the parameter list passed in is marked for compact argument
- * handling (by the "compactdefargs" attribute). Otherwise returns 0.
- * ---------------------------------------------------------------------- */
-
-int ParmList_is_compactdefargs(ParmList *p) {
-  int compactdefargs = 0;
-
-  if (p) {
-    compactdefargs = Getattr(p, "compactdefargs") ? 1 : 0;
-
-    /* The "compactdefargs" attribute should only be set on the first parameter in the list.
-     * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
-     * so we check the 2nd parameter too. */
-    if (!compactdefargs) {
-      Parm *nextparm = nextSibling(p);
-      compactdefargs = (nextparm && Getattr(nextparm, "compactdefargs")) ? 1 : 0;
-    }
-  }
-
-  return compactdefargs;
-}
-
 
 /* ---------------------------------------------------------------------
  * ParmList_has_defaultargs()
@@ -296,13 +204,11 @@ int ParmList_is_compactdefargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 int ParmList_has_defaultargs(ParmList *p) {
-  int default_args = 0;
   while (p) {
     if (Getattr(p, "value")) {
-      default_args = 1;
-      break;
+      return 1;
     }
     p = nextSibling(p);
   }
-  return default_args;
+  return 0;
 }

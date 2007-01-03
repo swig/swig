@@ -36,9 +36,10 @@ static void *String_data(DOH *so) {
   return (void *) s->str;
 }
 
-char *DohString_char(DOH *so) {
+/* static char *String_char(DOH *so) {
   return (char *) String_data(so);
 }
+*/
 
 /* -----------------------------------------------------------------------------
  * int String_dump() - Serialize a string onto out
@@ -97,7 +98,7 @@ static void DelString(DOH *so) {
  * DohString_len() - Length of a string
  * ----------------------------------------------------------------------------- */
 
-int DohString_len(DOH *so) {
+static int String_len(DOH *so) {
   String *s = (String *) ObjData(so);
   return s->len;
 }
@@ -139,7 +140,7 @@ static int String_cmp(DOH *so1, DOH *so2) {
  * int String_equal() - Say if two string are equal
  * ----------------------------------------------------------------------------- */
 
-int DohString_equal(DOH *so1, DOH *so2) {
+static int String_equal(DOH *so1, DOH *so2) {
   String *s1 = (String *) ObjData(so1);
   String *s2 = (String *) ObjData(so2);
   register int len = s1->len;
@@ -509,7 +510,7 @@ static long String_tell(DOH *so) {
  * int String_putc()
  * ----------------------------------------------------------------------------- */
 
-int DohString_putc(DOH *so, int ch) {
+static int String_putc(DOH *so, int ch) {
   String *s = (String *) ObjData(so);
   register int len = s->len;
   register int sp = s->sp;
@@ -540,7 +541,7 @@ int DohString_putc(DOH *so, int ch) {
  * int String_getc()
  * ----------------------------------------------------------------------------- */
 
-int DohString_getc(DOH *so) {
+static int String_getc(DOH *so) {
   int c;
   String *s = (String *) ObjData(so);
   if (s->sp >= s->len)
@@ -556,7 +557,7 @@ int DohString_getc(DOH *so) {
  * int String_ungetc()
  * ----------------------------------------------------------------------------- */
 
-int DohString_ungetc(DOH *so, int ch) {
+static int String_ungetc(DOH *so, int ch) {
   String *s = (String *) ObjData(so);
   if (ch == EOF)
     return ch;
@@ -968,9 +969,9 @@ static DohListMethods StringListMethods = {
 static DohFileMethods StringFileMethods = {
   String_read,
   String_write,
-  DohString_putc,
-  DohString_getc,
-  DohString_ungetc,
+  String_putc,
+  String_getc,
+  String_ungetc,
   String_seek,
   String_tell,
   0,				/* close */
@@ -989,10 +990,10 @@ DohObjInfo DohStringType = {
   String_str,			/* doh_str */
   String_data,			/* doh_data */
   String_dump,			/* doh_dump */
-  DohString_len,		/* doh_len */
+  String_len,	    	        /* doh_len */
   String_hash,			/* doh_hash    */
   String_cmp,			/* doh_cmp */
-  DohString_equal,		/* doh_equal */
+  String_equal,	    	        /* doh_equal */
   0,				/* doh_first    */
   0,				/* doh_next     */
   String_setfile,		/* doh_setfile */

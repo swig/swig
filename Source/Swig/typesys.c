@@ -214,14 +214,14 @@ int SwigType_typedef_class(String_or_char *name) {
 
 String *SwigType_scope_name(Typetab *ttab) {
   String *qname = NewString(Getattr(ttab, k_name));
-  ttab = Getattr(ttab, k_parent);
+  ttab = Getattr(ttab, "parent");
   while (ttab) {
     String *pname = Getattr(ttab, k_name);
     if (Len(pname)) {
       Insert(qname, 0, "::");
       Insert(qname, 0, pname);
     }
-    ttab = Getattr(ttab, k_parent);
+    ttab = Getattr(ttab, "parent");
   }
   return qname;
 }
@@ -242,7 +242,7 @@ void SwigType_new_scope(const String_or_char *name) {
   }
   s = NewHash();
   Setattr(s, k_name, name);
-  Setattr(s, k_parent, current_scope);
+  Setattr(s, "parent", current_scope);
   ttab = NewHash();
   Setattr(s, k_typetab, ttab);
 
@@ -341,7 +341,7 @@ void SwigType_using_scope(Typetab *scope) {
 
 Typetab *SwigType_pop_scope() {
   Typetab *t, *old = current_scope;
-  t = Getattr(current_scope, k_parent);
+  t = Getattr(current_scope, "parent");
   if (!t)
     t = global_scope;
   current_scope = t;
@@ -466,7 +466,7 @@ Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
     }
     if (!check_parent)
       break;
-    ss = Getattr(ss, k_parent);
+    ss = Getattr(ss, "parent");
   }
   if (nnameprefix)
     Delete(nnameprefix);
@@ -519,7 +519,7 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
       if (!type) {
 	/* Hmmm. Not found in my scope.  check parent */
 	if (look_parent) {
-	  parent = Getattr(s, k_parent);
+	  parent = Getattr(s, "parent");
 	  type = parent ? _typedef_resolve(parent, base, 1) : 0;
 	}
       }
@@ -563,7 +563,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   }
   r = Getattr(typedef_resolve_cache, t);
   if (r) {
-    resolved_scope = Getmeta(r, k_scope);
+    resolved_scope = Getmeta(r, "scope");
     return Copy(r);
   }
 #endif
@@ -650,7 +650,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       }
     }
 
-    if (type && (StringEqual(base, type))) {
+    if (type && (Equal(base, type))) {
       if (newtype)
 	Delete(type);
       Delete(base);
@@ -785,7 +785,7 @@ return_result:
     if (r) {
       SwigType *r1;
       Setattr(typedef_resolve_cache, key, r);
-      Setmeta(r, k_scope, resolved_scope);
+      Setmeta(r, "scope", resolved_scope);
       r1 = Copy(r);
       Delete(r);
       r = r1;
@@ -915,7 +915,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 		break;
 	      }
 	      Delete(qs);
-	      cs = Getattr(cs, k_parent);
+	      cs = Getattr(cs, "parent");
 	    }
 	  }
 	}
@@ -940,7 +940,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	pi = First(parms);
 	while ((p = pi.item)) {
 	  String *qt = SwigType_typedef_qualified(p);
-	  if (StringEqual(qt, p)) {	/*  && (!Swig_scopename_check(qt))) */
+	  if (Equal(qt, p)) {	/*  && (!Swig_scopename_check(qt))) */
 	    /* No change in value.  It is entirely possible that the parameter is an integer value.
 	       If there is a symbol table associated with this scope, we're going to check for this */
 

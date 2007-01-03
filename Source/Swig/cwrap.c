@@ -510,7 +510,7 @@ String *Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int
       String *pname = 0;
       if (comma)
 	Append(func, ",");
-      if (!Getattr(p, k_argbyname)) {
+      if (!Getattr(p, "arg:byname")) {
 	pname = Swig_cparm_name(p, i);
 	i++;
       } else {
@@ -806,8 +806,8 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
     SwigType_push(type, qualifier);
   }
   SwigType_add_pointer(type);
-  p = NewParm(type, k_self);
-  Setattr(p, k_self, "1");
+  p = NewParm(type, "self");
+  Setattr(p, "self", "1");
   Setattr(p, k_hidden, "1");
   /*
      Disable the 'this' ownership in 'self' to manage inplace
@@ -910,7 +910,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code && !is_smart_pointer) {
-      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, k_self);
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, "self");
     }
     if (is_smart_pointer) {
       int i = 0;
@@ -984,7 +984,7 @@ Node *Swig_methodclass(Node *n) {
 int Swig_directorclass(Node *n) {
   Node *classNode = Swig_methodclass(n);
   assert(classNode != 0);
-  return (Getattr(classNode, k_vtable) != 0);
+  return (Getattr(classNode, "vtable") != 0);
 }
 
 Node *Swig_directormap(Node *module, String *type) {
@@ -1060,7 +1060,7 @@ int Swig_ConstructorToFunction(Node *n, String *classname, String *none_comparis
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
-      Swig_add_extension_code(n, mangled, parms, type, code, cparse_cplusplus, k_self);
+      Swig_add_extension_code(n, mangled, parms, type, code, cparse_cplusplus, "self");
     }
 
     call = Swig_cfunction_call(mangled, parms);
@@ -1158,8 +1158,8 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
 
   type = NewString(classname);
   SwigType_add_pointer(type);
-  p = NewParm(type, k_self);
-  Setattr(p, k_self, "1");
+  p = NewParm(type, "self");
+  Setattr(p, "self", "1");
   Setattr(p, k_hidden, "1");
   Setattr(p, k_wrapdisown, "1");
   Delete(type);
@@ -1173,7 +1173,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
     mangled = Swig_name_mangle(membername);
     code = Getattr(n, k_code);
     if (code) {
-      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, k_self);
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, p);
     cres = NewStringf("%s;\n", call);
@@ -1238,8 +1238,8 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, k_self);
-  Setattr(parms, k_self, "1");
+  parms = NewParm(t, "self");
+  Setattr(parms, "self", "1");
   Setattr(parms, k_hidden, "1");
   Delete(t);
 
@@ -1260,7 +1260,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *code = Getattr(n, k_code);
     if (code) {
       /* I don't think this ever gets run - WSF */
-      Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, k_self);
+      Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, parms);
     cres = NewStringf("%s;\n", call);
@@ -1324,8 +1324,8 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, k_self);
-  Setattr(parms, k_self, "1");
+  parms = NewParm(t, "self");
+  Setattr(parms, "self", "1");
   Setattr(parms, k_hidden, "1");
   Delete(t);
 
@@ -1337,7 +1337,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     String *code = Getattr(n, k_code);
     if (code) {
       /* I don't think this ever gets run - WSF */
-      Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus, k_self);
+      Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, parms);
     cres = Swig_cresult(ty, k_result, call);

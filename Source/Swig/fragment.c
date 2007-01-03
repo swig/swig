@@ -31,7 +31,7 @@ static int debug = 0;
  * ----------------------------------------------------------------------------- */
 
 void Swig_fragment_register(Node *fragment) {
-  if (Getattr(fragment, k_emitonly)) {
+  if (Getattr(fragment, "emitonly")) {
     Swig_fragment_emit(fragment);
     return;
   } else {
@@ -50,10 +50,10 @@ void Swig_fragment_register(Node *fragment) {
       fragments = NewHash();
     }
     if (!Getattr(fragments, name)) {
-      String *section = Copy(Getattr(fragment, k_section));
+      String *section = Copy(Getattr(fragment, "section"));
       String *ccode = Copy(Getattr(fragment, k_code));
       Hash *kwargs = Getattr(fragment, k_kwargs);
-      Setmeta(ccode, k_section, section);
+      Setmeta(ccode, "section", section);
       if (kwargs) {
 	Setmeta(ccode, k_kwargs, kwargs);
       }
@@ -121,13 +121,13 @@ void Swig_fragment_emit(Node *n) {
     if (debug)
       Printf(stdout, "looking subfragment %s\n", name);
     if (code && (Strcmp(code, k_ignore) != 0)) {
-      String *section = Getmeta(code, k_section);
+      String *section = Getmeta(code, "section");
       Hash *nn = Getmeta(code, k_kwargs);
       if (!looking_fragments)
 	looking_fragments = NewHash();
       Setattr(looking_fragments, name, "1");
       while (nn) {
-	if (Equal(Getattr(nn, k_name), k_fragment)) {
+	if (Equal(Getattr(nn, k_name), "fragment")) {
 	  if (debug)
 	    Printf(stdout, "emitting fragment %s %s\n", nn, type);
 	  Setfile(nn, Getfile(n));

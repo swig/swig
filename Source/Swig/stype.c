@@ -331,11 +331,11 @@ static Hash *default_cache = 0;
 static
 void SwigType_add_default(String *def, SwigType *nr) {
   if (Strcmp(nr, "SWIGTYPE") == 0) {
-    StringAppend(def, "SWIGTYPE");
+    Append(def, "SWIGTYPE");
   } else {
     String *q = SwigType_isqualifier(nr) ? SwigType_pop(nr) : 0;
     if (q && strstr(Char(nr), "SWIGTYPE")) {
-      StringAppend(def, nr);
+      Append(def, nr);
     } else {
       String *nd = SwigType_default(nr);
       if (nd) {
@@ -349,10 +349,10 @@ void SwigType_add_default(String *def, SwigType *nr) {
 	    Delete(nd);
 	  }
 	}
-	StringAppend(def, bdef);
+	Append(def, bdef);
 	Delete(bdef);
       } else {
-	StringAppend(def, nr);
+	Append(def, nr);
       }
     }
     Delete(q);
@@ -448,7 +448,7 @@ SwigType *SwigType_default(SwigType *t) {
       SwigType_del_array(nr);
       SwigType_add_default(def, nr);
 #else
-      StringAppend(def, "SWIGTYPE");
+      Append(def, "SWIGTYPE");
 #endif
       Delete(nr);
     }
@@ -475,7 +475,7 @@ SwigType *SwigType_default(SwigType *t) {
   }
   if (r != t)
     Delete(r);
-  if (StringEqual(def, t)) {
+  if (Equal(def, t)) {
     Delete(def);
     def = 0;
   }
@@ -522,7 +522,7 @@ String *SwigType_namestr(const SwigType *t) {
     /* Avoid creating a <: token, which is the same as [ in C++. */
     if (i == 0 && Len(str) && *Char(str) == ':')
       Putc(' ', r);
-    StringAppend(r, str);
+    Append(r, str);
     if ((i + 1) < sz)
       Putc(',', r);
     Delete(str);
@@ -530,7 +530,7 @@ String *SwigType_namestr(const SwigType *t) {
   Putc(' ', r);
   Putc('>', r);
   suffix = SwigType_templatesuffix(t);
-  StringAppend(r, suffix);
+  Append(r, suffix);
   Delete(suffix);
   Delete(p);
   return r;
@@ -577,7 +577,7 @@ String *SwigType_str(SwigType *s, const String_or_char *id) {
       Insert(result, 0, "*");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
     } else if (SwigType_ismemberpointer(element)) {
       String *q;
@@ -586,35 +586,35 @@ String *SwigType_str(SwigType *s, const String_or_char *id) {
       Insert(result, 0, q);
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
       Delete(q);
     } else if (SwigType_isreference(element)) {
       Insert(result, 0, "&");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
     } else if (SwigType_isarray(element)) {
       DOH *size;
-      StringAppend(result, "[");
+      Append(result, "[");
       size = SwigType_parm(element);
-      StringAppend(result, size);
-      StringAppend(result, "]");
+      Append(result, size);
+      Append(result, "]");
       Delete(size);
     } else if (SwigType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
-      StringAppend(result, "(");
+      Append(result, "(");
       parms = SwigType_parmlist(element);
       plen = Len(parms);
       for (j = 0; j < plen; j++) {
 	p = SwigType_str(Getitem(parms, j), 0);
-	StringAppend(result, p);
+	Append(result, p);
 	if (j < (plen - 1))
-	  StringAppend(result, ",");
+	  Append(result, ",");
       }
-      StringAppend(result, ")");
+      Append(result, ")");
       Delete(parms);
     } else {
       if (strcmp(Char(element), "v(...)") == 0) {
@@ -687,34 +687,34 @@ SwigType *SwigType_ltype(SwigType *s) {
     if (SwigType_isqualifier(element)) {
       /* Do nothing. Ignore */
     } else if (SwigType_ispointer(element)) {
-      StringAppend(result, element);
+      Append(result, element);
       firstarray = 0;
     } else if (SwigType_ismemberpointer(element)) {
-      StringAppend(result, element);
+      Append(result, element);
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
       if (notypeconv) {
-	StringAppend(result, element);
+	Append(result, element);
       } else {
-	StringAppend(result, "p.");
+	Append(result, "p.");
       }
       firstarray = 0;
     } else if (SwigType_isarray(element) && firstarray) {
       if (notypeconv) {
-	StringAppend(result, element);
+	Append(result, element);
       } else {
-	StringAppend(result, "p.");
+	Append(result, "p.");
       }
       firstarray = 0;
     } else if (SwigType_isenum(element)) {
       int anonymous_enum = (Cmp(element, "enum ") == 0);
       if (notypeconv || !anonymous_enum) {
-	StringAppend(result, element);
+	Append(result, element);
       } else {
-	StringAppend(result, "int");
+	Append(result, "int");
       }
     } else {
-      StringAppend(result, element);
+      Append(result, element);
     }
   }
   Delete(elements);
@@ -813,7 +813,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Insert(result, 0, "*");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
       firstarray = 0;
     } else if (SwigType_ismemberpointer(element)) {
@@ -824,26 +824,26 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Delete(q);
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
       Insert(result, 0, "&");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result, 0, "(");
-	StringAppend(result, ")");
+	Append(result, ")");
       }
       isreference = 1;
     } else if (SwigType_isarray(element)) {
       DOH *size;
       if (firstarray && !isreference) {
-	StringAppend(result, "(*)");
+	Append(result, "(*)");
 	firstarray = 0;
       } else {
-	StringAppend(result, "[");
+	Append(result, "[");
 	size = SwigType_parm(element);
-	StringAppend(result, size);
-	StringAppend(result, "]");
+	Append(result, size);
+	Append(result, "]");
 	Delete(size);
 	clear = 0;
       }
@@ -851,17 +851,17 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     } else if (SwigType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
-      StringAppend(result, "(");
+      Append(result, "(");
       parms = SwigType_parmlist(element);
       plen = Len(parms);
       for (j = 0; j < plen; j++) {
 	p = SwigType_str(Getitem(parms, j), 0);
-	StringAppend(result, p);
+	Append(result, p);
 	Delete(p);
 	if (j < (plen - 1))
-	  StringAppend(result, ",");
+	  Append(result, ",");
       }
-      StringAppend(result, ")");
+      Append(result, ")");
       Delete(parms);
     } else {
       String *bs = SwigType_namestr(element);
@@ -881,9 +881,9 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     if (isreference) {
       if (isarray)
 	Clear(cast);
-      StringAppend(cast, "*");
+      Append(cast, "*");
     }
-    StringAppend(cast, name);
+    Append(cast, name);
   }
   Delete(result);
   Delete(tc);
@@ -911,14 +911,14 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
     Printf(result, "(%s)", str);
     Delete(str);
     if (name)
-      StringAppend(result, name);
+      Append(result, name);
   } else if (SwigType_isqualifier(s)) {
     String *lstr = SwigType_lstr(s, 0);
     Printf(result, "(%s)%s", lstr, name);
     Delete(lstr);
   } else {
     if (name)
-      StringAppend(result, name);
+      Append(result, name);
   }
   return result;
 }
@@ -986,7 +986,7 @@ String *SwigType_manglestr_default(SwigType *s) {
       *c = '_';
     c++;
   }
-  StringAppend(result, base);
+  Append(result, base);
   Insert(result, 0, "_");
   Delete(lt);
   Delete(base);
@@ -1013,7 +1013,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   if (!Strstr(t, pat))
     return;
 
-  if (StringEqual(t, pat)) {
+  if (Equal(t, pat)) {
     Replace(t, pat, rep, DOH_REPLACE_ANY);
     return;
   }
@@ -1023,12 +1023,12 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   for (i = 0; i < ilen; i++) {
     String *e = Getitem(elem, i);
     if (SwigType_issimple(e)) {
-      if (StringEqual(e, pat)) {
+      if (Equal(e, pat)) {
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
 	Replace(e, pat, rep, DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
 	/* Replaces a type of the form 'pat<args>' with 'rep' */
-	if (StringEqual(e, pat)) {
+	if (Equal(e, pat)) {
 	  String *repbase = SwigType_templateprefix(rep);
 	  Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
 	  Delete(repbase);
@@ -1038,11 +1038,11 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  List *tparms = SwigType_parmlist(e);
 	  int j, jlen;
 	  String *nt = SwigType_templateprefix(e);
-	  StringAppend(nt, "<(");
+	  Append(nt, "<(");
 	  jlen = Len(tparms);
 	  for (j = 0; j < jlen; j++) {
 	    SwigType_typename_replace(Getitem(tparms, j), pat, rep);
-	    StringAppend(nt, Getitem(tparms, j));
+	    Append(nt, Getitem(tparms, j));
 	    if (j < (jlen - 1))
 	      Putc(',', nt);
 	  }
@@ -1050,7 +1050,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Printf(nt, ")>%s", tsuffix);
 	  Delete(tsuffix);
 	  Clear(e);
-	  StringAppend(e, nt);
+	  Append(e, nt);
 	  Delete(nt);
 	  Delete(tparms);
 	}
@@ -1069,23 +1069,23 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       int j, jlen;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
-      StringAppend(e, "f(");
+      Append(e, "f(");
       jlen = Len(fparms);
       for (j = 0; j < jlen; j++) {
 	SwigType_typename_replace(Getitem(fparms, j), pat, rep);
-	StringAppend(e, Getitem(fparms, j));
+	Append(e, Getitem(fparms, j));
 	if (j < (jlen - 1))
 	  Putc(',', e);
       }
-      StringAppend(e, ").");
+      Append(e, ").");
       Delete(fparms);
     } else if (SwigType_isarray(e)) {
       Replace(e, pat, rep, DOH_REPLACE_ID);
     }
-    StringAppend(nt, e);
+    Append(nt, e);
   }
   Clear(t);
-  StringAppend(t, nt);
+  Append(t, nt);
   Delete(nt);
   Delete(elem);
 }

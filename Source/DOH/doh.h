@@ -73,17 +73,6 @@
 #define DohGetc            DOH_NAMESPACE(Getc)
 #define DohPutc            DOH_NAMESPACE(Putc)
 #define DohUngetc          DOH_NAMESPACE(Ungetc)
-
-#define DohStringPutc      DOH_NAMESPACE(StringPutc)
-#define DohStringGetc      DOH_NAMESPACE(StringGetc)
-#define DohStringUngetc    DOH_NAMESPACE(StringUngetc)
-#define DohStringAppend    DOH_NAMESPACE(StringAppend)
-#define DohStringLen       DOH_NAMESPACE(StringLen)
-#define DohStringChar      DOH_NAMESPACE(StringChar)
-#define DohStringEqual     DOH_NAMESPACE(StringEqual)
-
-
-
 #define DohGetline         DOH_NAMESPACE(Getline)
 #define DohSetline         DOH_NAMESPACE(Setline)
 #define DohGetfile         DOH_NAMESPACE(Getfile)
@@ -255,23 +244,6 @@ extern void DohSetfile(DOH *obj, DOH *file);
 extern int DohReplace(DOHString * src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
 extern void DohChop(DOHString * src);
 
-extern int DohString_putc(DOH *so, int ch);
-extern int DohString_getc(DOH *so);
-extern int DohString_ungetc(DOH *so, int ch);
-extern void DohString_append(DOH *so, DOH *str);
-extern int DohString_len(DOH *s1);
-extern char *DohString_char(DOH *s1);
-extern int DohString_equal(DOH *s1, DOH *s2);
-extern int DohString_delslice(DOH *so, int sindex, int eindex);
-
-#define DohStringPutc(ch,so)    DohString_putc(so, ch)
-#define DohStringGetc(so)       DohString_getc(so)
-#define DohStringUngetc(ch,so)  DohString_ungetc(so, ch)
-#define DohStringAppend(so,str) DohString_append(so, (DOH*)str)
-#define DohStringLen(so)        DohString_len((DOH*)so)
-#define DohStringChar(so)       DohString_char(so)
-#define DohStringEqual(s1,s2)   DohString_equal((DOH *)s1, (DOH *)s2)
-
 /* Meta-variables */
 extern DOH *DohGetmeta(DOH *, const DOH *);
 extern int DohSetmeta(DOH *, const DOH *, const DOH *value);
@@ -397,13 +369,13 @@ extern void DohMemoryDebug(void);
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
 
-#define StringPutc         DohStringPutc
-#define StringGetc         DohStringGetc
-#define StringUngetc       DohStringUngetc
-#define StringAppend       DohStringAppend
-#define StringLen          DohStringLen
-#define StringChar         DohStringChar
-#define StringEqual        DohStringEqual
+/* #define StringPutc         DohStringPutc */
+/* #define StringGetc         DohStringGetc */
+/* #define StringUngetc       DohStringUngetc */
+/* #define StringAppend       Append */
+/* #define StringLen          DohStringLen */
+/* #define StringChar         DohStringChar */
+/* #define StringEqual        DohStringEqual */
 
 #define Close              DohClose
 #define vPrintf            DohvPrintf

@@ -429,13 +429,13 @@ String *Swig_string_mangle(const String *s) {
     Delete(b);
     b = t;
   }
-  pc = cb = StringChar(b);
+  pc = cb = Char(b);
   while (*pc) {
     char c = *pc;
     if (isalnum((int) c) || (c == '_')) {
       state = 1;
       if (space && (space == state)) {
-	StringAppend(result, "_SS_");
+	Append(result, "_SS_");
       }
       space = 0;
       Printf(result, "%c", (int) c);
@@ -452,7 +452,7 @@ String *Swig_string_mangle(const String *s) {
       switch (c) {
       case '.':
 	if ((cb != pc) && (*(pc - 1) == 'p')) {
-	  StringAppend(result, "_");
+	  Append(result, "_");
 	  ++pc;
 	  continue;
 	} else {
@@ -461,7 +461,7 @@ String *Swig_string_mangle(const String *s) {
 	break;
       case ':':
 	if (*(pc + 1) == ':') {
-	  StringAppend(result, "_");
+	  Append(result, "_");
 	  ++pc;
 	  ++pc;
 	  continue;

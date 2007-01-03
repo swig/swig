@@ -664,7 +664,7 @@ Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String
       if (!unstripped) {
 	unstripped = ctype;
 	ctype = SwigType_strip_qualifiers(ctype);
-	if (!StringEqual(ctype, unstripped))
+	if (!Equal(ctype, unstripped))
 	  continue;		/* Types are different */
 	Delete(ctype);
 	ctype = unstripped;
@@ -756,7 +756,7 @@ Hash *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *
   tm = Swig_typemap_search(op, type, name, &mtype);
   if (tm) {
     if (mtype && SwigType_isarray(mtype)) {
-      Setattr(parms, k_tmapmatch, mtype);
+      Setattr(parms, "tmap:match", mtype);
     }
     Delete(mtype);
     newop = NewStringf("%s-%s+%s:", op, type, name);
@@ -1127,7 +1127,7 @@ static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
 	if ((argnum >= 0) && (!isglobal)) {
 	  Printf(str, "%s%d", pn, argnum);
 	} else {
-	  StringAppend(str, pn);
+	  Append(str, pn);
 	}
 	if (isglobal && Wrapper_check_local(f, str)) {
 	  p = nextSibling(p);
@@ -1273,7 +1273,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Symtab *st = Getattr(node, k_symsymtab);
     String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;
     if (qsn) {
-      if (StringLen(qsn) && !Equal(qsn, pname)) {
+      if (Len(qsn) && !Equal(qsn, pname)) {
 	tm = Swig_typemap_search(op, type, qsn, &mtype);
 	if (tm && (!Getattr(tm, k_pname) || strstr(Char(Getattr(tm, k_type)), "SWIGTYPE"))) {
 	  tm = 0;
@@ -1342,7 +1342,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Delete(locals);
   }
 
-  if (Checkattr(tm, k_type, k_SWIGTYPE)) {
+  if (Checkattr(tm, k_type, "SWIGTYPE")) {
     sprintf(temp, "%s:SWIGTYPE", cop);
     Setattr(node, tmop_name(temp), "1");
   }
@@ -1355,7 +1355,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     char *ckwname = Char(Getattr(kw, k_name));
     if (type) {
       String *mangle = Swig_string_mangle(type);
-      StringAppend(value, mangle);
+      Append(value, mangle);
       Delete(mangle);
     }
     sprintf(temp, "%s:%s", cop, ckwname);
@@ -1529,7 +1529,7 @@ void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrappe
        here, the freearg typemap requires the "in" typemap to match,
        or the 'var$argnum' variable will not exist.
      */
-    kwmatch = Swig_typemap_get_option(tm, k_match);
+    kwmatch = Swig_typemap_get_option(tm, "match");
     if (kwmatch) {
       String *tmname = NewStringf("tmap:%s", kwmatch);
       String *tmin = Getattr(p, tmname);
@@ -1605,16 +1605,16 @@ void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrappe
       type = Getattr(p, k_type);
       pname = Getattr(p, k_name);
       lname = Getattr(p, k_lname);
-      mtype = Getattr(p, k_tmapmatch);
+      mtype = Getattr(p, "tmap:match");
 
       if (mtype) {
 	typemap_replace_vars(s, locals, mtype, type, pname, lname, i + 1);
-	Delattr(p, k_tmapmatch);
+	Delattr(p, "tmap:match");
       } else {
 	typemap_replace_vars(s, locals, type, type, pname, lname, i + 1);
       }
 
-      if (Checkattr(tm, k_type, k_SWIGTYPE)) {
+      if (Checkattr(tm, k_type, "SWIGTYPE")) {
 	sprintf(temp, "%s:SWIGTYPE", cop);
 	Setattr(p, tmop_name(temp), "1");
       }
