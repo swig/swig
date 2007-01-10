@@ -974,7 +974,7 @@ public:
     while (p != 0) {
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
-      if (!Getattr(p, "ignore")) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0")) {
 	/* If parameter has been named, use that.   Otherwise, just print a type  */
 	if (SwigType_type(pt) != T_VOID) {
 	  if (Len(pn) > 0) {
@@ -986,12 +986,12 @@ public:
 	i++;
 	p = nextSibling(p);
 	if (p)
-	  if (!Getattr(p, "ignore"))
+	  if (!checkAttribute(p,"tmap:in:numinputs","0"))
 	    Putc(',', temp);
       } else {
 	p = nextSibling(p);
 	if (p)
-	  if ((i > 0) && (!Getattr(p, "ignore")))
+	  if ((i > 0) && (!checkAttribute(p,"tmap:in:numinputs","0")))
 	    Putc(',', temp);
       }
     }

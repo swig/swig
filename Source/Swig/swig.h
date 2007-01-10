@@ -297,6 +297,9 @@ extern "C" {
 
 #include "swigparm.h"
 
+extern String    *ParmList_errorstr(ParmList *);
+extern int        ParmList_is_compactdefargs(ParmList *p);
+
 /* --- Parse tree support --- */
 
 #include "swigtree.h"

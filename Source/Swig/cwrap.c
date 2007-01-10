@@ -807,7 +807,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
   SwigType_add_pointer(type);
   p = NewParm(type, "self");
   Setattr(p, "self", "1");
-  Setattr(p, "hidden", "1");
+  Setattr(p, "hidden","1");
   /*
      Disable the 'this' ownership in 'self' to manage inplace
      operations like:
@@ -1239,7 +1239,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t, "self");
   Setattr(parms, "self", "1");
-  Setattr(parms, "hidden", "1");
+  Setattr(parms, "hidden","1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);
@@ -1325,7 +1325,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t, "self");
   Setattr(parms, "self", "1");
-  Setattr(parms, "hidden", "1");
+  Setattr(parms, "hidden","1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);

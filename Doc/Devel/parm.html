@@ -10,7 +10,7 @@
 <p>
 David M. Beazley <br>
 dave-swig@dabeaz.com<br>
-January 2, 2007<br>
+January 9, 2007<br>
 
 </b>
 </center>
@@ -60,12 +60,6 @@ Returns the total number of parameters in a parameter list.
 </blockquote>
 
 <p>
-<b><tt>int ParmList_numarg(ParmList *p)</tt></b>
-<blockquote>
-Returns the number of non-ignored parameters in a parameter list.  Any parameter with an "ignore" attribute is ignored in the count.
-</blockquote>
-
-<p>
 <b><tt>int ParmList_numrequired(ParmList *p)</tt></b>
 <blockquote>
 Returns the number of required parameters in a parameter list.   This pertains to invoking a function/method in C/C++.
@@ -95,7 +89,7 @@ Creates a C prototype string of the parameters and includes the default values (
 <p>
 <b><tt>String *ParmList_protostr(ParmList *p)</tt></b>
 <blockquote>
-Creates a C prototype string of the parameters.  Does not include any hidden parameters.
+Creates a C prototype string of the parameters. 
 </blockquote>
 
 

@@ -1706,7 +1706,7 @@ public:
 	if (Len(pn)) {
 	  String *tmp = 0;
 	  String *name = pn;
-	  if (!Getattr(p, "hidden")) {
+	  if (!Getattr(p,"hidden")) {
 	    name = tmp = Swig_name_make(p, 0, pn, 0, 0);
 	  }
 	  Printf(kwargs, "(char *) \"%s\",", name);
@@ -1739,7 +1739,7 @@ public:
 
 	  if (Getattr(p, "tmap:in:implicitconv")) {
 	    const char *convflag = "0";
-	    if (!Getattr(p, "hidden")) {
+	    if (!Getattr(p,"hidden")) {
 	      SwigType *ptype = Getattr(p, "type");
 	      convflag = get_implicitconv_flag(classLookup(ptype));
 	    }
@@ -1842,7 +1842,7 @@ public:
       if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
 	if (Getattr(p, "tmap:freearg:implicitconv")) {
 	  const char *convflag = "0";
-	  if (!Getattr(p, "hidden")) {
+	  if (!Getattr(p,"hidden")) {
 	    SwigType *ptype = Getattr(p, "type");
 	    convflag = get_implicitconv_flag(classLookup(ptype));
 	  }

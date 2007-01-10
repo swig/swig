@@ -81,20 +81,6 @@ ParmList *CopyParmList(ParmList *p) {
   return CopyParmListMax(p,-1);
 }
 
-/* ------------------------------------------------------------------
- * int ParmList_numarg()
- * ------------------------------------------------------------------ */
-
-int ParmList_numarg(ParmList *p) {
-  int n = 0;
-  while (p) {
-    if (!Getattr(p, "ignore"))
-      n++;
-    p = nextSibling(p);
-  }
-  return n;
-}
-
 /* -----------------------------------------------------------------------------
  * int ParmList_numrequired().  Return number of required arguments
  * ----------------------------------------------------------------------------- */
@@ -181,17 +167,13 @@ String *ParmList_str_defaultargs(ParmList *p) {
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    if (Getattr(p, "hidden")) {
-      p = nextSibling(p);
-    } else {
-      String *pstr = SwigType_str(Getattr(p, "type"), 0);
-      Append(out, pstr);
-      p = nextSibling(p);
-      if (p) {
-	Append(out, ",");
-      }
-      Delete(pstr);
+    String *pstr = SwigType_str(Getattr(p, "type"), 0);
+    Append(out, pstr);
+    p = nextSibling(p);
+    if (p) {
+      Append(out, ",");
     }
+    Delete(pstr);
   }
   return out;
 }

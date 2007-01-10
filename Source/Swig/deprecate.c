@@ -68,3 +68,38 @@ int ParmList_is_compactdefargs(ParmList *p) {
 
   return compactdefargs;
 }
+
+/* ---------------------------------------------------------------------
+ * ParmList_errorstr()
+ *
+ * Generate a prototype string suitable for use in error/warning messages.
+ * This function is aware of hidden parameters.
+ * ---------------------------------------------------------------------- */
+
+/* Discussion.  This function is used to generate error messages, but take 
+   into account that there might be a hidden parameter.  Although this involves
+   parameter lists, it really isn't a core feature of swigparm.h or parms.c.
+   This is because the "hidden" attribute of parameters is added elsewhere (cwrap.c).
+
+   For now, this function is placed here because it doesn't really seem to fit in
+   with the parms.c interface.
+ 
+*/
+
+String *ParmList_errorstr(ParmList *p) {
+  String *out = NewStringEmpty();
+  while (p) {
+    if (Getattr(p,"hidden")) {
+      p = nextSibling(p);
+    } else {
+      String *pstr = SwigType_str(Getattr(p, "type"), 0);
+      Append(out, pstr);
+      p = nextSibling(p);
+      if (p) {
+	Append(out, ",");
+      }
+      Delete(pstr);
+    }
+  }
+  return out;
+}

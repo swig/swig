@@ -1790,13 +1790,13 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
 				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
 		    } else {
 		      if (!Getattr(nodes[j].n, "overload:ignore"))
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s(%s) ignored. Method %s(%s) const at %s:%d used.\n",
-				     Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms),
-				     Getattr(nodes[i].n, "name"), ParmList_protostr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
+				     Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1806,13 +1806,13 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
 				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
 		    } else {
 		      if (!Getattr(nodes[j].n, "overload:ignore"))
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s(%s) const ignored. Method %s(%s) at %s:%d used.\n",
-				     Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms),
-				     Getattr(nodes[i].n, "name"), ParmList_protostr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
+				     Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1827,17 +1827,17 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      if (script_lang_wrapping) {
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
 			     "Overloaded %s(%s)%s is shadowed by %s(%s)%s at %s:%d.\n",
-			     Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms),
+			     Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
 			     SwigType_isconst(Getattr(nodes[j].n, "decl")) ? " const" : "",
-			     Getattr(nodes[i].n, "name"), ParmList_protostr(nodes[i].parms),
+			     Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms),
 			     SwigType_isconst(Getattr(nodes[i].n, "decl")) ? " const" : "", Getfile(nodes[i].n), Getline(nodes[i].n));
 	      } else {
 		if (!Getattr(nodes[j].n, "overload:ignore"))
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 			       "Overloaded method %s(%s)%s ignored. Method %s(%s)%s at %s:%d used.\n",
-			       Getattr(nodes[j].n, "name"), ParmList_protostr(nodes[j].parms),
+			       Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
 			       SwigType_isconst(Getattr(nodes[j].n, "decl")) ? " const" : "",
-			       Getattr(nodes[i].n, "name"), ParmList_protostr(nodes[i].parms),
+			       Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms),
 			       SwigType_isconst(Getattr(nodes[i].n, "decl")) ? " const" : "", Getfile(nodes[i].n), Getline(nodes[i].n));
 	      }
 	      nodes[j].error = 1;
@@ -1854,7 +1854,7 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
       if (nodes[i].error)
 	Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result, nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_protostr(nodes[i].parms));
+      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_errorstr(nodes[i].parms));
       //      Swig_print_node(nodes[i].n);
     }
   }

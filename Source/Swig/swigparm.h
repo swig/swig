@@ -18,10 +18,12 @@ extern Parm      *CopyParm(Parm *p);
 extern ParmList  *CopyParmList(ParmList *);
 extern ParmList  *CopyParmListMax(ParmList *, int count);
 extern int        ParmList_len(ParmList *);
-extern int        ParmList_numarg(ParmList *);
 extern int        ParmList_numrequired(ParmList *);
+extern int        ParmList_has_defaultargs(ParmList *p);
+
+/* Output functions */
 extern String    *ParmList_str(ParmList *);
 extern String    *ParmList_str_defaultargs(ParmList *);
 extern String    *ParmList_protostr(ParmList *);
-extern int        ParmList_is_compactdefargs(ParmList *p);
-extern int        ParmList_has_defaultargs(ParmList *p);
+
+

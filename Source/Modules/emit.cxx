@@ -106,7 +106,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
 	Printv(f->code, tm, "\n", NIL);
 	np = Getattr(p, "tmap:in:next");
 	while (p && (p != np)) {
-	  Setattr(p, "ignore", "1");
+	  /*	  Setattr(p,"ignore","1");    Deprecate */
 	  p = nextSibling(p);
 	}
       } else if (tm) {
