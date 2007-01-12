@@ -26,7 +26,7 @@ constant expressions.
 <p>
 All of these functions are declared in <tt>Source/Swig/swigscan.h</tt>.   This API is considered to be stable.
 
-<h2>Creation and Deletion of Scanner</h2>
+<h2>Creation and Deletion of Scanners</h2>
 
 The following functions are used to create and destroy a scanner object.  More than one scanner object can be created and used
 as necessary.
@@ -118,15 +118,21 @@ Changes the current filename and line number of the scanner.<
 </blockquote>
 
 <p>
-<b><tt>String *Scanner_get_file(Scanner *s)</tt></b>
+<b><tt>String *Scanner_file(Scanner *s)</tt></b>
 <blockquote>
 Gets the current filename associated with text in the scanner.
 </blockquote>
 
 <p>
-<b><tt>int Scanner_get_line(Scanner *s)</tt></b>
+<b><tt>int Scanner_line(Scanner *s)</tt></b>
 <blockquote>
 Gets the current line number associated with text in the scanner.
+</blockquote>
+
+<p>
+<b><tt>int Scanner_start_line(Scanner *s)</tt></b>
+<blockquote>
+Gets the starting line number of the last token returned by the scanner.
 </blockquote>
 
 <p>
@@ -157,6 +163,13 @@ token (e.g., for unterminated strings, comments, etc.).
 <blockquote>
 A convenience function that returns 0 or 1 depending on whether <tt>tokval</tt> is a valid C/C++ operator (i.e., a candidate for
 operator overloading).  
+</blockquote>
+
+<p>
+<b><tt>void Scanner_freeze_line(int val)</tt></b>
+<blockquote>
+Freezes the current line number depending upon whether or not <tt>val</tt> is 1 or 0.  When the line number is frozen, newline characters will not result in 
+updates to the line number.  This is sometimes useful in tracking line numbers through complicated macro expansions.
 </blockquote>
 
 

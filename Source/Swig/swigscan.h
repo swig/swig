@@ -15,18 +15,20 @@ extern Scanner     *NewScanner();
 extern void         DelScanner(Scanner *);
 extern void         Scanner_clear(Scanner *);
 extern void         Scanner_push(Scanner *, String *);
-extern void         Scanner_pushtoken(Scanner *, int, String_or_char *value);
+extern void         Scanner_pushtoken(Scanner *, int, const String_or_char *value);
 extern int          Scanner_token(Scanner *);
 extern String      *Scanner_text(Scanner *);
 extern void         Scanner_skip_line(Scanner *);
 extern int          Scanner_skip_balanced(Scanner *, int startchar, int endchar);
 extern void         Scanner_set_location(Scanner *, String *file, int line);
-extern String      *Scanner_get_file(Scanner *);
-extern int          Scanner_get_line(Scanner *);
+extern String      *Scanner_file(Scanner *);
+extern int          Scanner_line(Scanner *);
+extern int          Scanner_start_line(Scanner *);
 extern void         Scanner_idstart(Scanner *, char *idchar);
 extern String      *Scanner_errmsg(Scanner *);
 extern int          Scanner_errline(Scanner *);
 extern int          Scanner_isoperator(int tokval);
+extern void         Scanner_freeze_line(Scanner *s, int val);
 
 /* Note: Tokens in range 100+ are for C/C++ operators */
 

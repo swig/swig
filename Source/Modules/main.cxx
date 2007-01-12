@@ -81,6 +81,7 @@ static const char *usage2 = (const char *) "\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
+     -macroerrors    - Report errors inside macros\n\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -M              - List all dependencies\n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
@@ -501,6 +502,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-notemplatereduce") == 0) {
 	SWIG_cparse_template_reduce(0);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-macroerrors") == 0) {
+	Swig_cparse_follow_locators(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
 	if (SwigLibWin)

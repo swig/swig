@@ -1,6 +1,29 @@
 Version 1.3.32 (in progress)
 ============================
+01/12/2007: beazley
+            New command line option -macroerrors.   When supplied, this will force
+            the C scanner/parser to report proper location information for code contained
+            inside SWIG macros (defined with %define).  By default, SWIG merely reports
+            errors on the line at which a macro is used.  With this option, you
+            can expand the error back to its source---something which may simplify
+            debugging.
 
+01/12/2007: beazley
+            [Internals] Major overhaul of C/C++ scanning implementation.  For quite
+            some time, SWIG contained two completely independent C/C++ tokenizers--
+            the legacy scanner in CParse/cscanner.c and a general purpose scanner
+            in Swig/scanner.c. SWIG still has two scanning modules, but the C parser
+            scanner (CParse/cscanner.c) now relies upon the general purpose
+            scanner found in Swig/scanner.c.  As a result, it is much smaller and
+            less complicated.  This change also makes it possible to maintain all
+            of the low-level C tokenizing in one central location instead of two
+            places as before. 
+
+            ***POTENTIAL FLAKINESS***
+            This change may cause problems with accurate line number reporting
+            as well as error reporting more generally. I have tried to resolve this 
+            as much as possible, but there might be some corner cases.  
+            
 01/12/2007: mgossage
             [Lua] Added typemap throws for std::string*, typemap for SWIGTYPE DYNAMIC, 
 	    changed the existing throws typemap to throw a string instead of making a copy of

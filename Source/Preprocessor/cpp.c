@@ -909,7 +909,10 @@ static String *expand_macro(String *name, List *args) {
 #else
     /* Use simplified around markers to properly count lines in cscanner.c */
     if (strchr(Char(g), '\n')) {
+      Printf(f, "/*@SWIG:%s,%d,%s@*/%s/*@SWIG@*/", Getfile(macro), Getline(macro), name, g);
+#if 0
       Printf(f, "/*@SWIG:%s@*/%s/*@SWIG@*/", name, g);
+#endif
     } else {
       Append(f, g);
     }

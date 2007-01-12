@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /* cscanner.c */
-  extern char *cparse_file;
+  extern String *cparse_file;
   extern int cparse_line;
   extern int cparse_cplusplus;
   extern int cparse_start_line;
@@ -34,6 +34,8 @@ extern "C" {
   extern void scanner_ignore_typedef(void);
   extern void scanner_last_id(int);
   extern void scanner_clear_rename(void);
+  extern void scanner_set_location(String_or_char *, int line);
+  extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;
   extern int yylex();

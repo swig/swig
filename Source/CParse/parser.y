@@ -1547,9 +1547,8 @@ declaration    : swig_directive { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
-		  if (!Swig_error_count()) {
-		    Swig_error(cparse_file, cparse_line,"Syntax error in input(1).\n");
-		  }
+		  Swig_error(cparse_file, cparse_line,"Syntax error in input(1).\n");
+		  exit(1);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -1864,13 +1863,11 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
 include_directive: includetype options string LBRACKET {
                      $1.filename = Swig_copy_string(cparse_file);
 		     $1.line = cparse_line;
-		     cparse_file = Swig_copy_string($3);
-		     cparse_line = 0;
+		     scanner_set_location($3,1);
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;
-		     cparse_file = $1.filename;
-		     cparse_line = $1.line;
+		     scanner_set_location($1.filename,$1.line);
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) {
 		       mname = $2 ? Getattr($2,"module") : 0;
@@ -3103,9 +3100,8 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		      }
 		    }
 		    if (err) {
-		      if (!Swig_error_count()) {
-			Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      }
+		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
+		      exit(1);
 		    }
                 }
                 ;
@@ -3954,12 +3950,11 @@ cpp_members  : cpp_member cpp_members {
 	     | error {
 	       int start_line = cparse_line;
 	       skip_decl();
-	       if (!Swig_error_count()) {
-		 Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       }
-	     } cpp_members { 
-                $$ = $3;
-             }
+	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
+	       exit(1);
+	       } cpp_members { 
+		 $$ = $3;
+   	     }
              ;
 
 /* ======================================================================
