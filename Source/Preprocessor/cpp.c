@@ -27,7 +27,7 @@ static int imported_depth = 0;	/* Depth of %imported files */
 static int single_include = 1;	/* Only include each file once */
 static Hash *included_files = 0;
 static List *dependencies = 0;
-static SwigScanner *id_scan = 0;
+static Scanner *id_scan = 0;
 static int error_as_warning = 0;	/* Understand the cpp #error directive as a special #warning */
 
 /* Test a character to see if it starts an identifier */
@@ -185,7 +185,7 @@ void Preprocessor_init(void) {
   Preprocessor_expr_init();	/* Initialize the expression evaluator */
   included_files = NewHash();
 
-  id_scan = NewSwigScanner();;
+  id_scan = NewScanner();;
 
 }
 
@@ -225,7 +225,7 @@ void Preprocessor_delete(void) {
   Delete(cpp);
   Delete(included_files);
   Preprocessor_expr_delete();
-  DelSwigScanner(id_scan);
+  DelScanner(id_scan);
 
   Delete(dependencies);
 
@@ -1150,15 +1150,15 @@ DOH *Preprocessor_replace(DOH *s) {
 static int checkpp_id(DOH *s) {
   int c;
   int hastok = 0;
-  SwigScanner *scan = id_scan;
+  Scanner *scan = id_scan;
 
   Seek(s, 0, SEEK_SET);
 
-  SwigScanner_clear(scan);
+  Scanner_clear(scan);
   s = Copy(s);
   Seek(s, SEEK_SET, 0);
-  SwigScanner_push(scan, s);
-  while ((c = SwigScanner_token(scan))) {
+  Scanner_push(scan, s);
+  while ((c = Scanner_token(scan))) {
     hastok = 1;
     if ((c == SWIG_TOKEN_ID) || (c == SWIG_TOKEN_LBRACE) || (c == SWIG_TOKEN_RBRACE))
       return 1;
