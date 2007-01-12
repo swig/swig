@@ -1254,10 +1254,21 @@ public:
     if (cleanup) {
       Printv(f->code, cleanup, NIL);
     }
-    // What's this bit for?
+
+    /* Look to see if there is any newfree cleanup code */
+    if (GetFlag(n, "feature:new")) {
+      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+	Printf(f->code, "%s\n", tm);
+	Delete(tm);
+      }
+    }
+
+    /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
       Printf(f->code, "%s\n", tm);
+      Delete(tm);
     }
+
 
     if (mvr) {
       if (!mvrset) {

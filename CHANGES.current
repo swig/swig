@@ -1,5 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
+
+01/12/2007: wsfulton
+            [Php] Add support for newfree typemaps (sometimes used by %newobject)
+
 01/12/2007: beazley
             New command line option -macroerrors.   When supplied, this will force
             the C scanner/parser to report proper location information for code contained
