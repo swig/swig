@@ -1,6 +1,12 @@
 Version 1.3.32 (in progress)
 ============================
 
+01/12/2007: mgossage
+            [Lua] Added typemap throws for std::string*, typemap for SWIGTYPE DYNAMIC, 
+	    changed the existing throws typemap to throw a string instead of making a copy of
+	    the object (updating a few test cases to deal with the change).
+	    fixed test case: dynamic_casts, exception_partial_info, li_std_string, size_t
+
 01/03/2007: beazley
             [Internals].  Use of swigkeys.c/.h variables is revoked.  Please use
             simple strings for attribute names.
