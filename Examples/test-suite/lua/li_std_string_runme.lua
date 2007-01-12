@@ -49,14 +49,14 @@ assert(ok==false and type(ex)=="string")	-- failed & threw string
 ok,ex=pcall(test_const_reference_throw)
 assert(ok==false and type(ex)=="string")	-- failed & threw string
 
--- const ptrs are thrown as str::string**
--- not quite right
+-- const ptrs are now converted to lua strings
+-- they used to be std::string*
 ok,ex=pcall(test_const_pointer_throw)
-assert(ok==false and type(ex)=="userdata")	-- failed & threw object
+assert(ok==false and type(ex)=="string")	-- failed & threw object
 
 -- ditto non const ptrs 
 ok,ex=pcall(test_pointer_throw)
-assert(ok==false and type(ex)=="userdata")	-- failed & threw object
+assert(ok==false and type(ex)=="string")	-- failed & threw object
 
 -- testing std::string variables
 -- Global variables
