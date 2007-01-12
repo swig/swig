@@ -120,6 +120,15 @@
 %typemap(out) SWIGTYPE*,SWIGTYPE&
 %{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
 
+// dynamic casts
+%typemap(out) SWIGTYPE *DYNAMIC,
+              SWIGTYPE &DYNAMIC
+{
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  SWIG_NewPointerObj(L,(void*)$1,ty,$owner); SWIG_arg++; 
+}
+
+
 // passing objects by value
 // SWIG expects the object pointer (the $&ltype argp)
 // then dereferences it to get the object

@@ -116,11 +116,9 @@
  *                              Exceptions
  * ------------------------------------------------------------ */
 /* Confession: I dont really like C++ exceptions
-The python ones are great, but C++ ones I dont like
+The python/lua ones are great, but C++ ones I dont like
 (mainly because I cannot get the stack trace out of it)
 Therefore I have not bothered to try doing much in this
-
-On top of this I am not clear on how best to do this is Lua
 
 Therefore currently its just enough to get a few test cases running ok
 
@@ -134,37 +132,41 @@ use %include <std_except.i> instead
 				long long,unsigned long long,
 				char, unsigned char, signed char,
 				enum SWIGTYPE
-%{lua_pushfstring(L,"numeric exception thrown of value %f",(double)$1);
+%{lua_pushfstring(L,"numeric exception:%f",(double)$1);
 SWIG_fail; %}
 
 // strings are just sent as errors
 %typemap(throws) char*, const char*
 %{lua_pushstring(L,$1);SWIG_fail;%}
 
-// anything else is sent as an object
-#ifdef __cplusplus
-	%typemap(throws) SWIGTYPE
-	{
-	  $&1_ltype resultptr;
-	  resultptr = new $1_ltype(($1_ltype &) $1);
-	  SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1);
-	  SWIG_fail;
-	}
-/*	%typemap(throws) SWIGTYPE&
-	{
-	  SWIG_NewPointerObj(L,(void *) &$1,$&1_descriptor,1);
-	  SWIG_fail;
-	}*/
-#else
-	%typemap(throws) SWIGTYPE
-	{
-	  $&1_ltype resultptr;
-	  resultptr = ($&1_ltype) malloc(sizeof($1_type));
-	  memmove(resultptr, &$1, sizeof($1_type));
-	  SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1);
-	  SWIG_fail;
-	}
-#endif
+/*
+Throwing object is a serious problem:
+Assuming some code throws a 'FooBar'
+There are a few options:
+- return a pointer to it: but its unclear how long this will last for.
+- return a copy of it: but not all objects are copyable
+	(see exception_partial_info in the test suite for a case where you cannot)
+- convert to a string & throw that
+	its not so useful, but it works (this is more lua like).
+For a more useful solution: see std_except for more details
+*/
+%typemap(throws) SWIGTYPE
+{
+  lua_pushfstring(L,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
+  SWIG_fail;
+}
+
+// old code: fails under exception_partial_info
+// if you have a function which throws a FooBar & you want SWIG to throw the actual object 
+// then use
+//	%apply SWIGTYPE BY_VAL {FooBar};
+%typemap(throws) SWIGTYPE BY_VAL
+{
+  SWIG_NewPointerObj(L,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
+  SWIG_fail;
+}
+
+
 
 
 
