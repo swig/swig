@@ -489,7 +489,7 @@ char *Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_
 
 
 /* -----------------------------------------------------------------------------
- * Wrapper_add_localv()
+ * Wrapper_new_localv()
  *
  * Same as add_local(), but allows a NULL terminated list of strings to be
  * used as a replacement for decl.   This saves the caller the trouble of having
