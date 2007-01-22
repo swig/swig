@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+01/22/2007: mgossage
+            [Lua] Added a lua specific carrays.i which adds the operator[] support.
+	    modified the main code to make it not emit all the class member functions & accessors
+	    Note: C structs are created using new_XXX() while C++ classes use XXX() (should be standardised)
+	    Updated test case: li_carrays
+	    Updated the documentation.
+
 01/12/2007: wsfulton
             [Php] Add support for newfree typemaps (sometimes used by %newobject)
 

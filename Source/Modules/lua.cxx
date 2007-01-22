@@ -109,6 +109,17 @@ private:
   String *class_name;
   String *constructor_name;
 
+  enum {
+    NO_CPP,
+    VARIABLE,	  
+    MEMBER_FUNC,
+    CONSTRUCTOR,
+    DESTRUCTOR,
+    MEMBER_VAR,
+    CLASS_CONST,
+    STATIC_FUNC,
+    STATIC_VAR
+  }current;
 
 public:
 
@@ -127,6 +138,7 @@ public:
     PrefixPlusUnderscore = 0;
 
     s_cmd_tab = s_var_tab = s_const_tab = 0;
+    current=NO_CPP;   
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
@@ -228,6 +240,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     s_var_tab = NewString("");
 //    s_methods_tab    = NewString("");
     s_const_tab = NewString("");
+    current=NO_CPP;   
 
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
@@ -325,6 +338,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Parm *p;
     String *tm;
     int i;
+//Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current);
 //    int returnval=0;  // number of arguments returned
 
     String *overname = 0;
@@ -593,7 +607,8 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
 //      add_method(n, iname, wname, description);
-      Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
+      if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
+        Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
 //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
     } else {
 //      Setattr(n,"wrap:name", wname);
@@ -658,7 +673,8 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     //add_method(symname,wname,0);
-    Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
+    if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
+      Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
 
     DelWrapper(f);
     Delete(dispatch);
@@ -681,8 +697,10 @@ only WRT this variable will look into this later.
 NEW LANGUAGE NOTE:END ************************************************/
 //    REPORT("variableWrapper", n);
     String *iname = Getattr(n, "sym:name");
+    current=VARIABLE;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
+    current=NO_CPP;
     // normally SWIG will generate 2 wrappers, a get and a set
     // but in certain scenarios (immutable, or if its arrays), it will not
     String *getName = Swig_name_wrapper(Swig_name_get(iname));
@@ -959,7 +977,9 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     String *realname, *rname;
 
+    current = MEMBER_FUNC;
     Language::memberfunctionHandler(n);
+    current = NO_CPP;
 
     realname = iname ? iname : name;
     rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
@@ -979,7 +999,9 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *symname = Getattr(n, "sym:name");
     String *gname, *sname;
 
+    current = MEMBER_VAR;
     Language::membervariableHandler(n);
+    current = NO_CPP;
     gname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
     if (!GetFlag(n, "feature:immutable")) {
       sname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
@@ -1001,7 +1023,9 @@ NEW LANGUAGE NOTE:END ************************************************/
 
   virtual int constructorHandler(Node *n) {
     REPORT("constructorHandler", n);
+    current = CONSTRUCTOR;
     Language::constructorHandler(n);
+    current = NO_CPP;
     constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
     return SWIG_OK;
@@ -1012,7 +1036,9 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
+    current = DESTRUCTOR;
     Language::destructorHandler(n);
+    current = NO_CPP;
     have_destructor = 1;
     destructor_action = Getattr(n, "wrap:action");
     return SWIG_OK;
@@ -1025,7 +1051,9 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ---------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    current = STATIC_FUNC;
     return Language::staticmemberfunctionHandler(n);
+    current = NO_CPP;
   }
 
   /* ------------------------------------------------------------
@@ -1045,7 +1073,9 @@ NEW LANGUAGE NOTE:END ************************************************/
 
   virtual int staticmembervariableHandler(Node *n) {
 //    REPORT("staticmembervariableHandler",n);
+    current = STATIC_VAR;
     return Language::staticmembervariableHandler(n);
+    current = NO_CPP;
   }
 
   /* ---------------------------------------------------------------------

@@ -285,7 +285,7 @@ It is also possible to rename the module with an assignment.
 extern double Foo;
 </pre></div>
 <p>
-SWIG will actually generate two functions <tt>example.Foo_set()</tt> and <tt>example.Foo_get()</tt>. It then adds a metatable to the table 'example' to call these functions at the correct time (when you attempt to set or get examples.Foo). Therefore if you were to attempt to assign the global to another variable, you will get a local copy within the interpreter, which is no longer linked to the C code.
+SWIG will effectively generate two functions <tt>example.Foo_set()</tt> and <tt>example.Foo_get()</tt>. It then adds a metatable to the table 'example' to call these functions at the correct time (when you attempt to set or get examples.Foo). Therefore if you were to attempt to assign the global to another variable, you will get a local copy within the interpreter, which is no longer linked to the C code.
 </p>
 
 <div class="targetlang"><pre>
@@ -320,7 +320,7 @@ extern double Foo;
 %mutable;
 </pre></div>
 <p>
-SWIG will generate the <tt>example.Foo_get()</tt> but instead of a set function an error function will be called instead.
+SWIG will allow the the reading of <tt>Foo</tt> but when a set attempt is made, an error function will be called.
 </p>
 <div class="targetlang"><pre>
 &gt; print(e.Foo) -- reading works ok
@@ -337,7 +337,7 @@ stack traceback:
 For those people who would rather that SWIG silently ignore the setting of immutables (as previous versions of the lua bindings did), adding a <tt>-DSWIGLUA_IGNORE_SET_IMMUTABLE</tt> compile option will remove this.
 </p>
 <p>
-Unlike earlier versions of the binding, it is now possible to add new functions or variables to the module, just as if it were a normal table. This does allow the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so.
+Unlike earlier versions of the binding, it is now possible to add new functions or variables to the module, just as if it were a normal table. This also allows the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so.
 </p>
 <div class="targetlang"><pre>
 &gt; -- example.PI does not exist
@@ -423,7 +423,7 @@ nil
 is used as follows:
 </p>
 <div class="targetlang"><pre>
-&gt; p=example.Point()
+&gt; p=example.new_Point()
 &gt; p.x=3
 &gt; p.y=5
 &gt; print(p.x,p.y)
@@ -432,7 +432,7 @@ is used as follows:
 </pre></div>
 <p>
 Similar access is provided for unions and the data members of C++ classes.<br>
-SWIG will also create a function <tt>new_Point()</tt> which also creates a new Point structure.
+C structures are created using a function <tt>new_Point()</tt>, but for C++ classes are created using just the name <tt>Point()</tt>.
 </p>
 <p>
 If you print out the value of p in the above example, you will see something like this:
@@ -442,7 +442,7 @@ If you print out the value of p in the above example, you will see something lik
 userdata: 003FA320
 </pre></div>
 <p>
-Like the pointer in the previous section, this is held as a userdata. However, additional features have been added to make this more usable. SWIG creates some accessor/mutator functions <tt>Point_set_x()</tt> and <tt>Point_get_x()</tt>. These will be wrappered, and then added to the metatable added to the userdata. This provides the natural access to the member variables that were shown above (see end of the document for full details).
+Like the pointer in the previous section, this is held as a userdata. However, additional features have been added to make this more usable. SWIG effectivly creates some accessor/mutator functions to get and set the data. These functions will be added to the userdata's metatable. This provides the natural access to the member variables that were shown above (see end of the document for full details).
 </p>
 <p>
 <tt>const</tt> members of a structure are read-only. Data members can also be forced to be read-only using the immutable directive. As with other immutable's, setting attempts will be cause an error. For example:
@@ -543,11 +543,9 @@ public:
 In Lua, the static members can be accessed as follows:
 </p>
 <div class="code"><pre>
-&gt; example.Spam_foo()            -- Spam::foo() the only way currently
-&gt; a=example.Spam_bar_get()      -- Spam::bar the hard way
-&gt; a=example.Spam_bar            -- Spam::bar the nicer way
-&gt; example.Spam_bar_set(b)       -- Spam::bar the hard way
-&gt; example.Spam_bar=b            -- Spam::bar the nicer way
+&gt; example.Spam_foo()            -- calling Spam::foo()
+&gt; a=example.Spam_bar            -- reading Spam::bar 
+&gt; example.Spam_bar=b            -- writing to Spam::bar
 </pre></div>
 <p>
 It is not (currently) possible to access static members of an instance:
@@ -981,7 +979,7 @@ SWIG will effectively generate the pair of functions
 double Foo_get();
 </pre></div>
 <p>
-At initialisation time, it will then add to the interpreter a table called 'example', which represents the module. It will then add all its functions to the module. But it also adds a metatable to this table, which has two functions (<tt>__index</tt> and <tt>__newindex</tt>) as well as two tables (<tt>.get</tt> and <tt>.set</tt>) The following Lua code will show these hidden features.
+At initialisation time, it will then add to the interpreter a table called 'example', which represents the module. It will then add all its functions to the module. (Note: older versions of SWIG actually added the Foo_set() and Foo_get() functions, current implementation does not add these functions and more.) But it also adds a metatable to this table, which has two functions (<tt>__index</tt> and <tt>__newindex</tt>) as well as two tables (<tt>.get</tt> and <tt>.set</tt>) The following Lua code will show these hidden features.
 </p>
 <div class="targetlang"><pre>
 &gt; print(example)
