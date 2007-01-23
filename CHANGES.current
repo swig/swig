@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+01/23/2007: mgossage
+            [Lua] Patch #1640862: <malloc.h> replaced by <stdlib.h>
+
 01/22/2007: mgossage
             [Lua] Added a lua specific carrays.i which adds the operator[] support.
 	    modified the main code to make it not emit all the class member functions & accessors

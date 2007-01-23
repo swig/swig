@@ -15,7 +15,7 @@ extern "C" {
 
 #include "lua.h"
 #include "lauxlib.h"
-#include <malloc.h>
+#include <stdlib.h>     /* for malloc */
 #include <assert.h>	/* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
