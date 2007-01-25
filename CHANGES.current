@@ -1,6 +1,12 @@
 Version 1.3.32 (in progress)
 ============================
 
+01/25/2007: wsfulton
+            Fix #1538522 and #1338527, forward templated class declarations without a
+            name for the templated class parameters, such as:
+
+              template <typename, class> class X;
+
 01/23/2007: mgossage
             [Lua] Patch #1640862: <malloc.h> replaced by <stdlib.h>
 	    Patch #1598063 Typo in typemaps.i

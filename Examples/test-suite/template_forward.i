@@ -58,3 +58,14 @@ namespace foo {
 %template (LinearOpBase_int)    LinearOpBase<int,int>;
 %template (VectorBase_int)      VectorBase<int>;
 
+// Template forward class declarations mixing class and typename without always naming the templated parameter name
+%inline %{
+template <class> class TClass1;
+template <typename> class TClass2;
+template <class, typename> class TClass3;
+template <class, class, class> class TClass4;
+template <typename, typename> class TClass5;
+template <typename, class K = double> class TClass6;
+template<typename, class K, class C = K> class TClass7;
+%}
+

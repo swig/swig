@@ -1459,9 +1459,11 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 %type <dtype>    initializer cpp_const ;
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms;
+%type <pl>       templateparameters templateparameterstail;
 %type <p>        parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
-%type <id>       cpptype access_specifier;
+%type <p>        templateparameter ;
+%type <id>       templcpptype cpptype access_specifier;
 %type <node>     base_specifier
 %type <type>     type rawtype type_right ;
 %type <bases>    base_list inherit raw_inherit;
@@ -3769,7 +3771,7 @@ cpp_temp_possible:  c_decl {
                 }
                 ;
 
-template_parms  : rawparms {
+template_parms  : templateparameters {
 		   /* Rip out the parameter names */
 		  Parm *p = $1;
 		  $$ = $1;
@@ -3797,7 +3799,29 @@ template_parms  : rawparms {
 		    p = nextSibling(p);
 		  }
                  }
-                ;
+                 ;
+
+templateparameters : templateparameter templateparameterstail {
+                      set_nextSibling($1,$2);
+                      $$ = $1;
+                   }
+                   | empty { $$ = 0; }
+                   ;
+
+templateparameter : templcpptype {
+		    $$ = NewParm(NewString($1), 0);
+                  }
+                  | parm {
+                    $$ = $1;
+                  }
+                  ;
+
+templateparameterstail : COMMA templateparameter templateparameterstail {
+                         set_nextSibling($2,$3);
+                         $$ = $2;
+                       }
+                       | empty { $$ = 0; }
+                       ;
 
 /* Namespace support */
 
@@ -5594,9 +5618,18 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                ;
 
 
-cpptype        : CLASS { 
+templcpptype   : CLASS { 
                    $$ = (char*)"class"; 
 		   if (!inherit_list) last_cpptype = $$;
+               }
+               | TYPENAME { 
+                   $$ = (char *)"typename"; 
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               ;
+
+cpptype        : templcpptype {
+                 $$ = $1;
                }
                | STRUCT { 
                    $$ = (char*)"struct"; 
@@ -5604,10 +5637,6 @@ cpptype        : CLASS {
                }
                | UNION {
                    $$ = (char*)"union"; 
-		   if (!inherit_list) last_cpptype = $$;
-               }
-               | TYPENAME { 
-                   $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
                ;
