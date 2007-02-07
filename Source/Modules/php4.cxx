@@ -10,7 +10,7 @@
 
 /* FIXME: PHP5 OO wrapping TODO list:
  *
- * Short term (ideally before 1.3.30 is released):
+ * Short term:
  *
  * Sort out auto-renaming of method and class names which are reserved
  *   words (e.g. empty, clone, exception, etc.) vs -php4/-php5 in some
@@ -350,9 +350,9 @@ public:
     Printf(f_make, "EXTRA_LIB=\n\n");
     Printf(f_make, "$(MODULE): $(OBJS)\n");
     if (CPlusPlus || (withcxx != NULL)) {
-      Printf(f_make, "\t$(CXX) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
+      Printf(f_make, "\t$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(EXTRA_LIB)\n\n");
     } else {
-      Printf(f_make, "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n");
+      Printf(f_make, "\t$(CC) $(LDFLAGS) $(OBJS) -o $@ $(EXTRA_LIB)\n\n");
     }
     Printf(f_make, "%%.o: %%.cpp\n");
     Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
