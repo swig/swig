@@ -110,17 +110,13 @@
   }
 %}
 
-/*%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
-%{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
-
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&
-%{$1=($1_ltype)SWIG_MustGetPtr(L,$input,$descriptor,0,$argnum,"$symname");%}
-*/
-
+// out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
 %{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
 
 // dynamic casts
+// this uses the SWIG_TypeDynamicCast() which relies on RTTI to find out what the pointer really is
+// the we return it as the correct type
 %typemap(out) SWIGTYPE *DYNAMIC,
               SWIGTYPE &DYNAMIC
 {
@@ -130,12 +126,12 @@
 
 
 // passing objects by value
-// SWIG expects the object pointer (the $&ltype argp)
+// SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
 // then dereferences it to get the object
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE ($&ltype argp)
 %{
    if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&argp,$&descriptor,0))){
-     SWIG_fail_ptr("$symname",$argnum,$descriptor);
+     SWIG_fail_ptr("$symname",$argnum,$&descriptor);
    }
    $1 = *argp;
 %}
@@ -143,7 +139,7 @@
 // Primitive types--return by value
 // must make a new object, copy the data & return the new object
 // Note: the brackets are {...} and not %{..%}, because we want them to be included in the wrapper
-// this is because out tpyemaps do not support local variables, like in typemaps do
+// this is because typemap(out) does not support local variables, like in typemap(in) does
 // and we need the $&1_ltype resultptr; to be declared
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
@@ -251,9 +247,18 @@ parmeters match which function
   }
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE, SWIGTYPE & {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $&1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -314,7 +319,7 @@ SWIG_NUMBER_BY_CONST_REF(long long);
 SWIG_NUMBER_BY_CONST_REF(signed long long);
 SWIG_NUMBER_BY_CONST_REF(unsigned long long);
 
-%apply const unsigned long & { const size_t & };
+%apply const unsigned long & { const size_t & };	// size_t is the same as unsigned long
 
 
 // Also needed for object ptrs by const ref
