@@ -970,11 +970,12 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
   }
 
   if (Len(num) >= 2 && s[0] == '0') {	/* octal or hex */
-    Delete(num);
-    if (s[1] == 'x')
-      return NewStringf("#x%s", s + 2);
-    else
-      return NewStringf("#o%s", s + 1);
+    if (s[1] == 'x'){
+      DohReplace(num,"0","#",DOH_REPLACE_FIRST);
+    }
+    else{
+      DohReplace(num,"0","#o",DOH_REPLACE_FIRST);
+    }
   }
   return num;
 }

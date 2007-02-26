@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+02/26/2007: efuzzyone
+            [CFFI] Patch #1656395: fixed hex and octal values bug, thanks to Arthur Smyles.
+
 02/22/2007: mgossage
             [Lua] Fixed bug in typemaps which caused derived_byvalue and rname test cases to fail.
 	    Updated derived_byvalue.i to explain how to find and fix the problem
