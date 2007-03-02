@@ -1643,6 +1643,19 @@ public:
 	      Delete(arg_values[argno]);
 	      arg_values[argno] = NewString("?");
 	    }
+	  } else if (arg_values[argno]) {
+	    // This argument already has a default value in another overloaded
+	    // form, but doesn't in this form.  So don't try to do anything
+	    // clever, just let the C wrappers resolve the overload and set the
+	    // default values.
+	    //
+	    // This handling is safe, but I'm wondering if it may be overly
+	    // conservative (FIXME) in some cases.  It seems it's only bad when
+	    // there's an overloaded form with the appropriate number of
+	    // parameters which doesn't want the default value, but I need to
+	    // think about this more.
+	    Delete(arg_values[argno]);
+	    arg_values[argno] = NewString("?");
 	  }
 	  p = nextSibling(p);
 	  ++argno;

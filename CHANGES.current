@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+03/02/2007: olly
+	    [PHP5] Fix PHP wrapper code generated for certain cases of
+	    overloaded forms with default arguments.
+
 02/26/2007: efuzzyone
             [CFFI] Patch #1656395: fixed hex and octal values bug, thanks to Arthur Smyles.
 
