@@ -1938,14 +1938,36 @@ public:
     }
 
     if (shadow && php_version == 5) {
+      String *enumvalue = GetChar(n, "enumvalue");
+      String *set_to = iname;
+
+      if (!enumvalue) {
+	enumvalue = GetChar(n, "enumvalueex");
+      }
+
+      if (enumvalue) {
+	// Check for a simple constant expression which is valid in PHP.
+	// If we find one, initialise the const member with it; otherwise
+	// we initialise it using the C/C++ wrapped constant.
+	const char *p;
+	for (p = Char(enumvalue); *p; ++p) {
+	  if (!isdigit((unsigned char)*p) && !strchr(" +-", *p)) {
+	    // FIXME: enhance to handle `<previous_enum> + 1' which is what
+	    // we get for enums that don't have an explicit value set.
+	    break;
+	  }
+	}
+	if (!*p) set_to = enumvalue;
+      }
+
       if (wrapping_member_constant) {
 	if (!s_oowrappers)
 	  s_oowrappers = NewStringEmpty();
-	Printf(s_oowrappers, "\n\tconst %s = %s;\n", wrapping_member_constant, iname);
+	Printf(s_oowrappers, "\n\tconst %s = %s;\n", wrapping_member_constant, set_to);
       } else {
 	if (!s_fakeoowrappers)
 	  s_fakeoowrappers = NewStringEmpty();
-	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", name, iname);
+	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", name, set_to);
       }
     }
 
