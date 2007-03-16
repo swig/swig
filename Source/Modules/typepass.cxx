@@ -520,7 +520,9 @@ class TypePass:private Dispatcher {
     } else {
       if (name) {
 	Node *nn = Swig_symbol_clookup(name, n);
-	Hash *ts = Getattr(nn, "typescope");
+	Hash *ts = 0;
+	if (nn)
+	  Getattr(nn, "typescope");
 	if (!ts) {
 	  SwigType_new_scope(name);
 	  SwigType_attach_symtab(Getattr(n, "symtab"));

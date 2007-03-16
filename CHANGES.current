@@ -2,6 +2,9 @@ Version 1.3.32 (in progress)
 ============================
 
 03/16/2007: wsfulton
+            Fix seg fault given dodgy C++ code: namespace abc::def { }
+
+03/16/2007: wsfulton
             [Java] Fixes so that ARRAYSOFCLASSES and ARRAYSOFENUMS in arrays_java.i can be applied
             to pointer types.
 
