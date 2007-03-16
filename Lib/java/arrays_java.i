@@ -235,12 +235,12 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
  * JAVA_ARRAYSOFCLASSES(name) */
 %define JAVA_ARRAYSOFCLASSES(ARRAYSOFCLASSES)
 
-%typemap(jni) ARRAYSOFCLASSES[ANY] "jlongArray"
-%typemap(jtype) ARRAYSOFCLASSES[ANY] "long[]"
-%typemap(jstype) ARRAYSOFCLASSES[ANY] "$javaclassname[]"
+%typemap(jni) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "jlongArray"
+%typemap(jtype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "long[]"
+%typemap(jstype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$javaclassname[]"
 
-%typemap(javain) ARRAYSOFCLASSES[ANY] "$javaclassname.cArrayUnwrap($javainput)"
-%typemap(javaout) ARRAYSOFCLASSES[ANY] {
+%typemap(javain) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$javaclassname.cArrayUnwrap($javainput)"
+%typemap(javaout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] {
     return $javaclassname.cArrayWrap($jnicall, $owner);
   }
 
@@ -300,7 +300,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   }
 }
 
-%typemap(argout) ARRAYSOFCLASSES[ANY]
+%typemap(argout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[]
 {
   int i;
   for (i=0; i<sz$argnum; i++) {
@@ -329,7 +329,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
 
-%typemap(freearg) ARRAYSOFCLASSES[ANY]
+%typemap(freearg) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[]
 #ifdef __cplusplus
 %{ delete [] $1; %}
 #else
@@ -360,12 +360,12 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 /* Arrays of enums. 
  * Use the following to use these typemaps for an array of enums called name:
  * %apply ARRAYSOFENUMS[ANY] { name[ANY] }; */
-%typemap(jni) ARRAYSOFENUMS[ANY] "jintArray"
-%typemap(jtype) ARRAYSOFENUMS[ANY] "int[]"
-%typemap(jstype) ARRAYSOFENUMS[ANY] "int[]"
+%typemap(jni) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "jintArray"
+%typemap(jtype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"
+%typemap(jstype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"
 
-%typemap(javain) ARRAYSOFENUMS[ANY] "$javainput"
-%typemap(javaout) ARRAYSOFENUMS[ANY] {
+%typemap(javain) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "$javainput"
+%typemap(javaout) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] {
     return $jnicall;
   }
 
@@ -378,11 +378,11 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   }
   if (!SWIG_JavaArrayInInt(jenv, &jarr, (int **)&$1, $input)) return $null;
 }
-%typemap(argout) ARRAYSOFENUMS[ANY] 
+%typemap(argout) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] 
 %{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int *)$1, $input); %}
 %typemap(out) ARRAYSOFENUMS[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int *)$1, $1_dim0); %}
-%typemap(freearg) ARRAYSOFENUMS[ANY] 
+%typemap(freearg) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] 
 #ifdef __cplusplus
 %{ delete [] $1; %}
 #else

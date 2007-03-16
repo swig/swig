@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+03/16/2007: wsfulton
+            [Java] Fixes so that ARRAYSOFCLASSES and ARRAYSOFENUMS in arrays_java.i can be applied
+            to pointer types.
+
 03/03/2007: olly
 	    [PHP5] When we know the literal numeric value for a constant, use
 	    that to initialise the const member in the PHP wrapper class.
