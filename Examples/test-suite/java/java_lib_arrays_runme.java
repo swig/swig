@@ -34,21 +34,28 @@ public class java_lib_arrays_runme {
     long[] array_ll = {1008, 2008};
     float[] array_f = {1009.1f, 2009.1f};
     double[] array_d = {1010.2f, 2010.2f};
-    int[] array_enum = {finger.Three, finger.Four};
+    int[] array_finger = {finger.Three, finger.Four};
+    int[] array_toe = {toe.Big, toe.Little};
 
     SimpleStruct[] array_struct={new SimpleStruct(), new SimpleStruct()};
     array_struct[0].setDouble_field(222.333);
     array_struct[1].setDouble_field(444.555);
 
-    AnotherStruct[] another_struct={new AnotherStruct(), new AnotherStruct()};
-    another_struct[0].setSimple(array_struct[0]);
-    another_struct[1].setSimple(array_struct[1]);
+    AnotherStruct[] array_another_struct={new AnotherStruct(), new AnotherStruct()};
+    array_another_struct[0].setSimple(array_struct[0]);
+    array_another_struct[1].setSimple(array_struct[1]);
 
-    if (another_struct[0].getSimple().getDouble_field() != 222.333) throw new RuntimeException("AnotherStruct[0] failed");
-    if (another_struct[1].getSimple().getDouble_field() != 444.555) throw new RuntimeException("AnotherStruct[1] failed");
+    YetAnotherStruct[] array_yet_another_struct={new YetAnotherStruct(), new YetAnotherStruct()};
+    array_yet_another_struct[0].setSimple(array_struct[0]);
+    array_yet_another_struct[1].setSimple(array_struct[1]);
 
-    if (java_lib_arrays.extract(another_struct, 0) != 222.333) throw new RuntimeException("extract 0 failed");
-    if (java_lib_arrays.extract(another_struct, 1) != 444.555) throw new RuntimeException("extract 1 failed");
+    if (array_another_struct[0].getSimple().getDouble_field() != 222.333) throw new RuntimeException("AnotherStruct[0] failed");
+    if (array_another_struct[1].getSimple().getDouble_field() != 444.555) throw new RuntimeException("AnotherStruct[1] failed");
+
+    if (java_lib_arrays.extract_ptr(array_yet_another_struct, 0) != 222.333) throw new RuntimeException("extract_ptr 0 failed");
+    if (java_lib_arrays.extract_ptr(array_yet_another_struct, 1) != 444.555) throw new RuntimeException("extract_ptr 1 failed");
+
+    java_lib_arrays.toestest(array_toe, array_toe, array_toe);
 
     // Now set the array members and check that they have been set correctly
     as.setArray_c(array_c);
@@ -87,8 +94,8 @@ public class java_lib_arrays_runme {
     as.setArray_d(array_d);
     check_double_array(array_d, as.getArray_d());
 
-    as.setArray_enum(array_enum);
-    check_int_array(array_enum, as.getArray_enum());
+    as.setArray_enum(array_finger);
+    check_int_array(array_finger, as.getArray_enum());
 
     as.setArray_struct(array_struct);
     check_struct_array(array_struct, as.getArray_struct());
