@@ -388,7 +388,28 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
 
 #undef INOUT_TYPEMAP
 
-/* Override the typemap in the INOUT_TYPEMAP macro */
+/* Override typemaps in the INOUT_TYPEMAP macro for booleans to fix casts
+   as a jboolean isn't always the same size as a bool */
+%typemap(in) bool *INOUT (bool btemp, jboolean *jbtemp), bool &INOUT (bool btemp, jboolean *jbtemp) {
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  jbtemp = JCALL2(GetBooleanArrayElements, jenv, $input, 0);
+  btemp = (*jbtemp) ? true : false;
+  $1 = &btemp;
+}
+
+%typemap(argout) bool *INOUT, bool &INOUT {
+  *jbtemp$argnum = btemp$argnum ? (jboolean)1 : (jboolean)0;
+  JCALL3(ReleaseBooleanArrayElements, jenv, $input , (jboolean *)jbtemp$argnum, 0);
+}
+
+/* Override the typemap in the INOUT_TYPEMAP macro for unsigned long long */
 %typemap(in) unsigned long long *INOUT ($*1_ltype temp), unsigned long long &INOUT ($*1_ltype temp) { 
   jobject bigint;
   jclass clazz;

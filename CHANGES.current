@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+03/21/2007: wsfulton
+            [Java] Apply patch #1631987 from Ulrik Peterson - bool INOUT typemaps 
+            fail on big endian machines.
+
 03/16/2007: wsfulton
             Fix seg fault given dodgy C++ code: namespace abc::def { }
 
