@@ -64,7 +64,6 @@ static int String_dump(DOH *so, DOH *out) {
  * ----------------------------------------------------------------------------- */
 
 static DOH *CopyString(DOH *so) {
-  int max;
   String *str;
   String *s = (String *) ObjData(so);
   str = (String *) DohMalloc(sizeof(String));
@@ -74,10 +73,9 @@ static DOH *CopyString(DOH *so) {
   str->file = s->file;
   if (str->file)
     Incref(str->file);
-  max = s->maxsize;
-  str->str = (char *) DohMalloc(max + 1);
-  memmove(str->str, s->str, max);
-  str->maxsize = max;
+  str->str = (char *) DohMalloc(s->len + 1);
+  memcpy(str->str, s->str, s->len);
+  str->maxsize = s->len;
   str->len = s->len;
   str->str[str->len] = 0;
 
