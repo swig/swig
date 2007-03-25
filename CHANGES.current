@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+03/25/2007: wuzzeb (John Lenz)
+	    [perl5] Add SWIG_fail to the SWIG_exception macro.  Fixes a few problems reported
+	    on the mailing list.
+
 03/23/2007: wsfulton
             String copying patch from Josh Cherry reducing memory consumption by about 25%.
 
