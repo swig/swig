@@ -12,6 +12,7 @@
 <ul>
 <li><a href="#R_nn2">Bugs</a>
 <li><a href="#R_nn3">Using R and SWIG</a>
+<li><a href="#R_nn4">Precompiling large R files</a>
 <li><a href="#R_nn4">General policy</a>
 <li><a href="#R_nn5">Language conventions</a>
 <li><a href="#R_nn6">C++ classes</a>
@@ -99,7 +100,8 @@ Without it, inheritance of wrapped objects may fail.
 These two files can be loaded in any order
 </p>
 
-<H2>Precompiling large R files</H2>
+<H2><a name="R_nn4"></a>32.3 Precompiling large R files</H2>
+
 
 In cases where the R file is large, one make save a lot of loading
 time by precompiling the R wrapper.  This can be done by creating the
@@ -116,7 +118,7 @@ will save a large amount of loading time.
 
 
 
-<H2><a name="R_nn4"></a>32.3 General policy</H2>
+<H2><a name="R_nn4"></a>32.4 General policy</H2>
 
 
 <p>
@@ -125,7 +127,7 @@ wrapping over the underlying functions and rely on the R type system
 to provide R syntax.
 </p>
 
-<H2><a name="R_nn5"></a>32.4 Language conventions</H2>
+<H2><a name="R_nn5"></a>32.5 Language conventions</H2>
 
 
 <p>
@@ -134,7 +136,7 @@ and [ are overloaded to allow for R syntax (one based indices and
 slices)
 </p>
 
-<H2><a name="R_nn6"></a>32.5 C++ classes</H2>
+<H2><a name="R_nn6"></a>32.6 C++ classes</H2>
 
 
 <p>
@@ -146,7 +148,7 @@ keep track of the pointer object which removes the necessity for a lot
 of the proxy class baggage you see in other languages.
 </p>
 
-<H2><a name="R_nn7"></a>32.6 Enumerations</H2>
+<H2><a name="R_nn7"></a>32.7 Enumerations</H2>
 
 
 <p>
