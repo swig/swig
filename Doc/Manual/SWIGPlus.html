@@ -575,7 +575,7 @@ automatically generate a wrapper for one.
 inherit from an abstract class, but don't provide definitions for all of the pure methods.
 </li>
 
-<li>A default constructor is not created unless all bases classes support a 
+<li>A default constructor is not created unless all base classes support a 
 default constructor. 
 </li>
 
@@ -1493,7 +1493,7 @@ multiple inheritance.
 </p>
 
 <p> SWIG treats private or protected inheritance as close to the C++
-spirit, and target language capabilities, as possible. In most of the
+spirit, and target language capabilities, as possible. In most
 cases, this means that SWIG will parse the non-public inheritance
 declarations, but that will have no effect in the generated code,
 besides the implicit policies derived for constructor and
@@ -1656,7 +1656,7 @@ regenerate specialized accessor functions such as
 This behavior resulted in huge amounts of replicated code for large
 class hierarchies and made it awkward to build applications spread
 across multiple modules (since accessor functions are duplicated in
-every single module).   It is also unnecessary to have such wrappers
+every single module).  It is also unnecessary to have such wrappers
 when advanced features like proxy classes are used.  
 
 <b>Note:</b> Further optimizations are enabled when using the
