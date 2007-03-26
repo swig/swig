@@ -2869,13 +2869,13 @@ functionWrapper   : void delete_Shape(Shape *self)
            action : delete arg1;
 
 functionWrapper   : void Shape_x_set(Shape *self,double x)
-           action : if (arg1) (arg1)->x = arg2;
+           action : if (arg1) (arg1)-&gt;x = arg2;
 
 functionWrapper   : double Shape_x_get(Shape *self)
-           action : result = (double) ((arg1)->x);
+           action : result = (double) ((arg1)-&gt;x);
 
 functionWrapper   : void Shape_y_set(Shape *self,double y)
-           action : if (arg1) (arg1)->y = arg2;
+           action : if (arg1) (arg1)-&gt;y = arg2;
 ...
 </pre>
 </div>
@@ -2975,7 +2975,7 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* write the wrapper function definition */
-  Printv(wrapper->def,"RETURN_TYPE ", wname, "(ARGS) {",NIL);
+  Printv(wrapper-&gt;def,"RETURN_TYPE ", wname, "(ARGS) {",NIL);
 
   /* if any additional local variable needed, add them now */
   ...
@@ -3005,13 +3005,13 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* Close the function(ok) */
-  Printv(wrapper->code, "return ALL_OK;\n", NIL);
+  Printv(wrapper-&gt;code, "return ALL_OK;\n", NIL);
 
   /* add the failure cleanup code */
   ...
 
   /* Close the function(error) */
-  Printv(wrapper->code, "return ERROR;\n", "}\n", NIL);
+  Printv(wrapper-&gt;code, "return ERROR;\n", "}\n", NIL);
 
   /* final substititions if applicable */
   ...

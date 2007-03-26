@@ -1971,7 +1971,7 @@ public:
 
 int main() {
   A *a  = new A();
-  a->ref();           // 'a' is ref here
+  a-&gt;ref();           // 'a' is ref here
 
   B *b1 = new B(a);   // 'a' is ref here
   if (1 + 1 == 2) {
@@ -1980,7 +1980,7 @@ int main() {
   }
 
   delete b1;          // 'a' is unref, but not deleted   
-  a->unref();         // 'a' is unref and deleted
+  a-&gt;unref();         // 'a' is unref and deleted
 }
 </pre>
 </div>
@@ -2004,8 +2004,8 @@ counted objects, you use the "ref" and "unref" features, or
 %module example
 ...
 
-%feature("ref")   RCObj "$this->ref();"
-%feature("unref") RCObj "$this->unref();"
+%feature("ref")   RCObj "$this-&gt;ref();"
+%feature("unref") RCObj "$this-&gt;unref();"
 
 %include "rcobj.h"
 %include "A.h"
@@ -2021,8 +2021,8 @@ or, using the directive form:
 %module example
 ...
 
-%ref   RCObj "$this->ref();"
-%unref RCObj "$this->unref();"
+%ref   RCObj "$this-&gt;ref();"
+%unref RCObj "$this-&gt;unref();"
 
 %include "rcobj.h"
 %include "A.h"
@@ -2058,7 +2058,7 @@ exit              # 'a' is released, SWIG unref 'a'
 </div>
 
 <p>
-Note that the user doesn't explicitly need to call 'a->ref()' nor 'a->unref()'
+Note that the user doesn't explicitly need to call 'a-&gt;ref()' nor 'a-&gt;unref()'
 (as neither 'delete a'). Instead, SWIG take cares of executing the "ref"
 and "unref" codes as needed.  If the user doesn't specify the
 "ref/unref" features, SWIG will produce a code equivalent to define

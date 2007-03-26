@@ -107,7 +107,7 @@ extern int Example_Init(LuaState* L); // declare the wrapped module
 int main(int argc,char* argv[])
 {
  lua_State *L;
- if (argc<2)
+ if (argc&lt;2)
  {
   printf("%s: &lt;filename.lua&gt;\n",argv[0]);
   return 0;

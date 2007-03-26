@@ -760,14 +760,14 @@ namespace car {
     </p>
       <div class="code">
       <pre>
-#define A 1                    => (swig-defconstant "A" 1)  
-#define B 'c'                  => (swig-defconstant "B" #\c)
-#define C B                    => (swig-defconstant "C" #\c)
-#define D 1.0e2                => (swig-defconstant "D" 1.0d2)
-#define E 2222                 => (swig-defconstant "E" 2222)
-#define F (unsigned int)2222   => no code generated
-#define G 1.02e2f              => (swig-defconstant "G" 1.02f2)
-#define H foo                  => no code generated
+#define A 1                    =&gt; (swig-defconstant "A" 1)  
+#define B 'c'                  =&gt; (swig-defconstant "B" #\c)
+#define C B                    =&gt; (swig-defconstant "C" #\c)
+#define D 1.0e2                =&gt; (swig-defconstant "D" 1.0d2)
+#define E 2222                 =&gt; (swig-defconstant "E" 2222)
+#define F (unsigned int)2222   =&gt; no code generated
+#define G 1.02e2f              =&gt; (swig-defconstant "G" 1.02f2)
+#define H foo                  =&gt; no code generated
       </pre>
       </div>
 
@@ -789,13 +789,13 @@ namespace car {
       
       <div class="code">
       <pre>
-#define I A + E                => (swig-defconstant "I" (+ 1 2222))
-#define J 1|2                  => (swig-defconstant "J" (logior 1 2))
-#define Y 1 + 2 * 3 + 4        => (swig-defconstant "Y" (* (+ 1 2) (+ 3 4)))
-#define Y1 (1 + 2) * (3 + 4)   => (swig-defconstant "Y1" (* (+ 1 2) (+ 3 4)))
-#define Y2 1 * 2 + 3 * 4       => (swig-defconstant "Y2" (* 1 (+ 2 3) 4))  ;; WRONG
-#define Y3 (1 * 2) + (3 * 4)   => (swig-defconstant "Y3" (* 1 (+ 2 3) 4))  ;; WRONG
-#define Z 1 + 2 - 3 + 4 * 5    => (swig-defconstant "Z" (* (+ 1 (- 2 3) 4) 5)) ;; WRONG
+#define I A + E                =&gt; (swig-defconstant "I" (+ 1 2222))
+#define J 1|2                  =&gt; (swig-defconstant "J" (logior 1 2))
+#define Y 1 + 2 * 3 + 4        =&gt; (swig-defconstant "Y" (* (+ 1 2) (+ 3 4)))
+#define Y1 (1 + 2) * (3 + 4)   =&gt; (swig-defconstant "Y1" (* (+ 1 2) (+ 3 4)))
+#define Y2 1 * 2 + 3 * 4       =&gt; (swig-defconstant "Y2" (* 1 (+ 2 3) 4))  ;; WRONG
+#define Y3 (1 * 2) + (3 * 4)   =&gt; (swig-defconstant "Y3" (* 1 (+ 2 3) 4))  ;; WRONG
+#define Z 1 + 2 - 3 + 4 * 5    =&gt; (swig-defconstant "Z" (* (+ 1 (- 2 3) 4) 5)) ;; WRONG
       </pre>
       </div>
       <p>
@@ -863,20 +863,20 @@ namespace nnn {
 
     <div class="targetlang">
     <pre>
-user> (load "globalvar.dll")
+user&gt; (load "globalvar.dll")
 ; Foreign loading globalvar.dll.
 t
-user> (load "globalvar.cl")
+user&gt; (load "globalvar.cl")
 ; Loading c:\mikel\src\swig\test\globalvar.cl
 t
-user> 
-globalvar> (globalvar.nnn::global_var)
+user&gt; 
+globalvar&gt; (globalvar.nnn::global_var)
 2
-globalvar> (globalvar.nnn::glob_float)
+globalvar&gt; (globalvar.nnn::glob_float)
 2.0
-globalvar> (setf (globalvar.nnn::glob_float) 3.0)
+globalvar&gt; (setf (globalvar.nnn::glob_float) 3.0)
 3.0
-globalvar> (globalvar.nnn::glob_float)
+globalvar&gt; (globalvar.nnn::glob_float)
 3.0
     </pre>
     </div>
@@ -1215,10 +1215,10 @@ class A {
 
 typedef A Foo;
 
-A *xxx(int i);         /* sets A->x = A->y = i */
-Foo *yyy(int i);       /* sets Foo->x = Foo->y = i */
+A *xxx(int i);         /* sets A-&gt;x = A-&gt;y = i */
+Foo *yyy(int i);       /* sets Foo-&gt;x = Foo-&gt;y = i */
 
-int zzz(A *inst = 0);  /* return inst->x + inst->y */
+int zzz(A *inst = 0);  /* return inst-&gt;x + inst-&gt;y */
     </pre>
     </div>
 
@@ -1258,22 +1258,22 @@ int zzz(A *inst = 0);  /* return inst->x + inst->y */
     </p>
     <div class="targetlang">
     <pre>
-CL-USER> (load "synonym.dll")
+CL-USER&gt; (load "synonym.dll")
 ; Foreign loading synonym.dll.
 t
-CL-USER> (load "synonym.cl")
+CL-USER&gt; (load "synonym.cl")
 ; Loading c:\mikel\src\swig\test\synonym.cl
 t
-CL-USER> 
-synonym> (setf a (xxx 3))
+CL-USER&gt; 
+synonym&gt; (setf a (xxx 3))
 #&lt;A nil #x3261a0 @ #x207299da&gt;
-synonym> (setf foo (yyy 10))
+synonym&gt; (setf foo (yyy 10))
 #&lt;A nil #x3291d0 @ #x2072e982&gt;
-synonym> (zzz a)
+synonym&gt; (zzz a)
 6
-synonym> (zzz foo)
+synonym&gt; (zzz foo)
 20
-synonym> 
+synonym&gt; 
     </pre>
     </div>
 
@@ -1326,7 +1326,7 @@ class A {
 };
 
 float xxx(int i, int x = 0);   /* return i * x */
-float xxx(A *inst, int x);     /* return x + A->x + A->y */
+float xxx(A *inst, int x);     /* return x + A-&gt;x + A-&gt;y */
     </pre>
     </div>
 
@@ -1443,21 +1443,21 @@ EXPORT float ACL___xxx__SWIG_2 (A *larg1, int larg2) {
     </p>
     <div class="targetlang">
     <pre>
-overload> (setf a (new_A))
+overload&gt; (setf a (new_A))
 #&lt;A nil #x329268 @ #x206cf612&gt;
-overload> (setf (A_x a) 10)
+overload&gt; (setf (A_x a) 10)
 10
-overload> (setf (A_y a) 20)
+overload&gt; (setf (A_y a) 20)
 20
-overload> (xxx 1)
+overload&gt; (xxx 1)
 0.0
-overload> (xxx 3 10)
+overload&gt; (xxx 3 10)
 30.0
-overload> (xxx a 1)
+overload&gt; (xxx a 1)
 31.0
-overload> (xxx a 2)
+overload&gt; (xxx a 2)
 32.0
-overload> 
+overload&gt; 
     </pre>
     </div>
 
@@ -1506,17 +1506,17 @@ overload>
 %rename(__logand_assign__)   *::operator&amp;=;
 %rename(__logior_assign__)   *::operator|=;
 
-%rename(__lshift__)	     *::operator<<;
-%rename(__lshift_assign__)   *::operator<<=;
-%rename(__rshift__)	     *::operator>>;
-%rename(__rshift_assign__)   *::operator>>=;
+%rename(__lshift__)	     *::operator&lt;&lt;;
+%rename(__lshift_assign__)   *::operator&lt;&lt;=;
+%rename(__rshift__)	     *::operator&gt;&gt;;
+%rename(__rshift_assign__)   *::operator&gt;&gt;=;
 
 %rename(__eq__)		     *::operator==;
 %rename(__ne__)		     *::operator!=;
-%rename(__lt__)		     *::operator<;
-%rename(__gt__)		     *::operator>;
-%rename(__lte__)	     *::operator<=;
-%rename(__gte__)	     *::operator>=;
+%rename(__lt__)		     *::operator&lt;;
+%rename(__gt__)		     *::operator&gt;;
+%rename(__lte__)	     *::operator&lt;=;
+%rename(__gte__)	     *::operator&gt;=;
 
 %rename(__and__)	     *::operator&amp;&amp;;
 %rename(__or__)		     *::operator||;
@@ -1529,8 +1529,8 @@ overload>
 %rename(__comma__)	     *::operator,();
 %rename(__comma__)	     *::operator,() const;
 
-%rename(__member_ref__)      *::operator->;
-%rename(__member_func_ref__) *::operator->*;
+%rename(__member_ref__)      *::operator-&gt;;
+%rename(__member_func_ref__) *::operator-&gt;*;
 
 %rename(__funcall__)	     *::operator();
 %rename(__aref__)	     *::operator[];
@@ -1599,11 +1599,11 @@ bool B___eq__(B const *inst, int const x)
     </p>
     <div class="targetlang">
     <pre>
-opoverload> (B___eq__ x1 x2)
+opoverload&gt; (B___eq__ x1 x2)
 nil
-opoverload> (B___eq__ x1 3)
+opoverload&gt; (B___eq__ x1 3)
 nil
-opoverload> 
+opoverload&gt; 
     </pre>
     </div>
 

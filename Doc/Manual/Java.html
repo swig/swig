@@ -3936,7 +3936,7 @@ Let's consider an example:
 int array[4];
 void populate(int x[]) {
     int i;
-    for (i=0; i<4; i++)
+    for (i=0; i&lt;4; i++)
         x[i] = 100 + i;
 }
 </pre>
@@ -4083,7 +4083,7 @@ In Java, you would use the functions like this:
 <div class="code">
 <pre>
 SWIGTYPE_p_int array = example.new_intArray(10000000);  // Array of 10-million integers
-for (int i=0; i<10000; i++) {                           // Set some values
+for (int i=0; i&lt;10000; i++) {                           // Set some values
     example.intArray_setitem(array,i,i);
 }
 int sum = example.sumitems(array,10000);
@@ -4112,7 +4112,7 @@ For instance, you will be able to do this in Java:
 <div class="code">
 <pre>
 intArray array = new intArray(10000000);  // Array of 10-million integers
-for (int i=0; i<10000; i++) {             // Set some values
+for (int i=0; i&lt;10000; i++) {             // Set some values
     array.setitem(i,i);
 }
 int sum = example.sumitems(array.cast(),10000);
@@ -6672,7 +6672,7 @@ and usage from C++
     Container container;
     Element element(20);
     container.setElement(&amp;element);
-    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()->value &lt;&lt; endl;
+    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
 </pre>
 </div>
 

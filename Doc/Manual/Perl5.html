@@ -1247,8 +1247,8 @@ The following C++ operators are currently supported by the Perl module:
 <li>operator==	 </li>
 <li>operator!=	 </li>
 <li>operator%	 </li>
-<li>operator>	 </li>
-<li>operator<	 </li>
+<li>operator&gt;	 </li>
+<li>operator&lt;	 </li>
 <li>operator and </li>
 <li>operator or  </li>
     </ul>
@@ -2924,11 +2924,11 @@ sub set_transform
 {
   my ($im, $x) = @_;
   my $a = new_mat44();
-  for (my $i = 0; $i < 4, $i++)
+  for (my $i = 0; $i &lt; 4, $i++)
   {
-    for (my $j = 0; $j < 4, $j++)
+    for (my $j = 0; $j &lt; 4, $j++)
     {
-      mat44_set($a, $i, $j, $x->[i][j])
+      mat44_set($a, $i, $j, $x-&gt;[i][j])
       }
   }
   example.set_transform($im, $a);
