@@ -196,13 +196,13 @@ Here is code that generates the above function:
 <blockquote>
 <pre>
 Wrapper *w = NewWrapper();
-Printf(w->def,"void foo(int n) {");
+Printf(w-&gt;def,"void foo(int n) {");
 Wrapper_add_local(w,"n","");         /* parameter n */
 Wrapper_add_local(w,"i", "int i;");  /* local i */
-Printv(w->code,"for (i = 0; i &lt; n; i++) {",
+Printv(w-&gt;code,"for (i = 0; i &lt; n; i++) {",
                "printf(\"%d\n",i);",
                "}\n", NIL);
-Printf(w->code,"}\n");
+Printf(w-&gt;code,"}\n");
 
 /* Emit wrapper code */
 Wrapper_print(w,outf);

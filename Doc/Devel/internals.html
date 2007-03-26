@@ -581,7 +581,7 @@ Original Datatype              lstr()
 const char *a                  char *a
 double a[20]                   double *a
 double a[20][30]               double *a
-double &a                      double *a
+double &amp;a                      double *a
 </pre>
 </blockquote>
 
@@ -605,7 +605,7 @@ char *a
 const char *a                 (const char *) name
 double a[20]                  (double *) name
 double a[20][30]              (double (*)[30]) name
-double &a                     (double &) *name
+double &amp;a                     (double &amp;) *name
 </pre>
 </blockquote>
 
@@ -626,7 +626,7 @@ char *a
 const char *a                 (char *) name
 double a[20]                  (double *) name
 double a[20][30]              (double *) name
-double &a                     (double *) &name
+double &amp;a                     (double *) &amp;name
 </pre>
 </blockquote>
 
@@ -807,7 +807,7 @@ The "bar" method is wrapped by a function like this:
 <blockquote>
 <pre>
 double Foo_bar(Foo *self, double arg0) {
-   return self->bar(arg0);
+   return self-&gt;bar(arg0);
 }
 </pre>
 </blockquote>
@@ -829,10 +829,10 @@ gets wrapped as follows:
 <blockquote>
 <pre>
 int Foo_x_get(Foo *self) {
-    return self->x;
+    return self-&gt;x;
 }
 int Foo_x_set(Foo *self, int value) {
-    return (self->x = value);
+    return (self-&gt;x = value);
 }
 </pre>
 </blockquote>
@@ -948,7 +948,7 @@ ParmList *l = ... parameter list of the function ...
 DataType *t = ... return type of the function ...
 char     *name = ... name of the function ...
 Wrapper *w = NewWrapper();
-Printf(w->def,"void wrap_%s() {\n", name);
+Printf(w-&gt;def,"void wrap_%s() {\n", name);
 
 /* Declare all of the local variables */
 Swig_cargs(w, l);
@@ -962,7 +962,7 @@ Swig_cresult(w,t,"result",Swig_cfunction(name,l));
 /* Convert the result into whatever */
 ...
 
-Printf(w->code,"}\n");
+Printf(w-&gt;code,"}\n");
 Wrapper_print(w,out);
 </pre>
 </blockquote>
@@ -1073,25 +1073,25 @@ With each is the cast that can be used in the debugger to extract the underlying
 <p>
 <li>String *s;</li>
 <br>
-(String *)((DohBase *)s)->data
+(String *)((DohBase *)s)-&gt;data
 <br>
 The underlying char * string can be displayed with
 <br>
-((String *)((DohBase *)s)->data)->str
+((String *)((DohBase *)s)-&gt;data)-&gt;str
 
 <p>
 <li>SwigType *t;</li>
 <br>
-(String *)((DohBase *)t)->data
+(String *)((DohBase *)t)-&gt;data
 <br>
 The underlying char * string can be displayed with
 <br>
-((String *)((DohBase *)t)->data)->str
+((String *)((DohBase *)t)-&gt;data)-&gt;str
 
 <p>
 <li>String_or_char *sc;</li>
 Either <br>
-((String *)((DohBase *)sc)->data)->str
+((String *)((DohBase *)sc)-&gt;data)-&gt;str
 <br> or <br>
 (char *)sc
 <br> will work depending on whether the underlying type is really a String * or char *.
