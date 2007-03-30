@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+03/30/2007: olly
+	    Avoid generating '<:' token when using SwigValueWrapper<> on a type
+	    which starts with '::' (patch #1690948).
+
 03/25/2007: wuzzeb (John Lenz)
 	    [perl5] Add SWIG_fail to the SWIG_exception macro.  Fixes a few problems reported
 	    on the mailing list.

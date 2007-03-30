@@ -1291,22 +1291,25 @@ int SwigType_type(SwigType *t) {
  *        class MyOpaqueClass;
  *
  * Users can also force the use of the value wrapper by using the
- * %feature("valuewrapper"). 
+ * %feature("valuewrapper").
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
+  Node *n;
+  SwigType *w = 0;
+  int use_wrapper = 0;
+  SwigType *td = 0;
+
   if (!cparse_cplusplus)
     return 0;
+
   if (value_wrapper_mode == 0) {
     /* old partial use of SwigValueTypes, it can fail for opaque types */
-    Node *n;
-    SwigType *w = 0;
-    int use_wrapper = 0;
     if (local_tmap)
       return 0;
-    if (!use_wrapper && SwigType_isclass(t)) {
+    if (SwigType_isclass(t)) {
       SwigType *ftd = SwigType_typedef_resolve_all(t);
-      SwigType *td = SwigType_strip_qualifiers(ftd);
+      td = SwigType_strip_qualifiers(ftd);
       Delete(ftd);
       if ((n = Swig_symbol_clookup(td, 0))) {
 	if (GetFlag(n, "feature:valuewrapper")) {
@@ -1323,23 +1326,14 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	  use_wrapper = !n || !GetFlag(n, "feature:novaluewrapper");
 	}
       }
-      if (use_wrapper) {
-	String *str = SwigType_str(td, 0);
-	w = NewStringf("SwigValueWrapper<%s >", str);
-	Delete(str);
-      }
-
-      Delete(td);
     }
-    return w;
   } else {
-    /*  safe use of SwigValueTypes, it can fail with some typemaps */
-    SwigType *w = 0;
-    Node *n = 0;
-    int use_wrapper = 1;
+    /* safe use of SwigValueTypes, it can fail with some typemaps */
     SwigType *ftd = SwigType_typedef_resolve_all(t);
-    SwigType *td = SwigType_strip_qualifiers(ftd);
+    td = SwigType_strip_qualifiers(ftd);
+    Delete(ftd);
     if (SwigType_type(td) == T_USER) {
+      use_wrapper = 1;
       if ((n = Swig_symbol_clookup(td, 0))) {
 	if ((Checkattr(n, "nodeType", "class")
 	     && !Getattr(n, "allocate:noassign")
@@ -1348,16 +1342,18 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	  use_wrapper = GetFlag(n, "feature:valuewrapper");
 	}
       }
-    } else {
-      use_wrapper = 0;
     }
-    if (use_wrapper) {
-      w = NewStringf("SwigValueWrapper<%s >", td);
-    }
-    Delete(ftd);
-    Delete(td);
-    return w;
   }
+
+  if (use_wrapper) {
+    /* Need a space before the type in case it starts "::" (since the <:
+     * token is a digraph for [ in C++.  Also need a space after the
+     * type in case it ends with ">" since then we form the token ">>".
+     */
+    w = NewStringf("SwigValueWrapper< %s >", td);
+  }
+  Delete(td);
+  return w;
 }
 
 /* ----------------------------------------------------------------------------
