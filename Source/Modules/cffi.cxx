@@ -881,7 +881,7 @@ String *CFFI::infix_to_prefix(String *val, char split_op, const String *op, Stri
 }
 
 /* To be called by code generating the lisp interface
-   Will return a containing the literal based on type.
+   Will return a String containing the literal based on type.
    Will return null if there are problems.
 
    try_to_split defaults to true (see stub above).
@@ -953,7 +953,8 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     /* Use CL syntax for string literals */
     Delete(num);
     return NewStringf("\"%s\"", num_param);
-  } else if (SwigType_type(type) == T_INT) {
+  } else if (SwigType_type(type) == T_INT || SwigType_type(type) == T_UINT) {
+    // Printf(stderr, "Is a T_INT or T_UINT %s, before replaceall\n", s);
     Replaceall(num, "u", "");
     Replaceall(num, "U", "");
     Replaceall(num, "l", "");

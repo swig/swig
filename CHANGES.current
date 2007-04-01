@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+04/01/2007: efuzzyone
+       [CFFI] Patch #1684261: fixes handling of unsigned int literals, thanks Leigh Smith.
+       Also, improved documentation.
+  
 03/30/2007: olly
 	    Avoid generating '<:' token when using SwigValueWrapper<> on a type
 	    which starts with '::' (patch #1690948).
