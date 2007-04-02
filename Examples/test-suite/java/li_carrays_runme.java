@@ -13,11 +13,27 @@ public class li_carrays_runme {
 
   public static void main(String argv[]) throws Throwable
   {
-    int length = 5;
-
     // array_class
     {
+      int length = 5;
       XYArray xyArray = new XYArray(length);
+      for (int i=0; i<length; i++) {
+        XY xy = xyArray.getitem(i);
+        xy.setX(i*10);
+        xy.setY(i*100);
+        xyArray.setitem(i, xy);
+      }
+      for (int i=0; i<length; i++) {
+        Assert(xyArray.getitem(i).getX(), i*10);
+        Assert(xyArray.getitem(i).getY(), i*100);
+      }
+    }
+
+    {
+      // global array variable
+      int length = 5;
+      XY xyArrayPointer = li_carrays.getGlobalXYArray();
+      XYArray xyArray = XYArray.frompointer(xyArrayPointer);
       for (int i=0; i<length; i++) {
         XY xy = xyArray.getitem(i);
         xy.setX(i*10);
@@ -32,6 +48,7 @@ public class li_carrays_runme {
 
     // array_functions
     {
+      int length = 5;
       AB abArray = li_carrays.new_ABArray(length);
       for (int i=0; i<length; i++) {
         AB ab = li_carrays.ABArray_getitem(abArray, i);
@@ -44,6 +61,22 @@ public class li_carrays_runme {
         Assert(li_carrays.ABArray_getitem(abArray, i).getB(), i*100);
       }
       li_carrays.delete_ABArray(abArray);
+    }
+
+    {
+      // global array variable
+      int length = 3;
+      AB abArray = li_carrays.getGlobalABArray();
+      for (int i=0; i<length; i++) {
+        AB ab = li_carrays.ABArray_getitem(abArray, i);
+        ab.setA(i*10);
+        ab.setB(i*100);
+        li_carrays.ABArray_setitem(abArray, i, ab);
+      }
+      for (int i=0; i<length; i++) {
+        Assert(li_carrays.ABArray_getitem(abArray, i).getA(), i*10);
+        Assert(li_carrays.ABArray_getitem(abArray, i).getB(), i*100);
+      }
     }
   }
 

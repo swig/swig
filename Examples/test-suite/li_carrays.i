@@ -12,10 +12,14 @@ typedef struct {
   int x;
   int y;
 } XY;
+XY globalXYArray[3];
+
 typedef struct {
   int a;
   int b;
 } AB;
+
+AB globalABArray[3];
 %}
 
 // Note that struct XY { ... }; gives compiler error for C when using %array_class or %array_functions, but is okay in C++
