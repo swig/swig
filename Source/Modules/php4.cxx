@@ -2304,11 +2304,11 @@ public:
 
       if (base.item) {
 	Printf(s_oinit,
-	       "if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
+	       "if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL TSRMLS_CC))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
 	       shadow_classname, shadow_classname, GetChar(base.item, "sym:name"), shadow_classname);
       } else {
 	Printf(s_oinit,
-	       "if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,NULL,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
+	       "if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,NULL,NULL TSRMLS_CC))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
 	       shadow_classname, shadow_classname, shadow_classname);
       }
       Printf(s_oinit, "\n");
