@@ -811,10 +811,14 @@ public:
     Printf(s_init, "    return SUCCESS;\n");
     Printf(s_init, "}\n\n");
 
-    Printf(s_init, "PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
-    Printf(s_init, "%s\n", s_shutdown);
-    Printf(s_init, "    return SUCCESS;\n");
-    Printf(s_init, "}\n\n");
+    Printv(s_init, "PHP_MSHUTDOWN_FUNCTION(", module, ")\n"
+		   "{\n",
+		   s_shutdown,
+		   "#ifdef ZTS\n"
+		   "    ts_free_id(", module, "_globals_id);\n"
+		   "#endif\n"
+		   "    return SUCCESS;\n"
+		   "}\n\n", NIL);
 
     Printf(s_init, "PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
     Printf(s_init, "%s\n", r_shutdown);
