@@ -5,14 +5,14 @@
 
 /* template workaround for compilers that cannot correctly implement the C++ standard */
 #ifndef SWIGTEMPLATEDISAMBIGUATOR
-# if defined(__SUNPRO_CC)
-#   if (__SUNPRO_CC <= 0x560)
-#     define SWIGTEMPLATEDISAMBIGUATOR template
-#   else
-#     define SWIGTEMPLATEDISAMBIGUATOR 
-#   endif
+# if defined(__SUNPRO_CC) && (__SUNPRO_CC <= 0x560)
+#  define SWIGTEMPLATEDISAMBIGUATOR template
+# elif defined(__HP_aCC)
+/* Needed even with `aCC -AA' when `aCC -V' reports HP ANSI C++ B3910B A.03.55 */
+/* If we find a maximum version that requires this, the test would be __HP_aCC <= 35500 for A.03.55 */
+#  define SWIGTEMPLATEDISAMBIGUATOR template
 # else
-#   define SWIGTEMPLATEDISAMBIGUATOR 
+#  define SWIGTEMPLATEDISAMBIGUATOR
 # endif
 #endif
 

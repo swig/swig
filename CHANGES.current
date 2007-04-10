@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+04/10/2007: olly
+	    Define SWIGTEMPLATEDISAMBIGUATOR to template for aCC (reported on
+	    swig-user that this is needed).
+
 04/04/2007: olly
 	    [PHP5] If ZTS is enabled, release <module>_globals_id in MSHUTDOWN
 	    to avoid PHP interpreter crash on shutdown.  This solution was
