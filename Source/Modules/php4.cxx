@@ -1836,7 +1836,7 @@ public:
 	    if (i.item) {
 	      Printf(output, "case \"%s\": ", mangled);
 	    } else {
-	      Printf(output, "default: ", mangled);
+	      Printf(output, "default: ");
 	    }
 	    const char *classname = GetChar(class_node, "sym:name");
 	    if (!classname)
