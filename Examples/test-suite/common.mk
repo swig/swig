@@ -220,6 +220,7 @@ CPP_TEST_CASES += \
 	reference_global_vars \
 	register_par \
 	rename_scope \
+	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
 	rname \

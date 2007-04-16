@@ -751,8 +751,6 @@ int yylex(void) {
 	  return (yylex());
 	if (strcmp(yytext, "mutable") == 0)
 	  return (yylex());
-	if (strcmp(yytext, "restrict") == 0)
-	  return (yylex());
 	if (strcmp(yytext, "explicit") == 0)
 	  return (EXPLICIT);
 	if (strcmp(yytext, "export") == 0)
@@ -780,6 +778,8 @@ int yylex(void) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
 	}
+	if (strcmp(yytext, "restrict") == 0)
+	  return (yylex());
       }
 
       /* Misc keywords */
@@ -811,8 +811,6 @@ int yylex(void) {
       if (strcmp(yytext, "register") == 0)
 	return (REGISTER);
       if (strcmp(yytext, "inline") == 0)
-	return (yylex());
-      if (strcmp(yytext, "restrict") == 0)
 	return (yylex());
 
       /* SWIG directives */
