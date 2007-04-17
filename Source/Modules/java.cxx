@@ -1864,6 +1864,8 @@ public:
     String *return_type = NewString("");
     String *function_code = NewString("");
     bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
 
     if (!proxy_flag)
       return;
@@ -1908,7 +1910,7 @@ public:
 
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
-    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
     Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
@@ -1977,6 +1979,22 @@ public:
 	  addThrows(n, "tmap:javain", p);
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$javainput", arg);
+          String *pre = Getattr(p, "tmap:javain:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$javainput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:javain:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$javainput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, "No javain typemap defined for %s\n", SwigType_str(pt, 0));
@@ -1988,8 +2006,17 @@ public:
 	gencomma = 2;
 	Printf(function_code, "%s %s", param_type, arg);
 
-	if (prematureGarbageCollectionPreventionParameter(pt, p))
-	  Printf(imcall, ", %s", arg);
+	if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+          String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
+          if (pgcppname) {
+            String *argname = Copy(pgcppname);
+            Replaceall(argname, "$javainput", arg);
+            Printf(imcall, ", %s", argname);
+            Delete(argname);
+          } else {
+            Printf(imcall, ", %s", arg);
+          }
+        }
 
 	Delete(arg);
 	Delete(param_type);
@@ -2003,6 +2030,23 @@ public:
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("javaout", n, "", 0))) {
       addThrows(n, "tmap:javaout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+	Insert(tm, 0, "{");
+	Printf(tm, "\n  }");
+      }
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
@@ -2040,6 +2084,8 @@ public:
     Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
     Printv(proxy_class_code, function_code, NIL);
 
+    Delete(pre_code);
+    Delete(post_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
@@ -2056,6 +2102,11 @@ public:
     Parm *p;
     int i;
     String *function_code = NewString("");
+    String *helper_code = NewString(""); // Holds code for the constructor helper method generated only when the javain typemap has code in the pre or post attributes
+    String *helper_args = NewString("");
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *im_return_type = NewString("");
     bool feature_director = (parentNode(n) && Swig_directorclass(n));
 
     Language::constructorHandler(n);
@@ -2070,8 +2121,14 @@ public:
       String *imcall = NewString("");
 
       const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
-      methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
+      methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+      tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
+      Printf(im_return_type, "%s", tm);
+
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
+      Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
+
       Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
@@ -2120,19 +2177,49 @@ public:
 	  addThrows(n, "tmap:javain", p);
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$javainput", arg);
+          String *pre = Getattr(p, "tmap:javain:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$javainput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:javain:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$javainput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, "No javain typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
 	/* Add parameter to proxy function */
-	if (gencomma)
+	if (gencomma) {
 	  Printf(function_code, ", ");
+	  Printf(helper_code, ", ");
+	  Printf(helper_args, ", ");
+        }
 	Printf(function_code, "%s %s", param_type, arg);
+	Printf(helper_code, "%s %s", param_type, arg);
+	Printf(helper_args, "%s", arg);
 	++gencomma;
 
-	if (prematureGarbageCollectionPreventionParameter(pt, p))
-	  Printf(imcall, ", %s", arg);
+	if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+          String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
+          if (pgcppname) {
+            String *argname = Copy(pgcppname);
+            Replaceall(argname, "$javainput", arg);
+            Printf(imcall, ", %s", argname);
+            Delete(argname);
+          } else {
+            Printf(imcall, ", %s", arg);
+          }
+        }
 
 	Delete(arg);
 	Delete(param_type);
@@ -2142,6 +2229,7 @@ public:
       Printf(imcall, ")");
 
       Printf(function_code, ")");
+      Printf(helper_code, ")");
       generateThrowsClause(n, function_code);
 
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
@@ -2166,10 +2254,36 @@ public:
 	Printv(function_code, " ", construct_tm, "\n", NIL);
       }
 
-      Replaceall(function_code, "$imcall", imcall);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        generateThrowsClause(n, helper_code);
+        Printf(helper_code, " {\n");
+        if (is_pre_code) {
+          Printv(helper_code, pre_code, "\n", NIL);
+        }
+        if (is_post_code) {
+          Printf(helper_code, "    try {\n");
+          Printv(helper_code, "      return ", imcall, ";\n", NIL);
+          Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Printv(helper_code, "    return ", imcall, ";", NIL);
+        }
+        Printf(helper_code, "\n  }\n");
+        String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
+        Printv(proxy_class_code, helper_code, "\n", NIL);
+        Replaceall(function_code, "$imcall", helper_name);
+        Delete(helper_name);
+      } else {
+        Replaceall(function_code, "$imcall", imcall);
+      }
 
       Printv(proxy_class_code, function_code, "\n", NIL);
 
+      Delete(helper_args);
+      Delete(im_return_type);
+      Delete(pre_code);
+      Delete(post_code);
       Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
@@ -2270,6 +2384,8 @@ public:
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -2306,7 +2422,7 @@ public:
 
     /* Start generating the function */
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
-    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
@@ -2345,6 +2461,22 @@ public:
 	addThrows(n, "tmap:javain", p);
 	substituteClassname(pt, tm);
 	Replaceall(tm, "$javainput", arg);
+	String *pre = Getattr(p, "tmap:javain:pre");
+	if (pre) {
+	  substituteClassname(pt, pre);
+	  Replaceall(pre, "$javainput", arg);
+          if (Len(pre_code) > 0)
+            Printf(pre_code, "\n");
+	  Printv(pre_code, pre, NIL);
+	}
+	String *post = Getattr(p, "tmap:javain:post");
+	if (post) {
+	  substituteClassname(pt, post);
+	  Replaceall(post, "$javainput", arg);
+          if (Len(post_code) > 0)
+            Printf(post_code, "\n");
+	  Printv(post_code, post, NIL);
+	}
 	Printv(imcall, tm, NIL);
       } else {
 	Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, "No javain typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2356,8 +2488,17 @@ public:
       gencomma = 2;
       Printf(function_code, "%s %s", param_type, arg);
 
-      if (prematureGarbageCollectionPreventionParameter(pt, p))
-	Printf(imcall, ", %s", arg);
+      if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+        String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
+        if (pgcppname) {
+          String *argname = Copy(pgcppname);
+          Replaceall(argname, "$javainput", arg);
+          Printf(imcall, ", %s", argname);
+          Delete(argname);
+        } else {
+          Printf(imcall, ", %s", arg);
+        }
+      }
 
       p = Getattr(p, "tmap:in:next");
       Delete(arg);
@@ -2370,6 +2511,23 @@ public:
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("javaout", n, "", 0))) {
       addThrows(n, "tmap:javaout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+	Insert(tm, 0, "{");
+	Printf(tm, "\n  }");
+      }
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
@@ -2384,6 +2542,8 @@ public:
     Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
     Printv(module_class_code, function_code, NIL);
 
+    Delete(pre_code);
+    Delete(post_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);

@@ -126,6 +126,7 @@
 <li><a href="#struct_pointer_pointer">Struct pointer to pointer</a>
 <li><a href="#java_memory_management_member_variables">Memory management when returning references to member variables</a>
 <li><a href="#java_memory_management_objects">Memory management for objects passed to the C++ layer</a>
+<li><a href="#java_date_marshalling">Date marshalling using the javain typemap and associated attributes</a>
 </ul>
 <li><a href="#java_directors_faq">Living with Java Directors</a>
 <li><a href="#odds_ends">Odds and ends</a>
@@ -1887,7 +1888,7 @@ For example:
 <pre>
 %module example
 %{
-#include "pair.h"
+#include &lt;utility&gt;
 %}
 
 template&lt;class T1, class T2&gt;
@@ -4722,8 +4723,11 @@ These are listed below:
 
 
 <p>
-There is an additional typemap attribute that the Java module supports.
-This is the 'throws' attribute.
+There are a few additional typemap attributes that the Java module supports.
+</p>
+
+<p>
+The first of these is the 'throws' attribute.
 The throws attribute is optional and specified after the typemap name and contains one or more comma separated classes for adding to the throws clause for any methods that use that typemap.
 It is analogous to the <a href="#exception_handling">%javaexception</a> feature's throws attribute.
 </p>
@@ -4749,7 +4753,16 @@ See the <a href="#nan_exception_typemap">NaN exception example</a> for further u
 </p>
 
 <p>
-The "jnitype" typemap has the 'nopgcpp' attribute which can be used to suppress the generation of the <a href="java_pgcpp">premature garbage collection prevention parameter</a>.
+The "jnitype" typemap has the optional 'nopgcpp' attribute which can be used to suppress the generation of the <a href="java_pgcpp">premature garbage collection prevention parameter</a>.
+</p>
+
+<p>
+The "javain" typemap has the optional 'pre', 'post' and 'pgcppname' attributes. These are used for generating code before and after the JNI call in the proxy class or module class. The 'pre' attribute contains code that is generated before the JNI call and the 'post' attribute contains code generated after the JNI call. The 'pgcppname' attribute is used to change the <a href="java_pgcpp">premature garbage collection prevention parameter</a> name passed to the JNI function. This is sometimes needed when the 'pre' typemap creates a temporary variable which is then passed to the JNI function.
+</p>
+
+<p>
+<a name="java_constructor_helper_function"></a>
+Note that when the 'pre' or 'post' attributes are specified and the associated type is used in a constructor, a constructor helper function is generated. This is necessary as the Java proxy constructor wrapper makes a call to a support constructor using a <i>this</i> call. In Java the <i>this</i> call must be the first statement in the constructor body. The constructor body thus calls the helper function and the helper function instead makes the JNI call, ensuring the 'pre' code is called before the JNI call is made. There is a <a href="#java_date_marshalling">Date marshalling</a> example showing 'pre', 'post' and 'pgcppname' attributes in action.
 </p>
 
 <H3><a name="special_variables"></a>20.8.7 Java special variables</H3>
@@ -5631,6 +5644,43 @@ public class example {
 <p>
 Note that the "javain" typemap is used for every occurrence of a <tt>float</tt> being used as an input.
 Of course, we could have targeted the typemap at a particular parameter by using <tt>float first</tt>, say, instead of just <tt>float</tt>.
+</p>
+
+<p>
+The exception checking could alternatively have been placed into the 'pre' attribute that the "javain" typemap supports.
+The "javain" typemap above could be replaced with the following:
+</p>
+
+<div class="code">
+<pre>
+%typemap(javain, pre="    $module.CheckForNaN($javainput);") float "$javainput"
+</pre>
+</div>
+
+<p>
+which would modify the <tt>calculate</tt> function to instead be generated as:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  ...
+  public static boolean calculate(float first, float second) {
+    example.CheckForNaN(first);
+    example.CheckForNaN(second);
+    {
+      return exampleJNI.calculate(first, second);
+    }
+  }
+}
+</pre>
+</div>
+
+<p>
+See the <a href="#java_date_marshalling">Date marshalling example</a> for an example using further "javain" typemap attributes.
+</p>
+
+<p>
 If we decide that what we actually want is a checked exception instead of a runtime exception, we can change this easily enough.
 The proxy method that uses <tt>float</tt> as an input, must then add the exception class to the throws clause.
 SWIG can handle this as it supports the 'throws' <a href="#typemap_attributes">typemap attribute</a> for specifying classes for the throws clause.
@@ -6752,6 +6802,182 @@ The 'javacode' typemap simply adds in the specified code into the Java proxy cla
 %}
 </pre>
 </div>
+
+
+<H3><a name="java_date_marshalling"></a>20.9.13 Date marshalling using the javain typemap and associated attributes</H3>
+
+
+<p>
+The <a href="#nan_exception_typemap">NaN Exception example</a> is a simple example of the "javain" typemap and its 'pre' attribute.
+This example demonstrates how a C++ date class, say <tt>CDate</tt>, can be mapped onto the standard Java date class,
+<tt>java.util.GregorianCalendar</tt> by using the 'pre', 'post' and 'pgcppname' attributes of the "javain" typemap.
+The idea is that the <tt>GregorianCalendar</tt> is used wherever the C++ API uses a <tt>CDate</tt>.
+Let's assume the code being wrapped is as follows:
+</p>
+
+<div class="code">
+<pre>
+class CDate {
+public:
+  CDate(int year, int month, int day);
+  int getYear();
+  int getMonth();
+  int getDay();
+  ...
+};
+struct Action {
+  static int doSomething(const CDate &amp;dateIn, CDate &amp;dateOut);
+  Action(const CDate &amp;date, CDate &amp;dateOut);
+};
+</pre>
+</div>
+
+<p>
+Note that <tt>dateIn</tt> is const and therefore read only and <tt>dateOut</tt> is a non-const output type.
+</p>
+
+<p>
+First let's look at the code that is generated by default, where the Java proxy class <tt>CDate</tt> is used in the proxy interface:
+</p>
+
+<div class="code">
+<pre>
+public class Action {
+  ...
+  public static int doSomething(CDate dateIn, CDate dateOut) {
+    return exampleJNI.Action_doSomething(CDate.getCPtr(dateIn), dateIn, 
+                                         CDate.getCPtr(dateOut), dateOut);
+  }
+
+  public Action(CDate date, CDate dateOut) {
+    this(exampleJNI.new_Action(CDate.getCPtr(date), date, 
+                               CDate.getCPtr(dateOut), dateOut), true);
+  }
+}
+</pre>
+</div>
+
+<p>
+The <tt>CDate &amp;</tt> and <tt>const CDate &amp;</tt> Java code is generated from the following two default typemaps:
+</p>
+
+<div class="code">
+<pre>
+%typemap(jstype) SWIGTYPE &amp; "$javaclassname"
+%typemap(javain) SWIGTYPE &amp; "$javaclassname.getCPtr($javainput)"
+</pre>
+</div>
+
+<p>
+where '$javaclassname' is translated into the proxy class name, <tt>CDate</tt> and '$javainput' is translated into the name of the parameter, eg <tt>dateIn</tt>.
+From Java, the intention is then to call into a modifed API with something like:
+</p>
+
+<div class="code">
+<pre>
+java.util.GregorianCalendar calendarIn = 
+    new java.util.GregorianCalendar(2011, java.util.Calendar.APRIL, 13, 0, 0, 0);
+java.util.GregorianCalendar calendarOut = new java.util.GregorianCalendar();
+
+// Note in calls below, calendarIn remains unchanged and calendarOut 
+// is set to a new value by the C++ call
+Action.doSomething(calendarIn, calendarOut);
+Action action = new Action(calendarIn, calendarOut);
+</pre>
+</div>
+
+<p>
+To achieve this mapping, we need to alter the default code generation slightly so that at the Java layer, 
+a <tt>GregorianCalendar</tt> is converted into a <tt>CDate</tt>. 
+The JNI intermediary layer will still take a pointer to the underlying <tt>CDate</tt> class.
+The typemaps to achieve this are shown below.
+</p>
+
+<div class="code">
+<pre>
+%typemap(jstype) const CDate&amp; "java.util.GregorianCalendar"
+%typemap(javain, 
+         pre="    CDate temp$javainput = new CDate($javainput.get(java.util.Calendar.YEAR), "
+             "$javainput.get(java.util.Calendar.MONTH), $javainput.get(java.util.Calendar.DATE));", 
+         pgcppname="temp$javainput") const CDate &amp;
+         "$javaclassname.getCPtr(temp$javainput)"
+
+%typemap(jstype) CDate&amp; "java.util.Calendar"
+%typemap(javain, 
+         pre="    CDate temp$javainput = new CDate($javainput.get(java.util.Calendar.YEAR), "
+             "$javainput.get(java.util.Calendar.MONTH), $javainput.get(java.util.Calendar.DATE));", 
+         post="      $javainput.set(temp$javainput.getYear(), temp$javainput.getMonth(), "
+              "temp$javainput.getDay(), 0, 0, 0);", 
+         pgcppname="temp$javainput") CDate &amp;
+         "$javaclassname.getCPtr(temp$javainput)"
+</pre>
+</div>
+
+<p>
+The resulting generated proxy code in the <tt>Action</tt> class follows:
+ </p>
+
+<div class="code">
+<pre>
+public class Action {
+  ...
+  public static int doSomething(java.util.GregorianCalendar dateIn, 
+                                java.util.Calendar dateOut) {
+    CDate tempdateIn = new CDate(dateIn.get(java.util.Calendar.YEAR), 
+                                 dateIn.get(java.util.Calendar.MONTH), 
+                                 dateIn.get(java.util.Calendar.DATE));
+    CDate tempdateOut = new CDate(dateOut.get(java.util.Calendar.YEAR), 
+                                  dateOut.get(java.util.Calendar.MONTH), 
+                                  dateOut.get(java.util.Calendar.DATE));
+    try {
+      return exampleJNI.Action_doSomething(CDate.getCPtr(tempdateIn), tempdateIn, 
+                                           CDate.getCPtr(tempdateOut), tempdateOut);
+    } finally {
+      dateOut.set(tempdateOut.getYear(), tempdateOut.getMonth(), tempdateOut.getDay(), 0, 0, 0);
+    }
+  }
+
+  static private long SwigConstructAction(java.util.GregorianCalendar date, 
+                                          java.util.Calendar dateOut) {
+    CDate tempdate = new CDate(date.get(java.util.Calendar.YEAR), 
+                               date.get(java.util.Calendar.MONTH), 
+                               date.get(java.util.Calendar.DATE));
+    CDate tempdateOut = new CDate(dateOut.get(java.util.Calendar.YEAR), 
+                                  dateOut.get(java.util.Calendar.MONTH), 
+                                  dateOut.get(java.util.Calendar.DATE));
+    try {
+      return exampleJNI.new_Action(CDate.getCPtr(tempdate), tempdate, 
+                                   CDate.getCPtr(tempdateOut), tempdateOut);
+    } finally {
+      dateOut.set(tempdateOut.getYear(), tempdateOut.getMonth(), tempdateOut.getDay(), 0, 0, 0);
+    }
+  }
+
+  public Action(java.util.GregorianCalendar date, java.util.Calendar dateOut) {
+    this(Action.SwigConstructAction(date, dateOut), true);
+  }
+}
+</pre>
+</div>
+
+<p>
+A few things to note:
+</p>
+<ul>
+  <li> The "javatype" typemap has changed the parameter type to <tt>java.util.GregorianCalendar</tt> or <tt>java.util.Calendar</tt> instead of the default generated <tt>CDate</tt> proxy.
+  <li> The code in the 'pre' attribute appears before the JNI call (<tt>exampleJNI.new_Action</tt> / <tt>exampleJNI.Action_doSomething</tt>).
+  <li> The code in the 'post' attribute appears after the JNI call.
+  <li> A try .. finally block is generated with the JNI call in the try block and 'post' code in the finally block.
+  The alternative of just using a temporary variable for the return value from the JNI call and the 'post' code being generated before the
+  return statement is not possible given that the JNI call is in one line and comes from the "javaout" typemap.
+  <li> The temporary variables in the "javain" typemaps are called <tt>temp$javain</tt>, where "$javain" is replaced with the parameter name.
+  "$javain" is used to mangle the variable name so that more than one <tt>CDate &amp;</tt> type can be used as a parameter in a method, otherwise two or 
+  more local variables with the same name would be generated.
+  <li> The use of the "javain" typemap causes a constructor helper function (<tt>SwigConstructAction</tt>) to be generated.
+  This allows Java code to be called before the JNI call and is required as the Java compiler won't compile code inserted before the 'this' call.
+  <li> The 'pgcppname' attribute is used to modify the object being passed as the <a href="#java_pgcpp">premature garbage collection prevention parameter</a> (the 2nd and 4th parameters in the JNI calls).
+</ul>
+
 
 
 
