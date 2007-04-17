@@ -1854,6 +1854,8 @@ public:
     String *return_type = NewString("");
     String *function_code = NewString("");
     bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
 
     if (!proxy_flag)
       return;
@@ -1983,6 +1985,22 @@ public:
 	if ((tm = Getattr(p, "tmap:csin"))) {
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$csinput", arg);
+          String *pre = Getattr(p, "tmap:csin:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$csinput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:csin:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$csinput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2005,6 +2023,24 @@ public:
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("csout", n, "", 0))) {
+      excodeSubstitute(n, tm, "csout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+	Insert(tm, 0, "{");
+	Printf(tm, "\n  }");
+      }
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
@@ -2033,7 +2069,6 @@ public:
 	Delete(excode);
       }
       Replaceall(tm, "$imcall", imcall);
-      excodeSubstitute(n, tm, "csout", n);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -2097,6 +2132,8 @@ public:
       Printv(proxy_class_code, function_code, NIL);
     }
 
+    Delete(pre_code);
+    Delete(post_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
@@ -2113,6 +2150,11 @@ public:
     Parm *p;
     int i;
     String *function_code = NewString("");
+    String *helper_code = NewString(""); // Holds code for the constructor helper method generated only when the csin typemap has code in the pre or post attributes
+    String *helper_args = NewString("");
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *im_return_type = NewString("");
     bool feature_director = (parentNode(n) && Swig_directorclass(n));
 
     Language::constructorHandler(n);
@@ -2127,11 +2169,22 @@ public:
       String *imcall = NewString("");
 
       const String *csattributes = Getattr(n, "feature:cs:attributes");
-      if (csattributes)
+      if (csattributes) {
 	Printf(function_code, "  %s\n", csattributes);
+	Printf(helper_code, "  %s\n", csattributes);
+      }
       const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
       methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+      tm = Getattr(n, "tmap:imtype"); // typemaps were attached earlier to the node
+      String *imtypeout = Getattr(n, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
+      if (imtypeout)
+	tm = imtypeout;
+      Printf(im_return_type, "%s", tm);
+
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
+      Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
+
       Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
@@ -2174,22 +2227,48 @@ public:
 	  Printf(imcall, ", ");
 
 	String *arg = makeParameterName(n, p, i, false);
+        String *cshin = 0;
 
 	// Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
 	if ((tm = Getattr(p, "tmap:csin"))) {
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$csinput", arg);
+          String *pre = Getattr(p, "tmap:csin:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$csinput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:csin:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$csinput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
+          cshin = Getattr(p, "tmap:csin:cshin");
+          if (cshin)
+            Replaceall(cshin, "$csinput", arg);
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
 	/* Add parameter to proxy function */
-	if (gencomma)
+	if (gencomma) {
 	  Printf(function_code, ", ");
+	  Printf(helper_code, ", ");
+	  Printf(helper_args, ", ");
+        }
 	Printf(function_code, "%s %s", param_type, arg);
+	Printf(helper_code, "%s %s", param_type, arg);
+	Printf(helper_args, "%s", cshin ? cshin : arg);
 	++gencomma;
 
+	Delete(cshin);
 	Delete(arg);
 	Delete(param_type);
 	p = Getattr(p, "tmap:in:next");
@@ -2198,6 +2277,7 @@ public:
       Printf(imcall, ")");
 
       Printf(function_code, ")");
+      Printf(helper_code, ")");
 
       /* Insert the csconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
@@ -2221,10 +2301,40 @@ public:
 	Printv(function_code, " ", construct_tm, NIL);
       }
 
-      Replaceall(function_code, "$imcall", imcall);
       excodeSubstitute(n, function_code, "csconstruct", attributes);
+
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Printf(helper_code, " {\n");
+        if (is_pre_code) {
+          Printv(helper_code, pre_code, "\n", NIL);
+        }
+        if (is_post_code) {
+          Printf(helper_code, "    try {\n");
+          Printv(helper_code, "      return ", imcall, ";\n", NIL);
+          Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Printv(helper_code, "    return ", imcall, ";", NIL);
+        }
+        Printf(helper_code, "\n  }\n");
+        String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
+        String *im_outattribute = Getattr(n, "tmap:imtype:outattributes");
+        if (im_outattribute)
+          Printf(proxy_class_code, "  %s\n", im_outattribute);
+        Printv(proxy_class_code, helper_code, "\n", NIL);
+        Replaceall(function_code, "$imcall", helper_name);
+        Delete(helper_name);
+      } else {
+        Replaceall(function_code, "$imcall", imcall);
+      }
+
       Printv(proxy_class_code, function_code, "\n", NIL);
 
+      Delete(helper_args);
+      Delete(im_return_type);
+      Delete(pre_code);
+      Delete(post_code);
       Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
@@ -2340,6 +2450,8 @@ public:
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -2425,6 +2537,22 @@ public:
       if ((tm = Getattr(p, "tmap:csin"))) {
 	substituteClassname(pt, tm);
 	Replaceall(tm, "$csinput", arg);
+	String *pre = Getattr(p, "tmap:csin:pre");
+	if (pre) {
+	  substituteClassname(pt, pre);
+	  Replaceall(pre, "$csinput", arg);
+          if (Len(pre_code) > 0)
+            Printf(pre_code, "\n");
+	  Printv(pre_code, pre, NIL);
+	}
+	String *post = Getattr(p, "tmap:csin:post");
+	if (post) {
+	  substituteClassname(pt, post);
+	  Replaceall(post, "$csinput", arg);
+          if (Len(post_code) > 0)
+            Printf(post_code, "\n");
+	  Printv(post_code, post, NIL);
+	}
 	Printv(imcall, tm, NIL);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2446,13 +2574,30 @@ public:
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("csout", n, "", 0))) {
+      excodeSubstitute(n, tm, "csout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+	Insert(tm, 0, "{");
+	Printf(tm, "\n  }");
+      }
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
       Replaceall(tm, "$imcall", imcall);
-      excodeSubstitute(n, tm, "csout", n);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -2516,6 +2661,8 @@ public:
       Printv(module_class_code, function_code, NIL);
     }
 
+    Delete(pre_code);
+    Delete(post_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
