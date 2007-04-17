@@ -1,6 +1,15 @@
 Version 1.3.32 (in progress)
 ============================
 
+04/17/2007: wsfulton
+            [Java, C#] Support for adding in Java/C# code before and after the intermediary call,
+            specifically related to the marshalling of the proxy type to the intermediary type.
+            The javain/csin typemap now supports the 'pre' and 'post' attributes to achieve this.
+            The javain typemap also supports an optional 'pgcppname' attribute for premature garbage 
+            collection prevention parameter naming and the csin typemap supports an optional 'cshin'
+            attribute for the parameter type used in a constructor helper generated when the type is used
+            in a constructor. Details in the Java.html and CSharp.html documentation.
+
 04/16/2007: olly
 	    Don't treat `restrict' as a reserved identifier in C++ mode
 	    (bug#1685534).
