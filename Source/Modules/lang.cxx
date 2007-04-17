@@ -2559,7 +2559,7 @@ int Language::constructorDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::constructorHandler()
+ * get_director_ctor_code()
  * ---------------------------------------------------------------------- */
 
 static String *get_director_ctor_code(Node *n, String *director_ctor_code, String *director_prot_ctor_code, List *&abstract) {
@@ -2586,6 +2586,10 @@ static String *get_director_ctor_code(Node *n, String *director_ctor_code, Strin
   return director_ctor;
 }
 
+
+/* ----------------------------------------------------------------------
+ * Language::constructorHandler()
+ * ---------------------------------------------------------------------- */
 
 int Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler", n, "?name", "*sym:name", "?type", "?parms", NIL);
