@@ -2816,14 +2816,17 @@ void bar(list&lt;int,100&gt; *x);
 </div>
 
 <p>
-There are some restrictions on the use of non-type arguments.  Specifically,
-they have to be simple literals and not expressions.  For example:
+There are some restrictions on the use of non-type arguments.  Simple literals
+are supported, and so are some constant expressions.  However, use of '&lt;'
+and '&gt;' within a constant expressions currently is not supported by SWIG
+('&lt;=' and '&gt;=' are though).  For example:
 </p>
 
 <div class="code">
 <pre>
-void bar(list&lt;int,100&gt; *x);    // OK
-void bar(list&lt;int,2*50&gt; *x);   // Illegal
+void bar(list&lt;int,100&gt; *x);                // OK
+void bar(list&lt;int,2*50&gt; *x);               // OK
+void bar(list&lt;int,(2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
 </pre>
 </div>
 
