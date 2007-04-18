@@ -1,6 +1,8 @@
 # see top-level Makefile.in
+callback
 class
 enum
+extend
 funcptr
 reference
 simple
