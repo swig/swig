@@ -3,6 +3,7 @@ callback
 class
 constants
 contract
+docstrings
 enum
 exception
 exceptshadow

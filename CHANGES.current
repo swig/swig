@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+04/20/2007: olly
+	    [Python] Fix lack of generation of docstrings when -O is used.
+	    Also, fix generation of docstrings containing a double quote
+	    character.  Patch from Richard Boulton in bug#1700146.
+
 04/17/2007: wsfulton
             [Java, C#] Support for adding in Java/C# code before and after the intermediary call,
             specifically related to the marshalling of the proxy type to the intermediary type.

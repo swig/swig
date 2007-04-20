@@ -1419,18 +1419,25 @@ public:
       Printf(methods, "\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, ", name, function);
     }
 
-    if (n && Getattr(n, "feature:callback")) {
+    if (!n) {
+      Append(methods, "NULL");
+    } else if (Getattr(n, "feature:callback")) {
       if (have_docstring(n)) {
 	String *ds = docstring(n, AUTODOC_FUNC, "", false);
 	Replaceall(ds, "\n", "\\n");
+        Replaceall(ds, "\"", "\\\"");
 	Printf(methods, "(char *)\"%s\\nswig_ptr: %s\"", ds, Getattr(n, "feature:callback:name"));
       } else {
 	Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
       }
+    } else if (have_docstring(n)) {
+      String *ds = docstring(n, AUTODOC_FUNC, "", false);
+      Replaceall(ds, "\n", "\\n");
+      Replaceall(ds, "\"", "\\\"");
+      Printf(methods, "(char *)\"%s\"", ds);
     } else {
       Append(methods, "NULL");
     }
-
 
     Append(methods, "},\n");
   }
