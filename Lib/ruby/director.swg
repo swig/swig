@@ -238,7 +238,7 @@ namespace Swig {
     }
 
     DirectorMethodException(const char* msg = "") 
-      : Swig::DirectorException(rb_eRuntimeError, "Swig director method error", msg) {
+      : Swig::DirectorException(rb_eRuntimeError, "Swig director method error.", msg) {
     }
     
     static void raise(VALUE error)

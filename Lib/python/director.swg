@@ -306,7 +306,7 @@ namespace Swig {
   class DirectorMethodException : public Swig::DirectorException {
   public:
     DirectorMethodException(const char* msg = "") 
-      : DirectorException(PyExc_RuntimeError, "Swig director method error", msg)
+      : DirectorException(PyExc_RuntimeError, "Swig director method error.", msg)
     {
     }    
 
