@@ -756,7 +756,7 @@ extern char *path;
 <p>
 The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled or cleared using
 <tt>%mutable</tt>.
-See the <a href="SWIG.html#SWIG_readonly_variables">Creatng read-only variables</a> section for further details.
+See the <a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a> section for further details.
 </p>
 
 <p>
@@ -3637,7 +3637,7 @@ public class FooClass {
 
 
 <p>
-The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also visa versa.
+The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also vice versa.
 It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#typemaps_for_c_and_c++">Typemaps for both C and C++ compilation</a> section. 
 </p>
 
@@ -5793,7 +5793,7 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 %typemap(jstype) char ** "String[]"
 
 /* These 2 typemaps handle the conversion of the jtype to jstype typemap type
-   and visa versa */
+   and vice versa */
 %typemap(javain) char ** "$javainput"
 %typemap(javaout) char ** {
     return $jnicall;
