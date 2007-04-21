@@ -47,6 +47,7 @@ public:
 private:
   void emit_defun(Node *n, String *name);
   void emit_defmethod(Node *n);
+  void emit_initialize_instance(Node *n);
   void emit_getter(Node *n);
   void emit_setter(Node *n);
   void emit_class(Node *n);
@@ -212,7 +213,7 @@ int CFFI::constructorHandler(Node *n) {
   Printf(stderr, "constructor %s\n", Getattr(n, "name"));
   Printf(stderr, "constructor %s\n and %s and %s", Getattr(n, "kind"), Getattr(n, "sym:name"), Getattr(n, "allegrocl:old-sym:name"));
 #endif
-
+  Setattr(n, "cffi:constructorfunction", "1");
   // Let SWIG generate a global forwarding function.
   return Language::constructorHandler(n);
 }
@@ -233,15 +234,67 @@ void CFFI::emit_defmethod(Node *n) {
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
   Node *parent = parentNode(n);
-
+  bool first = 0;
+  
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
-
     String *argname = Getattr(p, "name");
     String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
 
-
     int tempargname = 0;
 
+    if(!first)
+      first = true;
+    else
+      Printf(args_placeholder, " ");
+      
+    if (!argname) {
+      argname = NewStringf("arg%d", argnum);
+      tempargname = 1;
+    } else if (Strcmp(argname, "t") == 0 || Strcmp(argname, "T") == 0) {
+      argname = NewStringf("t-arg%d", argnum);
+      tempargname = 1;
+    }
+    if (Len(ffitype) > 0)
+      Printf(args_placeholder, "(%s %s)", argname, ffitype);
+    else
+      Printf(args_placeholder, "%s", argname, ffitype);
+
+    if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
+      Printf(args_call, " (ff-pointer %s)", argname);
+    else
+      Printf(args_call, " %s", argname);
+
+    Delete(ffitype);
+
+    if (tempargname)
+      Delete(argname);
+  }
+
+  String *method_name = Getattr(n, "name");
+  int x = Replace(method_name, "operator ", "", DOH_REPLACE_FIRST);	//  
+
+  if (x == 1)
+    Printf(f_clos, "(cl:shadow \"%s\")\n", method_name);
+
+  Printf(f_clos, "(clos:defmethod %s (%s)\n  (%s%s))\n\n",
+	 lispify_name(n, lispy_name(Char(method_name)), "'method"), args_placeholder,
+	 lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
+
+}
+
+void CFFI::emit_initialize_instance(Node *n) {
+  String *args_placeholder = NewStringf("");
+  String *args_call = NewStringf("");
+
+  ParmList *pl = Getattr(n, "parms");
+  int argnum = 0;
+  Node *parent = parentNode(n);
+
+  for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
+    String *argname = Getattr(p, "name");
+    String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
+
+    int tempargname = 0;
     if (!argname) {
       argname = NewStringf("arg%d", argnum);
       tempargname = 1;
@@ -265,16 +318,9 @@ void CFFI::emit_defmethod(Node *n) {
       Delete(argname);
   }
 
-  String *method_name = Getattr(n, "name");
-  int x = Replace(method_name, "operator ", "", DOH_REPLACE_FIRST);	//  
-
-  if (x == 1)
-    Printf(f_clos, "(cl:shadow \"%s\")\n", method_name);
-
-  Printf(f_clos, "(clos:defmethod %s ((obj %s)%s)\n  (%s (ff-pointer obj)%s))\n\n",
-	 lispify_name(n, lispy_name(Char(method_name)), "'method"),
-	 lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), args_placeholder,
-	 lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
+  Printf(f_clos, "(clos:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s))\n\n",
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), args_placeholder,
+         lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
 }
 
@@ -413,9 +459,12 @@ int CFFI::functionWrapper(Node *n) {
       emit_defmethod(n);
     else if (Getattr(n, "cffi:membervariable")) {
       if (Getattr(n, "memberget"))
-	emit_getter(n);
+        emit_getter(n);
       else if (Getattr(n, "memberset"))
-	emit_setter(n);
+        emit_setter(n);
+    }
+    else if (Getattr(n, "cffi:constructorfunction")) {
+      emit_initialize_instance(n);
     }
   } else
     emit_defun(n, iname);
