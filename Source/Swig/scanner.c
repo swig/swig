@@ -749,7 +749,7 @@ static int look(Scanner * s) {
       if (c == '.') {
 	state = 81;
       } else if ((c == 'e') || (c == 'E')) {
-	state = 86;
+	state = 82;
       } else if ((c == 'f') || (c == 'F')) {
 	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_FLOAT;
@@ -770,10 +770,13 @@ static int look(Scanner * s) {
       if (isdigit(c))
 	state = 81;
       else if ((c == 'e') || (c == 'E'))
-	state = 82;
-      else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
+	state = 820;
+      else if ((c == 'f') || (c == 'F')) {
 	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_FLOAT;
+      } else if ((c == 'l') || (c == 'L')) {
+	Delitem(s->text, DOH_END);
+	return SWIG_TOKEN_DOUBLE;
       } else {
 	retract(s, 1);
 	return (SWIG_TOKEN_DOUBLE);
@@ -789,6 +792,19 @@ static int look(Scanner * s) {
       else {
 	retract(s, 2);
 	return (SWIG_TOKEN_INT);
+      }
+      break;
+    case 820:
+      /* Like case 82, but we've seen a decimal point. */
+      if ((c = nextchar(s)) == 0) {
+	retract(s, 1);
+	return SWIG_TOKEN_DOUBLE;
+      }
+      if ((isdigit(c)) || (c == '-') || (c == '+'))
+	state = 86;
+      else {
+	retract(s, 2);
+	return (SWIG_TOKEN_DOUBLE);
       }
       break;
     case 83:

@@ -598,6 +598,12 @@ macro(size_t,             pfx, sizet)
       return x + y;
     } 
 
+    // Regression test for bug1699646 - we weren't handling
+    // + or - after e for float constants.
+    float regression_test_for_bug1699646(float f = 1e-02f) {
+      return f;
+    } 
+
     float val_float(float x) {
       return x;
     } 
