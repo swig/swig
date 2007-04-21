@@ -318,7 +318,7 @@ void CFFI::emit_initialize_instance(Node *n) {
       Delete(argname);
   }
 
-  Printf(f_clos, "(clos:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s))\n\n",
+  Printf(f_clos, "(clos:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s)))\n\n",
          lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
