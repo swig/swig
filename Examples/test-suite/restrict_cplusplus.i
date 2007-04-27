@@ -1,7 +1,7 @@
 %module restrict_cplusplus
 
 %inline %{
-struct foo {
+struct Foo {
     int restrict;
 };
 %}
