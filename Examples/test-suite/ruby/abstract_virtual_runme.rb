@@ -8,11 +8,9 @@
 #
 
 require 'swig_assert'
-
 require 'abstract_virtual'
 
 include Abstract_virtual
 
-d = D.new
-e = E.new
-
+swig_assert('d = D.new')
+swig_assert('e = E.new')

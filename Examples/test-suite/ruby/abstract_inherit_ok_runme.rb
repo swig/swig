@@ -28,7 +28,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_inherit_ok::Foo
 	exceptionRaised = true
 ensure
-  raise RuntimeError unless exceptionRaised
+  swig_assert( exceptionRaised, "for !exceptionRaised" )
 end
 
 #
@@ -43,6 +43,6 @@ begin
 rescue NameError
   exceptionRaised = true
 ensure
-  raise RuntimeError if exceptionRaised
+  swig_assert( !exceptionRaised, "for exceptionRaised" )
 end
 

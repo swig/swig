@@ -8,10 +8,10 @@
 #
 
 require 'swig_assert'
-
 require 'abstract_typedef2'
 
 include Abstract_typedef2
 
-a = A_UF.new
+swig_assert( 'a = A_UF.new' )
+
 

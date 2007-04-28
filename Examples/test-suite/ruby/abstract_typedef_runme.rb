@@ -16,5 +16,5 @@ include Abstract_typedef
 e = Engine.new
 a = A.new
 
-raise RuntimeError if a.write(e) != true
+swig_assert( a.write(e), 'for a.write(e)' )
 

@@ -8,7 +8,6 @@
 #
 
 require 'swig_assert'
-
 require 'abstract_signature'
 
 include Abstract_signature
@@ -34,7 +33,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_signature::Abstract_foo
 	exceptionRaised = true
 ensure
-  raise RuntimeError unless exceptionRaised
+  swig_assert( exceptionRaised, "for exceptionRaised")
 end
 
 #
@@ -58,6 +57,6 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_signature::Abstract_bar
 	exceptionRaised = true
 ensure
-  raise RuntimeError unless exceptionRaised
+  swig_assert( exceptionRaised, "for exceptionRaised")
 end
 
