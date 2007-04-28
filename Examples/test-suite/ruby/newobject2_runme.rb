@@ -17,12 +17,11 @@ require 'newobject2'
 
 include Newobject2
 
-stats = nil
-stats = GC.stats(stats, Foo)
+GC.stats(Foo)
 100.times { foo1 = makeFoo }
-stats = GC.stats(stats, Foo)
+GC.stats(Foo)
 swig_assert( 'fooCount == 100', "but is #{fooCount}" )
 GC.start
-stats = GC.stats(stats, Foo)
+GC.stats(Foo)
 swig_assert( 'fooCount <= 1', "but is #{fooCount}" )
 
