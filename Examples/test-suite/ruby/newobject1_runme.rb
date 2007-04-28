@@ -18,12 +18,18 @@
 #
 
 require 'swig_assert'
+require 'swig_gc'
 require 'newobject1'
 
 include Newobject1
 
 
+stats = nil
+stats = GC.stats(stats, Foo)
 100.times { foo1 = Foo.makeFoo; foo2 = foo1.makeMore }
+stats = GC.stats(stats, Foo)
+swig_assert( 'Foo.fooCount == 200', "but is #{Foo.fooCount}" )
 GC.start
+stats = GC.stats(stats, Foo)
 swig_assert( 'Foo.fooCount <= 2', "but is #{Foo.fooCount}" )
 
