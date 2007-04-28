@@ -1,3 +1,14 @@
+#!/usr/bin/env ruby
+#
+# Put description here
+#
+# Author::    gga
+# Copyright:: 2007
+# License::   SWIG
+#
+
+require 'swig_assert'
+
 # Note: This example assumes that namespaces are flattened
 require 'cpp_namespace'
 

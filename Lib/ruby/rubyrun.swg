@@ -82,6 +82,35 @@ static VALUE _mSWIG = Qnil;
 static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
 
+
+/*
+  If your swig extension is to be run within an embedded ruby and has
+  director callbacks, you should set RUBY_EMBEDDED.  This will reset
+  ruby's stack frame on each entry point from the main program the first
+  time a virtual director function is invoked (in a non-recursive way).
+  If this is not done, you run the risk of trashing the stack.
+*/
+
+#ifndef RUBY_INIT_STACK
+   extern void Init_stack(VALUE* addr);
+#  define RUBY_INIT_STACK \
+   VALUE variable_in_this_stack_frame; \
+   Init_stack(&variable_in_this_stack_frame);
+#endif
+
+
+#ifdef RUBY_EMBEDDED
+#  define SWIG_INIT_STACK                            \
+      if ( !swig_virtual_calls ) { RUBY_INIT_STACK } \
+      ++swig_virtual_calls;
+#  define SWIG_RELEASE_STACK --swig_virtual_calls;
+static unsigned int swig_virtual_calls = 0;
+#else
+#  define SWIG_INIT_STACK
+#  define SWIG_RELEASE_STACK
+#endif
+
+
 SWIGRUNTIME VALUE 
 getExceptionClass(void) {
   static int init = 0;
@@ -136,7 +165,7 @@ SWIGRUNTIME VALUE
 SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
 {
   int own =  flags & SWIG_POINTER_OWN; 
-  
+  int track;
   char *klass_name;
   swig_class *sklass;
   VALUE klass;
@@ -149,7 +178,8 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     sklass = (swig_class *) type->clientdata;
 		
     /* Are we tracking this class and have we already returned this Ruby object? */
-    if (sklass->trackObjects) {
+    track = sklass->trackObjects;
+    if (track) {
       obj = SWIG_RubyInstanceFor(ptr);
       
       /* Check the object's type and make sure it has the correct type.
@@ -166,10 +196,10 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     }
 
     /* Create a new Ruby object */
-    obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
+    obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 )), ptr);
 
     /* If tracking is on for this class then track this object. */
-    if (sklass->trackObjects) {
+    if (track) {
       SWIG_RubyAddTracking(ptr, obj);
     }
   } else {

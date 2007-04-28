@@ -1,3 +1,14 @@
+#!/usr/bin/env ruby
+#
+# Put description here
+#
+# Author::    gga
+# Copyright:: 2007
+# License::   SWIG
+#
+
+require 'swig_assert'
+
 require 'abstract_inherit_ok'
 
 include Abstract_inherit_ok

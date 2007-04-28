@@ -1,3 +1,14 @@
+#!/usr/bin/env ruby
+#
+# Put description here
+#
+# Author::    gga
+# Copyright:: 2007
+# License::   SWIG
+#
+
+require 'swig_assert'
+
 require 'track_objects'
 
 def test_same_ruby_object(foo1, foo2)

@@ -14,26 +14,55 @@
 extern "C" {
 #endif
 
+#if SIZEOF_OFF_T > SIZEOF_LONG && defined(HAVE_LONG_LONG)
+#  define SWIG2NUM(v) LL2NUM((unsigned long long)v)
+#elif SIZEOF_OFF_T == SIZEOF_LONG
+#  define SWIG2NUM(v) LONG2NUM((unsigned long)v)
+#else
+#  define SWIG2NUM(v) INT2NUM((unsigned long)v)
+#endif
+
+#if defined(HAVE_LONG_LONG) && SIZEOF_OFF_T > SIZEOF_LONG
+#  define NUM2SWIG(x) ((off_t)NUM2LL(x))
+#else
+#  define NUM2SWIG(x) (unsigned long)NUM2LONG(x)
+#endif
 
 /* Global Ruby hash table to store Trackings from C/C++
-   structs to Ruby Objects. */
-static VALUE swig_ruby_trackings;
+   structs to Ruby Objects. 
+   If you SWIG a library into two different DSO or DLL, make
+   sure to define SWIGEXTERN for all but one of them.
+   This will then create a single hash table for all your
+   library symbols.
+*/
+#ifdef SWIGEXTERN
+extern     VALUE swig_ruby_trackings;
+#else
+VALUE swig_ruby_trackings = Qnil;
+#endif
 
 /* Global variable that stores a reference to the ruby
    hash table delete function. */
-static ID swig_ruby_hash_delete = 0;
+#ifdef SWIGEXTERN
+extern     ID swig_ruby_hash_delete;
+#else
+ID swig_ruby_hash_delete;
+#endif
 
 /* Setup a Ruby hash table to store Trackings */
 SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   /* Create a ruby hash table to store Trackings from C++ 
      objects to Ruby objects.  Also make sure to tell
      the garabage collector about the hash table. */
-  swig_ruby_trackings = rb_hash_new();
-  rb_gc_register_address(&swig_ruby_trackings);
-  
-  /* Now store a reference to the hash table delete function
-     so that we only have to look it up once.*/
-  swig_ruby_hash_delete = rb_intern("delete");
+  if ( swig_ruby_trackings == Qnil )
+    {
+      swig_ruby_trackings = rb_hash_new();
+      rb_gc_register_address(&swig_ruby_trackings);
+
+      /* Now store a reference to the hash table delete function
+	 so that we only have to look it up once.*/
+      swig_ruby_hash_delete = rb_intern("delete");
+    }
 }
 
 /* Get a Ruby number to reference a pointer */
@@ -43,8 +72,7 @@ SWIGRUNTIME VALUE SWIG_RubyPtrToReference(void* ptr) {
      a Ruby number object. */
 
   /* Convert the pointer to a Ruby number */
-  unsigned long value = (unsigned long) ptr;
-  return LONG2NUM(value);
+  return SWIG2NUM(ptr);
 }
 
 /* Get a Ruby number to reference an object */
@@ -54,8 +82,7 @@ SWIGRUNTIME VALUE SWIG_RubyObjectToReference(VALUE object) {
      a Ruby number object. */
 
   /* Convert the Object to a Ruby number */
-  unsigned long value = (unsigned long) object;
-  return LONG2NUM(value);
+  return SWIG2NUM(object);
 }
 
 /* Get a Ruby object from a previously stored reference */
@@ -63,9 +90,8 @@ SWIGRUNTIME VALUE SWIG_RubyReferenceToObject(VALUE reference) {
   /* The provided Ruby number object is a reference
      to the Ruby object we want.*/
 
-  /* First convert the Ruby number to a C number */
-  unsigned long value = NUM2LONG(reference);
-  return (VALUE) value;
+  /* Convert the Ruby number to a Ruby object */
+  return NUM2SWIG(reference);
 }
 
 /* Add a Tracking from a C/C++ struct to a Ruby object */

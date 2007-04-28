@@ -118,7 +118,7 @@ Ruby Options (available with -ruby)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -cppcast        - Enable C++ casting operators\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
@@ -2160,9 +2160,9 @@ public:
 	// Exception handler
 	Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName);
 	Replaceall(tm, "$error", "error");
-	Printf(rescue->code, "if (%s == 1) ", depthCountName);
-	Printv(rescue->code, Str(tm), "\n", NIL);
 	Printf(rescue->code, "%s--;\n", depthCountName);
+	Printf(rescue->code, "if (%s == 0) ", depthCountName);
+	Printv(rescue->code, Str(tm), "\n", NIL);
 	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
 	Printv(rescue->code, "}", NIL);
       }
@@ -2182,6 +2182,7 @@ public:
 	Printv(w->code, "args.argv = 0;\n", NIL);
       }
       Printf(w->code, "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
+      Printf(w->code, "SWIG_RELEASE_STACK;\n");
       Printf(w->code, "if (status) {\n");
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
       Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr);\n", rescueName);
@@ -2198,6 +2199,7 @@ public:
       } else {
 	Printf(w->code, "result = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", methodName);
       }
+      Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }
 
     // Clean up
@@ -2229,6 +2231,7 @@ public:
     int status = SWIG_OK;
     int idx;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+    bool asvoid = GetFlag(n, "feature:asvoid") ? true : false;
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
@@ -2309,6 +2312,10 @@ public:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
+    if (!(ignored_method && !pure_virtual)) {
+      Append(w->def, "\nSWIG_INIT_STACK;\n");
+    }
+
     /* declare method return value 
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
@@ -2347,22 +2354,30 @@ public:
       Swig_typemap_attach_parms("directorargout", l, w);
 
       int num_arguments = emit_num_arguments(l);
-      int i;
       char source[256];
 
       int outputs = 0;
-      if (!is_void)
+
+      if (!is_void && !asvoid)
 	outputs++;
 
       /* build argument list and type conversion string */
-      for (i = 0, idx = 0, p = l; i < num_arguments; i++) {
+      idx = 0; p = l;
+      while ( p ) {
 
-	while (Getattr(p, "tmap:ignore")) {
+	if (Getattr(p, "tmap:ignore")) {
 	  p = Getattr(p, "tmap:ignore:next");
+	  continue;
 	}
 
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
+
+	if ( checkAttribute( p, "tmap:in:numinputs", "0") )
+	  {
+	    p = Getattr(p, "tmap:in:next");
+	    continue;
+	  }
 
 	String *parameterName = Getattr(p, "name");
 	String *parameterType = Getattr(p, "type");
@@ -2492,7 +2507,7 @@ public:
 	  Delete(name);
 	}
 	if (tm != 0) {
-	  if (outputs > 1) {
+	  if (outputs > 1 && !asvoid ) {
 	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
 	    Replaceall(tm, "$input", "output");
 	  } else {
