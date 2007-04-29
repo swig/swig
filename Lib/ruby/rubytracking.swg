@@ -28,41 +28,40 @@ extern "C" {
 #  define NUM2SWIG(x) (unsigned long)NUM2LONG(x)
 #endif
 
+
 /* Global Ruby hash table to store Trackings from C/C++
    structs to Ruby Objects. 
-   If you SWIG a library into two different DSO or DLL, make
-   sure to define SWIGEXTERN for all but one of them.
-   This will then create a single hash table for all your
-   library symbols.
 */
-#ifdef SWIGEXTERN
-extern     VALUE swig_ruby_trackings;
-#else
-VALUE swig_ruby_trackings = Qnil;
-#endif
+static VALUE swig_ruby_trackings = Qnil;
 
 /* Global variable that stores a reference to the ruby
    hash table delete function. */
-#ifdef SWIGEXTERN
-extern     ID swig_ruby_hash_delete;
-#else
-ID swig_ruby_hash_delete;
-#endif
+static ID swig_ruby_hash_delete;
 
 /* Setup a Ruby hash table to store Trackings */
 SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   /* Create a ruby hash table to store Trackings from C++ 
-     objects to Ruby objects.  Also make sure to tell
-     the garabage collector about the hash table. */
+     objects to Ruby objects. */
+
+  /* Try to see if some other .so has already created a 
+     tracking hash table, which we keep hidden in an instance var
+     in the SWIG module.
+     This is done to allow multiple DSOs to share the same
+     tracking table.
+  */
+  ID trackings_id = rb_intern( "trackings" );
+  swig_ruby_trackings = rb_ivar_get( _mSWIG, trackings_id );
+
+  /* No, it hasn't.  Create one ourselves */ 
   if ( swig_ruby_trackings == Qnil )
     {
       swig_ruby_trackings = rb_hash_new();
-      rb_gc_register_address(&swig_ruby_trackings);
-
-      /* Now store a reference to the hash table delete function
-	 so that we only have to look it up once.*/
-      swig_ruby_hash_delete = rb_intern("delete");
+      rb_ivar_set( _mSWIG, trackings_id, swig_ruby_trackings );
     }
+
+  /* Now store a reference to the hash table delete function
+     so that we only have to look it up once.*/
+  swig_ruby_hash_delete = rb_intern("delete");
 }
 
 /* Get a Ruby number to reference a pointer */

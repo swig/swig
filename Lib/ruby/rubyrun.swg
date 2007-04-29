@@ -78,7 +78,6 @@ typedef struct {
 } swig_class;
 
 
-static VALUE _mSWIG = Qnil;
 static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
 
@@ -196,7 +195,10 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     }
 
     /* Create a new Ruby object */
-    obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 )), ptr);
+    obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), 
+			   ( own ? VOIDFUNC(sklass->destroy) : 
+			     (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 )
+			     ), ptr);
 
     /* If tracking is on for this class then track this object. */
     if (track) {
