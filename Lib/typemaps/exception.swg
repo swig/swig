@@ -13,9 +13,13 @@
 /* macros for error manipulation */
 #define %nullref_fmt()                     "invalid null reference "		   
 #define %varfail_fmt(_type,_name)          "in variable '"`_name`"' of type '"`_type`"'"
+#ifndef %argfail_fmt
 #define %argfail_fmt(_type,_name,_argn)    "in method '" `_name` "', argument " `_argn`" of type '" `_type`"'"
-#define %outfail_fmt(_type)                "in output value of type '"_type"'"	   
-#define %argnullref_fmt(_type,_name,_argn) %nullref_fmt() %argfail_fmt(_type, _name, _argn)  
+#endif
+#define %outfail_fmt(_type)                "in output value of type '"_type"'"
+#ifndef	%argnullref_fmt
+#define %argnullref_fmt(_type,_name,_argn) %nullref_fmt() %argfail_fmt(_type, _name, _argn)
+#endif  
 #define %varnullref_fmt(_type,_name)       %nullref_fmt() %varfail_fmt(_type, _name)  		   
 #define %outnullref_fmt(_type)             %nullref_fmt() %outfail_fmt(_type)         
 
