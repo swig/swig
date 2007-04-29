@@ -2231,7 +2231,7 @@ public:
     int status = SWIG_OK;
     int idx;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    bool asvoid = GetFlag(n, "feature:asvoid") ? true : false;
+    bool asvoid = bool( checkAttribute( n, "feature:numoutputs", "0") );
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
