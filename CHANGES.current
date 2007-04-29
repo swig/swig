@@ -1,5 +1,96 @@
 Version 1.3.32 (in progress)
 ============================
+04/29/2007: gga
+	    [Ruby] Fixed GC memory issues with trackings that could lead
+	    to segfaults when dealing, mainly, with static variables.
+	    [Bug: ]
+
+04/29/2007: gga
+	    [Ruby] 
+	    Fixed String conversion using old ruby1.6 macros.  Now
+	    StringValuePtr() is used if available.  This removes warnings
+	    when converting strings with \0 in them. [Bug:]
+
+04/29/2007: gga
+	    [Ruby] 
+	    Changed VALUE swig_ruby_trackings (the tracking hash table)
+	    from static to being exposed outside of a single DSO.  This
+	    allows properly dealing with directors across multiple DSOs.
+	    However, the developer is currently forced to turn on and off
+	    a -DSWIGEXTERN flag.  In the next revision this will be
+	    addressed.
+	    [Bug: ]
+
+04/29/2007: gga
+	    [Ruby] 
+	    Fixed the argout count in directors for Ruby.  Previously, 
+	    ignored or "numinputs=0" typemaps would incorrectly not get 
+	    counted towards the argout count.
+
+04/29/2007: gga
+	    [Ruby] 
+	    Upgraded Ruby converter to recognize "numinputs=0".  Previously,
+	    only the old "ignore" flag was checked (which would currently
+	    still work properly, but is deprecated).
+
+04/29/2007: gga
+	    [Ruby - but should be made generic] 
+	    %feature("numoutputs","0") added.  This (temporary) feature
+	    allows you to ignore the output of a function so that it is
+	    not added to a list of outpus values ( ie. argouts ).  
+	    This should also become a feature of %typemap(out) as 
+	    "numoutputs"=0, just like "numinputs"=0 exists.
+
+	    %feature("directors"=1)
+
+	    %include <typemaps.i>
+
+	    %feature("numoutputs","0") { Class::member_function1 };
+	    %typemap(out) MStatus { // some code, like ignore mstatus
+	                            // and raise exception };
+
+	    %inline %{
+	      typedef int MStatus;
+	      class Class {
+
+	      // one argument returned, but director out code added
+	      // MStatus is discarded.
+	      virtual MStatus member_function1( int& OUTPUT );
+
+	      // two arguments returned, director out code added
+	      // MStatus is not discarded
+	      virtual MStatus member_function2( int& OUTPUT );
+	      };
+            %}
+
+04/29/2007: gga
+	    [Ruby] 
+	    Directors will now try to reset the ruby stack on the first call
+	    to them if the developer sets the define RUBY_EMBEDDED.  
+	    Explanation:
+	    Ruby's GC needs to be aware of the running stack in order to mark
+	    any VALUE (Ruby objects) it finds there to avoid collection of
+	    them.  This allows the ruby API to very simple and allows you
+	    to write code like "VALUE a = sth" anywhere without needing to
+	    do things like refcounting like python.
+	    By default, the start of the stack is set when ruby_init() is
+	    called.   If ruby is inited within main(), as it usually is 
+	    with the main ruby executable, ruby will be able to calculate
+	    its stack properly.  However, when this is not possible, as when
+	    ruby is embedded as a plugin to an application where main is not
+	    available, ruby_init() will be called in the wrong place, and
+	    ruby will be incorrectly tracking the stack from the function
+	    that called ruby_init() only, which can lead to
+	    all sorts of weird crashes or to ruby thinking it has run out of
+	    stack space incorrectly.
+	    To avoid this, director (callback) functions can now be tagged
+	    to try to reset the ruby stack, which will solve the issues.
+	    NOTE: ruby1.8.6 still contains a bug in it in that its function
+	    to reset the stack will not always do so.  This bug is triggered
+	    very rarely, when ruby is called from two very distinct places
+	    in memory, like a branch of main() and another dso.  This bug
+	    has now been reported to ruby-core.
+
 
 04/21/2007: olly
 	    Fix parsing of float constants with an exponent (e.g. 1e-02f)
