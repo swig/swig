@@ -99,15 +99,24 @@ static VALUE swig_runtime_data_type_pointer = Qnil;
 
 
 #ifdef RUBY_EMBEDDED
+
 #  define SWIG_INIT_STACK                            \
       if ( !swig_virtual_calls ) { RUBY_INIT_STACK } \
       ++swig_virtual_calls;
 #  define SWIG_RELEASE_STACK --swig_virtual_calls;
-static unsigned int swig_virtual_calls = 0;
-#else
+#  define Ruby__DirectorTypeMismatchException(x) \
+          rb_raise( rb_eTypeError, x ); return c_result;
+
+      static unsigned int swig_virtual_calls = 0;
+
+#else  /* normal non-embedded extension */
+
 #  define SWIG_INIT_STACK
 #  define SWIG_RELEASE_STACK
-#endif
+#  define Ruby_DirectorTypeMismatchException(x) \
+          throw Swig::DirectorTypeMismatchException( x );
+
+#endif  /* RUBY_EMBEDDED */
 
 
 SWIGRUNTIME VALUE 
