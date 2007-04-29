@@ -104,7 +104,7 @@ static VALUE swig_runtime_data_type_pointer = Qnil;
       if ( !swig_virtual_calls ) { RUBY_INIT_STACK } \
       ++swig_virtual_calls;
 #  define SWIG_RELEASE_STACK --swig_virtual_calls;
-#  define Ruby__DirectorTypeMismatchException(x) \
+#  define Ruby_DirectorTypeMismatchException(x) \
           rb_raise( rb_eTypeError, x ); return c_result;
 
       static unsigned int swig_virtual_calls = 0;
