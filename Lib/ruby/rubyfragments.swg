@@ -8,7 +8,7 @@
   
   %fragment(SWIG_AsVal_frag(int),"header") {
    SWIGINTERNINLINE int
-   SWIG_AsVal(int)(PyObject *obj, int *val)
+   SWIG_AsVal(int)(VALUE obj, int *val)
    { 
      <your code here>;
    }
