@@ -90,10 +90,40 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
 const char* Ruby_Format_TypeError( const char* msg,
 				   const char* type, 
 				   const char* name, 
-				   const int argn )
+				   const int argn,
+				   VALUE input )
 {
-  static char buf[1024];
-  sprintf( buf, "%sin method '%s', argument %d of type %s",
-	   msg, name, argn-1, type );
-  return buf;
+  char buf[128];
+  VALUE str;
+  if ( msg && *msg )
+    {
+      str = rb_str_new2(msg);
+    }
+  else
+    {
+      str = rb_str_new(NULL, 0);
+    }
+
+  str = rb_str_cat2( str, "in method '" );
+  str = rb_str_cat2( str, name );
+  str = rb_str_cat2( str, "', argument " );
+  sprintf( buf, "%d of type ", argn );
+  str = rb_str_cat2( str, buf );
+  str = rb_str_cat2( str, type );
+  str = rb_str_cat2( str, ", but got " );
+  str = rb_str_cat2( str, rb_obj_classname(input) );
+  str = rb_str_cat2( str, " (" );
+  VALUE asStr = rb_obj_as_string(input);
+  if ( RSTRING_LEN(asStr) > 30 )
+    {
+      str = rb_str_cat( str, StringValuePtr(asStr), 30 );
+      str = rb_str_cat2( str, "..." );
+    }
+  else
+    {
+      str = rb_str_concat( str, asStr );
+    }
+  str = rb_str_cat2( str, ")" );
+
+  return StringValuePtr( str );
 }
