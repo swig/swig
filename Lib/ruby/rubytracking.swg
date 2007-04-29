@@ -50,7 +50,10 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
      tracking table.
   */
   ID trackings_id = rb_intern( "trackings" );
+  VALUE verbose = rb_gv_get("VERBOSE");
+  rb_gv_set("VERBOSE", Qfalse);
   swig_ruby_trackings = rb_ivar_get( _mSWIG, trackings_id );
+  rb_gv_set("VERBOSE", verbose);
 
   /* No, it hasn't.  Create one ourselves */ 
   if ( swig_ruby_trackings == Qnil )
