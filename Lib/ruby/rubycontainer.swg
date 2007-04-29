@@ -1,0 +1,885 @@
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * rubycontainer.swg
+ *
+ * Ruby sequence <-> C++ container wrapper
+ *
+ * This wrapper, and its iterator, allows a general use (and reuse) of
+ * the the mapping between C++ and Ruby, thanks to the C++
+ * templates.
+ *
+ * Of course, it needs the C++ compiler to support templates, but
+ * since we will use this wrapper with the STL containers, that should
+ * be the case.
+ * ----------------------------------------------------------------------------- */
+
+%{
+#include <iostream>
+%}
+
+
+#if !defined(SWIG_NO_EXPORT_ITERATOR_METHODS)
+# if !defined(SWIG_EXPORT_ITERATOR_METHODS)
+#  define SWIG_EXPORT_ITERATOR_METHODS SWIG_EXPORT_ITERATOR_METHODS
+# endif
+#endif
+
+%include <rubyiterators.swg>
+
+/**** The RubySequence C++ Wrap ***/
+
+%insert(header) %{
+#include <stdexcept>
+%}
+
+%include <std_except.i>
+
+
+
+
+%fragment("RubySequence_Base","header")
+{
+%#include <functional>
+
+namespace std {
+  template <>
+  struct less< VALUE >: public binary_function< VALUE, VALUE, bool >
+  {
+    static ID id;
+
+    bool
+    operator()( VALUE v, VALUE w ) const
+    { 
+      // SWIG_RUBY_THREAD_BEGIN_BLOCK;
+      bool res = NUM2INT( rb_funcall(v, id, 1, w) ) < 0;
+      // SWIG_RUBY_THREAD_END_BLOCK;
+      return res;
+    }
+  };
+
+  ID less< VALUE >::id = rb_intern("<=>");
+
+}
+
+
+namespace swig {
+  template < class T >
+  struct yield : public std::unary_function< T, bool >
+  {
+    bool
+    operator()( const T& v ) const
+    { 
+      return RTEST( rb_yield( swig::from< T >(v) ) );
+    }
+  };
+
+
+  inline size_t
+  check_index(ptrdiff_t i, size_t size, bool insert = false) {
+    if ( i < 0 ) {
+      if ((size_t) (-i) <= size)
+	return (size_t) (i + size);
+    } else if ( (size_t) i < size ) {
+      return (size_t) i;
+    } else if (insert && ((size_t) i == size)) {
+      return size;
+    }
+    
+    throw std::out_of_range("index out of range");
+  }
+
+  inline size_t
+  slice_index(ptrdiff_t i, size_t size) {
+    if ( i < 0 ) {
+      if ((size_t) (-i) <= size) {
+	return (size_t) (i + size);
+      } else {
+	throw std::out_of_range("index out of range");
+      }
+    } else {
+      return ( (size_t) i < size ) ? ((size_t) i) : size;
+    }
+  }
+
+  template <class Sequence, class Difference>
+  inline typename Sequence::iterator
+  getpos(Sequence* self, Difference i)  {
+    typename Sequence::iterator pos = self->begin();
+    std::advance(pos, check_index(i,self->size()));
+    return pos;
+  }
+
+  template <class Sequence, class Difference>
+  inline typename Sequence::const_iterator
+  cgetpos(const Sequence* self, Difference i)  {
+    typename Sequence::const_iterator pos = self->begin();
+    std::advance(pos, check_index(i,self->size()));
+    return pos;
+  }
+
+  template <class Sequence, class Difference>
+  inline Sequence*
+  getslice(const Sequence* self, Difference i, Difference j) {
+    typename Sequence::size_type size = self->size();
+    typename Sequence::size_type ii = swig::check_index(i, size);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
+
+    if (jj > ii) {
+      typename Sequence::const_iterator vb = self->begin();
+      typename Sequence::const_iterator ve = self->begin();
+      std::advance(vb,ii);
+      std::advance(ve,jj);
+      return new Sequence(vb, ve);
+    } else {
+      return new Sequence();
+    }
+  }
+
+  template <class Sequence, class Difference, class InputSeq>
+  inline void
+  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
+    typename Sequence::size_type size = self->size();
+    typename Sequence::size_type ii = swig::check_index(i, size, true);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
+    if (jj < ii) jj = ii;
+    size_t ssize = jj - ii;
+    if (ssize <= v.size()) {
+      typename Sequence::iterator sb = self->begin();
+      typename InputSeq::const_iterator vmid = v.begin();
+      std::advance(sb,ii);
+      std::advance(vmid, jj - ii);
+      self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+    } else {
+      typename Sequence::iterator sb = self->begin();
+      typename Sequence::iterator se = self->begin();
+      std::advance(sb,ii);
+      std::advance(se,jj);
+      self->erase(sb,se);
+      self->insert(sb, v.begin(), v.end());
+    }
+  }
+
+  template <class Sequence, class Difference>
+  inline void
+  delslice(Sequence* self, Difference i, Difference j) {
+    typename Sequence::size_type size = self->size();
+    typename Sequence::size_type ii = swig::check_index(i, size, true);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
+    if (jj > ii) {
+      typename Sequence::iterator sb = self->begin();
+      typename Sequence::iterator se = self->begin();
+      std::advance(sb,ii);
+      std::advance(se,jj);
+      self->erase(sb,se);
+    }
+  }
+}
+}
+
+%fragment("RubySequence_Cont","header",
+	  fragment="StdTraits",
+	  fragment="RubySequence_Base",
+	  fragment="RubySwigIterator_T")
+{
+namespace swig
+{
+  template <class T>
+  struct RubySequence_Ref
+  {
+    RubySequence_Ref(VALUE  seq, int index)
+      : _seq(seq), _index(index)
+    {
+    }
+    
+    operator T () const
+    {
+      VALUE item = rb_ary_entry(_seq, _index );
+      try {
+	return swig::as<T>(item, true);
+      } catch (std::exception& e) {
+	char msg[1024];
+	sprintf(msg, "in sequence element %d ", _index);
+	VALUE lastErr = rb_gv_get("$!");
+	if ( lastErr == Qnil ) {
+	  %type_error(swig::type_name<T>());
+	}
+	VALUE str = rb_str_new2(msg);
+	str = rb_str_cat2( str, e.what() );
+	SWIG_Ruby_ExceptionType( NULL, str );
+	throw;
+      }
+    }
+
+    RubySequence_Ref& operator=(const T& v)
+    {
+      rb_ary_set(_seq, _index, swig::from<T>(v));
+      return *this;
+    }
+
+  private:
+    VALUE  _seq;
+    int _index;
+  };
+
+  template <class T>
+  struct RubySequence_ArrowProxy
+  {
+    RubySequence_ArrowProxy(const T& x): m_value(x) {}
+    const T* operator->() const { return &m_value; }
+    operator const T*() const { return &m_value; }
+    T m_value;
+  };
+
+  template <class T, class Reference >
+  struct RubySequence_InputIterator
+  {
+    typedef RubySequence_InputIterator<T, Reference > self;
+
+    typedef std::random_access_iterator_tag iterator_category;
+    typedef Reference reference;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef int difference_type;
+
+    RubySequence_InputIterator()
+    {
+    }
+
+    RubySequence_InputIterator(VALUE  seq, int index)
+      : _seq(seq), _index(index)
+    {
+    }
+
+    reference operator*() const
+    {
+      return reference(_seq, _index);
+    }
+
+    RubySequence_ArrowProxy<T>
+    operator->() const {
+      return RubySequence_ArrowProxy<T>(operator*());
+    }
+
+    bool operator==(const self& ri) const
+    {
+      return (_index == ri._index) && (_seq == ri._seq);
+    }
+
+    bool operator!=(const self& ri) const
+    {
+      return !(operator==(ri));
+    }
+
+    self& operator ++ ()
+    {
+      ++_index;
+      return *this;
+    }
+
+    self& operator -- ()
+    {
+      --_index;
+      return *this;
+    }
+
+    self& operator += (difference_type n)
+    {
+      _index += n;
+      return *this;
+    }
+
+    self operator +(difference_type n) const
+    {
+      return self(_seq, _index + n);
+    }
+
+    self& operator -= (difference_type n)
+    {
+      _index -= n;
+      return *this;
+    }
+
+    self operator -(difference_type n) const
+    {
+      return self(_seq, _index - n);
+    }
+
+    difference_type operator - (const self& ri) const
+    {
+      return _index - ri._index;
+    }
+
+    bool operator < (const self& ri) const
+    {
+      return _index < ri._index;
+    }
+
+    reference
+    operator[](difference_type n) const
+    {
+      return reference(_seq, _index + n);
+    }
+
+  private:
+    VALUE  _seq;
+    difference_type _index;
+  };
+
+
+  template <class T>
+  struct RubySequence_Cont
+  {
+    typedef RubySequence_Ref<T> reference;
+    typedef const RubySequence_Ref<T> const_reference;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef int difference_type;
+    typedef int size_type;
+    typedef const pointer const_pointer;
+    typedef RubySequence_InputIterator<T, reference> iterator;
+    typedef RubySequence_InputIterator<T, const_reference> const_iterator;
+
+    RubySequence_Cont(VALUE  seq) : _seq(0)
+    {
+      if (!rb_obj_is_kind_of(seq, rb_cArray)) {
+	throw std::invalid_argument("an Array is expected");
+      }
+      _seq = seq;
+    }
+
+    ~RubySequence_Cont()
+    {
+    }
+
+    size_type size() const
+    {
+      return RARRAY_LEN(_seq);
+    }
+
+    bool empty() const
+    {
+      return size() == 0;
+    }
+
+    iterator begin()
+    {
+      return iterator(_seq, 0);
+    }
+
+    const_iterator begin() const
+    {
+      return const_iterator(_seq, 0);
+    }
+
+    iterator end()
+    {
+      return iterator(_seq, size());
+    }
+
+    const_iterator end() const
+    {
+      return const_iterator(_seq, size());
+    }
+
+    reference operator[](difference_type n)
+    {
+      return reference(_seq, n);
+    }
+
+    const_reference operator[](difference_type n)  const
+    {
+      return const_reference(_seq, n);
+    }
+
+    bool check(bool set_err = true) const
+    {
+      int s = size();
+      for (int i = 0; i < s; ++i) {
+	VALUE item = rb_ary_entry(_seq, i );
+	if (!swig::check<value_type>(item)) {
+	  if (set_err) {
+	    char msg[1024];
+	    sprintf(msg, "in sequence element %d", i);
+	    SWIG_Error(SWIG_RuntimeError, msg);
+	  }
+	  return false;
+	}
+      }
+      return true;
+    }
+
+  private:
+    VALUE  _seq;
+  };
+
+}
+}
+
+%define %swig_sequence_iterator(Sequence...)
+#if defined(SWIG_EXPORT_ITERATOR_METHODS)
+  class iterator;
+  class reverse_iterator;
+  class const_iterator;
+  class const_reverse_iterator;
+
+  %typemap(out,noblock=1,fragment="RubySequence_Cont")
+    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
+    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
+				 swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+  }
+  %typemap(out,noblock=1,fragment="RubySequence_Cont")
+    std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
+    $result = rb_ary_new2(2);
+    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+    RARRAY_PTR($result)[1] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+    RARRAY_LEN($result) = 2;
+  }
+
+  %fragment("RubyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="RubySequence_Cont") {}
+
+  %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
+    std::pair<iterator, bool>, std::pair<const_iterator, bool> {
+    $result = rb_ary_new2(2);
+    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);    
+    RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
+    RARRAY_LEN($result) = 2;
+  }
+
+  %typemap(in,noblock=1,fragment="RubySequence_Cont")
+    iterator(swig::RubySwigIterator *iter = 0, int res),
+    reverse_iterator(swig::RubySwigIterator *iter = 0, int res),
+    const_iterator(swig::RubySwigIterator *iter = 0, int res),
+    const_reverse_iterator(swig::RubySwigIterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::RubySwigIterator::descriptor(), 0);
+    if (!SWIG_IsOK(res) || !iter) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    } else {
+      swig::RubySwigIterator_T<$type > *iter_t = dynamic_cast<swig::RubySwigIterator_T<$type > *>(iter);
+      if (iter_t) {
+	$1 = iter_t->get_current();
+      } else {
+	%argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
+    }
+  }
+
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="RubySequence_Cont")
+    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
+    swig::RubySwigIterator *iter = 0;
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::RubySwigIterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::RubySwigIterator_T<$type > *>(iter) != 0));
+  }
+
+  %fragment("RubySequence_Cont");
+
+  %newobject iterator(VALUE *RUBY_SELF);
+  %extend  {
+    swig::RubySwigIterator* iterator(VALUE *RUBY_SELF) {
+      return swig::make_output_iterator(self->begin(), self->begin(), 
+					self->end(), *RUBY_SELF);
+    }
+  }
+#endif //SWIG_EXPORT_ITERATOR_METHODS
+%enddef
+
+
+/**** The Ruby container methods  ****/
+
+
+%define %swig_container_methods(Container...)
+
+
+  %extend {
+
+  VALUE inspect()
+    {
+      Container::iterator i = $self->begin();
+      Container::iterator e = $self->end();
+      VALUE str = rb_str_new2( swig::type_name< Container >() );
+      str = rb_str_cat2( str, " [" );
+      bool comma = false;
+      VALUE tmp;
+      for ( ; i != e; ++i, comma = true )
+	{
+	  if (comma) str = rb_str_cat2( str, "," );
+	  tmp = swig::from<Container::value_type>( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      str = rb_str_cat2( str, "]" );
+      return str;
+    }
+
+  VALUE to_s()
+    {
+      Container::iterator i = $self->begin();
+      Container::iterator e = $self->end();
+      VALUE str = rb_str_new2( "" );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  tmp = swig::from<Container::value_type>( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      return str;
+    }
+  }
+
+%enddef
+
+%define %swig_sequence_methods_common(Sequence...)
+  %swig_sequence_iterator(%arg(Sequence))
+  %swig_container_methods(%arg(Sequence))
+  
+  %fragment("RubySequence_Base");
+
+
+  %extend {
+
+
+#if defined(SWIG_RUBY_AUTORENAME)
+
+  VALUE pop() {
+    if ($self->empty()) return Qnil;
+    Sequence::value_type x = self->back();
+    $self->pop_back();
+    return swig::from< Sequence::value_type >( x );
+  }
+
+  const value_type push( const value_type& e ) {
+    $self->push_back( e );
+    return e;
+  }
+
+#endif
+
+
+//     VALUE __del__(const Sequence::value_type& e) {
+//       VALUE r = Qnil;
+//       std::size_t len = $self->size();
+//       std::remove_if( $self->begin(), $self->end(), 
+// 		      std::bind2nd( std::equal_to< Sequence::value_type >(),
+// 				    e ) );
+//       if ( $self->size() != len )
+// 	r = swig::from< Sequence::value_type >( e );
+//       return r;
+//     }
+
+    VALUE slice( difference_type i, difference_type j )
+      {
+	if ( j <= 0 ) return Qnil;
+	std::size_t len = $self->size();
+	if ( i < 0 ) i = len - i;
+	j += i; if ( j >= len ) j = len-1;
+
+	VALUE r = Qnil;
+	try {
+	  r = swig::from< Sequence >( *(swig::getslice(self, i, j)) );
+	}
+	catch( std::out_of_range )
+	  {
+	  }
+	return r;
+      }
+
+    %newobject reject;
+    Sequence* reject() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      Sequence* r = new Sequence;
+      std::remove_copy_if( $self->begin(), $self->end(),              
+			   std::back_inserter(*r),
+			   swig::yield< Sequence::value_type >() );
+      return r;
+    }
+    
+
+    %rename("reject!") reject_bang;
+    %alias reject_bang "delete_if";
+    Sequence* reject_bang() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      VALUE r;
+      Sequence::iterator i = self->begin();
+      Sequence::iterator e = self->end();
+      for ( ; i != e; )
+	{
+	  r = swig::from<Sequence::value_type>(*i);
+	  if ( RTEST( rb_yield(r) ) )
+	    $self->erase(i++);
+	  else
+	    ++i;
+	}
+	
+      return self;
+    }
+
+    VALUE delete_at(difference_type i) {
+      VALUE r = Qnil;
+      try {
+	Sequence::iterator at = swig::getpos(self, i);
+	r = swig::from< Sequence::value_type >( *(at) );
+	$self->erase(at); 
+      }
+      catch (std::out_of_range)
+	{
+	}
+      return r;
+    }
+
+    Sequence* each_with_index()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE r, idx;
+	Sequence::iterator i = self->begin();
+	Sequence::iterator e = self->end();
+	unsigned c = 0;
+	for ( ; i != e; ++i, ++c )
+	  {
+	    r = swig::from<Sequence::value_type>(*i);
+	    idx = UINT2NUM( c );
+	    rb_yield_values(2, r, idx);
+	  }
+	
+	return self;
+      }
+
+    Sequence* each()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE r;
+	Sequence::iterator i = self->begin();
+	Sequence::iterator e = self->end();
+	for ( ; i != e; ++i )
+	  {
+	    r = swig::from<Sequence::value_type>(*i);
+	    rb_yield(r);
+	  }
+	
+	return self;
+      }
+  }
+%enddef
+
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_common(%arg(Sequence))
+  %extend {
+
+    VALUE at(difference_type i) const {
+      VALUE r = Qnil;
+      try {
+	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
+      }
+      catch( std::out_of_range )
+	{
+	}
+      return r;
+    }
+
+    VALUE __getitem__(difference_type i, difference_type j) const {
+      if ( j <= 0 ) return Qnil;
+      std::size_t len = $self->size();
+      if ( i < 0 ) i = len - i;
+      j += i; if ( j >= len ) j = len-1;
+
+      VALUE r = Qnil;
+      try {
+	r = swig::from< Sequence >( *(swig::getslice(self, i, j)) );
+      }
+      catch( std::out_of_range )
+	{
+	}
+      return r;
+    }
+
+    VALUE __getitem__(difference_type i) const {
+      VALUE r = Qnil;
+      try {
+	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
+      }
+      catch( std::out_of_range )
+	{
+	}
+      return r;
+    }
+
+    VALUE __getitem__(VALUE i) const {
+      if ( rb_obj_is_kind_of( i, rb_cRange ) == Qfalse )
+	{
+	  rb_raise( rb_eTypeError, "not a valid index or range" );
+	}
+
+      VALUE r = Qnil;
+      static ID id_end   = rb_intern("end");
+      static ID id_start = rb_intern("begin");
+      static ID id_noend = rb_intern("exclude_end?");
+
+      VALUE start = rb_funcall( i, id_start, 0 );
+      VALUE end   = rb_funcall( i, id_end, 0 );
+      bool  noend = ( rb_funcall( i, id_noend, 0 ) == Qtrue );
+
+      std::size_t len = $self->size();
+
+      int s = NUM2INT( start );
+      if ( s < 0 ) s = len + s;
+      else if ( s >= len ) return Qnil;
+
+      int e = NUM2INT( end );
+      if ( e < 0 ) e = len + e;
+
+      if ( e < s ) return Qnil; //std::swap( s, e );
+
+      if ( noend ) e -= 1;
+      if ( e >= len ) e = len - 1;
+
+      return swig::from< Sequence >( *(swig::getslice(self, s, e+1)) );
+    }
+
+    VALUE __setitem__(difference_type i, const value_type& x) throw (std::out_of_range) {
+      *(swig::getpos(self,i)) = x;
+      return swig::from< Sequence::value_type >( x );
+    }
+
+    VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) 
+      throw (std::out_of_range, std::invalid_argument) {
+
+      if ( j <= 0 ) return Qnil;
+      std::size_t len = $self->size();
+      if ( i < 0 ) i = len - i;
+      j += i; if ( j >= len ) j = len-1;
+
+      VALUE r = Qnil;
+      try {
+	swig::setslice(self, i, j, v);
+	r = swig::from< const Sequence* >( &v );
+      }
+      catch( std::out_of_range )
+	{
+	}
+      return r;
+    }
+
+ }
+%enddef
+
+%define %swig_sequence_methods_val(Sequence...)
+  %swig_sequence_methods_common(%arg(Sequence))
+  %extend {
+
+    value_type __getitem__(difference_type i) throw (std::out_of_range) {
+      return *(swig::cgetpos(self, i));
+    }
+
+    void __setitem__(difference_type i, value_type x) throw (std::out_of_range) {
+      *(swig::getpos(self,i)) = x;
+    }
+ }
+%enddef
+
+
+
+//
+// Common fragments
+//
+
+%fragment("StdSequenceTraits","header",
+	  fragment="StdTraits",
+	  fragment="RubySequence_Cont")
+{
+namespace swig {
+  template <class RubySeq, class Seq>
+  inline void
+  assign(const RubySeq& rubyseq, Seq* seq) {
+%#ifdef SWIG_STD_NOASSIGN_STL
+    typedef typename RubySeq::value_type value_type;
+    typename RubySeq::const_iterator it = rubyseq.begin();
+    for (;it != rubyseq.end(); ++it) {
+      seq->insert(seq->end(),(value_type)(*it));
+    }
+%#else
+    seq->assign(rubyseq.begin(), rubyseq.end());
+%#endif
+  }
+
+  template <class Seq, class T = typename Seq::value_type >
+  struct traits_asptr_stdseq {
+    typedef Seq sequence;
+    typedef T value_type;
+
+    static int asptr(VALUE obj, sequence **seq) {
+      if (rb_obj_is_kind_of(obj, rb_cArray)) {
+	try {
+	  RubySequence_Cont<value_type> rubyseq(obj);
+	  if (seq) {
+	    sequence *pseq = new sequence();
+	    assign(rubyseq, pseq);
+	    *seq = pseq;
+	    return SWIG_NEWOBJ;
+	  } else {
+	    return rubyseq.check() ? SWIG_OK : SWIG_ERROR;
+	  }
+	} catch (std::exception& e) {
+	  if (seq) {
+	    VALUE lastErr = rb_gv_get("$!");
+	    if (lastErr == Qnil) {
+	      rb_raise(rb_eTypeError, e.what());
+	    }
+	  }
+	  return SWIG_ERROR;
+	}
+      } else {
+	sequence *p;
+	if (SWIG_ConvertPtr(obj,(void**)&p,
+			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	  if (seq) *seq = p;
+	  return SWIG_OLDOBJ;
+	}
+      }
+      return SWIG_ERROR;
+    }
+  };
+
+  template <class Seq, class T = typename Seq::value_type >
+  struct traits_from_stdseq {
+    typedef Seq sequence;
+    typedef T value_type;
+    typedef typename Seq::size_type size_type;
+    typedef typename sequence::const_iterator const_iterator;
+
+    static VALUE from(const sequence& seq) {
+#ifdef SWIG_RUBY_EXTRA_NATIVE_CONTAINERS
+      swig_type_info *desc = swig::type_info<sequence>();
+      if (desc && desc->clientdata) {
+	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
+      }
+#endif
+      size_type size = seq.size();
+      if (size <= (size_type)INT_MAX) {
+	VALUE obj = rb_ary_new2((int)size);
+	int i = 0;
+	for (const_iterator it = seq.begin();
+	     it != seq.end(); ++it, ++i) {
+	  RARRAY_PTR(obj)[i] = swig::from<value_type>(*it);
+	}
+	RARRAY_LEN(obj) = size;
+	return obj;
+      } else {
+	rb_raise(rb_eRangeError,"sequence size not valid in ruby");
+	return Qnil;
+      }
+    }
+  };
+}
+}
