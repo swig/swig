@@ -12,7 +12,6 @@ namespace swig {
 
   template <class Type> struct traits_from {
     static VALUE from(const Type& val) {
-    fprintf( stderr, "%s %d\n", __PRETTY_FUNCTION__, __LINE__);
       return traits_from_ptr<Type>::from(new Type(val), 1);
     }
   };
@@ -25,7 +24,6 @@ namespace swig {
 
   template <class Type> struct traits_from<const Type *> {
     static VALUE from(const Type* val) {
-      fprintf( stderr, "conversion from const Type*n");
       return traits_from_ptr<Type>::from(const_cast<Type*>(val), 0);
     }
   };
@@ -33,7 +31,6 @@ namespace swig {
 
   template <class Type>
   inline VALUE from(const Type& val) {
-    fprintf( stderr, "%s %d\n", __PRETTY_FUNCTION__, __LINE__);
     return traits_from<Type>::from(val);
   }
 
@@ -216,7 +213,6 @@ namespace swig {
   template <>  struct traits_from<Type > {
     typedef Type value_type;
     static VALUE from(const value_type& val) {
-      fprintf( stderr, "%s %d\n", __PRETTY_FUNCTION__, __LINE__);
       return From(val);
     }
   };
