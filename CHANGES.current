@@ -1,7 +1,41 @@
 Version 1.3.32 (in progress)
 ============================
 04/30/2007: gga
-	    [Ruby] Removed the need for -DSWIGEXTERN.
+	    [Ruby]
+	    Ruby will now report the parameter index properly on type
+	    errors.
+	    (feature request #1699670)
+
+04/30/2007: gga
+	    [Ruby]
+	    std_vector.i and some related STL files have been upgraded
+	    to follow the new swig/python Lib/std conventions.
+	    std_vector.i now mimics the behavior of Ruby Arrays much more 
+	    closely, supporting slicing, multiple indexing and proper
+	    return values on assignment.
+	    
+	    COMPATABILITY NOTE: this changes the older api a little bit in 
+	    that improper indexing would previously (incorrectly) raise
+	    exceptions.  Now, nil is returned instead, following ruby's 
+	    standard Array behavior.
+
+04/30/2007: gga
+	    [Ruby]
+	    Ruby no longer creates the free_Class function if the class
+	    containes its own user defined free function (%freefunc).
+	    (bug #1702882)
+ 
+04/30/2007: gga
+	    [Ruby]
+	    Made directors raise a ruby expection for incorrect argout
+	    returned values if RUBY_EMBEDDED is set, instead of throwing
+	    an actual SwigDirector exception.
+	    This will prevent crashes when ruby is embedded and unaware
+	    of the SwigDirector exception.
+
+04/30/2007: gga
+	    [Ruby] 
+	    Removed the need for -DSWIGEXTERN.
 	    Changed swig_ruby_trackings to be a static variable, but also
 	    be kept within a hidden instance variable in the SWIG module.
 	    This allows properly dealing with trackings across multiple 
@@ -25,6 +59,7 @@ Version 1.3.32 (in progress)
 	    Fixed the argout count in directors for Ruby.  Previously, 
 	    ignored or "numinputs=0" typemaps would incorrectly not get 
 	    counted towards the argout count.
+	    (bug/patch #1545585)
 
 04/29/2007: gga
 	    [Ruby] 
