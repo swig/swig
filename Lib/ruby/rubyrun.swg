@@ -84,19 +84,12 @@ static VALUE swig_runtime_data_type_pointer = Qnil;
 
 /*
   If your swig extension is to be run within an embedded ruby and has
-  director callbacks, you should set RUBY_EMBEDDED.  This will reset
-  ruby's stack frame on each entry point from the main program the first
-  time a virtual director function is invoked (in a non-recursive way).
-  If this is not done, you run the risk of trashing the stack.
+  director callbacks, you should set -DRUBY_EMBEDDED during compilation.  
+  This will reset ruby's stack frame on each entry point from the main 
+  program the first time a virtual director function is invoked (in a 
+  non-recursive way).
+  If this is not done, you run the risk of Ruby trashing the stack.
 */
-
-#ifndef RUBY_INIT_STACK
-   extern void Init_stack(VALUE* addr);
-#  define RUBY_INIT_STACK \
-   VALUE variable_in_this_stack_frame; \
-   Init_stack(&variable_in_this_stack_frame);
-#endif
-
 
 #ifdef RUBY_EMBEDDED
 
