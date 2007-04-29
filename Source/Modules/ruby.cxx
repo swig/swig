@@ -1930,10 +1930,16 @@ public:
    * -------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
+
+    /* Do no spit free function if user defined his own for this class */
+    Node *pn = Swig_methodclass(n);
+    String *freefunc = Getattr(pn, "feature:freefunc");
+    if (freefunc) return SWIG_OK;
+
     current = DESTRUCTOR;
     Language::destructorHandler(n);
 
-    String *freefunc = NewString("");
+    freefunc = NewString("");
     String *freebody = NewString("");
     String *pname0 = Swig_cparm_name(0, 0);
 
@@ -1942,7 +1948,6 @@ public:
 
     /* Check to see if object tracking is activated for the class
        that owns this destructor. */
-    Node *pn = Swig_methodclass(n);
     if (GetFlag(pn, "feature:trackobjects")) {
       Printf(freebody, "SWIG_RubyRemoveTracking(%s);\n", pname0);
       Printv(freebody, tab4, NIL);
@@ -2353,11 +2358,9 @@ public:
       Swig_typemap_attach_parms("directorin", l, 0);
       Swig_typemap_attach_parms("directorargout", l, w);
 
-      int num_arguments = emit_num_arguments(l);
       char source[256];
 
       int outputs = 0;
-
       if (!is_void && !asvoid)
 	outputs++;
 
@@ -2485,7 +2488,7 @@ public:
       if (outputs > 1) {
 	Wrapper_add_local(w, "output", "VALUE output");
 	Printf(w->code, "if (TYPE(result) != T_ARRAY) {\n");
-	Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
+	Printf(w->code, "Ruby_DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
 	Printf(w->code, "}\n");
       }
 
