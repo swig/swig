@@ -87,6 +87,7 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
 }
 
 
+SWIGINTERN 
 const char* Ruby_Format_TypeError( const char* msg,
 				   const char* type, 
 				   const char* name, 
