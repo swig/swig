@@ -87,4 +87,13 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
 }
 
 
-
+const char* Ruby_Format_TypeError( const char* msg,
+				   const char* type, 
+				   const char* name, 
+				   const int argn )
+{
+  static char buf[1024];
+  sprintf( buf, "%sin method '%s', argument %d of type %s",
+	   msg, name, argn-1, type );
+  return buf;
+}
