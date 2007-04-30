@@ -1,16 +1,35 @@
 #!/usr/bin/env ruby
 #
-# Put script description here.
-#
-# Author::    
-# Copyright:: 
-# License::   Ruby
-#
-
 #
 # VERY nice function from Robert Klemme to check memory leaks
 # and check on what GC has collected since last call.
 #
+# Usage can be:
+#
+#     require 'swig_gc'
+#
+#     GC.stats
+#     # do some stuff..
+#     GC.start  # collect and report stats
+#     # do some more...
+#     GC.stats  # just report stats
+#
+# or:
+#
+#     require 'swig_gc'
+#
+#     GC.track_class = String  # track just String classes
+#     GC.stats
+#     # do some stuff..
+#     GC.start  # collect and report stats
+#     # do some more...
+#     GC.stats  # just report stats
+#
+# Author::    gga
+# Copyright:: 2007
+# License::   Ruby
+#
+
 if $VERBOSE
   module GC
 

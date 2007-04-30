@@ -10,17 +10,20 @@
 require 'swig_assert'
 
 require 'li_std_pair'
-
 include Li_std_pair
 
 #
-# Because of template specializations for pair<int, int>, this should return
+# Because of template specializations for pair<int, int>, these should return
 # an Array of size 2, where both elements are Fixnums.
 #
 intPair = makeIntPair(7, 6)
 raise RuntimeError unless intPair.instance_of?(Array)
 raise RuntimeError unless intPair.size == 2
-raise RuntimeError unless (intPair[0] == 7 && intPair[1] == 6)
+raise RuntimeError unless intPair[0] == 7 && intPair[1] == 6
+
+intPairConstRef = makeIntPairConstRef(7, 6)
+raise RuntimeError unless intPairConstRef.instance_of?(Array)
+raise RuntimeError unless intPairConstRef[0] == 7 && intPairConstRef[1] == 6
 
 #
 # Each of these should return a reference to a wrapped
@@ -28,16 +31,11 @@ raise RuntimeError unless (intPair[0] == 7 && intPair[1] == 6)
 #
 intPairPtr = makeIntPairPtr(7, 6)
 raise RuntimeError unless intPairPtr.instance_of?(IntPair)
-raise RuntimeError unless (intPairPtr.first == 7 && intPairPtr.second == 6)
+raise RuntimeError unless intPairPtr[0] == 7 && intPairPtr[1] == 6
 
 intPairRef = makeIntPairRef(7, 6)
 raise RuntimeError unless intPairRef.instance_of?(IntPair)
-raise RuntimeError unless (intPairRef.first == 7 && intPairRef.second == 6)
-
-intPairConstRef = makeIntPairConstRef(7, 6)
-raise RuntimeError unless intPairConstRef.instance_of?(IntPair)
-raise RuntimeError unless (intPairConstRef.first == 7 && intPairConstRef.second == 6)
-
+raise RuntimeError unless intPairRef[0] == 7 && intPairRef[1] == 6
 #
 # Now test various input typemaps. Each of the wrapped C++ functions
 # (product1, product2 and product3) is expecting an argument of a
