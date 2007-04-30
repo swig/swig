@@ -872,7 +872,6 @@ namespace swig
 	{
 	  Sequence::iterator start = $self->begin();
 	  VALUE elem = argv[idx];
-	  Sequence::value_type val;
 	  try {
 	    Sequence::value_type val = swig::as<Sequence::value_type>( elem, true );
 	    $self->insert( start, val );
