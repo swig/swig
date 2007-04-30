@@ -48,7 +48,7 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 print "Building system"
 os.system("cd "+dirname+"; ./autogen.sh")
 os.system("cd "+dirname+"/Tools/WAD; autoconf")
-os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
+os.system("make maintainer")
 
 # Remove autoconf files
 os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;");

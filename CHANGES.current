@@ -14,6 +14,9 @@ Version 1.3.32 (in progress)
 	    director method is used as a C++ callback and not called
             by the user from ruby code.
 
+04/30/2007: wsfulton
+            Fix #1707582 - Restore building from read-only source directories.
+
 04/30/2007: gga
 	    [Ruby]
 	    Ruby will now report the parameter index properly on type
@@ -144,7 +147,6 @@ Version 1.3.32 (in progress)
 	    has now been reported to ruby-core and is pending further
 	    investigation.
 	    (bug #1700535 and patch #1702907)
-
 
 04/21/2007: olly
 	    Fix parsing of float constants with an exponent (e.g. 1e-02f)

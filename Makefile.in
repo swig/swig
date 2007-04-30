@@ -26,7 +26,11 @@ source:
 
 libfiles: $(srcdir)/Lib/swigwarn.swg
 
-.PHONY: source libfiles
+# Files required just for the tarball
+maintainer: libfiles
+	@cd $(SOURCE) && $(MAKE) CParse/parser.h
+
+.PHONY: source libfiles maintainer
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -297,6 +301,9 @@ clean-%-gifplot:
 clean-docs:
 	@echo cleaning Docs
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) -s clean
+
+maintainer-clean: clean-libfiles
+	@cd $(SOURCE) && $(MAKE) maintainer-clean
 
 #####################################################################
 # DISTCLEAN
