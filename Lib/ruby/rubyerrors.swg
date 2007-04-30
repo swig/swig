@@ -105,9 +105,7 @@ const char* Ruby_Format_TypeError( const char* msg,
       str = rb_str_new(NULL, 0);
     }
 
-  str = rb_str_cat2( str, "in method '" );
-  str = rb_str_cat2( str, name );
-  str = rb_str_cat2( str, "', argument " );
+  str = rb_str_cat2( str, "Expected argument " );
   sprintf( buf, "%d of type ", argn-1 );
   str = rb_str_cat2( str, buf );
   str = rb_str_cat2( str, type );
@@ -123,6 +121,13 @@ const char* Ruby_Format_TypeError( const char* msg,
   else
     {
       str = rb_str_append( str, asStr );
+    }
+
+  if ( name )
+    {
+      str = rb_str_cat2( str, "\n\tin SWIG method '" );
+      str = rb_str_cat2( str, name );
+      str = rb_str_cat2( str, "'\n" );
     }
 
   return StringValuePtr( str );
