@@ -108,13 +108,13 @@ const char* Ruby_Format_TypeError( const char* msg,
   str = rb_str_cat2( str, "in method '" );
   str = rb_str_cat2( str, name );
   str = rb_str_cat2( str, "', argument " );
-  sprintf( buf, "%d of type ", argn );
+  sprintf( buf, "%d of type ", argn-1 );
   str = rb_str_cat2( str, buf );
   str = rb_str_cat2( str, type );
   str = rb_str_cat2( str, ", but got " );
   str = rb_str_cat2( str, rb_obj_classname(input) );
-  str = rb_str_cat2( str, " (" );
-  VALUE asStr = rb_obj_as_string(input);
+  str = rb_str_cat2( str, " " );
+  VALUE asStr = rb_inspect(input);
   if ( RSTRING_LEN(asStr) > 30 )
     {
       str = rb_str_cat( str, StringValuePtr(asStr), 30 );
@@ -122,9 +122,8 @@ const char* Ruby_Format_TypeError( const char* msg,
     }
   else
     {
-      str = rb_str_concat( str, asStr );
+      str = rb_str_append( str, asStr );
     }
-  str = rb_str_cat2( str, ")" );
 
   return StringValuePtr( str );
 }

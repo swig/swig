@@ -1,951 +1,209 @@
-/* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
- * std_pair.i
- *
- * SWIG typemaps for std::pair
- * ----------------------------------------------------------------------------- */
+/*
+  Pairs
+*/
+%include <rubystdcommon.swg>
 
-%include <std_common.i>
-%include <exception.i>
+//#define SWIG_STD_PAIR_ASVAL
 
-// ------------------------------------------------------------------------
-// std::pair
-//
-// See std_vector.i for the rationale of typemap application
-// ------------------------------------------------------------------------
+%fragment("StdPairTraits","header",fragment="StdTraits") {
+  namespace swig {
+#ifdef SWIG_STD_PAIR_ASVAL
+    template <class T, class U >
+    struct traits_asval<std::pair<T,U> >  {
+      typedef std::pair<T,U> value_type;
 
-%{
-#include <utility>
-%}
+      static int get_pair(VALUE first, VALUE second,
+			  std::pair<T,U> *val)
+      {
+	if (val) {
+	  T *pfirst = &(val->first);
+	  int res1 = swig::asval((VALUE)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
+	  U *psecond = &(val->second);
+	  int res2 = swig::asval((VALUE)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
+	} else {
+	  T *pfirst = 0;
+	  int res1 = swig::asval((VALUE)first, 0);
+	  if (!SWIG_IsOK(res1)) return res1;
+	  U *psecond = 0;
+	  int res2 = swig::asval((VALUE)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
+	}	
+      }
 
-// exported class
-
-namespace std {
-
-    template<class T, class U> struct pair {
-        %typemap(in) pair<T,U> (std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2)
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                T* x;
-                U* y;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
-                SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                $1 = std::make_pair(*x,*y);
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
-                $1 = *p;
-            }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                       std::pair<T,U>* p),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                       std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2)
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                T* x;
-                U* y;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
-                SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                temp = std::make_pair(*x,*y);
-                $1 = &temp;
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
-                $1 = p;
-            }
-        }
-        %typemap(out) pair<T,U> {
-            $result = rb_ary_new2(2);
-            T* x = new T($1.first);
-            U* y = new U($1.second);
-            rb_ary_store($result,0,
-                         SWIG_NewPointerObj((void *) x, 
-                                            $descriptor(T *), 1));
-            rb_ary_store($result,1,
-                         SWIG_NewPointerObj((void *) y, 
-                                            $descriptor(U *), 1));
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    T* x;
-                    U* y;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (SWIG_ConvertPtr(first,(void **) &x,
-                                        $descriptor(T *),0) != -1 &&
-                        SWIG_ConvertPtr(second,(void **) &y,
-                                        $descriptor(U *),0) != -1)
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped pair? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $&1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
-                                        const pair<T,U>* {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    T* x;
-                    U* y;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (SWIG_ConvertPtr(first,(void **) &x,
-                                        $descriptor(T *),0) != -1 &&
-                        SWIG_ConvertPtr(second,(void **) &y,
-                                        $descriptor(U *),0) != -1)
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped map? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        pair();
-        pair(T first, U second);
-        pair(const pair& p);
-
-        template <class U1, class U2> pair(const pair<U1, U2> &p);
-
-        T first;
-        U second;
+      static int asval(VALUE obj, std::pair<T,U> *val) {
+	int res = SWIG_ERROR;
+	if ( TYPE(obj) == T_ARRAY ) {
+	  if (RARRAY_LEN(obj) == 2) {
+	    VALUE first = rb_ary_entry(obj,0);
+	    VALUE second = rb_ary_entry(obj,1);
+	    res = get_pair(first, second, val);
+	  }
+	} else {
+	  value_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,
+				swig::type_info<value_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = *p;
+	}
+	return res;
+      }
     };
-    
-    // specializations for built-ins
 
-    %define specialize_std_pair_on_first(T,CHECK,CONVERT_FROM,CONVERT_TO)
+#else
+    template <class T, class U >
+    struct traits_asptr<std::pair<T,U> >  {
+      typedef std::pair<T,U> value_type;
 
-    template<class U> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2)
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                U* y;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                if (!CHECK(first))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                $1 = std::make_pair(CONVERT_FROM(first),*y);
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
-                $1 = *p;
-            }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                       std::pair<T,U>* p),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                       std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2)
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                U* y;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                if (!CHECK(first))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                SWIG_ConvertPtr(second, (void **) &y, $descriptor(U *), 1);
-                temp = std::make_pair(CONVERT_FROM(first),*y);
-                $1 = &temp;
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
-                $1 = p;
-            }
-        }
-        %typemap(out) pair<T,U> {
-            $result = rb_ary_new2(2);
-            U* y = new U($1.second);
-            rb_ary_store($result,0,CONVERT_TO($1.first));
-            rb_ary_store($result,1,
-                         SWIG_NewPointerObj((void *) y, 
-                                            $descriptor(U *), 1));
-        }
-        %typecheck(SWIG_TYPECHECK_MAP) pair<T,U> {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    U* y;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (CHECK(first) &&
-                        SWIG_ConvertPtr(second,(void **) &y,
-                                        $descriptor(U *),0) != -1)
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped pair? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $&1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        %typecheck(SWIG_TYPECHECK_MAP) const pair<T,U>&,
-                                       const pair<T,U>* {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    U* y;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (CHECK(first) &&
-                        SWIG_ConvertPtr(second,(void **) &y,
-                                        $descriptor(U *),0) != -1)
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped map? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        pair();
-        pair(T first, U second);
-        pair(const pair& p);
+      static int get_pair(VALUE first, VALUE second,
+			  std::pair<T,U> **val) 
+      {
+	if (val) {
+	  value_type *vp = %new_instance(std::pair<T,U>);
+	  T *pfirst = &(vp->first);
+	  int res1 = swig::asval((VALUE)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
+	  U *psecond = &(vp->second);
+	  int res2 = swig::asval((VALUE)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  *val = vp;
+	  return SWIG_AddNewMask(res1 > res2 ? res1 : res2);
+	} else {
+	  T *pfirst = 0;
+	  int res1 = swig::asval((VALUE)first, pfirst);
+	  if (!SWIG_IsOK(res1)) return res1;
+	  U *psecond = 0;
+	  int res2 = swig::asval((VALUE)second, psecond);
+	  if (!SWIG_IsOK(res2)) return res2;
+	  return res1 > res2 ? res1 : res2;
+	}	
+      }
 
-        template <class U1, class U2> pair(const pair<U1, U2> &p);
-
-        T first;
-        U second;
+      static int asptr(VALUE obj, std::pair<T,U> **val) {
+	int res = SWIG_ERROR;
+	if ( TYPE(obj) == T_ARRAY ) {
+	  if ( RARRAY_LEN(obj) == 2) {
+	    VALUE first = rb_ary_entry(obj,0);
+	    VALUE second = rb_ary_entry(obj,1);
+	    res = get_pair(first, second, val);
+	  }
+	} else {
+	  value_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = p;
+	}
+	return res;
+      }
     };
-    %enddef
 
-    %define specialize_std_pair_on_second(U,CHECK,CONVERT_FROM,CONVERT_TO)
+#endif
 
-    template<class T> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                }
-                T* x;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
-                if (!CHECK(second))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                $1 = std::make_pair(*x,CONVERT_FROM(second));
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
-                $1 = *p;
-            }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                       std::pair<T,U>* p),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                       std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                }
-                T* x;
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                SWIG_ConvertPtr(first, (void **) &x, $descriptor(T *), 1);
-                if (!CHECK(second))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                temp = std::make_pair(*x,CONVERT_FROM(second));
-                $1 = &temp;
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
-                $1 = p;
-            }
-        }
-        %typemap(out) pair<T,U> {
-            $result = rb_ary_new2(2);
-            T* x = new T($1.first);
-            rb_ary_store($result,0,
-                         SWIG_NewPointerObj((void *) x, 
-                                            $descriptor(T *), 1));
-            rb_ary_store($result,1,CONVERT_TO($1.second));
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    T* x;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (SWIG_ConvertPtr(first,(void **) &x,
-                                        $descriptor(T *),0) != -1 &&
-                        CHECK(second))
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped pair? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $&1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
-                                        const pair<T,U>* {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    T* x;
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (SWIG_ConvertPtr(first,(void **) &x,
-                                        $descriptor(T *),0) != -1 &&
-                        CHECK(second))
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped map? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        pair();
-        pair(T first, U second);
-        pair(const pair& p);
 
-        template <class U1, class U2> pair(const pair<U1, U2> &p);
+    template <class T, class U >
+    struct traits_from<std::pair<T,U> >   {
+      static VALUE _wrap_pair_second( VALUE self )
+      {
+	std::pair<T,U>* p = NULL;
+	swig::asptr( self, &p );
+	return swig::from( p->second );
+      fail:
+	return Qnil;
+      }
 
-        T first;
-        U second;
+      static VALUE _wrap_pair_second_eq( VALUE self, VALUE arg )
+      {
+	std::pair<T,U>* p = NULL;
+	swig::asptr( self, &p );
+	return swig::from( p->second );
+      fail:
+	return Qnil;
+      }
+
+      static VALUE from(const std::pair<T,U>& val) {
+	VALUE obj = rb_ary_new2(2);
+	RARRAY_PTR(obj)[0] = swig::from(val.first);
+	RARRAY_PTR(obj)[1] = swig::from(val.second);
+	RARRAY_LEN(obj) = 2;
+	rb_define_singleton_method(obj, "second",  
+				   VALUEFUNC(_wrap_pair_second), 0 );
+	rb_define_singleton_method(obj, "second=", 
+				   VALUEFUNC(_wrap_pair_second_eq), 1 );
+	return obj;
+      }
     };
-    %enddef
 
-    %define specialize_std_pair_on_both(T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO,
-                                        U,CHECK_U,CONVERT_U_FROM,CONVERT_U_TO)
-    template<> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                }
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                if (!CHECK_T(first) || !CHECK_U(second))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                $1 = std::make_pair(CONVERT_T_FROM(first),
-                                    CONVERT_U_FROM(second));
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $&1_descriptor, 1);
-                $1 = *p;
-            }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                       std::pair<T,U>* p),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                       std::pair<T,U>* p) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                }
-                VALUE first = RARRAY_PTR($input)[0];
-                VALUE second = RARRAY_PTR($input)[1];
-                if (!CHECK_T(first) || !CHECK_U(second))
-                    SWIG_exception(SWIG_TypeError, 
-                                   "pair<" #T "," #U "> expected");
-                temp = std::make_pair(CONVERT_T_FROM(first),
-                                      CONVERT_U_FROM(second));
-                $1 = &temp;
-            } else {
-                SWIG_ConvertPtr($input, (void **) &p, $1_descriptor, 1);
-                $1 = p;
-            }
-        }
-        %typemap(out) pair<T,U> {
-            $result = rb_ary_new2(2);
-            rb_ary_store($result,0,CONVERT_T_TO($1.first));
-            rb_ary_store($result,1,CONVERT_U_TO($1.second));
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (CHECK_T(first) && CHECK_U(second))
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped pair? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $&1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
-                                        const pair<T,U>* {
-            /* native sequence? */
-            if (rb_obj_is_kind_of($input,rb_cHash)) {
-                unsigned int size = RARRAY_LEN($input);
-                if (size != 2) {
-                    /* not a pair */
-                    $1 = 0;
-                } else {
-                    VALUE first = RARRAY_PTR($input)[0];
-                    VALUE second = RARRAY_PTR($input)[1];
-                    if (CHECK_T(first) && CHECK_U(second))
-                        $1 = 1;
-                    else
-                        $1 = 0;
-                }
-            } else {
-                /* wrapped map? */
-                std::pair<T,U >* p;
-                if (SWIG_ConvertPtr($input,(void **) &p,
-                                    $1_descriptor,0) != -1)
-                    $1 = 1;
-                else
-                    $1 = 0;
-            }
-        }
-        pair();
-        pair(T first, U second);
-        pair(const pair& p);
-
-        template <class U1, class U2> pair(const pair<U1, U2> &p);
-
-        T first;
-        U second;
-    };
-    %enddef
-
-
-    specialize_std_pair_on_first(bool,SWIG_BOOL_P,
-                                 SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_first(int,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(short,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(long,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(unsigned int,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(unsigned short,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(unsigned long,FIXNUM_P,
-                                 FIX2INT,INT2NUM);
-    specialize_std_pair_on_first(double,SWIG_FLOAT_P,
-                                 SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_first(float,SWIG_FLOAT_P,
-                                 SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_first(std::string,SWIG_STRING_P,
-                                 SWIG_RB2STR,SWIG_STR2RB);
-
-    specialize_std_pair_on_second(bool,SWIG_BOOL_P,
-                                  SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_second(int,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(short,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(long,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(unsigned int,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(unsigned short,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(unsigned long,FIXNUM_P,
-                                  FIX2INT,INT2NUM);
-    specialize_std_pair_on_second(double,SWIG_FLOAT_P,
-                                  SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_second(float,SWIG_FLOAT_P,
-                                  SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_second(std::string,SWIG_STRING_P,
-                                  SWIG_RB2STR,SWIG_STR2RB);
-
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                bool,SWIG_BOOL_P,
-                                SWIG_RB2BOOL,SWIG_BOOL2RB);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                unsigned int,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                unsigned short,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                unsigned long,FIXNUM_P,
-                                FIX2INT,INT2NUM);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                double,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                float,SWIG_FLOAT_P,
-                                SWIG_NUM2DBL,rb_float_new);
-    specialize_std_pair_on_both(std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB,
-                                std::string,SWIG_STRING_P,
-                                SWIG_RB2STR,SWIG_STR2RB);
+  }
 }
+
+// Missing typemap
+%typemap(in) std::pair* (int res) {
+  res = swig::asptr( $input, &$1 );
+  if (!SWIG_IsOK(res))
+    %argument_fail(res, "$1_type", $symname, $argnum); 
+}
+
+
+%define %swig_pair_methods(pair...)
+%extend { 
+  VALUE inspect()
+    {
+      VALUE tmp;
+      VALUE str = rb_str_new2( swig::type_name< pair >() );
+      str = rb_str_cat2( str, " (" );
+      tmp = swig::from( $self->first );
+      tmp = rb_obj_as_string( tmp );
+      str = rb_str_buf_append( str, tmp );
+      str = rb_str_cat2( str, "," );
+      tmp = swig::from( $self->second );
+      tmp = rb_obj_as_string( tmp );
+      str = rb_str_buf_append( str, tmp );
+      str = rb_str_cat2( str, ")" );
+      return str;
+    }
+
+  VALUE to_s()
+    {
+      VALUE tmp;
+      VALUE str = rb_str_new2( "(" );
+      tmp = swig::from( $self->first );
+      tmp = rb_obj_as_string( tmp );
+      str = rb_str_buf_append( str, tmp );
+      str = rb_str_cat2( str, "," );
+      tmp = swig::from( $self->second );
+      tmp = rb_obj_as_string( tmp );
+      str = rb_str_buf_append( str, tmp );
+      str = rb_str_cat2( str, ")" );
+      return str;
+    }
+
+  VALUE __getitem__( int index )
+    { 
+      if (( index % 2 ) == 0 )
+	return swig::from( $self->first );
+      else
+	return swig::from( $self->second );
+    }
+
+  VALUE __setitem__( int index, VALUE obj )
+    { 
+      int res;
+      if (( index % 2 ) == 0 )
+	{
+	  res = swig::asval( obj, &($self->first) );
+	}
+      else
+	{
+	  res = swig::asval(obj, &($self->second) );
+	}
+      if (!SWIG_IsOK(res))
+	rb_raise( rb_eArgError, "invalid item for " #pair );
+      return obj;
+    }
+
+  } // extend
+
+%enddef
+
+%include <std/std_pair.i>

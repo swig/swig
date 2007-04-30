@@ -1,5 +1,6 @@
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
+
 namespace swig {  
   /*
     Traits that provides the from method
@@ -228,6 +229,8 @@ namespace swig {
 %}
 %enddef
 
+#define SWIG_RUBY_THREAD_BEGIN_BLOCK
+#define SWIG_RUBY_THREAD_END_BLOCK
 
 #define specialize_std_vector(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
 #define specialize_std_list(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)

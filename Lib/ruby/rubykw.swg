@@ -26,6 +26,7 @@ RUBYKW(elsif);
 RUBYKW(end);
 RUBYKW(ensure);
 RUBYKW(false);
+RUBYKW(fatal);
 RUBYKW(for);
 RUBYKW(if);
 RUBYKW(in);
@@ -49,6 +50,22 @@ RUBYKW(when);
 RUBYKW(while);
 RUBYKW(yield);
 
+RUBYKW(FalseClass);
+RUBYKW(TrueClass);
+RUBYKW(Numeric);
+RUBYKW(Integer);
+RUBYKW(Fixnum);
+RUBYKW(Float);
+RUBYKW(Range);
+RUBYKW(Array);
+RUBYKW(String);
+RUBYKW(IO);
+RUBYKW(File);
+RUBYKW(FileUtils);
+RUBYKW(Find);
+RUBYKW(Struct);
+RUBYKW(OpenStruct);
+RUBYKW(Regexp);
 
 #undef RUBYKW
 

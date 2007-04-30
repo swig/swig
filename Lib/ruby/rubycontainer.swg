@@ -515,6 +515,20 @@ namespace swig
       return str;
     }
 
+  VALUE to_a()
+    {
+      Container::iterator i = $self->begin();
+      Container::iterator e = $self->end();
+      VALUE ary = rb_ary_new2( std::distance( i, e ) );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  tmp = swig::from<Container::value_type>( *i );
+	  rb_ary_push( ary, tmp );
+	}
+      return ary;
+    }
+
   VALUE to_s()
     {
       Container::iterator i = $self->begin();
@@ -543,8 +557,6 @@ namespace swig
   %extend {
 
 
-#if defined(SWIG_RUBY_AUTORENAME)
-
   VALUE pop() {
     if ($self->empty()) return Qnil;
     Sequence::value_type x = self->back();
@@ -552,27 +564,32 @@ namespace swig
     return swig::from< Sequence::value_type >( x );
   }
 
+  %alias push "<<";
   const value_type push( const value_type& e ) {
     $self->push_back( e );
     return e;
   }
 
-#endif
+  // Implementing delete requires semantics that go beyond the
+  // default requirements of STD containers.
+  //
+  //   %rename("delete") __del__;
+  //   VALUE __del__( Sequence::value_type e ) {
+  //     VALUE r = Qnil;
+  //     std::size_t len = $self->size();
+  //     std::remove_if( $self->begin(), $self->end(), 
+  // 		    std::bind2nd( std::equal_to< Sequence::value_type >(),
+  // 				  e ) );
+  //
+  //     if ( $self->size() != len )
+  //       r = swig::from< Sequence::value_type >( e );
+  //     else if ( rb_block_given_p() )
+  //       r = rb_yield(Qnil);
+  //     return r;
+  //   }
 
-
-//     VALUE __del__(const Sequence::value_type& e) {
-//       VALUE r = Qnil;
-//       std::size_t len = $self->size();
-//       std::remove_if( $self->begin(), $self->end(), 
-// 		      std::bind2nd( std::equal_to< Sequence::value_type >(),
-// 				    e ) );
-//       if ( $self->size() != len )
-// 	r = swig::from< Sequence::value_type >( e );
-//       return r;
-//     }
-
-    VALUE slice( difference_type i, difference_type j )
-      {
+  VALUE slice( difference_type i, difference_type j )
+    {
 	if ( j <= 0 ) return Qnil;
 	std::size_t len = $self->size();
 	if ( i < 0 ) i = len - i;
@@ -788,6 +805,80 @@ namespace swig
  }
 %enddef
 
+
+%define %swig_sequence_front_inserters( Sequence... )
+%extend {
+
+  VALUE shift()
+    {
+      if ($self->empty()) return Qnil;
+      Sequence::value_type x = self->front();
+      $self->erase( $self->begin() );
+      return swig::from< Sequence::value_type >( x );
+    }
+
+  %typemap(in) (int argc, VALUE* argv) {
+    $1 = argc - 1;
+    $2 = argv + 1;
+  }
+
+  Sequence* insert( difference_type idx, int argc, VALUE* argv, ... )
+    {
+      std::size_t len = $self->size();
+      std::size_t   i = swig::check_index( idx, len, true );
+      Sequence::value_type val;
+      Sequence::iterator start;
+      int res = swig::asval( argv[0], &val );
+      if (!SWIG_IsOK(res))
+	SWIG_exception_fail(SWIG_ArgError(res), 
+				Ruby_Format_TypeError( "", 
+                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, 2, argv[0] ));
+      if ( i >= len ) {
+	$self->resize(i-1, val);
+	return $self;
+      }
+      start = $self->begin();
+      std::advance( start, i );
+      $self->insert( start++, val );
+      for ( int idx = 1; idx < argc; ++idx )
+	{
+	  int res = swig::asval( argv[idx], &val );
+	  if (!SWIG_IsOK(res))
+	    SWIG_exception_fail(SWIG_ArgError(res), 
+				Ruby_Format_TypeError( "", 
+                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, idx+2, argv[idx] ));
+	  $self->insert( start++, val );
+	}
+
+    fail:
+      return $self;
+    }
+
+  %typemap(in) (int argc, VALUE* argv) {
+    $1 = argc;
+    $2 = argv;
+  }
+
+  Sequence* unshift( int argc, VALUE* argv, ... )
+    {
+      Sequence::value_type val;
+      for ( int idx = argc-1; idx >= 0; --idx )
+	{
+	  int res = swig::asval( argv[idx], &val );
+	  if (!SWIG_IsOK(res))
+	    SWIG_exception_fail(SWIG_ArgError(res), 
+				Ruby_Format_TypeError( "", 
+                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, idx+2, argv[idx] ));
+	  Sequence::iterator start = $self->begin();
+	  $self->insert( start, val );
+	}
+
+    fail:
+      return $self;
+    }
+
+}
+%enddef
 
 
 //

@@ -1,12 +1,27 @@
-/* Default std_deque wrapper */
-%module std_deque
+/*
+  Deques
+*/
 
-%rename(__getitem__) std::deque::getitem;
-%rename(__setitem__) std::deque::setitem;
+%fragment("StdDequeTraits","header",fragment="StdSequenceTraits")
+%{
+  namespace swig {
+    template <class T>
+    struct traits_asptr<std::deque<T> >  {
+      static int asptr(VALUE obj, std::deque<T>  **vec) {
+	return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
+      }
+    };
 
-%predicate std::deque::empty;
+    template <class T>
+    struct traits_from<std::deque<T> > {
+      static VALUE from(const std::deque<T> & vec) {
+	return traits_from_stdseq<std::deque<T> >::from(vec);
+      }
+    };
+  }
+%}
 
-%alias std::deque::push_back	"<<";
-%alias std::deque::size		"length";
+#define %swig_deque_methods(Type...) %swig_sequence_methods(Type)
+#define %swig_deque_methods_val(Type...) %swig_sequence_methods_val(Type);
 
-%include <std/_std_deque.i>
+%include <std/std_deque.i>

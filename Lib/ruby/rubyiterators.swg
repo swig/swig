@@ -4,7 +4,7 @@
  *
  * rubyiterators.swg
  *
- * Implement a ruby 'output' iterator for Ruby 2.2 or higher.
+ * Implement a ruby 'output' iterator for Ruby.
  *
  * Users can derive form the RubySwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD
@@ -366,9 +366,6 @@ namespace swig
     RubySwigIterator *advance(ptrdiff_t n);
 
     bool operator == (const RubySwigIterator& x)  const;
-    bool operator != (const RubySwigIterator& x) const;
-    RubySwigIterator& operator += (ptrdiff_t n);
-    RubySwigIterator& operator -= (ptrdiff_t n);
     RubySwigIterator* operator + (ptrdiff_t n) const;
     RubySwigIterator* operator - (ptrdiff_t n) const;
     ptrdiff_t operator - (const RubySwigIterator& x) const;

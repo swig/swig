@@ -5,3 +5,6 @@
 #define %predicate %feature("predicate", "1")
 #define %bang %feature("bang", "1")
 #define %trackobjects %feature("trackobjects")
+#define %nooutput %feature("outputs","0")
+#define %initstack %feature("initstack", "1")
+#define %ignorestack %feature("initstack", "0")
