@@ -34,18 +34,28 @@
 */
 
 namespace swig {
-  %ignore GC_VALUE;
-  struct GC_VALUE {};
-  // %apply VALUE   {GC_VALUE};
-  // %apply VALUE   const& {GC_VALUE const&};
+  // we don't ignore it, so it will get printed nicely with inspect
+  //%ignore GC_VALUE;
+  struct GC_VALUE {
+    VALUE inspect() const;
+    VALUE to_s() const;
+  };
+
+  %apply VALUE   {GC_VALUE};
+  %apply VALUE   const& {GC_VALUE const&};
+
+  /* For input */
+   %typemap(in,noblock=1) GC_VALUE* (GC_VALUE r)  {
+     r = $input; $1 = &r;
+   }
 
   /* For output */
   %typemap(out,noblock=1)  GC_VALUE {
-    $result = (VALUE  )$1;
+    $result = (VALUE)$1;
   }
   
-  %typemap(out,noblock=1)  GC_VALUE const & {
-    $result = (VALUE  )*$1;
+  %typemap(out,noblock=1)  GC_VALUE*, GC_VALUE const & {
+    $result = (VALUE)*$1;
   }
 
   %ignore LANGUAGE_OBJ;
@@ -61,6 +71,7 @@ namespace swig {
   public:
     GC_VALUE() :_obj( Qnil )
     {
+      GC_register();
     }
 
     GC_VALUE(const GC_VALUE& item) : _obj(item._obj)
@@ -73,29 +84,25 @@ namespace swig {
       GC_register();
     }
     
-    GC_VALUE & operator=(const GC_VALUE& item) 
+    ~GC_VALUE() 
     {
       GC_unregister();
+    }
+    
+    GC_VALUE & operator=(const GC_VALUE& item) 
+    {
       _obj = item._obj;
-      GC_register();
       return *this;      
     }
 
     void GC_register()
     {
-      if ( _obj != Qnil )
-	rb_gc_register_address( &_obj );
+      rb_gc_register_address( &_obj );
     }
 
     void GC_unregister()
     {
-      if ( _obj != Qnil )
-	rb_gc_unregister_address( &_obj );
-    }
-    
-    ~GC_VALUE() 
-    {
-      GC_unregister();
+      rb_gc_unregister_address( &_obj );
     }
     
     operator VALUE() const
@@ -103,9 +110,22 @@ namespace swig {
       return _obj;
     }
 
+    VALUE inspect() const
+    {
+      return rb_inspect(_obj);
+    }
+
+    VALUE to_s() const
+    {
+      return rb_inspect(_obj);
+    }
+
   };
+
+  typedef GC_VALUE LANGUAGE_OBJ;
 }
 %}
+
 
 
 #endif
