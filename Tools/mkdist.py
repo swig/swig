@@ -29,10 +29,10 @@ os.system("rm -f "+dirname+".tar.gz")
 print "Removing "+dirname+".tar.gz if exists"
 os.system("rm -f "+dirname+".tar")
 
-# Do a CVS export on the directory name
+# Do a SVN export into the directory name
 
-print "Checking out SWIG"
-os.system("cvs export -D now -d "+dirname+ " SWIG")
+print "Grabbing latest SWIG from svn"
+os.system("svn export -r HEAD https://swig.svn.sourceforge.net/svnroot/swig/trunk "+dirname)
 
 # Remove the debian directory -- it's not official
 
@@ -48,7 +48,7 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 print "Building system"
 os.system("cd "+dirname+"; ./autogen.sh")
 os.system("cd "+dirname+"/Tools/WAD; autoconf")
-os.system("make maintainer")
+os.system("cd "+dirname+"make maintainer")
 
 # Remove autoconf files
 os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;");
