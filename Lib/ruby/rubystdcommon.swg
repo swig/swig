@@ -165,10 +165,10 @@ namespace swig {
       }
     }
   };
-    
+
   template <class Type>
   inline Type as(VALUE obj, bool te = false) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
+    return traits_as< Type, typename traits< Type >::category >::as(obj, te);
   }
 
   template <class Type> 
@@ -194,46 +194,6 @@ namespace swig {
 }
 }
 
-//
-// Backward compatibility
-//
-
-%define %specialize_std_container(Type,Check,As,From)
-%{
-namespace swig {
-  template <>  struct traits_asval<Type > {   
-    typedef Type value_type;
-    static int asval(VALUE obj, value_type *val) {
-      if (Check(obj)) {
-	if (val) *val = As(obj);
-	return SWIG_OK;
-      }
-      return SWIG_ERROR;
-    }
-  };
-  template <>  struct traits_from<Type > {
-    typedef Type value_type;
-    static VALUE from(const value_type& val) {
-      return From(val);
-    }
-  };
-
-  template <> 
-  struct traits_check<Type, value_category> {
-    static int check(VALUE obj) {
-      int res = Check(obj);
-      return obj && res ? res : 0;
-    }
-  };
-}
-%}
-%enddef
 
 #define SWIG_RUBY_THREAD_BEGIN_BLOCK
 #define SWIG_RUBY_THREAD_END_BLOCK
-
-#define specialize_std_vector(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
-#define specialize_std_list(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
-#define specialize_std_deque(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
-#define specialize_std_set(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
-#define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)

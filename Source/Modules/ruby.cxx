@@ -2131,7 +2131,7 @@ public:
    *
    * --------------------------------------------------------------- */
 
-  void exceptionSafeMethodCall(String *className, Node *n, Wrapper *w, int argc, String *args) {
+  void exceptionSafeMethodCall(String *className, Node *n, Wrapper *w, int argc, String *args, bool initstack) {
     Wrapper *body = NewWrapper();
     Wrapper *rescue = NewWrapper();
 
@@ -2187,7 +2187,7 @@ public:
 	Printv(w->code, "args.argv = 0;\n", NIL);
       }
       Printf(w->code, "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
-      Printf(w->code, "SWIG_RELEASE_STACK;\n");
+      if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
       Printf(w->code, "if (status) {\n");
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
       Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr);\n", rescueName);
@@ -2204,7 +2204,7 @@ public:
       } else {
 	Printf(w->code, "result = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", methodName);
       }
-      Printf(w->code, "SWIG_RELEASE_STACK;\n");
+      if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }
 
     // Clean up
@@ -2237,6 +2237,7 @@ public:
     int idx;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
     bool asvoid = bool( checkAttribute( n, "feature:numoutputs", "0") );
+    bool initstack = bool( checkAttribute( n, "feature:initstack", "1") );
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
@@ -2317,7 +2318,7 @@ public:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
-    if (!(ignored_method && !pure_virtual)) {
+    if (initstack && !(ignored_method && !pure_virtual)) {
       Append(w->def, "\nSWIG_INIT_STACK;\n");
     }
 
@@ -2472,7 +2473,7 @@ public:
       Printv(w->code, wrap_args, NIL);
 
       /* pass the method call on to the Ruby object */
-      exceptionSafeMethodCall(classname, n, w, idx, arglist);
+      exceptionSafeMethodCall(classname, n, w, idx, arglist, initstack);
 
       /*
        * Ruby method may return a simple object, or an Array of objects.

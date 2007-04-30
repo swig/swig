@@ -1,18 +1,33 @@
 Version 1.3.32 (in progress)
 ============================
+05/01/2007: gga
+	    [Ruby]
+	    Improved the documentation to document the new features
+            added, add directorin/out/argout typemaps, etc.
+
+05/01/2007: gga
+	    [Ruby]
+	    Added %initstack and %ignorestack directives for director
+	    functions.  These allow you to control whether a director
+	    function should re-init the ruby stack.  
+	    This is sometimes needed for an embedded Ruby where the
+	    director method is used as a C++ callback and not called
+            by the user from ruby code.
+
 04/30/2007: gga
 	    [Ruby]
 	    Ruby will now report the parameter index properly on type
-	    errors.
+	    errors as well as the class and value of the incorrect
+	    argument passed.
 	    (feature request #1699670)
 
 04/30/2007: gga
 	    [Ruby]
-	    std_vector.i and some related STL files have been upgraded
-	    to follow the new swig/python Lib/std conventions.
+	    STL files have been upgraded to follow the new swig/python 
+	    Lib/std conventions.
 	    std_vector.i now mimics the behavior of Ruby Arrays much more 
-	    closely, supporting slicing, multiple indexing and proper
-	    return values on assignment.
+	    closely, supporting slicing, shifting, unshifting,
+            multiple indexing and proper return values on assignment.
 	    
 	    COMPATABILITY NOTE: this changes the older api a little bit in 
 	    that improper indexing would previously (incorrectly) raise
@@ -75,7 +90,7 @@ Version 1.3.32 (in progress)
 	    This feature allows you to ignore the output of a function so
 	    that it is not added to a list of outpus values
 	    ( ie. argouts ).  
-	    This should also become a feature of %typemap(out/directorout)
+	    This should also become a feature of %typemap(directorout)
 	    as "numoutputs"=0, just like "numinputs"=0 exists.
 
 	    %feature("directors"=1)
@@ -126,7 +141,8 @@ Version 1.3.32 (in progress)
 	    to reset the stack will not always do so.  This bug is triggered
 	    very rarely, when ruby is called from two very distinct places
 	    in memory, like a branch of main() and another dso.  This bug
-	    has now been reported to ruby-core.
+	    has now been reported to ruby-core and is pending further
+	    investigation.
 	    (bug #1700535 and patch #1702907)
 
 

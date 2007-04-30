@@ -1,13 +1,13 @@
 %module ignore_template_constructor
 %include std_vector.i
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY) 
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Flow>::vector(size_type);
 %ignore std::vector<Flow>::resize(size_type);
 #endif
 
-#if defined(SWIGTCL) || defined(SWIGPERL) || defined(SWIGRUBY) 
+#if defined(SWIGTCL) || defined(SWIGPERL)
 #define SWIG_GOOD_VECTOR
 /* here, for languages with bad declaration */
 %ignore std::vector<Flow>::vector(unsigned int);

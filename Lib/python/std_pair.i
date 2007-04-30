@@ -109,6 +109,7 @@
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
       static PyObject *from(const std::pair<T,U>& val) {
+	fprintf( stderr, "%s %d\n", __PRETTY_FUNCTION__, __LINE__);
 	PyObject* obj = PyTuple_New(2);
 	PyTuple_SetItem(obj,0,swig::from(val.first));
 	PyTuple_SetItem(obj,1,swig::from(val.second));

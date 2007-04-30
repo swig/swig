@@ -23,7 +23,7 @@ def swig_assert( condition, *args )
   end
 
   unless ok
-    raise SwigRubyError.new("FAILED CHECK: #{condition} #{args.join(' ')}")
+    raise SwigRubyError.new("FAILED CHECK: #{condition} was #{ok.inspect} #{args.join(' ')}")
   end
 
   if $VERBOSE
@@ -38,4 +38,11 @@ rescue => e
     $stderr.puts "\tfrom #{trace[1..-1].join("\n\t     ")}"
   end
   exit(1)
+end
+
+
+def swig_assert_each_line( lines )
+  lines.split("\n").each do |line|
+    swig_assert(line)
+  end
 end

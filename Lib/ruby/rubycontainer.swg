@@ -807,6 +807,7 @@ namespace swig
 
 
 %define %swig_sequence_front_inserters( Sequence... )
+
 %extend {
 
   VALUE shift()
@@ -822,35 +823,41 @@ namespace swig
     $2 = argv + 1;
   }
 
-  Sequence* insert( difference_type idx, int argc, VALUE* argv, ... )
+  Sequence* insert( difference_type pos, int argc, VALUE* argv, ... )
     {
       std::size_t len = $self->size();
-      std::size_t   i = swig::check_index( idx, len, true );
-      Sequence::value_type val;
+      std::size_t   i = swig::check_index( pos, len, true );
       Sequence::iterator start;
-      int res = swig::asval( argv[0], &val );
-      if (!SWIG_IsOK(res))
-	SWIG_exception_fail(SWIG_ArgError(res), 
-				Ruby_Format_TypeError( "", 
-                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, 2, argv[0] ));
-      if ( i >= len ) {
-	$self->resize(i-1, val);
-	return $self;
-      }
-      start = $self->begin();
-      std::advance( start, i );
-      $self->insert( start++, val );
-      for ( int idx = 1; idx < argc; ++idx )
+
+      VALUE elem = argv[0];
+      int idx = 0;
+      try {
+	Sequence::value_type val = swig::as<Sequence::value_type>( elem, true );
+	if ( i >= len ) {
+	  $self->resize(i-1, val);
+	  return $self;
+	}
+	start = $self->begin();
+	std::advance( start, i );
+	$self->insert( start++, val );
+
+	for ( ++idx; idx < argc; ++idx )
+	  {
+	    elem = argv[idx];
+	    val = swig::as<Sequence::value_type>( elem );
+	    $self->insert( start++, val );
+	  }
+
+      } 
+      catch( std::invalid_argument )
 	{
-	  int res = swig::asval( argv[idx], &val );
-	  if (!SWIG_IsOK(res))
-	    SWIG_exception_fail(SWIG_ArgError(res), 
-				Ruby_Format_TypeError( "", 
-                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, idx+2, argv[idx] ));
-	  $self->insert( start++, val );
+	  rb_raise( rb_eArgError,
+		    Ruby_Format_TypeError( "", 
+					   swig::type_name<Sequence::value_type>(),
+					   __FUNCTION__, idx+2, elem ));
 	}
 
-    fail:
+
       return $self;
     }
 
@@ -861,19 +868,24 @@ namespace swig
 
   Sequence* unshift( int argc, VALUE* argv, ... )
     {
-      Sequence::value_type val;
       for ( int idx = argc-1; idx >= 0; --idx )
 	{
-	  int res = swig::asval( argv[idx], &val );
-	  if (!SWIG_IsOK(res))
-	    SWIG_exception_fail(SWIG_ArgError(res), 
-				Ruby_Format_TypeError( "", 
-                                                       swig::type_name<Sequence::value_type>(), __FUNCTION__, idx+2, argv[idx] ));
 	  Sequence::iterator start = $self->begin();
-	  $self->insert( start, val );
+	  VALUE elem = argv[idx];
+	  Sequence::value_type val;
+	  try {
+	    Sequence::value_type val = swig::as<Sequence::value_type>( elem, true );
+	    $self->insert( start, val );
+	  }
+	  catch( std::invalid_argument )
+	    {
+	      rb_raise( rb_eArgError,
+			Ruby_Format_TypeError( "", 
+					       swig::type_name<Sequence::value_type>(),
+					       __FUNCTION__, idx+2, elem ));
+	    }
 	}
 
-    fail:
       return $self;
     }
 
