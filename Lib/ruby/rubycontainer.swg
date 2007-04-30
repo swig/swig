@@ -36,8 +36,36 @@
 
 %include <std_except.i>
 
-
-
+%fragment(SWIG_Traits_frag(swig::GC_VALUE),"header",fragment="StdTraits") {
+namespace swig {
+  template <>  struct traits<GC_VALUE > {
+    typedef value_category category;
+    static const char* type_name() { return "GC_VALUE"; }
+  };
+  
+  template <>  struct traits_from<GC_VALUE> {
+    typedef GC_VALUE value_type;
+    static VALUE from(const value_type& val) {
+      return static_cast<VALUE>(val);
+    }
+  };
+  
+  template <> 
+  struct traits_check<GC_VALUE, value_category> {
+    static bool check(GC_VALUE) {
+      return true;
+    }
+  };
+  
+  template <>  struct traits_asval<GC_VALUE > {   
+    typedef GC_VALUE value_type;
+    static int asval(VALUE obj, value_type *val) {
+      if (val) *val = obj;
+      return SWIG_OK;
+    }
+  };
+} // swig
+} // %fragment(traits for swig::GC_VALUE)
 
 %fragment("RubySequence_Base","header")
 {

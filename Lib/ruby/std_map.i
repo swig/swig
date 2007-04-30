@@ -17,7 +17,7 @@
     template <class K, class T>
     struct traits_asptr<std::map<K,T> >  {
       typedef std::map<K,T> map_type;
-      static int asptr(PyObject *obj, map_type **val) {
+      static int asptr(VALUE obj, map_type **val) {
 	int res = SWIG_ERROR;
 	if ( TYPE(obj) == T_HASH ) {
 	  static ID id_to_a = rb_intern("to_a");
@@ -144,12 +144,15 @@
 	return Qnil;
     }
     
-    void __delitem__(const key_type& key) {
+    VALUE __delitem__(const key_type& key) {
       Map::iterator i = self->find(key);
-      if (i != self->end())
+      if (i != self->end()) {
 	self->erase(i);
-      else
+	return swig::from( key );
+      }
+      else {
 	return Qnil;
+      }
     }
     
     %rename("has_key?") has_key;
@@ -169,8 +172,9 @@
       }
       VALUE ary = rb_ary_new2(rubysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < rubysize; ++i, ++j) {
-	rb_ary_aset(ary, j, swig::from(i->first));
+      Map::const_iterator e = self->end();
+      for ( ; i != e; ++i ) {
+	rb_ary_push( ary, swig::from(i->first) );
       }
       return ary;
     }
@@ -186,8 +190,9 @@
       }
       VALUE ary = rb_ary_new2(rubysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < rubysize; ++i, ++j) {
-	rb_ary_aset(ary, j, swig::from(i->second));
+      Map::const_iterator e = self->end();
+      for ( ; i != e; ++i ) {
+	rb_ary_push( ary, swig::from(i->second) );
       }
       return ary;
     }
@@ -203,8 +208,9 @@
       }
       VALUE ary = rb_ary_new2(rubysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < rubysize; ++i, ++j) {
-	rb_ary_aset(ary, j, swig::from(*i));
+      Map::const_iterator e = self->end();
+      for ( ; i != e; ++i ) {
+	rb_ary_push( ary, swig::from(*i) );
       }
       return ary;
     }

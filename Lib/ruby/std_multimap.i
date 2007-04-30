@@ -19,7 +19,7 @@
     template <class K, class T>
     struct traits_asptr<std::multimap<K,T> >  {
       typedef std::multimap<K,T> multimap_type;
-      static int asptr(PyObject *obj, std::multimap<K,T> **val) {
+      static int asptr(VALUE obj, std::multimap<K,T> **val) {
 	int res = SWIG_ERROR;
 	if ( TYPE(obj) == T_HASH ) {
 	  static ID id_to_a = rb_intern("to_a");
@@ -58,7 +58,25 @@
 	  for (const_iterator i= multimap.begin(); i!= multimap.end(); ++i) {
 	    VALUE key = swig::from(i->first);
 	    VALUE val = swig::from(i->second);
-	    rb_hash_aset(obj, key, val);
+
+	    VALUE oldval = rb_hash_aref( obj, key );
+	    if ( oldval == Qnil )
+	      rb_hash_aset(obj, key, val);
+	    else {
+	      // Multiple values for this key, create array if needed
+	      // and add a new element to it.
+	      VALUE ary;
+	      if ( TYPE(oldval) == T_ARRAY )
+		ary = oldval;
+	      else
+		{
+		  ary = rb_ary_new2(2);
+		  rb_ary_push( ary, oldval );
+		  rb_hash_aset( obj, key, ary );
+		}
+	      rb_ary_push( ary, val );
+	    }
+	    
 	  }
 	  return obj;
 	}

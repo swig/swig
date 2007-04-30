@@ -47,7 +47,9 @@ namespace swig {
   %typemap(out,noblock=1)  GC_VALUE const & {
     $result = (VALUE  )*$1;
   }
-  
+
+  %ignore LANGUAGE_OBJ;
+  typedef GC_VALUE LANGUAGE_OBJ;
 }
 
 %{
@@ -73,20 +75,21 @@ namespace swig {
     
     GC_VALUE & operator=(const GC_VALUE& item) 
     {
+      GC_unregister();
       _obj = item._obj;
-      _obj.GC_register();
+      GC_register();
       return *this;      
     }
 
     void GC_register()
     {
-      if ( obj != Qnil )
+      if ( _obj != Qnil )
 	rb_gc_register_address( &_obj );
     }
 
     void GC_unregister()
     {
-      if ( obj != Qnil )
+      if ( _obj != Qnil )
 	rb_gc_unregister_address( &_obj );
     }
     
