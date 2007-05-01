@@ -23,7 +23,7 @@ CPP_TEST_CASES = \
 	li_std_set \
 	naming \
 	primitive_types \
-#	std_containers \
+	std_containers \
 	track_objects \
 	track_objects_directors
 

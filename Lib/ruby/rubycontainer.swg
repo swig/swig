@@ -644,7 +644,7 @@ namespace swig
 	{
 	  VALUE v = swig::from< Sequence::value_type >(*i);
 	  if ( RTEST( rb_yield(v) ) )
-	    $self->push_back(*i);
+	    $self->insert( r->end(), *i);
 	}
 	
       return r;
