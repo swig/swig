@@ -8,19 +8,30 @@
 #
 
 
+#
+# Exception raised when some swig binding test fails
+#
 class SwigRubyError < RuntimeError
 end
 
-class SwigAssertError < StandardError
-end
 
-
+#
+# Asserts whether a and b are equal.
+#
+# scope - optional Binding where to run the code
+# msg   - optional additional message to print
+#
 def swig_assert_equal( a, b, scope = nil, msg = nil )
   begin
     check = "#{a} == #{b}"
-    ok = eval(check, scope)
+    if scope.kind_of? Binding
+      ok = eval(check.to_s, scope)
+    else
+      ok = eval(check.to_s)
+      msg = scope if !msg
+    end
   rescue => e
-    raise SwigAssertError.new("Wrong assert: #{check} - #{e}")
+    raise
   end
 
   unless ok
@@ -42,19 +53,25 @@ rescue => e
 end
 
 
-def swig_assert( condition, scope = nil, msg = nil )
+#
+# Asserts whether an expression runs properly
+#
+# scope - optional Binding where to run the code
+# msg   - optional additional message to print
+#
+def swig_assert( expr, scope = nil, msg = nil )
   begin
     if scope.kind_of? Binding
-      eval(condition.to_s, scope)
+      eval(expr.to_s, scope)
     else
-      eval(condition.to_s)
-      msg = scope
+      eval(expr.to_s)
+      msg = scope if !msg
     end
   rescue => e
-    raise SwigAssertError.new("Wrong assert: #{condition.to_s} - #{e}")
+    raise SwigRubyError.new("Wrong assert: #{expr.to_s} - #{e}")
   end
   if $VERBOSE
-    $stdout.puts "\tPASSED #{condition} #{msg}"
+    $stdout.puts "\tPASSED #{expr} #{msg}"
   end
 rescue => e
   trace = e.backtrace[1..-1]
@@ -66,6 +83,15 @@ rescue => e
 end
 
 
+#
+# Given a set of lines as text, runs each of them, asserting them.
+# Lines that are of the form:
+#     a == b  are run with swig_assert_equal
+#             others are run with swig_assert.
+#
+# scope - optional Binding where to run the code
+# msg   - optional additional message to print
+#
 def swig_assert_each_line( lines, scope = nil, msg = nil )
   lines.split("\n").each do |line|
     next if line.empty? or line =~ /^\s*#.*/

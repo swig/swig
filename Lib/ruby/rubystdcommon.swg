@@ -1,3 +1,9 @@
+
+/* ------------------------------------------------------------
+ * The Ruby classes, for C++
+ * ------------------------------------------------------------ */
+%include <rubyclasses.swg>
+
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
 

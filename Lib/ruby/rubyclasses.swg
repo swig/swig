@@ -41,10 +41,12 @@ namespace swig {
     VALUE to_s() const;
   };
 
+  %exception GC_VALUE {};
+
   %apply VALUE   {GC_VALUE};
 
   /* For input */
-   %typemap(in,noblock=1) GC_VALUE* (GC_VALUE r), GC_VALUE& (GC_VALUE r)  {
+  %typemap(in,noblock=1) GC_VALUE* (GC_VALUE r), GC_VALUE& (GC_VALUE r)  {
      r = $input; $1 = &r;
    }
 
