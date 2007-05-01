@@ -16,7 +16,7 @@
  */
 
 %module("templatereduce") li_std_map
-%trackobjects;
+%feature("trackobjects");
 
 %include std_pair.i
 %include std_map.i
