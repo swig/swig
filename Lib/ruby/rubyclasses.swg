@@ -125,6 +125,48 @@ namespace swig {
 
   typedef GC_VALUE LANGUAGE_OBJ;
 }
+
+
+namespace std {
+  template <>
+  struct less< swig::GC_VALUE >: public binary_function< swig::GC_VALUE, 
+							 swig::GC_VALUE, bool >
+  {
+    static ID  cmp_id;
+    static ID hash_id;
+
+    bool
+    operator()( const swig::GC_VALUE& v, const swig::GC_VALUE& w ) const
+    { 
+      // SWIG_RUBY_THREAD_BEGIN_BLOCK;
+
+      VALUE ret = Qnil;
+
+      // First, try to compare using the <=> operator if present
+      if ( rb_respond_to( v, cmp_id ) == Qtrue )
+	{
+	  ret = rb_funcall(VALUE(v), cmp_id, 1, VALUE(w));
+	}
+
+      bool res;
+      // If that fails, try to use the two object's hash function to compare.
+      if ( ret == Qnil ) {
+	VALUE a = rb_funcall( VALUE(v), hash_id, 0 );
+	VALUE b = rb_funcall( VALUE(w), hash_id, 0 );
+	res = a < b;  // as shifted integers
+      }
+      else
+	{
+	  res = NUM2INT( ret ) < 0;
+	}
+      // SWIG_RUBY_THREAD_END_BLOCK;
+      return res;
+    }
+  };
+
+  ID less< swig::GC_VALUE >::cmp_id  = rb_intern("<=>");
+  ID less< swig::GC_VALUE >::hash_id = rb_intern("hash");
+}
 %}
 
 

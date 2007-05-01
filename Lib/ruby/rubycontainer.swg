@@ -71,26 +71,6 @@ namespace swig {
 {
 %#include <functional>
 
-namespace std {
-  template <>
-  struct less< VALUE >: public binary_function< VALUE, VALUE, bool >
-  {
-    static ID id;
-
-    bool
-    operator()( VALUE v, VALUE w ) const
-    { 
-      // SWIG_RUBY_THREAD_BEGIN_BLOCK;
-      bool res = NUM2INT( rb_funcall(v, id, 1, w) ) < 0;
-      // SWIG_RUBY_THREAD_END_BLOCK;
-      return res;
-    }
-  };
-
-  ID less< VALUE >::id = rb_intern("<=>");
-
-}
-
 
 namespace swig {
   template < class T >
@@ -652,6 +632,24 @@ namespace swig
 	return self;
       }
 
+    %newobject select
+    Sequence* select() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      Sequence* r = new Sequence;
+      Sequence::iterator i = self->begin();
+      Sequence::iterator e = self->end();
+      for ( ; i != e; ++i )
+	{
+	  VALUE v = swig::from<Sequence::value_type>(*i);
+	  if ( RTEST( rb_yield(v) ) )
+	    $self->push_back(*i);
+	}
+	
+      return r;
+    }
+
 
     %rename("reject!") reject_bang;
     %alias reject_bang "delete_if";
@@ -659,12 +657,11 @@ namespace swig
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
-      VALUE r;
       Sequence::iterator i = self->begin();
       Sequence::iterator e = self->end();
       for ( ; i != e; )
 	{
-	  r = swig::from<Sequence::value_type>(*i);
+	  VALUE r = swig::from<Sequence::value_type>(*i);
 	  if ( RTEST( rb_yield(r) ) )
 	    $self->erase(i++);
 	  else

@@ -194,6 +194,47 @@
 	return self;
       }
 
+    %newobject select;
+    Map* select() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      Map* r = new Map;
+      Map::iterator i = $self->begin();
+      Map::iterator e = $self->end();
+      for ( ; i != e; ++i )
+	{
+	  VALUE k = swig::from<Map::key_type>(i->first);
+	  VALUE v = swig::from<Map::mapped_type>(i->second);
+	  if ( RTEST( rb_yield_values(2, k, v) ) )
+	    $self->insert(r->end(), *i);
+	}
+	
+      return r;
+    }
+
+  %typemap(in) (int argc, VALUE* argv) {
+    $1 = argc;
+    $2 = argv;
+  }
+
+  VALUE values_at(int argc, VALUE* argv, ...) {
+    
+    VALUE r = rb_ary_new();
+    ID   id = rb_intern("[]");
+    swig_type_info* type = swig::type_info< Map >();
+    VALUE me = SWIG_NewPointerObj( $self, type, 0 );
+    for ( int i = 0; i < argc; ++i )
+      {
+	VALUE key = argv[i];
+	VALUE tmp = rb_funcall( me, id, 1, key );
+	rb_ary_push( r, tmp );
+      }
+    
+    return r;
+  }
+
+
     Map* each_key()
       {
 	if ( !rb_block_given_p() )
