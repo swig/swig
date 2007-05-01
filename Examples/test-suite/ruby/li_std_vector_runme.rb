@@ -64,7 +64,7 @@ dv = DoubleVector.new(10)
 
 swig_assert( "dv.respond_to? :each_with_index", binding )
 
-dv.each_with_index { |e,i| swig_assert("dv[#{i}] == 0.0", binding) }
+dv.each_with_index { |e,i| swig_assert_equal("dv[#{i}]", 0.0, binding) }
 
 0.upto(9) { |i| dv[i] = i/2.0 }
 
@@ -74,16 +74,19 @@ dv.each_with_index { |e,i| swig_assert("dv[#{i}] == 0.0", binding) }
   "dv[0,3].to_s" => "0.00.51.0",
   "dv[3,3].to_s" => "1.52.02.5",
 }.each do |k,v|
-  swig_assert( "#{k} == #{v.inspect}", binding )
+  swig_assert_equal( k, v.inspect, binding )
 end
 
 swig_assert_each_line(<<'EOF', binding)
 dv.delete_at(2)
-dv.delete_if() { |x| x == 2.0 }
+dv.delete_if { |x| x == 2.0 }
 dv.include? 3.0
-dv.find {|x| x==3.0 }
-halve_in_place(dv) == nil
-dv = [0.0,0.25,0.75,1.25,1.5,1.75,2.0,2.25]
+dv.find {|x| x == 3.0 }
+dv.kind_of? DoubleVector
+halved = []
+halved = dv.map { |x| x / 2 }
+halve_in_place(dv)
+halved == dv.to_a
 sv = StructVector.new
 sv << Li_std_vector::Struct.new
 EOF

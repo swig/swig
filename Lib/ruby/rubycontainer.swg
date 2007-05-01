@@ -534,7 +534,7 @@ namespace swig
       for ( ; i != e; ++i, comma = true )
 	{
 	  if (comma) str = rb_str_cat2( str, "," );
-	  tmp = swig::from( *i );
+	  tmp = swig::from<Container::value_type>( *i );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -550,7 +550,7 @@ namespace swig
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from( *i );
+	  tmp = swig::from<Container::value_type>( *i );
 	  rb_ary_push( ary, tmp );
 	}
       return ary;
@@ -564,7 +564,7 @@ namespace swig
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from( *i );
+	  tmp = swig::from<Container::value_type>( *i );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -574,6 +574,16 @@ namespace swig
 %enddef
 
 %define %swig_container_methods(Container...)
+
+  %extend {
+
+  %newobject dup;
+  Container* dup()
+    {
+      return new Container(*$self);
+    }
+
+  }
 
 %enddef
 
