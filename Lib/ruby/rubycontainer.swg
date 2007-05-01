@@ -656,7 +656,23 @@ namespace swig
 			   swig::yield< Sequence::value_type >() );
       return r;
     }
-    
+
+    Sequence* each()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE r;
+	Sequence::iterator i = self->begin();
+	Sequence::iterator e = self->end();
+	for ( ; i != e; ++i )
+	  {
+	    r = swig::from<Sequence::value_type>(*i);
+	    rb_yield(r);
+	  }
+	
+	return self;
+      }
 
     %rename("reject!") reject_bang;
     %alias reject_bang "delete_if";
@@ -692,41 +708,6 @@ namespace swig
       return r;
     }
 
-    Sequence* each_with_index()
-      {
-	if ( !rb_block_given_p() )
-	  rb_raise( rb_eArgError, "no block given");
-
-	VALUE r, idx;
-	Sequence::iterator i = self->begin();
-	Sequence::iterator e = self->end();
-	unsigned c = 0;
-	for ( ; i != e; ++i, ++c )
-	  {
-	    r = swig::from<Sequence::value_type>(*i);
-	    idx = UINT2NUM( c );
-	    rb_yield_values(2, r, idx);
-	  }
-	
-	return self;
-      }
-
-    Sequence* each()
-      {
-	if ( !rb_block_given_p() )
-	  rb_raise( rb_eArgError, "no block given");
-
-	VALUE r;
-	Sequence::iterator i = self->begin();
-	Sequence::iterator e = self->end();
-	for ( ; i != e; ++i )
-	  {
-	    r = swig::from<Sequence::value_type>(*i);
-	    rb_yield(r);
-	  }
-	
-	return self;
-      }
   }
 %enddef
 

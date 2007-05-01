@@ -23,6 +23,10 @@ begin
 rescue ArgumentError
 end
 
+swig_assert_each_line(<<'EOF', binding)
+iv.respond_to?(:each) == true
+iv.respond_to?(:each_with_index) == true
+EOF
 
 iv.each_with_index { |e,i| 
   swig_assert("#{e} == 0", binding, "for iv[#{i}] == 0") 

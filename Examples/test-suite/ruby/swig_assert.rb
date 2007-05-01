@@ -76,7 +76,7 @@ def swig_assert( expr, scope = nil, msg = nil )
     raise
   end
 
-  raise SwigRubyError.new("FAILED: #{expr.to_s} - #{e}") unless ok
+  raise SwigRubyError.new("FAILED: #{expr.to_s} - #{msg}") unless ok
 
   if $VERBOSE
     $stdout.puts "\tPASSED #{expr} #{msg}"

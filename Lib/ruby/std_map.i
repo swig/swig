@@ -132,18 +132,12 @@
 }
 
 %define %swig_map_common(Map...)
-  // %swig_sequence_methods_common(Map);
-  // %swig_sequence_iterator(Map);
+  %swig_container_methods(%arg(Map));
+  // %swig_sequence_iterator(%arg(Map));
 
   %extend {
-    VALUE __getitem__(const key_type& key) const {
-      Map::const_iterator i = self->find(key);
-      if ( i != self->end() )
-	return swig::from( i->second );
-      else
-	return Qnil;
-    }
     
+  %rename("delete") __delitem__;
     VALUE __delitem__(const key_type& key) {
       Map::iterator i = self->find(key);
       if (i != self->end()) {
@@ -178,6 +172,27 @@
       }
       return ary;
     }
+
+    Map* each()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE k, v;
+	Map::iterator i = self->begin();
+	Map::iterator e = self->end();
+	for ( ; i != e; ++i )
+	  {
+	    const Map::key_type&    key = i->first;
+	    const Map::mapped_type& val = i->second;
+
+	    k = swig::from<Map::key_type>(key);
+	    v = swig::from<Map::mapped_type>(val);
+	    rb_yield_values(2, k, v);
+	  }
+	
+	return self;
+      }
 
     Map* each_key()
       {
@@ -271,6 +286,13 @@
 %define %swig_map_methods(Map...)
   %swig_map_common(Map)
   %extend {
+    VALUE __getitem__(const key_type& key) const {
+      Map::const_iterator i = self->find(key);
+      if ( i != self->end() )
+	return swig::from<Map::mapped_type>( i->second );
+      else
+	return Qnil;
+    }
 
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
@@ -287,9 +309,11 @@
       for ( ; i != e; ++i, comma = true )
 	{
 	  if (comma) str = rb_str_cat2( str, "," );
-	  // @todo: improve -- this should just be swig::from(*i)
-	  tmp = swig::from< std::pair<Map::key_type, 
-	    Map::mapped_type> >( *i );
+	  tmp = swig::from< Map::key_type >( i->first );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	  str = rb_str_cat2( str, "=>" );
+	  tmp = swig::from< Map::mapped_type >( i->second );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -333,5 +357,17 @@
   }
 %enddef
 
+
+#if defined(SWIG_RUBY_AUTORENAME)
+
+  %mixin std::map "Enumerable";
+  %rename("empty?") std::map::empty;
+
+#else
+
+  %mixin std::map "Enumerable";
+  %rename("empty?") std::map::empty;
+
+#endif
 
 %include <std/std_map.i>

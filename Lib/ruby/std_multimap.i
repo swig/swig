@@ -86,9 +86,28 @@
 }
 
 %define %swig_multimap_methods(MultiMap...) 
-  %swig_map_common(MultiMap);
+  %swig_container_methods(%arg(MultiMap));
+  %swig_map_common(%arg(MultiMap));
 
   %extend {
+    VALUE __getitem__(const key_type& key) const {
+      MultiMap::const_iterator i = self->find(key);
+      if ( i != self->end() )
+	{
+	  MultiMap::const_iterator e = $self->upper_bound(key);
+	  VALUE ary = rb_ary_new();
+	  for ( ; i != e; ++i )
+	    {
+	      rb_ary_push( ary, swig::from<MultiMap::mapped_type>( i->second ) );
+	    }
+	  if ( RARRAY_LEN(ary) == 1 )
+	    return RARRAY_PTR(ary)[0];
+	  return ary;
+	}
+      else
+	return Qnil;
+    }
+
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       self->insert(MultiMap::value_type(key,x));
     }
@@ -106,6 +125,7 @@
 	  const MultiMap::key_type& oldkey = key;
 	  tmp = swig::from( key );
 	  str = rb_str_buf_append( str, rb_inspect(tmp) );
+	  str = rb_str_cat2( str, "=>" );
 
 	  VALUE vals = rb_ary_new();
 	  for ( ; i != e && key == oldkey; ++i )
@@ -190,6 +210,19 @@
     }
   }
 %enddef
+
+
+#if defined(SWIG_RUBY_AUTORENAME)
+
+  %mixin std::multimap "Enumerable";
+  %rename("empty?") std::multimap::empty;
+
+#else
+
+  %mixin std::multimap "Enumerable";
+  %rename("empty?") std::multimap::empty;
+
+#endif
 
 %include <std/std_multimap.i>
 
