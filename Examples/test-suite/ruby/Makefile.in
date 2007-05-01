@@ -15,14 +15,17 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
-	track_objects \
-	track_objects_directors \
-	primitive_types \
+	keywords \
 	li_cdata \
 	li_cstring \
+	li_factory \
+	li_std_map \
+#	li_std_set \
 	naming \
-	keywords \
-	li_factory 
+	primitive_types \
+#	std_containers \
+	track_objects \
+	track_objects_directors
 
 C_TEST_CASES += \
 	li_cdata \
@@ -63,7 +66,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-	
+
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile ruby_clean
