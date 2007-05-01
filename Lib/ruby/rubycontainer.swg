@@ -632,17 +632,17 @@ namespace swig
 	return self;
       }
 
-    %newobject select
+    %newobject select;
     Sequence* select() {
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
       Sequence* r = new Sequence;
-      Sequence::iterator i = self->begin();
-      Sequence::iterator e = self->end();
+      Sequence::const_iterator i = $self->begin();
+      Sequence::const_iterator e = $self->end();
       for ( ; i != e; ++i )
 	{
-	  VALUE v = swig::from<Sequence::value_type>(*i);
+	  VALUE v = swig::from< Sequence::value_type >(*i);
 	  if ( RTEST( rb_yield(v) ) )
 	    $self->push_back(*i);
 	}
