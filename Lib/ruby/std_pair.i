@@ -106,7 +106,7 @@
     struct traits_from<std::pair<T,U> >   {
       static VALUE _wrap_pair_second( VALUE self )
       {
-	std::pair<T,U>* p = NULL;
+	std::pair< typename swig::noconst_traits<T >::noconst_type,U>* p = NULL;
 	swig::asptr( self, &p );
 	return swig::from( p->second );
       fail:
@@ -115,7 +115,7 @@
 
       static VALUE _wrap_pair_second_eq( VALUE self, VALUE arg )
       {
-	std::pair<T,U>* p = NULL;
+	std::pair< typename swig::noconst_traits<T >::noconst_type,U>* p = NULL;
 	swig::asptr( self, &p );
 	return swig::from( p->second );
       fail:
@@ -124,7 +124,7 @@
 
       static VALUE from(const std::pair<T,U>& val) {
 	VALUE obj = rb_ary_new2(2);
-	RARRAY_PTR(obj)[0] = swig::from(val.first);
+	RARRAY_PTR(obj)[0] = swig::from< typename swig::noconst_traits<T >::noconst_type>(val.first);
 	RARRAY_PTR(obj)[1] = swig::from(val.second);
 	RARRAY_LEN(obj) = 2;
 	rb_define_singleton_method(obj, "second",  
