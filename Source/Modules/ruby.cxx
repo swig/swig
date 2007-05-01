@@ -942,7 +942,7 @@ public:
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 
 	Printv(outarg, tm, "\n", NIL);
-	need_result = 1;
+	need_result += 1;
 	p = Getattr(p, "tmap:argout:next");
       } else {
 	p = nextSibling(p);
@@ -1239,6 +1239,19 @@ public:
       need_result = 1;
       // Printf(f->code, "DATA_PTR(self) = result;\n");
     }
+    else
+      {
+	if ( need_result > 1 ) {
+	  if ( SwigType_type(t) == T_VOID )
+	    Printf(f->code, "vresult = rb_ary_new();\n");
+	  else
+	    {
+	      Printf(f->code, "if (vresult == Qnil) vresult = rb_ary_new();\n");
+	      Printf(f->code, "else vresult = SWIG_Ruby_AppendOutput( "
+		     "rb_ary_new(), vresult);\n");
+	    }
+	}
+      }
 
     /* Dump argument output code; */
     Printv(f->code, outarg, NIL);

@@ -1007,6 +1007,7 @@ namespace swig {
 	  RARRAY_PTR(obj)[i] = swig::from<value_type>(*it);
 	}
 	RARRAY_LEN(obj) = size;
+	rb_obj_freeze(obj);  // treat as immutable result
 	return obj;
       } else {
 	rb_raise(rb_eRangeError,"sequence size not valid in ruby");
