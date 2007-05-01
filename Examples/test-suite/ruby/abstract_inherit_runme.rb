@@ -29,7 +29,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_inherit::Foo
 	exceptionRaised = true
 ensure
-  swig_assert( exceptionRaised, "exceptionRaised")
+  swig_assert( "exceptionRaised", binding )
 end
 
 exceptionRaised = false
@@ -42,7 +42,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_inherit::Bar
 	exceptionRaised = true
 ensure
-  swig_assert( exceptionRaised, "exceptionRaised")
+  swig_assert( "exceptionRaised", binding )
 end
 
 exceptionRaised = false
@@ -55,7 +55,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_inherit::Spam
 	exceptionRaised = true
 ensure
-  swig_assert( exceptionRaised, "exceptionRaised")
+  swig_assert( "exceptionRaised", binding )
 end
 
 

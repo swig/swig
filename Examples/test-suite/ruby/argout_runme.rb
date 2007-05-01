@@ -12,27 +12,29 @@ require 'argout'
 
 include Argout
 
+swig_assert_each_line(<<'EOF', binding)
+
 t = new_intp
 intp_assign(t, 5)
 v = incp(t)
-swig_assert( v == 5, "incp - v == 5 was #{v}")
 val = intp_value(t)
-swig_assert( val == 6, "incp - intp_value(t) == 6 was #{val}")
+val == 6
 
 t = new_intp
 intp_assign(t, 5)
 v = incr(t)
-swig_assert( v == 5, "incr - v == 5 was #{v}")
+v == 5
 val = intp_value(t)
-swig_assert( val == 6, "incr - intp_value(t) == 6 was #{val}")
+val == 6
 
 t = new_intp
 intp_assign(t, 5)
 v = inctr(t)
-swig_assert( v == 5, "inctr - v == 5 was #{v}")
+v == 5
 val = intp_value(t)
-swig_assert( val == 6, "inctr - intp_value(t) == 6 was #{val}")
+val == 6
 
+EOF
 
 #
 # @todo: how to use voidhandle and handle?

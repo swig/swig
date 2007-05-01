@@ -85,11 +85,108 @@
   }
 }
 
-%define %swig_multimap_methods(Type...) 
-  %swig_map_common(Type);
+%define %swig_multimap_methods(MultiMap...) 
+  %swig_map_common(MultiMap);
+
   %extend {
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
-      self->insert(Type::value_type(key,x));
+      self->insert(MultiMap::value_type(key,x));
+    }
+
+  VALUE inspect()
+    {
+      MultiMap::iterator i = $self->begin();
+      MultiMap::iterator e = $self->end();
+      VALUE str = rb_str_new2( swig::type_name< MultiMap >() );
+      str = rb_str_cat2( str, " {" );
+      VALUE tmp;
+      while ( i != e )
+	{
+	  const MultiMap::key_type& key    = i->first;
+	  const MultiMap::key_type& oldkey = key;
+	  tmp = swig::from( key );
+	  str = rb_str_buf_append( str, rb_inspect(tmp) );
+
+	  VALUE vals = rb_ary_new();
+	  for ( ; i != e && key == oldkey; ++i )
+	    {
+	      const MultiMap::mapped_type& val = i->second;
+	      tmp = swig::from( val );
+	      rb_ary_push( vals, tmp );
+	    }
+
+	  if ( RARRAY_LEN(vals) == 1 )
+	    {
+	      str = rb_str_buf_append( str, rb_inspect(tmp) );
+	    }
+	  else
+	    {
+	      str = rb_str_buf_append( str, rb_inspect(vals) );
+	    }
+	}
+      str = rb_str_cat2( str, "}" );
+      return str;
+    }
+
+  VALUE to_a()
+    {
+      MultiMap::const_iterator i = $self->begin();
+      MultiMap::const_iterator e = $self->end();
+      VALUE ary = rb_ary_new2( std::distance( i, e ) );
+      VALUE tmp;
+      while ( i != e )
+	{
+	  const MultiMap::key_type& key    = i->first;
+	  const MultiMap::key_type& oldkey = key;
+	  tmp = swig::from( key );
+	  rb_ary_push( ary, tmp );
+
+	  VALUE vals = rb_ary_new();
+	  for ( ; i != e && key == oldkey; ++i )
+	    {
+	      const MultiMap::mapped_type& val = i->second;
+	      tmp = swig::from( val );
+	      rb_ary_push( vals, tmp );
+	    }
+
+	  if ( RARRAY_LEN(vals) == 1 )
+	    {
+	      rb_ary_push( ary, tmp );
+	    }
+	  else
+	    {
+	      rb_ary_push( ary, vals );
+	    }
+	}
+      return ary;
+    }
+
+  VALUE to_s()
+    {
+      MultiMap::iterator i = $self->begin();
+      MultiMap::iterator e = $self->end();
+      VALUE str = rb_str_new2( "" );
+      VALUE tmp;
+      while ( i != e )
+	{
+	  const MultiMap::key_type& key    = i->first;
+	  const MultiMap::key_type& oldkey = key;
+	  tmp = swig::from( key );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+
+	  VALUE vals = rb_ary_new();
+	  for ( ; i != e && key == oldkey; ++i )
+	    {
+	      const MultiMap::mapped_type& val = i->second;
+	      tmp = swig::from( val );
+	      rb_ary_push( vals, tmp );
+	    }
+
+	  tmp = rb_obj_as_string( vals );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      return str;
     }
   }
 %enddef

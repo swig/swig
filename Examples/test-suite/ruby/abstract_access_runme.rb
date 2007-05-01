@@ -15,19 +15,19 @@ include Abstract_access
 begin
   a = A.new
 rescue TypeError
-  swig_assert(true, 'A.new')
+  swig_assert(true, binding, 'A.new')
 end
 
 begin
   b = B.new
 rescue TypeError
-  swig_assert(true, 'B.new')
+  swig_assert(true, binding, 'B.new')
 end
 
 begin
   c = C.new
 rescue TypeError
-  swig_assert(true, 'C.new')
+  swig_assert(true, binding, 'C.new')
 end
 
 swig_assert( 'D.new' )

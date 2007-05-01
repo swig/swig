@@ -15,19 +15,20 @@ class SwigAssertError < StandardError
 end
 
 
-def swig_assert( condition, *args )
+def swig_assert_equal( a, b, scope = nil, msg = nil )
   begin
-    ok = eval(condition.to_s)
+    check = "#{a} == #{b}"
+    ok = eval(check, scope)
   rescue => e
-    raise SwigAssertError.new("Wrong assert: #{condition.to_s} - #{e}")
+    raise SwigAssertError.new("Wrong assert: #{check} - #{e}")
   end
 
   unless ok
-    raise SwigRubyError.new("FAILED CHECK: #{condition} was #{ok.inspect} #{args.join(' ')}")
+    raise SwigRubyError.new("FAILED CHECK: #{check} was #{eval(a)} #{msg}")
   end
 
   if $VERBOSE
-    $stdout.puts "\tPASSED #{condition} #{args.join(' ')}"
+    $stdout.puts "\tPASSED #{check} #{msg}"
   end
 
   return ok
@@ -41,8 +42,37 @@ rescue => e
 end
 
 
-def swig_assert_each_line( lines )
+def swig_assert( condition, scope = nil, msg = nil )
+  begin
+    if scope.kind_of? Binding
+      eval(condition.to_s, scope)
+    else
+      eval(condition.to_s)
+      msg = scope
+    end
+  rescue => e
+    raise SwigAssertError.new("Wrong assert: #{condition.to_s} - #{e}")
+  end
+  if $VERBOSE
+    $stdout.puts "\tPASSED #{condition} #{msg}"
+  end
+rescue => e
+  trace = e.backtrace[1..-1]
+  $stderr.puts "#{trace[0,1]}: #{e}"
+  if trace.size > 1
+    $stderr.puts "\tfrom #{trace[1..-1].join("\n\t     ")}"
+  end
+  exit(1)
+end
+
+
+def swig_assert_each_line( lines, scope = nil, msg = nil )
   lines.split("\n").each do |line|
-    swig_assert(line)
+    next if line.empty? or line =~ /^\s*#.*/
+      if line =~ /(.*)\s*==\s*(.*)/
+        swig_assert_equal($1, $2, scope, msg)
+      else
+        swig_assert(line, scope, msg)
+      end
   end
 end

@@ -12,7 +12,7 @@ namespace std {
     
     %traits_swigtype(T);
     %traits_swigtype(U);
-      
+
     %fragment(SWIG_Traits_frag(std::pair<T,U >), "header",
 	      fragment=SWIG_Traits_frag(T),
 	      fragment=SWIG_Traits_frag(U),

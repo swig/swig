@@ -21,7 +21,7 @@ foo = Foo.new
   'seq' => 3 }.each do |m, v|
   foo.send("#{m}=", v)
   val = foo.send(m)
-  swig_assert(val == v, " for foo.#{m} == #{v}, was #{val}")
+  swig_assert("val == v", binding)
 end
 
 {'x' => (1 << 4),
@@ -31,5 +31,5 @@ end
   'seq' => (1 << (4*8-6)) }.each do |m, v|
   foo.send("#{m}=", v)
   val = foo.send(m)
-  swig_assert(val != v, " for foo.#{m} != #{v}, was #{val}")
+  swig_assert("val != v", binding)
 end

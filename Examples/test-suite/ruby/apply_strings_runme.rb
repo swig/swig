@@ -22,14 +22,14 @@ ptr = 'a'
 ['UCharFunction', 'SCharFunction', 'CUCharFunction',
  'CSCharFunction'].each do |m|
   val = Apply_strings.send(m, ptr)
-  swig_assert( val == ptr, "Apply_strings.#{m} #{val} == #{ptr}" )
+  swig_assert( "val == ptr", binding )
 end
 
 
 ['CharFunction', 'CCharFunction'].each do |m|
   begin
     val = Apply_strings.send(m, ptr)
-    swig_assert( false, "Apply_strings.#{m} should raise TypeError" )
+    swig_assert( false, nil, "Apply_strings.#{m} should raise TypeError" )
   rescue TypeError
   end
 end
@@ -39,14 +39,14 @@ foo = DirectorTest.new
 ['UCharFunction', 'SCharFunction', 'CUCharFunction',
  'CSCharFunction'].each do |m|
   val = foo.send(m, ptr)
-  swig_assert( val == ptr, "DirectorTest.#{m} #{val} == #{ptr}" )
+  swig_assert( "val == ptr", binding, "DirectorTest.#{m}" )
 end
 
 
 ['CharFunction', 'CCharFunction'].each do |m|
   begin
     val = foo.send(m, ptr)
-    swig_assert( false, "DirectorTest.#{m} should raise TypeError" )
+    swig_assert( false, nil, "DirectorTest.#{m} should raise TypeError" )
   rescue TypeError
   end
 end

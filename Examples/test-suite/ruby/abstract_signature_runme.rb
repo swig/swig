@@ -33,7 +33,7 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_signature::Abstract_foo
 	exceptionRaised = true
 ensure
-  swig_assert( exceptionRaised, "for exceptionRaised")
+  swig_assert( "exceptionRaised", binding)
 end
 
 #
@@ -57,6 +57,6 @@ rescue TypeError
   # TypeError: allocator undefined for Abstract_signature::Abstract_bar
 	exceptionRaised = true
 ensure
-  swig_assert( exceptionRaised, "for exceptionRaised")
+  swig_assert( "exceptionRaised", binding)
 end
 

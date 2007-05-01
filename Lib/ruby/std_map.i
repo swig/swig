@@ -132,8 +132,8 @@
 }
 
 %define %swig_map_common(Map...)
-  %swig_sequence_iterator(Map);
-  %swig_container_methods(Map)
+  // %swig_sequence_methods_common(Map);
+  // %swig_sequence_iterator(Map);
 
   %extend {
     VALUE __getitem__(const key_type& key) const {
@@ -178,6 +178,23 @@
       }
       return ary;
     }
+
+    Map* each_key()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE r;
+	Map::iterator i = self->begin();
+	Map::iterator e = self->end();
+	for ( ; i != e; ++i )
+	  {
+	    r = swig::from( i->first );
+	    rb_yield(r);
+	  }
+	
+	return self;
+      }
     
     VALUE values() {
       Map::size_type size = self->size();
@@ -197,6 +214,23 @@
       return ary;
     }
     
+    Map* each_value()
+      {
+	if ( !rb_block_given_p() )
+	  rb_raise( rb_eArgError, "no block given");
+
+	VALUE r;
+	Map::iterator i = self->begin();
+	Map::iterator e = self->end();
+	for ( ; i != e; ++i )
+	  {
+	    r = swig::from( i->second );
+	    rb_yield(r);
+	  }
+	
+	return self;
+      }
+
     VALUE entries() {
       Map::size_type size = self->size();
       int rubysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
@@ -210,7 +244,8 @@
       Map::const_iterator i = self->begin();
       Map::const_iterator e = self->end();
       for ( ; i != e; ++i ) {
-	rb_ary_push( ary, swig::from(*i) );
+	rb_ary_push( ary, swig::from<std::pair<Map::key_type, 
+		     Map::mapped_type> >(*i) );
       }
       return ary;
     }
@@ -236,9 +271,65 @@
 %define %swig_map_methods(Map...)
   %swig_map_common(Map)
   %extend {
+
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }
+
+  VALUE inspect()
+    {
+      Map::const_iterator i = $self->begin();
+      Map::const_iterator e = $self->end();
+      VALUE str = rb_str_new2( swig::type_name< Map >() );
+      str = rb_str_cat2( str, " {" );
+      bool comma = false;
+      VALUE tmp;
+      for ( ; i != e; ++i, comma = true )
+	{
+	  if (comma) str = rb_str_cat2( str, "," );
+	  // @todo: improve -- this should just be swig::from(*i)
+	  tmp = swig::from< std::pair<Map::key_type, 
+	    Map::mapped_type> >( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      str = rb_str_cat2( str, "}" );
+      return str;
+    }
+
+  VALUE to_a()
+    {
+      Map::const_iterator i = $self->begin();
+      Map::const_iterator e = $self->end();
+      VALUE ary = rb_ary_new2( std::distance( i, e ) );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  // @todo: improve -- this should just be swig::from(*i)
+	  tmp = swig::from< std::pair<Map::key_type, 
+	    Map::mapped_type> >( *i );
+	  rb_ary_push( ary, tmp );
+	}
+      return ary;
+    }
+
+  VALUE to_s()
+    {
+      Map::iterator i = $self->begin();
+      Map::iterator e = $self->end();
+      VALUE str = rb_str_new2( "" );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  // @todo: improve -- this should just be swig::from(*i)
+	  tmp = swig::from< std::pair<Map::key_type, 
+	    Map::mapped_type> >( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      return str;
+    }
+
   }
 %enddef
 

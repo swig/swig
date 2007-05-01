@@ -91,7 +91,8 @@
 	  }
 	} else {
 	  value_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
+	  res = SWIG_ConvertPtr(obj,(void**)&p,
+				swig::type_info<value_type>(),0);
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	return res;
@@ -146,8 +147,9 @@
 
 
 %define %swig_pair_methods(pair...)
+
 %extend { 
-  VALUE inspect()
+  VALUE inspect() const
     {
       VALUE tmp;
       VALUE str = rb_str_new2( swig::type_name< pair >() );
@@ -163,7 +165,7 @@
       return str;
     }
 
-  VALUE to_s()
+  VALUE to_s() const
     {
       VALUE tmp;
       VALUE str = rb_str_new2( "(" );

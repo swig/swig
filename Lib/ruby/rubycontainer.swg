@@ -519,15 +519,14 @@ namespace swig
 /**** The Ruby container methods  ****/
 
 
-%define %swig_container_methods(Container...)
-
+%define %swig_container_printing_methods(Container...)
 
   %extend {
 
   VALUE inspect()
     {
-      Container::iterator i = $self->begin();
-      Container::iterator e = $self->end();
+      Container::const_iterator i = $self->begin();
+      Container::const_iterator e = $self->end();
       VALUE str = rb_str_new2( swig::type_name< Container >() );
       str = rb_str_cat2( str, " [" );
       bool comma = false;
@@ -535,7 +534,7 @@ namespace swig
       for ( ; i != e; ++i, comma = true )
 	{
 	  if (comma) str = rb_str_cat2( str, "," );
-	  tmp = swig::from<Container::value_type>( *i );
+	  tmp = swig::from( *i );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -545,13 +544,13 @@ namespace swig
 
   VALUE to_a()
     {
-      Container::iterator i = $self->begin();
-      Container::iterator e = $self->end();
+      Container::const_iterator i = $self->begin();
+      Container::const_iterator e = $self->end();
       VALUE ary = rb_ary_new2( std::distance( i, e ) );
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from<Container::value_type>( *i );
+	  tmp = swig::from( *i );
 	  rb_ary_push( ary, tmp );
 	}
       return ary;
@@ -565,13 +564,16 @@ namespace swig
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from<Container::value_type>( *i );
+	  tmp = swig::from( *i );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
       return str;
     }
-  }
+}
+%enddef
+
+%define %swig_container_methods(Container...)
 
 %enddef
 
