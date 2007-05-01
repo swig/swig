@@ -36,11 +36,11 @@
 %}
 
 %define %swig_set_methods(set...)
-  %swig_sequence_iterator(set);
-  %swig_container_methods(set);
+  %swig_sequence_methods_common(set); 
 
   %extend  {
-    const value_type& push(value_type x) {
+    %alias push "<<";
+    value_type push(value_type x) {
       self->insert(x);
       return x;
     }
@@ -56,5 +56,18 @@
 
   };
 %enddef
+
+#if defined(SWIG_RUBY_AUTORENAME)
+
+//   %mixin std::set "Enumerable";
+  %rename("empty?") std::set::empty;
+
+#else
+
+//   %mixin std::set "Enumerable";
+  %rename("empty?") std::set::empty;
+
+#endif
+
 
 %include <std/std_set.i>

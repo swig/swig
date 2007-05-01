@@ -519,59 +519,6 @@ namespace swig
 /**** The Ruby container methods  ****/
 
 
-%define %swig_container_printing_methods(Container...)
-
-  %extend {
-
-  VALUE inspect()
-    {
-      Container::const_iterator i = $self->begin();
-      Container::const_iterator e = $self->end();
-      VALUE str = rb_str_new2( swig::type_name< Container >() );
-      str = rb_str_cat2( str, " [" );
-      bool comma = false;
-      VALUE tmp;
-      for ( ; i != e; ++i, comma = true )
-	{
-	  if (comma) str = rb_str_cat2( str, "," );
-	  tmp = swig::from<Container::value_type>( *i );
-	  tmp = rb_obj_as_string( tmp );
-	  str = rb_str_buf_append( str, tmp );
-	}
-      str = rb_str_cat2( str, "]" );
-      return str;
-    }
-
-  VALUE to_a()
-    {
-      Container::const_iterator i = $self->begin();
-      Container::const_iterator e = $self->end();
-      VALUE ary = rb_ary_new2( std::distance( i, e ) );
-      VALUE tmp;
-      for ( ; i != e; ++i )
-	{
-	  tmp = swig::from<Container::value_type>( *i );
-	  rb_ary_push( ary, tmp );
-	}
-      return ary;
-    }
-
-  VALUE to_s()
-    {
-      Container::iterator i = $self->begin();
-      Container::iterator e = $self->end();
-      VALUE str = rb_str_new2( "" );
-      VALUE tmp;
-      for ( ; i != e; ++i )
-	{
-	  tmp = swig::from<Container::value_type>( *i );
-	  tmp = rb_obj_as_string( tmp );
-	  str = rb_str_buf_append( str, tmp );
-	}
-      return str;
-    }
-}
-%enddef
 
 %define %swig_container_methods(Container...)
 
@@ -587,28 +534,71 @@ namespace swig
 
 %enddef
 
+%define %swig_sequence_printing_methods(Sequence...)
+
+  %extend {
+
+  VALUE inspect()
+    {
+      Sequence::const_iterator i = $self->begin();
+      Sequence::const_iterator e = $self->end();
+      VALUE str = rb_str_new2( swig::type_name< Sequence >() );
+      str = rb_str_cat2( str, " [" );
+      bool comma = false;
+      VALUE tmp;
+      for ( ; i != e; ++i, comma = true )
+	{
+	  if (comma) str = rb_str_cat2( str, "," );
+	  tmp = swig::from<Sequence::value_type>( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      str = rb_str_cat2( str, "]" );
+      return str;
+    }
+
+  VALUE to_a()
+    {
+      Sequence::const_iterator i = $self->begin();
+      Sequence::const_iterator e = $self->end();
+      VALUE ary = rb_ary_new2( std::distance( i, e ) );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  tmp = swig::from<Sequence::value_type>( *i );
+	  rb_ary_push( ary, tmp );
+	}
+      return ary;
+    }
+
+  VALUE to_s()
+    {
+      Sequence::iterator i = $self->begin();
+      Sequence::iterator e = $self->end();
+      VALUE str = rb_str_new2( "" );
+      VALUE tmp;
+      for ( ; i != e; ++i )
+	{
+	  tmp = swig::from<Sequence::value_type>( *i );
+	  tmp = rb_obj_as_string( tmp );
+	  str = rb_str_buf_append( str, tmp );
+	}
+      return str;
+    }
+}
+%enddef
+
+
 %define %swig_sequence_methods_common(Sequence...)
-  %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
-  
+  %swig_sequence_iterator(%arg(Sequence))
+  %swig_sequence_printing_methods(%arg(Sequence))
+
   %fragment("RubySequence_Base");
 
 
   %extend {
 
-
-  VALUE pop() {
-    if ($self->empty()) return Qnil;
-    Sequence::value_type x = self->back();
-    $self->pop_back();
-    return swig::from< Sequence::value_type >( x );
-  }
-
-  %alias push "<<";
-  const value_type push( const value_type& e ) {
-    $self->push_back( e );
-    return e;
-  }
 
   // Implementing delete requires semantics that go beyond the
   // default requirements of STD containers.
@@ -645,18 +635,6 @@ namespace swig
 	return r;
       }
 
-    %newobject reject;
-    Sequence* reject() {
-      if ( !rb_block_given_p() )
-	rb_raise( rb_eArgError, "no block given" );
-
-      Sequence* r = new Sequence;
-      std::remove_copy_if( $self->begin(), $self->end(),              
-			   std::back_inserter(*r),
-			   swig::yield< Sequence::value_type >() );
-      return r;
-    }
-
     Sequence* each()
       {
 	if ( !rb_block_given_p() )
@@ -673,6 +651,7 @@ namespace swig
 	
 	return self;
       }
+
 
     %rename("reject!") reject_bang;
     %alias reject_bang "delete_if";
@@ -711,8 +690,42 @@ namespace swig
   }
 %enddef
 
+
+%define %swig_sequence_back_inserters( Sequence... )
+  %extend {
+
+    VALUE pop() {
+      if ($self->empty()) return Qnil;
+      Sequence::value_type x = self->back();
+      $self->pop_back();
+      return swig::from< Sequence::value_type >( x );
+    }
+
+    %alias push "<<";
+    const value_type push( const value_type& e ) {
+      $self->push_back( e );
+      return e;
+    }
+
+    %newobject reject;
+    Sequence* reject() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      Sequence* r = new Sequence;
+      std::remove_copy_if( $self->begin(), $self->end(),              
+			   std::back_inserter(*r),
+			   swig::yield< Sequence::value_type >() );
+      return r;
+    }
+
+  }
+%enddef
+
 %define %swig_sequence_methods(Sequence...)
-  %swig_sequence_methods_common(%arg(Sequence))
+  %swig_sequence_methods_common(%arg(Sequence));
+  %swig_sequence_back_inserters(%arg(Sequence));
+
   %extend {
 
     VALUE at(difference_type i) const {

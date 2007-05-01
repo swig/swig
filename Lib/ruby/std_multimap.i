@@ -86,7 +86,6 @@
 }
 
 %define %swig_multimap_methods(MultiMap...) 
-  %swig_container_methods(%arg(MultiMap));
   %swig_map_common(%arg(MultiMap));
 
   %extend {
