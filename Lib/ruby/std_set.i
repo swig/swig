@@ -59,12 +59,12 @@
 
 #if defined(SWIG_RUBY_AUTORENAME)
 
-//   %mixin std::set "Enumerable";
+  %mixin std::set "Enumerable";
   %rename("empty?") std::set::empty;
 
 #else
 
-//   %mixin std::set "Enumerable";
+  %mixin std::set "Enumerable";
   %rename("empty?") std::set::empty;
 
 #endif
