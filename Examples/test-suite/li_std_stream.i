@@ -1,5 +1,4 @@
 %module li_std_stream
-%feature("autodoc","4");
 
 %inline %{
   struct A;  

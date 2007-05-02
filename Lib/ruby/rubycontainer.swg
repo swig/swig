@@ -485,11 +485,11 @@ namespace swig
 
   %fragment("RubySequence_Cont");
 
-  %newobject iterator(VALUE *RUBY_SELF);
+  %newobject iterator;
   %extend  {
-    swig::RubySwigIterator* iterator(VALUE *RUBY_SELF) {
-      return swig::make_output_iterator(self->begin(), self->begin(), 
-					self->end(), *RUBY_SELF);
+    swig::RubySwigIterator* iterator(VALUE* RUBY_SELF) {
+      return swig::make_output_iterator($self->begin(), $self->begin(), 
+					$self->end(), *RUBY_SELF);
     }
   }
 #endif //SWIG_EXPORT_ITERATOR_METHODS

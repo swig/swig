@@ -132,7 +132,7 @@ Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -feature <name> - Set feature name to <name> (used by `require')\n";
+     -init_name <name> - Set entry function to Init_<name> (used by `require')\n";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
@@ -331,6 +331,7 @@ private:
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
 
+
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
 	pnext = Getattr(p, "tmap:in:next");
@@ -338,9 +339,16 @@ private:
 	pnext = nextSibling(p);
       }
 
+      // Skip ignored input attributes
+      if (checkAttribute(p, "tmap:in:numinputs", "0"))
+	continue;
+
       // Skip the 'self' parameter which in ruby is implicit
       if ( Cmp(name, "self") == 0 )
 	continue;
+
+      // Make __p parameters just p (as used in STL)
+      Replace( name, "__", "", DOH_REPLACE_FIRST );
 
       if (Len(doc)) {
 	// add a comma to the previous one if any
@@ -620,6 +628,7 @@ private:
 	break;
       case STRING_AUTODOC:
 	extended = 2;
+	Replaceall( autodoc, "$class", class_name );
 	Printv(doc, autodoc, ".", NIL);
 	break;
       case EXTEND_AUTODOC:
@@ -697,7 +706,7 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-feature") == 0) {
+	if (strcmp(argv[i], "-init_name") == 0) {
 	  if (argv[i + 1]) {
 	    char *name = argv[i + 1];
 	    feature = NewString(name);

@@ -43,16 +43,19 @@ SWIGOPT += -noautorename
 naming.cpptest: SWIGOPT = -autorename
 
 %.cpptest: 
+	SWIGOPT = -features autodoc=4
 	$(setup) \
 	($(swig_and_compile_cpp); ) &&\
 	$(run_testcase)
 
 %.ctest:
+	SWIGOPT = -features autodoc=4
 	$(setup) \
 	($(swig_and_compile_c); ) &&\
 	$(run_testcase)
 
 %.multicpptest: 
+	SWIGOPT = -features autodoc=4
 	$(setup) \
 	($(swig_and_compile_multi_cpp); ) &&\
 	$(run_testcase)

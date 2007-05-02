@@ -313,12 +313,12 @@
 
     %newobject key_iterator(VALUE *RUBY_SELF);
     swig::RubySwigIterator* key_iterator(VALUE *RUBY_SELF) {
-      return swig::make_output_key_iterator(self->begin(), self->begin(), self->end(), *RUBY_SELF);
+      return swig::make_output_key_iterator($self->begin(), $self->begin(), $self->end(), *RUBY_SELF);
     }
 
     %newobject value_iterator(VALUE *RUBY_SELF);
     swig::RubySwigIterator* value_iterator(VALUE *RUBY_SELF) {
-      return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *RUBY_SELF);
+      return swig::make_output_value_iterator($self->begin(), $self->begin(), $self->end(), *RUBY_SELF);
     }
 
   }

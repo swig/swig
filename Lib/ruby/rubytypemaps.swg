@@ -50,6 +50,13 @@
 /* raise */
 #define SWIG_Raise(obj, type, desc)      rb_exc_raise(SWIG_Ruby_ExceptionType(desc, obj)) 
 
+/* Get the address of the 'Ruby self' object */
+
+%typemap(in,numinputs=0,noblock=1) VALUE* RUBY_SELF {
+  $1 = &self;
+}
+
+
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
