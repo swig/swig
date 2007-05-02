@@ -143,6 +143,7 @@ struct Autodoc {
   const char* description;
 };
 
+
 static const Autodoc kAutoDocs[] = {
   { "to_a", "Convert class to an Array" },
   { "to_s", "Convert class to a String representation" },
@@ -167,6 +168,8 @@ static const Autodoc kAutoDocs[] = {
   { "**",  "Exponential operator" },
   { "divmod",  "Modulo of division" },
   { "hash",  "Hashing function for class" },
+  { "dup",   "Create a duplicate of the class and unfreeze it if needed" },
+  { "clone",   "Create a duplicate of the class" },
   { "coerce",  "Coerce class to a number" },
   { "<=>",  "Comparison operator" },
   {0,0}
