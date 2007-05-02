@@ -138,6 +138,41 @@ Ruby Options (available with -ruby)\n\
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
+struct Autodoc {
+  const char* symname;
+  const char* description;
+};
+
+static const Autodoc kAutoDocs[] = {
+  { "to_a", "Convert class to an Array" },
+  { "to_s", "Convert class to a String representation" },
+  { "inspect", "Inspect class and its contents" },
+  { "[]", "Element accessor/slicing" },
+  { "[]=", "Element setter/slicing" },
+  { "==",  "Equality comparison operator" },
+  { "<=",  "Lower or equal comparison operator" },
+  { ">=",  "Higher or equal comparison operator" },
+  { "<",  "Lower than comparison operator" },
+  { ">",  "Higher than comparison operator" },
+  { "<<",  "Left shifting or appending operator" },
+  { ">>",  "Right shifting operator or extracting operator" },
+  { "+",   "Add operator" },
+  { "-",   "Substraction operator" },
+  { "+@",   "Positive operator" },
+  { "-@",   "Negation operator" },
+  { "&",   "AND operator" },
+  { "|",   "OR operator" },
+  { "^",   "XOR operator" },
+  { "~",   "Invert operator" },
+  { "**",  "Exponential operator" },
+  { "divmod",  "Modulo of division" },
+  { "hash",  "Hashing function for class" },
+  { "coerce",  "Coerce class to a number" },
+  { "<=>",  "Comparison operator" },
+  {0,0}
+};
+
+
 class RUBY:public Language {
 private:
 
@@ -188,6 +223,7 @@ private:
     EXTEND_AUTODOC = 2,		// extended documentation and parameter names
     EXTEND_TYPES_AUTODOC = 3	// extended documentation and parameter types + names
   };
+
 
 
   autodoc_l autodoc_level(String *autodoc) {
@@ -400,7 +436,8 @@ private:
       n = Getattr(n, "sym:previousSibling");
 
     Node *pn = Swig_methodclass(n);
-    String* class_name = Getattr(pn, "sym:name");
+    String* class_name = Copy( Getattr(pn, "sym:name") );
+    if ( !class_name ) class_name = NewString("");
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
@@ -408,14 +445,16 @@ private:
     }
     else
       full_name = NewString("");
-    if ( class_name )
-      Append(full_name, class_name);
+    Append(full_name, class_name);
 
+    String *symname = NULL;
     String *doc = NewString("/*\n");
     int counter = 0;
+    bool skipAuto = false;
+    Node* on = n;
     for ( ; n; ++counter ) {
+      skipAuto = false;
       bool showTypes = false;
-      bool skipAuto = false;
       String *autodoc = Getattr(n, "feature:autodoc");
       autodoc_l dlevel = autodoc_level(autodoc);
       switch (dlevel) {
@@ -436,34 +475,60 @@ private:
 	showTypes = true;
 	break;
       case STRING_AUTODOC:
-	Append(doc, autodoc);
 	skipAuto = true;
 	break;
       }
 
-      if (!skipAuto) {
-	String *symname = Getattr(n, "sym:name");
-	if ( Getattr( special_methods, symname ) )
-	  symname = Getattr( special_methods, symname );
+      symname = Getattr(n, "sym:name");
+      if ( Getattr( special_methods, symname ) )
+	symname = Getattr( special_methods, symname );
 
-	SwigType *type = Getattr(n, "type");
+      SwigType *type = Getattr(n, "type");
 
-	if (type) {
-	  if (Strcmp(type, "void") == 0)
-	    type = NULL;
-	  else {
-	    SwigType *qt = SwigType_typedef_resolve_all(type);
-	    if (SwigType_isenum(qt))
+      if (type) {
+	if (Strcmp(type, "void") == 0)
+	  type = NULL;
+	else {
+	  SwigType *qt = SwigType_typedef_resolve_all(type);
+	  if (SwigType_isenum(qt))
 	      type = NewString("int");
-	    else {
-	      type = SwigType_base(type);
-	      Node *lookup = Swig_symbol_clookup(type, 0);
+	  else {
+	    type = SwigType_base(type);
+	    Node *lookup = Swig_symbol_clookup(type, 0);
 	      if (lookup)
 		type = Getattr(lookup, "sym:name");
-	    }
 	  }
 	}
+      }
 
+      if (counter == 0) {
+	switch (ad_type) {
+	case AUTODOC_CLASS:
+	  Printf(doc, "  Document-class: %s\n\n", full_name);
+	  break;
+	case AUTODOC_CTOR:
+	  Printf(doc, "  Document-method: new\n\n", class_name);
+	  break;
+
+	case AUTODOC_DTOR:
+	  break;
+
+	case AUTODOC_STATICFUNC:
+	  Printf(doc, "  Document-method: %s\n\n", full_name);
+	  break;
+
+	case AUTODOC_FUNC:
+	case AUTODOC_METHOD:
+	  Printf(doc, "  Document-method: %s\n\n", symname);
+	  break;
+	}
+      }
+
+
+      if (skipAuto) {
+	Append(doc, autodoc);
+      } 
+      else {
 	switch (ad_type) {
 	case AUTODOC_CLASS:
 	  {
@@ -471,18 +536,17 @@ private:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
 	      if (CPlusPlus) {
-		Printf(doc, "  Document-class: %s\n\n  Proxy of C++ %s class", 
+		Printf(doc, "  Proxy of C++ %s class", 
 		       full_name, class_name);
 	      } else {
-		Printf(doc, "  Document-class: %s\n\n  Proxy of C %s struct", 
+		Printf(doc, "  Proxy of C %s struct", 
 		       full_name, class_name);
 	      }
 	    }
 	  }
 	  break;
 	case AUTODOC_CTOR:
-	  if (counter == 0)
-	    Append(doc, "  Document-method: new\n\n  call-seq:\n");
+	  if (counter == 0) Printf(doc, "  call-seq:\n");
 	  if (Strcmp(class_name, symname) == 0) {
 	    String *paramList = make_autodocParmList(n, showTypes);
 	    if (Len(paramList))
@@ -498,27 +562,9 @@ private:
 	  break;
 
 	case AUTODOC_STATICFUNC:
-	  if (counter == 0)
-	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", full_name);
-	  Printf(doc, "    %s(%s)", full_name, 
-		 make_autodocParmList(n, showTypes));
-
-	  if (type)
-	    Printf(doc, " -> %s", type);
-	  break;
-
 	case AUTODOC_FUNC:
-	  if (counter == 0)
-	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", symname);
-	  Printf(doc, "    %s(%s)", symname, 
-		 make_autodocParmList(n, showTypes));
-	  if (type)
-	    Printf(doc, " -> %s", type);
-	  break;
-
 	case AUTODOC_METHOD:
-	  if (counter == 0)
-	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", symname);
+	  if (counter == 0) Printf(doc, "  call-seq:\n");
 	  String *paramList = make_autodocParmList(n, showTypes);
 	  if (Len(paramList))
 	    Printf(doc, "    %s(%s)", symname, paramList);
@@ -529,12 +575,6 @@ private:
 	  break;
 	}
       }
-      if (extended) {
-	String *pdocs = Getattr(n, "feature:pdocs");
-	if (pdocs) {
-	  Printv(doc, "\n", pdocs, NULL);
-	}
-      }
 
       // if it's overloaded then get the next decl and loop around again
       n = Getattr(n, "sym:nextSibling");
@@ -542,8 +582,84 @@ private:
 	Append(doc, "\n");
     }
 
+    if (!skipAuto) {
+      Printf(doc, "\n\n  ");
+      switch (ad_type) {
+      case AUTODOC_CLASS:
+	break;
+      case AUTODOC_CTOR:
+	Printf(doc, "Class constructor.\n");
+	break;
+
+      case AUTODOC_DTOR:
+	break;
+
+      case AUTODOC_STATICFUNC:
+	Printf(doc, "A static function.\n");
+	break;
+      
+      case AUTODOC_FUNC:
+	Printf(doc, "A function.\n");
+	break;
+
+      case AUTODOC_METHOD:
+	bool found = false;
+	if ( symname )
+	  {
+	    const Autodoc* d = kAutoDocs;
+	    for ( ; d->symname != NULL; ++d )
+	      {
+		if ( Cmp(symname, d->symname) == 0 )
+		  {
+		    found = true;
+		    Printf(doc, "%s.\n", d->description);
+		    break;
+		  }
+	      }
+	  }
+	if (!found)
+	  {
+	    Printf(doc, "A method.\n");
+	  }
+	break;
+      }
+    }
+
+
+    n = on;
+    while ( n ) {
+      String *autodoc = Getattr(n, "feature:autodoc");
+      autodoc_l dlevel = autodoc_level(autodoc);
+
+      symname = Getattr(n, "sym:name");
+      if ( Getattr( special_methods, symname ) )
+	symname = Getattr( special_methods, symname );
+
+      switch (dlevel) {
+      case NO_AUTODOC:
+      case NAMES_AUTODOC:
+      case TYPES_AUTODOC:
+      case STRING_AUTODOC:
+	extended = 0;
+	break;
+      case EXTEND_AUTODOC:
+      case EXTEND_TYPES_AUTODOC:
+	extended = 1;
+	break;
+      }
+
+      if (extended) {
+	String *pdocs = Getattr(n, "feature:pdocs");
+	if (pdocs) {
+	  Printv(doc, "\n\n", pdocs, NULL);
+	}
+      }
+      n = Getattr(n, "sym:nextSibling");
+    }
+
     Append(doc, "\n\n*/\n");
     Delete(full_name);
+    Delete(class_name);
 
     return doc;
   }
@@ -692,7 +808,7 @@ public:
 
     special_methods = NewHash();
 
-    /* Python style special method name. */
+    /* Python->Ruby style special method name. */
     /* Basic */
     Setattr(special_methods, "__repr__", "inspect");
     Setattr(special_methods, "__str__", "to_s");
@@ -1367,6 +1483,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
+
     String *nodeType;
     bool constructor;
     bool destructor;
@@ -1465,6 +1582,10 @@ public:
       }
       Printf(f->code, "{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n", numreq - start);
     } else {
+      String* docs = docstring(n, AUTODOC_FUNC);
+      Printf(f_wrappers, "%s", docs);
+      Delete(docs);
+
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
 	Printf(f->code, "if ((argc < %d) || (argc > %d)) ", numreq - start, numarg - start);
@@ -1801,6 +1922,9 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int variableWrapper(Node *n) {
+    String* docs = docstring(n, AUTODOC_METHOD);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
 
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
