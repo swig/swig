@@ -1,5 +1,7 @@
 %include <std/std_except.i>
 %include <rubystdcommon.swg>
+%include <rubystdautodoc.swg>
+
 //
 // Use the following macro with modern STL implementations
 //

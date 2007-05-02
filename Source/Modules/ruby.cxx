@@ -145,33 +145,6 @@ struct Autodoc {
 
 
 static const Autodoc kAutoDocs[] = {
-  { "to_a", "Convert class to an Array" },
-  { "to_s", "Convert class to a String representation" },
-  { "inspect", "Inspect class and its contents" },
-  { "[]", "Element accessor/slicing" },
-  { "[]=", "Element setter/slicing" },
-  { "==",  "Equality comparison operator" },
-  { "<=",  "Lower or equal comparison operator" },
-  { ">=",  "Higher or equal comparison operator" },
-  { "<",  "Lower than comparison operator" },
-  { ">",  "Higher than comparison operator" },
-  { "<<",  "Left shifting or appending operator" },
-  { ">>",  "Right shifting operator or extracting operator" },
-  { "+",   "Add operator" },
-  { "-",   "Substraction operator" },
-  { "+@",   "Positive operator" },
-  { "-@",   "Negation operator" },
-  { "&",   "AND operator" },
-  { "|",   "OR operator" },
-  { "^",   "XOR operator" },
-  { "~",   "Invert operator" },
-  { "**",  "Exponential operator" },
-  { "divmod",  "Modulo of division" },
-  { "hash",  "Hashing function for class" },
-  { "dup",   "Create a duplicate of the class and unfreeze it if needed" },
-  { "clone",   "Create a duplicate of the class" },
-  { "coerce",  "Coerce class to a number" },
-  { "<=>",  "Comparison operator" },
   {0,0}
 };
 
@@ -335,7 +308,7 @@ private:
     const int maxwidth = 50;
 
     if (pdocs)
-      Append(pdocs, "\n");
+      Append(pdocs, ".\n");
 
 
     Swig_typemap_attach_parms("in", plist, 0);
@@ -393,7 +366,7 @@ private:
 	if (pdoc) {
 	  if (!pdocs)
 	    pdocs = NewString("Parameters:\n");
-	  Printf(pdocs, "   %s\n", pdoc);
+	  Printf(pdocs, "   %s.\n", pdoc);
 	}
       } else {
 	Append(doc, "?");
@@ -529,8 +502,26 @@ private:
 
 
       if (skipAuto) {
-	Append(doc, autodoc);
-      } 
+	if ( counter == 0 ) Printf(doc, "  call-seq:\n");
+	switch( ad_type )
+	  {
+	  case AUTODOC_STATICFUNC:
+	  case AUTODOC_FUNC:
+	  case AUTODOC_METHOD:
+	    {
+	      String *paramList = make_autodocParmList(n, showTypes);
+	      if (Len(paramList))
+		Printf(doc, "    %s(%s)", symname, paramList);
+	      else
+		Printf(doc, "    %s", symname);
+	      if (type)
+		Printf(doc, " -> %s", type);
+	      break;
+	    }
+	  default:
+	    break;
+	  }
+      }
       else {
 	switch (ad_type) {
 	case AUTODOC_CLASS:
@@ -585,8 +576,8 @@ private:
 	Append(doc, "\n");
     }
 
+    Printf(doc, "\n\n");
     if (!skipAuto) {
-      Printf(doc, "\n\n  ");
       switch (ad_type) {
       case AUTODOC_CLASS:
 	break;
@@ -606,24 +597,7 @@ private:
 	break;
 
       case AUTODOC_METHOD:
-	bool found = false;
-	if ( symname )
-	  {
-	    const Autodoc* d = kAutoDocs;
-	    for ( ; d->symname != NULL; ++d )
-	      {
-		if ( Cmp(symname, d->symname) == 0 )
-		  {
-		    found = true;
-		    Printf(doc, "%s.\n", d->description);
-		    break;
-		  }
-	      }
-	  }
-	if (!found)
-	  {
-	    Printf(doc, "A method.\n");
-	  }
+	Printf(doc, "A method.\n");
 	break;
       }
     }
@@ -642,8 +616,11 @@ private:
       case NO_AUTODOC:
       case NAMES_AUTODOC:
       case TYPES_AUTODOC:
-      case STRING_AUTODOC:
 	extended = 0;
+	break;
+      case STRING_AUTODOC:
+	extended = 2;
+	Printv(doc, autodoc, ".", NIL);
 	break;
       case EXTEND_AUTODOC:
       case EXTEND_TYPES_AUTODOC:
@@ -651,11 +628,14 @@ private:
 	break;
       }
 
+
       if (extended) {
 	String *pdocs = Getattr(n, "feature:pdocs");
 	if (pdocs) {
 	  Printv(doc, "\n\n", pdocs, NULL);
+	  break;
 	}
+	if ( extended == 2 ) break;
       }
       n = Getattr(n, "sym:nextSibling");
     }
