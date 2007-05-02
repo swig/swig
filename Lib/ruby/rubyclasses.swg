@@ -135,6 +135,13 @@ namespace std {
     static ID  cmp_id;
     static ID hash_id;
 
+
+    static VALUE swig_protect_funcall( VALUE p )
+    {
+      swig::GC_VALUE* args = (swig::GC_VALUE*) p;
+      return rb_funcall(VALUE(args[0]), cmp_id, 1, VALUE(args[1]));
+    }
+
     bool
     operator()( const swig::GC_VALUE& v, const swig::GC_VALUE& w ) const
     { 
@@ -145,7 +152,10 @@ namespace std {
       // First, try to compare using the <=> operator if present
       if ( rb_respond_to( v, cmp_id ) == Qtrue )
 	{
-	  ret = rb_funcall(VALUE(v), cmp_id, 1, VALUE(w));
+	  int status;
+	  swig::GC_VALUE args[] = { v, w };
+	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(args), 
+			    &status );
 	}
 
       bool res;

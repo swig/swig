@@ -607,7 +607,7 @@ namespace swig
 
 	VALUE r = Qnil;
 	try {
-	  r = swig::from< Sequence >( *(swig::getslice(self, i, j)) );
+	  r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
 	}
 	catch( std::out_of_range )
 	  {
@@ -744,7 +744,7 @@ namespace swig
 
       VALUE r = Qnil;
       try {
-	r = swig::from< Sequence >( *(swig::getslice(self, i, j)) );
+	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
       catch( std::out_of_range )
 	{
@@ -792,26 +792,51 @@ namespace swig
       if ( noend ) e -= 1;
       if ( e >= len ) e = len - 1;
 
-      return swig::from< Sequence >( *(swig::getslice(self, s, e+1)) );
+      return swig::from< Sequence* >( swig::getslice(self, s, e+1) );
     }
 
-    VALUE __setitem__(difference_type i, const value_type& x) throw (std::out_of_range) {
-      *(swig::getpos(self,i)) = x;
-      return swig::from< Sequence::value_type >( x );
-    }
+    VALUE __setitem__(difference_type i, const value_type& x)
+      {
+	std::size_t len = $self->size();
+	if ( i < 0 ) i = len - i;
+	else if ( i >= len )
+	  $self->resize( i+1, x );
+	else
+	  *(swig::getpos(self,i)) = x;
+
+	return swig::from< Sequence::value_type >( x );
+      }
 
     VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) 
-      throw (std::out_of_range, std::invalid_argument) {
+      throw (std::invalid_argument) {
 
       if ( j <= 0 ) return Qnil;
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
-      j += i; if ( j >= len ) j = len-1;
+      j += i; 
+      if ( j >= len ) {
+	$self->resize( j+1, *(v.begin()) );
+	j = len-1;
+      }
 
       VALUE r = Qnil;
+      swig::setslice(self, i, j, v);
+      r = swig::from< const Sequence* >( &v );
+      return r;
+    }
+
+ }
+%enddef
+
+// ..I don't think %swig_sequence_methods_val are really used at all anymore...
+%define %swig_sequence_methods_val(Sequence...)
+  %swig_sequence_methods_common(%arg(Sequence))
+  %extend {
+
+  VALUE __getitem__(difference_type i) {
+      VALUE r = Qnil;
       try {
-	swig::setslice(self, i, j, v);
-	r = swig::from< const Sequence* >( &v );
+	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
       catch( std::out_of_range )
 	{
@@ -819,19 +844,13 @@ namespace swig
       return r;
     }
 
- }
-%enddef
-
-%define %swig_sequence_methods_val(Sequence...)
-  %swig_sequence_methods_common(%arg(Sequence))
-  %extend {
-
-    value_type __getitem__(difference_type i) throw (std::out_of_range) {
-      return *(swig::cgetpos(self, i));
-    }
-
-    void __setitem__(difference_type i, value_type x) throw (std::out_of_range) {
-      *(swig::getpos(self,i)) = x;
+    VALUE __setitem__(difference_type i, value_type x) {
+      std::size_t len = $self->size();
+      if ( i < 0 ) i = len - i;
+      else if ( i >= len )
+	$self->resize( i+1, x );
+      else *(swig::getpos(self,i)) = x;
+      return swig::from< Sequence::value_type >( x );
     }
  }
 %enddef

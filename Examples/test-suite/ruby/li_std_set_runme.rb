@@ -57,7 +57,7 @@ s = LanguageSet.new
 s.insert([1,2])
 s.insert(1)
 s.insert("hello")
-s.to_a == [1,'hello',[1,2]]
+s.to_a == [1,[1,2],'hello']  # sort order: s.sort {|a,b| a.hash <=> b.hash}
 
 EOF
 

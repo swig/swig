@@ -93,5 +93,8 @@ halve_in_place(dv)
 halved == dv.to_a
 sv = StructVector.new
 sv << Li_std_vector::Struct.new
+sv[0].class == Li_std_vector::Struct
+sv[1] = Li_std_vector::Struct.new
+
 EOF
 
