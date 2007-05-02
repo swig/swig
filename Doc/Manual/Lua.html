@@ -33,12 +33,13 @@
 <li><a href="#Lua_nn19">Class extension with %extend</a>
 <li><a href="#Lua_nn20">C++ templates</a>
 <li><a href="#Lua_nn21">C++ Smart Pointers</a>
+<li><a href="#Lua_nn22">Writing your own custom wrappers</a>
 </ul>
-<li><a href="#Lua_nn22">Details on the Lua binding</a>
+<li><a href="#Lua_nn23">Details on the Lua binding</a>
 <ul>
-<li><a href="#Lua_nn23">Binding global data into the module.</a>
-<li><a href="#Lua_nn24">Userdata and Metatables</a>
-<li><a href="#Lua_nn25">Memory management</a>
+<li><a href="#Lua_nn24">Binding global data into the module.</a>
+<li><a href="#Lua_nn25">Userdata and Metatables</a>
+<li><a href="#Lua_nn26">Memory management</a>
 </ul>
 </ul>
 </div>
@@ -952,7 +953,24 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 &gt; f = p:__deref__()     -- Returns underlying Foo *
 </pre></div>
 
-<H2><a name="Lua_nn22"></a>22.4 Details on the Lua binding</H2>
+<H3><a name="Lua_nn22"></a>22.3.15 Writing your own custom wrappers</H3>
+<p>
+Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native lua-c API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
+</p>
+<div class="code"><pre>%native(my_func) int native_function(lua_State*L);  // registers it with SWIG
+...
+%{
+int native_function(lua_State*L) // my native code
+{
+ ...
+}
+%}
+</pre></div>
+<p>
+The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrappering for this function, beyond adding it into the function table. How you write your code is entirely up to you.
+</p>
+
+<H2><a name="Lua_nn23"></a>22.4 Details on the Lua binding</H2>
 
 
 <p>
@@ -963,7 +981,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
  </i>
 </p>
 
-<H3><a name="Lua_nn23"></a>22.4.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn24"></a>22.4.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -1023,7 +1041,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn24"></a>22.4.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn25"></a>22.4.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1103,7 +1121,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrappered classes/s
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn25"></a>22.4.3 Memory management</H3>
+<H3><a name="Lua_nn26"></a>22.4.3 Memory management</H3>
 
 
 <p>

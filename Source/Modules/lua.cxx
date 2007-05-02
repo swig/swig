@@ -583,6 +583,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Close the function */
     Printv(f->code, "return SWIG_arg;\n", NIL);
     // add the failure cleanup code:
+    Printv(f->code, "\nif(0) SWIG_fail;\n", NIL);
     Printv(f->code, "\nfail:\n", NIL);
     Printv(f->code, "$cleanup", "lua_error(L);\n", NIL);
     Printv(f->code, "return SWIG_arg;\n", NIL);
@@ -891,8 +892,16 @@ NEW LANGUAGE NOTE:END ************************************************/
     Delete(s_attr_tab);
 
     // Handle inheritance
-
+    // note: with the idea of class hireachied spread over mutliple modules
+    // cf test-suite: imports.i
+    // it is not possible to just add the pointers to the base classes to the code
+    // (as sometimes these classes are not present)
+    // therefore we instead hold the name of the base class and a null pointer
+    // at runtime: we can query the swig type manager & see if the class exists
+    // if so, we can get the pointer to the base class & replace the null pointer
+    // if the type does not exist, then we cannot...    
     String *base_class = NewString("");
+    String *base_class_names = NewString("");
 
     List *baselist = Getattr(n, "bases");
     if (baselist && Len(baselist)) {
@@ -905,44 +914,24 @@ NEW LANGUAGE NOTE:END ************************************************/
 	  b = Next(b);
 	  continue;
 	}
-/*        if( itcl ) {
-          have_base_classes = 1;
-          Printv( base_classes, bname, " ", NIL );
-          Printv( base_class_init , "    ", bname, "Ptr::constructor $ptr\n", NIL );
-        }*/
-	String *bmangle = Swig_name_mangle(bname);
-	//      Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
-	Printf(base_class, "&_wrap_class_%s", bmangle);
-	// Put code to register base classes in init function
+	// old code: (used the pointer to the base class)
+	//String *bmangle = Swig_name_mangle(bname);
+	//Printf(base_class, "&_wrap_class_%s", bmangle);
+	//Putc(',', base_class);
+	//Delete(bmangle);
+	// new code: stores a null pointer & the name
+	Printf(base_class, "0,");
+	Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
 
-//      Printf(f_init,"/* Register base : %s */\n", bmangle);
-//      Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
 	b = Next(b);
 	index++;
-	Putc(',', base_class);
-	Delete(bmangle);
       }
     }
-/*    List *baselist = Getattr(n,"bases");
-    if (baselist && Len(baselist)) {
-      Node *base = First(baselist);
-      while (base) {
-	String *bname = Getattr(base, "name");
-	if ((!bname) || GetFlag(base,"feature:ignore") || (!Getattr(base,"module"))) {
-	  base = Next(baselist);
-	  continue;
-	}
-	String *bmangle = Swig_name_mangle(bname);
-	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
-	Printf(base_class,"&_wrap_class_%s",bmangle);
-	base = Next(baselist);
-	Putc(',',base_class);
-	Delete(bmangle);
-      }
-    }*/
 
     Printv(f_wrappers, "static swig_lua_class *swig_", mangled_classname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
+    Printv(f_wrappers, "static char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Delete(base_class_names);
 
     Printv(f_wrappers, "swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
@@ -959,7 +948,9 @@ NEW LANGUAGE NOTE:END ************************************************/
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    
+//    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
 //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
     Delete(t);
     Delete(mangled_classname);

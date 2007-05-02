@@ -197,6 +197,13 @@ with the relevant operators.
 %typemap(out) long long, unsigned long long, signed long long
 %{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
 
+/* It is possible to also pass a lua_State* into a function, so
+void fn(int a, float b, lua_State* s) is wrappable as
+> fn(1,4.3) -- note: the state is implicitly passed in
+*/
+%typemap(in, numinputs=0) lua_State* 
+%{$1 = L;%}
+
 /* -----------------------------------------------------------------------------
  *                          typecheck rules
  * ----------------------------------------------------------------------------- */

@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/02/2007: mgossage
+            [Lua] Fixed issues with C++ classes and hierachies across multiple
+	    source files. Fixed imports test case & added run test.
+	    Added Examples/imports.
+	    Added typename for raw lua_State*
+	    Added documentation on native functions.
+
 05/07/2007: gga
 	    [Ruby]
 	    Docstrings are now supported.
