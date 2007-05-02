@@ -8,13 +8,12 @@ Version 1.3.32 (in progress)
 	    Added typename for raw lua_State*
 	    Added documentation on native functions.
 
-05/07/2007: gga
+05/02/2007: gga
 	    [Ruby]
 	    Docstrings are now supported.
 	    %feature("autodoc") and %feature("docstring") are now
 	    properly supported in Ruby.  These features will generate
 	    a _wrap.cxx file with rdoc comments in them.
-	    TODO: add doxygen -> rdoc conversion support.
 
 05/05/2007: gga
 	    [Ruby]
@@ -39,6 +38,14 @@ Version 1.3.32 (in progress)
 	    that improper indexing would previously (incorrectly) raise
 	    exceptions.  Now, nil is returned instead, following ruby's 
 	    standard Array behavior.
+
+05/02/2007: gga
+	    [Ruby]
+	    Changed the value of SWIG_TYPECHECK_BOOL to be 10000 (ie. higher
+	    than that of all integers).  This is because Ruby allows typecasting
+	    integers down to booleans which can make overloaded functions on
+	    bools and integers to fail.
+	    (bug# 1488142)
 
 05/02/2007: gga
 	    [Ruby]

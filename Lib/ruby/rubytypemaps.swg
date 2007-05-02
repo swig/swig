@@ -4,6 +4,9 @@
 /* ------------------------------------------------------------
  *  Fragment section
  * ------------------------------------------------------------ */
+/* bool is dangerous in Ruby, change precedence */
+#undef SWIG_TYPECHECK_BOOL
+%define SWIG_TYPECHECK_BOOL             10000 %enddef
 
 /* Include fundamental fragemt definitions */
 %include <typemaps/fragments.swg>

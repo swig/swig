@@ -113,6 +113,16 @@ public:
 };
 
 
+/* flags for the make_autodoc function */
+enum autodoc_t {
+  AUTODOC_CLASS,
+  AUTODOC_CTOR,
+  AUTODOC_DTOR,
+  AUTODOC_STATICFUNC,
+  AUTODOC_FUNC,
+  AUTODOC_METHOD
+};
+
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -globalmodule   - Wrap everything into the global module\n\
@@ -165,6 +175,378 @@ private:
     STATIC_FUNC,
     STATIC_VAR
   };
+
+  /* ------------------------------------------------------------
+   * autodoc level declarations
+   * ------------------------------------------------------------ */
+
+  enum autodoc_l {
+    NO_AUTODOC = -2,		// no autodoc
+    STRING_AUTODOC = -1,	// use provided string
+    NAMES_AUTODOC = 0,		// only parameter names
+    TYPES_AUTODOC = 1,		// parameter names and types
+    EXTEND_AUTODOC = 2,		// extended documentation and parameter names
+    EXTEND_TYPES_AUTODOC = 3	// extended documentation and parameter types + names
+  };
+
+
+  autodoc_l autodoc_level(String *autodoc) {
+    autodoc_l dlevel = NO_AUTODOC;
+    if (autodoc) {
+      char *c = Char(autodoc);
+      if (c && isdigit(c[0])) {
+	dlevel = (autodoc_l) atoi(c);
+      } else {
+	if (strcmp(c, "extended") == 0) {
+	  dlevel = EXTEND_AUTODOC;
+	} else {
+	  dlevel = STRING_AUTODOC;
+	}
+      }
+    }
+    return dlevel;
+  }
+
+
+
+  /* ------------------------------------------------------------
+   * have_docstring()
+   *    Check if there is a docstring directive and it has text,
+   *    or there is an autodoc flag set
+   * ------------------------------------------------------------ */
+
+  bool have_docstring(Node *n) {
+    String *str = Getattr(n, "feature:docstring");
+    return (str != NULL && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+  }
+
+  /* ------------------------------------------------------------
+   * docstring()
+   *    Get the docstring text, stripping off {} if neccessary,
+   *    and enclose in triple double quotes.  If autodoc is also
+   *    set then it will build a combined docstring.
+   * ------------------------------------------------------------ */
+
+  String *docstring(Node *n, autodoc_t ad_type) {
+    String *str = Getattr(n, "feature:docstring");
+    bool have_ds = (str != NULL && Len(str) > 0);
+    bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    String *autodoc = NULL;
+    String *doc = NULL;
+
+    if (have_ds) {
+      char *t = Char(str);
+      if (*t == '{') {
+	Delitem(str, 0);
+	Delitem(str, DOH_END);
+      }
+    }
+
+    if (have_auto) {
+      autodoc = make_autodoc(n, ad_type);
+      have_auto = (autodoc != NULL && Len(autodoc) > 0);
+    }
+    // If there is more than one line then make docstrings like this:
+    //
+    //      This is line1
+    //      And here is line2 followed by the rest of them
+    //
+    // otherwise, put it all on a single line
+    //
+    if (have_auto && have_ds) {	// Both autodoc and docstring are present
+      doc = NewString("");
+      Printv(doc, "\n", autodoc, "\n", str, NIL);
+    } else if (!have_auto && have_ds) {	// only docstring
+      if (Strchr(str, '\n') == NULL) {
+	doc = NewString(str);
+      } else {
+	doc = NewString("");
+	Printv(doc, str, NIL);
+      }
+    } else if (have_auto && !have_ds) {	// only autodoc
+      if (Strchr(autodoc, '\n') == NULL) {
+	doc = NewStringf("%s", autodoc);
+      } else {
+	doc = NewString("");
+	Printv(doc, "\n", autodoc, NIL);
+      }
+    } else
+      doc = NewString("");
+
+    // Save the generated strings in the parse tree in case they are used later
+    // by post processing tools
+    Setattr(n, "ruby:docstring", doc);
+    Setattr(n, "ruby:autodoc", autodoc);
+    return doc;
+  }
+
+  /* ------------------------------------------------------------
+   * make_autodocParmList()
+   *   Generate the documentation for the function parameters
+   * ------------------------------------------------------------ */
+
+  String *make_autodocParmList(Node *n, bool showTypes) {
+    String *doc = NewString("");
+    String *pdocs = Copy(Getattr(n, "feature:pdocs"));
+    ParmList *plist = CopyParmList(Getattr(n, "parms"));
+    Parm *p;
+    Parm *pnext;
+    Node *lookup;
+    int lines = 0;
+    const int maxwidth = 50;
+
+    if (pdocs)
+      Append(pdocs, "\n");
+
+
+    Swig_typemap_attach_parms("in", plist, 0);
+    Swig_typemap_attach_parms("doc", plist, 0);
+
+    for (p = plist; p; p = pnext) {
+      String *name = 0;
+      String *type = 0;
+      String *value = 0;
+      String *ptype = 0;
+      String *pdoc = Getattr(p, "tmap:doc");
+      if (pdoc) {
+	name = Getattr(p, "tmap:doc:name");
+	type = Getattr(p, "tmap:doc:type");
+	value = Getattr(p, "tmap:doc:value");
+	ptype = Getattr(p, "tmap:doc:pytype");
+      }
+
+      name = name ? name : Getattr(p, "name");
+      type = type ? type : Getattr(p, "type");
+      value = value ? value : Getattr(p, "value");
+
+      String *tm = Getattr(p, "tmap:in");
+      if (tm) {
+	pnext = Getattr(p, "tmap:in:next");
+      } else {
+	pnext = nextSibling(p);
+      }
+
+      // Skip the 'self' parameter which in ruby is implicit
+      if ( Cmp(name, "self") == 0 )
+	continue;
+
+      if (Len(doc)) {
+	// add a comma to the previous one if any
+	Append(doc, ", ");
+
+	// Do we need to wrap a long line?
+	if ((Len(doc) - lines * maxwidth) > maxwidth) {
+	  Printf(doc, "\n%s", tab4);
+	  lines += 1;
+	}
+      }
+      // Do the param type too?
+      if (showTypes) {
+	type = SwigType_base(type);
+	lookup = Swig_symbol_clookup(type, 0);
+	if (lookup)
+	  type = Getattr(lookup, "sym:name");
+	Printf(doc, "%s ", type);
+      }
+
+      if (name) {
+	Append(doc, name);
+	if (pdoc) {
+	  if (!pdocs)
+	    pdocs = NewString("Parameters:\n");
+	  Printf(pdocs, "   %s\n", pdoc);
+	}
+      } else {
+	Append(doc, "?");
+      }
+
+      if (value) {
+	if (Strcmp(value, "NULL") == 0)
+	  value = NewString("nil");
+	else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
+	  value = NewString("true");
+	else if (Strcmp(value, "false") == 0 || Strcmp(value, "FALSE") == 0)
+	  value = NewString("false");
+	else {
+	  lookup = Swig_symbol_clookup(value, 0);
+	  if (lookup)
+	    value = Getattr(lookup, "sym:name");
+	}
+	Printf(doc, "=%s", value);
+      }
+    }
+    if (pdocs)
+      Setattr(n, "feature:pdocs", pdocs);
+    Delete(plist);
+    return doc;
+  }
+
+  /* ------------------------------------------------------------
+   * make_autodoc()
+   *    Build a docstring for the node, using parameter and other
+   *    info in the parse tree.  If the value of the autodoc
+   *    attribute is "0" then do not include parameter types, if
+   *    it is "1" (the default) then do.  If it has some other
+   *    value then assume it is supplied by the extension writer
+   *    and use it directly.
+   * ------------------------------------------------------------ */
+
+  String *make_autodoc(Node *n, autodoc_t ad_type) {
+    int extended = 0;
+    // If the function is overloaded then this funciton is called
+    // for the last one.  Rewind to the first so the docstrings are
+    // in order.
+    while (Getattr(n, "sym:previousSibling"))
+      n = Getattr(n, "sym:previousSibling");
+
+    Node *pn = Swig_methodclass(n);
+    String* class_name = Getattr(pn, "sym:name");
+    String* full_name;
+    if ( module ) {
+      full_name = NewString(module);
+      Append(full_name, "::");
+    }
+    else
+      full_name = NewString("");
+    if ( class_name )
+      Append(full_name, class_name);
+
+    String *doc = NewString("/*\n");
+    int counter = 0;
+    for ( ; n; ++counter ) {
+      bool showTypes = false;
+      bool skipAuto = false;
+      String *autodoc = Getattr(n, "feature:autodoc");
+      autodoc_l dlevel = autodoc_level(autodoc);
+      switch (dlevel) {
+      case NO_AUTODOC:
+	break;
+      case NAMES_AUTODOC:
+	showTypes = false;
+	break;
+      case TYPES_AUTODOC:
+	showTypes = true;
+	break;
+      case EXTEND_AUTODOC:
+	extended = 1;
+	showTypes = false;
+	break;
+      case EXTEND_TYPES_AUTODOC:
+	extended = 1;
+	showTypes = true;
+	break;
+      case STRING_AUTODOC:
+	Append(doc, autodoc);
+	skipAuto = true;
+	break;
+      }
+
+      if (!skipAuto) {
+	String *symname = Getattr(n, "sym:name");
+	if ( Getattr( special_methods, symname ) )
+	  symname = Getattr( special_methods, symname );
+
+	SwigType *type = Getattr(n, "type");
+
+	if (type) {
+	  if (Strcmp(type, "void") == 0)
+	    type = NULL;
+	  else {
+	    SwigType *qt = SwigType_typedef_resolve_all(type);
+	    if (SwigType_isenum(qt))
+	      type = NewString("int");
+	    else {
+	      type = SwigType_base(type);
+	      Node *lookup = Swig_symbol_clookup(type, 0);
+	      if (lookup)
+		type = Getattr(lookup, "sym:name");
+	    }
+	  }
+	}
+
+	switch (ad_type) {
+	case AUTODOC_CLASS:
+	  {
+	    // Only do the autodoc if there isn't a docstring for the class
+	    String *str = Getattr(n, "feature:docstring");
+	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
+	      if (CPlusPlus) {
+		Printf(doc, "  Document-class: %s\n\n  Proxy of C++ %s class", 
+		       full_name, class_name);
+	      } else {
+		Printf(doc, "  Document-class: %s\n\n  Proxy of C %s struct", 
+		       full_name, class_name);
+	      }
+	    }
+	  }
+	  break;
+	case AUTODOC_CTOR:
+	  if (counter == 0)
+	    Append(doc, "  Document-method: new\n\n  call-seq:\n");
+	  if (Strcmp(class_name, symname) == 0) {
+	    String *paramList = make_autodocParmList(n, showTypes);
+	    if (Len(paramList))
+	      Printf(doc, "    %s.new(%s)", class_name, paramList);
+	    else
+	      Printf(doc, "    %s.new", class_name);
+	  } else
+	    Printf(doc, "    %s.new(%s)", class_name, 
+		   make_autodocParmList(n, showTypes));
+	  break;
+
+	case AUTODOC_DTOR:
+	  break;
+
+	case AUTODOC_STATICFUNC:
+	  if (counter == 0)
+	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", full_name);
+	  Printf(doc, "    %s(%s)", full_name, 
+		 make_autodocParmList(n, showTypes));
+
+	  if (type)
+	    Printf(doc, " -> %s", type);
+	  break;
+
+	case AUTODOC_FUNC:
+	  if (counter == 0)
+	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", symname);
+	  Printf(doc, "    %s(%s)", symname, 
+		 make_autodocParmList(n, showTypes));
+	  if (type)
+	    Printf(doc, " -> %s", type);
+	  break;
+
+	case AUTODOC_METHOD:
+	  if (counter == 0)
+	    Printf(doc, "  Document-method: %s\n\n  call-seq:\n", symname);
+	  String *paramList = make_autodocParmList(n, showTypes);
+	  if (Len(paramList))
+	    Printf(doc, "    %s(%s)", symname, paramList);
+	  else
+	    Printf(doc, "    %s", symname);
+	  if (type)
+	    Printf(doc, " -> %s", type);
+	  break;
+	}
+      }
+      if (extended) {
+	String *pdocs = Getattr(n, "feature:pdocs");
+	if (pdocs) {
+	  Printv(doc, "\n", pdocs, NULL);
+	}
+      }
+
+      // if it's overloaded then get the next decl and loop around again
+      n = Getattr(n, "sym:nextSibling");
+      if (n)
+	Append(doc, "\n");
+    }
+
+    Append(doc, "\n\n*/\n");
+    Delete(full_name);
+
+    return doc;
+  }
 
 public:
 
@@ -1064,6 +1446,9 @@ public:
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) ? 1 : 0;
 
+
+
+
     /* Now write the wrapper function itself */
     if (current == CONSTRUCTOR_ALLOCATE) {
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
@@ -1110,7 +1495,7 @@ public:
     insertArgOutputCode(l, outarg, need_result);
 
     /* if the object is a director, and the method call originated from its
-     * underlying python object, resolve the call by going up the c++ 
+     * underlying Ruby object, resolve the call by going up the c++ 
      * inheritance chain.  otherwise try to resolve the method in python.  
      * without this check an infinite loop is set up between the director and 
      * shadow class method calls.
@@ -1751,6 +2136,9 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
+    String* docs = docstring(n, AUTODOC_CLASS);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
 
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
@@ -1842,6 +2230,11 @@ public:
 
   virtual int memberfunctionHandler(Node *n) {
     current = MEMBER_FUNC;
+
+    String* docs = docstring(n, AUTODOC_METHOD);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     Language::memberfunctionHandler(n);
     current = NO_CPP;
     return SWIG_OK;
@@ -1908,7 +2301,13 @@ public:
       Delete(self);
     }
 
+
+
     /* Now do the instance initialize method */
+    String* docs = docstring(n, AUTODOC_CTOR);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     current = CONSTRUCTOR_INITIALIZE;
     Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
     Language::constructorHandler(n);
@@ -2005,6 +2404,10 @@ public:
    * -------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
+    String* docs = docstring(n, AUTODOC_METHOD);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     current = MEMBER_VAR;
     Language::membervariableHandler(n);
     current = NO_CPP;
@@ -2018,6 +2421,10 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    String* docs = docstring(n, AUTODOC_STATICFUNC);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     current = STATIC_FUNC;
     Language::staticmemberfunctionHandler(n);
     current = NO_CPP;
@@ -2031,6 +2438,10 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int memberconstantHandler(Node *n) {
+    String* docs = docstring(n, AUTODOC_STATICFUNC);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     current = CLASS_CONST;
     Language::memberconstantHandler(n);
     current = NO_CPP;
@@ -2042,6 +2453,10 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
+    String* docs = docstring(n, AUTODOC_STATICFUNC);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
+
     current = STATIC_VAR;
     Language::staticmembervariableHandler(n);
     current = NO_CPP;
