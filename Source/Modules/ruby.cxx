@@ -232,6 +232,7 @@ private:
    * ------------------------------------------------------------ */
 
   String *docstring(Node *n, autodoc_t ad_type) {
+
     String *str = Getattr(n, "feature:docstring");
     bool have_ds = (str != NULL && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
@@ -412,13 +413,13 @@ private:
       n = Getattr(n, "sym:previousSibling");
 
     Node *pn = Swig_methodclass(n);
-    String* class_name = Copy( Getattr(pn, "sym:name") ); 
-
     String* super_names = NewString(""); 
+    String* class_name = Getattr(pn, "sym:name") ; 
 
     if ( !class_name ) class_name = NewString("");
     else
       {
+	class_name = Copy(class_name);
 	List *baselist = Getattr(pn, "bases");
 	if (baselist && Len(baselist)) {
 	  Iterator base = First(baselist);
@@ -438,7 +439,8 @@ private:
 		String *parent_name = Copy( Getattr(parent, "sym:name") );
 		if ( !parent_name ) {
 		  Node* mod = Getattr(parent, "module");
-		  parent_name = Copy( Getattr(mod, "name") );
+		  if ( mod )
+		    parent_name = Copy( Getattr(mod, "name") );
 		  if ( parent_name )
 		    {
 		      (Char(parent_name))[0] = toupper((Char(parent_name))[0]);
@@ -1976,13 +1978,15 @@ public:
 
     // Constructors will be treated specially
     const bool isCtor = Cmp(Getattr(sibl,"feature:new"), "1") == 0;
-    const bool isMethod = Cmp(Getattr(sibl, "ismember"), "1") == 0 && (!isCtor);
+    const bool isMethod = ( Cmp(Getattr(sibl, "ismember"), "1") == 0 &&
+			    (!isCtor) );
 
     // Construct real method name
     String* methodName = NewString("");
-    if ( isMethod ) Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
+    if ( isMethod ) 
+      Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
     Append( methodName, Getattr(sibl,"name" ) );
-    if ( isCtor ) Append( methodName, ".new" );
+    if ( isCtor ) Append( methodName, ".new" ); 
 
     // Generate prototype list
     String *protoTypes = NewString("");
@@ -2001,13 +2005,13 @@ public:
       Append( protoTypes, ")\\n\"" );
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
-    Append(f->code, "fail:\n");
+    Append(f->code, "fail:\n{\n");
     Printf(f->code, "const char* msg = \"Wrong # of arguments\";\n");
     Printf(f->code, "if ( argc <= %d ) msg = \"Wrong arguments\";\n", maxargs);
     Printf(f->code, "rb_raise(rb_eArgError,"
 	   "\"%%s for overloaded method '%s'.\\n" 
 	   "  Possible C/C++ prototypes are:\\n\"%s, msg);\n", methodName, protoTypes);
-    Append(f->code, "return Qnil;\n");
+    Append(f->code, "}\nreturn Qnil;\n");
 
     Delete(methodName);
     Delete(type);
@@ -2389,21 +2393,16 @@ public:
     Printv(klass->type, Getattr(n, "classtype"), NIL);
     Printv(f_wrappers, "swig_class c", valid_name, ";\n\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
-    if (multipleInheritance) {
-      if (!useGlobalModule) {
-	Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, ", \"", klass->name, "\", rb_cObject);\n", NIL);
-      } else {
-	Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, "\", rb_cObject);\n", NIL);
-      }
-      Printv(klass->init, klass->mImpl, " = rb_define_module_under(", klass->vname, ", \"Impl\");\n", NIL);
+
+    if (!useGlobalModule) {
+      Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, ", \"", klass->name, "\", $super);\n", NIL);
     } else {
-      if (!useGlobalModule) {
-	Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, 
-	       ", \"", klass->name, "\", $super);\n", NIL);
-      } else {
-	Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, 
-	       "\", $super);\n", NIL);
-      }
+      Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, 
+	     "\", $super);\n", NIL);
+    }
+
+    if (multipleInheritance) {
+      Printv(klass->init, klass->mImpl, " = rb_define_module_under(", klass->vname, ", \"Impl\");\n", NIL);
     }
 
     SwigType *tt = NewString(name);

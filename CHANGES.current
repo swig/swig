@@ -2,11 +2,20 @@ Version 1.3.32 (in progress)
 ============================
 
 05/03/2007: gga
+	    [Ruby]
+	    Applied patch for -minherit bug and exception classes.
+	    This issue should be revisited more closely, as Multiple
+	    Inheritance in Ruby is still problematic.
+	    (patch/bug #1604878)
+
+05/03/2007: gga
+	    [Ruby]
 	    Overloaded functions in ruby will now report to the user
             the possible prototypes when the user mistypes the number or
             type of a parameter.
 
 05/03/2007: gga
+	    [Ruby]
 	    Forgot to document the bug fixing of an old bug regarding 
 	    exceptions.
 	    (bug #1458247)
@@ -82,7 +91,8 @@ Version 1.3.32 (in progress)
 05/02/2007: gga
 	    [Ruby]
 	    Changed the value of SWIG_TYPECHECK_BOOL to be 10000 (ie. higher
-	    than that of all integers).  This is because Ruby allows typecasting
+	    than that of all integers).  
+	    This is because Ruby allows typecasting
 	    integers down to booleans which can make overloaded functions on
 	    bools and integers to fail.
 	    (bug# 1488142)
