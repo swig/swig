@@ -1946,25 +1946,73 @@ public:
     Wrapper_add_local(f, "ii", "int ii");
 
     if (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) {
+      maxargs += 1;
       Printf(f->code, "argc = nargs + 1;\n");
       Printf(f->code, "argv[0] = self;\n");
-      Printf(f->code, "if (argc > %d) SWIG_fail;\n", maxargs + 1);
-      Printf(f->code, "for (ii = 1; (ii < argc); ii++) {\n");
+      Printf(f->code, "if (argc > %d) SWIG_fail;\n", maxargs);
+      Printf(f->code, "for (ii = 1; (ii < argc); ++ii) {\n");
       Printf(f->code, "argv[ii] = args[ii-1];\n");
       Printf(f->code, "}\n");
     } else {
       Printf(f->code, "argc = nargs;\n");
       Printf(f->code, "if (argc > %d) SWIG_fail;\n", maxargs);
-      Printf(f->code, "for (ii = 0; (ii < argc); ii++) {\n");
+      Printf(f->code, "for (ii = 0; (ii < argc); ++ii) {\n");
       Printf(f->code, "argv[ii] = args[ii];\n");
       Printf(f->code, "}\n");
     }
 
     Replaceall(dispatch, "$args", "nargs, args, self");
     Printv(f->code, dispatch, "\n", NIL);
-    Printf(f->code, "fail:\n");
-    Printf(f->code, "rb_raise(rb_eArgError, \"No matching function for overloaded '%s'\");\n", symname);
-    Printf(f->code, "return Qnil;\n");
+
+
+    
+    // Generate prototype list, go to first node
+    Node *sibl = n;
+
+    String* type = SwigType_str(Getattr(sibl,"type"),NULL);
+
+    while (Getattr(sibl, "sym:previousSibling"))
+      sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+
+    // Constructors will be treated specially
+    const bool isCtor = Cmp(Getattr(sibl,"feature:new"), "1") == 0;
+    const bool isMethod = Cmp(Getattr(sibl, "ismember"), "1") == 0 && (!isCtor);
+
+    // Construct real method name
+    String* methodName = NewString("");
+    if ( isMethod ) Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
+    Append( methodName, Getattr(sibl,"name" ) );
+    if ( isCtor ) Append( methodName, ".new" );
+
+    // Generate prototype list
+    String *protoTypes = NewString("");
+    do {
+      Append( protoTypes, "\n\"    ");
+      if ( !isCtor )  Printv( protoTypes, type, " ", NIL );
+      Printv(protoTypes, methodName, NIL );
+      Parm* p = Getattr(sibl, "wrap:parms");
+      if ( p && isMethod ) p = nextSibling(p); // skip self
+      Append( protoTypes, "(" );
+      while(p)
+	{
+ 	  Printf(protoTypes, "%s %s", SwigType_str(Getattr(p,"type"), Getattr(p,"name")) );
+	  if ( ( p = nextSibling(p)) ) Append(protoTypes, ", ");
+	}
+      Append( protoTypes, ")\\n\"" );
+    } while ((sibl = Getattr(sibl, "sym:nextSibling")));
+
+    Append(f->code, "fail:\n");
+    Printf(f->code, "const char* msg = \"Wrong # of arguments\";\n");
+    Printf(f->code, "if ( argc <= %d ) msg = \"Wrong arguments\";\n", maxargs);
+    Printf(f->code, "rb_raise(rb_eArgError,"
+	   "\"%%s for overloaded method '%s'.\\n" 
+	   "  Possible C/C++ prototypes are:\\n\"%s, msg);\n", methodName, protoTypes);
+    Append(f->code, "return Qnil;\n");
+
+    Delete(methodName);
+    Delete(type);
+    Delete(protoTypes);
+
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     create_command(n, Char(symname));
