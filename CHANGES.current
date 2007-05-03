@@ -2,6 +2,16 @@ Version 1.3.32 (in progress)
 ============================
 
 05/03/2007: gga
+	    Overloaded functions in ruby will now report to the user
+            the possible prototypes when the user mistypes the number or
+            type of a parameter.
+
+05/03/2007: gga
+	    Forgot to document the bug fixing of an old bug regarding 
+	    exceptions.
+	    (bug #1458247)
+
+05/03/2007: gga
 	    [Ruby]
 	    Fixed Ruby documentation to use the proper css styles for
 	    each section. Added autodoc section to Ruby's docs to
