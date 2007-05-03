@@ -2006,11 +2006,11 @@ public:
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
     Append(f->code, "fail:\n{\n");
-    Printf(f->code, "const char* msg = \"Wrong # of arguments\";\n");
+    Printf(f->code, "const char* swigMsg = \"Wrong # of arguments\";\n");
     Printf(f->code, "if ( argc <= %d ) msg = \"Wrong arguments\";\n", maxargs);
     Printf(f->code, "rb_raise(rb_eArgError,"
 	   "\"%%s for overloaded method '%s'.\\n" 
-	   "  Possible C/C++ prototypes are:\\n\"%s, msg);\n", methodName, protoTypes);
+	   "  Possible C/C++ prototypes are:\\n\"%s, swigMsg);\n", methodName, protoTypes);
     Append(f->code, "}\nreturn Qnil;\n");
 
     Delete(methodName);
