@@ -3,6 +3,13 @@ Version 1.3.32 (in progress)
 
 05/03/2007: gga
 	    [Ruby]
+	    Fixed Ruby documentation to use the proper css styles for
+	    each section.
+            Added autodoc section to document the features supported by
+            Ruby in documenting its modules.
+
+05/03/2007: gga
+	    [Ruby]
 	    Changed flag -feature to be -init_name to better reflect its
 	    purpose and avoid confusion with -features.
 

@@ -138,16 +138,6 @@ Ruby Options (available with -ruby)\n\
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
-struct Autodoc {
-  const char* symname;
-  const char* description;
-};
-
-
-static const Autodoc kAutoDocs[] = {
-  {0,0}
-};
-
 
 class RUBY:public Language {
 private:
@@ -461,6 +451,7 @@ private:
 		parent = parentNode(parent);
 	      }
 
+	    Append(basenamestr, "#");
 	    Append(super_names, basenamestr );
 	    Delete(basenamestr);
 	    base = Next(base);
