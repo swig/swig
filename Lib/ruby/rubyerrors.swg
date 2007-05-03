@@ -87,6 +87,9 @@ SWIG_Ruby_ErrorType(int SWIG_code) {
 }
 
 
+/* This function is called when a user inputs a wrong argument to
+   a method.
+ */
 SWIGINTERN 
 const char* Ruby_Format_TypeError( const char* msg,
 				   const char* type, 
@@ -131,4 +134,20 @@ const char* Ruby_Format_TypeError( const char* msg,
     }
 
   return StringValuePtr( str );
+}
+
+/* This function is called when an overloaded method fails */
+SWIGINTERN 
+void Ruby_Format_OverloadedError(
+				 const int argc,
+				 const int maxargs,
+				 const char* method, 
+				 const char* prototypes 
+				 )
+{
+  const char* msg = "Wrong # of arguments";
+  if ( argc <= maxargs ) msg = "Wrong arguments";
+  rb_raise(rb_eArgError,"%s for overloaded method '%s'.\n"  
+	   "Possible C/C++ prototypes are:\n%s",
+	   msg, method, prototypes);
 }
