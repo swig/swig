@@ -34,3 +34,4 @@ AUTODOC(push_front, "Add an element at the beginning of the $class");
 AUTODOC(push_back, "Add an element at the end of the $class");
 AUTODOC(pop_front, "Remove and return element at the beginning of the $class");
 AUTODOC(pop_back, "Remove and return an element at the end of the $class");
+AUTODOC(clear, "Clear $class contents");

@@ -64,9 +64,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 typedef struct {
@@ -398,8 +395,5 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 }
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode */
-#endif
 }
 #endif

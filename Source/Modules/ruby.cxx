@@ -120,7 +120,9 @@ enum autodoc_t {
   AUTODOC_DTOR,
   AUTODOC_STATICFUNC,
   AUTODOC_FUNC,
-  AUTODOC_METHOD
+  AUTODOC_METHOD,
+  AUTODOC_GETTER,
+  AUTODOC_SETTER
 };
 
 static const char *usage = "\
@@ -542,7 +544,11 @@ private:
 
 	case AUTODOC_FUNC:
 	case AUTODOC_METHOD:
+	case AUTODOC_GETTER:
  	  Printf(doc, "  Document-method: %s\n\n", symname);
+	  break;
+	case AUTODOC_SETTER:
+ 	  Printf(doc, "  Document-method: %s=\n\n", symname);
 	  break;
 	}
       }
@@ -555,6 +561,7 @@ private:
 	  case AUTODOC_STATICFUNC:
 	  case AUTODOC_FUNC:
 	  case AUTODOC_METHOD:
+	  case AUTODOC_GETTER:
 	    {
 	      String *paramList = make_autodocParmList(n, showTypes);
 	      if (Len(paramList))
@@ -563,6 +570,12 @@ private:
 		Printf(doc, "    %s", symname);
 	      if (type)
 		Printf(doc, " -> %s", type);
+	      break;
+	    }
+	  case AUTODOC_SETTER:
+	    {
+	      Printf(doc, "    %s=(x)", symname);
+	      if (type) Printf(doc, " -> %s", type);
 	      break;
 	    }
 	  default:
@@ -605,15 +618,25 @@ private:
 	case AUTODOC_STATICFUNC:
 	case AUTODOC_FUNC:
 	case AUTODOC_METHOD:
-	  if (counter == 0) Printf(doc, "  call-seq:\n");
-	  String *paramList = make_autodocParmList(n, showTypes);
-	  if (Len(paramList))
-	    Printf(doc, "    %s(%s)", symname, paramList);
-	  else
-	    Printf(doc, "    %s", symname);
-	  if (type)
-	    Printf(doc, " -> %s", type);
-	  break;
+	case AUTODOC_GETTER:
+	  {
+	    if (counter == 0) Printf(doc, "  call-seq:\n");
+	    String *paramList = make_autodocParmList(n, showTypes);
+	    if (Len(paramList))
+	      Printf(doc, "    %s(%s)", symname, paramList);
+	    else
+	      Printf(doc, "    %s", symname);
+	    if (type)
+	      Printf(doc, " -> %s", type);
+	    break;
+	  }
+	case AUTODOC_SETTER:
+	  {
+	    Printf(doc, "  call-seq:\n");
+	    Printf(doc, "    %s=(x)", symname);
+	    if (type) Printf(doc, " -> %s", type);
+	    break;
+	  }
 	}
       }
 
@@ -627,24 +650,25 @@ private:
     if (!skipAuto) {
       switch (ad_type) {
       case AUTODOC_CLASS:
+      case AUTODOC_DTOR:
 	break;
       case AUTODOC_CTOR:
 	Printf(doc, "Class constructor.\n");
 	break;
-
-      case AUTODOC_DTOR:
-	break;
-
       case AUTODOC_STATICFUNC:
-	Printf(doc, "A static function.\n");
+	Printf(doc, "A class method.\n");
 	break;
-      
       case AUTODOC_FUNC:
-	Printf(doc, "A function.\n");
+	Printf(doc, "A module function.\n");
 	break;
-
       case AUTODOC_METHOD:
-	Printf(doc, "A method.\n");
+	Printf(doc, "An instance method.\n");
+	break;
+      case AUTODOC_GETTER:
+	Printf(doc, "Get value of attribute.\n");
+	break;
+      case AUTODOC_SETTER:
+	Printf(doc, "Set new value for attribute.\n");
 	break;
       }
     }
@@ -1012,6 +1036,8 @@ public:
     Printf(f_header, "static VALUE %s;\n", modvar);
 
     /* Start generating the initialization function */
+    String* docs = docstring(n, AUTODOC_CLASS);
+    Printf(f_init, "/*\n%s\n*/", docs );
     Printv(f_init, "\n", "#ifdef __cplusplus\n", "extern \"C\"\n", "#endif\n", "SWIGEXPORT void Init_", feature, "(void) {\n", "size_t i;\n", "\n", NIL);
 
     Printv(f_init, tab4, "VALUE parent = Qnil;\n", NIL);
@@ -1955,9 +1981,10 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int variableWrapper(Node *n) {
-    String* docs = docstring(n, AUTODOC_METHOD);
+    String* docs = docstring(n, AUTODOC_GETTER);
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
+
 
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
@@ -2001,6 +2028,10 @@ public:
       setfname = NewString("NULL");
     } else {
       /* create setter */
+      String* docs = docstring(n, AUTODOC_SETTER);
+      Printf(f_wrappers, "%s", docs);
+      Delete(docs);
+
       String *setname = Swig_name_set(iname);
       setfname = Swig_name_wrapper(setname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
@@ -2563,9 +2594,15 @@ public:
    * -------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    String* docs = docstring(n, AUTODOC_METHOD);
+    String* docs = docstring(n, AUTODOC_GETTER);
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
+
+    if (is_assignable(n)) {
+      String* docs = docstring(n, AUTODOC_SETTER);
+      Printf(f_wrappers, "%s", docs);
+      Delete(docs);
+    }
 
     current = MEMBER_VAR;
     Language::membervariableHandler(n);

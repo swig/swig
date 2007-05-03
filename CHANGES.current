@@ -4,9 +4,8 @@ Version 1.3.32 (in progress)
 05/03/2007: gga
 	    [Ruby]
 	    Fixed Ruby documentation to use the proper css styles for
-	    each section.
-            Added autodoc section to document the features supported by
-            Ruby in documenting its modules.
+	    each section. Added autodoc section to Ruby's docs to
+	    document the features supported by Ruby in documenting its modules.
 
 05/03/2007: gga
 	    [Ruby]
@@ -18,6 +17,7 @@ Version 1.3.32 (in progress)
 	    Improved autodoc generation.
 	    Added autodoc .swg files to Ruby library for easily adding 
 	    documentation to common Ruby methods and STL methods.
+	    Fixed autodoc documenting of getters and setters and module.
 	    Made test suite always generate autodocs.
 
 05/03/2007: gga
