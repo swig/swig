@@ -1995,7 +1995,9 @@ public:
       if ( !isCtor )  Printv( protoTypes, type, " ", NIL );
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
-      if ( p && isMethod ) p = nextSibling(p); // skip self
+      if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
+		ctor_director) )
+	p = nextSibling(p); // skip self
       Append( protoTypes, "(" );
       while(p)
 	{
