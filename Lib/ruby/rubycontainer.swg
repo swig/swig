@@ -530,7 +530,7 @@ namespace swig
 	{
 	  if (comma) str = rb_str_cat2( str, "," );
 	  tmp = swig::from<Sequence::value_type>( *i );
-	  tmp = rb_obj_as_string( tmp );
+	  tmp = rb_inspect( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
       str = rb_str_cat2( str, "]" );
