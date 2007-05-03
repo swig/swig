@@ -453,7 +453,6 @@ private:
 		parent = parentNode(parent);
 	      }
 
-	    Append(basenamestr, "#");
 	    Append(super_names, basenamestr );
 	    Delete(basenamestr);
 	    base = Next(base);
@@ -463,7 +462,7 @@ private:
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
-      Append(full_name, "::");
+      if (class_name && Len(class_name) > 0) Append(full_name, "::");
     }
     else
       full_name = NewString("");
@@ -532,23 +531,23 @@ private:
 	  Append(doc, "\n\n");
 	  break;
 	case AUTODOC_CTOR:
- 	  Printf(doc, "  Document-method: new\n\n", class_name);
+ 	  Printf(doc, "  Document-method: %s.new\n\n", full_name);
 	  break;
 
 	case AUTODOC_DTOR:
 	  break;
 
 	case AUTODOC_STATICFUNC:
- 	  Printf(doc, "  Document-method: %s\n\n", full_name);
+ 	  Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
 	  break;
 
 	case AUTODOC_FUNC:
 	case AUTODOC_METHOD:
 	case AUTODOC_GETTER:
- 	  Printf(doc, "  Document-method: %s\n\n", symname);
+ 	  Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
 	  break;
 	case AUTODOC_SETTER:
- 	  Printf(doc, "  Document-method: %s=\n\n", symname);
+ 	  Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
 	  break;
 	}
       }

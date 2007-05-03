@@ -6,6 +6,13 @@ Version 1.3.32 (in progress)
 	    Fixed Ruby documentation to use the proper css styles for
 	    each section. Added autodoc section to Ruby's docs to
 	    document the features supported by Ruby in documenting its modules.
+	    Made rdoc documentation spit out the full name of the class +
+	    method name.  Albeit this will make the current rdoc not recognize
+            the method, this is still needed to disambiguate between different
+            classes with similar methods (rdoc was created to document the
+	    ruby source which only contains one class per c file, unlike swig)
+            I have patched rdoc to make it more friendly to swig.  This
+            patch needs to be merged in the ruby std library now.
 
 05/03/2007: gga
 	    [Ruby]
