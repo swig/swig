@@ -420,8 +420,53 @@ private:
       n = Getattr(n, "sym:previousSibling");
 
     Node *pn = Swig_methodclass(n);
-    String* class_name = Copy( Getattr(pn, "sym:name") );
+    String* class_name = Copy( Getattr(pn, "sym:name") ); 
+
+    String* super_names = NewString(""); 
+
     if ( !class_name ) class_name = NewString("");
+    else
+      {
+	List *baselist = Getattr(pn, "bases");
+	if (baselist && Len(baselist)) {
+	  Iterator base = First(baselist);
+	  while (base.item && GetFlag(base.item, "feature:ignore")) {
+	    base = Next(base);
+	  }
+	  
+	  int count = 0;
+	  for ( ;base.item; ++count) {
+	    if ( count ) Append(super_names, ", ");
+	    String *basename = Getattr(base.item, "sym:name");
+
+	    String* basenamestr = NewString(basename);
+	    Node* parent = parentNode(base.item);
+	    while (parent)
+	      {
+		String *parent_name = Copy( Getattr(parent, "sym:name") );
+		if ( !parent_name ) {
+		  Node* mod = Getattr(parent, "module");
+		  parent_name = Copy( Getattr(mod, "name") );
+		  if ( parent_name )
+		    {
+		      (Char(parent_name))[0] = toupper((Char(parent_name))[0]);
+		    }
+		}
+		if ( parent_name )
+		  {
+		    Insert(basenamestr, 0, "::");
+		    Insert(basenamestr, 0, parent_name);
+		    Delete(parent_name);
+		  }
+		parent = parentNode(parent);
+	      }
+
+	    Append(super_names, basenamestr );
+	    Delete(basenamestr);
+	    base = Next(base);
+	  }
+	}
+      }
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
@@ -488,22 +533,25 @@ private:
       if (counter == 0) {
 	switch (ad_type) {
 	case AUTODOC_CLASS:
-	  Printf(doc, "  Document-class: %s\n\n", full_name);
+	  Printf(doc, "  Document-class: %s", full_name);
+	  if ( Len(super_names) > 0 )
+	    Printf( doc, " < %s", super_names);
+	  Append(doc, "\n\n");
 	  break;
 	case AUTODOC_CTOR:
-	  Printf(doc, "  Document-method: new\n\n", class_name);
+ 	  Printf(doc, "  Document-method: new\n\n", class_name);
 	  break;
 
 	case AUTODOC_DTOR:
 	  break;
 
 	case AUTODOC_STATICFUNC:
-	  Printf(doc, "  Document-method: %s\n\n", full_name);
+ 	  Printf(doc, "  Document-method: %s\n\n", full_name);
 	  break;
 
 	case AUTODOC_FUNC:
 	case AUTODOC_METHOD:
-	  Printf(doc, "  Document-method: %s\n\n", symname);
+ 	  Printf(doc, "  Document-method: %s\n\n", symname);
 	  break;
 	}
       }
@@ -649,9 +697,10 @@ private:
       n = Getattr(n, "sym:nextSibling");
     }
 
-    Append(doc, "\n\n*/\n");
+    Append(doc, "\n*/\n");
     Delete(full_name);
     Delete(class_name);
+    Delete(super_names);
 
     return doc;
   }
@@ -974,6 +1023,7 @@ public:
     /* Start generating the initialization function */
     Printv(f_init, "\n", "#ifdef __cplusplus\n", "extern \"C\"\n", "#endif\n", "SWIGEXPORT void Init_", feature, "(void) {\n", "size_t i;\n", "\n", NIL);
 
+    Printv(f_init, tab4, "VALUE parent = Qnil;\n", NIL);
     Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
 
     if (!useGlobalModule)
@@ -1555,9 +1605,6 @@ public:
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) ? 1 : 0;
 
-
-
-
     /* Now write the wrapper function itself */
     if (current == CONSTRUCTOR_ALLOCATE) {
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
@@ -1574,9 +1621,12 @@ public:
       }
       Printf(f->code, "{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n", numreq - start);
     } else {
-      String* docs = docstring(n, AUTODOC_FUNC);
-      Printf(f_wrappers, "%s", docs);
-      Delete(docs);
+      if ( !start )
+	{
+	  String* docs = docstring(n, AUTODOC_FUNC);
+	  Printf(f_wrappers, "%s", docs);
+	  Delete(docs);
+	}
 
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
@@ -2279,9 +2329,11 @@ public:
       Printv(klass->init, klass->mImpl, " = rb_define_module_under(", klass->vname, ", \"Impl\");\n", NIL);
     } else {
       if (!useGlobalModule) {
-	Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, ", \"", klass->name, "\", $super);\n", NIL);
+	Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, 
+	       ", \"", klass->name, "\", $super);\n", NIL);
       } else {
-	Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, "\", $super);\n", NIL);
+	Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, 
+	       "\", $super);\n", NIL);
       }
     }
 
