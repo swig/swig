@@ -615,14 +615,15 @@ namespace swig
 	return r;
       }
 
+
     Sequence* each()
       {
 	if ( !rb_block_given_p() )
 	  rb_raise( rb_eArgError, "no block given");
 
 	VALUE r;
-	Sequence::iterator i = self->begin();
-	Sequence::iterator e = self->end();
+	Sequence::const_iterator i = self->begin();
+	Sequence::const_iterator e = self->end();
 	for ( ; i != e; ++i )
 	  {
 	    r = swig::from<Sequence::value_type>(*i);
@@ -649,7 +650,6 @@ namespace swig
 	
       return r;
     }
-
 
     %rename("reject!") reject_bang;
     %alias reject_bang "delete_if";
@@ -971,7 +971,7 @@ namespace swig {
     typedef T value_type;
 
     static int asptr(VALUE obj, sequence **seq) {
-      if (rb_obj_is_kind_of(obj, rb_cArray)) {
+      if (rb_obj_is_kind_of(obj, rb_cArray) == Qtrue) {
 	try {
 	  RubySequence_Cont<value_type> rubyseq(obj);
 	  if (seq) {

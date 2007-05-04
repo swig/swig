@@ -34,6 +34,9 @@ namespace swig {
     // Access iterator method, required by Ruby
     virtual VALUE value() const = 0;
 
+//     // Set referenced object
+//     virtual bool set(VALUE v) = 0;
+
     // Forward iterator method, required by Ruby
     virtual RubySwigIterator *incr(size_t n = 1) = 0;
     
@@ -133,7 +136,7 @@ namespace swig {
     typedef typename std::iterator_traits<out_iterator>::value_type value_type;    
     typedef RubySwigIterator_T<out_iterator> self_type;
 
-    RubySwigIterator_T(out_iterator curr, VALUE seq)
+    RubySwigIterator_T(out_iterator curr, VALUE seq = Qnil)
       : RubySwigIterator(seq), current(curr)
     {
     }
@@ -191,14 +194,22 @@ namespace swig {
     typedef RubySwigIterator_T<out_iterator>  base;
     typedef RubySwigIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
     
-    RubySwigIteratorOpen_T(out_iterator curr, VALUE seq)
+    RubySwigIteratorOpen_T(out_iterator curr, VALUE seq = Qnil)
       : RubySwigIterator_T<OutIterator>(curr, seq)
     {
     }
     
-    VALUE value() const {
+    virtual VALUE value() const {
       return from(static_cast<const value_type&>(*(base::current)));
     }
+
+//     virtual bool set(VALUE v) {
+//       value_type val;
+//       if ( !asval(v, &val) ) return SWIG_ERROR;
+//       *(base::current) = val;
+//       return SWIG_OK;
+//     }
+    
     
     RubySwigIterator *copy() const
     {
@@ -234,18 +245,25 @@ namespace swig {
     typedef RubySwigIterator_T<out_iterator>  base;    
     typedef RubySwigIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
     
-    RubySwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, VALUE seq)
+    RubySwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, VALUE seq = Qnil)
       : RubySwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
     {
     }
     
-    VALUE value() const {
+    virtual VALUE value() const {
       if (base::current == end) {
 	throw stop_iteration();
       } else {
 	return from(static_cast<const value_type&>(*(base::current)));
       }
     }
+    
+//     virtual bool set(VALUE v) {
+//       value_type val;
+//       if ( !asval(v, &val) ) return SWIG_ERROR;
+//       *(base::current) = val;
+//       return SWIG_OK;
+//     }
     
     RubySwigIterator *copy() const
     {
@@ -283,14 +301,14 @@ namespace swig {
 
   template<typename OutIter>
   inline RubySwigIterator*
-  make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, VALUE seq = 0)
+  make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, VALUE seq = Qnil)
   {
     return new RubySwigIteratorClosed_T<OutIter>(current, begin, end, seq);
   }
 
   template<typename OutIter>
   inline RubySwigIterator*
-  make_output_iterator(const OutIter& current, VALUE seq = 0)
+  make_output_iterator(const OutIter& current, VALUE seq = Qnil)
   {
     return new RubySwigIteratorOpen_T<OutIter>(current, seq);
   }
@@ -346,6 +364,9 @@ namespace swig
 
     // Access iterator method, required by Ruby
     virtual VALUE value() const = 0;
+
+//     // Set referenced object, required by Ruby
+//     virtual bool set(VALUE val) = 0;
 
     // Forward iterator method, required by Ruby
     virtual RubySwigIterator *incr(size_t n = 1) = 0;

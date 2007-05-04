@@ -43,7 +43,12 @@ namespace swig {
 
   %exception GC_VALUE {};
 
+
   %apply VALUE   {GC_VALUE};
+
+  // Make sure this is the last typecheck done
+  %typecheck(999999,noblock=1) GC_VALUE, GC_VALUE&, 
+    const GC_VALUE& { $1 = 1; };
 
   /* For input */
   %typemap(in,noblock=1) GC_VALUE* (GC_VALUE r), GC_VALUE& (GC_VALUE r)  {

@@ -56,7 +56,6 @@
   $1 = &self;
 }
 
-
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 

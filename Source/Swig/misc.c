@@ -235,26 +235,33 @@ String *Swig_string_lccase(String *s) {
  *
  * This is the reverse case of ccase, ie
  *
- *      CamelCase -> camel_case 
+ *      CamelCase -> camel_case
+ *      get2D     -> get_2d
+ *      asFloat2  -> as_float2
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_ucase(String *s) {
   String *ns;
   int c;
   int lastC = 0;
+  int nextC = 0;
   int underscore = 0;
   ns = NewStringEmpty();
 
   /* We insert a underscore when:
      1. Lower case char followed by upper case char
      getFoo > get_foo; getFOo > get_foo; GETFOO > getfoo
-     2. Number proceded by char
-     get2D > get_2d; get22D > get_22d; GET2D > get_2d */
+     2. Number proceded by char and not end of string
+     get2D > get_2d; get22D > get_22d; GET2D > get_2d
+     but:
+     asFloat2 > as_float2
+  */
 
   Seek(s, 0, SEEK_SET);
 
   while ((c = Getc(s)) != EOF) {
-    if (isdigit(c) && isalpha(lastC))
+    nextC = Getc(s); Ungetc(nextC, s);
+    if (isdigit(c) && isalpha(lastC) && nextC != EOF)
       underscore = 1;
     else if (isupper(c) && isalpha(lastC) && !isupper(lastC))
       underscore = 1;

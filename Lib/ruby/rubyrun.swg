@@ -394,6 +394,19 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
   rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
 }
 
+/* This function can be used to check whether a proc or method or similarly
+   callable function has been passed.  Usually used in a %typecheck. */
+SWIGINTERN
+int rb_is_callable( VALUE proc )
+{
+  static VALUE call_id = Qnil;
+  if ( call_id == Qnil ) call_id = rb_intern("call");
+  if ( rb_respond_to( proc, call_id ) )
+    return 1;
+  return 0;
+}
+
+
 #ifdef __cplusplus
 }
 #endif

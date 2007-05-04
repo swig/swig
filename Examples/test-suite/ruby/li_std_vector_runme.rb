@@ -90,7 +90,9 @@ dv.kind_of? DoubleVector
 halved = []
 halved = dv.map { |x| x / 2 }
 halve_in_place(dv)
-halved == dv.to_a
+p halved.to_a
+p dv.to_a
+halved.to_a == dv.to_a
 sv = StructVector.new
 sv << Li_std_vector::Struct.new
 sv[0].class == Li_std_vector::Struct
@@ -98,3 +100,18 @@ sv[1] = Li_std_vector::Struct.new
 
 EOF
 
+
+swig_assert_each_line(<<'EOF', binding)
+lv = LanguageVector.new
+lv << 1
+lv << [1,2]
+lv << 'asd'
+lv[0], lv[1] = lv[1], lv[0]
+EOF
+
+
+# this should assert
+begin
+  lv = LanguageVector.new('crapola')
+rescue
+end

@@ -21,7 +21,7 @@
 
     template <class T>
     struct traits_asptr<std::set<T> >  {
-      static int asptr(VALUE obj, std::set<T> **s) {
+      static int asptr(VALUE obj, std::set<T> **s) {  
 	return traits_asptr_stdseq<std::set<T> >::asptr(obj, s);
       }
     };
@@ -40,13 +40,13 @@
 
   %extend  {
     %alias push "<<";
-    value_type push(value_type x) {
+    value_type push(const value_type& x) {
       self->insert(x);
       return x;
     }
   
     %rename("include?") __contains__;
-    bool __contains__(value_type x) {
+    bool __contains__(const value_type& x) {
       return self->find(x) != self->end();
     }
 

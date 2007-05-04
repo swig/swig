@@ -2012,7 +2012,7 @@ public:
     String* methodName = NewString("");
     if ( isMethod ) 
       Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
-    Append( methodName, Getattr(sibl,"name" ) );
+    Append( methodName, Getattr(sibl,"sym:name" ) );
     if ( isCtor ) Append( methodName, ".new" ); 
 
     // Generate prototype list

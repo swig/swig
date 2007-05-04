@@ -114,3 +114,11 @@ SWIG_STD_VECTOR_SPECIALIZE(MyClass, MyClass *)
   };
 }
 #endif
+
+#if defined(SWIGRUBY)
+%template(LanguageVector) std::vector< swig::LANGUAGE_OBJ >;
+
+%inline {
+  std::vector< swig::LANGUAGE_OBJ > LanguageVector; 
+}
+#endif

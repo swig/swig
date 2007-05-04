@@ -5,5 +5,9 @@
 
 #define %argnullref_fmt(_type,_name,_argn) Ruby_Format_TypeError(%nullref_fmt(), _type, #_name, _argn, $input)
 
+%{
+#define SWIG_RUBY_THREAD_BEGIN_BLOCK
+#define SWIG_RUBY_THREAD_END_BLOCK
+%}
 
 %include <typemaps/swigmacros.swg>
