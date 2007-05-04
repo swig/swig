@@ -22,6 +22,7 @@ static int treduce = SWIG_cparse_template_reduce(0);
 class RClass {
 private:
   String *temp;
+
 public:
   String *name;			/* class name (renamed) */
   String *cname;		/* original C class/struct name */
@@ -46,6 +47,7 @@ public:
   String *type;
   String *prefix;
   String *init;
+
 
   int constructor_defined;
   int destructor_defined;
@@ -167,7 +169,7 @@ private:
   bool multipleInheritance;
 
   // Wrap modes
-  enum {
+  enum WrapperMode {
     NO_CPP,
     MEMBER_FUNC,
     CONSTRUCTOR_ALLOCATE,
@@ -191,6 +193,9 @@ private:
     EXTEND_AUTODOC = 2,		// extended documentation and parameter names
     EXTEND_TYPES_AUTODOC = 3	// extended documentation and parameter types + names
   };
+
+  autodoc_t last_mode;
+  String*   last_autodoc;
 
 
 
@@ -470,7 +475,30 @@ private:
       full_name = NewString("");
     Append(full_name, class_name);
 
-    String *symname = NULL;
+    String* symname = Getattr(n, "sym:name");
+    if ( Getattr( special_methods, symname ) )
+      symname = Getattr( special_methods, symname );
+
+    String* methodName = NewString(full_name);
+    Append(methodName, symname);
+
+
+    // Each overloaded function will try to get documented,
+    // so we keep the name of the last overloaded function and its type.
+    // Documenting just from functionWrapper() is not possible as
+    // sym:name has already been changed to include the class name
+    if ( last_mode == ad_type && Cmp(methodName, last_autodoc) == 0 ) {
+      Delete(full_name);
+      Delete(class_name);
+      Delete(super_names);
+      Delete(methodName);
+      return NewString("");
+    }
+
+
+    last_mode    = ad_type;
+    last_autodoc = Copy(methodName);
+
     String *doc = NewString("/*\n");
     int counter = 0;
     bool skipAuto = false;
@@ -501,10 +529,6 @@ private:
 	skipAuto = true;
 	break;
       }
-
-      symname = Getattr(n, "sym:name");
-      if ( Getattr( special_methods, symname ) )
-	symname = Getattr( special_methods, symname );
 
       SwigType *type = Getattr(n, "type");
 
@@ -717,6 +741,7 @@ private:
     Delete(full_name);
     Delete(class_name);
     Delete(super_names);
+    Delete(methodName);
 
     return doc;
   }
@@ -734,6 +759,7 @@ public:
     modvar = 0;
     feature = 0;
     prefix = 0;
+    last_autodoc = NewString("");
     current = NO_CPP;
     classes = 0;
     klass = 0;
@@ -1639,7 +1665,8 @@ public:
       }
       Printf(f->code, "{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n", numreq - start);
     } else {
-      if ( !start )
+
+      if ( current == NO_CPP )
 	{
 	  String* docs = docstring(n, AUTODOC_FUNC);
 	  Printf(f_wrappers, "%s", docs);
@@ -2694,9 +2721,15 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    String* docs = docstring(n, AUTODOC_STATICFUNC);
+    String* docs = docstring(n, AUTODOC_GETTER);
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
+
+    if (is_assignable(n)) {
+      String* docs = docstring(n, AUTODOC_SETTER);
+      Printf(f_wrappers, "%s", docs);
+      Delete(docs);
+    }
 
     current = STATIC_VAR;
     Language::staticmembervariableHandler(n);
