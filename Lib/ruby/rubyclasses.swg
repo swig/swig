@@ -1,7 +1,7 @@
 #ifdef __cplusplus
 
 /*
-  GC_VALUE is used as a replacement of VALUE.
+  GC_VALUE is used as a replacement of Ruby's VALUE.
   GC_VALUE automatically handles registering and unregistering
   of the underlying ruby object with the GC.
 
@@ -17,7 +17,8 @@
        }
      };
 
-   or as a input/output value (not much use for this, thou):
+   or as a input/output value (not much use for this, as VALUE works as
+   well here, thou):
 
      GC_VALUE func(GC_VALUE obj) { 
        GC_VALUE out = rb_obj_classname(obj);
@@ -34,11 +35,19 @@
 */
 
 namespace swig {
-  // we don't ignore it, so it will get printed nicely with inspect
-  //%ignore GC_VALUE;
+
+  %nodirector GC_VALUE;
+
+  // We ignore the constructor so that user can never create a GC_VALUE manually
+  %ignore GC_VALUE::GC_VALUE;
+
   struct GC_VALUE {
     VALUE inspect() const;
     VALUE to_s() const;
+    GC_VALUE();
+  protected:
+    GC_VALUE( const GC_VALUE& );
+    ~GC_VALUE();
   };
 
   %exception GC_VALUE {};
@@ -131,6 +140,12 @@ namespace swig {
   typedef GC_VALUE LANGUAGE_OBJ;
 }
 
+
+/**
+ * std::less< GC_VALUE > functor so that STL containers will accept
+ * GC_VALUE.
+ * 
+ */
 
 namespace std {
   template <>

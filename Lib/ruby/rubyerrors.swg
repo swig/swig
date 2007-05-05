@@ -130,7 +130,7 @@ const char* Ruby_Format_TypeError( const char* msg,
     {
       str = rb_str_cat2( str, "\n\tin SWIG method '" );
       str = rb_str_cat2( str, name );
-      str = rb_str_cat2( str, "'\n" );
+      str = rb_str_cat2( str, "'" );
     }
 
   return StringValuePtr( str );

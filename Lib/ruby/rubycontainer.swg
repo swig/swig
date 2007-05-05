@@ -579,23 +579,6 @@ namespace swig
   %extend {
 
 
-  // Implementing delete requires semantics that go beyond the
-  // default requirements of STD containers.
-  //
-  //   VALUE __delete__( Sequence::value_type e ) {
-  //     VALUE r = Qnil;
-  //     std::size_t len = $self->size();
-  //     std::remove_if( $self->begin(), $self->end(), 
-  // 		    std::bind2nd( std::equal_to< Sequence::value_type >(),
-  // 				  e ) );
-  //
-  //     if ( $self->size() != len )
-  //       r = swig::from< Sequence::value_type >( e );
-  //     else if ( rb_block_given_p() )
-  //       r = rb_yield(Qnil);
-  //     return r;
-  //   }
-
   VALUE slice( difference_type i, difference_type j )
     {
 	if ( j <= 0 ) return Qnil;
@@ -678,6 +661,12 @@ namespace swig
       catch (std::out_of_range)
 	{
 	}
+      return r;
+    }
+
+
+    VALUE __delete2__(const value_type& i) {
+      VALUE r = Qnil;
       return r;
     }
 
@@ -1033,3 +1022,6 @@ namespace swig {
   };
 }
 }
+
+
+%include <rubycontainer_extended.swg>

@@ -4,7 +4,7 @@
  *
  * rubyiterators.swg
  *
- * Implement a ruby 'output' iterator for Ruby.
+ * Implement a C++ 'output' iterator for Ruby.
  *
  * Users can derive form the RubySwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD
@@ -14,6 +14,10 @@
 
 %include <std_common.i>
 
+
+/** 
+ * Abstract base class used to represent all iterators of STL containers.
+ */
 %fragment("RubySwigIterator","header") {  
 namespace swig {
   struct stop_iteration {
@@ -33,9 +37,6 @@ namespace swig {
 
     // Access iterator method, required by Ruby
     virtual VALUE value() const = 0;
-
-//     // Set referenced object
-//     virtual bool set(VALUE v) = 0;
 
     // Forward iterator method, required by Ruby
     virtual RubySwigIterator *incr(size_t n = 1) = 0;
@@ -59,6 +60,11 @@ namespace swig {
     
     // C++ common/needed methods
     virtual RubySwigIterator *copy() const = 0;
+
+    virtual VALUE __deref__()
+    {
+      return Qnil;
+    }
 
     VALUE next()
     {
@@ -126,8 +132,14 @@ namespace swig {
 }
 }
 
+
 %fragment("RubySwigIterator_T","header",fragment="RubySwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
+
+  /** 
+   * Abstract base classes for all custom iterators.
+   *
+   */
   template<typename OutIterator>
   class RubySwigIterator_T :  public RubySwigIterator
   {
@@ -182,6 +194,11 @@ namespace swig {
     }
   };
 
+
+  /** 
+   * Iterator class for a const_iterator with no end() boundaries.
+   *
+   */
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
@@ -202,14 +219,6 @@ namespace swig {
     virtual VALUE value() const {
       return from(static_cast<const value_type&>(*(base::current)));
     }
-
-//     virtual bool set(VALUE v) {
-//       value_type val;
-//       if ( !asval(v, &val) ) return SWIG_ERROR;
-//       *(base::current) = val;
-//       return SWIG_OK;
-//     }
-    
     
     RubySwigIterator *copy() const
     {
@@ -233,6 +242,11 @@ namespace swig {
     }
   };
 
+
+  /** 
+   * Iterator class for a const_iterator where begin() and end() boundaries are known.
+   *
+   */
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
@@ -257,13 +271,6 @@ namespace swig {
 	return from(static_cast<const value_type&>(*(base::current)));
       }
     }
-    
-//     virtual bool set(VALUE v) {
-//       value_type val;
-//       if ( !asval(v, &val) ) return SWIG_ERROR;
-//       *(base::current) = val;
-//       return SWIG_OK;
-//     }
     
     RubySwigIterator *copy() const
     {
@@ -299,6 +306,12 @@ namespace swig {
     out_iterator end;
   };
 
+
+  /** 
+   * Helper function used to wrap a bounded const_iterator.  This is to be used in
+   * a %typemap(out), for example.
+   *
+   */
   template<typename OutIter>
   inline RubySwigIterator*
   make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, VALUE seq = Qnil)
@@ -306,6 +319,11 @@ namespace swig {
     return new RubySwigIteratorClosed_T<OutIter>(current, begin, end, seq);
   }
 
+  /** 
+   * Helper function used to wrap an unbounded const_iterator.  This is to be used in
+   * a %typemap(out), for example.
+   *
+   */
   template<typename OutIter>
   inline RubySwigIterator*
   make_output_iterator(const OutIter& current, VALUE seq = Qnil)
@@ -317,6 +335,11 @@ namespace swig {
 
 
 %fragment("RubySwigIterator");
+
+
+//
+// This part is just so SWIG is aware of the base abstract iterator class.
+//
 namespace swig 
 {
   /*
@@ -364,9 +387,6 @@ namespace swig
 
     // Access iterator method, required by Ruby
     virtual VALUE value() const = 0;
-
-//     // Set referenced object, required by Ruby
-//     virtual bool set(VALUE val) = 0;
 
     // Forward iterator method, required by Ruby
     virtual RubySwigIterator *incr(size_t n = 1) = 0;

@@ -59,7 +59,7 @@ AUTODOC(reject, "Iterate thru each element in the $class and reject those that f
 AUTODOC(reject_bang, "Iterate thru each element in the $class and reject those that fail a condition.  A block must be provided.  $class is modified in place");
 AUTODOC(select, "Iterate thru each element in the $class and select those that match a condition.  A block must be provided");
 AUTODOC(delete_at, "Delete an element at a certain index");
-AUTODOC(__delete__, "Delete an element at a certain index");
+AUTODOC(__delete__, "Delete a matching element");
 
 
 //
