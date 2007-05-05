@@ -90,8 +90,6 @@ dv.kind_of? DoubleVector
 halved = []
 halved = dv.map { |x| x / 2 }
 halve_in_place(dv)
-p halved.to_a
-p dv.to_a
 halved.to_a == dv.to_a
 sv = StructVector.new
 sv << Li_std_vector::Struct.new
