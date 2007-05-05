@@ -9,7 +9,7 @@
  * Users can derive form the RubySwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template RubySwigIterator_T does the
- * implementation for genereic C++ iterators.
+ * implementation for generic C++ iterators.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>

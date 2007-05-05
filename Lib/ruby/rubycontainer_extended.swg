@@ -6,9 +6,9 @@
  * @brief  This file contains additional functions that make containers
  *         behave closer to ruby primitive types.
  *         However, some of these functions place some restrictions on
- *         the underlying object inside of the container (that it has
- *         an == comparison function, that it has an = assignment
- *         operator, etc).
+ *         the underlying object inside of the container and the iterator
+ *        (that it has to have an == comparison function, that it has to have 
+ *         an = assignment operator, etc).
  * 
  */
 
@@ -54,7 +54,7 @@
 
 
   //
-  // map!
+  // map!  -- the equivalent of std::transform
   //
   Container< Type >* map_bang() {
 
@@ -134,7 +134,6 @@
 
 
 %__swig_container_extend_primtypes( std::vector );
-%__swig_container_extend_primtypes( std::set  );
-%__swig_container_extend_primtypes( std::list );
 %__swig_container_extend_primtypes( std::deque );
+%__swig_container_extend_primtypes( std::list );
 

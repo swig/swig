@@ -36,36 +36,6 @@
 
 %include <std_except.i>
 
-%fragment(SWIG_Traits_frag(swig::GC_VALUE),"header",fragment="StdTraits") {
-namespace swig {
-  template <>  struct traits<GC_VALUE > {
-    typedef value_category category;
-    static const char* type_name() { return "GC_VALUE"; }
-  };
-  
-  template <>  struct traits_from<GC_VALUE> {
-    typedef GC_VALUE value_type;
-    static VALUE from(const value_type& val) {
-      return static_cast<VALUE>(val);
-    }
-  };
-  
-  template <> 
-  struct traits_check<GC_VALUE, value_category> {
-    static bool check(GC_VALUE) {
-      return true;
-    }
-  };
-  
-  template <>  struct traits_asval<GC_VALUE > {   
-    typedef GC_VALUE value_type;
-    static int asval(VALUE obj, value_type *val) {
-      if (val) *val = obj;
-      return SWIG_OK;
-    }
-  };
-} // swig
-} // %fragment(traits for swig::GC_VALUE)
 
 %fragment("RubySequence_Base","header")
 {
@@ -425,6 +395,10 @@ namespace swig
 }
 }
 
+/** 
+ * Macros used to typemap an STL iterator -> SWIGIterator conversion.
+ * 
+ */
 %define %swig_sequence_iterator(Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
   class iterator;
@@ -514,6 +488,11 @@ namespace swig
 
 %enddef
 
+
+/**
+ * Macro used to define common Ruby printing methods for STL container
+ * 
+ */
 %define %swig_sequence_printing_methods(Sequence...)
 
   %extend {
@@ -569,6 +548,10 @@ namespace swig
 %enddef
 
 
+/**
+ * Macro used to add common methods to all STL sequence-type containers 
+ * 
+ */
 %define %swig_sequence_methods_common(Sequence...)
   %swig_container_methods(%arg(Sequence))
   %swig_sequence_iterator(%arg(Sequence))
@@ -674,6 +657,11 @@ namespace swig
 %enddef
 
 
+/**
+ * Macro used to add functions for back insertion of values in
+ * STL Sequence containers
+ * 
+ */
 %define %swig_sequence_back_inserters( Sequence... )
   %extend {
 
@@ -705,6 +693,11 @@ namespace swig
   }
 %enddef
 
+
+/**
+ * Macro used to add functions for Sequences
+ * 
+ */
 %define %swig_sequence_methods(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence));
   %swig_sequence_back_inserters(%arg(Sequence));
@@ -842,6 +835,11 @@ namespace swig
 %enddef
 
 
+/**
+ * Macro used to add functions for front insertion of
+ * elements in STL sequence containers that support it.
+ * 
+ */
 %define %swig_sequence_front_inserters( Sequence... )
 
 %extend {
