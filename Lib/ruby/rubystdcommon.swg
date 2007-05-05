@@ -200,3 +200,24 @@ namespace swig {
 }
 }
 
+//
+// Common renames for STL functions.
+// Sadly, SWIG's name matching is still primitive, so:
+//
+//   std::*::push_back is not valid
+//
+// Also, since these get run inside templates, putting
+// the rename inside the template %extend section is no good
+// either.
+//
+
+%rename("delete")     *::__delete__;
+%rename("reject!")    *::reject_bang;
+%rename("map!")       *::map_bang;
+%rename("push")       *::push_back;
+%rename("pop")        *::pop_back;
+%rename("empty?")     *::empty;
+%rename("include?" )  *::__contains__ const;
+%rename("has_key?" )  *::has_key const;
+%alias  push          "<<";
+%alias  push_back     "<<";

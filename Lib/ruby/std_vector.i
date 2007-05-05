@@ -34,21 +34,9 @@
 %enddef
 
 
-#if defined(SWIG_RUBY_AUTORENAME)
-
-  %mixin std::vector "Enumerable";
-  %rename("empty?") std::vector::empty;
-  %ignore std::vector::push_back;
-  %ignore std::vector::pop_back;
-
-#else
-
-  %mixin std::vector "Enumerable";
-  %rename("empty?") std::vector::empty;
-  %ignore std::vector::push_back;
-  %ignore std::vector::pop_back;
-
-#endif
+%mixin std::vector "Enumerable";
+%ignore std::vector::push_back;
+%ignore std::vector::pop_back;
 
 %include <std/std_vector.i>
 

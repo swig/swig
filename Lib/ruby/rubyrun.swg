@@ -184,7 +184,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
         It might not in cases where methods do things like 
         downcast methods. */
       if (obj != Qnil) {
-        VALUE value = rb_iv_get(obj, "__swigtype__");
+        VALUE value = rb_iv_get(obj, "@__swigtype__");
         char* type_name = RSTRING_PTR(value);
 				
         if (strcmp(type->name, type_name) == 0) {
@@ -210,7 +210,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     free((void *) klass_name);
     obj = Data_Wrap_Struct(klass, 0, 0, ptr);
   }
-  rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
+  rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
   
   return obj;
 }
@@ -222,7 +222,7 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
   VALUE obj;
   swig_class *sklass = (swig_class *) type->clientdata;
   obj = Data_Wrap_Struct(klass, VOIDFUNC(sklass->mark), VOIDFUNC(sklass->destroy), 0);
-  rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
+  rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
   return obj;
 }
 
@@ -230,7 +230,7 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 SWIGRUNTIMEINLINE char *
 SWIG_Ruby_MangleStr(VALUE obj)
 {
-  VALUE stype = rb_iv_get(obj, "__swigtype__");
+  VALUE stype = rb_iv_get(obj, "@__swigtype__");
   return StringValuePtr(stype);
 }
 
@@ -397,7 +397,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 /* This function can be used to check whether a proc or method or similarly
    callable function has been passed.  Usually used in a %typecheck. */
 SWIGINTERN
-int rb_is_callable( VALUE proc )
+int SWIG_Ruby_isCallable( VALUE proc )
 {
   static VALUE call_id = Qnil;
   if ( call_id == Qnil ) call_id = rb_intern("call");

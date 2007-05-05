@@ -137,8 +137,7 @@
 
   %extend {
     
-  %rename("delete") __delitem__;
-    VALUE __delitem__(const key_type& key) {
+    VALUE __delete__(const key_type& key) {
       Map::iterator i = self->find(key);
       if (i != self->end()) {
 	self->erase(i);
@@ -149,7 +148,6 @@
       }
     }
     
-    %rename("has_key?") has_key;
     bool has_key(const key_type& key) const {
       Map::const_iterator i = self->find(key);
       return i != self->end();
@@ -306,7 +304,6 @@
       return ary;
     }
     
-    %rename("include?") __contains__;
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
     }
@@ -399,16 +396,6 @@
 %enddef
 
 
-#if defined(SWIG_RUBY_AUTORENAME)
-
-  %mixin std::map "Enumerable";
-  %rename("empty?") std::map::empty;
-
-#else
-
-  %mixin std::map "Enumerable";
-  %rename("empty?") std::map::empty;
-
-#endif
+%mixin std::map "Enumerable";
 
 %include <std/std_map.i>

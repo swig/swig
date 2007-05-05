@@ -576,15 +576,13 @@ namespace swig
 
   %fragment("RubySequence_Base");
 
-
   %extend {
 
 
   // Implementing delete requires semantics that go beyond the
   // default requirements of STD containers.
   //
-  //   %rename("delete") __del__;
-  //   VALUE __del__( Sequence::value_type e ) {
+  //   VALUE __delete__( Sequence::value_type e ) {
   //     VALUE r = Qnil;
   //     std::size_t len = $self->size();
   //     std::remove_if( $self->begin(), $self->end(), 
@@ -651,7 +649,6 @@ namespace swig
       return r;
     }
 
-    %rename("reject!") reject_bang;
     %alias reject_bang "delete_if";
     Sequence* reject_bang() {
       if ( !rb_block_given_p() )

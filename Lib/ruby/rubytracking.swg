@@ -49,7 +49,7 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
      This is done to allow multiple DSOs to share the same
      tracking table.
   */
-  ID trackings_id = rb_intern( "trackings" );
+  ID trackings_id = rb_intern( "@__trackings__" );
   VALUE verbose = rb_gv_get("VERBOSE");
   rb_gv_set("VERBOSE", Qfalse);
   swig_ruby_trackings = rb_ivar_get( _mSWIG, trackings_id );

@@ -211,17 +211,7 @@
 %enddef
 
 
-#if defined(SWIG_RUBY_AUTORENAME)
-
-  %mixin std::multimap "Enumerable";
-  %rename("empty?") std::multimap::empty;
-
-#else
-
-  %mixin std::multimap "Enumerable";
-  %rename("empty?") std::multimap::empty;
-
-#endif
+%mixin std::multimap "Enumerable";
 
 %include <std/std_multimap.i>
 

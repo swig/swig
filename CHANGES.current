@@ -1,6 +1,34 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/04/2007: gga
+	    [Ruby]
+	    Changed STL renames to be global renames.  This fixes
+	    STL functions not being renamed when autorename is on.
+            This is a not a totally perfect work-around, but better.
+	    Someone really needs to fix the template renaming code.
+	    (See bug #1545634)
+
+05/04/2007  gga
+	    [All]
+            Changed %rename("%(undercase)s") a little so that single 
+	    numbers at the end of a function are not undercased.  That is:
+		getSomething -> get_something
+		get2D	     -> get_2d
+		get234	     -> get_234
+	    BUT:
+		asFloat2     -> as_float2
+	    (Bug #1699714)
+
+05/03/2007: gga
+	    [Ruby]
+	    Made __swigtype__ => @__swigtype__ so it can be accessed
+	    from the scripting language (and follows Ruby's official
+            documentation, just in case).
+	    Made tracking => @__trackings__ for same reason.
+	    Currently storing ivars without the @ seems valid, but
+	    the PickAxe says this is not correct, so just in case...
+
 05/03/2007: gga
 	    [Ruby]
 	    Applied patch for -minherit bug and exception classes.

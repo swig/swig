@@ -28,18 +28,9 @@
 #define %swig_vector_methods(Type...) %swig_sequence_methods(Type)
 #define %swig_vector_methods_val(Type...) %swig_sequence_methods_val(Type);
 
-#if defined(SWIG_RUBY_AUTORENAME)
-
-  %rename("empty?") std::vector::empty;
-  %ignore std::vector::push_back;
-  %ignore std::vector::pop_back;
-  %alias  std::vector::push "<<";
-
-#else
-  %rename("empty?") std::vector::empty;
-  %ignore std::vector::push_back;
-  %ignore std::vector::pop_back;
-  %alias  std::vector::push "<<";
-#endif
+%mixin std::vector "Enumerable";
+%ignore std::vector::push_back;
+%ignore std::vector::pop_back;
+%alias  std::vector::push "<<";
 
 %include <std/std_vectora.i>

@@ -45,7 +45,6 @@
       return x;
     }
   
-    %rename("include?") __contains__;
     bool __contains__(const value_type& x) {
       return self->find(x) != self->end();
     }
@@ -57,17 +56,7 @@
   };
 %enddef
 
-#if defined(SWIG_RUBY_AUTORENAME)
 
-  %mixin std::set "Enumerable";
-  %rename("empty?") std::set::empty;
-
-#else
-
-  %mixin std::set "Enumerable";
-  %rename("empty?") std::set::empty;
-
-#endif
-
+%mixin std::set "Enumerable";
 
 %include <std/std_set.i>
