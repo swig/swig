@@ -84,7 +84,6 @@ namespace swig {
   protected:
     VALUE  _obj;
 
-    static ID  cmp_id;
     static ID hash_id;
     static ID   lt_id;
     static ID   gt_id;
@@ -177,9 +176,10 @@ namespace swig {
     }
 
 
-#define GC_VALUE_CMP( op_id, op, cmp ) \
+#define GC_VALUE_CMP( op_id, op, cmp, cmpval ) \
     bool op( const GC_VALUE& other ) const \
     { \
+      bool  res = false; \
       VALUE ret = Qnil; \
       SWIG_RUBY_THREAD_BEGIN_BLOCK; \
       if ( rb_respond_to( _obj, op_id ) == Qtrue ) \
@@ -193,7 +193,6 @@ namespace swig {
 	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
 			    &status ); \
 	} \
-      bool res = false; \
       if ( ret == Qnil ) { \
 	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \
 	VALUE b = rb_funcall( VALUE(other), hash_id, 0 ); \
@@ -208,11 +207,11 @@ namespace swig {
     }
 
 
-    GC_VALUE_CMP( eq_id, operator==, == )
-    GC_VALUE_CMP( lt_id, operator<,  <  )
-    GC_VALUE_CMP( le_id, operator<=, <= )
-    GC_VALUE_CMP( gt_id, operator>,  >  )
-    GC_VALUE_CMP( ge_id, operator>=, >= )
+    GC_VALUE_CMP( eq_id, operator==, ==, == 0 )
+    GC_VALUE_CMP( lt_id, operator<,  < , <  0 )
+    GC_VALUE_CMP( le_id, operator<=, <=, <= 0 )
+    GC_VALUE_CMP( gt_id, operator>,  > , >  0 )
+    GC_VALUE_CMP( ge_id, operator>=, >=, >= 0 )
 #undef GC_VALUE_CMP
 
     bool operator!=( const GC_VALUE& other )
@@ -275,7 +274,6 @@ namespace swig {
 
   };
 
-  ID  GC_VALUE::cmp_id = rb_intern("<=>");
   ID  GC_VALUE::hash_id = rb_intern("hash");
   ID  GC_VALUE::lt_id = rb_intern("<");
   ID  GC_VALUE::gt_id = rb_intern(">");

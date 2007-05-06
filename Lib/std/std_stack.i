@@ -74,7 +74,7 @@ namespace std {
 	template <>  struct traits<std::stack<_Tp, _Sequence > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::stack<" #_Tp " >";
+	    return "std::stack<" #_Tp "," #_Sequence " >";
 	  }
 	};
       }
@@ -108,7 +108,7 @@ namespace std {
 	template <>  struct traits<std::stack<_Tp*, _Sequence > > {
 	  typedef value_category category;
 	  static const char* type_name() {
-	    return "std::stack<" #_Tp " * >";
+	    return "std::stack<" #_Tp "," #_Sequence " * >";
 	  }
 	};
       }
