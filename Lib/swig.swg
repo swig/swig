@@ -542,6 +542,7 @@ namespace std {
 %define SWIG_TYPECHECK_MAP          210    %enddef
 %define SWIG_TYPECHECK_MULTIMAP     220    %enddef
 %define SWIG_TYPECHECK_STACK        230    %enddef
+%define SWIG_TYPECHECK_QUEUE        240    %enddef
 
 %define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
 %define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
