@@ -59,4 +59,5 @@
 
 %mixin std::set "Enumerable";
 
+%include <rubystdfunctors.swg>
 %include <std/std_set.i>

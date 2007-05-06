@@ -83,13 +83,15 @@ namespace std {
 	template <>  struct traits<std::set<_Key, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::set<" #_Key "," #_Alloc " >";
+	    return "std::set<" #_Key "," #_Compare "," #_Alloc " >";
 	  }
 	};
       }
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<_Key, _Compare, _Alloc >);
+
+    set( const _Compare&, const _Alloc& a = allocator_type() );
 
 #ifdef %swig_set_methods
     // Add swig/language extra methods

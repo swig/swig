@@ -114,6 +114,8 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<_Key, _Tp, _Compare, _Alloc >);
 
+    map( const _Compare&, const _Alloc& a = allocator_type() );
+
 #ifdef %swig_map_methods
     // Add swig/language extra methods
     %swig_map_methods(std::map<_Key, _Tp, _Compare, _Alloc >);

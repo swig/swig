@@ -75,6 +75,8 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<_Key, _Tp, _Compare, _Alloc >);
   
+    multimap( const _Compare&, const _Alloc& a = allocator_type() );
+
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods
     %swig_multimap_methods(std::multimap<_Key, _Tp, _Compare, _Alloc >);

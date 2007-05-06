@@ -398,4 +398,5 @@
 
 %mixin std::map "Enumerable";
 
+%include <rubystdfunctors.swg>
 %include <std/std_map.i>

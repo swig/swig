@@ -71,6 +71,8 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<_Key, _Compare, _Alloc >);
 
+    multiset( const _Compare&, const _Alloc& a = allocator_type() );
+
 #ifdef %swig_multiset_methods
     // Add swig/language extra methods
     %swig_multiset_methods(std::multiset<_Key, _Compare, _Alloc >);
