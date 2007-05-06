@@ -21,6 +21,7 @@
  * 
  */
 
+%include rubyclasses.swg
 
 %{
 /* This function can be used to check whether a proc or method or similarly
