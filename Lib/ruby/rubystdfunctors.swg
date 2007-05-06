@@ -59,46 +59,46 @@ int SWIG_Ruby_arity( VALUE proc, int minimal )
 
 namespace swig {
 
-  %apply GC_VALUE { RubyUnaryPredicate, RubyBinaryPredicate, RubyUnaryFunction,
-		      RubyBinaryFunction };
+  %apply GC_VALUE { UnaryPredicate, BinaryPredicate, UnaryFunction,
+		      BinaryFunction };
 
   %typecheck(SWIG_TYPECHECK_POINTER,noblock=1) 
-    RubyUnaryPredicate, RubyUnaryPredicate&, RubyUnaryFunction, RubyUnaryFunction&
+    UnaryPredicate, UnaryPredicate&, UnaryFunction, UnaryFunction&
   {
     $1 = SWIG_Ruby_isCallable($input) && SWIG_Ruby_arity($input, 1);
   }
 
   %typecheck(SWIG_TYPECHECK_POINTER,noblock=1) 
-    RubyBinaryPredicate, RubyBinaryPredicate&, RubyBinaryFunction, RubyBinaryFunction& {
+    BinaryPredicate, BinaryPredicate&, BinaryFunction, BinaryFunction& {
     $1 = SWIG_Ruby_isCallable($input) && SWIG_Ruby_arity($input, 2);
   }
 
-  %typemap(in,noblock=1) RubyUnaryFunction&, RubyUnaryFunction {
-    $1 = new swig::RubyUnaryFunction<>($input);
+  %typemap(in,noblock=1) UnaryFunction&, UnaryFunction {
+    $1 = new swig::UnaryFunction<>($input);
   }
-  %typemap(in,noblock=1) RubyUnaryPredicate&, RubyUnaryPredicate {
-    $1 = new swig::RubyUnaryPredicate<>($input);
-  }
-
-  %typemap(in,noblock=1)  RubyBinaryFunction&, RubyBinaryFunction {
-    $1 = new swig::RubyBinaryFunction<>($input);
-  }
-  %typemap(in,noblock=1) RubyBinaryPredicate&, RubyBinaryPredicate {
-    $1 = new swig::RubyBinaryPredicate<>($input);
+  %typemap(in,noblock=1) UnaryPredicate&, UnaryPredicate {
+    $1 = new swig::UnaryPredicate<>($input);
   }
 
+  %typemap(in,noblock=1)  BinaryFunction&, BinaryFunction {
+    $1 = new swig::BinaryFunction<>($input);
+  }
+  %typemap(in,noblock=1) BinaryPredicate&, BinaryPredicate {
+    $1 = new swig::BinaryPredicate<>($input);
+  }
 
-  %ignore RubyBinaryFunction;
-  struct RubyBinaryFunction {};
 
-  %ignore RubyUnaryFunction;
-  struct RubyUnaryFunction {};
+  %ignore BinaryFunction;
+  struct BinaryFunction {};
 
-  %ignore RubyBinaryPredicate;
-  struct RubyBinaryPredicate {};
+  %ignore UnaryFunction;
+  struct UnaryFunction {};
 
-  %ignore RubyUnaryPredicate;
-  struct RubyUnaryPredicate {};
+  %ignore BinaryPredicate;
+  struct BinaryPredicate {};
+
+  %ignore UnaryPredicate;
+  struct UnaryPredicate {};
 
 }
 
@@ -109,9 +109,9 @@ namespace swig {
   static ID call_id = rb_intern("call");
 
   template <class _DefaultFunc = std::less<GC_VALUE> >
-  struct RubyBinaryPredicate : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, bool>
+  struct BinaryPredicate : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, bool>
   {
-    RubyBinaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
+    BinaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
     bool operator()(GC_VALUE arg1, GC_VALUE arg2) const
     {
       if (_obj != Qnil) {
@@ -127,9 +127,9 @@ namespace swig {
   };
 
   template <class _DefaultFunc = std::less<GC_VALUE> >
-  struct RubyBinaryFunction : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, GC_VALUE>
+  struct BinaryFunction : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, GC_VALUE>
   {
-    RubyBinaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
+    BinaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
     GC_VALUE operator()(GC_VALUE arg1, GC_VALUE arg2) const
     {
       if (_obj != Qnil) {
@@ -145,9 +145,9 @@ namespace swig {
   };
 
 
-  struct RubyUnaryPredicate : GC_VALUE, std::unary_function<GC_VALUE, bool>
+  struct UnaryPredicate : GC_VALUE, std::unary_function<GC_VALUE, bool>
   {
-    RubyUnaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
+    UnaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
     bool operator()(GC_VALUE arg1) const
     {
       SWIG_RUBY_THREAD_BEGIN_BLOCK;
@@ -157,9 +157,9 @@ namespace swig {
     }
   };
 
-  struct RubyUnaryFunction : GC_VALUE, std::unary_function<GC_VALUE, GC_VALUE>
+  struct UnaryFunction : GC_VALUE, std::unary_function<GC_VALUE, GC_VALUE>
   {
-    RubyUnaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
+    UnaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
     GC_VALUE operator()(GC_VALUE arg1) const
     {
       SWIG_RUBY_THREAD_BEGIN_BLOCK;
@@ -168,6 +168,8 @@ namespace swig {
       return GC_VALUE(res);
     }
   };
+
+
 }
 %}
 
