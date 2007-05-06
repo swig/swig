@@ -1,4 +1,4 @@
-%module stl_new
+%module li_std_functors
 
 %include <std_vector.i>
 %include <std_deque.i>

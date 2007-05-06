@@ -4,9 +4,9 @@
 # std::complex, std::vector, std::set and std::map,
 # and IN/OUT functions for them.
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'

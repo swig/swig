@@ -12,9 +12,9 @@
 # instructions to kick in.
 # See: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/7449
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   SWIG
+# 
+# 
+# 
 #
 
 require 'swig_assert'

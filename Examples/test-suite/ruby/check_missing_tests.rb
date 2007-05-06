@@ -3,9 +3,9 @@
 # This script allows you to compare the tests in the current directory
 # (Ruby) against the tests of other languages to see which ones are missing
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 

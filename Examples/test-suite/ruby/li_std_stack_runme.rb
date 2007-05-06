@@ -2,9 +2,9 @@
 #
 # A simple std::stack test
 #
-# Author::    
-# Copyright:: 
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'

@@ -2,9 +2,9 @@
 #
 # Tests for std::map and std::multimap
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'

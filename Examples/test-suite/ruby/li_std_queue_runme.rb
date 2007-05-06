@@ -2,9 +2,9 @@
 #
 # A simple std::queue test
 #
-# Author::    
-# Copyright:: 
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'

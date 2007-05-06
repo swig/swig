@@ -4,13 +4,13 @@
 # objects to change the sorting function used in them.  Same as a
 # std::binary_predicate in C++.
 #
-# Author::    
-# Copyright:: 
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'
-require 'stl_new'
+require 'li_std_functors'
 
 
 def _set(container)
@@ -53,10 +53,17 @@ EOF
 end
 
 def test
-  yield method(:_set), Stl_new::Set
-  yield method(:_map), Stl_new::Map
+  yield method(:_set), Li_std_functors::Set
+  yield method(:_map), Li_std_functors::Map
 end
 
+# these should fail and not segfault
+begin
+  p 'a'
+  p Li_std_functors::Set.new('sd')
+rescue => e
+  p e
+end
 
 test do |proc, container|
   proc.call(container)

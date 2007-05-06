@@ -2,9 +2,9 @@
 #
 # Put script description here.
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'

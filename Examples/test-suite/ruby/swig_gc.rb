@@ -25,9 +25,9 @@
 #     # do some more...
 #     GC.stats  # just report stats
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 module GC

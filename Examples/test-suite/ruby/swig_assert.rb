@@ -2,9 +2,9 @@
 #
 # A simple function to create useful asserts
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 

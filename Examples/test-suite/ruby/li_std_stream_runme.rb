@@ -2,9 +2,9 @@
 #
 # Simple test of std::ostringstream.
 #
-# Author::    gga
-# Copyright:: 2007
-# License::   Ruby
+# 
+# 
+# 
 #
 
 require 'swig_assert'
