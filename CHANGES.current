@@ -92,7 +92,7 @@ Version 1.3.32 (in progress)
 	    properly supported in Ruby.  These features will generate
 	    a _wrap.cxx file with rdoc comments in them.
 
-05/05/2007: gga
+05/02/2007: gga
 	    [Ruby]
 	    STL files have been upgraded to follow the new swig/python 
 	    Lib/std conventions.
