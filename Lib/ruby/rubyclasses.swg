@@ -3,7 +3,7 @@
 /*
   GC_VALUE is used as a replacement of Ruby's VALUE.
   GC_VALUE automatically handles registering and unregistering
-  of the underlying ruby object with the GC.
+  of the underlying Ruby object with the GC.
 
   It can be used if you want to create STL containers of VALUEs, such as:
   
@@ -12,12 +12,12 @@
   or as a member variable:
   
      struct A {
-       GC_VALUE obj;
+       GC_VALUE _obj;
        A(VALUE o) : _obj(o) {
        }
      };
 
-   or as a input/output value (not much use for this, as VALUE works as
+   or as a input/output value (not much use for this, as VALUE works just as
    well here, thou):
 
      GC_VALUE func(GC_VALUE obj) { 
