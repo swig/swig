@@ -12,6 +12,9 @@
 // Queue
 
 %define %std_queue_methods(queue...)
+  queue();
+  queue( const _Sequence& );
+
   bool empty() const;
   size_type size() const;
   const value_type& front() const;
@@ -54,25 +57,22 @@
 
 namespace std {
 
-  template<class _Tp, class _Alloc = allocator<_Tp> > 
+  template<class _Tp, class _Sequence = std::deque<_Tp> > 
   class queue {
   public:
     typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
     typedef _Tp value_type;
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
-    typedef _Alloc allocator_type;
+    typedef _Sequence container_type;
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::queue<_Tp, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::queue<_Tp, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdQueueTraits") {
       namespace swig {
-	template <>  struct traits<std::queue<_Tp, _Alloc > > {
+	template <>  struct traits<std::queue<_Tp, _Sequence > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::queue<" #_Tp " >";
@@ -81,35 +81,32 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp, _Sequence >);
   
 #ifdef %swig_queue_methods
     // Add swig/language extra methods
-    %swig_queue_methods(std::queue<_Tp, _Alloc >);
+    %swig_queue_methods(std::queue<_Tp, _Sequence >);
 #endif
 
     %std_queue_methods(queue);
   };
 
-  template<class _Tp, class _Alloc > 
-  class queue<_Tp*, _Alloc > {
+  template<class _Tp, class _Sequence > 
+  class queue<_Tp*, _Sequence > {
   public:
     typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    typedef _Tp* value_type;
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
-    typedef value_type reference;
-    typedef value_type const_reference;
-    typedef _Alloc allocator_type;
+    typedef _Tp value_type;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    typedef _Sequence container_type;
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::queue<_Tp*, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::queue<_Tp*, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdQueueTraits") {
       namespace swig {
-	template <>  struct traits<std::queue<_Tp*, _Alloc > > {
+	template <>  struct traits<std::queue<_Tp*, _Sequence > > {
 	  typedef value_category category;
 	  static const char* type_name() {
 	    return "std::queue<" #_Tp " * >";
@@ -118,14 +115,14 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp*, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp*, _Sequence >);
 
 #ifdef %swig_queue_methods_val
     // Add swig/language extra methods
-    %swig_queue_methods_val(std::queue<_Tp*, _Alloc >);
+    %swig_queue_methods_val(std::queue<_Tp*, _Sequence >);
 #endif
 
-    %std_queue_methods_val(std::queue<_Tp*, _Alloc >);
+    %std_queue_methods_val(std::queue<_Tp*, _Sequence >);
   };
 
 }

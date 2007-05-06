@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# A simple std::stack test
+# A simple std::queue test
 #
 # Author::    
 # Copyright:: 

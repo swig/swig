@@ -91,7 +91,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<_Key, _Compare, _Alloc >);
 
-    set( const _Compare&, const _Alloc& a = allocator_type() );
+    set( const _Compare& );
 
 #ifdef %swig_set_methods
     // Add swig/language extra methods
