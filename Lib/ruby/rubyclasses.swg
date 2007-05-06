@@ -77,11 +77,46 @@ namespace swig {
   typedef GC_VALUE LANGUAGE_OBJ;
 }
 
+
 %{
 namespace swig {
   class GC_VALUE {
   protected:
     VALUE  _obj;
+
+    static ID  cmp_id;
+    static ID hash_id;
+    static ID   lt_id;
+    static ID   gt_id;
+    static ID   eq_id;
+    static ID   le_id;
+    static ID   ge_id;
+
+    static ID  pos_id;
+    static ID  neg_id;
+    static ID  inv_id;
+
+    static ID  add_id;
+    static ID  sub_id;
+    static ID  mul_id;
+    static ID  div_id;
+    static ID  mod_id;
+
+    static ID  and_id;
+    static ID   or_id;
+    static ID  xor_id;
+
+    static ID  lshift_id;
+    static ID  rshift_id;
+
+    struct OpArgs
+    {
+      VALUE src;
+      ID    id;
+      int   nargs;
+      VALUE target;
+    };
+
 
   public:
     GC_VALUE() :_obj( Qnil )
@@ -135,69 +170,143 @@ namespace swig {
       return rb_inspect(_obj);
     }
 
-  };
-
-  typedef GC_VALUE LANGUAGE_OBJ;
-}
-
-
-/**
- * std::less< GC_VALUE > functor so that STL containers will accept
- * GC_VALUE.
- * 
- */
-
-namespace std {
-  template <>
-  struct less< swig::GC_VALUE >: public binary_function< swig::GC_VALUE, 
-							 swig::GC_VALUE, bool >
-  {
-    static ID  cmp_id;
-    static ID hash_id;
-
-
     static VALUE swig_protect_funcall( VALUE p )
     {
-      swig::GC_VALUE* args = (swig::GC_VALUE*) p;
-      return rb_funcall(VALUE(args[0]), cmp_id, 1, VALUE(args[1]));
+      OpArgs* args = (OpArgs*) p;
+      return rb_funcall( args->src, args->id, args->nargs, args->target );
     }
 
-    bool
-    operator()( const swig::GC_VALUE& v, const swig::GC_VALUE& w ) const
-    { 
-      // SWIG_RUBY_THREAD_BEGIN_BLOCK;
 
-      VALUE ret = Qnil;
-
-      // First, try to compare using the <=> operator if present
-      if ( rb_respond_to( v, cmp_id ) == Qtrue )
-	{
-	  int status;
-	  swig::GC_VALUE args[] = { v, w };
-	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(args), 
-			    &status );
-	}
-
-      bool res;
-      // If that fails, try to use the two object's hash function to compare.
-      if ( ret == Qnil ) {
-	VALUE a = rb_funcall( VALUE(v), hash_id, 0 );
-	VALUE b = rb_funcall( VALUE(w), hash_id, 0 );
-	res = a < b;  // as shifted integers
-      }
-      else
-	{
-	  res = NUM2INT( ret ) < 0;
-	}
-      // SWIG_RUBY_THREAD_END_BLOCK;
-      return res;
+#define GC_VALUE_CMP( op_id, op, cmp ) \
+    bool op( const GC_VALUE& other ) const \
+    { \
+      VALUE ret = Qnil; \
+      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
+      if ( rb_respond_to( _obj, op_id ) == Qtrue ) \
+	{ \
+	  int status; \
+	  OpArgs  args; \
+          args.src    = _obj; \
+	  args.id     = op_id; \
+	  args.nargs  = 1; \
+	  args.target = VALUE(other); \
+	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
+			    &status ); \
+	} \
+      bool res = false; \
+      if ( ret == Qnil ) { \
+	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \
+	VALUE b = rb_funcall( VALUE(other), hash_id, 0 ); \
+	res = a cmp b; \
+      } \
+      else \
+	{ \
+	  res = RTEST( ret ); \
+	} \
+      SWIG_RUBY_THREAD_END_BLOCK; \
+      return res; \
     }
+
+
+    GC_VALUE_CMP( eq_id, operator==, == )
+    GC_VALUE_CMP( lt_id, operator<,  <  )
+    GC_VALUE_CMP( le_id, operator<=, <= )
+    GC_VALUE_CMP( gt_id, operator>,  >  )
+    GC_VALUE_CMP( ge_id, operator>=, >= )
+#undef GC_VALUE_CMP
+
+    bool operator!=( const GC_VALUE& other )
+    {
+      return !(this->operator==(other));
+    }
+
+#define GC_VALUE_UNARY( proc_id, op ) \
+    GC_VALUE op() const \
+    { \
+      VALUE ret = Qnil; \
+      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
+      int status; \
+      OpArgs  args; \
+      args.src    = _obj; \
+      args.id     = proc_id; \
+      args.nargs  = 0; \
+      args.target = Qnil; \
+      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
+			&status ); \
+      SWIG_RUBY_THREAD_END_BLOCK; \
+      return ret; \
+    }
+
+    GC_VALUE_UNARY( pos_id, operator+ )
+    GC_VALUE_UNARY( neg_id, operator- )
+    GC_VALUE_UNARY( inv_id, operator~ )
+#undef GC_VALUE_BINARY
+
+#define GC_VALUE_BINARY( proc_id, op ) \
+    GC_VALUE op( const GC_VALUE& other ) const \
+    { \
+      VALUE ret = Qnil; \
+      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
+      int status; \
+      OpArgs  args; \
+      args.src    = _obj; \
+      args.id     = proc_id; \
+      args.nargs  = 1; \
+      args.target = VALUE(other); \
+      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
+			&status ); \
+      SWIG_RUBY_THREAD_END_BLOCK; \
+      return GC_VALUE(ret); \
+    }
+
+    GC_VALUE_BINARY( add_id, operator+ );
+    GC_VALUE_BINARY( sub_id, operator- );
+    GC_VALUE_BINARY( mul_id, operator* );
+    GC_VALUE_BINARY( div_id, operator/ );
+    GC_VALUE_BINARY( mod_id, operator% );
+    
+    GC_VALUE_BINARY( and_id, operator& );
+    GC_VALUE_BINARY( xor_id, operator^ );
+    GC_VALUE_BINARY(  or_id, operator| );
+
+    GC_VALUE_BINARY( lshift_id, operator<< );
+    GC_VALUE_BINARY( rshift_id, operator>> );
+#undef GC_VALUE_BINARY
+
   };
 
-  ID less< swig::GC_VALUE >::cmp_id  = rb_intern("<=>");
-  ID less< swig::GC_VALUE >::hash_id = rb_intern("hash");
-}
+  ID  GC_VALUE::cmp_id = rb_intern("<=>");
+  ID  GC_VALUE::hash_id = rb_intern("hash");
+  ID  GC_VALUE::lt_id = rb_intern("<");
+  ID  GC_VALUE::gt_id = rb_intern(">");
+  ID  GC_VALUE::eq_id = rb_intern("==");
+  ID  GC_VALUE::le_id = rb_intern("<=");
+  ID  GC_VALUE::ge_id = rb_intern(">=");
+
+  ID  GC_VALUE::pos_id = rb_intern("+@");
+  ID  GC_VALUE::neg_id = rb_intern("-@");
+  ID  GC_VALUE::inv_id = rb_intern("~");
+
+  ID  GC_VALUE::add_id = rb_intern("+");
+  ID  GC_VALUE::sub_id = rb_intern("-");
+  ID  GC_VALUE::mul_id = rb_intern("*");
+  ID  GC_VALUE::div_id = rb_intern("/");
+  ID  GC_VALUE::mod_id = rb_intern("%");
+
+  ID  GC_VALUE::and_id = rb_intern("&");
+  ID  GC_VALUE::or_id  = rb_intern("|");
+  ID  GC_VALUE::xor_id = rb_intern("^");
+
+  ID  GC_VALUE::lshift_id = rb_intern("<<");
+  ID  GC_VALUE::rshift_id = rb_intern(">>");
+  typedef GC_VALUE LANGUAGE_OBJ;
+
+} // namespace swig
+
 %}
+
+
+
 
 
 //
