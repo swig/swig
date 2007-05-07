@@ -57,7 +57,6 @@ SWIGINTERN int
 SWIG_AsVal(Type) (VALUE o, Type* val)
 {
   if ( Ruby_Is_Complex( o ) ) {
-    fprintf( stderr, "complex<double> conv\n");
     if (val) {
       VALUE real = rb_funcall(o, swig_real_id, 0 );
       VALUE imag = rb_funcall(o, swig_imag_id, 0 );
