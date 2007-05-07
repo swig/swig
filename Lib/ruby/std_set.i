@@ -36,6 +36,7 @@
 %}
 
 %define %swig_set_methods(set...)
+  %swig_sequence_iterator(set)
   %swig_sequence_methods_common(set); 
 
   %extend  {

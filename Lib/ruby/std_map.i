@@ -84,11 +84,12 @@
       }
     };
 
-    template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
-    struct RubyMapIterator_T : RubySwigIteratorClosed_T<OutIterator, ValueType, FromOper>
+    template<class OutIterator, class FromOper, 
+	     class ValueType = typename OutIterator::value_type>
+    struct MapIterator_T : ConstIteratorClosed_T<OutIterator, ValueType, FromOper>
     {
-      RubyMapIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
-	: RubySwigIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
+      MapIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
+	: ConstIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
       {
       }
     };
@@ -96,37 +97,39 @@
 
     template<class OutIterator,
 	     class FromOper = from_key_oper<typename OutIterator::value_type> >
-    struct RubyMapKeyIterator_T : RubyMapIterator_T<OutIterator, FromOper>
+    struct MapKeyIterator_T : MapIterator_T<OutIterator, FromOper>
     {
-      RubyMapKeyIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
-	: RubyMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      MapKeyIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
+	: MapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
     };
 
     template<typename OutIter>
-    inline RubySwigIterator*
-    make_output_key_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, VALUE seq = 0)
+    inline ConstIterator*
+    make_output_key_iterator(const OutIter& current, const OutIter& begin, 
+			     const OutIter& end, VALUE seq = 0)
     {
-      return new RubyMapKeyIterator_T<OutIter>(current, begin, end, seq);
+      return new MapKeyIterator_T<OutIter>(current, begin, end, seq);
     }
 
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
-    struct RubyMapValueIterator_T : RubyMapIterator_T<OutIterator, FromOper>
+    struct MapValueIterator_T : MapIterator_T<OutIterator, FromOper>
     {
-      RubyMapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
-	: RubyMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      MapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, VALUE seq)
+	: MapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
     };
     
 
     template<typename OutIter>
-    inline RubySwigIterator*
-    make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, VALUE seq = 0)
+    inline ConstIterator*
+    make_output_value_iterator(const OutIter& current, const OutIter& begin, 
+			       const OutIter& end, VALUE seq = 0)
     {
-      return new RubyMapValueIterator_T<OutIter>(current, begin, end, seq);
+      return new MapValueIterator_T<OutIter>(current, begin, end, seq);
     }
   }
 }
@@ -309,13 +312,15 @@
     }
 
     %newobject key_iterator(VALUE *RUBY_SELF);
-    swig::RubySwigIterator* key_iterator(VALUE *RUBY_SELF) {
-      return swig::make_output_key_iterator($self->begin(), $self->begin(), $self->end(), *RUBY_SELF);
+    swig::ConstIterator* key_iterator(VALUE *RUBY_SELF) {
+      return swig::make_output_key_iterator($self->begin(), $self->begin(), 
+					    $self->end(), *RUBY_SELF);
     }
 
     %newobject value_iterator(VALUE *RUBY_SELF);
-    swig::RubySwigIterator* value_iterator(VALUE *RUBY_SELF) {
-      return swig::make_output_value_iterator($self->begin(), $self->begin(), $self->end(), *RUBY_SELF);
+    swig::ConstIterator* value_iterator(VALUE *RUBY_SELF) {
+      return swig::make_output_value_iterator($self->begin(), $self->begin(), 
+					      $self->end(), *RUBY_SELF);
     }
 
   }

@@ -17,11 +17,8 @@
   void erase(iterator first, iterator last);
 
   iterator find(const key_type& x);
-  const_iterator find(const key_type& x) const;
   iterator lower_bound(const key_type& x);
-  const_iterator lower_bound(const key_type& x) const;
   iterator upper_bound(const key_type& x);
-  const_iterator upper_bound(const key_type& x) const;
 #endif
 %enddef
 

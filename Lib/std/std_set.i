@@ -7,26 +7,35 @@
 
 // Set
 %define %std_set_methods_common(set...)
-  %std_container_methods(set);
+  class const_iterator;
+  class const_reverse_iterator;
+
+  set();
+  set( const set& );
   
+  const_iterator begin() const;
+  const_iterator end() const;
+  const_reverse_iterator rbegin();
+  const_reverse_iterator rend();
+
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
   
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  void erase(iterator pos);
-  void erase(iterator first, iterator last);
+  void erase(const_iterator pos);
+  void erase(const_iterator first, const_iterator last);
 
-  iterator find(const key_type& x);
-  iterator lower_bound(const key_type& x);
-  iterator upper_bound(const key_type& x);
-  std::pair<iterator,iterator> equal_range(const key_type& x);
+  const_iterator find(const key_type& x);
+  const_iterator lower_bound(const key_type& x);
+  const_iterator upper_bound(const key_type& x);
+  std::pair<const_iterator,const_iterator> equal_range(const key_type& x);
 #endif
 %enddef
 
 %define %std_set_methods(set...)
   %std_set_methods_common(set);
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  std::pair<iterator,bool> insert(const value_type& __x);
+  std::pair<const_iterator,bool> insert(const value_type& __x);
 #endif
 %enddef
 
@@ -99,6 +108,5 @@ namespace std {
 #endif
   
     %std_set_methods(set);
-
   };
 }

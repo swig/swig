@@ -27,11 +27,12 @@ Active Developers:
  Mikel Bancroft (mikel@franz.com)                       (Allegro CL)
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
  Surendra Singhi (efuzzyone@netscape.net)               (CLISP, CFFI)
- Charlie Savage (cfis@interserv.com)                    (Ruby)
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
  Joseph Wang (joe@gnacademy.org)                        (R)
+ Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
 Major contributors include:
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
+ Charlie Savage (cfis@interserv.com)                    (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Richard Palmer (richard@magicality.org)                (PHP)
  Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)

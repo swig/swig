@@ -159,7 +159,7 @@ namespace swig {
 %fragment("RubySequence_Cont","header",
 	  fragment="StdTraits",
 	  fragment="RubySequence_Base",
-	  fragment="RubySwigIterator_T")
+	  fragment="ConstIterator_T")
 {
 namespace swig
 {
@@ -401,47 +401,85 @@ namespace swig
  */
 %define %swig_sequence_iterator(Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
-  class iterator;
-  class reverse_iterator;
-  class const_iterator;
-  class const_reverse_iterator;
 
   %typemap(out,noblock=1,fragment="RubySequence_Cont")
-    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
+    const_iterator, const_reverse_iterator {
     $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
-				 swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+				 swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
   }
+
   %typemap(out,noblock=1,fragment="RubySequence_Cont")
-    std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
+    iterator, reverse_iterator {
+    $result = SWIG_NewPointerObj(swig::make_inout_iterator(%static_cast($1,const $type &)),
+				 swig::Iterator::descriptor(),SWIG_POINTER_OWN);
+  }
+
+  %typemap(out,noblock=1,fragment="RubySequence_Cont")
+    std::pair<const_iterator, const_iterator> {
     $result = rb_ary_new2(2);
     RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
     RARRAY_PTR($result)[1] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);
+						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
     RARRAY_LEN($result) = 2;
   }
+
+  %typemap(out,noblock=1,fragment="RubySequence_Cont")
+    std::pair<iterator, iterator> {
+    $result = rb_ary_new2(2);
+    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_inout_iterator(%static_cast($1,const $type &).first),
+						swig::Iterator::descriptor(),SWIG_POINTER_OWN);
+    RARRAY_PTR($result)[1] = SWIG_NewPointerObj(swig::make_inout_iterator(%static_cast($1,const $type &).second),
+						swig::Iterator::descriptor(),SWIG_POINTER_OWN);
+    RARRAY_LEN($result) = 2;
+  }
+
 
   %fragment("RubyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="RubySequence_Cont") {}
 
   %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
-    std::pair<iterator, bool>, std::pair<const_iterator, bool> {
+    std::pair<const_iterator, bool> {
     $result = rb_ary_new2(2);
     RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-						swig::RubySwigIterator::descriptor(),SWIG_POINTER_OWN);    
+						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);    
+    RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
+    RARRAY_LEN($result) = 2;
+  }
+
+  %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
+    std::pair<iterator, bool> {
+    $result = rb_ary_new2(2);
+    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_inout_iterator(%static_cast($1,const $type &).first),
+						swig::Iterator::descriptor(),SWIG_POINTER_OWN);    
     RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
     RARRAY_LEN($result) = 2;
   }
 
   %typemap(in,noblock=1,fragment="RubySequence_Cont")
-    iterator(swig::RubySwigIterator *iter = 0, int res),
-    reverse_iterator(swig::RubySwigIterator *iter = 0, int res),
-    const_iterator(swig::RubySwigIterator *iter = 0, int res),
-    const_reverse_iterator(swig::RubySwigIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::RubySwigIterator::descriptor(), 0);
+    const_iterator(swig::ConstIterator *iter = 0, int res),
+    const_reverse_iterator(swig::ConstIterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter),
+			  swig::ConstIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
-      swig::RubySwigIterator_T<$type > *iter_t = dynamic_cast<swig::RubySwigIterator_T<$type > *>(iter);
+      swig::ConstIterator_T<$type > *iter_t = dynamic_cast<swig::ConstIterator_T<$type > *>(iter);
+      if (iter_t) {
+	$1 = iter_t->get_current();
+      } else {
+	%argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
+    }
+  }
+
+  %typemap(in,noblock=1,fragment="RubySequence_Cont")
+    iterator(swig::Iterator *iter = 0, int res),
+    reverse_iterator(swig::Iterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::Iterator::descriptor(), 0);
+    if (!SWIG_IsOK(res) || !iter) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    } else {
+      swig::Iterator_T<$type > *iter_t = dynamic_cast<swig::Iterator_T<$type > *>(iter);
       if (iter_t) {
 	$1 = iter_t->get_current();
       } else {
@@ -451,21 +489,35 @@ namespace swig
   }
 
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="RubySequence_Cont")
-    iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    swig::RubySwigIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::RubySwigIterator::descriptor(), 0);
-    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::RubySwigIterator_T<$type > *>(iter) != 0));
+    const_iterator, const_reverse_iterator {
+    swig::ConstIterator *iter = 0;
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::ConstIterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::ConstIterator_T<$type > *>(iter) != 0));
+  }
+
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="RubySequence_Cont")
+    iterator, reverse_iterator {
+    swig::ConstIterator *iter = 0;
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
+			      swig::Iterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::Iterator_T<$type > *>(iter) != 0));
   }
 
   %fragment("RubySequence_Cont");
 
-  %newobject iterator;
-  %extend  {
-    swig::RubySwigIterator* iterator(VALUE* RUBY_SELF) {
-      return swig::make_output_iterator($self->begin(), $self->begin(), 
-					$self->end(), *RUBY_SELF);
-    }
-  }
+//   %newobject iterator;
+//   %newobject const_iterator;
+//   %extend  {
+//     swig::Iterator* iterator(VALUE* RUBY_SELF) {
+//       return swig::make_inout_iterator($self->begin(), $self->begin(), 
+// 				       $self->end(), *RUBY_SELF);
+//     }
+
+//     swig::ConstIterator* const_iterator(VALUE* RUBY_SELF) {
+//       return swig::make_output_iterator($self->begin(), $self->begin(), 
+// 					$self->end(), *RUBY_SELF);
+//     }
+//   }
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 
