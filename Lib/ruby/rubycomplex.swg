@@ -12,18 +12,24 @@
   STD library.
 */
 %{
-  static VALUE rb_cComplex = Qnil;
-  static ID    real_id = Qnil;
-  static ID    imag_id = Qnil;
+  static VALUE swig_rb_cComplex = Qnil;
+  static ID    swig_real_id = 0;
+  static ID    swig_imag_id = 0;
+
+  int Ruby_Is_Complex( VALUE obj )
+    {
+      return ( (rb_respond_to( obj, swig_real_id ) == Qtrue) &&
+	       (rb_respond_to( obj, swig_imag_id ) == Qtrue) );
+    }
 %}
 
 %init {
   rb_require("complex");
-  rb_cComplex = rb_const_get( rb_cObject, rb_intern("Complex") );
-  if ( rb_cComplex == Qnil )
-    rb_warn("Complex numbers not available");
-  real_id = rb_intern("real");
-  imag_id = rb_intern("imag");
+  swig_rb_cComplex = rb_const_get( rb_cObject, rb_intern("Complex") );
+  if( swig_rb_cComplex == Qnil )
+    rb_warn("Ruby's complex.so not found");
+  swig_real_id = rb_intern("real");
+  swig_imag_id = rb_intern("imag");
 }
 
 /* the common from conversor */
@@ -50,11 +56,16 @@ SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
 SWIGINTERN int
 SWIG_AsVal(Type) (VALUE o, Type* val)
 {
-  if ( rb_obj_is_kind_of( o, rb_cComplex) ) {
+  if ( Ruby_Is_Complex( o ) ) {
+    fprintf( stderr, "complex<double> conv\n");
     if (val) {
-      VALUE real = rb_funcall(o, real_id, 0 );
-      VALUE imag = rb_funcall(o, imag_id, 0 );
-      *val = Constructor(RFLOAT(real)->value, RFLOAT(imag)->value);
+      VALUE real = rb_funcall(o, swig_real_id, 0 );
+      VALUE imag = rb_funcall(o, swig_imag_id, 0 );
+      double re = 0;
+      SWIG_AsVal_double( real, &re );
+      double im = 0;
+      SWIG_AsVal_double( imag, &im );
+      *val = Constructor(re, im);
       return SWIG_OK;
     }
   } else {
@@ -74,15 +85,18 @@ SWIG_AsVal(Type) (VALUE o, Type* val)
 /* the float case */
 %define %swig_cplxflt_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
-          fragment=SWIG_AsVal_frag(float)) {
+          fragment=SWIG_AsVal_frag(float),
+          fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
 SWIG_AsVal(Type)(VALUE o, Type *val)
 {
-  if ( rb_obj_is_kind_of( o, rb_cComplex) ) {
-    VALUE real = rb_funcall(o, real_id, 0 );
-    VALUE imag = rb_funcall(o, imag_id, 0 );
-    double re = RFLOAT(real)->value;
-    double im = RFLOAT(imag)->value;
+  if ( Ruby_Is_Complex( o ) ) {
+    VALUE real = rb_funcall(o, swig_real_id, 0 );
+    VALUE imag = rb_funcall(o, swig_imag_id, 0 );
+    double re = 0;
+    SWIG_AsVal_double( real, &re );
+    double im = 0;
+    SWIG_AsVal_double( imag, &im );
     if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
       if (val) *val = Constructor(%numeric_cast(re, float),
 				  %numeric_cast(im, float));
