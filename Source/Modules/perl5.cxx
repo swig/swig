@@ -135,12 +135,12 @@ public:
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-package") == 0) {
-	  Printf(stderr,
-		 "*** -package is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n");
+	  Printv(stderr,
+		 "*** -package is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n", NIL);
 	  SWIG_exit(EXIT_FAILURE);
 	} else if (strcmp(argv[i], "-interface") == 0) {
-	  Printf(stderr,
-		 "*** -interface is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n");
+	  Printv(stderr,
+		 "*** -interface is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n", NIL);
 	  SWIG_exit(EXIT_FAILURE);
 	} else if (strcmp(argv[i], "-exportall") == 0) {
 	  export_all = 1;
