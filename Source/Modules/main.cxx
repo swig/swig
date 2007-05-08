@@ -903,7 +903,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	char *cfile = Char(input_file);
 	if (cfile && cfile[0] == '-') {
 	  Printf(stderr, "Unable to find option or file '%s', ", input_file);
-	  Printf(stderr, "use 'swig -help' for more information.\n", input_file);
+	  Printf(stderr, "use 'swig -help' for more information.\n");
 	} else {
 	  Printf(stderr, "Unable to find file '%s'.\n", input_file);
 	}
