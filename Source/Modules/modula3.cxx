@@ -3500,7 +3500,7 @@ MODULA3():
       Append(function_code, header);
 
       m3wrap_intf.enterBlock(no_block);
-      Printf(m3wrap_intf.f, "%s;\n\n", header, NIL);
+      Printf(m3wrap_intf.f, "%s;\n\n", header);
     }
 
     {
