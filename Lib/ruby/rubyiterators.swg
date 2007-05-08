@@ -15,70 +15,102 @@
 %include <std_common.i>
 
 
-/** 
- * Abstract base class used to represent all iterators of STL containers.
- */
 %fragment("ConstIterator","header") {  
 namespace swig {
   struct stop_iteration {
   };
 
+  /** 
+   * Abstract base class used to represent all iterators of STL containers.
+   */
   struct ConstIterator {
+  public:
+    typedef ConstIterator self_type;
+
   protected:
-    VALUE _seq;
+    GC_VALUE _seq;
 
   protected:
     ConstIterator(VALUE seq) : _seq(seq)
     {
+    }
+
+    // Random access iterator methods, but not required in Ruby
+    virtual ptrdiff_t distance(const ConstIterator &x) const
+    {
+      throw std::invalid_argument("distance not supported");
+    }
+
+    virtual bool equal (const ConstIterator &x) const
+    {
+      throw std::invalid_argument("equal not supported");
+    }
+
+    virtual self_type* advance(ptrdiff_t n)
+    {
+      throw std::invalid_argument("advance not supported");
     }
       
   public:
     virtual ~ConstIterator() {}
 
     // Access iterator method, required by Ruby
-    virtual VALUE value() const = 0;
+    virtual VALUE value() const {
+      throw std::invalid_argument("value not supported");
+      return Qnil;
+    };
 
-    // Forward iterator method, required by Ruby
-    virtual ConstIterator *incr(size_t n = 1) = 0;
+    virtual VALUE setValue( const VALUE& v ) {
+      throw std::invalid_argument("value= not supported");
+      return Qnil;
+    }
+
+    virtual self_type* next( size_t n = 1 )
+    {
+      return this->advance( n );
+    }
+
+    virtual self_type* previous( size_t n = 1 )
+    {
+      return this->advance( -n );
+    }
+
+    virtual VALUE to_s() const {
+      throw std::invalid_argument("to_s not supported");
+      return Qnil;
+    }
+
+    virtual VALUE inspect() const {
+      throw std::invalid_argument("inspect not supported");
+      return Qnil;
+    }
     
-    // Backward iterator method, very common in C++, but not required in Ruby
-    virtual ConstIterator *decr(size_t n = 1)
+    virtual ConstIterator *dup() const
     {
-      throw stop_iteration();
+      throw std::invalid_argument("dup not supported");
+      return NULL;
     }
 
-    // Random access iterator methods, but not required in Ruby
-    virtual ptrdiff_t distance(const ConstIterator &x) const
+    //
+    // C++ common/needed methods.  We emulate a bidirectional
+    // operator, to be compatible with all the STL.
+    // The iterator traits will then tell the STL what type of
+    // iterator we really are.
+    //
+    ConstIterator() : _seq( Qnil )
     {
-      throw std::invalid_argument("operation not supported");
     }
 
-    virtual bool equal (const ConstIterator &x) const
+    ConstIterator( const self_type& b ) : _seq( b._seq )
     {
-      throw std::invalid_argument("operation not supported");
-    }
-    
-    // C++ common/needed methods
-    virtual ConstIterator *dup() const = 0;
-
-    VALUE next()
-    {
-      VALUE obj = value();
-      incr();
-      return obj;
     }
 
-    VALUE previous()
+    self_type& operator=( const self_type& b )
     {
-      decr();
-      return value();
+      _seq = b._seq;
+      return *this;
     }
 
-    ConstIterator *advance(ptrdiff_t n)
-    {
-      return  (n > 0) ?  incr(n) : decr(-n);
-    }
-      
     bool operator == (const ConstIterator& x)  const
     {
       return equal(x);
@@ -89,6 +121,34 @@ namespace swig {
       return ! operator==(x);
     }
       
+    // Pre-decrement operator
+    self_type& operator--()
+    {
+      return *previous();
+    }
+
+    // Pre-increment operator
+    self_type& operator++()
+    {
+      return *next();
+    }
+
+    // Post-decrement operator
+    self_type operator--(int)
+    {
+      self_type r = *this;
+      previous();
+      return r;
+    }
+
+    // Post-increment operator
+    self_type operator++(int)
+    {
+      self_type r = *this;
+      next();
+      return r;
+    }
+
     ConstIterator& operator += (ptrdiff_t n)
     {
       return *advance(n);
@@ -98,7 +158,7 @@ namespace swig {
     {
       return *advance(-n);
     }
-      
+
     ConstIterator* operator + (ptrdiff_t n) const
     {
       return dup()->advance(n);
@@ -123,22 +183,28 @@ namespace swig {
       }	
       return desc;
     }
-
-    // Ruby common/needed printing methods
-    virtual VALUE inspect() const = 0;
-    virtual VALUE to_s()    const = 0;
   };
 
+
+  /**
+   * Abstract base class used to represent all non-const iterators of STL containers.
+   * 
+   */
   struct Iterator : public ConstIterator {
+  public:
+    typedef Iterator self_type;
+
   protected:
     Iterator(VALUE seq) : ConstIterator(seq)
     {
     }
 
-  public:
-    // Iterator setter method, required by Ruby
-    virtual bool set( const VALUE& v ) = 0;
+    virtual self_type* advance(ptrdiff_t n)
+    {
+      throw std::invalid_argument("operation not supported");
+    }
 
+  public:
     static swig_type_info* descriptor() {
       static int init = 0;
       static swig_type_info* desc = 0;
@@ -148,15 +214,23 @@ namespace swig {
       }	
       return desc;
     }
-
-    // C++ common/needed methods
-    virtual Iterator *dup() const = 0;
-
-    Iterator *advance(ptrdiff_t n)
+    
+    virtual Iterator *dup() const
     {
-      return (Iterator*) ( (n > 0) ?  incr(n) : decr(-n) );
+      throw std::invalid_argument("dup not supported");
+      return NULL;
     }
       
+    virtual self_type* next( size_t n = 1 )
+    {
+      return this->advance( n );
+    }
+
+    virtual self_type* previous( size_t n = 1 )
+    {
+      return this->advance( -n );
+    }
+
     bool operator == (const ConstIterator& x)  const
     {
       return equal(x);
@@ -201,29 +275,21 @@ namespace swig {
 namespace swig {
 
   /** 
-   * Abstract base classes for all custom const_iterators.
+   * Templated base classes for all custom const_iterators.
    *
    */
   template<typename OutConstIterator>
   class ConstIterator_T :  public ConstIterator
   {
   public:
-    typedef OutConstIterator out_iterator;
-    typedef typename std::iterator_traits<out_iterator>::value_type value_type;    
-    typedef ConstIterator_T<out_iterator> self_type;
+    typedef OutConstIterator const_iter;
+    typedef typename std::iterator_traits<const_iter>::value_type value_type;    
+    typedef ConstIterator_T<const_iter> self_type;
 
-    ConstIterator_T(out_iterator curr, VALUE seq = Qnil)
-      : ConstIterator(seq), current(curr)
-    {
-    }
-
-    const out_iterator& get_current() const
-    {
-      return current;
-    }
+  protected:
 
     
-    bool equal (const ConstIterator &iter) const
+    virtual bool equal (const ConstIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -242,7 +308,24 @@ namespace swig {
 	throw std::invalid_argument("bad iterator type");
       }
     }
-    
+
+    virtual ConstIterator* advance(ptrdiff_t n)
+    {
+      std::advance( current, n );
+      return this;
+    }
+
+  public:
+    ConstIterator_T(const_iter curr, VALUE seq = Qnil)
+      : ConstIterator(seq), current(curr)
+    {
+    }
+
+    const const_iter& get_current() const
+    {
+      return current;
+    }
+
     virtual VALUE inspect() const
     {
       VALUE ret = rb_str_new2("#<");
@@ -264,33 +347,33 @@ namespace swig {
     }
 
   protected:
-    out_iterator current;
+    const_iter current;
   };
 
 
   /** 
-   * Abstract base classes for all custom iterators.
+   * Templated base classes for all custom non-const iterators.
    *
    */
   template<typename InOutIterator>
   class Iterator_T :  public Iterator
   {
   public:
-    typedef InOutIterator inout_iterator;
-    typedef typename std::iterator_traits<inout_iterator>::value_type value_type;    
-    typedef Iterator_T<inout_iterator> self_type;
+    typedef InOutIterator nonconst_iter;
 
-    Iterator_T(inout_iterator curr, VALUE seq = Qnil)
-      : Iterator(seq), current(curr)
-    {
-    }
+    // Make this class iterator STL compatible, by using iterator_traits
+    typedef typename std::iterator_traits<nonconst_iter >::iterator_category iterator_category;
+    typedef typename std::iterator_traits<nonconst_iter >::value_type        value_type;
+    typedef typename std::iterator_traits<nonconst_iter >::difference_type   difference_type;
+    typedef typename std::iterator_traits<nonconst_iter >::pointer           pointer;
+    typedef typename std::iterator_traits<nonconst_iter >::reference         reference;
 
-    const inout_iterator& get_current() const
-    {
-      return current;
-    }
+    typedef Iterator                         base;
+    typedef Iterator_T< nonconst_iter > self_type;
 
-    bool equal (const ConstIterator &iter) const
+  protected:
+
+    virtual bool equal (const ConstIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -308,6 +391,36 @@ namespace swig {
       } else {
 	throw std::invalid_argument("bad iterator type");
       }
+    }
+
+    virtual Iterator* advance(ptrdiff_t n)
+    {
+      std::advance( current, n );
+      return this;
+    }
+
+  public:
+
+    Iterator_T(nonconst_iter curr, VALUE seq = Qnil)
+      : Iterator(seq), current(curr)
+    {
+    }
+
+    const nonconst_iter& get_current() const
+    {
+      return current;
+    }
+
+    self_type& operator=( const self_type& b )
+    {
+      base::operator=( b );
+      return *this;
+    }
+    
+    self_type& operator=( const value_type& b )
+    {
+      *current = b;
+      return *this;
     }
     
     virtual VALUE inspect() const
@@ -331,11 +444,15 @@ namespace swig {
     }
 
   protected:
-    inout_iterator current;
+    nonconst_iter current;
   };
 
 
-  
+  /**
+   * Auxiliary functor to store the value of a ruby object inside
+   * a reference of a compatible C++ type.  ie: Ruby -> C++
+   * 
+   */
   template <class ValueType>
   struct asval_oper 
   {
@@ -347,6 +464,11 @@ namespace swig {
     }
   };
 
+  /**
+   * Auxiliary functor to return a ruby object from a C++ type. 
+   * ie: C++ -> Ruby
+   * 
+   */
   template <class ValueType>
   struct from_oper 
   {
@@ -370,12 +492,12 @@ namespace swig {
   {
   public:
     FromOper from;
-    typedef OutConstIterator out_iterator;
+    typedef OutConstIterator const_iter;
     typedef ValueType value_type;
-    typedef ConstIterator_T<out_iterator>  base;
+    typedef ConstIterator_T<const_iter>  base;
     typedef ConstIteratorOpen_T<OutConstIterator, ValueType, FromOper> self_type;
     
-    ConstIteratorOpen_T(out_iterator curr, VALUE seq = Qnil)
+    ConstIteratorOpen_T(const_iter curr, VALUE seq = Qnil)
       : ConstIterator_T<OutConstIterator>(curr, seq)
     {
     }
@@ -387,22 +509,6 @@ namespace swig {
     ConstIterator *dup() const
     {
       return new self_type(*this);
-    }
-
-    ConstIterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	++base::current;
-      }
-      return this;
-    }
-
-    ConstIterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	--base::current;
-      }
-      return this;
     }
   };
 
@@ -419,12 +525,13 @@ namespace swig {
   public:
     FromOper  from;
     AsvalOper asval;
-    typedef InOutIterator inout_iterator;
+    typedef InOutIterator nonconst_iter;
     typedef ValueType value_type;
-    typedef Iterator_T<inout_iterator>  base;
+    typedef Iterator_T<nonconst_iter>  base;
     typedef IteratorOpen_T<InOutIterator, ValueType, FromOper, AsvalOper> self_type;
-    
-    IteratorOpen_T(inout_iterator curr, VALUE seq = Qnil)
+
+  public:
+    IteratorOpen_T(nonconst_iter curr, VALUE seq = Qnil)
       : Iterator_T<InOutIterator>(curr, seq)
     {
     }
@@ -433,31 +540,16 @@ namespace swig {
       return from(static_cast<const value_type&>(*(base::current)));
     }
 
-    virtual bool set( const VALUE& v )
+    virtual VALUE setValue( const VALUE& v )
     {
       value_type& dst = *base::current;
-      return asval(v, dst);
+      if ( asval(v, dst) ) return v;
+      return Qnil;
     }
     
     Iterator *dup() const
     {
       return new self_type(*this);
-    }
-
-    Iterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	++base::current;
-      }
-      return this;
-    }
-
-    Iterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	--base::current;
-      }
-      return this;
     }
   };
 
@@ -472,13 +564,23 @@ namespace swig {
   {
   public:
     FromOper from;
-    typedef OutConstIterator out_iterator;
+    typedef OutConstIterator const_iter;
     typedef ValueType value_type;
-    typedef ConstIterator_T<out_iterator>  base;    
+    typedef ConstIterator_T<const_iter>  base;    
     typedef ConstIteratorClosed_T<OutConstIterator, ValueType, FromOper> self_type;
     
-    ConstIteratorClosed_T(out_iterator curr, out_iterator first, 
-			  out_iterator last, VALUE seq = Qnil)
+  protected:
+    virtual ConstIterator* advance(ptrdiff_t n)
+    {
+      std::advance( base::current, n );
+      if ( base::current == end )
+	throw stop_iteration();
+      return this;
+    }
+
+  public:
+    ConstIteratorClosed_T(const_iter curr, const_iter first, 
+			  const_iter last, VALUE seq = Qnil)
       : ConstIterator_T<OutConstIterator>(curr, seq), begin(first), end(last)
     {
     }
@@ -491,39 +593,15 @@ namespace swig {
       }
     }
     
-    
     ConstIterator *dup() const
     {
       return new self_type(*this);
     }
 
-    ConstIterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == end) {
-	  throw stop_iteration();
-	} else {
-	  ++base::current;
-	}
-      }
-      return this;
-    }
-
-    ConstIterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == begin) {
-	  throw stop_iteration();
-	} else {
-	  --base::current;
-	}
-      }
-      return this;
-    }
 
   private:
-    out_iterator begin;
-    out_iterator end;
+    const_iter begin;
+    const_iter end;
   };
 
   /** 
@@ -539,13 +617,23 @@ namespace swig {
   public:
     FromOper   from;
     AsvalOper asval;
-    typedef InOutIterator inout_iterator;
+    typedef InOutIterator nonconst_iter;
     typedef ValueType value_type;
-    typedef Iterator_T<inout_iterator>  base;
+    typedef Iterator_T<nonconst_iter>  base;
     typedef IteratorClosed_T<InOutIterator, ValueType, FromOper, AsvalOper> self_type;
     
-    IteratorClosed_T(inout_iterator curr, inout_iterator first, 
-		     inout_iterator last, VALUE seq = Qnil)
+  protected:
+    virtual Iterator* advance(ptrdiff_t n)
+    {
+      std::advance( base::current, n );
+      if ( base::current == end )
+	throw stop_iteration();
+      return this;
+    }
+
+  public:
+    IteratorClosed_T(nonconst_iter curr, nonconst_iter first, 
+		     nonconst_iter last, VALUE seq = Qnil)
       : Iterator_T<InOutIterator>(curr, seq), begin(first), end(last)
     {
     }
@@ -559,14 +647,14 @@ namespace swig {
     }
     
     // Iterator setter method, required by Ruby
-    virtual bool set( const VALUE& v )
+    virtual VALUE setValue( const VALUE& v )
     {
-      if (base::current == end) {
+      if (base::current == end)
 	throw stop_iteration();
-      } else {
-	value_type& dst = *base::current;
-	return asval( v, dst );
-      }
+
+      value_type& dst = *base::current;
+      if ( asval( v, dst ) ) return v;
+      return Qnil;
     }
     
     Iterator *dup() const
@@ -574,33 +662,9 @@ namespace swig {
       return new self_type(*this);
     }
 
-    Iterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == end) {
-	  throw stop_iteration();
-	} else {
-	  ++base::current;
-	}
-      }
-      return this;
-    }
-
-    Iterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == begin) {
-	  throw stop_iteration();
-	} else {
-	  --base::current;
-	}
-      }
-      return this;
-    }
-
   private:
-    inout_iterator begin;
-    inout_iterator end;
+    nonconst_iter begin;
+    nonconst_iter end;
   };
 
   /* Partial specialization for bools which don't allow de-referencing */
@@ -611,12 +675,12 @@ namespace swig {
   public:
     FromOper   from;
     AsvalOper asval;
-    typedef InOutIterator inout_iterator;
+    typedef InOutIterator nonconst_iter;
     typedef bool value_type;
-    typedef Iterator_T<inout_iterator>  base;
+    typedef Iterator_T<nonconst_iter>  base;
     typedef IteratorOpen_T<InOutIterator, bool, FromOper, AsvalOper> self_type;
 
-    IteratorOpen_T(inout_iterator curr, VALUE seq = Qnil)
+    IteratorOpen_T(nonconst_iter curr, VALUE seq = Qnil)
       : Iterator_T<InOutIterator>(curr, seq)
     {
     }
@@ -625,30 +689,20 @@ namespace swig {
       return from(static_cast<const value_type&>(*(base::current)));
     }
     
-    virtual bool set( const VALUE& v )
+    virtual VALUE setValue( const VALUE& v )
     {
-      return false;
+      bool tmp = *base::current;
+      if ( asval( v, tmp ) )
+	{
+	  *base::current = tmp;
+	  return v;
+	}
+      return Qnil;
     }    
     
     Iterator *dup() const
     {
       return new self_type(*this);
-    }
-
-    Iterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	++base::current;
-      }
-      return this;
-    }
-
-    Iterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	--base::current;
-      }
-      return this;
     }
     
   };
@@ -661,13 +715,23 @@ namespace swig {
   public:
     FromOper   from;
     AsvalOper asval;
-    typedef InOutIterator inout_iterator;
+    typedef InOutIterator nonconst_iter;
     typedef bool value_type;
-    typedef Iterator_T<inout_iterator>  base;
+    typedef Iterator_T<nonconst_iter>  base;
     typedef IteratorClosed_T<InOutIterator, bool, FromOper, AsvalOper> self_type;
     
-    IteratorClosed_T(inout_iterator curr, inout_iterator first, 
-		     inout_iterator last, VALUE seq = Qnil)
+  protected:
+    virtual Iterator* advance(ptrdiff_t n)
+    {
+      std::advance( base::current, n );
+      if ( base::current == end )
+	throw stop_iteration();
+      return this;
+    }
+
+  public:
+    IteratorClosed_T(nonconst_iter curr, nonconst_iter first, 
+		     nonconst_iter last, VALUE seq = Qnil)
       : Iterator_T<InOutIterator>(curr, seq), begin(first), end(last)
     {
     }
@@ -680,9 +744,18 @@ namespace swig {
       }
     }
 
-    virtual bool set( const VALUE& v )
+    virtual VALUE setValue( const VALUE& v )
     {
-      return false;
+      if (base::current == end)
+	throw stop_iteration();
+
+      bool tmp = *base::current;
+      if ( asval( v, tmp ) )
+	{
+	  *base::current = tmp;
+	  return v;
+	}
+      return Qnil;
     }
     
     Iterator *dup() const
@@ -690,34 +763,9 @@ namespace swig {
       return new self_type(*this);
     }
 
-    Iterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == end) {
-	  throw stop_iteration();
-	} else {
-	  ++base::current;
-	}
-      }
-      return this;
-    }
-
-    Iterator *decr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == begin) {
-	  throw stop_iteration();
-	} else {
-	  --base::current;
-	}
-      }
-      return this;
-    }
-
   private:
-    inout_iterator begin;
-    inout_iterator end;
-    
+    nonconst_iter begin;
+    nonconst_iter end;
   };
 
 
@@ -728,8 +776,8 @@ namespace swig {
    */
   template<typename InOutIter>
   inline Iterator*
-  make_inout_iterator(const InOutIter& current, const InOutIter& begin,
-		      const InOutIter& end, VALUE seq = Qnil)
+  make_nonconst_iterator(const InOutIter& current, const InOutIter& begin,
+			 const InOutIter& end, VALUE seq = Qnil)
   {
     return new IteratorClosed_T<InOutIter>(current, begin, end, seq);
   }
@@ -741,7 +789,7 @@ namespace swig {
    */
   template<typename InOutIter>
   inline Iterator*
-  make_inout_iterator(const InOutIter& current, VALUE seq = Qnil)
+  make_nonconst_iterator(const InOutIter& current, VALUE seq = Qnil)
   {
     return new IteratorOpen_T<InOutIter>(current, seq);
   }
@@ -753,7 +801,7 @@ namespace swig {
    */
   template<typename OutIter>
   inline ConstIterator*
-  make_output_iterator(const OutIter& current, const OutIter& begin,
+  make_const_iterator(const OutIter& current, const OutIter& begin,
                        const OutIter& end, VALUE seq = Qnil)
   {
     return new ConstIteratorClosed_T<OutIter>(current, begin, end, seq);
@@ -766,7 +814,7 @@ namespace swig {
    */
   template<typename OutIter>
   inline ConstIterator*
-  make_output_iterator(const OutIter& current, VALUE seq = Qnil)
+  make_const_iterator(const OutIter& current, VALUE seq = Qnil)
   {
     return new ConstIteratorOpen_T<OutIter>(current, seq);
   }
@@ -826,28 +874,16 @@ namespace swig
     virtual ~ConstIterator();
 
     // Access iterator method, required by Ruby
-    virtual VALUE value() const = 0;
-
-    // Forward iterator method, required by Ruby
-    virtual ConstIterator *incr(size_t n = 1) = 0;
-    
-    // Backward iterator method, very common in C++, but not required in Ruby
-    virtual ConstIterator *decr(size_t n = 1);
-
-    // Random access iterator methods, but not required in Ruby
-    virtual ptrdiff_t distance(const ConstIterator &x) const;
-
-    virtual bool equal (const ConstIterator &x) const;
+    virtual VALUE value() const;
     
     // C++ common/needed methods
-    virtual ConstIterator *dup() const = 0;
+    virtual ConstIterator *dup() const;
 
-    virtual VALUE inspect()    const = 0;
-    virtual VALUE to_s()    const = 0;
+    virtual VALUE inspect()    const;
+    virtual VALUE to_s()    const;
 
-    VALUE next();
-    VALUE previous();
-    ConstIterator *advance(ptrdiff_t n);
+    virtual ConstIterator* next(size_t n = 1);
+    virtual ConstIterator* previous(size_t n = 1);
 
     bool operator == (const ConstIterator& x)  const;
     ConstIterator* operator + (ptrdiff_t n) const;
@@ -857,14 +893,16 @@ namespace swig
 
   struct Iterator : public ConstIterator
   {
-    virtual bool set( const VALUE& v ) = 0;
+    %rename("value=") setValue( const VALUE& v );
+    virtual VALUE setValue( const VALUE& v );
 
-    // Random access iterator methods, but not required in Ruby
-    virtual ptrdiff_t distance(const Iterator &x) const;
-    virtual bool equal (const Iterator &x) const;
+    virtual Iterator *dup() const;
 
-    virtual Iterator *dup() const = 0;
-    Iterator *advance(ptrdiff_t n);
+    virtual Iterator* next(size_t n = 1);
+    virtual Iterator* previous(size_t n = 1);
+
+    virtual VALUE inspect()    const;
+    virtual VALUE to_s()    const;
 
     bool operator == (const Iterator& x)  const;
     Iterator* operator + (ptrdiff_t n) const;
