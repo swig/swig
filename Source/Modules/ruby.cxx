@@ -809,8 +809,8 @@ public:
 	  }
 	}
 	else if (strcmp(argv[i], "-feature") == 0) {
-	  fprintf( stderr, "Warning: Ruby -feature directive is deprecated, please use "
-		   "-init_name instead."); 
+	  fprintf( stderr, "Warning: Ruby -feature option is deprecated, "
+		   "please use -init_name instead.\n");
 	  if (argv[i + 1]) {
 	    char *name = argv[i + 1];
 	    feature = NewString(name);
