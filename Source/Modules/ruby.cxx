@@ -807,6 +807,19 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	}
+	else if (strcmp(argv[i], "-feature") == 0) {
+	  fprintf( stderr, "Warning: Ruby -feature directive is deprecated, please use "
+		   "-init_name instead."); 
+	  if (argv[i + 1]) {
+	    char *name = argv[i + 1];
+	    feature = NewString(name);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
 	} else if (strcmp(argv[i], "-globalmodule") == 0) {
 	  useGlobalModule = true;
 	  Swig_mark_arg(i);
@@ -2028,7 +2041,7 @@ public:
       Append( protoTypes, "(" );
       while(p)
 	{
- 	  Printf(protoTypes, "%s %s", SwigType_str(Getattr(p,"type"), Getattr(p,"name")) );
+ 	  Append( protoTypes, SwigType_str(Getattr(p,"type"), Getattr(p,"name")) );
 	  if ( ( p = nextSibling(p)) ) Append(protoTypes, ", ");
 	}
       Append( protoTypes, ")\\n\"" );
