@@ -59,10 +59,8 @@ end
 
 # these should fail and not segfault
 begin
-  p 'a'
-  p Li_std_functors::Set.new('sd')
-rescue => e
-  p e
+  Li_std_functors::Set.new('sd')
+rescue
 end
 
 test do |proc, container|
