@@ -1483,28 +1483,28 @@ public:
 	} else if (Strcmp(code, "moduleinterface") == 0) {
 	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use the moduleinterfaces pragma.\n", input_file, line_number);
 	} else if (Strcmp(code, "modulemethodmodifiers") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %javamethodmodifiers.\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%javamethodmodifiers.\n", input_file, line_number);
 	} else if (Strcmp(code, "allshadowimport") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaimports).\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaimports).\n", input_file, line_number);
 	} else if (Strcmp(code, "allshadowcode") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javacode).\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javacode).\n", input_file, line_number);
 	} else if (Strcmp(code, "allshadowbase") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javabase).\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javabase).\n", input_file, line_number);
 	} else if (Strcmp(code, "allshadowinterface") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javainterfaces).\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javainterfaces).\n", input_file, line_number);
 	} else if (Strcmp(code, "allshadowclassmodifiers") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaclassmodifiers).\n", input_file, line_number);
+	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n", input_file, line_number);
 	} else if (proxy_flag) {
 	  if (Strcmp(code, "shadowcode") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javacode).\n", input_file, line_number);
+	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javacode).\n", input_file, line_number);
 	  } else if (Strcmp(code, "shadowimport") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaimports).\n", input_file, line_number);
+	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaimports).\n", input_file, line_number);
 	  } else if (Strcmp(code, "shadowbase") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javabase).\n", input_file, line_number);
+	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javabase).\n", input_file, line_number);
 	  } else if (Strcmp(code, "shadowinterface") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javainterfaces).\n", input_file, line_number);
+	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javainterfaces).\n", input_file, line_number);
 	  } else if (Strcmp(code, "shadowclassmodifiers") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaclassmodifiers).\n", input_file, line_number);
+	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n", input_file, line_number);
 	  } else {
 	    Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
 	  }
