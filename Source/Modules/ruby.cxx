@@ -615,11 +615,9 @@ private:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
 	      if (CPlusPlus) {
-		Printf(doc, "  Proxy of C++ %s class", 
-		       full_name, class_name);
+		Printf(doc, "  Proxy of C++ %s class", full_name);
 	      } else {
-		Printf(doc, "  Proxy of C %s struct", 
-		       full_name, class_name);
+		Printf(doc, "  Proxy of C %s struct", full_name);
 	      }
 	    }
 	  }
@@ -2871,9 +2869,9 @@ public:
 	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
 	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
 	Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
-	Printf(body->code, "%s++;\n", depthCountName, NIL);
+	Printf(body->code, "%s++;\n", depthCountName);
 	Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
-	Printf(body->code, "%s--;\n", depthCountName, NIL);
+	Printf(body->code, "%s--;\n", depthCountName);
 	Printv(body->code, "return result;\n", NIL);
 	Printv(body->code, "}", NIL);
 
