@@ -257,7 +257,7 @@ void CFFI::emit_defmethod(Node *n) {
     if (Len(ffitype) > 0)
       Printf(args_placeholder, "(%s %s)", argname, ffitype);
     else
-      Printf(args_placeholder, "%s", argname, ffitype);
+      Printf(args_placeholder, "%s", argname);
 
     if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
       Printf(args_call, " (ff-pointer %s)", argname);
@@ -305,7 +305,7 @@ void CFFI::emit_initialize_instance(Node *n) {
     if (Len(ffitype) > 0)
       Printf(args_placeholder, " (%s %s)", argname, ffitype);
     else
-      Printf(args_placeholder, " %s", argname, ffitype);
+      Printf(args_placeholder, " %s", argname);
 
     if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
       Printf(args_call, " (ff-pointer %s)", argname);
