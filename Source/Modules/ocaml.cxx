@@ -311,7 +311,7 @@ public:
     Printf(f_int_to_enum, "let _ = Callback.register \"%s_int_to_enum\" int_to_enum\n", module);
     Printf(f_mlibody, "val int_to_enum : c_enum_type -> int -> c_obj\n");
     Printf(f_init, "#define SWIG_init f_%s_init\n" "%s" "}\n", module, init_func_def);
-    Printf(f_mlbody, "external f_init : unit -> unit = \"f_%s_init\" ;;\n" "let _ = f_init ()\n", module, module);
+    Printf(f_mlbody, "external f_init : unit -> unit = \"f_%s_init\" ;;\n" "let _ = f_init ()\n", module);
     Printf(f_enumtypes_type, "]\n");
     Printf(f_enumtypes_value, "]\n\n" "type c_obj = c_enum_value c_obj_t\n");
 
