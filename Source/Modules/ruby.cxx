@@ -136,7 +136,7 @@ Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -init_name <name> - Set entry function to Init_<name> (used by `require')\n";
+     -initname <name> - Set entry function to Init_<name> (used by `require')\n";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
@@ -797,7 +797,7 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-init_name") == 0) {
+	if (strcmp(argv[i], "-initname") == 0) {
 	  if (argv[i + 1]) {
 	    char *name = argv[i + 1];
 	    feature = NewString(name);
@@ -809,8 +809,8 @@ public:
 	  }
 	}
 	else if (strcmp(argv[i], "-feature") == 0) {
-	  fprintf( stderr, "Warning: Ruby -feature option is deprecated, "
-		   "please use -init_name instead.\n");
+	  fprintf( stderr, "Warning: Ruby -feature directive is deprecated, please use "
+		   "-initname instead."); 
 	  if (argv[i + 1]) {
 	    char *name = argv[i + 1];
 	    feature = NewString(name);
