@@ -2316,7 +2316,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
       }
 
       if (SwigType_isvarargs(argtype)) {
-	Printf(stderr, "Function %s (line %d) contains varargs, which is not directly supported. Use %varargs instead.\n", Getattr(n, "name"), Getline(n));
+	Printf(stderr, "Function %s (line %d) contains varargs, which is not directly supported. Use %%varargs instead.\n", Getattr(n, "name"), Getline(n));
       } else {
 	String *argname = NewStringf("PARM%d_%s", largnum, Getattr(p, "name"));
 
