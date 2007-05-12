@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/12/2007: olly
+	    [Python]
+	    swig -python -threads now generates C/C++ code which uses Python's
+	    own threading abstraction (from pythread.h) rather than OS specific
+	    code.  The old code failed to compile on MS Windows.  (See SF patch
+	    tracker #1710341).
+
 05/04/2007: gga
 	    [Ruby]
 	    Changed STL renames to be global renames.  This fixes
