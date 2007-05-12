@@ -6,6 +6,7 @@
 # when upgrading the autotools. Otherwise this script will ensure the latest is copied from 
 # your autotool installation.
 
+set -e
 set -x
 test -d Tools/config || mkdir Tools/config
 ${ACLOCAL-aclocal} -I Tools/config
