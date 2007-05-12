@@ -8,7 +8,7 @@
 
 set -x
 test -d Tools/config || mkdir Tools/config
-aclocal -I Tools/config
-autoheader
-automake --add-missing --copy --force-missing
-autoconf
+${ACLOCAL-aclocal} -I Tools/config
+${AUTOHEADER-autoheader}
+${AUTOMAKE-automake} --add-missing --copy --force-missing
+${AUTOCONF-autoconf}
