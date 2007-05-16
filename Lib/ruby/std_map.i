@@ -403,8 +403,6 @@
 
 %mixin std::map "Enumerable";
 
-%include <rubystdfunctors.swg>
-
 
 %rename("delete")     std::map::__delete__;
 %rename("reject!")    std::map::reject_bang;

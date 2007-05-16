@@ -60,7 +60,6 @@
 
 %mixin std::set "Enumerable";
 
-%include <rubystdfunctors.swg>
 
 
 %rename("delete")     std::set::__delete__;
@@ -74,3 +73,4 @@
 
 
 %include <std/std_set.i>
+

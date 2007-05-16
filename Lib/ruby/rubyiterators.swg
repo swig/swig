@@ -316,6 +316,10 @@ namespace swig {
     }
 
   public:
+    ConstIterator_T() : ConstIterator(Qnil)
+    {
+    }
+
     ConstIterator_T(const_iter curr, VALUE seq = Qnil)
       : ConstIterator(seq), current(curr)
     {
@@ -324,6 +328,11 @@ namespace swig {
     const const_iter& get_current() const
     {
       return current;
+    }
+
+    const value_type& operator*() const
+    {
+      return *current;
     }
 
     virtual VALUE inspect() const
@@ -421,6 +430,16 @@ namespace swig {
     {
       *current = b;
       return *this;
+    }
+
+    const value_type& operator*() const
+    {
+      return *current;
+    }
+
+    value_type& operator*()
+    {
+      return *current;
     }
     
     virtual VALUE inspect() const

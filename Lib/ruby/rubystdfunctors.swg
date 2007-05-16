@@ -8,7 +8,10 @@
  *
  *         You can use them in a swig file like:
  *
- *         %template< IntSet > std::set< int, RubyBinaryPredicate<> >;
+ *         %include <std_set.i>
+ *         %include <std_functors.i>
+ *
+ *         %template< IntSet > std::set< int, swig::BinaryPredicate<> >;
  *
  *
  *         which will then allow calling them from Ruby either like:
@@ -74,104 +77,120 @@ namespace swig {
     $1 = SWIG_Ruby_isCallable($input) && SWIG_Ruby_arity($input, 2);
   }
 
-  %typemap(in,noblock=1) UnaryFunction&, UnaryFunction {
-    $1 = new swig::UnaryFunction<>($input);
+  %typemap(in,noblock=1)  BinaryFunction&, BinaryFunction {
+    $1 = new swig::BinaryFunction< >($input);
   }
-  %typemap(in,noblock=1) UnaryPredicate&, UnaryPredicate {
-    $1 = new swig::UnaryPredicate<>($input);
+  %typemap(in,noblock=1) UnaryFunction&, UnaryFunction {
+    $1 = new swig::UnaryFunction< >($input);
   }
 
-  %typemap(in,noblock=1)  BinaryFunction&, BinaryFunction {
-    $1 = new swig::BinaryFunction<>($input);
-  }
   %typemap(in,noblock=1) BinaryPredicate&, BinaryPredicate {
     $1 = new swig::BinaryPredicate<>($input);
   }
 
+  %typemap(in,noblock=1) UnaryPredicate&, UnaryPredicate {
+    $1 = new swig::UnaryPredicate< >($input);
+  }
+
 
   %ignore BinaryFunction;
-  struct BinaryFunction {};
+  template< class _T = GC_VALUE >
+  struct BinaryFunction {
+  };
 
   %ignore UnaryFunction;
-  struct UnaryFunction {};
+  template< class _T = GC_VALUE >
+  struct UnaryFunction {
+  };
 
   %ignore BinaryPredicate;
-  struct BinaryPredicate {};
+  template< class _T = GC_VALUE >
+  struct BinaryPredicate {
+  };
 
   %ignore UnaryPredicate;
-  struct UnaryPredicate {};
+  template< class _T = GC_VALUE >
+  struct UnaryPredicate {
+
+  };
 
 }
 
 
-%{
+%fragment("StdFunctors","header",fragment="StdTraits")
+{
 namespace swig {
 
   static ID call_id = rb_intern("call");
 
-  template <class _DefaultFunc = std::less<GC_VALUE> >
-  struct BinaryPredicate : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, bool>
+  template <class _T = GC_VALUE, class _DefaultFunc = std::less<GC_VALUE> >
+  struct BinaryPredicate : GC_VALUE, std::binary_function< _T, _T, bool >
   {
     BinaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
-    bool operator()(GC_VALUE arg1, GC_VALUE arg2) const
+    bool operator()(_T a, _T b) const
     {
       if (_obj != Qnil) {
         SWIG_RUBY_THREAD_BEGIN_BLOCK;
-	VALUE res = rb_funcall( _obj, swig::call_id, 2, 
-				VALUE(arg1), VALUE(arg2));
+	VALUE arg1 = swig::from(a);
+	VALUE arg2 = swig::from(b);
+	VALUE res = rb_funcall( _obj, swig::call_id, 2, arg1, arg2);
         SWIG_RUBY_THREAD_END_BLOCK;
         return RTEST(res);
       } else {
-        return _DefaultFunc()(arg1, arg2);
+        return _DefaultFunc()(a, b);
       }
     }
   };
 
-  template <class _DefaultFunc = std::less<GC_VALUE> >
-  struct BinaryFunction : GC_VALUE, std::binary_function<GC_VALUE, GC_VALUE, GC_VALUE>
+  template <class _T = GC_VALUE, class _DefaultFunc = std::less< _T > >
+  struct BinaryFunction : GC_VALUE, std::binary_function< _T, _T, _T >
   {
     BinaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
-    GC_VALUE operator()(GC_VALUE arg1, GC_VALUE arg2) const
+    _T operator()(_T a, _T b) const
     {
       if (_obj != Qnil) {
         SWIG_RUBY_THREAD_BEGIN_BLOCK;
-	VALUE res = rb_funcall( _obj, swig::call_id, 2, 
-				VALUE(arg1), VALUE(arg2));
+	VALUE arg1 = swig::from(a);
+	VALUE arg2 = swig::from(b);
+	VALUE res = rb_funcall( _obj, swig::call_id, 2, arg1, arg2);
         SWIG_RUBY_THREAD_END_BLOCK;
-        return GC_VALUE(res);
+        return swig::as<_T >(res);
       } else {
-        return _DefaultFunc()(arg1, arg2);
+        return _DefaultFunc()(a, b);
       }
     }
   };
 
-
-  struct UnaryPredicate : GC_VALUE, std::unary_function<GC_VALUE, bool>
+  template< class _T = GC_VALUE >
+  struct UnaryPredicate : GC_VALUE, std::unary_function< _T, bool >
   {
     UnaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
-    bool operator()(GC_VALUE arg1) const
+    bool operator()(_T a) const
     {
       SWIG_RUBY_THREAD_BEGIN_BLOCK;
-      VALUE res = rb_funcall( _obj, swig::call_id, 1, VALUE(arg1));
+      VALUE arg1 = swig::from<_T >(a);
+      VALUE res = rb_funcall( _obj, swig::call_id, 1, arg1);
       SWIG_RUBY_THREAD_END_BLOCK;
       return RTEST(res);
     }
   };
 
-  struct UnaryFunction : GC_VALUE, std::unary_function<GC_VALUE, GC_VALUE>
+  template< class _T = GC_VALUE >
+  struct UnaryFunction : GC_VALUE, std::unary_function< _T, _T >
   {
     UnaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
-    GC_VALUE operator()(GC_VALUE arg1) const
+    _T operator()(_T a) const
     {
       SWIG_RUBY_THREAD_BEGIN_BLOCK;
+      VALUE arg1 = swig::from(a);
       VALUE res = rb_funcall( _obj, swig::call_id, 1, VALUE(arg1));
       SWIG_RUBY_THREAD_END_BLOCK;
-      return GC_VALUE(res);
+      return swig::as< _T >(res);
     }
   };
 
+} // namespace swig
 
 }
-%}
 
 
