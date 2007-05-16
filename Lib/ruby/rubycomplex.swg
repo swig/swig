@@ -43,7 +43,7 @@ SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
     rb_float_new(Real(c)), 
     rb_float_new(Imag(c))
   };
-  return rb_class_new_instance(2, args, rb_cComplex);
+  return rb_class_new_instance(2, args, swig_rb_cComplex);
 }
 }
 %enddef
