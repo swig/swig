@@ -404,4 +404,16 @@
 %mixin std::map "Enumerable";
 
 %include <rubystdfunctors.swg>
+
+
+%rename("delete")     std::map::__delete__;
+%rename("reject!")    std::map::reject_bang;
+%rename("map!")       std::map::map_bang;
+%rename("empty?")     std::map::empty;
+%rename("include?" )  std::map::__contains__ const;
+%rename("has_key?" )  std::map::has_key const;
+
+%alias  std::map::push          "<<";
+
+
 %include <std/std_map.i>

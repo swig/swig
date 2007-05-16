@@ -61,4 +61,16 @@
 %mixin std::set "Enumerable";
 
 %include <rubystdfunctors.swg>
+
+
+%rename("delete")     std::set::__delete__;
+%rename("reject!")    std::set::reject_bang;
+%rename("map!")       std::set::map_bang;
+%rename("empty?")     std::set::empty;
+%rename("include?" )  std::set::__contains__ const;
+%rename("has_key?" )  std::set::has_key const;
+
+%alias  std::set::push          "<<";
+
+
 %include <std/std_set.i>

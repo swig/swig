@@ -27,5 +27,15 @@
 #define %swig_list_methods(Type...) %swig_sequence_methods(Type)
 #define %swig_list_methods_val(Type...) %swig_sequence_methods_val(Type);
 
+
+%rename("delete")     std::list::__delete__;
+%rename("reject!")    std::list::reject_bang;
+%rename("map!")       std::list::map_bang;
+%rename("empty?")     std::list::empty;
+%rename("include?" )  std::list::__contains__ const;
+%rename("has_key?" )  std::list::has_key const;
+
+%alias  std::list::push          "<<";
+
 %include <std/std_list.i>
 

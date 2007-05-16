@@ -38,5 +38,15 @@
 %ignore std::vector::push_back;
 %ignore std::vector::pop_back;
 
+
+%rename("delete")     std::vector::__delete__;
+%rename("reject!")    std::vector::reject_bang;
+%rename("map!")       std::vector::map_bang;
+%rename("empty?")     std::vector::empty;
+%rename("include?" )  std::vector::__contains__ const;
+%rename("has_key?" )  std::vector::has_key const;
+
+%alias  std::vector::push          "<<";
+
 %include <std/std_vector.i>
 

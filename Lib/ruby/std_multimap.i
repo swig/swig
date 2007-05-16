@@ -213,5 +213,14 @@
 
 %mixin std::multimap "Enumerable";
 
+%rename("delete")     std::multimap::__delete__;
+%rename("reject!")    std::multimap::reject_bang;
+%rename("map!")       std::multimap::map_bang;
+%rename("empty?")     std::multimap::empty;
+%rename("include?" )  std::multimap::__contains__ const;
+%rename("has_key?" )  std::multimap::has_key const;
+
+%alias  std::multimap::push          "<<";
+
 %include <std/std_multimap.i>
 

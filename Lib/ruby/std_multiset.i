@@ -41,4 +41,13 @@
 
 
 
+%rename("delete")     std::multiset::__delete__;
+%rename("reject!")    std::multiset::reject_bang;
+%rename("map!")       std::multiset::map_bang;
+%rename("empty?")     std::multiset::empty;
+%rename("include?" )  std::multiset::__contains__ const;
+%rename("has_key?" )  std::multiset::has_key const;
+
+%alias  std::multiset::push          "<<";
+
 %include <std/std_multiset.i>

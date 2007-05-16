@@ -21,4 +21,15 @@
   }
 %}
 
+
+%rename("delete")     std::stack::__delete__;
+%rename("reject!")    std::stack::reject_bang;
+%rename("map!")       std::stack::map_bang;
+%rename("empty?")     std::stack::empty;
+%rename("include?" )  std::stack::__contains__ const;
+%rename("has_key?" )  std::stack::has_key const;
+
+%alias  std::stack::push          "<<";
+
+
 %include <std/std_stack.i>

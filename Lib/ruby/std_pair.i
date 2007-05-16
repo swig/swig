@@ -7,7 +7,7 @@
 
 %fragment("StdPairTraits","header",fragment="StdTraits") {
   namespace swig {
-#ifdef SWIG_STD_PAIR_ASVAL
+
     template <class T, class U >
     struct traits_asval<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
@@ -25,7 +25,7 @@
 	  return res1 > res2 ? res1 : res2;
 	} else {
 	  T *pfirst = 0;
-	  int res1 = swig::asval((VALUE)first, 0);
+	  int res1 = swig::asval((VALUE)first, pfirst);
 	  if (!SWIG_IsOK(res1)) return res1;
 	  U *psecond = 0;
 	  int res2 = swig::asval((VALUE)second, psecond);
@@ -52,7 +52,6 @@
       }
     };
 
-#else
     template <class T, class U >
     struct traits_asptr<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
@@ -99,8 +98,13 @@
       }
     };
 
-#endif
 
+    template <>
+    template <class T, class U >
+    struct noconst_traits< const std::pair< T, U > >
+    {
+      typedef std::pair< typename swig::noconst_traits<T >, U > noconst_type;
+    };
 
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
