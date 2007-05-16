@@ -200,7 +200,7 @@ namespace swig
 
     RubySequence_Ref& operator=(const T& v)
     {
-      rb_ary_set(_seq, _index, swig::from<T>(v));
+      rb_ary_set(_seq, _index, swig::from< T >(v));
       return *this;
     }
 
@@ -590,7 +590,7 @@ namespace swig
       for ( ; i != e; ++i, comma = true )
 	{
 	  if (comma) str = rb_str_cat2( str, "," );
-	  tmp = swig::from<Sequence::value_type>( *i );
+	  tmp = swig::from< Sequence::value_type >( *i );
 	  tmp = rb_inspect( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -606,7 +606,7 @@ namespace swig
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from<Sequence::value_type>( *i );
+	  tmp = swig::from< Sequence::value_type >( *i );
 	  rb_ary_push( ary, tmp );
 	}
       return ary;
@@ -620,7 +620,7 @@ namespace swig
       VALUE tmp;
       for ( ; i != e; ++i )
 	{
-	  tmp = swig::from<Sequence::value_type>( *i );
+	  tmp = swig::from< Sequence::value_type >( *i );
 	  tmp = rb_obj_as_string( tmp );
 	  str = rb_str_buf_append( str, tmp );
 	}
@@ -672,7 +672,7 @@ namespace swig
 	Sequence::const_iterator e = self->end();
 	for ( ; i != e; ++i )
 	  {
-	    r = swig::from<Sequence::value_type>(*i);
+	    r = swig::from< Sequence::value_type >(*i);
 	    rb_yield(r);
 	  }
 	
@@ -706,7 +706,7 @@ namespace swig
       Sequence::iterator e = self->end();
       for ( ; i != e; )
 	{
-	  VALUE r = swig::from<Sequence::value_type>(*i);
+	  VALUE r = swig::from< Sequence::value_type >(*i);
 	  if ( RTEST( rb_yield(r) ) )
 	    $self->erase(i++);
 	  else
@@ -1089,7 +1089,7 @@ namespace swig {
 	int i = 0;
 	for (const_iterator it = seq.begin();
 	     it != seq.end(); ++it, ++i) {
-	  RARRAY_PTR(obj)[i] = swig::from<value_type>(*it);
+	  RARRAY_PTR(obj)[i] = swig::from< value_type >(*it);
 	}
 	RARRAY_LEN(obj) = size;
 	rb_obj_freeze(obj);  // treat as immutable result
