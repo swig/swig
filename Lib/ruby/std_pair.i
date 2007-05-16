@@ -99,12 +99,6 @@
     };
 
 
-    template <>
-    template <class T, class U >
-    struct noconst_traits< const std::pair< T, U > >
-    {
-      typedef std::pair< typename swig::noconst_traits<T >, U > noconst_type;
-    };
 
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
