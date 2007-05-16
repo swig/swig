@@ -2337,7 +2337,8 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
 	String *lisptype = get_lisp_type(Getattr(p, "type"), Getattr(p, "name"));
 
 #ifdef ALLEGROCL_DEBUG
-	Printf(stderr, "lisptype of '%s' '%s' = '%s'\n", Getattr(p, "type"), Getattr(p, "name"), lisptype);
+	Printf(stderr, "lisptype of '%s' '%s' = '%s'\n",
+	       Getattr(p, "type"), Getattr(p, "name"), lisptype);
 #endif
 
 	// while we're walking the parameters, generating LIN
@@ -2417,7 +2418,8 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
     lclass = NewStringf("ff:foreign-pointer");
   }
 #ifdef ALLEGROCL_WRAP_DEBUG
-  Printf(stderr, "for output wrapping %s: type=%s, ctype=%s\n", Getattr(n, "name"), Getattr(n, "type"), Swig_cparse_type(Getattr(n, "tmap:ctype")));
+  Printf(stderr, "for output wrapping %s: type=%s, ctype=%s\n", Getattr(n, "name"),
+	 Getattr(n, "type"), Swig_cparse_type(Getattr(n, "tmap:ctype")));
 #endif
 
   if (lclass)
@@ -2442,10 +2444,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
     Replaceall(ldestructor, ldestructor, "identity");
   else
     Replaceall(ldestructor, ":type :class", ":type :destructor");
-  if (Replaceall(wrap->code, "$ldestructor", ldestructor) > 0 && ff_foreign_ptr) {
-    Swig_warning(WARN_LANG_RETURN_TYPE, Getfile(n), Getline(n),
-		 "While wrapping %s, replaced an $ldestructor reference " "when there was no Lisp class.\n", Getattr(n, "name"));
-  }
+  Replaceall(wrap->code, "$ldestructor", ldestructor);
   Delete(ldestructor);
 
   Printf(f_cl, ")\n");		/* finish arg list */
@@ -2491,10 +2490,14 @@ int ALLEGROCL::functionWrapper(Node *n) {
   SwigType *return_type = Swig_cparse_type(raw_return_type);
   SwigType *resolved = SwigType_typedef_resolve_all(return_type);
   int is_void_return = (Cmp(resolved, "void") == 0);
+
   Delete(resolved);
+
   if (!is_void_return) {
-    String *lresult_init = NewStringf("lresult = (%s)0", raw_return_type);
-    Wrapper_add_localv(wrap, "lresult", raw_return_type, lresult_init, NIL);
+    String *lresult_init = NewStringf("= (%s)0", raw_return_type);
+    Wrapper_add_localv(wrap, "lresult",
+		       SwigType_lstr(SwigType_ltype(return_type), "lresult"),
+		       lresult_init, NIL);
     Delete(lresult_init);
   }
   // Emit all of the local variables for holding arguments.
@@ -2836,9 +2839,10 @@ int ALLEGROCL::typedefHandler(Node *n) {
   // Swig_print_node(n);
 #endif
 
+  SwigType *typedef_type = Getattr(n,"type");
   // has the side-effect of noting any implicit
   // template instantiations in type.
-  Delete(compose_foreign_type(Getattr(n, "type")));
+  Delete(compose_foreign_type(typedef_type));
 
   String *sym_name = Getattr(n, "sym:name");
 
@@ -2863,7 +2867,9 @@ int ALLEGROCL::typedefHandler(Node *n) {
   }
 
   Setattr(n, "allegrocl:namespace", current_namespace);
-  add_defined_foreign_type(n, 0, type_ref, name);
+  if(lookup_defined_foreign_type(typedef_type))
+	  add_defined_foreign_type(n, 0, type_ref, name);
+  else add_forward_referenced_type(n);
 
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "Out typedefHAND\n");
@@ -2882,21 +2888,11 @@ int ALLEGROCL::classHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
   Printf(stderr, "class %s::%s\n", current_namespace, Getattr(n, "sym:name"));
 #endif
-  String *name = Getattr(n, "sym:name");
-  String *kind = Getattr(n, "kind");
 
-  // maybe just remove this check and get rid of the else clause below.
-  if (Strcmp(kind, "struct") == 0 || Strcmp(kind, "class") == 0 || Strcmp(kind, "union") == 0) {
-    if (Generate_Wrapper)
-      return cppClassHandler(n);
-    else
-      return cClassHandler(n);
-  } else {
-    Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
-    Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
-    return SWIG_OK;
-  }
+  if (Generate_Wrapper)
+	  return cppClassHandler(n);
+  else
+	  return cClassHandler(n);
 
   return SWIG_OK;
 }
@@ -2950,7 +2946,6 @@ int ALLEGROCL::cppClassHandler(Node *n) {
 
   if (templated) {
     t_name = namespaced_name(n);
-    // t_name = Getattr(n,"name");
   } else {
     t_name = Getattr(n, "name");
   }
@@ -2971,8 +2966,6 @@ int ALLEGROCL::cppClassHandler(Node *n) {
 #endif
     add_defined_foreign_type(n, 1);
   }
-
-  // mjb - for real fun, generate wrappers for class slot access.
 
   // Generate slot accessors, constructor, and destructor.
   Node *prev_class = in_class;

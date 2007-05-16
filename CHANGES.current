@@ -1,6 +1,14 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/16/2007: mutandiz
+	    [allegrocl]
+	    Fix bad generation of local var ltype's in functionWrapper().
+	    Try to work better with the backward order in which swig
+	    unrolls nested class definitions.
+	    cleaned up a little unnecessary code/debug printf's.
+	    Remove warning when replacing $ldestructor for ff:foreign-pointer
+	
 05/12/2007: olly
 	    [Python]
 	    swig -python -threads now generates C/C++ code which uses Python's
