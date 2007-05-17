@@ -366,16 +366,11 @@ public:
 	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
 
-    String *wrapper_name = NewString("");
-
-    Printf(wrapper_name, "CSharp_%%f", imclass_name);
-    Swig_name_register((char *) "wrapper", Char(wrapper_name));
+    Swig_name_register((char *) "wrapper", (char *) "CSharp_%f");
     if (old_variable_names) {
       Swig_name_register((char *) "set", (char *) "set_%v");
       Swig_name_register((char *) "get", (char *) "get_%v");
     }
-
-    Delete(wrapper_name);
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
