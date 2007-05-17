@@ -140,12 +140,12 @@ private:
     block_type bt;
     /* VC++ 6 doesn't allow the access to 'no_block'
        if it is a private member of MODULA3 class */
-     M3File():f(NewString("")), import(NewHash()), bt(no_block) {
-    };
+    M3File():f(NewString("")), import(NewHash()), bt(no_block) {
+    }
     ~M3File() {
       Delete(f);
       Delete(import);
-    };
+    }
 
     /* -----------------------------------------------------------------------------
      * enterBlock()
@@ -158,13 +158,13 @@ private:
 #ifdef DEBUG
       if ((bt < 0) || (4 < bt)) {
 	printf("bt %d out of range\n", bt);
-      };
+      }
 #endif
       if (newbt != bt) {
 	Append(f, ident[newbt]);
 	bt = newbt;
-      };
-    };
+      }
+    }
 
   };
 
@@ -651,7 +651,7 @@ MODULA3():
     String *mode, *name, *type, *value;
     bool hold;
      writeArgState():mode(NIL), name(NIL), type(NIL), value(NIL), hold(false) {
-    };
+    }
   };
 
   void writeArg(File *f, writeArgState & state, String *mode, String *name, String *type, String *value) {
@@ -958,16 +958,11 @@ MODULA3():
 
     Swig_banner(f_runtime);	// Print the SWIG banner message
 
-    String *wrapper_name = NewString("");
-
-    Printf(wrapper_name, "Modula3_%%f", m3raw_name);
-    Swig_name_register((char *) "wrapper", Char(wrapper_name));
+    Swig_name_register((char *) "wrapper", (char *) "Modula3_%f");
     if (old_variable_names) {
       Swig_name_register((char *) "set", (char *) "set_%v");
       Swig_name_register((char *) "get", (char *) "get_%v");
     }
-
-    Delete(wrapper_name);
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
@@ -2084,7 +2079,7 @@ MODULA3():
 	      Swig_warning(WARN_MODULA3_BAD_ENUMERATION, input_file, line_number, "Unknown name conversion tag <%s> with value <%s>.\n", tag, data);
 	    }
 	    Delete(nameassign);
-	  };
+	  }
 	  Delete(namedesc);
 	}
 	const char *stem = Char(name);
