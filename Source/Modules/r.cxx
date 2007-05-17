@@ -331,7 +331,7 @@ public:
     
     class_name = NULL;
     return status;
-  };
+  }
 
   // Not used:
   String *runtimeCode();
@@ -388,7 +388,7 @@ protected:
 	   "contains = 'CRoutinePointer')\n\n##\n", NIL);
     
     return SWIG_OK;
-  };
+  }
   
 
   void addSMethodInfo(String *name, 
