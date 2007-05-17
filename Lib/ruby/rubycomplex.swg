@@ -65,8 +65,8 @@ SWIG_AsVal(Type) (VALUE o, Type* val)
       double im = 0;
       SWIG_AsVal_double( imag, &im );
       *val = Constructor(re, im);
-      return SWIG_OK;
     }
+    return SWIG_OK;
   } else {
     double d;    
     int res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
@@ -96,13 +96,14 @@ SWIG_AsVal(Type)(VALUE o, Type *val)
     SWIG_AsVal_double( real, &re );
     double im = 0;
     SWIG_AsVal_double( imag, &im );
-    if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
+    if ((-FLT_MAX <= re && re <= FLT_MAX) && 
+	(-FLT_MAX <= im && im <= FLT_MAX)) {
       if (val) *val = Constructor(%numeric_cast(re, float),
 				  %numeric_cast(im, float));
       return SWIG_OK;
     } else {
       return SWIG_OverflowError;
-    }    
+    }
   } else {
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
