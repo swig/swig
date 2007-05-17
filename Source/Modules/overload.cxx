@@ -489,9 +489,9 @@ String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *max
 	    Printv(f, "{\n", tm, "}\n", NIL);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
-	    Printf(f, "_ranki += _v*_pi;\n", fn);
-	    Printf(f, "_rankm += _pi;\n", fn);
-	    Printf(f, "_pi *= SWIG_MAXCASTRANK;\n", fn);
+	    Printf(f, "_ranki += _v*_pi;\n");
+	    Printf(f, "_rankm += _pi;\n");
+	    Printf(f, "_pi *= SWIG_MAXCASTRANK;\n");
 	  }
 	}
 	if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
@@ -513,10 +513,10 @@ String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *max
     for ( /* empty */ ; num_braces > 0; num_braces--)
       Printf(f, "}\n");
 
-    Printf(f, "if (!_index || (_ranki < _rank)) {\n", i + 1);
+    Printf(f, "if (!_index || (_ranki < _rank)) {\n");
     Printf(f, " _rank = _ranki; _index = %d;\n", i + 1);
-    Printf(f, " if (_rank == _rankm) goto dispatch;\n", i + 1);
-    Printf(f, "}\n", i + 1);
+    Printf(f, " if (_rank == _rankm) goto dispatch;\n");
+    Printf(f, "}\n");
     String *lfmt = ReplaceFormat(fmt, num_arguments);
     Printf(sw, "case %d:\n", i + 1);
     Printf(sw, Char(lfmt), Getattr(ni, "wrap:name"));
