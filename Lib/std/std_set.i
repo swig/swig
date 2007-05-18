@@ -16,19 +16,19 @@
 
   void swap(set& v);
 
-  class const_iterator;
-  class const_reverse_iterator;
-
-  
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_reverse_iterator rbegin();
-  const_reverse_iterator rend();
 
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
   
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  class const_iterator;
+  class const_reverse_iterator;
+
+  const_iterator begin() const;
+  const_iterator end() const;
+  const_reverse_iterator rbegin();
+  const_reverse_iterator rend();
+
   void erase(const_iterator pos);
   void erase(const_iterator first, const_iterator last);
 
