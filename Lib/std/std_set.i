@@ -7,11 +7,18 @@
 
 // Set
 %define %std_set_methods_common(set...)
+  set();
+  set( const set& );
+
+  bool empty() const;
+  size_type size() const;
+  void clear();
+
+  void swap(set& v);
+
   class const_iterator;
   class const_reverse_iterator;
 
-  set();
-  set( const set& );
   
   const_iterator begin() const;
   const_iterator end() const;
