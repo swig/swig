@@ -26,13 +26,13 @@ sum == 'abc'
 b = s.begin  # only if swig iterators are on
 e = s.end
 sum = ''
-while b != e; sum << b.next; end
+while b != e; sum << b.value; b.next; end
 sum == 'abc'
 
 b = s.rbegin  # only if swig iterators are on
 e = s.rend
 sum = ''
-while b != e; sum << b.next; end
+while b != e; sum << b.value; b.next; end
 sum == 'cba'
 
 

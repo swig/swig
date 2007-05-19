@@ -52,7 +52,7 @@ im = midentb(m)
 
 mi = Imatrix.new(m)
 mc = Cmatrix.new(m)
-mi[0][1] == mc[0][1] # or bad matrix
+mi[0][0] == mc[0][0] # or bad matrix
 
 map ={}
 map['hello'] = 1

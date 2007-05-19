@@ -5,6 +5,7 @@
 %include <std_list.i>
 %include <std_set.i>
 %include <std_map.i>
+%include <std_functors.i>
 
 %template(Vector  ) std::vector  <swig::LANGUAGE_OBJ>;
 %template(Deque   ) std::deque   <swig::LANGUAGE_OBJ>;
