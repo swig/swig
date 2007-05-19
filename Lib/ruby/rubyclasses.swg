@@ -165,13 +165,17 @@ namespace swig {
 
     void GC_register()
     {
-      if ( TYPE(_obj) != T_DATA ) return; 
+      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
+      short t = BUILTIN_TYPE(_obj);
+      if ( !t || (t & 0x30 == 0x30) ) return;
       rb_hash_aset( _hash, _obj, Qtrue );
     }
 
     void GC_unregister()
     {
-      if ( TYPE(_obj) != T_DATA ) return; 
+      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
+      short t = BUILTIN_TYPE(_obj);
+      if ( !t || (t & 0x30 == 0x30) ) return;
       rb_hash_delete( _hash, _obj );
     }
     
