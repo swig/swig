@@ -82,6 +82,9 @@ namespace swig {
 namespace swig {
   class GC_VALUE {
   protected:
+    // Hash of all GC_VALUE's currently in use
+    static VALUE _hash;
+
     VALUE  _obj;
 
     static ID hash_id;
@@ -118,6 +121,22 @@ namespace swig {
 
 
   public:
+    static void initialize()
+    {
+      if ( _hash == Qnil ) 
+	{ 
+	  _hash = rb_hash_new();
+	  rb_gc_register_address( &_hash );
+	}
+    }
+
+    // this function is never called.  Provided for symmetry only.
+    static void cleanup()
+    {
+      rb_gc_unregister_address( &_hash );
+    }
+
+
     GC_VALUE() :_obj( Qnil )
     {
       GC_register();
@@ -146,12 +165,14 @@ namespace swig {
 
     void GC_register()
     {
-      rb_gc_register_address( &_obj );
+      if ( TYPE(_obj) != T_DATA ) return; 
+      rb_hash_aset( _hash, _obj, Qtrue );
     }
 
     void GC_unregister()
     {
-      rb_gc_unregister_address( &_obj );
+      if ( TYPE(_obj) != T_DATA ) return; 
+      rb_hash_delete( _hash, _obj );
     }
     
     operator VALUE() const
@@ -297,6 +318,9 @@ namespace swig {
 
   ID  GC_VALUE::lshift_id = rb_intern("<<");
   ID  GC_VALUE::rshift_id = rb_intern(">>");
+
+  VALUE GC_VALUE::_hash = Qnil;
+
   typedef GC_VALUE LANGUAGE_OBJ;
 
 } // namespace swig
@@ -304,6 +328,9 @@ namespace swig {
 %}
 
 
+%init {
+  swig::GC_VALUE::initialize();
+}
 
 
 
