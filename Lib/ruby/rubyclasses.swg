@@ -166,16 +166,15 @@ namespace swig {
     void GC_register()
     {
       if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
-      short t = BUILTIN_TYPE(_obj);
-      if ( !t || (t & 0x30 == 0x30) ) return;
       rb_hash_aset( _hash, _obj, Qtrue );
     }
 
     void GC_unregister()
     {
       if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
-      short t = BUILTIN_TYPE(_obj);
-      if ( !t || (t & 0x30 == 0x30) ) return;
+      // this test should not be needed but I've noticed some very erratic
+      // behavior of none being unregistered in some very rare situations.
+      if ( BUILTIN_TYPE(_obj) == T_NONE ) return;
       rb_hash_delete( _hash, _obj );
     }
     
