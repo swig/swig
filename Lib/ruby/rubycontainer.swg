@@ -400,7 +400,7 @@ namespace swig
 
     bool check(bool set_err = true) const
     {
-      int s = size();
+      int s = (int) size();
       for (int i = 0; i < s; ++i) {
 	VALUE item = rb_ary_entry(_seq, i );
 	if (!swig::check<value_type>(item)) {
@@ -1050,6 +1050,46 @@ namespace swig {
 	    return SWIG_NEWOBJ;
 	  } else {
 	    return rubyseq.check() ? SWIG_OK : SWIG_ERROR;
+	  }
+	} catch (std::exception& e) {
+	  if (seq) {
+	    VALUE lastErr = rb_gv_get("$!");
+	    if (lastErr == Qnil) {
+	      rb_raise(rb_eTypeError, e.what());
+	    }
+	  }
+	  return SWIG_ERROR;
+	}
+      } else {
+	sequence *p;
+	if (SWIG_ConvertPtr(obj,(void**)&p,
+			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	  if (seq) *seq = p;
+	  return SWIG_OLDOBJ;
+	}
+      }
+      return SWIG_ERROR;
+    }
+  };
+
+  // Partial specialization for GC_VALUE's.  No need to typecheck each
+  // element.
+  template< class Seq >
+  struct traits_asptr_stdseq< Seq, swig::GC_VALUE > {
+    typedef Seq sequence;
+    typedef swig::GC_VALUE value_type;
+
+    static int asptr(VALUE obj, sequence **seq) {
+      if (rb_obj_is_kind_of(obj, rb_cArray) == Qtrue) {
+	try {
+	  if (seq) {
+	    RubySequence_Cont<value_type> rubyseq(obj);
+	    sequence *pseq = new sequence();
+	    assign(rubyseq, pseq);
+	    *seq = pseq;
+	    return SWIG_NEWOBJ;
+	  } else {
+	    return true;
 	  }
 	} catch (std::exception& e) {
 	  if (seq) {
