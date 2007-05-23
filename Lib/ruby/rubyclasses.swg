@@ -38,7 +38,8 @@ namespace swig {
 
   %nodirector GC_VALUE;
 
-  // We ignore the constructor so that user can never create a GC_VALUE manually
+  // We ignore the constructor so that user can never create a GC_VALUE 
+  // manually
   %ignore GC_VALUE::GC_VALUE;
 
   struct GC_VALUE {
@@ -215,6 +216,10 @@ namespace swig {
 #define GC_VALUE_CMP( op_id, op, cmp, cmpval ) \
     bool op( const GC_VALUE& other ) const \
     { \
+      if ( FIXNUM_P(_obj) && FIXNUM_P(other._obj) ) \
+      { \
+	return _obj cmp other._obj; \
+      } \
       bool  res = false; \
       VALUE ret = Qnil; \
       SWIG_RUBY_THREAD_BEGIN_BLOCK; \
