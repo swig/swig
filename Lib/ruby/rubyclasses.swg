@@ -136,10 +136,8 @@ namespace swig {
       rb_gc_unregister_address( &_hash );
     }
 
-
-    GC_VALUE() :_obj( Qnil )
+    GC_VALUE() : _obj( Qnil )
     {
-      GC_register();
     }
 
     GC_VALUE(const GC_VALUE& item) : _obj(item._obj)
@@ -159,23 +157,37 @@ namespace swig {
     
     GC_VALUE & operator=(const GC_VALUE& item) 
     {
+      GC_unregister();
       _obj = item._obj;
-      return *this;      
+      GC_register();
+      return *this;
     }
 
     void GC_register()
     {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
-      rb_hash_aset( _hash, _obj, Qtrue );
+      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
+	return;
+      VALUE val = rb_hash_aref( _hash, _obj );
+      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
+      ++n;
+      rb_hash_aset( _hash, _obj, INT2NUM(n) );
     }
 
     void GC_unregister()
     {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) return;
+      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
+	return;
       // this test should not be needed but I've noticed some very erratic
       // behavior of none being unregistered in some very rare situations.
       if ( BUILTIN_TYPE(_obj) == T_NONE ) return;
-      rb_hash_delete( _hash, _obj );
+
+      VALUE val = rb_hash_aref( _hash, _obj );
+      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
+      --n;
+      if ( n )
+	rb_hash_aset( _hash, _obj, INT2NUM(n) );
+      else
+	rb_hash_delete( _hash, _obj );
     }
     
     operator VALUE() const
@@ -214,8 +226,8 @@ namespace swig {
 	  args.id     = op_id; \
 	  args.nargs  = 1; \
 	  args.target = VALUE(other); \
-	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
-			    &status ); \
+	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), \
+                            VALUE(&args), &status ); \
 	} \
       if ( ret == Qnil ) { \
 	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \
