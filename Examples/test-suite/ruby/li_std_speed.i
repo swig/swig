@@ -19,3 +19,8 @@
 %template(RbVector) std::vector<swig::GC_VALUE>;
 %template(RbDeque)  std::deque<swig::GC_VALUE>;
 %template(RbSet)    std::set<swig::GC_VALUE>; 
+
+%template(RbFloatList)   std::list<float>;
+%template(RbFloatVector) std::vector<float>;
+%template(RbFloatDeque)  std::deque<float>;
+%template(RbFloatSet)    std::set<float>; 
