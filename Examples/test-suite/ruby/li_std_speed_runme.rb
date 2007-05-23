@@ -9,6 +9,7 @@
 
 
 require 'benchmark'
+require 'mathn'
 require 'li_std_speed'
 include Li_std_speed
 
@@ -20,17 +21,31 @@ def benchmark(f, phigh, sequences)
   maxlen = maxlen.to_s.size - 12
   sequences.each { |s| print "%#{maxlen}s" % "#{s.to_s.sub(/.*::/,'')}" }
   puts
-  0.upto(phigh-1) do |p|
-    n = 2**p
+  o_perf = Array.new(sequences.size, 0)
+  last_t = Array.new(sequences.size, nil)
+  1.upto(phigh) do |p|
+    n = 2**(p-1)
     print "%10d" % n
-    for s in sequences
+    sequences.each_with_index do |s, i|
       cont = s.new((0..n).to_a)
       Benchmark.benchmark('',0,"%#{maxlen-2}.6r") { |x|
-        x.report { f.call(cont) } 
+        t = x.report { f.call(cont) }
+        o_perf[i] += last_t[i] ? (t.real / last_t[i]) : t.real
+        last_t[i] = t.real
       }
     end
     puts
   end
+
+  print "  avg. O(n)"
+  base = 1.0 / Math.log(2.0)
+  sequences.each_with_index do |s, i|
+    o_perf[i] /= phigh
+    # o_perf[i] = 1 if o_perf[i] < 1
+    o_perf[i]  = Math.log(o_perf[i]) * base
+    print "%#{maxlen-1}.2f " % o_perf[i]
+  end
+  puts
 end
 
 def iterate(cont)
@@ -58,10 +73,10 @@ def insert(cont)
 end
 
 if $0 == __FILE__
-  #GC.disable
+  GC.disable
   sequences = [RbVector,RbDeque,RbSet,RbList,
                RbFloatVector,RbFloatDeque,RbFloatSet,RbFloatList]
-  n = 20
+  n = 17
   for f,phigh in [[method(:iterate),n], [method(:insert),n],
                   [method(:erase),n-4]]
     benchmark(f, phigh, sequences)
