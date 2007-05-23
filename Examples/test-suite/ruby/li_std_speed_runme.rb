@@ -15,9 +15,9 @@ include Li_std_speed
 
 def benchmark(f, phigh, sequences)
   puts f
-  print '%10s ' % 'n'
+  print '%10s' % 'n'
   maxlen = sequences.max { |a,b| a.to_s.size <=> b.to_s.size }
-  maxlen = maxlen.to_s.size - 9
+  maxlen = maxlen.to_s.size - 12
   sequences.each { |s| print "%#{maxlen}s" % "#{s.to_s.sub(/.*::/,'')}" }
   puts
   0.upto(phigh-1) do |p|
@@ -25,7 +25,7 @@ def benchmark(f, phigh, sequences)
     print "%10d" % n
     for s in sequences
       cont = s.new((0..n).to_a)
-      Benchmark.benchmark('',0,"%#{maxlen-1}.6r") { |x|
+      Benchmark.benchmark('',0,"%#{maxlen-2}.6r") { |x|
         x.report { f.call(cont) } 
       }
     end
