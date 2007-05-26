@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/26/2007: olly
+	    [PHP5]
+	    Fix wrapping of methods and functions which return a pointer to a
+	    class (bug#1700788) and those which have overloaded forms returning
+	    both classes and non-classes (bug#1712717, thanks to Simon
+	    Berthiaume for the patch).
+
 05/25/2007: wsfulton
             Fixed %rename inconsistency in conversion operators as reported by Zhong Ren. The matching
             is now done on the operator name in the same way as it is done for parameters. For example:

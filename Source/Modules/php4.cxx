@@ -1833,6 +1833,14 @@ public:
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
+	    if (!class_node) {
+	      /* This is needed when we're returning a pointer to a type
+	       * rather than returning the type by value or reference. */
+	      class_node = current_class;
+	      Delete(mangled);
+	      mangled = NewString(SwigType_manglestr(ret_type));
+	      class_node = Getattr(zend_types, mangled);
+	    }
 	    if (i.item) {
 	      Printf(output, "case \"%s\": ", mangled);
 	    } else {
@@ -1841,7 +1849,10 @@ public:
 	    const char *classname = GetChar(class_node, "sym:name");
 	    if (!classname)
 	      classname = GetChar(class_node, "name");
-	    Printf(output, "return new %s%s($r);\n", prefix, classname);
+	    if (classname)
+	      Printf(output, "return new %s%s($r);\n", prefix, classname);
+            else
+	      Printf(output, "return $r;\n");
 	    Delete(mangled);
 	  }
 	  Printf(output, "\t\t}\n");
