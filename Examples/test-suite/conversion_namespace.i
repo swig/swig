@@ -1,5 +1,5 @@
 %module conversion_namespace
-%rename(toFoo) oss::Bar::operator oss::Foo();
+%rename(toFoo) oss::Bar::operator Foo();
 
 %inline %{ 
  namespace oss 

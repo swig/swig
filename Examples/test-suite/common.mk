@@ -219,6 +219,10 @@ CPP_TEST_CASES += \
 	refcount \
 	reference_global_vars \
 	register_par \
+	rename1 \
+	rename2 \
+	rename3 \
+	rename4 \
 	rename_scope \
 	restrict_cplusplus \
 	return_const_value \
