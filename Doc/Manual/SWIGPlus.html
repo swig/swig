@@ -2441,6 +2441,27 @@ above:
 </li>
 
 <li><p>
+Currently no resolution is performed in order to match function parameters. This means function parameter types must match exactly.
+For example, namespace qualifiers and typedefs will not work. The following usage of typedefs demonstrates this:
+
+<div class="code">
+<pre>
+typedef int Integer;
+
+%rename(foo_i) foo(int);
+
+class Spam {
+public:
+   void foo(Integer);  // Stays 'foo' (not renamed)
+};
+class Ham {
+public:
+   void foo(int);      // Renamed to foo_i
+};
+</pre>
+</div>
+
+<li><p>
 The name matching rules also use default arguments for finer control when wrapping methods that have default arguments.
 Recall that methods with default arguments are wrapped as if the equivalent overloaded methods had been parsed
 (<a href="#SWIGPlus_default_args">Default arguments</a> section).
@@ -3144,7 +3165,7 @@ TEMPLATE_WRAP(PairStringInt, std::pair&lt;string, int&gt;)
 </div>
 
 <p>
-Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in last example would not be possible.
+Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in the last example would not be possible.
 </p>
 
 <p>
@@ -3482,10 +3503,11 @@ It is also possible to separate these declarations from the template class.  For
 
 ...
 template&lt;class T&gt; class List {
-   ...
-   public:
-   List() { };
-   ...
+    ...
+    public:
+    List() { };
+    T get(int index);
+    ...
 };
 </pre>
 </div>
@@ -3957,8 +3979,7 @@ conflicts in the input, there will be no conflicts in the generated code.
 </p>
 
 <p>
-<b>Note:</b> Namespaces have a subtle effect on the wrapping of conversion operators.  For
-instance, suppose you had an interface like this:
+<b>Note:</b> In the same way that no resolution is performed on parameters, a conversion operator name must match exactly to how it is defined. Do not change the qualification of the operator. For example, suppose you had an interface like this:
 </p>
 
 <div class="code">
@@ -3976,7 +3997,7 @@ namespace foo {
 </div>
 
 <p>
-To wrap the conversion function, you might be inclined to write this:
+The following is how the feature is expected to be written for a successful match:
 </p>
 
 <div class="code">
@@ -3986,9 +4007,7 @@ To wrap the conversion function, you might be inclined to write this:
 </div>
 
 <p>
-The only problem is that it doesn't work.   The reason it doesn't work is that
-<tt>bar</tt> is not defined in the global scope.  Therefore, to make it work, do this
-instead:
+The following does not work as no namespace resolution is performed in the matching of conversion operator names:
 </p>
 
 <div class="code">
@@ -3998,12 +4017,111 @@ instead:
 </div>
 
 <p>
+Note, however, that if the operator is defined using a qualifier in its name, then the feature must use it too...
+</p>
+
+<div class="code">
+<pre>
+%rename(tofoo) foo::spam::operator bar();      // will not match
+%rename(tofoo) foo::spam::operator foo::bar(); // will match
+namespace foo {
+   class bar;
+   class spam {
+   public:
+        ...
+        operator foo::bar();
+        ...
+   };
+}
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> Versions of SWIG prior to 1.3.32 were inconsistent in this approach. A fully qualified name was usually required, but would not work in some situations.
+</p>
+
+
+<p>
 <b>Note:</b> The flattening of namespaces is only intended to serve as
-a basic namespace implementation.  Since namespaces are a new addition
-to SWIG, none of the target language modules are currently programmed
+a basic namespace implementation.  
+None of the target language modules are currently programmed
 with any namespace awareness.   In the future, language modules may or may not provide
 more advanced namespace support.
 </p>
+
+<H2><a name="SWIGPlus_renaming_templated_types_namespaces"></a>Renaming templated types in namespaces</H2>
+<p>
+As has been mentioned, when %rename includes parameters, the parameter types must match exactly (no typedef or namespace resolution is performed).
+SWIG treats templated types slightly differently and has an additional matching rule so unlike non-templated types, an exact match is not always required.
+If the fully qualified templated type is specified, it will have a higher precedence over the generic template type.
+In the example below, the generic template type is used to rename to <tt>bbb</tt> and the fully qualified type is used to rename to <tt>ccc</tt>.
+</p>
+
+<div class="code">
+<pre>
+%rename(bbb) Space::ABC::aaa(T t);                       // will match but with lower precedence than ccc
+%rename(ccc) Space::ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);  // will match but with higher precedence than bbb
+
+namespace Space {
+  class XYZ {};
+  template&lt;typename T&gt; struct ABC {
+    void aaa(T t) {}
+  };
+}
+%template(ABCXYZ) Space::ABC&lt;Space::XYZ&gt;;
+</pre>
+</div>
+
+<p>
+It should now be apparent that there are many ways to achieve a renaming with %rename. This is demonstrated
+by the following two examples, which are effectively the same as the above example.
+Below shows how %rename can be placed inside a namespace.
+</p>
+
+<div class="code">
+<pre>
+namespace Space {
+  %rename(bbb) ABC::aaa(T t);                       // will match but with lower precedence than ccc
+  %rename(ccc) ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);  // will match but with higher precedence than bbb
+  %rename(ddd) ABC&lt;Space::XYZ&gt;::aaa(XYZ t);         // will not match
+}
+
+namespace Space {
+  class XYZ {};
+  template&lt;typename T&gt; struct ABC {
+    void aaa(T t) {}
+  };
+}
+%template(ABCXYZ) Space::ABC&lt;Space::XYZ&gt;;
+</pre>
+</div>
+
+<p>
+Note that <tt>ddd</tt> does not match as there is no namespace resolution for parameter types and the fully qualified type must be specified for template type expansion.
+The following example shows how %rename can be placed within %extend.
+</p>
+
+<div class="code">
+<pre>
+namespace Space {
+  %extend ABC {
+    %rename(bbb) aaa(T t);           // will match but with lower precedence than ccc
+  }
+  %extend ABC&lt;Space::XYZ&gt; {
+    %rename(ccc) aaa(Space::XYZ t);  // will match but with higher precedence than bbb
+    %rename(ddd) aaa(XYZ t);         // will not match
+  }
+}
+
+namespace Space {
+  class XYZ {};
+  template&lt;typename T&gt; struct ABC {
+    void aaa(T t) {}
+  };
+}
+%template(ABCXYZ) Space::ABC&lt;Space::XYZ&gt;;
+</pre>
+</div>
 
 
 <H2><a name="SWIGPlus_exception_specifications"></a>6.20 Exception specifications</H2>

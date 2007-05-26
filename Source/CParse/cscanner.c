@@ -702,8 +702,7 @@ int yylex(void) {
 		needspace = 0;
 	      }
 	    }
-	    yylval.str = Swig_symbol_string_qualify(s,0);
-	    /*	    Printf(stdout,"OPERATOR '%s'\n", yylval.str); */
+	    yylval.str = s;
 	    if (!rename_active) {
 	      String *cs;
 	      char *t = Char(s) + 9;
@@ -737,7 +736,8 @@ int yylex(void) {
 		return COPERATOR;
 	      }
 	    }
-	    if (termtoken) Scanner_pushtoken(scan, termtoken, termvalue);
+	    if (termtoken)
+              Scanner_pushtoken(scan, termtoken, termvalue);
 	    return (OPERATOR);
 	  }
 	}

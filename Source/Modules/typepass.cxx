@@ -578,6 +578,14 @@ class TypePass:private Dispatcher {
     }
     normalize_parms(Getattr(n, "parms"));
     normalize_parms(Getattr(n, "throws"));
+    if (GetFlag(n, "conversion_operator")) {
+      /* The call to the operator in the generated wrapper must be fully qualified in order to compile */
+      SwigType *name = Getattr(n, "name");
+      SwigType *qualifiedname = Swig_symbol_string_qualify(name,0);
+      Clear(name);
+      Append(name, qualifiedname);
+      Delete(qualifiedname);
+    }
 
     if (checkAttribute(n, "storage", "typedef")) {
       String *name = Getattr(n, "name");

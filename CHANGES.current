@@ -1,6 +1,34 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/25/2007: wsfulton
+            Fixed %rename inconsistency in conversion operators as reported by Zhong Ren. The matching
+            is now done on the operator name in the same way as it is done for parameters. For example:
+
+              %rename(opABC) Space::ABC::operator ABC() const;
+              %rename(methodABC) Space::ABC::method(ABC a) const;
+              namespace Space {
+                class ABC {
+                  public:
+                    void method(ABC a) const {}
+                    operator ABC() const { ABC a; return a; }
+                };
+              }
+
+            Note that qualifying the conversion operator previously may or may not have matched.
+            Now it definitely won't, so this will not match:
+
+              %rename(opABC) Space::ABC::operator Space::ABC() const;
+
+            in the same that this does not match:
+
+              %rename(methodABC) Space::ABC::method(Space::ABC a) const;
+
+            The documentation has been improved with respect to %rename, namespaces and templates.
+            Conversion operators documentation too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 05/16/2007: mutandiz
 	    [allegrocl]
 	    Fix bad generation of local var ltype's in functionWrapper().
