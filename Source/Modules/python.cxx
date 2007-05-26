@@ -1212,15 +1212,10 @@ public:
 	  if (Strcmp(type, "void") == 0)
 	    type = NULL;
 	  else {
-	    SwigType *qt = SwigType_typedef_resolve_all(type);
-	    if (SwigType_isenum(qt))
-	      type = NewString("int");
-	    else {
-	      type = SwigType_base(type);
-	      Node *lookup = Swig_symbol_clookup(type, 0);
-	      if (lookup)
-		type = Getattr(lookup, "sym:name");
-	    }
+	    type = SwigType_base(type);
+	    Node *lookup = Swig_symbol_clookup(type, 0);
+	    if (lookup)
+	      type = Getattr(lookup, "sym:name");
 	  }
 	}
 

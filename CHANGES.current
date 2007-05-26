@@ -2,6 +2,11 @@ Version 1.3.32 (in progress)
 ============================
 
 05/26/2007: olly
+	    [Python]
+	    Fix autodoc generation of enums to be more consistent with how the
+	    enums are wrapped - patch #1697226 from Josh Cherry.
+
+05/26/2007: olly
 	    [PHP5]
 	    Fix wrapping of methods and functions which return a pointer to a
 	    class (bug#1700788) and those which have overloaded forms returning
