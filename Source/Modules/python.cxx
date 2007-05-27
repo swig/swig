@@ -1419,6 +1419,7 @@ public:
     } else if (Getattr(n, "feature:callback")) {
       if (have_docstring(n)) {
 	String *ds = docstring(n, AUTODOC_FUNC, "", false);
+	Replaceall(ds, "\\", "\\\\");
 	Replaceall(ds, "\n", "\\n");
         Replaceall(ds, "\"", "\\\"");
 	Printf(methods, "(char *)\"%s\\nswig_ptr: %s\"", ds, Getattr(n, "feature:callback:name"));
@@ -1427,6 +1428,7 @@ public:
       }
     } else if (have_docstring(n)) {
       String *ds = docstring(n, AUTODOC_FUNC, "", false);
+      Replaceall(ds, "\\", "\\\\");
       Replaceall(ds, "\n", "\\n");
       Replaceall(ds, "\"", "\\\"");
       Printf(methods, "(char *)\"%s\"", ds);

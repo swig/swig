@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+05/28/2007: olly
+	    [Python]
+	    Escape backslashes in docstrings.
+
 05/26/2007: olly
 	    [Python]
 	    Fix autodoc generation of enums to be more consistent with how the
