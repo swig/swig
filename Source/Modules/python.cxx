@@ -1420,8 +1420,8 @@ public:
       if (have_docstring(n)) {
 	String *ds = docstring(n, AUTODOC_FUNC, "", false);
 	Replaceall(ds, "\\", "\\\\");
-	Replaceall(ds, "\n", "\\n");
-        Replaceall(ds, "\"", "\\\"");
+	Replaceall(ds, "\"", "\\\"");
+	Replaceall(ds, "\n", "\\n\"\n\t\t\"");
 	Printf(methods, "(char *)\"%s\\nswig_ptr: %s\"", ds, Getattr(n, "feature:callback:name"));
       } else {
 	Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
@@ -1429,8 +1429,8 @@ public:
     } else if (have_docstring(n)) {
       String *ds = docstring(n, AUTODOC_FUNC, "", false);
       Replaceall(ds, "\\", "\\\\");
-      Replaceall(ds, "\n", "\\n");
       Replaceall(ds, "\"", "\\\"");
+      Replaceall(ds, "\n", "\\n\"\n\t\t\"");
       Printf(methods, "(char *)\"%s\"", ds);
     } else {
       Append(methods, "NULL");
@@ -2445,7 +2445,7 @@ public:
          It should be possible to rewrite it using a more elegant way,
          like copying the Java approach for the 'override' array.
 
-         But for know, this seems to be the least intrusive way.
+         But for now, this seems to be the least intrusive way.
        */
       Printf(f_directors_h, "\n\n");
       Printf(f_directors_h, "/* Internal Director utilities */\n");
