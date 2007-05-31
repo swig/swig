@@ -629,9 +629,11 @@ _PySwigObject_type(void) {
     (unaryfunc)0,                 /*nb_float*/
     (unaryfunc)PySwigObject_oct,  /*nb_oct*/
     (unaryfunc)PySwigObject_hex,  /*nb_hex*/
-#if PY_VERSION_HEX >= 0x02020000
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_true_divide */ 
-#elif PY_VERSION_HEX >= 0x02000000
+#if PY_VERSION_HEX >= 0x02050000 /* 2.5.0 */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index */
+#elif PY_VERSION_HEX >= 0x02020000 /* 2.2.0 */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_true_divide */
+#elif PY_VERSION_HEX >= 0x02000000 /* 2.0.0 */
     0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_or */
 #endif
   };
