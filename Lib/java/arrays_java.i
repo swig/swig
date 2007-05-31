@@ -6,7 +6,7 @@
  *
  * These typemaps give more natural support for arrays. The typemaps are not efficient
  * as there is a lot of copying of the array values whenever the array is passed to C/C++ 
- * from Java and visa versa. The Java array is expected to be the same size as the C array.
+ * from Java and vice versa. The Java array is expected to be the same size as the C array.
  * An exception is thrown if they are not.
  *
  * Example usage:
