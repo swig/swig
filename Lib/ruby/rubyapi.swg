@@ -23,7 +23,7 @@ SWIG_Ruby_AppendOutput(VALUE target, VALUE o) {
 
 // For ruby1.8.4 and earlier.
 #ifndef RUBY_INIT_STACK
-   extern void Init_stack(VALUE* addr);
+   RUBY_EXTERN void Init_stack(VALUE* addr);
 #  define RUBY_INIT_STACK \
    VALUE variable_in_this_stack_frame; \
    Init_stack(&variable_in_this_stack_frame);
