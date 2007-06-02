@@ -96,14 +96,5 @@
 #endif
 
 
-// For ruby1.8.4 and earlier.
-#ifndef RUBY_INIT_STACK
-   extern void Init_stack(VALUE* addr);
-#  define RUBY_INIT_STACK \
-   VALUE variable_in_this_stack_frame; \
-   Init_stack(&variable_in_this_stack_frame);
-#endif
-
-
 /* Global module used to keep some internal SWIG stuff */
 static VALUE _mSWIG = Qnil;
