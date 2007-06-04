@@ -1004,6 +1004,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   Printf(f->code, "%saccessorFuns = list(", tab8);
 
   Node *itemList = NewHash();
+  bool has_prev = false;
   for(j = 0; j < numMems; j+=3) {
     String *item = Getitem(el, j);
     if (Getattr(itemList, item)) 
@@ -1032,7 +1033,10 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     } else {
       pitem = Copy(item);
     }
-    Printf(f->code, "'%s' = %s%s", pitem, dup, j < numMems - 3 ? ", " : "");
+    if (has_prev) 
+      Printf(f->code, ", ");
+    Printf(f->code, "'%s' = %s", pitem, dup);
+    has_prev = true;
     Delete(pitem);
   }
   Delete(itemList);
