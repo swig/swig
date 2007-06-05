@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+06/05/2007: olly
+	    Fix reporting of filenames in errors after %include (patch from
+	    Leigh Smith in #1731040; also reported as #1699940).
+
 05/31/2007: olly
 	    [Python]
 	    Fix "missing initialiser" warning when compiling generated C/C++

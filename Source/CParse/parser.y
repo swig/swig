@@ -1360,7 +1360,7 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
   } dtype;
   struct {
     char *type;
-    char *filename;
+    String *filename;
     int   line;
   } loc;
   struct {
@@ -1863,9 +1863,9 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
    ------------------------------------------------------------ */
 
 include_directive: includetype options string LBRACKET {
-                     $1.filename = Swig_copy_string(cparse_file);
+                     $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
-		     scanner_set_location($3,1);
+		     scanner_set_location(NewString($3),1);
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;
