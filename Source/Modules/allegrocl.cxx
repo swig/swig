@@ -312,7 +312,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0, String 
     if (!name)
       name = Getattr(n, "sym:name");
     if (!name)
-      name = Getattr(n, "name");
+      name = strip_namespaces(Getattr(n, "name"));
     if (templated) {
       k = namespaced_name(n);
     } else {
@@ -1056,11 +1056,13 @@ void emit_synonym(Node *synonym) {
   String *of_name = namespaced_name(of, of_ns);
 
   if (CPlusPlus && !Strcmp(nodeType(synonym), "cdecl")) {
-    syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)", Getattr(synonym, "real-name"), synonym_ns);
-    syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)", Getattr(synonym, "real-name"), synonym_ns);
+	  syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)",
+				 strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
+	  syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)",
+				strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
   } else {
-    syn_ltype = lookup_defined_foreign_ltype(synonym_type);
-    syn_type = lookup_defined_foreign_type(synonym_type);
+	  syn_ltype = lookup_defined_foreign_ltype(synonym_type);
+	  syn_type = lookup_defined_foreign_type(synonym_type);
   }
 
   of_ltype = lookup_defined_foreign_ltype(of_name);
@@ -1561,7 +1563,7 @@ int ALLEGROCL::top(Node *n) {
 #endif
   emit_linked_types();
 
-  Printf(f_clwrap, "\n(in-package :%s)\n", swig_package);
+  Printf(f_clwrap, "\n(cl::in-package :%s)\n", swig_package);
   Printf(f_clwrap, "\n(macrolet ((swig-do-export ()\n");
   Printf(f_clwrap, "                 `(dolist (s ',*swig-export-list*)\n");
   Printf(f_clwrap, "                    (apply #'export s))))\n");
@@ -2129,7 +2131,7 @@ IDargs *id_converter_arguments(Node *n) {
     result->arity = NewStringf("%d",
 			       // emit_num_arguments(Getattr(n, "wrap:parms")));
 			       emit_num_lin_arguments(Getattr(n, "wrap:parms")));
-    Printf(stderr, "got arity of '%s' node '%s' '%x'\n", result->arity, Getattr(n,"name"), Getattr(n,"wrap:parms"));
+    // Printf(stderr, "got arity of '%s' node '%s' '%x'\n", result->arity, Getattr(n,"name"), Getattr(n,"wrap:parms"));
   }
 
   SetVoid(n, "allegrocl:id-converter-args", result);
@@ -2842,7 +2844,7 @@ int ALLEGROCL::typedefHandler(Node *n) {
   SwigType *typedef_type = Getattr(n,"type");
   // has the side-effect of noting any implicit
   // template instantiations in type.
-  Delete(compose_foreign_type(typedef_type));
+  String *ff_type = compose_foreign_type(typedef_type);
 
   String *sym_name = Getattr(n, "sym:name");
 
@@ -2867,13 +2869,21 @@ int ALLEGROCL::typedefHandler(Node *n) {
   }
 
   Setattr(n, "allegrocl:namespace", current_namespace);
-  if(lookup_defined_foreign_type(typedef_type))
+
+  String *lookup = lookup_defined_foreign_type(typedef_type);
+
+  // Printf(stderr, "** lookup='%s'(%x), ff_type='%s', strstr = '%d'\n", lookup, lookup, ff_type, !Strstr(ff_type,"void"));
+
+  if(lookup || (!lookup && !Strstr(ff_type,"void")))
 	  add_defined_foreign_type(n, 0, type_ref, name);
   else add_forward_referenced_type(n);
 
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "Out typedefHAND\n");
 #endif
+
+  Delete(ff_type);
+  if (lookup) Delete(lookup);
 
   return SWIG_OK;
 }
