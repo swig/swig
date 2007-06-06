@@ -22,7 +22,7 @@ extern "C" {
 #  define SWIG2NUM(v) LL2NUM((unsigned long long)v)
 #  define NUM2SWIG(x) (unsigned long long)NUM2LL(x)
 #else
-#  error sizeof(void*) isn't the same as long or long long
+#  error sizeof(void*) is not the same as long or long long
 #endif
 
 
