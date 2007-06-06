@@ -606,7 +606,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     
     p = nextSibling(p);
     if(p) {
-      Printf(f->def,  ", ", i, tt, name);
+      Printf(f->def, ", ");
       Printf(s_paramTypes, ", ");
     }
   }
@@ -2157,7 +2157,7 @@ int R::defineArrayAccessors(SwigType *type) {
   Wrapper_add_local(cGetItem, "__r_nprotect", "int __r_nprotect = 0");
 
   Printf(cGetItem->code, "ptr = (%s *) R_SWIG_resolveExternalRef(s_x, \"\", \"s_x\", 0);\n", SwigType_lstr(base, 0));
-  Printf(cGetItem->code, "result = ptr[INTEGER(s_i)[0]];\n", tmp);
+  Printf(cGetItem->code, "result = ptr[INTEGER(s_i)[0]];\n");
 
 
   tm = Swig_typemap_lookup_new("out", n, "result", 0);
@@ -2224,7 +2224,7 @@ int R::defineArrayAccessors(SwigType *type) {
 
       Delete(rclassName); Delete(rclassBase);
     }
-    Printf(cSetItem->code, "ptr[INTEGER(s_i)[0]] = *el;\n", tmp);
+    Printf(cSetItem->code, "ptr[INTEGER(s_i)[0]] = *el;\n");
   }
   Printf(cSetItem->code, "%s\nreturn R_NilValue;\n}\n\n", UnProtectWrapupCode);
 
@@ -2533,7 +2533,7 @@ int R::generateCopyRoutinesObsolete(Node *n) {
 
   Printf(toC->def, "int\n%s(SEXP sobj, %s *value)", toCName, type);
   Printf(toR->def, "SEXP\n%s(%s *value)", toRName, type);
-  Printf(toCRef->def, "SEXP\n%s(SEXP s_src, SEXP s_dest) {", copyRefRefName, type, type);
+  Printf(toCRef->def, "SEXP\n%s(SEXP s_src, SEXP s_dest) {", copyRefRefName);
 
   Delete(toCName);
   Delete(toRName);
