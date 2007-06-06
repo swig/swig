@@ -1333,7 +1333,6 @@ public:
       bool handle_as_overload = false;
       String **arg_names;
       String **arg_values;
-      bool *arg_case = NULL;
       // Method or static method or plain function.
       const char *methodname = 0;
       String *output = s_oowrappers;
@@ -1442,32 +1441,6 @@ public:
 	    if (wrapperType == memberfn)
 	      l = nextSibling(l);
 	  }
-	}
-
-	arg_case = (bool *) malloc(max_num_of_arguments * sizeof(bool));
-	if (!arg_case) {
-	  /* FIXME: How should this be handled?  The rest of SWIG just seems
-	   * to not bother checking for malloc failing! */
-	  fprintf(stderr, "Malloc failed!\n");
-	  exit(1);
-	}
-	for (int i = 0; i < max_num_of_arguments; ++i) {
-	  arg_case[i] = false;
-	}
-
-	o = Getattr(n, "sym:overloaded");
-	while (o) {
-	  ParmList *l2 = Getattr(o, "wrap:parms");
-	  int num_arguments = emit_num_arguments(l2);
-	  int num_required = emit_num_required(l2);
-	  if (wrapperType == memberfn) {
-	    --num_arguments;
-	    --num_required;
-	  }
-	  for (int i = num_required; i <= num_arguments; ++i) {
-	    arg_case[i] = true;
-	  }
-	  o = Getattr(o, "sym:nextSibling");
 	}
       }
 
@@ -1753,7 +1726,12 @@ public:
 	  if (i)
 	    Printf(args, ",");
 	  const char *value = Char(arg_values[i]);
-	  bool non_php_default = (!value || strcmp(value, "?") == 0);
+	  // FIXME: (really_overloaded && handle_as_overload) is perhaps a
+	  // little conservative, but it doesn't hit any cases that it
+	  // shouldn't for Xapian at least (and we need it to handle
+	  // "Enquire::get_mset()" correctly).
+	  bool non_php_default = ((really_overloaded && handle_as_overload) ||
+				  !value || strcmp(value, "?") == 0);
 	  if (non_php_default)
 	    value = "null";
 	  Printf(args, "$%s=%s", arg_names[i], value);

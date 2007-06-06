@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+06/06/2007: olly
+	    [PHP5]
+	    Fix handling of a particular case involving overloaded functions
+	    with default parameters.
+
 06/05/2007: mutandiz (Mikel Bancroft)
 	    [allegrocl]
 	    Fix case where we'd pass fully qualified identifiers
