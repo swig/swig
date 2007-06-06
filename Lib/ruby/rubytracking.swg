@@ -14,18 +14,15 @@
 extern "C" {
 #endif
 
-#if SIZEOF_OFF_T > SIZEOF_LONG && defined(HAVE_LONG_LONG)
-#  define SWIG2NUM(v) LL2NUM((unsigned long long)v)
-#elif SIZEOF_OFF_T == SIZEOF_LONG
+/* Ruby 1.8 actually assumes the first case. */
+#if SIZEOF_VOIDP == SIZEOF_LONG
 #  define SWIG2NUM(v) LONG2NUM((unsigned long)v)
-#else
-#  define SWIG2NUM(v) INT2NUM((unsigned long)v)
-#endif
-
-#if defined(HAVE_LONG_LONG) && SIZEOF_OFF_T > SIZEOF_LONG
-#  define NUM2SWIG(x) ((off_t)NUM2LL(x))
-#else
 #  define NUM2SWIG(x) (unsigned long)NUM2LONG(x)
+#elif SIZEOF_VOIDP == SIZEOF_LONG_LONG
+#  define SWIG2NUM(v) LL2NUM((unsigned long long)v)
+#  define NUM2SWIG(x) (unsigned long long)NUM2LL(x)
+#else
+#  error sizeof(void*) isn't the same as long or long long
 #endif
 
 

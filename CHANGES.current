@@ -2,6 +2,13 @@ Version 1.3.32 (in progress)
 ============================
 
 06/06/2007: olly
+	    [Ruby]
+	    Use whichever of "long" or "long long" is the same size as "void*"
+	    to hold pointers as integers, rather than whichever matches off_t.
+	    Fixes compilation on OS X and GCC warnings on platforms where
+	    sizeof(void*) < sizeof(off_t) (SF patch #1731979).
+
+06/06/2007: olly
 	    [PHP5]
 	    Fix handling of a particular case involving overloaded functions
 	    with default parameters.
