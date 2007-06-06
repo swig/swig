@@ -951,7 +951,7 @@ public:
 	if (use_scm_interface) {
 	  Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s_rest);\n", proc_name, wname);
 	} else {
-	  Printf(f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s_rest, 0, 0, 1);\n", proc_name, wname, numreq, numargs - numreq);
+	  Printf(f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s_rest, 0, 0, 1);\n", proc_name, wname);
 	}
       } else if (emit_setters && struct_member && strlen(Char(proc_name)) > 3) {
 	int len = Len(proc_name);
