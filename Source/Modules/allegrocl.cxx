@@ -628,7 +628,7 @@ String *get_ffi_type(SwigType *ty, const String_or_char *name) {
       String *typespec = Getattr(typemap, "code");
 
 #ifdef ALLEGROCL_TYPE_DEBUG
-      Printf(stderr, "found typemap '%s'\n", typespec);
+      Printf(stderr, "g-f-t: found ffitype typemap '%s'\n%s\n", typespec, typemap);
 #endif
       return NewString(typespec);
     }
@@ -733,12 +733,26 @@ String *internal_compose_foreign_type(SwigType *ty) {
   return ffiType;
 }
 
-String *compose_foreign_type(SwigType *ty) {
+String *compose_foreign_type(SwigType *ty, String *id = 0) {
 
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty);
+  String *id_ref = SwigType_str(ty, id);
+  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
+  Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
+	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
 #endif
-  /* should we allow named lookups in the typemap here? */
+  /* should we allow named lookups in the typemap here? YES! */
+  if(id) { /* and we should probably allow unnamed lookups here as well */
+    Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
+    if(lookup_res) {
+#ifdef ALLEGROCL_TYPE_DEBUG
+    Printf(stderr, "compose_foreign_type: EXIT-1 (%s)\n ", Getattr(lookup_res, "code"));
+#endif
+       return NewString(Getattr(lookup_res, "code"));
+    }
+  }
+
   SwigType *temp = SwigType_strip_qualifiers(ty);
   String *res = internal_compose_foreign_type(temp);
   Delete(temp);
@@ -780,35 +794,38 @@ static String *mangle_name(Node *n, char const *prefix = "ACL", String *ns = cur
 }
 
 /* utilities */
+
+/* remove a pointer from ffitype. non-destructive. 
+   (* :char) ==> :char
+   (* (:array :int 30)) ==> (:array :int 30) */
+String *dereference_ffitype(String *ffitype) {
+   char *start;
+   char *temp = Char(ffitype);
+   String *reduced_type = 0;
+
+   if(temp && temp[0] == '(' && temp[1] == '*') {
+      temp += 2;
+
+      // walk past start of pointer references
+      while(*temp == ' ') temp++;
+      start = temp;
+      // temp = Char(reduced_type);
+      reduced_type = NewString(start);
+      temp = Char(reduced_type);
+      // walk to end of string. remove closing paren
+      while(*temp != '\0') temp++;
+      *(--temp) = '\0';
+   }
+
+   return reduced_type ? reduced_type : Copy(ffitype);
+}
+
 /* returns new string w/ parens stripped */
 String *strip_parens(String *string) {
   string = Copy(string);
   Replaceall(string, "(", "");
   Replaceall(string, ")", "");
   return string;
-  /*
-     char *s=Char(string), *p;
-     int len=Len(string);
-     String *res;
-
-     if (len==0 || s[0] != '(' || s[len-1] != ')') {
-     return NewString(string);
-     }
-
-     p=(char *)malloc(len-2+1);
-     if (!p) {
-     Printf(stderr, "Malloc failed\n");
-     SWIG_exit(EXIT_FAILURE);
-     }
-
-     strncpy(p, s+1, len-1);
-     p[len-2]=0; // null terminate 
-
-     res=NewString(p);
-     free(p);
-
-     return res;
-   */
 }
 
 int ALLEGROCL::validIdentifier(String *s) {
@@ -2270,6 +2287,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
   // attach typemap info.
   Wrapper *wrap = NewWrapper();
   Swig_typemap_attach_parms("lin", pl, wrap);
+  // Swig_typemap_attach_parms("ffitype", pl, wrap);
   Swig_typemap_lookup_new("lout", n, "result", 0);
 
   SwigType *result_type = Swig_cparse_type(Getattr(n, "tmap:ctype"));
@@ -2322,8 +2340,14 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
       } else {
 	String *argname = NewStringf("PARM%d_%s", largnum, Getattr(p, "name"));
 
-	String *ffitype = compose_foreign_type(argtype);
+	// Swig_print_node(p);
+	// Printf(stderr,"%s\n", Getattr(p,"tmap:lin"));
+	String *ffitype = compose_foreign_type(argtype, Getattr(p,"name"));
 	String *deref_ffitype;
+
+	deref_ffitype = dereference_ffitype(ffitype);
+
+/*
 	String *temp = Copy(argtype);
 
 	if (SwigType_ispointer(temp)) {
@@ -2334,7 +2358,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
 	}
 
 	Delete(temp);
-
+*/
 	// String *lisptype=get_lisp_type(argtype, argname);
 	String *lisptype = get_lisp_type(Getattr(p, "type"), Getattr(p, "name"));
 
@@ -2352,9 +2376,9 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
 	  String *lname = Getattr(p, "lname");
 
 	  Printf(largs, " %s", lname);
+	  Replaceall(parm_code, "$in_fftype", ffitype); // must come before $in
 	  Replaceall(parm_code, "$in", argname);
 	  Replaceall(parm_code, "$out", lname);
-	  Replaceall(parm_code, "$in_fftype", ffitype);
 	  Replaceall(parm_code, "$*in_fftype", deref_ffitype);
 	  Replaceall(wrap->code, "$body", parm_code);
 	}
@@ -2402,6 +2426,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
   Delete(out_temp);
 
   Delete(parsed);
+
   int isPtrReturn = 0;
 
   if (cl_t) {
