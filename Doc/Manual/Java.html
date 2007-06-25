@@ -888,7 +888,15 @@ public interface exampleConstants {
 Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
 will be accessed using a getter as described in the previous section.  They
 are not wrapped as constants.
+The exception to this rule are static const integral values defined within a class/struct, where they are wrapped as constants, eg:.
 </p>
+
+<div class="code"><pre>
+struct Maths {
+  static const int FIVE = 5;
+};
+</pre></div>
+
 
 <p>
 <b>Compatibility Note:</b> In SWIG-1.3.19 and earlier releases, the constants were generated into the module class and the constants interface didn't exist.
@@ -2118,7 +2126,7 @@ This approach leads to minimal JNI code which makes for better performance as JN
 SWIG favours generating Java code over JNI code as Java code is compiled into byte code and avoids the costly string operations needed in JNI code.
 This approach has a downside though as the proxy class might get collected before the native method has completed.
 You might notice above that there is an additional parameters with a underscore postfix, eg <tt>jarg1_</tt>.
-These are added in order to prevent <a href="java_pgcpp">premature garbage collection when marshalling proxy classes</a>.
+These are added in order to prevent <a href="#java_pgcpp">premature garbage collection when marshalling proxy classes</a>.
 </p>
 
 <p>
