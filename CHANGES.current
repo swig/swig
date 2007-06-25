@@ -44,7 +44,7 @@ Version 1.3.32 (in progress)
 	    [Python]
 	    Split docstrings into separate string literals at each newline when
 	    generating C/C++ wrapper code (the C/C++ compiler will just combine
-	    the back into a single string literal).  This avoids MSVC
+	    them back into a single string literal).  This avoids MSVC
 	    complaining that the strings are too long (problem reported by
 	    Bo Peng on the mailing list).
 
@@ -83,7 +83,7 @@ Version 1.3.32 (in progress)
 
               %rename(opABC) Space::ABC::operator Space::ABC() const;
 
-            in the same that this does not match:
+            in the same way that this does not match:
 
               %rename(methodABC) Space::ABC::method(Space::ABC a) const;
 
