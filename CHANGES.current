@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+06/25/2007: wsfulton
+            [Java, C#] Some parameter name changes in std_vector.i allowing better targeting 
+            of typemaps for method parameters (for memory management of containers of pointers).
+
 06/07/2007: mutandiz (Mikel Bancroft)
 	    [allegrocl]
 	    fix foreign-type constructor to properly look for ffitype typemap

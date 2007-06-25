@@ -180,7 +180,7 @@
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
-    void push_back(const value_type& value);
+    void push_back(const value_type& x);
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n);
@@ -210,7 +210,7 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, const value_type& value) throw (std::out_of_range) {
+      void setitem(int index, const value_type& val) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
           (*self)[index] = value;
         else
@@ -230,7 +230,7 @@
           throw std::invalid_argument("invalid range");
         return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
-      void Insert(int index, const value_type& value) throw (std::out_of_range) {
+      void Insert(int index, const value_type& x) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, value);
         else
