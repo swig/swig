@@ -16,8 +16,9 @@
 <li><a href="#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="#Preprocessor_nn6">SWIG Macros</a>
 <li><a href="#Preprocessor_nn7">C99 and GNU Extensions</a>
-<li><a href="#Preprocessor_nn8">Preprocessing and %{ ... %} blocks</a>
-<li><a href="#Preprocessor_nn9">Preprocessing and { ... }</a>
+<li><a href="#Preprocessor_nn8">Preprocessing and %{ ... %} &amp; " ... " delimiters</a>
+<li><a href="#Preprocessor_nn9">Preprocessing and { ... } delimiters</a>
+<li><a href="#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="#Preprocessor_warning_error">The #error and #warning directives</a>
 </ul>
@@ -306,7 +307,7 @@ interface building.   However, they are used internally to implement a number of
 SWIG directives and are provided to make SWIG more compatible with C99 code.
 </p>
 
-<H2><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} blocks</H2>
+<H2><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H2>
 
 
 <p>
@@ -331,7 +332,7 @@ the contents of the <tt>%{ ... %}</tt> block are copied without
 modification to the output (including all preprocessor directives).
 </p>
 
-<H2><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... }</H2>
+<H2><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... } delimiters</H2>
 
 
 <p>
@@ -373,7 +374,78 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the code.
 </p>
 
-<H2><a name="Preprocessor_nn10"></a>7.9 Viewing preprocessor output</H2>
+<H2><a name="Preprocessor_typemap_delimiters"></a>7.9 Preprocessor and Typemaps</H2>
+
+
+<p>
+<a href="Typemaps.html">Typemaps</a> support a special attribute where the { ... } delimiters can be used,
+but the delimiters are not actually generated into the code.
+The effect is then similar to using "" or %{ %} delimiters but the code <b>is</b> run through the preprocessor. For example:
+</p>
+
+<div class="code">
+<pre>
+#define SWIG_macro(CAST) (CAST)$input
+%typemap(in) Int {$1= SWIG_macro(int);}
+</pre>
+</div>
+
+<p>
+might generate
+</p>
+
+<div class="code">
+<pre>
+  {
+    arg1=(int)jarg1;
+  }
+</pre>
+</div>
+
+<p>
+whereas
+</p>
+
+<div class="code">
+<pre>
+#define SWIG_macro(CAST) (CAST)$input
+%typemap(in,noblock=1) Int {$1= SWIG_macro(int);}
+</pre>
+</div>
+
+<p>
+might generate
+</p>
+
+<div class="code">
+<pre>
+  arg1=(int)jarg1;
+</pre>
+</div>
+
+<p>
+and
+</p>
+
+<div class="code">
+<pre>
+#define SWIG_macro(CAST) (CAST)$input
+%typemap(in) Int %{$1=SWIG_macro(int);%}
+</pre>
+</div>
+
+<p>
+would generate
+</p>
+
+<div class="code">
+<pre>
+  arg1=SWIG_macro(int);
+</pre>
+</div>
+
+
+<H2><a name="Preprocessor_nn10"></a>7.10 Viewing preprocessor output</H2>
 
 
 <p>
@@ -383,7 +455,7 @@ Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>
 
-<H2><a name="Preprocessor_warning_error"></a>7.10 The #error and #warning directives</H2>
+<H2><a name="Preprocessor_warning_error"></a>7.11 The #error and #warning directives</H2>
 
 
 <p>
