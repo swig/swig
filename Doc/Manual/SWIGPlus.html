@@ -49,6 +49,7 @@
 <li><a href="#SWIGPlus_nn29">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <li><a href="#SWIGPlus_nn31">Namespaces</a>
+<li><a href="#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
 <li><a href="#SWIGPlus_exception_specifications">Exception specifications</a>
 <li><a href="#SWIGPlus_catches">Exception handling with %catches</a>
 <li><a href="#SWIGPlus_nn33">Pointers to Members</a>
@@ -4049,7 +4050,9 @@ with any namespace awareness.   In the future, language modules may or may not p
 more advanced namespace support.
 </p>
 
-<H2><a name="SWIGPlus_renaming_templated_types_namespaces"></a>Renaming templated types in namespaces</H2>
+<H2><a name="SWIGPlus_renaming_templated_types_namespaces"></a>6.20 Renaming templated types in namespaces</H2>
+
+
 <p>
 As has been mentioned, when %rename includes parameters, the parameter types must match exactly (no typedef or namespace resolution is performed).
 SWIG treats templated types slightly differently and has an additional matching rule so unlike non-templated types, an exact match is not always required.
@@ -4124,7 +4127,7 @@ namespace Space {
 </div>
 
 
-<H2><a name="SWIGPlus_exception_specifications"></a>6.20 Exception specifications</H2>
+<H2><a name="SWIGPlus_exception_specifications"></a>6.21 Exception specifications</H2>
 
 
 <p>
@@ -4175,7 +4178,7 @@ Consult the "<a href="Customization.html#exception">Exception handling with %exc
 The next section details a way of simulating an exception specification or replacing an existing one.
 </p>
 
-<H2><a name="SWIGPlus_catches"></a>6.21 Exception handling with %catches</H2>
+<H2><a name="SWIGPlus_catches"></a>6.22 Exception handling with %catches</H2>
 
 
 <p>
@@ -4225,7 +4228,7 @@ just a single catch handler for the base class, <tt>EBase</tt> will be generated
 </p>
 
 
-<H2><a name="SWIGPlus_nn33"></a>6.22 Pointers to Members</H2>
+<H2><a name="SWIGPlus_nn33"></a>6.23 Pointers to Members</H2>
 
 
 <p>
@@ -4275,7 +4278,7 @@ when checking types.  However, no such support is currently provided
 for member pointers.
 </p>
 
-<H2><a name="SWIGPlus_nn34"></a>6.23 Smart pointers and operator-&gt;()</H2>
+<H2><a name="SWIGPlus_nn34"></a>6.24 Smart pointers and operator-&gt;()</H2>
 
 
 <p>
@@ -4485,7 +4488,7 @@ p = f.__deref__()       # Raw pointer from operator-&gt;
 </p>
 
 
-<H2><a name="SWIGPlus_nn35"></a>6.24 Using declarations and inheritance</H2>
+<H2><a name="SWIGPlus_nn35"></a>6.25 Using declarations and inheritance</H2>
 
 
 <p>
@@ -4648,7 +4651,7 @@ public:
 </div>
 </ul>
 
-<H2><a name="SWIGPlus_nested_classes"></a>6.25 Nested classes</H2>
+<H2><a name="SWIGPlus_nested_classes"></a>6.26 Nested classes</H2>
 
 
 <p>
@@ -4739,7 +4742,7 @@ typedef Outer::Inner Inner;
 The downside to this approach is having to maintain two definitions of <tt>Inner</tt>, the real one and the one in the interface file that SWIG parses.
 </p>
 
-<H2><a name="SWIGPlus_nn37"></a>6.26 A brief rant about const-correctness</H2>
+<H2><a name="SWIGPlus_nn37"></a>6.27 A brief rant about const-correctness</H2>
 
 
 <p>
@@ -4797,7 +4800,7 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
-<H2><a name="SWIGPlus_nn42"></a>6.27 Where to go for more information</H2>
+<H2><a name="SWIGPlus_nn42"></a>6.28 Where to go for more information</H2>
 
 
 <p>

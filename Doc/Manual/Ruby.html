@@ -26,1018 +26,42 @@
 
 
 
-<h1><a name="Ruby"></a>30 SWIG and Ruby</h1>
-
-
-
-
-
+<H1><a name="Ruby"></a>30 SWIG and Ruby</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-
-
-
-
-
-  <li><a href="#Ruby_nn2">Preliminaries</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn3">Running SWIG</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn4">Getting the right
-header files</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn5">Compiling a dynamic
-module</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn6">Using your module</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn7">Static linking</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn8">Compilation of C++
-extensions</a> </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn9">Building Ruby Extensions
-under Windows 95/NT</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn10">Running SWIG from
-Developer Studio</a> </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn11">The Ruby-to-C/C++ Mapping</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn12">Modules</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn13">Functions</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn14">Variable Linking</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn15">Constants</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn16">Pointers</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn17">Structures</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn18">C++ classes</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn19">C++ Inheritance</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn20">C++ Overloaded
-Functions</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn21">C++ Operators</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn22">C++ namespaces</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn23">C++ templates</a></li>
-
-
-
-
-
-      
-      
-      
-      
-      <ul>
-
-
-
-
-
-        <li><a href="#Ruby_nn23_1">C++ Standard
-Template Library (STL)</a></li>
-
-
-
-
-
-        
-        
-        
-        
-        <ul>
-
-
-
-
-
-          <li><a href="#C_STL_Functors">C++ STL
-Functors</a></li>
-
-
-
-          <li><a href="#30.3.12.1.3_C_Iterators">C++ STL Iterators</a></li>
-
-        
-        </ul>
-
-
-
-
-
-      
-      
-      
-      
-      </ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn24">C++ Smart Pointers</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn25">Cross-Language
-Polymorphism</a>
-        
-        
-        
-        
-        <ul>
-
-
-
-
-
-          <li><a href="#Ruby_nn26">Exception
-Unrolling</a> </li>
-
-
-
-
-
-        
-        
-        
-        
-        </ul>
-
-
-
-
-
-      </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn27">Naming</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn28">Defining Aliases</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn29">Predicate Methods</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn30">Bang Methods</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn31">Getters and Setters</a>
-      </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn32">Input and output
-parameters</a></li>
-
-
-
-
-
-  <li><a href="#Ruby_nn33">Exception handling </a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn34">Using the %exception
-directive</a> </li>
-
-
-
-
-
-      <li><a href="Ruby.html#Ruby_nn34_2">Handling
-Ruby Blocks</a></li>
-
-
-
-
-
-      <li><a href="#Ruby_nn35">Raising exceptions </a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn36">Exception classes </a>
-      </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn37">Typemaps</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn38">What is a typemap?</a></li>
-
-
-
-
-
-      <li><a href="#30.7.2_Typemap_scope">Typemap
-scope</a></li>
-
-
-
-
-
-      <li><a href="#30.7.3_Copying_a_typemap">Copying
-a typemap</a></li>
-
-
-
-
-
-      <li><a href="#30.7.4_Deleting_a_typemap">Deleting
-a typemap</a></li>
-
-
-
-
-
-      <li><a href="#30.7.5_Placement_of_typemaps">Placement
-of typemaps</a></li>
-
-
-
-
-
-      <li><a href="#Ruby_nn39">Ruby typemaps</a></li>
-
-
-
-
-
-      
-      
-      
-      
-      <ul>
-
-
-
-
-
-        <li><a href="#30.7.6.1_in_typemap">"in"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.6_check_typemap">"check"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.3_out_typemap">"out"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.7_argout_typemap_">"argout"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.4_arginit_typemap">"arginit"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.11_varin_typemap">"varin"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.12_varout_typemap_">"varout"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.13_throws_typemap">"throws"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.10_memberin_typemap">"memberin"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.5_default_typemap">"default"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.9_newfree_typemap">"newfree"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.8_freearg_typemap_">"freearg"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.14_directorin_typemap">"directorin"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.15_directorout_typemap">"directorout"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.16_directorargout_typemap">"directorargout"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.17_ret_typemap">"ret"
-typemap</a></li>
-
-
-
-
-
-        <li><a href="#30.7.6.18_globalin_typemap">"globalin"
-typemap</a></li>
-
-
-
-
-
-      
-      
-      
-      
-      </ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn40">Typemap variables</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn41">Useful Functions</a>
-        
-        
-        
-        
-        <ul>
-
-
-
-
-
-          <li><a href="#Ruby_nn42">C Datatypes to
-Ruby Objects</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn43">Ruby Objects to C
-Datatypes</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn44">Macros for VALUE</a>
-          </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn45">Exceptions</a>
-          </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn46">Iterators</a>
-          </li>
-
-
-
-
-
-        
-        
-        
-        
-        </ul>
-
-
-
-
-
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn47">Typemap Examples</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn48">Converting a Ruby
-array to a char **</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn49">Collecting arguments
-in a hash</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn50">Pointer handling</a>
-        
-        
-        
-        
-        <ul>
-
-
-
-
-
-          <li><a href="#Ruby_nn51">Ruby Datatype
-Wrapping</a> </li>
-
-
-
-
-
-        
-        
-        
-        
-        </ul>
-
-
-
-
-
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn52">Example: STL Vector
-to Ruby Array</a></li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn65">Docstring
-Features</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn66">Module
-docstring</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn67">%feature("autodoc")</a>
-        
-        
-        
-        
-        <ul>
-
-
-
-
-
-          <li><a href="#Ruby_nn68">%feature("autodoc",
-"0")</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn69">%feature("autodoc",
-"1")</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn70">%feature("autodoc",
-"2")</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn71">%feature("autodoc",
-"3")</a> </li>
-
-
-
-
-
-          <li><a href="#Ruby_nn72">%feature("autodoc",
-"docstring")</a> </li>
-
-
-
-
-
-        
-        
-        
-        
-        </ul>
-
-
-
-
-
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn73">%feature("docstring")</a></li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn53">Advanced Topics</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn54">Operator overloading</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn55">Creating Multi-Module
-Packages</a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn56">Specifying Mixin
-Modules</a> </li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
-  <li><a href="#Ruby_nn57">Memory Management</a>
-    
-    
-    
-    
-    <ul>
-
-
-
-
-
-      <li><a href="#Ruby_nn58">Mark and Sweep
-Garbage Collector </a> </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn59">Object Ownership</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn60">Object Tracking</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn61">Mark Functions</a>
-      </li>
-
-
-
-
-
-      <li><a href="#Ruby_nn62">Free Functions</a></li>
-
-
-
-
-
-      <li><a href="#Ruby_nn63">Embedded Ruby and the
-C++ Stack</a></li>
-
-
-
-
-
-    
-    
-    
-    
-    </ul>
-
-
-
-
-
-  </li>
-
-
-
-
-
+<li><a href="#Ruby_nn2">Preliminaries</a>
+<ul>
+<li><a href="#Ruby_nn3">Running SWIG</a>
+<li><a href="#Ruby_nn12">Modules</a>
+<li><a href="#Ruby_nn13">Functions</a>
+<li><a href="#Ruby_nn15">Constants</a>
+<li><a href="#Ruby_nn16">Pointers</a>
+<li><a href="#Ruby_nn17">Structures</a>
+<li><a href="#Ruby_nn18">C++ classes</a>
 </ul>
-
-
-
-
-
+<li><a href="#Ruby_nn27">Naming</a>
+<ul>
+<li><a href="#Ruby_nn30">Bang Methods</a>
+</ul>
+<li><a href="#Ruby_nn37">Typemaps</a>
+<ul>
+<li><a href="#Ruby_nn45">Exceptions</a>
+<li><a href="#Ruby_nn46">Iterators</a>
+</ul>
+</ul>
 </div>
-
-
-
-
-
 <!-- INDEX -->
+
+
+
 <p>This chapter describes SWIG's support of Ruby.</p>
 
 
 
 
 
-<h2><a name="Ruby_nn2"></a>30.1 Preliminaries</h2>
-
-
-
+<H2><a name="Ruby_nn2"></a>30.1 Preliminaries</H2>
 
 
 <p> SWIG 1.3 is known to work with Ruby versions 1.6 and later.
@@ -1060,10 +84,7 @@ of Ruby. </p>
 
 
 
-<h3><a name="Ruby_nn3"></a>30.1.1 Running SWIG</h3>
-
-
-
+<H3><a name="Ruby_nn3"></a>30.1.1 Running SWIG</H3>
 
 
 <p> To build a Ruby module, run SWIG using the <tt>-ruby</tt>
@@ -1691,10 +712,7 @@ declarations in your SWIG interface files to Ruby constructs. </p>
 
 
 
-<h3><a name="Ruby_nn12"></a>30.3.1 Modules</h3>
-
-
-
+<H3><a name="Ruby_nn12"></a>30.1.2 Modules</H3>
 
 
 <p> The SWIG <tt>%module</tt> directive specifies
@@ -1863,10 +881,7 @@ Ruby's built-in names. </p>
 
 
 
-<h3><a name="Ruby_nn13"></a>30.3.2 Functions</h3>
-
-
-
+<H3><a name="Ruby_nn13"></a>30.1.3 Functions</H3>
 
 
 <p> Global functions are wrapped as Ruby module methods. For
@@ -2033,10 +1048,7 @@ effect until it is explicitly disabled using <tt>%mutable</tt>.
 
 
 
-<h3><a name="Ruby_nn15"></a>30.3.4 Constants</h3>
-
-
-
+<H3><a name="Ruby_nn15"></a>30.1.4 Constants</H3>
 
 
 <p> C/C++ constants are wrapped as module constants initialized
@@ -2080,10 +1092,7 @@ constant values, e.g. </p>
 
 
 
-<h3><a name="Ruby_nn16"></a>30.3.5 Pointers</h3>
-
-
-
+<H3><a name="Ruby_nn16"></a>30.1.5 Pointers</H3>
 
 
 <p> "Opaque" pointers to arbitrary C/C++ types (i.e. types that
@@ -2135,10 +1144,7 @@ the Ruby <tt>nil</tt> object. </p>
 
 
 
-<h3><a name="Ruby_nn17"></a>30.3.6 Structures</h3>
-
-
-
+<H3><a name="Ruby_nn17"></a>30.1.6 Structures</H3>
 
 
 <p> C/C++ structs are wrapped as Ruby classes, with accessor
@@ -2313,10 +1319,7 @@ pointers. For example, </p>
 
 
 
-<h3><a name="Ruby_nn18"></a>30.3.7 C++ classes</h3>
-
-
-
+<H3><a name="Ruby_nn18"></a>30.1.7 C++ classes</H3>
 
 
 <p> Like structs, C++ classes are wrapped by creating a new Ruby
@@ -3915,10 +2918,7 @@ caught here and a C++ exception is raised in its place. </p>
 
 
 
-<h2><a name="Ruby_nn27"></a>30.4 Naming</h2>
-
-
-
+<H2><a name="Ruby_nn27"></a>30.2 Naming</H2>
 
 
 <p>Ruby has several common naming conventions. Constants are
@@ -4203,10 +3203,7 @@ Features"</a>) for more details). </p>
 
 
 
-<h3><a name="Ruby_nn30"></a>30.4.3 Bang Methods</h3>
-
-
-
+<H3><a name="Ruby_nn30"></a>30.2.1 Bang Methods</H3>
 
 
 <p> Ruby methods that modify an object in-place and end in an
@@ -5726,10 +4723,7 @@ providing for a more natural integration between C++ code and Ruby code.</p>
 
 
 
-<h2><a name="Ruby_nn37"></a>30.7 Typemaps</h2>
-
-
-
+<H2><a name="Ruby_nn37"></a>30.3 Typemaps</H2>
 
 
 <p> This section describes how you can modify SWIG's default
@@ -8489,10 +7483,7 @@ for VALUE</h4>
 
 
 
-<h4><a name="Ruby_nn45"></a>30.7.8.4 Exceptions</h4>
-
-
-
+<H4><a name="Ruby_nn45"></a>30.3.0.1 Exceptions</H4>
 
 
 <p> <tt>void rb_raise(VALUE exception, const char *fmt,
@@ -8659,10 +7650,7 @@ arguments are interpreted as with <tt>printf()</tt>. </div>
 
 
 
-<h4><a name="Ruby_nn46"></a>30.7.8.5 Iterators</h4>
-
-
-
+<H4><a name="Ruby_nn46"></a>30.3.0.2 Iterators</H4>
 
 
 <p> <tt>void rb_iter_break()</tt> </p>

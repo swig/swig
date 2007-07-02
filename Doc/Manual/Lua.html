@@ -954,6 +954,8 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 </pre></div>
 
 <H3><a name="Lua_nn22"></a>22.3.15 Writing your own custom wrappers</H3>
+
+
 <p>
 Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native lua-c API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
 </p>
