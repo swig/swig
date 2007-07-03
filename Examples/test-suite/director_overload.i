@@ -30,5 +30,18 @@ public:
   virtual void method2(bool b) const {}
 };
 
+class OverloadedPointers
+{
+public:
+  virtual ~OverloadedPointers() {}
+  virtual void method(int *p) const {}
+  virtual void method(double *p) const {}
+  virtual void method(bool &r) const {}
+  virtual void method(short &r) const {}
+  virtual void method(OverloadedClass *p) const {}
+  virtual void method(OverloadedPointers *p) const {}
+  virtual void notover(int *p) const {}
+};
+
 %}
 

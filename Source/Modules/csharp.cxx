@@ -1569,8 +1569,9 @@ public:
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *method = Getattr(udata, "method");
 	String *methid = Getattr(udata, "class_methodidx");
+	String *overname = Getattr(udata, "overname");
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
-	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, method);
+	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
       Printf(proxy_class_code, "    %s.%s_director_connect(swigCPtr", imclass_name, proxy_class_name);
       for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
@@ -3203,7 +3204,7 @@ public:
 	String *imtypeout = Getattr(tp, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
 	if (imtypeout)
 	  tm = imtypeout;
-	Printf(callback_def, "  private %s SwigDirector%s(", tm, symname);
+	Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 	if (!ignored_method)
 	  Printf(director_delegate_definitions, "  public delegate %s", tm);
       } else {

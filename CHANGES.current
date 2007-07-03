@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+07/03/2007: wsfulton
+            [C#] Fix directors for some overloaded methods where the imtype resulted in identical
+            methods being generated in the C# director class, eg void foo(int *) and void foo(double *)
+            used to generated two of these:
+
+              private void SwigDirectorfoo(IntPtr p) { ... }
+
 06/25/2007: wsfulton
             [Java, C#] Some parameter name changes in std_vector.i allowing better targeting 
             of typemaps for method parameters (for memory management of containers of pointers).
