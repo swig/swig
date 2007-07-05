@@ -175,7 +175,7 @@ int SWIG_read_NAME_num_array(lua_State* L,int index,TYPE *array,int size);
 %{
 
 #ifdef __cplusplus	/* generic alloc/dealloc fns*/
-#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new (TYPE)[LEN]
+#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
 #define SWIG_FREE_ARRAY(PTR)		if(PTR){delete[] PTR;}
 #else
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))

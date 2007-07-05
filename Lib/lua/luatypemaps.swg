@@ -348,3 +348,21 @@ $1=&temp;%}
 }
 
 
+/* -----------------------------------------------------------------------------
+ *                          Specials
+ * ----------------------------------------------------------------------------- */
+// swig::LANGUAGE_OBJ was added to allow containers of native objects
+// however its rather difficult to do this in lua, as you cannot hold pointers
+// to native objects (they are held in the interpreter)
+// therefore for now: just ignoring this feature
+#ifdef __cplusplus
+%ignore swig::LANGUAGE_OBJ;
+
+%inline %{
+namespace swig {
+typedef struct{} LANGUAGE_OBJ;
+//typedef void* LANGUAGE_OBJ;
+}
+%}
+
+#endif // __cplusplus

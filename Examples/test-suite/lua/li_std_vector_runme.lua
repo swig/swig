@@ -43,7 +43,7 @@ for i=0,3 do
 end
 
 for i=0,3 do
-	assert( swig_type(sv[i]) =='_p_Struct' and sv[i].num==i)
+	assert( swig_type(sv[i]) =='Struct *' and sv[i].num==i)
 end
 
 -- range checking

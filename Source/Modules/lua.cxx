@@ -447,7 +447,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 	  } else {
 	    Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
 	  }
-	  Printf(argument_check, " SWIG_fail_arg(%s);\n", source);
+	  Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", name, source, SwigType_str(pt, 0));
 	}
 /* NEW LANGUAGE NOTE:***********************************************
    lua states the number of arguments passed to a function using the fn

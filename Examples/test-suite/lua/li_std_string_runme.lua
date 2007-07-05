@@ -8,7 +8,7 @@ setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable 
 
 -- helper to check type
 function is_std_string(s) 
-	return type(s)=='userdata' and swig_type(s)=='_p_std__string'
+	return type(s)=='userdata' and swig_type(s)=='std::string *'
 end
 
 -- std::string by value is just a Lua string

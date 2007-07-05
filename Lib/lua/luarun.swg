@@ -106,11 +106,13 @@ typedef struct {
 
 /* helper #defines */
 #define SWIG_fail {goto fail;}
-#define SWIG_fail_arg(I) {lua_pushfstring(L,"argument %d incorrect/missing",I);goto fail;}
-#define SWIG_fail_ptr(func_name,argnum,type) \
-  {lua_pushfstring(L,"Error in %s, expected a %s at argument number %d\n",\
-  func_name,(type && type->str)?type->str:"void*",argnum);\
+#define SWIG_fail_arg(func_name,argnum,type) \
+  {lua_pushfstring(L,"Error in %s (arg %d), expected '%s' got '%s'",\
+  func_name,argnum,type,SWIG_Lua_typename(L,argnum));\
   goto fail;}
+#define SWIG_fail_ptr(func_name,argnum,type) \
+  SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
+
 
 #define SWIG_Lua_get_table(L,n) \
   (lua_pushstring(L, n), lua_rawget(L,-2))
@@ -639,14 +641,30 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State* L,int index,void* ptr,size_t 
   return SWIG_ERROR;  /* error */
 }
 
+/* a function to get the typestring of a piece of data */
+SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
+{
+  swig_lua_userdata* usr;
+  if (lua_isuserdata(L,tp))
+  {
+    usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+    if (usr && usr->type && usr->type->str)
+      return usr->type->str;
+    return "userdata (unknown type)";
+  }
+  return lua_typename(L,lua_type(L,tp));
+}
+
 /* lua callable function to get the userdata's type */
 SWIGRUNTIME int SWIG_Lua_type(lua_State* L)
 {
-  swig_lua_userdata* usr;
+/*  swig_lua_userdata* usr;
   if (!lua_isuserdata(L,1))  /* just in case */
-    return 0;  /* nil reply */
-  usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
-  lua_pushstring(L,usr->type->name);
+  /*  return 0;  /* nil reply */
+  /*usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+  /*lua_pushstring(L,usr->type->name);
+  return 1;*/
+  lua_pushstring(L,SWIG_Lua_typename(L,1));
   return 1;
 }
 
@@ -666,6 +684,8 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
    lua_pushboolean(L,result);
   return 1;
 }
+
+
 
 
 /* -----------------------------------------------------------------------------

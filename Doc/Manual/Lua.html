@@ -399,7 +399,7 @@ Unlike many scripting languages, Lua has had support for pointers to C/C++ objec
 &gt; print(f)
 userdata: 003FDA80
 &gt; print(swig_type(f))
-_p_FILE -- its a FILE*
+FILE * -- its a FILE*
 </pre></div>
 <p>
 Lua enforces the integrity of its userdata, so it is virtually impossible to corrupt the data. But as the user of the pointer, you are responsible for freeing it, or closing any resources associated with it (just as you would in a C program). This does not apply so strictly to classes &amp; structs (see below). One final note: if a function returns a NULL pointer, this is not encoded as a userdata, but as a Lua nil.
@@ -1087,7 +1087,7 @@ __index function: 003FB698
 .fn     table: 003FB528
 </pre></div>
 <p>
-The '.type' attribute is the string which is returned from a call to swig_type(). The '.get' and '.set' tables work in a similar manner to the modules, the main difference is the '.fn' table which also holds all the member functions. (The '__gc' function is the classes destructor function)
+The '.type' attribute is the name of the class. The '.get' and '.set' tables work in a similar manner to the modules, the main difference is the '.fn' table which also holds all the member functions. (The '__gc' function is the classes destructor function)
 </p>
 <p>
 The Lua equivalent of the code for enabling functions looks a little like this
