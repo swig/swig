@@ -248,23 +248,21 @@ NEW LANGUAGE NOTE:END ************************************************/
 //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
 //    }
 
-    String *init_name = NewStringf("%(title)s_Init", module);
-    Printf(f_header, "#define SWIG_init    %s\n", init_name);
-    Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
+    //String *init_name = NewStringf("%(title)s_Init", module);
+    //Printf(f_header, "#define SWIG_init    %s\n", init_name);
+    //Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
     /* SWIG_import is a special function name for importing within Lua5.1 */
-    Printf(f_header, "#define SWIG_import  luaopen_%s\n\n", module);
+    //Printf(f_header, "#define SWIG_import  luaopen_%s\n\n", module);
+    Printf(f_header, "#define SWIG_name      \"%s\"\n", module);
+    Printf(f_header, "#define SWIG_init      luaopen_%s\n", module);
+    Printf(f_header, "#define SWIG_init_user luaopen_%s_user\n\n", module);
 
     Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
     Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
     Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
     Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
-    /* Change naming scheme for constructors and destructors */
-//    Swig_name_register("construct","%c_create");
-//    Swig_name_register("destroy","%c_destroy");
-
     /* %init code inclusion, effectively in the SWIG_init function */
-    Printf(f_init, "#ifdef __cplusplus\nextern \"C\"\n#endif\n");
     Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
     Language::top(n);
     Printf(f_init, "}\n");
@@ -277,10 +275,6 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(s_const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", NIL);
     Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
-
-    //
-    /* Close the initialization function */
-//    Printf(f_init, "}\n");
 
 /* NEW LANGUAGE NOTE:***********************************************
  this basically combines several of the strings together

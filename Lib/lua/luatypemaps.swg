@@ -358,10 +358,10 @@ $1=&temp;%}
 #ifdef __cplusplus
 %ignore swig::LANGUAGE_OBJ;
 
-%inline %{
+//%inline %{
+%{
 namespace swig {
 typedef struct{} LANGUAGE_OBJ;
-//typedef void* LANGUAGE_OBJ;
 }
 %}
 

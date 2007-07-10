@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+07/10/2007: mgossage
+            [lua] Extra compatibility with Lua 5.1 (updated SWIG_init, docs, examples, test suite)
+	    Removed name clash for static link of multiple modules
+
 07/05/2007: mgossage
             [lua] Fix a bug in SWIG_ALLOC_ARRAY()
             improved the error messages for incorrect arguments.

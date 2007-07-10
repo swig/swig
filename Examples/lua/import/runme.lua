@@ -4,14 +4,14 @@ print("Testing the %import directive")
 
 if string.sub(_VERSION,1,7)=='Lua 5.0' then
 	-- lua5.0 doesnt have a nice way to do this
-	function loadit(a,b)
-		lib=loadlib(a..':dll',b) or loadlib(a..':so',b)
+	function loadit(a)
+		lib=loadlib(a..'.dll','luaopen_'..a) or loadlib(a..'.so','luaopen_'..a)
 		assert(lib)()
 	end
-	loadit('base','Base_Init')
-	loadit('foo','Foo_Init')
-	loadit('bar','Bar_Init')
-	loadit('spam','Spam_Init')
+	loadit('base')
+	loadit('foo')
+	loadit('bar')
+	loadit('spam')
 else
 	-- lua 5.1 does
 	require 'base'

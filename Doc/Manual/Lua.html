@@ -54,10 +54,7 @@ Lua is an extension programming language designed to support general procedural 
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
-</p>
-<p>
-Note: Lua 5.1 (alpha) has just (as of September 05) been released. The current version of SWIG will produce wrappers which are compatible with Lua 5.1, though the  dynamic loading mechanism has changed (see below). The configure script and makefiles should work correctly with with Lua 5.1, though some small tweaks may be needed.
+The current SWIG implementation is designed to work with Lua 5.0.x and Lua 5.1.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
 </p>
 <H2><a name="Lua_nn3"></a>22.2 Running SWIG</H2>
 
@@ -89,7 +86,7 @@ $ swig -c++ -lua example.i
 This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx</tt>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.
 </p>
 <p>
-The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int Example_Init(LuaState* L)"</tt> which must be called to register the module with the Lua interpreter. The name "Example_Init" depends upon the name of the module. Note: SWIG will automatically capitalise the module name, so <tt>"module example;"</tt> becomes <tt>"Example_Init"</tt>.
+The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(LuaState* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
 </p>
 <H3><a name="Lua_nn4"></a>22.2.1 Compiling and Linking and Interpreter</H3>
 
@@ -103,7 +100,7 @@ Normally Lua is embedded into another program and will be statically linked. An 
 #include "lualib.h"
 #include "lauxlib.h"
 
-extern int Example_Init(LuaState* L); // declare the wrapped module
+extern int luaopen_example(LuaState* L); // declare the wrapped module
 
 int main(int argc,char* argv[])
 {
@@ -115,7 +112,7 @@ int main(int argc,char* argv[])
  }
  L=lua_open();
  luaopen_base(L);	// load basic libs (eg. print)
- Example_Init(L);	// load the wrappered module
+ luaopen_example(L);	// load the wrappered module
  if (luaL_loadfile(L,argv[1])==0) // load and run the file
   lua_pcall(L,0,0,0);
  else
@@ -125,7 +122,7 @@ int main(int argc,char* argv[])
 }
 </pre></div>
 <p>
-A much improved set of code can be found in the Lua distribution <tt>src/lua/lua.c</tt>. Include your module, just add the external declaration &amp; add a <tt>#define LUA_EXTRALIBS {"example",Example_Init}</tt>, at the relevant place.
+A much improved set of code can be found in the Lua distribution <tt>src/lua/lua.c</tt>. Include your module, just add the external declaration &amp; add a <tt>#define LUA_EXTRALIBS {"example",luaopen_example}</tt>, at the relevant place.
 </p>
 <p>
 The exact commands for doing this vary from platform to platform. Here is a possible set of commands of doing this:
@@ -151,40 +148,39 @@ $ gcc -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
-You will also need an interpreter with the loadlib function (such as the default interpreter compiled with Lua). In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
+The wrappers produced by SWIG can be compiled and linked with Lua 5.1.x. The loading is extremely simple.
 </p>
 <div class="targetlang"><pre>
-my_init=loadlib("example.so","Example_Init") -- for Unix/Linux
---my_init=loadlib("example.dll","Example_Init") -- for Windows
+require("example")
+</pre></div>
+<p>
+For those using Lua 5.0.x, you will also need an interpreter with the loadlib function (such as the default interpreter compiled with Lua). In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
+</p>
+<div class="targetlang"><pre>
+my_init=loadlib("example.so","luaopen_example") -- for Unix/Linux
+--my_init=loadlib("example.dll","luaopen_example") -- for Windows
 assert(my_init) -- name sure its not nil
 my_init()       -- call the init fn of the lib
 </pre></div>
 <p>
 Or can be done in a single line of Lua code
 </p>
+<div class="targetlang"><pre>
+assert(loadlib("example.so","luaopen_example"))()
+</pre></div>
 
-<div class="targetlang"><pre>
-assert(loadlib("example.so","Example_Init"))()
-</pre></div>
-<p>
-Update for Lua 5.1 (alpha):<br>
-The wrappers produced by SWIG can be compiled and linked with Lua 5.1. The loading is now much simpler.
-</p>
-<div class="targetlang"><pre>
-require("example")
-</pre></div>
 
 <p>
 If the code didn't work, don't panic. The best thing to do is to copy the module and your interpreter into a single directory and then execute the interpreter and try to manually load the module (take care, all this code is case sensitive).
 </p>
 <div class="targetlang"><pre>
-a,b,c=loadlib("example.so","Example_Init") -- for Unix/Linux
---a,b,c=loadlib("example.dll","Example_Init") -- for Windows
+a,b,c=package.loadlib("example.so","luaopen_example") -- for Unix/Linux
+--a,b,c=package.loadlib("example.dll","luaopen_example") -- for Windows
 print(a,b,c)
 </pre></div>
 <p>
-Note: for Lua 5.1:<br>
-The loadlib() function has been moved into the package table, so you must use package.loadlib() instead.
+Note: for Lua 5.0:<br>
+The loadlib() function is in the global namespace, not in package. So its just loadlib().
 </p>
 <p>
 if 'a' is a function, this its all working fine, all you need to do is call it
