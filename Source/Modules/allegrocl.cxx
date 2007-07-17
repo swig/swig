@@ -1727,7 +1727,7 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      differ = t1v - t2v;
 	    } else if (!t1 && t2)
 	      differ = 1;
-	    else if (t2 && !t1)
+	    else if (t1 && !t2)
 	      differ = -1;
 	    else if (!t1 && !t2)
 	      differ = -1;
