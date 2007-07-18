@@ -340,15 +340,15 @@
 %typemap(csdirectorout) SWIGTYPE "$&csclassname.getCPtr($cscall).Handle"
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
-%typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = ($1_ltype)$input; %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE & %{ $result = (void *)$1; %} 
-%typemap(out) SWIGTYPE (CLASS::*) %{ $result = (void *)&$1; %} 
+%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $result = (void *)$1; %} 
+%typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
+
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ $result = ($1_ltype)$input; %}
 %typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*)
