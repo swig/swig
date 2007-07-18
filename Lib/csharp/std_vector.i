@@ -212,7 +212,7 @@
       }
       void setitem(int index, const value_type& val) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size())
-          (*self)[index] = value;
+          (*self)[index] = val;
         else
           throw std::out_of_range("index");
       }
@@ -232,7 +232,7 @@
       }
       void Insert(int index, const value_type& x) throw (std::out_of_range) {
         if (index>=0 && index<(int)self->size()+1)
-          self->insert(self->begin()+index, value);
+          self->insert(self->begin()+index, x);
         else
           throw std::out_of_range("index");
       }
