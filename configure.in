@@ -1478,19 +1478,20 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs cscc)
+    # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc gmcs mcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, gmcs mcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi
     fi
     ;;
-  *)AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc);;
+  *)AC_CHECK_PROGS(CSHARPCOMPILER, gmcs mcs cscc);;
   esac
 else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
