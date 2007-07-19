@@ -1515,11 +1515,12 @@ if test -z "$CSHARPBIN" ; then
           CSHARPCOMPILER="mcs"
         fi
       fi
-      if test "mcs" = "$CSHARPCOMPILER" ; then
-        AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
-      else
+      if test "mcs" != "$CSHARPCOMPILER" ; then
         echo "mcs is not a working Mono C# compiler"
       fi
+    fi
+    if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER"; then
+        AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
     else 
       if test "csc" = "$CSHARPCOMPILER"; then
           CSHARPPATHSEPARATOR="\\\\"
