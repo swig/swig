@@ -1639,9 +1639,11 @@ String *Preprocessor_parse(String *s) {
 	      Swig_warnfilter(nowarn, 1);
 	      Delete(nowarn);
 	      Delete(val);
-	    } else if (strncmp(c, "cpperraswarn=", 7) == 0) {
+	    } else if (strncmp(c, "cpperraswarn=", 13) == 0) {
 	      error_as_warning = atoi(c + 13);
-	    }
+	    } else {
+              Swig_error(Getfile(s), Getline(id), "Unknown SWIG pragma: %s\n", c);
+            }
 	  }
 	}
       } else if (Equal(id, kpp_level)) {
