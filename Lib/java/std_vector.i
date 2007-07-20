@@ -40,7 +40,7 @@ namespace std {
             void set(int i, const value_type& val) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
-                    (*self)[i] = x;
+                    (*self)[i] = val;
                 else
                     throw std::out_of_range("vector index out of range");
             }
