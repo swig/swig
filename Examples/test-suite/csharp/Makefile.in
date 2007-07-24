@@ -30,19 +30,19 @@ SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	(cd $* && $(swig_and_compile_cpp); ) && \
-	$(run_testcase)
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	+$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	(cd $* && $(swig_and_compile_c); ) && \
-	$(run_testcase)
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	+$(run_testcase)
 
 %.multicpptest: 
-	$(setup) \
-	(cd $* && $(swig_and_compile_multi_cpp); ) && \
-	$(run_testcase)
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	+$(run_testcase)
 
 # Rules for custom tests
 intermediary_classname.customtest: 

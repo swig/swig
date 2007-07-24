@@ -30,32 +30,32 @@ SWIGOPT += -nounit
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	($(swig_and_compile_cpp); ) && \
+	$(setup)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
 	  $(MAKE) $*.cppproxy; ) \
 	fi;
 
 %.ctest:
-	$(setup) \
-	($(swig_and_compile_c); ) && \
+	$(setup)
+	+$(swig_and_compile_c)
 	$(run_testcase)
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
+	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
 	  $(MAKE) $*.cproxy; ) \
 	fi;
 
 %.multicpptest: 
-	$(setup) \
-	($(swig_and_compile_multi_cpp); ) && \
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
 	  $(MAKE) $*.multiproxy; ) \
 	fi;
 
 %.externaltest:
-	$(setup) \
-	($(swig_and_compile_external); ) && \
+	$(setup)
+	$(swig_and_compile_external)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
@@ -70,22 +70,22 @@ run_testcase = \
 %.cppproxy: SWIGOPT += -proxy
 %.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.cppproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
-	($(swig_and_compile_cpp); ) && \
+	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.cproxy: SWIGOPT += -proxy
 %.cproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.cproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
-	($(swig_and_compile_c); ) && \
+	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multiproxy: SWIGOPT += -proxy -noclosuses
 %.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.multiproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
-	($(swig_and_compile_multi_cpp); ) && \
+	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Clean

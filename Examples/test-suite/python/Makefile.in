@@ -67,18 +67,18 @@ LIBS       = -L.
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	($(swig_and_compile_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	($(swig_and_compile_c); ) &&\
+	$(setup)
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 
-	$(setup) \
-	($(swig_and_compile_multi_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
@@ -112,7 +112,7 @@ cvsignore:
 
 hugemod:
 	perl hugemod.pl
-	make hugemod_a.cpptest
-	make hugemod_b.cpptest
+	$(MAKE) hugemod_a.cpptest
+	$(MAKE) hugemod_b.cpptest
 	time $(PYTHON) hugemod_runme.py
 	time $(PYTHON) hugemod_runme.py

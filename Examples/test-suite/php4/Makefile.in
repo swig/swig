@@ -15,18 +15,18 @@ include $(srcdir)/../common.mk
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
 makecpptests:
-	@bash -ec 'for test in $(CPP_TEST_CASES) ; do make clean && make $${test}.cpptest; done'
+	@bash -ec 'for test in $(CPP_TEST_CASES) ; do $(MAKE) clean && $(MAKE) $${test}.cpptest; done'
 
 maketests: makecpptests makectests
 
 makectests:
-	@bash -ec 'for test in $(C_TEST_CASES) ; do make clean && make $${test}.cpptest; done'
+	@bash -ec 'for test in $(C_TEST_CASES) ; do $($(MAKE)) clean && $(MAKE) $${test}.cpptest; done'
 
 runcpptests:
-	@bash -ec 'for test in $(CPP_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then make clean && make $${test}.cpptest; fi ; done'
+	@bash -ec 'for test in $(CPP_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then $(MAKE) clean && $(MAKE) $${test}.cpptest; fi ; done'
 
 runctests:
-	@bash -ec 'for test in $(C_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then make clean && make $${test}.cpptest; fi; done'
+	@bash -ec 'for test in $(C_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then $(MAKE) clean && $(MAKE) $${test}.cpptest; fi; done'
 
 runtests: runcpptests runctests
 
@@ -41,18 +41,18 @@ missingtests: missingcpptests missingctests
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	($(swig_and_compile_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	($(swig_and_compile_c); ) &&\
+	$(setup)
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 
-	$(setup) \
-	($(swig_and_compile_multi_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if

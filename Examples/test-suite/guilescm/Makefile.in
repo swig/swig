@@ -37,8 +37,8 @@ swig_and_compile_multi_cpp = \
 	done
 
 %.externaltest:
-	$(local_setup) \
-	($(swig_and_compile_external); ) && \
+	$(local_setup)
+	$(swig_and_compile_external)
 	$(local_run_testcase)
 	
 # Same as setup and run_testcase, but without the SCRIPTPREFIX (so the runme comes from the guilescm directory)

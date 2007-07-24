@@ -37,18 +37,18 @@ SWIGOPT += -package $*
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	(cd $*; $(swig_and_compile_cpp); ) && \
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
 	$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	(cd $*; $(swig_and_compile_c); ) && \
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
 	$(run_testcase)
 
 %.multicpptest: 
-	$(setup) \
-	(cd $*; $(swig_and_compile_multi_cpp); ) && \
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
 	$(run_testcase)
 
 # Makes a directory for the testcase if it does not exist
@@ -66,7 +66,7 @@ setup = \
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
-	(cd $* && javac -classpath . *.java; ) && \
+	(cd $* && javac -classpath . *.java) && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  javac -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && 	  \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" java -classpath . $*\_runme;) \

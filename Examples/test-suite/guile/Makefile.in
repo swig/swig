@@ -20,13 +20,13 @@ include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest: 
-	$(setup) \
-	($(swig_and_compile_cpp); ) && \
+	$(setup)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	($(swig_and_compile_c); ) && \
+	$(setup)
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 # override the default in common.mk by adding SWIGOPT +=
@@ -43,8 +43,8 @@ swig_and_compile_multi_cpp = \
 	done
 
 %.multicpptest: 
-	$(setup) \
-	($(swig_and_compile_multi_cpp); ) && \
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if

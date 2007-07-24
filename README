@@ -416,7 +416,11 @@ many parts of the implementation including obscure corner cases. If some
 of these tests fail or generate warning messages, there is no reason for
 alarm---the test may be related to some new SWIG feature or a difficult bug
 that we're trying to resolve.  Chances are that SWIG will work just fine
-for you.
+for you. Note that if you have more than one CPU/core, then you can use
+parallel make can be used to speed up the check as it does take quite some
+time to run, for example:
+
+    % make -j2 -k check
 
 Also, SWIG's support for C++ is sufficiently advanced that certain
 tests may fail on older C++ compilers (for instance if your compiler

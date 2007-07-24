@@ -46,18 +46,18 @@ SWIGOPT += -w801 -noautorename -features autodoc=4
 naming.cpptest: SWIGOPT = -autorename
 
 %.cpptest: 
-	$(setup) \
-	($(swig_and_compile_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
-	$(setup) \
-	($(swig_and_compile_c); ) &&\
+	$(setup)
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 
-	$(setup) \
-	($(swig_and_compile_multi_cpp); ) &&\
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
@@ -69,7 +69,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-
+	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile ruby_clean

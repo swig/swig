@@ -47,27 +47,27 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest:
 	echo $@ >> testing
-	$(setup) \
-	($(swig_and_compile_cpp); )  && \
-	$(run_testcase) \
+	$(setup)
+	+$(swig_and_compile_cpp)
+	$(run_testcase)
 	if [ -f $(@:%.cpptest=%_wrap.o) ] ; then \
 		echo $@ >> success ; \
 	fi
 
 %.ctest:
 	echo $@ >> testing
-	$(setup) \
-	($(swig_and_compile_c); )  && \
-	$(run_testcase) \
+	$(setup)
+	+$(swig_and_compile_c)
+	$(run_testcase)
 	if [ -f $(@:%.ctest=%_wrap.o) ] ; then \
 		echo $@ >> success ; \
 	fi
 
 %.multicpptest:
 	echo $@ >> testing
-	($(swig_and_compile_multi_cpp); )  && \
-	$(setup) \
-	$(run_testcase) \
+	+$(swig_and_compile_multi_cpp)
+	$(setup)
+	$(run_testcase)
 	if [ -f $(@:%.multicpptest=%_runtime_wrap.o) ] ; then \
 		echo $@ >> success ; \
 	fi

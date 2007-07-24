@@ -70,8 +70,6 @@ chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
-chk = $(MAKE) -k -s $(chk-set-env) $(ACTION)
-
 check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
@@ -114,26 +112,47 @@ check-examples:					\
 	check-cffi-examples			\
 	check-r-examples
 
-check-%-examples:
-	@passed=true;						\
-	dir="Examples/$*";					\
-	if $(skip-$*); then					\
+tcl_examples       :=$(shell sed '/^\#/d' Examples/tcl/check.list)
+perl5_examples     :=$(shell sed '/^\#/d' Examples/perl5/check.list)
+python_examples    :=$(shell sed '/^\#/d' Examples/python/check.list)
+java_examples      :=$(shell sed '/^\#/d' Examples/java/check.list)
+guile_examples     :=$(shell sed '/^\#/d' Examples/guile/check.list)
+mzscheme_examples  :=$(shell sed '/^\#/d' Examples/mzscheme/check.list)
+ruby_examples      :=$(shell sed '/^\#/d' Examples/ruby/check.list)
+ocaml_examples     :=$(shell sed '/^\#/d' Examples/ocaml/check.list)
+php4_examples      :=$(shell sed '/^\#/d' Examples/php4/check.list)
+pike_examples      :=$(shell sed '/^\#/d' Examples/pike/check.list)
+chicken_examples   :=$(shell sed '/^\#/d' Examples/chicken/check.list)
+csharp_examples    :=$(shell sed '/^\#/d' Examples/csharp/check.list)
+modula3_examples   :=$(shell sed '/^\#/d' Examples/modula3/check.list)
+lua_examples       :=$(shell sed '/^\#/d' Examples/lua/check.list)
+allegrocl_examples :=
+clisp_examples     :=
+uffi_examples      :=
+cffi_examples      :=
+r_examples         :=
+
+# all examples
+check-%-examples :
+	@if $(skip-$*); then					\
 	  echo skipping $* $(ACTION);				\
-	elif [ ! -f $$dir/check.list ]; then			\
-	  echo skipping $* $(ACTION) "(no $$dir/check.list)";	\
 	else							\
-	  all=`sed '/^#/d' $$dir/check.list`;			\
-	  for a in $$all; do					\
-            if $(skip-gcj) && test $$a = "java"; then		\
-              echo "skipping $* $$dir/$$a $(ACTION) (gcj test)";\
-            else						\
-	    echo $(ACTION)ing $$dir/$$a;			\
-	    (cd $$dir/$$a && $(chk))				\
-	    || passed=false;					\
-	    fi;							\
-	  done;							\
+	  $(MAKE) -k -s $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
+	fi;
+
+# individual example
+%.actionexample:
+	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION))
+
+# gcj individual example
+java.actionexample:
+	@if $(skip-gcj); then					\
+          echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
+        else							\
+	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
 	fi;							\
-	test $$passed = true
 
 gifplot-library:
 	@echo $(ACTION)ing Examples/GIFPlot/Lib
@@ -167,7 +186,8 @@ check-%-gifplot: gifplot-library
 	  all=`sed '/^#/d' $$dir/check.list`;			\
 	  for a in $$all; do					\
 	    echo $(ACTION)ing $$dir/$$a;			\
-	    (cd $$dir/$$a && $(chk))				\
+	    (cd $$dir/$$a &&					\
+	    $(MAKE) -k -s $(chk-set-env) $(ACTION))		\
 	    || passed=false;					\
 	  done;							\
 	fi;							\
