@@ -394,6 +394,42 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
   rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
 }
 
+/* This function can be used to check whether a proc or method or similarly
+   callable function has been passed.  Usually used in a %typecheck, like:
+
+   %typecheck(c_callback_t, precedence=SWIG_TYPECHECK_POINTER) {
+        $result = SWIG_Ruby_isCallable( $input );
+   }
+ */
+SWIGINTERN
+int SWIG_Ruby_isCallable( VALUE proc )
+{
+  static VALUE call_id = rb_intern("call");
+  if ( rb_respond_to( proc, call_id ) == Qtrue )
+    return 1;
+  return 0;
+}
+
+/* This function can be used to check the arity (number of arguments)
+   a proc or method can take.  Usually used in a %typecheck.
+   Valid arities will be that equal to minimal or those < 0
+   which indicate a variable number of parameters at the end.
+ */
+SWIGINTERN
+int SWIG_Ruby_arity( VALUE proc, int minimal )
+{
+  static VALUE arity_id = rb_intern("arity");
+  if ( rb_respond_to( proc, arity_id ) == Qtrue )
+    {
+      VALUE num = rb_funcall( proc, arity_id, 0 );
+      int arity = NUM2INT(num);
+      if ( arity < 0 && (arity+1) < -minimal ) return 1;
+      if ( arity == minimal ) return 1;
+      return 1;
+    }
+  return 0;
+}
+
 
 #ifdef __cplusplus
 }

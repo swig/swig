@@ -26,40 +26,6 @@
 
 %include rubyclasses.swg
 
-%{
-/* This function can be used to check whether a proc or method or similarly
-   callable function has been passed.  Usually used in a %typecheck. */
-SWIGINTERN
-int SWIG_Ruby_isCallable( VALUE proc )
-{
-  static VALUE call_id = rb_intern("call");
-  if ( rb_respond_to( proc, call_id ) )
-    return 1;
-  return 0;
-}
-
-/* This function can be used to check the arity (number of arguments)
-   a proc or method can take.  Usually used in a %typecheck.
-   Valid arities will be that equal to minimal or those < 0
-   which indicate a variable number of parameters at the end.
- */
-SWIGINTERN
-int SWIG_Ruby_arity( VALUE proc, int minimal )
-{
-  static VALUE arity_id = rb_intern("arity");
-  if ( rb_respond_to( proc, arity_id ) )
-    {
-      VALUE num = rb_funcall( proc, arity_id, 0 );
-      int arity = NUM2INT(num);
-      if ( arity < 0 && (arity+1) < -minimal ) return 1;
-      if ( arity == minimal ) return 1;
-      return 1;
-    }
-  return 0;
-}
-
-%}
-
 
 namespace swig {
 

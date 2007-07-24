@@ -199,3 +199,67 @@ namespace swig {
   }
 }
 }
+
+
+// Define GC marking template traits for a container type
+%define %create_mark_traits(Type)
+%{
+  namespace swig {
+    template <class T>
+    struct mark_traits {
+      typedef typename Type<T >::const_iterator const_iterator;
+
+      inline void operator()(const Type<T >& c ) const
+      {
+	const_iterator i = c.begin();
+	const_iterator e = c.end();
+	for ( ; i != e; ++i )
+	  {
+	    rb_gc_mark( swig::from( &(*i) ) );
+	  }
+      }
+    };
+
+    // Partial specializations for classes that requires no GC marking
+    // or a special GC marking algorithm.
+    template< >
+    struct mark_traits<bool> {
+      inline void operator()(const Type<bool >& c ) const {}
+    };
+
+    template< >
+    struct mark_traits<char> {
+      inline void operator()(const Type<char >& c ) const {}
+    };
+
+    template< >
+    struct mark_traits<int> {
+      inline void operator()(const Type<int >& c ) const {}
+    };
+
+    template< >
+    struct mark_traits<unsigned> {
+      inline void operator()(const Type<unsigned >& c ) const {}
+    };
+
+    template< >
+    struct mark_traits<GC_VALUE> {
+      typedef Type<GC_VALUE >::const_iterator const_iterator;
+
+      inline void operator()(const Type<GC_VALUE >& c ) const {
+	const_iterator i = c.begin();
+	const_iterator e = c.end();
+	for ( ; i != e; ++i )
+	  {
+	    VALUE v = *i;
+	    if ( FIXNUM_P(v) || SPECIAL_CONST_P(v) || SYMBOL_P(v) ||
+		 ( BUILTIN_TYPE(v) == T_NONE ) ) continue;
+
+	    rb_gc_mark( v );
+	  }
+      }
+    };
+
+  }
+%}
+%enddef
