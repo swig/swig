@@ -49,6 +49,7 @@ LIBPREFIX  = lib
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	extend_variable \
 	namespace_union \
 	nested_comment \
 	overload_complicated \
@@ -157,7 +158,6 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
-	extend_variable \
 	extern_namespace \
 	extern_throws \
 	features \
