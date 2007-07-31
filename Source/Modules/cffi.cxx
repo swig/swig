@@ -276,7 +276,7 @@ void CFFI::emit_defmethod(Node *n) {
   if (x == 1)
     Printf(f_clos, "(cl:shadow \"%s\")\n", method_name);
 
-  Printf(f_clos, "(clos:defmethod %s (%s)\n  (%s%s))\n\n",
+  Printf(f_clos, "(cl:defmethod %s (%s)\n  (%s%s))\n\n",
          lispify_name(n, lispy_name(Char(method_name)), "'method"), args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
@@ -318,7 +318,7 @@ void CFFI::emit_initialize_instance(Node *n) {
       Delete(argname);
   }
 
-  Printf(f_clos, "(clos:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s)))\n\n",
+  Printf(f_clos, "(cl:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s)))\n\n",
          lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
@@ -326,7 +326,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
 void CFFI::emit_setter(Node *n) {
   Node *p = parentNode(n);
-  Printf(f_clos, "(clos:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
+  Printf(f_clos, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
@@ -334,7 +334,7 @@ void CFFI::emit_setter(Node *n) {
 
 void CFFI::emit_getter(Node *n) {
   Node *p = parentNode(n);
-  Printf(f_clos, "(clos:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
+  Printf(f_clos, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
@@ -667,7 +667,7 @@ void CFFI::emit_class(Node *n) {
   }
 
   Printf(supers, ")");
-  Printf(f_clos, "\n(clos:defclass %s%s", lisp_name, supers);
+  Printf(f_clos, "\n(cl:defclass %s%s", lisp_name, supers);
   Printf(f_clos, "\n  ((ff :reader ff-pointer)))\n\n");
 
   Parm *pattern = NewParm(Getattr(n, "name"), NULL);
