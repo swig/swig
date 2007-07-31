@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+07/31/2007: efuzzyone
+      [cffi] fixed memory access after being freed bug. thanks to Martin Percossi.
+        package name clos changed to cl. thanks to Ralf Mattes
+
 07/24/2007: wsfulton
             Parallel make support added for the examples and test-suite for developers who have
             more than one CPU. Now parallel make can be used for checking in addition to building
