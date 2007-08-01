@@ -1,9 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/01/2007: wsfulton
+            Fix smart pointer handling for classes that have templated methods within the smart
+            pointer type. Problem reported by craigdo at ee.washington.edu.
+
 07/31/2007: efuzzyone
-      [cffi] fixed memory access after being freed bug. thanks to Martin Percossi.
-        package name clos changed to cl. thanks to Ralf Mattes
+            [cffi] fixed memory access after being freed bug. thanks to Martin Percossi.
+            package name clos changed to cl. thanks to Ralf Mattes
 
 07/24/2007: wsfulton
             Parallel make support added for the examples and test-suite for developers who have
