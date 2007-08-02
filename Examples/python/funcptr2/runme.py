@@ -18,3 +18,7 @@ print "Here is what the C callback function objects look like in Python"
 print "    ADD      =", example.ADD
 print "    SUB      =", example.SUB
 print "    MUL      =", example.MUL
+
+print "Call the functions directly..."
+print "    add(a,b) =", example.add(a,b)
+print "    sub(a,b) =", example.sub(a,b)

@@ -16,3 +16,7 @@ puts "Here is what the C callback function objects look like in Ruby"
 puts "    ADD      = #{Example::ADD}"
 puts "    SUB      = #{Example::SUB}"
 puts "    MUL      = #{Example::MUL}"
+
+puts "Call the functions directly..."
+puts "    add(a,b) = #{Example.add(a,b)}"
+puts "    sub(a,b) = #{Example.sub(a,b)}"
