@@ -1856,11 +1856,11 @@ can use the <tt>%callback</tt> and <tt>%nocallback</tt> directives like this:
 int binary_op(int a, int b, int (*op)(int,int));
 
 /* Some callback functions */
-%callback("%s_cb")
+%callback("%s_cb");
 int add(int,int);
 int sub(int,int);
 int mul(int,int);
-%nocallback
+%nocallback;
 </pre></div>
 
 <p>
@@ -1898,11 +1898,11 @@ variation installs the callbacks as all upper-case constants such as
 
 <div class="code"><pre>
 /* Some callback functions */
-%callback("%(upper)s")
+%callback("%(upper)s");
 int add(int,int);
 int sub(int,int);
 int mul(int,int);
-%nocallback
+%nocallback;
 </pre></div>
 
 <p>
