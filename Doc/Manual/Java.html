@@ -5761,7 +5761,7 @@ The following SWIG interface file allows a Java String array to be used as a <tt
     for (i = 0; i&lt;size; i++) {
         jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
         const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $1[i] = malloc(strlen((c_string)+1)*sizeof(const char *));
+        $1[i] = malloc((strlen(c_string)+1)*sizeof(char));
         strcpy($1[i], c_string);
         (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
         (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
@@ -5925,7 +5925,7 @@ previous example's typemaps:
     for (i = 0; i&lt;$1; i++) {
         jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
         const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $2[i] = malloc(strlen((c_string)+1)*sizeof(const char *));
+        $2[i] = malloc((strlen(c_string)+1)*sizeof(char));
         strcpy($2[i], c_string);
         (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
         (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
