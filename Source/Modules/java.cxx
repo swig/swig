@@ -994,6 +994,12 @@ public:
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Replaceall(tm, "$target", "jresult");	/* deprecated */
 	Replaceall(tm, "$result", "jresult");
+
+        if (GetFlag(n, "feature:new"))
+          Replaceall(tm, "$owner", "1");
+        else
+          Replaceall(tm, "$owner", "0");
+
 	Printf(f->code, "%s", tm);
 	if (Len(tm))
 	  Printf(f->code, "\n");
@@ -3459,6 +3465,7 @@ public:
 	  Delete(jni_canon);
 
 	  Replaceall(tm, "$input", arg);
+	  Replaceall(tm, "$owner", "0");
 
 	  if (Len(tm))
 	    if (!ignored_method)

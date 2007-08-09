@@ -914,6 +914,12 @@ public:
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Replaceall(tm, "$target", "jresult");	/* deprecated */
 	Replaceall(tm, "$result", "jresult");
+
+        if (GetFlag(n, "feature:new"))
+          Replaceall(tm, "$owner", "1");
+        else
+          Replaceall(tm, "$owner", "0");
+
 	Printf(f->code, "%s", tm);
 	null_attribute = Getattr(n, "tmap:out:null");
 	if (Len(tm))
@@ -3314,6 +3320,7 @@ public:
 	    && (tm = Getattr(p, "tmap:directorin"))) {
 
 	  Replaceall(tm, "$input", arg);
+	  Replaceall(tm, "$owner", "0");
 
 	  if (Len(tm))
 	    if (!ignored_method)
