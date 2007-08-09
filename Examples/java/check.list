@@ -5,7 +5,6 @@ constants
 enum
 extend
 funcptr
-mpointer
 multimap
 native
 pointer

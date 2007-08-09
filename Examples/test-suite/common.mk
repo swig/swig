@@ -183,6 +183,7 @@ CPP_TEST_CASES += \
 	li_typemaps \
 	li_windows \
 	long_long_apply \
+	member_pointer \
 	member_template \
 	minherit \
 	minherit2 \

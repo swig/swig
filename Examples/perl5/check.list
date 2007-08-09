@@ -5,7 +5,6 @@ constants2
 funcptr
 import
 java
-mpointer
 multimap
 multiple_inheritance
 pointer
