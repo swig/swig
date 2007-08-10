@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 08/10/2007: wsfulton
+            [Java] Add documentation patch #1743573 from Jeffrey Sorensen. It contains a neat
+            idea with respect to better memory management by the JVM of C++ allocated memory.
+
+08/10/2007: wsfulton
             [Perl] Apply patch #1771410 from Wade Brainerd to fix typedef XS(SwigPerlWrapper) in 
             perlrun.swg for ActiveState Perl build 822 and Perl 5.8.9 and 5.10 branches.
 

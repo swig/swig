@@ -98,6 +98,7 @@
 <li><a href="#simple_pointers">Simple pointers</a>
 <li><a href="#c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="#unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="#java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="#java_typemaps">Java typemaps</a>
 <ul>
@@ -4141,6 +4142,123 @@ Needless to say, this approach is not going to suit all applications.
 On the other hand, this low-level approach is extremely efficient and
 well suited for applications in which you need to create buffers,
 package binary data, etc.
+</p>
+
+<H3><a name="java_heap_allocations"></a>20.7.5 Overriding new and delete to allocate from Java heap</H3>
+
+
+<p>
+Unlike some languages supported by SWIG, Java has a true garbage collection
+subsystem.  Other languages will free SWIG wrapped objects when their reference
+count reaches zero.  Java only schedules these objects for finalization, which
+may not occur for some time.  Because SWIG objects are allocated on the C
+heap, Java users may find the JVM memory use 
+quickly exceeds the assigned limits, as memory fills with unfinalized proxy
+objects.  Forcing garbage collection is clearly an undesirable solution.
+</p>
+
+<p>
+An elegant fix for C++ users is to override new and delete using the following
+code (here shown included in a SWIG interface file)
+</p>
+
+<div class="code">
+<pre>
+/* File: java_heap.i */
+%module test
+%{
+#include &lt;stdexcept&gt;
+#include "jni.h"
+
+/**
+ *  A stash area embedded in each allocation to hold java handles
+ */
+struct Jalloc {
+  jbyteArray jba;
+  jobject ref;
+};
+
+static JavaVM *cached_jvm = 0;
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved) {
+  cached_jvm = jvm;
+  return JNI_VERSION_1_2;
+}
+
+static JNIEnv * JNU_GetEnv() {
+  JNIEnv *env;
+  jint rc = cached_jvm-&gt;GetEnv((void **)&amp;env, JNI_VERSION_1_2);
+  if (rc == JNI_EDETACHED)
+    throw std::runtime_error("current thread not attached");
+  if (rc == JNI_EVERSION)
+    throw std::runtime_error("jni version not supported");
+  return env;
+}
+
+void * operator new(size_t t) {
+  if (cached_jvm != 0) {
+    JNIEnv *env = JNU_GetEnv();
+    jbyteArray jba = env-&gt;NewByteArray((int) t + sizeof(Jalloc));
+    if (env-&gt;ExceptionOccurred())
+      throw bad_alloc();
+    void *jbuffer = static_cast&lt;void *&gt;(env-&gt;GetByteArrayElements(jba, 0));
+    if (env-&gt;ExceptionOccurred())
+      throw bad_alloc();
+    Jalloc *pJalloc = static_cast&lt;Jalloc *&gt;(jbuffer);
+    pJalloc-&gt;jba = jba;
+    /* Assign a global reference so byte array will persist until delete'ed */
+    pJalloc-&gt;ref = env-&gt;NewGlobalRef(jba);
+    if (env-&gt;ExceptionOccurred())
+      throw bad_alloc();
+    return static_cast&lt;void *&gt;(static_cast&lt;char *&gt;(jbuffer) + sizeof(Jalloc));
+  }
+  else { /* JNI_OnLoad not called, use malloc and mark as special */
+    Jalloc *pJalloc = static_cast&lt;Jalloc *&gt;(malloc((int) t + sizeof(Jalloc)));
+    if (!pJalloc)
+      throw bad_alloc();
+    pJalloc-&gt;ref = 0;
+    return static_cast&lt;void *&gt;(
+        static_cast&lt;char *&gt;(static_cast&lt;void *&gt;(pJalloc)) + sizeof(Jalloc));
+  }
+}
+
+void operator delete(void *v) {
+  if (v != 0) {
+    void *buffer = static_cast&lt;void *&gt;( static_cast&lt;char *&gt;(v) - sizeof(Jalloc));
+    Jalloc *pJalloc = static_cast&lt;Jalloc *&gt;(buffer);
+    if (pJalloc-&gt;ref) {
+      JNIEnv *env = JNU_GetEnv();
+      env-&gt;DeleteGlobalRef(pJalloc-&gt;ref);
+      env-&gt;ReleaseByteArrayElements(pJalloc-&gt;jba, static_cast&lt;jbyte *&gt;(buffer), 0);
+    }
+    else {
+      free(buffer);
+    }
+  }
+}
+%}
+...
+</pre>
+</div>
+
+<p>
+This code caches the Java environment during initialization,
+and when new is called, a Java ByteArray is allocated to provide the
+SWIG objects with space in the Java heap.  This has the combined
+effect of re-asserting the Java virtual machine's limit on memory allocation,
+and puts additional pressure on the garbage collection system to run more
+frequently.
+This code is made slightly more complicated because allowances must be made
+if new is called before the JNI_OnLoad is executed.  This can happen during
+static class initialization, for example.  
+</p>
+
+<p>
+Unfortunately, because most Java implementations call malloc and free, this
+solution will not work for C wrapped structures.  However, you are free to
+make functions that allocate and free memory from the Java heap using this
+model and use these functions in place of malloc and free in your own
+code.
 </p>
 
 <H2><a name="java_typemaps"></a>20.8 Java typemaps</H2>
