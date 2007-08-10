@@ -1305,8 +1305,10 @@ public:
     Delete(wname);
     wname = NULL;
 
-    if (!(shadow && php_version == 5))
+    if (!(shadow && php_version == 5)) {
+      DelWrapper(f);
       return SWIG_OK;
+    }
 
     // Handle getters and setters.
     if (wrapperType == membervar) {
@@ -1841,7 +1843,10 @@ public:
       Printf(output, "\t}\n");
       Delete(prepare);
       Delete(invoke);
+      free(arg_values);
     }
+
+    DelWrapper(f);
 
     return SWIG_OK;
   }
@@ -2521,6 +2526,7 @@ public:
     Delete(class_iname);
     Delete(mget);
     Delete(mset);
+    DelWrapper(f);
 
     return SWIG_OK;
   }
@@ -2644,7 +2650,7 @@ public:
     char *iname = GetChar(n, "sym:name");
 
     if (shadow && php_version == 4) {
-      if (strcmp(iname, Char(shadow_classname)) == 0) {
+      if (iname && strcmp(iname, Char(shadow_classname)) == 0) {
 	native_constructor = NATIVE_CONSTRUCTOR;
       } else {
 	native_constructor = ALTERNATIVE_CONSTRUCTOR;

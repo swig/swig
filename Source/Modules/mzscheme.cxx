@@ -248,8 +248,10 @@ public:
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n))
+      if (!addSymbol(iname, n)) {
+        DelWrapper(f);
 	return SWIG_ERROR;
+      }
     }
     if (overname) {
       Append(wname, overname);

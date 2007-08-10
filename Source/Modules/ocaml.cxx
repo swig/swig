@@ -446,8 +446,10 @@ public:
     if (isOverloaded) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n))
+      if (!addSymbol(iname, n)) {
+        DelWrapper(f);
 	return SWIG_ERROR;
+      }
     }
     if (overname) {
       Append(wname, overname);
@@ -1094,6 +1096,10 @@ public:
 
   int classHandler(Node *n) {
     String *name = Getattr(n, "name");
+
+    if (!name)
+      return SWIG_OK;
+
     String *mangled_sym_name = mangleNameForCaml(name);
     String *this_class_def = NewString(f_classtemplate);
     String *name_normalized = normalizeTemplatedClassName(name);
@@ -1102,8 +1108,6 @@ public:
     f_class_ctors = NewString("");
     bool sizeof_feature = generate_sizeof && isSimpleType(name);
 
-    if (!name)
-      return SWIG_OK;
 
     classname = mangled_sym_name;
     classmode = true;

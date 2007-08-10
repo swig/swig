@@ -259,7 +259,7 @@ void CFFI::emit_defmethod(Node *n) {
     else
       Printf(args_placeholder, "%s", argname);
 
-    if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
+    if (ffitype && Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
       Printf(args_call, " (ff-pointer %s)", argname);
     else
       Printf(args_call, " %s", argname);
@@ -373,8 +373,10 @@ int CFFI::functionWrapper(Node *n) {
   if (Getattr(n, "sym:overloaded")) {
     overname = Getattr(n, "sym:overname");
   } else {
-    if (!addSymbol(iname, n))
+    if (!addSymbol(iname, n)) {
+      DelWrapper(wrap);
       return SWIG_ERROR;
+    }
   }
 
   String *wname = Swig_name_wrapper(iname);
@@ -479,6 +481,7 @@ int CFFI::functionWrapper(Node *n) {
   //   }
 
   Delete(wname);
+  DelWrapper(wrap);
 
   return SWIG_OK;
 }

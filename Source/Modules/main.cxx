@@ -397,7 +397,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-I", 2) == 0) {
 	// Add a new directory search path
-	Swig_add_directory((DOH *) Swig_copy_string(argv[i] + 2));
+	char *a = Swig_copy_string(argv[i] + 2);
+	Swig_add_directory((DOH *) a);
+	free(a);
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-D", 2) == 0) {
 	String *d = NewString(argv[i] + 2);
@@ -1064,10 +1066,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_top) {
       Swig_print_tree(top);
     }
-    if (dump_module) {
+    if (dump_module && top) {
       Swig_print_tree(Getattr(top, "module"));
     }
-    if (dump_xml) {
+    if (dump_xml && top) {
       Swig_print_xml(top, xmlout);
     }
     Delete(top);

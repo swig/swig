@@ -2500,6 +2500,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
   Delete(result_type);
   Delete(mangled_name);
   Delete(pl);
+  DelWrapper(wrap);
 
 #ifdef ALLEGROCL_WRAP_DEBUG
   Printf(stderr, "emit_defun: EXIT\n");
@@ -2556,6 +2557,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
 	emit_buffered_defuns(n);
 	emit_dispatch_defun(n);
       }
+      DelWrapper(wrap);
       return SWIG_OK;
     }
   }
@@ -2648,6 +2650,8 @@ int ALLEGROCL::functionWrapper(Node *n) {
       emit_dispatch_defun(n);
     }
   }
+
+  DelWrapper(wrap);
 
   return SWIG_OK;
 }

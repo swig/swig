@@ -375,6 +375,7 @@ public:
     Wrapper *f = NewWrapper();
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
+    DelWrapper(f);
     return SWIG_OK;
   }
 

@@ -1250,7 +1250,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   char *cop = Char(op);
   /* special case, we need to check for 'ref' call 
      and set the default code 'sdef' */
-  if (Cmp(op, "newfree") == 0) {
+  if (node && Cmp(op, "newfree") == 0) {
     sdef = Swig_ref_call(node, lname);
   }
 

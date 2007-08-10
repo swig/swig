@@ -819,6 +819,8 @@ public:
       addfail = emit_action_code(n, getf, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
+      DelWrapper(setf);
+      DelWrapper(getf);
       return SWIG_NOWRAP;
     }
     Printf(getf->code, "    return 1;\n");
@@ -1529,6 +1531,7 @@ public:
 		Printf(pragma_include, "%s", buffer);
 	      }
 	    }
+	    fclose(f);
 	  }
 	} else {
 	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);

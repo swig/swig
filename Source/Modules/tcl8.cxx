@@ -593,30 +593,31 @@ public:
       setf = NewWrapper();
       setname = Swig_name_set(iname);
       setfname = Swig_name_wrapper(setname);
-      Printv(setf->def, "SWIGINTERN const char *", setfname,
+      if (setf) {
+        Printv(setf->def, "SWIGINTERN const char *", setfname,
 	     "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {", NIL);
-      Wrapper_add_local(setf, "value", "Tcl_Obj *value = 0");
-      Wrapper_add_local(setf, "name1o", "Tcl_Obj *name1o = 0");
+        Wrapper_add_local(setf, "value", "Tcl_Obj *value = 0");
+        Wrapper_add_local(setf, "name1o", "Tcl_Obj *name1o = 0");
 
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
-	Replaceall(tm, "$source", "value");
-	Replaceall(tm, "$target", name);
-	Replaceall(tm, "$input", "value");
-	Printf(setf->code, "name1o = Tcl_NewStringObj(name1,-1);\n");
-	Printf(setf->code, "value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
-	Printf(setf->code, "Tcl_DecrRefCount(name1o);\n");
-	Printf(setf->code, "if (!value) SWIG_fail;\n");
-	/* Printf(setf->code,"%s\n", tm); */
-	emit_action_code(n, setf, tm);
-	Printf(setf->code, "return NULL;\n");
-	Printf(setf->code, "fail:\n");
-	Printf(setf->code, "return \"%s\";\n", iname);
-	Printf(setf->code, "}\n");
-	if (setf)
+        if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+	  Replaceall(tm, "$source", "value");
+	  Replaceall(tm, "$target", name);
+	  Replaceall(tm, "$input", "value");
+	  Printf(setf->code, "name1o = Tcl_NewStringObj(name1,-1);\n");
+	  Printf(setf->code, "value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
+	  Printf(setf->code, "Tcl_DecrRefCount(name1o);\n");
+	  Printf(setf->code, "if (!value) SWIG_fail;\n");
+	  /* Printf(setf->code,"%s\n", tm); */
+	  emit_action_code(n, setf, tm);
+	  Printf(setf->code, "return NULL;\n");
+	  Printf(setf->code, "fail:\n");
+	  Printf(setf->code, "return \"%s\";\n", iname);
+	  Printf(setf->code, "}\n");
 	  Wrapper_print(setf, f_wrappers);
-      } else {
-	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
-	readonly = 1;
+        } else {
+	  Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
+	  readonly = 1;
+        }
       }
       DelWrapper(setf);
     } else {

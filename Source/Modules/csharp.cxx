@@ -280,6 +280,11 @@ public:
     String *outfile = Getattr(n, "outfile");
     String *outfile_h = Getattr(n, "outfile_h");
 
+    if (!outfile) {
+      Printf(stderr, "Unable to determine outfile\n");
+      SWIG_exit(EXIT_FAILURE);
+    }
+
     f_runtime = NewFile(outfile, "w");
     if (!f_runtime) {
       FileErrorDisplay(outfile);
@@ -287,6 +292,10 @@ public:
     }
 
     if (directorsEnabled()) {
+      if (!outfile_h) {
+        Printf(stderr, "Unable to determine outfile_h\n");
+        SWIG_exit(EXIT_FAILURE);
+      }
       f_runtime_h = NewFile(outfile_h, "w");
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
@@ -1540,7 +1549,7 @@ public:
       destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
     }
-    if (*Char(tm)) {
+    if (tm && *Char(tm)) {
       if (!destruct_methodname) {
 	Swig_error(input_file, line_number, "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
       }

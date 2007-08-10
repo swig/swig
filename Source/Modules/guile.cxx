@@ -672,8 +672,10 @@ public:
       overname = Getattr(n, "sym:overname");
       args_passed_as_array = 1;
     } else {
-      if (!addSymbol(iname, n))
-	return SWIG_ERROR;
+      if (!addSymbol(iname, n)) {
+        DelWrapper(f);
+	return SWIG_ERROR; 
+      }
     }
     if (overname) {
       Append(wname, overname);
@@ -1371,6 +1373,7 @@ public:
     if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       Delete(var_name);
+      DelWrapper(f);
       return SWIG_NOWRAP;
     }
     // See if there's a typemap

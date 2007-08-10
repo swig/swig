@@ -1600,6 +1600,7 @@ void R::dispatchFunction(Node *n) {
   Printv(f->code, "\n}", NIL);
   Wrapper_print(f, sfile);
   Printv(sfile, "# Dispatch function\n", NIL);
+  DelWrapper(f);
 }
 
 /******************************************************************
@@ -2398,8 +2399,10 @@ int R::classDeclaration(Node *n) {
 
 
   // OutputArrayMethod(name, class_member_functions, sfile);        
-  OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
-  OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
+  if (class_member_functions)
+    OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
+  if (class_member_set_functions)
+    OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
 
   if(class_member_functions) {
     Delete(class_member_functions);
