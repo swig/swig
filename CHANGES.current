@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/10/2007: wsfulton
+            [Lua] const enum reference typemaps fixed.
+
 08/09/2007: wsfulton
             [C#] Added missing support for C++ class member pointers.
 

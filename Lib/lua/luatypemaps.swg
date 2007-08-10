@@ -33,9 +33,7 @@
 %{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
 
 /* enums have to be handled slightly differently
-	VC++ .net will not allow a cast from double to enum directly
-	therefore cast to an int first.
-	Thanks to Jason Rego <JasonR@rainbowstudios.com> for finding this.
+   VC++ .NET will not allow a cast from double to enum directly.
 */
 %typemap(in,checkfn="lua_isnumber") enum SWIGTYPE
 %{$1 = ($type)(int)lua_tonumber(L, $input);%}
@@ -321,10 +319,14 @@ SWIG_NUMBER_BY_CONST_REF(unsigned char);
 SWIG_NUMBER_BY_CONST_REF(signed char);
 SWIG_NUMBER_BY_CONST_REF(float);
 SWIG_NUMBER_BY_CONST_REF(double);
-SWIG_NUMBER_BY_CONST_REF(enum SWIGTYPE);
 SWIG_NUMBER_BY_CONST_REF(long long);
 SWIG_NUMBER_BY_CONST_REF(signed long long);
 SWIG_NUMBER_BY_CONST_REF(unsigned long long);
+
+%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
+%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(out) const enum SWIGTYPE &
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 %apply const unsigned long & { const size_t & };	// size_t is the same as unsigned long
 
