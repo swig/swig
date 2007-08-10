@@ -293,7 +293,7 @@ String *Swig_string_first_upper(String *s) {
   String *ns = NewStringEmpty();
   char *cs = Char(s);
   if (cs && cs[0] != 0) {
-    Putc(toupper(cs[0]), ns);
+    Putc(toupper((int)cs[0]), ns);
     Append(ns, cs + 1);
   }
   return ns;
@@ -314,7 +314,7 @@ String *Swig_string_first_lower(String *s) {
   String *ns = NewStringEmpty();
   char *cs = Char(s);
   if (cs && cs[0] != 0) {
-    Putc(tolower(cs[0]), ns);
+    Putc(tolower((int)cs[0]), ns);
     Append(ns, cs + 1);
   }
   return ns;
