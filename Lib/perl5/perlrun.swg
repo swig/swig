@@ -79,6 +79,11 @@ extern "C" {
 
 /* SWIG Perl macros */
 
+/* Macro to declare an XS function */
+#ifndef XSPROTO
+#   define XSPROTO(name) void name(pTHX_ CV* cv)
+#endif
+
 /* Macro to call an XS function */
 #ifdef PERL_OBJECT 
 #  define SWIG_CALLXS(_name) _name(cv,pPerl) 
@@ -368,7 +373,7 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
 #define SWIG_croak(x)    { SWIG_Error(SWIG_RuntimeError, x); SWIG_fail; }
 
 
-typedef XS(SwigPerlWrapper);
+typedef XSPROTO(SwigPerlWrapper);
 typedef SwigPerlWrapper *SwigPerlWrapperPtr;
 
 /* Structure for command table */

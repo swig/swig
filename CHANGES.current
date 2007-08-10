@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 08/10/2007: wsfulton
+            [Perl] Apply patch #1771410 from Wade Brainerd to fix typedef XS(SwigPerlWrapper) in 
+            perlrun.swg for ActiveState Perl build 822 and Perl 5.8.9 and 5.10 branches.
+
+08/10/2007: wsfulton
             [Lua] const enum reference typemaps fixed.
 
 08/09/2007: wsfulton
