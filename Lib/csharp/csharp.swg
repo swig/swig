@@ -85,8 +85,8 @@
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
 /* pointer to a class member */
-%typemap(ctype) SWIGTYPE (CLASS::*) "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE (CLASS::*) "HandleRef"
+%typemap(ctype) SWIGTYPE (CLASS::*) "int64_t"
+%typemap(imtype) SWIGTYPE (CLASS::*) "ulong"
 %typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
 /* The following are the in and out typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
@@ -340,13 +340,16 @@
 %typemap(csdirectorout) SWIGTYPE "$&csclassname.getCPtr($cscall).Handle"
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = ($1_ltype)$input; %}
+%typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
+%typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $result = (void *)$1; %} 
+%typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
+%typemap(out) SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
+
 %typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
@@ -506,7 +509,8 @@
     "$csinput"
 %typemap(csin) char *, char[ANY], char[] "$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
-%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE (CLASS::*) "$csclassname.getCMemberPtr($csinput)"
 
 /* The csout typemap is used for converting function return types from the return type
  * used in the PInvoke class to the type returned by the proxy, module or type wrapper class.
@@ -588,9 +592,14 @@
     $csclassname ret = new $csclassname($imcall, $owner);$excode
     return ret;
   }
-%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [] {
     IntPtr cPtr = $imcall;
     $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*) {
+    ulong cMemberPtr = $imcall;
+    $csclassname ret = (cMemberPtr == 0) ? null : new $csclassname(cMemberPtr, $owner);$excode
     return ret;
   }
 
@@ -697,10 +706,17 @@
       $csclassname ret = new $csclassname($imcall, $owner);$excode
       return ret;
     } %}
-%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE *, SWIGTYPE [] %{
     get {
       IntPtr cPtr = $imcall;
       $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+      return ret;
+    } %}
+
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE (CLASS::*) %{
+    get {
+      ulong cMemberPtr = $imcall;
+      $csclassname ret = (cMemberPtr == 0) ? null : new $csclassname(cMemberPtr, $owner);$excode
       return ret;
     } %}
 
@@ -761,7 +777,7 @@
 %}
 
 // Typewrapper classes
-%typemap(csbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(csbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
   private HandleRef swigCPtr;
 
   internal $csclassname(IntPtr cPtr, bool futureUse) {
@@ -774,6 +790,22 @@
 
   internal static HandleRef getCPtr($csclassname obj) {
     return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  }
+%}
+
+%typemap(csbody) SWIGTYPE (CLASS::*) %{
+  private ulong swigCMemberPtr;
+
+  internal $csclassname(ulong cMemberPtr, bool futureUse) {
+    swigCMemberPtr = cMemberPtr;
+  }
+
+  protected $csclassname() {
+    swigCMemberPtr = 0;
+  }
+
+  internal static ulong getCMemberPtr($csclassname obj) {
+    return obj.swigCMemberPtr;
   }
 %}
 
