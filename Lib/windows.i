@@ -44,6 +44,11 @@
 #define __pascal
 #define __stdcall
 #define __syscall
+#define _cdecl
+#define _fastcall
+#define _inline
+#define _pascal
+#define _stdcall
 #define WINAPI
 #define __declspec(WINDOWS_EXTENDED_ATTRIBUTE)
 
