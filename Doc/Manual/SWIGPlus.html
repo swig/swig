@@ -46,7 +46,7 @@
 <li><a href="#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
 <li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
-<li><a href="#SWIGPlus_nn29">Class extension</a>
+<li><a href="#SWIGPlus_class_extension">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <li><a href="#SWIGPlus_nn31">Namespaces</a>
 <li><a href="#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
@@ -2731,7 +2731,7 @@ are ignored as well as conversion operators.
 </li>
 </ul>
 
-<H2><a name="SWIGPlus_nn29"></a>6.17 Class extension</H2>
+<H2><a name="SWIGPlus_class_extension"></a>6.17 Class extension</H2>
 
 
 <p>
@@ -2786,6 +2786,8 @@ command.
 The C++ 'this' pointer is often needed to access member variables, methods etc.
 The <tt>$self</tt> special variable should be used wherever you could use 'this'.
 The example above demonstrates this for accessing member variables.
+Note that the members dereferenced by <tt>$self</tt> must be public members as the code is ultimately generated
+into a global function and so will not have any access to non-public members.
 The implicit 'this' pointer that is present in C++ methods is not present in <tt>%extend</tt> methods.
 In order to access anything in the extended class or its base class, an explicit 'this' is required.
 The following example shows how one could access base class members:
@@ -2802,8 +2804,8 @@ struct Derived : Base {
 };
 %extend Derived {
   virtual void method(int v) {
-    $self-&gt;Base::method(v);
-    $self-&gt;value = v;
+    $self-&gt;Base::method(v); // akin to this-&gt;Base::method(v);
+    $self-&gt;value = v;       // akin to this-&gt;value = v;
     ...
   }
 }
