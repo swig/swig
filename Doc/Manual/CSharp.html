@@ -29,6 +29,8 @@
 <li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
 <li><a href="#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="#csharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
+<li><a href="#csharp_partial_classes">Turning wrapped classes into partial classes</a>
+<li><a href="#csharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 </ul>
 </ul>
 </div>
@@ -1720,6 +1722,143 @@ A few things to note:
   <li> The 'cshin' attribute is required for the <tt>SwigConstructAction</tt> constructor helper function so that the 2nd parameter is declared as <tt>ref dateOut</tt> instead of just <tt>dateOut</tt>.
 </ul>
 
+<H3><a name="csharp_partial_classes"></a>17.5.4 Turning wrapped classes into partial classes</H3>
+
+
+<p>
+C# supports the notion of partial classes whereby a class definition can be split into more than one file.
+It is possible to turn the wrapped C++ class into a partial C# class using the <tt>csclassmodifiers</tt> typemap.
+Consider a C++ class called <tt>ExtendMe</tt>:
+</p>
+
+<div class="code">
+<pre>
+class ExtendMe {
+public:
+  int Part1() { return 1; }
+};
+</pre>
+</div>
+
+<p>
+The default C# proxy class generated is:
+</p>
+
+<div class="code">
+<pre>
+public class ExtendMe : IDisposable {
+  ...
+  public int Part1() {
+    ...
+  }
+}
+</pre>
+</div>
+
+<p>
+The default csclassmodifiers typemap shipped with SWIG is
+</p>
+
+<div class="code">
+<pre>
+%typemap(csclassmodifiers) SWIGTYPE "public class"
+</pre>
+</div>
+
+<p>
+If instead we use the following typemap to override this for just the <tt>ExtendMe</tt> class:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csclassmodifiers) ExtendMe "public partial class"
+</pre>
+</div>
+
+<p>
+The C# proxy class becomes a partial class:
+</p>
+
+<div class="code">
+<pre>
+public partial class ExtendMe : IDisposable {
+  ...
+  public int Part1() {
+    ...
+  }
+}
+</pre>
+</div>
+
+<p>
+You can then of course declare another part of the partial class elsewhere, for example:
+</p>
+
+<div class="code">
+<pre>
+public partial class ExtendMe : IDisposable {
+  public int Part2() {
+    return 2;
+  }
+}
+</pre>
+</div>
+
+<p>
+and compile the following code:
+</p>
+
+<div class="code">
+<pre>
+ExtendMe em = new ExtendMe();
+Console.WriteLine("part1: {0}", em.Part1());
+Console.WriteLine("part2: {0}", em.Part2());
+</pre>
+</div>
+
+<p>
+demonstrating that the class contains methods calling both unmanaged code - <tt>Part1()</tt> and managed code - <tt>Part2()</tt>.
+The following example is an alternative approach to adding managed code to the generated proxy class.
+</p>
+
+<H3><a name="csharp_extending_proxy_class"></a>17.5.5 Extending proxy classes with additional C# code</H3>
+
+
+<p>
+The previous example showed how to use partial classes to add functionality to a generated C# proxy class.
+It is also possible to extend a wrapped struct/class with C/C++ code by using the <a href="SWIGPlus.html#SWIGPlus_class_extension">%extend directive</a>.
+A third approach is to add some C# methods into the generated proxy class with the <tt>cscode</tt> typemap.
+If we declare the following typemap before SWIG parses the <tt>ExtendMe</tt> class used in the previous example
+</p>
+
+<div class="code">
+<pre>
+%typemap(cscode) ExtendMe %{
+  public int Part3() {
+    return 3;
+  }
+%}
+
+</pre>
+</div>
+
+<p>
+The generated C# proxy class will instead be:
+</p>
+
+<div class="code">
+<pre>
+public class ExtendMe : IDisposable {
+  ...
+  public int Part3() {
+    return 3;
+  }
+  public int Part1() {
+    ...
+  }
+}
+</pre>
+</div>
 
 </body>
 </html>
