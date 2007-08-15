@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/15/2007: efuzzyone
+            [cffi] Apply patch #1766076 from Leigh Smith adding support for newly introduced 
+            in cffi :long-long and :unsigned-long-long.
+
 08/10/2007: wsfulton
             [Java] Add documentation patch #1743573 from Jeffrey Sorensen. It contains a neat
             idea with respect to better memory management by the JVM of C++ allocated memory.

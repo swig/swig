@@ -24,6 +24,10 @@
 %typemap(cin) signed long ":long";
 %typemap(cin) unsigned long ":unsigned-long";
 
+%typemap(cin) long long ":long-long";
+%typemap(cin) signed long long ":long-long";
+%typemap(cin) unsigned long long ":unsigned-long-long";
+
 %typemap(cin) float ":float";
 %typemap(cin) double ":double";
 %typemap(cin) SWIGTYPE ":pointer";
@@ -46,6 +50,10 @@
 %typemap(cout) long ":long";
 %typemap(cout) signed long ":long";
 %typemap(cout) unsigned long ":unsigned-long";
+
+%typemap(cout) long long ":long-long";
+%typemap(cout) signed long long ":long-long";
+%typemap(cout) unsigned long long ":unsigned-long-long";
 
 %typemap(cout) float ":float";
 %typemap(cout) double ":double";
