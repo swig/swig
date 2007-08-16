@@ -226,7 +226,7 @@
 <li><a href="SWIGPlus.html#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn28">Wrapping overloaded operators</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn29">Class extension</a>
+<li><a href="SWIGPlus.html#SWIGPlus_class_extension">Class extension</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn31">Namespaces</a>
 <li><a href="SWIGPlus.html#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
@@ -601,6 +601,8 @@
 <li><a href="CSharp.html#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
 <li><a href="CSharp.html#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="CSharp.html#csharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
+<li><a href="CSharp.html#csharp_partial_classes">Turning wrapped classes into partial classes</a>
+<li><a href="CSharp.html#csharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 </ul>
 </ul>
 </div>
@@ -744,6 +746,7 @@
 <li><a href="Java.html#inheritance_mirroring">Inheritance</a>
 <li><a href="Java.html#proxy_classes_gc">Proxy classes and garbage collection</a>
 <li><a href="Java.html#java_pgcpp">The premature garbage collection prevention parameter for proxy class marshalling</a>
+<li><a href="Java.html#java_multithread_libraries">Single threaded applications and thread safety</a>
 </ul>
 <li><a href="Java.html#type_wrapper_classes">Type wrapper classes</a>
 <li><a href="Java.html#enum_classes">Enum classes</a>
@@ -773,6 +776,7 @@
 <li><a href="Java.html#simple_pointers">Simple pointers</a>
 <li><a href="Java.html#c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="Java.html#unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="Java.html#java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="Java.html#java_typemaps">Java typemaps</a>
 <ul>
@@ -1211,21 +1215,127 @@
 <li><a href="Ruby.html#Ruby_nn2">Preliminaries</a>
 <ul>
 <li><a href="Ruby.html#Ruby_nn3">Running SWIG</a>
+<li><a href="Ruby.html#Ruby_nn4">Getting the right header files</a>
+<li><a href="Ruby.html#Ruby_nn5">Compiling a dynamic module</a>
+<li><a href="Ruby.html#Ruby_nn6">Using your module</a>
+<li><a href="Ruby.html#Ruby_nn7">Static linking</a>
+<li><a href="Ruby.html#Ruby_nn8">Compilation of C++ extensions</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn9">Building Ruby Extensions under Windows 95/NT</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn10">Running SWIG from Developer Studio</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn11">The Ruby-to-C/C++ Mapping</a>
+<ul>
 <li><a href="Ruby.html#Ruby_nn12">Modules</a>
 <li><a href="Ruby.html#Ruby_nn13">Functions</a>
+<li><a href="Ruby.html#Ruby_nn14">Variable Linking</a>
 <li><a href="Ruby.html#Ruby_nn15">Constants</a>
 <li><a href="Ruby.html#Ruby_nn16">Pointers</a>
 <li><a href="Ruby.html#Ruby_nn17">Structures</a>
 <li><a href="Ruby.html#Ruby_nn18">C++ classes</a>
+<li><a href="Ruby.html#Ruby_nn19">C++ Inheritance</a>
+<li><a href="Ruby.html#Ruby_nn20">C++ Overloaded Functions</a>
+<li><a href="Ruby.html#Ruby_nn21">C++ Operators</a>
+<li><a href="Ruby.html#Ruby_nn22">C++ namespaces</a>
+<li><a href="Ruby.html#Ruby_nn23">C++ templates</a>
+<li><a href="Ruby.html#Ruby_nn23_1">C++ Standard Template Library (STL)</a>
+<li><a href="Ruby.html#C_STL_Functors">C++ STL Functors</a>
+<li><a href="Ruby.html#Ruby_C_Iterators">C++ STL Iterators</a>
+<li><a href="Ruby.html#Ruby_nn24">C++ Smart Pointers</a>
+<li><a href="Ruby.html#Ruby_nn25">Cross-Language Polymorphism</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn26">Exception Unrolling</a>
+</ul>
 </ul>
 <li><a href="Ruby.html#Ruby_nn27">Naming</a>
 <ul>
+<li><a href="Ruby.html#Ruby_nn28">Defining Aliases</a>
+<li><a href="Ruby.html#Ruby_nn29">Predicate Methods</a>
 <li><a href="Ruby.html#Ruby_nn30">Bang Methods</a>
+<li><a href="Ruby.html#Ruby_nn31">Getters and Setters</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn32">Input and output parameters</a>
+<li><a href="Ruby.html#Ruby_nn33">Exception handling </a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn34">Using the %exception directive </a>
+<li><a href="Ruby.html#Ruby_nn34_2">Handling Ruby Blocks </a>
+<li><a href="Ruby.html#Ruby_nn35">Raising exceptions </a>
+<li><a href="Ruby.html#Ruby_nn36">Exception classes </a>
 </ul>
 <li><a href="Ruby.html#Ruby_nn37">Typemaps</a>
 <ul>
+<li><a href="Ruby.html#Ruby_nn38">What is a typemap?</a>
+<li><a href="Ruby.html#Ruby_Typemap_scope">Typemap scope</a>
+<li><a href="Ruby.html#Ruby_Copying_a_typemap">Copying a typemap</a>
+<li><a href="Ruby.html#Ruby_Deleting_a_typemap">Deleting a typemap</a>
+<li><a href="Ruby.html#Ruby_Placement_of_typemaps">Placement of typemaps</a>
+<li><a href="Ruby.html#Ruby_nn39">Ruby typemaps</a>
+<ul>
+<li><a href="Ruby.html#Ruby_in_typemap">&nbsp;"in" typemap</a>
+<li><a href="Ruby.html#Ruby_typecheck_typemap">"typecheck" typemap</a>
+<li><a href="Ruby.html#Ruby_out_typemap">&nbsp;"out" typemap</a>
+<li><a href="Ruby.html#Ruby_arginit_typemap">"arginit" typemap</a>
+<li><a href="Ruby.html#Ruby_default_typemap">"default" typemap</a>
+<li><a href="Ruby.html#Ruby_check_typemap">"check" typemap</a>
+<li><a href="Ruby.html#Ruby_argout_typemap_">"argout" typemap</a>
+<li><a href="Ruby.html#Ruby_freearg_typemap_">"freearg" typemap</a>
+<li><a href="Ruby.html#Ruby_newfree_typemap">"newfree" typemap</a>
+<li><a href="Ruby.html#Ruby_memberin_typemap">"memberin" typemap</a>
+<li><a href="Ruby.html#Ruby_varin_typemap">"varin" typemap</a>
+<li><a href="Ruby.html#Ruby_varout_typemap_">"varout" typemap</a>
+<li><a href="Ruby.html#Ruby_throws_typemap">"throws" typemap</a>
+<li><a href="Ruby.html#Ruby_directorin_typemap">directorin typemap</a>
+<li><a href="Ruby.html#Ruby_directorout_typemap">directorout typemap</a>
+<li><a href="Ruby.html#Ruby_directorargout_typemap">directorargout typemap</a>
+<li><a href="Ruby.html#Ruby_ret_typemap">ret typemap</a>
+<li><a href="Ruby.html#Ruby_globalin_typemap">globalin typemap</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn40">Typemap variables</a>
+<li><a href="Ruby.html#Ruby_nn41">Useful Functions</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn42">C Datatypes to Ruby Objects</a>
+<li><a href="Ruby.html#Ruby_nn43">Ruby Objects to C Datatypes</a>
+<li><a href="Ruby.html#Ruby_nn44">Macros for VALUE</a>
 <li><a href="Ruby.html#Ruby_nn45">Exceptions</a>
 <li><a href="Ruby.html#Ruby_nn46">Iterators</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn47">Typemap Examples</a>
+<li><a href="Ruby.html#Ruby_nn48">Converting a Ruby array to a char **</a>
+<li><a href="Ruby.html#Ruby_nn49">Collecting arguments in a hash</a>
+<li><a href="Ruby.html#Ruby_nn50">Pointer handling</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn51">Ruby Datatype Wrapping</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn52">Example: STL Vector to Ruby Array</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn65">Docstring Features</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn66">Module docstring</a>
+<li><a href="Ruby.html#Ruby_nn67">%feature("autodoc")</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn68">%feature("autodoc", "0")</a>
+<li><a href="Ruby.html#Ruby_autodoc1">%feature("autodoc", "1")</a>
+<li><a href="Ruby.html#Ruby_autodoc2">%feature("autodoc", "2")</a>
+<li><a href="Ruby.html#Ruby_feature_autodoc3">%feature("autodoc", "3")</a>
+<li><a href="Ruby.html#Ruby_nn70">%feature("autodoc", "docstring")</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn71">%feature("docstring")</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn53">Advanced Topics</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn54">Operator overloading</a>
+<li><a href="Ruby.html#Ruby_nn55">Creating Multi-Module Packages</a>
+<li><a href="Ruby.html#Ruby_nn56">Specifying Mixin Modules</a>
+</ul>
+<li><a href="Ruby.html#Ruby_nn57">Memory Management</a>
+<ul>
+<li><a href="Ruby.html#Ruby_nn58">Mark and Sweep Garbage Collector </a>
+<li><a href="Ruby.html#Ruby_nn59">Object Ownership</a>
+<li><a href="Ruby.html#Ruby_nn60">Object Tracking</a>
+<li><a href="Ruby.html#Ruby_nn61">Mark Functions</a>
+<li><a href="Ruby.html#Ruby_nn62">Free Functions</a>
+<li><a href="Ruby.html#Ruby_nn63">Embedded Ruby and the C++ Stack</a>
 </ul>
 </ul>
 </div>
