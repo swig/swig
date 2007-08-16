@@ -1524,7 +1524,7 @@ int ALLEGROCL::top(Node *n) {
 
   swig_package = unique_swig_package ? NewStringf("swig.%s", module_name) : NewString("swig");
 
-  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
+  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), Swig_file_basename(Getattr(n,"infile")));
 
   f_cl = NewFile(cl_filename, "w");
   if (!f_cl) {

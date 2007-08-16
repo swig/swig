@@ -249,6 +249,10 @@ $body)"
 
 (eval-when (compile load eval)
 
+  ;; avoid compiling ef-templates at runtime
+  (excl:find-external-format :fat)
+  (excl:find-external-format :fat-le)
+
 ;;; You can define your own identifier converter if you want.
 ;;; Use the -identifier-converter command line argument to
 ;;; specify its name.
