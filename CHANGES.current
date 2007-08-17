@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/17/2007: wsfulton
+            Correct behaviour for templated methods used with %rename or %ignore and the empty 
+            template declaration - %template(). A warning is issued if the method has not been
+            renamed.
+
 08/16/2007: mutandiz (Mikel Bancroft)
 	    [allegrocl] Name generated cl file based on input file rather than by
 	    module name. It was possible to end up with a mypackage.cl and a test_wrap.c

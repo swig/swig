@@ -819,7 +819,7 @@ int Language::cDeclaration(Node *n) {
 	return SWIG_NOWRAP;
       }
       /* prevent wrapping the method twice due to overload */
-      String *wrapname = NewStringf("nonpublic_%s%s", Getattr(n, "sym:name"), Getattr(n, "sym:overname"));
+      String *wrapname = NewStringf("nonpublic_%s%s", symname, Getattr(n, "sym:overname"));
       if (Getattr(CurrentClass, wrapname)) {
 	Delete(wrapname);
 	return SWIG_NOWRAP;
@@ -959,7 +959,17 @@ int Language::cDeclaration(Node *n) {
     Delete(SwigType_pop_function(ty));
     DohIncref(type);
     Setattr(n, "type", ty);
-    functionHandler(n);
+    if (GetFlag(n, "feature:onlychildren") && !GetFlag(n, "feature:ignore")) {
+      // Found an unignored templated method that has a an empty template instantiation (%template())
+      // Ignore it unless it has been %rename'd
+      if (Strncmp(symname, "__dummy_", 8) == 0) {
+        SetFlag(n, "feature:ignore");
+        Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
+                     "%%template() contains no name. Template method ignored: %s\n", SwigType_str(decl, SwigType_namestr(Getattr(n,"name"))));
+      }
+    }
+    if (!GetFlag(n, "feature:ignore"))
+      functionHandler(n);
     Setattr(n, "type", type);
     Delete(ty);
     Delete(type);
