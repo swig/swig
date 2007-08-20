@@ -73,3 +73,34 @@
     unsigned long long callull(int i, int j) { return ull(i, j); }
   };
 %}
+
+
+// The similarity of the director class name and other symbol names were causing a problem in the code generation
+%feature("director") coreCallbacks;
+
+%inline %{
+class corePoint3d {};
+
+struct coreCallbacks_On3dEngineRedrawnData
+{
+	corePoint3d _eye;
+	corePoint3d _at;
+};
+
+struct coreCallbacksOn3dEngineRedrawnData
+{
+	corePoint3d _eye;
+	corePoint3d _at;
+};
+
+class coreCallbacks
+{
+public:
+	coreCallbacks(void) {}
+	virtual ~coreCallbacks(void) {}
+
+	virtual void On3dEngineRedrawn(const coreCallbacks_On3dEngineRedrawnData& data){}
+	virtual void On3dEngineRedrawn2(const coreCallbacksOn3dEngineRedrawnData& data){}
+};
+%}
+

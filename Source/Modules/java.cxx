@@ -1931,7 +1931,7 @@ public:
       Printf(function_code, "static ");
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
-    Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
+    Printv(imcall, imclass_name, ".$imfuncname(", NIL);
     if (!static_flag) {
       Printf(imcall, "swigCPtr");
 
@@ -2076,7 +2076,8 @@ public:
 	String *ex_intermediary_function_name = Swig_name_member(proxy_class_name, ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
-	Replaceall(ex_imcall, intermediary_function_name, ex_intermediary_function_name);
+	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
+	Replaceall(imcall, "$imfuncname", intermediary_function_name);
 
 	String *excode = NewString("");
 	if (!Cmp(return_type, "void"))
@@ -2088,6 +2089,8 @@ public:
 	Printv(imcall, excode, NIL);
 	Delete(ex_overloaded_name);
 	Delete(excode);
+      } else {
+	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
 
       Replaceall(tm, "$jnicall", imcall);
