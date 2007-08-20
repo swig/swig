@@ -279,7 +279,7 @@ CPP_TEST_CASES += \
 	template_inherit \
 	template_inherit_abstract \
 	template_int_const \
-	template_method \
+	template_methods \
 	template_ns \
 	template_ns2 \
 	template_ns3 \
