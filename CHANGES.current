@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/20/2007: wsfulton
+            [Java C#] Fix director bug #1776651 reported by Jorgen Tjerno which occured when 
+            the director class name is the same as the start of some other symbols used within 
+            the director class.
+
 08/17/2007: wsfulton
             Correct behaviour for templated methods used with %rename or %ignore and the empty 
             template declaration - %template(). A warning is issued if the method has not been
