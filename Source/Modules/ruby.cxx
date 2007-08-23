@@ -807,7 +807,7 @@ public:
 	  }
 	}
 	else if (strcmp(argv[i], "-feature") == 0) {
-	  fprintf( stderr, "Warning: Ruby -feature directive is deprecated, "
+	  fprintf( stderr, "Warning: Ruby -feature option is deprecated, "
 		   "please use -initname instead.\n");
 	  if (argv[i + 1]) {
 	    char *name = argv[i + 1];
@@ -2908,7 +2908,7 @@ public:
       } else {
 	Printv(w->code, "args.argv = 0;\n", NIL);
       }
-      Printf(w->code, "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
+      Printf(w->code, "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName);
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
       Printf(w->code, "if (status) {\n");
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
