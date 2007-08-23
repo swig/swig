@@ -1142,7 +1142,7 @@ public:
 
 	// [BRE] 08/17/00 Added test to see if we are instantiating this object
 	// type, or, if this constructor is being called as part of the itcl
-	// inheritance heirarchy.
+	// inheritance hierarchy.
 	// In the former case, we need to call the C++ constructor, in the
 	// latter we don't, or we end up with two C++ objects.
 	// Check to see if we are instantiating a 'realname' or something 
