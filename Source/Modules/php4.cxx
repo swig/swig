@@ -27,11 +27,8 @@
  *   This is an optimisation - we could handle this case using a PHP
  *   default value, but currently we treat it as we would for a default
  *   value which is a compound C++ expression (i.e. as if we had a
- *   a method with two overloaded forms instead of a single method with
+ *   method with two overloaded forms instead of a single method with
  *   a default parameter value).
- *
- * Create __isset method for PHP 5.1 and later (we can probably just
- *   always generate as PHP 5.0 should just ignore it).
  *
  * Long term:
  *
@@ -2372,7 +2369,26 @@ public:
 	  Printf(s_phpclasses, "\t\tif (function_exists($func)) call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
 	}
 	Printf(s_phpclasses, "\t}\n");
-	/* FIXME: also create __isset for PHP 5.1 and later? */
+
+	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
+	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
+	// FIXME: tune this threshold, but it should probably be different to
+	// that for __set() and __get() as we don't need to call_user_func()
+	// here...
+	if (Len(shadow_set_vars) == 1) {
+	  // Only one setter, so just check the name.
+	  Printf(s_phpclasses, "\t\treturn ");
+	  while (ki.key) {
+	      key = ki.key;
+	      Printf(s_phpclasses, "$var == '%s'", ki.key);
+	      ki = Next(ki);
+	      if (ki.key) Printf(s_phpclasses, " || ");
+	  }
+	  Printf(s_phpclasses, ";\n");
+	} else {
+	  Printf(s_phpclasses, "\t\treturn function_exists('%s_'.$var.'_set');\n", shadow_classname);
+	}
+	Printf(s_phpclasses, "\t}\n");
       }
       // Write property GET handlers
       ki = First(shadow_get_vars);
