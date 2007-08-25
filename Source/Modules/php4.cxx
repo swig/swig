@@ -1566,13 +1566,17 @@ public:
 		char *p;
 		errno = 0;
 		/* FIXME: strtod is locale dependent... */
-		(void) strtod(Char(value), &p);
+		double val = strtod(Char(value), &p);
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
-		} else {
-		  if (strchr(Char(value), '.') == NULL) {
-		    Insert(value, 0, (void *)"(double)");
+		} else if (strchr(Char(value), '.') == NULL) {
+		  // Ensure value is a double constant, not an integer one.
+		  Append(value, ".0");
+		  double val2 = strtod(Char(value), &p);
+		  if (errno || *p || val != val2) {
+		    Clear(value);
+		    Append(value, "?");
 		  }
 		}
 		break;
