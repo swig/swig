@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 08/25/2007: olly
+	    [PHP5] Fix handling of double or float parameters with an integer
+	    default value.
+
+08/25/2007: olly
 	    [PHP5] Generate __isset() methods for setters for PHP 5.1 and later.
 
 08/20/2007: wsfulton

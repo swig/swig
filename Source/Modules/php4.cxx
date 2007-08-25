@@ -1225,9 +1225,6 @@ public:
 	  // Is being shadow-wrap-thingied
 	  Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
 	  // Make object
-	  String *shadowrettype = NewStringEmpty();
-	  SwigToPhpType(d, iname, shadowrettype, (shadow && php_version == 4));
-
 	  Printf(f->code, "zval *obj, *_cPtr;\n");
 	  Printf(f->code, "MAKE_STD_ZVAL(obj);\n");
 	  Printf(f->code, "MAKE_STD_ZVAL(_cPtr);\n");
@@ -1235,7 +1232,10 @@ public:
 	  Printf(f->code, "INIT_ZVAL(*return_value);\n");
 
 	  if (shadow && php_version == 4) {
+	    String *shadowrettype = SwigToPhpType(d, iname, true);
+
 	    Printf(f->code, "object_init_ex(obj,ptr_ce_swig_%s);\n", shadowrettype);
+	    Delete(shadowrettype);
 	    Printf(f->code, "add_property_zval(obj,\"" SWIG_PTR "\",_cPtr);\n");
 	    Printf(f->code, "*return_value=*obj;\n");
 	  } else {
@@ -1512,80 +1512,97 @@ public:
 	      Printf(pname, " or_%s", pname_cstr);
 	    }
 	  }
-	  const char *value = GetChar(p, "value");
-	  if (value) {
+	  String *value = NewString(Getattr(p, "value"));
+	  if (Len(value)) {
 	    /* Check that value is a valid constant in PHP (and adjust it if
 	     * necessary, or replace it with "?" if it's just not valid). */
 	    SwigType *type = Getattr(p, "type");
 	    switch (SwigType_type(type)) {
-	    case T_BOOL:{
-		if (strcmp(value, "true") == 0 || strcmp(value, "false") == 0)
+	      case T_BOOL: {
+		if (Strcmp(value, "true") == 0 || Strcmp(value, "false") == 0)
 		  break;
 		char *p;
 		errno = 0;
 		int n = strtol(Char(value), &p, 0);
-		if (errno || *p)
-		  value = "?";
-		else if (n)
-		  value = "true";
-		else
-		  value = "false";
+	        Clear(value);
+		if (errno || *p) {
+		  Append(value, "?");
+		} else if (n) {
+		  Append(value, "true");
+		} else {
+		  Append(value, "false");
+		}
 		break;
 	      }
-	    case T_CHAR:
-	    case T_SCHAR:
-	    case T_SHORT:
-	    case T_INT:
-	    case T_LONG:{
+	      case T_CHAR:
+	      case T_SCHAR:
+	      case T_SHORT:
+	      case T_INT:
+	      case T_LONG: {
 		char *p;
 		errno = 0;
 		(void) strtol(Char(value), &p, 0);
-		if (errno || *p)
-		  value = "?";
+		if (errno || *p) {
+		  Clear(value);
+		  Append(value, "?");
+		}
 		break;
 	      }
-	    case T_UCHAR:
-	    case T_USHORT:
-	    case T_UINT:
-	    case T_ULONG:{
+	      case T_UCHAR:
+	      case T_USHORT:
+	      case T_UINT:
+	      case T_ULONG: {
 		char *p;
 		errno = 0;
 		(void) strtoul(Char(value), &p, 0);
-		if (errno || *p)
-		  value = "?";
+		if (errno || *p) {
+		  Clear(value);
+		  Append(value, "?");
+		}
 		break;
 	      }
-	    case T_FLOAT:
-	    case T_DOUBLE:{
+	      case T_FLOAT:
+	      case T_DOUBLE:{
 		char *p;
 		errno = 0;
 		/* FIXME: strtod is locale dependent... */
 		(void) strtod(Char(value), &p);
-		if (errno || *p)
-		  value = "?";
+		if (errno || *p) {
+		  Clear(value);
+		  Append(value, "?");
+		} else {
+		  if (strchr(Char(value), '.') == NULL) {
+		    Insert(value, 0, (void *)"(double)");
+		  }
+		}
 		break;
 	      }
-	    case T_REFERENCE:
-	    case T_USER:
-	    case T_ARRAY:
-	      value = "?";
-	      break;
-	    case T_STRING:
-	      if (Len(value) < 2) {
-		// How can a string (including "" be less than 2 characters?)
-		value = "?";
-	      } else {
+	      case T_REFERENCE:
+	      case T_USER:
+	      case T_ARRAY:
+		Clear(value);
+		Append(value, "?");
+		break;
+	      case T_STRING:
+		if (Len(value) < 2) {
+		  // How can a string (including "" be less than 2 characters?)
+		  Clear(value);
+		  Append(value, "?");
+		} else {
+		  const char *v = Char(value);
+		  if (v[0] != '"' || v[Len(value) - 1] != '"') {
+		    Clear(value);
+		    Append(value, "?");
+		  }
+		  // Strings containing "$" require special handling, but we do
+		  // that later.
+		}
+		break;
+	      case T_VOID:
+		assert(false);
+		break;
+	      case T_POINTER: {
 		const char *v = Char(value);
-		if (v[0] != '"' || v[Len(value) - 1] != '"')
-		  value = "?";
-		// Strings containing "$" require special handling, but we do that later.
-	      }
-	      break;
-	    case T_VOID:
-	      assert(false);
-	      break;
-	    case T_POINTER:{
-		const char *v = value;
 		if (v[0] == '(') {
 		  // Handle "(void*)0", "(TYPE*)0", "(char*)NULL", etc.
 		  v += strcspn(v + 1, "*()") + 1;
@@ -1596,21 +1613,28 @@ public:
 		    } while (*v == '*');
 		    if (*v++ == ')') {
 		      v += strspn(v, " \t");
-		      value = v;
+		      String * old = value;
+		      value = NewString(v);
+		      Delete(old);
 		    }
 		  }
 		}
-		if (strcmp(value, "NULL") == 0 || strcmp(value, "0") == 0 || strcmp(value, "0L") == 0) {
-		  value = "null";
+		if (Strcmp(value, "NULL") == 0 ||
+		    Strcmp(value, "0") == 0 ||
+		    Strcmp(value, "0L") == 0) {
+		  Clear(value);
+		  Append(value, "null");
 		} else {
-		  value = "?";
+		  Clear(value);
+		  Append(value, "?");
 		}
 		break;
 	      }
 	    }
 
 	    if (!arg_values[argno]) {
-	      arg_values[argno] = NewString(value);
+	      arg_values[argno] = value;
+	      value = NULL;
 	    } else if (Cmp(arg_values[argno], value) != 0) {
 	      // If a parameter has two different default values in
 	      // different overloaded forms of the function, we can't
@@ -1633,6 +1657,7 @@ public:
 	    Delete(arg_values[argno]);
 	    arg_values[argno] = NewString("?");
 	  }
+	  Delete(value);
 	  p = nextSibling(p);
 	  ++argno;
 	}
@@ -2570,7 +2595,7 @@ public:
   }
 
 
-  void SwigToPhpType(SwigType *t, String_or_char *pname, String *php_type, int shadow_flag) {
+  String * SwigToPhpType(SwigType *t, String_or_char *pname, int shadow_flag) {
     String *ptype = 0;
 
     if (shadow_flag) {
@@ -2580,12 +2605,10 @@ public:
       ptype = PhpTypeFromTypemap((char *) "ptype", t, pname, (char *) "");
     }
 
-    if (ptype) {
-      Printf(php_type, "%s", ptype);
-      Delete(ptype);
-    } else {
-      /* Map type here */
-      switch (SwigType_type(t)) {
+    if (ptype) return ptype;
+
+    /* Map type here */
+    switch (SwigType_type(t)) {
       case T_CHAR:
       case T_SCHAR:
       case T_UCHAR:
@@ -2600,15 +2623,12 @@ public:
       case T_BOOL:
       case T_STRING:
       case T_VOID:
-	Printf(php_type, "");
 	break;
       case T_POINTER:
       case T_REFERENCE:
       case T_USER:
 	if (shadow_flag && is_shadow(t)) {
-	  Printf(php_type, Char(is_shadow(t)));
-	} else {
-	  Printf(php_type, "");
+	  return NewString(Char(is_shadow(t)));
 	}
 	break;
       case T_ARRAY:
@@ -2617,10 +2637,10 @@ public:
       default:
 	Printf(stderr, "SwigToPhpType: unhandled data type: %s\n", SwigType_str(t, 0));
 	break;
-      }
     }
-  }
 
+    return NewStringEmpty();
+  }
 
   String *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
     String *tms;
