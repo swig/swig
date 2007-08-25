@@ -9,7 +9,7 @@ Version 1.3.32 (in progress)
 	    [PHP5] Generate __isset() methods for setters for PHP 5.1 and later.
 
 08/20/2007: wsfulton
-            [Java C#] Fix director bug #1776651 reported by Jorgen Tjerno which occured when 
+            [Java C#] Fix director bug #1776651 reported by Jorgen Tjerno which occurred when 
             the director class name is the same as the start of some other symbols used within 
             the director class.
 
