@@ -77,13 +77,13 @@ static swig_module modules[] = {
   {"-php5", swig_php5, "PHP5"},
   {"-pike", swig_pike, "Pike"},
   {"-python", swig_python, "Python"},
+  {"-r", swig_r, "R (aka GNU S)"},
   {"-ruby", swig_ruby, "Ruby"},
   {"-sexp", swig_sexp, "Lisp S-Expressions"},
   {"-tcl", swig_tcl, "Tcl"},
   {"-tcl8", swig_tcl, 0},
   {"-uffi", swig_uffi, "Common Lisp / UFFI"},
   {"-xml", swig_xml, "XML"},
-  {"-r", swig_r, "R (aka GNU S)"},
   {NULL, NULL, NULL}
 };
 
