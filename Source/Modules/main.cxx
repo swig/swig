@@ -21,6 +21,7 @@ char cvsroot_main_cxx[] = "$Header$";
 #include "swigwarn.h"
 #include "cparse.h"
 #include <ctype.h>
+#include <limits.h>		// for INT_MAX
 
 // Global variables
 
@@ -40,6 +41,8 @@ extern "C" {
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
+/* naming conventions for commandline options - no underscores, no capital letters, join words together
+ * except when using a common prefix, then use '-' to separate, eg the debug-xxx options */
 static const char *usage1 = (const char *) "\
 \nGeneral Options\n\
      -addextern      - Add extra extern declarations\n\
@@ -48,18 +51,16 @@ static const char *usage1 = (const char *) "\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
      -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
      -copyright      - Display copyright notices\n\
-     -debug_template - Display information for debugging templates\n\
-     -debug_typemap  - Display information for debugging typemaps\n\
+     -debug-classes  - Display information about the classes found in the interface\n\
+     -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-tags     - Display information about the tags found in the interface\n\
+     -debug-template - Display information for debugging templates\n\
+     -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-typedef  - Display information about the types and typedefs in the interface\n\
+     -debug-typemap  - Display information for debugging typemaps\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
-     -dump_classes   - Display information about the classes found in the interface\n\
-     -dump_module    - Display information on the module node tree avoiding system nodes\n\
-     -dump_parse_module - Display information on the module node tree after parsing avoiding system nodes\n\
-     -dump_parse_top - Display information on the node tree after parsing including system nodes\n\
-     -dump_tags      - Display information about the tags found in the interface\n\
-     -dump_top       - Display information on the entire node tree including system nodes\n\
-     -dump_typedef   - Display information about the types and typedefs in the interface\n\
      -E              - Preprocess only, does not generate wrapper code\n\
      -external-runtime [file] - Export the SWIG runtime stack\n\
      -fakeversion <v>- Make SWIG fake the program version number to <v>\n\
@@ -148,10 +149,8 @@ static char *outfile_name = 0;
 static char *outfile_name_h = 0;
 static int tm_debug = 0;
 static int dump_tags = 0;
-static int dump_top = 0;
 static int dump_module = 0;
-static int dump_parse_module = 0;
-static int dump_parse_top = 0;
+static int dump_top = 0;
 static int dump_xml = 0;
 static int browse = 0;
 static int dump_typedef = 0;
@@ -167,6 +166,7 @@ static String *dependencies_file = 0;
 static File *f_dependencies_file = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
+enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -174,8 +174,8 @@ static String *external_runtime_name = 0;
 // Checks the suffix of a file to see if we should emit extern declarations.
 // -----------------------------------------------------------------------------
 
-static int check_suffix(char *name) {
-  char *c;
+static int check_suffix(const char *name) {
+  const char *c;
   if (!name)
     return 0;
   c = Swig_file_suffix(name);
@@ -223,6 +223,30 @@ static void install_opts(int argc, char *argv[]) {
       }
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+// decode_numbers_list(String *numlist)
+// Decode comma separated list into a binary number of the inputs or'd together
+// eg list="1,4" will return (2^0 || 2^3) = 0x1001
+// ----------------------------------------------------------------------------- 
+
+static unsigned int decode_numbers_list(String *numlist) {
+  unsigned int decoded_number = 0;
+  if (numlist) {
+    List *numbers = Split(numlist, ',', INT_MAX);
+    if (numbers && Len(numbers) > 0) {
+      for (Iterator it = First(numbers); it.item; it = Next(it)) {
+        String *numstring = it.item;
+        // TODO: check that it is a number
+        int number = atoi(Char(numstring));
+        if (number > 0 && number <= 16) {
+          decoded_number |= (1 << (number-1));
+        }
+      }
+    }
+  }
+  return decoded_number;
 }
 
 // -----------------------------------------------------------------------------
@@ -496,7 +520,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-addextern") == 0) {
 	AddExtern = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-show_templates") == 0) || (strcmp(argv[i], "-debug_template") == 0)) {
+      } else if ((strcmp(argv[i], "-debug-template") == 0) || (strcmp(argv[i], "-debug_template") == 0) || (strcmp(argv[i], "-show_templates") == 0)) {
 	Swig_cparse_debug_templates(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-templatereduce") == 0) {
@@ -599,7 +623,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nocpperraswarn") == 0) {
 	Preprocessor_error_as_warning(0);
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-tm_debug") == 0) || (strcmp(argv[i], "-debug_typemap") == 0)) {
+      } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
 	tm_debug = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-module") == 0) {
@@ -652,20 +676,46 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
-      } else if (strcmp(argv[i], "-dump_tags") == 0) {
+      } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-top") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  String *dump_list = NewString(argv[i + 1]);
+	  dump_top = decode_numbers_list(dump_list);
+          if (dump_top < STAGE1 || dump_top >= STAGEOVERFLOW)
+            Swig_arg_error();
+          else
+            Swig_mark_arg(i + 1);
+          Delete(dump_list);
+	} else {
+	  Swig_arg_error();
+	}
+      } else if (strcmp(argv[i], "-debug-module") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  String *dump_list = NewString(argv[i + 1]);
+	  dump_module = decode_numbers_list(dump_list);
+          if (dump_module < STAGE1 || dump_module >= STAGEOVERFLOW)
+            Swig_arg_error();
+          else
+            Swig_mark_arg(i + 1);
+          Delete(dump_list);
+	} else {
+	  Swig_arg_error();
+	}
       } else if ((strcmp(argv[i], "-dump_tree") == 0) || (strcmp(argv[i], "-dump_top") == 0)) {
-	dump_top = 1;
+	dump_top |= STAGE4;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-dump_module") == 0) {
-	dump_module = 1;
+	dump_module |= STAGE4;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-dump_parse_module") == 0) {
-	dump_parse_module = 1;
+	dump_module |= STAGE1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-dump_parse_top") == 0) {
-	dump_parse_top = 1;
+	dump_top |= STAGE1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-dump_xml") == 0) {
 	dump_xml = 1;
@@ -685,13 +735,13 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-browse") == 0) {
 	browse = 1;
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_typedef") == 0) {
+      } else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
 	dump_typedef = 1;
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_classes") == 0) {
+      } else if ((strcmp(argv[i], "-debug-classes") == 0) || (strcmp(argv[i], "-dump_classes") == 0)) {
 	dump_classes = 1;
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_memory") == 0) {
+      } else if ((strcmp(argv[i], "-debug-memory") == 0) || (strcmp(argv[i], "-dump_memory") == 0)) {
 	memory_debug = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-Fstandard") == 0) {
@@ -897,6 +947,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     // Run the preprocessor
     if (Verbose)
       printf("Preprocessing...\n");
+
     {
       int i;
       String *fs = NewString("");
@@ -992,10 +1043,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     Node *top = Swig_cparse(cpps);
 
-    if (dump_parse_top) {
+    if (dump_top & STAGE1) {
+      Printf(stdout, "debug-top stage 1\n");
       Swig_print_tree(top);
     }
-    if (dump_parse_module) {
+    if (dump_module & STAGE1) {
+      Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
 
@@ -1004,10 +1057,28 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     Swig_process_types(top);
 
+    if (dump_top & STAGE2) {
+      Printf(stdout, "debug-top stage 2\n");
+      Swig_print_tree(top);
+    }
+    if (dump_module & STAGE2) {
+      Printf(stdout, "debug-module stage 2\n");
+      Swig_print_tree(Getattr(top, "module"));
+    }
+
     if (Verbose) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (dump_top & STAGE3) {
+      Printf(stdout, "debug-top stage 3\n");
+      Swig_print_tree(top);
+    }
+    if (dump_module & STAGE3) {
+      Printf(stdout, "debug-module stage 3\n");
+      Swig_print_tree(Getattr(top, "module"));
+    }
 
     if (Verbose) {
       Printf(stdout, "Generating wrappers...\n");
@@ -1063,10 +1134,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	}
       }
     }
-    if (dump_top) {
+    if (dump_top & STAGE4) {
+      Printf(stdout, "debug-top stage 4\n");
       Swig_print_tree(top);
     }
-    if (dump_module && top) {
+    if (dump_module & STAGE4) {
+      Printf(stdout, "debug-module stage 4\n");
       Swig_print_tree(Getattr(top, "module"));
     }
     if (dump_xml && top) {

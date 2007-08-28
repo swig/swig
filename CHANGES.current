@@ -1,6 +1,26 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/28/2007: wsfulton
+            - New debugging options, -debug-module <n> and -debug-top <n> to display the parse tree at
+              various stages, where <n> is a comma separated list of stages 1-4.For example, to
+              display top of parse tree at stages 1 and 3:
+                swig -debug-top 1,3
+
+            - Deprecate the following options which have equivalents below:
+              -dump_parse_module    =>   -debug-module 1
+              -dump_module          =>   -debug-module 4
+              -dump_parse_top       =>   -debug-top 1
+              -dump_top             =>   -debug-top 4
+
+            - Renamed some commandline options for naming consistency across all options:
+              -debug_template  =>   -debug-template
+              -debug_typemap   =>   -debug-typemap
+              -dump_classes    =>   -debug-classes
+              -dump_tags       =>   -debug-tags
+              -dump_typedef    =>   -debug-typedef
+              -dump_memory     =>   -debug-memory
+
 08/25/2007: olly
 	    [PHP5] Fix handling of double or float parameters with an integer
 	    default value.
