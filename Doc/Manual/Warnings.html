@@ -100,7 +100,8 @@ int foo(double);              // Silently ignored.
 
 <p>
 The <tt>%warnfilter</tt> directive has the same semantics as other declaration modifiers like 
-<tt>%rename</tt>, <tt>%ignore</tt>, and <tt>%feature</tt>.  For example, if you wanted to
+<tt>%rename</tt>, <tt>%ignore</tt> and <tt>%feature</tt>, see the 
+<a href="Customization.html#features">%feature directive</a> section.  For example, if you wanted to
 suppress a warning for a method in a class hierarchy, you could do this:
 </p>
 
@@ -144,24 +145,20 @@ for a reason---to tell you that something may be <em>broken</em> in
 your interface.  Ignore the warning messages at your own peril.
 </p>
 
-<H2><a name="Warnings_nn4"></a>14.3 Enabling additional warnings</H2>
 
+<H2><a name="Warnings_nn4"></a>14.3 Enabling extra warnings</H2>
 
 <p>
 Some warning messages are disabled by default and are generated only
-to provide additional diagnostics.  All warning messages can be
-enabled using the <tt>-Wall</tt> option. For example:
+to provide additional diagnostics.  These warnings can be turned on using the
+<tt>-Wextra</tt> option. For example:
 </p>
 
 <div class="shell">
 <pre>
-% swig -Wall -python example.i
+% swig -Wextra -python example.i
 </pre>
 </div>
-
-<p>
-When <tt>-Wall</tt> is used, all other warning filters are disabled.
-</p>
 
 <p>
 To selectively turn on extra warning messages, you can use the directives and options in the
@@ -175,7 +172,7 @@ previous section--simply add a "+" to all warning numbers.  For example:
 </div>
 
 <p>
-or
+or in your interface file use either
 </p>
 
 <div class="code">
@@ -199,6 +196,28 @@ Note: selective enabling of warnings with <tt>%warnfilter</tt> overrides any glo
 made using <tt>-w</tt> or <tt>#pragma</tt>.
 </p>
 
+<p>
+You can of course also enable all warnings and suppress a select few, for example:
+</p>
+
+<div class="shell">
+<pre>
+% swig -Wextra -w309,452 example.i
+</pre>
+</div>
+
+<p>
+The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressesed.
+</p>
+
+<p>
+If you would like all warnings to appear, regardless of the warning filters used, then use the <tt>-Wall</tt> option.
+The <tt>-Wall</tt> option also turns on the extra warnings that <tt>-Wextra</tt> adds, however, it is subtely different. 
+When <tt>-Wall</tt> is used, it also disables all other warning filters, 
+that is, any warnings suppressed or added in <tt>%warnfilter</tt>, <tt>#pragma SWIG nowarn</tt> 
+or the <tt>-w</tt> option.
+</p>
+
 <H2><a name="Warnings_nn5"></a>14.4 Issuing a warning message</H2>
 
 
@@ -209,7 +228,7 @@ Warning messages can be issued from an interface file using a number of directiv
 
 <div class="code">
 <pre>
-%warn "750:This is your last warning!"
+%warn "900:This is your last warning!"
 </pre>
 </div>
 
@@ -236,7 +255,7 @@ Warning messages can be associated with typemaps using the
 
 <div class="code">
 <pre>
-%typemap(in, warning="751:You are really going to regret this") blah * {
+%typemap(in, warning="901:You are really going to regret this") blah * {
    ...
 }
 </pre>
@@ -246,15 +265,48 @@ Warning messages can be associated with typemaps using the
 In this case, the warning message will be printed whenever the typemap is actually used.
 </p>
 
-<H2><a name="Warnings_nn6"></a>14.5 Commentary</H2>
+<H2><a name="Warnings_symbolic_symbols"></a>Symbolic symbols</H2>
 
 
 <p>
+The <tt>swigwarn.swg</tt> file that is installed with SWIG contains symbol constants that could also be
+used in <tt>%warnfilter</tt> and <tt>#pragma SWIG nowarn</tt>.
+For example this file contains the following line:
+</p>
+
+<div class="code">
+<pre>
+%define SWIGWARN_TYPE_UNDEFINED_CLASS 401 %enddef
+</pre>
+</div>
+
+<p>
+so <tt>SWIGWARN_TYPE_UNDEFINED_CLASS</tt> could be used instead of 401, for example:
+</p>
+
+<div class="code">
+<pre>
+#pragma SWIG nowarn=SWIGWARN_TYPE_UNDEFINED_CLASS
+</pre>
+</div>
+
+<p>
+or 
+</p>
+
+<div class="code">
+<pre>
+%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Foo;
+</pre>
+</div>
+
+<H2><a name="Warnings_nn6"></a>14.5 Commentary</H2>
+
+<p>
 The ability to suppress warning messages is really only provided for
-advanced users and is not recommended in normal use.  There are no
-plans to provide symbolic names or options that identify specific
-types or groups of warning messages---the numbers must be used
-explicitly.
+advanced users and is not recommended in normal use.  You are advised
+to modify your interface to fix the problems highlighted by the warnings
+wherever possible instead of suppressing warnings.
 </p>
 
 <p>
@@ -293,7 +345,6 @@ example.i(4): Syntax error in input.
 </pre></div>
 
 <H2><a name="Warnings_nn9"></a>14.8 Warning number reference</H2>
-
 
 <H3><a name="Warnings_nn10"></a>14.8.1 Deprecated features (100-199)</H3>
 

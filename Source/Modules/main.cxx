@@ -35,6 +35,15 @@ int AddExtern = 0;
 int NoExcept = 0;
 int SwigRuntime = 0;		// 0 = no option, 1 = -c or -runtime, 2 = -noruntime
 
+/* Suppress warning messages for private inheritance, preprocessor evaluation etc...
+   WARN_PP_EVALUATION            202
+   WARN_PARSE_PRIVATE_INHERIT    309
+   WARN_TYPE_ABSTRACT            403
+   WARN_LANG_OVERLOAD_CONST      512
+   WARN_PARSE_BUILTIN_NAME       321
+   WARN_PARSE_REDUNDANT          322
+ */
+#define EXTRA_WARNINGS "202,309,403,512,321,322"
 
 extern "C" {
   extern String *ModuleName;
@@ -103,7 +112,7 @@ static const char *usage2 = (const char *) "\
 
 static const char *usage3 = (const char *) "\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
-     -O              - Enable the optimizations options: \n\
+     -O              - Enable the optimization options: \n\
                         -fastdispatch -fvirtual \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
@@ -113,9 +122,10 @@ static const char *usage3 = (const char *) "\
      -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
      -version        - Display SWIG version number\n\
-     -Wall           - Enable all warning messages\n\
+     -Wall           - Remove all warning suppression, also implies -Wextra\n\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
      -Werror         - Treat warnings as errors\n\
+     -Wextra         - Adds the following additional warnings: " EXTRA_WARNINGS "\n\
      -w<list>        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html\n\
      -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
 \n\
@@ -673,6 +683,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-Werror") == 0) {
 	werror = 1;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-Wextra") == 0) {
+	Swig_mark_arg(i);
+        Swig_warnfilter(EXTRA_WARNINGS, 0);
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
@@ -776,17 +789,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Initialize the SWIG core */
   Swig_init();
 
-  /* Suppress warning messages for private inheritance, preprocessor
-     evaluation, might be abstract, overloaded const, and ...
-
-     WARN_PP_EVALUATION            202
-     WARN_PARSE_PRIVATE_INHERIT    309
-     WARN_TYPE_ABSTRACT            403
-     WARN_LANG_OVERLOAD_CONST      512
-     WARN_PARSE_BUILTIN_NAME       321
-     WARN_PARSE_REDUNDANT          322
-   */
-  Swig_warnfilter("202,309,403,512,321,322", 1);
+  // Default warning suppression
+  Swig_warnfilter(EXTRA_WARNINGS, 1);
 
   // Initialize the preprocessor
   Preprocessor_init();

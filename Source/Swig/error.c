@@ -89,10 +89,14 @@ void Swig_warning(int wnum, const String_or_char *filename, int line, const char
     char *f = Char(filter);
     sprintf(temp, "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
-      if (*(c - 1) == '-')
+      if (*(c - 1) == '-') {
 	wrn = 0;		/* Warning disabled */
-      if (*(c - 1) == '+')
+        break;
+      }
+      if (*(c - 1) == '+') {
 	wrn = 1;		/* Warning enabled */
+        break;
+      }
       f += strlen(temp);
     }
   }
@@ -170,7 +174,6 @@ void Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
   char *cw;
   String *s;
-
   if (!filter)
     filter = NewStringEmpty();
 

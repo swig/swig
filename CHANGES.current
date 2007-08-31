@@ -1,6 +1,19 @@
 Version 1.3.32 (in progress)
 ============================
 
+08/31/2007: wsfulton
+            SF #1754967 from James Bigler.
+            - Fix bug in turning on warnings that were turned off by default. Eg 'swig -w+309' will now
+              turn on the normally suppressed warning 309.
+            
+            - New -Wextra commandline option which enables the extra warning numbers:
+              202,309,403,512,321,322 (this is the list of warnings that have always been suppressed by
+              default). By specifying -Wextra, all warnings will be turned on, but unlike -Wall,
+              warnings can still be selectively turned on/off using %warnfilter,
+              #pragma SWIG nowarn or further -w commandline options, eg:
+                swig -Wextra -w309 
+              will turn on all warnings except 309.
+
 08/28/2007: wsfulton
             - New debugging options, -debug-module <n> and -debug-top <n> to display the parse tree at
               various stages, where <n> is a comma separated list of stages 1-4.For example, to
