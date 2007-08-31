@@ -389,13 +389,13 @@ arguments).
 The SWIG parser produces a complete parse tree of the input file before any wrapper code
 is actually generated.  Each item in the tree is known as a "Node".   Each node is identified
 by a symbolic tag.   Furthermore, a node may have an arbitrary number of children.
-The parse tree structure and tag names of an interface can be displayed using <tt>swig -dump_tags</tt>.
+The parse tree structure and tag names of an interface can be displayed using <tt>swig -debug-tags</tt>.
 For example:
 </p>
 
 <div class="shell">
 <pre>
-$ <b>swig -c++ -python -dump_tags example.i</b>
+$ <b>swig -c++ -python -debug-tags example.i</b>
  . top (example.i:1)
  . top . include (example.i:1)
  . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/swig.swg:71)
@@ -449,13 +449,14 @@ of the output.
 The contents of each parse tree node consist of a collection of attribute/value
 pairs.  Internally, the nodes are simply represented by hash tables.  A display of
 the entire parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. 
-There are a number of other parse tree display options, for example, <tt>swig -dump_module</tt> will
-avoid displaying system parse information and only display the parse tree pertaining to the user's module.
+There are a number of other parse tree display options, for example, <tt>swig -debug-module &lt;n&gt;</tt> will
+avoid displaying system parse information and only display the parse tree pertaining to the user's module at
+stage <tt>n</tt> of processing.
 </p>
 
 <div class="shell">
 <pre>
-$ swig -c++ -python -dump_module example.i
+$ swig -c++ -python -debug-module 4 example.i
       +++ include ----------------------------------------
       | name         - "example.i"
 
@@ -679,12 +680,15 @@ void foo(Bar *b);
 </div>
 
 <p>
-Now, running SWIG:
+There are various <tt>debug-</tt> options that can be useful for debugging and analysing the parse tree.
+For example, the <tt>debug-top &lt;n&gt;</tt> or <tt>debug-module &lt;n&gt;</tt> options will
+dump the entire/top of the parse tree or the module subtree at one of the four <tt>n</tt> stages of processing.
+The parse tree can be viewed after the final stage of processing by running SWIG:
 </p>
 
 <div class="shell">
 <pre>
-$ swig -dump_tree example.i
+$ swig -debug-top 4 example.i
 ...
             +++ cdecl ----------------------------------------
             | sym:name     - "foo_i"
@@ -773,7 +777,7 @@ public:
 The behavior of <tt>%feature</tt> is very easy to describe--it simply
 attaches a new attribute to any parse tree node that matches the
 given prototype.   When a feature is added, it shows up as an attribute in the <tt>feature:</tt> namespace.
-You can see this when running with the <tt>-dump_tree</tt> option.   For example:
+You can see this when running with the <tt>-debug-top 4</tt> option.   For example:
 </p>
 
 <div class="shell">
