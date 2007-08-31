@@ -50,9 +50,10 @@ void Swig_cparse_debug_templates(int x) {
 static int cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   int ret;
+  String *nodeType;
   if (!n)
     return 0;
-  String *nodeType = nodeType(n);
+  nodeType = nodeType(n);
   if (Getattr(n, "error"))
     return 0;
 
