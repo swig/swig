@@ -4,7 +4,6 @@
 
 namespace std {
   %template(IntPair)   pair<int, int>;
-  %template(ValuePair) pair< swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ >;
 }
 
 %inline %{

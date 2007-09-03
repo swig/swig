@@ -54,8 +54,4 @@ product3(intPair) == 42
 product1(intPairPtr) == 42
 product2(intPairPtr) == 42
 product3(intPairPtr) == 42
-
-val = ValuePair.new
-val.first = 'sd'
-val.second = [5,4,3]
 EOF
