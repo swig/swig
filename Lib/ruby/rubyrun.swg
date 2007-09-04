@@ -75,12 +75,11 @@ typedef struct {
 } swig_class;
 
 
-/* Global module used to keep some internal SWIG stuff */
-static VALUE _mSWIG = Qnil;
+/* Global pointer used to keep some internal SWIG stuff */
 static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
 
-/* Global module used to keep some internal SWIG stuff */
+/* Global IDs used to keep some internal SWIG stuff */
 static ID swig_arity_id = 0;
 static ID swig_call_id  = 0;
 

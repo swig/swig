@@ -95,3 +95,4 @@
 #define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF((klass)), "new")
 #endif
 
+static VALUE _mSWIG = Qnil;
