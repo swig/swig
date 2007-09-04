@@ -9,8 +9,8 @@
 
 require 'swig_assert'
 
-require 'li_std_pair'
-include Li_std_pair
+require 'li_std_pair_lang_object'
+include Li_std_pair_lang_object
 
 swig_assert_each_line(<<'EOF', binding)
 val = ValuePair.new
