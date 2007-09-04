@@ -95,6 +95,3 @@
 #define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF((klass)), "new")
 #endif
 
-
-/* Global module used to keep some internal SWIG stuff */
-static VALUE _mSWIG = Qnil;
