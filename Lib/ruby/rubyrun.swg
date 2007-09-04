@@ -77,7 +77,8 @@ typedef struct {
 
 static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
-
+static VALUE swig_arity_id = Qnil;
+static VALUE swig_call_id  = Qnil;
 
 /*
   If your swig extension is to be run within an embedded ruby and has
@@ -140,6 +141,8 @@ SWIG_Ruby_InitRuntime(void)
 {
   if (_mSWIG == Qnil) {
     _mSWIG = rb_define_module("SWIG");
+    swig_call_id  = rb_intern("call");
+    swig_arity_id = rb_intern("arity");
   }
 }
 
@@ -404,8 +407,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 SWIGINTERN
 int SWIG_Ruby_isCallable( VALUE proc )
 {
-  static VALUE call_id = rb_intern("call");
-  if ( rb_respond_to( proc, call_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_call_id ) == Qtrue )
     return 1;
   return 0;
 }
@@ -418,10 +420,9 @@ int SWIG_Ruby_isCallable( VALUE proc )
 SWIGINTERN
 int SWIG_Ruby_arity( VALUE proc, int minimal )
 {
-  static VALUE arity_id = rb_intern("arity");
-  if ( rb_respond_to( proc, arity_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_arity_id ) == Qtrue )
     {
-      VALUE num = rb_funcall( proc, arity_id, 0 );
+      VALUE num = rb_funcall( proc, swig_arity_id, 0 );
       int arity = NUM2INT(num);
       if ( arity < 0 && (arity+1) < -minimal ) return 1;
       if ( arity == minimal ) return 1;
