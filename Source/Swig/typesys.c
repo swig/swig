@@ -1428,6 +1428,7 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   SwigType *qr;
   String *tkey;
   String *cd;
+  Hash *lthash;
 
   if (!r_mangled) {
     r_mangled = NewHash();
@@ -1461,8 +1462,15 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   } else {
     lt = SwigType_ltype(t);
   }
-  Setattr(r_ltype, mt, lt);
+
+  lthash = Getattr(r_ltype, mt);
+  if (!lthash) {
+    lthash = NewHash();
+    Setattr(r_ltype, mt, lthash);
+  }
+  Setattr(lthash, lt, "1");
   Delete(lt);
+
   fr = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
   qr = SwigType_typedef_qualified(fr);
   Delete(fr);
@@ -1866,7 +1874,7 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   SwigType_inherit_equiv(f_table);
 
-  /* #define DEBUG 1 */
+   /*#define DEBUG 1*/
 #ifdef DEBUG
   Printf(stdout, "---r_mangled---\n");
   Printf(stdout, "%s\n", r_mangled);
@@ -1903,11 +1911,14 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     List *el;
     Iterator ei;
     SwigType *lt;
-    SwigType *rt;
+    SwigType *rt = 0;
     String *nt;
     String *ln;
     String *rn;
     const String *cd;
+    Hash *lthash;
+    Iterator ltiter;
+    Hash *nthash;
 
     cast_temp = NewStringEmpty();
 
@@ -1920,25 +1931,47 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     if (!cd)
       cd = "0";
 
-    lt = Getattr(r_ltype, ki.item);
-    rt = SwigType_typedef_resolve_all(lt);
-    /* we save the original type and the fully resolved version */
-    ln = SwigType_lstr(lt, 0);
-    rn = SwigType_lstr(rt, 0);
-    if (Equal(ln, rn)) {
-      nt = NewString(ln);
-    } else {
-      nt = NewStringf("%s|%s", rn, ln);
-    }
-    if (SwigType_istemplate(rt)) {
-      String *dt = Swig_symbol_template_deftype(rt, 0);
-      String *dn = SwigType_lstr(dt, 0);
-      if (!Equal(dn, rn) && !Equal(dn, ln)) {
-	Printf(nt, "|%s", dn);
+    lthash = Getattr(r_ltype, ki.item);
+    nt = 0;
+    nthash = NewHash();
+    ltiter = First(lthash);
+    while (ltiter.key) {
+      lt = ltiter.key;
+      rt = SwigType_typedef_resolve_all(lt);
+      /* we save the original type and the fully resolved version */
+      ln = SwigType_lstr(lt, 0);
+      rn = SwigType_lstr(rt, 0);
+      if (Equal(ln, rn)) {
+        Setattr(nthash, ln, "1");
+      } else {
+	Setattr(nthash, rn, "1");
+	Setattr(nthash, ln, "1");
       }
-      Delete(dt);
-      Delete(dn);
+      if (SwigType_istemplate(rt)) {
+        String *dt = Swig_symbol_template_deftype(rt, 0);
+        String *dn = SwigType_lstr(dt, 0);
+        if (!Equal(dn, rn) && !Equal(dn, ln)) {
+          Setattr(nthash, dn, "1");
+        }
+        Delete(dt);
+        Delete(dn);
+      }
+
+      ltiter = Next(ltiter);
     }
+
+    /* now build nt */
+    ltiter = First(nthash);
+    nt = 0;
+    while (ltiter.key) {
+      if (nt) {
+	 Printf(nt, "|%s", ltiter.key);
+      } else {
+	 nt = NewString(ltiter.key);
+      }
+      ltiter = Next(ltiter);
+    }
+    Delete(nthash);
 
     Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 

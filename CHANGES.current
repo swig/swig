@@ -1,5 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
+09/05/2007: wuzzeb (John Lenz)
+	    - Change r_ltype in typesys.c to store a hashtable instead of a single value.
+	      several very subtle bugs were being caused by multiple ltypes being mapped
+	      to a single mangled type, mostly when using typedefed template parameters.
+	      Now, r_ltype stores a hashtable of possible ltypes, and when generating the
+	      type table, all the ltypes are added into the swig_type_info structure.
 
 08/31/2007: wsfulton
             SF #1754967 from James Bigler.
