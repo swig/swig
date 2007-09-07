@@ -99,6 +99,7 @@ CPP_TEST_CASES += \
 	constructor_copy \
 	constructor_exception \
 	constructor_explicit \
+	constructor_ignore \
 	constructor_value \
 	contract \
 	compactdefaultargs \
