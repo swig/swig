@@ -32,7 +32,7 @@ namespace std {
 
     %typemap(in) string {
         convert_to_string_ex($input);
-        $1 = std::string(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
+        $1.assign(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
     }
 
     %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& {
@@ -41,7 +41,7 @@ namespace std {
 
     %typemap(in) const string & (std::string temp) {
         convert_to_string_ex($input);
-        temp = std::string(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
+        temp.assign(Z_STRVAL_PP($input),Z_STRLEN_PP($input));
         $1 = &temp;
     }
 
