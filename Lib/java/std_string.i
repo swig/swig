@@ -36,7 +36,7 @@ class string;
     } 
     const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
     if (!$1_pstr) return $null;
-    $1 =  std::string($1_pstr);
+    $1.assign($1_pstr);
     jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorout) string 
@@ -46,7 +46,7 @@ class string;
    } 
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
-   $result =  std::string($1_pstr);
+   $result.assign($1_pstr);
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") string 

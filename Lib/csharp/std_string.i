@@ -35,7 +35,7 @@ class string;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
    }
-   $1 = std::string($input); %}
+   $1.assign($input); %}
 %typemap(out) string %{ $result = SWIG_csharp_string_callback($1.c_str()); %}
 
 %typemap(directorout, canthrow=1) string 
@@ -43,7 +43,7 @@ class string;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
    }
-   $result = std::string($input); %}
+   $result.assign($input); %}
 
 %typemap(directorin) string %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
 

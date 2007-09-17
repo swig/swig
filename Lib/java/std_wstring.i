@@ -41,7 +41,7 @@ class wstring;
     for (jsize i = 0; i < $1_len; ++i) {
       conv_buf[i] = $1_pstr[i];
     }
-    $1 = std::wstring(conv_buf, $1_len);
+    $1.assign(conv_buf, $1_len);
     delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -60,7 +60,7 @@ class wstring;
     for (jsize i = 0; i < $1_len; ++i) {
       conv_buf[i] = $1_pstr[i];
     }
-    $result = std::wstring(conv_buf, $1_len);
+    $result.assign(conv_buf, $1_len);
     delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -112,7 +112,7 @@ class wstring;
     for (jsize i = 0; i < $1_len; ++i) {
       conv_buf[i] = $1_pstr[i];
     }
-    $1_str = std::wstring(conv_buf, $1_len);
+    $1_str.assign(conv_buf, $1_len);
     delete [] conv_buf;
   }
   $1 = &$1_str;
@@ -133,7 +133,7 @@ class wstring;
     for (jsize i = 0; i < $1_len; ++i) {
       conv_buf[i] = $1_pstr[i];
     }
-    $1_str = std::wstring(conv_buf, $1_len);
+    $1_str.assign(conv_buf, $1_len);
     delete [] conv_buf;
   }
   $result = &$1_str;

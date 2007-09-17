@@ -35,14 +35,14 @@ namespace std {
 
     %typemap(in) string (char* tempptr) {
       if ($input == C_SCHEME_FALSE) {
-	$1 = std::string();
+	$1.resize(0);
       } else { 
 	if (!C_swig_is_string ($input)) {
 	  swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, 
 		     "Argument #$argnum is not a string");
-   	}
+	}
 	tempptr = SWIG_MakeString($input);
-	$1 = std::string(tempptr);
+	$1.assign(tempptr);
 	if (tempptr) SWIG_free(tempptr);
       }
     }
@@ -51,7 +51,7 @@ namespace std {
 			 char* tempptr) {
 
       if ($input == C_SCHEME_FALSE) {
-	temp = std::string();
+	temp.resize(0);
 	$1 = &temp;
       } else { 
 	if (!C_swig_is_string ($input)) {
@@ -59,7 +59,7 @@ namespace std {
 		     "Argument #$argnum is not a string");
 	}
 	tempptr = SWIG_MakeString($input);
-	temp = std::string(tempptr);
+	temp.assign(tempptr);
 	if (tempptr) SWIG_free(tempptr);
 	$1 = &temp;
       }
@@ -79,7 +79,7 @@ namespace std {
 
     %typemap(varin) string {
       if ($input == C_SCHEME_FALSE) {
-	$1 = std::string();
+	$1.resize(0);
       } else { 
         char *tempptr;
 	if (!C_swig_is_string ($input)) {
@@ -87,7 +87,7 @@ namespace std {
 		     "Argument #$argnum is not a string");
    	}
 	tempptr = SWIG_MakeString($input);
-	$1 = std::string(tempptr);
+	$1.assign(tempptr);
 	if (tempptr) SWIG_free(tempptr);
       }
     }

@@ -85,16 +85,16 @@ namespace std {
     /* Overloading check */
     %typemap(in) string {
         if (caml_ptr_check($input))
-            $1 = std::string((char *)caml_ptr_val($input,0),
-			     caml_string_len($input));
+            $1.assign((char *)caml_ptr_val($input,0),
+                      caml_string_len($input));
         else
             SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & (std::string temp) {
         if (caml_ptr_check($input)) {
-            temp = std::string((char *)caml_ptr_val($input,0),
-			       caml_string_len($input));
+            temp.assign((char *)caml_ptr_val($input,0),
+                        caml_string_len($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -103,8 +103,8 @@ namespace std {
 
     %typemap(in) string & (std::string temp) {
         if (caml_ptr_check($input)) {
-            temp = std::string((char *)caml_ptr_val($input,0),
-			       caml_string_len($input));
+            temp.assign((char *)caml_ptr_val($input,0),
+                        caml_string_len($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -131,8 +131,8 @@ namespace std {
     }
 
     %typemap(directorout) string {
-	$result = std::string((char *)caml_ptr_val($input,0),
-			      caml_string_len($input));
+	$result.assign((char *)caml_ptr_val($input,0),
+		       caml_string_len($input));
     }
 
     %typemap(out) string {

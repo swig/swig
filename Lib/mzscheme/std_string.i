@@ -33,14 +33,14 @@ namespace std {
 
     %typemap(in) string {
         if (SCHEME_STRINGP($input))
-            $1 = std::string(SCHEME_STR_VAL($input));
+            $1.assign(SCHEME_STR_VAL($input));
         else
             SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & (std::string temp) {
         if (SCHEME_STRINGP($input)) {
-            temp = std::string(SCHEME_STR_VAL($input));
+            temp.assign(SCHEME_STR_VAL($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");

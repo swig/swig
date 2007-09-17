@@ -2,7 +2,8 @@ Version 1.3.32 (in progress)
 ============================
 
 09/17/2007: olly
-	    [PHP] Use std::string::assign(PTR, LEN) rather than assigning
+	    When wrapping C++ code, generate code which uses
+	    std::string::assign(PTR, LEN) rather than assigning
 	    std::string(PTR, LEN).  Using assign generates more efficient code
 	    (tested with GCC 4.1.2).
 

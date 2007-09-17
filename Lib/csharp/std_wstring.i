@@ -36,7 +36,7 @@ class wstring;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null wstring", 0);
     return $null;
    }
-   $1 = std::wstring($input); %}
+   $1.assign($input); %}
 %typemap(out) wstring %{ $result = SWIG_csharp_wstring_callback($1.c_str()); %}
 
 %typemap(directorout, canthrow=1) wstring 
@@ -44,7 +44,7 @@ class wstring;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null wstring", 0);
     return $null;
    }
-   $result = std::wstring($input); %}
+   $result.assign($input); %}
 
 %typemap(directorin) wstring %{ $input = SWIG_csharp_wstring_callback($1.c_str()); %}
 
