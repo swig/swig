@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 09/17/2007: olly
+	    [perl5] Use sv_setpvn() to set a scalar from a pointer and length
+	    - patch from SF#174460 by "matsubaray".
+
+09/17/2007: olly
 	    When wrapping C++ code, generate code which uses
 	    std::string::assign(PTR, LEN) rather than assigning
 	    std::string(PTR, LEN).  Using assign generates more efficient code

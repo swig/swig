@@ -28,10 +28,9 @@ SWIG_From_dec(jstring)(jstring val)
     if (!len) {
       sv_setsv(obj, &PL_sv_undef);
     } else {
-      char *tmp = %new_array(len + 1, char);
+      char *tmp = %new_array(len, char);
       JvGetStringUTFRegion(val, 0, len, tmp);
-      tmp[len] = 0;
-      sv_setpv(obj, tmp);
+      sv_setpvn(obj, tmp, len);
       SvUTF8_on(obj);
       %delete_array(tmp);
     }

@@ -44,15 +44,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SV *obj = sv_newmortal();
   if (carray) {
-    if (size && (carray[size - 1] == 0)) {
-      sv_setpv(obj, carray);
-    } else {
-      char *tmp = %new_array(size + 1, char);
-      memcpy(tmp, carray, size);
-      tmp[size] = 0;
-      sv_setpv(obj, tmp);
-      %delete_array(tmp);
-    }
+    sv_setpvn(obj, carray, size);
   } else {
     sv_setsv(obj, &PL_sv_undef);
   }

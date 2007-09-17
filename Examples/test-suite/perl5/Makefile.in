@@ -16,11 +16,12 @@ CPP_TEST_CASES += \
 	primitive_types \
 	li_cdata \
 	li_cstring \
+	li_cdata_carrays \
 
 C_TEST_CASES += \
 	li_cdata \
 	li_cstring \
-
+	li_cdata_carrays \
 
 include $(srcdir)/../common.mk
 
