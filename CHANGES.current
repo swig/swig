@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+09/18/2007: olly
+	    [php] Add typemaps for handling parameters of type std::string &
+	    which are modified by the wrapped function.
+
 09/17/2007: olly
 	    [python] Split potentially long string literals to avoid hitting
 	    MSVC's low fixed limit on string literal length - patch from
