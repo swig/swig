@@ -471,7 +471,7 @@ public:
     } else if (classmode && in_destructor) {
       Printf(f_class_ctors, "    \"~\", %s ;\n", mangled_name);
     } else if (classmode && !in_constructor && !in_destructor && !static_member_function) {
-      String *opname = Copy(Getattr(n, "name"));
+      String *opname = Copy(Getattr(n, "memberfunctionHandler:sym:name"));
 
       Replaceall(opname, "operator ", "");
 

@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 09/17/2007: olly
+	    [ocaml] Fix renaming of overloaded methods in the method_table -
+	    my patch from SF#940399.
+
+09/17/2007: olly
 	    [python] Simpler code for SWIG_AsVal_bool() which fixes a "strict
 	    aliasing" warning from GCC - patch from SF#1724581 by Andrew
 	    Baumann.
