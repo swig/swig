@@ -2,6 +2,11 @@ Version 1.3.32 (in progress)
 ============================
 
 09/17/2007: olly
+	    [python] Split potentially long string literals to avoid hitting
+	    MSVC's low fixed limit on string literal length - patch from
+	    SF#1723770, also reported as SF#1630855.
+
+09/17/2007: olly
 	    [ocaml] Fix renaming of overloaded methods in the method_table -
 	    my patch from SF#940399.
 
