@@ -1909,6 +1909,8 @@ public:
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
+      if (setter_flag)
+        Swig_typemap_attach_parms("csvarin", l, NULL);
     }
 
     /* Start generating the proxy function */
@@ -2097,7 +2099,8 @@ public:
 	  SwigType *pt = Getattr(p, "type");
 	  if ((tm = Getattr(p, "tmap:cstype"))) {
 	    substituteClassname(pt, tm);
-	    variable_type = tm;
+            String *cstypeout = Getattr(p, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
+	    variable_type = cstypeout ? cstypeout : tm;
 	  } else {
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(pt, 0));
 	  }
@@ -2114,7 +2117,6 @@ public:
 
       if (setter_flag) {
 	// Setter method
-	Swig_typemap_attach_parms("csvarin", l, NULL);
 	p = last_parm;		// (last parameter is the only parameter for properties)
 	SwigType *pt = Getattr(p, "type");
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
@@ -2499,6 +2501,8 @@ public:
 	Printf(func_name, "get");
       Putc(toupper((int) *Char(variable_name)), func_name);
       Printf(func_name, "%s", Char(variable_name) + 1);
+      if (setter_flag)
+        Swig_typemap_attach_parms("csvarin", l, NULL);
     } else {
       func_name = Copy(Getattr(n, "sym:name"));
     }
@@ -2626,7 +2630,8 @@ public:
 	  SwigType *pt = Getattr(p, "type");
 	  if ((tm = Getattr(p, "tmap:cstype"))) {
 	    substituteClassname(pt, tm);
-	    variable_type = tm;
+            String *cstypeout = Getattr(p, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
+	    variable_type = cstypeout ? cstypeout : tm;
 	  } else {
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(pt, 0));
 	  }
@@ -2643,7 +2648,6 @@ public:
 
       if (setter_flag) {
 	// Setter method
-	Swig_typemap_attach_parms("csvarin", l, NULL);
 	p = last_parm;		// (last parameter is the only parameter for properties)
 	SwigType *pt = Getattr(p, "type");
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
@@ -2864,8 +2868,9 @@ public:
     String *arg = 0;
     String *pn = Getattr(p, "name");
     if (setter) {
-      // Note that in C# property setter names must always be called 'value'
-      arg = NewString("value");
+      // Note that in C# properties, the input variable name is always called 'value'
+      String *valueparm = Getattr(p, "tmap:csvarin:valueparm");
+      arg = valueparm ? Copy(valueparm) : NewString("value");
     } else {
       // Use C parameter name unless it is a duplicate or an empty parameter name
       int count = 0;

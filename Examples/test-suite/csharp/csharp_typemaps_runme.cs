@@ -19,7 +19,7 @@ public class runme
     initialLetters.Append(myChar);
     if (initialLetters.ToString() != "bhox")
       throw new Exception("initial letters failed");
-    if (csharp_typemaps.go != "zzz")
+    if (csharp_typemaps.go != 'z')
       throw new Exception("go variable failed");
 
 

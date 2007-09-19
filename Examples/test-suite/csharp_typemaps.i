@@ -2,9 +2,9 @@
 
 // Test the C# types customisation by modifying the default char * typemaps to return a single char
 
+%typemap(ctype, out="char /*ctype out override*/") char * "char *"
 %typemap(imtype, out="char /*imtype out override*/") char * "string"
 %typemap(cstype, out="char /*cstype out override*/") char * "string"
-%typemap(ctype, out="char /*ctype out override*/") char * "char *"
 
 %typemap(out) char * %{
   // return the 0th element rather than the whole string
@@ -16,11 +16,19 @@
     return ret;
   }
 
-%typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
+%typemap(csvarout, excode=SWIGEXCODE2) char * %{
     get {
-      string ret = new string($imcall, 3);$excode
+      char ret = $imcall;$excode
       return ret;
     } %}
+
+// test valueparm attribute
+%typemap(csvarin, excode=SWIGEXCODE2, valueparm="tempValue") char * %{
+    set {
+      string tempValue = new string(value, 3);
+      $imcall;$excode
+    } %}
+
 
 %inline %{
 namespace Space {
@@ -33,8 +41,27 @@ namespace Space {
     #define STRINGCONSTANT "xyz string"
     char *go = "zap";
 }
+%}
+
+
+// Test variables when ref is used in the cstype typemap - the variable name should come from the out attribute if specified
+%typemap(cstype) MKVector, const MKVector& "MKVector"
+%typemap(cstype, out="MKVector") MKVector &, MKVector * "ref MKVector"
+
+%inline %{
+struct MKVector {
+};
+struct MKRenderGameVector {
+  MKVector memberValue;
+  static MKVector staticValue;
+};
+MKVector MKRenderGameVector::staticValue;
+MKVector globalValue;
+%}
+
 
 // Number and Obj are for the eager garbage collector runtime test
+%inline %{
 struct Number {
   Number(double value) : Value(value) {}
   double Value;
