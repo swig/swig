@@ -2932,12 +2932,14 @@ Node *Language::classLookup(SwigType *s) {
   n = Getattr(classtypes, s);
   if (!n) {
     Symtab *stab = 0;
-    SwigType *lt = SwigType_ltype(s);
-    SwigType *ty1 = SwigType_typedef_resolve_all(lt);
+//    SwigType *lt = SwigType_ltype(s);
+//    SwigType *ty1 = SwigType_typedef_resolve_all(lt);
+    SwigType *ty1 = SwigType_typedef_resolve_all(s);
     SwigType *ty2 = SwigType_strip_qualifiers(ty1);
-    Delete(lt);
+//    Printf(stdout, "   stages... ty1: %s ty2: %s\n", ty1, ty2);
+//    Delete(lt);
     Delete(ty1);
-    lt = 0;
+//    lt = 0;
     ty1 = 0;
 
     String *base = SwigType_base(ty2);
@@ -2968,10 +2970,12 @@ Node *Language::classLookup(SwigType *s) {
     }
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow
-         a few cases: pointers, references, and simple */
-      if ((Len(prefix) == 0) ||	/* Simple type */
-	  (Strcmp(prefix, "p.") == 0) ||	/* pointer     */
-	  (Strcmp(prefix, "r.") == 0)) {	/* reference   */
+         the cases where where we want a proxy class for the particular type */
+      if ((Len(prefix) == 0) ||	                // simple type (pass by value)
+	  (Strcmp(prefix, "p.") == 0) ||	// pointer
+	  (Strcmp(prefix, "r.") == 0) ||	// reference
+	  (Strcmp(prefix, "r.p.") == 0) || 	// pointer by reference
+          SwigType_prefix_is_simple_1D_array(prefix)) { // Simple 1D array (not arrays of pointers/references)
 	SwigType *cs = Copy(s);
 	Setattr(classtypes, cs, n);
 	Delete(cs);
@@ -3355,4 +3359,8 @@ String *Language::runtimeCode() {
 
 String *Language::defaultExternalRuntimeFilename() {
   return 0;
+}
+
+Hash *Language::getClassHash() const {
+  return classhash;
 }

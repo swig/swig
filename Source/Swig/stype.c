@@ -168,12 +168,7 @@ void SwigType_push(SwigType *t, String *cons) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_ispointer()
  * SwigType_ispointer_return()
- * SwigType_isarray()
- * SwigType_isreference()
- * SwigType_isfunction()
- * SwigType_isqualifier()
  *
  * Testing functions for querying a raw datatype
  * ----------------------------------------------------------------------------- */

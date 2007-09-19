@@ -259,6 +259,9 @@ protected:
   /* Return the real name of the current class */
   String *getClassName() const;
 
+  /* Return the classes hash */
+  Hash *getClassHash() const;
+
   /* Return the current class prefix */
   String *getClassPrefix() const;
 

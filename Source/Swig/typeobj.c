@@ -556,6 +556,23 @@ int SwigType_isarray(SwigType *t) {
   }
   return 0;
 }
+/*
+ * SwigType_prefix_is_simple_1D_array
+ *
+ * Determine if the type is a 1D array type that is treated as a pointer within SWIG
+ * eg Foo[], Foo[3] return true, but Foo[3][3], Foo*[], Foo*[3], Foo**[] return false
+ */
+int SwigType_prefix_is_simple_1D_array(SwigType *t) {
+  char *c = Char(t);
+
+  if (c && (strncmp(c, "a(", 2) == 0)) {
+    c = strchr(c, '.');
+    c++;
+    return (*c == 0);
+  }
+  return 0;
+}
+
 
 /* Remove all arrays */
 SwigType *SwigType_pop_arrays(SwigType *t) {

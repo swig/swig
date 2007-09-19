@@ -24,6 +24,7 @@ CPP_TEST_CASES = \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
 	java_jnitypes \
+	java_pgcpp \
 	java_pragmas \
 	java_prepost \
 	java_throws \

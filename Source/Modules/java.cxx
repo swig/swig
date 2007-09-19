@@ -800,6 +800,7 @@ public:
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
+    Swig_typemap_attach_parms("jstype", l, f);
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("jni", n, "", 0))) {
@@ -892,6 +893,12 @@ public:
       // Premature garbage collection prevention parameter
       if (!is_destructor) {
 	String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
+        /*
+        if (!pgc_parameter) {
+          Printf(stdout, "prematuregcp %s %s [%s]\n", symname, Getattr(n, "sym:overname"), pt);
+          Swig_print_node(p);
+        }
+        */
 	if (pgc_parameter) {
 	  Printf(imclass_class_code, ", %s %s_", pgc_parameter, arg);
 	  Printf(f->def, ", jobject %s_", arg);
@@ -1943,6 +1950,7 @@ public:
       SwigType_add_pointer(this_type);
       Parm *this_parm = NewParm(this_type, name);
       Swig_typemap_attach_parms("jtype", this_parm, NULL);
+      Swig_typemap_attach_parms("jstype", this_parm, NULL);
 
       if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
 	Printf(imcall, ", this");
@@ -2916,16 +2924,50 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *prematureGarbageCollectionPreventionParameter(SwigType *t, Parm *p) {
-    String *jtype = Getattr(p, "tmap:jtype");
+    String *proxyClassName = 0;
+    String *jtype = NewString(Getattr(p, "tmap:jtype"));
+    // TODO: remove any C comments from jtype
+    // remove whitespace
+    Replaceall(jtype, " ", "");
+    Replaceall(jtype, "\t", "");
+
     if (Cmp(jtype, "long") == 0) {
       if (proxy_flag) {
-	Node *n = classLookup(t);
-	if (n && !GetFlag(p, "tmap:jtype:nopgcpp") && !nopgcpp_flag) {
-	  return Getattr(n, "sym:name");
+	if (!GetFlag(p, "tmap:jtype:nopgcpp") && !nopgcpp_flag) {
+          Node *n = classLookup(t);
+          if (n) {
+            // Found a struct/class parameter passed by value, reference, pointer, or pointer reference
+            proxyClassName = Getattr(n, "sym:name");
+          } else {
+            // Look for proxy class parameters passed to C++ layer using non-default typemaps, ie not one of above types
+            String *jstype = NewString(Getattr(p, "tmap:jstype"));
+            if (jstype) {
+              Hash *classes = getClassHash();
+              if (classes) {
+                // TODO: remove any C comments from jstype
+                // remove whitespace
+                Replaceall(jstype, " ", "");
+                Replaceall(jstype, "\t", "");
+
+                Iterator ki;
+                for (ki = First(classes); ki.key; ki = Next(ki)) {
+                  Node *cls = ki.item;
+                  if (cls && !Getattr(cls, "feature:ignore")) {
+                    String *symname = Getattr(cls, "sym:name");
+                    if (symname && Strcmp(symname, jstype) == 0) {
+                      proxyClassName = symname;
+                    }
+                  }
+                }
+              }
+            }
+            Delete(jstype);
+          }
 	}
       }
     }
-    return NULL;
+    Delete(jtype);
+    return proxyClassName;
   }
 
   /*----------------------------------------------------------------------
