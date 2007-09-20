@@ -7,7 +7,7 @@
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res, "$type", $symname, $argnum); 
   }
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg) SWIGTYPE * "";
 
@@ -16,7 +16,7 @@
   if (!SWIG_IsOK(res)) { 
     %argument_fail(res, "$type", $symname, $argnum); 
   } 
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg) SWIGTYPE [] "";
 
@@ -26,7 +26,7 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$*ltype", $symname, $argnum); 
   }
-  temp = %static_cast(argp, $*ltype);
+  temp = %reinterpret_cast(argp, $*ltype);
   $1 = &temp;
 }
 %typemap(freearg) SWIGTYPE* const& "";
@@ -39,7 +39,7 @@
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg) SWIGTYPE & "";
 
@@ -50,7 +50,7 @@
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 %typemap(freearg,noblock=1,match="in",implicitconv=1) const SWIGTYPE &
 {
@@ -63,7 +63,7 @@
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 #endif
 
@@ -77,7 +77,7 @@
   if (!argp) { 
     %argument_nullref("$type", $symname, $argnum);
   } else {
-    $&ltype temp = %static_cast(argp, $&ltype);
+    $&ltype temp = %reinterpret_cast(argp, $&ltype);
     $1 = *temp;
     if (SWIG_IsNewObj(res)) %delete(temp);
   }
@@ -91,7 +91,7 @@
   if (!argp) { 
     %argument_nullref("$type", $symname, $argnum);
   } else {
-    $1 = *(%static_cast(argp, $&ltype));
+    $1 = *(%reinterpret_cast(argp, $&ltype));
   }
 }
 #endif
@@ -215,7 +215,7 @@
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   }
-  $1 = %static_cast(argp, $ltype);
+  $1 = %reinterpret_cast(argp, $ltype);
 }
 
 %typemap(varin,noblock=1,warning="462:Unable to set dimensionless array variable") SWIGTYPE []
@@ -232,7 +232,7 @@
   if (!argp) {
     %variable_nullref("$type", "$name");
   }
-  $1 = *(%static_cast(argp, $ltype));
+  $1 = *(%reinterpret_cast(argp, $ltype));
 }
 
 #if defined(__cplusplus) && defined(%implicitconv_flag)
@@ -246,7 +246,7 @@
     %variable_nullref("$type", "$name");
   } else {
     $&type temp;
-    temp  = %static_cast(argp, $&type);
+    temp  = %reinterpret_cast(argp, $&type);
     $1 = *temp;
     if (SWIG_IsNewObj(res)) %delete(temp);
   }
@@ -261,7 +261,7 @@
   if (!argp) {
     %variable_nullref("$type", "$name");
   } else {
-    $1 = *(%static_cast(argp, $&type));
+    $1 = *(%reinterpret_cast(argp, $&type));
   }
 }
 #endif
@@ -356,8 +356,8 @@
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res,"$type");
   }
-  $result = *(%static_cast(swig_argp, $&ltype));
-  if (SWIG_IsNewObj(swig_res)) %delete(%static_cast(swig_argp, $&ltype));
+  $result = *(%reinterpret_cast(swig_argp, $&ltype));
+  if (SWIG_IsNewObj(swig_res)) %delete(%reinterpret_cast(swig_argp, $&ltype));
 }
 #else
 %typemap(directorout,noblock=1) SWIGTYPE (void * swig_argp, int swig_res = 0) {
@@ -365,7 +365,7 @@
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res,"$type");
   }
-  $result = *(%static_cast(swig_argp, $&ltype));
+  $result = *(%reinterpret_cast(swig_argp, $&ltype));
 }
 #endif
 
@@ -375,7 +375,7 @@
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res,"$type");
   }
-  $result = %static_cast(swig_argp, $ltype);
+  $result = %reinterpret_cast(swig_argp, $ltype);
   swig_acquire_ownership_obj(%as_voidptr($result), own);
 }
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE * {
@@ -391,7 +391,7 @@
     %dirout_fail(swig_res,"$type");
   }
   if (!swig_argp) { %dirout_nullref("$type"); }
-  $result = %static_cast(swig_argp, $ltype);
+  $result = %reinterpret_cast(swig_argp, $ltype);
   swig_acquire_ownership_obj(%as_voidptr($result), own);
 }
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE & {
