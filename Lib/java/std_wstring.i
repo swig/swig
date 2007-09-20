@@ -37,12 +37,10 @@ class wstring;
   if (!$1_pstr) return $null;
   jsize $1_len = jenv->GetStringLength($input);
   if ($1_len) {
-    wchar_t *conv_buf = new wchar_t[$1_len];
+    $1.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      conv_buf[i] = $1_pstr[i];
+      $1.append((wchar_t)$1_pstr[i]);
     }
-    $1.assign(conv_buf, $1_len);
-    delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
  %}
@@ -56,12 +54,10 @@ class wstring;
   if (!$1_pstr) return $null;
   jsize $1_len = jenv->GetStringLength($input);
   if ($1_len) {
-    wchar_t *conv_buf = new wchar_t[$1_len];
+    $result.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      conv_buf[i] = $1_pstr[i];
+      $result.append((wchar_t)$1_pstr[i]);
     }
-    $result.assign(conv_buf, $1_len);
-    delete [] conv_buf;
   }
   jenv->ReleaseStringChars($input, $1_pstr);
  %}
@@ -108,12 +104,10 @@ class wstring;
   jsize $1_len = jenv->GetStringLength($input);
   std::wstring $1_str;
   if ($1_len) {
-    wchar_t *conv_buf = new wchar_t[$1_len];
+    $1_str.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      conv_buf[i] = $1_pstr[i];
+      $1_str.append((wchar_t)$1_pstr[i]);
     }
-    $1_str.assign(conv_buf, $1_len);
-    delete [] conv_buf;
   }
   $1 = &$1_str;
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -130,12 +124,10 @@ class wstring;
   /* possible thread/reentrant code problem */
   static std::wstring $1_str;
   if ($1_len) {
-    wchar_t *conv_buf = new wchar_t[$1_len];
+    $1_str.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      conv_buf[i] = $1_pstr[i];
+      $1_str.append((wchar_t)$1_pstr[i]);
     }
-    $1_str.assign(conv_buf, $1_len);
-    delete [] conv_buf;
   }
   $result = &$1_str;
   jenv->ReleaseStringChars($input, $1_pstr); %}
