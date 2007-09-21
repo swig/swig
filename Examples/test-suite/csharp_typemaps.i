@@ -22,14 +22,6 @@
       return ret;
     } %}
 
-// test valueparm attribute
-%typemap(csvarin, excode=SWIGEXCODE2, valueparm="tempValue") char * %{
-    set {
-      string tempValue = new string(value, 3);
-      $imcall;$excode
-    } %}
-
-
 %inline %{
 namespace Space {
     class Things {
@@ -38,8 +30,6 @@ namespace Space {
         static char* stop(char *val) { return val; }
     };
     char* partyon(char *val) { return val; }
-    #define STRINGCONSTANT "xyz string"
-    char *go = "zap";
 }
 %}
 
@@ -100,3 +90,14 @@ Number times12(const Number* num) {
 };
 %}
 
+// Test $csinput expansion
+%typemap(csvarin, excode=SWIGEXCODE2) int %{
+    set {
+      if ($csinput < 0)
+        throw new ApplicationException("number too small!");
+      $imcall;$excode
+    } %}
+
+%inline %{
+int myInt = 0;
+%}

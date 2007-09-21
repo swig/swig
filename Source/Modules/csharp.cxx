@@ -2652,6 +2652,7 @@ public:
 	SwigType *pt = Getattr(p, "type");
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
 	  substituteClassname(pt, tm);
+	  Replaceall(tm, "$csinput", "value");
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", p);
 	  Printf(module_class_code, "%s", tm);
@@ -2869,8 +2870,7 @@ public:
     String *pn = Getattr(p, "name");
     if (setter) {
       // Note that in C# properties, the input variable name is always called 'value'
-      String *valueparm = Getattr(p, "tmap:csvarin:valueparm");
-      arg = valueparm ? Copy(valueparm) : NewString("value");
+      arg = NewString("value");
     } else {
       // Use C parameter name unless it is a duplicate or an empty parameter name
       int count = 0;

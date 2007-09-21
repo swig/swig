@@ -15,13 +15,16 @@ public class runme
     initialLetters.Append(myChar);
     myChar = csharp_typemaps.partyon("off");
     initialLetters.Append(myChar);
-    myChar = csharp_typemaps.STRINGCONSTANT;
-    initialLetters.Append(myChar);
-    if (initialLetters.ToString() != "bhox")
+    if (initialLetters.ToString() != "bho")
       throw new Exception("initial letters failed");
-    if (csharp_typemaps.go != 'z')
-      throw new Exception("go variable failed");
 
+    // $csinput expansion
+    csharp_typemaps.myInt = 1;
+    try {
+      csharp_typemaps.myInt = -1;
+      throw new Exception("oops");
+    } catch (ApplicationException) {
+    }
 
     // Eager garbage collector test
     {

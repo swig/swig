@@ -29,6 +29,7 @@
 <li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
 <li><a href="#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="#csharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
+<li><a href="#csharp_date_properties">A date example demonstrating marshalling of C# properties</a>
 <li><a href="#csharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="#csharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 </ul>
@@ -198,7 +199,7 @@ $jnicall                    -&gt; $imcall
 
 <li>
 <p>
-Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. The "csin" typemap supports an additional optional attribute called 'cshin'. It should contain the parameter type and name whenever a <a href="Java.html#java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. Please see the <a href="#csharp_date_marshalling">Date marshalling example</a> for further understanding.
+Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. The "csin" typemap supports an additional optional attribute called 'cshin'. It should contain the parameter type and name whenever a <a href="Java.html#java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. Note that 'pre', 'post' and 'cshin' attributes are not used for marshalling the property set. Please see the <a href="#csharp_date_marshalling">Date marshalling example</a> and <a href="#CSharp.html#csharp_date_properties">Date marshalling of properties example</a> for further understanding.
 </p>
 </li>
 
@@ -326,6 +327,8 @@ public class AClass : IDisposable {
 <p>
 If C# attributes need adding to the <tt>set</tt> or <tt>get</tt> part of C# properties, when wrapping C/C++ variables,
 they can be added using the 'csvarin' and 'csvarout' typemaps respectively.
+Note that the type used for the property is specified in the 'cstype' typemap.
+If the 'out' attribute exists in this typemap, then the type used is from the 'out' attribute.
 </p>
 </li>
 
@@ -1611,7 +1614,7 @@ The <tt>CDate &amp;</tt> and <tt>const CDate &amp;</tt> C# code is generated fro
 
 <div class="code">
 <pre>
-%typemap(jstype) SWIGTYPE &amp; "$csclassname"
+%typemap(cstype) SWIGTYPE &amp; "$csclassname"
 %typemap(csin) SWIGTYPE &amp; "$csclassname.getCPtr($csinput)"
 </pre>
 </div>
@@ -1628,7 +1631,7 @@ System.DateTime dateOut = new System.DateTime();
 
 // Note in calls below, dateIn remains unchanged and dateOut 
 // is set to a new value by the C++ call
-Action action = new Action(dateIn, ref dateOut);
+Action action = new Action(dateIn, out dateOut);
 dateIn = new System.DateTime(2012, 7, 14);
 </pre>
 </div>
@@ -1648,12 +1651,12 @@ The typemaps to achieve this are shown below.
          const CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
-%typemap(cstype) CDate&amp; "ref System.DateTime"
+%typemap(cstype) CDate&amp; "out System.DateTime"
 %typemap(csin, 
          pre="    CDate temp$csinput = new CDate();", 
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="ref $csinput") CDate &amp;
+         cshin="out $csinput") CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
 </pre>
@@ -1667,7 +1670,7 @@ The resulting generated proxy code in the <tt>Action</tt> class follows:
 <pre>
 public class Action : IDisposable {
   ...
-  public int doSomething(System.DateTime dateIn, ref System.DateTime dateOut) {
+  public int doSomething(System.DateTime dateIn, out System.DateTime dateOut) {
     CDate tempdateIn = new CDate(dateIn.Year, dateIn.Month, dateIn.Day);
     CDate tempdateOut = new CDate();
     try {
@@ -1683,7 +1686,7 @@ public class Action : IDisposable {
     }
   }
 
-  static private IntPtr SwigConstructAction(System.DateTime dateIn, ref System.DateTime dateOut) {
+  static private IntPtr SwigConstructAction(System.DateTime dateIn, out System.DateTime dateOut) {
     CDate tempdateIn = new CDate(dateIn.Year, dateIn.Month, dateIn.Day);
     CDate tempdateOut = new CDate();
     try {
@@ -1694,8 +1697,8 @@ public class Action : IDisposable {
     }
   }
 
-  public Action(System.DateTime dateIn, ref System.DateTime dateOut) 
-      : this(Action.SwigConstructAction(dateIn, ref dateOut), true) {
+  public Action(System.DateTime dateIn, out System.DateTime dateOut) 
+      : this(Action.SwigConstructAction(dateIn, out dateOut), true) {
     if (examplePINVOKE.SWIGPendingException.Pending) 
       throw examplePINVOKE.SWIGPendingException.Retrieve();
   }
@@ -1719,10 +1722,171 @@ A few things to note:
   more local variables with the same name would be generated.
   <li> The use of the "csin" typemap causes a constructor helper function (<tt>SwigConstructAction</tt>) to be generated.
   This allows C# code to be called before the intermediary call made in the constructor initialization list.
-  <li> The 'cshin' attribute is required for the <tt>SwigConstructAction</tt> constructor helper function so that the 2nd parameter is declared as <tt>ref dateOut</tt> instead of just <tt>dateOut</tt>.
+  <li> The 'cshin' attribute is required for the <tt>SwigConstructAction</tt> constructor helper function so that the 2nd parameter is declared as <tt>out dateOut</tt> instead of just <tt>dateOut</tt>.
 </ul>
 
-<H3><a name="csharp_partial_classes"></a>17.5.4 Turning wrapped classes into partial classes</H3>
+<p>
+So far we have considered the date as an input only and an output only type.
+Now let's consider <tt>CDate *</tt> used as an input/output type. Consider the following C++ function which modifies the date passed in:
+</p>
+
+<div class="code">
+<pre>
+void addYears(CDate *pDate, int years) {
+  *pDate = CDate(pDate-&gt;getYear() + years, pDate-&gt;getMonth(), pDate-&gt;getDay());
+}
+</pre>
+</div>
+
+<p>
+If usage of <tt>CDate *</tt> commonly follows this input/output pattern, usage from C# like the following
+</p>
+
+<div class="code">
+<pre>
+System.DateTime christmasEve = new System.DateTime(2000, 12, 24);
+example.addYears(ref christmasEve, 10); // christmasEve now contains 2010-12-24
+</pre>
+</div>
+
+<p>
+will be possible with the following <tt>CDate *</tt> typemaps
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype, out="System.DateTime") CDate * "ref System.DateTime"
+
+%typemap(csin,
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         cshin="ref $csinput") CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+</pre>
+</div>
+
+<p>
+Globals are wrapped by the module class and for a module called example, the typemaps result in the following code:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static void addYears(ref System.DateTime pDate, int years) {
+    CDate temppDate = new CDate(pDate.Year, pDate.Month, pDate.Day);
+    try {
+      examplePINVOKE.addYears(CDate.getCPtr(temppDate), years);
+    } finally {
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+    }
+  }
+  ...
+}
+</pre>
+</div>
+
+<H3><a name="csharp_date_properties"></a>17.5.4 A date example demonstrating marshalling of C# properties</H3>
+
+
+<p>
+The previous section looked at converting a C++ date class to <tt>System.DateTime</tt> for parameters.
+This section extends this idea so that the correct marshalling is obtained when wrapping C++ variables.
+Consider the same <tt>CDate</tt> class from the previous section and a global variable:
+</p>
+
+<div class="code">
+<pre>
+CDate ImportantDate = CDate(1999, 12, 31);
+</pre>
+</div>
+
+<p>
+The aim is to use <tt>System.DateTime</tt> from C# when accessing this date as shown in the following usage where the module name is 'example':
+</p>
+
+<div class="code">
+<pre>
+example.ImportantDate = new System.DateTime(2000, 11, 22);
+System.DateTime importantDate = example.ImportantDate;
+Console.WriteLine("Important date: " + importantDate);
+</pre>
+</div>
+
+<p>
+When SWIG wraps a variable that is a class/struct/union, it is wrapped using a pointer to the type for the reasons given in <a href="SWIG.html#SWIG_structure_data_members">Stucture data members</a>.
+The typemap type required is thus <tt>CDate *</tt>. Given that the previous section already designed <tt>CDate *</tt> typemaps, we'll use those same typemaps plus the 'csvarin' and 'csvarout' typemaps.
+
+<div class="code">
+<pre>
+%typemap(cstype, out="System.DateTime") CDate * "ref System.DateTime"
+
+%typemap(csin,
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         cshin="ref $csinput") CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+
+%typemap(csvarin, excode=SWIGEXCODE2) CDate * %{
+    /* csvarin typemap code */
+    set {
+      CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);
+      $imcall;$excode
+    } %}
+
+%typemap(csvarout, excode=SWIGEXCODE2) CDate * %{
+    /* csvarout typemap code */
+    get {
+      IntPtr cPtr = $imcall;
+      CDate tempDate = (cPtr == IntPtr.Zero) ? null : new CDate(cPtr, $owner);$excode
+      return new System.DateTime(tempDate.getYear(), tempDate.getMonth(), tempDate.getDay(),
+                                 0, 0, 0);
+    } %}
+</pre>
+</div>
+
+<p>
+For a module called example, the typemaps result in the following code:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static System.DateTime ImportantDate {
+    /* csvarin typemap code */
+    set {
+      CDate tempvalue = new CDate(value.Year, value.Month, value.Day);
+      examplePINVOKE.ImportantDate_set(CDate.getCPtr(tempvalue));
+    } 
+    /* csvarout typemap code */
+    get {
+      IntPtr cPtr = examplePINVOKE.ImportantDate_get();
+      CDate tempDate = (cPtr == IntPtr.Zero) ? null : new CDate(cPtr, false);
+      return new System.DateTime(tempDate.getYear(), tempDate.getMonth(), tempDate.getDay(),
+                                 0, 0, 0);
+    } 
+  }
+  ...
+}
+</pre>
+</div>
+
+<p>
+Some points to note:
+</p>
+
+<ul>
+  <li>The property set comes from the 'csvarin' typemap and the property get comes from the 'csvarout' typemap.
+  <li>The type used for the property comes from the 'cstype' typemap. This particular example has the 'out' attribute set in the typemap and as it is specified, it is used in preference to the type in the typemap body. This is because the type in the 'out' attribute can never include modifiers such as 'ref', thereby avoiding code such as <tt>public static ref System.DateTime ImportantDate { ...</tt>, which would of course not compile.
+  <li>The <tt>$excode</tt> special variable expands to nothing as there are no exception handlers specified in any of the unmanaged code typemaps (in fact the marshalling was done using the default unmanaged code typemaps.)
+  <li>The <tt>$imcall</tt> typemap expands to the appropriate intermediary method call in the <tt>examplePINVOKE</tt> class.
+  <li>The <tt>$csinput</tt> special variable in the 'csin' typemap always expands to <tt>value</tt> for properties. In this case <tt>$csclassname.getCPtr(temp$csinput)</tt> expands to <tt>CDate.getCPtr(tempvalue)</tt>.
+  <li>The 'csin' typemap has 'pre', 'post' and 'cshin' attributes, and these are all ignored in the property set. The code in these attributes must instead be replicated within the 'csvarin' typemap. The line creating the <tt>temp$csinput</tt> variable is such an example; it is identical to what is in the 'pre' attribute.
+</ul>
+
+
+<H3><a name="csharp_partial_classes"></a>17.5.5 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -1822,7 +1986,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="csharp_extending_proxy_class"></a>17.5.5 Extending proxy classes with additional C# code</H3>
+<H3><a name="csharp_extending_proxy_class"></a>17.5.6 Extending proxy classes with additional C# code</H3>
 
 
 <p>
