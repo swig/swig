@@ -1,6 +1,18 @@
 Version 1.3.32 (in progress)
 ============================
-19/07/2007: wsfulton
+09/19/2007: wsfulton
+            [C#] The $csinput special variable can be used in the csvarin typemap where it is always
+            expanded to 'value'.
+
+09/19/2007: wsfulton
+            [C#] Fix bug reported by Glenn A Watson and #1795260 where the cstype typemap used the 'ref'
+            keyword in the typemap body, it produced uncompilable C# properties (variable wrappers). 
+            The type for the property now correctly comes from the 'out' attribute in the cstype typemap.
+
+09/19/2007: wsfulton
+            [Java] Fix const std::wstring& typemaps
+
+09/19/2007: wsfulton
 	    [Java] Ensure the premature garbage collection prevention parameter (pgcpp) is generated
             where a parameter is passed by pointer reference, eg in the std::vector wrappers. The pgcpp
             is also generated now when user's custom typemaps use a proxy class in the jstype typemap
