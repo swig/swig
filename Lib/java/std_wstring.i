@@ -39,7 +39,7 @@ class wstring;
   if ($1_len) {
     $1.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      $1.append((wchar_t)$1_pstr[i]);
+      $1.push_back((wchar_t)$1_pstr[i]);
     }
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -56,7 +56,7 @@ class wstring;
   if ($1_len) {
     $result.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      $result.append((wchar_t)$1_pstr[i]);
+      $result.push_back((wchar_t)$1_pstr[i]);
     }
   }
   jenv->ReleaseStringChars($input, $1_pstr);
@@ -106,7 +106,7 @@ class wstring;
   if ($1_len) {
     $1_str.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      $1_str.append((wchar_t)$1_pstr[i]);
+      $1_str.push_back((wchar_t)$1_pstr[i]);
     }
   }
   $1 = &$1_str;
@@ -126,7 +126,7 @@ class wstring;
   if ($1_len) {
     $1_str.reserve($1_len);
     for (jsize i = 0; i < $1_len; ++i) {
-      $1_str.append((wchar_t)$1_pstr[i]);
+      $1_str.push_back((wchar_t)$1_pstr[i]);
     }
   }
   $result = &$1_str;
