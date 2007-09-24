@@ -319,16 +319,16 @@
  * common fragments 
  * ------------------------------------------------------------ */
 
+/* Default compiler options for gcc allow long_long but not LLONG_MAX. 
+ * Define SWIG_NO_LLONG_MAX if this added limits support is not wanted. */
 %fragment("<limits.h>","header") %{
 #include <limits.h>
-#ifndef LLONG_MIN
-# define LLONG_MIN	LONG_LONG_MIN
-#endif
-#ifndef LLONG_MAX
-# define LLONG_MAX	LONG_LONG_MAX
-#endif
-#ifndef ULLONG_MAX
-# define ULLONG_MAX	ULONG_LONG_MAX
+#if !defined(SWIG_NO_LLONG_MAX)
+# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
+#   define LLONG_MAX __LONG_LONG_MAX__
+#   define LLONG_MIN (-LLONG_MAX - 1LL)
+#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+# endif
 #endif
 %}
 

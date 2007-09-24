@@ -67,7 +67,8 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(unsigned long),"header") {
+%fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
   long v;
@@ -87,8 +88,11 @@ SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
       char *endptr;
       unsigned long v;
       if (*nptr == '-') return SWIG_OverflowError;
+      errno = 0;
       v = strtoul(nptr, &endptr,0);
-      if (errno == ERANGE) {
+      if (nptr[0] == '\0' || *endptr != '\0')
+	return SWIG_TypeError;
+      if (v == ULONG_MAX && errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
@@ -124,6 +128,7 @@ SWIG_From_dec(long long)(long long value)
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment="<limits.h>",
 	  fragment="<stdlib.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
@@ -137,8 +142,11 @@ SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
+      errno = 0;
       long long v = strtoll(nptr, &endptr,0);
-      if (errno == ERANGE) {
+      if (nptr[0] == '\0' || *endptr != '\0')
+	return SWIG_TypeError;
+      if ((v == LLONG_MAX || v == LLONG_MIN) && errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
@@ -174,6 +182,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long),
+	  fragment="<limits.h>",
 	  fragment="<stdlib.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(Tcl_Obj *obj, unsigned long long *val)
@@ -189,8 +198,11 @@ SWIG_AsVal_dec(unsigned long long)(Tcl_Obj *obj, unsigned long long *val)
       char *endptr;
       unsigned long long v;
       if (*nptr == '-') return SWIG_OverflowError;
+      errno = 0;
       v = strtoull(nptr, &endptr,0);
-      if (errno == ERANGE) {
+      if (nptr[0] == '\0' || *endptr != '\0')
+	return SWIG_TypeError;
+      if (v == ULLONG_MAX && errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
