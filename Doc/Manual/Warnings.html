@@ -12,8 +12,9 @@
 <ul>
 <li><a href="#Warnings_nn2">Introduction</a>
 <li><a href="#Warnings_suppression">Warning message suppression</a>
-<li><a href="#Warnings_nn4">Enabling additional warnings</a>
+<li><a href="#Warnings_nn4">Enabling extra warnings</a>
 <li><a href="#Warnings_nn5">Issuing a warning message</a>
+<li><a href="#Warnings_symbolic_symbols">Symbolic symbols</a>
 <li><a href="#Warnings_nn6">Commentary</a>
 <li><a href="#Warnings_nn7">Warnings as errors</a>
 <li><a href="#Warnings_nn8">Message output format</a>
@@ -148,6 +149,7 @@ your interface.  Ignore the warning messages at your own peril.
 
 <H2><a name="Warnings_nn4"></a>14.3 Enabling extra warnings</H2>
 
+
 <p>
 Some warning messages are disabled by default and are generated only
 to provide additional diagnostics.  These warnings can be turned on using the
@@ -265,7 +267,7 @@ Warning messages can be associated with typemaps using the
 In this case, the warning message will be printed whenever the typemap is actually used.
 </p>
 
-<H2><a name="Warnings_symbolic_symbols"></a>Symbolic symbols</H2>
+<H2><a name="Warnings_symbolic_symbols"></a>14.5 Symbolic symbols</H2>
 
 
 <p>
@@ -300,7 +302,8 @@ or
 </pre>
 </div>
 
-<H2><a name="Warnings_nn6"></a>14.5 Commentary</H2>
+<H2><a name="Warnings_nn6"></a>14.6 Commentary</H2>
+
 
 <p>
 The ability to suppress warning messages is really only provided for
@@ -316,7 +319,7 @@ no obvious recovery.  There is no mechanism for suppressing error
 messages.
 </p>
 
-<H2><a name="Warnings_nn7"></a>14.6 Warnings as errors</H2>
+<H2><a name="Warnings_nn7"></a>14.7 Warnings as errors</H2>
 
 
 <p>
@@ -325,7 +328,7 @@ option. This will cause SWIG to exit with a non successful exit code if a
 warning is encountered.
 </p>
 
-<H2><a name="Warnings_nn8"></a>14.7 Message output format</H2>
+<H2><a name="Warnings_nn8"></a>14.8 Message output format</H2>
 
 
 <p>
@@ -344,9 +347,10 @@ $ swig -python -Fmicrosoft example.i
 example.i(4): Syntax error in input.
 </pre></div>
 
-<H2><a name="Warnings_nn9"></a>14.8 Warning number reference</H2>
+<H2><a name="Warnings_nn9"></a>14.9 Warning number reference</H2>
 
-<H3><a name="Warnings_nn10"></a>14.8.1 Deprecated features (100-199)</H3>
+
+<H3><a name="Warnings_nn10"></a>14.9.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -373,7 +377,7 @@ example.i(4): Syntax error in input.
 <li>121. Deprecated <tt>%name</tt> directive.
 </ul>
 
-<H3><a name="Warnings_nn11"></a>14.8.2 Preprocessor (200-299)</H3>
+<H3><a name="Warnings_nn11"></a>14.9.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -381,7 +385,7 @@ example.i(4): Syntax error in input.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
-<H3><a name="Warnings_nn12"></a>14.8.3 C/C++ Parser (300-399)</H3>
+<H3><a name="Warnings_nn12"></a>14.9.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -455,7 +459,7 @@ example.i(4): Syntax error in input.
 <li>395. operator delete[] ignored.
 </ul>
 
-<H3><a name="Warnings_nn13"></a>14.8.4 Types and typemaps (400-499) </H3>
+<H3><a name="Warnings_nn13"></a>14.9.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -480,7 +484,7 @@ example.i(4): Syntax error in input.
 <li>471. Unable to use return type <em>type</em> in director method
 </ul>
 
-<H3><a name="Warnings_nn14"></a>14.8.5 Code generation (500-599)</H3>
+<H3><a name="Warnings_nn14"></a>14.9.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -505,7 +509,7 @@ example.i(4): Syntax error in input.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>
 </ul>
 
-<H3><a name="Warnings_nn15"></a>14.8.6 Language module specific (800-899) </H3>
+<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (800-899) </H3>
 
 
 <ul>
@@ -554,14 +558,14 @@ example.i(4): Syntax error in input.
 <li>871. Unrecognized pragma <em>pragma</em>.   (Php).
 </ul>
 
-<H3><a name="Warnings_nn16"></a>14.8.7 User defined (900-999)</H3>
+<H3><a name="Warnings_nn16"></a>14.9.7 User defined (900-999)</H3>
 
 
 <p>
 These numbers can be used by your own application.
 </p>
 
-<H2><a name="Warnings_nn17"></a>14.9 History</H2>
+<H2><a name="Warnings_nn17"></a>14.10 History</H2>
 
 
 <p>
