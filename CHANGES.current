@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+09/25/2007: wsfulton
+            [C#, Java] throws typemaps for std::wstring using C# patch #1799064 from David Piepgrass
+
+09/24/2007: wsfulton
+            [Tcl] Apply #1771313 to fix bug #1650229 - fixes long long and unsigned long long 
+            handling.
+
 09/20/2007: olly
 	    [Java] Eliminate some unnecessary uses of a temporary buffer
 	    allocated using new[].  SF#1796609.
