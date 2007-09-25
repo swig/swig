@@ -4994,11 +4994,14 @@ The Java module uses a few additional special variables:
 
 <p>
 <b><tt>$javaclassname</tt></b><br>
-<tt>$javaclassname</tt> is similar to <tt>$1_type</tt>. It expands to the class name for use in Java. 
-When wrapping a union, struct or class, it expands to the Java proxy class name.
-Otherwise it expands to the type wrapper class name.
-For example, <tt>$javaclassname</tt> is replaced by <tt>Foo</tt> when the wrapping a <tt>struct Foo</tt> or <tt>struct Foo *</tt> and 
-<tt>SWIGTYPE_p_unsigned_short</tt> is used for <tt>unsigned short *</tt>.
+This special variable works like the other <a href="Typemaps.html#Typemaps_special_variables">special variables</a>
+and <tt>$javaclassname</tt> is similar to <tt>$1_type</tt>. It expands to the class name for use in Java given a pointer. 
+SWIG wraps unions, structs and classes using pointers and in this case it expands to the Java proxy class name.
+For example, <tt>$javaclassname</tt> is replaced by the proxy classname <tt>Foo</tt> when wrapping a <tt>Foo *</tt> and 
+<tt>$&amp;javaclassname</tt> expands to the proxy classname when wrapping the C/C++ type <tt>Foo</tt> and <tt>$*javaclassname</tt>
+expands to the proxy classname when wrapping <tt>Foo *&amp;</tt>.
+If the type does not have an associated proxy class, it expands to the type wrapper class name, for example,
+<tt>SWIGTYPE_p_unsigned_short</tt> is generated when wrapping <tt>unsigned short *</tt>.
 </p>
 
 <p>
