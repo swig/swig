@@ -279,7 +279,7 @@ tar -zxf bison-2.0-MSYS.tar.gz
   </li>
 
   <li>
-  To get the latest SWIG SVN, type in the following:
+  To get the latest SWIG SVN (version from Subversion source control), type in the following:
 <div class="shell"><pre>
 mkdir /usr/src
 cd /usr/src
@@ -296,6 +296,7 @@ the autotools will fail miserably on those.
   You are now ready to build SWIG. Execute the following commands to build swig.exe:
 <div class="shell"><pre>
 cd /usr/src/swig
+dos2unix configure.in
 ./autogen.sh
 ./configure
 make
