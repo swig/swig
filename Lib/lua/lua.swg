@@ -45,10 +45,9 @@
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}
 
-
-// TODO: not complete
-//%typemap(consttab) SWIGTYPE (CLASS::*)
-//       { SWIG_LUA_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+// member function pointers
+%typemap(consttab) SWIGTYPE (CLASS::*)
+       { SWIG_LUA_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 
 /* -----------------------------------------------------------------------------
@@ -80,9 +79,39 @@
 %ignore *::operator>;   	// ditto less than vs greater than
 %rename(__le)			*::operator<=;	
 %ignore *::operator>=;  // ditto less than vs greater than
+%ignore *::operator!;  // does not support not
 
 %rename(__call)			*::operator();	// the fn call operator
 
+// lua does not support overloading of:
+// 	logical/bitwise operators
+// 	assign operator
+// 	+=,-=,*=, etc
+// therefore ignoring them for now
+// it also doesn't support non class operators
+// eg friends or XX operator+(XX,XX)
+// also ignoring
+// note: some of these might be better to rename, but not doing that for now
+%ignore *::operator&&;	%ignore operator&&;
+%ignore *::operator||;	%ignore operator||;
+%ignore *::operator+=;
+%ignore *::operator-=;
+%ignore *::operator*=;
+%ignore *::operator/=;
+%ignore *::operator%=;
+%ignore *::operator++;	%ignore *::operator--;
+
+%ignore *::operator=;	// note: this might be better to rename to assign() or similar
+
+%ignore operator+;
+%ignore operator-;
+%ignore operator*;
+%ignore operator/;
+%ignore operator%;
+%ignore operator[];
+%ignore operator>;	%ignore operator>=;	
+%ignore operator<;	%ignore operator<=;
+%ignore operator==;	%ignore operator!=;
 
 
 // renaming the python operators to be compatible with lua
@@ -132,8 +161,7 @@ use %include <std_except.i> instead
 				long long,unsigned long long,
 				char, unsigned char, signed char,
 				enum SWIGTYPE
-%{lua_pushfstring(L,"numeric exception:%f",(double)$1);
-SWIG_fail; %}
+%{lua_pushfstring(L,"numeric exception:%f",(double)$1);SWIG_fail; %}
 
 // strings are just sent as errors
 %typemap(throws) char*, const char*
@@ -148,6 +176,7 @@ There are a few options:
 	(see exception_partial_info in the test suite for a case where you cannot)
 - convert to a string & throw that
 	its not so useful, but it works (this is more lua like).
+The third option (though not nice) is used
 For a more useful solution: see std_except for more details
 */
 %typemap(throws) SWIGTYPE

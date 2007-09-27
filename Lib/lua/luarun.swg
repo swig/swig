@@ -112,6 +112,10 @@ typedef struct {
   goto fail;}
 #define SWIG_fail_ptr(func_name,argnum,type) \
   SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
+#define SWIG_check_num_args(func_name,a,b) \
+  if (lua_gettop(L)<a || lua_gettop(L)>b) \
+  {lua_pushfstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
+  goto fail;}
 
 
 #define SWIG_Lua_get_table(L,n) \
@@ -724,8 +728,9 @@ SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
       lua_rawset(L,-3);
       break;
     case SWIG_LUA_BINARY:
-    /* TODO?? */
-/*      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype)); */
+      lua_pushstring(L,constants[i].name);
+      SWIG_NewMemberObj(L,constants[i].pvalue,constants[i].lvalue,*(constants[i]).ptype);
+      lua_rawset(L,-3);
       break;
     default:
       break;

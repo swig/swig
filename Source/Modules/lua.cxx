@@ -411,6 +411,8 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *checkfn = NULL;
 //    String *numoutputs=NULL;
     char source[64];
+    //Printf(argument_check, "//args must be %d..%d\n",num_required,num_arguments);
+    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required,num_arguments);
     for (i = 0, p = l; i < num_arguments; i++) {
 
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {

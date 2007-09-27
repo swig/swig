@@ -1,6 +1,15 @@
 Version 1.3.32 (in progress)
 ============================
 
+09/27/2007: mgossage
+	    [lua] added more verbose error messages for incorrect typechecks.
+	    Added a routine which checks the exact number of parameters passed to a function
+	    (breaks operator_overloading for unary minus operator, currently disabled).
+	    Reorganised the luatypemaps.swg to tidy it up.
+	    Added a lot of %ignores on the operators not supported by lua.
+	    Added support for constant member function pointers & runtest for member_pointer.i
+	    Added first version of wchar.i
+
 09/25/2007: wsfulton
             [C#, Java] throws typemaps for std::wstring using C# patch #1799064 from David Piepgrass
 

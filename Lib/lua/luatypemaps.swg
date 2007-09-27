@@ -32,8 +32,26 @@
              float,double
 %{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
 
+// we must also provide typemaps for privitives by const reference:
+// given a function:
+//	int intbyref(const int& i);
+// SWIG assumes that this code will need a pointer to int to be passed in
+// (this might be ok for objects by const ref, but not for numeric primitives)
+// therefore we add a set of typemaps to fix this (for both in & out)
+%typemap(in,checkfn="lua_isnumber") const int&($basetype temp)
+%{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+
+%typemap(out) const int&
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+
+// for the other numbers we can just use an apply statement to cover them
+%apply const int & {const short&,const long&,
+             const unsigned int&,const unsigned short&,const unsigned long&,
+             const signed char&,const unsigned char&,
+             const float&,const double&};
+
 /* enums have to be handled slightly differently
-   VC++ .NET will not allow a cast from double to enum directly.
+	VC++ .net will not allow a cast from lua_Number(double) to enum directly.
 */
 %typemap(in,checkfn="lua_isnumber") enum SWIGTYPE
 %{$1 = ($type)(int)lua_tonumber(L, $input);%}
@@ -41,15 +59,20 @@
 %typemap(out) enum SWIGTYPE
 %{  lua_pushnumber(L, (lua_Number)(int)($1)); SWIG_arg++;%}
 
-// size_t (which is just a unsigned long
-%apply unsigned long { size_t };
+// and const refs
+%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
+%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(out) const enum SWIGTYPE &
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+
 
 // boolean (which is a special type in lua)
+// note: lua_toboolean() returns 1 or 0
 // note: 1 & 0 are not booleans in lua, only true & false
 %typemap(in,checkfn="lua_isboolean") bool
-%{$1 = (bool)lua_toboolean(L, $input);%}
+%{$1 = (lua_toboolean(L, $input)!=0);%}
 
-%typemap(out) bool, const bool&
+%typemap(out) bool
 %{  lua_pushboolean(L,(int)$1); SWIG_arg++;%}
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
@@ -76,14 +99,14 @@
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
 %typemap(in,checkfn="lua_isstring") char
-%{$1 = ((char*)lua_tostring(L, $input))[0];%}
+%{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
 %{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
 
 // by const ref
 %typemap(in,checkfn="lua_isstring") const char& (char temp)
-%{temp = ((char*)lua_tostring(L, $input))[0]; $1=&temp;%}
+%{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
 %{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
@@ -134,6 +157,14 @@
    $1 = *argp;
 %}
 
+// Also needed for object ptrs by const ref
+// eg const A* ref_pointer(A* const& a);
+// found in mixed_types.i
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE* const &($*ltype temp)
+%{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
+$1=&temp;%}
+
+
 // Primitive types--return by value
 // must make a new object, copy the data & return the new object
 // Note: the brackets are {...} and not %{..%}, because we want them to be included in the wrapper
@@ -156,9 +187,10 @@
 #endif
 
 // member function pointer
-// a member fn ptr is not 4 bytes like a normal pointer, but 8 bytes 
+// a member fn ptr is not 4 bytes like a normal pointer, but 8 bytes (at least on mingw)
 // so the standard wrappering cannot be done
 // nor can you cast a member function pointer to a void* (obviously)
+// therefore a special wrappering functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 #ifdef __cplusplus
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
@@ -202,6 +234,8 @@ void fn(int a, float b, lua_State* s) is wrappable as
 %typemap(in, numinputs=0) lua_State* 
 %{$1 = L;%}
 
+
+
 /* -----------------------------------------------------------------------------
  *                          typecheck rules
  * ----------------------------------------------------------------------------- */
@@ -220,10 +254,10 @@ parmeters match which function
 	 long long, unsigned long long, signed long long,
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const signed char&, const unsigned char&,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,	float, double,
-	 const float &, const double&,
-	 size_t,const size_t&
+	 enum SWIGTYPE,	const enum SWIGTYPE&,
+	 float, double, const float &, const double&
 {
   $1 = lua_isnumber(L,$input);
 }
@@ -235,11 +269,11 @@ parmeters match which function
 }
 
 // special check for a char (string of length 1)
-%typecheck(SWIG_TYPECHECK_CHAR) char {
+%typecheck(SWIG_TYPECHECK_CHAR) char, const char& {
   $1 = lua_isstring(L,$input) && (lua_strlen(L,$input)==1);
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char *, char[] {
   $1 = lua_isstring(L,$input);
 }
 
@@ -279,66 +313,9 @@ parmeters match which function
   }
 }
 
-
-/* -----------------------------------------------------------------------------
- *                          Const reference issues
- * ----------------------------------------------------------------------------- */
-// additional typemaps for privitives by const reference:
-// given a function:
-//	int intbyref(const int& i);
-// SWIG assumes that this code will need a pointer to int to be passed in
-// (this might be ok for passing objects by const ref, but not a primitive)
-// therefore we add a set of blanket typemaps to fix this
-// also a set for fns which return const X&
-
-// %typemap(in,checkfn="lua_isnumber") const int &(int temp)
-// %{ temp = (int)lua_tonumber(L,$input); $1=&temp;%}
-// %typemap(out) const int&
-// %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
-// %typecheck(in,checkfn="lua_isnumber") const int &
-
-// now the code
-%define SWIG_NUMBER_BY_CONST_REF(TYPE)
-%typemap(in,checkfn="lua_isnumber") const TYPE &($basetype temp)
-%{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
-%typemap(out) const TYPE&
-%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
-%enddef
-
-SWIG_NUMBER_BY_CONST_REF(int);
-SWIG_NUMBER_BY_CONST_REF(unsigned int);
-SWIG_NUMBER_BY_CONST_REF(signed int);
-SWIG_NUMBER_BY_CONST_REF(short);
-SWIG_NUMBER_BY_CONST_REF(unsigned short);
-SWIG_NUMBER_BY_CONST_REF(signed short);
-SWIG_NUMBER_BY_CONST_REF(long);
-SWIG_NUMBER_BY_CONST_REF(unsigned long);
-SWIG_NUMBER_BY_CONST_REF(signed long);
-//SWIG_NUMBER_BY_CONST_REF(char);	// char's are small strings not numbers
-SWIG_NUMBER_BY_CONST_REF(unsigned char);
-SWIG_NUMBER_BY_CONST_REF(signed char);
-SWIG_NUMBER_BY_CONST_REF(float);
-SWIG_NUMBER_BY_CONST_REF(double);
-SWIG_NUMBER_BY_CONST_REF(long long);
-SWIG_NUMBER_BY_CONST_REF(signed long long);
-SWIG_NUMBER_BY_CONST_REF(unsigned long long);
-
-%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
-%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
-%typemap(out) const enum SWIGTYPE &
-%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
-
-%apply const unsigned long & { const size_t & };	// size_t is the same as unsigned long
-
-
 // Also needed for object ptrs by const ref
 // eg const A* ref_pointer(A* const& a);
 // found in mixed_types.i
-
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE* const &($*ltype temp)
-%{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
-$1=&temp;%}
-// and the typecheck code
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE* const &
 {
   void *ptr;
@@ -348,6 +325,14 @@ $1=&temp;%}
     $1 = 1;
   }
 }
+
+/* -----------------------------------------------------------------------------
+ *                          Others
+ * ----------------------------------------------------------------------------- */
+
+// size_t (which is just a unsigned long)
+%apply unsigned long { size_t };
+%apply const unsigned long & { const size_t & };
 
 
 /* -----------------------------------------------------------------------------
