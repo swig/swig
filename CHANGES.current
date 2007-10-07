@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/07/2007: wsfulton
+            [C#, Java] Experimental shared_ptr typemaps added
+
 09/27/2007: mgossage
 	    [lua] added more verbose error messages for incorrect typechecks.
 	    Added a routine which checks the exact number of parameters passed to a function
