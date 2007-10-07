@@ -221,7 +221,7 @@ then
 fi
 AC_MSG_RESULT($LINKFORSHARED)
 
-# This variation is needed on OS-X because there is no (apparent) consistency in shared libary naming.
+# This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
 # Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
 
 AC_SUBST(PYTHON_SO)
