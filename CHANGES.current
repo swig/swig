@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/08/2007: olly
+	    Fix Makefile.in to read check.list files correctly in a VPATH
+	    build.
+
 10/07/2007: wsfulton
             [C#, Java] Experimental shared_ptr typemaps added
 

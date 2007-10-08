@@ -112,20 +112,20 @@ check-examples:					\
 	check-cffi-examples			\
 	check-r-examples
 
-tcl_examples       :=$(shell sed '/^\#/d' Examples/tcl/check.list)
-perl5_examples     :=$(shell sed '/^\#/d' Examples/perl5/check.list)
-python_examples    :=$(shell sed '/^\#/d' Examples/python/check.list)
-java_examples      :=$(shell sed '/^\#/d' Examples/java/check.list)
-guile_examples     :=$(shell sed '/^\#/d' Examples/guile/check.list)
-mzscheme_examples  :=$(shell sed '/^\#/d' Examples/mzscheme/check.list)
-ruby_examples      :=$(shell sed '/^\#/d' Examples/ruby/check.list)
-ocaml_examples     :=$(shell sed '/^\#/d' Examples/ocaml/check.list)
-php4_examples      :=$(shell sed '/^\#/d' Examples/php4/check.list)
-pike_examples      :=$(shell sed '/^\#/d' Examples/pike/check.list)
-chicken_examples   :=$(shell sed '/^\#/d' Examples/chicken/check.list)
-csharp_examples    :=$(shell sed '/^\#/d' Examples/csharp/check.list)
-modula3_examples   :=$(shell sed '/^\#/d' Examples/modula3/check.list)
-lua_examples       :=$(shell sed '/^\#/d' Examples/lua/check.list)
+tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
+perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
+python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
+java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
+guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
+mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
+ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
+ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
+php4_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php4/check.list)
+pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
+chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
+csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
+modula3_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/modula3/check.list)
+lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 allegrocl_examples :=
 clisp_examples     :=
 uffi_examples      :=
