@@ -651,11 +651,11 @@ static String *get_filename(String *str, int *sysfile) {
   }
 #if defined(_WIN32) || defined(MACSWIG)
   /* accept Unix path separator on non-Unix systems */
-  Replaceall(fn, "/", SWIG_FILE_DELIMETER);
+  Replaceall(fn, "/", SWIG_FILE_DELIMITER);
 #endif
 #if defined(__CYGWIN__)
   /* accept Windows path separator in addition to Unix path separator */
-  Replaceall(fn, "\\", SWIG_FILE_DELIMETER);
+  Replaceall(fn, "\\", SWIG_FILE_DELIMITER);
 #endif
   Seek(fn, 0, SEEK_SET);
   return fn;
@@ -1610,7 +1610,7 @@ String *Preprocessor_parse(String *s) {
 	    if (sysfile || !strlen(dirname))
 	      dirname = 0;
 	    if (dirname) {
-	      dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimeter */
+	      dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
 	      Swig_push_directory(dirname);
 	    }
 	    s2 = Preprocessor_parse(s1);
@@ -1746,7 +1746,7 @@ String *Preprocessor_parse(String *s) {
 	      if (sysfile || !strlen(dirname))
 		dirname = 0;
 	      if (dirname) {
-		dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimeter */
+		dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
 		Swig_push_directory(dirname);
 	      }
 	      s2 = Preprocessor_parse(s1);

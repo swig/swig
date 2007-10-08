@@ -123,7 +123,7 @@ SwigType *NewSwigType(const String_or_char *initial) {
  * static element_size()
  *
  * This utility function finds the size of a single type element in a type string.
- * Type elements are always delimeted by periods, but may be nested with 
+ * Type elements are always delimited by periods, but may be nested with
  * parentheses.  A nested element is always handled as a single item.
  *
  * Returns the integer size of the element (which can be used to extract a 

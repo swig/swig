@@ -75,7 +75,7 @@ public:
   }
 
   void PrintIncludeArg() {
-    Printv(stdout, SWIG_LIB, SWIG_FILE_DELIMETER, ocaml_path, "\n", NIL);
+    Printv(stdout, SWIG_LIB, SWIG_FILE_DELIMITER, ocaml_path, "\n", NIL);
   }
 
   /* ------------------------------------------------------------

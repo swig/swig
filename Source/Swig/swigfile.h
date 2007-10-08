@@ -28,10 +28,12 @@ extern char   *Swig_file_basename(const String_or_char *filename);
 extern char   *Swig_file_filename(const String_or_char *filename);
 extern char   *Swig_file_dirname(const String_or_char *filename);
 
+/* Delimiter used in accessing files and directories */
+
 #if defined(MACSWIG)
-#  define SWIG_FILE_DELIMETER  ":"
+#  define SWIG_FILE_DELIMITER ":"
 #elif defined(_WIN32)
-#  define  SWIG_FILE_DELIMETER "\\"
+#  define SWIG_FILE_DELIMITER "\\"
 #else
-#  define  SWIG_FILE_DELIMETER "/"
+#  define SWIG_FILE_DELIMITER "/"
 #endif

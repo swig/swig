@@ -13,8 +13,6 @@ char cvsroot_include_c[] = "$Id$";
 
 #include "swig.h"
 
-/* Delimeter used in accessing files and directories */
-
 static List   *directories = 0;	        /* List of include directories */
 static String *lastpath = 0;	        /* Last file that was included */
 static List   *pdirectories = 0;        /* List of pushed directories  */
@@ -110,9 +108,9 @@ static List *Swig_search_path_any(int syspath) {
   filename = NewStringEmpty();
   assert(filename);
 #ifdef MACSWIG
-  Printf(filename, "%s", SWIG_FILE_DELIMETER);
+  Printf(filename, "%s", SWIG_FILE_DELIMITER);
 #else
-  Printf(filename, ".%s", SWIG_FILE_DELIMETER);
+  Printf(filename, ".%s", SWIG_FILE_DELIMITER);
 #endif
   Append(slist, filename);
   Delete(filename);
@@ -122,7 +120,7 @@ static List *Swig_search_path_any(int syspath) {
     ilen = Len(pdirectories);
     for (i = 0; i < ilen; i++) {
       filename = NewString(Getitem(pdirectories,i));
-      Append(filename,SWIG_FILE_DELIMETER);
+      Append(filename,SWIG_FILE_DELIMITER);
       Append(slist,filename);
       Delete(filename);
     }
@@ -131,7 +129,7 @@ static List *Swig_search_path_any(int syspath) {
   ilen = Len(directories);
   for (i = 0; i < ilen; i++) {
     filename = NewString(Getitem(directories,i));
-    Append(filename,SWIG_FILE_DELIMETER);
+    Append(filename,SWIG_FILE_DELIMITER);
     if (syspath) {
       /* If doing a system include, put the system directories first */
       Insert(slist,i,filename);
@@ -350,7 +348,7 @@ char *Swig_file_basename(const String_or_char *filename) {
  * ----------------------------------------------------------------------------- */
 char *Swig_file_filename(const String_or_char *filename) {
   static char tmp[1024];
-  const char *delim = SWIG_FILE_DELIMETER;
+  const char *delim = SWIG_FILE_DELIMITER;
   char *c;
 
   strcpy(tmp, Char(filename));
@@ -367,7 +365,7 @@ char *Swig_file_filename(const String_or_char *filename) {
  * ----------------------------------------------------------------------------- */
 char *Swig_file_dirname(const String_or_char *filename) {
   static char tmp[1024];
-  const char *delim = SWIG_FILE_DELIMETER;
+  const char *delim = SWIG_FILE_DELIMITER;
   char *c;
   strcpy(tmp, Char(filename));
   if (!strstr(tmp, delim)) {

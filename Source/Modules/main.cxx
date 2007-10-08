@@ -269,8 +269,8 @@ static void set_outdir(const String *c_wrapper_file_dir) {
   // Add file delimiter if not present in output directory name
   if (outdir && Len(outdir) != 0) {
     const char *outd = Char(outdir);
-    if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMETER), SWIG_FILE_DELIMETER) != 0)
-      Printv(outdir, SWIG_FILE_DELIMETER, NIL);
+    if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
+      Printv(outdir, SWIG_FILE_DELIMITER, NIL);
   }
   // Use the C wrapper file's directory if the output directory has not been set by user
   if (!outdir)
@@ -878,19 +878,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Add language dependent directory to the search path
   {
     String *rl = NewString("");
-    Printf(rl, ".%sswig_lib%s%s", SWIG_FILE_DELIMETER, SWIG_FILE_DELIMETER, LangSubDir);
+    Printf(rl, ".%sswig_lib%s%s", SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER, LangSubDir);
     Swig_add_directory(rl);
     if (SwigLibWin) {
       rl = NewString("");
-      Printf(rl, "%s%s%s", SwigLibWin, SWIG_FILE_DELIMETER, LangSubDir);
+      Printf(rl, "%s%s%s", SwigLibWin, SWIG_FILE_DELIMITER, LangSubDir);
       Swig_add_directory(rl);
     }
     rl = NewString("");
-    Printf(rl, "%s%s%s", SwigLib, SWIG_FILE_DELIMETER, LangSubDir);
+    Printf(rl, "%s%s%s", SwigLib, SWIG_FILE_DELIMITER, LangSubDir);
     Swig_add_directory(rl);
   }
 
-  Swig_add_directory((String *) "." SWIG_FILE_DELIMETER "swig_lib");
+  Swig_add_directory((String *) "." SWIG_FILE_DELIMITER "swig_lib");
   if (SwigLibWin)
     Swig_add_directory((String *) SwigLibWin);
   Swig_add_directory((String *) SwigLib);
