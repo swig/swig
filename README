@@ -371,7 +371,7 @@ examples which build the runtime library.
 
 Notes:
 
-(1) If you checked the code out via CVS, you will have to run ./autogen.sh
+(1) If you checked the code out via SVN, you will have to run ./autogen.sh
     before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
 

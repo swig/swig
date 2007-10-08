@@ -1,4 +1,4 @@
-# You can build the package from CVS using something like:
+# You can build the package from SVN using something like:
 # tar -czf swig-@PACKAGE_VERSION@.tar.gz swig-@PACKAGE_VERSION@ && rpmbuild -tb swig-@PACKAGE_VERSION@.tar.gz
 # @configure_input@
 
@@ -36,7 +36,7 @@ its parse tree in the form of XML and Lisp s-expressions.
 %setup -q -n %{name}-%{version}
 
 %build
-# so we can build package from cvs source too
+# so we can build package from SVN source too
 [ ! -r configure ] && ./autogen.sh
 %configure
 make
@@ -66,5 +66,5 @@ rm -rf ${RPM_BUILD_ROOT}
 - Added runtime package of runtime libs
 * Mon Sep 10 2001 Tony Seward <anthony.seward@ieee.org>
 - Merge Red Hat's and Dustin Mitchell's .spec files.
-- Install all of the examples in the documantation directory.
+- Install all of the examples in the documentation directory.
 - Auto create the list of installed files.
