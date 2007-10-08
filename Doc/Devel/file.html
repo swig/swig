@@ -36,7 +36,7 @@ system search path.
 <p>
 <b><tt>void Swig_push_directory(const String_or_char *dirname)</tt></b>
 <blockquote>
-Pushs a temporary directory onto the search path.  This directory is searched before 
+Pushes a temporary directory onto the search path.  This directory is searched before 
 directories added with <tt>Swig_add_directory()</tt> except when including a system
 file explicitly (either using #include &lt;file&gt; or calling <tt>Swig_include_sys()</tt>).
 This function is normally used by the preprocessor to add temporary directories when
@@ -111,7 +111,7 @@ of <tt>#include &lt;file&gt;</tt> in the preprocessor.
 
 <blockquote>
 Searches for a file <tt>name</tt> and dumps its contents to <tt>outfile</tt> if found.
-Returns 0 on sucesss, -1 if the file couldn't be found.
+Returns 0 on success, -1 if the file couldn't be found.
 </blockquote>
 
 <h2>Query functions</h2>
@@ -172,15 +172,10 @@ returns "/bar/spam/".   This function is aware of local naming conventions on th
 </blockquote>
 
 <p>
-<b><tt>SWIG_FILE_DELIMETER</tt></b>
+<b><tt>SWIG_FILE_DELIMITER</tt></b>
 <blockquote>
-This macro contains the file delimeter string for the local machine.  On unix it is "/", on Windows it is "\\".
+This macro contains the file delimiter string for the local machine.  On Unix it is "/", on Windows it is "\\".
 </blockquote>
 
 </body>
 </html>
-
-
-
-
-
