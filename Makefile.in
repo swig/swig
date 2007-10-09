@@ -134,11 +134,15 @@ r_examples         :=
 
 # all examples
 check-%-examples :
+	@if test -z "$(skip-$*)"; then				\
+	  echo $* unknown;					\
+	  exit 1;						\
+	fi
 	@if $(skip-$*); then					\
 	  echo skipping $* $(ACTION);				\
 	else							\
 	  $(MAKE) -k -s $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
-	fi;
+	fi
 
 # individual example
 %.actionexample:
@@ -175,6 +179,10 @@ check-gifplot:					\
 #	check-modula3-gifplot
 
 check-%-gifplot: gifplot-library
+	@if test -z "$(skip-$*)"; then				\
+	  echo $* unknown;					\
+	  exit 1;						\
+	fi
 	@passed=true;						\
 	up=`$(srcdir)/Tools/capitalize $*`;			\
 	dir="Examples/GIFPlot/$$up";				\
@@ -217,6 +225,10 @@ check-test-suite:				\
 	check-r-test-suite
 
 check-%-test-suite:
+	@if test -z "$(skip-$*)"; then					\
+	  echo $* unknown;						\
+	  exit 1;							\
+	fi
 	@passed=true;							\
 	dir="Examples/test-suite/$*";					\
 	if $(skip-$*); then						\
@@ -491,6 +503,10 @@ configfiles:
 	chmod a+x Tools/config/config.guess
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.sub -O Tools/config/config.sub
 	chmod a+x Tools/config/config.sub
+
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: $(srcdir)/Makefile.in config.status
+	$(SHELL) ./config.status
 
 # This target is usually called from Source/Makefile when configure.in has changed
 am--refresh:
