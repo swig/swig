@@ -25,7 +25,7 @@
 // plain pointer
 %typemap(in, canthrow=1) CONST TYPE * (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input;
-  $1 = smartarg ? smartarg->get() : 0; %}
+  $1 = (TYPE *)(smartarg ? smartarg->get() : 0); %}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE * %{
   $result = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
 %}
@@ -141,13 +141,24 @@
     return ret;
   }
 
+%typemap(csvarout, excode=SWIGEXCODE2) CONST TYPE & %{
+    get {
+      $csclassname ret = new $csclassname($imcall, true);$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) CONST TYPE * %{
+    get {
+      IntPtr cPtr = $imcall;
+      $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, true);$excode
+      return ret;
+    } %}
+
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
     get {
       IntPtr cPtr = $imcall;
       PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
       return ret;
     } %}
-
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
     get {
       IntPtr cPtr = $imcall;
