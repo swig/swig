@@ -25,7 +25,7 @@
 // plain pointer
 %typemap(in) CONST TYPE * (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input;
-  $1 = smartarg ? smartarg->get() : 0; %}
+  $1 = (TYPE *)(smartarg ? smartarg->get() : 0); %}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE * %{
   *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
 %}
