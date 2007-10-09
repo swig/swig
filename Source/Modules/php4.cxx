@@ -1208,42 +1208,24 @@ public:
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Printf(f->code, "%s\n", tm);
-      // are we returning a wrapable object?
-      // I don't know if this test is complete, I nicked it
-      if (is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
-	Printf(f->code, "/* Wrap this return value */\n");
+      // Are we returning a wrapable object?
+      if (shadow && php_version == 4 && is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
+	// Make object.
+	Printf(f->code, "{\n/* Wrap this return value */\n");
+	Printf(f->code, "zval *_cPtr;\n");
+	Printf(f->code, "ALLOC_ZVAL(_cPtr);\n");
+	Printf(f->code, "*_cPtr = *return_value;\n");
+	Printf(f->code, "INIT_ZVAL(*return_value);\n");
 	if (native_constructor == NATIVE_CONSTRUCTOR) {
-	  Printf(f->code, "if (this_ptr) {\n");
-	  Printf(f->code, "/* NATIVE Constructor, use this_ptr */\n");
-	  Printf(f->code, "zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n");
-	  Printf(f->code, "*_cPtr = *return_value;\n");
-	  Printf(f->code, "INIT_ZVAL(*return_value);\n");
 	  Printf(f->code, "add_property_zval(this_ptr,\"" SWIG_PTR "\",_cPtr);\n");
-	  Printf(f->code, "} else if (! this_ptr) ");
+	} else {
+	  String *shadowrettype = SwigToPhpType(d, iname, true);
+	  Printf(f->code, "object_init_ex(return_value,ptr_ce_swig_%s);\n", shadowrettype);
+	  Delete(shadowrettype);
+	  Printf(f->code, "add_property_zval(return_value,\"" SWIG_PTR "\",_cPtr);\n");
 	}
-	{			// THIS CODE only really needs writing out if the object to be returned
-	  // Is being shadow-wrap-thingied
-	  Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
-	  // Make object
-	  Printf(f->code, "zval *obj, *_cPtr;\n");
-	  Printf(f->code, "MAKE_STD_ZVAL(obj);\n");
-	  Printf(f->code, "MAKE_STD_ZVAL(_cPtr);\n");
-	  Printf(f->code, "*_cPtr = *return_value;\n");
-	  Printf(f->code, "INIT_ZVAL(*return_value);\n");
-
-	  if (shadow && php_version == 4) {
-	    String *shadowrettype = SwigToPhpType(d, iname, true);
-
-	    Printf(f->code, "object_init_ex(obj,ptr_ce_swig_%s);\n", shadowrettype);
-	    Delete(shadowrettype);
-	    Printf(f->code, "add_property_zval(obj,\"" SWIG_PTR "\",_cPtr);\n");
-	    Printf(f->code, "*return_value=*obj;\n");
-	  } else {
-	    Printf(f->code, "*return_value=*_cPtr;\n");
-	  }
-	  Printf(f->code, "}\n");
-	}
-      }				// end of if-shadow lark
+	Printf(f->code, "}\n");
+      }
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
