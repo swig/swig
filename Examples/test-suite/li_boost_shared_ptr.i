@@ -1,24 +1,45 @@
+// This tests shared_ptr is working okay. It also checks that there are no memory leaks in the
+// class that shared_ptr is pointing via a counting mechanism in the constructors and destructor of Klass.
+// In order to test that there are no leaks of the shared_ptr class itself (as it is created on the heap)
+// the runtime tests can be run for a long time to monitor memory leaks using memory monitor tools 
+// like 'top'. There is a wrapper for shared_ptr in shared_ptr_wrapper.h which enables one to
+// count the instances of shared_ptr. Uncomment the SHARED_PTR_WRAPPER macro to turn this on.
+
 %module li_boost_shared_ptr
 
-%{
+%inline %{
 #include "boost/shared_ptr.hpp"
+#include "swig_examples_lock.h"
+
+// Uncomment macro below to turn on shared_ptr memory leaks as described above
+//#define SHARED_PTR_WRAPPER
+
+#ifdef SHARED_PTR_WRAPPER
+# include "shared_ptr_wrapper.h"
+#endif
+%}
+
+%{
+#ifndef SHARED_PTR_WRAPPER
+# define SwigBoost boost
+#endif
 %}
 
 %include "std_string.i"
+#ifndef SHARED_PTR_WRAPPER
+# define SWIG_SHARED_PTR_NAMESPACE SwigBoost
+#endif
 %include "boost_shared_ptr.i"
 
 SWIG_SHARED_PTR(Klass, Space::Klass)
 SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
 
 // TODO:
-// check const naturalvar
 // const shared_ptr
 // std::vector
 // Add in generic %extend for the Upcast function for derived classes
 // Can probably remove the pgcpp for shared_ptr, unless wrapping shared_ptr<>* shared_ptr<>& and use IntPtr instead of HandleRef for C# ???
-// Put tests in a loop and monitor memory
-// Remove proxy upcast method - implement %feature("shadow") ??? which replaces the shadow method
-// Change GC to garbage collect until expected result with time out
+// Remove proxy upcast method - implement %feature("shadow") ??? which replaces the proxy method
 // pgcpp - make it work if comments in jtype typemap
 
 %exception {
@@ -51,22 +72,24 @@ struct Klass {
   Klass(const std::string &val) : value(val) { if (debug_shared) cout << "Klass(string) [" << value << "]" << endl; increment(); }
 
   virtual ~Klass() { if (debug_shared) cout << "~Klass() [" << value << "]" << endl; decrement(); }
-  virtual std::string getValue() { return value; }
+  virtual std::string getValue() const { return value; }
   void append(const std::string &s) { value += s; }
   Klass(const Klass &other) : value(other.value) { if (debug_shared) cout << "Klass(const Klass&) [" << value << "]" << endl; increment(); }
 
   Klass &operator=(const Klass &other) { value = other.value; return *this; }
   static int getTotal_count() { return total_count; }
 
-private: // TODO: make operator= private too to test shared_ptr
-  // lock increment and decrement as a destructor could be called at the same time as a new object is being created
-  static void increment() { /*EnterCriticalSection(lock);*/ total_count++; }
-  static void decrement() { /*EnterCriticalSection(lock);*/ total_count--; }
+private:
+  // lock increment and decrement as a destructor could be called at the same time as a 
+  // new object is being created - C# / Java, at least, have finalizers run in a separate thread
+  static SwigExamples::CriticalSection critical_section;
+  static void increment() { SwigExamples::Lock lock(critical_section); total_count++; }
+  static void decrement() { SwigExamples::Lock lock(critical_section); total_count--; }
   static int total_count;
-//  static CriticalSection lock;
   std::string value;
   int array[1024];
 };
+SwigExamples::CriticalSection Space::Klass::critical_section;
 
 struct IgnoredMultipleInheritBase { virtual ~IgnoredMultipleInheritBase() {} double d; double e;};
 
@@ -76,7 +99,7 @@ struct KlassDerived : IgnoredMultipleInheritBase, Klass {
   KlassDerived() : Klass() {}
   KlassDerived(const std::string &val) : Klass(val) {}
   virtual ~KlassDerived() {}
-  virtual std::string getValue() { return Klass::getValue() + "-Derived"; }
+  virtual std::string getValue() const { return Klass::getValue() + "-Derived"; }
 };
 KlassDerived* derivedpointertest(KlassDerived* kd) {
   if (kd)
@@ -85,38 +108,38 @@ KlassDerived* derivedpointertest(KlassDerived* kd) {
 }
 
 
-boost::shared_ptr<Klass> factorycreate() {
-  return boost::shared_ptr<Klass>(new Klass("factorycreate"));
+SwigBoost::shared_ptr<Klass> factorycreate() {
+  return SwigBoost::shared_ptr<Klass>(new Klass("factorycreate"));
 }
 // smart pointer
-boost::shared_ptr<Klass> smartpointertest(boost::shared_ptr<Klass> k) {
+SwigBoost::shared_ptr<Klass> smartpointertest(SwigBoost::shared_ptr<Klass> k) {
   if (k)
     k->append(" smartpointertest");
-  return boost::shared_ptr<Klass>(k);
+  return SwigBoost::shared_ptr<Klass>(k);
 }
-boost::shared_ptr<Klass>* smartpointerpointertest(boost::shared_ptr<Klass>* k) {
+SwigBoost::shared_ptr<Klass>* smartpointerpointertest(SwigBoost::shared_ptr<Klass>* k) {
   if (k && *k)
     (*k)->append(" smartpointerpointertest");
   return k;
 }
-boost::shared_ptr<Klass>& smartpointerreftest(boost::shared_ptr<Klass>& k) {
+SwigBoost::shared_ptr<Klass>& smartpointerreftest(SwigBoost::shared_ptr<Klass>& k) {
   if (k)
     k->append(" smartpointerreftest");
   return k;
 }
-boost::shared_ptr<Klass>*& smartpointerpointerreftest(boost::shared_ptr<Klass>*& k) {
+SwigBoost::shared_ptr<Klass>*& smartpointerpointerreftest(SwigBoost::shared_ptr<Klass>*& k) {
   if (k && *k)
     (*k)->append(" smartpointerpointerreftest");
   return k;
 }
 // const
-boost::shared_ptr<const Klass> constsmartpointertest(boost::shared_ptr<const Klass> k) {
-  return boost::shared_ptr<const Klass>(k);
+SwigBoost::shared_ptr<const Klass> constsmartpointertest(SwigBoost::shared_ptr<const Klass> k) {
+  return SwigBoost::shared_ptr<const Klass>(k);
 }
-boost::shared_ptr<const Klass>* constsmartpointerpointertest(boost::shared_ptr<const Klass>* k) {
+SwigBoost::shared_ptr<const Klass>* constsmartpointerpointertest(SwigBoost::shared_ptr<const Klass>* k) {
   return k;
 }
-boost::shared_ptr<const Klass>& constsmartpointerreftest(boost::shared_ptr<const Klass>& k) {
+SwigBoost::shared_ptr<const Klass>& constsmartpointerreftest(SwigBoost::shared_ptr<const Klass>& k) {
   return k;
 }
 // plain pointer
@@ -138,7 +161,7 @@ Klass*& pointerreftest(Klass*& k) {
   return k;
 }
 // null
-std::string nullsmartpointerpointertest(boost::shared_ptr<Klass>* k) {
+std::string nullsmartpointerpointertest(SwigBoost::shared_ptr<Klass>* k) {
   if (k && *k)
     return "not null";
   else if (!k)
@@ -150,8 +173,8 @@ std::string nullsmartpointerpointertest(boost::shared_ptr<Klass>* k) {
 Klass *pointerownertest() {
   return new Klass("pointerownertest");
 }
-boost::shared_ptr<Klass>* smartpointerpointerownertest() {
-  return new boost::shared_ptr<Klass>(new Klass("smartpointerpointerownertest"));
+SwigBoost::shared_ptr<Klass>* smartpointerpointerownertest() {
+  return new SwigBoost::shared_ptr<Klass>(new Klass("smartpointerpointerownertest"));
 }
 /*
 Klass* arraytest(Klass k[]) {
@@ -161,11 +184,11 @@ Klass* arraytest(Klass k[]) {
 */
 
 
-long use_count(const boost::shared_ptr<Klass>& sptr) {
+long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
-const boost::shared_ptr<Klass>& ref_1() { 
-  static boost::shared_ptr<Klass> sptr;
+const SwigBoost::shared_ptr<Klass>& ref_1() { 
+  static SwigBoost::shared_ptr<Klass> sptr;
   return sptr;
 }
 
@@ -182,32 +205,90 @@ const boost::shared_ptr<Klass>& ref_1() {
 %inline %{
 struct MemberVariables {
   MemberVariables() : SmartMemberPointer(&SmartMemberValue), SmartMemberReference(SmartMemberValue), MemberPointer(0), MemberReference(MemberValue) {}
-  boost::shared_ptr<Space::Klass> SmartMemberValue;
-  boost::shared_ptr<Space::Klass> * SmartMemberPointer;
-  boost::shared_ptr<Space::Klass> & SmartMemberReference;
+  SwigBoost::shared_ptr<Space::Klass> SmartMemberValue;
+  SwigBoost::shared_ptr<Space::Klass> * SmartMemberPointer;
+  SwigBoost::shared_ptr<Space::Klass> & SmartMemberReference;
   Space::Klass MemberValue;
   Space::Klass * MemberPointer;
   Space::Klass & MemberReference;
 };
 %}
 
-// Templates
-%inline %{
-template <class T1, class T2> struct Base {
-};
-typedef Base<int, double> BaseIntDouble_t;
-%}
-%template(BaseIntDouble) Base<int, double>;
-%inline %{
-template <class T1, class T2> struct Pair : Base<T1, T2> {
-  T1 m_t1;
-  T2 m_t2;
-  Pair(T1 t1, T2 t2) : m_t1(t1), m_t2(t2) {}
-};
-%}
-%template(PairIntDouble) Pair<int, double>;
+// Note: %template after the shared_ptr typemaps
 SWIG_SHARED_PTR(BaseIntDouble, Base<int, double>)
 // Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
 // so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
 SWIG_SHARED_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+
+// Templates
+%inline %{
+template <class T1, class T2> struct Base {
+  Space::Klass klassBase;
+  T1 baseVal1;
+  T2 baseVal2;
+  Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
+};
+typedef Base<int, double> BaseIntDouble_t;
+%}
+
+%template(BaseIntDouble) Base<int, double>;
+
+%inline %{
+template <class T1, class T2> struct Pair : Base<T1, T2> {
+  Space::Klass klassPair;
+  T1 val1;
+  T2 val2;
+  Pair(T1 t1, T2 t2) : Base<T1, T2>(t1, t2), val1(t1), val2(t2) {}
+};
+%}
+
+%template(PairIntDouble) Pair<int, double>;
+
+
+// For counting the instances of shared_ptr (all of which are created on the heap)
+// shared_ptr_wrapper_count() gives overall count
+%inline %{
+namespace SwigBoost {
+  const int NOT_COUNTING = -123456;
+  int shared_ptr_wrapper_count() { 
+  #ifdef SHARED_PTR_WRAPPER
+    return SwigBoost::SharedPtrWrapper::getTotalCount(); 
+  #else
+    return NOT_COUNTING;
+  #endif
+  }
+  #ifdef SHARED_PTR_WRAPPER
+  template<> std::string show_message(boost::shared_ptr<Space::Klass >*t) {
+    if (!t)
+      return "null shared_ptr!!!";
+    if (boost::get_deleter<SWIG_null_deleter>(*t))
+      return "Klass NULL DELETER"; // pointer may be dangling so cannot use it
+    if (*t)
+      return "Klass: " + (*t)->getValue();
+    else
+      return "Klass: NULL";
+  }
+  template<> std::string show_message(boost::shared_ptr<const Space::Klass >*t) {
+    if (!t)
+      return "null shared_ptr!!!";
+    if (boost::get_deleter<SWIG_null_deleter>(*t))
+      return "Klass NULL DELETER"; // pointer may be dangling so cannot use it
+    if (*t)
+      return "Klass: " + (*t)->getValue();
+    else
+      return "Klass: NULL";
+  }
+  template<> std::string show_message(boost::shared_ptr<Space::KlassDerived >*t) {
+    if (!t)
+      return "null shared_ptr!!!";
+    if (boost::get_deleter<SWIG_null_deleter>(*t))
+      return "KlassDerived NULL DELETER"; // pointer may be dangling so cannot use it
+    if (*t)
+      return "KlassDerived: " + (*t)->getValue();
+    else
+      return "KlassDerived: NULL";
+  }
+  #endif
+}
+%}
 

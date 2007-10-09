@@ -13,14 +13,14 @@ public class runme
 
     li_boost_shared_ptr.debug_shared=debug;
 
-    const int loopCount = 1;
+    // Change loop count to run for a long time to monitor memory
+    const int loopCount = 1; //50000;
     for (int i=0; i<loopCount; i++) {
       new runme().runtest();
       System.GC.Collect(); 
       System.GC.WaitForPendingFinalizers();
       if (i%100 == 0) {
-//        Console.WriteLine("i: {0} {1}", i, Klass.getTotal_count());
-        System.Threading.Thread.Sleep(10);
+        System.Threading.Thread.Sleep(1); // give some time to the lower priority finalizer thread
       }
     }
 
@@ -31,7 +31,7 @@ public class runme
     while (true) {
       System.GC.Collect(); 
       System.GC.WaitForPendingFinalizers();
-      System.Threading.Thread.Sleep(100);
+      System.Threading.Thread.Sleep(10);
       if (--countdown == 0)
         break;
       if (Klass.getTotal_count() == 0)
@@ -41,6 +41,11 @@ public class runme
     };
     if (Klass.getTotal_count() != 0)
       throw new ApplicationException("Klass.total_count=" + Klass.getTotal_count());
+
+    int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 
+    if (wrapper_count != li_boost_shared_ptr.NOT_COUNTING)
+      if (wrapper_count != 0)
+        throw new ApplicationException("shared_ptr wrapper count not zero: " + wrapper_count);
 
     if (debug)
       Console.WriteLine("Finished");
@@ -369,6 +374,14 @@ public class runme
       try { m.MemberValue = null; throw new ApplicationException("Failed to catch null pointer"); } catch (ArgumentNullException) {}
     }
 
+    // templates
+    {
+      PairIntDouble pid = new PairIntDouble(10, 20.2);
+      if (pid.baseVal1 != 20 || pid.baseVal2 != 40.4)
+        throw new ApplicationException("Base values wrong");
+      if (pid.val1 != 10 || pid.val2 != 20.2)
+        throw new ApplicationException("Derived Values wrong");
+    }
   }
   private void verifyValue(String expected, String got) {
     if (expected != got)

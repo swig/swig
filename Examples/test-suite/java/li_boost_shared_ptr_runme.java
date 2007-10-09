@@ -20,15 +20,15 @@ public class li_boost_shared_ptr_runme {
 
     li_boost_shared_ptr.setDebug_shared(debug);
 
-    final int loopCount = 1;
+    // Change loop count to run for a long time to monitor memory
+    final int loopCount = 1; //5000;
     for (int i=0; i<loopCount; i++) {
       new li_boost_shared_ptr_runme().runtest();
       System.gc();
       System.runFinalization();
       try {
-        if (i%10 == 0) {
-//          System.out.println("i: " + i + " " + Klass.getTotal_count());
-          java.lang.Thread.sleep(10);
+        if (i%100 == 0) {
+          java.lang.Thread.sleep(1); // give some time to the lower priority finalizer thread
         }
       } catch (java.lang.InterruptedException e) {
       }
@@ -52,6 +52,11 @@ public class li_boost_shared_ptr_runme {
     };
     if (Klass.getTotal_count() != 0)
       throw new RuntimeException("Klass.total_count=" + Klass.getTotal_count());
+
+    int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 
+    if (wrapper_count != li_boost_shared_ptr.getNOT_COUNTING())
+      if (wrapper_count != 0)
+        throw new RuntimeException("shared_ptr wrapper count not zero: " + wrapper_count);
 
     if (debug)
       System.out.println("Finished");
@@ -392,6 +397,15 @@ public class li_boost_shared_ptr_runme {
 
       // plain by value
       try { m.setMemberValue(null); throw new RuntimeException("Failed to catch null pointer"); } catch (NullPointerException e) {}
+    }
+
+    // templates
+    {
+      PairIntDouble pid = new PairIntDouble(10, 20.2);
+      if (pid.getBaseVal1() != 20 || pid.getBaseVal2() != 40.4)
+        throw new RuntimeException("Base values wrong");
+      if (pid.getVal1() != 10 || pid.getVal2() != 20.2)
+        throw new RuntimeException("Derived Values wrong");
     }
   }
   private void verifyValue(String expected, String got) {
