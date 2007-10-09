@@ -424,9 +424,7 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* --------------------------------------------------------------------------
- * swig_pragma()
- *
- * Handle swig pragma directives.  
+ * use_naturalvar_mode()
  * -------------------------------------------------------------------------- */
 int use_naturalvar_mode(Node *n) {
   if (Getattr(n, "unnamed"))
