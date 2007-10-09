@@ -2,6 +2,9 @@ Version 1.3.32 (in progress)
 ============================
 
 10/09/2007: olly
+	    Automatically rerun autogen.sh if configure.in is modified.
+
+10/09/2007: olly
 	    Enhance check-%-test-suite rule and friends to give a more helpful
 	    error message if you try them for a language which doesn't exist
 	    (e.g. "make check-php-test-suite" rather than the correct

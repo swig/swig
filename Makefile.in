@@ -508,10 +508,13 @@ configfiles:
 Makefile: $(srcdir)/Makefile.in config.status
 	$(SHELL) ./config.status
 
-# This target is usually called from Source/Makefile when configure.in has changed
-am--refresh:
-	@echo "Build system is out of date. Please reconfigure (rerun: ./autogen.sh && ./configure)"
-	@exit 1
+# This target is usually called from Source/Makefile when configure.in has
+# changed.
+am--refresh: $(srcdir)/configure
+
+$(srcdir)/configure: $(srcdir)/configure.in
+	@echo "Build system is out of date.  If the following commands fail, please reconfigure by hand (rerun: ./autogen.sh && ./configure)"
+	$(srcdir)/autogen.sh
+	$(SHELL) ./config.status --recheck
 
 # Makefile ends here
-
