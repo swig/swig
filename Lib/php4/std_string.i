@@ -39,12 +39,6 @@ namespace std {
       $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
     }
 
-    %typemap(in) const string & (std::string temp) {
-        convert_to_string_ex($input);
-        temp.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
-        $1 = &temp;
-    }
-
     %typemap(out) string {
         ZVAL_STRINGL($result, const_cast<char*>($1.data()), $1.size(), 1);
     }
@@ -72,4 +66,6 @@ namespace std {
     %typemap(argout) string & {
 	ZVAL_STRINGL(*($input), const_cast<char*>($1->data()), $1->size(), 1);
     }
+
+    %typemap(argout) const string & { }
 }
