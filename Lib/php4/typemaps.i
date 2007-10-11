@@ -29,16 +29,13 @@
 
 %define double_typemap(TYPE)
 %typemap(in) TYPE *INPUT(TYPE temp)
-{
+%{
   convert_to_double_ex($input);
   temp = (TYPE) Z_DVAL_PP($input);
   $1 = &temp;
-}
+%}
 %typemap(argout) TYPE *INPUT "";
-%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp)
-{
-  $1 = &temp;
-}
+%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp) "$1 = &temp;";
 %typemap(argout,fragment="t_output_helper") TYPE *OUTPUT
 {
   zval *o;
@@ -47,30 +44,27 @@
   t_output_helper( &$result, o );
 }
 %typemap(in) TYPE *REFERENCE (TYPE dvalue)
-{
+%{
   convert_to_double_ex($input);
   dvalue = (TYPE) (*$input)->value.dval;
   $1 = &dvalue;
-}
+%}
 %typemap(argout) TYPE *REFERENCE
-{
+%{
   $1->value.dval = (double)(lvalue$argnum);
   $1->type = IS_DOUBLE;
-}
+%}
 %enddef
 
 %define int_typemap(TYPE)
 %typemap(in) TYPE *INPUT(TYPE temp)
-{
+%{
   convert_to_long_ex($input);
   temp = (TYPE) Z_LVAL_PP($input);
   $1 = &temp;
-}
+%}
 %typemap(argout) TYPE *INPUT "";
-%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp)
-{
-  $1 = &temp;
-}
+%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp) "$1 = &temp;";
 %typemap(argout,fragment="t_output_helper") TYPE *OUTPUT
 {
   zval *o;
@@ -79,17 +73,16 @@
   t_output_helper( &$result, o );
 }
 %typemap(in) TYPE *REFERENCE (TYPE lvalue)
-{
+%{
   convert_to_long_ex($input);
   lvalue = (TYPE) (*$input)->value.lval;
   $1 = &lvalue;
-}
-%typemap(argout) TYPE	*REFERENCE
-{
-
+%}
+%typemap(argout) TYPE *REFERENCE
+%{
   (*$arg)->value.lval = (long)(lvalue$argnum);
   (*$arg)->type = IS_LONG;
-}
+%}
 %enddef
 
 double_typemap(float);
@@ -125,16 +118,13 @@ int_typemap(unsigned char);
 %typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
 
 %typemap(in) char INPUT[ANY] ( char temp[$1_dim0] )
-{
+%{
   convert_to_string_ex($input);
-  char *val = Z_LVAL_PP($input);
-  strncpy(temp,val,$1_dim0);
+  strncpy(temp,Z_LVAL_PP($input),$1_dim0);
   $1 = temp;
-}
+%}
 %typemap(in,numinputs=0) char OUTPUT[ANY] ( char temp[$1_dim0] )
-{
-  $1 = temp;
-}
+  "$1 = temp;";
 %typemap(argout) char OUTPUT[ANY]
 {
   zval *o;
@@ -145,7 +135,7 @@ int_typemap(unsigned char);
 
 %typemap(in,numinputs=0) void **OUTPUT (int force),
                          void *&OUTPUT (int force)
-{
+%{
   /* If they pass NULL by reference, make it into a void*
      This bit should go in arginit if arginit support init-ing scripting args */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0) {
@@ -166,16 +156,16 @@ int_typemap(unsigned char);
     /* have to passback arg$arg too */
     force=1;
   }
-}
+%}
 
 %typemap(argout) void **OUTPUT,
                  void *&OUTPUT
-{
+%{
   if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
-    if(! PZVAL_IS_REF(*$arg)) {
+    if (!PZVAL_IS_REF(*$arg)) {
       SWIG_PHP_Error(E_WARNING, "Parameter $argnum of $symname wasn't passed by reference");
     } else {
       SWIG_SetPointerZval(*$arg, (void *) ptr$argnum, $*1_descriptor, 1);
     }
   }
-}
+%}

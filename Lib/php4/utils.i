@@ -30,9 +30,9 @@
 
 %define %pass_by_val( TYPE, CONVERT_IN )
 %typemap(in) TYPE
-{
+%{
   CONVERT_IN($1,$1_ltype,$input);
-}
+%}
 %enddef
 
 %fragment("t_output_helper","header") %{

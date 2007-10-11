@@ -26,26 +26,26 @@ namespace std {
 
     class string;
 
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) string {
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) string %{
       $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
-    }
+    %}
 
-    %typemap(in) string {
+    %typemap(in) string %{
         convert_to_string_ex($input);
         $1.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
-    }
+    %}
 
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& {
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& %{
       $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
-    }
+    %}
 
-    %typemap(out) string {
+    %typemap(out) string %{
         ZVAL_STRINGL($result, const_cast<char*>($1.data()), $1.size(), 1);
-    }
+    %}
 
-    %typemap(out) const string & {
+    %typemap(out) const string & %{
         ZVAL_STRINGL($result, const_cast<char*>($1->data()), $1->size(), 1);
-    }
+    %}
 
     %typemap(throws) string %{
       SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
@@ -57,15 +57,17 @@ namespace std {
 
     /* These next two handle a function which takes a non-const reference to
      * a std::string and modifies the string. */
-    %typemap(in) string & (std::string temp) {
+    %typemap(in) string & (std::string temp) %{
         convert_to_string_ex($input);
         temp.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
         $1 = &temp;
-    }
+    %}
 
-    %typemap(argout) string & {
+    %typemap(argout) string & %{
 	ZVAL_STRINGL(*($input), const_cast<char*>($1->data()), $1->size(), 1);
-    }
+    %}
 
-    %typemap(argout) const string & { }
+    /* SWIG will apply the non-const typemap above to const string& without
+     * this more specific typemap. */
+    %typemap(argout) const string & "";
 }
