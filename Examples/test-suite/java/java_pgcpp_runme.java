@@ -25,6 +25,8 @@ public class java_pgcpp_runme {
 
     java_pgcppJNI.function(ptr, object, ptr, object, ptr, object, ptr, object, ptr, object);
     java_pgcppJNI.functionconst(ptr, object, ptr, object, ptr, object, ptr, object, ptr, object);
+
+    java_pgcppJNI.comment_in_typemaps(ptr, object, ptr, object, ptr, object);
   }
 }
 

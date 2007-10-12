@@ -34,3 +34,23 @@ namespace Space {
 }
 %}
 
+
+%typemap(jtype)  Klassic *k1 "/*a*/ long   /*b*/ /*c*/"
+%typemap(jstype) Klassic *k1 "/*a*/ Classic/*b*/ /*c*/"
+
+%typemap(jtype)  Klassic *k2 "/*d*/ long"
+%typemap(jstype) Klassic *k2 "/*d*/ Classic"
+
+%typemap(jtype)  Klassic *k3 "long/*e*/ "
+%typemap(jstype) Klassic *k3 "Classic/*e*/ "
+
+%typemap(javain) Klassic * "Classic.getCPtr($javainput)"
+
+%{
+typedef Space::Classic Klassic;
+%}
+
+%inline %{
+  void comment_in_typemaps(Klassic *k1, Klassic *k2, Klassic *k3) {}
+%}
+
