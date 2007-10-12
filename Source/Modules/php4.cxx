@@ -144,25 +144,6 @@ extern "C" {
   static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
-static const char *php_header =
-    "/*"
-    "\n  +----------------------------------------------------------------------+"
-    "\n  | PHP version 4.0                                                      |"
-    "\n  +----------------------------------------------------------------------+"
-    "\n  | Copyright (c) 1997, 1998, 1999, 2000, 2001 The PHP Group             |"
-    "\n  +----------------------------------------------------------------------+"
-    "\n  | This source file is subject to version 2.02 of the PHP license,      |"
-    "\n  | that is bundled with this package in the file LICENSE, and is        |"
-    "\n  | available at through the world-wide-web at                           |"
-    "\n  | http://www.php.net/license/2_02.txt.                                 |"
-    "\n  | If you did not receive a copy of the PHP license and are unable to   |"
-    "\n  | obtain it through the world-wide-web, please send a note to          |"
-    "\n  | license@php.net so we can mail you a copy immediately.               |"
-    "\n  +----------------------------------------------------------------------+"
-    "\n  | Authors:                                                             |"
-    "\n  |                                                                      |"
-    "\n  +----------------------------------------------------------------------+" "\n */\n";
-
 void SwigPHP_emit_resource_registrations() {
   Iterator ki;
 
@@ -652,7 +633,6 @@ public:
     Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, %s_destroy_globals);\n", module, module, module);
 
     /* start the header section */
-    Printf(s_header, php_header);
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
     Printf(s_header, "char *error_msg;\n");
     Printf(s_header, "int error_code;\n");
@@ -706,7 +686,6 @@ public:
     }
 
     Swig_banner(f_h);
-    Printf(f_h, php_header);
 
     Printf(f_h, "\n\n");
     Printf(f_h, "#ifndef PHP_%s_H\n", cap_module);
