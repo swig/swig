@@ -11,7 +11,7 @@
 #include "boost/shared_ptr.hpp"
 #include "swig_examples_lock.h"
 
-// Uncomment macro below to turn on shared_ptr memory leaks as described above
+// Uncomment macro below to turn on shared_ptr memory leak checking as described above
 //#define SHARED_PTR_WRAPPER
 
 #ifdef SHARED_PTR_WRAPPER
@@ -40,7 +40,6 @@ SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
 // Add in generic %extend for the Upcast function for derived classes
 // Can probably remove the pgcpp for shared_ptr, unless wrapping shared_ptr<>* shared_ptr<>& and use IntPtr instead of HandleRef for C# ???
 // Remove proxy upcast method - implement %feature("shadow") ??? which replaces the proxy method
-// pgcpp - make it work if comments in jtype typemap
 
 %exception {
   if (debug_shared) {
