@@ -14,16 +14,13 @@ public class director_thread_runme {
   }
 
   public static void main(String argv[]) {
-    /*
+    // This test used to hang the process. The solution is to call DetachCurrentThread in ~JNIEnvWrapper, however it causes seg faults in other JNI calls on older JDKs on Solaris. See SWIG_JAVA_NO_DETACH_CURRENT_THREAD in director.swg.
     director_thread_Derived d = new director_thread_Derived();
     d.run();
 
     if (d.getVal() >= 0) {
         throw new RuntimeException("Failed. Val: " + d.getVal());
     }
-    */
-    // Disabled as it hangs the process. The solution of calling DetachCurrentThread in ~JNIEnvWrapper causes seg faults in other JNI calls on some machines
-    System.err.println("Disabled runtest - it fails");
   }
 }
 

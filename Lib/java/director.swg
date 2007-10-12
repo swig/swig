@@ -116,7 +116,11 @@ namespace Swig {
         director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
       }
       ~JNIEnvWrapper() {
-        //director_->swig_jvm_->DetachCurrentThread();
+// Some JVMs, eg JDK 1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
+// However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
+#if !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
+        director_->swig_jvm_->DetachCurrentThread();
+#endif
       }
       JNIEnv *getJNIEnv() const {
         return jenv_;
