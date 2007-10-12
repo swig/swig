@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/12/2007: wuzzeb
+	    Added a testsuite entry for Bug #1735931
+
 10/09/2007: olly
 	    Automatically rerun autogen.sh if configure.in is modified.
 
