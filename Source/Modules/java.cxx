@@ -2926,8 +2926,15 @@ public:
   String *prematureGarbageCollectionPreventionParameter(SwigType *t, Parm *p) {
     String *proxyClassName = 0;
     String *jtype = NewString(Getattr(p, "tmap:jtype"));
-    // TODO: remove any C comments from jtype
-    // remove whitespace
+
+    // Strip C comments
+    String *stripped_jtype = Swig_strip_c_comments(jtype);
+    if (stripped_jtype) {
+      Delete(jtype);
+      jtype = stripped_jtype;
+    }
+
+    // Remove whitespace
     Replaceall(jtype, " ", "");
     Replaceall(jtype, "\t", "");
 
@@ -2944,8 +2951,13 @@ public:
             if (jstype) {
               Hash *classes = getClassHash();
               if (classes) {
-                // TODO: remove any C comments from jstype
-                // remove whitespace
+                // Strip C comments
+                String *stripped_jstype = Swig_strip_c_comments(jstype);
+                if (stripped_jstype) {
+                  Delete(jstype);
+                  jstype = stripped_jstype;
+                }
+                // Remove whitespace
                 Replaceall(jstype, " ", "");
                 Replaceall(jstype, "\t", "");
 

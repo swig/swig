@@ -72,6 +72,51 @@ void Swig_banner(File *f) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_strip_c_comments()
+ *
+ * Return a new string with C comments stripped from the input string. Null is
+ * returned if there aren't any.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_strip_c_comments(const String *s) {
+  const char *c = Char(s);
+  const char *comment_begin = 0;
+  const char *comment_end = 0;
+  while (*c) {
+    if (!comment_begin && *c == '/') {
+      ++c;
+      if (!*c)
+        break;
+      if (*c == '*')
+        comment_begin = c-1;
+    } else if (comment_begin && !comment_end && *c == '*') {
+      ++c;
+      if (*c == '/')
+        comment_end = c;
+      break;
+    }
+    ++c;
+  }
+
+  String *stripped = 0;
+  if (comment_begin && comment_end) {
+    int size = comment_begin - Char(s);
+    stripped = NewStringWithSize(s, size);
+    Printv(stripped, comment_end + 1, NIL);
+    String *stripmore = 0;
+    do {
+      stripmore = Swig_strip_c_comments(stripped);
+      if (stripmore) {
+        Delete(stripped);
+        stripped = stripmore;
+      }
+    } while (stripmore);
+  }
+  return stripped;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.
