@@ -38,7 +38,7 @@
 #include <string>
 
 Tcl_Obj* SwigString_FromString(std::string s) {
-    return Tcl_NewStringObj(s.c_str(), s.length());
+    return Tcl_NewStringObj(s.data(), s.length());
 }
 
 int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
@@ -53,9 +53,9 @@ int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
 int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
     int len;
     const char* temp = Tcl_GetStringFromObj(o, &len);
-    if(temp == NULL)
+    if (temp == NULL)
         return TCL_ERROR;
-    *val = temp;
+    val->assign(temp, len);
     return TCL_OK;
 }
 
