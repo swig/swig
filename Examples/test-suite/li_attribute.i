@@ -1,7 +1,14 @@
 %module li_attribute
 
-%include exception.i
-%include attribute.i
+%include <exception.i>
+
+//#define SWIG_ATTRIBUTE_TEMPLATE
+%include <attribute.i>
+
+%{
+// forward reference needed if using SWIG_ATTRIBUTE_TEMPLATE
+class A;
+%}
 
 %attribute(A, int, a, get_a, set_a);
 %attribute_ref(A, int, b);

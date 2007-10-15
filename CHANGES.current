@@ -1,10 +1,25 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/15/2007: wsfulton
+            Patch #1797133 from David Piepgrass fixes %attribute when the getter has the same name
+            as the attribute name and no longer generate non-functional setter for read-only attributes.
+
 10/15/2007: olly
 	    [Tcl] Prevent SWIG_Tcl_ConvertPtr from calling the unknown proc.
 	    Add Examples/tcl/std_vector/ which this change fixes.  Patch
 	    is from "Cliff C" in SF#1809819.
+
+10/12/2007: wsfulton
+            [Java] Add DetachCurrentThread back in for directors. See entry dated 08/11/2006 and 
+            search for DetachCurrentThread on the mailing lists for details. The crashes on Solaris 
+            seem to be only present in jdk-1.4.2 and lower (jdk-1.5.0 and jdk-1.6.0 are okay), so 
+            anyone using directors should use a recent jdk on Solaris, or define (see director.swg) 
+            SWIG_JAVA_NO_DETACH_CURRENT_THREAD to the C++ compiler to get old behaviour.
+
+10/12/2007: wsfulton
+	    [Java] Ensure the premature garbage collection prevention parameter (pgcpp) is generated
+            when there are C comments in the jtype and jstype typemaps.
 
 10/12/2007: wuzzeb
 	    Added a testsuite entry for Bug #1735931
@@ -150,7 +165,7 @@ Version 1.3.32 (in progress)
 	    [PHP5] Generate __isset() methods for setters for PHP 5.1 and later.
 
 08/20/2007: wsfulton
-            [Java C#] Fix director bug #1776651 reported by Stephae Routelous which occurred when 
+            [Java C#] Fix director bug #1776651 reported by Stephane Routelous which occurred when 
             the director class name is the same as the start of some other symbols used within 
             the director class.
 

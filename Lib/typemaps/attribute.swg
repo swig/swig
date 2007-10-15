@@ -27,7 +27,6 @@
 
       %attribute(A, int, c, get_c);
 
-
   Use %attribute_ref when you have const/non-const reference
   access methods, like in:
 
@@ -51,9 +50,12 @@
       %attribute_ref(class, type, refname, attr);
   
   if the internal C++ reference methods have a different name from the
-  attribute you want.
+  attribute you want. There's an inconsistency here (retained for 
+  compatibility): when using %attribute_ref, the C++ symbol name comes 
+  before the attribute name, but when you use %attribute, the attribute 
+  name comes before the C++ symbol names. 
   
-  Then you can use the instances like:
+  Now you can use the attributes like so:
 
       x = A() 			     
       x.a = 3        # calls A::set_a    
@@ -62,102 +64,127 @@
       x.b = 3        # calls A::b()      
       print x.b      # calls A::b() const
 
-  NOTE: remember that if the type contains commas, such as
-  'std::pair<int,int>', you need to use the macro like:
+  Use %attribute2 instead of %attribute to indicate that reference-pointer 
+  translation is required. You use %attribute2 instead of %attribute in 
+  cases like this:
+ 
+  %attribute2(MyClass, MyFoo, Foo, GetFoo, SetFoo);
+  %inline %{
+    struct MyFoo { 
+      int x;
+    };
+    class MyClass {
+      MyFoo foo;
+    public:
+      MyFoo& GetFoo() { return foo; }
+      void SetFoo(const MyFoo& other) { foo = other; }
+    };
+  %} 
+
+  Here, the data type of the property is a wrapped type (MyFoo) and on the 
+  C++ side it is passed by reference. The problem is that the SWIG wrapper will 
+  pass around a pointer (MyFoo *) which is not compatible with the reference 
+  type of the accessors (MyFoo &). Therefore, if you use %attribute, you'll get 
+  an error from your C/C++ compiler. %attribute2 translates between a pointer 
+  and a reference to eliminate the error. In case you're confused, I'll make it 
+  simple: just use %attribute at first, but if the C/C++ compiler gives an error 
+  while compiling the wrapper, try %attribute2 instead.
+
+  NOTE: remember that if the type contains commas, such as 'std::pair<int,int>', 
+  you need to use the macro like:
 
   %attribute_ref(A, %arg(std::pair<int,int>), pval);
 
-  where %arg() 'normalize' the type to be understood as a single
-  argument, otherwise the macro will get confused (see the 'cpp'
-  documentation).
-
+  where %arg() 'normalizes' the type to be understood as a single
+  argument, otherwise the macro will get confused by the comma (see the 
+  'cpp' documentation).
 */
 
-#ifndef %attribute_exception
-#define %attribute_exception(code,msg) SWIG_exception_fail(code,msg)
-#endif
-
 //
-// Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates.
+// Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates instead of macros for the C++ get and set wrapper methods
 //
 //#define SWIG_ATTRIBUTE_TEMPLATE
 
-
+%define %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, GetMethodCall, SetMethodCall)
+  %ignore Class::GetMethod();
+  %ignore Class::GetMethod() const;
+  #if #SetMethod != #AttributeName
+    %ignore Class::SetMethod;
+  #endif
+  %extend Class {
+    AttributeType AttributeName;
+  }
 #if defined(__cplusplus) && defined(SWIG_ATTRIBUTE_TEMPLATE)
-%define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
-%extend Class {
-  type attr;
-}
-%{
-  template <class C> inline
-    type Wrap ##_## attr ## _get(const C* _t)
-    { return getcode; }
-
-  template <class C> inline
-    type Wrap ##_## attr ## _get(C* _t)
-    { return getcode; }
-
-  template <class C> inline
-    void Wrap ##_## attr ## _set(C* _t, type _val)
-    { setcode; }
-%}
-%enddef
-
+  %{
+    template < class C > inline AttributeType %mangle(Class) ##_## AttributeName ## _get(const C* self_) {
+      return GetMethodCall;
+    }
+    template < class C > inline AttributeType %mangle(Class) ##_## AttributeName ## _get(C* self_) {
+      return GetMethodCall;
+    }
+    template < class C > inline void %mangle(Class) ##_## AttributeName ## _set(C* self_, AttributeType val_) {
+      SetMethodCall;
+    }
+  %}
 #else
-
-%define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
-%extend Class {
-  type attr;
-}
-%{
-#define Wrap ##_## attr ## _get(_t) getcode
-#define Wrap ##_## attr ## _set(_t, _val) setcode
-%}
-%enddef
-#endif
-//
-// Internal versions, need Wrap name
-//
-
-%define %attribute_T(Class, Wrap, type, attr, get, set...) 
-%ignore Class::get;
-#if #set != ""
-  %ignore Class::set;
-  %_attribute(%arg(Class), Wrap, %arg(type),
-	      attr, _t->get(), _t->set(_val)) 
-#else
-  %_attribute(%arg(Class), Wrap, %arg(type),
-	      attr, _t->get(), 
-	      %attribute_exception(SWIG_AttributeError,"read-only  'attr' attribute");)
+  %{
+    #define %mangle(Class) ##_## AttributeName ## _get(self_) GetMethodCall
+    #define %mangle(Class) ##_## AttributeName ## _set(self_, val_) SetMethodCall
+  %}
 #endif
 %enddef
 
-
-%define %_attribute_ref_T(Class, Wrap, type, refname, attr) 
-%ignore Class::refname();
-%ignore Class::refname() const;
-%_attribute(%arg(Class), Wrap, %arg(type),
-	    attr, _t->refname(), _t->refname() = _val) 
-%enddef
-
-%define %attribute_ref_T(Class, Wrap, type, refname, attr...) 
-#if #attr == ""
-  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, refname) 
+%define %attribute_readonly(Class, AttributeType, AttributeName, GetMethod, GetMethodCall)
+  %ignore Class::GetMethod();
+  %ignore Class::GetMethod() const;
+  %immutable Class::AttributeName;
+  %extend Class {
+    AttributeType AttributeName;
+  }
+#if defined(__cplusplus) && defined(SWIG_ATTRIBUTE_TEMPLATE)
+  %{
+    template < class C > inline AttributeType %mangle(Class) ##_## AttributeName ## _get(const C* self_) {
+      return GetMethodCall;
+    }
+    template < class C > inline AttributeType %mangle(Class) ##_## AttributeName ## _get(C* self_) {
+      return GetMethodCall;
+    }
+  %}
 #else
-  %_attribute_ref_T(%arg(Class), Wrap, %arg(type), refname, attr)
+  %{
+    #define %mangle(Class) ##_## AttributeName ## _get(self_) GetMethodCall
+  %}
 #endif
 %enddef
 
-//
-// User versions
-//
-
-%define %attribute(Class, type, attr, get, set...)
- %attribute_T(%arg(Class), %mangle(Class), %arg(type), attr, get, set)
+%define %attribute(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
+  #if #SetMethod != ""
+    %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, self_->GetMethod(), self_->SetMethod(val_))
+  #else
+    %attribute_readonly(Class, AttributeType, AttributeName, GetMethod, self_->GetMethod())
+  #endif
 %enddef
 
-%define %attribute_ref(Class, type, refname, _Type...)
- %attribute_ref_T(%arg(Class), %mangle(Class), %arg(type), refname, _Type)
+%define %attribute2(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
+  #if #SetMethod != ""
+    %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, &self_->GetMethod(), self_->SetMethod(*val_))
+  #else
+    %attribute_readonly(Class, AttributeType, AttributeName, GetMethod, &self_->GetMethod())
+  #endif
 %enddef
 
+%define %attribute_ref(Class, AttributeType, Accessor, AttributeName...)
+  #if #AttributeName != ""
+    %attribute_custom(Class, AttributeType, AttributeName, Accessor, Accessor, self_->Accessor(), self_->Accessor() = val_)
+  #else
+    %attribute_custom(Class, AttributeType, Accessor, Accessor, Accessor, self_->Accessor(), self_->Accessor() = val_)
+  #endif
+%enddef
 
+%define %attribute2_ref(Class, AttributeType, Accessor, AttributeName...)
+  #if #AttributeName != ""
+    %attribute_custom(Class, AttributeType, AttributeName, Accessor, Accessor, &self_->Accessor(), self_->Accessor() = *val_)
+  #else
+    %attribute_custom(Class, AttributeType, Accessor, Accessor, Accessor, &self_->Accessor(), self_->Accessor() = *val_)
+  #endif
+%enddef
