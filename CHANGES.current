@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/15/2007: olly
+	    [Tcl] Prevent SWIG_Tcl_ConvertPtr from calling the unknown proc.
+	    Add Examples/tcl/std_vector/ which this change fixes.  Patch
+	    is from "Cliff C" in SF#1809819.
+
 10/12/2007: wuzzeb
 	    Added a testsuite entry for Bug #1735931
 

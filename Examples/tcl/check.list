@@ -11,5 +11,6 @@ operator
 pointer
 reference
 simple
+std_vector
 value
 variables

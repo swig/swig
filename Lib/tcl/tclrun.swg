@@ -125,15 +125,38 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
   while (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) return SWIG_OK;
+
+    /* Empty string: not a pointer */
+    if (*c == 0) return SWIG_ERROR; 
+
     /* Hmmm. It could be an object name. */
-    if (Tcl_VarEval(interp,c," cget -this", (char *) NULL) == TCL_OK) {
+
+    /* Check if this is a command at all. Prevents <c> cget -this         */
+    /* from being called when c is not a command, firing the unknown proc */
+    if (Tcl_VarEval(interp,"info commands ", c, (char *) NULL) == TCL_OK) {
       Tcl_Obj *result = Tcl_GetObjResult(interp);
-      c = Tcl_GetStringFromObj(result, NULL);
-      continue;
+      if (*(Tcl_GetStringFromObj(result, NULL)) == 0) {
+        /* It's not a command, so it can't be a pointer */
+        Tcl_ResetResult(interp);
+        return SWIG_ERROR;
+      }
+    } else {
+      /* This will only fail if the argument is multiple words. */
+      /* Multiple words are also not commands.                  */
+      Tcl_ResetResult(interp);
+      return SWIG_ERROR;
     }
-    Tcl_ResetResult(interp);
-    return SWIG_ERROR;
+
+    /* Check if this is really a SWIG pointer */
+    if (Tcl_VarEval(interp,c," cget -this", (char *) NULL) != TCL_OK) {
+      Tcl_ResetResult(interp);
+      return SWIG_ERROR;
+    }
+
+    Tcl_Obj *result = Tcl_GetObjResult(interp);
+    c = Tcl_GetStringFromObj(result, NULL);
   }
+
   c++;
   c = SWIG_UnpackData(c,ptr,sizeof(void *));
   if (ty) {
