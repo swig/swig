@@ -929,7 +929,7 @@ public:
     };
 
     Printv(f_wrappers, "static swig_class *swig_", mangled_classname, "_bases[] = {", base_class, "0};\n", NIL);
-    Printv(f_wrappers, "static char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char * swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class);
     Delete(base_class_names);
 

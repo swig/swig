@@ -47,7 +47,7 @@ typedef struct swig_class {
   swig_method        *methods;
   swig_attribute     *attributes;
   struct swig_class **bases;
-  char              **base_names;
+  const char              **base_names;
   swig_module_info   *module;
 } swig_class;
 
