@@ -354,7 +354,7 @@ namespace Swig {
     
     ~Guard()
     {
-      PyThread_free_lock(mutex_);
+      PyThread_release_lock(mutex_);
     }
   };
 # define SWIG_GUARD(mutex) Guard _guard(mutex)
