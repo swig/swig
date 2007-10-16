@@ -41,7 +41,7 @@ extern "C" {
 
 #define SWIG_fail goto fail
 
-static char *default_error_msg = "Unknown error occurred";
+static const char *default_error_msg = "Unknown error occurred";
 static int default_error_code = E_ERROR;
 
 #define SWIG_PHP_Arg_Error_Msg(argnum,extramsg) "Error in argument " #argnum " "#extramsg
@@ -156,7 +156,7 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
   switch (z->type) {
     case IS_OBJECT: {
       zval ** _cPtr;
-      if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
+      if (zend_hash_find(HASH_OF(z),(char*)"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
 	if ((*_cPtr)->type==IS_RESOURCE) {
 	  *ptr = SWIG_ZTS_ConvertResourcePtr(*_cPtr, ty, flags TSRMLS_CC);
 	  return (*ptr == NULL ? -1 : 0);

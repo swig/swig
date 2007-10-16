@@ -634,7 +634,7 @@ public:
 
     /* start the header section */
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "char *error_msg;\n");
+    Printf(s_header, "const char *error_msg;\n");
     Printf(s_header, "int error_code;\n");
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
@@ -718,7 +718,7 @@ public:
 
     /* start the init section */
     Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
-    Printf(s_init, "    \"%s\",\n", module);
+    Printf(s_init, "    (char*)\"%s\",\n", module);
     Printf(s_init, "    %s_functions,\n", module);
     Printf(s_init, "    PHP_MINIT(%s),\n", module);
     Printf(s_init, "    PHP_MSHUTDOWN(%s),\n", module);
@@ -862,11 +862,9 @@ public:
 	return;
     }
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
-    if (cs_entry) {
-      Printf(cs_entry, " ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
-    } else {
-      Printf(s_entry, " ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
-    }
+    String * s = cs_entry;
+    if (!s) s = s_entry;
+    Printf(s, " ZEND_RAW_FENTRY((char*)\"%(lower)s\",%s,NULL,0)\n", cname, iname);
   }
 
   /* ------------------------------------------------------------

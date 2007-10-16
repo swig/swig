@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/16/2007: olly
+	    [PHP] Fix many occurrences of "warning: deprecated conversion from
+	    string constant to 'char*'" from GCC 4.2 in generated C/C++ code.
+
 10/15/2007: wsfulton
             Patch #1797133 from David Piepgrass fixes %attribute when the getter has the same name
             as the attribute name and no longer generate non-functional setter for read-only attributes.
