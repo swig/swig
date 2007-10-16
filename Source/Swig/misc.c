@@ -82,6 +82,8 @@ String *Swig_strip_c_comments(const String *s) {
   const char *c = Char(s);
   const char *comment_begin = 0;
   const char *comment_end = 0;
+  String *stripped = 0;
+
   while (*c) {
     if (!comment_begin && *c == '/') {
       ++c;
@@ -98,12 +100,11 @@ String *Swig_strip_c_comments(const String *s) {
     ++c;
   }
 
-  String *stripped = 0;
   if (comment_begin && comment_end) {
     int size = comment_begin - Char(s);
+    String *stripmore = 0;
     stripped = NewStringWithSize(s, size);
     Printv(stripped, comment_end + 1, NIL);
-    String *stripmore = 0;
     do {
       stripmore = Swig_strip_c_comments(stripped);
       if (stripmore) {
