@@ -1,6 +1,4 @@
 #######################################################################
-# $Header$
-# 
 # SWIG test suite makefile.
 # The test suite comprises many different test cases, which have
 # typically produced bugs in the past. The aim is to have the test 
