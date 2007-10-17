@@ -8,18 +8,19 @@
 %{
 // forward reference needed if using SWIG_ATTRIBUTE_TEMPLATE
 class A;
+class MyFoo; // %attribute2 does not work with templates
 %}
 
 %attribute(A, int, a, get_a, set_a);
-%attribute_ref(A, int, b);
+%attributeref(A, int, b);
 
-%attribute_ref(Param<int>, int, value);
+%attributeref(Param<int>, int, value);
 
 
 %attribute(A, int, c, get_c);  /* read-only */
-%attribute_ref(A, int, b, d);  /* different attribute name 'd' */
+%attributeref(A, int, d, b);   /* renames accessor method 'b' to attribute name 'd' */
 
-%attribute_ref(B, A*, a)
+%attributeref(B, A*, a)
 
 %inline
 {
@@ -91,4 +92,17 @@ class A;
 
 %template(Param_i) Param<int>;
 
+
+%attribute2(MyClass, MyFoo, Foo, GetFoo, SetFoo);
+%inline %{
+  struct MyFoo { 
+    int x;
+  };
+  class MyClass {
+    MyFoo foo;
+  public:
+    MyFoo& GetFoo() { return foo; }
+    void SetFoo(const MyFoo& other) { foo = other; }
+  };
+%} 
 

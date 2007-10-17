@@ -43,4 +43,10 @@ if b.a.c != 3:
  raise RuntimeError
   
 
+myFoo = li_attribute.MyFoo
+myFoo.x = 8
+myClass = li_attribute.MyClass
+myClass.Foo = myFoo
+if myClass.Foo.x != 8:
+  raise RuntimeError
 
