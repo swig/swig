@@ -28,7 +28,7 @@
 #include "wad.h"
 #include <signal.h>
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* Handler function */	
 static void handler(int signo, WadFrame *frame, char *ret) {

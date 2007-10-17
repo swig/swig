@@ -32,7 +32,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* Include the proper code for reading the segment map */
 

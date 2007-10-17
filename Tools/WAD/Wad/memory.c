@@ -31,7 +31,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 typedef struct _WadMemory {
   int                npages;          /* Number of pages            */

@@ -28,7 +28,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 #ifdef WAD_SOLARIS
 #include <sys/elf.h>

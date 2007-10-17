@@ -27,7 +27,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* stabs data structure.   This appears to be somewhat universal. */
 typedef struct Stab {

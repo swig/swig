@@ -26,7 +26,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* Maximum number of return points */
 #define WAD_NUMBER_RETURN  128

@@ -26,7 +26,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 extern void wad_stab_debug();
 

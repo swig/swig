@@ -27,7 +27,7 @@
 #include "Python.h"
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* These are the python exception objects we will add
    SegFault, BusError, AbortError */

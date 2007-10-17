@@ -29,7 +29,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* Hash table containing stab strings and such */
 typedef struct stringtype {

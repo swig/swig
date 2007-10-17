@@ -28,7 +28,7 @@
 #include "wad.h"
 #include <stdarg.h>
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* Utility functions used to generate strings that are guaranteed not to 
    rely upon malloc() and related functions */

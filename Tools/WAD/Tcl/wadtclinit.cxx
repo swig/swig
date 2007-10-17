@@ -21,7 +21,7 @@
  * 
  * See the file COPYING for a complete copy of the LGPL.
  * ----------------------------------------------------------------------------- */
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 extern "C" void tclwadinit();
 

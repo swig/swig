@@ -31,7 +31,7 @@
 
 #include "wad.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 /* -----------------------------------------------------------------------------
  * wad_build_vars()

@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2001. University of Chicago. All rights reserved.
  *
- * $Header$
+ * $Id$
  * ----------------------------------------------------------------------------- */
 
 #include <stdio.h>

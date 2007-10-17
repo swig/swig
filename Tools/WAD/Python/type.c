@@ -29,7 +29,7 @@
 #include "wad.h"
 #include "Python.h"
 
-static char cvs[] = "$Header$";
+static char cvs[] = "$Id$";
 
 typedef struct {
   PyObject_HEAD
