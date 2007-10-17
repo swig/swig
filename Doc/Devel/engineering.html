@@ -25,7 +25,7 @@
 <li><a name="i8" href="#8">8. Naming Conventions</a>
 <li><a name="i9" href="#9">9. Visibility</a>
 <li><a name="i10" href="#10">10. Miscellaneous Coding Guidelines</a>
-<li><a name="i11" href="#11">11. CVS Tagging Conventions</a>
+<li><a name="i11" href="#11">11. SVN Tagging Conventions</a>
 </ul>
 
 <a name="1" href="#i1">
@@ -109,58 +109,6 @@ sure the first letter is capitalized.  Also, module names should not
 start with numbers, include underscores or any other special
 non-alphanumeric characters.
 
-<a name="4" href="#i4">
-<h2>4. Include Files </h2>
-</a>
-
-All modules should include a header file that defines the public interface. 
-The name of this header file should be of the form "swigmodule.h" where
-"module" is the name of your module.  For example, if you created a 
-module "Perl", the header file should be named "swigperl.h".   This scheme
-should prevent header-file naming conflicts both within SWIG and when linking
-parts of SWIG to the outside world.
-
-<p>
-All header files should include a short description, author information, copyright message,
-CVS version, include guards, and be C++ aware. For example:
-
-<blockquote>
-<pre>
-/* -------------------------------------------------------------------------
- * swigperl.h
- *
- *     All of the externally visible functions in the Perl module.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000, The University of Chicago.
- * See the file LICENSE for information on usage and redistribution. 
- *
- * $Header$
- * ------------------------------------------------------------------------- */
-
-#ifndef _SWIGPERL_H
-#define _SWIGPERL_H   1
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Your declarations here */
-...
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* _SWIGPERL_H */
-</pre>
-</blockquote>
-
-
-<p>
-To minimize compilation time, please include as few other header files as possible.
-
 <a name="5" href="#i5">
 <h2>5. File Structure </h2>
 </a>
@@ -172,24 +120,21 @@ creating two files that differ in case-only.
 
 <p>
 Each file should include a short abstract, author information, copyright information, and
-a CVS revision tag like this:
+a SVN revision tag like this:
 
 <blockquote>
 <pre>
 /* -----------------------------------------------------------------------------
- * include.c
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- *     This file implements the functions used to locate and include files in
- *     the SWIG library.  Functions for maintaining the library search path are
- *     also located here.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ * cwrap.c
  *
- * Copyright (C) 1999-2000, The University of Chicago.
- * See the file LICENSE for information on usage and redistribution. 
+ * This file defines a variety of wrapping rules for C/C++ handling including
+ * the naming of local variables, calling conventions, and so forth.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_cwrap_c[] = "$Id$";
 
 #include "swig.h"
 
@@ -211,8 +156,9 @@ static int  avariable;
 </pre>
 </blockquote>
 
-The CVS revision tag should be placed into a static string as shown
-above.  This adds the revision information to the SWIG executable and
+The SVN revision tag should be placed into a static string as shown
+above mangled with the name of the file.
+This adds the revision information to the SWIG executable and
 makes it possible to extract version information from a raw binary
 (sometimes useful in debugging).  
 
@@ -430,10 +376,10 @@ making your changes.
 These are largely covered in the main documentation in the Extending.html file.
 
 <a name="11" href="#i11">
-<h2>11. CVS Tagging Conventions</h2>
+<h2>11. SVN Tagging Conventions</h2>
 </a>
 
-Use <tt>cvs tag</tt> to declare some set of file revisions as related in some
+Use <tt>svn tag</tt> to declare some set of file revisions as related in some
 symbolic way.  This eases reference, retrieval and manipulation of these files
 later.  At the moment (2001/01/16 14:02:53), the conventions are very simple;
 let's hope they stay that way!
@@ -441,7 +387,7 @@ let's hope they stay that way!
 <p>
 There are two types of tags, internal (aka personal) and external.
 Internal tags are used by SWIG developers primarily, whereas external
-tags are used when communicating with people w/ anonymous cvs access.
+tags are used when communicating with people w/ anonymous svn access.
 <ul>
 <li> Internal tags should start with the developer name and a hyphen.
 <li> External tags should start with "v-".
