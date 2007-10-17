@@ -12,7 +12,7 @@
  * to SWIG, you would modify this file.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_swigmain_cxx[] = "$Header$";
+char cvsroot_swigmain_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include <ctype.h>

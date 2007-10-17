@@ -7,7 +7,7 @@
  * Various utility functions.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_utils_cxx[] = "$Header$";
+char cvsroot_utils_cxx[] = "$Id$";
 
 #include <swigmod.h>
 

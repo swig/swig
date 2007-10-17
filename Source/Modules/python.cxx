@@ -7,7 +7,7 @@
  * Python language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_python_cxx[] = "$Header$";
+char cvsroot_python_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #define ctab2  " "

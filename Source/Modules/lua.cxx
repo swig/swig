@@ -40,7 +40,7 @@
 
 */
 
-char cvsroot_lua_cxx[] = "$Header$";
+char cvsroot_lua_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

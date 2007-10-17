@@ -7,7 +7,7 @@
  * Java language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_java_cxx[] = "$Header$";
+char cvsroot_java_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include <limits.h>		// for INT_MAX

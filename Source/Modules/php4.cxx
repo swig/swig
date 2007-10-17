@@ -45,7 +45,7 @@
  * (may need to add more WARN_PHP4_xxx codes...)
  */
 
-char cvsroot_php4_cxx[] = "$Header$";
+char cvsroot_php4_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

@@ -9,7 +9,7 @@
  * building a dispatch function.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_overload_cxx[] = "$Header$";
+char cvsroot_overload_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

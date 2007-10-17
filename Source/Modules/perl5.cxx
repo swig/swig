@@ -7,7 +7,7 @@
  * Perl5 language module for SWIG.
  * ------------------------------------------------------------------------- */
 
-char cvsroot_perl5_cxx[] = "$Header$";
+char cvsroot_perl5_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include "cparse.h"

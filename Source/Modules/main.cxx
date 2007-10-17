@@ -7,7 +7,7 @@
  * Main entry point to the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_main_cxx[] = "$Header$";
+char cvsroot_main_cxx[] = "$Id$";
 
 #include "swigconfig.h"
 

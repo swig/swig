@@ -7,7 +7,7 @@
  * C# language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_csharp_cxx[] = "$Header$";
+char cvsroot_csharp_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include <limits.h>		// for INT_MAX

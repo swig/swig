@@ -7,7 +7,7 @@
  * Mzscheme language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_mzscheme_cxx[] = "$Header$";
+char cvsroot_mzscheme_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

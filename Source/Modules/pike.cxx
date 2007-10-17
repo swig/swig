@@ -25,7 +25,7 @@
  *
  */
 
-char cvsroot_pike_cxx[] = "$Header$";
+char cvsroot_pike_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

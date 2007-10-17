@@ -8,7 +8,7 @@
  * feature that's normally disabled.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_browser_cxx[] = "$Header$";
+char cvsroot_browser_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

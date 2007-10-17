@@ -7,7 +7,7 @@
  * Modula3 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_modula3_cxx[] = "$Header$";
+char cvsroot_modula3_cxx[] = "$Id$";
 
 /*
   Text formatted with

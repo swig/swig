@@ -7,7 +7,7 @@
  * CHICKEN language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_chicken_cxx[] = "$Header$";
+char cvsroot_chicken_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

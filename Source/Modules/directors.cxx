@@ -9,7 +9,7 @@
  * in SWIG.  --MR
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_directors_cxx[] = "$Header";
+char cvsroot_directors_cxx[] = "$Id";
 
 #include "swigmod.h"
 

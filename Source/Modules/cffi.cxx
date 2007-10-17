@@ -7,7 +7,7 @@
  * cffi language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cffi_cxx[] = "$Header$";
+char cvsroot_cffi_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include "cparse.h"

@@ -7,7 +7,7 @@
  * Support for Wrap by Contract in SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_contract_cxx[] = "$Header$";
+char cvsroot_contract_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

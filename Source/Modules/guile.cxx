@@ -7,7 +7,7 @@
  * Guile language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_guile_cxx[] = "$Header$";
+char cvsroot_guile_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

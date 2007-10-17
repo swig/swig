@@ -7,7 +7,7 @@
  * Ocaml language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_ocaml_cxx[] = "$Header$";
+char cvsroot_ocaml_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

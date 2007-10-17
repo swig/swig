@@ -7,7 +7,7 @@
  * Ruby language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_ruby_cxx[] = "$Header$";
+char cvsroot_ruby_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include "cparse.h"

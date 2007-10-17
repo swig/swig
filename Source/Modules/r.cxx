@@ -7,7 +7,7 @@
  * R language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_r_cxx[] = "$Header$";
+char cvsroot_r_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

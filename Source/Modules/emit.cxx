@@ -7,7 +7,7 @@
  * Useful functions for emitting various pieces of code.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_emit_cxx[] = "$Header$";
+char cvsroot_emit_cxx[] = "$Id$";
 
 #include "swigmod.h"
 

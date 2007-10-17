@@ -7,7 +7,7 @@
  * Tcl8 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tcl8_cxx[] = "$Header$";
+char cvsroot_tcl8_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include "cparse.h"

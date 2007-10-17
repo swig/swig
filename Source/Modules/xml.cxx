@@ -7,7 +7,7 @@
  * An Xml parse tree generator.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_xml_cxx[] = "$Header$";
+char cvsroot_xml_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
