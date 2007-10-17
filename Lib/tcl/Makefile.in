@@ -1,5 +1,4 @@
 # ---------------------------------------------------------------
-# $Header$
 # SWIG Tcl/Tk Makefile
 # 
 # This file can be used to build various Tcl extensions with SWIG.

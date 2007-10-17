@@ -1,8 +1,6 @@
 /* -----------------------------------------------------------------------------
  * swig.swg
  *
- * $Header$
- *
  * Common macro definitions for various SWIG directives.  This file is always 
  * included at the top of each input file.
  * ----------------------------------------------------------------------------- */

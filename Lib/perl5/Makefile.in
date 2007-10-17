@@ -1,5 +1,4 @@
 # ---------------------------------------------------------------
-# $Header$
 # SWIG Perl5 Makefile
 # 
 # This file can be used to build various Perl5 extensions with SWIG.
