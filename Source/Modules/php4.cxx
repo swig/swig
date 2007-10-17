@@ -714,7 +714,7 @@ public:
     cs_entry = NULL;
 
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
-    Printf(s_entry, "static function_entry %s_functions[] = {\n", module);
+    Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
     /* start the init section */
     Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
@@ -856,7 +856,7 @@ public:
 
   /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *iname) {
-    // This is for the single main function_entry record
+    // This is for the single main zend_function_entry record
     if (shadow && php_version == 4) {
       if (wrapperType != standard)
 	return;
@@ -864,7 +864,7 @@ public:
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
     String * s = cs_entry;
     if (!s) s = s_entry;
-    Printf(s, " ZEND_RAW_FENTRY((char*)\"%(lower)s\",%s,NULL,0)\n", cname, iname);
+    Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
   }
 
   /* ------------------------------------------------------------

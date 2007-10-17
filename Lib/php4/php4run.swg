@@ -14,6 +14,16 @@ extern "C" {
 #include "zend_API.h"
 #include "php.h"
 
+#ifdef ZEND_RAW_FENTRY
+/* ZEND_RAW_FENTRY was added somewhere between 5.2.0 and 5.2.3 */
+# define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_RAW_FENTRY((char*)#ZN, N, A, 0)
+#else
+/* This causes warnings from GCC >= 4.2 (assigning a string literal to char*).
+ * But this seems to be unavoidable without directly assuming knowledge of
+ * the structure, which changed between PHP4 and PHP5. */
+# define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
+#endif
+
 /* These TSRMLS_ stuff should already be defined now, but with older php under
    redhat are not... */
 #ifndef TSRMLS_D
