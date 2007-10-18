@@ -17,22 +17,20 @@
                    signed char,
                    bool,
                    enum SWIGTYPE
-  "REGISTER_LONG_CONSTANT((char*)\"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
+  "SWIG_LONG_CONSTANT($symname, $value);";
 
 %typemap(consttab) float,
                    double
-  "REGISTER_DOUBLE_CONSTANT((char*)\"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
+  "SWIG_DOUBLE_CONSTANT($symname, $value);";
 
-%typemap(consttab) char {
-  static char swig_char = $value;
-  REGISTER_STRINGL_CONSTANT((char*)"$symname", &swig_char, 1, CONST_CS | CONST_PERSISTENT);
-}
+%typemap(consttab) char
+  "SWIG_CHAR_CONSTANT($symname, $value);";
 
 %typemap(consttab) char *,
-                    const char *,
-                    char [],
-                    const char []
-  "REGISTER_STRINGL_CONSTANT((char*)\"$symname\", $value, strlen($value), CONST_CS | CONST_PERSISTENT);";
+                   const char *,
+                   char [],
+                   const char []
+  "SWIG_STRING_CONSTANT($symname, $value);";
 
 %typemap(consttab) SWIGTYPE *,
                    SWIGTYPE &,
