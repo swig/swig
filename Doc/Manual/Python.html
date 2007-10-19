@@ -14,8 +14,8 @@
 <li><a href="#Python_nn3">Preliminaries</a>
 <ul>
 <li><a href="#Python_nn4">Running SWIG</a>
-<li><a href="#Python_nn6">Compiling a dynamic module</a>
-<li><a href="#Python_nn7">Using distutils</a>
+<li><a href="#Python_nn6">Using distutils</a>
+<li><a href="#Python_nn7">Hand compiling a dynamic module</a>
 <li><a href="#Python_nn8">Static linking</a>
 <li><a href="#Python_nn9">Using your module</a>
 <li><a href="#Python_nn10">Compilation of C++ extensions</a>
@@ -165,16 +165,59 @@ Suppose that you defined a SWIG module such as the following:
 <div class="code">
 <pre>
 /* File: example.i */
-%module test
+%module example
+
 %{
-#include "stuff.h"
+#define SWIG_FILE_WITH_INIT
+#include "example.h"
 %}
+
 int fact(int n);
 </pre>
 </div>
 
 <p>
-To build a Python module, run SWIG using the <tt>-python</tt> option :
+The <tt> #define SWIG_FILE_WITH_INIT </tt> line inserts a macro that specifies that the
+resulting C file should be built as a python extension, inserting the module
+<tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
+</p>
+
+<div class="code">
+<pre>
+/* File: example.c */
+
+#include "example.h"
+
+int fact(int n) {
+    if (n &lt; 0){ /* This should probably return an error, but this is simpler */
+        return 0;
+    }
+    if (n == 0) {
+        return 1;
+    }
+    else {
+        /* testing for overflow would be a good idea here */
+        return n * fact(n-1);
+    }
+}
+
+</pre>
+</div>
+
+<p>
+With the header file:
+</p>
+
+<div class="code">
+<pre>
+/* File: example.h */
+
+int fact(int n);
+</pre>
+</div>
+
+<p>
+To build a Python module, run SWIG using the <tt>-python</tt> option:
 </p>
 
 <div class="shell"><pre>
@@ -191,55 +234,125 @@ $ swig -c++ -python example.i
 
 <p>
 This creates two different files; a C/C++ source file <tt>example_wrap.c</tt> or
-<tt>example_wrap.cxx</tt> and a Python source file <tt>example.py</tt>.   The generated
-C source file contains the low-level wrappers that need to be compiled and linked with the
-rest of your C/C++ application to create an extension module. The Python source file contains 
-high-level support code. This is the file that you will import to use the module.
+<tt>example_wrap.cxx</tt> and a Python source file <tt>example.py</tt>.   The generated C
+source file contains the low-level wrappers that need to be compiled and linked with the
+rest of your C/C++ application to create an extension module. The Python source file
+contains high-level support code. This is the file that you will import to use the module.
 </p>
 
 <p>
 The name of the wrapper file is derived from the name of the input file.  For example, if the
 input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
 To change this, you can use the <tt>-o</tt> option.   The name of the Python file is derived
-from the module name specified with <tt>%module</tt>.  If the module name is <tt>example</tt>, then
-a file <tt>example.py</tt> is created.
+from the module name specified with <tt>%module</tt>.  If the module name is <tt>example</tt>,
+then a file <tt>example.py</tt> is created.
 </p>
 
 <p>
-The following sections have further practical examples and details on how you might go about
-compiling and using the generated files.
+The following sections have further practical examples and details on
+how you might go about compiling and using the generated files.
 </p>
 
-<div class="diagram"><pre>
-/usr/local/include/python2.0
-</pre></div>
+<H3><a name="Python_nn6"></a>29.2.2 Using distutils</H3>
+
 
 <p>
-The exact location may vary on your machine, but the above location is
-typical.  If you are not entirely sure where Python is installed, you
-can run Python to find out.  For example:
+The preferred approach to building an extension module for python is to compile it with
+distutils, which comes with all recent versions of python
+(<a href="http://docs.python.org/dist/dist.html">Distutils Docs</a>).
 </p>
 
-<div class="targetlang">
+<p>
+Distutils takes care of making sure that your extension is built with all the correct
+flags, headers, etc. for the version of Python it is run with. Distutils will compile your
+extension into a shared object file or DLL (<tt>.so</tt> on Linux, <tt>.pyd</tt> on
+Windows, etc). In addition, distutils can handle installing your package into
+site-packages, if that is desired. A configuration file (conventionally called: <tt>setup.py</tt>)
+describes the extension (and related python modules). The distutils will
+then generate all the right compiler directives to build it for you.
+</p>
+
+<p>
+Here is a sample <tt>setup.py</tt> file for the above example:
+</p>
+
+<div class="code">
 <pre>
-$ python
-Python 2.1.1 (#1, Jul 23 2001, 14:36:06)
-[GCC egcs-2.91.66 19990314/Linux (egcs-1.1.2 release)] on linux2
-Type "copyright", "credits" or "license" for more information.
-&gt;&gt;&gt; import sys
-&gt;&gt;&gt; print sys.prefix
-/usr/local
-&gt;&gt;&gt;           
+#!/usr/bin/env python
+
+"""
+setup.py file for SWIG example
+"""
+
+from distutils.core import setup, Extension
+
+
+example_module = Extension('_example',
+                           sources=['example_wrap.c', 'example.c'],
+                           )
+
+setup (name = 'example',
+       version = '0.1',
+       author      = "SWIG Docs",
+       description = """Simple swig example from docs""",
+       ext_modules = [example_module],
+       py_modules = ["example"],
+       )
 </pre>
 </div>
 
-<H3><a name="Python_nn6"></a>29.2.2 Compiling a dynamic module</H3>
+<p>
+In this example, the line: <tt>example_module = Extension(....)</tt> creates an Extension
+module object, defining the name as <tt>_example</tt>, and using the source code files:
+<tt>example_wrap.c</tt>, generated by swig, and <tt>example.c</tt>, your original c
+source. The swig (and other python extension modules) tradition is for the compiled
+extension to have the name of the python portion, prefixed by an underscore. If the name
+of your python module is "<tt>example.py</tt>", then the name of the corresponding object file
+will be"<tt>_example.so</tt>"
+</p>
+
+<p>
+The <tt>setup</tt> call then sets up distutils to build your package, defining
+some meta data, and passing in your extension module object.
+Once this is saved as <tt>setup.py</tt>, you can build your extension with these commands:
+</p>
+
+<div class="shell"><pre>
+$ swig -python example.i
+$ python setup.py build_ext --inplace
+</pre></div>
+
+<p>
+And a .so, or .pyd or... will be created for you. It will build a version that matches the
+python that you run the command with. Taking apart the command line:
+</p>
+
+<ul>
+<li> <tt>python</tt> -- the version of python you want to build for
+<li> <tt>setup.py</tt> -- the name of your setup script (it can be called anything, but
+     setup.py is the tradition)
+<li> <tt>build_ext</tt> -- telling distutils to build extensions
+<li> <tt>--inplace</tt> -- this tells distutils to put the extension lib in the current dir.
+     Other wise, it will put it inside a build hierarchy, and you'd have to move it to use it.
+</ul>
+
+<p>
+The distutils have many other features, consult the python distutils docs for details.
+</p>
+
+<p>
+This same approach works on all platforms if the appropriate compiler is installed. (it
+can even build extensions to the standard Windows Python using MingGW)
+</p>
+
+<H3><a name="Python_nn7"></a>29.2.3 Hand compiling a dynamic module</H3>
 
 
 <p>
-The preferred approach to building an extension module is to compile it into
-a shared object file or DLL.   To do this, you need to compile your program
-using commands like this (shown for Linux):
+While the preferred approach to building an extension module is to use the distutils, some
+people like to integrate building extensions with a larger build system, and thus may wish
+to compile their modules without the distutils. To do this, you need to compile your
+program using commands like this (shown for Linux):
 </p>
 
 <div class="shell"><pre>
@@ -278,8 +391,6 @@ other Python extension modules.  For example, the <tt>socket</tt>
 module actually consists of two files; <tt>socket.py</tt> and
 <tt>_socket.so</tt>.  Many other built-in Python modules follow a similar convention.
 </p>
-
-<H3><a name="Python_nn7"></a>29.2.3 Using distutils</H3>
 
 
 <H3><a name="Python_nn8"></a>29.2.4 Static linking</H3>
@@ -525,7 +636,9 @@ read the man pages).
 Compilation of C++ extensions has traditionally been a tricky problem.
 Since the Python interpreter is written in C, you need to take steps to
 make sure C++ is properly initialized and that modules are compiled
-correctly.
+correctly. This should be a non-issue if you're using distutils, as
+it takes care of all that for you. The following is included for
+historical reasons, and in case you need to compile on your own.
 </p>
 
 <p>
@@ -656,12 +769,31 @@ extension.
 
 
 <p>
-Building a SWIG extension to Python under Windows is roughly
-similar to the process used with Unix.   You will need to create a
-DLL that can be loaded into the interpreter.  This section briefly
-describes the use of SWIG with Microsoft Visual C++.   As a starting
-point, many of SWIG's examples include project files.  You might want to 
-take a quick look at these in addition to reading this section.
+Building a SWIG extension to Python under Windows is roughly similar to
+the process used with Unix. Using the distutils, it is essentially
+identical. If you have the same version of the MS compiler that Python
+was built with (the python2.4 and python2.5 distributed by python.org
+are built with Visual Studio 2003), the standard <tt> python setup.py
+build </tt> should just work.
+</p>
+
+<p>
+As of python2.5, the distutils support building extensions with MingGW out
+of the box. Following the instruction here:
+<a href="http://boodebr.org/main/python/build-windows-extensions">Building
+Python extensions for Windows with only free tools</a> should get you started.
+</p>
+
+<p>
+If you need to build it on your own, the following notes are provided:
+</p>
+
+<p>
+You will need to create a DLL that can be loaded into the interpreter. 
+This section briefly describes the use of SWIG with Microsoft Visual
+C++.   As a starting point, many of SWIG's examples include project
+files.  You might want to take a quick look at these in addition to
+reading this section.
 </p>
 
 <p>
@@ -740,6 +872,7 @@ compilers tends to be rather problematic.  For the latest information,
 you may want to consult the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">
 SWIG Wiki</a>.
 </p>
+
 
 <H2><a name="Python_nn13"></a>29.3 A tour of basic C/C++ wrapping</H2>
 
@@ -1828,7 +1961,8 @@ In Python:
 
 <p>
 Obviously, there is more to template wrapping than shown in this example.
-More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.   Some more complicated
+More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.  
+Some more complicated
 examples will appear later.
 </p>
 
@@ -4498,7 +4632,9 @@ int SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)</t
 Converts a Python object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
 into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
 <tt>flags</tt> is used to handle error checking and other aspects of conversion.  It is the
-bitwise-or of several flag values including <tt>SWIG_POINTER_EXCEPTION</tt> and <tt>SWIG_POINTER_DISOWN</tt>.   The first flag makes the function raise an exception on type error.  The second flag additionally
+bitwise-or of several flag values including <tt>SWIG_POINTER_EXCEPTION</tt> and
+<tt>SWIG_POINTER_DISOWN</tt>.   The first flag makes the function raise an exception on type
+error.  The second flag additionally
 steals ownership of an object. Returns 0 on success and -1 on error.
 </div>
 
