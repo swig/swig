@@ -1473,48 +1473,55 @@ public:
     String *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
 
-    /* Deal with inheritance */
-    List *baselist = Getattr(n, "bases");
-    if (baselist) {
-      Iterator base = First(baselist);
-      while (base.item && GetFlag(base.item, "feature:ignore")) {
-	base = Next(base);
-      }
-      if (base.item) {
-	c_baseclassname = Getattr(base.item, "name");
-	baseclass = Copy(getProxyName(c_baseclassname));
-	if (baseclass)
-	  c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-	base = Next(base);
-	/* Warn about multiple inheritance for additional base class(es) */
-	while (base.item) {
-	  if (GetFlag(base.item, "feature:ignore")) {
-	    base = Next(base);
-	    continue;
-	  }
-	  String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	  String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	  Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
-		       "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
-	  base = Next(base);
-	}
-      }
-    }
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
     const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE, attributes);
+    bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
+    Delete(attributes);
+
+    // C++ inheritance
+    if (!purebase_replace) {
+      List *baselist = Getattr(n, "bases");
+      if (baselist) {
+        Iterator base = First(baselist);
+        while (base.item && GetFlag(base.item, "feature:ignore")) {
+          base = Next(base);
+        }
+        if (base.item) {
+          c_baseclassname = Getattr(base.item, "name");
+          baseclass = Copy(getProxyName(c_baseclassname));
+          if (baseclass)
+            c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
+          base = Next(base);
+          /* Warn about multiple inheritance for additional base class(es) */
+          while (base.item) {
+            if (GetFlag(base.item, "feature:ignore")) {
+              base = Next(base);
+              continue;
+            }
+            String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
+            String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
+            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
+            base = Next(base);
+          }
+        }
+      }
+    }
+
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
     bool derived = baseclass && getProxyName(c_baseclassname);
 
-    if (GetFlag(attributes, "tmap:csbase:replace")) {
+    if (purebase_replace) {
       wanted_base = pure_baseclass;
-      derived = *Char(wanted_base) ? true : false;
+      derived = false;
       Delete(baseclass);
       baseclass = NULL;
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
-		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
+		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. Perhaps you need the replace attribute in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
+
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
