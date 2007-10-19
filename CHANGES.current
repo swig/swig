@@ -1,6 +1,11 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/19/2007: olly
+	    [perl5] Clear errno before calls to strtol(), strtoul(), strtoll()
+	    and strtoull() which we check errno after to avoid seeing a junk
+	    value of errno if there isn't an error in the call.
+
 10/16/2007: wsfulton
             Deprecate %attribute_ref and replace with %attributeref. There is just an argument
             order change in order to maintain consistency with %attribute, from:

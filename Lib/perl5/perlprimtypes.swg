@@ -63,7 +63,9 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
-      long v = strtol(nptr, &endptr,0);
+      long v;
+      errno = 0;
+      v = strtol(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
@@ -121,7 +123,9 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
-      unsigned long v = strtoul(nptr, &endptr,0);
+      unsigned long v;
+      errno = 0;
+      v = strtoul(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
@@ -182,7 +186,9 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
-      long long v = strtoll(nptr, &endptr,0);
+      long long v;
+      errno = 0;
+      v = strtoll(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
@@ -252,7 +258,9 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
     const char *nptr = SvPV(obj, PL_na);
     if (nptr) {
       char *endptr;
-      unsigned long long v = strtoull(nptr, &endptr,0);
+      unsigned long long v;
+      errno = 0;
+      v = strtoull(nptr, &endptr,0);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;
