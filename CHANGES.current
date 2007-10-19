@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/19/2007: wsfulton
+            [Java, C#] Bug #1794247 - fix generated code for derived classes when csbase or javabase
+            typemaps are used with the replace="1" attribute.
+
+10/19/2007: wsfulton
+            [Python] Docs updated to suggest using distutils. Patch #1796681 from Christopher Barker.
+
 10/19/2007: olly
 	    [perl5] Clear errno before calls to strtol(), strtoul(), strtoll()
 	    and strtoull() which we check errno after to avoid seeing a junk
