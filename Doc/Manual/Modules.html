@@ -10,6 +10,7 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
+<li><a href="#Modules_nn1">Basics</a>
 <li><a href="#Modules_nn2">The SWIG runtime code</a>
 <li><a href="#external_run_time">External access to the runtime</a>
 <li><a href="#Modules_nn4">A word of caution about static libraries</a>
@@ -36,44 +37,117 @@ This chapter describes the problem of using SWIG in programs
 where you want to create a collection of modules.
 </p>
 
-<H2><a name="Modules_nn2"></a>15.1 The SWIG runtime code</H2>
-
+<h2><a name="Modules_nn1"></a>15.1 Basics</h2>
 
 <p>
-Many of SWIG's target languages generate a set of functions
-commonly known as the "SWIG runtime."   These functions are 
-primarily related to the runtime type system which checks pointer
-types and performs other tasks such as proper casting of pointer
-values in C++. As a general rule, the statically typed target languages,
-such as Java, use the language's built in static type checking and
+The basic usage case with multiple modules is when modules do not have
+cross-references (ie. when wrapping multiple independent C APIs). In that case,
+swig input files should just work out of the box - you simply create multiple
+wrapper .cxx files, link them into your application, and insert/load each in the
+scripting language runtime as you would do for the single module case.
+</p>
+
+<p>
+A bit more complex is the case in which modules need to share information.
+For example, when one module extends the class of the another by deriving from
+it:
+</p>
+
+<div class="code"><pre>
+%module base
+
+%inline %{
+class base {
+public:
+       int foo(void);
+};
+%}
+</pre></div>
+&nbsp;
+<div class="code"><pre>
+%module derived
+
+%import "base.i"
+
+%inline %{
+class derived : public base {
+public:
+       int bar(void);
+};
+%}
+</pre></div>
+
+<p>To create the wrapper properly, module <tt>derived</tt> needs to know the
+<tt>base</tt> class and that it's interface is covered in another module. The
+line <tt>%import "base.i"</tt> lets SWIG know exactly that. The common mistake here is
+to <tt>%import</tt> the <tt>.h</tt> file instead of the <tt>.i</tt>, which sadly won't do the trick. Another issue
+to take care of is that multiple dependent wrappers should not be linked/loaded
+in parallel from multiple threads as SWIG provides no locking - for more on that
+issue, read on.</p>
+
+<H2><a name="Modules_nn2"></a>15.2 The SWIG runtime code</H2>
+
+<p>
+Many of SWIG's target languages generate a set of functions commonly known as
+the "SWIG runtime." These functions are primarily related to the runtime type
+system which checks pointer types and performs other tasks such as proper
+casting of pointer values in C++. As a general rule, the statically typed target
+languages, such as Java, use the language's built in static type checking and
 have no need for a SWIG runtime. All the dynamically typed / interpreted
 languages rely on the SWIG runtime.
 </p>
 
 <p>
-The runtime functions are private to each SWIG-generated
-module.  That is, the runtime functions are declared with "static"
-linkage and are visible only to the wrapper functions defined in that
-module.  The only problem with this approach is that when more than one SWIG
-module is used in the same application, those modules often need to
-share type information.  This is especially true for C++ programs
-where SWIG must collect and share information about inheritance
+The runtime functions are private to each SWIG-generated module. That is, the
+runtime functions are declared with "static" linkage and are visible only to the
+wrapper functions defined in that module. The only problem with this approach is
+that when more than one SWIG module is used in the same application, those
+modules often need to share type information. This is especially true for C++
+programs where SWIG must collect and share information about inheritance
 relationships that cross module boundaries.
 </p>
 
 <p>
 To solve the problem of sharing information across modules, a pointer to the
-type information is stored in a global variable in the target language namespace.
-During module initialization, type information is loaded into the global data
-structure of type information from all modules.
+type information is stored in a global variable in the target language
+namespace. During module initialization, type information is loaded into the
+global data structure of type information from all modules.
 </p>
 
 <p>
-This can present a problem with threads.  If two modules try and load at the same
-time, the type information can become corrupt.  SWIG currently does not provide any
-locking, and if you use threads, you must make sure that modules are loaded serially.
-Be careful if you use threads and the automatic module loading that some scripting
-languages provide.  One solution is to load all modules before spawning any threads.
+There are a few trade offs with this approach. This type information is global
+across all SWIG modules loaded, and can cause type conflicts between modules
+that were not designed to work together. To solve this approach, the SWIG
+runtime code uses a define SWIG_TYPE_TABLE to provide a unique type table. This
+behavior can be enabled when compiling the generated _wrap.cxx or _wrap.c file
+by adding -DSWIG_TYPE_TABLE=myprojectname to the command line argument.
+</p>
+
+<p>
+Then, only modules compiled with SWIG_TYPE_TABLE set to myprojectname will share
+type information. So if your project has three modules, all three should be
+compiled with -DSWIG_TYPE_TABLE=myprojectname, and then these three modules will
+share type information. But any other project's types will not interfere or
+clash with the types in your module.
+</p>
+
+<p>
+Another issue relating to the global type table is thread safety. If two modules
+try and load at the same time, the type information can become corrupt. SWIG
+currently does not provide any locking, and if you use threads, you must make
+sure that modules are loaded serially. Be careful if you use threads and the
+automatic module loading that some scripting languages provide. One solution is
+to load all modules before spawning any threads, or use SWIG_TYPE_TABLE to
+separate type tables so they do not clash with each other.
+</p>
+
+<p>
+Lastly, SWIG uses a #define SWIG_RUNTIME_VERSION, located in Lib/swigrun.swg and
+near the top of every generated module. This number gets incremented when the
+data structures change, so that SWIG modules generated with different versions
+can peacefully coexist. So the type structures are separated by the
+(SWIG_TYPE_TABLE, SWIG_RUNTIME_VERSION) pair, where by default SWIG_TYPE_TABLE
+is empty. Only modules compiled with the same pair will share type information.
 </p>
 
 <H2><a name="external_run_time"></a>15.2 External access to the runtime</H2>
@@ -86,7 +160,7 @@ is embedded into the <tt>_wrap.c</tt> file, which has those declarations availab
 to call the SWIG run-time functions from another C file, there is one header you need
 to include.  To generate the header that needs to be included, run the following command:
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -python -external-runtime &lt;filename&gt;
 </pre></div>
 
@@ -105,6 +179,13 @@ file and the _wrap.c files through a global variable in the scripting language. 
 possible to copy this header file along with the generated wrapper files into your own package,
 so that you can distribute a package that can be compiled without SWIG installed (this works
 because the header file is self-contained, and does not need to link with anything).</p>
+
+<p>
+This header will also use the -DSWIG_TYPE_TABLE described above, so when
+compiling any code which includes the generated header file should define the
+SWIG_TYPE_TABLE to be the same as the module whose types you are trying to
+access.
+</p>
 
 <H2><a name="Modules_nn4"></a>15.3 A word of caution about static libraries</H2>
 
