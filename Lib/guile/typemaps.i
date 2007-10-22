@@ -225,9 +225,9 @@
 
 %define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
  %typemap (in,     doc="$NAME is of type <" #SCM_NAME ">")
-     C_NAME {$1 = SCM_TO_C($input);}
+     C_NAME {$1 = ($1_ltype) SCM_TO_C($input);}
  %typemap (varin,  doc="NEW-VALUE is of type <" #SCM_NAME ">")
-     C_NAME {$1 = SCM_TO_C($input);}
+     C_NAME {$1 = ($1_ltype) SCM_TO_C($input);}
  %typemap (out,    doc="<" #SCM_NAME ">")
      C_NAME {$result = C_TO_SCM($1);}
  %typemap (varout, doc="<" #SCM_NAME ">")
@@ -250,7 +250,7 @@
  /* Const primitive references.  Passed by value */
  %typemap(in, doc="$NAME is of type <" #SCM_NAME ">") const C_NAME & (C_NAME temp) {
    temp = SCM_TO_C($input);
-   $1 = &temp;
+   $1 = ($1_ltype) &temp;
  }
  %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME & {
    $result = C_TO_SCM(*$1);
@@ -292,7 +292,7 @@ SIMPLE_MAP(unsigned long long, gh_scm2ulong_long, gh_ulong_long2scm, integer);
   $1 = ($1_ltype)SWIG_scm2str($input);
   must_free = 1;
  }
- %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = SWIG_scm2str($input);}
+ %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = ($1_ltype)SWIG_scm2str($input);}
  %typemap (out,    doc="<string>")              char * {$result = gh_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")              char * {$result = gh_str02scm($1);}
  %typemap (in, doc="$NAME is a string")          char * *INPUT(char * temp, int must_free = 0) {
