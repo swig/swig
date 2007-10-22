@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/22/2007: mkoeppe
+	    [Guile -scm] Fix testcases apply_signed_char and apply_strings
+	    by adding explicit casts to the appropriate $ltype.
+
 10/22/2007: wsfulton
             [Java, C#] Fix uninitialised variable usage on error in director methods.
 
