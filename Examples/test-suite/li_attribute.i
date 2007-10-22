@@ -7,8 +7,8 @@
 
 %{
 // forward reference needed if using SWIG_ATTRIBUTE_TEMPLATE
-class A;
-class MyFoo; // %attribute2 does not work with templates
+struct A;
+struct MyFoo; // %attribute2 does not work with templates
 %}
 
 %attribute(A, int, a, get_a, set_a);

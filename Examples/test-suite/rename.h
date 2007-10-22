@@ -27,7 +27,7 @@ namespace Space {
     void templateXYZ(XYZ<T> i) {}
     operator T() { return m_t; }
     operator NotXYZ<T>() const { return m_notxyz; }
-    operator XYZ<T>() const { XYZ<T> xyz; return xyz; }
+    operator XYZ<T>() const { XYZ<T> xyz = XYZ<T>(); return xyz; }
   };
 }
 
