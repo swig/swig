@@ -704,7 +704,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
     // I refered to the Language::variableWrapper() to find this out
-    bool assignable=is_assignable(n);
+    bool assignable=is_assignable(n) ? true : false;
     SwigType *type = Getattr(n, "type");
     String *tm = Swig_typemap_lookup_new("globalin", n, iname, 0);
     if (!tm && SwigType_isarray(type))

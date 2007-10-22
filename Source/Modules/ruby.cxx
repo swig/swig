@@ -2958,8 +2958,8 @@ public:
     int status = SWIG_OK;
     int idx;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    bool asvoid = bool( checkAttribute( n, "feature:numoutputs", "0") );
-    bool initstack = bool( checkAttribute( n, "feature:initstack", "1") );
+    bool asvoid = checkAttribute( n, "feature:numoutputs", "0") ? true : false;
+    bool initstack = checkAttribute( n, "feature:initstack", "1") ? true : false;
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
