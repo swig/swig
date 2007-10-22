@@ -3293,7 +3293,9 @@ public:
       if (!is_void && (!ignored_method || pure_virtual)) {
 	if (!SwigType_isclass(returntype)) {
 	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+            String *construct_result = NewStringf("= %s()", SwigType_lstr(returntype, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+            Delete(construct_result);
 	  } else {
 	    String *base_typename = SwigType_base(returntype);
 	    String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
@@ -3374,7 +3376,7 @@ public:
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
-	  Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
+	  Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
 	  Delete(jretval_decl);
 	}
 
@@ -3433,7 +3435,7 @@ public:
 
       Wrapper_add_localv(w, "jnienv", "JNIEnvWrapper", "jnienv(this)", NIL, NIL);
       Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= jnienv.getJNIEnv()", NIL);
-      Wrapper_add_localv(w, jobjstr, "jobject ", jobjstr, "= (jobject) NULL", NIL);
+      Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) NULL", NIL);
       Delete(jenvstr);
       Delete(jobjstr);
 
@@ -3971,7 +3973,7 @@ public:
     else
       internal_classname = NewStringf("%s", classname);
 
-    Wrapper_add_localv(w, "baseclass", "static jclass baseclass", " = 0", NIL);
+    Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
 
     if (first_class_dmethod != curr_class_dmethod) {

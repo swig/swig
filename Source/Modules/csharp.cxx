@@ -3184,7 +3184,9 @@ public:
       if (!is_void && !ignored_method) {
 	if (!SwigType_isclass(returntype)) {
 	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+            String *construct_result = NewStringf("= %s()", SwigType_lstr(returntype, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+            Delete(construct_result);
 	  } else {
 	    String *base_typename = SwigType_base(returntype);
 	    String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
@@ -3247,7 +3249,7 @@ public:
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
-	  Wrapper_add_localv(w, "jresult", jretval_decl, " = 0", NIL);
+	  Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
 	  Delete(jretval_decl);
 	}
       } else {
