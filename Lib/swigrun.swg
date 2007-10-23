@@ -230,7 +230,7 @@ SWIG_TypeNameComp(const char *f1, const char *l1,
     while ((*f2 == ' ') && (f2 != l2)) ++f2;
     if (*f1 != *f2) return (*f1 > *f2) ? 1 : -1;
   }
-  return (l1 - f1) - (l2 - f2);
+  return (int)((l1 - f1) - (l2 - f2));
 }
 
 /*
