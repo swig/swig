@@ -14,6 +14,15 @@
  * The imtype typemap contains the C# type used in the intermediary class. 
  * The cstype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
+/* fragments */
+%fragment("int64_t", "header") {
+%#if defined(_MSC_VER)
+typedef __int64 int64_t;
+%#else
+%#include <stdint.h>
+%#endif
+}
+
 /* Primitive types */
 %typemap(ctype) bool,               const bool &               "unsigned int"
 %typemap(ctype) char,               const char &               "char"
@@ -85,7 +94,7 @@
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
 /* pointer to a class member */
-%typemap(ctype) SWIGTYPE (CLASS::*) "int64_t"
+%typemap(ctype, fragment="int64_t") SWIGTYPE (CLASS::*) "int64_t"
 %typemap(imtype) SWIGTYPE (CLASS::*) "ulong"
 %typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
@@ -185,7 +194,7 @@
 %typemap(out) int                %{ $result = $1; %}
 %typemap(out) unsigned int       %{ $result = $1; %}
 %typemap(out) long               %{ $result = $1; %}
-%typemap(out) unsigned long      %{ $result = $1; %}
+%typemap(out) unsigned long      %{ $result = (unsigned long)$1; %}
 %typemap(out) long long          %{ $result = $1; %}
 %typemap(out) unsigned long long %{ $result = $1; %}
 %typemap(out) float              %{ $result = $1; %}
@@ -301,7 +310,7 @@
 %typemap(out) const int &                %{ $result = *$1; %}
 %typemap(out) const unsigned int &       %{ $result = *$1; %}
 %typemap(out) const long &               %{ $result = *$1; %}
-%typemap(out) const unsigned long &      %{ $result = *$1; %}
+%typemap(out) const unsigned long &      %{ $result = (unsigned long)*$1; %}
 %typemap(out) const long long &          %{ $result = *$1; %}
 %typemap(out) const unsigned long long & %{ $result = *$1; %}
 %typemap(out) const float &              %{ $result = *$1; %}
