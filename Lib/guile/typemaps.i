@@ -324,11 +324,11 @@ SIMPLE_MAP(unsigned long long, gh_scm2ulong_long, gh_ulong_long2scm, integer);
 
 %typemap (varin) char * {
     if ($1) free($1);
-    $1 = SWIG_scm2str($input);
+    $1 = ($1_ltype) SWIG_scm2str($input);
 }
 
 %typemap (varin) const char * {
-    $1 = SWIG_scm2str($input);
+    $1 = ($1_ltype) SWIG_scm2str($input);
 }
 
 %typemap(throws) char * {
