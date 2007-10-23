@@ -464,7 +464,7 @@ macro(size_t,             pfx, sizet)
 
    %test_prim_types_ovr(ovr_decl, ovr)
 
-   int strlen(const char *str, size_t len)
+   size_t strlen(const char *str, size_t len)
    {
      return len;
    }
