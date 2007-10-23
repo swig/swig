@@ -49,8 +49,8 @@ SWIG_FromWCharPtrAndSize(const wchar_t* carray, size_t size)
   if (size < INT_MAX) {
     Tcl_Encoding encoding = NULL;
     char *src = (char *) carray;
-    int srcLen = (size)*sizeof(wchar_t);
-    int dstLen = (size)*sizeof(Tcl_UniChar);
+    int srcLen = (int)(size*sizeof(wchar_t));
+    int dstLen = (int)(size*sizeof(Tcl_UniChar));
     char *dst = %new_array(dstLen, char);
     int flags = 0;
     Tcl_EncodingState *statePtr = 0;
@@ -61,7 +61,7 @@ SWIG_FromWCharPtrAndSize(const wchar_t* carray, size_t size)
     Tcl_ExternalToUtf(0, encoding, src, srcLen, flags, statePtr, dst,
 		      dstLen, &srcRead, &dstWrote, &dstChars);
     
-    res = Tcl_NewUnicodeObj((Tcl_UniChar*)dst, size);
+    res = Tcl_NewUnicodeObj((Tcl_UniChar*)dst, (int)size);
     %delete_array(dst);
   }
   return res;

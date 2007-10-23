@@ -142,8 +142,9 @@ SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
+      long long v;
       errno = 0;
-      long long v = strtoll(nptr, &endptr,0);
+      v = strtoll(nptr, &endptr,0);
       if (nptr[0] == '\0' || *endptr != '\0')
 	return SWIG_TypeError;
       if ((v == LLONG_MAX || v == LLONG_MIN) && errno == ERANGE) {

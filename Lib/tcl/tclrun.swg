@@ -153,8 +153,7 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
       return SWIG_ERROR;
     }
 
-    Tcl_Obj *result = Tcl_GetObjResult(interp);
-    c = Tcl_GetStringFromObj(result, NULL);
+    c = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), NULL);
   }
 
   c++;
@@ -458,7 +457,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     meth = cls->methods;
     while (meth && meth->name) {
       char *cr = (char *) Tcl_GetStringResult(interp);
-      int meth_len = strlen(meth->name);
+      size_t meth_len = strlen(meth->name);
       char* where = strchr(cr,':');
       while(where) {
         where = strstr(where, meth->name);

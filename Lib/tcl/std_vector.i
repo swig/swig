@@ -37,8 +37,8 @@
 #include <stdexcept>
 #include <string>
 
-Tcl_Obj* SwigString_FromString(std::string s) {
-    return Tcl_NewStringObj(s.data(), s.length());
+Tcl_Obj* SwigString_FromString(const std::string &s) {
+    return Tcl_NewStringObj(s.data(), (int)s.length());
 }
 
 int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
