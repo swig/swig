@@ -130,7 +130,6 @@ namespace std {
                     /* native sequence? */
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
-                        SV **tv;
                         I32 len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
@@ -138,7 +137,7 @@ namespace std {
                         } else {
                             /* check the first element only */
                             T* obj;
-                            tv = av_fetch(av, 0, 0);
+                            SV **tv = av_fetch(av, 0, 0);
                             if (SWIG_ConvertPtr(*tv, (void **)&obj, 
                                                 $descriptor(T *),0) != -1)
                                 $1 = 1;
@@ -163,7 +162,6 @@ namespace std {
                     /* native sequence? */
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
-                        SV **tv;
                         I32 len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
@@ -171,7 +169,7 @@ namespace std {
                         } else {
                             /* check the first element only */
                             T* obj;
-                            tv = av_fetch(av, 0, 0);
+                            SV **tv = av_fetch(av, 0, 0);
                             if (SWIG_ConvertPtr(*tv, (void **)&obj, 
                                                 $descriptor(T *),0) != -1)
                                 $1 = 1;
@@ -333,7 +331,6 @@ namespace std {
                     /* native sequence? */
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
-                        SV **tv;
                         I32 len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
@@ -474,14 +471,13 @@ namespace std {
                     /* native sequence? */
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
-                        SV **tv;
                         I32 len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
                         } else {
                             /* check the first element only */
-                            tv = av_fetch(av, 0, 0);
+                            SV **tv = av_fetch(av, 0, 0);
                             if (CHECK_T(*tv))
                                 $1 = 1;
                             else
@@ -505,14 +501,13 @@ namespace std {
                     /* native sequence? */
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
-                        SV **tv;
                         I32 len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
                         } else {
                             /* check the first element only */
-                            tv = av_fetch(av, 0, 0);
+                            SV **tv = av_fetch(av, 0, 0);
                             if (CHECK_T(*tv))
                                 $1 = 1;
                             else
