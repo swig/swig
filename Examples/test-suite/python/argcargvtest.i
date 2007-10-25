@@ -8,7 +8,7 @@
 
 int mainc(size_t argc, const char **argv) 
 {
-  return argc;
+  return (int)argc;
 }
 
 const char* mainv(size_t argc, const char **argv, int idx) 
