@@ -453,7 +453,7 @@ namespace swig
 
     size_type size() const
     {
-      return PySequence_Size(_seq);
+      return static_cast<size_type>(PySequence_Size(_seq));
     }
 
     bool empty() const
