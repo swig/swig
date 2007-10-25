@@ -1475,7 +1475,7 @@ public:
     if (!fastunpack) {
       Wrapper_add_local(f, "ii", "int ii");
       Append(f->code, "if (!PyTuple_Check(args)) SWIG_fail;\n");
-      Append(f->code, "argc = PyObject_Length(args);\n");
+      Append(f->code, "argc = (int)PyObject_Length(args);\n");
       Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
       Append(f->code, "argv[ii] = PyTuple_GET_ITEM(args,ii);\n");
       Append(f->code, "}\n");

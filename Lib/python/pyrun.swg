@@ -128,7 +128,7 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
 /* Unpack the argument tuple */
 
 SWIGINTERN int
-SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyObject **objs)
+SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssize_t max, PyObject **objs)
 {
   if (!args) {
     if (!min && !max) {
@@ -143,7 +143,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, int min, int max, PyOb
     PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
     return 0;
   } else {
-    register int l = PyTuple_GET_SIZE(args);
+    register Py_ssize_t l = PyTuple_GET_SIZE(args);
     if (l < min) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
 		   name, (min == max ? "" : "at least "), min, l);
