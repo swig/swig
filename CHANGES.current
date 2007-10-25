@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/25/2007: olly
+	    Fix UTL typecheck macro for a function taking char[] or const
+	    char[] (SF#1820132).
+
 10/22/2007: mkoeppe 
 	    [Guile] Filter out -ansi -pedantic from CFLAGS while compiling test programs for Guile
 	    in configure.  This enables running the test suite for Guile if it is installed and

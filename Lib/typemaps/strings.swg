@@ -236,7 +236,7 @@
 
 
 /* ------------------------------------------------------------
- *  Fix size Character array Char[ANY] handling
+ *  Fixed size Character array Char[ANY] handling
  * ------------------------------------------------------------ */
 
 /*  memberin and globalin typemaps  */
@@ -354,7 +354,7 @@
 %typemap(typecheck,noblock=1,precedence=StringCode,
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
-  int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
+  int res = SWIG_AsCharArray($input, (Char *)0, 0);
   $1 = SWIG_CheckState(res);
 }
 
