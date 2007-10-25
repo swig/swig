@@ -1,5 +1,14 @@
 #include <ruby.h>
 
+/* Remove global macros defined in Ruby's win32.h */
+#ifdef write
+# undef write
+#endif
+#ifdef read
+# undef read
+#endif
+
+
 /* Ruby 1.7 defines NUM2LL(), LL2NUM() and ULL2NUM() macros */
 #ifndef NUM2LL
 #define NUM2LL(x) NUM2LONG((x))
