@@ -24,13 +24,13 @@
   class const_iterator;
   class const_reverse_iterator;
 
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_reverse_iterator rbegin();
-  const_reverse_iterator rend();
+  iterator begin();
+  iterator end();
+  reverse_iterator rbegin();
+  reverse_iterator rend();
 
-  void erase(const_iterator pos);
-  void erase(const_iterator first, const_iterator last);
+  void erase(iterator pos);
+  void erase(iterator first, iterator last);
 
   const_iterator find(const key_type& x);
   const_iterator lower_bound(const key_type& x);
