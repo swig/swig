@@ -1766,6 +1766,7 @@ int R::functionWrapper(Node *n) {
   String *s_inputTypes = NewString("");
   String *s_inputMap = NewString("");
   bool inFirstArg = true;
+  bool inFirstType = true;
   Parm *curP;
   for (p =l, i = 0 ; i < nargs ; i++) {
 
@@ -1897,8 +1898,9 @@ int R::functionWrapper(Node *n) {
     if(tm) {
       replaceRClass(tm, Getattr(curP, "type"));
     }
-    Printf(s_inputTypes, "'%s'%s", tm, p ? ", " : "");
-    Printf(s_inputMap, "%s='%s'%s", name, tm, p ? ", " : "");
+    Printf(s_inputTypes, "%s'%s'", inFirstType ? "" : ", ", tm);
+    Printf(s_inputMap, "%s%s='%s'", inFirstType ? "" : ", ", name, tm);
+    inFirstType = false;
 
     if(funcptr_name) 
       Delete(funcptr_name);
@@ -1913,6 +1915,20 @@ int R::functionWrapper(Node *n) {
 
   Printv(f->def, ")\n{\n", NIL);
   Printv(sfun->def, ")\n{\n", NIL);
+
+
+  /* Insert cleanup code */
+  String *cleanup = NewString("");
+  for (p = l; p;) {
+    if ((tm = Getattr(p, "tmap:freearg"))) {
+      Replaceall(tm, "$source", Getattr(p, "lname"));
+      Printv(cleanup, tm, "\n", NIL);
+      p = Getattr(p, "tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
 
   emit_action(n, f);
 
@@ -1994,9 +2010,16 @@ int R::functionWrapper(Node *n) {
     Insert(outargs, 0, tmp);
     Delete(tmp); 
 
-    Printf(f->code, "%s", outargs);
+
+
+    Printv(f->code, outargs, NIL);
     Delete(outargs);
+
   }
+
+  /* Output cleanup code */
+  Printv(f->code, cleanup, NIL);
+  Delete(cleanup);
 
 
 
