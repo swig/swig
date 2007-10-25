@@ -72,7 +72,8 @@ namespace swig {
 
     virtual self_type* previous( size_t n = 1 )
     {
-      return this->advance( -n );
+      ptrdiff_t nn = n;
+      return this->advance( -nn );
     }
 
     virtual VALUE to_s() const {
@@ -228,7 +229,8 @@ namespace swig {
 
     virtual self_type* previous( size_t n = 1 )
     {
-      return this->advance( -n );
+      ptrdiff_t nn = n;
+      return this->advance( -nn );
     }
 
     bool operator == (const ConstIterator& x)  const
