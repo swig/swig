@@ -96,18 +96,23 @@ SWIG_InitializeModule(0);
 }
 
 %typemap(in,noblock=1) char* {
-   $1 = %reinterpret_cast(CHAR(STRING_ELT($input, 0)), $1_ltype);
+   $1 = %reinterpret_cast(%const_cast(CHAR(STRING_ELT($input, 0)), 
+   char *), $1_ltype);
 }
 
 %typemap(in,noblock=1) char *[ANY]  {
-   $1 = %reinterpret_cast(CHAR(STRING_ELT($input, 0)), $1_ltype);
+   $1 = %reinterpret_cast(%const_cast(CHAR(STRING_ELT($input, 0)),
+   char *),
+   $1_ltype);
 }
 
-%typemap(in,noblock=1) char[ANY]
-  "$1 = CHAR(STRING_ELT($input, 0));";
+%typemap(in,noblock=1) char[ANY] {
+    $1 = %const_cast(CHAR(STRING_ELT($input, 0)), char *);
+}
 
-%typemap(in,noblock=1) char[]
-  "$1 = CHAR(STRING_ELT($input, 0));";
+%typemap(in,noblock=1) char[] {
+    $1 = %const_cast(CHAR(STRING_ELT($input, 0)), char *);
+}
 
 %typemap(memberin) char[] %{
 if ($input) strcpy($1, $input);

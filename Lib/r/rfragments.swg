@@ -123,7 +123,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
    if (!cptr) return SWIG_TypeError;
    if (!Rf_isString(obj)) return SWIG_TypeError;
-    char *cstr; int len;
+    const char *cstr; int len;
     cstr = CHAR(STRING_ELT(obj, 0));
     len = strlen(cstr);
 
@@ -135,7 +135,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 	    *alloc = SWIG_NEWOBJ;
 	  }
 	else {
-	  *cptr = cstr;
+	  *cptr = strdup(cstr);
 	  *alloc = SWIG_OLDOBJ;
 	}
       } else {
@@ -156,10 +156,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SEXP t, c;
   if (!carray) return R_NilValue;
-  PROTECT(t = allocVector(STRSXP, 1));
-  c = allocString(size);
-  strncpy(CHAR(c), carray, size);
-  SET_STRING_ELT(t, 0, c);
+  PROTECT(t = Rf_mkCharEnc(carray, size));
   UNPROTECT(1);
   return t;
 }
