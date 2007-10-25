@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <Rdefines.h>
+#include <stdlib.h>
 #undef length
 #define SWIGR 1
 

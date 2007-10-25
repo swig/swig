@@ -566,7 +566,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   Wrapper_add_local(f, "__tmp", "SEXP __tmp"); // for use in converting arguments to R objects for call.
   Wrapper_add_local(f, "__r_nprotect", "int __r_nprotect = 0"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_vmax", "void * r_vmax= 0"); // for use in converting arguments to R objects for call.
 
   // Add local for error code in return value.  This is not in emit_args because that assumes an out typemap
   // whereas the type makes are reverse
@@ -1758,7 +1758,7 @@ int R::functionWrapper(Node *n) {
 
   Wrapper_add_local(f, "__r_nprotect", "unsigned int __r_nprotect = 0");
   Wrapper_add_localv(f, "r_ans", "SEXP", "r_ans = R_NilValue", NIL);
-  Wrapper_add_localv(f, "r_vmax", "char *", "r_vmax = vmaxget()", NIL);
+  Wrapper_add_localv(f, "r_vmax", "void *", "r_vmax = vmaxget()", NIL);
 
   String *sargs = NewString("");
 
@@ -2151,7 +2151,7 @@ int R::defineArrayAccessors(SwigType *type) {
   String *tmp = NewStringf("%s *ptr", SwigType_lstr(base, 0));
   String *tmp1 = NewStringf("%s result", SwigType_lstr(base, 0));
 
-  Wrapper_add_localv(cGetItem, "r_vmax", "char *", "r_vmax = vmaxget()", NIL);
+  Wrapper_add_localv(cGetItem, "r_vmax", "void *", "r_vmax = vmaxget()", NIL);
   Wrapper_add_local(cGetItem, "ptr", tmp);
   Wrapper_add_local(cGetItem, "r_ans", "SEXP r_ans");
   Wrapper_add_local(cGetItem, "result", tmp1);
@@ -2196,7 +2196,7 @@ int R::defineArrayAccessors(SwigType *type) {
     tmp = NewStringf("%s *ptr", SwigType_lstr(base, 0));
     tmp1 = NewStringf("%s value", SwigType_lstr(base, 0));
 
-    Wrapper_add_localv(cSetItem, "r_vmax", "char *", "r_vmax = vmaxget()", NIL);
+    Wrapper_add_localv(cSetItem, "r_vmax", "void *", "r_vmax = vmaxget()", NIL);
     Wrapper_add_local(cSetItem, "__r_nprotect", "int __r_nprotect = 0");
 
     Wrapper_add_local(cSetItem, "ptr", tmp);
@@ -2557,7 +2557,7 @@ int R::generateCopyRoutinesObsolete(Node *n) {
 
 
   Wrapper_add_localv(toR, "r_obj", "SEXP", "r_obj", NIL);
-  Wrapper_add_localv(toR, "r_vmax", "char *", "r_vmax = vmaxget()", NIL);
+  Wrapper_add_localv(toR, "r_vmax", "void *", "r_vmax = vmaxget()", NIL);
   Wrapper_add_localv(toR, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
   Wrapper_add_local(toR, "__r_nprotect", "int __r_nprotect = 0");
   Wrapper_add_local(toC, "ecode", "int ecode = 0");
