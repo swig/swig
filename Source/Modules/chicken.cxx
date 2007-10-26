@@ -876,18 +876,18 @@ int CHICKEN::constantWrapper(Node *n) {
 
   /* Special hook for member pointer */
   if (SwigType_type(t) == T_MPOINTER) {
-    Printf(f_header, "static %s = %s;\n", SwigType_str(t, wname), rvalue);
-    value = wname;
-  }
-  if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
-    Replaceall(tm, "$source", rvalue);
-    Replaceall(tm, "$target", source);
-    Replaceall(tm, "$result", source);
-    Replaceall(tm, "$value", rvalue);
-    Printf(f_header, "%s\n", tm);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(t, source), rvalue);
   } else {
-    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-    return SWIG_NOWRAP;
+    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+      Replaceall(tm, "$source", rvalue);
+      Replaceall(tm, "$target", source);
+      Replaceall(tm, "$result", source);
+      Replaceall(tm, "$value", rvalue);
+      Printf(f_header, "%s\n", tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+      return SWIG_NOWRAP;
+    }
   }
 
   f = NewWrapper();

@@ -35,9 +35,16 @@
 
 // unsigned char* as strings
 #if !defined(SWIGUTL)
+
+#if !defined(SWIGCHICKEN)
+/* Chicken does not allow unsigned char * in strings */
+
 %apply char [ANY] {TAscii[ANY]}
 %apply char [] {TAscii []}
 %apply char * {TAscii *}
+
+#endif
+
 #else
 #warning "UTL needs fixing for these typemaps"
 #endif
