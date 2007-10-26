@@ -21,6 +21,8 @@
   size_type count(const key_type& x) const;
   
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  class iterator;
+  class reverse_iterator;
   class const_iterator;
   class const_reverse_iterator;
 
