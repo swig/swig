@@ -912,7 +912,7 @@ namespace swig
     VALUE __setitem__(difference_type i, value_type x) {
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
-      else if ( i >= len )
+      else if ( static_cast<std::size_t>(i) >= len )
 	$self->resize( i+1, x );
       else *(swig::getpos(self,i)) = x;
       return swig::from< Sequence::value_type >( x );
