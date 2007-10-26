@@ -31,7 +31,7 @@ include $(srcdir)/../common.mk
 %.multicpptest: 
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
+	$(run_multitestcase)
 
 # Runs the testcase.
 # 
@@ -45,6 +45,15 @@ run_testcase = \
 	  ($(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX);) \
 	fi;
 
+run_multitestcase = \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then ( \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH \
+               $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ;) \
+	else \
+	  ($(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX);) \
+	fi; \
+	done
 # Clean
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile r_clean
