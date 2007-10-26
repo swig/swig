@@ -107,8 +107,6 @@
 	std::pair< typename swig::noconst_traits<T >::noconst_type,U>* p = NULL;
 	swig::asptr( self, &p );
 	return swig::from( p->second );
-      fail:
-	return Qnil;
       }
 
       static VALUE _wrap_pair_second_eq( VALUE self, VALUE arg )
@@ -116,8 +114,6 @@
 	std::pair< typename swig::noconst_traits<T >::noconst_type,U>* p = NULL;
 	swig::asptr( self, &p );
 	return swig::from( p->second );
-      fail:
-	return Qnil;
       }
 
       static VALUE from(const std::pair<T,U>& val) {
