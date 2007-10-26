@@ -99,6 +99,7 @@ const char* Ruby_Format_TypeError( const char* msg,
 {
   char buf[128];
   VALUE str;
+  VALUE asStr;
   if ( msg && *msg )
     {
       str = rb_str_new2(msg);
@@ -115,7 +116,7 @@ const char* Ruby_Format_TypeError( const char* msg,
   str = rb_str_cat2( str, ", but got " );
   str = rb_str_cat2( str, rb_obj_classname(input) );
   str = rb_str_cat2( str, " " );
-  VALUE asStr = rb_inspect(input);
+  asStr = rb_inspect(input);
   if ( RSTRING_LEN(asStr) > 30 )
     {
       str = rb_str_cat( str, StringValuePtr(asStr), 30 );
