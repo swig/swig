@@ -652,7 +652,8 @@ namespace swig
 	if ( j <= 0 ) return Qnil;
 	std::size_t len = $self->size();
 	if ( i < 0 ) i = len - i;
-	j += i; if ( j >= len ) j = len-1;
+	j += i;
+	if ( static_cast<std::size_t>(j) >= len ) j = len-1;
 
 	VALUE r = Qnil;
 	try {
@@ -804,7 +805,7 @@ namespace swig
       if ( j <= 0 ) return Qnil;
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
-      j += i; if ( j >= len ) j = len-1;
+      j += i; if ( static_cast<std::size_t>(j) >= len ) j = len-1;
 
       VALUE r = Qnil;
       try {
@@ -842,7 +843,7 @@ namespace swig
       VALUE end   = rb_funcall( i, id_end, 0 );
       bool  noend = ( rb_funcall( i, id_noend, 0 ) == Qtrue );
 
-      std::size_t len = $self->size();
+      int len = $self->size();
 
       int s = NUM2INT( start );
       if ( s < 0 ) s = len + s;
@@ -863,7 +864,7 @@ namespace swig
       {
 	std::size_t len = $self->size();
 	if ( i < 0 ) i = len - i;
-	else if ( i >= len )
+	else if ( static_cast<std::size_t>(i) >= len )
 	  $self->resize( i+1, x );
 	else
 	  *(swig::getpos(self,i)) = x;
@@ -878,7 +879,7 @@ namespace swig
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
       j += i; 
-      if ( j >= len ) {
+      if ( static_cast<std::size_t>(j) >= len ) {
 	$self->resize( j+1, *(v.begin()) );
 	j = len-1;
       }
