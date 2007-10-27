@@ -32,12 +32,49 @@
 	return traits_from_stdseq<std::set<T> >::from(vec);
       }
     };
+
+
+    // Template specialization to construct a closed iterator for sets
+    // this turns a nonconst iterator into a const one for ruby to avoid
+    // allowing the user to change the value
+    template< typename InOutIter >
+    inline ConstIterator*
+    make_set_nonconst_iterator(const InOutIter& current, 
+			       const InOutIter& begin,
+			       const InOutIter& end, 
+			       VALUE seq = Qnil)
+    {
+      return new ConstIteratorClosed_T< InOutIter >(current, 
+						    begin, end, seq);
+    }
+
+    // Template specialization to construct an open iterator for sets
+    // this turns a nonconst iterator into a const one for ruby to avoid
+    // allowing the user to change the value
+    template< typename InOutIter >
+    inline ConstIterator*
+    make_set_nonconst_iterator(const InOutIter& current, 
+			       VALUE seq = Qnil)
+    {
+      return new ConstIteratorOpen_T< InOutIter >(current, seq);
+    }
+
   }
 %}
 
+
 %define %swig_set_methods(set...)
-  %swig_sequence_iterator(set)
-  %swig_sequence_methods_common(set); 
+
+  %swig_sequence_methods_common(%arg(set));
+
+// Redefine std::set iterator/reverse_iterator typemap
+%typemap(out,noblock=1)
+iterator, reverse_iterator {
+  $result = SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,const $type &),
+								self),
+			       swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
+ }
+
 
   %extend  {
     %alias push "<<";
