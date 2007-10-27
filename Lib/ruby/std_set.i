@@ -34,29 +34,122 @@
     };
 
 
+    /** 
+     * Set Iterator class for an iterator with no end() boundaries.
+     *
+     */
+    template<typename InOutIterator, 
+	     typename ValueType = typename std::iterator_traits<InOutIterator>::value_type,
+	     typename FromOper = from_oper<ValueType>,
+	     typename AsvalOper = asval_oper<ValueType> >
+      class SetIteratorOpen_T :  public Iterator_T<InOutIterator>
+    {
+    public:
+      FromOper  from;
+      AsvalOper asval;
+      typedef InOutIterator nonconst_iter;
+      typedef ValueType value_type;
+      typedef Iterator_T<nonconst_iter>  base;
+      typedef SetIteratorOpen_T<InOutIterator, ValueType, FromOper, AsvalOper> self_type;
+
+    public:
+      SetIteratorOpen_T(nonconst_iter curr, VALUE seq = Qnil)
+	: Iterator_T<InOutIterator>(curr, seq)
+      {
+      }
+    
+      virtual VALUE value() const {
+	return from(static_cast<const value_type&>(*(base::current)));
+      }
+
+      // no setValue allowed
+    
+      Iterator *dup() const
+      {
+	return new self_type(*this);
+      }
+    };
+
+
+    /** 
+     * Set Iterator class for a iterator where begin() and end() boundaries
+       are known.
+     *
+     */
+    template<typename InOutIterator, 
+	     typename ValueType = typename std::iterator_traits<InOutIterator>::value_type,
+	     typename FromOper = from_oper<ValueType>,
+	     typename AsvalOper = asval_oper<ValueType> >
+    class SetIteratorClosed_T :  public Iterator_T<InOutIterator>
+    {
+    public:
+      FromOper   from;
+      AsvalOper asval;
+      typedef InOutIterator nonconst_iter;
+      typedef ValueType value_type;
+      typedef Iterator_T<nonconst_iter>  base;
+      typedef SetIteratorClosed_T<InOutIterator, ValueType, FromOper, AsvalOper> self_type;
+    
+    protected:
+      virtual Iterator* advance(ptrdiff_t n)
+      {
+	std::advance( base::current, n );
+	if ( base::current == end )
+	  throw stop_iteration();
+	return this;
+      }
+
+    public:
+      SetIteratorClosed_T(nonconst_iter curr, nonconst_iter first, 
+		       nonconst_iter last, VALUE seq = Qnil)
+	: Iterator_T<InOutIterator>(curr, seq), begin(first), end(last)
+      {
+      }
+    
+      virtual VALUE value() const {
+	if (base::current == end) {
+	  throw stop_iteration();
+	} else {
+	  return from(static_cast<const value_type&>(*(base::current)));
+	}
+      }
+
+      // no setValue allowed
+    
+    
+      Iterator *dup() const
+      {
+	return new self_type(*this);
+      }
+
+    private:
+      nonconst_iter begin;
+      nonconst_iter end;
+    };
+
     // Template specialization to construct a closed iterator for sets
     // this turns a nonconst iterator into a const one for ruby to avoid
     // allowing the user to change the value
     template< typename InOutIter >
-    inline ConstIterator*
+    inline Iterator*
     make_set_nonconst_iterator(const InOutIter& current, 
 			       const InOutIter& begin,
 			       const InOutIter& end, 
 			       VALUE seq = Qnil)
     {
-      return new ConstIteratorClosed_T< InOutIter >(current, 
-						    begin, end, seq);
+      return new SetIteratorClosed_T< InOutIter >(current, 
+						  begin, end, seq);
     }
 
     // Template specialization to construct an open iterator for sets
     // this turns a nonconst iterator into a const one for ruby to avoid
     // allowing the user to change the value
     template< typename InOutIter >
-    inline ConstIterator*
+    inline Iterator*
     make_set_nonconst_iterator(const InOutIter& current, 
 			       VALUE seq = Qnil)
     {
-      return new ConstIteratorOpen_T< InOutIter >(current, seq);
+      return new SetIteratorOpen_T< InOutIter >(current, seq);
     }
 
   }
@@ -72,7 +165,7 @@
 iterator, reverse_iterator {
   $result = SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,const $type &),
 								self),
-			       swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
+			       swig::Iterator::descriptor(),SWIG_POINTER_OWN);
  }
 
 

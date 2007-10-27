@@ -626,7 +626,7 @@ namespace swig {
   };
 
   /** 
-   * Iterator class for a const_iterator where begin() and end() boundaries are known.
+   * Iterator class for a iterator where begin() and end() boundaries are known.
    *
    */
   template<typename InOutIterator, 
