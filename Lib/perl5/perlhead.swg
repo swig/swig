@@ -80,6 +80,10 @@ extern "C" {
 #  endif
 #endif /* !INT2PTR */
 
+#ifndef SvPV_nolen
+# define SvPV_nolen(x) SvPV(x,PL_na)
+#endif
+
 #ifndef get_sv
 #  define get_sv perl_get_sv
 #endif

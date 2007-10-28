@@ -60,7 +60,7 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
     return SWIG_OK;
   } else {
     int dispatch = 0;
-    const char *nptr = SvPV(obj, PL_na);
+    const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
       long v;
@@ -120,7 +120,7 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
     }
   } else {
     int dispatch = 0;
-    const char *nptr = SvPV(obj, PL_na);
+    const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
       unsigned long v;
@@ -183,7 +183,7 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
     return SWIG_OK;
   } else {
     int dispatch = 0;
-    const char *nptr = SvPV(obj, PL_na);
+    const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
       long long v;
@@ -255,7 +255,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
     }
   } else {
     int dispatch = 0;
-    const char *nptr = SvPV(obj, PL_na);
+    const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
       unsigned long long v;
@@ -308,7 +308,7 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
     if (val) *val = (double) SvIV(obj);
     return SWIG_AddCast(SWIG_OK);
   } else {
-    const char *nptr = SvPV(obj, PL_na);
+    const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
       double v = strtod(nptr, &endptr);

@@ -1,5 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
+
+10/28/2007: wsfulton
+            [Perl] Use more efficient SvPV_nolen(x) instead of SvPV(x,PL_na) if SvPV_nolen is 
+            supported.
+
 10/26/2007: wuzzeb
 	    [Chicken] Fix global variables of class member function pointers.
 	    Other minor fixes, so all tests in the chicken test suite now pass

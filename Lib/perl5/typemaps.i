@@ -86,14 +86,14 @@ INPUT_TYPEMAP(unsigned char, SvUV);
 %typemap(typecheck) bool &INPUT = bool;
 
 %typemap(in) long long *INPUT($*1_ltype temp), long long &INPUT($*1_ltype temp) {
-  temp = strtoll(SvPV($input,PL_na), 0, 0);
+  temp = strtoll(SvPV_nolen($input), 0, 0);
   $1 = &temp;
 }
 %typemap(typecheck) long long *INPUT = long long;
 %typemap(typecheck) long long &INPUT = long long;
 
 %typemap(in) unsigned long long *INPUT($*1_ltype temp), unsigned long long &INPUT($*1_ltype temp) {
-  temp = strtoull(SvPV($input,PL_na), 0, 0);
+  temp = strtoull(SvPV_nolen($input), 0, 0);
   $1 = &temp;
 }
 %typemap(typecheck) unsigned long long *INPUT = unsigned long long;
