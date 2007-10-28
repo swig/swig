@@ -10,7 +10,7 @@ all::
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='mylua' INTERFACE='$(INTERFACE)' ;lua_static
+	TARGET='mylua' INTERFACE='$(INTERFACE)' lua_static
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile lua_clean
