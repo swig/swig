@@ -18,7 +18,8 @@ CPP_TEST_CASES = \
 	csharp_prepost \
 	csharp_typemaps \
 	enum_thorough_simple \
-	enum_thorough_typesafe
+	enum_thorough_typesafe \
+	exception_partial_info
 
 CUSTOM_TEST_CASES = intermediary_classname
 

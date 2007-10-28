@@ -47,6 +47,7 @@ LIBPREFIX  = lib
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	exception_partial_info \
 	extend_variable \
 	namespace_union \
 	nested_comment \
@@ -151,7 +152,6 @@ CPP_TEST_CASES += \
 	evil_diamond_ns \
 	evil_diamond_prop \
 	exception_order \
-	exception_partial_info \
         extend \
 	extend_default \
 	extend_placement \
