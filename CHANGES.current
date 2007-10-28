@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 10/28/2007: wsfulton
+            [Java, C#] New approach for fixing uninitialised variable usage on error in director
+            methods using the new templated initialisation function SwigValueInit().
+
+10/28/2007: wsfulton
             [Perl] Use more efficient SvPV_nolen(x) instead of SvPV(x,PL_na) if SvPV_nolen is 
             supported.
 
