@@ -23,8 +23,6 @@
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
   class iterator;
   class reverse_iterator;
-  class const_iterator;
-  class const_reverse_iterator;
 
   iterator begin();
   iterator end();
@@ -34,17 +32,17 @@
   void erase(iterator pos);
   void erase(iterator first, iterator last);
 
-  const_iterator find(const key_type& x);
-  const_iterator lower_bound(const key_type& x);
-  const_iterator upper_bound(const key_type& x);
-  std::pair<const_iterator,const_iterator> equal_range(const key_type& x);
+  iterator find(const key_type& x);
+  iterator lower_bound(const key_type& x);
+  iterator upper_bound(const key_type& x);
+  std::pair<iterator,iterator> equal_range(const key_type& x);
 #endif
 %enddef
 
 %define %std_set_methods(set...)
   %std_set_methods_common(set);
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  std::pair<const_iterator,bool> insert(const value_type& __x);
+  std::pair<iterator,bool> insert(const value_type& __x);
 #endif
 %enddef
 
