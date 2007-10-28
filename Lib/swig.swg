@@ -632,7 +632,7 @@ namespace std {
 #ifdef __cplusplus
 %insert("runtime") %{
 #ifdef __cplusplus
-template<class T> class SwigValueWrapper {
+template<typename T> class SwigValueWrapper {
     T *tt;
 public:
     SwigValueWrapper() : tt(0) { }
@@ -644,7 +644,21 @@ public:
     T *operator&() { return tt; }
 private:
     SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
-};
+};%}
+
+/*
+ * SwigValueInit() is a generic initialisation solution as the following approach:
+ * 
+ *       T c_result = T();
+ * 
+ * doesn't compile for all types for example:
+ * 
+ *       unsigned int c_result = unsigned int();
+ */
+%insert("runtime") %{
+template <typename T> T SwigValueInit() {
+  return T();
+}
 #endif
 %}
 #endif

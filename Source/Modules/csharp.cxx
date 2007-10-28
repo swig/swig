@@ -3184,7 +3184,7 @@ public:
       if (!is_void && !ignored_method) {
 	if (!SwigType_isclass(returntype)) {
 	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-            String *construct_result = NewStringf("= %s()", SwigType_lstr(returntype, 0));
+            String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
 	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
             Delete(construct_result);
 	  } else {
