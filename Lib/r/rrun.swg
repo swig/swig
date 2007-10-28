@@ -6,9 +6,22 @@ extern "C" {
 #endif
 
 #include <Rdefines.h>
+#include <Rversion.h>
 #include <stdlib.h>
 #undef length
 #define SWIGR 1
+
+#if R_VERSION >= R_Version(2,6,0)
+#warning "R Swig currently fails on runtime for 2.6 and higher."
+#warning "Contact maintainer if you would like to help fix"
+#define VMAXTYPE void *
+#define RVERSION26(x) x
+#define RVERSIONPRE26(x) 
+#else
+#define VMAXTYPE char *
+#define RVERSION26(x)
+#define RVERSIONPRE26(x) x
+#endif
 
 /*
   This is mainly a way to avoid having lots of local variables that may 
