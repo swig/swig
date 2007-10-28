@@ -1,8 +1,11 @@
-/* Test %apply for char *, signed char *, unsigned char * */
-
+/* Test %apply for char *, signed char *, unsigned char * 
+   This won't work in all situations, so does not necessarily have to be implemented. See 
+   http://groups.google.com.ai/group/comp.lang.c++.moderated/browse_thread/thread/ad5873ce25d49324/0ae94552452366be?lnk=raot */
 %module(directors="1") apply_strings
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) DirectorTest;
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) DigitsGlobalB;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) DigitsGlobalC;
 
 %apply char * {UCharPtr};
 %apply char * {SCharPtr};
@@ -34,19 +37,14 @@
 %}
 
 // unsigned char* as strings
-#if !defined(SWIGUTL)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 
-#if !defined(SWIGCHICKEN)
-/* Chicken does not allow unsigned char * in strings */
+/* Note: Chicken does not allow unsigned char * in strings */
 
 %apply char [ANY] {TAscii[ANY]}
 %apply char [] {TAscii []}
 %apply char * {TAscii *}
 
-#endif
-
-#else
-#warning "UTL needs fixing for these typemaps"
 #endif
 
 %inline %{
