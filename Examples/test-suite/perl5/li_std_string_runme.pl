@@ -114,8 +114,16 @@ if ($gen1->test(1) ne 2) {
 if ($gen1->test("1") ne "11") {
   die ("ulonglong");
 }
-if ($gen1->testl(9234567890121111113) ne 9234567890121111114) {
-  die ("ulonglong");
+if ($gen1->testl(12345) ne 12346) {
+  die ("ulonglong small number");
+}
+# Note: 32 bit builds of perl will fail this test as the number is stored internally in scientific notation 
+# (USE_64_BIT_ALL probably needs defining when building Perl in order to avoid this)
+#if ($gen1->testl(9234567890121111113) ne 9234567890121111114) {
+#  die ("ulonglong big number");
+#}
+if ($gen1->testl("9234567890121111113") ne "9234567890121111114") {
+  die ("ulonglong big number");
 }
 
 
