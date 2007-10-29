@@ -15,12 +15,54 @@
  * The cstype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
 /* fragments */
-%fragment("int64_t", "header") {
-%#if defined(_MSC_VER)
-typedef __int64 int64_t;
-%#else
-%#include <stdint.h>
-%#endif
+%fragment("SWIG_PackData", "header") {
+/* 
+   Pack binary data into a string
+*/
+/*SWIGRUNTIME*/ char *
+SWIG_PackData(char *c, void *ptr, size_t sz) {
+  static const char hex[17] = "0123456789abcdef";
+  register const unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu =  u + sz;
+  for (; u != eu; ++u) {
+    register unsigned char uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+
+}
+
+%fragment("SWIG_UnPackData", "header") {
+/* 
+   Unpack binary data from a string
+*/
+/*SWIGRUNTIME*/ const char *
+SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
+  register unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu = u + sz;
+  for (; u != eu; ++u) {
+    register char d = *(c++);
+    register unsigned char uu;
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    else 
+      return (char *) 0;
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    else 
+      return (char *) 0;
+    *u = uu;
+  }
+  return c;
+}
+
 }
 
 /* Primitive types */
@@ -94,8 +136,8 @@ typedef __int64 int64_t;
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
 /* pointer to a class member */
-%typemap(ctype, fragment="int64_t") SWIGTYPE (CLASS::*) "int64_t"
-%typemap(imtype) SWIGTYPE (CLASS::*) "ulong"
+%typemap(ctype) SWIGTYPE (CLASS::*) "char *"
+%typemap(imtype) SWIGTYPE (CLASS::*) "string"
 %typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
 /* The following are the in and out typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
@@ -350,20 +392,32 @@ typedef __int64 int64_t;
 
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
-%typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{ 
+  void *voidptr = &$1;
+  SWIG_UnpackData($input, voidptr, sizeof($1));
+%}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
 %typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
-%typemap(out) SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
-
+%typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
+  char buf[128];
+  char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+  *data = '\0';
+  $result = SWIG_csharp_string_callback(buf);
+%}
 %typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
 
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
-%typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
+%{ $result = ($1_ltype)$input; %}
+
+%typemap(directorin) SWIGTYPE *
+%{ $input = (void *) $1; %}
+%typemap(directorin) SWIGTYPE (CLASS::*)
 %{ $input = (void *) $1; %}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
@@ -607,8 +661,8 @@ typedef __int64 int64_t;
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*) {
-    ulong cMemberPtr = $imcall;
-    $csclassname ret = (cMemberPtr == 0) ? null : new $csclassname(cMemberPtr, $owner);$excode
+    string cMemberPtr = $imcall;
+    $csclassname ret = (cMemberPtr == null) ? null : new $csclassname(cMemberPtr, $owner);$excode
     return ret;
   }
 
@@ -724,8 +778,8 @@ typedef __int64 int64_t;
 
 %typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE (CLASS::*) %{
     get {
-      ulong cMemberPtr = $imcall;
-      $csclassname ret = (cMemberPtr == 0) ? null : new $csclassname(cMemberPtr, $owner);$excode
+      string cMemberPtr = $imcall;
+      $csclassname ret = (cMemberPtr == null) ? null : new $csclassname(cMemberPtr, $owner);$excode
       return ret;
     } %}
 
@@ -803,17 +857,17 @@ typedef __int64 int64_t;
 %}
 
 %typemap(csbody) SWIGTYPE (CLASS::*) %{
-  private ulong swigCMemberPtr;
+  private string swigCMemberPtr;
 
-  internal $csclassname(ulong cMemberPtr, bool futureUse) {
+  internal $csclassname(string cMemberPtr, bool futureUse) {
     swigCMemberPtr = cMemberPtr;
   }
 
   protected $csclassname() {
-    swigCMemberPtr = 0;
+    swigCMemberPtr = null;
   }
 
-  internal static ulong getCMemberPtr($csclassname obj) {
+  internal static string getCMemberPtr($csclassname obj) {
     return obj.swigCMemberPtr;
   }
 %}

@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/29/2007: wsfulton
+            [C#] Fix member pointers on 64 bit platforms.
+
 10/28/2007: olly
 	    [lua] Fix swig_lua_class instances to be static to allow multiple
 	    SWIG wrappers to be compiled into the same executable statically.
