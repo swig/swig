@@ -127,9 +127,9 @@
                       (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
                         (int arraylentemp, C_TYPE *arraytemp),
 		      (size_t *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
-                        (int arraylentemp, C_TYPE *arraytemp),
+                        (size_t arraylentemp, C_TYPE *arraytemp),
                       (size_t *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
-                        (int arraylentemp, C_TYPE *arraytemp)
+                        (size_t arraylentemp, C_TYPE *arraytemp)
      %{
        $1 = &arraylentemp;
        $2 = &arraytemp;
@@ -302,7 +302,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
      }
 
      %typemap(in,numinputs=0) int PARALLEL_LISTLENINPUT (int *_global_list_length),   
-		      size_t PARALLEL_LISTLENINPUT (int *_global_list_length)
+		      size_t PARALLEL_LISTLENINPUT (size_t *_global_list_length)
      {		      
        $1 = 0;
        _global_list_length = &$1;
