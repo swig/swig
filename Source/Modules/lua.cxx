@@ -929,7 +929,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f_wrappers, "static char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
       Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(constructor_name)));

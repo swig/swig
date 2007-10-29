@@ -2,6 +2,11 @@ Version 1.3.32 (in progress)
 ============================
 
 10/28/2007: olly
+	    [lua] Fix swig_lua_class instances to be static to allow multiple
+	    SWIG wrappers to be compiled into the same executable statically.
+	    Patch from Andreas Fredriksson (posted to the swig mailing list).
+
+10/28/2007: olly
 	    [lua] Fix Examples/lua to pass SRCS for C tests rather than CXXSRCS.
 	    The code as it was happened to work on x86, but broke on x86_64 (and
 	    probably any other platforms which require -fPIC).
