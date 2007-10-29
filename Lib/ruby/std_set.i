@@ -160,12 +160,13 @@
 
   %swig_sequence_methods_common(%arg(set));
 
+  %fragment("RubyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="RubySequence_Cont") {}
+
 // Redefine std::set iterator/reverse_iterator typemap
-%typemap(out,noblock=1)
-iterator, reverse_iterator {
+%typemap(out,noblock=1) iterator, reverse_iterator {
   $result = SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,const $type &),
 								self),
-			       swig::Iterator::descriptor(),SWIG_POINTER_OWN);
+			          swig::Iterator::descriptor(),SWIG_POINTER_OWN);
  }
 
 // Redefine std::set std::pair<iterator, bool> typemap

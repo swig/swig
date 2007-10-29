@@ -453,7 +453,7 @@ namespace swig
     RARRAY_LEN($result) = 2;
   }
 
-  // std::map/multimap allow returning std::pair< iterator, iterator > from
+  // std::map/multimap/set allow returning std::pair< iterator, iterator > from
   // equal_range, but we cannot still modify the key, so the iterator is
   // const.
   %typemap(out,noblock=1,fragment="RubySequence_Cont")
@@ -466,26 +466,6 @@ namespace swig
     RARRAY_LEN($result) = 2;
   }
 
-
-  %fragment("RubyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="RubySequence_Cont") {}
-
-  %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
-    std::pair<const_iterator, bool> {
-    $result = rb_ary_new2(2);
-    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).first),
-						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);    
-    RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
-    RARRAY_LEN($result) = 2;
-  }
-
-  %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
-    std::pair<iterator, bool> {
-    $result = rb_ary_new2(2);
-    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_nonconst_iterator(%static_cast($1,$type &).first),
-						swig::Iterator::descriptor(),SWIG_POINTER_OWN);    
-    RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
-    RARRAY_LEN($result) = 2;
-  }
 
   %typemap(in,noblock=1,fragment="RubySequence_Cont")
     const_iterator(swig::ConstIterator *iter = 0, int res),
