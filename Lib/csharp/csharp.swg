@@ -14,13 +14,11 @@
  * The imtype typemap contains the C# type used in the intermediary class. 
  * The cstype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
-/* fragments */
+
+/* Fragments */
 %fragment("SWIG_PackData", "header") {
-/* 
-   Pack binary data into a string
-*/
-/*SWIGRUNTIME*/ char *
-SWIG_PackData(char *c, void *ptr, size_t sz) {
+/* Pack binary data into a string */
+SWIGINTERN char * SWIG_PackData(char *c, void *ptr, size_t sz) {
   static const char hex[17] = "0123456789abcdef";
   register const unsigned char *u = (unsigned char *) ptr;
   register const unsigned char *eu =  u + sz;
@@ -31,15 +29,11 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
   }
   return c;
 }
-
 }
 
 %fragment("SWIG_UnPackData", "header") {
-/* 
-   Unpack binary data from a string
-*/
-/*SWIGRUNTIME*/ const char *
-SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
+/* Unpack binary data from a string */
+SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   register unsigned char *u = (unsigned char *) ptr;
   register const unsigned char *eu = u + sz;
   for (; u != eu; ++u) {
@@ -62,7 +56,6 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   }
   return c;
 }
-
 }
 
 /* Primitive types */
@@ -393,8 +386,7 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
 %typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{ 
-  void *voidptr = &$1;
-  SWIG_UnpackData($input, voidptr, sizeof($1));
+  SWIG_UnpackData($input, (void *)&$1, sizeof($1));
 %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
