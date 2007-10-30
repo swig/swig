@@ -2,6 +2,10 @@ Version 1.3.32 (in progress)
 ============================
 
 10/30/2007: olly
+	    [guile] Fix the configure test to put GUILELINK in LIBS not LDFLAGS
+	    (SF#1822430).
+
+10/30/2007: olly
 	    [guile] Fix the guile examples on 64-bit platforms.
 
 10/29/2007: wsfulton

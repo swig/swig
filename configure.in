@@ -971,11 +971,11 @@ if test -z "$GUILELINK"; then
 fi
 
 guilesafe_CFLAGS=$CFLAGS
-guilesafe_LDFLAGS=$LDFLAGS
+guilesafe_LIBS=$LIBS
 # Filter out "-ansi -pedantic" because Guile header files will not compile with these flags.
 # (The flags -ansi -pedantic are automatically added by ac_compile_warnings.m4)
 CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILEINCLUDE"
-LDFLAGS="$LDFLAGS $GUILELINK"
+LIBS="$LIBS $GUILELINK"
 
 AC_MSG_CHECKING(whether Guile's gh_ API works)
 AC_LINK_IFELSE([#include <guile/gh.h>
@@ -994,7 +994,7 @@ else
 	AC_MSG_RESULT(no)
 fi
 CFLAGS=$guilesafe_CFLAGS
-LDFLAGS=$guilesafe_LDFLAGS
+LIBS=$guilesafe_LIBS
 fi
 
 AC_SUBST(GUILE)
