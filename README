@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.31 (November 20, 2006)
+Version: 1.3.32 (October 30, 2007)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
@@ -18,9 +18,9 @@ The guilty parties working on this are:
 Active Developers:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
  Marcelo Matus (mmatus@acms.arizona.edu)                (SWIG core, Python, UTL[python,perl,tcl,ruby])
- William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
+ William Fulton (wsf@fultondesigns.co.uk)               (SWIG core, Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile, MzScheme)
- Jason Stewart (jason@openinformatics.com)              (Perl5)
+ Olly Betts (olly@survex.com)                           (PHP)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
  Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
@@ -30,6 +30,7 @@ Active Developers:
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
  Joseph Wang (joe@gnacademy.org)                        (R)
  Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
+
 Major contributors include:
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
@@ -38,6 +39,7 @@ Major contributors include:
  Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)
  Tim Hockin - Sun Microsystems (thockin@sun.com)        (PHP)
  Shibukawa Yoshiki                                      (Japanese Translation)
+ Jason Stewart (jason@openinformatics.com)              (Perl5)
  Loic Dachary                                           (Perl5)
  David Fletcher                                         (Perl5)
  Gary Holt                                              (Perl5)
@@ -89,6 +91,13 @@ Information about SWIG is also available in Japanese translation at
 
 What's New?
 ===========
+
+SWIG-1.3.32 summary:
+- shared_ptr support for Java and C#
+- Enhanced STL support for Ruby
+- Numerous fixes and minor enhancements for Allegrocl, C#, cffi, Chicken, Guile,
+  Java, Lua, Ocaml, Perl, Perl, PHP, Python, Ruby, Tcl.
+- Improved warning support
 
 SWIG-1.3.31 summary:
 - Python modern classes regression fix
@@ -504,7 +513,7 @@ and Windows). All contributions help.
 
 If you would like to join the SWIG development team or contribute a
 language module to the distribution, please contact the swig-dev
-mailing list, details at http://www.swig.org/mali.html.
+mailing list, details at http://www.swig.org/mail.html.
 
 
  -- The SWIG Maintainers
