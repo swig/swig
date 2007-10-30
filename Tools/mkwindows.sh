@@ -1,9 +1,12 @@
 #!/bin/sh
 
-# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in a mingw environment.
+# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in a MinGW environment or on Linux using MinGW cross compiler
 
 # path to zip program
-zip=/c/cygwin/bin/zip
+zip=
+
+# special options for configure
+configureoptions=
 
 if test x$1 != x; then
     version=$1
@@ -14,8 +17,27 @@ if test x$1 != x; then
 else
     echo "Usage: mkwindows.sh version [zip]"
     echo "       version should be 1.3.x"
-    echo "       zip is full path to zip program - default is /c/cygwin/bin/zip"
+    echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux"
     exit 1
+fi
+
+uname=`uname -a`
+mingw=`echo "$uname" | grep -i mingw`
+linux=`echo "$uname" | grep -i linux`
+if test "$mingw"; then
+  echo "Building on MinGW";
+  zip=/c/cygwin/bin/zip
+else 
+  if test "$linux"; then
+    echo "Building on Linux"
+    if test x$zip = x; then
+      zip=zip
+      configureoptions="--host=i586-mingw32msvc --build=i686-linux"
+    fi
+  else 
+    echo "Unknown platform. Requires either Linux or MinGW."
+    exit 1;
+  fi
 fi
 
 swigbasename=swig-$version
@@ -37,9 +59,10 @@ if test -f "$tarball"; then
     if test -d $swigbasename; then
       mv $swigbasename $swigwinbasename
       tar -zxf ../$tarball
-      echo "Running configure..."
+      confoptions="$configureoptions CXXFLAGS=-O2 CFLAGS=-O2"
+      echo Running configure $confoptions
       cd $swigbasename
-      ./configure CXXFLAGS="-O2" CFLAGS="-O2"
+      ./configure $confoptions
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."
