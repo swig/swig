@@ -1,4 +1,4 @@
-from overload_template import *
+from overload_template_fast import *
 f = foo()
 
 a = max(3,4)
