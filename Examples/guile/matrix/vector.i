@@ -5,6 +5,8 @@
 #include "vector.h"
 %}
 
+%inline {
+
 extern Vector *createv(double x,double y,double z,double w);
 /* Creates a new vector v(x,y,z,w) */
 
@@ -17,5 +19,4 @@ extern void   printv(Vector *v);
 extern void   transform(double **T, Vector *v, Vector *t);
 /* Transforms vector c to vector t by M*v --> t */
 
-
-
+}

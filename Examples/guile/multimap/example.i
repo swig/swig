@@ -58,7 +58,9 @@ extern int count(char *bytes, int len, char c);
 /* This example shows how to wrap a function that mutates a string */
 
 %typemap(in) (char *str, int len) {
-  $1 = gh_scm2newstr($input,&$2);
+  size_t temp;
+  $1 = gh_scm2newstr($input,&temp);
+  $2 = temp;
 }
 
 /* Return the mutated string as a new object.  */

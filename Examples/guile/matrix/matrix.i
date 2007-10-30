@@ -12,6 +12,7 @@ double get_m(double **M, int i, int j) {
 }
 %}
 
+%inline {
 /*** Matrix Operations ***/
 
 extern double **new_matrix();
@@ -32,7 +33,4 @@ extern double get_m(double **M, int i, int j);
 extern void   mat_mult(double **a, double **b, double **c);
 /* Multiplies matrix a by b and places the result in c*/
 
-
-
-
-
+}
