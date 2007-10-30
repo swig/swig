@@ -1,8 +1,7 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.30
+Release: SWIG-1.3.32
 
-$Id$
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -110,18 +109,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        Note: Implemented in languages that uses the UTL via the
        'SWIG_fail' macro.
 
-
-[done] Better targeting of output typemaps. For example:
-       It is not possible to target an output typemap for function
-       Foo::func() and not Bar::func(). Output typemaps need to support
-       syntax something along the lines of:
-
-             %typemap(out) int *Foo::func { ... }
-
-       Currently only globals functions can be targeted, like so:
-
-             %typemap(out) int *func { ... }
-
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
        nodes to be identified.  For example:
@@ -134,8 +121,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        management.  Continue to consolidate SWIG directives to %feature.
 
        Note: Initial implementation in the %rename directive.
-
-[done] Bring Aquinas' contract/assertion checking code online.
 
 ***    Add more intelligent information related to object ownership.
        SWIG should be able to automatically strip ownership from
@@ -203,18 +188,12 @@ Ruby
 
 ***    Add support for keyword arguments (by collecting them in a hash?).
 
-DONE   Add some special directives to automatically rename declarations to
-       or from CamelCase.
-
 Java
 ----
 
 
 C#
 --
-
-DONE   Implement director support for C# so that virtual methods work seemlessly
-       when mixing C# and C++ code.
 
 PHP
 ---
@@ -390,10 +369,4 @@ Documentation
 ***    add section for Perl module support for operator overloading
 
 **     Add section on WAD.
-
-Other
------
-
-*****  Learn more wicked Jazz chords.
-       (in progress)
 
