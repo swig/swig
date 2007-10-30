@@ -3,6 +3,9 @@
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) FooBar;   // C#, Java, Php4 multiple inheritance
+#ifdef SWIGLUA	// lua only has one numeric type, so some overloads shadow each other creating warnings
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) blah;
+#endif
 
 %inline %{
 class Foo {

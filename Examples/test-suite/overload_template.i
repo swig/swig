@@ -1,5 +1,16 @@
 %module overload_template
 
+#ifdef SWIGLUA
+// lua only has one numeric type, so most of the overloads shadow each other creating warnings
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) foo;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) max;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) specialization;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) overload;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) space::nsoverload;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fooT;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) barT;
+#endif
+
 %{
 #ifdef max
 #undef max

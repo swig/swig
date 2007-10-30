@@ -833,11 +833,13 @@ NEW LANGUAGE NOTE:END ************************************************/
     real_classname = Getattr(n, "name");
     mangled_classname = Swig_name_mangle(real_classname);
 
-// note: tcl has a static hashtable of all classes emitted, I wonder why?
-/*    static Hash* emitted = NewHash();
-    Printf(stdout,"classHandler %s\n",mangled_classname);
-    if (Getattr(emitted,mangled_classname)) return SWIG_NOWRAP;
-    Setattr(emitted,mangled_classname,"1");    */
+    // not sure exactly how this workswhat this works,
+    // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
+    // this fixes issues in test suites: template_default2 & template_specialization
+    static Hash *emitted = NewHash();
+    if (Getattr(emitted, mangled_classname))
+      return SWIG_NOWRAP;
+    Setattr(emitted, mangled_classname, "1");
 
     s_attr_tab = NewString("");
     Printf(s_attr_tab, "static swig_lua_attribute swig_");
@@ -848,9 +850,8 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
 
     // Generate normal wrappers
-//return SWIG_OK;
     Language::classHandler(n);
-//return SWIG_OK;
+
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType_add_pointer(t);
 
@@ -888,7 +889,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     Delete(s_attr_tab);
 
     // Handle inheritance
-    // note: with the idea of class hireachied spread over mutliple modules
+    // note: with the idea of class hireachied spread over multiple modules
     // cf test-suite: imports.i
     // it is not possible to just add the pointers to the base classes to the code
     // (as sometimes these classes are not present)
@@ -1009,7 +1010,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    REPORT("constructorHandler", n);
+//    REPORT("constructorHandler", n);
     current = CONSTRUCTOR;
     Language::constructorHandler(n);
     current = NO_CPP;

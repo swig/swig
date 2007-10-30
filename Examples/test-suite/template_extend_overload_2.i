@@ -1,5 +1,11 @@
 %module template_extend_overload_2
 
+#ifdef SWIGLUA	// lua only has one numeric type, so some overloads shadow each other creating warnings
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) A;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) AT;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) BT;
+#endif
+
 %inline %{
 
   struct A

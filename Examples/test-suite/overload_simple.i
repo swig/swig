@@ -5,6 +5,15 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fbool;
 #endif
 
+#ifdef SWIGLUA
+// lua only has one numeric type, so most of the overloads shadow each other creating warnings
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) foo;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) bar;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Spam;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) num;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fid;
+#endif
+
 #ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 

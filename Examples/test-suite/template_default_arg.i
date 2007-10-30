@@ -1,6 +1,12 @@
 %module template_default_arg
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Hello;	/* Ruby, wrong class name */
+#ifdef SWIGLUA
+// lua only has one numeric type, so most of the overloads shadow each other creating warnings
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) X;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Z;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) meth;
+#endif
 
 %inline %{
   template <class T>

@@ -1,6 +1,13 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/30/2007: mgossage
+	    [lua] fixed bug in template classes which cases template_default2 
+	    and template_specialization_defarg to fail.
+	    Added several warning filters into the overload's test cases.
+	    Added runtime tests for several codes.
+	    You can now make check-lua-test-suite with no errors and only a few warnings.
+
 10/30/2007: olly
 	    [guile] Fix the configure test to put GUILELINK in LIBS not LDFLAGS
 	    (SF#1822430).
