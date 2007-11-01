@@ -6,8 +6,11 @@ import sys
 import string
 import os
 
-def failed():
-  print "mkrelease.py to complete"
+def failed(message):
+  if message == "":
+    print "mkrelease.py failed to complete"
+  else:
+    print message
   sys.exit(2)
 
 try:
@@ -18,13 +21,16 @@ except:
    print "where version should be 1.3.x and username is your SF username"
    sys.exit(1)
 
+print "Looking for wput"
+os.system("which wput") and failed("wput not installed/found. Please install.")
+
 print "Making source tarball"
-os.system("python ./mkdist.py " + version) and failed()
+os.system("python ./mkdist.py " + version) and failed("")
 
 print "Build Windows package"
-os.system("./mkwindows.sh " + version) and failed()
+os.system("./mkwindows.sh " + version) and failed("")
 
 print "Uploading to Sourceforge"
-os.system("wput --verbose --binary swig-" + version + ".tar.gz ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed()
-os.system("wput --verbose --binary swigwin-" + version + ".zip ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed()
+os.system("wput --verbose --binary swig-" + version + ".tar.gz ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
+os.system("wput --verbose --binary swigwin-" + version + ".zip ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
 
