@@ -1,12 +1,17 @@
 #!/bin/sh
 
-# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in a MinGW environment or on Linux using MinGW cross compiler
+# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in either:
+# - MinGW environment
+# - Linux using MinGW cross compiler
+# - Cygwin using MinGW compiler
 
 # path to zip program
 zip=
 
-# special options for configure
-configureoptions=
+# options for configure
+extraconfigureoptions=
+compileflags="-O2"
+extracompileflags=
 
 if test x$1 != x; then
     version=$1
@@ -24,19 +29,30 @@ fi
 uname=`uname -a`
 mingw=`echo "$uname" | grep -i mingw`
 linux=`echo "$uname" | grep -i linux`
+cygwin=`echo "$uname" | grep -i cygwin`
 if test "$mingw"; then
-  echo "Building on MinGW";
-  zip=/c/cygwin/bin/zip
+  echo "Building native Windows executable on MinGW";
+  if test x$zip = x; then
+    zip=/c/cygwin/bin/zip
+  fi
 else 
   if test "$linux"; then
-    echo "Building on Linux"
+    echo "Building native Windows executable on Linux"
     if test x$zip = x; then
       zip=zip
-      configureoptions="--host=i586-mingw32msvc --build=i686-linux"
     fi
+    extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux CXXFLAGS=-O2 CFLAGS=-O2"
   else 
-    echo "Unknown platform. Requires either Linux or MinGW."
-    exit 1;
+    if test "$cygwin"; then
+      echo "Building native Windows executable on Cygwin"
+      if test x$zip = x; then
+        zip=zip
+      fi
+      compileflags="-O2 -mno-cygwin"
+    else
+      echo "Unknown platform. Requires either Linux or MinGW."
+      exit 1;
+    fi
   fi
 fi
 
@@ -59,14 +75,13 @@ if test -f "$tarball"; then
     if test -d $swigbasename; then
       mv $swigbasename $swigwinbasename
       tar -zxf ../$tarball
-      confoptions="$configureoptions CXXFLAGS=-O2 CFLAGS=-O2"
-      echo Running configure $confoptions
       cd $swigbasename
-      ./configure $confoptions
+      echo Running: ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
+      ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."
-      ./swig.exe -version
+      env LD_LIBRARY_PATH= PATH= ./swig.exe -version
       echo "Creating $swigwinbasename.zip..."
       cd ..
       cp $swigbasename/swig.exe $swigwinbasename
