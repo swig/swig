@@ -38,6 +38,7 @@ Major contributors include:
  Richard Palmer (richard@magicality.org)                (PHP)
  Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)
  Tim Hockin - Sun Microsystems (thockin@sun.com)        (PHP)
+ Kevin Ruland                                           (PHP)
  Shibukawa Yoshiki                                      (Japanese Translation)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
  Loic Dachary                                           (Perl5)
@@ -95,8 +96,9 @@ What's New?
 SWIG-1.3.32 summary:
 - shared_ptr support for Java and C#
 - Enhanced STL support for Ruby
+- Fixed long-standing memory leak when returning a wrapped C++ object
 - Numerous fixes and minor enhancements for Allegrocl, C#, cffi, Chicken, Guile,
-  Java, Lua, Ocaml, Perl, Perl, PHP, Python, Ruby, Tcl.
+  Java, Lua, Ocaml, Perl, PHP, Python, Ruby, Tcl.
 - Improved warning support
 
 SWIG-1.3.31 summary:
