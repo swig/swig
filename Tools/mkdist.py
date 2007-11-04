@@ -8,8 +8,8 @@ import string
 import os
 
 def failed():
-  print "Failed to complete"
-  sys.exit(1)
+  print "mkdist.py failed to complete"
+  sys.exit(2)
 
 
 try:
@@ -17,12 +17,12 @@ try:
    dirname = "swig-" + version
 except:
    print "Usage: mkdist.py version, where version should be 1.3.x"
-   sys.exit(0)
+   sys.exit(1)
 
 # Check name matches normal unix conventions
 if string.lower(dirname) != dirname:
   print "directory name ("+dirname+") should be in lowercase"
-  sys.exit(2)
+  sys.exit(3)
 
 # If directory and tarball exist, remove it
 print "Removing ", dirname
