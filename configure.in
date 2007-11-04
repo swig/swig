@@ -1649,7 +1649,7 @@ if test -z "$LUAINCLUDE"; then
 #AC_TRY_CPP([#include <lua.h>], , LUAINCLUDE="")
 AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <lua.h>]])], , LUAINCLUDE="")
 if test -z "$LUAINCLUDE"; then
-	dirs="/usr/local/include /usr/include /opt/local/include"
+	dirs="/usr/local/include /usr/include /usr/include/lua* /opt/local/include"
 	for i in $dirs ; do
 		if test -r $i/lua.h; then
 			AC_MSG_RESULT($i)
