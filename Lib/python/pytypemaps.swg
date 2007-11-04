@@ -86,7 +86,7 @@
 
 %typemap(ret,noblock=1) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {
   if ($result) {
-    PyObject *robj = PyObject_CallMethod($result, "__deref__", NULL);
+    PyObject *robj = PyObject_CallMethod($result, (char *)"__deref__", NULL);
     if (robj && !PyErr_Occurred()) {
       PySwigObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
 			  (PyObject *) SWIG_Python_GetSwigThis(robj));

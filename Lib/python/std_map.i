@@ -21,7 +21,7 @@
       static int asptr(PyObject *obj, map_type **val) {
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
-	  PyObject_var items = PyMapping_Items(obj);
+	  PyObject_var items = PyObject_CallMethod(obj,"items",NULL);
 	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
