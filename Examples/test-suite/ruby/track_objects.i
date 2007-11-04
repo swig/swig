@@ -39,7 +39,7 @@ public:
 	}
 
 	/* Just a simple method to call on Foo*/
-	char* say_hello()
+	const char* say_hello()
 	{
 		return "Hello";
 	}

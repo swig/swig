@@ -116,7 +116,8 @@ int* const globalRet2() {return &GlobalInt;}
 %{
 static int wxEVT_COMMAND_BUTTON_CLICKEDv;
 static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
-char *langs[] ={"Hello"};
+char lang1[16] = "Hello";
+char *langs[] ={ lang1 };
  
      
 %}
