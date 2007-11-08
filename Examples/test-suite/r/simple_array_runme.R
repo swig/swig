@@ -1,9 +1,9 @@
-source('unittest.R')
-dyn.load('simple_array_wrap.so')
-source('simple_array_wrap.R')
+source("unittest.R")
+dyn.load(paste("simple_array_wrap", .Platform$dynlib.ext, sep=""))
+source("simple_array_wrap.R")
 cacheMetaData(1)
 initArray()
 
-q(save='no')
+q(save="no")
 
 

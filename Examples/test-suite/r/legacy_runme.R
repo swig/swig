@@ -1,6 +1,6 @@
-source('unittest.R')
-dyn.load('legacy_wrap.so')
-source('legacy_wrap.R')
+source("unittest.R")
+dyn.load(paste("legacy_wrap", .Platform$dynlib.ext, sep=""))
+source("legacy_wrap.R")
 cacheMetaData(1)
 
 obj <- getObject(1,3)
@@ -22,7 +22,7 @@ unittest(getLong(), -321313)
 unittest(getUnsignedLong(), 23123)
 unittest(getChar(), "A")
 
-q(save='no')
+q(save="no")
 
 
 

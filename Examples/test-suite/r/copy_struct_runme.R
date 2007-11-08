@@ -1,6 +1,6 @@
-source('unittest.R')
-dyn.load('copy_struct_wrap.so')
-source('copy_struct_wrap.R')
+source("unittest.R")
+dyn.load(paste("copy_struct_wrap", .Platform$dynlib.ext, sep=""))
+source("copy_struct_wrap.R")
 cacheMetaData(1)
 
 a <- getA()
@@ -51,7 +51,7 @@ foo <- copyToC(la, other)
 aa = A()
 aa$i = 201
 aa$d = pi
-aa$str = 'foo'
+aa$str = "foo"
 copyToR(aa)
 
 

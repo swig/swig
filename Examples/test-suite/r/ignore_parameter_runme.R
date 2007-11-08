@@ -1,10 +1,10 @@
-source('unittest.R')
-dyn.load('ignore_parameter_wrap.so')
-source('ignore_parameter_wrap.R')
+source("unittest.R")
+dyn.load(paste("ignore_parameter_wrap", .Platform$dynlib.ext, sep=""))
+source("ignore_parameter_wrap.R")
 cacheMetaData(1)
 
 unittest(jaguar(1, 1.0), "hello")
-q(save='no')
+q(save="no")
 
 
 

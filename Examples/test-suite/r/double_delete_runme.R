@@ -1,8 +1,8 @@
 # This file illustrates the proxy class C++ interface generated
 # by SWIG.
 
-dyn.load('double_delete_wrap.so')
-source('double_delete_wrap.R')
+dyn.load(paste("double_delete_wrap", .Platform$dynlib.ext, sep=""))
+source("double_delete_wrap.R")
 cacheMetaData(1)
 
 # ----- Object creation -----
