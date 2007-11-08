@@ -21,8 +21,9 @@ if test x$1 != x; then
     fi
 else
     echo "Usage: mkwindows.sh version [zip]"
+    echo "       Build Windows distribution. Works on Cygwin, MinGW or Linux"
     echo "       version should be 1.3.x"
-    echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux"
+    echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin"
     exit 1
 fi
 
