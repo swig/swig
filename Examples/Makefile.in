@@ -1045,5 +1045,5 @@ r_cpp: $(CXXSRCS)
 r_clean:
 	rm -f *_wrap* *~ .~* $(RSRCS) $(RCXXSRCS)
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
 
