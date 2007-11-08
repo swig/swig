@@ -1,6 +1,10 @@
 Version 1.3.32 (in progress)
 ============================
 
+10/29/2007: wsfulton
+            [R] Fix seg fault on Windows
+            [R] Examples R scripts are now platform independent
+
 10/30/2007: mgossage
 	    [lua] fixed bug in template classes which cases template_default2 
 	    and template_specialization_defarg to fail.
