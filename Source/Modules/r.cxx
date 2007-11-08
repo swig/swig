@@ -293,6 +293,7 @@ static double getNumber(String *value, String *type) {
 
 class R : public Language {
 public:
+  R();
   void registerClass(Node *n);
   void main(int argc, char *argv[]);
   int top(Node *n);
@@ -337,10 +338,6 @@ public:
   String *runtimeCode();
   
 protected:
-  bool debugMode;
-  bool copyStruct;
-  bool memoryProfile;
-  bool aggressiveGc;
   int addRegistrationRoutine(String *rname, int nargs);
   int outputRegistrationRoutines(File *out);
   
@@ -400,19 +397,25 @@ protected:
   void addAccessor(String *memberName, Wrapper *f, 
 		   String *name, int isSet = -1);
   
+  static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
+
 protected: 
+  bool copyStruct;
+  bool memoryProfile;
+  bool aggressiveGc;
+
   // Strings into which we cumulate the generated code that is to be written
   //vto the files.
-  String *sfile, 
-    *f_init,
-    *s_classes,
-    *f_runtime,
-    *f_wrapper,
-    *s_header, 
-    *f_wrappers,
-    *s_init,
-    *s_init_routine,
-    *s_namespace;
+  String *sfile;
+  String *f_init;
+  String *s_classes;
+  String *f_runtime;
+  String *f_wrapper;
+  String *s_header;
+  String *f_wrappers;
+  String *s_init;
+  String *s_init_routine;
+  String *s_namespace;
   
   // State variables that carry information across calls to functionWrapper() 
   // from  member accessors and class declarations. 
@@ -424,7 +427,8 @@ protected:
   
   
   int processing_class_member_function;
-  List *class_member_functions, *class_member_set_functions;
+  List *class_member_functions;
+  List *class_member_set_functions;
   
   /* */
   Hash *ClassMemberTable;
@@ -456,13 +460,59 @@ protected:
   bool    outputNamespaceInfo;
   
   String *UnProtectWrapupCode;
+
+  // Static members
+  static bool debugMode;
 };
 
+R::R() :
+  copyStruct(),
+  memoryProfile(),
+  aggressiveGc(),
+  sfile(),
+  f_init(),
+  s_classes(),
+  f_runtime(),
+  f_wrapper(),
+  s_header(),
+  f_wrappers(),
+  s_init(),
+  s_init_routine(),
+  s_namespace(),
+  opaqueClassDeclaration(),
+  processing_variable(),
+  processing_member_access_function(),
+  member_name(),
+  class_name(),
+  processing_class_member_function(),
+  class_member_functions(),
+  class_member_set_functions(),
+  ClassMemberTable(),
+  ClassMethodsTable(),
+  SClassDefs(),
+  SMethodInfo(),
+  registrationTable(),
+  functionPointerProxyTable(),
+  namespaceFunctions(),
+  namespaceMethods(),
+  namespaceClasses(),
+  Argv(),
+  Argc(),
+  inCPlusMode(),
+  DllName(),
+  Rpackage(),
+  noInitializationCode(),
+  outputNamespaceInfo(),
+  UnProtectWrapupCode() {
+}
 
-static int getFunctionPointerNumArgs(Node *n, SwigType *tt) {
+bool R::debugMode = false;
+
+int R::getFunctionPointerNumArgs(Node *n, SwigType *tt) {
   (void) tt;
   n = Getattr(n, "type");
-  Printf(stderr, "type: %s\n", n);
+  if (debugMode)
+    Printf(stderr, "type: %s\n", n);
 #if 0
   SwigType *tmp = SwigType_typedef_resolve(tt);
   
@@ -470,7 +520,8 @@ static int getFunctionPointerNumArgs(Node *n, SwigType *tt) {
 #endif
   
   ParmList *parms(Getattr(n, "parms"));
-  Printf(stderr, "parms = %p\n", parms);
+  if (debugMode)
+    Printf(stderr, "parms = %p\n", parms);
   return ParmList_len(parms);
 }
 
@@ -560,12 +611,12 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   emit_attach_parmmaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
-  Wrapper_add_local(f, "__r_swig_cb_data", 
-		    "RCallbackFunctionData *__r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
-  String *lvar = NewString("__r_swig_cb_data");
+  Wrapper_add_local(f, "r_swig_cb_data", 
+		    "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
+  String *lvar = NewString("r_swig_cb_data");
 
-  Wrapper_add_local(f, "__tmp", "SEXP __tmp"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "__r_nprotect", "int __r_nprotect = 0"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
   Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
 
   // Add local for error code in return value.  This is not in emit_args because that assumes an out typemap
@@ -592,14 +643,14 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     String *tm = Getattr(p, "tmap:out");
     if(tm) {
       Replaceall(tm, "$1", name);
-      Replaceall(tm, "$result", "__tmp");
+      Replaceall(tm, "$result", "r_tmp");
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
     } 
     
     Printf(setExprElements, "%s\n", tm);
-    Printf(setExprElements, "SETCAR(__r_swig_cb_data->el, %s);\n", "__tmp");
-    Printf(setExprElements, "__r_swig_cb_data->el = CDR(__r_swig_cb_data->el);\n\n");
+    Printf(setExprElements, "SETCAR(r_swig_cb_data->el, %s);\n", "r_tmp");
+    Printf(setExprElements, "r_swig_cb_data->el = CDR(r_swig_cb_data->el);\n\n");
     
     Printf(s_paramTypes, "'%s'", SwigType_manglestr(tt));
     
@@ -614,23 +665,23 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Printf(f->def,  ")\n{\n");
   
   Printf(f->code, "PROTECT(%s->expr = allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
-  Printf(f->code, "__r_nprotect++;\n");
-  Printf(f->code, "__r_swig_cb_data->el = __r_swig_cb_data->expr;\n\n");
+  Printf(f->code, "r_nprotect++;\n");
+  Printf(f->code, "r_swig_cb_data->el = r_swig_cb_data->expr;\n\n");
   
-  Printf(f->code, "SETCAR(__r_swig_cb_data->el, __r_swig_cb_data->fun);\n");
-  Printf(f->code, "__r_swig_cb_data->el = CDR(__r_swig_cb_data->el);\n\n");
+  Printf(f->code, "SETCAR(r_swig_cb_data->el, r_swig_cb_data->fun);\n");
+  Printf(f->code, "r_swig_cb_data->el = CDR(r_swig_cb_data->el);\n\n");
   
   Printf(f->code, "%s\n\n", setExprElements);
   
-  Printv(f->code, "__r_swig_cb_data->retValue = R_tryEval(", 
-	 "__r_swig_cb_data->expr,",
+  Printv(f->code, "r_swig_cb_data->retValue = R_tryEval(", 
+	 "r_swig_cb_data->expr,",
 	 " R_GlobalEnv,",
-	 " &__r_swig_cb_data->errorOccurred",
+	 " &r_swig_cb_data->errorOccurred",
 	 ");\n", 
 	 NIL);
   
   Printv(f->code, "\n",
-	 "if(__r_swig_cb_data->errorOccurred) {\n",
+	 "if(r_swig_cb_data->errorOccurred) {\n",
 	 "R_SWIG_popCallbackFunctionData(1);\n",
 	 "PROBLEM \"error in calling R function as a function pointer (",
 	 funName,
@@ -656,7 +707,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       String *tm = returnTM;
       SwigType *retType = base; // Getattr(n, "type");
       
-      Replaceall(tm,"$input", "__r_swig_cb_data->retValue");
+      Replaceall(tm,"$input", "r_swig_cb_data->retValue");
       Replaceall(tm,"$target", "result");
       replaceRClass(tm, retType);
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
@@ -696,7 +747,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
 void R::init() {
   UnProtectWrapupCode =  
-    NewStringf("%s", "vmaxset(r_vmax);\nif(__r_nprotect)  UNPROTECT(__r_nprotect);\n\n");
+    NewStringf("%s", "vmaxset(r_vmax);\nif(r_nprotect)  UNPROTECT(r_nprotect);\n\n");
   
   SClassDefs = NewHash();
   
@@ -737,22 +788,11 @@ int R::top(Node *n) {
     DllName = Copy(module);
   Append(DllName, "_wrap");
 
-
   if(outputNamespaceInfo) {
     s_namespace = NewString("");
     Swig_register_filebyname("snamespace", s_namespace);
     Printf(s_namespace, "useDynLib(%s)\n", DllName);
-  } else {
-    String *dev = NewString("/dev/null");
-    File *devnull = NewFile(dev, "w+");
-    Delete(dev);
-    if(!devnull) {
-      FileErrorDisplay(dev);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    Swig_register_filebyname("snamespace", devnull);    
   }
-
 
   /* Associate the different streams with names so that they can be used in %insert directives by the
      typemap code. */
@@ -1756,7 +1796,7 @@ int R::functionWrapper(Node *n) {
   num_required = emit_num_required(l);
   varargs = emit_isvarargs(l);
 
-  Wrapper_add_local(f, "__r_nprotect", "unsigned int __r_nprotect = 0");
+  Wrapper_add_local(f, "r_nprotect", "unsigned int r_nprotect = 0");
   Wrapper_add_localv(f, "r_ans", "SEXP", "r_ans = R_NilValue", NIL);
   Wrapper_add_localv(f, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
 
@@ -1999,7 +2039,7 @@ int R::functionWrapper(Node *n) {
     if(!isVoidReturnType)
       Printf(tmp, "PROTECT(r_ans);\n");
 
-    Printf(tmp, "PROTECT(R_OutputValues = NEW_LIST(%d));\n__r_nprotect += %d;\n", 
+    Printf(tmp, "PROTECT(R_OutputValues = NEW_LIST(%d));\nr_nprotect += %d;\n", 
 	   numOutArgs + !isVoidReturnType, 
 	   isVoidReturnType ? 1 : 2);
 
@@ -2178,7 +2218,7 @@ int R::defineArrayAccessors(SwigType *type) {
   Wrapper_add_local(cGetItem, "ptr", tmp);
   Wrapper_add_local(cGetItem, "r_ans", "SEXP r_ans");
   Wrapper_add_local(cGetItem, "result", tmp1);
-  Wrapper_add_local(cGetItem, "__r_nprotect", "int __r_nprotect = 0");
+  Wrapper_add_local(cGetItem, "r_nprotect", "int r_nprotect = 0");
 
   Printf(cGetItem->code, "ptr = (%s *) R_SWIG_resolveExternalRef(s_x, \"\", \"s_x\", 0);\n", SwigType_lstr(base, 0));
   Printf(cGetItem->code, "result = ptr[INTEGER(s_i)[0]];\n");
@@ -2200,7 +2240,7 @@ int R::defineArrayAccessors(SwigType *type) {
   /*
     R_SWIG_..._set_item(SEXP x, SEXP s_i, SEXP s_value) {
     char *r_vmax = vmaxget();
-    int __r_nprotect = 0;
+    int r_nprotect = 0;
     type *ptr, *el, value;
   
     ptr = (type *) R_SWIG_resolveExternalRef(s_x, "", "s_x", 0);
@@ -2220,7 +2260,7 @@ int R::defineArrayAccessors(SwigType *type) {
     tmp1 = NewStringf("%s value", SwigType_lstr(base, 0));
 
     Wrapper_add_localv(cSetItem, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
-    Wrapper_add_local(cSetItem, "__r_nprotect", "int __r_nprotect = 0");
+    Wrapper_add_local(cSetItem, "r_nprotect", "int r_nprotect = 0");
 
     Wrapper_add_local(cSetItem, "ptr", tmp);
     Wrapper_add_local(cSetItem, "value", tmp1);
@@ -2582,14 +2622,14 @@ int R::generateCopyRoutinesObsolete(Node *n) {
   Wrapper_add_localv(toR, "r_obj", "SEXP", "r_obj", NIL);
   Wrapper_add_localv(toR, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
   Wrapper_add_localv(toR, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
-  Wrapper_add_local(toR, "__r_nprotect", "int __r_nprotect = 0");
+  Wrapper_add_local(toR, "r_nprotect", "int r_nprotect = 0");
   Wrapper_add_local(toC, "ecode", "int ecode = 0");
 
   Printf(copyToR->def, "%sCopyToR = function(value, obj = new(\"%s\"))\n{\n", name, name);
   Printf(copyToC->def, "%sCopyToC = function(value, obj)\n{\n", name);
 
 
-  Printf(toR->code, "PROTECT(r_obj = NEW_OBJECT(MAKE_CLASS(\"%s\")));\n__r_nprotect++;\n\n", name);
+  Printf(toR->code, "PROTECT(r_obj = NEW_OBJECT(MAKE_CLASS(\"%s\")));\nr_nprotect++;\n\n", name);
 
   Wrapper_add_localv(toC, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
 
@@ -2645,8 +2685,8 @@ int R::generateCopyRoutinesObsolete(Node *n) {
       replaceRClass(tm,elType);
 
 
-      Printf(toR->code, "%s\nPROTECT(_tmp_sexp);\n__r_nprotect++;\n", tm);
-      Printf(toR->code, "PROTECT(r_obj = R_do_slot_assign(r_obj, mkString(\"%s\"), _tmp_sexp));\n__r_nprotect++;\n\n", elName);
+      Printf(toR->code, "%s\nPROTECT(_tmp_sexp);\nr_nprotect++;\n", tm);
+      Printf(toR->code, "PROTECT(r_obj = R_do_slot_assign(r_obj, mkString(\"%s\"), _tmp_sexp));\nr_nprotect++;\n\n", elName);
     } else {
       Printf(stderr, "*** Can't convert field %s in \n", elName);
     }
