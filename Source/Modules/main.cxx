@@ -132,7 +132,8 @@ static const char *usage3 = (const char *) "\
 Options can also be defined using the SWIG_FEATURES environment variable, for example:\n\
 \n\
   $ SWIG_FEATURES=\"-Wall\"\n\
-  $ swig -python interface.i \n\
+  $ export SWIG_FEATURES\n\
+  $ swig -python interface.i\n\
 \n\
 is equivalent to: \n\
 \n\

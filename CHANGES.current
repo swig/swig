@@ -1,6 +1,9 @@
 Version 1.3.32 (in progress)
 ============================
 
+11/09/2007: olly
+	    Fix --help output to note that `export SWIG_FEATURES' is required.
+
 10/29/2007: wsfulton
             [R] Fix seg fault on Windows
             [R] Examples R scripts are now platform independent
