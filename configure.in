@@ -793,7 +793,7 @@ else
   if test "$JAVAMDDIR" = "" ; then
     AC_MSG_RESULT(not found)
   else
-    JAVAMDDIR=`dirname "$JAVAMDDIR" | tail -n 1`
+    JAVAMDDIR=`dirname "$JAVAMDDIR" | tail -1`
     JAVAINC="${JAVAINC} -I\"$JAVAMDDIR\""
     AC_MSG_RESULT($JAVAMDDIR)
   fi
