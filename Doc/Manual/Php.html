@@ -99,50 +99,57 @@ more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
 </p>
 
 <p>
-To finish building the extension, you have two choices. The usual way is
-to build the extension as a separate dynamically loaded module. You can then
-specify that this be loaded automatically in <tt>php.ini</tt> or
-load it explicitly for any script which needs it. The alternative to
-creating a dynamically loaded module is to
-rebuild the entire php source tree and build
-the extension into the php executable/library so it will be available in every
-script.  The first choice is the default, however it can be changed by passing
-the '-phpfull' command line switch to swig to select the second build method.  
+The usual (and recommended) way is to build the extension as a separate
+dynamically loaded module. You can then specify that this be loaded
+automatically in <tt>php.ini</tt> or load it explicitly for any script which
+needs it.
+</p>
+
+<p>
+It is also possible to rebuild PHP from source so that your module is
+statically linked into the php executable/library.  This is a lot more
+work, and also requires a full rebuild of PHP to update your module,
+and it doesn't play nicely with package system.  We don't recommend
+this approach, but if you really want to do this, the <tt>-phpfull</tt>
+command line argument to swig may be of use - see below for details.
 </p>
 
 <H3><a name="Php_nn1_1"></a>27.1.1 Building a loadable extension</H3>
 
-
 <p>
-There are two methods to build the extension as a dynamically loaded
-module: using standard compilation utilities (make, gcc), or using
-PHP's <em>phpize</em> utility.
+To build your module as a dynamically loadable extension, use compilation
+commands like these (if you aren't using GCC, the commands will be different,
+and there may be so variation between platforms - these commands should at
+least work for Linux though):
 </p>
 
-<p>
-To build manually, use a compile string similar to this (different for each
-OS):
-</p>
 <div class="code"><pre>
-	cc -I.. $(PHPINC) -fpic -c example_wrap.c
-	cc -shared example_wrap.o -o example.so
+	gcc `php-config --includes` -fpic -c example_wrap.c
+	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
 <p>
-The <tt>-make</tt> command line argument to swig will generate an
-additional file <tt>Makefile</tt> which can usually build the
-extension itself (on UNIX platforms).
+There is a deprecated <tt>-make</tt> command line argument to swig which will
+generate an additional file <tt>makefile</tt> which can usually build the
+extension (at least on some UNIX platforms), but the Makefile generated isn't
+very flexible, and the commands required are trivial so it is simpler to just
+add them to your Makefile or other build system directly.  We recommend that
+you don't use <tt>-make</tt> and it's likely to be removed at some point.
+</p>
+
+<H3><a name="Php_nn1_2"></a>27.1.2 Building extensions into PHP</H3>
+
+<p>
+Note that we don't recommend this approach - it's cleaner and simpler to
+use dynamically loadable modules, which are supported by all modern OSes.
+Support for this may be discontinued entirely in the future.
 </p>
 
 <p>
-If you want to build your extension using the <tt>phpize</tt>
-utility, or if you want to build your module into PHP directly, you
-can specify the <tt>-phpfull</tt> command line argument to swig.
-</p>
-
-<p>
-The <tt>-phpfull</tt> will generate three additional files.  The first
-extra file, <tt>config.m4</tt> contains the shell code needed to
+It is possible to rebuild PHP itself with your module statically linked
+in.  To do this, you can use the <tt>-phpfull</tt> command line option to
+swig.  Using this option will generate three additional files.  The first
+extra file, <tt>config.m4</tt> contains the m4 and shell code needed to
 enable the extension as part of the PHP build process. The second
 extra file, <tt>Makefile.in</tt> contains the information needed to
 build the final Makefile after substitutions. The third and final
@@ -189,25 +196,15 @@ move it to wherever it is convenient to call from your php script.
 </p>
 
 <p>
-Both the <tt>-make</tt> and <tt>-phpfull</tt> arguments accept
+When using <tt>-phpfull</tt>, swig also accepts the following
 additional optional arguments:
 </p>
 <ul>
 <li><tt>-withincs "&lt;incs&gt;"</tt> Adds include files to the config.m4 file.
-<li><tt>-withlibs "&lt;libs&gt;"</tt> Links the libraries into the shared object.
-<li><tt>-withc "&lt;files&gt;"</tt> Compiles and links the named C files into the shared object.
-<li><tt>-withcxx "&lt;files&gt;"</tt> Compiles and links the named C++ files into the shared object,
+<li><tt>-withlibs "&lt;libs&gt;"</tt> Links with the specified libraries.
+<li><tt>-withc "&lt;files&gt;"</tt> Compiles and links the additional specified C files.
+<li><tt>-withcxx "&lt;files&gt;"</tt> Compiles and links the additional specified C++ files.
 </ul>
-
-<H3><a name="Php_nn1_2"></a>27.1.2 Building extensions into PHP</H3>
-
-
-<p>
-This method, selected with the <tt>-phpfull</tt> command line switch, involves
-rebuilding the entire php source tree. Whilst more complicated to build,
-it does mean that the extension is then available without having to load it 
-in each script. 
-</p>
 
 <p>
 After running swig with the <tt>-phpfull</tt> switch, you will be left with a shockingly

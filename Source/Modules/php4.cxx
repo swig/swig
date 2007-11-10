@@ -319,8 +319,7 @@ public:
     Printf(f_make, "CXX_SOURCES=%s\n", withcxx);
     Printf(f_make, "C_SOURCES=%s\n", withc);
     Printf(f_make, "OBJS=%s_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)\n", module);
-    Printf(f_make, "MODULE=%s.`php -r 'switch(PHP_SHLIB_SUFFIX){case\"PHP_SHLIB_SUFFIX\":case\"dylib\":echo\"so\";break;default:echo PHP_SHLIB_SUFFIX;}'`\n",
-	   module);
+    Printf(f_make, "MODULE=%s.so\n", module);
     Printf(f_make, "CFLAGS=-fpic\n");
     Printf(f_make, "LDFLAGS=-shared\n");
     Printf(f_make, "PHP_INC=`php-config --includes`\n");
