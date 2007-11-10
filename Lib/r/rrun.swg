@@ -273,13 +273,14 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
 /* Convert a pointer value */
 SWIGRUNTIMEINLINE int
 SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
+  void *vptr;
   if (!obj) return SWIG_ERROR;
   if (obj == R_NilValue) {
     if (ptr) *ptr = NULL;
     return SWIG_OK;
   }
 
-  void *vptr = R_ExternalPtrAddr(obj);
+  vptr = R_ExternalPtrAddr(obj);
   if (ty) {
     swig_type_info *to = (swig_type_info*) 
       R_ExternalPtrAddr(R_ExternalPtrTag(obj));
