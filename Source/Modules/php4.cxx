@@ -945,7 +945,8 @@ public:
     int newobject = GetFlag(n, "feature:new");
 
     Parm *p;
-    int i, numopt;
+    int i;
+    int numopt;
     String *tm;
     Wrapper *f;
     bool mvr = (shadow && php_version == 4 && wrapperType == membervar);
@@ -1414,7 +1415,7 @@ public:
 	fprintf(stderr, "Malloc failed!\n");
 	exit(1);
       }
-      for (int i = 0; i < max_num_of_arguments; ++i) {
+      for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_names[i] = NULL;
       }
 
@@ -1425,7 +1426,7 @@ public:
 	fprintf(stderr, "Malloc failed!\n");
 	exit(1);
       }
-      for (int i = 0; i < max_num_of_arguments; ++i) {
+      for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_values[i] = NULL;
       }
 

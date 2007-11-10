@@ -20,7 +20,8 @@ static const int MAX_OVERLOAD_ARGS = 5;
 static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   String *b = SwigType_base(t);
   List *els = SwigType_split(t);
-  int count = 0, i;
+  int count = 0;
+  int i;
   
   if(Strncmp(b, "struct ", 7) == 0) 
     Replace(b, "struct ", "", DOH_REPLACE_FIRST);
@@ -519,7 +520,7 @@ int R::getFunctionPointerNumArgs(Node *n, SwigType *tt) {
   n = SwigType_typedef_resolve(tt);
 #endif
   
-  ParmList *parms(Getattr(n, "parms"));
+  ParmList *parms = Getattr(n, "parms");
   if (debugMode)
     Printf(stderr, "parms = %p\n", parms);
   return ParmList_len(parms);
@@ -635,7 +636,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   String *setExprElements = NewString("");
   
   String *s_paramTypes = NewString("");
-  for(int i = 0; p; i++) {
+  for(i = 0; p; i++) {
     SwigType *tt = Getattr(p, "type");
     SwigType *name = Getattr(p, "name");
     //       String   *lname  = Getattr(p,"lname");
@@ -2900,7 +2901,7 @@ int R::typedefHandler(Node *n) {
   it is for a field element.
 **********************/
 int R::membervariableHandler(Node *n) {
-  SwigType *t(Getattr(n, "type"));
+  SwigType *t = Getattr(n, "type");
   processType(t, n, NULL);
   processing_member_access_function = 1;
   member_name = Getattr(n,"sym:name");

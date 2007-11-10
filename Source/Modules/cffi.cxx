@@ -826,9 +826,9 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
   Printf(f_cl, ")\n");
 
   emit_export(n, lisp_name);
-  for (Node *c = firstChild(n); c; c = nextSibling(c)) {
-    if (!Strcmp(nodeType(c), "cdecl")) {
-      emit_export(c, lispify_name(c, Getattr(c, "sym:name"), "'slotname"));
+  for (Node *child = firstChild(n); child; child = nextSibling(child)) {
+    if (!Strcmp(nodeType(child), "cdecl")) {
+      emit_export(child, lispify_name(child, Getattr(child, "sym:name"), "'slotname"));
     }
   }
 

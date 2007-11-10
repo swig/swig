@@ -1587,7 +1587,8 @@ public:
       // put this in classDirectorEnd ???
       Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
 
-      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      int i;
+      for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *method = Getattr(udata, "method");
 	String *methid = Getattr(udata, "class_methodidx");
@@ -1596,7 +1597,7 @@ public:
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
       Printf(proxy_class_code, "    %s.%s_director_connect(swigCPtr", imclass_name, proxy_class_name);
-      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *methid = Getattr(udata, "class_methodidx");
 	Printf(proxy_class_code, ", swigDelegate%s", methid);
@@ -3756,6 +3757,7 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
+    int i;
     String *director_classname = directorClassName(n);
 
     Wrapper *w = NewWrapper();
@@ -3768,7 +3770,7 @@ public:
 
     Printf(w->def, "void %s::swig_connect_director(", director_classname);
 
-    for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+    for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *methid = Getattr(udata, "class_methodidx");
       String *overname = Getattr(udata, "overname");
@@ -3794,7 +3796,7 @@ public:
     Printf(w->code, "}\n\n");
 
     Printf(w->code, "void %s::swig_init_callbacks() {\n", director_classname);
-    for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+    for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
       Printf(w->code, "swig_callback%s = 0;\n", overname);
