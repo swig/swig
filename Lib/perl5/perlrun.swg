@@ -95,33 +95,41 @@ extern "C" {
 #  endif 
 #endif 
 
-/* Note: SwigMagicFuncHack is a typedef used to get the C++ compiler to just shut up already */
-
 #ifdef PERL_OBJECT
 #define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef int (CPerlObj::*SwigMagicFuncHack)(SV *, MAGIC *);
+typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
 #ifdef __cplusplus
 }
 #endif
 
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
+
+#ifdef __cplusplus
+#define SWIGCLASS_STATIC extern "C"
+#else
 #define SWIGCLASS_STATIC
+#endif
+
 #else
 #define MAGIC_PPERL
+
+#ifdef __cplusplus
+#define SWIGCLASS_STATIC extern "C" static SWIGUNUSED
+#else
 #define SWIGCLASS_STATIC static SWIGUNUSED
+#endif
+
 #ifndef MULTIPLICITY
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-typedef int (*SwigMagicFunc)(SV *, MAGIC *);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef int (*SwigMagicFuncHack)(SV *, MAGIC *);
+typedef int (*SwigMagicFunc)(SV *, MAGIC *);
 #ifdef __cplusplus
 }
 #endif
@@ -129,11 +137,11 @@ typedef int (*SwigMagicFuncHack)(SV *, MAGIC *);
 
 #else
 #define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
-typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
+typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 #ifdef __cplusplus
 }
 #endif
@@ -426,8 +434,8 @@ SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, i
   sv_magic(sv,sv,'U',(char *) name,strlen(name));
   mg = mg_find(sv,'U');
   mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
-  mg->mg_virtual->svt_get = (SwigMagicFuncHack) get;
-  mg->mg_virtual->svt_set = (SwigMagicFuncHack) set;
+  mg->mg_virtual->svt_get = (SwigMagicFunc) get;
+  mg->mg_virtual->svt_set = (SwigMagicFunc) set;
   mg->mg_virtual->svt_len = 0;
   mg->mg_virtual->svt_clear = 0;
   mg->mg_virtual->svt_free = 0;
