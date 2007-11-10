@@ -1774,7 +1774,7 @@ int R::functionWrapper(Node *n) {
     Printf(stderr, "Adding a .copy argument to %s for %s = %s\n", 
 	   iname, type, addCopyParam ? "yes" : "no");
 
-  Printv(f->def, "SWIGINTERN SEXP\n", wname, " ( ", NIL);
+  Printv(f->def, "SWIGEXPORT SEXP\n", wname, " ( ", NIL);
 
   Printf(sfun->def, "# Start of %s\n", iname);         
   Printv(sfun->def, "\n`", sfname, "` = function(", NIL);
