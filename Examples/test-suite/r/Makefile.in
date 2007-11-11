@@ -59,5 +59,11 @@ clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile r_clean
 
 %.clean:
-	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_runme.Rout $*.Rout
+	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_wrap.o $*_runme.Rout $*.Rout
+	@if [ -f  $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then ( \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	   rm -f $${f}.R $${f}.Rout ; \
+	done ) \
+	fi
+
 
