@@ -2,7 +2,7 @@
 # by SWIG.
 
 dyn.load(paste("example_wrap", .Platform$dynlib.ext, sep=""))
-source("example_wrap.R")
+source("example.R")
 cacheMetaData(1)
 
 # ----- Object creation -----
