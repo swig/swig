@@ -811,7 +811,15 @@ int R::top(Node *n) {
   Printf(s_init, "# This is an automatically generate file by the R module for SWIG.\n\n");
   outputCommandLineArguments(s_init);
 
+  Printf(f_wrapper, "#ifdef __cplusplus\n");
+  Printf(f_wrapper, "extern \"C\" {\n");
+  Printf(f_wrapper, "#endif\n\n");
+
   Language::top(n);
+
+  Printf(f_wrapper, "#ifdef __cplusplus\n");
+  Printf(f_wrapper, "}\n");
+  Printf(f_wrapper, "#endif\n");
 
   String *type_table = NewString("");
   SwigType_emit_type_table(f_runtime,f_wrapper);
@@ -826,7 +834,6 @@ int R::top(Node *n) {
   Printf(f_init,"}\n");
   if(registrationTable)
     outputRegistrationRoutines(f_init);
-
 
   /* Now arrange to write the 2 files - .S and .c. */
 
