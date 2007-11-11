@@ -1,8 +1,5 @@
 %module copy_struct
 
-%insert("snamespace")  %{ # Just checking %}
-
-
 struct A {
   int i;
   unsigned int ui;
