@@ -97,6 +97,7 @@ SWIG-1.3.32 summary:
 - shared_ptr support for Java and C#
 - Enhanced STL support for Ruby
 - Fixed long-standing memory leak when returning a wrapped C++ object
+- Windows support for R
 - Numerous fixes and minor enhancements for Allegrocl, C#, cffi, Chicken, Guile,
   Java, Lua, Ocaml, Perl, PHP, Python, Ruby, Tcl.
 - Improved warning support
