@@ -130,7 +130,7 @@ allegrocl_examples :=
 clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
-r_examples         :=
+r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 
 # all examples
 check-%-examples :
