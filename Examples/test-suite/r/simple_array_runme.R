@@ -1,6 +1,6 @@
 source("unittest.R")
 dyn.load(paste("simple_array_wrap", .Platform$dynlib.ext, sep=""))
-source("simple_array_wrap.R")
+source("simple_array.R")
 cacheMetaData(1)
 initArray()
 

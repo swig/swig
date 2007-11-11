@@ -116,6 +116,10 @@ int* const globalRet2() {return &GlobalInt;}
 %{
 static int wxEVT_COMMAND_BUTTON_CLICKEDv;
 static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
+#if defined(SWIGR)
+#undef lang1 /* conflicts with symbol in R internals */
+#endif
+
 char lang1[16] = "Hello";
 char *langs[] ={ lang1 };
  

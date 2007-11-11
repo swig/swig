@@ -4,7 +4,7 @@
 
 LANGUAGE     = r
 SCRIPTSUFFIX = _runme.R
-WRAPSUFFIX   = _wrap.R
+WRAPSUFFIX   = .R
 RUNR         = R CMD BATCH --no-save --no-restore
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -59,4 +59,5 @@ clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile r_clean
 
 %.clean:
-	@rm -f $*_wrap.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_runme.Rout
+	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_runme.Rout $*.Rout
+

@@ -854,7 +854,7 @@ int R::DumpCode(Node *n, String *module) {
   
   
   /* The name of the file in which we will generate the S code. */
-  Printf(output_filename, "%s%s_wrap.R", SWIG_output_directory(), module);
+  Printf(output_filename, "%s%s.R", SWIG_output_directory(), module);
   
 #ifdef R_SWIG_VERBOSE
   Printf(stderr, "Writing S code to %s\n", output_filename);

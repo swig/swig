@@ -1,6 +1,6 @@
 source("unittest.R")
 dyn.load(paste("unions_wrap", .Platform$dynlib.ext, sep=""))
-source("unions_wrap.R")
+source("unions.R")
 cacheMetaData(1)
 
 ss <- SmallStruct()

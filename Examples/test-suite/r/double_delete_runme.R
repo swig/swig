@@ -2,7 +2,7 @@
 # by SWIG.
 
 dyn.load(paste("double_delete_wrap", .Platform$dynlib.ext, sep=""))
-source("double_delete_wrap.R")
+source("double_delete.R")
 cacheMetaData(1)
 
 # ----- Object creation -----

@@ -1,6 +1,6 @@
 source("unittest.R")
 dyn.load(paste("copy_struct_wrap", .Platform$dynlib.ext, sep=""))
-source("copy_struct_wrap.R")
+source("copy_struct.R")
 cacheMetaData(1)
 
 a <- getA()
