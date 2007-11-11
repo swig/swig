@@ -92,16 +92,20 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\example.c
+SOURCE=.\example.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\example_wrap.c
+SOURCE=.\example_wrap.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\example.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -117,12 +121,12 @@ SOURCE=.\example.i
 InputPath=.\example.i
 InputName=example
 
-"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -r $(InputPath) 
+	..\..\..\swig -c++ -r -o example_wrap.cpp $(InputPath) 
 	
 # End Custom Build
 
@@ -132,12 +136,12 @@ InputName=example
 InputPath=.\example.i
 InputName=example
 
-"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -r $(InputPath) 
+	..\..\..\swig -c++ -r -o example_wrap.cpp $(InputPath) 
 	
 # End Custom Build
 
