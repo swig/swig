@@ -1,24 +1,24 @@
-#define SWIG_Error(code, msg) warning(msg); return Rf_ScalarLogical(NA_LOGICAL)
+#define SWIG_Error(code, msg) Rf_warning(msg); return Rf_ScalarLogical(NA_LOGICAL)
 
 #define SWIG_fail return Rf_ScalarLogical(NA_LOGICAL)
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(oc, ptr, ty, flags)  SWIG_R_ConvertPtr(oc, ptr, ty, flags)
-#define SWIG_ConvertFunctionPtr(oc, ptr, ty)  SWIG_R_ConvertPtr(oc, ptr, ty, 0)
-#define SWIG_NewPointerObj(ptr, ty, flags) SWIG_R_NewPointerObj(ptr, ty, flags)
-#define SWIG_NewFunctionPtrObj(ptr, ty)  SWIG_R_NewPointerObj(ptr, ty, 0)
+#define SWIG_ConvertPtr(oc, ptr, ty, flags)             SWIG_R_ConvertPtr(oc, ptr, ty, flags)
+#define SWIG_ConvertFunctionPtr(oc, ptr, ty)            SWIG_R_ConvertPtr(oc, ptr, ty, 0)
+#define SWIG_NewPointerObj(ptr, ty, flags)              SWIG_R_NewPointerObj(ptr, ty, flags)
+#define SWIG_NewFunctionPtrObj(ptr, ty)                 SWIG_R_NewPointerObj(ptr, ty, 0)
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_R_ConvertPacked(obj, ptr, sz, ty)
-#define SWIG_NewPackedObj(ptr, sz, ty)                SWIG_R_NewPackedObj(ptr, sz, ty)
+#define SWIG_NewPackedObj(ptr, sz, ty)                  SWIG_R_NewPackedObj(ptr, sz, ty)
 
 /* for class or struct pointers */
-#define SWIG_ConvertInstance(obj, pptr, ty, flags)    SWIG_ConvertPtr(obj, pptr, ty, flags)
-#define SWIG_NewInstanceObj(ptr, ty, flags)           SWIG_NewPointerObj(ptr, ty, flags)
+#define SWIG_ConvertInstance(obj, pptr, ty, flags)      SWIG_ConvertPtr(obj, pptr, ty, flags)
+#define SWIG_NewInstanceObj(ptr, ty, flags)             SWIG_NewPointerObj(ptr, ty, flags)
 
 /* for C++ member pointers, ie, member methods */
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_R_ConvertPacked(obj, ptr, sz, ty)
-#define SWIG_NewMemberObj(ptr, sz, ty)                SWIG_R_NewPackedObj(ptr, sz, ty)
+#define SWIG_NewMemberObj(ptr, sz, ty)                  SWIG_R_NewPackedObj(ptr, sz, ty)
 
 
 /* Runtime API */
@@ -158,11 +158,11 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
   if (!carray) return R_NilValue;
   RVERSION26(return Rf_mkCharEnc(carray, size));
   RVERSIONPRE26(
-  PROTECT(t = allocVector(STRSXP, 1));
+  Rf_protect(t = Rf_allocVector(STRSXP, 1));
   c = allocString(size);
   strncpy(CHAR(c), carray, size);
   SET_STRING_ELT(t, 0, c);
-  UNPROTECT(1);)
+  Rf_unprotect(1);)
   return t;
 }
 }

@@ -77,7 +77,7 @@ SWIG_InitializeModule(0);
 
 %typemap(scheck) int %{
   if(length($input) > 1) {
-     warning("using only the first element of $input")
+     Rf_warning("using only the first element of $input")
   }
 %}
 
@@ -141,7 +141,7 @@ strcpy($1, "");
 %}
 
 %typemap(out,noblock=1) char* 
- {  $result = $1 ? mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
+ {  $result = $1 ? Rf_mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
 
 %typemap(in,noblock=1) char {
 $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
@@ -151,7 +151,7 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
  { 
     char tmp[2] = "x";
     tmp[0] = $1;    
-    $result = mkString(tmp); 
+    $result = Rf_mkString(tmp); 
  }
 
 
@@ -160,7 +160,7 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 }
 
 %typemap(out,noblock=1) int 
-  "$result = ScalarInteger($1);";
+  "$result = Rf_ScalarInteger($1);";
 
 
 %typemap(in,noblock=1) bool 
@@ -168,7 +168,7 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 
 
 %typemap(out,noblock=1) bool 
-  "$result = ScalarLogical($1);";
+  "$result = Rf_ScalarLogical($1);";
 
 %typemap(in,noblock=1) unsigned int, 
              unsigned long,

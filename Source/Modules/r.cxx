@@ -665,7 +665,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   
   Printf(f->def,  ")\n{\n");
   
-  Printf(f->code, "PROTECT(%s->expr = allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
+  Printf(f->code, "Rf_protect(%s->expr = Rf_allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
   Printf(f->code, "r_nprotect++;\n");
   Printf(f->code, "r_swig_cb_data->el = r_swig_cb_data->expr;\n\n");
   
@@ -684,10 +684,9 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Printv(f->code, "\n",
 	 "if(r_swig_cb_data->errorOccurred) {\n",
 	 "R_SWIG_popCallbackFunctionData(1);\n",
-	 "PROBLEM \"error in calling R function as a function pointer (",
+	 "Rf_error(\"error in calling R function as a function pointer (",
 	 funName,
-	 "\"\n",
-	 "ERROR;\n",
+	 ")\");\n",
 	 "}\n",
 	 NIL);
    
@@ -748,7 +747,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
 void R::init() {
   UnProtectWrapupCode =  
-    NewStringf("%s", "vmaxset(r_vmax);\nif(r_nprotect)  UNPROTECT(r_nprotect);\n\n");
+    NewStringf("%s", "vmaxset(r_vmax);\nif(r_nprotect)  Rf_unprotect(r_nprotect);\n\n");
   
   SClassDefs = NewHash();
   
@@ -2038,9 +2037,9 @@ int R::functionWrapper(Node *n) {
 
     String *tmp = NewString("");
     if(!isVoidReturnType)
-      Printf(tmp, "PROTECT(r_ans);\n");
+      Printf(tmp, "Rf_protect(r_ans);\n");
 
-    Printf(tmp, "PROTECT(R_OutputValues = NEW_LIST(%d));\nr_nprotect += %d;\n", 
+    Printf(tmp, "Rf_protect(R_OutputValues = Rf_allocVector(VECSXP,%d));\nr_nprotect += %d;\n", 
 	   numOutArgs + !isVoidReturnType, 
 	   isVoidReturnType ? 1 : 2);
 
@@ -2630,7 +2629,7 @@ int R::generateCopyRoutinesObsolete(Node *n) {
   Printf(copyToC->def, "%sCopyToC = function(value, obj)\n{\n", name);
 
 
-  Printf(toR->code, "PROTECT(r_obj = NEW_OBJECT(MAKE_CLASS(\"%s\")));\nr_nprotect++;\n\n", name);
+  Printf(toR->code, "Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS(\"%s\")));\nr_nprotect++;\n\n", name);
 
   Wrapper_add_localv(toC, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
 
@@ -2686,8 +2685,8 @@ int R::generateCopyRoutinesObsolete(Node *n) {
       replaceRClass(tm,elType);
 
 
-      Printf(toR->code, "%s\nPROTECT(_tmp_sexp);\nr_nprotect++;\n", tm);
-      Printf(toR->code, "PROTECT(r_obj = R_do_slot_assign(r_obj, mkString(\"%s\"), _tmp_sexp));\nr_nprotect++;\n\n", elName);
+      Printf(toR->code, "%s\nRf_protect(_tmp_sexp);\nr_nprotect++;\n", tm);
+      Printf(toR->code, "Rf_protect(r_obj = R_do_slot_assign(r_obj, Rf_mkString(\"%s\"), _tmp_sexp));\nr_nprotect++;\n\n", elName);
     } else {
       Printf(stderr, "*** Can't convert field %s in \n", elName);
     }
@@ -2710,7 +2709,7 @@ int R::generateCopyRoutinesObsolete(Node *n) {
 	       elName, tm, field);
 #ifdef R_SWIG_VERBOSE
 #endif
-      Printf(toC->code, "_tmp_sexp = GET_SLOT(sobj, mkString(\"%s\"));\n%s\n\n", elName, tm);
+      Printf(toC->code, "_tmp_sexp = GET_SLOT(sobj, Rf_mkString(\"%s\"));\n%s\n\n", elName, tm);
       Delete(field);
     }
     /*

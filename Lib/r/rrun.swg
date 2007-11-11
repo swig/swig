@@ -1,14 +1,17 @@
 
-/* Not really used yet.  */
-
-#ifdef __cplusplus
-extern "C" {
+/* Remove global namespace pollution */
+#if !defined(SWIG_NO_R_NO_REMAP)
+# define R_NO_REMAP
 #endif
 
 #include <Rdefines.h>
 #include <Rversion.h>
 #include <stdlib.h>
-#undef length
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SWIGR 1
 
 #if R_VERSION >= R_Version(2,6,0)
@@ -61,11 +64,11 @@ R_SWIG_debug_getCallbackFunctionData()
     p = p->previous;
   }
 
-  PROTECT(ans = Rf_allocVector(VECSXP, n));
+  Rf_protect(ans = Rf_allocVector(VECSXP, n));
   for(p = callbackFunctionDataStack, i = 0; i < n; p = p->previous, i++) 
       SET_VECTOR_ELT(ans, i, p->fun);
 
-  UNPROTECT(1);	
+  Rf_unprotect(1);
 
   return(ans);
 }
@@ -81,9 +84,9 @@ R_SWIG_pushCallbackFunctionData(SEXP fun, SEXP userData)
    el->userData = userData;
    el->previous = callbackFunctionDataStack;
 
-   callbackFunctionDataStack = el;	
+   callbackFunctionDataStack = el;
 
-   return(el);	
+   return(el);
 }
 
 
@@ -91,16 +94,15 @@ SWIGRUNTIME SEXP
 R_SWIG_R_pushCallbackFunctionData(SEXP fun, SEXP userData)
 {
     R_SWIG_pushCallbackFunctionData(fun, userData);
-    return R_NilValue;		      
+    return R_NilValue;
 }
 
 SWIGRUNTIME RCallbackFunctionData *
 R_SWIG_getCallbackFunctionData()
 {
   if(!callbackFunctionDataStack) {
-    PROBLEM "Supposedly impossible error occurred in the SWIG callback mechanism."
-            "  No callback function data set."  /* split across two strings to make more readable. */
-    ERROR;
+    Rf_error("Supposedly impossible error occurred in the SWIG callback mechanism."
+            "  No callback function data set.");
   }
   
   return callbackFunctionDataStack;
@@ -138,16 +140,16 @@ SWIGRUNTIME int
 R_SWIG_checkInherits(SEXP obj, SEXP tag, const char *type)
 {
   SEXP e, val;
-  int check_err = 0;	
+  int check_err = 0;
 
-  PROTECT(e = Rf_allocVector(LANGSXP, 3));
+  Rf_protect(e = Rf_allocVector(LANGSXP, 3));
   SETCAR(e, Rf_install("extends"));
 
-  SETCAR(CDR(e), mkString(CHAR(PRINTNAME(tag))));
-  SETCAR(CDR(CDR(e)), mkString(type));
+  SETCAR(CDR(e), Rf_mkString(CHAR(PRINTNAME(tag))));
+  SETCAR(CDR(CDR(e)), Rf_mkString(type));
 
   val = R_tryEval(e, R_GlobalEnv, &check_err);
-  UNPROTECT(1);	     
+  Rf_unprotect(1);
   if(check_err) 
     return(0);
 
@@ -163,28 +165,24 @@ R_SWIG_resolveExternalRef(SEXP arg, const char * const type, const char * const 
   SEXP orig = arg;
 
   if(TYPEOF(arg) != EXTPTRSXP) 
-     arg = GET_SLOT(arg, mkString("ref"));
+    arg = GET_SLOT(arg, Rf_mkString("ref"));
 
   
   if(TYPEOF(arg) != EXTPTRSXP) {
-    PROBLEM "argument %s must be an external pointer (from an ExternalReference)", argName
-    ERROR;
+    Rf_error("argument %s must be an external pointer (from an ExternalReference)", argName);
   }
 
 
   ptr = R_ExternalPtrAddr(arg);
 
   if(ptr == NULL && nullOk == (Rboolean) FALSE) {
-      PROBLEM "the external pointer (of type %s) for argument %s has value NULL",
-              argName, type
-      ERROR; 
+    Rf_error("the external pointer (of type %s) for argument %s has value NULL", argName, type);
   }
 
   if(type[0] && R_ExternalPtrTag(arg) != Rf_install(type) && strcmp(type, "voidRef")
-       && !R_SWIG_checkInherits(orig,  R_ExternalPtrTag(arg), type)) {
-      PROBLEM "the external pointer for argument %s has tag %s, not the expected value %s",
-              argName, CHAR(PRINTNAME(R_ExternalPtrTag(arg))), type
-      ERROR;
+      && !R_SWIG_checkInherits(orig,  R_ExternalPtrTag(arg), type)) {
+    Rf_error("the external pointer for argument %s has tag %s, not the expected value %s",
+             argName, CHAR(PRINTNAME(R_ExternalPtrTag(arg))), type);
   }
 
 
@@ -195,12 +193,12 @@ SWIGRUNTIME void
 R_SWIG_ReferenceFinalizer(SEXP el)
 {
   void *ptr = R_SWIG_resolveExternalRef(el, "", "<finalizer>",  (Rboolean) 1);
-fprintf(stderr, "In R_SWIG_ReferenceFinalizer for %p\n", ptr);
-Rf_PrintValue(el);
+  fprintf(stderr, "In R_SWIG_ReferenceFinalizer for %p\n", ptr);
+  Rf_PrintValue(el);
 
   if(ptr) {
      if(TYPEOF(el) != EXTPTRSXP)
-        el = GET_SLOT(el, mkString("ref"));
+        el = GET_SLOT(el, Rf_mkString("ref"));
 
      if(TYPEOF(el) == EXTPTRSXP)
         R_ClearExternalPtr(el);
@@ -222,15 +220,15 @@ SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
   if(typeName[0] == '_')
      p = typeName + 1;
 
-  PROTECT(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
-  PROTECT(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
+  Rf_protect(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
+  Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
 
   if(owner)
     R_RegisterCFinalizer(external, R_SWIG_ReferenceFinalizer);
 
-  r_obj = SET_SLOT(r_obj, mkString((char *) "ref"), external);
+  r_obj = SET_SLOT(r_obj, Rf_mkString((char *) "ref"), external);
   
-  UNPROTECT(2);
+  Rf_unprotect(2);
 
   return(r_obj);
 }
@@ -242,11 +240,11 @@ R_SWIG_create_SWIG_R_Array(const char *typeName, SEXP ref, int len)
    SEXP arr;
 
 /*XXX remove the char * cast when we can. MAKE_CLASS should be declared appropriately. */
-   PROTECT(arr = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
-   PROTECT(arr = R_do_slot_assign(arr, mkString("ref"), ref));
-   PROTECT(arr = R_do_slot_assign(arr, mkString("dims"), ScalarInteger(len)));
+   Rf_protect(arr = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
+   Rf_protect(arr = R_do_slot_assign(arr, Rf_mkString("ref"), ref));
+   Rf_protect(arr = R_do_slot_assign(arr, Rf_mkString("dims"), Rf_ScalarInteger(len)));
 
-   UNPROTECT(3);  
+   Rf_unprotect(3);  
 
    return arr;
 }
