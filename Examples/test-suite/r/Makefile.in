@@ -39,7 +39,7 @@ include $(srcdir)/../common.mk
 # check for syntactic correctness
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
                $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ;) \
 	else \
 	  ($(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX);) \
@@ -48,7 +48,7 @@ run_testcase = \
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then ( \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
                $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ;) \
 	else \
 	  ($(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX);) \
