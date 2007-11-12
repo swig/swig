@@ -1,4 +1,8 @@
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Remove global namespace pollution */
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
@@ -7,10 +11,6 @@
 #include <Rdefines.h>
 #include <Rversion.h>
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define SWIGR 1
 
