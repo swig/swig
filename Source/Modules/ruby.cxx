@@ -1087,7 +1087,6 @@ public:
     Printf(f_init, "/*\n%s\n*/", docs );
     Printv(f_init, "\n", "#ifdef __cplusplus\n", "extern \"C\"\n", "#endif\n", "SWIGEXPORT void Init_", feature, "(void) {\n", "size_t i;\n", "\n", NIL);
 
-    Printv(f_init, tab4, "VALUE parent = Qnil;\n", NIL);
     Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
 
     if (!useGlobalModule)
