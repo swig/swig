@@ -95,32 +95,32 @@ SWIG_InitializeModule(0);
    $1 = %reinterpret_cast(INTEGER($input), $1_ltype);
 }
 
-%typemap(in,noblock=1) char* {
-   $1 = %reinterpret_cast(strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
+%typemap(in,noblock=1,fragment="SWIG_strdup") char* {
+   $1 = %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
 %typemap(freearg,noblock=1) char* {
    free($1);
 }
 
-%typemap(in,noblock=1) char *[ANY]  {
-   $1 = %reinterpret_cast(strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
+%typemap(in,noblock=1,fragment="SWIG_strdup") char *[ANY]  {
+   $1 = %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
 %typemap(freearg,noblock=1) char *[ANY]  {
    free($1);
 }
 
-%typemap(in,noblock=1) char[ANY] {
-    $1 = strdup(CHAR(STRING_ELT($input, 0)));
+%typemap(in,noblock=1,fragment="SWIG_strdup") char[ANY] {
+    $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }
 
 %typemap(freearg,noblock=1) char[ANY] {
     free($1);
 }
 
-%typemap(in,noblock=1) char[] {
-    $1 = strdup(CHAR(STRING_ELT($input, 0)));
+%typemap(in,noblock=1,fragment="SWIG_strdup") char[] {
+    $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }
 
 %typemap(freearg,noblock=1) char[] {
@@ -164,7 +164,7 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 
 
 %typemap(in,noblock=1) bool 
-  "$1 = LOGICAL($input)[0];";
+  "$1 = LOGICAL($input)[0] ? true : false;";
 
 
 %typemap(out,noblock=1) bool 
