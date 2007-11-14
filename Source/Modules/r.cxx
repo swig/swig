@@ -786,7 +786,6 @@ int R::top(Node *n) {
     Rpackage = Copy(module);
   if(!DllName)
     DllName = Copy(module);
-  Append(DllName, "_wrap");
 
   if(outputNamespaceInfo) {
     s_namespace = NewString("");
@@ -808,7 +807,7 @@ int R::top(Node *n) {
   Swig_register_filebyname("sclasses", s_classes);
 
 
-  Printf(s_init, "# This is an automatically generate file by the R module for SWIG.\n\n");
+  Printf(s_init, "# This is an automatically generated file by the R module for SWIG.\n\n");
   outputCommandLineArguments(s_init);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
