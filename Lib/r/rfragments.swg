@@ -121,30 +121,27 @@ SWIG_AsVal_dec(double)(SEXP obj, double *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
-   if (!cptr) return SWIG_TypeError;
-   if (!Rf_isString(obj)) return SWIG_TypeError;
-    const char *cstr;
-    int len;
-    cstr = CHAR(STRING_ELT(obj, 0));
-    len = strlen(cstr);
+  if (cptr && Rf_isString(obj)) {
+    const char *cstr = CHAR(STRING_ELT(obj, 0));
+    int len = strlen(cstr);
 
-    if (cptr)  {
-      if (alloc) {
-        if (*alloc == SWIG_NEWOBJ) {
-          *cptr = %new_copy_array(cstr, len + 1, char);
-          *alloc = SWIG_NEWOBJ;
-        } else {
-          *cptr = %reinterpret_cast(malloc(len+1), char *);
-          *cptr = strcpy(*cptr, cstr);
-          *alloc = SWIG_OLDOBJ;
-        }
+    if (alloc) {
+      if (*alloc == SWIG_NEWOBJ) {
+        *cptr = %new_copy_array(cstr, len + 1, char);
+        *alloc = SWIG_NEWOBJ;
       } else {
-        *cptr = %reinterpret_cast(malloc(len+1), char *);
-	*cptr = strcpy(*cptr, cstr);
+        *cptr = %reinterpret_cast(malloc(len + 1), char *);
+        *cptr = strcpy(*cptr, cstr);
+        *alloc = SWIG_OLDOBJ;
       }
+    } else {
+      *cptr = %reinterpret_cast(malloc(len + 1), char *);
+      *cptr = strcpy(*cptr, cstr);
     }
     if (psize) *psize = len + 1;
     return SWIG_OK;
+  }
+  return SWIG_TypeError;
 }
 }
 
