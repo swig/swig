@@ -1,5 +1,5 @@
 source("unittest.R")
-dyn.load(paste("legacy_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("legacy", .Platform$dynlib.ext, sep=""))
 source("legacy.R")
 cacheMetaData(1)
 

@@ -1,5 +1,5 @@
 source("unittest.R")
-dyn.load(paste("copy_struct_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("copy_struct", .Platform$dynlib.ext, sep=""))
 source("copy_struct.R")
 cacheMetaData(1)
 

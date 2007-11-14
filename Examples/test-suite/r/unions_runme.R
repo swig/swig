@@ -1,5 +1,5 @@
 source("unittest.R")
-dyn.load(paste("unions_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("unions", .Platform$dynlib.ext, sep=""))
 source("unions.R")
 cacheMetaData(1)
 

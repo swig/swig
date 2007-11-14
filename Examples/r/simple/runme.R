@@ -1,6 +1,6 @@
 # file: runme.R
 
-dyn.load(paste("example_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("example", .Platform$dynlib.ext, sep=""))
 source("example.R")
 cacheMetaData(1)
 

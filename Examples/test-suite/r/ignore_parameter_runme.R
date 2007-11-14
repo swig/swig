@@ -1,5 +1,5 @@
 source("unittest.R")
-dyn.load(paste("ignore_parameter_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("ignore_parameter", .Platform$dynlib.ext, sep=""))
 source("ignore_parameter.R")
 cacheMetaData(1)
 

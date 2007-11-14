@@ -1,7 +1,7 @@
 # This file illustrates the proxy class C++ interface generated
 # by SWIG.
 
-dyn.load(paste("example_wrap", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("example", .Platform$dynlib.ext, sep=""))
 source("example.R")
 cacheMetaData(1)
 
