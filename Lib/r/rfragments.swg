@@ -150,7 +150,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 SWIGINTERN char *
 SWIG_strdup(const char *str)
 {
-  char *newstr = %reinterpret_cast(malloc(strlen(str)), char *);
+  char *newstr = %reinterpret_cast(malloc(strlen(str) + 1), char *);
   return strcpy(newstr, str);
 }
 }
