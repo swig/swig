@@ -1,42 +1,7 @@
 %module copy_struct
 
-struct A {
-  int i;
-  unsigned int ui;
-  double d;
-  char* str;
-  int **tmp;
-};
-
-struct A getA();
-struct A* getARef();
-
-typedef struct  {
-  int invisible;
-} B;
-
-struct C {
- int invisible;
- double blind;
-};
-
-typedef B C;
-
-B* getBRef();
-struct C* getCRef();
-
-C* getCCRef();
-
 %feature("opaque", "yes")  B;
 %feature("opaque", "yes")  C;
-
-
-typedef struct 
-{
- int x;
- double u;
-} D;
-
 
 %inline %{
 struct A {

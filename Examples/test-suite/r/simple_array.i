@@ -1,16 +1,8 @@
 %module simple_array
+
 extern int x[10];
 extern double y[7];
 
-
-struct BarArray {
-  int i;
-  double d;
-};
-
-extern struct BarArray bars[2]; 
-
-void initArray();
 
 %inline %{
 
@@ -19,6 +11,7 @@ struct BarArray {
   double d;
 };
 
+extern struct BarArray bars[2]; 
 
 int x[10];
 double y[7];
