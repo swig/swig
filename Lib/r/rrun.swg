@@ -7,6 +7,9 @@ extern "C" {
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
 #endif
+#if !defined(SWIG_NO_STRICT_R_HEADERS)
+# define STRICT_R_HEADERS
+#endif
 
 #include <Rdefines.h>
 #include <Rversion.h>
