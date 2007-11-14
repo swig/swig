@@ -48,7 +48,7 @@ getA()
   return a;
 }
 
-static struct A fixed = {20, 3.010101, 42};
+static struct A fixed = {20, 3, 42.0};
 
 struct A *
 getARef()

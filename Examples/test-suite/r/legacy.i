@@ -17,12 +17,14 @@ Obj *
 getObject(int i, double d)
 {
 
+  const char *test_string = "a test string";
   Obj *obj;
   obj = (Obj *) calloc(1, sizeof(Obj));
 
   obj->i = i;
   obj->d = d;
-  obj->str = strdup("a test string");
+  obj->str = (char *)malloc(strlen(test_string));
+  strcpy(obj->str, test_string);
 
   return(obj);
 }
@@ -48,7 +50,7 @@ extern float *MyFloatRef;
 #define PI 3.14159265358979
 unsigned long MyULong = 20;
 
-static float MyFloat = 1.05;
+static float MyFloat = 1.05f;
 float *MyFloatRef = &MyFloat;
 
 const double PiSquared = PI * PI;
@@ -73,7 +75,7 @@ getDouble()
 float 
 getFloat()
 {
-  return PI/2;
+  return (float)PI/2;
 }
 
 long getLong()
