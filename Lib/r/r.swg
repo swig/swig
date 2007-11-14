@@ -147,7 +147,7 @@ strcpy($1, "");
 $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 }
 
-%typemap(out,noblock=1) char 
+%typemap(out) char 
  { 
     char tmp[2] = "x";
     tmp[0] = $1;    
