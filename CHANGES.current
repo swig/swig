@@ -1,5 +1,13 @@
-Version 1.3.32 (in progress)
-============================
+Version 1.3.32 (November 15, 2007)
+==================================
+
+11/14/2007: wsfulton
+            [R] Package name and dll name is now the same as the SWIG module
+            name. It used to be the module name with _wrap as a suffix. The package
+            and dll names can be modified using the -package and -dll commandline
+            options.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 11/11/2007: wsfulton
             [R] Add support for Windows (Visual C++ 8 tested)
