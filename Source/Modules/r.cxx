@@ -230,12 +230,12 @@ R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\
      -debug           - Output debug\n\
-     -dll <name>      - The name of the DLL (without the .dll or .so) included in the PACKAGE argument of the R .Call() invocations\n\
+     -dll <name>      - Name of the DLL (without the .dll or .so suffix). Default is the module name.\n\
      -gc              - Aggressive garbage collection\n\
      -memoryprof      - Add memory profile\n\
      -namespace       - Output NAMESPACE file\n\
-     -no-init-code    - Turn off the generation of the R_init_<pkname>_wrap code (registration information still generated)\n\
-     -package <name>  - Not currently used - typically same as dll\n\
+     -no-init-code    - Turn off the generation of the R_init_<pkgname> code (registration information still generated)\n\
+     -package <name>  - Package name for the PACKAGE argument of the R .Call() invocations. Default is the module name.\n\
 ";
 
 
@@ -345,7 +345,7 @@ protected:
   int outputCommandLineArguments(File *out);
   int generateCopyRoutinesObsolete(Node *n); 
   int generateCopyRoutines(Node *n); 
-  int DumpCode(Node *n, String *module);
+  int DumpCode(Node *n);
   
   int OutputMemberReferenceMethod(String *className, int isSet, List *el, File *out);
   int OutputArrayMethod(String *className, List *el, File *out);
@@ -836,7 +836,7 @@ int R::top(Node *n) {
 
   /* Now arrange to write the 2 files - .S and .c. */
 
-  DumpCode(n, module);
+  DumpCode(n);
 
   Delete(sfile);
   Delete(s_classes);
@@ -854,12 +854,12 @@ int R::top(Node *n) {
 /*****************************************************
   Write the generated code  to the .S and the .c files.
 ****************************************************/
-int R::DumpCode(Node *n, String *module) {
+int R::DumpCode(Node *n) {
   String *output_filename = NewString("");
   
   
   /* The name of the file in which we will generate the S code. */
-  Printf(output_filename, "%s%s.R", SWIG_output_directory(), module);
+  Printf(output_filename, "%s%s.R", SWIG_output_directory(), Rpackage);
   
 #ifdef R_SWIG_VERBOSE
   Printf(stderr, "Writing S code to %s\n", output_filename);
@@ -2082,7 +2082,7 @@ int R::functionWrapper(Node *n) {
 
 
   Printv(sfun->code, (Len(tm) ? "ans = " : ""), ".Call('", wname, 
-	 "', ", sargs, "PACKAGE='", DllName, "')\n", NIL);
+	 "', ", sargs, "PACKAGE='", Rpackage, "')\n", NIL);
   if(Len(tm))
     Printf(sfun->code, "%s\n\nans\n", tm);
   if (destructor)
@@ -2180,7 +2180,7 @@ int R::defineArrayAccessors(SwigType *type) {
   Printf(getItem, "function(x, i, j, ..., drop = TRUE) {\n");
 
   Printf(getItem, "%sif(i < 1 || i > x@dims[1])\n%sstop('index must be between 1 and ', x@dims[1])\n", tab4, tab8);
-  Printf(getItem, "%s.Call('%s', x@ref, as.integer(i-1), PACKAGE = '%s')\n", tab4, cGetName, DllName);
+  Printf(getItem, "%s.Call('%s', x@ref, as.integer(i-1), PACKAGE = '%s')\n", tab4, cGetName, Rpackage);
   Printf(getItem, "}\n");
 
 
@@ -2210,7 +2210,7 @@ int R::defineArrayAccessors(SwigType *type) {
 
 
 
-  Printf(setItem, "%s.Call('%s', x@ref, as.integer(i-1), value, PACKAGE = '%s')\n", tab4, cSetName, DllName);
+  Printf(setItem, "%s.Call('%s', x@ref, as.integer(i-1), value, PACKAGE = '%s')\n", tab4, cSetName, Rpackage);
   Printf(setItem, "%sx\n}\n", tab4);
 
 
@@ -2382,7 +2382,7 @@ int R::outputRegistrationRoutines(File *out) {
   if(!noInitializationCode) {
     if (inCPlusMode)
       Printv(out, "extern \"C\" ", NIL);
-    Printf(out, "SWIGEXPORT void R_init_%s_wrap(DllInfo *dll) {\n", Rpackage);
+    Printf(out, "SWIGEXPORT void R_init_%s(DllInfo *dll) {\n", Rpackage);
     Printf(out, "%sR_registerRoutines(dll, NULL, CallEntries, NULL, NULL);\n", tab4);
     if(Len(s_init_routine)) {
       Printf(out, "\n%s\n", s_init_routine);
@@ -2754,7 +2754,7 @@ int R::generateCopyRoutinesObsolete(Node *n) {
   Printv(sfile, "setMethod('copyToC', c('", rclassName, "Ref', '", rclassName, "Ref'),",
 	 " function(value, obj) {\n",
 	 tab4, ".Call(\"", copyRefRefName, "\", value, obj, PACKAGE = \"",
-	 DllName, "\")\n})\n\n", NIL);
+	 Rpackage, "\")\n})\n\n", NIL);
   Printf(sfile, "# End definition of copy methods for %s\n", rclassName);  
   Printf(sfile, "# End definition of copy functions & methods for %s\n", rclassName);  
 
@@ -2970,7 +2970,6 @@ void R::main(int argc, char *argv[]) {
       i++;
       Swig_mark_arg(i);
       Rpackage = argv[i];
-      DllName = argv[i];
     } else if(strcmp(argv[i], "-dll") == 0) {
       Swig_mark_arg(i);
       i++;
