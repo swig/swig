@@ -135,7 +135,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
       return 1;
     } else {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got none", 
-		   name, (min == max ? "" : "at least "), min);
+		   name, (min == max ? "" : "at least "), (int)min);
       return 0;
     }
   }  
@@ -146,11 +146,11 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
     register Py_ssize_t l = PyTuple_GET_SIZE(args);
     if (l < min) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
-		   name, (min == max ? "" : "at least "), min, l);
+		   name, (min == max ? "" : "at least "), (int)min, (int)l);
       return 0;
     } else if (l > max) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
-		   name, (min == max ? "" : "at most "), max, l);
+		   name, (min == max ? "" : "at most "), (int)max, (int)l);
       return 0;
     } else {
       register int i;
