@@ -107,21 +107,12 @@ typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
 #endif
 
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-
-#ifdef __cplusplus
-#define SWIGCLASS_STATIC extern "C"
-#else
 #define SWIGCLASS_STATIC
-#endif
 
-#else
+#else /* PERL_OBJECT */
+
 #define MAGIC_PPERL
-
-#ifdef __cplusplus
-#define SWIGCLASS_STATIC extern "C" static SWIGUNUSED
-#else
 #define SWIGCLASS_STATIC static SWIGUNUSED
-#endif
 
 #ifndef MULTIPLICITY
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
@@ -134,8 +125,8 @@ typedef int (*SwigMagicFunc)(SV *, MAGIC *);
 }
 #endif
 
+#else /* MULTIPLICITY */
 
-#else
 #define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
 
 #ifdef __cplusplus
@@ -146,8 +137,8 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 }
 #endif
 
-#endif
-#endif
+#endif /* MULTIPLICITY */
+#endif /* PERL_OBJECT */
 
 /* Workaround for bug in perl 5.6.x croak and earlier */
 #if (PERL_VERSION < 8)
