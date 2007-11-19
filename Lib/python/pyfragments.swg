@@ -1,8 +1,8 @@
 /*
 
-  Create a file with this name, 'fragments.i', in your working
+  Create a file with this name, 'pyfragments.swg', in your working
   directory and add all the %fragments you want to take precedence
-  over the ones defined by default by swig.
+  over the default ones defined by swig.
 
   For example, if you add:
   
