@@ -1,6 +1,9 @@
 Version 1.3.33 (in progress)
 ============================
 
+11/19/2007: wsfulton
+	    [Perl] Fix broken compilation of C++ wrappers on some compilers.
+
 11/16/2007: olly
 	    [Python] Don't pass Py_ssize_t for a %d printf-like format as
 	    that's undefined behaviour when sizeof(Py_ssize_t) != sizeof(int).

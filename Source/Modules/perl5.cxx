@@ -304,6 +304,7 @@ public:
     /* Start creating magic code */
 
     Printv(magic,
+           "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n",
 	   "#ifdef PERL_OBJECT\n",
 	   "#define MAGIC_CLASS _wrap_", module, "_var::\n",
 	   "class _wrap_", module, "_var : public CPerlObj {\n",
@@ -324,6 +325,7 @@ public:
     /* Dump out variable wrappers */
 
     Printv(magic, "\n\n#ifdef PERL_OBJECT\n", "};\n", "#endif\n", NIL);
+    Printv(magic, "\n#ifdef __cplusplus\n}\n#endif\n", NIL);
 
     Printf(f_header, "%s\n", magic);
 
