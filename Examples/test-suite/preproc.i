@@ -312,3 +312,28 @@ int test(int defined)
 
 #define MASK(shift, size) (((1 << (size)) - 1) <<(shift))
 #define SOME_MASK_DEF (80*MASK(8, 10))
+
+
+%{
+#define TEUCHOS_TYPE_NAME_TRAITS_BUILTIN_TYPE_SPECIALIZATION(TYPE) \
+struct TypeNameTraits { \
+  int val; \
+} \
+
+%}
+
+
+#define TEUCHOS_TYPE_NAME_TRAITS_BUILTIN_TYPE_SPECIALIZATION(TYPE) \
+struct TypeNameTraits { \
+  int val; \
+} \
+
+%inline %{
+TEUCHOS_TYPE_NAME_TRAITS_BUILTIN_TYPE_SPECIALIZATION(int);
+%}
+
+%inline %{
+int method(struct TypeNameTraits tnt) {
+  return tnt.val;
+}
+%}
