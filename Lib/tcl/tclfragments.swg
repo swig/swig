@@ -1,12 +1,6 @@
-/* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
- * tclfragments.swg
- * ----------------------------------------------------------------------------- */
-
 /*
-  Create a file with this name, 'fragments.i', in your working
+
+  Create a file with this name, 'tclfragments.swg', in your working
   directory and add all the %fragments you want to take precedence
   over the ones defined by default by swig.
 

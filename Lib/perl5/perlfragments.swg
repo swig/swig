@@ -1,6 +1,6 @@
 /*
 
-  Create a file with this name, 'fragments.i', in your working
+  Create a file with this name, 'perlfragments.swg', in your working
   directory and add all the %fragments you want to take precedence
   over the ones defined by default by swig.
 
