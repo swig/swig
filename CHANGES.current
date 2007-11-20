@@ -1,5 +1,7 @@
 Version 1.3.33 (in progress)
 ============================
+11/20/2007: beazley
+            Fixed a bug in the C scanner related to backslash characters.
 
 11/19/2007: wsfulton
 	    [Perl] Fix broken compilation of C++ wrappers on some compilers.
