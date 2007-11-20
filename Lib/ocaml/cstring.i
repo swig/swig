@@ -10,8 +10,6 @@
  * some way.
  * ----------------------------------------------------------------------------- */
 
-%include <fragments.i>
-
 /* %cstring_input_binary(TYPEMAP, SIZE)
  * 
  * Macro makes a function accept binary string data along with
@@ -39,7 +37,7 @@
 %typemap(ignore) TYPEMAP(char temp[MAX+1]) {
     $1 = ($1_ltype) temp;
 }
-%typemap(argout,fragment="t_output_helper") TYPEMAP {
+%typemap(argout) TYPEMAP {
     $1[MAX] = 0;
     $result = caml_list_append($result,caml_val_string(str));
 }
