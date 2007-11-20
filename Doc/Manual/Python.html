@@ -4192,7 +4192,21 @@ int       PyTuple_Check(PyObject *);
 
 <div class="code">
 <pre>
-write me
+PyObject *PyDict_New();
+int       PyDict_Check(PyObject *);
+int       PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
+int       PyDict_SetItemString(PyObject *p, const char *key, PyObject *val);
+int       PyDict_DelItem(PyObject *p, PyObject *key);
+int       PyDict_DelItemString(PyObject *p, char *key);
+PyObject* PyDict_Keys(PyObject *p);
+PyObject* PyDict_Values(PyObject *p);
+PyObject* PyDict_GetItem(PyObject *p, PyObject *key);
+PyObject* PyDict_GetItemString(PyObject *p, const char *key);
+int       PyDict_Next(PyObject *p, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue);
+Py_ssize_t PyDict_Size(PyObject *p);
+int       PyDict_Update(PyObject *a, PyObject *b);
+int       PyDict_Merge(PyObject *a, PyObject *b, int override);
+PyObject* PyDict_Items(PyObject *p);
 </pre>
 </div>
 
