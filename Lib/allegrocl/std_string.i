@@ -102,12 +102,24 @@ namespace std {
     %typemap(lisptype) string "cl:string";
     %typemap(lout) string "(cl::setq ACL_ffresult $body)";
 
+    %typemap(ctype) const string *"char *";
+    %typemap(in) const string * "$1.assign($input);";
+    %typemap(out) const string * "$result = (char *)($1)->c_str();";
+    %typemap(lisptype) const string * "cl:string";
+    %typemap(lout) const string * "(cl::setq ACL_ffresult $body)";
+
     %typemap(ctype) wstring "wchar_t *";
     %typemap(in) wstring "$1.assign($input);";
     %typemap(out) wstring "$result = (wchar_t *)(&$1)->c_str();";
     %typemap(lisptype) wstring "cl:string";
     %typemap(lout) wstring "(cl::setq ACL_ffresult (excl:native-to-string $body
 :external-format #+little-endian :fat-le #-little-endian :fat))";
+
+    %typemap(ctype) const wstring *"char *";
+    %typemap(in) const wstring * "$1.assign($input);";
+    %typemap(out) const wstring * "$result = (char *)($1)->c_str();";
+    %typemap(lisptype) const wstring * "cl:string";
+    %typemap(lout) const wstring * "(cl::setq ACL_ffresult $body)";
 
     /* Overloading check */
 //     %typemap(in) string {

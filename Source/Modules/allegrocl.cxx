@@ -735,22 +735,21 @@ String *internal_compose_foreign_type(SwigType *ty) {
 
 String *compose_foreign_type(SwigType *ty, String *id = 0) {
 
+  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty);
   String *id_ref = SwigType_str(ty, id);
-  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
   Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
 	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
 #endif
   /* should we allow named lookups in the typemap here? YES! */
-  if(id) { /* and we should probably allow unnamed lookups here as well */
-    Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
-    if(lookup_res) {
+  /* unnamed lookups should be found in get_ffi_type, called
+     by internal_compose_foreign_type(), below. */
+  if(id && lookup_res) {
 #ifdef ALLEGROCL_TYPE_DEBUG
     Printf(stderr, "compose_foreign_type: EXIT-1 (%s)\n ", Getattr(lookup_res, "code"));
 #endif
-       return NewString(Getattr(lookup_res, "code"));
-    }
+    return NewString(Getattr(lookup_res, "code"));
   }
 
   SwigType *temp = SwigType_strip_qualifiers(ty);
@@ -1155,9 +1154,17 @@ void emit_full_class(Node *n) {
       if (!Strcmp(childDecl, "0"))
 	childDecl = NewString("");
 
-      SwigType *childType = NewStringf("%s%s", childDecl,
-				       Getattr(c, "type"));
-      String *cname = (access && Strcmp(access, "public")) ? NewString("nil") : Copy(Getattr(c, "name"));
+      SwigType *childType;
+      String *cname;
+
+      // don't include types for private slots (yet). spr33959.
+      if(access && Strcmp(access,"public")) {
+	      childType = NewStringf("int");
+	      cname = NewString("nil");
+      } else {
+	      childType = NewStringf("%s%s", childDecl, Getattr(c, "type"));
+	      cname = Copy(Getattr(c, "name"));
+      }
 
       if (!SwigType_isfunction(childType)) {
 	// Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
@@ -1559,7 +1566,7 @@ int ALLEGROCL::top(Node *n) {
 	 "(defpackage :%s\n"
 	 "  (:use :common-lisp :ff :excl)\n"
 	 "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
-	 "           #:*void* #:*swig-expoert-list*))\n"
+	 "           #:*void* #:*swig-export-list*))\n"
 	 "(in-package :%s)\n\n"
 	 "(eval-when (compile load eval)\n"
 	 "  (defparameter *swig-identifier-converter* '%s)\n"
@@ -2912,7 +2919,6 @@ int ALLEGROCL::typedefHandler(Node *n) {
 #endif
 
   Delete(ff_type);
-  if (lookup) Delete(lookup);
 
   return SWIG_OK;
 }

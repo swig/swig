@@ -1,6 +1,15 @@
+2007-11-21  Mikel Bancroft  <mikel@franz.com>
+
 Version 1.3.33 (in progress)
 ============================
 
+11/21/2007: mikel
+	    [allegrocl] omit private slot type info in the classes/types
+	    defined on the lisp side. Fix bug in mapping of C/++ types
+	    to lisp types. Fix typo in modules generated defpackage form.
+	    Have std::string *'s automatically marshalled between foreign
+	    and lisp strings.
+	
 11/20/2007: olly
 	    [Python] Fill in Python Dictionary functions list (patch from
 	    Jelmer Vernooij posted to swig-devel).
