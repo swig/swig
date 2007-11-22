@@ -30,7 +30,7 @@ href="http://www.r-project.org/">www.r-project.org</a>.
 
 The R bindings are under active development.  They have been used to
 compile and run an R interface to QuantLib running on Mandriva Linux
-with gcc, and testing on other platforms is appreciated.
+with gcc. The R bindings also work on Microsoft Windows using Visual C++.
 </p>
 
 <H2><a name="R_nn2"></a>32.1 Bugs</H2>
@@ -43,7 +43,6 @@ Currently the following features are not implemented or broken:
 <ul>
 <li>Garbage collection of created objects
 <li>C Array wrappings
-<li>tested on UNIX only, how well or badly it works on windows is not known
 </ul>
 
 <H2><a name="R_nn3"></a>32.2 Using R and SWIG</H2>
@@ -67,7 +66,7 @@ The corresponding comments for C++ mode are
 
 <div class="shell">
 <pre>
-swig -c++ -r example.i
+swig -c++ -r -o example_wrap.cpp example.i
 PKG_LIBS="example.cxx" R CMD SHLIB example_wrap.cpp
 </pre>
 </div>
@@ -75,20 +74,20 @@ PKG_LIBS="example.cxx" R CMD SHLIB example_wrap.cpp
 <p>
 Note that R is sensitive to the name of the file and to the file
 extension in C and C++ mode.  The name of the wrapper file must be the
-name of the library.  Also in C++ mode, the file extension must be cpp
-rather than cxx for the R compile command to recognize it.
+name of the library.  Also in C++ mode, the file extension must be .cpp
+rather than .cxx for the R compile command to recognize it.
 </p>
 
 <p>
 The commands produces two files.  A dynamic shared object file called
-example_wrap.so and an R wrapper file called example_wrap.R.  To load these
+example.so, or example.dll, and an R wrapper file called example.R.  To load these
 files, start up R and type in the following commands
 </p>
 
 <div class="shell">
 <pre>
-dyn.load('example_wrap.so')
-source('example_wrap.R')
+dyn.load(paste("example", .Platform$dynlib.ext, sep=""))
+source("example.R")
 cacheMetaData(1)
 </pre>
 </div>
@@ -108,12 +107,12 @@ time by precompiling the R wrapper.  This can be done by creating the
 file makeRData.R which contains the following
 
 <pre>
-source('BigFile_wrap.R')
-save(list=ls(all=TRUE),file="BigFile_wrap.RData", compress=TRUE)
+source('BigFile.R')
+save(list=ls(all=TRUE),file="BigFile.RData", compress=TRUE)
 q(save="no")
 </pre>
 
-This will generate a compiled R file called BigFile_wrap.RData that
+This will generate a compiled R file called BigFile.RData that
 will save a large amount of loading time.
 
 

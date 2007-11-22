@@ -10,32 +10,33 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="#Windows_nn2">Installation on Windows</a>
+<li><a href="#Windows_installation">Installation on Windows</a>
 <ul>
-<li><a href="#Windows_nn3">Windows Executable</a>
+<li><a href="#Windows_executable">Windows Executable</a>
 </ul>
-<li><a href="#examples">SWIG Windows Examples</a>
+<li><a href="#Windows_examples">SWIG Windows Examples</a>
 <ul>
-<li><a href="#Windows_nn5">Instructions for using the Examples with Visual Studio</a>
+<li><a href="#Windows_visual_studio">Instructions for using the Examples with Visual Studio</a>
 <ul>
-<li><a href="#Windows_nn6">Python</a>
-<li><a href="#Windows_nn7">TCL</a>
-<li><a href="#Windows_nn8">Perl</a>
-<li><a href="#Windows_nn9">Java</a>
-<li><a href="#Windows_nn10">Ruby</a>
-<li><a href="#Windows_nn11">C#</a>
+<li><a href="#Windows_csharp">C#</a>
+<li><a href="#Windows_java">Java</a>
+<li><a href="#Windows_perl">Perl</a>
+<li><a href="#Windows_python">Python</a>
+<li><a href="#Windows_tcl">TCL</a>
+<li><a href="#Windows_r">R</a>
+<li><a href="#Windows_ruby">Ruby</a>
 </ul>
-<li><a href="#Windows_nn12">Instructions for using the Examples with other compilers</a>
+<li><a href="#Windows_other_compilers">Instructions for using the Examples with other compilers</a>
 </ul>
-<li><a href="#Windows_nn13">SWIG on Cygwin and MinGW</a>
+<li><a href="#Windows_cygwin_mingw">SWIG on Cygwin and MinGW</a>
 <ul>
-<li><a href="#swig_exe">Building swig.exe on Windows</a>
+<li><a href="#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
 <li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
-<li><a href="#Windows_nn16">Building swig.exe using Cygwin</a>
-<li><a href="#Windows_nn17">Building swig.exe alternatives</a>
+<li><a href="#Windows_cygwin">Building swig.exe using Cygwin</a>
+<li><a href="#Windows_building_alternatives">Building swig.exe alternatives</a>
 </ul>
-<li><a href="#examples_cygwin">Running the examples on Windows using Cygwin</a>
+<li><a href="#Windows_examples_cygwin">Running the examples on Windows using Cygwin</a>
 </ul>
 <li><a href="#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
 </ul>
@@ -51,7 +52,7 @@ Usage within the Unix like environments MinGW and Cygwin is also detailed.
 </p>
 
 
-<H2><a name="Windows_nn2"></a>3.1 Installation on Windows</H2>
+<H2><a name="Windows_installation"></a>3.1 Installation on Windows</H2>
 
 
 <p>
@@ -62,7 +63,7 @@ SWIG does not come with the usual Windows type installation program, however it 
         <li>Set environment variables as described in the <a href="#examples">SWIG Windows Examples</a> section in order to run examples using Visual C++.
 </ul>
 
-<H3><a name="Windows_nn3"></a>3.1.1 Windows Executable</H3>
+<H3><a name="Windows_executable"></a>3.1.1 Windows Executable</H3>
 
 
 <p>
@@ -71,7 +72,7 @@ If you want to build your own swig.exe have a look at <a href="#swig_exe">Buildi
 </p>
 
 
-<H2><a name="examples"></a>3.2 SWIG Windows Examples</H2>
+<H2><a name="Windows_examples"></a>3.2 SWIG Windows Examples</H2>
 
 
 <p>
@@ -86,7 +87,7 @@ Alternatively run the <a href="#examples_cygwin">examples using Cygwin</a>.
 <p>
 More information on each of the examples is available with the examples distributed with SWIG (Examples/index.html).
 
-<H3><a name="Windows_nn5"></a>3.2.1 Instructions for using the Examples with Visual Studio</H3>
+<H3><a name="Windows_visual_studio"></a>3.2.1 Instructions for using the Examples with Visual Studio</H3>
 
 
 <p>
@@ -104,33 +105,31 @@ If you don't want to use environment variables then change all occurrences of th
 If you are interested in how the project files are set up there is explanatory information in some of the language module's documentation.
 </p>
 
-<H4><a name="Windows_nn6"></a>3.2.1.1 Python</H4>
+<H4><a name="Windows_csharp"></a>3.2.1.1 C#</H4>
 
 
 <p>
-<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains python.h<br>
-<b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking<p>
-Example using Python 2.1.1:<br>
-<tt>
-PYTHON_INCLUDE: d:\python21\include<br>
-PYTHON_LIB: d:\python21\libs\python21.lib<br>
-</tt>
+The C# examples do not require any environment variables to be set as a C# project file is included.
+Just open up the .sln solution file in Visual Studio .NET 2003 or later, select Release Build, and do a Rebuild All from the Build menu.
+The accompanying C# and C++ project files are automatically used by the solution file.
 </p>
 
-<H4><a name="Windows_nn7"></a>3.2.1.2 TCL</H4>
+
+<H4><a name="Windows_java"></a>3.2.1.2 Java</H4>
 
 
 <p>
-<b><tt>TCL_INCLUDE</tt></b> : Set this to the directory containing tcl.h<br>
-<b><tt>TCL_LIB</tt></b> : Set this to the TCL library including path for linking<p>
-Example using ActiveTcl 8.3.3.3	<br>
+<b><tt>JAVA_INCLUDE</tt></b> : Set this to the directory containing jni.h<br>
+<b><tt>JAVA_BIN</tt></b> : Set this to the bin directory containing javac.exe<p>
+Example using JDK1.3:<br>
 <tt>
-TCL_INCLUDE: d:\tcl\include<br>
-TCL_LIB: d:\tcl\lib\tcl83.lib<br>
+JAVA_INCLUDE: D:\jdk1.3\include<br>
+JAVA_BIN: D:\jdk1.3\bin<br>
 </tt>
 </p>
 
-<H4><a name="Windows_nn8"></a>3.2.1.3 Perl</H4>
+
+<H4><a name="Windows_perl"></a>3.2.1.3 Perl</H4>
 
 
 <p>
@@ -143,20 +142,50 @@ PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib<br>
 </tt>
 </p>
 
-<H4><a name="Windows_nn9"></a>3.2.1.4 Java</H4>
+
+<H4><a name="Windows_python"></a>3.2.1.4 Python</H4>
 
 
 <p>
-<b><tt>JAVA_INCLUDE</tt></b> : Set this to the directory containing jni.h<br>
-<b><tt>JAVA_BIN</tt></b> : Set this to the bin directory containing javac.exe<p>
-Example using JDK1.3:<br>
+<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains python.h<br>
+<b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking<p>
+Example using Python 2.1.1:<br>
 <tt>
-JAVA_INCLUDE: d:\jdk1.3\include<br>
-JAVA_BIN: d:\jdk1.3\bin<br>
+PYTHON_INCLUDE: D:\python21\include<br>
+PYTHON_LIB: D:\python21\libs\python21.lib<br>
 </tt>
 </p>
 
-<H4><a name="Windows_nn10"></a>3.2.1.5 Ruby</H4>
+
+<H4><a name="Windows_tcl"></a>3.2.1.5 TCL</H4>
+
+
+<p>
+<b><tt>TCL_INCLUDE</tt></b> : Set this to the directory containing tcl.h<br>
+<b><tt>TCL_LIB</tt></b> : Set this to the TCL library including path for linking<p>
+Example using ActiveTcl 8.3.3.3	<br>
+<tt>
+TCL_INCLUDE: D:\tcl\include<br>
+TCL_LIB: D:\tcl\lib\tcl83.lib<br>
+</tt>
+</p>
+
+
+<H4><a name="Windows_r"></a>3.2.1.6 R</H4>
+
+
+<p>
+<b><tt>R_INCLUDE</tt></b> : Set this to the directory containing R.h<br>
+<b><tt>R_LIB</tt></b> : Set this to the R library (Rdll.lib) including path for linking. The library needs to be built as described in the R README.packages file (the pexports.exe approach is the easiest).<p>
+Example using R 2.5.1:<br>
+<tt>
+R_INCLUDE: C:\Program Files\R\R-2.5.1\include<br>
+R_LIB: C:\Program Files\R\R-2.5.1\bin\Rdll.lib<br>
+</tt>
+</p>
+
+
+<H4><a name="Windows_ruby"></a>3.2.1.7 Ruby</H4>
 
 
 <p>
@@ -169,30 +198,22 @@ RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib<br>
 </tt>
 </p>
 
-<H4><a name="Windows_nn11"></a>3.2.1.6 C#</H4>
 
-
-<p>
-The C# examples do not require any environment variables to be set as a C# project file is included.
-Just open up the .sln solution file in Visual Studio .NET 2003 and do a Rebuild All from the Build menu.
-The accompanying C# and C++ project file are automatically used by the solution file.
-</p>
-
-<H3><a name="Windows_nn12"></a>3.2.2 Instructions for using the Examples with other compilers</H3>
+<H3><a name="Windows_other_compilers"></a>3.2.2 Instructions for using the Examples with other compilers</H3>
 
 
 <p>
 If you do not have access to Visual C++ you will have to set up project files / Makefiles for your chosen compiler. There is a section in each of the language modules detailing what needs setting up using Visual C++ which may be of some guidance. Alternatively you may want to use Cygwin as described in the following section.
 </p>
 
-<H2><a name="Windows_nn13"></a>3.3 SWIG on Cygwin and MinGW</H2>
+<H2><a name="Windows_cygwin_mingw"></a>3.3 SWIG on Cygwin and MinGW</H2>
 
 
 <p>
 SWIG can also be compiled and run using <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> which provides a Unix like front end to Windows and comes free with gcc, an ANSI C/C++ compiler. However, this is not a recommended approach as the prebuilt executable is supplied. 
 </p>
 
-<H3><a name="swig_exe"></a>3.3.1 Building swig.exe on Windows</H3>
+<H3><a name="Windows_swig_exe"></a>3.3.1 Building swig.exe on Windows</H3>
 
 
 <p>
@@ -304,7 +325,7 @@ make
 </ol>
 
 
-<H4><a name="Windows_nn16"></a>3.3.1.2 Building swig.exe using Cygwin</H4>
+<H4><a name="Windows_cygwin"></a>3.3.1.2 Building swig.exe using Cygwin</H4>
 
 
 <p>
@@ -315,7 +336,7 @@ Note that the Cygwin environment will also allow one to regenerate the autotool 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 </p>
 
-<H4><a name="Windows_nn17"></a>3.3.1.3 Building swig.exe alternatives</H4>
+<H4><a name="Windows_building_alternatives"></a>3.3.1.3 Building swig.exe alternatives</H4>
 
 
 <p>
@@ -325,7 +346,7 @@ file in order to build swig.exe from the Visual C++ IDE.
 </p>
 
 
-<H3><a name="examples_cygwin"></a>3.3.2 Running the examples on Windows using Cygwin</H3>
+<H3><a name="Windows_examples_cygwin"></a>3.3.2 Running the examples on Windows using Cygwin</H3>
 
 
 <p>
