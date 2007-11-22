@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.33 (in progress)
+Version: 1.3.33 (November 23, 2007)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
@@ -17,12 +17,10 @@ The guilty parties working on this are:
 
 Active Developers:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
- Marcelo Matus (mmatus@acms.arizona.edu)                (SWIG core, Python, UTL[python,perl,tcl,ruby])
  William Fulton (wsf@fultondesigns.co.uk)               (SWIG core, Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile, MzScheme)
  Olly Betts (olly@survex.com)                           (PHP)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
- Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
  Mikel Bancroft (mikel@franz.com)                       (Allegro CL)
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
@@ -32,6 +30,8 @@ Active Developers:
  Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
 
 Major contributors include:
+ Marcelo Matus (mmatus@acms.arizona.edu)                (SWIG core, Python, UTL[python,perl,tcl,ruby])
+ Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
  Charlie Savage (cfis@interserv.com)                    (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
@@ -92,6 +92,10 @@ Information about SWIG is also available in Japanese translation at
 
 What's New?
 ===========
+
+SWIG-1.3.33 summary:
+- Fix regression for Perl where C++ wrappers would not compile
+- Fix regression parsing macros
 
 SWIG-1.3.32 summary:
 - shared_ptr support for Java and C#
