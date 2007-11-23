@@ -2,6 +2,30 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.33 (November 23, 2007)
+=================================
+
+11/21/2007: mikel
+	    [allegrocl] omit private slot type info in the classes/types
+	    defined on the lisp side. Fix bug in mapping of C/++ types
+	    to lisp types. Fix typo in modules generated defpackage form.
+	    Have std::string *'s automatically marshalled between foreign
+	    and lisp strings.
+	
+11/20/2007: olly
+	    [Python] Fill in Python Dictionary functions list (patch from
+	    Jelmer Vernooij posted to swig-devel).
+
+11/20/2007: beazley
+            Fixed a bug in the C scanner related to backslash characters.
+
+11/19/2007: wsfulton
+	    [Perl] Fix broken compilation of C++ wrappers on some compilers.
+
+11/16/2007: olly
+	    [Python] Don't pass Py_ssize_t for a %d printf-like format as
+	    that's undefined behaviour when sizeof(Py_ssize_t) != sizeof(int).
+
 Version 1.3.32 (November 15, 2007)
 ==================================
 
