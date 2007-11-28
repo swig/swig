@@ -1158,40 +1158,41 @@ AC_SUBST(RUBYCCDLFLAGS)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for Php4
+# Look for PHP
 #-------------------------------------------------------------------------
 
 PHP4BIN=
 
-AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP4])
-AS_HELP_STRING([--with-php4=path], [Set location of PHP4 executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
+AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP])
+AS_HELP_STRING([--with-php4=path], [Set location of PHP executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
 
 # First, check for "--without-php4" or "--with-php4=no".
 if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
-      AC_MSG_NOTICE([Disabling PHP4])
+      AC_MSG_NOTICE([Disabling PHP])
       PHP4=
 else
 
 if test "x$PHP4BIN" = xyes; then
-      AC_CHECK_PROGS(PHP4, php php4)
+      AC_CHECK_PROGS(PHP4, php5 php php4)
 else
       PHP4="$PHP4BIN"
 fi
 
-AC_MSG_CHECKING(for PHP4 header files)
-PHP4CONFIG="${PHP4}-config"
+AC_MSG_CHECKING(for PHP header files)
+dnl /usr/bin/php5 -> /usr/bin/php-config5
+PHP4CONFIG=`echo "$PHP4"|sed 's/\([[45]]\?\)$/-config\1/'`
 PHP4INC="`$PHP4CONFIG --includes 2>/dev/null`"
 if test "$PHP4INC"; then
 	AC_MSG_RESULT($PHP4INC)
 else
-	dirs="/usr/include/php /usr/local/include/php /usr/include/php4 /usr/local/include/php4 /usr/local/apache/php"
+	dirs="/usr/include/php /usr/local/include/php /usr/include/php5 /usr/local/include/php5 /usr/include/php4 /usr/local/include/php4 /usr/local/apache/php"
 	for i in $dirs; do
 		echo $i
 		if test -r $i/php_config.h -o -r $i/php_version.h; then
 			AC_MSG_RESULT($i)
 			PHP4EXT="$i"
 			PHP4INC="-I$PHP4EXT -I$PHP4EXT/Zend -I$PHP4EXT/main -I$PHP4EXT/TSRM"
-			break;
+			break
 		fi
 	done
 fi
