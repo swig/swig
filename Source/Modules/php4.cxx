@@ -32,9 +32,6 @@
  *
  * Long term:
  *
- * Option to generate code to work with PHP4 instead ("public $_cPtr;" ->
- *   "var $_cPtr;", "abstract" -> "", no static class functions - but making
- *   these changes gives a segfault with make check...)
  * Sort out locale-dependent behaviour of strtod() - it's harmless unless
  *   SWIG ever sets the locale and DOH/base.c calls atof, so we're probably
  *   OK currently at least.
@@ -2089,7 +2086,7 @@ public:
 	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
 	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
 	    Swig_warning(WARN_PHP4_MULTIPLE_INHERITANCE, input_file, line_number,
-			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Php4.\n", proxyclassname, baseclassname);
+			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
 	    base = Next(base);
 	  }
 	}
