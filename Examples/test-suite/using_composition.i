@@ -26,4 +26,18 @@ public:
      char *blah(char *x) { return x; }
 };
 
+class FooBar2 : public Foo, public Bar {
+public:
+     char *blah(char *x) { return x; }
+     using Foo::blah;
+     using Bar::blah;
+};
+
+class FooBar3 : public Foo, public Bar {
+public:
+     using Foo::blah;
+     char *blah(char *x) { return x; }
+     using Bar::blah;
+};
+
 %}

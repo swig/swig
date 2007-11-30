@@ -564,7 +564,6 @@ class TypePass:private Dispatcher {
    * ------------------------------------------------------------ */
 
   virtual int cDeclaration(Node *n) {
-
     if (NoExcept) {
       Delattr(n, "throws");
     }
@@ -777,6 +776,35 @@ class TypePass:private Dispatcher {
     return enumDeclaration(n);
   }
 
+#ifdef DEBUG_OVERLOADED
+  static void show_overloaded(Node *n) {
+    Node *c = Getattr(n, "sym:overloaded");
+    Node *checkoverloaded = c;
+    Printf(stdout, "-------------------- overloaded start %s sym:overloaded():%p -------------------------------\n", Getattr(n, "name"), c);
+    while (c) {
+      if (Getattr(c, "error")) {
+        c = Getattr(c, "sym:nextSibling");
+        continue;
+      }
+      if (Getattr(c, "sym:overloaded") != checkoverloaded) {
+        Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
+        Swig_print_node(c);
+        exit (1);
+      }
+
+      String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
+      Printf(stdout, "  show_overloaded %s::%s(%s)          [%s] nodeType:%s\n", parentNode(c) ? Getattr(parentNode(c), "name") : "NOPARENT", Getattr(c, "name"), decl, Getattr(c, "sym:overname"), nodeType(c));
+      if (!Getattr(c, "sym:overloaded")) {
+        Printf(stdout, "sym:overloaded error.....%p\n", c);
+        Swig_print_node(c);
+        exit (1);
+      }
+      c = Getattr(c, "sym:nextSibling");
+    }
+    Printf(stdout, "-------------------- overloaded end   %s -------------------------------\n", Getattr(n, "name"));
+  }
+#endif
+
   /* ------------------------------------------------------------
    * usingDeclaration()
    * ------------------------------------------------------------ */
@@ -816,10 +844,8 @@ class TypePass:private Dispatcher {
 	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n, "uname")));
 	}
       } else {
-
 	/* Only a single symbol is being used.  There are only a few symbols that
 	   we actually care about.  These are typedef, class declarations, and enum */
-
 	String *ntype = nodeType(ns);
 	if (Strcmp(ntype, "cdecl") == 0) {
 	  if (checkAttribute(ns, "storage", "typedef")) {
@@ -841,9 +867,15 @@ class TypePass:private Dispatcher {
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 
+		    /* Don't generate a method if the method is overridden in this class, 
+		     * for example don't generate another m(bool) should there be a Base::m(bool) :
+		     * struct Derived : Base { 
+		     *   void m(bool);
+		     *   using Base::m;
+		     * };
+		     */
 		    String *csymname = Getattr(c, "sym:name");
 		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
-		      /* Check for existence in overload list already */
 		      {
 			String *decl = Getattr(c, "decl");
 			Node *over = Getattr(n, "sym:overloaded");
@@ -917,6 +949,75 @@ class TypePass:private Dispatcher {
 		    Setattr(n, "sym:overname", "_SWIG_0");
 		  }
 		}
+	      }
+
+	      /* Hack the parse tree symbol table for overloaded methods. Replace the "using" node with the
+	       * list of overloaded methods we have just added in as child nodes to the "using" node.
+	       * The node will still exist, it is just the symbol table linked list of overloaded methods
+	       * which is hacked. */
+	      if (Getattr(n, "sym:overloaded"))
+	      {
+#ifdef DEBUG_OVERLOADED
+show_overloaded(n);
+#endif
+		int cnt = 0;
+		Node *debugnode = n;
+		if (!firstChild(n)) {
+		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
+		  Node *ps = Getattr(n, "sym:previousSibling");
+		  Node *ns = Getattr(n, "sym:nextSibling");
+		  if (ps) {
+		    Setattr(ps, "sym:nextSibling", ns);
+		  }
+		  if (ns) {
+		    Setattr(ns, "sym:previousSibling", ps);
+		  }
+		} else {
+		  // The 'using' node results in methods being added in - slot in the these methods here 
+		  Node *ps = Getattr(n, "sym:previousSibling");
+		  Node *ns = Getattr(n, "sym:nextSibling");
+		  Node *fc = firstChild(n);
+		  Node *pp = fc;
+
+		  Node *firstoverloaded = Getattr(n, "sym:overloaded");
+		  if (firstoverloaded == n) {
+		    // This 'using' node we are cutting out was the first node in the overloaded list. 
+		    // Change the first node in the list to its first sibling
+		    Delattr(firstoverloaded, "sym:overloaded");
+		    Node *nnn = Getattr(firstoverloaded, "sym:nextSibling");
+		    firstoverloaded = fc;
+		    while (nnn) {
+		      Setattr(nnn, "sym:overloaded", firstoverloaded);
+		      nnn = Getattr(nnn, "sym:nextSibling");
+		    }
+		  }
+		  while (pp) {
+		    Node *ppn = Getattr(pp, "sym:nextSibling");
+		    Setattr(pp, "sym:overloaded", firstoverloaded);
+		    Setattr(pp, "sym:overname", NewStringf("%s_%d", Getattr(n, "sym:overname"), cnt++));
+		    if (ppn)
+		      pp = ppn;
+		    else
+		      break;
+		  }
+		  if (ps) {
+		    Setattr(ps, "sym:nextSibling", fc);
+		    Setattr(fc, "sym:previousSibling", ps);
+		  }
+		  if (ns) {
+		    Setattr(ns, "sym:previousSibling", pp);
+		    Setattr(pp, "sym:nextSibling", ns);
+		  }
+		  debugnode = firstoverloaded;
+		}
+		Delattr(n, "sym:previousSibling");
+		Delattr(n, "sym:nextSibling");
+		Delattr(n, "sym:overloaded");
+		Delattr(n, "sym:overname");
+#ifdef DEBUG_OVERLOADED
+show_overloaded(debugnode);
+#endif
+		clean_overloaded(n); // Needed?
 	      }
 	    }
 	  }
