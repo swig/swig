@@ -327,7 +327,7 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
   lua_pushvalue(L,2);  /* key */
   lua_rawget(L,-2);  /* look for the fn */
   lua_remove(L,-2); /* stack tidy, remove .fn table */
-  if (lua_iscfunction(L,-1))
+  if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
     return 1;
@@ -490,6 +490,28 @@ SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
   }
 }
 
+/* set up the base classes pointers.
+Each class structure has a list of pointers to the base class structures.
+This function fills them.
+It cannot be done at compile time, as this will not work with hireachies
+spread over more than one swig file. 
+Therefore it must be done at runtime, querying the SWIG type system.
+*/
+SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
+{
+  int i=0;
+  swig_module_info* module=SWIG_GetModule(L);
+  for(i=0;clss->base_names[i];i++)
+  {
+    if (clss->bases[i]==0) /* not found yet */
+    {
+      /* lookup and cache the base class */
+      swig_type_info *info = SWIG_TypeQueryModule(module,module,clss->base_names[i]);
+      if (info) clss->bases[i] = (swig_lua_class *) info->clientdata;
+    }
+  }	
+}
+
 /* performs the entire class registration process */
 SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
 {
@@ -527,20 +549,6 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
-
-  /* set up the class base classes
-  we need to check the names of the classes to see if the base class exists
-  if so, we need to set up the pointer to it */
-  swig_module_info* module=SWIG_GetModule(L);
-  for(i=0;clss->base_names[i];i++)
-  {
-    if (clss->bases[i]==0) /* not found yet */
-    {
-      /* lookup and cache the base class */
-      swig_type_info *info = SWIG_TypeQueryModule(module,module,clss->base_names[i]);
-      if (info) clss->bases[i] = (swig_lua_class *) info->clientdata;
-    }
-  }
 
   SWIG_Lua_get_class_metatable(L,clss->name);
   SWIG_Lua_add_class_details(L,clss);  /* recursive adding of details (atts & ops) */

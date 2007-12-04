@@ -45,7 +45,13 @@ SWIGEXPORT int SWIG_init(lua_State* L)
   for (i = 0; swig_variables[i].name; i++){
     SWIG_Lua_module_add_variable(L,swig_variables[i].name,swig_variables[i].get,swig_variables[i].set);
   }
-  /* additional registration structs & classes in lua: */
+  /* set up base class pointers (the hierachy) */
+  for (i = 0; swig_types[i]; i++){
+    if (swig_types[i]->clientdata){
+      SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
+    }
+  }
+  /* additional registration structs & classes in lua */
   for (i = 0; swig_types[i]; i++){
     if (swig_types[i]->clientdata){
       SWIG_Lua_class_register(L,(swig_lua_class*)(swig_types[i]->clientdata));

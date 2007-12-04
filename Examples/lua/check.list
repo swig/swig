@@ -1,6 +1,8 @@
 # see top-level Makefile.in
 class
 constants
+dual
+embed
 funcptr3
 functest
 functor
