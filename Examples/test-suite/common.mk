@@ -299,6 +299,7 @@ CPP_TEST_CASES += \
 	template_specialization_enum \
 	template_static \
 	template_tbase_template \
+	template_template_parameters \
 	template_typedef \
 	template_typedef_cplx \
 	template_typedef_cplx2 \

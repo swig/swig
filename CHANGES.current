@@ -1,6 +1,12 @@
 Version 1.3.34 (in progress)
 ============================
 
+12/06/2007: wsfulton
+	    Fix #1734415 - template template parameters with default arguments such as:
+
+              template<typename t_item, template<typename> class t_alloc = pfc::alloc_fast >
+                class list_t : public list_impl_t<t_item,pfc::array_t<t_item,t_alloc> > { ... };
+
 12/04/2007: mgossage
 	    [lua] Fix a bug in the class hierachy code, where the methods were not propagated, 
 	    if the name ordering was in a certain order.

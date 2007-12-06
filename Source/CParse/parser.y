@@ -4432,10 +4432,13 @@ parm           : rawtype parameter_declarator {
 		   }
 		}
 
-                | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon {
+                | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon def_args {
                   $$ = NewParm(NewStringf("template<class> %s %s", $5,$6), 0);
 		  Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
+                  if ($7.val) {
+                    Setattr($$,"value",$7.val);
+                  }
                 }
                 | PERIOD PERIOD PERIOD {
 		  SwigType *t = NewString("v(...)");
