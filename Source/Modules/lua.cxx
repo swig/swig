@@ -927,7 +927,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     Printv(f_wrappers, "static swig_lua_class *swig_", mangled_classname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
     Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);

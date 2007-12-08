@@ -15,7 +15,7 @@ extern "C" {
 
 #include "lua.h"
 #include "lauxlib.h"
-#include <stdlib.h>     /* for malloc */
+#include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ typedef struct swig_lua_class {
   swig_lua_method   *methods;
   swig_lua_attribute     *attributes;
   struct swig_lua_class **bases;
-  char **base_names;
+  const char **base_names;
 } swig_lua_class;
 
 /* this is the struct for wrappering all pointers in SwigLua
@@ -76,10 +76,10 @@ typedef struct {
   void        *ptr;
 } swig_lua_userdata;
 
-/* this is the struct for wrappering arbitary packed binary data
-(currently it is only used for member fn pointers)
-the data ordering is similar to swig_lua_userdata, but its currently not possible
-to tell the two structres apart within Swig, other than by looking at the type
+/* this is the struct for wrapping arbitary packed binary data
+(currently it is only used for member function pointers)
+the data ordering is similar to swig_lua_userdata, but it is currently not possible
+to tell the two structures apart within Swig, other than by looking at the type
 */
 typedef struct {
   swig_type_info   *type;
