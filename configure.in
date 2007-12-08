@@ -1671,7 +1671,7 @@ AC_MSG_CHECKING(for Lua library)
 if test -z "$LUALIB"; then
 dirs="/usr/local/lib /usr/lib /opt/local/lib"
 for i in $dirs ; do
-	if test -r $i/liblua.a; then
+	if test -r $i/liblua*.a; then
 	    AC_MSG_RESULT($i)
 	    LUALIB="-L$i"
 	    break
