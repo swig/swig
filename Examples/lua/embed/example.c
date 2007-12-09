@@ -1,5 +1,7 @@
 /* File : example.c */
 
+#include <stdio.h>
+
 /* A global variable */
 double Foo = 3.0;
 
