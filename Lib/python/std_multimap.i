@@ -22,7 +22,7 @@
       static int asptr(PyObject *obj, std::multimap<K,T> **val) {
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
-	  PyObject_var items = PyObject_CallMethod(obj,"items",NULL);
+	  PyObject_var items = PyObject_CallMethod(obj,(char *)"items",NULL);
 	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p;
