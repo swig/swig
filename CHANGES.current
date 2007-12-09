@@ -1,6 +1,9 @@
 Version 1.3.34 (in progress)
 ============================
 
+12/09/2007: wsfulton
+	    Apply patch #1838248 from Monty Taylor for vpath builds of SWIG.
+
 12/08/2007: wsfulton
 	    [Lua] Fixes to remove gcc-4.2 warnings
 

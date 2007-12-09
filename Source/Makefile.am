@@ -99,10 +99,10 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 # This occurs on each invocation of make and is a step towards providing support for multiple 
 # build directories.
 all-local: eswig@EXEEXT@
-	cp eswig@EXEEXT@ ../swig@EXEEXT@
+	cp -f $(top_builddir)/Source/eswig@EXEEXT@ $(top_builddir)/swig@EXEEXT@
 
 clean-local:
-	rm -f ../swig@EXEEXT@
+	rm -f $(top_builddir)/swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 
 
