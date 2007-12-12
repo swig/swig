@@ -6,7 +6,7 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 {
-  if (SvPOK(obj)) {
+  if (SvOK(obj)) {
     STRLEN len = 0;
     char *cstr = SvPV(obj, len); 
     size_t size = len + 1;
