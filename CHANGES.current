@@ -2,6 +2,9 @@ Version 1.3.34 (in progress)
 ============================
 
 12/12/2007: wsfulton
+	    [Java] Fix #1632625 - Compilation errors on Visual C++ 6 when using directors.
+
+12/12/2007: wsfulton
 	    [Perl] Fix #1798728 - numbers can be passed to functions taking char *.
 
 12/12/2007: wsfulton

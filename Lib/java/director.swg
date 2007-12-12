@@ -107,6 +107,10 @@ namespace Swig {
     JavaVM *swig_jvm_;
 
   protected:
+#if defined (_MSC_VER) && (_MSC_VER<1300)
+    class JNIEnvWrapper;
+    friend class JNIEnvWrapper;
+#endif
     /* Utility class for managing the JNI environment */
     class JNIEnvWrapper {
       const Director *director_;
