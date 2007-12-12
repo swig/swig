@@ -1669,10 +1669,14 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
  * Swig_symbol_template_defargs()
  *
  * Apply default arg from generic template default args 
+ * Returns a parameter list which contains missing default arguments (if any)
+ * Note side effects: parms will also contain the extra parameters in its list
+ * (but only if non-zero).
  * ----------------------------------------------------------------------------- */
 
 
-void Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl) {
+ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl) {
+  ParmList *expandedparms = parms;
   if (Len(parms) < Len(targs)) {
     Parm *lp = parms;
     Parm *p = lp;
@@ -1713,7 +1717,10 @@ void Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symt
 	}
 	/* Printf(stderr,"value %s %s %s\n",value,ntr,ntq); */
 	cp = NewParm(ntq, 0);
-	set_nextSibling(lp, cp);
+        if (lp)
+          set_nextSibling(lp, cp);
+        else
+          expandedparms = CopyParm(cp);
 	lp = cp;
 	tp = nextSibling(tp);
 	Delete(cp);
@@ -1724,6 +1731,7 @@ void Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symt
       }
     }
   }
+  return expandedparms;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1795,6 +1803,7 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 #endif
       if (tempn) {
 	ParmList *tnargs = Getattr(tempn, "templateparms");
+        ParmList *expandedparms;
 	Parm *p;
 	Symtab *tsdecl = Getattr(tempn, "sym:symtab");
 
@@ -1802,8 +1811,8 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	Printf(stderr, "deftype type %s %s %s\n", tprefix, targs, tsuffix);
 #endif
 	Append(tprefix, "<(");
-	Swig_symbol_template_defargs(tparms, tnargs, tscope, tsdecl);
-	p = tparms;
+	expandedparms = Swig_symbol_template_defargs(tparms, tnargs, tscope, tsdecl);
+	p = expandedparms;
 	tscope = tsdecl;
 	while (p) {
 	  SwigType *ptype = Getattr(p, "type");

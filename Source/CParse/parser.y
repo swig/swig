@@ -2537,7 +2537,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		    This is closer to the C++ (typedef) behavior.
 		  */
-		  n = Swig_cparse_template_locate($5,$7,tscope);
+                  Parm *parms = $7;
+		  n = Swig_cparse_template_locate($5,parms,tscope);
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
@@ -2588,7 +2589,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           continue;
                         } else {
 			  String *tname = Copy($5);
-                          int  def_supplied = 0;
+                          int def_supplied = 0;
                           /* Expand the template */
 			  Node *templ = Swig_symbol_clookup($5,0);
 			  Parm *targs = templ ? Getattr(templ,"templateparms") : 0;
@@ -2600,6 +2601,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           /* Create typedef's and arguments */
                           p = $7;
                           tp = temparms;
+                          if (!p && ParmList_len(p) != ParmList_len(temparms)) {
+                            /* we have no template parameters supplied in %template for a template that has default args*/
+                            p = tp;
+                            def_supplied = 1;
+                          }
+
                           while (p) {
                             String *value = Getattr(p,"value");
                             if (def_supplied) {

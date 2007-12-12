@@ -222,7 +222,7 @@ extern "C" {
   extern String *Swig_symbol_string_qualify(String *s, Symtab *tab);
   extern SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab);
 
-  extern void Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
+  extern ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
   extern SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope);
   extern SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab);
 

@@ -40,7 +40,7 @@ void Swig_cparse_debug_templates(int x) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_cparse_template_expand()
+ * cparse_template_expand()
  *
  * Expands a template node into a specialized version.  This is done by
  * patching typenames and other aspects of the node according to a list of
@@ -229,6 +229,10 @@ String *partial_arg(String *s, String *p) {
   Delete(prefix);
   return newarg;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_template_expand()
+ * ----------------------------------------------------------------------------- */
 
 int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope) {
   List *patchlist, *cpatchlist, *typelist;
@@ -429,6 +433,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Parm *p;
   Parm *parms;
   Parm *targs;
+  ParmList *expandedparms;
 
   tname = Copy(name);
   parms = CopyParmList(tparms);
@@ -441,12 +446,14 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     Symtab *tsdecl = Getattr(templ, "sym:symtab");
 
     targs = Getattr(templ, "templateparms");
-    Swig_symbol_template_defargs(parms, targs, tscope, tsdecl);
+    expandedparms = Swig_symbol_template_defargs(parms, targs, tscope, tsdecl);
+  } else {
+    expandedparms = parms;
   }
 
 
   /* reduce the typedef */
-  p = parms;
+  p = expandedparms;
   while (p) {
     SwigType *ty = Getattr(p, "type");
     if (ty) {
@@ -457,7 +464,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     p = nextSibling(p);
   }
 
-  SwigType_add_template(tname, parms);
+  SwigType_add_template(tname, expandedparms);
 
   if (template_debug) {
     Printf(stdout, "\n%s:%d: template_debug: Searching for %s\n", cparse_file, cparse_line, tname);
