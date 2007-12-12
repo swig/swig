@@ -2,6 +2,9 @@ Version 1.3.34 (in progress)
 ============================
 
 12/12/2007: wsfulton
+	    [Perl] Fix #1798728 - numbers can be passed to functions taking char *.
+
+12/12/2007: wsfulton
 	    Fix #1819847 %template with just one default template parameter 
 
               template<typename T = int> class Foo {...};
