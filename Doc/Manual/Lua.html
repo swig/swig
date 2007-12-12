@@ -86,7 +86,7 @@ $ swig -c++ -lua example.i
 This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx</tt>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.
 </p>
 <p>
-The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(LuaState* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
+The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(lua_State* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
 </p>
 <H3><a name="Lua_nn4"></a>22.2.1 Compiling and Linking and Interpreter</H3>
 
@@ -100,7 +100,7 @@ Normally Lua is embedded into another program and will be statically linked. An 
 #include "lualib.h"
 #include "lauxlib.h"
 
-extern int luaopen_example(LuaState* L); // declare the wrapped module
+extern int luaopen_example(lua_State* L); // declare the wrapped module
 
 int main(int argc,char* argv[])
 {
@@ -125,10 +125,10 @@ int main(int argc,char* argv[])
 A much improved set of code can be found in the Lua distribution <tt>src/lua/lua.c</tt>. Include your module, just add the external declaration &amp; add a <tt>#define LUA_EXTRALIBS {"example",luaopen_example}</tt>, at the relevant place.
 </p>
 <p>
-The exact commands for doing this vary from platform to platform. Here is a possible set of commands of doing this:
+The exact commands for compiling and linking vary from platform to platform. Here is a possible set of commands of doing this:
 </p>
 <div class="shell"><pre>
-$ swig -lua example.i
+$ swig -lua example.i -o example_wrap.c
 $ gcc -I/usr/include/lua -c min.c -o min.o
 $ gcc -I/usr/include/lua -c example_wrap.c -o example_wrap.o
 $ gcc -c example.c -o example.o
@@ -142,7 +142,7 @@ $ gcc -I/usr/include/lua -L/usr/lib/lua min.o example_wrap.o example.o -o my_lua
 Most, but not all platforms support the dynamic loading of modules (Windows &amp; Linux do). Refer to the Lua manual to determine if your platform supports it. For compiling a dynamically loaded module the same wrapper can  be used. The commands will be something like this:
 </p>
 <div class="shell"><pre>
-$ swig -lua example.i
+$ swig -lua example.i -o example_wrap.c
 $ gcc -I/usr/include/lua -c example_wrap.c -o example_wrap.o
 $ gcc -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
