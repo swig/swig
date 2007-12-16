@@ -974,10 +974,6 @@ static Node *symbol_lookup_qualified(String_or_char *name, Symtab *symtab, Strin
  * to get the real node.
  * ----------------------------------------------------------------------------- */
 
-static
-SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab);
-
-
 Node *Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   Hash *hsym = 0;
   Node *s = 0;
@@ -1336,11 +1332,7 @@ Node *Swig_symbol_isoverloaded(Node *n) {
  * Create a fully qualified type name
  * ----------------------------------------------------------------------------- */
 
-static int no_constructor(Node *n) {
-  return !Checkattr(n, "nodeType", "constructor");
-}
-
-/* This cache produce problems with OSS, don't active it */
+/* This cache produces problems with OSS, don't active it */
 /* #define SWIG_TEMPLATE_QUALIFY_CACHE */
 static SwigType *Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   String *tprefix, *tsuffix;
@@ -1406,6 +1398,10 @@ static SwigType *Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   return qprefix;
 }
 
+
+static int no_constructor(Node *n) {
+  return !Checkattr(n, "nodeType", "constructor");
+}
 
 SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List *elements;
@@ -1483,15 +1479,22 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_typedef_reduce()
- *
- * Chase a typedef through symbol tables looking for a match.
+ * Swig_symbol_template_reduce()
+ * Resolves template parameter types
+ * For example:
+ *   typedef int Int;
+ *   typedef Int Integer;
+ * with input:
+ *   Foo<(Int,Integer)> 
+ * returns:
+ *   Foo<(int,int)>
  * ----------------------------------------------------------------------------- */
 
 static
 SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
   Parm *p;
-  List *parms = SwigType_parmlist(qt);
+  String *templateargs = SwigType_templateargs(qt);
+  List *parms = SwigType_parmlist(templateargs);
   Iterator pi = First(parms);
   String *tprefix = SwigType_templateprefix(qt);
   String *tsuffix = SwigType_templatesuffix(qt);
@@ -1528,9 +1531,16 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
   Delete(parms);
   Delete(tprefix);
   Delete(tsuffix);
+  Delete(templateargs);
   return qprefix;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_typedef_reduce()
+ *
+ * Chase a typedef through symbol tables looking for a match.
+ * ----------------------------------------------------------------------------- */
 
 SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   SwigType *prefix, *base;
@@ -1547,14 +1557,14 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       Append(prefix, qt);
       Delete(qt);
 #ifdef SWIG_DEBUG
-      Printf(stderr, "symbol_reduce %s %s\n", ty, prefix);
+      Printf(stderr, "symbol_reduce (a) %s %s\n", ty, prefix);
 #endif
       Delete(base);
       return prefix;
     } else {
       Delete(prefix);
 #ifdef SWIG_DEBUG
-      Printf(stderr, "symbol_reduce %s %s\n", ty, ty);
+      Printf(stderr, "symbol_reduce (b) %s %s\n", ty, ty);
 #endif
       return Copy(ty);
     }
@@ -1568,7 +1578,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
 	Delete(base);
 	Delete(prefix);
 #ifdef SWIG_DEBUG
-	Printf(stderr, "symbol_reduce %s %s\n", ty, ty);
+	Printf(stderr, "symbol_reduce (c) %s %s\n", ty, ty);
 #endif
 	return Copy(ty);
       }
@@ -1612,7 +1622,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       Delete(nt);
       Delete(rt);
 #ifdef SWIG_DEBUG
-      Printf(stderr, "symbol_reduce %s %s\n", qt, ty);
+      Printf(stderr, "symbol_reduce (d) %s %s\n", qt, ty);
 #endif
       return qt;
     }
@@ -1620,7 +1630,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   Delete(base);
   Delete(prefix);
 #ifdef SWIG_DEBUG
-  Printf(stderr, "symbol_reduce %s %s\n", ty, ty);
+  Printf(stderr, "symbol_reduce (e) %s %s\n", ty, ty);
 #endif
   return Copy(ty);
 }

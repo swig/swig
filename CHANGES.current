@@ -1,6 +1,9 @@
 Version 1.3.34 (in progress)
 ============================
 
+12/16/2007: wsfulton
+	    Fix #1832613 - Templates and some typedefs involving pointers or function pointers
+
 12/12/2007: wsfulton
 	    [Java] Fix #1632625 - Compilation errors on Visual C++ 6 when using directors.
 
