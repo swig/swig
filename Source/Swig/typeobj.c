@@ -231,7 +231,7 @@ String *SwigType_parm(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 List *SwigType_split(const SwigType *t) {
-  DOH *item;
+  String *item;
   List *list;
   char *c;
   int len;
@@ -253,19 +253,32 @@ List *SwigType_split(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_parmlist()
  *
- * Splits a comma separated list of type components into strings.
+ * Splits a comma separated list of parameters into its component parts
+ * The input is expected to contain the parameter list within () brackets
+ * returns 0 if no argument list in the input, ie there are no round brackets ()
+ * returns a List containing a single empty string if there are no parameters in the () brackets
+ * For example:
+ *
+ *     Foo(std::string,p.f().Bar<(int,double)>)
+ *
+ * returns 2 elements in the list:
+ *    std::string
+ *    p.f().Bar<(int,double)>
  * ----------------------------------------------------------------------------- */
-
+ 
 List *SwigType_parmlist(const String *p) {
-  DOH *item;
+  String *item;
   List *list;
-  char *c, *itemstart;
+  char *c;
+  char *itemstart;
 
+  assert(p);
   c = Char(p);
   while (*c && (*c != '(') && (*c != '.'))
     c++;
-  if (!*c || (*c == '.'))
+  if (!*c)
     return 0;
+  assert(*c != '.'); /* p is expected to contain sub elements of a type */
   c++;
   list = NewList();
   itemstart = c;
@@ -804,7 +817,7 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
  *
  *     Foo<(p.int)>::bar
  *
- * Results in "Foo"
+ * returns "Foo"
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateprefix(const SwigType *t) {
@@ -848,7 +861,12 @@ String *SwigType_templatesuffix(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_templateargs()
  *
- * Returns the template part
+ * Returns the template arguments
+ * For example:
+ *
+ *     Foo<(p.int)>::bar
+ *
+ * returns "<(p.int)>"
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateargs(const SwigType *t) {
