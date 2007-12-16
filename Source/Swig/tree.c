@@ -82,10 +82,10 @@ void Swig_print_node(Node *obj) {
       print_indent(2);
       if (DohIsString(Getattr(obj, k))) {
 	o = Str(Getattr(obj, k));
-	if (Len(o) > 40) {
+	if (Len(o) > 80) {
 	  trunc = "...";
 	}
-	Printf(stdout, "%-12s - \"%(escape)-0.40s%s\"\n", k, o, trunc);
+	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
       } else {
 	Printf(stdout, "%-12s - 0x%x\n", k, Getattr(obj, k));
