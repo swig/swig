@@ -2537,8 +2537,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		    This is closer to the C++ (typedef) behavior.
 		  */
-                  Parm *parms = $7;
-		  n = Swig_cparse_template_locate($5,parms,tscope);
+		  n = Swig_cparse_template_locate($5,$7,tscope);
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
