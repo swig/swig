@@ -43,6 +43,14 @@
 #ifndef RARRAY_PTR
 # define RARRAY_PTR(x) RARRAY(x)->ptr
 #endif
+#ifndef RFLOAT_VALUE
+#define RFLOAT_VALUE(x) RFLOAT(x)->value
+#endif
+#ifndef DOUBLE2NUM
+#define DOUBLE2NUM(x) rb_float_new(x)
+#endif
+
+
 
 /*
  * Need to be very careful about how these macros are defined, especially
