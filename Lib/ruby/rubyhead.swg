@@ -37,6 +37,9 @@
 #ifndef RSTRING_PTR
 # define RSTRING_PTR(x) RSTRING(x)->ptr
 #endif
+#ifndef RSTRING_END
+# define RSTRING_END(x) (RSTRING_PTR(x) + RSTRING_LEN(x))
+#endif
 #ifndef RARRAY_LEN
 # define RARRAY_LEN(x) RARRAY(x)->len
 #endif
@@ -44,10 +47,31 @@
 # define RARRAY_PTR(x) RARRAY(x)->ptr
 #endif
 #ifndef RFLOAT_VALUE
-#define RFLOAT_VALUE(x) RFLOAT(x)->value
+# define RFLOAT_VALUE(x) RFLOAT(x)->value
 #endif
 #ifndef DOUBLE2NUM
-#define DOUBLE2NUM(x) rb_float_new(x)
+# define DOUBLE2NUM(x) rb_float_new(x)
+#endif
+#ifndef RHASH_TBL
+# define RHASH_TBL(x) (RHASH(x)->tbl)
+#endif
+#ifndef RHASH_ITER_LEV
+# define RHASH_ITER_LEV(x) (RHASH(x)->iter_lev)
+#endif
+#ifndef RHASH_IFNONE
+# define RHASH_IFNONE(x) (RHASH(x)->ifnone)
+#endif
+#ifndef RHASH_SIZE
+# define RHASH_SIZE(x) (RHASH(x)->tbl->num_entries)
+#endif
+#ifndef RHASH_EMPTY_P
+# define RHASH_EMPTY_P(x) (RHASH_SIZE(x) == 0)
+#endif
+#ifndef RSTRUCT_LEN
+# define RSTRUCT_LEN(x) RSTRUCT(x)->len
+#endif
+#ifndef RSTRUCT_PTR
+# define RSTRUCT_PTR(x) RSTRUCT(x)->ptr
 #endif
 
 
