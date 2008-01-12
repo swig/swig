@@ -31,8 +31,9 @@ public:
 #endif
 
 #if defined(SWIGCSHARP)
-%typemap(csout) Foo * {
-    return new Bar($imcall, $owner);
+%typemap(csout, excode=SWIGEXCODE) Foo * {
+    Bar ret = new Bar($imcall, $owner);$excode
+    return ret;
   }
 #endif
 
