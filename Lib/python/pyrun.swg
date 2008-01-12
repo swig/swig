@@ -466,12 +466,13 @@ PySwigObject_dealloc(PyObject *v)
 	res = ((*meth)(mself, v));
       }
       Py_XDECREF(res);
-    } else {
-      const char *name = SWIG_TypePrettyName(ty);
+    } 
 #if !defined(SWIG_PYTHON_SILENT_MEMLEAK)
-      printf("swig/python detected a memory leak of type '%s', no destructor found.\n", name);
-#endif
+    else {
+      const char *name = SWIG_TypePrettyName(ty);
+      printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
+#endif
   } 
   Py_XDECREF(next);
   PyObject_DEL(v);
