@@ -2675,8 +2675,8 @@ By default each proxy class has a <tt>delete()</tt> and a <tt>finalize()</tt> me
 The <tt>finalize()</tt> method calls <tt>delete()</tt> which frees any malloc'd memory for wrapped C structs or calls the C++ class destructors. 
 The idea is for <tt>delete()</tt> to be called when you have finished with the C/C++ object. 
 Ideally you need not call <tt>delete()</tt>, but rather leave it to the garbage collector to call it from the finalizer. 
-The unfortunate thing is that Sun, in their wisdom, do not guarantee that the finalizers will be called. 
-When a program exits, the garbage collector does not always call the finalizers. 
+When a program exits, the garbage collector does not guarantee to call all finalizers. 
+An insight into the reasoning behind this can be obtained from <a href="http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html">Hans Boehm's Destructors, Finalizers, and Synchronization</a> paper.
 Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 </p>
 
