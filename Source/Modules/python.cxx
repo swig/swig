@@ -138,14 +138,14 @@ static const char *usage3 = (char *) "\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
-     -nothreads      - Disable thread support for all the interface\n\
+     -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
-     -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carfuly with legacy interfaces) \n\
-     -proxydel       - Generate a __del__ method even when now is redundant (default) \n\
+     -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
+     -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
-     -O              - Enable all the optimizations options: \n\
+     -O              - Enable all the optimization options: \n\
                          -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel \n\
                          -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
 \n";
@@ -2672,7 +2672,7 @@ public:
 	    Printv(f_wrappers, ctab4, "if (!PyArg_UnpackTuple(args,(char*)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
 	  }
 	} else {
-	  Printv(f_wrappers, ctab4, "if (!PyArg_ParseTuple(args,(char*)\"O|swigregister\", &obj)) return NULL;\n", NIL);
+	  Printv(f_wrappers, ctab4, "if (!PyArg_ParseTuple(args,(char*)\"O:swigregister\", &obj)) return NULL;\n", NIL);
 	}
 
 	Printv(f_wrappers,
