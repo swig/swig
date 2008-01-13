@@ -27,6 +27,8 @@ struct SWIG_null_deleter {
 };
 %#define SWIG_NO_NULL_DELETER_0 , SWIG_null_deleter()
 %#define SWIG_NO_NULL_DELETER_1
+%#define SWIG_NO_NULL_DELETER_SWIG_POINTER_NEW
+%#define SWIG_NO_NULL_DELETER_SWIG_POINTER_OWN
 }
 
 
