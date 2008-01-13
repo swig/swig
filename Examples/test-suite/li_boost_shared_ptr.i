@@ -53,7 +53,7 @@ SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
 }
 
 %ignore IgnoredMultipleInheritBase;
-%ignore operator=;
+%ignore Space::Klass::operator=;
 %newobject pointerownertest();
 %newobject smartpointerpointerownertest();
 
@@ -226,6 +226,7 @@ template <class T1, class T2> struct Base {
   T1 baseVal1;
   T2 baseVal2;
   Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
+  virtual std::string getValue() const { return "Base<>"; };
 };
 typedef Base<int, double> BaseIntDouble_t;
 %}
@@ -238,6 +239,7 @@ template <class T1, class T2> struct Pair : Base<T1, T2> {
   T1 val1;
   T2 val2;
   Pair(T1 t1, T2 t2) : Base<T1, T2>(t1, t2), val1(t1), val2(t2) {}
+  virtual std::string getValue() const { return "Pair<>"; };
 };
 %}
 
