@@ -1024,6 +1024,8 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
+    //have_destructor = 1;
+    //return SWIG_NOWRAP;
     current = DESTRUCTOR;
     Language::destructorHandler(n);
     current = NO_CPP;

@@ -1587,13 +1587,17 @@ LUABIN=
 LUAINCLUDE=
 LUALIB=
 LUADYNAMICLOADLIB=
+LUAFLAGS=
+LUALINK=
+# note: if LUABIN is empty then lua tests will not be done
+# LUABIN will be cleared if certain dependencies cannot be found
 
 AC_ARG_WITH(lua, AS_HELP_STRING([--without-lua], [Disable Lua])
 AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN=yes])
 AC_ARG_WITH(luaincl,[  --with-luaincl=path     Set location of Lua include directory],[
-	LUAINCLUDE="$ISYSTEM$withval"], [LUAINCLUDE=])
+	LUAINCLUDE="$withval"], [LUAINCLUDE=])
 AC_ARG_WITH(lualib,[  --with-lualib=path      Set location of Lua library directory],[
-	LUALIB="-L$withval"], [LUALIB=])
+	LUALIB="$withval"], [LUALIB=])
 
 # First, check for "--without-lua" or "--with-lua=no".
 if test x"${LUABIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -1618,12 +1622,8 @@ if test "$LUABIN"; then
      LUABIN=""
    elif test -z "$LUAV51"; then
      AC_MSG_RESULT(Lua 5.0.x)
-     # note: different versions of lua use different libs
-     LUALIBRARY="-llua -llualib"
    else
      AC_MSG_RESULT(Lua 5.1 or later)
-     # note: different versions of lua use different libs
-     LUALIBRARY="-llua"
    fi
 fi
 
@@ -1644,61 +1644,36 @@ if test "$LUABIN"; then
    fi
 fi
 
-# look for the header files
-AC_MSG_CHECKING(for Lua header files)
-if test -z "$LUAINCLUDE"; then
-#AC_TRY_CPP([#include <lua.h>], , LUAINCLUDE="")
-AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <lua.h>]])], , LUAINCLUDE="")
-if test -z "$LUAINCLUDE"; then
-	dirs="/usr/local/include /usr/include /usr/include/lua* /opt/local/include"
-	for i in $dirs ; do
-		if test -r $i/lua.h; then
-			AC_MSG_RESULT($i)
-			LUAINCLUDE="$ISYSTEM$i"
-			break
-		fi
-	done
-fi
-fi
-if test -z "$LUAINCLUDE"; then
-    	AC_MSG_RESULT(not found)
+# look for the header files & set LUAFLAGS accordingly
+# will clear LUABIN if not present
+if test -n "$LUAINCLUDE"; then
+  AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
 else
-        AC_MSG_RESULT($LUAINCLUDE)
+  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUABIN=])
 fi
 
-# look for the library files
-AC_MSG_CHECKING(for Lua library)
+# look for the library files & set LUALINK accordingly
+# will clear LUABIN if not present
+lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+	
 if test -z "$LUALIB"; then
-dirs="/usr/local/lib /usr/lib /opt/local/lib"
-for i in $dirs ; do
-	if test -r $i/liblua*.a; then
-	    AC_MSG_RESULT($i)
-	    LUALIB="-L$i"
-	    break
-	fi
-done
-fi
-if test -z "$LUALIB"; then
-   AC_MSG_RESULT(not found)
+  AC_SEARCH_LIBS(lua_close, [lua lua51 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
 else
-   AC_MSG_RESULT($LUALIB)
+  AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
 fi
 
-# copied from PYTHON code, but I think this is not needed for lua...
-# Cygwin (Windows) needs the library for dynamic linking
-#case $host in
-#*-*-cygwin* | *-*-mingw*) LUADYNAMICLINKING="-L$LUALIB $PYLINK"
-#         PYINCLUDE="-DUSE_DL_IMPORT $PYINCLUDE"
-#         ;;
-#*)LUADYNAMICLINKING="";;
-#esac
+# adding lualib for lua 5.0
+if test -z "$LUAV51"; then # extra for lua 5.0
+  LUALINK="$LUALINK -llualib"
+fi
+
+LIBS=$lua_save_LIBS	# restore LIBS
 
 fi # if not disabled
 
 AC_SUBST(LUADYNAMICLINKING)
-AC_SUBST(LUAINCLUDE)
-AC_SUBST(LUALIB)
-AC_SUBST(LUALIBRARY)
+AC_SUBST(LUAFLAGS)
+AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
@@ -1871,8 +1846,8 @@ SKIP_MODULA3="1" # Always skipped!
 AC_SUBST(SKIP_MODULA3)
 
 SKIP_LUA=
-# do we really need the LUABIN?
-if test -z "$LUABIN" || test -z "$LUAINCLUDE" || test -z "$LUALIB" || test -z "$LUADYNAMICLOADLIB"; then
+# we need LUABIN & dynamic loading
+if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
     SKIP_LUA="1"
 fi
 AC_SUBST(SKIP_LUA)

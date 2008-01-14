@@ -1,6 +1,11 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/14/2008: mgossage
+	    Substantial changes to configure script for detecting lua.
+	      Code can now link to liblua.a, liblua50.a or liblua51.a
+	      Its also a lot neater now.
+
 12/16/2007: wsfulton
 	    [Perl] Backed out #1798728 - numbers can be passed to functions taking char *
 

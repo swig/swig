@@ -125,7 +125,7 @@ a few things of note:
 	so for the above mentioned return_array_5() would look like
 	arr=return_array_5() -- no parameters passed in
 * for INOUT arrays, a table must be passed in, and a new table will be returned
-	(this is consistant with the way that numbers are processed
+	(this is consistant with the way that numbers are processed)
 	if you want just use
 	arr={...}
 	arr=process_var_array_inout(arr)	-- arr is replaced by the new version
