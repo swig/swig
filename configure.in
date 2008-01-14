@@ -1657,7 +1657,7 @@ fi
 lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
 	
 if test -z "$LUALIB"; then
-  AC_SEARCH_LIBS(lua_close, [lua lua51 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  AC_SEARCH_LIBS(lua_close, [lua lua51 lua5.1 lua50 lua5.0], [LUALINK="-l$ac_lib"],[LUABIN=])
 else
   AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
 fi
