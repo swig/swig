@@ -974,6 +974,7 @@ int Language::cDeclaration(Node *n) {
     return SWIG_OK;
   } else {
     /* Some kind of variable declaration */
+    String *declaration = Copy(decl);
     Delattr(n, "decl");
     if (Getattr(n, "nested"))
       SetFlag(n, "feature:immutable");
@@ -1004,7 +1005,7 @@ int Language::cDeclaration(Node *n) {
     Setattr(n, "type", ty);
     variableHandler(n);
     Setattr(n, "type", type);
-    Setattr(n, "decl", decl);
+    Setattr(n, "decl", declaration);
     Delete(ty);
     Delete(type);
     Delete(fullty);
