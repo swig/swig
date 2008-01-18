@@ -545,7 +545,7 @@ static int String_getc(DOH *so) {
   if (s->sp >= s->len)
     c = EOF;
   else
-    c = (int) s->str[s->sp++];
+    c = (int)(unsigned char) s->str[s->sp++];
   if (c == '\n')
     s->line++;
   return c;

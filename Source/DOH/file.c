@@ -139,7 +139,7 @@ static int File_getc(DOH *fo) {
     return fgetc(f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
-    char c;
+    unsigned char c;
     if (read(f->fd, &c, 1) < 0)
       return EOF;
     return c;
