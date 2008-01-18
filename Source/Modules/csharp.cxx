@@ -702,7 +702,7 @@ public:
     String *cleanup = NewString("");
     String *outarg = NewString("");
     String *body = NewString("");
-    String *im_outattribute = 0;
+    String *im_outattributes = 0;
     int num_arguments = 0;
     int num_required = 0;
     bool is_void_return;
@@ -744,7 +744,7 @@ public:
       if (imtypeout)
 	tm = imtypeout;
       Printf(im_return_type, "%s", tm);
-      im_outattribute = Getattr(n, "tmap:imtype:outattributes");
+      im_outattributes = Getattr(n, "tmap:imtype:outattributes");
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -775,8 +775,8 @@ public:
 
     Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", overloaded_name, "\")]\n", NIL);
 
-    if (im_outattribute)
-      Printf(imclass_class_code, "  %s\n", im_outattribute);
+    if (im_outattributes)
+      Printf(imclass_class_code, "  %s\n", im_outattributes);
 
     Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
 
@@ -810,8 +810,8 @@ public:
 
       /* Get the intermediary class parameter types of the parameter */
       if ((tm = Getattr(p, "tmap:imtype"))) {
-	String *inattributes = Getattr(p, "tmap:imtype:inattributes");
-	Printf(im_param_type, "%s%s", inattributes ? (const String *) inattributes : empty_string, tm);
+	const String *inattributes = Getattr(p, "tmap:imtype:inattributes");
+	Printf(im_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(pt, 0));
       }
@@ -1991,8 +1991,8 @@ public:
 	/* Get the C# parameter type */
 	if ((tm = Getattr(p, "tmap:cstype"))) {
 	  substituteClassname(pt, tm);
-	  String *inattributes = Getattr(p, "tmap:cstype:inattributes");
-	  Printf(param_type, "%s%s", inattributes ? (const String *) inattributes : empty_string, tm);
+	  const String *inattributes = Getattr(p, "tmap:cstype:inattributes");
+	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
@@ -2241,8 +2241,8 @@ public:
 	/* Get the C# parameter type */
 	if ((tm = Getattr(p, "tmap:cstype"))) {
 	  substituteClassname(pt, tm);
-	  String *inattributes = Getattr(p, "tmap:cstype:inattributes");
-	  Printf(param_type, "%s%s", inattributes ? (const String *) inattributes : empty_string, tm);
+	  const String *inattributes = Getattr(p, "tmap:cstype:inattributes");
+	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
@@ -2343,9 +2343,9 @@ public:
         }
         Printf(helper_code, "\n  }\n");
         String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
-        String *im_outattribute = Getattr(n, "tmap:imtype:outattributes");
-        if (im_outattribute)
-          Printf(proxy_class_code, "  %s\n", im_outattribute);
+        String *im_outattributes = Getattr(n, "tmap:imtype:outattributes");
+        if (im_outattributes)
+          Printf(proxy_class_code, "  %s\n", im_outattributes);
         Printv(proxy_class_code, helper_code, "\n", NIL);
         Replaceall(function_code, "$imcall", helper_name);
         Delete(helper_name);
@@ -2548,8 +2548,8 @@ public:
       /* Get the C# parameter type */
       if ((tm = Getattr(p, "tmap:cstype"))) {
 	substituteClassname(pt, tm);
-	String *inattributes = Getattr(p, "tmap:cstype:inattributes");
-	Printf(param_type, "%s%s", inattributes ? (const String *) inattributes : empty_string, tm);
+	const String *inattributes = Getattr(p, "tmap:cstype:inattributes");
+	Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
       }
@@ -3237,6 +3237,12 @@ public:
 	String *imtypeout = Getattr(tp, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
 	if (imtypeout)
 	  tm = imtypeout;
+        const String *im_directoroutattributes = Getattr(tp, "tmap:imtype:directoroutattributes");
+        if (im_directoroutattributes) {
+          Printf(callback_def, "  %s\n", im_directoroutattributes);
+          Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
+        }
+
 	Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 	if (!ignored_method)
 	  Printf(director_delegate_definitions, "  public delegate %s", tm);
@@ -3367,6 +3373,7 @@ public:
 	    String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
 	    if (imtypeout)
 	      tm = imtypeout;
+            const String *im_directorinattributes = Getattr(p, "tmap:imtype:directorinattributes");
 
 	    String *din = Copy(Getattr(p, "tmap:csdirectorin"));
 
@@ -3381,7 +3388,7 @@ public:
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
 	      }
-	      Printf(delegate_parms, "%s %s", tm, ln);
+	      Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
 
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);

@@ -1,6 +1,11 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/18/2008: wsfulton
+	    Add 'directorinattributes' and 'directoroutattributes' typemap attributes
+            for the imtype typemap. These should contain C# attributes which will
+            be generated into the C# director delegate methods.
+
 01/18/2008: olly
 	    Fix handling of byte value 255 in input files on platforms where
 	    char is signed (it was getting mapped to EOF).  Fixes SF#1518219.
