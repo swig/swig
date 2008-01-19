@@ -398,7 +398,7 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool check(bool set_err = false) const
     {
       int s = (int) size();
       for (int i = 0; i < s; ++i) {
