@@ -1510,11 +1510,11 @@ public:
 	sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
       String *protoTypes = NewString("");
       do {
-	Printf(protoTypes, "\"\"    %s(%s)\\n", Getattr(sibl, "name"), ParmList_protostr(Getattr(sibl, "wrap:parms")));
+	Printf(protoTypes, "\n\"    %s(%s)\\n\"", Getattr(sibl, "name"), ParmList_protostr(Getattr(sibl, "wrap:parms")));
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");
       Printf(f->code, "SWIG_SetErrorMsg(PyExc_NotImplementedError,"
-	     "\"Wrong number of arguments for overloaded function '%s'.\\n" "  Possible C/C++ prototypes are:\\n%s\");\n", symname, protoTypes);
+	     "\"Wrong number of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
       Append(f->code, "return NULL;\n");
       Delete(protoTypes);
     }
