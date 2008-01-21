@@ -1,6 +1,16 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/21/2008: wsfulton
+	    [Python] For STL containers, SWIG no longer attempts to convert from one
+            STL container to another, eg from std::vector<int> to std::vector<double>
+            or std::list<int> to std::vector<int> or even std::vector<Foo> to
+            std::vector<Bar> as it previously did. In fact SWIG no longer attempts to
+            convert any SWIG wrapped C++ proxy class that is also a Python sequence,
+            whereas previously it would. Any non-SWIG Python sequence will still be
+            accepted wherever an STL container is accepted. Overloaded methods using
+            containers should be faster.
+
 01/18/2008: wsfulton
 	    Add 'directorinattributes' and 'directoroutattributes' typemap attributes
             for the imtype typemap. These should contain C# attributes which will

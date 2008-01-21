@@ -1,5 +1,8 @@
 %module li_std_vector
 
+%warnfilter(509) overloaded1;
+%warnfilter(509) overloaded2;
+
 %include "std_string.i"
 %include "std_vector.i"
 %include "cpointer.i"
@@ -126,3 +129,11 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 namespace std {
    %template(ConstIntVector) vector<const int *>;
 }
+
+%inline %{
+std::string overloaded1(std::vector<double> vi) { return "vector<double>"; }
+std::string overloaded1(std::vector<int> vi) { return "vector<int>"; }
+std::string overloaded2(std::vector<int> vi) { return "vector<int>"; }
+std::string overloaded2(std::vector<double> vi) { return "vector<double>"; }
+%}
+

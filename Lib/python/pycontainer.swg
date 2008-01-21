@@ -702,7 +702,14 @@ namespace swig {
     typedef T value_type;
 
     static int asptr(PyObject *obj, sequence **seq) {
-      if (PySequence_Check(obj)) {
+      if (SWIG_Python_GetSwigThis(obj)) {
+	sequence *p;
+	if (SWIG_ConvertPtr(obj,(void**)&p,
+			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	  if (seq) *seq = p;
+	  return SWIG_OLDOBJ;
+	}
+      } else if (PySequence_Check(obj)) {
 	try {
 	  PySequence_Cont<value_type> pyseq(obj);
 	  if (seq) {
@@ -720,13 +727,6 @@ namespace swig {
 	    }
 	  }
 	  return SWIG_ERROR;
-	}
-      } else {
-	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
-	  if (seq) *seq = p;
-	  return SWIG_OLDOBJ;
 	}
       }
       return SWIG_ERROR;

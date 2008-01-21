@@ -111,3 +111,16 @@ iv[1:3] = []
 if iv[1] != 3:
     raise RuntimeError
 
+# Overloading checks
+if overloaded1(iv) != "vector<int>":
+  raise RuntimeError
+
+if overloaded1(dv) != "vector<double>":
+  raise RuntimeError
+
+if overloaded2(iv) != "vector<int>":
+  raise RuntimeError
+
+if overloaded2(dv) != "vector<double>":
+  raise RuntimeError
+
