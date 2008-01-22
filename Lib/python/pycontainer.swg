@@ -702,7 +702,7 @@ namespace swig {
     typedef T value_type;
 
     static int asptr(PyObject *obj, sequence **seq) {
-      if (SWIG_Python_GetSwigThis(obj)) {
+      if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
 	sequence *p;
 	if (SWIG_ConvertPtr(obj,(void**)&p,
 			    swig::type_info<sequence>(),0) == SWIG_OK) {

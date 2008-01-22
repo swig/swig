@@ -124,3 +124,12 @@ if overloaded2(iv) != "vector<int>":
 if overloaded2(dv) != "vector<double>":
   raise RuntimeError
 
+if overloaded3(iv) != "vector<int> *":
+  raise RuntimeError
+
+if overloaded3(None) != "vector<int> *":
+  raise RuntimeError
+
+if overloaded3(100) != "int":
+  raise RuntimeError
+

@@ -135,5 +135,7 @@ std::string overloaded1(std::vector<double> vi) { return "vector<double>"; }
 std::string overloaded1(std::vector<int> vi) { return "vector<int>"; }
 std::string overloaded2(std::vector<int> vi) { return "vector<int>"; }
 std::string overloaded2(std::vector<double> vi) { return "vector<double>"; }
+std::string overloaded3(std::vector<int> *vi) { return "vector<int> *"; }
+std::string overloaded3(int i) { return "int"; }
 %}
 
