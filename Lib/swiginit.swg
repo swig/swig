@@ -55,7 +55,7 @@ SWIGRUNTIME void
 SWIG_InitializeModule(void *clientdata) {
   size_t i;
   swig_module_info *module_head, *iter;
-  int found;
+  int found, init;
 
   clientdata = clientdata;
 
@@ -65,6 +65,9 @@ SWIG_InitializeModule(void *clientdata) {
     swig_module.type_initial = swig_type_initial;
     swig_module.cast_initial = swig_cast_initial;
     swig_module.next = &swig_module;
+    init = 1;
+  } else {
+    init = 0;
   }
 
   /* Try and load any already created modules */
@@ -92,6 +95,12 @@ SWIG_InitializeModule(void *clientdata) {
     swig_module.next = module_head->next;
     module_head->next = &swig_module;
   }
+
+  /* When multiple interpeters are used, a module could have already been initialized in
+     a different interpreter, but not yet have a pointer in this interpreter.
+     In this case, we do not want to continue adding types... everything should be
+     set up already */
+  if (init == 0) return;
 
   /* Now work on filling in swig_module.types */
 #ifdef SWIGRUNTIME_DEBUG

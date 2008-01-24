@@ -172,16 +172,25 @@ void SWIG_write_NAME_num_array(lua_State* L,TYPE *array,int size);
 int SWIG_read_NAME_num_array(lua_State* L,int index,TYPE *array,int size);
 
 */
-%{
 
-#ifdef __cplusplus	/* generic alloc/dealloc fns*/
+/* Reported that you don't need to check for NULL for delete & free
+There probably is some compiler that its not true for, so the code is left here just in case.
+#ifdef __cplusplus	
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
 #define SWIG_FREE_ARRAY(PTR)		if(PTR){delete[] PTR;}
 #else
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))
 #define SWIG_FREE_ARRAY(PTR)		if(PTR){free(PTR);}
 #endif
-
+*/
+%{
+#ifdef __cplusplus	/* generic alloc/dealloc fns*/
+#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
+#define SWIG_FREE_ARRAY(PTR)		delete[] PTR;
+#else
+#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))
+#define SWIG_FREE_ARRAY(PTR)		free(PTR);
+#endif
 /* counting the size of arrays:*/
 int SWIG_itable_size(lua_State* L, int index)
 {

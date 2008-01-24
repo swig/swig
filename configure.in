@@ -1649,17 +1649,36 @@ fi
 if test -n "$LUAINCLUDE"; then
   AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
 else
-  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUABIN=])
+  LUA_OK="1"
+  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+  # if we didn't get it, going to have to look elsewhere (the hard way)
+  if test -z "$LUA_OK"; then
+    AC_MSG_CHECKING(for lua.h in other locations)
+    # note: ubuntu seems to like /usr/include/lua5.1/lua.h
+    dirs="/usr/include/lua* /usr/local/include"
+    for i in $dirs; do
+      #echo "$i"
+      if test -r $i/lua.h; then
+        AC_MSG_RESULT($i/lua.h)
+	LUAFLAGS="$ISYSTEM$i"
+	break;
+      fi
+    done
+    if test -z "$LUAFLAGS"; then
+      AC_MSG_RESULT(not found)
+      LUABIN="" # clear the bin
+    fi
+  fi
 fi
 
 # look for the library files & set LUALINK accordingly
 # will clear LUABIN if not present
 lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
 	
-if test -z "$LUALIB"; then
-  AC_SEARCH_LIBS(lua_close, [lua lua51 lua5.1 lua50 lua5.0], [LUALINK="-l$ac_lib"],[LUABIN=])
-else
+if test -n "$LUALIB"; then
   AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
+else
+  AC_SEARCH_LIBS(lua_close, [lua lua51 lua5.1 lua50 lua5.0], [LUALINK="-l$ac_lib"],[LUABIN=])
 fi
 
 # adding lualib for lua 5.0

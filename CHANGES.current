@@ -1,6 +1,11 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/24/2008: mgossage
+	    More updates to the configure script for detecting lua.
+	    Also looks in /usr/include/lua*
+	    Also changed typemaps.i not to check for NULL before freeing a pointer
+
 01/21/2008: wsfulton
 	    [Python] For STL containers, SWIG no longer attempts to convert from one
             STL container to another, eg from std::vector<int> to std::vector<double>
