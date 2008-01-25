@@ -232,7 +232,8 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 /* Arrays of proxy classes. The typemaps in this macro make it possible to treat an array of 
  * class/struct/unions as an array of Java classes. 
  * Use the following macro to use these typemaps for an array of class/struct/unions called name:
- * JAVA_ARRAYSOFCLASSES(name) */
+ * JAVA_ARRAYSOFCLASSES(name) 
+ * Note that multiple copies of the class/struct is made when using the array as a parameter input. */
 %define JAVA_ARRAYSOFCLASSES(ARRAYSOFCLASSES)
 
 %typemap(jni) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "jlongArray"
@@ -304,8 +305,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 {
   int i;
   for (i=0; i<sz$argnum; i++) {
-    jarr$argnum[i] = 0;
-    *($&1_ltype)&jarr$argnum[i] = &$1[i];
+    **($&1_ltype)&jarr$argnum[i] = $1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
