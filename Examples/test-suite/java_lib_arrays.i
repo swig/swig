@@ -36,6 +36,14 @@ struct YetAnotherStruct {
 double extract_ptr(struct YetAnotherStruct *yas, int index) {
   return yas[index].simple.double_field;
 }
+void modifyYAS(struct YetAnotherStruct yas[], int size) {
+  int i;
+  for (i=0; i<size; ++i) {
+    SimpleStruct ss;
+    ss.double_field = yas[i].simple.double_field * 10.0;
+    yas[i].simple = ss;
+  }
+}
 %}
 
 %apply ARRAYSOFENUMS[ANY] { toe[ANY] }

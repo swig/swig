@@ -55,6 +55,12 @@ public class java_lib_arrays_runme {
     if (java_lib_arrays.extract_ptr(array_yet_another_struct, 0) != 222.333) throw new RuntimeException("extract_ptr 0 failed");
     if (java_lib_arrays.extract_ptr(array_yet_another_struct, 1) != 444.555) throw new RuntimeException("extract_ptr 1 failed");
 
+    java_lib_arrays.modifyYAS(array_yet_another_struct, array_yet_another_struct.length);
+    for (int i=0; i<2; ++i) {
+      if (array_yet_another_struct[i].getSimple().getDouble_field() != array_struct[i].getDouble_field() * 10.0)
+        throw new RuntimeException("modifyYAS failed ");
+    }
+
     java_lib_arrays.toestest(array_toe, array_toe, array_toe);
 
     // Now set the array members and check that they have been set correctly
