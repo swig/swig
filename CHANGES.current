@@ -1,6 +1,10 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/30/2008: mgossage
+	    Small update to documentation in Typemaps.html, to warn about use of local 
+	    variables in typemaps for multiple types.
+
 01/25/2008: wsfulton
 	    [Java] Fix bug reported by Kevin Mills in ARRAYSOFCLASSES typemaps where any
             changes made to an array element passed from Java to C are not reflected back

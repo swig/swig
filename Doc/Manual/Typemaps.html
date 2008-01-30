@@ -1617,6 +1617,27 @@ Some typemaps do not recognize local variables (or they may simply not
 apply). At this time, only typemaps that apply to argument conversion support this.
 </p>
 
+<p>
+<b>Note:</b>
+</p>
+
+<p>
+When declaring a typemap for multiple types, 
+each type must have its own local variable declaration.
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) const std::string *, std::string * (std::string temp) // NO!
+// only std::string * has a local variable
+// const std::string * does not (oops)
+....
+
+%typemap(in) const std::string * (std::string temp), std::string * (std::string temp) // Correct
+....
+</pre>
+</div>
+
 
 <H3><a name="Typemaps_special_variables"></a>10.4.3 Special variables</H3>
 
