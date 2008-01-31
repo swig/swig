@@ -1513,7 +1513,6 @@ public:
   void insertCleanupCode(ParmList *l, String *cleanup) {
     String *tm;
     for (Parm *p = l; p;) {
-      //      if (!checkAttribute(p,"tmap:in:numinputs","0") && (tm = Getattr(p,"tmap:freearg"))) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	if (Len(tm) != 0) {
 	  Replaceall(tm, "$source", Getattr(p, "lname"));
