@@ -776,6 +776,7 @@ int Language::typemapcopyDirective(Node *n) {
 
 int Language::typesDirective(Node *n) {
   Parm *parms = Getattr(n, "parms");
+  String *convcode = Getattr(n, "convcode"); /* optional user supplied conversion code for custom casting */
   while (parms) {
     SwigType *t = Getattr(parms, "type");
     String *v = Getattr(parms, "value");
@@ -783,7 +784,7 @@ int Language::typesDirective(Node *n) {
       SwigType_remember(t);
     } else {
       if (SwigType_issimple(t)) {
-	SwigType_inherit(t, v, 0);
+	SwigType_inherit(t, v, 0, convcode);
       }
     }
     parms = nextSibling(parms);

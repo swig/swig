@@ -205,7 +205,7 @@ class TypePass:private Dispatcher {
 		Setmeta(bname, "already_warned", "1");
 	      }
 	    }
-	    SwigType_inherit(clsname, bname, cast);
+	    SwigType_inherit(clsname, bname, cast, 0);
 	  }
 	}
       }
@@ -225,7 +225,7 @@ class TypePass:private Dispatcher {
       String *bname = Getattr(n, "name");
       Node *bclass = n;		/* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass, "typescope");
-      SwigType_inherit(clsname, bname, cast);
+      SwigType_inherit(clsname, bname, cast, 0);
       if (!importmode) {
 	String *btype = Copy(bname);
 	SwigType_add_pointer(btype);

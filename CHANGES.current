@@ -1,6 +1,37 @@
 Version 1.3.34 (in progress)
 ============================
 
+01/31/2008: wsfulton
+            Additions to the %types directive. Now the conversion / casting code can be
+            overridden to some custom code in the %types directive, like so:
+
+              %types(fromtype = totype) %{
+                ... code to convert fromtype to totype and return ...
+              %}
+
+            The special variable $from will be replaced by the name of the parameter of the
+            type being converted from. The code must return the totype cast to void *. Example:
+
+              class Time;
+              class Date;
+              Date &Time::dateFromTime();
+
+              %types(Time = Date) %{
+                Time *t = (Time *)$from;
+                Date &d = t->dateFromTime();
+                return (void *) &d;
+              %}
+
+            resulting in the conversion / casting code looking something like:
+
+              static void *_p_TimeTo_p_Date(void *x) {
+                Time *t = (Time *)x;
+                Date &d = t->dateFromTime();
+                return (void *) &d;
+              }
+
+            This is advanced usage, please use only if you understand the runtime type system.
+
 01/30/2008: mgossage
 	    Small update to documentation in Typemaps.html, to warn about use of local 
 	    variables in typemaps for multiple types.
@@ -26,7 +57,7 @@ Version 1.3.34 (in progress)
             containers should be faster.
 
 01/18/2008: wsfulton
-	    Add 'directorinattributes' and 'directoroutattributes' typemap attributes
+	    [C#] Add 'directorinattributes' and 'directoroutattributes' typemap attributes
             for the imtype typemap. These should contain C# attributes which will
             be generated into the C# director delegate methods.
 

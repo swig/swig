@@ -1649,12 +1649,18 @@ String *SwigType_clientdata_collect(String *ms) {
  * from them.
  *
  * subclass is a hash that maps base-classes to all of the classes derived from them.
+ *
+ * derived - name of derived class
+ * base - name of base class
+ * cast - additional casting code when casting from derived to base
+ * conversioncode - if set, overrides the default code in the function when casting
+ *                from derived to base
  * ----------------------------------------------------------------------------- */
 
 static Hash *subclass = 0;
 static Hash *conversions = 0;
 
-void SwigType_inherit(String *derived, String *base, String *cast) {
+void SwigType_inherit(String *derived, String *base, String *cast, String *conversioncode) {
   Hash *h;
   String *dd = 0;
   String *bb = 0;
@@ -1685,7 +1691,13 @@ void SwigType_inherit(String *derived, String *base, String *cast) {
     Delete(h);
   }
   if (!Getattr(h, derived)) {
-    Setattr(h, derived, cast ? cast : (void *) "");
+    Hash *c = NewHash();
+    if (cast)
+      Setattr(c, "cast", cast);
+    if (conversioncode)
+      Setattr(c, "convcode", conversioncode);
+    Setattr(h, derived, c);
+    Delete(c);
   }
 
   Delete(dd);
@@ -1781,8 +1793,20 @@ void SwigType_inherit_equiv(File *out) {
 	String *convname = NewStringf("%sTo%s", mprefix, mkey);
 	String *lkey = SwigType_lstr(rk.key, 0);
 	String *lprefix = SwigType_lstr(prefix, 0);
-	Printf(out, "static void *%s(void *x) {\n", convname);
-	Printf(out, "    return (void *)((%s) %s ((%s) x));\n", lkey, Getattr(sub, bk.key), lprefix);
+        Hash *subhash = Getattr(sub, bk.key);
+        String *convcode = Getattr(subhash, "convcode");
+	Printf(out, "static void *%s(void *x) {", convname);
+        if (convcode) {
+          String *fn = Copy(convcode);
+          Replaceall(fn, "$from", "x");
+          Printf(out, "%s", fn);
+        } else {
+          String *cast = Getattr(subhash, "cast");
+          Printf(out, "\n    return (void *)((%s) ", lkey);
+          if (cast)
+            Printf(out, "%s", cast);
+          Printf(out, " ((%s) x));\n", lprefix);
+        }
 	Printf(out, "}\n");
 	Setattr(conversions, ckey, convname);
 	Delete(ckey);

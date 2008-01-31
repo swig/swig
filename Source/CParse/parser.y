@@ -1804,10 +1804,6 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
 	       }
                ;
 
-/* ------------------------------------------------------------
-   %fragment(name,location) { ... }
-   ------------------------------------------------------------ */
-
 /* fragment keyword arguments */
 stringtype    : string LBRACE parm RBRACE {		 
                  $$ = NewHash();
@@ -1824,6 +1820,14 @@ fname         : string {
                 $$ = $1;
               }
               ;
+
+/* ------------------------------------------------------------
+   %fragment(name, section) %{ ... %}
+   %fragment("name" {type}, "section") %{ ... %}
+   %fragment("name", "section", fragment="fragment1", fragment="fragment2") %{ ... %}
+   Also as above but using { ... }
+   %fragment("name");
+   ------------------------------------------------------------ */
 
 fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                    Hash *p = $5;
@@ -2502,11 +2506,14 @@ typemap_parm   : type typemap_parameter_declarator {
 
 /* ------------------------------------------------------------
    %types(parmlist); 
+   %types(parmlist) %{ ... %}
    ------------------------------------------------------------ */
 
-types_directive : TYPES LPAREN parms RPAREN SEMI {
+types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
                    $$ = new_node("types");
 		   Setattr($$,"parms",$3);
+                   if ($5)
+		     Setattr($$,"convcode",NewString($5));
                }
                ;
 
