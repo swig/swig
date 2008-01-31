@@ -22,6 +22,7 @@ import java.lang.*; // for Exception
 %typemap(javabase) Greeting * "Exception";
 %typemap(javainterfaces) Greeting * "EventListener";
 %typemap(javacode) Greeting * %{
+  public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
   // Pure Java code generated using %typemap(javacode) 
   public static $javaclassname CreateNullPointer() {
     return new $javaclassname();

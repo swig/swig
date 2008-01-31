@@ -21,6 +21,7 @@ import java.lang.*; // For Exception
       System.exit(1);
     }
   }
+  public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
 %}
 
 
@@ -33,6 +34,7 @@ import java.io.*; // For Serializable
 %pragma(java) moduleinterfaces="Serializable"
 
 %pragma(java) modulecode=%{
+  public static final long serialVersionUID = 0x52151001; // Suppress ecj warning
   public static void added_function(String s) {
     // Added function
   }

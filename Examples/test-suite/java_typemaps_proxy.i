@@ -19,6 +19,7 @@ import java.lang.*; // for Exception
 %typemap(javabase) NS::Greeting "Exception";
 %typemap(javainterfaces) NS::Greeting "EventListener";
 %typemap(javacode) NS::Greeting %{
+  public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
   // Pure Java code generated using %typemap(javacode) 
   public void sayhello() {
     hello();

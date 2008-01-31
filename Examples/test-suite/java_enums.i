@@ -10,6 +10,10 @@
 %pragma(java) moduleimports=%{
 import java.io.*; // For Serializable
 %}
+%pragma(java) modulecode=%{
+  public static final long serialVersionUID = 0x52151001; // Suppress ecj warning
+%}
+
 
 // Set default Java const code generation
 %javaconst(1);
