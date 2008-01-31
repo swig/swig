@@ -173,7 +173,7 @@ extern "C" {
   extern int SwigType_typedef(SwigType *type, String_or_char *name);
   extern int SwigType_typedef_class(String_or_char *name);
   extern int SwigType_typedef_using(String_or_char *qname);
-  extern void SwigType_inherit(String *subclass, String *baseclass, String *cast);
+  extern void SwigType_inherit(String *subclass, String *baseclass, String *cast, String *conversioncode);
   extern int SwigType_issubtype(SwigType *subtype, SwigType *basetype);
   extern void SwigType_scope_alias(String *aliasname, Typetab *t);
   extern void SwigType_using_scope(Typetab *t);
