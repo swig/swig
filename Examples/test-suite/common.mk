@@ -244,6 +244,7 @@ CPP_TEST_CASES += \
 	smart_pointer_protected \
 	smart_pointer_rename \
 	smart_pointer_templatemethods \
+	smart_pointer_templatevariables \
 	smart_pointer_simple \
 	smart_pointer_static \
 	smart_pointer_typedef \
@@ -331,6 +332,7 @@ CPP_TEST_CASES += \
 	typemap_variables \
 	typemap_various \
 	typename \
+	types_directive \
 	union_scope \
 	using1 \
 	using2 \
