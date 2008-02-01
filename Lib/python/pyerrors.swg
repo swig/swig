@@ -62,7 +62,7 @@ SWIG_Python_AddErrorMsg(const char* mesg)
     Py_DECREF(old_str);
     Py_DECREF(value);
   } else {
-    PyErr_Format(PyExc_RuntimeError, mesg);
+    PyErr_SetString(PyExc_RuntimeError, mesg);
   }
 }
 
