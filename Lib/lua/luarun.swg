@@ -515,7 +515,6 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
 /* performs the entire class registration process */
 SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
 {
-  int i;
   /*  add its constructor to module with the name of the class
   so you can do MyClass(...) as well as new_MyClass(...)
   BUT only if a constructor is defined

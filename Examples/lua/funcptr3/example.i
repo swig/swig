@@ -28,7 +28,7 @@ int callback(int a, int b, SWIGLUA_FN fn)
 	lua_pushnumber(fn.L,a);
 	lua_pushnumber(fn.L,b);
 	lua_call(fn.L,2,1);    /* 2 in, 1 out */
-	return luaL_checknumber(fn.L,-1);
+	return (int)luaL_checknumber(fn.L,-1);
 }	
 %}	
 

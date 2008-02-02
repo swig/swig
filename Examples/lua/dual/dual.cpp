@@ -23,10 +23,10 @@ the two modules are now linked together, and all can now find
 both Foo and Bar.
 */
 
+#include "swigluarun.h"	// the swig runtimes
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "swigluarun.h"	// the swig runtimes
 
 // the 2 libraries which are wrappered via SWIG
 extern "C" int luaopen_example(lua_State*L);

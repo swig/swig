@@ -9,7 +9,9 @@
    for manipulating C pointers */
 
 /* First we'll use the pointer library */
+%inline %{
 extern void add(int *x, int *y, int *result);
+%}
 %include cpointer.i
 %pointer_functions(int, intp);
 
@@ -17,11 +19,16 @@ extern void add(int *x, int *y, int *result);
 
 %include typemaps.i
 extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
+%{
+extern void sub(int *, int *, int *);
+%}
 
 /* Next we'll use typemaps and the %apply directive */
 
 %apply int *OUTPUT { int *r };
+%inline %{
 extern int divide(int n, int d, int *r);
+%}
 
 
 
