@@ -77,7 +77,8 @@
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
 %typemap(in,checkfn="lua_isboolean") const bool& (bool temp)
-%{temp=(bool)lua_toboolean(L, $input); $1=&temp;%}
+%{temp=lua_toboolean(L, $input) ? true : false;
+  $1=&temp;%}
 
 %typemap(out) const bool&
 %{  lua_pushboolean(L,(int)*$1); SWIG_arg++;%}
