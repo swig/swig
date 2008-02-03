@@ -181,6 +181,7 @@ For a more useful solution: see std_except for more details
 */
 %typemap(throws) SWIGTYPE
 {
+  (void)$1;
   lua_pushfstring(L,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
   SWIG_fail;
 }
