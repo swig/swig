@@ -19,13 +19,15 @@
 //    typename t_alloc<t_item>::alloc_type allotype; // SWIG can't handle this yet
     void xx() {
       typename t_alloc<t_item>::alloc_type atype; // this type is the same as t_item type
-      atype = 10;
+      atype = true;
     }
   };
 
 void TestInstantiations() {
   pfc::array_t<int, pfc::alloc_fast> myArrayInt;
   list_impl_t<int, pfc::array_t<int, pfc::alloc_fast> > myListImplInt;
+  (void) myArrayInt;
+  (void) myListImplInt;
 }
 %}
 
