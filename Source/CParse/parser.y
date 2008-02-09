@@ -829,6 +829,31 @@ static Symtab *get_global_scope() {
   return symtab;
 }
  
+/* Remove the block braces, { and }, if the 'noblock' attribute is set 
+ * actually identical to remove_block_parmlist 
+ * Node *kw can be either a Hash or Parmlist */
+static String *remove_block(Node *kw, const String *inputcode) {
+  String *modified_code = 0;
+  while (kw) {
+   String *name = Getattr(kw,"name");
+   if (name && (Cmp(name,"noblock") == 0)) {
+     char *cstr = Char(inputcode);
+     size_t len = Len(inputcode);
+     if (len && cstr[0] == '{') {
+       --len; ++cstr; 
+       if (len && cstr[len - 1] == '}') { --len; }
+       /* we now remove the extra spaces */
+       while (len && isspace((int)cstr[0])) { --len; ++cstr; }
+       while (len && isspace((int)cstr[len - 1])) { --len; }
+       modified_code = NewStringWithSize(cstr, len);
+       break;
+     }
+   }
+   kw = nextSibling(kw);
+  }
+  return modified_code;
+}
+
 
 static Node *nscope = 0;
 static Node *nscope_inner = 0;
@@ -1158,6 +1183,10 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
 static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
 
   ParmList *declparms = declaratorparms;
+
+  /* remove the { and } braces if the noblock attribute is set */
+  String *newval = remove_block(featureattribs, val);
+  val = newval ? newval : val;
 
   /* Add the feature */
   single_new_feature(featurename, val, featureattribs, declaratorid, type, declaratorparms, qualifier);
@@ -2394,25 +2423,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		     $$ = new_node("typemap");
 		     Setattr($$,"method",$3.op);
 		     if ($3.kwargs) {
-		       Parm *kw = $3.kwargs;
-		       /* check for 'noblock' option, which remove the block braces */
-		       while (kw) {
-			 String *name = Getattr(kw,"name");
-			 if (name && (Cmp(name,"noblock") == 0)) {
-			   char *cstr = Char($6);
-			   size_t len = Len($6);
-			   if (len && cstr[0] == '{') {
-			     --len; ++cstr; 
-			     if (len && cstr[len - 1] == '}') { --len; }
-			     /* we now remove the extra spaces */
-			     while (len && isspace((int)cstr[0])) { --len; ++cstr; }
-			     while (len && isspace((int)cstr[len - 1])) { --len; }
-			     code = NewStringWithSize(cstr, len);
-			     break;
-			   }
-			 }
-			 kw = nextSibling(kw);
-		       }
+		       ParmList *kw = $3.kwargs;
+                       code = remove_block(kw, $6);
 		       Setattr($$,"kwargs", $3.kwargs);
 		     }
 		     code = code ? code : NewString($6);
