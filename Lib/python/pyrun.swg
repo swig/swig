@@ -448,7 +448,7 @@ PySwigObject_dealloc(PyObject *v)
 {
   PySwigObject *sobj = (PySwigObject *) v;
   PyObject *next = sobj->next;
-  if (sobj->own) {
+  if (sobj->own == SWIG_POINTER_OWN) {
     swig_type_info *ty = sobj->ty;
     PySwigClientData *data = ty ? (PySwigClientData *) ty->clientdata : 0;
     PyObject *destroy = data ? data->destroy : 0;
@@ -977,7 +977,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 
 SWIGRUNTIME int
 SWIG_Python_AcquirePtr(PyObject *obj, int own) {
-  if (own) {
+  if (own == SWIG_POINTER_OWN) {
     PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
     if (sobj) {
       int oldown = sobj->own;
@@ -997,6 +997,8 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     if (ptr) *ptr = 0;
     return SWIG_OK;
   } else {
+    if (own)
+      *own = 0;
     PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
     while (sobj) {
       void *vptr = sobj->ptr;
@@ -1011,7 +1013,15 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	  if (!tc) {
 	    sobj = (PySwigObject *)sobj->next;
 	  } else {
-	    if (ptr) *ptr = SWIG_TypeCast(tc,vptr);
+	    if (ptr) {
+              int newmemory = 0;
+              *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
+              if (newmemory == SWIG_CAST_NEW_MEMORY) {
+                assert(own);
+                if (own)
+                  *own = *own | SWIG_CAST_NEW_MEMORY;
+              }
+            }
 	    break;
 	  }
 	}
@@ -1021,7 +1031,8 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
       }
     }
     if (sobj) {
-      if (own) *own = sobj->own;
+      if (own)
+        *own = *own | sobj->own;
       if (flags & SWIG_POINTER_DISOWN) {
 	sobj->own = 0;
       }
@@ -1087,7 +1098,7 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     if (ty) {
       swig_cast_info *tc = SWIG_TypeCheck(desc,ty);
       if (!tc) return SWIG_ERROR;
-      *ptr = SWIG_TypeCast(tc,vptr);
+      *ptr = SWIG_TypeCast(tc,vptr,0);
     } else {
       *ptr = vptr;
     }

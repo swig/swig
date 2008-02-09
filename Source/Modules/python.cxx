@@ -2661,8 +2661,23 @@ public:
     if (shadow) {
       /* Generate a class registration function */
       {
-	SwigType *ct = NewStringf("p.%s", real_classname);
-	SwigType_remember(ct);
+        String *smartptr = Getattr(n, "feature:smartptr"); // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+        SwigType *smart = 0;
+        if (smartptr) {
+          SwigType *cpt = Swig_cparse_type(smartptr);
+          if (cpt) {
+            smart = SwigType_typedef_resolve_all(cpt);
+            Delete(cpt);
+          } else {
+            // TODO: report line number of where the feature comes from
+            Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, real_classname);
+          }
+        }
+	SwigType *ct = Copy(smart ? smart : real_classname);
+        SwigType_add_pointer(ct);
+	SwigType *realct = Copy(real_classname);
+        SwigType_add_pointer(realct);
+	SwigType_remember(realct);
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, ctab4, "PyObject *obj;\n", NIL);
 	if (modernargs) {
@@ -2680,8 +2695,10 @@ public:
 	       ctab4, "return SWIG_Py_Void();\n", "}\n\n", NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
+	Delete(smart);
 	Delete(cname);
 	Delete(ct);
+	Delete(realct);
       }
       if (!have_constructor) {
 	Printv(f_shadow_file, tab4, "def __init__(self): raise AttributeError, \"No constructor defined\"\n", NIL);

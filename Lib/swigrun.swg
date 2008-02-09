@@ -42,6 +42,7 @@
 
 /* Flags for pointer conversions */
 #define SWIG_POINTER_DISOWN        0x1
+#define SWIG_CAST_NEW_MEMORY       0x2
 
 /* Flags for new pointer objects */
 #define SWIG_POINTER_OWN           0x1
@@ -182,7 +183,7 @@ SWIGINTERNINLINE int SWIG_CheckState(int r) {
 extern "C" {
 #endif
 
-typedef void *(*swig_converter_func)(void *);
+typedef void *(*swig_converter_func)(void *, int *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 /* Structure to store information on one type */
@@ -312,8 +313,8 @@ SWIG_TypeCheckStruct(swig_type_info *from, swig_type_info *into) {
   Cast a pointer up an inheritance hierarchy
 */
 SWIGRUNTIMEINLINE void *
-SWIG_TypeCast(swig_cast_info *ty, void *ptr) {
-  return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr);
+SWIG_TypeCast(swig_cast_info *ty, void *ptr, int *newmemory) {
+  return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr, newmemory);
 }
 
 /* 

@@ -1,9 +1,88 @@
 Version 1.3.34 (in progress)
 ============================
 
+<<<<<<< .mine
+02/09/2007: wsfulton
+            [Python] Experimental shared_ptr typemaps added. Usage is the same as the recently
+            added Java and C# shared_ptr typemaps. Two macros are available, although these
+            may well change in a future version:
+
+            For base classes or classes not in an inheritance chain:
+              SWIG_SHARED_PTR(PROXYCLASS, TYPE)
+            For derived classes:
+              SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE)
+
+            The PROXYCLASS is the name of the proxy class, but is only required for Java/C#.
+            Example usage:
+
+              %include "boost_shared_ptr.i"
+
+              SWIG_SHARED_PTR(Klass, Space::Klass)
+              SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
+
+              namespace Space {
+                struct Klass { ... };
+                struct KlassDerived : Klass { ... };
+              }
+
+            Further details to follow in future documentation, but the following features
+            should be noted:
+
+            - Not restricted to boost::shared_ptr, eg std::tr1::shared_ptr can also be used.
+            - Available typemap groups:
+              (a) Typemaps for shared_ptr passed by value, reference, pointer and pointer 
+                  reference.
+            - (b) Typemaps for passing by raw value, raw pointer, raw reference, raw pointer
+                  reference. 
+            - The code being wrapped does not even have to use shared_ptr, SWIG can use
+              shared_ptr as the underlying storage mechanism instead of a raw pointer due to 
+              the typemaps in group (b) above.
+            - No array support as shared_ptr does not support arrays.
+            - This works quite differently to the usual SWIG smart pointer support when
+              operator-> is parsed by SWIG:
+              - An additional smart pointer class is not generated reducing code bloat in
+                the wrappers.
+              - Using smart pointers and raw pointers can be mixed seamlessly.
+              - Missing constructors for the smart pointers is no longer a problem and so
+                separate factory type functions do not have to be written and wrapped.
+              - The implicit C++ shared_ptr< derived class > to shared_ptr< base class >
+                cast also works in the target language. This negates the necessity to write
+                an explicit helper cast function providing the upcast which would need
+                calling prior to passing a derived class to a method taking a shared_ptr to
+                a base class.
+
+02/09/2007: wsfulton
+            [Python] Add support for overriding the class registration function via a new
+            "smartptr" feature. This is a very low level of customisation most users
+            would never need to know. The feature will typically be used for intrusive 
+            smart pointers along with additional typemaps. Example usage of the feature:
+
+              %feature("smartptr", noblock=1) Foo { boost::shared_ptr< Foo > }
+              class Foo {};
+
+            The generated Foo_swigregister function will then register boost::shared < Foo >
+            (SWIGTYPE_p_boost__shared_ptrTFoo_t instead of SWIGTYPE_p_Foo) as the underlying
+            type for instantiations of Foo.
+
+02/09/2008: wsfulton
+            Features now supports the optional 'noblock' attribute for all usage of %feature. 
+            When specified, the { } braces are removed from the feature code. This is identical
+            in behaviour to usage of 'noblock' in typemaps and is used when the preprocessor
+            is required to operate on the code in the feature and the enclosing { } braces
+            are not required. Example:
+
+              #define FOO foo
+              %feature("smartptr", noblock="1") { FOO::bar }
+
+            The preprocessor then reduces this as if this had been used instead:
+
+              %feature("smartptr") "foo::bar"
+
+=======
 02/01/2008: olly
 	    [Python] Fix format string bug (SF#1882220).
 
+>>>>>>> .r10235
 01/31/2008: wsfulton
             Additions to the %types directive. Now the conversion / casting code can be
             overridden to some custom code in the %types directive, like so:

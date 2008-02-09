@@ -1795,7 +1795,7 @@ void SwigType_inherit_equiv(File *out) {
 	String *lprefix = SwigType_lstr(prefix, 0);
         Hash *subhash = Getattr(sub, bk.key);
         String *convcode = Getattr(subhash, "convcode");
-	Printf(out, "static void *%s(void *x) {", convname);
+	Printf(out, "static void *%s(void *x, int *newmemory) {", convname);
         if (convcode) {
           String *fn = Copy(convcode);
           Replaceall(fn, "$from", "x");
