@@ -1,7 +1,6 @@
 Version 1.3.34 (in progress)
 ============================
 
-<<<<<<< .mine
 02/09/2007: wsfulton
             [Python] Experimental shared_ptr typemaps added. Usage is the same as the recently
             added Java and C# shared_ptr typemaps. Two macros are available, although these
@@ -78,11 +77,9 @@ Version 1.3.34 (in progress)
 
               %feature("smartptr") "foo::bar"
 
-=======
 02/01/2008: olly
 	    [Python] Fix format string bug (SF#1882220).
 
->>>>>>> .r10235
 01/31/2008: wsfulton
             Additions to the %types directive. Now the conversion / casting code can be
             overridden to some custom code in the %types directive, like so:
