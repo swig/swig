@@ -171,14 +171,122 @@ class li_boost_shared_ptr_runme:
     self.verifyValue("smartpointerpointerownertest", val)
     self.verifyCount(1, k)
 
+    # //////////////////////////////// Derived class ////////////////////////////////////////
+    # derived pass by shared_ptr
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedsmartptrtest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedsmartptrtest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # derived pass by shared_ptr pointer
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedsmartptrpointertest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedsmartptrpointertest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # derived pass by shared_ptr ref
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedsmartptrreftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedsmartptrreftest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # derived pass by shared_ptr pointer ref
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedsmartptrpointerreftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedsmartptrpointerreftest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # derived pass by pointer
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedpointertest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedpointertest-Derived", val)
+    self.verifyCount(1, k)
+    self.verifyCount(1, kret)
+
+    # derived pass by ref
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.derivedreftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my derivedreftest-Derived", val)
+    self.verifyCount(1, k)
+    self.verifyCount(1, kret)
+
+    # //////////////////////////////// Derived and base class mixed ////////////////////////////////////////
+    # pass by shared_ptr (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.smartpointertest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my smartpointertest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # pass by shared_ptr pointer (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.smartpointerpointertest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my smartpointerpointertest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # pass by shared_ptr reference (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.smartpointerreftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my smartpointerreftest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # pass by shared_ptr pointer reference (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.smartpointerpointerreftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my smartpointerpointerreftest-Derived", val)
+    self.verifyCount(2, k)
+    self.verifyCount(2, kret)
+
+    # pass by value (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.valuetest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my valuetest", val) # note slicing
+    self.verifyCount(1, k)
+    self.verifyCount(1, kret)
+
+    # pass by pointer (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.pointertest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my pointertest-Derived", val)
+    self.verifyCount(1, k)
+    self.verifyCount(1, kret)
+
+    # pass by ref (mixed)
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    kret = li_boost_shared_ptr.reftest(k)
+    val = kret.getValue()
+    self.verifyValue("me oh my reftest-Derived", val)
+    self.verifyCount(1, k)
+    self.verifyCount(1, kret)
+
+
   def verifyValue(self, expected, got):
     if (expected != got):
       raise RuntimeError("verify value failed. Expected: ", expected, " Got: ", got)
 
   def verifyCount(self, expected, k):
     got = li_boost_shared_ptr.use_count(k)
-    if (expected != got):
-      raise RuntimeError("verify use_count failed. Expected: ", expected, " Got: ", got)
+    if (expected != got - 1): # less one additional reference for marshalling the object into use_count()
+      raise RuntimeError("verify use_count failed. Expected: ", expected, " Got: ", got - 1)
+
 
 runme = li_boost_shared_ptr_runme()
 runme.main()

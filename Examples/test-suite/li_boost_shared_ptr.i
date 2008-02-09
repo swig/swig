@@ -82,8 +82,8 @@ private:
   // lock increment and decrement as a destructor could be called at the same time as a 
   // new object is being created - C# / Java, at least, have finalizers run in a separate thread
   static SwigExamples::CriticalSection critical_section;
-  static void increment() { SwigExamples::Lock lock(critical_section); total_count++; }
-  static void decrement() { SwigExamples::Lock lock(critical_section); total_count--; }
+  static void increment() { SwigExamples::Lock lock(critical_section); total_count++; if (debug_shared) cout << "      ++xxxxx Klass::increment tot: " << total_count << endl;}
+  static void decrement() { SwigExamples::Lock lock(critical_section); total_count--; if (debug_shared) cout << "      --xxxxx Klass::decrement tot: " << total_count << endl;}
   static int total_count;
   std::string value;
   int array[1024];
@@ -97,6 +97,7 @@ struct IgnoredMultipleInheritBase { virtual ~IgnoredMultipleInheritBase() {} dou
 struct KlassDerived : IgnoredMultipleInheritBase, Klass {
   KlassDerived() : Klass() {}
   KlassDerived(const std::string &val) : Klass(val) {}
+  KlassDerived(const KlassDerived &other) : Klass(other) {}
   virtual ~KlassDerived() {}
   virtual std::string getValue() const { return Klass::getValue() + "-Derived"; }
 };
@@ -105,6 +106,33 @@ KlassDerived* derivedpointertest(KlassDerived* kd) {
     kd->append(" derivedpointertest");
   return kd;
 }
+KlassDerived& derivedreftest(KlassDerived& kd) {
+  kd.append(" derivedreftest");
+  return kd;
+}
+SwigBoost::shared_ptr<KlassDerived> derivedsmartptrtest(SwigBoost::shared_ptr<KlassDerived> kd) {
+  if (kd)
+    kd->append(" derivedsmartptrtest");
+  return kd;
+}
+SwigBoost::shared_ptr<KlassDerived>* derivedsmartptrpointertest(SwigBoost::shared_ptr<KlassDerived>* kd) {
+  if (kd && *kd)
+    (*kd)->append(" derivedsmartptrpointertest");
+  return kd;
+}
+SwigBoost::shared_ptr<KlassDerived>* derivedsmartptrreftest(SwigBoost::shared_ptr<KlassDerived>* kd) {
+  if (kd && *kd)
+    (*kd)->append(" derivedsmartptrreftest");
+  return kd;
+}
+SwigBoost::shared_ptr<KlassDerived>*& derivedsmartptrpointerreftest(SwigBoost::shared_ptr<KlassDerived>*& kd) {
+  if (kd && *kd)
+    (*kd)->append(" derivedsmartptrpointerreftest");
+  return kd;
+}
+
+
+
 
 
 SwigBoost::shared_ptr<Klass> factorycreate() {
@@ -280,6 +308,16 @@ namespace SwigBoost {
       return "Klass: NULL";
   }
   template<> std::string show_message(boost::shared_ptr<Space::KlassDerived >*t) {
+    if (!t)
+      return "null shared_ptr!!!";
+    if (boost::get_deleter<SWIG_null_deleter>(*t))
+      return "KlassDerived NULL DELETER"; // pointer may be dangling so cannot use it
+    if (*t)
+      return "KlassDerived: " + (*t)->getValue();
+    else
+      return "KlassDerived: NULL";
+  }
+  template<> std::string show_message(boost::shared_ptr<const Space::KlassDerived >*t) {
     if (!t)
       return "null shared_ptr!!!";
     if (boost::get_deleter<SWIG_null_deleter>(*t))

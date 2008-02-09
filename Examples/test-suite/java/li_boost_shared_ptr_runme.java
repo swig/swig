@@ -231,30 +231,132 @@ public class li_boost_shared_ptr_runme {
     }
 
     ////////////////////////////////// Derived classes ////////////////////////////////////////
+    // derived pass by shared_ptr
+    {
+      KlassDerived k = new KlassDerived("me oh my");
+      KlassDerived kret = li_boost_shared_ptr.derivedsmartptrtest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my derivedsmartptrtest-Derived", val);
+      verifyCount(4, k); // includes two extra references for upcasts
+      verifyCount(4, kret);
+    }
+    // derived pass by shared_ptr pointer
+    {
+      KlassDerived k = new KlassDerived("me oh my");
+      KlassDerived kret = li_boost_shared_ptr.derivedsmartptrpointertest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my derivedsmartptrpointertest-Derived", val);
+      verifyCount(4, k); // includes two extra references for upcasts in the proxy classes
+      verifyCount(4, kret);
+    }
+    // derived pass by shared_ptr ref
+    {
+      KlassDerived k = new KlassDerived("me oh my");
+      KlassDerived kret = li_boost_shared_ptr.derivedsmartptrreftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my derivedsmartptrreftest-Derived", val);
+      verifyCount(4, k); // includes two extra references for upcasts in the proxy classes
+      verifyCount(4, kret);
+    }
+    // derived pass by shared_ptr pointer ref
+    {
+      KlassDerived k = new KlassDerived("me oh my");
+      KlassDerived kret = li_boost_shared_ptr.derivedsmartptrpointerreftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my derivedsmartptrpointerreftest-Derived", val);
+      verifyCount(4, k); // includes two extra references for upcasts in the proxy classes
+      verifyCount(4, kret);
+    }
     // derived pass by pointer
     {
       KlassDerived k = new KlassDerived("me oh my");
       KlassDerived kret = li_boost_shared_ptr.derivedpointertest(k);
       String val = kret.getValue();
       verifyValue("me oh my derivedpointertest-Derived", val);
-      verifyCount(2, k); // includes an extra reference for the upcast
+      verifyCount(2, k); // includes an extra reference for the upcast in the proxy class
+      verifyCount(2, kret);
+    }
+    // derived pass by ref
+    {
+      KlassDerived k = new KlassDerived("me oh my");
+      KlassDerived kret = li_boost_shared_ptr.derivedreftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my derivedreftest-Derived", val);
+      verifyCount(2, k); // includes an extra reference for the upcast in the proxy class
       verifyCount(2, kret);
     }
 
-    // check derivedness
+    ////////////////////////////////// Derived and base class mixed ////////////////////////////////////////
+    // pass by shared_ptr (mixed)
     {
-      /*
-      KlassDerived k = new KlassDerived("me oh my");
-      KlassDerived kret = li_boost_shared_ptr.derivedpointertest(k);
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.smartpointertest(k);
       String val = kret.getValue();
-      k.append("-Appended");
-      val = k.getValue();
-      verifyValue("me oh my derivedpointertest-Appended-Derived", val);
-      val = kret.getValue();
-      verifyValue("me oh my derivedpointertest-Appended-Derived", val);
-      // TODO: clone it
-      */
+      verifyValue("me oh my smartpointertest-Derived", val);
+      verifyCount(3, k); // an extra reference for the upcast in the proxy class
+      verifyCount(3, kret);
     }
+
+    // pass by shared_ptr pointer (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.smartpointerpointertest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my smartpointerpointertest-Derived", val);
+      verifyCount(3, k); // an extra reference for the upcast in the proxy class
+      verifyCount(3, kret);
+    }
+
+    // pass by shared_ptr reference (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.smartpointerreftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my smartpointerreftest-Derived", val);
+      verifyCount(3, k); // an extra reference for the upcast in the proxy class
+      verifyCount(3, kret);
+    }
+
+    // pass by shared_ptr pointer reference (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.smartpointerpointerreftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my smartpointerpointerreftest-Derived", val);
+      verifyCount(3, k); // an extra reference for the upcast in the proxy class
+      verifyCount(3, kret);
+    }
+
+    // pass by value (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.valuetest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my valuetest", val); // note slicing
+      verifyCount(2, k); // an extra reference for the upcast in the proxy class
+      verifyCount(1, kret);
+    }
+
+    // pass by pointer (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.pointertest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my pointertest-Derived", val);
+      verifyCount(2, k); // an extra reference for the upcast in the proxy class
+      verifyCount(1, kret);
+    }
+
+    // pass by ref (mixed)
+    {
+      Klass k = new KlassDerived("me oh my");
+      Klass kret = li_boost_shared_ptr.reftest(k);
+      String val = kret.getValue();
+      verifyValue("me oh my reftest-Derived", val);
+      verifyCount(2, k); // an extra reference for the upcast in the proxy class
+      verifyCount(1, kret);
+    }
+
 
     // Member variables
     // smart pointer by value
