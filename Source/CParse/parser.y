@@ -829,9 +829,8 @@ static Symtab *get_global_scope() {
   return symtab;
 }
  
-/* Remove the block braces, { and }, if the 'noblock' attribute is set 
- * actually identical to remove_block_parmlist 
- * Node *kw can be either a Hash or Parmlist */
+/* Remove the block braces, { and }, if the 'noblock' attribute is set.
+ * Node *kw can be either a Hash or Parmlist. */
 static String *remove_block(Node *kw, const String *inputcode) {
   String *modified_code = 0;
   while (kw) {
