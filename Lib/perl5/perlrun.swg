@@ -265,7 +265,11 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
     if (!tc) {
       return SWIG_ERROR;
     }
-    *ptr = SWIG_TypeCast(tc,voidptr);
+    {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc,voidptr,&newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
+    }
   } else {
     *ptr = voidptr;
   }

@@ -608,7 +608,9 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type
     cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
     if (cast)
     {
-      *ptr=SWIG_TypeCast(cast,usr->ptr);
+      int newmemory = 0;
+      *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
       return SWIG_OK;  /* ok */
     }
   }

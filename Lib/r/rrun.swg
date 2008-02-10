@@ -14,6 +14,7 @@ extern "C" {
 #include <Rdefines.h>
 #include <Rversion.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define SWIGR 1
 
@@ -289,7 +290,9 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
       if (ptr) *ptr = vptr;
     } else {
       swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
-      if (ptr) *ptr = SWIG_TypeCast(tc,vptr);
+      int newmemory = 0;
+      if (ptr) *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
     }
   } else {
       if (ptr) *ptr = vptr;

@@ -57,6 +57,7 @@
 #define SWIG_MangleStr(value)                        	SWIG_Ruby_MangleStr(value)		  
 #define SWIG_CheckConvert(value, ty)                 	SWIG_Ruby_CheckConvert(value, ty)	  
 
+#include "assert.h"
 
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
@@ -318,8 +319,11 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     tc = SWIG_TypeCheck(c, ty);
     if (!tc) {
       return SWIG_ERROR;
+    } else {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc, vptr, &newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
     }
-    *ptr = SWIG_TypeCast(tc, vptr);
   } else {
     *ptr = vptr;
   }

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -163,7 +164,9 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
-        *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob));
+        int newmemory = 0;
+        *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob), &newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
         return SWIG_OK;
       } else {
         return SWIG_ERROR;

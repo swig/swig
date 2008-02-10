@@ -122,6 +122,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
 static void *
 SWIG_ZTS_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty TSRMLS_DC) {
   swig_cast_info *tc;
+  void *result = 0;
 
   if (!ty) {
     /* They don't care about the target type, so just pass on the pointer! */
@@ -135,8 +136,12 @@ SWIG_ZTS_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty
 
   /* convert and cast p from type_name to ptr as ty. */
   tc = SWIG_TypeCheck(type_name, ty);
-  if (!tc) return NULL;
-  return SWIG_TypeCast(tc, p);
+  if (tc) {
+    int newmemory = 0;
+    result = SWIG_TypeCast(tc, p, &newmemory);
+    assert(!newmemory); /* newmemory handling not yet implemented */
+  }
+  return result;
 }
 
 /* This function returns a pointer of type ty by extracting the pointer

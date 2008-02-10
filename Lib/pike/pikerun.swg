@@ -56,7 +56,9 @@ SWIG_Pike_ConvertPtr(struct object *obj, void **ptr, swig_type_info *ty, int fla
         if (obj_wrapper && obj_wrapper->type) {
             tc = SWIG_TypeCheckStruct(obj_wrapper->type, ty);
             if (tc) {
-                *ptr = SWIG_TypeCast(tc, obj_wrapper->self);
+                int newmemory = 0;
+                *ptr = SWIG_TypeCast(tc, obj_wrapper->self, &newmemory);
+                assert(!newmemory); /* newmemory handling not yet implemented */
                 return 0;
             }
         }

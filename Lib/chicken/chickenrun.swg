@@ -275,7 +275,9 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
-        *result = SWIG_TypeCast(cast, (void *) C_block_item(s, 0));
+        int newmemory = 0;
+        *result = SWIG_TypeCast(cast, (void *) C_block_item(s, 0), &newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
       } else {
         return 1;
       }

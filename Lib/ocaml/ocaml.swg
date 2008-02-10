@@ -65,7 +65,9 @@ extern "C" {
 			 tc ? tc->str : "<none>" );
 #endif
 		if( tc ) {
-		    *ptr = SWIG_TypeCast( tc, source );
+		    int newmemory = 0;
+		    *ptr = SWIG_TypeCast(tc, source, &newmemory);
+		    assert(!newmemory); /* newmemory handling not yet implemented */
 		    return 0;
 		} else
 		    return -1;

@@ -70,6 +70,7 @@
 #define SWIG_GetConstant        SWIG_GetConstantObj
 #define SWIG_Tcl_GetConstant    SWIG_Tcl_GetConstantObj
 
+#include "assert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,7 +167,11 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
     if (flags & SWIG_POINTER_DISOWN) {
       SWIG_Disown((void *) *ptr);
     }
-    *ptr = SWIG_TypeCast(tc,(void *) *ptr);
+    {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc,(void *) *ptr,&newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
+    }
   }
   return SWIG_OK;
 }

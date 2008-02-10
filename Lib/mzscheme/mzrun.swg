@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <escheme.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -167,7 +168,9 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
     if (type) {
       cast = SWIG_TypeCheckStruct(proxy->type, type);
       if (cast) {
-        *result = SWIG_TypeCast(cast, proxy->object);
+        int newmemory = 0;
+        *result = SWIG_TypeCast(cast, proxy->object, &newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
         return 0;
       } else {
         return 1;
