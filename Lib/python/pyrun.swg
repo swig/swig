@@ -1097,8 +1097,13 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     }
     if (ty) {
       swig_cast_info *tc = SWIG_TypeCheck(desc,ty);
-      if (!tc) return SWIG_ERROR;
-      *ptr = SWIG_TypeCast(tc,vptr,0);
+      if (tc) {
+        int newmemory = 0;
+        *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
+      } else {
+        return SWIG_ERROR;
+      }
     } else {
       *ptr = vptr;
     }
