@@ -1,6 +1,6 @@
 use char_strings;
 
-my $val1 = 100;
+my $val1 = "100";
 if (char_strings::CharPingPong($val1) != "100") {
   die "failed";
 }
