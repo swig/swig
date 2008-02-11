@@ -53,8 +53,8 @@ assert(f/g==Op(1))
 --and will complain if too many args are provided
 --therefore disabling these tests for now
 -- (solution will to be not to check args for this test case)
---assert(-a==a)
---assert(-b==Op(-5))
+assert(-a==a)
+assert(-b==Op(-5))
 
 -- test []
 h=Op(3)

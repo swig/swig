@@ -36,8 +36,8 @@
  * ver009
    class support: ok for basic types, but methods still TDB
    (code is VERY messed up & needs to be cleaned)
-
-
+ 
+ 
 */
 
 char cvsroot_lua_cxx[] = "$Id$";
@@ -77,8 +77,8 @@ void display_mapping(DOH *d) {
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
-Lua Options (available with -lua)\n\
-     (coming soon.)\n\n";
+                           Lua Options (available with -lua)\n\
+                           (coming soon.)\n\n";
 
 
 
@@ -111,7 +111,7 @@ private:
 
   enum {
     NO_CPP,
-    VARIABLE,	  
+    VARIABLE,
     MEMBER_FUNC,
     CONSTRUCTOR,
     DESTRUCTOR,
@@ -129,7 +129,7 @@ public:
    * Initialize member data
    * --------------------------------------------------------------------- */
 
-   LUA() {
+  LUA() {
     f_runtime = 0;
     f_header = 0;
     f_wrappers = 0;
@@ -138,7 +138,7 @@ public:
     PrefixPlusUnderscore = 0;
 
     s_cmd_tab = s_var_tab = s_const_tab = 0;
-    current=NO_CPP;   
+    current=NO_CPP;
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
@@ -147,13 +147,13 @@ public:
      which depends upon what args your code supports
      NEW LANGUAGE NOTE:END ************************************************/
 
-   /* ---------------------------------------------------------------------
-   * main()
-   *
-   * Parse command line options and initializes variables.
-   * --------------------------------------------------------------------- */
-  
-   virtual void main(int argc, char *argv[]) {
+  /* ---------------------------------------------------------------------
+  * main()
+  *
+  * Parse command line options and initializes variables.
+  * --------------------------------------------------------------------- */
+
+  virtual void main(int argc, char *argv[]) {
 
     /* Set location of SWIG library */
     SWIG_library_directory("lua");
@@ -161,18 +161,18 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-help") == 0) {	// usage flags
-	  fputs(usage, stderr);
-	}
+        if (strcmp(argv[i], "-help") == 0) {	// usage flags
+          fputs(usage, stderr);
+        }
       }
     }
 
-/* NEW LANGUAGE NOTE:***********************************************
- This is the boilerplate code, setting a few #defines
- and which lib directory to use
- the SWIG_library_directory() is also boilerplate code
- but it always seems to be the first line of code
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+     This is the boilerplate code, setting a few #defines
+     and which lib directory to use
+     the SWIG_library_directory() is also boilerplate code
+     but it always seems to be the first line of code
+    NEW LANGUAGE NOTE:END ************************************************/
     /* Add a symbol to the parser for conditional compilation */
     Preprocessor_define("SWIGLUA 1", 0);
 
@@ -189,16 +189,16 @@ NEW LANGUAGE NOTE:END ************************************************/
 
 
 
-/* NEW LANGUAGE NOTE:***********************************************
- After calling main, SWIG parses the code to wrap (I believe)
- then calls top()
- in this is more boilerplate code to set everything up
- and a call to Language::top()
- which begins the code generations by calling the member fns
- after all that is more boilerplate code to close all down
- (overall there is virtually nothing here that needs to be edited
- just use as is)
-NEW LANGUAGE NOTE:END ************************************************/
+  /* NEW LANGUAGE NOTE:***********************************************
+   After calling main, SWIG parses the code to wrap (I believe)
+   then calls top()
+   in this is more boilerplate code to set everything up
+   and a call to Language::top()
+   which begins the code generations by calling the member fns
+   after all that is more boilerplate code to close all down
+   (overall there is virtually nothing here that needs to be edited
+   just use as is)
+  NEW LANGUAGE NOTE:END ************************************************/
   /* ---------------------------------------------------------------------
    * top()
    * --------------------------------------------------------------------- */
@@ -228,25 +228,25 @@ NEW LANGUAGE NOTE:END ************************************************/
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
 
-/* NEW LANGUAGE NOTE:***********************************************
- s_cmd_tab,s_var_tab & s_const_tab hold the names of the fns for
- registering with SWIG.
- These will be filled in when the functions/variables are wrapped &
- then added to the end of the wrappering code
- just before it is written to file
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+     s_cmd_tab,s_var_tab & s_const_tab hold the names of the fns for
+     registering with SWIG.
+     These will be filled in when the functions/variables are wrapped &
+     then added to the end of the wrappering code
+     just before it is written to file
+    NEW LANGUAGE NOTE:END ************************************************/
     // Initialize some variables for the object interface
     s_cmd_tab = NewString("");
     s_var_tab = NewString("");
-//    s_methods_tab    = NewString("");
+    //    s_methods_tab    = NewString("");
     s_const_tab = NewString("");
-    current=NO_CPP;   
+    current=NO_CPP;
 
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
-//    if (NoInclude) {
-//      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-//    }
+    //    if (NoInclude) {
+    //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+    //    }
 
     //String *init_name = NewStringf("%(title)s_Init", module);
     //Printf(f_header, "#define SWIG_init    %s\n", init_name);
@@ -276,10 +276,10 @@ NEW LANGUAGE NOTE:END ************************************************/
     Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
-/* NEW LANGUAGE NOTE:***********************************************
- this basically combines several of the strings together
- and then writes it all to a file
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+     this basically combines several of the strings together
+     and then writes it all to a file
+    NEW LANGUAGE NOTE:END ************************************************/
     /* Close all of the files */
     Delete(s_cmd_tab);
     Delete(s_var_tab);
@@ -307,14 +307,14 @@ NEW LANGUAGE NOTE:END ************************************************/
     return Language::importDirective(n);
   }
 
-/* NEW LANGUAGE NOTE:***********************************************
- This is it!
- you get this one right, and most of your work is done
- but its going to take soem file to get it working right
- quite a bit of this is generally boilerplate code
- (or stuff I dont understand)
- that which matters will have extra added comments
-NEW LANGUAGE NOTE:END ************************************************/
+  /* NEW LANGUAGE NOTE:***********************************************
+   This is it!
+   you get this one right, and most of your work is done
+   but its going to take soem file to get it working right
+   quite a bit of this is generally boilerplate code
+   (or stuff I dont understand)
+   that which matters will have extra added comments
+  NEW LANGUAGE NOTE:END ************************************************/
   /* ---------------------------------------------------------------------
    * functionWrapper()
    *
@@ -322,34 +322,33 @@ NEW LANGUAGE NOTE:END ************************************************/
    * --------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-//    REPORT("functionWrapper",n);
+    //    REPORT("functionWrapper",n);
 
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-//Printf(stdout,"functionWrapper %s %s\n",name,iname);
+    //Printf(stdout,"functionWrapper %s %s\n",name,iname);
     Parm *p;
     String *tm;
     int i;
-//Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current);
-//    int returnval=0;  // number of arguments returned
+    //Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current);
+    //    int returnval=0;  // number of arguments returned
 
     String *overname = 0;
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n))
-      {
-	Printf(stderr,"addSymbol(%s) failed\n",iname);
-	return SWIG_ERROR;
+      if (!addSymbol(iname, n)) {
+        Printf(stderr,"addSymbol(%s) failed\n",iname);
+        return SWIG_ERROR;
       }
     }
 
-/* NEW LANGUAGE NOTE:***********************************************
-   the wrapper object holds all the wrappering code
-    we need to add a couple of local variables
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+       the wrapper object holds all the wrappering code
+        we need to add a couple of local variables
+    NEW LANGUAGE NOTE:END ************************************************/
     Wrapper *f = NewWrapper();
     Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = -1");
 
@@ -359,21 +358,21 @@ NEW LANGUAGE NOTE:END ************************************************/
       Append(wname, overname);
     }
 
-/* NEW LANGUAGE NOTE:***********************************************
-   the format of a lua fn is:
-     static int wrap_XXX(lua_State* L){...}
-   this line adds this into the wrappering code
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+       the format of a lua fn is:
+         static int wrap_XXX(lua_State* L){...}
+       this line adds this into the wrappering code
+    NEW LANGUAGE NOTE:END ************************************************/
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
 
-/* NEW LANGUAGE NOTE:***********************************************
-   this prints the list of args, eg for a C fn
-   int gcd(int x,int y);
-   it will print
-     int arg1;
-     int arg2;
-     int result;
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+       this prints the list of args, eg for a C fn
+       int gcd(int x,int y);
+       it will print
+         int arg1;
+         int arg2;
+         int result;
+    NEW LANGUAGE NOTE:END ************************************************/
     /* Write code to extract function parameters. */
     emit_args(d, l, f);
 
@@ -386,37 +385,48 @@ NEW LANGUAGE NOTE:END ************************************************/
     int num_required = emit_num_required(l);
     int varargs = emit_isvarargs(l);
 
+    // Check if we have to ignore arguments that are passed by LUA.
+    // Needed for unary minus, where lua passes two arguments and
+    // we have to ignore the second.
+
+    int args_to_ignore = 0;
+    if (Getattr(n, "lua:ignore_args")) {
+      args_to_ignore = GetInt(n, "lua:ignore_args");
+    }
+
+
     /* Which input argument to start with? */
-//    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
+    //    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
 
     /* Offset to skip over the attribute name */
     // int offset = (current == MEMBER_VAR) ? 1 : 0;
 
-/* NEW LANGUAGE NOTE:***********************************************
-   from here on in, it gets rather hairy
-   this is the code to convert from the scripting language to C/C++
-   some of the stuff will refer to the typemaps code written in your swig file
-   (lua.swg), and some is done in the code here
-   I suppose you could do all the conversion on C, but it would be a nightmare to do
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+       from here on in, it gets rather hairy
+       this is the code to convert from the scripting language to C/C++
+       some of the stuff will refer to the typemaps code written in your swig file
+       (lua.swg), and some is done in the code here
+       I suppose you could do all the conversion on C, but it would be a nightmare to do
+    NEW LANGUAGE NOTE:END ************************************************/
     /* Generate code for argument marshalling */
-//    String *description = NewString("");
-/* NEW LANGUAGE NOTE:***********************************************
-   argument_check is a new feature I added to check types of arguments:
-   eg for int gcd(int,int)
-   I want to check that arg1 & arg2 really are integers
-NEW LANGUAGE NOTE:END ************************************************/
+    //    String *description = NewString("");
+    /* NEW LANGUAGE NOTE:***********************************************
+       argument_check is a new feature I added to check types of arguments:
+       eg for int gcd(int,int)
+       I want to check that arg1 & arg2 really are integers
+    NEW LANGUAGE NOTE:END ************************************************/
     String *argument_check = NewString("");
     String *argument_parse = NewString("");
     String *checkfn = NULL;
-//    String *numoutputs=NULL;
+    //    String *numoutputs=NULL;
     char source[64];
-    //Printf(argument_check, "//args must be %d..%d\n",num_required,num_arguments);
-    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required,num_arguments);
+    //Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required,num_arguments);
+    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required+args_to_ignore,num_arguments+args_to_ignore);
+
     for (i = 0, p = l; i < num_arguments; i++) {
 
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	p = Getattr(p, "tmap:in:next");
+        p = Getattr(p, "tmap:in:next");
       }
 
       SwigType *pt = Getattr(p, "type");
@@ -425,45 +435,45 @@ NEW LANGUAGE NOTE:END ************************************************/
       /* Look for an input typemap */
       sprintf(source, "%d", i + 1);
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", ln);
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", source);
+        Replaceall(tm, "$source", source);
+        Replaceall(tm, "$target", ln);
+        Replaceall(tm, "$input", source);
+        Setattr(p, "emit:input", source);
 
-/* NEW LANGUAGE NOTE:***********************************************
-   look for a 'checkfn' typemap
-   this an additional parameter added to the in typemap
-   if found the type will be tested for
-   this will result in code either in the
-   argument_check or argument_parse string
-NEW LANGUAGE NOTE:END ************************************************/
-	if ((checkfn = Getattr(p, "tmap:in:checkfn"))) {
-	  if (i < num_required) {
-	    Printf(argument_check, "if(!%s(L,%s))", checkfn, source);
-	  } else {
-	    Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
-	  }
-	  Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", name, source, SwigType_str(pt, 0));
-	}
-/* NEW LANGUAGE NOTE:***********************************************
-   lua states the number of arguments passed to a function using the fn
-   lua_gettop()
-   we can use this to deal with default arguments
-NEW LANGUAGE NOTE:END ************************************************/
-	if (i < num_required) {
-	  Printf(argument_parse, "%s\n", tm);
-	} else {
-	  Printf(argument_parse, "if(lua_gettop(L)>=%s){%s}\n", source, tm);
-	}
-	p = Getattr(p, "tmap:in:next");
-	continue;
+        /* NEW LANGUAGE NOTE:***********************************************
+           look for a 'checkfn' typemap
+           this an additional parameter added to the in typemap
+           if found the type will be tested for
+           this will result in code either in the
+           argument_check or argument_parse string
+        NEW LANGUAGE NOTE:END ************************************************/
+        if ((checkfn = Getattr(p, "tmap:in:checkfn"))) {
+          if (i < num_required) {
+            Printf(argument_check, "if(!%s(L,%s))", checkfn, source);
+          } else {
+            Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
+          }
+          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", name, source, SwigType_str(pt, 0));
+        }
+        /* NEW LANGUAGE NOTE:***********************************************
+           lua states the number of arguments passed to a function using the fn
+           lua_gettop()
+           we can use this to deal with default arguments
+        NEW LANGUAGE NOTE:END ************************************************/
+        if (i < num_required) {
+          Printf(argument_parse, "%s\n", tm);
+        } else {
+          Printf(argument_parse, "if(lua_gettop(L)>=%s){%s}\n", source, tm);
+        }
+        p = Getattr(p, "tmap:in:next");
+        continue;
       } else {
-/* NEW LANGUAGE NOTE:***********************************************
-		   // why is this code not called when I dont have a typemap?
-		   // instead of giving a warning, no code is generated
-NEW LANGUAGE NOTE:END ************************************************/
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-	break;
+        /* NEW LANGUAGE NOTE:***********************************************
+        		   // why is this code not called when I dont have a typemap?
+        		   // instead of giving a warning, no code is generated
+        NEW LANGUAGE NOTE:END ************************************************/
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+        break;
       }
 
       p = nextSibling(p);
@@ -475,19 +485,19 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Check for trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$input", "varargs");
-	Printv(f->code, tm, "\n", NIL);
+        Replaceall(tm, "$input", "varargs");
+        Printv(f->code, tm, "\n", NIL);
       }
     }
 
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
-	Printv(f->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:check:next");
+        Replaceall(tm, "$target", Getattr(p, "lname"));
+        Printv(f->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:check:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -495,11 +505,11 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *cleanup = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Printv(cleanup, tm, "\n", NIL);
-	p = Getattr(p, "tmap:freearg:next");
+        Replaceall(tm, "$source", Getattr(p, "lname"));
+        Printv(cleanup, tm, "\n", NIL);
+        p = Getattr(p, "tmap:freearg:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -507,50 +517,50 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-//          // managing the number of returning variables
-//        if (numoutputs=Getattr(p,"tmap:argout:numoutputs")){
-//                      int i=GetInt(p,"tmap:argout:numoutputs");
-//                      printf("got argout:numoutputs of %d\n",i);
-//                      returnval+=GetInt(p,"tmap:argout:numoutputs");
-//        }
-//        else returnval++;
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "result");
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(outarg, tm, "\n", NIL);
-	p = Getattr(p, "tmap:argout:next");
+        //          // managing the number of returning variables
+        //        if (numoutputs=Getattr(p,"tmap:argout:numoutputs")){
+        //                      int i=GetInt(p,"tmap:argout:numoutputs");
+        //                      printf("got argout:numoutputs of %d\n",i);
+        //                      returnval+=GetInt(p,"tmap:argout:numoutputs");
+        //        }
+        //        else returnval++;
+        Replaceall(tm, "$source", Getattr(p, "lname"));
+        Replaceall(tm, "$target", "result");
+        Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(outarg, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
     /* Emit the function call */
     emit_action(n, f);
 
-/* NEW LANGUAGE NOTE:***********************************************
-FIXME:
-returns 1 if there is a void return type
-this is because there is a typemap for void
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+    FIXME:
+    returns 1 if there is a void return type
+    this is because there is a typemap for void
+    NEW LANGUAGE NOTE:END ************************************************/
     Printv(f->code, "SWIG_arg=0;\n", NIL);
     // Return value if necessary
     if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
       // managing the number of returning variables
-//      if (numoutputs=Getattr(tm,"numoutputs")){
-//              int i=GetInt(tm,"numoutputs");
-//              printf("return numoutputs %d\n",i);
-//              returnval+=GetInt(tm,"numoutputs");
-//      }
-//        else returnval++;
+      //      if (numoutputs=Getattr(tm,"numoutputs")){
+      //              int i=GetInt(tm,"numoutputs");
+      //              printf("return numoutputs %d\n",i);
+      //              returnval+=GetInt(tm,"numoutputs");
+      //      }
+      //        else returnval++;
       Replaceall(tm, "$source", "result");
       if (GetFlag(n, "feature:new")) {
-	Replaceall(tm, "$owner", "1");
+        Replaceall(tm, "$owner", "1");
       } else {
-	Replaceall(tm, "$owner", "0");
+        Replaceall(tm, "$owner", "0");
       }
       Printf(f->code, "%s\n", tm);
-//      returnval++;
+      //      returnval++;
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
@@ -564,8 +574,8 @@ NEW LANGUAGE NOTE:END ************************************************/
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
-	Printf(f->code, "%s\n", tm);
+        Replaceall(tm, "$source", "result");
+        Printf(f->code, "%s\n", tm);
       }
     }
 
@@ -597,20 +607,20 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     Setattr(n, "wrap:name", wname);	// you need this to make the overloading work
 
-/* NEW LANGUAGE NOTE:***********************************************
-register the function in SWIG
-different language mappings seem to use different ideas
-NEW LANGUAGE NOTE:END ************************************************/
+    /* NEW LANGUAGE NOTE:***********************************************
+    register the function in SWIG
+    different language mappings seem to use different ideas
+    NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
-//      add_method(n, iname, wname, description);
+      //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
         Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
-//      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
+      //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
     } else {
-//      Setattr(n,"wrap:name", wname);
+      //      Setattr(n,"wrap:name", wname);
       if (!Getattr(n, "sym:nextSibling")) {
-	dispatchFunction(n);
+        dispatchFunction(n);
       }
     }
 
@@ -619,7 +629,7 @@ NEW LANGUAGE NOTE:END ************************************************/
 
     Delete(cleanup);
     Delete(outarg);
-//    Delete(description);
+    //    Delete(description);
     Delete(wname);
     DelWrapper(f);
 
@@ -632,12 +642,12 @@ NEW LANGUAGE NOTE:END ************************************************/
    * Emit overloading dispatch function
    * ------------------------------------------------------------ */
 
-/* NEW LANGUAGE NOTE:***********************************************
-This is an extra function used for overloading of functions
-it checks the args & then calls the relevant fn
-nost of the real work in again typemaps:
-look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
-NEW LANGUAGE NOTE:END ************************************************/
+  /* NEW LANGUAGE NOTE:***********************************************
+  This is an extra function used for overloading of functions
+  it checks the args & then calls the relevant fn
+  nost of the real work in again typemaps:
+  look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
+  NEW LANGUAGE NOTE:END ************************************************/
   void dispatchFunction(Node *n) {
     /* Last node in overloaded chain */
 
@@ -651,7 +661,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-//Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
+    //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
     Wrapper_add_local(f, "argc", "int argc");
@@ -685,14 +695,14 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int variableWrapper(Node *n) {
-/* NEW LANGUAGE NOTE:***********************************************
-Language::variableWrapper(n) will generate two wrapper fns
-Foo_get & Foo_set by calling functionWrapper()
-so we will just add these into the variable lists
-ideally we should not have registered these as functions,
-only WRT this variable will look into this later.
-NEW LANGUAGE NOTE:END ************************************************/
-//    REPORT("variableWrapper", n);
+    /* NEW LANGUAGE NOTE:***********************************************
+    Language::variableWrapper(n) will generate two wrapper fns
+    Foo_get & Foo_set by calling functionWrapper()
+    so we will just add these into the variable lists
+    ideally we should not have registered these as functions,
+    only WRT this variable will look into this later.
+    NEW LANGUAGE NOTE:END ************************************************/
+    //    REPORT("variableWrapper", n);
     String *iname = Getattr(n, "sym:name");
     current=VARIABLE;
     // let SWIG generate the wrappers
@@ -710,7 +720,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     if (!tm && SwigType_isarray(type))
       assignable=false;
     Delete(tm);
-   
+
     if (assignable) {
       setName = Swig_name_wrapper(Swig_name_set(iname));
     } else {
@@ -729,7 +739,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * constantWrapper()
    * ------------------------------------------------------------ */
   virtual int constantWrapper(Node *n) {
-//    REPORT("constantWrapper", n);
+    //    REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     //String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
@@ -776,7 +786,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int nativeWrapper(Node *n) {
-//    REPORT("nativeWrapper", n);
+    //    REPORT("nativeWrapper", n);
     String *symname = Getattr(n, "sym:name");
     String *wrapname = Getattr(n, "wrap:name");
     if (!addSymbol(wrapname, n))
@@ -867,14 +877,14 @@ NEW LANGUAGE NOTE:END ************************************************/
     if (have_destructor) {
       Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
-	Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
-	Printv(f_wrappers, destructor_action, NIL);
+        Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
+        Printv(f_wrappers, destructor_action, NIL);
       } else {
-	if (CPlusPlus) {
-	  Printv(f_wrappers, "    delete (", SwigType_str(rt, 0), ") obj;\n", NIL);
-	} else {
-	  Printv(f_wrappers, "    free((char *) obj);\n", NIL);
-	}
+        if (CPlusPlus) {
+          Printv(f_wrappers, "    delete (", SwigType_str(rt, 0), ") obj;\n", NIL);
+        } else {
+          Printv(f_wrappers, "    free((char *) obj);\n", NIL);
+        }
       }
       Printf(f_wrappers, "}\n");
     }
@@ -896,7 +906,7 @@ NEW LANGUAGE NOTE:END ************************************************/
     // therefore we instead hold the name of the base class and a null pointer
     // at runtime: we can query the swig type manager & see if the class exists
     // if so, we can get the pointer to the base class & replace the null pointer
-    // if the type does not exist, then we cannot...    
+    // if the type does not exist, then we cannot...
     String *base_class = NewString("");
     String *base_class_names = NewString("");
 
@@ -906,22 +916,22 @@ NEW LANGUAGE NOTE:END ************************************************/
       int index = 0;
       b = First(baselist);
       while (b.item) {
-	String *bname = Getattr(b.item, "name");
-	if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
-	  b = Next(b);
-	  continue;
-	}
-	// old code: (used the pointer to the base class)
-	//String *bmangle = Swig_name_mangle(bname);
-	//Printf(base_class, "&_wrap_class_%s", bmangle);
-	//Putc(',', base_class);
-	//Delete(bmangle);
-	// new code: stores a null pointer & the name
-	Printf(base_class, "0,");
-	Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
+        String *bname = Getattr(b.item, "name");
+        if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
+          b = Next(b);
+          continue;
+        }
+        // old code: (used the pointer to the base class)
+        //String *bmangle = Swig_name_mangle(bname);
+        //Printf(base_class, "&_wrap_class_%s", bmangle);
+        //Putc(',', base_class);
+        //Delete(bmangle);
+        // new code: stores a null pointer & the name
+        Printf(base_class, "0,");
+        Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
 
-	b = Next(b);
-	index++;
+        b = Next(b);
+        index++;
       }
     }
 
@@ -946,9 +956,9 @@ NEW LANGUAGE NOTE:END ************************************************/
       Printf(f_wrappers, ",0");
     }
     Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname);
-    
-//    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
-//    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
+
+    //    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
+    //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
     Delete(t);
     Delete(mangled_classname);
     return SWIG_OK;
@@ -961,7 +971,16 @@ NEW LANGUAGE NOTE:END ************************************************/
   virtual int memberfunctionHandler(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
-//Printf(stdout,"memberfunctionHandler %s %s\n",name,iname);
+    //Printf(stdout,"memberfunctionHandler %s %s\n",name,iname);
+
+    // Special case unary minus: LUA passes two parameters for the
+    // wrapper function while we want only one. Tell our
+    // functionWrapper to ignore a parameter.
+
+    if (Cmp(Getattr(n, "sym:name"), "__unm") == 0) {
+      //Printf(stdout, "unary minus: ignore one argument\n");
+      SetInt(n, "lua:ignore_args", 1);
+    }
 
     String *realname, *rname;
 
@@ -983,7 +1002,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
-//    REPORT("membervariableHandler",n);
+    //    REPORT("membervariableHandler",n);
     String *symname = Getattr(n, "sym:name");
     String *gname, *sname;
 
@@ -1010,7 +1029,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-//    REPORT("constructorHandler", n);
+    //    REPORT("constructorHandler", n);
     current = CONSTRUCTOR;
     Language::constructorHandler(n);
     current = NO_CPP;
@@ -1053,7 +1072,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-//    REPORT("memberconstantHandler",n);
+    //    REPORT("memberconstantHandler",n);
     return Language::memberconstantHandler(n);
   }
 
@@ -1062,7 +1081,7 @@ NEW LANGUAGE NOTE:END ************************************************/
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-//    REPORT("staticmembervariableHandler",n);
+    //    REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
     return Language::staticmembervariableHandler(n);
     current = NO_CPP;
@@ -1081,15 +1100,17 @@ NEW LANGUAGE NOTE:END ************************************************/
    */
   String *runtimeCode() {
     String *s = NewString("");
-    const char *filenames[] = { "luarun.swg", 0 };	// must be 0 termiated
+    const char *filenames[] = { "luarun.swg", 0
+                              }
+                              ;	// must be 0 termiated
     String *sfile;
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
       if (!sfile) {
-	Printf(stderr, "*** Unable to open '%s'\n", filenames[i]);
+        Printf(stderr, "*** Unable to open '%s'\n", filenames[i]);
       } else {
-	Append(s, sfile);
-	Delete(sfile);
+        Append(s, sfile);
+        Delete(sfile);
       }
     }
 
@@ -1106,7 +1127,7 @@ NEW LANGUAGE NOTE:END ************************************************/
  - write this file (obviously)
  - add into the makefile (not 100% clear on how to do this)
  - edit swigmain.cxx to add your module
-
+ 
 near the top of swigmain.cxx, look for this code & add you own codes
 ======= begin change ==========
 extern "C" {
@@ -1115,9 +1136,9 @@ extern "C" {
   //etc,etc,etc...
   Language *swig_lua(void);	// this is my code
 }
-
+ 
   //etc,etc,etc...
-
+ 
 swig_module  modules[] = {
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
@@ -1126,9 +1147,9 @@ swig_module  modules[] = {
   {NULL, NULL, NULL}	// this must come at the end of the list
 };
 ======= end change ==========
-
+ 
 This is all that is needed
-
+ 
 NEW LANGUAGE NOTE:END ************************************************/
 
 /* -----------------------------------------------------------------------------

@@ -1,6 +1,10 @@
 Version 1.3.34 (in progress)
 ============================
 
+02/11/2008: mgossage
+            [Lua] Added a patch by Torsten Landschoff to fix the unary minus issue
+            Ran 'astyle --style=kr -2' across lua.cxx to neaten it up
+
 02/10/2007: wsfulton
             Bump SWIG_RUNTIME_VERSION to 4. This is because of the recently introduced API 
             change in the conversion functions, ie change in definition of swig_converter_func.
