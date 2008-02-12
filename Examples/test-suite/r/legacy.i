@@ -23,7 +23,8 @@ getObject(int i, double d)
 
   obj->i = i;
   obj->d = d;
-  obj->str = (char *)malloc(strlen(test_string));
+  /* allocate one extra byte for the null */
+  obj->str = (char *)malloc(strlen(test_string) + 1);
   strcpy(obj->str, test_string);
 
   return(obj);
