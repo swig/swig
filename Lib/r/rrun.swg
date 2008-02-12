@@ -19,8 +19,6 @@ extern "C" {
 #define SWIGR 1
 
 #if R_VERSION >= R_Version(2,6,0)
-#warning "R Swig currently fails on runtime for 2.6 and higher."
-#warning "Contact maintainer if you would like to help fix"
 #define VMAXTYPE void *
 #define RVERSION26(x) x
 #define RVERSIONPRE26(x) 
@@ -231,7 +229,7 @@ SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
     R_RegisterCFinalizer(external, R_SWIG_ReferenceFinalizer);
 
   r_obj = SET_SLOT(r_obj, Rf_mkString((char *) "ref"), external);
-  
+  SET_S4_OBJECT(r_obj);
   Rf_unprotect(2);
 
   return(r_obj);
@@ -248,8 +246,8 @@ R_SWIG_create_SWIG_R_Array(const char *typeName, SEXP ref, int len)
    Rf_protect(arr = R_do_slot_assign(arr, Rf_mkString("ref"), ref));
    Rf_protect(arr = R_do_slot_assign(arr, Rf_mkString("dims"), Rf_ScalarInteger(len)));
 
-   Rf_unprotect(3);  
-
+   Rf_unprotect(3); 			   
+   SET_S4_OBJECT(arr);	
    return arr;
 }
 
@@ -268,6 +266,7 @@ SWIGRUNTIMEINLINE SEXP
 SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   SEXP rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
+  SET_S4_OBJECT(rptr);
 //  rptr = Rf_setAttrib(rptr, R_ClassSymbol, mkChar(SWIG_TypeName(type)));
   return rptr;
 }
