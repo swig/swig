@@ -514,8 +514,8 @@ String *SwigType_namestr(const SwigType *t) {
   sz = Len(p);
   for (i = 0; i < sz; i++) {
     String *str = SwigType_str(Getitem(p, i), 0);
-    /* Avoid creating a <: token, which is the same as [ in C++. */
-    if (i == 0 && Len(str) && *Char(str) == ':')
+    /* Avoid creating a <: token, which is the same as [ in C++ - put a space after '<'. */
+    if (i == 0 && Len(str))
       Putc(' ', r);
     Append(r, str);
     if ((i + 1) < sz)
