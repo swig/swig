@@ -52,19 +52,19 @@
 %{ argp = *($&1_ltype*)&$input; 
    if (argp) $1 = *argp; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
-%{ *($&1_ltype*)&$result = $1 ? new $1_ltype(($1_ltype &)$1) : 0; %}
+%{ *($&1_ltype*)&$result = $1 ? new $1_ltype($1) : 0; %}
 
 // shared_ptr by reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & ($*1_ltype tempnull)
 %{ $1 = $input ? *($&1_ltype)&$input : &tempnull; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
-%{ *($&1_ltype)&$result = *$1 ? new $*1_ltype(*($1_ltype)$1) : 0; %} 
+%{ *($&1_ltype)&$result = *$1 ? new $*1_ltype(*$1) : 0; %} 
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * ($*1_ltype tempnull)
 %{ $1 = $input ? *($&1_ltype)&$input : &tempnull; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *
-%{ *($&1_ltype)&$result = ($1 && *$1) ? new $*1_ltype(*($1_ltype)$1) : 0;
+%{ *($&1_ltype)&$result = ($1 && *$1) ? new $*1_ltype(*$1) : 0;
    if ($owner) delete $1; %}
 
 // shared_ptr by pointer reference
@@ -72,7 +72,7 @@
 %{ temp = $input ? *($1_ltype)&$input : &tempnull;
    $1 = &temp; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
-%{ *($1_ltype)&$result = (*$1 && **$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*($*1_ltype)*$1) : 0; %} 
+%{ *($1_ltype)&$result = (*$1 && **$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(**$1) : 0; %} 
 
 // various missing typemaps - If ever used (unlikely) ensure compilation error rather than runtime bug
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
