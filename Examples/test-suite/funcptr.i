@@ -1,27 +1,13 @@
 %module funcptr
 
 /*
-  Works if we use the typedef or the inline function pointer.
-        int (*op)(int i,int j));  
-*/
-
-
-/*
-typedef struct B (*Bar)(int i, struct C a);
-typedef struct A *(*Foo)(int i, struct B a);
-
-*/
-
-
-/*
  Complicated one that should defeat just reading , to find
  the number of arguments expected in the function pointer.
 extern void do(int (*op)(int (*i)(double, double), int j)); 
 */
 
 %inline %{
-typedef double (*DistFun)(double* data, int r, int c, int i, int j, 
-			  void *xdata);
+typedef double (*DistFun)(double* data, int r, int c, int i, int j, void *xdata);
 
 void distance(double *data, int *dim, DistFun fun,  double *output) {
 }
@@ -44,5 +30,11 @@ int mul(int a, int b) {
   return a*b;
 }
 
+int *nowt() { 
+  return 0;
+}
+
 int (*funcvar)(int,int) = add;
+int * (*funcvar2)() = nowt;
+int * (*funcvar3)(void) = nowt;
 %}

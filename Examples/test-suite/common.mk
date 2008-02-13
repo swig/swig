@@ -384,6 +384,7 @@ C_TEST_CASES += \
 	empty \
 	enums \
 	extern_declaration \
+	funcptr \
 	function_typedef \
 	immutable \
 	inctest \
