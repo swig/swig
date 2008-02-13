@@ -38,13 +38,13 @@ public class special_variables_runme {
     a.delete();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
     TemplateABC abc = new TemplateABC();
-    verify(special_variables.getDeclaration(), "SpaceNamespace::Template<SpaceNamespace::ABC >::Template() SpaceNamespace::Template<SpaceNamespace::ABC >::Template()");
+    verify(special_variables.getDeclaration(), "SpaceNamespace::Template< SpaceNamespace::ABC >::Template() SpaceNamespace::Template< SpaceNamespace::ABC >::Template()");
     abc.tmethod(new ABC());
-    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::Template<SpaceNamespace::ABC >::tmethod(SpaceNamespace::ABC) SpaceNamespace::Template<SpaceNamespace::ABC >::tmethod(SpaceNamespace::ABC)");
+    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::Template< SpaceNamespace::ABC >::tmethod(SpaceNamespace::ABC) SpaceNamespace::Template< SpaceNamespace::ABC >::tmethod(SpaceNamespace::ABC)");
     abc.delete();
-    verify(special_variables.getDeclaration(), "SpaceNamespace::Template<SpaceNamespace::ABC >::~Template() SpaceNamespace::Template<SpaceNamespace::ABC >::~Template()");
+    verify(special_variables.getDeclaration(), "SpaceNamespace::Template< SpaceNamespace::ABC >::~Template() SpaceNamespace::Template< SpaceNamespace::ABC >::~Template()");
     special_variables.globtemplate(new TemplateABC());
-    verify(special_variables.getDeclaration(), "void SpaceNamespace::globtemplate(SpaceNamespace::Template<SpaceNamespace::ABC >) SpaceNamespace::globtemplate(SpaceNamespace::Template<SpaceNamespace::ABC >)");
+    verify(special_variables.getDeclaration(), "void SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >) SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >)");
   }
   static void verify(String received, String expected) {
     if (!received.equals(expected))
