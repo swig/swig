@@ -997,9 +997,9 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     if (ptr) *ptr = 0;
     return SWIG_OK;
   } else {
+    PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
     if (own)
       *own = 0;
-    PySwigObject *sobj = SWIG_Python_GetSwigThis(obj);
     while (sobj) {
       void *vptr = sobj->ptr;
       if (ty) {
