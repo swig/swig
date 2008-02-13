@@ -277,6 +277,30 @@ class li_boost_shared_ptr_runme:
     self.verifyCount(1, k)
     self.verifyCount(1, kret)
 
+    # //////////////////////////////// Overloading tests ////////////////////////////////////////
+    # Base class
+    k = li_boost_shared_ptr.Klass("me oh my")
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyval(k), "rawbyval");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyref(k), "rawbyref");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyptr(k), "rawbyptr");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyptrref(k), "rawbyptrref");
+
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyval(k), "smartbyval");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyref(k), "smartbyref");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyptr(k), "smartbyptr");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyptrref(k), "smartbyptrref");
+
+    # Derived class
+    k = li_boost_shared_ptr.KlassDerived("me oh my")
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyval(k), "rawbyval");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyref(k), "rawbyref");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyptr(k), "rawbyptr");
+    self.verifyValue(li_boost_shared_ptr.overload_rawbyptrref(k), "rawbyptrref");
+
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyval(k), "smartbyval");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyref(k), "smartbyref");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyptr(k), "smartbyptr");
+    self.verifyValue(li_boost_shared_ptr.overload_smartbyptrref(k), "smartbyptrref");
 
   def verifyValue(self, expected, got):
     if (expected != got):

@@ -219,6 +219,33 @@ const SwigBoost::shared_ptr<Klass>& ref_1() {
   return sptr;
 }
 
+// overloading tests
+std::string overload_rawbyval(int i) { return "int"; }
+std::string overload_rawbyval(Klass k) { return "rawbyval"; }
+
+std::string overload_rawbyref(int i) { return "int"; }
+std::string overload_rawbyref(Klass &k) { return "rawbyref"; }
+
+std::string overload_rawbyptr(int i) { return "int"; }
+std::string overload_rawbyptr(Klass *k) { return "rawbyptr"; }
+
+std::string overload_rawbyptrref(int i) { return "int"; }
+std::string overload_rawbyptrref(Klass *&k) { return "rawbyptrref"; }
+
+
+
+std::string overload_smartbyval(int i) { return "int"; }
+std::string overload_smartbyval(SwigBoost::shared_ptr<Klass> k) { return "smartbyval"; }
+
+std::string overload_smartbyref(int i) { return "int"; }
+std::string overload_smartbyref(SwigBoost::shared_ptr<Klass> &k) { return "smartbyref"; }
+
+std::string overload_smartbyptr(int i) { return "int"; }
+std::string overload_smartbyptr(SwigBoost::shared_ptr<Klass> *k) { return "smartbyptr"; }
+
+std::string overload_smartbyptrref(int i) { return "int"; }
+std::string overload_smartbyptrref(SwigBoost::shared_ptr<Klass> *&k) { return "smartbyptrref"; }
+
 } // namespace Space
 
 %}
