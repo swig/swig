@@ -1565,3 +1565,79 @@ void Swig_name_inherit(String *base, String *derived) {
   Swig_name_object_inherit(Swig_name_namewarn_hash(), base, derived);
   Swig_name_object_inherit(Swig_cparse_features(), base, derived);
 }
+
+/* -----------------------------------------------------------------------------
+ * void Swig_name_decl()
+ *
+ * Return a stringified version of a C/C++ declaration without the return type.
+ * The node passed in is expected to be a function. Some example return values:
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::ABC::ABC(int,double)"
+ *   "MyNameSpace::ABC::constmethod(int) const"
+ * 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_decl(Node *n) {
+  String *qname;
+  String *decl;
+  String *qualifier = Swig_symbol_qualified(n);
+  String *name = Swig_scopename_last(Getattr(n, "name"));
+  qualifier = SwigType_namestr(qualifier);
+
+  /* Very specific hack for template constructors/destructors */
+  if (SwigType_istemplate(name)) {
+    String *nodetype = nodeType(n);
+    if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
+      String *nprefix = NewStringEmpty();
+      String *nlast = NewStringEmpty();
+      String *tprefix;
+      Swig_scopename_split(name, &nprefix, &nlast);
+      tprefix = SwigType_templateprefix(nlast);
+      Delete(nlast);
+      Delete(name);
+      name = tprefix;
+    }
+  }
+
+  qname = NewString("");
+  if (qualifier && Len(qualifier) > 0)
+    Printf(qname, "%s::", qualifier);
+  Printf(qname, "%s", name);
+
+  decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
+
+  Delete(name);
+  Delete(qualifier);
+  Delete(qname);
+
+  return decl;
+}
+
+/* -----------------------------------------------------------------------------
+ * void Swig_name_fulldecl()
+ *
+ * Return a stringified version of a C/C++ declaration including the return type.
+ * The node passed in is expected to be a function. Some example return values:
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::ABC::ABC(int,double)"
+ *   "int * MyNameSpace::ABC::constmethod(int) const"
+ * 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_fulldecl(Node *n) {
+  String *decl = Swig_name_decl(n);
+  String *type = Getattr(n, "type");
+  String *nodetype = nodeType(n);
+  String *fulldecl;
+  /* add on the return type */
+  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
+    fulldecl = decl;
+  } else {
+    String *t = SwigType_str(type, 0);
+    fulldecl = NewStringf("%s %s", t, decl);
+    Delete(decl);
+    Delete(t);
+  }
+  return fulldecl;
+}
+

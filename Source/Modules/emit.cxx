@@ -342,10 +342,26 @@ int emit_action_code(Node *n, Wrapper *f, String *eaction) {
   if (tm)
     tm = Copy(tm);
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-    Replaceall(tm, "$name", Getattr(n, "name"));
-    Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-    Replaceall(tm, "$function", eaction);
-    Replaceall(tm, "$action", eaction);
+    if (Strstr(tm, "$")) {
+      Replaceall(tm, "$name", Getattr(n, "name"));
+      Replaceall(tm, "$symname", Getattr(n, "sym:name"));
+      Replaceall(tm, "$function", eaction); // deprecated
+      Replaceall(tm, "$action", eaction);
+      Replaceall(tm, "$wrapname", Getattr(n, "wrap:name"));
+      String *overloaded = Getattr(n, "sym:overloaded");
+      Replaceall(tm, "$overname", overloaded ? Char(Getattr(n, "sym:overname")) : "");
+
+      if (Strstr(tm, "$decl")) {
+        String *decl = Swig_name_decl(n);
+        Replaceall(tm, "$decl", decl);
+        Delete(decl);
+      }
+      if (Strstr(tm, "$fulldecl")) {
+        String *fulldecl = Swig_name_fulldecl(n);
+        Replaceall(tm, "$fulldecl", fulldecl);
+        Delete(fulldecl);
+      }
+    }
     Printv(f->code, tm, "\n", NIL);
     Delete(tm);
     return 1;

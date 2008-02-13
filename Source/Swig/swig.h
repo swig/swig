@@ -266,6 +266,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, String *oldname);
   extern String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType *decl);
+  extern String *Swig_name_decl(Node *n);
+  extern String *Swig_name_fulldecl(Node *n);
 
 /* --- parameterized rename functions --- */
 
@@ -273,8 +275,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern DOH *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
   extern void Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
   extern void Swig_features_get(Hash *features, String_or_char *prefix, String_or_char *name, SwigType *decl, Node *n);
-  extern void Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value,
-			       Hash *featureattribs);
+  extern void Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value, Hash *featureattribs);
 
 /* --- Misc --- */
   extern char *Swig_copy_string(const char *c);
