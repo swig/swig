@@ -255,8 +255,8 @@ List *SwigType_split(const SwigType *t) {
  *
  * Splits a comma separated list of parameters into its component parts
  * The input is expected to contain the parameter list within () brackets
- * returns 0 if no argument list in the input, ie there are no round brackets ()
- * returns a List containing a single empty string if there are no parameters in the () brackets
+ * Returns 0 if no argument list in the input, ie there are no round brackets ()
+ * Returns an empty List if there are no parameters in the () brackets
  * For example:
  *
  *     Foo(std::string,p.f().Bar<(int,double)>)
@@ -267,10 +267,11 @@ List *SwigType_split(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
  
 List *SwigType_parmlist(const String *p) {
-  String *item;
+  String *item = 0;
   List *list;
   char *c;
   char *itemstart;
+  int size;
 
   assert(p);
   c = Char(p);
@@ -284,7 +285,8 @@ List *SwigType_parmlist(const String *p) {
   itemstart = c;
   while (*c) {
     if (*c == ',') {
-      item = NewStringWithSize(itemstart, (int) (c - itemstart));
+      size = (int) (c - itemstart);
+      item = NewStringWithSize(itemstart, size);
       Append(list, item);
       Delete(item);
       itemstart = c + 1;
@@ -307,8 +309,11 @@ List *SwigType_parmlist(const String *p) {
     if (*c)
       c++;
   }
-  item = NewStringWithSize(itemstart, (int) (c - itemstart));
-  Append(list, item);
+  size = (int) (c - itemstart);
+  if (size > 0) {
+    item = NewStringWithSize(itemstart, size);
+    Append(list, item);
+  }
   Delete(item);
   return list;
 }
