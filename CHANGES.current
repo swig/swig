@@ -11,6 +11,10 @@ Version 1.3.34 (in progress)
               $fulldecl - the fully qualified C/C++ declaration of the method being wrapped 
                           including the return type
 
+02/12/2008: drjoe
+            [R] Now setting S4 flag in SWIG created objects.  This
+            fixes R-SWIG for 2.6 and warning for 2.6 failure has been removed.
+
 02/11/2008: mgossage
             [Lua] Added a patch by Torsten Landschoff to fix the unary minus issue
             Ran 'astyle --style=kr -2' across lua.cxx to neaten it up
