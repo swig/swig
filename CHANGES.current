@@ -1,7 +1,7 @@
 Version 1.3.34 (in progress)
 ============================
 
-02/13/2007: wsfulton
+02/13/2008: wsfulton
             Add new special variables for use within %exception:
               $wrapname - language specific wrapper name
               $overname - if a method is overloaded this contains the extra mangling used on 
@@ -15,14 +15,14 @@ Version 1.3.34 (in progress)
             [Lua] Added a patch by Torsten Landschoff to fix the unary minus issue
             Ran 'astyle --style=kr -2' across lua.cxx to neaten it up
 
-02/10/2007: wsfulton
+02/10/2008: wsfulton
             Bump SWIG_RUNTIME_VERSION to 4. This is because of the recently introduced API 
             change in the conversion functions, ie change in definition of swig_converter_func.
             Anyone calling SWIG_TypeCast must pass in a valid value for the new additional
             (third) parameter and then handle the newly created memory if the returned value
             is set to SWIG_CAST_NEW_MEMORY else a memory leak will ensue.
 
-02/09/2007: wsfulton
+02/09/2008: wsfulton
             [Python] Experimental shared_ptr typemaps added. Usage is the same as the recently
             added Java and C# shared_ptr typemaps. Two macros are available, although these
             may well change in a future version:
@@ -71,7 +71,7 @@ Version 1.3.34 (in progress)
                 calling prior to passing a derived class to a method taking a shared_ptr to
                 a base class.
 
-02/09/2007: wsfulton
+02/09/2008: wsfulton
             [Python] Add support for overriding the class registration function via a new
             "smartptr" feature. This is a very low level of customisation most users
             would never need to know. The feature will typically be used for intrusive 
