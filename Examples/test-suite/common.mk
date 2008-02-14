@@ -177,6 +177,7 @@ CPP_TEST_CASES += \
 	kind \
 	langobj \
 	li_attribute \
+	li_boost_shared_ptr \
 	li_carrays \
 	li_cdata \
 	li_cpointer \

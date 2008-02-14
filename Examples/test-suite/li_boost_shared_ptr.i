@@ -29,10 +29,18 @@
 #ifndef SHARED_PTR_WRAPPER
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
-%include "boost_shared_ptr.i"
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
+%include "boost_shared_ptr.i"
 SWIG_SHARED_PTR(Klass, Space::Klass)
 SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
+
+#endif
 
 // TODO:
 // const shared_ptr
@@ -273,11 +281,15 @@ struct MemberVariables {
 };
 %}
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
 // Note: %template after the shared_ptr typemaps
 SWIG_SHARED_PTR(BaseIntDouble, Base<int, double>)
 // Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
 // so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
 SWIG_SHARED_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+
+#endif
 
 // Templates
 %inline %{
