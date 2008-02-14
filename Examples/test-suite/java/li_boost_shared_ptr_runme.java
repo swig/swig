@@ -358,7 +358,7 @@ public class li_boost_shared_ptr_runme {
     }
 
 
-    // Member variables
+    ////////////////////////////////// Member variables ////////////////////////////////////////
     // smart pointer by value
     {
       MemberVariables m = new MemberVariables();

@@ -348,7 +348,7 @@ public class runme
     }
 
 
-    // Member variables
+    ////////////////////////////////// Member variables ////////////////////////////////////////
     // smart pointer by value
     {
       MemberVariables m = new MemberVariables();
