@@ -7,15 +7,13 @@
 
 // destructor mods
 %feature("unref") TYPE 
-//"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
+"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
 
 // TODO:
 // varout varin typemaps
-// typecheck typemaps
-// convertptr_flags
 
 // plain value
 %typemap(in) CONST TYPE (void *argp, int res = 0) {
@@ -38,7 +36,7 @@
 // plain pointer
 %typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), $disown | %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
@@ -122,9 +120,18 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
+/*
   if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $ltype);
   $1 = &tempshared;
+*/
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
+    delete %reinterpret_cast(argp, $ltype);
+    $1 = &tempshared;
+  } else {
+    $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
+  }
 }
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = *$1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1) : 0;
@@ -138,9 +145,13 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
-  if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
-  if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $ltype);
-  $1 = &tempshared;
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
+    delete %reinterpret_cast(argp, $ltype);
+    $1 = &tempshared;
+  } else {
+    $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
+  }
 }
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = $1 && *$1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1) : 0;

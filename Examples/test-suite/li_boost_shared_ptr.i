@@ -211,6 +211,11 @@ Klass* arraytest(Klass k[]) {
 */
 
 
+// Provide overloads for Klass and KlassDerived as some language modules, eg Python, create an extra reference in
+// the marshalling if an upcast to a base class is required.
+long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
+  return sptr.use_count();
+}
 long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
