@@ -1597,8 +1597,6 @@ int ALLEGROCL::top(Node *n) {
   Printf(f_cl, "%s\n", f_clhead);
   Printf(f_cl, "%s\n", f_clwrap);
 
-  Printf(stderr, "All done now!\n");
-
   Close(f_cl);
   Delete(f_cl);			// Delete the handle, not the file
   Delete(f_clhead);
