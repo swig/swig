@@ -17,6 +17,7 @@
 <li><a href="#Customization_nn5">Handling C++ exceptions</a>
 <li><a href="#Customization_allowexcept">Exception handlers for variables</a>
 <li><a href="#Customization_nn6">Defining different exception handlers</a>
+<li><a href="#Customization_exception_special_variables">Special variables for %exception</a>
 <li><a href="#Customization_nn7">Using The SWIG exception library</a>
 </ul>
 <li><a href="#ownership">Object ownership and %newobject</a>
@@ -66,7 +67,9 @@ handler. For example, you can specify the following:
 
 <p>
 When defined, the code enclosed in braces is inserted directly into the low-level wrapper
-functions.  The special symbol <tt>$action</tt> gets replaced with the actual operation
+functions.  The special variable <tt>$action</tt> is one of a few
+<a href="Customization.html#Customization_exception_special_variables">%exception special variable</a>
+supported and gets replaced with the actual operation
 to be performed (a function call, method invocation, attribute access, etc.).  An exception handler
 remains in effect until it is explicitly deleted.  This is done by using either <tt>%exception</tt> 
 or <tt>%noexception</tt> with no code. For example:
@@ -419,7 +422,95 @@ declarations.  However, it never really worked that well and the new
 %exception directive is much better.
 </p>
 
-<H3><a name="Customization_nn7"></a>11.1.6 Using The SWIG exception library</H3>
+<H3><a name="Customization_exception_special_variables"></a>11.1.6 Special variables for %exception</H3>
+
+
+<p>
+The %exception directive supports a few special variables which are placeholders for
+code substitution.
+The following table shows the available special variables and details what the special
+variables are replaced with.
+</p>
+
+<table summary="Special variables for %exception">
+
+<tr>
+<td>$action</td>
+<td>The actual operation to be performed (a function call, method invocation, variable access, etc.)</td>
+</tr>
+
+<tr>
+<td>$symname</td>
+<td>The symbol name used internally by SWIG</td>
+</tr>
+
+<tr>
+<td>$overname</td>
+<td>The extra mangling used in the symbol name for overloaded method. Expands to nothing if the wrapped method is not overloaded.</td>
+</tr>
+
+<tr>
+<td>$wrapname</td>
+<td>The language specific wrapper name (usually a C function name exported from the shared object/dll)</td>
+</tr>
+
+<tr>
+<td>$decl</td>
+<td>The fully qualified C/C++ declaration of the method being wrapped without the return type</td>
+</tr>
+
+<tr>
+<td>$fulldecl</td>
+<td>The fully qualified C/C++ declaration of the method being wrapped including the return type</td>
+</tr>
+
+</table>
+
+<p>
+The special variables are often used in situations where method calls are logged. Exactly which form of the method call needs logging is up to individual requirements, but the example code below shows all the possible expansions, plus how an exception message could be tailored to show the C++ method declaration:
+</p>
+
+<div class="code"><pre>
+%exception Special::something {
+  log("symname: $symname");
+  log("overname: $overname");
+  log("wrapname: $wrapname");
+  log("decl: $decl");
+  log("fulldecl: $fulldecl");
+  try {
+    $action
+  } 
+  catch (MemoryError) {
+      croak("Out of memory in $decl");
+  }
+}
+void log(const char *message);
+struct Special {
+  void something(const char *c);
+  void something(int i);
+};
+</pre></div>
+
+<p>
+Below shows the expansions for the 1st of the overloaded <tt>something</tt> wrapper methods for Perl:
+</p>
+
+<div class="code"><pre>
+  log("symname: Special_something");
+  log("overname: __SWIG_0");
+  log("wrapname: _wrap_Special_something__SWIG_0");
+  log("decl: Special::something(char const *)");
+  log("fulldecl: void Special::something(char const *)");
+  try {
+    (arg1)-&gt;something((char const *)arg2);
+  } 
+  catch (MemoryError) {
+    croak("Out of memory in Special::something(char const *)");
+  }
+</pre></div>
+
+
+<H3><a name="Customization_nn7"></a>11.1.7 Using The SWIG exception library</H3>
 
 
 <p>
