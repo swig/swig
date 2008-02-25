@@ -1172,6 +1172,8 @@ public:
       }
     }
 
+    Setattr(n, "wrap:name", wname);
+
     /* emit function call */
     emit_action(n, f);
 
@@ -1249,8 +1251,6 @@ public:
 
     Wrapper_print(f, s_wrappers);
 
-    // wrap:name is used by overload resolution
-    Setattr(n, "wrap:name", wname);
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
     }

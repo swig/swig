@@ -501,6 +501,8 @@ int CHICKEN::functionWrapper(Node *n) {
     }
   }
 
+  Setattr(n, "wrap:name", wname);
+
   /* Emit the function call */
   emit_action(n, f);
 
@@ -602,8 +604,6 @@ int CHICKEN::functionWrapper(Node *n) {
   /* Dump the function out */
   Printv(f_wrappers, "static ", declfunc, " C_noret;\n", NIL);
   Wrapper_print(f, f_wrappers);
-
-  Setattr(n, "wrap:name", wname);
 
   /* Now register the function with the interpreter.   */
   if (!Getattr(n, "sym:overloaded")) {

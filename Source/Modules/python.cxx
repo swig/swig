@@ -1937,6 +1937,8 @@ public:
       }
     }
 
+    Setattr(n, "wrap:name", wname);
+
     emit_action(n, f);
 
     if (director_method) {
@@ -2105,8 +2107,6 @@ public:
       Append(f->code, "}\n");
       Wrapper_print(f, f_wrappers);
     }
-
-    Setattr(n, "wrap:name", wname);
 
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {

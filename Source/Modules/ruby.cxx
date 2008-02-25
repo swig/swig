@@ -1771,6 +1771,8 @@ public:
 	Printf(f->code, "try {\n");
       }
 
+      Setattr(n, "wrap:name", wname);
+
       emit_action(n, f);
 
       if (director_method) {
@@ -1948,7 +1950,6 @@ public:
       if (current == CONSTRUCTOR_ALLOCATE) {
 	create_command(n, symname);
       } else {
-	Setattr(n, "wrap:name", wname);
 	if (!Getattr(n, "sym:nextSibling"))
 	  dispatchFunction(n);
       }

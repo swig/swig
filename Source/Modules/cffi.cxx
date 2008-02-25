@@ -166,7 +166,6 @@ int CFFI::top(Node *n) {
   Printf(f_lisp, "%s\n", f_cl);
   Printf(f_lisp, "%s\n", f_clwrap);
 
-  Printf(stderr, "All done now!\n");
   Close(f_lisp);
   Delete(f_lisp);   // Deletes the handle, not the file
   Delete(f_cl);
@@ -383,6 +382,8 @@ int CFFI::functionWrapper(Node *n) {
   if (overname) {
     Append(wname, overname);
   }
+  Setattr(n, "wrap:name", wname);
+
   // Emit all of the local variables for holding arguments.
   emit_args(Getattr(n, "type"), parms, wrap);
 

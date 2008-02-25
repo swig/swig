@@ -535,6 +535,8 @@ public:
       }
     }
 
+    Setattr(n, "wrap:name", wname);
+
     /* Emit the function call */
     emit_action(n, f);
 
@@ -605,8 +607,6 @@ public:
     /* Dump the function out */
     Wrapper_print(f, f_wrappers);
 
-    Setattr(n, "wrap:name", wname);	// you need this to make the overloading work
-
     /* NEW LANGUAGE NOTE:***********************************************
     register the function in SWIG
     different language mappings seem to use different ideas
@@ -618,7 +618,6 @@ public:
         Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
       //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
     } else {
-      //      Setattr(n,"wrap:name", wname);
       if (!Getattr(n, "sym:nextSibling")) {
         dispatchFunction(n);
       }

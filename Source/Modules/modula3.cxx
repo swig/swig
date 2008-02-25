@@ -1415,6 +1415,9 @@ MODULA3():
       SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
       Setattr(n, "wrap:action", NewStringf("result = (%s) %s;\n", SwigType_lstr(ty, 0), Getattr(n, "value")));
     }
+
+    Setattr(n, "wrap:name", wname);
+
     // Now write code to make the function call
     if (!native_function_flag) {
       emit_action(n, f);
@@ -1488,8 +1491,6 @@ MODULA3():
     if (!native_function_flag) {
       Wrapper_print(f, f_wrappers);
     }
-
-    Setattr(n, "wrap:name", wname);
 
     Delete(c_return_type);
     Delete(cleanup);

@@ -310,6 +310,7 @@ public:
     if (overname) {
       Append(wname, overname);
     }
+    Setattr(n, "wrap:name", wname);
 
     Printv(f->def, "static void ", wname, "(INT32 args) {", NIL);
 
@@ -469,7 +470,6 @@ public:
     if (!Getattr(n, "sym:overloaded")) {
       add_method(iname, wname, description);
     } else {
-      Setattr(n, "wrap:name", wname);
       if (!Getattr(n, "sym:nextSibling")) {
 	dispatchFunction(n);
       }
