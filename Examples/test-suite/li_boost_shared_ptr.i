@@ -203,6 +203,8 @@ std::string nullsmartpointerpointertest(SwigBoost::shared_ptr<Klass>* k) {
     return "null smartpointer pointer";
   else if (!*k)
     return "null pointer";
+  else
+    return "also not null";
 }
 // $owner
 Klass *pointerownertest() {
