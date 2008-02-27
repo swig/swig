@@ -40,26 +40,6 @@ release.  A stable 2.0 release will not be made until it can
 accompanied by fully updated documentation.  In the meantime, we will
 continue to make periodic 1.3.x releases.
 
-We need your help!
-------------------
-Even if you are perfectly happy with SWIG-1.1, we can still use your
-feedback.  First, we like to know about compilation problems and other
-issues concerning the building of SWIG.  Second, if SWIG-1.3 is unable
-to compile your old interface files, we would like to get information
-about the features you are using.  This information will help us find
-bugs in the SWIG-1.3 release, develop techniques for supporting
-backwards compatibility, and write documentation that addresses
-specific issues related to migrating from SWIG-1.1 to SWIG-1.3.
-
-We are also looking for volunteers who would like to work on various
-aspects of SWIG development.  SWIG is an unfunded project that would
-not exist without volunteers.  We are also looking for the developers
-of other SWIG language modules.  If you have developed a SWIG module
-and would like to see it incorporated into the new release, please
-contact us to obtain SWIG-SVN access.  We are also more than willing
-to help port your module from SWIG-1.1 to SWIG-1.3.  Please send email
-to beazley@cs.uchicago.edu for further information.
-
 Please report problems with this release to the swig-dev mailing list,
 details at http://www.swig.org/mail.html.
 
