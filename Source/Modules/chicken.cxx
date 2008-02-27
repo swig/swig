@@ -709,6 +709,8 @@ int CHICKEN::variableWrapper(Node *n) {
   if (overname) {
     Append(wname, overname);
   }
+  Setattr(n, "wrap:name", wname);
+
   // Check for interrupts
   Printv(f->code, "C_trace(\"", scmname, "\");\n", NIL);
 
@@ -907,6 +909,7 @@ int CHICKEN::constantWrapper(Node *n) {
 
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
 
+    Setattr(n, "wrap:name", wname);
     Printv(f->def, "static ", "void ", wname, "(C_word, C_word, C_word) C_noret;\n", NIL);
 
     Printv(f->def, "static ", "void ", wname, "(C_word argc, C_word closure, " "C_word continuation) {\n", NIL);

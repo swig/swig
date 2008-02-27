@@ -522,6 +522,7 @@ public:
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
     Replaceall(proc_name, "_", "-");
+    Setattr(n, "wrap:name", proc_name);
 
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 

@@ -2096,6 +2096,7 @@ public:
     int addfail = 0;
     String *getname = Swig_name_get(iname);
     getfname = Swig_name_wrapper(getname);
+    Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
     Printf(getf->def, ") {");
@@ -2130,6 +2131,7 @@ public:
 
       String *setname = Swig_name_set(iname);
       setfname = Swig_name_wrapper(setname);
+      Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
       tm = Swig_typemap_lookup_new("varin", n, name, 0);

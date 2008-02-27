@@ -562,6 +562,7 @@ public:
     getf = NewWrapper();
     String *getname = Swig_name_get(iname);
     String *getfname = Swig_name_wrapper(getname);
+    Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
     Wrapper_add_local(getf, "value", "Tcl_Obj *value = 0");
     if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
@@ -593,6 +594,7 @@ public:
       setf = NewWrapper();
       setname = Swig_name_set(iname);
       setfname = Swig_name_wrapper(setname);
+      Setattr(n, "wrap:name", setfname);
       if (setf) {
         Printv(setf->def, "SWIGINTERN const char *", setfname,
 	     "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {", NIL);

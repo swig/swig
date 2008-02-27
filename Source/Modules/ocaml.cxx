@@ -795,6 +795,7 @@ public:
 
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
+    Setattr(n, "wrap:name", proc_name);
 
     Printf(f->def, "SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
     // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);

@@ -2178,6 +2178,7 @@ public:
 
     /* Create a function for setting the value of the variable */
     if (assignable) {
+      Setattr(n, "wrap:name", varsetname);
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
       if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "_val");
@@ -2208,6 +2209,7 @@ public:
     Wrapper_print(setf, f_wrappers);
 
     /* Create a function for getting the value of a variable */
+    Setattr(n, "wrap:name", vargetname);
     int addfail = 0;
     Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");

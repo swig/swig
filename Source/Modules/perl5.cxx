@@ -782,6 +782,7 @@ public:
     /* Create a Perl function for setting the variable value */
 
     if (!GetFlag(n, "feature:immutable")) {
+      Setattr(n, "wrap:name", set_name);
       Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
       Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
 
@@ -804,6 +805,7 @@ public:
     }
 
     /* Now write a function to evaluate the variable */
+    Setattr(n, "wrap:name", get_name);
     int addfail = 0;
     Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", get_name);
     Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
