@@ -111,6 +111,7 @@ extern "C" {
   extern SwigType *SwigType_del_element(SwigType *t);
   extern SwigType *SwigType_add_pointer(SwigType *t);
   extern SwigType *SwigType_add_memberpointer(SwigType *t, const String_or_char *qual);
+  extern SwigType *SwigType_del_memberpointer(SwigType *t);
   extern SwigType *SwigType_del_pointer(SwigType *t);
   extern SwigType *SwigType_add_array(SwigType *t, const String_or_char *size);
   extern SwigType *SwigType_del_array(SwigType *t);
@@ -136,6 +137,7 @@ extern "C" {
   extern SwigType *SwigType_ltype(SwigType *t);
   extern int SwigType_ispointer(SwigType *t);
   extern int SwigType_ispointer_return(SwigType *t);
+  extern int SwigType_isfunctionpointer(SwigType *t);
   extern int SwigType_ismemberpointer(SwigType *t);
   extern int SwigType_isreference(SwigType *t);
   extern int SwigType_isreference_return(SwigType *t);
@@ -151,6 +153,7 @@ extern "C" {
   extern int SwigType_isenum(SwigType *t);
   extern int SwigType_check_decl(SwigType *t, const String_or_char *decl);
   extern SwigType *SwigType_strip_qualifiers(SwigType *t);
+  extern SwigType *SwigType_functionpointer_decompose(SwigType *t);
   extern String *SwigType_base(const SwigType *t);
   extern String *SwigType_namestr(const SwigType *t);
   extern String *SwigType_templateprefix(const SwigType *t);

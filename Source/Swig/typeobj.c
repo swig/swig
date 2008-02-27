@@ -496,6 +496,38 @@ int SwigType_isqualifier(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ *                                Function Pointers
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isfunctionpointer(SwigType *t) {
+  char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  if (strncmp(c, "p.f(", 4) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_functionpointer_decompose
+ *
+ * Decompose the function pointer into the parameter list and the return type
+ * t - input and on completion contains the return type
+ * returns the function's parameters
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_functionpointer_decompose(SwigType *t) {
+  String *p;
+  assert(SwigType_isfunctionpointer(t));
+  p = SwigType_pop(t);
+  Delete(p);
+  p = SwigType_pop(t);
+  return p;
+}
+
+/* -----------------------------------------------------------------------------
  *                                Member Pointers
  *
  * SwigType_add_memberpointer()
