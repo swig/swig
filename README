@@ -95,6 +95,7 @@ What's New?
 
 SWIG-1.3.34 summary:
 - shared_ptr support for Python
+- Support for latest R - version 2.6
 - Various minor improvements/bug fixes for R, Lua, Python, Java, C#
 - A few other generic bug fixes, mainly for templates and using statements
 
