@@ -16,7 +16,6 @@ char cvsroot_r_cxx[] = "$Id$";
 static const double DEFAULT_NUMBER = .0000123456712312312323;
 static const int MAX_OVERLOAD_ARGS = 5;
 
-
 static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   String *b = SwigType_base(t);
   List *els = SwigType_split(t);
@@ -554,7 +553,6 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
 }
  
 /*
-
 Returns the name of the new routine.
 */
 String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
@@ -564,56 +562,54 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   if(functionPointerProxyTable && Getattr(functionPointerProxyTable, funName))
     return funName;
   
-  SwigType *base = SwigType_base(t);
   if (debugMode)
     Printf(stderr, "<createFunctionPointerHandler> Defining %s\n",  t);
   
-  int isVoidType = 0;
-  
+  SwigType *rettype = Copy(Getattr(n, "type"));
+  SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
+  String *rtype = SwigType_str(rettype, 0);
+
   //   ParmList *parms = Getattr(n, "parms");
   // memory leak
-  ParmList *parms = 
-    SwigType_function_parms(SwigType_del_pointer(Copy(t)));
+  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)));
   if (debugMode) {
     Printf(stderr, "Type: %s\n", t);
     Printf(stderr, "Return type: %s\n", SwigType_base(t));
   }
   
-  isVoidType = Strcmp(base, "void") == 0;
+  bool isVoidType = Strcmp(rettype, "void") == 0;
   if (debugMode)
-    Printf(stderr, "%s is void ? %s  (%s)\n", funName, isVoidType ? "yes" : "no", base);
+    Printf(stderr, "%s is void ? %s  (%s)\n", funName, isVoidType ? "yes" : "no", rettype);
   
   Wrapper *f = NewWrapper();
   
-  
-  Parm *ppp = parms;
+  /* Go through argument list, attach lnames for arguments */
   int i = 0;
-  while(ppp) {
-    String *name = Getattr(ppp, "name");
-    if(Len(name) == 0) {
-      name = NewStringf("s_arg%d", i+1);
-      Setattr(ppp, "name", Copy(name));
-    }
-    if (debugMode) {
-      Printf(stderr, "Parm : %s\n", name);
-    }
-    Setattr(ppp, "lname", Copy(Getattr(ppp, "name")));
-    ppp = nextSibling(ppp);
-    i++;
+  Parm *p = parms;
+  for (i = 0; p; p = nextSibling(p), ++i) {
+    String *arg = Getattr(p, "name");
+    String *lname = NewString("");
+
+    if (!arg && Cmp(Getattr(p, "type"), "void")) {
+      lname = NewStringf("s_arg%d", i+1);
+      Setattr(p, "name", lname);
+    } else
+      lname = arg;
+
+    Setattr(p, "lname", lname);
   }
   
-  Swig_typemap_attach_parms("in", parms, f);
   Swig_typemap_attach_parms("out", parms, f);
-  Swig_typemap_attach_parms("scoercein", parms, f);
   Swig_typemap_attach_parms("scoerceout", parms, f);
   Swig_typemap_attach_parms("scheck", parms, f);
 
-  emit_args(base, parms, f);// should this be t or base. base puts the correct return type variable.
-  emit_attach_parmmaps(parms,f);
+  Printf(f->def, "%s %s(", rtype, funName);
+
+  emit_args(rettype, parms, f);
+//  emit_attach_parmmaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
-  Wrapper_add_local(f, "r_swig_cb_data", 
-		    "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
+  Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
   String *lvar = NewString("r_swig_cb_data");
 
   Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
@@ -624,9 +620,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   // whereas the type makes are reverse
   Wrapper_add_local(f, "ecode", "int ecode = 0");
 
-  Printf(f->def, "%s\n%s(", SwigType_base(t), funName);
-
-  Parm *p = parms;
+  p = parms;
   int nargs = ParmList_len(parms);
   if(numArgs) {
     *numArgs = nargs;
@@ -663,7 +657,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     }
   }
   
-  Printf(f->def,  ")\n{\n");
+  Printf(f->def,  ") {\n");
   
   Printf(f->code, "Rf_protect(%s->expr = Rf_allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
   Printf(f->code, "r_nprotect++;\n");
@@ -700,17 +694,16 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     */
     Node *bbase = NewHash();
     
-    Setattr(bbase, "type", base);
+    Setattr(bbase, "type", rettype);
     Setattr(bbase, "name", NewString("result"));
-    String *returnTM = Swig_typemap_lookup_new("in", bbase, "result", 0);
+    String *returnTM = Swig_typemap_lookup_new("in", bbase, "result", f);
     if(returnTM) {
       String *tm = returnTM;
-      SwigType *retType = base; // Getattr(n, "type");
-      
       Replaceall(tm,"$input", "r_swig_cb_data->retValue");
       Replaceall(tm,"$target", "result");
-      replaceRClass(tm, retType);
+      replaceRClass(tm, rettype);
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Replaceall(tm,"$disown","0");
       Printf(f->code, "%s\n", tm);
     }
     Delete(bbase);
@@ -738,9 +731,11 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   
   Wrapper_print(f, f_wrapper);
   
-  
   addFunctionPointerProxy(funName, n, t, s_paramTypes);
   Delete(s_paramTypes);
+  Delete(rtype);
+  Delete(rettype);
+  Delete(funcparams);
   
   return funName;
 }
@@ -3093,10 +3088,7 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
   if(td)
     t = td;
 
-  String *prefix = SwigType_prefix(t);
-  //   String *base = SwigType_base(t);
-
-  if(Strncmp(prefix, "p.f", 3) == 0) {
+  if(SwigType_isfunctionpointer(t)) {
     if (debugMode)
       Printf(stderr, 
 	     "<processType> Defining pointer handler %s\n",  t);
