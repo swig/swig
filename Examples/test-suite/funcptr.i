@@ -6,8 +6,6 @@
 extern void do(int (*op)(int (*i)(double, double), int j)); 
 */
 
-%typemap(in) int (int intres) { /* in typemap int */ intres = 0; }
-%typemap(in) double (double doubleres) { /* in typemap double */ doubleres = 0; }
 %inline %{
 typedef double (*DistFun)(double* data, int r, int c, int i, int j, void *xdata);
 
@@ -35,7 +33,12 @@ int multiply(int a, int b) {
 int *nowt() { 
   return 0;
 }
-struct MyStruct {};
+
+int *nowt2(void) { 
+  return 0;
+}
+
+struct MyStruct { int i; };
 typedef struct MyStruct * MyStructPtr;
 
 MyStructPtr mystructptr() { 
@@ -46,7 +49,7 @@ typedef int * Integer;
 
 int (*funcvar)(int,int) = add;
 int * (*funcvar2)() = nowt;
-int * (*funcvar3)(void) = nowt;
+int * (*funcvar3)(void) = nowt2;
 Integer (*funcvar4)() = nowt;
 MyStructPtr (*funcvar5)() = mystructptr;
 
