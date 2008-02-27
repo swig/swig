@@ -3,6 +3,8 @@ namespace SwigExamples {
 
 # if defined(_WIN32) || defined(__WIN32__)
 
+#include <windows.h>
+
 class CriticalSection {
 public:
   CriticalSection() {
