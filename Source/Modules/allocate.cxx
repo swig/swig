@@ -613,7 +613,7 @@ Allocate():
 	  if (na) {
 	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
 			 "Class '%s' might be abstract, " "no constructors generated,\n", SwigType_namestr(Getattr(n, "name")));
-	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), " method '%s' might not be implemented.\n", SwigType_namestr(Getattr(na, "name")));
+	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), "Method %s might not be implemented.\n", Swig_name_decl(na));
 	    if (!Getattr(n, "abstract")) {
 	      List *abstract = NewList();
 	      Append(abstract, na);

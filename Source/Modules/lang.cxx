@@ -2300,8 +2300,6 @@ int Language::classDeclaration(Node *n) {
   }
 
   /* Check symbol name for template.   If not renamed. Issue a warning */
-  /*    Printf(stdout,"sym:name = %s\n", symname); */
-
   if (!validIdentifier(symname)) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
@@ -2481,8 +2479,7 @@ int Language::constructorDeclaration(Node *n) {
     return SWIG_NOWRAP;
 
   if (Extend) {
-    /* extend default constructor can be safely ignored if there is
-       already one */
+    /* extend default constructor can be safely ignored if there is already one */
     int num_required = ParmList_numrequired(Getattr(n, "parms"));
     if ((num_required == 0) && Getattr(CurrentClass, "has_default_constructor")) {
       return SWIG_NOWRAP;
@@ -2495,8 +2492,7 @@ int Language::constructorDeclaration(Node *n) {
     }
   }
 
-  /* clean protected overloaded constructors, in case they are not
-     needed anymore */
+  /* clean protected overloaded constructors, in case they are not needed anymore */
   Node *over = Swig_symbol_isoverloaded(n);
   if (over && !Getattr(CurrentClass, "sym:cleanconstructor")) {
     int dirclass = Swig_directorclass(CurrentClass);
@@ -2546,15 +2542,10 @@ int Language::constructorDeclaration(Node *n) {
 	if (Getattr(over, "copy_constructor"))
 	  over = Getattr(over, "sym:nextSibling");
 	if (over != n) {
-	  String *oname = NewStringf("%s::%s", ClassName, Swig_scopename_last(SwigType_namestr(name)));
-	  String *cname = NewStringf("%s::%s", ClassName, Swig_scopename_last(SwigType_namestr(Getattr(over, "name"))));
-	  SwigType *decl = Getattr(n, "decl");
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
-		       "Overloaded constructor ignored.  %s\n", SwigType_str(decl, SwigType_namestr(oname)));
+		       "Overloaded constructor ignored.  %s\n", Swig_name_decl(n));
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, Getfile(over), Getline(over),
-		       "Previous declaration is %s\n", SwigType_str(Getattr(over, "decl"), SwigType_namestr(cname)));
-	  Delete(oname);
-	  Delete(cname);
+		       "Previous declaration is %s\n", Swig_name_decl(over));
 	} else {
 	  constructorHandler(n);
 	}
