@@ -46,7 +46,6 @@ SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
 // const shared_ptr
 // std::vector
 // Add in generic %extend for the Upcast function for derived classes
-// Can probably remove the pgcpp for shared_ptr, unless wrapping shared_ptr<>* shared_ptr<>& and use IntPtr instead of HandleRef for C# ???
 // Remove proxy upcast method - implement %feature("shadow") ??? which replaces the proxy method
 
 %exception {
@@ -281,6 +280,13 @@ struct MemberVariables {
   Space::Klass * MemberPointer;
   Space::Klass & MemberReference;
 };
+
+// Global variables
+SwigBoost::shared_ptr<Space::Klass> GlobalSmartValue;
+Space::Klass GlobalValue;
+Space::Klass * GlobalPointer = 0;
+Space::Klass & GlobalReference = GlobalValue;
+
 %}
 
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)

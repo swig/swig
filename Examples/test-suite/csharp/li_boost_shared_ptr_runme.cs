@@ -34,12 +34,10 @@ public class runme
       System.Threading.Thread.Sleep(10);
       if (--countdown == 0)
         break;
-      if (Klass.getTotal_count() == 0)
+      if (Klass.getTotal_count() == 1) // Expect 1 instance - the one global variable (GlobalValue)
         break;
-      else
-        Console.WriteLine("Count: {0}", Klass.getTotal_count());
     };
-    if (Klass.getTotal_count() != 0)
+    if (Klass.getTotal_count() != 1)
       throw new ApplicationException("Klass.total_count=" + Klass.getTotal_count());
 
     int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 
@@ -490,7 +488,77 @@ public class runme
       try { m.MemberValue = null; throw new ApplicationException("Failed to catch null pointer"); } catch (ArgumentNullException) {}
     }
 
-    // templates
+    ////////////////////////////////// Global variables ////////////////////////////////////////
+    // smart pointer
+    {
+      Klass kglobal = li_boost_shared_ptr.GlobalSmartValue;
+      if (kglobal != null)
+        throw new ApplicationException("expected null");
+
+      Klass k = new Klass("smart global value");
+      li_boost_shared_ptr.GlobalSmartValue = k;
+      verifyCount(2, k);
+
+      kglobal = li_boost_shared_ptr.GlobalSmartValue;
+      String val = kglobal.getValue();
+      verifyValue("smart global value", val);
+      verifyCount(3, kglobal);
+      verifyCount(3, k);
+      verifyValue("smart global value", li_boost_shared_ptr.GlobalSmartValue.getValue());
+      li_boost_shared_ptr.GlobalSmartValue = null;
+    }
+    // plain value
+    {
+      Klass kglobal;
+
+      Klass k = new Klass("global value");
+      li_boost_shared_ptr.GlobalValue = k;
+      verifyCount(1, k);
+
+      kglobal = li_boost_shared_ptr.GlobalValue;
+      String val = kglobal.getValue();
+      verifyValue("global value", val);
+      verifyCount(1, kglobal);
+      verifyCount(1, k);
+      verifyValue("global value", li_boost_shared_ptr.GlobalValue.getValue());
+
+      try { li_boost_shared_ptr.GlobalValue = null; throw new ApplicationException("Failed to catch null pointer"); } catch (ArgumentNullException) {}
+    }
+    // plain pointer
+    {
+      Klass kglobal = li_boost_shared_ptr.GlobalPointer;
+      if (kglobal != null)
+        throw new ApplicationException("expected null");
+
+      Klass k = new Klass("global pointer");
+      li_boost_shared_ptr.GlobalPointer = k;
+      verifyCount(1, k);
+
+      kglobal = li_boost_shared_ptr.GlobalPointer;
+      String val = kglobal.getValue();
+      verifyValue("global pointer", val);
+      verifyCount(1, kglobal);
+      verifyCount(1, k);
+      li_boost_shared_ptr.GlobalPointer = null;
+    }
+    // plain reference
+    {
+      Klass kglobal;
+
+      Klass k = new Klass("global reference");
+      li_boost_shared_ptr.GlobalReference = k;
+      verifyCount(1, k);
+
+      kglobal = li_boost_shared_ptr.GlobalReference;
+      String val = kglobal.getValue();
+      verifyValue("global reference", val);
+      verifyCount(1, kglobal);
+      verifyCount(1, k);
+
+      try { li_boost_shared_ptr.GlobalReference = null; throw new ApplicationException("Failed to catch null pointer"); } catch (ArgumentNullException) {}
+    }
+
+    ////////////////////////////////// Templates ////////////////////////////////////////
     {
       PairIntDouble pid = new PairIntDouble(10, 20.2);
       if (pid.baseVal1 != 20 || pid.baseVal2 != 40.4)

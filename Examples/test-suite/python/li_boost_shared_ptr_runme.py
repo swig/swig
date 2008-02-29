@@ -16,7 +16,8 @@ class li_boost_shared_ptr_runme:
     for i in range (0,loopCount):
       self.runtest()
 
-    if (li_boost_shared_ptr.Klass.getTotal_count() != 0):
+    # Expect 1 instance - the one global variable (GlobalValue)
+    if (li_boost_shared_ptr.Klass.getTotal_count() != 1):
       raise RuntimeError("Klass.total_count=", li_boost_shared_ptr.Klass.getTotal_count())
 
     wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count() 
@@ -440,7 +441,78 @@ class li_boost_shared_ptr_runme:
     except ValueError:
       pass
 
-    # templates
+    # ////////////////////////////////// Global variables ////////////////////////////////////////
+    # smart pointer
+    kglobal = li_boost_shared_ptr.cvar.GlobalSmartValue
+    if (kglobal != None):
+      raise RuntimeError("expected null")
+
+    k = li_boost_shared_ptr.Klass("smart global value")
+    li_boost_shared_ptr.cvar.GlobalSmartValue = k
+    self.verifyCount(2, k)
+
+    kglobal = li_boost_shared_ptr.cvar.GlobalSmartValue
+    val = kglobal.getValue()
+    self.verifyValue("smart global value", val)
+    self.verifyCount(3, kglobal)
+    self.verifyCount(3, k)
+    self.verifyValue("smart global value", li_boost_shared_ptr.cvar.GlobalSmartValue.getValue())
+    li_boost_shared_ptr.cvar.GlobalSmartValue = None
+
+    # plain value
+    k = li_boost_shared_ptr.Klass("global value")
+    li_boost_shared_ptr.cvar.GlobalValue = k
+    self.verifyCount(1, k)
+
+    kglobal = li_boost_shared_ptr.cvar.GlobalValue
+    val = kglobal.getValue()
+    self.verifyValue("global value", val)
+    self.verifyCount(1, kglobal)
+    self.verifyCount(1, k)
+    self.verifyValue("global value", li_boost_shared_ptr.cvar.GlobalValue.getValue())
+
+    try:
+      li_boost_shared_ptr.cvar.GlobalValue = None
+      raise RuntimeError("Failed to catch null pointer")
+    except ValueError:
+      pass
+
+    # plain pointer
+    kglobal = li_boost_shared_ptr.cvar.GlobalPointer
+    if (kglobal != None):
+      raise RuntimeError("expected null")
+
+    k = li_boost_shared_ptr.Klass("global pointer")
+    li_boost_shared_ptr.cvar.GlobalPointer = k
+    self.verifyCount(1, k)
+
+    kglobal = li_boost_shared_ptr.cvar.GlobalPointer
+    val = kglobal.getValue()
+    self.verifyValue("global pointer", val)
+    self.verifyCount(1, kglobal)
+    self.verifyCount(1, k)
+    li_boost_shared_ptr.cvar.GlobalPointer = None
+
+    # plain reference
+    kglobal
+
+    k = li_boost_shared_ptr.Klass("global reference")
+    li_boost_shared_ptr.cvar.GlobalReference = k
+    self.verifyCount(1, k)
+
+    kglobal = li_boost_shared_ptr.cvar.GlobalReference
+    val = kglobal.getValue()
+    self.verifyValue("global reference", val)
+    self.verifyCount(1, kglobal)
+    self.verifyCount(1, k)
+
+    try:
+      li_boost_shared_ptr.cvar.GlobalReference = None 
+      raise RuntimeError("Failed to catch null pointer")
+    except ValueError:
+      pass
+
+    # ////////////////////////////////// Templates ////////////////////////////////////////
     pid = li_boost_shared_ptr.PairIntDouble(10, 20.2)
     if (pid.baseVal1 != 20 or pid.baseVal2 != 40.4):
       raise RuntimeError("Base values wrong")

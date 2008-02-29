@@ -12,9 +12,6 @@
 
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
 
-// TODO:
-// varout varin typemaps
-
 // plain value
 %typemap(in) CONST TYPE (void *argp, int res = 0) {
   int newmem = 0;
@@ -33,6 +30,24 @@
   %set_output(SWIG_NewPointerObj(new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
+%typemap(varin) CONST TYPE {
+  void *argp = 0;
+  int newmem = 0;
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  }
+  if (!argp) {
+    %argument_nullref("$type", $symname, $argnum);
+  } else {
+    $1 = *(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get());
+    if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+  }
+}
+%typemap(varout) CONST TYPE {
+  %set_varoutput(SWIG_NewPointerObj(new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+}
+
 // plain pointer
 %typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) {
   int newmem = 0;
@@ -49,10 +64,32 @@
     $1 = %const_cast((smartarg ? smartarg->get() : 0), $1_ltype);
   }
 }
-
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE * {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+}
+
+%typemap(varin) CONST TYPE * {
+  void *argp = 0;
+  int newmem = 0;
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared;
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0;
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    $1 = %const_cast(tempshared.get(), $1_ltype);
+  } else {
+    smartarg = %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    $1 = %const_cast((smartarg ? smartarg->get() : 0), $1_ltype);
+  }
+}
+%typemap(varout, fragment="SWIG_null_deleter") CONST TYPE * {
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_0) : 0;
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // plain reference
@@ -76,6 +113,28 @@
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
+%typemap(varin) CONST TYPE & {
+  void *argp = 0;
+  int newmem = 0;
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared;
+  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    $1 = *%const_cast(tempshared.get(), $1_ltype);
+  } else {
+    $1 = *%const_cast(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get(), $1_ltype);
+  }
+}
+%typemap(varout, fragment="SWIG_null_deleter") CONST TYPE & {
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(&$1 SWIG_NO_NULL_DELETER_0);
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+}
+
 // plain pointer by reference
 %typemap(in) CONST TYPE *& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
   int newmem = 0;
@@ -97,6 +156,13 @@
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
+%typemap(varin) CONST TYPE *& %{
+#error "varin typemap not implemented"
+%}
+%typemap(varout) CONST TYPE *& %{
+#error "varout typemap not implemented"
+%}
+
 // shared_ptr by value
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (void *argp, int res = 0) {
   int newmem = 0;
@@ -107,10 +173,24 @@
   if (argp) $1 = *(%reinterpret_cast(argp, $&ltype));
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $&ltype);
 }
-
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1) : 0;
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+}
+
+%typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
+  int newmem = 0;
+  void *argp = 0;
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  }
+  $1 = argp ? *(%reinterpret_cast(argp, $&ltype)) : SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE >();
+  if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $&ltype);
+}
+%typemap(varout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1) : 0;
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // shared_ptr by reference
@@ -120,11 +200,6 @@
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
-/*
-  if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
-  if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $ltype);
-  $1 = &tempshared;
-*/
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
     delete %reinterpret_cast(argp, $ltype);
@@ -137,6 +212,13 @@
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = *$1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1) : 0;
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
+
+%typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
+#error "varin typemap not implemented"
+%}
+%typemap(varout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
+#error "varout typemap not implemented"
+%}
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * (void *argp, int res = 0, $*1_ltype tempshared) {
@@ -159,6 +241,13 @@
   if ($owner) delete $1;
 }
 
+%typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
+#error "varin typemap not implemented"
+%}
+%typemap(varout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
+#error "varout typemap not implemented"
+%}
+
 // shared_ptr by pointer reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& (void *argp, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, $*1_ltype temp = 0) {
   int newmem = 0;
@@ -175,6 +264,13 @@
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >* smartresult = *$1 && **$1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(**$1) : 0;
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
+
+%typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& %{
+#error "varin typemap not implemented"
+%}
+%typemap(varout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& %{
+#error "varout typemap not implemented"
+%}
 
 // Typecheck typemaps
 // Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting 
