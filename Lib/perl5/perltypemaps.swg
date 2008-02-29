@@ -62,7 +62,7 @@
 
 /* constant */
 %define %set_constant(name, obj) %begin_block
-  SV *sv = get_sv((char*) SWIG_prefix name, TRUE | 0x2);
+  SV *sv = get_sv((char*) SWIG_prefix name, TRUE | 0x2 | GV_ADDMULTI);
   sv_setsv(sv, obj);
   SvREADONLY_on(sv);
 %end_block %enddef

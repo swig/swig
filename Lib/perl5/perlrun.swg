@@ -444,7 +444,7 @@ SWIG_Perl_GetModule(void) {
 
   /* first check if pointer already created */
   if (!type_pointer) {
-    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
+    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE | GV_ADDMULTI);
     if (pointer && SvOK(pointer)) {
       type_pointer = INT2PTR(swig_type_info **, SvIV(pointer));
     }
@@ -458,7 +458,7 @@ SWIG_Perl_SetModule(swig_module_info *module) {
   SV *pointer;
 
   /* create a new pointer */
-  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
+  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE | GV_ADDMULTI);
   sv_setiv(pointer, PTR2IV(module));
 }
 

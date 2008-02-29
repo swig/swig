@@ -39,7 +39,7 @@ XS(SWIG_init) {
     /* Install variables */
     for (i = 0; swig_variables[i].name; i++) {
       SV *sv;
-      sv = get_sv((char*) swig_variables[i].name, TRUE | 0x2);
+      sv = get_sv((char*) swig_variables[i].name, TRUE | 0x2 | GV_ADDMULTI);
       if (swig_variables[i].type) {
 	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type,0);
       } else {
@@ -51,7 +51,7 @@ XS(SWIG_init) {
     /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;
-      sv = get_sv((char*)swig_constants[i].name, TRUE | 0x2);
+      sv = get_sv((char*)swig_constants[i].name, TRUE | 0x2 | GV_ADDMULTI);
       switch(swig_constants[i].type) {
       case SWIG_INT:
 	sv_setiv(sv, (IV) swig_constants[i].lvalue);

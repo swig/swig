@@ -376,7 +376,7 @@
     %dirout_fail(swig_res,"$type");
   }
   $result = %reinterpret_cast(swig_argp, $ltype);
-  swig_acquire_ownership_obj(%as_voidptr($result), own);
+  swig_acquire_ownership_obj(%as_voidptr($result), own /* & TODO: SWIG_POINTER_OWN */);
 }
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE * {
   if (director) {
@@ -392,7 +392,7 @@
   }
   if (!swig_argp) { %dirout_nullref("$type"); }
   $result = %reinterpret_cast(swig_argp, $ltype);
-  swig_acquire_ownership_obj(%as_voidptr($result), own);
+  swig_acquire_ownership_obj(%as_voidptr($result), own /* & TODO: SWIG_POINTER_OWN */);
 }
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE & {
   if (director) {
