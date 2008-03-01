@@ -573,8 +573,10 @@ on <a href="Typemaps.html#Typemaps">Typemaps</a> for details about this.
 </p>
 
 <p>
-At this time, SWIG does not provide any special support for Unicode or
-wide-character strings (the C <tt>wchar_t</tt> type).  This is a
+At this time, SWIG provides limited support for Unicode and
+wide-character strings (the C <tt>wchar_t</tt> type).  
+Some languages provide typemaps for wchar_t, but bear in mind these
+might not be portable across different operating systems.  This is a
 delicate topic that is poorly understood by many programmers and not
 implemented in a consistent manner across languages.  For those
 scripting languages that provide Unicode support, Unicode strings are
