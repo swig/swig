@@ -46,6 +46,7 @@ skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php4	= test -n "@SKIP_PHP4@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
+skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-pike       = test -n "@SKIP_PIKE@"
 skip-chicken	= test -n "@SKIP_CHICKEN@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
@@ -82,6 +83,7 @@ check-aliveness:
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
+	@$(skip-octave)   || ./$(TARGET) -octave   -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
 	@$(skip-pike)     || ./$(TARGET) -pike     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
@@ -100,6 +102,7 @@ check-examples:					\
 	check-mzscheme-examples			\
 	check-ruby-examples			\
 	check-ocaml-examples			\
+	check-octave-examples			\
 	check-php4-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
@@ -120,6 +123,7 @@ guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
+octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php4_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php4/check.list)
 pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
 chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
@@ -171,6 +175,7 @@ check-gifplot:					\
 	check-mzscheme-gifplot			\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
+	check-octave-gifplot			\
 	check-php4-gifplot			\
 	check-pike-gifplot			\
 	check-chicken-gifplot                   \
@@ -212,6 +217,7 @@ check-test-suite:				\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
+	check-octave-test-suite			\
 	check-php4-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
@@ -255,6 +261,7 @@ all-test-suite:					\
 	all-mzscheme-test-suite			\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
+	all-octave-test-suite			\
 	all-php4-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
@@ -281,6 +288,7 @@ broken-test-suite:				\
 	broken-mzscheme-test-suite		\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
+	broken-octave-test-suite		\
 	broken-php4-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
@@ -366,6 +374,7 @@ noskip-test-suite:				\
 	noskip-mzscheme-test-suite		\
 	noskip-ruby-test-suite			\
 	noskip-ocaml-test-suite			\
+	noskip-octave-test-suite		\
 	noskip-php4-test-suite			\
 	noskip-pike-test-suite			\
 	noskip-csharp-test-suite		\
@@ -423,7 +432,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml \
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
 
 lib-modules = std

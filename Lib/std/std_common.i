@@ -10,7 +10,7 @@
 //
 //#define SWIG_STD_NOMODERN_STL
 
-// Here, we identify compilers we now have problems with STL.
+// Here, we identify compilers we know have problems with STL.
 %{
   
 #if defined(__SUNPRO_CC) && defined(_RWSTD_VER)

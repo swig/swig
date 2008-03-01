@@ -845,6 +845,10 @@ public:
     // not sure exactly how this workswhat this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
     // this fixes issues in test suites: template_default2 & template_specialization
+
+    // * if i understand correctly, this is a bug.
+    // * consider effect on template_specialization_defarg
+
     static Hash *emitted = NewHash();
     if (Getattr(emitted, mangled_classname))
       return SWIG_NOWRAP;

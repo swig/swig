@@ -35,6 +35,7 @@ extern "C" {
   Language *swig_php4(void);
   Language *swig_php5(void);
   Language *swig_ocaml(void);
+  Language *swig_octave(void);
   Language *swig_pike(void);
   Language *swig_sexp(void);
   Language *swig_xml(void);
@@ -70,6 +71,7 @@ static swig_module modules[] = {
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},
   {"-ocaml", swig_ocaml, "Ocaml"},
+  {"-octave", swig_octave, "Octave"},
   {"-perl", swig_perl5, "Perl"},
   {"-perl5", swig_perl5, 0},
   {"-php", swig_php4, 0},

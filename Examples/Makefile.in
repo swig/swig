@@ -274,6 +274,36 @@ python_clean:
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
 
 ##################################################################
+#####                       OCTAVE                          ######
+##################################################################
+
+# Make sure these locate your Octave installation
+OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
+OCTAVE_LIB    = 
+
+# Extra Octave specific dynamic linking options
+OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
+OCTAVE_SO     = @OCTAVE_SO@
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+octave_cpp: $(SRCS)
+	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
+# -----------------------------------------------------------------
+# Cleaning the octave examples
+# -----------------------------------------------------------------
+
+octave_clean:
+	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@ *@OCTAVE_SO@
+
+##################################################################
 #####                       GUILE                           ######
 ##################################################################
 

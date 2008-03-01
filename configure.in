@@ -735,6 +735,65 @@ AC_SUBST(PERL5LIB)
 AC_SUBST(PERL5CCFLAGS)
 
 #----------------------------------------------------------------
+# Look for Octave
+#----------------------------------------------------------------
+
+OCTAVEBIN=
+OCTAVEDYNAMICLINKING=
+OCTAVE_SO=.oct
+
+AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
+AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[ OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
+
+# First, check for "--without-octave" or "--with-octave=no".
+if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Octave])
+OCTAVE=
+fi
+
+# First figure out what the name of Octave is
+
+if test "x$OCTAVEBIN" = xyes; then
+AC_CHECK_PROGS(OCTAVE, octave)
+else
+OCTAVE="$OCTAVEBIN"
+fi
+
+
+AC_MSG_CHECKING(for Octave header files)
+if test -n "$OCTAVE"; then
+	OCTAVEDIR="/usr/include"
+	if test "$OCTAVEDIR" != ""; then
+		dirs="$OCTAVEDIR"
+		OCTAVEEXT=""
+		for i in $dirs; do
+			if test -r $i/octave/oct.h; then
+				OCTAVEEXT="$i"
+				break;
+			fi
+		done
+		if test "$OCTAVEEXT" = "" ; then
+			AC_MSG_RESULT(not found)
+		else
+			AC_MSG_RESULT($OCTAVEEXT)
+		fi
+
+		AC_MSG_CHECKING(for Octave compiler options)
+ 		OCTAVECCFLAGS=""
+		AC_MSG_RESULT($OCTAVECCFLAGS)
+	fi
+else
+       	AC_MSG_RESULT(could not figure out how to run octave)
+fi
+
+AC_SUBST(OCTAVE)
+AC_SUBST(OCTAVEEXT)
+AC_SUBST(OCTAVE_SO)
+AC_SUBST(OCTAVEDYNAMICLINKING)
+AC_SUBST(OCTAVELIB)
+AC_SUBST(OCTAVECCFLAGS)
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
@@ -1782,6 +1841,13 @@ fi
 AC_SUBST(SKIP_PERL5)
 
 
+SKIP_OCTAVE=
+if test -z "$OCTAVE" || test -z "$OCTAVEEXT" ; then
+    SKIP_OCTAVE="1"
+fi
+AC_SUBST(SKIP_OCTAVE)
+
+
 SKIP_PYTHON=
 if test -z "$PYINCLUDE" || test -z "$PYLIB" ; then
     SKIP_PYTHON="1"
@@ -1968,6 +2034,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/java/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
     Examples/test-suite/ocaml/Makefile	        \
+    Examples/test-suite/octave/Makefile	        \
     Examples/test-suite/perl5/Makefile	        \
     Examples/test-suite/php4/Makefile	        \
     Examples/test-suite/pike/Makefile	        \
