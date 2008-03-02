@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Varargs"></a>13 Variable Length Arguments</H1>
+<H1><a name="Varargs"></a>32 Variable Length Arguments</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -42,7 +42,7 @@ added in SWIG-1.3.12.  Most other wrapper generation tools have
 wisely chosen to avoid this issue.
 </p>
 
-<H2><a name="Varargs_nn2"></a>13.1 Introduction</H2>
+<H2><a name="Varargs_nn2"></a>32.1 Introduction</H2>
 
 
 <p>
@@ -139,7 +139,7 @@ List make_list(const char *s, ...) {
 </pre>
 </div>
 
-<H2><a name="Varargs_nn3"></a>13.2 The Problem</H2>
+<H2><a name="Varargs_nn3"></a>32.2 The Problem</H2>
 
 
 <p>
@@ -232,7 +232,7 @@ can also support real varargs wrapping (with stack-frame manipulation) if you
 are willing to get hands dirty.  Keep reading.
 </p>
 
-<H2><a name="Varargs_nn4"></a>13.3 Default varargs support</H2>
+<H2><a name="Varargs_nn4"></a>32.3 Default varargs support</H2>
 
 
 <p>
@@ -285,7 +285,7 @@ instance, you could make function calls like this (in Python):
 Notice how string formatting is being done in Python instead of C. 
 </p>
 
-<H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
+<H2><a name="Varargs_nn5"></a>32.4 Argument replacement using %varargs</H2>
 
 
 <p>
@@ -347,7 +347,7 @@ mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  
 </p>
 
-<H2><a name="Varargs_nn6"></a>13.5 Varargs and typemaps</H2>
+<H2><a name="Varargs_nn6"></a>32.5 Varargs and typemaps</H2>
 
 
 <p>
@@ -499,7 +499,7 @@ really want to elevate your guru status and increase your job
 security, continue to the next section.
 </p>
 
-<H2><a name="Varargs_nn7"></a>13.6 Varargs wrapping with libffi</H2>
+<H2><a name="Varargs_nn7"></a>32.6 Varargs wrapping with libffi</H2>
 
 
 <p>
@@ -751,7 +751,7 @@ provide an argument number for the first extra argument.  This can be used to in
 values.   Please consult the chapter on each language module for more details.
 </p>
 
-<H2><a name="Varargs_nn8"></a>13.7 Wrapping of va_list</H2>
+<H2><a name="Varargs_nn8"></a>32.7 Wrapping of va_list</H2>
 
 
 <p>
@@ -775,7 +775,7 @@ call-stack.  It's not clear that exporting a <tt>va_list</tt> would
 have any use or that it would work at all.
 </p>
 
-<H2><a name="Varargs_nn9"></a>13.8 C++ Issues</H2>
+<H2><a name="Varargs_nn9"></a>32.8 C++ Issues</H2>
 
 
 <p>
@@ -844,7 +844,7 @@ design or to provide an alternative interface using a helper function than it is
 fully general wrapper to a varargs C++ member function.
 </p>
 
-<H2><a name="Varargs_nn10"></a>13.9 Discussion</H2>
+<H2><a name="Varargs_nn10"></a>32.9 Discussion</H2>
 
 
 <p>

@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Scripting"></a>4 Scripting Languages</H1>
+<H1><a name="Scripting"></a>27 Scripting Languages</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -37,7 +37,7 @@ programming and the mechanisms by which scripting language interpreters
 access C and C++ code.
 </p>
 
-<H2><a name="Scripting_nn2"></a>4.1 The two language view of the world</H2>
+<H2><a name="Scripting_nn2"></a>27.1 The two language view of the world</H2>
 
 
 <p>
@@ -68,7 +68,7 @@ languages can be used for rapid prototyping, interactive debugging,
 scripting, and access to high-level data structures such associative
 arrays. </p>
 
-<H2><a name="Scripting_nn3"></a>4.2 How does a scripting language talk to C?</H2>
+<H2><a name="Scripting_nn3"></a>27.2 How does a scripting language talk to C?</H2>
 
 
 <p>
@@ -93,7 +93,7 @@ function, arguments, and so forth.  The next few sections illustrate
 the process.
 </p>
 
-<H3><a name="Scripting_nn4"></a>4.2.1 Wrapper functions</H3>
+<H3><a name="Scripting_nn4"></a>27.2.1 Wrapper functions</H3>
 
 
 <p>
@@ -165,7 +165,7 @@ Python. Both require special wrappers to be written and both need
 additional initialization code. Only the specific details are
 different.</p>
 
-<H3><a name="Scripting_nn5"></a>4.2.2 Variable linking</H3>
+<H3><a name="Scripting_nn5"></a>27.2.2 Variable linking</H3>
 
 
 <p>
@@ -201,7 +201,7 @@ typing <tt>$Foo = 4</tt> would call the underlying set function to change
 the value.
 </p>
 
-<H3><a name="Scripting_nn6"></a>4.2.3 Constants</H3>
+<H3><a name="Scripting_nn6"></a>27.2.3 Constants</H3>
 
 
 <p>
@@ -222,7 +222,7 @@ functions for creating variables so installing constants is usually
 a trivial exercise.
 </p>
 
-<H3><a name="Scripting_nn7"></a>4.2.4 Structures and classes</H3>
+<H3><a name="Scripting_nn7"></a>27.2.4 Structures and classes</H3>
 
 
 <p>
@@ -283,7 +283,7 @@ internals of an object, the interpreter does not need to know anything
 about the actual representation of a <tt>Vector</tt>.
 </p>
 
-<H3><a name="Scripting_nn8"></a>4.2.5 Proxy classes</H3>
+<H3><a name="Scripting_nn8"></a>27.2.5 Proxy classes</H3>
 
 
 <p>
@@ -345,7 +345,7 @@ affect both objects equally and for all practical purposes, it appears
 as if you are simply manipulating a C/C++ object. 
 </p>
 
-<H2><a name="Scripting_nn9"></a>4.3 Building scripting language extensions</H2>
+<H2><a name="Scripting_nn9"></a>27.3 Building scripting language extensions</H2>
 
 
 <p>
@@ -358,7 +358,7 @@ recompile the scripting language interpreter with your extensions
 added to it.
 </p>
 
-<H3><a name="Scripting_nn10"></a>4.3.1 Shared libraries and dynamic loading</H3>
+<H3><a name="Scripting_nn10"></a>27.3.1 Shared libraries and dynamic loading</H3>
 
 
 <p>
@@ -405,7 +405,7 @@ changing the link line to the following :</p>
 c++ -shared example.o example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Scripting_nn11"></a>4.3.2 Linking with shared libraries</H3>
+<H3><a name="Scripting_nn11"></a>27.3.2 Linking with shared libraries</H3>
 
 
 <p>
@@ -452,7 +452,7 @@ the path using linker options instead.
 
 </ul>
 
-<H3><a name="Scripting_nn12"></a>4.3.3 Static linking</H3>
+<H3><a name="Scripting_nn12"></a>27.3.3 Static linking</H3>
 
 
 <p>

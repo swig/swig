@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Library"></a>8 SWIG library</H1>
+<H1><a name="Library"></a>11 SWIG library</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -57,7 +57,7 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 </p>
 
-<H2><a name="Library_nn2"></a>8.1 The %include directive and library search path</H2>
+<H2><a name="Library_nn2"></a>11.1 The %include directive and library search path</H2>
 
 
 <p>
@@ -88,7 +88,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3"></a>8.2 C Arrays and Pointers</H2>
+<H2><a name="Library_nn3"></a>11.2 C Arrays and Pointers</H2>
 
 
 <p>
@@ -100,7 +100,7 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_nn4"></a>8.2.1 cpointer.i</H3>
+<H3><a name="Library_nn4"></a>11.2.1 cpointer.i</H3>
 
 
 <p>
@@ -316,7 +316,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_nn5"></a>8.2.2 carrays.i</H3>
+<H3><a name="Library_nn5"></a>11.2.2 carrays.i</H3>
 
 
 <p>
@@ -492,7 +492,7 @@ you should consider using a special array object rather than a bare pointer.
 used with types of <tt>char</tt> or <tt>char *</tt>.
 </p>
 
-<H3><a name="Library_nn6"></a>8.2.3 cmalloc.i</H3>
+<H3><a name="Library_nn6"></a>11.2.3 cmalloc.i</H3>
 
 
 <p>
@@ -653,7 +653,7 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7"></a>8.2.4 cdata.i</H3>
+<H3><a name="Library_nn7"></a>11.2.4 cdata.i</H3>
 
 
 <p>
@@ -751,7 +751,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8"></a>8.3 C String Handling</H2>
+<H2><a name="Library_nn8"></a>11.3 C String Handling</H2>
 
 
 <p>
@@ -771,7 +771,7 @@ morality.  The modules in this section provide basic functionality
 for manipulating raw C strings.
 </p>
 
-<H3><a name="Library_nn9"></a>8.3.1 Default string handling</H3>
+<H3><a name="Library_nn9"></a>11.3.1 Default string handling</H3>
 
 
 <p>
@@ -812,7 +812,7 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10"></a>8.3.2 Passing binary data</H3>
+<H3><a name="Library_nn10"></a>11.3.2 Passing binary data</H3>
 
 
 <p>
@@ -853,7 +853,7 @@ Now, in the target language, you can use binary string data like this:
 In the wrapper function, the passed string will be expanded to a pointer and length parameter.
 </p>
 
-<H3><a name="Library_nn11"></a>8.3.3 Using %newobject to release memory</H3>
+<H3><a name="Library_nn11"></a>11.3.3 Using %newobject to release memory</H3>
 
 
 <p>
@@ -891,7 +891,7 @@ char *foo();
 This will release the result.
 </p>
 
-<H3><a name="Library_nn12"></a>8.3.4 cstring.i</H3>
+<H3><a name="Library_nn12"></a>11.3.4 cstring.i</H3>
 
 
 <p>
@@ -1351,7 +1351,7 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library"></a>8.4 STL/C++ Library</H2>
+<H2><a name="Library_stl_cpp_library"></a>11.4 STL/C++ Library</H2>
 
 
 <p>
@@ -1387,7 +1387,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_nn14"></a>8.4.1 std_string.i</H3>
+<H3><a name="Library_nn14"></a>11.4.1 std_string.i</H3>
 
 
 <p>
@@ -1476,7 +1476,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 We're looking into it.
 </p>
 
-<H3><a name="Library_nn15"></a>8.4.2 std_vector.i</H3>
+<H3><a name="Library_nn15"></a>11.4.2 std_vector.i</H3>
 
 
 <p>
@@ -1660,7 +1660,7 @@ details and the public API exposed to the interpreter vary.
 </p>
 
 
-<H3><a name="Library_stl_exceptions"></a>8.4.3 STL exceptions</H3>
+<H3><a name="Library_stl_exceptions"></a>11.4.3 STL exceptions</H3>
 
 
 <p>
@@ -1711,10 +1711,10 @@ Any thrown STL exceptions will then be gracefully handled instead of causing a c
 </p>
 
 
-<H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
+<H2><a name="Library_nn16"></a>11.5 Utility Libraries</H2>
 
 
-<H3><a name="Library_nn17"></a>8.5.1 exception.i</H3>
+<H3><a name="Library_nn17"></a>11.5.1 exception.i</H3>
 
 
 <p>

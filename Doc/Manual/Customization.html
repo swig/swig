@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Customization"></a>11 Customization Features</H1>
+<H1><a name="Customization"></a>6 Customization Features</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -45,7 +45,7 @@ of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
 </p>
 
-<H2><a name="exception"></a>11.1 Exception handling with %exception</H2>
+<H2><a name="exception"></a>6.1 Exception handling with %exception</H2>
 
 
 <p>
@@ -85,7 +85,7 @@ for exception handling.   That directive is deprecated--<tt>%exception</tt>
 provides the same functionality, but is substantially more flexible.
 </p>
 
-<H3><a name="Customization_nn3"></a>11.1.1 Handling exceptions in C code</H3>
+<H3><a name="Customization_nn3"></a>6.1.1 Handling exceptions in C code</H3>
 
 
 <p>
@@ -151,7 +151,7 @@ Each target language has its own approach to creating a runtime error/exception 
 and for Perl it is the <tt>croak</tt> method shown above.
 </p>
 
-<H3><a name="Customization_nn4"></a>11.1.2 Exception handling with longjmp()</H3>
+<H3><a name="Customization_nn4"></a>6.1.2 Exception handling with longjmp()</H3>
 
 
 <p>
@@ -225,7 +225,7 @@ Note: This implementation is only intended to illustrate the general idea.  To m
 modify it to handle nested <tt>try</tt> declarations.
 </p>
 
-<H3><a name="Customization_nn5"></a>11.1.3 Handling C++ exceptions</H3>
+<H3><a name="Customization_nn5"></a>6.1.3 Handling C++ exceptions</H3>
 
 
 <p>
@@ -260,7 +260,7 @@ class OutOfMemory {};
 </pre>
 </div>
 
-<H3><a name="Customization_allowexcept"></a>11.1.4 Exception handlers for variables</H3>
+<H3><a name="Customization_allowexcept"></a>6.1.4 Exception handlers for variables</H3>
 
 
 <p>
@@ -285,7 +285,7 @@ The <tt>%allowexception</tt> feature works like any other feature and so can be 
 </pre>
 </div>
 
-<H3><a name="Customization_nn6"></a>11.1.5 Defining different exception handlers</H3>
+<H3><a name="Customization_nn6"></a>6.1.5 Defining different exception handlers</H3>
 
 
 <p>
@@ -422,7 +422,7 @@ declarations.  However, it never really worked that well and the new
 %exception directive is much better.
 </p>
 
-<H3><a name="Customization_exception_special_variables"></a>11.1.6 Special variables for %exception</H3>
+<H3><a name="Customization_exception_special_variables"></a>6.1.6 Special variables for %exception</H3>
 
 
 <p>
@@ -510,7 +510,7 @@ Below shows the expansions for the 1st of the overloaded <tt>something</tt> wrap
 </pre></div>
 
 
-<H3><a name="Customization_nn7"></a>11.1.7 Using The SWIG exception library</H3>
+<H3><a name="Customization_nn7"></a>6.1.7 Using The SWIG exception library</H3>
 
 
 <p>
@@ -567,7 +567,7 @@ it can be used elsewhere in SWIG. This includes typemaps and helper
 functions.  
 </p>
 
-<H2><a name="ownership"></a>11.2 Object ownership and %newobject</H2>
+<H2><a name="ownership"></a>6.2 Object ownership and %newobject</H2>
 
 
 <p>
@@ -719,7 +719,7 @@ char *strdup(const char *s);
 The results might not be what you expect.
 </p>
 
-<H2><a name="features"></a>11.3 Features and the %feature directive</H2>
+<H2><a name="features"></a>6.3 Features and the %feature directive</H2>
 
 
 <p>
@@ -801,7 +801,7 @@ The following are all equivalent:
 The syntax in the first variation will generate the <tt>{ }</tt> delimiters used whereas the other variations will not.
 </p>
 
-<H3><a name="Customization_feature_attributes"></a>11.3.1 Feature attributes</H3>
+<H3><a name="Customization_feature_attributes"></a>6.3.1 Feature attributes</H3>
 
 
 <p>
@@ -842,7 +842,7 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 Further details can be obtained from the <a href="Java.html#exception_handling">Java exception handling</a> section.
 </p>
 
-<H3><a name="Customization_feature_flags"></a>11.3.2 Feature flags</H3>
+<H3><a name="Customization_feature_flags"></a>6.3.2 Feature flags</H3>
 
 
 <p>
@@ -940,7 +940,7 @@ in the <tt>swig.swg</tt> Library file. The following shows the alternative synta
 The concept of clearing features is discussed next.
 </p>
 
-<H3><a name="Customization_clearing_features"></a>11.3.3 Clearing features</H3>
+<H3><a name="Customization_clearing_features"></a>6.3.3 Clearing features</H3>
 
 
 <p>
@@ -1019,7 +1019,7 @@ but this will:
 </pre>
 </div>
 
-<H3><a name="Customization_features_default_args"></a>11.3.4 Features and default arguments</H3>
+<H3><a name="Customization_features_default_args"></a>6.3.4 Features and default arguments</H3>
 
 
 <p>
@@ -1094,7 +1094,7 @@ specifying or not specifying default arguments in a feature is not applicable as
 in SWIG-1.3.23 when the approach to wrapping methods with default arguments was changed.
 </p>
 
-<H3><a name="features_example"></a>11.3.5 Feature example</H3>
+<H3><a name="features_example"></a>6.3.5 Feature example</H3>
 
 
 <p>

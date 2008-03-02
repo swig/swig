@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Preprocessor"></a>7 Preprocessing</H1>
+<H1><a name="Preprocessor"></a>23 Preprocessing</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -34,7 +34,7 @@ However, a number of modifications and enhancements have been made.  This
 chapter describes some of these modifications.
 </p>
 
-<H2><a name="Preprocessor_nn2"></a>7.1 File inclusion</H2>
+<H2><a name="Preprocessor_nn2"></a>23.1 File inclusion</H2>
 
 
 <p>
@@ -60,7 +60,7 @@ By default, the <tt>#include</tt> is ignored unless you run SWIG with the
 is that you often don't want SWIG to try and wrap everything included
 in standard header system headers and auxiliary files.
 
-<H2><a name="Preprocessor_nn3"></a>7.2 File imports</H2>
+<H2><a name="Preprocessor_nn3"></a>23.2 File imports</H2>
 
 
 <p>
@@ -89,7 +89,7 @@ The <tt>-importall</tt> directive tells SWIG to follow all <tt>#include</tt> sta
 as imports.    This might be useful if you want to extract type definitions from system 
 header files without generating any wrappers.
 
-<H2><a name="Preprocessor_condition_compilation"></a>7.3 Conditional Compilation</H2>
+<H2><a name="Preprocessor_condition_compilation"></a>23.3 Conditional Compilation</H2>
 
 
 <p>
@@ -150,7 +150,7 @@ SWIG (except for the symbol `<tt>SWIG</tt>' which is only defined
 within the SWIG compiler).
 </p>
 
-<H2><a name="Preprocessor_nn5"></a>7.4 Macro Expansion</H2>
+<H2><a name="Preprocessor_nn5"></a>23.4 Macro Expansion</H2>
 
 
 <p>
@@ -205,7 +205,7 @@ like <tt>#x</tt>.  This is a non-standard SWIG extension.
 </li>
 </ul>
 
-<H2><a name="Preprocessor_nn6"></a>7.5 SWIG Macros</H2>
+<H2><a name="Preprocessor_nn6"></a>23.5 SWIG Macros</H2>
 
 
 <p>
@@ -251,7 +251,7 @@ many of SWIG's advanced features and libraries are built using this mechanism (s
 support).
 </p>
 
-<H2><a name="Preprocessor_nn7"></a>7.6 C99 and GNU Extensions</H2>
+<H2><a name="Preprocessor_nn7"></a>23.6 C99 and GNU Extensions</H2>
 
 
 <p>
@@ -307,7 +307,7 @@ interface building.   However, they are used internally to implement a number of
 SWIG directives and are provided to make SWIG more compatible with C99 code.
 </p>
 
-<H2><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H2>
+<H2><a name="Preprocessor_nn8"></a>23.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H2>
 
 
 <p>
@@ -332,7 +332,7 @@ the contents of the <tt>%{ ... %}</tt> block are copied without
 modification to the output (including all preprocessor directives).
 </p>
 
-<H2><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... } delimiters</H2>
+<H2><a name="Preprocessor_nn9"></a>23.8 Preprocessing and { ... } delimiters</H2>
 
 
 <p>
@@ -374,7 +374,7 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the code.
 </p>
 
-<H2><a name="Preprocessor_typemap_delimiters"></a>7.9 Preprocessor and Typemaps</H2>
+<H2><a name="Preprocessor_typemap_delimiters"></a>23.9 Preprocessor and Typemaps</H2>
 
 
 <p>
@@ -445,7 +445,7 @@ would generate
 </div>
 
 
-<H2><a name="Preprocessor_nn10"></a>7.10 Viewing preprocessor output</H2>
+<H2><a name="Preprocessor_nn10"></a>23.10 Viewing preprocessor output</H2>
 
 
 <p>
@@ -455,7 +455,7 @@ Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>
 
-<H2><a name="Preprocessor_warning_error"></a>7.11 The #error and #warning directives</H2>
+<H2><a name="Preprocessor_warning_error"></a>23.11 The #error and #warning directives</H2>
 
 
 <p>

@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Introduction"></a>2 Introduction</H1>
+<H1><a name="Introduction"></a>9 Introduction</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -31,7 +31,7 @@
 
 
 
-<H2><a name="Introduction_nn2"></a>2.1 What is SWIG?</H2>
+<H2><a name="Introduction_nn2"></a>9.1 What is SWIG?</H2>
 
 
 <p>
@@ -70,7 +70,7 @@ project, it is particularly well suited to software development in the
 small; especially the research and development work that is commonly found
 in scientific and engineering projects.
 
-<H2><a name="Introduction_nn3"></a>2.2 Why use SWIG?</H2>
+<H2><a name="Introduction_nn3"></a>9.2 Why use SWIG?</H2>
 
 
 <p>
@@ -142,7 +142,7 @@ it provides a wide variety of customization features that let you change almost
 every aspect of the language bindings.  This is the main reason why SWIG has such a large
 user manual ;-).
 
-<H2><a name="Introduction_nn4"></a>2.3 A SWIG example</H2>
+<H2><a name="Introduction_nn4"></a>9.3 A SWIG example</H2>
 
 
 <p>
@@ -173,7 +173,7 @@ variable <tt>My_variable</tt> from Tcl.  You start by making a SWIG
 interface file as shown below (by convention, these files carry a .i
 suffix) :
 
-<H3><a name="Introduction_nn5"></a>2.3.1 SWIG interface file</H3>
+<H3><a name="Introduction_nn5"></a>9.3.1 SWIG interface file</H3>
 
 
 <div class="code"><pre>
@@ -198,7 +198,7 @@ module that will be created by SWIG.  The <tt>%{,%}</tt> block
 provides a location for inserting additional code such as C header
 files or additional C declarations.
 
-<H3><a name="Introduction_nn6"></a>2.3.2 The swig command</H3>
+<H3><a name="Introduction_nn6"></a>9.3.2 The swig command</H3>
 
 
 <p>
@@ -232,7 +232,7 @@ and variables declared in the SWIG interface.  A look at the file
 <tt>example_wrap.c</tt> reveals a hideous mess.  However, you 
 almost never need to worry about it.
 
-<H3><a name="Introduction_nn7"></a>2.3.3 Building a Perl5 module</H3>
+<H3><a name="Introduction_nn7"></a>9.3.3 Building a Perl5 module</H3>
 
 
 <p>
@@ -258,7 +258,7 @@ unix &gt;
 </pre></div>
 
 
-<H3><a name="Introduction_nn8"></a>2.3.4 Building a Python module</H3>
+<H3><a name="Introduction_nn8"></a>9.3.4 Building a Python module</H3>
 
 
 <p>
@@ -282,7 +282,7 @@ Type "copyright", "credits" or "license" for more information.
 7.5
 </pre></div>
 
-<H3><a name="Introduction_nn9"></a>2.3.5 Shortcuts</H3>
+<H3><a name="Introduction_nn9"></a>9.3.5 Shortcuts</H3>
 
 
 <p>
@@ -308,7 +308,7 @@ print $example::My_variable + 4.5, "\n";
 7.5
 </pre></div>
 
-<H2><a name="Introduction_nn10"></a>2.4 Supported C/C++ language features</H2>
+<H2><a name="Introduction_nn10"></a>9.4 Supported C/C++ language features</H2>
 
 
 <p>
@@ -348,7 +348,7 @@ wrapping simple C++ code.  In fact, SWIG is able handle C++ code that
 stresses the very limits of many C++ compilers.
 
 
-<H2><a name="Introduction_nn11"></a>2.5 Non-intrusive interface building</H2>
+<H2><a name="Introduction_nn11"></a>9.5 Non-intrusive interface building</H2>
 
 
 <p>
@@ -360,7 +360,7 @@ interface and reuse the code in other applications.   It is also
 possible to support different types of interfaces depending on the application.
 </p>
 
-<H2><a name="Introduction_build_system"></a>2.6 Incorporating SWIG into a build system</H2>
+<H2><a name="Introduction_build_system"></a>9.6 Incorporating SWIG into a build system</H2>
 
 
 <p>
@@ -417,7 +417,7 @@ The above example will generate native build files such as makefiles, nmake file
 which will invoke SWIG and compile the generated C++ files into _example.so (UNIX) or _example.dll (Windows).
 </p>
 
-<H2><a name="Introduction_nn12"></a>2.7 Hands off code generation</H2>
+<H2><a name="Introduction_nn12"></a>9.7 Hands off code generation</H2>
 
 
 <p>
@@ -430,7 +430,7 @@ it allows others to forget about the low-level implementation
 details.
 </p>
 
-<H2><a name="Introduction_nn13"></a>2.8 SWIG and freedom</H2>
+<H2><a name="Introduction_nn13"></a>9.8 SWIG and freedom</H2>
 
 
 <p>
