@@ -8,7 +8,7 @@
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Allegrocl_nn1"></a>1 SWIG and Allegro Common Lisp</H1>
+<H1><a name="Allegrocl_nn1"></a>16 SWIG and Allegro Common Lisp</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -135,10 +135,10 @@ be unhappy to see some enterprising folk use this work to add
 to it.
 </p>
 
-<H2><a name="Allegrocl_nn2"></a>1.1 Basics</H2>
+<H2><a name="Allegrocl_nn2"></a>16.1 Basics</H2>
 
 
-<H3><a name="Allegrocl_nn3"></a>1.1.1 Running Swig</H3>
+<H3><a name="Allegrocl_nn3"></a>16.1.1 Running Swig</H3>
 
 
 <p>
@@ -360,7 +360,7 @@ need to link in the Allegro shared library. The library you create from
 the C++ wrapper will be what you then load into Allegro CL.
 </p>
 
-<H3><a name="Allegrocl_nn4"></a>1.1.2 Command Line Options</H3>
+<H3><a name="Allegrocl_nn4"></a>16.1.2 Command Line Options</H3>
 
 
 <p>
@@ -396,7 +396,7 @@ See <a href="#Allegrocl_nn47">Section 17.5 Identifier converter
 functions</a> for more details.
 </p>
 
-<H3><a name="Allegrocl_nn5"></a>1.1.3 Inserting user code into generated files</H3>
+<H3><a name="Allegrocl_nn5"></a>16.1.3 Inserting user code into generated files</H3>
 
 
 <p>
@@ -436,7 +436,7 @@ Note that the block <tt>%{ ... %}</tt> is effectively a shortcut for
 </p>
 
 
-<H2><a name="Allegrocl_nn6"></a>1.2 Wrapping Overview</H2>
+<H2><a name="Allegrocl_nn6"></a>16.2 Wrapping Overview</H2>
 
 
 <p>
@@ -446,7 +446,7 @@ New users to SWIG are encouraged to read
 interested in generating an interface to C++.
 </p>
 
-<H3><a name="Allegrocl_nn7"></a>1.2.1 Function Wrapping</H3>
+<H3><a name="Allegrocl_nn7"></a>16.2.1 Function Wrapping</H3>
 
 
   <p>
@@ -499,7 +499,7 @@ interested in generating an interface to C++.
   </pre>
   </div>
 
-<H3><a name="Allegrocl_nn8"></a>1.2.2 Foreign Wrappers</H3>
+<H3><a name="Allegrocl_nn8"></a>16.2.2 Foreign Wrappers</H3>
 
 
   <p>
@@ -512,7 +512,7 @@ interested in generating an interface to C++.
     typemap. 
   </p>
 
-<H3><a name="Allegrocl_nn9"></a>1.2.3 FFI Wrappers</H3>
+<H3><a name="Allegrocl_nn9"></a>16.2.3 FFI Wrappers</H3>
 
 
   <p>
@@ -593,7 +593,7 @@ char *xxx();
     ff:def-foreign-call's.
   </p>
 
-<H3><a name="Allegrocl_nn10"></a>1.2.4 Non-overloaded Defuns</H3>
+<H3><a name="Allegrocl_nn10"></a>16.2.4 Non-overloaded Defuns</H3>
 
 
   <p>
@@ -606,7 +606,7 @@ char *xxx();
     this function can be manipulated via the <tt>lout</tt> typemap.
   </p>
 
-<H3><a name="Allegrocl_nn11"></a>1.2.5 Overloaded Defuns</H3>
+<H3><a name="Allegrocl_nn11"></a>16.2.5 Overloaded Defuns</H3>
 
 
   <p>
@@ -622,7 +622,7 @@ char *xxx();
     can be manipulated via the <tt>lout</tt> typemap.
   </p>
 
-<H3><a name="Allegrocl_nn12"></a>1.2.6 What about constant and variable access?</H3>
+<H3><a name="Allegrocl_nn12"></a>16.2.6 What about constant and variable access?</H3>
 
 
   <p>
@@ -635,7 +635,7 @@ char *xxx();
     into the foreign module.
   </p>
 
-<H3><a name="Allegrocl_nn13"></a>1.2.7 Object Wrapping</H3>
+<H3><a name="Allegrocl_nn13"></a>16.2.7 Object Wrapping</H3>
 
 
   <p>
@@ -657,7 +657,7 @@ char *xxx();
   foreign function interface.
   </p>
 
-<H2><a name="Allegrocl_nn14"></a>1.3 Wrapping Details</H2>
+<H2><a name="Allegrocl_nn14"></a>16.3 Wrapping Details</H2>
 
 
   <p>
@@ -665,7 +665,7 @@ char *xxx();
     translated into lisp.
   </p>
 
-<H3><a name="Allegrocl_nn15"></a>1.3.1 Namespaces</H3>
+<H3><a name="Allegrocl_nn15"></a>16.3.1 Namespaces</H3>
 
 
   <p>
@@ -742,7 +742,7 @@ namespace car {
       function such as <tt>(car '(1 2 3)</tt>.
     </p>
 
-<H3><a name="Allegrocl_nn16"></a>1.3.2 Constants</H3>
+<H3><a name="Allegrocl_nn16"></a>16.3.2 Constants</H3>
 
 
     
@@ -803,7 +803,7 @@ namespace car {
 	not use the <tt>-nocwrap</tt> command-line option.
       </p>
 
-<H3><a name="Allegrocl_nn17"></a>1.3.3 Variables</H3>
+<H3><a name="Allegrocl_nn17"></a>16.3.3 Variables</H3>
 
 
     <p>
@@ -881,7 +881,7 @@ globalvar&gt; (globalvar.nnn::glob_float)
     </pre>
     </div>
 
-<H3><a name="Allegrocl_nn18"></a>1.3.4 Enumerations</H3>
+<H3><a name="Allegrocl_nn18"></a>16.3.4 Enumerations</H3>
 
 
     <p>
@@ -957,7 +957,7 @@ EXPORT const int ACL_ENUM___FOO3__SWIG_0 = FOO3;
       </pre>
       </div>
 
-<H3><a name="Allegrocl_nn19"></a>1.3.5 Arrays</H3>
+<H3><a name="Allegrocl_nn19"></a>16.3.5 Arrays</H3>
 
 
     <p>
@@ -1105,10 +1105,10 @@ namespace BAR {
     </pre>
     </div>
 
-<H3><a name="Allegrocl_nn20"></a>1.3.6 Classes and Structs and Unions (oh my!)</H3>
+<H3><a name="Allegrocl_nn20"></a>16.3.6 Classes and Structs and Unions (oh my!)</H3>
 
 
-<H4><a name="Allegrocl_nn21"></a>1.3.6.1 CLOS wrapping of</H4>
+<H4><a name="Allegrocl_nn21"></a>16.3.6.1 CLOS wrapping of</H4>
 
 
     <p>
@@ -1123,7 +1123,7 @@ namespace BAR {
       integer values.
     </p>
 
-<H4><a name="Allegrocl_nn22"></a>1.3.6.2 CLOS Inheritance</H4>
+<H4><a name="Allegrocl_nn22"></a>16.3.6.2 CLOS Inheritance</H4>
 
 
     <p>
@@ -1136,7 +1136,7 @@ namespace BAR {
       parameter.
     </p>
 
-<H4><a name="Allegrocl_nn23"></a>1.3.6.3 Member fields and functions</H4>
+<H4><a name="Allegrocl_nn23"></a>16.3.6.3 Member fields and functions</H4>
 
 
     <p>
@@ -1152,7 +1152,7 @@ namespace BAR {
       the interface does nothing for <tt>friend</tt> directives, 
     </p>
 
-<H4><a name="Allegrocl_nn24"></a>1.3.6.4 Why not directly access C++ classes using foreign types?</H4>
+<H4><a name="Allegrocl_nn24"></a>16.3.6.4 Why not directly access C++ classes using foreign types?</H4>
 
 
     <p>
@@ -1170,11 +1170,11 @@ namespace BAR {
       use the more robust wrapper functions. 
     </p>
 
-<H3><a name="Allegrocl_nn25"></a>1.3.7 Templates</H3>
+<H3><a name="Allegrocl_nn25"></a>16.3.7 Templates</H3>
 
 
     
-<H4><a name="Allegrocl_nn26"></a>1.3.7.1 Generating wrapper code for templates</H4>
+<H4><a name="Allegrocl_nn26"></a>16.3.7.1 Generating wrapper code for templates</H4>
 
 
 	<p>
@@ -1187,7 +1187,7 @@ namespace BAR {
 	directive.
 	</p>
 
-<H4><a name="Allegrocl_nn27"></a>1.3.7.2 Implicit Template instantiation</H4>
+<H4><a name="Allegrocl_nn27"></a>16.3.7.2 Implicit Template instantiation</H4>
 
 
 	<p>
@@ -1197,7 +1197,7 @@ namespace BAR {
 	class schema.
 	</p>
 
-<H3><a name="Allegrocl_nn28"></a>1.3.8 Typedef, Templates, and Synonym Types</H3>
+<H3><a name="Allegrocl_nn28"></a>16.3.8 Typedef, Templates, and Synonym Types</H3>
 
 
     <p>
@@ -1277,7 +1277,7 @@ synonym&gt;
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn29"></a>1.3.8.1 Choosing a primary type</H4>
+<H4><a name="Allegrocl_nn29"></a>16.3.8.1 Choosing a primary type</H4>
 
 
     <p>
@@ -1298,7 +1298,7 @@ synonym&gt;
 	</li>
       </ul>
 
-<H3><a name="Allegrocl_nn30"></a>1.3.9 Function overloading/Parameter defaulting</H3>
+<H3><a name="Allegrocl_nn30"></a>16.3.9 Function overloading/Parameter defaulting</H3>
 
 
     <p>
@@ -1461,7 +1461,7 @@ overload&gt;
     </pre>
     </div>
 
-<H3><a name="Allegrocl_nn31"></a>1.3.10 Operator wrapping and Operator overloading</H3>
+<H3><a name="Allegrocl_nn31"></a>16.3.10 Operator wrapping and Operator overloading</H3>
 
 
     <p>
@@ -1607,7 +1607,7 @@ opoverload&gt;
     </pre>
     </div>
 
-<H3><a name="Allegrocl_nn32"></a>1.3.11 Varargs</H3>
+<H3><a name="Allegrocl_nn32"></a>16.3.11 Varargs</H3>
 
 
     <p>
@@ -1628,7 +1628,7 @@ opoverload&gt;
       with other ways such functions can be wrapped.
     </p>
 
-<H3><a name="Allegrocl_nn33"></a>1.3.12 C++ Exceptions</H3>
+<H3><a name="Allegrocl_nn33"></a>16.3.12 C++ Exceptions</H3>
 
 
     <p>
@@ -1640,7 +1640,7 @@ opoverload&gt;
       implemented.
     </p>
 
-<H3><a name="Allegrocl_nn34"></a>1.3.13 Pass by value, pass by reference</H3>
+<H3><a name="Allegrocl_nn34"></a>16.3.13 Pass by value, pass by reference</H3>
 
 
     <p>
@@ -1652,7 +1652,7 @@ opoverload&gt;
       newly defined types.
     </p>
 
-<H2><a name="Allegrocl_nn35"></a>1.4 Typemaps</H2>
+<H2><a name="Allegrocl_nn35"></a>16.4 Typemaps</H2>
 
 
 <p>
@@ -1663,7 +1663,7 @@ opoverload&gt;
   on <a href="Typemaps.html#Typemaps">Typemaps</a> for more information.
 </p>
 
-<H3><a name="Allegrocl_nn36"></a>1.4.1 Code Generation in the C++ Wrapper</H3>
+<H3><a name="Allegrocl_nn36"></a>16.4.1 Code Generation in the C++ Wrapper</H3>
 
 
     
@@ -1693,7 +1693,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn37"></a>1.4.1.1 IN Typemap</H4>
+<H4><a name="Allegrocl_nn37"></a>16.4.1.1 IN Typemap</H4>
 
 
     <p>
@@ -1728,7 +1728,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn38"></a>1.4.1.2 OUT Typemap</H4>
+<H4><a name="Allegrocl_nn38"></a>16.4.1.2 OUT Typemap</H4>
 
 
     <p>
@@ -1752,7 +1752,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn39"></a>1.4.1.3 CTYPE Typemap</H4>
+<H4><a name="Allegrocl_nn39"></a>16.4.1.3 CTYPE Typemap</H4>
 
 
     <p>
@@ -1784,7 +1784,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       these <a href="Typemaps.html#Typemaps_nn25">common typemaps</a> here.
     </p>
 
-<H3><a name="Allegrocl_nn40"></a>1.4.2 Code generation in Lisp wrappers</H3>
+<H3><a name="Allegrocl_nn40"></a>16.4.2 Code generation in Lisp wrappers</H3>
 
 
     <p>
@@ -1803,7 +1803,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       <a href="#Allegrocl_nn15">16.3.1 Namespaces</a> for details.
     </p>
 
-<H4><a name="Allegrocl_nn41"></a>1.4.2.1 LIN Typemap</H4>
+<H4><a name="Allegrocl_nn41"></a>16.4.2.1 LIN Typemap</H4>
 
 
     <p>
@@ -1846,7 +1846,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn42"></a>1.4.2.2 LOUT Typemap</H4>
+<H4><a name="Allegrocl_nn42"></a>16.4.2.2 LOUT Typemap</H4>
 
 
     <p>
@@ -1889,7 +1889,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn43"></a>1.4.2.3 FFITYPE Typemap</H4>
+<H4><a name="Allegrocl_nn43"></a>16.4.2.3 FFITYPE Typemap</H4>
 
 
     
@@ -1939,7 +1939,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn44"></a>1.4.2.4 LISPTYPE Typemap</H4>
+<H4><a name="Allegrocl_nn44"></a>16.4.2.4 LISPTYPE Typemap</H4>
 
 
     <p>
@@ -1959,7 +1959,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H4><a name="Allegrocl_nn45"></a>1.4.2.5 LISPCLASS Typemap</H4>
+<H4><a name="Allegrocl_nn45"></a>16.4.2.5 LISPCLASS Typemap</H4>
 
 
     <p>
@@ -1983,7 +1983,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H3><a name="Allegrocl_nn46"></a>1.4.3 Modifying SWIG behavior using typemaps</H3>
+<H3><a name="Allegrocl_nn46"></a>16.4.3 Modifying SWIG behavior using typemaps</H3>
 
 
     <p>
@@ -2017,10 +2017,10 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     </pre>
     </div>
 
-<H2><a name="Allegrocl_nn47"></a>1.5 Identifier Converter functions</H2>
+<H2><a name="Allegrocl_nn47"></a>16.5 Identifier Converter functions</H2>
 
 
-<H3><a name="Allegrocl_nn48"></a>1.5.1 Creating symbols in the lisp environment</H3>
+<H3><a name="Allegrocl_nn48"></a>16.5.1 Creating symbols in the lisp environment</H3>
 
 
 <p>
@@ -2041,11 +2041,11 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
   of arguments.
 </p>
 
-<H3><a name="Allegrocl_nn49"></a>1.5.2 Existing identifier-converter functions</H3>
+<H3><a name="Allegrocl_nn49"></a>16.5.2 Existing identifier-converter functions</H3>
 
 
   <p>Two basic identifier routines have been defined.
-<H4><a name="Allegrocl_nn50"></a>1.5.2.1 identifier-convert-null</H4>
+<H4><a name="Allegrocl_nn50"></a>16.5.2.1 identifier-convert-null</H4>
 
 
     <p>
@@ -2054,7 +2054,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       strings, from which a symbol will be created.
     </p>
 
-<H4><a name="Allegrocl_nn51"></a>1.5.2.2 identifier-convert-lispify</H4>
+<H4><a name="Allegrocl_nn51"></a>16.5.2.2 identifier-convert-lispify</H4>
 
 
     <p>
@@ -2063,7 +2063,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       same symbol transformations.
     </p>
 
-<H4><a name="Allegrocl_nn52"></a>1.5.2.3 Default identifier to symbol conversions</H4>
+<H4><a name="Allegrocl_nn52"></a>16.5.2.3 Default identifier to symbol conversions</H4>
 
 
     <p>
@@ -2072,7 +2072,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       default naming conventions.
     </p>
 
-<H3><a name="Allegrocl_nn53"></a>1.5.3 Defining your own identifier-converter</H3>
+<H3><a name="Allegrocl_nn53"></a>16.5.3 Defining your own identifier-converter</H3>
 
 
 <p>
@@ -2128,7 +2128,7 @@ indicating the number of arguments passed to the routine indicated by
 this identifier.
 </p>
 
-<H3><a name="Allegrocl_nn54"></a>1.5.4 Instructing SWIG to use a particular identifier-converter</H3>
+<H3><a name="Allegrocl_nn54"></a>16.5.4 Instructing SWIG to use a particular identifier-converter</H3>
 
 
 <p>

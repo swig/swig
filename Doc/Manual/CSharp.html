@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="CSharp"></a>5 SWIG and C#</H1>
+<H1><a name="CSharp"></a>17 SWIG and C#</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -39,7 +39,7 @@
 
 
 
-<H2><a name="csharp_introduction"></a>5.1 Introduction</H2>
+<H2><a name="csharp_introduction"></a>17.1 Introduction</H2>
 
 
 <p>
@@ -59,7 +59,7 @@ The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> h
 Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/Interop_with_Native_Libraries">Interop with native libraries</a>.
 </p>
 
-<H2><a name="csharp_differences_java"></a>5.2 Differences to the Java module</H2>
+<H2><a name="csharp_differences_java"></a>17.2 Differences to the Java module</H2>
 
 
 <p>
@@ -397,7 +397,7 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="csharp_exceptions"></a>5.3 C# Exceptions</H2>
+<H2><a name="csharp_exceptions"></a>17.3 C# Exceptions</H2>
 
 
 <p>
@@ -494,7 +494,7 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="csharp_exception_example_check_typemap"></a>5.3.1 C# exception example using "check" typemap</H3>
+<H3><a name="csharp_exception_example_check_typemap"></a>17.3.1 C# exception example using "check" typemap</H3>
 
 
 <p>
@@ -676,7 +676,7 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="csharp_exception_example_percent_exception"></a>5.3.2 C# exception example using %exception</H3>
+<H3><a name="csharp_exception_example_percent_exception"></a>17.3.2 C# exception example using %exception</H3>
 
 
 <p>
@@ -741,7 +741,7 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="csharp_exception_example_exception_specifications"></a>5.3.3 C# exception example using exception specifications</H3>
+<H3><a name="csharp_exception_example_exception_specifications"></a>17.3.3 C# exception example using exception specifications</H3>
 
 
 <p>
@@ -798,7 +798,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="csharp_custom_application_exception"></a>5.3.4 Custom C# ApplicationException example</H3>
+<H3><a name="csharp_custom_application_exception"></a>17.3.4 Custom C# ApplicationException example</H3>
 
 
 <p>
@@ -932,7 +932,7 @@ try {
 </pre>
 </div>
 
-<H2><a name="csharp_directors"></a>5.4 C# Directors</H2>
+<H2><a name="csharp_directors"></a>17.4 C# Directors</H2>
 
 
 <p>
@@ -945,7 +945,7 @@ The following sections provide information on the C# director implementation and
 However, the <a href="Java.html#java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="csharp_directors_example"></a>5.4.1 Directors example</H3>
+<H3><a name="csharp_directors_example"></a>17.4.1 Directors example</H3>
 
 
 <p>
@@ -1066,7 +1066,7 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="csharp_directors_implementation"></a>5.4.2 Directors implementation</H3>
+<H3><a name="csharp_directors_implementation"></a>17.4.2 Directors implementation</H3>
 
 
 <p>
@@ -1252,7 +1252,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="csharp_director_caveats"></a>5.4.3 Director caveats</H3>
+<H3><a name="csharp_director_caveats"></a>17.4.3 Director caveats</H3>
 
 
 <p>
@@ -1300,7 +1300,7 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="csharp_typemap_examples"></a>5.5 C# Typemap examples</H2>
+<H2><a name="csharp_typemap_examples"></a>17.5 C# Typemap examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1308,7 +1308,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="csharp_memory_management_member_variables"></a>5.5.1 Memory management when returning references to member variables</H3>
+<H3><a name="csharp_memory_management_member_variables"></a>17.5.1 Memory management when returning references to member variables</H3>
 
 
 <p>
@@ -1432,7 +1432,7 @@ public class Bike : IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="csharp_memory_management_objects"></a>5.5.2 Memory management for objects passed to the C++ layer</H3>
+<H3><a name="csharp_memory_management_objects"></a>17.5.2 Memory management for objects passed to the C++ layer</H3>
 
 
 <p>
@@ -1551,7 +1551,7 @@ The 'cscode' typemap simply adds in the specified code into the C# proxy class.
 </div>
 
 
-<H3><a name="csharp_date_marshalling"></a>5.5.3 Date marshalling using the csin typemap and associated attributes</H3>
+<H3><a name="csharp_date_marshalling"></a>17.5.3 Date marshalling using the csin typemap and associated attributes</H3>
 
 
 <p>
@@ -1788,7 +1788,7 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="csharp_date_properties"></a>5.5.4 A date example demonstrating marshalling of C# properties</H3>
+<H3><a name="csharp_date_properties"></a>17.5.4 A date example demonstrating marshalling of C# properties</H3>
 
 
 <p>
@@ -1888,7 +1888,7 @@ Some points to note:
 </ul>
 
 
-<H3><a name="csharp_partial_classes"></a>5.5.5 Turning wrapped classes into partial classes</H3>
+<H3><a name="csharp_partial_classes"></a>17.5.5 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -1988,7 +1988,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="csharp_extending_proxy_class"></a>5.5.6 Extending proxy classes with additional C# code</H3>
+<H3><a name="csharp_extending_proxy_class"></a>17.5.6 Extending proxy classes with additional C# code</H3>
 
 
 <p>

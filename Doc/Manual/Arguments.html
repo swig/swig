@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Arguments"></a>2 Argument Handling</H1>
+<H1><a name="Arguments"></a>9 Argument Handling</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -44,7 +44,7 @@ return multiple values through the arguments of a function.  This chapter
 describes some of the techniques for doing this.
 </p>
 
-<H2><a name="Arguments_nn2"></a>2.1 The typemaps.i library</H2>
+<H2><a name="Arguments_nn2"></a>9.1 The typemaps.i library</H2>
 
 
 <p>
@@ -52,7 +52,7 @@ This section describes the <tt>typemaps.i</tt> library file--commonly used to
 change certain properties of argument conversion.
 </p>
 
-<H3><a name="Arguments_nn3"></a>2.1.1 Introduction</H3>
+<H3><a name="Arguments_nn3"></a>9.1.1 Introduction</H3>
 
 
 <p>
@@ -196,7 +196,7 @@ else.   To clear a typemap, the <tt>%clear</tt> directive should be used.  For e
 </pre>
 </div>
 
-<H3><a name="Arguments_nn4"></a>2.1.2 Input parameters</H3>
+<H3><a name="Arguments_nn4"></a>9.1.2 Input parameters</H3>
 
 
 <p>
@@ -249,7 +249,7 @@ When the function is used in the scripting language interpreter, it will work li
 result = add(3,4)
 </pre></div>
 
-<H3><a name="Arguments_nn5"></a>2.1.3 Output parameters</H3>
+<H3><a name="Arguments_nn5"></a>9.1.3 Output parameters</H3>
 
 
 <p>
@@ -316,7 +316,7 @@ iresult, dresult = foo(3.5, 2)
 </pre>
 </div>
 
-<H3><a name="Arguments_nn6"></a>2.1.4 Input/Output parameters</H3>
+<H3><a name="Arguments_nn6"></a>9.1.4 Input/Output parameters</H3>
 
 
 <p>
@@ -381,7 +381,7 @@ rather than directly overwriting the value of the original input object.
 SWIG.  Backwards compatibility is preserved, but deprecated.
 </p>
 
-<H3><a name="Arguments_nn7"></a>2.1.5 Using different names</H3>
+<H3><a name="Arguments_nn7"></a>9.1.5 Using different names</H3>
 
 
 <p>
@@ -415,7 +415,7 @@ Typemap declarations are lexically scoped so a typemap takes effect from the poi
 file or a matching <tt>%clear</tt> declaration.
 </p>
 
-<H2><a name="Arguments_nn8"></a>2.2 Applying constraints to input values</H2>
+<H2><a name="Arguments_nn8"></a>9.2 Applying constraints to input values</H2>
 
 
 <p>
@@ -425,7 +425,7 @@ insure that a value is positive, or that a pointer is non-NULL. This
 can be accomplished including the <tt>constraints.i</tt> library file.
 </p>
 
-<H3><a name="Arguments_nn9"></a>2.2.1 Simple constraint example</H3>
+<H3><a name="Arguments_nn9"></a>9.2.1 Simple constraint example</H3>
 
 
 <p>
@@ -451,7 +451,7 @@ the arguments violate the constraint condition, a scripting language
 exception will be raised. As a result, it is possible to catch bad
 values, prevent mysterious program crashes and so on.</p>
 
-<H3><a name="Arguments_nn10"></a>2.2.2 Constraint methods</H3>
+<H3><a name="Arguments_nn10"></a>9.2.2 Constraint methods</H3>
 
 
 <p>
@@ -467,7 +467,7 @@ NONNULL                      Non-NULL pointer (pointers only).
 
 </pre></div>
 
-<H3><a name="Arguments_nn11"></a>2.2.3 Applying constraints to new datatypes</H3>
+<H3><a name="Arguments_nn11"></a>9.2.3 Applying constraints to new datatypes</H3>
 
 
 <p>
