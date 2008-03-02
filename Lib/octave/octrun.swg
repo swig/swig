@@ -91,6 +91,8 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void* clientdata,swig_module_info* pointe
 #include <string>
 #include <ext/hash_map>
 
+namespace {
+
 typedef octave_value_list (*octave_func) (const octave_value_list&, int);
 class octave_swig_type;
 
@@ -114,8 +116,13 @@ namespace Swig {
 
   using namespace __gnu_cxx;
   SWIGINTERN rtdir_map& get_rtdir_map() {
-    static rtdir_map rtdir_map__;
-    return rtdir_map__;
+    static swig_module_info* module=0;
+    if (!module)
+      module=SWIG_GetModule(0);
+    assert(module);
+    if (!module->clientdata)
+      module->clientdata=new rtdir_map;
+    return *(rtdir_map*)module->clientdata;
   }
   SWIGINTERNINLINE void set_rtdir(void *vptr, Director *d) {
     get_rtdir_map()[vptr] = d;
@@ -371,7 +378,7 @@ class octave_swig_type : public octave_base_value {
   }
   std::string swig_type_name() const {
     // * need some way to manually name subclasses.
-    // * eg optional first arg to subclass().
+    // * eg optional first arg to subclass(), or named_subclass()
     std::string ret;
     for (int j=0;j<types.size();++j) {
       if (j)
@@ -432,7 +439,7 @@ class octave_swig_type : public octave_base_value {
     return own;
   }
   void director_destroyed(Swig::Director* d) {
-    bool found=false; // * could do better here...
+    bool found=false;
     for (int j=0;j<types.size();++j) {
       Swig::Director* dj=Swig::get_rtdir(types[j].second.ptr);
       if (dj==d) {
@@ -1144,3 +1151,6 @@ void swig_install_ops(int tid) {
     swig_install_binary_ops(tid,j);
   }
 }
+
+}
+

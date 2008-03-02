@@ -20,8 +20,8 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     return octave_value_list();
   already_init=true;
 
-  octave_swig_ref::register_type ();
-  octave_swig_packed::register_type ();
+  octave_swig_ref::register_type();
+  octave_swig_packed::register_type();
   SWIG_InitializeModule(0);
   SWIG_PropagateClientData();
 

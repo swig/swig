@@ -1017,7 +1017,14 @@ public:
   }
 
   String *runtimeCode() {
-    String *s=Language::runtimeCode();
+    String *s = NewString("");
+    String *srun = Swig_include_sys("octrun.swg");
+    if (!srun) {
+      Printf(stderr, "*** Unable to open 'octrun.swg'\n");
+    } else {
+      Append(s, srun);
+      Delete(srun);
+    }
     return s;
   }
 
