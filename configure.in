@@ -771,6 +771,10 @@ if test -n "$OCTAVE"; then
 				OCTAVEEXT="$i"
 				break;
 			fi
+			if test -r $i/octave/octave/oct.h; then
+				OCTAVEEXT="$i/octave"
+				break;
+			fi
 		done
 		if test "$OCTAVEEXT" = "" ; then
 			AC_MSG_RESULT(not found)
