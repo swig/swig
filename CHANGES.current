@@ -1,6 +1,12 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/04/2008: wsfulton
+            [Java, C#] Add char *& typemaps.
+
+03/04/2008: wsfulton
+            Fix occasional seg fault when attempting to report overloaded methods as being ignored.
+
 02/29/2008: wsfulton
             [Perl] Fix #1904537 Swig causes a Perl warning "x used only once" in Perl 5.10
             reported by Ari Jolma

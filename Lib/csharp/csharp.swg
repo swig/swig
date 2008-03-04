@@ -107,9 +107,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(cstype) double,             const double &             "double"
 %typemap(cstype) void                                           "void"
 
-%typemap(ctype) char *, char[ANY], char[]   "char *"
-%typemap(imtype) char *, char[ANY], char[]   "string"
-%typemap(cstype) char *, char[ANY], char[]   "string"
+%typemap(ctype) char *, char *&, char[ANY], char[]   "char *"
+%typemap(imtype) char *, char *&, char[ANY], char[]   "string"
+%typemap(cstype) char *, char *&, char[ANY], char[]   "string"
 
 /* Non primitive types */
 %typemap(ctype) SWIGTYPE "void *"
@@ -242,6 +242,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) char * %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
 %typemap(csdirectorin) char * "$iminput"
 %typemap(csdirectorout) char * "$cscall"
+
+/* char *& - treat as String */
+%typemap(in) char *& ($*1_ltype temp = 0) %{ 
+  temp = ($*1_ltype)$input;
+  $1 = &temp;
+%}
+%typemap(out) char *& %{ if ($1) $result = SWIG_csharp_string_callback((const char *)*$1); %}
 
 %typemap(out, null="") void ""
 %typemap(csdirectorin) void "$iminput"
@@ -508,6 +515,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typecheck(SWIG_TYPECHECK_STRING)
     char *,
+    char *&,
     char[ANY],
     char[]
     ""
@@ -562,7 +570,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
                  float,              const float &,
                  double,             const double &
     "$csinput"
-%typemap(csin) char *, char[ANY], char[] "$csinput"
+%typemap(csin) char *, char *&, char[ANY], char[] "$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE (CLASS::*) "$csclassname.getCMemberPtr($csinput)"
@@ -632,7 +640,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     double ret = $imcall;$excode
     return ret;
   }
-%typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
+%typemap(csout, excode=SWIGEXCODE) char *, char *&, char[ANY], char[] {
     string ret = $imcall;$excode
     return ret;
   }
@@ -665,7 +673,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
       $imcall;$excode
     } %}
 
-%typemap(csvarin, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
+%typemap(csvarin, excode=SWIGEXCODE2) char *, char *&, char[ANY], char[] %{
     set {
       $imcall;$excode
     } %}
@@ -742,7 +750,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     } %}
 
 
-%typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
+%typemap(csvarout, excode=SWIGEXCODE2) char *, char *&, char[ANY], char[] %{
     get {
       string ret = $imcall;$excode
       return ret;

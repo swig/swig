@@ -63,9 +63,9 @@
 %typemap(jstype) double,             const double &             "double"
 %typemap(jstype) void                                           "void"
 
-%typemap(jni) char *, char[ANY], char[]               "jstring"
-%typemap(jtype) char *, char[ANY], char[]               "String"
-%typemap(jstype) char *, char[ANY], char[]               "String"
+%typemap(jni) char *, char *&, char[ANY], char[]               "jstring"
+%typemap(jtype) char *, char *&, char[ANY], char[]               "String"
+%typemap(jstype) char *, char *&, char[ANY], char[]               "String"
 
 /* JNI types */
 %typemap(jni) jboolean      "jboolean"
@@ -367,6 +367,18 @@
 %typemap(out, noblock=1) char * { if($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char * "$jniinput"
 %typemap(javadirectorout) char * "$javacall"
+
+/* char *& - treat as String */
+%typemap(in, noblock=1) char *& ($*1_ltype temp = 0) {
+ $1 = 0;
+  if ($input) {
+    temp = ($*1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!temp) return $null;
+  }
+  $1 = &temp;
+}
+%typemap(freearg, noblock=1) char *& { if ($1 && *$1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)*$1); }
+%typemap(out, noblock=1) char *& { if(*$1) $result = JCALL1(NewStringUTF, jenv, (const char *)*$1); }
 
 %typemap(out) void ""
 %typemap(javadirectorin) void "$jniinput"
@@ -842,6 +854,7 @@
 %typecheck(SWIG_TYPECHECK_STRING) /* Java String */
     jstring,
     char *,
+    char *&,
     char[ANY],
     char []
     ""
@@ -933,7 +946,7 @@
                  float,              const float &,
                  double,             const double &
     "$javainput"
-%typemap(javain) char *, char[ANY], char[] "$javainput"
+%typemap(javain) char *, char *&, char[ANY], char[] "$javainput"
 %typemap(javain) jboolean,
                  jchar,
                  jbyte,
@@ -975,7 +988,7 @@
                   double,             const double & {
     return $jnicall;
   }
-%typemap(javaout) char *, char[ANY], char[] {
+%typemap(javaout) char *, char *&, char[ANY], char[] {
     return $jnicall;
   }
 %typemap(javaout) jboolean,

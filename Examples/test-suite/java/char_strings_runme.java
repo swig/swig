@@ -124,6 +124,18 @@ public class char_strings_runme {
       if (!char_strings.getGlobal_const_char_array2().equals(CPLUSPLUS_MSG))
         throw new RuntimeException("Test variables 6 failed, iteration " + i);
     }
+
+    // char *& tests
+    for (i=0; i<count; i++) {
+      String str = char_strings.GetConstCharPointerRef();
+      if (!str.equals(CPLUSPLUS_MSG))
+        throw new RuntimeException("Test char pointer ref get failed, iteration " + i);
+    }
+
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharPointerRef(OTHERLAND_MSG + i, i))
+        throw new RuntimeException("Test char pointer ref set failed, iteration " + i);
+    }
   }
 }
 
