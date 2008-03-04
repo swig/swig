@@ -1582,7 +1582,8 @@ String *Swig_name_decl(Node *n) {
   String *decl;
   String *qualifier = Swig_symbol_qualified(n);
   String *name = Swig_scopename_last(Getattr(n, "name"));
-  qualifier = SwigType_namestr(qualifier);
+  if (qualifier)
+    qualifier = SwigType_namestr(qualifier);
 
   /* Very specific hack for template constructors/destructors */
   if (SwigType_istemplate(name)) {
