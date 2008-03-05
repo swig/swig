@@ -296,6 +296,7 @@ classtypes(NewHash()),
 enumtypes(NewHash()),
 overloading(0),
 multiinput(0),
+cplus_runtime(0),
 directors(0) {
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
@@ -3063,6 +3064,22 @@ void Language::allow_overloading(int val) {
 
 void Language::allow_multiple_input(int val) {
   multiinput = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::enable_cplus_runtime_mode()
+ * ----------------------------------------------------------------------------- */
+
+void Language::enable_cplus_runtime_mode() {
+  cplus_runtime = 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::cplus_runtime_mode()
+ * ----------------------------------------------------------------------------- */
+
+int Language::cplus_runtime_mode() {
+  return cplus_runtime;
 }
 
 /* -----------------------------------------------------------------------------

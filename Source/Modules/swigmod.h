@@ -53,7 +53,8 @@ class Dispatcher {
 public:
 
   Dispatcher ():cplus_mode(PUBLIC) {
-  } virtual ~ Dispatcher () {
+  }
+  virtual ~ Dispatcher () {
   }
 
   virtual int emit_one(Node *n);
@@ -216,6 +217,12 @@ public:
   virtual String *runtimeCode();	/* returns the language specific runtime code */
   virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
 
+  /* Runtime is C++ based, so extern "C" header section */
+  void enable_cplus_runtime_mode();
+
+  /* Returns the cpp_runtime mode */
+  int cplus_runtime_mode();
+
   /* Allow director related code generation */
   void allow_directors(int val = 1);
 
@@ -295,6 +302,7 @@ private:
   Hash *enumtypes;
   int overloading;
   int multiinput;
+  int cplus_runtime;
   int directors;
 };
 

@@ -40,10 +40,13 @@ public:
    OCTAVE():f_runtime(0), f_header(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
 	    s_global_tab(0), s_members_tab(0), class_name(0) {
-    allow_overloading();
-    director_multiple_inheritance = 1;
-    director_language = 1;
-  } virtual void main(int argc, char *argv[]) {
+     enable_cplus_runtime_mode();
+     allow_overloading();
+     director_multiple_inheritance = 1;
+     director_language = 1;
+   }
+
+  virtual void main(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
@@ -118,7 +121,13 @@ public:
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
     Printf(f_init, "void SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
+    if (!CPlusPlus)
+      Printf(f_header,"extern \"C\" {\n");
+
     Language::top(n);
+
+    if (!CPlusPlus)
+      Printf(f_header,"}\n");
 
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
@@ -545,7 +554,7 @@ public:
       return SWIG_ERROR;
 
     // This is a bug, due to the fact that swig_type -> octave_class mapping
-    // is not 1-to-1.
+    // is n-to-1.
     static Hash *emitted = NewHash();
     String *mangled_classname = Swig_name_mangle(Getattr(n, "name"));
     if (Getattr(emitted, mangled_classname)) {

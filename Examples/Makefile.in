@@ -285,6 +285,16 @@ OCTAVE_LIB    =
 OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
 OCTAVE_SO     = @OCTAVE_SO@
 
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+octave: $(SRCS)
+	$(SWIG) -octave $(SWIGOPT) $(INTERFACE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES) $(OCTAVE_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
 # -----------------------------------------------------------------

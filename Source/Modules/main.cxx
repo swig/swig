@@ -998,7 +998,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (depend) {
 	String *outfile;
 	if (!outfile_name) {
-	  if (CPlusPlus) {
+	  if (CPlusPlus || lang->cplus_runtime_mode()) {
 	    outfile = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), cpp_extension);
 	  } else {
 	    outfile = NewStringf("%s_wrap.c", Swig_file_basename(input_file));
@@ -1116,7 +1116,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	/* Set some filename information on the object */
 	Setattr(top, "infile", input_file);
 	if (!outfile_name) {
-	  if (CPlusPlus) {
+	  if (CPlusPlus || lang->cplus_runtime_mode()) {
 	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", Swig_file_basename(input_file), cpp_extension));
 	  } else {
 	    Setattr(top, "outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
