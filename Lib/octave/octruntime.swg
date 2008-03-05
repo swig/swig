@@ -24,7 +24,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   octave_swig_packed::register_type();
   SWIG_InitializeModule(0);
   SWIG_PropagateClientData();
-
+  
   install_builtin_function(swig_type,"swig_type",std::string());
   install_builtin_function(swig_typequery,"swig_typequery",std::string());
   install_builtin_function(swig_this,"swig_this",std::string());

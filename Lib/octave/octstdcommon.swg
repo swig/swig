@@ -40,7 +40,7 @@ namespace swig {
     // Traits that provides the asval/as/check method
   template <class Type>
   struct traits_asptr {   
-    static int asptr(octave_value obj, Type **val) {
+    static int asptr(const octave_value& obj, Type **val) {
       Type *p;
       int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
       if (SWIG_IsOK(res)) {
@@ -51,13 +51,13 @@ namespace swig {
   }; 
 
   template <class Type>
-  inline int asptr(octave_value obj, Type **vptr) {
+  inline int asptr(const octave_value& obj, Type **vptr) {
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 
   template <class Type> 
   struct traits_asval {
-    static int asval(octave_value obj, Type *val) {
+    static int asval(const octave_value& obj, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
@@ -80,7 +80,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static int asval(octave_value obj, Type **val) {
+    static int asval(const octave_value& obj, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
@@ -96,13 +96,13 @@ namespace swig {
   };
   
   template <class Type>
-  inline int asval(octave_value obj, Type *val) {
+  inline int asval(const octave_value& obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(octave_value obj, bool throw_error) {
+    static Type as(const octave_value& obj, bool throw_error) {
       Type v;
       int res = asval(obj, &v);
       if (!obj.is_defined() || !SWIG_IsOK(res)) {
@@ -117,9 +117,9 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(octave_value obj, bool throw_error) {
+    static Type as(const octave_value& obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
@@ -143,9 +143,9 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(octave_value obj, bool throw_error) {
+    static Type* as(const octave_value& obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
@@ -159,28 +159,28 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(octave_value obj, bool te = false) {
+  inline Type as(const octave_value& obj, bool te = false) {
     return traits_as<Type, typename traits<Type>::category>::as(obj, te);
   }
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(octave_value obj) {
-      int res = obj ? asval(obj, (Type *)(0)) : SWIG_ERROR;
+    static bool check(const octave_value& obj) {
+      int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(octave_value obj) {
-      int res = obj ? asptr(obj, (Type **)(0)) : SWIG_ERROR;
+    static bool check(const octave_value& obj) {
+      int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(octave_value obj) {
+  inline bool check(const octave_value& obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -191,7 +191,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(octave_value obj, value_type *val) {
+    static int asval(const octave_value& obj, value_type *val) {
       if (Check(obj)) {
 	if (val) *val = As(obj);
 	return SWIG_OK;
@@ -208,7 +208,7 @@ namespace swig {
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(octave_value obj) {
+    static int check(const octave_value& obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }

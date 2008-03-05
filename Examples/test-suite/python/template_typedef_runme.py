@@ -1,7 +1,7 @@
 from template_typedef import *
 
 d = make_Identity_float()
-c = make_Identity_real()
+c = make_Identity_reald()
 
 
 try:
@@ -18,14 +18,14 @@ except:
   raise RuntimeError
 
 try:
-  f = make_Multiplies_real_real_real_real(c, c)
+  f = make_Multiplies_reald_reald_reald_reald(c, c)
   a = f.this
 except:
   print f, "is not an instance"
   raise RuntimeError
 
 try:
-  g = make_Multiplies_float_float_real_real(d, c)
+  g = make_Multiplies_float_float_reald_reald(d, c)
   a = g.this
 except:
   print g, "is not an instance"

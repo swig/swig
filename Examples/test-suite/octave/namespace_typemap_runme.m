@@ -48,8 +48,8 @@ if (!strcmp(stest12("hello"),"hello"))
     error
 endif
 
-c = complex(2,3)
-r = c.real
+c = complex(2,3);
+r = real(c);
 
 if (ctest1(c) != r)
     error

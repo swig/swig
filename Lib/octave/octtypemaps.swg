@@ -20,6 +20,10 @@
 #define SWIG_Object                      octave_value
 #define VOID_Object                      octave_value()
 
+/*
+// Octave allows implicit conversion
+#define %implicitconv_flag              $implicitconv 
+*/
 
 // append output
 #define SWIG_AppendOutput(result, obj)  SWIG_Octave_AppendOutput(result, obj)
@@ -33,3 +37,28 @@
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
+
+
+%typemap(constcode,noblock=1) int double {
+  SWIG_Octave_SetConstant(module_ns,"$symname",octave_value($value));
+}
+
+/*
+// Smart Pointers
+%typemap(out,noblock=1) const SWIGTYPE & SMARTPOINTER  {
+  $result = SWIG_NewPointerObj(%new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+}
+
+%typemap(ret) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {
+  octave_swig_type* lobj=Swig::swig_value_deref($result);
+  if (lobj) {
+    std::list<octave_value_list> idx;
+    idx.push_back(octave_value("__deref__"));
+    idx.push_back(octave_value_list());
+    octave_value_list ovl(lobj->subsref(".(",idx));
+    octave_swig_type* robj=ovl.length()>=1?Swig::swig_value_deref(ovl(0)):0;
+    if (robj && !error_state)
+      lobj->append(robj);
+  }
+}
+*/

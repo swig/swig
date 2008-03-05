@@ -13,8 +13,14 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-#CPP_TEST_CASES += 
+# CPP_TEST_CASES +=
 
+CPP_TEST_BROKEN += \
+	implicittest \
+	li_implicit \
+	li_std_map \
+	li_std_set \
+	li_std_stream
 
 #C_TEST_CASES += 
 

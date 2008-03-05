@@ -2,9 +2,9 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * pycontainer.swg
+ * octcontainer.swg
  *
- * Octave sequence <-> C++ container wrapper
+ * Octave cell <-> C++ container wrapper
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
  * the the mapping between C++ and Octave, thanks to the C++
@@ -52,14 +52,14 @@ namespace swig {
   
   template <> 
   struct traits_check<octave_value, value_category> {
-    static bool check(octave_value) {
+    static bool check(const octave_value&) {
       return true;
     }
   };
   
   template <>  struct traits_asval<octave_value > {   
     typedef octave_value value_type;
-    static int asval(octave_value obj, value_type *val) {
+    static int asval(const octave_value& obj, value_type *val) {
       if (val) *val = obj;
       return SWIG_OK;
     }
@@ -76,16 +76,10 @@ namespace std {
   struct less <octave_value>: public binary_function<octave_value, octave_value, bool>
   {
     bool
-    operator()(octave_value v, octave_value w) const
+    operator()(const octave_value& v, const octave_value& w) const
     { 
-      /*
-      bool res;
-      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      res = PyObject_Compare(v, w) < 0;
-      SWIG_PYTHON_THREAD_END_BLOCK;
-      return res;
-      */
-      return false;
+      octave_value res = do_binary_op(octave_value::op_le,v,w);
+      return res.is_true();
     }
   };
 }
@@ -201,9 +195,9 @@ namespace swig {
 namespace swig
 {
   template <class T>
-  struct OctSequence_Ref
+    struct OctSequence_Ref // * octave can't support these, because of how assignment works
   {
-    OctSequence_Ref(octave_value seq, int index)
+    OctSequence_Ref(const octave_value& seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -262,7 +256,7 @@ namespace swig
     {
     }
 
-    OctSequence_InputIterator(octave_value seq, int index)
+    OctSequence_InputIterator(const octave_value& seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -279,7 +273,7 @@ namespace swig
 
     bool operator==(const self& ri) const
     {
-      return (_index == ri._index) && (_seq == ri._seq);
+      return (_index == ri._index);
     }
 
     bool operator!=(const self& ri) const
@@ -355,7 +349,7 @@ namespace swig
     typedef OctSequence_InputIterator<T, reference> iterator;
     typedef OctSequence_InputIterator<T, const_reference> const_iterator;
 
-    OctSequence_Cont(octave_value seq) : _seq(seq)
+    OctSequence_Cont(const octave_value& seq) : _seq(seq)
     {
       // * assert that we have map type etc.
       /*
@@ -446,32 +440,28 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="OctSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    /*
     $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
 				 swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN);
-    */
   }
-  %typemap(out,noblock=1,fragment="OctSequence_Cont")
+  %typemap(out,fragment="OctSequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
-    /*
-    $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-						 swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
-    PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-						 swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));    
-    */
+    octave_value_list tmpc;
+    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+    $result = Cell(tmpc);
   }
 
   %fragment("PyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="OctSequence_Cont") {}
 
-  %typemap(out,noblock=1,fragment="OctPairBoolOutputIterator")
+  %typemap(out,fragment="OctPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
-    /*
-    $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-					       swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));    
-    PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
-    */
+    octave_value_list tmpc;
+    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+    tmpc.append(SWIG_From(bool)(%static_cast($1,const $type &).second));
+    $result = Cell(tmpc);
   }
 
   %typemap(in,noblock=1,fragment="OctSequence_Cont")
@@ -479,7 +469,6 @@ namespace swig
     reverse_iterator(swig::OctSwigIterator *iter = 0, int res),
     const_iterator(swig::OctSwigIterator *iter = 0, int res),
     const_reverse_iterator(swig::OctSwigIterator *iter = 0, int res) {
-    /*
     res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::OctSwigIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
@@ -491,16 +480,13 @@ namespace swig
 	%argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
       }
     }
-    */
   }
 
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="OctSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    /*
     swig::OctSwigIterator *iter = 0;
     int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::OctSwigIterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::OctSwigIterator_T<$type > *>(iter) != 0));
-    */
   }
 
   %fragment("OctSequence_Cont");
@@ -517,6 +503,29 @@ namespace swig
   %swig_container_methods(%arg(Sequence))
   
   %fragment("OctSequence_Base");
+
+  %extend {
+    value_type pop() throw (std::out_of_range) {
+      if (self->size() == 0)
+	throw std::out_of_range("pop from empty container");
+      Sequence::value_type x = self->back();
+      self->pop_back();
+      return x;
+    }
+
+    value_type __paren(difference_type i) throw (std::out_of_range) {
+      return *(swig::cgetpos(self, i));
+    }
+
+    void __paren_asgn(difference_type i, value_type x) throw (std::out_of_range) {
+      *(swig::getpos(self,i)) = x;
+    }
+
+    void append(value_type x) {
+      self->push_back(x);
+    }
+  }
+
 %enddef
 
 %define %swig_sequence_methods(Sequence...)
@@ -525,19 +534,6 @@ namespace swig
 
 %define %swig_sequence_methods_val(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence))
-  %extend {
-    value_type __getitem__(difference_type i) throw (std::out_of_range) {
-      return *(swig::cgetpos(self, i));
-    }
-
-    void __setitem__(difference_type i, value_type x) throw (std::out_of_range) {
-      *(swig::getpos(self,i)) = x;
-    }
-
-    void append(value_type x) {
-      self->push_back(x);
-    }
- }
 %enddef
 
 //
@@ -549,17 +545,17 @@ namespace swig
 	  fragment="OctSequence_Cont")
 {
 namespace swig {
-  template <class PySeq, class Seq>
+  template <class OctSeq, class Seq>
   inline void
-  assign(const PySeq& pyseq, Seq* seq) {
+  assign(const OctSeq& octseq, Seq* seq) {
 %#ifdef SWIG_STD_NOASSIGN_STL
-    typedef typename PySeq::value_type value_type;
-    typename PySeq::const_iterator it = pyseq.begin();
-    for (;it != pyseq.end(); ++it) {
+    typedef typename OctSeq::value_type value_type;
+    typename OctSeq::const_iterator it = octseq.begin();
+    for (;it != octseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
 %#else
-    seq->assign(pyseq.begin(), pyseq.end());
+    seq->assign(octseq.begin(), octseq.end());
 %#endif
   }
 
@@ -568,37 +564,31 @@ namespace swig {
     typedef Seq sequence;
     typedef T value_type;
 
-    static int asptr(octave_value obj, sequence **seq) {
-      /*
-      if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
+    static int asptr(const octave_value& obj, sequence **seq) {
+      if (!obj.is_defined() || Swig::swig_value_deref(obj)) {
 	sequence *p;
 	if (SWIG_ConvertPtr(obj,(void**)&p,
 			    swig::type_info<sequence>(),0) == SWIG_OK) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
-      } else if (OctSequence_Check(obj)) {
+      } else if (obj.is_cell()) {
 	try {
-	  OctSequence_Cont<value_type> pyseq(obj);
+	  OctSequence_Cont<value_type> octseq(obj);
 	  if (seq) {
 	    sequence *pseq = new sequence();
-	    assign(pyseq, pseq);
+	    assign(octseq, pseq);
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return pyseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return octseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
-	  if (seq) {
-	    if (!PyErr_Occurred()) {
-	      PyErr_SetString(PyExc_TypeError, e.what());
-	    }
-	  }
+	  if (seq&&!error_state)
+	    error("swig type error: %s",e.what());
 	  return SWIG_ERROR;
 	}
       }
-      return SWIG_ERROR;
-      */
       return SWIG_ERROR;
     }
   };
@@ -611,8 +601,7 @@ namespace swig {
     typedef typename sequence::const_iterator const_iterator;
 
     static octave_value from(const sequence& seq) {
-      /*
-#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
+#ifdef SWIG_OCTAVE_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
@@ -620,18 +609,17 @@ namespace swig {
 #endif
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
-	PyObject *obj = PyTuple_New((int)size);
+	Cell c(size,1);
 	int i = 0;
 	for (const_iterator it = seq.begin();
 	     it != seq.end(); ++it, ++i) {
-	  PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
+	  c(i) = swig::from<value_type>(*it);
 	}
-	return obj;
+	return c;
       } else {
-	PyErr_SetString(PyExc_OverflowError,"sequence size not valid in python");
-	return NULL;
+	error("swig overflow error: sequence size not valid in octave");
+	return octave_value();
       }
-      */
       return octave_value();
     }
   };

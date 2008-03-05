@@ -22,12 +22,12 @@ namespace test {
       }
    };
 
-   /* A minimalistic complex class */
-   class complex {
+   /* A minimalistic test_complex class */
+   class test_complex {
       double re;
       double im;
    public:
-      complex(double r = 0, double i = 0) {
+      test_complex(double r = 0, double i = 0) {
 	re = r;
 	im = i;
       }
@@ -44,16 +44,29 @@ namespace test {
 /* SWIG interface tests */
 
 #ifdef SWIGPYTHON
-%typemap(in) test::complex * {
+%typemap(in) test::test_complex * {
     if (PyComplex_Check($input)) {
-	$1 = new complex(PyComplex_RealAsDouble($input),
+	$1 = new test_complex(PyComplex_RealAsDouble($input),
 			 PyComplex_ImagAsDouble($input));
     } else {
-	PyErr_SetString(PyExc_TypeError,"Expected complex.\n");
+	PyErr_SetString(PyExc_TypeError,"Expected test_complex.\n");
 	return NULL;
     }
 }
-%typemap(freearg) test::complex * {
+%typemap(freearg) test::test_complex * {
+    delete $1;
+}
+#endif
+#ifdef SWIGOCTAVE
+%typemap(in) test::test_complex * {
+    if ($input.is_complex_scalar()) {
+	$1 = new test_complex($input.complex_value().real(),
+			      $input.complex_value().imag());
+    } else {
+	error("Expected test_complex.");
+    }
+}
+%typemap(freearg) test::test_complex * {
     delete $1;
 }
 #endif
@@ -63,6 +76,14 @@ namespace test {
 #ifdef SWIGPYTHON
 	%typemap(in) string_class * {
 	    $1 = new string_class(PyString_AsString($input));
+	}
+	%typemap(freearg) string_class * {
+	    delete $1;
+	}
+#endif
+#ifdef SWIGOCTAVE
+	%typemap(in) string_class * {
+	    $1 = new string_class($input.string_value().c_str());
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;
@@ -81,26 +102,26 @@ namespace test {
 %inline %{
     namespace test {
 	class string_class;
-	class complex;
+	class test_complex;
 
 	/* Functions in the namespace itself */
 	char *stest1(string_class *s) {
 	    return s->c_str();
 	}
-	double ctest1(complex *c) {
+	double ctest1(test_complex *c) {
 	    return c->real();
 	}
     }
 
     namespace test2 {
 	using test::string_class;
-	using test::complex;
+	using test::test_complex;
 
 	/* Functions in another namespace */
 	char *stest2(string_class *s) {
 	    return s->c_str();
 	}
-	double ctest2(complex *c) {
+	double ctest2(test_complex *c) {
 	    return c->real();
 	}
     }
@@ -111,7 +132,7 @@ namespace test {
 	char *stest3(string_class *s) {
 	    return s->c_str();
 	}
-	double ctest3(complex *c) {
+	double ctest3(test_complex *c) {
 	    return c->real();
 	}
     }
@@ -122,7 +143,7 @@ namespace test {
 	char *stest4(string_class *s) {
 	    return s->c_str();
 	}
-	double ctest4(complex *c) {
+	double ctest4(test_complex *c) {
 	    return c->real();
 	}
     }
@@ -133,7 +154,7 @@ namespace test {
 	char *stest5(string_class *s) {
 	    return s->c_str();
 	}
-	double ctest5(complex *c) {
+	double ctest5(test_complex *c) {
 	    return c->real();
 	}
     }
@@ -141,35 +162,35 @@ namespace test {
     char *stest6(test::string_class *s) {
 	return s->c_str();
     }
-    double ctest6(test::complex *c) {
+    double ctest6(test::test_complex *c) {
 	return c->real();
     }
 
     char *stest7(test2::string_class *s) {
 	return s->c_str();
     }
-    double ctest7(test2::complex *c) {
+    double ctest7(test2::test_complex *c) {
 	return c->real();
     }
 
     char *stest8(test3::string_class *s) {
 	return s->c_str();
     }
-    double ctest8(test3::complex *c) {
+    double ctest8(test3::test_complex *c) {
 	return c->real();
     }
 
     char *stest9(test4::string_class *s) {
 	return s->c_str();
     }
-    double ctest9(test4::complex *c) {
+    double ctest9(test4::test_complex *c) {
 	return c->real();
     }
 
     char *stest10(test5::string_class *s) {
 	return s->c_str();
     }
-    double ctest10(test5::complex *c) {
+    double ctest10(test5::test_complex *c) {
 	return c->real();
     }
 
@@ -178,17 +199,17 @@ namespace test {
     char *stest11(test11::string_class *s) {
 	return s->c_str();
     }
-    double ctest11(test11::complex *c) {
+    double ctest11(test11::test_complex *c) {
 	return c->real();
     }
 
     using namespace test2;
-    using test::complex;
+    using test::test_complex;
 
     char *stest12(string_class *s) {
 	return s->c_str();
     }
-    double ctest12(complex *c) {
+    double ctest12(test_complex *c) {
 	return c->real();
     }
 %}
@@ -200,6 +221,14 @@ namespace Split {
 	if ($1 < 0) {
 	    PyErr_SetString(PyExc_ValueError,"domain error\n");
 	    return NULL;
+	}
+    }	
+#endif
+#ifdef SWIGOCTAVE
+    %typemap(in) PosInteger {
+	$1 = $input.long_value();
+	if ($1 < 0) {
+	  error("domain error");
 	}
     }	
 #endif

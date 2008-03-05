@@ -6,7 +6,7 @@ typedef size_t MY_sizeT;
 typedef long MY_intT;
 typedef double MY_floatT;
 
-class Array
+class test_Array
 {
 public:
   typedef MY_intT    intT;
@@ -19,7 +19,7 @@ template <typename T>
 class ArrayIterator
 {
  public:
-  typedef Array::intT    intT;
+  typedef test_Array::intT    intT;
 };
 
 
@@ -27,13 +27,13 @@ template <typename T>
 class ArrayReverseIterator
 {
  public:
-  typedef Array::intT    intT;
+  typedef test_Array::intT    intT;
 };
 
 
 template <typename T>
 class ArrayPrimitiveT 
-  : public Array
+  : public test_Array
 {
 public:
   typedef T  ValueT;

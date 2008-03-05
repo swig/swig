@@ -163,8 +163,10 @@ struct swig_octave_class {
 
 // octave_swig_type plays the role of both the shadow class and the class 
 // representation within Octave, since there is no support for classes.
-// Ideally these would be separated (with the latter in Octave itself), 
-// but for brevity/simplicity this is not done here.
+//
+// These should really be decoupled, with the class support added to Octave
+// and the shadow class given by an m-file script. That would dramatically 
+// reduce the runtime complexity, and be more in line w/ other modules.
 
 class octave_swig_type : public octave_base_value {
   struct cpp_ptr {

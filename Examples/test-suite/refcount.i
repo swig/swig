@@ -55,7 +55,7 @@
 
 %}
 
-#ifdef SWIGPYTHON
+#if defined(SWIGPYTHON)
 %extend_smart_pointer(RCPtr<A>);
 %template(RCPtr_A) RCPtr<A>;
 #endif
@@ -96,7 +96,7 @@
 
 %}
 
-#ifdef SWIGPYTHON
+#if defined(SWIGPYTHON) || defined(SWIGOCTAVE)
 
 %include <std_vector.i>
 %template(vector_A) std::vector<RCPtr<A> >;

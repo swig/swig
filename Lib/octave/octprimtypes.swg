@@ -111,8 +111,14 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 	if (v!=floor(v))
 	  return SWIG_TypeError;
       }
-      if (val)
-	*val = ov.int64_scalar_value().value();
+      if (val) {
+	if (ov.is_int64_type())
+	  *val = ov.int64_scalar_value().value();
+	else if (ov.is_uint64_type())
+	  *val = ov.uint64_scalar_value().value();
+	else
+	  *val = ov.long_value();
+      }
       return SWIG_OK;
     }
 }
@@ -147,8 +153,14 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 	if (v<0)
 	  return SWIG_OverflowError;  
       }
-      if (val)
-	*val = ov.uint64_scalar_value().value();
+      if (val) {
+	if (ov.is_int64_type())
+	  *val = ov.int64_scalar_value().value();
+	else if (ov.is_uint64_type())
+	  *val = ov.uint64_scalar_value().value();
+	else
+	  *val = ov.long_value();
+      }
       return SWIG_OK;
     }
 }

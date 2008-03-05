@@ -47,9 +47,9 @@ if (b.a.c != 3)
 endif
   
 
-myFoo = li_attribute.MyFoo;
+myFoo = li_attribute.MyFoo();
 myFoo.x = 8;
-myClass = li_attribute.MyClass;
+myClass = li_attribute.MyClass();
 myClass.Foo = myFoo;
 if (myClass.Foo.x != 8)
   error

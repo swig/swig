@@ -2,7 +2,7 @@ template_default_arg
 
 
 helloInt = template_default_arg.Hello_int();
-helloInt.foo(template_default_arg.Hello_int.hi);
+helloInt.foo(template_default_arg.Hello_int_hi);
 
 
 x = template_default_arg.X_int();
@@ -18,7 +18,7 @@ endif
 
 
 
-y = template_default_arg.Y_unsigned()
+y = template_default_arg.Y_unsigned();
 if (y.meth(20.0, 200) != 200)
   error("Y_unsigned test 1 failed")
 endif
@@ -33,7 +33,7 @@ endif
 
 x = template_default_arg.X_longlong();
 x = template_default_arg.X_longlong(20.0);
-x = template_default_arg.X_longlong(20.0, 200L);
+x = template_default_arg.X_longlong(20.0, 200);
 
 
 x = template_default_arg.X_int();
@@ -49,7 +49,7 @@ x = template_default_arg.X_hello_unsigned(20.0, template_default_arg.Hello_int()
 y = template_default_arg.Y_hello_unsigned();
 y.meth(20.0, template_default_arg.Hello_int());
 y.meth(template_default_arg.Hello_int());
-y.meth()
+y.meth();
 
 
 

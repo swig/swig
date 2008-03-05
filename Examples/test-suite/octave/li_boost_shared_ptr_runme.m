@@ -10,10 +10,10 @@ function main()
     li_boost_shared_ptr.cvar.debug_shared = debug;
 
     # Change loop count to run for a long time to monitor memory
-    loopCount = 1 #5000
+    loopCount = 1; #5000
     for i=0:loopCount,
       self.runtest();
-    endif
+    endfor
 
     if (li_boost_shared_ptr.Klass.getTotal_count() != 0)
       error("Klass.total_count=", li_boost_shared_ptr.Klass.getTotal_count())
@@ -454,10 +454,10 @@ function runtest()
 
     # templates
     pid = li_boost_shared_ptr.PairIntDouble(10, 20.2)
-    if (pid.baseVal1 != 20 or pid.baseVal2 != 40.4)
+    if (pid.baseVal1 != 20 || pid.baseVal2 != 40.4)
       error("Base values wrong")
     endif
-    if (pid.val1 != 10 or pid.val2 != 20.2)
+    if (pid.val1 != 10 || pid.val2 != 20.2)
       error("Derived Values wrong")
     endif
 endfunction

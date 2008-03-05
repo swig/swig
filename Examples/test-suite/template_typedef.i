@@ -8,15 +8,15 @@
 //
 #if 0
 
-#define real double
+#define reald double
 %{
-#define real double
+#define reald double
 %}
 
 #else
 
 %inline %{
-  typedef double real;
+  typedef double reald;
 %}
 
 #endif
@@ -24,7 +24,7 @@
 
 %inline %{
 
-  //  typedef double real;
+  //  typedef double reald;
 
   namespace vfncs {
 
@@ -78,29 +78,29 @@
     };
 
     template<>
-    struct arith_traits< real, real >
+    struct arith_traits< reald, reald >
     {
     
-      typedef real argument_type;
-      typedef real result_type;
+      typedef reald argument_type;
+      typedef reald result_type;
       static const char* const arg_type;
       static const char* const res_type;
     };
 
     template<>
-    struct arith_traits< real, float >
+    struct arith_traits< reald, float >
     {
       typedef float argument_type;
-      typedef real result_type;
+      typedef reald result_type;
       static const char* const arg_type;
       static const char* const res_type;
     };
 
     template<>
-    struct arith_traits< float, real >
+    struct arith_traits< float, reald >
     {
       typedef float argument_type;
-      typedef real result_type;
+      typedef reald result_type;
       static const char* const arg_type;
       static const char* const res_type;
     };
@@ -124,14 +124,14 @@
     const char* const arith_traits< float, float >::arg_type = "float";
     const char* const arith_traits< float, float >::res_type = "float";
 
-    const char* const arith_traits< real, real >::arg_type = "real";
-    const char* const arith_traits< real, real >::res_type = "real";
+    const char* const arith_traits< reald, reald >::arg_type = "reald";
+    const char* const arith_traits< reald, reald >::res_type = "reald";
 
-    const char* const arith_traits< real, float >::arg_type = "float";
-    const char* const arith_traits< real, float >::res_type = "real";
+    const char* const arith_traits< reald, float >::arg_type = "float";
+    const char* const arith_traits< reald, float >::res_type = "reald";
 
-    const char* const arith_traits< float, real >::arg_type = "float";
-    const char* const arith_traits< float, real >::res_type = "real";
+    const char* const arith_traits< float, reald >::arg_type = "float";
+    const char* const arith_traits< float, reald >::res_type = "reald";
 
 #endif
 
@@ -145,32 +145,32 @@ namespace vfncs {
   %template() arith_traits<float, float >;
   %template(make_Identity_float) make_Identity<float >;
 
-  %template(UnaryFunction_real_real) UnaryFunction<real, real >;  
-  %template(ArithUnaryFunction_real_real) ArithUnaryFunction<real, real >;  
+  %template(UnaryFunction_reald_reald) UnaryFunction<reald, reald >;  
+  %template(ArithUnaryFunction_reald_reald) ArithUnaryFunction<reald, reald >;  
 
-  %template() unary_func_traits<real, real >;
-  %template() arith_traits<real, real >;
-  %template(make_Identity_real) make_Identity<real >;
+  %template() unary_func_traits<reald, reald >;
+  %template() arith_traits<reald, reald >;
+  %template(make_Identity_reald) make_Identity<reald >;
 
   /* [beazley] Added this part */
-  %template() unary_func_traits<float,real>;
-  %template(UnaryFunction_float_real) UnaryFunction<float,real>;
-  %template(ArithUnaryFunction_float_real) ArithUnaryFunction<float,real>;
+  %template() unary_func_traits<float,reald>;
+  %template(UnaryFunction_float_reald) UnaryFunction<float,reald>;
+  %template(ArithUnaryFunction_float_reald) ArithUnaryFunction<float,reald>;
 
   /* */
 
-  %template() arith_traits<real, float >;
-  %template() arith_traits<float, real >;
+  %template() arith_traits<reald, float >;
+  %template() arith_traits<float, reald >;
   %template() arith_traits<float, float >;
 
-  %template(make_Multiplies_float_float_real_real)
-    make_Multiplies<float, float, real, real>;
+  %template(make_Multiplies_float_float_reald_reald)
+    make_Multiplies<float, float, reald, reald>;
 
   %template(make_Multiplies_float_float_float_float)
     make_Multiplies<float, float, float, float>;
 
-  %template(make_Multiplies_real_real_real_real)
-    make_Multiplies<real, real, real, real>;
+  %template(make_Multiplies_reald_reald_reald_reald)
+    make_Multiplies<reald, reald, reald, reald>;
 
 }
 

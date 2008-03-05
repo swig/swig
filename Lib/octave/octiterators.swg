@@ -2,9 +2,7 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * pyiterators.swg
- *
- * Implement a python 'output' iterator for Python 2.2 or higher.
+ * octiterators.swg
  *
  * Users can derive form the OctSwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD
@@ -31,19 +29,15 @@ namespace swig {
   public:
     virtual ~OctSwigIterator() {}
 
-    // Access iterator method, required by Python
     virtual octave_value value() const = 0;
 
-    // Forward iterator method, required by Python
     virtual OctSwigIterator *incr(size_t n = 1) = 0;
-    
-    // Backward iterator method, very common in C++, but not required in Python
+
     virtual OctSwigIterator *decr(size_t n = 1)
     {
       throw stop_iteration();
     }
 
-    // Random access iterator methods, but not required in Python
     virtual ptrdiff_t distance(const OctSwigIterator &x) const
     {
       throw std::invalid_argument("operation not supported");
@@ -54,7 +48,6 @@ namespace swig {
       throw std::invalid_argument("operation not supported");
     }
     
-    // C++ common/needed methods
     virtual OctSwigIterator *copy() const = 0;
 
     octave_value next()
@@ -84,15 +77,15 @@ namespace swig {
     {
       return ! operator==(x);
     }
-      
-    OctSwigIterator& operator += (ptrdiff_t n)
-    {
-      return *advance(n);
+
+    OctSwigIterator* operator ++ () {
+      incr();
+      return this;
     }
 
-    OctSwigIterator& operator -= (ptrdiff_t n)
-    {
-      return *advance(-n);
+    OctSwigIterator* operator -- () {
+      decr();
+      return this;
     }
       
     OctSwigIterator* operator + (ptrdiff_t n) const
@@ -306,12 +299,8 @@ namespace swig
   struct stop_iteration {};
   
   %typemap(throws) stop_iteration {
-    assert(0); *(int*)0=0;
-    /*
-    (void)$1;
-    SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
+    error("stop_iteration exception");
     SWIG_fail;
-    */
   }
 
 // Mark methods that return new objects
@@ -343,37 +332,29 @@ namespace swig
   public:
     virtual ~OctSwigIterator();
 
-    // Access iterator method, required by Python
     virtual octave_value value() const = 0;
 
-    // Forward iterator method, required by Python
     virtual OctSwigIterator *incr(size_t n = 1) = 0;
     
-    // Backward iterator method, very common in C++, but not required in Python
     virtual OctSwigIterator *decr(size_t n = 1);
 
-    // Random access iterator methods, but not required in Python
     virtual ptrdiff_t distance(const OctSwigIterator &x) const;
 
     virtual bool equal (const OctSwigIterator &x) const;
     
-    // C++ common/needed methods
     virtual OctSwigIterator *copy() const = 0;
 
     octave_value next();
     octave_value previous();
     OctSwigIterator *advance(ptrdiff_t n);
 
-    // * todo: need operator support
-    /*
     bool operator == (const OctSwigIterator& x)  const;
     bool operator != (const OctSwigIterator& x) const;
-    OctSwigIterator& operator += (ptrdiff_t n);
-    OctSwigIterator& operator -= (ptrdiff_t n);
+    OctSwigIterator* operator ++ ();
+    OctSwigIterator* operator -- ();
     OctSwigIterator* operator + (ptrdiff_t n) const;
     OctSwigIterator* operator - (ptrdiff_t n) const;
     ptrdiff_t operator - (const OctSwigIterator& x) const;
-    */
   };
 }
 

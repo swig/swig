@@ -77,22 +77,18 @@ The current SWIG implemention is based on Octave 2.9.12. Support for other versi
 Let's start with a very simple SWIG interface file:
 </p>
 
-<p>
 <div class="code"><pre>%module example
 %{
 #include "example.h"
 %}
 int gcd(int x, int y);
 extern double Foo; </pre></div>
-</p>
 
 <p>
 To build an Octave module, run SWIG using the <tt>-octave</tt> option. The <tt>-c++</tt> option is required (for now) as Octave itself is written in C++ and thus the wrapper code must also be. 
 </p>
 
-<p>
 <div class="shell"><pre>$ swig -octave -c++ example.i </pre></div>
-</p>
 
 <p>
 This creates a C/C++ source file <tt>example_wrap.cxx</tt>. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
@@ -110,12 +106,10 @@ Octave modules are DLLs/shared objects having the ".oct" suffix.
 Building an oct file is usually done with the mkoctfile command (either within Octave itself, or from the shell). For example,
 </p>
 
-<p>
 <div class="shell"><pre>
 $ swig -octave -c++ example.i -o example_wrap.cxx
 $ mkoctfile example_wrap.cxx example.c
 </pre></div>
-</p>
 
 <p>
         where example.c is the file containing the gcd() implementation. 
@@ -129,22 +123,16 @@ $ mkoctfile example_wrap.cxx example.c
         mkoctfile will produce example.oct, which contains the compiled extension module. Loading it into Octave is then a matter of invoking 
 </p>
 
-<p>
           <div class="targetlang"><pre>octave:1&gt; example</pre></div>
-</p>
 
-<p>
 <H3><a name="Octave_nn6"></a>26.2.2 Using your module</H3>
 
-
-</p>
 
 <p>
 Assuming all goes well, you will be able to do this: 
         <br>
 </p>
 
-<p>        
           <div class="targetlang"><pre>$ octave -q
 octave:1&gt; example
 octave:2&gt; example.gcd(4,6)
@@ -154,7 +142,6 @@ ans =  3
 octave:4&gt; example.cvar.Foo=4;
 octave:5&gt; example.cvar.Foo
 ans =  4 </pre></div>
-</p>
 
 <H2><a name="Octave_nn7"></a>26.3 A tour of basic C/C++ wrapping</H2>
 
@@ -174,7 +161,6 @@ When Octave is asked to invoke <tt>example</tt>, it will try to find the .m or .
 Giving this function a parameter "global" will cause it to load all symbols into the global namespace in addition to the <tt>example</tt> namespace. For example: 
 </p>
 
-<p>
     <div class="targetlang"><pre>$ octave -q
 octave:1&gt; example("global")
 octave:2&gt; gcd(4,6)
@@ -185,15 +171,12 @@ octave:4&gt; cvar.Foo=4;
 octave:5&gt; cvar.Foo
 ans =  4 
 </pre></div>
-</p>
 <p>
      It is also possible to rename the module namespace with an assignment, as in: <br>
-<p>
     <div class="targetlang"><pre>octave:1&gt; example;
 octave:2&gt; c=example;
 octave:3&gt; c.gcd(10,4)
 ans =  2 </pre></div>
-</p>
 
 <p>
 All global variables are put into the cvar namespace object. This is accessible either as <tt>my_module.cvar</tt>, or just <tt>cvar</tt> (if the module is imported into the global namespace).
@@ -201,11 +184,9 @@ All global variables are put into the cvar namespace object. This is accessible 
 <p>
 One can also rename it by simple assignment, e.g.,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; some_vars = cvar;
-</div></pre>
-</p>
+</pre></div>
 
 <H3><a name="Octave_nn9"></a>26.3.2 Functions</H3>
 
@@ -214,21 +195,16 @@ octave:1&gt; some_vars = cvar;
 Global functions are wrapped as new Octave built-in functions. For example, 
 </p>
 
-<p>
       <div class="code"><pre>&#037;module example
 int fact(int n); </pre></div>
-</p>
 
 <p>
      creates a built-in function <tt>example.fact(n)</tt> that works exactly like you think it does: 
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example.fact(4)
 24 </pre></div>
-</p>
 
-<p>
 <H3><a name="Octave_nn10"></a>26.3.3 Global variables</H3>
 
 
@@ -236,17 +212,14 @@ int fact(int n); </pre></div>
      Global variables are a little special in Octave. Given a global variable: 
 </p>
 
-<p>
     <div class="code"><pre>%module example
 extern double Foo;
       </pre></div>
-</p>
 
 <p>
     To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_set would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example;
 octave:2&gt; c=example.cvar.Foo
 c =  3
@@ -255,42 +228,35 @@ octave:4&gt; c
 c =  3
 octave:5&gt; example.cvar.Foo
 ans =  4</pre></div>
-</p>
 
 <p>
 If a variable is marked with the %immutable directive then any attempts to set this variable will cause an Octave error. Given a global variable: 
 </p>
 
-<p>
     <div class="code"><pre>%module example
 %immutable;
 extern double Foo;
 %mutable;
 </pre></div>
-</p>
 
 <p>
      SWIG will allow the the reading of <tt>Foo</tt> but when a set attempt is made, an error function will be called. 
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example
 octave:2&gt; example.Foo=4
 error: attempt to set immutable member variable
 error: assignment failed, or no method for `swig_type = scalar'
 error: evaluating assignment expression near line 2, column 12 </pre></div>
-</p>
 
 <p>
     It is possible to add new functions or variables to the module. This also allows the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so. 
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example;
 octave:2&gt; example.PI=3.142;
 octave:3&gt; example.PI
 ans =  3.1420 </pre></div>
-</p>
 
 <H3><a name="Octave_nn11"></a>26.3.4 Constants and enums</H3>
 
@@ -299,62 +265,50 @@ ans =  3.1420 </pre></div>
      Because Octave doesn't really have the concept of constants, C/C++ constants are not really constant in Octave. They are actually just a copy of the value into the Octave interpreter. Therefore they can be changed just as any other value. For example given some constants: 
 </p>
 
-<p>
     <div class="code"><pre>%module example
 %constant int ICONST=42;
 #define    SCONST      "Hello World"
 enum Days{SUNDAY,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
 </pre></div>
-</p>
 
 <p>
     This is 'effectively' converted into the following Octave code: 
 </p>
 
-<p>
     <div class="targetlang"><pre>example.ICONST=42
 example.SCONST="Hello World"
 example.SUNDAY=0
 .... </pre></div>
-</p>
 
-<p>
 <H3><a name="Octave_nn12"></a>26.3.5 Pointers</H3>
 
-
-</p>
 
 <p>
       C/C++ pointers are fully supported by SWIG. Furthermore, SWIG has no problem working with incomplete type information. Given a wrapping of the &lt;file.h&gt; interface:
        C/C++ pointers are fully supported by SWIG. Furthermore, SWIG has no problem working with incomplete type information. Given a wrapping of the &lt;file.h&gt; interface:
 </p>
 
-<p>
 <div class="code"><pre>%module example
 FILE *fopen(const char *filename, const char *mode);
 int fputs(const char *, FILE *);
 int fclose(FILE *);
 </pre></div>
-</p>
 
 <p>
 When wrapped, you will be able to use the functions in a natural way from Octave. For example:
 </p>
 
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; example;
 octave:2&gt; f=example.fopen("w","junk");
 octave:3&gt; example.fputs("Hello world",f);
 octave:4&gt; example.fclose(f);
 </pre></div>
-</p>
 
 <p>
      Simply printing the value of a wrapped C++ type will print it's typename. E.g., 
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example;
 octave:2&gt; f=example.fopen("junk","w");
 octave:3&gt; f
@@ -363,18 +317,15 @@ f =
 {
   _p_FILE, ptr = 0x9b0cd00
 } </pre></div>
-</p>
 
 <p>
     As the user of the pointer, you are responsible for freeing it, or closing any resources associated with it (just as you would in a C program). This does not apply so strictly to classes and structs (see below).
 </p>
 
-<p>
     <div class="targetlang"><pre>octave:1&gt; example;
 octave:2&gt; f=example.fopen("not there","r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
-</p>
 
 <H3><a name="Octave_nn13"></a>26.3.6 Structures</H3>
 
@@ -383,18 +334,15 @@ error: evaluating assignment expression near line 2, column 2 </pre></div>
      SWIG wraps C structures and C++ classes by creating type objects. When invoked as a function, they create a new object of their type. The structures/classes themselves are mapped to a native Octave type. This provides a very natural interface. For example, 
 </p>
 
-<p>
     <div class="code"><pre>struct Point{
   int x,y;
 };
 </pre></div>
-</p>
 
 <p>
     is used as follows: 
 </p>
 
-<p>
     <div class="targetlang">
       <pre>octave:1&gt; example;
 octave:2&gt; p=example.Point();
@@ -404,7 +352,6 @@ octave:5&gt; p.x, p.y
 ans =  3
 ans =  5 
 </pre></div>
-</p>
 
 <H3><a name="Octave_nn14"></a>26.3.7 C++ classes</H3>
 
@@ -459,26 +406,22 @@ For example, the following:
 struct A {
   int value;
   A(int _value) : value(_value) {}
-  A operator+ (const A& x) {
+  A operator+ (const A&amp; x) {
     return A(value+x.value);
   }
 };
 }
 </pre></div>
-</p>
 <p>
 may be used naturally from Octave:
 </p>
-<p>
 <div class="targetlang"><pre>
 a=A(2), b=A(3), c=a+b
 assert(c.value==5);
 </pre></div>
-</p>
 <p>
 Octave operators are mapped in the following way:
 </p>
-<p>
 <div class="code"><pre>
 __brace      a{args}
 __brace_asgn a{args} = rhs
@@ -510,14 +453,12 @@ __el_mul     a .* b
 __el_div     a ./ b
 __el_pow     a .^ b
 __el_ldiv    a .\ b
-__el_and     a & b
+__el_and     a &amp; b
 __el_or      a | b
 </pre></div>
-</p>
 <p>
 On the C++ side, the default mappings are as follows:
 </p>
-<p>
 <div class="code"><pre>
 %rename(__add)       *::operator+;
 %rename(__add)       *::operator+();
@@ -530,7 +471,7 @@ On the C++ side, the default mappings are as follows:
 %rename(__mod)       *::operator%;
 %rename(__lshift)    *::operator<<;
 %rename(__rshift)    *::operator>>;
-%rename(__el_and)    *::operator&&;
+%rename(__el_and)    *::operator&amp;&amp;;
 %rename(__el_or)     *::operator||;
 %rename(__xor)       *::operator^;
 %rename(__invert)    *::operator~;
@@ -556,7 +497,6 @@ The %extend directive works the same as in other modules.
 <p>
 You can use it to define special behavior, like for example defining Octave operators not mapped to C++ operators, or defining certain Octave mechanisms such as how an object prints. For example, the <tt>octave_value::{is_string,string_value,print}</tt> functions are routed to a special method <tt>__str</tt> that can be defined inside an %extend.
 </p>
-<p>
 <div class="code"><pre>
 %extend A {
 string __str() {
@@ -566,11 +506,9 @@ string __str() {
 }
 }
 </pre></div>
-</p>
 <p>
 Then in Octave one gets,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; a=A(4);
 octave:2&gt; a
@@ -580,7 +518,6 @@ octave:3&gt; printf("%s\n",a);
 octave:4&gt; a.__str()
 4
 </pre></div>
-</p>
 <H3><a name="Octave_nn20"></a>26.3.13 C++ templates</H3>
 
 
@@ -607,19 +544,16 @@ Octave has no direct support for object oriented programming, however the <tt>sw
 <p>
 For example,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; a=subclass();
 octave:2&gt; a.my_var = 4;
 octave:3&gt; a.my_method = @(self) printf("my_var = ",self.my_var);
 octave:4&gt; a.my_method();
 my_var = 4
-</div></pre>
-</p>
+</pre></div>
 <p>
 <tt>subclass()</tt> can also be used to subclass one or more C++ types. Suppose you have an interface defined by
 </p>
-<p>
 <div class="code"><pre>
 %inline {
 class A {
@@ -628,16 +562,14 @@ public:
     printf("c-side routine called\n");
   }
 };
-void call_your_method(A& a) {
+void call_your_method(A&amp; a) {
   a.my_method();
 }
 }
 </pre></div>
-</p>
 <p>
 Then from Octave you can say:
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; B=@() subclass(A(),@my_method);
 octave:2&gt; function my_method(self)
@@ -646,35 +578,29 @@ octave:4&gt; end
 octave:5&gt; call_your_method(B());
 octave-side routine called
 </pre></div>
-</p>
 <p>
 or more concisely,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; B=@() subclass(A(),'my_method',@(self) printf("octave-side routine called\n"));
 octave:2&gt; call_your_method(B());
 octave-side routine called
 </pre></div>
-</p>
 <p>
 Note that you have to enable directors via the %feature directive (see other modules for this).
 </p>
 <p>
 <tt>subclass()</tt> will accept any number of C++ bases or other <tt>subclass()</tt>'ed objects, <tt>(string,octave_value)</tt> pairs, and <tt>function_handles</tt>. In the first case, these are taken as base classes; in the second case, as named members (either variables or functions, depending on whether the given value is a function handle); in the third case, as member functions whose name is taken from the given function handle. E.g.,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; B=@(some_var=2) subclass(A(),'some_var',some_var,@some_func,'another_func',@(self) do_stuff())
 </pre></div>
-</p>
 <p>
 You can also assign non-C++ member variables and functions after construct time. There is no support for non-C++ static members.
 </p>
 <p>
 There is limited support for explicitly referencing C++ bases. So, in the example above, we could have
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; B=@() subclass(A(),@my_method);
 octave:2&gt; function my_method(self)
@@ -685,7 +611,6 @@ octave:6&gt; call_your_method(B());
 c-side routine called
 octave-side routine called
 </pre></div>
-</p>
 
 <H3><a name="Octave_nn23"></a>26.3.16 Threads</H3>
 
@@ -711,11 +636,9 @@ public:
 };
 }
 </pre></div>
-</p>
 <p>
 Would produce this behavior in Octave:
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; a=A();
 A constructing
@@ -724,7 +647,6 @@ octave:3&gt; clear a;
 octave:4&gt; b=4;
 A destructing
 </pre></div>
-</p>
 <p>
 In the case where one wishes for the C++ side to own an object that was created in Octave (especially a Director object), one can use the __disown() method to invert this logic. Then letting the Octave reference count go to zero will not destroy the object, but destroying the object will invalidate the Octave-side object if it still exists (and call destructors of other C++ bases in the case of multiple inheritance/<tt>subclass()</tt>'ing).
 </p>
@@ -742,20 +664,16 @@ This is some skeleton support for various STL containers, but this work is not f
 <p>
 Octave provides a rich set of classes for dealing with matrices etc. Currently there are no typemaps to deal with those, though such support will be added soon. However, these are relatively straight forward for users to add themselves (see the docs on typemaps). Without much work (a single typemap decl-- say, 5 lines of code in the interface file), it would be possible to have a function
 </p>
-<p>
 <div class="code"><pre>
 double my_det(const double* mat,int m,int n);
-</div></pre>
-</p>
+</pre></div>
 <p>
 that is accessed from Octave as,
 </p>
-<p>
 <div class="targetlang"><pre>
 octave:1&gt; my_det(rand(4));
 ans = -0.18388
-</div></pre>
-</p>
+</pre></div>
 
     <tt><br></tt>
   </body>
