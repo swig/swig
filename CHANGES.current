@@ -1,6 +1,11 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/06/2008: mgossage
+            [Lua] Updated documentation for Lua exceptions.
+            Added Examples/lua/exception and Examples/lua/embed2.
+            Small updates to the typemaps.
+
 03/04/2008: wsfulton
             [Java, C#] Add char *& typemaps.
 

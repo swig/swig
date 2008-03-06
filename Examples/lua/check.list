@@ -3,6 +3,8 @@ class
 constants
 dual
 embed
+embed2
+exception
 funcptr3
 functest
 functor

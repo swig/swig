@@ -33,13 +33,14 @@
 <li><a href="#Lua_nn19">Class extension with %extend</a>
 <li><a href="#Lua_nn20">C++ templates</a>
 <li><a href="#Lua_nn21">C++ Smart Pointers</a>
-<li><a href="#Lua_nn22">Writing your own custom wrappers</a>
+<li><a href="#Lua_nn22">C++ exceptions</a>
+<li><a href="#Lua_nn23">Writing your own custom wrappers</a>
 </ul>
-<li><a href="#Lua_nn23">Details on the Lua binding</a>
+<li><a href="#Lua_nn24">Details on the Lua binding</a>
 <ul>
-<li><a href="#Lua_nn24">Binding global data into the module.</a>
-<li><a href="#Lua_nn25">Userdata and Metatables</a>
-<li><a href="#Lua_nn26">Memory management</a>
+<li><a href="#Lua_nn25">Binding global data into the module.</a>
+<li><a href="#Lua_nn26">Userdata and Metatables</a>
+<li><a href="#Lua_nn27">Memory management</a>
 </ul>
 </ul>
 </div>
@@ -308,7 +309,7 @@ Its is therefore not possible to 'move' the global variable into the global name
 4
 </pre></div>
 <p>
-If a variable is marked with the %immutable directive then any attempts to set this variable will cause an lua error. Given a global variable:
+If a variable is marked with the %immutable directive then any attempts to set this variable will cause an Lua error. Given a global variable:
 </p>
 
 <div class="code"><pre>%module example
@@ -331,7 +332,7 @@ stack traceback:
         [C]: ?
 </pre></div>
 <p>
-For those people who would rather that SWIG silently ignore the setting of immutables (as previous versions of the lua bindings did), adding a <tt>-DSWIGLUA_IGNORE_SET_IMMUTABLE</tt> compile option will remove this.
+For those people who would rather that SWIG silently ignore the setting of immutables (as previous versions of the Lua bindings did), adding a <tt>-DSWIGLUA_IGNORE_SET_IMMUTABLE</tt> compile option will remove this.
 </p>
 <p>
 Unlike earlier versions of the binding, it is now possible to add new functions or variables to the module, just as if it were a normal table. This also allows the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so.
@@ -949,13 +950,133 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 &gt; f = p:__deref__()     -- Returns underlying Foo *
 </pre></div>
 
-<H3><a name="Lua_nn22"></a>22.3.15 Writing your own custom wrappers</H3>
+<H3><a name="Lua_nn22"></a>22.3.15 C++ Exceptions</H3>
+<p>
+Lua does not natively support exceptions, but it has errors which are similar. When a Lua function terminates with an error
+it returns one value back to the caller. SWIG automatically maps any basic type which is thrown into a Lua error.
+Therefore for a function:
+</p>
+<div class="code"><pre>
+int message() throw(const char *) {
+  throw("I died.");
+  return 1;
+}
+</pre></div>
+<p>
+SWIG will automatically convert this to a Lua error.
+</p>
 
+<div class="targetlang"><pre>
+> message()
+I died.
+stack traceback:
+        [C]: in function 'message'
+        stdin:1: in main chunk
+        [C]: ?
+>
+</pre></div>
 
 <p>
-Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native lua-c API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
+And similarly for numeric types, enums, chars, char*'s and std::string's.
 </p>
-<div class="code"><pre>%native(my_func) int native_function(lua_State*L);  // registers it with SWIG
+<p>
+However its not so simple for objects. Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
+returned to the interpreter. 
+The obvious ways to overcome this would be to either return a copy of the object, or so convert the object to a string and
+return that. Though it seems obvious to perform the former, in some cases this is not possible, most notably when
+SWIG has no information about the object, or the object is not copyable/creatable.
+</p>
+<p>
+Therefore by default SWIG converts all thrown object into strings and returns them. So given a function:
+</p>
+
+<div class="code"><pre>
+void throw_A() throw(A*) {
+  throw new A();
+}
+</pre></div>
+<p>
+SWIG will just convert it (poorly) to a string and use that as its error. (Yes its not that useful, but it always works).
+</p>
+
+<div class="targetlang"><pre>
+> throw_A()
+object exception:A *
+stack traceback:
+        [C]: in function 'unknown'
+        stdin:1: in main chunk
+        [C]: ?
+>
+</pre></div>
+<p>
+To get a more useful behaviour out of SWIG you must either: provide a way to convert your exceptions into strings, or
+only throw objects which can be copied.
+</p>
+<p>
+SWIG has typemaps for std::exception and its children already written, so a function which throws any of these will
+automatically have its exception converted into an error string.
+</p>
+<p>
+If you have your own class which you want output as a string you will need to add a typemap something like this:
+</p>
+<div class="code"><pre>
+%typemap(throws) my_except
+%{ 
+  lua_pushstring(L,$1.what()); // assuming what() returns a const char* message
+  SWIG_fail; // trigger the error handler
+%}
+</pre></div>
+<p>
+If you wish your exception to be returned to the interpreter, it must firstly be copyable. Then you must have and additional
+<tt>%apply</tt> statement, to inform SWIG to return a copy of this object to the interpreter. For example:
+</p>
+<div class="code"><pre>
+%apply SWIGTYPE EXCEPTION_BY_VAL {Exc}; // tell SWIG to return Exc by value to interpreter
+
+class Exc {
+public:
+  Exc(int c, const char *m) {
+    code = c;
+    strncpy(msg,m,256);
+  }
+  int code;
+  char msg[256];
+};
+
+void throw_exc() throw(Exc) {
+  throw(Exc(42,"Hosed"));
+} 
+</pre></div>
+<p>
+Then the following code can be used (note: we use pcall to catch the error so we can process the exception).
+</p>
+<div class="targetlang"><pre>
+> ok,res=pcall(throw_exc)
+> print(ok)
+false
+> print(res)
+userdata: 0003D880
+> print(res.code,res.msg)
+42      Hosed
+>
+</pre></div>
+<p>
+Note: is is also possible (though tedious) to have a function throw several different kinds of exceptions. To process this
+will require a pcall, followed by a set of if statements checking the type of the error.
+</p>
+<p>
+All of this code assumes that your C++ code uses exception specification (which a lot doesn't).
+If it doesn't consult the "<a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>" section
+and the "<a href="Customization.html#exception">Exception handling with %exception</a>" section, for more details on how to
+add exception specification to functions or globally (respectively).
+</p>
+
+
+<H3><a name="Lua_nn23"></a>22.3.16 Writing your own custom wrappers</H3>
+<p>
+Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
+</p>
+<div class="code"><pre>%native(my_func) int native_function(lua_State*L);  // registers native_function() with SWIG
 ...
 %{
 int native_function(lua_State*L) // my native code
@@ -968,7 +1089,7 @@ int native_function(lua_State*L) // my native code
 The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrappering for this function, beyond adding it into the function table. How you write your code is entirely up to you.
 </p>
 
-<H2><a name="Lua_nn23"></a>22.4 Details on the Lua binding</H2>
+<H2><a name="Lua_nn24"></a>22.4 Details on the Lua binding</H2>
 
 
 <p>
@@ -979,7 +1100,7 @@ The <tt>%native</tt> directive in the above example, tells SWIG that there is a 
  </i>
 </p>
 
-<H3><a name="Lua_nn24"></a>22.4.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn25"></a>22.4.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -995,7 +1116,7 @@ SWIG will effectively generate the pair of functions
 double Foo_get();
 </pre></div>
 <p>
-At initialisation time, it will then add to the interpreter a table called 'example', which represents the module. It will then add all its functions to the module. (Note: older versions of SWIG actually added the Foo_set() and Foo_get() functions, current implementation does not add these functions and more.) But it also adds a metatable to this table, which has two functions (<tt>__index</tt> and <tt>__newindex</tt>) as well as two tables (<tt>.get</tt> and <tt>.set</tt>) The following Lua code will show these hidden features.
+At initialisation time, it will then add to the interpreter a table called 'example', which represents the module. It will then add all its functions to the module. (Note: older versions of SWIG actually added the Foo_set() and Foo_get() functions, current implementation does not add these functions any more.) But it also adds a metatable to this table, which has two functions (<tt>__index</tt> and <tt>__newindex</tt>) as well as two tables (<tt>.get</tt> and <tt>.set</tt>) The following Lua code will show these hidden features.
 </p>
 <div class="targetlang"><pre>
 &gt; print(example)
@@ -1039,7 +1160,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn25"></a>22.4.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn26"></a>22.4.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1119,7 +1240,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrappered classes/s
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn26"></a>22.4.3 Memory management</H3>
+<H3><a name="Lua_nn27"></a>22.4.3 Memory management</H3>
 
 
 <p>

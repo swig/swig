@@ -62,7 +62,7 @@ Not using: lua_tolstring() as this is only found in Lua 5.1 & not 5.0.2
 
 // for throwing of any kind of string, string ref's and string pointers
 // we convert all to lua strings
-%typemap(throws) std::string,const std::string&
+%typemap(throws) std::string,std::string&,const std::string&
 %{ lua_pushlstring(L,$1.data(),$1.size()); SWIG_fail;%}
 %typemap(throws) std::string*,const std::string*
 %{ lua_pushlstring(L,$1->data(),$1->size()); SWIG_fail;%}
