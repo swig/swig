@@ -68,21 +68,20 @@ SWIGRUNTIME octave_value SWIG_Error(int code,const char* msg) {
 
 SWIGRUNTIME swig_module_info* SWIG_Octave_GetModule(void* clientdata) {
   octave_value tmp = get_global_value ("__SWIG_MODULE__", true);
-  if (!tmp.is_defined()||!tmp.is_scalar_type())
+  if (!tmp.is_defined()||!tmp.is_uint64_type())
     return 0;
-  long r=tmp.long_value();
+  unsigned long r=tmp.uint64_scalar_value().value();
   assert(sizeof(r)==sizeof(swig_module_info*));
   return (swig_module_info*)r;
 }
 
 SWIGRUNTIME void SWIG_Octave_SetModule(void* clientdata,swig_module_info* pointer) {
-  long r=(long)pointer;
+  unsigned long r=(unsigned long)pointer;
   assert(sizeof(r)==sizeof(swig_module_info*));
   const char* module_var="__SWIG_MODULE__";
   link_to_global_variable(curr_sym_tab->lookup(module_var,true));
-  set_global_value(module_var,r);
+  set_global_value(module_var,octave_uint64(r));
 }
-
 
 // Runtime API implementation
 
@@ -348,7 +347,7 @@ class octave_swig_type : public octave_base_value {
     if (own) {
       ++count;
       for (int j=0;j<types.size();++j) {
-	if (!types[j].first->clientdata)
+	if (!types[j].first||!types[j].first->clientdata)
 	  continue;
 	swig_octave_class* c=(swig_octave_class*)types[j].first->clientdata;
 	if (c->destructor&&!types[j].second.destroyed&&
@@ -408,6 +407,8 @@ class octave_swig_type : public octave_base_value {
   }
   void install_global() {
     for (member_map::const_iterator it=members.begin();it!=members.end();++it) {
+      const char* it_first=it->first.c_str();
+      member_value_pair it_second=it->second;
       if (it->second.first&&it->second.first->method)
 	install_builtin_function(it->second.first->method,it->first,std::string());
       else if (it->second.second.is_defined()) {
@@ -887,6 +888,9 @@ struct octave_value_ref {
   operator octave_value() const {
     return ovl(j);
   }
+  octave_value operator* () const {
+    return ovl(j);
+  }
 };
 
 octave_value_list swig_subclass(const octave_value_list& args,int nargout) {
@@ -1054,8 +1058,6 @@ namespace Swig {
 
 SWIGRUNTIME octave_value
 SWIG_Octave_NewPointerObj(void *ptr,swig_type_info *type,int flags) {
-  if (!ptr)
-    return octave_value();
   int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
 
   Swig::Director* d=Swig::get_rtdir(ptr);

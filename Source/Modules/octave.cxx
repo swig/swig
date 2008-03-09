@@ -161,6 +161,9 @@ public:
   }
 
   virtual int importDirective(Node *n) {
+    String *modname = Getattr(n, "module");
+    if (modname)
+      Printf(f_init, "feval(\"%s\",octave_value_list(),0);\n", modname);
     return Language::importDirective(n);
   }
 
@@ -554,7 +557,7 @@ public:
       return SWIG_ERROR;
 
     // This is a bug, due to the fact that swig_type -> octave_class mapping
-    // is n-to-1.
+    // is 1-to-n.
     static Hash *emitted = NewHash();
     String *mangled_classname = Swig_name_mangle(Getattr(n, "name"));
     if (Getattr(emitted, mangled_classname)) {

@@ -1,5 +1,6 @@
 %insert(runtime) %{
 #include <octave/oct.h>
+#include <octave/parse.h>
 #include <octave/ov-fcn-handle.h>
 #include <octave/Cell.h>
 %}

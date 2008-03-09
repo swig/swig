@@ -199,18 +199,8 @@ SWIG_AsCharPtrAndSize(const octave_value& ov, char** cptr, size_t* psize, int *a
   size_t len=str.size();
   char* cstr=(char*)str.c_str();
   if (alloc) {
-%#if defined(SWIG_OCTAVE_SAFE_CSTRINGS)
-   if (*alloc != SWIG_OLDOBJ)
-%#else
-   if (*alloc == SWIG_NEWOBJ)
-%#endif
-     {
-       *cptr = %new_copy_array(cstr, len + 1, char);
-       *alloc = SWIG_NEWOBJ;
-     } else {
-       *cptr = cstr;
-       *alloc = SWIG_OLDOBJ;
-     }
+    *cptr = %new_copy_array(cstr, len + 1, char);
+    *alloc = SWIG_NEWOBJ;
   } else if (cptr)
     *cptr = cstr;
   if (psize)

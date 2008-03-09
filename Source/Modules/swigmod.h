@@ -220,7 +220,7 @@ public:
   /* Runtime is C++ based, so extern "C" header section */
   void enable_cplus_runtime_mode();
 
-  /* Returns the cpp_runtime mode */
+  /* Returns the cplus_runtime mode */
   int cplus_runtime_mode();
 
   /* Allow director related code generation */
