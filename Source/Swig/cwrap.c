@@ -465,14 +465,14 @@ static String *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_o
  *
  * Creates a string that calls a C constructor function.
  *
- *      (name *) calloc(1,sizeof(name));
+ *      calloc(1,sizeof(name));
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cconstructor_call(String_or_char *name) {
   DOH *func;
 
   func = NewStringEmpty();
-  Printf(func, "(%s *) calloc(1, sizeof(%s))", name, name);
+  Printf(func, "calloc(1, sizeof(%s))", name);
   return func;
 }
 
