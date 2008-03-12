@@ -1,6 +1,9 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/12/2008: wsfulton
+            [Python] Remove debugging info when using shared_ptr support
+
 03/06/2008: mgossage
             [Lua] Updated documentation for Lua exceptions.
             Added Examples/lua/exception and Examples/lua/embed2.
