@@ -24,7 +24,7 @@ extern void         Scanner_set_location(Scanner *, String *file, int line);
 extern String      *Scanner_file(Scanner *);
 extern int          Scanner_line(Scanner *);
 extern int          Scanner_start_line(Scanner *);
-extern void         Scanner_idstart(Scanner *, char *idchar);
+extern void         Scanner_idstart(Scanner *, const char *idchar);
 extern String      *Scanner_errmsg(Scanner *);
 extern int          Scanner_errline(Scanner *);
 extern int          Scanner_isoperator(int tokval);

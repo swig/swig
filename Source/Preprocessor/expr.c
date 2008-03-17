@@ -226,7 +226,6 @@ void Preprocessor_expr_init(void) {
 }
 
 void Preprocessor_expr_delete(void) {
-  Scanner_clear(scan);
   DelScanner(scan);
 }
 

@@ -44,7 +44,7 @@ Scanner *NewScanner() {
   s->nexttoken = -1;
   s->start_line = 1;
   s->yylen = 0;
-  s->idstart = "";
+  s->idstart = NULL;
   s->scanobjs = NewList();
   s->text = NewStringEmpty();
   s->str = 0;
@@ -66,6 +66,7 @@ void DelScanner(Scanner * s) {
   Delete(s->file);
   Delete(s->error);
   Delete(s->str);
+  free(s->idstart);
   free(s);
 }
 
@@ -170,7 +171,8 @@ int Scanner_start_line(Scanner * s) {
  * Change the set of additional characters that can be used to start an identifier.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_idstart(Scanner * s, char *id) {
+void Scanner_idstart(Scanner * s, const char *id) {
+  free(s->idstart);
   s->idstart = Swig_copy_string(id);
 }
 
@@ -421,7 +423,8 @@ static int look(Scanner * s) {
 
       /* Look for possible identifiers */
 
-      else if ((isalpha(c)) || (c == '_') || (strchr(s->idstart, c)))
+      else if ((isalpha(c)) || (c == '_') ||
+	       (s->idstart && strchr(s->idstart, c)))
 	state = 7;
 
       /* Look for single character symbols */
@@ -640,7 +643,8 @@ static int look(Scanner * s) {
 	Setline(s->text, Getline(s->str));
 	Setfile(s->text, Getfile(s->str));
 	s->start_line = s->line;
-      } else if (strchr(s->idstart, '%') && ((isalpha(c)) || (c == '_'))) {
+      } else if (s->idstart && strchr(s->idstart, '%') &&
+	         ((isalpha(c)) || (c == '_'))) {
 	state = 7;
       } else if (c == '=') {
 	return SWIG_TOKEN_MODEQUAL;
