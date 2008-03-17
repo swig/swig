@@ -43,6 +43,8 @@
   SWIG_Octave_SetConstant(module_ns,"$symname",octave_value($value));
 }
 
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
+
 /*
 // Smart Pointers
 %typemap(out,noblock=1) const SWIGTYPE & SMARTPOINTER  {

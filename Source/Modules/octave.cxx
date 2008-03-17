@@ -11,6 +11,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include <string>
+#include <map>
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
@@ -19,9 +20,9 @@ Octave Options (available with -octave)\n\
 
 class OCTAVE:public Language {
 private:
-
   File *f_runtime;
   File *f_header;
+  File *f_doc;
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
@@ -35,9 +36,41 @@ private:
   int have_destructor;
   String *constructor_name;
 
-public:
+  class doc_info {
+    doc_info& operator= (const doc_info& rhs);
+  public:
+    String *decl_info;
+    String *cdecl_info;
+    String *synopsis;
+    String *inarg_info;
+    String *outarg_info;
+    doc_info() {
+      decl_info=NewString("");
+      cdecl_info=NewString("");
+      synopsis=NewString("");
+      inarg_info=NewString("");
+      outarg_info=NewString("");
+    }
+    doc_info(const doc_info& x) {
+      decl_info = Copy(x.decl_info);
+      cdecl_info = Copy(x.cdecl_info);
+      synopsis = Copy(x.synopsis);
+      inarg_info = Copy(x.inarg_info);
+      outarg_info = Copy(x.outarg_info);
+    }
+    ~doc_info() {
+      Delete(decl_info);
+      Delete(cdecl_info);
+      Delete(synopsis);
+      Delete(inarg_info);
+      Delete(outarg_info);
+    }
+  };
+  typedef std::map<std::string, doc_info> doc_info_map;
+  doc_info_map docs;
 
-   OCTAVE():f_runtime(0), f_header(0), f_wrappers(0),
+public:
+   OCTAVE():f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
 	    s_global_tab(0), s_members_tab(0), class_name(0) {
      enable_cplus_runtime_mode();
@@ -92,6 +125,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
     f_header = NewString("");
+    f_doc = NewString("");
     f_wrappers = NewString("");
     f_init = NewString("");
     f_initbeforefunc = NewString("");
@@ -100,6 +134,7 @@ public:
     s_global_tab = NewString("");
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("header", f_header);
+    Swig_register_filebyname("doc", f_doc);
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
@@ -129,16 +164,19 @@ public:
     if (!CPlusPlus)
       Printf(f_header,"}\n");
 
+    if (docs.size())
+      emit_doc_texinfo();
+
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
 
     Printf(f_init, "}\n");
     Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
-    Printf(s_global_tab, "static swig_octave_class swig_module_globals = {" "SWIG_name_d,0,0,0,0,swig_globals,0};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
     Dump(f_header, f_runtime);
+    Dump(f_doc, f_runtime);
     if (directorsEnabled()) {
       Dump(f_directors_h, f_runtime);
       Dump(f_directors, f_runtime);
@@ -151,6 +189,7 @@ public:
     Delete(f_initbeforefunc);
     Delete(f_init);
     Delete(f_wrappers);
+    Delete(f_doc);
     Delete(f_header);
     Delete(f_directors);
     Delete(f_directors_h);
@@ -158,6 +197,21 @@ public:
     Delete(f_runtime);
 
     return SWIG_OK;
+  }
+
+  void emit_doc_texinfo() {
+    for (doc_info_map::iterator it=docs.begin();
+	 it!=docs.end();++it) {
+      doc_info& d=it->second;
+      String *wrap_name=NewString(it->first.c_str());
+      Printf(f_doc,"const char* %s_texinfo = \"",wrap_name);
+      Delete(wrap_name);
+      Printf(f_doc,"-*- texinfo -*-\\n");
+      Printv(f_doc,d.decl_info,d.cdecl_info,d.inarg_info,d.outarg_info,NIL);
+      Printf(f_doc,"@end deftypefn");
+      Printf(f_doc,"\";\n");
+    }
+    Printf(f_doc,"\n");
   }
 
   virtual int importDirective(Node *n) {
@@ -202,7 +256,7 @@ public:
 
     Printv(f->def, "static octave_value_list ", overname, " (const octave_value_list& args, int nargout) {", NIL);
     if (!overloaded || last_overload)
-      Printf(s_global_tab, "{\"%s\",%s,0,0,2},\n", iname, wname);
+      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s_texinfo},\n", iname, wname, wname);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l, f);
@@ -213,7 +267,7 @@ public:
     int varargs = emit_isvarargs(l);
     char source[64];
 
-    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i)) " "{\n return octave_value_list();\n }\n", iname, num_arguments, num_required);
+    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i)) " "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required);
 
     if (constructor && num_arguments == 1 && num_required == 1) {
       if (Cmp(storage, "explicit") == 0) {
@@ -392,6 +446,14 @@ public:
 
     Replaceall(f->code, "$symname", iname);
 
+    //    SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms") 
+   {
+      const char* wname_cstr = (const char*)Data(wname);
+      doc_info& d=docs[wname_cstr];
+      Printf(d.cdecl_info, "%s(%s)\\n", iname, ParmList_protostr(l));
+    }
+
+
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
     Delete(overname);
@@ -493,7 +555,7 @@ public:
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
 
-    Printf(s_global_tab, "{\"%s\",0,_wrap_%s,_wrap_%s,2},\n", iname, getname, setname);
+    Printf(s_global_tab, "{\"%s\",0,_wrap_%s,_wrap_%s,2,0},\n", iname, getname, setname);
 
     return SWIG_OK;
   }
@@ -592,7 +654,7 @@ public:
       Printf(disown_shadow, "}\n");
       Printv(f_wrappers, disown_shadow, NIL);
       Delete(disown_shadow);
-      Printf(s_members_tab, "{\"__disown\",_wrap_disown_%s_shadow,0,0,0},\n", class_name);
+      Printf(s_members_tab, "{\"__disown\",_wrap_disown_%s_shadow,0,0,0,0},\n", class_name);
     }
 
     Printf(s_members_tab, "{0,0,0,0}\n};\n");
@@ -660,7 +722,8 @@ public:
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling"))
-      Printf(s_members_tab, "{\"%s\",%s,0,0,0},\n", realname, rname);
+      Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s_texinfo},\n", 
+	     realname, rname, rname);
 
     Delete(rname);
     return SWIG_OK;
@@ -677,7 +740,7 @@ public:
 	NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
     assert(s_members_tab);
 
-    Printf(s_members_tab, "{\"%s\",0,%s,%s,0},\n", symname, getname, setname);
+    Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getname, setname);
 
     Delete(getname);
     Delete(setname);
@@ -727,7 +790,8 @@ public:
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling"))
-      Printf(s_members_tab, "{\"%s\",%s,0,0,1},\n", realname, rname);
+      Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s_texinfo},\n", 
+	     realname, rname, rname);
 
     Delete(rname);
     return SWIG_OK;
@@ -749,7 +813,7 @@ public:
 	  NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
       assert(s_members_tab);
 
-      Printf(s_members_tab, "{\"%s\",0,%s,%s,1},\n", symname, getname, setname);
+      Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getname, setname);
 
       Delete(getname);
       Delete(setname);

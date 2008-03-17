@@ -42,7 +42,6 @@ SWIGRUNTIME octave_value SWIG_Error(int code,const char* msg) {
 
 #define SWIG_fail                                       goto fail
 
-
 #define SWIG_Octave_ConvertPtr(obj, pptr, type, flags)  SWIG_Octave_ConvertPtrAndOwn(obj, pptr, type, flags, 0)
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Octave_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Octave_ConvertPtrAndOwn(obj, pptr, type, flags, own)
@@ -65,6 +64,10 @@ SWIGRUNTIME octave_value SWIG_Error(int code,const char* msg) {
 
 #define Octave_Error_Occurred() 0
 #define SWIG_Octave_AddErrorMsg(msg) {;}
+
+// For backward compatibility only
+#define SWIG_POINTER_EXCEPTION  0
+#define SWIG_arg_fail(arg)      0
 
 SWIGRUNTIME swig_module_info* SWIG_Octave_GetModule(void* clientdata) {
   octave_value tmp = get_global_value ("__SWIG_MODULE__", true);
@@ -142,6 +145,7 @@ struct swig_octave_member {
   octave_func get_method;
   octave_func set_method;
   int flags; // 1 static, 2 global
+  const char* doc;
   bool is_static() const {
     return flags&1;
   }
@@ -216,7 +220,7 @@ class octave_swig_type : public octave_base_value {
     if (it!=members.end())
       return &it->second;
     const swig_octave_member* m;
-    for (int j=0;j<types.size();++j)
+    for (unsigned int j=0;j<types.size();++j)
       if ((m=find_member(types[j].first,name)))
 	return &members.insert
 	  (std::make_pair(name,std::make_pair(m,octave_value()))).first->second;
@@ -228,7 +232,7 @@ class octave_swig_type : public octave_base_value {
   const swig_type_info* find_base(const std::string& name,
 				  const swig_type_info* base) {
     if (!base) {
-      for (int j=0;j<types.size();++j) {
+      for (unsigned int j=0;j<types.size();++j) {
 	assert(types[j].first->clientdata);
 	swig_octave_class* cj=(swig_octave_class*)types[j].first->clientdata;
 	if (cj->name==name)
@@ -250,7 +254,7 @@ class octave_swig_type : public octave_base_value {
 	return 0;
       assert(c->base[j]->clientdata);
       swig_octave_class* cj=(swig_octave_class*)c->base[j]->clientdata;
-      if (c->name==name)
+      if (cj->name==name)
 	return c->base[j];
     }
     return 0;
@@ -346,7 +350,7 @@ class octave_swig_type : public octave_base_value {
   ~octave_swig_type() {
     if (own) {
       ++count;
-      for (int j=0;j<types.size();++j) {
+      for (unsigned int j=0;j<types.size();++j) {
 	if (!types[j].first||!types[j].first->clientdata)
 	  continue;
 	swig_octave_class* c=(swig_octave_class*)types[j].first->clientdata;
@@ -356,7 +360,7 @@ class octave_swig_type : public octave_base_value {
 	}
       }
     }
-    for (int j=0;j<types.size();++j)
+    for (unsigned int j=0;j<types.size();++j)
       Swig::erase_rtdir(types[j].second.ptr);
   }
 
@@ -381,7 +385,7 @@ class octave_swig_type : public octave_base_value {
     // * need some way to manually name subclasses.
     // * eg optional first arg to subclass(), or named_subclass()
     std::string ret;
-    for (int j=0;j<types.size();++j) {
+    for (unsigned int j=0;j<types.size();++j) {
       if (j)
 	ret+="_";
       if (types[j].first->clientdata) {
@@ -394,7 +398,7 @@ class octave_swig_type : public octave_base_value {
   }
   void merge(octave_swig_type& rhs) {
     rhs.own=0;
-    for (int j=0;j<rhs.types.size();++j) {
+    for (unsigned int j=0;j<rhs.types.size();++j) {
       assert(!rhs.types[j].second.destroyed);
       Swig::Director* d=Swig::get_rtdir(rhs.types[j].second.ptr);
       if (d)
@@ -407,10 +411,9 @@ class octave_swig_type : public octave_base_value {
   }
   void install_global() {
     for (member_map::const_iterator it=members.begin();it!=members.end();++it) {
-      const char* it_first=it->first.c_str();
-      member_value_pair it_second=it->second;
       if (it->second.first&&it->second.first->method)
-	install_builtin_function(it->second.first->method,it->first,std::string());
+	install_builtin_function(it->second.first->method,it->first,
+				 /*it->second.first->doc?it->second.first->doc:*/std::string());
       else if (it->second.second.is_defined()) {
 	link_to_global_variable(curr_sym_tab->lookup(it->first,true));
 	set_global_value(it->first,it->second.second);
@@ -424,10 +427,10 @@ class octave_swig_type : public octave_base_value {
       own = 0;
     if (!type&&types.size())
       return types[0].second.ptr;
-    for (int j=0;j<types.size();++j)
+    for (unsigned int j=0;j<types.size();++j)
       if (type==types[j].first)
 	return types[j].second.ptr;
-    for (int j=0;j<types.size();++j) {
+    for (unsigned int j=0;j<types.size();++j) {
       swig_cast_info *tc=SWIG_TypeCheck(types[j].first->name,type);
       if (!tc)
 	continue;
@@ -443,7 +446,7 @@ class octave_swig_type : public octave_base_value {
   }
   void director_destroyed(Swig::Director* d) {
     bool found=false;
-    for (int j=0;j<types.size();++j) {
+    for (unsigned int j=0;j<types.size();++j) {
       Swig::Director* dj=Swig::get_rtdir(types[j].second.ptr);
       if (dj==d) {
 	types[j].second.destroyed=true;
@@ -519,7 +522,7 @@ class octave_swig_type : public octave_base_value {
 	subname=subname_ovl(0).string_value();
 
 	const swig_type_info* next_base=find_base(subname,base);
-	if (!next_base||skip>=ops.size()||ops[skip]!='.')
+	if (!next_base||skip>=(int)ops.size()||ops[skip]!='.')
 	  break;
 	base=next_base;
       }
@@ -536,7 +539,7 @@ class octave_swig_type : public octave_base_value {
       if (!m->first||(!m->first->is_static()&&
 		      !m->first->is_global()))
 	args.append(as_value());
-      if (skip<ops.size()&&ops[skip]=='('&&
+      if (skip<(int)ops.size()&&ops[skip]=='('&&
 	  ((m->first&&m->first->method)||m->second.is_function()||
 	  m->second.is_function_handle())) {
 	args.append(*idx_it++);
@@ -564,7 +567,7 @@ class octave_swig_type : public octave_base_value {
       }
     }
 
-    if (skip>=ops.size())
+    if (skip>=(int)ops.size())
       return sub_ovl;
     if (sub_ovl.length()<1) {
       error("bad subs ref");
@@ -743,7 +746,7 @@ class octave_swig_type : public octave_base_value {
     }
 
     os<<"{"<<std::endl;
-    for (int j=0;j<types.size();++j) {
+    for (unsigned int j=0;j<types.size();++j) {
       if (types[j].first->clientdata) {
 	const swig_octave_class* c=(const swig_octave_class*)types[j].first->clientdata;
 	os<<"  "<<c->name<<", ptr = "<<types[j].second.ptr<<std::endl;
@@ -757,7 +760,7 @@ class octave_swig_type : public octave_base_value {
 	const char* modifier=(it->second.first->flags&1)?"static":
 	  (it->second.first->flags&2)?"global":"";
 	os<<it->second.first->name<<" (c++ "<<
-	  modifier<<")"<<std::endl;
+	  modifier<<" "<<objtype<<")"<<std::endl;
 	assert(it->second.first->name==it->first);
       } else {
 	os<<it->first<<" (octave value)"<<std::endl;
