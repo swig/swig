@@ -102,6 +102,7 @@ private:
   String *s_const_tab;		// table of global constants
   String *s_methods_tab;	// table of class methods
   String *s_attr_tab;		// table of class atributes
+  String *s_luacode;		// luacode to be called during init
 
   int have_constructor;
   int have_destructor;
@@ -137,7 +138,7 @@ public:
     f_initbeforefunc = 0;
     PrefixPlusUnderscore = 0;
 
-    s_cmd_tab = s_var_tab = s_const_tab = 0;
+    s_cmd_tab = s_var_tab = s_const_tab = s_luacode = 0;
     current=NO_CPP;
   }
 
@@ -240,6 +241,10 @@ public:
     s_var_tab = NewString("");
     //    s_methods_tab    = NewString("");
     s_const_tab = NewString("");
+    
+    s_luacode = NewString("");
+    Swig_register_filebyname("luacode", s_luacode);
+    
     current=NO_CPP;
 
     /* Standard stuff for the SWIG runtime section */
@@ -256,6 +261,7 @@ public:
     Printf(f_header, "#define SWIG_name      \"%s\"\n", module);
     Printf(f_header, "#define SWIG_init      luaopen_%s\n", module);
     Printf(f_header, "#define SWIG_init_user luaopen_%s_user\n\n", module);
+    Printf(f_header, "#define SWIG_LUACODE   luaopen_%s_luacode\n\n", module);
 
     Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
     Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
@@ -265,6 +271,7 @@ public:
     /* %init code inclusion, effectively in the SWIG_init function */
     Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
     Language::top(n);
+    Printf(f_init,"/* exec Lua code if applicable */\nSWIG_Lua_dostring(L,SWIG_LUACODE);\n");
     Printf(f_init, "}\n");
 
     Printf(f_wrappers, "#ifdef __cplusplus\n}\n#endif\n");
@@ -280,14 +287,18 @@ public:
      this basically combines several of the strings together
      and then writes it all to a file
     NEW LANGUAGE NOTE:END ************************************************/
-    /* Close all of the files */
-    Delete(s_cmd_tab);
-    Delete(s_var_tab);
-    Delete(s_const_tab);
     Dump(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
     Dump(f_initbeforefunc, f_runtime);
+    /* for the Lua code it needs to be properly excaped to be added into the C/C++ code */
+    EscapeCode(s_luacode);
+    Printf(f_runtime, "const char* SWIG_LUACODE=\n  \"%s\";\n\n",s_luacode);
     Wrapper_pretty_print(f_init, f_runtime);
+    /* Close all of the files */
+    Delete(s_luacode);
+    Delete(s_cmd_tab);
+    Delete(s_var_tab);
+    Delete(s_const_tab);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
@@ -1123,6 +1134,24 @@ public:
   String *defaultExternalRuntimeFilename() {
     return NewString("swigluarun.h");
   }
+  
+  /* ---------------------------------------------------------------------
+   * helpers
+   * --------------------------------------------------------------------- */
+
+  /* This is to convert the string of Lua code into a proper string, which can then be
+     emitted into the C/C++ code.
+     Basically is is a lot of search & replacing of odd sequences
+   */
+  void EscapeCode(String* str)
+  {
+    Printf(f_runtime,"/* original luacode:[[[\n%s\n]]]\n*/\n",str);
+    Chop(str); // trim
+    Replace(str,"\\","\\\\",DOH_REPLACE_ANY); // \ to \\ (this must be done first)
+    Replace(str,"\"","\\\"",DOH_REPLACE_ANY); // " to \"
+    Replace(str,"\n","\\n\"\n  \"",DOH_REPLACE_ANY); // \n to \n"\n" (ie quoting every line)
+    Printf(f_runtime,"/* hacked luacode:[[[\n%s\n]]]\n*/\n",str);
+  } 
 };
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -1146,7 +1175,7 @@ swig_module  modules[] = {
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
   //etc,etc,etc...
-  {"-Lua",       swig_lua,       "Lua"},	// this is my code
+  {"-lua",       swig_lua,       "Lua"},	// this is my code
   {NULL, NULL, NULL}	// this must come at the end of the list
 };
 ======= end change ==========

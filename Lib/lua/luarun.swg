@@ -671,12 +671,6 @@ SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
 /* lua callable function to get the userdata's type */
 SWIGRUNTIME int SWIG_Lua_type(lua_State* L)
 {
-/*  swig_lua_userdata* usr;
-  if (!lua_isuserdata(L,1))  /* just in case */
-  /*  return 0;  /* nil reply */
-  /*usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
-  /*lua_pushstring(L,usr->type->name);
-  return 1;*/
   lua_pushstring(L,SWIG_Lua_typename(L,1));
   return 1;
 }
@@ -697,9 +691,6 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
    lua_pushboolean(L,result);
   return 1;
 }
-
-
-
 
 /* -----------------------------------------------------------------------------
  * global variable support code: class/struct typemap functions
@@ -746,6 +737,35 @@ SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
     }
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * executing lua code from within the wrapper
+ * ----------------------------------------------------------------------------- */
+
+#ifndef SWIG_DOSTRING_FAIL /* Allows redefining of error function */
+#define SWIG_DOSTRING_FAIL(S) fprintf(stderr,"%s\n",S)
+#endif
+/* Executes a C string in Lua a really simple way of calling lua from C
+Unfortunately lua keeps changing its API's, so we need a conditional compile
+In lua 5.0.X its lua_dostring()
+In lua 5.1.X its luaL_dostring()
+*/
+SWIGINTERN int 
+SWIG_Lua_dostring(lua_State *L, const char* str) {
+  int ok,top;
+  if (str==0 || str[0]==0) return 0; /* nothing to do */
+  top=lua_gettop(L); /* save stack */
+#if (defined(LUA_VERSION_NUM) && (LUA_VERSION_NUM>=501))
+  ok=luaL_dostring(L,str);	/* looks like this is lua 5.1.X or later, good */
+#else
+  ok=lua_dostring(L,str);	/* might be lua 5.0.x, using lua_dostring */
+#endif
+  if (ok!=0) {
+    SWIG_DOSTRING_FAIL(lua_tostring(L,-1));
+  }
+  lua_settop(L,top); /* restore the stack */
+  return ok;
+}    
 
 #ifdef __cplusplus
 }

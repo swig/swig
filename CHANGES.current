@@ -1,6 +1,11 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/17/2008: mgossage
+            [Lua] Added %luacode feature to add source code into wrappers.
+            Updated documentation to document this.
+            Added Examples/lua/arrays to show its use (and typemaps)
+
 03/17/2008: olly
 	    Fix nonportable sed usage which failed on Mac OS X (and probably
 	    other platforms).  Fixes SF#1903612.

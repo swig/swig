@@ -16,7 +16,7 @@
 
 /* Forward declaration of where the user's %init{} gets inserted */
 void SWIG_init_user(lua_State* L );
-
+    
 #ifdef __cplusplus
 extern "C" {
 #endif

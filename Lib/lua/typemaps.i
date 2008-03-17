@@ -94,7 +94,7 @@ and quite a few functions defined
 assuming we have functions
 void process_array(int arr[3]);	// nice fixed size array
 void process_var_array(float arr[],int len);	// variable sized array
-void process_var_array_inout(double arr*,int len);	// variable sized array
+void process_var_array_inout(double* arr,int len);	// variable sized array
 			// data passed in & out
 void process_enum_inout_array_var(enum Days *arrinout, int len);	// using enums
 void return_array_5(int arrout[5]);	// out array only

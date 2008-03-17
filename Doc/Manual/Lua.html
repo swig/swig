@@ -35,12 +35,13 @@
 <li><a href="#Lua_nn21">C++ Smart Pointers</a>
 <li><a href="#Lua_nn22">C++ exceptions</a>
 <li><a href="#Lua_nn23">Writing your own custom wrappers</a>
+<li><a href="#Lua_nn24">Adding additional Lua code</a>
 </ul>
-<li><a href="#Lua_nn24">Details on the Lua binding</a>
+<li><a href="#Lua_nn25">Details on the Lua binding</a>
 <ul>
-<li><a href="#Lua_nn25">Binding global data into the module.</a>
-<li><a href="#Lua_nn26">Userdata and Metatables</a>
-<li><a href="#Lua_nn27">Memory management</a>
+<li><a href="#Lua_nn26">Binding global data into the module.</a>
+<li><a href="#Lua_nn27">Userdata and Metatables</a>
+<li><a href="#Lua_nn28">Memory management</a>
 </ul>
 </ul>
 </div>
@@ -1089,7 +1090,43 @@ int native_function(lua_State*L) // my native code
 The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrappering for this function, beyond adding it into the function table. How you write your code is entirely up to you.
 </p>
 
-<H2><a name="Lua_nn24"></a>22.4 Details on the Lua binding</H2>
+<H3><a name="Lua_nn24"></a>22.3.17 Adding additional Lua code</H3>
+<p>
+As well as adding additional C/C++ code, its also possible to add your own Lua code to the module as well.
+This code is executed once all other initialisation, including the %init code has been called.
+</p>
+<p>
+The directive <tt>%luacode</tt> adds code into the module which is executed upon loading. Normally you would
+use this to add your own functions to the module. Though you could easily perform other tasks.
+</p>
+<div class="code"><pre>%module example;
+
+%luacode {
+  function example.greet() 
+    print "hello world" 
+  end
+
+  print "Module loaded ok"
+}
+...
+%}
+</pre></div>
+<p>
+Notice that the code is not part of the module table. Therefore any references to the module must have the 
+module name added.
+</p>
+<p>
+Should there be an error in the Lua code, this will <em>not</em> stop loading of the module.
+The default behaviour of SWIG is to print a error message to stderr and then continue. 
+It is possible to change this behaviour by using a <tt>#define SWIG_DOSTRING_FAIL(STR)</tt> to
+define a different behaviour should the code fail.
+</p>
+<p>
+Good uses for this feature is adding of new code, or writing helper functions to simplify some of the code.
+See Examples/lua/arrays, for an example of this code.
+</p>
+
+<H2><a name="Lua_nn25"></a>22.4 Details on the Lua binding</H2>
 
 
 <p>
@@ -1100,7 +1137,7 @@ The <tt>%native</tt> directive in the above example, tells SWIG that there is a 
  </i>
 </p>
 
-<H3><a name="Lua_nn25"></a>22.4.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn26"></a>22.4.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -1160,7 +1197,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn26"></a>22.4.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn27"></a>22.4.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1240,7 +1277,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrappered classes/s
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn27"></a>22.4.3 Memory management</H3>
+<H3><a name="Lua_nn28"></a>22.4.3 Memory management</H3>
 
 
 <p>
