@@ -44,6 +44,15 @@
 }
 
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) octave_value_list "$1 = true;";
+
+%typemap(in) (octave_value_list varargs,...) {
+  for (int j=$argnum-1;j<args.length();++j)
+    $1.append(args(j));
+}
+%typemap(out) octave_value_list {
+  _outp->append($1);
+}
 
 /*
 // Smart Pointers

@@ -164,8 +164,10 @@ public:
     if (!CPlusPlus)
       Printf(f_header,"}\n");
 
+    /*
     if (docs.size())
       emit_doc_texinfo();
+    */
 
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
@@ -199,6 +201,7 @@ public:
     return SWIG_OK;
   }
 
+  /*
   void emit_doc_texinfo() {
     for (doc_info_map::iterator it=docs.begin();
 	 it!=docs.end();++it) {
@@ -208,11 +211,13 @@ public:
       Delete(wrap_name);
       Printf(f_doc,"-*- texinfo -*-\\n");
       Printv(f_doc,d.decl_info,d.cdecl_info,d.inarg_info,d.outarg_info,NIL);
-      Printf(f_doc,"@end deftypefn");
+      if (Len(d.decl_info))
+	Printf(f_doc,"@end deftypefn");
       Printf(f_doc,"\";\n");
     }
     Printf(f_doc,"\n");
   }
+  */
 
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n, "module");
@@ -227,6 +232,98 @@ public:
       conv = 1;
     }
     return conv ? "SWIG_POINTER_IMPLICIT_CONV" : "0";
+  }
+
+  String *make_autodocParmList(Node *n, bool showTypes) {
+    String *doc = NewString("");
+    String *pdocs = Copy(Getattr(n, "feature:pdocs"));
+    ParmList *plist = CopyParmList(Getattr(n, "parms"));
+    Parm *p;
+    Parm *pnext;
+    Node *lookup;
+    int lines = 0;
+    const int maxwidth = 50;
+
+    if (pdocs)
+      Append(pdocs, "\n");
+
+
+    Swig_typemap_attach_parms("in", plist, 0);
+    Swig_typemap_attach_parms("doc", plist, 0);
+
+    for (p = plist; p; p = pnext) {
+      String *name = 0;
+      String *type = 0;
+      String *value = 0;
+      String *ptype = 0;
+      String *pdoc = Getattr(p, "tmap:doc");
+      if (pdoc) {
+	name = Getattr(p, "tmap:doc:name");
+	type = Getattr(p, "tmap:doc:type");
+	value = Getattr(p, "tmap:doc:value");
+	ptype = Getattr(p, "tmap:doc:pytype");
+      }
+
+      name = name ? name : Getattr(p, "name");
+      type = type ? type : Getattr(p, "type");
+      value = value ? value : Getattr(p, "value");
+
+      String *tm = Getattr(p, "tmap:in");
+      if (tm) {
+	pnext = Getattr(p, "tmap:in:next");
+      } else {
+	pnext = nextSibling(p);
+      }
+
+      if (Len(doc)) {
+	// add a comma to the previous one if any
+	Append(doc, ", ");
+
+	// Do we need to wrap a long line?
+	if ((Len(doc) - lines * maxwidth) > maxwidth) {
+	  Printf(doc, "\n%s", tab4);
+	  lines += 1;
+	}
+      }
+      // Do the param type too?
+      if (showTypes) {
+	type = SwigType_base(type);
+	lookup = Swig_symbol_clookup(type, 0);
+	if (lookup)
+	  type = Getattr(lookup, "sym:name");
+	Printf(doc, "%s ", type);
+      }
+
+      if (name) {
+	Append(doc, name);
+	if (pdoc) {
+	  if (!pdocs)
+	    pdocs = NewString("Parameters:\n");
+	  Printf(pdocs, "   %s\n", pdoc);
+	}
+      } else {
+	Append(doc, "?");
+      }
+
+      if (value) {
+	if (Strcmp(value, "NULL") == 0)
+	  value = NewString("None");
+	else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
+	  value = NewString("True");
+	else if (Strcmp(value, "false") == 0 || Strcmp(value, "FALSE") == 0)
+	  value = NewString("False");
+	else {
+	  lookup = Swig_symbol_clookup(value, 0);
+	  if (lookup)
+	    value = Getattr(lookup, "sym:name");
+	}
+	Printf(doc, "=%s", value);
+      }
+    }
+    if (pdocs)
+      Setattr(n, "feature:pdocs", pdocs);
+    Delete(plist);
+    return doc;
   }
 
   virtual int functionWrapper(Node *n) {
@@ -256,7 +353,8 @@ public:
 
     Printv(f->def, "static octave_value_list ", overname, " (const octave_value_list& args, int nargout) {", NIL);
     if (!overloaded || last_overload)
-      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s_texinfo},\n", iname, wname, wname);
+      Printf(s_global_tab, "{\"%s\",%s,0,0,2,0},\n", iname, wname, wname);
+      //      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s_texinfo},\n", iname, wname, wname);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l, f);
@@ -340,6 +438,7 @@ public:
 	Printv(f->code, tm, "\n", NIL);
       }
     }
+
     // Insert constraint checking code
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
@@ -445,14 +544,6 @@ public:
     Printf(f->code, "}\n");
 
     Replaceall(f->code, "$symname", iname);
-
-    //    SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms") 
-   {
-      const char* wname_cstr = (const char*)Data(wname);
-      doc_info& d=docs[wname_cstr];
-      Printf(d.cdecl_info, "%s(%s)\\n", iname, ParmList_protostr(l));
-    }
-
 
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
@@ -722,7 +813,8 @@ public:
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling"))
-      Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s_texinfo},\n", 
+      //      Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s_texinfo},\n", 
+      Printf(s_members_tab, "{\"%s\",%s,0,0,0,0},\n", 
 	     realname, rname, rname);
 
     Delete(rname);
@@ -790,7 +882,8 @@ public:
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling"))
-      Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s_texinfo},\n", 
+      //      Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s_texinfo},\n", 
+      Printf(s_members_tab, "{\"%s\",%s,0,0,1,0},\n", 
 	     realname, rname, rname);
 
     Delete(rname);
