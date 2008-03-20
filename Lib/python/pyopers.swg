@@ -33,6 +33,7 @@
 /* Special cases */
 %rename(__invert__)     *::operator~;
 %rename(__call__)       *::operator();
+%rename(__nonzero__)    *::operator bool;
 
 /* Ignored operators */
 %ignoreoperator(LNOT)       operator!;
