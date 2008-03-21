@@ -6,7 +6,7 @@
  *
  * Implement a python 'output' iterator for Python 2.2 or higher.
  *
- * Users can derive form the PySwigIterator to implemet their
+ * Users can derive form the PySwigIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template PySwigIterator_T does the
  * implementation for genereic C++ iterators.
@@ -57,17 +57,22 @@ namespace swig {
     // C++ common/needed methods
     virtual PySwigIterator *copy() const = 0;
 
-    PyObject *next()
+    PyObject *next()     
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK; // disable threads       
       PyObject *obj = value();
-      incr();
-      return obj;
+      incr();       
+      SWIG_PYTHON_THREAD_END_BLOCK; // re-enable threads
+      return obj;     
     }
 
     PyObject *previous()
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK; // disable threads       
       decr();
-      return value();
+      PyObject *obj = value();
+      SWIG_PYTHON_THREAD_END_BLOCK; // re-enable threads       
+      return obj;
     }
 
     PySwigIterator *advance(ptrdiff_t n)
