@@ -25,10 +25,8 @@
 <li><a href="#Octave_nn10">Global variables</a>
 <li><a href="#Octave_nn11">Constants and enums</a>
 <li><a href="#Octave_nn12">Pointers</a>
-<li><a href="#Octave_nn13">Structures</a>
-<li><a href="#Octave_nn14">C++ classes</a>
+<li><a href="#Octave_nn13">Structures and C++ classes</a>
 <li><a href="#Octave_nn15">C++ inheritance</a>
-<li><a href="#Octave_nn16">Pointers, references, values, and arrays</a>
 <li><a href="#Octave_nn17">C++ overloaded functions</a>
 <li><a href="#Octave_nn18">C++ operators</a>
 <li><a href="#Octave_nn19">Class extension with %extend</a>
@@ -48,19 +46,12 @@
 
 <p>
          Octave is a high-level language intended for numerical programming that is mostly compatible with MATLAB.
-More information can be found at <a href="http://www.octave.org">octave.org</a>. 
+More information can be found at <a href="http://www.octave.org">www.octave.org</a>. 
 </p>
 
 <p>
-     The Octave documentation is preliminary and is intended to give only a cursory introduction to using the module. You should (at a minimum) also read the SWIG documentation that is not specific to Octave. (also note, some of the early sections here are adapted from the Lua docs).
-</p>
-
-<p>
-For now, the best way to find information about how to use the Octave module is to look at the code itself, test-suite, and examples. There are a dozen or so examples in the Examples/octave directory, and hundreds in the test suite (Examples/test-suite and Examples/test-suite/octave).
-</p>
-
-<p>
-The bulk of the Octave-specific wrapper generator code is in Source/Modules/octave.cxx. The runtime components are in Lib/octave, and in particular Lib/octave/octrun.swg.
+     This chapter is intended to give an introduction to using the module. You should also read the SWIG documentation that is not specific to Octave.
+Also, there are a dozen or so examples in the Examples/octave directory, and hundreds in the test suite (Examples/test-suite and Examples/test-suite/octave).
 </p>
 
 <H2><a name="Octave_nn2"></a>26.1 Preliminaries</H2>
@@ -327,11 +318,12 @@ octave:2&gt; f=example.fopen("not there","r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
 
-<H3><a name="Octave_nn13"></a>26.3.6 Structures</H3>
+<H3><a name="Octave_nn13"></a>26.3.6 Structures and C++ classes</H3>
 
 
 <p>
-     SWIG wraps C structures and C++ classes by creating type objects. When invoked as a function, they create a new object of their type. The structures/classes themselves are mapped to a native Octave type. This provides a very natural interface. For example, 
+     SWIG wraps C structures and C++ classes by using a special Octave type called a <tt>swig_ref</tt>. A <tt>swig_ref</tt> contains a reference to one or more instances of C/C++ objects, or just the type information for an object.
+For each wrapped structure and class, a <tt>swig_ref</tt> will be exposed that has the name of the type. When invoked as a function, it creates a new object of its type and returns a <tt>swig_ref</tt> that points to that instance. This provides a very natural interface. For example, 
 </p>
 
     <div class="code"><pre>struct Point{
@@ -352,55 +344,147 @@ octave:5&gt; p.x, p.y
 ans =  3
 ans =  5 
 </pre></div>
+<p>
+In C++, invoking the type object in this way calls the object's constructor.
+<tt>swig_ref</tt> objects can also be acquired by having a wrapped function return a pointer, reference, or value of a non-primitive type. 
+</p>
+<p>
+The swig_ref type handles indexing operations such that usage maps closely to what you would have in C/C++. 
+Structure members are accessed as in the above example, by calling set and get methods for C++ variables. 
 
-<H3><a name="Octave_nn14"></a>26.3.7 C++ classes</H3>
+Methods also work as expected. For example, code wrapped in the following way
+</p>
+
+    <div class="code"><pre>class Point{
+public:
+  int x,y;
+  Point(int _x,int _y) : x(_x),y(_y) {}
+  double distance(const Point&amp; rhs) {
+    return sqrt(pow(x-rhs.x,2)+pow(y-rhs.y,2));
+  }
+  void set(int _x,int _y) {
+    x=_x; y=_y;
+  }
+};
+</pre></div>
+<p>
+can be used from Octave like this
+</p>
+    <div class="targetlang">
+      <pre>octave:1&gt; example;
+octave:2&gt; p1=example.Point(3,5);
+octave:3&gt; p2=example.Point(1,2);
+octave:3&gt; p1.distance(p2)
+ans =  3.6056
+</pre></div>
+<p>
+By using the <tt>swig_this()</tt> and <tt>swig_type()</tt> functions, one can discover the pointers to and types of the underlying C/C++ object.
+</p>
+
+    <div class="targetlang">
+      <pre>
+octave:5> swig_this(p1)
+ans = 162504808
+octave:6> swig_type(p1)
+ans = Point
+</pre></div>
+<p>
+Note that <tt>swig_ref</tt> is a reference-counted pointer to a C/C++ object/type, and as such has pass-by-reference semantics. For example if one has a allocated a single object but has two <tt>swig_ref</tt>'s pointing to it, modifying the object through either of them will change the single allocated object.
+This differs from the usual pass-by-value (copy-on-write) semantics that Octave maintains for built-in types. For example, in the following snippet, modifying <tt>b</tt> does not modify <tt>a</tt>,
+</p>
+
+    <div class="targetlang">
+      <pre>
+octave:7> a=struct('x',4)
+a =
+{
+  x =  4
+}
+
+octave:8> b=a
+b =
+{
+  x =  4
+}
+
+octave:9> b.y=4
+b =
+{
+  x =  4
+  y =  4
+}
+
+octave:10> a
+a =
+{
+  x =  4
+}
+</pre></div>
+<p>
+However, when dealing with wrapped objects, one gets the behavior
+</p>
+
+    <div class="targetlang">
+      <pre>
+octave:2> a=Point(3,5)
+a =
+
+{
+  Point, ptr = 0x9afbbb0
+}
+
+octave:3> b=a
+b =
+
+{
+  Point, ptr = 0x9afbbb0
+}
+
+octave:4> b.set(2,1);
+octave:5> b.x, b.y
+ans =  2
+ans =  1
+octave:6> a.x, a.y
+ans =  2
+ans =  1
+</pre></div>
+
+<p>
+Depending on the ownership setting of a <tt>swig_ref</tt>, it may call C++ destructors when its reference count goes to zero. See the section on memory management below for details.
+</p>
+
+<H3><a name="Octave_nn15"></a>26.3.7 C++ inheritance</H3>
 
 
 <p>
-C++ classes are handled in a way identical to other modules.
+Single and multiple inheritance are fully supported. The <tt>swig_ref</tt> type carries type information along with any C++ object pointer it holds.
+This information contains the full class hierarchy. When an indexing operation (such as a method invocation) occurs, 
+the tree is walked to find a match in the current class as well as any of its bases. The lookup is then cached in the <tt>swig_ref</tt>.
 </p>
 
-<H3><a name="Octave_nn15"></a>26.3.8 C++ inheritance</H3>
+<H3><a name="Octave_nn17"></a>26.3.8 C++ overloaded functions</H3>
 
 
 <p>
-Inheritance is handled in a way identical to other modules.
+Overloaded functions are supported, and handled as in other modules. That is, 
+each overload is wrapped separately (under internal names), and a dispatch function is also emitted under the external/visible name.
+The dispatch function selects which overload to call (if any) based on the passed arguments.
+<tt>typecheck</tt> typemaps are used to analyze each argument, as well as assign precedence. See the chapter on typemaps for details.
 </p>
 
-<H3><a name="Octave_nn16"></a>26.3.9 Pointers, references, values, and arrays</H3>
-
-
-<p>
-Pointers, references, values, and arrays are handled in the same way as other modules.
-</p>
-<p>
-There are still some failing tests relating to global arrays.
-</p>
-
-<H3><a name="Octave_nn17"></a>26.3.10 C++ overloaded functions</H3>
-
-
-<p>
-Overloaded functions are supported, and handled as in other modules.
-</p>
-
-<H3><a name="Octave_nn18"></a>26.3.11 C++ operators</H3>
+<H3><a name="Octave_nn18"></a>26.3.9 C++ operators</H3>
 
 
 <p>
 C++ operator overloading is supported, in a way similar to other modules.
-</p>
-<p>
-SWIG types are represented in Octave by a special type called <tt>swig_ref</tt> (the full list of types can be listed with <tt>typeinfo()</tt>, and SWIG specific information can be extracted via <tt>swig_this(obj)</tt> and <tt>swig_type(obj)</tt>). This type supports all unary and binary operators between itself and all other types that exist in the system at module load time. When an operator is used (where one of the operands is a <tt>swig_ref</tt>), the runtime routes the call to either a member function of the given object, or to a global function whose named is derived from the types of the operands (either both or just the lhs or rhs). (... more details needed ...)
+The <tt>swig_ref</tt> type supports all unary and binary operators between itself and all other types that exist in the system at module load time. When an operator is used (where one of the operands is a <tt>swig_ref</tt>), the runtime routes the call to either a member function of the given object, or to a global function whose named is derived from the types of the operands (either both or just the lhs or rhs).
 </p>
 <p>
 For example, if <tt>a</tt> and <tt>b</tt> are SWIG variables in Octave, <tt>a+b</tt> becomes <tt>a.__add(b)</tt>. The wrapper is then free to implement __add to do whatever it wants. A wrapper may define the <tt>__add</tt> function manually, %rename some other function to it, or %rename a C++ operator to it.
 </p>
 <p>
-By default the C++ operators are renamed to their corresponding Octave operators. So without doing any work, they just work.
+By default the C++ operators are renamed to their corresponding Octave operators. So without doing any work, the following interface
 </p>
-<p>
-For example, the following:
 <div class="code"><pre>
 %inline {
 struct A {
@@ -413,7 +497,7 @@ struct A {
 }
 </pre></div>
 <p>
-may be used naturally from Octave:
+is usable from Octave like this:
 </p>
 <div class="targetlang"><pre>
 a=A(2), b=A(3), c=a+b
@@ -488,7 +572,7 @@ On the C++ side, the default mappings are as follows:
 %rename(__brace)     *::operator[];
 </pre></div>
 
-<H3><a name="Octave_nn19"></a>26.3.12 Class extension with %extend</H3>
+<H3><a name="Octave_nn19"></a>26.3.10 Class extension with %extend</H3>
 
 
 <p>
@@ -518,28 +602,98 @@ octave:3&gt; printf("%s\n",a);
 octave:4&gt; a.__str()
 4
 </pre></div>
-<H3><a name="Octave_nn20"></a>26.3.13 C++ templates</H3>
+<H3><a name="Octave_nn20"></a>26.3.11 C++ templates</H3>
 
 
 <p>
-C++ templates are fully supported, as in other modules.
+C++ class and function templates are fully supported as in other modules, in that the %template directive may used to create explicit instantiations of templated types.
+For example, function templates can be instantiated as follows:
 </p>
 
-<H3><a name="Octave_nn21"></a>26.3.14 C++ Smart Pointers</H3>
+<div class="code"><pre>%module example
+%inline {
+ template&lt;class __scalar&gt;
+   __scalar mul(__scalar a,__scalar b) {
+   return a*b;
+ }
+}
+%include &lt;std_complex.i&gt;
+%template(mul) mul&lt;std::complex&lt;double&gt; &gt;
+%template(mul) mul&lt;double&gt;
+</pre></div>
+<p>
+and then used from Octave
+</p>
+
+<div class="targetlang"><pre>
+octave:3> mul(4,3)
+ans =  12
+octave:4> mul(4.2,3.6)
+ans =  15.120
+octave:2> mul(3+4i,10+2i)
+ans =  22 + 46i
+</pre></div>
+
+<p>
+Similarly, class templates can be instantiated as in the following example,
+</p>
+
+<div class="code"><pre>%module example
+%include &lt;std_complex.i&gt;
+%include &lt;std_string.i&gt;
+%inline {
+  #include &lt;sstream&gt;
+  template&lt;class __scalar&gt; class sum {
+    __scalar s;
+  public:
+    sum(__scalar _s=0) : s(_s) {}
+    sum&amp; add(__scalar _s) {
+      s+=_s;
+      return *this;
+    }
+    std::string __str() const {
+      std::stringstream sout;
+      sout&lt;&lt;s;
+      return sout.str();
+    }
+  };
+}
+%template(sum_complex) sum&lt;std::complex&lt;double&gt; &gt;;
+%template(sum_double) sum&lt;double&gt;;
+</pre></div>
+
+<p>
+and then used from Octave
+</p>
+
+<div class="targetlang"><pre>
+octave:2> a=sum_complex(2+3i);
+octave:3> a.add(2)
+ans =
+
+(4,3)
+octave:4> a.add(3+i)
+ans =
+
+(7,4)
+</pre></div>
+
+
+<H3><a name="Octave_nn21"></a>26.3.12 C++ Smart Pointers</H3>
 
 
 <p>
-C++ smart pointers are fully supported, as in other modules.
+C++ smart pointers are fully supported as in other modules.
 </p>
 
-<H3><a name="Octave_nn22"></a>26.3.15 Directors (calling Octave from C++ code)</H3>
+<H3><a name="Octave_nn22"></a>26.3.13 Directors (calling Octave from C++ code)</H3>
 
 
 <p>
 There is full support for SWIG Directors, which permits Octave code to subclass C++ classes, and implement their virtual methods.
 </p>
 <p>
-Octave has no direct support for object oriented programming, however the <tt>swig_ref</tt> type provides some of this support. All SWIG types are wrapped inside a <tt>swig_ref</tt>. These handle calling set and get methods for C++ variables (see other SWIG docs), and invoking member functions (by prepending self parameter). You can aquire a <tt>swig_ref</tt> by having a wrapped function return a pointer, reference, or value of a non-primitive type. You can also manufacture one using the <tt>subclass</tt> function (provided by the SWIG/Octave runtime).
+Octave has no direct support for object oriented programming, however the <tt>swig_ref</tt> type provides some of this support. You can manufacture a <tt>swig_ref</tt> using the <tt>subclass</tt> function (provided by the SWIG/Octave runtime).
 </p>
 <p>
 For example,
@@ -612,18 +766,18 @@ c-side routine called
 octave-side routine called
 </pre></div>
 
-<H3><a name="Octave_nn23"></a>26.3.16 Threads</H3>
+<H3><a name="Octave_nn23"></a>26.3.14 Threads</H3>
 
 
 <p>
 The use of threads in wrapped Director code is not supported; i.e., an Octave-side implementation of a C++ class must be called from the Octave interpreter's thread. Anything fancier (apartment/queue model, whatever) is left to the user. Without anything fancier, this amounts to the limitation that Octave must drive the module... like, for example, an optimization package that calls Octave to evaluate an objective function.
 </p>
 
-<H3><a name="Octave_nn24"></a>26.3.17 Memory management</H3>
+<H3><a name="Octave_nn24"></a>26.3.15 Memory management</H3>
 
 
 <p>
-All Octave objects are referenced counted internally. SWIG-wrapped objects are no different. This means that destructors get called when the Octave object's reference count goes to zero.
+As noted above, <tt>swig_ref</tt> represents a reference counted pointer to a C/C++-side object. It also contains a flag indicating whether Octave or the C/C++ code owns the object. If Octave owns it, any destructors will be called when the reference count reaches zero. If the C/C++ side owns the object, then destructors will not be called when the reference count goes to zero.
 </p>
 <p>
 For example,
@@ -648,21 +802,23 @@ octave:4&gt; b=4;
 A destructing
 </pre></div>
 <p>
+The %newobject directive may be used to control this behavior for pointers returned from functions.
+<p>
 In the case where one wishes for the C++ side to own an object that was created in Octave (especially a Director object), one can use the __disown() method to invert this logic. Then letting the Octave reference count go to zero will not destroy the object, but destroying the object will invalidate the Octave-side object if it still exists (and call destructors of other C++ bases in the case of multiple inheritance/<tt>subclass()</tt>'ing).
 </p>
 
-<H3><a name="Octave_nn25"></a>26.3.18 STL support</H3>
+<H3><a name="Octave_nn25"></a>26.3.16 STL support</H3>
 
 
 <p>
-This is some skeleton support for various STL containers, but this work is not finished.
+This is some skeleton support for various STL containers.
 </p>
 
-<H3><a name="Octave_nn26"></a>26.3.19 Matrix typemaps</H3>
+<H3><a name="Octave_nn26"></a>26.3.17 Matrix typemaps</H3>
 
 
 <p>
-Octave provides a rich set of classes for dealing with matrices etc. Currently there are no typemaps to deal with those, though such support will be added soon. However, these are relatively straight forward for users to add themselves (see the docs on typemaps). Without much work (a single typemap decl-- say, 5 lines of code in the interface file), it would be possible to have a function
+Octave provides a rich set of classes for dealing with matrices. Currently there are no built-in typemaps to deal with those. However, these are relatively straight forward for users to add themselves (see the docs on typemaps). Without much work (a single typemap decl-- say, 5 lines of code in the interface file), it would be possible to have a function
 </p>
 <div class="code"><pre>
 double my_det(const double* mat,int m,int n);

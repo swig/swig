@@ -33,7 +33,7 @@
 <li><a href="#Lua_nn19">Class extension with %extend</a>
 <li><a href="#Lua_nn20">C++ templates</a>
 <li><a href="#Lua_nn21">C++ Smart Pointers</a>
-<li><a href="#Lua_nn22">C++ exceptions</a>
+<li><a href="#Lua_nn22">C++ Exceptions</a>
 <li><a href="#Lua_nn23">Writing your own custom wrappers</a>
 <li><a href="#Lua_nn24">Adding additional Lua code</a>
 </ul>
@@ -952,6 +952,8 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 </pre></div>
 
 <H3><a name="Lua_nn22"></a>22.3.15 C++ Exceptions</H3>
+
+
 <p>
 Lua does not natively support exceptions, but it has errors which are similar. When a Lua function terminates with an error
 it returns one value back to the caller. SWIG automatically maps any basic type which is thrown into a Lua error.
@@ -1074,6 +1076,8 @@ add exception specification to functions or globally (respectively).
 
 
 <H3><a name="Lua_nn23"></a>22.3.16 Writing your own custom wrappers</H3>
+
+
 <p>
 Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
 </p>
@@ -1091,6 +1095,8 @@ The <tt>%native</tt> directive in the above example, tells SWIG that there is a 
 </p>
 
 <H3><a name="Lua_nn24"></a>22.3.17 Adding additional Lua code</H3>
+
+
 <p>
 As well as adding additional C/C++ code, its also possible to add your own Lua code to the module as well.
 This code is executed once all other initialisation, including the %init code has been called.
