@@ -41,6 +41,8 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
     {
       if (!ov.is_scalar_type())
 	return SWIG_TypeError;
+      if (ov.is_complex_scalar())
+	return SWIG_TypeError;
       if (ov.is_double_type()||ov.is_single_type()) {
 	double v=ov.double_value();
 	if (v!=floor(v))
@@ -66,6 +68,8 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
   SWIGINTERN int SWIG_AsVal_dec(unsigned long)(const octave_value& ov, unsigned long* val)
     {
       if (!ov.is_scalar_type())
+	return SWIG_TypeError;
+      if (ov.is_complex_scalar())
 	return SWIG_TypeError;
       if (ov.is_double_type()||ov.is_single_type()) {
 	double v=ov.double_value();
@@ -106,6 +110,8 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
     {
       if (!ov.is_scalar_type())
 	return SWIG_TypeError;
+      if (ov.is_complex_scalar())
+	return SWIG_TypeError;
       if (ov.is_double_type()||ov.is_single_type()) {
 	double v=ov.double_value();
 	if (v!=floor(v))
@@ -134,6 +140,8 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
   SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(const octave_value& ov, unsigned long long* val)
     {
       if (!ov.is_scalar_type())
+	return SWIG_TypeError;
+      if (ov.is_complex_scalar())
 	return SWIG_TypeError;
       if (ov.is_double_type()||ov.is_single_type()) {
 	double v=ov.double_value();
@@ -179,6 +187,8 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
   SWIGINTERN int SWIG_AsVal_dec(double)(const octave_value& ov, double* val)
     {
       if (!ov.is_scalar_type())
+	return SWIG_TypeError;
+      if (ov.is_complex_scalar())
 	return SWIG_TypeError;
       if (val)
 	*val = ov.double_value();
