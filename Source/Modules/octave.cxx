@@ -365,7 +365,8 @@ public:
     int varargs = emit_isvarargs(l);
     char source[64];
 
-    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i)) " "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required);
+    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i,%i)) " 
+	   "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
 
     if (constructor && num_arguments == 1 && num_required == 1) {
       if (Cmp(storage, "explicit") == 0) {
@@ -602,7 +603,7 @@ public:
     String *setname = Swig_name_set(iname);
 
     Printf(setf->def, "static octave_value_list _wrap_%s(const octave_value_list& args,int nargout) {", setname);
-    Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1)) return octave_value_list();", iname);
+    Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {

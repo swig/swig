@@ -1,7 +1,7 @@
 
 
-SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args) {
-  if (num_args > max_args)
+SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
+  if (num_args > max_args && !varargs)
     error("function %s takes at most %i arguments", func_name, max_args);
   else if (num_args < min_args)
     error("function %s requires at least %i arguments", func_name, max_args);
@@ -549,7 +549,7 @@ namespace {
 	octave_value_list args;
 	if (!m->first || (!m->first->is_static() && !m->first->is_global()))
 	  args.append(as_value());
-	if (skip < (int) ops.size() &&ops[skip] == '(' && ((m->first && m->first->method) || m->second.is_function() || m->second.is_function_handle())) {
+	if (skip < (int) ops.size() && ops[skip] == '(' && ((m->first && m->first->method) || m->second.is_function() || m->second.is_function_handle())) {
 	  args.append(*idx_it++);
 	  ++skip;
 	  sub_ovl = member_invoke(m, args, nargout);

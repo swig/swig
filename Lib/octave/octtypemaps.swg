@@ -50,8 +50,30 @@
   for (int j=$argnum-1;j<args.length();++j)
     $1.append(args(j));
 }
+%typecheck(2000) (octave_value_list varargs,...) {
+  $1=1;
+}
+
+%typemap(in) (const octave_value_list& varargs,...) (octave_value_list tmp) {
+  for (int j=$argnum-1;j<args.length();++j)
+    tmp.append(args(j));
+  $1=&tmp;
+}
+%typecheck(2000) (const octave_value_list& varargs,...) {
+  $1=1;
+}
+
 %typemap(out) octave_value_list {
   _outp->append($1);
+}
+%typemap(out,noblock=1) Octave_map {
+  $result=$1;
+}
+%typemap(out,noblock=1) NDArray {
+  $result=$1;
+}
+%typemap(out,noblock=1) Cell {
+  $result=$1;
 }
 
 /*
