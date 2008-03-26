@@ -1,6 +1,10 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/26/2008: wsfulton
+            [Python] Apply patch #1925702 from Casey Raymondson which removes warning 512
+            for std::vector wrappers.
+
 03/26/2008: olly
 	    [Python] Apply GCC 4.3 warnings patch from Philipp Thomas
 	    (SF#1925122).
