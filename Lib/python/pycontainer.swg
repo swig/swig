@@ -448,7 +448,7 @@ namespace swig
 
     ~PySequence_Cont()
     {
-      if (_seq) Py_DECREF(_seq);
+      Py_XDECREF(_seq);
     }
 
     size_type size() const

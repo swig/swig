@@ -74,7 +74,9 @@ namespace swig {
     
     PyObject_ptr(PyObject *obj, bool initial_ref = true) :_obj(obj)
     {
-      if (initial_ref) Py_XINCREF(_obj);
+      if (initial_ref) {
+        Py_XINCREF(_obj);
+      }
     }
     
     PyObject_ptr & operator=(const PyObject_ptr& item) 
