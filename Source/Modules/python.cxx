@@ -2703,7 +2703,7 @@ public:
 	Delete(realct);
       }
       if (!have_constructor) {
-	Printv(f_shadow_file, tab4, "def __init__(self): raise AttributeError, \"No constructor defined\"\n", NIL);
+	Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError, \"No constructor defined\"\n", NIL);
       } else if (fastinit) {
 
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);

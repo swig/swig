@@ -2,6 +2,12 @@ Version 1.3.35 (in progress)
 ============================
 
 03/26/2008: wsfulton
+            [Python] Apply patch #1924524 from Casey Raymondson which ensures the
+            "No constructor defined" message is displayed when attempting to call a
+            constructor on a class that doesn't have a constructor wrapper, eg if
+            the C++ class is abstract.
+
+03/26/2008: wsfulton
             [Python] Apply patch #1925702 from Casey Raymondson which removes warning 512
             for std::vector wrappers.
 
