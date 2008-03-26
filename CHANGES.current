@@ -2,6 +2,10 @@ Version 1.3.35 (in progress)
 ============================
 
 03/26/2008: wsfulton
+            [Java] Apply patch #1844301 from Monty Taylor to suppress enum constructor
+            unused warnings.
+
+03/26/2008: wsfulton
             [Python] Apply patch #1924524 from Casey Raymondson which ensures the
             "No constructor defined" message is displayed when attempting to call a
             constructor on a class that doesn't have a constructor wrapper, eg if

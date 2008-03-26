@@ -92,15 +92,18 @@
     throw new IllegalArgumentException("No enum " + $javaclassname.class + " with value " + swigValue);
   }
 
+  @SuppressWarnings("unused")
   private $javaclassname() {
     this.swigValue = SwigNext.next++;
   }
 
+  @SuppressWarnings("unused")
   private $javaclassname(int swigValue) {
     this.swigValue = swigValue;
     SwigNext.next = swigValue+1;
   }
 
+  @SuppressWarnings("unused")
   private $javaclassname($javaclassname swigEnum) {
     this.swigValue = swigEnum.swigValue;
     SwigNext.next = this.swigValue+1;
