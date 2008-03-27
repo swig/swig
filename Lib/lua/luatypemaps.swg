@@ -120,14 +120,14 @@
 // the checkfn SWIG_isptrtype will work for both userdata and nil's
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
 %{
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,0))){
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
 
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE&
 %{
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,0))){
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
@@ -164,6 +164,17 @@
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE* const &($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
 $1=&temp;%}
+
+// DISOWN-ing typemaps
+// if you have an object pointer which must be disowned, use this typemap
+// eg. for void destroy_foo(Foo* toDie);
+// use %apply SWIGTYPE* DISOWN {Foo* toDie};
+// you could just use %delobject, but this is more flexible
+%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE* DISOWN,SWIGTYPE DISOWN[]
+%{  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
+    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+  }
+%}
 
 
 // Primitive types--return by value

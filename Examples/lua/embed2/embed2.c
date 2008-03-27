@@ -164,7 +164,7 @@ int main(int argc,char* argv[]) {
   int ok;
   int res;
   char str[80];
-  printf("[C] Welcome to the simple embedded Lua example\n");
+  printf("[C] Welcome to the simple embedded Lua example v2\n");
   printf("[C] We are in C\n");
   printf("[C] opening a Lua state & loading the libraries\n");
   L=lua_open();

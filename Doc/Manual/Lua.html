@@ -980,10 +980,32 @@ stack traceback:
 </pre></div>
 
 <p>
-And similarly for numeric types, enums, chars, char*'s and std::string's.
+If you want to catch an exception, you must use either pcall() or xpcall(), which are documented in the Lua manual.
+Using xpcall will allow you to obtain additional debug information (such as a stacktrace).
 </p>
+
+<div class="targetlang"><pre>
+> function a() b() end -- function a() calls function b()
+> function b() message() end -- function b() calls C++ function message(), which throws 
+> ok,res=pcall(a)  -- call the function
+> print(ok,res)
+false   I died.
+> ok,res=xpcall(a,debug.traceback)  -- call the function
+> print(ok,res)
+false   I died.
+stack traceback:
+        [C]: in function 'message'
+        runme.lua:70: in function 'b'
+        runme.lua:67: in function &lt;runme.lua:66&gt;
+        [C]: in function 'xpcall'
+        runme.lua:95: in main chunk
+        [C]: ?
+</pre></div>
+
 <p>
-However its not so simple for objects. Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
+SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem.
+However its not so simple for to throw objects. 
+Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
 returned to the interpreter. 
 The obvious ways to overcome this would be to either return a copy of the object, or so convert the object to a string and
 return that. Though it seems obvious to perform the former, in some cases this is not possible, most notably when
@@ -1013,7 +1035,7 @@ stack traceback:
 </pre></div>
 <p>
 To get a more useful behaviour out of SWIG you must either: provide a way to convert your exceptions into strings, or
-only throw objects which can be copied.
+throw objects which can be copied.
 </p>
 <p>
 SWIG has typemaps for std::exception and its children already written, so a function which throws any of these will
@@ -1025,7 +1047,7 @@ If you have your own class which you want output as a string you will need to ad
 <div class="code"><pre>
 %typemap(throws) my_except
 %{ 
-  lua_pushstring(L,$1.what()); // assuming what() returns a const char* message
+  lua_pushstring(L,$1.what()); // assuming my_except::what() returns a const char* message
   SWIG_fail; // trigger the error handler
 %}
 </pre></div>
@@ -1063,6 +1085,7 @@ userdata: 0003D880
 42      Hosed
 >
 </pre></div>
+
 <p>
 Note: is is also possible (though tedious) to have a function throw several different kinds of exceptions. To process this
 will require a pcall, followed by a set of if statements checking the type of the error.
@@ -1129,7 +1152,7 @@ define a different behaviour should the code fail.
 </p>
 <p>
 Good uses for this feature is adding of new code, or writing helper functions to simplify some of the code.
-See Examples/lua/arrays, for an example of this code.
+See Examples/lua/arrays for an example of this code.
 </p>
 
 <H2><a name="Lua_nn25"></a>22.4 Details on the Lua binding</H2>

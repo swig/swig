@@ -450,7 +450,11 @@ public:
         Replaceall(tm, "$target", ln);
         Replaceall(tm, "$input", source);
         Setattr(p, "emit:input", source);
-
+        if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
+          Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+        } else {
+          Replaceall(tm, "$disown", "0");
+        }
         /* NEW LANGUAGE NOTE:***********************************************
            look for a 'checkfn' typemap
            this an additional parameter added to the in typemap
@@ -1057,8 +1061,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
-    //have_destructor = 1;
-    //return SWIG_NOWRAP;
+    //REPORT("destructorHandler", n);
     current = DESTRUCTOR;
     Language::destructorHandler(n);
     current = NO_CPP;
@@ -1145,12 +1148,12 @@ public:
    */
   void EscapeCode(String* str)
   {
-    Printf(f_runtime,"/* original luacode:[[[\n%s\n]]]\n*/\n",str);
+    //Printf(f_runtime,"/* original luacode:[[[\n%s\n]]]\n*/\n",str);
     Chop(str); // trim
     Replace(str,"\\","\\\\",DOH_REPLACE_ANY); // \ to \\ (this must be done first)
     Replace(str,"\"","\\\"",DOH_REPLACE_ANY); // " to \"
     Replace(str,"\n","\\n\"\n  \"",DOH_REPLACE_ANY); // \n to \n"\n" (ie quoting every line)
-    Printf(f_runtime,"/* hacked luacode:[[[\n%s\n]]]\n*/\n",str);
+    //Printf(f_runtime,"/* hacked luacode:[[[\n%s\n]]]\n*/\n",str);
   } 
 };
 

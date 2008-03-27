@@ -600,11 +600,15 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {
-      if (!type)            /* special cast void*, no casting fn */
-      {
-          *ptr=usr->ptr;
-          return SWIG_OK; /* ok */
-      }
+    if (flags & SWIG_POINTER_DISOWN) /* must disown the object */
+    {
+        usr->own=0;
+    }
+    if (!type)            /* special cast void*, no casting fn */
+    {
+      *ptr=usr->ptr;
+      return SWIG_OK; /* ok */
+    }
     cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
     if (cast)
     {

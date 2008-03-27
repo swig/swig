@@ -61,3 +61,36 @@ for i=1,3 do
         end
     end
 end
+
+-- this is a bit crazy, but it shows obtaining of the stacktrace
+function a() 
+    b() 
+end
+function b() 
+    t:message()
+end
+print [[
+Now lets call function a()
+ which calls b() 
+ which calls into C++
+ which will throw an exception!]]
+ok,res=pcall(a)
+if ok then 
+    print "  that worked! Funny"
+else
+    print("  call failed with error:",res)
+end
+print "Now lets do the same using xpcall(a,debug.traceback)"
+ok,res=xpcall(a,debug.traceback)
+if ok then 
+    print "  that worked! Funny"
+else
+    print("  call failed with error:",res)
+end
+print "As you can see, the xpcall gives a nice stacktrace to work with"
+
+
+ok,res=pcall(a)
+print(ok,res)
+ok,res=xpcall(a,debug.traceback)
+print(ok,res)
