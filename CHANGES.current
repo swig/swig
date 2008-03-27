@@ -1,6 +1,10 @@
 Version 1.3.35 (in progress)
 ============================
 
+03/27/2008: wsfulton
+            [Python] Fix shared_ptr typemaps where the pointer type is a templated type with
+            with more than one parameter. Reported by Robert Lupton.
+
 03/27/2008: mgossage
             [Lua] Added a typemap DISOWN for SWIGTYPE* and SWIGTYPE[], and support for %delobject feature.
             Added Examples/lua/owner which demonstrates the use of the memory management.
