@@ -137,6 +137,7 @@
 <li><a href="#functional_interface">Functional interface without proxy classes</a>
 <li><a href="#using_own_jni_functions">Using your own JNI functions</a>
 <li><a href="#performance">Performance concerns and hints</a>
+<li><a href="#java_debugging">Debugging</a>
 </ul>
 <li><a href="#java_examples">Examples</a>
 </ul>
@@ -7572,6 +7573,27 @@ However, you will have to be careful about memory management and make sure that 
 This method normally calls the C++ destructor or <tt>free()</tt> for C code.
 </p>
 
+<H3><a name="java_debugging"></a>20.11.5 Debugging</H3>
+
+
+<p>
+The generated code can be debugged using both a Java debugger and a C++ debugger using the usual debugging techniques.
+Breakpoints can be set in either Java or C++ code and so both can be debugged simultaneously.
+Most debuggers do not understand both Java and C++, with one noteable exception of Sun Studio, 
+where it is possible to step from Java code into a JNI method within one environment.
+</p>
+
+<p>
+Alternatively, debugging can involve placing debug printout statements in the JNI layer using the <tt>%exception</tt> directive.
+See the <a href="Customization.html#Customization_exception_special_variables">special variables for %exception</a> section.
+Many of the default typemaps can also be overidden and modified for adding in extra logging/debug display information.
+</p>
+
+<p>
+The <tt>-Xcheck:jni</tt> and <tt>-Xcheck:nabounds</tt> Java executable options are useful for debugging to make sure the JNI code is behaving.
+The -verbose:jni and -verbose:gc are also useful options for monitoring code behaviour.
+</p>
+
 
 <H2><a name="java_examples"></a>20.12 Examples</H2>
 
@@ -7582,6 +7604,8 @@ Take a look at these if you want to see some of the techniques described in acti
 The Examples/index.html file in the parent directory contains the SWIG Examples Documentation and is a useful starting point. 
 If your SWIG installation went well Unix users should be able to type <tt>make</tt> in each example directory, then <tt>java main</tt> to see them running.
 For the benefit of Windows users, there are also Visual C++ project files in a couple of the <a href="Windows.html#Windows_examples">Windows Examples</a>.
+There are also many regression tests in the Examples/test-suite directory.
+Many of these have runtime tests in the java subdirectory.
 </p>
 
 </body>
