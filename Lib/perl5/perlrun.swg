@@ -207,7 +207,7 @@ SWIG_Perl_TypeProxyName(const swig_type_info *type) {
 
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
-  SWIG_TypeCheck_Template(( (!iter->type->clientdata && (strcmp((char*)iter->type->name, c) == 0)) 
+  SWIG_TypeCheck_Template(( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) 
 			    || (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0))), ty);
 }
 
