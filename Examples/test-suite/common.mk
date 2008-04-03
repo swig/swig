@@ -206,6 +206,7 @@ CPP_TEST_CASES += \
 	newobject1 \
 	ordering \
 	operator_overload \
+	operator_overload_break \
 	overload_copy \
 	overload_extend \
 	overload_rename \
