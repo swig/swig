@@ -1145,49 +1145,59 @@ public:
 	  char *name = Char(ki.key);
 	  //        fprintf(stderr,"found name: <%s>\n", name);
 	  if (strstr(name, "__eq__")) {
-	    Printv(pm, tab4, "\"==\" => sub { $_[0]->__eq__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"==\" => sub { $_[0]->__eq__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__ne__")) {
-	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->__ne__($_[1])},\n", NIL);
-	  } else if (strstr(name, "__assign__")) {
-	    Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->__ne__($_[1])},\n",NIL);
+	    // there are no tests for this in operator_overload_runme.pl
+	    // it is likely to be broken
+	    //	  } else if (strstr(name, "__assign__")) {
+	    //	    Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__str__")) {
-	    Printv(pm, tab4, "'\"\"' => sub { $_[0]->__str__()},\n", NIL);
+	    Printv(pm, tab4, "'\"\"' => sub { $_[0]->__str__()},\n",NIL);
 	  } else if (strstr(name, "__plusplus__")) {
-	    Printv(pm, tab4, "\"++\" => sub { $_[0]->__plusplus__()},\n", NIL);
+	    Printv(pm, tab4, "\"++\" => sub { $_[0]->__plusplus__()},\n",NIL);
 	  } else if (strstr(name, "__minmin__")) {
-	    Printv(pm, tab4, "\"--\" => sub { $_[0]->__minmin__()},\n", NIL);
+	    Printv(pm, tab4, "\"--\" => sub { $_[0]->__minmin__()},\n",NIL);
 	  } else if (strstr(name, "__add__")) {
-	    Printv(pm, tab4, "\"+\" => sub { $_[0]->__add__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"+\" => sub { $_[0]->__add__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__sub__")) {
-	    Printv(pm, tab4, "\"-\" => sub { $_[0]->__sub__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"-\" => sub {  if( not $_[2] ) { $_[0]->__sub__($_[1]) }\n",NIL);
+	    Printv(pm, tab8, "elsif( $_[0]->can('__rsub__') ) { $_[0]->__rsub__($_[1]) }\n",NIL);
+	    Printv(pm, tab8, "else { die(\"reverse subtraction not supported\") }\n",NIL);
+	    Printv(pm, tab8, "},\n",NIL);
 	  } else if (strstr(name, "__mul__")) {
-	    Printv(pm, tab4, "\"*\" => sub { $_[0]->__mul__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"*\" => sub { $_[0]->__mul__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__div__")) {
-	    Printv(pm, tab4, "\"/\" => sub { $_[0]->__div__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"/\" => sub { $_[0]->__div__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__mod__")) {
-	    Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n", NIL);
-	  } else if (strstr(name, "__and__")) {
-	    Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n", NIL);
-	  } else if (strstr(name, "__or__")) {
-	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n",NIL);
+	    // there are no tests for this in operator_overload_runme.pl
+	    // it is likely to be broken
+	    //	  } else if (strstr(name, "__and__")) {
+	    //	    Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
+
+	    // there are no tests for this in operator_overload_runme.pl
+	    // it is likely to be broken
+	    //	  } else if (strstr(name, "__or__")) {
+	    //	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__gt__")) {
-	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n", NIL);
-	  } else if (strstr(name, "__ge__")) {
-	    Printv(pm, tab4, "\">=\" => sub { $_[0]->__ge__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
+          } else if (strstr(name, "__ge__")) {
+            Printv(pm, tab4, "\">=\" => sub { $_[0]->__ge__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__not__")) {
-	    Printv(pm, tab4, "\"!\" => sub { $_[0]->__not__()},\n", NIL);
+	    Printv(pm, tab4, "\"!\" => sub { $_[0]->__not__()},\n",NIL);
 	  } else if (strstr(name, "__lt__")) {
-	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n", NIL);
-	  } else if (strstr(name, "__le__")) {
-	    Printv(pm, tab4, "\"<=\" => sub { $_[0]->__le__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n",NIL);
+          } else if (strstr(name, "__le__")) {
+            Printv(pm, tab4, "\"<=\" => sub { $_[0]->__le__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__pluseq__")) {
-	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__mineq__")) {
-	    Printv(pm, tab4, "\"-=\" => sub { $_[0]->__mineq__($_[1])},\n", NIL);
+	    Printv(pm, tab4, "\"-=\" => sub { $_[0]->__mineq__($_[1])},\n",NIL);
 	  } else if (strstr(name, "__neg__")) {
-	    Printv(pm, tab4, "\"neg\" => sub { $_[0]->__neg__()},\n", NIL);
+	    Printv(pm, tab4, "\"neg\" => sub { $_[0]->__neg__()},\n",NIL);
 	  } else {
-	    fprintf(stderr, "Unknown operator: %s\n", name);
+	    fprintf(stderr,"Unknown operator: %s\n", name);
 	  }
 	}
 	Printv(pm, tab4, "\"fallback\" => 1;\n", NIL);
