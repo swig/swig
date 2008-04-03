@@ -42,28 +42,28 @@ private:
     String *decl_info;
     String *cdecl_info;
     String *synopsis;
-    String *inarg_info;
-    String *outarg_info;
+    String *args_info;
     doc_info() {
       decl_info=NewString("");
       cdecl_info=NewString("");
       synopsis=NewString("");
-      inarg_info=NewString("");
-      outarg_info=NewString("");
+      args_info=NewString("");
     }
     doc_info(const doc_info& x) {
       decl_info = Copy(x.decl_info);
       cdecl_info = Copy(x.cdecl_info);
       synopsis = Copy(x.synopsis);
-      inarg_info = Copy(x.inarg_info);
-      outarg_info = Copy(x.outarg_info);
+      args_info = Copy(x.args_info);
     }
     ~doc_info() {
       Delete(decl_info);
       Delete(cdecl_info);
       Delete(synopsis);
-      Delete(inarg_info);
-      Delete(outarg_info);
+      Delete(args_info);
+    }
+    bool empty() const {
+      return !Len(decl_info) && !Len(cdecl_info) &&
+	!Len(synopsis) && !Len(args_info);
     }
   };
   typedef std::map<std::string, doc_info> doc_info_map;
@@ -164,10 +164,8 @@ public:
     if (!CPlusPlus)
       Printf(f_header,"}\n");
 
-    /*
     if (docs.size())
       emit_doc_texinfo();
-    */
 
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
@@ -201,23 +199,117 @@ public:
     return SWIG_OK;
   }
 
-  /*
+  String *texinfo_escape(String *_s) {
+    const char* s=(const char*)Data(_s);
+    while (*s&&(*s=='\t'||*s=='\r'||*s=='\n'||*s==' '))
+      ++s;
+    std::string r;
+    std::string nl="\\\n";
+    for (int j=0;s[j];++j) {
+      if (s[j] == '\n')
+	r+="\\n"+nl;
+      else if (s[j] == '\r')
+	r+="\\r"+nl;
+      else if (s[j] == '\t')
+	r+="\\t"+nl;
+      else if (s[j] == '\\')
+	r+="\\\\"+nl;
+      else if (s[j] == '\'')
+	r+="\\\'"+nl;
+      else if (s[j] == '\"')
+	r+="\\\""+nl;
+      else
+	r+=s[j];
+    }
+    return NewString(r.c_str());
+  }
   void emit_doc_texinfo() {
     for (doc_info_map::iterator it=docs.begin();
 	 it!=docs.end();++it) {
       doc_info& d=it->second;
       String *wrap_name=NewString(it->first.c_str());
-      Printf(f_doc,"const char* %s_texinfo = \"",wrap_name);
+
+      String *doc_str = NewString("");
+      Printv(doc_str, d.synopsis, d.decl_info, d.cdecl_info, d.args_info, NIL);
+      String *escaped_doc_str = texinfo_escape(doc_str);
+
+      if (Len(doc_str)>0) {
+	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
+	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
+	if (Len(d.decl_info))
+	  Printf(f_doc,"\\n\\\n@end deftypefn");
+	Printf(f_doc,"\";\n");
+      }
+
+      Delete(escaped_doc_str);
+      Delete(doc_str);
       Delete(wrap_name);
-      Printf(f_doc,"-*- texinfo -*-\\n");
-      Printv(f_doc,d.decl_info,d.cdecl_info,d.inarg_info,d.outarg_info,NIL);
-      if (Len(d.decl_info))
-	Printf(f_doc,"@end deftypefn");
-      Printf(f_doc,"\";\n");
     }
     Printf(f_doc,"\n");
   }
-  */
+  String *texinfo_name(Node* n) {
+    String *tname = NewString("");
+    String *iname = Getattr(n, "sym:name");
+    String *wname = Swig_name_wrapper(iname);
+    doc_info& d = docs[(const char*)Data(wname)];
+
+    if (d.empty())
+      Printf(tname, "0");
+    else
+      Printf(tname, "%s_texinfo", wname);
+
+    return tname;
+  }
+  void process_autodoc(Node *n) {
+    String *iname = Getattr(n, "sym:name");
+    String *name = Getattr(n, "name");
+    String *wname = Swig_name_wrapper(iname);
+    String *str = Getattr(n, "feature:docstring");
+    bool autodoc_enabled = !Cmp(Getattr(n, "feature:autodoc"), "1");
+    doc_info& d = docs[(const char*)Data(wname)];
+
+    // * couldn't we just emit the docs here?
+
+    if (autodoc_enabled) {
+      String *decl_str = NewString("");
+      String *args_str = NewString("");
+      make_autodocParmList(n, decl_str, args_str);
+      Append(d.decl_info, "@deftypefn {Loadable Function} ");
+
+      SwigType *type = Getattr(n, "type");
+      if (type && Strcmp(type, "void")) {
+	type = SwigType_base(type);
+	Node *lookup = Swig_symbol_clookup(type, 0);
+	if (lookup)
+	  type = Getattr(lookup, "sym:name");
+	Append(d.decl_info, "@var{retval} = ");
+	String *type_str = NewString("");
+	Printf(type_str, "@var{retval} is of type %s. ", type);
+	Append(args_str, type_str);
+	Delete(type_str);
+      }
+
+      Append(d.decl_info, name);
+      Append(d.decl_info, " (");
+      Append(d.decl_info, decl_str);
+      Append(d.decl_info, ")\n");
+      Append(d.args_info, args_str);
+      Delete(decl_str);
+      Delete(args_str);
+    }
+
+    if (str && Len(str) > 0) {
+      // strip off {} if necessary
+      char *t = Char(str);
+      if (*t == '{') {
+	Delitem(str, 0);
+	Delitem(str, DOH_END);
+      }
+
+      // emit into synopsis section
+      Append(d.synopsis, str);
+    }
+  }
 
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n, "module");
@@ -234,19 +326,15 @@ public:
     return conv ? "SWIG_POINTER_IMPLICIT_CONV" : "0";
   }
 
-  String *make_autodocParmList(Node *n, bool showTypes) {
-    String *doc = NewString("");
+  void make_autodocParmList(Node *n, String *decl_str, String *args_str) {
     String *pdocs = Copy(Getattr(n, "feature:pdocs"));
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
     Node *lookup;
-    int lines = 0;
-    const int maxwidth = 50;
 
     if (pdocs)
       Append(pdocs, "\n");
-
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
@@ -268,6 +356,12 @@ public:
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
 
+      String *tex_name = NewString("");
+      if (name)
+	Printf(tex_name, "@var{%s}", name);
+      else
+	Printf(tex_name, "@var{?}");
+
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
 	pnext = Getattr(p, "tmap:in:next");
@@ -275,55 +369,41 @@ public:
 	pnext = nextSibling(p);
       }
 
-      if (Len(doc)) {
-	// add a comma to the previous one if any
-	Append(doc, ", ");
-
-	// Do we need to wrap a long line?
-	if ((Len(doc) - lines * maxwidth) > maxwidth) {
-	  Printf(doc, "\n%s", tab4);
-	  lines += 1;
-	}
-      }
-      // Do the param type too?
-      if (showTypes) {
-	type = SwigType_base(type);
-	lookup = Swig_symbol_clookup(type, 0);
-	if (lookup)
-	  type = Getattr(lookup, "sym:name");
-	Printf(doc, "%s ", type);
-      }
-
-      if (name) {
-	Append(doc, name);
-	if (pdoc) {
-	  if (!pdocs)
-	    pdocs = NewString("Parameters:\n");
-	  Printf(pdocs, "   %s\n", pdoc);
-	}
-      } else {
-	Append(doc, "?");
-      }
+      if (Len(decl_str))
+	Append(decl_str, ", ");
+      Append(decl_str, tex_name);
 
       if (value) {
 	if (Strcmp(value, "NULL") == 0)
-	  value = NewString("None");
+	  value = NewString("nil");
 	else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
-	  value = NewString("True");
+	  value = NewString("true");
 	else if (Strcmp(value, "false") == 0 || Strcmp(value, "FALSE") == 0)
-	  value = NewString("False");
+	  value = NewString("false");
 	else {
 	  lookup = Swig_symbol_clookup(value, 0);
 	  if (lookup)
 	    value = Getattr(lookup, "sym:name");
 	}
-	Printf(doc, "=%s", value);
+	Printf(decl_str, " = %s", value);
       }
+
+      if (type) {
+	String *type_str = NewString("");
+	type = SwigType_base(type);
+	lookup = Swig_symbol_clookup(type, 0);
+	if (lookup)
+	  type = Getattr(lookup, "sym:name");
+	Printf(type_str, "%s is of type %s. ", tex_name, type);
+	Append(args_str, type_str);
+	Delete(type_str);
+      }
+
+      Delete(tex_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
     Delete(plist);
-    return doc;
   }
 
   virtual int functionWrapper(Node *n) {
@@ -352,9 +432,6 @@ public:
       Append(overname, Getattr(n, "sym:overname"));
 
     Printv(f->def, "static octave_value_list ", overname, " (const octave_value_list& args, int nargout) {", NIL);
-    if (!overloaded || last_overload)
-      Printf(s_global_tab, "{\"%s\",%s,0,0,2,0},\n", iname, wname, wname);
-      //      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s_texinfo},\n", iname, wname, wname);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l, f);
@@ -545,16 +622,23 @@ public:
     Printf(f->code, "}\n");
 
     Replaceall(f->code, "$symname", iname);
-
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
+
+    if (last_overload)
+      dispatchFunction(n);
+
+    if (!overloaded || last_overload) {
+      process_autodoc(n);
+      String *tname = texinfo_name(n);
+      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s},\n", iname, wname, tname);
+      Delete(tname);
+    }
+
     Delete(overname);
     Delete(wname);
     Delete(cleanup);
     Delete(outarg);
-
-    if (last_overload)
-      dispatchFunction(n);
 
     return SWIG_OK;
   }
@@ -782,11 +866,13 @@ public:
     if (have_constructor) {
       String *cname = Swig_name_construct(constructor_name);
       String *wcname = Swig_name_wrapper(cname);
-      Printf(f_wrappers, "%s,", wcname);
+      String *tname = texinfo_name(n);
+      Printf(f_wrappers, "%s,%s,", wcname, tname);
+      Delete(tname);
       Delete(wcname);
       Delete(cname);
     } else
-      Printv(f_wrappers, "0", ",", NIL);
+      Printv(f_wrappers, "0,0,", NIL);
     if (have_destructor)
       Printv(f_wrappers, "_wrap_delete_", class_name, ",", NIL);
     else
@@ -813,16 +899,20 @@ public:
     String *realname = iname ? iname : name;
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
-    if (!Getattr(n, "sym:nextSibling"))
-      //      Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s_texinfo},\n", 
-      Printf(s_members_tab, "{\"%s\",%s,0,0,0,0},\n", 
-	     realname, rname, rname);
+    if (!Getattr(n, "sym:nextSibling")) {
+      String *tname = texinfo_name(n);
+      Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s},\n", 
+	     realname, rname, tname);
+      Delete(tname);
+    }
 
     Delete(rname);
     return SWIG_OK;
   }
 
   virtual int membervariableHandler(Node *n) {
+    Setattr(n, "feature:autodoc", "0");
+
     Language::membervariableHandler(n);
 
     assert(s_members_tab);
@@ -882,11 +972,13 @@ public:
     String *realname = iname ? iname : name;
     String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
 
-    if (!Getattr(n, "sym:nextSibling"))
-      //      Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s_texinfo},\n", 
-      Printf(s_members_tab, "{\"%s\",%s,0,0,1,0},\n", 
-	     realname, rname, rname);
-
+    if (!Getattr(n, "sym:nextSibling")) {
+      String *tname = texinfo_name(n);
+      Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s},\n", 
+	     realname, rname, tname);
+      Delete(tname);
+    }
+    
     Delete(rname);
     return SWIG_OK;
   }
@@ -896,6 +988,8 @@ public:
   }
 
   virtual int staticmembervariableHandler(Node *n) {
+    Setattr(n, "feature:autodoc", "0");
+
     Language::staticmembervariableHandler(n);
 
     if (!GetFlag(n, "wrappedasconstant")) {

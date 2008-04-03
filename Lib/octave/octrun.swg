@@ -4,7 +4,7 @@ SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int ma
   if (num_args > max_args && !varargs)
     error("function %s takes at most %i arguments", func_name, max_args);
   else if (num_args < min_args)
-    error("function %s requires at least %i arguments", func_name, max_args);
+    error("function %s requires at least %i arguments", func_name, min_args);
   else
     return true;
   return false;
@@ -172,6 +172,7 @@ namespace {
     swig_type_info **type;
     int director;
     octave_func constructor;
+    const char *constructor_doc;
     octave_func destructor;
     const swig_octave_member *members;
     const char **base_names;
@@ -385,6 +386,14 @@ namespace {
 	return (long) this;
       return (long) types[0].second.ptr;
     }
+    const char* help_text() const {
+      if (!types.size())
+	return 0;
+      if (!types[0].first->clientdata)
+	return 0;
+      swig_octave_class *c = (swig_octave_class *) types[0].first->clientdata;
+      return c->constructor_doc;
+    }
 
     std::string swig_type_name() const {
       // * need some way to manually name subclasses.
@@ -420,10 +429,19 @@ namespace {
       for (member_map::const_iterator it = members.begin(); it != members.end(); ++it) {
 	if (it->second.first && it->second.first->method)
 	  install_builtin_function(it->second.first->method, it->first,
-				   /*it->second.first->doc?it->second.first->doc:*/std::string());
+				   it->second.first->doc?it->second.first->doc:std::string());
 	else if (it->second.second.is_defined()) {
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
 	  set_global_value(it->first, it->second.second);
+	  
+	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
+	  if (ost) {
+	    const char* h = ost->help_text();
+	    if (h) {
+	      symbol_record *sr = global_sym_tab->lookup (it->first, true);
+	      sr->document(h);
+	    }
+	  }
 	}
       }
     }
