@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 use operator_overload_break;
 
@@ -27,8 +27,6 @@ $op->{k} = 37;
 ok((40 == $op + 3),
    "addition");
 
-($op + 3)->Print();
-
 $op->{k} = 22;
 
 ok((10 == (32 - $op)),
@@ -36,3 +34,22 @@ ok((10 == (32 - $op)),
 
 ok_not((3 == $op),
        'not equal');
+
+$op->{k} = 3;
+
+++$op;
+
+ok(($op == 4),
+   "pre-increment operator");
+
+$op++;
+
+ok(($op == 5),
+   "post-increment operator");
+
+$op++;
+
+$op++;
+
+ok(($op == 7),
+   "multiple post-increments");
