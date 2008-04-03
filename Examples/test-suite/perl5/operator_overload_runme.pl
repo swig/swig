@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 38;
+use Test::More tests => 39;
 
 use operator_overload;
 
@@ -65,6 +65,11 @@ $op3->{i} = 6;
 $op2->{i} = 3;
 $op = $op3 - $op2;
 is($op->{i}, 3, "operator subtraction");
+
+# reversed subtraction operator (with int)
+$op3->{i} = 3;
+$op = 6 - $op3;
+is($op->{i}, 3, "reversed operator subtraction (with int)");
 
 # subtractive assignment operator
 $op->{i} = 6;
