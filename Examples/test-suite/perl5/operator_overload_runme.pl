@@ -64,13 +64,13 @@ is($op->{i}, 6, "operator additive assignment");
 $op3->{i} = 6;
 $op2->{i} = 3;
 $op = $op3 - $op2;
-is($op->{i}, 3, "operator subtration");
+is($op->{i}, 3, "operator subtraction");
 
 # subtractive assignment operator
 $op->{i} = 6;
 $op2->{i} = 3;
 $op -= $op2;
-is($op->{i}, 3, "operator subtrative assignment");
+is($op->{i}, 3, "operator subtractive assignment");
 
 # multiplication operator
 $op->{i} = 3;
