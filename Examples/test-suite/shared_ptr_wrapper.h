@@ -24,12 +24,12 @@ namespace SharedPtrWrapper {
 
   template<typename T> void increment(boost::shared_ptr<T>* ptr) { 
     SwigExamples::Lock lock(critical_section); 
-    std::cout << ptr << " " << show_message(ptr) << " " <<  " +" << std::endl << std::flush;
+    std::cout << "====SharedPtrWrapper==== + " << ptr << " " << show_message(ptr) << " " <<  std::endl << std::flush;
     total_count++;
   }
   template<typename T> void decrement(boost::shared_ptr<T>* ptr) {
     SwigExamples::Lock lock(critical_section); 
-    std::cout << ptr << " " << show_message(ptr) << " " <<  " -" << std::endl << std::flush;
+    std::cout << "====SharedPtrWrapper==== - " << ptr << " " << show_message(ptr) << " " <<  std::endl << std::flush;
     total_count--;
   }
   static int getTotalCount() { return total_count; }

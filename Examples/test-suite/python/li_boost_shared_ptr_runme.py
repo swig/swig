@@ -18,12 +18,13 @@ class li_boost_shared_ptr_runme:
 
     # Expect 1 instance - the one global variable (GlobalValue)
     if (li_boost_shared_ptr.Klass.getTotal_count() != 1):
-      raise RuntimeError("Klass.total_count=", li_boost_shared_ptr.Klass.getTotal_count())
+      raise RuntimeError("Klass.total_count=%s" % li_boost_shared_ptr.Klass.getTotal_count())
 
     wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count() 
     if (wrapper_count != li_boost_shared_ptr.NOT_COUNTING):
-      if (wrapper_count != 0):
-        raise RuntimeError("shared_ptr wrapper count not zero: ", wrapper_count)
+      # Expect 1 instance - the one global variable (GlobalSmartValue)
+      if (wrapper_count != 1):
+        raise RuntimeError("shared_ptr wrapper count=%s" % wrapper_count)
 
     if (debug):
       print "Finished"

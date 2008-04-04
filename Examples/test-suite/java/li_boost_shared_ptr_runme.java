@@ -55,8 +55,8 @@ public class li_boost_shared_ptr_runme {
 
     int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 
     if (wrapper_count != li_boost_shared_ptr.getNOT_COUNTING())
-      if (wrapper_count != 0)
-        throw new RuntimeException("shared_ptr wrapper count not zero: " + wrapper_count);
+      if (wrapper_count != 1) // Expect 1 instance - the one global variable (GlobalSmartValue)
+        throw new RuntimeException("shared_ptr wrapper count=" + wrapper_count);
 
     if (debug)
       System.out.println("Finished");

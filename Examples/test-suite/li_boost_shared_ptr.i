@@ -4,6 +4,8 @@
 // the runtime tests can be run for a long time to monitor memory leaks using memory monitor tools 
 // like 'top'. There is a wrapper for shared_ptr in shared_ptr_wrapper.h which enables one to
 // count the instances of shared_ptr. Uncomment the SHARED_PTR_WRAPPER macro to turn this on.
+//
+// Also note the debug_shared flag  which can be set from the target language.
 
 %module li_boost_shared_ptr
 
@@ -36,7 +38,7 @@
 
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
-%include "boost_shared_ptr.i"
+%include <boost_shared_ptr.i>
 SWIG_SHARED_PTR(Klass, Space::Klass)
 SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
 
@@ -212,13 +214,6 @@ Klass *pointerownertest() {
 SwigBoost::shared_ptr<Klass>* smartpointerpointerownertest() {
   return new SwigBoost::shared_ptr<Klass>(new Klass("smartpointerpointerownertest"));
 }
-/*
-Klass* arraytest(Klass k[]) {
-  k[0].append(" arraytest");
-  return k;
-}
-*/
-
 
 // Provide overloads for Klass and KlassDerived as some language modules, eg Python, create an extra reference in
 // the marshalling if an upcast to a base class is required.
