@@ -1,6 +1,10 @@
 Version 1.3.35 (in progress)
 ============================
 
+04/05/2008: wsfulton
+            [Python] Fix shared_ptr typemaps so that %pythonnondynamic can be used. Also corrects
+            display of the proxy class type. Reported by Robert Lupton.
+
 04/04/2008: olly
 	    [Python] Add %newobject reference to python memory management subsection of manual
 	    (patch from mdbeachy in SF#1894610).
@@ -70,3 +74,7 @@ Version 1.3.35 (in progress)
 
 02/29/2008: wsfulton
             [Python] Add shared_ptr varin/varout typemaps for wrapping global variables.
+
+02/25/2008: wsfulton
+            Fix $wrapname to work in %exception (fixes some wrap:name assertions)
+
