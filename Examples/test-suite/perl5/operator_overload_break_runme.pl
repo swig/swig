@@ -47,9 +47,9 @@ $op++;
 ok(($op == 5),
    "post-increment operator");
 
-$op++;
+my $op2 = ++$op;
 
-$op++;
+$op2 = $op++;
 
-ok(($op == 7),
+ok(($op == 7) and ($op2 == 7),
    "multiple post-increments");
