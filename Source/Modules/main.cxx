@@ -992,8 +992,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       if (cpp_only) {
 	Printf(stdout, "%s", cpps);
-	while (freeze) {
-        }
 	SWIG_exit(EXIT_SUCCESS);
       }
       if (depend) {
