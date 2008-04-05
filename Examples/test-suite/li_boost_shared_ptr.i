@@ -36,6 +36,8 @@
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
+
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_shared_ptr.i>
