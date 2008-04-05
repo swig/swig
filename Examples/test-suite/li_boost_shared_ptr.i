@@ -9,6 +9,8 @@
 
 %module li_boost_shared_ptr
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
+
 %inline %{
 #include "boost/shared_ptr.hpp"
 #include "swig_examples_lock.h"
@@ -35,8 +37,6 @@
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
-
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
 
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
