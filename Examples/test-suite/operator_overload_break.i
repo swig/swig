@@ -1,7 +1,7 @@
 %module operator_overload_break
 
 #if defined(SWIGPYTHON)
-%warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX);
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS);
 #endif
 
 #if !defined(SWIGLUA) && !defined(SWIGR) && !defined(SWIGPERL)
