@@ -1,5 +1,18 @@
 %module operator_overload_break
 
+#if defined(SWIGPYTHON)
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX);
+#endif
+
+#if !defined(SWIGLUA) && !defined(SWIGR) && !defined(SWIGPERL)
+%rename(Plus) operator +;
+%rename(Minus) operator -;
+%rename(EqualEqual) operator ==;
+%rename(PlusPlusPrefix) operator++();
+%rename(PlusPlusPostfix) operator++(int);
+#endif
+
+
 %{
 #include <iostream>
 using namespace std;
