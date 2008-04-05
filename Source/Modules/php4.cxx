@@ -2712,6 +2712,8 @@ public:
     Printf(df->code, "  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
     Printf(df->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
 
+    Setattr(n, "wrap:name", destructorname);
+
     emit_action(n, df);
 
     Printf(df->code, "}\n");
