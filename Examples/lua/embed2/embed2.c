@@ -18,6 +18,7 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 #include <lauxlib.h>
 #include <lualib.h>
 #include <stdarg.h>
+#include <string.h>
 
 
 /* the SWIG wrappered library */
