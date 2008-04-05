@@ -992,7 +992,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       if (cpp_only) {
 	Printf(stdout, "%s", cpps);
-	while (freeze);
+	while (freeze) {
+        }
 	SWIG_exit(EXIT_SUCCESS);
       }
       if (depend) {
@@ -1161,8 +1162,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Delete(libfiles);
   Preprocessor_delete();
 
-  while (freeze);
-
+  while (freeze) {
+  }
 
   if ((werror) && (Swig_warn_count())) {
     return Swig_warn_count();
@@ -1177,6 +1178,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 // --------------------------------------------------------------------------
 
 void SWIG_exit(int exit_code) {
-  while (freeze);
+  while (freeze) {
+  }
   exit(exit_code);
 }
