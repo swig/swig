@@ -463,7 +463,10 @@ struct Obscure {
   enum Zero {};
   enum One {one};
   enum Two {two, twoagain};
+#if defined(SWIG)
+  // g++-4.3 warns about this
   typedef enum Empty {};
+#endif
   typedef enum {} AlsoEmpty;
 };
 
