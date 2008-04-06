@@ -1,5 +1,5 @@
-Version 1.3.35 (in progress)
-============================
+Version 1.3.35 (7 April 2008)
+=============================
 
 04/06/2008: wsfulton
             Fix stack overflow when using typemap warning suppression, eg 

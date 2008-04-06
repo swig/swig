@@ -1,10 +1,10 @@
-*** ANNOUNCE: SWIG 1.3.35 (in progress) ***
+*** ANNOUNCE: SWIG 1.3.35 (7 April 2008) ***
 
 http://www.swig.org
 
 
-We're pleased to announce SWIG-1.3.34, the latest installment in the
-SWIG development effort.  SWIG-1.3.34 includes a number of bug fixes
+We're pleased to announce SWIG-1.3.35, the latest installment in the
+SWIG development effort.  SWIG-1.3.35 includes a number of bug fixes
 and large number of enhancements throughout.
 
 What is SWIG?
@@ -13,7 +13,7 @@ What is SWIG?
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
-Scheme (Guile, MzScheme, CHICKEN), Ocaml, Lua, Pike, C#, Modula-3, R,
+Scheme (Guile, MzScheme, CHICKEN), Ocaml, Lua, Pike, C#, Modula-3, Octave, R,
 Common Lisp (CLISP, Allegro CL, CFFI, UFFI). SWIG can also export its parse
 tree in the form of XML and Lisp s-expressions.  Major applications of
 SWIG include generation of scripting language extension modules, rapid
@@ -24,11 +24,11 @@ Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.34.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.35.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.34.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.35.zip
 
 Release numbers
 ---------------
