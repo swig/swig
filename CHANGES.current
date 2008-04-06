@@ -1,6 +1,10 @@
 Version 1.3.35 (in progress)
 ============================
 
+04/06/2008: wsfulton
+            Fix stack overflow when using typemap warning suppression, eg 
+              %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG)
+
 04/05/2008: wsfulton
             [Python] Fix shared_ptr typemaps so that %pythonnondynamic can be used. Also corrects
             display of the proxy class type. Reported by Robert Lupton.
