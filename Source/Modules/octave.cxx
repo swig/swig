@@ -10,8 +10,6 @@
 char cvsroot_octave_cxx[] = "$Id$";
 
 #include "swigmod.h"
-#include <string>
-#include <map>
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
@@ -36,38 +34,7 @@ private:
   int have_destructor;
   String *constructor_name;
 
-  class doc_info {
-    doc_info& operator= (const doc_info& rhs);
-  public:
-    String *decl_info;
-    String *cdecl_info;
-    String *synopsis;
-    String *args_info;
-    doc_info() {
-      decl_info=NewString("");
-      cdecl_info=NewString("");
-      synopsis=NewString("");
-      args_info=NewString("");
-    }
-    doc_info(const doc_info& x) {
-      decl_info = Copy(x.decl_info);
-      cdecl_info = Copy(x.cdecl_info);
-      synopsis = Copy(x.synopsis);
-      args_info = Copy(x.args_info);
-    }
-    ~doc_info() {
-      Delete(decl_info);
-      Delete(cdecl_info);
-      Delete(synopsis);
-      Delete(args_info);
-    }
-    bool empty() const {
-      return !Len(decl_info) && !Len(cdecl_info) &&
-	!Len(synopsis) && !Len(args_info);
-    }
-  };
-  typedef std::map<std::string, doc_info> doc_info_map;
-  doc_info_map docs;
+  Hash *docs;
 
 public:
    OCTAVE():f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
@@ -77,6 +44,7 @@ public:
      allow_overloading();
      director_multiple_inheritance = 1;
      director_language = 1;
+     docs = NewHash();
    }
 
   virtual void main(int argc, char *argv[]) {
@@ -164,7 +132,7 @@ public:
     if (!CPlusPlus)
       Printf(f_header,"}\n");
 
-    if (docs.size())
+    if (Len(docs))
       emit_doc_texinfo();
 
     if (directorsEnabled())
@@ -203,40 +171,42 @@ public:
     const char* s=(const char*)Data(_s);
     while (*s&&(*s=='\t'||*s=='\r'||*s=='\n'||*s==' '))
       ++s;
-    std::string r;
-    std::string nl="\\\n";
+    String *r = NewString("");
     for (int j=0;s[j];++j) {
-      if (s[j] == '\n')
-	r+="\\n"+nl;
-      else if (s[j] == '\r')
-	r+="\\r"+nl;
-      else if (s[j] == '\t')
-	r+="\\t"+nl;
-      else if (s[j] == '\\')
-	r+="\\\\"+nl;
-      else if (s[j] == '\'')
-	r+="\\\'"+nl;
-      else if (s[j] == '\"')
-	r+="\\\""+nl;
-      else
-	r+=s[j];
+      if (s[j] == '\n') {
+	Append(r, "\\n\\\n");
+      } else if (s[j] == '\r') {
+	Append(r, "\\r");
+      } else if (s[j] == '\t') {
+	Append(r, "\\t");
+      } else if (s[j] == '\\') {
+	Append(r, "\\\\");
+      } else if (s[j] == '\'') {
+	Append(r, "\\\'");
+      } else if (s[j] == '\"') {
+	Append(r, "\\\"");
+      } else
+	Putc(s[j], r);
     }
-    return NewString(r.c_str());
+    return r;
   }
   void emit_doc_texinfo() {
-    for (doc_info_map::iterator it=docs.begin();
-	 it!=docs.end();++it) {
-      doc_info& d=it->second;
-      String *wrap_name=NewString(it->first.c_str());
+    for (Iterator it = First(docs); it.key; it = Next(it)) {
+      String *wrap_name = it.key;
+
+      String *synopsis = Getattr(it.item, "synopsis");
+      String *decl_info = Getattr(it.item, "decl_info");
+      String *cdecl_info = Getattr(it.item, "cdecl_info");
+      String *args_info = Getattr(it.item, "args_info");
 
       String *doc_str = NewString("");
-      Printv(doc_str, d.synopsis, d.decl_info, d.cdecl_info, d.args_info, NIL);
+      Printv(doc_str, synopsis, decl_info, cdecl_info, args_info, NIL);
       String *escaped_doc_str = texinfo_escape(doc_str);
 
       if (Len(doc_str)>0) {
 	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
 	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
-	if (Len(d.decl_info))
+	if (Len(decl_info))
 	  Printf(f_doc,"\\n\\\n@end deftypefn");
 	Printf(f_doc,"\";\n");
       }
@@ -247,13 +217,23 @@ public:
     }
     Printf(f_doc,"\n");
   }
+  bool is_empty_doc_node(Node* n) {
+    if (!n)
+      return true;
+    String *synopsis = Getattr(n, "synopsis");
+    String *decl_info = Getattr(n, "decl_info");
+    String *cdecl_info = Getattr(n, "cdecl_info");
+    String *args_info = Getattr(n, "args_info");
+    return !Len(synopsis) && !Len(decl_info) && 
+      !Len(cdecl_info) && !Len(args_info);
+  }
   String *texinfo_name(Node* n) {
     String *tname = NewString("");
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
-    doc_info& d = docs[(const char*)Data(wname)];
+    Node* d = Getattr(docs, wname);
 
-    if (d.empty())
+    if (is_empty_doc_node(d))
       Printf(tname, "0");
     else
       Printf(tname, "%s_texinfo", wname);
@@ -266,7 +246,20 @@ public:
     String *wname = Swig_name_wrapper(iname);
     String *str = Getattr(n, "feature:docstring");
     bool autodoc_enabled = !Cmp(Getattr(n, "feature:autodoc"), "1");
-    doc_info& d = docs[(const char*)Data(wname)];
+    Node* d = Getattr(docs, wname);
+    if (!d) {
+      d = NewHash();
+      Setattr(d, "synopsis", NewString(""));
+      Setattr(d, "decl_info", NewString(""));
+      Setattr(d, "cdecl_info", NewString(""));
+      Setattr(d, "args_info", NewString(""));
+      Setattr(docs, wname, d);
+    }
+
+    String *synopsis = Getattr(d, "synopsis");
+    String *decl_info = Getattr(d, "decl_info");
+    //    String *cdecl_info = Getattr(d, "cdecl_info");
+    String *args_info = Getattr(d, "args_info");
 
     // * couldn't we just emit the docs here?
 
@@ -274,7 +267,7 @@ public:
       String *decl_str = NewString("");
       String *args_str = NewString("");
       make_autodocParmList(n, decl_str, args_str);
-      Append(d.decl_info, "@deftypefn {Loadable Function} ");
+      Append(decl_info, "@deftypefn {Loadable Function} ");
 
       SwigType *type = Getattr(n, "type");
       if (type && Strcmp(type, "void")) {
@@ -282,18 +275,18 @@ public:
 	Node *lookup = Swig_symbol_clookup(type, 0);
 	if (lookup)
 	  type = Getattr(lookup, "sym:name");
-	Append(d.decl_info, "@var{retval} = ");
+	Append(decl_info, "@var{retval} = ");
 	String *type_str = NewString("");
 	Printf(type_str, "@var{retval} is of type %s. ", type);
 	Append(args_str, type_str);
 	Delete(type_str);
       }
 
-      Append(d.decl_info, name);
-      Append(d.decl_info, " (");
-      Append(d.decl_info, decl_str);
-      Append(d.decl_info, ")\n");
-      Append(d.args_info, args_str);
+      Append(decl_info, name);
+      Append(decl_info, " (");
+      Append(decl_info, decl_str);
+      Append(decl_info, ")\n");
+      Append(args_info, args_str);
       Delete(decl_str);
       Delete(args_str);
     }
@@ -307,7 +300,7 @@ public:
       }
 
       // emit into synopsis section
-      Append(d.synopsis, str);
+      Append(synopsis, str);
     }
   }
 
