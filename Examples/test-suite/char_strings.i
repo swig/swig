@@ -7,6 +7,7 @@ below.
 %module char_strings
 
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) global_char_array1;  // Unable to set variable of type char[]
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) global_const_char;  // Setting a const char * variable may leak memory.
 
 %{
 #define OTHERLAND_MSG "Little message from the the safe world."
