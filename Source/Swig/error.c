@@ -190,19 +190,22 @@ void Swig_warnfilter(const String_or_char *wlist, int add) {
   c = strtok(c, ", ");
   while (c) {
     if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
+      /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap 
+       * warnings (a bit odd really), eg: %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) */
       if (add) {
 	Insert(filter, 0, c);
 	if (isdigit((int) *c)) {
 	  Insert(filter, 0, "-");
 	}
       } else {
-	char temp[32];
+	char *temp = (char *)malloc(sizeof(char)*strlen(c) + 2);
 	if (isdigit((int) *c)) {
 	  sprintf(temp, "-%s", c);
 	} else {
 	  strcpy(temp, c);
 	}
 	Replace(filter, temp, "", DOH_REPLACE_FIRST);
+        free(temp);
       }
     }
     c = strtok(NULL, ", ");
