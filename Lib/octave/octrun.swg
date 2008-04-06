@@ -81,7 +81,7 @@ SWIGRUNTIME octave_value SWIG_Error(int code, const char *msg) {
 #define SWIG_arg_fail(arg)      0
 
 SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
-  octave_value tmp = get_global_value("__SWIG_MODULE__", true);
+  octave_value tmp = get_global_value("__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION, true);
   if (!tmp.is_defined() || !tmp.is_uint64_type())
     return 0;
   unsigned long r = tmp.uint64_scalar_value().value();
@@ -92,7 +92,7 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   unsigned long r = (unsigned long) pointer;
   assert(sizeof(r) == sizeof(swig_module_info *));
-  const char *module_var = "__SWIG_MODULE__";
+  const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
   set_global_value(module_var, octave_uint64(r));
 }
