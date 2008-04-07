@@ -343,6 +343,9 @@ parmeters match which function
  *                          Others
  * ----------------------------------------------------------------------------- */
 
+// Array reference typemaps
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
