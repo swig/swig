@@ -1,6 +1,9 @@
 Version 1.3.35 (7 April 2008)
 =============================
 
+04/07/2008: wsfulton
+            [Lua] Add missing pointer reference typemaps
+
 04/06/2008: wsfulton
             Fix stack overflow when using typemap warning suppression, eg 
               %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG)

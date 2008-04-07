@@ -159,11 +159,15 @@
 %}
 
 // Also needed for object ptrs by const ref
-// eg const A* ref_pointer(A* const& a);
+// eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE* const &($*ltype temp)
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
 $1=&temp;%}
+
+%typemap(out) SWIGTYPE *&
+%{SWIG_NewPointerObj(L,*$1,$*descriptor,$owner); SWIG_arg++; %}
+
 
 // DISOWN-ing typemaps
 // if you have an object pointer which must be disowned, use this typemap
