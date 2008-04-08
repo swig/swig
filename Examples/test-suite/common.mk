@@ -51,7 +51,6 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	namespace_union \
 	nested_comment \
-	operator_overload_break \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -208,6 +207,7 @@ CPP_TEST_CASES += \
 	newobject1 \
 	ordering \
 	operator_overload \
+	operator_overload_break \
 	overload_copy \
 	overload_extend \
 	overload_rename \

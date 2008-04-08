@@ -1,3 +1,7 @@
+/* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
+ *  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ */
+
 /* ----------------------------------------------------------------------------
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
@@ -1200,6 +1204,8 @@ public:
 	    fprintf(stderr,"Unknown operator: %s\n", name);
 	  }
 	}
+	Printv(pm, tab4,
+               "\"=\" => sub { my $class = ref($_[0]); $class->new($_[0]) },\n", NIL);
 	Printv(pm, tab4, "\"fallback\" => 1;\n", NIL);
       }
       // make use strict happy
