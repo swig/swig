@@ -67,8 +67,12 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 
   swig_install_ops(octave_swig_ref::static_type_id());
 
+  // the incref is necessary so install_global doesn't destroy module_ns,
+  // as it would if it installed something with the same name as the module.
+  module_ns->incref();
   if (global_option)
     module_ns->install_global();
+  module_ns->decref();
 
   return octave_value_list();
 }
