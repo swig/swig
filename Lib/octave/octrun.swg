@@ -122,7 +122,7 @@ namespace {
 
     struct hash_voidptr {
       int operator() (void *p) const {
-	return (int) p;
+	return (long) p;
       }
     };
     typedef __gnu_cxx::hash_map < void *, Director *, hash_voidptr > rtdir_map;
