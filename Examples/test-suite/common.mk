@@ -87,11 +87,12 @@ CPP_TEST_CASES += \
 	arrays_scope \
 	bloody_hell \
 	bools \
-	casts \
 	cast_operator \
+	casts \
 	char_strings \
 	class_ignore \
 	class_scope_weird \
+	compactdefaultargs \
 	const_const_2 \
 	constant_pointers \
 	constover \
@@ -101,7 +102,6 @@ CPP_TEST_CASES += \
 	constructor_ignore \
 	constructor_value \
 	contract \
-	compactdefaultargs \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
@@ -112,8 +112,8 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
-	default_constructor \
 	default_args \
+	default_constructor \
 	defvalue_constructor \
 	derived_byvalue \
 	derived_nested \
@@ -123,13 +123,13 @@ CPP_TEST_CASES += \
 	director_classes \
 	director_classic \
 	director_constructor \
-	director_detect \
 	director_default \
+	director_detect \
 	director_enum \
 	director_exception \
 	director_extend \
-	director_frob \
 	director_finalizer \
+	director_frob \
 	director_ignore \
 	director_namespace_clash \
 	director_nested \
@@ -152,7 +152,7 @@ CPP_TEST_CASES += \
 	evil_diamond_ns \
 	evil_diamond_prop \
 	exception_order \
-        extend \
+	extend \
 	extend_default \
 	extend_placement \
 	extend_template \
@@ -160,9 +160,9 @@ CPP_TEST_CASES += \
 	extern_namespace \
 	extern_throws \
 	features \
-	fvirtual \
-	friends \
 	fragments \
+	friends \
+	fvirtual \
 	global_ns_arg \
 	global_vars \
 	grouping \
@@ -205,9 +205,9 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	naturalvar \
 	newobject1 \
-	ordering \
 	operator_overload \
 	operator_overload_break \
+	ordering \
 	overload_copy \
 	overload_extend \
 	overload_rename \
@@ -218,7 +218,7 @@ CPP_TEST_CASES += \
 	pointer_reference \
 	primitive_ref \
 	private_assign \
-        protected_rename \
+	protected_rename \
 	pure_virtual \
 	redefined \
 	refcount \
@@ -233,6 +233,7 @@ CPP_TEST_CASES += \
 	return_const_value \
 	return_value_scope \
 	rname \
+	samename \
 	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
@@ -246,10 +247,10 @@ CPP_TEST_CASES += \
 	smart_pointer_overload \
 	smart_pointer_protected \
 	smart_pointer_rename \
-	smart_pointer_templatemethods \
-	smart_pointer_templatevariables \
 	smart_pointer_simple \
 	smart_pointer_static \
+	smart_pointer_templatemethods \
+	smart_pointer_templatevariables \
 	smart_pointer_typedef \
 	special_variables \
 	static_array_member \
@@ -257,10 +258,10 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	struct_value \
 	template \
-	template_array_numeric \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
+	template_array_numeric \
 	template_base_template \
 	template_classes \
 	template_const_ref \
@@ -276,10 +277,10 @@ CPP_TEST_CASES += \
 	template_enum_ns_inherit \
 	template_enum_typedef \
 	template_explicit \
-	template_extend_overload \
-	template_extend_overload_2 \
 	template_extend1 \
 	template_extend2 \
+	template_extend_overload \
+	template_extend_overload_2 \
 	template_forward \
 	template_inherit \
 	template_inherit_abstract \
@@ -326,8 +327,8 @@ CPP_TEST_CASES += \
 	typedef_inherit \
 	typedef_mptr \
 	typedef_reference \
-	typedef_sizet \
 	typedef_scope \
+	typedef_sizet \
 	typedef_struct \
 	typemap_namespace \
 	typemap_ns_using \
