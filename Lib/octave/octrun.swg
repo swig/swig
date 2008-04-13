@@ -250,7 +250,7 @@ namespace {
 
     void load_members(const swig_octave_class* c,member_map& out) const {
       for (const swig_octave_member *m = c->members; m->name; ++m) {
-	if (out.find(m->name)==out.end())
+	if (out.find(m->name) == out.end())
 	  out.insert(std::make_pair(m->name, std::make_pair(m, octave_value())));
       }
       for (int j = 0; c->base_names[j]; ++j) {
@@ -267,6 +267,13 @@ namespace {
 	  (const swig_octave_class *) c->base[j]->clientdata;
 	load_members(cj,out);
       }
+    }
+
+    void load_members(member_map& out) const {
+      out=members;
+      for (unsigned int j = 0; j < types.size(); ++j)
+	if (types[j].first->clientdata)
+	  load_members((const swig_octave_class *) types[j].first->clientdata, out);
     }
 
     octave_value_list member_invoke(member_value_pair *m, const octave_value_list &args, int nargout) {
@@ -673,6 +680,18 @@ namespace {
       return outarg(0).string_value();
     }
 
+    virtual string_vector map_keys() const {
+      member_map tmp;
+      load_members(tmp);
+
+      string_vector keys(tmp.size());
+      int k = 0;
+      for (member_map::iterator it = tmp.begin(); it != tmp.end(); ++it)
+	keys(k++) = it->first;
+
+      return keys;
+    }
+
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const {
       return string_value();
     }
@@ -759,10 +778,8 @@ namespace {
 	return;
       }
 
-      member_map tmp(members);
-      for (unsigned int j = 0; j < types.size(); ++j)
-	if (types[j].first->clientdata)
-	  load_members((const swig_octave_class *) types[j].first->clientdata, tmp);
+      member_map tmp;
+      load_members(tmp);
 
       os << "{" << std::endl;
       for (unsigned int j = 0; j < types.size(); ++j) {
@@ -837,6 +854,9 @@ namespace {
 
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
+
+    virtual string_vector map_keys() const
+      { return ptr->map_keys(); }
 
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const
       { return ptr->convert_to_str(pad, force, type); }
