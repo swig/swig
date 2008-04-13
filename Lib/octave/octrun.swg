@@ -173,7 +173,7 @@ namespace {
       }};
     typedef std::pair < const swig_type_info *, cpp_ptr > type_ptr_pair;
 
-    swig_module_info *module;
+    mutable swig_module_info *module;
 
     const swig_type_info *construct_type;	// type of special type object
     std::vector < type_ptr_pair > types;	// our c++ base classes
@@ -246,6 +246,27 @@ namespace {
 	  return c->base[j];
       }
       return 0;
+    }
+
+    void load_members(const swig_octave_class* c,member_map& out) const {
+      for (const swig_octave_member *m = c->members; m->name; ++m) {
+	if (out.find(m->name)==out.end())
+	  out.insert(std::make_pair(m->name, std::make_pair(m, octave_value())));
+      }
+      for (int j = 0; c->base_names[j]; ++j) {
+	if (!c->base[j]) {
+	  if (!module)
+	    module = SWIG_GetModule(0);
+	  assert(module);
+	  c->base[j] = SWIG_MangledTypeQueryModule(module, module, c->base_names[j]);
+	}
+	if (!c->base[j])
+	  continue;
+	assert(c->base[j]->clientdata);
+	const swig_octave_class *cj =
+	  (const swig_octave_class *) c->base[j]->clientdata;
+	load_members(cj,out);
+      }
     }
 
     octave_value_list member_invoke(member_value_pair *m, const octave_value_list &args, int nargout) {
@@ -738,6 +759,11 @@ namespace {
 	return;
       }
 
+      member_map tmp(members);
+      for (unsigned int j = 0; j < types.size(); ++j)
+	if (types[j].first->clientdata)
+	  load_members((const swig_octave_class *) types[j].first->clientdata, tmp);
+
       os << "{" << std::endl;
       for (unsigned int j = 0; j < types.size(); ++j) {
 	if (types[j].first->clientdata) {
@@ -747,14 +773,14 @@ namespace {
 	  os << "  " << types[j].first->name << ", ptr = " << types[j].second.ptr << std::endl;
 	}
       }
-      for (member_map::const_iterator it = members.begin(); it != members.end(); ++it) {
+      for (member_map::const_iterator it = tmp.begin(); it != tmp.end(); ++it) {
 	if (it->second.first) {
 	  const char *objtype = it->second.first->method ? "method" : "variable";
-	  const char *modifier = (it->second.first->flags &1) ? "static" : (it->second.first->flags &2) ? "global" : "";
-	  os << it->second.first->name << " (c++ " << modifier << " " << objtype << ")" << std::endl;
+	  const char *modifier = (it->second.first->flags &1) ? "static " : (it->second.first->flags &2) ? "global " : "";
+	  os << "  " << it->second.first->name << " (" << modifier << objtype << ")" << std::endl;
 	  assert(it->second.first->name == it->first);
 	} else {
-	  os << it->first << " (octave value)" << std::endl;
+	  os << "  " << it->first << std::endl;
 	}
       }
       os << "}" << std::endl;
@@ -1204,12 +1230,12 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
   const octave_swig_packed* osp = 
     static_cast < const octave_swig_packed *> (ov.internal_rep());
   swig_module_info *pointer = 0;
-  osp->copy(0, &pointer, sizeof(swig_module_info **));
+  osp->copy(0, &pointer, sizeof(swig_module_info *));
   return pointer;
 }
 
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
-  octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info **));
+  octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
   const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
   set_global_value(module_var, ov);
