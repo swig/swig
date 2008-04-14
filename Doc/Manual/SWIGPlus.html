@@ -1431,10 +1431,10 @@ default constructor.
 </p>
 
 <p>
-If <tt>Vector</tt> is defined as class in the interface, but it does
-not support a default constructor, SWIG changes the wrapper code by
-encapsulating the arguments inside a special C++ template wrapper
-class.  This produces a wrapper that looks like this:
+If <tt>Vector</tt> is defined as class in the interface, but it does not
+support a default constructor, SWIG changes the wrapper code by encapsulating
+the arguments inside a special C++ template wrapper class, through a process
+called the "Fulton Transform".  This produces a wrapper that looks like this:
 </p>
 
 <div class="code">
@@ -1455,6 +1455,22 @@ and it makes it possible to properly support a number of SWIG's
 customization options.  The definition of <tt>SwigValueWrapper</tt>
 can be found by reading the SWIG wrapper code. This class is really nothing more than a thin
 wrapper around a pointer. 
+</p>
+
+<p>
+Although SWIG usually detects the classes to which the fulton transform should
+be applied, in some situations it's necessary to override it.  That's done with
+<tt>%feature("valuewrapper")</tt> and <tt>%feature("novaluewraper")</tt>:
+<div class="code"><pre>
+%feature("novaluewrapper") A;    
+class A;
+
+%feature("valuewrapper") B;
+struct B { 
+    B();
+    // ....
+};   
+</pre></div>
 </p>
 
 <p>
