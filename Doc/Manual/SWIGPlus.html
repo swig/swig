@@ -1431,7 +1431,7 @@ default constructor.
 </p>
 
 <p>
-If <tt>Vector</tt> is defined as class in the interface, but it does not
+If <tt>Vector</tt> is defined as a class in the interface, but it does not
 support a default constructor, SWIG changes the wrapper code by encapsulating
 the arguments inside a special C++ template wrapper class, through a process
 called the "Fulton Transform".  This produces a wrapper that looks like this:
@@ -1460,7 +1460,7 @@ wrapper around a pointer.
 <p>
 Although SWIG usually detects the classes to which the fulton transform should
 be applied, in some situations it's necessary to override it.  That's done with
-<tt>%feature("valuewrapper")</tt> and <tt>%feature("novaluewraper")</tt>:
+<tt>%feature("valuewrapper")</tt> and <tt>%feature("novaluewrapper")</tt>:
 <div class="code"><pre>
 %feature("novaluewrapper") A;    
 class A;
