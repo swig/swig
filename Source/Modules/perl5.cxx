@@ -1,5 +1,5 @@
 /* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
- *  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ *  vim:expandtab:shiftwidth=2:tabstop=8:smarttab:
  */
 
 /* ----------------------------------------------------------------------------
