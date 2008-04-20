@@ -100,7 +100,7 @@ namespace Swig {
   SWIGRUNTIME void swig_director_set_self(Director *d, octave_swig_type *self);
 
   SWIGRUNTIME octave_base_value *swig_value_ref(octave_swig_type *ost);
-  SWIGRUNTIME octave_swig_type *swig_value_deref(const octave_value &ov);
+  SWIGRUNTIME octave_swig_type *swig_value_deref(octave_value ov);
   SWIGRUNTIME octave_swig_type *swig_value_deref(const octave_base_value &ov);
 
   typedef std::map < void *, Director * > rtdir_map;
@@ -1007,6 +1007,8 @@ namespace Swig {
       error("swig_typeinfo must be called with only a single object");
       return octave_value_list();
     }
+    if (args(0).is_matrix_type() && args(0).rows() == 0 && args(0).columns() == 0)
+      return octave_value(octave_uint64(0));
     octave_swig_type *ost = Swig::swig_value_deref(args(0));
     if (!ost) {
       error("object is not a swig_ref");
@@ -1106,7 +1108,9 @@ namespace Swig {
       return new octave_swig_ref(ost);
     }
 
-    SWIGRUNTIME octave_swig_type *swig_value_deref(const octave_value &ov) {
+    SWIGRUNTIME octave_swig_type *swig_value_deref(octave_value ov) {
+      if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
+	ov = ov.cell_value()(0);
       return swig_value_deref(*ov.internal_rep());
     }
 
@@ -1216,9 +1220,11 @@ SWIGRUNTIME octave_value SWIG_Octave_NewPointerObj(void *ptr, swig_type_info *ty
   return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
 }
 
-SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(const octave_value &ov, void **ptr, swig_type_info *type, int flags, int *own) {
+SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_type_info *type, int flags, int *own) {
+  if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
+    ov = ov.cell_value()(0);
   if (!ov.is_defined() ||
-      (ov.is_matrix_type() && ov.rows()==0 && ov.columns()==0) ) {
+      (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
     if (ptr)
       *ptr = 0;
     return SWIG_OK;

@@ -200,8 +200,10 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 
 %fragment("SWIG_AsCharPtrAndSize","header") {
 SWIGINTERN int
-SWIG_AsCharPtrAndSize(const octave_value& ov, char** cptr, size_t* psize, int *alloc)
+SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 {
+  if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
+    ov = ov.cell_value()(0);
   if (!ov.is_string())
     return SWIG_TypeError;
   
