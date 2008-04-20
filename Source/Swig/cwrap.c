@@ -975,7 +975,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
 
 Node *Swig_methodclass(Node *n) {
   Node *nodetype = nodeType(n);
-  if (!Cmp(nodetype, "class"))
+  if (Cmp(nodetype, "class") == 0)
     return n;
   return GetFlag(n, "feature:extend") ? parentNode(parentNode(n)) : parentNode(n);
 }
@@ -1227,6 +1227,9 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   if (flags & CWRAP_SMART_POINTER) {
     self = NewString("(*this)->");
   }
+  if (flags & CWRAP_ALL_PROTECTED_ACCESS) {
+    self = NewStringf("darg->");
+  }
 
   name = Getattr(n, "name");
   type = Getattr(n, "type");
@@ -1312,6 +1315,9 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     } else {
       self = NewString("(*this)->");
     }
+  }
+  if (flags & CWRAP_ALL_PROTECTED_ACCESS) {
+    self = NewStringf("darg->");
   }
 
   name = Getattr(n, "name");

@@ -75,7 +75,7 @@ static File *f_pm = 0;
 static String *pm;		/* Package initialization code */
 static String *magic;		/* Magic variable wrappers     */
 
-static int is_static = 0;
+static int staticoption = 0;
 
 /* The following variables are used to manage Perl5 classes */
 
@@ -150,7 +150,7 @@ public:
 	  export_all = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-static") == 0) {
-	  is_static = 1;
+	  staticoption = 1;
 	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
 	  blessed = 1;
@@ -298,7 +298,7 @@ public:
     Printf(f_pm, "package %s;\n", fullmodule);
 
     Printf(f_pm, "require Exporter;\n");
-    if (!is_static) {
+    if (!staticoption) {
       Printf(f_pm, "require DynaLoader;\n");
       Printf(f_pm, "@ISA = qw(Exporter DynaLoader);\n");
     } else {
@@ -378,7 +378,7 @@ public:
 
     Printf(f_pm, "package %s;\n", cmodule);
 
-    if (!is_static) {
+    if (!staticoption) {
       Printf(f_pm, "bootstrap %s;\n", fullmodule);
     } else {
       String *tmp = NewString(fullmodule);

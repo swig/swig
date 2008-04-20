@@ -282,6 +282,7 @@ static void add_symbols(Node *n) {
     Symtab *old_scope = 0;
     int isfriend = inclass && is_friend(n);
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
+    int only_csymbol = 0;
     if (extendmode) {
       Setattr(n,"isextension","1");
     }
@@ -336,24 +337,16 @@ static void add_symbols(Node *n) {
     }
     if (!isfriend && inclass) {
       if ((cplus_mode != CPLUS_PUBLIC)) {
-	int only_csymbol = 1;
+	only_csymbol = 1;
 	if (cplus_mode == CPLUS_PROTECTED) {
 	  Setattr(n,"access", "protected");
 	  only_csymbol = !Swig_need_protected(n);
 	} else {
-	  /* private are needed only when they are pure virtuals */
 	  Setattr(n,"access", "private");
-	  if ((Cmp(Getattr(n,"storage"),"virtual") == 0)
-	      && (Cmp(Getattr(n,"value"),"0") == 0)) {
-	    only_csymbol = !Swig_need_protected(n);
+	  /* private are needed only when they are pure virtuals - why? */
+	  if ((Cmp(Getattr(n,"storage"),"virtual") == 0) && (Cmp(Getattr(n,"value"),"0") == 0)) {
+	    only_csymbol = 0;
 	  }
-	}
-	if (only_csymbol) {
-	  /* Only add to C symbol table and continue */
-	  Swig_symbol_add(0, n); 
-	  if (add_only_one) break;
-	  n = nextSibling(n);
-	  continue;
 	}
       } else {
 	  Setattr(n,"access", "public");
@@ -434,7 +427,8 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-    if (GetFlag(n,"feature:ignore")) {
+    if (only_csymbol || GetFlag(n,"feature:ignore")) {
+      /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
     } else if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
@@ -2046,6 +2040,12 @@ module_directive: MODULE options idstring {
 		   Setattr($$,"options",$2);
 		   if (Getattr($2,"directors")) {
 		     Wrapper_director_mode_set(1);
+		   } 
+		   if (Getattr($2,"dirprot")) {
+		     Wrapper_director_protected_mode_set(1);
+		   } 
+		   if (Getattr($2,"allprotected")) {
+		     Wrapper_all_protected_mode_set(1);
 		   } 
 		   if (Getattr($2,"templatereduce")) {
 		     template_reduce = 1;

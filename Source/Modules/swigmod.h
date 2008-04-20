@@ -232,6 +232,9 @@ public:
   /* Allow director protected members related code generation */
   void allow_dirprot(int val = 1);
 
+  /* Allow all protected members code generation (for directors) */
+  void allow_allprotected(int val = 0);
+
   /* Returns the dirprot mode */
   int dirprot_mode() const;
 
@@ -349,11 +352,10 @@ int is_private(Node *n);
 int is_protected(Node *n);
 int is_member_director(Node *parentnode, Node *member);
 int is_member_director(Node *member);
+int is_non_virtual_protected_access(Node *n); /* Check if the non-virtual protected members are required (for directors) */
 int use_naturalvar_mode(Node *n);
 
 void Wrapper_virtual_elimination_mode_set(int);
-void Wrapper_director_mode_set(int);
-void Wrapper_director_protected_mode_set(int);
 void Wrapper_fast_dispatch_mode_set(int);
 void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);

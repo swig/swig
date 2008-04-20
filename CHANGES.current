@@ -1,87 +1,12 @@
-Version 1.3.35 (7 April 2008)
+Version 1.3.36 (in progress)
 =============================
 
-04/07/2008: wsfulton
-            [Lua] Add missing pointer reference typemaps
+04/20/2008: wsfulton
+            Add the ability to wrap all protected members when using directors.
+            Previously only the virtual methods were available to the target language.
+            Now all protected members, (static and non-static variables, non-virtual methods
+            and static methods) are wrapped when using the allprotected mode. The allprotected
+            mode is turned on in the module declaration:
 
-04/06/2008: wsfulton
-            Fix stack overflow when using typemap warning suppression, eg 
-              %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG)
-
-04/05/2008: wsfulton
-            [Python] Fix shared_ptr typemaps so that %pythonnondynamic can be used. Also corrects
-            display of the proxy class type. Reported by Robert Lupton.
-
-04/04/2008: olly
-	    [Python] Add %newobject reference to python memory management subsection of manual
-	    (patch from mdbeachy in SF#1894610).
-
-03/27/2008: wsfulton
-            [Python] Fix shared_ptr typemaps where the pointer type is a templated type with
-            with more than one parameter. Reported by Robert Lupton.
-
-03/27/2008: mgossage
-            [Lua] Added a typemap DISOWN for SWIGTYPE* and SWIGTYPE[], and support for %delobject feature.
-            Added Examples/lua/owner which demonstrates the use of the memory management.
-
-03/26/2008: wsfulton
-            [Java] Apply patch #1844301 from Monty Taylor to suppress enum constructor
-            unused warnings.
-
-03/26/2008: wsfulton
-            [Python] Apply patch #1924524 from Casey Raymondson which ensures the
-            "No constructor defined" message is displayed when attempting to call a
-            constructor on a class that doesn't have a constructor wrapper, eg if
-            the C++ class is abstract.
-
-03/26/2008: wsfulton
-            [Python] Apply patch #1925702 from Casey Raymondson which removes warning 512
-            for std::vector wrappers.
-
-03/26/2008: olly
-	    [Python] Apply GCC 4.3 warnings patch from Philipp Thomas
-	    (SF#1925122).
-
-03/21/2008: wsfulton
-            [Python] Thread safety patch for STL iterators from Abhinandan Jain.
-
-03/17/2008: mgossage
-            [Lua] Added %luacode feature to add source code into wrappers.
-            Updated documentation to document this.
-            Added Examples/lua/arrays to show its use (and typemaps)
-
-03/17/2008: olly
-	    Fix nonportable sed usage which failed on Mac OS X (and probably
-	    other platforms).  Fixes SF#1903612.
-
-03/17/2008: olly
-	    Fix memory leak in SWIG's parser (based on patch from Russell
-	    Bryant in SF#1914023).`
-
-03/12/2008: wsfulton
-            Fix bug #1878285 - unnecessary cast for C struct creation wrappers.
-
-03/12/2008: wsfulton
-            [Python] Remove debugging info when using shared_ptr support
-
-03/06/2008: mgossage
-            [Lua] Updated documentation for Lua exceptions.
-            Added Examples/lua/exception and Examples/lua/embed2.
-            Small updates to the typemaps.
-
-03/04/2008: wsfulton
-            [Java, C#] Add char *& typemaps.
-
-03/04/2008: wsfulton
-            Fix occasional seg fault when attempting to report overloaded methods as being ignored.
-
-02/29/2008: wsfulton
-            [Perl] Fix #1904537 Swig causes a Perl warning "x used only once" in Perl 5.10
-            reported by Ari Jolma
-
-02/29/2008: wsfulton
-            [Python] Add shared_ptr varin/varout typemaps for wrapping global variables.
-
-02/25/2008: wsfulton
-            Fix $wrapname to work in %exception (fixes some wrap:name assertions)
+              %module(directors="1", allprotected="1") modulename
 

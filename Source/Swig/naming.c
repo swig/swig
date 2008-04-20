@@ -966,22 +966,28 @@ int Swig_need_redefined_warn(Node *a, Node *b, int InClass) {
  * int Swig_need_protected(Node* n)
  *
  * Detects when we need to fully register the protected member.
+ * This is basically any protected members when the allprotected mode is set.
+ * Otherwise we take just the protected virtual methods and non-static methods 
+ * (potentially virtual methods) as well as constructors/destructors.
  * 
  * ----------------------------------------------------------------------------- */
 
 int Swig_need_protected(Node *n) {
-  /* First, 'n' looks like a function */
-  /* if (!Swig_director_mode()) return 0; */
   String *nodetype = nodeType(n);
-  if ((Equal(nodetype, "cdecl")) && SwigType_isfunction(Getattr(n, "decl"))) {
-    String *storage = Getattr(n, "storage");
-    /* and the function is declared like virtual, or it has no
-       storage. This eliminates typedef, static and so on. */
-    return !storage || Equal(storage, "virtual");
-  } else if (Equal(nodetype, "constructor") || Equal(nodetype, "destructor")) {
-    return 1;
+  if (checkAttribute(n, "access", "protected")) {
+    if ((Equal(nodetype, "cdecl"))) {
+      if (Swig_director_mode() && Swig_director_protected_mode() && Swig_all_protected_mode()) {
+        return 1;
+      }
+      if (SwigType_isfunction(Getattr(n, "decl"))) {
+        String *storage = Getattr(n, "storage");
+        /* The function is declared virtual, or it has no storage. This eliminates typedef, static etc. */
+        return !storage || Equal(storage, "virtual");
+      }
+    } else if (Equal(nodetype, "constructor") || Equal(nodetype, "destructor")) {
+      return 1;
+    }
   }
-
   return 0;
 }
 

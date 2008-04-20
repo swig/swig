@@ -274,6 +274,7 @@ public:
       if (Getattr(optionsnode, "dirprot")) {
 	allow_dirprot();
       }
+      allow_allprotected(GetFlag(optionsnode, "allprotected"));
     }
 
     /* Initialize all of the output files */
@@ -1238,14 +1239,17 @@ public:
 	// The %csconst feature determines how the constant value is obtained
 	int const_feature_flag = GetFlag(n, "feature:cs:const");
 
+        const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
+        methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
 	if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
 	  // Wrap (non-anonymouse) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
-	    Printf(enum_code, "  public static readonly %s %s = new %s(\"%s\", %s);\n", return_type, symname, return_type, symname, value);
+	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
 	    Delete(value);
 	  } else {
-	    Printf(enum_code, "  public static readonly %s %s = new %s(\"%s\");\n", return_type, symname, return_type, symname);
+	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\");\n", methodmods, return_type, symname, return_type, symname);
 	  }
 	} else {
 	  // Simple integer constants
@@ -1253,7 +1257,7 @@ public:
 	  // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
 	  const char *const_readonly = const_feature_flag ? "const" : "static readonly";
 	  String *value = enumValue(n);
-	  Printf(enum_code, "  public %s %s %s = %s;\n", const_readonly, return_type, symname, value);
+	  Printf(enum_code, "  %s %s %s %s = %s;\n", methodmods, const_readonly, return_type, symname, value);
 	  Delete(value);
 	}
       }
@@ -1336,7 +1340,11 @@ public:
     if (outattributes)
       Printf(constants_code, "  %s\n", outattributes);
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
+
+    const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+    Printf(constants_code, "  %s %s %s %s = ", methodmods, (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
     // Check for the %csconstvalue feature
     String *value = Getattr(n, "feature:cs:constvalue");
@@ -3552,7 +3560,7 @@ public:
 
     Printf(w->code, "}");
 
-    // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+    // We expose virtual protected methods via an extra public inline method which makes a straight call to the wrapped class' method
     String *inline_extra_method = NewString("");
     if (dirprot_mode() && !is_public(n) && !pure_virtual) {
       Printv(inline_extra_method, declaration, NIL);

@@ -13,8 +13,10 @@ char cvsroot_lang_cxx[] = "$Id$";
 #include "cparse.h"
 #include <ctype.h>
 
-static int director_mode = 0;	/* set to 0 on default */
-static int director_protected_mode = 1;	/* set to 1 on default */
+/* default mode settings */
+static int director_mode = 0;
+static int director_protected_mode = 1;
+static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
 
 /* Set director_protected_mode */
@@ -26,6 +28,10 @@ void Wrapper_director_protected_mode_set(int flag) {
   director_protected_mode = flag;
 }
 
+void Wrapper_all_protected_mode_set(int flag) {
+  all_protected_mode = flag;
+}
+
 void Wrapper_naturalvar_mode_set(int flag) {
   naturalvar_mode = flag;
 }
@@ -33,6 +39,12 @@ void Wrapper_naturalvar_mode_set(int flag) {
 extern "C" {
   int Swig_director_mode() {
     return director_mode;
+  }
+  int Swig_director_protected_mode() {
+    return director_protected_mode;
+  }
+  int Swig_all_protected_mode() {
+    return all_protected_mode;
   }
 }
 
@@ -813,11 +825,13 @@ int Language::cDeclaration(Node *n) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage, "friend") == 0);
     if (!isfriend) {
-      /* we check what the director needs. If the method is pure virtual,
-         it is always needed. */
-      if (!(directorsEnabled() && is_member_director(CurrentClass, n) && need_nonpublic_member(n))) {
-	return SWIG_NOWRAP;
+      /* Check what the director needs. If the method is pure virtual, it is always needed.
+       * Also wrap non-virtual protected members if asked for (allprotected mode). */
+      if (!(directorsEnabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || is_non_virtual_protected_access(n)))) {
+          return SWIG_NOWRAP;
       }
+#if 0
+// I don't see why this is needed - WSF
       /* prevent wrapping the method twice due to overload */
       String *wrapname = NewStringf("nonpublic_%s%s", symname, Getattr(n, "sym:overname"));
       if (Getattr(CurrentClass, wrapname)) {
@@ -826,6 +840,7 @@ int Language::cDeclaration(Node *n) {
       }
       SetFlag(CurrentClass, wrapname);
       Delete(wrapname);
+#endif
     }
   }
 
@@ -1217,9 +1232,9 @@ int Language::memberfunctionHandler(Node *n) {
     }
   }
   // Set up the type for the cast to this class for use when wrapping const director (virtual) methods.
-  // Note: protected director methods only.
+  // Note: protected director methods or when allprotected mode turned on.
   String *director_type = 0;
-  if (!is_public(n) && (is_member_director(CurrentClass, n) || GetFlag(n, "explicitcall"))) {
+  if (!is_public(n) && (is_member_director(CurrentClass, n) || GetFlag(n, "explicitcall") || is_non_virtual_protected_access(n))) {
     director_type = Copy(DirectorClassName);
     String *qualifier = Getattr(n, "qualifier");
     if (qualifier)
@@ -1238,6 +1253,7 @@ int Language::memberfunctionHandler(Node *n) {
   Swig_MethodToFunction(n, ClassType, Getattr(n, "template") ? SmartPointer : Extend | SmartPointer | DirectorExtraCall, director_type,
 			is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
+
   functionWrapper(n);
 
   Delete(director_type);
@@ -1263,12 +1279,11 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
   if (!Extend) {
     Node *sb = Getattr(n, "cplus:staticbase");
-    String *sname = sb ? Getattr(sb, "name") : 0;
-    if (sname) {
+    String *sname = Getattr(sb, "name");
+    if (is_non_virtual_protected_access(n))
+      cname = NewStringf("%s::%s", DirectorClassName, name);
+    else
       cname = NewStringf("%s::%s", sname, name);
-    } else {
-      cname = NewStringf("%s::%s", ClassName, name);
-    }
   } else {
     String *mname = Swig_name_mangle(ClassName);
     cname = Swig_name_member(mname, name);
@@ -1346,8 +1361,7 @@ int Language::variableHandler(Node *n) {
 	SetFlag(n, "feature:immutable");
       }
     }
-    if ((Cmp(storage, "static") == 0)
-	&& !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
+    if ((Cmp(storage, "static") == 0) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
       staticmembervariableHandler(n);
     } else {
       membervariableHandler(n);
@@ -1421,6 +1435,8 @@ int Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup_new("memberin", n, target, 0);
       }
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
+      if (is_non_virtual_protected_access(n))
+        flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
 
       Swig_MembersetToFunction(n, ClassType, flags);
       Setattr(n, "memberset", "1");
@@ -1467,6 +1483,8 @@ int Language::membervariableHandler(Node *n) {
     /* Emit get function */
     {
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
+      if (is_non_virtual_protected_access(n))
+        flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
       Swig_MembergetToFunction(n, ClassType, flags);
       Setattr(n, "sym:name", mrename_get);
       Setattr(n, "memberget", "1");
@@ -1525,7 +1543,8 @@ int Language::membervariableHandler(Node *n) {
 int Language::staticmembervariableHandler(Node *n) {
   Swig_require("staticmembervariableHandler", n, "*name", "*sym:name", "*type", "?value", NIL);
   String *value = Getattr(n, "value");
-  String *classname = !SmartPointer ? ClassName : Getattr(CurrentClass, "allocate:smartpointerbase");
+  String *classname = !SmartPointer ? (is_non_virtual_protected_access(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerbase");
+
   if (!value || !Getattr(n, "hasconsttype")) {
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
@@ -1681,7 +1700,7 @@ int Language::memberconstantHandler(Node *n) {
   if (Extend)
     new_name = Copy(value);
   else
-    new_name = NewStringf("%s::%s", ClassName, name);
+    new_name = NewStringf("%s::%s", is_non_virtual_protected_access(n) ? DirectorClassName : ClassName, name);
   Setattr(n, "name", new_name);
 
   constantWrapper(n);
@@ -2083,6 +2102,20 @@ int Language::classDirector(Node *n) {
   List *vtable = NewList();
   int virtual_destructor = 0;
   unrollVirtualMethods(n, n, vtable, 0, virtual_destructor);
+
+  // Emit all the using base::member statements for non virtual members (allprotected mode)
+  Node *ni;
+  String *using_protected_members_code = NewString("");
+  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+    Node *nodeType = Getattr(ni, "nodeType");
+    bool cdecl = (Cmp(nodeType, "cdecl") == 0);
+    if (cdecl && !GetFlag(ni, "feature:ignore")) {
+      if (is_non_virtual_protected_access(ni)) {
+        Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(ni, "name"));
+      }
+    }
+  }
+
   if (virtual_destructor || Len(vtable) > 0) {
     if (!virtual_destructor) {
       String *classtype = Getattr(n, "classtype");
@@ -2096,9 +2129,14 @@ int Language::classDirector(Node *n) {
     classDirectorInit(n);
     classDirectorConstructors(n);
     classDirectorMethods(n);
+
+    File *f_directors_h = Swig_filebyname("director_h");
+    Printv(f_directors_h, using_protected_members_code, NIL);
+
     classDirectorEnd(n);
   }
   Delete(vtable);
+  Delete(using_protected_members_code);
   return SWIG_OK;
 }
 
@@ -3107,11 +3145,19 @@ void Language::allow_dirprot(int val) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::allow_allprotected()
+ * ----------------------------------------------------------------------------- */
+
+void Language::allow_allprotected(int val) {
+  all_protected_mode = val;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::dirprot_mode()
  * ----------------------------------------------------------------------------- */
 
 int Language::dirprot_mode() const {
-  return directorsEnabled()? director_protected_mode : 0;
+  return directorsEnabled() ? director_protected_mode : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3183,8 +3229,7 @@ int Language::need_nonpublic_member(Node *n) {
   if (directorsEnabled()) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
-	/* when using dirprot mode, the protected members are always
-	   needed. */
+	/* when using dirprot mode, the protected members are always needed. */
 	return 1;
       } else {
 	/* if the method is pure virtual, we need it. */

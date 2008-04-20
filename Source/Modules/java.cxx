@@ -281,6 +281,7 @@ public:
       if (Getattr(optionsnode, "dirprot")) {
 	allow_dirprot();
       }
+      allow_allprotected(GetFlag(optionsnode, "allprotected"));
     }
 
     /* Initialize all of the output files */
@@ -893,12 +894,6 @@ public:
       // Premature garbage collection prevention parameter
       if (!is_destructor) {
 	String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
-        /*
-        if (!pgc_parameter) {
-          Printf(stdout, "prematuregcp %s %s [%s]\n", symname, Getattr(n, "sym:overname"), pt);
-          Swig_print_node(p);
-        }
-        */
 	if (pgc_parameter) {
 	  Printf(imclass_class_code, ", %s %s_", pgc_parameter, arg);
 	  Printf(f->def, ", jobject %s_", arg);
@@ -1294,21 +1289,24 @@ public:
 	Delete(typemap_lookup_type);
 	typemap_lookup_type = NULL;
 
+        const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
+        methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
 	if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
 	  // Wrap (non-anonymouse) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
-	    Printf(enum_code, "  public final static %s %s = new %s(\"%s\", %s);\n", return_type, symname, return_type, symname, value);
+	    Printf(enum_code, "  %s final static %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
 	    Delete(value);
 	  } else {
-	    Printf(enum_code, "  public final static %s %s = new %s(\"%s\");\n", return_type, symname, return_type, symname);
+	    Printf(enum_code, "  %s final static %s %s = new %s(\"%s\");\n", methodmods, return_type, symname, return_type, symname);
 	  }
 	} else {
 	  // Simple integer constants
 	  // Note these are always generated for anonymous enums, no matter what enum_feature is specified
 	  // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
 	  String *value = enumValue(n);
-	  Printf(enum_code, "  public final static %s %s = %s;\n", return_type, symname, value);
+	  Printf(enum_code, "  %s final static %s %s = %s;\n", methodmods, return_type, symname, value);
 	  Delete(value);
 	}
       }
@@ -1385,7 +1383,10 @@ public:
     }
 
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-    Printf(constants_code, "  public final static %s %s = ", return_type, itemname);
+    const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+    Printf(constants_code, "  %s final static %s %s = ", methodmods, return_type, itemname);
 
     // Check for the %javaconstvalue feature
     String *value = Getattr(n, "feature:java:constvalue");
@@ -3743,7 +3744,7 @@ public:
 
     Printf(w->code, "}");
 
-    // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+    // We expose virtual protected methods via an extra public inline method which makes a straight call to the wrapped class' method
     String *inline_extra_method = NewString("");
     if (dirprot_mode() && !is_public(n) && !pure_virtual) {
       Printv(inline_extra_method, declaration, NIL);
