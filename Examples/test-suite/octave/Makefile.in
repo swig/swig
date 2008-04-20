@@ -14,7 +14,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
-	null_pointer \
 	cell_deref
 
 CPP_TEST_BROKEN += \

@@ -205,6 +205,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	naturalvar \
 	newobject1 \
+	null_pointer \
 	operator_overload \
 	operator_overload_break \
 	ordering \
