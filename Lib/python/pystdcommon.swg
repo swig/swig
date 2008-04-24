@@ -111,7 +111,7 @@ namespace swig {
       int res = asval(obj, &v);
       if (!obj || !SWIG_IsOK(res)) {
 	if (!PyErr_Occurred()) {
-	  %type_error(swig::type_name<Type>());
+	  ::%type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
       }

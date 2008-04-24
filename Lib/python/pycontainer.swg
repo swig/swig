@@ -301,7 +301,7 @@ namespace swig
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
-	  %type_error(swig::type_name<T>());
+	  ::%type_error(swig::type_name<T>());
 	}
 	SWIG_Python_AddErrorMsg(msg);
 	SWIG_Python_AddErrorMsg(e.what());
@@ -704,8 +704,8 @@ namespace swig {
     static int asptr(PyObject *obj, sequence **seq) {
       if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
 	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	if (::SWIG_ConvertPtr(obj,(void**)&p,
+			      swig::type_info<sequence>(),0) == SWIG_OK) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}

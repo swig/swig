@@ -2,9 +2,13 @@ Version 1.3.36 (in progress)
 =============================
 
 04/24/2008: olly
-	    Rename BSIZE in Examples/test-suite/arrays_scope.i to BBSIZE to avoid
-	    a clash with BSIZE defined by headers on AIX with Perl (reported in
-	    SF#1928048).
+	    [Python] Fix generated code for IBM's C++ compiler on AIX (patch
+	    from Goeran Uddeborg in SF#1928048).
+
+04/24/2008: olly
+	    Rename BSIZE in Examples/test-suite/arrays_scope.i to BBSIZE to
+	    avoid a clash with BSIZE defined by headers on AIX with Perl
+	    (reported in SF#1928048).
 
 04/20/2008: wsfulton
             Add the ability to wrap all protected members when using directors.
