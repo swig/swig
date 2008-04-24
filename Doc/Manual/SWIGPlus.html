@@ -1458,9 +1458,10 @@ wrapper around a pointer.
 </p>
 
 <p>
-Although SWIG usually detects the classes to which the fulton transform should
+Although SWIG usually detects the classes to which the Fulton Transform should
 be applied, in some situations it's necessary to override it.  That's done with
-<tt>%feature("valuewrapper")</tt> and <tt>%feature("novaluewrapper")</tt>:
+<tt>%feature("valuewrapper")</tt> to ensure it is used and <tt>%feature("novaluewrapper")</tt>
+to ensure it is not used:
 </p>
 
 <div class="code"><pre>
@@ -1475,6 +1476,13 @@ struct B {
 </pre></div>
 
 <p>
+It is well worth considering turning this feature on for classes that do have a default constructor. 
+It will remove a redundant constructor call at the point of the variable declaration in the wrapper, 
+so will generate notably better performance for large objects or for classes with expensive construction.
+Alternatively consider returning a reference or a pointer.
+</p>
+
+<p>
 <b>Note:</b> this transformation has no effect on typemaps
 or any other part of SWIG---it should be transparent except that you
 may see this code when reading the SWIG output file.
@@ -1483,18 +1491,13 @@ may see this code when reading the SWIG output file.
 <p>
 <b>
 Note: </b>This template transformation is new in SWIG-1.3.11 and may be refined in
-future SWIG releases.  In practice, it is only necessary to do this for
+future SWIG releases.  In practice, it is only absolutely necessary to do this for
 classes that don't define a default constructor.  
 </p>
 
 <p>
 <b>Note:</b> The use of this template only occurs when objects are passed or returned by value.
 It is not used for C++ pointers or references.
-</p>
-
-<p>
-<b>Note:</b> The performance of pass-by-value is especially bad for large objects and should be avoided
-if possible (consider using references instead).
 </p>
 
 <H2><a name="SWIGPlus_nn20"></a>6.13 Inheritance</H2>
