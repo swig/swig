@@ -164,13 +164,11 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SEXP t, c;
   if (!carray) return R_NilValue;
-  RVERSION26(return Rf_mkCharEnc(carray, size));
-  RVERSIONPRE26(
   Rf_protect(t = Rf_allocVector(STRSXP, 1));
   c = allocString(size);
-  strncpy(CHAR(c), carray, size);
+  strncpy((char *)CHAR(c), carray, size);
   SET_STRING_ELT(t, 0, c);
-  Rf_unprotect(1);)
+  Rf_unprotect(1);
   return t;
 }
 }
