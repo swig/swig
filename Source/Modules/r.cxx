@@ -16,6 +16,18 @@ char cvsroot_r_cxx[] = "$Id$";
 static const double DEFAULT_NUMBER = .0000123456712312312323;
 static const int MAX_OVERLOAD_ARGS = 5;
 
+static String* replaceInitialDash(const String *name)
+{
+  String *retval;
+  if (!Strncmp(name, "_", 1)) {
+    retval = Copy(name);
+    Insert(retval, 0, "s");
+  } else {
+    retval = Copy(name);
+  }
+  return retval;
+}
+
 static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   String *b = SwigType_base(t);
   List *els = SwigType_split(t);
@@ -572,10 +584,12 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   //   ParmList *parms = Getattr(n, "parms");
   // memory leak
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)));
-  if (debugMode) {
+
+
+  //  if (debugMode) {
     Printf(stderr, "Type: %s\n", t);
     Printf(stderr, "Return type: %s\n", SwigType_base(t));
-  }
+    //}
   
   bool isVoidType = Strcmp(rettype, "void") == 0;
   if (debugMode)
@@ -1835,10 +1849,7 @@ int R::functionWrapper(Node *n) {
     if (Len(name) == 0)
       name = NewStringf("s_arg%d", i+1);
 
-    if (!Strncmp(name, "_", 1)) {
-      name = Copy(name);
-      Insert(name, 0, "s");
-    }
+    name = replaceInitialDash(name);
 
     if (!Strncmp(name, "arg", 3)) {
       name = Copy(name);
@@ -2493,6 +2504,7 @@ int R::classDeclaration(Node *n) {
       String *tp;
 
       elName = Getattr(c, "name");
+ 
       String *elKind = Getattr(c, "kind");
       if (Strcmp(elKind, "variable") != 0) {
 	c = nextSibling(c);
@@ -2532,10 +2544,11 @@ int R::classDeclaration(Node *n) {
       //	    Printf(stderr, "<classDeclaration> elType %p\n", elType);
       //	    tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
 #endif
-
-      Printf(def, "%s%s = \"%s\"", tab8, elName, tp);
+      String *elNameT = replaceInitialDash(elName);
+      Printf(def, "%s%s = \"%s\"", tab8, elNameT, tp);
       firstItem = false;
       Delete(tp);
+      Delete(elNameT);
       c = nextSibling(c);
     }
     Printf(def, "),\n%scontains = \"RSWIGStruct\")\n", tab8);
@@ -2662,12 +2675,11 @@ int R::generateCopyRoutinesObsolete(Node *n) {
     SwigType_push(elTT, decl);
 #endif
 
-
-    Printf(copyToR->code, "obj@%s = %s(value)\n", elName, get);
-    Printf(copyToC->code, "%s(obj, value@%s)\n", set, elName);
-
-
-    String *field = NewStringf("value->%s", elName);
+    String *elNameT = replaceInitialDash(elName);
+    Printf(copyToR->code, "obj@%s = %s(value)\n", elNameT, get);
+    Printf(copyToC->code, "%s(obj, value@%s)\n", set, elNameT);
+    String *field = NewStringf("value->%s", elNameT);
+    Delete(elNameT);
     SwigType *elType = Getattr(c, "type");
 
 
@@ -2828,8 +2840,10 @@ int R::generateCopyRoutines(Node *n) {
 
 
     /* The S functions to get and set the member value. */
-    Printf(copyToR->code, "obj@%s = value$%s\n", elName, elName);
-    Printf(copyToC->code, "obj$%s = value@%s\n", elName, elName);
+    String *elNameT = replaceInitialDash(elName);
+    Printf(copyToR->code, "obj@%s = value$%s\n", elNameT, elNameT);
+    Printf(copyToC->code, "obj$%s = value@%s\n", elNameT, elNameT);
+    Delete(elNameT);
   }
   Printf(copyToR->code, "obj\n}\n\n");
   String *rclassName = getRClassNameCopyStruct(type, 0); // without the Ref.
