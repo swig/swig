@@ -1298,6 +1298,34 @@ nested namespace simply provide the fully qualified name in your
 <b>NOTE:</b> the double quotes are necessary.
 </p>
 
+<p>
+      Using the <tt>package</tt> option of the <tt>%module</tt> directive allows
+      you to specify what Perl namespace that the module will be living in when
+      installed.  This is useful in the situation where a module maintainer
+      wants to split a large module into smaller pieces to make maintenance
+      easier, but doesn't want to have that affect the module name used by
+      applications. So for example, if I wanted to split <tt>XML::Xerces</tt>
+      into <tt>XML::Xerces::SAX</tt>, etc. , but I wanted all the applications
+      to be able to access the classes using the <tt>XML::Xerces</tt> namespace
+      I could use:
+
+</p>
+
+<div class="code">
+<pre>
+%module(package="XML::Xerces") "XML::Xerces::SAX
+</pre>
+</div>
+
+<p>
+      And now all the applications could use the class
+      <tt>XML::Xerces::SAXParser</tt>. Without the <tt>package</tt> directive
+      splitting the module would force applications to use the class
+      <tt>XML::Xerces::SAX::SAXParser</tt>. This could break compatibility for
+      existing applications that are already using the class under the name
+      <tt>XML::Xerces::SAXParser</tt>.
+    </p>
+
 <!--
 <p>
 This can be changed by giving SWIG the -package

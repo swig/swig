@@ -12,4 +12,6 @@ adding a new test to this suite, please use Test::More.
 Currently converted test cases include:
 
 * operator_overload
+* operator_overload_break
+* package
 * overload_simple
