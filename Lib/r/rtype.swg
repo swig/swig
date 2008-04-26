@@ -82,7 +82,7 @@
 
 %typemap(scoercein) bool, bool *, bool & 
 		    "$input = as.logical($input) ";
-
+/*
 %typemap(scoercein) int, 
                     int *, 
 		    int &,
@@ -119,7 +119,7 @@
                     long*,
                     long long *
 %{  $input = as.numeric($input) %}
-
+*/
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
