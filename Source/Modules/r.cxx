@@ -1604,6 +1604,7 @@ void R::dispatchFunction(Node *n) {
   int   nfunc = Len(dispatch);
   Printv(f->code, 
 	 "argtypes <- mapply(class, list(...))\n",
+	 "argv <- list(...)\n",
 	 "argc <- length(argtypes)\n", NIL );
 
   Printf(f->code, "# dispatch functions %d\n", nfunc);
@@ -1637,10 +1638,17 @@ void R::dispatchFunction(Node *n) {
 	if(tm) {
 	  replaceRClass(tm, Getattr(p, "type"));
 	}
+	if (DohStrcmp(tm,"numeric")==0) {
+	Printf(f->code, "%sis.numeric(argv[[%d]])",
+	       j == 0 ? "" : " && ",
+	       j+1);
+	}
+	else {
 	Printf(f->code, "%sextends(argtypes[%d], '%s')",
 	       j == 0 ? "" : " && ",
 	       j+1,
 	       tm);
+	}
 	p = Getattr(p, "tmap:in:next");
       }
       Printf(f->code, ") { f <- %s%s }\n", sfname, overname);
