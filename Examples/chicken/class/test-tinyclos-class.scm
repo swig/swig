@@ -1,4 +1,4 @@
-;; This file illustrates the shadow C++ interface generated
+;; This file illustrates the proxy C++ interface generated
 ;; by SWIG.
 
 (load-library 'example "class_proxy.so")

@@ -14,7 +14,7 @@ class CEO(example.Manager):
 		return "CEO"
 	def __del__(self):
 		print "CEO.__del__(),", self.getName()
-		# for shadow class extensions that are not "disowned" and
+		# for proxy class extensions that are not "disowned" and
 		# define a __del__ method, it is very important to call the 
 		# base class __del__.  otherwise the c++ objects will never
 		# be deleted.

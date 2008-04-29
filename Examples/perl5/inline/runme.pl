@@ -1,4 +1,4 @@
-use Inline SWIG => <<"END_CODE", SWIG_ARGS => '-c++ -shadow', CC => 'g++', LD=>'g++';
+use Inline SWIG => <<"END_CODE", SWIG_ARGS => '-c++ -proxy', CC => 'g++', LD=>'g++';
   class Foo {
   public:
     int meaning() { return 42; };

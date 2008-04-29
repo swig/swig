@@ -1,7 +1,7 @@
 # file: runme.pl
 
 # This file illustrates the manipulation of C++ references in Perl.
-# This uses the low-level interface.  Shadow classes work differently.
+# This uses the low-level interface.  Proxy classes work differently.
 
 use example;
 

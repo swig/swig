@@ -1,10 +1,10 @@
 /* This is a rather sophisticated example that illustrates exception handling,
-   templates, and shadow classes. 
+   templates, and proxy classes. 
 
    (i) The %exception directive is used to attach exception handlers
        to specific methods.
 
-   (ii) Exception classes are automatically converted to shadow class
+   (ii) Exception classes are automatically converted to proxy class
        objects.
 
    (iii) The %template directive is used to expand the templates
@@ -63,13 +63,13 @@
        constructor is being called.
 
    (2) The SWIG_NewPointerObj() call automatically wraps the exception object
-       into a shadow class.  The SWIGTYPE_p_FullError is the type-descriptor
+       into a proxy class.  The SWIGTYPE_p_FullError is the type-descriptor
        used for type checking.  The "1" indicates that Python will have
        ownership of the resulting object.
 
    (3) The PyErr_SetObject call sets the Python exception.  However,
        the SWIGTYPE_p_FullError->clientdata reference may not be
-       obvious.  This is actually the Python shadow class object
+       obvious.  This is actually the Python proxy class object
        for FullError.  Recall that in Python, exceptions are defined
        as classes.  Therefore, this works perfectly as the argument to
        PyErr_SetObject()!   A neat trick perhaps.

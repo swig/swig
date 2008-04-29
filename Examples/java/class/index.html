@@ -145,10 +145,10 @@ Shape.setNshapes(13);       // Set a static data member
 <h2>General Comments</h2>
 
 <ul>
-<li>This high-level interface using shadow classes is not the only way to handle C++ code. 
+<li>This high-level interface using proxy classes is not the only way to handle C++ code. 
 A low level interface using c functions to access member variables and member functions is the alternative SWIG
 approach. This entails passing around the c pointer or c++ 'this' pointer and as such it is not difficult to crash the JVM. 
-The abstraction of the underlying pointer by the java shadow classes far better fits the java programming paradigm.
+The abstraction of the underlying pointer by the java proxy classes far better fits the java programming paradigm.
 
 <p>
 <li>SWIG *does* know how to properly perform upcasting of objects in an inheritance

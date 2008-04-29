@@ -1,6 +1,6 @@
 This directory contains examples for CHICKEN.
 
-class       -- illustrates the shadow-class C++ interface
+class       -- illustrates the proxy class C++ interface
 constants   -- handling #define and %constant literals
 egg         -- examples of building chicken extension libraries
 multimap    -- typemaps with multiple sub-types

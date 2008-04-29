@@ -1,7 +1,7 @@
 <?php
 
 # This file illustrates the manipulation of C++ references in Php.
-# This uses the low-level interface.  Shadow classes work differently.
+# This uses the low-level interface.  Proxy classes work differently.
 
 require "example.php";
 

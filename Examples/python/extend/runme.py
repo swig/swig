@@ -50,7 +50,7 @@ print "----------------------"
 # EmployeeList as an Employee*. Previously, Python resolved the call
 # immediately in CEO, but now Python thinks the object is an instance of
 # class Employee (actually EmployeePtr). So the call passes through the
-# Employee shadow class and on to the C wrappers and C++ director,
+# Employee proxy class and on to the C wrappers and C++ director,
 # eventually ending up back at the CEO implementation of getPosition().
 # The call to getTitle() for item 3 runs the C++ Employee::getTitle()
 # method, which in turn calls getPosition(). This virtual method call

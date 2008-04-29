@@ -1,7 +1,6 @@
 # file: runme.py
 
 # This file illustrates the manipulation of C++ references in Python
-# This uses the low-level interface.  Shadow classes work differently.
 
 import example
 
