@@ -1,12 +1,12 @@
-use char_strings;
+use strict;
+use warnings;
+use Test::More tests => 4;
+BEGIN { use_ok('char_strings') }
+require_ok('char_strings');
 
 my $val1 = "100";
-if (char_strings::CharPingPong($val1) != "100") {
-  die "failed";
-}
+is(char_strings::CharPingPong($val1), "100", 'cstr1');
 
 my $val2 = "greetings";
-if (char_strings::CharPingPong($val2) != "greetings") {
-  die "failed";
-}
+is(char_strings::CharPingPong($val2), "greetings", 'cstr2');
 

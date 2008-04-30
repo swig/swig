@@ -1,15 +1,12 @@
+use strict;
+use warnings;
+use Test::More tests => 5;
+BEGIN { use_ok('multiple_inheritance') }
+require_ok('multiple_inheritance');
 
-use multiple_inheritance;
+my $fooBar = new multiple_inheritance::FooBar();
+is($fooBar->foo(), 2, "Runtime test1");
 
-$fooBar = new multiple_inheritance::FooBar();
-if ($fooBar->foo() != 2) {
-  die "Runtime test1 failed\n";
-}
+is($fooBar->bar(), 1, "Runtime test2");
 
-if ($fooBar->bar() != 1) {
-  die "Runtime test2 failed\n";
-}
-
-if ($fooBar->fooBar() != 3) {
-  die "Runtime test3 failed\n";
-}
+is($fooBar->fooBar(), 3, "Runtime test3 ");

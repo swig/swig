@@ -1,9 +1,9 @@
-use inherit;
+use strict;
+use warnings;
+use Test::More tests => 3;
+BEGIN { use_ok('inherit') }
+require_ok('inherit');
 
-$der = new inherit::CDerived();
-$str = $der->Foo();
-
-if ($str ne "CBase::Foo") {
-  die "test failed";
-}
+my $der = new inherit::CDerived();
+is($der->Foo(), "CBase::Foo", "inherit test");
 

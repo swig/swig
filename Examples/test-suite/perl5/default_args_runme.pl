@@ -1,161 +1,85 @@
-use default_args;
+use strict;
+use warnings;
+use Test::More tests => 40;
+BEGIN { use_ok('default_args') }
+require_ok('default_args');
 
-$true = 1;
-$false = 0;
+my $true = 1;
+my $false = '';
 
-if (default_args::anonymous() != 7771) {
-  die "anonymous (1) failed";
-}
-if (default_args::anonymous(1234) != 1234) {
-  die "anonymous (2) failed";
-}
+is(default_args::anonymous(), 7771, "anonymous (1)");
+is(default_args::anonymous(1234), 1234, "anonymous (2)");
 
+is(default_args::booltest(), $true, "booltest (1)");
+is(default_args::booltest($true), $true, "booltest (2)");
+is(default_args::booltest($false), $false, "booltest (3)");
 
-if (default_args::booltest() != $true) {
-  die "booltest (1) failed";
-}
-if (default_args::booltest($true) != $true) {
-  die "booltest (2) failed";
-}
-if (default_args::booltest($false) != $false) {
-  die "booltest (3) failed";
-}
+my $ec = new default_args::EnumClass();
+is($ec->blah(), $true, "EnumClass");
 
-$ec = new default_args::EnumClass();
-if ($ec->blah() != $true) {
-  die "EnumClass failed";
-}
-
-if (default_args::casts1() != null) {
-  die "casts1 failed";
-}
-
-if (default_args::casts2() ne "Hello") {
-  die "casts2 failed";
-}
-
-if (default_args::casts1("Ciao") ne "Ciao") {
-  die "casts1 not default failed";
-}
-
-if (default_args::chartest1() ne 'x') {
-  die "chartest1 failed";
-}
-
-if (default_args::chartest2() != '\0') {
-  die "chartest2 failed";
-}
-
-if (default_args::chartest1('y') ne 'y') {
-  die "chartest1 not default failed";
-}
-
-if (default_args::chartest1('y') ne 'y') {
-  die "chartest1 not default failed";
-}
-
-if (default_args::reftest1() != 42) {
-  die "reftest1 failed";
-}
-
-if (default_args::reftest1(400) != 400) {
-  die "reftest1 not default failed";
-}
-
-if (default_args::reftest2() ne "hello") {
-  die "reftest2 failed";
-}
+is(default_args::casts1(), undef, "casts1");
+is(default_args::casts2(), "Hello", "casts2");
+is(default_args::casts1("Ciao"), "Ciao", "casts1 not default");
+is(default_args::chartest1(), 'x', "chartest1");
+is(default_args::chartest2(), "\0", "chartest2");
+is(default_args::chartest1('y'), 'y', "chartest1 not default");
+is(default_args::reftest1(), 42, "reftest1");
+is(default_args::reftest1(400), 400, "reftest1 not default");
+is(default_args::reftest2(), "hello", "reftest2");
 
 # rename
-$foo = new default_args::Foo();
-$foo->newname(); 
-$foo->newname(10); 
-$foo->renamed3arg(10, 10.0); 
-$foo->renamed2arg(10); 
-$foo->renamed1arg(); 
+my $foo = new default_args::Foo();
+can_ok($foo, qw(newname renamed3arg renamed2arg renamed1arg));
+eval {
+	$foo->newname(); 
+	$foo->newname(10); 
+	$foo->renamed3arg(10, 10.0); 
+	$foo->renamed2arg(10); 
+	$foo->renamed1arg();
+};
+ok(not($@), '%rename handling');
  
 # exception specifications
 eval { default_args::exceptionspec() };
-if (!$@) {
-  die "exceptionspec 1 failed";
-}
+is($@, "ciao", "exceptionspec 1");
 eval { default_args::exceptionspec(-1) };
-if (!$@) {
-  die "exceptionspec 2 failed";
-}
+is($@, "ciao", "exceptionspec 2");
 eval { default_args::exceptionspec(100) };
-if (!$@) {
-  die "exceptionspec 3 failed";
-}
+is($@, '100', "exceptionspec 3");
 
-$ex = new default_args::Except($false);
-eval { $ex.exspec() };
-if (!$@) {
-  die "exspec 1 failed";
-}
-eval { $ex.exspec(-1) };
-if (!$@) {
-  die "exspec 2 failed";
-}
-eval { $ex.exspec(100) };
-if (!$@) {
-  die "exspec 3 failed";
-}
-eval { $ex = new default_args::Except($true) };
-if (!$@) {
-  die "Except constructor 1 failed";
-}
-eval { $ex = new default_args::Except($true, -2) };
-if (!$@) {
-  die "Except constructor 2 failed";
-}
+my $ex = new default_args::Except($false);
+
+my $hit = 0;
+eval { $ex->exspec(); $hit = 1; };
+# a zero was thrown, an exception occured, but $@ is false
+is($hit, 0, "exspec 1");
+eval { $ex->exspec(-1) };
+is($@, "ciao", "exspec 2");
+eval { $ex->exspec(100) };
+is($@, 100, "exspec 3");
+eval { $ex = default_args::Except->new($true) };
+is($@, -1, "Except constructor 1");
+eval { $ex = default_args::Except->new($true, -2) };
+is($@, -2, "Except constructor 2");
 
 #Default parameters in static class methods
-if (default_args::Statics::staticmethod() != 10+20+30) {
-  die "staticmethod 1 failed";
-}
-if (default_args::Statics::staticmethod(100) != 100+20+30) {
-  die "staticmethod 2 failed";
-}
-if (default_args::Statics::staticmethod(100,200,300) != 100+200+300) {
-  die "staticmethod 3 failed";
-}
+is(default_args::Statics::staticmethod(), 60, "staticmethod 1");
+is(default_args::Statics::staticmethod(100), 150, "staticmethod 2");
+is(default_args::Statics::staticmethod(100,200,300), 600, "staticmethod 3");
 
-$tricky = new default_args::Tricky();
-if ($tricky->privatedefault() != 200) {
-  die "privatedefault failed";
-}
-if ($tricky->protectedint() != 2000) {
-  die "protectedint failed";
-}
-if ($tricky->protecteddouble() != 987.654) {
-  die "protecteddouble failed";
-}
-if ($tricky->functiondefault() != 500) {
-  die "functiondefault failed";
-}
-if ($tricky->contrived() ne 'X') {
-  die "contrived failed";
-}
-
-if (default_args::constructorcall()->{val} != -1) {
-  die "constructorcall test 1 failed";
-}
-
-if (default_args::constructorcall(new default_args::Klass(2222))->{val} != 2222) {
-  die "constructorcall test 2 failed";
-}
-
-if (default_args::constructorcall(new default_args::Klass())->{val} != -1) {
-  die "constructorcall test 3 failed";
-}
+my $tricky = new default_args::Tricky();
+is($tricky->privatedefault(), 200, "privatedefault");
+is($tricky->protectedint(), 2000, "protectedint");
+is($tricky->protecteddouble(), 987.654, "protecteddouble");
+is($tricky->functiondefault(), 500, "functiondefault");
+is($tricky->contrived(), 'X', "contrived");
+is(default_args::constructorcall()->{val}, -1, "constructorcall test 1");
+is(default_args::constructorcall(new default_args::Klass(2222))->{val},
+   2222, "constructorcall test 2");
+is(default_args::constructorcall(new default_args::Klass())->{val},
+   -1, "constructorcall test 3");
 
 # const methods 
-$cm = new default_args::ConstMethods();
-if ($cm->coo() != 20) {
-  die "coo test 1 failed";
-}
-if ($cm->coo(1.0) != 20) {
-  die "coo test 2 failed";
-}
-
+my $cm = new default_args::ConstMethods();
+is($cm->coo(), 20, "coo test 1");
+is($cm->coo(1.0), 20, "coo test 2");

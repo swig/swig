@@ -1,35 +1,30 @@
-use li_std_string;
+use strict;
+use warnings;
+use Test::More tests => 30;
+BEGIN { use_ok('li_std_string') }
+require_ok('li_std_string');
 
-
+use Devel::Peek;
 # Checking expected use of %typemap(in) std::string {}
 li_std_string::test_value("Fee");
 
 # Checking expected result of %typemap(out) std::string {}
-if (li_std_string::test_value("Fi") ne "Fi") {
-  die "Test 1 failed";
-}
+is(li_std_string::test_value("Fi"), "Fi", "Test 1");
 
-###### passing undef seems to work - surely it should fail ????
+
 # Verify type-checking for %typemap(in) std::string {}
-#eval { li_std_string::test_value(undef) };
-#if (!$@) {
-#  die "Test 2 failed";
-#}
+eval { li_std_string::test_value(undef) };
+like($@, qr/\bTypeError\b/, "Test 2");
 
 # Checking expected use of %typemap(in) const std::string & {}
 li_std_string::test_const_reference("Fo");
 
 # Checking expected result of %typemap(out) const std::string& {}
-if (li_std_string::test_const_reference("Fum") ne "Fum") {
-  die "Test 3 failed";
-}
+is(li_std_string::test_const_reference("Fum"), "Fum", "Test 3");
 
-###### passing undef seems to work - surely it should fail ????
 # Verify type-checking for %typemap(in) const std::string & {}
-#eval { li_std_string::test_const_reference(undef) };
-#if (!$@) {
-#  die "Test 4 failed";
-#}
+eval { li_std_string::test_const_reference(undef) };
+like($@, qr/\bValueError\b/, "Test 4");
 
 #
 # Input and output typemaps for pointers and non-const references to
@@ -53,102 +48,66 @@ li_std_string::test_reference($stringPtr);
 
 # Check throw exception specification
 eval { li_std_string::test_throw() };
-if (!$@) {
-  die "Test 5 failed";
-}
+is($@, "test_throw message", "Test 5");
+{ local $TODO = "why is the error not a Perl string?";
 eval { li_std_string::test_const_reference_throw() };
-if (!$@) {
-  die "Test 6 failed";
+is($@, "<some kind of string>", "Test 6");
 }
 
 # Global variables
-$s = "initial string";
-if ($li_std_string::GlobalString2 ne "global string 2") {
-  die ("GlobalString2 test 1");
-}
+my $s = "initial string";
+is($li_std_string::GlobalString2, "global string 2", "GlobalString2 test 1");
 $li_std_string::GlobalString2 = $s;
-if ($li_std_string::GlobalString2 ne $s) {
-  die ("GlobalString2 test 2");
-}
-if ($li_std_string::ConstGlobalString ne "const global string") {
-  die ("ConstGlobalString test");
-}
+is($li_std_string::GlobalString2, $s, "GlobalString2 test 2");
+is($li_std_string::ConstGlobalString, "const global string", "ConstGlobalString test");
 
 # Member variables
-$myStructure = new li_std_string::Structure();
-if ($myStructure->{MemberString2} ne "member string 2") {
-  die ("MemberString2 test 1");
-}
+my $myStructure = new li_std_string::Structure();
+is($myStructure->{MemberString2}, "member string 2", "MemberString2 test 1");
 $myStructure->{MemberString2} = $s;
-if ($myStructure->{MemberString2} ne $s) {
-  die ("MemberString2 test 2");
-}
-if ($myStructure->{ConstMemberString} ne "const member string") {
-  die ("ConstMemberString test");
-}
+is($myStructure->{MemberString2}, $s, "MemberString2 test 2");
+is($myStructure->{ConstMemberString}, "const member string", "ConstMemberString test");
 
-if ($li_std_string::Structure::StaticMemberString2 ne "static member string 2") {
-  die ("StaticMemberString2 test 1");
-}
+is($li_std_string::Structure::StaticMemberString2, "static member string 2", "StaticMemberString2 test 1");
 $li_std_string::Structure::StaticMemberString2 = $s;
-if ($li_std_string::Structure::StaticMemberString2 ne $s) {
-  die ("StaticMemberString2 test 2");
-}
-if ($li_std_string::Structure::ConstStaticMemberString ne "const static member string") {
-  die ("ConstStaticMemberString test");
-}
+is($li_std_string::Structure::StaticMemberString2, $s, "StaticMemberString2 test 2");
+is($li_std_string::Structure::ConstStaticMemberString, "const static member string", "ConstStaticMemberString test");
 
-if (li_std_string::test_reference_input("hello") ne "hello") {
-  die ("reference_input");
-}
+is(li_std_string::test_reference_input("hello"), "hello", "reference_input");
 
-if (li_std_string::test_reference_inout("hello") ne "hellohello") {
-  die ("reference_inout");
-}
+is(li_std_string::test_reference_inout("hello"), "hellohello", "reference_inout");
 
 
-$gen1 = new li_std_string::Foo();
-if ($gen1->test(1) ne 2) {
-  die ("ulonglong");
-}
-if ($gen1->test("1") ne "11") {
-  die ("ulonglong");
-}
-if ($gen1->testl(12345) ne 12346) {
-  die ("ulonglong small number");
-}
+no strict;
+my $gen1 = new li_std_string::Foo();
+is($gen1->test(1), 2, "ulonglong");
+is($gen1->test("1"), "11", "ulonglong");
+is($gen1->testl(12345), 12346, "ulonglong small number");
 # Note: 32 bit builds of perl will fail this test as the number is stored internally in scientific notation 
 # (USE_64_BIT_ALL probably needs defining when building Perl in order to avoid this)
-#if ($gen1->testl(9234567890121111113) ne 9234567890121111114) {
-#  die ("ulonglong big number");
-#}
-if ($gen1->testl("9234567890121111113") ne "9234567890121111114") {
-  die ("ulonglong big number");
+SKIP: {
+	skip "this Perl does not seem to do 64 bit ints", 1
+		if 9234567890121111114 - 9234567890121111113 != 1;
+	local $TODO;
+	use Config;
+	$TODO = "if we're lucky this might work" unless $Config{use64bitall};
+	is(eval { $gen1->testl(9234567890121111113) }, 9234567890121111114, "ulonglong big number");
+	# TODO: I suspect we can get by with "use64bitint", but I'll have to
+	# work that out later. -talby
 }
+is($gen1->testl("9234567890121111113"), "9234567890121111114", "ulonglong big number");
 
 
-if (li_std_string::empty() ne "") {
-    die ("empty");
-}
+is(li_std_string::empty(), "", "empty");
 
-if (li_std_string::c_empty() ne "") {
-    die ("c_empty");
-}
+is(li_std_string::c_empty(),  "", "c_empty");
 
 
-if (li_std_string::c_null() ne undef) {
-    die ("c_empty");
-}
+is(li_std_string::c_null(), undef, "c_empty");
 
 
-if (li_std_string::get_null(li_std_string::c_null()) ne undef) {
-    die ("c_empty");
-}
+is(li_std_string::get_null(li_std_string::c_null()), undef, "c_empty");
 
-if (li_std_string::get_null(li_std_string::c_empty()) ne "non-null") {
-    die ("c_empty");
-}
+is(li_std_string::get_null(li_std_string::c_empty()), "non-null", "c_empty");
 
-if (li_std_string::get_null(li_std_string::empty()) ne "non-null") {
-    die ("c_empty");
-}
+is(li_std_string::get_null(li_std_string::empty()), "non-null", "c_empty");
