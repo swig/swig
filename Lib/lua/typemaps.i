@@ -192,7 +192,7 @@ There probably is some compiler that its not true for, so the code is left here 
 #define SWIG_FREE_ARRAY(PTR)		free(PTR);
 #endif
 /* counting the size of arrays:*/
-int SWIG_itable_size(lua_State* L, int index)
+SWIGINTERN int SWIG_itable_size(lua_State* L, int index)
 {
 	int n=0;
 	while(1){
@@ -205,7 +205,7 @@ int SWIG_itable_size(lua_State* L, int index)
 	return n;
 }
 
-int SWIG_table_size(lua_State* L, int index)
+SWIGINTERN int SWIG_table_size(lua_State* L, int index)
 {
 	int n=0;
 	lua_pushnil(L);  /* first key*/
@@ -218,7 +218,7 @@ int SWIG_table_size(lua_State* L, int index)
 
 /* super macro to declare array typemap helper fns */
 #define SWIG_DECLARE_TYPEMAP_ARR_FN(NAME,TYPE)\
-	int SWIG_read_##NAME##_num_array(lua_State* L,int index,TYPE *array,int size){\
+	SWIGINTERN int SWIG_read_##NAME##_num_array(lua_State* L,int index,TYPE *array,int size){\
 		int i;\
 		for (i = 0; i < size; i++) {\
 			lua_rawgeti(L,index,i+1);\
@@ -232,7 +232,7 @@ int SWIG_table_size(lua_State* L, int index)
 		}\
 		return 1;\
 	}\
-	static TYPE* SWIG_get_##NAME##_num_array_fixed(lua_State* L, int index, int size){\
+	SWIGINTERN TYPE* SWIG_get_##NAME##_num_array_fixed(lua_State* L, int index, int size){\
 		TYPE *array;\
 		if (!lua_istable(L,index) || SWIG_itable_size(L,index) != size) {\
 			lua_pushfstring(L,"expected a table of size %d",size);\
@@ -246,7 +246,7 @@ int SWIG_table_size(lua_State* L, int index)
 		}\
 		return array;\
 	}\
-	static TYPE* SWIG_get_##NAME##_num_array_var(lua_State* L, int index, int* size)\
+	SWIGINTERN TYPE* SWIG_get_##NAME##_num_array_var(lua_State* L, int index, int* size)\
 	{\
 		TYPE *array;\
 		if (!lua_istable(L,index)) {\
@@ -266,7 +266,7 @@ int SWIG_table_size(lua_State* L, int index)
 		}\
 		return array;\
 	}\
-	void SWIG_write_##NAME##_num_array(lua_State* L,TYPE *array,int size){\
+	SWIGINTERN void SWIG_write_##NAME##_num_array(lua_State* L,TYPE *array,int size){\
 		int i;\
 		lua_newtable(L);\
 		for (i = 0; i < size; i++){\
@@ -414,7 +414,7 @@ so if the C/C++ frees then Lua is not aware
 */
 
 %{
-int SWIG_read_ptr_array(lua_State* L,int index,void **array,int size,swig_type_info *type){
+SWIGINTERN int SWIG_read_ptr_array(lua_State* L,int index,void **array,int size,swig_type_info *type){
 	int i;
 	for (i = 0; i < size; i++) {
 		lua_rawgeti(L,index,i+1);
@@ -426,7 +426,7 @@ int SWIG_read_ptr_array(lua_State* L,int index,void **array,int size,swig_type_i
 	}
 	return 1;
 }
-static void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swig_type_info *type){
+SWIGINTERN void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swig_type_info *type){
 	void **array;
 	if (!lua_istable(L,index) || SWIG_itable_size(L,index) != size) {
 		lua_pushfstring(L,"expected a table of size %d",size);
@@ -440,7 +440,7 @@ static void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swig_ty
 	}
 	return array;
 }
-static void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_type_info *type){
+SWIGINTERN void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_type_info *type){
 	void **array;
 	if (!lua_istable(L,index)) {
 		lua_pushstring(L,"expected a table");
@@ -459,7 +459,7 @@ static void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_typ
 	}
 	return array;
 }
-void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_type_info *type,int own){
+SWIGINTERN void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_type_info *type,int own){
 	int i;
 	lua_newtable(L);
 	for (i = 0; i < size; i++){

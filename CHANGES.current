@@ -1,6 +1,12 @@
 Version 1.3.36 (in progress)
 =============================
 
+04/30/2008: mgossage
+	    [Lua] Removed generation of _wrap_delete_XXXXX (wrappered destructor)
+	    which was unused and causing warning with g++ -Wall.
+	    Removed other unused warning in typemaps.i and other places.
+	    Added Examples/lua/embed3, and run tests a few test cases.
+
 04/24/2008: olly
 	    [Python] Fix generated code for IBM's C++ compiler on AIX (patch
 	    from Goeran Uddeborg in SF#1928048).

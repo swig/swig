@@ -27,9 +27,6 @@ void add_Shape(Shape* s,ShapeOwner* own){own->add(s);}
 // or a better solution is a typemap
 %apply SWIGTYPE *DISOWN {Shape* ptr};
 
-
-//%ignore ShapeOwner::add;
-
 // now we can grab the header file
 %include "example.h"
 

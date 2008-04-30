@@ -51,6 +51,7 @@ char cvsroot_lua_cxx[] = "$Id$";
 */
 #define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
+//#define REPORT(T,D)		{Printf(stdout,T" %p\n",n);} // title & pointer
 //#define REPORT(T,D)   {Printf(stdout,T"\n");display_mapping(D);}      // the works
 //#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
 
@@ -333,7 +334,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-    //    REPORT("functionWrapper",n);
+    REPORT("functionWrapper",n);
 
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
@@ -620,8 +621,17 @@ public:
     Replaceall(f->code, "$result", "result");
 
     /* Dump the function out */
-    Wrapper_print(f, f_wrappers);
-
+    /* in Lua we will not emit the destructor as a wrappered function,
+    Lua will automatically call the destructor when the object is free'd
+    However: you cannot just skip this function as it will not emit
+    any custom destructor (using %extend), as you need to call emit_action()
+    Therefore we go though the whole function, 
+    but do not write the code into the wrapper
+    */
+    if(current!=DESTRUCTOR) {
+       Wrapper_print(f, f_wrappers);
+    }
+    
     /* NEW LANGUAGE NOTE:***********************************************
     register the function in SWIG
     different language mappings seem to use different ideas
@@ -689,7 +699,18 @@ public:
 
     Replaceall(dispatch, "$args", "self,args");
     Printv(f->code, dispatch, "\n", NIL);
-    Printf(f->code, "lua_pushstring(L,\"No matching function for overloaded '%s'\");\n", symname);
+    
+    Node *sibl = n;
+    while (Getattr(sibl, "sym:previousSibling"))
+      sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+    String *protoTypes = NewString("");
+    do {
+      Printf(protoTypes, "\n\"    %s(%s)\\n\"", SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms")));
+    } while ((sibl = Getattr(sibl, "sym:nextSibling")));
+    Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
+        "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
+    Delete(protoTypes);
+
     Printf(f->code, "lua_error(L);return 0;\n");
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
@@ -840,7 +861,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-    REPORT("classHandler", n);
+    //REPORT("classHandler", n);
 
     String *mangled_classname = 0;
     String *real_classname = 0;
@@ -892,6 +913,8 @@ public:
 
     // Register the class structure with the type checker
     //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname);
+ 
+    // emit a function to be called to delete the object 
     if (have_destructor) {
       Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
@@ -1061,7 +1084,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
-    //REPORT("destructorHandler", n);
+    REPORT("destructorHandler", n);
     current = DESTRUCTOR;
     Language::destructorHandler(n);
     current = NO_CPP;
