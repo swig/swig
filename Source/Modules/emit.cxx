@@ -334,12 +334,12 @@ static void replace_contract_args(Parm *cp, Parm *rp, String *s) {
 /* -----------------------------------------------------------------------------
  * int emit_action()
  *
- * Emits action code for a wrapper and checks for exception handling
+ * Emits action code for a wrapper. Adds in exception handling code (%exception).
  * ----------------------------------------------------------------------------- */
 int emit_action_code(Node *n, Wrapper *f, String *eaction) {
   assert(Getattr(n, "wrap:name"));
 
-  /* Look for except feature */
+  /* Look for except feature (%exception) */
   String *tm = GetFlagAttr(n, "feature:except");
   if (tm)
     tm = Copy(tm);
@@ -410,6 +410,7 @@ void emit_action(Node *n, Wrapper *f) {
     }
     Setattr(n, "wrap:code:done", f_code);
   }
+
   action = Getattr(n, "feature:action");
   if (!action)
     action = Getattr(n, "wrap:action");

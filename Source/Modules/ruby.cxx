@@ -1759,9 +1759,9 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-	  Append(action, "DATA_PTR(self) = result;\n");
+	  Append(action, "\nDATA_PTR(self) = result;");
 	  if (GetFlag(pn, "feature:trackobjects")) {
-	    Append(action, "SWIG_RubyAddTracking(result, self);\n");
+	    Append(action, "\nSWIG_RubyAddTracking(result, self);");
 	  }
 	}
       }
@@ -2654,11 +2654,11 @@ public:
 	Printv(f_wrappers, wrap, NIL);
       }
       /*    Printv(freebody, Swig_name_destroy(name), "(", pname0, ")", NIL); */
-      Printv(freebody, Getattr(n, "wrap:action"), NIL);
+      Printv(freebody, Getattr(n, "wrap:action"), "\n", NIL);
     } else {
       String *action = Getattr(n, "wrap:action");
       if (action) {
-	Printv(freebody, action, NIL);
+	Printv(freebody, action, "\n", NIL);
       } else {
 	/* In the case swig emits no destroy function. */
 	if (CPlusPlus)

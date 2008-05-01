@@ -782,7 +782,7 @@ public:
       Printv(f_wrappers, "SWIGINTERN void swig_delete_", class_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
 	Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
-	Printv(f_wrappers, destructor_action, NIL);
+	Printv(f_wrappers, destructor_action, "\n", NIL);
       } else {
 	if (CPlusPlus) {
 	  Printv(f_wrappers, "    delete (", SwigType_str(rt, 0), ") obj;\n", NIL);

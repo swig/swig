@@ -658,7 +658,7 @@ String *Swig_cdestructor_call(Node *n) {
  *
  * Creates a string that calls a C destructor function.
  *
- *      delete arg0;
+ *      delete arg1;
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cppdestructor_call(Node *n) {
@@ -1175,7 +1175,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
       Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, p);
-    cres = NewStringf("%s;\n", call);
+    cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
     Delete(membername);
     Delete(mangled);
@@ -1184,13 +1184,13 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
   } else {
     if (cplus) {
       String *call = Swig_cppdestructor_call(n);
-      String *cres = NewStringf("%s\n", call);
+      String *cres = NewStringf("%s", call);
       Setattr(n, "wrap:action", cres);
       Delete(call);
       Delete(cres);
     } else {
       String *call = Swig_cdestructor_call(n);
-      String *cres = NewStringf("%s\n", call);
+      String *cres = NewStringf("%s", call);
       Setattr(n, "wrap:action", cres);
       Delete(call);
       Delete(cres);
@@ -1265,13 +1265,13 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
       Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, parms);
-    cres = NewStringf("%s;\n", call);
+    cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
     Delete(call);
     Delete(cres);
   } else {
     String *call = Swig_cmemberset_call(name, type, self, varcref);
-    String *cres = NewStringf("%s;\n", call);
+    String *cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
     Delete(call);
     Delete(cres);
@@ -1391,7 +1391,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
     String *sname = Swig_name_set(name);
     String *mangled = Swig_name_mangle(sname);
     String *call = Swig_cfunction_call(mangled, parms);
-    String *cres = NewStringf("%s;\n", call);
+    String *cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
     Delete(cres);
     Delete(call);
@@ -1401,14 +1401,14 @@ int Swig_VarsetToFunction(Node *n, int flags) {
     if (!Strstr(type, "enum $unnamed")) {
       String *pname = Swig_cparm_name(0, 0);
       String *dref = Swig_wrapped_var_deref(type, pname, varcref);
-      String *call = NewStringf("%s = %s;\n", nname, dref);
+      String *call = NewStringf("%s = %s;", nname, dref);
       Setattr(n, "wrap:action", call);
       Delete(call);
       Delete(dref);
       Delete(pname);
     } else {
       String *pname = Swig_cparm_name(0, 0);
-      String *call = NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;\n", nname, nname, pname);
+      String *call = NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;", nname, nname, pname);
       Setattr(n, "wrap:action", call);
       Delete(pname);
       Delete(call);
