@@ -6,7 +6,7 @@ contract
 docstrings
 enum
 exception
-exceptshadow
+exceptproxy
 extend
 funcptr
 funcptr2
@@ -19,7 +19,6 @@ multimap
 operator
 pointer
 reference
-shadow
 simple
 smartptr
 std_vector
