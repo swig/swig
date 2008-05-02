@@ -523,7 +523,7 @@ am--refresh: $(srcdir)/configure
 
 $(srcdir)/configure: $(srcdir)/configure.in
 	@echo "Build system is out of date.  If the following commands fail, please reconfigure by hand (rerun: ./autogen.sh && ./configure)"
-	$(srcdir)/autogen.sh
+	cd $(srcdir) && ./autogen.sh
 	$(SHELL) ./config.status --recheck
 
 # Makefile ends here
