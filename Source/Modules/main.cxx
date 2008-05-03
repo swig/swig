@@ -99,6 +99,7 @@ static const char *usage2 = (const char *) "\
      -MM             - List dependencies, but omit files in SWIG library\n\
      -MMD            - Like `-MD', but omit files in SWIG library\n\
      -module <name>  - Set module name to <name>\n\
+     -MT <target>    - Set the target of the rule emitted by dependency generation\n\
      -nocontract     - Turn off contract checking\n\
      -nocpperraswarn - Do not treat the preprocessor #error statement as #warning\n\
      -nodefault      - Do not generate default constructors nor default destructors\n\
@@ -175,6 +176,7 @@ static DOH *libfiles = 0;
 static DOH *cpps = 0;
 static String *dependencies_file = 0;
 static File *f_dependencies_file = 0;
+static String *dependencies_target = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
@@ -667,6 +669,17 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-MMD") == 0) {
 	depend = 2;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-MT") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+          if (!dependencies_target)
+            dependencies_target = NewString(argv[i + 1]);
+          else
+            Printf(dependencies_target, " %s", argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	} else {
+	  Swig_arg_error();
+	}
       } else if (strcmp(argv[i], "-outdir") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
@@ -1020,7 +1033,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	} else
 	  f_dependencies_file = stdout;
-	Printf(f_dependencies_file, "%s: ", outfile);
+	if (dependencies_target) {
+	  Printf(f_dependencies_file, "%s: ", dependencies_target);
+	} else {
+	  Printf(f_dependencies_file, "%s: ", outfile);
+	}
 	List *files = Preprocessor_depend();
 	for (int i = 0; i < Len(files); i++) {
 	  if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) != 0))) {
