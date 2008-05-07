@@ -1004,15 +1004,12 @@ namespace swig {
   template <class RubySeq, class Seq>
   inline void
   assign(const RubySeq& rubyseq, Seq* seq) {
-%#ifdef SWIG_STD_NOASSIGN_STL
+    // seq->assign(rubyseq.begin(), rubyseq.end()); // not used as not always implemented
     typedef typename RubySeq::value_type value_type;
     typename RubySeq::const_iterator it = rubyseq.begin();
     for (;it != rubyseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
-%#else
-    seq->assign(rubyseq.begin(), rubyseq.end());
-%#endif
   }
 
   template <class Seq, class T = typename Seq::value_type >

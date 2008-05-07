@@ -685,15 +685,12 @@ namespace swig {
   template <class PySeq, class Seq>
   inline void
   assign(const PySeq& pyseq, Seq* seq) {
-%#ifdef SWIG_STD_NOASSIGN_STL
+    // seq->assign(pyseq.begin(), pyseq.end()); // not used as not always implemented
     typedef typename PySeq::value_type value_type;
     typename PySeq::const_iterator it = pyseq.begin();
     for (;it != pyseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
-%#else
-    seq->assign(pyseq.begin(), pyseq.end());
-%#endif
   }
 
   template <class Seq, class T = typename Seq::value_type >

@@ -8,15 +8,12 @@
     template <class RubySeq, class T> 
     inline void 
     assign(const RubySeq& rubyseq, std::set<T>* seq) {
-#ifdef SWIG_STD_NOINSERT_TEMPLATE_STL
+      // seq->insert(rubyseq.begin(), rubyseq.end()); // not used as not always implemented
       typedef typename RubySeq::value_type value_type;
       typename RubySeq::const_iterator it = rubyseq.begin();
       for (;it != rubyseq.end(); ++it) {
 	seq->insert(seq->end(),(value_type)(*it));
       }
-#else
-      seq->insert(rubyseq.begin(), rubyseq.end());
-#endif
     }
 
     template <class T>

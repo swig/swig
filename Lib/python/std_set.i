@@ -8,15 +8,12 @@
     template <class PySeq, class T> 
     inline void 
     assign(const PySeq& pyseq, std::set<T>* seq) {
-#ifdef SWIG_STD_NOINSERT_TEMPLATE_STL
+      // seq->insert(pyseq.begin(), pyseq.end()); // not used as not always implemented
       typedef typename PySeq::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
       for (;it != pyseq.end(); ++it) {
 	seq->insert(seq->end(),(value_type)(*it));
       }
-#else
-      seq->insert(pyseq.begin(), pyseq.end());
-#endif
     }
 
     template <class T>
