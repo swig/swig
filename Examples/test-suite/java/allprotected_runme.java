@@ -31,7 +31,23 @@ class MyProtectedBase extends ProtectedBase
     if (!k.getName().equals("xyz")) 
       throw new RuntimeException("Failed");
 
-    k = staticMethod(new Klass("abc"));
+    k = instanceOverloaded(new Klass("xyz"));
+    if (!k.getName().equals("xyz")) 
+      throw new RuntimeException("Failed");
+
+    k = instanceOverloaded(new Klass("xyz"), "abc");
+    if (!k.getName().equals("abc")) 
+      throw new RuntimeException("Failed");
+
+    k = ProtectedBase.staticMethod(new Klass("abc"));
+    if (!k.getName().equals("abc")) 
+      throw new RuntimeException("Failed");
+
+    k = ProtectedBase.staticOverloaded(new Klass("xyz"));
+    if (!k.getName().equals("xyz")) 
+      throw new RuntimeException("Failed");
+
+    k = ProtectedBase.staticOverloaded(new Klass("xyz"), "abc");
     if (!k.getName().equals("abc")) 
       throw new RuntimeException("Failed");
 

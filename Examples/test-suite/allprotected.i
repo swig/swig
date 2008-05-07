@@ -32,7 +32,11 @@ public:
   virtual ~PublicBase() { }
   virtual std::string virtualMethod() const { return "PublicBase"; }
   Klass instanceMethod(Klass k) const { return k; }
+  Klass *instanceOverloaded(Klass *k) const { return k; }
+  Klass *instanceOverloaded(Klass *k, std::string name) const { return new Klass(name); }
   static Klass staticMethod(Klass k) { return k; }
+  static Klass *staticOverloaded(Klass *k) { return k; }
+  static Klass *staticOverloaded(Klass *k, std::string name) { return new Klass(name); }
   int instanceMemberVariable;
   static int staticMemberVariable;
   static const int staticConstMemberVariable = 20;
@@ -50,7 +54,11 @@ protected:
   virtual ~ProtectedBase() { }
   virtual std::string virtualMethod() const { return "ProtectedBase"; }
   Klass instanceMethod(Klass k) const { return k; }
+  Klass *instanceOverloaded(Klass *k) const { return k; }
+  Klass *instanceOverloaded(Klass *k, std::string name) const { return new Klass(name); }
   static Klass staticMethod(Klass k) { return k; }
+  static Klass *staticOverloaded(Klass *k) { return k; }
+  static Klass *staticOverloaded(Klass *k, std::string name) { return new Klass(name); }
   int instanceMemberVariable;
   static int staticMemberVariable;
   static const int staticConstMemberVariable = 20;

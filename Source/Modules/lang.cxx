@@ -2111,7 +2111,10 @@ int Language::classDirector(Node *n) {
     bool cdecl = (Cmp(nodeType, "cdecl") == 0);
     if (cdecl && !GetFlag(ni, "feature:ignore")) {
       if (is_non_virtual_protected_access(ni)) {
-        Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(ni, "name"));
+        Node *overloaded = Getattr(ni, "sym:overloaded");
+        // emit the using base::member statement (but only once if the method is overloaded)
+        if (!overloaded || (overloaded && (overloaded == ni)))
+          Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(ni, "name"));
       }
     }
   }

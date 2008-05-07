@@ -29,7 +29,23 @@ class MyProtectedBase : ProtectedBase
     if (k.getName() != "xyz") 
       throw new Exception("Failed");
 
-    k = staticMethod(new Klass("abc"));
+    k = instanceOverloaded(new Klass("xyz"));
+    if (k.getName() != "xyz") 
+      throw new Exception("Failed");
+
+    k = instanceOverloaded(new Klass("xyz"), "abc");
+    if (k.getName() != "abc") 
+      throw new Exception("Failed");
+
+    k = ProtectedBase.staticMethod(new Klass("abc"));
+    if (k.getName() != "abc") 
+      throw new Exception("Failed");
+
+    k = ProtectedBase.staticOverloaded(new Klass("xyz"));
+    if (k.getName() != "xyz") 
+      throw new Exception("Failed");
+
+    k = ProtectedBase.staticOverloaded(new Klass("xyz"), "abc");
     if (k.getName() != "abc") 
       throw new Exception("Failed");
 
