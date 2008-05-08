@@ -45,9 +45,9 @@
 %typemap(scoercein) unsigned int, unsigned int *, unsigned int &
   %{  $input = as($input, "integer");     %}
 %typemap(scoercein) double, double *, double &
-  %{  $input = as($input, "numeric");     %}
+  %{ %}
 %typemap(scoercein) float, float *, float &
-  %{  $input = as($input, "numeric");     %}
+  %{ %}
 %typemap(scoercein) char, char *, char &
   %{  $input = as($input, "character");     %}
 %typemap(scoercein) string, string *, string &
@@ -61,6 +61,11 @@
 %typemap(scoercein) enum SWIGTYPE *
   %{  $input = enumToInteger($input, "$R_class") %}
 
+
+%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE &  
+  %{ %}
+
+/*
 %typemap(scoercein) SWIGTYPE * 
   %{ $input = coerceIfNotSubclass($input, "$R_class") %}
 
@@ -69,7 +74,7 @@
 
 %typemap(scoercein) SWIGTYPE  
   %{ $input = coerceIfNotSubclass($input, "$&R_class") %}
-
+*/
 
 %typemap(scoercein) SWIGTYPE[ANY]  
  %{
