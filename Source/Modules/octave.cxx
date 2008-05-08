@@ -122,7 +122,7 @@ public:
 
 
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
-    Printf(f_init, "void SWIG_init_user(octave_swig_type* module_ns)\n{\n");
+    Printf(f_init, "static void SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
     if (!CPlusPlus)
       Printf(f_header,"extern \"C\" {\n");

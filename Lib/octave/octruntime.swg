@@ -13,7 +13,7 @@
 
 %insert(initbeforefunc) %{
 
-void SWIG_init_user(octave_swig_type* module_ns);
+static void SWIG_init_user(octave_swig_type* module_ns);
 
 DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   static bool already_init=false;
@@ -43,14 +43,11 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     if (swig_globals[j].get_method)
       cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
 
-  octave_swig_type* module_ns=new octave_swig_type;
+  octave_swig_type* module_ns=new octave_swig_type(0, 0, 0, true);
   module_ns->assign("cvar",Swig::swig_value_ref(cvar_ns));
   for (int j=0;swig_globals[j].name;++j)
     if (swig_globals[j].method)
       module_ns->assign(swig_globals[j].name,&swig_globals[j]);
-
-  link_to_global_variable(curr_sym_tab->lookup(SWIG_name_d,true));
-  set_global_value(SWIG_name_d,Swig::swig_value_ref(module_ns));
 
   // * need better solution here; swig_type -> octave_class mapping is 
   // * really n-to-1, in some cases such as template partial spec, etc. 
@@ -73,6 +70,9 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   if (global_option)
     module_ns->install_global();
   module_ns->decref();
+
+  link_to_global_variable(curr_sym_tab->lookup(SWIG_name_d,true));
+  set_global_value(SWIG_name_d,Swig::swig_value_ref(module_ns));
 
   return octave_value_list();
 }
