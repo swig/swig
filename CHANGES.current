@@ -2,8 +2,12 @@ Version 1.3.36 (in progress)
 =============================
 
 05/09/2008: olly
-	    SWIG now runs the PHP testsuite using PHP5, not PHP4.  PHP4 is
-	    essentially obsolete now, so we care much more about solid PHP5
+	    [PHP] Fix bad PHP code generated when wrapping an enum in a
+	    namespace (uncovered by testcase arrays_scope).
+
+05/09/2008: olly
+	    [PHP] SWIG now runs the PHP testsuite using PHP5, not PHP4.  PHP4
+	    is essentially obsolete now, so we care much more about solid PHP5
 	    support.
 
 05/07/2008: wsfulton
