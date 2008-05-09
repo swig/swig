@@ -28,7 +28,7 @@ class PublicBase {
 public:
   enum AnEnum { EnumVal1, EnumVal2 };
 public:
-  PublicBase(const char* s): str(s) {}
+  PublicBase(const char* s): str(s), instanceMemberVariable(0), anEnum(EnumVal1), stringMember(0) {}
   virtual ~PublicBase() { }
   virtual std::string virtualMethod() const { return "PublicBase"; }
   Klass instanceMethod(Klass k) const { return k; }
@@ -41,6 +41,7 @@ public:
   static int staticMemberVariable;
   static const int staticConstMemberVariable = 20;
   AnEnum anEnum;
+  char *stringMember;
 };
 int PublicBase::staticMemberVariable = 10;
 
@@ -50,7 +51,7 @@ public:
   enum AnEnum { EnumVal1, EnumVal2 };
   std::string getName() { return str; }
 protected:
-  ProtectedBase(const char* s): str(s) {}
+  ProtectedBase(const char* s): str(s), instanceMemberVariable(0), anEnum(EnumVal1), stringMember(0), protectedenum(ProtEnumVal1) {}
   virtual ~ProtectedBase() { }
   virtual std::string virtualMethod() const { return "ProtectedBase"; }
   Klass instanceMethod(Klass k) const { return k; }
@@ -63,6 +64,7 @@ protected:
   static int staticMemberVariable;
   static const int staticConstMemberVariable = 20;
   AnEnum anEnum;
+  char *stringMember;
 
 // unsupported: types defined with protected access and thus methods/variables which use them
   enum ProtectedEnum { ProtEnumVal1, ProtEnumVal2 };

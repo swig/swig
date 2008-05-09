@@ -1428,7 +1428,7 @@ int Language::membervariableHandler(Node *n) {
 	    Delete(pname);
 	  }
 	} else {
-	  String *pname = Swig_cparm_name(0, 0);
+	  String *pname = is_non_virtual_protected_access(n) ? NewString("darg") : Swig_cparm_name(0, 0);
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
