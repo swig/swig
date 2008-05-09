@@ -705,7 +705,7 @@ PHP4_INCLUDE = @PHP4INC@
 PHP4_SO      = @PHP4_SO@
 
 php4: $(SRCS)
-	$(SWIG) -php4 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php5 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
 
@@ -714,7 +714,7 @@ php4: $(SRCS)
 # --------------------------------------------------------------------
 
 php4_cpp: $(SRCS)
-	$(SWIG) -php4 -cppext cxx -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
 
@@ -726,7 +726,7 @@ PHP4=@PHP4@
 SCRIPT ?= runme.php4
 
 php4_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PHP4) -q -d extension_dir=. $(SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PHP4) -n -q -d extension_dir=. $(SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the PHP4 examples
