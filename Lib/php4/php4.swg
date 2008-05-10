@@ -190,7 +190,7 @@
 	if(!$1) {
 	  ZVAL_NULL(return_value);
 	} else {
-	  ZVAL_STRING(return_value,$1, 1);
+	  ZVAL_STRING(return_value, (char *)$1, 1);
 	}
 }
 
