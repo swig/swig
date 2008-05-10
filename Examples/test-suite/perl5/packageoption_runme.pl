@@ -2,8 +2,8 @@
 use strict;
 use Test::More tests => 4;
 
-BEGIN { use_ok('package_a'); }
-BEGIN { use_ok('package_b'); }
+BEGIN { use_ok('packageoption_a'); }
+BEGIN { use_ok('packageoption_b'); }
 
 # Workaround for 
 #   ok( not (expression) , "test description" );
