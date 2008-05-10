@@ -4,7 +4,7 @@
 require "tests.php4";
 require "smart_pointer_rename.php";
 
-check::classes(array("foo","bar"));
+check::classes(array("Foo","Bar"));
 check::classmethods("foo",array("foo","ftest1","ftest2"));
 check::classmethods("bar",array("__deref__","bar","test","ftest1","ftest2"));
 $foo=new foo();

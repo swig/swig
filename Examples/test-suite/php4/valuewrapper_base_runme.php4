@@ -4,7 +4,7 @@
 require "tests.php4";
 require "valuewrapper_base.php";
 
-check::classes(array("base","interface_bp"));
+check::classes(array("valuewrapper_base","Base","Interface_BP"));
 check::functions("make_interface_bp");
 
 $ibp=make_interface_bp();
