@@ -421,7 +421,7 @@ void emit_action(Node *n, Wrapper *f) {
    * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
    * Also for non-static protected members when the allprotected option is on. */
 // TODO: why is the storage element removed in staticmemberfunctionHandler ??
-  if (!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall")) || 
+  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
       (is_non_virtual_protected_access(n) && !(checkAttribute(n, "staticmemberfunctionHandler:storage", "static") || 
                                                checkAttribute(n, "storage", "static"))
                                           && !Equal(nodeType(n), "constructor"))) {
