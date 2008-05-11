@@ -1,6 +1,10 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/11/2008: wsfulton
+            Fix SF #1943608 - $self substitution in %contract, patch submitted by
+            Toon Verstraelen.
+
 05/09/2008: olly
 	    [PHP] Fix char * typemaps to work when applied to signed char * and
 	    unsigned char * (uncovered by testcase apply_strings).
