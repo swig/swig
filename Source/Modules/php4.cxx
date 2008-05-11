@@ -2321,7 +2321,7 @@ public:
 	base.item = NULL;
       }
 
-      if (Getattr(n, "abstract") && !Getattr(n, "feature:notabstract")) {
+      if (Getattr(n, "abstract") && !GetFlag(n, "feature:notabstract")) {
 	Swig_print_node(n);
 	Printf(s_phpclasses, "abstract ");
       }
