@@ -1,6 +1,10 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/11/2008: olly
+	    [PHP] Check for %feature("notabstract") when generating PHP5 class
+	    wrapper.
+
 05/11/2008: wsfulton
             Fix SF #1943608 - $self substitution in %contract, patch submitted by
             Toon Verstraelen.
