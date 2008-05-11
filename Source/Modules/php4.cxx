@@ -2322,7 +2322,6 @@ public:
       }
 
       if (Getattr(n, "abstract") && !GetFlag(n, "feature:notabstract")) {
-	Swig_print_node(n);
 	Printf(s_phpclasses, "abstract ");
       }
 
