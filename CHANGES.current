@@ -1,6 +1,12 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/14/2008: wsfulton
+            Add an optimisation for functions that return objects by value, reducing
+            the number of copies of the object that are made. Implemented using an
+            optional attribute in the "out" typemap called "optimal". Details in 
+            Typemaps.html.
+
 05/11/2008: olly
 	    [PHP] Check for %feature("notabstract") when generating PHP5 class
 	    wrapper.

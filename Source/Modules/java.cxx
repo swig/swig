@@ -829,7 +829,7 @@ public:
     Printv(f->code, "    (void)jcls;\n", NIL);
 
     // Emit all of the local variables for holding arguments.
-    emit_args(t, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -980,27 +980,28 @@ public:
       }
     }
 
-    if (Cmp(nodeType(n), "constant") == 0) {
-      // Wrapping a constant hack
-      Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-      // below based on Swig_VargetToFunction()
-      SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
-    }
-    // Now write code to make the function call
     if (!native_function_flag) {
-      emit_action(n, f);
+      if (Cmp(nodeType(n), "constant") == 0) {
+        // Wrapping a constant hack
+        Swig_save("functionWrapper", n, "wrap:action", NIL);
+
+        // below based on Swig_VargetToFunction()
+        SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
+        Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      }
+
+      // Now write code to make the function call
+      Swig_director_emit_dynamic_cast(n, f);
+      String *actioncode = emit_action(n);
+
       // Handle exception classes specified in the "except" feature's "throws" attribute
       addThrows(n, "feature:except", n);
-    }
 
-    if (Cmp(nodeType(n), "constant") == 0)
-      Swig_restore(n);
+      if (Cmp(nodeType(n), "constant") == 0)
+        Swig_restore(n);
 
-    /* Return value if necessary  */
-    if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+      /* Return value if necessary  */
+      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
 	addThrows(n, "tmap:out", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Replaceall(tm, "$target", "jresult");	/* deprecated */
@@ -1017,6 +1018,7 @@ public:
       } else {
 	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
       }
+      emit_return_variable(n, t, f);
     }
 
     /* Output argument output code */
@@ -3550,6 +3552,7 @@ public:
 	   * intermediate's upcall code */
 	  if ((tm = Getattr(p, "tmap:jtype"))) {
 	    String *din = Copy(Getattr(p, "tmap:javadirectorin"));
+            addThrows(n, "tmap:javadirectorin", p);
 
 	    if (din) {
 	      Replaceall(din, "$module", module_class_name);
@@ -3629,9 +3632,6 @@ public:
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
 
-    if ((tm = Swig_typemap_lookup_new("out", n, "", 0)))
-      addThrows(n, "tmap:out", n);
-
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -3661,12 +3661,6 @@ public:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
-    /* Finish off the inherited upcall's definition */
-
-    Putc(')', callback_def);
-    generateThrowsClause(n, callback_def);
-    Printf(callback_def, " {\n");
-
     /* Emit the intermediate class's upcall to the actual class */
 
     String *upcall = NewStringf("self.%s(%s)", symname, imcall_args);
@@ -3674,13 +3668,16 @@ public:
     if (!is_void) {
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
-      tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0);
-      if (tm) {
+      if ((tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0))) {
+        addThrows(n, "tmap:javadirectorout", tp);
 	substituteClassname(returntype, tm);
 	Replaceall(tm, "$javacall", upcall);
 
 	Printf(callback_code, "    return %s;\n", tm);
       }
+
+      if ((tm = Swig_typemap_lookup_new("out", tp, "", 0)))
+        addThrows(n, "tmap:out", tp);
 
       Delete(tm);
       Delete(tp);
@@ -3689,6 +3686,11 @@ public:
 
     Printf(callback_code, "  }\n");
     Delete(upcall);
+
+    /* Finish off the inherited upcall's definition */
+    Putc(')', callback_def);
+    generateThrowsClause(n, callback_def);
+    Printf(callback_def, " {\n");
 
     if (!ignored_method) {
       /* Emit the actual upcall through */

@@ -802,10 +802,11 @@ int check_locals(ParmList *p, const char *s) {
 }
 
 static
-void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index) {
+int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index) {
   char var[512];
   char *varname;
   SwigType *ftype;
+  int bare_substitution_count = 0;
 
   Replaceall(s, "$typemap", "$TYPEMAP");
 
@@ -1086,8 +1087,9 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType 
 
   /* Replace the bare $n variable */
   sprintf(var, "$%d", index);
-  Replace(s, var, lname, DOH_REPLACE_ANY);
+  bare_substitution_count = Replace(s, var, lname, DOH_REPLACE_ANY);
   Delete(ftype);
+  return bare_substitution_count;
 }
 
 /* ------------------------------------------------------------------------
@@ -1230,11 +1232,11 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
  * Attach one or more typemaps to a node
  * op    - typemap name, eg "out", "newfree"
  * node  - the node to attach the typemaps to
- * lname -
- * f     -
+ * lname - name of variable to substitute $1, $2 etc for
+ * f     - wrapper code to generate into
  * ----------------------------------------------------------------------------- */
 
-String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f) {
+static String *Swig_typemap_lookup_new_impl(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
   SwigType *type;
   SwigType *mtype = 0;
   String *pname;
@@ -1248,6 +1250,10 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   String *cname = 0;
   String *clname = 0;
   char *cop = Char(op);
+  int optimal_attribute = 0;
+  int optimal_substitution = 0;
+  int num_substitutions = 0;
+
   /* special case, we need to check for 'ref' call 
      and set the default code 'sdef' */
   if (node && Cmp(op, "newfree") == 0) {
@@ -1297,6 +1303,66 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
 
   s = Copy(s);			/* Make a local copy of the typemap code */
 
+  /* Attach kwargs - ie the typemap attributes */
+  kw = Getattr(tm, "kwargs");
+  while (kw) {
+    String *value = Copy(Getattr(kw, "value"));
+    String *type = Getattr(kw, "type");
+    char *ckwname = Char(Getattr(kw, "name"));
+    if (type) {
+      String *mangle = Swig_string_mangle(type);
+      Append(value, mangle);
+      Delete(mangle);
+    }
+    sprintf(temp, "%s:%s", cop, ckwname);
+    Setattr(node, tmop_name(temp), value);
+    if (Cmp(temp, "out:optimal") == 0)
+      optimal_attribute = (Cmp(value, "0") != 0) ? 1 : 0;
+    Delete(value);
+    kw = nextSibling(kw);
+  }
+  
+  if (optimal_attribute) {
+    /* Note: "out" typemap is the only typemap that will have the "optimal" attribute set.
+     * If f and actioncode are NULL, then the caller is just looking to attach the "out" attributes
+     * ie, not use the typemap code, otherwise both f and actioncode must be non null. */
+    if (actioncode) {
+      clname = Copy(actioncode);
+      /* check that the code in the typemap can be used in this optimal way.
+       * The code should be in the form "result = ...;\n". We need to extract
+       * the "..." part. This may not be possible for various reasons, eg
+       * code added by %exception. This optimal code generation is bit of a
+       * hack and circumvents the normal requirement for a temporary variable 
+       * to hold the result returned from a wrapped function call.
+       */
+      if (Strncmp(clname, "result = ", 9) == 0) {
+        int numreplacements = Replace(clname, "result = ", "", DOH_REPLACE_ID_BEGIN);
+        if (numreplacements == 1) {
+          numreplacements = Replace(clname, ";\n", "", DOH_REPLACE_ID_END);
+          if (numreplacements == 1) {
+            if (Strchr(clname, ';') == 0) {
+              lname = clname;
+              actioncode = 0;
+              optimal_substitution = 1;
+            }
+          }
+        }
+      }
+      if (!optimal_substitution) {
+        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute in the out typemap at %s:%d ignored as the following cannot be used to generate optimal code: %s\n", Swig_name_decl(node), Getfile(s), Getline(s), clname);
+        Delattr(node, "tmap:out:optimal");
+      }
+    } else {
+      assert(!f);
+    }
+  }
+  if (actioncode) {
+    assert(f);
+    Append(f->code, actioncode);
+  }
+
+  /* emit local variables declared in typemap, eg emit declarations for aa and bb in:
+   * %typemap(in) foo (int aa, int bb) "..." */
   locals = Getattr(tm, "locals");
   if (locals)
     locals = CopyParmList(locals);
@@ -1313,19 +1379,17 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   }
 
   if (mtype && SwigType_isarray(mtype)) {
-    typemap_replace_vars(s, locals, mtype, type, pname, (char *) lname, 1);
+    num_substitutions = typemap_replace_vars(s, locals, mtype, type, pname, (char *) lname, 1);
   } else {
-    typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
+    num_substitutions = typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
   }
+  if (optimal_substitution && num_substitutions > 1)
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to optimal attribute usage in the out typemap at %s:%d.\n", Swig_name_decl(node), Getfile(s), Getline(s));
 
   if (locals && f) {
     typemap_locals(s, locals, f, -1);
   }
   replace_embedded_typemap(s);
-  /*  {
-     String *tmname = Getattr(tm,"typemap");
-     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
-     } */
 
   Replace(s, "$name", pname, DOH_REPLACE_ANY);
 
@@ -1344,23 +1408,6 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (Checkattr(tm, "type", "SWIGTYPE")) {
     sprintf(temp, "%s:SWIGTYPE", cop);
     Setattr(node, tmop_name(temp), "1");
-  }
-
-  /* Attach kwargs */
-  kw = Getattr(tm, "kwargs");
-  while (kw) {
-    String *value = Copy(Getattr(kw, "value"));
-    String *type = Getattr(kw, "type");
-    char *ckwname = Char(Getattr(kw, "name"));
-    if (type) {
-      String *mangle = Swig_string_mangle(type);
-      Append(value, mangle);
-      Delete(mangle);
-    }
-    sprintf(temp, "%s:%s", cop, ckwname);
-    Setattr(node, tmop_name(temp), value);
-    Delete(value);
-    kw = nextSibling(kw);
   }
 
   /* Look for warnings */
@@ -1387,20 +1434,29 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     }
   }
 
-  if (cname)
-    Delete(cname);
-  if (clname)
-    Delete(clname);
-  if (mtype)
-    Delete(mtype);
+  Delete(cname);
+  Delete(clname);
+  Delete(mtype);
   if (sdef) {			/* put 'ref' and 'newfree' codes together */
     String *p = NewStringf("%s\n%s", sdef, s);
     Delete(s);
     Delete(sdef);
     s = p;
   }
+  Delete(actioncode);
   return s;
 }
+
+String *Swig_typemap_lookup_out(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
+  assert(actioncode);
+  assert(Cmp(op, "out") == 0);
+  return Swig_typemap_lookup_new_impl(op, node, lname, f, actioncode);
+}
+
+String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f) {
+  return Swig_typemap_lookup_new_impl(op, node, lname, f, 0);
+}
+
 
 /* -----------------------------------------------------------------------------
  * Swig_typemap_attach_kwargs()

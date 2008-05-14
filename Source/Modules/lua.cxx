@@ -362,7 +362,7 @@ public:
         we need to add a couple of local variables
     NEW LANGUAGE NOTE:END ************************************************/
     Wrapper *f = NewWrapper();
-    Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = -1");
+    Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = 0");
 
 
     String *wname = Swig_name_wrapper(iname);
@@ -383,10 +383,9 @@ public:
        it will print
          int arg1;
          int arg2;
-         int result;
     NEW LANGUAGE NOTE:END ************************************************/
     /* Write code to extract function parameters. */
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -554,16 +553,15 @@ public:
     Setattr(n, "wrap:name", wname);
 
     /* Emit the function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
     /* NEW LANGUAGE NOTE:***********************************************
     FIXME:
     returns 1 if there is a void return type
     this is because there is a typemap for void
     NEW LANGUAGE NOTE:END ************************************************/
-    Printv(f->code, "SWIG_arg=0;\n", NIL);
     // Return value if necessary
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       // managing the number of returning variables
       //      if (numoutputs=Getattr(tm,"numoutputs")){
       //              int i=GetInt(tm,"numoutputs");
@@ -582,6 +580,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);

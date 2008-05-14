@@ -303,8 +303,8 @@ public:
 
     Printv(f->def, "SWIGINTERN int\n ", wname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {", NIL);
 
-    /* Print out variables for storing arguments. */
-    emit_args(type, parms, f);
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(parms, f);
 
     /* Attach standard typemaps */
     emit_attach_parmmaps(parms, f);
@@ -443,12 +443,12 @@ public:
     }
 
     /* Now write code to make the function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
     /* Need to redo all of this code (eventually) */
 
     /* Return value if necessary  */
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$source", "result");
 #ifdef SWIG_USE_RESULTOBJ
       Replaceall(tm, "$target", "resultobj");
@@ -466,6 +466,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
     }
+    emit_return_variable(n, type, f);
 
     /* Dump output argument code */
     Printv(f->code, outarg, NIL);
@@ -570,7 +571,7 @@ public:
       Replaceall(tm, "$target", "value");
       Replaceall(tm, "$result", "value");
       /* Printf(getf->code, "%s\n",tm); */
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
       Printf(getf->code, "if (value) {\n");
       Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n");
       Printf(getf->code, "Tcl_DecrRefCount(value);\n");
@@ -610,7 +611,7 @@ public:
 	  Printf(setf->code, "Tcl_DecrRefCount(name1o);\n");
 	  Printf(setf->code, "if (!value) SWIG_fail;\n");
 	  /* Printf(setf->code,"%s\n", tm); */
-	  emit_action_code(n, setf, tm);
+	  emit_action_code(n, setf->code, tm);
 	  Printf(setf->code, "return NULL;\n");
 	  Printf(setf->code, "fail:\n");
 	  Printf(setf->code, "return \"%s\";\n", iname);

@@ -518,13 +518,8 @@ public:
 	     "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	     "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
     }
-    // Declare return variable and arguments
-    // number of parameters
-    // they are called arg0, arg1, ...
-    // the return value is called result
-
     d = SwigType_typedef_qualified(d);
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -645,13 +640,12 @@ public:
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Append(f->code, "upcall = (director);\n");
     }
+
     // Now write code to make the function call
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
-    emit_action(n, f);
-
-    // Now have return value, figure out what to do with it.
-
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$source", "swig_result");
       Replaceall(tm, "$target", "rv");
       Replaceall(tm, "$result", "rv");
@@ -660,6 +654,7 @@ public:
     } else {
       throw_unhandled_ocaml_type_error(d, "out");
     }
+    emit_return_variable(n, d, f);
 
     // Dump the argument output code
     Printv(f->code, Char(outarg), NIL);
@@ -810,7 +805,7 @@ public:
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
 	/* Printv(f->code, tm, "\n",NIL); */
-	emit_action_code(n, f, tm);
+	emit_action_code(n, f->code, tm);
       } else if ((tm = Swig_typemap_lookup_new("in", n, name, 0))) {
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
@@ -828,14 +823,12 @@ public:
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
-      /* Printf (f->code, "%s\n", tm); */
-      emit_action_code(n, f, tm);
+      emit_action_code(n, f->code, tm);
     } else if ((tm = Swig_typemap_lookup_new("out", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
       Printf(f->code, "%s\n", tm);
-
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }

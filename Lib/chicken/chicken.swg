@@ -330,7 +330,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
 {
   $&1_ltype resultptr;
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
-  resultptr = new $1_ltype(($1_ltype &) $1);
+  resultptr = new $1_ltype((const $1_ltype &) $1);
   $result =  SWIG_NewPointerObj(resultptr, $&1_descriptor, 1);
 } 
 #else
@@ -348,7 +348,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
 {
   $&1_ltype resultptr;
   C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
-  resultptr = new $1_ltype(($1_ltype&) $1);
+  resultptr = new $1_ltype((const $1_ltype&) $1);
   $result =  SWIG_NewPointerObj(resultptr, $&1_descriptor, 0);
 } 
 #else

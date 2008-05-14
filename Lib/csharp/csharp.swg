@@ -376,7 +376,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ $result = new $1_ltype(($1_ltype &)$1); %}
+%{ $result = new $1_ltype((const $1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));

@@ -354,7 +354,6 @@ protected:
   int outputRegistrationRoutines(File *out);
   
   int outputCommandLineArguments(File *out);
-  int generateCopyRoutinesObsolete(Node *n); 
   int generateCopyRoutines(Node *n); 
   int DumpCode(Node *n);
   
@@ -619,7 +618,8 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   Printf(f->def, "%s %s(", rtype, funName);
 
-  emit_args(rettype, parms, f);
+  emit_parameter_variables(parms, f);
+  emit_return_variable(n, rettype, f);
 //  emit_attach_parmmaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
@@ -630,7 +630,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
   Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
 
-  // Add local for error code in return value.  This is not in emit_args because that assumes an out typemap
+  // Add local for error code in return value.  This is not in emit_return_variable because that assumes an out typemap
   // whereas the type makes are reverse
   Wrapper_add_local(f, "ecode", "int ecode = 0");
 
@@ -1700,7 +1700,6 @@ int R::functionWrapper(Node *n) {
   
   ParmList *l = Getattr(n, "parms");
   Parm *p;
-  String *returnTM = NULL;
   String *tm;
   
   p = l;
@@ -1775,11 +1774,11 @@ int R::functionWrapper(Node *n) {
   Wrapper *f = NewWrapper();
   Wrapper *sfun = NewWrapper();
     
-
-  int isVoidReturnType = 0;
-  returnTM = Swig_typemap_lookup_new("out", n, "result",0);
-  if(returnTM) 
-    isVoidReturnType = (Strcmp(type, "void") == 0);
+  int isVoidReturnType = (Strcmp(type, "void") == 0);
+  // Need to use the unresolved return type since 
+  // typedef resolution removes the const which causes a 
+  // mismatch with the function action
+  emit_return_variable(n, unresolved_return_type, f);
 
   SwigType *rtype = Getattr(n, "type");
   int addCopyParam = 0;
@@ -1808,10 +1807,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("scoerceout", l, f);
   Swig_typemap_attach_parms("scheck", l, f);
 
-  // Need to use the unresolved return type since 
-  // typedef resolution removes the const which causes a 
-  // mismatch with the function action
-  emit_args(unresolved_return_type, l, f);
+  emit_parameter_variables(l, f);
   emit_attach_parmmaps(l,f);
   Setattr(n,"wrap:parms",l);
 
@@ -1989,16 +1985,9 @@ int R::functionWrapper(Node *n) {
     }
   }
 
-
-  emit_action(n, f);
-
-
-
-
   String *outargs = NewString("");
   int numOutArgs = isVoidReturnType ? -1 : 0;
   for(p = l, i = 0; p; i++) {
-    String *tm;
     if((tm = Getattr(p, "tmap:argout"))) {
       //       String *lname =  Getattr(p, "lname");
       numOutArgs++;
@@ -2017,9 +2006,10 @@ int R::functionWrapper(Node *n) {
       p = nextSibling(p);
   }
 
+  String *actioncode = emit_action(n);
+
   /* Deal with the explicit return value. */
-  if (returnTM) { 
-    String *tm = returnTM;
+  if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) { 
     SwigType *retType = Getattr(n, "type");
     //Printf(stderr, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");     
     /*      if(SwigType_isarray(retType)) {
@@ -2167,185 +2157,6 @@ int R::functionWrapper(Node *n) {
   Delete(sfname);
   return SWIG_OK;
 }
-
-
-int R::defineArrayAccessors(SwigType *type) {
-
-  SwigType *base = SwigType_base(type);
-  String *rclass = NewStringf("%sArray", base);
-  char *prclassName = Char(rclass);
-  if(strncmp(prclassName, "struct ", 7) == 0)
-    prclassName += 7;
-
-  Node *n = NewHash();
-  Setattr(n, "type", base);
-  String *tm;
-  String *rclassName = getRClassName(base);
-  String *rclassBase = getRClassName(base, 0);
-
-  String *cGetName = NewStringf("R_SWIG_%s_get_item_", prclassName);
-  String *cSetName = NewStringf("R_SWIG_%s_set_item_", prclassName);
-
-  Wrapper *cGetItem = NewWrapper();
-
-  String *getItem = NewString(""), 
-    *setItem = NewString("");
-
-  Printf(getItem, "function(x, i, j, ..., drop = TRUE) {\n");
-
-  Printf(getItem, "%sif(i < 1 || i > x@dims[1])\n%sstop('index must be between 1 and ', x@dims[1])\n", tab4, tab8);
-  Printf(getItem, "%s.Call('%s', x@ref, as.integer(i-1), PACKAGE = '%s')\n", tab4, cGetName, Rpackage);
-  Printf(getItem, "}\n");
-
-
-
-  Printf(setItem, "function(x, i, j, ..., value) {\n");
-
-  Printf(setItem, "%sif(i < 1 || i > x@dims[1])\n%sstop('index must be between 1 and ', x@dims[1])\n", tab4, tab8);
-
-  /* Do the SCOERCEIN and the SCHECK here */
-  tm = Swig_typemap_lookup_new("scoercein", n, "value", 0);
-  if(tm) {
-    Replaceall(tm, "$input", "s_value");
-    Replaceall(tm, "$R_class", rclassName);
-    Replaceall(tm, "$*R_class", rclassBase);
-
-    Printf(setItem, "%s%s\n", tab4, tm);
-  }
-
-  tm = Swig_typemap_lookup_new("scheck", n, "value", 0);
-  if(tm) {
-    Replaceall(tm, "$input", "s_value");
-    Replaceall(tm, "$R_class", rclassName);
-    Replaceall(tm, "$*R_class", rclassBase);
-
-    Printf(setItem, "%s%s\n", tab4, tm);
-  }
-
-
-
-  Printf(setItem, "%s.Call('%s', x@ref, as.integer(i-1), value, PACKAGE = '%s')\n", tab4, cSetName, Rpackage);
-  Printf(setItem, "%sx\n}\n", tab4);
-
-
-
-  Printf(cGetItem->def, "SEXP\n%s(SEXP s_x, SEXP s_i)\n{\n", cGetName);
-
-  String *tmp = NewStringf("%s *ptr", SwigType_lstr(base, 0));
-  String *tmp1 = NewStringf("%s result", SwigType_lstr(base, 0));
-
-  Wrapper_add_localv(cGetItem, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
-  Wrapper_add_local(cGetItem, "ptr", tmp);
-  Wrapper_add_local(cGetItem, "r_ans", "SEXP r_ans");
-  Wrapper_add_local(cGetItem, "result", tmp1);
-  Wrapper_add_local(cGetItem, "r_nprotect", "int r_nprotect = 0");
-
-  Printf(cGetItem->code, "ptr = (%s *) R_SWIG_resolveExternalRef(s_x, \"\", \"s_x\", 0);\n", SwigType_lstr(base, 0));
-  Printf(cGetItem->code, "result = ptr[INTEGER(s_i)[0]];\n");
-
-
-  tm = Swig_typemap_lookup_new("out", n, "result", 0);
-  if(tm) {
-    Replaceall(tm, "$result", "r_ans");
-    Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
-    Printf(cGetItem->code, "%s\n", tm);
-  }
-
-  Delete(tmp); Delete(tmp1);
-
-  Printf(cGetItem->code, "%s\nreturn r_ans;\n}\n\n", UnProtectWrapupCode);
-
-
-  /******************************/
-  /*
-    R_SWIG_..._set_item(SEXP x, SEXP s_i, SEXP s_value) {
-    char *r_vmax = vmaxget();
-    int r_nprotect = 0;
-    type *ptr, *el, value;
-  
-    ptr = (type *) R_SWIG_resolveExternalRef(s_x, "", "s_x", 0);
-  
-    ptr[INTEGER(s_i)[0]] = *el;
-  
-    cleanup
-    return
-    }
-  */
-  Wrapper *cSetItem = NewWrapper();
-  {
-
-    Printf(cSetItem->def, "SEXP\n%s(SEXP s_x, SEXP s_i, SEXP s_value)\n{\n", cSetName);
-
-    tmp = NewStringf("%s *ptr", SwigType_lstr(base, 0));
-    tmp1 = NewStringf("%s value", SwigType_lstr(base, 0));
-
-    Wrapper_add_localv(cSetItem, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
-    Wrapper_add_local(cSetItem, "r_nprotect", "int r_nprotect = 0");
-
-    Wrapper_add_local(cSetItem, "ptr", tmp);
-    Wrapper_add_local(cSetItem, "value", tmp1);
-    Replaceall(tmp, "*ptr", "*el = &value");
-    Wrapper_add_local(cSetItem, "el", tmp);
-
-    Printf(cSetItem->code, 
-	   "ptr = (%s *) R_SWIG_resolveExternalRef(s_x, \"\", \"s_x\", 0);\n", 
-	   SwigType_lstr(base, 0));
-
-
-    String *tm = Swig_typemap_lookup_new("in", n, "value", 0);
-    if(tm) {
-      String *rclassName = getRClassName(base);
-      String *rclassBase = getRClassName(base, 0);
-      Replaceall(tm, "$input", "s_value");
-      Replaceall(tm, "$*1", "value");
-      //XXX think about what we really mean here.
-      Replaceall(tm, "$1", "el");
-
-      Replaceall(tm, "$R_class", rclassName);
-      Replaceall(tm, "$*R_class", rclassBase);
-
-      Printf(cSetItem->code, "%s\n", tm);
-
-      Delete(rclassName); Delete(rclassBase);
-    }
-    Printf(cSetItem->code, "ptr[INTEGER(s_i)[0]] = *el;\n");
-  }
-  Printf(cSetItem->code, "%s\nreturn R_NilValue;\n}\n\n", UnProtectWrapupCode);
-
-  /*************************/
-
-
-  Wrapper_print(cGetItem, f_wrapper);
-  Wrapper_print(cSetItem, f_wrapper);
-
-  String *elClass = NewStringf("_p%s", SwigType_manglestr(base));
-  if(!Getattr(SClassDefs, elClass)) {
-    if (debugMode)
-      Printf(stderr, "<defineArrayAccessors> Defining class %s\n", elClass);
-    Printf(s_classes, "setClass('%s', contains = 'ExternalReference')\n", elClass);       
-    //Add to namespace
-    Setattr(SClassDefs, elClass, elClass);
-  }
-  Delete(elClass);
-
-  if(!Getattr(SClassDefs, rclassName)) {
-    Setattr(SClassDefs, rclassName, rclassName);
-    Printf(s_classes, "setClass('%s', contains = 'SWIGArray')\n", rclassName);
-  }
-
-  Printf(s_classes, "setMethod('[', '%s',\n%s)\n", rclassName, getItem);
-  Printf(s_classes, "setMethod('[<-', '%s',\n%s)\n", rclassName, setItem);
-
-
-  Delete(n); 
-  DelWrapper(cGetItem);
-  DelWrapper(cSetItem);
-  Delete(rclass);
-  Delete(cGetName);
-
-  return SWIG_OK;
-}
-
 
 /*****************************************************
  Add the specified routine name to the collection of 
@@ -2582,219 +2393,6 @@ int R::classDeclaration(Node *n) {
   Clean up the toCRef - make certain the names are correct for the types, etc.
   in all cases.
 */
-
-// This procedure is for reference
-int R::generateCopyRoutinesObsolete(Node *n) {
-  Wrapper *toC = NewWrapper();
-  Wrapper *toCRef = NewWrapper();
-  Wrapper *toR = NewWrapper();
-
-  Wrapper *copyToR = NewWrapper();
-  Wrapper *copyToC = NewWrapper();
-
-  
-  String *name = Getattr(n, "name");
-  String *tdname = Getattr(n, "tdname");
-  String *kind = Getattr(n, "kind");
-  String *type;
-
-  if(Len(tdname)) {
-    type = Copy(tdname);
-  } else {
-    type = NewStringf("%s %s", kind, name);
-  }
-  
-
-#ifdef R_SWIG_VERBOSE
-  if (debugMode)
-    Printf(stderr, "generateCopyRoutines:  name = %s, %s\n", name, type);
-#endif
-
-  String *rclassNameRef = getRClassName(type, 1); 
-  String *copyRefRefName = NewStringf("R_swig_copy_%sRef_%sRef", rclassNameRef, rclassNameRef);
-  String *toCName = NewStringf("R_swig_copy_%sRef_to_C", name);
-  String *toRName = NewStringf("R_swig_copy_%sRef_to_R", name);
-
-  addRegistrationRoutine(copyRefRefName, 2);
-  addRegistrationRoutine(toCName, 2);
-  addRegistrationRoutine(toRName, 1);
-
-  Printf(toC->def, "int\n%s(SEXP sobj, %s *value)", toCName, type);
-  Printf(toR->def, "SEXP\n%s(%s *value)", toRName, type);
-  Printf(toCRef->def, "SEXP\n%s(SEXP s_src, SEXP s_dest) {", copyRefRefName);
-
-  Delete(toCName);
-  Delete(toRName);
-
-  String *tmp = NewStringf("%s *src", type);
-  Wrapper_add_local(toCRef, "src", tmp);
-  Delete(tmp);
-  tmp = NewStringf("%s *dest", type);
-  Wrapper_add_local(toCRef, "dest", tmp);
-  Delete(tmp);
-
-  Printf(toCRef->code, "src = (%s *) R_SWIG_resolveExternalRef(s_src, \"%sRef\", \"s_src\", (Rboolean) FALSE);\n",
-	 type, rclassNameRef);
-  Printf(toCRef->code, "dest = (%s *) R_SWIG_resolveExternalRef(s_dest, \"%sRef\", \"s_dest\", (Rboolean) FALSE);\n",
-	 type, rclassNameRef);
-  Printf(toCRef->code, "memcpy(dest, src, sizeof(*src));\nreturn R_NilValue;\n}\n\n");
-
-
-
-  Wrapper_add_localv(toR, "r_obj", "SEXP", "r_obj", NIL);
-  Wrapper_add_localv(toR, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
-  Wrapper_add_localv(toR, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
-  Wrapper_add_local(toR, "r_nprotect", "int r_nprotect = 0");
-  Wrapper_add_local(toC, "ecode", "int ecode = 0");
-
-  Printf(copyToR->def, "%sCopyToR = function(value, obj = new(\"%s\"))\n{\n", name, name);
-  Printf(copyToC->def, "%sCopyToC = function(value, obj)\n{\n", name);
-
-
-  Printf(toR->code, "Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS(\"%s\")));\nr_nprotect++;\n\n", name);
-
-  Wrapper_add_localv(toC, "_tmp_sexp", "SEXP", "_tmp_sexp", NIL);
-
-  Node *c = firstChild(n);
-  //  Swig_typemap_attach_parms("in", c, toR);
-  // Swig_typemap_attach_parms("out", c, toR);
-
-  for(; c; c = nextSibling(c)) {
-    String *elName = Getattr(c, "name");
-    if (!Len(elName)) {
-      continue;
-    }
-    String *tp = Swig_typemap_lookup_new("rtype", c, "", 0);
-    if(!tp) {
-      continue;
-    }
-    /* The S functions to get and set the member value. */
-    String *symname = Getattr(c, "sym:name");
-    String *ClassPrefix = Getattr(n, "sym:name");
-    String *get = Swig_name_get(Swig_name_member(Char(ClassPrefix), symname));
-    String *set = Swig_name_set(Swig_name_member(Char(ClassPrefix), symname));
-
-
-#if 0
-    This is already done now in getRType().
-      If that for some reason no longer gets called, this had better go back.
-			 SwigType *elTT = Getattr(c, "type");
-    SwigType *decl = Getattr(c, "decl");
-    SwigType_push(elTT, decl);
-#endif
-
-    String *elNameT = replaceInitialDash(elName);
-    Printf(copyToR->code, "obj@%s = %s(value)\n", elNameT, get);
-    Printf(copyToC->code, "%s(obj, value@%s)\n", set, elNameT);
-    String *field = NewStringf("value->%s", elNameT);
-    Delete(elNameT);
-    SwigType *elType = Getattr(c, "type");
-
-
-    String *tm = Swig_typemap_lookup_new("out", c, field, 0);
-    if(tm) {
-#ifdef R_SWIG_VERBOSE
-      if (debugMode)
-	Printf(stderr, "Got conversion to R for '%s': '%s' '%s' -> '%s'\n", elName, elType, elTT, tm);
-#endif
-
-      //XXX Get the field in as the rhs.
-      // What about looking in the "memberin"/"memberout" typemaps.
-      Replaceall(tm, "$1", Char(field));
-      Replaceall(tm, "$result", "_tmp_sexp");
-      Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
-      replaceRClass(tm,elType);
-
-
-      Printf(toR->code, "%s\nRf_protect(_tmp_sexp);\nr_nprotect++;\n", tm);
-      Printf(toR->code, "Rf_protect(r_obj = R_do_slot_assign(r_obj, Rf_mkString(\"%s\"), _tmp_sexp));\nr_nprotect++;\n\n", elName);
-    } else {
-      Printf(stderr, "*** Can't convert field %s in \n", elName);
-    }
-
-
-
-    char *field_p = Char(field);
-    tm = Swig_typemap_lookup_new("in", c, field_p, 0);
-    if(tm && !GetFlag(c, "feature:immutable")) {
-      replaceRClass(tm,elType);
-      if (debugMode)
-	Printf(stderr, "typemap (in) for %s => %s\n", 
-	       SwigType_str(elType, 0), tm);
-      String *tmp1 = 
-	NewStringf("%s val", SwigType_lstr(elType, 0));
-      Wrapper_add_local(toC, "val", tmp1);
-      Replaceall(tm, "$input", "_tmp_sexp");
-      if (debugMode)
-	Printf(stderr, "Got conversion to C for %s: %s.   %s\n", 
-	       elName, tm, field);
-#ifdef R_SWIG_VERBOSE
-#endif
-      Printf(toC->code, "_tmp_sexp = GET_SLOT(sobj, Rf_mkString(\"%s\"));\n%s\n\n", elName, tm);
-      Delete(field);
-    }
-    /*
-
-    Replaceall(conversion, "$1", field);
-    Printf(toC->code, "value->%s = ;\n", name);
-    */
-  }
-
-  Printv(toR->code, UnProtectWrapupCode,
-	 "\nreturn(r_obj);\n}\n", NIL);
-
-  Printf(toC->code, "\nreturn(1);\n}\n");
-
-
-  Printf(f_wrapper, "%s;\n", toR->def);
-  Printf(f_wrapper, "%s;\n", toC->def);
-
-  Printf(toR->def, "\n{\n");
-  Printf(toC->def, "\n{\n");
-
-  String *rclassName = getRClassName(type, 0); // without the Ref.
-
-  Printf(copyToR->code, "obj\n}\n\n");
-
-  Printf(sfile, "# Start definition of copy functions & methods for %s\n", rclassName);  
-
-  Wrapper_print(copyToR, sfile);
-  Printf(copyToC->code, "obj\n}\n\n");
-  Wrapper_print(copyToC, sfile);
-
-
-  Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);  
-  Printf(sfile, "setMethod('copyToR', '%sRef', %sCopyToR)\n", rclassName, name);
-  Printf(sfile, "setMethod('copyToC', '%s', %sCopyToC)\n\n", rclassName, name);
-  Printv(sfile, "setMethod('copyToC', c('", rclassName, "Ref', '", rclassName, "Ref'),",
-	 " function(value, obj) {\n",
-	 tab4, ".Call(\"", copyRefRefName, "\", value, obj, PACKAGE = \"",
-	 Rpackage, "\")\n})\n\n", NIL);
-  Printf(sfile, "# End definition of copy methods for %s\n", rclassName);  
-  Printf(sfile, "# End definition of copy functions & methods for %s\n", rclassName);  
-
-  String *m = NewStringf("%sCopyToR", name);
-  addNamespaceMethod(m);
-  char *tt = Char(m);  tt[Len(m)-1] = 'C';
-  addNamespaceMethod(m);
-  Delete(m);
-
-
-  Delete(rclassName);
-
-  DelWrapper(copyToR);
-  DelWrapper(copyToC);
-
-  Wrapper_print(toR, f_wrapper);
-  Wrapper_print(toC, f_wrapper);
-  Wrapper_print(toCRef, f_wrapper);
-
-  DelWrapper(toR);
-  DelWrapper(toC);
-  DelWrapper(toCRef);
-
-  return SWIG_OK;
-}
 
 int R::generateCopyRoutines(Node *n) {
   Wrapper *copyToR = NewWrapper();

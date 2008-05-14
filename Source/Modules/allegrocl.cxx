@@ -2517,7 +2517,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
 int ALLEGROCL::functionWrapper(Node *n) {
 
   ParmList *parms = CopyParmList(Getattr(n, "parms"));
-  Wrapper *wrap = NewWrapper();
+  Wrapper *f = NewWrapper();
 
   String *raw_return_type = Swig_typemap_lookup_new("ctype", n, "", 0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
@@ -2528,18 +2528,18 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   if (!is_void_return) {
     String *lresult_init = NewStringf("= (%s)0", raw_return_type);
-    Wrapper_add_localv(wrap, "lresult",
+    Wrapper_add_localv(f, "lresult",
 		       SwigType_lstr(SwigType_ltype(return_type), "lresult"),
 		       lresult_init, NIL);
     Delete(lresult_init);
   }
   // Emit all of the local variables for holding arguments.
-  emit_args(Getattr(n, "type"), parms, wrap);
+  emit_parameter_variables(parms, f);
 
   // Attach the standard typemaps 
-  Swig_typemap_attach_parms("ctype", parms, wrap);
-  Swig_typemap_attach_parms("lin", parms, wrap);
-  emit_attach_parmmaps(parms, wrap);
+  Swig_typemap_attach_parms("ctype", parms, f);
+  Swig_typemap_attach_parms("lin", parms, f);
+  emit_attach_parmmaps(parms, f);
 
   String *mangled = mangle_name(n);
   Node *overloaded = Getattr(n, "sym:overloaded");
@@ -2562,7 +2562,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
 	emit_buffered_defuns(n);
 	emit_dispatch_defun(n);
       }
-      DelWrapper(wrap);
+      DelWrapper(f);
       return SWIG_OK;
     }
   }
@@ -2609,7 +2609,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
       // canThrow(n, "in", p);
       Replaceall(parm_code, "$input", arg);
       Setattr(p, "emit:input", arg);
-      Printf(wrap->code, "%s\n", parm_code);
+      Printf(f->code, "%s\n", parm_code);
       p = Getattr(p, "tmap:in:next");
     }
 
@@ -2619,28 +2619,30 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   // Emit the function definition
   String *signature = SwigType_str(return_type, name_and_parms);
-  Printf(wrap->def, "EXPORT %s {", signature);
+  Printf(f->def, "EXPORT %s {", signature);
   if (CPlusPlus)
-    Printf(wrap->code, "  try {\n");
-  emit_action(n, wrap);
-  if (!is_void_return) {
-    String *result_convert = Swig_typemap_lookup_new("out", n, "result", 0);
-    Replaceall(result_convert, "$result", "lresult");
-    Printf(wrap->code, "%s\n", result_convert);
-    Printf(wrap->code, "    return lresult;\n");
-    Delete(result_convert);
-  }
+    Printf(f->code, "  try {\n");
+
+  String *actioncode = emit_action(n);
+
+  String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  Replaceall(result_convert, "$result", "lresult");
+  Printf(f->code, "%s\n", result_convert);
+  Printf(f->code, "    return lresult;\n");
+  Delete(result_convert);
+  emit_return_variable(n, Getattr(n, "type"), f);
+
   if (CPlusPlus) {
-    Printf(wrap->code, "  } catch (...) {\n");
+    Printf(f->code, "  } catch (...) {\n");
     if (!is_void_return)
-      Printf(wrap->code, "    return (%s)0;\n", raw_return_type);
-    Printf(wrap->code, "  }\n");
+      Printf(f->code, "    return (%s)0;\n", raw_return_type);
+    Printf(f->code, "  }\n");
   }
-  Printf(wrap->code, "}\n");
+  Printf(f->code, "}\n");
 
   /* print this when in C mode? make this a command-line arg? */
   if (Generate_Wrapper)
-    Wrapper_print(wrap, f_cxx);
+    Wrapper_print(f, f_cxx);
 
   String *f_buffer = NewString("");
 
@@ -2656,7 +2658,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
     }
   }
 
-  DelWrapper(wrap);
+  DelWrapper(f);
 
   return SWIG_OK;
 }

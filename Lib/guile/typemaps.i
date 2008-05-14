@@ -119,7 +119,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
+  resultptr = new $1_ltype((const $1_ltype &) $1);
   $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 1);
 } 
 #else
@@ -135,7 +135,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype&) $1);
+  resultptr = new $1_ltype((const $1_ltype&) $1);
   $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 0);
 } 
 #else

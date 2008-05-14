@@ -189,7 +189,7 @@ $1=&temp;%}
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
 {
-  $&1_ltype resultptr = new $1_ltype(($1_ltype &) $1);
+  $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
   SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
 }
 #else

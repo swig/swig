@@ -288,8 +288,8 @@ public:
 
     Wrapper *f = NewWrapper();
 
-    /* Write code to extract function parameters. */
-    emit_args(d, l, f);
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -400,21 +400,21 @@ public:
     }
 
     /* Emit the function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
     /* Clear the return stack */
-    Printf(f->code, "pop_n_elems(args);\n");
+    Printf(actioncode, "pop_n_elems(args);\n");
 
     /* Return the function value */
     if (current == CONSTRUCTOR) {
-      Printv(f->code, "THIS = (void *) result;\n", NIL);
+      Printv(actioncode, "THIS = (void *) result;\n", NIL);
       Printv(description, ", tVoid", NIL);
     } else if (current == DESTRUCTOR) {
       Printv(description, ", tVoid", NIL);
     } else {
-      // Wrapper_add_local(f, "resultobj", "struct object *resultobj");
       Printv(description, ", ", NIL);
-      if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+        actioncode = 0;
 	Replaceall(tm, "$source", "result");
 	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$result", "resultobj");
@@ -432,6 +432,11 @@ public:
 	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
       }
     }
+    if (actioncode) {
+      Append(f->code, actioncode);
+      Delete(actioncode);
+    }
+    emit_return_variable(n, d, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);

@@ -426,7 +426,7 @@ public:
 
     Printv(f->def, "static octave_value_list ", overname, " (const octave_value_list& args, int nargout) {", NIL);
 
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
 
@@ -569,14 +569,15 @@ public:
 
     Setattr(n, "wrap:name", overname);
 
-    emit_action(n, f);
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
     Wrapper_add_local(f, "_out", "octave_value_list _out");
     Wrapper_add_local(f, "_outp", "octave_value_list *_outp=&_out");
     Wrapper_add_local(f, "_outv", "octave_value _outv");
 
     // Return the function value
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "_outv");
       Replaceall(tm, "$result", "_outv");
@@ -592,6 +593,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
     }
+    emit_return_variable(n, d, f);
 
     Printv(f->code, outarg, NIL);
     Printv(f->code, cleanup, NIL);
@@ -690,7 +692,7 @@ public:
 	if (Getattr(n, "tmap:varin:implicitconv")) {
 	  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
 	}
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
@@ -711,7 +713,7 @@ public:
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "obj");
       Replaceall(tm, "$result", "obj");
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));

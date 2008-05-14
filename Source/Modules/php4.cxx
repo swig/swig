@@ -1007,7 +1007,7 @@ public:
       Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
 
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
@@ -1175,9 +1175,9 @@ public:
     Setattr(n, "wrap:name", wname);
 
     /* emit function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$input", "result");
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "return_value");
@@ -1205,6 +1205,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     if (outarg) {
       Printv(f->code, outarg, NIL);
@@ -2679,24 +2680,23 @@ public:
   int CreateZendListDestructor(Node *n) {
     String *name = GetChar(Swig_methodclass(n), "name");
     String *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
     String *destructorname = NewStringEmpty();
     Printf(destructorname, "_%s", Swig_name_wrapper(iname));
     Setattr(classnode, "destructor", destructorname);
 
-    Wrapper *df = NewWrapper();
-    Printf(df->def, "/* This function is designed to be called by the zend list destructors */\n");
-    Printf(df->def, "/* to typecast and do the actual destruction */\n");
-    Printf(df->def, "static void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n", destructorname);
+    Wrapper *f = NewWrapper();
+    Printf(f->def, "/* This function is designed to be called by the zend list destructors */\n");
+    Printf(f->def, "/* to typecast and do the actual destruction */\n");
+    Printf(f->def, "static void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n", destructorname);
 
-    Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
-    Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NIL);
-    Wrapper_add_localv(df, "newobject", "int newobject=value->newobject", NIL);
+    Wrapper_add_localv(f, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
+    Wrapper_add_localv(f, "ptr", "void *ptr=value->ptr", NIL);
+    Wrapper_add_localv(f, "newobject", "int newobject=value->newobject", NIL);
 
-    emit_args(d, l, df);
-    emit_attach_parmmaps(l, df);
+    emit_parameter_variables(l, f);
+    emit_attach_parmmaps(l, f);
 
     // Get type of first arg, thing to be destructed
     // Skip ignored arguments
@@ -2707,18 +2707,20 @@ public:
     }
     SwigType *pt = Getattr(p, "type");
 
-    Printf(df->code, "  efree(value);\n");
-    Printf(df->code, "  if (! newobject) return; /* can't delete it! */\n");
-    Printf(df->code, "  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
-    Printf(df->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
+    Printf(f->code, "  efree(value);\n");
+    Printf(f->code, "  if (! newobject) return; /* can't delete it! */\n");
+    Printf(f->code, "  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
+    Printf(f->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
 
     Setattr(n, "wrap:name", destructorname);
 
-    emit_action(n, df);
+    String *actioncode = emit_action(n);
+    Append(f->code, actioncode);
+    Delete(actioncode);
 
-    Printf(df->code, "}\n");
+    Printf(f->code, "}\n");
 
-    Wrapper_print(df, s_wrappers);
+    Wrapper_print(f, s_wrappers);
 
     return SWIG_OK;
 

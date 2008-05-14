@@ -1611,8 +1611,8 @@ public:
 
     Wrapper_add_local(f, "resultobj", "PyObject *resultobj = 0");
 
-    /* Write code to extract function parameters. */
-    emit_args(d, l, f);
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -1916,17 +1916,6 @@ public:
       }
     }
 
-    /* for constructor, determine if Python class has been subclassed.
-     * if so, create a director instance.  otherwise, just create a normal instance.
-     */
-    /* MOVED TO Swig_ConstructorToFunction() */
-    /*
-       if (constructor && (Getattr(n, "wrap:self") != 0)) {
-       Wrapper_add_local(f, "subclassed", "int subclassed = 0");
-       Append(f->code, "subclassed = (arg1 != Py_None);\n");
-       }
-     */
-
     /* Emit the function call */
     if (director_method) {
       Append(f->code, "try {\n");
@@ -1939,23 +1928,24 @@ public:
 
     Setattr(n, "wrap:name", wname);
 
-    emit_action(n, f);
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
     if (director_method) {
-      Append(f->code, "} catch (Swig::DirectorException&) {\n");
-      Append(f->code, "  SWIG_fail;\n");
-      Append(f->code, "}\n");
+      Append(actioncode, "} catch (Swig::DirectorException&) {\n");
+      Append(actioncode, "  SWIG_fail;\n");
+      Append(actioncode, "}\n");
     } else {
       if (allow_thread) {
-	thread_end_allow(n, f->code);
-	Append(f->code, "}\n");
+	thread_end_allow(n, actioncode);
+	Append(actioncode, "}\n");
       }
     }
 
     /* This part below still needs cleanup */
 
     /* Return the function value */
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       if (funpack) {
 	Replaceall(tm, "$self", "swig_obj[0]");
       } else {
@@ -2013,6 +2003,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -2187,7 +2178,7 @@ public:
 	if (Getattr(n, "tmap:varin:implicitconv")) {
 	  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
 	}
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
@@ -2217,7 +2208,7 @@ public:
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "pyobj");
       Replaceall(tm, "$result", "pyobj");
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));

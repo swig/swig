@@ -12,40 +12,53 @@ char cvsroot_emit_cxx[] = "$Id$";
 #include "swigmod.h"
 
 /* -----------------------------------------------------------------------------
- * emit_args()
+ * emit_return_variable()
  *
- * Creates a list of variable declarations for both the return value
- * and function parameters.
- *
- * The return value is always called result and arguments arg0, arg1, arg2, etc...
- * Returns the number of parameters associated with a function.
+ * Emits a variable declaration for a function return value.
+ * The variable name is always called result.
+ * n => Node of the method being wrapped
+ * rt => the return type
+ * f => the wrapper to generate code into
  * ----------------------------------------------------------------------------- */
 
-void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
+void emit_return_variable(Node *n, SwigType *rt, Wrapper *f) {
+
+  if (!GetFlag(n, "tmap:out:optimal")) {
+    if (rt && (SwigType_type(rt) != T_VOID)) {
+      SwigType *vt = cplus_value_type(rt);
+      SwigType *tt = vt ? vt : rt;
+      SwigType *lt = SwigType_ltype(tt);
+      String *lstr = SwigType_str(lt, "result");
+      if (SwigType_ispointer(lt)) {
+        Wrapper_add_localv(f, "result", lstr, "= 0", NULL);
+      } else {
+        Wrapper_add_local(f, "result", lstr);
+      }
+      if (vt) {
+        Delete(vt);
+      }
+      Delete(lt);
+      Delete(lstr);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_parameter_variables()
+ *
+ * Emits a list of variable declarations for function parameters.
+ * The variable names are always called arg1, arg2, etc...
+ * l => the parameter list
+ * f => the wrapper to generate code into
+ * ----------------------------------------------------------------------------- */
+
+void emit_parameter_variables(ParmList *l, Wrapper *f) {
 
   Parm *p;
   String *tm;
 
   /* Emit function arguments */
   Swig_cargs(f, l);
-
-  /* Handle return type */
-  if (rt && (SwigType_type(rt) != T_VOID)) {
-    SwigType *vt = cplus_value_type(rt);
-    SwigType *tt = vt ? vt : rt;
-    SwigType *lt = SwigType_ltype(tt);
-    String *lstr = SwigType_str(lt, "result");
-    if (SwigType_ispointer(lt)) {
-      Wrapper_add_localv(f, "result", lstr, "= 0", NULL);
-    } else {
-      Wrapper_add_local(f, "result", lstr);
-    }
-    if (vt) {
-      Delete(vt);
-    }
-    Delete(lt);
-    Delete(lstr);
-  }
 
   /* Attach typemaps to parameters */
   /*  Swig_typemap_attach_parms("ignore",l,f); */
@@ -78,7 +91,6 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       p = nextSibling(p);
     }
   }
-  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -332,11 +344,13 @@ static void replace_contract_args(Parm *cp, Parm *rp, String *s) {
 #endif
 
 /* -----------------------------------------------------------------------------
- * int emit_action()
+ * int emit_action_code()
  *
  * Emits action code for a wrapper. Adds in exception handling code (%exception).
+ * eaction -> the action code to emit
+ * wrappercode -> the emitted code (output)
  * ----------------------------------------------------------------------------- */
-int emit_action_code(Node *n, Wrapper *f, String *eaction) {
+int emit_action_code(Node *n, String *wrappercode, String *eaction) {
   assert(Getattr(n, "wrap:name"));
 
   /* Look for except feature (%exception) */
@@ -364,16 +378,23 @@ int emit_action_code(Node *n, Wrapper *f, String *eaction) {
         Delete(fulldecl);
       }
     }
-    Printv(f->code, tm, "\n", NIL);
+    Printv(wrappercode, tm, "\n", NIL);
     Delete(tm);
     return 1;
   } else {
-    Printv(f->code, eaction, "\n", NIL);
+    Printv(wrappercode, eaction, "\n", NIL);
     return 0;
   }
 }
 
-void emit_action(Node *n, Wrapper *f) {
+/* -----------------------------------------------------------------------------
+ * int emit_action()
+ *
+ * Emits the call to the wrapped function. 
+ * Adds in exception specification exception handling and %exception code.
+ * ----------------------------------------------------------------------------- */
+String *emit_action(Node *n) {
+  String *actioncode = NewStringEmpty();
   String *tm;
   String *action;
   String *wrap;
@@ -382,11 +403,10 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Look for fragments */
   {
-    String *f;
-    f = Getattr(n, "feature:fragment");
-    if (f) {
+    String *fragment = Getattr(n, "feature:fragment");
+    if (fragment) {
       char *c, *tok;
-      String *t = Copy(f);
+      String *t = Copy(fragment);
       c = Char(t);
       tok = strtok(c, ",");
       while (tok) {
@@ -416,27 +436,7 @@ void emit_action(Node *n, Wrapper *f) {
     action = Getattr(n, "wrap:action");
   assert(action != 0);
 
-
-  /* In order to call protected virtual director methods from the target language, we need
-   * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
-   * Also for non-static protected members when the allprotected option is on. */
-// TODO: why is the storage element removed in staticmemberfunctionHandler ??
-  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
-      (is_non_virtual_protected_access(n) && !(checkAttribute(n, "staticmemberfunctionHandler:storage", "static") || 
-                                               checkAttribute(n, "storage", "static"))
-                                          && !Equal(nodeType(n), "constructor"))) {
-    Node *parent = Getattr(n, "parentNode");
-    String *symname = Getattr(parent, "sym:name");
-    String *dirname = NewStringf("SwigDirector_%s", symname);
-    String *dirdecl = NewStringf("%s *darg = 0", dirname);
-    Wrapper_add_local(f, "darg", dirdecl);
-    Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
-    Delete(dirname);
-    Delete(dirdecl);
-  }
-
   /* Get the return type */
-
   rt = Getattr(n, "type");
 
   /* Emit contract code (if any) */
@@ -444,7 +444,7 @@ void emit_action(Node *n, Wrapper *f) {
     /* Preassertion */
     tm = Getattr(n, "contract:preassert");
     if (Len(tm)) {
-      Printv(f->code, tm, "\n", NIL);
+      Printv(actioncode, tm, "\n", NIL);
     }
   }
   /* Exception handling code */
@@ -495,7 +495,7 @@ void emit_action(Node *n, Wrapper *f) {
   }
 
   /* emit the except feature code */
-  emit_action_code(n, f, eaction);
+  emit_action_code(n, actioncode, eaction);
 
   Delete(eaction);
 
@@ -504,8 +504,9 @@ void emit_action(Node *n, Wrapper *f) {
     /* Postassertion */
     tm = Getattr(n, "contract:postassert");
     if (Len(tm)) {
-      Printv(f->code, tm, "\n", NIL);
+      Printv(actioncode, tm, "\n", NIL);
     }
   }
 
+  return actioncode;
 }

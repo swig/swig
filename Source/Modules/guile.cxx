@@ -687,7 +687,7 @@ public:
     Replaceall(proc_name, "_", "-");
 
     /* Emit locals etc. into f->code; figure out which args to ignore */
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -701,25 +701,6 @@ public:
 
     Wrapper_add_local(f, "gswig_result", "SCM gswig_result");
     Wrapper_add_local(f, "gswig_list_p", "SWIGUNUSED int gswig_list_p = 0");
-
-    /* Get the output typemap so we can start generating documentation.  Don't
-       worry, the returned string is saved as 'tmap:out' */
-
-    Swig_typemap_lookup_new("out", n, "result", 0);
-
-    if ((tm = Getattr(n, "tmap:out:doc"))) {
-      Printv(returns, tm, NIL);
-      if (Len(tm) > 0)
-	num_results = 1;
-      else
-	num_results = 0;
-    } else {
-      String *s = SwigType_str(d, 0);
-      Chop(s);
-      Printf(returns, "<%s>", s);
-      Delete(s);
-      num_results = 1;
-    }
 
     /* Open prototype and signature */
 
@@ -830,6 +811,7 @@ public:
     /* Pass output arguments back to the caller. */
 
     /* Insert argument output code */
+    String *returns_argout = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	Replaceall(tm, "$source", Getattr(p, "lname"));
@@ -838,7 +820,7 @@ public:
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
 	if (procdoc) {
-	  if (handle_documentation_typemap(returns, ", ", p, "tmap:argout:doc", "$NAME (of type $type)")) {
+	  if (handle_documentation_typemap(returns_argout, ", ", p, "tmap:argout:doc", "$NAME (of type $type)")) {
 	    /* A documentation typemap that is not the empty string
 	       indicates that a value is returned to Scheme. */
 	    num_results++;
@@ -881,13 +863,14 @@ public:
     // Now write code to make the function call
     if (!use_scm_interface)
       Printv(f->code, tab4, "gh_defer_ints();\n", NIL);
-    emit_action(n, f);
+
+    String *actioncode = emit_action(n);
+
     if (!use_scm_interface)
-      Printv(f->code, tab4, "gh_allow_ints();\n", NIL);
+      Printv(actioncode, tab4, "gh_allow_ints();\n", NIL);
 
     // Now have return value, figure out what to do with it.
-
-    if ((tm = Getattr(n, "tmap:out"))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$result", "gswig_result");
       Replaceall(tm, "$target", "gswig_result");
       Replaceall(tm, "$source", "result");
@@ -899,6 +882,24 @@ public:
     } else {
       throw_unhandled_guile_type_error(d);
     }
+    emit_return_variable(n, d, f);
+
+    // Documentation
+    if ((tm = Getattr(n, "tmap:out:doc"))) {
+      Printv(returns, tm, NIL);
+      if (Len(tm) > 0)
+	num_results = 1;
+      else
+	num_results = 0;
+    } else {
+      String *s = SwigType_str(d, 0);
+      Chop(s);
+      Printf(returns, "<%s>", s);
+      Delete(s);
+      num_results = 1;
+    }
+    Append(returns, returns_argout);
+
 
     // Dump the argument output code
     Printv(f->code, outarg, NIL);
@@ -1123,6 +1124,7 @@ public:
     Delete(method_signature);
     Delete(primitive_args);
     Delete(doc_body);
+    Delete(returns_argout);
     Delete(returns);
     Delete(tmp);
     Delete(scheme_arg_names);
@@ -1182,7 +1184,7 @@ public:
 	  Replaceall(tm, "$input", "s_0");
 	  Replaceall(tm, "$target", name);
 	  /* Printv(f->code,tm,"\n",NIL); */
-	  emit_action_code(n, f, tm);
+	  emit_action_code(n, f->code, tm);
 	} else {
 	  throw_unhandled_guile_type_error(t);
 	}
@@ -1196,7 +1198,7 @@ public:
 	Replaceall(tm, "$target", "gswig_result");
 	Replaceall(tm, "$result", "gswig_result");
 	/* Printv(f->code,tm,"\n",NIL); */
-	emit_action_code(n, f, tm);
+	emit_action_code(n, f->code, tm);
       } else {
 	throw_unhandled_guile_type_error(t);
       }

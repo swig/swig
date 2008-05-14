@@ -1649,7 +1649,7 @@ public:
 
     /* Emit arguments */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      emit_args(t, l, f);
+      emit_parameter_variables(l, f);
     }
 
     /* Attach standard typemaps */
@@ -1773,72 +1773,79 @@ public:
 
       Setattr(n, "wrap:name", wname);
 
-      emit_action(n, f);
+      Swig_director_emit_dynamic_cast(n, f);
+      String *actioncode = emit_action(n);
 
       if (director_method) {
-	Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
-	Printf(f->code, "  rb_exc_raise(e.getError());\n");
-	Printf(f->code, "  SWIG_fail;\n");
-	Printf(f->code, "}\n");
+	Printf(actioncode, "} catch (Swig::DirectorException& e) {\n");
+	Printf(actioncode, "  rb_exc_raise(e.getError());\n");
+	Printf(actioncode, "  SWIG_fail;\n");
+	Printf(actioncode, "}\n");
       }
-    }
 
-    /* Return value if necessary */
-    if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {
-      need_result = 1;
-      if (GetFlag(n, "feature:predicate")) {
-	Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
-      } else {
-	tm = Swig_typemap_lookup_new("out", n, "result", 0);
-	if (tm) {
-	  Replaceall(tm, "$result", "vresult");
-	  Replaceall(tm, "$source", "result");
-	  Replaceall(tm, "$target", "vresult");
+      /* Return value if necessary */
+      if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
+        need_result = 1;
+        if (GetFlag(n, "feature:predicate")) {
+          Printv(actioncode, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
+        } else {
+          tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+          actioncode = 0;
+          if (tm) {
+            Replaceall(tm, "$result", "vresult");
+            Replaceall(tm, "$source", "result");
+            Replaceall(tm, "$target", "vresult");
 
-	  if (GetFlag(n, "feature:new"))
-	    Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
-	  else
-	    Replaceall(tm, "$owner", "0");
+            if (GetFlag(n, "feature:new"))
+              Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+            else
+              Replaceall(tm, "$owner", "0");
 
 #if 1
-	  // FIXME: this will not try to unwrap directors returned as non-director
-	  //        base class pointers!
+            // FIXME: this will not try to unwrap directors returned as non-director
+            //        base class pointers!
 
-	  /* New addition to unwrap director return values so that the original
-	   * Ruby object is returned instead. 
-	   */
-	  bool unwrap = false;
-	  String *decl = Getattr(n, "decl");
-	  int is_pointer = SwigType_ispointer_return(decl);
-	  int is_reference = SwigType_isreference_return(decl);
-	  if (is_pointer || is_reference) {
-	    String *type = Getattr(n, "type");
-	    Node *parent = Swig_methodclass(n);
-	    Node *modname = Getattr(parent, "module");
-	    Node *target = Swig_directormap(modname, type);
-	    if (target)
-	      unwrap = true;
-	  }
-	  if (unwrap) {
-	    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-	    Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
-	    Printf(f->code, "if (director) {\n");
-	    Printf(f->code, "  vresult = director->swig_get_self();\n");
-	    Printf(f->code, "} else {\n");
-	    Printf(f->code, "%s\n", tm);
-	    Printf(f->code, "}\n");
-	    director_method = 0;
-	  } else {
-	    Printf(f->code, "%s\n", tm);
-	  }
+            /* New addition to unwrap director return values so that the original
+             * Ruby object is returned instead. 
+             */
+            bool unwrap = false;
+            String *decl = Getattr(n, "decl");
+            int is_pointer = SwigType_ispointer_return(decl);
+            int is_reference = SwigType_isreference_return(decl);
+            if (is_pointer || is_reference) {
+              String *type = Getattr(n, "type");
+              Node *parent = Swig_methodclass(n);
+              Node *modname = Getattr(parent, "module");
+              Node *target = Swig_directormap(modname, type);
+              if (target)
+                unwrap = true;
+            }
+            if (unwrap) {
+              Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+              Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
+              Printf(f->code, "if (director) {\n");
+              Printf(f->code, "  vresult = director->swig_get_self();\n");
+              Printf(f->code, "} else {\n");
+              Printf(f->code, "%s\n", tm);
+              Printf(f->code, "}\n");
+              director_method = 0;
+            } else {
+              Printf(f->code, "%s\n", tm);
+            }
 #else
-	  Printf(f->code, "%s\n", tm);
+            Printf(f->code, "%s\n", tm);
 #endif
-	  Delete(tm);
-	} else {
-	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
-	}
+            Delete(tm);
+          } else {
+            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
+          }
+        }
       }
+      if (actioncode) {
+        Append(f->code, actioncode);
+        Delete(actioncode);
+      }
+      emit_return_variable(n, t, f);
     }
 
     /* Extra code needed for new and initialize methods */
@@ -2108,7 +2115,7 @@ public:
       Replaceall(tm, "$target", "_val");
       Replaceall(tm, "$source", name);
       /* Printv(getf->code,tm, NIL); */
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
@@ -2140,7 +2147,7 @@ public:
 	Replaceall(tm, "$source", "_val");
 	Replaceall(tm, "$target", name);
 	/* Printv(setf->code,tm,"\n",NIL); */
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
       }

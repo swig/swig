@@ -136,7 +136,7 @@ extern "C" {
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
+  resultptr = new $1_ltype((const $1_ltype &) $1);
   push_object(SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1));
 }
 #else

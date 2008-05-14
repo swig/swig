@@ -80,12 +80,13 @@
              SWIGTYPE[ANY], SWIGTYPE &     "$1 = $input;";
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
 
+%typemap(out) void                         "";
 %typemap(out) bool                          "$result = (int)$1;";
 %typemap(out) char, unsigned char, signed char,
               short, signed short, unsigned short,
               int, signed int, unsigned int,
               long, signed long, unsigned long,
-              float, double, long double, char *, void *, void,
+              float, double, long double, char *, void *
               enum SWIGTYPE, SWIGTYPE *,
               SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
 #ifdef __cplusplus
