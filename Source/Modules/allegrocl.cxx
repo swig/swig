@@ -2293,7 +2293,7 @@ int ALLEGROCL::emit_defun(Node *n, File *f_cl) {
   Wrapper *wrap = NewWrapper();
   Swig_typemap_attach_parms("lin", pl, wrap);
   // Swig_typemap_attach_parms("ffitype", pl, wrap);
-  Swig_typemap_lookup_new("lout", n, "result", 0);
+  Swig_typemap_lookup("lout", n, "result", 0);
 
   SwigType *result_type = Swig_cparse_type(Getattr(n, "tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
@@ -2519,7 +2519,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
   ParmList *parms = CopyParmList(Getattr(n, "parms"));
   Wrapper *f = NewWrapper();
 
-  String *raw_return_type = Swig_typemap_lookup_new("ctype", n, "", 0);
+  String *raw_return_type = Swig_typemap_lookup("ctype", n, "", 0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
   SwigType *resolved = SwigType_typedef_resolve_all(return_type);
   int is_void_return = (Cmp(resolved, "void") == 0);

@@ -72,7 +72,7 @@ static String * getRType(Node *n) {
   SwigType_push(elType, elDecl);
   String *ans;
 
-  String *rtype = Swig_typemap_lookup_new("rtype", n, "", 0);
+  String *rtype = Swig_typemap_lookup("rtype", n, "", 0);
   String *i = getRTypeName(elType);
 
   if(Len(i) == 0) {
@@ -710,7 +710,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     
     Setattr(bbase, "type", rettype);
     Setattr(bbase, "name", NewString("result"));
-    String *returnTM = Swig_typemap_lookup_new("in", bbase, "result", f);
+    String *returnTM = Swig_typemap_lookup("in", bbase, "result", f);
     if(returnTM) {
       String *tm = returnTM;
       Replaceall(tm,"$input", "r_swig_cb_data->retValue");
@@ -1634,7 +1634,7 @@ void R::dispatchFunction(Node *n) {
       }
       Printv(f->code, "if (", NIL);
       for (p =pi, j = 0 ; j < num_arguments ; j++) {
-	String *tm = Swig_typemap_lookup_new("rtype", p, "", 0);
+	String *tm = Swig_typemap_lookup("rtype", p, "", 0);
 	if(tm) {
 	  replaceRClass(tm, Getattr(p, "type"));
 	}
@@ -1950,7 +1950,7 @@ int R::functionWrapper(Node *n) {
     }
 
 
-    tm = Swig_typemap_lookup_new("rtype", curP, "", 0);
+    tm = Swig_typemap_lookup("rtype", curP, "", 0);
     if(tm) {
       replaceRClass(tm, Getattr(curP, "type"));
     }
@@ -2076,7 +2076,7 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, UnProtectWrapupCode, NIL);
 
   /*If the user gave us something to convert the result in  */
-  if ((tm = Swig_typemap_lookup_new("scoerceout", n, 
+  if ((tm = Swig_typemap_lookup("scoerceout", n, 
 				    "result", sfun))) {
     Replaceall(tm,"$source","ans");
     Replaceall(tm,"$result","ans");
@@ -2102,7 +2102,7 @@ int R::functionWrapper(Node *n) {
   Wrapper_print(sfun, sfile);
 
   Printf(sfun->code, "\n# End of %s\n", iname);
-  tm = Swig_typemap_lookup_new("rtype", n, "", 0);
+  tm = Swig_typemap_lookup("rtype", n, "", 0);
   if(tm) {
     SwigType *retType = Getattr(n, "type");
     replaceRClass(tm, retType);
@@ -2336,7 +2336,7 @@ int R::classDeclaration(Node *n) {
 #if 0
       tp = getRType(c);
 #else
-      tp = Swig_typemap_lookup_new("rtype", c, "", 0);
+      tp = Swig_typemap_lookup("rtype", c, "", 0);
       if(!tp) {
 	c = nextSibling(c);
 	continue;
@@ -2432,7 +2432,7 @@ int R::generateCopyRoutines(Node *n) {
       continue;
     }
 
-    String *tp = Swig_typemap_lookup_new("rtype", c, "", 0);
+    String *tp = Swig_typemap_lookup("rtype", c, "", 0);
     if(!tp) {
       continue;
     }

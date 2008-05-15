@@ -315,7 +315,7 @@ MODULA3():
    * ----------------------------------------------------------------------------- */
 
   String *getMappedTypeNew(Node *n, const char *map, const char *lname = "", bool warn = true) {
-    String *tm = Swig_typemap_lookup_new(map, n, lname, 0);
+    String *tm = Swig_typemap_lookup(map, n, lname, 0);
     if ((tm == NIL) && warn) {
       Swig_warning(WARN_MODULA3_TYPEMAP_TYPE_UNDEF, input_file, line_number,
 		   "No '%s' typemap defined for type '%s'\n", map, SwigType_str(Getattr(n, "type"), 0));
@@ -330,7 +330,7 @@ MODULA3():
    * ----------------------------------------------------------------------------- */
 
   void attachMappedType(Node *n, const char *map, const char *lname = "") {
-    String *tm = Swig_typemap_lookup_new(map, n, lname, 0);
+    String *tm = Swig_typemap_lookup(map, n, lname, 0);
     if (tm != NIL) {
       String *attr = NewStringf("tmap:%s", map);
       Setattr(n, attr, tm);
@@ -1450,7 +1450,7 @@ MODULA3():
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      String *tm = Swig_typemap_lookup_new("newfree", n, "result", 0);
+      String *tm = Swig_typemap_lookup("newfree", n, "result", 0);
       if (tm != NIL) {
 	addThrows(throws_hash, "newfree", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
@@ -1460,7 +1460,7 @@ MODULA3():
 
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
-      String *tm = Swig_typemap_lookup_new("ret", n, "result", 0);
+      String *tm = Swig_typemap_lookup("ret", n, "result", 0);
       if (tm != NIL) {
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);

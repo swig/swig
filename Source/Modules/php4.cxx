@@ -1195,7 +1195,7 @@ public:
 	if (native_constructor == NATIVE_CONSTRUCTOR) {
 	  Printf(f->code, "add_property_zval(this_ptr,\"" SWIG_PTR "\",_cPtr);\n");
 	} else {
-	  String *shadowrettype = SwigToPhpType(d, iname, true);
+	  String *shadowrettype = SwigToPhpType(n, true);
 	  Printf(f->code, "object_init_ex(return_value,ptr_ce_swig_%s);\n", shadowrettype);
 	  Delete(shadowrettype);
 	  Printf(f->code, "add_property_zval(return_value,\"" SWIG_PTR "\",_cPtr);\n");
@@ -1217,14 +1217,14 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -1858,7 +1858,7 @@ public:
 
     /* First link C variables to PHP */
 
-    tm = Swig_typemap_lookup_new("varinit", n, name, 0);
+    tm = Swig_typemap_lookup("varinit", n, name, 0);
     if (tm) {
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
@@ -1868,7 +1868,7 @@ public:
 
     /* Now generate PHP -> C sync blocks */
     /*
-       tm = Swig_typemap_lookup_new("varin", n, name, 0);
+       tm = Swig_typemap_lookup("varin", n, name, 0);
        if(tm) {
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
@@ -1881,7 +1881,7 @@ public:
     /*
        if(!GetFlag(n,"feature:immutable")) {
 
-       tm = Swig_typemap_lookup_new("varout", n, name, 0);
+       tm = Swig_typemap_lookup("varout", n, name, 0);
        if(tm) {
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
@@ -1911,7 +1911,7 @@ public:
 
     SwigType_remember(type);
 
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -2496,7 +2496,7 @@ public:
     // is made.
     int assignable = is_assignable(n);
     if (assignable) {
-      String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
+      String *tm = Swig_typemap_lookup("globalin", n, name, 0);
       if (!tm && SwigType_isarray(type)) {
 	assignable = 0;
       }
@@ -2556,14 +2556,15 @@ public:
   }
 
 
-  String * SwigToPhpType(SwigType *t, String_or_char *pname, int shadow_flag) {
+  String * SwigToPhpType(Node *n, int shadow_flag) {
     String *ptype = 0;
+    SwigType *t = Getattr(n, "type");
 
     if (shadow_flag) {
-      ptype = PhpTypeFromTypemap((char *) "pstype", t, pname, (char *) "");
+      ptype = PhpTypeFromTypemap((char *) "pstype", n, (char *) "");
     }
     if (!ptype) {
-      ptype = PhpTypeFromTypemap((char *) "ptype", t, pname, (char *) "");
+      ptype = PhpTypeFromTypemap((char *) "ptype", n, (char *) "");
     }
 
     if (ptype) return ptype;
@@ -2603,22 +2604,12 @@ public:
     return NewStringEmpty();
   }
 
-  String *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
-    String *tms;
-    tms = Swig_typemap_lookup(op, t, pname, lname, (char *) "", (char *) "", NULL);
-    if (!tms) {
-      return NULL;
-    }
-
-    char *start = Char(tms);
-    while (isspace(*start) || *start == '{') {
-      start++;
-    }
-    char *end = start;
-    while (*end && *end != '}') {
-      end++;
-    }
-    return NewStringWithSize(start, end - start);
+  String *PhpTypeFromTypemap(char *op, Node *n, String_or_char *lname) {
+    String *tms = Swig_typemap_lookup(op, n, lname, 0);
+    if (!tms)
+      return 0;
+    else
+      return NewStringf("%s", tms);
   }
 
   int abstractConstructorHandler(Node *n) {

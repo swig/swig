@@ -599,13 +599,13 @@ public:
     Printv(f->code, cleanup, NIL);
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Replaceall(tm, "$source", "result");
 	Printf(f->code, "%s\n", tm);
       }
     }
 
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$result", "_outv");
       Printf(f->code, "%s\n", tm);
@@ -685,7 +685,7 @@ public:
     Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "args(0)");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args(0)");
@@ -709,7 +709,7 @@ public:
     int addfail = 0;
     Printf(getf->def, "static octave_value_list _wrap_%s(const octave_value_list& args,int nargout) {", getname);
     Wrapper_add_local(getf, "obj", "octave_value obj");
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "obj");
       Replaceall(tm, "$result", "obj");
@@ -749,7 +749,7 @@ public:
       Delete(str);
       value = wname;
     }
-    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -1285,7 +1285,7 @@ public:
 	Printf(w->code, "}\n");
 
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
 	if (tm == 0) {
 	  String *name = NewString("result");

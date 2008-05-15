@@ -369,10 +369,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_char *pname, SwigType **matchtype);
   extern Hash *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch);
-  extern String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *lname,
-				     String_or_char *source, String_or_char *target, Wrapper *f);
-
-  extern String *Swig_typemap_lookup_new(const String_or_char *op, Node *n, const String_or_char *lname, Wrapper *f);
+  extern String *Swig_typemap_lookup(const String_or_char *op, Node *n, const String_or_char *lname, Wrapper *f);
   extern String *Swig_typemap_lookup_out(const String_or_char *op, Node *n, const String_or_char *lname, Wrapper *f, String *actioncode);
   extern void Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p);
   extern void Swig_typemap_new_scope(void);

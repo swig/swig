@@ -1162,81 +1162,18 @@ static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
 /* -----------------------------------------------------------------------------
  * Swig_typemap_lookup()
  *
- * Perform a typemap lookup (ala SWIG1.1)
+ * Attach one or more typemaps to a node and optionally generate the typemap contents
+ * into the wrapper.
+ * op         - typemap name, eg "out", "newfree"
+ * node       - the node to attach the typemaps to
+ * lname      - name of variable to substitute $1, $2 etc for
+ * f          - wrapper code to generate into if non null
+ * actioncode - code to generate into f before the out typemap code, unless
+ *              the optimal attribute is set in the out typemap in which case
+ *              $1 in the out typemap will be replaced  by the code in actioncode.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname,
-			    String_or_char *lname, String_or_char *source, String_or_char *target, Wrapper *f) {
-  Hash *tm;
-  String *s = 0;
-  SwigType *mtype = 0;
-  ParmList *locals;
-  tm = Swig_typemap_search(op, type, pname, &mtype);
-  if (!tm)
-    return 0;
-
-  s = Getattr(tm, "code");
-  if (!s) {
-    if (mtype)
-      Delete(mtype);
-    return 0;
-  }
-
-
-  /* Blocked */
-  if (Cmp(s, "pass") == 0) {
-    Delete(mtype);
-    return 0;
-  }
-
-  s = Copy(s);			/* Make a local copy of the typemap code */
-
-  locals = Getattr(tm, "locals");
-  if (locals)
-    locals = CopyParmList(locals);
-
-  /* This is wrong.  It replaces locals in place.   Need to fix this */
-  if (mtype && SwigType_isarray(mtype)) {
-    typemap_replace_vars(s, locals, mtype, type, pname, lname, 1);
-  } else {
-    typemap_replace_vars(s, locals, type, type, pname, lname, 1);
-  }
-
-  if (locals && f) {
-    typemap_locals(s, locals, f, -1);
-  }
-
-  replace_embedded_typemap(s);
-
-  /* Now perform character replacements */
-  Replace(s, "$source", source, DOH_REPLACE_ANY);
-  Replace(s, "$target", target, DOH_REPLACE_ANY);
-
-  /*  {
-     String *tmname = Getattr(tm,"typemap");
-     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
-     }
-   */
-
-  Replace(s, "$parmname", pname, DOH_REPLACE_ANY);
-  /*  Replace(s,"$name",pname,DOH_REPLACE_ANY); */
-
-  Delete(locals);
-  Delete(mtype);
-  return s;
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_typemap_lookup_new()
- *
- * Attach one or more typemaps to a node
- * op    - typemap name, eg "out", "newfree"
- * node  - the node to attach the typemaps to
- * lname - name of variable to substitute $1, $2 etc for
- * f     - wrapper code to generate into
- * ----------------------------------------------------------------------------- */
-
-static String *Swig_typemap_lookup_new_impl(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
+static String *Swig_typemap_lookup_impl(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
   SwigType *type;
   SwigType *mtype = 0;
   String *pname;
@@ -1450,11 +1387,11 @@ static String *Swig_typemap_lookup_new_impl(const String_or_char *op, Node *node
 String *Swig_typemap_lookup_out(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
   assert(actioncode);
   assert(Cmp(op, "out") == 0);
-  return Swig_typemap_lookup_new_impl(op, node, lname, f, actioncode);
+  return Swig_typemap_lookup_impl(op, node, lname, f, actioncode);
 }
 
-String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f) {
-  return Swig_typemap_lookup_new_impl(op, node, lname, f, 0);
+String *Swig_typemap_lookup(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f) {
+  return Swig_typemap_lookup_impl(op, node, lname, f, 0);
 }
 
 

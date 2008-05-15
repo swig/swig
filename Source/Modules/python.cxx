@@ -2016,7 +2016,7 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Replaceall(tm, "$source", "result");
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
@@ -2024,14 +2024,14 @@ public:
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup_new("directorfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
 	Replaceall(tm, "$input", "result");
 	Replaceall(tm, "$result", "resultobj");
 	Printf(f->code, "%s\n", tm);
@@ -2171,7 +2171,7 @@ public:
     if (assignable) {
       Setattr(n, "wrap:name", varsetname);
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "_val");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "_val");
@@ -2204,7 +2204,7 @@ public:
     int addfail = 0;
     Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "pyobj");
       Replaceall(tm, "$result", "pyobj");
@@ -2258,7 +2258,7 @@ public:
       Delete(str);
       value = wname;
     }
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -2266,7 +2266,7 @@ public:
       Delete(tm);
       have_tm = 1;
     }
-    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -3596,7 +3596,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
     /* exception handling */
-    tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+    tm = Swig_typemap_lookup("director:except", n, "result", 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
       if (tm)
@@ -3646,7 +3646,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
        * occurs in Language::cDeclaration().
        */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+      tm = Swig_typemap_lookup("directorout", n, "result", w);
       Setattr(n, "type", type);
       if (tm == 0) {
 	String *name = NewString("result");

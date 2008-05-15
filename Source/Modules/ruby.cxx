@@ -1885,7 +1885,7 @@ public:
 
     /* Look for any remaining cleanup.  This processes the %new directive */
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
-      tm = Swig_typemap_lookup_new("newfree", n, "result", 0);
+      tm = Swig_typemap_lookup("newfree", n, "result", 0);
       if (tm) {
 	Replaceall(tm, "$source", "result");
 	Printv(f->code, tm, "\n", NIL);
@@ -1894,7 +1894,7 @@ public:
     }
 
     /* Special processing on return value. */
-    tm = Swig_typemap_lookup_new("ret", n, "result", 0);
+    tm = Swig_typemap_lookup("ret", n, "result", 0);
     if (tm) {
       Replaceall(tm, "$source", "result");
       Printv(f->code, tm, NIL);
@@ -1902,7 +1902,7 @@ public:
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup_new("directorfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
 	Replaceall(tm, "$input", "result");
 	Replaceall(tm, "$result", "vresult");
 	Printf(f->code, "%s\n", tm);
@@ -2109,7 +2109,7 @@ public:
     Printf(getf->def, ") {");
     Wrapper_add_local(getf, "_val", "VALUE _val");
 
-    tm = Swig_typemap_lookup_new("varout", n, name, 0);
+    tm = Swig_typemap_lookup("varout", n, name, 0);
     if (tm) {
       Replaceall(tm, "$result", "_val");
       Replaceall(tm, "$target", "_val");
@@ -2141,7 +2141,7 @@ public:
       Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
-      tm = Swig_typemap_lookup_new("varin", n, name, 0);
+      tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$input", "_val");
 	Replaceall(tm, "$source", "_val");
@@ -2253,9 +2253,9 @@ public:
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = Char(wname);
     }
-    String *tm = Swig_typemap_lookup_new("constant", n, value, 0);
+    String *tm = Swig_typemap_lookup("constant", n, value, 0);
     if (!tm)
-      tm = Swig_typemap_lookup_new("constcode", n, value, 0);
+      tm = Swig_typemap_lookup("constcode", n, value, 0);
     if (tm) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", iname);
@@ -2872,7 +2872,7 @@ public:
     String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
-    String *tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+    String *tm = Swig_typemap_lookup("director:except", n, "result", 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
     }
@@ -3233,7 +3233,7 @@ public:
 	 * It's not just me, similar silliness also occurs in Language::cDeclaration().
 	 */
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
 	if (tm == 0) {
 	  String *name = NewString("result");

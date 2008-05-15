@@ -1432,7 +1432,7 @@ int Language::membervariableHandler(Node *n) {
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
-	tm = Swig_typemap_lookup_new("memberin", n, target, 0);
+	tm = Swig_typemap_lookup("memberin", n, target, 0);
       }
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (is_non_virtual_protected_access(n))
@@ -2849,14 +2849,12 @@ int Language::variableWrapper(Node *n) {
 
   if (assignable) {
     int make_set_wrapper = 1;
-    String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
+    String *tm = Swig_typemap_lookup("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n, flags);
     String *sname = Swig_name_set(symname);
     Setattr(n, "sym:name", sname);
     Delete(sname);
-
-    /*    String *tm = Swig_typemap_lookup((char *) "globalin",type,name,name,Swig_cparm_name(0,0),name,0); */
 
     if (!tm) {
       if (SwigType_isarray(type)) {

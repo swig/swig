@@ -557,14 +557,14 @@ int CHICKEN::functionWrapper(Node *n) {
 
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
-    if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
     }
   }
 
   /* See if there is any return cleanup code */
-  if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+  if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
     Replaceall(tm, "$source", "result");
     Printf(f->code, "%s\n", tm);
   }
@@ -727,7 +727,7 @@ int CHICKEN::variableWrapper(Node *n) {
     /* Check for a setting of the variable value */
     if (!GetFlag(n, "feature:immutable")) {
       Printf(f->code, "if (argc > 2) {\n");
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "value");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "value");
@@ -748,7 +748,7 @@ int CHICKEN::variableWrapper(Node *n) {
 
     // Now return the value of the variable - regardless
     // of evaluating or setting.
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", varname);
       Replaceall(tm, "$varname", varname);
       Replaceall(tm, "$target", "resultobj");
@@ -881,7 +881,7 @@ int CHICKEN::constantWrapper(Node *n) {
   if (SwigType_type(t) == T_MPOINTER) {
     Printf(f_header, "static %s = %s;\n", SwigType_str(t, source), rvalue);
   } else {
-    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", rvalue);
       Replaceall(tm, "$target", source);
       Replaceall(tm, "$result", source);
@@ -920,7 +920,7 @@ int CHICKEN::constantWrapper(Node *n) {
     Printf(f->code, "if (argc!=2) C_bad_argc(argc,2);\n");
 
     // Return the value of the variable
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
 
       Replaceall(tm, "$source", source);
       Replaceall(tm, "$varname", source);

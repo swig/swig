@@ -237,7 +237,7 @@ void CFFI::emit_defmethod(Node *n) {
   
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
-    String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
+    String *ffitype = Swig_typemap_lookup("lispclass", p, "", 0);
 
     int tempargname = 0;
 
@@ -291,7 +291,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
-    String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
+    String *ffitype = Swig_typemap_lookup("lispclass", p, "", 0);
 
     int tempargname = 0;
     if (!argname) {
@@ -356,7 +356,7 @@ int CFFI::functionWrapper(Node *n) {
   String *iname = Getattr(n, "sym:name");
   Wrapper *f = NewWrapper();
 
-  String *raw_return_type = Swig_typemap_lookup_new("ctype", n, "", 0);
+  String *raw_return_type = Swig_typemap_lookup("ctype", n, "", 0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
   SwigType *resolved = SwigType_typedef_resolve_all(return_type);
   int is_void_return = (Cmp(resolved, "void") == 0);
@@ -506,7 +506,7 @@ void CFFI::emit_defun(Node *n, String *name) {
   emit_inline(n, func_name);
 
   Printf(f_cl, "\n(cffi:defcfun (\"%s\" %s)", name, func_name);
-  String *ffitype = Swig_typemap_lookup_new("cout", n, ":pointer", 0);
+  String *ffitype = Swig_typemap_lookup("cout", n, ":pointer", 0);
 
   Printf(f_cl, " %s", ffitype);
   Delete(ffitype);
@@ -520,7 +520,7 @@ void CFFI::emit_defun(Node *n, String *name) {
 
     String *argname = Getattr(p, "name");
 
-    ffitype = Swig_typemap_lookup_new("cin", p, "", 0);
+    ffitype = Swig_typemap_lookup("cin", p, "", 0);
 
     int tempargname = 0;
     if (!argname) {
@@ -568,7 +568,7 @@ int CFFI::variableWrapper(Node *n) {
   //    return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");
-  String *lisp_type = Swig_typemap_lookup_new("cin", n, "", 0);
+  String *lisp_type = Swig_typemap_lookup("cin", n, "", 0);
   String *lisp_name = lispify_name(n, var_name, "'variable");
 
   if (Strcmp(lisp_name, "t") == 0 || Strcmp(lisp_name, "T") == 0)
@@ -585,7 +585,7 @@ int CFFI::variableWrapper(Node *n) {
 int CFFI::typedefHandler(Node *n) {
   if (generate_typedef_flag && strncmp(Char(Getattr(n, "type")), "enum", 4)) {
     String *lisp_name = lispify_name(n, Getattr(n, "name"), "'typename");
-    Printf(f_cl, "\n(cffi:defctype %s %s)\n", lisp_name, Swig_typemap_lookup_new("cin", n, "", 0));
+    Printf(f_cl, "\n(cffi:defctype %s %s)\n", lisp_name, Swig_typemap_lookup("cin", n, "", 0));
     emit_export(n, lisp_name);
   }
   return Language::typedefHandler(n);

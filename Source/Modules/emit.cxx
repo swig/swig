@@ -464,7 +464,7 @@ String *emit_action(Node *n) {
     int unknown_catch = 0;
     Printf(eaction, "}\n");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
-      String *em = Swig_typemap_lookup_new("throws", ep, "_e", 0);
+      String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
 	SwigType *et = Getattr(ep, "type");
 	SwigType *etr = SwigType_typedef_resolve_all(et);
@@ -488,7 +488,7 @@ String *emit_action(Node *n) {
   }
 
   /* Look for except typemap (Deprecated) */
-  tm = Swig_typemap_lookup_new("except", n, "result", 0);
+  tm = Swig_typemap_lookup("except", n, "result", 0);
   if (tm) {
     Setattr(n, "feature:except", tm);
     tm = 0;
