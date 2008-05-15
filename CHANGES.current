@@ -1,6 +1,9 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/15/2008: wsfulton
+            [Java] Fix variable name clash in directors - SF #1963316 reported by Tristan.
+
 05/14/2008: wsfulton
             Add an optimisation for functions that return objects by value, reducing
             the number of copies of the object that are made. Implemented using an

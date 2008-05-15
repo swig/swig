@@ -804,13 +804,13 @@ public:
     Swig_typemap_attach_parms("jstype", l, f);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("jni", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("jni", n, "", 0))) {
       Printf(c_return_type, "%s", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if ((tm = Swig_typemap_lookup_new("jtype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("jtype", n, "", 0))) {
       Printf(im_return_type, "%s", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(t, 0));
@@ -1029,7 +1029,7 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	addThrows(n, "tmap:newfree", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
@@ -1038,7 +1038,7 @@ public:
 
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
 	addThrows(n, "tmap:ret", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
@@ -1366,7 +1366,7 @@ public:
     /* Get Java return types */
     bool classname_substituted_flag = false;
 
-    if ((tm = Swig_typemap_lookup_new("jstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("jstype", n, "", 0))) {
       classname_substituted_flag = substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
@@ -1920,7 +1920,7 @@ public:
     Swig_typemap_attach_parms("javain", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("jstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("jstype", n, "", 0))) {
       // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
       SwigType *covariant = Getattr(n, "covariant");
       substituteClassname(covariant ? covariant : t, tm);
@@ -2058,7 +2058,7 @@ public:
     Printf(function_code, ")");
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
-    if ((tm = Swig_typemap_lookup_new("javaout", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
       addThrows(n, "tmap:javaout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
@@ -2431,7 +2431,7 @@ public:
     Swig_typemap_attach_parms("javain", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("jstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("jstype", n, "", 0))) {
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
@@ -2542,7 +2542,7 @@ public:
     Printf(function_code, ")");
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in module class)
-    if ((tm = Swig_typemap_lookup_new("javaout", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
       addThrows(n, "tmap:javaout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
@@ -3210,7 +3210,7 @@ public:
    * --------------------------------------------------------------- */
 
   String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
-    String *pkg_path = Swig_typemap_lookup_new("javapackage", p, "", 0);
+    String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     SwigType *type = Getattr(p, "type");
 
     if (pkg_path && Len(pkg_path) != 0) {
@@ -3273,7 +3273,7 @@ public:
     String *jniret_desc = NewString("");
     String *classret_desc = NewString("");
     SwigType *c_ret_type = NULL;
-    String *jupcall_args = NewString("jobj");
+    String *jupcall_args = NewString("swigjobj");
     String *imclass_dmethod;
     String *callback_def = NewString("");
     String *callback_code = NewString("");
@@ -3343,7 +3343,7 @@ public:
       /* Create the intermediate class wrapper */
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
-      tm = Swig_typemap_lookup_new("jtype", tp, "", 0);
+      tm = Swig_typemap_lookup("jtype", tp, "", 0);
       if (tm) {
 	Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, classname);
       } else {
@@ -3355,7 +3355,7 @@ public:
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
       Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
 
-      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0))
+      if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
 	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
 
 	// Note that in the case of polymorphic (covariant) return types, the
@@ -3374,7 +3374,7 @@ public:
 
       Parm *retpm = NewParmFromNode(returntype, empty_str, n);
 
-      if ((c_ret_type = Swig_typemap_lookup_new("jni", retpm, "", 0))) {
+      if ((c_ret_type = Swig_typemap_lookup("jni", retpm, "", 0))) {
 	Parm *tp = NewParmFromNode(c_ret_type, empty_str, n);
 
 	if (!is_void && !ignored_method) {
@@ -3384,7 +3384,7 @@ public:
 	}
 
 	String *jdesc = NULL;
-	if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+	if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
 	    && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
 
 	  // Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
@@ -3434,10 +3434,10 @@ public:
     if (!ignored_method) {
       /* Add Java environment pointer to wrapper */
       String *jenvstr = NewString("jenv");
-      String *jobjstr = NewString("jobj");
+      String *jobjstr = NewString("swigjobj");
 
-      Wrapper_add_localv(w, "jnienv", "JNIEnvWrapper", "jnienv(this)", NIL, NIL);
-      Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= jnienv.getJNIEnv()", NIL);
+      Wrapper_add_localv(w, "swigjnienv", "JNIEnvWrapper", "swigjnienv(this)", NIL, NIL);
+      Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= swigjnienv.getJNIEnv()", NIL);
       Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) NULL", NIL);
       Delete(jenvstr);
       Delete(jobjstr);
@@ -3470,15 +3470,15 @@ public:
 
     if (!ignored_method) {
       Printf(w->code, "}\n");
-      Printf(w->code, "jobj = swig_get_self(jenv);\n");
-      Printf(w->code, "if (jobj && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {\n");
+      Printf(w->code, "swigjobj = swig_get_self(jenv);\n");
+      Printf(w->code, "if (swigjobj && jenv->IsSameObject(swigjobj, NULL) == JNI_FALSE) {\n");
     }
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
     Parm *tp = NewParmFromNode(c_classname, empty_str, n);
     String *jdesc;
 
-    if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+    if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
 	&& (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
       String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
       Append(jnidesc, jni_canon);
@@ -3526,7 +3526,7 @@ public:
 	  Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
 	/* Add input marshalling code and update JNI field descriptor */
-	if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+	if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0))
 	    && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))
 	    && (tm = Getattr(p, "tmap:directorin"))
 	    && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
@@ -3668,7 +3668,7 @@ public:
     if (!is_void) {
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
-      if ((tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0))) {
+      if ((tm = Swig_typemap_lookup("javadirectorout", tp, "", 0))) {
         addThrows(n, "tmap:javadirectorout", tp);
 	substituteClassname(returntype, tm);
 	Replaceall(tm, "$javacall", upcall);
@@ -3676,7 +3676,7 @@ public:
 	Printf(callback_code, "    return %s;\n", tm);
       }
 
-      if ((tm = Swig_typemap_lookup_new("out", tp, "", 0)))
+      if ((tm = Swig_typemap_lookup("out", tp, "", 0)))
         addThrows(n, "tmap:out", tp);
 
       Delete(tm);
@@ -3713,7 +3713,7 @@ public:
 	Parm *tp = NewParmFromNode(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
-	if ((tm = Swig_typemap_lookup_new("directorout", tp, result_str, w))) {
+	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
 	  addThrows(n, "tmap:directorout", tp);
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);
@@ -3738,7 +3738,7 @@ public:
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
       Printf(w->code, "}\n");
 
-      Printf(w->code, "if (jobj) jenv->DeleteLocalRef(jobj);\n");
+      Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
 
       if (!is_void)
 	Printf(w->code, "return %s;", qualified_return);
