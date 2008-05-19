@@ -26,7 +26,7 @@ typedef unsigned short guint16;
 %}
 
 
-/* Here, the auxiliar macro to wrap a macro */
+/* Here, the auxiliary macro to wrap a macro */
 %define %wrapmacro(type, name, lparams, lnames)
 %rename(name) SWIGMACRO_##name;
 %inline %{
@@ -45,7 +45,7 @@ type SWIGMACRO_##name(lparams) {
 %wrapmacro(double, max, PLIST(double a, double b), PLIST(a, b));
 
 
-/* Maybe in the future, a swig directive will do this easier:
+/* Maybe in the future, a swig directive will make this easier:
 
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
