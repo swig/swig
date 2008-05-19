@@ -5,7 +5,7 @@
 /*
   This file provide fragments and macros for the C/C++ primitive types. 
 
-  The file defines default fragments for the  following types:
+  The file defines default fragments for the following types:
 
     bool
     signed char
@@ -20,7 +20,7 @@
     size_t
     ptrdiff_t
 
-  which can always be redefined in the swig target languge if needed.
+  which can always be redefined in the swig target language if needed.
   
   The fragments for the following types, however, need to be defined
   in the target language always:
@@ -41,46 +41,46 @@
     %typemaps_primitive(CheckCode, Type)
 
   which generate the typemaps for a primitive type with a given
-  checkcode. It is assumed the the primitive type is 'normalized' and
+  checkcode. It is assumed that the primitive type is 'normalized' and
   the corresponding SWIG_AsVal(Type) and SWIG_From(Type) methods are
   provided via fragments.
   
    
-  The following auxiliar macros (explained with bash pseudo code) are
+  The following auxiliary macros (explained with bash pseudo code) are
   also defined:
 
-    %apply_ctypes(Macro)        
-      for i in C Type 
+    %apply_ctypes(Macro)
+      for i in C Type
       do
         Macro($i)
       done
 
-    %apply_cpptypes(Macro) 
-      for i in C++ Type 
+    %apply_cpptypes(Macro)
+      for i in C++ Type
       do
         Macro($i)
       done
 
-    %apply_ctypes_2(Macro2)     			     
-       for i in C Type 					     
-       do							     
-         for j in C Type 					     
-         do						     
-            Macro_2($i, $j)				     
-         done						     
-       done						     
-    							     
-    %apply_cpptypes_2(Macro2)     			     
-       for i in C++ Type 					     
-       do							     
-         for j in C++ Type 				     
-         do						     
-            Macro_2($i, $j)				     
-         done						     
-       done						     
-    							     
+    %apply_ctypes_2(Macro2)
+       for i in C Type
+       do
+         for j in C Type
+         do
+            Macro_2($i, $j)
+         done
+       done
+
+    %apply_cpptypes_2(Macro2)
+       for i in C++ Type
+       do
+         for j in C++ Type
+         do
+            Macro_2($i, $j)
+         done
+       done
+
     %apply_checkctypes(Macro2)
-       for i in Check Type 
+       for i in Check Type
        do
          Macro2(%checkcode($i), $i)
        done
@@ -141,7 +141,7 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 
 %numeric_double(float,           "<float.h>", -FLT_MAX, FLT_MAX)
 
-/* long/unsgined long */
+/* long/unsigned long */
 
 %ensure_type_fragments(long)
 %ensure_type_fragments(unsigned long)
