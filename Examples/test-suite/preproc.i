@@ -228,15 +228,14 @@ This testcase tests operators for defines
 
 
 
-#ifndef SWIGOCTAVE
 #ifdef __cplusplus
 		   
-#define %mangle(...) #@__VA_ARGS__
-#define %mangle_str(...) ##@__VA_ARGS__
+#define %mangle_macro(...) #@__VA_ARGS__
+#define %mangle_macro_str(...) ##@__VA_ARGS__
 
 %define my_func(...)
-inline const char* mangle ## #@__VA_ARGS__ () {
-  return %mangle_str(__VA_ARGS__);
+inline const char* mangle_macro ## #@__VA_ARGS__ () {
+  return %mangle_macro_str(__VA_ARGS__);
 }
 %enddef
 
@@ -245,7 +244,6 @@ inline const char* mangle ## #@__VA_ARGS__ () {
   my_func(std::pair<double, std::complex< double > >*) ;
 }
 
-#endif
 #endif
 
 
