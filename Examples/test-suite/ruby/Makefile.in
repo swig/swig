@@ -3,11 +3,7 @@
 #######################################################################
 
 LANGUAGE     = ruby
-ifneq (,$(USE_VALGRIND))
-RUBY       = valgrind --leak-check=full @RUBY@
-else
-RUBY       = @RUBY@
-endif
+RUBY         = @RUBY@
 SCRIPTSUFFIX = _runme.rb
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -64,7 +60,7 @@ naming.cpptest: SWIGOPT = -autorename
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUBY) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean

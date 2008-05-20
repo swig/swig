@@ -68,7 +68,7 @@ run_testcase = \
 	  CSHARPFLAGS='-nologo -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
 	  $*$(CSHARPPATHSEPARATOR)*.cs' csharp_compile && \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(INTERPRETER) $*_runme.exe; ) \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(RUNTOOL) $(INTERPRETER) $*_runme.exe; ) \
 	else ( \
 	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \

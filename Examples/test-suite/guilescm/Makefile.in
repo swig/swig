@@ -16,7 +16,7 @@ SCRIPTPREFIX = ../guile/
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(GUILE) -l $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 setup = \
@@ -50,5 +50,5 @@ local_setup = \
 
 local_run_testcase = \
 	if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(GUILE) -l $(srcdir)/$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(srcdir)/$*$(SCRIPTSUFFIX);) \
 	fi;

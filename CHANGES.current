@@ -1,6 +1,27 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/20/2008: wsfulton
+            New partialcheck makefile targets for partial testing of the test-suite. These
+            just invoke SWIG, ie no compilation and no runtime testing. It can be faster
+            when developing by just doing a directory diff of the files SWIG generates
+            against those from a previous run. Example usage from the top level directory:
+
+              make partialcheck-test-suite
+              make partialcheck-java-test-suite
+
+            This change also encompasses more flexibility in running the test-suite, eg
+            it is possible to prefix the command line which runs any target language test
+            with a tool. See the RUNTOOL, COMPILETOOL and SWIGTOOL targets in the common.mk
+            file and makefiles in the test-suite directory. For example it is possible to 
+            run the runtime tests through valgrind using:
+
+              make check RUNTOOL="valgrind --leak-check=full"
+
+            or invoke SWIG under valgrind using:
+
+              make check SWIGTOOL="valgrind --tool=memcheck"
+
 05/19/2008: drjoe
             [R] Fixed define that was breaking pre-2.7.  Checked in
             patch from Soren Sonnenburg that creates strings in  

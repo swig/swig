@@ -19,13 +19,39 @@
 # 3) One off special commandline options can be achieved by adding a
 #    test case to CUSTOM_TEST_CASES and defining rules to run and test.
 #
+# The 'check' target runs the testcases including SWIG invocation,
+# C/C++ compilation, target language compilation (if any) and runtime
+# test (if there is an associated 'runme' test).
+# The 'partialcheck' target only invokes SWIG.
+# The 'all' target is the same as the 'check' target but also includes
+# known broken testcases.
+# The 'clean' target cleans up.
+#
+# Note that the RUNTOOL, COMPILETOOL and SWIGTOOL variables can be used
+# for # invoking tools for the runtime tests and target language 
+# compiler (eg javac) respectively. For example, valgrind can be used 
+# for memory checking of the runtime tests using:
+#   make RUNTOOL="valgrind --leak-check-full"
+# and valgrind can be used when invoking SWIG using:
+#   make SWIGTOOL="valgrind --tool=memcheck"
+#
 # The variables below can be overridden after including this makefile
 #######################################################################
 
 #######################################################################
 # Variables
 #######################################################################
-SWIG       = $(top_builddir)/preinst-swig
+
+ifneq (,$(USE_VALGRIND))
+VALGRIND_OPT = --leak-check=full
+RUNTOOL    = valgrind $(VALGRIND_OPT)
+else
+RUNTOOL    =
+endif
+COMPILETOOL=
+SWIGTOOL   =
+
+SWIG       = $(SWIGTOOL) $(top_builddir)/preinst-swig
 SWIG_LIB   = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
@@ -37,6 +63,7 @@ SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdi
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
+ACTION     = check
 
 #
 # Please keep test cases in alphabetical order.
@@ -450,6 +477,10 @@ all:	$(BROKEN_TEST_CASES) $(NOT_BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
 
+# partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
+partialcheck:
+	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
+
 broken: $(BROKEN_TEST_CASES)
 
 swig_and_compile_cpp =  \
@@ -490,9 +521,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
-	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
 	fi;
 
 
@@ -505,5 +536,5 @@ clean: $(ALL_CLEAN)
 distclean: clean
 	@rm -f Makefile
 
-.PHONY: all check broken clean distclean 
+.PHONY: all check partialcheck broken clean distclean 
 

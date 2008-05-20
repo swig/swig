@@ -3,6 +3,7 @@
 #######################################################################
 
 LANGUAGE     = mzscheme
+MZSCHEME     = mzscheme
 SCRIPTSUFFIX = _runme.scm
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -33,7 +34,7 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH mzscheme -r $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean
