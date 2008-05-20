@@ -18,18 +18,10 @@ extern "C" {
 
 #define SWIGR 1
 
-#if R_VERSION >= R_Version(2,7,0)
+#if R_VERSION >= R_Version(2,6,0)
 #define VMAXTYPE void *
-#define RVERSION27(x) x
-#define RVERSIONPRE27(x) 
-#elif R_VERSION >= R_Version(2,6,0)
-#define VMAXTYPE void *
-#define RVERSION26(x) x
-#define RVERSIONPRE26(x) 
 #else
 #define VMAXTYPE char *
-#define RVERSION26(x)
-#define RVERSIONPRE26(x) x
 #endif
 
 /*
