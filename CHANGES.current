@@ -1,6 +1,11 @@
 Version 1.3.36 (in progress)
 =============================
 
+05/19/2008: drjoe
+            [R] Fixed define that was breaking pre-2.7.  Checked in
+            patch from Soren Sonnenburg that creates strings in  
+	    version independent way
+
 05/15/2008: wsfulton
             [Java] Fix variable name clash in directors - SF #1963316 reported by Tristan.
 
