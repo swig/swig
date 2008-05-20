@@ -40,6 +40,10 @@ LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
 LIBPREFIX  =
 
+# RUNTOOL is for use as with runtime tools, eg set it to valgrind
+RUNTOOL    =
+COMPILETOOL=
+
 # X11 options
 
 XLIB       = @XLIBSW@
@@ -726,7 +730,7 @@ PHP4=@PHP4@
 SCRIPT ?= runme.php4
 
 php4_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PHP4) -n -q -d extension_dir=. $(SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP4) -n -q -d extension_dir=. $(SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the PHP4 examples
@@ -925,7 +929,7 @@ csharp_cpp: $(SRCS)
 # ----------------------------------------------------------------
 
 csharp_compile: $(SRCS)
-	$(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS)
+	$(COMPILETOOL) $(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS)
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples

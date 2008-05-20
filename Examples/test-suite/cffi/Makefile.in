@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = cffi
-CFFI          = @CFFIBIN@
+CFFI         = @CFFIBIN@
 SCRIPTSUFFIX = _runme.lisp
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -35,7 +35,7 @@ CPP_TEST_CASES =
 # a file is found which has _runme.lisp appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(CFFIBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CFFIBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean: (does nothing, we dont generate extra cffi code)

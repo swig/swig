@@ -3,6 +3,7 @@
 #######################################################################
 
 LANGUAGE     = ocaml
+OCAMLC       = ocamlc
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 srcdir       = @srcdir@
@@ -14,12 +15,12 @@ C_TEST_CASES =
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -a \
 	     -f $(top_srcdir)/Examples/test-suite/$*.list ] ; then ( \
-		ocamlc -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& ./runme) ; \
+		$(COMPILETOOL) $(OCAMLC) -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& ./runme) ; \
 	elif [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-		ocamlc -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
-		./runme) ; \
+		$(COMPILETOOL) $(OCAMLC) -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
+		$(RUNTOOL) ./runme) ; \
 	fi ; 
 
 check_quant:

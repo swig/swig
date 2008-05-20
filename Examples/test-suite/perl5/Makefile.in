@@ -3,7 +3,6 @@
 #######################################################################
 
 LANGUAGE     = perl5
-#PERL         = valgrind @PERL@
 PERL         = @PERL@
 SCRIPTSUFFIX = _runme.pl
 TEST_RUNNER  = run-perl-test.pl
@@ -47,7 +46,7 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.pl appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(PERL) $(TEST_RUNNER) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PERL) $(TEST_RUNNER) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	fi; \
 
 

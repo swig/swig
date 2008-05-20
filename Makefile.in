@@ -248,6 +248,13 @@ check-%-test-suite:
 	fi;								\
 	test $$passed = true
 
+# Partial test-suite check - it only invokes SWIG, ie no compilation and no runtime testing
+partialcheck-test-suite:
+	@$(MAKE) -k -s check-test-suite ACTION=partialcheck
+
+partialcheck-%-test-suite:
+	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck
+
 check: check-aliveness check-examples check-gifplot check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
