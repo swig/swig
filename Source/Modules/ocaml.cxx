@@ -518,13 +518,8 @@ public:
 	     "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	     "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
     }
-    // Declare return variable and arguments
-    // number of parameters
-    // they are called arg0, arg1, ...
-    // the return value is called result
-
     d = SwigType_typedef_qualified(d);
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -645,13 +640,12 @@ public:
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Append(f->code, "upcall = (director);\n");
     }
+
     // Now write code to make the function call
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
-    emit_action(n, f);
-
-    // Now have return value, figure out what to do with it.
-
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$source", "swig_result");
       Replaceall(tm, "$target", "rv");
       Replaceall(tm, "$result", "rv");
@@ -660,6 +654,7 @@ public:
     } else {
       throw_unhandled_ocaml_type_error(d, "out");
     }
+    emit_return_variable(n, d, f);
 
     // Dump the argument output code
     Printv(f->code, Char(outarg), NIL);
@@ -670,14 +665,14 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Replaceall(tm, "$source", "swig_result");
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
 
-    if ((tm = Swig_typemap_lookup_new("swig_result", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("swig_result", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printv(f->code, tm, "\n", NIL);
     }
@@ -805,13 +800,13 @@ public:
     if (!GetFlag(n, "feature:immutable")) {
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
 	/* Printv(f->code, tm, "\n",NIL); */
-	emit_action_code(n, f, tm);
-      } else if ((tm = Swig_typemap_lookup_new("in", n, name, 0))) {
+	emit_action_code(n, f->code, tm);
+      } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
@@ -824,18 +819,16 @@ public:
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
-      /* Printf (f->code, "%s\n", tm); */
-      emit_action_code(n, f, tm);
-    } else if ((tm = Swig_typemap_lookup_new("out", n, name, 0))) {
+      emit_action_code(n, f->code, tm);
+    } else if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
       Printf(f->code, "%s\n", tm);
-
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }
@@ -1595,7 +1588,7 @@ public:
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
       Printf(w->code, "swig_result = " "callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
-      tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+      tm = Swig_typemap_lookup("director:except", n, "result", 0);
       if (!tm) {
 	tm = Getattr(n, "feature:director:except");
       }
@@ -1630,7 +1623,7 @@ public:
        * occurs in Language::cDeclaration().
        */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("directorout", n, "c_result", w);
+      tm = Swig_typemap_lookup("directorout", n, "c_result", w);
       Setattr(n, "type", type);
       if (tm == 0) {
 	String *name = NewString("c_result");

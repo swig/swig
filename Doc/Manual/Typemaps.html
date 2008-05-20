@@ -64,6 +64,7 @@
 <li><a href="#Typemaps_nn41">Implementing constraints with typemaps</a>
 </ul>
 <li><a href="#Typemaps_nn43">Typemaps for multiple languages</a>
+<li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_nn42">Multi-argument typemaps</a>
 <li><a href="#runtime_type_checker">The run-time type checker</a>
 <ul>
@@ -2006,6 +2007,10 @@ $symname          - Name of function/method being wrapped
 </pre>
 </div>
 
+<p>
+The "out" typemap supports an optional attribute flag called "optimal". This is for code optimisation and is detailed in the <a href="#Typemaps_optimal">Optimal code generation when returning by value</a> section.
+</p>
+
 <H3><a name="Typemaps_nn29"></a>10.5.4 "arginit" typemap</H3>
 
 
@@ -2619,7 +2624,194 @@ The example above also shows a common approach of issuing a warning for an as ye
 <tt>%typemap(ruby,in) int "$1 = NUM2INT($input);"</tt>.
 </p>
 
-<H2><a name="Typemaps_nn42"></a>10.8 Multi-argument typemaps</H2>
+<H2><a name="Typemaps_optimal"></a>10.8 Optimal code generation when returning by value</H2>
+
+
+<p>
+The "out" typemap is the main typemap for return types.
+This typemap supports an optional attribute flag called "optimal", which is for reducing 
+temporary variables and the amount of generated code.
+It only really makes a difference when returning objects by value and it cannot always be used, 
+as explained later on.
+<p>
+
+<p>
+When a function returns an object by value, SWIG generates code that instantiates the default
+type on the stack then assigns the value returned by the function call to it.
+A copy of this object is then made on the heap and this is what is ultimately stored and
+used from the target language.
+This will be clearer considering an example.
+Consider running the following code through SWIG:
+</p>
+
+<div class="code">
+<pre>
+%typemap(out) SWIGTYPE %{
+  $result = new $1_ltype((const $1_ltype &amp;)$1);
+%}
+
+%inline %{
+#include <iostream>
+using namespace std;
+
+struct XX {
+  XX() { cout &lt;&lt; "XX()" &lt;&lt; endl; }
+  XX(int i) { cout &lt;&lt; "XX(" &lt;&lt; i &lt;&lt; ")" &lt;&lt; endl; }
+  XX(const XX &amp;other) { cout &lt;&lt; "XX(const XX &amp;)" &lt;&lt; endl; }
+  XX &amp; operator =(const XX &amp;other) { cout &lt;&lt; "operator=(const XX &amp;)" &lt;&lt; endl; return *this; }
+  ~XX() { cout &lt;&lt; "~XX()" &lt;&lt; endl; }
+  static XX create() { 
+    return XX(0);
+  }
+};
+%}
+</pre>
+</div>
+
+<p>
+The "out" typemap shown is the default typemap for C# when returning by objects by value.
+When making a call to <tt>XX::create()</tt> from C#, the output is as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+XX()
+XX(0)
+operator=(const XX &amp;)
+~XX()
+XX(const XX &amp;)
+~XX()
+~XX()
+</pre>
+</div>
+
+<p>
+Note that three objects are being created as well as an assignment.
+Wouldn't it be great if the <tt>XX::create()</tt> method was the only time a constructor was called?
+As the method returns by value, this is asking a lot and the code that SWIG generates by default
+makes it impossible for the compiler to make this type of optimisation.
+However, this is where the "optimal" attribute in the "out" typemap can help out.
+If the typemap code is kept the same and just the "optimal" attribute specified like this:
+</p>
+
+<div class="code">
+<pre>
+%typemap(out, optimal="1") SWIGTYPE %{
+  $result = new $1_ltype((const $1_ltype &amp;)$1);
+%}
+</pre>
+</div>
+
+<p>
+then when the code is run again, the output is simply:
+</P>
+
+<div class="targetlang">
+<pre>
+XX(0)
+~XX()
+</pre>
+</div>
+
+<p>
+How the "optimal" attribute works is best explained using the generated code.
+Without "optimal", the generated code is:
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT void * SWIGSTDCALL CSharp_XX_create() {
+  void * jresult ;
+  XX result;
+  result = XX::create();
+  jresult = new XX((const XX &amp;)result);
+  return jresult;
+}
+
+</pre>
+</div>
+
+<p>
+With the "optimal" attribute, the code is:
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT void * SWIGSTDCALL CSharp_XX_create() {
+  void * jresult ;
+  jresult = new XX((const XX &amp;)XX::create());
+  return jresult;
+}
+</pre>
+</div>
+
+<p>
+The major difference is the <tt>result</tt> temporary variable holding the value returned from <tt>XX::create()</tt> is no longer generated and instead the copy constructor call is made directly from
+the value returned by <tt>XX::create()</tt>.
+With modern compiler optimisations turned on, the copy is not actually done, in fact the object is never created
+on the stack in <tt>XX::create()</tt> at all, it is simply created directly on the heap.
+In the first instance, the <tt>$1</tt> special variable in the typemap is expanded into <tt>result</tt>.
+In the second instance, <tt>$1</tt> is expanded into <tt>XX::create()</tt> and this is essentially
+what the "optimal" attribute is telling SWIG to do.
+</p>
+
+<p>
+This kind of optimisation is not turned on by default as it has a number of restrictions.
+Firstly, some code cannot be condensed into a simple call for passing into the copy constructor.
+One common occurrence is when <a href="Customization.html#exception">%exception</a> is used.
+Consider adding the following <tt>%exception</tt> to the example:
+</p>
+
+<div class="code">
+<pre>
+%exception XX::create() %{
+try {
+  $action
+} catch(const std::exception &amp;e) {
+  cout &lt;&lt; e.what() &lt;&lt; endl;
+}
+%}
+</pre>
+</div>
+
+<p>
+SWIG can detect when the "optimal" attribute cannot be used and will ignore it and in this case will issue the following warning:
+</p>
+
+<div class="targetlang">
+<pre>
+example.i:28: Warning(474): Method XX::create() usage of the optimal attribute in the out 
+typemap at example.i:14 ignored as the following cannot be used to generate optimal code: 
+try {
+  result = XX::create();
+} catch(const std::exception &amp;e) {
+  cout &lt;&lt; e.what() &lt;&lt; endl;
+}
+</pre>
+</div>
+
+<p>
+It should be clear that the above code cannot be used as the argument to the copy constructor call, ie for the <tt>$1</tt> substitution.
+<p>
+
+<p>
+Secondly, if the typemaps uses <tt>$1</tt> more than once, then multiple calls to the wrapped function
+will be made. Obviously that is not very optimal.
+In fact SWIG attempts to detect this and will issue a warning something like:
+</p>
+
+<div class="targetlang">
+<pre>
+example.i:21: Warning(475): Multiple calls to XX::create() might be generated due to 
+optimal attribute usage in the out typemap at example.i:7.
+</pre>
+</div>
+
+<p>
+However, it doesn't always get it right, for example when <tt>$1</tt> is within some commented out code.
+</p>
+
+<H2><a name="Typemaps_nn42"></a>10.9 Multi-argument typemaps</H2>
 
 
 <p>
@@ -2884,7 +3076,7 @@ when crossing languages you may need to worry about issues such as row-major vs.
 ordering (and perform conversions if needed).
 </p>
 
-<H2><a name="runtime_type_checker"></a>10.9 The run-time type checker</H2>
+<H2><a name="runtime_type_checker"></a>10.10 The run-time type checker</H2>
 
 
 <p>
@@ -2910,7 +3102,7 @@ language modules.</li>
 <li>Modules can be unloaded from the type system.</li>
 </ul>
 
-<H3><a name="Typemaps_nn45"></a>10.9.1 Implementation</H3>
+<H3><a name="Typemaps_nn45"></a>10.10.1 Implementation</H3>
 
 
 <p>
@@ -3096,7 +3288,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_nn46"></a>10.9.2 Usage</H3>
+<H3><a name="Typemaps_nn46"></a>10.10.2 Usage</H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -3190,7 +3382,7 @@ probably just look at the output of SWIG to get a better sense for how types are
 managed.
 </p>
 
-<H2><a name="Typemaps_overloading"></a>10.10 Typemaps and overloading</H2>
+<H2><a name="Typemaps_overloading"></a>10.11 Typemaps and overloading</H2>
 
 
 <p>
@@ -3499,7 +3691,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H2><a name="Typemaps_nn48"></a>10.11 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<H2><a name="Typemaps_nn48"></a>10.12 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 <p>
@@ -3584,7 +3776,7 @@ example:
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn49"></a>10.12 Reducing wrapper code size</H2>
+<H2><a name="Typemaps_nn49"></a>10.13 Reducing wrapper code size</H2>
 
 
 <p>
@@ -3665,7 +3857,7 @@ convert_float_array(PyObject *input, int size) {
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn47"></a>10.13 Passing data between typemaps</H2>
+<H2><a name="Typemaps_nn47"></a>10.14 Passing data between typemaps</H2>
 
 
 <p>
@@ -3702,7 +3894,7 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn51"></a>10.14 Where to go for more information?</H2>
+<H2><a name="Typemaps_nn51"></a>10.15 Where to go for more information?</H2>
 
 
 <p>

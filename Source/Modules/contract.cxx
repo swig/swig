@@ -220,14 +220,14 @@ String *Contracts::make_expression(String *s, Node *n) {
 
 /* This function substitutes parameter names for argument names in the
    contract specification.  Note: it is assumed that the wrapper code 
-   uses arg1--argn for arguments. */
+   uses arg1 for self and arg2..argn for arguments. */
 
 void Contracts::substitute_parms(String *s, ParmList *p, int method) {
   int argnum = 1;
   char argname[32];
 
   if (method) {
-    Replaceid(s, "self", "arg0");
+    Replaceid(s, "$self", "arg1");
     argnum++;
   }
   while (p) {

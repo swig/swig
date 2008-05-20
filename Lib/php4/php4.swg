@@ -190,7 +190,7 @@
 	if(!$1) {
 	  ZVAL_NULL(return_value);
 	} else {
-	  ZVAL_STRING(return_value,$1, 1);
+	  ZVAL_STRING(return_value, (char *)$1, 1);
 	}
 }
 
@@ -211,7 +211,7 @@
 %typemap(out) SWIGTYPE
 #ifdef __cplusplus
 {
-  $&1_ltype resultobj = new $1_ltype(($1_ltype &) $1);
+  $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
   SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
 }
 #else

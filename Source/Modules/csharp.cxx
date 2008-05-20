@@ -731,7 +731,7 @@ public:
     Swig_typemap_attach_parms("imtype", l, f);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("ctype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
       String *ctypeout = Getattr(n, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
       if (ctypeout)
 	tm = ctypeout;
@@ -740,7 +740,7 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if ((tm = Swig_typemap_lookup_new("imtype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("imtype", n, "", 0))) {
       String *imtypeout = Getattr(n, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
       if (imtypeout)
 	tm = imtypeout;
@@ -757,7 +757,7 @@ public:
     Printv(f->def, " SWIGEXPORT ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
-    emit_args(t, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -901,25 +901,26 @@ public:
       }
     }
 
-    if (Cmp(nodeType(n), "constant") == 0) {
-      // Wrapping a constant hack
-      Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-      // below based on Swig_VargetToFunction()
-      SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
-    }
-    // Now write code to make the function call
-    if (!native_function_flag)
-      emit_action(n, f);
-
-    if (Cmp(nodeType(n), "constant") == 0)
-      Swig_restore(n);
-
-    /* Return value if necessary  */
     String *null_attribute = 0;
+    // Now write code to make the function call
     if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+      if (Cmp(nodeType(n), "constant") == 0) {
+        // Wrapping a constant hack
+        Swig_save("functionWrapper", n, "wrap:action", NIL);
+
+        // below based on Swig_VargetToFunction()
+        SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
+        Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      }
+
+      Swig_director_emit_dynamic_cast(n, f);
+      String *actioncode = emit_action(n);
+
+      if (Cmp(nodeType(n), "constant") == 0)
+        Swig_restore(n);
+
+      /* Return value if necessary  */
+      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
 	canThrow(n, "out", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Replaceall(tm, "$target", "jresult");	/* deprecated */
@@ -937,6 +938,7 @@ public:
       } else {
 	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
       }
+      emit_return_variable(n, t, f);
     }
 
     /* Output argument output code */
@@ -947,7 +949,7 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	canThrow(n, "newfree", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
@@ -956,7 +958,7 @@ public:
 
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
 	canThrow(n, "ret", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
@@ -1315,7 +1317,7 @@ public:
     /* Get C# return types */
     bool classname_substituted_flag = false;
 
-    if ((tm = Swig_typemap_lookup_new("cstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("cstype", n, "", 0))) {
       String *cstypeout = Getattr(n, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
       if (cstypeout)
 	tm = cstypeout;
@@ -1907,7 +1909,7 @@ public:
     Swig_typemap_attach_parms("csin", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("cstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("cstype", n, "", 0))) {
       // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
       SwigType *covariant = Getattr(n, "covariant");
       String *cstypeout = Getattr(n, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
@@ -2051,7 +2053,7 @@ public:
     Printf(function_code, ")");
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
-    if ((tm = Swig_typemap_lookup_new("csout", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("csout", n, "", 0))) {
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
@@ -2145,7 +2147,7 @@ public:
 	}
       } else {
 	// Getter method
-	if ((tm = Swig_typemap_lookup_new("csvarout", n, "", 0))) {
+	if ((tm = Swig_typemap_lookup("csvarout", n, "", 0))) {
 	  if (GetFlag(n, "feature:new"))
 	    Replaceall(tm, "$owner", "true");
 	  else
@@ -2496,7 +2498,7 @@ public:
     Swig_typemap_attach_parms("csin", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("cstype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("cstype", n, "", 0))) {
       String *cstypeout = Getattr(n, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
       if (cstypeout)
 	tm = cstypeout;
@@ -2607,7 +2609,7 @@ public:
     Printf(function_code, ")");
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
-    if ((tm = Swig_typemap_lookup_new("csout", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("csout", n, "", 0))) {
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
@@ -2677,7 +2679,7 @@ public:
 	}
       } else {
 	// Getter method
-	if ((tm = Swig_typemap_lookup_new("csvarout", n, "", 0))) {
+	if ((tm = Swig_typemap_lookup("csvarout", n, "", 0))) {
 	  if (GetFlag(n, "feature:new"))
 	    Replaceall(tm, "$owner", "true");
 	  else
@@ -3240,7 +3242,7 @@ public:
       /* Create the intermediate class wrapper */
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
-      tm = Swig_typemap_lookup_new("imtype", tp, "", 0);
+      tm = Swig_typemap_lookup("imtype", tp, "", 0);
       if (tm) {
 	String *imtypeout = Getattr(tp, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
 	if (imtypeout)
@@ -3260,7 +3262,7 @@ public:
 
       Parm *retpm = NewParmFromNode(returntype, empty_str, n);
 
-      if ((c_ret_type = Swig_typemap_lookup_new("ctype", retpm, "", 0))) {
+      if ((c_ret_type = Swig_typemap_lookup("ctype", retpm, "", 0))) {
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
@@ -3357,7 +3359,7 @@ public:
 	  Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
 	/* Add input marshalling code */
-	if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0))
+	if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0))
 	    && (tm = Getattr(p, "tmap:directorin"))) {
 
 	  Replaceall(tm, "$input", arg);
@@ -3463,9 +3465,6 @@ public:
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
 
-    if ((tm = Swig_typemap_lookup_new("out", n, "", 0)))
-      addThrows(n, "tmap:out", n);
-
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -3507,8 +3506,7 @@ public:
     if (!is_void) {
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 
-      tm = Swig_typemap_lookup_new("csdirectorout", tp, "", 0);
-      if (tm) {
+      if ((tm = Swig_typemap_lookup("csdirectorout", tp, "", 0))) {
 	substituteClassname(returntype, tm);
 	Replaceall(tm, "$cscall", upcall);
 
@@ -3535,7 +3533,7 @@ public:
 	Parm *tp = NewParmFromNode(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
-	if ((tm = Swig_typemap_lookup_new("directorout", tp, result_str, w))) {
+	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
 	  addThrows(n, "tmap:directorout", tp);
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);

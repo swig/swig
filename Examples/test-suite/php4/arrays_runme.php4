@@ -4,7 +4,7 @@ require "tests.php4";
 require "arrays.php";
 
 check::functions(array(fn_taking_arrays,newintpointer,setintfrompointer,getintfrompointer,array_pointer_func));
-check::classes(array(simplestruct,arraystruct,cartposedata_t));
+check::classes(array(arrays,SimpleStruct,ArrayStruct,CartPoseData_t));
 // No new vars
 check::globals(array());
 

@@ -85,7 +85,6 @@
 
 %typemap(varinit) SWIGTYPE, SWIGTYPE &
 {
-  $&1_ltype argp;
   zval *z_var;
 
   MAKE_STD_ZVAL(z_var);

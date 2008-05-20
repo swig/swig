@@ -1611,8 +1611,8 @@ public:
 
     Wrapper_add_local(f, "resultobj", "PyObject *resultobj = 0");
 
-    /* Write code to extract function parameters. */
-    emit_args(d, l, f);
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -1916,17 +1916,6 @@ public:
       }
     }
 
-    /* for constructor, determine if Python class has been subclassed.
-     * if so, create a director instance.  otherwise, just create a normal instance.
-     */
-    /* MOVED TO Swig_ConstructorToFunction() */
-    /*
-       if (constructor && (Getattr(n, "wrap:self") != 0)) {
-       Wrapper_add_local(f, "subclassed", "int subclassed = 0");
-       Append(f->code, "subclassed = (arg1 != Py_None);\n");
-       }
-     */
-
     /* Emit the function call */
     if (director_method) {
       Append(f->code, "try {\n");
@@ -1939,23 +1928,24 @@ public:
 
     Setattr(n, "wrap:name", wname);
 
-    emit_action(n, f);
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
     if (director_method) {
-      Append(f->code, "} catch (Swig::DirectorException&) {\n");
-      Append(f->code, "  SWIG_fail;\n");
-      Append(f->code, "}\n");
+      Append(actioncode, "} catch (Swig::DirectorException&) {\n");
+      Append(actioncode, "  SWIG_fail;\n");
+      Append(actioncode, "}\n");
     } else {
       if (allow_thread) {
-	thread_end_allow(n, f->code);
-	Append(f->code, "}\n");
+	thread_end_allow(n, actioncode);
+	Append(actioncode, "}\n");
       }
     }
 
     /* This part below still needs cleanup */
 
     /* Return the function value */
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       if (funpack) {
 	Replaceall(tm, "$self", "swig_obj[0]");
       } else {
@@ -2013,6 +2003,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -2025,7 +2016,7 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Replaceall(tm, "$source", "result");
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
@@ -2033,14 +2024,14 @@ public:
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup_new("directorfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
 	Replaceall(tm, "$input", "result");
 	Replaceall(tm, "$result", "resultobj");
 	Printf(f->code, "%s\n", tm);
@@ -2180,14 +2171,14 @@ public:
     if (assignable) {
       Setattr(n, "wrap:name", varsetname);
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
-      if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$source", "_val");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "_val");
 	if (Getattr(n, "tmap:varin:implicitconv")) {
 	  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
 	}
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
@@ -2213,11 +2204,11 @@ public:
     int addfail = 0;
     Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "pyobj");
       Replaceall(tm, "$result", "pyobj");
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
@@ -2267,7 +2258,7 @@ public:
       Delete(str);
       value = wname;
     }
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -2275,7 +2266,7 @@ public:
       Delete(tm);
       have_tm = 1;
     }
-    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -3605,7 +3596,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
     /* exception handling */
-    tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+    tm = Swig_typemap_lookup("director:except", n, "result", 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
       if (tm)
@@ -3655,7 +3646,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
        * occurs in Language::cDeclaration().
        */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+      tm = Swig_typemap_lookup("directorout", n, "result", w);
       Setattr(n, "type", type);
       if (tm == 0) {
 	String *name = NewString("result");

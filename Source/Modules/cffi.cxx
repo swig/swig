@@ -237,7 +237,7 @@ void CFFI::emit_defmethod(Node *n) {
   
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
-    String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
+    String *ffitype = Swig_typemap_lookup("lispclass", p, "", 0);
 
     int tempargname = 0;
 
@@ -291,7 +291,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
-    String *ffitype = Swig_typemap_lookup_new("lispclass", p, "", 0);
+    String *ffitype = Swig_typemap_lookup("lispclass", p, "", 0);
 
     int tempargname = 0;
     if (!argname) {
@@ -354,9 +354,9 @@ int CFFI::functionWrapper(Node *n) {
 
   ParmList *parms = Getattr(n, "parms");
   String *iname = Getattr(n, "sym:name");
-  Wrapper *wrap = NewWrapper();
+  Wrapper *f = NewWrapper();
 
-  String *raw_return_type = Swig_typemap_lookup_new("ctype", n, "", 0);
+  String *raw_return_type = Swig_typemap_lookup("ctype", n, "", 0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
   SwigType *resolved = SwigType_typedef_resolve_all(return_type);
   int is_void_return = (Cmp(resolved, "void") == 0);
@@ -364,7 +364,7 @@ int CFFI::functionWrapper(Node *n) {
 
   if (!is_void_return) {
     String *lresult_init = NewStringf("lresult = (%s)0", raw_return_type);
-    Wrapper_add_localv(wrap, "lresult", raw_return_type, lresult_init, NIL);
+    Wrapper_add_localv(f, "lresult", raw_return_type, lresult_init, NIL);
     Delete(lresult_init);
   }
 
@@ -373,7 +373,7 @@ int CFFI::functionWrapper(Node *n) {
     overname = Getattr(n, "sym:overname");
   } else {
     if (!addSymbol(iname, n)) {
-      DelWrapper(wrap);
+      DelWrapper(f);
       return SWIG_ERROR;
     }
   }
@@ -385,11 +385,11 @@ int CFFI::functionWrapper(Node *n) {
   Setattr(n, "wrap:name", wname);
 
   // Emit all of the local variables for holding arguments.
-  emit_args(Getattr(n, "type"), parms, wrap);
+  emit_parameter_variables(parms, f);
 
   // Attach the standard typemaps 
-  Swig_typemap_attach_parms("ctype", parms, wrap);
-  emit_attach_parmmaps(parms, wrap);
+  Swig_typemap_attach_parms("ctype", parms, f);
+  emit_attach_parmmaps(parms, f);
 
   int num_arguments = emit_num_arguments(parms);
   String *name_and_parms = NewStringf("%s (", wname);
@@ -426,7 +426,7 @@ int CFFI::functionWrapper(Node *n) {
     {
       Replaceall(parm_code, "$input", arg);
       Setattr(p, "emit:input", arg);
-      Printf(wrap->code, "%s\n", parm_code);
+      Printf(f->code, "%s\n", parm_code);
       p = Getattr(p, "tmap:in:next");
     }
 
@@ -436,25 +436,26 @@ int CFFI::functionWrapper(Node *n) {
 
   // Emit the function definition
   String *signature = SwigType_str(return_type, name_and_parms);
-  Printf(wrap->def, "EXPORT %s {", signature);
-  Printf(wrap->code, "  try {\n");
-  emit_action(n, wrap);
-  if (!is_void_return) {
-    String *result_convert = Swig_typemap_lookup_new("out", n, "result", 0);
-    Replaceall(result_convert, "$result", "lresult");
-    Printf(wrap->code, "%s\n", result_convert);
-    Printf(wrap->code, "    return lresult;\n");
-    Delete(result_convert);
-  }
+  Printf(f->def, "EXPORT %s {", signature);
+  Printf(f->code, "  try {\n");
 
-  Printf(wrap->code, "  } catch (...) {\n");
+  String *actioncode = emit_action(n);
+
+  String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  Replaceall(result_convert, "$result", "lresult");
+  Printf(f->code, "%s\n", result_convert);
+  Printf(f->code, "    return lresult;\n");
+  Delete(result_convert);
+  emit_return_variable(n, Getattr(n, "type"), f);
+
+  Printf(f->code, "  } catch (...) {\n");
   if (!is_void_return)
-    Printf(wrap->code, "    return (%s)0;\n", raw_return_type);
-  Printf(wrap->code, "  }\n");
-  Printf(wrap->code, "}\n");
+    Printf(f->code, "    return (%s)0;\n", raw_return_type);
+  Printf(f->code, "  }\n");
+  Printf(f->code, "}\n");
 
   if (CPlusPlus)
-    Wrapper_print(wrap, f_cxx);
+    Wrapper_print(f, f_cxx);
 
   if (CPlusPlus) {
     emit_defun(n, wname);
@@ -482,7 +483,7 @@ int CFFI::functionWrapper(Node *n) {
   //   }
 
   Delete(wname);
-  DelWrapper(wrap);
+  DelWrapper(f);
 
   return SWIG_OK;
 }
@@ -505,7 +506,7 @@ void CFFI::emit_defun(Node *n, String *name) {
   emit_inline(n, func_name);
 
   Printf(f_cl, "\n(cffi:defcfun (\"%s\" %s)", name, func_name);
-  String *ffitype = Swig_typemap_lookup_new("cout", n, ":pointer", 0);
+  String *ffitype = Swig_typemap_lookup("cout", n, ":pointer", 0);
 
   Printf(f_cl, " %s", ffitype);
   Delete(ffitype);
@@ -519,7 +520,7 @@ void CFFI::emit_defun(Node *n, String *name) {
 
     String *argname = Getattr(p, "name");
 
-    ffitype = Swig_typemap_lookup_new("cin", p, "", 0);
+    ffitype = Swig_typemap_lookup("cin", p, "", 0);
 
     int tempargname = 0;
     if (!argname) {
@@ -567,7 +568,7 @@ int CFFI::variableWrapper(Node *n) {
   //    return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");
-  String *lisp_type = Swig_typemap_lookup_new("cin", n, "", 0);
+  String *lisp_type = Swig_typemap_lookup("cin", n, "", 0);
   String *lisp_name = lispify_name(n, var_name, "'variable");
 
   if (Strcmp(lisp_name, "t") == 0 || Strcmp(lisp_name, "T") == 0)
@@ -584,7 +585,7 @@ int CFFI::variableWrapper(Node *n) {
 int CFFI::typedefHandler(Node *n) {
   if (generate_typedef_flag && strncmp(Char(Getattr(n, "type")), "enum", 4)) {
     String *lisp_name = lispify_name(n, Getattr(n, "name"), "'typename");
-    Printf(f_cl, "\n(cffi:defctype %s %s)\n", lisp_name, Swig_typemap_lookup_new("cin", n, "", 0));
+    Printf(f_cl, "\n(cffi:defctype %s %s)\n", lisp_name, Swig_typemap_lookup("cin", n, "", 0));
     emit_export(n, lisp_name);
   }
   return Language::typedefHandler(n);

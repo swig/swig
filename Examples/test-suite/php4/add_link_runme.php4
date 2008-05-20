@@ -4,10 +4,10 @@
 require "tests.php4";
 require "add_link.php";
 
-// No new functions
-check::functions(array());
-// No new classes
-check::classes(array(foo));
+// No new functions, except the flat functions
+check::functions(array(new_foo,foo_blah));
+
+check::classes(array(Foo));
 
 $foo=new foo();
 check::is_a($foo,foo);

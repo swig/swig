@@ -3,7 +3,7 @@
 require "tests.php4";
 require "abstract_inherit.php";
 
-check::classes(array(foo,bar,spam,nrfilter_i,nrrcfilter_i,nrrcfilterpro_i,nrrcfilterpri_i));
+check::classes(array(Foo,Bar,Spam,NRFilter_i,NRRCFilter_i,NRRCFilterpro_i,NRRCFilterpri_i));
 // This constructor attempt should fail as there isn't one
 //$spam=new Spam();
 

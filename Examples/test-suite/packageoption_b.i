@@ -1,4 +1,4 @@
-%module(package="C") "package_b";
+%module(package="C") "packageoption_b";
 
 %inline %{
 class B

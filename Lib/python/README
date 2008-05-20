@@ -52,7 +52,7 @@ std_wstring.i		wstring
 
 /* -----------------------------------------------------------------------------
 /* 
- *  Implementation files: don't look at them unless you are realy drunk
+ *  Implementation files: don't look at them unless you are really drunk
  *
  * ----------------------------------------------------------------------------- */
 
@@ -73,7 +73,7 @@ pyinit.swg		Python Init method
  * ----------------------------------------------------------------------------- */
 
 pyruntime.swg		Main runtime file definition
-pyapi.swg		SWIG/Pyton API declarations
+pyapi.swg		SWIG/Python API declarations
 pyrun.swg		Python run-time code 
 
 /* -----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ pydocs.swg		Typemaps documentation
  * ----------------------------------------------------------------------------- */
 
 pycontainer.swg		python container iterators
-std_common.i		general common code  for the STD/STL implementation
+std_common.i		general common code for the STD/STL implementation
 std_container.i		general common code for the STD/STL containers
 
 
@@ -101,5 +101,5 @@ std_container.i		general common code for the STD/STL containers
  * ----------------------------------------------------------------------------- */
 
 std_vectora.i		vector + allocator (allocators are now supported in STD/STL)
-typemaps.i		old in/out typemaps (doen't need to be included)
+typemaps.i		old in/out typemaps (doesn't need to be included)
 defarg.swg		for processing default arguments with shadow classes

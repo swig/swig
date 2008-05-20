@@ -176,7 +176,6 @@ public:
   };
   
   class D : public C {
-  public:
    public:
     virtual int foo(int a, int b, int c, int d, int e) {
       return C::foo(a,b,c,d,e);
@@ -186,4 +185,19 @@ public:
     }
   };
   %}
+
+%extend E {
+  %contract manipulate_i(int i) {
+  require:
+  i <= $self->m_i;
+  }
+}
+
+%inline %{
+struct E {
+  int m_i;
+  void manipulate_i(int i) {
+  }
+};
+%}
 

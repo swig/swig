@@ -1,6 +1,6 @@
 /*
   Include the internal swig macro codes. These macros correspond to
-  the one found in Source/Include/swigwarn.h plus the 'SWIG'prefix.
+  the one found in Source/Include/swigwarn.h plus the 'SWIG' prefix.
   
   For example, in the include file 'swigwarn.h' you will find
 
@@ -39,7 +39,7 @@
 %include <swigwarn.swg>
 
 /* -----------------------------------------------------------------------------
- * Auxiliar macros
+ * Auxiliary macros
  * ----------------------------------------------------------------------------- */
 
 /* Macro to define warning messages */

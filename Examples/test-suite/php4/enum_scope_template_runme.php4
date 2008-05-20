@@ -4,7 +4,7 @@
 require "tests.php4";
 require "enum_scope_template.php";
 
-check::classes("treeint");
+check::classes(array("enum_scope_template", "TreeInt"));
 check::functions("chops");
 check::equal(0,TreeInt_Oak,"0==TreeInt_Oak");
 check::equal(1,TreeInt_Fir,"0==TreeInt_Fir");

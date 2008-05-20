@@ -180,6 +180,7 @@ namespace Swig {
     typedef std::pair < const swig_octave_member *, octave_value > member_value_pair;
     typedef std::map < std::string, member_value_pair > member_map;
     member_map members;
+    bool always_static;
 
     const swig_octave_member *find_member(const swig_type_info *type, const std::string &name) {
       if (!type->clientdata)
@@ -345,8 +346,10 @@ namespace Swig {
     octave_swig_type &operator=(const octave_swig_type &rhs);
   public:
 
-    octave_swig_type(void *_ptr = 0, const swig_type_info *_type = 0, int _own = 0)
-      :	module(0), construct_type(_ptr ? 0 : _type), own(_own) {
+    octave_swig_type(void *_ptr = 0, const swig_type_info *_type = 0, int _own = 0,
+		     bool _always_static = false)
+      :	module(0), construct_type(_ptr ? 0 : _type), own(_own), 
+      always_static(_always_static) {
       if (_type || _ptr)
 	types.push_back(std::make_pair(_type, _ptr));
       if (_ptr) {
@@ -570,9 +573,12 @@ namespace Swig {
 	}
 
 	octave_value_list args;
-	if (!m->first || (!m->first->is_static() && !m->first->is_global()))
+	if (!always_static &&
+	    (!m->first || (!m->first->is_static() && !m->first->is_global())))
 	  args.append(as_value());
-	if (skip < (int) ops.size() && ops[skip] == '(' && ((m->first && m->first->method) || m->second.is_function() || m->second.is_function_handle())) {
+	if (skip < (int) ops.size() && ops[skip] == '(' && 
+	    ((m->first && m->first->method) || m->second.is_function() || 
+	     m->second.is_function_handle())) {
 	  args.append(*idx_it++);
 	  ++skip;
 	  sub_ovl = member_invoke(m, args, nargout);
@@ -902,7 +908,7 @@ namespace Swig {
       if (outtype && outtype != type)
 	return false;
       assert(sz <= buf.size());
-      std::copy(&buf[0], &buf[sz], (char*)ptr);
+      std::copy(buf.begin(), buf.begin()+sz, (char*)ptr);
       return true;
     }
 
@@ -919,7 +925,7 @@ namespace Swig {
     }
 
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
-      os << "swig packed type: name = " << type->name << ", len = " << buf.size() << std::endl;
+      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size() << std::endl;
     }
   private:
     DECLARE_OCTAVE_ALLOCATOR;

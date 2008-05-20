@@ -422,7 +422,7 @@ C_TEST_CASES += \
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
-	package \
+	packageoption \
 	mod \
 	template_typedef_import \
 	multi_import

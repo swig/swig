@@ -362,7 +362,7 @@ public:
         we need to add a couple of local variables
     NEW LANGUAGE NOTE:END ************************************************/
     Wrapper *f = NewWrapper();
-    Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = -1");
+    Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = 0");
 
 
     String *wname = Swig_name_wrapper(iname);
@@ -383,10 +383,9 @@ public:
        it will print
          int arg1;
          int arg2;
-         int result;
     NEW LANGUAGE NOTE:END ************************************************/
     /* Write code to extract function parameters. */
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
@@ -554,16 +553,15 @@ public:
     Setattr(n, "wrap:name", wname);
 
     /* Emit the function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
     /* NEW LANGUAGE NOTE:***********************************************
     FIXME:
     returns 1 if there is a void return type
     this is because there is a typemap for void
     NEW LANGUAGE NOTE:END ************************************************/
-    Printv(f->code, "SWIG_arg=0;\n", NIL);
     // Return value if necessary
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       // managing the number of returning variables
       //      if (numoutputs=Getattr(tm,"numoutputs")){
       //              int i=GetInt(tm,"numoutputs");
@@ -582,6 +580,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -591,14 +590,14 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
         Replaceall(tm, "$source", "result");
         Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
     }
@@ -751,7 +750,7 @@ public:
     // I refered to the Language::variableWrapper() to find this out
     bool assignable=is_assignable(n) ? true : false;
     SwigType *type = Getattr(n, "type");
-    String *tm = Swig_typemap_lookup_new("globalin", n, iname, 0);
+    String *tm = Swig_typemap_lookup("globalin", n, iname, 0);
     if (!tm && SwigType_isarray(type))
       assignable=false;
     Delete(tm);
@@ -795,13 +794,13 @@ public:
       value = Char(wname);
     }
 
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(s_const_tab, "%s,\n", tm);
-    } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);

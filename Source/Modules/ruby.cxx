@@ -1649,7 +1649,7 @@ public:
 
     /* Emit arguments */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      emit_args(t, l, f);
+      emit_parameter_variables(l, f);
     }
 
     /* Attach standard typemaps */
@@ -1773,72 +1773,79 @@ public:
 
       Setattr(n, "wrap:name", wname);
 
-      emit_action(n, f);
+      Swig_director_emit_dynamic_cast(n, f);
+      String *actioncode = emit_action(n);
 
       if (director_method) {
-	Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
-	Printf(f->code, "  rb_exc_raise(e.getError());\n");
-	Printf(f->code, "  SWIG_fail;\n");
-	Printf(f->code, "}\n");
+	Printf(actioncode, "} catch (Swig::DirectorException& e) {\n");
+	Printf(actioncode, "  rb_exc_raise(e.getError());\n");
+	Printf(actioncode, "  SWIG_fail;\n");
+	Printf(actioncode, "}\n");
       }
-    }
 
-    /* Return value if necessary */
-    if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {
-      need_result = 1;
-      if (GetFlag(n, "feature:predicate")) {
-	Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
-      } else {
-	tm = Swig_typemap_lookup_new("out", n, "result", 0);
-	if (tm) {
-	  Replaceall(tm, "$result", "vresult");
-	  Replaceall(tm, "$source", "result");
-	  Replaceall(tm, "$target", "vresult");
+      /* Return value if necessary */
+      if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
+        need_result = 1;
+        if (GetFlag(n, "feature:predicate")) {
+          Printv(actioncode, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
+        } else {
+          tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+          actioncode = 0;
+          if (tm) {
+            Replaceall(tm, "$result", "vresult");
+            Replaceall(tm, "$source", "result");
+            Replaceall(tm, "$target", "vresult");
 
-	  if (GetFlag(n, "feature:new"))
-	    Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
-	  else
-	    Replaceall(tm, "$owner", "0");
+            if (GetFlag(n, "feature:new"))
+              Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+            else
+              Replaceall(tm, "$owner", "0");
 
 #if 1
-	  // FIXME: this will not try to unwrap directors returned as non-director
-	  //        base class pointers!
+            // FIXME: this will not try to unwrap directors returned as non-director
+            //        base class pointers!
 
-	  /* New addition to unwrap director return values so that the original
-	   * Ruby object is returned instead. 
-	   */
-	  bool unwrap = false;
-	  String *decl = Getattr(n, "decl");
-	  int is_pointer = SwigType_ispointer_return(decl);
-	  int is_reference = SwigType_isreference_return(decl);
-	  if (is_pointer || is_reference) {
-	    String *type = Getattr(n, "type");
-	    Node *parent = Swig_methodclass(n);
-	    Node *modname = Getattr(parent, "module");
-	    Node *target = Swig_directormap(modname, type);
-	    if (target)
-	      unwrap = true;
-	  }
-	  if (unwrap) {
-	    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-	    Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
-	    Printf(f->code, "if (director) {\n");
-	    Printf(f->code, "  vresult = director->swig_get_self();\n");
-	    Printf(f->code, "} else {\n");
-	    Printf(f->code, "%s\n", tm);
-	    Printf(f->code, "}\n");
-	    director_method = 0;
-	  } else {
-	    Printf(f->code, "%s\n", tm);
-	  }
+            /* New addition to unwrap director return values so that the original
+             * Ruby object is returned instead. 
+             */
+            bool unwrap = false;
+            String *decl = Getattr(n, "decl");
+            int is_pointer = SwigType_ispointer_return(decl);
+            int is_reference = SwigType_isreference_return(decl);
+            if (is_pointer || is_reference) {
+              String *type = Getattr(n, "type");
+              Node *parent = Swig_methodclass(n);
+              Node *modname = Getattr(parent, "module");
+              Node *target = Swig_directormap(modname, type);
+              if (target)
+                unwrap = true;
+            }
+            if (unwrap) {
+              Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+              Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
+              Printf(f->code, "if (director) {\n");
+              Printf(f->code, "  vresult = director->swig_get_self();\n");
+              Printf(f->code, "} else {\n");
+              Printf(f->code, "%s\n", tm);
+              Printf(f->code, "}\n");
+              director_method = 0;
+            } else {
+              Printf(f->code, "%s\n", tm);
+            }
 #else
-	  Printf(f->code, "%s\n", tm);
+            Printf(f->code, "%s\n", tm);
 #endif
-	  Delete(tm);
-	} else {
-	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
-	}
+            Delete(tm);
+          } else {
+            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
+          }
+        }
       }
+      if (actioncode) {
+        Append(f->code, actioncode);
+        Delete(actioncode);
+      }
+      emit_return_variable(n, t, f);
     }
 
     /* Extra code needed for new and initialize methods */
@@ -1878,7 +1885,7 @@ public:
 
     /* Look for any remaining cleanup.  This processes the %new directive */
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
-      tm = Swig_typemap_lookup_new("newfree", n, "result", 0);
+      tm = Swig_typemap_lookup("newfree", n, "result", 0);
       if (tm) {
 	Replaceall(tm, "$source", "result");
 	Printv(f->code, tm, "\n", NIL);
@@ -1887,7 +1894,7 @@ public:
     }
 
     /* Special processing on return value. */
-    tm = Swig_typemap_lookup_new("ret", n, "result", 0);
+    tm = Swig_typemap_lookup("ret", n, "result", 0);
     if (tm) {
       Replaceall(tm, "$source", "result");
       Printv(f->code, tm, NIL);
@@ -1895,7 +1902,7 @@ public:
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup_new("directorfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
 	Replaceall(tm, "$input", "result");
 	Replaceall(tm, "$result", "vresult");
 	Printf(f->code, "%s\n", tm);
@@ -2102,13 +2109,13 @@ public:
     Printf(getf->def, ") {");
     Wrapper_add_local(getf, "_val", "VALUE _val");
 
-    tm = Swig_typemap_lookup_new("varout", n, name, 0);
+    tm = Swig_typemap_lookup("varout", n, name, 0);
     if (tm) {
       Replaceall(tm, "$result", "_val");
       Replaceall(tm, "$target", "_val");
       Replaceall(tm, "$source", name);
       /* Printv(getf->code,tm, NIL); */
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
@@ -2134,13 +2141,13 @@ public:
       Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
-      tm = Swig_typemap_lookup_new("varin", n, name, 0);
+      tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$input", "_val");
 	Replaceall(tm, "$source", "_val");
 	Replaceall(tm, "$target", name);
 	/* Printv(setf->code,tm,"\n",NIL); */
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
       }
@@ -2246,9 +2253,9 @@ public:
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = Char(wname);
     }
-    String *tm = Swig_typemap_lookup_new("constant", n, value, 0);
+    String *tm = Swig_typemap_lookup("constant", n, value, 0);
     if (!tm)
-      tm = Swig_typemap_lookup_new("constcode", n, value, 0);
+      tm = Swig_typemap_lookup("constcode", n, value, 0);
     if (tm) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", iname);
@@ -2865,7 +2872,7 @@ public:
     String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
-    String *tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+    String *tm = Swig_typemap_lookup("director:except", n, "result", 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
     }
@@ -3226,7 +3233,7 @@ public:
 	 * It's not just me, similar silliness also occurs in Language::cDeclaration().
 	 */
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup_new("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
 	if (tm == 0) {
 	  String *name = NewString("result");

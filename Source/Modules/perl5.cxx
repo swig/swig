@@ -589,7 +589,7 @@ public:
     Printv(f->def, "XS(", wname, ") {\n", "{\n",	/* scope to destroy C++ objects before croaking */
 	   NIL);
 
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
 
@@ -722,9 +722,10 @@ public:
 
     /* Now write code to make the function call */
 
-    emit_action(n, f);
+    Swig_director_emit_dynamic_cast(n, f);
+    String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       SwigType *t = Getattr(n, "type");
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "ST(argvi)");
@@ -743,6 +744,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     /* If there were any output args, take care of them. */
 
@@ -753,13 +755,13 @@ public:
     Printv(f->code, cleanup, NIL);
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Replaceall(tm, "$source", "result");
 	Printf(f->code, "%s\n", tm);
       }
     }
 
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
     }
@@ -854,13 +856,13 @@ public:
       Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
 
       /* Check for a few typemaps */
-      tm = Swig_typemap_lookup_new("varin", n, name, 0);
+      tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$source", "sv");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "sv");
 	/* Printf(setf->code,"%s\n", tm); */
-	emit_action_code(n, setf, tm);
+	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
 	return SWIG_NOWRAP;
@@ -877,7 +879,7 @@ public:
     Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", get_name);
     Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
 
-    if ((tm = Swig_typemap_lookup_new("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$target", "sv");
       Replaceall(tm, "$result", "sv");
       Replaceall(tm, "$source", name);
@@ -887,7 +889,7 @@ public:
 	Replaceall(tm, "$shadow", "0");
       }
       /* Printf(getf->code,"%s\n", tm); */
-      addfail = emit_action_code(n, getf, tm);
+      addfail = emit_action_code(n, getf->code, tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
       DelWrapper(setf);
@@ -980,7 +982,7 @@ public:
       value = Char(wname);
     }
 
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -990,7 +992,7 @@ public:
 	Replaceall(tm, "$shadow", "0");
       }
       Printf(constant_tab, "%s,\n", tm);
-    } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);

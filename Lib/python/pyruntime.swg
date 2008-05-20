@@ -8,6 +8,6 @@
 %insert(runtime) "pyhead.swg";          /* Python includes and fixes */
 %insert(runtime) "pyerrors.swg";        /* Python errors */
 %insert(runtime) "pythreads.swg";       /* Python thread code */
-%insert(runtime) "pyapi.swg";           /* Pyton API */
+%insert(runtime) "pyapi.swg";           /* Python API */
 %insert(runtime) "pyrun.swg";           /* Python run-time code */
 

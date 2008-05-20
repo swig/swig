@@ -10,20 +10,11 @@
 
 // Here, we identify compilers we now have problems with STL.
 %{
-  
-#if defined(__SUNPRO_CC) 
-#define SWIG_STD_NOASSIGN_STL
-#define SWIG_STD_NOINSERT_TEMPLATE_STL
-#endif
-
-
 #if defined(__GNUC__)
 #  if __GNUC__ == 2 && __GNUC_MINOR <= 96
 #     define SWIG_STD_NOMODERN_STL
 #  endif
 #endif
-
-
 %}
 
 //

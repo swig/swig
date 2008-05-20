@@ -76,7 +76,7 @@
 
 %typemap(out) SWIGTYPE {
     /* %typemap(out) SWIGTYPE */
-    $&1_ltype temp = new $ltype(($1_ltype &) $1);
+    $&1_ltype temp = new $ltype((const $1_ltype &) $1);
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));

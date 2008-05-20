@@ -1007,7 +1007,7 @@ public:
       Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
 
-    emit_args(d, l, f);
+    emit_parameter_variables(l, f);
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
@@ -1175,9 +1175,9 @@ public:
     Setattr(n, "wrap:name", wname);
 
     /* emit function call */
-    emit_action(n, f);
+    String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_new("out", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$input", "result");
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "return_value");
@@ -1195,7 +1195,7 @@ public:
 	if (native_constructor == NATIVE_CONSTRUCTOR) {
 	  Printf(f->code, "add_property_zval(this_ptr,\"" SWIG_PTR "\",_cPtr);\n");
 	} else {
-	  String *shadowrettype = SwigToPhpType(d, iname, true);
+	  String *shadowrettype = SwigToPhpType(n, true);
 	  Printf(f->code, "object_init_ex(return_value,ptr_ce_swig_%s);\n", shadowrettype);
 	  Delete(shadowrettype);
 	  Printf(f->code, "add_property_zval(return_value,\"" SWIG_PTR "\",_cPtr);\n");
@@ -1205,6 +1205,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
+    emit_return_variable(n, d, f);
 
     if (outarg) {
       Printv(f->code, outarg, NIL);
@@ -1216,14 +1217,14 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup_new("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -1857,7 +1858,7 @@ public:
 
     /* First link C variables to PHP */
 
-    tm = Swig_typemap_lookup_new("varinit", n, name, 0);
+    tm = Swig_typemap_lookup("varinit", n, name, 0);
     if (tm) {
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
@@ -1867,7 +1868,7 @@ public:
 
     /* Now generate PHP -> C sync blocks */
     /*
-       tm = Swig_typemap_lookup_new("varin", n, name, 0);
+       tm = Swig_typemap_lookup("varin", n, name, 0);
        if(tm) {
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
@@ -1880,7 +1881,7 @@ public:
     /*
        if(!GetFlag(n,"feature:immutable")) {
 
-       tm = Swig_typemap_lookup_new("varout", n, name, 0);
+       tm = Swig_typemap_lookup("varout", n, name, 0);
        if(tm) {
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
@@ -1910,7 +1911,7 @@ public:
 
     SwigType_remember(type);
 
-    if ((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
@@ -1947,7 +1948,7 @@ public:
       } else {
 	if (!s_fakeoowrappers)
 	  s_fakeoowrappers = NewStringEmpty();
-	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", name, set_to);
+	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", iname, set_to);
       }
     }
 
@@ -2321,7 +2322,7 @@ public:
 	base.item = NULL;
       }
 
-      if (Getattr(n, "abstract")) {
+      if (Getattr(n, "abstract") && !GetFlag(n, "feature:notabstract")) {
 	Printf(s_phpclasses, "abstract ");
       }
 
@@ -2495,7 +2496,7 @@ public:
     // is made.
     int assignable = is_assignable(n);
     if (assignable) {
-      String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
+      String *tm = Swig_typemap_lookup("globalin", n, name, 0);
       if (!tm && SwigType_isarray(type)) {
 	assignable = 0;
       }
@@ -2555,14 +2556,15 @@ public:
   }
 
 
-  String * SwigToPhpType(SwigType *t, String_or_char *pname, int shadow_flag) {
+  String * SwigToPhpType(Node *n, int shadow_flag) {
     String *ptype = 0;
+    SwigType *t = Getattr(n, "type");
 
     if (shadow_flag) {
-      ptype = PhpTypeFromTypemap((char *) "pstype", t, pname, (char *) "");
+      ptype = PhpTypeFromTypemap((char *) "pstype", n, (char *) "");
     }
     if (!ptype) {
-      ptype = PhpTypeFromTypemap((char *) "ptype", t, pname, (char *) "");
+      ptype = PhpTypeFromTypemap((char *) "ptype", n, (char *) "");
     }
 
     if (ptype) return ptype;
@@ -2602,22 +2604,12 @@ public:
     return NewStringEmpty();
   }
 
-  String *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
-    String *tms;
-    tms = Swig_typemap_lookup(op, t, pname, lname, (char *) "", (char *) "", NULL);
-    if (!tms) {
-      return NULL;
-    }
-
-    char *start = Char(tms);
-    while (isspace(*start) || *start == '{') {
-      start++;
-    }
-    char *end = start;
-    while (*end && *end != '}') {
-      end++;
-    }
-    return NewStringWithSize(start, end - start);
+  String *PhpTypeFromTypemap(char *op, Node *n, String_or_char *lname) {
+    String *tms = Swig_typemap_lookup(op, n, lname, 0);
+    if (!tms)
+      return 0;
+    else
+      return NewStringf("%s", tms);
   }
 
   int abstractConstructorHandler(Node *n) {
@@ -2679,24 +2671,23 @@ public:
   int CreateZendListDestructor(Node *n) {
     String *name = GetChar(Swig_methodclass(n), "name");
     String *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
     String *destructorname = NewStringEmpty();
     Printf(destructorname, "_%s", Swig_name_wrapper(iname));
     Setattr(classnode, "destructor", destructorname);
 
-    Wrapper *df = NewWrapper();
-    Printf(df->def, "/* This function is designed to be called by the zend list destructors */\n");
-    Printf(df->def, "/* to typecast and do the actual destruction */\n");
-    Printf(df->def, "static void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n", destructorname);
+    Wrapper *f = NewWrapper();
+    Printf(f->def, "/* This function is designed to be called by the zend list destructors */\n");
+    Printf(f->def, "/* to typecast and do the actual destruction */\n");
+    Printf(f->def, "static void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n", destructorname);
 
-    Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
-    Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NIL);
-    Wrapper_add_localv(df, "newobject", "int newobject=value->newobject", NIL);
+    Wrapper_add_localv(f, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
+    Wrapper_add_localv(f, "ptr", "void *ptr=value->ptr", NIL);
+    Wrapper_add_localv(f, "newobject", "int newobject=value->newobject", NIL);
 
-    emit_args(d, l, df);
-    emit_attach_parmmaps(l, df);
+    emit_parameter_variables(l, f);
+    emit_attach_parmmaps(l, f);
 
     // Get type of first arg, thing to be destructed
     // Skip ignored arguments
@@ -2707,18 +2698,20 @@ public:
     }
     SwigType *pt = Getattr(p, "type");
 
-    Printf(df->code, "  efree(value);\n");
-    Printf(df->code, "  if (! newobject) return; /* can't delete it! */\n");
-    Printf(df->code, "  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
-    Printf(df->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
+    Printf(f->code, "  efree(value);\n");
+    Printf(f->code, "  if (! newobject) return; /* can't delete it! */\n");
+    Printf(f->code, "  arg1 = (%s)SWIG_ZTS_ConvertResourceData(ptr,type_name,SWIGTYPE%s TSRMLS_CC);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
+    Printf(f->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
 
     Setattr(n, "wrap:name", destructorname);
 
-    emit_action(n, df);
+    String *actioncode = emit_action(n);
+    Append(f->code, actioncode);
+    Delete(actioncode);
 
-    Printf(df->code, "}\n");
+    Printf(f->code, "}\n");
 
-    Wrapper_print(df, s_wrappers);
+    Wrapper_print(f, s_wrappers);
 
     return SWIG_OK;
 
