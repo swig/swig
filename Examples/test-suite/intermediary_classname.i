@@ -12,9 +12,9 @@
 %feature("director") Derived;
 
 // Test the throws attribute in these typemaps
-%typemap(javadirectorout, throws="RuntimeException/*javadirectorout Base&*/") Base& 
+%typemap(javadirectorout, throws="InstantiationException/*javadirectorout Base&*/") Base& 
   "$javaclassname.getCPtr($javacall)/* XYZ& typemap directorout*/"
-%typemap(javadirectorin, throws="Throwable/*javadirectorin Base&*/") Base&
+%typemap(javadirectorin, throws="ClassNotFoundException/*javadirectorin Base&*/") Base&
   "new $javaclassname($jniinput, false)/*javadirectorin*/"
 %typemap(out, throws="IllegalAccessException/*out Base&*/") Base& {
   // XYZ& typemap out
