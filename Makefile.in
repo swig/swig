@@ -505,7 +505,7 @@ install-main:
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
-	javascript/v8 scilab
+	javascript/v8 scilab com
 
 lib-modules = std
 
