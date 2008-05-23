@@ -444,7 +444,7 @@ int CFFI::functionWrapper(Node *n) {
   String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
   Replaceall(result_convert, "$result", "lresult");
   Printf(f->code, "%s\n", result_convert);
-  Printf(f->code, "    return lresult;\n");
+  if(!is_void_return) Printf(f->code, "    return lresult;\n");
   Delete(result_convert);
   emit_return_variable(n, Getattr(n, "type"), f);
 
@@ -673,7 +673,7 @@ void CFFI::emit_class(Node *n) {
 
   Printf(supers, ")");
   Printf(f_clos, "\n(cl:defclass %s%s", lisp_name, supers);
-  Printf(f_clos, "\n  ((ff :reader ff-pointer)))\n\n");
+  Printf(f_clos, "\n  ((ff-pointer :reader ff-pointer)))\n\n");
 
   Parm *pattern = NewParm(Getattr(n, "name"), NULL);
 

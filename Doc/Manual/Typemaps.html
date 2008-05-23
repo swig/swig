@@ -2633,7 +2633,7 @@ This typemap supports an optional attribute flag called "optimal", which is for 
 temporary variables and the amount of generated code.
 It only really makes a difference when returning objects by value and it cannot always be used, 
 as explained later on.
-<p>
+</p>
 
 <p>
 When a function returns an object by value, SWIG generates code that instantiates the default
@@ -2651,7 +2651,7 @@ Consider running the following code through SWIG:
 %}
 
 %inline %{
-#include <iostream>
+#include &lt;iostream&gt;
 using namespace std;
 
 struct XX {
@@ -2792,7 +2792,7 @@ try {
 
 <p>
 It should be clear that the above code cannot be used as the argument to the copy constructor call, ie for the <tt>$1</tt> substitution.
-<p>
+</p>
 
 <p>
 Secondly, if the typemaps uses <tt>$1</tt> more than once, then multiple calls to the wrapped function
