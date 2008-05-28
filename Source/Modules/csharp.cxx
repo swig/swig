@@ -1073,7 +1073,9 @@ public:
     global_variable_flag = false;
     generate_property_declaration_flag = false;
 
-    Printf(module_class_code, "\n  }\n\n");
+    if (proxy_flag) {
+      Printf(module_class_code, "\n  }\n\n");
+    }
 
     return ret;
   }
