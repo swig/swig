@@ -1,5 +1,8 @@
 Version 1.3.36 (in progress)
 =============================
+05/29/2008: bhy
+            [Python] Fixed a typo of %#ifdef in Lib/python/pycontainer.swg, which is related 
+            to -extranative SWIG option - SF #1971977.
 
 05/20/2008: wsfulton
             New partialcheck makefile targets for partial testing of the test-suite. These

@@ -738,12 +738,12 @@ namespace swig {
     typedef typename sequence::const_iterator const_iterator;
 
     static PyObject *from(const sequence& seq) {
-#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
+%#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
-#endif
+%#endif
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
 	PyObject *obj = PyTuple_New((int)size);
