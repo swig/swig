@@ -1090,3 +1090,18 @@ r_clean:
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
 	rm -f $(RRSRC) runme.Rout .RData
 
+##################################################################
+#####                           C                           ######
+##################################################################
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+c: $(SRCS)
+	$(SWIG) -c $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(SO)
+	$(CC) $(EXEC) -L. -l$(LIBPREFIX)_$(TARGET)
+	
+
