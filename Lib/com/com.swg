@@ -7,5 +7,11 @@
  * COM typemaps
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) %{
-%}
+%typemap(comtype) void "void"
+%typemap(comtype) int, const int & "int"
+%typemap(comtype) double, const double & "double"
+%typemap(comtype) long, const long & "long"
+
+%typemap(in) int "int"
+%typemap(in) double "double"
+%typemap(in) long "long"
