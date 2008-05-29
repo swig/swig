@@ -1926,7 +1926,7 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+    if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
       if (setter_flag)
@@ -2109,7 +2109,7 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+    if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       if (generate_property_declaration_flag) {	// Ensure the declaration is generated just once should the property contain both a set and get
 	// Get the C# variable type - obtained differently depending on whether a setter is required.
@@ -2543,6 +2543,7 @@ public:
     num_arguments = emit_num_arguments(l);
     num_required = emit_num_required(l);
 
+    bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
 
     /* Output each parameter */
@@ -2569,7 +2570,7 @@ public:
       if (gencomma)
 	Printf(imcall, ", ");
 
-      String *arg = makeParameterName(n, p, i, setter_flag);
+      String *arg = makeParameterName(n, p, i, global_or_member_variable);
 
       // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
       if ((tm = Getattr(p, "tmap:csin"))) {
@@ -2879,7 +2880,7 @@ public:
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping member variables
+   *   setter  - set this flag when wrapping variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
@@ -2888,20 +2889,22 @@ public:
 
     String *arg = 0;
     String *pn = Getattr(p, "name");
-    if (setter) {
+
+    // Use C parameter name unless it is a duplicate or an empty parameter name
+    int count = 0;
+    ParmList *plist = Getattr(n, "parms");
+    while (plist) {
+      if ((Cmp(pn, Getattr(plist, "name")) == 0))
+        count++;
+      plist = nextSibling(plist);
+    }
+    String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
+    arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
+
+    if (setter && Cmp(arg, "self") != 0) {
       // Note that in C# properties, the input variable name is always called 'value'
+      Delete(arg);      
       arg = NewString("value");
-    } else {
-      // Use C parameter name unless it is a duplicate or an empty parameter name
-      int count = 0;
-      ParmList *plist = Getattr(n, "parms");
-      while (plist) {
-	if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	  count++;
-	plist = nextSibling(plist);
-      }
-      String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-      arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
     }
 
     return arg;

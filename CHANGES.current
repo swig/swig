@@ -1,5 +1,9 @@
 Version 1.3.36 (in progress)
 =============================
+
+05/29/2008: wsfulton
+            [Java, C#] Fix variable wrappers when using -noproxy.
+
 05/29/2008: bhy
             [Python] Fixed a typo of %#ifdef in Lib/python/pycontainer.swg, which is related 
             to -extranative SWIG option - SF #1971977.
