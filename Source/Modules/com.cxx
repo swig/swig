@@ -18,6 +18,7 @@ class COM:public Language {
   File *f_runtime;
   File *f_header;
   File *f_module;
+  File *f_wrappers;
 
   bool proxy_flag;		// Flag for generating proxy classes
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
@@ -34,6 +35,23 @@ public:
   COM():proxy_flag(true),
       enum_constant_flag(false) {
     /* Empty for now */
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getProxyName()
+   *
+   * Test to see if a type corresponds to something wrapped with a proxy class
+   * Return NULL if not otherwise the proxy class name
+   * ----------------------------------------------------------------------------- */
+  
+   String *getProxyName(SwigType *t) {
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n) {
+	return Getattr(n, "sym:name");
+      }
+    }
+    return NULL;
   }
 
   /* ------------------------------------------------------------
@@ -84,6 +102,7 @@ public:
     }
 
     f_header = NewString("");
+    f_wrappers = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
@@ -129,6 +148,8 @@ public:
     /* Close all of the files */
     Dump(f_header, f_runtime);
     Delete(f_header);
+    Dump(f_wrappers, f_runtime);
+    Delete(f_wrappers);
     Delete(f_runtime);
     Delete(f_module);
     return SWIG_OK;
@@ -153,10 +174,111 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
+    String *tm;
+    Parm *p;
+    int i;
+    String *c_return_type = NewString("");
+    bool is_void_return;
+    int num_arguments = 0;
+    int num_required = 0;
 
-    /* FIXME: temporary, will be done by emit_attach_parmmaps in the future */
-    Swig_typemap_attach_parms("in", l, NULL);
+    /* FIXME */
+    String *overloaded_name = Copy(symname);
+
+    // A new wrapper function object
+    Wrapper *f = NewWrapper();
+
+    // Make a wrapper name for this function
+    String *wname = Swig_name_wrapper(overloaded_name);
+
+    /* Attach the non-standard typemaps to the parameter list. */
+    Swig_typemap_attach_parms("ctype", l, f);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
+      String *ctypeout = Getattr(n, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
+      if (ctypeout)
+	tm = ctypeout;
+      Printf(c_return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    is_void_return = (Cmp(c_return_type, "void") == 0);
+    if (!is_void_return)
+      Wrapper_add_localv(f, "result", c_return_type, "result", NIL);
+
+    Printv(f->def, c_return_type, " ", wname, "(", NIL);
+
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
+
+    /* Attach the standard typemaps */
+    emit_attach_parmmaps(l, f);
+
+    // Parameter overloading
+    Setattr(n, "wrap:parms", l);
+    Setattr(n, "wrap:name", wname);
+
+    /* Get number of required and total arguments */
+    num_arguments = emit_num_arguments(l);
+    num_required = emit_num_required(l);
+    int gencomma = 0;
+
+    // Now walk the function parameter list and generate code to get arguments
+    for (i = 0, p = l; i < num_arguments; i++) {
+
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = Getattr(p, "lname");
+      String *c_param_type = NewString("");
+      String *arg = NewString("");
+
+      Printf(arg, "j%s", ln);
+
+      /* Get the ctype types of the parameter */
+      if ((tm = Getattr(p, "tmap:ctype"))) {
+	Printv(c_param_type, tm, NIL);
+      } else {
+	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      // Add parameter to C function
+      Printv(f->def, gencomma ? ", " : "", c_param_type, " ", arg, NIL);
+
+      gencomma = 1;
+
+      // Get typemap for this argument
+      if ((tm = Getattr(p, "tmap:in"))) {
+	// FIXME: canThrow(n, "in", p);
+	Replaceall(tm, "$source", arg);	/* deprecated */
+	Replaceall(tm, "$target", ln);	/* deprecated */
+	Replaceall(tm, "$arg", arg);	/* deprecated? */
+	Replaceall(tm, "$input", arg);
+	Setattr(p, "emit:input", arg);
+	Printf(f->code, "%s\n", tm);
+	p = Getattr(p, "tmap:in:next");
+      } else {
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+	p = nextSibling(p);
+      }
+      Delete(c_param_type);
+      Delete(arg);
+    }
+
+    Printf(f->def, ") {");
+
+    if (!is_void_return)
+      Printv(f->code, "    return result;\n", NIL);
+    Printf(f->code, "}\n");
+
+    Wrapper_print(f, f_wrappers);
 
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
@@ -177,6 +299,7 @@ public:
     String *function_code = NewString("");
     Parm *p;
     int i;
+    String *func_name = NULL;
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -193,14 +316,16 @@ public:
       String *comtypeout = Getattr(n, "tmap:comtype:out");	// the type in the comtype typemap's out attribute overrides the type in the typemap
       if (comtypeout)
 	tm = comtypeout;
-      // JJ: if the typemap contains $comclassname substitute it with the actual class
-      //substituteClassname(t, tm);
+      substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    Printf(function_code, "  %s %s(", return_type, Getattr(n, "sym:name"));
+    /* FIXME: ... */
+    func_name = Getattr(n, "sym:name");
+
+    Printf(function_code, "  %s %s(", return_type, func_name);
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
@@ -221,12 +346,13 @@ public:
 
       /* Get the COM parameter type */
       if ((tm = Getattr(p, "tmap:comtype"))) {
-	// substituteClassname(pt, tm);
+	substituteClassname(pt, tm);
 	Printf(param_type, "%s", tm);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
       }
 
+      /* FIXME: get the real argument name, it is important in the IDL */
       String *arg = NewStringf("arg%d", i);
 
       /* Add parameter to module class function */
@@ -248,6 +374,82 @@ public:
 
     return SWIG_OK;
   }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassname()
+   *
+   * Substitute $comclassname with the proxy class name for classes/structs/unions that SWIG knows about.
+   * Also substitutes enums with enum name.
+   * Otherwise use the $descriptor name for the COM class name. Note that the $&comclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Inputs:
+   *   pt - parameter type
+   *   tm - comtype typemap
+   * Outputs:
+   *   tm - comtype typemap with $comclassname substitution
+   * Return:
+   *   substitution_performed - flag indicating if a substitution was performed
+   * ----------------------------------------------------------------------------- */
+
+  bool substituteClassname(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    if (Strstr(tm, "$comclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$comclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$*comclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      substituteClassnameSpecialVariable(classnametype, tm, "$*comclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&comclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&comclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    if (SwigType_isenum(classnametype)) {
+      // FIXME: String *enumname = getEnumName(classnametype);
+      String *enumname = classnametype;
+      if (enumname)
+	Replaceall(tm, classnamespecialvariable, enumname);
+      else
+	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+    } else {
+      String *classname = getProxyName(classnametype);
+      if (classname) {
+	Replaceall(tm, classnamespecialvariable, classname);	// getProxyName() works for pointers to classes too
+      } else {			// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+	Replaceall(tm, classnamespecialvariable, descriptor);
+
+	// Add to hash table so that the type wrapper classes can be created later
+	// FIXME: Setattr(swig_types_hash, descriptor, classnametype);
+	Delete(descriptor);
+      }
+    }
+  }
+
 
 };				/* class COM */
 
