@@ -19,6 +19,9 @@ class COM:public Language {
   File *f_header;
   File *f_module;
 
+  bool proxy_flag;		// Flag for generating proxy classes
+  bool enum_constant_flag;	// Flag for when wrapping an enum or constant
+
   String *module_class_name;	// module class name
   String *module_class_code;
 
@@ -28,7 +31,10 @@ public:
    * COM()
    * ----------------------------------------------------------------------------- */
 
-   COM() {}
+  COM():proxy_flag(true),
+      enum_constant_flag(false) {
+    /* Empty for now */
+  }
 
   /* ------------------------------------------------------------
    * main()
@@ -140,6 +146,107 @@ public:
     Printf(f, " * Do not make changes to this file unless you know what you are doing--modify\n");
     Printf(f, " * the SWIG interface file instead.\n");
     Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
+  }
+
+  /* -----------------------------------------------------------------------------
+   * functionWrapper()
+   * ----------------------------------------------------------------------------- */
+
+  virtual int functionWrapper(Node *n) {
+    ParmList *l = Getattr(n, "parms");
+
+    /* FIXME: temporary, will be done by emit_attach_parmmaps in the future */
+    Swig_typemap_attach_parms("in", l, NULL);
+
+    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
+      moduleClassFunctionHandler(n);
+    }
+
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * moduleClassFunctionHandler()
+   * ----------------------------------------------------------------------------- */
+
+  int moduleClassFunctionHandler(Node *n) {
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    String *return_type = NewString("");
+    String *function_code = NewString("");
+    Parm *p;
+    int i;
+
+    if (l) {
+      if (SwigType_type(Getattr(l, "type")) == T_VOID) {
+	l = nextSibling(l);
+      }
+    }
+
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("comtype", l, NULL);
+    Swig_typemap_attach_parms("comin", l, NULL);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("comtype", n, "", 0))) {
+      String *comtypeout = Getattr(n, "tmap:comtype:out");	// the type in the comtype typemap's out attribute overrides the type in the typemap
+      if (comtypeout)
+	tm = comtypeout;
+      // JJ: if the typemap contains $comclassname substitute it with the actual class
+      //substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    Printf(function_code, "  %s %s(", return_type, Getattr(n, "sym:name"));
+
+    /* Get number of required and total arguments */
+    int num_arguments = emit_num_arguments(l);
+    int num_required = emit_num_required(l);
+
+    int gencomma = 0;
+
+    /* Output each parameter */
+    for (i = 0, p = l; i < num_arguments; i++) {
+
+      /* Ignored parameters */
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *param_type = NewString("");
+
+      /* Get the COM parameter type */
+      if ((tm = Getattr(p, "tmap:comtype"))) {
+	// substituteClassname(pt, tm);
+	Printf(param_type, "%s", tm);
+      } else {
+	Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      String *arg = NewStringf("arg%d", i);
+
+      /* Add parameter to module class function */
+      if (gencomma >= 2)
+	Printf(function_code, ", ");
+      gencomma = 2;
+      Printf(function_code, "%s %s", param_type, arg);
+
+      p = Getattr(p, "tmap:in:next");
+      Delete(arg);
+      Delete(param_type);
+    }
+
+    Printf(function_code, ");\n");
+
+    Printv(module_class_code, function_code, NIL);
+    Delete(function_code);
+    Delete(return_type);
+
+    return SWIG_OK;
   }
 
 };				/* class COM */
