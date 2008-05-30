@@ -1102,6 +1102,6 @@ c: $(SRCS)
 	$(SWIG) -c $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(SO)
-	$(CC) $(EXEC) -L. -l$(LIBPREFIX)_$(TARGET)
+	$(CC) $(EXEC) $(TARGET)_proxy.c -L. -l$(LIBPREFIX)_$(TARGET)
 	
 

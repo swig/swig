@@ -1,6 +1,9 @@
 /* File : example.i */
 %module example
 
-%inline %{
+%feature("prepend") {
+  printf("Testing...\n");
+}
+
 extern int gcd(int x, int y);
-%}
+
