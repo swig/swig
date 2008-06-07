@@ -3,7 +3,7 @@
  */
 
 %module keyword_rename
-
+%warnfilter(SWIGWARN_PARSE_KEYWORD);
 %inline %{
 
 #define KW(x, y) int x (int y) { return y;} 
