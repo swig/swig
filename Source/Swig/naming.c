@@ -1477,7 +1477,7 @@ String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType 
   }
 
 
-  if (rename_hash || rename_list) {
+  if (rename_hash || rename_list || namewarn_hash || namewarn_list) {
     Hash *rn = Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
     if (!rn || !Swig_name_match_nameobj(rn, n)) {
       rn = Swig_name_nameobj_lget(Swig_name_rename_list(), n, prefix, name, decl);

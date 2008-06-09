@@ -6,7 +6,7 @@
 
 %module(ruby_minherit="1") minherit
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE)
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL)
 
 %inline %{
 

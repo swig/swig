@@ -283,6 +283,7 @@ _apply_macro(Macro, ptrdiff_t          , Arg2);
 _apply_macro(Macro, std::size_t, Arg2);
 _apply_macro(Macro, std::ptrdiff_t, Arg2);
 _apply_macro(Macro, std::string, Arg2);
+_apply_macro(Macro, std::wstring, Arg2);
 _apply_macro(Macro, std::complex<float>, Arg2);
 _apply_macro(Macro, std::complex<double>, Arg2);
 %enddef
