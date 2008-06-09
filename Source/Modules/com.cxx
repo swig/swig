@@ -22,6 +22,10 @@ class COM:public Language {
 
   bool proxy_flag;		// Flag for generating proxy classes
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
+  String *proxy_class_def;
+  String *proxy_class_code;
+  String *proxy_class_name;
+  String *proxy_class_constants_code;
 
   String *module_class_name;	// module class name
   String *module_class_code;
@@ -112,6 +116,8 @@ public:
     module_class_name = Copy(Getattr(n, "name"));
 
     module_class_code = NewString("");
+    proxy_class_def = NewString("");
+    proxy_class_code = NewString("");
 
     /* Emit code */
     Language::top(n);
@@ -209,7 +215,7 @@ public:
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
     if (!is_void_return)
-      Wrapper_add_localv(f, "result", c_return_type, "result", NIL);
+      Wrapper_add_localv(f, "jresult", c_return_type, "jresult", NIL);
 
     Printv(f->def, c_return_type, " ", wname, "(", NIL);
 
@@ -272,10 +278,50 @@ public:
       Delete(arg);
     }
 
+    String *null_attribute = 0;
+    // Now write code to make the function call
+    /* FIXME: if (!native_function_flag) */ {
+      if (Cmp(nodeType(n), "constant") == 0) {
+        // Wrapping a constant hack
+        Swig_save("functionWrapper", n, "wrap:action", NIL);
+
+        // below based on Swig_VargetToFunction()
+        SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
+        Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      }
+
+      // FIXME: Swig_director_emit_dynamic_cast(n, f);
+      String *actioncode = emit_action(n);
+
+      if (Cmp(nodeType(n), "constant") == 0)
+        Swig_restore(n);
+
+      /* Return value if necessary  */
+      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+	// FIXME: canThrow(n, "out", n);
+	Replaceall(tm, "$source", "result");	/* deprecated */
+	Replaceall(tm, "$target", "jresult");	/* deprecated */
+	Replaceall(tm, "$result", "jresult");
+
+        if (GetFlag(n, "feature:new"))
+          Replaceall(tm, "$owner", "1");
+        else
+          Replaceall(tm, "$owner", "0");
+
+	Printf(f->code, "%s", tm);
+	null_attribute = Getattr(n, "tmap:out:null");
+	if (Len(tm))
+	  Printf(f->code, "\n");
+      } else {
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
+      }
+      emit_return_variable(n, t, f);
+    }
+
     Printf(f->def, ") {");
 
     if (!is_void_return)
-      Printv(f->code, "    return result;\n", NIL);
+      Printv(f->code, "    return jresult;\n", NIL);
     Printf(f->code, "}\n");
 
     Wrapper_print(f, f_wrappers);
@@ -374,6 +420,107 @@ public:
 
     return SWIG_OK;
   }
+
+  /* ----------------------------------------------------------------------
+   * classHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int classHandler(Node *n) {
+
+    String *f_proxy = NewString("");
+
+    if (proxy_flag) {
+      proxy_class_name = NewString(Getattr(n, "sym:name"));
+
+      if (!addSymbol(proxy_class_name, n))
+	return SWIG_ERROR;
+
+/* FIXME */
+#if 0
+      if (Cmp(proxy_class_name, imclass_name) == 0) {
+	Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
+	SWIG_exit(EXIT_FAILURE);
+      }
+#endif
+
+      if (Cmp(proxy_class_name, module_class_name) == 0) {
+	Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
+	SWIG_exit(EXIT_FAILURE);
+      }
+
+      Clear(proxy_class_def);
+      Clear(proxy_class_code);
+
+      // FIXME: destructor_call = NewString("");
+      proxy_class_constants_code = NewString("");
+    }
+
+    Language::classHandler(n);
+
+    if (proxy_flag) {
+
+      emitProxyClassDefAndCPPCasts(n);
+
+      Replaceall(proxy_class_def, "$module", module_class_name);
+      Replaceall(proxy_class_code, "$module", module_class_name);
+      Replaceall(proxy_class_constants_code, "$module", module_class_name);
+      // FIXME: Replaceall(proxy_class_def, "$imclassname", imclass_name);
+      // FIXME: Replaceall(proxy_class_code, "$imclassname", imclass_name);
+      // FIXME: Replaceall(proxy_class_constants_code, "$imclassname", imclass_name);
+      // FIXME: Replaceall(proxy_class_def, "$dllimport", dllimport);
+      // FIXME: Replaceall(proxy_class_code, "$dllimport", dllimport);
+      // FIXME: Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
+
+      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+
+      // Write out all the constants
+      if (Len(proxy_class_constants_code) != 0)
+	Printv(f_proxy, proxy_class_constants_code, NIL);
+
+      Printf(f_proxy, "}\n");
+      f_proxy = NULL;
+
+/* FIXME */
+#if 0
+      /* Output the downcast method, if necessary. Note: There's no other really
+         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
+         downcasts, making the constructorHandler() a bad place (because ABCs don't get to
+         have constructors emitted.) */
+      if (GetFlag(n, "feature:javadowncast")) {
+	String *norm_name = SwigType_namestr(Getattr(n, "name"));
+
+	Printf(imclass_class_code, "  public final static native %s downcast%s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, proxy_class_name);
+
+	Wrapper *dcast_wrap = NewWrapper();
+
+	Printf(dcast_wrap->def, "SWIGEXPORT jobject SWIGSTDCALL CSharp_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
+	       proxy_class_name);
+	Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
+	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
+	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
+	Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
+	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
+	Printf(dcast_wrap->code, "  return jresult;\n");
+	Printf(dcast_wrap->code, "}\n");
+
+	Wrapper_print(dcast_wrap, f_wrappers);
+	DelWrapper(dcast_wrap);
+      }
+
+      emitDirectorExtraMethods(n);
+#endif
+
+      Delete(proxy_class_name);
+      proxy_class_name = NULL;
+      // FIXME: Delete(destructor_call);
+      // FIXME: destructor_call = NULL;
+      Delete(proxy_class_constants_code);
+      proxy_class_constants_code = NULL;
+    }
+
+    return SWIG_OK;
+  }
+
 
   /* -----------------------------------------------------------------------------
    * substituteClassname()

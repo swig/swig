@@ -8,19 +8,18 @@
  * ----------------------------------------------------------------------------- */
 
 %typemap(ctype) void "void"
-%typemap(ctype) int, const int & "int"
-%typemap(ctype) double, const double & "double"
-%typemap(ctype) long, const long & "long"
-%typemap(ctype) SWIGTYPE * "void *"
+%typemap(ctype) int, const int & "/* ctype */ int"
+%typemap(ctype) double, const double & "/*ctype */ double"
+%typemap(ctype) long, const long & "/* ctype */ long"
+%typemap(ctype) SWIGTYPE * "/* ctype */ void *"
 
 %typemap(comtype) void "void"
-%typemap(comtype) int, const int & "int"
-%typemap(comtype) double, const double & "double"
-%typemap(comtype) long, const long & "long"
-%typemap(comtype) SWIGTYPE * "$comclassname *"
+%typemap(comtype) int, const int & "/* comtype */ int"
+%typemap(comtype) double, const double & "/* comtype */ double"
+%typemap(comtype) long, const long & "/* comtype */ long"
+%typemap(comtype) SWIGTYPE * "/* comtype */ $comclassname *"
 
-%typemap(in) int "int"
-%typemap(in) double "double"
-%typemap(in) long "long"
-%typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
+%typemap(in) int, double, long, SWIGTYPE * %{ /* in */ $1 = ($1_ltype)$input; %}
 
+%typemap(out) int, double, long, SWIGTYPE * %{ /* out */ $result = $1; %}
+%typemap(out) void ""
