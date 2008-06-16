@@ -3,10 +3,12 @@ SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-EXEC       = main.c
+MAIN       = main.c
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' EXEC='$(EXEC)' c
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MAIN='$(MAIN)' c
 
+clean:
+	rm *.o
 

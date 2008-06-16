@@ -21,7 +21,8 @@ class C:public Language {
   File *f_shadow_c;
   File *f_shadow_h;
 
-  String *f_shadow_code;
+  String *f_shadow_code_init;
+  String *f_shadow_code_body;
   String *f_shadow_header;
 
   bool shadow_flag;
@@ -72,16 +73,36 @@ public:
     Printf(f, " */\n\n");
   }
 
-  void emitMingwLinkFix(File *f) {
-    Printf(f, "#ifndef __GNUC__\n");
-    Printf(f, "# define __DLL_IMPORT __declspec(dllimport)\n");
-    Printf(f, "#else\n");
-    Printf(f, "# define __DLL_IMPORT __attribute__((dllimport)) extern\n");
+  void emitSwigExport(File *f) {
+    Printf(f, "#ifndef SWIGEXPORT\n");
+    Printf(f, "# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)\n");
+    Printf(f, "#   if defined(STATIC_LINKED)\n");
+    Printf(f, "#     define SWIGEXPORT\n");
+    Printf(f, "#   else\n");
+    Printf(f, "#     define SWIGEXPORT __declspec(dllexport)\n");
+    Printf(f, "#   endif\n");
+    Printf(f, "# else\n");
+    Printf(f, "#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)\n");
+    Printf(f, "#     define SWIGEXPORT __attribute__ ((visibility(\"default\")))\n");
+    Printf(f, "#   else\n");
+    Printf(f, "#     define SWIGEXPORT\n");
+    Printf(f, "#   endif\n");
+    Printf(f, "# endif\n");
     Printf(f, "#endif\n\n");
-    Printf(f, "#if defined (BUILD_ddd_DLL) || !defined (__WIN32__)\n");
-    Printf(f, "# define DLL_IMPORT extern\n");
-    Printf(f, "#else\n");
-    Printf(f, "# define DLL_IMPORT __DLL_IMPORT\n");
+  }
+
+  void emitSwigImport(File *f) {
+    Printf(f, "#ifndef SWIGIMPORT\n");
+    Printf(f, "# ifndef __GNUC__\n");
+    Printf(f, "#   define __DLL_IMPORT __declspec(dllimport)\n");
+    Printf(f, "# else\n");
+    Printf(f, "#   define __DLL_IMPORT __attribute__((dllimport)) extern\n");
+    Printf(f, "# endif\n");
+    Printf(f, "# if !defined (__WIN32__)\n");
+    Printf(f, "#   define SWIGIMPORT extern\n");
+    Printf(f, "# else\n");
+    Printf(f, "#   define SWIGIMPORT __DLL_IMPORT\n");
+    Printf(f, "# endif\n");
     Printf(f, "#endif\n\n");
   }
 
@@ -105,7 +126,8 @@ public:
 
     /* generate shadow files if enabled */
     if (shadow_flag) {
-      f_shadow_code = NewString("");
+      f_shadow_code_init = NewString("");
+      f_shadow_code_body = NewString("");
       f_shadow_header = NewString("");
 
       /* create shadow file with appropriate name */
@@ -121,13 +143,14 @@ public:
         SWIG_exit(EXIT_FAILURE);
       }
 
-      Swig_register_filebyname("shadow_code", f_shadow_code);
+      Swig_register_filebyname("shadow_code_init", f_shadow_code_init);
+      Swig_register_filebyname("shadow_code_body", f_shadow_code_body);
       Swig_register_filebyname("shadow_header", f_shadow_header);
 
-      emitBanner(f_shadow_code);
+      emitBanner(f_shadow_code_init);
       emitBanner(f_shadow_header);
-      emitMingwLinkFix(f_shadow_header);
-      Printf(f_shadow_code, "#include \"%s\"\n\n", shadow_header_filename);
+      emitSwigImport(f_shadow_header);
+      Printf(f_shadow_code_init, "#include \"%s\"\n\n", shadow_header_filename);
     }
 
     Swig_register_filebyname("header", f_header);
@@ -135,16 +158,25 @@ public:
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
 
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "extern \"C\" {\n");
+    Printf(f_wrappers, "#endif\n\n");
+    
     /* emit code for children */
     Language::top(n);
 
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_wrappers, "#endif\n");
+
     /* finalize generating shadow file */
     if (shadow_flag) {
-      Printv(f_shadow_c, f_shadow_code, "\n", NIL);
+      Printv(f_shadow_c, f_shadow_code_init, "\n", NIL);
+      Printv(f_shadow_c, f_shadow_code_body, "\n", NIL);
       Printv(f_shadow_h, f_shadow_header, "\n", NIL);
       Close(f_shadow_c);
       Close(f_shadow_h);
-      Delete(f_shadow_code);
+      Delete(f_shadow_code_init);
       Delete(f_shadow_header);
     }
 
@@ -163,44 +195,55 @@ public:
     return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------
+   * globalvariableHandler()
+   * ------------------------------------------------------------------------ */  
+
   virtual int globalvariableHandler(Node *n) {
+    SwigType *type = Getattr(n, "type");
+    String *type_str = SwigType_str(type, 0);
+    Printv(f_wrappers, "SWIGEXPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     if (shadow_flag) {
-      Printv(f_shadow_header, "DLL_IMPORT ", Getattr(n, "type"), " ", Getattr(n, "name"), NIL);
-      String *defval = NewString("");
-      defval = Getattr(n, "value");
-      if (defval) {
-        Printv(f_shadow_header, " = ", defval, NIL);
-      }
-      Printf(f_shadow_header, ";\n");
+      Printv(f_shadow_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     }
     return SWIG_OK;
   }
 
+  /* ----------------------------------------------------------------------
+   * functionWrapper()
+   * ---------------------------------------------------------------------- */
+  
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "sym:name");
-    SwigType *type = Getattr(n, "type");
+    SwigType *return_type = Getattr(n, "type");
+    String *return_type_str = SwigType_str(return_type, 0);
     ParmList *parms = Getattr(n, "parms");
 
-    /* create new wrapper name */
+    /* create new function wrapper object */
     Wrapper *wrapper = NewWrapper();
+
+    /* create new wrapper name */
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
 
     /* create wrapper function prototype */
-    Printv(wrapper->def, type, " ", wname, "(", NIL);
+    Printv(wrapper->def, "SWIGEXPORT ", return_type_str, " ", wname, "(", NIL);
+
+    /* attach the standard typemaps */
+    emit_attach_parmmaps(parms, wrapper);
 
     /* prepare parameter list */
     Parm *p, *np;
     for (p = parms; p; ) {
       np = nextSibling(p);
-      Printv(wrapper->def, Getattr(p, "type"), " ", Getattr(p, "lname"), np ? ", " : "", NIL);
-      Printf(stdout, "%s\n", Getattr(p, "tmap:argout")); 
+      SwigType *type = Getattr(p, "type");
+      Printv(wrapper->def, SwigType_str(type, 0), " ", Getattr(p, "lname"), np ? ", " : "", NIL);
       p = np;
     }
     Printv(wrapper->def, ") {", NIL);
 
     /* declare wrapper function local variables */
-    emit_return_variable(n, type, wrapper);
+    emit_return_variable(n, return_type, wrapper);
 
     /* emit action code */
     String *action = emit_action(n);
@@ -221,8 +264,8 @@ public:
         p = np;
       }
 
-      Printv(f_shadow_code, "extern ", type, " _wrap_", name, "(", proto, ");\n", NIL);
-      Printv(f_shadow_code, type, " ", name, "(", proto, ") {\n", NIL);
+      Printv(f_shadow_code_init, "extern ", return_type_str, " _wrap_", name, "(", proto, ");\n", NIL);
+      Printv(f_shadow_code_body, return_type_str, " ", name, "(", proto, ") {\n", NIL);
 
       /* handle 'prepend' feature */
       String *prepend_str = Getattr(n, "feature:prepend");
@@ -232,11 +275,11 @@ public:
           Delitem(prepend_str, 0);
           Delitem(prepend_str, DOH_END);
         }
-        Printv(f_shadow_code, prepend_str, "\n", NIL);
+        Printv(f_shadow_code_body, prepend_str, "\n", NIL);
       }
 
       /* call to the wrapper function */
-      Printv(f_shadow_code, "  return ", wname, "(", arg_names, ");\n", NIL);
+      Printv(f_shadow_code_body, "  return ", wname, "(", arg_names, ");\n", NIL);
 
       /* handle 'append' feature */
       String *append_str = Getattr(n, "feature:append");
@@ -245,14 +288,14 @@ public:
         if (*t == '{') {
           Delitem(append_str, 0);
           Delitem(append_str, DOH_END);
-        }
-        Printv(f_shadow_code, append_str, "\n", NIL);
+          }
+        Printv(f_shadow_code_body, append_str, "\n", NIL);
       }
 
-      Printv(f_shadow_code, "}\n", NIL);
+      Printv(f_shadow_code_body, "}\n", NIL);
 
       /* add function declaration to the proxy header file */
-      Printv(f_shadow_header, type, " ", name, "(", proto, ");\n");
+      Printv(f_shadow_header, return_type_str, " ", name, "(", proto, ");\n");
     }
 
     Delete(wname);
