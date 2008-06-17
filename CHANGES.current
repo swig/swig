@@ -1,6 +1,10 @@
 Version 1.3.36 (in progress)
 =============================
 
+06/17/2008: mgossage
+            [Lua] Added missing support for bool& and bool*. Added runtest for li_typemaps testcase.
+            (Bug #1938142)
+
 06/07/2008: bhy
             Added test case keyword_rename, then made the keyword renaming works properly
             by fixing Swig_name_make() for a incomplete condition checking.
