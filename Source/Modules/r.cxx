@@ -1841,6 +1841,9 @@ int R::functionWrapper(Node *n) {
     String   *name  = Getattr(p,"name");
     String   *lname  = Getattr(p,"lname");
 
+    // R keyword renaming
+    if (name && Swig_name_warning(p, 0, name, 0))
+      name = 0;
 
     /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
        we need to remove that prefix. */

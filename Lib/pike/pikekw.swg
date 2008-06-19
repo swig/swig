@@ -2,7 +2,7 @@
 #define PIKE_PIKEKW_SWG_
 
 /* Warnings for Pike keywords */
-#define PIKEKW(x) %namewarn("314:" #x " is a pike keyword")  #x
+#define PIKEKW(x) %namewarn("314: '" #x "' is a pike keyword")  #x
 
 /*
    from

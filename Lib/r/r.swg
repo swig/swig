@@ -12,6 +12,8 @@
 SWIGEXPORT void SWIG_init(void) {
 %}
 
+%include <rkw.swg>
+
 #define %Rruntime %insert("s")
 
 #define SWIG_Object SEXP
