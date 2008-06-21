@@ -60,7 +60,7 @@
 #endif
 }
 
-%typemap(out) char **STRING_ARRAY (char *s) {
+%typemap(out) char **STRING_ARRAY {
     int i;
     int len=0;
     jstring temp_string;
