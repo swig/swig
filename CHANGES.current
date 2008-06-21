@@ -1,6 +1,9 @@
 Version 1.3.36 (in progress)
 =============================
 
+06/21/2008: wsfulton
+            [Ruby] Fix crashing in the STL wrappers (reject! and delete_if methods)
+
 06/19/2008: wsfulton
             [Java, C#] C# and Java keywords will be renamed instead of just issuing a warning
             and then generating uncompileable code. Warning 314 gives the new name when a 
