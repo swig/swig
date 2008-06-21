@@ -329,7 +329,6 @@ int CHICKEN::functionWrapper(Node *n) {
   Parm *p;
   int i;
   String *wname;
-  String *source;
   Wrapper *f;
   String *mangle = NewString("");
   String *get_pointers;
@@ -398,8 +397,6 @@ int CHICKEN::functionWrapper(Node *n) {
     SwigType *pt = Getattr(p, "type");
     String *ln = Getattr(p, "lname");
 
-    source = NewStringf("scm%d", i + 1);
-
     Printf(f->def, ", C_word scm%d", i + 1);
     Printf(declfunc, ",C_word");
 
@@ -407,6 +404,7 @@ int CHICKEN::functionWrapper(Node *n) {
     if ((tm = Getattr(p, "tmap:in"))) {
       String *parse = Getattr(p, "tmap:in:parse");
       if (!parse) {
+        String *source = NewStringf("scm%d", i + 1);
 	Replaceall(tm, "$source", source);
 	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
@@ -445,10 +443,8 @@ int CHICKEN::functionWrapper(Node *n) {
 	    }
 	  }
 	}
-
-      } else {
+        Delete(source);
       }
-
 
       p = Getattr(p, "tmap:in:next");
       continue;
@@ -456,9 +452,6 @@ int CHICKEN::functionWrapper(Node *n) {
       Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
       break;
     }
-
-    Delete(source);
-    p = nextSibling(p);
   }
 
   /* finish argument marshalling */

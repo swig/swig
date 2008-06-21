@@ -150,45 +150,44 @@ void SwigPHP_emit_resource_registrations() {
   ki = First(zend_types);
   if (ki.key)
     Printf(s_oinit, "\n/* Register resource destructors for pointer types */\n");
-  while (ki.key)
-    if (1 /* is pointer type */ ) {
-      DOH *key = ki.key;
-      Node *class_node = ki.item;
-      String *human_name = key;
+  while (ki.key) {
+    DOH *key = ki.key;
+    Node *class_node = ki.item;
+    String *human_name = key;
 
-      // Write out destructor function header
-      Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
+    // Write out destructor function header
+    Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
 
-      // write out body
-      if ((class_node != NOTCLASS)) {
-	String *destructor = Getattr(class_node, "destructor");
-	human_name = Getattr(class_node, "sym:name");
-	if (!human_name)
-	  human_name = Getattr(class_node, "name");
-	// Do we have a known destructor for this type?
-	if (destructor) {
-	  Printf(s_wrappers, "  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n", destructor, key);
-	} else {
-	  Printf(s_wrappers, "  /* No destructor for class %s */\n", human_name);
-	}
+    // write out body
+    if ((class_node != NOTCLASS)) {
+      String *destructor = Getattr(class_node, "destructor");
+      human_name = Getattr(class_node, "sym:name");
+      if (!human_name)
+        human_name = Getattr(class_node, "name");
+      // Do we have a known destructor for this type?
+      if (destructor) {
+        Printf(s_wrappers, "  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n", destructor, key);
       } else {
-	Printf(s_wrappers, "  /* No destructor for simple type %s */\n", key);
+        Printf(s_wrappers, "  /* No destructor for class %s */\n", human_name);
       }
-
-      // close function
-      Printf(s_wrappers, "}\n");
-
-      // declare le_swig_<mangled> to store php registration
-      Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
-
-      // register with php
-      Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex" "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
-
-      // store php type in class struct
-      Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
-
-      ki = Next(ki);
+    } else {
+      Printf(s_wrappers, "  /* No destructor for simple type %s */\n", key);
     }
+
+    // close function
+    Printf(s_wrappers, "}\n");
+
+    // declare le_swig_<mangled> to store php registration
+    Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
+
+    // register with php
+    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex" "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
+
+    // store php type in class struct
+    Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+
+    ki = Next(ki);
+  }
 }
 
 class PHP:public Language {

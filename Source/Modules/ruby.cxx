@@ -448,7 +448,7 @@ private:
 		    parent_name = Copy( Getattr(mod, "name") );
 		  if ( parent_name )
 		    {
-		      (Char(parent_name))[0] = toupper((Char(parent_name))[0]);
+		      (Char(parent_name))[0] = (char)toupper((Char(parent_name))[0]);
 		    }
 		}
 		if ( parent_name )
@@ -1194,7 +1194,7 @@ public:
 	while (m.item) {
 	  if (Len(m.item) > 0) {
 	    String *cap = NewString(m.item);
-	    (Char(cap))[0] = toupper((Char(cap))[0]);
+	    (Char(cap))[0] = (char)toupper((Char(cap))[0]);
 	    if (last != 0) {
 	      Append(module, "::");
 	    }
@@ -1206,7 +1206,7 @@ public:
 	if (feature == 0) {
 	  feature = Copy(last);
 	}
-	(Char(last))[0] = toupper((Char(last))[0]);
+	(Char(last))[0] = (char)toupper((Char(last))[0]);
 	modvar = NewStringf("m%s", last);
 	Delete(modules);
       }
@@ -2219,7 +2219,7 @@ public:
       return name;
 
     if (islower(name[0])) {
-      name[0] = toupper(name[0]);
+      name[0] = (char)toupper(name[0]);
       Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number, "Wrong %s name (corrected to `%s')\n", reason, name);
       return name;
     }
@@ -2545,7 +2545,7 @@ public:
     String *name = Copy(symname);
     char *cname = Char(name);
     if (cname)
-      cname[0] = toupper(cname[0]);
+      cname[0] = (char)toupper(cname[0]);
     Printv(director_prot_ctor_code,
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",

@@ -57,11 +57,13 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   Insert(tmp, 0, retName);
   return tmp;
   
+  /*
   if(count)
     return(b);
   
   Delete(b);
   return(NewString(""));
+  */
 }
 
 #if 0
@@ -104,7 +106,7 @@ static String * getRType(Node *n) {
   Now handles arrays, i.e. struct A[2]
 ****************/
 
-static String *getRClassName(String *retType, int addRef = 1, int upRef=0) {
+static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
   String *tmp = NewString("");
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
   char *retName = Char(SwigType_manglestr(resolved));
@@ -115,6 +117,7 @@ static String *getRClassName(String *retType, int addRef = 1, int upRef=0) {
   }
   
   return tmp;
+/*
 #if 1
   List *l = SwigType_split(retType);
   int n = Len(l);
@@ -160,6 +163,7 @@ static String *getRClassName(String *retType, int addRef = 1, int upRef=0) {
 #endif
   
   return tmp;
+*/
 }
 
 /*********************
@@ -2030,14 +2034,18 @@ int R::functionWrapper(Node *n) {
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
     }
 
-    if(0 && addCopyParam) {
+#if 0
+    if(addCopyParam) {
       Printf(f->code, "if(LOGICAL(s_swig_copy)[0]) {\n");
       Printf(f->code, "/* Deal with returning a reference. */\nr_ans = R_NilValue;\n");
       Printf(f->code, "}\n else {\n");
     } 
+#endif
     Printf(f->code, "%s\n", tm);
-    if(0 && addCopyParam) 
+#if 0
+    if(addCopyParam) 
       Printf(f->code, "}\n"); /* end of if(s_swig_copy) ... else { ... } */
+#endif
 
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,

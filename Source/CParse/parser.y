@@ -331,7 +331,9 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	if (0 && !Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
+        /*
+	if (!Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
+        */
 	Setattr(n,"ismember","1");
       }
     }
@@ -4109,10 +4111,11 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       /* Check for template names.  If the class is a template
 		  and the constructor is missing the template part, we
 		  add it */
-	        if (Classprefix && (c = strchr(Char(Classprefix),'<'))) {
-		  if (!Strchr($3,'<')) {
-		    $3 = NewStringf("%s%s",$3,c);
-		  }
+	        if (Classprefix) {
+                  c = strchr(Char(Classprefix),'<');
+                  if (c && !Strchr($3,'<')) {
+                    $3 = NewStringf("%s%s",$3,c);
+                  }
 		}
 		Setattr($$,"storage","virtual");
 	        name = NewStringf("%s",$3);
@@ -4428,12 +4431,8 @@ parms          : rawparms {
     	       ;
 
 rawparms          : parm ptail {
-		  if (1) { 
-		    set_nextSibling($1,$2);
-		    $$ = $1;
-		  } else {
-		    $$ = $2;
-		  }
+                  set_nextSibling($1,$2);
+                  $$ = $1;
 		}
                | empty { $$ = 0; }
                ;
@@ -4486,12 +4485,8 @@ valparms        : rawvalparms {
     	       ;
 
 rawvalparms     : valparm valptail {
-		  if (1) { 
-		    set_nextSibling($1,$2);
-		    $$ = $1;
-		  } else {
-		    $$ = $2;
-		  }
+                  set_nextSibling($1,$2);
+                  $$ = $1;
 		}
                | empty { $$ = 0; }
                ;

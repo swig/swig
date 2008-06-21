@@ -112,12 +112,11 @@ static void DelHash(DOH *ho) {
   int i;
 
   for (i = 0; i < h->hashsize; i++) {
-    if ((n = h->hashtable[i])) {
-      while (n) {
-	next = n->next;
-	DelNode(n);
-	n = next;
-      }
+    n = h->hashtable[i];
+    while (n) {
+      next = n->next;
+      DelNode(n);
+      n = next;
     }
   }
   DohFree(h->hashtable);
@@ -138,12 +137,11 @@ static void Hash_clear(DOH *ho) {
   int i;
 
   for (i = 0; i < h->hashsize; i++) {
-    if ((n = h->hashtable[i])) {
-      while (n) {
-	next = n->next;
-	DelNode(n);
-	n = next;
-      }
+    n = h->hashtable[i];
+    while (n) {
+      next = n->next;
+      DelNode(n);
+      n = next;
     }
     h->hashtable[i] = 0;
   }
@@ -454,11 +452,10 @@ static DOH *CopyHash(DOH *ho) {
 
   nho = DohObjMalloc(&DohHashType, nh);
   for (i = 0; i < h->hashsize; i++) {
-    if ((n = h->hashtable[i])) {
-      while (n) {
-	Hash_setattr(nho, n->key, n->object);
-	n = n->next;
-      }
+    n = h->hashtable[i];
+    while (n) {
+      Hash_setattr(nho, n->key, n->object);
+      n = n->next;
     }
   }
   return nho;

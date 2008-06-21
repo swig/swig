@@ -281,13 +281,13 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     Delete(ptargs);
   }
 
-  if (0) {
+  /*
     Parm *p = tparms;
     while (p) {
       Printf(stdout, "tparm: '%s' '%s' '%s'\n", Getattr(p, "name"), Getattr(p, "type"), Getattr(p, "value"));
       p = nextSibling(p);
     }
-  }
+  */
 
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);

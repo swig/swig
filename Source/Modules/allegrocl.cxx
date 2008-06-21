@@ -2935,11 +2935,9 @@ int ALLEGROCL::classHandler(Node *n) {
 #endif
 
   if (Generate_Wrapper)
-	  return cppClassHandler(n);
+    return cppClassHandler(n);
   else
-	  return cClassHandler(n);
-
-  return SWIG_OK;
+    return cClassHandler(n);
 }
 
 int ALLEGROCL::cClassHandler(Node *n) {

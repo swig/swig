@@ -108,6 +108,8 @@ static Hash *typedef_resolve_cache = 0;
 static Hash *typedef_all_cache = 0;
 static Hash *typedef_qualified_cache = 0;
 
+static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix);
+
 /* common attribute keys, to avoid calling find_key all the times */
 
 /* 
@@ -162,7 +164,6 @@ void SwigType_typesystem_init() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
-  Typetab *SwigType_find_scope(Typetab *, String *s);
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -409,7 +410,7 @@ void SwigType_print_scope(Typetab *t) {
   }
 }
 
-Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
+static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
   Typetab *ss;
   String *nnameprefix = 0;
   static int check_parent = 1;
@@ -1311,7 +1312,8 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
       SwigType *ftd = SwigType_typedef_resolve_all(t);
       td = SwigType_strip_qualifiers(ftd);
       Delete(ftd);
-      if ((n = Swig_symbol_clookup(td, 0))) {
+      n = Swig_symbol_clookup(td, 0);
+      if (n) {
 	if (GetFlag(n, "feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
@@ -1334,7 +1336,8 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
     Delete(ftd);
     if (SwigType_type(td) == T_USER) {
       use_wrapper = 1;
-      if ((n = Swig_symbol_clookup(td, 0))) {
+      n = Swig_symbol_clookup(td, 0);
+      if (n) {
 	if ((Checkattr(n, "nodeType", "class")
 	     && !Getattr(n, "allocate:noassign")
 	     && (Getattr(n, "allocate:default_constructor")))
