@@ -48,14 +48,14 @@ public:
 
     SWIG_library_directory("c");
 
-    // Add a symbol to the parser for conditional compilation
+    // add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGC 1", 0);
 
-    // Add typemap definitions
+    // add typemap definitions
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
-    // Look for certain command line options
+    // look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
@@ -110,7 +110,7 @@ public:
     String *module = Getattr(n, "name");
     String *outfile = Getattr(n, "outfile");
 
-    /* initialize I/O */
+    // initialize I/O
     f_runtime = NewFile(outfile, "w");
     if (!f_runtime) {
       FileErrorDisplay(outfile);
@@ -123,15 +123,15 @@ public:
     Swig_banner(f_runtime);
 
     // FIXME
-    Printf(f_header, "#include \"malloc.h\"\n\n");
+    Printf(f_header, "#include <malloc.h>\n\n");
 
-    /* generate shadow files if enabled */
+    // generate shadow files if enabled
     if (shadow_flag) {
       f_shadow_code_init = NewString("");
       f_shadow_code_body = NewString("");
       f_shadow_header = NewString("");
 
-      /* create shadow file with appropriate name */
+      // create shadow files with appropriate name
       String *shadow_code_filename = NewStringf("%s%s_proxy.c", SWIG_output_directory(), Char(module));
       if ((f_shadow_c = NewFile(shadow_code_filename, "w")) == 0) {
         FileErrorDisplay(shadow_code_filename);
@@ -163,14 +163,14 @@ public:
     Printf(f_wrappers, "extern \"C\" {\n");
     Printf(f_wrappers, "#endif\n\n");
     
-    /* emit code for children */
+    // emit code for children
     Language::top(n);
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "}\n");
     Printf(f_wrappers, "#endif\n");
 
-    /* finalize generating shadow file */
+    // finalize generating shadow file
     if (shadow_flag) {
       Printv(f_shadow_c, f_shadow_code_init, "\n", NIL);
       Printv(f_shadow_c, f_shadow_code_body, "\n", NIL);
@@ -181,12 +181,12 @@ public:
       Delete(f_shadow_header);
     }
 
-    /* write all to file */
+    // write all to the file
     Dump(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
     Wrapper_pretty_print(f_init, f_runtime);
 
-    /* cleanup */
+    // cleanup
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
@@ -194,6 +194,25 @@ public:
     Delete(f_runtime);
 
     return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * add_parm_names()
+   * ------------------------------------------------------------------------ */  
+
+  void add_parm_lnames(ParmList* parms, String* arg_list) {
+    Parm* p, * np;
+    int i = 1;
+    for (p = parms; p; ) {
+      np = nextSibling(p);
+      String* name = NewString("");
+      Printf(name, "arg%d", i++);
+      if (arg_list)
+        Printv(arg_list, name, np ? ", " : "", NIL);
+      Setattr(p, "lname", name);
+      Delete(name);
+      p = np;
+    }
   }
 
   /* -----------------------------------------------------------------------
@@ -219,36 +238,38 @@ public:
     SwigType *return_type = Getattr(n, "type");
     String *return_type_str = SwigType_str(return_type, 0);
     String *arg_names = NewString("");
+    String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
 
-    /* create new function wrapper object */
+    // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
 
-    /* create new wrapper name */
+    // create new wrapper name
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
 
-    /* create wrapper function prototype */
+    // create wrapper function prototype
     Printv(wrapper->def, "SWIGEXPORT ", return_type_str, " ", wname, "(", NIL);
 
-    /* attach the standard typemaps */
+    // attach the standard typemaps
     emit_attach_parmmaps(parms, wrapper);
 
-    /* prepare parameter list */
+    // prepare parameter list
     Parm *p, *np;
     for (p = parms; p; ) {
       np = nextSibling(p);
       SwigType *type = Getattr(p, "type");
       Printv(wrapper->def, SwigType_str(type, 0), " ", Getattr(p, "lname"), np ? ", " : "", NIL);
       Printv(arg_names, Getattr(p, "name"), np ? ", " : "", NIL);
+      Printv(arg_lnames, Getattr(p, "lname"), np ? ", " : "", NIL);
       p = np;
     }
     Printv(wrapper->def, ") {", NIL);
 
-    /* declare wrapper function local variables */
+    // declare wrapper function local variables
     emit_return_variable(n, return_type, wrapper);
 
-    /* emit action code */
+    // emit action code
     String *action = emit_action(n);
     Append(wrapper->code, action);
     if (return_type && Strcmp(return_type, "void") != 0)
@@ -257,14 +278,32 @@ public:
     Append(wrapper->code, "}\n");
     Wrapper_print(wrapper, f_wrappers);
 
-    /* take care of shadow function */
+    // take care of shadow function
     if (shadow_flag) {
-      String *proto = ParmList_str(parms);
+      // use shadow-type for parameter if supplied
+      String* proto;
+      String* stype = Getattr(parms, "stype");
+      if (stype) {
+        Swig_save("temp", parms, "type", NIL);
+        Setattr(parms, "type", stype);
+        proto = ParmList_str(parms);
+        Swig_restore(parms);
+      }
+      else {
+        proto = ParmList_str(parms);
+      }
 
+      // use shadow-type for return type if supplied
+      SwigType* shadow_type = Getattr(n, "stype");
+      if (shadow_type) {
+        return_type_str = SwigType_str(shadow_type, 0);
+      }
+
+      // emit proxy functions prototypes
       Printv(f_shadow_code_init, "extern ", return_type_str, " _wrap_", name, "(", proto, ");\n", NIL);
       Printv(f_shadow_code_body, return_type_str, " ", name, "(", proto, ") {\n", NIL);
 
-      /* handle 'prepend' feature */
+      // handle 'prepend' feature
       String *prepend_str = Getattr(n, "feature:prepend");
       if (prepend_str) {
         char *t = Char(prepend_str);
@@ -275,10 +314,10 @@ public:
         Printv(f_shadow_code_body, prepend_str, "\n", NIL);
       }
 
-      /* call to the wrapper function */
+      // call to the wrapper function
       Printv(f_shadow_code_body, "  return ", wname, "(", arg_names, ");\n", NIL);
 
-      /* handle 'append' feature */
+      // handle 'append' feature
       String *append_str = Getattr(n, "feature:append");
       if (append_str) {
         char *t = Char(append_str);
@@ -291,10 +330,12 @@ public:
 
       Printv(f_shadow_code_body, "}\n", NIL);
 
-      /* add function declaration to the proxy header file */
+      // add function declaration to the proxy header file
       Printv(f_shadow_header, return_type_str, " ", name, "(", proto, ");\n");
     }
 
+    // cleanup
+    Delete(arg_lnames);
     Delete(arg_names);
     Delete(wname);
     DelWrapper(wrapper);
@@ -309,11 +350,14 @@ public:
   virtual int classHandler(Node* n) {
     String* name = Getattr(n, "name");
     String* sobj_name = NewString("");
+
+    // emit "class"-struct definition
     Printv(sobj_name, "struct ", name, "Obj", NIL);
     Printv(f_header, sobj_name, "{\n  void* obj;\n};\n\n", NIL);
 
+    // declare it in the proxy header
     if (shadow_flag) {
-      Printv(f_shadow_header, sobj_name, ";\n\n", NIL);
+      Printv(f_shadow_header, "\ntypedef ", sobj_name, " ", name, ";\n\n", NIL);
     }
 
     Delete(sobj_name);
@@ -321,20 +365,147 @@ public:
   }
 
   /* ---------------------------------------------------------------------
-   * memberfunctionHandler()
+   * staticmemberfunctionHandler()
    * --------------------------------------------------------------------- */
 
-  virtual int memberfunctionHandler(Node* n) {
+  virtual int staticmemberfunctionHandler(Node* n) {
     return SWIG_OK;
   }
 
   /* ---------------------------------------------------------------------
-   * variableHandler()
+   * memberfunctionHandler()
    * --------------------------------------------------------------------- */
 
-  virtual int variableHandler(Node* n) {
-    if (Cmp(Getattr(n, "ismember"), "1") != 0)
-      return globalvariableHandler(n);
+  virtual int memberfunctionHandler(Node* n) {
+    String* name = Getattr(n, "sym:name");
+    String* classname = Getattr(parentNode(n), "sym:name");
+    String* sobj_name = NewString("");
+    String* ctype = NewString("");
+    String* stype = NewString("");
+    String* new_name = NewString("");
+    String* code = NewString("");
+    String* arg_lnames = NewString("");
+
+    ParmList* parms = Getattr(n, "parms");
+
+    // create first argument
+    Printv(sobj_name, "struct ", classname, "Obj", NIL);
+    ctype = Copy(sobj_name);
+    SwigType_add_pointer(ctype);
+    Parm* p = NewParm(ctype, "self");
+    stype = Copy(classname);
+    SwigType_add_pointer(stype);
+    Setattr(p, "stype", stype);
+    if (parms)
+      set_nextSibling(p, parms);
+    Setattr(n, "parms", p);
+
+    // prepare argument names
+    parms = Getattr(n, "parms");
+    add_parm_lnames(parms, arg_lnames);
+
+    // omit first argument in method call
+    String* arg_call_lnames = Strstr(arg_lnames, "arg2");
+    if (!arg_call_lnames)
+      arg_call_lnames = empty_string;
+
+    // generate action code
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "result = " : "", NIL);
+    Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    // modify method name
+    Printv(new_name, classname, "_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    functionWrapper(n);
+
+    Delete(arg_lnames);
+    Delete(code);
+    Delete(new_name);
+    Delete(stype);
+    Delete(ctype);
+    Delete(sobj_name);
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * staticmembervariableHandler()
+   * --------------------------------------------------------------------- */
+
+  virtual int staticmembervariableHandler(Node* n) {
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * membervariableHandler()
+   *
+   * TODO: generate additional setters and getters to handle inheritance
+   * properly, i.e. pair of functions for each type in hierarchy
+   *
+   * --------------------------------------------------------------------- */
+
+  virtual int membervariableHandler(Node* n) {
+    String* name = Getattr(n, "sym:name");
+    String* classname = Getattr(parentNode(n), "sym:name");
+    String* sobj_name = NewString("");
+    String* ctype = NewString("");
+    String* stype = NewString("");
+    String* new_name = NewString("");
+    String* code = NewString("");
+
+    // create first argument
+    Printv(sobj_name, "struct ", classname, "Obj", NIL);
+    ctype = Copy(sobj_name);
+    SwigType_add_pointer(ctype);
+    Parm* p = NewParm(ctype, "self");
+    stype = Copy(classname);
+    SwigType_add_pointer(stype);
+    Setattr(p, "stype", stype);
+    Setattr(p, "lname", "arg1");
+
+    // create second argument
+    Parm* t = NewParm(Getattr(n, "type"), "value");
+    Setattr(t, "lname", "arg2");
+
+    /* create 'get' function */
+
+    Setattr(n, "parms", p);
+
+    // generate action code
+    Printv(code, "result = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    // modify method name
+    Printv(new_name, classname, "_get_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    functionWrapper(n);
+
+    /* create 'set' function */
+
+    set_nextSibling(p, t);
+    Setattr(n, "parms", p);
+    Setattr(n, "type", "void");
+
+    // generate action code
+    Delete(code);
+    code = NewString("");
+    Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    // modify method name
+    Delete(new_name);
+    new_name = NewString("");
+    Printv(new_name, classname, "_set_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    functionWrapper(n);
+
+    Delete(code);
+    Delete(new_name);
+    Delete(ctype);
+    Delete(sobj_name);
     return SWIG_OK;
   }
 
@@ -343,33 +514,33 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node* n) {
+    String* name = Getattr(n, "name");
     String* sobj_name = NewString("");
     String* ctype = NewString("");
+    String* stype = NewString("");
     String* code = NewString("");
     String* new_name = NewString("");
     String* arg_lnames = NewString("");
-    ParmList* parms;
-    Parm* p, *np;
+    ParmList* parms = Getattr(n, "parms");
 
-    parms = Getattr(n, "parms");
-    int i = 1;
-    for (p = parms; p; ) {
-      np = nextSibling(p);
-      String* name = NewString("");
-      Printf(name, "arg%d", i++);
-      Setattr(p, "lname", name);
-      Delete(name);
-      Printv(arg_lnames, name, np ? ", " : "", NIL);
-      p = np;
-    }
+    // prepare argument names
+    add_parm_lnames(parms, arg_lnames);
 
-    Printv(sobj_name, "struct ", Getattr(n, "name"), "Obj", NIL);
+    // set the function return type to the pointer to struct
+    Printv(sobj_name, "struct ", name, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
-    Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
-    Printv(code, "result->obj = (void*) new ", Getattr(n, "name"), "(", arg_lnames, ");\n", NIL);
-    Setattr(n, "wrap:action", code);
     Setattr(n, "type", ctype);
+    stype = Copy(name);
+    SwigType_add_pointer(stype);
+    Setattr(n, "stype", stype);
+
+    // generate action code
+    Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
+    Printv(code, "result->obj = (void*) new ", name, "(", arg_lnames, ");\n", NIL);
+    Setattr(n, "wrap:action", code);
+    
+    // modify the constructor name
     Printv(new_name, "new_", Getattr(n, "sym:name"), NIL);
     Setattr(n, "sym:name", new_name);
 
@@ -378,6 +549,7 @@ public:
     Delete(arg_lnames);
     Delete(new_name);
     Delete(code);
+    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     return SWIG_OK;
@@ -388,24 +560,32 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node* n) {
+    String* name = Getattr(n, "sym:name");
     String* sobj_name = NewString("");
     String* ctype = NewString("");
+    String* stype = NewString("");
     String* code = NewString("");
     String* new_name = NewString("");
     Parm* p;
 
-    Printv(sobj_name, "struct ", Getattr(n, "sym:name"), "Obj", NIL);
+    // create first argument
+    Printv(sobj_name, "struct ", name, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
-
     p = NewParm(ctype, "self");
     Setattr(p, "lname", "arg1");
+    stype = Copy(name);
+    SwigType_add_pointer(stype);
+    Setattr(p, "stype", stype);
     Setattr(n, "parms", p);
-
     Setattr(n, "type", "void");
-    Printv(code, "delete ((", sobj_name, "*) arg1->obj);\nfree(arg1);\n", NIL);
+
+    // create action code
+    Printv(code, "delete (", name, "*) ((", sobj_name, "*) arg1->obj);\nfree(arg1);\n", NIL);
     Setattr(n, "wrap:action", code);
-    Printv(new_name, "delete_", Getattr(n, "sym:name"), NIL);
+
+    // modify the destructor name
+    Printv(new_name, "delete_", name, NIL);
     Setattr(n, "sym:name", new_name);
     
     functionWrapper(n);
@@ -413,6 +593,7 @@ public:
     Delete(p);
     Delete(new_name);
     Delete(code);
+    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     return SWIG_OK;
