@@ -8,12 +8,12 @@
 
 %inline %{
 
-#define KW(x, y) int x (int y) { return y;} 
+#define KW(x, y) int x (int y) { return y; }
 
 /* Python keywords */
 KW(in, except)
 KW(except, in)
-KW(raise, in)
+KW(pass, in)
 
 /* Perl keywords */
 KW(tie, die)
@@ -25,7 +25,7 @@ KW(byte, final)
 
 /* C# Keywords */
 KW(string, out)
-struct sealed {};
+struct sealed {int i;};
 
 %}
 
