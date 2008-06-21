@@ -55,6 +55,8 @@ class Bar {
     Foo *testFoo(int a, Foo *f) {
       return new Foo(2 * a + (f ? f->num : 0) + fval.num);
     }
+private:
+    Bar& operator=(const Bar&);
 };
 
 %}

@@ -46,6 +46,8 @@ public:
     int* array_member1[ARRAY_SIZE];
     ParametersTest* array_member2[ARRAY_SIZE];
     MemberVariablesTest() : member3(NULL), member4(NULL) {}
+private:
+  MemberVariablesTest& operator=(const MemberVariablesTest&);
 };
 void foo(const int *const i) {}
 
@@ -69,6 +71,8 @@ public:
     void ret6(int*& a) {}
     int*& ret7() {return GlobalIntPtr;}
     ReturnValuesTest() : int3(NULL) {}
+private:
+  ReturnValuesTest& operator=(const ReturnValuesTest&);
 };
 
 const int* globalRet1() {return &GlobalInt;}
@@ -100,6 +104,8 @@ int* const globalRet2() {return &GlobalInt;}
     A* ap;
     const A* cap;
     Acptr acptr;  
+  private:
+    B& operator=(const B&);
   };
 
   const B* bar(const B* b) {
