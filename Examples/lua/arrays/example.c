@@ -16,7 +16,7 @@ void sort_int(int* arr, int len)
 // ditto doubles
 int compare_double(const void * a, const void * b)
 {
-  return ( *(double*)a - *(double*)b );
+  return (int)( *(double*)a - *(double*)b );
 }
 
 void sort_double(double* arr, int len)
