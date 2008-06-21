@@ -21,7 +21,7 @@ KW(use, next)
 
 /* Java keywords */
 KW(implements, native)
-KW(byte, final)
+KW(synchronized, final)
 
 /* C# Keywords */
 KW(string, out)
