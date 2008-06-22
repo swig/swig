@@ -85,6 +85,7 @@
 <li><a href="#java_directors_classes">Director classes</a>
 <li><a href="#java_directors_overhead">Overhead and code bloat</a>
 <li><a href="#java_directors_example">Simple directors example</a>
+<li><a href="#java_directors_threading">Director threading issues</a>
 </ul>
 <li><a href="#java_allprotected">Accessing protected members</a>
 <li><a href="#common_customization">Common customization features</a>
@@ -3450,7 +3451,8 @@ DirectorDerived::upcall_method() invoked.
 </pre>
 </div>
 
-<H3><a name="java_directors_threading"></a>Director threading issues</H3>
+<H3><a name="java_directors_threading"></a>20.5.5 Director threading issues</H3>
+
 
 <p>
 Depending on your operating system and version of Java and how you are using threads, you might find the JVM hangs on exit.
