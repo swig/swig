@@ -3459,6 +3459,17 @@ Depending on your operating system and version of Java and how you are using thr
 There are a couple of solutions to try out. The preferred solution requires jdk-1.4 and later and uses <tt>AttachCurrentThreadAsDaemon</tt> instead of <tt>AttachCurrentThread</tt> whenever a call into the JVM is required. This can be enabled by defining the SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON macro when compiling the C++ wrapper code. For older JVMs define SWIG_JAVA_NO_DETACH_CURRENT_THREAD instead, to avoid the <tt>DetachCurrentThread</tt> call but this will result in a memory leak instead. For further details inspect the source code in the java/director.swg library file.
 </p>
 
+<p>
+Macros can be defined on the commandline when compiling your C++ code, or alternatively added to the C++ wrapper file as shown below:
+</p>
+
+<div class="code">
+<pre>
+%insert("runtime") %{
+#define SWIG_JAVA_NO_DETACH_CURRENT_THREAD
+%}
+</pre>
+</div>
 
 <H2><a name="java_allprotected"></a>20.6 Accessing protected members</H2>
 
