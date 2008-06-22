@@ -1802,11 +1802,11 @@ void SwigType_inherit_equiv(File *out) {
           char *newmemoryused = Strstr(convcode, "newmemory"); /* see if newmemory parameter is used in order to avoid unused paramater warnings */
           String *fn = Copy(convcode);
           Replaceall(fn, "$from", "x");
-          Printf(out, "static void *%s(void *x, int *%s) {", convname, newmemoryused ? "newmemory" : "");
+          Printf(out, "static void *%s(void *x, int *%s) {", convname, newmemoryused ? "newmemory" : "SWIGUNUSEDPARM(newmemory)");
           Printf(out, "%s", fn);
         } else {
           String *cast = Getattr(subhash, "cast");
-          Printf(out, "static void *%s(void *x, int *) {", convname);
+          Printf(out, "static void *%s(void *x, int *SWIGUNUSEDPARM(newmemory)) {", convname);
           Printf(out, "\n    return (void *)((%s) ", lkey);
           if (cast)
             Printf(out, "%s", cast);
