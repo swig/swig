@@ -1,6 +1,11 @@
 Version 1.3.36 (in progress)
 =============================
 
+06/22/2008: wsfulton
+            [Java] Add a way to use AttachCurrentThreadAsDaemon instead of AttachCurrentThread
+            in director code. Define the SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON macro, see
+            Lib/java/director.swg.
+
 06/21/2008: wsfulton
             [Ruby] Fix crashing in the STL wrappers (reject! and delete_if methods)
 

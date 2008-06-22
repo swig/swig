@@ -117,12 +117,18 @@ namespace Swig {
       JNIEnv *jenv_;
     public:
       JNIEnvWrapper(const Director *director) : director_(director), jenv_(0) {
+#if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
+        // Attach a daemon thread to the JVM. Useful when the JVM should not wait for 
+        // the thread to exit upon shutdown. Only for jdk-1.4 and later.
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon((void **) &jenv_, NULL);
+#else
         director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
+#endif
       }
       ~JNIEnvWrapper() {
-// Some JVMs, eg JDK 1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
-// However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
 #if !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
+        // Some JVMs, eg jdk-1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
+        // However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
         director_->swig_jvm_->DetachCurrentThread();
 #endif
       }
