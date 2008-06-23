@@ -1799,7 +1799,7 @@ void SwigType_inherit_equiv(File *out) {
         Hash *subhash = Getattr(sub, bk.key);
         String *convcode = Getattr(subhash, "convcode");
         if (convcode) {
-          char *newmemoryused = Strstr(convcode, "newmemory"); /* see if newmemory parameter is used in order to avoid unused paramater warnings */
+          char *newmemoryused = Strstr(convcode, "newmemory"); /* see if newmemory parameter is used in order to avoid unused parameter warnings */
           String *fn = Copy(convcode);
           Replaceall(fn, "$from", "x");
           Printf(out, "static void *%s(void *x, int *%s) {", convname, newmemoryused ? "newmemory" : "SWIGUNUSEDPARM(newmemory)");

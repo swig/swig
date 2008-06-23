@@ -1503,7 +1503,7 @@ int CHICKEN::validIdentifier(String *s) {
   /* ------------------------------------------------------------
    * closNameMapping()
    * Maps the identifier from C++ to the CLOS based on command 
-   * line paramaters and such.
+   * line parameters and such.
    * If class_name = "" that means the mapping is for a function or
    * variable not attached to any class.
    * ------------------------------------------------------------ */
