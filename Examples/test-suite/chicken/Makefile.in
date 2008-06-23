@@ -69,21 +69,21 @@ run_testcase = \
 %.cppproxy: SWIGOPT += -proxy
 %.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.cppproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.cproxy: SWIGOPT += -proxy
 %.cproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.cproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multiproxy: SWIGOPT += -proxy -noclosuses
 %.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.multiproxy:
-	echo "Checking testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
