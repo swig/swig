@@ -1749,7 +1749,8 @@ public:
       }
 
       Printf(output, "\n");
-      if (wrapperType == memberfn || newobject) {
+      // If it's a member function or a class constructor...
+      if (wrapperType == memberfn || (newobject && current_class)) {
 	Printf(output, "\tfunction %s(%s) {\n", methodname, args);
 	// We don't need this code if the wrapped class has a copy ctor
 	// since the flat function new_CLASSNAME will handle it for us.
