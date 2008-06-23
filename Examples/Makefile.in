@@ -40,8 +40,9 @@ LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
 LIBPREFIX  =
 
-# RUNTOOL is for use as with runtime tools, eg set it to valgrind
+# RUNTOOL is for use with runtime tools, eg set it to valgrind
 RUNTOOL    =
+# COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
 COMPILETOOL=
 
 # X11 options
@@ -94,8 +95,6 @@ TK_OPTS     = -ltk -ltcl @LIBS@
 
 # Extra Tcl specific dynamic linking options
 TCL_DLNK   = @TCLDYNAMICLINKING@
-TCL_LDSHARED = @TCL_LDSHARED@
-TCL_CXXSHARED = @TCL_CXXSHARED@
 TCL_SO     = @TCL_SO@
 
 # -----------------------------------------------------------
@@ -135,7 +134,7 @@ wish_cpp: $(SRCS)
 tcl:  $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCL_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------
 # Build a Tcl7.5 dynamic loadable module for C++
@@ -144,7 +143,7 @@ tcl:  $(SRCS)
 tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCL_CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------------
 # Cleaning the Tcl examples
@@ -880,11 +879,11 @@ chicken_static_cpp: $(CXXSRCS) $(CHICKSRCS)
 
 chicken:
 	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
-	$(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ISRCS) -o $(TARGET)$(SO)
+	$(COMPILETOOL) $(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ISRCS) -o $(TARGET)$(SO)
 
 chicken_cpp:
 	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
-	$(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ICXXSRCS) $(CXXSRCS) -o $(TARGET)$(SO)
+	$(COMPILETOOL) $(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ICXXSRCS) $(CXXSRCS) -o $(TARGET)$(SO)
 
 chicken_externalhdr:
 	$(SWIG) -chicken -external-runtime $(TARGET)
@@ -1078,11 +1077,11 @@ RRSRC = $(INTERFACE:.i=.R)
 
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACE)
-	+( PKG_LIBS="$(SRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) )
+	+( PKG_LIBS="$(SRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) )
 
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACE)
-	+( PKG_LIBS="$(CXXSRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) )
+	+( PKG_LIBS="$(CXXSRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) )
 
 r_clean:
 	rm -f *_wrap* *~ .~*

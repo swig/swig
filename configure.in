@@ -254,18 +254,6 @@ case $host in
    *) MZSCHEME_SO=.so;;
 esac
 
-AC_SUBST(TCL_LDSHARED)
-case $host in
-   *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -flat_namespace -undefined suppress";;
-   *) TCL_LDSHARED=$LDSHARED;;
-esac
-
-AC_SUBST(TCL_CXXSHARED)
-case $host in
-   *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -flat_namespace -undefined suppress";;
-   *) TCL_CXXSHARED=$TRYLINKINGWITHCXX;;
-esac
-
 AC_SUBST(LUA_SO)
 case $host in
    *-*-darwin*) LUA_SO=.so;;
@@ -545,6 +533,7 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-darwin*) TCLDYNAMICLINKING="-dynamiclib -flat_namespace -undefined suppress";;
 *)TCLDYNAMICLINKING="";;
 esac
 fi

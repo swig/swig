@@ -40,7 +40,7 @@ SWIGOPT += -nounit
 	$(setup)
 	+$(swig_and_compile_c)
 	$(run_testcase)
-	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
 	  $(MAKE) $*.cproxy; ) \
 	fi;
 
@@ -54,7 +54,7 @@ SWIGOPT += -nounit
 
 %.externaltest:
 	$(setup)
-	$(swig_and_compile_external)
+	+$(swig_and_compile_external)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
@@ -70,7 +70,7 @@ run_testcase = \
 %.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 %.cppproxy:
 	echo "Checking testcase $* (with run test) under chicken with -proxy"
-	$(swig_and_compile_cpp)
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.cproxy: SWIGOPT += -proxy
