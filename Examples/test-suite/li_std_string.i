@@ -129,7 +129,7 @@ public:
 %}
 
 %inline %{
-  std::string empty() {
+  std::string stdstring_empty() {
     return std::string();
   }
 

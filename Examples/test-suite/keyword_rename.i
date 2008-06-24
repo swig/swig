@@ -3,15 +3,17 @@
  */
 
 %module keyword_rename
-%warnfilter(SWIGWARN_PARSE_KEYWORD);
+
+#pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
+
 %inline %{
 
-#define KW(x, y) int x (int y) { return y;} 
+#define KW(x, y) int x (int y) { return y; }
 
 /* Python keywords */
 KW(in, except)
 KW(except, in)
-KW(raise, in)
+KW(pass, in)
 
 /* Perl keywords */
 KW(tie, die)
@@ -19,7 +21,11 @@ KW(use, next)
 
 /* Java keywords */
 KW(implements, native)
-KW(byte, final)
+KW(synchronized, final)
+
+/* C# Keywords */
+KW(string, out)
+struct sealed {int i;};
 
 %}
 

@@ -119,6 +119,8 @@ public:
   void const_member_method(const ConstWithout *p) const {}
   const ConstWithout * const_var;
   const ConstWithout * const var_const;
+private:
+  ConstWithout& operator=(const ConstWithout &);
 };
 const ConstWithout * global_constwithout = 0;
 void global_method_constwithout(const ConstWithout *p) {}

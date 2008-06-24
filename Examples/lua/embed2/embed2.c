@@ -11,6 +11,17 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
  
 */
 
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+#if !defined(SWIG_NO_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+# define _CRT_SECURE_NO_DEPRECATE
+#endif
+
+/* Deal with Microsoft's attempt at deprecating methods in the standard C++ library */
+#if !defined(SWIG_NO_SCL_SECURE_NO_DEPRECATE) && defined(_MSC_VER) && !defined(_SCL_SECURE_NO_DEPRECATE)
+# define _SCL_SECURE_NO_DEPRECATE
+#endif
+
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -108,7 +119,7 @@ int call_va (lua_State *L,const char *func, const char *sig, ...) {
 endwhile:
 
   /* do the call */
-  nres = strlen(sig);  /* number of expected results */
+  nres = (int)strlen(sig);  /* number of expected results */
   if (lua_pcall(L, narg, nres, 0) != 0)  /* do the call */
   {
     printf("error running function `%s': %s\n",func, lua_tostring(L, -1));

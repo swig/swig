@@ -73,7 +73,7 @@
 %{$1 = (lua_toboolean(L, $input)!=0);%}
 
 %typemap(out) bool
-%{  lua_pushboolean(L,(int)($1==true)); SWIG_arg++;%}
+%{  lua_pushboolean(L,(int)($1!=0)); SWIG_arg++;%}
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
 %typemap(in,checkfn="lua_isboolean") const bool& (bool temp)
@@ -81,7 +81,7 @@
   $1=&temp;%}
 
 %typemap(out) const bool&
-%{  lua_pushboolean(L,(int)(*$1==true)); SWIG_arg++;%}
+%{  lua_pushboolean(L,(int)((*$1)!=0)); SWIG_arg++;%}
 
 // strings (char* and char[])
 %typemap(in,checkfn="lua_isstring") const char*, char*

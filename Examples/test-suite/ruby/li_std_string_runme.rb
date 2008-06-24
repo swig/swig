@@ -124,7 +124,7 @@ if (s != "hellohello")
 end
 
 
-if (empty() != "")
+if (stdstring_empty() != "")
   raise RuntimeError
 end
 
