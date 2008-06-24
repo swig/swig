@@ -1439,6 +1439,10 @@ public:
 	if (wrapperType == memberfn)
 	  p = nextSibling(p);
 	while (p) {
+	  if (GetInt(p, "tmap:in:numinputs") == 0) {
+	    p = nextSibling(p);
+	    continue;
+	  }
 	  assert(0 <= argno && argno < max_num_of_arguments);
 	  String *&pname = arg_names[argno];
 	  const char *pname_cstr = GetChar(p, "name");
