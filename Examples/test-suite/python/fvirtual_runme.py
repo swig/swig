@@ -1,6 +1,6 @@
 from fvirtual import *
 
-sw = Switch()
+sw = NodeSwitch()
 n = Node()
 i = sw.addChild(n);
 

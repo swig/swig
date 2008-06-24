@@ -121,7 +121,7 @@ if s != "hellohello":
   raise RuntimeError
 
 
-if li_std_string.empty() != "":
+if li_std_string.stdstring_empty() != "":
   raise RuntimeError
   
 
