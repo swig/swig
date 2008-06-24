@@ -437,7 +437,6 @@ public:
       // FIXME: String *overloaded_name = getOverloadedName(n);
       String *overloaded_name = Getattr(n, "sym:name");
       String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
-      Printf(stdout, "intermediary_function_name: %s\n", intermediary_function_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -678,7 +677,6 @@ public:
       proxy_iid = new GUID;
       generateGUID(proxy_iid);
       Setattr(n, "wrap:iid", proxy_iid);
-      Printf(stdout, "proxy_iid: %08x\n", proxy_iid);
 
       Printf(proxy_class_vtable_code, "GUID IID_%s = ", proxy_class_name);
       formatGUID(proxy_class_vtable_code, proxy_iid, true);
@@ -949,7 +947,10 @@ public:
 
     // FIXME: generateThrowsClause(n, function_code);
     Printv(function_code, ";\n", NIL);
-    Printv(proxy_class_code, function_code, NIL);
+
+    if (!Getattr(n, "override")) {
+      Printv(proxy_class_code, function_code, NIL);
+    }
 
     Delete(pre_code);
     Delete(post_code);
