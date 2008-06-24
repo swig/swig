@@ -1,0 +1,11 @@
+# Generated automatically from Makefile.in by configure.
+
+SHELL     = /bin/sh
+prefix    = @prefix@
+execprefix= @exec_prefix@
+LIB        = $(execprefix)/lib
+
+install:
+	cp libwad*.so $(LIB)
+	chmod a+rx $(LIB)/libwad*.so
+

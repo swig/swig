@@ -1,0 +1,63 @@
+# Makefile for generating the SWIG documentation
+#
+# Note that the htmldoc package needs to be installed, but requires patching (using the
+# margin-left.patch file from this directory) in order to correctly generate the pdf docs.
+# The .html files are first processed and updated with chapter numbering and anchor names
+# are added to the HTML headings using the python scripts. The htmldoc program is then
+# used to generate the PDF document and single page HTML version of the documentation.
+# HTML TIDY (package also known as tidy) is also required and is used as an aid to HTML
+# validation.
+#
+# Additional html validation can be done using the validate target.
+#
+
+# Note the # and " are escaped
+HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage swig16.png --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
+
+.PHONY: maketoc check generate all clean validate test
+
+all: maketoc check generate
+
+maketoc:
+	python maketoc.py
+
+# Use htmltidy to warn about some HTML errors. Note that it is not used to clean/tidy the HTML,
+# it is just used as a primitive HTML checker.
+check:
+	  tidy -errors --gnu-emacs yes -quiet index.html
+	  tidy -errors --gnu-emacs yes -quiet Sections.html
+	  all=`sed '/^#/d' chapters`; for a in $$all; do tidy -errors --gnu-emacs yes -quiet $$a; done;
+
+generate: swightml.book swigpdf.book
+	htmldoc --batch swightml.book || true
+	htmldoc --batch swigpdf.book || true
+	python fixstyle.py SWIGDocumentation.html
+
+swigpdf.book:
+	echo "#HTMLDOC 1.8.24" > swigpdf.book
+	echo -t pdf13 -f SWIGDocumentation.pdf $(HTMLDOC_OPTIONS) --stylesheet style.css >> swigpdf.book
+	echo "Sections.html" >> swigpdf.book
+	cat chapters >> swigpdf.book
+
+swightml.book:
+	echo "#HTMLDOC 1.8.24" > swightml.book
+	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swightml.book
+	echo "Sections.html" >> swightml.book
+	cat chapters >> swightml.book
+
+clean:
+	rm -f swightml.book
+	rm -f swigpdf.book
+	rm -f SWIGDocumentation.html
+	rm -f SWIGDocumentation.pdf
+	rm -f *.bak
+
+test:
+	  grep "href=\".*\.html\"" index.html
+	  grep "href=\".*\.html\"" Sections.html
+	  all=`sed '/^#/d' chapters`; for a in $$all; do grep -l "href=\".*\.html\"" $$a; done;
+
+# Validating using the WDG offline validator - http://www.htmlhelp.com/tools/validator/offline/
+validate:
+	  all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
+

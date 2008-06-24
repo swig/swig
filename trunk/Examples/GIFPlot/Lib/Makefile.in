@@ -1,0 +1,22 @@
+CC      = @CC@
+CCSHARED= @CCSHARED@ 
+INCLUDES= -I../Include
+CFLAGS  = -O
+SRCS    = frame.c color.c plot2d.c plot3d.c font.c pixmap.c matrix.c gif.c
+OBJS    = $(SRCS:.c=.@OBJEXT@)
+AR      = @AR@
+RANLIB  = @RANLIB@
+TARGET  = ../libgifplot.a
+
+.c.@OBJEXT@: 
+	$(CC) $(CCSHARED) $(INCLUDES) $(CFLAGS) -c -o $*.@OBJEXT@ $<
+
+all:  $(OBJS)
+	@rm -f ../libgifplot.a
+	$(AR) cr $(TARGET) $(OBJS)
+	$(RANLIB) $(TARGET)
+
+clean:
+	rm -f *.@OBJEXT@ *~ $(TARGET)
+
+check: all

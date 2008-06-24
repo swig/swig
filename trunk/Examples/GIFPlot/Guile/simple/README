@@ -1,0 +1,11 @@
+This is a very minimalistic example in which just a few functions
+and constants from library are wrapped and used to draw some simple
+shapes.  
+
+`make' will build a version of Guile which defines an additional
+module (simple).  Run `./simple-guile -s runme.scm' to test it.
+
+`make dynamic' will build a dynamically loadable module, which can be
+loaded from any Guile interpreter.  Run `guile -s runme.scm' to test
+it.  The `use-modules' call in `runme.scm' dynamically loads the
+module. 

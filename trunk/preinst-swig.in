@@ -1,0 +1,7 @@
+#!/bin/sh
+builddir=`dirname $0`
+srcdir=`cd "$builddir" && cd '@srcdir@' && pwd`
+SWIG_LIB=$srcdir/Lib
+#SWIG_LIB=`cygpath -w $srcdir/Lib` # For native Windows version of SWIG
+export SWIG_LIB
+exec "$builddir/swig" $*

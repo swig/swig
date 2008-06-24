@@ -1,0 +1,54 @@
+#######################################################################
+# WAD Makefile
+#
+# David Beazley
+# January 1, 2001
+#######################################################################
+
+# These are the files that make up the WAD core
+SRCS = wadtcl.c
+OBJS = wadtcl.o
+INCLUDE = -I../Include -I.  $(SINCLUDE)
+WADOPT     = @WADOPT@
+
+# Location of your Tcl installation
+TCLINCLUDE = @TCLINCLUDE@
+TCLSRCS    = wadtclinit.cxx
+TCLOBJS    = wadtclinit.o
+
+# C Compiler
+CC = @CC@
+CFLAGS = #@CCSHARED@
+
+# C++ Compiler
+CXX = @CXX@
+CXXFLAGS = #@CXXSHARED@
+
+# Linking options
+CLINK = 
+CXXLINK = @CXXLINK@
+
+# Rules for creation of a .o file from .cxx
+.SUFFIXES: .cxx
+.cxx.o:
+	$(CXX) $(CXXFLAGS) $(WADOPT) $(INCLUDE) -c -o $*.o $<
+
+.c.o:
+	$(CC) $(CFLAGS) $(TCLINCLUDE) $(WADOPT) $(INCLUDE) -c -o $*.o $<
+
+tcl: $(OBJS) $(TCLOBJS)
+	$(CXXLINK) $(OBJS) $(TCLOBJS) -o libwadtcl.so -L.. -lwadcore
+	cp libwadtcl.so ..
+
+wc::
+	wc $(SRCS)
+
+semi::
+	@egrep ";" $(SRCS) $(TCLSRCS) | wc
+
+clean::
+	rm -f *.o *.so *~ 
+
+
+
+

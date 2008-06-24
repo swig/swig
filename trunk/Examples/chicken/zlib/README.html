@@ -1,0 +1,1666 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>zlib - Chicken - SWIG example</title>
+  </head>
+  <body>
+    <center><h1>zlib - Chicken - SWIG</h1></center>
+
+    <h2>Table of Contents</h2>
+    <a href="#build">Building the example</a><br>
+    <a href="#zlibh">zlib.h</a><br>
+    <a href="#devel">How the zlib wrapper was developed</a><br>
+
+    <center><h2><a name="build">Building the example</a></h2></center>
+
+    zlib must be installed for this example to work.<br>
+
+    Just type <code>make</code> to build this example.<br>
+
+    If zlib is not installed in /usr/lib and /usr/include, then do
+    something similar to the following:
+
+    <blockquote>
+      <pre>make SWIGOPT="-I/usr/local/include" LIBS="-L/usr/local/lib -lz"</pre>
+    </blockquote>
+
+    <center><h2><a name="zlibh">zlib.h</a></h2></center>
+    <blockquote>
+      <pre>
+<font color="blue">001:</font> /* zlib.h -- interface of the 'zlib' general purpose compression library
+<font color="blue">002:</font>   version 1.1.4, March 11th, 2002
+<font color="blue">003:</font> 
+<font color="blue">004:</font>   Copyright (C) 1995-2002 Jean-loup Gailly and Mark Adler
+<font color="blue">005:</font> 
+<font color="blue">006:</font>   This software is provided 'as-is', without any express or implied
+<font color="blue">007:</font>   warranty.  In no event will the authors be held liable for any damages
+<font color="blue">008:</font>   arising from the use of this software.
+<font color="blue">009:</font> 
+<font color="blue">010:</font>   Permission is granted to anyone to use this software for any purpose,
+<font color="blue">011:</font>   including commercial applications, and to alter it and redistribute it
+<font color="blue">012:</font>   freely, subject to the following restrictions:
+<font color="blue">013:</font> 
+<font color="blue">014:</font>   1. The origin of this software must not be misrepresented; you must not
+<font color="blue">015:</font>      claim that you wrote the original software. If you use this software
+<font color="blue">016:</font>      in a product, an acknowledgment in the product documentation would be
+<font color="blue">017:</font>      appreciated but is not required.
+<font color="blue">018:</font>   2. Altered source versions must be plainly marked as such, and must not be
+<font color="blue">019:</font>      misrepresented as being the original software.
+<font color="blue">020:</font>   3. This notice may not be removed or altered from any source distribution.
+<font color="blue">021:</font> 
+<font color="blue">022:</font>   Jean-loup Gailly        Mark Adler
+<font color="blue">023:</font>   jloup@gzip.org          madler@alumni.caltech.edu
+<font color="blue">024:</font> 
+<font color="blue">025:</font> 
+<font color="blue">026:</font>   The data format used by the zlib library is described by RFCs (Request for
+<font color="blue">027:</font>   Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
+<font color="blue">028:</font>   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
+<font color="blue">029:</font> */
+<font color="blue">030:</font> 
+<font color="blue">031:</font> #ifndef _ZLIB_H
+<font color="blue">032:</font> #define _ZLIB_H
+<font color="blue">033:</font> 
+<font color="blue">034:</font> #include "zconf.h"
+<font color="blue">035:</font> 
+<font color="blue">036:</font> #ifdef __cplusplus
+<font color="blue">037:</font> extern "C" {
+<font color="blue">038:</font> #endif
+<font color="blue">039:</font> 
+<font color="blue">040:</font> #define ZLIB_VERSION "1.1.4"
+<font color="blue">041:</font> 
+<font color="blue">042:</font> /* 
+<font color="blue">043:</font>      The 'zlib' compression library provides in-memory compression and
+<font color="blue">044:</font>   decompression functions, including integrity checks of the uncompressed
+<font color="blue">045:</font>   data.  This version of the library supports only one compression method
+<font color="blue">046:</font>   (deflation) but other algorithms will be added later and will have the same
+<font color="blue">047:</font>   stream interface.
+<font color="blue">048:</font> 
+<font color="blue">049:</font>      Compression can be done in a single step if the buffers are large
+<font color="blue">050:</font>   enough (for example if an input file is mmap'ed), or can be done by
+<font color="blue">051:</font>   repeated calls of the compression function.  In the latter case, the
+<font color="blue">052:</font>   application must provide more input and/or consume the output
+<font color="blue">053:</font>   (providing more output space) before each call.
+<font color="blue">054:</font> 
+<font color="blue">055:</font>      The library also supports reading and writing files in gzip (.gz) format
+<font color="blue">056:</font>   with an interface similar to that of stdio.
+<font color="blue">057:</font> 
+<font color="blue">058:</font>      The library does not install any signal handler. The decoder checks
+<font color="blue">059:</font>   the consistency of the compressed data, so the library should never
+<font color="blue">060:</font>   crash even in case of corrupted input.
+<font color="blue">061:</font> */
+<font color="blue">062:</font> 
+<font color="blue"><a name="l63">063:</a></font> typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));
+<font color="blue">064:</font> typedef void   (*free_func)  OF((voidpf opaque, voidpf address));
+<font color="blue">065:</font> 
+<font color="blue">066:</font> struct internal_state;
+<font color="blue">067:</font> 
+<font color="blue">068:</font> typedef struct z_stream_s {
+<font color="blue">069:</font>     Bytef    *next_in;  /* next input byte */
+<font color="blue">070:</font>     uInt     avail_in;  /* number of bytes available at next_in */
+<font color="blue">071:</font>     uLong    total_in;  /* total nb of input bytes read so far */
+<font color="blue">072:</font> 
+<font color="blue">073:</font>     Bytef    *next_out; /* next output byte should be put there */
+<font color="blue">074:</font>     uInt     avail_out; /* remaining free space at next_out */
+<font color="blue">075:</font>     uLong    total_out; /* total nb of bytes output so far */
+<font color="blue">076:</font> 
+<font color="blue">077:</font>     char     *msg;      /* last error message, NULL if no error */
+<font color="blue"><a name="l78">078:</a></font>     struct internal_state FAR *state; /* not visible by applications */
+<font color="blue">079:</font> 
+<font color="blue"><a name="l80">080:</a></font>     alloc_func zalloc;  /* used to allocate the internal state */
+<font color="blue">081:</font>     free_func  zfree;   /* used to free the internal state */
+<font color="blue">082:</font>     voidpf     opaque;  /* private data object passed to zalloc and zfree */
+<font color="blue">083:</font> 
+<font color="blue">084:</font>     int     data_type;  /* best guess about the data type: ascii or binary */
+<font color="blue">085:</font>     uLong   adler;      /* adler32 value of the uncompressed data */
+<font color="blue">086:</font>     uLong   reserved;   /* reserved for future use */
+<font color="blue">087:</font> } z_stream;
+<font color="blue">088:</font> 
+<font color="blue">089:</font> typedef z_stream FAR *z_streamp;
+<font color="blue">090:</font> 
+<font color="blue">091:</font> /*
+<font color="blue">092:</font>    The application must update next_in and avail_in when avail_in has
+<font color="blue">093:</font>    dropped to zero. It must update next_out and avail_out when avail_out
+<font color="blue">094:</font>    has dropped to zero. The application must initialize zalloc, zfree and
+<font color="blue">095:</font>    opaque before calling the init function. All other fields are set by the
+<font color="blue">096:</font>    compression library and must not be updated by the application.
+<font color="blue">097:</font> 
+<font color="blue">098:</font>    The opaque value provided by the application will be passed as the first
+<font color="blue">099:</font>    parameter for calls of zalloc and zfree. This can be useful for custom
+<font color="blue">100:</font>    memory management. The compression library attaches no meaning to the
+<font color="blue">101:</font>    opaque value.
+<font color="blue">102:</font> 
+<font color="blue">103:</font>    zalloc must return Z_NULL if there is not enough memory for the object.
+<font color="blue">104:</font>    If zlib is used in a multi-threaded application, zalloc and zfree must be
+<font color="blue">105:</font>    thread safe.
+<font color="blue">106:</font> 
+<font color="blue">107:</font>    On 16-bit systems, the functions zalloc and zfree must be able to allocate
+<font color="blue">108:</font>    exactly 65536 bytes, but will not be required to allocate more than this
+<font color="blue">109:</font>    if the symbol MAXSEG_64K is defined (see zconf.h). WARNING: On MSDOS,
+<font color="blue">110:</font>    pointers returned by zalloc for objects of exactly 65536 bytes *must*
+<font color="blue">111:</font>    have their offset normalized to zero. The default allocation function
+<font color="blue">112:</font>    provided by this library ensures this (see zutil.c). To reduce memory
+<font color="blue">113:</font>    requirements and avoid any allocation of 64K objects, at the expense of
+<font color="blue">114:</font>    compression ratio, compile the library with -DMAX_WBITS=14 (see zconf.h).
+<font color="blue">115:</font> 
+<font color="blue">116:</font>    The fields total_in and total_out can be used for statistics or
+<font color="blue">117:</font>    progress reports. After compression, total_in holds the total size of
+<font color="blue">118:</font>    the uncompressed data and may be saved for use in the decompressor
+<font color="blue">119:</font>    (particularly if the decompressor wants to decompress everything in
+<font color="blue">120:</font>    a single step).
+<font color="blue">121:</font> */
+<font color="blue">122:</font> 
+<font color="blue">123:</font>                         /* constants */
+<font color="blue">124:</font> 
+<font color="blue">125:</font> #define Z_NO_FLUSH      0
+<font color="blue">126:</font> #define Z_PARTIAL_FLUSH 1 /* will be removed, use Z_SYNC_FLUSH instead */
+<font color="blue">127:</font> #define Z_SYNC_FLUSH    2
+<font color="blue">128:</font> #define Z_FULL_FLUSH    3
+<font color="blue">129:</font> #define Z_FINISH        4
+<font color="blue">130:</font> /* Allowed flush values; see deflate() below for details */
+<font color="blue">131:</font> 
+<font color="blue">132:</font> #define Z_OK            0
+<font color="blue">133:</font> #define Z_STREAM_END    1
+<font color="blue">134:</font> #define Z_NEED_DICT     2
+<font color="blue">135:</font> #define Z_ERRNO        (-1)
+<font color="blue">136:</font> #define Z_STREAM_ERROR (-2)
+<font color="blue">137:</font> #define Z_DATA_ERROR   (-3)
+<font color="blue">138:</font> #define Z_MEM_ERROR    (-4)
+<font color="blue">139:</font> #define Z_BUF_ERROR    (-5)
+<font color="blue">140:</font> #define Z_VERSION_ERROR (-6)
+<font color="blue">141:</font> /* Return codes for the compression/decompression functions. Negative
+<font color="blue">142:</font>  * values are errors, positive values are used for special but normal events.
+<font color="blue">143:</font>  */
+<font color="blue">144:</font> 
+<font color="blue">145:</font> #define Z_NO_COMPRESSION         0
+<font color="blue">146:</font> #define Z_BEST_SPEED             1
+<font color="blue">147:</font> #define Z_BEST_COMPRESSION       9
+<font color="blue">148:</font> #define Z_DEFAULT_COMPRESSION  (-1)
+<font color="blue">149:</font> /* compression levels */
+<font color="blue">150:</font> 
+<font color="blue">151:</font> #define Z_FILTERED            1
+<font color="blue">152:</font> #define Z_HUFFMAN_ONLY        2
+<font color="blue">153:</font> #define Z_DEFAULT_STRATEGY    0
+<font color="blue">154:</font> /* compression strategy; see deflateInit2() below for details */
+<font color="blue">155:</font> 
+<font color="blue">156:</font> #define Z_BINARY   0
+<font color="blue">157:</font> #define Z_ASCII    1
+<font color="blue">158:</font> #define Z_UNKNOWN  2
+<font color="blue">159:</font> /* Possible values of the data_type field */
+<font color="blue">160:</font> 
+<font color="blue">161:</font> #define Z_DEFLATED   8
+<font color="blue">162:</font> /* The deflate compression method (the only one supported in this version) */
+<font color="blue">163:</font> 
+<font color="blue">164:</font> #define Z_NULL  0  /* for initializing zalloc, zfree, opaque */
+<font color="blue">165:</font> 
+<font color="blue">166:</font> #define zlib_version zlibVersion()
+<font color="blue">167:</font> /* for compatibility with versions &lt; 1.0.2 */
+<font color="blue">168:</font> 
+<font color="blue">169:</font>                         /* basic functions */
+<font color="blue">170:</font> 
+<font color="blue">171:</font> ZEXTERN const char * ZEXPORT zlibVersion OF((void));
+<font color="blue">172:</font> /* The application can compare zlibVersion and ZLIB_VERSION for consistency.
+<font color="blue">173:</font>    If the first character differs, the library code actually used is
+<font color="blue">174:</font>    not compatible with the zlib.h header file used by the application.
+<font color="blue">175:</font>    This check is automatically made by deflateInit and inflateInit.
+<font color="blue">176:</font>  */
+<font color="blue">177:</font> 
+<font color="blue">178:</font> /* 
+<font color="blue">179:</font> ZEXTERN int ZEXPORT deflateInit OF((z_streamp strm, int level));
+<font color="blue">180:</font> 
+<font color="blue">181:</font>      Initializes the internal stream state for compression. The fields
+<font color="blue">182:</font>    zalloc, zfree and opaque must be initialized before by the caller.
+<font color="blue">183:</font>    If zalloc and zfree are set to Z_NULL, deflateInit updates them to
+<font color="blue">184:</font>    use default allocation functions.
+<font color="blue">185:</font> 
+<font color="blue">186:</font>      The compression level must be Z_DEFAULT_COMPRESSION, or between 0 and 9:
+<font color="blue">187:</font>    1 gives best speed, 9 gives best compression, 0 gives no compression at
+<font color="blue">188:</font>    all (the input data is simply copied a block at a time).
+<font color="blue">189:</font>    Z_DEFAULT_COMPRESSION requests a default compromise between speed and
+<font color="blue">190:</font>    compression (currently equivalent to level 6).
+<font color="blue">191:</font> 
+<font color="blue">192:</font>      deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
+<font color="blue">193:</font>    enough memory, Z_STREAM_ERROR if level is not a valid compression level,
+<font color="blue">194:</font>    Z_VERSION_ERROR if the zlib library version (zlib_version) is incompatible
+<font color="blue">195:</font>    with the version assumed by the caller (ZLIB_VERSION).
+<font color="blue">196:</font>    msg is set to null if there is no error message.  deflateInit does not
+<font color="blue">197:</font>    perform any compression: this will be done by deflate().
+<font color="blue">198:</font> */
+<font color="blue">199:</font> 
+<font color="blue">200:</font> 
+<font color="blue">201:</font> ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
+<font color="blue">202:</font> /*
+<font color="blue">203:</font>     deflate compresses as much data as possible, and stops when the input
+<font color="blue">204:</font>   buffer becomes empty or the output buffer becomes full. It may introduce some
+<font color="blue">205:</font>   output latency (reading input without producing any output) except when
+<font color="blue">206:</font>   forced to flush.
+<font color="blue">207:</font> 
+<font color="blue">208:</font>     The detailed semantics are as follows. deflate performs one or both of the
+<font color="blue">209:</font>   following actions:
+<font color="blue">210:</font> 
+<font color="blue">211:</font>   - Compress more input starting at next_in and update next_in and avail_in
+<font color="blue">212:</font>     accordingly. If not all input can be processed (because there is not
+<font color="blue">213:</font>     enough room in the output buffer), next_in and avail_in are updated and
+<font color="blue">214:</font>     processing will resume at this point for the next call of deflate().
+<font color="blue">215:</font> 
+<font color="blue">216:</font>   - Provide more output starting at next_out and update next_out and avail_out
+<font color="blue">217:</font>     accordingly. This action is forced if the parameter flush is non zero.
+<font color="blue">218:</font>     Forcing flush frequently degrades the compression ratio, so this parameter
+<font color="blue">219:</font>     should be set only when necessary (in interactive applications).
+<font color="blue">220:</font>     Some output may be provided even if flush is not set.
+<font color="blue">221:</font> 
+<font color="blue">222:</font>   Before the call of deflate(), the application should ensure that at least
+<font color="blue">223:</font>   one of the actions is possible, by providing more input and/or consuming
+<font color="blue">224:</font>   more output, and updating avail_in or avail_out accordingly; avail_out
+<font color="blue">225:</font>   should never be zero before the call. The application can consume the
+<font color="blue">226:</font>   compressed output when it wants, for example when the output buffer is full
+<font color="blue">227:</font>   (avail_out == 0), or after each call of deflate(). If deflate returns Z_OK
+<font color="blue">228:</font>   and with zero avail_out, it must be called again after making room in the
+<font color="blue">229:</font>   output buffer because there might be more output pending.
+<font color="blue">230:</font> 
+<font color="blue">231:</font>     If the parameter flush is set to Z_SYNC_FLUSH, all pending output is
+<font color="blue">232:</font>   flushed to the output buffer and the output is aligned on a byte boundary, so
+<font color="blue">233:</font>   that the decompressor can get all input data available so far. (In particular
+<font color="blue">234:</font>   avail_in is zero after the call if enough output space has been provided
+<font color="blue">235:</font>   before the call.)  Flushing may degrade compression for some compression
+<font color="blue">236:</font>   algorithms and so it should be used only when necessary.
+<font color="blue">237:</font> 
+<font color="blue">238:</font>     If flush is set to Z_FULL_FLUSH, all output is flushed as with
+<font color="blue">239:</font>   Z_SYNC_FLUSH, and the compression state is reset so that decompression can
+<font color="blue">240:</font>   restart from this point if previous compressed data has been damaged or if
+<font color="blue">241:</font>   random access is desired. Using Z_FULL_FLUSH too often can seriously degrade
+<font color="blue">242:</font>   the compression.
+<font color="blue">243:</font> 
+<font color="blue">244:</font>     If deflate returns with avail_out == 0, this function must be called again
+<font color="blue">245:</font>   with the same value of the flush parameter and more output space (updated
+<font color="blue">246:</font>   avail_out), until the flush is complete (deflate returns with non-zero
+<font color="blue">247:</font>   avail_out).
+<font color="blue">248:</font> 
+<font color="blue">249:</font>     If the parameter flush is set to Z_FINISH, pending input is processed,
+<font color="blue">250:</font>   pending output is flushed and deflate returns with Z_STREAM_END if there
+<font color="blue">251:</font>   was enough output space; if deflate returns with Z_OK, this function must be
+<font color="blue">252:</font>   called again with Z_FINISH and more output space (updated avail_out) but no
+<font color="blue">253:</font>   more input data, until it returns with Z_STREAM_END or an error. After
+<font color="blue">254:</font>   deflate has returned Z_STREAM_END, the only possible operations on the
+<font color="blue">255:</font>   stream are deflateReset or deflateEnd.
+<font color="blue">256:</font>   
+<font color="blue">257:</font>     Z_FINISH can be used immediately after deflateInit if all the compression
+<font color="blue">258:</font>   is to be done in a single step. In this case, avail_out must be at least
+<font color="blue">259:</font>   0.1% larger than avail_in plus 12 bytes.  If deflate does not return
+<font color="blue">260:</font>   Z_STREAM_END, then it must be called again as described above.
+<font color="blue">261:</font> 
+<font color="blue">262:</font>     deflate() sets strm-&gt;adler to the adler32 checksum of all input read
+<font color="blue">263:</font>   so far (that is, total_in bytes).
+<font color="blue">264:</font> 
+<font color="blue">265:</font>     deflate() may update data_type if it can make a good guess about
+<font color="blue">266:</font>   the input data type (Z_ASCII or Z_BINARY). In doubt, the data is considered
+<font color="blue">267:</font>   binary. This field is only for information purposes and does not affect
+<font color="blue">268:</font>   the compression algorithm in any manner.
+<font color="blue">269:</font> 
+<font color="blue">270:</font>     deflate() returns Z_OK if some progress has been made (more input
+<font color="blue">271:</font>   processed or more output produced), Z_STREAM_END if all input has been
+<font color="blue">272:</font>   consumed and all output has been produced (only when flush is set to
+<font color="blue">273:</font>   Z_FINISH), Z_STREAM_ERROR if the stream state was inconsistent (for example
+<font color="blue">274:</font>   if next_in or next_out was NULL), Z_BUF_ERROR if no progress is possible
+<font color="blue">275:</font>   (for example avail_in or avail_out was zero).
+<font color="blue">276:</font> */
+<font color="blue">277:</font> 
+<font color="blue">278:</font> 
+<font color="blue">279:</font> ZEXTERN int ZEXPORT deflateEnd OF((z_streamp strm));
+<font color="blue">280:</font> /*
+<font color="blue">281:</font>      All dynamically allocated data structures for this stream are freed.
+<font color="blue">282:</font>    This function discards any unprocessed input and does not flush any
+<font color="blue">283:</font>    pending output.
+<font color="blue">284:</font> 
+<font color="blue">285:</font>      deflateEnd returns Z_OK if success, Z_STREAM_ERROR if the
+<font color="blue">286:</font>    stream state was inconsistent, Z_DATA_ERROR if the stream was freed
+<font color="blue">287:</font>    prematurely (some input or output was discarded). In the error case,
+<font color="blue">288:</font>    msg may be set but then points to a static string (which must not be
+<font color="blue">289:</font>    deallocated).
+<font color="blue">290:</font> */
+<font color="blue">291:</font> 
+<font color="blue">292:</font> 
+<font color="blue">293:</font> /* 
+<font color="blue">294:</font> ZEXTERN int ZEXPORT inflateInit OF((z_streamp strm));
+<font color="blue">295:</font> 
+<font color="blue">296:</font>      Initializes the internal stream state for decompression. The fields
+<font color="blue">297:</font>    next_in, avail_in, zalloc, zfree and opaque must be initialized before by
+<font color="blue">298:</font>    the caller. If next_in is not Z_NULL and avail_in is large enough (the exact
+<font color="blue">299:</font>    value depends on the compression method), inflateInit determines the
+<font color="blue">300:</font>    compression method from the zlib header and allocates all data structures
+<font color="blue">301:</font>    accordingly; otherwise the allocation will be deferred to the first call of
+<font color="blue">302:</font>    inflate.  If zalloc and zfree are set to Z_NULL, inflateInit updates them to
+<font color="blue">303:</font>    use default allocation functions.
+<font color="blue">304:</font> 
+<font color="blue">305:</font>      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+<font color="blue">306:</font>    memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+<font color="blue">307:</font>    version assumed by the caller.  msg is set to null if there is no error
+<font color="blue">308:</font>    message. inflateInit does not perform any decompression apart from reading
+<font color="blue">309:</font>    the zlib header if present: this will be done by inflate().  (So next_in and
+<font color="blue">310:</font>    avail_in may be modified, but next_out and avail_out are unchanged.)
+<font color="blue">311:</font> */
+<font color="blue">312:</font> 
+<font color="blue">313:</font> 
+<font color="blue">314:</font> ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
+<font color="blue">315:</font> /*
+<font color="blue">316:</font>     inflate decompresses as much data as possible, and stops when the input
+<font color="blue">317:</font>   buffer becomes empty or the output buffer becomes full. It may some
+<font color="blue">318:</font>   introduce some output latency (reading input without producing any output)
+<font color="blue">319:</font>   except when forced to flush.
+<font color="blue">320:</font> 
+<font color="blue">321:</font>   The detailed semantics are as follows. inflate performs one or both of the
+<font color="blue">322:</font>   following actions:
+<font color="blue">323:</font> 
+<font color="blue">324:</font>   - Decompress more input starting at next_in and update next_in and avail_in
+<font color="blue">325:</font>     accordingly. If not all input can be processed (because there is not
+<font color="blue">326:</font>     enough room in the output buffer), next_in is updated and processing
+<font color="blue">327:</font>     will resume at this point for the next call of inflate().
+<font color="blue">328:</font> 
+<font color="blue">329:</font>   - Provide more output starting at next_out and update next_out and avail_out
+<font color="blue">330:</font>     accordingly.  inflate() provides as much output as possible, until there
+<font color="blue">331:</font>     is no more input data or no more space in the output buffer (see below
+<font color="blue">332:</font>     about the flush parameter).
+<font color="blue">333:</font> 
+<font color="blue">334:</font>   Before the call of inflate(), the application should ensure that at least
+<font color="blue">335:</font>   one of the actions is possible, by providing more input and/or consuming
+<font color="blue">336:</font>   more output, and updating the next_* and avail_* values accordingly.
+<font color="blue">337:</font>   The application can consume the uncompressed output when it wants, for
+<font color="blue">338:</font>   example when the output buffer is full (avail_out == 0), or after each
+<font color="blue">339:</font>   call of inflate(). If inflate returns Z_OK and with zero avail_out, it
+<font color="blue">340:</font>   must be called again after making room in the output buffer because there
+<font color="blue">341:</font>   might be more output pending.
+<font color="blue">342:</font> 
+<font color="blue">343:</font>     If the parameter flush is set to Z_SYNC_FLUSH, inflate flushes as much
+<font color="blue">344:</font>   output as possible to the output buffer. The flushing behavior of inflate is
+<font color="blue">345:</font>   not specified for values of the flush parameter other than Z_SYNC_FLUSH
+<font color="blue">346:</font>   and Z_FINISH, but the current implementation actually flushes as much output
+<font color="blue">347:</font>   as possible anyway.
+<font color="blue">348:</font> 
+<font color="blue">349:</font>     inflate() should normally be called until it returns Z_STREAM_END or an
+<font color="blue">350:</font>   error. However if all decompression is to be performed in a single step
+<font color="blue">351:</font>   (a single call of inflate), the parameter flush should be set to
+<font color="blue">352:</font>   Z_FINISH. In this case all pending input is processed and all pending
+<font color="blue">353:</font>   output is flushed; avail_out must be large enough to hold all the
+<font color="blue">354:</font>   uncompressed data. (The size of the uncompressed data may have been saved
+<font color="blue">355:</font>   by the compressor for this purpose.) The next operation on this stream must
+<font color="blue">356:</font>   be inflateEnd to deallocate the decompression state. The use of Z_FINISH
+<font color="blue">357:</font>   is never required, but can be used to inform inflate that a faster routine
+<font color="blue">358:</font>   may be used for the single inflate() call.
+<font color="blue">359:</font> 
+<font color="blue">360:</font>      If a preset dictionary is needed at this point (see inflateSetDictionary
+<font color="blue">361:</font>   below), inflate sets strm-adler to the adler32 checksum of the
+<font color="blue">362:</font>   dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise 
+<font color="blue">363:</font>   it sets strm-&gt;adler to the adler32 checksum of all output produced
+<font color="blue">364:</font>   so far (that is, total_out bytes) and returns Z_OK, Z_STREAM_END or
+<font color="blue">365:</font>   an error code as described below. At the end of the stream, inflate()
+<font color="blue">366:</font>   checks that its computed adler32 checksum is equal to that saved by the
+<font color="blue">367:</font>   compressor and returns Z_STREAM_END only if the checksum is correct.
+<font color="blue">368:</font> 
+<font color="blue">369:</font>     inflate() returns Z_OK if some progress has been made (more input processed
+<font color="blue">370:</font>   or more output produced), Z_STREAM_END if the end of the compressed data has
+<font color="blue">371:</font>   been reached and all uncompressed output has been produced, Z_NEED_DICT if a
+<font color="blue">372:</font>   preset dictionary is needed at this point, Z_DATA_ERROR if the input data was
+<font color="blue">373:</font>   corrupted (input stream not conforming to the zlib format or incorrect
+<font color="blue">374:</font>   adler32 checksum), Z_STREAM_ERROR if the stream structure was inconsistent
+<font color="blue">375:</font>   (for example if next_in or next_out was NULL), Z_MEM_ERROR if there was not
+<font color="blue">376:</font>   enough memory, Z_BUF_ERROR if no progress is possible or if there was not
+<font color="blue">377:</font>   enough room in the output buffer when Z_FINISH is used. In the Z_DATA_ERROR
+<font color="blue">378:</font>   case, the application may then call inflateSync to look for a good
+<font color="blue">379:</font>   compression block.
+<font color="blue">380:</font> */
+<font color="blue">381:</font> 
+<font color="blue">382:</font> 
+<font color="blue">383:</font> ZEXTERN int ZEXPORT inflateEnd OF((z_streamp strm));
+<font color="blue">384:</font> /*
+<font color="blue">385:</font>      All dynamically allocated data structures for this stream are freed.
+<font color="blue">386:</font>    This function discards any unprocessed input and does not flush any
+<font color="blue">387:</font>    pending output.
+<font color="blue">388:</font> 
+<font color="blue">389:</font>      inflateEnd returns Z_OK if success, Z_STREAM_ERROR if the stream state
+<font color="blue">390:</font>    was inconsistent. In the error case, msg may be set but then points to a
+<font color="blue">391:</font>    static string (which must not be deallocated).
+<font color="blue">392:</font> */
+<font color="blue">393:</font> 
+<font color="blue">394:</font>                         /* Advanced functions */
+<font color="blue">395:</font> 
+<font color="blue">396:</font> /*
+<font color="blue">397:</font>     The following functions are needed only in some special applications.
+<font color="blue">398:</font> */
+<font color="blue">399:</font> 
+<font color="blue">400:</font> /*   
+<font color="blue">401:</font> ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
+<font color="blue">402:</font>                                      int  level,
+<font color="blue">403:</font>                                      int  method,
+<font color="blue">404:</font>                                      int  windowBits,
+<font color="blue">405:</font>                                      int  memLevel,
+<font color="blue">406:</font>                                      int  strategy));
+<font color="blue">407:</font> 
+<font color="blue">408:</font>      This is another version of deflateInit with more compression options. The
+<font color="blue">409:</font>    fields next_in, zalloc, zfree and opaque must be initialized before by
+<font color="blue">410:</font>    the caller.
+<font color="blue">411:</font> 
+<font color="blue">412:</font>      The method parameter is the compression method. It must be Z_DEFLATED in
+<font color="blue">413:</font>    this version of the library.
+<font color="blue">414:</font> 
+<font color="blue">415:</font>      The windowBits parameter is the base two logarithm of the window size
+<font color="blue">416:</font>    (the size of the history buffer).  It should be in the range 8..15 for this
+<font color="blue">417:</font>    version of the library. Larger values of this parameter result in better
+<font color="blue">418:</font>    compression at the expense of memory usage. The default value is 15 if
+<font color="blue">419:</font>    deflateInit is used instead.
+<font color="blue">420:</font> 
+<font color="blue">421:</font>      The memLevel parameter specifies how much memory should be allocated
+<font color="blue">422:</font>    for the internal compression state. memLevel=1 uses minimum memory but
+<font color="blue">423:</font>    is slow and reduces compression ratio; memLevel=9 uses maximum memory
+<font color="blue">424:</font>    for optimal speed. The default value is 8. See zconf.h for total memory
+<font color="blue">425:</font>    usage as a function of windowBits and memLevel.
+<font color="blue">426:</font> 
+<font color="blue">427:</font>      The strategy parameter is used to tune the compression algorithm. Use the
+<font color="blue">428:</font>    value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data produced by a
+<font color="blue">429:</font>    filter (or predictor), or Z_HUFFMAN_ONLY to force Huffman encoding only (no
+<font color="blue">430:</font>    string match).  Filtered data consists mostly of small values with a
+<font color="blue">431:</font>    somewhat random distribution. In this case, the compression algorithm is
+<font color="blue">432:</font>    tuned to compress them better. The effect of Z_FILTERED is to force more
+<font color="blue">433:</font>    Huffman coding and less string matching; it is somewhat intermediate
+<font color="blue">434:</font>    between Z_DEFAULT and Z_HUFFMAN_ONLY. The strategy parameter only affects
+<font color="blue">435:</font>    the compression ratio but not the correctness of the compressed output even
+<font color="blue">436:</font>    if it is not set appropriately.
+<font color="blue">437:</font> 
+<font color="blue">438:</font>       deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+<font color="blue">439:</font>    memory, Z_STREAM_ERROR if a parameter is invalid (such as an invalid
+<font color="blue">440:</font>    method). msg is set to null if there is no error message.  deflateInit2 does
+<font color="blue">441:</font>    not perform any compression: this will be done by deflate().
+<font color="blue">442:</font> */
+<font color="blue">443:</font>                             
+<font color="blue">444:</font> ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
+<font color="blue">445:</font>                                              const Bytef *dictionary,
+<font color="blue">446:</font>                                              uInt  dictLength));
+<font color="blue">447:</font> /*
+<font color="blue">448:</font>      Initializes the compression dictionary from the given byte sequence
+<font color="blue">449:</font>    without producing any compressed output. This function must be called
+<font color="blue">450:</font>    immediately after deflateInit, deflateInit2 or deflateReset, before any
+<font color="blue">451:</font>    call of deflate. The compressor and decompressor must use exactly the same
+<font color="blue">452:</font>    dictionary (see inflateSetDictionary).
+<font color="blue">453:</font> 
+<font color="blue">454:</font>      The dictionary should consist of strings (byte sequences) that are likely
+<font color="blue">455:</font>    to be encountered later in the data to be compressed, with the most commonly
+<font color="blue">456:</font>    used strings preferably put towards the end of the dictionary. Using a
+<font color="blue">457:</font>    dictionary is most useful when the data to be compressed is short and can be
+<font color="blue">458:</font>    predicted with good accuracy; the data can then be compressed better than
+<font color="blue">459:</font>    with the default empty dictionary.
+<font color="blue">460:</font> 
+<font color="blue">461:</font>      Depending on the size of the compression data structures selected by
+<font color="blue">462:</font>    deflateInit or deflateInit2, a part of the dictionary may in effect be
+<font color="blue">463:</font>    discarded, for example if the dictionary is larger than the window size in
+<font color="blue">464:</font>    deflate or deflate2. Thus the strings most likely to be useful should be
+<font color="blue">465:</font>    put at the end of the dictionary, not at the front.
+<font color="blue">466:</font> 
+<font color="blue">467:</font>      Upon return of this function, strm-&gt;adler is set to the Adler32 value
+<font color="blue">468:</font>    of the dictionary; the decompressor may later use this value to determine
+<font color="blue">469:</font>    which dictionary has been used by the compressor. (The Adler32 value
+<font color="blue">470:</font>    applies to the whole dictionary even if only a subset of the dictionary is
+<font color="blue">471:</font>    actually used by the compressor.)
+<font color="blue">472:</font> 
+<font color="blue">473:</font>      deflateSetDictionary returns Z_OK if success, or Z_STREAM_ERROR if a
+<font color="blue">474:</font>    parameter is invalid (such as NULL dictionary) or the stream state is
+<font color="blue">475:</font>    inconsistent (for example if deflate has already been called for this stream
+<font color="blue">476:</font>    or if the compression method is bsort). deflateSetDictionary does not
+<font color="blue">477:</font>    perform any compression: this will be done by deflate().
+<font color="blue">478:</font> */
+<font color="blue">479:</font> 
+<font color="blue">480:</font> ZEXTERN int ZEXPORT deflateCopy OF((z_streamp dest,
+<font color="blue">481:</font>                                     z_streamp source));
+<font color="blue">482:</font> /*
+<font color="blue">483:</font>      Sets the destination stream as a complete copy of the source stream.
+<font color="blue">484:</font> 
+<font color="blue">485:</font>      This function can be useful when several compression strategies will be
+<font color="blue">486:</font>    tried, for example when there are several ways of pre-processing the input
+<font color="blue">487:</font>    data with a filter. The streams that will be discarded should then be freed
+<font color="blue">488:</font>    by calling deflateEnd.  Note that deflateCopy duplicates the internal
+<font color="blue">489:</font>    compression state which can be quite large, so this strategy is slow and
+<font color="blue">490:</font>    can consume lots of memory.
+<font color="blue">491:</font> 
+<font color="blue">492:</font>      deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
+<font color="blue">493:</font>    enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
+<font color="blue">494:</font>    (such as zalloc being NULL). msg is left unchanged in both source and
+<font color="blue">495:</font>    destination.
+<font color="blue">496:</font> */
+<font color="blue">497:</font> 
+<font color="blue">498:</font> ZEXTERN int ZEXPORT deflateReset OF((z_streamp strm));
+<font color="blue">499:</font> /*
+<font color="blue">500:</font>      This function is equivalent to deflateEnd followed by deflateInit,
+<font color="blue">501:</font>    but does not free and reallocate all the internal compression state.
+<font color="blue">502:</font>    The stream will keep the same compression level and any other attributes
+<font color="blue">503:</font>    that may have been set by deflateInit2.
+<font color="blue">504:</font> 
+<font color="blue">505:</font>       deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
+<font color="blue">506:</font>    stream state was inconsistent (such as zalloc or state being NULL).
+<font color="blue">507:</font> */
+<font color="blue">508:</font> 
+<font color="blue">509:</font> ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
+<font color="blue">510:</font> 				      int level,
+<font color="blue">511:</font> 				      int strategy));
+<font color="blue">512:</font> /*
+<font color="blue">513:</font>      Dynamically update the compression level and compression strategy.  The
+<font color="blue">514:</font>    interpretation of level and strategy is as in deflateInit2.  This can be
+<font color="blue">515:</font>    used to switch between compression and straight copy of the input data, or
+<font color="blue">516:</font>    to switch to a different kind of input data requiring a different
+<font color="blue">517:</font>    strategy. If the compression level is changed, the input available so far
+<font color="blue">518:</font>    is compressed with the old level (and may be flushed); the new level will
+<font color="blue">519:</font>    take effect only at the next call of deflate().
+<font color="blue">520:</font> 
+<font color="blue">521:</font>      Before the call of deflateParams, the stream state must be set as for
+<font color="blue">522:</font>    a call of deflate(), since the currently available input may have to
+<font color="blue">523:</font>    be compressed and flushed. In particular, strm-&gt;avail_out must be non-zero.
+<font color="blue">524:</font> 
+<font color="blue">525:</font>      deflateParams returns Z_OK if success, Z_STREAM_ERROR if the source
+<font color="blue">526:</font>    stream state was inconsistent or if a parameter was invalid, Z_BUF_ERROR
+<font color="blue">527:</font>    if strm-&gt;avail_out was zero.
+<font color="blue">528:</font> */
+<font color="blue">529:</font> 
+<font color="blue">530:</font> /*   
+<font color="blue">531:</font> ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
+<font color="blue">532:</font>                                      int  windowBits));
+<font color="blue">533:</font> 
+<font color="blue">534:</font>      This is another version of inflateInit with an extra parameter. The
+<font color="blue">535:</font>    fields next_in, avail_in, zalloc, zfree and opaque must be initialized
+<font color="blue">536:</font>    before by the caller.
+<font color="blue">537:</font> 
+<font color="blue">538:</font>      The windowBits parameter is the base two logarithm of the maximum window
+<font color="blue">539:</font>    size (the size of the history buffer).  It should be in the range 8..15 for
+<font color="blue">540:</font>    this version of the library. The default value is 15 if inflateInit is used
+<font color="blue">541:</font>    instead. If a compressed stream with a larger window size is given as
+<font color="blue">542:</font>    input, inflate() will return with the error code Z_DATA_ERROR instead of
+<font color="blue">543:</font>    trying to allocate a larger window.
+<font color="blue">544:</font> 
+<font color="blue">545:</font>       inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+<font color="blue">546:</font>    memory, Z_STREAM_ERROR if a parameter is invalid (such as a negative
+<font color="blue">547:</font>    memLevel). msg is set to null if there is no error message.  inflateInit2
+<font color="blue">548:</font>    does not perform any decompression apart from reading the zlib header if
+<font color="blue">549:</font>    present: this will be done by inflate(). (So next_in and avail_in may be
+<font color="blue">550:</font>    modified, but next_out and avail_out are unchanged.)
+<font color="blue">551:</font> */
+<font color="blue">552:</font> 
+<font color="blue">553:</font> ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
+<font color="blue">554:</font>                                              const Bytef *dictionary,
+<font color="blue">555:</font>                                              uInt  dictLength));
+<font color="blue">556:</font> /*
+<font color="blue">557:</font>      Initializes the decompression dictionary from the given uncompressed byte
+<font color="blue">558:</font>    sequence. This function must be called immediately after a call of inflate
+<font color="blue">559:</font>    if this call returned Z_NEED_DICT. The dictionary chosen by the compressor
+<font color="blue">560:</font>    can be determined from the Adler32 value returned by this call of
+<font color="blue">561:</font>    inflate. The compressor and decompressor must use exactly the same
+<font color="blue">562:</font>    dictionary (see deflateSetDictionary).
+<font color="blue">563:</font> 
+<font color="blue">564:</font>      inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
+<font color="blue">565:</font>    parameter is invalid (such as NULL dictionary) or the stream state is
+<font color="blue">566:</font>    inconsistent, Z_DATA_ERROR if the given dictionary doesn't match the
+<font color="blue">567:</font>    expected one (incorrect Adler32 value). inflateSetDictionary does not
+<font color="blue">568:</font>    perform any decompression: this will be done by subsequent calls of
+<font color="blue">569:</font>    inflate().
+<font color="blue">570:</font> */
+<font color="blue">571:</font> 
+<font color="blue">572:</font> ZEXTERN int ZEXPORT inflateSync OF((z_streamp strm));
+<font color="blue">573:</font> /* 
+<font color="blue">574:</font>     Skips invalid compressed data until a full flush point (see above the
+<font color="blue">575:</font>   description of deflate with Z_FULL_FLUSH) can be found, or until all
+<font color="blue">576:</font>   available input is skipped. No output is provided.
+<font color="blue">577:</font> 
+<font color="blue">578:</font>     inflateSync returns Z_OK if a full flush point has been found, Z_BUF_ERROR
+<font color="blue">579:</font>   if no more input was provided, Z_DATA_ERROR if no flush point has been found,
+<font color="blue">580:</font>   or Z_STREAM_ERROR if the stream structure was inconsistent. In the success
+<font color="blue">581:</font>   case, the application may save the current current value of total_in which
+<font color="blue">582:</font>   indicates where valid compressed data was found. In the error case, the
+<font color="blue">583:</font>   application may repeatedly call inflateSync, providing more input each time,
+<font color="blue">584:</font>   until success or end of the input data.
+<font color="blue">585:</font> */
+<font color="blue">586:</font> 
+<font color="blue">587:</font> ZEXTERN int ZEXPORT inflateReset OF((z_streamp strm));
+<font color="blue">588:</font> /*
+<font color="blue">589:</font>      This function is equivalent to inflateEnd followed by inflateInit,
+<font color="blue">590:</font>    but does not free and reallocate all the internal decompression state.
+<font color="blue">591:</font>    The stream will keep attributes that may have been set by inflateInit2.
+<font color="blue">592:</font> 
+<font color="blue">593:</font>       inflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
+<font color="blue">594:</font>    stream state was inconsistent (such as zalloc or state being NULL).
+<font color="blue">595:</font> */
+<font color="blue">596:</font> 
+<font color="blue">597:</font> 
+<font color="blue">598:</font>                         /* utility functions */
+<font color="blue">599:</font> 
+<font color="blue">600:</font> /*
+<font color="blue">601:</font>      The following utility functions are implemented on top of the
+<font color="blue">602:</font>    basic stream-oriented functions. To simplify the interface, some
+<font color="blue">603:</font>    default options are assumed (compression level and memory usage,
+<font color="blue">604:</font>    standard memory allocation functions). The source code of these
+<font color="blue">605:</font>    utility functions can easily be modified if you need special options.
+<font color="blue">606:</font> */
+<font color="blue">607:</font> 
+<font color="blue">608:</font> ZEXTERN int ZEXPORT compress OF((Bytef *dest,   uLongf *destLen,
+<font color="blue">609:</font>                                  const Bytef *source, uLong sourceLen));
+<font color="blue">610:</font> /*
+<font color="blue">611:</font>      Compresses the source buffer into the destination buffer.  sourceLen is
+<font color="blue">612:</font>    the byte length of the source buffer. Upon entry, destLen is the total
+<font color="blue">613:</font>    size of the destination buffer, which must be at least 0.1% larger than
+<font color="blue">614:</font>    sourceLen plus 12 bytes. Upon exit, destLen is the actual size of the
+<font color="blue">615:</font>    compressed buffer.
+<font color="blue">616:</font>      This function can be used to compress a whole file at once if the
+<font color="blue">617:</font>    input file is mmap'ed.
+<font color="blue">618:</font>      compress returns Z_OK if success, Z_MEM_ERROR if there was not
+<font color="blue">619:</font>    enough memory, Z_BUF_ERROR if there was not enough room in the output
+<font color="blue">620:</font>    buffer.
+<font color="blue">621:</font> */
+<font color="blue">622:</font> 
+<font color="blue">623:</font> ZEXTERN int ZEXPORT compress2 OF((Bytef *dest,   uLongf *destLen,
+<font color="blue">624:</font>                                   const Bytef *source, uLong sourceLen,
+<font color="blue">625:</font>                                   int level));
+<font color="blue">626:</font> /*
+<font color="blue">627:</font>      Compresses the source buffer into the destination buffer. The level
+<font color="blue">628:</font>    parameter has the same meaning as in deflateInit.  sourceLen is the byte
+<font color="blue">629:</font>    length of the source buffer. Upon entry, destLen is the total size of the
+<font color="blue">630:</font>    destination buffer, which must be at least 0.1% larger than sourceLen plus
+<font color="blue">631:</font>    12 bytes. Upon exit, destLen is the actual size of the compressed buffer.
+<font color="blue">632:</font> 
+<font color="blue">633:</font>      compress2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+<font color="blue">634:</font>    memory, Z_BUF_ERROR if there was not enough room in the output buffer,
+<font color="blue">635:</font>    Z_STREAM_ERROR if the level parameter is invalid.
+<font color="blue">636:</font> */
+<font color="blue">637:</font> 
+<font color="blue">638:</font> ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
+<font color="blue">639:</font>                                    const Bytef *source, uLong sourceLen));
+<font color="blue">640:</font> /*
+<font color="blue">641:</font>      Decompresses the source buffer into the destination buffer.  sourceLen is
+<font color="blue">642:</font>    the byte length of the source buffer. Upon entry, destLen is the total
+<font color="blue">643:</font>    size of the destination buffer, which must be large enough to hold the
+<font color="blue">644:</font>    entire uncompressed data. (The size of the uncompressed data must have
+<font color="blue">645:</font>    been saved previously by the compressor and transmitted to the decompressor
+<font color="blue">646:</font>    by some mechanism outside the scope of this compression library.)
+<font color="blue">647:</font>    Upon exit, destLen is the actual size of the compressed buffer.
+<font color="blue">648:</font>      This function can be used to decompress a whole file at once if the
+<font color="blue">649:</font>    input file is mmap'ed.
+<font color="blue">650:</font> 
+<font color="blue">651:</font>      uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
+<font color="blue">652:</font>    enough memory, Z_BUF_ERROR if there was not enough room in the output
+<font color="blue">653:</font>    buffer, or Z_DATA_ERROR if the input data was corrupted.
+<font color="blue">654:</font> */
+<font color="blue">655:</font> 
+<font color="blue">656:</font> 
+<font color="blue">657:</font> typedef voidp gzFile;
+<font color="blue">658:</font> 
+<font color="blue">659:</font> ZEXTERN gzFile ZEXPORT gzopen  OF((const char *path, const char *mode));
+<font color="blue">660:</font> /*
+<font color="blue">661:</font>      Opens a gzip (.gz) file for reading or writing. The mode parameter
+<font color="blue">662:</font>    is as in fopen ("rb" or "wb") but can also include a compression level
+<font color="blue">663:</font>    ("wb9") or a strategy: 'f' for filtered data as in "wb6f", 'h' for
+<font color="blue">664:</font>    Huffman only compression as in "wb1h". (See the description
+<font color="blue">665:</font>    of deflateInit2 for more information about the strategy parameter.)
+<font color="blue">666:</font> 
+<font color="blue">667:</font>      gzopen can be used to read a file which is not in gzip format; in this
+<font color="blue">668:</font>    case gzread will directly read from the file without decompression.
+<font color="blue">669:</font> 
+<font color="blue">670:</font>      gzopen returns NULL if the file could not be opened or if there was
+<font color="blue">671:</font>    insufficient memory to allocate the (de)compression state; errno
+<font color="blue">672:</font>    can be checked to distinguish the two cases (if errno is zero, the
+<font color="blue">673:</font>    zlib error is Z_MEM_ERROR).  */
+<font color="blue">674:</font> 
+<font color="blue">675:</font> ZEXTERN gzFile ZEXPORT gzdopen  OF((int fd, const char *mode));
+<font color="blue">676:</font> /*
+<font color="blue">677:</font>      gzdopen() associates a gzFile with the file descriptor fd.  File
+<font color="blue">678:</font>    descriptors are obtained from calls like open, dup, creat, pipe or
+<font color="blue">679:</font>    fileno (in the file has been previously opened with fopen).
+<font color="blue">680:</font>    The mode parameter is as in gzopen.
+<font color="blue">681:</font>      The next call of gzclose on the returned gzFile will also close the
+<font color="blue">682:</font>    file descriptor fd, just like fclose(fdopen(fd), mode) closes the file
+<font color="blue">683:</font>    descriptor fd. If you want to keep fd open, use gzdopen(dup(fd), mode).
+<font color="blue">684:</font>      gzdopen returns NULL if there was insufficient memory to allocate
+<font color="blue">685:</font>    the (de)compression state.
+<font color="blue">686:</font> */
+<font color="blue">687:</font> 
+<font color="blue">688:</font> ZEXTERN int ZEXPORT gzsetparams OF((gzFile file, int level, int strategy));
+<font color="blue">689:</font> /*
+<font color="blue">690:</font>      Dynamically update the compression level or strategy. See the description
+<font color="blue">691:</font>    of deflateInit2 for the meaning of these parameters.
+<font color="blue">692:</font>      gzsetparams returns Z_OK if success, or Z_STREAM_ERROR if the file was not
+<font color="blue">693:</font>    opened for writing.
+<font color="blue">694:</font> */
+<font color="blue">695:</font> 
+<font color="blue">696:</font> ZEXTERN int ZEXPORT    gzread  OF((gzFile file, voidp buf, unsigned len));
+<font color="blue">697:</font> /*
+<font color="blue">698:</font>      Reads the given number of uncompressed bytes from the compressed file.
+<font color="blue">699:</font>    If the input file was not in gzip format, gzread copies the given number
+<font color="blue">700:</font>    of bytes into the buffer.
+<font color="blue">701:</font>      gzread returns the number of uncompressed bytes actually read (0 for
+<font color="blue">702:</font>    end of file, -1 for error). */
+<font color="blue">703:</font> 
+<font color="blue">704:</font> ZEXTERN int ZEXPORT    gzwrite OF((gzFile file, 
+<font color="blue">705:</font> 				   const voidp buf, unsigned len));
+<font color="blue">706:</font> /*
+<font color="blue">707:</font>      Writes the given number of uncompressed bytes into the compressed file.
+<font color="blue">708:</font>    gzwrite returns the number of uncompressed bytes actually written
+<font color="blue">709:</font>    (0 in case of error).
+<font color="blue">710:</font> */
+<font color="blue">711:</font> 
+<font color="blue">712:</font> ZEXTERN int ZEXPORTVA   gzprintf OF((gzFile file, const char *format, ...));
+<font color="blue">713:</font> /*
+<font color="blue">714:</font>      Converts, formats, and writes the args to the compressed file under
+<font color="blue">715:</font>    control of the format string, as in fprintf. gzprintf returns the number of
+<font color="blue">716:</font>    uncompressed bytes actually written (0 in case of error).
+<font color="blue">717:</font> */
+<font color="blue">718:</font> 
+<font color="blue">719:</font> ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));
+<font color="blue">720:</font> /*
+<font color="blue">721:</font>       Writes the given null-terminated string to the compressed file, excluding
+<font color="blue">722:</font>    the terminating null character.
+<font color="blue">723:</font>       gzputs returns the number of characters written, or -1 in case of error.
+<font color="blue">724:</font> */
+<font color="blue">725:</font> 
+<font color="blue">726:</font> ZEXTERN char * ZEXPORT gzgets OF((gzFile file, char *buf, int len));
+<font color="blue">727:</font> /*
+<font color="blue">728:</font>       Reads bytes from the compressed file until len-1 characters are read, or
+<font color="blue">729:</font>    a newline character is read and transferred to buf, or an end-of-file
+<font color="blue">730:</font>    condition is encountered.  The string is then terminated with a null
+<font color="blue">731:</font>    character.
+<font color="blue">732:</font>       gzgets returns buf, or Z_NULL in case of error.
+<font color="blue">733:</font> */
+<font color="blue">734:</font> 
+<font color="blue">735:</font> ZEXTERN int ZEXPORT    gzputc OF((gzFile file, int c));
+<font color="blue">736:</font> /*
+<font color="blue">737:</font>       Writes c, converted to an unsigned char, into the compressed file.
+<font color="blue">738:</font>    gzputc returns the value that was written, or -1 in case of error.
+<font color="blue">739:</font> */
+<font color="blue">740:</font> 
+<font color="blue">741:</font> ZEXTERN int ZEXPORT    gzgetc OF((gzFile file));
+<font color="blue">742:</font> /*
+<font color="blue">743:</font>       Reads one byte from the compressed file. gzgetc returns this byte
+<font color="blue">744:</font>    or -1 in case of end of file or error.
+<font color="blue">745:</font> */
+<font color="blue">746:</font> 
+<font color="blue">747:</font> ZEXTERN int ZEXPORT    gzflush OF((gzFile file, int flush));
+<font color="blue">748:</font> /*
+<font color="blue">749:</font>      Flushes all pending output into the compressed file. The parameter
+<font color="blue">750:</font>    flush is as in the deflate() function. The return value is the zlib
+<font color="blue">751:</font>    error number (see function gzerror below). gzflush returns Z_OK if
+<font color="blue">752:</font>    the flush parameter is Z_FINISH and all output could be flushed.
+<font color="blue">753:</font>      gzflush should be called only when strictly necessary because it can
+<font color="blue">754:</font>    degrade compression.
+<font color="blue">755:</font> */
+<font color="blue">756:</font> 
+<font color="blue">757:</font> ZEXTERN z_off_t ZEXPORT    gzseek OF((gzFile file,
+<font color="blue">758:</font> 				      z_off_t offset, int whence));
+<font color="blue">759:</font> /* 
+<font color="blue">760:</font>       Sets the starting position for the next gzread or gzwrite on the
+<font color="blue">761:</font>    given compressed file. The offset represents a number of bytes in the
+<font color="blue">762:</font>    uncompressed data stream. The whence parameter is defined as in lseek(2);
+<font color="blue">763:</font>    the value SEEK_END is not supported.
+<font color="blue">764:</font>      If the file is opened for reading, this function is emulated but can be
+<font color="blue">765:</font>    extremely slow. If the file is opened for writing, only forward seeks are
+<font color="blue">766:</font>    supported; gzseek then compresses a sequence of zeroes up to the new
+<font color="blue">767:</font>    starting position.
+<font color="blue">768:</font> 
+<font color="blue">769:</font>       gzseek returns the resulting offset location as measured in bytes from
+<font color="blue">770:</font>    the beginning of the uncompressed stream, or -1 in case of error, in
+<font color="blue">771:</font>    particular if the file is opened for writing and the new starting position
+<font color="blue">772:</font>    would be before the current position.
+<font color="blue">773:</font> */
+<font color="blue">774:</font> 
+<font color="blue">775:</font> ZEXTERN int ZEXPORT    gzrewind OF((gzFile file));
+<font color="blue">776:</font> /*
+<font color="blue">777:</font>      Rewinds the given file. This function is supported only for reading.
+<font color="blue">778:</font> 
+<font color="blue">779:</font>    gzrewind(file) is equivalent to (int)gzseek(file, 0L, SEEK_SET)
+<font color="blue">780:</font> */
+<font color="blue">781:</font> 
+<font color="blue">782:</font> ZEXTERN z_off_t ZEXPORT    gztell OF((gzFile file));
+<font color="blue">783:</font> /*
+<font color="blue">784:</font>      Returns the starting position for the next gzread or gzwrite on the
+<font color="blue">785:</font>    given compressed file. This position represents a number of bytes in the
+<font color="blue">786:</font>    uncompressed data stream.
+<font color="blue">787:</font> 
+<font color="blue">788:</font>    gztell(file) is equivalent to gzseek(file, 0L, SEEK_CUR)
+<font color="blue">789:</font> */
+<font color="blue">790:</font> 
+<font color="blue">791:</font> ZEXTERN int ZEXPORT gzeof OF((gzFile file));
+<font color="blue">792:</font> /*
+<font color="blue">793:</font>      Returns 1 when EOF has previously been detected reading the given
+<font color="blue">794:</font>    input stream, otherwise zero.
+<font color="blue">795:</font> */
+<font color="blue">796:</font> 
+<font color="blue">797:</font> ZEXTERN int ZEXPORT    gzclose OF((gzFile file));
+<font color="blue">798:</font> /*
+<font color="blue">799:</font>      Flushes all pending output if necessary, closes the compressed file
+<font color="blue">800:</font>    and deallocates all the (de)compression state. The return value is the zlib
+<font color="blue">801:</font>    error number (see function gzerror below).
+<font color="blue">802:</font> */
+<font color="blue">803:</font> 
+<font color="blue">804:</font> ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
+<font color="blue">805:</font> /*
+<font color="blue">806:</font>      Returns the error message for the last error which occurred on the
+<font color="blue">807:</font>    given compressed file. errnum is set to zlib error number. If an
+<font color="blue">808:</font>    error occurred in the file system and not in the compression library,
+<font color="blue">809:</font>    errnum is set to Z_ERRNO and the application may consult errno
+<font color="blue">810:</font>    to get the exact error code.
+<font color="blue">811:</font> */
+<font color="blue">812:</font> 
+<font color="blue">813:</font>                         /* checksum functions */
+<font color="blue">814:</font> 
+<font color="blue">815:</font> /*
+<font color="blue">816:</font>      These functions are not related to compression but are exported
+<font color="blue">817:</font>    anyway because they might be useful in applications using the
+<font color="blue">818:</font>    compression library.
+<font color="blue">819:</font> */
+<font color="blue">820:</font> 
+<font color="blue">821:</font> ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
+<font color="blue">822:</font> 
+<font color="blue">823:</font> /*
+<font color="blue">824:</font>      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
+<font color="blue">825:</font>    return the updated checksum. If buf is NULL, this function returns
+<font color="blue">826:</font>    the required initial value for the checksum.
+<font color="blue">827:</font>    An Adler-32 checksum is almost as reliable as a CRC32 but can be computed
+<font color="blue">828:</font>    much faster. Usage example:
+<font color="blue">829:</font> 
+<font color="blue">830:</font>      uLong adler = adler32(0L, Z_NULL, 0);
+<font color="blue">831:</font> 
+<font color="blue">832:</font>      while (read_buffer(buffer, length) != EOF) {
+<font color="blue">833:</font>        adler = adler32(adler, buffer, length);
+<font color="blue">834:</font>      }
+<font color="blue">835:</font>      if (adler != original_adler) error();
+<font color="blue">836:</font> */
+<font color="blue">837:</font> 
+<font color="blue">838:</font> ZEXTERN uLong ZEXPORT crc32   OF((uLong crc, const Bytef *buf, uInt len));
+<font color="blue">839:</font> /*
+<font color="blue">840:</font>      Update a running crc with the bytes buf[0..len-1] and return the updated
+<font color="blue">841:</font>    crc. If buf is NULL, this function returns the required initial value
+<font color="blue">842:</font>    for the crc. Pre- and post-conditioning (one's complement) is performed
+<font color="blue">843:</font>    within this function so it shouldn't be done by the application.
+<font color="blue">844:</font>    Usage example:
+<font color="blue">845:</font> 
+<font color="blue">846:</font>      uLong crc = crc32(0L, Z_NULL, 0);
+<font color="blue">847:</font> 
+<font color="blue">848:</font>      while (read_buffer(buffer, length) != EOF) {
+<font color="blue">849:</font>        crc = crc32(crc, buffer, length);
+<font color="blue">850:</font>      }
+<font color="blue">851:</font>      if (crc != original_crc) error();
+<font color="blue">852:</font> */
+<font color="blue">853:</font> 
+<font color="blue">854:</font> 
+<font color="blue">855:</font>                         /* various hacks, don't look :) */
+<font color="blue">856:</font> 
+<font color="blue">857:</font> /* deflateInit and inflateInit are macros to allow checking the zlib version
+<font color="blue">858:</font>  * and the compiler's view of z_stream:
+<font color="blue">859:</font>  */
+<font color="blue">860:</font> ZEXTERN int ZEXPORT deflateInit_ OF((z_streamp strm, int level,
+<font color="blue">861:</font>                                      const char *version, int stream_size));
+<font color="blue">862:</font> ZEXTERN int ZEXPORT inflateInit_ OF((z_streamp strm,
+<font color="blue">863:</font>                                      const char *version, int stream_size));
+<font color="blue">864:</font> ZEXTERN int ZEXPORT deflateInit2_ OF((z_streamp strm, int  level, int  method,
+<font color="blue">865:</font>                                       int windowBits, int memLevel,
+<font color="blue">866:</font>                                       int strategy, const char *version,
+<font color="blue">867:</font>                                       int stream_size));
+<font color="blue">868:</font> ZEXTERN int ZEXPORT inflateInit2_ OF((z_streamp strm, int  windowBits,
+<font color="blue">869:</font>                                       const char *version, int stream_size));
+<font color="blue"><a name="initmacros">870:</a></font> #define deflateInit(strm, level) \
+<font color="blue">871:</font>         deflateInit_((strm), (level),       ZLIB_VERSION, sizeof(z_stream))
+<font color="blue">872:</font> #define inflateInit(strm) \
+<font color="blue">873:</font>         inflateInit_((strm),                ZLIB_VERSION, sizeof(z_stream))
+<font color="blue">874:</font> #define deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
+<font color="blue">875:</font>         deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
+<font color="blue">876:</font>                       (strategy),           ZLIB_VERSION, sizeof(z_stream))
+<font color="blue">877:</font> #define inflateInit2(strm, windowBits) \
+<font color="blue">878:</font>         inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
+<font color="blue">879:</font> 
+<font color="blue">880:</font> 
+<font color="blue">881:</font> #if !defined(_Z_UTIL_H) &amp;&amp; !defined(NO_DUMMY_DECL)
+<font color="blue">882:</font>     struct internal_state {int dummy;}; /* hack for buggy compilers */
+<font color="blue">883:</font> #endif
+<font color="blue">884:</font> 
+<font color="blue">885:</font> ZEXTERN const char   * ZEXPORT zError           OF((int err));
+<font color="blue">886:</font> ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp z));
+<font color="blue">887:</font> ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
+<font color="blue">888:</font> 
+<font color="blue">889:</font> #ifdef __cplusplus
+<font color="blue">890:</font> }
+<font color="blue">891:</font> #endif
+<font color="blue">892:</font> 
+<font color="blue">893:</font> #endif /* _ZLIB_H */
+      </pre>
+    </blockquote>
+
+    <center><h2><a name="devel">How the zlib wrapper was developed</a></h2></center>
+
+    <h3>Attempt #1</h3>
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+%include "zlib.h"
+      </pre>
+    </blockquote>
+
+    The result is:
+
+    <blockquote>
+      <pre>
+% swig -chicken -I/usr/include example.i
+<a href="#l63">/usr/include/zlib.h:63</a>: Syntax error in input.
+<a href="#l78">/usr/include/zlib.h:78</a>: Syntax error in input.
+<a href="#l80">/usr/include/zlib.h:80</a>: Syntax error in input.
+      </pre>
+    </blockquote>
+
+    The first problem we see is that the macro <code>OF(...)</code> is
+    not defined.
+
+    <h3>Attempt #2</h3>
+
+    We make sure to include <tt>zconf.h</tt> so that SWIG can see the
+    definition of <code>OF(...)</code>.  We try again.
+
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+<font color="red">%include "zconf.h"</font>
+%include "zlib.h"
+      </pre>
+    </blockquote>
+
+    The result is:
+
+    <blockquote>
+      <pre>
+% swig -chicken -I/usr/include example.i
+      </pre>
+    </blockquote>
+
+    This seems to work!  But we should take a peek inside the generated
+    <tt>example_wrap.c</tt> to see what the names of the Scheme
+    procedures will be.
+
+    <blockquote>
+      <pre>
+% grep C_intern example_wrap.c
+  C_word err = C_intern2 (&amp;a, errorhook);
+    sym = C_intern (&amp;a, 21, "example:max-mem-level");
+    sym = C_intern (&amp;a, 17, "example:max-wbits");
+    sym = C_intern (&amp;a, 16, "example:seek-set");
+    sym = C_intern (&amp;a, 16, "example:seek-cur");
+    sym = C_intern (&amp;a, 16, "example:seek-end");
+    sym = C_intern (&amp;a, 20, "example:zlib-version");
+    sym = C_intern (&amp;a, 28, "example:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 28, "example:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 24, "example:z-stream-msg-set");
+    sym = C_intern (&amp;a, 24, "example:z-stream-msg-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-state-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-state-get");
+    sym = C_intern (&amp;a, 27, "example:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 27, "example:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 27, "example:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 27, "example:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-adler-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-adler-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 20, "example:new-z-stream");
+    sym = C_intern (&amp;a, 23, "example:delete-z-stream");
+    sym = C_intern (&amp;a, 18, "example:z-no-flush");
+    sym = C_intern (&amp;a, 23, "example:z-partial-flush");
+    sym = C_intern (&amp;a, 20, "example:z-sync-flush");
+    sym = C_intern (&amp;a, 20, "example:z-full-flush");
+    sym = C_intern (&amp;a, 16, "example:z-finish");
+    sym = C_intern (&amp;a, 12, "example:z-ok");
+    sym = C_intern (&amp;a, 20, "example:z-stream-end");
+    sym = C_intern (&amp;a, 19, "example:z-need-dict");
+    sym = C_intern (&amp;a, 15, "example:z-errno");
+    sym = C_intern (&amp;a, 22, "example:z-stream-error");
+    sym = C_intern (&amp;a, 20, "example:z-data-error");
+    sym = C_intern (&amp;a, 19, "example:z-mem-error");
+    sym = C_intern (&amp;a, 19, "example:z-buf-error");
+    sym = C_intern (&amp;a, 23, "example:z-version-error");
+    sym = C_intern (&amp;a, 24, "example:z-no-compression");
+    sym = C_intern (&amp;a, 20, "example:z-best-speed");
+    sym = C_intern (&amp;a, 26, "example:z-best-compression");
+    sym = C_intern (&amp;a, 29, "example:z-default-compression");
+    sym = C_intern (&amp;a, 18, "example:z-filtered");
+    sym = C_intern (&amp;a, 22, "example:z-huffman-only");
+    sym = C_intern (&amp;a, 26, "example:z-default-strategy");
+    sym = C_intern (&amp;a, 16, "example:z-binary");
+    sym = C_intern (&amp;a, 15, "example:z-ascii");
+    sym = C_intern (&amp;a, 17, "example:z-unknown");
+    sym = C_intern (&amp;a, 18, "example:z-deflated");
+    sym = C_intern (&amp;a, 14, "example:z-null");
+    sym = C_intern (&amp;a, 19, "example:zlibversion");
+    sym = C_intern (&amp;a, 15, "example:deflate");
+    sym = C_intern (&amp;a, 18, "example:deflateend");
+    sym = C_intern (&amp;a, 15, "example:inflate");
+    sym = C_intern (&amp;a, 18, "example:inflateend");
+    sym = C_intern (&amp;a, 28, "example:deflatesetdictionary");
+    sym = C_intern (&amp;a, 19, "example:deflatecopy");
+    sym = C_intern (&amp;a, 20, "example:deflatereset");
+    sym = C_intern (&amp;a, 21, "example:deflateparams");
+    sym = C_intern (&amp;a, 28, "example:inflatesetdictionary");
+    sym = C_intern (&amp;a, 19, "example:inflatesync");
+    sym = C_intern (&amp;a, 20, "example:inflatereset");
+    sym = C_intern (&amp;a, 16, "example:compress");
+    sym = C_intern (&amp;a, 17, "example:compress2");
+    sym = C_intern (&amp;a, 18, "example:uncompress");
+    sym = C_intern (&amp;a, 14, "example:gzopen");
+    sym = C_intern (&amp;a, 15, "example:gzdopen");
+    sym = C_intern (&amp;a, 19, "example:gzsetparams");
+    sym = C_intern (&amp;a, 14, "example:gzread");
+    sym = C_intern (&amp;a, 15, "example:gzwrite");
+    sym = C_intern (&amp;a, 16, "example:gzprintf");
+    sym = C_intern (&amp;a, 14, "example:gzputs");
+    sym = C_intern (&amp;a, 14, "example:gzgets");
+    sym = C_intern (&amp;a, 14, "example:gzputc");
+    sym = C_intern (&amp;a, 14, "example:gzgetc");
+    sym = C_intern (&amp;a, 15, "example:gzflush");
+    sym = C_intern (&amp;a, 14, "example:gzseek");
+    sym = C_intern (&amp;a, 16, "example:gzrewind");
+    sym = C_intern (&amp;a, 14, "example:gztell");
+    sym = C_intern (&amp;a, 13, "example:gzeof");
+    sym = C_intern (&amp;a, 15, "example:gzclose");
+    sym = C_intern (&amp;a, 15, "example:gzerror");
+    sym = C_intern (&amp;a, 15, "example:adler32");
+    sym = C_intern (&amp;a, 13, "example:crc32");
+    sym = C_intern (&amp;a, 20, "example:deflateinit-");
+    sym = C_intern (&amp;a, 20, "example:inflateinit-");
+    sym = C_intern (&amp;a, 21, "example:deflateinit2-");
+    sym = C_intern (&amp;a, 21, "example:inflateinit2-");
+    sym = C_intern (&amp;a, 32, "example:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 32, "example:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 26, "example:new-internal-state");
+    sym = C_intern (&amp;a, 29, "example:delete-internal-state");
+    sym = C_intern (&amp;a, 14, "example:zerror");
+    sym = C_intern (&amp;a, 24, "example:inflatesyncpoint");
+    sym = C_intern (&amp;a, 21, "example:get-crc-table");
+      </pre>
+    </blockquote>
+
+    In fact, we want the Scheme procedure names to begin with
+    <code>zlib</code> instead of <code>example</code>.  For
+    <code>example:zlib-version</code>, we want
+    <code>zlib-version</code>.  And we want dashes when the case
+    switches to/from upper/lowercase; ex. the function
+    <code>deflateEnd()</code> should be the Scheme procedure
+    <code>zlib-deflate-end</code>.
+
+    <h3>Attempt #3</h3>
+
+    We make sure to add <tt>-prefix zlib -mixed</tt> to the
+    <tt>swig</tt> command line, and we rename
+    <code>ZLIB_VERSION</code> to <code>VERSION</code>.  We try again.
+
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+<font color="red">%rename(VERSION) ZLIB_VERSION;</font>
+
+%include "zconf.h"
+%include "zlib.h"
+      </pre>
+    </blockquote>
+
+    The result is:
+
+    <blockquote>
+      <pre>
+% swig -chicken <font color="red">-prefix zlib -mixed</font> -I/usr/include example.i
+% grep C_intern example_wrap.c
+  C_word err = C_intern2 (&amp;a, errorhook);
+    sym = C_intern (&amp;a, 18, "zlib:max-mem-level");
+    sym = C_intern (&amp;a, 14, "zlib:max-wbits");
+    sym = C_intern (&amp;a, 13, "zlib:seek-set");
+    sym = C_intern (&amp;a, 13, "zlib:seek-cur");
+    sym = C_intern (&amp;a, 13, "zlib:seek-end");
+    sym = C_intern (&amp;a, 12, "zlib:version");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-set");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 17, "zlib:new-z-stream");
+    sym = C_intern (&amp;a, 20, "zlib:delete-z-stream");
+    sym = C_intern (&amp;a, 15, "zlib:z-no-flush");
+    sym = C_intern (&amp;a, 20, "zlib:z-partial-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-sync-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-full-flush");
+    sym = C_intern (&amp;a, 13, "zlib:z-finish");
+    sym = C_intern (&amp;a, 9, "zlib:z-ok");
+    sym = C_intern (&amp;a, 17, "zlib:z-stream-end");
+    sym = C_intern (&amp;a, 16, "zlib:z-need-dict");
+    sym = C_intern (&amp;a, 12, "zlib:z-errno");
+    sym = C_intern (&amp;a, 19, "zlib:z-stream-error");
+    sym = C_intern (&amp;a, 17, "zlib:z-data-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-mem-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-buf-error");
+    sym = C_intern (&amp;a, 20, "zlib:z-version-error");
+    sym = C_intern (&amp;a, 21, "zlib:z-no-compression");
+    sym = C_intern (&amp;a, 17, "zlib:z-best-speed");
+    sym = C_intern (&amp;a, 23, "zlib:z-best-compression");
+    sym = C_intern (&amp;a, 26, "zlib:z-default-compression");
+    sym = C_intern (&amp;a, 15, "zlib:z-filtered");
+    sym = C_intern (&amp;a, 19, "zlib:z-huffman-only");
+    sym = C_intern (&amp;a, 23, "zlib:z-default-strategy");
+    sym = C_intern (&amp;a, 13, "zlib:z-binary");
+    sym = C_intern (&amp;a, 12, "zlib:z-ascii");
+    sym = C_intern (&amp;a, 14, "zlib:z-unknown");
+    sym = C_intern (&amp;a, 15, "zlib:z-deflated");
+    sym = C_intern (&amp;a, 11, "zlib:z-null");
+    sym = C_intern (&amp;a, 17, "zlib:zlib-version");
+    sym = C_intern (&amp;a, 12, "zlib:deflate");
+    sym = C_intern (&amp;a, 16, "zlib:deflate-end");
+    sym = C_intern (&amp;a, 12, "zlib:inflate");
+    sym = C_intern (&amp;a, 16, "zlib:inflate-end");
+    sym = C_intern (&amp;a, 27, "zlib:deflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-copy");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-reset");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-params");
+    sym = C_intern (&amp;a, 27, "zlib:inflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-sync");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-reset");
+    sym = C_intern (&amp;a, 13, "zlib:compress");
+    sym = C_intern (&amp;a, 14, "zlib:compress2");
+    sym = C_intern (&amp;a, 15, "zlib:uncompress");
+    sym = C_intern (&amp;a, 11, "zlib:gzopen");
+    sym = C_intern (&amp;a, 12, "zlib:gzdopen");
+    sym = C_intern (&amp;a, 16, "zlib:gzsetparams");
+    sym = C_intern (&amp;a, 11, "zlib:gzread");
+    sym = C_intern (&amp;a, 12, "zlib:gzwrite");
+    sym = C_intern (&amp;a, 13, "zlib:gzprintf");
+    sym = C_intern (&amp;a, 11, "zlib:gzputs");
+    sym = C_intern (&amp;a, 11, "zlib:gzgets");
+    sym = C_intern (&amp;a, 11, "zlib:gzputc");
+    sym = C_intern (&amp;a, 11, "zlib:gzgetc");
+    sym = C_intern (&amp;a, 12, "zlib:gzflush");
+    sym = C_intern (&amp;a, 11, "zlib:gzseek");
+    sym = C_intern (&amp;a, 13, "zlib:gzrewind");
+    sym = C_intern (&amp;a, 11, "zlib:gztell");
+    sym = C_intern (&amp;a, 10, "zlib:gzeof");
+    sym = C_intern (&amp;a, 12, "zlib:gzclose");
+    sym = C_intern (&amp;a, 12, "zlib:gzerror");
+    sym = C_intern (&amp;a, 12, "zlib:adler32");
+    sym = C_intern (&amp;a, 10, "zlib:crc32");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-init-");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-init-");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-init2-");
+    sym = C_intern (&amp;a, 19, "zlib:inflate-init2-");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 23, "zlib:new-internal-state");
+    sym = C_intern (&amp;a, 26, "zlib:delete-internal-state");
+    sym = C_intern (&amp;a, 12, "zlib:ze-rror");
+    sym = C_intern (&amp;a, 23, "zlib:inflate-sync-point");
+    sym = C_intern (&amp;a, 18, "zlib:get-crc-table");
+      </pre>
+    </blockquote>
+
+    Much better.  The only problem is the identifier
+    <code>zlib:ze-rror</code>, and we are missing
+    <code>zlib:deflate-init</code> and <code>zlib:inflate-init</code>
+    because they are defined as macros (see <a
+      href="#initmacros">macro definitions</a>).
+
+    <h3>Attempt #4</h3>
+
+    We make sure to rename <code>zError</code> to
+    <code>z_error</code>, and we inline some helper functions for the
+    <code>zlib:...-init</code> macros.  We try again.
+
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+%rename(VERSION) ZLIB_VERSION;
+<font color="red">%rename(z_error) zError;</font>
+
+%include "zconf.h"
+%include "zlib.h"
+
+<font color="red">%inline %{
+/* %inline blocks are seen by SWIG and are inserted into the header
+   portion of example_wrap.c, so that they are also seen by the C
+   compiler. */
+int deflate_init(z_streamp strm, int level) {
+  return deflateInit(strm,level); /* call macro */
+}
+int inflate_init(z_streamp strm) {
+  return inflateInit(strm); /* call macro */
+}
+%}
+</font>
+
+      </pre>
+    </blockquote>
+
+    The result is:
+
+    <blockquote>
+      <pre>
+% swig -chicken -prefix zlib -mixed -I/usr/include example.i
+% grep C_intern example_wrap.c
+  C_word err = C_intern2 (&amp;a, errorhook);
+    sym = C_intern (&amp;a, 18, "zlib:max-mem-level");
+    sym = C_intern (&amp;a, 14, "zlib:max-wbits");
+    sym = C_intern (&amp;a, 13, "zlib:seek-set");
+    sym = C_intern (&amp;a, 13, "zlib:seek-cur");
+    sym = C_intern (&amp;a, 13, "zlib:seek-end");
+    sym = C_intern (&amp;a, 12, "zlib:version");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-set");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 17, "zlib:new-z-stream");
+    sym = C_intern (&amp;a, 20, "zlib:delete-z-stream");
+    sym = C_intern (&amp;a, 15, "zlib:z-no-flush");
+    sym = C_intern (&amp;a, 20, "zlib:z-partial-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-sync-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-full-flush");
+    sym = C_intern (&amp;a, 13, "zlib:z-finish");
+    sym = C_intern (&amp;a, 9, "zlib:z-ok");
+    sym = C_intern (&amp;a, 17, "zlib:z-stream-end");
+    sym = C_intern (&amp;a, 16, "zlib:z-need-dict");
+    sym = C_intern (&amp;a, 12, "zlib:z-errno");
+    sym = C_intern (&amp;a, 19, "zlib:z-stream-error");
+    sym = C_intern (&amp;a, 17, "zlib:z-data-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-mem-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-buf-error");
+    sym = C_intern (&amp;a, 20, "zlib:z-version-error");
+    sym = C_intern (&amp;a, 21, "zlib:z-no-compression");
+    sym = C_intern (&amp;a, 17, "zlib:z-best-speed");
+    sym = C_intern (&amp;a, 23, "zlib:z-best-compression");
+    sym = C_intern (&amp;a, 26, "zlib:z-default-compression");
+    sym = C_intern (&amp;a, 15, "zlib:z-filtered");
+    sym = C_intern (&amp;a, 19, "zlib:z-huffman-only");
+    sym = C_intern (&amp;a, 23, "zlib:z-default-strategy");
+    sym = C_intern (&amp;a, 13, "zlib:z-binary");
+    sym = C_intern (&amp;a, 12, "zlib:z-ascii");
+    sym = C_intern (&amp;a, 14, "zlib:z-unknown");
+    sym = C_intern (&amp;a, 15, "zlib:z-deflated");
+    sym = C_intern (&amp;a, 11, "zlib:z-null");
+    sym = C_intern (&amp;a, 17, "zlib:zlib-version");
+    sym = C_intern (&amp;a, 12, "zlib:deflate");
+    sym = C_intern (&amp;a, 16, "zlib:deflate-end");
+    sym = C_intern (&amp;a, 12, "zlib:inflate");
+    sym = C_intern (&amp;a, 16, "zlib:inflate-end");
+    sym = C_intern (&amp;a, 27, "zlib:deflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-copy");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-reset");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-params");
+    sym = C_intern (&amp;a, 27, "zlib:inflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-sync");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-reset");
+    sym = C_intern (&amp;a, 13, "zlib:compress");
+    sym = C_intern (&amp;a, 14, "zlib:compress2");
+    sym = C_intern (&amp;a, 15, "zlib:uncompress");
+    sym = C_intern (&amp;a, 11, "zlib:gzopen");
+    sym = C_intern (&amp;a, 12, "zlib:gzdopen");
+    sym = C_intern (&amp;a, 16, "zlib:gzsetparams");
+    sym = C_intern (&amp;a, 11, "zlib:gzread");
+    sym = C_intern (&amp;a, 12, "zlib:gzwrite");
+    sym = C_intern (&amp;a, 13, "zlib:gzprintf");
+    sym = C_intern (&amp;a, 11, "zlib:gzputs");
+    sym = C_intern (&amp;a, 11, "zlib:gzgets");
+    sym = C_intern (&amp;a, 11, "zlib:gzputc");
+    sym = C_intern (&amp;a, 11, "zlib:gzgetc");
+    sym = C_intern (&amp;a, 12, "zlib:gzflush");
+    sym = C_intern (&amp;a, 11, "zlib:gzseek");
+    sym = C_intern (&amp;a, 13, "zlib:gzrewind");
+    sym = C_intern (&amp;a, 11, "zlib:gztell");
+    sym = C_intern (&amp;a, 10, "zlib:gzeof");
+    sym = C_intern (&amp;a, 12, "zlib:gzclose");
+    sym = C_intern (&amp;a, 12, "zlib:gzerror");
+    sym = C_intern (&amp;a, 12, "zlib:adler32");
+    sym = C_intern (&amp;a, 10, "zlib:crc32");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-init-");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-init-");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-init2-");
+    sym = C_intern (&amp;a, 19, "zlib:inflate-init2-");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 23, "zlib:new-internal-state");
+    sym = C_intern (&amp;a, 26, "zlib:delete-internal-state");
+    sym = C_intern (&amp;a, 12, "zlib:z-error");
+    sym = C_intern (&amp;a, 23, "zlib:inflate-sync-point");
+    sym = C_intern (&amp;a, 18, "zlib:get-crc-table");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-init");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-init");
+      </pre>
+    </blockquote>
+
+    Perfect!  Now let's integrate this zlib extension into a
+    CHICKEN interpreter.  To save some time, in this
+    Examples/chicken/zlib directory:
+    <ol>
+      <li>Backup the original <tt>example.i</tt>.</li>
+      <li>Copy and paste the <tt>example.i</tt> text from above and
+	put it into the file called <tt>example.i</tt></li>
+      <li>Run 'make' as per <a href="#build">Building the
+	  example</a>.</li>
+      <li>Run the resultant executable <tt>zlib</tt>.</li>
+    </ol>
+
+    The interpreter interaction is as follows:
+
+    <blockquote>
+      <pre>
+% ./zlib
+zlib
+
+  A SWIG example for the CHICKEN compiler
+  Author: Jonah Beckford, February 2003
+
+Scheme Procedures:
+
+zlib:max-mem-level
+zlib:max-wbits
+zlib:seek-set
+zlib:seek-cur
+zlib:seek-end
+zlib:version
+zlib:z-stream-next-in-set
+zlib:z-stream-next-in-get
+zlib:z-stream-avail-in-set
+...
+zlib:get-crc-table
+zlib:deflate-init
+zlib:inflate-init
+; This is the CHICKEN interpreter - Version 0, Build 1095 - windows-cygwin-x86
+; (c)2000-2003 Felix L. Winkelmann
+&gt;&gt;&gt; (define s (zlib:new-z-stream))
+&gt;&gt;&gt; s
+#&lt;tagged pointer #&lt;c++ "z_stream *"&gt;(#&lt;pointer 6d9290&gt;)&gt;
+&gt;&gt;&gt; (zlib:z-stream-next-in-get s)
+#f
+&gt;&gt;&gt; (zlib:z-stream-next-in-set s "some dummy stream data")
+Error: Type error. Expected _p_Bytef: "bad argument type"
+&gt;&gt;&gt; (exit)
+      </pre>
+    </blockquote>
+
+    Apparently we cannot use Scheme strings as <code>Bytef *</code>.  The SWIG
+    manual shows many ways how to handle strings and byte arrays, but
+    to be simplistic, let's just make the <code>Bytef *</code> look
+    like a <code>char *</code>, which is automatically handled as a
+    string by SWIG CHICKEN.
+
+    <h3>Attempt #5</h3>
+
+    We make sure to add an %apply construct so that <code>Bytef
+    *</code> is handled the same as <code>char *</code> to SWIG.  We
+    try again.
+
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+%rename(VERSION) ZLIB_VERSION;
+%rename(z_error) zError;
+<font color="red">%apply char * { Bytef * };</font>
+
+%include "zconf.h"
+%include "zlib.h"
+
+%inline %{
+/* %inline blocks are seen by SWIG and are inserted into the header
+   portion of example_wrap.c, so that they are also seen by the C
+   compiler. */
+int deflate_init(z_streamp strm, int level) {
+  return deflateInit(strm,level); /* call macro */
+}
+int inflate_init(z_streamp strm) {
+  return inflateInit(strm); /* call macro */
+}
+%}
+      </pre>
+    </blockquote>
+
+    Build the example once more.<br>
+
+    The interpreter interaction is as follows:
+
+    <blockquote>
+      <pre>
+% ./zlib
+zlib
+
+  A SWIG example for the CHICKEN compiler
+  Author: Jonah Beckford, February 2003
+
+Scheme Procedures:
+
+zlib:max-mem-level
+zlib:max-wbits
+zlib:seek-set
+zlib:seek-cur
+zlib:seek-end
+zlib:version
+zlib:z-stream-next-in-set
+zlib:z-stream-next-in-get
+zlib:z-stream-avail-in-set
+...
+zlib:get-crc-table
+zlib:deflate-init
+zlib:inflate-init
+; This is the CHICKEN interpreter - Version 0, Build 1095 - windows-cygwin-x86
+; (c)2000-2003 Felix L. Winkelmann
+&gt;&gt;&gt; (define s (zlib:new-z-stream))
+<em>Init zstream</em>
+&gt;&gt;&gt; (zlib:z-stream-zalloc-set s #f) 
+&gt;&gt;&gt; (zlib:z-stream-zfree-set s #f)
+&gt;&gt;&gt; (zlib:z-stream-opaque-set s #f)
+&gt;&gt;&gt; (zlib:deflate-init s (zlib:z-default-compression))
+0
+<em>Deflate something small so we don't need to loop/stream data</em>
+&gt;&gt;&gt; (define in "some dummy data")
+&gt;&gt;&gt; (define out (make-string 1000))
+&gt;&gt;&gt; (zlib:z-stream-next-in-set s in)
+&gt;&gt;&gt; (zlib:z-stream-avail-in-set s (string-length in))
+&gt;&gt;&gt; (zlib:z-stream-next-out-set s out)
+&gt;&gt;&gt; (zlib:z-stream-avail-out-set s (string-length out))
+&gt;&gt;&gt; (zlib:deflate s (zlib:z-finish))
+1 <em>;; (zlib:z-stream-end) == 1, which is good</em>
+&gt;&gt;&gt; (zlib:z-stream-total-out-get s)
+23.
+&gt;&gt;&gt; out
+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "
+      </pre>
+    </blockquote>
+
+    We see the problem ... the compression is occurring as it should,
+    but we cannot see any of the compressed output.  This is because
+    when SWIG CHICKEN passes a Scheme string to a C function, it
+    duplicates the string before calling the C function.  We want to
+    save the memory address that
+    <code>zlib:z-stream-next-out-set</code> is using, so we can
+    display this later.  While we are at it, we can foresee that
+    <code>compress</code>, <code>compress2</code> and
+    <code>uncompress</code> will all need some finessing to work with
+    mutating strings.
+
+    <h3>Attempt #6</h3>
+
+    When we have to finesse strings, we must use typemaps.  As well,
+    we define some functions to save and restore the
+    <code>next_out</code> element.  We try again.
+
+    <blockquote>
+      <pre>
+/* File : example.i */
+%module example
+%{
+/* Put headers and other declarations here */
+#include "zlib.h"
+%}
+
+%include typemaps.i
+
+%rename(VERSION) ZLIB_VERSION;
+%rename(z_error) zError;
+%apply char * { Bytef * };
+	<font color="red">
+/* Allow the sourceLen to be automatically filled in from the length
+   of the 'source' string */
+%typemap(in) (const Bytef *source, uLong sourceLen)
+%{  if (!C_swig_is_string ($input)) {
+    swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a string");
+  }
+  $2 = (uLong) C_header_size ($input);
+  $1 = C_c_string ($input);
+%}
+
+/* Allocate space the size of which is determined by the Scheme
+   integer argument, and make a temporary integer so we can set
+   destLen. */
+%typemap(in) (Bytef *dest, uLongf *destLen) (uLong len)
+%{  if (!C_swig_is_fixnum ($input)) {
+    swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument $input is not a integer");
+  }
+  len = (uLong) C_unfix ($input);
+  $2 = &amp;len;
+  $1 = (char *) malloc (*$2);
+%}
+
+/* Return the mutated string as a new object. */
+%typemap(argout) (Bytef *dest, uLongf *destLen) 
+(C_word *scmstr) 
+%{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
+  SWIG_APPEND_VALUE(C_string (&amp;scmstr, *$2, $1));
+  free ($1);
+%}
+	</font>
+%include "zconf.h"
+%include "zlib.h"
+	<font color="red">
+/* Ignore destLen as an input argument, and make a temporary integer so
+   we can set destLen. */
+%typemap(in, numinputs=0) uLongf *destLen (uLong len)
+"$1 = &amp;len;";
+
+/* Return a sized string as a new object. */
+%typemap(argout)
+(void *outstr, uLongf *destLen) (C_word *scmstr) 
+%{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
+  SWIG_APPEND_VALUE(C_string (&amp;scmstr, *$2, $1));
+%}
+	</font>
+%inline %{
+/* %inline blocks are seen by SWIG and are inserted into the header
+   portion of example_wrap.c, so that they are also seen by the C
+   compiler. */
+int deflate_init(z_streamp strm, int level) {
+  return deflateInit(strm,level); /* call macro */
+}
+int inflate_init(z_streamp strm) {
+  return inflateInit(strm); /* call macro */
+}
+<font color="red">void* z_stream_save_next_out(z_streamp strm) {
+  return (void*) strm-&gt;next_out;
+}
+void z_stream_get_next_chunk(z_streamp strm, void *outstr, uLongf *destLen) {
+  *destLen = strm-&gt;next_out - (Bytef*)outstr;
+}</font>
+%}
+      </pre>
+    </blockquote>
+
+    And that's it.  Try building the entire example from the
+    Makefile.  Run <tt>./zlib test-zlib.scm</tt> to test it out.
+
+  </body>
+</html>

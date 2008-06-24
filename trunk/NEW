@@ -1,0 +1,267 @@
+New Features and Important Changes, v1.3
+
+Author(s) :  David Beazley
+
+March 21, 2003
+
+1. Introduction
+---------------
+This document briefly explains some of the most important changes made
+since the release of SWIG1.1.  The goal is to provide information for
+people who want to upgrade an older SWIG interface to the new version.
+
+Most changes pertain to the internal implementation of SWIG and the
+organization of the core, parser, and language modules.  As a SWIG
+user, almost all of these changes are hidden from view except for a
+few important cases where changes to the core have dramatically
+altered SWIG's old behavior.
+
+2. Types and typemaps
+---------------------
+2.1 Variables of the form 'const type *' are no longer wrapped as
+     constants, but as C global variables.  The earlier SWIG behavior
+     was incorrect due to Dave's misinterpretation of 'const' in the C 
+     language specification.   
+
+     If you have written an interface that expects to create
+     constants using 'const type *' you will need to rewrite those 
+     specifications using a new %constant directive like this:
+
+       %constant(type *) name = value;
+
+2.2  SWIG generally has better support for pointers, 'const',
+     arrays, and pointers to functions.
+
+2.3  Typemaps are now applied to a more precisely defined set
+     of datatypes.  For example, consider the following
+     typemap:
+
+           %typemap(in) foo * {
+                ... get a foo ...
+           }
+
+     In SWIG1.1, this typemap would get applied to 'foo *',
+     'foo &', 'foo []', 'foo[][]', and so forth.
+
+     In SWIG1.3, this typemap *only* gets applied to 'foo *' and
+     'const foo *'. It does *NOT* get mapped to the other 
+     variants listed above.
+
+2.4  Bug fix.  SWIG now correctly handles typemaps of the form
+
+          %typemap(in) Object {
+               ... get an object ...
+          }
+
+2.5  The memberout typemap is no longer available and is withdrawn.
+     The old implementation was essentially useless because of the
+     way in which code was generated.
+
+2.6  The memberin typemap is now inserted inline in the generated 
+     wrapper code.  This provides access to scripting-specific
+     variables in the wrapper function.
+
+2.7  SWIG-1.3.10 features a total rewrite of the typemap system.
+     Typemaps now use a different variable naming scheme.  Typemaps
+     for arguments look like this:
+
+       %typemap(in) sometype {
+           $1 = convert value ($input);
+       }
+
+     The variable $1 replaces $target and the variable $input replaces
+     $source.
+
+     For output values, typemaps look like this:
+
+       %typemap(out) sometype {
+          $result = create result ($1);
+       }
+
+     The variable $1 replaces $source and the variable $result replaces
+     $target.
+
+     See Doc/Manual/Typemaps.html for a full description of the new
+     typemap system.
+
+2.8  Multi-argument typemaps are now supported.   This solves a common
+     problem that occurs with functions like this
+
+        void foo(char *buffer, int len);
+
+     where you would like to make the two arguments operate as a single
+     object in the target language.
+
+2.9  Types such as 'const int &', 'const double &', are passed as
+     values instead of pointers.
+
+2.10 C++ namespaces are now supported.
+
+3. Type checking
+----------------
+
+SWIG no longer uses the functions SWIG_GetPtr() and SWIG_MakePtr() to
+parse datatypes in wrapper code.  This is because the type of a
+pointer is no longer associated with a string, but with a special
+"swig_type_info *" object.  If you are not using typemaps, this change
+should cause no noticable effects.  However, if you have written
+typemaps to handle pointers, here are the essential details:
+
+3.1  Type name mangling is different in SWIG1.3.  For a type of
+     "int **", SWIG1.1 used to produce a name of the form
+     "_int_pp".  SWIG1.3 on the other hand, produces a name
+      of the form "_p_p_int".   There are a number of reasons for
+      changing the format, but I'd rather not go into it here. You'll
+      just have to learn to live with it :-).
+
+3.2  Types are described by a special "swig_type_info *" object.   Everywhere
+     a string was used before, an object of this type will be used.  
+     The "swig_type_info *" for a given type can always be obtained
+     using macros involving the mangled typename in 3.1.  For example,
+     the type object of of 'int **' is 'SWIGTYPE_p_p_int'.
+
+3.3  Instead of SWIG_GetPtr, a function of the following form is used:
+
+        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, swig_type_info *ty, int flags);
+
+     Note: the function name may differ in certain implementations (read
+     the source). For example:
+
+        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, SWIGTYPE_p_p_int,0);
+
+     Passing a value of '0' for the type will accept any pointer. This
+     works kind of like 'void *'.  The flags argument is reserved for
+     future expansion.
+
+3.4. To create a pointer object, one uses a function similar to 
+ 
+        ScriptObj *SWIG_NewPointer(void *ptr, swig_type_info *ty, int flags);
+
+     It works in a similar manner:
+
+         p = SWIG_NewPointer(ptr, SWIGTYPE_p_p_int, 0);
+
+     You will have to read the source to get the exact function name
+     used.  The flags argument is implementation specific and reserved
+     for future expansion.
+
+3.5. If, for whatever reason, you need to obtain the 'swig_type_info *'
+     outside the context of a wrapper file, you can use the
+     SWIG_TypeQuery() function. For example:
+
+         swig_type_info *ty = SWIG_TypeQuery("int **");
+
+     this function returns an appropriate type_info structure or NULL
+     if no such type is registered.
+
+3.6  SWIG does not generate swig_type_info structures for types that are
+     not actually used in an interface file.   As a result, the type
+     checking tables for SWIG1.3 tend to be much smaller than for SWIG1.1.
+
+*** Note: The old string-based type checking scheme is not going to
+return to SWIG so do not ask for backwards compatibility.  The new
+scheme is substantially faster, it is less error-prone, it requires no
+dynamic memory allocation, it works better with the runtime libraries, 
+and it is simpler to implement than the old string based approach.
+
+4. Deprecated Features (incomplete list)
+----------------------------------------
+
+4.1 Documentation system.  The old documentation system has been removed
+    entirely.  I expect it to return someday, but it will have a much
+    different form (probably influenced by XML).
+
+4.2 The %val and %out directives.  These directives used to attach
+    properties to function parameters such as
+
+           void foo(%val int *ptr);
+
+    The same effect can now be achieved with typemaps:
+
+           void foo(int *INPUT);
+
+
+4.3 Extensions to the %module and %init directive are no longer
+    supported. For example:
+
+        %module example, foo, bar
+
+    This used to perform a special kind of multi-module 
+    initialization for static linking.   If you really
+    need to do this, you will have to manually insert
+    code into the module initialization function.
+
+4.4 %ifdef, %ifndef, %endif, %if, %elif, %else directives are
+    withdrawn. SWIG now has a real preprocessor.
+
+4.5 %checkout directive removed.
+
+4.6 %except and %new are deprecated.
+
+4.7 %readonly and %readwrite are deprecated.  Use %immutable instead.
+
+4.8 The %addmethods directive has been renamed to %extend.
+
+5. Language specific changes
+----------------------------
+
+5.1 Python shadow classes are much more efficient and pass the shadow objects
+    directly to the C wrappers.
+
+5.2 Tcl code generation is substantially improved--especially for C++.
+    
+5.3 Tcl module can now link to global variables of any type.
+
+5.4 Perl shadow classes improved and optimized somewhat.
+
+5.5 The Guile module represents pointers as smobs.  (They used to be
+    mangled into strings.)  Memory leaks and type conversion bugs have been
+    fixed.  The Guile module system, including dynamic loading, and
+    exceptions are supported.  A typemap-driven procedure-documentation
+    system has been added (requires Guile 1.4).  Procedures-with-setters
+    can be generated.
+
+5.6 The Python module now automatically creates shadow class objects from the
+    C wrappers.  This fixes a bunch of hard problems related to typemaps,
+    exception handling, and more.
+
+6. New Features
+---------------
+
+6.1 Java module added
+
+6.2 Ruby module added
+
+6.3 Mzscheme module added.
+
+6.4 Integrated preprocessor.  You can now use C macros in SWIG interface files.
+
+6.5 PHP module added.
+
+6.6 %rename directive is greatly enhanced to deal with overloaded functions.
+
+6.7 Support for simple templates
+
+6.8 Support for overloaded operators.
+
+6.9 %feature directive.
+
+6.10 Ocaml module added.
+
+6.11 XML module added.
+
+6.12 CHICKEN module added.
+
+6.13 C# module added.
+
+
+
+
+
+
+
+
+
+
+
+

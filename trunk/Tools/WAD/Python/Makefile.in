@@ -1,0 +1,54 @@
+#######################################################################
+# WAD Makefile
+#
+# David Beazley
+# January 1, 2001
+#######################################################################
+
+# These are the files that make up the WAD core
+SRCS = type.c python.c
+OBJS = type.o python.o
+INCLUDE = -I../Include -I.  $(SINCLUDE)
+WADOPT     = @WADOPT@
+
+# Location of your Python installation
+PYINCLUDE = @PYINCLUDE@
+PYSRCS    = wadpyinit.cxx
+PYOBJS    = wadpyinit.o
+
+# C Compiler
+CC = @CC@
+CFLAGS = #@CCSHARED@
+
+# C++ Compiler
+CXX = @CXX@
+CXXFLAGS = #@CXXSHARED@
+
+# Linking options
+CLINK = 
+CXXLINK = @CXXLINK@
+
+# Rules for creation of a .o file from .cxx
+.SUFFIXES: .cxx
+.cxx.o:
+	$(CXX) $(CXXFLAGS) $(WADOPT) $(INCLUDE) -c -o $*.o $<
+
+.c.o:
+	$(CC) $(CFLAGS) $(PYINCLUDE) $(WADOPT) $(INCLUDE) -c -o $*.o $<
+
+python: $(OBJS) $(PYOBJS)
+	$(CXXLINK) $(OBJS) $(PYOBJS) -o libwadpy.so -L.. -lwadcore
+	cp libwadpy.so ..
+
+wc::
+	wc $(SRCS)
+
+semi::
+	@egrep ";" $(SRCS) $(PYSRCS) | wc
+
+clean::
+	rm -f *.o *.so *~ 
+
+
+
+

@@ -1,0 +1,25 @@
+This directory contains a simple example to test weave support for
+SWIG wrapped objects.
+
+The weave package provides tools for including C/C++ code in Python
+code. This offers both another level of optimization to those who need
+it, and an easy way to modify and extend any supported extension
+libraries.  Weave automatically builds an extension module from the
+given C/C++ code and runs that.  This can result in very significant
+speedups (of upto 500x) depending on the problem.  Weave also supports
+inlining SWIG-1.3.x wrapped objects.
+
+The example in this directory requires that weave be installed.  Weave
+is distributed as part of SciPy (http://www.scipy.org).  More
+information on Weave may be had from here:
+
+ http://www.scipy.org/documentation/weave
+
+As of November 22, 2004, this example only works with weave from CVS.
+If there is a more recent release of SciPy after this date, it should
+work fine.
+
+
+Also, you need to replace the weave file swigptr2.py by the one
+provided here.
+

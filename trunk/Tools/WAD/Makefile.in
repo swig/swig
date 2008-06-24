@@ -1,0 +1,46 @@
+# Generated automatically from Makefile.in by configure.
+
+SHELL     = /bin/sh
+prefix    = @prefix@
+execprefix= @exec_prefix@
+LIB        = $(execprefix)/lib
+
+# Location of your Python installation
+PYINCLUDE = @PYINCLUDE@
+
+# Location of your Tcl installation
+TCLINCLUDE = @TCLINCLUDE@
+
+# Location of your Perl installation
+PERLINCLUDE = @PERL5EXT@
+
+all: wad @MAKEPYTHON@ @MAKETCL@ #@MAKEPERL@
+
+wad:
+	@cd Wad; $(MAKE) wad
+
+python:
+	@cd Python; $(MAKE) SINCLUDE='$(PYINCLUDE)' python
+
+tcl:
+	@cd Tcl; $(MAKE) SINCLUDE='$(TCLINCLUDE)' tcl
+
+perl:
+	@cd Wad; $(MAKE) SINCLUDE='$(PERLINCLUDE)' perl
+
+install:
+	cp libwad*.so $(LIB)
+	chmod a+rx $(LIB)/libwad*.so
+
+semi:
+	@cd Wad; $(MAKE) semi
+	@cd Python; $(MAKE) semi
+	@cd Tcl; $(MAKE) semi
+
+clean:
+	@cd Wad; $(MAKE) clean
+	@cd Python; $(MAKE) clean
+	@cd Tcl; $(MAKE) clean
+	@cd Test; $(MAKE) clean
+	rm *.so
+
