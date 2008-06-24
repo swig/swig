@@ -33,7 +33,7 @@ int GenerateDefault = 1;	// Generate default constructors
 int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
-int SwigRuntime = 0;		// 0 = no option, 1 = -c or -runtime, 2 = -noruntime
+int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 
 /* Suppress warning messages for private inheritance, preprocessor evaluation etc...
    WARN_PP_EVALUATION            202
@@ -493,11 +493,11 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-runtime") == 0) {
 	Swig_mark_arg(i);
-	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-runtime, -noruntime command line options are deprecated.\n");
 	SwigRuntime = 1;
-      } else if ((strcmp(argv[i], "-c") == 0) || (strcmp(argv[i], "-noruntime") == 0)) {
+      } else if (strcmp(argv[i], "-noruntime") == 0) { // Used to also accept -c. removed in swig-1.3.36
 	Swig_mark_arg(i);
-	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-runtime, -noruntime command line options are deprecated.\n");
 	SwigRuntime = 2;
       } else if (strcmp(argv[i], "-external-runtime") == 0) {
 	external_runtime = 1;
