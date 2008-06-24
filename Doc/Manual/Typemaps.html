@@ -1933,7 +1933,7 @@ to implement customized conversions.
 
 <p>
 In addition, the "in" typemap allows the number of converted arguments to be
-specified.  For example:
+specified.  The <tt>numinputs</tt> attributes facilitates this. For example:
 </p>
 
 <div class="code">
@@ -1946,7 +1946,12 @@ specified.  For example:
 </div>
 
 <p>
-At this time, only zero or one arguments may be converted.
+At this time, only zero or one arguments may be converted. 
+When <tt>numinputs</tt> is set to 0, the argument is effectively ignored and cannot be supplied from the target language. 
+The argument is still required when making the C/C++ call and the above typemap
+shows the value used is instead obtained from a locally declared variable called <tt>temp</tt>.
+Usually <tt>numinputs</tt> is not specified, whereupon the default value is 1, that is, there is a one to one mapping of the number of arguments when used from the target language to the C/C++ call. 
+<a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a> provide a similar concept where the number of arguments mapped from the target language to C/C++ can be changed for more tha multiple adjacent C/C++ arguments.
 </p>
 
 <p>
@@ -2811,7 +2816,7 @@ optimal attribute usage in the out typemap at example.i:7.
 However, it doesn't always get it right, for example when <tt>$1</tt> is within some commented out code.
 </p>
 
-<H2><a name="Typemaps_nn42"></a>10.9 Multi-argument typemaps</H2>
+<H2><a name="Typemaps_multi_argument_typemaps"></a>10.9 Multi-argument typemaps</H2>
 
 
 <p>
