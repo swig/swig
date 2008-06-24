@@ -2,6 +2,10 @@ Version 1.3.36 (in progress)
 =============================
 
 06/24/2008: olly
+	    [PHP] Fix typemap_namespace.i to not try to copy a non-existent
+	    typemap.
+
+06/24/2008: olly
 	    [PHP] Fix assertion failure when handling %typemap(in,numinputs=0)
 	    (testcase ignore_parameter).
 
