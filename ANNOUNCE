@@ -1,10 +1,10 @@
-*** ANNOUNCE: SWIG 1.3.35 (7 April 2008) ***
+*** ANNOUNCE: SWIG 1.3.36 (24 June 2008) ***
 
 http://www.swig.org
 
 
-We're pleased to announce SWIG-1.3.35, the latest installment in the
-SWIG development effort.  SWIG-1.3.35 includes a number of bug fixes
+We're pleased to announce SWIG-1.3.36, the latest installment in the
+SWIG development effort.  SWIG-1.3.36 includes a number of bug fixes
 and large number of enhancements throughout.
 
 What is SWIG?
@@ -24,11 +24,11 @@ Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.35.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.36.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.35.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.36.zip
 
 Release numbers
 ---------------
