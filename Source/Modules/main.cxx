@@ -491,11 +491,11 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Wrapper_compact_print_mode_set(1);
 	Wrapper_virtual_elimination_mode_set(1);
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-runtime") == 0) {
+      } else if (strcmp(argv[i], "-runtime") == 0) { // Used to also accept -c. removed in swig-1.3.36
 	Swig_mark_arg(i);
 	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-runtime, -noruntime command line options are deprecated.\n");
 	SwigRuntime = 1;
-      } else if (strcmp(argv[i], "-noruntime") == 0) { // Used to also accept -c. removed in swig-1.3.36
+      } else if (strcmp(argv[i], "-noruntime") == 0) {
 	Swig_mark_arg(i);
 	Swig_warning(WARN_DEPRECATED_OPTC, "SWIG", 1, "-runtime, -noruntime command line options are deprecated.\n");
 	SwigRuntime = 2;
