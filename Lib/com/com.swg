@@ -11,7 +11,7 @@
 %typemap(ctype) int, const int & "/* ctype */ int"
 %typemap(ctype) double, const double & "/*ctype */ double"
 %typemap(ctype) long, const long & "/* ctype */ long"
-%typemap(ctype) SWIGTYPE * "/* ctype */ _SWIGCOMIUnknown *"
+%typemap(ctype) SWIGTYPE * "/* ctype */ SWIGIUnknown *"
 
 %typemap(comtype) void "void"
 %typemap(comtype) int, const int & "/* comtype */ int"
@@ -23,20 +23,20 @@
 
 %typemap(in) SWIGTYPE * %{
   {
-    _SWIGCOMIUnknown *wrapper;
+    SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
-    HRESULT hr = ((HRESULT (*)(_SWIGCOMIUnknown *, REFIID, void **))
-        $input->vtable[0])($input, IID_ISWIGCOMWrappedObject, (void **) &wrapper); 
+    HRESULT hr = ((HRESULT (*)(SWIGIUnknown *, REFIID, void **))
+        $input->vtable[0])($input, IID_ISWIGWrappedObject, (void **) &wrapper); 
 
     if (hr != S_OK) {
       /* Argument was not wrapped by SWIG - directors will be needed */
     } else {
       /* GetCPtr */
-      $1 = ($1_ltype) ((void * (*)(_SWIGCOMIUnknown *)) (wrapper->vtable[3]))(wrapper);
+      $1 = ($1_ltype) ((void * (*)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
 
       /* Release */
-      ((long (*)(_SWIGCOMIUnknown *)) (wrapper->vtable[2]))(wrapper);
+      ((long (*)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
     }
   }
 %}
@@ -44,7 +44,7 @@
 %typemap(out) int, double, long %{ /* out */ $result = $1; %}
 %typemap(out) void ""
 %typemap(out) SWIGTYPE * %{
-  $result = (_SWIGCOMIUnknown *) _SWIGCOM_wrap_$*comclassname((void *) $1);
+  $result = (SWIGIUnknown *) SWIG_wrap$*comclassname((void *) $1);
 %}
 
 %typemap(combody) SWIGTYPE * %{
@@ -57,77 +57,77 @@
 
 #include <windows.h>
 
-typedef void (*_SWIG_funcptr)(void);
+typedef void (*SWIG_funcptr)(void);
 
-struct _SWIGCOMWrappedObject {
-  _SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
-  _SWIG_funcptr *SWIGCOMWrappedObject_vtable; /* vtable for helper methods */
+struct SWIGWrappedObject {
+  SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
+  SWIG_funcptr *SWIGWrappedObject_vtable; /* vtable for helper methods */
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   long refCount; /* reference count */
 };
 
-GUID IID_ISWIGCOMWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
+GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
 
-long _SWIGCOMAddRef1(void *iunk) {
+long SWIGAddRef1(void *iunk) {
   /* FIXME: use InterlockedIncrement */
-  _SWIGCOMWrappedObject *obj = (_SWIGCOMWrappedObject *) iunk;
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
   return ++obj->refCount;
 }
 
-long _SWIGCOMAddRef2(void *iunk) {
-  return _SWIGCOMAddRef1((void **)iunk - 1);
+long SWIGAddRef2(void *iunk) {
+  return SWIGAddRef1((void **)iunk - 1);
 }
 
-long _SWIGCOMRelease1(void *iunk) {
+long SWIGRelease1(void *iunk) {
   /* FIXME: use InterlockedDecrement */
-  _SWIGCOMWrappedObject *obj = (_SWIGCOMWrappedObject *) iunk;
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
   return --obj->refCount;
 }
 
-long _SWIGCOMRelease2(void *iunk) {
-  return _SWIGCOMRelease1((void **)iunk - 1);
+long SWIGRelease2(void *iunk) {
+  return SWIGRelease1((void **)iunk - 1);
 }
 
-void *_SWIGCOMGetCPtr(void *iunk) {
-  _SWIGCOMWrappedObject *obj = (_SWIGCOMWrappedObject *) ((void **)iunk - 1);
+void *SWIGGetCPtr(void *iunk) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)iunk - 1);
 
   return obj->cPtr;
 }
 
 #if 0
-_SWIG_funcptr _SWIGCOMWrappedObject_vtable[] = {
+SWIG_funcptr SWIGWrappedObject_vtable[] = {
   0, /* QueryInterface */
-  (_SWIG_funcptr) _SWIGCOMAddRef2,
-  (_SWIG_funcptr) _SWIGCOMRelease2,
-  (_SWIG_funcptr) _SWIGCOMGetCPtr
+  (SWIG_funcptr) SWIGAddRef2,
+  (SWIG_funcptr) SWIGRelease2,
+  (SWIG_funcptr) SWIGGetCPtr
 };
 #endif
 
-struct _SWIGCOMClassFactory {
-  _SWIG_funcptr *vtable;
-  _SWIG_funcptr newInstance;
+struct SWIGClassFactory {
+  SWIG_funcptr *vtable;
+  SWIG_funcptr newInstance;
   long refCount;
 };
 
 /* For consistent manipulation regardless of C or C++ mode */
-struct _SWIGCOMIUnknown {
-  _SWIG_funcptr *vtable;
+struct SWIGIUnknown {
+  SWIG_funcptr *vtable;
 };
 
-long _SWIGCOMClassFactoryAddRef(_SWIGCOMClassFactory *factory) {
+long SWIGClassFactoryAddRef(SWIGClassFactory *factory) {
   return ++factory->refCount;
 }
 
-long _SWIGCOMClassFactoryRelease(_SWIGCOMClassFactory *factory) {
+long SWIGClassFactoryRelease(SWIGClassFactory *factory) {
   return --factory->refCount;
 }
 
-HRESULT _SWIGCOMClassFactoryQueryInterface(_SWIGCOMClassFactory *factory, REFIID iid, void **ppvObject) {
+HRESULT SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, REFIID iid, void **ppvObject) {
   if (iid == IID_IUnknown || iid == IID_IClassFactory) {
-    _SWIGCOMClassFactoryAddRef(factory);
+    SWIGClassFactoryAddRef(factory);
     *ppvObject = factory;
 
     return S_OK;
@@ -136,10 +136,10 @@ HRESULT _SWIGCOMClassFactoryQueryInterface(_SWIGCOMClassFactory *factory, REFIID
   }
 }
 
-HRESULT _SWIGCOMClassFactoryCreateInstance(_SWIGCOMClassFactory *factory, IUnknown *punkOuter, REFIID riid, void **ppvObject)
+HRESULT SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, REFIID riid, void **ppvObject)
 {
   HRESULT hr;
-  _SWIGCOMIUnknown *obj;
+  SWIGIUnknown *obj;
 
   if (ppvObject == NULL)
      return E_INVALIDARG;
@@ -148,41 +148,41 @@ HRESULT _SWIGCOMClassFactoryCreateInstance(_SWIGCOMClassFactory *factory, IUnkno
      return CLASS_E_NOAGGREGATION;
 
   /* Create the instance */
-  obj = (_SWIGCOMIUnknown *) ((void* (*)()) factory->newInstance)();
+  obj = (SWIGIUnknown *) ((void* (*)()) factory->newInstance)();
 
   if (obj == NULL) {
     return E_OUTOFMEMORY;
   }
 
   /* Add reference */
-  ((long (*)(_SWIGCOMIUnknown *)) (obj->vtable[1]))(obj);
+  ((long (*)(SWIGIUnknown *)) (obj->vtable[1]))(obj);
 
-  hr = ((HRESULT (*)(_SWIGCOMIUnknown *, REFIID, void **)) obj->vtable[0])(obj, riid, ppvObject);
+  hr = ((HRESULT (*)(SWIGIUnknown *, REFIID, void **)) obj->vtable[0])(obj, riid, ppvObject);
 
   /* Release reference */
-  ((long (*)(_SWIGCOMIUnknown *)) (obj->vtable[2]))(obj);
+  ((long (*)(SWIGIUnknown *)) (obj->vtable[2]))(obj);
 
   return hr;
 }
 
-HRESULT _SWIGCOMClassFactoryLockServer(_SWIGCOMClassFactory *factory, BOOL fLock) {
+HRESULT SWIGClassFactoryLockServer(SWIGClassFactory *factory, BOOL fLock) {
   CoLockObjectExternal((IUnknown *) (void *) factory, fLock, TRUE);
 
   return S_OK;
 }
 
-_SWIG_funcptr _SWIGCOMClassFactory_vtable[] = {
-  (_SWIG_funcptr) _SWIGCOMClassFactoryQueryInterface,
-  (_SWIG_funcptr) _SWIGCOMClassFactoryAddRef,
-  (_SWIG_funcptr) _SWIGCOMClassFactoryRelease,
-  (_SWIG_funcptr) _SWIGCOMClassFactoryCreateInstance,
-  (_SWIG_funcptr) _SWIGCOMClassFactoryLockServer
+SWIG_funcptr SWIGClassFactory_vtable[] = {
+  (SWIG_funcptr) SWIGClassFactoryQueryInterface,
+  (SWIG_funcptr) SWIGClassFactoryAddRef,
+  (SWIG_funcptr) SWIGClassFactoryRelease,
+  (SWIG_funcptr) SWIGClassFactoryCreateInstance,
+  (SWIG_funcptr) SWIGClassFactoryLockServer
 };
 
 typedef struct {
-  _SWIG_funcptr newInstance;
+  SWIG_funcptr newInstance;
   GUID guid;
-} _SWIGCOMClassDescription_t;
+} SWIGClassDescription_t;
 
 %}
 
@@ -190,17 +190,17 @@ typedef struct {
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *_ppv) {
   int i;
-  _SWIGCOMClassFactory **ppv = (_SWIGCOMClassFactory **)(void *) _ppv;
+  SWIGClassFactory **ppv = (SWIGClassFactory **)(void *) _ppv;
 
   if (riid != IID_IUnknown && riid != IID_IClassFactory)
     return E_NOINTERFACE;
 
-  for (i = 0; _SWIGCOMClassDescription[i].newInstance != NULL; ++i) {
-    if (rclsid == _SWIGCOMClassDescription[i].guid) {
+  for (i = 0; SWIGClassDescription[i].newInstance != NULL; ++i) {
+    if (rclsid == SWIGClassDescription[i].guid) {
       /* Create a new class factory for the requested CLSID */
-      *ppv = new _SWIGCOMClassFactory;
-      (*ppv)->vtable = _SWIGCOMClassFactory_vtable;
-      (*ppv)->newInstance = _SWIGCOMClassDescription[i].newInstance;
+      *ppv = new SWIGClassFactory;
+      (*ppv)->vtable = SWIGClassFactory_vtable;
+      (*ppv)->newInstance = SWIGClassDescription[i].newInstance;
       (*ppv)->refCount = 1;
 
       return S_OK;

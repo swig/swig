@@ -12,7 +12,7 @@ char cvsroot_com_cxx[] = "$Id$";
 #include "swigmod.h"
 #include "cparse.h"
 
-typedef struct _GUID {
+typedef struct {
   unsigned long Data1;
   unsigned short Data2;
   unsigned short Data3;
@@ -163,12 +163,12 @@ public:
     proxy_class_code = NewString("");
 
     module_class_vtable_code = NewString("");
-    Printf(module_class_vtable_code, "_SWIG_funcptr _wrap_%s_vtable[] = "
-        "{\n  0 /* QueryInterface */,\n  (_SWIG_funcptr) _SWIGCOMAddRef1,"
-        "\n  (_SWIG_funcptr) _SWIGCOMRelease1",
+    Printf(module_class_vtable_code, "SWIG_funcptr _wrap%svtable[] = "
+        "{\n  0 /* QueryInterface */,\n  (SWIG_funcptr) SWIGAddRef1,"
+        "\n  (SWIG_funcptr) SWIGRelease1",
         module_class_name);
 
-    Printf(clsid_list, "_SWIGCOMClassDescription_t _SWIGCOMClassDescription[] = {\n");
+    Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
 
     /* Emit code */
     Language::top(n);
@@ -420,7 +420,7 @@ public:
 
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
-      Printf(module_class_vtable_code, ",\n  (_SWIG_funcptr)%s", wname);
+      Printf(module_class_vtable_code, ",\n  (SWIG_funcptr)%s", wname);
     }
 
     return SWIG_OK;
@@ -691,17 +691,17 @@ public:
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
         Printf(proxy_class_vtable_code, ";\n\n");
 
-        Printf(clsid_list, "  { (_SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", proxy_class_name, proxy_class_name);
+        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", proxy_class_name, proxy_class_name);
       }
 
-      Printf(proxy_class_vtable_code, "HRESULT _wrap_%s_QueryInterface1(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT _wrap%sQueryInterface1(void *that, REFIID iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
-      /* Look if the requested interface is ISWIGCOMWrappedObject */
+      /* Look if the requested interface is ISWIGWrappedObject */
       Printf(proxy_class_vtable_code,
-          "  if (iid == IID_ISWIGCOMWrappedObject) {\n"
+          "  if (iid == IID_ISWIGWrappedObject) {\n"
           "    /* FIXME: This could be more elegant */\n"
-          "    _SWIGCOMAddRef1(that);\n"
+          "    SWIGAddRef1(that);\n"
           /* Address of current object, incremented by the size of a pointer */
           "    *ppvObject = (void *) ((void **)that + 1);\n"
           "    return S_OK;\n"
@@ -724,7 +724,7 @@ public:
 
       Printf(proxy_class_vtable_code, ") {\n"
           "    /* FIXME: This could be more elegant */\n"
-          "    _SWIGCOMAddRef1(that);\n"
+          "    SWIGAddRef1(that);\n"
           "    *ppvObject = that;\n"
           "    return S_OK;\n"
           "  }\n\n");
@@ -733,26 +733,26 @@ public:
 
       bases = NULL;
 
-      Printf(proxy_class_vtable_code, "HRESULT _wrap_%s_QueryInterface2(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT _wrap%sQueryInterface2(void *that, REFIID iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
       Printf(proxy_class_vtable_code,
-          "  return _wrap_%s_QueryInterface1((void *) ((void **) that - 1), iid, ppvObject);\n", proxy_class_name);
+          "  return _wrap%sQueryInterface1((void *) ((void **) that - 1), iid, ppvObject);\n", proxy_class_name);
 
       Printf(proxy_class_vtable_code, "}\n\n");
 
-      Printf(proxy_class_vtable_code, "_SWIG_funcptr _wrap_%s_SWIGCOMWrappedObject_vtable[] = "
-          "{\n  (_SWIG_funcptr) _wrap_%s_QueryInterface2,"
-          "\n  (_SWIG_funcptr) _SWIGCOMAddRef2,"
-          "\n  (_SWIG_funcptr) _SWIGCOMRelease2,"
-          "\n  (_SWIG_funcptr) _SWIGCOMGetCPtr"
+      Printf(proxy_class_vtable_code, "SWIG_funcptr _wrap%sSWIGWrappedObject_vtable[] = "
+          "{\n  (SWIG_funcptr) _wrap%sQueryInterface2,"
+          "\n  (SWIG_funcptr) SWIGAddRef2,"
+          "\n  (SWIG_funcptr) SWIGRelease2,"
+          "\n  (SWIG_funcptr) SWIGGetCPtr"
           "\n};\n\n",
           proxy_class_name, proxy_class_name);
 
-      Printf(proxy_class_vtable_code, "_SWIG_funcptr _wrap_%s_vtable[] = "
-          "{\n  (_SWIG_funcptr) _wrap_%s_QueryInterface1,"
-          "\n  (_SWIG_funcptr) _SWIGCOMAddRef1,"
-          "\n  (_SWIG_funcptr) _SWIGCOMRelease1",
+      Printf(proxy_class_vtable_code, "SWIG_funcptr _wrap%svtable[] = "
+          "{\n  (SWIG_funcptr) _wrap%sQueryInterface1,"
+          "\n  (SWIG_funcptr) SWIGAddRef1,"
+          "\n  (SWIG_funcptr) SWIGRelease1",
           proxy_class_name, proxy_class_name);
 
       bases = Getattr(n, "bases");
@@ -767,7 +767,7 @@ public:
         Setattr(n, "wrap:member_functions", Copy(base_member_functions));
 
         for (Iterator func = First(base_member_functions); func.item; func = Next(func)) {
-          Printf(proxy_class_vtable_code, ",\n  (_SWIG_funcptr)%s", func.item);
+          Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", func.item);
         }
       }
 
@@ -802,10 +802,10 @@ public:
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
-      Printf(proxy_class_vtable_code, "void *_SWIGCOM_wrap_%s(void *arg) {\n"
-          "  _SWIGCOMWrappedObject *res = new _SWIGCOMWrappedObject;\n"
-          "  res->vtable = _wrap_%s_vtable;\n"
-          "  res->SWIGCOMWrappedObject_vtable = _wrap_%s_SWIGCOMWrappedObject_vtable;\n"
+      Printf(proxy_class_vtable_code, "void *SWIG_wrap%s(void *arg) {\n"
+          "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
+          "  res->vtable = _wrap%svtable;\n"
+          "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = 0;\n"
           "  res->refCount = 0;\n"
@@ -813,7 +813,7 @@ public:
           "}\n\n",
           proxy_class_name, proxy_class_name, proxy_class_name);
 
-      Printf(proxy_class_vtable_defs, "void *_SWIGCOM_wrap_%s(void *arg);\n", proxy_class_name);
+      Printf(proxy_class_vtable_defs, "void *SWIG_wrap%s(void *arg);\n", proxy_class_name);
 
       Printv(f_vtables, proxy_class_vtable_code, NIL);
       Printv(f_vtable_defs, proxy_class_vtable_defs, NIL);
@@ -864,7 +864,7 @@ public:
 
     if (!Getattr(n, "override")) {
       String *wname = Getattr(n, "wrap:name");
-      Printf(proxy_class_vtable_code, ",\n  (_SWIG_funcptr)%s", wname);
+      Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", wname);
       Append(proxy_class_member_functions, wname);
     }
 
