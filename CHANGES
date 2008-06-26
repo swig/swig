@@ -12279,7 +12279,8 @@ Version 1.3.14 (August 12, 2002)
             with helper functions even if they aren't used.    To fix this,
             a new fragment directive is available.  For example:
 
-               %fragment("type_helper","header") %{
+               (corrected typo in line below - 06/26/2008)
+               %fragment("type_header","header") %{
                   void some_helper_function() {
                       ...
                   }
