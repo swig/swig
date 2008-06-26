@@ -204,8 +204,6 @@ public:
       generateGUID(&typelib_guid);
 
       // Standard imports
-      Printf(f_module, "import \"unknwn.idl\";\n");
-      Printf(f_module, "\n");
       Printf(f_module, "[\n  uuid(");
       formatGUID(f_module, &typelib_guid, false);
       Printf(f_module, ")\n]\nlibrary %sTLB {\n\n", module_class_name);
@@ -217,7 +215,7 @@ public:
       generateGUID(&module_guid);
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
       formatGUID(f_module, &module_guid, false);
-      Printf(f_module, ")\n  ]\n  interface %s : IUnknown {\n", module_class_name);
+      Printf(f_module, ")\n  ]\n  interface %s {\n", module_class_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -592,8 +590,9 @@ public:
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
-    Printv(proxy_class_def, ")\n  ]\n  interface $comclassname : ",
-        *Char(wanted_base) ? wanted_base : "IUnknown", " {", NIL);
+    Printv(proxy_class_def, ")\n  ]\n  interface $comclassname",
+        *Char(wanted_base) ? " : " : "",
+        *Char(wanted_base) ? wanted_base : "", " {", NIL);
 
     Delete(attributes);
 
@@ -968,7 +967,7 @@ public:
 
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
 
-    Printv(proxy_class_def, "  [\n    object,\n    local\n  ]\n  interface $comclassname : IUnknown {\n",
+    Printv(proxy_class_def, "  [\n    object,\n    local\n  ]\n  interface $comclassname {\n",
            typemapLookup("combody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),
 	   typemapLookup("comcode", type, WARN_NONE),
            "  };\n\n", NIL);
