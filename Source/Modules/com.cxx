@@ -40,6 +40,7 @@ class COM:public Language {
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
   bool static_flag;		// Flag for when wrapping a static functions or member variables
   bool variable_wrapper_flag;	// Flag for when wrapping a nonstatic member variable
+  bool member_func_flag;
   String *proxy_class_def;
   String *proxy_class_forward_def;
   String *proxy_class_code;
@@ -370,7 +371,7 @@ public:
 
     /* There are no global or static member functions in COM - thus they need fake 'this' arguments */
     // FIXME: this should include static member functions too
-    if (!is_wrapping_class() && !enum_constant_flag) {
+    if ((!is_wrapping_class() || static_flag) && !enum_constant_flag) {
       Printv(f->def, "void *SWIG_ignored", NIL);
       gencomma = 1;
     }
@@ -878,6 +879,31 @@ public:
       proxy_class_constants_code = NULL;
       delete proxy_iid;
     }
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmemberfunctionHandler(Node *n) {
+
+    static_flag = true;
+    member_func_flag = true;
+    Language::staticmemberfunctionHandler(n);
+
+    if (proxy_flag) {
+      // FIXME: String *overloaded_name = getOverloadedName(n);
+      String *overloaded_name = Getattr(n, "sym:name");
+      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "imfuncname", intermediary_function_name);
+      proxyClassFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    static_flag = false;
+    member_func_flag = false;
 
     return SWIG_OK;
   }
