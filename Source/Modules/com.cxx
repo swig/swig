@@ -162,13 +162,60 @@ public:
     proxy_class_forward_def = NewString("");
     proxy_class_code = NewString("");
 
+    GUID typelib_guid;
+    generateGUID(&typelib_guid);
+    GUID module_iid;
+    generateGUID(&module_iid);
+    GUID module_clsid;
+    generateGUID(&module_clsid);
+
     module_class_vtable_code = NewString("");
-    Printf(module_class_vtable_code, "SWIG_funcptr _wrap%svtable[] = "
-        "{\n  0 /* QueryInterface */,\n  (SWIG_funcptr) SWIGAddRef1,"
+
+    Printf(module_class_vtable_code, "GUID IID_%s = ", module_class_name);
+    formatGUID(module_class_vtable_code, &module_iid, true);
+    Printf(module_class_vtable_code, ";\n\n");
+
+    Printf(module_class_vtable_code, "GUID CLSID_%s = ", module_class_name);
+    formatGUID(module_class_vtable_code, &module_clsid, true);
+    Printf(module_class_vtable_code, ";\n\n");
+
+    Printf(module_class_vtable_code, "HRESULT _wrap%sQueryInterface(void *that, REFIID iid, "
+        "void ** ppvObject) {\n", module_class_name);
+
+    Printf(module_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
+        "      iid == IID_%s", module_class_name);
+
+    Printf(module_class_vtable_code, ") {\n"
+        "    /* FIXME: This could be more elegant */\n"
+        "    SWIGAddRef1(that);\n"
+        "    *ppvObject = that;\n"
+        "    return S_OK;\n"
+        "  }\n\n");
+
+    Printf(module_class_vtable_code, "  return E_NOINTERFACE;\n}\n\n");
+
+    Printf(module_class_vtable_code, "SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
+
+    Printf(module_class_vtable_code,
+        "void *_wrap_new_%s() {\n"
+        "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
+        "  res->vtable = _wrap%s_vtable;\n"
+        "  res->SWIGWrappedObject_vtable = NULL;\n"
+        "  res->cPtr = NULL;\n"
+        "  res->cMemOwn = 0;\n"
+        "  res->refCount = 0;\n"
+        "  return (void *) res;\n"
+        "};\n\n",
+        module_class_name, module_class_name);
+
+    Printf(module_class_vtable_code, "SWIG_funcptr _wrap%s_vtable[] = "
+        "{\n  (SWIG_funcptr) _wrap%sQueryInterface,\n"
+        "\n  (SWIG_funcptr) SWIGAddRef1,"
         "\n  (SWIG_funcptr) SWIGRelease1",
-        module_class_name);
+        module_class_name, module_class_name);
 
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
+    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", module_class_name);
 
     /* Emit code */
     Language::top(n);
@@ -200,9 +247,6 @@ public:
       // Banner for the IDL file
       emitBanner(f_module);
 
-      GUID typelib_guid;
-      generateGUID(&typelib_guid);
-
       // Standard imports
       Printf(f_module, "[\n  uuid(");
       formatGUID(f_module, &typelib_guid, false);
@@ -211,16 +255,19 @@ public:
       Printv(f_module, f_proxy_forward_defs, "\n", NIL);
 
       // Interface for module class
-      GUID module_guid;
-      generateGUID(&module_guid);
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
-      formatGUID(f_module, &module_guid, false);
+      formatGUID(f_module, &module_iid, false);
       Printf(f_module, ")\n  ]\n  interface %s {\n", module_class_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
 
-      Printf(f_module, "  };\n");
+      Printf(f_module, "  };\n\n");
+
+      Printv(f_module, "  [\n    uuid(", NIL);
+      formatGUID(f_module, &module_clsid, false);
+      Printv(f_module, ")\n  ]\n  coclass ", module_class_name, "Impl {\n"
+          "    interface ", module_class_name, ";\n  };\n\n", NIL);
 
       // Add the proxy code
       Printv(f_module, f_proxy, NIL);
@@ -321,6 +368,14 @@ public:
     num_required = emit_num_required(l);
     int gencomma = 0;
 
+    /* There are no global or static member functions in COM - thus they need fake 'this' arguments */
+    // FIXME: this should include static member functions too
+    if (!is_wrapping_class() && !enum_constant_flag) {
+      Printv(f->def, "void *SWIG_ignored", NIL);
+      gencomma = 1;
+    }
+
+
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p = l; i < num_arguments; i++) {
 
@@ -418,7 +473,7 @@ public:
 
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
-      Printf(module_class_vtable_code, ",\n  (SWIG_funcptr)%s", wname);
+      Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
     }
 
     return SWIG_OK;
