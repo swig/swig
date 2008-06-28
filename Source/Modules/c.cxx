@@ -258,6 +258,7 @@ public:
     ParmList *parms = Getattr(n, "parms");
     Parm *p;
     String* tm;
+    String* proto = NewString("");
 
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
@@ -291,24 +292,33 @@ public:
       SwigType* type = Getattr(p, "type");
       String* lname = Getattr(p, "lname");
       String* c_parm_type = NewString("");
+      String* shadow_parm_type = NewString("");
       String* arg_name = NewString("");
 
       Printf(arg_name, "c%s", lname);
 
-      if ((tm = Getattr(p, "tmap:ctype"))) {
-        if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
-          Printv(c_parm_type, SwigType_str(type, 0), NIL);
-        }
-        else {
-          Printv(c_parm_type, tm, NIL);
-        }
+      if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
+        Printv(c_parm_type, SwigType_str(type, 0), NIL);
+      }
+      else if ((tm = Getattr(p, "tmap:ctype"))) {
+        Printv(c_parm_type, tm, NIL);
       }
       else {
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
       }
 
+      // use shadow-type for parameter if supplied
+      String* stype = Getattr(p, "c:stype");
+      if (stype) {
+        Printv(shadow_parm_type, SwigType_str(stype, 0), NIL);
+      }
+      else {
+        Printv(shadow_parm_type, c_parm_type, NIL);
+      }
+
       Printv(arg_names, gencomma ? ", " : "", Getattr(p, "name"), NIL);
       Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
+      Printv(proto, gencomma ? ", " : "", shadow_parm_type, " ", Getattr(p, "name"), NIL);
       gencomma = 1;
  
       if ((tm = Getattr(p, "tmap:in"))) {
@@ -328,6 +338,7 @@ public:
         p = nextSibling(p);
       }
       Delete(arg_name);
+      Delete(shadow_parm_type);
       Delete(c_parm_type);
     }
 
@@ -347,8 +358,8 @@ public:
 
     // take care of shadow function
     if (shadow_flag) {
-      // use shadow-type for parameter if supplied
-      String* proto;
+      
+      /*
       if (parms) {
         String* stype = Getattr(parms, "c:stype");
         if (stype) {
@@ -364,6 +375,7 @@ public:
       else {
         proto = empty_string;
       }
+      */
 
       // use shadow-type for return type if supplied
       SwigType* shadow_type = Getattr(n, "c:stype");
@@ -407,6 +419,7 @@ public:
     }
 
     // cleanup
+    Delete(proto);
     Delete(arg_names);
     Delete(wname);
     DelWrapper(wrapper);

@@ -12,11 +12,21 @@
 %typemap(ctype) float       "float"
 %typemap(ctype) double      "double"
 %typemap(ctype) bool        "_Bool"
-%typemap(ctype) SWIGTYPE    "struct $*1_typeObj *"
+%typemap(ctype) SWIGTYPE    "struct $1_typeObj *"
+%typemap(ctype) SWIGTYPE *  "struct $*1_typeObj *"
+%typemap(ctype) SWIGTYPE &  "struct $*1_ltypeObj *"
 
 %typemap(in) short, int, long, char, float, double, bool "$1 = $input;"
 
 %typemap(in) SWIGTYPE {
+  $1 = * ($1_type *) ($input->obj);
+}
+
+%typemap(in) SWIGTYPE * {
   $1 = ($1_type) $input->obj;
+}
+
+%typemap(in) SWIGTYPE & {
+  $1 = ($*1_ltype *) $input->obj;
 }
 

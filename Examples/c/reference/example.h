@@ -10,7 +10,7 @@ public:
   int get() { return x; }
 };
 
-/*void foo_by_val(Bar bar);
-void foo_by_ref(Bar& bar);*/
+void foo_by_val(Bar bar);
+void foo_by_ref(Bar& bar);
 void foo_by_ptr(Bar* bar);
 
