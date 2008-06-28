@@ -72,12 +72,12 @@ public:
   void emitSwigProtectSymbols(File *f) {
     Printf(f, "#ifndef SWIGPROTECT\n");
     Printf(f, "# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)\n");
-    Printf(f, "#   define SWIGPROTECT //\n");
+    Printf(f, "#   define SWIGPROTECT(x)\n");
     Printf(f, "# else\n");
     Printf(f, "#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)\n");
-    Printf(f, "#     define SWIGPROTECT __attribute__ ((visibility(\"protected\")))\n");
+    Printf(f, "#     define SWIGPROTECT(x) __attribute__ ((visibility(\"protected\"))) x\n");
     Printf(f, "#   else\n");
-    Printf(f, "#     define SWIGPROTECT //\n");
+    Printf(f, "#     define SWIGPROTECT(x)\n");
     Printf(f, "#   endif\n");
     Printf(f, "# endif\n");
     Printf(f, "#endif\n\n");
@@ -226,6 +226,26 @@ public:
     return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------
+   * globalfunctionHandler()
+   * ------------------------------------------------------------------------ */
+
+  virtual int globalfunctionHandler(Node *n ) {
+    String* vis_hint = NewString("");
+    String* return_type_str = SwigType_str(Getattr(n, "type"), 0);
+    String* name = Getattr(n, "sym:name");
+    ParmList* parms = Getattr(n, "parms");
+
+    Language::globalfunctionHandler(n);
+
+    // add visibility hint for the compiler (do not override this symbol)
+    Printv(vis_hint, "SWIGPROTECT(", return_type_str, " ", name, "(", ParmList_str(parms), ");)\n\n", NIL);
+    Printv(f_wrappers, vis_hint, NIL);
+
+    Delete(vis_hint);
+    return SWIG_OK;
+  }
+
   /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
@@ -236,6 +256,8 @@ public:
     String *return_type_str = SwigType_str(return_type, 0);
     String *arg_names = NewString("");
     ParmList *parms = Getattr(n, "parms");
+    Parm *p;
+    String* tm;
 
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
@@ -250,16 +272,66 @@ public:
     // attach the standard typemaps
     emit_attach_parmmaps(parms, wrapper);
 
-    // prepare parameter list
-    Parm *p, *np;
+    // attach 'ctype' typemaps
+    Swig_typemap_attach_parms("ctype", parms, wrapper);
+
+    Setattr(n, "wrap:parms", parms);
+
+    // emit variables for holding parameters
+    emit_parameter_variables(parms, wrapper);
+
+    // prepare function definition
+    int gencomma = 0;
     for (p = parms; p; ) {
-      np = nextSibling(p);
-      SwigType *type = Getattr(p, "type");
-      Printv(wrapper->def, SwigType_str(type, 0), " ", Getattr(p, "lname"), np ? ", " : "", NIL);
-      Printv(arg_names, Getattr(p, "name"), np ? ", " : "", NIL);
-      p = np;
+
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+        p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType* type = Getattr(p, "type");
+      String* lname = Getattr(p, "lname");
+      String* c_parm_type = NewString("");
+      String* arg_name = NewString("");
+
+      Printf(arg_name, "c%s", lname);
+
+      if ((tm = Getattr(p, "tmap:ctype"))) {
+        if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
+          Printv(c_parm_type, SwigType_str(type, 0), NIL);
+        }
+        else {
+          Printv(c_parm_type, tm, NIL);
+        }
+      }
+      else {
+        Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+      }
+
+      Printv(arg_names, gencomma ? ", " : "", Getattr(p, "name"), NIL);
+      Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
+      gencomma = 1;
+ 
+      if ((tm = Getattr(p, "tmap:in"))) {
+        if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
+          // FIXME
+          Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
+        }
+        else {
+          Replaceall(tm, "$input", arg_name);
+          Setattr(p, "emit:input", arg_name);
+          Printf(wrapper->code, "%s\n", tm);
+        }
+        p = Getattr(p, "tmap:in:next");
+      }
+      else {
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
+        p = nextSibling(p);
+      }
+      Delete(arg_name);
+      Delete(c_parm_type);
     }
-    Printv(wrapper->def, ") {", NIL);
+
+    Printf(wrapper->def, ") {");
 
     // declare wrapper function local variables
     emit_return_variable(n, return_type, wrapper);
@@ -277,19 +349,24 @@ public:
     if (shadow_flag) {
       // use shadow-type for parameter if supplied
       String* proto;
-      String* stype = Getattr(parms, "stype");
-      if (stype) {
-        Swig_save("temp", parms, "type", NIL);
-        Setattr(parms, "type", stype);
-        proto = ParmList_str(parms);
-        Swig_restore(parms);
+      if (parms) {
+        String* stype = Getattr(parms, "c:stype");
+        if (stype) {
+          Swig_save("temp", parms, "type", NIL);
+          Setattr(parms, "type", stype);
+          proto = ParmList_str(parms);
+          Swig_restore(parms);
+        }
+        else {
+          proto = ParmList_str(parms);
+        }
       }
       else {
-        proto = ParmList_str(parms);
+        proto = empty_string;
       }
 
       // use shadow-type for return type if supplied
-      SwigType* shadow_type = Getattr(n, "stype");
+      SwigType* shadow_type = Getattr(n, "c:stype");
       if (shadow_type) {
         return_type_str = SwigType_str(shadow_type, 0);
       }
@@ -328,12 +405,6 @@ public:
       // add function declaration to the proxy header file
       Printv(f_shadow_header, return_type_str, " ", name, "(", proto, ");\n");
     }
-
-    // add visibility hint for the compiler
-    String* vis_hint = NewString("");
-    Printv(vis_hint, "SWIGPROTECT ", return_type_str, " ", name, "(", ParmList_str(parms), ");\n", NIL);
-    Printv(f_init, vis_hint, NIL);
-    Delete(vis_hint);
 
     // cleanup
     Delete(arg_names);
@@ -395,7 +466,8 @@ public:
     Parm* p = NewParm(ctype, "self");
     stype = Copy(classname);
     SwigType_add_pointer(stype);
-    Setattr(p, "stype", stype);
+    Setattr(p, "c:stype", stype);
+    Setattr(p, "c:immutable", "1");
     if (parms)
       set_nextSibling(p, parms);
     Setattr(n, "parms", p);
@@ -461,7 +533,8 @@ public:
     Parm* p = NewParm(ctype, "self");
     stype = Copy(classname);
     SwigType_add_pointer(stype);
-    Setattr(p, "stype", stype);
+    Setattr(p, "c:stype", stype);
+    Setattr(p, "c:immutable", "1");
     Setattr(p, "lname", "arg1");
 
     // create second argument
@@ -533,7 +606,7 @@ public:
     Setattr(n, "type", ctype);
     stype = Copy(name);
     SwigType_add_pointer(stype);
-    Setattr(n, "stype", stype);
+    Setattr(n, "c:stype", stype);
 
     // generate action code
     Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
@@ -576,7 +649,8 @@ public:
     Setattr(p, "lname", "arg1");
     stype = Copy(name);
     SwigType_add_pointer(stype);
-    Setattr(p, "stype", stype);
+    Setattr(p, "c:stype", stype);
+    Setattr(p, "c:immutable", "1");
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
 

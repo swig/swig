@@ -1,5 +1,5 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig -debug-module 4 > tree.txt
+SWIG       = $(TOP)/../preinst-swig -debug-module 4
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i

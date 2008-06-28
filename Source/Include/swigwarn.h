@@ -252,6 +252,10 @@
 
 /* please leave 870-889 free for Php */
 
+#define WARN_C_TYPEMAP_CTYPE_UNDEF             890
+
+/* please leave 890-909 free for C */
+
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
