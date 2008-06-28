@@ -26,17 +26,17 @@
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
-    HRESULT hr = ((HRESULT (*)(SWIGIUnknown *, REFIID, void **))
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **))
         $input->vtable[0])($input, IID_ISWIGWrappedObject, (void **) &wrapper); 
 
     if (hr != S_OK) {
       /* Argument was not wrapped by SWIG - directors will be needed */
     } else {
       /* GetCPtr */
-      $1 = ($1_ltype) ((void * (*)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
+      $1 = ($1_ltype) ((void * (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
 
       /* Release */
-      ((long (*)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
+      ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
     }
   }
 %}
@@ -57,7 +57,7 @@
 
 #include <windows.h>
 
-typedef void (*SWIG_funcptr)(void);
+typedef void (SWIGSTDCALL *SWIG_funcptr)(void);
 
 struct SWIGWrappedObject {
   SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
@@ -69,29 +69,29 @@ struct SWIGWrappedObject {
 
 GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
 
-long SWIGAddRef1(void *iunk) {
+long SWIGSTDCALL SWIGAddRef1(void *iunk) {
   /* FIXME: use InterlockedIncrement */
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
   return ++obj->refCount;
 }
 
-long SWIGAddRef2(void *iunk) {
+long SWIGSTDCALL SWIGAddRef2(void *iunk) {
   return SWIGAddRef1((void **)iunk - 1);
 }
 
-long SWIGRelease1(void *iunk) {
+long SWIGSTDCALL SWIGRelease1(void *iunk) {
   /* FIXME: use InterlockedDecrement */
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
   return --obj->refCount;
 }
 
-long SWIGRelease2(void *iunk) {
+long SWIGSTDCALL SWIGRelease2(void *iunk) {
   return SWIGRelease1((void **)iunk - 1);
 }
 
-void *SWIGGetCPtr(void *iunk) {
+void * SWIGSTDCALL SWIGGetCPtr(void *iunk) {
   SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)iunk - 1);
 
   return obj->cPtr;
@@ -117,15 +117,15 @@ struct SWIGIUnknown {
   SWIG_funcptr *vtable;
 };
 
-long SWIGClassFactoryAddRef(SWIGClassFactory *factory) {
+long SWIGSTDCALL SWIGClassFactoryAddRef(SWIGClassFactory *factory) {
   return ++factory->refCount;
 }
 
-long SWIGClassFactoryRelease(SWIGClassFactory *factory) {
+long SWIGSTDCALL SWIGClassFactoryRelease(SWIGClassFactory *factory) {
   return --factory->refCount;
 }
 
-HRESULT SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, REFIID iid, void **ppvObject) {
+HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, REFIID iid, void **ppvObject) {
   if (iid == IID_IUnknown || iid == IID_IClassFactory) {
     SWIGClassFactoryAddRef(factory);
     *ppvObject = factory;
@@ -136,7 +136,7 @@ HRESULT SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, REFIID iid, vo
   }
 }
 
-HRESULT SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, REFIID riid, void **ppvObject)
+HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, REFIID riid, void **ppvObject)
 {
   HRESULT hr;
   SWIGIUnknown *obj;
@@ -148,24 +148,24 @@ HRESULT SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punk
      return CLASS_E_NOAGGREGATION;
 
   /* Create the instance */
-  obj = (SWIGIUnknown *) ((void* (*)()) factory->newInstance)();
+  obj = (SWIGIUnknown *) ((void* (SWIGSTDCALL *)()) factory->newInstance)();
 
   if (obj == NULL) {
     return E_OUTOFMEMORY;
   }
 
   /* Add reference */
-  ((long (*)(SWIGIUnknown *)) (obj->vtable[1]))(obj);
+  ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[1]))(obj);
 
-  hr = ((HRESULT (*)(SWIGIUnknown *, REFIID, void **)) obj->vtable[0])(obj, riid, ppvObject);
+  hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **)) obj->vtable[0])(obj, riid, ppvObject);
 
   /* Release reference */
-  ((long (*)(SWIGIUnknown *)) (obj->vtable[2]))(obj);
+  ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[2]))(obj);
 
   return hr;
 }
 
-HRESULT SWIGClassFactoryLockServer(SWIGClassFactory *factory, BOOL fLock) {
+HRESULT SWIGSTDCALL SWIGClassFactoryLockServer(SWIGClassFactory *factory, BOOL fLock) {
   CoLockObjectExternal((IUnknown *) (void *) factory, fLock, TRUE);
 
   return S_OK;

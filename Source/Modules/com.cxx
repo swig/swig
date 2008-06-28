@@ -180,7 +180,7 @@ public:
     formatGUID(module_class_vtable_code, &module_clsid, true);
     Printf(module_class_vtable_code, ";\n\n");
 
-    Printf(module_class_vtable_code, "HRESULT _wrap%sQueryInterface(void *that, REFIID iid, "
+    Printf(module_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface(void *that, REFIID iid, "
         "void ** ppvObject) {\n", module_class_name);
 
     Printf(module_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
@@ -195,10 +195,10 @@ public:
 
     Printf(module_class_vtable_code, "  return E_NOINTERFACE;\n}\n\n");
 
-    Printf(module_class_vtable_code, "SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
+    Printf(module_class_vtable_code, "extern SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
 
     Printf(module_class_vtable_code,
-        "void *_wrap_new_%s() {\n"
+        "void * SWIGSTDCALL _wrap_new_%s() {\n"
         "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
         "  res->vtable = _wrap%s_vtable;\n"
         "  res->SWIGWrappedObject_vtable = NULL;\n"
@@ -352,7 +352,7 @@ public:
     if (!is_void_return)
       Wrapper_add_localv(f, "jresult", c_return_type, "jresult", NIL);
 
-    Printv(f->def, c_return_type, " ", wname, "(", NIL);
+    Printv(f->def, c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -749,7 +749,7 @@ public:
         Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", proxy_class_name, proxy_class_name);
       }
 
-      Printf(proxy_class_vtable_code, "HRESULT _wrap%sQueryInterface1(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, REFIID iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
       /* Look if the requested interface is ISWIGWrappedObject */
@@ -788,7 +788,7 @@ public:
 
       bases = NULL;
 
-      Printf(proxy_class_vtable_code, "HRESULT _wrap%sQueryInterface2(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface2(void *that, REFIID iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
       Printf(proxy_class_vtable_code,
@@ -857,7 +857,7 @@ public:
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
-      Printf(proxy_class_vtable_code, "void *SWIG_wrap%s(void *arg) {\n"
+      Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg) {\n"
           "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
           "  res->vtable = _wrap%svtable;\n"
           "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
@@ -868,7 +868,7 @@ public:
           "}\n\n",
           proxy_class_name, proxy_class_name, proxy_class_name);
 
-      Printf(proxy_class_vtable_defs, "void *SWIG_wrap%s(void *arg);\n", proxy_class_name);
+      Printf(proxy_class_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *arg);\n", proxy_class_name);
 
       Printv(f_vtables, proxy_class_vtable_code, NIL);
       Printv(f_vtable_defs, proxy_class_vtable_defs, NIL);
