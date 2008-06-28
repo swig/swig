@@ -29,6 +29,7 @@ class COM:public Language {
   File *f_runtime;
   File *f_header;
   File *f_module;
+  File *f_deffile;
   File *f_wrappers;
   File *f_proxy;
   File *f_proxy_forward_defs;
@@ -37,6 +38,8 @@ class COM:public Language {
   File *f_factory;
 
   bool proxy_flag;		// Flag for generating proxy classes
+  bool dllexports_flag;
+  bool deffile_flag;
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
   bool static_flag;		// Flag for when wrapping a static functions or member variables
   bool variable_wrapper_flag;	// Flag for when wrapping a nonstatic member variable
@@ -67,6 +70,8 @@ public:
 
   COM():empty_string(NewString("")),
       proxy_flag(true),
+      deffile_flag(true),
+      dllexports_flag(true),
       enum_constant_flag(false),
       proxy_class_vtable_code(NewString("")),
       proxy_class_vtable_defs(NewString("")),
@@ -105,6 +110,13 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
+	} else if ((strcmp(argv[i], "-nodllexports") == 0)) {
+	  Swig_mark_arg(i);
+          dllexports_flag = false;
+          deffile_flag = false;
+	} else if (strcmp(argv[i], "-nodeffile") == 0) {
+	  Swig_mark_arg(i);
+          deffile_flag = false;
 	}
       }
     }
@@ -233,6 +245,25 @@ public:
       emitTypeWrapperClass(swig_type.key, swig_type.item);
     }
 
+    /* Generate DEF file */
+    if (deffile_flag) {
+      String *filen = NewStringf("%s%s.def", SWIG_output_directory(), module_class_name);
+      f_deffile = NewFile(filen, "w");
+      if (!f_deffile) {
+	FileErrorDisplay(filen);
+	SWIG_exit(EXIT_FAILURE);
+      }
+      // Append(filenames_list, Copy(filen));
+      Delete(filen);
+      filen = NULL;
+
+      Printf(f_deffile, "LIBRARY %s\n", module_class_name);
+
+      Printf(f_deffile, "EXPORTS\n"
+          "  DllGetClassObject\n"
+          "  DllCanUnloadNow\n");
+    }
+
     /* Generate the IDL file containing the module class and proxy classes */
     {
       String *filen = NewStringf("%s%s.idl", SWIG_output_directory(), module_class_name);
@@ -289,10 +320,14 @@ public:
     Delete(f_vtables);
     Dump(clsid_list, f_runtime);
     Delete(clsid_list);
-    Dump(f_factory, f_runtime);
+    if (dllexports_flag)
+      Dump(f_factory, f_runtime);
     Delete(f_factory);
     Delete(f_runtime);
     Delete(f_module);
+    if (deffile_flag) {
+      Delete(f_deffile);
+    }
     return SWIG_OK;
   }
 
@@ -1184,4 +1219,7 @@ extern "C" Language *swig_com(void) {
 
 const char *COM::usage = (char *) "\
 COM Options (available with -com)\n\
+     -nodeffile      - Do not generate DEF file\n\
+     -nodllexports   - Do not generate DllGetClassObject and DllCanUnloadNow\n\
+                       (implicates -nodeffile)\n\
 \n";
