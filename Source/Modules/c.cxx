@@ -69,19 +69,15 @@ public:
     }
   }
 
-  void emitSwigExport(File *f) {
-    Printf(f, "#ifndef SWIGEXPORT\n");
+  void emitSwigProtectSymbols(File *f) {
+    Printf(f, "#ifndef SWIGPROTECT\n");
     Printf(f, "# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)\n");
-    Printf(f, "#   if defined(STATIC_LINKED)\n");
-    Printf(f, "#     define SWIGEXPORT\n");
-    Printf(f, "#   else\n");
-    Printf(f, "#     define SWIGEXPORT __declspec(dllexport)\n");
-    Printf(f, "#   endif\n");
+    Printf(f, "#   define SWIGPROTECT //\n");
     Printf(f, "# else\n");
     Printf(f, "#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)\n");
-    Printf(f, "#     define SWIGEXPORT __attribute__ ((visibility(\"default\")))\n");
+    Printf(f, "#     define SWIGPROTECT __attribute__ ((visibility(\"protected\")))\n");
     Printf(f, "#   else\n");
-    Printf(f, "#     define SWIGEXPORT\n");
+    Printf(f, "#     define SWIGPROTECT //\n");
     Printf(f, "#   endif\n");
     Printf(f, "# endif\n");
     Printf(f, "#endif\n\n");
@@ -121,6 +117,7 @@ public:
     f_wrappers = NewString("");
 
     Swig_banner(f_runtime);
+    emitSwigProtectSymbols(f_header);
 
     // FIXME
     Printf(f_header, "#include <malloc.h>\n\n");
@@ -238,7 +235,6 @@ public:
     SwigType *return_type = Getattr(n, "type");
     String *return_type_str = SwigType_str(return_type, 0);
     String *arg_names = NewString("");
-    String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
 
     // create new function wrapper object
@@ -261,7 +257,6 @@ public:
       SwigType *type = Getattr(p, "type");
       Printv(wrapper->def, SwigType_str(type, 0), " ", Getattr(p, "lname"), np ? ", " : "", NIL);
       Printv(arg_names, Getattr(p, "name"), np ? ", " : "", NIL);
-      Printv(arg_lnames, Getattr(p, "lname"), np ? ", " : "", NIL);
       p = np;
     }
     Printv(wrapper->def, ") {", NIL);
@@ -300,7 +295,7 @@ public:
       }
 
       // emit proxy functions prototypes
-      Printv(f_shadow_code_init, "extern ", return_type_str, " _wrap_", name, "(", proto, ");\n", NIL);
+      Printv(f_shadow_code_init, "extern ", return_type_str, " ", wname, "(", proto, ");\n", NIL);
       Printv(f_shadow_code_body, return_type_str, " ", name, "(", proto, ") {\n", NIL);
 
       // handle 'prepend' feature
@@ -334,8 +329,13 @@ public:
       Printv(f_shadow_header, return_type_str, " ", name, "(", proto, ");\n");
     }
 
+    // add visibility hint for the compiler
+    String* vis_hint = NewString("");
+    Printv(vis_hint, "SWIGPROTECT ", return_type_str, " ", name, "(", ParmList_str(parms), ");\n", NIL);
+    Printv(f_init, vis_hint, NIL);
+    Delete(vis_hint);
+
     // cleanup
-    Delete(arg_lnames);
     Delete(arg_names);
     Delete(wname);
     DelWrapper(wrapper);

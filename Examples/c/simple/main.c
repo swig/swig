@@ -8,8 +8,8 @@ int main(int argc, char **argv) {
   printf("Foo is %f\n", Foo);
   printf("Foo by ptr is \%f\n", *Foo_ptr);
   printf("my_str is: %s\n", my_str);
-  printf("array_of_strs contains %s and %s\n", get_str(0), get_str(1));
   printf("GCD(%d, %d)=%d\n", a, b, gcd(a, b));
+  printf("array_of_strs contains %s and %s\n", get_str(0), get_str(1));
   return 0;
 }
 

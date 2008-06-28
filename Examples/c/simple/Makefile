@@ -10,5 +10,5 @@ all::
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MAIN='$(MAIN)' c
 
 clean:
-	rm *.o
+	rm -f *.o *.so *.out *.a *~
 

@@ -10,5 +10,5 @@ all::
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MAIN='$(MAIN)' c_cpp
 
 clean:
-	rm *.o
+	rm -f *.o *.out *.so *.a
 
