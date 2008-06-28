@@ -10,11 +10,11 @@
       virtual ~Node() {}
   };
 
-  class Switch : public Node {
+  class NodeSwitch : public Node {
     public :
       virtual int addChild( Node *child ) { return 2; } // This was hidden with -fvirtual
       virtual int addChild( Node *child, bool value ) { return 3; }
-      virtual ~Switch() {}
+      virtual ~NodeSwitch() {}
   };
 %}
 

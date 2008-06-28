@@ -42,17 +42,17 @@ missingtests: missingcpptests missingctests
 %.cpptest: 
 	$(setup)
 	+$(swig_and_compile_cpp)
-	$(run_testcase)
+	+$(run_testcase)
 
 %.ctest:
 	$(setup)
 	+$(swig_and_compile_c)
-	$(run_testcase)
+	+$(run_testcase)
 
 %.multicpptest: 
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
+	+$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.php4 appended after the testcase name.

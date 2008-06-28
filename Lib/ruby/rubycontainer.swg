@@ -691,10 +691,12 @@ namespace swig
       for ( ; i != e; )
 	{
 	  VALUE r = swig::from< Sequence::value_type >(*i);
-	  if ( RTEST( rb_yield(r) ) )
+	  if ( RTEST( rb_yield(r) ) ) {
 	    $self->erase(i++);
-	  else
+            e = self->end();
+	  } else {
 	    ++i;
+          }
 	}
 	
       return self;

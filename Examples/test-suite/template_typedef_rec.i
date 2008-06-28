@@ -16,7 +16,7 @@ public:
 
 
 template <typename T>
-class ArrayIterator
+class ArrayIterator_
 {
  public:
   typedef test_Array::intT    intT;
@@ -38,8 +38,8 @@ class ArrayPrimitiveT
 public:
   typedef T  ValueT;
   typedef T  valueT;
-  typedef ArrayIterator<T>       Iterator;
-  typedef ArrayIterator<const T> ConstIterator;  
+  typedef ArrayIterator_<T>       Iterator;
+  typedef ArrayIterator_<const T> ConstIterator;  
   typedef ArrayReverseIterator<T>       ReverseIterator;
   typedef ArrayReverseIterator<const T> ConstReverseIterator;
 };

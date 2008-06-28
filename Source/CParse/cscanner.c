@@ -423,7 +423,7 @@ int yylook(void) {
       {
 	String *cmt = Scanner_text(scan);
 	char *loc = Char(cmt);
-	if ((strncmp(loc,"/*@SWIG@",6) == 0) && (loc[Len(cmt)-3] == '@')) {
+	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
 	  scanner_locator(cmt);
 	}
       }

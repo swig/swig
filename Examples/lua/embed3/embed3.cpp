@@ -5,6 +5,17 @@ passing C++ objects to this function.
  
 */
 
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+#if !defined(SWIG_NO_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+# define _CRT_SECURE_NO_DEPRECATE
+#endif
+
+/* Deal with Microsoft's attempt at deprecating methods in the standard C++ library */
+#if !defined(SWIG_NO_SCL_SECURE_NO_DEPRECATE) && defined(_MSC_VER) && !defined(_SCL_SECURE_NO_DEPRECATE)
+# define _SCL_SECURE_NO_DEPRECATE
+#endif
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -70,9 +81,6 @@ int call_onEvent(lua_State *L, Event e) {
 
 
 int main(int argc, char* argv[]) {
-  int ok;
-  int res;
-  char str[80];
   printf("[C++] Welcome to the simple embedded Lua example v3\n");
   printf("[C++] We are in C++\n");
   printf("[C++] opening a Lua state & loading the libraries\n");

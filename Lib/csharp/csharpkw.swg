@@ -2,7 +2,7 @@
 #define CSHARP_CSHARPKW_SWG_
 
 /* Warnings for C# keywords */
-#define CSHARPKW(x) %namewarn("314:" #x " is a csharp keyword")  #x
+#define CSHARPKW(x) %keywordwarn("'" `x` "' is a C# keyword, renaming to '_" `x` "'",rename="_%s")  `x`
 
 /*
    from

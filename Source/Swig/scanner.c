@@ -200,7 +200,7 @@ static char nextchar(Scanner * s) {
   if ((nc == '\n') && (!s->freeze_line)) 
     s->line++;
   Putc(nc,s->text);
-  return nc;
+  return (char)nc;
 }
 
 /* -----------------------------------------------------------------------------
@@ -349,7 +349,7 @@ static void get_escape(Scanner *s) {
       } else {
 	char tmp[3];
 	tmp[0] = '\\';
-	tmp[1] = c;
+	tmp[1] = (char)c;
 	tmp[2] = 0;
 	Delitem(s->text, DOH_END);
 	Append(s->text, tmp);

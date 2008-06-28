@@ -38,18 +38,18 @@ namespace swig {
     virtual PySwigIterator *incr(size_t n = 1) = 0;
     
     // Backward iterator method, very common in C++, but not required in Python
-    virtual PySwigIterator *decr(size_t n = 1)
+    virtual PySwigIterator *decr(size_t /*n*/ = 1)
     {
       throw stop_iteration();
     }
 
     // Random access iterator methods, but not required in Python
-    virtual ptrdiff_t distance(const PySwigIterator &x) const
+    virtual ptrdiff_t distance(const PySwigIterator &/*x*/) const
     {
       throw std::invalid_argument("operation not supported");
     }
 
-    virtual bool equal (const PySwigIterator &x) const
+    virtual bool equal (const PySwigIterator &/*x*/) const
     {
       throw std::invalid_argument("operation not supported");
     }

@@ -10,7 +10,7 @@
     static const Polarization polarization = UnaryPolarization; 
   }; 
   template <Polarization P> 
-    struct Interface 
+    struct Interface_
     { 
     }; 
  
@@ -26,16 +26,16 @@
     }; 
 %} 
  
-%template(Interface_UP) Interface<UnaryPolarization>; 
+%template(Interface_UP) Interface_<UnaryPolarization>; 
 %template(Module_1) Module<1>; 
  
 %inline %{ 
   struct ExtInterface1 :  
-    Interface<UnaryPolarization> // works 
+    Interface_<UnaryPolarization> // works 
   { 
   }; 
   struct ExtInterface2 : 
-    Interface<interface_traits::polarization>  // doesn't work 
+    Interface_<interface_traits::polarization>  // doesn't work 
   { 
   }; 
   struct ExtModule1 : 

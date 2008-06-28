@@ -2,7 +2,7 @@
 #define OCAML_OCAMLKW_SWG_
 
 /* Warnings for Ocaml keywords */
-#define OCAMLKW(x) %namewarn("314:" #x " is a ocaml keyword and it will properly renamed")  #x
+#define OCAMLKW(x) %namewarn("314: '" #x "' is a ocaml keyword and it will properly renamed")  #x
 
 /*
   from

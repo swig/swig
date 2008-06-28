@@ -73,7 +73,7 @@ static SWIG_CSharpExceptionArgument_t SWIG_csharp_exceptions_argument[] = {
 
 static void SWIGUNUSED SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes code, const char *msg) {
   SWIG_CSharpExceptionCallback_t callback = SWIG_csharp_exceptions[SWIG_CSharpApplicationException].callback;
-  if (code >=0 && (size_t)code < sizeof(SWIG_csharp_exceptions)/sizeof(SWIG_CSharpException_t)) {
+  if ((size_t)code < sizeof(SWIG_csharp_exceptions)/sizeof(SWIG_CSharpException_t)) {
     callback = SWIG_csharp_exceptions[code].callback;
   }
   callback(msg);
@@ -81,7 +81,7 @@ static void SWIGUNUSED SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes 
 
 static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExceptionArgumentCodes code, const char *msg, const char *param_name) {
   SWIG_CSharpExceptionArgumentCallback_t callback = SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentException].callback;
-  if (code >=0 && (size_t)code < sizeof(SWIG_csharp_exceptions_argument)/sizeof(SWIG_CSharpExceptionArgument_t)) {
+  if ((size_t)code < sizeof(SWIG_csharp_exceptions_argument)/sizeof(SWIG_CSharpExceptionArgument_t)) {
     callback = SWIG_csharp_exceptions_argument[code].callback;
   }
   callback(msg, param_name);

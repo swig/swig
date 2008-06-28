@@ -2,6 +2,12 @@
 
 %module example;
 
+%{
+void divide_l(int a, int b, int *quotient_p, int *remainder_p);
+void divide_v(int a, int b, int *quotient_p, int *remainder_p);
+void divide_mv(int a, int b, int *quotient_p, int *remainder_p);
+%}
+
 /* Multiple values as lists. By default, if more than one value is to
 be returned, a list of the values is created and returned; to switch
 back to this behavior, use: */

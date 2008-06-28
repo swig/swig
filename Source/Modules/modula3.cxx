@@ -472,9 +472,9 @@ MODULA3():
 	  cap = true;
 	} else {
 	  if (cap) {
-	    m3sym[i] = toupper(c);
+	    m3sym[i] = (char)toupper(c);
 	  } else {
-	    m3sym[i] = tolower(c);
+	    m3sym[i] = (char)tolower(c);
 	  }
 	  cap = false;
 	}

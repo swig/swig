@@ -490,8 +490,6 @@ public:
         Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
         break;
       }
-
-      p = nextSibling(p);
     }
 
     // add all argcheck code
@@ -1101,7 +1099,6 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     current = STATIC_FUNC;
     return Language::staticmemberfunctionHandler(n);
-    current = NO_CPP;
   }
 
   /* ------------------------------------------------------------
@@ -1123,7 +1120,6 @@ public:
     //    REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
     return Language::staticmembervariableHandler(n);
-    current = NO_CPP;
   }
 
   /* ---------------------------------------------------------------------

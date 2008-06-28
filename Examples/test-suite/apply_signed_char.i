@@ -31,5 +31,7 @@
     const char memberconstchar;
 
     virtual ~DirectorTest() {}
+  private:
+    DirectorTest& operator=(const DirectorTest &);
   };
 %}

@@ -23,7 +23,7 @@ Zoo::~Zoo()
 	IterType iter = this->animals.begin();
 	IterType end = this->animals.end();
 
-	for(iter; iter != end; ++iter)
+	for(; iter != end; ++iter)
 	{
 		Animal* animal = *iter;
 		delete animal;

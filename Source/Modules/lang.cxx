@@ -1097,38 +1097,33 @@ int Language::globalfunctionHandler(Node *n) {
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
-  String *storage = Getattr(n, "storage");
   ParmList *parms = Getattr(n, "parms");
 
-  if (0 && (Cmp(storage, "static") == 0)) {
-    Swig_restore(n);
-    return SWIG_NOWRAP;		/* Can't wrap static functions */
-  } else {
-    /* Check for callback mode */
-    String *cb = GetFlagAttr(n, "feature:callback");
-    if (cb) {
-      String *cbname = Getattr(n, "feature:callback:name");
-      if (!cbname) {
-	cbname = NewStringf(cb, symname);
-	Setattr(n, "feature:callback:name", cbname);
-      }
-
-      callbackfunctionHandler(n);
-      if (Cmp(cbname, symname) == 0) {
-	Delete(cbname);
-	Swig_restore(n);
-	return SWIG_NOWRAP;
-      }
-      Delete(cbname);
+  /* Check for callback mode */
+  String *cb = GetFlagAttr(n, "feature:callback");
+  if (cb) {
+    String *cbname = Getattr(n, "feature:callback:name");
+    if (!cbname) {
+      cbname = NewStringf(cb, symname);
+      Setattr(n, "feature:callback:name", cbname);
     }
-    Setattr(n, "parms", nonvoid_parms(parms));
-    String *call = Swig_cfunction_call(name, parms);
-    String *cres = Swig_cresult(type, "result", call);
-    Setattr(n, "wrap:action", cres);
-    Delete(cres);
-    Delete(call);
-    functionWrapper(n);
+
+    callbackfunctionHandler(n);
+    if (Cmp(cbname, symname) == 0) {
+      Delete(cbname);
+      Swig_restore(n);
+      return SWIG_NOWRAP;
+    }
+    Delete(cbname);
   }
+  Setattr(n, "parms", nonvoid_parms(parms));
+  String *call = Swig_cfunction_call(name, parms);
+  String *cres = Swig_cresult(type, "result", call);
+  Setattr(n, "wrap:action", cres);
+  Delete(cres);
+  Delete(call);
+  functionWrapper(n);
+
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -1376,9 +1371,6 @@ int Language::variableHandler(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::globalvariableHandler(Node *n) {
-  String *storage = Getattr(n, "storage");
-  if (0 && (Cmp(storage, "static") == 0))
-    return SWIG_NOWRAP;
   variableWrapper(n);
   return SWIG_OK;
 }
@@ -2108,8 +2100,8 @@ int Language::classDirector(Node *n) {
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     Node *nodeType = Getattr(ni, "nodeType");
-    bool cdecl = (Cmp(nodeType, "cdecl") == 0);
-    if (cdecl && !GetFlag(ni, "feature:ignore")) {
+    bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
+    if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
       if (is_non_virtual_protected_access(ni)) {
         Node *overloaded = Getattr(ni, "sym:overloaded");
         // emit the using base::member statement (but only once if the method is overloaded)
@@ -3391,7 +3383,8 @@ int Language::is_assignable(Node *n) {
   SwigType *ftd = SwigType_typedef_resolve_all(type);
   SwigType *td = SwigType_strip_qualifiers(ftd);
   if (SwigType_type(td) == T_USER) {
-    if ((cn = Swig_symbol_clookup(td, 0))) {
+    cn = Swig_symbol_clookup(td, 0);
+    if (cn) {
       if ((Strcmp(nodeType(cn), "class") == 0)) {
 	if (Getattr(cn, "allocate:noassign")) {
 	  SetFlag(n, "feature:immutable");
