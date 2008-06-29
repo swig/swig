@@ -35,7 +35,3 @@ public:
   virtual double perimeter(void);
 };
 
-
-
-
-  

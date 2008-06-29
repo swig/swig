@@ -27,3 +27,4 @@ double Square::area(void) {
 double Square::perimeter(void) {
   return 4*width;
 }
+

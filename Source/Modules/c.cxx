@@ -358,25 +358,6 @@ public:
 
     // take care of shadow function
     if (shadow_flag) {
-      
-      /*
-      if (parms) {
-        String* stype = Getattr(parms, "c:stype");
-        if (stype) {
-          Swig_save("temp", parms, "type", NIL);
-          Setattr(parms, "type", stype);
-          proto = ParmList_str(parms);
-          Swig_restore(parms);
-        }
-        else {
-          proto = ParmList_str(parms);
-        }
-      }
-      else {
-        proto = empty_string;
-      }
-      */
-
       // use shadow-type for return type if supplied
       SwigType* shadow_type = Getattr(n, "c:stype");
       if (shadow_type) {
@@ -432,12 +413,13 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node* n) {
-    String* name = Getattr(n, "name");
+    String* name = Copy(Getattr(n, "name"));
     String* sobj_name = NewString("");
+    Replaceall(name, "::", "_");
 
     // emit "class"-struct definition
     Printv(sobj_name, "struct ", name, "Obj", NIL);
-    Printv(f_header, sobj_name, "{\n  void* obj;\n};\n\n", NIL);
+    Printv(f_header, sobj_name, " {\n  void* obj;\n};\n\n", NIL);
 
     // declare it in the proxy header
     if (shadow_flag) {
@@ -445,6 +427,7 @@ public:
     }
 
     Delete(sobj_name);
+    Delete(name);
     return Language::classHandler(n);
   }
 
@@ -461,23 +444,25 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node* n) {
-    String* name = Getattr(n, "sym:name");
-    String* classname = Getattr(parentNode(n), "sym:name");
+    String* name = Copy(Getattr(n, "name"));
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
     String* ctype = NewString("");
     String* stype = NewString("");
     String* new_name = NewString("");
     String* code = NewString("");
     String* arg_lnames = NewString("");
-
     ParmList* parms = Getattr(n, "parms");
 
+    Replaceall(newclassname, "::", "_");
+
     // create first argument
-    Printv(sobj_name, "struct ", classname, "Obj", NIL);
+    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm* p = NewParm(ctype, "self");
-    stype = Copy(classname);
+    stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
     Setattr(p, "c:immutable", "1");
@@ -500,7 +485,7 @@ public:
     Setattr(n, "wrap:action", code);
 
     // modify method name
-    Printv(new_name, classname, "_", name, NIL);
+    Printv(new_name, newclassname, "_", name, NIL);
     Setattr(n, "sym:name", new_name);
 
     functionWrapper(n);
@@ -511,6 +496,8 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
+    Delete(newclassname);
+    Delete(name);
     return SWIG_OK;
   }
 
@@ -532,19 +519,21 @@ public:
 
   virtual int membervariableHandler(Node* n) {
     String* name = Getattr(n, "sym:name");
-    String* classname = Getattr(parentNode(n), "sym:name");
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
     String* ctype = NewString("");
     String* stype = NewString("");
     String* new_name = NewString("");
     String* code = NewString("");
+    Replaceall(newclassname, "::", "_");
 
     // create first argument
-    Printv(sobj_name, "struct ", classname, "Obj", NIL);
+    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm* p = NewParm(ctype, "self");
-    stype = Copy(classname);
+    stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
     Setattr(p, "c:immutable", "1");
@@ -563,7 +552,7 @@ public:
     Setattr(n, "wrap:action", code);
 
     // modify method name
-    Printv(new_name, classname, "_get_", name, NIL);
+    Printv(new_name, newclassname, "_get_", name, NIL);
     Setattr(n, "sym:name", new_name);
 
     functionWrapper(n);
@@ -583,7 +572,7 @@ public:
     // modify method name
     Delete(new_name);
     new_name = NewString("");
-    Printv(new_name, classname, "_set_", name, NIL);
+    Printv(new_name, newclassname, "_set_", name, NIL);
     Setattr(n, "sym:name", new_name);
 
     functionWrapper(n);
@@ -592,6 +581,7 @@ public:
     Delete(new_name);
     Delete(ctype);
     Delete(sobj_name);
+    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -600,14 +590,17 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node* n) {
-    String* name = Getattr(n, "name");
+    String* name = Copy(Getattr(n, "name"));
+    String* classname = Getattr(parentNode(n), "name");
     String* sobj_name = NewString("");
     String* ctype = NewString("");
-    String* stype = NewString("");
+    String* stype;
     String* code = NewString("");
-    String* new_name = NewString("");
+    String* constr_name = NewString("");
     String* arg_lnames = NewString("");
     ParmList* parms = Getattr(n, "parms");
+
+    Replaceall(name, "::", "_");
 
     // prepare argument names
     add_parm_lnames(parms, arg_lnames);
@@ -623,21 +616,22 @@ public:
 
     // generate action code
     Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
-    Printv(code, "result->obj = (void*) new ", name, "(", arg_lnames, ");\n", NIL);
+    Printv(code, "result->obj = (void*) new ", classname, "(", arg_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
     
     // modify the constructor name
-    Printv(new_name, "new_", Getattr(n, "sym:name"), NIL);
-    Setattr(n, "sym:name", new_name);
+    Printv(constr_name, "new_", name, NIL);
+    Setattr(n, "sym:name", constr_name);
 
     functionWrapper(n);
 
     Delete(arg_lnames);
-    Delete(new_name);
+    Delete(constr_name);
     Delete(code);
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
+    Delete(name);
     return SWIG_OK;
   }
 
@@ -646,21 +640,25 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node* n) {
-    String* name = Getattr(n, "sym:name");
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
     String* ctype = NewString("");
-    String* stype = NewString("");
+    String* stype;
     String* code = NewString("");
-    String* new_name = NewString("");
+    String* destr_name = NewString("");
     Parm* p;
 
+    Replaceall(newclassname, "::", "_");
+    Replaceall(newclassname, "~", "");
+
     // create first argument
-    Printv(sobj_name, "struct ", name, "Obj", NIL);
+    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self");
     Setattr(p, "lname", "arg1");
-    stype = Copy(name);
+    stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
     Setattr(p, "c:immutable", "1");
@@ -668,21 +666,38 @@ public:
     Setattr(n, "type", "void");
 
     // create action code
-    Printv(code, "delete (", name, "*) ((", sobj_name, "*) arg1->obj);\nfree(arg1);\n", NIL);
+    Printv(code, "delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
     Setattr(n, "wrap:action", code);
 
     // modify the destructor name
-    Printv(new_name, "delete_", name, NIL);
-    Setattr(n, "sym:name", new_name);
+    Printv(destr_name, "delete_", newclassname, NIL);
+    Setattr(n, "sym:name", destr_name);
     
     functionWrapper(n);
 
     Delete(p);
-    Delete(new_name);
+    Delete(destr_name);
     Delete(code);
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
+    Delete(newclassname);
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * enumDeclaration()
+   * --------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * --------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
     return SWIG_OK;
   }
 

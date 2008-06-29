@@ -3,7 +3,7 @@ SWIG       = $(TOP)/../preinst-swig -debug-module 4
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
-MAIN       = main.c
+MAIN       = test.c
 
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
