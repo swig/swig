@@ -167,18 +167,21 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
     add_parms(Getattr(n, "throws"), cpatchlist, typelist);
   } else if (Equal(nodeType, "destructor")) {
     String *name = Getattr(n, "name");
-    if (name && strchr(Char(name), '<')) {
-      Append(patchlist, Getattr(n, "name"));
-    } else {
-      Append(name, templateargs);
+    if (name) {
+      if (strchr(Char(name), '<'))
+        Append(patchlist, Getattr(n, "name"));
+      else
+        Append(name, templateargs);
     }
     name = Getattr(n, "sym:name");
-    if (name && strchr(Char(name), '<')) {
-      String *sn = Copy(tname);
-      Setattr(n, "sym:name", sn);
-      Delete(sn);
-    } else {
-      Replace(name, tname, rname, DOH_REPLACE_ANY);
+    if (name) {
+      if (strchr(Char(name), '<')) {
+        String *sn = Copy(tname);
+        Setattr(n, "sym:name", sn);
+        Delete(sn);
+      } else {
+        Replace(name, tname, rname, DOH_REPLACE_ANY);
+      }
     }
     /* Setattr(n,"sym:name",name); */
     Append(cpatchlist, Getattr(n, "code"));
