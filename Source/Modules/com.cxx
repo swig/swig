@@ -227,14 +227,20 @@ public:
         "\n  (SWIG_funcptr) SWIGRelease1",
         module_class_name, module_class_name);
 
+    Printf(clsid_list, "static char * SWIG_tlb_guid_string = \"{");
+    formatGUID(clsid_list, &typelib_guid, false);
+    Printf(clsid_list, "}\";\n\n");
+
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
-    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", module_class_name);
+    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, \"{", module_class_name, module_class_name);
+    formatGUID(clsid_list, &module_clsid, false);
+    Printf(clsid_list,  "}\" },\n");
 
     /* Emit code */
     Language::top(n);
 
     /* Insert guard element; IID_IUnknown could in fact be any GUID */
-    Printf(clsid_list, "  { NULL, IID_IUnknown } /* guard element */\n");
+    Printf(clsid_list, "  { NULL, IID_IUnknown, NULL } /* guard element */\n");
 
     Printf(clsid_list, "};\n\n");
 
@@ -261,7 +267,9 @@ public:
 
       Printf(f_deffile, "EXPORTS\n"
           "  DllGetClassObject\n"
-          "  DllCanUnloadNow\n");
+          "  DllCanUnloadNow\n"
+          "  DllRegisterServer\n"
+          "  DllUnregisterServer\n");
     }
 
     /* Generate the IDL file containing the module class and proxy classes */
@@ -781,7 +789,9 @@ public:
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
         Printf(proxy_class_vtable_code, ";\n\n");
 
-        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s },\n", proxy_class_name, proxy_class_name);
+        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, \"{", proxy_class_name, proxy_class_name);
+        formatGUID(clsid_list, proxy_clsid, false);
+        Printf(clsid_list,  "}\" },\n");
       }
 
       Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, REFIID iid, "

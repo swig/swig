@@ -56,6 +56,7 @@
 %insert("runtime") %{
 
 #include <windows.h>
+#include <olectl.h>
 
 typedef void (SWIGSTDCALL *SWIG_funcptr)(void);
 
@@ -182,6 +183,7 @@ SWIG_funcptr SWIGClassFactory_vtable[] = {
 typedef struct {
   SWIG_funcptr newInstance;
   GUID guid;
+  char *guid_string;
 } SWIGClassDescription_t;
 
 %}
@@ -210,9 +212,177 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *_ppv) {
   return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-STDAPI DllCanUnloadNow() {
+STDAPI DllCanUnloadNow(void) {
   /* FIXME */
   return S_FALSE;
+}
+
+STDAPI DllRegisterServer(void) {
+  char *module_name;
+  int allocated = 256;
+  int used;
+  int i;
+
+  do {
+    module_name = new char[allocated];
+    used = GetModuleFileName(GetModuleHandle("simple.dll"), module_name, allocated);
+
+    if (used == allocated) {
+      delete module_name;
+      allocated *= 2;
+    }
+  } while (used == allocated);
+
+  for (i = 0; SWIGClassDescription[i].newInstance != NULL; ++i) {
+    HKEY hkey_clsid, hkey, hsubkey;
+
+    if (RegOpenKeyEx(HKEY_CLASSES_ROOT, "CLSID", 0, KEY_ALL_ACCESS, &hkey_clsid) != ERROR_SUCCESS) {
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    if (RegCreateKeyEx(hkey_clsid, SWIGClassDescription[i].guid_string, 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_clsid);
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    if (RegCreateKeyEx(hkey, "InprocServer32", 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hsubkey, NULL) !=
+        ERROR_SUCCESS) {
+      CloseHandle(hkey_clsid);
+      CloseHandle(hkey);
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    if (RegSetValueEx(hsubkey, "", NULL, REG_SZ, (BYTE *) module_name, used + 1) != ERROR_SUCCESS) {
+      CloseHandle(hkey_clsid);
+      CloseHandle(hkey);
+      CloseHandle(hsubkey);
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    if (RegSetValueEx(hsubkey, "ThreadingModel", NULL, REG_SZ, (BYTE *) "Both", 5) != ERROR_SUCCESS) {
+      CloseHandle(hkey_clsid);
+      CloseHandle(hkey);
+      CloseHandle(hsubkey);
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    CloseHandle(hkey_clsid);
+    CloseHandle(hkey);
+    CloseHandle(hsubkey);
+  }
+
+  {
+    HKEY hkey_typelib, hkey, hkey_version, hkey_helpdir, hkey_flags, hkey_0, hkey_win32;
+
+    if (RegOpenKeyEx(HKEY_CLASSES_ROOT, "TypeLib", 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
+      delete module_name;
+      return SELFREG_E_CLASS;
+    }
+
+    if (RegCreateKeyEx(hkey_typelib, SWIG_tlb_guid_string, 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegCreateKeyEx(hkey, /* FIXME */ "1.0", 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_version, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegCreateKeyEx(hkey_version, "HELPDIR", 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_helpdir, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegSetValueEx(hkey_helpdir, "", NULL, REG_SZ, (BYTE *) "0", 2) != ERROR_SUCCESS) {
+      CloseHandle(hkey_helpdir);
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    CloseHandle(hkey_helpdir);
+
+    if (RegCreateKeyEx(hkey_version, "FLAGS", 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_flags, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegSetValueEx(hkey_flags, "", NULL, REG_SZ, (BYTE *) "0", 2) != ERROR_SUCCESS) {
+      CloseHandle(hkey_flags);
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    CloseHandle(hkey_flags);
+
+    if (RegCreateKeyEx(hkey_version, "0", 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_0, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegCreateKeyEx(hkey_0, "win32", 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_win32, NULL) != ERROR_SUCCESS) {
+      CloseHandle(hkey_0);
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    if (RegSetValueEx(hkey_win32, "", NULL, REG_SZ, (BYTE *) module_name, used + 1) != ERROR_SUCCESS) {
+      CloseHandle(hkey_win32);
+      CloseHandle(hkey_0);
+      CloseHandle(hkey_version);
+      CloseHandle(hkey);
+      CloseHandle(hkey_typelib);
+      delete module_name;
+      return SELFREG_E_TYPELIB;
+    }
+
+    CloseHandle(hkey_typelib);
+    CloseHandle(hkey);
+    CloseHandle(hkey_version);
+    CloseHandle(hkey_0);
+    CloseHandle(hkey_win32);
+  }
+
+  delete module_name;
+
+  return S_OK;
+}
+
+STDAPI DllUnregisterServer(void) {
+  return S_OK;
 }
 
 %}
