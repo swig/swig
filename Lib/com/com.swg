@@ -58,6 +58,9 @@
 #include <windows.h>
 #include <olectl.h>
 
+#include <string.h>
+#include <memory.h>
+
 typedef void (SWIGSTDCALL *SWIG_funcptr)(void);
 
 struct SWIGWrappedObject {
