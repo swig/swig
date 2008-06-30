@@ -57,7 +57,6 @@
 
 #include <windows.h>
 #include <olectl.h>
-#include <guiddef.h>
 
 #include <string.h>
 #include <memory.h>
