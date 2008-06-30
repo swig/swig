@@ -1998,7 +1998,8 @@ public:
       if (!(variable_wrapper_flag && i == 0)) {
 	SwigType *pt = Getattr(p, "type");
 	String *param_type = NewString("");
-	last_parm = p;
+        if (setter_flag)
+          last_parm = p;
 
 	/* Get the C# parameter type */
 	if ((tm = Getattr(p, "tmap:cstype"))) {

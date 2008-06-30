@@ -847,7 +847,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
   String *result;
   int i, len;
 
-  if (t && strncmp(Char(t), "::", 2) == 0) {
+  if (strncmp(Char(t), "::", 2) == 0) {
     return Copy(t);
   }
 

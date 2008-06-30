@@ -192,11 +192,11 @@ public:
     formatGUID(module_class_vtable_code, &module_clsid, true);
     Printf(module_class_vtable_code, ";\n\n");
 
-    Printf(module_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface(void *that, REFIID iid, "
+    Printf(module_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface(void *that, GUID *iid, "
         "void ** ppvObject) {\n", module_class_name);
 
-    Printf(module_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
-        "      iid == IID_%s", module_class_name);
+    Printf(module_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
+        "      SWIGIsEqual(iid, &IID_%s)", module_class_name);
 
     Printf(module_class_vtable_code, ") {\n"
         "    /* FIXME: This could be more elegant */\n"
@@ -211,7 +211,11 @@ public:
 
     Printf(module_class_vtable_code,
         "void * SWIGSTDCALL _wrap_new_%s() {\n"
+        "#ifdef __cplusplus\n"
         "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
+        "#else\n"
+        "  SWIGWrappedObject *res = (SWIGWrappedObject *) malloc(sizeof(SWIGWrappedObject));\n"
+        "#endif\n"
         "  res->vtable = _wrap%s_vtable;\n"
         "  res->SWIGWrappedObject_vtable = NULL;\n"
         "  res->cPtr = NULL;\n"
@@ -232,15 +236,15 @@ public:
     Printf(clsid_list, "}\";\n\n");
 
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
-    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, \"{", module_class_name, module_class_name);
+    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, \"{", module_class_name, module_class_name);
     formatGUID(clsid_list, &module_clsid, false);
     Printf(clsid_list,  "}\" },\n");
 
     /* Emit code */
     Language::top(n);
 
-    /* Insert guard element; IID_IUnknown could in fact be any GUID */
-    Printf(clsid_list, "  { NULL, IID_IUnknown, NULL } /* guard element */\n");
+    /* Insert guard element */
+    Printf(clsid_list, "  { NULL, NULL, NULL } /* guard element */\n");
 
     Printf(clsid_list, "};\n\n");
 
@@ -328,6 +332,7 @@ public:
     Delete(f_vtables);
     Dump(clsid_list, f_runtime);
     Delete(clsid_list);
+    Replaceall(f_factory, "$module", module_class_name);
     if (dllexports_flag)
       Dump(f_factory, f_runtime);
     Delete(f_factory);
@@ -792,17 +797,17 @@ public:
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
         Printf(proxy_class_vtable_code, ";\n\n");
 
-        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, \"{", proxy_class_name, proxy_class_name);
+        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, \"{", proxy_class_name, proxy_class_name);
         formatGUID(clsid_list, proxy_clsid, false);
         Printf(clsid_list,  "}\" },\n");
       }
 
-      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, GUID *iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
       /* Look if the requested interface is ISWIGWrappedObject */
       Printf(proxy_class_vtable_code,
-          "  if (iid == IID_ISWIGWrappedObject) {\n"
+          "  if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {\n"
           "    /* FIXME: This could be more elegant */\n"
           "    SWIGAddRef1(that);\n"
           /* Address of current object, incremented by the size of a pointer */
@@ -810,8 +815,8 @@ public:
           "    return S_OK;\n"
           "  }\n\n");
 
-      Printf(proxy_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
-        "      iid == IID_%s", proxy_class_name);
+      Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
+        "      SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
 
@@ -819,7 +824,7 @@ public:
       while (bases) {
         Iterator base = First(bases);
 
-        Printf(proxy_class_vtable_code, " ||\n      iid == IID_%s", Getattr(base.item, "sym:name"));
+        Printf(proxy_class_vtable_code, " ||\n      SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
 
         /* Get next base */
         bases = Getattr(base.item, "bases");
@@ -836,7 +841,7 @@ public:
 
       bases = NULL;
 
-      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface2(void *that, REFIID iid, "
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface2(void *that, GUID *iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
       Printf(proxy_class_vtable_code,
@@ -906,7 +911,11 @@ public:
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
       Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg) {\n"
+          "#ifdef __cplusplus\n"
           "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
+          "#else\n"
+          "  SWIGWrappedObject *res = (SWIGWrappedObject *) malloc(sizeof(SWIGWrappedObject));\n"
+          "#endif\n"
           "  res->vtable = _wrap%svtable;\n"
           "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
           "  res->cPtr = arg;\n"

@@ -2518,6 +2518,8 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   ParmList *parms = CopyParmList(Getattr(n, "parms"));
   Wrapper *f = NewWrapper();
+  SwigType *t = Getattr(n, "type");
+  String *name = Getattr(n, "name");
 
   String *raw_return_type = Swig_typemap_lookup("ctype", n, "", 0);
   SwigType *return_type = Swig_cparse_type(raw_return_type);
@@ -2556,7 +2558,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
     if (Getattr(n, "overload:ignore")) {
       // if we're the last overload, make sure to force the emit
       // of the rest of the overloads before we leave.
-      Printf(stderr, "ignored overload %s(%x)\n", Getattr(n, "name"), Getattr(n, "sym:nextSibling"));
+      Printf(stderr, "ignored overload %s(%x)\n", name, Getattr(n, "sym:nextSibling"));
       if (!Getattr(n, "sym:nextSibling")) {
 	update_package_if_needed(n);
 	emit_buffered_defuns(n);
@@ -2571,7 +2573,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
   int gencomma = 0;
 
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "Walking parameters for %s '%s'\n", Getattr(n, "allegrocl:kind"), Getattr(n, "name"));
+  Printf(stderr, "Walking parameters for %s '%s'\n", Getattr(n, "allegrocl:kind"), name);
 #endif
   // Now walk the function parameter list and generate code to get arguments
   String *name_and_parms = NewStringf("%s (", mangled);
@@ -2625,12 +2627,16 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   String *actioncode = emit_action(n);
 
-  String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
-  Replaceall(result_convert, "$result", "lresult");
-  Printf(f->code, "%s\n", result_convert);
-  Printf(f->code, "    return lresult;\n");
-  Delete(result_convert);
-  emit_return_variable(n, Getattr(n, "type"), f);
+  String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  if (tm) {
+    Replaceall(tm, "$result", "lresult");
+    Printf(f->code, "%s\n", tm);
+    Printf(f->code, "    return lresult;\n");
+    Delete(tm);
+  } else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), name);
+  }
+  emit_return_variable(n, t, f);
 
   if (CPlusPlus) {
     Printf(f->code, "  } catch (...) {\n");
