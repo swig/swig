@@ -1091,9 +1091,14 @@ public:
     Clear(proxy_class_def);
     Clear(proxy_class_forward_def);
 
+    proxy_iid = new GUID;
+    generateGUID(proxy_iid);
+
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
 
-    Printv(proxy_class_def, "  [\n    object,\n    local\n  ]\n  interface $comclassname {\n",
+    Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
+    formatGUID(proxy_class_def, proxy_iid, false);
+    Printv(proxy_class_def, ")\n  ]\n  interface $comclassname {\n",
            typemapLookup("combody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),
 	   typemapLookup("comcode", type, WARN_NONE),
            "  };\n\n", NIL);
@@ -1103,8 +1108,12 @@ public:
     Replaceall(proxy_class_forward_def, "$module", module_class_name);
     Replaceall(proxy_class_def, "$module", module_class_name);
 
+    Printf(f_vtable_defs, "void * (SWIGSTDCALL * SWIG_wrap%s)(void *) = SWIG_wrap_opaque;\n", classname);
+
     Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
     Printv(f_proxy, proxy_class_def, NIL);
+
+    delete proxy_iid;
   }
 
   /* -----------------------------------------------------------------------------

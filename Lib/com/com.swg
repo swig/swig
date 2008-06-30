@@ -189,6 +189,55 @@ typedef struct {
   char *guid_string;
 } SWIGClassDescription_t;
 
+HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
+  if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {
+    /* FIXME: This could be more elegant */
+    SWIGAddRef1(that); 
+    *ppvObject = (void *) ((void **)that + 1);
+    return S_OK;
+  }
+  
+  if (SWIGIsEqual(iid, &IID_IUnknown)) {
+    /* FIXME: This could be more elegant */
+    SWIGAddRef1(that);
+    *ppvObject = that;
+    return S_OK;
+  }
+  
+  return E_NOINTERFACE;
+}
+
+HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface2(void *that, GUID *iid, void ** ppvObject) {
+  return _wrap_opaque_QueryInterface1((void *) ((void **) that - 1), iid, ppvObject);
+}
+
+SWIG_funcptr _wrap_opaque_SWIGWrappedObject_vtable[] = {
+  (SWIG_funcptr) _wrap_opaque_QueryInterface2,
+  (SWIG_funcptr) SWIGAddRef2,
+  (SWIG_funcptr) SWIGRelease2,
+  (SWIG_funcptr) SWIGGetCPtr
+};
+
+SWIG_funcptr _wrap_opaque_vtable[] = {
+  (SWIG_funcptr) _wrap_opaque_QueryInterface1,
+  (SWIG_funcptr) SWIGAddRef1,
+  (SWIG_funcptr) SWIGRelease1,
+};
+
+void * SWIGSTDCALL SWIG_wrap_opaque(void *arg) {
+#ifdef __cplusplus
+  SWIGWrappedObject *res = new SWIGWrappedObject;
+#else
+  SWIGWrappedObject *res = (SWIGWrappedObject *) malloc(sizeof(SWIGWrappedObject));
+#endif
+  res->vtable = _wrap_opaque_vtable;
+  res->SWIGWrappedObject_vtable = _wrap_opaque_SWIGWrappedObject_vtable;
+  res->cPtr = arg;
+  res->cMemOwn = 0;
+  res->refCount = 0;
+  return (void *) res;
+}
+
 %}
 
 %insert("factory") %{
