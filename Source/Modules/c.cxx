@@ -194,25 +194,6 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * add_parm_names()
-   * ------------------------------------------------------------------------ */  
-
-  void add_parm_lnames(ParmList* parms, String* arg_list) {
-    Parm* p, * np;
-    int i = 1;
-    for (p = parms; p; ) {
-      np = nextSibling(p);
-      String* name = NewString("");
-      Printf(name, "arg%d", i++);
-      if (arg_list)
-        Printv(arg_list, name, np ? ", " : "", NIL);
-      Setattr(p, "lname", name);
-      Delete(name);
-      p = np;
-    }
-  }
-
-  /* -----------------------------------------------------------------------
    * globalvariableHandler()
    * ------------------------------------------------------------------------ */  
 
@@ -244,7 +225,6 @@ public:
     Printv(action, Swig_cfunction_call(Getattr(n, "name"), parms), ";", NIL);
     Setattr(n, "wrap:action", action);
 
-    //Language::globalfunctionHandler(n);
     functionWrapper(n);
 
     // add visibility hint for the compiler (do not override this symbol)
@@ -288,7 +268,6 @@ public:
         Printv(return_type, SwigType_str(type, 0), NIL);
     }
     else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-      Printf(stdout, "FW = %s TM = %s\n", Getattr(n, "name"), tm);
       String *ctypeout = Getattr(n, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
       if (ctypeout)
         tm = ctypeout;
@@ -305,7 +284,7 @@ public:
     emit_parameter_variables(parms, wrapper);
 
     // is the function void?
-    is_void_return = (Strcmp(return_type, "void") == 0);
+    is_void_return = (SwigType_type(Getattr(n, "type")) == T_VOID);
 
     // add variable for holding result of original function
     if (!is_void_return && (Cmp(Getattr(n, "c:immutable"), "1") != 0)) {
@@ -444,7 +423,7 @@ public:
         if (*t == '{') {
           Delitem(append_str, 0);
           Delitem(append_str, DOH_END);
-          }
+        }
         Printv(f_shadow_code_body, append_str, "\n", NIL);
       }
 
@@ -464,13 +443,50 @@ public:
   }
 
   /* ---------------------------------------------------------------------
+   * copy_node()
+   * --------------------------------------------------------------------- */
+
+  Node* copy_node(Node *node) {
+    Node* new_node = NewHash();
+    Setattr(new_node, "name", Copy(Getattr(node, "name")));
+    Setattr(new_node, "ismember", Copy(Getattr(node, "ismember")));
+    Setattr(new_node, "view", Copy(Getattr(node, "view")));
+    Setattr(new_node, "kind", Copy(Getattr(node, "kind")));
+    Setattr(new_node, "access", Copy(Getattr(node, "access")));
+    Setattr(new_node, "parms", Copy(Getattr(node, "parms")));
+    Setattr(new_node, "type", Copy(Getattr(node, "type")));
+    Setattr(new_node, "decl", Copy(Getattr(node, "decl")));
+    return new_node;
+  }
+
+  /* ---------------------------------------------------------------------
    * classDeclaration()
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node* n) {
     String* name = Copy(Getattr(n, "name"));
     String* sobj_name = NewString("");
+    List* baselist = Getattr(n, "bases");
     Replaceall(name, "::", "_");
+
+    // inheritance support: attach all members from base classes to this class
+    if (baselist) {
+      Iterator i;
+      for (i = First(baselist); i.item; i = Next(i)) {
+        // look for member variables (TODO: support for other constructs)
+        Node* node;
+        for (node = firstChild(i.item); node; node = nextSibling(node)) {
+          if ((Cmp(Getattr(node, "kind"), "variable") == 0)
+              && (Cmp(Getattr(node, "access"), "private") != 0)
+              && (Cmp(Getattr(node, "storage"), "static") != 0)) {
+            Node* new_node = copy_node(node);
+            Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+            set_nodeType(new_node, "cdecl");
+            appendChild(n, new_node);
+          }
+        }
+      }
+    }
 
     // emit "class"-struct definition
     Printv(sobj_name, "struct ", name, "Obj", NIL);
@@ -527,12 +543,14 @@ public:
 
     // prepare argument names
     parms = Getattr(n, "parms");
-    add_parm_lnames(parms, arg_lnames);
+    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // omit first argument in method call
     String* arg_call_lnames = Strstr(arg_lnames, "arg2");
     if (!arg_call_lnames)
       arg_call_lnames = empty_string;
+    else
+      Delitem(arg_lnames, DOH_END);
 
     // generate action code
     Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
@@ -619,7 +637,7 @@ public:
     Setattr(n, "type", "void");
 
     // generate action code
-    Delete(code);
+
     code = NewString("");
     Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
     Setattr(n, "wrap:action", code);
@@ -658,7 +676,7 @@ public:
     Replaceall(name, "::", "_");
 
     // prepare argument names
-    add_parm_lnames(parms, arg_lnames);
+    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // set the function return type to the pointer to struct
     Printv(sobj_name, "struct ", name, "Obj", NIL);
@@ -672,7 +690,7 @@ public:
 
     // generate action code
     Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
-    Printv(code, "result->obj = (void*) new ", classname, "(", arg_lnames, ");\n", NIL);
+    Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
     Setattr(n, "wrap:action", code);
     
     // modify the constructor name
