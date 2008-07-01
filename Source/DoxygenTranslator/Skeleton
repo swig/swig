@@ -1,0 +1,1070 @@
+/** NOT A WORKING FILE- NOTES/SCRAPS
+ * A result of the initial implementation,
+ * stopped early because I changed my design. This is currently
+ * being reworked in the actual DoxygenTranslator class
+ */
+
+
+
+
+/* The Very Large and Unelegant Solution for dealing with Doxygen commands such as
+ * " \param".
+ * This is implemented this way because a LARGE number of potential Doxygen commands
+ * are not needed (such as PHP only or calling call graphs) and thus are simply
+ * thrown out. The more useful functions
+ * maybe be compartmentalised into their own method later on.
+ */
+
+int addComment(int commentNum){
+	
+	startIndex = endIndex;
+	string name;
+	string nextWordInLine = "";
+	string restOfLine = "";
+	string restOfParagraph = "";
+	string headerfile ="";
+	string headername = "";
+	switch(commentNum){
+	
+
+	/* \a */
+	case 101:
+		nextWordInLine = getNextWord();
+		if((nextWordInLine).empty()){
+			cout << "Error: No word after tag a "<< endl;
+		}
+		else entityList.push_back( DoxygenEntity(101, "", nextWordInLine));
+		startIndex = endIndex;
+		break;
+		
+		/* \addindex */
+	case 102:
+		cout << "Add Index May not be Supported."<< endl;
+		restOfLine = getOneLineSentence();
+		if((restOfLine).empty()){
+			cout << "Error: No word after tag a "<< endl;
+		}
+		else entityList.push_back( DoxygenEntity(102, "", restOfLine));
+		startIndex = endIndex;
+		break;
+	
+	/* \addtogroup */
+	case 103:
+
+	
+		name = getNextWord();
+		if (anythingLeftOnLine()){
+			restOfLine = getOneLineSentence();
+			entityList.push_back( DoxygenEntity(103, "", restOfLine));
+		}
+		else 	cout << "AddtoGroup only supported for <name> [(title)]. Command not added" << endl;
+		break;
+		
+	/* \anchor */
+	case 104 :
+		getNextWord();
+		cout << "Anchor is not supported. Command not added." << endl;
+		break;
+		
+	/* \arg */	
+	case 105:
+
+		break;
+		
+	/* \attention */	
+	case 106:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(106, "", restOfLine));
+		else cout << "Nothing followed attention command. Not added" <<endl;
+		break;
+		
+	/* \author */
+	case 107:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		entityList.push_back( DoxygenEntity(107, "", restOfLine));
+		break;
+	
+	/* \b */
+	case 108:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(108, "", restOfLine)); 
+		else cout << "No word followed b command. Not added" <<endl;
+		break;
+		
+	/* \brief */
+	case 109:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(109, "", restOfLine));
+		else cout << "Nothing followed brief command. Not added" <<endl;
+		break;
+		
+	/* \bug */
+	case 110:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(110, "", restOfLine));
+		else cout << "Nothing followed bug command. Not added" <<endl;
+		break;
+	
+	/* \c */
+	case 111:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(111, "", restOfLine)); 
+		else cout << "No word followed c command. Not added" <<endl;
+		break;
+
+	/* \callgraph */
+	case 112:
+		cout << "Callgraph is not supported. Command not added." << endl;
+		break;
+	
+	/* \callergraph */
+	case 113:
+		cout << "Callergraph is not supported. Command not added." << endl;
+		break;
+	
+		/* \category */
+	case 114:
+		cout << "Category is a command for Objective C only. Command not added." << endl;
+		break;
+		
+	/* \class <name> [<header-file>] [<header-name>] */
+	case 115:
+		name = getNextWord();
+		if (name.empty()) cout << "No word followed class command. Not added" <<endl;
+		headerfile = getNextWord();
+		headername = getNextWord();
+		entityList.push_back( DoxygenEntity(115, headerfile, headername));
+		break;
+	
+	/* \code */
+	case 116:
+		cout << "Code is not supported. Command not added." << endl;
+		if (progressTilEndCommand("endcode") < 1) cout << "No endcode for command code found" << endl;	
+		break;
+		
+	/* \cond [<section-label>] */
+	case 117:
+		cout << "cond is not supported. Command not added." << endl;
+		if (progressTilEndCommand("endcond") < 1) cout << "No endcode for command code found" << endl;	
+		break;
+		
+	/* \copybrief <link-object> */
+	case 118:
+		getNextWord();
+		cout << "copybrief is not yet implemented. Command not added." << endl;
+		break;
+		
+	/* \copydetails  <link-object> */
+	case 119:
+		getNextWord();
+		cout << "copydetails is not yet implemented. Command not added." << endl;
+		break;
+		
+	/* \copydoc <link-object> */
+	case 120:
+		getNextWord();
+		cout << "copydoc is not yet implemented. Command not added." << endl;
+		break;
+	
+		/* \date { date description } */
+	case 121:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(121, "", restOfLine));
+		else cout << "Nothing followed date command. Not added" << endl;
+		break;
+	
+	/* \def <name> */
+	case 122:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(122, name, "")); 
+		else cout << "No word followed def command. Not added" << endl;
+		break;
+	
+	/* \defgroup <name> (group title) */
+	case 123:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed def command. Not added" << endl; 
+		else {
+			restOfLine = getOneLineSentence();
+			if((restOfLine).empty()){
+			cout << "Error: No word after tag a "<< endl;
+			}
+			else entityList.push_back( DoxygenEntity(123, name, restOfLine));
+		}
+		break;
+		
+	/* \deprecated { description } */
+	case 124:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(124, "", restOfLine));
+		else cout << "Nothing followed deprecated command. Not added" << endl;
+		break;
+		
+	/* \details {detailed decription} */
+	case 125:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(125, "", restOfLine));
+		else cout << "Nothing followed details command. Not added" << endl;
+		break;
+	
+	/* \dir [<path fragment>] */
+	case 126:
+		restOfLine = getOneLineSentence();
+		entityList.push_back( DoxygenEntity(126, restOfLine , ""));
+		break;
+		
+	/* \dontinclude <file-name> */
+	case 127:
+		getNextWord();
+		cout << "dontinclude is not implemented. Command not added." << endl;
+		break;
+	
+	/* \dot */
+	case 128:
+		cout << "dot is not implemented. Command not added." << endl;
+		break;
+		
+	/* \dotfile <file> ["caption"] */
+	case 129:
+		getOneLineSentence();
+		cout << "dotfile is not implemented. Command not added." << endl;
+		break;
+		
+	/* \e <word> */
+	case 130:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(130, name, "")); 
+		else cout << "No word followed e command. Not added" <<endl;
+	break;
+		   
+	/* \else */
+	case 131:
+		cout << "else not yet implemented." << endl;
+	break;
+		   
+	/* \elseif <section-label> */
+	case 132:
+		getNextWord();
+		cout << "elseif is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \em <word> */
+	/* Identical to e, so calls e */
+	case 133:
+		addComment(130);
+	break;
+		   
+	/* \endcode */
+	case 134:
+		cout << "endcode is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endcond */
+	case 135:
+		cout << "endcond is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \enddot */
+	case 136:
+		cout << "enddot is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endhtmlonly */
+	case 137:
+		cout << "endhtmlonly is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endif */
+	case 138:
+		cout << "endif is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endlatexonly */
+	case 139:
+		cout << "endlatexonly is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endlink */
+	case 140:
+		cout << "endlink is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endmanonly */
+	case 141:
+		cout << "endmanonly is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endmsc */
+	case 142:
+		cout << "endmsc is not implemented. Command not added." << endl;
+	 break;
+		   
+	/* \endverbatim */
+	case 143:
+		cout << "endmsc is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \endxmlonly */
+	case 144:
+		cout << "endxmlonly is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \enum <name> */
+	case 145:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(145, name, "")); 
+		else cout << "No word followed enum command. Not added" <<endl;
+	break;
+		   
+	/* \example <file-name> */
+	case 146:
+		name = getNextWord();
+		if (!name.empty()) entityList.push_back( DoxygenEntity(146, name, "")); 
+		else cout << "No word followed example command. Not added" <<endl;
+	break;
+		   
+	/* \exception <exception-object> { exception description } */
+	case 147:
+		name = getNextWord();
+		if (name.empty()) cout << "No word followed exception command. Not added" <<endl;
+		else {
+			restOfParagraph = stringTilEndOfParagraph(endIndex);
+			if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(147, name, restOfParagraph));
+			else cout << "Nothing followed exception <word> command. Not added" << endl;
+		}
+	break;
+		   
+	/* \f$ */
+	case 148:
+		cout << "f$ is not supported. Command not added." << endl;
+		if (progressTilEndCommand("f$") < 1) cout << "No endcode for command f$ found" << endl;	
+	break;
+		   
+	/* \f[ */
+	case 149:
+		cout << "f$ is not supported. Command not added." << endl;
+		if (progressTilEndCommand("f]") < 1) cout << "No endcode for command f] found" << endl;	
+	break;
+		   
+	/* \f] */
+	case 150:
+		cout << "f] is not implemented. Command not added." << endl;
+	break;
+		   
+	/* \f{environment}{ */
+	case 151:
+		cout << "f{environment}{ is not implemented. This may cause abnormal behaviour." << endl;
+	break;
+		   
+	/* \f} */
+	case 152:
+		cout << "f} is not implemented. This may cause abnormal behaviour." << endl;
+	break;
+		   
+	/* \file [<name>] */
+	case 153:
+		name = getNextWord();
+				if (!name.empty()) entityList.push_back( DoxygenEntity(153, name, "")); 
+				else entityList.push_back( DoxygenEntity(153, "", "")); 
+	break;
+		   
+	/* \fn (function declaration) */
+	 case 154:
+			restOfLine = getOneLineSentence();
+			if((restOfLine).empty()){
+			cout << "Error: No word after tag fn "<< endl;
+			}
+			else entityList.push_back( DoxygenEntity(154, restOfLine, ""));
+		 break;
+		   
+	/* \headerfile <header-file> [<header-name>] */
+	case 155:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed headerfile command. Not added" << endl; 
+		else {
+			restOfLine = getNextWord();
+			entityList.push_back( DoxygenEntity(155, name, restOfLine));
+		}
+	break;
+		   
+	/* \hideinitializer */
+	case 156:
+	cout << "hideinitializer is not implemented." << endl;	
+	break;
+		   
+	/* \htmlinclude <file-name>*/
+	case 157:
+		name = getNextWord();
+			if (name.empty())cout << "No word followed htmlinclude command. Not added" << endl; 
+			else {
+				entityList.push_back( DoxygenEntity(157, name,""));
+			}
+	break;
+		   
+	/* \htmlonly */
+	case 158:
+		cout << "htmlonly will be implemented later. For now the html is ignored." << endl;
+		if (progressTilEndCommand("endhtmlonly") < 1) cout << "No endcode for command code found" << endl;
+	break;
+		   
+	/* \if <section-label> */
+	case 159:
+		cout << "if command is not implemented." << endl;
+	break;
+		   
+	/* \ifnot <section-label> */
+	case 160:
+		cout << "ifnot command is not implemented." << endl;
+		break;
+		   
+	/* \image <format> <file> ["caption"] [<sizeindication>=<size>] */
+	case 161:
+		cout << "Image unsupported. Program may behave strangely if command is over one line." << endl;
+		getOneLineSentence();
+		 break;
+		   
+	/* \include <file-name> */
+	case 162:
+		name = getNextWord();
+			if (name.empty())cout << "No word followed include command. Not added" << endl; 
+			else {
+				entityList.push_back( DoxygenEntity(162, name,""));
+			}
+		break;
+		   
+	/* \includelineno <file-name> */
+	case 163:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed includelineno command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(163, name,""));
+					}
+	 break;
+		   
+	/* \ingroup (<groupname> [<groupname> <groupname>]) */
+	case 164:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed ingroup command. Not added" << endl; 
+					else {
+						string groupnames = getOneLineSentence();
+						entityList.push_back( DoxygenEntity(164, name,groupnames));
+					}
+	break;
+		   
+	/* \internal */
+	case 165:
+		entityList.push_back( DoxygenEntity(165, "",""));
+		break;
+		   
+	/* \invariant { description of invariant } */
+	case 166:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(166, restOfLine,"" ));
+		else cout << "Nothing followed invariant command. Not added" << endl;
+		 break;
+		   
+	/* \interface <name> [<header-file>] [<header-name>] */
+	case 167:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed ingroup command. Not added" << endl; 
+					else {
+						string groupnames = getOneLineSentence();
+						entityList.push_back( DoxygenEntity(167, name, groupnames));
+					}
+	break;
+		   
+	/* \latexonly */
+	case 168:
+		cout << "latex only is not implemented" << endl;
+		if (progressTilEndCommand("endlatexonly") < 1) cout << "No endcode for command latexonly found" << endl;
+		break;
+		   
+	/* \li { item-description } */
+		//REDO
+	case 169:
+		addComment(105);
+		break;
+		   
+	/* \line ( pattern ) */
+	case 170:
+		restOfLine = getOneLineSentence();
+		if((restOfLine).empty()){
+		cout << "Error: No word after tag line "<< endl;
+		}
+		else entityList.push_back( DoxygenEntity(170, restOfLine, ""));
+	 break;
+		   
+	/* \link <link-object> */
+	case 171:
+		name = getNextWord();
+			if (name.empty())cout << "No word followed link command. Not added" << endl; 
+			else {
+				entityList.push_back( DoxygenEntity(171, name,""));
+			}
+		break;
+		   
+	/* \mainpage [(title)] */
+	case 172:
+		restOfLine = getOneLineSentence();
+		entityList.push_back( DoxygenEntity(172, restOfLine, ""));
+		break;
+		   
+	/* \manonly */
+	case 173:
+		cout << "manonly is not implemented" << endl;
+		if (progressTilEndCommand("endmanonly") < 1) cout << "No endcode for command manonly found" << endl;
+		break;
+		   
+	/* \msc */
+	case 174:
+		cout << "msc is not implemented" << endl;
+		if (progressTilEndCommand("endmanonly") < 1) cout << "No endcode for command mscfound" << endl;
+		break;
+		   
+	/* \n */
+	case 175:
+		entityList.push_back( DoxygenEntity(175, "",""));
+	break;
+		   
+	/* \name (header) */
+	case 176:
+		restOfLine = getOneLineSentence();
+		if((restOfLine).empty()){
+		cout << "Error: No word after header line "<< endl;
+		}
+		else entityList.push_back( DoxygenEntity(176, restOfLine, ""));
+		break;
+		   
+	/* \namespace <name> */
+	case 177:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed namespace command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(177, name,""));
+					}
+		break;
+		   
+	/* \nosubgrouping */
+		case 178:
+			cout << "Nosubgrouping not implemented "<< endl;
+		   break;
+		   
+	 /* \note { text } */
+	case 179:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(179, restOfLine,"" ));
+		else cout << "Nothing followed note command. Not added" << endl;
+		break;
+		   
+	/* \overload [(function declaration)] */
+	case 180:
+		restOfLine = getOneLineSentence();
+		entityList.push_back( DoxygenEntity(172, restOfLine, ""));
+		break;
+		   
+	/* \p <word> */
+	case 181:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed p command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(181, name,""));
+					}
+		break;
+		   
+	/* \package <name> */
+	case 182:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed package command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(182, name,""));
+					}
+		 break;
+		   
+	/* \page <name> (title) */
+	case 183:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed page command. Not added" << endl; 
+		else {
+			restOfLine = getOneLineSentence();
+			if((restOfLine).empty()){
+			cout << "Error: No word after tag page "<< endl;
+			}
+			else entityList.push_back( DoxygenEntity(183, name, restOfLine));
+		}
+		break;
+		   
+	/* \par [(paragraph title)] { paragraph } */
+	case 184:
+		name = getOneLineSentence();
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(184, name, restOfParagraph ));
+				else cout << "Nothing followed par command. Not added" << endl;
+		break;
+		   
+	/* \paragraph <paragraph-name> (paragraph title) */
+	case 185:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed paragraph command. Not added" << endl; 
+		else {
+			restOfLine = getOneLineSentence();
+			if((restOfLine).empty()){
+			cout << "Error: No word after tag paragraph "<< endl;
+			}
+			else entityList.push_back( DoxygenEntity(185, name, restOfLine));
+		}
+		break;
+		   
+	/* \param <parameter-name> { parameter description } */
+	case 186:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed parameter command. Not added" << endl; 
+		else {
+			restOfParagraph = stringTilEndOfParagraph(endIndex);
+			if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(186, name, restOfParagraph ));
+				else cout << "Nothing followed parameter command. Not added" << endl;
+		}
+		break;
+		   
+	/* \post { description of the postcondition } */
+	case 187:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(187, name, restOfParagraph ));
+			else cout << "Nothing followed post command. Not added" << endl;
+		break;
+		   
+	/* \pre { description of the precondition } */
+	case 188:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(187, name, restOfParagraph ));
+			else cout << "Nothing followed post command. Not added" << endl;
+		 break;
+		   
+		    /* \private (PHP only) */
+		    case 189:
+		    	cout << "Private is a PHP Only Command." << endl;
+		        break;
+		   
+		     /* \privatesection (PHP only) */
+		    case 190:
+		    	cout << "Privatesection is a PHP Only Command." << endl;
+		        break;
+		   
+		    /* \property (qualified property name) */
+		    case 191:
+				restOfLine = getOneLineSentence();
+				if(!restOfLine.empty()) entityList.push_back( DoxygenEntity(191, restOfLine, ""));
+				else cout << "Nothing followed property command. Not added" << endl;
+		        break;
+		   
+		    /* \protected (PHP only) */
+		    case 192:
+		    	cout << "Protected is a PHP Only Command." << endl;
+		        break;
+		   
+		    /* \protectedsection (PHP only) */
+		    case 193:
+		    	cout << "Protectedsection is a PHP Only Command." << endl;
+		        break;
+		   
+		    /* \protocol <name> [<header-file>] [<header-name>] */
+		    case 194:
+		        break;
+		   
+		    /* \public (PHP only) */
+		    case 195:
+		    	cout << "Public is a PHP Only Command." << endl;
+		        break;
+		   
+		    /* \publicsection (PHP only) */
+		    case 196:
+		    	cout << "Public Section is a PHP Only Command." << endl;
+		        break;
+		   
+	/* \ref <name> ["(text)"] */
+	 case 197:
+			name = getNextWord();
+			getOneLineSentence();
+			cout << "Ref is currently not supported." << endl;
+		break;
+		   
+	/* \relates <name> */
+	case 198:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed relates command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(198, name,""));
+					}
+		break;
+		   
+	/* \relatesalso <name> */
+	case 199:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed relatesalso command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(199, name,""));
+					}
+		break;
+		   
+	 /* \remarks { remark text } */
+	case 200:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(200, restOfParagraph, "" ));
+			else cout << "Nothing followed remarks command. Not added" << endl;
+		break;
+		   
+	/* \return { description of the return value } */
+	case 201:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(200, restOfParagraph, "" ));
+			else cout << "Nothing followed return command. Not added" << endl;
+		 break;
+		   
+	/* \retval <return value> { description } */
+	case 202:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed retval command. Not added" << endl; 
+		else {
+			restOfParagraph = stringTilEndOfParagraph(endIndex);
+			if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(202, name, restOfParagraph ));
+				else cout << "Nothing followed retval command. Not added" << endl;
+		}
+		break;
+		   
+	/* \sa { references } */
+	case 203:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(203, restOfParagraph, "" ));
+			else cout << "Nothing followed sa command. Not added" << endl;
+		break;
+		   
+	/* \section <section-name> (section title) */
+	case 204:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed section command. Not added" << endl; 
+		else {
+			restOfLine = getOneLineSentence();
+			if((restOfLine).empty()){
+			cout << "Error: No word after section paragraph "<< endl;
+			}
+			else entityList.push_back( DoxygenEntity(204, name, restOfLine));
+		}
+		 break;
+		   
+	/* \see { references } */
+	case 205:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(205, restOfParagraph, "" ));
+		else cout << "Nothing followed see command. Not added" << endl;
+		break;
+		   
+	/* \showinitializer */
+	case 206:
+		cout << "Showerinitializer command unsupported"<< endl;
+		break;
+		   
+	/* \since { text } */
+	case 207:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(207, restOfParagraph, "" ));
+		else cout << "Nothing followed since command. Not added" << endl;
+		 break;
+		   
+	/* \skip ( pattern ) */
+	case 208:
+		getOneLineSentence();
+		cout << "Skip command unsupported"<< endl;
+		break;
+		   
+	/* \skipline ( pattern ) */
+	case 209:
+		getOneLineSentence();
+		cout << "Skipline command unsupported"<< endl;
+		break;
+		   
+	/* \struct <name> [<header-file>] [<header-name>] */
+	case 210:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed struct command. Not added" << endl; 
+					else {
+						string groupnames = getOneLineSentence();
+						entityList.push_back( DoxygenEntity(210, name, groupnames));
+					}
+		break;
+		   
+	/* \subpage <name> ["(text)"] */
+	case 211:
+		getOneLineSentence();
+		cout << "subpag command unsupported"<< endl;
+		break;
+		   
+	/* \subsection <subsection-name> (subsection title) */
+	 case 212:
+			getOneLineSentence();
+		 cout << "subsection command unsupported"<< endl;
+		 break;
+		   
+	/* \subsubsection <subsubsection-name> (subsubsection title) */
+	case 213:
+		getOneLineSentence();
+		cout << "subsubsection  command unsupported"<< endl;
+		break;
+		   
+	/* \test { paragraph describing a test case } */
+	case 214:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(214, restOfParagraph, "" ));
+		else cout << "Nothing followed test command. Not added" << endl;
+		break;
+		   
+	/* \throw <exception-object> { exception description } */
+	case 215:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed throw command. Not added" << endl; 
+		else {
+			restOfParagraph = stringTilEndOfParagraph(endIndex);
+			if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(215, name, restOfParagraph ));
+				else cout << "Nothing followed throw command. Not added" << endl;  
+			}
+		 break;
+		   
+	/* \todo { paragraph describing what is to be done } */
+	case 216:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(216, restOfParagraph, "" ));
+		else cout << "Nothing followed todo command. Not added" << endl;
+		break;
+		   
+	/* \tparam <template-parameter-name> { description } */
+	case 217:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed tparam command. Not added" << endl; 
+		else {
+			restOfParagraph = stringTilEndOfParagraph(endIndex);
+			if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(217, name, restOfParagraph ));
+				else cout << "Nothing followed tparam command. Not added" << endl;
+		}
+		   break;
+		   
+	/* \typedef (typedef declaration) */
+	case 218:
+		restOfLine = getOneLineSentence();
+		if(!restOfLine.empty()) entityList.push_back( DoxygenEntity(218, restOfLine, ""));
+		else cout << "Nothing followed typedef command. Not added" << endl;
+		break;
+		   
+	/* \union <name> [<header-file>] [<header-name>] */
+	case 219:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed union command. Not added" << endl; 
+					else {
+						string groupnames = getOneLineSentence();
+						entityList.push_back( DoxygenEntity(219, name, groupnames));
+					}
+		break;
+		   
+	/* \until ( pattern ) */
+	 case 220:
+		restOfLine = getOneLineSentence();
+		if(!restOfLine.empty()) entityList.push_back( DoxygenEntity(220, restOfLine, ""));
+		else cout << "Nothing followed until command. Not added" << endl;
+		break;  
+		   
+		    /* \var (variable declaration) */
+	case 221:
+		restOfLine = getOneLineSentence();
+		if(!restOfLine.empty()) entityList.push_back( DoxygenEntity(221, restOfLine, ""));
+		else cout << "Nothing followed var command. Not added" << endl;
+		break;
+		   
+	/* \verbatim */
+	case 222:
+		cout << "Verbatim is not supported. Command not added." << endl;
+		if (progressTilEndCommand("endverbatim") < 1) cout << "No endcode for command verbatim found" << endl;	
+		break;
+		   
+	/* \verbinclude <file-name> */
+	case 223:
+		name = getNextWord();
+					if (name.empty())cout << "No word followed verbinclude command. Not added" << endl; 
+					else {
+						entityList.push_back( DoxygenEntity(223, name,""));
+					}
+		break;
+		   
+	/* \version { version number } */
+	case 224:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(224, restOfParagraph, "" ));
+		else cout << "Nothing followed version command. Not added" << endl;
+		break;
+		   
+	/* \warning { warning message } */
+	case 225:
+		restOfParagraph = stringTilEndOfParagraph(endIndex);
+		if(!restOfParagraph.empty()) entityList.push_back( DoxygenEntity(225, restOfParagraph, "" ));
+		else cout << "Nothing followed warning command. Not added" << endl;
+		break;
+		   
+	/* \weakgroup <name> [(title)] */
+	case 226:
+		name = getNextWord();
+		if (name.empty())cout << "No word followed weakgroup command. Not added" << endl; 
+		else {
+			string groupnames = getOneLineSentence();
+			entityList.push_back( DoxygenEntity(226, name,groupnames));
+			}
+		break;
+		   
+	/* \xmlonly */
+	case 227:
+		cout << "XML is not supported. Command not added." << endl;
+		if (progressTilEndCommand("endxmlonly") < 1) cout << "No endcode for command xmlonly found" << endl;	
+		break;
+		   
+	/* \xrefitem <key> "(heading)" "(list title)" {text} */
+	case 228:
+		//NEED TO IMPLEMENT
+		cout << "xrefitem is not supported yet. Command not added." << endl;
+		break;
+		   
+	/* \$ */
+	case 229:
+		entityList.push_back(229);
+		break;
+		   
+	/* \@ */
+	case 230:
+		entityList.push_back(230);
+		break;
+		   
+	/* \\ */
+	case 231:
+		entityList.push_back(231);
+		break;
+		   
+	/* \& */
+	case 232:
+		entityList.push_back(232);
+		break;
+		   
+	 /* \~[LanguageId] */
+	case 233:
+		break;
+		   
+	/* \< */
+	case 234:
+		entityList.push_back(234);
+		break;
+		   
+	/* \> */
+	case 235:
+		entityList.push_back(235);
+		break;
+		   
+	/* \# */
+	case 236:
+		entityList.push_back(236);
+		break;
+		   
+	/* \%  */
+	case 237:
+		entityList.push_back(237);
+		break;		
+
+		
+}
+		
+		}
+		
+int parse(string commentBlob){
+ //NO error checking since this is only for my personal testing
+ // usage for now is "program -DocStyle filename
+ 
+	/*
+ string java = "-java";
+
+ 
+ if ((argc < 3)||(java.compare(StringToLower(argv[1])))!= 0 ) {cout << "Incorrect Usage. -Docstyle filename only." << endl; exit(1);}
+ string line;
+ ifstream doxCommentFile(argv[2], ios::in);
+ doxCommentFile >> doxygenString;
+ while(getline(doxCommentFile, line)){
+ doxygenString += line + "\n";}
+ doxCommentFile.close();
+ */
+	doxygenString = commentBlob;
+ cout << doxygenString;
+
+
+if(doxygenString.compare(0, 3, "/**")!= 0 && doxygenString.compare(0, 3, "/*!")!= 0 
+		&& doxygenString.compare(0, 3, "///")!= 0 && doxygenString.compare(0, 3, "//!")!= 0 ){
+	
+	cout << "String Is not in proper Doxygen format." << endl;
+	exit(1);
+	}
+
+ 
+if(doxygenString[3] == '<'){
+	cout << "Support for side comments not yet implemented"<<endl;
+	exit(1);
+}
+
+// Plows through the initial fluff
+
+string currWord = "";
+string nextWord = "";
+string currComment = "";
+int currCommand = 0;
+int scanIndex = 0;
+
+
+
+while( clearFluff() > 0){}
+
+while(endIndex < doxygenString.length() && startIndex < doxygenString.length()){
+currWord = getNextWord();
+
+//while((currWord = nextWord()).compare("") == 0 ){ nextLine();}
+
+if(currWord[0] == 92 || currWord[0] == '@'){
+	currWord = doxygenString.substr(startIndex+1, endIndex - startIndex - 1);
+	currCommand = findCommand(currWord);
+	if (currCommand < 0 ){ cout << "BAD COMMAND: " << currWord << endl; exit(1);}
+	cout << "Command: " << currWord << " " << currCommand << endl;
+	startIndex = endIndex;
+}
+
+else if (briefDescriptions && !briefDescExists ){
+	currComment = getOneLineSentence();
+	if (!currComment.empty()){
+	briefDescExists = 1;
+	cout << "Brief Description Found : " << currComment << endl << "-----" << endl;
+	entityList.push_back( DoxygenEntity(99, "", currComment));
+	startIndex = endIndex;
+	}
+	else cout << "Error: Brief comment extends more than 1 line." << endl;
+}
+
+else{ 
+	currComment = getDescription();
+	cout << "Long Description Found : " << currComment << endl << "-----" << endl;
+	entityList.push_back( DoxygenEntity(100, "", currComment));
+	startIndex = endIndex;
+}
+
+}
+
+cout << "Entity List : "<< endl;
+list<DoxygenEntity>::iterator p = entityList.begin();
+while (p != entityList.end()){
+	(*p).printEntity();
+	p++;
+}
+
+		
+ return 0;
+}
+
+
+}
+
