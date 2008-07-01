@@ -56,6 +56,14 @@ static int      class_level = 0;
 static Node   **class_decl = NULL;
 
 /* -----------------------------------------------------------------------------
+ *                            Doxygen Comment Globals
+ * ----------------------------------------------------------------------------- */
+
+int isComment = 0; /* boolean for parsing Doxygen Comments */
+String *currentComment = 0; /* Location of the stored Doxygen Comment */
+static String *sideDoxComments = 0;
+
+/* -----------------------------------------------------------------------------
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
 
@@ -71,6 +79,12 @@ static Node *new_node(const String_or_char *tag) {
   set_nodeType(n,tag);
   Setfile(n,cparse_file);
   Setline(n,cparse_line);
+  /* Sets Comment if a Comment is Availible */
+  if(isComment){
+    String *copyComment = Copy(currentComment);
+    Setattr(n,"comment",copyComment);
+    isComment = 0;
+  }	 
   return n;
 }
 
@@ -1440,6 +1454,7 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 %token <str> OPERATOR
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
+%token <str> DOXYGENSTRING 
 
 %left  CAST
 %left  QUESTIONMARK
@@ -1511,6 +1526,7 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
+%type <str>	 doxygen_comment;
 
 %%
 
@@ -1568,6 +1584,7 @@ interface      : interface declaration {
 declaration    : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; } 
                | cpp_declaration { $$ = $1; }
+               | doxygen_comment { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
@@ -2811,6 +2828,7 @@ warn_directive : WARN string {
                }
                ;
 
+
 /* ======================================================================
  *                              C Parsing
  * ====================================================================== */
@@ -3131,6 +3149,20 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		    }
                 }
                 ;
+
+/* ------------------------------------------------------------
+   A Doxygen Comment (a string in Doxygen Format)
+   ------------------------------------------------------------ */
+
+doxygen_comment : DOXYGENSTRING 
+	{
+		currentComment = NewString($1);
+		isComment = 1;
+		$$ = 0;
+	}
+	;
+
+
 
 /* ======================================================================
  *                       C++ Support
@@ -5977,4 +6009,3 @@ ParmList *Swig_cparse_parms(String *s) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
 }
-
