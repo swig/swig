@@ -231,18 +231,29 @@ public:
    * ------------------------------------------------------------------------ */
 
   virtual int globalfunctionHandler(Node *n ) {
+    String* action = NewString("");
     String* vis_hint = NewString("");
     String* return_type_str = SwigType_str(Getattr(n, "type"), 0);
     String* name = Getattr(n, "sym:name");
     ParmList* parms = Getattr(n, "parms");
+    String* arg_list = NewString("");
 
-    Language::globalfunctionHandler(n);
+    if (SwigType_type(Getattr(n, "type")) != T_VOID) {
+      Printv(action, "$cppresult = (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
+    }
+    Printv(action, Swig_cfunction_call(Getattr(n, "name"), parms), ";", NIL);
+    Setattr(n, "wrap:action", action);
+
+    //Language::globalfunctionHandler(n);
+    functionWrapper(n);
 
     // add visibility hint for the compiler (do not override this symbol)
     Printv(vis_hint, "SWIGPROTECT(", return_type_str, " ", name, "(", ParmList_str(parms), ");)\n\n", NIL);
-    Printv(f_wrappers, vis_hint, NIL);
+    Printv(f_header, vis_hint, NIL);
 
+    Delete(arg_list);
     Delete(vis_hint);
+    Delete(action);
     return SWIG_OK;
   }
 
@@ -252,13 +263,14 @@ public:
   
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "sym:name");
-    SwigType *return_type = Getattr(n, "type");
-    String *return_type_str = SwigType_str(return_type, 0);
+    SwigType *type = Getattr(n, "type");
+    SwigType *return_type = NewString("");
     String *arg_names = NewString("");
     ParmList *parms = Getattr(n, "parms");
     Parm *p;
     String* tm;
     String* proto = NewString("");
+    bool is_void_return;
 
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
@@ -267,19 +279,41 @@ public:
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
 
-    // create wrapper function prototype
-    Printv(wrapper->def, "SWIGEXPORT ", return_type_str, " ", wname, "(", NIL);
-
     // attach the standard typemaps
     emit_attach_parmmaps(parms, wrapper);
+    Setattr(n, "wrap:parms", parms);
+
+    // set the return type
+    if (Cmp(Getattr(n, "c:immutable"), "1") == 0) {
+        Printv(return_type, SwigType_str(type, 0), NIL);
+    }
+    else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
+      Printf(stdout, "FW = %s TM = %s\n", Getattr(n, "name"), tm);
+      String *ctypeout = Getattr(n, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
+      if (ctypeout)
+        tm = ctypeout;
+      Printf(return_type, "%s", tm);
+    } 
+    else {
+      Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+    }
 
     // attach 'ctype' typemaps
     Swig_typemap_attach_parms("ctype", parms, wrapper);
 
-    Setattr(n, "wrap:parms", parms);
-
     // emit variables for holding parameters
     emit_parameter_variables(parms, wrapper);
+
+    // is the function void?
+    is_void_return = (Strcmp(return_type, "void") == 0);
+
+    // add variable for holding result of original function
+    if (!is_void_return && (Cmp(Getattr(n, "c:immutable"), "1") != 0)) {
+      Wrapper_add_localv(wrapper, "cppresult", SwigType_str(type, 0), "cppresult", NIL);
+    }
+
+    // create wrapper function prototype
+    Printv(wrapper->def, "SWIGEXPORT ", return_type, " ", wname, "(", NIL);
 
     // prepare function definition
     int gencomma = 0;
@@ -297,6 +331,7 @@ public:
 
       Printf(arg_name, "c%s", lname);
 
+      // set the appropriate type for parameter
       if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
         Printv(c_parm_type, SwigType_str(type, 0), NIL);
       }
@@ -316,14 +351,17 @@ public:
         Printv(shadow_parm_type, c_parm_type, NIL);
       }
 
+      Replaceall(c_parm_type, "::", "_");
+
       Printv(arg_names, gencomma ? ", " : "", Getattr(p, "name"), NIL);
       Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
       Printv(proto, gencomma ? ", " : "", shadow_parm_type, " ", Getattr(p, "name"), NIL);
       gencomma = 1;
  
+      // apply typemaps for input parameter
       if ((tm = Getattr(p, "tmap:in"))) {
         if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
-          // FIXME
+          // FIXME: should work as typemaps for basic types
           Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
         }
         else {
@@ -344,13 +382,30 @@ public:
 
     Printf(wrapper->def, ") {");
 
-    // declare wrapper function local variables
+    // emit variable for holding function return value
     emit_return_variable(n, return_type, wrapper);
 
     // emit action code
     String *action = emit_action(n);
-    Append(wrapper->code, action);
-    if (return_type && Strcmp(return_type, "void") != 0)
+    Replaceall(action, "$cppresult", "cppresult");
+
+    // emit output typemap if needed
+    if (!is_void_return && (Cmp(Getattr(n, "c:immutable"), "1") != 0)) {
+      if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
+        Replaceall(tm, "$result", "result");
+        Printf(wrapper->code, "%s", tm);
+        if (Len(tm))
+          Printf(wrapper->code, "\n");
+      }
+      else {
+        Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name")); 
+      }
+    }
+    else {
+      Append(wrapper->code, action);
+    }
+
+    if (!is_void_return)
       Append(wrapper->code, "return result;\n");
 
     Append(wrapper->code, "}\n");
@@ -361,12 +416,12 @@ public:
       // use shadow-type for return type if supplied
       SwigType* shadow_type = Getattr(n, "c:stype");
       if (shadow_type) {
-        return_type_str = SwigType_str(shadow_type, 0);
+        return_type = SwigType_str(shadow_type, 0);
       }
 
       // emit proxy functions prototypes
-      Printv(f_shadow_code_init, "extern ", return_type_str, " ", wname, "(", proto, ");\n", NIL);
-      Printv(f_shadow_code_body, return_type_str, " ", name, "(", proto, ") {\n", NIL);
+      Printv(f_shadow_code_init, "extern ", return_type, " ", wname, "(", proto, ");\n", NIL);
+      Printv(f_shadow_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
 
       // handle 'prepend' feature
       String *prepend_str = Getattr(n, "feature:prepend");
@@ -396,15 +451,15 @@ public:
       Printv(f_shadow_code_body, "}\n", NIL);
 
       // add function declaration to the proxy header file
-      Printv(f_shadow_header, return_type_str, " ", name, "(", proto, ");\n");
+      Printv(f_shadow_header, return_type, " ", name, "(", proto, ");\n");
     }
 
     // cleanup
     Delete(proto);
     Delete(arg_names);
     Delete(wname);
+    Delete(return_type);
     DelWrapper(wrapper);
-
     return SWIG_OK;
   }
 
@@ -423,7 +478,7 @@ public:
 
     // declare it in the proxy header
     if (shadow_flag) {
-      Printv(f_shadow_header, "\ntypedef ", sobj_name, " ", name, ";\n\n", NIL);
+      Printv(f_shadow_header, "\ntypedef ", sobj_name, " {\n  void* obj;\n} ", name, ";\n\n", NIL);
     }
 
     Delete(sobj_name);
@@ -480,7 +535,7 @@ public:
       arg_call_lnames = empty_string;
 
     // generate action code
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "result = " : "", NIL);
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
     Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
@@ -548,7 +603,7 @@ public:
     Setattr(n, "parms", p);
 
     // generate action code
-    Printv(code, "result = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+    Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
     Setattr(n, "wrap:action", code);
 
     // modify method name
@@ -610,6 +665,7 @@ public:
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
+    Setattr(n, "c:immutable", "1");
     stype = Copy(name);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);

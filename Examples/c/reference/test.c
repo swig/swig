@@ -7,7 +7,7 @@ void test(Bar * bar) {
 }
 
 int main(int argc, char** argv) {
-  Bar * bar = new_Bar();
+  Bar* bar = new_Bar();
   test(bar);
   foo_by_val(bar);
   test(bar);

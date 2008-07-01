@@ -1,7 +1,5 @@
 /* File : example.h */
 
-#include <stdio.h>
-
 class Shape {
 public:
   Shape() {
@@ -35,3 +33,7 @@ public:
   virtual double perimeter(void);
 };
 
+
+
+
+  

@@ -1,4 +1,4 @@
-/* File : example.cxx */
+/* File : example.c */
 
 #include "example.h"
 #define M_PI 3.14159265358979323846
@@ -12,8 +12,7 @@ void Shape::move(double dx, double dy) {
 int Shape::nshapes = 0;
 
 double Circle::area(void) {
-  double xxx = M_PI*radius*radius;
-  return xxx;
+  return M_PI*radius*radius;
 }
 
 double Circle::perimeter(void) {
@@ -27,4 +26,3 @@ double Square::area(void) {
 double Square::perimeter(void) {
   return 4*width;
 }
-

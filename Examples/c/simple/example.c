@@ -7,7 +7,7 @@ double *Foo_ptr = &Foo;
 char *my_str = "hello, world!";
 char *array_of_strs[] = { "one", "two" };
 
-char *get_str(int i) {
+char *get_str(int i, void* ptr, float ff) {
   return array_of_strs[i];
 }
 
