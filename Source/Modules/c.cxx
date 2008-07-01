@@ -579,15 +579,48 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node* n) {
+    String* name = Getattr(n, "sym:name");
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
+    String* new_name = NewString("");
+    String* code = NewString("");
+    Replaceall(newclassname, "::", "_");
+
+    // create code for 'get' function
+    Printv(code, "$cppresult = ", classname, "::", name, ";\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    // modify the method name
+    Printv(new_name, newclassname, "_get_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    functionWrapper(n);
+
+    // create parameter for 'set' function
+    Parm* p = NewParm(Getattr(n, "type"), "value");
+    Setattr(p, "lname", "arg1");
+    Setattr(n, "parms", p);
+
+    // create code for 'set' function
+    code = NewString("");
+    Printv(code, classname, "::", name, " = arg1;\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    // modify the method name
+    new_name = NewString("");
+    Printv(new_name, newclassname, "_set_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    Setattr(n, "type", "void");
+    functionWrapper(n);
+
+    Delete(code);
+    Delete(new_name);
     return SWIG_OK;
   }
 
   /* ---------------------------------------------------------------------
    * membervariableHandler()
-   *
-   * TODO: generate additional setters and getters to handle inheritance
-   * properly, i.e. pair of functions for each type in hierarchy
-   *
    * --------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node* n) {
@@ -643,7 +676,6 @@ public:
     Setattr(n, "wrap:action", code);
 
     // modify method name
-    Delete(new_name);
     new_name = NewString("");
     Printv(new_name, newclassname, "_set_", name, NIL);
     Setattr(n, "sym:name", new_name);

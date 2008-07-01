@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   Square* s = new_Square(10);
   printf("    Created square\n");
 
-  printf("\nA total of %d shapes were created\n", 0);
+  printf("\nA total of %d shapes were created\n", Shape_get_nshapes());
 
   Circle_set_x(c, 20);
   Circle_set_y(c, 30);
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   delete_Square(s);
   delete_Circle(c);
 
-  printf("%d shapes remain\n", 0);
+  printf("%d shapes remain\n", Shape_get_nshapes());
   printf("Goodbye\n");
 }
 
