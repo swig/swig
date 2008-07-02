@@ -69,7 +69,8 @@ struct SWIGWrappedObject {
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   long refCount; /* reference count */
-};
+  ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
+} SWIGWrappedObject;
 
 GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
 
@@ -101,16 +102,40 @@ void * SWIGSTDCALL SWIGGetCPtr(void *iunk) {
   return obj->cPtr;
 }
 
-#if 0
-SWIG_funcptr SWIGWrappedObject_vtable[] = {
-  0, /* QueryInterface */
-  (SWIG_funcptr) SWIGAddRef2,
-  (SWIG_funcptr) SWIGRelease2,
-  (SWIG_funcptr) SWIGGetCPtr
-};
-#endif
+HRESULT SWIGGetTypeInfoCount(SWIGWrappedObject *obj, unsigned int * pctinfo) {
+  *pctinfo = 1;
 
-struct SWIGClassFactory {
+  return S_OK;
+}
+
+HRESULT SWIGGetTypeInfo(SWIGWrappedObject *obj, unsigned int iTInfo, LCID  lcid, ITypeInfo **  ppTInfo) {
+  *ppTInfo = obj->typeInfo;
+
+  return S_OK;
+}
+
+HRESULT SWIGGetIDsOfNames(SWIGWrappedObject *obj, REFIID riid, OLECHAR FAR* FAR* rgszNames,  
+    unsigned int cNames, LCID lcid, DISPID FAR* rgDispId) {
+  HRESULT hres = DispGetIDsOfNames(obj->typeInfo, rgszNames, cNames, rgDispId);
+
+  return hres;
+}
+
+HRESULT SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFIID riid, LCID lcid,                
+    WORD wFlags, DISPPARAMS FAR* pDispParams, VARIANT FAR*  pVarResult,  
+    EXCEPINFO FAR*  pExcepInfo, unsigned int FAR*  puArgErr) {
+  HRESULT hres = DispInvoke(
+      (void *) obj, obj->typeInfo,
+      dispIdMember, wFlags, pDispParams,
+      pVarResult, pExcepInfo, puArgErr); 
+
+  return hres;
+}
+
+static OLECHAR *SWIG_typelib_path;
+static ITypeLib *SWIG_typelib;
+
+typedef struct {
   SWIG_funcptr *vtable;
   SWIG_funcptr newInstance;
   long refCount;
@@ -242,7 +267,17 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg) {
 
 %insert("factory") %{
 
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *_ppv) {
+static HMODULE SWIGModule;
+
+STDAPI DllGetClassObject(REFCLSID _rclsid, REFIID _riid, LPVOID *_ppv) {
+#ifdef __cplusplus
+  const GUID *rclsid = &_rclsid;
+  const GUID *riid = &_riid;
+#else
+  const GUID *rclsid = _rclsid;
+  const GUID *riid = _riid;
+#endif
+
   int i;
   SWIGClassFactory **ppv = (SWIGClassFactory **)(void *) _ppv;
 
@@ -276,8 +311,14 @@ STDAPI DllRegisterServer(void) {
   int i;
 
   do {
+#ifdef __cplusplus
     module_name = new char[allocated];
-    used = GetModuleFileName(GetModuleHandle("simple.dll"), module_name, allocated);
+    typelib_name = new char[allocated];
+#else
+    module_name = (char *) malloc(allocated);
+    typelib_name = (char *) malloc(allocated);
+#endif
+    used = GetModuleFileName(SWIGModule /*GetModuleHandle("$module.dll")*/, module_name, allocated);
 
     if (used == allocated) {
       delete module_name;
@@ -435,6 +476,19 @@ STDAPI DllRegisterServer(void) {
 
 STDAPI DllUnregisterServer(void) {
   return S_OK;
+}
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
+    LPVOID lpvReserved) {
+  if (fdwReason == DLL_PROCESS_ATTACH) {
+    SWIGModule = hinstDLL;
+
+    /* FIXME: temporary, just for testing. I'll come up with something sensible ;) */
+    SWIG_typelib_path = L"c:\\swig\\simple.tlb";
+    LoadTypeLib(SWIG_typelib_path, &SWIG_typelib);
+  }
+
+  return TRUE;
 }
 
 %}

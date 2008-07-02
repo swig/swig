@@ -195,8 +195,9 @@ public:
     Printf(module_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface(void *that, REFIID iid, "
         "void ** ppvObject) {\n", module_class_name);
 
-    Printf(module_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
-        "      iid == IID_%s", module_class_name);
+    Printf(module_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
+        "      SWIGIsEqual(iid, &IID_IDispatch) ||\n"
+        "      SWIGIsEqual(iid, &IID_%s)", module_class_name);
 
     Printf(module_class_vtable_code, ") {\n"
         "    /* FIXME: This could be more elegant */\n"
@@ -217,14 +218,19 @@ public:
         "  res->cPtr = NULL;\n"
         "  res->cMemOwn = 0;\n"
         "  res->refCount = 0;\n"
+        "  SWIG_typelib->GetTypeInfoOfGuid(IID_%s, &res->typeInfo);\n"
         "  return (void *) res;\n"
         "};\n\n",
-        module_class_name, module_class_name);
+        module_class_name, module_class_name, module_class_name);
 
     Printf(module_class_vtable_code, "SWIG_funcptr _wrap%s_vtable[] = "
-        "{\n  (SWIG_funcptr) _wrap%sQueryInterface,\n"
+        "{\n  (SWIG_funcptr) _wrap%sQueryInterface,"
         "\n  (SWIG_funcptr) SWIGAddRef1,"
-        "\n  (SWIG_funcptr) SWIGRelease1",
+        "\n  (SWIG_funcptr) SWIGRelease1,"
+        "\n  (SWIG_funcptr) SWIGGetTypeInfoCount,"
+        "\n  (SWIG_funcptr) SWIGGetTypeInfo,"
+        "\n  (SWIG_funcptr) SWIGGetIDsOfNames,"
+        "\n  (SWIG_funcptr) SWIGInvoke",
         module_class_name, module_class_name);
 
     Printf(clsid_list, "static char * SWIG_tlb_guid_string = \"{");
@@ -269,7 +275,8 @@ public:
           "  DllGetClassObject\n"
           "  DllCanUnloadNow\n"
           "  DllRegisterServer\n"
-          "  DllUnregisterServer\n");
+          "  DllUnregisterServer\n"
+          "  DllMain\n");
     }
 
     /* Generate the IDL file containing the module class and proxy classes */
@@ -292,12 +299,15 @@ public:
       formatGUID(f_module, &typelib_guid, false);
       Printf(f_module, ")\n]\nlibrary %sTLB {\n\n", module_class_name);
 
+      // Import IDispatch
+      Printf(f_module, "  importlib(\"stdole32.tlb\");\n\n");
+
       Printv(f_module, f_proxy_forward_defs, "\n", NIL);
 
       // Interface for module class
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
       formatGUID(f_module, &module_iid, false);
-      Printf(f_module, ")\n  ]\n  interface %s {\n", module_class_name);
+      Printf(f_module, "),\n    dual\n  ]\n  interface %s : IDispatch {\n", module_class_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -689,9 +699,13 @@ public:
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
+/*
     Printv(proxy_class_def, ")\n  ]\n  interface $comclassname",
         *Char(wanted_base) ? " : " : "",
         *Char(wanted_base) ? wanted_base : "", " {", NIL);
+ */
+    Printv(proxy_class_def, "),\n    dual\n  ]\n  interface $comclassname : ",
+        *Char(wanted_base) ? wanted_base : "IDispatch", " {", NIL);
 
     Delete(attributes);
 
@@ -807,8 +821,9 @@ public:
           "    return S_OK;\n"
           "  }\n\n");
 
-      Printf(proxy_class_vtable_code, "  if (iid == IID_IUnknown ||\n"
-        "      iid == IID_%s", proxy_class_name);
+      Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
+        "      SWIGIsEqual(iid, &IID_IDispatch) || "
+        "      SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
 
@@ -852,7 +867,11 @@ public:
       Printf(proxy_class_vtable_code, "SWIG_funcptr _wrap%svtable[] = "
           "{\n  (SWIG_funcptr) _wrap%sQueryInterface1,"
           "\n  (SWIG_funcptr) SWIGAddRef1,"
-          "\n  (SWIG_funcptr) SWIGRelease1",
+          "\n  (SWIG_funcptr) SWIGRelease1,"
+          "\n  (SWIG_funcptr) SWIGGetTypeInfoCount,"
+          "\n  (SWIG_funcptr) SWIGGetTypeInfo,"
+          "\n  (SWIG_funcptr) SWIGGetIDsOfNames,"
+          "\n  (SWIG_funcptr) SWIGInvoke",
           proxy_class_name, proxy_class_name);
 
       bases = Getattr(n, "bases");
@@ -909,9 +928,10 @@ public:
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = 0;\n"
           "  res->refCount = 0;\n"
+          "  SWIG_typelib->GetTypeInfoOfGuid(IID_%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
           "}\n\n",
-          proxy_class_name, proxy_class_name, proxy_class_name);
+          proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name);
 
       Printf(proxy_class_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *arg);\n", proxy_class_name);
 
