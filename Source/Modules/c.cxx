@@ -28,6 +28,7 @@ class C:public Language {
   String *empty_string;
 
   bool shadow_flag;
+  bool runtime_flag;
 
 public:
 
@@ -37,7 +38,8 @@ public:
 
   C() : 
     empty_string(NewString("")),
-    shadow_flag(true) {
+    shadow_flag(true),
+    runtime_flag(true) {
   }
 
   /* ------------------------------------------------------------
@@ -64,6 +66,8 @@ public:
           shadow_flag = true;
         } else if (strcmp(argv[i], "-noproxy") == 0) {
           shadow_flag = false;
+        } else if (strcmp(argv[i], "-noruntime") == 0) {
+          runtime_flag = false;
         }
       }
     }
@@ -119,8 +123,24 @@ public:
     Swig_banner(f_runtime);
     emitSwigProtectSymbols(f_header);
 
-    // FIXME
-    Printf(f_header, "#include <malloc.h>\n\n");
+    Printf(f_header, "#include <malloc.h>\n");
+    if (runtime_flag) {
+      Printf(f_header, "#include <stdio.h>\n");
+      Printf(f_header, "#include <string.h>\n");
+      Printf(f_header, "#include <setjmp.h>\n\n");
+      Printf(f_header, "static jmp_buf __rt_env;\n");
+      Printf(f_header, "static int __rt_init = 0;\n\n");
+      Printf(f_header, "void __runtime_init() {\n");
+      Printf(f_header, "  if (!__rt_init) {\n");
+      Printf(f_header, "    __rt_init = 1;\n");
+      Printf(f_header, "    if (setjmp(__rt_env)) {\n");
+      Printf(f_header, "      fprintf(stderr, \"An error occured. Exitting...\\n\");\n");
+      Printf(f_header, "      exit(1);\n");
+      Printf(f_header, "    }\n");
+      Printf(f_header, "  }\n");
+      Printf(f_header, "}\n\n");
+    }
+
 
     // generate shadow files if enabled
     if (shadow_flag) {
@@ -443,6 +463,25 @@ public:
   }
 
   /* ---------------------------------------------------------------------
+   * emit_runtime_typecheck()
+   * --------------------------------------------------------------------- */
+
+  String* emit_runtime_typecheck(String* classname, String* funcname) {
+    String* code = NewString("");
+    Printf(code, "{\nint i = 0, type_ok = 0;\n");
+    Printf(code, "if (arg1 == NULL) {\n");
+    Printv(code, "  fprintf(stderr, \"error: NULL object-struct passed to ", funcname, "\\n\");\n");
+    Printf(code, "  longjmp(__rt_env, 0);\n}\n");
+    Printf(code, "while(arg1->typenames[i]) {\n");
+    Printv(code, "  if (strcmp(arg1->typenames[i++], \"", classname, "\") == 0) {\n", NIL);
+    Printf(code, "    type_ok = 1;\nbreak;\n}\n}\n");
+    Printf(code, "if (!type_ok) {\n");
+    Printv(code, "    fprintf(stderr, \"error: object-struct passed to ", funcname, " is not of class ", classname, "\\n\");\n", NIL);
+    Printf(code, "    longjmp(__rt_env, 0);\n}\n}\n");
+    return code;
+  }
+
+  /* ---------------------------------------------------------------------
    * copy_node()
    * --------------------------------------------------------------------- */
 
@@ -490,7 +529,13 @@ public:
 
     // emit "class"-struct definition
     Printv(sobj_name, "struct ", name, "Obj", NIL);
-    Printv(f_header, sobj_name, " {\n  void* obj;\n};\n\n", NIL);
+    Printv(f_header, sobj_name, " {\n  void* obj;\n", NIL);
+    if (runtime_flag) {
+      Printf(f_header, "  const char* typenames[%d];\n};\n\n", Len(baselist) + 2);
+      Printv(f_header, "const char* __typename_", name, " = \"", name, "\";\n\n", NIL);
+    }
+    else 
+      Printf(f_header, "};\n\n");
 
     // declare it in the proxy header
     if (shadow_flag) {
@@ -552,14 +597,16 @@ public:
     else
       Delitem(arg_lnames, DOH_END);
 
-    // generate action code
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
-    Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify method name
     Printv(new_name, newclassname, "_", name, NIL);
     Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    if (runtime_flag)
+      Append(code, emit_runtime_typecheck(newclassname, new_name));
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
+    Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
+    Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
 
@@ -586,13 +633,13 @@ public:
     String* code = NewString("");
     Replaceall(newclassname, "::", "_");
 
-    // create code for 'get' function
-    Printv(code, "$cppresult = ", classname, "::", name, ";\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify the method name
     Printv(new_name, newclassname, "_get_", name, NIL);
     Setattr(n, "sym:name", new_name);
+
+    // create code for 'get' function
+    Printv(code, "$cppresult = ", classname, "::", name, ";\n", NIL);
+    Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
 
@@ -601,15 +648,15 @@ public:
     Setattr(p, "lname", "arg1");
     Setattr(n, "parms", p);
 
-    // create code for 'set' function
-    code = NewString("");
-    Printv(code, classname, "::", name, " = arg1;\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify the method name
     new_name = NewString("");
     Printv(new_name, newclassname, "_set_", name, NIL);
     Setattr(n, "sym:name", new_name);
+    
+    // create code for 'set' function
+    code = NewString("");
+    Printv(code, classname, "::", name, " = arg1;\n", NIL);
+    Setattr(n, "wrap:action", code);
 
     Setattr(n, "type", "void");
     functionWrapper(n);
@@ -653,13 +700,15 @@ public:
 
     Setattr(n, "parms", p);
 
-    // generate action code
-    Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify method name
     Printv(new_name, newclassname, "_get_", name, NIL);
     Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    if (runtime_flag)
+      Append(code, emit_runtime_typecheck(newclassname, new_name));
+    Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+    Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
 
@@ -669,16 +718,17 @@ public:
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
 
-    // generate action code
-
-    code = NewString("");
-    Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify method name
     new_name = NewString("");
     Printv(new_name, newclassname, "_set_", name, NIL);
     Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    code = NewString("");
+    if (runtime_flag)
+      Append(code, emit_runtime_typecheck(newclassname, new_name));
+    Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
+    Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
 
@@ -695,40 +745,53 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node* n) {
-    String* name = Copy(Getattr(n, "name"));
     String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
-    String* ctype = NewString("");
+    String* ctype;
     String* stype;
     String* code = NewString("");
     String* constr_name = NewString("");
     String* arg_lnames = NewString("");
     ParmList* parms = Getattr(n, "parms");
 
-    Replaceall(name, "::", "_");
+    Replaceall(newclassname, "::", "_");
 
     // prepare argument names
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // set the function return type to the pointer to struct
-    Printv(sobj_name, "struct ", name, "Obj", NIL);
+    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
     Setattr(n, "c:immutable", "1");
-    stype = Copy(name);
+    stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
+
+    // modify the constructor name
+    Printv(constr_name, "new_", newclassname, NIL);
+    Setattr(n, "sym:name", constr_name);
 
     // generate action code
     Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
+    if (runtime_flag) {
+      List* baselist = Getattr(parentNode(n), "bases");
+      Printv(code, "result->typenames[0] = __typename_", newclassname, ";\n", NIL);
+      int i = 1;
+      if (baselist) {
+        Iterator it;
+        for (it = First(baselist); it.item; it = Next(it)) {
+          Printf(code, "result->typenames[%d] = __typename_%s;\n", i++, Getattr(it.item, "name"));
+        }
+      }
+      Printf(code, "result->typenames[%d] = 0;\n", i);
+      Printf(code, "__runtime_init();\n");
+    }
     Setattr(n, "wrap:action", code);
     
-    // modify the constructor name
-    Printv(constr_name, "new_", name, NIL);
-    Setattr(n, "sym:name", constr_name);
-
     functionWrapper(n);
 
     Delete(arg_lnames);
@@ -737,7 +800,7 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(name);
+    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -749,7 +812,7 @@ public:
     String* classname = Getattr(parentNode(n), "name");
     String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
-    String* ctype = NewString("");
+    String* ctype;
     String* stype;
     String* code = NewString("");
     String* destr_name = NewString("");
@@ -771,13 +834,15 @@ public:
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
 
-    // create action code
-    Printv(code, "delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
-    Setattr(n, "wrap:action", code);
-
     // modify the destructor name
     Printv(destr_name, "delete_", newclassname, NIL);
     Setattr(n, "sym:name", destr_name);
+
+    // create action code
+    if (runtime_flag)
+      Append(code, emit_runtime_typecheck(newclassname, destr_name));
+    Printv(code, "delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
+    Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
 
@@ -827,5 +892,7 @@ extern "C" Language *swig_c(void) {
 
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
+    -noproxy      - do not generate proxy interface\n\
+    -noruntime    - disable runtime error checking\n\
 \n";
 
