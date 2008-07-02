@@ -689,7 +689,25 @@ public:
 	mod_docstring = NULL;
       }
 
-      Printf(f_shadow, "\nimport %s\n", module);
+      Printv(f_shadow, "\nfrom sys import version_info\n", NULL);
+
+      /* Import the C-extension module.  This should be a relative import,
+       * since the shadow module may also have been imported by a relative
+       * import, and there is thus no guarantee that the C-extension is on
+       * sys.path.  Relative imports must be explicitly specified from 2.6.0
+       * onwards (implicit relative imports will raise a DeprecationWarning
+       * in 2.6, and fail in 2.7 onwards), but the relative import syntax
+       * isn't available in python 2.4 or earlier, so we have to write some
+       * code conditional on the python version.
+       */
+      Printv(f_shadow, "if version_info >= (2,6,0):\n", NULL);
+      Printf(f_shadow, tab4 "from . import %s\n", module);
+      Printv(f_shadow, "else:\n", NULL);
+      Printf(f_shadow, tab4 "import %s\n", module);
+
+      /* Delete the version_info symbol since we don't use it elsewhere in the
+       * module. */
+      Printv(f_shadow, "del version_info\n", NULL);
 
       Printv(f_shadow, "import new\n", NULL);
       Printv(f_shadow, "new_instancemethod = new.instancemethod\n", NULL);
