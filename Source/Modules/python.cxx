@@ -701,7 +701,10 @@ public:
        * code conditional on the python version.
        */
       Printv(f_shadow, "if version_info >= (2,6,0):\n", NULL);
-      Printf(f_shadow, tab4 "from . import %s\n", module);
+      Printv(f_shadow, tab4, "try:\n", NULL);
+      Printf(f_shadow, tab8 "from . import %s\n", module);
+      Printv(f_shadow, tab4, "except ValueError:\n");
+      Printf(f_shadow, tab8 "import %s\n", module);
       Printv(f_shadow, "else:\n", NULL);
       Printf(f_shadow, tab4 "import %s\n", module);
 
