@@ -703,8 +703,11 @@ public:
       Printv(f_shadow, "if version_info >= (2,6,0):\n", NULL);
       Printv(f_shadow, tab4, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab4, "import imp\n", NULL);
-      Printf(f_shadow, tab4  "fp, pathname, description = imp.find_module('%s', [dirname(__file__)])\n", module);
-      Printf(f_shadow, tab4  "%s = imp.load_module('%s', fp, pathname, description)\n", module, module);
+      Printv(f_shadow, tab4, "try:\n", NULL);
+      Printf(f_shadow, tab8  "fp, pathname, description = imp.find_module('%s', [dirname(__file__)])\n", module);
+      Printf(f_shadow, tab8  "%s = imp.load_module('%s', fp, pathname, description)\n", module, module);
+      Printv(f_shadow, tab4, "except:\n", NULL);
+      Printf(f_shadow, tab8, "if fp is not None: fp.close()\n", NULL);
       Printv(f_shadow, tab4, "del fp, pathname, description, imp, dirname\n", NULL);
       Printv(f_shadow, "else:\n", NULL);
       Printf(f_shadow, tab4 "import %s\n", module);
