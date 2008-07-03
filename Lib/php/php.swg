@@ -2,15 +2,15 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * php4.swg
+ * php.swg
  *
- * PHP4 configuration file
+ * PHP configuration file
  * ----------------------------------------------------------------------------- */
 
 %runtime "swigrun.swg"  // Common C API type-checking code
-%runtime "php4run.swg"	// Php4 runtime functions
+%runtime "phprun.swg"	// PHP runtime functions
 
-%include <php4init.swg> // Php4 initialization routine.
+%include <phpinit.swg> // PHP initialization routine.
 
 %include <globalvar.i>	// Global variables.
 %include <const.i>
@@ -295,4 +295,4 @@
 
 
 /* php keywords */
-%include <php4kw.swg>
+%include <phpkw.swg>

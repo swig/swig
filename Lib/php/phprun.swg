@@ -2,9 +2,9 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * php4run.swg
+ * phprun.swg
  *
- * PHP4 runtime library
+ * PHP runtime library
  * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
