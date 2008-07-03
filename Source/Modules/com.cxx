@@ -273,10 +273,10 @@ public:
       Printf(f_deffile, "LIBRARY %s\n", module_class_name);
 
       Printf(f_deffile, "EXPORTS\n"
-          "  DllGetClassObject\n"
-          "  DllCanUnloadNow\n"
-          "  DllRegisterServer\n"
-          "  DllUnregisterServer\n"
+          "  DllGetClassObject PRIVATE\n"
+          "  DllCanUnloadNow PRIVATE\n"
+          "  DllRegisterServer PRIVATE\n"
+          "  DllUnregisterServer PRIVATE\n"
           "  DllMain\n");
     }
 

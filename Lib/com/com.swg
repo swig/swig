@@ -478,6 +478,9 @@ STDAPI DllUnregisterServer(void) {
   return S_OK;
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
     LPVOID lpvReserved) {
   if (fdwReason == DLL_PROCESS_ATTACH) {
