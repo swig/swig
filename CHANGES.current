@@ -1,6 +1,11 @@
 Version 1.3.36 (in progress)
 =============================
 
+2008-07-03: olly
+	    [PHP] The deprecated command line option "-phpfull" has been
+	    removed.  We recommend building your extension as a dynamically
+	    loadable module.
+
 2008-07-02: olly
 	    [PHP4] Support for PHP4 has been removed.  The PHP developers are
 	    no longer making new PHP4 releases, and won't even be patching
@@ -10,5 +15,6 @@ Version 1.3.36 (in progress)
 	    [Python] Import the C extension differently for Python 2.6 and
 	    later so that an implicit relative import doesn't produce a
 	    deprecation warning for 2.6 and a failure for 2.7 and later.
-	    Patch from Richard Boulton in SF#2008229.
+	    Patch from Richard Boulton in SF#2008229, plus follow-up patches
+	    from Richard and Haoyu Bai.
 
