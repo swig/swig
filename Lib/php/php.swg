@@ -73,6 +73,13 @@
    $1 = ($1_ltype) Z_STRVAL_PP($input);
 }
 
+%typemap(in) (char *STRING, int LENGTH)
+{
+   convert_to_string_ex($input);
+   $1 = ($1_ltype) Z_STRVAL_PP($input);
+   $2 = ($2_ltype) Z_STRLEN_PP($input);
+}
+
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 {
