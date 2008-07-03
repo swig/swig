@@ -5,6 +5,8 @@
  * c.swg
  * ----------------------------------------------------------------------------- */ 
 
+%insert("runtime") "clabels.swg"
+
 %typemap(ctype) void, short, int, long, char, float, double "$1_type"
 %typemap(ctype) void*, short*, int*, long*, char*, float*, double* "$1_type"
 %typemap(ctype) bool        "_Bool"

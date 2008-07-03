@@ -73,20 +73,6 @@ public:
     }
   }
 
-  void emitSwigProtectSymbols(File *f) {
-    Printf(f, "#ifndef SWIGPROTECT\n");
-    Printf(f, "# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)\n");
-    Printf(f, "#   define SWIGPROTECT(x)\n");
-    Printf(f, "# else\n");
-    Printf(f, "#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)\n");
-    Printf(f, "#     define SWIGPROTECT(x) __attribute__ ((visibility(\"protected\"))) x\n");
-    Printf(f, "#   else\n");
-    Printf(f, "#     define SWIGPROTECT(x)\n");
-    Printf(f, "#   endif\n");
-    Printf(f, "# endif\n");
-    Printf(f, "#endif\n\n");
-  }
-
   void emitSwigImport(File *f) {
     Printf(f, "#ifndef SWIGIMPORT\n");
     Printf(f, "# ifndef __GNUC__\n");
@@ -121,11 +107,11 @@ public:
     f_wrappers = NewString("");
 
     Swig_banner(f_runtime);
-    emitSwigProtectSymbols(f_header);
 
     Printf(f_header, "#include <malloc.h>\n");
     if (runtime_flag) {
       Printf(f_header, "#include <stdio.h>\n");
+      Printf(f_header, "#include <stdlib.h>\n");
       Printf(f_header, "#include <string.h>\n");
       Printf(f_header, "#include <setjmp.h>\n\n");
       Printf(f_header, "static jmp_buf __rt_env;\n");
@@ -220,7 +206,7 @@ public:
   virtual int globalvariableHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
-    Printv(f_wrappers, "SWIGEXPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
+    //Printv(f_wrappers, "SWIGEXPORTC ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     if (shadow_flag) {
       Printv(f_shadow_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     }
@@ -312,7 +298,7 @@ public:
     }
 
     // create wrapper function prototype
-    Printv(wrapper->def, "SWIGEXPORT ", return_type, " ", wname, "(", NIL);
+    Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
 
     // prepare function definition
     int gencomma = 0;
