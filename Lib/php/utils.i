@@ -36,7 +36,7 @@
 %enddef
 
 %fragment("t_output_helper","header") %{
-void
+static void
 t_output_helper( zval **target, zval *o) {
   if ( (*target)->type == IS_ARRAY ) {
     /* it's already an array, just append */
