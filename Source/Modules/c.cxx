@@ -73,21 +73,6 @@ public:
     }
   }
 
-  void emitSwigImport(File *f) {
-    Printf(f, "#ifndef SWIGIMPORT\n");
-    Printf(f, "# ifndef __GNUC__\n");
-    Printf(f, "#   define __DLL_IMPORT __declspec(dllimport)\n");
-    Printf(f, "# else\n");
-    Printf(f, "#   define __DLL_IMPORT __attribute__((dllimport)) extern\n");
-    Printf(f, "# endif\n");
-    Printf(f, "# if !defined (__WIN32__)\n");
-    Printf(f, "#   define SWIGIMPORT extern\n");
-    Printf(f, "# else\n");
-    Printf(f, "#   define SWIGIMPORT __DLL_IMPORT\n");
-    Printf(f, "# endif\n");
-    Printf(f, "#endif\n\n");
-  }
-
   /* ---------------------------------------------------------------------
    * top()
    * --------------------------------------------------------------------- */
@@ -153,7 +138,6 @@ public:
 
       Swig_banner(f_shadow_code_init);
       Swig_banner(f_shadow_header);
-      emitSwigImport(f_shadow_header);
       Printf(f_shadow_code_init, "#include \"%s\"\n\n", shadow_header_filename);
     }
 
@@ -452,8 +436,7 @@ public:
    * emit_runtime_typecheck()
    * --------------------------------------------------------------------- */
 
-  String* emit_runtime_typecheck(String* classname, String* funcname) {
-    String* code = NewString("");
+  void emit_runtime_typecheck(String* classname, String* funcname, String* code) {
     Printf(code, "{\nint i = 0, type_ok = 0;\n");
     Printf(code, "if (arg1 == NULL) {\n");
     Printv(code, "  fprintf(stderr, \"error: NULL object-struct passed to ", funcname, "\\n\");\n");
@@ -464,7 +447,6 @@ public:
     Printf(code, "if (!type_ok) {\n");
     Printv(code, "    fprintf(stderr, \"error: object-struct passed to ", funcname, " is not of class ", classname, "\\n\");\n", NIL);
     Printf(code, "    longjmp(__rt_env, 0);\n}\n}\n");
-    return code;
   }
 
   /* ---------------------------------------------------------------------
@@ -485,7 +467,7 @@ public:
   }
 
   /* ---------------------------------------------------------------------
-   * classDeclaration()
+   * classHandler()
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node* n) {
@@ -538,6 +520,36 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node* n) {
+    String* name = Getattr(n, "name");
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
+    String* new_name = NewString("");
+    String* code = NewString("");
+    String* arg_lnames = NewString("");
+    ParmList* parms = Getattr(n, "parms");
+
+    Replaceall(newclassname, "::", "_");
+
+    // prepare function call
+    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
+    Delitem(arg_lnames, 0);
+    Delitem(arg_lnames, DOH_END);
+
+    // modify method name
+    Printv(new_name, newclassname, "_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
+    Printv(code, classname, "::", name, "(", arg_lnames, ");\n", NIL);
+    Setattr(n, "wrap:action", code);
+
+    functionWrapper(n);
+
+    Delete(arg_lnames);
+    Delete(code);
+    Delete(new_name);
+    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -546,7 +558,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node* n) {
-    String* name = Copy(Getattr(n, "name"));
+    String* name = Getattr(n, "name");
     String* classname = Getattr(parentNode(n), "name");
     String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
@@ -572,7 +584,7 @@ public:
       set_nextSibling(p, parms);
     Setattr(n, "parms", p);
 
-    // prepare argument names
+    // prepare function call
     parms = Getattr(n, "parms");
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
@@ -589,7 +601,7 @@ public:
 
     // generate action code
     if (runtime_flag)
-      Append(code, emit_runtime_typecheck(newclassname, new_name));
+      emit_runtime_typecheck(newclassname, new_name, code);
     Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
     Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
@@ -603,7 +615,6 @@ public:
     Delete(ctype);
     Delete(sobj_name);
     Delete(newclassname);
-    Delete(name);
     return SWIG_OK;
   }
 
@@ -692,7 +703,7 @@ public:
 
     // generate action code
     if (runtime_flag)
-      Append(code, emit_runtime_typecheck(newclassname, new_name));
+      emit_runtime_typecheck(newclassname, new_name, code);
     Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
     Setattr(n, "wrap:action", code);
 
@@ -712,7 +723,7 @@ public:
     // generate action code
     code = NewString("");
     if (runtime_flag)
-      Append(code, emit_runtime_typecheck(newclassname, new_name));
+      emit_runtime_typecheck(newclassname, new_name, code);
     Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
     Setattr(n, "wrap:action", code);
 
@@ -724,6 +735,25 @@ public:
     Delete(sobj_name);
     Delete(newclassname);
     return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * emit_runtime_make_object()
+   * --------------------------------------------------------------------- */
+
+  void emit_runtime_make_object(Node* n, String* classname, String* code) {
+    // store the name of each class in the hierarchy
+    List* baselist = Getattr(parentNode(n), "bases");
+    Printv(code, "result->typenames[0] = __typename_", classname, ";\n", NIL);
+    int i = 1;
+    if (baselist) {
+      Iterator it;
+      for (it = First(baselist); it.item; it = Next(it)) {
+        Printf(code, "result->typenames[%d] = __typename_%s;\n", i++, Getattr(it.item, "name"));
+      }
+    }
+    Printf(code, "result->typenames[%d] = 0;\n", i);
+    Printf(code, "__runtime_init();\n");
   }
 
   /* ---------------------------------------------------------------------
@@ -763,24 +793,64 @@ public:
     // generate action code
     Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
-    if (runtime_flag) {
-      List* baselist = Getattr(parentNode(n), "bases");
-      Printv(code, "result->typenames[0] = __typename_", newclassname, ";\n", NIL);
-      int i = 1;
-      if (baselist) {
-        Iterator it;
-        for (it = First(baselist); it.item; it = Next(it)) {
-          Printf(code, "result->typenames[%d] = __typename_%s;\n", i++, Getattr(it.item, "name"));
-        }
-      }
-      Printf(code, "result->typenames[%d] = 0;\n", i);
-      Printf(code, "__runtime_init();\n");
-    }
+    if (runtime_flag)
+      emit_runtime_make_object(n, newclassname, code);
+
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
 
     Delete(arg_lnames);
+    Delete(constr_name);
+    Delete(code);
+    Delete(stype);
+    Delete(ctype);
+    Delete(sobj_name);
+    Delete(newclassname);
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * copyconstructorHandler()
+   * --------------------------------------------------------------------- */
+
+  virtual int copyconstructorHandler(Node *n) {
+    String* classname = Getattr(parentNode(n), "name");
+    String* newclassname = Copy(classname);
+    String* sobj_name = NewString("");
+    String* ctype;
+    String* stype;
+    String* code = NewString("");
+    String* constr_name = NewString("");
+    ParmList* parms = Getattr(n, "parms");
+
+    Replaceall(newclassname, "::", "_");
+    Setattr(parms, "lname", "arg1");
+
+    // set the function return type to the pointer to struct
+    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    ctype = Copy(sobj_name);
+    SwigType_add_pointer(ctype);
+    Setattr(n, "type", ctype);
+    Setattr(n, "c:immutable", "1");
+    stype = Copy(newclassname);
+    SwigType_add_pointer(stype);
+    Setattr(n, "c:stype", stype);
+
+    // modify the constructor name
+    Printv(constr_name, "copy_", newclassname, NIL);
+    Setattr(n, "sym:name", constr_name);
+
+    // generate action code
+    Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
+    Printv(code, "result->obj = (void*) new ", classname, "((", classname, " const &)*arg1);\n", NIL);
+    if (runtime_flag)
+      emit_runtime_make_object(n, newclassname, code);
+    
+    Setattr(n, "wrap:action", code);
+    
+    functionWrapper(n);
+
     Delete(constr_name);
     Delete(code);
     Delete(stype);
@@ -826,7 +896,7 @@ public:
 
     // create action code
     if (runtime_flag)
-      Append(code, emit_runtime_typecheck(newclassname, destr_name));
+      emit_runtime_typecheck(newclassname, destr_name, code);
     Printv(code, "delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
     Setattr(n, "wrap:action", code);
     

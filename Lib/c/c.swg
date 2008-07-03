@@ -6,6 +6,7 @@
  * ----------------------------------------------------------------------------- */ 
 
 %insert("runtime") "clabels.swg"
+%insert("shadow_header") "cproxy.swg"
 
 %typemap(ctype) void, short, int, long, char, float, double "$1_type"
 %typemap(ctype) void*, short*, int*, long*, char*, float*, double* "$1_type"
