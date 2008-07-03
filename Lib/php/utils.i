@@ -29,7 +29,7 @@
 %enddef
 
 %define %pass_by_val( TYPE, CONVERT_IN )
-%typemap(in) TYPE
+%typemap(in) TYPE, const TYPE &
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
