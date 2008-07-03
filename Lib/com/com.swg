@@ -102,26 +102,26 @@ void * SWIGSTDCALL SWIGGetCPtr(void *iunk) {
   return obj->cPtr;
 }
 
-HRESULT SWIGGetTypeInfoCount(SWIGWrappedObject *obj, unsigned int * pctinfo) {
+HRESULT SWIGSTDCALL SWIGGetTypeInfoCount(SWIGWrappedObject *obj, unsigned int * pctinfo) {
   *pctinfo = 1;
 
   return S_OK;
 }
 
-HRESULT SWIGGetTypeInfo(SWIGWrappedObject *obj, unsigned int iTInfo, LCID  lcid, ITypeInfo **  ppTInfo) {
+HRESULT SWIGSTDCALL SWIGGetTypeInfo(SWIGWrappedObject *obj, unsigned int iTInfo, LCID  lcid, ITypeInfo **  ppTInfo) {
   *ppTInfo = obj->typeInfo;
 
   return S_OK;
 }
 
-HRESULT SWIGGetIDsOfNames(SWIGWrappedObject *obj, REFIID riid, OLECHAR FAR* FAR* rgszNames,  
+HRESULT SWIGSTDCALL SWIGGetIDsOfNames(SWIGWrappedObject *obj, REFIID riid, OLECHAR FAR* FAR* rgszNames,  
     unsigned int cNames, LCID lcid, DISPID FAR* rgDispId) {
   HRESULT hres = DispGetIDsOfNames(obj->typeInfo, rgszNames, cNames, rgDispId);
 
   return hres;
 }
 
-HRESULT SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFIID riid, LCID lcid,                
+HRESULT SWIGSTDCALL SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFIID riid, LCID lcid,                
     WORD wFlags, DISPPARAMS FAR* pDispParams, VARIANT FAR*  pVarResult,  
     EXCEPINFO FAR*  pExcepInfo, unsigned int FAR*  puArgErr) {
   HRESULT hres = DispInvoke(

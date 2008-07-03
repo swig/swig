@@ -218,7 +218,8 @@ public:
         "  res->cPtr = NULL;\n"
         "  res->cMemOwn = 0;\n"
         "  res->refCount = 0;\n"
-        "  SWIG_typelib->GetTypeInfoOfGuid(IID_%s, &res->typeInfo);\n"
+        "  /* GetTypeInfoOfGuid */\n"
+        "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
         "  return (void *) res;\n"
         "};\n\n",
         module_class_name, module_class_name, module_class_name);
@@ -822,7 +823,7 @@ public:
           "  }\n\n");
 
       Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
-        "      SWIGIsEqual(iid, &IID_IDispatch) || "
+        "      SWIGIsEqual(iid, &IID_IDispatch) ||\n"
         "      SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
@@ -928,7 +929,8 @@ public:
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = 0;\n"
           "  res->refCount = 0;\n"
-          "  SWIG_typelib->GetTypeInfoOfGuid(IID_%s, &res->typeInfo);\n"
+          "  /* GetTypeInfoOfGuid */\n"
+          "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
           "}\n\n",
           proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name);
