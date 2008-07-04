@@ -43,7 +43,11 @@ class COM:public Language {
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
   bool static_flag;		// Flag for when wrapping a static functions or member variables
   bool variable_wrapper_flag;	// Flag for when wrapping a nonstatic member variable
+  bool wrapping_member_flag;	// Flag for when wrapping a member variable/enum/const
+  bool global_variable_flag;	// Flag for when wrapping a global variable
+  bool generate_property_declaration_flag;	// Flag for generating properties
   bool member_func_flag;
+
   String *proxy_class_def;
   String *proxy_class_forward_def;
   String *proxy_class_code;
@@ -51,6 +55,7 @@ class COM:public Language {
   String *proxy_class_constants_code;
   String *clsid_list;
   List *proxy_class_member_functions;
+  String *variable_name;	//Name of a variable being wrapped
   int guid_counter;
   GUID *proxy_iid;
   GUID *proxy_clsid;
@@ -531,7 +536,50 @@ public:
       Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
     }
 
+    /* 
+     * Generate the proxy class properties for public member variables.
+     * Not for enums and constants.
+     */
+    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable in the getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+#if 0
+      if (!getter_flag)
+	Printf(getter_setter_name, "set");
+      else
+	Printf(getter_setter_name, "get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name) + 1);
+#endif
+
+      Printf(getter_setter_name, "%s", variable_name);
+
+      Setattr(n, "proxyfuncname", getter_setter_name);
+      Setattr(n, "imfuncname", symname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
+    }
+
     return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * globalvariableHandler()
+   * ------------------------------------------------------------------------ */
+
+  virtual int globalvariableHandler(Node *n) {
+
+    generate_property_declaration_flag = true;
+    variable_name = Getattr(n, "sym:name");
+    global_variable_flag = true;
+    int ret = Language::globalvariableHandler(n);
+    global_variable_flag = false;
+    generate_property_declaration_flag = false;
+
+    return ret;
   }
 
   /* ----------------------------------------------------------------------
@@ -553,6 +601,44 @@ public:
     return SWIG_OK;
   }
 
+  /* ----------------------------------------------------------------------
+   * membervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int membervariableHandler(Node *n) {
+
+    generate_property_declaration_flag = true;
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    variable_wrapper_flag = true;
+    Language::membervariableHandler(n);
+    wrapping_member_flag = false;
+    variable_wrapper_flag = false;
+    generate_property_declaration_flag = false;
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmembervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmembervariableHandler(Node *n) {
+
+    bool static_const_member_flag = (Getattr(n, "value") == 0);
+
+    generate_property_declaration_flag = true;
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    static_flag = true;
+    Language::staticmembervariableHandler(n);
+    wrapping_member_flag = false;
+    static_flag = false;
+    generate_property_declaration_flag = false;
+
+    return SWIG_OK;
+  }
+
   /* -----------------------------------------------------------------------------
    * moduleClassFunctionHandler()
    * ----------------------------------------------------------------------------- */
@@ -566,6 +652,7 @@ public:
     Parm *p;
     int i;
     String *func_name = NULL;
+    bool setter_flag = false;
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -588,10 +675,22 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    /* FIXME: ... */
-    func_name = Getattr(n, "sym:name");
+    if (proxy_flag && global_variable_flag) {
+      func_name = NewString("");
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
+      Printf(func_name, "%s", variable_name);
 
-    Printf(function_code, "  %s %s(", return_type, func_name);
+      if (setter_flag) {
+        Printf(function_code, "    [ propput ]\n");
+      } else {
+        Printf(function_code, "    [ propget ]\n");
+      }
+    } else {
+      /* FIXME: ... */
+      func_name = Getattr(n, "sym:name");
+    }
+
+    Printf(function_code, "    %s %s(", return_type, func_name);
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
@@ -1038,6 +1137,18 @@ public:
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No comstype typemap defined for %s\n", SwigType_str(t, 0));
     }
+
+    if (wrapping_member_flag && !enum_constant_flag) {
+      // Properties
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
+      
+      if (setter_flag) {
+        Printf(function_code, "    [ propput ]\n");
+      } else {
+        Printf(function_code, "    [ propget ]\n");
+      }
+    }
+
 
     /* Start generating the proxy function */
     Printf(function_code, "    %s %s(", return_type, proxy_function_name);
