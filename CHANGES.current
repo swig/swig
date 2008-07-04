@@ -1,6 +1,11 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-07-03: olly
+	    [PHP] The deprecated command line option "-make" has been removed.  
+	    Searches on Google codesearch suggest that nobody is using it now
+	    anyway.
+
 2008-07-04: olly
 	    [PHP] The SWIG cdata.i library module is now supported.
 

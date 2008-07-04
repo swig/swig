@@ -52,7 +52,6 @@ PHP Options (available with -php5)\n\
      -cppext          - cpp file extension (default to .cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP5 wrappers\n\
-     -make            - Create simple makefile\n\
 \n";
 
 /* The original class wrappers for PHP4 store the pointer to the C++ class in
@@ -69,12 +68,8 @@ static Node *classnode = 0;
 static String *module = 0;
 static String *cap_module = 0;
 static String *prefix = 0;
-static String *withc = 0;
-static String *withcxx = 0;
 
 static String *shadow_classname = 0;
-
-static int gen_make = 0;
 
 static File *f_runtime = 0;
 static File *f_h = 0;
@@ -216,24 +211,6 @@ public:
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i], "-withc") == 0) {
-	if (argv[i + 1]) {
-	  withc = NewString(argv[i + 1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i + 1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      } else if (strcmp(argv[i], "-withcxx") == 0) {
-	if (argv[i + 1]) {
-	  withcxx = NewString(argv[i + 1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i + 1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
       } else if (strcmp(argv[i], "-cppext") == 0) {
 	if (argv[i + 1]) {
 	  SWIG_config_cppext(argv[i + 1]);
@@ -246,11 +223,13 @@ public:
       } else if ((strcmp(argv[i], "-noshadow") == 0) || (strcmp(argv[i], "-noproxy") == 0)) {
 	shadow = 0;
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-make") == 0) {
-	gen_make = 1;
-	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-help") == 0) {
 	fputs(usage, stdout);
+      } else if (strcmp(argv[i], "-make") == 0 ||
+		 strcmp(argv[i], "-withc") == 0 ||
+		 strcmp(argv[i], "-withcxx") == 0) {
+	Printf(stderr, "*** %s is no longer supported.\n", argv[i]);
+	SWIG_exit(EXIT_FAILURE);
       } else if (strcmp(argv[i], "-phpfull") == 0 ||
 		 strcmp(argv[i], "-withlibs") == 0 ||
 		 strcmp(argv[i], "-withincs") == 0) {
@@ -267,37 +246,6 @@ public:
     SWIG_typemap_lang("php4");
     SWIG_config_file("php.swg");
     allow_overloading();
-  }
-
-  void create_simple_make(void) {
-    File *f_make;
-
-    f_make = NewFile((void *) "makefile", "w");
-    Printf(f_make, "CC=gcc\n");
-    Printf(f_make, "CXX=g++\n");
-    Printf(f_make, "CXX_SOURCES=%s\n", withcxx);
-    Printf(f_make, "C_SOURCES=%s\n", withc);
-    Printf(f_make, "OBJS=%s_wrap.o $(C_SOURCES:.c=.o) $(CXX_SOURCES:.cxx=.o)\n", module);
-    Printf(f_make, "MODULE=%s.so\n", module);
-    Printf(f_make, "CFLAGS=-fpic\n");
-    Printf(f_make, "LDFLAGS=-shared\n");
-    Printf(f_make, "PHP_INC=`php-config --includes`\n");
-    Printf(f_make, "EXTRA_INC=\n");
-    Printf(f_make, "EXTRA_LIB=\n\n");
-    Printf(f_make, "$(MODULE): $(OBJS)\n");
-    if (CPlusPlus || (withcxx != NULL)) {
-      Printf(f_make, "\t$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(EXTRA_LIB)\n\n");
-    } else {
-      Printf(f_make, "\t$(CC) $(LDFLAGS) $(OBJS) -o $@ $(EXTRA_LIB)\n\n");
-    }
-    Printf(f_make, "%%.o: %%.cpp\n");
-    Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
-    Printf(f_make, "%%.o: %%.cxx\n");
-    Printf(f_make, "\t$(CXX) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
-    Printf(f_make, "%%.o: %%.c\n");
-    Printf(f_make, "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n");
-
-    Close(f_make);
   }
 
   /* ------------------------------------------------------------
@@ -594,10 +542,6 @@ public:
     }
     Printf(f_phpcode, "%s\n?>\n", s_phpclasses);
     Close(f_phpcode);
-
-    if (gen_make) {
-      create_simple_make();
-    }
 
     return SWIG_OK;
   }

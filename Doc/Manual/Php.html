@@ -131,16 +131,6 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<p>
-There is a deprecated <tt>-make</tt> command line argument to swig which will
-generate an additional file <tt>makefile</tt> which can usually build the
-extension (at least on some UNIX platforms), but the Makefile generated isn't
-very flexible, and the commands required are trivial so it is simpler to just
-add them to your Makefile or other build system directly.  We recommend that
-you don't use <tt>-make</tt> and it's likely to be removed at some point.
-</p>
-
-
 <H3><a name="Php_nn1_3"></a>28.1.3 Using PHP Extensions</H3>
 
 <p>
