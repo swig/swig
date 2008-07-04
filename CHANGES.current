@@ -1,7 +1,12 @@
 Version 1.3.37 (in progress)
 =============================
 
-2008-07-03: olly
+2008-07-04: olly
+	    [PHP] For std_vector.i and std_map.i, rename empty() to is_empty()
+	    since "empty" is a PHP reserved word.  Based of patch from Mark Klein
+	    in SF#1943417.
+
+2008-07-04: olly
 	    [PHP] The deprecated command line option "-make" has been removed.  
 	    Searches on Google codesearch suggest that nobody is using it now
 	    anyway.
