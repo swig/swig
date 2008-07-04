@@ -318,13 +318,24 @@ STDAPI DllRegisterServer(void) {
     module_name = (char *) malloc(allocated);
     typelib_name = (char *) malloc(allocated);
 #endif
-    used = GetModuleFileName(SWIGModule /*GetModuleHandle("$module.dll")*/, module_name, allocated);
+    used = GetModuleFileName(SWIGModule, module_name, allocated);
 
     if (used == allocated) {
       delete module_name;
       allocated *= 2;
     }
   } while (used == allocated);
+
+  strcpy(typelib_name, module_name);
+
+/* This needs to be made more flexible                     */
+/* For now we assume that the TLB is a resource in the DLL */
+#if 0
+  /* Change .dll to .tlb */
+  typelib_name[used - 3] = 't';
+  typelib_name[used - 2] = 'l';
+  typelib_name[used - 1] = 'b';
+#endif
 
   for (i = 0; SWIGClassDescription[i].newInstance != NULL; ++i) {
     HKEY hkey_clsid, hkey, hsubkey;
@@ -486,8 +497,13 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
   if (fdwReason == DLL_PROCESS_ATTACH) {
     SWIGModule = hinstDLL;
 
-    /* FIXME: temporary, just for testing. I'll come up with something sensible ;) */
-    SWIG_typelib_path = L"c:\\swig\\simple.tlb";
+#ifdef __cplusplus
+    SWIG_typelib_path = new OLECHAR[MAX_PATH + 1];
+#else
+    SWIG_typelib_path = (OLECHAR *) malloc((MAX_PATH + 1) * sizeof(OLECHAR));
+#endif
+
+    GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);
     LoadTypeLib(SWIG_typelib_path, &SWIG_typelib);
   }
 
