@@ -47,6 +47,7 @@ static void replace_embedded_typemap(String *s);
 
 static Hash *typemaps[MAX_SCOPE];
 static int tm_scope = 0;
+static int class_distinguish = 0;
 
 static Hash *get_typemap(int tm_scope, SwigType *type) {
   Hash *tm = 0;
@@ -59,7 +60,6 @@ static Hash *get_typemap(int tm_scope, SwigType *type) {
     Delete(ty);
   }
   tm = Getattr(typemaps[tm_scope], type);
-
 
   if (dtype) {
     if (!tm) {
@@ -583,6 +583,10 @@ static SwigType *strip_arrays(SwigType *type) {
   return t;
 }
 
+void Swig_typemap_class_distinguish(int b) {
+  class_distinguish = b;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_typemap_search()
  *
@@ -601,6 +605,21 @@ Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String
   const String *cname = 0;
   SwigType *unstripped = 0;
   String *tmop = tmop_name(op);
+  SwigType *base = 0;
+  int isbuiltin = 0;
+
+  /* 
+   * HACK:
+   * try to distinguish between built-in types (int, char, etc.) and defined classes
+   * this allows C module to use different typemaps for classes
+   */
+  
+  if (class_distinguish) {
+    base = SwigType_base(type);
+    isbuiltin = SwigType_isbuiltin(base);
+    if (!isbuiltin)
+      Replaceall(type, base, "SWIGCLASSTYPE");
+  }
 
   if ((name) && Len(name))
     cname = name;
@@ -686,7 +705,16 @@ Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
 
     primitive = SwigType_default(type);
+
     while (primitive) {
+
+      if (class_distinguish) {
+        if (!isbuiltin) {
+          Replaceall(primitive, "SWIGTYPE", "SWIGCLASSTYPE");
+          /*Printf(stdout, "Swig_typemap_search: new type is %s\n", primitive);*/
+        }
+      }
+
       tm = get_typemap(ts, primitive);
       if (tm && cname) {
 	tm1 = Getattr(tm, cname);
@@ -702,6 +730,8 @@ Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String
 	  goto ret_result;
       }
       {
+        if (class_distinguish)
+          Replaceall(primitive, "SWIGCLASSTYPE", "SWIGTYPE");
 	SwigType *nprim = SwigType_default(primitive);
 	Delete(primitive);
 	primitive = nprim;
@@ -716,6 +746,10 @@ Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String
   result = backup;
 
 ret_result:
+  if (class_distinguish) {
+    Replaceall(type, "SWIGCLASSTYPE", base);
+    Replaceall(primitive, "SWIGCLASSTYPE", base);
+  }
   if (noarrays)
     Delete(noarrays);
   if (primitive)
@@ -727,6 +761,7 @@ ret_result:
   }
   if (type != ctype)
     Delete(ctype);
+
   return result;
 }
 

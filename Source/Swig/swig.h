@@ -151,6 +151,7 @@ extern "C" {
   extern int SwigType_isvarargs(const SwigType *t);
   extern int SwigType_istemplate(const SwigType *t);
   extern int SwigType_isenum(SwigType *t);
+  extern int SwigType_isbuiltin(SwigType *t);
   extern int SwigType_check_decl(SwigType *t, const String_or_char *decl);
   extern SwigType *SwigType_strip_qualifiers(SwigType *t);
   extern SwigType *SwigType_functionpointer_decompose(SwigType *t);
@@ -376,6 +377,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern Hash *Swig_typemap_pop_scope(void);
 
   extern void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f);
+  extern void Swig_typemap_class_distinguish(int b);
 
 /* --- Code fragment support --- */
 

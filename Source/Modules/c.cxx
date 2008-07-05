@@ -57,6 +57,8 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
+    Swig_typemap_class_distinguish(true);
+
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -190,6 +192,7 @@ public:
   virtual int globalvariableHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
+    // FIXME
     //Printv(f_wrappers, "SWIGEXPORTC ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     if (shadow_flag) {
       Printv(f_shadow_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
@@ -254,7 +257,7 @@ public:
     Setattr(n, "wrap:parms", parms);
 
     // set the return type
-    if (Cmp(Getattr(n, "c:immutable"), "1") == 0) {
+    if (Cmp(Getattr(n, "c:objstruct"), "1") == 0) {
         Printv(return_type, SwigType_str(type, 0), NIL);
     }
     else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
@@ -277,7 +280,9 @@ public:
     is_void_return = (SwigType_type(Getattr(n, "type")) == T_VOID);
 
     // add variable for holding result of original function
-    if (!is_void_return && (Cmp(Getattr(n, "c:immutable"), "1") != 0)) {
+    if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
+      if (SwigType_isconst(type))
+        SwigType_del_qualifier(type);
       Wrapper_add_localv(wrapper, "cppresult", SwigType_str(type, 0), "cppresult", NIL);
     }
 
@@ -301,7 +306,7 @@ public:
       Printf(arg_name, "c%s", lname);
 
       // set the appropriate type for parameter
-      if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
+      if (Cmp(Getattr(p, "c:objstruct"), "1") == 0) {
         Printv(c_parm_type, SwigType_str(type, 0), NIL);
       }
       else if ((tm = Getattr(p, "tmap:ctype"))) {
@@ -329,7 +334,7 @@ public:
  
       // apply typemaps for input parameter
       if ((tm = Getattr(p, "tmap:in"))) {
-        if (Cmp(Getattr(p, "c:immutable"), "1") == 0) {
+        if (Cmp(Getattr(p, "c:objstruct"), "1") == 0) {
           // FIXME: should work as typemaps for basic types
           Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
         }
@@ -359,7 +364,7 @@ public:
     Replaceall(action, "$cppresult", "cppresult");
 
     // emit output typemap if needed
-    if (!is_void_return && (Cmp(Getattr(n, "c:immutable"), "1") != 0)) {
+    if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
       if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
         Replaceall(tm, "$result", "result");
         Printf(wrapper->code, "%s", tm);
@@ -472,7 +477,7 @@ public:
 
   virtual int classHandler(Node* n) {
     String* name = Copy(Getattr(n, "name"));
-    String* sobj_name = NewString("");
+    String* sobj = NewString("");
     List* baselist = Getattr(n, "bases");
     Replaceall(name, "::", "_");
 
@@ -496,21 +501,21 @@ public:
     }
 
     // emit "class"-struct definition
-    Printv(sobj_name, "struct ", name, "Obj", NIL);
-    Printv(f_header, sobj_name, " {\n  void* obj;\n", NIL);
-    if (runtime_flag) {
-      Printf(f_header, "  const char* typenames[%d];\n};\n\n", Len(baselist) + 2);
-      Printv(f_header, "const char* __typename_", name, " = \"", name, "\";\n\n", NIL);
-    }
+    Printv(sobj, "struct Obj", name, " {\n  void* obj;\n", NIL);
+    if (runtime_flag)
+      Printf(sobj, "  const char* typenames[%d];\n}", Len(baselist) + 2);
     else 
-      Printf(f_header, "};\n\n");
+      Printf(sobj, "};\n\n");
+
+    Printv(f_header, sobj, ";\n\n", NIL);
+    Printv(f_header, "const char* __typename_", name, " = \"", name, "\";\n\n", NIL);
 
     // declare it in the proxy header
     if (shadow_flag) {
-      Printv(f_shadow_header, "\ntypedef ", sobj_name, " {\n  void* obj;\n} ", name, ";\n\n", NIL);
+      Printv(f_shadow_header, "typedef ", sobj, " ", name, ";\n\n", NIL);
     }
 
-    Delete(sobj_name);
+    Delete(sobj);
     Delete(name);
     return Language::classHandler(n);
   }
@@ -572,14 +577,14 @@ public:
     Replaceall(newclassname, "::", "_");
 
     // create first argument
-    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    Printv(sobj_name, "struct Obj", newclassname, NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm* p = NewParm(ctype, "self");
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
-    Setattr(p, "c:immutable", "1");
+    Setattr(p, "c:objstruct", "1");
     if (parms)
       set_nextSibling(p, parms);
     Setattr(n, "parms", p);
@@ -618,48 +623,100 @@ public:
     return SWIG_OK;
   }
 
+  /* --------------------------------------------------------------------
+   * wrap_get_variable()
+   * --------------------------------------------------------------------- */
+
+  void wrap_get_variable(Node* n, String* classname, String* newclassname, String* name, String* code) {
+    // modify method name
+    String* new_name = NewString("");
+    Printv(new_name, newclassname, "_get_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    String* action = NewString("");
+    ParmList* parms = Getattr(n, "parms");
+    if (parms)
+      if (runtime_flag && Getattr(parms, "c:objstruct"))
+        emit_runtime_typecheck(newclassname, new_name, action);
+    if (!code) {
+      code = NewString("");
+      Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+    }
+    Append(action, code);
+
+    Setattr(n, "wrap:action", action);
+
+    functionWrapper(n);
+
+    Delete(code);     // we are deallocating it, regardless of where it was created
+    Delete(action);
+    Delete(new_name);
+  }
+
+  /* --------------------------------------------------------------------
+   * wrap_set_variable()
+   * --------------------------------------------------------------------- */
+
+  void wrap_set_variable(Node* n, String* classname, String* newclassname, String* name, String* code) {
+    // modify method name
+    String* new_name = NewString("");
+    Printv(new_name, newclassname, "_set_", name, NIL);
+    Setattr(n, "sym:name", new_name);
+
+    // generate action code
+    String* action = NewString("");
+    ParmList* parms = Getattr(n, "parms");
+    if (parms)
+      if (runtime_flag && Getattr(parms, "c:objstruct"))
+        emit_runtime_typecheck(newclassname, new_name, action);
+    if (!code) {
+      code = NewString("");
+      Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
+    }
+    Append(action, code);
+    Setattr(n, "wrap:action", action);
+
+    functionWrapper(n);
+
+    Delete(code);     // see wrap_get_variable()
+    Delete(action);
+    Delete(new_name);
+  }
+
   /* ---------------------------------------------------------------------
    * staticmembervariableHandler()
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node* n) {
     String* name = Getattr(n, "sym:name");
+    SwigType* type = Copy(Getattr(n, "type"));
     String* classname = Getattr(parentNode(n), "name");
     String* newclassname = Copy(classname);
     String* new_name = NewString("");
     String* code = NewString("");
     Replaceall(newclassname, "::", "_");
 
-    // modify the method name
-    Printv(new_name, newclassname, "_get_", name, NIL);
-    Setattr(n, "sym:name", new_name);
-
     // create code for 'get' function
     Printv(code, "$cppresult = ", classname, "::", name, ";\n", NIL);
-    Setattr(n, "wrap:action", code);
-
-    functionWrapper(n);
+    wrap_get_variable(n, classname, newclassname, name, code);
 
     // create parameter for 'set' function
     Parm* p = NewParm(Getattr(n, "type"), "value");
     Setattr(p, "lname", "arg1");
     Setattr(n, "parms", p);
-
-    // modify the method name
-    new_name = NewString("");
-    Printv(new_name, newclassname, "_set_", name, NIL);
-    Setattr(n, "sym:name", new_name);
-    
-    // create code for 'set' function
-    code = NewString("");
-    Printv(code, classname, "::", name, " = arg1;\n", NIL);
-    Setattr(n, "wrap:action", code);
+   
+    if (!SwigType_isconst(type)) {
+      // create code for 'set' function
+      code = NewString("");
+      Printv(code, classname, "::", name, " = arg1;\n", NIL);
+      wrap_set_variable(n, classname, newclassname, name, code);
+    }
 
     Setattr(n, "type", "void");
-    functionWrapper(n);
 
-    Delete(code);
     Delete(new_name);
+    Delete(type);
     return SWIG_OK;
   }
 
@@ -669,71 +726,48 @@ public:
 
   virtual int membervariableHandler(Node* n) {
     String* name = Getattr(n, "sym:name");
+    SwigType* type = Copy(Getattr(n, "type"));
     String* classname = Getattr(parentNode(n), "name");
     String* newclassname = Copy(classname);
     String* sobj_name = NewString("");
     String* ctype = NewString("");
-    String* stype = NewString("");
+    String* stype;
     String* new_name = NewString("");
-    String* code = NewString("");
     Replaceall(newclassname, "::", "_");
 
     // create first argument
-    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    Printv(sobj_name, "struct Obj", newclassname, NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm* p = NewParm(ctype, "self");
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
-    Setattr(p, "c:immutable", "1");
+    Setattr(p, "c:objstruct", "1");
     Setattr(p, "lname", "arg1");
 
     // create second argument
     Parm* t = NewParm(Getattr(n, "type"), "value");
     Setattr(t, "lname", "arg2");
 
-    /* create 'get' function */
-
+    // create 'get' function
     Setattr(n, "parms", p);
+    wrap_get_variable(n, classname, newclassname, name, 0);
 
-    // modify method name
-    Printv(new_name, newclassname, "_get_", name, NIL);
-    Setattr(n, "sym:name", new_name);
+    if (!SwigType_isconst(type)) {
+      // create 'set' function
+      set_nextSibling(p, t);
+      Setattr(n, "parms", p);
+      Setattr(n, "type", "void");
+      wrap_set_variable(n, classname, newclassname, name, 0);
+    }
 
-    // generate action code
-    if (runtime_flag)
-      emit_runtime_typecheck(newclassname, new_name, code);
-    Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
-    Setattr(n, "wrap:action", code);
-
-    functionWrapper(n);
-
-    /* create 'set' function */
-
-    set_nextSibling(p, t);
-    Setattr(n, "parms", p);
-    Setattr(n, "type", "void");
-
-    // modify method name
-    new_name = NewString("");
-    Printv(new_name, newclassname, "_set_", name, NIL);
-    Setattr(n, "sym:name", new_name);
-
-    // generate action code
-    code = NewString("");
-    if (runtime_flag)
-      emit_runtime_typecheck(newclassname, new_name, code);
-    Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
-    Setattr(n, "wrap:action", code);
-
-    functionWrapper(n);
-
-    Delete(code);
     Delete(new_name);
+    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     Delete(newclassname);
+    Delete(type);
     return SWIG_OK;
   }
 
@@ -777,11 +811,11 @@ public:
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // set the function return type to the pointer to struct
-    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    Printv(sobj_name, "struct Obj", newclassname, NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
-    Setattr(n, "c:immutable", "1");
+    Setattr(n, "c:objstruct", "1");
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
@@ -828,11 +862,11 @@ public:
     Setattr(parms, "lname", "arg1");
 
     // set the function return type to the pointer to struct
-    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    Printv(sobj_name, "struct Obj", newclassname, NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
-    Setattr(n, "c:immutable", "1");
+    Setattr(n, "c:objstruct", "1");
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
@@ -878,7 +912,7 @@ public:
     Replaceall(newclassname, "~", "");
 
     // create first argument
-    Printv(sobj_name, "struct ", newclassname, "Obj", NIL);
+    Printv(sobj_name, "struct Obj", newclassname, " ", NIL);
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self");
@@ -886,7 +920,7 @@ public:
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
-    Setattr(p, "c:immutable", "1");
+    Setattr(p, "c:objstruct", "1");
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
 
