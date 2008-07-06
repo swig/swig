@@ -12,25 +12,27 @@
 
 %typemap(ctype) void, short, int, long, char, float, double "$1_type"
 %typemap(ctype) void*, short*, int*, long*, char*, float*, double* "$1_type"
+%typemap(ctype) short&, int&, long&, char&, float&, double& "$1_basetype *"
 %typemap(ctype) const short, const int, const long, const char, const float, const double "$1_basetype"
 %typemap(ctype) bool                  "_Bool"
 %typemap(ctype) SWIGTYPE              "$1_type"
 %typemap(ctype) SWIGTYPE *            "$1_type"
 %typemap(ctype) SWIGTYPE &            "$1_type"
 %typemap(ctype) SWIGTYPE * [ANY]      "$1_basetype*"
-%typemap(ctype) SWIGCLASSTYPE         "struct Obj$1_type"
+%typemap(ctype) SWIGCLASSTYPE         "struct Obj$1_type *"
 %typemap(ctype) SWIGCLASSTYPE *       "struct Obj$1_type"
-%typemap(ctype) SWIGCLASSTYPE &       "struct Obj$1_type"
+%typemap(ctype) SWIGCLASSTYPE &       "struct Obj$*1_ltype *"
 %typemap(ctype) SWIGCLASSTYPE * [ANY] "struct Obj$1_basetype*"
 
 %typemap(in) short, int, long, char, float, double, bool "$1 = ($1_basetype) $input;"
-%typemap(in) void*, short*, int*, long*, char*, float*, double*, bool* "$1 = ($1_basetype*) $input;"
+%typemap(in) void*, short*, int*, long*, char*, float*, double*, bool* "$1 = ($1_basetype *) $input;"
+%typemap(in) short&, int&, long&, char&, float&, double&, bool& "$1 = ($1_basetype *) $input;"
 %typemap(in) SWIGTYPE                 "$1 = ($1_type) $input;"
 %typemap(in) SWIGTYPE *               "$1 = ($1_type) $input;"
 %typemap(in) SWIGTYPE &               "$1 = ($1_type) $input;"
 %typemap(in) SWIGTYPE * [ANY]         "$1 = ($1_basetype*) $input;"
 %typemap(in) SWIGCLASSTYPE {
-  $1 = * ($1_type *) ($input.obj);
+  $1 = * ($1_type *) ($input->obj);
 }
 
 %typemap(in) SWIGCLASSTYPE * {
