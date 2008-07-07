@@ -30,13 +30,13 @@ string findCommand(int commandNum){
 
 	int arraySize = sizeof(commandArray2)/sizeof(*commandArray2);
 	if (commandNum - 101 >= 0 && commandNum - 101 < arraySize){
-		return commandArray2[commandNum];
+		return commandArray2[commandNum - 101];
 	}
 
 	return "" ;
 }
 
-DoxygenEntity::DoxygenEntity(int typeEnt){
+DoxygenEntity::DoxygenEntity(string typeEnt){
     typeOfEntity = typeEnt;
     data = "";
     isLeaf = 1;
@@ -47,7 +47,7 @@ DoxygenEntity::DoxygenEntity(int typeEnt){
  * example: \b word
  * OR holding a string
  */
-DoxygenEntity::DoxygenEntity(int typeEnt, string param1){
+DoxygenEntity::DoxygenEntity(string typeEnt, string param1){
     typeOfEntity = typeEnt;
     data = param1;
     isLeaf = 1;
@@ -56,7 +56,7 @@ DoxygenEntity::DoxygenEntity(int typeEnt, string param1){
 /* Nonterminal node
  * contains
  */
-DoxygenEntity::DoxygenEntity(int typeEnt, list <DoxygenEntity> entList){
+DoxygenEntity::DoxygenEntity(string typeEnt, list <DoxygenEntity> entList){
     typeOfEntity = typeEnt;
     data = "";
     isLeaf = 0;
@@ -64,16 +64,19 @@ DoxygenEntity::DoxygenEntity(int typeEnt, list <DoxygenEntity> entList){
 }
 
 
-void DoxygenEntity::printEntity(){
+void DoxygenEntity::printEntity(int level){
 	if (isLeaf) {
-		cout << "Node Command: " << findCommand(typeOfEntity);
+		for (int i = 0; i < level; i++) {cout << "\t";}
+		cout << "Node Command: " << typeOfEntity << " ";
 		if (data.compare("") != 0) cout << "Node Data: " << data;
 		cout << endl;
 	}
 	else{
+		cout << "Node Command : " << typeOfEntity << endl;
 		list<DoxygenEntity>::iterator p = entityList.begin();
+		level++;
 		while (p != entityList.end()){
-			(*p).printEntity();
+			(*p).printEntity(level);
 			p++;
 		}
 	}
