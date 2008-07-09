@@ -57,6 +57,7 @@ skip-clisp	= test -n "@SKIP_CLISP@"
 skip-cffi	= test -n "@SKIP_CFFI@"
 skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
+skip-c    = test -n "@SKIP_C@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
@@ -91,6 +92,7 @@ check-aliveness:
 	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 	@$(skip-lua)      || ./$(TARGET) -lua      -help
 	@$(skip-r) 	  || ./$(TARGET) -r        -help
+	@$(skip-c)        || ./$(TARGET) -c        -help
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
@@ -113,7 +115,8 @@ check-examples:					\
 	check-clisp-examples			\
 	check-uffi-examples			\
 	check-cffi-examples			\
-	check-r-examples
+	check-r-examples		\
+	check-c-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -135,6 +138,7 @@ clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
+c_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/c/check.list)
 
 # all examples
 check-%-examples :
@@ -181,7 +185,8 @@ check-gifplot:					\
 	check-chicken-gifplot                   \
 #	check-lua-gifplot                  	\
 #	check-csharp-gifplot                    \
-#	check-modula3-gifplot
+#	check-modula3-gifplot    \
+#	check-c-gifplot
 
 check-%-gifplot: gifplot-library
 	@if test -z "$(skip-$*)"; then				\
@@ -228,7 +233,8 @@ check-test-suite:				\
 	check-uffi-test-suite			\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
-	check-r-test-suite
+	check-r-test-suite    \
+	check-c-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -279,7 +285,8 @@ all-test-suite:					\
 	all-uffi-test-suite			\
 	all-cffi-test-suite			\
 	all-chicken-test-suite			\
-	all-r-test-suite
+	all-r-test-suite    \
+	all-c-test-suite
 
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
@@ -306,7 +313,8 @@ broken-test-suite:				\
 	broken-uffi-test-suite			\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
-	broken-r-test-suite
+	broken-r-test-suite    \
+  broken-c-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
@@ -391,7 +399,8 @@ noskip-test-suite:				\
 	noskip-uffi-test-suite			\
 	noskip-cffi-test-suite			\
 	noskip-chicken-test-suite		\
-	noskip-r-test-suite
+	noskip-r-test-suite    \
+	noskip-c-test-suite
 
 noskip-%-test-suite:
 	dir="Examples/test-suite/$*";					\
@@ -440,7 +449,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r c
 
 lib-modules = std
 

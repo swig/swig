@@ -1959,6 +1959,12 @@ SKIP_UFFI=
 #fi
 AC_SUBST(SKIP_UFFI)
 
+SKIP_C=
+if test -x "$(CC)" || test -z "$(CXX)" ; then
+  SKIP_C="1"
+fi
+AC_SUBST(SKIP_C)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2039,6 +2045,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/cffi/Makefile		\
     Examples/test-suite/uffi/Makefile		\
     Examples/test-suite/r/Makefile		\
+    Examples/test-suite/c/Makefile    \
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])

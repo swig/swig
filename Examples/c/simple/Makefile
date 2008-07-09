@@ -3,11 +3,17 @@ SWIG       = $(TOP)/../preinst-swig -debug-module 4 > tree.txt
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-MAIN       = test.c
+RUNME      = runme.c
+PROXY      = example_proxy.c
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MAIN='$(MAIN)' c
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c
+
+run:
+	$(MAKE) -f $(TOP)/Makefile RUNME='$(RUNME)' PROXY='$(PROXY)' \
+	TARGET='$(TARGET)' c_compile
+	env LD_LIBRARY_PATH=. ./runme
 
 clean:
 	rm -f *.o *.so *.out *.a *.exe *.dll *_wrap* *_proxy* *~

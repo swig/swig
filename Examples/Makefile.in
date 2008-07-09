@@ -1103,10 +1103,12 @@ c: $(SRCS)
 	$(SWIG) -c $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(SO)
-	$(CC) $(MAIN) $(TARGET)_proxy.c -L. -l$(TARGET)
 	
 c_cpp: $(SRCS)
 	$(SWIG) -c++ -c $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CXXFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(SO)
-	$(CC) $(MAIN) $(TARGET)_proxy.c -L. -l$(TARGET)
+
+c_compile: $(RUNME) $(PROXY)
+	$(CC) $(RUNME) $(PROXY) -L. -l$(TARGET) -o $(RUNME:.c=)
+
