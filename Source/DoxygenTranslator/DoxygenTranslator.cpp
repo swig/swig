@@ -24,7 +24,8 @@ to test. */
 
 int testCodeCrawlingFunctions = 0;
 int demonstrateParsing = 1;
-int noisy = 1; // set this to 1 for extra chatter from the parsing stage.
+int runExamples = 1;
+int noisy = 0; // set this to 1 for extra chatter from the parsing stage.
 int addCommand(string commandName, int &startInd, list <DoxygenEntity> &doxyList, string doxygenString);
 //////////////////////////////////////////
 
@@ -51,7 +52,7 @@ string commandArray[] = {"a", "addindex", "addtogroup", "anchor", "arg", "attent
 		"sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
 		"subsection", "subsubsection", "test", "throw", "todo", "tparam", "typedef", "union", "until",
 		"var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem",
-		"$", "@", string(1, 92), string(1, '&'), "~", "<", ">", string(1, '#'), "%"};
+		"$", "@", "//","&", "~", "<", ">", "#", "%"};
 
 
 string sectionIndicators[] = { "attention", "author", "brief", "bug", "cond", "date", "deprecated", "details",
@@ -60,7 +61,7 @@ string sectionIndicators[] = { "attention", "author", "brief", "bug", "cond", "d
 		"version", "warning", "xrefitem" };
 
 /* All of the doxygen commands divided up by how they are parsed */
-string simpleCommands[] = {"n", "$", "@", string(1, 92), string(1, '&'), "~", "<", ">", string(1, '#'), "%"};
+string simpleCommands[] = {"n", "$", "@", "//", "&", "~", "<", ">", "#", "%"};
 string ignoredSimpleCommands[] = {"nothing at the moment"};
 string commandWords[] = {"a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
 		"relates", "namespace", "relatesalso","anchor", "dontinclude", "include", "includelineno"};
@@ -84,10 +85,8 @@ string commandErrorThrowings[] = {"annotatedclasslist", "classhierarchy", "defin
 string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref",
 		"subpage", "dotfile", "image", "addtogroup", "li"};
 
- int startIndex = 0;
- int endIndex = 0;
+ //int startIndex = 0;
  int isNewLine = 0;
- //string doxygenString = "";
  int briefDescExists = 0;
 
  /* Entity list is the root list.
@@ -186,8 +185,8 @@ string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload
  int isSectionIndicator(string smallString){
  	smallString = StringToLower(smallString);
 
- 	for (int i = 0; i < sizeof(commandArray)/sizeof(*commandArray); i++){
- 		if( smallString.compare(commandArray[i]) == 0){
+ 	for (int i = 0; i < sizeof( sectionIndicators)/sizeof(* sectionIndicators); i++){
+ 		if( smallString.compare( sectionIndicators[i]) == 0){
  			return 1;
  		}
  	}
@@ -207,7 +206,7 @@ string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload
  	int amountRemoved = 0;
 
  	while(doxygenString[startIndex] == '/'|| doxygenString[startIndex] == '!' || doxygenString[startIndex] == '*'
- 			|| doxygenString[startIndex] == '\n' || doxygenString[startIndex] == ' '){
+ 			|| doxygenString[startIndex] == '\n' || doxygenString[startIndex] == ' '|| doxygenString[startIndex] == '\t'){
  		startIndex++;
  		amountRemoved++;
  		}
@@ -222,9 +221,9 @@ string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload
 
  string getNextWord(int &startInd, string doxygenString){
 	int startIndex = startInd;
- 	string nextWord = "";
+ 	string nextWord;
  	while (startIndex < doxygenString.length() && (doxygenString[startIndex] == '/'|| doxygenString[startIndex] == ' '
- 		|| doxygenString[startIndex] == '*' || doxygenString[startIndex]== '\n'
+ 		|| doxygenString[startIndex] == '*' || doxygenString[startIndex]== '\n' || doxygenString[startIndex] == '\t'
 		|| doxygenString[startIndex] == '!')){
  		if(doxygenString[startIndex]== '\n'){ startInd = startIndex; return nextWord;}
  		startIndex++;
@@ -233,7 +232,7 @@ string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload
  	//cout << doxygenString[startIndex] << endl;
  	int endIndex = startIndex;
 
- 	while (doxygenString[endIndex]!= '\n' && doxygenString[endIndex]!= ' '){
+ 	while (endIndex < doxygenString.length() && (doxygenString[endIndex]!= '\n' && doxygenString[endIndex]!= ' ')){
  		endIndex++;
  		//cout << "End Index " << endIndex << endl;
  		}
@@ -251,7 +250,7 @@ string commandUniques[] = {"xrefitem", "ingroup", "par", "headerfile", "overload
 	int startIndex = startInd;
  	while (doxygenString[startIndex] == '/'|| doxygenString[startIndex] == ' '
  		|| doxygenString[startIndex] == '*' || doxygenString[startIndex]== '\n'
-		|| doxygenString[startIndex] == '!'){
+		|| doxygenString[startIndex] == '!' || doxygenString[startIndex] == '\t'){
  		if(doxygenString[startIndex]== '\n') return "";
  		startIndex++;
  		}
@@ -274,7 +273,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 if (startInd >= doxygenString.length()) return "";
 	int startIndex = startInd;
 	int endIndex = startInd;
- 	string description = "";
+ 	string description;
  	/* Find the End of the description */
  	int keepLooping = 1;
  	int spareIndex = 0;
@@ -293,7 +292,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 				//cout << "Counter :" << counter << endl;
 				while(keepLooping && endIndex < doxygenString.length() && (doxygenString[counter] == ' ' ||
 				               doxygenString[counter] == '*'|| doxygenString[counter] == '\n'|| doxygenString[counter] == '/'
-				            	   || doxygenString[counter] == '!') ){
+				            	   || doxygenString[counter] == '!' || doxygenString[startIndex] == '\t') ){
 									if(doxygenString[counter] == '\n') {
 										//cout << "Blank line found" << endl;
 										keepLooping = 0;
@@ -304,7 +303,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 			}
 			//endIndex = counter;
 		}
- 		else if (doxygenString[endIndex] == 92 || doxygenString[endIndex] == '@'){
+ 		else if (doxygenString[endIndex] == '\\' || doxygenString[endIndex] == '@'){
  			finalIndex = endIndex;
  			keepLooping = 0;
  			}
@@ -321,13 +320,13 @@ string getStringTilCommand(int &startInd, string doxygenString){
  	}
  	//cout << "Done with EndIndex" << endl;
  	while(doxygenString[startIndex] == '!' || doxygenString[startIndex] == ' '
- 		|| doxygenString[startIndex] == '/' || doxygenString[startIndex] == '*') startIndex++;
+ 		|| doxygenString[startIndex] == '/' || doxygenString[startIndex] == '*' || doxygenString[startIndex] == '\t') startIndex++;
 
  	for (int i = startIndex; i < endIndex; i++){
 
  		if (doxygenString[i] == '\n') {
 
- 			while ((doxygenString[i] == '\n' || doxygenString[i] == ' '
+ 			while ((doxygenString[i] == '\n' || doxygenString[startIndex] == '\t'|| doxygenString[i] == ' '
  				|| doxygenString[i] == '*' || doxygenString[i] == '/')&& endIndex < doxygenString.length() - 1){
  				i++;
  				}
@@ -351,7 +350,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 if (startInd >= doxygenString.length()) return "";
 	int startIndex = startInd;
 	int endIndex = startInd;
- 	string description = "";
+ 	string description;
  	/* Find the End of the description */
  	int keepLooping = 1;
  	int spareIndex = 0;
@@ -369,7 +368,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 				counter++;
 				//cout << "Counter :" << counter << endl;
 				while(keepLooping && endIndex < doxygenString.length() && (doxygenString[counter] == ' ' ||
-				               doxygenString[counter] == '*'|| doxygenString[counter] == '\n'|| doxygenString[counter] == '/'
+				               doxygenString[counter] == '*'|| doxygenString[startIndex] == '\t' || doxygenString[counter] == '\n'|| doxygenString[counter] == '/'
 				            	   || doxygenString[counter] == '!') ){
 									if(doxygenString[counter] == '\n') {
 										//cout << "Blank line found" << endl;
@@ -381,30 +380,32 @@ string getStringTilCommand(int &startInd, string doxygenString){
 			}
 			//endIndex = counter;
 		}
- 		else if (doxygenString[endIndex] == 92 || doxygenString[endIndex] == '@'){
- 			//cout << "2 ";
-			spareIndex = endIndex;
- 			if (isSectionIndicator(getNextWord(spareIndex, doxygenString))) keepLooping = 0;
+ 		//todo this fix for not immediately exciting while parsing a paragraph seems somewhat cheap
+ 		else if (endIndex != startInd && doxygenString[endIndex] == '\\' || doxygenString[endIndex] == '@'){
+			spareIndex = endIndex +1;
+			
+ 			if (isSectionIndicator(getNextWord(spareIndex, doxygenString))) {
+ 				keepLooping = 0;
+ 				finalIndex = endIndex;}
  			}
 		else if(endIndex < doxygenString.length() - 1
 				&& string("*/").compare(doxygenString.substr(endIndex , endIndex  + 1)) == 0){
-			//cout << "3 ";
 			keepLooping = 0;
+			finalIndex = endIndex;
 		}
  		if(keepLooping){
- 			//cout << "4 ";
  			endIndex++;
  		}
  	}
  	//cout << "Done with EndIndex" << endl;
- 	while(doxygenString[startIndex] == '!' || doxygenString[startIndex] == ' '
+ 	while(doxygenString[startIndex] == '!' || doxygenString[startIndex] == ' ' || doxygenString[startIndex] == '\t'
  		|| doxygenString[startIndex] == '/' || doxygenString[startIndex] == '*') startIndex++;
 
  	for (int i = startIndex; i < endIndex; i++){
 
  		if (doxygenString[i] == '\n') {
 
- 			while ((doxygenString[i] == '\n' || doxygenString[i] == ' '
+ 			while ((doxygenString[i] == '\n' || doxygenString[startIndex] == '\t' || doxygenString[i] == ' ' ||doxygenString[startIndex] == '!'
  				|| doxygenString[i] == '*' || doxygenString[i] == '/')&& endIndex < doxygenString.length() - 1){
  				i++;
  				}
@@ -425,9 +426,9 @@ string getStringTilCommand(int &startInd, string doxygenString){
   */
  //TODO Make progressTilCommand return a formatted string
  int progressTilEndCommand(string theCommand, int &startInd, string doxygenString){
- 	endIndex = startInd;
+ 	int endIndex = startInd;
  	while (endIndex < doxygenString.length()){
- 		if (doxygenString[endIndex] == 92 || doxygenString[endIndex] == '@'){
+ 		if (doxygenString[endIndex] == '\\' || doxygenString[endIndex] == '@'){
  			//cout << doxygenString.substr(endIndex + 1 , theCommand.length())<< endl;
  			if (theCommand.compare(doxygenString.substr(endIndex + 1 , theCommand.length())) == 0){
  				startInd = endIndex + theCommand.length() + 1;
@@ -440,34 +441,78 @@ string getStringTilCommand(int &startInd, string doxygenString){
  	return 0;
  }
 
+ /* A specialty method for commands such as \arg that end at the end of a paragraph OR when another \arg is encountered
+  */
+ 
  string getStringTilAnyCommand(string theCommand, int &startInd, string doxygenString){
-	 endIndex = startInd;
-	 startIndex = startInd;
-	 int keepLooping = 1;
-	 while (keepLooping && endIndex < doxygenString.length()){
-	  		if (doxygenString[endIndex] == 92 || doxygenString[endIndex] == '@'){
-	  			startInd = endIndex;
-	  			keepLooping = 0;
-	  			}
-	 endIndex++;
-	 }
-	 string description = "";
-	 for (int i = startIndex; i < endIndex; i++){
+	 if (startInd >= doxygenString.length()) return "";
+		int startIndex = startInd;
+		int endIndex = startInd;
+	 	string description;
+	 	/* Find the End of the description */
+	 	int keepLooping = 1;
+	 	int spareIndex = 0;
+	 	int counter;
+	 	int finalIndex;
+	 	while(keepLooping){
+	 		if(endIndex >= theCommand.length()){
+	 			finalIndex = endIndex;
+	 			keepLooping = 0;
+	 		}
+	 		else if (doxygenString[endIndex] == '\n'){
+				//cout << "1 ";
+				counter = endIndex;
+				if ( keepLooping && endIndex < doxygenString.length()-1) {
+					counter++;
+					//cout << "Counter :" << counter << endl;
+					while(keepLooping && endIndex < doxygenString.length() && (doxygenString[counter] == ' ' ||
+					               doxygenString[counter] == '*'|| doxygenString[counter] == '\n'|| doxygenString[counter] == '/'
+					            	   || doxygenString[counter] == '!' || doxygenString[startIndex] == '\t') ){
+										if(doxygenString[counter] == '\n') {
+											//cout << "Blank line found" << endl;
+											keepLooping = 0;
+											finalIndex = counter;}
+										else{ counter++;}
+										}
 
-	  		if (doxygenString[i] == '\n') {
+				}
+				//endIndex = counter;
+			}
+	 		else if (doxygenString[endIndex] == '\\' || doxygenString[endIndex] == '@'){
+	 			//cout << "2 ";
+				spareIndex = endIndex;
+	 			if (endIndex + theCommand.length() < theCommand.length() 
+	 					&& theCommand.compare(doxygenString.substr(endIndex, theCommand.length())) == 0) keepLooping = 0;
+	 			}
+			else if(endIndex < doxygenString.length() - 1
+					&& string("*/").compare(doxygenString.substr(endIndex , endIndex  + 1)) == 0){
+				//cout << "3 ";
+				keepLooping = 0;
+			}
+	 		if(keepLooping){
+	 			//cout << "4 ";
+	 			endIndex++;
+	 		}
+	 	}
+	 	//cout << "Done with EndIndex" << endl;
+	 	while(doxygenString[startIndex] == '!' || doxygenString[startIndex] == ' '
+	 		|| doxygenString[startIndex] == '/' || doxygenString[startIndex] == '*' || doxygenString[startIndex] == '\t') startIndex++;
 
-	  			while ((doxygenString[i] == '\n' || doxygenString[i] == ' '
-	  				|| doxygenString[i] == '*' || doxygenString[i] == '/')&& endIndex < doxygenString.length() - 1){
-	  				i++;
-	  				}
-	  			description.append(" ");
-	  		}
-	  		description.push_back(doxygenString[i]);
-	  		//cout << doxygenString[i];
-	  	}
-	  	startInd = endIndex;
-	  	return description;
-	 return 0;
+	 	for (int i = startIndex; i < endIndex; i++){
+
+	 		if (doxygenString[i] == '\n') {
+
+	 			while ((doxygenString[i] == '\n' || doxygenString[i] == ' ' || doxygenString[startIndex] == '\t'
+	 				|| doxygenString[i] == '*' || doxygenString[i] == '/')&& endIndex < doxygenString.length() - 1){
+	 				i++;
+	 				}
+	 			description.append(" ");
+	 		}
+	 		description.push_back(doxygenString[i]);
+	 		//cout << doxygenString[i];
+	 	}
+	 	startInd = finalIndex;
+	 	return description;
  }
  ///////////////TEST CLASSES AND MAIN BELOW/////////////////
 
@@ -477,7 +522,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
   * differs wildly */
 
  int testClearFluff(){
-  string doxygenString = "";
+  string doxygenString;
   string cases[] = {"/** WORD", "/*! WORD", "/******* WORD", "///// WORD", "//! WORD", "//! WORD", "///WORD",
  		 "/**\nWORD", "/**\n*WORD", "/** \n WORD"};
   int testPassed = 1;
@@ -498,10 +543,10 @@ string getStringTilCommand(int &startInd, string doxygenString){
   };
 
  int testGetNextWord(){
-	  string doxygenString = "";
+	  string doxygenString;
 	  string cases[] = {"/** WORD ", " * WORD ", "///!WORD ", " WORD ", "//! WORD ", " * WORD ", "*WORD "};
 	  int testPassed = 1;
-	  string testWord = "";
+	  string testWord;
 	  int placement = 0;
 	  int casesSize = sizeof(cases)/sizeof(*cases);
 	  for (int i = 0; i < casesSize; i++){
@@ -523,10 +568,10 @@ string getStringTilCommand(int &startInd, string doxygenString){
 			testPassed = 0;}
 		 //else cout << "GetNextWord passed for string :" << doxygenString << endl;
 		testWord = " * ";
-		testWord.push_back(92);
+		testWord.push_back('\\');
 		testWord = testWord + "WORD ";
-		string commandWord = "";
-		commandWord.push_back(92);
+		string commandWord;
+		commandWord.push_back('\\');
 		commandWord = commandWord + "WORD";
 		doxygenString = testWord;
 		placement = 0;
@@ -581,7 +626,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
  }
 
  int testGetOneLine(){
-	  string doxygenString = "";
+	  string doxygenString;
 	  string cases[] = {" * Crop this sentence after this period.\n",
 			  " * Crop this sentence after this period.\n",
 			  "Crop this sentence after this period.\n",
@@ -589,7 +634,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 			  " Crop this sentence after this period.\n"
 			  };
 	  int testPassed = 1;
-	  string testWord = "";
+	  string testWord;
 		int placement = 0;
 	  int casesSize = sizeof(cases)/sizeof(*cases);
 	  for (int i = 0; i < casesSize; i++){
@@ -625,7 +670,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
  }
 //TODO Flesh testGetStringTilEndOfParagraph out, fix weird spacing problems
  int testGetStringTilEndOfParagraph(){
-	string doxygenString = "";
+	string doxygenString;
 	int placement = 0;
 	int testPassed = 1;
 	string testParagraph;
@@ -647,7 +692,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	//cout << "String Length: " << doxygenString.length() << endl;
 
 	doxygenString = "/* This is a description,\n * thus it continues on\n * for several lines.\n * \n * ";
-	doxygenString.push_back(92);
+	doxygenString.push_back('//');
 	doxygenString += "author cheryl foil \n\n **/";
 	placement = 0;
 	testParagraph = getStringTilEndOfParagraph(placement, doxygenString);
@@ -662,7 +707,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
  }
 
  int testGetStringTilCommand(){
-		string doxygenString = "";
+		string doxygenString;
 		int placement = 0;
 		int testPassed = 1;
 		string testParagraph;
@@ -678,12 +723,12 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 
  }
  int testProgressTilEndCommand(){
-	    string doxygenString = "";
+	    string doxygenString ;
 		int placement = 0;
 		int testPassed = 1;
 		string testParagraph;
 		doxygenString = "Let's pretend this \n * is a bunch of code to be ended in ";
-		doxygenString.push_back(92);
+		doxygenString.push_back('\\');
 		doxygenString += "endcodeSTOP";
 		progressTilEndCommand("endcode", placement, doxygenString);
 		//cout << "Placement : " << placement << endl;
@@ -733,11 +778,11 @@ string getStringTilCommand(int &startInd, string doxygenString){
  
  
  list<DoxygenEntity> parse(int startInd, string doxygenString){
- 	string currWord = "";
+ 	string currWord;
  	int startIndex = startInd;
  	int savedIndex;
  	list <DoxygenEntity> aNewList;
- 	endIndex = doxygenString.length();
+ 	int endIndex = doxygenString.length();
  	int currCommand;
  	while (startIndex < endIndex){
  		savedIndex = startIndex;
@@ -746,12 +791,12 @@ string getStringTilCommand(int &startInd, string doxygenString){
  		if(currWord == ""){
  			if (startIndex < endIndex) startIndex++;
  		}
- 		else if(currWord[0] == 92 || currWord[0] == '@'){
+ 		else if(currWord[0] == '\\' || currWord[0] == '@'){
  			currWord = currWord.substr(1, currWord.length() - 1);
  			currCommand = findCommand(currWord);
- 			if (currCommand < 0 ){ cout << "BAD COMMAND: " << currWord << endl; exit(1);}
+ 			if (currCommand < 0 ){ if(noisy) cout << "BAD COMMAND: " << currWord << endl;}
  				//cout << "Command: " << currWord << " " << currCommand << endl;
- 			addCommand(currWord, startIndex, aNewList, doxygenString);
+ 			else addCommand(currWord, startIndex, aNewList, doxygenString);
  		}
  		else{
  			startIndex = savedIndex;
@@ -783,7 +828,6 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 
 		if (noisy) cout << "Not Adding " << theCommand << endl;
 		return 1;
-		//doxyList.push_back(DoxygenEntity(108));
  }
   
   /* CommandWord
@@ -1051,7 +1095,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
  
  int weirdTest(){
 	 string doxygenString = "this is a test.";
-	 string restOfParagraph = "";
+	 string restOfParagraph;
 	 int startIndex = 0;
 	 restOfParagraph = getStringTilEndOfParagraph(startIndex , doxygenString);
 	 cout << restOfParagraph<< " " << startIndex << endl;
@@ -1061,16 +1105,42 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 cout << restOfParagraph<< " " << startIndex << endl;
  }
 
+ 
+
+ int doRunExamples(){
+	 string line;
+	 string filename;
+	 string exampleNames[] = {"Examples/Example1","Examples/Example2", "Examples/Example3", "Examples/Example4", "Examples/Example5"};
+	 int placement;
+	 string doxygenString;
+	 ifstream doxCommentFile;
+	 for (int i = 0; i < 5; i++){
+	   doxCommentFile.open(exampleNames[i].c_str());
+	   doxCommentFile >> doxygenString;
+	   while(getline(doxCommentFile, line)){
+	   doxygenString += line + "\n";}
+	   doxCommentFile.close();
+	   placement = 0;
+	   cout << "---RAW CODE---" << endl << doxygenString << endl<<endl;
+	   clearFluff(placement, doxygenString);
+	   rootList = parse(placement, doxygenString);
+
+	   cout << "---THE TREE---" << endl;
+	   printTree();
+	 }
+	return 1; 
+ }
+ 
+ 
  /* Returns a parse tree for a string */
-
-
-
  int main(int argc, char *argv[]){
 	//weirdTest();
  	if(testCodeCrawlingFunctions) testCCF();
+ 	if(runExamples) doRunExamples();
  	if (demonstrateParsing){
- 		string doxygenString = " This is a small sentence.\n *\n This is a line with a @b bold letter \n * \n  @brief small @b description. **/";
- 		//string doxygenString = "This is a description.\n\n * @param x this is a parameter.";
+ 		string doxygenString = "//! A normal member taking two arguments and returning an integer value.\n/*!\n \\param a an integer argument. \\param s a constant character pointer\n \\return The test results\n  \\sa Test(), ~Test(), testMeToo() and publicVar()\n */";
+ 		//string doxygenString = " /** This is a small sentence.\n *\n@param x this is a parameter. \n \n This is a line with a @b bold letter \n * \n  @brief small @b description. \n\n * **/";
+ 		//string doxygenString = "This is a description.";
  		int placement = 0;
  		clearFluff(placement, doxygenString);
  		rootList = parse(placement, doxygenString);

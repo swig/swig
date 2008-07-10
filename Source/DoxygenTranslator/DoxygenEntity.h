@@ -11,7 +11,7 @@ class DoxygenEntity{
 public:
 	DoxygenEntity(string typeEnt);
 	DoxygenEntity(string typeEnt, string param1);
-	DoxygenEntity(string typeEnt, list <DoxygenEntity> entList);
+	DoxygenEntity(string typeEnt, list <DoxygenEntity> &entList );
 	virtual ~DoxygenEntity();
 	void printEntity(int level);
     string typeOfEntity;

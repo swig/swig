@@ -24,7 +24,7 @@ string commandArray2[] = {"a", "addindex", "addtogroup", "anchor", "arg", "atten
 		"sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
 		"subsection", "subsubsection", "test", "throw", "todo", "tparam", "typedef", "union", "until",
 		"var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem",
-		"$", "@", string(1, 92), string(1, '&'), "~", "<", ">", string(1, '#'), "%"};
+		"$", "@", string(1, 92), "&", "~", "<", ">", "#", "%"};
 
 string findCommand(int commandNum){
 
@@ -56,7 +56,7 @@ DoxygenEntity::DoxygenEntity(string typeEnt, string param1){
 /* Nonterminal node
  * contains
  */
-DoxygenEntity::DoxygenEntity(string typeEnt, list <DoxygenEntity> entList){
+DoxygenEntity::DoxygenEntity(string typeEnt, list <DoxygenEntity> &entList ){
     typeOfEntity = typeEnt;
     data = "";
     isLeaf = 0;
@@ -65,18 +65,20 @@ DoxygenEntity::DoxygenEntity(string typeEnt, list <DoxygenEntity> entList){
 
 
 void DoxygenEntity::printEntity(int level){
+	int thisLevel = level;
 	if (isLeaf) {
-		for (int i = 0; i < level; i++) {cout << "\t";}
+		for (int i = 0; i < thisLevel; i++) {cout << "\t";}
 		cout << "Node Command: " << typeOfEntity << " ";
 		if (data.compare("") != 0) cout << "Node Data: " << data;
 		cout << endl;
 	}
 	else{
+		for (int i = 0; i < thisLevel; i++) {cout << "\t";}
 		cout << "Node Command : " << typeOfEntity << endl;
 		list<DoxygenEntity>::iterator p = entityList.begin();
-		level++;
+		thisLevel++;
 		while (p != entityList.end()){
-			(*p).printEntity(level);
+			(*p).printEntity(thisLevel);
 			p++;
 		}
 	}
