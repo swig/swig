@@ -18,3 +18,4 @@ run:
 clean:
 	rm -f *.o *.out *.so *.a *.dll *.exe *_wrap* *_proxy* *~
 
+check: all
