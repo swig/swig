@@ -39,7 +39,7 @@ public:
   C() : 
     empty_string(NewString("")),
     proxy_flag(true),
-    runtime_flag(true) {
+    runtime_flag(false) {
   }
 
   /* ------------------------------------------------------------
@@ -52,6 +52,8 @@ public:
 
     // add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGC 1", 0);
+    if (runtime_flag)
+      Preprocessor_define("SWIG_C_RUNTIME 1", 0);
 
     // add typemap definitions
     SWIG_typemap_lang("c");
@@ -103,10 +105,10 @@ public:
 
     Swig_banner(f_runtime);
 
-    Printf(f_header, "#include <malloc.h>\n");
+    Printf(f_header, "#include <stdlib.h>\n");
     if (runtime_flag) {
       Printf(f_header, "#include <stdio.h>\n");
-      Printf(f_header, "#include <stdlib.h>\n");
+      //Printf(f_header, "#include <stdlib.h>\n");
       Printf(f_header, "#include <string.h>\n");
       Printf(f_header, "#include <setjmp.h>\n\n");
       Printf(f_header, "static jmp_buf Swig_rt_env;\n");
@@ -384,7 +386,8 @@ public:
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         if (SwigType_isconst(type))
           SwigType_del_qualifier(type);
-        Wrapper_add_localv(wrapper, "cppresult", SwigType_str(type, 0), "cppresult", NIL);
+        SwigType *return_var_type = SwigType_isreference(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
+        Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
       }
 
       // create wrapper function prototype
@@ -463,6 +466,10 @@ public:
       // emit action code
       String *action = emit_action(n);
       Replaceall(action, "$cppresult", "cppresult");
+
+      // return-by-reference hack
+      if (SwigType_isreference(type))
+        Replaceall(action, "&)", "*)&");
 
       // emit output typemap if needed
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
@@ -612,7 +619,7 @@ public:
       if (runtime_flag)
         Printf(sobj, "  const char* typenames[%d];\n}", Len(baselist) + 2);
       else 
-        Printf(sobj, "};\n\n");
+        Printf(sobj, "}");
 
       Printv(f_header, sobj, ";\n\n", NIL);
       Printv(f_header, "const char* Swig_typename_", name, " = \"", name, "\";\n\n", NIL);

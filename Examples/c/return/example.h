@@ -11,6 +11,6 @@ public:
 };
 
 Bar foo_ret_val();
-//Bar& foo_ret_ref(Bar* bar);
+Bar& foo_ret_ref(Bar& bar);
 Bar* foo_ret_ptr(Bar* bar);
 

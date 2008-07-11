@@ -25,7 +25,7 @@
 %typemap(ctype) SWIGTYPE * [ANY]      "$1_basetype*"
 %typemap(ctype) SWIGCLASSTYPE         "struct SwigObj$1_type *"
 %typemap(ctype) SWIGCLASSTYPE *       "struct SwigObj$1_type"
-%typemap(ctype) SWIGCLASSTYPE &       "struct SwigObj$*1_ltype *"
+%typemap(ctype) SWIGCLASSTYPE &       "struct SwigObj$1_basetype *"
 %typemap(ctype) SWIGCLASSTYPE * [ANY] "struct SwigObj$1_basetype *"
 
 %typemap(in) short, int, long, char, float, double, bool "$1 = ($1_basetype) $input;"
@@ -41,21 +41,31 @@
 }
 
 %typemap(in) SWIGCLASSTYPE * {
-  $1 = ($1_type) $input->obj;
+  if ($input)
+    $1 = ($1_type) $input->obj;
+  else
+    $1 = ($1_type) 0;
 }
 
 %typemap(in) SWIGCLASSTYPE * [ANY] {
-  $1 = ($1_basetype*) malloc($1_dim0 * sizeof($1_basetype));
-  int i;
-  for (i = 0; i < $1_dim0; ++i)
-    if ($input[i])
-      $1[i] = ($1_basetype) $input[i]->obj;
-    else
-      $1[i] = ($1_basetype) 0;
+  if ($input) {
+    $1 = ($1_basetype*) malloc($1_dim0 * sizeof($1_basetype));
+    int i;
+    for (i = 0; i < $1_dim0; ++i)
+      if ($input[i])
+        $1[i] = ($1_basetype) $input[i]->obj;
+      else
+        $1[i] = ($1_basetype) 0;
+  }
+  else
+    $1 = ($1_basetype*) 0;
 }
 
 %typemap(in) SWIGCLASSTYPE & {
-  $1 = ($*1_ltype *) $input->obj;
+  if ($input)
+    $1 = ($1_basetype *) $input->obj;
+  else
+    $1 = ($1_basetype *) 0;
 }
 
 // typemaps for return values
@@ -64,22 +74,35 @@
 %typemap(couttype) void*, short*, int*, long*, char*, float*, double* "$1_type"
 %typemap(couttype) const short, const int, const long, const char, const float, const double "$1_basetype"
 %typemap(couttype) bool       "_Bool"
-%typemap(couttype) SWIGTYPE   "struct SwigObj$1_type"
-%typemap(couttype) SWIGTYPE * "struct SwigObj$*1_type *"
+%typemap(couttype) SWIGCLASSTYPE   "struct SwigObj$1_type *"
+%typemap(couttype) SWIGCLASSTYPE * "struct SwigObj$1_type"
+%typemap(couttype) SWIGCLASSTYPE & "struct SwigObj$1_basetype *"
 
 %typemap(out) short, int, long, char, float, double, bool "$result = $1;"
 %typemap(out) void*, short*, int*, long*, char*, float*, double*, bool* "$result = $1;"
 %typemap(out) void ""
 
-%typemap(out) SWIGTYPE {
-  $result.obj = (void*) &$1;
+%typemap(out) SWIGCLASSTYPE {
+  $result = (struct SwigObj$1_type *) malloc(sizeof(struct SwigObj$1_type));
+  $result->obj = (void*) &$1;
+  #if SWIG_C_RUNTIME
+  $result->typenames[0] = 0;    // FIXME
+  #endif
 }
 
-%typemap(out) SWIGTYPE * {
+%typemap(out) SWIGCLASSTYPE * {
+  $result = (struct SwigObj$1_type) malloc(sizeof(struct SwigObj$*1_type));
   $result->obj = (void*) $1;
+  #if SWIG_C_RUNTIME
+  $result->typenames[0] = 0;    // FIXME
+  #endif
 }
 
-%typemap(out) SWIGTYPE & {
-  // return by reference
+%typemap(out) SWIGCLASSTYPE & {
+  $result = (struct SwigObj$1_basetype *) malloc(sizeof(struct SwigObj$1_basetype));
+  $result->obj = (void*) $1;
+  #if SWIG_C_RUNTIME
+  $result->typenames[0] = 0;    // FIXME
+  #endif
 }
 

@@ -4,17 +4,20 @@
 
 class A {
   public:
-    A() {}
-    int foo(int i) {
-      return i+1;
-    }
+    A() : i(0) {}
+    int i;
 };
 
-void foo(A a, A &ra, A *pa, char c, char *str, char **pstr, char ***ppstri) {
+A foo_1(A *a) {
+  return *a;
 }
 
-void foo_1(int ***a) {
+A * foo_2(A *a) {
+  return a;
+}
 
+A & foo_3(A *a) {
+  return *a;
 }
 
 %}
