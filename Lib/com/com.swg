@@ -12,12 +12,17 @@
 %typemap(ctype) double, const double & "/*ctype */ double"
 %typemap(ctype) long, const long & "/* ctype */ long"
 %typemap(ctype) SWIGTYPE * "/* ctype */ SWIGIUnknown *"
+%typemap(ctype) SWIGTYPE "/* ctype */ SWIGIUnknown *"
+%typemap(ctype) SWIGTYPE & "/* ctype */ SWIGIUnknown *"
 
 %typemap(comtype) void "void"
 %typemap(comtype) int, const int & "/* comtype */ int"
 %typemap(comtype) double, const double & "/* comtype */ double"
 %typemap(comtype) long, const long & "/* comtype */ long"
 %typemap(comtype) SWIGTYPE * "/* comtype */ $comclassname *"
+%typemap(comtype) SWIGTYPE "/* comtype */ $&comclassname *"
+%typemap(comtype) SWIGTYPE & "/* comtype */ $comclassname *"
+%typemap(comtype) SWIGTYPE *& "/* comtype */ $*comclassname *"
 
 %typemap(in) int, double, long %{ /* in */ $1 = ($1_ltype)$input; %}
 
@@ -41,11 +46,69 @@
   }
 %}
 
+%typemap(in) SWIGTYPE & %{
+  {
+    SWIGIUnknown *wrapper;
+
+    /* Call to QueryInterface */
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))
+        $input->vtable[0])($input, &IID_ISWIGWrappedObject, (void **) &wrapper); 
+
+    if (hr != S_OK) {
+      /* Argument was not wrapped by SWIG - directors will be needed */
+    } else {
+      /* GetCPtr */
+      $1 = ($1_ltype) ((void * (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
+
+      /* Release */
+      ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
+    }
+  }
+%}
+
+%typemap(in) SWIGTYPE ($&1_type argp) %{
+  {
+    SWIGIUnknown *wrapper;
+
+    /* Call to QueryInterface */
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))
+        $input->vtable[0])($input, &IID_ISWIGWrappedObject, (void **) &wrapper); 
+
+    if (hr != S_OK) {
+      /* Argument was not wrapped by SWIG - directors will be needed */
+    } else {
+      /* GetCPtr */
+      argp = ($&1_ltype) ((void * (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
+
+      /* Release */
+      ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
+    }
+  }
+
+  $1 = *argp;
+%}
+
 %typemap(out) int, double, long %{ /* out */ $result = $1; %}
 %typemap(out) void ""
+
 %typemap(out) SWIGTYPE * %{
-  $result = (SWIGIUnknown *) SWIG_wrap$*comclassname((void *) $1);
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1);
 %}
+
+%typemap(out) SWIGTYPE & %{
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1);
+%}
+
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+%{ $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) new $1_ltype((const $1_ltype &)$1)); %}
+#else
+{
+  $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
+  memmove($1ptr, &$1, sizeof($1_type));
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr);
+}
+#endif
 
 %typemap(combody) SWIGTYPE * %{
 %}
