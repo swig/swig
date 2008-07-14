@@ -29,6 +29,7 @@ class C:public Language {
 
   bool proxy_flag;
   bool runtime_flag;
+  bool typecheck_flag;
 
 public:
 
@@ -39,7 +40,8 @@ public:
   C() : 
     empty_string(NewString("")),
     proxy_flag(true),
-    runtime_flag(false) {
+    runtime_flag(true),
+    typecheck_flag(false) {
   }
 
   /* ------------------------------------------------------------
@@ -59,7 +61,7 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
-    Swig_typemap_class_distinguish(true);
+    Swig_typemap_class_distinguish(false);
 
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
@@ -105,25 +107,6 @@ public:
 
     Swig_banner(f_runtime);
 
-    Printf(f_header, "#include <stdlib.h>\n");
-    if (runtime_flag) {
-      Printf(f_header, "#include <stdio.h>\n");
-      //Printf(f_header, "#include <stdlib.h>\n");
-      Printf(f_header, "#include <string.h>\n");
-      Printf(f_header, "#include <setjmp.h>\n\n");
-      Printf(f_header, "static jmp_buf Swig_rt_env;\n");
-      Printf(f_header, "static int Swig_rt_init = 0;\n\n");
-      Printf(f_header, "void Swig_runtime_init() {\n");
-      Printf(f_header, "  if (!Swig_rt_init) {\n");
-      Printf(f_header, "    Swig_rt_init = 1;\n");
-      Printf(f_header, "    if (setjmp(Swig_rt_env)) {\n");
-      Printf(f_header, "      fprintf(stderr, \"An error occured. Exitting...\\n\");\n");
-      Printf(f_header, "      exit(1);\n");
-      Printf(f_header, "    }\n");
-      Printf(f_header, "  }\n");
-      Printf(f_header, "}\n\n");
-    }
-
     // generate proxy files if enabled
     if (proxy_flag) {
       f_proxy_code_init = NewString("");
@@ -150,6 +133,7 @@ public:
       Swig_banner(f_proxy_code_init);
       Swig_banner(f_proxy_header);
       Printf(f_proxy_code_init, "#include \"%s\"\n\n", proxy_header_filename);
+      Printf(f_proxy_header, "#ifndef _%s_proxy_H_\n#define _%s_proxy_H_\n\n", Char(module), Char(module));
     }
 
     Swig_register_filebyname("header", f_header);
@@ -172,7 +156,7 @@ public:
     if (proxy_flag) {
       Printv(f_proxy_c, f_proxy_code_init, "\n", NIL);
       Printv(f_proxy_c, f_proxy_code_body, "\n", NIL);
-      Printv(f_proxy_h, f_proxy_header, "\n", NIL);
+      Printv(f_proxy_h, f_proxy_header, "\n#endif /* _", Char(module), "_proxy_H_ */\n", NIL);
       Close(f_proxy_c);
       Close(f_proxy_h);
       Delete(f_proxy_code_init);
@@ -222,7 +206,7 @@ public:
     String *arg_list = NewString("");
 
     if (SwigType_type(Getattr(n, "type")) != T_VOID) {
-      Printv(action, "$cppresult = (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
+      Printv(action, "$cppresult = $mod (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
     }
     Printv(action, Swig_cfunction_call(Getattr(n, "name"), parms), ";", NIL);
     Setattr(n, "wrap:action", action);
@@ -342,7 +326,7 @@ public:
       Printf(wrapper->code, "}");
     }
     else {
-      // mangle name if functions is overloaded
+      // mangle name if function is overloaded
       if (Getattr(n, "sym:overloaded")) {
         if (!Getattr(n, "copy_constructor")) {
           if (parms)
@@ -373,7 +357,7 @@ public:
         Printf(return_type, "%s", tm);
       } 
       else {
-        Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+        Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
       }
 
       // attach 'ctype' typemaps
@@ -467,9 +451,20 @@ public:
       String *action = emit_action(n);
       Replaceall(action, "$cppresult", "cppresult");
 
-      // return-by-reference hack
-      if (SwigType_isreference(type))
-        Replaceall(action, "&)", "*)&");
+      // handle return-by-reference
+      if (SwigType_isreference(type)) {
+        String *ref_cast = NewString("");
+        if (SwigType_isconst(SwigType_del_reference(type))) {
+          Printf(ref_cast, "const_cast<%s*>(&", SwigType_str(SwigType_base(type), 0));
+          Replaceall(action, ";", ");");
+        }
+        else
+          Printf(ref_cast, "&");
+        Replaceall(action, "$mod", ref_cast);
+        Delete(ref_cast);
+      }
+      else
+        Replaceall(action, "$mod", "");
 
       // emit output typemap if needed
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
@@ -502,7 +497,7 @@ public:
       }
 
       // emit proxy functions prototypes
-      Printv(f_proxy_code_init, "extern ", return_type, " ", wname, "(", proto, ");\n", NIL);
+      Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
       Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
 
       // call to the wrapper function
@@ -578,10 +573,15 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-    String *name = Copy(Getattr(n, "name"));
+    String *name = NewString("");
     String *sobj = NewString("");
     List *baselist = Getattr(n, "bases");
-    Replaceall(name, "::", "_");
+
+    String *prefix = Swig_scopename_prefix(Getattr(n, "classtype"));
+    if (prefix) 
+      Printf(name, "%s_", Swig_name_mangle(prefix));
+    Append(name, Getattr(n, "sym:name"));
+    Setattr(n, "sym:name", name);
 
     if (CPlusPlus) {
       // inheritance support: attach all members from base classes to this class
@@ -598,6 +598,7 @@ public:
                 if (!is_in(Getattr(node, "name"), n)) {
                   Node* new_node = copy_node(node);
                   Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+                  Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
                   set_nodeType(new_node, "cdecl");
                   // make sure there are no copyied object-structs params
                   ParmList* all_parms = Getattr(new_node, "parms"), * parms;
@@ -661,14 +662,12 @@ public:
 
   virtual int staticmemberfunctionHandler(Node *n) {
     String *name = Getattr(n, "name");
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "typename");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *new_name = NewString("");
     String *code = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
-
-    Replaceall(newclassname, "::", "_");
 
     // prepare function call
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
@@ -680,7 +679,7 @@ public:
     Setattr(n, "sym:name", new_name);
 
     // generate action code
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
     Printv(code, classname, "::", name, "(", arg_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
@@ -689,7 +688,6 @@ public:
     Delete(arg_lnames);
     Delete(code);
     Delete(new_name);
-    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -699,8 +697,8 @@ public:
 
   virtual int memberfunctionHandler(Node *n) {
     String *name = Getattr(n, "name");
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype = NewString("");
     String *stype = NewString("");
@@ -708,8 +706,6 @@ public:
     String *code = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
-
-    Replaceall(newclassname, "::", "_");
 
     // create first argument
     Printv(sobj_name, "struct SwigObj", newclassname, NIL);
@@ -742,9 +738,9 @@ public:
     Setattr(n, "sym:name", new_name);
 
     // generate action code
-    if (runtime_flag)
+    if (typecheck_flag)
       emit_runtime_typecheck(newclassname, new_name, code);
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = " : "", NIL);
+    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
     Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
@@ -756,7 +752,6 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -774,11 +769,11 @@ public:
     String *action = NewString("");
     ParmList *parms = Getattr(n, "parms");
     if (parms)
-      if (runtime_flag && Getattr(parms, "c:objstruct"))
+      if (typecheck_flag && Getattr(parms, "c:objstruct"))
         emit_runtime_typecheck(newclassname, new_name, action);
     if (!code) {
       code = NewString("");
-      Printv(code, "$cppresult = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+      Printv(code, "$cppresult = $mod ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
     }
     Append(action, code);
 
@@ -805,7 +800,7 @@ public:
     String *action = NewString("");
     ParmList *parms = Getattr(n, "parms");
     if (parms)
-      if (runtime_flag && Getattr(parms, "c:objstruct"))
+      if (typecheck_flag && Getattr(parms, "c:objstruct"))
         emit_runtime_typecheck(newclassname, new_name, action);
     if (!code) {
       code = NewString("");
@@ -829,14 +824,13 @@ public:
   virtual int staticmembervariableHandler(Node *n) {
     String *name = Getattr(n, "sym:name");
     SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *new_name = NewString("");
     String *code = NewString("");
-    Replaceall(newclassname, "::", "_");
 
     // create code for 'get' function
-    Printv(code, "$cppresult = ", classname, "::", name, ";\n", NIL);
+    Printv(code, "$cppresult = $mod ", classname, "::", name, ";\n", NIL);
     wrap_get_variable(n, classname, newclassname, name, code);
 
     // create parameter for 'set' function
@@ -865,13 +859,12 @@ public:
   virtual int membervariableHandler(Node *n) {
     String *name = Getattr(n, "sym:name");
     SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype = NewString("");
     String *stype;
     String *new_name = NewString("");
-    Replaceall(newclassname, "::", "_");
 
     // create first argument
     Printv(sobj_name, "struct SwigObj", newclassname, NIL);
@@ -904,7 +897,6 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(newclassname);
     Delete(type);
     return SWIG_OK;
   }
@@ -925,7 +917,7 @@ public:
       }
     }
     Printf(code, "result->typenames[%d] = 0;\n", i);
-    Printf(code, "Swig_runtime_init();\n");
+    Printf(code, "SWIG_Runtime_init();\n");
   }
 
   /* ---------------------------------------------------------------------
@@ -936,8 +928,8 @@ public:
     if (Getattr(n, "copy_constructor"))
       return copyconstructorHandler(n);
 
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -945,8 +937,6 @@ public:
     String *constr_name = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
-
-    Replaceall(newclassname, "::", "_");
 
     // prepare argument names
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
@@ -962,7 +952,7 @@ public:
     Setattr(n, "c:stype", stype);
 
     // modify the constructor name
-    Printv(constr_name, "new_", newclassname, NIL);
+    constr_name = Swig_name_construct(newclassname);
     Setattr(n, "name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
@@ -982,7 +972,6 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -991,8 +980,8 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int copyconstructorHandler(Node *n) {
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -1000,7 +989,6 @@ public:
     String *constr_name = NewString("");
     ParmList *parms = Getattr(n, "parms");
 
-    Replaceall(newclassname, "::", "_");
     Setattr(parms, "lname", "arg1");
 
     // set the function return type to the pointer to struct
@@ -1014,7 +1002,7 @@ public:
     Setattr(n, "c:stype", stype);
 
     // modify the constructor name
-    Printv(constr_name, "copy_", newclassname, NIL);
+    constr_name = Swig_name_construct(newclassname);
     Setattr(n, "name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
@@ -1033,7 +1021,6 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(newclassname);
     return SWIG_OK;
   }
 
@@ -1042,17 +1029,14 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
-    String *classname = Getattr(parentNode(n), "sym:name");
-    String *newclassname = Copy(classname);
+    String *classname = Getattr(parentNode(n), "classtype");
+    String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
     String *code = NewString("");
     String *destr_name = NewString("");
     Parm *p;
-
-    Replaceall(newclassname, "::", "_");
-    Replaceall(newclassname, "~", "");
 
     // create first argument
     Printv(sobj_name, "struct SwigObj", newclassname, " ", NIL);
@@ -1068,13 +1052,16 @@ public:
     Setattr(n, "type", "void");
 
     // modify the destructor name
-    Printv(destr_name, "delete_", newclassname, NIL);
+    destr_name = Swig_name_destroy(newclassname);
     Setattr(n, "sym:name", destr_name);
 
     // create action code
-    if (runtime_flag)
+    if (typecheck_flag)
       emit_runtime_typecheck(newclassname, destr_name, code);
-    Printv(code, "delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
+
+    Printv(code, "if (arg1)\n  if (arg1->obj) {\n", NIL);
+    Printv(code, "    delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
+    Printv(code, "    arg1 = (", sobj_name, "*)0;\n}\n", NIL);
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
@@ -1085,7 +1072,6 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
-    Delete(newclassname);
     return SWIG_OK;
   }
 
