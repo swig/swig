@@ -1041,7 +1041,7 @@ public:
       if (Len(proxy_class_constants_code) != 0)
 	Printv(f_proxy, proxy_class_constants_code, NIL);
 
-      Printf(f_proxy, "  };\n");
+      Printf(f_proxy, "  };\n\n");
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
