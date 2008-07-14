@@ -1,6 +1,10 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-07-14: wsfultonn
+            [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
+            marshalled to C#/Java null in director methods.
+
 2008-07-04: olly
 	    [PHP] For std_vector.i and std_map.i, rename empty() to is_empty()
 	    since "empty" is a PHP reserved word.  Based of patch from Mark Klein
