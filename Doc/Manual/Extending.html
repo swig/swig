@@ -448,7 +448,8 @@ of the output.
 <p>
 The contents of each parse tree node consist of a collection of attribute/value
 pairs.  Internally, the nodes are simply represented by hash tables.  A display of
-the entire parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. 
+the entire parse-tree structure can be obtained using <tt>swig -debug-top &lt;n&gt;</tt>, where <tt>n</tt> is
+the stage being processed. 
 There are a number of other parse tree display options, for example, <tt>swig -debug-module &lt;n&gt;</tt> will
 avoid displaying system parse information and only display the parse tree pertaining to the user's module at
 stage <tt>n</tt> of processing.

@@ -37,24 +37,29 @@ batch('ulong', 0, 1, 12, 0xffffffff);
 batch('uchar', 0, 1, 12, 0xff);
 batch('schar', -0x80, 0, 1, 12, 0x7f);
 
-# IEEE 754 machine, please!
-batch('float',
-  -(2 - 2 ** -23) * 2 ** 127,
-  -1, -2 ** -149, 0, 2 ** -149, 1,
-  (2 - 2 ** -23) * 2 ** 127,
-  'nan');
-{ local $TODO = "shouldn't some Inf <=> float work?";
-  # I'm going to guess that it could work reasonably as
-  # NV Inf => float Inf
-  # float Inf => NV NaN
-  # but this needs some thought.
-  batch('float', 'inf');
+{
+	use Math::BigInt qw();
+	# the pack dance is to get plain old NVs out of the
+	# Math::BigInt objects.
+	my $inf = unpack 'd', pack 'd', Math::BigInt->binf();
+	my $nan = unpack 'd', pack 'd', Math::BigInt->bnan();
+	batch('float',
+	  -(2 - 2 ** -23) * 2 ** 127,
+	  -1, -2 ** -149, 0, 2 ** -149, 1,
+	  (2 - 2 ** -23) * 2 ** 127,
+	  $nan);
+	{ local $TODO = "float typemaps don't pass infinity";
+	  # it seems as though SWIG is unwilling to pass infinity around
+	  # because that value always fails bounds checking.  I think that
+	  # is a bug.
+	  batch('float', $inf);
+	}
+	batch('double',
+	  -(2 - 2 ** -53) ** 1023,
+	  -1, -2 ** -1074, 0, 2 ** 1074,
+	  (2 - 2 ** -53) ** 1023,
+	  $nan, $inf);
 }
-batch('double',
-  -(2 - 2 ** -53) ** 1023,
-  -1, -2 ** -1074, 0, 2 ** 1074,
-  (2 - 2 ** -53) ** 1023,
-  'nan', 'inf');
 batch('longlong', -1, 0, 1, 12);
 batch('ulonglong', 0, 1, 12);
 SKIP: {

@@ -2,7 +2,7 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * php4kw.swg
+ * phpkw.swg
  *
  * The 'keywords' in PHP are global, ie, the following names are fine
  * when used as class methods.
@@ -67,7 +67,7 @@ PHPKW(include_once);
 PHPKW(isset);
 PHPKW(list);
 PHPKW(new);
-PHPKW(old_function); /* No longer reserved in PHP5 */
+// PHPKW(old_function); /* No longer reserved in PHP5 */
 PHPKW(or);
 PHPKW(print);
 PHPKW(require);

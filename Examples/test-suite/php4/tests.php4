@@ -67,7 +67,7 @@ class check {
   }
 
   function classname($string,$object) {
-    if ($string!=($classname=get_class($object))) return check::fail("Object: $object is of class %s not class %s",$classname,$string);
+    if (strtolower($string)!=strtolower($classname=get_class($object))) return check::fail("Object: \$object is of class %s not class %s",$classname,$string);
     return TRUE;
   }
 

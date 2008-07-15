@@ -30,6 +30,7 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %extend {
@@ -69,6 +70,7 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %extend {
@@ -105,6 +107,7 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %extend {
@@ -142,6 +145,7 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %extend {
