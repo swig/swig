@@ -49,6 +49,7 @@ class COM:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool generate_property_declaration_flag;	// Flag for generating properties
   bool member_func_flag;
+  bool constructor_flag;
 
   String *proxy_class_def;
   String *proxy_class_forward_def;
@@ -139,7 +140,7 @@ public:
     SWIG_typemap_lang("com");
     SWIG_config_file("com.swg");
 
-    allow_overloading(1 /* FIXME: temporary */);
+    allow_overloading(0);
   }
 
   /* ---------------------------------------------------------------------
@@ -223,7 +224,8 @@ public:
     Printf(module_class_vtable_code, "extern SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
 
     Printf(module_class_vtable_code,
-        "void * SWIGSTDCALL _wrap_new_%s() {\n"
+        "void * SWIGSTDCALL _wrap_new_%s(void *SWIG_ignored) {\n"
+        "#ifdef __cplusplus\n"
         "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
         "  res->vtable = _wrap%s_vtable;\n"
         "  res->SWIGWrappedObject_vtable = NULL;\n"
@@ -555,7 +557,7 @@ public:
 
     Wrapper_print(f, f_wrappers);
 
-    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
+    if (!(proxy_flag && is_wrapping_class() && !constructor_flag) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
       Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
     }
@@ -664,6 +666,20 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * constructorHandler()
+   * ----------------------------------------------------------------------------- */
+
+  virtual int constructorHandler(Node *n) {
+    static_flag = true;
+    constructor_flag = true;
+    Language::constructorHandler(n);
+    constructor_flag = false;
+    static_flag = false;
+
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
    * moduleClassFunctionHandler()
    * ----------------------------------------------------------------------------- */
 
@@ -689,12 +705,14 @@ public:
     Swig_typemap_attach_parms("comin", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup("comtype", n, "", 0))) {
+    if (!constructor_flag && (tm = Swig_typemap_lookup("comtype", n, "", 0))) {
       String *comtypeout = Getattr(n, "tmap:comtype:out");	// the type in the comtype typemap's out attribute overrides the type in the typemap
       if (comtypeout)
 	tm = comtypeout;
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
+    } else if (constructor_flag) {
+      Printf(return_type, "%s *", proxy_class_name);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
