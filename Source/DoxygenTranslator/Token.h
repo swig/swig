@@ -13,8 +13,8 @@ class Token
 public:
 	Token(int tType, string tString);
 	~Token();
-	int tokenType;
-	string tokenString;
+	int tokenType; /* currently can be END_LINE, PLAINSTRING, or COMMAND */
+	string tokenString; /* the data , such as param for @param*/
 	string toString();
 };
 

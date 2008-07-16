@@ -67,11 +67,8 @@ TokenList::TokenList(string doxygenString){
 }
 
 Token TokenList::peek(){
-	list<Token>::iterator p = tokenList.begin();
-	if(p != tokenList.end()){
-		p++;
-		Token returnedToken = (*p);
-		p--;
+	if(tokenListIterator!= tokenList.end()){
+		Token returnedToken = (*tokenListIterator);
 		return returnedToken;
 	}
 	else
@@ -79,15 +76,22 @@ Token TokenList::peek(){
 } 
 
 Token TokenList::next(){
-	list<Token>::iterator p = tokenList.begin();
-	if(p != tokenList.end()){
-		p++;
-		return (*p);
+	if(tokenListIterator != tokenList.end()){
+		Token returnedToken = (*tokenListIterator);
+		tokenListIterator++;
+		return (returnedToken);
 	}
 	else
 		return Token(0, "");
 } 	
 
+list<Token>::iterator TokenList::end(){
+	return tokenList.end();
+}
+
+list<Token>::iterator TokenList::current(){
+	return tokenListIterator;
+}
 void TokenList::printList(){
 	list<Token>::iterator p = tokenList.begin();
 			int i = 1;
@@ -100,4 +104,11 @@ void TokenList::printList(){
 			}
 }
 
+list<Token>::iterator  TokenList::iteratorCopy(){
+	list<Token>::iterator p = tokenListIterator;
+	return p;
+}
+void TokenList::setIterator(list<Token>::iterator newPosition){
+	tokenListIterator = newPosition;
+}
 TokenList::	~TokenList(){}

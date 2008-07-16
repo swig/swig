@@ -1,3 +1,5 @@
+#ifndef DOXYGENENTITY_H_
+#define DOXYGENENTITY_H_
 
 #include <cstdlib>
 #include <iostream>
@@ -12,7 +14,7 @@ public:
 	DoxygenEntity(string typeEnt);
 	DoxygenEntity(string typeEnt, string param1);
 	DoxygenEntity(string typeEnt, list <DoxygenEntity> &entList );
-	virtual ~DoxygenEntity();
+   ~DoxygenEntity();
 	void printEntity(int level);
     string typeOfEntity;
     list <DoxygenEntity> entityList;
@@ -21,3 +23,4 @@ public:
 };
 
 
+#endif /*TOKENLIST_H_*/
