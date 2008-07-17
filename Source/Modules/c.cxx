@@ -627,7 +627,8 @@ public:
 
       // declare it in the proxy header
       if (proxy_flag)
-        Printv(f_proxy_header, "#define ", name, " SwigObj\n\n", NIL);
+        //Printv(f_proxy_header, "#define ", name, " SwigObj\n\n", NIL);
+        Printv(f_proxy_header, "typedef SwigObj ", name, ";\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
@@ -708,7 +709,7 @@ public:
     ParmList *parms = Getattr(n, "parms");
 
     // create first argument
-    Printv(sobj_name, "struct SwigObj", newclassname, NIL);
+    Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm *p = NewParm(ctype, "self");
@@ -867,7 +868,7 @@ public:
     String *new_name = NewString("");
 
     // create first argument
-    Printv(sobj_name, "struct SwigObj", newclassname, NIL);
+    Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Parm *p = NewParm(ctype, "self");
@@ -943,7 +944,7 @@ public:
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // set the function return type to the pointer to struct
-    Printv(sobj_name, "struct SwigObj", newclassname, NIL);
+    Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
@@ -993,7 +994,7 @@ public:
     Setattr(parms, "lname", "arg1");
 
     // set the function return type to the pointer to struct
-    Printv(sobj_name, "struct SwigObj", newclassname, NIL);
+    Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
@@ -1040,7 +1041,7 @@ public:
     Parm *p;
 
     // create first argument
-    Printv(sobj_name, "struct SwigObj", newclassname, " ", NIL);
+    Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self");

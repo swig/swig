@@ -22,22 +22,27 @@ typedef struct {
 
 // typemaps for function parameters
 
-%typemap(ctype) void, short, int, long, char, float, double, bool "$1_type"
+%typemap(ctype) void, short, int, long, char, float, double "$1_type"
 %typemap(ctype) unsigned short, unsigned int, unsigned long, unsigned char "$1_type"
-%typemap(ctype) void *, short *, int *, long *, char *, float *, double *, bool * "$1_type"
-%typemap(ctype) void **, short **, int **, long **, char **, float **, double **, bool ** "$1_type"
+%typemap(ctype) void *, short *, int *, long *, char *, float *, double * "$1_type"
+%typemap(ctype) void **, short **, int **, long **, char **, float **, double ** "$1_type"
 %typemap(ctype) unsigned short *, unsigned int *, unsigned long *, unsigned char * "$1_type"
 %typemap(ctype) unsigned short **, unsigned int **, unsigned long **, unsigned char ** "$1_type"
-%typemap(ctype) short &, int &, long &, char &, float &, double &, bool & "$1_basetype *"
+%typemap(ctype) short &, int &, long &, char &, float &, double & "$1_basetype *"
 %typemap(ctype) unsigned short &, unsigned int &, unsigned long &, unsigned char & "$1_basetype *"
-%typemap(ctype) const short, const int, const long, const char, const float, const double, const bool "$1_type"
+%typemap(ctype) const short &, const int &, const long &, const char &, const float &, const double & "$1_basetype *"
+%typemap(ctype) const short, const int, const long, const char, const float, const double "$1_type"
 %typemap(ctype) const unsigned short, const unsigned int, const unsigned long, const unsigned char "$1_type"
 %typemap(ctype) const void *, const short *, const int *, const long *, const char *, const float *, const double *, const bool * "$1_type"
-%typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY], bool * [ANY] "$1 = ($1_basetype*) $input;"
-%typemap(ctype) SWIGTYPE         "struct SwigObj$1_type *"
-%typemap(ctype) SWIGTYPE *       "struct SwigObj$1_type"
-%typemap(ctype) SWIGTYPE &       "struct SwigObj$1_basetype*"
-%typemap(ctype) SWIGTYPE * [ANY] "struct SwigObj$1_basetype*"
+%typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY], bool * [ANY] "$1_basetype **"
+%typemap(ctype) SWIGTYPE         "SwigObj *"
+%typemap(ctype) SWIGTYPE *       "SwigObj *"
+%typemap(ctype) SWIGTYPE &       "SwigObj *"
+%typemap(ctype) SWIGTYPE * [ANY] "SwigObj *"
+
+%fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
+%typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
+%typemap(ctype, fragment="stdbool_inc") bool &, const bool & "$1_basetype *"
 
 %typemap(in) short, int, long, char, float, double, bool "$1 = ($1_type) $input;"
 %typemap(in) void *, short *, int *, long *, char *, float *, double *, bool * "$1 = ($1_type) $input;"
@@ -52,6 +57,8 @@ typedef struct {
 %typemap(in) unsigned short &, unsigned int &, unsigned long &, unsigned char &  "$1 = ($1_basetype *) $input;"
 %typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$1 = ($1_basetype const *) $input;"
 
+%typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1 = ($1_type) $input;"
+%typemap(in, fragment="stdbool_inc") bool &, const bool & "$1 = ($1_basetype *) $input;"
 
 %typemap(in) SWIGTYPE {
   $1 = * ($1_type *) ($input->obj);
@@ -85,18 +92,21 @@ typedef struct {
 
 // typemaps for return values
 
-%typemap(couttype) void, short, int, long, char, float, double, bool "$1_type"
-%typemap(couttype) void *, short *, int *, long *, char *, float *, double*, bool* "$1_type"
-%typemap(couttype) const short, const int, const long, const char, const float, const double, const bool "$1_basetype"
-%typemap(couttype) const void *, const short *, const int *, const long *, const char *, const float *, const double *, const bool * "$1_type"
+%typemap(couttype) void, short, int, long, char, float, double "$1_type"
+%typemap(couttype) void *, short *, int *, long *, char *, float *, double* "$1_type"
+%typemap(couttype) const short, const int, const long, const char, const float, const double "$1_basetype"
+%typemap(couttype) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$1_type"
 %typemap(couttype) short &, int &, long &, char &, float &, double &, bool & "$1_basetype *"
-%typemap(couttype) const short &, const int &, const long &, const char &, const float &, const double &, const bool & "$1_basetype const *"
-%typemap(couttype) SWIGTYPE   "struct SwigObj$1_type *"
-%typemap(couttype) SWIGTYPE * "struct SwigObj$1_type"
-%typemap(couttype) SWIGTYPE & "struct SwigObj$1_basetype *"
+%typemap(couttype) const short &, const int &, const long &, const char &, const float &, const double & "$1_basetype const *"
+%typemap(couttype) SWIGTYPE   "SwigObj *"
+%typemap(couttype) SWIGTYPE * "SwigObj *"
+%typemap(couttype) SWIGTYPE & "SwigObj *"
 
-%typemap(out) short, int, long, char, float, double, bool "$result = $1;"
-%typemap(out) void*, short*, int*, long*, char*, float*, double*, bool* "$result = $1;"
+%typemap(couttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_type"
+%typemap(couttype, fragment="stdbool_inc") bool &, const bool & "$1_basetype *"
+
+%typemap(out) short, int, long, char, float, double "$result = $1;"
+%typemap(out) void*, short*, int*, long*, char*, float*, double* "$result = $1;"
 %typemap(out) const short, const int, const long, const char, const float, const double "$result = $1;"
 %typemap(out) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$result = $1;"
 %typemap(out) unsigned short, unsigned int, unsigned long, unsigned char "$result = $1;"
@@ -107,10 +117,13 @@ typedef struct {
 %typemap(out) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$result = $1;"
 %typemap(out) void ""
 
+%typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = $1;"
+%typemap(out, fragment="stdbool_inc") bool &, const bool & "$result = $1;"
+
 // allocate new "object-struct" by default
 
 %typemap(out) SWIGTYPE {
-  $result = (struct SwigObj$1_type *) malloc(sizeof(struct SwigObj$1_type));
+  $result = (SwigObj *) malloc(sizeof(SwigObj));
   $result->obj = (void*) &$1;
   #if SWIG_C_RUNTIME
   $result->typenames[0] = 0;    // FIXME
@@ -118,7 +131,7 @@ typedef struct {
 }
 
 %typemap(out) SWIGTYPE * {
-  $result = (struct SwigObj$1_type) malloc(sizeof(struct SwigObj$*1_type));
+  $result = (SwigObj *) malloc(sizeof(SwigObj));
   $result->obj = (void*) $1;
   #if SWIG_C_RUNTIME
   $result->typenames[0] = 0;    // FIXME
@@ -126,7 +139,7 @@ typedef struct {
 }
 
 %typemap(out) SWIGTYPE & {
-  $result = (struct SwigObj$1_basetype *) malloc(sizeof(struct SwigObj$1_basetype));
+  $result = (SwigObj *) malloc(sizeof(SwigObj));
   $result->obj = (void*) $1;
   #if SWIG_C_RUNTIME
   $result->typenames[0] = 0;    // FIXME
@@ -271,7 +284,6 @@ SWIGINTERN void SWIG_CThrowException(void *klass, const char *msg) {
 // special value indicating any type of exception like 'catch(...)'
 #define SWIG_AnyException "SWIG_AnyException"
 
-#include <stdbool.h>
 #include <setjmp.h>
 
 SWIGIMPORT jmp_buf SWIG_rt_env;
