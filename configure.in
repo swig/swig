@@ -732,13 +732,13 @@ OCTAVEDYNAMICLINKING=
 OCTAVE_SO=.oct
 
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
-AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[ OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
+AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
 
 # First, check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Octave])
 OCTAVE=
-fi
+else
 
 # First figure out what the name of Octave is
 
@@ -777,6 +777,8 @@ if test -n "$OCTAVE"; then
 	fi
 else
        	AC_MSG_RESULT(could not figure out how to run octave)
+fi
+
 fi
 
 AC_SUBST(OCTAVE)

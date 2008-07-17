@@ -1,6 +1,10 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-07-17: wsfulton
+            Fix SF #2019156 Configuring with --without-octave or --without-alllang
+            did not disable octave.
+
 2008-07-14: wsfultonn
             [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
             marshalled to C#/Java null in director methods.
