@@ -61,6 +61,7 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
+    // FIXME
     Swig_typemap_class_distinguish(false);
 
     // look for certain command line options
@@ -185,8 +186,6 @@ public:
   virtual int globalvariableHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
-    //if (!CPlusPlus)
-    //  Printv(f_wrappers, "SWIGEXPORTC ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     if (proxy_flag) {
       Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
     }
@@ -256,12 +255,12 @@ public:
   }
 
   /* ----------------------------------------------------------------------
-   * getTypeSymbol()
+   * getMangledType()
    *
    * incomplete for now...
    * ---------------------------------------------------------------------- */
 
-  const char *getTypeSymbol(String *type) {
+  const char *getMangledType(String *type) {
     char *c = Char(type);
     if (strcmp(c, "int") == 0) 
       return "i";
@@ -332,7 +331,7 @@ public:
           if (parms)
             Append(over_suffix, "_");
           for (p = parms; p; p = nextSibling(p)) {
-            Append(over_suffix, getTypeSymbol(Getattr(p, "type")));
+            Append(over_suffix, getMangledType(Getattr(p, "type")));
           }
           Append(name, over_suffix);
         }
@@ -618,7 +617,8 @@ public:
       // emit "class"-struct definition
       Printv(sobj, "struct SwigObj", name, " {\n  void* obj;\n", NIL);
       if (runtime_flag)
-        Printf(sobj, "  const char* typenames[%d];\n}", Len(baselist) + 2);
+        //Printf(sobj, "  const char *typenames[%d];\n}", Len(baselist) + 2);
+        Printf(sobj, "  const char **typenames;\n}");
       else 
         Printf(sobj, "}");
 
@@ -627,7 +627,7 @@ public:
 
       // declare it in the proxy header
       if (proxy_flag)
-        Printv(f_proxy_header, "typedef ", sobj, " ", name, ";\n\n", NIL);
+        Printv(f_proxy_header, "#define ", name, " SwigObj\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
@@ -908,6 +908,7 @@ public:
   void emit_runtime_make_object(Node *n, String *classname, String *code) {
     // store the name of each class in the hierarchy
     List *baselist = Getattr(parentNode(n), "bases");
+    Printf(code, "result->typenames = (const char **) malloc(%d*sizeof(const char*));\n", Len(baselist) + 2);
     Printv(code, "result->typenames[0] = Swig_typename_", classname, ";\n", NIL);
     int i = 1;
     if (baselist) {
@@ -1059,8 +1060,9 @@ public:
     if (typecheck_flag)
       emit_runtime_typecheck(newclassname, destr_name, code);
 
-    Printv(code, "if (arg1)\n  if (arg1->obj) {\n", NIL);
-    Printv(code, "    delete (", classname, "*) (arg1->obj);\nfree(arg1);\n", NIL);
+    Printv(code, "if (arg1) if (arg1->obj) {\n", NIL);
+    Printv(code, "    delete (", classname, "*) (arg1->obj);\n", NIL);
+    Printv(code, "    free(arg1->typenames);\n    free(arg1);\n", NIL);
     Printv(code, "    arg1 = (", sobj_name, "*)0;\n}\n", NIL);
     Setattr(n, "wrap:action", code);
     

@@ -33,8 +33,21 @@
 }
 #endif
 
-%catches(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
+/*
+ * Additional typemaps needed to handle exception order in C.
+ */
+#if defined(SWIGC)
+%typemap(throws) SWIGTYPE {
+  SwigObj$1_basetype *_c_ex = _wrap_new_$1_basetype();
+  SWIG_CThrowException(_c_ex, "C++ $1_type exception thrown");
+}
 
+%typemap(throws) ET<int>, ET<double> {
+  SWIG_CThrowException(NULL, "C++ $1_type exception thrown");
+}
+#endif
+
+%catches(E1,E2*,ET<int>,ET<double>,...) A::barfoo(int i);
 
 %allowexception efoovar;
 %allowexception A::efoovar;

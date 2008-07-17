@@ -212,6 +212,21 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 
 #endif // SWIGLUA
 
+#ifdef SWIGC
+
+%inline %{
+struct SWIG_CException {
+  SWIG_CException(int code) {
+    SWIG_exception.code = code;
+  }
+};
+%}
+
+#define SWIG_exception(code, msg)\
+  SWIG_CThrowException(_wrap_new_SWIG_CException(code), msg);
+
+#endif // SWIGC
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
