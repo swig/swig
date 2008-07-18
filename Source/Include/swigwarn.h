@@ -259,6 +259,13 @@
 
 /* please leave 870-889 free for PHP */
 
+#define WARN_COM_TYPEMAP_CTYPE_UNDEF   910
+#define WARN_COM_TYPEMAP_COMTYPE_UNDEF 911
+#define WARN_COM_MULTIPLE_INHERITANCE  912
+#define WARN_COM_TYPEMAP_COMBODY_UNDEF 913
+#define WARN_COM_COVARIANT_RET         914
+
+/* please leave 910-929 free for COM */
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
