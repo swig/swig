@@ -2590,11 +2590,11 @@ AC_SUBST(DLIBPREFIX)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(com, AS_HELP_STRING([--without-com], [Disable COM]), [with_com="$withval"], [with_com=yes])
-AC_ARG_WITH(com-runtool, [  --with-com-runtool=path         Set location of the COM run tool (e.g. WINE)],[COM_RUNTOOL="$withval"], [COM_RUNTOOL=])
-AC_ARG_WITH(com-cc, [  --with-com-cc=path      Set location of C compiler for COM],[COM_CC="$withval"], [COM_CC=])
-AC_ARG_WITH(com-cxx, [  --with-com-cxx=path     Set location of C++ compiler for COM],[COM_CXX="$withval"], [COM_CXX=])
-AC_ARG_WITH(com-idl, [  --with-com-idl=path     Set location of COM IDL compiler],[COM_IDL="$withval"], [COM_IDL=]) 
-AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler fom COM],[COM_RC="$withval"],[COM_RC=])
+AC_ARG_WITH(com-runtool, [  --with-com-runtool=path         Set location of the COM run tool (e.g. WINE)], [COM_RUNTOOL="$withval"], [COM_RUNTOOL=])
+AC_ARG_WITH(com-cc, [  --with-com-cc=path      Set location of C compiler for COM], [COM_CC="$withval"], [COM_CC=])
+AC_ARG_WITH(com-cxx, [  --with-com-cxx=path     Set location of C++ compiler for COM], [COM_CXX="$withval"], [COM_CXX=])
+AC_ARG_WITH(com-idl, [  --with-com-idl=path     Set location of COM IDL compiler], [COM_IDL="$withval"], [COM_IDL=]) 
+AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler fom COM], [COM_RC="$withval"], [COM_RC=])
 
 # Check if COM is requested
 if test x"${with_com}" = xno -o x"${with_alllang}" = xno ; then
@@ -2656,15 +2656,16 @@ else
   COM_RC_IN_SWITCHES=-i
 fi
 
-if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" ; then
-  # FIXME
-  false
-elif test "winegcc" = "$COM_CC" ; then
+if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES=-shared
   COM_CC_OUT_SWITCHES='-o '
   COM_CC_SWITCHES=
   COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
-  COM_EXEC_SUFFIX=.so
+  if test "winegcc" = "$COM_CC" ; then
+    COM_EXEC_SUFFIX=.so
+  else
+    COM_EXEC_SUFFIX=
+  fi
 elif test "cl" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES=/LD
   COM_CC_OUT_SWITCHES=/Fe
@@ -2673,10 +2674,7 @@ elif test "cl" = "$COM_CC" ; then
   COM_EXEC_SUFFIX=
 fi
 
-if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" ; then
-  # FIXME
-  false
-elif test "wineg++" = "$COM_CXX" ; then
+if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" = "$COM_CXX" ; then
   COM_CXX_SHARED_SWITCHES=-shared
   COM_CXX_OUT_SWITCHES="-o "
 elif test "cl" = "$COM_CC" ; then
@@ -2871,7 +2869,7 @@ fi
 AC_SUBST(SKIP_D)
 
 SKIP_COM=
-if test -z "$WINE" ; then
+if test -z "$COM_CC" || test -z "$COM_RC" || test -z "$COM_IDL" ; then
     SKIP_COM="1"
 fi
 AC_SUBST(SKIP_COM)
