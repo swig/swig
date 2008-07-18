@@ -329,7 +329,8 @@ public:
       Printf(f_module, ")\n]\nlibrary %sTLB {\n\n", module_class_name);
 
       // Import IDispatch
-      Printf(f_module, "  importlib(\"stdole32.tlb\");\n\n");
+      // FIXME: Printf(f_module, "  importlib(\"stdole32.tlb\");\n\n");
+      Printf(f_module, "  importlib(\"stdole2.tlb\");\n\n");
 
       Printv(f_module, f_proxy_forward_defs, "\n", NIL);
 
@@ -337,6 +338,8 @@ public:
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
       formatGUID(f_module, &module_iid, false);
       Printf(f_module, "),\n    dual\n  ]\n  interface %s : IDispatch {\n", module_class_name);
+      // FIXME: a temporary workaround for a possible WIDL bug
+      Printf(f_module, "    import \"stdole2.idl\";\n");
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -430,7 +433,7 @@ public:
 	tm = ctypeout;
       Printf(c_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_COM_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
@@ -480,7 +483,7 @@ public:
       if ((tm = Getattr(p, "tmap:ctype"))) {
 	Printv(c_param_type, tm, NIL);
       } else {
-	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(pt, 0));
+	Swig_warning(WARN_COM_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(pt, 0));
       }
 
       // Add parameter to C function
@@ -714,7 +717,7 @@ public:
     } else if (constructor_flag) {
       Printf(return_type, "%s *", proxy_class_name);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
     if (proxy_flag && global_variable_flag) {
@@ -756,7 +759,7 @@ public:
 	substituteClassname(pt, tm);
 	Printf(param_type, "%s", tm);
       } else {
-	Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
+	Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
       }
 
       /* FIXME: get the real argument name, it is important in the IDL */
@@ -820,7 +823,7 @@ public:
             }
             String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
             String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
+            Swig_warning(WARN_COM_MULTIPLE_INHERITANCE, input_file, line_number,
                          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
             base = Next(base);
           }
@@ -1174,10 +1177,10 @@ public:
       substituteClassname(covariant ? covariant : t, tm);
       Printf(return_type, "%s", tm);
       if (covariant)
-	Swig_warning(WARN_CSHARP_COVARIANT_RET, input_file, line_number,
+	Swig_warning(WARN_COM_COVARIANT_RET, input_file, line_number,
 		     "Covariant return types not supported in COM. Proxy method will return %s.\n", SwigType_str(covariant, 0));
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No comstype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
     if (wrapping_member_flag && !enum_constant_flag) {
@@ -1225,7 +1228,7 @@ public:
 	  substituteClassname(pt, tm);
 	  Printf(param_type, "%s", tm);
 	} else {
-	  Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
+	  Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
 	// FIXME: String *arg = makeParameterName(n, p, i, setter_flag);
@@ -1274,7 +1277,7 @@ public:
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
     Printv(proxy_class_def, ")\n  ]\n  interface $comclassname {\n",
-           typemapLookup("combody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),
+           typemapLookup("combody", type, WARN_COM_TYPEMAP_COMBODY_UNDEF),
 	   typemapLookup("comcode", type, WARN_NONE),
            "  };\n\n", NIL);
 

@@ -2586,6 +2586,124 @@ AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
+# Look for COM
+#----------------------------------------------------------------
+
+AC_ARG_WITH(com, AS_HELP_STRING([--without-com], [Disable COM]), [with_com="$withval"], [with_com=yes])
+AC_ARG_WITH(com-runtool, [  --with-com-runtool=path         Set location of the COM run tool (e.g. WINE)],[COM_RUNTOOL="$withval"], [COM_RUNTOOL=])
+AC_ARG_WITH(com-cc, [  --with-com-cc=path      Set location of C compiler for COM],[COM_CC="$withval"], [COM_CC=])
+AC_ARG_WITH(com-cxx, [  --with-com-cxx=path     Set location of C++ compiler for COM],[COM_CXX="$withval"], [COM_CXX=])
+AC_ARG_WITH(com-idl, [  --with-com-idl=path     Set location of COM IDL compiler],[COM_IDL="$withval"], [COM_IDL=]) 
+AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler fom COM],[COM_RC="$withval"],[COM_RC=])
+
+# Check if COM is requested
+if test x"${with_com}" = xno -o x"${with_alllang}" = xno ; then
+AC_MSG_NOTICE([Disabling COM])
+
+else
+
+case $host in
+*-*-cygwin* | *-*-mingw*)
+  COM_CYGPATH_W='cygpath -w'
+
+  if test -z "$COM_RUNTOOL" ; then
+    COM_RUNTOOL=
+  fi
+  if test -z "$COM_CC" ; then
+    AC_CHECK_PROGS(COM_CC, gcc cl)
+  fi
+  if test -z "$COM_CXX" ; then
+    AC_CHECK_PROGS(COM_CXX, g++ cl)
+  fi
+  if test -z "$COM_IDL" ; then
+    # There seems to be no IDL compiler in MinGW/Cygwin
+    AC_CHECK_PROGS(COM_IDL, widl midl)
+  fi
+  if test -z "$COM_RC" ; then
+    AC_CHECK_PROGS(COM_RC, windres rc wrc)
+  fi
+;;
+*)
+  COM_CYGPATH_W=echo
+
+  if test -z "$COM_RUNTOOL" ; then
+    AC_CHECK_PROGS(COM_RUNTOOL, wine)
+  fi
+  if test -z "$COM_CC" ; then
+    AC_CHECK_PROGS(COM_CC, winegcc i586-mingw32msvc-gcc)
+  fi
+  if test -z "$COM_CXX" ; then
+    AC_CHECK_PROGS(COM_CXX, wineg++ i586-mingw32msvc-g++)
+  fi
+  if test -z "$COM_IDL" ; then
+    AC_CHECK_PROGS(COM_IDL, widl)
+  fi
+  if test -z "$COM_RC" ; then
+    AC_CHECK_PROGS(COM_RC, wrc i586-mingw32msvc-windres)
+  fi
+ ;;
+esac
+
+if test "widl" = "$COM_IDL" ; then
+  COM_IDL_SWITCHES=-t
+fi
+
+if test "rc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES=/fo
+  COM_RC_IN_SWITCHES=
+else
+  COM_RC_OUT_SWITCHES=-o
+  COM_RC_IN_SWITCHES=-i
+fi
+
+if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" ; then
+  # FIXME
+  false
+elif test "winegcc" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES=-shared
+  COM_CC_OUT_SWITCHES='-o '
+  COM_CC_SWITCHES=
+  COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
+  COM_EXEC_SUFFIX=.so
+elif test "cl" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES=/LD
+  COM_CC_OUT_SWITCHES=/Fe
+  COM_CC_SWITCHES=
+  COM_LIBS='ole32.lib uuid.lib advapi32.lib oleaut32.lib'
+  COM_EXEC_SUFFIX=
+fi
+
+if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" ; then
+  # FIXME
+  false
+elif test "wineg++" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES=-shared
+  COM_CXX_OUT_SWITCHES="-o "
+elif test "cl" = "$COM_CC" ; then
+  COM_CXX_SHARED_SWITCHES=/LD
+  COM_CXX_OUT_SWITCHES=/Fe
+fi
+
+fi
+
+AC_SUBST(COM_RUNTOOL)
+AC_SUBST(COM_CC)
+AC_SUBST(COM_CXX)
+AC_SUBST(COM_IDL)
+AC_SUBST(COM_RC)
+AC_SUBST(COM_LIBS)
+AC_SUBST(COM_IDL_SWITCHES)
+AC_SUBST(COM_RC_IN_SWITCHES)
+AC_SUBST(COM_RC_OUT_SWITCHES)
+AC_SUBST(COM_CC_SHARED_SWITCHES)
+AC_SUBST(COM_CC_OUT_SWITCHES)
+AC_SUBST(COM_CXX_SHARED_SWITCHES)
+AC_SUBST(COM_CXX_OUT_SWITCHES)
+AC_SUBST(COM_CC_SWITCHES)
+AC_SUBST(COM_EXEC_SUFFIX)
+AC_SUBST(COM_CYGPATH_W)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2752,6 +2870,12 @@ if test -z "$DDEFAULTVERSION" ; then
 fi
 AC_SUBST(SKIP_D)
 
+SKIP_COM=
+if test -z "$WINE" ; then
+    SKIP_COM="1"
+fi
+AC_SUBST(SKIP_COM)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2855,6 +2979,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/uffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
+    Examples/test-suite/com/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])

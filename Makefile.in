@@ -86,6 +86,7 @@ skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
 skip-d		= test -n "@SKIP_D@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
+skip-com	= test -n "@SKIP_COM@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
@@ -133,6 +134,7 @@ check-aliveness:
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
+	@$(skip-com)      || ./$(TARGET) -com      -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -204,7 +206,8 @@ check-examples:					\
 	check-scilab-examples			\
 	check-go-examples			\
 	check-d-examples			\
-	check-javascript-examples
+	check-javascript-examples		\
+	check-com-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -231,6 +234,7 @@ scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
+com_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/com/check.list)
 
 # all examples
 check-%-examples :
@@ -288,7 +292,8 @@ check-test-suite:				\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
 	check-d-test-suite			\
-	check-javascript-test-suite
+	check-javascript-test-suite		\
+	check-com-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -342,7 +347,8 @@ all-test-suite:					\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
 	all-d-test-suite			\
-	all-javascript-test-suite
+	all-javascript-test-suite		\
+	all-com-test-suite
 
 all-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=all
@@ -372,7 +378,8 @@ broken-test-suite:				\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
 	broken-d-test-suite			\
-	broken-javascript-test-suite
+	broken-javascript-test-suite		\
+	broken-com-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=broken
