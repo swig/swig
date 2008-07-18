@@ -1,0 +1,84 @@
+#######################################################################
+# Makefile for C# test-suite
+#######################################################################
+
+LANGUAGE     = com
+SCRIPTSUFFIX = _runme.c
+COM_CYGPATH_W     = @COM_CYGPATH_W@
+COM_EXEC_SUFFIX = @COM_EXEC_SUFFIX@
+COM_RUNTOOL  = @COM_RUNTOOL@
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@/..
+top_builddir = @top_builddir@/..
+
+CPP_TEST_CASES = 
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+# SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	+(cd $* && $(register_component))
+	+$(run_testcase)
+	+(cd $* && $(unregister_component))
+
+%.ctest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	+(cd $* && $(register_component))
+	+$(run_testcase)
+	+(cd $* && $(unregister_component))
+
+%.multicpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	+(cd $* && $(register_component))
+	+$(run_testcase)
+	+(cd $* && $(unregister_component))
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+		mkdir $*;						  \
+	fi;
+
+# Calls Dll[Un]RegisterServer on created component
+register_component = \
+	regsvr32 $*.dll$(COM_EXEC_SUFFIX);
+
+unregister_component = \
+	regsvr32 /u $*.dll$(COM_EXEC_SUFFIX);
+
+# Compiles COM files then runs the testcase. A testcase is only run if
+# a file is found which has _runme.c appended after the testcase name.
+run_testcase = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
+	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
+	  TARGET='$*_runme.exe' \
+	  COMSRCS=`$(COM_CYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
+	  com_compile && \
+	  $(RUNTOOL) $(COM_RUNTOOL) $*_runme.exe$(COM_EXEC_SUFFIX); ) \
+	else ( \
+	  cd $* && \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  TARGET='$*.dll' \
+	  COMSRCS='*.c' com_compile; ); \
+	fi;
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $* ]; then \
+		rm -rf $*; \
+	fi;
+
+clean:
+	@rm -f *.exe$(COM_EXEC_SUFFIX) *.dll$(COM_EXEC_SUFFIX)
