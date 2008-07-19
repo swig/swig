@@ -251,14 +251,14 @@ public:
         "\n  (SWIG_funcptr) SWIGInvoke",
         module_class_name, module_class_name);
 
-    Printf(clsid_list, "static char * SWIG_tlb_guid_string = \"{");
+    Printf(clsid_list, "static TCHAR * SWIG_tlb_guid_string = _T(\"{");
     formatGUID(clsid_list, &typelib_guid, false);
-    Printf(clsid_list, "}\";\n\n");
+    Printf(clsid_list, "}\");\n\n");
 
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
-    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, \"{", module_class_name, module_class_name);
+    Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, _T(\"{", module_class_name, module_class_name);
     formatGUID(clsid_list, &module_clsid, false);
-    Printf(clsid_list,  "}\" },\n");
+    Printf(clsid_list,  "}\") },\n");
 
     /* Emit code */
     Language::top(n);
@@ -956,9 +956,9 @@ public:
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
         Printf(proxy_class_vtable_code, ";\n\n");
 
-        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, \"{", proxy_class_name, proxy_class_name);
+        Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, _T(\"{", proxy_class_name, proxy_class_name);
         formatGUID(clsid_list, proxy_clsid, false);
-        Printf(clsid_list,  "}\" },\n");
+        Printf(clsid_list,  "}\") },\n");
       }
 
       Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, GUID *iid, "

@@ -120,6 +120,7 @@
 
 #include <windows.h>
 #include <olectl.h>
+#include <tchar.h>
 
 #include <string.h>
 #include <memory.h>
@@ -278,7 +279,7 @@ SWIG_funcptr SWIGClassFactory_vtable[] = {
 typedef struct {
   SWIG_funcptr newInstance;
   GUID *guid;
-  char *guid_string;
+  TCHAR *guid_string;
 } SWIGClassDescription_t;
 
 HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
@@ -376,36 +377,39 @@ STDAPI DllCanUnloadNow(void) {
 }
 
 STDAPI DllRegisterServer(void) {
-  char *module_name;
-  char *typelib_name;
-  int allocated = 256;
-  int used;
+  TCHAR *module_name;
+  TCHAR *typelib_name;
   int i;
   HRESULT hres = S_OK;
+  int module_name_len;
 
-  do {
 #ifdef __cplusplus
-    module_name = new char[allocated];
-    typelib_name = new char[allocated];
+  module_name = new TCHAR[MAX_PATH + 1];
+  typelib_name = new TCHAR[MAX_PATH + 1];
 #else
-    module_name = (char *) malloc(allocated);
-    typelib_name = (char *) malloc(allocated);
+  module_name = (TCHAR *) malloc(sizeof(TCHAR) * (MAX_PATH + 1));
+  typelib_name = (TCHAR *) malloc(sizeof(TCHAR) * (MAX_PATH + 1));
 #endif
-    used = GetModuleFileName(SWIGModule, module_name, allocated);
 
-    if (used == allocated) {
-#ifdef __cplusplus
-      delete module_name;
-      delete typelib_name;
+#ifdef __WINE__
+  /*
+   * Wine has a broken implementation of GetModuleFileName, which does not
+   * work correctly with Winelib DLLs. This is a very dumb workaround.
+   * If you know how to fix it properly, please send a patch :)
+   */
+  if (GetCurrentDirectory(MAX_PATH + 1, module_name) == 0 ||
+      _tcslen(module_name) + _tcslen(_T("\\$module.dll.so")) > MAX_PATH) {
+    /* DLL name will not fit into MAX_PATH characters */
+    return E_UNEXPECTED;
+  }
+
+  _tcscat(module_name, _T("\\$module.dll.so"));
 #else
-      free(module_name);
-      free(typelib_name);
+  GetModuleFileName(SWIGModule, module_name, MAX_PATH + 1);
 #endif
-      allocated *= 2;
-    }
-  } while (used == allocated);
 
-  strcpy(typelib_name, module_name);
+  _tcscpy(typelib_name, module_name);
+  module_name_len = _tcslen(module_name);
 
 /* This needs to be made more flexible                     */
 /* For now we assume that the TLB is a resource in the DLL */
@@ -422,7 +426,7 @@ STDAPI DllRegisterServer(void) {
         hsubkey = NULL;
 
     if (hres == S_OK &&
-       RegOpenKeyEx(HKEY_CLASSES_ROOT, "CLSID", 0, KEY_ALL_ACCESS, &hkey_clsid) != ERROR_SUCCESS) {
+       RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("CLSID"), 0, KEY_ALL_ACCESS, &hkey_clsid) != ERROR_SUCCESS) {
       hres = SELFREG_E_CLASS;
     }
 
@@ -433,18 +437,20 @@ STDAPI DllRegisterServer(void) {
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey, "InprocServer32", 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hsubkey, NULL) !=
+        RegCreateKeyEx(hkey, _T("InprocServer32"), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hsubkey, NULL) !=
         ERROR_SUCCESS) {
       hres = SELFREG_E_CLASS;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hsubkey, "", 0, REG_SZ, (BYTE *) module_name, used + 1) != ERROR_SUCCESS) {
+        RegSetValueEx(hsubkey, _T(""), 0, REG_SZ, (BYTE *) module_name,
+        sizeof(TCHAR) * (module_name_len + 1)) != ERROR_SUCCESS) {
       hres = SELFREG_E_CLASS;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hsubkey, "ThreadingModel", 0, REG_SZ, (BYTE *) "Both", 5) != ERROR_SUCCESS) {
+        RegSetValueEx(hsubkey, _T("ThreadingModel"), 0, REG_SZ, (BYTE *) _T("Both"),
+        sizeof(TCHAR) * 5) != ERROR_SUCCESS) {
       hres = SELFREG_E_CLASS;
     }
 
@@ -466,7 +472,7 @@ STDAPI DllRegisterServer(void) {
         hkey_win32 = NULL;
 
     if (hres == S_OK &&
-        RegOpenKeyEx(HKEY_CLASSES_ROOT, "TypeLib", 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
+        RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("TypeLib"), 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
@@ -477,52 +483,56 @@ STDAPI DllRegisterServer(void) {
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey, /* FIXME */ "1.0", 0, NULL,
+        RegCreateKeyEx(hkey, /* FIXME */ _T("1.0"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_version, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hkey_version, "", 0, REG_SZ, (BYTE *) "$module", strlen("$module")) != ERROR_SUCCESS) {
+        RegSetValueEx(hkey_version, _T(""), 0, REG_SZ, (BYTE *) _T("$module"),
+        sizeof(TCHAR) * _tcslen(_T("$module"))) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey_version, "HELPDIR", 0, NULL,
+        RegCreateKeyEx(hkey_version, _T("HELPDIR"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_helpdir, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hkey_helpdir, "", 0, REG_SZ, (BYTE *) "0", 2) != ERROR_SUCCESS) {
+        RegSetValueEx(hkey_helpdir, _T(""), 0, REG_SZ, (BYTE *) "0",
+        sizeof(TCHAR) * 2) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey_version, "FLAGS", 0, NULL,
+        RegCreateKeyEx(hkey_version, _T("FLAGS"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_flags, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hkey_flags, "", 0, REG_SZ, (BYTE *) "0", 2) != ERROR_SUCCESS) {
+        RegSetValueEx(hkey_flags, _T(""), 0, REG_SZ, (BYTE *) _T("0"),
+        sizeof(TCHAR) * 2) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey_version, "0", 0, NULL,
+        RegCreateKeyEx(hkey_version, _T("0"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_0, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey_0, "win32", 0, NULL,
+        RegCreateKeyEx(hkey_0, _T("win32"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_win32, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegSetValueEx(hkey_win32, "", 0, REG_SZ, (BYTE *) typelib_name, used + 1) != ERROR_SUCCESS) {
+        RegSetValueEx(hkey_win32, _T(""), 0, REG_SZ, (BYTE *) typelib_name,
+        sizeof(TCHAR) * (module_name_len + 1)) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
@@ -571,8 +581,63 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
     SWIG_typelib_path = (OLECHAR *) malloc((MAX_PATH + 1) * sizeof(OLECHAR));
 #endif
 
-    GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);
-    LoadTypeLib(SWIG_typelib_path, &SWIG_typelib);
+    HRESULT hres = S_OK;
+
+#ifdef __WINE__
+    /*
+     * Wine has a broken implementation of GetModuleFileName, which does not
+     * work correctly with Winelib DLLs. Here we try to get the module file
+     * name from the registry.
+     */
+    {
+      HKEY hkey_typelib = NULL,
+          hkey = NULL,
+          hkey_version = NULL,
+          hkey_0 = NULL;
+      LONG bytesRead = MAX_PATH + 1;
+
+      if (hres == S_OK &&
+          RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("Typelib"), 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
+        hres = E_UNEXPECTED;
+      }
+
+      if (hres == S_OK &&
+          RegOpenKeyEx(hkey_typelib, SWIG_tlb_guid_string, 0, KEY_ALL_ACCESS, &hkey) != ERROR_SUCCESS) {
+        hres = E_UNEXPECTED;
+      }
+
+      if (hres == S_OK &&
+          RegOpenKeyEx(hkey, /* FIXME */ _T("1.0"), 0, KEY_ALL_ACCESS, &hkey_version) != ERROR_SUCCESS) {
+        hres = E_UNEXPECTED;
+      }
+
+      if (hres == S_OK &&
+          RegOpenKeyEx(hkey_version, _T("0"), 0, KEY_ALL_ACCESS, &hkey_0) != ERROR_SUCCESS) {
+        hres = E_UNEXPECTED;
+      }
+
+      if (hres == S_OK &&
+          /* NOTE: we explicitly need to use the wide-char version here */
+          RegQueryValueW(hkey_0, L"win32", SWIG_typelib_path, &bytesRead) != ERROR_SUCCESS) {
+        hres = E_UNEXPECTED;
+      }
+
+      if (hkey_typelib != NULL)
+        CloseHandle(hkey_typelib);
+      if (hkey != NULL)
+        CloseHandle(hkey);
+      if (hkey_version != NULL)
+        CloseHandle(hkey_version);
+      if (hkey_0 != NULL)
+        CloseHandle(hkey_0);
+    }
+#else
+    hres = GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);
+#endif
+
+    if (hres == S_OK) {
+      LoadTypeLib(SWIG_typelib_path, &SWIG_typelib);
+    }
   }
 
   return TRUE;
