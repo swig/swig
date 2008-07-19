@@ -7,6 +7,8 @@ SCRIPTSUFFIX = _runme.c
 COM_CYGPATH_W     = @COM_CYGPATH_W@
 COM_EXEC_SUFFIX = @COM_EXEC_SUFFIX@
 COM_RUNTOOL  = @COM_RUNTOOL@
+COM_IDL      = @COM_IDL@
+COM_IDL_HEADER_SWITCHES = @COM_IDL_HEADER_SWITCHES@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@/..
 top_builddir = @top_builddir@/..
@@ -22,6 +24,7 @@ include $(srcdir)/../common.mk
 %.cpptest: 
 	$(setup)
 	+(cd $* && $(swig_and_compile_cpp))
+	+$(generate_headers)
 	+(cd $* && $(register_component))
 	+$(run_testcase)
 	+(cd $* && $(unregister_component))
@@ -29,6 +32,7 @@ include $(srcdir)/../common.mk
 %.ctest:
 	$(setup)
 	+(cd $* && $(swig_and_compile_c))
+	+$(generate_headers)
 	+(cd $* && $(register_component))
 	+$(run_testcase)
 	+(cd $* && $(unregister_component))
@@ -36,6 +40,7 @@ include $(srcdir)/../common.mk
 %.multicpptest: 
 	$(setup)
 	+(cd $* && $(swig_and_compile_multi_cpp))
+	+$(generate_headers)
 	+(cd $* && $(register_component))
 	+$(run_testcase)
 	+(cd $* && $(unregister_component))
@@ -57,6 +62,10 @@ register_component = \
 
 unregister_component = \
 	regsvr32 /u $*.dll$(COM_EXEC_SUFFIX);
+
+# Generates headers from the IDL file
+generate_headers = \
+	$(COM_IDL) $(COM_IDL_HEADER_SWITCHES) $*.h $*/$*.idl;
 
 # Compiles COM files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.c appended after the testcase name.
