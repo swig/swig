@@ -533,14 +533,27 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
-*-*-darwin*) TCLDYNAMICLINKING="-dynamiclib -flat_namespace -undefined suppress";;
 *)TCLDYNAMICLINKING="";;
 esac
+
+case $host in
+*-*-darwin*) 
+    TCLLDSHARED='$(CC) -dynamiclib -undefined suppress -flat_namespace'
+    TCLCXXSHARED='$(CXX) -dynamiclib -undefined suppress -flat_namespace'
+    ;;
+*)
+    TCLLDSHARED='$(LDSHARED)'
+    TCLCXXSHARED='$(CXXSHARED)'
+    ;;
+esac
+
 fi
 
 AC_SUBST(TCLINCLUDE)
 AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
+AC_SUBST(TCLLDSHARED)
+AC_SUBST(TCLCXXSHARED)
 
 #----------------------------------------------------------------
 # Look for Python
