@@ -69,7 +69,7 @@
  		"sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
  		"subsection", "subsubsection", "test", "throw", "todo", "tparam", "typedef", "union", "until",
  		"var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem",
- 		"$", "@", "//","&", "~", "<", ">", "#", "%"};
+ 		"$", "@", "\\","&", "~", "<", ">", "#", "%"};
 
 
  string sectionIndicators[] = { "attention", "author", "brief", "bug", "cond", "date", "deprecated", "details",
@@ -78,7 +78,7 @@
  		"version", "warning", "xrefitem" };
 
  /* All of the doxygen commands divided up by how they are parsed */
- string simpleCommands[] = {"n", "$", "@", "//", "&", "~", "<", ">", "#", "%"};
+ string simpleCommands[] = {"n", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
  string ignoredSimpleCommands[] = {"nothing at the moment"};
  string commandWords[] = {"a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
  		"relates", "namespace", "relatesalso","anchor", "dontinclude", "include", "includelineno"};
@@ -791,13 +791,16 @@ list<DoxygenEntity> convert(string doxygenBlob){
  	}
  	list <DoxygenEntity> rootList;
  	rootList = parse( tokList.end(), tokList);
- 	cout << "PARSED LIST" << endl;
- 	printTree(rootList);
+ 	if(noisy) {
+ 		cout << "PARSED LIST" << endl;
+ 		printTree(rootList);
+ 	}
  	return rootList;
  }
 
 int main(int argc, char *argv[]){
-	string doxygenString1 = "//! A normal member taking two arguments and returning an integer value.\n/*!\n \\param a an \\b integer argument. \\param s a constant character pointer\n\n\n\n \\return The test results\n  \\sa Test(), ~Test(), testMeToo() and publicVar()\n */";
+	string doxygenString1 = "//! A normal member taking two arguments and returning an integer value. This is a very long description for the simple purpose of showing off formatting. Let's make it a bit longer just to be sure. \n/*!\n \\param a an \\b integer argument.\n \\return The test results\n \\param s a constant character pointer. Let's also make this a very long description! \n \\bug this command should, for now, be totally ignored\n \\author cheryl foil\n \\sa Test(), ~Test(), testMeToo() and publicVar()\n */";
+	cout << "---ORIGINAL DOXYGEN--- " << endl << doxygenString1 << endl;
 	list <DoxygenEntity> rootList = convert(doxygenString1);
     JavaDocConverter jDC = JavaDocConverter();
     jDC.convertToJavaDoc(rootList);
