@@ -2661,9 +2661,9 @@ else
 fi
 
 if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "$COM_CC" ; then
-  COM_CC_SHARED_SWITCHES=-shared
+  COM_CC_SHARED_SWITCHES='-shared -mno-cygwin'
   COM_CC_OUT_SWITCHES='-o '
-  COM_CC_SWITCHES=
+  COM_CC_SWITCHES=-mno-cygwin
   COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
   if test "winegcc" = "$COM_CC" ; then
     COM_EXEC_SUFFIX=.so
@@ -2679,7 +2679,7 @@ elif test "cl" = "$COM_CC" ; then
 fi
 
 if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" = "$COM_CXX" ; then
-  COM_CXX_SHARED_SWITCHES=-shared
+  COM_CXX_SHARED_SWITCHES='-shared -mno-cygwin'
   COM_CXX_OUT_SWITCHES="-o "
 elif test "cl" = "$COM_CC" ; then
   COM_CXX_SHARED_SWITCHES=/LD

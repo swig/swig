@@ -377,19 +377,11 @@ STDAPI DllCanUnloadNow(void) {
 }
 
 STDAPI DllRegisterServer(void) {
-  TCHAR *module_name;
-  TCHAR *typelib_name;
+  TCHAR module_name[MAX_PATH + 1];
+  TCHAR typelib_name[MAX_PATH + 1];
   int i;
   HRESULT hres = S_OK;
   int module_name_len;
-
-#ifdef __cplusplus
-  module_name = new TCHAR[MAX_PATH + 1];
-  typelib_name = new TCHAR[MAX_PATH + 1];
-#else
-  module_name = (TCHAR *) malloc(sizeof(TCHAR) * (MAX_PATH + 1));
-  typelib_name = (TCHAR *) malloc(sizeof(TCHAR) * (MAX_PATH + 1));
-#endif
 
 #ifdef __WINE__
   /*
@@ -468,7 +460,7 @@ STDAPI DllRegisterServer(void) {
         hkey_version = NULL,
         hkey_helpdir = NULL,
         hkey_flags = NULL,
-        hkey_0 = NULL,
+        hkey_lcid = NULL,
         hkey_win32 = NULL;
 
     if (hres == S_OK &&
@@ -520,12 +512,12 @@ STDAPI DllRegisterServer(void) {
 
     if (hres == S_OK &&
         RegCreateKeyEx(hkey_version, _T("0"), 0, NULL,
-        0, KEY_ALL_ACCESS, NULL, &hkey_0, NULL) != ERROR_SUCCESS) {
+        0, KEY_ALL_ACCESS, NULL, &hkey_lcid, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
 
     if (hres == S_OK &&
-        RegCreateKeyEx(hkey_0, _T("win32"), 0, NULL,
+        RegCreateKeyEx(hkey_lcid, _T("win32"), 0, NULL,
         0, KEY_ALL_ACCESS, NULL, &hkey_win32, NULL) != ERROR_SUCCESS) {
       hres = SELFREG_E_TYPELIB;
     }
@@ -546,25 +538,131 @@ STDAPI DllRegisterServer(void) {
       CloseHandle(hkey);
     if (hkey_version != NULL)
       CloseHandle(hkey_version);
-    if (hkey_0 != NULL)
-      CloseHandle(hkey_0);
+    if (hkey_lcid != NULL)
+      CloseHandle(hkey_lcid);
     if (hkey_win32 != NULL)
       CloseHandle(hkey_win32);
   }
-
-#ifdef __cplusplus
-  delete module_name;
-  delete typelib_name;
-#else
-  free(module_name);
-  free(typelib_name);
-#endif
 
   return hres;
 }
 
 STDAPI DllUnregisterServer(void) {
-  return S_OK;
+  HRESULT hres = S_OK;
+  /*
+   * We may only remove keys that we created. Therefore some operation may fail
+   * if we are trying to delete a non-empty key, but this is not an error.
+   */
+  int leftovers = 0;
+  int i;
+
+  for (i = 0; SWIGClassDescription[i].newInstance != NULL; ++i) {
+    HKEY hkey_clsid = NULL,
+        hkey = NULL;
+
+    if (hres == S_OK &&
+       RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("CLSID"), 0, KEY_ALL_ACCESS, &hkey_clsid) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(hkey_clsid, SWIGClassDescription[i].guid_string, 0, KEY_ALL_ACCESS, &hkey) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey, _T("InprocServer32")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hkey != NULL)
+      CloseHandle(hkey);
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_clsid, SWIGClassDescription[i].guid_string) != ERROR_SUCCESS) {
+      leftovers = 1;
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hkey_clsid != NULL)
+      CloseHandle(hkey_clsid);
+  }
+
+  {
+    HKEY hkey_typelib = NULL,
+        hkey = NULL,
+        hkey_version = NULL,
+        hkey_lcid = NULL;
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("TypeLib"), 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(hkey_typelib, SWIG_tlb_guid_string, 0, KEY_ALL_ACCESS, &hkey) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(hkey, /* FIXME */ _T("1.0"), 0, KEY_ALL_ACCESS, &hkey_version) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_version, _T("HELPDIR")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_version, _T("FLAGS")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(hkey_version, _T("0"), 0, KEY_ALL_ACCESS, &hkey_lcid) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_lcid, _T("win32")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hkey_lcid != NULL)
+      CloseHandle(hkey_lcid);
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_version, _T("0")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hkey_version != NULL)
+      CloseHandle(hkey_version);
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey, _T("1.0")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_TYPELIB;
+    }
+
+    if (hkey != NULL)
+      CloseHandle(hkey);
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey_typelib, SWIG_tlb_guid_string) != ERROR_SUCCESS) {
+      leftovers = 1;
+    }
+
+    if (hkey_typelib != NULL)
+      CloseHandle(hkey_typelib);
+  }
+
+  if (hres == S_OK && leftovers) {
+    /* Procedure successful, but some leftover keys present */
+    return S_FALSE;
+  }
+
+  return hres;
 }
 
 #ifdef __cplusplus
@@ -593,11 +691,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
       HKEY hkey_typelib = NULL,
           hkey = NULL,
           hkey_version = NULL,
-          hkey_0 = NULL;
+          hkey_lcid = NULL;
       LONG bytesRead = MAX_PATH + 1;
 
       if (hres == S_OK &&
-          RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("Typelib"), 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
+          RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("TypeLib"), 0, KEY_ALL_ACCESS, &hkey_typelib) != ERROR_SUCCESS) {
         hres = E_UNEXPECTED;
       }
 
@@ -612,13 +710,13 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
       }
 
       if (hres == S_OK &&
-          RegOpenKeyEx(hkey_version, _T("0"), 0, KEY_ALL_ACCESS, &hkey_0) != ERROR_SUCCESS) {
+          RegOpenKeyEx(hkey_version, _T("0"), 0, KEY_ALL_ACCESS, &hkey_lcid) != ERROR_SUCCESS) {
         hres = E_UNEXPECTED;
       }
 
       if (hres == S_OK &&
           /* NOTE: we explicitly need to use the wide-char version here */
-          RegQueryValueW(hkey_0, L"win32", SWIG_typelib_path, &bytesRead) != ERROR_SUCCESS) {
+          RegQueryValueW(hkey_lcid, L"win32", SWIG_typelib_path, &bytesRead) != ERROR_SUCCESS) {
         hres = E_UNEXPECTED;
       }
 
@@ -628,8 +726,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
         CloseHandle(hkey);
       if (hkey_version != NULL)
         CloseHandle(hkey_version);
-      if (hkey_0 != NULL)
-        CloseHandle(hkey_0);
+      if (hkey_lcid != NULL)
+        CloseHandle(hkey_lcid);
     }
 #else
     hres = GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);

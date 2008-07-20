@@ -342,7 +342,9 @@ public:
       formatGUID(f_module, &module_iid, false);
       Printf(f_module, "),\n    dual\n  ]\n  interface %s : IDispatch {\n", module_class_name);
       // FIXME: a temporary workaround for a possible WIDL bug
+      Printf(f_module, "#ifdef __WIDL__\n");
       Printf(f_module, "    import \"stdole2.idl\";\n");
+      Printf(f_module, "#endif\n");
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
