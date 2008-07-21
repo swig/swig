@@ -66,9 +66,6 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
-    // FIXME
-    Swig_typemap_class_distinguish(false);
-
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -261,18 +258,61 @@ public:
 
   /* ----------------------------------------------------------------------
    * getMangledType()
-   *
-   * incomplete for now...
    * ---------------------------------------------------------------------- */
 
-  const char *getMangledType(String *type) {
-    char *c = Char(type);
-    if (strcmp(c, "int") == 0) 
-      return "i";
-    if (strcmp(c, "double") == 0)
-      return "d";
+  String *getMangledType(SwigType *type_arg) {
+    static String *result = 0;
+    SwigType *prefix = 0;
+    if (result)
+      Delete(result);
+    result = NewString("");
 
-    return "UNKNOWN";
+    /*Printf(stderr, "MANGLING TYPE: %s\n", type_arg);*/
+
+    SwigType *type = Copy(type_arg);
+
+    if (SwigType_ismemberpointer(type)) {
+      SwigType_del_memberpointer(type);
+      SwigType_add_pointer(type);
+    }
+
+    if (SwigType_ispointer(type)) {
+      SwigType_del_pointer(type);
+      if (SwigType_isfunction(type)) {
+        Printf(result, "f");
+        goto ready;
+      }
+      Delete(type);
+      type = Copy(type_arg);
+    }
+
+    prefix = SwigType_prefix(type);
+    Replaceall(prefix, ".", "");
+    Replaceall(prefix, "const", "c");
+    Replaceall(prefix, "volatile", "v");
+    Replaceall(prefix, "a(", "a");
+    Replaceall(prefix, "m(", "m");
+    Replaceall(prefix, "q(", "");
+    Replaceall(prefix, ")", "");
+    Replaceall(prefix, " ", "");
+    Printf(result, "%s", prefix);
+
+    type = SwigType_base(type);
+    if (SwigType_isbuiltin(type))
+      Printf(result, "%c", *Char(SwigType_base(type)));
+    else if (SwigType_isenum(type))
+      Printf(result, "e%s", Swig_scopename_last(type));
+    else
+      Printf(result, "%s", Char(SwigType_base(type)));
+
+ready:
+    /*Printf(stderr, "  RESULT: %s\n", result);*/
+
+    if (prefix)
+      Delete(prefix);
+    if (type)
+      Delete(type);
+    return result;
   }
 
   /* ----------------------------------------------------------------------
@@ -362,10 +402,11 @@ public:
       // mangle name if function is overloaded
       if (Getattr(n, "sym:overloaded")) {
         if (!Getattr(n, "copy_constructor")) {
-          if (parms)
-            Append(over_suffix, "_");
           for (p = parms; p; p = nextSibling(p)) {
-            Append(over_suffix, getMangledType(Getattr(p, "type")));
+            if (Getattr(p, "c:objstruct"))
+              continue;
+            String *mangled = getMangledType(Getattr(p, "type"));
+            Printv(over_suffix, "_", mangled, NIL);
           }
           Append(name, over_suffix);
         }
@@ -703,7 +744,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    String *name = Getattr(n, "name");
+    String *name = Copy(Getattr(n, "sym:name"));
     String *classname = Getattr(parentNode(n), "typename");
     String *newclassname = Getattr(parentNode(n), "sym:name");
     String *new_name = NewString("");
@@ -717,12 +758,12 @@ public:
     Delitem(arg_lnames, DOH_END);
 
     // modify method name
-    Printv(new_name, newclassname, "_", name, NIL);
+    new_name = Swig_name_member(newclassname, name);
     Setattr(n, "sym:name", new_name);
 
     // generate action code
     Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
-    Printv(code, classname, "::", name, "(", arg_lnames, ");\n", NIL);
+    Printv(code, classname, "::", Getattr(n, "name"), "(", arg_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
@@ -730,6 +771,7 @@ public:
     Delete(arg_lnames);
     Delete(code);
     Delete(new_name);
+    Delete(name);
     return SWIG_OK;
   }
 
@@ -738,7 +780,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node *n) {
-    String *name = Getattr(n, "name");
+    String *name = Copy(Getattr(n, "sym:name"));
     String *classname = Getattr(parentNode(n), "classtype");
     String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
@@ -776,14 +818,14 @@ public:
       Delitem(arg_lnames, DOH_END);
 
     // modify method name
-    Printv(new_name, newclassname, "_", name, NIL);
+    new_name = Swig_name_member(newclassname, name);
     Setattr(n, "sym:name", new_name);
 
     // generate action code
     if (typecheck_flag)
       emit_runtime_typecheck(newclassname, new_name, code);
     Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
-    Printv(code, "((", classname, "*) arg1->obj)->", name, "(", arg_call_lnames, ");\n", NIL);
+    Printv(code, "((", classname, "*) arg1->obj)->", Getattr(n, "name"), "(", arg_call_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
@@ -794,6 +836,7 @@ public:
     Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
+    Delete(name);
     return SWIG_OK;
   }
 

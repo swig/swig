@@ -47,16 +47,18 @@ typedef struct {
 
 %typemap(in) short, int, long, char, float, double, bool "$1 = ($1_type) $input;"
 %typemap(in) void *, short *, int *, long *, char *, float *, double *, bool * "$1 = ($1_type) $input;"
-%typemap(in) void **, short **, int **, long **, char **, float **, double **, bool * "$1 = ($1_type) $input;"
+%typemap(in) void **, short **, int **, long **, char **, float **, double **, bool * "$1 = ($1_basetype **) $input;"
 %typemap(in) unsigned short *, unsigned int *, unsigned long *, unsigned char * "$1 = ($1_type) $input;"
 %typemap(in) unsigned short **, unsigned int **, unsigned long **, unsigned char ** "$1 = ($1_type) $input;"
 %typemap(in) const void *, const short *, const int *, const long *, const char *, const float *, const double *, const bool * "$1 = ($1_basetype *) $input;"
 %typemap(in) const unsigned short *, const unsigned int *, const unsigned long *, const unsigned char * "$1 = ($1_type) $input;"
 %typemap(in) unsigned short, unsigned int, unsigned long, unsigned char "$1 = ($1_type) $input;"
 %typemap(in) short &, int &, long &, char &, float &, double &, bool & "$1 = ($1_basetype *) $input;"
-%typemap(in) const short &, const int &, const long &, const char &, const float &, const double &, const bool & "$1 = ($1_basetype const *) $input;"
+%typemap(in) const short &, const int &, const long &, const char &, const float &, const double &, const bool & "$1 = ($1_basetype *) $input;"
 %typemap(in) unsigned short &, unsigned int &, unsigned long &, unsigned char &  "$1 = ($1_basetype *) $input;"
-%typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$1 = ($1_basetype const *) $input;"
+%typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$1 = ($1_basetype *) $input;"
+
+%typemap(in) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY], bool * [ANY] "$1 = ($1_basetype *) $input;"
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1 = ($1_type) $input;"
 %typemap(in, fragment="stdbool_inc") bool &, const bool & "$1 = ($1_basetype *) $input;"

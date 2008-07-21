@@ -377,7 +377,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern Hash *Swig_typemap_pop_scope(void);
 
   extern void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f);
-  extern void Swig_typemap_class_distinguish(int b);
 
 /* --- Code fragment support --- */
 
