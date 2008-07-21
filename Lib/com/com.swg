@@ -92,21 +92,21 @@
 %typemap(out) void ""
 
 %typemap(out) SWIGTYPE * %{
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1);
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1, $owner);
 %}
 
 %typemap(out) SWIGTYPE & %{
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1);
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1, $owner);
 %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) new $1_ltype((const $1_ltype &)$1)); %}
+%{ $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) new $1_ltype((const $1_ltype &)$1), $owner); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr);
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr, $owner);
 }
 #endif
 
@@ -128,11 +128,23 @@
 typedef void (SWIGSTDCALL *SWIG_funcptr)(void);
 
 typedef struct {
+  SWIG_funcptr *vtable;
+  SWIG_funcptr newInstance;
+  LONG refCount;
+} SWIGClassFactory;
+
+/* For consistent manipulation regardless of C or C++ mode */
+typedef struct {
+  SWIG_funcptr *vtable;
+} SWIGIUnknown;
+
+typedef struct {
   SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
   SWIG_funcptr *SWIGWrappedObject_vtable; /* vtable for helper methods */
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   LONG refCount; /* reference count */
+  void (SWIGSTDCALL *deleteInstance)(SWIGIUnknown *); /* destructor */
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
 } SWIGWrappedObject;
 
@@ -160,6 +172,10 @@ long SWIGSTDCALL SWIGRelease1(void *iunk) {
   LONG res = InterlockedDecrement(&obj->refCount);
 
   if (res == 0) {
+    if (obj->cMemOwn && obj->deleteInstance != 0) {
+      obj->deleteInstance((SWIGIUnknown *) obj);
+    }
+
 #ifdef __cplusplus
     delete obj;
 #else
@@ -213,17 +229,6 @@ HRESULT SWIGSTDCALL SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFI
 
 static OLECHAR SWIG_typelib_path[MAX_PATH + 1];
 static ITypeLib *SWIG_typelib = NULL;
-
-typedef struct {
-  SWIG_funcptr *vtable;
-  SWIG_funcptr newInstance;
-  LONG refCount;
-} SWIGClassFactory;
-
-/* For consistent manipulation regardless of C or C++ mode */
-typedef struct {
-  SWIG_funcptr *vtable;
-} SWIGIUnknown;
 
 long SWIGSTDCALL SWIGClassFactoryAddRef(SWIGClassFactory *factory) {
   InterlockedIncrement(&globalRefCount);
@@ -337,7 +342,7 @@ SWIG_funcptr _wrap_opaque_vtable[] = {
   (SWIG_funcptr) SWIGRelease1,
 };
 
-void * SWIGSTDCALL SWIG_wrap_opaque(void *arg) {
+void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn) {
 #ifdef __cplusplus
   SWIGWrappedObject *res = new SWIGWrappedObject;
 #else
@@ -346,7 +351,7 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg) {
   res->vtable = _wrap_opaque_vtable;
   res->SWIGWrappedObject_vtable = _wrap_opaque_SWIGWrappedObject_vtable;
   res->cPtr = arg;
-  res->cMemOwn = 0;
+  res->cMemOwn = cMemOwn;
   InterlockedIncrement(&globalRefCount);
   res->refCount = 1;
   return (void *) res;
