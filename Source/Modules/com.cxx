@@ -232,10 +232,12 @@ public:
         "#endif\n"
         "  res->vtable = _wrap%s_vtable;\n"
         "  res->SWIGWrappedObject_vtable = NULL;\n"
+        "  /* cPtr and cMemOwn make no sense for the module class */\n"
         "  res->cPtr = NULL;\n"
         "  res->cMemOwn = 0;\n"
         "  InterlockedIncrement(&globalRefCount);\n"
         "  res->refCount = 1;\n"
+        "  res->deleteInstance = 0;\n"
         "  /* GetTypeInfoOfGuid */\n"
         "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
         "  return (void *) res;\n"
@@ -1073,7 +1075,7 @@ public:
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
-      Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg) {\n"
+      Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn) {\n"
           "#ifdef __cplusplus\n"
           "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
           "#else\n"
@@ -1082,15 +1084,16 @@ public:
           "  res->vtable = _wrap%svtable;\n"
           "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
           "  res->cPtr = arg;\n"
-          "  res->cMemOwn = 0;\n"
+          "  res->cMemOwn = cMemOwn;\n"
           "  res->refCount = 0;\n"
+          "  res->deleteInstance = _wrap_delete_%s;\n"
           "  /* GetTypeInfoOfGuid */\n"
           "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
           "}\n\n",
-          proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name);
+          proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name);
 
-      Printf(proxy_class_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *arg);\n", proxy_class_name);
+      Printf(proxy_class_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn);\n", proxy_class_name);
 
       Printv(f_vtables, proxy_class_vtable_code, NIL);
       Printv(f_vtable_defs, proxy_class_vtable_defs, NIL);
