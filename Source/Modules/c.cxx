@@ -29,6 +29,7 @@ class C:public Language {
   String *empty_string;
   String *int_string;
   String *enum_values;
+  String *create_object;
 
   bool proxy_flag;
   bool runtime_flag;
@@ -44,6 +45,7 @@ public:
     empty_string(NewString("")),
     int_string(NewString("int")),
     enum_values(0),
+    create_object(0),
     proxy_flag(true),
     runtime_flag(true),
     typecheck_flag(false) {
@@ -88,6 +90,30 @@ public:
       runtime_flag = false;
 
     allow_overloading();
+  }
+
+  /* ---------------------------------------------------------------------
+   * start_create_object()
+   * --------------------------------------------------------------------- */
+
+  void start_create_object() {
+    String *s = create_object = NewString("");
+    Printf(s, "\nSWIGINTERN SwigObj *SWIG_create_object(const char *classname) {\n");
+    Printf(s, "SWIG_Runtime_init();\n");
+    Printf(s, "SwigObj *result;\n");
+    Printf(s, "result = (SwigObj *) malloc(sizeof(SwigObj));\n");
+    Printf(s, "result->obj = 0;\n");
+  }
+
+  /* ---------------------------------------------------------------------
+   * finish_create_object()
+   * --------------------------------------------------------------------- */
+
+  String *finish_create_object() {
+    String *s = create_object;
+    Printf(s, "return result;\n");
+    Printf(s, "}\n\n");
+    return create_object;
   }
 
   /* ---------------------------------------------------------------------
@@ -147,9 +173,13 @@ public:
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
     Printf(f_wrappers, "#endif\n\n");
+
+    start_create_object();
     
     // emit code for children
     Language::top(n);
+
+    Append(f_header, finish_create_object());
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "}\n");
@@ -167,7 +197,7 @@ public:
     }
 
     // write all to the file
-    Dump(f_header, f_runtime);
+    Wrapper_pretty_print(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
     Wrapper_pretty_print(f_init, f_runtime);
 
@@ -710,7 +740,7 @@ ready:
 
       // declare type for specific class in the proxy header
       if (proxy_flag)
-        Printv(f_proxy_header, "typedef SwigObj ", name, ";\n\n", NIL);
+        Printv(f_proxy_header, "\ntypedef SwigObj ", name, ";\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
@@ -993,23 +1023,27 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
-   * emit_runtime_make_object()
+   * add_to_create_object()
    * --------------------------------------------------------------------- */
 
-  void emit_runtime_make_object(Node *n, String *classname, String *code) {
+  void add_to_create_object(Node *n, String *classname, String *newclassname) {
+    String *s = create_object;
+
+    Printv(s, "if (strcmp(classname, \"", classname, "\") == 0) {\n", NIL);
+
     // store the name of each class in the hierarchy
     List *baselist = Getattr(parentNode(n), "bases");
-    Printf(code, "result->typenames = (const char **) malloc(%d*sizeof(const char*));\n", Len(baselist) + 2);
-    Printv(code, "result->typenames[0] = Swig_typename_", classname, ";\n", NIL);
+    Printf(s, "result->typenames = (const char **) malloc(%d*sizeof(const char*));\n", Len(baselist) + 2);
+    Printv(s, "result->typenames[0] = Swig_typename_", newclassname, ";\n", NIL);
     int i = 1;
     if (baselist) {
       Iterator it;
       for (it = First(baselist); it.item; it = Next(it)) {
-        Printf(code, "result->typenames[%d] = Swig_typename_%s;\n", i++, Getattr(it.item, "name"));
+        Printf(s, "result->typenames[%d] = Swig_typename_%s;\n", i++, Getattr(it.item, "sym:name"));
       }
     }
-    Printf(code, "result->typenames[%d] = 0;\n", i);
-    Printf(code, "SWIG_Runtime_init();\n");
+    Printf(s, "result->typenames[%d] = 0;\n", i);
+    Printf(s, "}\n");
   }
 
   /* ---------------------------------------------------------------------
@@ -1049,10 +1083,9 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
+    add_to_create_object(n, classname, newclassname);
+    Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
-    if (runtime_flag)
-      emit_runtime_make_object(n, newclassname, code);
 
     Setattr(n, "wrap:action", code);
     
@@ -1099,10 +1132,9 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    Printv(code, "result = (", sobj_name, "*) malloc(sizeof(", sobj_name, "));\n", NIL);
+    add_to_create_object(n, classname, newclassname);
+    Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, "((", classname, " const &)*arg1);\n", NIL);
-    if (runtime_flag)
-      emit_runtime_make_object(n, newclassname, code);
     
     Setattr(n, "wrap:action", code);
     

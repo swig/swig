@@ -18,6 +18,11 @@ typedef struct {
   void *obj;
   const char **typenames;
 } SwigObj;
+
+SWIGINTERN SwigObj *SWIG_registry_base = 0;
+SWIGINTERN SwigObj *SWIG_registry = 0;
+
+#define SWIG_STR(x) #x 
 %}
 
 // typemaps for function parameters
@@ -131,27 +136,14 @@ typedef struct {
 // allocate new "object-struct" by default
 
 %typemap(out) SWIGTYPE {
-  $result = (SwigObj *) malloc(sizeof(SwigObj));
+  $result = SWIG_create_object(SWIG_STR($1_type));
   $result->obj = (void*) &$1;
-  #if SWIG_C_RUNTIME
-  $result->typenames[0] = 0;    // FIXME
-  #endif
 }
 
-%typemap(out) SWIGTYPE * {
-  $result = (SwigObj *) malloc(sizeof(SwigObj));
-  $result->obj = (void*) $1;
-  #if SWIG_C_RUNTIME
-  $result->typenames[0] = 0;    // FIXME
-  #endif
-}
 
-%typemap(out) SWIGTYPE & {
-  $result = (SwigObj *) malloc(sizeof(SwigObj));
+%typemap(out) SWIGTYPE *, SWIGTYPE & {
+  $result = SWIG_create_object(SWIG_STR($1_basetype));
   $result->obj = (void*) $1;
-  #if SWIG_C_RUNTIME
-  $result->typenames[0] = 0;    // FIXME
-  #endif
 }
 
 // exception handling
@@ -166,13 +158,22 @@ typedef struct {
   SWIG_CThrowException(0, $1);
 }
 
-// this should match only non-built-in and non-template objects
+// this should match only non-built-in objects
 %typemap(throws) SWIGTYPE {
-  SWIG_CThrowException(0, "C++ $1_type exception thrown");
+  SwigObj *c_ex;
+  c_ex = SWIG_create_object(SWIG_STR($1_basetype));
+  c_ex->obj = (void*) &$1;
+  SWIG_CThrowException(c_ex, "C++ $1_type exception thrown");
+}
+
+%typemap(throws) SWIGTYPE *, SWIGTYPE & {
+  SwigObj *c_ex;
+  c_ex = SWIG_create_object(SWIG_STR($1_basetype));
+  c_ex->obj = (void*) $1;
+  SWIG_CThrowException(c_ex, "C++ $1_type exception thrown");
 }
 
 %insert("runtime") %{
-
 #define SWIG_MAX_RT_STACK 256
 
 SWIGEXPORTC struct {
