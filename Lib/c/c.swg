@@ -39,6 +39,7 @@ typedef struct {
 %typemap(ctype) SWIGTYPE *       "SwigObj *"
 %typemap(ctype) SWIGTYPE &       "SwigObj *"
 %typemap(ctype) SWIGTYPE * [ANY] "SwigObj *"
+%typemap(ctype) enum SWIGTYPE    "$1_type"
 
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
@@ -59,6 +60,8 @@ typedef struct {
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1 = ($1_type) $input;"
 %typemap(in, fragment="stdbool_inc") bool &, const bool & "$1 = ($1_basetype *) $input;"
+
+%typemap(in) enum SWIGTYPE "$1 = ($1_type) $input;"
 
 %typemap(in) SWIGTYPE {
   $1 = * ($1_type *) ($input->obj);
@@ -98,9 +101,10 @@ typedef struct {
 %typemap(couttype) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$1_type"
 %typemap(couttype) short &, int &, long &, char &, float &, double &, bool & "$1_basetype *"
 %typemap(couttype) const short &, const int &, const long &, const char &, const float &, const double & "$1_basetype const *"
-%typemap(couttype) SWIGTYPE   "SwigObj *"
-%typemap(couttype) SWIGTYPE * "SwigObj *"
-%typemap(couttype) SWIGTYPE & "SwigObj *"
+%typemap(couttype) SWIGTYPE      "SwigObj *"
+%typemap(couttype) SWIGTYPE *    "SwigObj *"
+%typemap(couttype) SWIGTYPE &    "SwigObj *"
+%typemap(couttype) enum SWIGTYPE "$1_type"
 
 %typemap(couttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_type"
 %typemap(couttype, fragment="stdbool_inc") bool &, const bool & "$1_basetype *"
@@ -119,6 +123,8 @@ typedef struct {
 
 %typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = $1;"
 %typemap(out, fragment="stdbool_inc") bool &, const bool & "$result = $1;"
+
+%typemap(out) enum SWIGTYPE "$result = ($1_type) $1;"
 
 // allocate new "object-struct" by default
 

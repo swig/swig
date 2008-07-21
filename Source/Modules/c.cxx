@@ -9,6 +9,7 @@
 
 char cvsroot_c_cxx[] = "$Id$";
 
+#include <ctype.h>
 #include "swigmod.h"
 
 class C:public Language {
@@ -26,6 +27,8 @@ class C:public Language {
   String *f_proxy_header;
 
   String *empty_string;
+  String *int_string;
+  String *enum_values;
 
   bool proxy_flag;
   bool runtime_flag;
@@ -39,6 +42,8 @@ public:
 
   C() : 
     empty_string(NewString("")),
+    int_string(NewString("int")),
+    enum_values(0),
     proxy_flag(true),
     runtime_flag(true),
     typecheck_flag(false) {
@@ -187,7 +192,7 @@ public:
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
     if (proxy_flag) {
-      Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n", NIL);
+      Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n\n", NIL);
     }
     return SWIG_OK;
   }
@@ -271,6 +276,35 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * make_enum_type()
+   *
+   * given C++ enum type this function returns its C representation
+   * ---------------------------------------------------------------------- */
+
+  String *make_enum_type(Node *n, SwigType *enumtype) {
+    Symtab *symtab = Getattr(n, "sym:symtab");
+    String *unnamed = Getattr(n, "unnamed");
+    String *newtype = 0;
+    String *query = 0;
+
+    if (!unnamed)
+      query = Swig_scopename_last(SwigType_str(enumtype, 0));
+    else {
+      Replaceall(unnamed, "$unnamed", "enum");
+      Replaceall(unnamed, "$", "");
+      query = unnamed;
+    }
+
+    Node *node = Swig_symbol_clookup(query, symtab);
+    if (node)
+      newtype = NewStringf("enum %s", Getattr(node, "name"));
+    else
+      newtype = Copy(enumtype);
+
+    return newtype;
+  }
+
+  /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
   
@@ -286,7 +320,7 @@ public:
     String *proto = NewString("");
     String *over_suffix = NewString("");
     int gencomma;
-    bool is_void_return = (SwigType_type(Getattr(n, "type")) == T_VOID);
+    bool is_void_return = (SwigType_type(type) == T_VOID);
 
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
@@ -304,7 +338,7 @@ public:
         Delitem(arg_names, 0);
         Delitem(arg_names, DOH_END);
       }
-      return_type = SwigType_str(Getattr(n, "type"), 0);
+      return_type = SwigType_str(type, 0);
 
       // emit wrapper prototype and code
       gencomma = 0;
@@ -341,16 +375,16 @@ public:
       wname = Swig_name_wrapper(name);
       Setattr(n, "wrap:name", wname);
  
-      // attach the standard typemaps
-      emit_attach_parmmaps(parms, wrapper);
-      Setattr(n, "wrap:parms", parms);
-
       // set the return type
       if (Cmp(Getattr(n, "c:objstruct"), "1") == 0) {
         Printv(return_type, SwigType_str(type, 0), NIL);
       }
+      else if (SwigType_isenum(type)) {
+        type = return_type = make_enum_type(n, type);
+        Setattr(n, "type", return_type);
+      }
       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-        String *ctypeout = Getattr(n, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
+        String *ctypeout = Getattr(n, "tmap:couttype:out");
         if (ctypeout)
           tm = ctypeout;
         Printf(return_type, "%s", tm);
@@ -359,22 +393,26 @@ public:
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
       }
 
-      // attach 'ctype' typemaps
-      Swig_typemap_attach_parms("ctype", parms, wrapper);
-
-      // emit variables for holding parameters
-      emit_parameter_variables(parms, wrapper);
-
       // add variable for holding result of original function
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         if (SwigType_isconst(type))
           SwigType_del_qualifier(type);
         SwigType *return_var_type = SwigType_isreference(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
-        Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
+        if (SwigType_isenum(type))
+          Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
+        else
+          Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
       }
 
       // create wrapper function prototype
       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
+
+      // attach the standard typemaps
+      emit_attach_parmmaps(parms, wrapper);
+      Setattr(n, "wrap:parms", parms);
+
+      // attach 'ctype' typemaps
+      Swig_typemap_attach_parms("ctype", parms, wrapper);
 
       // prepare function definition
       gencomma = 0;
@@ -392,9 +430,20 @@ public:
 
         Printf(arg_name, "c%s", lname);
 
+        bool dont_apply_tmap = false;
+
         // set the appropriate type for parameter
         if (Cmp(Getattr(p, "c:objstruct"), "1") == 0) {
           Printv(c_parm_type, SwigType_str(type, 0), NIL);
+          dont_apply_tmap = true;
+        }
+        else if (SwigType_isenum(type)) {
+          c_parm_type = make_enum_type(n, type);
+          if (Getattr(n, "unnamed")) {
+            type = int_string;
+            Setattr(p, "type", type);
+            dont_apply_tmap = true;
+          }
         }
         else if ((tm = Getattr(p, "tmap:ctype"))) {
           Printv(c_parm_type, tm, NIL);
@@ -412,8 +461,6 @@ public:
           Printv(proxy_parm_type, c_parm_type, NIL);
         }
 
-        Replaceall(c_parm_type, "::", "_");
-
         Printv(arg_names, gencomma ? ", " : "", Getattr(p, "name"), NIL);
         Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
         Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", Getattr(p, "name"), NIL);
@@ -421,8 +468,7 @@ public:
  
         // apply typemaps for input parameter
         if ((tm = Getattr(p, "tmap:in"))) {
-          if (Cmp(Getattr(p, "c:objstruct"), "1") == 0) {
-            // FIXME: should work as typemaps for basic types
+          if (dont_apply_tmap) {
             Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
           }
           else {
@@ -443,6 +489,9 @@ public:
 
       Printf(wrapper->def, ") {");
 
+      // emit variables for holding parameters
+      emit_parameter_variables(parms, wrapper);
+
       // emit variable for holding function return value
       emit_return_variable(n, return_type, wrapper);
 
@@ -462,6 +511,8 @@ public:
         Replaceall(action, "$mod", ref_cast);
         Delete(ref_cast);
       }
+      else if (SwigType_isenum(type))
+        Replaceall(action, "$mod", "(int)");
       else
         Replaceall(action, "$mod", "");
 
@@ -525,13 +576,13 @@ public:
   void emit_runtime_typecheck(String *classname, String *funcname, String *code) {
     Printf(code, "{\nint i = 0, type_ok = 0;\n");
     Printf(code, "if (arg1 == NULL) {\n");
-    Printv(code, "  fprintf(stderr, \"error: NULL object-struct passed to ", funcname, "\\n\");\n");
+    Printv(code, "  fprintf(stdout, \"error: NULL object-struct passed to ", funcname, "\\n\");\n");
     Printf(code, "  longjmp(Swig_rt_env, 0);\n}\n");
     Printf(code, "while(arg1->typenames[i]) {\n");
     Printv(code, "  if (strcmp(arg1->typenames[i++], \"", classname, "\") == 0) {\n", NIL);
     Printf(code, "    type_ok = 1;\nbreak;\n}\n}\n");
     Printf(code, "if (!type_ok) {\n");
-    Printv(code, "    fprintf(stderr, \"error: object-struct passed to ", funcname, " is not of class ", classname, "\\n\");\n", NIL);
+    Printv(code, "    fprintf(stdout, \"error: object-struct passed to ", funcname, " is not of class ", classname, "\\n\");\n", NIL);
     Printf(code, "    longjmp(Swig_rt_env, 0);\n}\n}\n");
   }
 
@@ -614,20 +665,10 @@ public:
         }
       }
 
-      // emit "class"-struct definition
-      Printv(sobj, "struct SwigObj", name, " {\n  void* obj;\n", NIL);
-      if (runtime_flag)
-        //Printf(sobj, "  const char *typenames[%d];\n}", Len(baselist) + 2);
-        Printf(sobj, "  const char **typenames;\n}");
-      else 
-        Printf(sobj, "}");
-
-      Printv(f_header, sobj, ";\n\n", NIL);
       Printv(f_header, "const char* Swig_typename_", name, " = \"", name, "\";\n\n", NIL);
 
-      // declare it in the proxy header
+      // declare type for specific class in the proxy header
       if (proxy_flag)
-        //Printv(f_proxy_header, "#define ", name, " SwigObj\n\n", NIL);
         Printv(f_proxy_header, "typedef SwigObj ", name, ";\n\n", NIL);
 
       Delete(sobj);
@@ -809,7 +850,6 @@ public:
     }
     Append(action, code);
     Setattr(n, "wrap:action", action);
-    Setattr(n, "type", "void");
 
     functionWrapper(n);
 
@@ -842,6 +882,8 @@ public:
     if (!SwigType_isconst(type)) {
       // create code for 'set' function
       code = NewString("");
+      if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed"))
+        Printf(code, "* (int *) &");
       Printv(code, classname, "::", name, " = arg1;\n", NIL);
       wrap_set_variable(n, classname, newclassname, name, code);
     }
@@ -890,8 +932,13 @@ public:
       // create 'set' function
       set_nextSibling(p, t);
       Setattr(n, "parms", p);
+      String *code = 0;
+      if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
+        code = NewString("");
+        Printv(code, "* (int *) &((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
+      }
       Setattr(n, "type", "void");
-      wrap_set_variable(n, classname, newclassname, name, 0);
+      wrap_set_variable(n, classname, newclassname, name, code);
     }
 
     Delete(new_name);
@@ -1080,9 +1127,59 @@ public:
 
   /* ---------------------------------------------------------------------
    * enumDeclaration()
+   *
+   * for enums declared inside class we create global enum declaration
+   * and change enum parameter and return value names
    * --------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
+    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *name = Getattr(n, "sym:name");
+    String *code = NewString("");
+    String *tdname = Getattr(n, "tdname");
+    String *newname = newclassname ? NewStringf("%s_", newclassname) : Copy(name);
+    Symtab *symtab = Getattr(n, "sym:symtab");
+      
+    if (tdname)
+      Printf(code, "typedef ");
+
+    Printf(code, "enum ");
+
+    if (Delattr(n, "unnamed")) {
+      // unnamed enum declaration: create new symbol
+      Replaceall(name, "$unnamed", "enum");
+      Delitem(name, DOH_END);
+
+      Node *entry = NewHash();
+      set_nodeType(entry, "enum");
+      Setattr(entry, "name", name);
+      Setattr(entry, "sym:name", name);
+      Setattr(entry, "sym:symtab", symtab);
+      Swig_symbol_add(name, entry);
+    }
+
+    if (newclassname) {
+      if (symtab) {
+        Node *node = Swig_symbol_clookup(name, symtab);
+        if (node) {
+          Append(newname, name);
+          Setattr(node, "name", newname);
+        }
+      }
+    }
+    Printv(code, newname ? newname : "", " {\n$enumvalues\n} ", tdname ? tdname : "", ";\n\n", NIL);
+    emit_children(n);
+    if (enum_values) {
+      Replaceall(code, "$enumvalues", enum_values);
+      Append(f_proxy_header, code);
+      if (newclassname)
+        Append(f_header, code);
+      Delete(enum_values);
+      enum_values = 0;
+    }
+
+    Delete(newname);
+    Delete(code);
     return SWIG_OK;
   }
 
@@ -1091,6 +1188,48 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int enumvalueDeclaration(Node *n) {
+    String *name = Getattr(n, "sym:name");
+    String *enumvalue = Getattr(n, "enumvalue");
+    String *init = 0;
+    if (enumvalue) {
+      char *value_repr = Char(enumvalue);
+      if (value_repr)
+        if (!isdigit(*value_repr) && *value_repr != '+') {
+          init = NewStringf(" = '%c'", *value_repr);
+        }
+        else
+          init = NewStringf(" = %s", enumvalue);
+    }
+
+    String *newclassname = Getattr(parentNode(parentNode(n)), "sym:name");
+    String *newname = NewStringf("%s_%s", newclassname, name);
+    int gencomma = 1;
+    if (!enum_values) {
+      enum_values = NewString("");
+      gencomma = 0;
+    }
+    Printv(enum_values, gencomma ? ",\n  " : "  ", newclassname ? newname : name, enumvalue ? init : "", NIL);
+    Delete(newname);
+    if (init)
+      Delete(init);
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * typedefHandler()
+   * --------------------------------------------------------------------- */
+
+  virtual int typedefHandler(Node *n) {
+    String *name = Getattr(n, "sym:name");
+    String *type = Getattr(n, "type");
+    char *c = Char(SwigType_str(type, 0));
+    if (strncmp(c, "enum", 4) != 0) {
+      if (name && type)  {
+        String *code = NewStringf("typedef %s %s;\n\n", type, name);
+        Append(f_proxy_header, code);
+        Delete(code);
+      }
+    }
     return SWIG_OK;
   }
 
