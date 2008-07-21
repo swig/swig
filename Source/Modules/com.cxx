@@ -1300,7 +1300,7 @@ public:
     Replaceall(proxy_class_forward_def, "$module", module_class_name);
     Replaceall(proxy_class_def, "$module", module_class_name);
 
-    Printf(f_vtable_defs, "void * (SWIGSTDCALL * SWIG_wrap%s)(void *) = SWIG_wrap_opaque;\n", classname);
+    Printf(f_vtable_defs, "void * (SWIGSTDCALL * SWIG_wrap%s)(void *, int) = SWIG_wrap_opaque;\n", classname);
 
     Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
     Printv(f_proxy, proxy_class_def, NIL);
