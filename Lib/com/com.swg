@@ -101,12 +101,12 @@
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) new $1_ltype((const $1_ltype &)$1), $owner); %}
+%{ $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) new $1_ltype((const $1_ltype &)$1), 1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr, $owner);
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr, 1);
 }
 #endif
 
