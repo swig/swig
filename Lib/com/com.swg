@@ -132,21 +132,22 @@ typedef struct {
   SWIG_funcptr *SWIGWrappedObject_vtable; /* vtable for helper methods */
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
-  long refCount; /* reference count */
+  LONG refCount; /* reference count */
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
 } SWIGWrappedObject;
 
 GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
+static LONG globalRefCount = 0;
 
 static int SWIGIsEqual(const GUID *a, const GUID *b) {
   return memcmp(a, b, sizeof(GUID)) == 0;
 }
 
 long SWIGSTDCALL SWIGAddRef1(void *iunk) {
-  /* FIXME: use InterlockedIncrement */
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
-  return ++obj->refCount;
+  InterlockedIncrement(&globalRefCount);
+  return InterlockedIncrement(&obj->refCount);
 }
 
 long SWIGSTDCALL SWIGAddRef2(void *iunk) {
@@ -154,10 +155,20 @@ long SWIGSTDCALL SWIGAddRef2(void *iunk) {
 }
 
 long SWIGSTDCALL SWIGRelease1(void *iunk) {
-  /* FIXME: use InterlockedDecrement */
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
-  return --obj->refCount;
+  LONG res = InterlockedDecrement(&obj->refCount);
+
+  if (res == 0) {
+#ifdef __cplusplus
+    delete obj;
+#else
+    free(obj);
+#endif    
+  }
+
+  InterlockedDecrement(&globalRefCount);
+  return res;
 }
 
 long SWIGSTDCALL SWIGRelease2(void *iunk) {
@@ -200,13 +211,13 @@ HRESULT SWIGSTDCALL SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFI
   return hres;
 }
 
-static OLECHAR *SWIG_typelib_path;
-static ITypeLib *SWIG_typelib;
+static OLECHAR SWIG_typelib_path[MAX_PATH + 1];
+static ITypeLib *SWIG_typelib = NULL;
 
 typedef struct {
   SWIG_funcptr *vtable;
   SWIG_funcptr newInstance;
-  long refCount;
+  LONG refCount;
 } SWIGClassFactory;
 
 /* For consistent manipulation regardless of C or C++ mode */
@@ -215,11 +226,23 @@ typedef struct {
 } SWIGIUnknown;
 
 long SWIGSTDCALL SWIGClassFactoryAddRef(SWIGClassFactory *factory) {
-  return ++factory->refCount;
+  InterlockedIncrement(&globalRefCount);
+  return InterlockedIncrement(&factory->refCount);
 }
 
 long SWIGSTDCALL SWIGClassFactoryRelease(SWIGClassFactory *factory) {
-  return --factory->refCount;
+  LONG res = InterlockedDecrement(&factory->refCount);
+
+  if (res == 0) {
+#ifdef __cplusplus
+    delete factory;
+#else
+    free(factory);
+#endif    
+  }
+
+  InterlockedDecrement(&globalRefCount);
+  return res;
 }
 
 HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, GUID *iid, void **ppvObject) {
@@ -250,9 +273,6 @@ HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IU
   if (obj == NULL) {
     return E_OUTOFMEMORY;
   }
-
-  /* Add reference */
-  ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[1]))(obj);
 
   hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **)) obj->vtable[0])(obj, riid, ppvObject);
 
@@ -327,7 +347,8 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg) {
   res->SWIGWrappedObject_vtable = _wrap_opaque_SWIGWrappedObject_vtable;
   res->cPtr = arg;
   res->cMemOwn = 0;
-  res->refCount = 0;
+  InterlockedIncrement(&globalRefCount);
+  res->refCount = 1;
   return (void *) res;
 }
 
@@ -362,6 +383,7 @@ STDAPI DllGetClassObject(REFCLSID _rclsid, REFIID _riid, LPVOID *_ppv) {
 #endif
       (*ppv)->vtable = SWIGClassFactory_vtable;
       (*ppv)->newInstance = SWIGClassDescription[i].newInstance;
+      InterlockedIncrement(&globalRefCount);
       (*ppv)->refCount = 1;
 
       return S_OK;
@@ -372,8 +394,22 @@ STDAPI DllGetClassObject(REFCLSID _rclsid, REFIID _riid, LPVOID *_ppv) {
 }
 
 STDAPI DllCanUnloadNow(void) {
-  /* FIXME */
-  return S_FALSE;
+  /* Get the value of globalRefCount in a thread-safe manner */
+  /* Could be maybe more elegant */
+  LONG value = InterlockedExchangeAdd(&globalRefCount, 0);
+
+  /*
+   * Note - we have a guarantee that while we are in DllCanUnloadNow
+   * all CoGetClassObject calls are put on hold. There is a really tiny
+   * possibility of a race condition if there is a thread that
+   * just decremented globalRefCount to 0 and is just performing the
+   * return instruction.
+   */
+
+  if (value == 0)
+    return S_OK;
+  else
+    return S_FALSE;
 }
 
 STDAPI DllRegisterServer(void) {
@@ -673,12 +709,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
   if (fdwReason == DLL_PROCESS_ATTACH) {
     SWIGModule = hinstDLL;
 
-#ifdef __cplusplus
-    SWIG_typelib_path = new OLECHAR[MAX_PATH + 1];
-#else
-    SWIG_typelib_path = (OLECHAR *) malloc((MAX_PATH + 1) * sizeof(OLECHAR));
-#endif
-
     HRESULT hres = S_OK;
 
 #ifdef __WINE__
@@ -735,6 +765,12 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
 
     if (hres == S_OK) {
       LoadTypeLib(SWIG_typelib_path, &SWIG_typelib);
+    }
+  } else if (fdwReason == DLL_PROCESS_DETACH) {
+    if (SWIG_typelib != NULL) {
+      /* Call release on the typelib */
+      SWIGIUnknown *tlb_unknown = (SWIGIUnknown *) SWIG_typelib;
+      ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (tlb_unknown->vtable[2]))(tlb_unknown);
     }
   }
 
