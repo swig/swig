@@ -370,19 +370,19 @@ public:
     proxy_class_code = NewString("");
 
     if (isNilGUID(&typelib_guid)) {
-      String *tlbid_ident = NewStringf("%s.TLBID", module_class_name);
+      String *tlbid_ident = NewStringf("%s.%s.TLBID", namespce, module_class_name);
       generateGUID(&typelib_guid, tlbid_ident);
       Delete(tlbid_ident);
     }
 
     if (isNilGUID(&module_iid)) {
-      String *module_iid_ident = NewStringf("%s.IID", module_class_name);
+      String *module_iid_ident = NewStringf("%s.%s.IID", namespce, module_class_name);
       generateGUID(&module_iid, module_iid_ident);
       Delete(module_iid_ident);
     }
 
     if (isNilGUID(&module_clsid)) {
-      String *module_clsid_ident = NewStringf("%s.CLSID", module_class_name);
+      String *module_clsid_ident = NewStringf("%s.%s.CLSID", namespce, module_class_name);
       generateGUID(&module_clsid, module_clsid_ident);
       Delete(module_clsid_ident);
     }
@@ -1253,7 +1253,7 @@ public:
       if (Getattr(n, "feature:iid")) {
         parseGUID(Getattr(n, "feature:iid"), proxy_iid);
       } else {
-        String *proxy_iid_ident = NewStringf("%s.IID", proxy_class_name);
+        String *proxy_iid_ident = NewStringf("%s.%s.IID", namespce, proxy_class_name);
         generateGUID(proxy_iid, proxy_iid_ident);
         Delete(proxy_iid_ident);
       }
@@ -1269,7 +1269,7 @@ public:
         if (Getattr(n, "feature:clsid")) {
           parseGUID(Getattr(n, "feature:clsid"), proxy_clsid);
         } else {
-          String *proxy_clsid_ident = NewStringf("%s.CLSID", proxy_class_name);
+          String *proxy_clsid_ident = NewStringf("%s.%s.CLSID", namespce, proxy_class_name);
           generateGUID(proxy_clsid, proxy_clsid_ident);
           Delete(proxy_clsid_ident);
         }
@@ -1611,13 +1611,13 @@ public:
     if (Getattr(n, "feature:iid")) {
       parseGUID(Getattr(n, "feature:iid"), proxy_iid);
     } else {
-      String *proxy_iid_ident = NewStringf("%s.IID", classname);
+      String *proxy_iid_ident = NewStringf("%s.%s.IID", namespce, classname);
       generateGUID(proxy_iid, proxy_iid_ident);
       Delete(proxy_iid_ident);
     }
 #endif
     {
-      String *proxy_iid_ident = NewStringf("%s.IID", classname);
+      String *proxy_iid_ident = NewStringf("%s.%s.IID", namespce, classname);
       generateGUID(proxy_iid, proxy_iid_ident);
       Delete(proxy_iid_ident);
     }
