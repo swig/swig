@@ -202,6 +202,7 @@ class COM:public Language {
 
   String *module_class_name;	// module class name
   String *module_class_code;
+  String *namespce;
 
 public:
 
@@ -217,7 +218,8 @@ public:
       enum_constant_flag(false),
       proxy_class_vtable_code(NewString("")),
       proxy_class_vtable_defs(NewString("")),
-      clsid_list(NewString("")) {
+      clsid_list(NewString("")),
+      namespce(NULL) {
     /* Use NIL GUID by default */
     memset(&guid_seed, 0, sizeof(GUID));
     memset(&typelib_guid, 0, sizeof(GUID));
@@ -266,6 +268,16 @@ public:
 	} else if (strcmp(argv[i], "-norcfile") == 0) {
 	  Swig_mark_arg(i);
           rcfile_flag = false;
+	} else if (strcmp(argv[i], "-namespace") == 0) {
+	  if (argv[i + 1]) {
+	    namespce = NewString("");
+	    Printf(namespce, argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
 	}
       }
     }
@@ -348,6 +360,9 @@ public:
 
     /* FIXME: do it as it is done in other targets */
     module_class_name = Copy(Getattr(n, "name"));
+
+    if (!namespce)
+      namespce = Copy(module_class_name);
 
     module_class_code = NewString("");
     proxy_class_def = NewString("");
@@ -438,13 +453,13 @@ public:
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
     Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, _T(\"{", module_class_name, module_class_name);
     formatGUID(clsid_list, &module_clsid, false);
-    Printf(clsid_list,  "}\") },\n");
+    Printf(clsid_list,  "}\"), _T(\"%s.%s\") },\n", namespce, module_class_name);
 
     /* Emit code */
     Language::top(n);
 
     /* Insert guard element */
-    Printf(clsid_list, "  { NULL, IID_IUnknown, NULL } /* guard element */\n");
+    Printf(clsid_list, "  { NULL, IID_IUnknown, NULL, NULL } /* guard element */\n");
 
     Printf(clsid_list, "};\n\n");
 
@@ -567,6 +582,7 @@ public:
     if (rcfile_flag) {
       Delete(f_rcfile);
     }
+    Delete(namespce);
     return SWIG_OK;
   }
 
@@ -1264,7 +1280,7 @@ public:
 
         Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, CLSID_%s, _T(\"{", proxy_class_name, proxy_class_name);
         formatGUID(clsid_list, proxy_clsid, false);
-        Printf(clsid_list,  "}\") },\n");
+        Printf(clsid_list,  "}\"), _T(\"%s.%s\") },\n", namespce, proxy_class_name);
       }
 
       Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, REFIID iid, "
@@ -1750,6 +1766,8 @@ extern "C" Language *swig_com(void) {
 
 const char *COM::usage = (char *) "\
 COM Options (available with -com)\n\
+     -namespace <nm> - Use <nm> as prefix for Automation names\n\
+                       (defaults to module name)\n\
      -norcfile       - Do not generate RC (resource definition) file\n\
      -nodeffile      - Do not generate DEF file\n\
      -nodllexports   - Do not generate DllGetClassObject and DllCanUnloadNow\n\
