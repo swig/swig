@@ -96,6 +96,8 @@ TK_OPTS     = -ltk -ltcl @LIBS@
 # Extra Tcl specific dynamic linking options
 TCL_DLNK   = @TCLDYNAMICLINKING@
 TCL_SO     = @TCL_SO@
+TCLLDSHARED = @TCLLDSHARED@
+TCLCXXSHARED = @TCLCXXSHARED@
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
@@ -134,7 +136,7 @@ wish_cpp: $(SRCS)
 tcl:  $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLLDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------
 # Build a Tcl7.5 dynamic loadable module for C++
@@ -143,7 +145,7 @@ tcl:  $(SRCS)
 tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------------
 # Cleaning the Tcl examples

@@ -1,13 +1,20 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-07-19: wsfulton
+            Fix building of Tcl examples/test-suite on Mac OSX reported by Gideon Simpson.
+
+2008-07-17: wsfulton
+            Fix SF #2019156 Configuring with --without-octave or --without-alllang
+            did not disable octave.
+
 2008-07-14: wsfultonn
             [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
             marshalled to C#/Java null in director methods.
 
 2008-07-04: olly
 	    [PHP] For std_vector.i and std_map.i, rename empty() to is_empty()
-	    since "empty" is a PHP reserved word.  Based of patch from Mark Klein
+	    since "empty" is a PHP reserved word.  Based on patch from Mark Klein
 	    in SF#1943417.
 
 2008-07-04: olly
@@ -25,8 +32,8 @@ Version 1.3.37 (in progress)
 
 2008-07-02: olly
 	    [PHP4] Support for PHP4 has been removed.  The PHP developers are
-	    no longer making new PHP4 releases, and won't even be patching
-	    critical security issues after 2008-08-08.
+	    no longer making new PHP4 releases, and won't even be providing
+	    patches for critical security issues after 2008-08-08.
 
 2008-07-02: olly
 	    [Python] Import the C extension differently for Python 2.6 and

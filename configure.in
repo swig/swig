@@ -376,12 +376,12 @@ if test "$no_x" = "yes" -o "$not_really_there" = "yes"; then
         dirs="/usr/unsupported/include /usr/local/include /usr/X386/include /usr/include/X11R4 /usr/X11R5/include /usr/include/X11R5 /usr/openwin/include /usr/X11/include /usr/sww/include /usr/X11R6/include /usr/include/X11R6"
         for i in $dirs ; do
 	    if test -r $i/X11/Intrinsic.h; then
-		AC_MSG_RESULT($i)
 	        XINCLUDES=" -I$i"
 		break
 	    fi
         done
     fi
+    AC_MSG_RESULT($XINCLUDES)
 else
     if test "$x_includes" != ""; then
 	XINCLUDES=-I$x_includes
@@ -533,14 +533,27 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
-*-*-darwin*) TCLDYNAMICLINKING="-dynamiclib -flat_namespace -undefined suppress";;
 *)TCLDYNAMICLINKING="";;
 esac
+
+case $host in
+*-*-darwin*) 
+    TCLLDSHARED='$(CC) -dynamiclib -undefined suppress -flat_namespace'
+    TCLCXXSHARED='$(CXX) -dynamiclib -undefined suppress -flat_namespace'
+    ;;
+*)
+    TCLLDSHARED='$(LDSHARED)'
+    TCLCXXSHARED='$(CXXSHARED)'
+    ;;
+esac
+
 fi
 
 AC_SUBST(TCLINCLUDE)
 AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
+AC_SUBST(TCLLDSHARED)
+AC_SUBST(TCLCXXSHARED)
 
 #----------------------------------------------------------------
 # Look for Python
@@ -732,13 +745,13 @@ OCTAVEDYNAMICLINKING=
 OCTAVE_SO=.oct
 
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
-AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[ OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
+AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
 
 # First, check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Octave])
 OCTAVE=
-fi
+else
 
 # First figure out what the name of Octave is
 
@@ -777,6 +790,8 @@ if test -n "$OCTAVE"; then
 	fi
 else
        	AC_MSG_RESULT(could not figure out how to run octave)
+fi
+
 fi
 
 AC_SUBST(OCTAVE)
