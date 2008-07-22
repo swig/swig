@@ -19,6 +19,136 @@ typedef struct {
   unsigned char Data4[8];
 } GUID, UUID;
 
+bool isNilGUID(GUID *arg) {
+  if (arg->Data1 != 0 || arg->Data2 != 0 || arg->Data3 != 0)
+    return false;
+
+  for (int i = 0; i < 8; ++i)
+    if (arg->Data4[i] != 0)
+      return false;
+
+  return true;
+}
+
+typedef struct {
+  unsigned char octets[20];
+} SHA1_hash;
+
+/* Rotate left a 32-bit number */
+unsigned int leftrot(unsigned int a, unsigned int pos) {
+  return (a << pos) | ((a >> (32 - pos)) & ((1 << pos) - 1));
+}
+
+/* Implementation of SHA1. Needs unsigned int with at least 32 bits */
+SHA1_hash SHA1(char *input_bytes, int input_len) {
+  unsigned int h0 = 0x67452301;
+  unsigned int h1 = 0xEFCDAB89;
+  unsigned int h2 = 0x98BADCFE;
+  unsigned int h3 = 0x10325476;
+  unsigned int h4 = 0xC3D2E1F0;
+
+  /*
+   * Preprocessing: a '1'-bit is appended, followed by '0'-bits
+   * until the number of bits % 512 == 448. Then the input's length
+   * in bits is appended as a 64-bit number. The preprocessed input's
+   * length is a multiple of 512 bits (64 bytes). Please note
+   * that below the counting is in bytes instead of bits.
+   */
+  unsigned int padding = ((64 + 56) - (input_len + 1) % 64) % 64;
+  unsigned int total_len = input_len + 1 + padding + 8;
+  /* Preprocessed input */
+  unsigned char *prep = new unsigned char[total_len];
+
+  /* Copy the input to prep */
+  for (unsigned int i = 0; i < input_len; ++i)
+    prep[i] = input_bytes[i];
+
+  /* Marker with single '1'-bit in most significant position */
+  prep[input_len] = 0x80;
+
+  /* Pad with 0's */
+  for (unsigned int i = 0; i < padding; ++i)
+    prep[input_len + 1 + i] = 0;
+
+  /* Finally append 8 * input_len as a 64-bit number in big-endian format */
+  unsigned int high_dword = (input_len >> 29) & 7;
+  unsigned int low_dword = (input_len & ((1 << 29) - 1)) << 3;
+
+  prep[total_len - 8] = high_dword >> 24;
+  prep[total_len - 7] = (high_dword >> 16) & 0xff;
+  prep[total_len - 6] = (high_dword >> 8) & 0xff;
+  prep[total_len - 5] = high_dword & 0xff;
+  prep[total_len - 4] = low_dword >> 24;
+  prep[total_len - 3] = (low_dword >> 16) & 0xff;
+  prep[total_len - 2] = (low_dword >> 8) & 0xff;
+  prep[total_len - 1] = low_dword & 0xff;
+
+  /* Divide preprocessed input into 512 bit chunks */
+  for (unsigned int chunk = 0; chunk < total_len / 64; ++chunk) {
+    unsigned int w[80];
+
+    for (int i = 0; i < 16; ++i) {
+      w[i] = ((unsigned int) prep[64 * chunk + 4 * i] << 24) |
+          ((unsigned int) prep[64 * chunk + 4 * i + 1] << 16) |
+          ((unsigned int) prep[64 * chunk + 4 * i + 2] << 8) |
+          (unsigned int) prep[64 * chunk + 4 * i + 3];
+    }
+
+    for (int i = 16; i < 80; ++i) {
+      w[i] = leftrot(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1);
+    }
+
+    unsigned int a = h0;
+    unsigned int b = h1;
+    unsigned int c = h2;
+    unsigned int d = h3;
+    unsigned int e = h4;
+
+    for (int i = 0; i < 80; ++i) {
+      unsigned int f, k;
+
+      if (i < 20) {
+        f = (b & c) | (~b & d);
+        k = 0x5A827999;
+      } else if (i < 40) {
+        f = b ^ c ^ d;
+        k = 0x6ED9EBA1;
+      } else if (i < 60) {
+        f = (b & c) | (b & d) | (c & d);
+        k = 0x8F1BBCDC;
+      } else {
+        f = b ^ c ^ d;
+        k = 0xCA62C1D6;
+      }
+
+      int temp = leftrot(a, 5) + f + e + k + w[i];
+      e = d;
+      d = c;
+      c = leftrot(b, 30);      
+      b = a;
+      a = temp;
+    }
+
+    h0 = h0 + a;
+    h1 = h1 + b;
+    h2 = h2 + c;
+    h3 = h3 + d;
+    h4 = h4 + e;
+  }
+
+  delete prep;
+
+  SHA1_hash res = {
+      (h0 >> 24) & 0xff, (h0 >> 16) & 0xff, (h0 >> 8) & 0xff, h0 & 0xff,
+      (h1 >> 24) & 0xff, (h1 >> 16) & 0xff, (h1 >> 8) & 0xff, h1 & 0xff,
+      (h2 >> 24) & 0xff, (h2 >> 16) & 0xff, (h2 >> 8) & 0xff, h2 & 0xff,
+      (h3 >> 24) & 0xff, (h3 >> 16) & 0xff, (h3 >> 8) & 0xff, h3 & 0xff,
+      (h4 >> 24) & 0xff, (h4 >> 16) & 0xff, (h4 >> 8) & 0xff, h4 & 0xff,
+  };
+
+  return res;
+}
+
 class COM:public Language {
   static const char *usage;
   const String *empty_string;
@@ -62,6 +192,10 @@ class COM:public Language {
   int guid_counter;
   GUID *proxy_iid;
   GUID *proxy_clsid;
+  GUID guid_seed;
+  GUID typelib_guid;
+  GUID module_iid;
+  GUID module_clsid;
 
   String *module_class_vtable_code;
   String *proxy_class_vtable_code;
@@ -86,7 +220,11 @@ public:
       proxy_class_vtable_defs(NewString("")),
       clsid_list(NewString("")),
       guid_counter(0) {
-    /* Empty for now */
+    /* Use NIL GUID by default */
+    memset(&guid_seed, 0, sizeof(GUID));
+    memset(&typelib_guid, 0, sizeof(GUID));
+    memset(&module_iid, 0, sizeof(GUID));
+    memset(&module_clsid, 0, sizeof(GUID));
   }
 
   /* -----------------------------------------------------------------------------
@@ -149,6 +287,36 @@ public:
 
   virtual int top(Node *n) {
 
+    // Get any options set in the module directive
+    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+
+    if (optionsnode) {
+      if (Getattr(optionsnode, "guidseed")) {
+	if (!parseGUID(Getattr(optionsnode, "guidseed"), &guid_seed)) {
+          /* Bad GUID */
+          /* FIXME: report an error */
+        }
+      }
+      if (Getattr(optionsnode, "tlbid")) {
+	if (!parseGUID(Getattr(optionsnode, "tlbid"), &typelib_guid)) {
+          /* Bad GUID */
+          /* FIXME: report an error */
+        }
+      }
+      if (Getattr(optionsnode, "moduleiid")) {
+	if (!parseGUID(Getattr(optionsnode, "moduleiid"), &module_iid)) {
+          /* Bad GUID */
+          /* FIXME: report an error */
+        }
+      }
+      if (Getattr(optionsnode, "moduleclsid")) {
+	if (!parseGUID(Getattr(optionsnode, "moduleclsid"), &module_clsid)) {
+          /* Bad GUID */
+          /* FIXME: report an error */
+        }
+      }
+    }
+
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
     String *outfile_h = Getattr(n, "outfile_h");
@@ -188,12 +356,23 @@ public:
     proxy_class_forward_def = NewString("");
     proxy_class_code = NewString("");
 
-    GUID typelib_guid;
-    generateGUID(&typelib_guid);
-    GUID module_iid;
-    generateGUID(&module_iid);
-    GUID module_clsid;
-    generateGUID(&module_clsid);
+    if (isNilGUID(&typelib_guid)) {
+      String *tlbid_ident = NewStringf("%s.TLBID", module_class_name);
+      generateGUID(&typelib_guid, tlbid_ident);
+      Delete(tlbid_ident);
+    }
+
+    if (isNilGUID(&module_iid)) {
+      String *module_iid_ident = NewStringf("%s.IID", module_class_name);
+      generateGUID(&module_iid, module_iid_ident);
+      Delete(module_iid_ident);
+    }
+
+    if (isNilGUID(&module_clsid)) {
+      String *module_clsid_ident = NewStringf("%s.CLSID", module_class_name);
+      generateGUID(&module_clsid, module_clsid_ident);
+      Delete(module_clsid_ident);
+    }
 
     module_class_vtable_code = NewString("");
 
@@ -886,9 +1065,62 @@ public:
    * generateGUID()
    * ---------------------------------------------------------------------- */
 
-  void generateGUID(GUID *result) {
-    GUID temp = { 0x4ec3e0ed, 0x3cb2, 0x4f1a, 0x81, 0x85, 0x73, 0xfa, 0xdc, 0xc5, 0x75, guid_counter++ };
-    *result = temp;
+  void generateGUID(GUID *result, String *name) {
+    int name_len = Len(name);
+    char *name_chars = Char(name);
+
+    char *prep_input = new char[16 + name_len];
+
+    /* guid_seed serves as a "name space ID" as used in RFC 4122. */
+    prep_input[0] = (guid_seed.Data1 >> 24) & 0xff;
+    prep_input[1] = (guid_seed.Data1 >> 16) & 0xff;
+    prep_input[2] = (guid_seed.Data1 >> 8) & 0xff;
+    prep_input[3] = guid_seed.Data1 & 0xff;
+    prep_input[4] = (guid_seed.Data2 >> 8) & 0xff;
+    prep_input[5] = guid_seed.Data2 & 0xff;
+    prep_input[6] = (guid_seed.Data3 >> 8) & 0xff;
+    prep_input[7] = guid_seed.Data3 & 0xff;
+
+    for (int i = 0; i < 8; ++i) {
+      prep_input[8 + i] = guid_seed.Data4[i];
+    }
+
+    for (int i = 0; i < name_len; ++i) {
+      prep_input[16 + i] = name_chars[i];
+    }
+
+    SHA1_hash hash = SHA1(prep_input, 16 + name_len);
+
+    GUID res = {
+      /* time_low */ ((unsigned int) hash.octets[0] << 24) |
+          ((unsigned int) hash.octets[1] << 16) |
+          ((unsigned int) hash.octets[2] << 8) |
+          (unsigned int) hash.octets[3],
+      /* time_mid */ ((unsigned int) hash.octets[4] << 8) |
+          (unsigned int) hash.octets[5],
+      /* time_hi_and_version */ ((unsigned int) hash.octets[6] << 8) |
+          (unsigned int) hash.octets[7],
+      hash.octets[8],
+      hash.octets[9],
+      hash.octets[10],
+      hash.octets[11],
+      hash.octets[12],
+      hash.octets[13],
+      hash.octets[14],
+      hash.octets[15],
+    };
+
+    /* Set version to 5 */
+    res.Data3 &= 0x0fff;
+    res.Data3 |= 0x5000;
+
+    /* Clear top 2 bits of Data4[0] */
+    res.Data4[0] &= 0x3f;
+    res.Data4[0] |= 0x80;
+
+    *result = res;
+
+    delete prep_input;
   }
 
   /* ----------------------------------------------------------------------
@@ -903,10 +1135,73 @@ public:
           input->Data4[2], input->Data4[3], input->Data4[4], input->Data4[5], input->Data4[6], input->Data4[7]);
     } else {
       Printf(output,
-          "%08X-%04X-%04X-%04X-%02X%02X%02X%02X%02X%02X",
+          "%08x-%04x-%04x-%04x-%02x%02x%02x%02x%02x%02x",
           input->Data1, input->Data2, input->Data3, (((int) input->Data4[0]) << 8) | input->Data4[1],
           input->Data4[2], input->Data4[3], input->Data4[4], input->Data4[5], input->Data4[6], input->Data4[7]);
     }
+  }
+
+  /* ----------------------------------------------------------------------
+   * parseHex()
+   * ---------------------------------------------------------------------- */
+
+  unsigned int parseHex(char *text, int start, int end) {
+    unsigned int result = 0;
+
+    for (int i = start; i < end; ++i) {
+      int digit = 0;
+
+      if (text[i] >= '0' && text[i] <= '9')
+        digit = text[i] - '0';
+      else if (text[i] >= 'a' && text[i] <= 'f')
+        digit = text[i] - 'a' + 10;
+      else
+        digit = text[i] - 'A' + 10;
+
+      result = 16 * result + digit;
+    }
+
+    return result;
+  }
+
+  /* ----------------------------------------------------------------------
+   * parseGUID()
+   * ---------------------------------------------------------------------- */
+
+  bool parseGUID(String *input, GUID *output) {
+    if (!input || Len(input) != 36)
+      return false;
+
+    char *input_chars = Char(input);
+
+    /* Check GUID format */
+    for (int i = 0; i < 36; ++i) {
+      if (i == 8 || i == 13 || i == 18 || i == 23) {
+        if (input_chars[i] != '-')
+          return false;
+      } else {
+        if (input_chars[i] >= '0' && input_chars[i] <= '9')
+          continue;
+        if (input_chars[i] >= 'a' && input_chars[i] <= 'f')
+          continue;
+        if (input_chars[i] >= 'A' && input_chars[i] <= 'F')
+          continue;
+
+        return false;
+      }
+    }
+
+    output->Data1 = parseHex(input_chars, 0, 8);
+    output->Data2 = parseHex(input_chars, 9, 13);
+    output->Data3 = parseHex(input_chars, 14, 18);
+    output->Data4[0] = parseHex(input_chars, 19, 21);
+    output->Data4[1] = parseHex(input_chars, 21, 23);
+
+    for (int i = 0; i < 6; ++i) {
+      output->Data4[2 + i] = parseHex(input_chars, 24 + 2 * i, 26 + 2 * i);
+    }
+
+    return true;
   }
 
   /* ----------------------------------------------------------------------
@@ -941,7 +1236,13 @@ public:
       Clear(proxy_class_vtable_defs);
 
       proxy_iid = new GUID;
-      generateGUID(proxy_iid);
+      if (Getattr(n, "feature:iid")) {
+        parseGUID(Getattr(n, "feature:iid"), proxy_iid);
+      } else {
+        String *proxy_iid_ident = NewStringf("%s.IID", proxy_class_name);
+        generateGUID(proxy_iid, proxy_iid_ident);
+        Delete(proxy_iid_ident);
+      }
       Setattr(n, "wrap:iid", proxy_iid);
 
       Printf(proxy_class_vtable_code, "DEFINE_GUID(IID_%s, ", proxy_class_name);
@@ -951,7 +1252,13 @@ public:
       if (!Getattr(n, "abstract")) {
         /* Generate class object */
         proxy_clsid = new GUID;
-        generateGUID(proxy_clsid);
+        if (Getattr(n, "feature:clsid")) {
+          parseGUID(Getattr(n, "feature:clsid"), proxy_clsid);
+        } else {
+          String *proxy_clsid_ident = NewStringf("%s.CLSID", proxy_class_name);
+          generateGUID(proxy_clsid, proxy_clsid_ident);
+          Delete(proxy_clsid_ident);
+        }
 
         Printf(proxy_class_vtable_code, "DEFINE_GUID(CLSID_%s, ", proxy_class_name);
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
@@ -1284,7 +1591,22 @@ public:
     Clear(proxy_class_forward_def);
 
     proxy_iid = new GUID;
-    generateGUID(proxy_iid);
+
+#if 0
+// FIXME: Maybe we should allow specifying IIDs for opaque classes?
+    if (Getattr(n, "feature:iid")) {
+      parseGUID(Getattr(n, "feature:iid"), proxy_iid);
+    } else {
+      String *proxy_iid_ident = NewStringf("%s.IID", classname);
+      generateGUID(proxy_iid, proxy_iid_ident);
+      Delete(proxy_iid_ident);
+    }
+#endif
+    {
+      String *proxy_iid_ident = NewStringf("%s.IID", classname);
+      generateGUID(proxy_iid, proxy_iid_ident);
+      Delete(proxy_iid_ident);
+    }
 
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
 
