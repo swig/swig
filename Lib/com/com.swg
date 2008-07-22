@@ -31,8 +31,8 @@
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
-    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **))
-        $input->vtable[0])($input, IID_ISWIGWrappedObject, (void **) &wrapper); 
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))
+        $input->vtable[0])($input, &IID_ISWIGWrappedObject, (void **) &wrapper); 
 
     if (hr != S_OK) {
       /* Argument was not wrapped by SWIG - directors will be needed */
@@ -51,8 +51,8 @@
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
-    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **))
-        $input->vtable[0])($input, IID_ISWIGWrappedObject, (void **) &wrapper); 
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))
+        $input->vtable[0])($input, &IID_ISWIGWrappedObject, (void **) &wrapper); 
 
     if (hr != S_OK) {
       /* Argument was not wrapped by SWIG - directors will be needed */
@@ -71,8 +71,8 @@
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
-    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **))
-        $input->vtable[0])($input, IID_ISWIGWrappedObject, (void **) &wrapper); 
+    HRESULT hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))
+        $input->vtable[0])($input, &IID_ISWIGWrappedObject, (void **) &wrapper); 
 
     if (hr != S_OK) {
       /* Argument was not wrapped by SWIG - directors will be needed */
@@ -121,7 +121,6 @@
 #include <windows.h>
 #include <olectl.h>
 #include <tchar.h>
-#include <initguid.h>
 
 #include <string.h>
 #include <memory.h>
@@ -149,8 +148,12 @@ typedef struct {
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
 } SWIGWrappedObject;
 
-DEFINE_GUID(IID_ISWIGWrappedObject, 0x73738294, 0x8833, 0x1182, 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78);
+GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
 static LONG globalRefCount = 0;
+
+static int SWIGIsEqual(const GUID *a, const GUID *b) {
+  return memcmp(a, b, sizeof(GUID)) == 0;
+}
 
 long SWIGSTDCALL SWIGAddRef1(void *iunk) {
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
@@ -247,8 +250,8 @@ long SWIGSTDCALL SWIGClassFactoryRelease(SWIGClassFactory *factory) {
   return res;
 }
 
-HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, REFIID iid, void **ppvObject) {
-  if (IsEqualIID(iid, IID_IUnknown) || IsEqualIID(iid, IID_IClassFactory)) {
+HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, GUID *iid, void **ppvObject) {
+  if (SWIGIsEqual(iid, &IID_IUnknown) || SWIGIsEqual(iid, &IID_IClassFactory)) {
     SWIGClassFactoryAddRef(factory);
     *ppvObject = factory;
 
@@ -258,7 +261,7 @@ HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, RE
   }
 }
 
-HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, REFIID riid, void **ppvObject)
+HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, GUID *riid, void **ppvObject)
 {
   HRESULT hr;
   SWIGIUnknown *obj;
@@ -276,7 +279,7 @@ HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IU
     return E_OUTOFMEMORY;
   }
 
-  hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFIID, void **)) obj->vtable[0])(obj, riid, ppvObject);
+  hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **)) obj->vtable[0])(obj, riid, ppvObject);
 
   /* Release reference */
   ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[2]))(obj);
@@ -300,20 +303,20 @@ SWIG_funcptr SWIGClassFactory_vtable[] = {
 
 typedef struct {
   SWIG_funcptr newInstance;
-  REFGUID guid;
+  GUID *guid;
   TCHAR *guid_string;
   TCHAR *oleaut_string;
 } SWIGClassDescription_t;
 
-HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, REFIID iid, void ** ppvObject) {
-  if (IsEqualIID(iid, IID_ISWIGWrappedObject)) {
+HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
+  if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {
     /* FIXME: This could be more elegant */
     SWIGAddRef1(that); 
     *ppvObject = (void *) ((void **)that + 1);
     return S_OK;
   }
   
-  if (IsEqualIID(iid, IID_IUnknown)) {
+  if (SWIGIsEqual(iid, &IID_IUnknown)) {
     /* FIXME: This could be more elegant */
     SWIGAddRef1(that);
     *ppvObject = that;
@@ -323,7 +326,7 @@ HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, REFIID iid, void **
   return E_NOINTERFACE;
 }
 
-HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface2(void *that, REFIID iid, void ** ppvObject) {
+HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface2(void *that, GUID *iid, void ** ppvObject) {
   return _wrap_opaque_QueryInterface1((void *) ((void **) that - 1), iid, ppvObject);
 }
 
@@ -361,16 +364,23 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn) {
 
 static HMODULE SWIGModule;
 
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *_ppv) {
+STDAPI DllGetClassObject(REFCLSID _rclsid, REFIID _riid, LPVOID *_ppv) {
+#if defined(__cplusplus) || defined(CINTERFACE)
+  const GUID *rclsid = &_rclsid;
+  const GUID *riid = &_riid;
+#else
+  const GUID *rclsid = _rclsid;
+  const GUID *riid = _riid;
+#endif
 
   int i;
   SWIGClassFactory **ppv = (SWIGClassFactory **)(void *) _ppv;
 
-  if (!IsEqualIID(riid, IID_IUnknown) && !IsEqualIID(riid, IID_IClassFactory))
+  if (!SWIGIsEqual(riid, &IID_IUnknown) && !SWIGIsEqual(riid, &IID_IClassFactory))
     return E_NOINTERFACE;
 
   for (i = 0; SWIGClassDescription[i].newInstance != NULL; ++i) {
-    if (IsEqualCLSID(rclsid, SWIGClassDescription[i].guid)) {
+    if (SWIGIsEqual(rclsid, SWIGClassDescription[i].guid)) {
       /* Create a new class factory for the requested CLSID */
 #ifdef __cplusplus
       *ppv = new SWIGClassFactory;
