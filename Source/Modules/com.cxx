@@ -189,7 +189,6 @@ class COM:public Language {
   String *clsid_list;
   List *proxy_class_member_functions;
   String *variable_name;	//Name of a variable being wrapped
-  int guid_counter;
   GUID *proxy_iid;
   GUID *proxy_clsid;
   GUID guid_seed;
@@ -218,8 +217,7 @@ public:
       enum_constant_flag(false),
       proxy_class_vtable_code(NewString("")),
       proxy_class_vtable_defs(NewString("")),
-      clsid_list(NewString("")),
-      guid_counter(0) {
+      clsid_list(NewString("")) {
     /* Use NIL GUID by default */
     memset(&guid_seed, 0, sizeof(GUID));
     memset(&typelib_guid, 0, sizeof(GUID));
