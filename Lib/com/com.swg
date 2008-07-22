@@ -302,6 +302,7 @@ typedef struct {
   SWIG_funcptr newInstance;
   REFGUID guid;
   TCHAR *guid_string;
+  TCHAR *oleaut_string;
 } SWIGClassDescription_t;
 
 HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, REFIID iid, void ** ppvObject) {
@@ -483,6 +484,31 @@ STDAPI DllRegisterServer(void) {
       CloseHandle(hkey);
     if (hsubkey != NULL)
       CloseHandle(hsubkey);
+
+    hkey = hkey_clsid = NULL;
+
+    if (hres == S_OK &&
+        RegCreateKeyEx(HKEY_CLASSES_ROOT, SWIGClassDescription[i].oleaut_string, 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hres == S_OK &&
+        RegCreateKeyEx(hkey, _T("CLSID"), 0, NULL,
+        0, KEY_ALL_ACCESS, NULL, &hkey_clsid, NULL) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hres == S_OK &&
+        RegSetValueEx(hkey_clsid, _T(""), 0, REG_SZ, (BYTE *) SWIGClassDescription[i].guid_string,
+        sizeof(TCHAR) * 39) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hkey_clsid != NULL)
+      CloseHandle(hkey_clsid);
+    if (hkey != NULL)
+      CloseHandle(hkey);
   }
 
   {
@@ -612,11 +638,30 @@ STDAPI DllUnregisterServer(void) {
     if (hres == S_OK &&
         RegDeleteKey(hkey_clsid, SWIGClassDescription[i].guid_string) != ERROR_SUCCESS) {
       leftovers = 1;
-      hres = SELFREG_E_CLASS;
     }
 
     if (hkey_clsid != NULL)
       CloseHandle(hkey_clsid);
+
+    hkey = NULL;
+
+    if (hres == S_OK &&
+        RegOpenKeyEx(HKEY_CLASSES_ROOT, SWIGClassDescription[i].oleaut_string, 0, KEY_ALL_ACCESS, &hkey) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hres == S_OK &&
+        RegDeleteKey(hkey, _T("CLSID")) != ERROR_SUCCESS) {
+      hres = SELFREG_E_CLASS;
+    }
+
+    if (hkey != NULL)
+      CloseHandle(hkey);
+
+    if (hres == S_OK &&
+        RegDeleteKey(HKEY_CLASSES_ROOT, SWIGClassDescription[i].oleaut_string) != ERROR_SUCCESS) {
+      leftovers = 1;
+    }
   }
 
   {
