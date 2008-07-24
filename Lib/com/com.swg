@@ -131,6 +131,7 @@ typedef struct {
   SWIG_funcptr *vtable;
   SWIG_funcptr newInstance;
   LONG refCount;
+  int aggregatable;
 } SWIGClassFactory;
 
 /* For consistent manipulation regardless of C or C++ mode */
@@ -141,11 +142,13 @@ typedef struct {
 typedef struct {
   SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
   SWIG_funcptr *SWIGWrappedObject_vtable; /* vtable for helper methods */
+  SWIG_funcptr *aggregated_vtable; /* vtable to present to the outer object */
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   LONG refCount; /* reference count */
   void (SWIGSTDCALL *deleteInstance)(SWIGIUnknown *); /* destructor */
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
+  SWIGIUnknown *outer; /* outer type in COM aggregation */
 } SWIGWrappedObject;
 
 GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
@@ -158,16 +161,56 @@ static int SWIGIsEqual(const GUID *a, const GUID *b) {
 long SWIGSTDCALL SWIGAddRef1(void *iunk) {
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
 
-  InterlockedIncrement(&globalRefCount);
-  return InterlockedIncrement(&obj->refCount);
+  if (obj->outer != NULL) {
+    return ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->outer->vtable[1]))(obj->outer);
+  } else {
+    InterlockedIncrement(&globalRefCount);
+    return InterlockedIncrement(&obj->refCount);
+  }
 }
 
 long SWIGSTDCALL SWIGAddRef2(void *iunk) {
   return SWIGAddRef1((void **)iunk - 1);
 }
 
+long SWIGSTDCALL SWIGAddRef3(void *iunk) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)iunk - 2);
+
+  InterlockedIncrement(&globalRefCount);
+  return InterlockedIncrement(&obj->refCount);
+}
+
 long SWIGSTDCALL SWIGRelease1(void *iunk) {
   SWIGWrappedObject *obj = (SWIGWrappedObject *) iunk;
+
+  if (obj->outer != NULL) {
+    return ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->outer->vtable[2]))(obj->outer);
+  } else {
+    LONG res = InterlockedDecrement(&obj->refCount);
+
+    if (res == 0) {
+      if (obj->cMemOwn && obj->deleteInstance != 0) {
+        obj->deleteInstance((SWIGIUnknown *) obj);
+      }
+
+#ifdef __cplusplus
+      delete obj;
+#else
+      free(obj);
+#endif    
+    }
+
+    InterlockedDecrement(&globalRefCount);
+    return res;
+  }
+}
+
+long SWIGSTDCALL SWIGRelease2(void *iunk) {
+  return SWIGRelease1((void **)iunk - 1);
+}
+
+long SWIGSTDCALL SWIGRelease3(void *iunk) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)iunk - 2);
 
   LONG res = InterlockedDecrement(&obj->refCount);
 
@@ -185,10 +228,6 @@ long SWIGSTDCALL SWIGRelease1(void *iunk) {
 
   InterlockedDecrement(&globalRefCount);
   return res;
-}
-
-long SWIGSTDCALL SWIGRelease2(void *iunk) {
-  return SWIGRelease1((void **)iunk - 1);
 }
 
 void * SWIGSTDCALL SWIGGetCPtr(void *iunk) {
@@ -261,28 +300,38 @@ HRESULT SWIGSTDCALL SWIGClassFactoryQueryInterface(SWIGClassFactory *factory, GU
   }
 }
 
-HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, IUnknown *punkOuter, GUID *riid, void **ppvObject)
+HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, SWIGIUnknown *punkOuter, GUID *riid, void **ppvObject)
 {
   HRESULT hr;
-  SWIGIUnknown *obj;
+  SWIGWrappedObject *obj;
 
   if (ppvObject == NULL)
      return E_INVALIDARG;
 
-  if (punkOuter)
+  if (punkOuter && (!factory->aggregatable || !SWIGIsEqual(riid, &IID_IUnknown)))
      return CLASS_E_NOAGGREGATION;
 
   /* Create the instance */
-  obj = (SWIGIUnknown *) ((void* (SWIGSTDCALL *)(void *)) factory->newInstance)(NULL);
+  obj = (SWIGWrappedObject *) ((void* (SWIGSTDCALL *)(void *)) factory->newInstance)(NULL);
 
   if (obj == NULL) {
     return E_OUTOFMEMORY;
   }
 
-  hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **)) obj->vtable[0])(obj, riid, ppvObject);
+  if (!punkOuter) {
+    hr = ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **)) obj->vtable[0])
+        ((SWIGIUnknown *) obj, riid, ppvObject);
 
-  /* Release reference */
-  ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[2]))(obj);
+    /* Release reference */
+    ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (obj->vtable[2]))((SWIGIUnknown *) obj);
+  } else {
+    obj->outer = punkOuter;
+
+    /* We need to return the address of aggregate_vtable */
+    *ppvObject = &obj->aggregated_vtable;
+
+    hr = S_OK;
+  }
 
   return hr;
 }
@@ -306,6 +355,7 @@ typedef struct {
   GUID *guid;
   TCHAR *guid_string;
   TCHAR *oleaut_string;
+  int aggregatable;
 } SWIGClassDescription_t;
 
 HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
@@ -389,6 +439,7 @@ STDAPI DllGetClassObject(REFCLSID _rclsid, REFIID _riid, LPVOID *_ppv) {
 #endif
       (*ppv)->vtable = SWIGClassFactory_vtable;
       (*ppv)->newInstance = SWIGClassDescription[i].newInstance;
+      (*ppv)->aggregatable = SWIGClassDescription[i].aggregatable;
       InterlockedIncrement(&globalRefCount);
       (*ppv)->refCount = 1;
 

@@ -167,6 +167,7 @@ class COM:public Language {
   File *f_vtables;
   File *f_vtable_defs;
   File *f_factory;
+  File *f_directors;
 
   bool proxy_flag;		// Flag for generating proxy classes
   bool dllexports_flag;
@@ -225,6 +226,7 @@ public:
     memset(&typelib_guid, 0, sizeof(GUID));
     memset(&module_iid, 0, sizeof(GUID));
     memset(&module_clsid, 0, sizeof(GUID));
+    director_language = 1;
   }
 
   /* -----------------------------------------------------------------------------
@@ -325,6 +327,9 @@ public:
           /* FIXME: report an error */
         }
       }
+      if (Getattr(optionsnode, "directors")) {
+	allow_directors();
+      }
     }
 
     /* Initialize all of the output files */
@@ -348,6 +353,7 @@ public:
     f_proxy_forward_defs = NewString("");
     f_vtables = NewString("");
     f_vtable_defs = NewString("");
+    f_directors = NewString("");
     f_factory = NewString("");
 
     /* Register file targets with the SWIG file handler */
@@ -432,6 +438,7 @@ public:
         "  res->deleteInstance = 0;\n"
         "  /* GetTypeInfoOfGuid */\n"
         "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
+        "  res->outer = NULL;\n"
         "  return (void *) res;\n"
         "};\n\n",
         module_class_name, module_class_name, module_class_name);
@@ -453,7 +460,7 @@ public:
     Printf(clsid_list, "static SWIGClassDescription_t SWIGClassDescription[] = {\n");
     Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, _T(\"{", module_class_name, module_class_name);
     formatGUID(clsid_list, &module_clsid, false);
-    Printf(clsid_list,  "}\"), _T(\"%s.%s\") },\n", namespce, module_class_name);
+    Printf(clsid_list,  "}\"), _T(\"%s.%s\"), 0 },\n", namespce, module_class_name);
 
     /* Emit code */
     Language::top(n);
@@ -564,6 +571,8 @@ public:
     Delete(f_vtable_defs);
     Dump(f_wrappers, f_runtime);
     Delete(f_wrappers);
+    Dump(f_directors, f_runtime);
+    Delete(f_directors);
     // Vtable for the module class
     Printv(f_runtime, module_class_vtable_code, NIL);
     Dump(f_vtables, f_runtime);
@@ -1044,7 +1053,7 @@ public:
     }
 
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
-    Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
+    Printv(proxy_class_def, "  [\n    object,\n    local,\n    aggregatable,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
 /*
     Printv(proxy_class_def, ")\n  ]\n  interface $comclassname",
@@ -1280,24 +1289,97 @@ public:
 
         Printf(clsid_list, "  { (SWIG_funcptr) _wrap_new_%s, &CLSID_%s, _T(\"{", proxy_class_name, proxy_class_name);
         formatGUID(clsid_list, proxy_clsid, false);
-        Printf(clsid_list,  "}\"), _T(\"%s.%s\") },\n", namespce, proxy_class_name);
+        Printf(clsid_list,  "}\"), _T(\"%s.%s\"), 1 },\n", namespce, proxy_class_name);
       }
 
       Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, GUID *iid, "
           "void ** ppvObject) {\n", proxy_class_name);
 
+      Printf(proxy_class_vtable_code,
+          "  SWIGWrappedObject *obj = (SWIGWrappedObject *) that;\n\n");
+
+      /* Look if we are an aggregated object */
+      Printf(proxy_class_vtable_code,
+          "  if (obj->outer != NULL) {\n"
+          "    return ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, GUID *, void **))\n"
+          "        obj->outer->vtable[0])(obj->outer, iid, ppvObject);\n"
+          "  } else {\n");
+
+      /* Look if the requested interface is ISWIGWrappedObject */
+      Printf(proxy_class_vtable_code,
+          "    if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {\n"
+          "      /* FIXME: This could be more elegant */\n"
+          "      SWIGAddRef1(that);\n"
+          "      *ppvObject = &obj->SWIGWrappedObject_vtable;\n"
+          "      return S_OK;\n"
+          "    }\n\n");
+
+      Printf(proxy_class_vtable_code, "    if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
+        "        SWIGIsEqual(iid, &IID_IDispatch) ||\n"
+        "        SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
+
+      bases = Getattr(n, "bases");
+
+      /* Iterate through the ancestors */
+      while (bases) {
+        Iterator base = First(bases);
+
+        Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+
+        /* Get next base */
+        bases = Getattr(base.item, "bases");
+      }
+
+      Printf(proxy_class_vtable_code, ") {\n"
+          "      /* FIXME: This could be more elegant */\n"
+          "      SWIGAddRef1(that);\n"
+          "      *ppvObject = obj;\n"
+          "      return S_OK;\n"
+          "    }\n\n");
+
+      Printf(proxy_class_vtable_code, "    return E_NOINTERFACE;\n  }\n");
+
+      Printf(proxy_class_vtable_code, "}\n\n");
+
+      bases = NULL;
+
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface2(void *that, GUID *iid, "
+          "void ** ppvObject) {\n", proxy_class_name);
+
+      Printf(proxy_class_vtable_code,
+          "  return _wrap%sQueryInterface1((void *) ((void **) that - 1), iid, ppvObject);\n", proxy_class_name);
+
+      Printf(proxy_class_vtable_code, "}\n\n");
+
+      /*
+       * This code is only slightly different from *QueryInterface1 but there are
+       * subtle differences because of COM aggregation rules.
+       */
+      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface3(void *that, GUID *iid, "
+          "void ** ppvObject) {\n", proxy_class_name);
+
+      Printf(proxy_class_vtable_code,
+          "  SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)that - 2);\n\n");
+
       /* Look if the requested interface is ISWIGWrappedObject */
       Printf(proxy_class_vtable_code,
           "  if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {\n"
           "    /* FIXME: This could be more elegant */\n"
-          "    SWIGAddRef1(that);\n"
-          /* Address of current object, incremented by the size of a pointer */
-          "    *ppvObject = (void *) ((void **)that + 1);\n"
+          "    SWIGAddRef3(that);\n"
+          "    *ppvObject = &obj->SWIGWrappedObject_vtable;\n"
           "    return S_OK;\n"
           "  }\n\n");
 
-      Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
-        "      SWIGIsEqual(iid, &IID_IDispatch) ||\n"
+      /* Special case for aggregation - IUnknown has to be different */
+      Printf(proxy_class_vtable_code,
+          "  if (SWIGIsEqual(iid, &IID_IUnknown)) {\n"
+          "    /* FIXME: This could be more elegant */\n"
+          "    SWIGAddRef3(that);\n"
+          "    *ppvObject = &obj->aggregated_vtable;\n"
+          "    return S_OK;\n"
+          "  }\n\n");
+
+      Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IDispatch) ||\n"
         "      SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
@@ -1314,28 +1396,29 @@ public:
 
       Printf(proxy_class_vtable_code, ") {\n"
           "    /* FIXME: This could be more elegant */\n"
-          "    SWIGAddRef1(that);\n"
-          "    *ppvObject = that;\n"
+          "    SWIGAddRef3(that);\n"
+          "    *ppvObject = obj;\n"
           "    return S_OK;\n"
           "  }\n\n");
 
-      Printf(proxy_class_vtable_code, "  return E_NOINTERFACE;\n}\n\n");
-
-      bases = NULL;
-
-      Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface2(void *that, GUID *iid, "
-          "void ** ppvObject) {\n", proxy_class_name);
-
-      Printf(proxy_class_vtable_code,
-          "  return _wrap%sQueryInterface1((void *) ((void **) that - 1), iid, ppvObject);\n", proxy_class_name);
+      Printf(proxy_class_vtable_code, "  return E_NOINTERFACE;\n");
 
       Printf(proxy_class_vtable_code, "}\n\n");
+
+      bases = NULL;
 
       Printf(proxy_class_vtable_code, "SWIG_funcptr _wrap%sSWIGWrappedObject_vtable[] = "
           "{\n  (SWIG_funcptr) _wrap%sQueryInterface2,"
           "\n  (SWIG_funcptr) SWIGAddRef2,"
           "\n  (SWIG_funcptr) SWIGRelease2,"
           "\n  (SWIG_funcptr) SWIGGetCPtr"
+          "\n};\n\n",
+          proxy_class_name, proxy_class_name);
+
+      Printf(proxy_class_vtable_code, "SWIG_funcptr _wrap%saggregated_vtable[] = "
+          "{\n  (SWIG_funcptr) _wrap%sQueryInterface3,"
+          "\n  (SWIG_funcptr) SWIGAddRef3,"
+          "\n  (SWIG_funcptr) SWIGRelease3"
           "\n};\n\n",
           proxy_class_name, proxy_class_name);
 
@@ -1404,17 +1487,21 @@ public:
           "#endif\n"
           "  res->vtable = _wrap%svtable;\n"
           "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
+          "  res->aggregated_vtable = _wrap%saggregated_vtable;\n"
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = cMemOwn;\n"
+          "  res->outer = NULL;\n"
           "  res->refCount = 0;\n"
           "  res->deleteInstance = _wrap_delete_%s;\n"
           "  /* GetTypeInfoOfGuid */\n"
           "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
           "}\n\n",
-          proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name);
+          proxy_class_name, proxy_class_name, proxy_class_name, proxy_class_name,
+          proxy_class_name, proxy_class_name);
 
-      Printf(proxy_class_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn);\n", proxy_class_name);
+      Printf(proxy_class_vtable_defs,
+          "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn);\n", proxy_class_name);
 
       Printv(f_vtables, proxy_class_vtable_code, NIL);
       Printv(f_vtable_defs, proxy_class_vtable_defs, NIL);
@@ -1642,6 +1729,43 @@ public:
     Printv(f_proxy, proxy_class_def, NIL);
 
     delete proxy_iid;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * classDirectorInit()
+   * ----------------------------------------------------------------------------- */
+  virtual int classDirectorInit(Node *n) {
+    String *base = Getattr(n, "classtype");
+    String *classname = Swig_class_name(n);
+
+    Delete(director_ctor_code);
+    director_ctor_code = NewString("$director_new");
+
+
+    Printf(f_directors, "class SwigDirector_%s : public %s {\n", classname, base);
+    Printf(f_directors, "public:\n");
+
+    Language::classDirectorInit(n);
+
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * classDirectorEnd()
+   * ----------------------------------------------------------------------------- */
+  virtual int classDirectorEnd(Node *n) {
+    Printf(f_directors, "};\n\n");
+
+    Language::classDirectorEnd(n);
+
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * extraDirectorProtectedCPPMethodsRequired()
+   * ----------------------------------------------------------------------------- */
+  virtual bool extraDirectorProtectedCPPMethodsRequired() const {
+    return false;
   }
 
   /* -----------------------------------------------------------------------------
