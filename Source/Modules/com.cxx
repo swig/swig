@@ -1046,14 +1046,14 @@ public:
     bool derived = baseclass && getProxyName(c_baseclassname);
 
     if (!Getattr(n, "abstract")) {
-      Printv(proxy_class_def, "  [\n    uuid(", NIL);
+      Printv(proxy_class_def, "  [\n    aggregatable,\n    uuid(", NIL);
       formatGUID(proxy_class_def, proxy_clsid, false);
       Printv(proxy_class_def, ")\n  ]\n  coclass $comclassnameImpl {\n"
           "    interface $comclassname;\n  };\n\n", NIL);
     }
 
     Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
-    Printv(proxy_class_def, "  [\n    object,\n    local,\n    aggregatable,\n    uuid(", NIL);
+    Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
 /*
     Printv(proxy_class_def, ")\n  ]\n  interface $comclassname",
