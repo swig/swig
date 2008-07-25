@@ -528,13 +528,16 @@ public:
       // Banner for the IDL file
       emitBanner(f_module);
 
-      // Standard imports
+      // Header containing IDispatch declaration
+      // NOTE: MIDL does not need this, but WIDL does (and is sensitive to the position
+      //       in the file where it is imported)
+      Printf(f_module, "import \"oaidl.idl\";\n\n");
+
       Printf(f_module, "[\n  uuid(");
       formatGUID(f_module, &typelib_guid, false);
       Printf(f_module, ")\n]\nlibrary %sTLB {\n\n", module_class_name);
 
-      // Import IDispatch
-      // FIXME: Printf(f_module, "  importlib(\"stdole32.tlb\");\n\n");
+      // Import IDispatch declaration, part 2
       Printf(f_module, "  importlib(\"stdole2.tlb\");\n\n");
 
       Printv(f_module, f_proxy_forward_defs, "\n", NIL);
@@ -543,10 +546,6 @@ public:
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
       formatGUID(f_module, &module_iid, false);
       Printf(f_module, "),\n    dual\n  ]\n  interface %s : IDispatch {\n", module_class_name);
-      // FIXME: a temporary workaround for a possible WIDL bug
-      Printf(f_module, "#ifdef __WIDL__\n");
-      Printf(f_module, "    import \"stdole2.idl\";\n");
-      Printf(f_module, "#endif\n");
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -1436,17 +1435,19 @@ public:
 
       if (!bases) {
         proxy_class_member_functions = NewList();
-        Setattr(n, "wrap:member_functions", proxy_class_member_functions);
       } else {
         Iterator base = First(bases);
 
         List *base_member_functions = Getattr(base.item, "wrap:member_functions");
-        Setattr(n, "wrap:member_functions", Copy(base_member_functions));
+        proxy_class_member_functions = NewList();
 
         for (Iterator func = First(base_member_functions); func.item; func = Next(func)) {
           Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", func.item);
+          Append(proxy_class_member_functions, func.item);
         }
       }
+
+      Setattr(n, "wrap:member_functions", proxy_class_member_functions);
 
       // FIXME: destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
@@ -1480,7 +1481,7 @@ public:
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
       Printf(proxy_class_vtable_code, "void SWIG_delete_%s(%s *arg) {\n"
-          "  delete arg;\n}\n\n", proxy_class_name, proxy_class_name);
+          "  delete arg;\n}\n\n", proxy_class_name, Getattr(n, "classtype"));
 
       Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn) {\n"
           "#ifdef __cplusplus\n"
