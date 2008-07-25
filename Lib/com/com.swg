@@ -146,7 +146,7 @@ typedef struct {
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   LONG refCount; /* reference count */
-  void (SWIGSTDCALL *deleteInstance)(SWIGIUnknown *); /* destructor */
+  void (*deleteInstance)(void *); /* destructor */
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
   SWIGIUnknown *outer; /* outer type in COM aggregation */
 } SWIGWrappedObject;
@@ -190,7 +190,7 @@ long SWIGSTDCALL SWIGRelease1(void *iunk) {
 
     if (res == 0) {
       if (obj->cMemOwn && obj->deleteInstance != 0) {
-        obj->deleteInstance((SWIGIUnknown *) obj);
+        obj->deleteInstance(obj->cPtr);
       }
 
 #ifdef __cplusplus
@@ -861,7 +861,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
         CloseHandle(hkey_lcid);
     }
 #else
-    hres = GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);
+    GetModuleFileNameW(SWIGModule, SWIG_typelib_path, MAX_PATH + 1);
 #endif
 
     if (hres == S_OK) {

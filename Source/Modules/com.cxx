@@ -1479,6 +1479,9 @@ public:
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
+      Printf(proxy_class_vtable_code, "void SWIG_delete_%s(%s *arg) {\n"
+          "  delete arg;\n}\n\n", proxy_class_name, proxy_class_name);
+
       Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn) {\n"
           "#ifdef __cplusplus\n"
           "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
@@ -1491,8 +1494,9 @@ public:
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = cMemOwn;\n"
           "  res->outer = NULL;\n"
-          "  res->refCount = 0;\n"
-          "  res->deleteInstance = _wrap_delete_%s;\n"
+          "  InterlockedIncrement(&globalRefCount);\n"
+          "  res->refCount = 1;\n"
+          "  res->deleteInstance = (void (*)(void *)) SWIG_delete_%s;\n"
           "  /* GetTypeInfoOfGuid */\n"
           "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
