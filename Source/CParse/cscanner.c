@@ -420,21 +420,29 @@ int yylook(void) {
       return HBLOCK;
       
     case SWIG_TOKEN_COMMENT:
-      {
-	String *cmt = Scanner_text(scan);
-	char *loc = Char(cmt);
-	if ((strncmp(loc,"/*@SWIG@",6) == 0) && (loc[Len(cmt)-3] == '@')) {
-	  scanner_locator(cmt);
-	}
-	
-	if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
-	  printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);
-	  yylval.str =  NewString(loc);
-	  return DOXYGENSTRING;
-	}
-
-
-      }
+    {
+      String *cmt = Scanner_text(scan);
+	  char *loc = Char(cmt);
+	  if ((strncmp(loc,"/*@SWIG@",6) == 0) && (loc[Len(cmt)-3] == '@')) {
+	    scanner_locator(cmt);
+	  }
+	  if (strncmp(loc, "/**<", 4) == 0 || strncmp(loc, "///<", 3) == 0||strncmp(loc, "/*!<", 3) == 0||strncmp(loc, "//!<", 3) == 0) {
+	    printf("Doxygen Post Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);
+	    yylval.str =  NewString(loc);
+	    return DOXYGENPOSTSTRING;
+	  }
+	  if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
+	    printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);
+	    yylval.str =  NewString(loc);
+	    return DOXYGENSTRING;
+	  }
+	  /*DOES NOT WORK PROPERLY AT THE MINUTE
+	  if (strncmp(loc, "//", 2)== 0) {
+	    printf("C style Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);
+	    yylval.str =  NewString(loc);
+	    return C_COMMENT_STRING;
+	  }*/
+    }
       break;
     case SWIG_TOKEN_ENDLINE:
       break;

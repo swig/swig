@@ -56,12 +56,36 @@ static int      class_level = 0;
 static Node   **class_decl = NULL;
 
 /* -----------------------------------------------------------------------------
- *                            Doxygen Comment Globals
+ *                            Doxygen Comment Globals and Assist Functions
  * ----------------------------------------------------------------------------- */
+int parseComments = 1; /* set this to activate Doxygen uptake into the parse tree */
+String *currentComment; /* Location of the stored Doxygen Comment */
+String *currentPostComment; /* Location of the stored Doxygen Post-Comment */
+String *currentCComment; /* Location of the stored C Comment */
+static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
 
-int isComment = 0; /* boolean for parsing Doxygen Comments */
-String *currentComment = 0; /* Location of the stored Doxygen Comment */
-static String *sideDoxComments = 0;
+/* NOT a safe method at the moment */
+int isStructuralDoxygen(String *s){
+	char *k = Char(s);
+    while (k[0] != '\0' && k[0] != '\\' && k[0] != '@'){
+	  k++;
+	  }
+	if (k[0] == '\0') return 0;
+    k++;
+	if (strncmp(k, "addtogroup", 10) == 0 || strncmp(k, "callgraph", 9) == 0 || strncmp(k, "callergraph", 11) == 0 
+	      || strncmp(k, "category", 8) == 0 || strncmp(k, "class", 5) == 0 || strncmp(k, "def", 3) == 0
+	      || strncmp(k, "defgroup", 8) == 0 || strncmp(k, "dir", 3) == 0 || strncmp(k, "enum", 4) == 0
+	      || strncmp(k, "example", 7) == 0 || strncmp(k, "file", 4) == 0 || strncmp(k, "fn", 2) == 0
+	      || strncmp(k, "headerfile", 9) == 0 || strncmp(k, "hideinitializer", 12) == 0 || strncmp(k, "ingroup", 7) == 0
+	      || strncmp(k, "interface", 9) == 0 || strncmp(k, "internal", 8) == 0 || strncmp(k, "mainpage", 8) == 0
+	      || strncmp(k, "name", 4) == 0 || strncmp(k, "namespace", 9) == 0 || strncmp(k, "nosubgrouping", 13) == 0
+	      || strncmp(k, "overload", 8) == 0 || strncmp(k, "package", 7) == 0 || strncmp(k, "page", 4) == 0
+	      || strncmp(k, "property", 8) == 0 || strncmp(k, "protocol", 8) == 0 || strncmp(k, "relates", 7) == 0
+	      || strncmp(k, "relatesalso", 5) == 0 || strncmp(k, "showinitializer", 5) == 0 || strncmp(k, "struct", 5) == 0
+	      || strncmp(k, "typedef", 7) == 0 || strncmp(k, "union", 5) == 0 || strncmp(k, "var", 3) == 0
+	      || strncmp(k, "weakgroup", 9) == 0){ return 1;}
+	return 0;
+}
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -79,12 +103,21 @@ static Node *new_node(const String_or_char *tag) {
   set_nodeType(n,tag);
   Setfile(n,cparse_file);
   Setline(n,cparse_line);
-  /* Sets Comment if a Comment is Availible */
-  if(isComment){
-    String *copyComment = Copy(currentComment);
-    Setattr(n,"comment",copyComment);
-    isComment = 0;
-  }	 
+  if(parseComments){
+    /* Sets any post comments to the previous node */
+    if(previousNode != NULL && currentPostComment != 0){
+      String *copyPostComment = Copy(currentComment);
+      Setattr(previousNode,"DoxygenPostComment",copyPostComment);
+      currentPostComment = 0;
+    }	 
+    /* Sets Doxygen Comment if a Comment is Availible */
+    if(currentComment != 0){
+      String *copyComment = Copy(currentComment);
+      Setattr(n,"DoxygenComment",copyComment);
+      currentComment = 0;
+    }	
+    previousNode = n;
+  }
   return n;
 }
 
@@ -1455,6 +1488,8 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
 %token <str> DOXYGENSTRING 
+%token <str> DOXYGENPOSTSTRING 
+%token <str> C_COMMENT_STRING 
 
 %left  CAST
 %left  QUESTIONMARK
@@ -1527,7 +1562,8 @@ static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
 %type <node>     fname stringtype;
 %type <node>     featattr;
 %type <str>	 doxygen_comment;
-
+%type <str>	 c_style_comment;
+%type <str>	 doxygen_post_comment;
 %%
 
 /* ======================================================================
@@ -1585,6 +1621,8 @@ declaration    : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; } 
                | cpp_declaration { $$ = $1; }
                | doxygen_comment { $$ = $1; }
+               | c_style_comment { $$ = $1; }
+               | doxygen_post_comment { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
@@ -3156,12 +3194,40 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 doxygen_comment : DOXYGENSTRING 
 	{
-		currentComment = NewString($1);
-		isComment = 1;
+	  if(isStructuralDoxygen($1)){
+	    $$ = new_node("doxycomm");
+		Setattr($$,"DoxygenComment",$1);
+	    }
+	  else {  
+	    if(currentComment != 0){
+		    Append(currentComment, $1);
+		    }
+		else currentComment = $1;
+		$$ = 0;
+	    }
+	}
+	;
+
+
+doxygen_post_comment : DOXYGENPOSTSTRING 
+	{
+		if(currentPostComment != 0){
+	      Append(currentPostComment, $1);
+	      }
+	    else currentPostComment = $1;
 		$$ = 0;
 	}
 	;
 
+c_style_comment : C_COMMENT_STRING 
+	{
+		if(currentCComment != 0){
+		  Append(currentCComment, $1);
+		  }
+		else currentCComment = $1;
+		$$ = 0;
+	}
+	;
 
 
 /* ======================================================================
@@ -6009,3 +6075,5 @@ ParmList *Swig_cparse_parms(String *s) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
 }
+
+
