@@ -18,11 +18,6 @@ typedef struct {
   void *obj;
   const char **typenames;
 } SwigObj;
-
-SWIGINTERN SwigObj *SWIG_registry_base = 0;
-SWIGINTERN SwigObj *SWIG_registry = 0;
-
-#define SWIG_STR(x) #x 
 %}
 
 // typemaps for function parameters
@@ -39,6 +34,7 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 %typemap(ctype) const short, const int, const long, const char, const float, const double "$1_type"
 %typemap(ctype) const unsigned short, const unsigned int, const unsigned long, const unsigned char "$1_type"
 %typemap(ctype) const void *, const short *, const int *, const long *, const char *, const float *, const double *, const bool * "$1_type"
+%typemap(ctype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY], bool [ANY] "$1_basetype *"
 %typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY], bool * [ANY] "$1_basetype **"
 %typemap(ctype) SWIGTYPE         "SwigObj *"
 %typemap(ctype) SWIGTYPE *       "SwigObj *"
@@ -62,7 +58,7 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 %typemap(in) const short &, const int &, const long &, const char &, const float &, const double &, const bool & "$1 = ($1_basetype *) $input;"
 %typemap(in) unsigned short &, unsigned int &, unsigned long &, unsigned char &  "$1 = ($1_basetype *) $input;"
 %typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$1 = ($1_basetype *) $input;"
-
+%typemap(in) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY], bool [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY], bool * [ANY] "$1 = ($1_basetype *) $input;"
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1 = ($1_type) $input;"
@@ -108,6 +104,7 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 %typemap(couttype) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$1_type"
 %typemap(couttype) short &, int &, long &, char &, float &, double &, bool & "$1_basetype *"
 %typemap(couttype) const short &, const int &, const long &, const char &, const float &, const double & "$1_basetype const *"
+%typemap(couttype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY], bool [ANY] "$1_basetype *"
 %typemap(couttype) SWIGTYPE      "SwigObj *"
 %typemap(couttype) SWIGTYPE *    "SwigObj *"
 %typemap(couttype) SWIGTYPE &    "SwigObj *"
@@ -126,6 +123,7 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 %typemap(out) unsigned short &, unsigned int &, unsigned long &, unsigned char & "$result = $1;"
 %typemap(out) const short &, const int &, const long &, const char &, const float &, const double & "$result = $1;"
 %typemap(out) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$result = $1;"
+%typemap(out) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY], bool [ANY] "$result = $1;"
 %typemap(out) void ""
 
 %typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = $1;"
@@ -148,17 +146,19 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 
 // exception handling
 
-%typemap(throws) int, long, short, unsigned int, unsigned long, unsigned short {
+%typemap(throws) BASIC_INT_TYPES {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
   SWIG_CThrowException(0, error_msg);
 }
 
+%apply BASIC_INT_TYPES { int, long, short, unsigned int, unsigned long, unsigned short, int &, long &, short &, unsigned int &, unsigned long &, unsigned short & };
+
 %typemap(throws) char *, const char * {
   SWIG_CThrowException(0, $1);
 }
 
-// this should match only non-built-in objects
+// this should match only SwigObj objects
 %typemap(throws) SWIGTYPE {
   SwigObj *c_ex;
   c_ex = SWIG_create_object(SWIG_STR($1_basetype));
@@ -166,7 +166,7 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
   SWIG_CThrowException(c_ex, "C++ $1_type exception thrown");
 }
 
-%typemap(throws) SWIGTYPE *, SWIGTYPE & {
+%typemap(throws) SWIGTYPE * {
   SwigObj *c_ex;
   c_ex = SWIG_create_object(SWIG_STR($1_basetype));
   c_ex->obj = (void*) $1;
@@ -174,16 +174,27 @@ SWIGINTERN SwigObj *SWIG_registry = 0;
 }
 
 %insert("runtime") %{
+#define SWIG_STR(x) #x
 #define SWIG_MAX_RT_STACK 256
+#define SWIG_REGISTRY_INIT 256
 
-SWIGEXPORTC struct {
+SWIGINTERN SwigObj **SWIG_registry_base = 0;
+SWIGINTERN SwigObj **SWIG_registry = 0;
+SWIGINTERN int SWIG_registry_size = SWIG_REGISTRY_INIT;
+
+SWIGINTERN SwigObj *SWIG_create_object(const char *classname);
+SWIGINTERN void SWIG_destroy_object(SwigObj *object);
+
+SWIGEXPORTC struct SWIG_exception_struct {
   int code;
   char *msg;
   SwigObj *klass;
-} SWIG_exception;
+  int handled;
+} SWIG_exception = { 0, 0, 0, 0 };
 
 SWIGEXPORTC jmp_buf SWIG_rt_env;
 SWIGEXPORTC int SWIG_rt_init = 0;
+SWIGINTERN jmp_buf SWIG_cpp_back_env;
 SWIGINTERN jmp_buf *SWIG_rt_stack_base = 0;
 SWIGINTERN jmp_buf *SWIG_rt_stack_ptr = 0;
 
@@ -200,11 +211,56 @@ SWIGINTERN void SWIG_rt_stack_pop() {
   memcpy(SWIG_rt_env, SWIG_rt_stack_ptr, sizeof(SWIG_rt_env));
 }
 
+SWIGINTERN void SWIG_add_registry_entry(SwigObj *entry) {
+  if (SWIG_registry_base == 0) {
+    SWIG_registry_base = SWIG_registry = (SwigObj **) malloc(SWIG_registry_size * sizeof(SwigObj *));
+    memset(SWIG_registry_base, 0, SWIG_registry_size * sizeof(SwigObj *));
+  }
+  *SWIG_registry = entry;
+  SWIG_registry++;
+  if ((SWIG_registry - SWIG_registry_base) == SWIG_registry_size) {
+    SWIG_registry = SWIG_registry_base;
+    SWIG_registry_size += SWIG_REGISTRY_INIT;
+    int new_size = SWIG_registry_size * sizeof(SwigObj *);
+    SWIG_registry_base = (SwigObj **) malloc(new_size);
+    memset(SWIG_registry_base, 0, new_size);
+    memcpy(SWIG_registry_base, SWIG_registry, (SWIG_registry_size - SWIG_REGISTRY_INIT) * sizeof(SwigObj *));
+    free(SWIG_registry);
+    SWIG_registry = SWIG_registry_base + (SWIG_registry_size - SWIG_REGISTRY_INIT);
+  }
+}
+
+SWIGINTERN void SWIG_remove_registry_entry(SwigObj *entry) {
+  int i;
+  for (i = 0; i < SWIG_registry_size; ++i) {
+    if (*(SWIG_registry_base + i) == entry) {
+      *(SWIG_registry_base + i) = 0;
+      break;
+    }
+  }
+}
+
 SWIGINTERN void SWIG_cleanup() {
   if (SWIG_rt_stack_base)
     free(SWIG_rt_stack_base);
   if (SWIG_exception.msg)
    free(SWIG_exception.msg);
+  if (SWIG_exception.klass) {
+    if (SWIG_exception.klass->typenames)
+      free(SWIG_exception.klass->typenames);
+    free(SWIG_exception.klass);
+  }
+  int i;
+  if (SWIG_registry_base) {
+    for (i = 0; i < SWIG_registry_size; ++i) {
+      if (*(SWIG_registry_base + i)) {
+        SWIG_destroy_object(*(SWIG_registry_base + i));
+        *(SWIG_registry_base + i)  = 0;
+      }
+    }
+  }
+  free(SWIG_registry_base);
+  SWIG_registry_base = 0;
 }
 
 #ifdef __cplusplus
@@ -229,8 +285,10 @@ SWIGEXPORTC int SWIG_rt_catch(const char *type) {
       }
     }
   }
-  if (result)
+  if (result) {
     SWIG_rt_stack_pop();
+    SWIG_exception.handled = 1;
+  }
   return result;
 }
 
@@ -240,18 +298,33 @@ SWIGEXPORTC void SWIG_rt_throw(SwigObj *klass, const char *msg) {
     SWIG_exception.msg = (char *) 0;
   }
   if (msg) {
-    SWIG_exception.msg = (char *) malloc(strlen(msg));
+    SWIG_exception.msg = (char *) malloc(strlen(msg) + 1);
     strcpy(SWIG_exception.msg, msg);
   }
   SWIG_exception.klass = klass;
+  SWIG_exception.handled = 0;
   longjmp(SWIG_rt_env, 1);
 }
 
-SWIGEXPORTC void SWIG_rt_endtry() {
-  if (SWIG_exception.msg)
+SWIGEXPORTC void SWIG_rt_unhandled() {
+  if (SWIG_exception.msg) { 
     free(SWIG_exception.msg);
+    SWIG_exception.msg = 0;
+  }
   SWIG_rt_stack_pop();
   longjmp(SWIG_rt_env, SWIG_exception.code);
+}
+
+SWIGEXPORTC void SWIG_rt_endtry() {
+  if (SWIG_exception.handled) {
+    if (setjmp(SWIG_rt_env) == 0) {
+      SWIG_rt_stack_push();
+      longjmp(SWIG_cpp_back_env, 1);
+    }
+  }
+  else {
+    SWIG_rt_stack_pop();  // pop the SWIG_try context
+  }
 }
 
 SWIGEXPORTC int SWIG_exit(int code) {
@@ -264,10 +337,9 @@ SWIGEXPORTC int SWIG_exit(int code) {
 #endif
 
 SWIGINTERN void SWIG_terminate() {
-  fprintf(stderr, "Unhandled exception: %s\n%s (error code: %d)\nExitting...\n", 
+  fprintf(stderr, "Unhandled exception: %s\n%s\nExitting...\n", 
     SWIG_exception.klass->typenames[0],
-    SWIG_exception.msg, 
-    SWIG_exception.code);
+    SWIG_exception.msg ? SWIG_exception.msg : "");
   SWIG_exit(SWIG_exception.code);
 }
 
@@ -276,17 +348,22 @@ SWIGINTERN void SWIG_Runtime_init() {
   if (!SWIG_rt_init) {
     SWIG_rt_init = 1;
     SWIG_rt_stack_base = SWIG_rt_stack_ptr = (jmp_buf *) malloc(sizeof(jmp_buf) * SWIG_MAX_RT_STACK);
-    if (SWIG_exception.code = setjmp(SWIG_rt_env))
+    if (SWIG_exception.code = setjmp(SWIG_rt_env)) {
+      // deallocate C++ exception
+      if (setjmp(SWIG_rt_env) == 0) {
+        SWIG_rt_stack_push();
+        SWIG_exception.handled = 1;
+        longjmp(SWIG_cpp_back_env, 1);
+      }
       SWIG_terminate();
+    }
   }
 }
 
-SWIGINTERN void SWIG_CThrowException(void *klass, const char *msg) {    
-  if (SWIG_rt_init)
+#define SWIG_CThrowException(klass, msg) \
+  if (setjmp(SWIG_cpp_back_env) == 0) \
     SWIG_rt_throw((SwigObj *) klass, msg);
-  else
-    SWIG_terminate();
-}
+
 %}
 
 %insert("proxy_header") %{
@@ -302,7 +379,7 @@ typedef struct {
   const char **typenames;
 } SwigObj;
 
-SWIGIMPORT struct {
+SWIGIMPORT struct SWIG_exception_struct {
   int code;
   char *msg;
   SwigObj *klass;
@@ -311,7 +388,8 @@ SWIGIMPORT struct {
 SWIGIMPORT void SWIG_rt_try();
 SWIGIMPORT int SWIG_rt_catch(const char *type);
 SWIGIMPORT void SWIG_rt_throw(SwigObj *klass, const char * msg);
-SWIGIMPORT int SWIG_rt_endtry();
+SWIGIMPORT int SWIG_rt_unhandled();
+SWIGIMPORT void SWIG_rt_endtry();
 SWIGIMPORT int SWIG_exit(int code);
 
 #define SWIG_try \
@@ -320,6 +398,6 @@ SWIGIMPORT int SWIG_exit(int code);
 #define SWIG_catch(type) else if (SWIG_rt_catch(#type))
 #define SWIG_throw(klass) SWIG_rt_throw((SwigObj *) klass, 0);
 #define SWIG_throw_msg(klass, msg) SWIG_rt_throw((SwigObj *) klass, msg);
-#define SWIG_endtry else SWIG_rt_endtry();
+#define SWIG_endtry else SWIG_rt_unhandled(); SWIG_rt_endtry();
 %}
 

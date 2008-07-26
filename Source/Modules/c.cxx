@@ -30,6 +30,7 @@ class C:public Language {
   String *int_string;
   String *enum_values;
   String *create_object;
+  String *destroy_object;
 
   bool proxy_flag;
   bool runtime_flag;
@@ -46,6 +47,7 @@ public:
     int_string(NewString("int")),
     enum_values(0),
     create_object(0),
+    destroy_object(0),
     proxy_flag(true),
     runtime_flag(true),
     typecheck_flag(false) {
@@ -111,9 +113,33 @@ public:
 
   String *finish_create_object() {
     String *s = create_object;
+    //Printf(s, "SWIG_add_registry_entry(result);\n");
     Printf(s, "return result;\n");
     Printf(s, "}\n\n");
     return create_object;
+  }
+
+  /* ---------------------------------------------------------------------
+   * start_destroy_object()
+   * --------------------------------------------------------------------- */
+
+  void start_destroy_object() {
+    String *s = destroy_object = NewString("");
+    Printf(s, "\nSWIGINTERN void SWIG_destroy_object(SwigObj *object) {\n");
+    Printf(s, "if (object)\nif (object->typenames) {\n");
+  }
+
+  /* ---------------------------------------------------------------------
+   * finish_destroy_object()
+   * --------------------------------------------------------------------- */
+  
+  String *finish_destroy_object() {
+    String *s = destroy_object;
+    Printf(s, "free(object->typenames);\n");
+    Printf(s, "free(object);\n");
+    Printf(s, "object = (SwigObj *) 0;\n");
+    Printf(s, "}\n}\n");
+    return destroy_object;
   }
 
   /* ---------------------------------------------------------------------
@@ -175,11 +201,13 @@ public:
     Printf(f_wrappers, "#endif\n\n");
 
     start_create_object();
+    start_destroy_object();
     
     // emit code for children
     Language::top(n);
 
     Append(f_header, finish_create_object());
+    Append(f_header, finish_destroy_object());
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "}\n");
@@ -468,7 +496,9 @@ ready:
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         if (SwigType_isconst(type))
           SwigType_del_qualifier(type);
-        SwigType *return_var_type = SwigType_isreference(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
+        SwigType *return_var_type;
+        return_var_type = SwigType_isreference(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
+        return_var_type = SwigType_isarray(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
         if (SwigType_isenum(type))
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
         else
@@ -568,6 +598,9 @@ ready:
 
       // emit action code
       String *action = emit_action(n);
+      if (Getattr(n, "throws")) {
+        Printf(action, "if (SWIG_exception.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
+      }
       Replaceall(action, "$cppresult", "cppresult");
 
       // handle return-by-reference
@@ -954,9 +987,19 @@ ready:
    
     if (!SwigType_isconst(type)) {
       // create code for 'set' function
-      code = NewString("");
-      if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed"))
-        Printf(code, "* (int *) &");
+      if (SwigType_isarray(Getattr(n, "type"))) {
+        code = NewString("");
+        Printf(code, "if (arg2) {\n");
+        Printf(code, "int i;\n");
+        Printv(code, "for (i = 0; i < ", SwigType_array_getdim(Getattr(n, "type"), 0), "; ++i) {\n", NIL);
+        Printv(code, classname, "::", name, "[i] = arg2[i];\n", NIL);
+        Printf(code, "}\n}\n");
+      }
+      else if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
+        code = NewString("* (int *) &");
+      }
+      else 
+        code = NewString("");
       Printv(code, classname, "::", name, " = arg1;\n", NIL);
       wrap_set_variable(n, classname, newclassname, name, code);
     }
@@ -1006,7 +1049,15 @@ ready:
       set_nextSibling(p, t);
       Setattr(n, "parms", p);
       String *code = 0;
-      if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
+      if (SwigType_isarray(Getattr(n, "type"))) {
+        code = NewString("");
+        Printf(code, "if (arg2) {\n");
+        Printf(code, "int i;\n");
+        Printv(code, "for (i = 0; i < ", SwigType_array_getdim(Getattr(n, "type"), 0), "; ++i) {\n", NIL);
+        Printv(code, "((", classname, "*) arg1->obj)->", name, "[i] = arg2[i];\n", NIL);
+        Printf(code, "}\n}\n");
+      }
+      else if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
         code = NewString("");
         Printv(code, "* (int *) &((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
       }
@@ -1043,6 +1094,12 @@ ready:
       }
     }
     Printf(s, "result->typenames[%d] = 0;\n", i);
+    Printf(s, "}\n");
+
+    s = destroy_object;
+
+    Printv(s, "if (strcmp(object->typenames[0], \"", classname, "\") == 0) {\n", NIL);
+    Printv(s, "if (object->obj)\ndelete (", classname, " *) (object->obj);\n", NIL);
     Printf(s, "}\n");
   }
 
@@ -1086,6 +1143,8 @@ ready:
     add_to_create_object(n, classname, newclassname);
     Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
+
+    Printf(code, "SWIG_add_registry_entry(result);\n");
 
     Setattr(n, "wrap:action", code);
     
@@ -1153,7 +1212,6 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
-    String *classname = Getattr(parentNode(n), "classtype");
     String *newclassname = Getattr(parentNode(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
@@ -1183,10 +1241,8 @@ ready:
     if (typecheck_flag)
       emit_runtime_typecheck(newclassname, destr_name, code);
 
-    Printv(code, "if (arg1) if (arg1->obj) {\n", NIL);
-    Printv(code, "    delete (", classname, "*) (arg1->obj);\n", NIL);
-    Printv(code, "    free(arg1->typenames);\n    free(arg1);\n", NIL);
-    Printv(code, "    arg1 = (", sobj_name, "*)0;\n}\n", NIL);
+    Printf(code, "SWIG_remove_registry_entry(arg1);\n");
+    Printf(code, "SWIG_destroy_object(arg1);\n");
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
