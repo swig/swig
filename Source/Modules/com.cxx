@@ -11,6 +11,7 @@ char cvsroot_com_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #include "cparse.h"
+#include <stdio.h>
 
 typedef struct {
   unsigned long Data1;
@@ -1442,7 +1443,6 @@ public:
         proxy_class_member_functions = NewList();
 
         for (Iterator func = First(base_member_functions); func.item; func = Next(func)) {
-          Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", func.item);
           Append(proxy_class_member_functions, func.item);
         }
       }
@@ -1456,6 +1456,9 @@ public:
     Language::classHandler(n);
 
     if (proxy_flag) {
+        for (Iterator func = First(proxy_class_member_functions); func.item; func = Next(func)) {
+          Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", func.item);
+        }
 
       emitProxyClassDefAndCPPCasts(n);
 
@@ -1582,8 +1585,18 @@ public:
 
     if (!Getattr(n, "override")) {
       String *wname = Getattr(n, "wrap:name");
-      Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", wname);
+      // FIXME: do we have to use strings?
+      Setattr(n, "wrap:vtable_index", NewStringf("%d", Len(proxy_class_member_functions)));
       Append(proxy_class_member_functions, wname);
+    } else {
+      String *wname = Getattr(n, "wrap:name");
+      Node *prev = Getattr(n, "override");
+      int index;
+
+      // HACK: maybe there is a simpler way to store an integer in a node? :)
+      sscanf(Char(Getattr(prev, "wrap:vtable_index")), "%d", &index);
+      Setattr(n, "wrap:vtable_index", NewStringf("%d", index));
+      Setitem(proxy_class_member_functions, index, wname);
     }
 
     if (l) {
