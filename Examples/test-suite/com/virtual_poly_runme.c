@@ -27,40 +27,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   NNumber *dc_as_nnumber = d->lpVtbl->copy(d);
 
-#if 0
-  // This should work when covariant return types are handled properly
-  // Currently we are not able to cast dc_as_nnumber to IID_NDouble, etc.
-
   NDouble *dc = NULL;
 
   dc_as_nnumber->lpVtbl->QueryInterface(dc_as_nnumber, &IID_NDouble, (void **) &dc);
-#endif
 
   NNumber *ic_as_nnumber = i->lpVtbl->copy(i);
 
-#if 0
-  // Same as above
   NInt *ic = NULL;
 
   ic_as_nnumber->lpVtbl->QueryInterface(ic_as_nnumber, &IID_NInt, (void **) &ic);
 
+  /*
+   * Static methods
+   */
+
   NDouble *ddc = dc->lpVtbl->narrow(dc, dc_as_nnumber);
 
-  NInt *dic = ic->lpVtbl->narrow(ic, dc_as_nnumber);
-#endif
-
-
-  // Static member calls; d and i are not really used here
-  NDouble *ddc = d->lpVtbl->narrow(d, dc_as_nnumber);
+  NInt *dic = ic->lpVtbl->narrow(ic, ic_as_nnumber);
 
   dc_as_nnumber->lpVtbl->Release(dc_as_nnumber);
-
-  NInt *dic = i->lpVtbl->narrow(i, ic_as_nnumber);
-
   ic_as_nnumber->lpVtbl->Release(ic_as_nnumber);
+  dc->lpVtbl->Release(dc);
+  ic->lpVtbl->Release(ic);
 
-  NInt *ic = dic;
-  NDouble *dc = ddc;
+  ic = dic;
+  dc = ddc;
 
   vp->lpVtbl->incr(vp, ic);
 
@@ -68,6 +59,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     fprintf(stderr, "incr test failed\n");
     exit(1);
   }
+
+  dc->lpVtbl->Release(dc);
+  ic->lpVtbl->Release(ic);
 
   /*
    * Checking a pure user downcast
@@ -92,10 +86,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    */
   NNumber *nr = d->lpVtbl->ref_this(d);
   NDouble *dr1 = d->lpVtbl->narrow(d, nr);
-
-  /* FIXME: this should just need a QueryInterface, instead of 'narrow' */
   NNumber *dr2_as_nnumber = d->lpVtbl->ref_this(d);
-  NDouble *dr2 = d->lpVtbl->narrow(d, dr2_as_nnumber);
+  NDouble *dr2 = NULL;
+  dr2_as_nnumber->lpVtbl->QueryInterface(dr2_as_nnumber, &IID_NDouble, (void **) &dr2);
 
   if (dr1->lpVtbl->get(dr1) != dr2->lpVtbl->get(dr2)) {
     fprintf(stderr, "copy/narrow test failed\n");
