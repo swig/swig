@@ -113,7 +113,6 @@ public:
 
   String *finish_create_object() {
     String *s = create_object;
-    //Printf(s, "SWIG_add_registry_entry(result);\n");
     Printf(s, "return result;\n");
     Printf(s, "}\n\n");
     return create_object;
@@ -675,23 +674,6 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
-   * emit_runtime_typecheck()
-   * --------------------------------------------------------------------- */
-
-  void emit_runtime_typecheck(String *classname, String *funcname, String *code) {
-    Printf(code, "{\nint i = 0, type_ok = 0;\n");
-    Printf(code, "if (arg1 == NULL) {\n");
-    Printv(code, "  fprintf(stdout, \"error: NULL object-struct passed to ", funcname, "\\n\");\n");
-    Printf(code, "  longjmp(Swig_rt_env, 0);\n}\n");
-    Printf(code, "while(arg1->typenames[i]) {\n");
-    Printv(code, "  if (strcmp(arg1->typenames[i++], \"", classname, "\") == 0) {\n", NIL);
-    Printf(code, "    type_ok = 1;\nbreak;\n}\n}\n");
-    Printf(code, "if (!type_ok) {\n");
-    Printv(code, "    fprintf(stdout, \"error: object-struct passed to ", funcname, " is not of class ", classname, "\\n\");\n", NIL);
-    Printf(code, "    longjmp(Swig_rt_env, 0);\n}\n}\n");
-  }
-
-  /* ---------------------------------------------------------------------
    * copy_node()
    * --------------------------------------------------------------------- */
 
@@ -808,9 +790,10 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    Node *klass = Swig_methodclass(n);
     String *name = Copy(Getattr(n, "sym:name"));
-    String *classname = Getattr(parentNode(n), "typename");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *classname = Getattr(klass, "typename");
+    String *newclassname = Getattr(klass, "sym:name");
     String *new_name = NewString("");
     String *code = NewString("");
     String *arg_lnames = NewString("");
@@ -844,17 +827,19 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node *n) {
+    Node *klass = Swig_methodclass(n);
     String *name = Copy(Getattr(n, "sym:name"));
-    String *classname = Getattr(parentNode(n), "classtype");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype = NewString("");
     String *stype = NewString("");
     String *new_name = NewString("");
     String *code = NewString("");
     String *arg_lnames = NewString("");
+    String *ext_name = 0;
     ParmList *parms = Getattr(n, "parms");
-
+    
     // create first argument
     Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
@@ -885,11 +870,19 @@ ready:
     new_name = Swig_name_member(newclassname, name);
     Setattr(n, "sym:name", new_name);
 
+    bool isextension = (Cmp(Getattr(n, "isextension"), "1") == 0) || (Cmp(Getattr(n, "feature:extend"), "1") == 0);
+    if (isextension) {
+      ext_name = NewStringf("%s_ext", new_name);
+      String *object_cast = NewStringf("((%s*) self->obj)", classname);
+      Swig_add_extension_code(n, ext_name, parms, Getattr(n, "type"), Getattr(n, "code"), CPlusPlus, object_cast);
+    }
+
     // generate action code
-    if (typecheck_flag)
-      emit_runtime_typecheck(newclassname, new_name, code);
     Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
-    Printv(code, "((", classname, "*) arg1->obj)->", Getattr(n, "name"), "(", arg_call_lnames, ");\n", NIL);
+    if (isextension)
+      Printv(code, ext_name, "(arg1", Len(arg_call_lnames) ? ", " : "", arg_call_lnames, ");\n", NIL);
+    else
+      Printv(code, "((", classname, "*) arg1->obj)->", Getattr(n, "name"), "(", arg_call_lnames, ");\n", NIL);
     Setattr(n, "wrap:action", code);
 
     functionWrapper(n);
@@ -916,10 +909,6 @@ ready:
 
     // generate action code
     String *action = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-    if (parms)
-      if (typecheck_flag && Getattr(parms, "c:objstruct"))
-        emit_runtime_typecheck(newclassname, new_name, action);
     if (!code) {
       code = NewString("");
       Printv(code, "$cppresult = $mod ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
@@ -947,10 +936,6 @@ ready:
 
     // generate action code
     String *action = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-    if (parms)
-      if (typecheck_flag && Getattr(parms, "c:objstruct"))
-        emit_runtime_typecheck(newclassname, new_name, action);
     if (!code) {
       code = NewString("");
       Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
@@ -970,10 +955,11 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
+    Node *klass = Swig_methodclass(n);
     String *name = Getattr(n, "sym:name");
     SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(parentNode(n), "classtype");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *new_name = NewString("");
     String *code = NewString("");
 
@@ -1017,10 +1003,11 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
+    Node *klass = Swig_methodclass(n);
     String *name = Getattr(n, "sym:name");
     SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(parentNode(n), "classtype");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype = NewString("");
     String *stype;
@@ -1084,7 +1071,7 @@ ready:
     Printv(s, "if (strcmp(classname, \"", classname, "\") == 0) {\n", NIL);
 
     // store the name of each class in the hierarchy
-    List *baselist = Getattr(parentNode(n), "bases");
+    List *baselist = Getattr(Swig_methodclass(n), "bases");
     Printf(s, "result->typenames = (const char **) malloc(%d*sizeof(const char*));\n", Len(baselist) + 2);
     Printv(s, "result->typenames[0] = Swig_typename_", newclassname, ";\n", NIL);
     int i = 1;
@@ -1112,8 +1099,9 @@ ready:
     if (Getattr(n, "copy_constructor"))
       return copyconstructorHandler(n);
 
-    String *classname = Getattr(parentNode(n), "classtype");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    Node *klass = Swig_methodclass(n);
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -1144,7 +1132,6 @@ ready:
     add_to_create_object(n, classname, newclassname);
     Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
-
     Printf(code, "SWIG_add_registry_entry(result);\n");
 
     Setattr(n, "wrap:action", code);
@@ -1165,8 +1152,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int copyconstructorHandler(Node *n) {
-    String *classname = Getattr(parentNode(n), "classtype");
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    Node *klass = Swig_methodclass(n);
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -1213,7 +1201,7 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -1239,9 +1227,6 @@ ready:
     Setattr(n, "sym:name", destr_name);
 
     // create action code
-    if (typecheck_flag)
-      emit_runtime_typecheck(newclassname, destr_name, code);
-
     Printf(code, "SWIG_remove_registry_entry(arg1);\n");
     Printf(code, "SWIG_destroy_object(arg1);\n");
     Setattr(n, "wrap:action", code);
@@ -1267,7 +1252,7 @@ ready:
   virtual int enumDeclaration(Node *n) {
     if (!proxy_flag)
       return SWIG_OK;
-    String *newclassname = Getattr(parentNode(n), "sym:name");
+    String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
     String *name = Getattr(n, "sym:name");
     String *code = NewString("");
     String *tdname = Getattr(n, "tdname");
@@ -1328,14 +1313,14 @@ ready:
     if (enumvalue) {
       char *value_repr = Char(enumvalue);
       if (value_repr)
-        if (!isdigit(*value_repr) && *value_repr != '+') {
+        if (!isdigit(*value_repr) && *value_repr != '+' && *value_repr != '-') {
           init = NewStringf(" = '%c'", *value_repr);
         }
         else
           init = NewStringf(" = %s", enumvalue);
     }
 
-    String *newclassname = Getattr(parentNode(parentNode(n)), "sym:name");
+    String *newclassname = Getattr(Swig_methodclass(parentNode(n)), "sym:name");
     String *newname = NewStringf("%s_%s", newclassname, name);
     int gencomma = 1;
     if (!enum_values) {
