@@ -53,7 +53,7 @@
 <li><a href="#SWIG_nn33">Character strings and structures</a>
 <li><a href="#SWIG_nn34">Array members</a>
 <li><a href="#SWIG_structure_data_members">Structure data members</a>
-<li><a href="#SWIG_nn36">C constructors and destructors </a>
+<li><a href="#SWIG_nn36">C constructors and destructors</a>
 <li><a href="#SWIG_adding_member_functions">Adding member functions to C structures</a>
 <li><a href="#SWIG_nested_structs">Nested structures</a>
 <li><a href="#SWIG_nn39">Other things to note about structure wrapping</a>
@@ -224,7 +224,7 @@ The C/C++ output file created by SWIG often
 contains everything that is needed to construct a extension module
 for the target scripting language. SWIG is not a stub compiler nor is it
 usually necessary to edit the output file (and if you look at the output,
-you probably won't want to).      To build the final extension module, the
+you probably won't want to). To build the final extension module, the
 SWIG output file is compiled and linked with the rest of your C/C++
 program to create a shared library. 
 </p>
@@ -232,7 +232,7 @@ program to create a shared library.
 <p>
 Many target languages will also generate proxy class files in the
 target language. The default output directory for these language 
-specific files is the same directory as the generated C/C++ file. This can
+specific files is the same directory as the generated C/C++ file. This
 can be modified using the <tt>-outdir</tt> option. For example:
 </p>
 
@@ -2219,13 +2219,13 @@ void Foo_w_set(FOO *f, WORD value) {
 
 
 <p>
-<b>Compatibility Note: </b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes
-to pointers.  Starting in SWIG-1.3.12,  this transformation <em>only</em> occurs if a datatype is known to be a structure,
-class, or union.    This is unlikely to break existing code.  However, if you need to tell SWIG that an undeclared
+<b>Compatibility Note:</b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes
+to pointers.  Starting in SWIG-1.3.12, this transformation <em>only</em> occurs if a datatype is known to be a structure,
+class, or union.  This is unlikely to break existing code.  However, if you need to tell SWIG that an undeclared
 datatype is really a struct, simply use a forward struct declaration such as <tt>"struct Foo;"</tt>.
 </p>
 
-<H3><a name="SWIG_nn36"></a>5.5.5 C constructors and destructors </H3>
+<H3><a name="SWIG_nn36"></a>5.5.5 C constructors and destructors</H3>
 
 
 <p>
@@ -2282,7 +2282,7 @@ struct Bar {             // Default constructor generated.
 Since ignoring the implicit or default destructors most of the times
 produce memory leaks, SWIG will always try to generate them. If
 needed, however, you can selectively disable the generation of the
-default/implicit destructor by using <tt>%nodefaultdtor </tt>
+default/implicit destructor by using <tt>%nodefaultdtor</tt>
 </p>
 
 <div class="code">
