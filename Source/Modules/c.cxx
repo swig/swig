@@ -244,11 +244,12 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
+    if (!proxy_flag)
+      return SWIG_OK;
+    String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
-    if (proxy_flag) {
-      Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", Getattr(n, "name"), ";\n\n", NIL);
-    }
+    Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
     return SWIG_OK;
   }
 
@@ -598,7 +599,7 @@ ready:
 
       // emit action code
       String *action = emit_action(n);
-      if (Getattr(n, "throws")) {
+      if (Getattr(n, "throws") || Getattr(n, "feature:except")) {
         Printf(action, "if (SWIG_exception.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
       }
       Replaceall(action, "$cppresult", "cppresult");
@@ -1264,6 +1265,8 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
+    if (!proxy_flag)
+      return SWIG_OK;
     String *newclassname = Getattr(parentNode(n), "sym:name");
     String *name = Getattr(n, "sym:name");
     String *code = NewString("");
@@ -1351,6 +1354,8 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int typedefHandler(Node *n) {
+    if (!proxy_flag)
+      return SWIG_OK;
     String *name = Getattr(n, "sym:name");
     String *type = Getattr(n, "type");
     char *c = Char(SwigType_str(type, 0));
@@ -1361,6 +1366,19 @@ ready:
         Delete(code);
       }
     }
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * constantWrapper()
+   * --------------------------------------------------------------------- */
+
+  virtual int constantWrapper(Node *n) {
+    if (!proxy_flag)
+      return SWIG_OK;
+    String *name = Getattr(n, "sym:name");
+    String *value = Getattr(n, "value");
+    Printv(f_proxy_header, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
 
