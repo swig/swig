@@ -265,7 +265,7 @@ public:
     String *arg_list = NewString("");
 
     if (SwigType_type(Getattr(n, "type")) != T_VOID) {
-      Printv(action, "$cppresult = $mod (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
+      Printv(action, "result = (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
     }
     Printv(action, Swig_cfunction_call(Getattr(n, "name"), parms), ";", NIL);
     Setattr(n, "wrap:action", action);
@@ -457,6 +457,19 @@ ready:
       Printf(wrapper->code, "}");
     }
     else {
+      // C++ function wrapper
+      
+      if ((Cmp(Getattr(n, "storage"), "static") != 0) &&
+          (Cmp(Getattr(n, "ismember"), "1") == 0) &&
+          (Cmp(nodeType(n), "constructor") != 0)) {
+        Setattr(parms, "c:objstruct", "1");
+        if (!Getattr(parms, "lname"))
+          Setattr(parms, "lname", "arg1");
+        SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
+        SwigType_add_pointer(stype);
+        Setattr(parms, "c:stype", stype);
+      }
+
       // mangle name if function is overloaded
       if (Getattr(n, "sym:overloaded")) {
         if (!Getattr(n, "copy_constructor")) {
@@ -505,6 +518,17 @@ ready:
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
       }
 
+      // make sure lnames are set
+      int index = 1;
+      for (p = parms; p; p = nextSibling(p)) {
+        String *lname = Getattr(p, "lname");
+        if (!lname) {
+          lname = NewStringf("arg%d", index);
+          Setattr(p, "lname", lname);
+        }
+        index++;
+      }
+
       // create wrapper function prototype
       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
 
@@ -523,22 +547,17 @@ ready:
           p = Getattr(p, "tmap:in:next");
         }
 
-        SwigType* type = Getattr(p, "type");
-        String* lname = Getattr(p, "lname");
-        String* c_parm_type = NewString("");
-        String* proxy_parm_type = NewString("");
-        String* arg_name = NewString("");
+        SwigType *type = Getattr(p, "type");
+        String *lname = Getattr(p, "lname");
+        String *c_parm_type = NewString("");
+        String *proxy_parm_type = NewString("");
+        String *arg_name = NewString("");
 
         Printf(arg_name, "c%s", lname);
-
         bool dont_apply_tmap = false;
 
         // set the appropriate type for parameter
-        if (Cmp(Getattr(p, "c:objstruct"), "1") == 0) {
-          Printv(c_parm_type, SwigType_str(type, 0), NIL);
-          dont_apply_tmap = true;
-        }
-        else if (SwigType_isenum(type)) {
+        if (SwigType_isenum(type)) {
           c_parm_type = make_enum_type(n, type);
           if (Getattr(n, "unnamed")) {
             type = int_string;
@@ -598,11 +617,12 @@ ready:
 
       // emit action code
       String *action = emit_action(n);
-      if (Getattr(n, "throws") || Getattr(n, "feature:except")) {
+      if (Getattr(n, "throws") || (Cmp(Getattr(n, "feature:except"), "0") != 0)) {
         Printf(action, "if (SWIG_exception.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
       }
-      Replaceall(action, "$cppresult", "cppresult");
-
+      if (Cmp(nodeType(n), "constructor") != 0)
+        Replace(action, "result =", "cppresult = $mod", DOH_REPLACE_FIRST);
+  
       // handle return-by-reference
       if (SwigType_isreference(type)) {
         String *ref_cast = NewString("");
@@ -737,13 +757,6 @@ ready:
                   Setattr(new_node, "sym:name", Getattr(new_node, "name"));
                   Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
                   set_nodeType(new_node, "cdecl");
-                  // make sure there are no copyied object-structs params
-                  ParmList* all_parms = Getattr(new_node, "parms"), * parms;
-                  if (Getattr(all_parms, "c:objstruct")) {
-                    parms = Copy(nextSibling(all_parms));
-                    Delete(all_parms);
-                    Setattr(new_node, "parms", parms);
-                  }
                   appendChild(n, new_node);
                 }
               }
@@ -790,36 +803,7 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-    String *name = Copy(Getattr(n, "sym:name"));
-    String *classname = Getattr(klass, "typename");
-    String *newclassname = Getattr(klass, "sym:name");
-    String *new_name = NewString("");
-    String *code = NewString("");
-    String *arg_lnames = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-
-    // prepare function call
-    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
-    Delitem(arg_lnames, 0);
-    Delitem(arg_lnames, DOH_END);
-
-    // modify method name
-    new_name = Swig_name_member(newclassname, name);
-    Setattr(n, "sym:name", new_name);
-
-    // generate action code
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
-    Printv(code, classname, "::", Getattr(n, "name"), "(", arg_lnames, ");\n", NIL);
-    Setattr(n, "wrap:action", code);
-
-    functionWrapper(n);
-
-    Delete(arg_lnames);
-    Delete(code);
-    Delete(new_name);
-    Delete(name);
-    return SWIG_OK;
+    return Language::staticmemberfunctionHandler(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -827,74 +811,7 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-    String *name = Copy(Getattr(n, "sym:name"));
-    String *classname = Getattr(klass, "classtype");
-    String *newclassname = Getattr(klass, "sym:name");
-    String *sobj_name = NewString("");
-    String *ctype = NewString("");
-    String *stype = NewString("");
-    String *new_name = NewString("");
-    String *code = NewString("");
-    String *arg_lnames = NewString("");
-    String *ext_name = 0;
-    ParmList *parms = Getattr(n, "parms");
-    
-    // create first argument
-    Printf(sobj_name, "SwigObj");
-    ctype = Copy(sobj_name);
-    SwigType_add_pointer(ctype);
-    Parm *p = NewParm(ctype, "self");
-    stype = Copy(newclassname);
-    SwigType_add_pointer(stype);
-    Setattr(p, "c:stype", stype);
-    Setattr(p, "c:objstruct", "1");
-    if (parms)
-      set_nextSibling(p, parms);
-    Setattr(n, "parms", p);
-
-    // prepare function call
-    parms = Getattr(n, "parms");
-    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
-
-    // omit first argument in method call
-    String *arg_call_lnames = Strstr(arg_lnames, "*arg2");
-    if (!arg_call_lnames)
-      arg_call_lnames = Strstr(arg_lnames, "arg2");
-    if (!arg_call_lnames)
-      arg_call_lnames = empty_string;
-    else
-      Delitem(arg_lnames, DOH_END);
-
-    // modify method name
-    new_name = Swig_name_member(newclassname, name);
-    Setattr(n, "sym:name", new_name);
-
-    bool isextension = (Cmp(Getattr(n, "isextension"), "1") == 0) || (Cmp(Getattr(n, "feature:extend"), "1") == 0);
-    if (isextension) {
-      ext_name = NewStringf("%s_ext", new_name);
-      String *object_cast = NewStringf("((%s*) self->obj)", classname);
-      Swig_add_extension_code(n, ext_name, parms, Getattr(n, "type"), Getattr(n, "code"), CPlusPlus, object_cast);
-    }
-
-    // generate action code
-    Printv(code, (Strcmp(Getattr(n, "type"), "void") != 0) ? "$cppresult = $mod " : "", NIL);
-    if (isextension)
-      Printv(code, ext_name, "(arg1", Len(arg_call_lnames) ? ", " : "", arg_call_lnames, ");\n", NIL);
-    else
-      Printv(code, "((", classname, "*) arg1->obj)->", Getattr(n, "name"), "(", arg_call_lnames, ");\n", NIL);
-    Setattr(n, "wrap:action", code);
-
-    functionWrapper(n);
-
-    Delete(arg_lnames);
-    Delete(code);
-    Delete(new_name);
-    Delete(stype);
-    Delete(ctype);
-    Delete(sobj_name);
-    Delete(name);
-    return SWIG_OK;
+    return Language::memberfunctionHandler(n);
   }
 
   /* --------------------------------------------------------------------
@@ -911,7 +828,7 @@ ready:
     String *action = NewString("");
     if (!code) {
       code = NewString("");
-      Printv(code, "$cppresult = $mod ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
+      Printv(code, "result = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
     }
     Append(action, code);
 
@@ -964,7 +881,7 @@ ready:
     String *code = NewString("");
 
     // create code for 'get' function
-    Printv(code, "$cppresult = $mod ", classname, "::", name, ";\n", NIL);
+    Printv(code, "result = ", classname, "::", name, ";\n", NIL);
     wrap_get_variable(n, classname, newclassname, name, code);
 
     // create parameter for 'set' function
@@ -1003,62 +920,7 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-    String *name = Getattr(n, "sym:name");
-    SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(klass, "classtype");
-    String *newclassname = Getattr(klass, "sym:name");
-    String *sobj_name = NewString("");
-    String *ctype = NewString("");
-    String *stype;
-    String *new_name = NewString("");
-
-    // create first argument
-    Printf(sobj_name, "SwigObj");
-    ctype = Copy(sobj_name);
-    SwigType_add_pointer(ctype);
-    Parm *p = NewParm(ctype, "self");
-    stype = Copy(newclassname);
-    SwigType_add_pointer(stype);
-    Setattr(p, "c:stype", stype);
-    Setattr(p, "c:objstruct", "1");
-    Setattr(p, "lname", "arg1");
-
-    // create second argument
-    Parm *t = NewParm(Getattr(n, "type"), "value");
-    Setattr(t, "lname", "arg2");
-
-    // create 'get' function
-    Setattr(n, "parms", p);
-    wrap_get_variable(n, classname, newclassname, name, 0);
-
-    if (!SwigType_isconst(type)) {
-      // create 'set' function
-      set_nextSibling(p, t);
-      Setattr(n, "parms", p);
-      String *code = 0;
-      if (SwigType_isarray(Getattr(n, "type"))) {
-        code = NewString("");
-        Printf(code, "if (arg2) {\n");
-        Printf(code, "int i;\n");
-        Printv(code, "for (i = 0; i < ", SwigType_array_getdim(Getattr(n, "type"), 0), "; ++i) {\n", NIL);
-        Printv(code, "((", classname, "*) arg1->obj)->", name, "[i] = arg2[i];\n", NIL);
-        Printf(code, "}\n}\n");
-      }
-      else if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
-        code = NewString("");
-        Printv(code, "* (int *) &((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
-      }
-      Setattr(n, "type", "void");
-      wrap_set_variable(n, classname, newclassname, name, code);
-    }
-
-    Delete(new_name);
-    Delete(stype);
-    Delete(ctype);
-    Delete(sobj_name);
-    Delete(type);
-    return SWIG_OK;
+    return Language::membervariableHandler(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -1109,6 +971,7 @@ ready:
     String *constr_name = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
+
 
     // prepare argument names
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
@@ -1227,7 +1090,7 @@ ready:
     Setattr(n, "sym:name", destr_name);
 
     // create action code
-    Printf(code, "SWIG_remove_registry_entry(arg1);\n");
+    Printf(code, "SWIG_remove_registry_entry(carg1);\n");
     Printf(code, "SWIG_destroy_object(arg1);\n");
     Setattr(n, "wrap:action", code);
     
