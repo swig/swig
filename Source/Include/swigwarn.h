@@ -308,6 +308,7 @@
 #define WARN_COM_MULTIPLE_INHERITANCE         892
 #define WARN_COM_TYPEMAP_COMBODY_UNDEF        893
 #define WARN_COM_COVARIANT_RET                894
+#define WARN_COM_TYPEMAP_DIRECTORIN_UNDEF     895
 
 /* please leave 890-899 free for COM */
 
