@@ -510,12 +510,19 @@ ready:
         if (SwigType_isconst(type))
           SwigType_del_qualifier(type);
         SwigType *return_var_type;
-        return_var_type = SwigType_isreference(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
-        return_var_type = SwigType_isarray(type) ? SwigType_add_pointer(SwigType_base(type)) : type;
+
         if (SwigType_isenum(type))
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
-        else
+        else {
+          if (SwigType_isreference(type))
+            return_var_type = SwigType_base(type);
+          else if (SwigType_isarray(type))
+            return_var_type = SwigType_add_pointer(SwigType_base(type));
+          else
+            return_var_type = type;
+          
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
+        }
       }
 
       // make sure lnames are set
@@ -618,7 +625,7 @@ ready:
       // emit action code
       String *action = emit_action(n);
       if (Getattr(n, "throws") || (Cmp(Getattr(n, "feature:except"), "0") != 0)) {
-        Printf(action, "if (SWIG_exception.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
+        Printf(action, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
       }
       if (Cmp(nodeType(n), "constructor") != 0)
         Replace(action, "result =", "cppresult = $mod", DOH_REPLACE_FIRST);
@@ -627,8 +634,8 @@ ready:
       if (SwigType_isreference(type)) {
         String *ref_cast = NewString("");
         if (SwigType_isconst(SwigType_del_reference(type))) {
-          Printf(ref_cast, "const_cast<%s*>(&", SwigType_str(SwigType_base(type), 0));
-          Replaceall(action, ";", ");");
+          //Printf(ref_cast, "(%s*)", SwigType_str(SwigType_base(type), 0));
+          Printf(ref_cast, "*");
         }
         else
           Printf(ref_cast, "&");
@@ -654,6 +661,35 @@ ready:
       }
       else {
         Append(wrapper->code, action);
+      }
+
+      // insert constraint checking
+      for (p = parms; p; ) {
+        if ((tm = Getattr(p, "tmap:check"))) {
+          Replaceall(tm, "$target", Getattr(p, "lname"));
+          Printv(wrapper->code, tm, "\n", NIL);
+          p = Getattr(p, "tmap:check:next");
+        }
+        else {
+          p = nextSibling(p);
+        }
+      }
+
+      // insert cleanup code
+      for (p = parms; p; ) {
+        if ((tm = Getattr(p, "tmap:freearg"))) {
+          if (tm && (Len(tm) != 0)) {
+            String *input = NewStringf("c%s", Getattr(p, "lname"));
+            Replaceall(tm, "$source", Getattr(p, "lname"));
+            Replaceall(tm, "$input", input);
+            Delete(input);
+            Printv(wrapper->code, tm, "\n", NIL);
+          }
+          p = Getattr(p, "tmap:freearg:next");
+        }
+        else {
+          p = nextSibling(p);
+        }
       }
 
       if (!is_void_return)

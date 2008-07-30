@@ -72,12 +72,12 @@ typedef struct {
 
 %typemap(in) SWIGTYPE * {
   if ($input)
-    $1 = ($1_type) $input->obj;
+    $1 = ($1_ltype) $input->obj;
 }
 
 %typemap(in) SWIGTYPE * [ANY] {
   if ($input) {
-    $1 = ($1_basetype*) malloc($1_dim0 * sizeof($1_basetype));
+    $1 = ($1_basetype *) malloc($1_dim0 * sizeof($1_basetype));
     int i;
     for (i = 0; i < $1_dim0; ++i)
       if ($input[i])
@@ -185,12 +185,12 @@ SWIGINTERN int SWIG_registry_size = SWIG_REGISTRY_INIT;
 SWIGINTERN SwigObj *SWIG_create_object(const char *classname);
 SWIGINTERN void SWIG_destroy_object(SwigObj *object);
 
-SWIGEXPORTC struct SWIG_exception_struct {
+SWIGEXPORTC struct SWIG_exc_struct {
   int code;
   char *msg;
   SwigObj *klass;
   int handled;
-} SWIG_exception = { 0, 0, 0, 0 };
+} SWIG_exc = { 0, 0, 0, 0 };
 
 SWIGEXPORTC jmp_buf SWIG_rt_env;
 SWIGEXPORTC int SWIG_rt_init = 0;
@@ -243,12 +243,12 @@ SWIGINTERN void SWIG_remove_registry_entry(SwigObj *entry) {
 SWIGINTERN void SWIG_cleanup() {
   if (SWIG_rt_stack_base)
     free(SWIG_rt_stack_base);
-  if (SWIG_exception.msg)
-   free(SWIG_exception.msg);
-  if (SWIG_exception.klass) {
-    if (SWIG_exception.klass->typenames)
-      free(SWIG_exception.klass->typenames);
-    free(SWIG_exception.klass);
+  if (SWIG_exc.msg)
+   free(SWIG_exc.msg);
+  if (SWIG_exc.klass) {
+    if (SWIG_exc.klass->typenames)
+      free(SWIG_exc.klass->typenames);
+    free(SWIG_exc.klass);
   }
   int i;
   if (SWIG_registry_base) {
@@ -276,10 +276,10 @@ SWIGEXPORTC int SWIG_rt_catch(const char *type) {
   if (!type || (strcmp("SWIG_AnyException", type) == 0)) {
     result = 1;
   }
-  else if (SWIG_exception.klass) {
+  else if (SWIG_exc.klass) {
     int i = 0;
-    while (SWIG_exception.klass->typenames[i]) {
-      if (strcmp(SWIG_exception.klass->typenames[i++], type) == 0) {
+    while (SWIG_exc.klass->typenames[i]) {
+      if (strcmp(SWIG_exc.klass->typenames[i++], type) == 0) {
         result = 1;
         break;
       }
@@ -287,36 +287,36 @@ SWIGEXPORTC int SWIG_rt_catch(const char *type) {
   }
   if (result) {
     SWIG_rt_stack_pop();
-    SWIG_exception.handled = 1;
+    SWIG_exc.handled = 1;
   }
   return result;
 }
 
 SWIGEXPORTC void SWIG_rt_throw(SwigObj *klass, const char *msg) {
-  if (SWIG_exception.msg) {
-    free(SWIG_exception.msg);
-    SWIG_exception.msg = (char *) 0;
+  if (SWIG_exc.msg) {
+    free(SWIG_exc.msg);
+    SWIG_exc.msg = (char *) 0;
   }
   if (msg) {
-    SWIG_exception.msg = (char *) malloc(strlen(msg) + 1);
-    strcpy(SWIG_exception.msg, msg);
+    SWIG_exc.msg = (char *) malloc(strlen(msg) + 1);
+    strcpy(SWIG_exc.msg, msg);
   }
-  SWIG_exception.klass = klass;
-  SWIG_exception.handled = 0;
+  SWIG_exc.klass = klass;
+  SWIG_exc.handled = 0;
   longjmp(SWIG_rt_env, 1);
 }
 
 SWIGEXPORTC void SWIG_rt_unhandled() {
-  if (SWIG_exception.msg) { 
-    free(SWIG_exception.msg);
-    SWIG_exception.msg = 0;
+  if (SWIG_exc.msg) { 
+    free(SWIG_exc.msg);
+    SWIG_exc.msg = 0;
   }
   SWIG_rt_stack_pop();
-  longjmp(SWIG_rt_env, SWIG_exception.code);
+  longjmp(SWIG_rt_env, SWIG_exc.code);
 }
 
 SWIGEXPORTC void SWIG_rt_endtry() {
-  if (SWIG_exception.handled) {
+  if (SWIG_exc.handled) {
     if (setjmp(SWIG_rt_env) == 0) {
       SWIG_rt_stack_push();
       longjmp(SWIG_cpp_back_env, 1);
@@ -338,9 +338,9 @@ SWIGEXPORTC int SWIG_exit(int code) {
 
 SWIGINTERN void SWIG_terminate() {
   fprintf(stderr, "Unhandled exception: %s\n%s\nExitting...\n", 
-    SWIG_exception.klass->typenames[0],
-    SWIG_exception.msg ? SWIG_exception.msg : "");
-  SWIG_exit(SWIG_exception.code);
+    SWIG_exc.klass->typenames[0],
+    SWIG_exc.msg ? SWIG_exc.msg : "");
+  SWIG_exit(SWIG_exc.code);
 }
 
 SWIGINTERN void SWIG_Runtime_init() {
@@ -348,11 +348,11 @@ SWIGINTERN void SWIG_Runtime_init() {
   if (!SWIG_rt_init) {
     SWIG_rt_init = 1;
     SWIG_rt_stack_base = SWIG_rt_stack_ptr = (jmp_buf *) malloc(sizeof(jmp_buf) * SWIG_MAX_RT_STACK);
-    if (SWIG_exception.code = setjmp(SWIG_rt_env)) {
+    if (SWIG_exc.code = setjmp(SWIG_rt_env)) {
       // deallocate C++ exception
       if (setjmp(SWIG_rt_env) == 0) {
         SWIG_rt_stack_push();
-        SWIG_exception.handled = 1;
+        SWIG_exc.handled = 1;
         longjmp(SWIG_cpp_back_env, 1);
       }
       SWIG_terminate();
@@ -379,11 +379,11 @@ typedef struct {
   const char **typenames;
 } SwigObj;
 
-SWIGIMPORT struct SWIG_exception_struct {
+SWIGIMPORT struct SWIG_exc_struct {
   int code;
   char *msg;
   SwigObj *klass;
-} SWIG_exception;
+} SWIG_exc;
 
 SWIGIMPORT void SWIG_rt_try();
 SWIGIMPORT int SWIG_rt_catch(const char *type);
@@ -394,7 +394,7 @@ SWIGIMPORT int SWIG_exit(int code);
 
 #define SWIG_try \
   SWIG_rt_try(); \
-  if ((SWIG_exception.code = setjmp(SWIG_rt_env)) == 0) 
+  if ((SWIG_exc.code = setjmp(SWIG_rt_env)) == 0) 
 #define SWIG_catch(type) else if (SWIG_rt_catch(#type))
 #define SWIG_throw(klass) SWIG_rt_throw((SwigObj *) klass, 0);
 #define SWIG_throw_msg(klass, msg) SWIG_rt_throw((SwigObj *) klass, msg);

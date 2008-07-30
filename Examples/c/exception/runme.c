@@ -9,7 +9,7 @@ int main() {
     Test_unknown(t);
   }
   SWIG_catch(SWIG_AnyException) {
-    printf("incomplete type: %s\n", SWIG_exception.msg);
+    printf("incomplete type: %s\n", SWIG_exc.msg);
   }
   SWIG_endtry;
 
@@ -17,7 +17,7 @@ int main() {
     Test_simple(t);
   }
   SWIG_catch(SWIG_AnyException) {
-    printf("%s\n", SWIG_exception.msg);
+    printf("%s\n", SWIG_exc.msg);
   }
   SWIG_endtry;
 
@@ -25,7 +25,7 @@ int main() {
     Test_message(t);
   }
   SWIG_catch(SWIG_AnyException) {
-    printf("%s\n", SWIG_exception.msg);
+    printf("%s\n", SWIG_exc.msg);
   }
   SWIG_endtry;
 
@@ -33,7 +33,8 @@ int main() {
     Test_hosed(t);
   }
   SWIG_catch(Exc) {
-    printf("%d %s\n", Exc_code_get(SWIG_exception.klass), Exc_msg_get(SWIG_exception.klass));
+    printf("%d %s\n", Exc_code_get(SWIG_exc.klass), 
+        Exc_msg_get(SWIG_exc.klass));
   }
 
   int i;
@@ -42,10 +43,11 @@ int main() {
       Test_multi(t, i);
     }
     SWIG_catch(Exc) {
-      printf("%d %s\n", Exc_code_get(SWIG_exception.klass), Exc_msg_get(SWIG_exception.klass));
+      printf("%d %s\n", Exc_code_get(SWIG_exc.klass), 
+          Exc_msg_get(SWIG_exc.klass));
     }
     SWIG_catch(SWIG_AnyException) {
-      printf("%s\n", SWIG_exception.msg);
+      printf("%s\n", SWIG_exc.msg);
     }
     SWIG_endtry;
   }

@@ -217,13 +217,15 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 %inline %{
 struct SWIG_CException {
   SWIG_CException(int code) {
-    SWIG_exception.code = code;
+    SWIG_exc.code = code;
   }
 };
 %}
 
 #define SWIG_exception(code, msg)\
-  SWIG_CThrowException(_wrap_new_SWIG_CException(code), msg);
+  SwigObj *_ex = SWIG_create_object("SWIG_CException"); \
+  _ex->obj = (void *) new SWIG_CException(code); \
+  SWIG_CThrowException(_ex, msg);
 
 #endif // SWIGC
 

@@ -31,9 +31,9 @@ int main() {
     A_foobar(a);
   }
   SWIG_catch(SWIG_AnyException) {
-    if (strcmp(SWIG_exception.msg, "postcatch unknown") != 0) {
+    if (strcmp(SWIG_exc.msg, "postcatch unknown") != 0) {
       fprintf(stderr, "bad exception order\n");
-      SWIG_throw_msg(SWIG_exception.klass, SWIG_exception.msg);
+      SWIG_throw_msg(SWIG_exc.klass, SWIG_exc.msg);
     }
   }
   SWIG_endtry;
