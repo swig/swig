@@ -110,6 +110,13 @@
 }
 #endif
 
+#if 0
+%typemap(directorin) void ""
+%typemap(directorin) int, double, long %{ /* directorin */ $input = $1; %}
+
+%typemap(directorout) int, double, long %{ /* directorout */ $result = ($1_ltype)$input; %}
+#endif
+
 %typemap(combody) SWIGTYPE * %{
 %}
 
