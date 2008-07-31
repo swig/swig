@@ -76,11 +76,6 @@ run_testcase = \
 	  COMSRCS=`$(COM_CYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
 	  com_compile && \
 	  $(RUNTOOL) $(COM_RUNTOOL) $*_runme.exe$(COM_EXEC_SUFFIX); ) \
-	else ( \
-	  cd $* && \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  TARGET='$*.dll' \
-	  COMSRCS='*.c' com_compile; ); \
 	fi;
 
 # Clean: remove testcase directories

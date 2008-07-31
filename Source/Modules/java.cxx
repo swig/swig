@@ -2658,16 +2658,12 @@ public:
     Node *n = enumLookup(t);
     if (n) {
       String *symname = Getattr(n, "sym:name");
-      Printf(stdout, "symname: %s\n", symname);
       if (symname) {
 	// Add in class scope when referencing enum if not a global enum
 	String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
-        Printf(stdout, "scopename_prefix: %s\n", scopename_prefix);
-
 	String *proxyname = 0;
 	if (scopename_prefix) {
 	  proxyname = getProxyName(scopename_prefix);
-          Printf(stdout, "proxyname: %s\n", proxyname);
 	}
 	if (proxyname) {
 	  const char *class_separator = jnidescriptor ? "$" : ".";
@@ -2675,7 +2671,6 @@ public:
 	} else {
 	  enum_name = NewStringf("%s", symname);
 	}
-        Printf(stdout, "enum_name: %s\n", enum_name);
 	Delete(scopename_prefix);
       }
     }
