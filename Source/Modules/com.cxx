@@ -635,6 +635,7 @@ public:
     Parm *p;
     int i;
     String *c_return_type = NewString("");
+    String *cleanup = NewString("");
     bool is_void_return;
     int num_arguments = 0;
     int num_required = 0;
@@ -777,6 +778,23 @@ public:
       emit_return_variable(n, t, f);
     }
 
+    /* Insert cleanup code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:freearg"))) {
+	//addThrows(n, "tmap:freearg", p);
+	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(cleanup, tm, "\n", NIL);
+	p = Getattr(p, "tmap:freearg:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Output cleanup code */
+    Printv(f->code, cleanup, NIL);
+
     Printf(f->def, ") {");
 
     if (!is_void_return)
@@ -816,6 +834,8 @@ public:
       proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
     }
+
+    Delete(cleanup);
 
     return SWIG_OK;
   }
