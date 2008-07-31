@@ -372,6 +372,7 @@ public:
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
+    Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("factory", f_factory);
 
@@ -1114,7 +1115,7 @@ public:
         *Char(wanted_base) ? wanted_base : "", " {", NIL);
  */
     Printv(proxy_class_def, "),\n    dual\n  ]\n  interface $comclassname : ",
-        *Char(wanted_base) ? wanted_base : "IDispatch", " {", NIL);
+        *Char(wanted_base) ? wanted_base : "IDispatch", " {\n", NIL);
 
     Delete(attributes);
 
