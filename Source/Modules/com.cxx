@@ -931,7 +931,6 @@ public:
     variable_name = Getattr(n, "sym:name");
     wrapping_member_flag = true;
     Language::memberconstantHandler(n);
-    constantWrapper(n);
     wrapping_member_flag = false;
 
     return SWIG_OK;

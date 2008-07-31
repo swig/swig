@@ -14,6 +14,7 @@
 %typemap(ctype) SWIGTYPE * "/* ctype */ SWIGIUnknown *"
 %typemap(ctype) SWIGTYPE "/* ctype */ SWIGIUnknown *"
 %typemap(ctype) SWIGTYPE & "/* ctype */ SWIGIUnknown *"
+%typemap(ctype) enum SWIGTYPE "/* ctype */ int"
 
 %typemap(comtype) void "void"
 %typemap(comtype) int, const int & "/* comtype */ int"
@@ -23,6 +24,7 @@
 %typemap(comtype) SWIGTYPE "/* comtype */ $&comclassname *"
 %typemap(comtype) SWIGTYPE & "/* comtype */ $comclassname *"
 %typemap(comtype) SWIGTYPE *& "/* comtype */ $*comclassname *"
+%typemap(comtype) enum SWIGTYPE "/* comtype */ int"
 
 %typemap(in) int, double, long %{ /* in */ $1 = ($1_ltype)$input; %}
 
@@ -88,6 +90,8 @@
   $1 = *argp;
 %}
 
+%typemap(in) enum SWIGTYPE %{ /* in */ $1 = ($1_ltype)$input; %}
+
 %typemap(out) int, double, long %{ /* out */ $result = $1; %}
 %typemap(out) void ""
 
@@ -109,6 +113,8 @@
   $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1ptr, 1);
 }
 #endif
+
+%typemap(out) enum SWIGTYPE %{ /* out */ $result = $1; %}
 
 #if 0
 %typemap(directorin) void ""
