@@ -839,6 +839,32 @@ public:
     return ret;
   }
 
+  /* -----------------------------------------------------------------------
+   * constantWrapper()
+   * ------------------------------------------------------------------------ */
+
+  virtual int constantWrapper(Node *n) {
+
+    generate_property_declaration_flag = true;
+    variable_wrapper_flag = true;
+
+    if (!wrapping_member_flag) {
+      global_variable_flag = true;
+      variable_name = Getattr(n, "sym:name");
+    } else {
+      static_flag = true;
+    }
+
+    int ret = Language::variableWrapper(n);
+
+    global_variable_flag = false;
+    static_flag = false;
+    variable_wrapper_flag = false;
+    generate_property_declaration_flag = false;
+
+    return ret;
+  }
+
   /* ----------------------------------------------------------------------
    * memberfunctionHandler()
    * ---------------------------------------------------------------------- */
@@ -892,6 +918,21 @@ public:
     wrapping_member_flag = false;
     static_flag = false;
     generate_property_declaration_flag = false;
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * memberconstantHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int memberconstantHandler(Node *n) {
+
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    Language::memberconstantHandler(n);
+    constantWrapper(n);
+    wrapping_member_flag = false;
 
     return SWIG_OK;
   }
@@ -1473,7 +1514,7 @@ public:
 
     if (proxy_flag) {
         for (Iterator func = First(proxy_class_member_functions); func.item; func = Next(func)) {
-          Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr)%s", func.item);
+          Printf(proxy_class_vtable_code, ",\n  (SWIG_funcptr) %s", func.item);
         }
 
       emitProxyClassDefAndCPPCasts(n);
