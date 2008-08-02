@@ -1109,7 +1109,7 @@ public:
             String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
             String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
             Swig_warning(WARN_COM_MULTIPLE_INHERITANCE, input_file, line_number,
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in COM.\n", proxyclassname, baseclassname);
             base = Next(base);
           }
         }
@@ -1139,6 +1139,7 @@ public:
 
     Delete(attributes);
 
+#if 0
     // FIXME: temporary
     Printv(proxy_class_def, typemapLookup("combody", typemap_lookup_type, WARN_NONE),
 	   NIL);
@@ -1146,6 +1147,7 @@ public:
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup("comcode", typemap_lookup_type, WARN_NONE),
 	   NIL);
+#endif
 
     // Substitute various strings into the above template
     Replaceall(proxy_class_code, "$comclassname", proxy_class_name);

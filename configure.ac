@@ -2645,8 +2645,8 @@ case $host in
 esac
 
 if test "widl" = "$COM_IDL" ; then
-  COM_IDL_SWITCHES=-t
-  COM_IDL_HEADER_SWITCHES='-h -H'
+  COM_IDL_SWITCHES='-I /usr/include/wine/windows -t'
+  COM_IDL_HEADER_SWITCHES='-I /usr/include/wine/windows -h -H'
 elif test "midl" = "$COM_IDL" ; then
   COM_IDL_SWITCHES=
   COM_IDL_HEADER_SWITCHES='/notlb /h'
