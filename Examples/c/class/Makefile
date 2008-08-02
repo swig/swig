@@ -10,10 +10,10 @@ MEMTOOL    = valgrind --leak-check=full
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c_cpp
-
-run:
 	$(MAKE) -f $(TOP)/Makefile RUNME='$(RUNME)' PROXY='$(PROXY)' \
 	TARGET='$(TARGET)' c_compile
+
+run:
 	env LD_LIBRARY_PATH=. ./runme
 
 memchk:
