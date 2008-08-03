@@ -174,6 +174,7 @@ class COM:public Language {
   bool dllexports_flag;
   bool deffile_flag;
   bool rcfile_flag;
+  bool hresult_flag;            // Flag specifying whether to use HRESULT as return type
   bool enum_constant_flag;	// Flag for when wrapping an enum or constant
   bool static_flag;		// Flag for when wrapping a static functions or member variables
   bool variable_wrapper_flag;	// Flag for when wrapping a nonstatic member variable
@@ -226,6 +227,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   COM():empty_string(NewString("")),
+      hresult_flag(true),
       proxy_flag(true),
       deffile_flag(true),
       rcfile_flag(true),
@@ -668,7 +670,12 @@ public:
     if (!is_void_return)
       Wrapper_add_localv(f, "jresult", c_return_type, "jresult", NIL);
 
-    Printv(f->def, c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
+    if (hresult_flag) {
+      Wrapper_add_localv(f, "hres", "HRESULT", "hres", NIL);
+      Printv(f->def, "HRESULT SWIGSTDCALL ", wname, "(", NIL);
+    } else {
+      Printv(f->def, c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
+    }
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -737,6 +744,11 @@ public:
       Delete(arg);
     }
 
+    if (!is_void_return && hresult_flag) {
+      Printv(f->def, gencomma ? ", " : "", c_return_type, " *SWIG_result_ptr", NIL);
+      gencomma = 1;
+    }
+
     String *null_attribute = 0;
     // Now write code to make the function call
     /* FIXME: if (!native_function_flag) */ {
@@ -757,10 +769,14 @@ public:
 
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-	// FIXME: canThrow(n, "out", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
-	Replaceall(tm, "$target", "jresult");	/* deprecated */
-	Replaceall(tm, "$result", "jresult");
+        if (!hresult_flag) {
+	  Replaceall(tm, "$target", "jresult");	/* deprecated */
+	  Replaceall(tm, "$result", "jresult");
+        } else {
+	  Replaceall(tm, "$target", "*SWIG_result_ptr");	/* deprecated */
+	  Replaceall(tm, "$result", "*SWIG_result_ptr");
+        }
 
         if (GetFlag(n, "feature:new"))
           Replaceall(tm, "$owner", "1");
@@ -798,8 +814,10 @@ public:
 
     Printf(f->def, ") {");
 
-    if (!is_void_return)
+    if (!is_void_return && !hresult_flag)
       Printv(f->code, "    return jresult;\n", NIL);
+    if (hresult_flag)
+      Printv(f->code, "    return S_OK;\n", NIL);
     Printf(f->code, "}\n");
 
     if (!is_void_return)
@@ -991,6 +1009,7 @@ public:
     int i;
     String *func_name = NULL;
     bool setter_flag = false;
+    bool is_void_return;
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -1015,6 +1034,8 @@ public:
       Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    is_void_return = (Cmp(return_type, "void") == 0);
+
     if (proxy_flag && global_variable_flag) {
       func_name = NewString("");
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
@@ -1030,7 +1051,11 @@ public:
       func_name = Getattr(n, "sym:name");
     }
 
-    Printf(function_code, "    %s %s(", return_type, func_name);
+    if (hresult_flag) {
+      Printf(function_code, "    HRESULT %s(", func_name);
+    } else {
+      Printf(function_code, "    %s %s(", return_type, func_name);
+    }
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
@@ -1069,6 +1094,11 @@ public:
       p = Getattr(p, "tmap:in:next");
       Delete(arg);
       Delete(param_type);
+    }
+
+    if (hresult_flag && !is_void_return) {
+      Printv(function_code, gencomma ? ", " : "", "[ retval, out ] ", return_type, " *SWIG_result_ptr", NIL);
+      gencomma = 2;
     }
 
     Printf(function_code, ");\n");
@@ -1674,6 +1704,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    bool is_void_return;
 
     if (!proxy_flag)
       return;
@@ -1726,6 +1757,8 @@ public:
       Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    is_void_return = (Cmp(return_type, "void") == 0);
+
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
@@ -1739,7 +1772,11 @@ public:
 
 
     /* Start generating the proxy function */
-    Printf(function_code, "    %s %s(", return_type, proxy_function_name);
+    if (hresult_flag) {
+      Printf(function_code, "    HRESULT %s(", proxy_function_name);
+    } else {
+      Printf(function_code, "    %s %s(", return_type, proxy_function_name);
+    }
 
     emit_mark_varargs(l);
 
@@ -1787,6 +1824,11 @@ public:
 	Delete(param_type);
       }
       p = Getattr(p, "tmap:in:next");
+    }
+
+    if (hresult_flag && !is_void_return) {
+      Printv(function_code, (gencomma >= 2) ? ", " : "", "[ retval, out ] ", return_type, " *SWIG_result_ptr", NIL);
+      gencomma = 2;
     }
 
     Printf(function_code, ")");

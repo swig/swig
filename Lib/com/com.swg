@@ -252,7 +252,7 @@
                   SWIGTYPE[],
                   SWIGTYPE[ANY]
 %{
-  return $null;
+  return E_ABORT;
 %}
 
 
