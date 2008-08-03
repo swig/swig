@@ -66,6 +66,25 @@
              double
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(in) const bool & ($*1_ltype temp)
+%{ temp = $input ? true : false; 
+   $1 = &temp; %}
+
+%typemap(in) const char & ($*1_ltype temp), 
+             const signed char & ($*1_ltype temp), 
+             const unsigned char & ($*1_ltype temp), 
+             const short & ($*1_ltype temp), 
+             const unsigned short & ($*1_ltype temp), 
+             const int & ($*1_ltype temp), 
+             const unsigned int & ($*1_ltype temp), 
+             const long & ($*1_ltype temp), 
+             const unsigned long & ($*1_ltype temp), 
+             const long long & ($*1_ltype temp), 
+             const float & ($*1_ltype temp), 
+             const double & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+
 %typemap(in) void ""
 
 %typemap(in) SWIGTYPE * %{
@@ -132,27 +151,43 @@
 
 %typemap(in) enum SWIGTYPE %{ $1 = ($1_ltype)$input; %}
 
-%typemap(out) bool               %{ $result = (unsigned int) $1; %}
-%typemap(out) char               %{ $result = $1; %}
-%typemap(out) signed char        %{ $result = $1; %}
-%typemap(out) unsigned char      %{ $result = $1; %}
-%typemap(out) short              %{ $result = $1; %}
-%typemap(out) unsigned short     %{ $result = $1; %}
-%typemap(out) int                %{ $result = $1; %}
-%typemap(out) unsigned int       %{ $result = $1; %}
-%typemap(out) long               %{ $result = $1; %}
-%typemap(out) unsigned long      %{ $result = $1; %}
-%typemap(out) long long          %{ $result = $1; %}
-%typemap(out) unsigned long long %{ $result = $1; %}
-%typemap(out) float              %{ $result = $1; %}
-%typemap(out) double             %{ $result = $1; %}
+%typemap(out) bool,
+              char, 
+              signed char, 
+              unsigned char, 
+              short, 
+              unsigned short, 
+              int, 
+              unsigned int, 
+              long, 
+              unsigned long, 
+              long long, 
+              unsigned long long, 
+              float, 
+              double
+%{ $result = $1; %}
+
+%typemap(out) const bool &, 
+              const char &, 
+              const signed char &, 
+              const unsigned char &, 
+              const short &, 
+              const unsigned short &, 
+              const int &, 
+              const unsigned int &, 
+              const long &, 
+              const unsigned long &, 
+              const long long &, 
+              const float &, 
+              const double &
+%{ $result = *$1; %}
 
 %typemap(out) void ""
 
-%typemap(ctype) char * "WCHAR *"
-%typemap(comtype) char * "BSTR"
+%typemap(ctype) char *, char[], char[ANY] "WCHAR *"
+%typemap(comtype) char *, char[], char[ANY] "BSTR"
 
-%typemap(in) char * {
+%typemap(in) char *, char[], char[ANY] {
   if ($input) {
     int SWIG_len = WideCharToMultiByte(CP_ACP, 0, $input, -1, 0, 0, 0, 0);
     $1 = (char *) malloc(SWIG_len);
@@ -160,13 +195,13 @@
   }
 }
 
-%typemap(freearg) char * {
+%typemap(freearg) char *, char[], char[ANY] {
   if ($input) {
     free($1);
   }
 }
 
-%typemap(out) char * %{
+%typemap(out) char *, char[], char[ANY] %{
   if ($1) {
     int SWIG_len = MultiByteToWideChar(CP_ACP, 0, $1, -1, 0, 0);
     WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
@@ -197,6 +232,29 @@
 #endif
 
 %typemap(out) enum SWIGTYPE %{ $result = $1; %}
+
+%typemap(throws)  char, 
+                  signed char, 
+                  unsigned char, 
+                  short, 
+                  unsigned short, 
+                  int, 
+                  unsigned int, 
+                  long, 
+                  unsigned long, 
+                  long long, 
+                  unsigned long long, 
+                  float, 
+                  double,
+                  SWIGTYPE *,
+                  SWIGTYPE &,
+                  SWIGTYPE,
+                  SWIGTYPE[],
+                  SWIGTYPE[ANY]
+%{
+  return $null;
+%}
+
 
 %insert("runtime") %{
 
