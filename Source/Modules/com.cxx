@@ -1421,7 +1421,8 @@ public:
       while (bases) {
         Iterator base = First(bases);
 
-        Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+        if (!Getattr(base.item, "feature:ignore"))
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
 
         /* Get next base */
         bases = Getattr(base.item, "bases");
@@ -1485,7 +1486,8 @@ public:
       while (bases) {
         Iterator base = First(bases);
 
-        Printf(proxy_class_vtable_code, " ||\n      SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+        if (!Getattr(base.item, "feature:ignore"))
+          Printf(proxy_class_vtable_code, " ||\n      SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
 
         /* Get next base */
         bases = Getattr(base.item, "bases");

@@ -8,7 +8,7 @@
 
 %import "import_nomodule.h"
 
-#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN)
+#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGCOM) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN)
 
 /**
  * The proxy class does not have Bar derived from Foo, yet an instance of Bar
