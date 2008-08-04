@@ -23,6 +23,7 @@
 %typemap(ctype) double,             const double &             "double"
 %typemap(ctype) void                                           "void"
 %typemap(ctype) SWIGTYPE * "SWIGIUnknown *"
+%typemap(ctype) SWIGTYPE (CLASS::*) "SWIGIUnknown *"
 %typemap(ctype) SWIGTYPE "SWIGIUnknown *"
 %typemap(ctype) SWIGTYPE & "SWIGIUnknown *"
 %typemap(ctype) enum SWIGTYPE "int"
@@ -43,6 +44,7 @@
 %typemap(comtype) double,             const double &             "double"
 %typemap(comtype) void                                           "void"
 %typemap(comtype) SWIGTYPE * "$comclassname *"
+%typemap(comtype) SWIGTYPE (CLASS::*) "$comclassname *"
 %typemap(comtype) SWIGTYPE "$&comclassname *"
 %typemap(comtype) SWIGTYPE & "$comclassname *"
 %typemap(comtype) SWIGTYPE *& "$*comclassname *"
@@ -87,7 +89,7 @@
 
 %typemap(in) void ""
 
-%typemap(in) SWIGTYPE * %{
+%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{
   {
     SWIGIUnknown *wrapper;
 
@@ -99,7 +101,8 @@
       /* Argument was not wrapped by SWIG - directors will be needed */
     } else {
       /* GetCPtr */
-      $1 = ($1_ltype) ((void * (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
+      void *c_ptr = ((void * (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[3]))(wrapper);
+      $1 = *($&1_ltype) &c_ptr;
 
       /* Release */
       ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
@@ -212,8 +215,8 @@
   }
 %}
 
-%typemap(out) SWIGTYPE * %{
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname((void *) $1, $owner);
+%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*) %{
+  $result = (SWIGIUnknown *) SWIG_wrap$comclassname(*(void **) &$1, $owner);
 %}
 
 %typemap(out) SWIGTYPE & %{
@@ -252,7 +255,7 @@
                   SWIGTYPE[],
                   SWIGTYPE[ANY]
 %{
-  return E_ABORT;
+  return $null;
 %}
 
 
@@ -264,6 +267,8 @@
 
 #include <string.h>
 #include <memory.h>
+
+#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) { return nullreturn; } else
 
 typedef void (SWIGSTDCALL *SWIG_funcptr)(void);
 

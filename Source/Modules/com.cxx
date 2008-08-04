@@ -820,7 +820,12 @@ public:
       Printv(f->code, "    return S_OK;\n", NIL);
     Printf(f->code, "}\n");
 
-    if (!is_void_return)
+    /* Contract macro modification */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
+    if (hresult_flag)
+      Replaceall(f->code, "$null", "E_ABORT");
+    else if (!is_void_return)
       Replaceall(f->code, "$null", "0");
     else
       Replaceall(f->code, "$null", "");
@@ -1606,7 +1611,12 @@ public:
 
       if (Getattr(n, "has_destructor")) {
         Printf(proxy_class_vtable_code, "void SWIG_delete_%s(%s *arg) {\n"
-            "  delete arg;\n}\n\n", proxy_class_name, Getattr(n, "classtype"));
+            "#ifdef __cplusplus\n"
+            "  delete arg;\n"
+            "#else\n"
+            "  free(arg);\n"
+            "#endif\n"
+            "}\n\n", proxy_class_name, Getattr(n, "classtype"));
       }
 
       Printf(proxy_class_vtable_code, "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn) {\n"
