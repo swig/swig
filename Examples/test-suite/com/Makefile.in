@@ -65,7 +65,7 @@ unregister_component = \
 
 # Generates headers from the IDL file
 generate_headers = \
-	$(COMPILETOOL) $(COM_IDL) $(COM_IDL_HEADER_SWITCHES) $*.h $*/$*.idl;
+	$(COMPILETOOL) $(COM_IDL) $(COM_IDL_HEADER_SWITCHES) $*/$*.h $*/$*.idl;
 
 # Compiles COM files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.c appended after the testcase name.

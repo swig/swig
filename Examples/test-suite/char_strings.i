@@ -10,6 +10,7 @@ below.
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) global_const_char;  // Setting a const char * variable may leak memory.
 
 %{
+#include <stdio.h>
 #define OTHERLAND_MSG "Little message from the safe world."
 #define CPLUSPLUS_MSG "A message from the deep dark world of C++, where anything is possible."
 static char *global_str = NULL;

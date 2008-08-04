@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <initguid.h>
-#include "virtual_poly.h"
+#include "virtual_poly/virtual_poly.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
   virtual_poly *vp = NULL;
