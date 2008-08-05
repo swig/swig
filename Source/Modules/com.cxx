@@ -644,6 +644,7 @@ public:
     int i;
     String *c_return_type = NewString("");
     String *cleanup = NewString("");
+    String *outarg = NewString("");
     bool is_void_return;
     int num_arguments = 0;
     int num_required = 0;
@@ -732,7 +733,6 @@ public:
 
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
-	// FIXME: canThrow(n, "in", p);
 	Replaceall(tm, "$source", arg);	/* deprecated */
 	Replaceall(tm, "$target", ln);	/* deprecated */
 	Replaceall(tm, "$arg", arg);	/* deprecated? */
@@ -813,6 +813,24 @@ public:
       }
     }
 
+    /* Insert argument output code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
+	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
+	Replaceall(tm, "$result", "jresult");
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(outarg, tm, "\n", NIL);
+	p = Getattr(p, "tmap:argout:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Output argument output code */
+    Printv(f->code, outarg, NIL);
+
     /* Output cleanup code */
     Printv(f->code, cleanup, NIL);
 
@@ -869,6 +887,7 @@ public:
     }
 
     Delete(cleanup);
+    Delete(outarg);
 
     return SWIG_OK;
   }
@@ -1085,6 +1104,12 @@ public:
 
       /* Get the COM parameter type */
       if ((tm = Getattr(p, "tmap:comtype"))) {
+        /* Check if we should set any special attributes */
+        String *tm_attr;
+        if (tm_attr = Getattr(p, "tmap:comptype:attribute")) {
+          Printf(param_type, "[ %s ] ", tm_attr);
+        }
+
 	substituteClassname(pt, tm);
 	Printf(param_type, "%s", tm);
       } else {
@@ -1758,7 +1783,6 @@ public:
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms("in", l, NULL);
     Swig_typemap_attach_parms("comtype", l, NULL);
-    // FIXME: Swig_typemap_attach_parms("javain", l, NULL);
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup("comtype", n, "", 0))) {
@@ -1821,6 +1845,12 @@ public:
 
 	/* Get the COM parameter type */
 	if ((tm = Getattr(p, "tmap:comtype"))) {
+          /* Check if we should set any special attributes */
+          String *tm_attr;
+          if (tm_attr = Getattr(p, "tmap:comtype:attribute")) {
+            Printf(param_type, "[ %s ] ", tm_attr);
+          }
+
 	  substituteClassname(pt, tm);
 	  Printf(param_type, "%s", tm);
 	} else {
