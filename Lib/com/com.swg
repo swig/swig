@@ -82,6 +82,7 @@
              const long & ($*1_ltype temp), 
              const unsigned long & ($*1_ltype temp), 
              const long long & ($*1_ltype temp), 
+             const unsigned long long & ($*1_ltype temp), 
              const float & ($*1_ltype temp), 
              const double & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
@@ -181,6 +182,7 @@
               const long &, 
               const unsigned long &, 
               const long long &, 
+              const unsigned long long &, 
               const float &, 
               const double &
 %{ $result = *$1; %}
