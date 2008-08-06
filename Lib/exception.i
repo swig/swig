@@ -212,6 +212,13 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 
 #endif // SWIGLUA
 
+#ifdef SWIGCOM
+
+#define SWIG_exception(code, msg)\
+{ return $null; }
+
+#endif // SWIGCOM
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception

@@ -217,6 +217,34 @@
   }
 %}
 
+%typemap(ctype) wchar_t *, wchar_t[], wchar_t[ANY] "WCHAR *"
+%typemap(comtype) wchar_t *, wchar_t[], wchar_t[ANY] "BSTR"
+
+%typemap(in) wchar_t *, wchar_t[], wchar_t[ANY] {
+  if ($input) {
+    int SWIG_len = wcslen($input) + 1;
+    $1 = ($1_ltype) malloc(SWIG_len * sizeof(wchar_t));
+    wcsncpy($1, $input, SWIG_len);
+  }
+}
+
+%typemap(freearg) wchar_t *, wchar_t[], wchar_t[ANY] {
+  if ($input) {
+    free($1);
+  }
+}
+
+%typemap(out) wchar_t *, wchar_t[], wchar_t[ANY] %{
+  if ($1) {
+    int SWIG_len = wcslen((wchar_t *) $1) + 1;
+    WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
+    /* First 4 bytes contain length in bytes */
+    *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
+    wcsncpy(SWIG_res + 2, $1, SWIG_len);
+    $result = SWIG_res + 2;
+  }
+%}
+
 %typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*) %{
   $result = (SWIGIUnknown *) SWIG_wrap$comclassname(*(void **) &$1, $owner);
 %}
@@ -260,6 +288,8 @@
   return $null;
 %}
 
+%apply unsigned long { size_t };
+%apply const unsigned long & { const size_t & };
 
 %insert("runtime") %{
 

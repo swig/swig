@@ -81,6 +81,7 @@ see bottom for a set of possible tests
 #endif
 
 #include <assert.h>
+#include <stdio.h>
 
 class Op {
 public:
