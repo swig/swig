@@ -1455,11 +1455,16 @@ public:
       while (bases) {
         Iterator base = First(bases);
 
-        if (!Getattr(base.item, "feature:ignore"))
-          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+        while (base.item && Getattr(base.item, "feature:ignore"))
+          base = Next(base);
 
-        /* Get next base */
-        bases = Getattr(base.item, "bases");
+        if (base.item) {
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+          /* Get next base */
+          bases = Getattr(base.item, "bases");
+        } else {
+          bases = NULL;
+        }
       }
 
       Printf(proxy_class_vtable_code, ") {\n"
@@ -1520,11 +1525,16 @@ public:
       while (bases) {
         Iterator base = First(bases);
 
-        if (!Getattr(base.item, "feature:ignore"))
-          Printf(proxy_class_vtable_code, " ||\n      SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+        while (base.item && Getattr(base.item, "feature:ignore"))
+          base = Next(base);
 
-        /* Get next base */
-        bases = Getattr(base.item, "bases");
+        if (base.item) {
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+          /* Get next base */
+          bases = Getattr(base.item, "bases");
+        } else {
+          bases = NULL;
+        }
       }
 
       Printf(proxy_class_vtable_code, ") {\n"
@@ -1820,7 +1830,6 @@ public:
 
     emit_mark_varargs(l);
 
-    // FIXME: int gencomma = !static_flag;
     int gencomma = 1;
 
     /* Output each parameter */
@@ -1879,7 +1888,6 @@ public:
 
     Printf(function_code, ")");
 
-    // FIXME: generateThrowsClause(n, function_code);
     Printv(function_code, ";\n", NIL);
 
     if (!Getattr(n, "override")) {
@@ -2390,5 +2398,5 @@ COM Options (available with -com)\n\
      -norcfile       - Do not generate RC (resource definition) file\n\
      -nodeffile      - Do not generate DEF file\n\
      -nodllexports   - Do not generate DllGetClassObject and DllCanUnloadNow\n\
-                       (implicates -nodeffile)\n\
+                       (implies -nodeffile)\n\
 \n";
