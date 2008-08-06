@@ -239,6 +239,13 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
 { SWIG_DThrowException(code, msg); return $null; }
 #endif // SWIGD
 
+#ifdef SWIGCOM
+
+#define SWIG_exception(code, msg)\
+{ return $null; }
+
+#endif // SWIGCOM
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
