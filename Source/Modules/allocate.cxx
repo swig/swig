@@ -61,10 +61,15 @@ class Allocate:public Dispatcher {
   Node *inclass;
   int extendmode;
 
-  /* Checks if a function, n, is the same as any in the base class, ie if the method is polymorphic.
-   * Also checks for methods which will be hidden (ie a base has an identical non-virtual method).
-   * Both methods must have public access for a match to occur. */
-  int function_is_defined_in_bases(Node *n, Node *bases) {
+  /* Checks if a function is virtual - either directly or by inheritance. This
+   * decision is based only on the wrapped file, i.e. it is completely independent
+   * of %rename and %ignore directives. */
+  int function_is_virtual(Node *n, Node *bases) {
+    if (checkAttribute(n, "storage", "virtual"))
+      return 1;
+
+    if (checkAttribute(n, "storage", "static"))
+      return 0;
 
     if (!bases)
       return 0;
@@ -86,7 +91,7 @@ class Allocate:public Dispatcher {
 	  // Loop through all the %extend methods
 	  Node *extend = firstChild(base);
 	  while (extend) {
-	    if (function_is_defined_in_bases_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
+	    if (function_is_virtual_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
 	      Delete(resolved_decl);
 	      return 1;
 	    }
@@ -96,7 +101,7 @@ class Allocate:public Dispatcher {
 	  // Loop through all the using declaration methods
 	  Node *usingdecl = firstChild(base);
 	  while (usingdecl) {
-	    if (function_is_defined_in_bases_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
+	    if (function_is_virtual_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
 	      Delete(resolved_decl);
 	      return 1;
 	    }
@@ -104,7 +109,7 @@ class Allocate:public Dispatcher {
 	  }
 	} else {
 	  // normal methods
-	  if (function_is_defined_in_bases_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
+	  if (function_is_virtual_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
 	    Delete(resolved_decl);
 	    return 1;
 	  }
@@ -116,6 +121,156 @@ class Allocate:public Dispatcher {
     resolved_decl = 0;
     for (int j = 0; j < Len(bases); j++) {
       Node *b = Getitem(bases, j);
+      if (function_is_virtual(n, Getattr(b, "allbases")))
+	return 1;
+    }
+    return 0;
+  }
+
+  /* Helper function for function_is_virtual */
+  int function_is_virtual_seek(Node *n, Node *b, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
+
+    String *base_decl = Getattr(base, "decl");
+    SwigType *base_type = Getattr(base, "type");
+    if (base_decl && base_type) {
+      bool is_same_name = checkAttribute(base, "name", name);
+
+      if (is_same_name) {
+	if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
+	  // We have found a method that has the same name as one in a base class
+	  bool covariant_returntype = false;
+	  bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
+	  bool decl_match = Strcmp(base_decl, this_decl) == 0 ? true : false;
+	  if (returntype_match && decl_match) {
+	    // Exact match - we have found a method with identical signature
+	    // No typedef resolution was done, but skipping it speeds things up slightly
+	  } else {
+	    // Either we have:
+	    //  1) matching methods but are one of them uses a different typedef (return type or parameter) to the one in base class' method
+	    //  2) matching polymorphic methods with covariant return type
+	    //  3) a non-matching method (ie an overloaded method of some sort)
+	    //  4) a matching method which is not polymorphic, ie it hides the base class' method
+
+	    // Check if fully resolved return types match (including
+	    // covariant return types)
+	    if (!returntype_match) {
+	      String *this_returntype = function_return_type(n);
+	      String *base_returntype = function_return_type(base);
+	      returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
+	      if (!returntype_match) {
+		covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
+		returntype_match = covariant_returntype;
+	      }
+	      Delete(this_returntype);
+	      Delete(base_returntype);
+	    }
+	    // The return types must match at this point, for the whole method to match
+	    if (returntype_match && !decl_match) {
+	      // Now need to check the parameter list
+	      // First do an inexpensive parameter count
+	      ParmList *this_parms = Getattr(n, "parms");
+	      ParmList *base_parms = Getattr(base, "parms");
+	      if (ParmList_len(this_parms) == ParmList_len(base_parms)) {
+		// Number of parameters are the same, now check that all the parameters match
+		SwigType *base_fn = NewString("");
+		SwigType *this_fn = NewString("");
+		SwigType_add_function(base_fn, base_parms);
+		SwigType_add_function(this_fn, this_parms);
+		base_fn = SwigType_typedef_resolve_all(base_fn);
+		this_fn = SwigType_typedef_resolve_all(this_fn);
+		if (Strcmp(base_fn, this_fn) == 0) {
+		  // Finally check that the qualifiers match
+		  int base_qualifier = SwigType_isqualifier(resolved_decl);
+		  int this_qualifier = SwigType_isqualifier(base_decl);
+		  if (base_qualifier == this_qualifier) {
+		    decl_match = true;
+		  }
+		}
+		Delete(base_fn);
+		Delete(this_fn);
+	      }
+	    }
+	  }
+	  //Printf(stderr,"look %s %s %d %d\n",base_decl, this_decl, returntype_match, decl_match);
+
+	  if (decl_match && returntype_match) {
+            if (checkAttribute(base, "storage", "virtual")) {
+              // The method in the subclass is virtual regardless of access
+              Setattr(n, "storage", "virtual");
+              return 1;
+	    }
+	  }
+	}
+      }
+    }
+    return 0;
+  }
+
+  /* Checks if a function, n, is the same as any in the base class, ie if the method is polymorphic.
+   * Also checks for methods which will be hidden (ie a base has an identical non-virtual method).
+   * Both methods must have public access for a match to occur. */
+  int function_is_defined_in_bases(Node *n, Node *bases) {
+
+    if (!bases)
+      return 0;
+
+    String *this_decl = Getattr(n, "decl");
+    if (!this_decl)
+       return 0;
+
+    String *symname = Getattr(n, "sym:name");
+    String *this_type = Getattr(n, "type");
+    String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
+
+    // Search all base classes for methods with same signature
+    for (int i = 0; i < Len(bases); i++) {
+      Node *b = Getitem(bases, i);
+      Node *base = firstChild(b);
+
+      // Check if the complete base class is ignored
+      if (Getattr(b, "feature:ignore"))
+        continue;
+
+      while (base) {
+	if (Strcmp(nodeType(base), "extend") == 0) {
+	  // Loop through all the %extend methods
+	  Node *extend = firstChild(base);
+	  while (extend) {
+	    if (function_is_defined_in_bases_seek(n, b, extend, this_decl, symname, this_type, resolved_decl)) {
+	      Delete(resolved_decl);
+	      return 1;
+	    }
+	    extend = nextSibling(extend);
+	  }
+	} else if (Strcmp(nodeType(base), "using") == 0) {
+	  // Loop through all the using declaration methods
+	  Node *usingdecl = firstChild(base);
+	  while (usingdecl) {
+	    if (function_is_defined_in_bases_seek(n, b, usingdecl, this_decl, symname, this_type, resolved_decl)) {
+	      Delete(resolved_decl);
+	      return 1;
+	    }
+	    usingdecl = nextSibling(usingdecl);
+	  }
+	} else {
+	  // normal methods
+	  if (function_is_defined_in_bases_seek(n, b, base, this_decl, symname, this_type, resolved_decl)) {
+	    Delete(resolved_decl);
+	    return 1;
+	  }
+	}
+	base = nextSibling(base);
+      }
+    }
+    Delete(resolved_decl);
+    resolved_decl = 0;
+    for (int j = 0; j < Len(bases); j++) {
+      Node *b = Getitem(bases, j);
+
+      // Check if the complete base class is ignored
+      if (Getattr(b, "feature:ignore"))
+        continue;
+
       if (function_is_defined_in_bases(n, Getattr(b, "allbases")))
 	return 1;
     }
@@ -123,12 +278,15 @@ class Allocate:public Dispatcher {
   }
 
   /* Helper function for function_is_defined_in_bases */
-  int function_is_defined_in_bases_seek(Node *n, Node *b, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
+  int function_is_defined_in_bases_seek(Node *n, Node *b, Node *base, String *this_decl, String *symname, String *this_type, String *resolved_decl) {
 
     String *base_decl = Getattr(base, "decl");
     SwigType *base_type = Getattr(base, "type");
     if (base_decl && base_type) {
-      if (checkAttribute(base, "name", name) && !GetFlag(b, "feature:ignore") /* whole class is ignored */ ) {
+      bool is_same_name = checkAttribute(base, "name", Getattr(n, "name"));
+      bool is_same_symname = checkAttribute(base, "sym:name", symname);
+
+      if (is_same_symname && !Getattr(base, "feature:ignore")) {
 	if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
 	  // We have found a method that has the same name as one in a base class
 	  bool covariant_returntype = false;
@@ -194,13 +352,12 @@ class Allocate:public Dispatcher {
 	    bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
 	    bool both_have_private_access = is_private(n) && is_private(base);
 	    if (checkAttribute(base, "storage", "virtual")) {
-	      // Found a polymorphic method.
-	      // Mark the polymorphic method, in case the virtual keyword was not used.
-	      Setattr(n, "storage", "virtual");
-
-	      if (both_have_public_access || both_have_protected_access) {
+	      if ((both_have_public_access || both_have_protected_access)) {
 		if (!is_non_public_base(inclass, b))
-		  Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
+		  if (is_same_name) // Set 'override' only if the functions had the same name in the C++ code
+		    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
+		  else
+		    Setattr(n, "hides", base);
 	      } else if (!both_have_private_access) {
 		// Different access
 		if (this_wrapping_protected_members || base_wrapping_protected_members)
@@ -297,6 +454,9 @@ class Allocate:public Dispatcher {
       int old_mode = virtual_elimination_mode;
       if (is_member_director(classnode, member))
 	virtual_elimination_mode = 0;
+
+      /* Add 'virtual' storage modifier where necessary */
+      function_is_virtual(member, bases);
 
       if (function_is_defined_in_bases(member, bases)) {
 	defined = 1;
