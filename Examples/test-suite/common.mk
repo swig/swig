@@ -250,6 +250,7 @@ CPP_TEST_CASES += \
 	inherit_same_name \
 	inherit_same_name2 \
 	inherit_same_name3 \
+	inherit_same_name4 \
 	inherit_target_language \
 	inherit_void_arg \
 	inline_initializer \
