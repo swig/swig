@@ -100,8 +100,6 @@ static int have_constructor = 0;
 static int have_destructor = 0;
 static int have_data_members = 0;
 static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
-static String *real_classname = 0;	/* Real name of C/C++ class */
-static String *fullclassname = 0;
 
 static String *pcode = 0;	/* Perl code associated with each class */
 						  /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
@@ -1186,6 +1184,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
+    String *name = 0; /* Real name of C/C++ class */
+    String *fullclassname = 0;
 
     if (blessed) {
       have_constructor = 0;
@@ -1205,7 +1205,7 @@ public:
       } else {
 	fullclassname = NewString(class_name);
       }
-      real_classname = Getattr(n, "name");
+      name = Getattr(n, "name");
       pcode = NewString("");
       // blessedmembers = NewString("");
     }
@@ -1217,7 +1217,7 @@ public:
     /* Finish the rest of the class */
     if (blessed) {
       /* Generate a client-data entry */
-      SwigType *ct = NewStringf("p.%s", real_classname);
+      SwigType *ct = NewStringf("p.%s", name);
       Printv(f_init, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct), ", (void*) \"", fullclassname, "\");\n", NIL);
       SwigType_remember(ct);
       Delete(ct);
