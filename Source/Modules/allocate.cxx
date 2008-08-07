@@ -392,7 +392,13 @@ class Allocate:public Dispatcher {
 	    }
 	    if (both_have_public_access || both_have_protected_access)
 	      return 1;
+	  } else if (is_public(base) && is_public(n) && !is_non_public_base(inclass, b)) {
+	    // The name is being overloaded - mark it
+	    Setattr(n, "overloads_base", base);
 	  }
+	} else if (is_public(base) && is_public(n) && !is_non_public_base(inclass, b)) {
+	  // The name is being overloaded - mark it
+	  Setattr(n, "overloads_base", base);
 	}
       }
     }
