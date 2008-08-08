@@ -185,14 +185,17 @@ class COM:public Language {
   bool constructor_flag;
 
   String *proxy_class_def;
+  String *proxy_static_class_def;
   String *proxy_class_forward_def;
   String *proxy_class_code;
+  String *proxy_static_class_code;
   String *proxy_class_name;
   String *proxy_class_constants_code;
   String *clsid_list;
   List *proxy_class_member_functions;
   String *variable_name;	//Name of a variable being wrapped
   GUID *proxy_iid;
+  GUID *proxy_static_iid;
   GUID *proxy_clsid;
   GUID guid_seed;
   GUID typelib_guid;
@@ -201,6 +204,7 @@ class COM:public Language {
 
   String *module_class_vtable_code;
   String *proxy_class_vtable_code;
+  String *proxy_static_class_vtable_code;
   String *proxy_class_vtable_defs;
 
   String *module_class_name;	// module class name
@@ -234,6 +238,7 @@ public:
       dllexports_flag(true),
       enum_constant_flag(false),
       proxy_class_vtable_code(NewString("")),
+      proxy_static_class_vtable_code(NewString("")),
       proxy_class_vtable_defs(NewString("")),
       clsid_list(NewString("")),
       namespce(NULL) {
@@ -391,8 +396,10 @@ public:
 
     module_class_code = NewString("");
     proxy_class_def = NewString("");
+    proxy_static_class_def = NewString("");
     proxy_class_forward_def = NewString("");
     proxy_class_code = NewString("");
+    proxy_static_class_code = NewString("");
 
     if (isNilGUID(&typelib_guid)) {
       String *tlbid_ident = NewStringf("%s.%s.TLBID", namespce, module_class_name);
@@ -414,7 +421,7 @@ public:
 
     module_class_vtable_code = NewString("");
 
-    Printf(module_class_vtable_code, "GUID IID_%s = ", module_class_name);
+    Printf(module_class_vtable_code, "GUID IID_I%s = ", module_class_name);
     formatGUID(module_class_vtable_code, &module_iid, true);
     Printf(module_class_vtable_code, ";\n\n");
 
@@ -422,55 +429,23 @@ public:
     formatGUID(module_class_vtable_code, &module_clsid, true);
     Printf(module_class_vtable_code, ";\n\n");
 
-    Printf(module_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface(void *that, GUID *iid, "
-        "void ** ppvObject) {\n", module_class_name);
-
-    Printf(module_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
-        "      SWIGIsEqual(iid, &IID_IDispatch) ||\n"
-        "      SWIGIsEqual(iid, &IID_%s)", module_class_name);
-
-    Printf(module_class_vtable_code, ") {\n"
-        "    /* FIXME: This could be more elegant */\n"
-        "    SWIGAddRef1(that);\n"
-        "    *ppvObject = that;\n"
-        "    return S_OK;\n"
-        "  }\n\n");
-
-    Printf(module_class_vtable_code, "  return E_NOINTERFACE;\n}\n\n");
-
     Printf(module_class_vtable_code, "extern SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
 
     Printf(module_class_vtable_code,
         "void * SWIGSTDCALL _wrap_new_%s(void *SWIG_ignored) {\n"
-        "#ifdef __cplusplus\n"
-        "  SWIGWrappedObject *res = new SWIGWrappedObject;\n"
-        "#else\n"
-        "  SWIGWrappedObject *res = (SWIGWrappedObject *) malloc(sizeof(SWIGWrappedObject));\n"
-        "#endif\n"
-        "  res->vtable = _wrap%s_vtable;\n"
-        "  res->SWIGWrappedObject_vtable = NULL;\n"
-        "  /* cPtr and cMemOwn make no sense for the module class */\n"
-        "  res->cPtr = NULL;\n"
-        "  res->cMemOwn = 0;\n"
-        "  InterlockedIncrement(&globalRefCount);\n"
-        "  res->refCount = 1;\n"
-        "  res->deleteInstance = 0;\n"
-        "  /* GetTypeInfoOfGuid */\n"
-        "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
-        "  res->outer = NULL;\n"
-        "  return (void *) res;\n"
+        "  return _wrap_new_staticclass(_wrap%s_vtable, &IID_I%s);\n"
         "};\n\n",
         module_class_name, module_class_name, module_class_name);
 
     Printf(module_class_vtable_code, "SWIG_funcptr _wrap%s_vtable[] = "
-        "{\n  (SWIG_funcptr) _wrap%sQueryInterface,"
+        "{\n  (SWIG_funcptr) _wrap_staticclass_QueryInterface,"
         "\n  (SWIG_funcptr) SWIGAddRef1,"
         "\n  (SWIG_funcptr) SWIGRelease1,"
         "\n  (SWIG_funcptr) SWIGGetTypeInfoCount,"
         "\n  (SWIG_funcptr) SWIGGetTypeInfo,"
         "\n  (SWIG_funcptr) SWIGGetIDsOfNames,"
         "\n  (SWIG_funcptr) SWIGInvoke",
-        module_class_name, module_class_name);
+        module_class_name);
 
     Printf(clsid_list, "static TCHAR * SWIG_tlb_guid_string = _T(\"{");
     formatGUID(clsid_list, &typelib_guid, false);
@@ -564,7 +539,7 @@ public:
       // Interface for module class
       Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
       formatGUID(f_module, &module_iid, false);
-      Printf(f_module, "),\n    dual\n  ]\n  interface %s : IDispatch {\n", module_class_name);
+      Printf(f_module, "),\n    dual\n  ]\n  interface I%s : IDispatch {\n", module_class_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -574,7 +549,7 @@ public:
       Printv(f_module, "  [\n    uuid(", NIL);
       formatGUID(f_module, &module_clsid, false);
       Printv(f_module, ")\n  ]\n  coclass ", module_class_name, "Impl {\n"
-          "    interface ", module_class_name, ";\n  };\n\n", NIL);
+          "    interface I", module_class_name, ";\n  };\n\n", NIL);
 
       // Add the proxy code
       Printv(f_module, f_proxy, NIL);
@@ -749,7 +724,7 @@ public:
     }
 
     if (!is_void_return && hresult_flag) {
-      Printv(f->def, gencomma ? ", " : "", c_return_type, " *SWIG_result_ptr", NIL);
+      Printv(f->def, gencomma ? ", " : "", c_return_type, "*SWIG_result_ptr", NIL);
       gencomma = 1;
     }
 
@@ -854,9 +829,12 @@ public:
 
     Wrapper_print(f, f_wrappers);
 
-    if (!(proxy_flag && is_wrapping_class() && !constructor_flag) && !enum_constant_flag) {
+    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag && !constructor_flag) {
       moduleClassFunctionHandler(n);
       Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
+    } else if (constructor_flag) {
+      moduleClassFunctionHandler(n);
+      Printf(proxy_static_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
     }
 
     /* 
@@ -880,7 +858,6 @@ public:
       Printf(getter_setter_name, "%s", variable_name);
 
       Setattr(n, "proxyfuncname", getter_setter_name);
-      Setattr(n, "imfuncname", symname);
 
       proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
@@ -946,7 +923,6 @@ public:
       String *overloaded_name = Getattr(n, "sym:name");
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1010,6 +986,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node *n) {
+
     static_flag = true;
     constructor_flag = true;
     Language::constructorHandler(n);
@@ -1057,7 +1034,7 @@ public:
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else if (constructor_flag) {
-      Printf(return_type, "%s *", proxy_class_name);
+      Printf(return_type, "I%s *", proxy_class_name);
     } else {
       Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -1131,13 +1108,16 @@ public:
     }
 
     if (hresult_flag && !is_void_return) {
-      Printv(function_code, gencomma ? ", " : "", "[ retval, out ] ", return_type, " *SWIG_result_ptr", NIL);
+      Printv(function_code, gencomma ? ", " : "", "[ retval, out ] ", return_type, "*SWIG_result_ptr", NIL);
       gencomma = 2;
     }
 
     Printf(function_code, ");\n");
 
-    Printv(module_class_code, function_code, NIL);
+    if (!constructor_flag)
+      Printv(module_class_code, function_code, NIL);
+    else
+      Printv(proxy_static_class_code, function_code, NIL);
     Delete(function_code);
     Delete(return_type);
 
@@ -1197,10 +1177,11 @@ public:
       Printv(proxy_class_def, "  [\n    aggregatable,\n    uuid(", NIL);
       formatGUID(proxy_class_def, proxy_clsid, false);
       Printv(proxy_class_def, ")\n  ]\n  coclass $comclassnameImpl {\n"
-          "    interface $comclassname;\n  };\n\n", NIL);
+          "    interface I$comclassname;\n  };\n\n", NIL);
     }
 
-    Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
+    Printv(proxy_class_forward_def, "  interface I$comclassname;\n", NIL);
+    Printv(proxy_class_forward_def, "  interface I$comclassnameStatic;\n", NIL);
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
 /*
@@ -1208,10 +1189,32 @@ public:
         *Char(wanted_base) ? " : " : "",
         *Char(wanted_base) ? wanted_base : "", " {", NIL);
  */
-    Printv(proxy_class_def, "),\n    dual\n  ]\n  interface $comclassname : ",
-        *Char(wanted_base) ? wanted_base : "IDispatch", " {\n", NIL);
+    Printv(proxy_class_def, "),\n    dual\n  ]\n  interface I$comclassname : ",
+        "I", *Char(wanted_base) ? wanted_base : "Dispatch", " {\n", NIL);
 
     Delete(attributes);
+
+    Printv(proxy_static_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
+    formatGUID(proxy_static_class_def, proxy_static_iid, false);
+
+    Printv(proxy_static_class_def, "),\n    dual\n  ]\n  interface I$comclassnameStatic : "
+        "IDispatch {\n", NIL);
+
+    // Add static class property to module class
+    Printf(module_class_code, "    [ propget]\n"
+        "    HRESULT %s([ retval, out ] I%sStatic **SWIG_result);\n",
+        proxy_class_name, proxy_class_name);
+
+    Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) _wrap_%sStatic");
+
+    Printf(f_wrappers, "extern GUID IID_I%sStatic;\n\n", proxy_class_name);
+    Printf(f_wrappers, "extern SWIG_funcptr _wrap%sStatic_vtable[];\n\n", proxy_class_name);
+
+    Printf(f_wrappers, "HRESULT SWIGSTDCALL _wrap_%sStatic(void *SWIG_ignored, SWIGIUnknown **SWIG_result) {\n"
+        "  *SWIG_result = (SWIGIUnknown *) _wrap_new_staticclass(_wrap%sStatic_vtable, &IID_I%sStatic);\n"
+        "\n"
+        "  return S_OK;\n"
+        "}\n\n", proxy_class_name, proxy_class_name, proxy_class_name);
 
 #if 0
     // FIXME: temporary
@@ -1225,11 +1228,15 @@ public:
 
     // Substitute various strings into the above template
     Replaceall(proxy_class_code, "$comclassname", proxy_class_name);
+    Replaceall(proxy_static_class_code, "$comclassname", proxy_class_name);
     Replaceall(proxy_class_def, "$comclassname", proxy_class_name);
+    Replaceall(proxy_static_class_def, "$comclassname", proxy_class_name);
     Replaceall(proxy_class_forward_def, "$comclassname", proxy_class_name);
 
     Replaceall(proxy_class_def, "$module", module_class_name);
+    Replaceall(proxy_static_class_def, "$module", module_class_name);
     Replaceall(proxy_class_code, "$module", module_class_name);
+    Replaceall(proxy_static_class_code, "$module", module_class_name);
 
     Delete(baseclass);
   }
@@ -1403,9 +1410,12 @@ public:
       }
 
       Clear(proxy_class_def);
+      Clear(proxy_static_class_def);
       Clear(proxy_class_code);
+      Clear(proxy_static_class_code);
       Clear(proxy_class_forward_def);
       Clear(proxy_class_vtable_code);
+      Clear(proxy_static_class_vtable_code);
       Clear(proxy_class_vtable_defs);
 
       default_ctor_wname = NULL;
@@ -1419,9 +1429,20 @@ public:
         Delete(proxy_iid_ident);
       }
 
-      Printf(proxy_class_vtable_code, "GUID IID_%s = ", proxy_class_name);
+      Printf(proxy_class_vtable_code, "GUID IID_I%s = ", proxy_class_name);
       formatGUID(proxy_class_vtable_code, proxy_iid, true);
       Printf(proxy_class_vtable_code, ";\n\n");
+
+      proxy_static_iid = new GUID;
+      {
+        String *proxy_static_iid_ident = NewStringf("%s.%s.StaticIID", namespce, proxy_class_name);
+        generateGUID(proxy_static_iid, proxy_static_iid_ident);
+        Delete(proxy_static_iid_ident);
+      }
+
+      Printf(proxy_static_class_vtable_code, "GUID IID_I%sStatic = ", proxy_class_name);
+      formatGUID(proxy_static_class_vtable_code, proxy_static_iid, true);
+      Printf(proxy_static_class_vtable_code, ";\n\n");
 
       Printf(proxy_class_vtable_code, "HRESULT SWIGSTDCALL _wrap%sQueryInterface1(void *that, GUID *iid, "
           "void ** ppvObject) {\n", proxy_class_name);
@@ -1447,7 +1468,7 @@ public:
 
       Printf(proxy_class_vtable_code, "    if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
         "        SWIGIsEqual(iid, &IID_IDispatch) ||\n"
-        "        SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
+        "        SWIGIsEqual(iid, &IID_I%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
 
@@ -1459,7 +1480,7 @@ public:
           base = Next(base);
 
         if (base.item) {
-          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:name"));
           /* Get next base */
           bases = Getattr(base.item, "bases");
         } else {
@@ -1517,7 +1538,7 @@ public:
           "  }\n\n");
 
       Printf(proxy_class_vtable_code, "  if (SWIGIsEqual(iid, &IID_IDispatch) ||\n"
-        "      SWIGIsEqual(iid, &IID_%s)", proxy_class_name);
+        "      SWIGIsEqual(iid, &IID_I%s)", proxy_class_name);
 
       bases = Getattr(n, "bases");
 
@@ -1529,7 +1550,7 @@ public:
           base = Next(base);
 
         if (base.item) {
-          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_%s)", Getattr(base.item, "sym:name"));
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:name"));
           /* Get next base */
           bases = Getattr(base.item, "bases");
         } else {
@@ -1592,6 +1613,18 @@ public:
 
       Setattr(n, "com:member_functions", proxy_class_member_functions);
 
+      Printf(proxy_static_class_vtable_code, "extern SWIG_funcptr _wrap%sStatic_vtable[];\n\n", proxy_class_name);
+
+      Printf(proxy_static_class_vtable_code, "SWIG_funcptr _wrap%sStatic_vtable[] = "
+          "{\n  (SWIG_funcptr) _wrap_staticclass_QueryInterface,"
+          "\n  (SWIG_funcptr) SWIGAddRef1,"
+          "\n  (SWIG_funcptr) SWIGRelease1,"
+          "\n  (SWIG_funcptr) SWIGGetTypeInfoCount,"
+          "\n  (SWIG_funcptr) SWIGGetTypeInfo,"
+          "\n  (SWIG_funcptr) SWIGGetIDsOfNames,"
+          "\n  (SWIG_funcptr) SWIGInvoke",
+          proxy_class_name);
+
       // FIXME: destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -1618,14 +1651,10 @@ public:
       emitProxyClassDefAndCPPCasts(n);
 
       Replaceall(proxy_class_def, "$module", module_class_name);
+      Replaceall(proxy_static_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
+      Replaceall(proxy_static_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
-      // FIXME: Replaceall(proxy_class_def, "$imclassname", imclass_name);
-      // FIXME: Replaceall(proxy_class_code, "$imclassname", imclass_name);
-      // FIXME: Replaceall(proxy_class_constants_code, "$imclassname", imclass_name);
-      // FIXME: Replaceall(proxy_class_def, "$dllimport", dllimport);
-      // FIXME: Replaceall(proxy_class_code, "$dllimport", dllimport);
-      // FIXME: Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
 
       Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
@@ -1633,6 +1662,10 @@ public:
       // Write out all the constants
       if (Len(proxy_class_constants_code) != 0)
 	Printv(f_proxy, proxy_class_constants_code, NIL);
+
+      Printf(f_proxy, "  };\n\n");
+
+      Printv(f_proxy, proxy_static_class_def, proxy_static_class_code, NIL);
 
       Printf(f_proxy, "  };\n\n");
 
@@ -1685,7 +1718,7 @@ public:
 
       Printf(proxy_class_vtable_code,
           "  /* GetTypeInfoOfGuid */\n"
-          "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_%s, &res->typeInfo);\n"
+          "  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, &IID_I%s, &res->typeInfo);\n"
           "  return (void *) res;\n"
           "}\n\n",
           proxy_class_name);
@@ -1693,7 +1726,10 @@ public:
       Printf(proxy_class_vtable_defs,
           "void * SWIGSTDCALL SWIG_wrap%s(void *arg, int cMemOwn);\n", proxy_class_name);
 
+      Printf(proxy_static_class_vtable_code, "\n};\n\n");
+
       Printv(f_vtables, proxy_class_vtable_code, NIL);
+      Printv(f_vtables, proxy_static_class_vtable_code, NIL);
       Printv(f_vtable_defs, proxy_class_vtable_defs, NIL);
 
       Delete(proxy_class_name);
@@ -1701,6 +1737,7 @@ public:
       Delete(proxy_class_constants_code);
       proxy_class_constants_code = NULL;
       delete proxy_iid;
+      delete proxy_static_iid;
       if (default_ctor_wname != NULL)
         Delete(default_ctor_wname);
     }
@@ -1723,7 +1760,6 @@ public:
       String *overloaded_name = Getattr(n, "sym:name");
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1745,7 +1781,6 @@ public:
   void proxyClassFunctionHandler(Node *n) {
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-    String *intermediary_function_name = Getattr(n, "imfuncname");
     String *proxy_function_name = Getattr(n, "proxyfuncname");
     String *tm;
     Parm *p;
@@ -1768,6 +1803,28 @@ public:
     if (GetFlag(n, "explicitcall"))
       return;
 
+    // Check if the name has not already been used in a base class
+    if (Getattr(n, "overloads_base")) {
+      Node *over = Getattr(n, "overloads_base");
+      SwigType *tc = Copy(Getattr(n, "decl"));
+      String *oname;
+      String *cname;
+
+      oname = NewStringf("%s::%s", Getattr(Getattr(n, "sym:symtab"), "name"), Getattr(n, "name"));
+      cname = NewStringf("%s::%s", Getattr(Getattr(over, "sym:symtab"), "name"), Getattr(over, "name"));
+
+      SwigType *tc2 = Copy(Getattr(over, "decl"));
+
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(tc, SwigType_namestr(oname)));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over), "Previous declaration is %s\n", SwigType_str(tc2, SwigType_namestr(cname)));
+
+      Delete(tc2);
+      Delete(tc);
+      Delete(oname);
+      Delete(cname);
+      return;
+    }
+
     if (!Getattr(n, "override")) {
       String *wname = Getattr(n, "wrap:name");
       // FIXME: do we have to use strings?
@@ -1782,6 +1839,12 @@ public:
       sscanf(Char(Getattr(prev, "com:vtable_index")), "%d", &index);
       Setattr(n, "com:vtable_index", NewStringf("%d", index));
       Setitem(proxy_class_member_functions, index, wname);
+    }
+
+    if (checkAttribute(n, "storage", "static")) {
+      // Add function to the static class
+      String *wname = Getattr(n, "wrap:name");
+      Printf(proxy_static_class_vtable_code, ",\n  (SWIG_funcptr) %s", wname);
     }
 
     if (l) {
@@ -1804,7 +1867,7 @@ public:
 	Swig_warning(WARN_COM_COVARIANT_RET, input_file, line_number,
 		     "Covariant return types not supported in COM. Proxy method will return %s.\n", SwigType_str(covariant, 0));
     } else {
-      Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comstype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_COM_TYPEMAP_COMTYPE_UNDEF, input_file, line_number, "No comtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
     is_void_return = (Cmp(return_type, "void") == 0);
@@ -1882,7 +1945,7 @@ public:
     }
 
     if (hresult_flag && !is_void_return) {
-      Printv(function_code, (gencomma >= 2) ? ", " : "", "[ retval, out ] ", return_type, " *SWIG_result_ptr", NIL);
+      Printv(function_code, (gencomma >= 2) ? ", " : "", "[ retval, out ] ", return_type, "*SWIG_result_ptr", NIL);
       gencomma = 2;
     }
 
@@ -1892,6 +1955,10 @@ public:
 
     if (!Getattr(n, "override")) {
       Printv(proxy_class_code, function_code, NIL);
+    }
+
+    if (checkAttribute(n, "storage", "static")) {
+      Printv(proxy_static_class_code, function_code, NIL);
     }
 
     Delete(pre_code);
@@ -1906,6 +1973,7 @@ public:
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
     Clear(proxy_class_def);
+    Clear(proxy_static_class_def);
     Clear(proxy_class_forward_def);
 
     proxy_iid = new GUID;
@@ -1926,11 +1994,11 @@ public:
       Delete(proxy_iid_ident);
     }
 
-    Printv(proxy_class_forward_def, "  interface $comclassname;\n", NIL);
+    Printv(proxy_class_forward_def, "  interface I$comclassname;\n", NIL);
 
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
-    Printv(proxy_class_def, ")\n  ]\n  interface $comclassname {\n  };\n\n", NIL);
+    Printv(proxy_class_def, ")\n  ]\n  interface I$comclassname {\n  };\n\n", NIL);
 
     Replaceall(proxy_class_forward_def, "$comclassname", classname);
     Replaceall(proxy_class_def, "$comclassname", classname);

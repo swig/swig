@@ -43,11 +43,11 @@
 %typemap(comtype) float,              const float &              "float"
 %typemap(comtype) double,             const double &             "double"
 %typemap(comtype) void                                           "void"
-%typemap(comtype) SWIGTYPE * "$comclassname *"
-%typemap(comtype) SWIGTYPE (CLASS::*) "$comclassname *"
-%typemap(comtype) SWIGTYPE "$&comclassname *"
-%typemap(comtype) SWIGTYPE & "$comclassname *"
-%typemap(comtype) SWIGTYPE *& "$*comclassname *"
+%typemap(comtype) SWIGTYPE * "I$comclassname *"
+%typemap(comtype) SWIGTYPE (CLASS::*) "I$comclassname *"
+%typemap(comtype) SWIGTYPE "I$&comclassname *"
+%typemap(comtype) SWIGTYPE & "I$comclassname *"
+%typemap(comtype) SWIGTYPE *& "I$*comclassname *"
 %typemap(comtype) enum SWIGTYPE "int"
 
 %typemap(in) bool
@@ -326,6 +326,7 @@ typedef struct {
   void (*deleteInstance)(void *); /* destructor */
   ITypeInfo *typeInfo; /* ITypeInfo object for IDispatch */
   SWIGIUnknown *outer; /* outer type in COM aggregation */
+  GUID *additionalIID; /* IID supported by object (apart from IUnknown and IDispatch) */
 } SWIGWrappedObject;
 
 GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
@@ -534,6 +535,51 @@ typedef struct {
   TCHAR *oleaut_string;
   int aggregatable;
 } SWIGClassDescription_t;
+
+void _wrap_delete_staticclass(void *arg) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) obj;
+#ifdef __cplusplus
+  delete obj;
+#else
+  free(obj);
+#endif
+}
+
+void *_wrap_new_staticclass(SWIG_funcptr *vtable, GUID *iid) {
+#ifdef __cplusplus
+  SWIGWrappedObject *res = new SWIGWrappedObject;
+#else
+  SWIGWrappedObject *res = (SWIGWrappedObject *) malloc(sizeof(SWIGWrappedObject));
+#endif
+  res->vtable = vtable;
+  res->SWIGWrappedObject_vtable = NULL;
+  /* cPtr and cMemOwn make no sense for static classes */
+  res->cPtr = NULL;
+  res->cMemOwn = 0;
+  InterlockedIncrement(&globalRefCount);
+  res->refCount = 1;
+  res->deleteInstance = _wrap_delete_staticclass;
+  /* GetTypeInfoOfGuid */
+  ((HRESULT (SWIGSTDCALL *)(ITypeLib *, GUID *, ITypeInfo **)) (((SWIGIUnknown *) SWIG_typelib)->vtable[6]))(SWIG_typelib, iid, &res->typeInfo);
+  res->outer = NULL;
+  res->additionalIID = iid;
+  return (void *) res;
+}
+
+HRESULT SWIGSTDCALL _wrap_staticclass_QueryInterface(void *that, GUID *iid, void ** ppvObject) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) that;
+
+  if (SWIGIsEqual(iid, &IID_IUnknown) ||
+      SWIGIsEqual(iid, &IID_IDispatch) ||
+      (obj->additionalIID != NULL && SWIGIsEqual(iid, obj->additionalIID))) {
+    /* FIXME: This could be more elegant */
+    SWIGAddRef1(that);
+    *ppvObject = that;
+    return S_OK;
+  }
+
+  return E_NOINTERFACE;
+}
 
 HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
   if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {
