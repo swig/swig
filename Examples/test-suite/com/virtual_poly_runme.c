@@ -5,24 +5,26 @@
 #include "virtual_poly/virtual_poly_generated.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-  virtual_poly *vp = NULL;
-  NDouble *d = NULL;
-  NInt *i = NULL;
-  NNumber *dc_as_nnumber = NULL;
-  NDouble *dc = NULL;
-  NNumber *ic_as_nnumber = NULL;
-  NInt *ic = NULL;
-  NDouble *ddc = NULL;
-  NInt *dic = NULL;
-  NNumber *n1 = NULL;
-  NNumber *n2 = NULL;
-  NDouble *dn1 = NULL;
-  NDouble *dn2 = NULL;
-  NNumber *nr = NULL;
-  NDouble *dr1 = NULL;
-  NNumber *dr2_as_nnumber = NULL;
-  NDouble *dr2 = NULL;
-  NInt *ic_temp = NULL;
+  Ivirtual_poly *vp = NULL;
+  INDoubleStatic *nds = NULL;
+  INIntStatic *nis = NULL;
+  INDouble *d = NULL;
+  INInt *i = NULL;
+  INNumber *dc_as_nnumber = NULL;
+  INDouble *dc = NULL;
+  INNumber *ic_as_nnumber = NULL;
+  INInt *ic = NULL;
+  INDouble *ddc = NULL;
+  INInt *dic = NULL;
+  INNumber *n1 = NULL;
+  INNumber *n2 = NULL;
+  INDouble *dn1 = NULL;
+  INDouble *dn2 = NULL;
+  INNumber *nr = NULL;
+  INDouble *dr1 = NULL;
+  INNumber *dr2_as_nnumber = NULL;
+  INDouble *dr2 = NULL;
+  INInt *ic_temp = NULL;
   int temp1;
   int temp2;
   double dtemp1;
@@ -30,10 +32,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   CoInitialize(NULL);
 
-  CoCreateInstance(&CLSID_virtual_polyImpl, NULL, CLSCTX_INPROC_SERVER, &IID_virtual_poly, (void **) &vp);
+  CoCreateInstance(&CLSID_virtual_polyImpl, NULL, CLSCTX_INPROC_SERVER, &IID_Ivirtual_poly, (void **) &vp);
 
-  vp->lpVtbl->new_NDouble(vp, 3.5, &d);
-  vp->lpVtbl->new_NInt(vp, 2, &i);
+  /* Objects containing NDouble and NInt static methods (including constructors) */
+  vp->lpVtbl->get_NDouble(vp, &nds);
+  vp->lpVtbl->get_NInt(vp, &nis);
+
+  /* Constructor calls */
+  nds->lpVtbl->new_NDouble(nds, 3.5, &d);
+  nis->lpVtbl->new_NInt(nis, 2, &i);
 
   /*
    * These two natural 'copy' forms fail because no covariant (polymorphic) return types 
@@ -48,18 +55,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   d->lpVtbl->copy(d, &dc_as_nnumber);
 
-  dc_as_nnumber->lpVtbl->QueryInterface(dc_as_nnumber, &IID_NDouble, (void **) &dc);
+  dc_as_nnumber->lpVtbl->QueryInterface(dc_as_nnumber, &IID_INDouble, (void **) &dc);
 
   i->lpVtbl->copy(i, &ic_as_nnumber);
 
-  ic_as_nnumber->lpVtbl->QueryInterface(ic_as_nnumber, &IID_NInt, (void **) &ic);
+  ic_as_nnumber->lpVtbl->QueryInterface(ic_as_nnumber, &IID_INInt, (void **) &ic);
 
   /*
    * Static methods
    */
 
-  dc->lpVtbl->narrow(dc, dc_as_nnumber, &ddc);
+  /* Called from the 'static class' object */
+  nds->lpVtbl->narrow(nds, dc_as_nnumber, &ddc);
 
+  /* Called from the object */
   ic->lpVtbl->narrow(ic, ic_as_nnumber, &dic);
 
   dc_as_nnumber->lpVtbl->Release(dc_as_nnumber);
@@ -89,8 +98,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    */
   d->lpVtbl->copy(d, &n1);
   d->lpVtbl->nnumber(d, &n2);
-  d->lpVtbl->narrow(d, n1, &dn1);
-  d->lpVtbl->narrow(d, n2, &dn2);
+  nds->lpVtbl->narrow(nds, n1, &dn1);
+  nds->lpVtbl->narrow(nds, n2, &dn2);
 
   dn1->lpVtbl->get(dn1, &dtemp1);
   dn2->lpVtbl->get(dn2, &dtemp2);
@@ -109,10 +118,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    * Checking the ref polymorphic case
    */
   d->lpVtbl->ref_this(d, &nr);
-  d->lpVtbl->narrow(d, nr, &dr1);
+  nds->lpVtbl->narrow(nds, nr, &dr1);
   d->lpVtbl->ref_this(d, &dr2_as_nnumber);
 
-  dr2_as_nnumber->lpVtbl->QueryInterface(dr2_as_nnumber, &IID_NDouble, (void **) &dr2);
+  dr2_as_nnumber->lpVtbl->QueryInterface(dr2_as_nnumber, &IID_INDouble, (void **) &dr2);
 
   dr1->lpVtbl->get(dr1, &dtemp1);
   dr2->lpVtbl->get(dr2, &dtemp2);
