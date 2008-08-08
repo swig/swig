@@ -34,7 +34,6 @@ class C:public Language {
 
   bool proxy_flag;
   bool runtime_flag;
-  bool typecheck_flag;
 
 public:
 
@@ -49,8 +48,7 @@ public:
     create_object(0),
     destroy_object(0),
     proxy_flag(true),
-    runtime_flag(true),
-    typecheck_flag(false) {
+    runtime_flag(true) {
   }
 
   /* ------------------------------------------------------------
@@ -325,8 +323,6 @@ public:
       Delete(result);
     result = NewString("");
 
-    /*Printf(stderr, "MANGLING TYPE: %s\n", type_arg);*/
-
     SwigType *type = Copy(type_arg);
 
     if (SwigType_ismemberpointer(type)) {
@@ -364,8 +360,6 @@ public:
       Printf(result, "%s", Char(SwigType_base(type)));
 
 ready:
-    /*Printf(stderr, "  RESULT: %s\n", result);*/
-
     if (prefix)
       Delete(prefix);
     if (type)
@@ -459,6 +453,7 @@ ready:
     else {
       // C++ function wrapper
       
+      // mark the first parameter as object-struct
       if ((Cmp(Getattr(n, "storage"), "static") != 0) &&
           (Cmp(Getattr(n, "ismember"), "1") == 0) &&
           (Cmp(nodeType(n), "constructor") != 0)) {
@@ -506,22 +501,39 @@ ready:
       }
 
       // add variable for holding result of original function
+      bool return_object = false;
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         if (SwigType_isconst(type))
           SwigType_del_qualifier(type);
         SwigType *return_var_type;
 
-        if (SwigType_isenum(type))
+        SwigType *tdtype = SwigType_typedef_resolve(type);
+        if (tdtype)
+          type = tdtype;
+
+        if (SwigType_isenum(type)) {
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
-        else {
-          if (SwigType_isreference(type))
-            return_var_type = SwigType_base(type);
-          else if (SwigType_isarray(type))
+        }
+        else if (SwigType_isbuiltin(SwigType_base(type))) {
+          // type is built-in (int, char, double, etc.)
+          if (SwigType_isreference(type) || SwigType_isarray(type))
             return_var_type = SwigType_add_pointer(SwigType_base(type));
           else
             return_var_type = type;
+
+          Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
+        }
+        else {
+          // type is class
+          if (SwigType_ispointer(type))
+            return_var_type = type;
+          else if (SwigType_isreference(type) || SwigType_isarray(type))
+            return_var_type = SwigType_add_pointer(SwigType_base(type));
+          else
+            return_var_type = SwigType_add_pointer(type);
           
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
+          return_object = true;
         }
       }
 
@@ -624,8 +636,10 @@ ready:
 
       // emit action code
       String *action = emit_action(n);
-      if (Getattr(n, "throws") || (Cmp(Getattr(n, "feature:except"), "0") != 0)) {
-        Printf(action, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
+      String *except = Getattr(n, "feature:except");
+      if (Getattr(n, "throws") || except) {
+        if (!except || (Cmp(except, "0") != 0))
+          Printf(action, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
       }
       if (Cmp(nodeType(n), "constructor") != 0)
         Replace(action, "result =", "cppresult = $mod", DOH_REPLACE_FIRST);
@@ -637,13 +651,14 @@ ready:
           //Printf(ref_cast, "(%s*)", SwigType_str(SwigType_base(type), 0));
           Printf(ref_cast, "*");
         }
-        else
-          Printf(ref_cast, "&");
         Replaceall(action, "$mod", ref_cast);
         Delete(ref_cast);
       }
       else if (SwigType_isenum(type))
         Replaceall(action, "$mod", "(int)");
+      else if (return_object && Getattr(n, "c:retval")) {
+        Replaceall(action, "$mod", "&");
+      }
       else
         Replaceall(action, "$mod", "");
 
@@ -847,6 +862,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int memberfunctionHandler(Node *n) {
+    SwigType *type = Getattr(n, "type");
+    if (!SwigType_ispointer(type) && !SwigType_ispointer(SwigType_typedef_resolve(type)))
+      Setattr(n, "c:retval", "1");
     return Language::memberfunctionHandler(n);
   }
 
@@ -1151,13 +1169,15 @@ ready:
   virtual int enumDeclaration(Node *n) {
     if (!proxy_flag)
       return SWIG_OK;
+    if (Cmp(Getattr(n, "access"), "public") != 0)
+      return SWIG_OK;
     String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
     String *name = Getattr(n, "sym:name");
     String *code = NewString("");
     String *tdname = Getattr(n, "tdname");
     String *newname = newclassname ? NewStringf("%s_", newclassname) : Copy(name);
     Symtab *symtab = Getattr(n, "sym:symtab");
-      
+
     if (tdname)
       Printf(code, "typedef ");
 
@@ -1175,7 +1195,6 @@ ready:
       Setattr(entry, "sym:symtab", symtab);
       Swig_symbol_add(name, entry);
     }
-
     if (newclassname) {
       if (symtab) {
         Node *node = Swig_symbol_clookup(name, symtab);
@@ -1207,6 +1226,8 @@ ready:
 
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "sym:name");
+    if (Cmp(Getattr(n, "access"), "public") != 0)
+      return SWIG_OK;
     String *enumvalue = Getattr(n, "enumvalue");
     String *init = 0;
     if (enumvalue) {

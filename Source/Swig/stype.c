@@ -271,7 +271,7 @@ int SwigType_issimple(SwigType *t) {
 }
 
 int SwigType_isbuiltin(SwigType *t) {
-  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", 0 };
+  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
   int i = 0;
   char *c = Char(t);
   if (!t)
