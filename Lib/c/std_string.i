@@ -38,8 +38,8 @@ class string;
     delete $1;
 }
 
-%typemap(out) string, const string & {
-  const char *str = cppresult.c_str();
+%typemap(out) string, const string &, string * {
+  const char *str = cppresult->c_str();
   size_t len = strlen(str);
   $result = (char *) malloc(len + 1);
   memcpy($result, str, len);

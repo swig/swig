@@ -254,7 +254,7 @@ public:
    * globalfunctionHandler()
    * ------------------------------------------------------------------------ */
 
-  virtual int globalfunctionHandler(Node *n ) {
+  virtual int globalfunctionHandler(Node *n) {
     String *action = NewString("");
     String *vis_hint = NewString("");
     String *return_type_str = SwigType_str(Getattr(n, "type"), 0);
@@ -390,9 +390,7 @@ ready:
     Node *node = Swig_symbol_clookup(query, symtab);
     if (node)
       newtype = NewStringf("enum %s", Getattr(node, "name"));
-    else
-      newtype = Copy(enumtype);
-
+   
     return newtype;
   }
 
@@ -411,6 +409,7 @@ ready:
     String *tm;
     String *proto = NewString("");
     String *over_suffix = NewString("");
+    SwigType *return_var_type = empty_string;
     int gencomma;
     bool is_void_return = (SwigType_type(type) == T_VOID);
 
@@ -503,10 +502,6 @@ ready:
       // add variable for holding result of original function
       bool return_object = false;
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
-        if (SwigType_isconst(type))
-          SwigType_del_qualifier(type);
-        SwigType *return_var_type;
-
         SwigType *tdtype = SwigType_typedef_resolve(type);
         if (tdtype)
           type = tdtype;
@@ -515,11 +510,29 @@ ready:
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
         }
         else if (SwigType_isbuiltin(SwigType_base(type))) {
+          if (SwigType_isconst(type))
+            SwigType_del_qualifier(type);
+
           // type is built-in (int, char, double, etc.)
-          if (SwigType_isreference(type) || SwigType_isarray(type))
-            return_var_type = SwigType_add_pointer(SwigType_base(type));
-          else
+          if (SwigType_isreference(type)) {
+            if (SwigType_isconst(SwigType_del_reference(type))) {
+              return_var_type = SwigType_base(type);
+              SwigType_add_qualifier(return_var_type, "const");
+              SwigType_add_pointer(return_var_type);
+            }
+            else {
+              return_var_type = SwigType_base(type);
+              SwigType_add_pointer(return_var_type);
+            }
+            SwigType_add_reference(type);
+          }
+          else if (SwigType_isarray(type)) {
+            return_var_type = SwigType_base(type);
+            SwigType_add_pointer(return_var_type);
+          }
+          else {
             return_var_type = type;
+          }
 
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
         }
@@ -527,10 +540,14 @@ ready:
           // type is class
           if (SwigType_ispointer(type))
             return_var_type = type;
-          else if (SwigType_isreference(type) || SwigType_isarray(type))
-            return_var_type = SwigType_add_pointer(SwigType_base(type));
-          else
-            return_var_type = SwigType_add_pointer(type);
+          else if (SwigType_isreference(type) || SwigType_isarray(type)) {
+            return_var_type = SwigType_base(type);
+            SwigType_add_pointer(return_var_type);
+          }
+          else {
+            return_var_type = type;
+            SwigType_add_pointer(return_var_type);
+          }
           
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
           return_object = true;
@@ -643,24 +660,24 @@ ready:
       }
       if (Cmp(nodeType(n), "constructor") != 0)
         Replace(action, "result =", "cppresult = $mod", DOH_REPLACE_FIRST);
-  
-      // handle return-by-reference
-      if (SwigType_isreference(type)) {
-        String *ref_cast = NewString("");
-        if (SwigType_isconst(SwigType_del_reference(type))) {
-          //Printf(ref_cast, "(%s*)", SwigType_str(SwigType_base(type), 0));
-          Printf(ref_cast, "*");
-        }
-        Replaceall(action, "$mod", ref_cast);
-        Delete(ref_cast);
-      }
+      
+      // handle special cases of cpp return result
+
+      String *mod = NewString("$mod");
+      if (SwigType_isreference(type))
+        Replaceall(mod, "$mod", "");
       else if (SwigType_isenum(type))
-        Replaceall(action, "$mod", "(int)");
-      else if (return_object && Getattr(n, "c:retval")) {
-        Replaceall(action, "$mod", "&");
+        Replaceall(mod, "$mod", "(int)");
+      else if (return_object && Getattr(n, "c:retval"))
+        Replaceall(mod, "$mod", "&");
+      else {
+        Delete(mod);
+        mod = empty_string;
       }
-      else
-        Replaceall(action, "$mod", "");
+
+      Printf(stderr, "\n%s, %s, mod = %s\n", name, type, mod);
+
+      Replaceall(action, "$mod", mod);
 
       // emit output typemap if needed
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
@@ -854,6 +871,15 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    SwigType *type = Getattr(n, "type");
+    SwigType *tdtype;
+    tdtype = SwigType_typedef_resolve(type);
+    if (tdtype)
+      type = tdtype;
+    if (type) {
+      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+        Setattr(n, "c:retval", "1");
+    }
     return Language::staticmemberfunctionHandler(n);
   }
 
@@ -863,8 +889,14 @@ ready:
 
   virtual int memberfunctionHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
-    if (!SwigType_ispointer(type) && !SwigType_ispointer(SwigType_typedef_resolve(type)))
-      Setattr(n, "c:retval", "1");
+    SwigType *tdtype;
+    tdtype = SwigType_typedef_resolve(type);
+    if (tdtype)
+      type = tdtype;
+    if (type) {
+      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+        Setattr(n, "c:retval", "1");
+    }
     return Language::memberfunctionHandler(n);
   }
 
@@ -923,6 +955,7 @@ ready:
 
   /* ---------------------------------------------------------------------
    * staticmembervariableHandler()
+   * TODO: refactor
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
