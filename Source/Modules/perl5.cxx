@@ -589,7 +589,7 @@ public:
 	   NIL);
 
     num_implicits = 0;
-    if(outer) {
+    if (outer) {
       Parm *tmp = outer;
       Parm *tail;
       while(tmp) {
@@ -633,7 +633,8 @@ public:
         Printf(f->code, "%s = ST(%d);\n", pname, i++);
         p = nextSibling(p);
       }
-      Printf(f->code, "ax += %d;\n", num_implicits);
+      if (l)
+        Printf(f->code, "ax += %d;\n", num_implicits);
     }
     /* Write code to extract parameters. */
     i = 0;
@@ -747,6 +748,9 @@ public:
       Wrapper_add_localv(f, "_saved", "SV *", temp, NIL);
     }
 
+    if (num_implicits && l)
+      Printf(f->code, "ax -= %d;\n", num_implicits);
+
     /* Now write code to make the function call */
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -793,6 +797,11 @@ public:
       Printf(f->code, "%s\n", tm);
     }
 
+    if (blessed && Equal(nodeType(n), "constructor")) {
+      Append(f->code,
+        "if (SvOK(ST(0))) sv_bless(ST(0), gv_stashsv(proto, 0));\n");
+    }
+
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
 
     /* Add the dXSARGS last */
@@ -824,7 +833,7 @@ public:
       Printv(df->def, "XS(", dname, ") {\n", NIL);
 
       Wrapper_add_local(df, "dXSARGS", "dXSARGS");
-      if(num_implicits) {
+      if (num_implicits) {
         Printf(df->code, "ax += %d;\n", num_implicits);
         Printf(df->code, "items -= %d;\n", num_implicits);
       }
@@ -1081,7 +1090,7 @@ public:
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
       if (!checkAttribute(p,"tmap:in:numinputs","0")) {
-        if(i > 0) Append(temp, ",");
+        if (i > 0) Append(temp, ",");
 	/* If parameter has been named, use that.   Otherwise, just print a type  */
 	if (SwigType_type(pt) != T_VOID) {
 	  if (Len(pn) > 0) {
@@ -1536,17 +1545,16 @@ public:
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
       } else {
-	if ((Cmp(symname, class_name) == 0)) {
-	  /* Emit a blessed constructor  */
-	  Printf(pcode, "sub new {\n");
-	} else {
-	  /* Constructor doesn't match classname so we'll just use the normal name  */
-	  Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
-	}
-
-	Printv(pcode,
-	       tab4, "my $pkg = $_[0];\n",
-	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
+	/* Emit a blessed constructor  */
+        String *cname = Swig_name_construct(symname);
+        char *pname;
+        /* override Class->Class to be Class->new */
+	if (Cmp(symname, class_name) == 0)
+          pname = "new";
+	else
+          pname = Char(cname);
+        Printf(pcode, "*%s = *%s::%s;\n", pname, cmodule, cname);
+        Delete(cname);
 
 	have_constructor = 1;
       }
