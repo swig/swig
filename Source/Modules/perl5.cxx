@@ -619,7 +619,7 @@ public:
       Printf(f->code, "    if (items < %d) {\n",
         num_required + num_implicits);
     }
-    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, outer));
+    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, outer, l));
     Printf(f->code, "}\n");
 
     if (num_implicits) {
@@ -1073,7 +1073,7 @@ public:
   /* ------------------------------------------------------------
    * usage_func()
    * ------------------------------------------------------------ */
-  char *usage_func(char *iname, SwigType *, ParmList *l) {
+  char *usage_func(char *iname, SwigType *, ParmList *il, ParmList *l) {
     static String *temp = 0;
     Parm *p;
     int i;
@@ -1084,6 +1084,9 @@ public:
     Printf(temp, "%s(", iname);
 
     i = 0;
+    /* Print implicit parameters */
+    for(p = il; p; p = nextSibling(p))
+      Printv(temp, (i > 0 ? "," : ""), Getattr(p, "name"), NIL);
     /* Now go through and print normal parameters */
     p = l;
     while (p != 0) {
