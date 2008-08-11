@@ -298,6 +298,14 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   return SWIG_OK;
 }
 
+SWIGRUNTIME SV *
+SWIG_Perl_TypeOverrideName = 0;
+
+SWIGRUNTIME void
+SWIG_Perl_TypeOverride(SV *proto) {
+  SWIG_Perl_TypeOverrideName = proto;
+}
+
 SWIGRUNTIME void
 SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
   if (ptr && (flags & SWIG_SHADOW)) {
@@ -305,7 +313,12 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     SV *obj=newSV(0);
     HV *hash=newHV();
     HV *stash;
-    sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+    if(SWIG_Perl_TypeOverrideName) {
+      sv_setref_pv(obj, SvPV_nolen(SWIG_Perl_TypeOverrideName), ptr);
+      SWIG_Perl_TypeOverrideName = 0;
+    } else {
+      sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+	}
     stash=SvSTASH(SvRV(obj));
     if (flags & SWIG_POINTER_OWN) {
       HV *hv;

@@ -625,7 +625,7 @@ public:
     if (num_implicits) {
       /* TODO: support implicits of types other than SVs */
       Parm *p = outer;
-      for(i = 0; i < num_implicits; i++) {
+      for (i = 0; i < num_implicits; i++) {
         String *pname = Getattr(p, "name");
         String *pinit = SwigType_str(Getattr(p, "type"), pname);
         Wrapper_add_local(f, pname, pinit);
@@ -767,6 +767,8 @@ public:
 	Replaceall(tm, "$shadow", "0");
       }
       if (GetFlag(n, "feature:new")) {
+        if (blessed && Equal(nodeType(n), "constructor"))
+          Append(f->code, "SWIG_Perl_TypeOverride(proto);\n");
 	Replaceall(tm, "$owner", "SWIG_OWNER");
       } else {
 	Replaceall(tm, "$owner", "0");
@@ -795,11 +797,6 @@ public:
     if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
       Replaceall(tm, "$source", "result");
       Printf(f->code, "%s\n", tm);
-    }
-
-    if (blessed && Equal(nodeType(n), "constructor")) {
-      Append(f->code,
-        "if (SvOK(ST(0))) sv_bless(ST(0), gv_stashsv(proto, 0));\n");
     }
 
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
@@ -1085,7 +1082,7 @@ public:
 
     i = 0;
     /* Print implicit parameters */
-    for(p = il; p; p = nextSibling(p))
+    for (p = il; p; p = nextSibling(p), i++)
       Printv(temp, (i > 0 ? "," : ""), Getattr(p, "name"), NIL);
     /* Now go through and print normal parameters */
     p = l;
