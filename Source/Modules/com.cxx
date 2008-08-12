@@ -197,7 +197,7 @@ class COM:public Language {
   GUID *proxy_iid;
   GUID *proxy_static_iid;
   GUID *proxy_clsid;
-  GUID guid_seed;
+  GUID master_guid;
   GUID typelib_guid;
   GUID module_iid;
   GUID module_clsid;
@@ -243,7 +243,7 @@ public:
       clsid_list(NewString("")),
       namespce(NULL) {
     /* Use NIL GUID by default */
-    memset(&guid_seed, 0, sizeof(GUID));
+    memset(&master_guid, 0, sizeof(GUID));
     memset(&typelib_guid, 0, sizeof(GUID));
     memset(&module_iid, 0, sizeof(GUID));
     memset(&module_clsid, 0, sizeof(GUID));
@@ -324,8 +324,8 @@ public:
     Node *optionsnode = Getattr(Getattr(n, "module"), "options");
 
     if (optionsnode) {
-      if (Getattr(optionsnode, "guidseed")) {
-	if (!parseGUID(Getattr(optionsnode, "guidseed"), &guid_seed)) {
+      if (Getattr(optionsnode, "masterguid")) {
+	if (!parseGUID(Getattr(optionsnode, "masterguid"), &master_guid)) {
           /* Bad GUID */
           /* FIXME: report an error */
         }
@@ -1247,18 +1247,18 @@ public:
 
     char *prep_input = new char[16 + name_len];
 
-    /* guid_seed serves as a "name space ID" as used in RFC 4122. */
-    prep_input[0] = (guid_seed.Data1 >> 24) & 0xff;
-    prep_input[1] = (guid_seed.Data1 >> 16) & 0xff;
-    prep_input[2] = (guid_seed.Data1 >> 8) & 0xff;
-    prep_input[3] = guid_seed.Data1 & 0xff;
-    prep_input[4] = (guid_seed.Data2 >> 8) & 0xff;
-    prep_input[5] = guid_seed.Data2 & 0xff;
-    prep_input[6] = (guid_seed.Data3 >> 8) & 0xff;
-    prep_input[7] = guid_seed.Data3 & 0xff;
+    /* master_guid serves as a "name space ID" as used in RFC 4122. */
+    prep_input[0] = (master_guid.Data1 >> 24) & 0xff;
+    prep_input[1] = (master_guid.Data1 >> 16) & 0xff;
+    prep_input[2] = (master_guid.Data1 >> 8) & 0xff;
+    prep_input[3] = master_guid.Data1 & 0xff;
+    prep_input[4] = (master_guid.Data2 >> 8) & 0xff;
+    prep_input[5] = master_guid.Data2 & 0xff;
+    prep_input[6] = (master_guid.Data3 >> 8) & 0xff;
+    prep_input[7] = master_guid.Data3 & 0xff;
 
     for (int i = 0; i < 8; ++i) {
-      prep_input[8 + i] = guid_seed.Data4[i];
+      prep_input[8 + i] = master_guid.Data4[i];
     }
 
     for (int i = 0; i < name_len; ++i) {
