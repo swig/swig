@@ -1994,7 +1994,7 @@ public:
 
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
     formatGUID(proxy_class_def, proxy_iid, false);
-    Printv(proxy_class_def, ")\n  ]\n  interface I$comclassname {\n  };\n\n", NIL);
+    Printv(proxy_class_def, ")\n  ]\n  interface I$comclassname : IUnknown {\n  };\n\n", NIL);
 
     Replaceall(proxy_class_forward_def, "$comclassname", classname);
     Replaceall(proxy_class_def, "$comclassname", classname);
