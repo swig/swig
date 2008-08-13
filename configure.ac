@@ -2594,7 +2594,8 @@ AC_ARG_WITH(com-runtool, [  --with-com-runtool=path         Set location of the 
 AC_ARG_WITH(com-cc, [  --with-com-cc=path      Set location of C compiler for COM], [COM_CC="$withval"], [COM_CC=])
 AC_ARG_WITH(com-cxx, [  --with-com-cxx=path     Set location of C++ compiler for COM], [COM_CXX="$withval"], [COM_CXX=])
 AC_ARG_WITH(com-idl, [  --with-com-idl=path     Set location of COM IDL compiler], [COM_IDL="$withval"], [COM_IDL=]) 
-AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler fom COM], [COM_RC="$withval"], [COM_RC=])
+AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler for COM], [COM_RC="$withval"], [COM_RC=])
+AC_ARG_WITH(com-cscript, [  --with-com-cscript=path         Set location of the cscript interpreter], [COM_CSCRIPT="$withval"], [COM_CSCRIPT=])
 
 # Check if COM is requested
 if test x"${with_com}" = xno -o x"${with_alllang}" = xno ; then
@@ -2622,6 +2623,9 @@ case $host in
   if test -z "$COM_RC" ; then
     AC_CHECK_PROGS(COM_RC, windres rc wrc)
   fi
+  if test -z "$COM_CSCRIPT" ; then
+    AC_CHECK_PROGS(COM_CSCRIPT, cscript)
+  fi
 ;;
 *)
   COM_CYGPATH_W=echo
@@ -2641,15 +2645,22 @@ case $host in
   if test -z "$COM_RC" ; then
     AC_CHECK_PROGS(COM_RC, wrc i586-mingw32msvc-windres)
   fi
+  if test -z "$COM_CSCRIPT" ; then
+    AC_CHECK_PROGS(COM_CSCRIPT, cscript echo)
+  fi
  ;;
 esac
 
 if test "widl" = "$COM_IDL" ; then
-  COM_IDL_SWITCHES='-I /usr/include/wine/windows -t'
-  COM_IDL_HEADER_SWITCHES='-I /usr/include/wine/windows -h -H'
+  COM_IDL_COMMON_SWITCHES='-I /usr/include/wine/windows'
+  COM_IDL_TLB_SWITCHES='-t -T'
+  COM_IDL_HEADER_SWITCHES='-h -H'
+  COM_IDL_IID_SWITCHES='-u -U'
 elif test "midl" = "$COM_IDL" ; then
-  COM_IDL_SWITCHES=
-  COM_IDL_HEADER_SWITCHES='/notlb /h'
+  COM_IDL_COMMON_SWITCHES=
+  COM_IDL_TLB_SWITCHES='/tlb'
+  COM_IDL_HEADER_SWITCHES='/h'
+  COM_IDL_IID_SWITCHES='/iid'
 fi
 
 if test "rc" = "$COM_RC" ; then
@@ -2667,8 +2678,10 @@ if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "
   COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
   if test "winegcc" = "$COM_CC" ; then
     COM_EXEC_SUFFIX=.so
+    COM_RES_SUFFIX=.res
   else
     COM_EXEC_SUFFIX=
+    COM_RES_SUFFIX=.o
   fi
 elif test "cl" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES=/LD
@@ -2676,6 +2689,7 @@ elif test "cl" = "$COM_CC" ; then
   COM_CC_SWITCHES=
   COM_LIBS='ole32.lib uuid.lib advapi32.lib oleaut32.lib'
   COM_EXEC_SUFFIX=
+  COM_RES_SUFFIX=.res
 fi
 
 if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" = "$COM_CXX" ; then
@@ -2686,6 +2700,12 @@ elif test "cl" = "$COM_CC" ; then
   COM_CXX_OUT_SWITCHES=/Fe
 fi
 
+if test "cscript" = "$COM_CSCRIPT" ; then
+  COM_CSCRIPT_SWITCHES=//Nologo
+else
+  COM_CSCRIPT_SWITCHES=
+fi
+
 fi
 
 AC_SUBST(COM_RUNTOOL)
@@ -2693,9 +2713,12 @@ AC_SUBST(COM_CC)
 AC_SUBST(COM_CXX)
 AC_SUBST(COM_IDL)
 AC_SUBST(COM_RC)
+AC_SUBST(COM_CSCRIPT)
 AC_SUBST(COM_LIBS)
-AC_SUBST(COM_IDL_SWITCHES)
+AC_SUBST(COM_IDL_COMMON_SWITCHES)
+AC_SUBST(COM_IDL_TLB_SWITCHES)
 AC_SUBST(COM_IDL_HEADER_SWITCHES)
+AC_SUBST(COM_IDL_IID_SWITCHES)
 AC_SUBST(COM_RC_IN_SWITCHES)
 AC_SUBST(COM_RC_OUT_SWITCHES)
 AC_SUBST(COM_CC_SHARED_SWITCHES)
@@ -2704,6 +2727,8 @@ AC_SUBST(COM_CXX_SHARED_SWITCHES)
 AC_SUBST(COM_CXX_OUT_SWITCHES)
 AC_SUBST(COM_CC_SWITCHES)
 AC_SUBST(COM_EXEC_SUFFIX)
+AC_SUBST(COM_RES_SUFFIX)
+AC_SUBST(COM_CSCRIPT_SWITCHES)
 AC_SUBST(COM_CYGPATH_W)
 
 #----------------------------------------------------------------
