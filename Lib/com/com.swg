@@ -1031,9 +1031,9 @@ extern "C"
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
     LPVOID lpvReserved) {
   if (fdwReason == DLL_PROCESS_ATTACH) {
-    SWIGModule = hinstDLL;
-
     HRESULT hres = S_OK;
+
+    SWIGModule = hinstDLL;
 
 #ifdef __WINE__
     /*
