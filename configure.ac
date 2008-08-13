@@ -2611,17 +2611,17 @@ case $host in
     COM_RUNTOOL=
   fi
   if test -z "$COM_CC" ; then
-    AC_CHECK_PROGS(COM_CC, gcc cl)
+    AC_CHECK_PROGS(COM_CC, gcc dmc cl)
   fi
   if test -z "$COM_CXX" ; then
-    AC_CHECK_PROGS(COM_CXX, g++ cl)
+    AC_CHECK_PROGS(COM_CXX, g++ dmc cl)
   fi
   if test -z "$COM_IDL" ; then
     # There seems to be no IDL compiler in MinGW/Cygwin
     AC_CHECK_PROGS(COM_IDL, widl midl)
   fi
   if test -z "$COM_RC" ; then
-    AC_CHECK_PROGS(COM_RC, windres rc wrc)
+    AC_CHECK_PROGS(COM_RC, windres rcc rc wrc)
   fi
   if test -z "$COM_CSCRIPT" ; then
     AC_CHECK_PROGS(COM_CSCRIPT, cscript)
@@ -2664,10 +2664,13 @@ elif test "midl" = "$COM_IDL" ; then
 fi
 
 if test "rc" = "$COM_RC" ; then
-  COM_RC_OUT_SWITCHES=/fo
+  COM_RC_OUT_SWITCHES='/fo '
   COM_RC_IN_SWITCHES=
-else
-  COM_RC_OUT_SWITCHES=-o
+elif test "rcc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES='-o'
+  COM_RC_IN_SWITCHES=
+elif test "windres" = "$COM_RC" -o "wrc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES='-o '
   COM_RC_IN_SWITCHES=-i
 fi
 
@@ -2683,6 +2686,13 @@ if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "
     COM_EXEC_SUFFIX=
     COM_RES_SUFFIX=.o
   fi
+elif test "dmc" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES='-WD -L/exetype:nt'
+  COM_CC_OUT_SWITCHES='-o'
+  COM_CC_SWITCHES='-L/exetype:nt'
+  COM_LIBS='user32.lib kernel32.lib ole32.lib uuid.lib advapi32.lib oleaut32.lib'
+  COM_EXEC_SUFFIX=
+  COM_RES_SUFFIX=.res
 elif test "cl" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES=/LD
   COM_CC_OUT_SWITCHES=/Fe
@@ -2694,10 +2704,13 @@ fi
 
 if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" = "$COM_CXX" ; then
   COM_CXX_SHARED_SWITCHES='-shared -mno-cygwin'
-  COM_CXX_OUT_SWITCHES="-o "
+  COM_CXX_OUT_SWITCHES='-o '
+elif test "dmc" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES='-WD -Ae -Ar -L/exetype:nt'
+  COM_CXX_OUT_SWITCHES='-o'
 elif test "cl" = "$COM_CC" ; then
   COM_CXX_SHARED_SWITCHES=/LD
-  COM_CXX_OUT_SWITCHES=/Fe
+  COM_CXX_OUT_SWITCHES='/Fe'
 fi
 
 if test "cscript" = "$COM_CSCRIPT" ; then

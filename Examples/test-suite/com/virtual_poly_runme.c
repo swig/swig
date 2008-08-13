@@ -7,6 +7,10 @@
 #define __RPC__deref_out
 #endif
 
+#ifdef __DMC__
+#define __RPCNDR_H_VERSION__        ( 450 ) 
+#endif
+
 #include "virtual_poly/virtual_poly_generated.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
