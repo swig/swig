@@ -1,7 +1,12 @@
 #define CINTERFACE
 #include <stdio.h>
 #include <windows.h>
-#include <initguid.h>
+
+#ifndef MSVC
+/* This is a workaround for a VC specific attribute */
+#define __RPC__deref_out
+#endif
+
 #include "virtual_poly/virtual_poly_generated.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {

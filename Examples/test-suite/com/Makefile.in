@@ -4,11 +4,16 @@
 
 LANGUAGE     = com
 SCRIPTSUFFIX = _runme.c
+SCRIPTSUFFIX2 = _runme.vbs
 COM_CYGPATH_W     = @COM_CYGPATH_W@
 COM_EXEC_SUFFIX = @COM_EXEC_SUFFIX@
 COM_RUNTOOL  = @COM_RUNTOOL@
 COM_IDL      = @COM_IDL@
+COM_IDL_COMMON_SWITCHES = @COM_IDL_COMMON_SWITCHES@
 COM_IDL_HEADER_SWITCHES = @COM_IDL_HEADER_SWITCHES@
+COM_IDL_IID_SWITCHES    = @COM_IDL_IID_SWITCHES@
+COM_CSCRIPT  = @COM_CSCRIPT@
+COM_CSCRIPT_SWITCHES = @COM_CSCRIPT_SWITCHES@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@/..
 top_builddir = @top_builddir@/..
@@ -65,7 +70,7 @@ unregister_component = \
 
 # Generates headers from the IDL file
 generate_headers = \
-	$(COMPILETOOL) $(COM_IDL) $(COM_IDL_HEADER_SWITCHES) $*/$*_generated.h $*/$*.idl;
+	$(COMPILETOOL) $(COM_IDL) $(COM_IDL_COMMON_SWITCHES) $(COM_IDL_HEADER_SWITCHES) $*/$*_generated.h $(COM_IDL_IID_SWITCHES) $*/$*_i.c $*/$*.idl;
 
 # Compiles COM files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.c appended after the testcase name.
@@ -73,10 +78,14 @@ run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  TARGET='$*_runme.exe' \
-	  COMSRCS=`$(COM_CYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
+	  COMSRCS='`$(COM_CYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(srcdir)/$*/$*_i.c`' \
 	  com_compile && \
-	  $(RUNTOOL) $(COM_RUNTOOL) $*_runme.exe$(COM_EXEC_SUFFIX); ) \
-	fi;
+	  $(RUNTOOL) $(COM_RUNTOOL) $(srcdir)/$*_runme.exe$(COM_EXEC_SUFFIX); ) \
+	fi; \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX2) ]; then (     \
+	  $(RUNTOOL) $(COM_CSCRIPT) $(COM_CSCRIPT_SWITCHES) `$(COM_CYGPATH_W) $(srcdir)/$*_runme.vbs` )\
+        fi;
+
 
 # Clean: remove testcase directories
 %.clean:
