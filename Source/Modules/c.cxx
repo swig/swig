@@ -255,18 +255,18 @@ public:
    * ------------------------------------------------------------------------ */
 
   virtual int globalfunctionHandler(Node *n) {
-    String *action = NewString("");
+    SwigType *type = Getattr(n, "type");
     String *vis_hint = NewString("");
     String *return_type_str = SwigType_str(Getattr(n, "type"), 0);
     String *name = Getattr(n, "sym:name");
     ParmList *parms = Getattr(n, "parms");
     String *arg_list = NewString("");
+    String *call = empty_string;
+    String *cres = empty_string;
 
-    if (SwigType_type(Getattr(n, "type")) != T_VOID) {
-      Printv(action, "result = (", SwigType_str(Getattr(n, "type"), 0), ") ", NIL);
-    }
-    Printv(action, Swig_cfunction_call(Getattr(n, "name"), parms), ";", NIL);
-    Setattr(n, "wrap:action", action);
+    call = Swig_cfunction_call(Getattr(n, "name"), parms);
+    cres = Swig_cresult(type, "result", call);
+    Setattr(n, "wrap:action", cres);
 
     functionWrapper(n);
 
@@ -274,9 +274,10 @@ public:
     Printv(vis_hint, "SWIGPROTECT(", return_type_str, " ", name, "(", ParmList_str(parms), ");)\n\n", NIL);
     Printv(f_header, vis_hint, NIL);
 
+    Delete(cres);
+    Delete(call);
     Delete(arg_list);
     Delete(vis_hint);
-    Delete(action);
     return SWIG_OK;
   }
 
@@ -313,10 +314,10 @@ public:
   }
 
   /* ----------------------------------------------------------------------
-   * getMangledType()
+   * get_mangled_type()
    * ---------------------------------------------------------------------- */
 
-  String *getMangledType(SwigType *type_arg) {
+  String *get_mangled_type(SwigType *type_arg) {
     static String *result = 0;
     SwigType *prefix = 0;
     if (result)
@@ -470,7 +471,7 @@ ready:
           for (p = parms; p; p = nextSibling(p)) {
             if (Getattr(p, "c:objstruct"))
               continue;
-            String *mangled = getMangledType(Getattr(p, "type"));
+            String *mangled = get_mangled_type(Getattr(p, "type"));
             Printv(over_suffix, "_", mangled, NIL);
           }
           Append(name, over_suffix);
@@ -674,8 +675,6 @@ ready:
         Delete(mod);
         mod = empty_string;
       }
-
-      Printf(stderr, "\n%s, %s, mod = %s\n", name, type, mod);
 
       Replaceall(action, "$mod", mod);
 
@@ -1239,6 +1238,7 @@ ready:
     }
     Printv(code, newname ? newname : "", " {\n$enumvalues\n} ", tdname ? tdname : "", ";\n\n", NIL);
     emit_children(n);
+
     if (enum_values) {
       Replaceall(code, "$enumvalues", enum_values);
       Append(f_proxy_header, code);
@@ -1297,6 +1297,10 @@ ready:
     String *name = Getattr(n, "sym:name");
     String *type = Getattr(n, "type");
     char *c = Char(SwigType_str(type, 0));
+
+    if (!name)
+      name = Getattr(n, "name");
+
     if (strncmp(c, "enum", 4) != 0) {
       if (name && type)  {
         String *code = NewStringf("typedef %s %s;\n\n", type, name);
