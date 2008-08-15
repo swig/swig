@@ -18,11 +18,6 @@ Dim ddc, dic
 Set ddc = vp.NDouble.narrow(dc)
 Set dic = vp.NInt.narrow(ic)
 
-
-Rem This fails, probably due to a bug in memory management code
-Set dc = ddc
-Set ic = dic
-
 vp.incr(dic)
 
 If (i.get() + 1) <> ic.get() Then

@@ -2688,7 +2688,7 @@ if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "
   fi
 elif test "dmc" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES='-WD -L/exetype:nt'
-  COM_CC_OUT_SWITCHES='-o'
+  COM_CC_OUT_SWITCHES=-o
   COM_CC_SWITCHES='-L/exetype:nt'
   COM_LIBS='user32.lib kernel32.lib ole32.lib uuid.lib advapi32.lib oleaut32.lib'
   COM_EXEC_SUFFIX=
@@ -2707,10 +2707,10 @@ if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" =
   COM_CXX_OUT_SWITCHES='-o '
 elif test "dmc" = "$COM_CXX" ; then
   COM_CXX_SHARED_SWITCHES='-WD -Ae -Ar -L/exetype:nt'
-  COM_CXX_OUT_SWITCHES='-o'
-elif test "cl" = "$COM_CC" ; then
-  COM_CXX_SHARED_SWITCHES=/LD
-  COM_CXX_OUT_SWITCHES='/Fe'
+  COM_CXX_OUT_SWITCHES=-o
+elif test "cl" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES='/LD /GR /EHs'
+  COM_CXX_OUT_SWITCHES=/Fe
 fi
 
 if test "cscript" = "$COM_CSCRIPT" ; then
