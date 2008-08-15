@@ -82,11 +82,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   dc_as_nnumber->lpVtbl->Release(dc_as_nnumber);
   ic_as_nnumber->lpVtbl->Release(ic_as_nnumber);
-  dc->lpVtbl->Release(dc);
-  ic->lpVtbl->Release(ic);
-
-  ic = dic;
-  dc = ddc;
 
   vp->lpVtbl->incr(vp, ic, &ic_temp);
   ic_temp->lpVtbl->Release(ic_temp);
@@ -101,6 +96,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   dc->lpVtbl->Release(dc);
   ic->lpVtbl->Release(ic);
+  dic->lpVtbl->Release(dic);
+  ddc->lpVtbl->Release(ddc);
 
   /*
    * Checking a pure user downcast
