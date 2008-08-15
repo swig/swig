@@ -132,6 +132,12 @@ int Dispatcher::emit_one(Node *n) {
     ret = namespaceDeclaration(n);
   } else if (strcmp(tag, "template") == 0) {
     ret = templateDeclaration(n);
+  } 
+  /* ===============================================================
+   *  Doxygen Comment
+   * =============================================================== */  
+  else if (strcmp(tag, "doxycomm") == 0) {
+	    ret = doxygenComment(n);
   }
 
   /* ===============================================================
@@ -296,7 +302,9 @@ int Dispatcher::usingDeclaration(Node *n) {
 int Dispatcher::namespaceDeclaration(Node *n) {
   return defaultHandler(n);
 }
-
+int Dispatcher::doxygenComment(Node *n){
+  return defaultHandler(n);
+}
 
 /* Allocators */
 Language::Language():
@@ -2816,6 +2824,17 @@ int Language::usingDeclaration(Node *n) {
 }
 
 /* Stubs. Language modules need to implement these */
+
+/* ----------------------------------------------------------------------
+ * Language::doxygenComment()
+ * ---------------------------------------------------------------------- */
+int Language::doxygenComment(Node *n){
+	
+	String *comment = Getattr(n, "comment");
+
+	return SWIG_OK;
+	
+}
 
 /* ----------------------------------------------------------------------
  * Language::constantWrapper()

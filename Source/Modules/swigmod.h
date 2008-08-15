@@ -82,6 +82,9 @@ public:
   virtual int typemapcopyDirective(Node *n);
   virtual int typesDirective(Node *n);
 
+  /* Doxygen Comment */
+  virtual int doxygenComment(Node *n);
+  
   /* C/C++ parsing */
 
   virtual int cDeclaration(Node *n);
@@ -159,6 +162,9 @@ public:
   virtual int namespaceDeclaration(Node *n);
   virtual int usingDeclaration(Node *n);
 
+  /* C/C++ parsing */
+  virtual int doxygenComment(Node *n);
+  
   /* Function handlers */
 
   virtual int functionHandler(Node *n);

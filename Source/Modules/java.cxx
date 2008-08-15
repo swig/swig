@@ -13,6 +13,7 @@ char cvsroot_java_cxx[] = "$Id$";
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
+#include "../DoxygenTranslator/src/DoxygenTranslator.h"
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -43,7 +44,7 @@ class JAVA:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool member_func_flag;	// flag set when wrapping a member function
-
+  
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
   String *imclass_class_code;	// intermediary class code
@@ -70,7 +71,8 @@ class JAVA:public Language {
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
   String *destructor_call;	//C++ destructor call if any
-
+  String *structuralComments;
+  
   // Director method stuff:
   List *dmethods_seq;
   Hash *dmethods_table;
@@ -87,6 +89,11 @@ class JAVA:public Language {
     Setline(p, Getline(n));
     return p;
   }
+  /* DOXYGEN TO JAVADOC globals */
+  bool doxygen_javadoc_flag; //flag for converting found doxygen to javadoc
+  //TODO make this bool a command line option
+  DoxygenTranslator doxyTranslator;
+
 
 public:
 
@@ -141,6 +148,7 @@ public:
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
       destructor_call(NULL),
+      structuralComments(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -149,6 +157,7 @@ public:
        should be easy to implement though */
     director_multiple_inheritance = 0;
     director_language = 1;
+    doxyTranslator = DoxygenTranslator();
   }
 
   /* -----------------------------------------------------------------------------
@@ -202,6 +211,7 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
+	  doxygen_javadoc_flag = true;
     SWIG_library_directory("java");
 
     // Look for certain command line options
@@ -355,6 +365,7 @@ public:
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
+    structuralComments = NewString("");
     upcasts_code = NewString("");
     dmethods_seq = NewList();
     dmethods_table = NewHash();
@@ -432,6 +443,8 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
+    	  
+
       if (Len(package) > 0)
 	Printf(f_im, "package %s;\n", package);
 
@@ -482,13 +495,22 @@ public:
 
       // Start writing out the module class file
       emitBanner(f_module);
-
+      //Add any structural comments to the top
+      if(doxygen_javadoc_flag && structuralComments){
+    	  Printf(f_module, "%s", structuralComments);
+      }
       if (Len(package) > 0)
 	Printf(f_module, "package %s;\n", package);
 
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
-
+      
+      if (doxygen_javadoc_flag){
+      	if (Getattr(n,"DoxygenComment")){
+      		  Printf(f_module, "/* This was generated from top() */");
+      		  Printf(f_module, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+      	}
+      }
       if (Len(module_class_modifiers) > 0)
 	Printf(f_module, "%s ", module_class_modifiers);
       Printf(f_module, "%s ", module_class_name);
@@ -921,7 +943,7 @@ public:
       Delete(c_param_type);
       Delete(arg);
     }
-
+    
     Printv(f->code, nondir_args, NIL);
     Delete(nondir_args);
 
@@ -1135,6 +1157,7 @@ public:
     return ret;
   }
 
+  
   /* ----------------------------------------------------------------------
    * enumDeclaration()
    *
@@ -1205,7 +1228,15 @@ public:
 	  // Add extra indentation
 	  Replaceall(enum_code, "\n", "\n  ");
 	  Replaceall(enum_code, "  \n", "\n");
+	    //translate and write javadoc comment if flagged
+	    if (doxygen_javadoc_flag){
+	    	if (Getattr(n,"DoxygenComment")){
+	    		  Printv(proxy_class_constants_code, "/* This was generated from enumvalueDeclaration */", NIL );
 
+	    		  Printv(proxy_class_constants_code, doxyTranslator.convert(Char((const String *)Getattr(n,"DoxygenComment")),"JAVADOC"), NIL); 	
+	    	}
+	    }
+	    
 	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
@@ -1267,7 +1298,14 @@ public:
       tmpValue = NewString(name);
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
-
+    
+    //translate and write javadoc comment if flagged
+    if (doxygen_javadoc_flag){
+    	if (Getattr(n,"DoxygenComment")){
+    		  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */" );
+    		  Printf(enum_code, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+    	}
+    }
     {
       EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
 
@@ -1327,6 +1365,21 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * doxygenComment()
+   * Simply translates the doxygen comment and places it into the appropriate
+   * file
+   * ------------------------------------------------------------------------ */
+  virtual int doxygenComment(Node *n){
+		 if (doxygen_javadoc_flag){
+		   if (Getattr(n,"DoxygenComment")){
+			    	Printv(structuralComments, "/* This was generated from doxygenComment() */\n", NIL);
+			    	Printv(structuralComments, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC"), NIL);
+		    	}
+		    }
+	 return SWIG_OK;
+  }
+  
+  /* -----------------------------------------------------------------------
    * constantWrapper()
    * Used for wrapping constants - #define or %constant.
    * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
@@ -1344,7 +1397,14 @@ public:
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-
+    //translate and write javadoc comment if flagged
+    if (doxygen_javadoc_flag){
+    	if (Getattr(n,"DoxygenComment")){
+    		Printf(constants_code, "/* This was generated from enumvalueDeclaration */\n");
+    		  Printf(constants_code, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+    	}
+    }
+    
     if (!addSymbol(symname, n))
       return SWIG_ERROR;
 
@@ -1605,7 +1665,15 @@ public:
 
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
-
+    
+    //translate and write javadoc comment if flagged
+    if (doxygen_javadoc_flag){
+    	if (Getattr(n,"DoxygenComment")){
+  		  Printv(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */\n", NIL );
+    		Printv(proxy_class_def, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC"), NIL); 	
+    	}
+    }
+    
     // Start writing the proxy class
     Printv(proxy_class_def, typemapLookup("javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
@@ -1754,9 +1822,10 @@ public:
       // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      if (Len(package) > 0)
+      if (Len(package) > 0){
+    Printf(f_proxy, "LETS TEST THIS NAO THX \n\n\n");
 	Printf(f_proxy, "package %s;\n", package);
-
+      }
       Clear(proxy_class_def);
       Clear(proxy_class_code);
 
@@ -1936,7 +2005,16 @@ public:
       // For wrapping member variables (Javabean setter)
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
     }
-
+    
+    
+    //translate and write javadoc comment if flagged
+    if (doxygen_javadoc_flag){
+    	if (Getattr(n,"DoxygenComment")){
+    		  Printf(function_code, "/* This was generated from proxyclassfunctionhandler */");
+    		  Printf(function_code, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+    	}
+    }
+    
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
@@ -2158,7 +2236,15 @@ public:
 
       tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
       Printf(im_return_type, "%s", tm);
-
+      
+	    //translate and write javadoc comment if flagged
+	    if (doxygen_javadoc_flag){
+	    	if (Getattr(n,"DoxygenComment")){
+	    		  Printf(function_code, "/* This was generated from constructionhandler */\n" );
+	    		  Printf(function_code, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+	    	}
+	    }
+	    
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
       Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
@@ -2419,6 +2505,14 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    
+    //translate and write javadoc comment if flagged
+    if (doxygen_javadoc_flag){
+    	if (Getattr(n,"DoxygenComment")){
+    		  Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */\n" );
+    		  Printf(function_code, doxyTranslator.convert(Char((String *)Getattr(n,"DoxygenComment")),"JAVADOC")); 	
+    	}
+    }
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -2814,6 +2908,7 @@ public:
     const String *pure_baseclass = typemapLookup("javabase", type, WARN_NONE);
     const String *pure_interfaces = typemapLookup("javainterfaces", type, WARN_NONE);
 
+    
     // Emit the class
     Printv(swigtype, typemapLookup("javaimports", type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup("javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers

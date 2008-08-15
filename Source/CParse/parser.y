@@ -64,26 +64,25 @@ String *currentPostComment; /* Location of the stored Doxygen Post-Comment */
 String *currentCComment; /* Location of the stored C Comment */
 static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
 
-/* NOT a safe method at the moment */
 int isStructuralDoxygen(String *s){
-	char *k = Char(s);
-    while (k[0] != '\0' && k[0] != '\\' && k[0] != '@'){
-	  k++;
-	  }
-	if (k[0] == '\0') return 0;
-    k++;
-	if (strncmp(k, "addtogroup", 10) == 0 || strncmp(k, "callgraph", 9) == 0 || strncmp(k, "callergraph", 11) == 0 
-	      || strncmp(k, "category", 8) == 0 || strncmp(k, "class", 5) == 0 || strncmp(k, "def", 3) == 0
-	      || strncmp(k, "defgroup", 8) == 0 || strncmp(k, "dir", 3) == 0 || strncmp(k, "enum", 4) == 0
-	      || strncmp(k, "example", 7) == 0 || strncmp(k, "file", 4) == 0 || strncmp(k, "fn", 2) == 0
-	      || strncmp(k, "headerfile", 9) == 0 || strncmp(k, "hideinitializer", 12) == 0 || strncmp(k, "ingroup", 7) == 0
-	      || strncmp(k, "interface", 9) == 0 || strncmp(k, "internal", 8) == 0 || strncmp(k, "mainpage", 8) == 0
-	      || strncmp(k, "name", 4) == 0 || strncmp(k, "namespace", 9) == 0 || strncmp(k, "nosubgrouping", 13) == 0
-	      || strncmp(k, "overload", 8) == 0 || strncmp(k, "package", 7) == 0 || strncmp(k, "page", 4) == 0
-	      || strncmp(k, "property", 8) == 0 || strncmp(k, "protocol", 8) == 0 || strncmp(k, "relates", 7) == 0
-	      || strncmp(k, "relatesalso", 5) == 0 || strncmp(k, "showinitializer", 5) == 0 || strncmp(k, "struct", 5) == 0
-	      || strncmp(k, "typedef", 7) == 0 || strncmp(k, "union", 5) == 0 || strncmp(k, "var", 3) == 0
-	      || strncmp(k, "weakgroup", 9) == 0){ return 1;}
+	char *slashPointer = Strchr(s, '\\');
+	char *atPointer = Strchr(s,'@');
+	if (slashPointer == NULL && atPointer == NULL) return 0;
+	else if( slashPointer == NULL) slashPointer = atPointer;
+	/* Perhaps a better solution exists... */
+	slashPointer++;
+	if (strncmp(slashPointer, "addtogroup", 10) == 0 || strncmp(slashPointer, "callgraph", 9) == 0 || strncmp(slashPointer, "callergraph", 11) == 0 
+	      || strncmp(slashPointer, "category", 8) == 0 || strncmp(slashPointer, "class", 5) == 0 || strncmp(slashPointer, "def", 3) == 0
+	      || strncmp(slashPointer, "defgroup", 8) == 0 || strncmp(slashPointer, "dir", 3) == 0 || strncmp(slashPointer, "enum", 4) == 0
+	      || strncmp(slashPointer, "example", 7) == 0 || strncmp(slashPointer, "file", 4) == 0 || strncmp(slashPointer, "fn", 2) == 0
+	      || strncmp(slashPointer, "headerfile", 9) == 0 || strncmp(slashPointer, "hideinitializer", 12) == 0 || strncmp(slashPointer, "ingroup", 7) == 0
+	      || strncmp(slashPointer, "interface", 9) == 0 || strncmp(slashPointer, "internal", 8) == 0 || strncmp(slashPointer, "mainpage", 8) == 0
+	      || strncmp(slashPointer, "name", 4) == 0 || strncmp(slashPointer, "namespace", 9) == 0 || strncmp(slashPointer, "nosubgrouping", 13) == 0
+	      || strncmp(slashPointer, "overload", 8) == 0 || strncmp(slashPointer, "package", 7) == 0 || strncmp(slashPointer, "page", 4) == 0
+	      || strncmp(slashPointer, "property", 8) == 0 || strncmp(slashPointer, "protocol", 8) == 0 || strncmp(slashPointer, "relates", 7) == 0
+	      || strncmp(slashPointer, "relatesalso", 5) == 0 || strncmp(slashPointer, "showinitializer", 5) == 0 || strncmp(slashPointer, "struct", 5) == 0
+	      || strncmp(slashPointer, "typedef", 7) == 0 || strncmp(slashPointer, "union", 5) == 0 || strncmp(slashPointer, "var", 3) == 0
+	      || strncmp(slashPointer, "weakgroup", 9) == 0){ return 1;}
 	return 0;
 }
 
@@ -4091,8 +4090,8 @@ cpp_members  : cpp_member cpp_members {
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }
-             | include_directive { $$ = $1; }
-             | empty { $$ = 0;}
+         | include_directive { $$ = $1; }
+         | empty { $$ = 0;}
 	     | error {
 	       int start_line = cparse_line;
 	       skip_decl();
@@ -4136,6 +4135,9 @@ cpp_member   : c_declaration { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
+             | doxygen_comment{ $$ = $1; }
+             | c_style_comment{ $$ = $1; }
+             | doxygen_post_comment{ $$ = $1; }
              | cpp_catch_decl { $$ = 0; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
