@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>SWIG:Examples:com:simple</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+
+<tt>SWIG/Examples/com/simple/</tt>
+<hr>
+
+<H2>Simple COM Example</H2>
+
+<p>
+This example illustrates how you can hook a COM client to a very simple C program containing
+a function and a global variable.
+
+<h2>The C Code</h2>
+
+Suppose you have the following C code:
+
+<blockquote>
+<pre>
+/* File : example.c */
+
+/* A global variable */
+double Foo = 3.0;
+
+/* Compute the greatest common divisor of positive integers */
+int gcd(int x, int y) {
+  int g;
+  g = y;
+  while (x &gt; 0) {
+    g = x;
+    x = y % x;
+    y = g;
+  }
+  return g;
+}
+</pre>
+</blockquote>
+
+<h2>The SWIG interface</h2>
+
+Here is a simple SWIG interface file:
+
+<blockquote>
+<pre>
+/* File: example.i */
+%module example
+
+extern int gcd(int x, int y);
+extern double Foo;
+</pre>
+</blockquote>
+
+<h2>Compilation</h2>
+
+<ol>
+<li><tt>swig -com <a href="example.i">example.i</a></tt>
+<p>
+<li>To create the COM DLL you will need to compile the <tt>example.idl</tt>
+file using an IDL compiler, then compile the resource file 
+<tt>example_rc.rc</tt> and finally create a DLL from 
+<tt>example_wrap.c</tt>, <tt><a href="example.c">example.c</a></tt>,
+<tt>example.def</tt> and <tt>example_rc.res</tt>. In Visual C++ this
+is accomplished by executing the following commands:
+
+<blockquote>
+<pre>
+midl example.idl
+rc example_rc.rc
+cl /LD example.c example_wrap.c example.def example_rc.res ole32.lib uuid.lib advapi32.lib oleaut32.lib
+</pre>
+</blockquote>
+
+Before using the COM DLL you will also need to register it using
+<tt>regsvr32</tt>
+
+<blockquote>
+<pre>
+regsvr32 example.dll
+</pre>
+</blockquote>
+
+Please consult the SWIG documentation for further details.
+</ol>
+
+<h2>Using the extension</h2>
+
+Click <a href="runme.vbs">here</a> to see a program that calls our C functions from VBScript using COM.
+
+<h2>Key points</h2>
+
+<ul>
+<li>To access global variables and functions you need to create an object
+of the module class. In VBScript this is done in the following way:
+
+<blockquote>
+<pre>
+Dim example
+Set example = CreateObject("example.example")
+</pre>
+</blockquote>
+
+<li>C functions are mapped to member functions of the module class. For example:
+<blockquote>
+<pre>
+Dim g
+g = example.gcd(42,105)
+</pre>
+</blockquote>
+
+<li>C global variables are accessed as properties of the module class. For example:
+<blockquote>
+<pre>
+Dim a
+a = example.foo
+example.foo = 20.0
+</pre>
+</blockquote>
+</ul>
+
+<hr>
+</body>
+</html>
