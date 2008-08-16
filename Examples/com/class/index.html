@@ -1,0 +1,207 @@
+<html>
+<head>
+<title>SWIG:Examples:com:class</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+
+<tt>SWIG/Examples/com/class/</tt>
+<hr>
+
+<H2>Wrapping a simple C++ class</H2>
+
+<p>
+This example illustrates the high level form of C++ class wrapping performed
+by SWIG.  In this case, a C++ class has a proxy COM class, which 
+provides access to C++ class members.
+
+<h2>The C++ Code</h2>
+
+Suppose you have some C++ classes described by the following (and admittedly lame) 
+header file:
+
+<blockquote>
+<pre>
+/* File : example.h */
+
+class Shape {
+public:
+  Shape() {
+    nshapes++;
+  }
+  virtual ~Shape() {
+    nshapes--;
+  };
+  double  x, y;   
+  void    move(double dx, double dy);
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
+  static  int nshapes;
+};
+
+class Circle : public Shape {
+private:
+  double radius;
+public:
+  Circle(double r) : radius(r) { };
+  virtual double area();
+  virtual double perimeter();
+};
+
+class Square : public Shape {
+private:
+  double width;
+public:
+  Square(double w) : width(w) { };
+  virtual double area();
+  virtual double perimeter();
+};
+</pre>
+</blockquote>
+
+<h2>The SWIG interface</h2>
+
+A simple SWIG interface for this can be built by simply grabbing the header file
+like this:
+
+<blockquote>
+<pre>
+/* File : example.i */
+%module example
+
+%{
+#include "example.h"
+%}
+
+/* Let's just grab the original header file here */
+%include "example.h"
+</pre>
+</blockquote>
+
+Note: when creating a C++ extension, you must run SWIG with the <tt>-c++</tt> option like this:
+<blockquote>
+<pre>
+% swig -c++ -com example.i
+</pre>
+</blockquote>
+
+<h2>A sample VBScript program</h2>
+
+Click <a href="runme.vbs">here</a> to see a VBScript program that calls the C++ functions using COM. Please note that you will need to compile your C/C++
+module and the wrapper to a DLL and then register it using <tt>regsvr32</tt>
+before your module can be used from VBScript.
+Further details are available in the SWIG manual.
+
+<h2>Key points</h2>
+
+<ul>
+<li>Usually you'll want to create an object of the module class:
+
+<blockquote>
+<pre>
+Dim example
+Set example = CreateObject("example.example")
+</pre>
+</blockquote>
+
+<p>
+<li>To create a new object, you call a constructor like this:
+
+<blockquote>
+<pre>
+Dim c
+Set c = example.Circle.new_Circle(10)
+</pre>
+</blockquote>
+
+<p>
+<li>If your class has a default constructor you can use an alternative
+way of creating the object (note that this will not work with the
+interface presented above):
+
+<blockquote>
+<pre>
+Dim c
+Set c = CreateObject("example.Circle")
+</pre>
+</blockquote>
+
+<p>
+<li>You can access member data using COM properties, which means that
+the syntax is very similar to C/C++. For example:
+
+<blockquote>
+<pre>
+Rem Set member data
+c.x = 15
+Rem Get member data
+x = c.x
+</pre>
+</blockquote>
+
+<p>
+<li>To invoke a member function, you simply do this
+
+<blockquote>
+<pre>
+WScript.Echo "The area is " &amp; c.area()
+</pre>
+</blockquote>
+
+<p>
+<li>If you want to destroy an object you will need to destroy all
+references to it, e.g.:
+
+<blockquote>
+<pre>
+c = empty
+</pre>
+</blockquote>
+
+<p>
+<li>Static member variables are wrapped as properties of the 'class object' which can be accessed from the module class object. For example:
+
+<blockquote>
+<pre>
+n = example.Shape.nshapes
+example.Shape.nshapes = 13
+</pre>
+</blockquote>
+
+</ul>
+
+<h2>General Comments</h2>
+
+<ul>
+<li>A limitation of SWIG's COM module is that it supports only single
+inheritance. This might change in the future.
+
+<p>
+<li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
+short and incomplete list:
+
+<p>
+<ul>
+<li>Overloaded methods and functions. COM does not support name overloading
+so you must give an alternative name to any overloaded method name using the
+%rename directive like this:
+
+<blockquote>
+<pre>
+void foo(int a);  
+%rename(foo2) void foo(double a, double b);
+</pre>
+</blockquote>
+
+<p>
+<li>Namespaces.  The namespace syntax is understood by SWIG, but namespace
+declarations are ignored. You can specify a prefix for the IDispatch
+names of your objects using the <tt>-namespace</tt> command line option.
+
+</ul>
+</ul>
+
+<hr>
+</body>
+</html>

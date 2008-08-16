@@ -2104,3 +2104,6 @@ com_cpp: $(SRCS)
 com_compile: $(SRCS)
 	$(COMPILETOOL) $(COM_CC) $(COM_CC_SWITCHES) $(COM_CC_OUT_SWITCHES)$(TARGET)$(COM_EXEC_SUFFIX) $(COMSRCS) $(COM_LIBS)
 
+com_clean:
+	rm -f *_wrap* *.idl *.def *_rc.* *.o *.obj *.map *.lib *.tlb *.exp *.dll$(COM_EXEC_SUFFIX) *~
+
