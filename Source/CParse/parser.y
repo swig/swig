@@ -105,8 +105,14 @@ static Node *new_node(const String_or_char *tag) {
   if(parseComments){
     /* Sets any post comments to the previous node */
     if(previousNode != NULL && currentPostComment != 0){
-      String *copyPostComment = Copy(currentComment);
-      Setattr(previousNode,"DoxygenPostComment",copyPostComment);
+      String *copyPostComment = Copy(currentPostComment);
+      if (!Getattr(previousNode, "DoxygenComment")){
+     	Setattr(previousNode,"DoxygenComment",copyPostComment);}
+      else {
+        Append(copyPostComment, Getattr(previousNode, "DoxygenComment"));
+      	Setattr(previousNode,"DoxygenComment",copyPostComment);
+        }
+      
       currentPostComment = 0;
     }	 
     /* Sets Doxygen Comment if a Comment is Availible */
