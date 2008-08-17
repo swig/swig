@@ -816,12 +816,18 @@ public:
     /* Contract macro modification */
     Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
 
-    if (hresult_flag)
+    if (hresult_flag) {
       Replaceall(f->code, "$null", "E_ABORT");
-    else if (!is_void_return)
+      Replaceall(f->code, "$invalidarg", "E_INVALIDARG");
+    }
+    else if (!is_void_return) {
       Replaceall(f->code, "$null", "0");
-    else
+      Replaceall(f->code, "$invalidarg", "0");
+    }
+    else {
       Replaceall(f->code, "$null", "");
+      Replaceall(f->code, "$invalidarg", "");
+    }
 
     Wrapper_print(f, f_wrappers);
 

@@ -2646,7 +2646,7 @@ case $host in
     AC_CHECK_PROGS(COM_RC, wrc i586-mingw32msvc-windres)
   fi
   if test -z "$COM_CSCRIPT" ; then
-    AC_CHECK_PROGS(COM_CSCRIPT, cscript echo)
+    AC_CHECK_PROGS(COM_CSCRIPT, cscript true)
   fi
  ;;
 esac

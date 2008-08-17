@@ -91,7 +91,7 @@
 %typemap(in) void ""
 
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{
-  {
+  if ($input) {
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
@@ -112,7 +112,7 @@
 %}
 
 %typemap(in) SWIGTYPE & %{
-  {
+  if ($input) {
     SWIGIUnknown *wrapper;
 
     /* Call to QueryInterface */
@@ -128,6 +128,8 @@
       /* Release */
       ((long (SWIGSTDCALL *)(SWIGIUnknown *)) (wrapper->vtable[2]))(wrapper);
     }
+  } else {
+    return $invalidarg;
   }
 %}
 
@@ -246,7 +248,9 @@
 %}
 
 %typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*) %{
-  $result = (SWIGIUnknown *) SWIG_wrap$comclassname(*(void **) &$1, $owner);
+  if ($1) {
+    $result = (SWIGIUnknown *) SWIG_wrap$comclassname(*(void **) &$1, $owner);
+  }
 %}
 
 %typemap(out) SWIGTYPE & %{
@@ -329,7 +333,7 @@ typedef struct {
   GUID *additionalIID; /* IID supported by object (apart from IUnknown and IDispatch) */
 } SWIGWrappedObject;
 
-GUID IID_ISWIGWrappedObject = { 0x73738294, 0x8833, 0x1182, { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78 }};
+GUID IID_ISWIGWrappedObject = { 0x1a3a5cc8, 0x9a61, 0x4681, { 0xae, 0x9c, 0xd0, 0x42, 0x93, 0xf3, 0x57, 0x34 }};
 static LONG globalRefCount = 0;
 
 static int SWIGIsEqual(const GUID *a, const GUID *b) {
