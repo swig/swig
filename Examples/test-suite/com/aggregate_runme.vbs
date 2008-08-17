@@ -33,12 +33,11 @@ End If
 Rem Confirm that move() raises an exception when the contract is violated
 
 On Error Resume Next
-result = 99
 result = aggregate.move(0)
 
-Rem Second assignment to result should not have been done
+Rem The last statement should have produced an error
 
-If result <> 99 Then
+If Err.Number = 0 Then
   WScript.Echo "0 test failed"
   WScript.Quit 1
 End If

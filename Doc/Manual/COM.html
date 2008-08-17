@@ -61,7 +61,7 @@
 
 
 <p>
-This chapter describes SWIG's support of Java. 
+This chapter describes SWIG's support of COM. 
 It covers most SWIG features, but certain low-level details are covered in less depth than in earlier chapters. 
 </p>
 
@@ -177,24 +177,14 @@ swig -com -help
 </tr>
 
 <tr>
-<td>-nopgcpp</td>
-<td>suppress the premature garbage collection prevention parameter</td>
-</tr>
-
-<tr>
-<td>-noproxy</td>
-<td>generate the low-level functional interface instead of proxy classes </td>
-</tr>
-
-<tr>
-<td>-package &lt;name&gt;</td>
-<td>set name of the Java package to &lt;name&gt;</td>
+<td>-namespace &lt;name&gt;</td>
+<td>set name to be used as prefix of your classes' IDispatch names (e.g. for use with CreateObject in Basic)</td>
 </tr>
 
 </table>
 
 <p>
-Their use will become clearer by the time you have finished reading this section on SWIG and Java.
+Their use will become clearer by the time you have finished reading this section on SWIG and COM.
 </p>
 
 <H3><a name="compiling_dynamic"></a>17.2.3 Compiling a dynamic module</H3>
@@ -727,21 +717,10 @@ memory when the object is no longer needed, that is when its reference count rea
 
 
 <p>
-TODO
-</p>
-
-<div class="code">
-<pre>
-example.spam1(null);   // Pointer - ok
-example.spam2(null);   // Reference - NullPointerException
-example.spam3(null);   // Value - NullPointerException
-example.spam4(null);   // Array - ok
-</pre>
-</div>
-
-<p>
-For <tt>spam1</tt> and <tt>spam4</tt> above the Java <tt>null</tt> gets translated into a NULL pointer for passing to the C/C++ function. 
-The converse also occurs, that is, NULL pointers are translated into <tt>null</tt> Java objects when returned from a C/C++ function.
+Null values may be passed to C/C++ functions when pointer parameters are expected. Also
+if a C/C++ function returns NULL a null return value is returned by the wrapper.
+You should not pass null to functions expecting a reference - in this case the
+function call will fail with an E_INVALIDARG error.
 </p>
 
 <H3><a name="overloaded_functions"></a>17.3.10 C++ overloaded functions</H3>
@@ -1222,21 +1201,127 @@ is to be stored.
 
 <H3><a name="com_iswigwrappedobject"></a>17.4.6 ISWIGWrappedObject interface</H3>
 
+<p>
+Every COM object created by SWIG implements the interface <tt>ISWIGWrappedObject</tt> with
+the interface ID <tt>{1a3a5cc8-9a61-4681-ae9c-d04293f35734}</tt>. This interface has one
+method (apart from the methods present in the <tt>IUnknown</tt> interface):
+</p>
+
+<div class="code">
+<pre>
+void * getCPtr();
+</pre>
+</div>
+
+<p>
+This method is used for accessing the COM object's underlying C/C++ object. The
+<tt>ISWIGWrappedObject</tt> interface may change in any future version of SWIG
+(speaking precisely it may be replaced by another interface with another IID)
+so you should not rely on its presence. However it may be useful for debugging
+purposes.
+</p>
 
 <H3><a name="com_memory"></a>17.4.7 Memory management</H3>
 
+<p>
+Every COM proxy object keeps a count of references. If this reference count
+reaches 0 then the proxy object is unused and can be deallocated. SWIG takes
+care of allocating and deallocating memory for proxy objects. By default
+the underlying C/C++ object is left intact when the proxy is destroyed. The
+exceptions are when the proxy object has been created using the class factory
+(this includes <tt>CreateObject</tt> in Basic and the <tt>CoCreateInstance</tt>
+Win32 API call), using a constructor from the class object or using a function
+marked as <tt>%newobject</tt>. In these cases the proxy 'owns' the underlying
+C/C++ object which is destroyed together with the proxy. C++ objects are
+deallocated using <tt>delete</tt>; this means that the destructor
+will be called, just as it would be called in C++.
+</p>
 
 <H3><a name="com_memory"></a>17.4.8 Exceptions</H3>
 
+<p>
+For now if a C++ exception is thrown the function returns with the error
+code <tt>E_ABORT</tt>. The handling of this error code depends on the
+language that you are using. For example VBScript will exit with an error
+by default; if you need to handle errors more gracefully you can use
+code similar to this:
+</p>
+
+<div class="code">
+<pre>
+Rem Prevent aborting the script
+On Error Resume Next
+
+Rem Call method that might throw an exception
+example.callDangerousMethod()
+
+If Err.Number <> 0 Then
+  Rem Handle error
+End If
+</pre>
+</div>
+
+<p>
+You can customize the exception handling process by modifying the
+<tt>throws</tt> typemap.
+</p>
 
 <H2><a name="com_customization"></a>17.5 Customization features</H2>
 
 
 <H3><a name="com_typemaps"></a>17.5.1 Typemaps</H3>
 
+<p>
+The COM module uses four typemaps for wrapping types. These are
+<tt>comtype</tt> (the type that should be used in the generated
+IDL file ), <tt>ctype</tt> (the corresponding C/C++ type),
+<tt>in</tt> (used when handling a parameter to a function - basically
+it needs to convert from the type specified by <tt>ctype</tt> to
+the C/C++ type expected by the function) and <tt>out</tt> (used
+when handling return values). You can also use standard SWIG typemaps
+such as <tt>freearg</tt> and <tt>argout</tt>.
+</p>
 
-<H3><a name="com_typemaps"></a>17.5.2 Exception handling</H3>
+<p>
+A good example how the typemaps work is the <tt>char *</tt>
+typemap. Its <tt>comtype</tt> is <tt>BSTR</tt> - the de facto standard
+string type in COM, essentially an array of wide characters with
+a four byte length prefix. The corresponding <tt>ctype</tt> is
+<tt>WCHAR *</tt>. The typemaps for handling <tt>char *</tt> strings could
+look like this:
+</p>
 
+<div class="code">
+<pre>
+%typemap(ctype) char *, char[], char[ANY] "WCHAR *"
+%typemap(comtype) char *, char[], char[ANY] "BSTR"
+
+%typemap(in) char *, char[], char[ANY] {
+  if ($input) {
+    int SWIG_len = WideCharToMultiByte(CP_ACP, 0, $input, -1, 0, 0, 0, 0);
+    $1 = ($1_ltype) malloc(SWIG_len);
+    WideCharToMultiByte(CP_ACP, 0, $input, -1, (char *) $1, SWIG_len, 0, 0);
+  }
+}
+
+%typemap(freearg) char *, char[], char[ANY] {
+  if ($input) {
+    free($1);
+  }
+}
+
+%typemap(out) char *, char[], char[ANY] %{
+  if ($1) {
+    int SWIG_len = MultiByteToWideChar(CP_ACP, 0, (char *) $1, -1, 0, 0);
+    WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
+    /* First 4 bytes contain length in bytes */
+    *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
+    MultiByteToWideChar(CP_ACP, 0, (char *) $1, -1, SWIG_res + 2, SWIG_len);
+    $result = SWIG_res + 2;
+  }
+%}
+</pre>
+</div>
 
 </body>
 </html>
