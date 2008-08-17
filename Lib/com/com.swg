@@ -7,7 +7,7 @@
  * COM typemaps
  * ----------------------------------------------------------------------------- */
 
-%typemap(ctype) bool,               const bool &               "unsigned int"
+%typemap(ctype) bool,               const bool &               "int"
 %typemap(ctype) char,               const char &               "char"
 %typemap(ctype) signed char,        const signed char &        "signed char"
 %typemap(ctype) unsigned char,      const unsigned char &      "unsigned char"
@@ -28,7 +28,7 @@
 %typemap(ctype) SWIGTYPE & "SWIGIUnknown *"
 %typemap(ctype) enum SWIGTYPE "int"
 
-%typemap(comtype) bool,               const bool &               "unsigned int"
+%typemap(comtype) bool,               const bool &               "int"
 %typemap(comtype) char,               const char &               "char"
 %typemap(comtype) signed char,        const signed char &        "signed char"
 %typemap(comtype) unsigned char,      const unsigned char &      "unsigned char"
@@ -191,8 +191,8 @@
 
 %typemap(out) void ""
 
-%typemap(ctype) char *, char[], char[ANY] "WCHAR *"
-%typemap(comtype) char *, char[], char[ANY] "BSTR"
+%typemap(ctype) char *, char *&, char[], char[ANY] "WCHAR *"
+%typemap(comtype) char *, char *&, char[], char[ANY] "BSTR"
 
 %typemap(in) char *, char[], char[ANY] {
   if ($input) {
@@ -208,6 +208,21 @@
   }
 }
 
+%typemap(in) char *& ($*1_ltype temp = 0) {
+  if ($input) {
+    int SWIG_len = WideCharToMultiByte(CP_ACP, 0, $input, -1, 0, 0, 0, 0);
+    temp = ($*1_ltype) malloc(SWIG_len);
+    WideCharToMultiByte(CP_ACP, 0, $input, -1, (char *) temp, SWIG_len, 0, 0);
+    $1 = &temp;
+  }
+}
+
+%typemap(freearg) char *& {
+  if ($input) {
+    free(*$1);
+  }
+}
+
 %typemap(out) char *, char[], char[ANY] %{
   if ($1) {
     int SWIG_len = MultiByteToWideChar(CP_ACP, 0, (char *) $1, -1, 0, 0);
@@ -219,8 +234,19 @@
   }
 %}
 
-%typemap(ctype) wchar_t *, wchar_t[], wchar_t[ANY] "WCHAR *"
-%typemap(comtype) wchar_t *, wchar_t[], wchar_t[ANY] "BSTR"
+%typemap(out) char *& {
+  if (*$1) {
+    int SWIG_len = MultiByteToWideChar(CP_ACP, 0, (char *) *$1, -1, 0, 0);
+    WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
+    /* First 4 bytes contain length in bytes */
+    *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
+    MultiByteToWideChar(CP_ACP, 0, (char *) *$1, -1, SWIG_res + 2, SWIG_len);
+    $result = SWIG_res + 2;
+  }
+}
+
+%typemap(ctype) wchar_t *, wchar_t *&, wchar_t[], wchar_t[ANY] "WCHAR *"
+%typemap(comtype) wchar_t *, wchar_t *&, wchar_t[], wchar_t[ANY] "BSTR"
 
 %typemap(in) wchar_t *, wchar_t[], wchar_t[ANY] {
   if ($input) {
@@ -236,6 +262,21 @@
   }
 }
 
+%typemap(in) wchar_t *& ($*1_ltype temp = 0) {
+  if ($input) {
+    int SWIG_len = wcslen($input) + 1;
+    temp = ($1_ltype) malloc(SWIG_len * sizeof(wchar_t));
+    wcsncpy(temp, $input, SWIG_len);
+    $1 = &temp;
+  }
+}
+
+%typemap(freearg) wchar_t *& {
+  if ($input) {
+    free(*$1);
+  }
+}
+
 %typemap(out) wchar_t *, wchar_t[], wchar_t[ANY] %{
   if ($1) {
     int SWIG_len = wcslen((wchar_t *) $1) + 1;
@@ -243,6 +284,17 @@
     /* First 4 bytes contain length in bytes */
     *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
     wcsncpy(SWIG_res + 2, $1, SWIG_len);
+    $result = SWIG_res + 2;
+  }
+%}
+
+%typemap(out) wchar_t *& %{
+  if ($1) {
+    int SWIG_len = wcslen((wchar_t *) *$1) + 1;
+    WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
+    /* First 4 bytes contain length in bytes */
+    *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
+    wcsncpy(SWIG_res + 2, *$1, SWIG_len);
     $result = SWIG_res + 2;
   }
 %}
