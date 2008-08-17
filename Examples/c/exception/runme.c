@@ -1,3 +1,7 @@
+/*
+ * NOTE: this won't run with -noexcept flag
+ */
+
 #include <stdio.h>
 
 #include "example_proxy.h"

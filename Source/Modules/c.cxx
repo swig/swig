@@ -32,8 +32,10 @@ class C:public Language {
   String *create_object;
   String *destroy_object;
 
+  int enum_id;
+
   bool proxy_flag;
-  bool runtime_flag;
+  bool except_flag;
 
 public:
 
@@ -47,8 +49,9 @@ public:
     enum_values(0),
     create_object(0),
     destroy_object(0),
+    enum_id(1),
     proxy_flag(true),
-    runtime_flag(true) {
+    except_flag(true) {
   }
 
   /* ------------------------------------------------------------
@@ -56,17 +59,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-
-    SWIG_library_directory("c");
-
-    // add a symbol to the parser for conditional compilation
-    Preprocessor_define("SWIGC 1", 0);
-    if (runtime_flag)
-      Preprocessor_define("SWIG_C_RUNTIME 1", 0);
-
-    // add typemap definitions
-    SWIG_typemap_lang("c");
-    SWIG_config_file("c.swg");
 
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
@@ -79,15 +71,24 @@ public:
         } else if (strcmp(argv[i], "-noproxy") == 0) {
           proxy_flag = false;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-noruntime") == 0) {
-          runtime_flag = false;
+        } else if (strcmp(argv[i], "-noexcept") == 0) {
+          except_flag = false;
           Swig_mark_arg(i);
         }
       }
     }
 
-    if (!CPlusPlus)
-      runtime_flag = false;
+    // add a symbol to the parser for conditional compilation
+    Preprocessor_define("SWIGC 1", 0);
+    Preprocessor_define("SWIG_C_RUNTME 1", 0);
+    if (except_flag)
+      Preprocessor_define("SWIG_C_EXCEPT 1", 0);
+
+    SWIG_library_directory("c");
+
+    // add typemap definitions
+    SWIG_typemap_lang("c");
+    SWIG_config_file("c.swg");
 
     allow_overloading();
   }
@@ -98,8 +99,9 @@ public:
 
   void start_create_object() {
     String *s = create_object = NewString("");
-    Printf(s, "\nSWIGINTERN SwigObj *SWIG_create_object(const char *classname) {\n");
-    Printf(s, "SWIG_Runtime_init();\n");
+    Printv(s, "\nSWIGINTERN SwigObj *SWIG_create_object(", except_flag ? "const char *classname" : "", ") {\n", NIL);
+    if (except_flag)
+      Printf(s, "SWIG_runtime_init();\n");
     Printf(s, "SwigObj *result;\n");
     Printf(s, "result = (SwigObj *) malloc(sizeof(SwigObj));\n");
     Printf(s, "result->obj = 0;\n");
@@ -123,7 +125,9 @@ public:
   void start_destroy_object() {
     String *s = destroy_object = NewString("");
     Printf(s, "\nSWIGINTERN void SWIG_destroy_object(SwigObj *object) {\n");
-    Printf(s, "if (object)\nif (object->typenames) {\n");
+    Printf(s, "if (object) {\n");
+    if (except_flag)
+      Printf(s, "if (object->typenames) {\n");
   }
 
   /* ---------------------------------------------------------------------
@@ -132,9 +136,12 @@ public:
   
   String *finish_destroy_object() {
     String *s = destroy_object;
-    Printf(s, "free(object->typenames);\n");
+    if (except_flag)
+      Printf(s, "free(object->typenames);\n");
     Printf(s, "free(object);\n");
     Printf(s, "object = (SwigObj *) 0;\n");
+    if (except_flag)
+      Printf(s, "}\n");
     Printf(s, "}\n}\n");
     return destroy_object;
   }
@@ -198,13 +205,15 @@ public:
     Printf(f_wrappers, "#endif\n\n");
 
     start_create_object();
-    start_destroy_object();
+    if (except_flag)
+      start_destroy_object();
     
     // emit code for children
     Language::top(n);
 
     Append(f_header, finish_create_object());
-    Append(f_header, finish_destroy_object());
+    if (except_flag)
+      Append(f_header, finish_destroy_object());
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "}\n");
@@ -245,6 +254,8 @@ public:
       return SWIG_OK;
     String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
+    if (SwigType_isenum(type))
+      type = make_enum_type(n, type);
     String *type_str = SwigType_str(type, 0);
     Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
     return SWIG_OK;
@@ -391,6 +402,8 @@ ready:
     Node *node = Swig_symbol_clookup(query, symtab);
     if (node)
       newtype = NewStringf("enum %s", Getattr(node, "name"));
+    else
+      newtype = SwigType_str(enumtype, 0);
    
     return newtype;
   }
@@ -511,10 +524,10 @@ ready:
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
         }
         else if (SwigType_isbuiltin(SwigType_base(type))) {
+          // type is built-in (int, char, double, etc.)
           if (SwigType_isconst(type))
             SwigType_del_qualifier(type);
 
-          // type is built-in (int, char, double, etc.)
           if (SwigType_isreference(type)) {
             if (SwigType_isconst(SwigType_del_reference(type))) {
               return_var_type = SwigType_base(type);
@@ -529,7 +542,12 @@ ready:
           }
           else if (SwigType_isarray(type)) {
             return_var_type = SwigType_base(type);
-            SwigType_add_pointer(return_var_type);
+            SwigType *atype = Copy(type);
+            do {
+              SwigType_del_array(atype);
+              SwigType_add_pointer(return_var_type);
+            } while (SwigType_isarray(atype));
+            Delete(atype);
           }
           else {
             return_var_type = type;
@@ -541,9 +559,20 @@ ready:
           // type is class
           if (SwigType_ispointer(type))
             return_var_type = type;
-          else if (SwigType_isreference(type) || SwigType_isarray(type)) {
+          else if (SwigType_isreference(type)) {
             return_var_type = SwigType_base(type);
             SwigType_add_pointer(return_var_type);
+          }
+          else if (SwigType_isarray(type)) {
+            return_var_type = SwigType_base(type);
+            SwigType *atype = Copy(type);
+            do {
+              SwigType_del_array(atype);
+              SwigType_add_pointer(return_var_type);
+            } while (SwigType_isarray(atype));
+            Delete(atype);
+            if (Cmp(Getattr(n, "c:retval"), "1"))
+              SwigType_add_pointer(return_var_type);
           }
           else {
             return_var_type = type;
@@ -639,6 +668,7 @@ ready:
           Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
           p = nextSibling(p);
         }
+
         Delete(arg_name);
         Delete(proxy_parm_type);
         Delete(c_parm_type);
@@ -669,7 +699,7 @@ ready:
         Replaceall(mod, "$mod", "");
       else if (SwigType_isenum(type))
         Replaceall(mod, "$mod", "(int)");
-      else if (return_object && Getattr(n, "c:retval"))
+      else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type))
         Replaceall(mod, "$mod", "&");
       else {
         Delete(mod);
@@ -832,7 +862,8 @@ ready:
         }
       }
 
-      Printv(f_header, "const char* Swig_typename_", name, " = \"", name, "\";\n\n", NIL);
+      if (except_flag)
+        Printv(f_header, "const char* Swig_typename_", name, " = \"", name, "\";\n\n", NIL);
 
       // declare type for specific class in the proxy header
       if (proxy_flag)
@@ -1006,6 +1037,26 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
+    SwigType *type = Copy(Getattr(n, "type"));
+    SwigType *tdtype;
+    tdtype = SwigType_typedef_resolve(type);
+    if (tdtype)
+      type = tdtype;
+
+    int array_count = 0;
+    while (SwigType_isarray(type)) {
+      SwigType_del_array(type);
+      array_count++;
+    }
+    if (type) {
+      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+        Setattr(n, "c:retval", "1");
+    }
+    while (array_count) {
+      SwigType_add_pointer(type);
+      array_count--;
+    }
+    Delete(type);
     return Language::membervariableHandler(n);
   }
 
@@ -1078,10 +1129,16 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    add_to_create_object(n, classname, newclassname);
-    Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
+    if (except_flag) {
+      add_to_create_object(n, classname, newclassname);
+      Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
+      Printf(code, "SWIG_add_registry_entry(result);\n");
+    }
+    else {
+      Printf(code, "result = SWIG_create_object();\n");
+    }
+
     Printv(code, "result->obj = (void*) new ", classname, arg_lnames, ";\n", NIL);
-    Printf(code, "SWIG_add_registry_entry(result);\n");
 
     Setattr(n, "wrap:action", code);
     
@@ -1129,10 +1186,17 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    add_to_create_object(n, classname, newclassname);
-    Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
-    Printv(code, "result->obj = (void*) new ", classname, "((", classname, " const &)*arg1);\n", NIL);
-    
+    if (except_flag) {
+      add_to_create_object(n, classname, newclassname);
+      Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
+      Printf(code, "SWIG_add_registry_entry(result);\n");
+   }
+    else {
+      Printf(code, "result = SWIG_create_object();\n");
+    }
+
+    Printv(code, "result->obj = (void*) new ", classname, "((", classname, " const &)*arg1);\n", NIL);    
+
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
@@ -1150,7 +1214,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
-    String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
+    Node *klass = Swig_methodclass(n);
+    String *classname = Getattr(klass, "classtype");
+    String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
     String *stype;
@@ -1176,8 +1242,14 @@ ready:
     Setattr(n, "sym:name", destr_name);
 
     // create action code
-    Printf(code, "SWIG_remove_registry_entry(carg1);\n");
-    Printf(code, "SWIG_destroy_object(arg1);\n");
+    if (except_flag) {
+      Printf(code, "SWIG_remove_registry_entry(carg1);\n");
+      Printf(code, "SWIG_destroy_object(arg1);\n");
+    }
+    else {
+      Printv(code, "if (carg1->obj)\ndelete (", classname, " *) (carg1->obj);\n", NIL);
+    }
+
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
@@ -1201,20 +1273,32 @@ ready:
   virtual int enumDeclaration(Node *n) {
     if (!proxy_flag)
       return SWIG_OK;
-    if (Cmp(Getattr(n, "access"), "public") != 0)
-      return SWIG_OK;
     String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
     String *name = Getattr(n, "sym:name");
     String *code = NewString("");
     String *tdname = Getattr(n, "tdname");
-    String *newname = newclassname ? NewStringf("%s_", newclassname) : Copy(name);
-    Symtab *symtab = Getattr(n, "sym:symtab");
 
-    if (tdname)
+    if (tdname) {
       Printf(code, "typedef ");
+      name = Getattr(n, "name");
+      String *td_def_name = NewStringf("enum %s", name);
+      SwigType_typedef(td_def_name, name);
+      Delete(td_def_name);
+      SwigType_istypedef(name);
+    }
+
+    Symtab *symtab = Getattr(n, "sym:symtab");
+    String *newname = newclassname ? NewStringf("%s_", newclassname) : Copy(name);
 
     Printf(code, "enum ");
 
+    if (!name) {
+      String *anonymous_name = NewStringf("enum%d ", enum_id++);
+      Setattr(n, "sym:name", anonymous_name);
+      Setattr(n, "unnamed", "1");
+      name = Getattr(n, "sym:name");
+      Delete(anonymous_name);
+    }
     if (Delattr(n, "unnamed")) {
       // unnamed enum declaration: create new symbol
       Replaceall(name, "$unnamed", "enum");
@@ -1226,15 +1310,21 @@ ready:
       Setattr(entry, "sym:name", name);
       Setattr(entry, "sym:symtab", symtab);
       Swig_symbol_add(name, entry);
-    }
+    } 
     if (newclassname) {
       if (symtab) {
         Node *node = Swig_symbol_clookup(name, symtab);
-        if (node) {
+        if (node)
           Append(newname, name);
-          Setattr(node, "name", newname);
-        }
       }
+      else
+        Append(newname, "enum");
+
+     Setattr(n, "name", newname);
+    }
+    else {
+      Delete(newname);
+      newname = name;
     }
     Printv(code, newname ? newname : "", " {\n$enumvalues\n} ", tdname ? tdname : "", ";\n\n", NIL);
     emit_children(n);
@@ -1259,8 +1349,6 @@ ready:
 
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "sym:name");
-    if (Cmp(Getattr(n, "access"), "public") != 0)
-      return SWIG_OK;
     String *enumvalue = Getattr(n, "enumvalue");
     String *init = 0;
     if (enumvalue) {
@@ -1303,9 +1391,10 @@ ready:
 
     if (strncmp(c, "enum", 4) != 0) {
       if (name && type)  {
-        String *code = NewStringf("typedef %s %s;\n\n", type, name);
+        String *code = NewStringf("typedef %s %s;\n\n", name, type);
         Append(f_proxy_header, code);
         Delete(code);
+        SwigType_typedef(type, name);
       }
     }
     return SWIG_OK;
@@ -1345,6 +1434,6 @@ extern "C" Language *swig_c(void) {
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
     -noproxy      - do not generate proxy interface\n\
-    -noruntime    - disable runtime error checking\n\
+    -noexcept     - do not generate exception handling code\n\
 \n";
 
