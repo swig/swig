@@ -21,6 +21,8 @@ bool compare_DoxygenEntities(DoxygenEntity first, DoxygenEntity second){
 	if(second.typeOfEntity.compare("brief") == 0) return false;
 	if(first.typeOfEntity.compare("details") == 0) return true;
 	if(second.typeOfEntity.compare("details") == 0) return false;
+	if(first.typeOfEntity.compare("partofdescription") == 0) return true;
+	if(first.typeOfEntity.compare("partofdescription") == 0) return false;
 	if(first.typeOfEntity.compare("plainstring") == 0) return true;
 	if(second.typeOfEntity.compare("plainstring") == 0) return false;
 	if(first.typeOfEntity.compare("param") == 0){
@@ -132,14 +134,41 @@ string formatCommand(string unformattedLine, int indent){
  * could probably be much more efficient...
  */
 string javaDocFormat(DoxygenEntity &doxygenEntity){
+	if(doxygenEntity.typeOfEntity.compare("partofdescription") == 0){
+				return doxygenEntity.data;
+		}
 	if (doxygenEntity.typeOfEntity.compare("plainstring") == 0){
-			return doxygenEntity.data;
+			return  doxygenEntity.data;
 	}
 	else if (doxygenEntity.typeOfEntity.compare("b") == 0){
-		return "\b<b>" + doxygenEntity.data + "</b>";
+		return "<b>" + doxygenEntity.data + "</b>";
 	}
 	else if (doxygenEntity.typeOfEntity.compare("c") == 0){
-		return "\b<tt>" + doxygenEntity.data + "</tt>";
+		return "<tt>" + doxygenEntity.data + "</tt>";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("@") == 0){
+		return "@";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("\\") == 0){
+		return "\\";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("<") == 0){
+		return "&lt;";
+	}
+	else if (doxygenEntity.typeOfEntity.compare(">") == 0){
+		return "&gt;";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("&") == 0){
+		return "&amp;";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("#") == 0){
+		return "#";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("%") == 0){
+		return "%";
+	}
+	else if (doxygenEntity.typeOfEntity.compare("~") == 0){
+		return "~";
 	}
 	return "";
 }
@@ -160,6 +189,7 @@ string translateSubtree( DoxygenEntity &doxygenEntity){
 }
 
 string translateEntity(DoxygenEntity &doxyEntity){
+	if(doxyEntity.typeOfEntity.compare("partofdescription")== 0) return formatCommand(string(translateSubtree(doxyEntity)), 0);
 	if ((doxyEntity.typeOfEntity.compare("brief") == 0)||(doxyEntity.typeOfEntity.compare("details") == 0)){
 		return formatCommand(string(translateSubtree(doxyEntity)), 0) + "\n * ";}
 	else if(doxyEntity.typeOfEntity.compare("plainstring")== 0 || doxyEntity.typeOfEntity.compare("deprecated")== 0 || doxyEntity.typeOfEntity.compare("brief")== 0)
@@ -179,7 +209,7 @@ string translateEntity(DoxygenEntity &doxyEntity){
 	else if(doxyEntity.typeOfEntity.compare("sa")== 0){
 		return formatCommand(string("@see\t\t" + translateSubtree(doxyEntity)), 2);
 	}
-
+	else return formatCommand(javaDocFormat(doxyEntity), 0 );
 	return "";
 }
 
@@ -201,7 +231,8 @@ string JavaDocConverter:: convertToJavaDoc(list <DoxygenEntity> entityList){
 	}
 
 	javaDocString += "\n */\n";
+	if(printSortedTree2){
 	cout << "\n---RESULT IN JAVADOC---" << endl;
-	cout << javaDocString;
+	cout << javaDocString; }
 	return javaDocString;
 }

@@ -44,6 +44,8 @@ class JAVA:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool member_func_flag;	// flag set when wrapping a member function
+  bool doxygen_javadoc_flag; //flag for converting found doxygen to javadoc
+  bool comment_creation_chatter; //flag for getting information about where comments were created in java.cxx
   
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -90,8 +92,6 @@ class JAVA:public Language {
     return p;
   }
   /* DOXYGEN TO JAVADOC globals */
-  bool doxygen_javadoc_flag; //flag for converting found doxygen to javadoc
-  bool comment_creation_chatter; //flag for getting information about where comments were created in java.cxx
   //TODO make this bool a command line option
   DoxygenTranslator doxyTranslator;
 
@@ -124,6 +124,7 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       member_func_flag(false),
+	  doxygen_javadoc_flag(true),
       comment_creation_chatter(false),
       imclass_name(NULL),
       module_class_name(NULL),
@@ -213,7 +214,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
-	  doxygen_javadoc_flag = true;
     SWIG_library_directory("java");
 
     // Look for certain command line options

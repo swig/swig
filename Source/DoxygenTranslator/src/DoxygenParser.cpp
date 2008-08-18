@@ -31,7 +31,7 @@ DoxygenParser::~DoxygenParser()
 }
 
 //////////////////////////////////////////
-int noisy = 1; // set this to 1 for extra chatter from the parsing stage.
+int noisy = 0; // set this to 1 for extra chatter from the parsing stage.
 int addCommand(string currCommand, TokenList &tokList,  list <DoxygenEntity> &aNewList);
 list <DoxygenEntity> parse(list<Token>::iterator endParsingIndex, TokenList &tokList);
 
@@ -70,7 +70,7 @@ string commandWords[] = {"a", "b", "c", "e", "em", "p", "def", "enum", "example"
 string ignoredCommandWords[] = {"copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude"};
 string commandLines[] = {"addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"};
 string ignoreCommandLines[] = {"nothing at the moment"};
-string commandParagraph[] = {"return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant", 
+string commandParagraph[] = {"partofdescription", "return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant", 
 		    "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author"};
 string ignoreCommandParagraphs[] = {"nothing at the moment"};
 string commandEndCommands[] = {"code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", 
@@ -208,27 +208,28 @@ list<Token>::iterator getOneLine(TokenList &tokList){
 	 list<Token>::iterator endOfLine = tokList.iteratorCopy();
 	 while(endOfLine!= tokList.end()){
 		 if ((* endOfLine).tokenType == END_LINE){
-			 endOfLine++;
+			 //cout << "REACHED END" << endl;
+			 //endOfLine++;
 			 return endOfLine;
 			 }
+		 //cout << (* endOfLine).toString();
 		 endOfLine++;
 		 }
-	 cout << "REACHED END" << endl;
+	 
 	return tokList.end();
 	}
 
 /* Returns a properly formatted string
-* up til ANY command or end of paragraph is encountered.
+* up til ANY command or end of line is encountered.
 */
 string getStringTilCommand(TokenList &tokList){
 	 string description;
 	 if (tokList.peek().tokenType == 0) return "";
-	 while(tokList.peek().tokenType == PLAINSTRING || tokList.peek().tokenType == END_LINE ){
+	 while(tokList.peek().tokenType == PLAINSTRING){
 		 Token currentToken = tokList.next();
 		 if(currentToken.tokenType == PLAINSTRING) {
 			 description = description + currentToken.tokenString + " ";
 			 }
-		 else if (tokList.peek().tokenType == END_LINE) break;
 		 }
 	return description;
 	}
@@ -259,7 +260,7 @@ list<Token>::iterator getEndOfParagraph(TokenList &tokList){
 			 endOfParagraph++;
 			 if ((* endOfParagraph).tokenType == END_LINE){
 				 endOfParagraph++;
-				 cout << "ENCOUNTERED END OF PARA" << endl;
+				 //cout << "ENCOUNTERED END OF PARA" << endl;
 				 return endOfParagraph;
 				 }
 			 }
@@ -762,14 +763,14 @@ list<DoxygenEntity> parseRoot(list<Token>::iterator endParsingIndex, TokenList &
 			if (currCommand < 0 ){ 
 				if(noisy) cout << "Unidentified Command " << currToken.tokenString << endl;
 				tokList.next();
-				addCommand(string("details"), tokList, aNewList);}
+				addCommand(string("partofdescription"), tokList, aNewList);}
 				//cout << "Command: " << currWord << " " << currCommand << endl;
 			else { tokList.next();
 			  addCommand(currToken.tokenString, tokList,  aNewList);
 			  }
 			}
 		else if (currToken.tokenType == PLAINSTRING){
-			addCommand(string("details"), tokList, aNewList);
+			addCommand(string("partofdescription"), tokList, aNewList);
 			}
 		}
 	return aNewList;
