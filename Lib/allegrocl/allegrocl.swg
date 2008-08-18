@@ -296,15 +296,30 @@ $body)"
 	  sym))))
 
 (cl::defun full-name (id type arity class)
-  (cl::case type
-    (:getter (cl::format nil "~@[~A_~]~A" class id))
-    (:constructor (cl::format nil "new_~A~@[~A~]" id arity))
-    (:destructor (cl::format nil "delete_~A" id))
-    (:type (cl::format nil "ff_~A" id))
-    (:slot id)
-    (:ff-operator (cl::format nil "ffi_~A" id))
-    (otherwise (cl::format nil "~@[~A_~]~A~@[~A~]"
-                       class id arity))))
+  ; We need some kind of a hack here to handle template classes
+  ; and other synonym types right. We need the original name.
+  (let*( (sym (read-symbol-from-string 
+                (if (eq *swig-identifier-converter* 'identifier-convert-lispify)
+                  (string-lispify id)
+                  id)))
+         (sym-class (find-class sym nil))
+         (id (cond ( (not sym-class)
+                     id )
+                   ( (and sym-class
+                          (not (eq (class-name sym-class)
+                                sym)))
+                     (class-name sym-class) )
+                   ( t
+                     id ))) )
+    (cl::case type
+      (:getter (cl::format nil "~@[~A_~]~A" class id))
+      (:constructor (cl::format nil "new_~A~@[~A~]" id arity))
+      (:destructor (cl::format nil "delete_~A" id))
+      (:type (cl::format nil "ff_~A" id))
+      (:slot id)
+      (:ff-operator (cl::format nil "ffi_~A" id))
+      (otherwise (cl::format nil "~@[~A_~]~A~@[~A~]"
+                         class id arity)))))
   
 (cl::defun identifier-convert-null (id &key type class arity)
   (cl::if (cl::eq type :setter)
@@ -312,6 +327,27 @@ $body)"
                id :type :getter :class class :arity arity))
       (read-symbol-from-string (full-name id type arity class))))
 
+(cl::defun string-lispify (str)
+  (cl::let ( (cname (excl::replace-regexp str "_" "-"))
+             (lastcase :other)
+             newcase char res ) 
+    (cl::dotimes (n (cl::length cname))
+      (cl::setf char (cl::schar cname n))
+      (excl::if* (cl::alpha-char-p char)
+         then
+              (cl::setf newcase (cl::if (cl::upper-case-p char) :upper :lower))
+              (cl::when (cl::and (cl::eq lastcase :lower)
+                                 (cl::eq newcase :upper))
+                ;; case change... add a dash
+                (cl::push #\- res)
+                (cl::setf newcase :other))
+              (cl::push (cl::char-downcase char) res)
+              (cl::setf lastcase newcase)
+         else
+              (cl::push char res)
+              (cl::setf lastcase :other)))
+    (cl::coerce (cl::nreverse res) 'string)))
+  
 (cl::defun identifier-convert-lispify (cname &key type class arity)
   (cl::assert (cl::stringp cname))
   (cl::when (cl::eq type :setter)
@@ -321,31 +357,7 @@ $body)"
   (cl::setq cname (full-name cname type arity class))
   (cl::if (cl::eq type :constant)
       (cl::setf cname (cl::format nil "*~A*" cname)))
-  (cl::setf cname (excl::replace-regexp cname "_" "-"))
-  (cl::let ((lastcase :other)
-       	    newcase char res)
-    (cl::dotimes (n (cl::length cname))
-      (cl::setf char (cl::schar cname n))
-      (excl::if* (cl::alpha-char-p char)
-         then
-              (cl::setf newcase (cl::if (cl::upper-case-p char) :upper :lower))
-
-              (cl::when (cl::or (cl::and (cl::eq lastcase :upper)
-	      				 (cl::eq newcase :lower))
-                                (cl::and (cl::eq lastcase :lower)
-					 (cl::eq newcase :upper)))
-                ;; case change... add a dash
-                (cl::push #\- res)
-                (cl::setf newcase :other))
-
-              (cl::push (cl::char-downcase char) res)
-
-              (cl::setf lastcase newcase)
-
-         else
-              (cl::push char res)
-              (cl::setf lastcase :other)))
-    (read-symbol-from-string (cl::coerce (cl::nreverse res) 'string))))
+  (read-symbol-from-string (string-lispify cname)))
 
 (cl::defun id-convert-and-export (name &rest kwargs)
   (cl::multiple-value-bind (symbol package)

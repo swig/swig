@@ -1084,7 +1084,8 @@ void emit_synonym(Node *synonym) {
   of_ltype = lookup_defined_foreign_ltype(of_name);
 
   // Printf(f_clhead,";; from emit-synonym\n");
-  Printf(f_clhead, "(swig-def-synonym-type %s\n   %s\n   %s)\n", syn_ltype, of_ltype, syn_type);
+  if( of_ltype )
+      Printf(f_clhead, "(swig-def-synonym-type %s\n   %s\n   %s)\n", syn_ltype, of_ltype, syn_type);
 
   Delete(synonym_ns);
   Delete(of_ns_list);
@@ -1521,6 +1522,8 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 
   }
 
+  Preprocessor_define("SWIGALLEGROCL 1", 0);
+
   allow_overloading();
 }
 
@@ -1531,7 +1534,7 @@ int ALLEGROCL::top(Node *n) {
 
   swig_package = unique_swig_package ? NewStringf("swig.%s", module_name) : NewString("swig");
 
-  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), Swig_file_basename(Getattr(n,"infile")));
+  Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
 
   f_cl = NewFile(cl_filename, "w");
   if (!f_cl) {
@@ -2628,7 +2631,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
-  if (tm) {
+  if (!is_void_return && tm) {
     Replaceall(tm, "$result", "lresult");
     Printf(f->code, "%s\n", tm);
     Printf(f->code, "    return lresult;\n");

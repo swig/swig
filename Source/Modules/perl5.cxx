@@ -100,8 +100,6 @@ static int have_constructor = 0;
 static int have_destructor = 0;
 static int have_data_members = 0;
 static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
-static String *real_classname = 0;	/* Real name of C/C++ class */
-static String *fullclassname = 0;
 
 static String *pcode = 0;	/* Perl code associated with each class */
 						  /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
@@ -558,6 +556,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
+    ParmList *outer = Getattr(n, "perl5:implicits");
     String *overname = 0;
 
     Parm *p;
@@ -567,7 +566,7 @@ public:
     String *tm;
     String *cleanup, *outarg;
     int num_saved = 0;
-    int num_arguments, num_required;
+    int num_arguments, num_required, num_implicits;
     int varargs = 0;
 
     if (Getattr(n, "sym:overloaded")) {
@@ -589,6 +588,19 @@ public:
     Printv(f->def, "XS(", wname, ") {\n", "{\n",	/* scope to destroy C++ objects before croaking */
 	   NIL);
 
+    num_implicits = 0;
+    if (outer) {
+      Parm *tmp = outer;
+      Parm *tail;
+      while(tmp) {
+        tail = tmp;
+        num_implicits++;
+        tmp = nextSibling(tmp);
+      }
+      /* link the outer with inner parms */
+      set_nextSibling(tail, l);
+    }
+
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
@@ -601,13 +613,29 @@ public:
 
     /* Check the number of arguments */
     if (!varargs) {
-      Printf(f->code, "    if ((items < %d) || (items > %d)) {\n", num_required, num_arguments);
+      Printf(f->code, "    if ((items < %d) || (items > %d)) {\n",
+        num_required + num_implicits, num_arguments + num_implicits);
     } else {
-      Printf(f->code, "    if (items < %d) {\n", num_required);
+      Printf(f->code, "    if (items < %d) {\n",
+        num_required + num_implicits);
     }
-    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, l));
+    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, outer, l));
     Printf(f->code, "}\n");
 
+    if (num_implicits) {
+      /* TODO: support implicits of types other than SVs */
+      Parm *p = outer;
+      for(i = 0; i < num_implicits; i++) {
+        String *pname = Getattr(p, "name");
+        String *pinit = SwigType_str(Getattr(p, "type"), pname);
+        Wrapper_add_local(f, pname, pinit);
+        Delete(pinit);
+        Printf(f->code, "%s = ST(%d);\n", pname, i++);
+        p = nextSibling(p);
+      }
+      if (l)
+        Printf(f->code, "ax += %d;\n", num_implicits);
+    }
     /* Write code to extract parameters. */
     i = 0;
     for (i = 0, p = l; i < num_arguments; i++) {
@@ -720,6 +748,9 @@ public:
       Wrapper_add_localv(f, "_saved", "SV *", temp, NIL);
     }
 
+    if (num_implicits && l)
+      Printf(f->code, "ax -= %d;\n", num_implicits);
+
     /* Now write code to make the function call */
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -766,6 +797,11 @@ public:
       Printf(f->code, "%s\n", tm);
     }
 
+    if (blessed && Equal(nodeType(n), "constructor")) {
+      Append(f->code,
+        "if (SvOK(ST(0))) sv_bless(ST(0), gv_stashsv(proto, 0));\n");
+    }
+
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
 
     /* Add the dXSARGS last */
@@ -797,6 +833,10 @@ public:
       Printv(df->def, "XS(", dname, ") {\n", NIL);
 
       Wrapper_add_local(df, "dXSARGS", "dXSARGS");
+      if (num_implicits) {
+        Printf(df->code, "ax += %d;\n", num_implicits);
+        Printf(df->code, "items -= %d;\n", num_implicits);
+      }
       Printv(df->code, dispatch, "\n", NIL);
       Printf(df->code, "croak(\"No matching function for overloaded '%s'\");\n", iname);
       Printf(df->code, "XSRETURN(0);\n");
@@ -1033,7 +1073,7 @@ public:
   /* ------------------------------------------------------------
    * usage_func()
    * ------------------------------------------------------------ */
-  char *usage_func(char *iname, SwigType *, ParmList *l) {
+  char *usage_func(char *iname, SwigType *, ParmList *il, ParmList *l) {
     static String *temp = 0;
     Parm *p;
     int i;
@@ -1043,13 +1083,17 @@ public:
     Clear(temp);
     Printf(temp, "%s(", iname);
 
-    /* Now go through and print parameters */
-    p = l;
     i = 0;
+    /* Print implicit parameters */
+    for(p = il; p; p = nextSibling(p))
+      Printv(temp, (i > 0 ? "," : ""), Getattr(p, "name"), NIL);
+    /* Now go through and print normal parameters */
+    p = l;
     while (p != 0) {
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
       if (!checkAttribute(p,"tmap:in:numinputs","0")) {
+        if (i > 0) Append(temp, ",");
 	/* If parameter has been named, use that.   Otherwise, just print a type  */
 	if (SwigType_type(pt) != T_VOID) {
 	  if (Len(pn) > 0) {
@@ -1059,16 +1103,8 @@ public:
 	  }
 	}
 	i++;
-	p = nextSibling(p);
-	if (p)
-	  if (!checkAttribute(p,"tmap:in:numinputs","0"))
-	    Putc(',', temp);
-      } else {
-	p = nextSibling(p);
-	if (p)
-	  if ((i > 0) && (!checkAttribute(p,"tmap:in:numinputs","0")))
-	    Putc(',', temp);
       }
+      p = nextSibling(p);
     }
     Printf(temp, ");");
     return Char(temp);
@@ -1186,6 +1222,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
+    String *name = 0; /* Real name of C/C++ class */
+    String *fullclassname = 0;
 
     if (blessed) {
       have_constructor = 0;
@@ -1205,7 +1243,7 @@ public:
       } else {
 	fullclassname = NewString(class_name);
       }
-      real_classname = Getattr(n, "name");
+      name = Getattr(n, "name");
       pcode = NewString("");
       // blessedmembers = NewString("");
     }
@@ -1217,7 +1255,7 @@ public:
     /* Finish the rest of the class */
     if (blessed) {
       /* Generate a client-data entry */
-      SwigType *ct = NewStringf("p.%s", real_classname);
+      SwigType *ct = NewStringf("p.%s", name);
       Printv(f_init, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct), ", (void*) \"", fullclassname, "\");\n", NIL);
       SwigType_remember(ct);
       Delete(ct);
@@ -1490,6 +1528,15 @@ public:
 
     String *symname = Getattr(n, "sym:name");
 
+    {
+      String *type = NewString("SV");
+      SwigType_add_pointer(type);
+      Parm *p = NewParm(type, "proto");
+      Delete(type);
+      Setattr(n, "perl5:implicits", p);
+      Delete(p);
+    }
+
     member_func = 1;
     Language::constructorHandler(n);
 
@@ -1501,17 +1548,16 @@ public:
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
       } else {
-	if ((Cmp(symname, class_name) == 0)) {
-	  /* Emit a blessed constructor  */
-	  Printf(pcode, "sub new {\n");
-	} else {
-	  /* Constructor doesn't match classname so we'll just use the normal name  */
-	  Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
-	}
-
-	Printv(pcode,
-	       tab4, "my $pkg = shift;\n",
-	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
+	/* Emit a blessed constructor  */
+        String *cname = Swig_name_construct(symname);
+        char *pname;
+        /* override Class->Class to be Class->new */
+	if (Cmp(symname, class_name) == 0)
+          pname = "new";
+	else
+          pname = Char(cname);
+        Printf(pcode, "*%s = *%s::%s;\n", pname, cmodule, cname);
+        Delete(cname);
 
 	have_constructor = 1;
       }
