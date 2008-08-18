@@ -432,7 +432,7 @@ public:
     Printf(module_class_vtable_code, "extern SWIG_funcptr _wrap%s_vtable[];\n\n", module_class_name);
 
     Printf(module_class_vtable_code,
-        "void * SWIGSTDCALL _wrap_new_%s(void *SWIG_ignored) {\n"
+        "void * SWIGSTDCALL _wrap_new_%s() {\n"
         "  return _wrap_new_staticclass(_wrap%s_vtable, &IID_I%s);\n"
         "};\n\n",
         module_class_name, module_class_name, module_class_name);
@@ -995,7 +995,8 @@ public:
     constructor_flag = false;
     static_flag = false;
 
-    if (Getattr(n, "default_constructor")) {
+    if (Getattr(n, "default_constructor") ||
+        checkAttribute(n, "access", "public") && !Getattr(n, "parms")) {
       default_ctor_wname = Copy(Getattr(n, "wrap:name"));
     }
 
@@ -1673,12 +1674,23 @@ public:
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
+      String *classtype = Getattr(n, "classtype");
+
       if (!Getattr(n, "abstract") && default_ctor_wname != NULL) {
+        Printf(proxy_class_vtable_code, "%s* SWIGSTDCALL SWIG_new_%s() {\n"
+            "#ifdef __cplusplus\n"
+            "  return (%s *) SWIG_wrap%s((void *) new %s(), 1);\n"
+            "#else\n"
+            "  return (%s *) SWIG_wrap%s((void *) malloc(sizeof(%s)), 1);\n"
+            "#endif\n"
+            "}\n\n", classtype, proxy_class_name, classtype, proxy_class_name,
+	    classtype, classtype, proxy_class_name, classtype, classtype);
+
         Printf(proxy_class_vtable_code, "GUID CLSID_%s = ", proxy_class_name);
         formatGUID(proxy_class_vtable_code, proxy_clsid, true);
         Printf(proxy_class_vtable_code, ";\n\n");
 
-        Printf(clsid_list, "  { (SWIG_funcptr) %s, &CLSID_%s, _T(\"{", default_ctor_wname, proxy_class_name);
+        Printf(clsid_list, "  { (SWIG_funcptr) SWIG_new_%s, &CLSID_%s, _T(\"{", proxy_class_name, proxy_class_name);
         formatGUID(clsid_list, proxy_clsid, false);
         Printf(clsid_list,  "}\"), _T(\"%s.%s\"), 1 },\n", namespce, proxy_class_name);
       }

@@ -546,7 +546,7 @@ HRESULT SWIGSTDCALL SWIGClassFactoryCreateInstance(SWIGClassFactory *factory, SW
      return CLASS_E_NOAGGREGATION;
 
   /* Create the instance */
-  obj = (SWIGWrappedObject *) ((void* (SWIGSTDCALL *)(void *)) factory->newInstance)(NULL);
+  obj = (SWIGWrappedObject *) ((void* (SWIGSTDCALL *)()) factory->newInstance)();
 
   if (obj == NULL) {
     return E_OUTOFMEMORY;
