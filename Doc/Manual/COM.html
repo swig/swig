@@ -253,7 +253,7 @@ The precise way how you can load your module depends on the target language. In 
 <div class="code"><pre>
 Dim example
 Set example = CreateObject("example.example")
-</pre</div>
+</pre></div>
 
 <p>
 The variable <tt>example</tt> now contains a reference to an object of the <i>module class</i> which
@@ -494,7 +494,7 @@ is used as follows:
 
 <div class="code"><pre>
 Dim v
-v = CreateObject("example.Vector")
+Set v = CreateObject("example.Vector")
 v.x = 3.5
 v.y = 7.2
 Dim x, y
@@ -646,7 +646,7 @@ you can use an instance of <tt>Bar</tt> as argument to <tt>spam</tt>:
 <pre>
 Dim example, b
 Set example = CreateInstance("example.example")
-Set b = CreateInstance("example.bar")
+Set b = CreateInstance("example.Bar")
 example.spam(b)
 </pre>
 </div>
@@ -864,8 +864,8 @@ you can use the constructor in the following way:
 <pre>
 Dim example, v
 
-example = CreateObject("example.example")
-v = example.Vector.new_Vector(1.42, 10)
+Set example = CreateObject("example.example")
+Set v = example.Vector.new_Vector(1.42, 10)
 </pre>
 </div>
 
@@ -883,7 +883,7 @@ objects. In this case you can use the following code:
 <pre>
 Dim v
 
-v = CreateObject("example.Vector")
+Set v = CreateObject("example.Vector")
 </pre>
 </div>
 
