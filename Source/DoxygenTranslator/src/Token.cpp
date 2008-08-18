@@ -1,8 +1,4 @@
 #include "Token.h"
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <list>
 using namespace std;
 
 
@@ -21,7 +17,7 @@ string Token::toString()
 		return "{END OF PARAGRAPH}";
 	}
 	if (tokenType == PLAINSTRING){
-		return tokenString;
+		return "{PLAINSTRING :" + tokenString + "}";
 	}
 	if (tokenType == COMMAND){
 		return "{COMMAND : " + tokenString+ "}";

@@ -59,7 +59,7 @@ TokenList::TokenList(string doxygenString){
 			if(!isFluff) tokenList.push_back(Token(PLAINSTRING, currentWord));
 		}
 		
-		else tokenList.push_back(Token(PLAINSTRING, currentWord));
+		else if (!currentWord.empty())tokenList.push_back(Token(PLAINSTRING, currentWord));
 		currentIndex = nextIndex;
 	}
 	}

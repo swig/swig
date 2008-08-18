@@ -1,8 +1,7 @@
 #ifndef DOXYGENENTITY_H_
 #define DOXYGENENTITY_H_
 
-#include <cstdlib>
-#include <iostream>
+
 #include <string>
 #include <list>
 

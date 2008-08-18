@@ -1,8 +1,5 @@
 #include "JavaDocConverter.h"
-#include <cstdlib>
 #include <iostream>
-#include <string>
-#include <list>
 #define APPROX_LINE_LENGTH 64//characters per line allowed
 #define TAB_SIZE 8//characters per line allowed
 int printSortedTree2 = 0;
@@ -20,6 +17,10 @@ JavaDocConverter::~JavaDocConverter()
  * such as brief descriptions are TAGGED as such
  */
 bool compare_DoxygenEntities(DoxygenEntity first, DoxygenEntity second){
+	if(first.typeOfEntity.compare("brief") == 0) return true;
+	if(second.typeOfEntity.compare("brief") == 0) return false;
+	if(first.typeOfEntity.compare("details") == 0) return true;
+	if(second.typeOfEntity.compare("details") == 0) return false;
 	if(first.typeOfEntity.compare("plainstring") == 0) return true;
 	if(second.typeOfEntity.compare("plainstring") == 0) return false;
 	if(first.typeOfEntity.compare("param") == 0){
@@ -54,11 +55,11 @@ bool compare_DoxygenEntities(DoxygenEntity first, DoxygenEntity second){
 		return false;
 	}
 	if(first.typeOfEntity.compare("author")== 0){
-		if(first.typeOfEntity.compare("author")== 0) return true;
-		if(first.typeOfEntity.compare("version")== 0)return true;
-		if(first.typeOfEntity.compare("see")== 0)return true;
-		if(first.typeOfEntity.compare("since")== 0)return true;
-		if(first.typeOfEntity.compare("deprecated")== 0)return true;
+		if(second.typeOfEntity.compare("author")== 0) return true;
+		if(second.typeOfEntity.compare("version")== 0)return true;
+		if(second.typeOfEntity.compare("see")== 0)return true;
+		if(second.typeOfEntity.compare("since")== 0)return true;
+		if(second.typeOfEntity.compare("deprecated")== 0)return true;
 		return false;
 	}
 	if(first.typeOfEntity.compare("version")== 0){
@@ -134,17 +135,11 @@ string javaDocFormat(DoxygenEntity &doxygenEntity){
 	if (doxygenEntity.typeOfEntity.compare("plainstring") == 0){
 			return doxygenEntity.data;
 	}
-	else if (doxygenEntity.typeOfEntity.compare("brief") == 0){
-			return doxygenEntity.data;
-	}
-	if (doxygenEntity.typeOfEntity.compare("detailed") == 0){
-			return doxygenEntity.data;
-	}
 	else if (doxygenEntity.typeOfEntity.compare("b") == 0){
-		return "<b>" + doxygenEntity.data + "</b>";
+		return "\b<b>" + doxygenEntity.data + "</b>";
 	}
 	else if (doxygenEntity.typeOfEntity.compare("c") == 0){
-		return "<tt>" + doxygenEntity.data + "</tt>";
+		return "\b<tt>" + doxygenEntity.data + "</tt>";
 	}
 	return "";
 }
@@ -165,7 +160,9 @@ string translateSubtree( DoxygenEntity &doxygenEntity){
 }
 
 string translateEntity(DoxygenEntity &doxyEntity){
-	if(doxyEntity.typeOfEntity.compare("plainstring")== 0 || doxyEntity.typeOfEntity.compare("deprecated")== 0 || doxyEntity.typeOfEntity.compare("brief")== 0)
+	if ((doxyEntity.typeOfEntity.compare("brief") == 0)||(doxyEntity.typeOfEntity.compare("details") == 0)){
+		return formatCommand(string(translateSubtree(doxyEntity)), 0) + "\n * ";}
+	else if(doxyEntity.typeOfEntity.compare("plainstring")== 0 || doxyEntity.typeOfEntity.compare("deprecated")== 0 || doxyEntity.typeOfEntity.compare("brief")== 0)
 		return formatCommand(doxyEntity.data, 0) + "\n * ";
 	else if(doxyEntity.typeOfEntity.compare("see") == 0){
 		return formatCommand(string("@" + doxyEntity.typeOfEntity + "\t\t" + translateSubtree(doxyEntity)), 2);

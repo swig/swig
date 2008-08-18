@@ -1,6 +1,6 @@
 #include "DoxygenEntity.h"
 #include <string>
-
+#include <iostream>
 /* Little data class for Doxygen Commands */
 
 
