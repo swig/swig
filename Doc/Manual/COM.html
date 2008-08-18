@@ -52,7 +52,6 @@
 <li><a href="#com_customization">Customization features</a>
 <ul>
 <li><a href="#com_typemaps">Typemaps</a>
-<li><a href="#com_typemaps">Exception handling</a>
 </ul>
 </ul>
 </div>
@@ -215,7 +214,9 @@ $ i586-mingw32msvc-gcc -shared -o example.dll example_wrap.c example.def example
 
 <p>
 On a Windows installation of MinGW the names of the executables will most probably simply be <tt>windres</tt> and
-<tt>gcc</tt>, and <tt>midl</tt> can be used in place of <tt>widl</tt>.
+<tt>gcc</tt>, and <tt>midl</tt> can be used in place of <tt>widl</tt>. Instructions for some other toolchains
+may be found on <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?DeveloperInfo/COMTesting">this page</a> of the
+SWIG Wiki.
 </p>
 
 <p>
@@ -395,8 +396,60 @@ is wrapped as a floating point value while <tt>VERSION</tt> is wrapped as a stri
 
 
 <p>
-TODO
+The COM module currently only supports type-unsafe enumerations, which are mapped to integers
+in COM. Enum values are represented as immutable (read-only) integer constants. For example
+assume you have the following code:
 </p>
+
+<div class="code">
+<pre>
+%module example
+
+enum Beverage { ALE, LAGER=10, STOUT, PILSNER, PILZ=PILSNER };
+
+int func(Beverage arg);
+</pre>
+</div>
+
+<p>
+You can use the wrapped code like this:
+</p>
+
+<div class="code">
+<pre>
+Dim example, res
+
+Set example = CreateObject("example.example")
+res = example.func(example.PILSNER)
+</pre>
+</div>
+
+<p>
+If your enum is defined inside a class its values will be accessible using the class, e.g.:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+class MyClass {
+public:
+  enum Beverage { ALE, LAGER=10, STOUT, PILSNER, PILZ=PILSNER };
+  static Beverage bev;
+};
+</pre>
+</div>
+
+The resulting COM object can be used as follows:
+
+<div class="code">
+<pre>
+Dim example, res
+
+Set example = CreateObject("example.example")
+example.MyClass.bev = example.MyClass.PILSNER
+</pre>
+</div>
 
 <H3><a name="pointers"></a>17.3.5 Pointers</H3>
 
@@ -1201,6 +1254,7 @@ is to be stored.
 
 <H3><a name="com_iswigwrappedobject"></a>17.4.6 ISWIGWrappedObject interface</H3>
 
+
 <p>
 Every COM object created by SWIG implements the interface <tt>ISWIGWrappedObject</tt> with
 the interface ID <tt>{1a3a5cc8-9a61-4681-ae9c-d04293f35734}</tt>. This interface has one
@@ -1223,6 +1277,7 @@ purposes.
 
 <H3><a name="com_memory"></a>17.4.7 Memory management</H3>
 
+
 <p>
 Every COM proxy object keeps a count of references. If this reference count
 reaches 0 then the proxy object is unused and can be deallocated. SWIG takes
@@ -1238,6 +1293,7 @@ will be called, just as it would be called in C++.
 </p>
 
 <H3><a name="com_memory"></a>17.4.8 Exceptions</H3>
+
 
 <p>
 For now if a C++ exception is thrown the function returns with the error
@@ -1270,6 +1326,7 @@ You can customize the exception handling process by modifying the
 
 
 <H3><a name="com_typemaps"></a>17.5.1 Typemaps</H3>
+
 
 <p>
 The COM module uses four typemaps for wrapping types. These are
