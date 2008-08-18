@@ -2,5 +2,5 @@
 
 typedef struct {
   int x,y;
-} Point;
+} Point; /*!< Description of struct Point */
 
