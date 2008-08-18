@@ -1,16 +1,10 @@
-
-
 #include "DoxygenParser.h"
 #include "DoxygenTranslator.h"
 #include <cstdlib>
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <list>
 #include "DoxygenEntity.h"
-#include "TokenList.h"
 #include "JavaDocConverter.h"
-
 
 DoxygenParser doxyParse;
 JavaDocConverter jDC;
@@ -65,7 +59,10 @@ int testCommands(){
 		cout << "---ORIGINAL DOXYGEN--- " << endl << exampleArray[i] << endl;
 		char *nonConstString = (char *)malloc(exampleArray[i].length()+1);
 		strcpy(nonConstString, exampleArray[i].c_str());
-		dT.convert(nonConstString, "JAVADOC");
+		char * result = dT.convert(nonConstString, "JAVADOC");
+		free(nonConstString);
+		free(result);
 	}
 	return 1;
 }
+
