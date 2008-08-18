@@ -7,5 +7,5 @@
  \param y int y
  \return the gcd */
 extern int    gcd(int x, int y);
-extern double Foo; /*!< description of double foo
+extern double Foo; /*!< description of double foo */
 %}
