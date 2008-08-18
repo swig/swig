@@ -8,6 +8,12 @@
 #include "example.h"
 %}
 
+/*! Class vector description
+ \author Fred
+ \exception something random 
+ \since 1.0
+ \name ignoreme
+ \see something */
 class Vector {
 public:
     Vector(double x, double y, double z);
@@ -15,15 +21,18 @@ public:
     char *print();
 };
 
-/* This helper function calls an overloaded operator */
+/** This helper function calls an overloaded operator */
 %inline %{
 Vector addv(Vector &a, Vector &b) {
   return a+b;
 }
 %}
 
-/* Wrapper around an array of vectors class */
-
+/*! Class Vector Array
+ \exception something random 
+ \since 1.3
+ \see something
+ \author Fred */
 class VectorArray {
 public:
   VectorArray(int maxsize);
@@ -40,6 +49,9 @@ public:
     }
   }
 };
+
+
+
 
 
 

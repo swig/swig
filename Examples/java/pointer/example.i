@@ -26,5 +26,3 @@ extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
 extern int divide(int n, int d, int *r);
 
 
-
-

@@ -6,12 +6,15 @@
 #include <string>
 #include <cmath>
 
-/**This is describiing class Employee */
+/**This is describiing class Employee 
+ /author Bob */
 class Employee {
 private:
 	std::string name;
 public:
-	/** TEST */
+	/** Employee
+	 \param n name of Employee
+	 \throws some exception */
 	Employee(const char* n): name(n) {}
 /**This is describing method getTitle */
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
@@ -31,11 +34,15 @@ public:
 class EmployeeList {
 	std::vector<Employee*> list;
 public:
+	/** Initialises Employee List */
 	EmployeeList() {
 		list.push_back(new Employee("Bob"));
 		list.push_back(new Employee("Jane"));
 		list.push_back(new Manager("Ted"));
 	}
+	/** Add employee
+	 * \param p employee p
+	 * \return void */
 	void addEmployee(Employee *p) {
 		list.push_back(p);
 		std::cout << "New employee added.   Current employees are:" << std::endl;

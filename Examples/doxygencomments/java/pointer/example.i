@@ -7,10 +7,16 @@ extern void sub(int *, int *, int *);
 extern int divide(int, int, int *);
 %}
 
-/* This example illustrates a couple of different techniques
+/** This example illustrates a couple of different techniques
    for manipulating C pointers */
 
 /* First we'll use the pointer library */
+
+/*! function add
+ \param x some int x
+ \param y some int y
+ \param result some result
+ */
 extern void add(int *x, int *y, int *result);
 %include cpointer.i
 %pointer_functions(int, intp);
@@ -24,6 +30,8 @@ extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
 
 %apply int *OUTPUT { int *r };
 extern int divide(int n, int d, int *r);
+
+
 
 
 

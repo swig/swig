@@ -4,11 +4,16 @@
 %{
 #include <string.h>
 
+/*! Structure Point */
 typedef struct point {
   int x;
   int y;
 } Point;
 
+/*! Point_create Description
+ /param x integer x
+ /param y some integer y
+ /return a point */
 
 Point *point_create(int x, int y) {
   Point *p = (Point *) malloc(sizeof(Point));
@@ -17,6 +22,11 @@ Point *point_create(int x, int y) {
 
   return p;
 }
+
+/*! Point_create Description
+ /param format the format 
+ /param p some p
+ /return a character string of the point p */
 
 static char *point_toString(char *format, Point *p) {
   static char buf[80];
@@ -54,3 +64,4 @@ char *point_toString1(Point *p);
 extern void free(void *memblock);
 
 %native(point_toString2) char *point_toString2(Point *p);
+
