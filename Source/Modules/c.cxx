@@ -78,6 +78,9 @@ public:
       }
     }
 
+    if (!CPlusPlus)
+      except_flag = false;
+
     // add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGC 1", 0);
     Preprocessor_define("SWIG_C_RUNTME 1", 0);
@@ -256,8 +259,19 @@ public:
     SwigType *type = Getattr(n, "type");
     if (SwigType_isenum(type))
       type = make_enum_type(n, type);
-    String *type_str = SwigType_str(type, 0);
-    Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
+    String *type_str = Copy(SwigType_str(type, 0));
+    if (SwigType_isarray(type)) {
+      String *dims = Strchr(type_str, '[');
+      char *c = Char(type_str);
+      c[Len(type_str) - Len(dims) - 1] = '\0';
+      String *bare_type = NewStringf("%s", c);
+      //Printv(f_proxy_header, "SWIGIMPORT ", bare_type, " *", name, ";\n\n", NIL);
+      Printv(f_proxy_header, "SWIGIMPORT ", bare_type, " ", name, "[];\n\n", NIL);
+      Delete(bare_type);
+    }
+    else
+      Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
+    Delete(type_str);
     return SWIG_OK;
   }
 
@@ -452,6 +466,23 @@ ready:
         gencomma = 1;
       }
       Printv(wrapper->def, return_type, " ", wname, "(", proto, ") {\n", NIL);
+
+      // attach 'check' typemaps
+      Swig_typemap_attach_parms("check", parms, wrapper);
+
+      // insert constraint checking
+      for (p = parms; p; ) {
+        if ((tm = Getattr(p, "tmap:check"))) {
+          Replaceall(tm, "$target", Getattr(p, "lname"));
+          Replaceall(tm, "$name", name);
+          Printv(wrapper->code, tm, "\n", NIL);
+          p = Getattr(p, "tmap:check:next");
+        }
+        else {
+          p = nextSibling(p);
+        }
+      }
+
       Append(wrapper->code, prepend_feature(n));
       if (!is_void_return) {
         Printv(wrapper->code, return_type, " result;\n", NIL);
@@ -538,6 +569,9 @@ ready:
               return_var_type = SwigType_base(type);
               SwigType_add_pointer(return_var_type);
             }
+            if (SwigType_ispointer(type)) {
+              SwigType_add_pointer(return_var_type);
+            }
             SwigType_add_reference(type);
           }
           else if (SwigType_isarray(type)) {
@@ -562,6 +596,8 @@ ready:
           else if (SwigType_isreference(type)) {
             return_var_type = SwigType_base(type);
             SwigType_add_pointer(return_var_type);
+            if (SwigType_ispointer(type))
+              SwigType_add_pointer(return_var_type);
           }
           else if (SwigType_isarray(type)) {
             return_var_type = SwigType_base(type);
@@ -682,6 +718,19 @@ ready:
       // emit variable for holding function return value
       emit_return_variable(n, return_type, wrapper);
 
+      // insert constraint checking
+      for (p = parms; p; ) {
+        if ((tm = Getattr(p, "tmap:check"))) {
+          Replaceall(tm, "$target", Getattr(p, "lname"));
+          Replaceall(tm, "$name", name);
+          Printv(wrapper->code, tm, "\n", NIL);
+          p = Getattr(p, "tmap:check:next");
+        }
+        else {
+          p = nextSibling(p);
+        }
+      }
+
       // emit action code
       String *action = emit_action(n);
       String *except = Getattr(n, "feature:except");
@@ -722,18 +771,6 @@ ready:
       }
       else {
         Append(wrapper->code, action);
-      }
-
-      // insert constraint checking
-      for (p = parms; p; ) {
-        if ((tm = Getattr(p, "tmap:check"))) {
-          Replaceall(tm, "$target", Getattr(p, "lname"));
-          Printv(wrapper->code, tm, "\n", NIL);
-          p = Getattr(p, "tmap:check:next");
-        }
-        else {
-          p = nextSibling(p);
-        }
       }
 
       // insert cleanup code
@@ -823,6 +860,24 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
+   * emit_c_struct_def()
+   * --------------------------------------------------------------------- */
+
+  void emit_c_struct_def(Node *node) {
+    for ( ; node; node = nextSibling(node)) {
+      String* kind = Getattr(node, "kind");
+      if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
+        String* type = NewString("");
+        Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
+        Printv(f_proxy_header, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
+        Delete(type);
+      }
+      if (Cmp(nodeType(node), "extend") == 0)
+        emit_c_struct_def(firstChild(node));
+    }
+  }
+
+  /* ---------------------------------------------------------------------
    * classHandler()
    * --------------------------------------------------------------------- */
 
@@ -877,16 +932,8 @@ ready:
       // this is C struct, just declare it in proxy
       if (proxy_flag) {
         Printv(f_proxy_header, "struct ", name, " {\n", NIL);
-        Node* node;
-        for (node = firstChild(n); node; node = nextSibling(node)) {
-          String* kind = Getattr(node, "kind");
-          if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
-            String* type = NewString("");
-            Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
-            Printv(f_proxy_header, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
-            Delete(type);
-          }
-        }
+        Node *node = firstChild(n);
+        emit_c_struct_def(node);
         Append(f_proxy_header, "};\n\n");
       }
 

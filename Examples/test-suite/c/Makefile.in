@@ -13,10 +13,12 @@ top_builddir = @top_builddir@/..
 C_TEST_CASES =
 
 CPP_TEST_CASES = \
-        exception_order \
-				exception_partial_info \
-				enums \
-				enum_plus \
+								 cast_operator \
+								 char_strings \
+								 exception_order \
+								 exception_partial_info \
+								 enums \
+								 enum_plus \
 
 include $(srcdir)/../common.mk
 

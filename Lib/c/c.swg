@@ -31,6 +31,8 @@
 %typemap(ctype) const short, const int, const long, const char, const float, const double  "$1_type"
 %typemap(ctype) const unsigned short, const unsigned int, const unsigned long, const unsigned char "$1_type"
 %typemap(ctype) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$1_type"
+%typemap(ctype) short *&, int *&, long *&, char *&, float *&, double *& "$1_basetype **"
+%typemap(ctype) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$1_basetype **"
 %typemap(ctype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$1_basetype *"
 %typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1_basetype **"
 %typemap(ctype) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_basetype **"
@@ -39,6 +41,7 @@
 %typemap(ctype) SWIGTYPE &       "SwigObj *"
 %typemap(ctype) SWIGTYPE * [ANY], SWIGTYPE ** "SwigObj **"
 %typemap(ctype) SWIGTYPE * [ANY][ANY], SWIGTYPE *** "SwigObj ***"
+%typemap(ctype) SWIGTYPE *&      "SwigObj **"
 %typemap(ctype) enum SWIGTYPE    "$1_type"
 
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
@@ -58,6 +61,9 @@
 %typemap(in) const short &, const int &, const long &, const char &, const float &, const double & "$1 = ($1_basetype *) $input;"
 %typemap(in) unsigned short &, unsigned int &, unsigned long &, unsigned char &  "$1 = ($1_basetype *) $input;"
 %typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$1 = ($1_basetype *) $input;"
+
+%typemap(in) short *&, int *&, long *&, char *&, float *&, double *& "$1 = ($1_ltype) $input;"
+%typemap(in) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$1 = ($1_ltype) $input;"
 %typemap(in) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
@@ -119,6 +125,13 @@
     $1 = ($1_basetype *) 0;
 }
 
+%typemap(in) SWIGTYPE *& {
+  if ($input)
+    $1 = ($1_basetype **) &(*$input)->obj;
+  else
+    $1 = ($1_basetype **) 0;
+}
+
 // typemaps for return values
 
 %typemap(couttype) void, short, int, long, char, float, double "$1_type"
@@ -127,6 +140,8 @@
 %typemap(couttype) const void *, const short *, const int *, const long *, const char *, const float *, const double * "$1_type"
 %typemap(couttype) short &, int &, long &, char &, float &, double & "$1_basetype *"
 %typemap(couttype) const short &, const int &, const long &, const char &, const float &, const double & "$1_basetype const *"
+%typemap(couttype) short *&, int *&, long *&, char *&, float *&, double *& "$1_basetype **"
+%typemap(couttype) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$1_basetype **"
 %typemap(couttype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$1_basetype *"
 %typemap(couttype) SWIGTYPE      "SwigObj *"
 %typemap(couttype) SWIGTYPE *    "SwigObj *"
@@ -149,6 +164,8 @@
 %typemap(out) unsigned short &, unsigned int &, unsigned long &, unsigned char & "$result = $1;"
 %typemap(out) const short &, const int &, const long &, const char &, const float &, const double & "$result = $1;"
 %typemap(out) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned char & "$result = $1;"
+%typemap(out) short *&, int *&, long *&, char *&, float *&, double *& "$result = $1;"
+%typemap(out) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$result = $1;"
 %typemap(out) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$result = $1;"
 %typemap(out) void ""
 
@@ -201,6 +218,7 @@
   else
     $result = (SwigObj***) 0;
 }
+
 
 #ifdef SWIG_C_EXCEPT
 %insert("runtime") %{
