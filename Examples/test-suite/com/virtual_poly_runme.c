@@ -147,5 +147,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   vp->lpVtbl->Release(vp);
 
+  CoUninitialize();
+
   return 0;
 }
