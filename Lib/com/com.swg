@@ -341,6 +341,7 @@
                   SWIGTYPE[],
                   SWIGTYPE[ANY]
 %{
+  SWIG_SetErrorInfo(L"C++ $1_type exception thrown", L"", &IID_IUnknown);
   return $null;
 %}
 
@@ -376,6 +377,7 @@ typedef struct {
   SWIG_funcptr *vtable; /* vtable for the methods of the wrapped object */
   SWIG_funcptr *SWIGWrappedObject_vtable; /* vtable for helper methods */
   SWIG_funcptr *aggregated_vtable; /* vtable to present to the outer object */
+  SWIG_funcptr *ISupportErrorInfo_vtable;
   void *cPtr; /* pointer to the wrapped object */
   int cMemOwn; /* memory owned by the proxy? */
   LONG refCount; /* reference count */
@@ -390,6 +392,31 @@ static LONG globalRefCount = 0;
 
 static int SWIGIsEqual(const GUID *a, const GUID *b) {
   return memcmp(a, b, sizeof(GUID)) == 0;
+}
+
+void SWIG_SetErrorInfo(const wchar_t *msg, const wchar_t *source, const GUID *guid) {
+  SWIGIUnknown *icei;
+  IErrorInfo *iei;
+
+  CreateErrorInfo((ICreateErrorInfo **) &icei);
+
+  /* SetGUID */
+  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, const GUID *)) icei->vtable[3])(icei, guid);
+
+  /* SetSource */
+  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, LPCOLESTR)) icei->vtable[4])(icei, source);
+
+  /* SetDescription */
+  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, LPCOLESTR)) icei->vtable[5])(icei, msg);
+
+  /* Use QueryInterface to convert ICreateErrorInfo to IErrorInfo */
+  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFGUID, LPVOID *)) icei->vtable[0])(icei, IID_IErrorInfo, (void **) &iei);
+
+  SetErrorInfo(0, iei);
+
+  /* Release both object references */
+  ((LONG (SWIGSTDCALL *)(SWIGIUnknown *)) icei->vtable[2])(icei);
+  ((LONG (SWIGSTDCALL *)(SWIGIUnknown *)) ((SWIGIUnknown *) iei)->vtable[2])((SWIGIUnknown *) iei);
 }
 
 long SWIGSTDCALL SWIGAddRef1(void *iunk) {
@@ -412,6 +439,10 @@ long SWIGSTDCALL SWIGAddRef3(void *iunk) {
 
   InterlockedIncrement(&globalRefCount);
   return InterlockedIncrement(&obj->refCount);
+}
+
+long SWIGSTDCALL SWIGAddRef4(void *iunk) {
+  return SWIGAddRef1((void **)iunk - 3);
 }
 
 long SWIGSTDCALL SWIGRelease1(void *iunk) {
@@ -464,6 +495,22 @@ long SWIGSTDCALL SWIGRelease3(void *iunk) {
   return res;
 }
 
+long SWIGSTDCALL SWIGRelease4(void *iunk) {
+  return SWIGRelease1((void **)iunk - 3);
+}
+
+HRESULT SWIGSTDCALL SWIGQueryInterface4(void *iunk, GUID *iid, void **ppvObject) {
+  /*
+   * Forwards the call to the main vtable. This is not optimal as the call cannot
+   * be inlined. However generating a separate function for each class is
+   * rather inconvenient.
+   */
+
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **) iunk - 3);
+
+  return ((HRESULT (SWIGSTDCALL *)(void *, GUID *, void **)) obj->vtable[0]) ((void *) obj, iid, ppvObject);
+}
+
 void * SWIGSTDCALL SWIGGetCPtr(void *iunk) {
   SWIGWrappedObject *obj = (SWIGWrappedObject *) ((void **)iunk - 1);
 
@@ -499,6 +546,17 @@ HRESULT SWIGSTDCALL SWIGInvoke(SWIGWrappedObject *obj, DISPID dispIdMember, REFI
 
   return hres;
 }
+
+HRESULT SWIGSTDCALL SWIGInterfaceSupportsErrorInfo(void *ignored, GUID *riid) {
+  return S_OK;
+}
+
+SWIG_funcptr ISupportErrorInfo_vtable[] = {
+  (SWIG_funcptr) SWIGQueryInterface4,
+  (SWIG_funcptr) SWIGAddRef4,
+  (SWIG_funcptr) SWIGRelease4,
+  (SWIG_funcptr) SWIGInterfaceSupportsErrorInfo
+};
 
 static OLECHAR SWIG_typelib_path[MAX_PATH + 1];
 static ITypeLib *SWIG_typelib = NULL;
@@ -593,7 +651,7 @@ typedef struct {
 } SWIGClassDescription_t;
 
 void _wrap_delete_staticclass(void *arg) {
-  SWIGWrappedObject *obj = (SWIGWrappedObject *) obj;
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) arg;
 #ifdef __cplusplus
   delete obj;
 #else
@@ -609,6 +667,7 @@ void *_wrap_new_staticclass(SWIG_funcptr *vtable, GUID *iid) {
 #endif
   res->vtable = vtable;
   res->SWIGWrappedObject_vtable = NULL;
+  res->ISupportErrorInfo_vtable = ISupportErrorInfo_vtable;
   /* cPtr and cMemOwn make no sense for static classes */
   res->cPtr = NULL;
   res->cMemOwn = 0;
@@ -628,9 +687,12 @@ HRESULT SWIGSTDCALL _wrap_staticclass_QueryInterface(void *that, GUID *iid, void
   if (SWIGIsEqual(iid, &IID_IUnknown) ||
       SWIGIsEqual(iid, &IID_IDispatch) ||
       (obj->additionalIID != NULL && SWIGIsEqual(iid, obj->additionalIID))) {
-    /* FIXME: This could be more elegant */
     SWIGAddRef1(that);
     *ppvObject = that;
+    return S_OK;
+  } else if (SWIGIsEqual(iid, &IID_ISupportErrorInfo)) {
+    SWIGAddRef1(that);
+    *ppvObject = &obj->ISupportErrorInfo_vtable;
     return S_OK;
   }
 
@@ -680,6 +742,7 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn) {
 #endif
   res->vtable = _wrap_opaque_vtable;
   res->SWIGWrappedObject_vtable = _wrap_opaque_SWIGWrappedObject_vtable;
+  res->ISupportErrorInfo_vtable = ISupportErrorInfo_vtable;
   res->cPtr = arg;
   res->cMemOwn = cMemOwn;
   InterlockedIncrement(&globalRefCount);

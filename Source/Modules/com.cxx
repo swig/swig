@@ -1435,6 +1435,10 @@ public:
           "      SWIGAddRef1(that);\n"
           "      *ppvObject = &obj->SWIGWrappedObject_vtable;\n"
           "      return S_OK;\n"
+          "    } else if (SWIGIsEqual(iid, &IID_ISupportErrorInfo)) {\n"
+          "      SWIGAddRef1(that);\n"
+          "      *ppvObject = &obj->ISupportErrorInfo_vtable;\n"
+          "      return S_OK;\n"
           "    }\n\n");
 
       Printf(proxy_class_vtable_code, "    if (SWIGIsEqual(iid, &IID_IUnknown) ||\n"
@@ -1460,7 +1464,6 @@ public:
       }
 
       Printf(proxy_class_vtable_code, ") {\n"
-          "      /* FIXME: This could be more elegant */\n"
           "      SWIGAddRef1(that);\n"
           "      *ppvObject = obj;\n"
           "      return S_OK;\n"
@@ -1496,6 +1499,10 @@ public:
           "    /* FIXME: This could be more elegant */\n"
           "    SWIGAddRef3(that);\n"
           "    *ppvObject = &obj->SWIGWrappedObject_vtable;\n"
+          "    return S_OK;\n"
+          "  } else if (SWIGIsEqual(iid, &IID_ISupportErrorInfo)) {\n"
+          "    SWIGAddRef1(that);\n"
+          "    *ppvObject = &obj->ISupportErrorInfo_vtable;\n"
           "    return S_OK;\n"
           "  }\n\n");
 
@@ -1681,6 +1688,7 @@ public:
           "  res->vtable = _wrap%svtable;\n"
           "  res->SWIGWrappedObject_vtable = _wrap%sSWIGWrappedObject_vtable;\n"
           "  res->aggregated_vtable = _wrap%saggregated_vtable;\n"
+          "  res->ISupportErrorInfo_vtable = ISupportErrorInfo_vtable;\n"
           "  res->cPtr = arg;\n"
           "  res->cMemOwn = cMemOwn;\n"
           "  res->outer = NULL;\n"
