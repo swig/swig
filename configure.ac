@@ -2677,7 +2677,7 @@ fi
 if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES='-shared -mno-cygwin'
   COM_CC_OUT_SWITCHES='-o '
-  COM_CC_SWITCHES=-mno-cygwin
+  COM_CC_SWITCHES='-mno-cygwin -mconsole'
   COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
   if test "winegcc" = "$COM_CC" ; then
     COM_EXEC_SUFFIX=.so

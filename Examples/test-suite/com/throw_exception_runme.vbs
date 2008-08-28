@@ -4,7 +4,7 @@ Set te = CreateObject("throw_exception.throw_exception")
 
 Set foo = te.Foo.new_Foo()
 
-Rem On Error Resume Next
+On Error Resume Next
 
 foo.test_int()
 
