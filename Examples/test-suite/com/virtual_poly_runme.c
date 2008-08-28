@@ -13,7 +13,7 @@
 
 #include "virtual_poly/virtual_poly_generated.h"
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int main() {
   Ivirtual_poly *vp = NULL;
   INDoubleStatic *nds = NULL;
   INIntStatic *nis = NULL;

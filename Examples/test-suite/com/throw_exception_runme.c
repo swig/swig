@@ -31,7 +31,7 @@ void check_message(wchar_t *expected_msg) {
   CoTaskMemFree(descr - 2);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int main() {
   Ithrow_exception *te = NULL;
   IFooStatic *fs = NULL;
   IFoo *foo = NULL;
