@@ -79,7 +79,7 @@ SWIG_InitializeModule(0);
 
 %typemap(scheck) int %{
   if(length($input) > 1) {
-     Rf_warning("using only the first element of $input")
+     warning("using only the first element of $input")
   }
 %}
 
