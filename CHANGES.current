@@ -1,6 +1,10 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-01: wsfulton
+            [C#] Correct array bounds checking in std::vector typemaps - Insert and InsertRange
+            methods.
+
 2008-08-02: wuzzeb
             [Chicken,Allegro] Commit Patch 2019314
             Fixes a build error in chicken, and several build errors and other errors
