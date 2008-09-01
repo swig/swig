@@ -1129,7 +1129,7 @@ fi
 AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
 	RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
-	if test "$RUBYDIR" != ""; then
+	if test x"$RUBYDIR" != x""; then
 		dirs="$RUBYDIR"
 		RUBYINCLUDE=none
 		for i in $dirs; do
