@@ -1,6 +1,18 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-02: wsfulton
+            [C#] Support for 'using' and 'fixed' blocks in the 'csin' typemap is now
+            possible through the use of the pre attribute and the new terminator attribute, eg
+
+              %typemap(csin, 
+                       pre="    using (CDate temp$csinput = new CDate($csinput)) {",
+                       terminator="    } // terminate temp$csinput using block",
+                      ) const CDate &
+                       "$csclassname.getCPtr(temp$csinput)"
+
+            See CSharp.html for more info.
+
 2008-09-01: wsfulton
             [CFFI] Commit patch #2079381 submitted by Boris Smilga - constant exprs put into 
             no-eval context in DEFCENUM

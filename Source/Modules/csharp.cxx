@@ -1887,6 +1887,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
 
     if (!proxy_flag)
       return;
@@ -2035,6 +2036,14 @@ public:
               Printf(post_code, "\n");
             Printv(post_code, post, NIL);
           }
+          String *terminator = Getattr(p, "tmap:csin:terminator");
+          if (terminator) {
+            substituteClassname(pt, terminator);
+            Replaceall(terminator, "$csinput", arg);
+            if (Len(terminator_code) > 0)
+              Insert(terminator_code, 0, "\n");
+            Insert(terminator_code, 0, terminator);
+          }
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2060,7 +2069,8 @@ public:
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
@@ -2071,6 +2081,9 @@ public:
         if (is_pre_code) {
           Insert(tm, 0, pre_code);
           Insert(tm, 0, "\n");
+        }
+        if (is_terminator_code) {
+          Printv(tm, "\n", terminator_code, NIL);
         }
 	Insert(tm, 0, "{");
 	Printf(tm, "\n  }");
@@ -2171,6 +2184,7 @@ public:
 
     Delete(pre_code);
     Delete(post_code);
+    Delete(terminator_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
@@ -2191,6 +2205,7 @@ public:
     String *helper_args = NewString("");
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
     String *im_return_type = NewString("");
     bool feature_director = (parentNode(n) && Swig_directorclass(n));
 
@@ -2286,6 +2301,14 @@ public:
               Printf(post_code, "\n");
             Printv(post_code, post, NIL);
           }
+          String *terminator = Getattr(p, "tmap:csin:terminator");
+          if (terminator) {
+            substituteClassname(pt, terminator);
+            Replaceall(terminator, "$csinput", arg);
+            if (Len(terminator_code) > 0)
+              Insert(terminator_code, 0, "\n");
+            Insert(terminator_code, 0, terminator);
+          }
           cshin = Getattr(p, "tmap:csin:cshin");
           if (cshin)
             Replaceall(cshin, "$csinput", arg);
@@ -2342,7 +2365,8 @@ public:
 
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Printf(helper_code, " {\n");
         if (is_pre_code) {
           Printv(helper_code, pre_code, "\n", NIL);
@@ -2353,6 +2377,9 @@ public:
           Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
         } else {
           Printv(helper_code, "    return ", imcall, ";", NIL);
+        }
+        if (is_terminator_code) {
+          Printv(helper_code, "\n", terminator_code, NIL);
         }
         Printf(helper_code, "\n  }\n");
         String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
@@ -2372,6 +2399,7 @@ public:
       Delete(im_return_type);
       Delete(pre_code);
       Delete(post_code);
+      Delete(terminator_code);
       Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
@@ -2489,6 +2517,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -2593,6 +2622,14 @@ public:
             Printf(post_code, "\n");
 	  Printv(post_code, post, NIL);
 	}
+        String *terminator = Getattr(p, "tmap:csin:terminator");
+        if (terminator) {
+          substituteClassname(pt, terminator);
+          Replaceall(terminator, "$csinput", arg);
+          if (Len(terminator_code) > 0)
+            Insert(terminator_code, 0, "\n");
+          Insert(terminator_code, 0, terminator);
+        }
 	Printv(imcall, tm, NIL);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2617,7 +2654,8 @@ public:
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
@@ -2628,6 +2666,9 @@ public:
         if (is_pre_code) {
           Insert(tm, 0, pre_code);
           Insert(tm, 0, "\n");
+        }
+        if (is_terminator_code) {
+          Printv(tm, "\n", terminator_code, NIL);
         }
 	Insert(tm, 0, "{");
 	Printf(tm, "\n  }");
@@ -2704,6 +2745,7 @@ public:
 
     Delete(pre_code);
     Delete(post_code);
+    Delete(terminator_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
