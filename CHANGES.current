@@ -2,6 +2,10 @@ Version 1.3.37 (in progress)
 =============================
 
 2008-09-02: wsfulton
+            [Python] Commit patch #1988296 GCItem multiple module linking issue when using 
+            directors.
+
+2008-09-02: wsfulton
             [C#] Support for 'using' and 'fixed' blocks in the 'csin' typemap is now
             possible through the use of the pre attribute and the new terminator attribute, eg
 
