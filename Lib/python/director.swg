@@ -107,17 +107,13 @@ namespace Swig {
   /* memory handler */
   struct GCItem 
   {
-    virtual ~GCItem() = 0;
+    virtual ~GCItem() {}
 
     virtual int get_own() const
     {
       return 0;
     }
   };
-
-  GCItem::~GCItem()
-  {
-  }
 
   struct GCItem_var
   {

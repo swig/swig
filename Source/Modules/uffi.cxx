@@ -26,7 +26,6 @@ public:
 };
 
 static File *f_cl = 0;
-static File *f_null = 0;
 
 static struct {
   int count;
@@ -225,15 +224,7 @@ void UFFI::main(int argc, char *argv[]) {
 int UFFI::top(Node *n) {
   String *module = Getattr(n, "name");
   String *output_filename = NewString("");
-  String *devnull = NewString("/dev/null");
-
-  f_null = NewFile(devnull, "w+");
-  if (!f_null) {
-    FileErrorDisplay(devnull);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  Delete(devnull);
-
+  File *f_null = NewString("");
 
   Printf(output_filename, "%s%s.cl", SWIG_output_directory(), module);
 

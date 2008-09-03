@@ -630,7 +630,7 @@ int CFFI::enumDeclaration(Node *n) {
     else {
       String *type = Getattr(c, "type");
       String *converted_value = convert_literal(value, type);
-      Printf(f_cl, "\n\t(%s %s)", slot_name, converted_value);
+      Printf(f_cl, "\n\t(%s #.%s)", slot_name, converted_value);
       Delete(converted_value);
     }
     Delete(value);
