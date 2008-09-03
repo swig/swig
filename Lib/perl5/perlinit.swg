@@ -41,7 +41,7 @@ XS(SWIG_init) {
       SV *sv;
       sv = get_sv((char*) swig_variables[i].name, TRUE | 0x2 | GV_ADDMULTI);
       if (swig_variables[i].type) {
-	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type,0);
+	    SWIG_Perl_WrapNative(sv, (void *)1, *swig_variables[i].type, 0, 0);
       } else {
 	sv_setiv(sv,(IV) 0);
       }
@@ -63,7 +63,7 @@ XS(SWIG_init) {
 	sv_setpv(sv, (char *) swig_constants[i].pvalue);
 	break;
       case SWIG_POINTER:
-	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype),0);
+        SWIG_Perl_WrapNative(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype), 0, 0);
 	break;
       case SWIG_BINARY:
 	SWIG_MakePackedObj(sv, swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype));

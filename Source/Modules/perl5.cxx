@@ -380,6 +380,9 @@ public:
 
     Printf(f_header, "%s\n", magic);
 
+#if 1
+    SwigType_emit_type_table(f_runtime, f_wrappers);
+#else
     String *type_table = NewString("");
 
     /* Patch the type table to reflect the names used by shadow classes */
@@ -405,6 +408,7 @@ public:
 
     Printf(f_wrappers, "%s", type_table);
     Delete(type_table);
+#endif
 
     Printf(constant_tab, "{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers, constant_tab, NIL);
@@ -585,6 +589,75 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
+    if (1 && Equal(nodeType(n), "cdecl") &&
+        Equal(Getattr(n, "view"), "membervariableHandler")) {
+      int is_setter = SwigType_type(d) == T_VOID;
+      int addfail;
+      Printv(f->def, "SWIGCLASS_STATIC int ", wname,
+        "(pTHX_ SV *sv, MAGIC *mg) {\n", NIL);
+      Wrapper_add_local(f, "avgvi", "int argvi = 0");
+      emit_parameter_variables(l, f);
+      emit_return_variable(n, d, f);
+      emit_attach_parmmaps(l, f);
+      Wrapper_add_local(f, "obj", "SV *obj");
+      Printv(f->code,
+        "obj = sv_2mortal(SWIG_Perl_NewPointerObj("
+          "SWIG_Perl_MgUnwrap(mg), "
+          "SWIGTYPE", SwigType_manglestr(Getattr(l, "type")), ", 0));\n",
+          NIL);
+      tm = Getattr(l, "tmap:in");
+      Replaceall(tm, "$input", "obj");
+      Replaceall(tm, "$disown", "0"); /* TODO: verify this */
+      emit_action_code(n, f->code, tm);
+      if (is_setter) {
+        l = nextSibling(l);
+        tm = Getattr(l, "tmap:in");
+        if (!tm) {
+          Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to set an attribute of type %s.\n",
+            SwigType_str(Getattr(l, "type"), 0));
+          return SWIG_NOWRAP;
+        }
+        Replaceall(tm, "$input", "sv");
+        Replaceall(tm, "$disown", "0"); /* TODO: verify this */
+        emit_action_code(n, f->code, tm);
+        emit_action_code(n, f->code, Getattr(n, "wrap:action"));
+        addfail = 1;
+        Setattr(n, "perl5:setter", wname);
+      } else {
+        Swig_director_emit_dynamic_cast(n, f);
+        String *actioncode = emit_action(n);
+        SwigType *t = Getattr(n, "type");
+        tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+        if(!tm) {
+          Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to get an attribute of type %s.\n",
+            SwigType_str(t, 0), name);
+          return SWIG_NOWRAP;
+        }
+        Wrapper_add_local(f, "dest", "SV *dest");
+        Replaceall(tm, "$result", "dest");
+        //Replaceall(tm, "$source", "result");
+        //Replaceall(tm, "$target", "ST(argvi)");
+        //Replaceall(tm, "$result", "ST(argvi)");
+        Replaceall(tm, "$shadow", is_shadow(t) ? "SWIG_SHADOW" : "0");
+        Replaceall(tm, "$owner", "0");
+        Printv(f->code,
+          tm, "\n",
+          "SvSetSV(sv, dest);\n", NIL);
+        Setattr(n, "perl5:getter", wname);
+      }
+      Append(f->code,
+        "return 0;\n");
+      if (addfail) {
+        Append(f->code,
+          "fail:\n"
+          "croak(Nullch);\n"
+          "return 0;\n");
+      }
+      Append(f->code,
+        "}");
+      Wrapper_print(f, f_wrappers);
+      return SWIG_OK;
+    }
     Printv(f->def, "XS(", wname, ") {\n", "{\n",	/* scope to destroy C++ objects before croaking */
 	   NIL);
 
@@ -889,7 +962,7 @@ public:
 
     if (!GetFlag(n, "feature:immutable")) {
       Setattr(n, "wrap:name", set_name);
-      Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
+      Printf(setf->def, "SWIGCLASS_STATIC I32 %s(pTHX_ IV idx, SV* sv) {\n", set_name);
       Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
 
       /* Check for a few typemaps */
@@ -913,7 +986,7 @@ public:
     /* Now write a function to evaluate the variable */
     Setattr(n, "wrap:name", get_name);
     int addfail = 0;
-    Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", get_name);
+    Printf(getf->def, "SWIGCLASS_STATIC I32 %s(pTHX_ IV idx, SV *sv) {\n", get_name);
     Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
 
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
@@ -964,10 +1037,11 @@ public:
     }
     /* Now add symbol to the PERL interpreter */
     if (GetFlag(n, "feature:immutable")) {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
-
+      Printv(f_init, "SWIG_Perl_WrapVariable(\"",
+        cmodule, "::", iname, "\", ", get_name, ", 0);\n", NIL);
     } else {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
+      Printv(f_init, "SWIG_Perl_WrapVariable(\"",
+        cmodule, "::", iname, "\", ", get_name, ", ", set_name, ");\n", NIL);
     }
 
     /* If we're blessed, try to figure out what to do with the variable
@@ -976,7 +1050,7 @@ public:
        2.  Otherwise, just hack Perl's symbol table */
 
     if (blessed) {
-      if (is_shadow(t)) {
+      if (0 && is_shadow(t)) {
 	Printv(var_stubs,
 	       "\nmy %__", iname, "_hash;\n",
 	       "tie %__", iname, "_hash,\"", is_shadow(t), "\", $",
@@ -1251,13 +1325,64 @@ public:
 
     /* Finish the rest of the class */
     if (blessed) {
-      /* Generate a client-data entry */
-      SwigType *ct = NewStringf("p.%s", name);
-      Printv(f_init, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct), ", (void*) \"", fullclassname, "\");\n", NIL);
-      SwigType_remember(ct);
-      Delete(ct);
+      Printv(pm,
+          "\n############# Class : ", fullclassname, " ##############\n",
+          "\npackage ", fullclassname, ";\n", NIL);
 
-      Printv(pm, "\n############# Class : ", fullclassname, " ##############\n", "\npackage ", fullclassname, ";\n", NIL);
+      /* tell interpreter about class inheritance */
+      List *baselist = Getattr(n, "bases");
+      if (baselist && Len(baselist)) {
+        int begun = 0;
+        for (Iterator b = First(baselist); b.item; b = Next(b)) {
+          String *bname = Getattr(b.item, "perl5:proxy");
+          if (!bname)
+            continue;
+          Printv(pm, (begun ? ", '" : "use base '"), bname, "'", NIL);
+          begun++;
+        }
+        if (begun) Append(pm, ";\n");
+      }
+
+      /* tell interpreter about class attributes */
+      {
+        SwigType *ct = NewStringf("p.%s", name);
+        String *mang = SwigType_manglestr(ct);
+        Printv(pm, "use fields (", NIL);
+        int nattr = 0;
+        for (Node *ch = firstChild(n); ch; ch = nextSibling(ch)) {
+          String *getf = Getattr(ch, "perl5:getter");
+          if (!getf) continue;
+          String *setf = Getattr(ch, "perl5:setter");
+          String *chn = Getattr(ch, "sym:name");
+          if (nattr == 0) {
+            Printv(f_wrappers, "static swig_perl_type_ext_attr "
+              "_swigt_ext_attr_", mang, "[] = {\n", NIL);
+          } else {
+            Append(f_wrappers, ",\n");
+            Append(pm, ", ");
+          }
+          Printf(f_wrappers, "  SWIG_Perl_TypeExtAttr(\"%s\", %s, %s)",
+            chn, getf, (setf ? setf : "0"));
+          Printf(pm, "'%s'", chn);
+          nattr++;
+        }
+        if (nattr) {
+          Printf(f_wrappers, "\n};\n"
+            "static swig_perl_type_ext _swigt_ext_%s = "
+            "SWIG_Perl_TypeExt(\"%s\", %d, _swigt_ext_attr_%s);\n\n",
+            mang, fullclassname, nattr, mang);
+        } else {
+          Printf(f_wrappers,
+            "static swig_perl_type_ext _swigt_ext_%s = "
+            "SWIG_Perl_TypeExt(\"%s\", 0, 0);\n\n",
+            mang, fullclassname);
+        }
+        Append(pm, ");\n");
+        String *tmp = NewStringf("&_swigt_ext_%s", mang);
+        SwigType_remember_clientdata(ct, tmp);
+        Delete(mang);
+        Delete(ct);
+      }
 
       if (have_operators) {
 	Printf(pm, "use overload\n");
@@ -1326,34 +1451,7 @@ public:
 	Printv(pm, tab4, "\"fallback\" => 1;\n", NIL);
       }
       // make use strict happy
-      Printv(pm, "use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);\n", NIL);
-
-      /* If we are inheriting from a base class, set that up */
-
-      Printv(pm, "@ISA = qw(", NIL);
-
-      /* Handle inheritance */
-      List *baselist = Getattr(n, "bases");
-      if (baselist && Len(baselist)) {
-	Iterator b;
-	b = First(baselist);
-	while (b.item) {
-	  String *bname = Getattr(b.item, "perl5:proxy");
-	  if (!bname) {
-	    b = Next(b);
-	    continue;
-	  }
-	  Printv(pm, " ", bname, NIL);
-	  b = Next(b);
-	}
-      }
-
-      /* Module comes last */
-      if (!compat || Cmp(namespace_module, fullclassname)) {
-	Printv(pm, " ", namespace_module, NIL);
-      }
-
-      Printf(pm, " );\n");
+      Printv(pm, "use vars qw(%OWNER %ITERATORS %BLESSEDMEMBERS);\n", NIL);
 
       /* Dump out a hash table containing the pointers that we own */
       Printf(pm, "%%OWNER = ();\n");
@@ -1481,33 +1579,10 @@ public:
 
   virtual int membervariableHandler(Node *n) {
 
-    String *symname = Getattr(n, "sym:name");
-    /* SwigType *t  = Getattr(n,"type"); */
-
-    /* Emit a pair of get/set functions for the variable */
-
     member_func = 1;
     Language::membervariableHandler(n);
     member_func = 0;
 
-    if (blessed) {
-
-      Printv(pcode, "*swig_", symname, "_get = *", cmodule, "::", Swig_name_get(Swig_name_member(class_name, symname)), ";\n", NIL);
-      Printv(pcode, "*swig_", symname, "_set = *", cmodule, "::", Swig_name_set(Swig_name_member(class_name, symname)), ";\n", NIL);
-
-      /* Now we need to generate a little Perl code for this */
-
-      /* if (is_shadow(t)) {
-
-       *//* This is a Perl object that we have already seen.  Add an
-         entry to the members list *//*
-         Printv(blessedmembers,
-         tab4, symname, " => '", is_shadow(t), "',\n",
-         NIL);
-
-         }
-       */
-    }
     have_data_members++;
     return SWIG_OK;
   }

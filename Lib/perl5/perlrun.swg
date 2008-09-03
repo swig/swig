@@ -194,108 +194,163 @@ static void SWIG_croak_null()
 
 #include <stdlib.h>
 
+typedef struct swig_perl_type_ext_attr {
+  const char *name;
+  MGVTBL vtbl;
+} swig_perl_type_ext_attr;
+typedef struct swig_perl_type_ext {
+  const char *name;
+  MGVTBL vtbl;
+  const int nattr;
+  swig_perl_type_ext_attr *attr;
+} swig_perl_type_ext;
+SWIGINTERN int
+SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
+  SV *wrap = (SV *)mg->mg_ptr;
+  if(SvREFCNT(wrap) <= 1) {
+    warn("ready to drop native ptr 0x%08p\n", INT2PTR(void *, SvIV(wrap)));
+	/* TODO: fire destructor here? */
+  }
+  SvREFCNT_dec(wrap);
+  return 0;
+}
+SWIGINTERN MGVTBL
+SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
+#define SWIG_Perl_TypeExt(name, count, attrlist) \
+  { name, SWIG_Perl_default_vtbl, count, attrlist }
+#define SWIG_Perl_TypeExtAttr(name, getf, setf) \
+  { name, { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free } }
+
 SWIGRUNTIME const char *
 SWIG_Perl_TypeProxyName(const swig_type_info *type) {
   if (!type) return NULL;
-  if (type->clientdata != NULL) {
-    return (const char*) type->clientdata;
-  } 
-  else {
-    return type->name;
-  }
+  if (!type->clientdata) return type->name;
+  return ((swig_perl_type_ext *)type->clientdata)->name;
 }
 
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
-  SWIG_TypeCheck_Template(( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) 
-			    || (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0))), ty);
+  SWIG_TypeCheck_Template(
+    (strcmp(SWIG_Perl_TypeProxyName(iter->type), c) == 0), ty);
 }
 
+
+/* wrapping & unwrapping native opaque pointers */
+
+SWIGINTERN SV *
+SWIG_Perl_WrapVariable(const char *name,
+    I32 (*getf)(pTHX_ IV, SV *),
+    I32 (*setf)(pTHX_ IV, SV *)) {
+  struct ufuncs uf;
+  SV *sv;
+  uf.uf_val = getf;
+  uf.uf_set = setf;
+  uf.uf_index = 0;
+  sv = get_sv(name, TRUE);
+  sv_magic(sv, 0, PERL_MAGIC_uvar, (char*)&uf, sizeof(uf));
+  if(!setf) SvREADONLY_on(sv);
+}
+
+SWIGINTERN SV *
+SWIG_Perl_WrapNative(SV *sv, void *ptr, swig_type_info *t, int flags,
+	SV *proto) {
+  SV *wrap = newSViv(PTR2IV(ptr));
+  swig_perl_type_ext *ext = (swig_perl_type_ext *)t->clientdata;
+  MGVTBL *vtbl;
+
+  if(flags & SWIG_SHADOW) {
+    assert(ext);
+    if (!proto || !SvOK(proto))
+      proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
+    {
+      /* So many object models out there...
+      /* Class::Accessor?  Class::Struct?  Class::Std?  Class::Closure?
+       * There certainly is more than one way to do it!
+       *
+       * But those are all CPAN add-ons, when we look at core perl we
+       * find just the "fields" pragma.  Pros: compile time checks for
+       * attribute validity when objects are typed; unsurprising
+       * inheritance mechanism for end users.  Cons: constructor has no
+       * XS api yet, implementation switch from avhv to hv in v5.9.0.
+       * The good points are compelling for SWIG users, the bad points
+       * complicate this wrapper, but it's managable. */
+      SV *tmp;
+      dSP;
+      I32 count;
+      PUSHMARK(SP);
+      XPUSHs(proto);
+      PUTBACK;
+      count = call_pv("fields::new", G_SCALAR);
+      assert(count == 1);
+      SPAGAIN;
+      tmp = POPs;
+      PUTBACK;
+
+      if(sv) SvSetSV(sv, tmp);
+	  else sv = tmp;
+    }
+    vtbl = &ext->vtbl;
+    if(ext->attr) { /* populate object attribute stubs */
+	  int i;
+      for(i = 0; i < ext->nattr; i++) {
+        SV *k = newSVpv(ext->attr[i].name, 0);
+        SV *v = newSV(0);
+        sv_magicext(v, 0, PERL_MAGIC_ext, &ext->attr[i].vtbl, (char *)wrap, 0);
+        SvREFCNT_inc(wrap);
+#if PERL_REVISION < 5 || (PERL_REVISION == 5 && PERL_VERSION < 9)
+        /* obj is a pseudo-hash */
+        avhv_store_ent((AV *)SvRV(sv), k, v, 0);
+#else
+        /* obj is a true hash */
+        hv_store_ent((HV *)SvRV(sv), k, v, 0);
+#endif
+      }
+    }
+  } else {
+    SV *rv = newSV(0);
+    if(!sv) sv = newSV(0);
+    /* grr... this blows away uvar magic on sv. */
+    SvROK_on(sv);
+    SvRV_set(sv, rv);
+    sv_bless(sv, gv_stashpv(SWIG_Perl_TypeProxyName(t), TRUE));
+    vtbl = &SWIG_Perl_default_vtbl;
+  }
+  sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
+//  warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
+//  //sv_dump(sv);
+//  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
+//  warn("}");
+  return sv;
+}
+SWIGINTERN void *
+SWIG_Perl_MgUnwrap(MAGIC *mg) {
+  return INT2PTR(void *, SvIV((SV *)mg->mg_ptr));
+}
+SWIGINTERN int
+SWIG_Perl_SvUnwrap(void **pp, SV *sv, swig_type_info *t, int flags) {
+  if (!SvOK(sv)) {
+    *pp = 0;
+    return SWIG_OK;
+  }
+//  if (!t) { /* requestion some void* variant */
+//    SWIG_Perl_Dump(sv);
+//  }
+  if (!t /* requesting some void* variant, so just let it happen */
+    || sv_derived_from(sv, SWIG_Perl_TypeProxyName(t))) {
+    MAGIC *mg =  mg_find(SvRV(sv), PERL_MAGIC_ext);
+    if (!mg)
+      return SWIG_ERROR;
+    *pp = SWIG_Perl_MgUnwrap(mg);
+    return SWIG_OK;
+  }
+  return SWIG_ERROR;
+}
 
 /* Function for getting a pointer value */
 
 SWIGRUNTIME int
-SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
-  swig_cast_info *tc;
-  void *voidptr = (void *)0;
-  SV *tsv = 0;
-  /* If magical, apply more magic */
-  if (SvGMAGICAL(sv))
-    mg_get(sv);
-
-  /* Check to see if this is an object */
-  if (sv_isobject(sv)) {
-    IV tmp = 0;
-    tsv = (SV*) SvRV(sv);
-    if ((SvTYPE(tsv) == SVt_PVHV)) {
-      MAGIC *mg;
-      if (SvMAGICAL(tsv)) {
-        mg = mg_find(tsv,'P');
-        if (mg) {
-          sv = mg->mg_obj;
-          if (sv_isobject(sv)) {
-	    tsv = (SV*)SvRV(sv);
-            tmp = SvIV(tsv);
-          }
-        }
-      } else {
-        return SWIG_ERROR;
-      }
-    } else {
-      tmp = SvIV(tsv);
-    }
-    voidptr = INT2PTR(void *,tmp);
-  } else if (! SvOK(sv)) {            /* Check for undef */
-    *(ptr) = (void *) 0;
-    return SWIG_OK;
-  } else if (SvTYPE(sv) == SVt_RV) {  /* Check for NULL pointer */
-    if (!SvROK(sv)) {
-      *(ptr) = (void *) 0;
-      return SWIG_OK;
-    } else {
-      return SWIG_ERROR;
-    }
-  } else {                            /* Don't know what it is */
-    return SWIG_ERROR;
-  }
-  if (_t) {
-    /* Now see if the types match */
-    char *_c = HvNAME(SvSTASH(SvRV(sv)));
-    tc = SWIG_TypeProxyCheck(_c,_t);
-    if (!tc) {
-      return SWIG_ERROR;
-    }
-    {
-      int newmemory = 0;
-      *ptr = SWIG_TypeCast(tc,voidptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-    }
-  } else {
-    *ptr = voidptr;
-  }
-
-  /* 
-   *  DISOWN implementation: we need a perl guru to check this one.
-   */
-  if (tsv && (flags & SWIG_POINTER_DISOWN)) {
-    /* 
-     *  almost copy paste code from below SWIG_POINTER_OWN setting
-     */
-    SV *obj = sv;
-    HV *stash = SvSTASH(SvRV(obj));
-    GV *gv = *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
-    if (isGV(gv)) {
-      HV *hv = GvHVn(gv);
-      /*
-       * To set ownership (see below), a newSViv(1) entry is added. 
-       * Hence, to remove ownership, we delete the entry.
-       */
-      if (hv_exists_ent(hv, obj, 0)) {
-	hv_delete_ent(hv, obj, 0, 0);
-      }
-    }
-  }
-  return SWIG_OK;
+SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *t, int flags) {
+  return SWIG_Perl_SvUnwrap(ptr, sv, t, flags);
 }
 
 SWIGRUNTIME SV *
@@ -306,45 +361,11 @@ SWIG_Perl_TypeOverride(SV *proto) {
   SWIG_Perl_TypeOverrideName = proto;
 }
 
-SWIGRUNTIME void
-SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
-  if (ptr && (flags & SWIG_SHADOW)) {
-    SV *self;
-    SV *obj=newSV(0);
-    HV *hash=newHV();
-    HV *stash;
-    if(SWIG_Perl_TypeOverrideName) {
-      sv_setref_pv(obj, SvPV_nolen(SWIG_Perl_TypeOverrideName), ptr);
-      SWIG_Perl_TypeOverrideName = 0;
-    } else {
-      sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
-	}
-    stash=SvSTASH(SvRV(obj));
-    if (flags & SWIG_POINTER_OWN) {
-      HV *hv;
-      GV *gv=*(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
-      if (!isGV(gv))
-        gv_init(gv, stash, "OWNER", 5, FALSE);
-      hv=GvHVn(gv);
-      hv_store_ent(hv, obj, newSViv(1), 0);
-    }
-    sv_magic((SV *)hash, (SV *)obj, 'P', Nullch, 0);
-    SvREFCNT_dec(obj);
-    self=newRV_noinc((SV *)hash);
-    sv_setsv(sv, self);
-    SvREFCNT_dec((SV *)self);
-    sv_bless(sv, stash);
-  }
-  else {
-    sv_setref_pv(sv, (char *) SWIG_Perl_TypeProxyName(t), ptr);
-  }
-}
-
 SWIGRUNTIMEINLINE SV *
 SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
-  SV *result = sv_newmortal();
-  SWIG_MakePtr(result, ptr, t, flags);
-  return result;
+  SV *proto = SWIG_Perl_TypeOverrideName;
+  SWIG_Perl_TypeOverrideName = 0;
+  return SWIG_Perl_WrapNative(0, ptr, t, flags, proto);
 }
 
 SWIGRUNTIME void

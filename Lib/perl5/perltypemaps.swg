@@ -78,7 +78,7 @@
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
-    "sv_setiv(SvRV($result),PTR2IV($1));"; 
+    "SWIG_Perl_WrapNative($result, $1, $1_descriptor, 0, 0);"; 
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
     "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
