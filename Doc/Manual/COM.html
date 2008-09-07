@@ -60,7 +60,7 @@
 
 
 <p>
-This chapter describes SWIG's support of COM. 
+This chapter describes SWIG's support for COM. 
 It covers most SWIG features, but certain low-level details are covered in less depth than in earlier chapters. 
 </p>
 
@@ -71,8 +71,8 @@ It covers most SWIG features, but certain low-level details are covered in less 
 <p>
 COM is a component technology included in the Windows operating system. It is supported by a wide range of tools - scripting languages
 (VBScript, Perl, Python), compiled languages (Delphi, Visual Basic, C#) and even complex applications (MS Office, OpenOffice.org). Thus
-writing a COM component is a good way to extend all of these applications at one time. Unfortunately writing COM components is C/C++
-is a non-trivial task which is even harder if you do not use Microsoft's tools (especially if you use some form of GCC).
+writing a COM component is a good way to extend all of these applications at one time. Unfortunately writing COM components in C/C++
+is a non-trivial task which is even harder if you do not use Microsoft's tools (especially if you use one of GCC compilers).
 </p>
 
 <p>
@@ -104,7 +104,7 @@ too.
 </p>
 
 
-<H3><a name="running_swig"></a>17.2.1 Running SWIG</H3>
+<H3><a name="com_running_swig"></a>17.2.1 Running SWIG</H3>
 
 
 <p>
@@ -177,7 +177,7 @@ swig -com -help
 
 <tr>
 <td>-namespace &lt;name&gt;</td>
-<td>set name to be used as prefix of your classes' IDispatch names (e.g. for use with CreateObject in Basic)</td>
+<td>set name to be used as the prefix of your classes' IDispatch names (e.g. for use with CreateObject in Basic)</td>
 </tr>
 
 </table>
@@ -186,7 +186,7 @@ swig -com -help
 Their use will become clearer by the time you have finished reading this section on SWIG and COM.
 </p>
 
-<H3><a name="compiling_dynamic"></a>17.2.3 Compiling a dynamic module</H3>
+<H3><a name="com_compiling_dynamic"></a>17.2.3 Compiling a dynamic module</H3>
 
 
 <p>
@@ -243,11 +243,11 @@ you wish to unregister your module simply type:
 $ regsvr32 /u example.dll
 </pre></div>
 
-<H3><a name="using_module"></a>17.2.4 Using your module</H3>
+<H3><a name="com_using_module"></a>17.2.4 Using your module</H3>
 
 
 <p>
-The precise way how you can load your module depends on the target language. In Basic you can use the
+The precise approach to loading your module depends on the target language. In Basic you can use the
 <tt>CreateObject</tt> subroutine:
 </p>
 
@@ -271,7 +271,7 @@ of differences between C/C++ and COM there are some aspects that need
 special attention. They are described in this section
 </p>
 
-<H3><a name="functions"></a>17.3.1 Global functions</H3>
+<H3><a name="com_functions"></a>17.3.1 Global functions</H3>
 
 
 <p>
@@ -296,7 +296,7 @@ Print example.fact(4)
 </pre></div>
 
 
-<H3><a name="global_variables"></a>17.3.2 Global variables</H3>
+<H3><a name="com_global_variables"></a>17.3.2 Global variables</H3>
 
 
 <p>
@@ -369,7 +369,7 @@ extern char *path;      // Read-only (due to %immutable)
 </div>
 
 
-<H3><a name="constants"></a>17.3.3 Constants</H3>
+<H3><a name="com_constants"></a>17.3.3 Constants</H3>
 
 
 <p>
@@ -392,7 +392,7 @@ Please note that SWIG can infer the C type from the <tt>#define</tt> directive -
 is wrapped as a floating point value while <tt>VERSION</tt> is wrapped as a string.
 </p>
 
-<H3><a name="enumerations"></a>17.3.4 Enumerations</H3>
+<H3><a name="com_enumerations"></a>17.3.4 Enumerations</H3>
 
 
 <p>
@@ -440,7 +440,9 @@ public:
 </pre>
 </div>
 
+<p>
 The resulting COM object can be used as follows:
+</p>
 
 <div class="code">
 <pre>
@@ -451,7 +453,7 @@ example.MyClass.bev = example.MyClass.PILSNER
 </pre>
 </div>
 
-<H3><a name="pointers"></a>17.3.5 Pointers</H3>
+<H3><a name="com_pointers"></a>17.3.5 Pointers</H3>
 
 
 <p>
@@ -527,7 +529,7 @@ This is especially important when you use a cast from a supertype to a subtype; 
 case only <tt>dynamic_cast</tt> is guaranteed to work reliably.
 </p>
 
-<H3><a name="structures"></a>17.3.6 Structures</H3>
+<H3><a name="com_structures"></a>17.3.6 Structures</H3>
 
 
 <p>
@@ -562,7 +564,7 @@ about how SWIG handles C++ classes is provided in the next section.
 </p>
 
 
-<H3><a name="classes"></a>17.3.7 C++ classes</H3>
+<H3><a name="com_classes"></a>17.3.7 C++ classes</H3>
 
 
 <p>
@@ -652,7 +654,7 @@ bar = example.Spam.bar
 
 <p>
 The code above uses the module class object <tt>example</tt> and the class object <tt>example.Spam</tt>.
-As was shown in the previous sections the module class object can serve for accessing global
+As was shown in the previous sections the module class object can be used for accessing global
 functions and variables. The class object serves the same purpose but for static functions and
 static variables of the class <tt>Spam</tt>. Please note that neither creating the module class object
 nor creating the class object has any side effects. You should also note that SWIG does not provide any
@@ -661,7 +663,7 @@ functions/variable). If you plan to create a multi-threaded program you should e
 either within the wrapped C/C++ code or in the target language.
 </p>
 
-<H3><a name="inheritance"></a>17.3.8 C++ inheritance</H3>
+<H3><a name="com_inheritance"></a>17.3.8 C++ inheritance</H3>
 
 
 <p>
@@ -705,7 +707,7 @@ example.spam(b)
 </div>
 
 
-<H3><a name="pointers_refs_arrays"></a>17.3.9 Pointers, references, arrays and pass by value</H3>
+<H3><a name="com_pointers_refs_arrays"></a>17.3.9 Pointers, references, arrays and pass by value</H3>
 
 
 <p>
@@ -766,7 +768,7 @@ to hold the result and a pointer is returned (the generated COM code will free t
 memory when the object is no longer needed, that is when its reference count reaches 0).
 </p>
 
-<H4><a name="null_pointers"></a>17.3.9.1 Null pointers</H4>
+<H4><a name="com_null_pointers"></a>17.3.9.1 Null pointers</H4>
 
 
 <p>
@@ -776,7 +778,7 @@ You should not pass null to functions expecting a reference - in this case the
 function call will fail with an E_INVALIDARG error.
 </p>
 
-<H3><a name="overloaded_functions"></a>17.3.10 C++ overloaded functions</H3>
+<H3><a name="com_overloaded_functions"></a>17.3.10 C++ overloaded functions</H3>
 
 
 <p>
@@ -813,7 +815,7 @@ void spam(unsigned short);   // Ignored
 
 
 <p>
-In SWIG function with a default argument is wrapped by generating an additional function for each argument
+In SWIG a function with a default argument is wrapped by generating an additional function for each argument
 that is defaulted. However since COM does not support function overloading the additional functions
 will be ignored. You can change this behavior using the <tt>%rename</tt> directive:
 </p>
@@ -829,7 +831,7 @@ void defaults(double d=10.0, int i=0);
 </div>
 
 
-<H3><a name="namespaces"></a>17.3.12 C++ namespaces</H3>
+<H3><a name="com_namespaces"></a>17.3.12 C++ namespaces</H3>
 
 
 <p>
@@ -891,7 +893,7 @@ If you have more than one namespace and you want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 </p>
 
-<H3><a name="templates"></a>17.3.13 Constructors</H3>
+<H3><a name="com_templates"></a>17.3.13 Constructors</H3>
 
 
 <p>
@@ -945,7 +947,7 @@ Obviously there is no way to use this syntax for calling a constructor that expe
 receive parameters.
 </p>
 
-<H3><a name="templates"></a>17.3.14 C++ templates</H3>
+<H3><a name="com_templates"></a>17.3.14 C++ templates</H3>
 
 
 <p>
@@ -997,7 +999,7 @@ Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.   
 </p>
 
-<H3><a name="smart_pointers"></a>17.3.15 C++ Smart Pointers</H3>
+<H3><a name="com_smart_pointers"></a>17.3.15 C++ Smart Pointers</H3>
 
 
 <p>
@@ -1005,13 +1007,13 @@ TODO
 </p>
 
 
-<H2><a name="further_details"></a>17.4 Further details on COM wrapping</H2>
+<H2><a name="com_further_details"></a>17.4 Further details on COM wrapping</H2>
 
 
 <p>
 The previous sections were meant as a quick start guide for wrapping C/C++ code as
 COM objects. For users wanting to have a better understanding of how things work
-beneath the surface this section provides some mor details.
+beneath the surface this section provides some more details.
 </p>
 
 <H3><a name="com_classes_and_interfaces"></a>17.4.1 Classes and interfaces</H3>
@@ -1026,7 +1028,7 @@ containing declarations of public functions and property getters and setters. If
 C++ class derives from a superclass then this relationship is preserved for their
 corresponding interfaces (but as was stated before only single inheritance is supported).
 The definition of a COM class serves the purpose of providing a way to locate a class's
-factory object. Therefore the COM class in defined only when the class is not abstract
+factory object. Therefore the COM class is defined only when the class is not abstract
 and has a default constructor. The following example shows two C++ classes
 </p>
 
@@ -1269,7 +1271,7 @@ void * getCPtr();
 
 <p>
 This method is used for accessing the COM object's underlying C/C++ object. The
-<tt>ISWIGWrappedObject</tt> interface may change in any future version of SWIG
+<tt>ISWIGWrappedObject</tt> interface may change in a future version of SWIG
 (speaking precisely it may be replaced by another interface with another IID)
 so you should not rely on its presence. However it may be useful for debugging
 purposes.
@@ -1280,7 +1282,7 @@ purposes.
 
 <p>
 Every COM proxy object keeps a count of references. If this reference count
-reaches 0 then the proxy object is unused and can be deallocated. SWIG takes
+reaches zero then the proxy object is unused and can be deallocated. SWIG takes
 care of allocating and deallocating memory for proxy objects. By default
 the underlying C/C++ object is left intact when the proxy is destroyed. The
 exceptions are when the proxy object has been created using the class factory
@@ -1292,7 +1294,7 @@ deallocated using <tt>delete</tt>; this means that the destructor
 will be called, just as it would be called in C++.
 </p>
 
-<H3><a name="com_memory"></a>17.4.8 Exceptions</H3>
+<H3><a name="com_exception"></a>17.4.8 Exceptions</H3>
 
 
 <p>
