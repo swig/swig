@@ -1480,7 +1480,7 @@ extern "C" Language *swig_c(void) {
 
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
-    -noproxy      - do not generate proxy interface\n\
-    -noexcept     - do not generate exception handling code\n\
+     -noproxy      - do not generate proxy interface\n\
+     -noexcept     - do not generate exception handling code\n\
 \n";
 
