@@ -307,12 +307,10 @@ SWIG_Perl_WrapNative(SV *sv, void *ptr, swig_type_info *t, int flags,
       }
     }
   } else {
-    SV *rv = newSV(0);
-    if(!sv) sv = newSV(0);
-    /* grr... this blows away uvar magic on sv. */
-    SvROK_on(sv);
-    SvRV_set(sv, rv);
-    sv_bless(sv, gv_stashpv(SWIG_Perl_TypeProxyName(t), TRUE));
+	SV *tmp = newSV(0);
+	newSVrv(tmp, SWIG_Perl_TypeProxyName(t));
+	if (!sv) sv = tmp;
+	else SvSetSV(sv, tmp);
     vtbl = &SWIG_Perl_default_vtbl;
   }
   sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
@@ -325,6 +323,12 @@ SWIG_Perl_WrapNative(SV *sv, void *ptr, swig_type_info *t, int flags,
 SWIGINTERN void *
 SWIG_Perl_MgUnwrap(MAGIC *mg) {
   return INT2PTR(void *, SvIV((SV *)mg->mg_ptr));
+}
+SWIGRUNTIME int
+SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
+	/* TODO: this is incomplete */
+	*ptr = SWIG_Perl_MgUnwrap(mg);
+	return SWIG_OK;
 }
 SWIGINTERN int
 SWIG_Perl_SvUnwrap(void **pp, SV *sv, swig_type_info *t, int flags) {

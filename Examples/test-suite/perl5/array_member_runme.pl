@@ -6,10 +6,10 @@ BEGIN { use_ok('array_member') }
 require_ok('array_member');
 
 my $f = array_member::Foo->new();
-my $t = $array_member::global_data;
+$f->{data} = $array_member::global_data;
+my $t = $f->{data};
 use Devel::Peek;
 Dump($t);
-$f->{data} = $array_member::global_data;
 
 for(my $i=0; $i<8; $i++) {
 	is( array_member::get_value($f->{data},$i),

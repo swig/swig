@@ -599,14 +599,9 @@ public:
       emit_parameter_variables(l, f);
       emit_return_variable(n, d, f);
       emit_attach_parmmaps(l, f);
-      Wrapper_add_local(f, "obj", "SV *obj");
-      Printv(f->code,
-        "obj = sv_2mortal(SWIG_Perl_NewPointerObj("
-          "SWIG_Perl_MgUnwrap(mg), "
-          "SWIGTYPE", SwigType_manglestr(Getattr(l, "type")), ", 0));\n",
-          NIL);
       tm = Getattr(l, "tmap:in");
-      Replaceall(tm, "$input", "obj");
+      Replaceall(tm, "SWIG_ConvertPtr", "SWIG_Perl_ConvertMg"); /* HACK */
+      Replaceall(tm, "$input", "mg");
       Replaceall(tm, "$disown", "0"); /* TODO: verify this */
       emit_action_code(n, f->code, tm);
       if (is_setter) {
