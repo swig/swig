@@ -6,8 +6,9 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME,
 	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_COM_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) spam;	// Ruby, wrong class name - C# & Java, PHP multiple inheritance
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) spam;	// Ruby, wrong class name - C#, COM & Java, PHP multiple inheritance
 
 %inline %{
 
