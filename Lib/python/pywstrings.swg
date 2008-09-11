@@ -8,12 +8,14 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
   PyObject *tmp = 0;
   int isunicode = PyUnicode_Check(obj);
+%#if PY_VERSION_HEX < 0x03000000
   if (!isunicode && PyString_Check(obj)) {
     if (cptr) {
       obj = tmp = PyUnicode_FromObject(obj);
     }
     isunicode = 1;
   }
+%#endif
   if (isunicode) {
     int len = PyUnicode_GetSize(obj);
     if (cptr) {

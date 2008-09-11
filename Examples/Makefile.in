@@ -223,19 +223,39 @@ perl5_clean:
 ##################################################################
 
 # Make sure these locate your Python installation
-PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-PYTHON_LIB    = @PYLIB@
+ifeq (,$(PY3))
+  PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
+  PYTHON_LIB    = @PYLIB@
+  PYTHON        = @PYTHON@
+else
+  PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
+  PYTHON_LIB    = @PY3LIB@
+  PYTHON        = @PYTHON3@
+endif
 
-# Extra Python specific dynamic linking options
-PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
+# Extra Python specific linking options
+ifeq (,$(PY3))
+  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
+  PYTHON_LINK   = @PYLINK@
+else
+  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
+  PYTHON_LINK   = @PY3LINK@
+endif
 PYTHON_SO     = @PYTHON_SO@
+
+# SWIG option for Python
+ifeq (,$(PY3))
+  SWIGPYTHON = $(SWIG) -python
+else
+  SWIGPYTHON = $(SWIG) -python -py3
+endif
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 python: $(SRCS)
-	$(SWIG) -python $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -244,7 +264,7 @@ python: $(SRCS)
 # -----------------------------------------------------------------
 
 python_cpp: $(SRCS)
-	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -257,17 +277,36 @@ python_cpp: $(SRCS)
 
 #TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
 TKINTER =
-PYTHON_LIBOPTS = @PYLINK@ @LIBS@ $(TKINTER) $(SYSLIBS)
+PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 
 python_static: $(SRCS)
-	$(SWIG) -python -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -lembed.i $(SWIGOPT) $(INTERFACE)
 	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCS)
-	$(SWIG) -c++ -python -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -c++ -lembed.i $(SWIGOPT) $(INTERFACE)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+# ----------------------------------------------------------------- 
+# Running a Python example
+# ----------------------------------------------------------------- 
+
+ifeq (,$(PY3))
+  SCRIPT = runme.py
+else
+  SCRIPT = runme3.py
+endif
+
+PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+
+python_run: $(SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(SCRIPT) >/dev/null
+
+runme3.py: runme.py
+	cp $< $@
+	$(PY2TO3) -w $@ >/dev/null 2>&1 
 
 # -----------------------------------------------------------------
 # Cleaning the python examples
@@ -277,6 +316,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
+
 
 ##################################################################
 #####                       OCTAVE                          ######

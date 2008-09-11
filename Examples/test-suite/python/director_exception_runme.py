@@ -1,5 +1,4 @@
 from director_exception import *
-from exceptions import *
 
 class MyException(Exception):
 	def __init__(self, a, b):

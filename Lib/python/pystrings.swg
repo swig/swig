@@ -5,10 +5,20 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 {
-  if (PyString_Check(obj)) {
+%#if PY_VERSION_HEX>=0x03000000
+  if (PyUnicode_Check(obj)) 
+%#else  
+  if (PyString_Check(obj)) 
+%#endif
+  {
     char *cstr; Py_ssize_t len;
+%#if PY_VERSION_HEX>=0x03000000
+    obj = PyUnicode_AsUTF8String(obj);
+    PyBytes_AsStringAndSize(obj, &cstr, &len);
+%#else
     PyString_AsStringAndSize(obj, &cstr, &len);
-    if (cptr)  {
+%#endif
+    if (cptr) { 
       if (alloc) {
 	/* 
 	   In python the user should not be able to modify the inner
@@ -33,7 +43,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	  *alloc = SWIG_OLDOBJ;
 	}
       } else {
-	*cptr = PyString_AsString(obj);
+	*cptr = SWIG_Python_str_AsChar(obj);
       }
     }
     if (psize) *psize = len + 1;
@@ -64,7 +74,11 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       return pchar_descriptor ? 
 	SWIG_NewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
+%#if PY_VERSION_HEX >= 0x03000000
+      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size,int));
+%#else
       return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
+%#endif
     }
   } else {
     return SWIG_Py_Void();

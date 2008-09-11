@@ -573,7 +573,7 @@ else
 # First figure out the name of the Python executable
 
 if test "x$PYBIN" = xyes; then
-AC_CHECK_PROGS(PYTHON, python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
+AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python])
 else
 PYTHON="$PYBIN"
 fi
@@ -656,6 +656,103 @@ AC_SUBST(PYINCLUDE)
 AC_SUBST(PYLIB)
 AC_SUBST(PYLINK)
 AC_SUBST(PYTHONDYNAMICLINKING)
+
+
+#----------------------------------------------------------------
+# Look for Python 3.x
+#----------------------------------------------------------------
+
+# mostly copy & pasted from "Look for Python" section,
+# did some trim, fix and rename
+
+PY3INCLUDE=
+PY3LIB=
+PY3PACKAGE=
+
+AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x support])
+AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[ PY3BIN="$withval"], [PY3BIN=yes])
+
+# First, check for "--without-python3" or "--with-python3=no".
+if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Python 3.x support])
+else
+# First figure out the name of the Python3 executable 
+
+if test "x$PY3BIN" = xyes; then
+AC_CHECK_PROGS(PYTHON3, [python3 python3.0])
+else
+PYTHON3="$PY3BIN"
+fi
+
+# Check for Python 3.x development tools (header files, static library and python3-config)
+AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config])
+
+if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
+    AC_MSG_CHECKING([for Python 3.x prefix])
+    PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
+    AC_MSG_RESULT($PY3PREFIX)
+    AC_MSG_CHECKING(for Python 3.x exec-prefix)
+    PY3EPREFIX=`($PY3CONFIG --exec-prefix) 2>/dev/null`
+    AC_MSG_RESULT($PY3EPREFIX)
+
+    # Note: I could not think of a standard way to get the version string from different versions.
+    # This trick pulls it out of the file location for a standard library file.
+    
+    AC_MSG_CHECKING([for Python 3.x version])
+
+    # Need to do this hack since autoconf replaces __file__ with the name of the configure file
+    filehack="file__"
+    PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+    AC_MSG_RESULT($PY3VERSION)
+
+    # Find the directory for libraries this is necessary to deal with
+    # platforms that can have apps built for multiple archs: e.g. x86_64
+    AC_MSG_CHECKING([for Python 3.x lib dir])
+    PY3LIBDIR=`($PYTHON3 -c "import sys; print(sys.lib)") 2>/dev/null`
+    if test -z "$PY3LIBDIR"; then
+      # some dists don't have sys.lib  so the best we can do is assume lib
+      PY3LIBDIR="lib" 
+    fi
+    AC_MSG_RESULT($PY3LIBDIR)
+    
+    # Set the include directory
+
+    AC_MSG_CHECKING([for Python 3.x header files])
+    PY3INCLUDE=`($PY3CONFIG --includes) 2>/dev/null`
+    AC_MSG_RESULT($PY3INCLUDE)
+
+    # Set the library directory blindly.   This probably won't work with older versions
+    AC_MSG_CHECKING([for Python 3.x library])
+    dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
+    for i in $dirs; do
+        if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
+           PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
+           break
+        fi
+    done
+    if test -z "$PY3LIB"; then
+        AC_MSG_RESULT([Not found])
+    else
+        AC_MSG_RESULT($PY3LIB)
+    fi
+
+    PY3LINK="-l$PY3VERSION"
+fi
+
+# Cygwin (Windows) needs the library for dynamic linking
+case $host in
+*-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+         DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
+         ;;
+*)PYTHON3DYNAMICLINKING="";;
+esac
+fi
+
+AC_SUBST(PY3INCLUDE)
+AC_SUBST(PY3LIB)
+AC_SUBST(PY3LINK)
+AC_SUBST(PYTHON3DYNAMICLINKING)
+
 
 #----------------------------------------------------------------
 # Look for Perl5
@@ -1856,11 +1953,17 @@ AC_SUBST(SKIP_OCTAVE)
 
 
 SKIP_PYTHON=
-if test -z "$PYINCLUDE" || test -z "$PYLIB" ; then
+if (test -z "$PYINCLUDE" || test -z "$PYLIB") &&
+   (test -z "$PY3INCLUDE" || test -z "PY3LIB") ; then
     SKIP_PYTHON="1"
 fi
 AC_SUBST(SKIP_PYTHON)
 
+SKIP_PYTHON3=
+if test -z "$PY3INCLUDE" || test -z "$PY3LIB" ; then
+    SKIP_PYTHON3="1"
+fi
+AC_SUBST(SKIP_PYTHON3)
 
 SKIP_JAVA=
 if test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then

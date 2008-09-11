@@ -116,6 +116,17 @@ namespace std {
       bool res;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       res = PyObject_Compare(v, w) < 0;
+      /* This may fall into a case of inconsistent
+               eg. ObjA > ObjX > ObjB
+               but ObjA < ObjB
+      */
+      if( PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_TypeError) )
+      {
+        /* Objects can't be compared, this mostly occured in Python 3.0 */
+        /* Compare their ptr directly for a workaround */
+        res = (v < w);
+        PyErr_Clear();
+      }
       SWIG_PYTHON_THREAD_END_BLOCK;
       return res;
     }
@@ -597,6 +608,11 @@ namespace swig
       return !(self->empty());
     }
 
+    /* Alias for Python 3 compatibility */
+    bool __bool__() const {
+      return !(self->empty());
+    }
+
     size_type __len__() const {
       return self->size();
     }
@@ -618,6 +634,14 @@ namespace swig
       return x;
     }
 
+    /* typemap for slice object support */
+    %typemap(in) PySliceObject* {
+      $1 = (PySliceObject *) $input;
+    }
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) PySliceObject* {
+      $1 = PySlice_Check($input);
+    }
+
     Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range) {
       return swig::getslice(self, i, j);
     }
@@ -634,6 +658,43 @@ namespace swig
     void __delitem__(difference_type i) throw (std::out_of_range) {
       self->erase(swig::getpos(self,i));
     }
+
+
+    /* Overloaded methods for Python 3 compatibility 
+     * (Also useful in Python 2.x)
+     */
+    Sequence* __getitem__(PySliceObject *slice) throw (std::out_of_range) {
+      Py_ssize_t i, j, step;
+      if( !PySlice_Check(slice) ) {
+        SWIG_Error(SWIG_TypeError, "Slice object expected.");
+        return NULL;
+      }
+      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      return swig::getslice(self, i, j);
+    }
+
+    void __setitem__(PySliceObject *slice, const Sequence& v)
+      throw (std::out_of_range, std::invalid_argument) {
+      Py_ssize_t i, j, step;
+      if( !PySlice_Check(slice) ) {
+        SWIG_Error(SWIG_TypeError, "Slice object expected.");
+        return;
+      }
+      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      swig::setslice(self, i, j, v);
+    }
+
+    void __delitem__(PySliceObject *slice)
+      throw (std::out_of_range) {
+      Py_ssize_t i, j, step;
+      if( !PySlice_Check(slice) ) {
+        SWIG_Error(SWIG_TypeError, "Slice object expected.");
+        return;
+      }
+      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      swig::delslice(self, i,j);
+    }
+     
   }
 %enddef
 

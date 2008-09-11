@@ -2290,21 +2290,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $7 ? NewString($7) : NewString("1");
                     new_feature($3, val, 0, $5.id, $5.type, $5.parms, $6.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, $7.id, $7.type, $7.parms, $8.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
                     String *val = $8 ? NewString($8) : NewString("1");
                     new_feature($3, val, $4, $6.id, $6.type, $6.parms, $7.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, $8.id, $8.type, $8.parms, $9.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
 
                   /* Global feature */
@@ -2312,21 +2316,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $5 ? NewString($5) : NewString("1");
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
                     String *val = $6 ? NewString($6) : NewString("1");
                     new_feature($3, val, $4, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   ;
 

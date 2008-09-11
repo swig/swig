@@ -348,9 +348,13 @@ PySwigObject_format(const char* fmt, PySwigObject *v)
   PyObject *args = PyTuple_New(1);
   if (args) {
     if (PyTuple_SetItem(args, 0, PySwigObject_long(v)) == 0) {
-      PyObject *ofmt = PyString_FromString(fmt);
+      PyObject *ofmt = SWIG_Python_str_FromChar(fmt);
       if (ofmt) {
+#if PY_VERSION_HEX >= 0x03000000
+	res = PyUnicode_Format(ofmt,args);
+#else
 	res = PyString_Format(ofmt,args);
+#endif
 	Py_DECREF(ofmt);
       }
       Py_DECREF(args);
@@ -380,7 +384,7 @@ PySwigObject_repr(PySwigObject *v, PyObject *args)
 {
   const char *name = SWIG_TypePrettyName(v->ty);
   PyObject *hex = PySwigObject_hex(v);    
-  PyObject *repr = PyString_FromFormat("<Swig Object of type '%s' at 0x%s>", name, PyString_AsString(hex));
+  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at 0x%U>", name, hex);
   Py_DECREF(hex);
   if (v->next) {
 #ifdef METH_NOARGS
@@ -388,7 +392,14 @@ PySwigObject_repr(PySwigObject *v, PyObject *args)
 #else
     PyObject *nrep = PySwigObject_repr((PySwigObject *)v->next, args);
 #endif
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *joined = PyUnicode_Concat(repr, nrep);
+    Py_DecRef(repr);
+    Py_DecRef(nrep);
+    repr = joined;
+#else
     PyString_ConcatAndDel(&repr,nrep);
+#endif
   }
   return repr;  
 }
@@ -402,7 +413,7 @@ PySwigObject_print(PySwigObject *v, FILE *fp, int SWIGUNUSEDPARM(flags))
   PyObject *repr = PySwigObject_repr(v, NULL);
 #endif
   if (repr) {
-    fputs(PyString_AsString(repr), fp);
+    fputs(SWIG_Python_str_AsChar(repr), fp);
     Py_DECREF(repr);
     return 0; 
   } else {
@@ -415,7 +426,7 @@ PySwigObject_str(PySwigObject *v)
 {
   char result[SWIG_BUFFER_SIZE];
   return SWIG_PackVoidPtr(result, v->ptr, v->ty->name, sizeof(result)) ?
-    PyString_FromString(result) : 0;
+    SWIG_Python_str_FromChar(result) : 0;
 }
 
 SWIGRUNTIME int
@@ -425,6 +436,24 @@ PySwigObject_compare(PySwigObject *v, PySwigObject *w)
   void *j = w->ptr;
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
+
+/* Added for Python 3.x, whould it also useful for Python 2.x? */
+SWIGRUNTIME PyObject*
+PySwigObject_richcompare(PySwigObject *v, PySwigObject *w, int op)
+{
+  PyObject* res;
+  if( op != Py_EQ && op != Py_NE ) {
+    Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
+  }
+  if( (PySwigObject_compare(v, w)==0) == (op == Py_EQ) )
+    res = Py_True;
+  else
+    res = Py_False;
+  Py_INCREF(res);
+  return res;  
+}
+
 
 SWIGRUNTIME PyTypeObject* _PySwigObject_type(void);
 
@@ -436,8 +465,8 @@ PySwigObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 PySwigObject_Check(PyObject *op) {
-  return ((op)->ob_type == PySwigObject_type())
-    || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
+  return (Py_TYPE(op) == PySwigObject_type())
+    || (strcmp(Py_TYPE(op)->tp_name,"PySwigObject") == 0);
 }
 
 SWIGRUNTIME PyObject *
@@ -610,7 +639,10 @@ _PySwigObject_type(void) {
     (binaryfunc)0, /*nb_add*/
     (binaryfunc)0, /*nb_subtract*/
     (binaryfunc)0, /*nb_multiply*/
+    /* nb_divide removed in Python 3 */
+#if PY_VERSION_HEX < 0x03000000
     (binaryfunc)0, /*nb_divide*/
+#endif
     (binaryfunc)0, /*nb_remainder*/
     (binaryfunc)0, /*nb_divmod*/
     (ternaryfunc)0,/*nb_power*/
@@ -624,13 +656,19 @@ _PySwigObject_type(void) {
     0,		   /*nb_and*/
     0,		   /*nb_xor*/
     0,		   /*nb_or*/
-    (coercion)0,   /*nb_coerce*/
+#if PY_VERSION_HEX < 0x03000000
+    0,   /*nb_coerce*/
+#endif
     (unaryfunc)PySwigObject_long, /*nb_int*/
     (unaryfunc)PySwigObject_long, /*nb_long*/
     (unaryfunc)0,                 /*nb_float*/
+#if PY_VERSION_HEX < 0x03000000
     (unaryfunc)PySwigObject_oct,  /*nb_oct*/
     (unaryfunc)PySwigObject_hex,  /*nb_hex*/
-#if PY_VERSION_HEX >= 0x02050000 /* 2.5.0 */
+#endif
+#if PY_VERSION_HEX >= 0x03000000 /* 3.0 */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index, nb_inplace_divide removed */
+#elif PY_VERSION_HEX >= 0x02050000 /* 2.5.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index */
 #elif PY_VERSION_HEX >= 0x02020000 /* 2.2.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_true_divide */
@@ -644,8 +682,13 @@ _PySwigObject_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
-	PyObject_HEAD_INIT(NULL)
-	0,				    /* ob_size */
+    /* PyOjbect header changed in Python 3 */
+#if PY_VERSION_HEX >= 0x03000000
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#else    
+    PyObject_HEAD_INIT(NULL)
+    0,				    /* ob_size */
+#endif
 	(char *)"PySwigObject",		    /* tp_name */
 	sizeof(PySwigObject),		    /* tp_basicsize */
 	0,			            /* tp_itemsize */
@@ -672,7 +715,7 @@ _PySwigObject_type(void) {
 	swigobject_doc, 	            /* tp_doc */        
 	0,                                  /* tp_traverse */
 	0,                                  /* tp_clear */
-	0,                                  /* tp_richcompare */
+	(richcmpfunc)PySwigObject_richcompare,           /* tp_richcompare */
 	0,                                  /* tp_weaklistoffset */
 #if PY_VERSION_HEX >= 0x02020000
 	0,                                  /* tp_iter */
@@ -704,7 +747,10 @@ _PySwigObject_type(void) {
 #endif
       };
     pyswigobject_type = tmp;
+    /* for Python 3 we already assigned the ob_type in PyVarObject_HEAD_INIT() */
+#if PY_VERSION_HEX < 0x03000000
     pyswigobject_type.ob_type = &PyType_Type;
+#endif
     type_init = 1;
   }
   return &pyswigobject_type;
@@ -753,9 +799,9 @@ PySwigPacked_repr(PySwigPacked *v)
 {
   char result[SWIG_BUFFER_SIZE];
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))) {
-    return PyString_FromFormat("<Swig Packed at %s%s>", result, v->ty->name);
+    return SWIG_Python_str_FromFormat("<Swig Packed at %s%s>", result, v->ty->name);
   } else {
-    return PyString_FromFormat("<Swig Packed %s>", v->ty->name);
+    return SWIG_Python_str_FromFormat("<Swig Packed %s>", v->ty->name);
   }  
 }
 
@@ -764,9 +810,9 @@ PySwigPacked_str(PySwigPacked *v)
 {
   char result[SWIG_BUFFER_SIZE];
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))){
-    return PyString_FromFormat("%s%s", result, v->ty->name);
+    return SWIG_Python_str_FromFormat("%s%s", result, v->ty->name);
   } else {
-    return PyString_FromString(v->ty->name);
+    return SWIG_Python_str_FromChar(v->ty->name);
   }  
 }
 
@@ -811,8 +857,13 @@ _PySwigPacked_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
+    /* PyObject header changed in Python 3 */
+#if PY_VERSION_HEX>=0x03000000
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#else
 	PyObject_HEAD_INIT(NULL)
-	0,				    /* ob_size */	
+    0,				    /* ob_size */	
+#endif
 	(char *)"PySwigPacked",		    /* tp_name */	
 	sizeof(PySwigPacked),		    /* tp_basicsize */	
 	0,				    /* tp_itemsize */	
@@ -867,7 +918,10 @@ _PySwigPacked_type(void) {
 #endif
       };
     pyswigpacked_type = tmp;
+    /* for Python 3 the ob_type already assigned in PyVarObject_HEAD_INIT() */
+#if PY_VERSION_HEX < 0x03000000
     pyswigpacked_type.ob_type = &PyType_Type;
+#endif
     type_init = 1;
   }
   return &pyswigpacked_type;
@@ -912,7 +966,7 @@ PySwigPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
 SWIGRUNTIMEINLINE PyObject *
 _SWIG_This(void)
 {
-  return PyString_FromString("this");
+    return SWIG_Python_str_FromChar("this");
 }
 
 SWIGRUNTIME PyObject *
@@ -923,6 +977,11 @@ SWIG_This(void)
 }
 
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
+
+/* TODO: I don't know how to implement the fast getset in Python 3 right now */
+#if PY_VERSION_HEX>=0x03000000
+#define SWIG_PYTHON_SLOW_GETSET_THIS 
+#endif
 
 SWIGRUNTIME PySwigObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
@@ -1161,10 +1220,17 @@ SWIG_Python_NewShadowInstance(PySwigClientData *data, PyObject *swig_this)
 #endif
     }
   } else {
+#if PY_VERSION_HEX >= 0x03000000
+    inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
+    Py_INCREF(data->newargs);
+    PyObject_SetAttr(inst, SWIG_This(), swig_this);
+    Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+#else
     PyObject *dict = PyDict_New();
     PyDict_SetItem(dict, SWIG_This(), swig_this);
     inst = PyInstance_NewRaw(data->newargs, dict);
     Py_DECREF(dict);
+#endif
   }
   return inst;
 #else
@@ -1344,8 +1410,13 @@ SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
   static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
 
+#if PY_VERSION_HEX >= 0x03000000
+ /* Add a dummy module object into sys.modules */
+  PyObject *module = PyImport_AddModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION);
+#else
   PyObject *module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION,
 				   swig_empty_runtime_method_table);
+#endif
   PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, SWIG_Python_DestroyModule);
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
@@ -1365,7 +1436,7 @@ SWIGRUNTIME swig_type_info *
 SWIG_Python_TypeQuery(const char *type)
 {
   PyObject *cache = SWIG_Python_TypeCache();
-  PyObject *key = PyString_FromString(type); 
+  PyObject *key = SWIG_Python_str_FromChar(type); 
   PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
   if (obj) {
@@ -1403,9 +1474,9 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
-	PyErr_Format(type, "%s %s", mesg, PyString_AsString(old_str));
+	PyErr_Format(type, "%s %s", mesg, SWIG_Python_str_AsChar(old_str));
       } else {
-	PyErr_Format(type, "%s %s", PyString_AsString(old_str), mesg);
+	PyErr_Format(type, "%s %s", SWIG_Python_str_AsChar(old_str), mesg);
       }
       Py_DECREF(old_str);
     }
@@ -1454,7 +1525,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
       const char *otype = (obj ? obj->ob_type->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
-	const char *cstr = str ? PyString_AsString(str) : 0;
+	const char *cstr = str ? SWIG_Python_str_AsChar(str) : 0;
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);

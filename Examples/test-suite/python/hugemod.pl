@@ -2,8 +2,12 @@
 
 use strict;
 
+my $modsize = 399; #adjust it so you can have a smaller or bigger hugemod 
+
+my $runme = shift @ARGV;
+
 open HEADER, ">hugemod.h" or die "error";
-open TEST, ">hugemod_runme.py" or die "error";
+open TEST, ">$runme" or die "error";
 open I1, ">hugemod_a.i" or die "error";
 open I2, ">hugemod_b.i" or die "error";
 
@@ -21,7 +25,7 @@ print I2 "\%inline \%{\n";
 
 my $i;
 
-for ($i = 0; $i < 6000; $i++) {
+for ($i = 0; $i < $modsize; $i++) {
   my $t = $i * 4;
   print HEADER "class type$i { public: int a; };\n";
   print I2 "class dtype$i : public type$i { public: int b; };\n";

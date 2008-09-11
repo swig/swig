@@ -2,14 +2,41 @@
 # Makefile for python test-suite
 #######################################################################
 
+ifeq (,$(PY3))
+  PYBIN = @PYTHON@
+else
+  PYBIN = @PYTHON3@
+endif
+
 LANGUAGE     = python
-PYTHON       = @PYTHON@
-SCRIPTSUFFIX = _runme.py
+ifneq (,$(USE_VALGRIND))
+  PYTHON       = valgrind --leak-check=full --suppressions=pyswig.supp $(PYBIN)
+else
+  PYTHON       = $(PYBIN)
+endif
+
+#*_runme.py for Python 2.x, *_runme3.py for Python 3.x
+PY2SCRIPTSUFFIX = _runme.py
+PY3SCRIPTSUFFIX = _runme3.py
+
+ifeq (,$(PY3))
+  SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
+else
+  SCRIPTSUFFIX = $(PY3SCRIPTSUFFIX)
+endif
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+
+#Use the tricky command because we want to disable the "import" fixer,
+#but currently 2to3 has no option to let us do it
+PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+
+
 CPP_TEST_CASES += \
+        abstractbase \
 	argcargvtest \
 	autodoc \
 	callback \
@@ -77,12 +104,35 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
+
+# Call 2to3 to generate Python 3.x test from the Python 2.x's *_runme.py file
+%$(PY3SCRIPTSUFFIX): %$(PY2SCRIPTSUFFIX)
+	cp $< $@
+	$(PY2TO3) -w $@ >/dev/null 2>&1 
+
+
 # Runs the testcase. A testcase is only run if
-# a file is found which has _runme.py appended after the testcase name.
+# a file is found which has _runme.py (or _runme3.py for Python 3) appended after the testcase name.
+
+run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+
+ifeq (,$(PY3))
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  $(run_python);)\
 	fi;
+else
+py2_runme = $(srcdir)/$(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
+py3_runme = $(srcdir)/$(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX) 
+
+run_testcase = \
+	if [ -f $(py2_runme) ]; then (	  \
+	  $(MAKE) -f $(srcdir)/Makefile $(py3_runme) && \
+	   $(run_python);) \
+        elif [ -f $(py3_runme)]; then (   \
+          $(run_python);)  \
+	fi;
+endif
 
 # Clean: remove the generated .py file
 %.clean:
@@ -101,14 +151,15 @@ cvsignore:
 	@echo clientdata_prop_b.py 
 	@echo imports_a.py 
 	@echo imports_b.py 
-	@echo mod_a.py mod_b.py 
+	@echo mod_a.py mod_b.py
 	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
 	@echo template_typedef_import.py
 
+hugemod_runme = hugemod$(SCRIPTPREFIX)
 
 hugemod:
-	perl hugemod.pl
+	perl hugemod.pl $(hugemod_runme) 
 	$(MAKE) hugemod_a.cpptest
 	$(MAKE) hugemod_b.cpptest
-	time $(PYTHON) hugemod_runme.py
-	time $(PYTHON) hugemod_runme.py
+	sh -c "time $(PYTHON) $(hugemod_runme)"
+	sh -c "time $(PYTHON) $(hugemod_runme)"
