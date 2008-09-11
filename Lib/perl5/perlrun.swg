@@ -252,7 +252,7 @@ SWIG_Perl_WrapVariable(const char *name,
 }
 
 SWIGINTERN SV *
-SWIG_Perl_WrapNative(SV *sv, void *ptr, swig_type_info *t, int flags,
+SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
 	SV *proto) {
   SV *wrap = newSViv(PTR2IV(ptr));
   swig_perl_type_ext *ext = (swig_perl_type_ext *)t->clientdata;
@@ -326,28 +326,46 @@ SWIG_Perl_MgUnwrap(MAGIC *mg) {
 }
 SWIGRUNTIME int
 SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
-	/* TODO: this is incomplete */
-	*ptr = SWIG_Perl_MgUnwrap(mg);
-	return SWIG_OK;
+  /* TODO: this is incomplete */
+  *ptr = SWIG_Perl_MgUnwrap(mg);
+  return SWIG_OK;
 }
 SWIGINTERN int
 SWIG_Perl_SvUnwrap(void **pp, SV *sv, swig_type_info *t, int flags) {
+  MAGIC *mg;
+  swig_cast_info *tc = 0;
+  void *p = 0;
+
   if (!SvOK(sv)) {
     *pp = 0;
     return SWIG_OK;
   }
-//  if (!t) { /* requestion some void* variant */
-//    SWIG_Perl_Dump(sv);
-//  }
-  if (!t /* requesting some void* variant, so just let it happen */
-    || sv_derived_from(sv, SWIG_Perl_TypeProxyName(t))) {
-    MAGIC *mg =  mg_find(SvRV(sv), PERL_MAGIC_ext);
-    if (!mg)
-      return SWIG_ERROR;
-    *pp = SWIG_Perl_MgUnwrap(mg);
-    return SWIG_OK;
+  if (!SvROK(sv))
+    return SWIG_ERROR;
+  /* runtime type checks:
+   * t == 0 means no typecheck restrictions (void* style)
+   * TypeProxyCheck() succeeds on a c/c++ inheritance
+   * sv_derived_from succeeds on Perl inheritance
+   */
+  if (t) {
+    const char *c = HvNAME(SvSTASH(SvRV(sv)));
+    tc = SWIG_TypeProxyCheck(c, t);
+    if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
+    return SWIG_ERROR;
   }
-  return SWIG_ERROR;
+  mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
+  if (!mg)
+    return SWIG_ERROR;
+  p = SWIG_Perl_MgUnwrap(mg);
+  if (tc) {
+    /* TODO: implement newmemory */
+    int newmemory = 0;
+    *pp = SWIG_TypeCast(tc, p, &newmemory);
+    assert(!newmemory);
+  } else {
+    *pp = p;
+  }
+  return SWIG_OK;
 }
 
 /* Function for getting a pointer value */

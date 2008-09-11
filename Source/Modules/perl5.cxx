@@ -1320,9 +1320,9 @@ public:
 
     /* Finish the rest of the class */
     if (blessed) {
-      Printv(pm,
-          "\n############# Class : ", fullclassname, " ##############\n",
-          "\npackage ", fullclassname, ";\n", NIL);
+      Printv(pm, "\n",
+          "############# Class : ", fullclassname, " ##############\n",
+          "package ", fullclassname, ";\n", NIL);
 
       /* tell interpreter about class inheritance */
       List *baselist = Getattr(n, "bases");
@@ -1333,7 +1333,7 @@ public:
           if (!bname)
             continue;
           Printv(pm, (begun ? ", '" : "use base '"), bname, "'", NIL);
-          begun++;
+          begun = 1;
         }
         if (begun) Append(pm, ";\n");
       }
