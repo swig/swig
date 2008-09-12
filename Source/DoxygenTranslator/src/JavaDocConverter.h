@@ -9,11 +9,10 @@
 class JavaDocConverter
 {
 public:
-
-	JavaDocConverter();
-	string convertToJavaDoc(Node *n, list <DoxygenEntity> entityList);
-	~JavaDocConverter();
-	void printSortedTree(list <DoxygenEntity> &entityList);
+  JavaDocConverter();
+  std::string convertToJavaDoc(Node *n, std::list <DoxygenEntity> entityList);
+  ~JavaDocConverter();
+  void printSortedTree(std::list <DoxygenEntity> &entityList);
 };
 
 #endif /*JAVADOCCONVERTER_H_*/

@@ -6,9 +6,9 @@
 class DoxygenParser
 {
 public:
-	DoxygenParser();
-	virtual ~DoxygenParser();
-	list <DoxygenEntity> createTree(string doxygen);
+  DoxygenParser();
+  virtual ~DoxygenParser();
+  std::list <DoxygenEntity> createTree(std::string doxygen);
 };
 
 #endif /*DOXYGENPARSER_H_*/
