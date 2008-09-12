@@ -3129,30 +3129,11 @@ public:
 	    Printv(f_shadow, tab4, "def ", symname, "(",parms , ")", returnTypeAnnotation(n), ":", NIL);
 	    Printv(f_shadow, "\n", NIL);
 	    if (doxygen) {
-	      /*Node *documented_node = n;
-	      if(Getattr(n, "sym:overloaded")){
-		// If the function is overloaded then this funciton is called
-		// for the last one.  Rewind to the first so the docstrings are
-		// in order.
-		while (Getattr(documented_node, "sym:previousSibling"))
-		  documented_node = Getattr(documented_node, "sym:previousSibling");
-		
-		int real_overload_count = 0;
-		std::ostringstream all_documentation;
-		
-		// for each real method (not a generated overload) append the documentation
-		while(documented_node){
-		  if(!is_generated_overload(documented_node) && Getattr(documented_node,"DoxygenComment")){
-		    all_documentation << "Overload " << ++real_overload_count << ":" << std::endl;
-		    all_documentation << Char(Getattr(documented_node,"DoxygenComment")) << std::endl;
-		  }
-		  documented_node = Getattr(documented_node, "sym:nextSibling");
-		}
-		
-		char *convertedString = doxyTranslator.convert(n,const_cast< char *>(all_documentation.str().c_str()), "PYDOC");	
-		Printf(f_shadow, Char(pythoncode(convertedString, tab8))); 		
-		free(convertedString);
-	      }*/
+	      String *doxygen_comments;
+	      if(DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)){
+		Printf(f_shadow, Char(pythoncode(doxygen_comments, tab8))); 
+		Delete(doxygen_comments);
+	      }
 	    }
 	    else if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);

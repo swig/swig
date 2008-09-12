@@ -26,6 +26,14 @@ public:
   bool getDocumentation(Node *node, String *&documentation);
   
 protected:
+  
+  /*
+   * Process the contents of the entity list producing a documentation string.
+   * @param node The parse tree node that the entity list relates to.
+   * @param entityList The entity list to process
+   */
+  std::string processEntityList(Node *node, std::list<DoxygenEntity>& entityList);
+  
   /*
    * Format the doxygen comment relating to a function or method parameter
    * @param node The parse tree node that the parameter relates to.
@@ -51,6 +59,11 @@ protected:
   
   std::string translateSubtree( DoxygenEntity &doxygenEntity);
   std::string translateEntity(Node *n, DoxygenEntity &doxyEntity);
+  
+  /*
+   * Utility method to generate a diving line for a documentation string.
+   */
+  std::string generateDivider();
     
 private:
   bool debug;

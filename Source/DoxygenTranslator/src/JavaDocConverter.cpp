@@ -128,8 +128,6 @@ bool JavaDocConverter::getDocumentation(Node *n, String *&documentation){
     return false;
   
   std::list <DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
-  Delete(documentation);
-  
   entityList.sort(CompareDoxygenEntities());
   
   if(debug){

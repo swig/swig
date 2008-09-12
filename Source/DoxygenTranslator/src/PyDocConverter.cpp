@@ -9,8 +9,9 @@
 
 #include "PyDocConverter.h"
 #include "DoxygenParser.h"
-#include <iostream>
 #include <sstream>
+#include <vector>
+#include <iostream>
 
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a pydoc tag
 PyDocConverter::PyDocConverter()
@@ -121,39 +122,91 @@ std::string PyDocConverter::translateEntity(Node *n, DoxygenEntity &doxyEntity){
   return justifyString(doxyEntity.data);
 }
 
-bool PyDocConverter::getDocumentation(Node *n, String *&documentation){
-  documentation = Getattr(n,"DoxygenComment");
-  if(documentation == NULL)
-    return false;
-  
-  std::list <DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
-  Delete(documentation);
-  
-  std::string pyDocString = "\"\"\"\n";
-  
+std::string PyDocConverter::processEntityList(Node *n, std::list<DoxygenEntity>& entityList){
+  std::string result;
   bool inParamsSection = false;
   
   for(std::list<DoxygenEntity>::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();){
-    if(entityIterator->typeOfEntity.compare("param") == 0 && !inParamsSection)
-    {
+    if(entityIterator->typeOfEntity.compare("param") == 0 && !inParamsSection){
       inParamsSection = true;
-      pyDocString += "\nArguments:\n";
+      result += "\nArguments:\n";
     }
     else if(entityIterator->typeOfEntity.compare("param") != 0 && inParamsSection)
       inParamsSection = false;
     
-    pyDocString += translateEntity(n, *entityIterator);
+    result += translateEntity(n, *entityIterator);
     entityIterator++;
-  }
+  }  
+  
+  return result;
+}
 
-  pyDocString += "\n\"\"\"\n";
+bool PyDocConverter::getDocumentation(Node *n, String *&documentation){
+  std::string pyDocString, result;
   
-  if(debug){
-    std::cout << "\n---RESULT IN PYDOC---" << std::endl;
-    std::cout << pyDocString;
-    std::cout << std::endl;
+  // for overloaded functions we must concat documentation for underlying overloads
+  if(Checkattr(n, "kind", "function") && Getattr(n, "sym:overloaded")){
+    // rewind to the first overload
+    while (Getattr(n, "sym:previousSibling"))
+      n = Getattr(n, "sym:previousSibling");
+    
+    std::vector<std::string> allDocumentation;
+    
+    // for each real method (not a generated overload) append the documentation
+    while(n){
+      documentation = Getattr(n,"DoxygenComment");
+      if(!Swig_is_generated_overload(n) && documentation){
+	std::list<DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
+	allDocumentation.push_back(processEntityList(n, entityList));
+      }
+      n = Getattr(n, "sym:nextSibling");
+    }
+    
+    // construct final documentation string
+    if(allDocumentation.size() > 1){
+      std::ostringstream concatDocString;
+      for(int realOverloadCount = 0; realOverloadCount < (int)allDocumentation.size(); realOverloadCount++){
+	concatDocString << generateDivider();
+	concatDocString << "Overload " << (realOverloadCount + 1) << ":" << std::endl;
+	concatDocString << generateDivider();
+	concatDocString << allDocumentation[realOverloadCount] << std::endl;
+      }
+      pyDocString = concatDocString.str();
+    } 
+    else if (allDocumentation.size() == 1) {
+      pyDocString = *(allDocumentation.begin());
+    }
+  } 
+  // for other nodes just process as normal
+  else {
+    documentation = Getattr(n,"DoxygenComment");
+    if(documentation != NULL){
+      std::list<DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
+      pyDocString = processEntityList(n, entityList);
+    }
   }
   
-  documentation = NewString(pyDocString.c_str());
-  return true;
+  // if we got something log the result and construct DOH string to return
+  if(pyDocString.length()) {
+    result = "\"\"\"\n" + pyDocString + "\"\"\"\n";
+    
+    if(debug){
+      std::cout << "\n---RESULT IN PYDOC---" << std::endl;
+      std::cout << result;
+      std::cout << std::endl;
+    }
+    
+    documentation = NewString(result.c_str());
+    return true;
+  }
+  
+  return false;
+}
+
+std::string PyDocConverter::generateDivider(){
+  std::ostringstream dividerString;
+  for(int i = 0; i < DOC_STRING_LENGTH; i++)
+    dividerString << '-';
+  dividerString << std::endl;
+  return dividerString.str();
 }
