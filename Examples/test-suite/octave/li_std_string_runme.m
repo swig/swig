@@ -148,7 +148,7 @@ if (s != "hellohello")
 endif
 
 
-if (li_std_string.empty() != "")
+if (li_std_string.stdstring_empty() != "")
   error
 endif
 

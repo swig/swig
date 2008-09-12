@@ -20,11 +20,13 @@ SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
   if ((SWIG_ConvertPtr(obj, &vptr, desc, 0)) == SWIG_OK) {
     if (val) *val = (FILE *)vptr;
     return SWIG_OK;
-  } 
+  }
+%#if PY_VERSION_HEX < 0x03000000
   if (PyFile_Check(obj)) {
     if (val) *val =  PyFile_AsFile(obj);
     return SWIG_OK;
   }
+%#endif
   return SWIG_TypeError;
 }
 }

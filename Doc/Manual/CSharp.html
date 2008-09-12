@@ -1567,6 +1567,7 @@ Let's assume the code being wrapped is as follows:
 <pre>
 class CDate {
 public:
+  CDate();
   CDate(int year, int month, int day);
   int getYear();
   int getMonth();
@@ -1649,8 +1650,8 @@ The typemaps to achieve this are shown below.
 <pre>
 %typemap(cstype) const CDate&amp; "System.DateTime"
 %typemap(csin, 
-         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);")
-         const CDate &amp;
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);"
+        ) const CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
 %typemap(cstype) CDate&amp; "out System.DateTime"
@@ -1658,7 +1659,8 @@ The typemaps to achieve this are shown below.
          pre="    CDate temp$csinput = new CDate();", 
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="out $csinput") CDate &amp;
+         cshin="out $csinput"
+        ) CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
 </pre>
@@ -1763,7 +1765,8 @@ will be possible with the following <tt>CDate *</tt> typemaps
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="ref $csinput") CDate *
+         cshin="ref $csinput"
+        ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
 </pre>
 </div>
@@ -1782,6 +1785,50 @@ public class example {
     } finally {
       pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
     }
+  }
+  ...
+}
+</pre>
+</div>
+
+<p>
+The following typemap is the same as the previous but demonstrates how a using block can be used for the temporary variable.
+The only change to the previous typemap is the introduction of the 'terminator' attribute to terminate the <tt>using</tt> block.
+The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears</tt> method.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csin,
+         pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         terminator="    } // terminate temp$csinput using block",
+         cshin="ref $csinput"
+        ) CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+
+void subtractYears(CDate *pDate, int years) {
+  *pDate = CDate(pDate-&gt;getYear() - years, pDate-&gt;getMonth(), pDate-&gt;getDay());
+}
+</pre>
+</div>
+
+<p>
+The resulting generated code shows the termination of the <tt>using</tt> block:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static void subtractYears(ref System.DateTime pDate, int years) {
+    using (CDate temppDate = new CDate(pDate.Year, pDate.Month, pDate.Day)) {
+    try {
+      examplePINVOKE.subtractYears(CDate.getCPtr(temppDate), years);
+    } finally {
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+    }
+    } // terminate temppDate using block
   }
   ...
 }
@@ -1827,7 +1874,8 @@ The typemap type required is thus <tt>CDate *</tt>. Given that the previous sect
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="ref $csinput") CDate *
+         cshin="ref $csinput"
+        ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
 
 %typemap(csvarin, excode=SWIGEXCODE2) CDate * %{

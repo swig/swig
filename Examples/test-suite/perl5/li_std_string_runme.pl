@@ -98,7 +98,7 @@ SKIP: {
 is($gen1->testl("9234567890121111113"), "9234567890121111114", "ulonglong big number");
 
 
-is(li_std_string::empty(), "", "empty");
+is(li_std_string::stdstring_empty(), "", "stdstring_empty");
 
 is(li_std_string::c_empty(),  "", "c_empty");
 
@@ -110,4 +110,4 @@ is(li_std_string::get_null(li_std_string::c_null()), undef, "c_empty");
 
 is(li_std_string::get_null(li_std_string::c_empty()), "non-null", "c_empty");
 
-is(li_std_string::get_null(li_std_string::empty()), "non-null", "c_empty");
+is(li_std_string::get_null(li_std_string::stdstring_empty()), "non-null", "stdstring_empty");

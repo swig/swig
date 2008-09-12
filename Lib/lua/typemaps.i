@@ -80,6 +80,22 @@ SWIG_NUMBER_TYPEMAP(long long); SWIG_NUMBER_TYPEMAP(unsigned long long); SWIG_NU
 
 // note we dont do char, as a char* is probably a string not a ptr to a single char
 
+// similar for booleans
+%typemap(in,checkfn="lua_isboolean") bool *INPUT(bool temp), bool &INPUT(bool temp)
+%{ temp = (lua_toboolean(L,$input)!=0);
+   $1 = &temp; %}
+
+%typemap(in, numinputs=0) bool *OUTPUT (bool temp),bool &OUTPUT (bool temp)
+%{ $1 = &temp; %}
+
+%typemap(argout) bool *OUTPUT,bool &OUTPUT
+%{  lua_pushboolean(L, (int)((*$1)!=0)); SWIG_arg++;%}
+
+%typemap(in) bool *INOUT = bool *INPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
+
 /* -----------------------------------------------------------------------------
  *                          Basic Array typemaps
  * ----------------------------------------------------------------------------- */
@@ -320,6 +336,11 @@ for array handling
 %typemap(freearg) (TYPE *INOUT,int)=(TYPE *INPUT,int);
 
 // TODO out variable arrays (is there a standard form for such things?)
+
+// referencing so that (int *INPUT,int) and (int INPUT[],int) are the same
+%typemap(in) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+%typemap(freearg) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+
 %enddef
 
 // the following line of code

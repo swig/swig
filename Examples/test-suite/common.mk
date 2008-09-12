@@ -202,6 +202,7 @@ CPP_TEST_CASES += \
 	inherit_target_language \
 	inherit_void_arg \
 	inline_initializer \
+        keyword_rename \
 	kind \
 	langobj \
 	li_attribute \
@@ -236,6 +237,7 @@ CPP_TEST_CASES += \
 	null_pointer \
 	operator_overload \
 	operator_overload_break \
+        operbool \
 	ordering \
 	overload_copy \
 	overload_extend \
@@ -422,6 +424,7 @@ C_TEST_CASES += \
 	immutable \
 	inctest \
 	integers \
+        keyword_rename \
 	lextype \
 	li_carrays \
 	li_cdata \

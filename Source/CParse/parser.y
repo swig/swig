@@ -383,7 +383,9 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-	if (0 && !Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
+        /*
+	if (!Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
+        */
 	Setattr(n,"ismember","1");
       }
     }
@@ -2348,21 +2350,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $7 ? NewString($7) : NewString("1");
                     new_feature($3, val, 0, $5.id, $5.type, $5.parms, $6.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, $7.id, $7.type, $7.parms, $8.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
                     String *val = $8 ? NewString($8) : NewString("1");
                     new_feature($3, val, $4, $6.id, $6.type, $6.parms, $7.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, $8.id, $8.type, $8.parms, $9.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
 
                   /* Global feature */
@@ -2370,21 +2376,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $5 ? NewString($5) : NewString("1");
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
                     String *val = $6 ? NewString($6) : NewString("1");
                     new_feature($3, val, $4, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   ;
 
@@ -4215,10 +4225,11 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       /* Check for template names.  If the class is a template
 		  and the constructor is missing the template part, we
 		  add it */
-	        if (Classprefix && (c = strchr(Char(Classprefix),'<'))) {
-		  if (!Strchr($3,'<')) {
-		    $3 = NewStringf("%s%s",$3,c);
-		  }
+	        if (Classprefix) {
+                  c = strchr(Char(Classprefix),'<');
+                  if (c && !Strchr($3,'<')) {
+                    $3 = NewStringf("%s%s",$3,c);
+                  }
 		}
 		Setattr($$,"storage","virtual");
 	        name = NewStringf("%s",$3);
@@ -4534,12 +4545,8 @@ parms          : rawparms {
     	       ;
 
 rawparms          : parm ptail {
-		  if (1) { 
-		    set_nextSibling($1,$2);
-		    $$ = $1;
-		  } else {
-		    $$ = $2;
-		  }
+                  set_nextSibling($1,$2);
+                  $$ = $1;
 		}
                | empty { $$ = 0; }
                ;
@@ -4592,12 +4599,8 @@ valparms        : rawvalparms {
     	       ;
 
 rawvalparms     : valparm valptail {
-		  if (1) { 
-		    set_nextSibling($1,$2);
-		    $$ = $1;
-		  } else {
-		    $$ = $2;
-		  }
+                  set_nextSibling($1,$2);
+                  $$ = $1;
 		}
                | empty { $$ = 0; }
                ;

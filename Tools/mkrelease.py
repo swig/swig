@@ -21,8 +21,8 @@ except:
    print "where version should be 1.3.x and username is your SF username"
    sys.exit(1)
 
-print "Looking for wput"
-os.system("which wput") and failed("wput not installed/found. Please install.")
+print "Looking for rsync"
+os.system("which rsync") and failed("rsync not installed/found. Please install.")
 
 print "Making source tarball"
 os.system("python ./mkdist.py " + version) and failed("")
@@ -31,8 +31,8 @@ print "Build Windows package"
 os.system("./mkwindows.sh " + version) and failed("")
 
 print "Uploading to Sourceforge"
-os.system("wput --verbose --binary swig-" + version + ".tar.gz ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
-os.system("wput --verbose --binary swigwin-" + version + ".zip ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh swig-" + version + ".tar.gz " + username + "@frs.sourceforge.net:uploads/") and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh swigwin-" + version + ".zip " + username + "@frs.sourceforge.net:uploads/") and failed("")
 
 os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
 

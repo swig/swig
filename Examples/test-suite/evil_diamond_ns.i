@@ -6,7 +6,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME,
 	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) Blah::spam;	// Ruby, wrong class name - C# & Java, Php4 multiple inheritance
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) Blah::spam;	// Ruby, wrong class name - C# & Java, PHP multiple inheritance
 
 %inline %{
 namespace Blah {

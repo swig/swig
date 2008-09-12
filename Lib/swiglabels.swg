@@ -40,6 +40,12 @@
 # endif
 #endif
 
+#ifndef SWIG_MSC_UNSUPPRESS_4505
+# if defined(_MSC_VER)
+#   pragma warning(disable : 4505) /* unreferenced local function has been removed */
+# endif 
+#endif
+
 #ifndef SWIGUNUSEDPARM
 # ifdef __cplusplus
 #   define SWIGUNUSEDPARM(p)

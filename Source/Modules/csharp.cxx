@@ -1073,7 +1073,9 @@ public:
     global_variable_flag = false;
     generate_property_declaration_flag = false;
 
-    Printf(module_class_code, "\n  }\n\n");
+    if (proxy_flag) {
+      Printf(module_class_code, "\n  }\n\n");
+    }
 
     return ret;
   }
@@ -1885,6 +1887,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
 
     if (!proxy_flag)
       return;
@@ -1924,7 +1927,7 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+    if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
       if (setter_flag)
@@ -1996,7 +1999,8 @@ public:
       if (!(variable_wrapper_flag && i == 0)) {
 	SwigType *pt = Getattr(p, "type");
 	String *param_type = NewString("");
-	last_parm = p;
+        if (setter_flag)
+          last_parm = p;
 
 	/* Get the C# parameter type */
 	if ((tm = Getattr(p, "tmap:cstype"))) {
@@ -2032,6 +2036,14 @@ public:
               Printf(post_code, "\n");
             Printv(post_code, post, NIL);
           }
+          String *terminator = Getattr(p, "tmap:csin:terminator");
+          if (terminator) {
+            substituteClassname(pt, terminator);
+            Replaceall(terminator, "$csinput", arg);
+            if (Len(terminator_code) > 0)
+              Insert(terminator_code, 0, "\n");
+            Insert(terminator_code, 0, terminator);
+          }
 	  Printv(imcall, tm, NIL);
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2057,7 +2069,8 @@ public:
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
@@ -2068,6 +2081,9 @@ public:
         if (is_pre_code) {
           Insert(tm, 0, pre_code);
           Insert(tm, 0, "\n");
+        }
+        if (is_terminator_code) {
+          Printv(tm, "\n", terminator_code, NIL);
         }
 	Insert(tm, 0, "{");
 	Printf(tm, "\n  }");
@@ -2107,7 +2123,7 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+    if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       if (generate_property_declaration_flag) {	// Ensure the declaration is generated just once should the property contain both a set and get
 	// Get the C# variable type - obtained differently depending on whether a setter is required.
@@ -2168,6 +2184,7 @@ public:
 
     Delete(pre_code);
     Delete(post_code);
+    Delete(terminator_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
@@ -2188,6 +2205,7 @@ public:
     String *helper_args = NewString("");
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
     String *im_return_type = NewString("");
     bool feature_director = (parentNode(n) && Swig_directorclass(n));
 
@@ -2283,6 +2301,14 @@ public:
               Printf(post_code, "\n");
             Printv(post_code, post, NIL);
           }
+          String *terminator = Getattr(p, "tmap:csin:terminator");
+          if (terminator) {
+            substituteClassname(pt, terminator);
+            Replaceall(terminator, "$csinput", arg);
+            if (Len(terminator_code) > 0)
+              Insert(terminator_code, 0, "\n");
+            Insert(terminator_code, 0, terminator);
+          }
           cshin = Getattr(p, "tmap:csin:cshin");
           if (cshin)
             Replaceall(cshin, "$csinput", arg);
@@ -2339,7 +2365,8 @@ public:
 
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Printf(helper_code, " {\n");
         if (is_pre_code) {
           Printv(helper_code, pre_code, "\n", NIL);
@@ -2350,6 +2377,9 @@ public:
           Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
         } else {
           Printv(helper_code, "    return ", imcall, ";", NIL);
+        }
+        if (is_terminator_code) {
+          Printv(helper_code, "\n", terminator_code, NIL);
         }
         Printf(helper_code, "\n  }\n");
         String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
@@ -2369,6 +2399,7 @@ public:
       Delete(im_return_type);
       Delete(pre_code);
       Delete(post_code);
+      Delete(terminator_code);
       Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
@@ -2486,6 +2517,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    String *terminator_code = NewString("");
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -2541,6 +2573,7 @@ public:
     num_arguments = emit_num_arguments(l);
     num_required = emit_num_required(l);
 
+    bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
 
     /* Output each parameter */
@@ -2567,7 +2600,7 @@ public:
       if (gencomma)
 	Printf(imcall, ", ");
 
-      String *arg = makeParameterName(n, p, i, setter_flag);
+      String *arg = makeParameterName(n, p, i, global_or_member_variable);
 
       // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
       if ((tm = Getattr(p, "tmap:csin"))) {
@@ -2589,6 +2622,14 @@ public:
             Printf(post_code, "\n");
 	  Printv(post_code, post, NIL);
 	}
+        String *terminator = Getattr(p, "tmap:csin:terminator");
+        if (terminator) {
+          substituteClassname(pt, terminator);
+          Replaceall(terminator, "$csinput", arg);
+          if (Len(terminator_code) > 0)
+            Insert(terminator_code, 0, "\n");
+          Insert(terminator_code, 0, terminator);
+        }
 	Printv(imcall, tm, NIL);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, "No csin typemap defined for %s\n", SwigType_str(pt, 0));
@@ -2613,7 +2654,8 @@ public:
       excodeSubstitute(n, tm, "csout", n);
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code || is_post_code || is_terminator_code) {
         Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
@@ -2624,6 +2666,9 @@ public:
         if (is_pre_code) {
           Insert(tm, 0, pre_code);
           Insert(tm, 0, "\n");
+        }
+        if (is_terminator_code) {
+          Printv(tm, "\n", terminator_code, NIL);
         }
 	Insert(tm, 0, "{");
 	Printf(tm, "\n  }");
@@ -2700,6 +2745,7 @@ public:
 
     Delete(pre_code);
     Delete(post_code);
+    Delete(terminator_code);
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
@@ -2755,7 +2801,7 @@ public:
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
 	// Get the enumvalue from a PINVOKE call
-	if (!getCurrentClass() || !cparse_cplusplus) {
+	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
 	  // Strange hack to change the name
 	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
 	  constantWrapper(n);
@@ -2877,7 +2923,7 @@ public:
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping member variables
+   *   setter  - set this flag when wrapping variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
@@ -2886,20 +2932,22 @@ public:
 
     String *arg = 0;
     String *pn = Getattr(p, "name");
-    if (setter) {
+
+    // Use C parameter name unless it is a duplicate or an empty parameter name
+    int count = 0;
+    ParmList *plist = Getattr(n, "parms");
+    while (plist) {
+      if ((Cmp(pn, Getattr(plist, "name")) == 0))
+        count++;
+      plist = nextSibling(plist);
+    }
+    String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
+    arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
+
+    if (setter && Cmp(arg, "self") != 0) {
       // Note that in C# properties, the input variable name is always called 'value'
+      Delete(arg);      
       arg = NewString("value");
-    } else {
-      // Use C parameter name unless it is a duplicate or an empty parameter name
-      int count = 0;
-      ParmList *plist = Getattr(n, "parms");
-      while (plist) {
-	if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	  count++;
-	plist = nextSibling(plist);
-      }
-      String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-      arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
     }
 
     return arg;

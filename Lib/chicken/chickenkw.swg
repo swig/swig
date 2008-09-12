@@ -3,7 +3,7 @@
 
 /* Warnings for certain CHICKEN keywords. From Section 7.1.1 of
    Revised^5 Report on the Algorithmic Language Scheme */
-#define CHICKENKW(x) %namewarn("314:" #x " is a R^5RS syntatic keyword")  #x
+#define CHICKENKW(x) %namewarn("314: '" #x "' is a R^5RS syntatic keyword")  #x
 
 CHICKENKW(else);
 CHICKENKW(=>);

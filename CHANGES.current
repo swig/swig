@@ -1,106 +1,80 @@
-Version 1.3.36 (in progress)
+Version 1.3.37 (in progress)
 =============================
 
-05/20/2008: wsfulton
-            New partialcheck makefile targets for partial testing of the test-suite. These
-            just invoke SWIG, ie no compilation and no runtime testing. It can be faster
-            when developing by just doing a directory diff of the files SWIG generates
-            against those from a previous run. Example usage from the top level directory:
+2008-09-02: wsfulton
+	    [Python] Commit patch #2089149: Director exception handling mangles
+	    returned exception.  Exceptions raised by Python code in directors
+	    are now passed through to the caller without change.  Also, remove
+	    the ": " prefix which used to be added to other director exceptions
+	    (eg, those due to incorrect return types).
 
-              make partialcheck-test-suite
-              make partialcheck-java-test-suite
+2008-09-02: wsfulton
+            [Python] Commit patch #1988296 GCItem multiple module linking issue when using 
+            directors.
 
-            This change also encompasses more flexibility in running the test-suite, eg
-            it is possible to prefix the command line which runs any target language test
-            with a tool. See the RUNTOOL, COMPILETOOL and SWIGTOOL targets in the common.mk
-            file and makefiles in the test-suite directory. For example it is possible to 
-            run the runtime tests through valgrind using:
+2008-09-02: wsfulton
+            [C#] Support for 'using' and 'fixed' blocks in the 'csin' typemap is now
+            possible through the use of the pre attribute and the new terminator attribute, eg
 
-              make check RUNTOOL="valgrind --leak-check=full"
+              %typemap(csin, 
+                       pre="    using (CDate temp$csinput = new CDate($csinput)) {",
+                       terminator="    } // terminate temp$csinput using block",
+                      ) const CDate &
+                       "$csclassname.getCPtr(temp$csinput)"
 
-            or invoke SWIG under valgrind using:
+            See CSharp.html for more info.
 
-              make check SWIGTOOL="valgrind --tool=memcheck"
+2008-09-01: wsfulton
+            [CFFI] Commit patch #2079381 submitted by Boris Smilga - constant exprs put into 
+            no-eval context in DEFCENUM
 
-05/19/2008: drjoe
-            [R] Fixed define that was breaking pre-2.7.  Checked in
-            patch from Soren Sonnenburg that creates strings in  
-	    version independent way
+2008-09-01: wsfulton
+            [C#] Correct array bounds checking in std::vector typemaps - Insert and InsertRange
+            methods.
 
-05/15/2008: wsfulton
-            [Java] Fix variable name clash in directors - SF #1963316 reported by Tristan.
+2008-08-02: wuzzeb
+            [Chicken,Allegro] Commit Patch 2019314
+            Fixes a build error in chicken, and several build errors and other errors
+            in Allegro CL
 
-05/14/2008: wsfulton
-            Add an optimisation for functions that return objects by value, reducing
-            the number of copies of the object that are made. Implemented using an
-            optional attribute in the "out" typemap called "optimal". Details in 
-            Typemaps.html.
+2008-07-19: wsfulton
+            Fix building of Tcl examples/test-suite on Mac OSX reported by Gideon Simpson.
 
-05/11/2008: olly
-	    [PHP] Check for %feature("notabstract") when generating PHP5 class
-	    wrapper.
+2008-07-17: wsfulton
+            Fix SF #2019156 Configuring with --without-octave or --without-alllang
+            did not disable octave.
 
-05/11/2008: wsfulton
-            Fix SF #1943608 - $self substitution in %contract, patch submitted by
-            Toon Verstraelen.
+2008-07-14: wsfultonn
+            [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
+            marshalled to C#/Java null in director methods.
 
-05/09/2008: olly
-	    [PHP] Fix char * typemaps to work when applied to signed char * and
-	    unsigned char * (uncovered by testcase apply_strings).
+2008-07-04: olly
+	    [PHP] For std_vector.i and std_map.i, rename empty() to is_empty()
+	    since "empty" is a PHP reserved word.  Based on patch from Mark Klein
+	    in SF#1943417.
 
-05/09/2008: wsfulton
-            Fix wrapping of char * member variables when using allprotected mode.
-            Bug reported by Warren Wang.
+2008-07-04: olly
+	    [PHP] The deprecated command line option "-make" has been removed.  
+	    Searches on Google codesearch suggest that nobody is using it now
+	    anyway.
 
-05/09/2008: olly
-	    [PHP] Fix bad PHP code generated when wrapping an enum in a
-	    namespace (uncovered by testcase arrays_scope).
+2008-07-04: olly
+	    [PHP] The SWIG cdata.i library module is now supported.
 
-05/09/2008: olly
-	    [PHP] SWIG now runs the PHP testsuite using PHP5, not PHP4.  PHP4
-	    is essentially obsolete now, so we care much more about solid PHP5
-	    support.
+2008-07-03: olly
+	    [PHP] The deprecated command line option "-phpfull" has been
+	    removed.  We recommend building your extension as a dynamically
+	    loadable module.
 
-05/07/2008: wsfulton
-            STL fixes when using %import rather than %include and the Solaris Workshop
-            compiler and the Roguewave STL.
+2008-07-02: olly
+	    [PHP4] Support for PHP4 has been removed.  The PHP developers are
+	    no longer making new PHP4 releases, and won't even be providing
+	    patches for critical security issues after 2008-08-08.
 
-05/07/2008: wsfulton
-            Fix wrapping of overloaded protected methods when using allprotected mode.
-            Bug reported by Warren Wang.
-
-05/03/2008: wsfulton
-            Commit patch #1956607 to add -MT support from Richard Boulton.
-            This patch mirrors the gcc -MT option which allows one to change the default
-            Makefile target being generated when generating makefiles with the -M family
-            of options. For example:
-
-              $ swig -java -MM -MT overiddenname -c++  example.i
-              overiddenname: \
-               example.i \
-               example.h 
-
-04/30/2008: mgossage
-	    [Lua] Removed generation of _wrap_delete_XXXXX (wrappered destructor)
-	    which was unused and causing warning with g++ -Wall.
-	    Removed other unused warning in typemaps.i and other places.
-	    Added Examples/lua/embed3, and run tests a few test cases.
-
-04/24/2008: olly
-	    [Python] Fix generated code for IBM's C++ compiler on AIX (patch
-	    from Goeran Uddeborg in SF#1928048).
-
-04/24/2008: olly
-	    Rename BSIZE in Examples/test-suite/arrays_scope.i to BBSIZE to
-	    avoid a clash with BSIZE defined by headers on AIX with Perl
-	    (reported in SF#1928048).
-
-04/20/2008: wsfulton
-            Add the ability to wrap all protected members when using directors.
-            Previously only the virtual methods were available to the target language.
-            Now all protected members, (static and non-static variables, non-virtual methods
-            and static methods) are wrapped when using the allprotected mode. The allprotected
-            mode is turned on in the module declaration:
-
-              %module(directors="1", allprotected="1") modulename
+2008-07-02: olly
+	    [Python] Import the C extension differently for Python 2.6 and
+	    later so that an implicit relative import doesn't produce a
+	    deprecation warning for 2.6 and a failure for 2.7 and later.
+	    Patch from Richard Boulton in SF#2008229, plus follow-up patches
+	    from Richard and Haoyu Bai.
 

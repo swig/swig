@@ -86,7 +86,7 @@
               short, signed short, unsigned short,
               int, signed int, unsigned int,
               long, signed long, unsigned long,
-              float, double, long double, char *, void *
+              float, double, long double, char *, void *,
               enum SWIGTYPE, SWIGTYPE *,
               SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
 #ifdef __cplusplus
@@ -125,8 +125,9 @@
                     int, signed int, unsigned int,
                     long, signed long, unsigned long,
                     enum SWIGTYPE       "cl:integer";
-%typemap(lispclass) float "cl:single-float";
-%typemap(lispclass) double "cl:double-float";
+/* CLOS methods can't be specialized on single-float or double-float */
+%typemap(lispclass) float "cl:number";
+%typemap(lispclass) double "cl:number";
 %typemap(lispclass) char * "cl:string";
 
 

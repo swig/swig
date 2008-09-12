@@ -482,7 +482,8 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	Delete(t_name);
       }
       /* A template-based class lookup */
-      if (0 && !rn && SwigType_istemplate(prefix)) {
+      /*
+      if (!rn && SwigType_istemplate(prefix)) {
 	String *t_prefix = SwigType_templateprefix(prefix);
 	if (Strcmp(t_prefix, prefix) != 0) {
 	  String *t_name = SwigType_templateprefix(name);
@@ -491,6 +492,7 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	}
 	Delete(t_prefix);
       }
+      */
     }
     /* A wildcard-based class lookup */
     if (!rn) {
@@ -1477,7 +1479,7 @@ String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType 
   }
 
 
-  if (rename_hash || rename_list) {
+  if (rename_hash || rename_list || namewarn_hash || namewarn_list) {
     Hash *rn = Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
     if (!rn || !Swig_name_match_nameobj(rn, n)) {
       rn = Swig_name_nameobj_lget(Swig_name_rename_list(), n, prefix, name, decl);

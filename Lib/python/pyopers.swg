@@ -33,6 +33,12 @@
 /* Special cases */
 %rename(__invert__)     *::operator~;
 %rename(__call__)       *::operator();
+
+%feature("shadow")      *::operator bool %{
+def __nonzero__(self):
+    return $action(self)
+__bool__ = __nonzero__
+%};
 %rename(__nonzero__)    *::operator bool;
 
 /* Ignored operators */

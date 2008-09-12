@@ -36,6 +36,7 @@ static int error_as_warning = 0;	/* Understand the cpp #error directive as a spe
 /* Test a character to see if it valid in an identifier (after the first letter) */
 #define isidchar(c) ((isalnum(c)) || (c == '_') || (c == '$'))
 
+DOH *Preprocessor_replace(DOH *);
 
 /* Skip whitespace */
 static void skip_whitespace(String *s, String *out) {
@@ -698,7 +699,6 @@ static String *get_options(String *str) {
 static String *expand_macro(String *name, List *args) {
   String *ns;
   DOH *symbols, *macro, *margs, *mvalue, *temp, *tempa, *e;
-  DOH *Preprocessor_replace(DOH *);
   int i, l;
   int isvarargs = 0;
 
@@ -935,7 +935,6 @@ static String *expand_macro(String *name, List *args) {
 
 List *evaluate_args(List *x) {
   Iterator i;
-  String *Preprocessor_replace(String *);
   List *nl = NewList();
 
   for (i = First(x); i.item; i = Next(i)) {
@@ -1795,7 +1794,7 @@ String *Preprocessor_parse(String *s) {
 	for (i = 0; i < 6;) {
 	  c = Getc(s);
 	  Putc(c, value);
-	  statement[i++] = c;
+	  statement[i++] = (char)c;
 	  if (strncmp(statement, ed, i) && strncmp(statement, df, i))
 	    break;
 	}

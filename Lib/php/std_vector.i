@@ -48,6 +48,7 @@ namespace std {
       public:
         vector(unsigned int size = 0);
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %rename(push) push_back;
@@ -86,6 +87,7 @@ namespace std {
       public:
         vector(unsigned int size = 0);
         unsigned int size() const;
+        %rename(is_empty) empty;
         bool empty() const;
         void clear();
         %rename(push) push_back;

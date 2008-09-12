@@ -22,3 +22,4 @@ run:
 	python runme.py
 
 check: all
+	$(MAKE) -f $(TOP)/Makefile python_run

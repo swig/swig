@@ -44,20 +44,23 @@
 </p>
 
 <p>
+SWIG supports generating wrappers for PHP5.  Support for PHP4 has been removed
+as of SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
+and won't even be patching critical security issues after 2008-08-08, so it
+doesn't make much sense for SWIG to continue to support PHP4 at this point.
+If you need to continue to use PHP4, stick with SWIG 1.3.36.
+</p>
+
+<p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
-was extensively rewritten in release 1.3.26, and although it is
-significantly more functional, it still does not implement all the
+was extensively rewritten in release 1.3.26, and support for generating
+OO wrappers for PHP5 was added in 1.3.30.  The PHP module works fairly
+well, but currently does not implement all the
 features available in some of the other languages.
 </p>
 
 <p>
-The examples and test cases have been developed with PHP4.  Release
-1.3.30 added support for generating PHP5 class wrappers for C++
-libraries.
-</p>
-
-<p>
-In order to use this module, you will need to have a copy of the PHP4 or PHP5
+In order to use this module, you will need to have a copy of the PHP5
 include files to compile the SWIG generated files.  If you installed
 PHP from a binary package, you may need to install a "php-dev" or "php-devel"
 package for these to be installed.  You can find out where these files are
@@ -88,7 +91,7 @@ you wish to statically link the extension into the php interpreter.
 The third file,
 <tt>example.php</tt> can be included by PHP scripts.  It attempts to
 dynamically load the extension and contains extra php code specified
-in the interface file.  If wrapping C++ code for PHP5, it will
+in the interface file.  If wrapping C++ code with PHP classes, it will
 also contain PHP5 class wrappers.
 </p>
 
@@ -100,7 +103,8 @@ more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
 
 <p>
 The usual (and recommended) way is to build the extension as a separate
-dynamically loaded module. You can then specify that this be loaded
+dynamically loaded module (which is supported by all modern operating
+systems).  You can then specify that this be loaded
 automatically in <tt>php.ini</tt> or load it explicitly for any script which
 needs it.
 </p>
@@ -110,17 +114,15 @@ It is also possible to rebuild PHP from source so that your module is
 statically linked into the php executable/library.  This is a lot more
 work, and also requires a full rebuild of PHP to update your module,
 and it doesn't play nicely with package system.  We don't recommend
-this approach, but if you really want to do this, the <tt>-phpfull</tt>
-command line argument to swig may be of use - see below for details.
+this approach, or provide explicit support for it.
 </p>
 
 <H3><a name="Php_nn1_1"></a>28.1.1 Building a loadable extension</H3>
 
-
 <p>
 To build your module as a dynamically loadable extension, use compilation
 commands like these (if you aren't using GCC, the commands will be different,
-and there may be so variation between platforms - these commands should at
+and there may be some variation between platforms - these commands should at
 least work for Linux though):
 </p>
 
@@ -129,136 +131,7 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<p>
-There is a deprecated <tt>-make</tt> command line argument to swig which will
-generate an additional file <tt>makefile</tt> which can usually build the
-extension (at least on some UNIX platforms), but the Makefile generated isn't
-very flexible, and the commands required are trivial so it is simpler to just
-add them to your Makefile or other build system directly.  We recommend that
-you don't use <tt>-make</tt> and it's likely to be removed at some point.
-</p>
-
-<H3><a name="Php_nn1_2"></a>28.1.2 Building extensions into PHP</H3>
-
-
-<p>
-Note that we don't recommend this approach - it's cleaner and simpler to
-use dynamically loadable modules, which are supported by all modern OSes.
-Support for this may be discontinued entirely in the future.
-</p>
-
-<p>
-It is possible to rebuild PHP itself with your module statically linked
-in.  To do this, you can use the <tt>-phpfull</tt> command line option to
-swig.  Using this option will generate three additional files.  The first
-extra file, <tt>config.m4</tt> contains the m4 and shell code needed to
-enable the extension as part of the PHP build process. The second
-extra file, <tt>Makefile.in</tt> contains the information needed to
-build the final Makefile after substitutions. The third and final
-extra file, <tt>CREDITS</tt> should contain the credits for the
-extension.
-</p>
-
-<p>
-To build with phpize, after you have run swig you will need to run the
-'phpize' command (installed as part of php) in the same
-directory. This re-creates the php build environment in that
-directory. It also creates a configure file which includes the shell
-code from the config.m4 that was generated by SWIG, this configure
-script will accept a command line argument to enable the extension to
-be run (by default the command line argument is --enable-modulename,
-however you can edit the config.m4 file before running phpize to
-accept --with-modulename. You can also add extra tests in config.m4 to
-check that a correct library version is installed or correct header
-files are included, etc, but you must edit this file before running
-phpize.) You can also get SWIG to generate simple extra tests for
-libraries and header files for you.
-</p>
-
-<div class="code"><pre>
-	swig -php -phpfull
-</pre></div>
-
-<p>
-If you depend on source files not generated by SWIG, before generating
-the configure file, you may need to edit the <tt>Makefile.in</tt>
-file. This contains the names of the source files to compile (just the
-wrapper file by default) and any additional libraries needed to be
-linked in. If there are extra C files to compile, you will need to add
-them to the <tt>Makefile.in</tt>, or add the names of libraries if they are
-needed.  In simple cases SWIG is pretty good at generating a complete
-<tt>Makefile.in</tt> and <tt>config.m4</tt> which need no further editing.
-</p>
-
-<p>
-You then run the configure script with the command line argument needed
-to enable the extension. Then run make, which builds the extension.
-The extension object file will be left in the modules sub directory, you can
-move it to wherever it is convenient to call from your php script. 
-</p>
-
-<p>
-When using <tt>-phpfull</tt>, swig also accepts the following
-additional optional arguments:
-</p>
-<ul>
-<li><tt>-withincs "&lt;incs&gt;"</tt> Adds include files to the config.m4 file.
-<li><tt>-withlibs "&lt;libs&gt;"</tt> Links with the specified libraries.
-<li><tt>-withc "&lt;files&gt;"</tt> Compiles and links the additional specified C files.
-<li><tt>-withcxx "&lt;files&gt;"</tt> Compiles and links the additional specified C++ files.
-</ul>
-
-<p>
-After running swig with the <tt>-phpfull</tt> switch, you will be left with a shockingly
-similar set of files to the previous build process. However you will then need
-to move these files to a subdirectory within the php source tree, this subdirectory you will need to create under the ext directory, with the name of the extension (e.g. <tt>mkdir php-4.0.6/ext/modulename</tt>).
-</p>
-
-<p>
-After moving the files into this directory, you will need to run the 'buildall'
-script in the php source directory. This rebuilds the configure script 
-and includes the extra command line arguments from the module you have added. 
-</p>
-
-<p>
-Before running the generated configure file, you may need to edit the <tt>
-Makefile.in</tt>. This contains the names of the source files to compile (
-just the wrapper file by default) and any additional libraries needed to
-link in. If there are extra C files to compile you will need to add them
-to the Makefile, or add the names of libraries if they are needed.
-In most cases <tt>Makefile.in</tt> will be complete, especially if you 
-make use of <tt>-withlibs</tt> and <tt>-withincs</tt>
-</p>
-
-<div class="code"><pre>
-	swig -php -phpfull -withlibs "xapian omquery" --withincs "om.h"
-</pre></div>
-
-<p>
-Will include in the <tt>config.m4</tt> and <tt>Makefile.in</tt> search for
-<tt>libxapian.a</tt> or <tt>libxapian.so</tt> and search for
-<tt>libomquery.a</tt> or <tt>libomquery.so</tt> as well as a 
-search for <tt>om.h</tt>.
-</p>
-
-<p>
-You then need to run the configure command and pass the necessary command
-line arguments to enable your module (by default this is --enable-modulename,
-but this can be changed by editing the config.m4 file in the modules directory
-before running the buildall script. In addition, extra tests can be added to
-the config.m4 file to ensure the correct libraries and header files are 
-installed.)
-</p>
-
-<p>
-Once configure has completed, you can run make to build php. If this all
-compiles correctly, you should end up with a php executable/library
-which contains your new module. You can test it with a php script which
-does not have the 'dl' command as used above.
-</p>
-
 <H3><a name="Php_nn1_3"></a>28.1.3 Using PHP Extensions</H3>
-
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
@@ -717,20 +590,9 @@ variable, or assigning <tt>NULL</tt> to a variable.
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes.  This
-requires SWIG to generate different code for PHP4 and PHP5, so you must
-specify which you want using <tt>-php4</tt> or <tt>-php5</tt> (currently
-<tt>-php</tt> generates PHP4 class wrappers for compatibility with
-SWIG 1.3.29 and earlier, but this may change in the future).
-</p>
-
-<p>
-PHP4 classes are implemented entirely using the Zend C API so
-no additional php code is generated.  For PHP5, a PHP wrapper
+SWIG defaults to wrapping C++ structs and classes with PHP classes
+unless "-noproxy" is specified.  For PHP5, a PHP wrapper
 class is generated which calls a set of flat functions wrapping the C++ class.
-In many cases the PHP4 and PHP5 wrappers will behave the same way,
-but the PHP5 ones make use of better PHP5's better OO functionality
-where appropriate.
 </p>
 
 <p>
@@ -754,7 +616,7 @@ struct Complex {
 </pre></div>
 
 <p>
-Would be used in the following way from either PHP4 or PHP5:
+Would be used in the following way from PHP5:
 </p>
 
 <div class="code"><pre>
@@ -854,9 +716,9 @@ the programmer can either reassign the variable or call
 
 
 <p>
-Static member variables are not supported in PHP4, and it does not
-appear to be possible to intercept accesses to static member variables
-in PHP5. Therefore, static member variables are
+Static member variables in C++ are not wrapped as such in PHP
+as it does not appear to be possible to intercept accesses to such variables.
+Therefore, static member variables are
 wrapped using a class function with the same name, which
 returns the current value of the class variable. For example
 </p>

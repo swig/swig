@@ -51,9 +51,9 @@ intermediary_classname.customtest:
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
-	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
 		mkdir $*;						  \

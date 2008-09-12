@@ -5,7 +5,7 @@ using char_stringsNamespace;
 public class char_strings_runme {
 
   private static string CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
-  private static string OTHERLAND_MSG = "Little message from the the safe world.";
+  private static string OTHERLAND_MSG = "Little message from the safe world.";
 
   public static void Main() {
 
