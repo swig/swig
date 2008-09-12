@@ -1363,6 +1363,10 @@ static void default_arguments(Node *n) {
           if (throws) Setattr(new_function,"throws",pl);
 	  Delete(pl);
         }
+	
+	/* copy doxygen comments if found */
+	if(Getattr(function,"DoxygenComment"))
+	  Setattr(new_function,"DoxygenComment",Getattr(function,"DoxygenComment"));
 
         /* copy specific attributes for global (or in a namespace) template functions - these are not templated class methods */
         if (strcmp(cntype,"template") == 0) {
