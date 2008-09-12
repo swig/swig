@@ -14,8 +14,7 @@
 #include <iostream>
 
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a pydoc tag
-PyDocConverter::PyDocConverter()
-{
+PyDocConverter::PyDocConverter(){
     debug = 1;
 }
 
@@ -88,36 +87,32 @@ std::string PyDocConverter::translateSubtree( DoxygenEntity &doxygenEntity){
 }
 
 std::string PyDocConverter::translateEntity(Node *n, DoxygenEntity &doxyEntity){
-  if(doxyEntity.typeOfEntity.compare("partofdescription")== 0) 
+  if(doxyEntity.typeOfEntity.compare("partofdescription") == 0) 
     return justifyString(std::string(translateSubtree(doxyEntity)), 0);
   
-  if ((doxyEntity.typeOfEntity.compare("brief") == 0)||(doxyEntity.typeOfEntity.compare("details") == 0)){
-    return justifyString(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";}
+  if ((doxyEntity.typeOfEntity.compare("brief") == 0)
+      ||(doxyEntity.typeOfEntity.compare("details") == 0))
+    return justifyString(std::string(translateSubtree(doxyEntity)), 0) + "\n";
   
-  if(doxyEntity.typeOfEntity.compare("plainstd::string")== 0 
-    || doxyEntity.typeOfEntity.compare("deprecated")== 0 
-    || doxyEntity.typeOfEntity.compare("brief")== 0)
-    return justifyString(doxyEntity.data, 0) + "\n * ";
-  
-  if(doxyEntity.typeOfEntity.compare("see") == 0)
-    return justifyString(std::string("@" + doxyEntity.typeOfEntity + "\t\t" + translateSubtree(doxyEntity)), 2);
+  if(doxyEntity.typeOfEntity.compare("plainstring") == 0 
+    || doxyEntity.typeOfEntity.compare("deprecated") == 0 
+    || doxyEntity.typeOfEntity.compare("brief") == 0)
+    return justifyString(doxyEntity.data, 0) + "\n";
   
   if(doxyEntity.typeOfEntity.compare("param") == 0)
     return formatParam(n, doxyEntity);
   
-  if(doxyEntity.typeOfEntity.compare("return")== 0)
+  if(doxyEntity.typeOfEntity.compare("return") == 0)
     return formatReturnDescription(n, doxyEntity);
 
-  if(doxyEntity.typeOfEntity.compare("author")== 0
-    || doxyEntity.typeOfEntity.compare("param")== 0
-    || doxyEntity.typeOfEntity.compare("since")== 0
-    || doxyEntity.typeOfEntity.compare("version")== 0
+  if(doxyEntity.typeOfEntity.compare("author") == 0
+    || doxyEntity.typeOfEntity.compare("param") == 0
+    || doxyEntity.typeOfEntity.compare("since") == 0
+    || doxyEntity.typeOfEntity.compare("version") == 0
     || doxyEntity.typeOfEntity.compare("exception") == 0
-    || doxyEntity.typeOfEntity.compare("deprecated") == 0)
-    return justifyString(std::string("@" + doxyEntity.typeOfEntity + "\t" + translateSubtree(doxyEntity)), 2);
-  
-  if(doxyEntity.typeOfEntity.compare("sa")== 0)
-    return justifyString(std::string("@see\t\t" + translateSubtree(doxyEntity)), 2);
+    || doxyEntity.typeOfEntity.compare("deprecated") == 0
+    || doxyEntity.typeOfEntity.compare("sa") == 0)
+    return "";
 
   return justifyString(doxyEntity.data);
 }
