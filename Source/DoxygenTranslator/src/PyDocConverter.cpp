@@ -2,9 +2,6 @@
 #include <iostream>
 #include <sstream>
 
-#define APPROX_LINE_LENGTH 64//characters per line allowed
-#define TAB_SIZE 8//characters per line allowed
-
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a pydoc tag
 PyDocConverter::PyDocConverter()
 {
@@ -15,7 +12,7 @@ PyDocConverter::~PyDocConverter()
 {
 }
  
-void PyDocConverter::printSortedTree(std::list <DoxygenEntity> &entityList){
+void PyDocConverter::printTree(std::list <DoxygenEntity> &entityList){
   std::list<DoxygenEntity>::iterator p = entityList.begin();
   while (p != entityList.end()){
     (*p).printEntity(0);
@@ -24,24 +21,23 @@ void PyDocConverter::printSortedTree(std::list <DoxygenEntity> &entityList){
 }
 
 std::string PyDocConverter::formatParam(Node *n, DoxygenEntity &doxygenEntity) {
-  std::string result;
   ParmList *plist = CopyParmList(Getattr(n, "parms"));
   Parm *p = NULL;
   
   DoxygenEntity& paramNameEntity = *doxygenEntity.entityList.begin();
   DoxygenEntity& paramDescriptionEntity = *(++doxygenEntity.entityList.begin());
   
+  std::string result;
+  std::string paramDescription = formatCommand(paramDescriptionEntity.data, DOC_PARAM_STRING_LENGTH);
+  
   for (p = plist; p;) {
     if(Char(Getattr(p, "name")) == paramNameEntity.data) {
       std::string name = Char(Swig_name_make(n, 0, Getattr(p, "name"), 0, 0));
       std::string type = Char(Swig_name_make(n, 0, Getattr(p, "type"), 0, 0));
       
-      std::ostringstream parameterDocString;
-      
-      parameterDocString << std::endl << name << " (" << type << ") -- ";
-      parameterDocString << paramDescriptionEntity.data;
-      
-      result = parameterDocString.str();
+      result = name + " (" + type + ") ";
+      result.resize(DOC_PARAM_STRING_LENGTH - 3, ' ');
+      result += "-- " + paramDescription.substr(DOC_PARAM_STRING_LENGTH);
       break;
     }
     p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
@@ -51,88 +47,33 @@ std::string PyDocConverter::formatParam(Node *n, DoxygenEntity &doxygenEntity) {
   return result;
 }
 
-std::string PyDocConverter::formatCommand(std::string unformattedLine, int indent){
-  std::string formattedLines = "\n";
-  int lastPosition = 0;
-  signed int i = 0;
-  bool isFirstLine  = true;
-  while (i != -1 && i < (int)unformattedLine.length()){
-    lastPosition = i;
-    if (isFirstLine){
-      i+=APPROX_LINE_LENGTH;
-    }
-    else i+=APPROX_LINE_LENGTH - indent*TAB_SIZE;
-    i = unformattedLine.find(" ", i);
-
-    if (i > 0 && i + 1 < (int)unformattedLine.length()){
-      if (!isFirstLine) for (int j = 0; j < indent; j++) {
-        formattedLines.append("\t");
-        }
-      else {
-        isFirstLine = false;
-      }
-      formattedLines.append(unformattedLine.substr(lastPosition, i - lastPosition + 1));
-      formattedLines.append("\n");
-
+std::string PyDocConverter::formatCommand(std::string documentString, int indent, int maxWidth){
+  std::ostringstream formattedString;
+  std::string currentLine;
+  
+  for(std::string::iterator stringPosition = documentString.begin(); stringPosition != documentString.end(); ++stringPosition)
+  {
+    if(currentLine.length() == 0)
+      currentLine.resize(indent, ' ');
+    
+    currentLine += *stringPosition;
+      
+    if(*stringPosition == ' ' && (int)currentLine.size() >= maxWidth || (stringPosition + 1) == documentString.end())
+    {
+      formattedString << currentLine << std::endl;
+      currentLine = "";
     }
   }
-  if (lastPosition < (int)unformattedLine.length()){
-    if (!isFirstLine) {for (int j = 0; j < indent; j++) {formattedLines.append("\t");}}
-    formattedLines.append(unformattedLine.substr(lastPosition, unformattedLine.length() - lastPosition));
-  }
-
-  return formattedLines;
+  
+  return formattedString.str();
 }
-
-/* Contains the conversions for tags
- * could probably be much more efficient...
- */
-std::string PyDocConverter::pyDocFormat(DoxygenEntity &doxygenEntity){
-  if(doxygenEntity.typeOfEntity.compare("partofdescription") == 0){
-        return doxygenEntity.data;
-    }
-  if (doxygenEntity.typeOfEntity.compare("plainstd::string") == 0){
-      return  doxygenEntity.data;
-  }
-  else if (doxygenEntity.typeOfEntity.compare("b") == 0){
-    return "<b>" + doxygenEntity.data + "</b>";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("c") == 0){
-    return "<tt>" + doxygenEntity.data + "</tt>";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("@") == 0){
-    return "@";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("\\") == 0){
-    return "\\";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("<") == 0){
-    return "&lt;";
-  }
-  else if (doxygenEntity.typeOfEntity.compare(">") == 0){
-    return "&gt;";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("&") == 0){
-    return "&amp;";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("#") == 0){
-    return "#";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("%") == 0){
-    return "%";
-  }
-  else if (doxygenEntity.typeOfEntity.compare("~") == 0){
-    return "~";
-  }
-  return "";
-}
-
 
 std::string PyDocConverter::translateSubtree( DoxygenEntity &doxygenEntity){
   std::string returnedString;
-  if (doxygenEntity.isLeaf){ return pyDocFormat(doxygenEntity) + " ";}
+  if (doxygenEntity.isLeaf)
+    return doxygenEntity.data + " ";
   else {
-    returnedString += pyDocFormat(doxygenEntity);
+    returnedString += doxygenEntity.data;
     std::list<DoxygenEntity>::iterator p = doxygenEntity.entityList.begin();
     while (p != doxygenEntity.entityList.end()){
       returnedString+= translateSubtree(*p);
@@ -150,8 +91,8 @@ std::string PyDocConverter::translateEntity(Node *n, DoxygenEntity &doxyEntity){
     return formatCommand(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";}
   
   if(doxyEntity.typeOfEntity.compare("plainstd::string")== 0 
-      || doxyEntity.typeOfEntity.compare("deprecated")== 0 
-      || doxyEntity.typeOfEntity.compare("brief")== 0)
+    || doxyEntity.typeOfEntity.compare("deprecated")== 0 
+    || doxyEntity.typeOfEntity.compare("brief")== 0)
     return formatCommand(doxyEntity.data, 0) + "\n * ";
   
   if(doxyEntity.typeOfEntity.compare("see") == 0)
@@ -159,33 +100,38 @@ std::string PyDocConverter::translateEntity(Node *n, DoxygenEntity &doxyEntity){
   
   if(doxyEntity.typeOfEntity.compare("param") == 0)
     return formatParam(n, doxyEntity);
+  
+  if(doxyEntity.typeOfEntity.compare("return")== 0)
+    
 
-  if(doxyEntity.typeOfEntity.compare("return")== 0
-      || doxyEntity.typeOfEntity.compare("author")== 0
-      || doxyEntity.typeOfEntity.compare("param")== 0
-      || doxyEntity.typeOfEntity.compare("since")== 0
-      || doxyEntity.typeOfEntity.compare("version")== 0
-      || doxyEntity.typeOfEntity.compare("exception") == 0
-      || doxyEntity.typeOfEntity.compare("deprecated") == 0)
+  if(doxyEntity.typeOfEntity.compare("author")== 0
+    || doxyEntity.typeOfEntity.compare("param")== 0
+    || doxyEntity.typeOfEntity.compare("since")== 0
+    || doxyEntity.typeOfEntity.compare("version")== 0
+    || doxyEntity.typeOfEntity.compare("exception") == 0
+    || doxyEntity.typeOfEntity.compare("deprecated") == 0)
     return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t" + translateSubtree(doxyEntity)), 2);
   
   if(doxyEntity.typeOfEntity.compare("sa")== 0)
     return formatCommand(std::string("@see\t\t" + translateSubtree(doxyEntity)), 2);
 
-  return formatCommand(pyDocFormat(doxyEntity), 0);
+  return formatCommand(doxyEntity.data, 0);
 }
 
 std::string PyDocConverter::convertToPyDoc(Node *n, std::list<DoxygenEntity> entityList){
-  entityList.sort(CompareDoxygenEntities());
+  std::string pyDocString = "\"\"\"\n";
   
-  if(debug){
-    std::cout << "---RESORTED LIST---" << std::endl;
-    printSortedTree(entityList);
-  }
-
-  std::string pyDocString = "\"\"\"";
+  bool inParamsSection = false;
   
   for(std::list<DoxygenEntity>::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();){
+    if(entityIterator->typeOfEntity.compare("param") == 0 && !inParamsSection)
+    {
+      inParamsSection = true;
+      pyDocString += "\nArguments:\n";
+    }
+    else if(entityIterator->typeOfEntity.compare("param") != 0 && inParamsSection)
+      inParamsSection = false;
+    
     pyDocString += translateEntity(n, *entityIterator);
     entityIterator++;
   }
@@ -194,7 +140,8 @@ std::string PyDocConverter::convertToPyDoc(Node *n, std::list<DoxygenEntity> ent
   
   if(debug){
     std::cout << "\n---RESULT IN PYDOC---" << std::endl;
-    std::cout << pyDocString; 
+    std::cout << pyDocString;
+    std::cout << std::endl;
   }
   
   return pyDocString;
