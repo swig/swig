@@ -679,13 +679,17 @@ else
 # First figure out the name of the Python3 executable 
 
 if test "x$PY3BIN" = xyes; then
-AC_CHECK_PROGS(PYTHON3, [python3 python3.0])
+  AC_CHECK_PROGS(PYTHON3, [python3 python3.0])
 else
-PYTHON3="$PY3BIN"
+  PYTHON3="$PY3BIN"
 fi
 
 # Check for Python 3.x development tools (header files, static library and python3-config)
-AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config])
+if test "x$PYTHON3" = x; then
+  AC_CHECK_PROGS(PY3CONFIG, [python3-config python3.0-config])
+else
+  AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config])
+fi
 
 if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
