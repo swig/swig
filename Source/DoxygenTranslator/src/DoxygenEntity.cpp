@@ -10,27 +10,6 @@
 #include "DoxygenEntity.h"
 #include <iostream>
 
-/* 
- * Basic node for commands that have nothing after them (eg: \n)
- */
-std::string DoxygenEntity::commandArray[] = {"a", "addindex", "addtogroup", "anchor", "arg", "attention",
-		"author", "b", "brief", "bug", "c", "callgraph", "callergraph", "category",
-		"class", "code", "cond", "copybrief", "copydetails", "copydoc", "date", "def",
-		"defgroup", "deprecated", "details", "dir", "dontinclude", "dot", "dotfile", "e",
-		"else", "elseif", "em", "endcode", "endcond", "enddot", "endhtmlonly", "endif",
-		"std::endlatexonly", "std::endlink", "endmanonly", "endmsc", "endverbatim", "endxmlonly",
-		"enum", "example", "exception", "f$", "f[", "f]", "f{", "f}", "file", "fn", "headerfile",
-		"hideinitializer", "htmlinclude", "htmlonly", "if", "ifnot", "image", "include",
-		"includelineno", "ingroup", "internal", "invariant", "interface", "latexonly", "li",
-		"line", "link", "mainpage", "manonly", "msc", "n", "name", "namespace", "nosubgrouping",
-		"note", "overload", "p", "package", "page", "par", "paragraph", "param", "post", "pre",
-		"private", "privatesection", "property", "protected", "protectedsection", "protocol",
-		"public", "publicsection", "ref", "relates", "relatesalso", "remarks", "return", "retval",
-		"sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
-		"subsection", "subsubsection", "test", "throw", "todo", "tparam", "typedef", "union", "until",
-		"var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem",
-		"$", "@", std::string(1, 92), "&", "~", "<", ">", "#", "%"};
-
 DoxygenEntity::DoxygenEntity(std::string typeEnt){
     typeOfEntity = typeEnt;
     data = "";

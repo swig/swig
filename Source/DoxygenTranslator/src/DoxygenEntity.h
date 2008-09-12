@@ -25,7 +25,6 @@ struct DoxygenEntity{
   std::list <DoxygenEntity> entityList;
   std::string data;
   int isLeaf;
-  static std::string commandArray[];
 };
 
 /* 
