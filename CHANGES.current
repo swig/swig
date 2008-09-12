@@ -1,6 +1,12 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-12: bhy
+            [Python] Python 3.0 support branch merged into SWIG trunk. Thanks
+            Google Summer of Code 2008 for support this project! For details of
+            Python 3 support, please see the "Python 3 Support" section in the
+            "SWIG and Python" chapter of SWIG documentation.
+
 2008-09-02: richardb
 	    [Python] Commit patch #2089149: Director exception handling mangles
 	    returned exception.  Exceptions raised by Python code in directors
