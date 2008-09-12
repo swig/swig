@@ -13,7 +13,7 @@
 
 #define yylex yylex
 
-char cvsroot_parser_y[] = "$Id$";
+char cvsroot_parser_y[] = "$Id: parser.y 10767 2008-08-16 07:31:05Z cherylfoil $";
 
 #include "swig.h"
 #include "cparse.h"
@@ -3209,15 +3209,18 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 doxygen_comment : DOXYGENSTRING 
 	{
+		while(Strchr($1,'/') == Char($1))
+			Replace($1,"/","",DOH_REPLACE_FIRST);
 	  if(isStructuralDoxygen($1)){
 	    $$ = new_node("doxycomm");
 		Setattr($$,"DoxygenComment",$1);
 	    }
 	  else {  
 	    if(currentComment != 0){
-		    Append(currentComment, $1);
+				Append(currentComment,$1);
 		    }
-		else currentComment = $1;
+			else 
+				currentComment = $1;
 		$$ = 0;
 	    }
 	}

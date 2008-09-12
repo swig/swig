@@ -21,5 +21,17 @@ public:
     int isLeaf;
 };
 
+struct find_entity {
+	find_entity(string typeString) {
+		typeOfEntity = typeString;
+	}
+	
+	bool operator()(DoxygenEntity& entity) {
+		return entity.typeOfEntity == typeOfEntity;
+	}
+	
+	string typeOfEntity;
+};
+
 
 #endif /*TOKENLIST_H_*/

@@ -510,7 +510,7 @@ public:
       if (doxygen_javadoc_flag){
       	if (Getattr(n,"DoxygenComment")){
       		  if(comment_creation_chatter) Printf(f_module, "/* This was generated from top() */");
-      		  char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");
+      		  char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");
       		  Printf(f_module, convertedString); 	
       		  free(convertedString);
       	}
@@ -1238,7 +1238,7 @@ public:
 	    if (doxygen_javadoc_flag){
 	    	if (Getattr(n,"DoxygenComment")){
 	    		if(comment_creation_chatter) Printv(proxy_class_constants_code, "/* This was generated from enumvalueDeclaration */", NIL );
-	    		char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");
+	    		char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");
 	    		Printv(proxy_class_constants_code, convertedString, NIL); 	
 	    		free(convertedString); 
 	    	}
@@ -1310,7 +1310,7 @@ public:
     if (doxygen_javadoc_flag){
     	if (Getattr(n,"DoxygenComment")){
     		  if(comment_creation_chatter) Printf(enum_code, "/* This was generated from enumvalueDeclaration() */" );
-	    	  char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");		
+	    	  char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");		
     		  Printf(enum_code, convertedString); 	
     		  free(convertedString); 
     	}
@@ -1382,7 +1382,7 @@ public:
 		 if (doxygen_javadoc_flag){
 		   if (Getattr(n,"DoxygenComment")){
 			      if(comment_creation_chatter) Printv(structuralComments, "/* This was generated from doxygenComment() */\n", NIL);
-		    	  char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+		    	  char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
 			      Printv(structuralComments, convertedString, NIL);
 			      free(convertedString);
 		    	}
@@ -1412,7 +1412,7 @@ public:
     if (doxygen_javadoc_flag){
     	if (Getattr(n,"DoxygenComment")){
     		if(comment_creation_chatter) Printf(constants_code, "/* This was generated from enumvalueDeclaration */\n");
-	    	char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+	    	char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
             Printf(constants_code, convertedString); 	
 		    free(convertedString);
     	}
@@ -1683,7 +1683,7 @@ public:
     if (doxygen_javadoc_flag){
     	if (Getattr(n,"DoxygenComment")){
     		if(comment_creation_chatter) Printv(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */\n", NIL );
-	    	char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+	    	char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
 	    	Printv(proxy_class_def, convertedString, NIL); 		
 		    free(convertedString);
     	}
@@ -2026,7 +2026,7 @@ public:
     if (doxygen_javadoc_flag){
     	if (Getattr(n,"DoxygenComment")){
     		if(comment_creation_chatter) Printf(function_code, "/* This was generated from proxyclassfunctionhandler */");
-  	    	char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+  	    	char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
   	    	 Printf(function_code, convertedString); 		
   		    free(convertedString);
     	}
@@ -2258,7 +2258,7 @@ public:
 	    if (doxygen_javadoc_flag){
 	    	if (Getattr(n,"DoxygenComment")){
 	    		if(comment_creation_chatter) Printf(function_code, "/* This was generated from constructionhandler */\n" );
-	  	    	char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+	  	    	char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
 	  	    	Printf(function_code, convertedString); 			
 		  		free(convertedString);
 	    	}
@@ -2529,7 +2529,7 @@ public:
     if (doxygen_javadoc_flag){
     	if (Getattr(n,"DoxygenComment")){
     		if(comment_creation_chatter) Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */\n" );
-  	    	char *convertedString = doxyTranslator.convert(Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
+  	    	char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")),"JAVADOC");			
   	    	Printf(function_code, convertedString); 			
 	  		free(convertedString);	
     	}

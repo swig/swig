@@ -5,13 +5,16 @@
 #include <string>
 #include "DoxygenEntity.h"
 #include "JavaDocConverter.h"
+#include "PyDocConverter.h"
 
 DoxygenParser doxyParse;
 JavaDocConverter jDC;
+PyDocConverter pyDC;
 
 DoxygenTranslator::DoxygenTranslator(){
 	doxyParse = DoxygenParser();
     JavaDocConverter jDC = JavaDocConverter();
+    PyDocConverter pyDC = PyDocConverter();
 }
 
 DoxygenTranslator::~DoxygenTranslator(){
@@ -19,13 +22,16 @@ DoxygenTranslator::~DoxygenTranslator(){
 }
 
 
-char *DoxygenTranslator::convert(char* doxygenBlob, char* option){
+char *DoxygenTranslator::convert(Node *n, char* doxygenBlob, char* option){
 	
 	list <DoxygenEntity> rootList = doxyParse.createTree(string(doxygenBlob));
 	
 	string returnedString;
 	if(strcmp(option, "JAVADOC") == 0){
-	    returnedString = jDC.convertToJavaDoc(rootList);
+	    returnedString = jDC.convertToJavaDoc(n, rootList);
+	}
+	else if(strcmp(option, "PYDOC") == 0){
+	    returnedString = pyDC.convertToPyDoc(n, rootList);
 	}
 	else cout << "Option not current supported.\n";
 	char *nonConstString;
@@ -59,7 +65,7 @@ int testCommands(){
 		//cout << "---ORIGINAL DOXYGEN--- " << endl << exampleArray[i] << endl;
 		char *nonConstString = (char *)malloc(exampleArray[i].length()+1);
 		strcpy(nonConstString, exampleArray[i].c_str());
-		char * result = dT.convert(nonConstString, "JAVADOC");
+		char * result = dT.convert(NULL, nonConstString, "JAVADOC");
 		free(nonConstString);
 		free(result);
 	}

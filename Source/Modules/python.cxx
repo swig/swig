@@ -7,7 +7,7 @@
  * Python language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_python_cxx[] = "$Id$";
+char cvsroot_python_cxx[] = "$Id: python.cxx 10453 2008-05-15 21:18:44Z wsfulton $";
 
 #include "swigmod.h"
 #define ctab2  " "
@@ -18,6 +18,7 @@ char cvsroot_python_cxx[] = "$Id$";
 static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
+#include "../DoxygenTranslator/src/DoxygenTranslator.h"
 
 #define PYSHADOW_MEMBER  0x2
 
@@ -70,6 +71,7 @@ static int buildnone = 0;
 static int nobuildnone = 0;
 static int safecstrings = 0;
 static int dirvtable = 0;
+static int doxygen = 1;
 static int proxydel = 1;
 static int fastunpack = 0;
 static int fastproxy = 0;
@@ -82,6 +84,8 @@ static int castmode = 0;
 static int extranative = 0;
 static int outputtuple = 0;
 static int nortti = 0;
+
+static DoxygenTranslator doxyTranslator;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -103,6 +107,7 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+	 -doxygen		 - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
@@ -323,6 +328,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-dirvtable") == 0) {
 	  dirvtable = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-doxygen") == 0) {
+	  doxygen = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nodirvtable") == 0) {
 	  dirvtable = 0;
@@ -2898,11 +2906,24 @@ public:
         }
       }
       Printf(f_shadow, ":\n");
-      if (have_docstring(n)) {
+		
+	//translate and write pydoc comment if flagged
+	if (doxygen){
+		if (Getattr(n,"DoxygenComment")){
+			//if(comment_creation_chatter) Printf(function_code, "/* This was generated from classHandler */");
+			char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")), "PYDOC");			
+			Printf(f_shadow, Char(pythoncode(convertedString, shadow_indent))); 		
+			free(convertedString);
+		}
+	}
+	
+	// otherwise use default docstrings if requested
+	else if (have_docstring(n)) {
 	String *str = docstring(n, AUTODOC_CLASS, tab4);
 	if (str != NULL && Len(str))
 	  Printv(f_shadow, tab4, str, "\n", NIL);
       }
+		
       if (!modern) {
 	Printv(f_shadow, tab4, "__swig_setmethods__ = {}\n", NIL);
 	if (Len(base_class)) {
@@ -3109,6 +3130,14 @@ public:
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(",parms , ")", returnTypeAnnotation(n), ":", NIL);
 	    Printv(f_shadow, "\n", NIL);
+		if (doxygen) {
+			if (Getattr(n,"DoxygenComment")){
+				//if(comment_creation_chatter) Printf(function_code, "/* This was generated from classHandler */");
+				char *convertedString = doxyTranslator.convert(n, Char(Getattr(n,"DoxygenComment")), "PYDOC");			
+				Printf(f_shadow, Char(pythoncode(convertedString, tab8))); 		
+				free(convertedString);
+			}
+		}
 	    if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {

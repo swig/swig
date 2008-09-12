@@ -213,7 +213,7 @@ string translateEntity(DoxygenEntity &doxyEntity){
 	return "";
 }
 
-string JavaDocConverter:: convertToJavaDoc(list <DoxygenEntity> entityList){
+string JavaDocConverter:: convertToJavaDoc(Node *n, list <DoxygenEntity> entityList){
 
 
 	entityList.sort(compare_DoxygenEntities);

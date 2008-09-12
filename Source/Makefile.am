@@ -97,6 +97,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		DoxygenTranslator/src/DoxygenTranslator.cpp\
 		DoxygenTranslator/src/JavaDocConverter.h\
 		DoxygenTranslator/src/JavaDocConverter.cpp\
+		DoxygenTranslator/src/PyDocConverter.h\
+		DoxygenTranslator/src/PyDocConverter.cpp\
 		DoxygenTranslator/src/Token.h\
 		DoxygenTranslator/src/Token.cpp\
 		DoxygenTranslator/src/TokenList.h\
