@@ -1,31 +1,17 @@
 #include "JavaDocConverter.h"
+#include "DoxygenParser.h"
 #include <iostream>
 #define APPROX_LINE_LENGTH 64//characters per line allowed
 #define TAB_SIZE 8//characters per line allowed
 int printSortedTree2 = 0;
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
-JavaDocConverter::JavaDocConverter()
-{
-}
 
-JavaDocConverter::~JavaDocConverter()
-{
-}
-
-void JavaDocConverter::printSortedTree(std::list<DoxygenEntity> &entityList){
-  std::list<DoxygenEntity>::iterator p = entityList.begin();
-  while (p != entityList.end()){
-    (*p).printEntity(0);
-    p++;
-  }
-}
-
-std::string formatCommand(std::string unformattedLine, int indent){
+std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent){
   std::string formattedLines = "\n * ";
   int lastPosition = 0;
   int i = 0;
   int isFirstLine  = 1;
-  while (i != -1 && i < unformattedLine.length()){
+  while (i != -1 && i < (int)unformattedLine.length()){
     lastPosition = i;
     if (isFirstLine){
       i+=APPROX_LINE_LENGTH;
@@ -33,7 +19,7 @@ std::string formatCommand(std::string unformattedLine, int indent){
     else i+=APPROX_LINE_LENGTH - indent*TAB_SIZE;
     i = unformattedLine.find(" ", i);
 
-    if (i > 0 && i + 1 < unformattedLine.length()){
+    if (i > 0 && i + 1 < (int)unformattedLine.length()){
       if (!isFirstLine) for (int j = 0; j < indent; j++) {
         formattedLines.append("\t");
         }
@@ -45,7 +31,7 @@ std::string formatCommand(std::string unformattedLine, int indent){
 
     }
   }
-  if (lastPosition < unformattedLine.length()){
+  if (lastPosition < (int)unformattedLine.length()){
     if (!isFirstLine) {for (int j = 0; j < indent; j++) {formattedLines.append("\t");}}
     formattedLines.append(unformattedLine.substr(lastPosition, unformattedLine.length() - lastPosition));
   }
@@ -56,7 +42,7 @@ std::string formatCommand(std::string unformattedLine, int indent){
 /* Contains the conversions for tags
  * could probably be much more efficient...
  */
-std::string javaDocFormat(DoxygenEntity &doxygenEntity){
+std::string JavaDocConverter::javaDocFormat(DoxygenEntity &doxygenEntity){
   if(doxygenEntity.typeOfEntity.compare("partofdescription") == 0){
         return doxygenEntity.data;
     }
@@ -97,7 +83,7 @@ std::string javaDocFormat(DoxygenEntity &doxygenEntity){
 }
 
 
-std::string translateSubtree( DoxygenEntity &doxygenEntity){
+std::string JavaDocConverter::translateSubtree( DoxygenEntity &doxygenEntity){
   std::string returnedString;
   if (doxygenEntity.isLeaf){ return javaDocFormat(doxygenEntity) + " ";}
   else {
@@ -111,7 +97,7 @@ std::string translateSubtree( DoxygenEntity &doxygenEntity){
   return returnedString;
 }
 
-std::string translateEntity(DoxygenEntity &doxyEntity){
+std::string JavaDocConverter::translateEntity(DoxygenEntity &doxyEntity){
   if(doxyEntity.typeOfEntity.compare("partofdescription")== 0) return formatCommand(std::string(translateSubtree(doxyEntity)), 0);
   if ((doxyEntity.typeOfEntity.compare("brief") == 0)||(doxyEntity.typeOfEntity.compare("details") == 0)){
   return formatCommand(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";}
@@ -136,13 +122,19 @@ std::string translateEntity(DoxygenEntity &doxyEntity){
   return "";
 }
 
-std::string JavaDocConverter:: convertToJavaDoc(Node *n, std::list <DoxygenEntity> entityList){
-  #pragma unused(n)
+bool JavaDocConverter::getDocumentation(Node *n, String *&documentation){
+  documentation = Getattr(n,"DoxygenComment");
+  if(documentation == NULL)
+    return false;
+  
+  std::list <DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
+  Delete(documentation);
+  
   entityList.sort(CompareDoxygenEntities());
   
-  if(printSortedTree2){
+  if(debug){
     std::cout << "---RESORTED LIST---" << std::endl;
-    printSortedTree(entityList);
+    printTree(entityList);
   }
 
   std::string javaDocString = "/**";
@@ -154,10 +146,11 @@ std::string JavaDocConverter:: convertToJavaDoc(Node *n, std::list <DoxygenEntit
 
   javaDocString += "\n */\n";
   
-  if(printSortedTree2){
+  if(debug){
     std::cout << "\n---RESULT IN JAVADOC---" << std::endl;
     std::cout << javaDocString; 
   }
   
-  return javaDocString;
+  documentation = NewString(javaDocString.c_str());
+  return true;
 }

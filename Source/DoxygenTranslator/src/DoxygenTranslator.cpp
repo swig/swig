@@ -1,43 +1,32 @@
-#include "DoxygenParser.h"
+/* -----------------------------------------------------------------------------
+ * See the LICENSE file for information on copyright, usage and redistribution
+ * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ *
+ * DoxygenTranslator.cpp
+ *
+ * Module to return documentation for nodes formatted for various documentation
+ * systems.
+ * ----------------------------------------------------------------------------- */
+
 #include "DoxygenTranslator.h"
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include "DoxygenEntity.h"
 #include "JavaDocConverter.h"
 #include "PyDocConverter.h"
 
-DoxygenParser doxyParse;
-JavaDocConverter jDC;
-PyDocConverter pyDC;
-
-DoxygenTranslator::DoxygenTranslator(){
-	doxyParse = DoxygenParser();
-    JavaDocConverter jDC = JavaDocConverter();
-    PyDocConverter pyDC = PyDocConverter();
+bool DoxygenTranslator::getDocumentation(Node *node, DocumentationFormat format, String *&documentation){
+  switch(format){
+    case JavaDoc:   
+      return JavaDocConverter().getDocumentation(node, documentation);
+    case PyDoc:   
+      return PyDocConverter().getDocumentation(node, documentation);
+    default:
+      return false;
+  }
 }
 
-DoxygenTranslator::~DoxygenTranslator(){
-	
+void DoxygenTranslator::printTree(std::list<DoxygenEntity> &entityList){  
+  std::list<DoxygenEntity>::iterator p = entityList.begin();
+  while (p != entityList.end()){
+    (*p).printEntity(0);
+    p++;
+  }
 }
-
-
-char *DoxygenTranslator::convert(Node *n, char* doxygenBlob, char* option){
-	
-  std::list <DoxygenEntity> rootList = doxyParse.createTree(std::string(doxygenBlob));
-  std::string returnedString;
-  
-  if(strcmp(option, "JAVADOC") == 0)
-    returnedString = jDC.convertToJavaDoc(n, rootList);
-  else if(strcmp(option, "PYDOC") == 0)
-    returnedString = pyDC.convertToPyDoc(n, rootList);
-  else 
-    std::cout << "Option not current supported." << std::endl;
-	
-  char *nonConstString;
-  nonConstString = (char *)malloc(returnedString.length() + 1);
-  strcpy(nonConstString, returnedString.c_str());
-  
-  return nonConstString;
-}
-

@@ -1032,6 +1032,17 @@ String *Swig_string_rxspencer(String *s) {
 }
 #endif
 
+/* ------------------------------------------------------------
+ * is_generated_overload()
+ * Check if the function is an automatically generated
+ * overload created because a method has default parameters. 
+ * ------------------------------------------------------------ */
+int Swig_is_generated_overload(Node *n)
+{
+  Node *base_method = Getattr(n, "sym:overloaded");
+  Node *default_args = Getattr(n, "defaultargs");
+  return ((base_method != NULL) && (default_args != NULL) && (base_method == default_args));
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_init()
