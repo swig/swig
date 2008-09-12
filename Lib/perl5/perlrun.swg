@@ -217,7 +217,7 @@ SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
 SWIGINTERN MGVTBL
 SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
 #define SWIG_Perl_TypeExt(name, count, attrlist) \
-  { name, SWIG_Perl_default_vtbl, count, attrlist }
+  { name, { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free }, count, attrlist }
 #define SWIG_Perl_TypeExtAttr(name, getf, setf) \
   { name, { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free } }
 
@@ -249,6 +249,7 @@ SWIG_Perl_WrapVariable(const char *name,
   sv = get_sv(name, TRUE);
   sv_magic(sv, 0, PERL_MAGIC_uvar, (char*)&uf, sizeof(uf));
   if(!setf) SvREADONLY_on(sv);
+  return sv;
 }
 
 SWIGINTERN SV *
@@ -264,7 +265,7 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
       proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
     {
       /* So many object models out there...
-      /* Class::Accessor?  Class::Struct?  Class::Std?  Class::Closure?
+       * Class::Accessor?  Class::Struct?  Class::Std?  Class::Closure?
        * There certainly is more than one way to do it!
        *
        * But those are all CPAN add-ons, when we look at core perl we
@@ -296,7 +297,7 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
         SV *k = newSVpv(ext->attr[i].name, 0);
         SV *v = newSV(0);
         sv_magicext(v, 0, PERL_MAGIC_ext, &ext->attr[i].vtbl, (char *)wrap, 0);
-        SvREFCNT_inc(wrap);
+        SvREFCNT(wrap)++;
 #if PERL_REVISION < 5 || (PERL_REVISION == 5 && PERL_VERSION < 9)
         /* obj is a pseudo-hash */
         avhv_store_ent((AV *)SvRV(sv), k, v, 0);
@@ -314,10 +315,10 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
     vtbl = &SWIG_Perl_default_vtbl;
   }
   sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
-//  warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
+/*  warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
 //  //sv_dump(sv);
 //  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
-//  warn("}");
+//  warn("}"); */
   return sv;
 }
 SWIGINTERN void *

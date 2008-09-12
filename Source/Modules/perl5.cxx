@@ -98,7 +98,7 @@ static int do_constants = 0;	/* Constant wrapping */
 static List *classlist = 0;	/* List of classes */
 static int have_constructor = 0;
 static int have_destructor = 0;
-static int have_data_members = 0;
+static List *have_data_members = 0;
 static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
 
 static String *pcode = 0;	/* Perl code associated with each class */
@@ -1295,7 +1295,7 @@ public:
       have_constructor = 0;
       have_operators = 0;
       have_destructor = 0;
-      have_data_members = 0;
+      have_data_members = NewList();
       operators = NewHash();
 
       class_name = Getattr(n, "sym:name");
@@ -1344,7 +1344,8 @@ public:
         String *mang = SwigType_manglestr(ct);
         Printv(pm, "use fields (", NIL);
         int nattr = 0;
-        for (Node *ch = firstChild(n); ch; ch = nextSibling(ch)) {
+        for (Iterator i = First(have_data_members); i.item; i = Next(i)) {
+          Node *ch = i.item;
           String *getf = Getattr(ch, "perl5:getter");
           if (!getf) continue;
           String *setf = Getattr(ch, "perl5:setter");
@@ -1450,7 +1451,7 @@ public:
 
       /* Dump out a hash table containing the pointers that we own */
       Printf(pm, "%%OWNER = ();\n");
-      if (have_data_members || have_destructor)
+      if (First(have_data_members).item || have_destructor)
 	Printf(pm, "%%ITERATORS = ();\n");
 
       /* Dump out the package methods */
@@ -1470,6 +1471,8 @@ public:
       /* Only output the following methods if a class has member data */
 
       Delete(operators);
+      Delete(have_data_members);
+      have_data_members = 0;
       operators = 0;
     }
     return SWIG_OK;
@@ -1578,7 +1581,7 @@ public:
     Language::membervariableHandler(n);
     member_func = 0;
 
-    have_data_members++;
+    Append(have_data_members, n);
     return SWIG_OK;
   }
 
