@@ -4988,8 +4988,7 @@ SWIG.
 
 <p>
 The <tt>-py3</tt> option will enable function annotation support. When used
-SWIG is able to generate proxy method definitions like
-this:
+SWIG is able to generate proxy method definitions like this:
 </p>
 
 <div class="code"><pre>
@@ -4997,7 +4996,23 @@ this:
 </pre></div>
 
 <p>
-For details of usage of function annotation, see PEP 3107.
+Also, even if without passing SWIG the <tt>-py3</tt> option, the parameter list
+still could be generated:
+</p>
+
+<div class="code"><pre>
+  def foo(self, bar = 0): ...
+</pre></div>
+
+<p>
+But for overloaded function or method, the parameter list would fallback to
+<tt>*args</tt> or <tt>self, *args</tt>, and <tt>**kwargs</tt> may be append
+depend on whether you enabled the keyword argument. This fallback is due to
+all overloaded functions share the same function in SWIG generated proxy class.
+</p>
+
+<p>
+For detailed usage of function annotation, see PEP 3107.
 </p>
 
 <H3><a name="Python_nn75"></a>30.12.2 Buffer interface</H3>

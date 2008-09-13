@@ -20,6 +20,10 @@ Version 1.3.37 (in progress)
             "Python 3 Support" section in the "SWIG and Python" chapter of SWIG
             documentation.
 
+            The "-apply" command line option and support of generating codes
+            using apply() is removed. Since this is only required by very old
+            Python.
+
             This merge also patched SWIG's parser to solve a bug. By this patch,
             SWIG features able to be correctly applied on C++ conversion operator,
             such like this:
