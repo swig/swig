@@ -9,11 +9,7 @@ else
 endif
 
 LANGUAGE     = python
-ifneq (,$(USE_VALGRIND))
-  PYTHON       = valgrind --leak-check=full --suppressions=pyswig.supp $(PYBIN)
-else
-  PYTHON       = $(PYBIN)
-endif
+PYTHON       = $(PYBIN)
 
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
