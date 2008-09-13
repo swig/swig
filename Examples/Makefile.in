@@ -316,6 +316,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
+	if [ -f runme.py ]; then (rm -f runme3.py runme3.py.bak;) fi;
 
 
 ##################################################################
