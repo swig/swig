@@ -4,7 +4,7 @@ Version 1.3.37 (in progress)
 2008-09-12: bhy
             [Python] Python 3.0 support branch merged into SWIG trunk. Thanks
             Google Summer of Code 2008 for support this project! By default
-            SWIG will generate interface files compatible with boht Python 2.x
+            SWIG will generate interface files compatible with both Python 2.x
             and 3.0. And there's also some Python 3 new features could be
             enabled by passing a "-py3" command line option to SWIG. These
             features are:
@@ -20,7 +20,7 @@ Version 1.3.37 (in progress)
             "Python 3 Support" section in the "SWIG and Python" chapter of SWIG
             documentation.
 
-            This merge also patched SWIG's parser to solve a bug. By the fix,
+            This merge also patched SWIG's parser to solve a bug. By this patch,
             SWIG features able to be correctly applied on C++ conversion operator,
             such like this:
               
