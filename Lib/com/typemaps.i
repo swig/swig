@@ -9,7 +9,7 @@
 
 /* INPUT typemaps */
 
-%typemap(ctype) bool *INPUT, bool &INPUT                             "int *"
+%typemap(ctype) bool *INPUT, bool &INPUT                             "VARIANT_BOOL *"
 %typemap(ctype) signed char *INPUT, signed char &INPUT               "signed char *"
 %typemap(ctype) unsigned char *INPUT, unsigned char &INPUT           "unsigned char *"
 %typemap(ctype) short *INPUT, short &INPUT                           "short *"
@@ -23,7 +23,7 @@
 %typemap(ctype) float *INPUT, float &INPUT                           "float *"
 %typemap(ctype) double *INPUT, double &INPUT                         "double *"
 
-%typemap(comtype, attribute="in") bool *INPUT, bool &INPUT                             "int *"
+%typemap(comtype, attribute="in") bool *INPUT, bool &INPUT                             "VARIANT_BOOL *"
 %typemap(comtype, attribute="in") signed char *INPUT, signed char &INPUT               "signed char *"
 %typemap(comtype, attribute="in") unsigned char *INPUT, unsigned char &INPUT           "unsigned char *"
 %typemap(comtype, attribute="in") short *INPUT, short &INPUT                           "short *"
@@ -85,7 +85,7 @@
 
 /* OUTPUT typemaps */
 
-%typemap(ctype) bool *OUTPUT, bool &OUTPUT                             "int *"
+%typemap(ctype) bool *OUTPUT, bool &OUTPUT                             "VARIANT_BOOL *"
 %typemap(ctype) signed char *OUTPUT, signed char &OUTPUT               "signed char *"
 %typemap(ctype) unsigned char *OUTPUT, unsigned char &OUTPUT           "unsigned char *"
 %typemap(ctype) short *OUTPUT, short &OUTPUT                           "short *"
@@ -99,7 +99,7 @@
 %typemap(ctype) float *OUTPUT, float &OUTPUT                           "float *"
 %typemap(ctype) double *OUTPUT, double &OUTPUT                         "double *"
 
-%typemap(comtype, attribute="out") bool *OUTPUT, bool &OUTPUT                             "int *"
+%typemap(comtype, attribute="out") bool *OUTPUT, bool &OUTPUT                             "VARIANT_BOOL *"
 %typemap(comtype, attribute="out") signed char *OUTPUT, signed char &OUTPUT               "signed char *"
 %typemap(comtype, attribute="out") unsigned char *OUTPUT, unsigned char &OUTPUT           "unsigned char *"
 %typemap(comtype, attribute="out") short *OUTPUT, short &OUTPUT                           "short *"
@@ -146,7 +146,7 @@
                   double *OUTPUT, double &OUTPUT ""
 
 %typemap(argout) bool *OUTPUT, bool &OUTPUT
-%{ *$input = temp$argnum ? 1 : 0; %}
+%{ *$input = temp$argnum ? VARIANT_TRUE : VARIANT_FALSE; %}
 
 %typemap(argout) signed char *OUTPUT, signed char &OUTPUT,
                  unsigned char *OUTPUT, unsigned char &OUTPUT,
@@ -163,7 +163,7 @@
 
 /* INOUT typemaps */
 
-%typemap(ctype) bool *INOUT, bool &INOUT                             "int *"
+%typemap(ctype) bool *INOUT, bool &INOUT                             "VARIANT_BOOL *"
 %typemap(ctype) signed char *INOUT, signed char &INOUT               "signed char *"
 %typemap(ctype) unsigned char *INOUT, unsigned char &INOUT           "unsigned char *"
 %typemap(ctype) short *INOUT, short &INOUT                           "short *"
@@ -177,7 +177,7 @@
 %typemap(ctype) float *INOUT, float &INOUT                           "float *"
 %typemap(ctype) double *INOUT, double &INOUT                         "double *"
 
-%typemap(comtype, attribute="in, out") bool *INOUT, bool &INOUT                             "int *"
+%typemap(comtype, attribute="in, out") bool *INOUT, bool &INOUT                             "VARIANT_BOOL *"
 %typemap(comtype, attribute="in, out") signed char *INOUT, signed char &INOUT               "signed char *"
 %typemap(comtype, attribute="in, out") unsigned char *INOUT, unsigned char &INOUT           "unsigned char *"
 %typemap(comtype, attribute="in, out") short *INOUT, short &INOUT                           "short *"
@@ -224,7 +224,7 @@
                   double *INOUT, double &INOUT ""
 
 %typemap(argout) bool *INOUT, bool &INOUT
-%{ *$input = temp$argnum ? 1 : 0; %}
+%{ *$input = temp$argnum ? VARIANT_TRUE : VARIANT_FALSE; %}
 
 %typemap(argout) signed char *INOUT, signed char &INOUT,
                  unsigned char *INOUT, unsigned char &INOUT,

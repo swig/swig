@@ -7,7 +7,7 @@
  * COM typemaps
  * ----------------------------------------------------------------------------- */
 
-%typemap(ctype) bool,               const bool &               "int"
+%typemap(ctype) bool,               const bool &               "VARIANT_BOOL"
 %typemap(ctype) char,               const char &               "char"
 %typemap(ctype) signed char,        const signed char &        "signed char"
 %typemap(ctype) unsigned char,      const unsigned char &      "unsigned char"
@@ -28,7 +28,7 @@
 %typemap(ctype) SWIGTYPE & "SWIGIUnknown *"
 %typemap(ctype) enum SWIGTYPE "int"
 
-%typemap(comtype) bool,               const bool &               "int"
+%typemap(comtype) bool,               const bool &               "VARIANT_BOOL"
 %typemap(comtype) char,               const char &               "char"
 %typemap(comtype) signed char,        const signed char &        "signed char"
 %typemap(comtype) unsigned char,      const unsigned char &      "unsigned char"
@@ -157,8 +157,10 @@
 
 %typemap(in) enum SWIGTYPE %{ $1 = ($1_ltype)$input; %}
 
-%typemap(out) bool,
-              char, 
+%typemap(out) bool
+%{ $result = $1 ? VARIANT_TRUE : VARIANT_FALSE; %}
+
+%typemap(out) char,
               signed char, 
               unsigned char, 
               short, 
@@ -173,8 +175,10 @@
               double
 %{ $result = $1; %}
 
-%typemap(out) const bool &, 
-              const char &, 
+%typemap(out) const bool &
+%{ $result = *$1 ? VARIANT_TRUE : VARIANT_FALSE; %}
+
+%typemap(out) const char &, 
               const signed char &, 
               const unsigned char &, 
               const short &, 
