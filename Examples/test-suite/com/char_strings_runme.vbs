@@ -55,42 +55,42 @@ Next
 Rem set functions
 
 For i = 0 to count - 1
-  If char_strings.SetCharHeapString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetCharHeapString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 1 failed, iteration " & i
     WScript.Quit 1
   End If
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetCharStaticString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetCharStaticString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 2 failed, iteration " & i
     WScript.Quit 1
   End If
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetCharArrayStaticString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetCharArrayStaticString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 3 failed, iteration " & i
     WScript.Quit 1
   End If
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetConstCharHeapString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetConstCharHeapString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 4 failed, iteration " & i
     WScript.Quit 1
   End If
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetConstCharStaticString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetConstCharStaticString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 5 failed, iteration " & i
     WScript.Quit 1
   End If
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetConstCharArrayStaticString(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetConstCharArrayStaticString(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char set 6 failed, iteration " & i
     WScript.Quit 1
   End If
@@ -167,7 +167,7 @@ For i = 0 to count - 1
 Next
 
 For i = 0 to count - 1
-  If char_strings.SetConstCharPointerRef(OTHERLAND_MSG & i, i) = 0 Then
+  If Not char_strings.SetConstCharPointerRef(OTHERLAND_MSG & i, i) Then
     WScript.Echo "Test char pointer ref set failed, iteration " & i
     WScript.Quit 1
   End If
