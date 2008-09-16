@@ -2068,8 +2068,8 @@ d_clean:
 ##################################################################
 
 # COM intermediate files
-COM_RC_FILE  = $(INTERFACE:.i=_rc.rc)
-COM_RES_FILE = $(INTERFACE:.i=_rc@COM_RES_SUFFIX@)
+COM_RC_FILE  = $(INTERFACE:.i=.rc)
+COM_RES_FILE = $(INTERFACE:.i=@COM_RES_SUFFIX@)
 COM_IDL_FILE = $(INTERFACE:.i=.idl)
 COM_DEF_FILE = $(INTERFACE:.i=.def)
 COM_TLB_FILE = $(INTERFACE:.i=.tlb)
@@ -2105,5 +2105,5 @@ com_compile:
 	$(COMPILETOOL) $(COM_CC) $(COM_CC_SWITCHES) $(COM_CC_OUT_SWITCHES)$(TARGET)$(COM_EXEC_SUFFIX) $(COMSRCS) $(COM_LIBS)
 
 com_clean:
-	rm -f *_wrap* *.idl *.def *_rc.* *.o *.obj *.map *.lib *.tlb *.exp *.dll$(COM_EXEC_SUFFIX) *~
+	rm -f *_wrap* *.idl *.def *.res *.o *.obj *.map *.lib *.tlb *.exp *.dll$(COM_EXEC_SUFFIX) *~
 

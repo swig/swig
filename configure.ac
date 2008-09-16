@@ -2684,7 +2684,7 @@ if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "
     COM_RES_SUFFIX=.res
   else
     COM_EXEC_SUFFIX=
-    COM_RES_SUFFIX=.o
+    COM_RES_SUFFIX=_rc.o
   fi
 elif test "dmc" = "$COM_CC" ; then
   COM_CC_SHARED_SWITCHES='-WD -L/exetype:nt'
