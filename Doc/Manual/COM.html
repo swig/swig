@@ -140,7 +140,7 @@ $ swig -c++ -com example.i
 
 <p>
 This will generate four files: <tt>example_wrap.c</tt> (or <tt>example_wrap.cxx</tt>),
-<tt>example.idl</tt>, <tt>example.def</tt> and <tt>example_rc.rc</tt>. The first file
+<tt>example.idl</tt>, <tt>example.def</tt> and <tt>example.rc</tt>. The first file
 contains code responsible for object layout, reference counting, etc. The <tt>example.idl</tt>
 file contains a description of the interface exposed to the client applications. The remaining
 two files are used during compilation. All these files need to be linked with the rest of
@@ -197,8 +197,8 @@ This process is compiler specific. Examples are provided below for Visual C++:
 <div class="code"><pre>
 $ # MS Visual Studio 2008
 $ midl example.idl
-$ rc example_rc.rc
-$ cl /LD /Feexample.dll example_wrap.c example.def example_rc.res ole32.lib uuid.lib advapi32.lib oleaut32.lib
+$ rc example.rc
+$ cl /LD /Feexample.dll example_wrap.c example.def example.res ole32.lib uuid.lib advapi32.lib oleaut32.lib
 </pre></div>
 
 <p>
@@ -208,21 +208,27 @@ and for MinGW under Linux (using WIDL):
 <div class="code"><pre>
 $ # MinGW and WIDL
 $ widl -t -I /usr/include/wine/windows example.idl
-$ i586-mingw32msvc-windres example_rc.rc example_rc.o
+$ i586-mingw32msvc-windres example.rc example_rc.o
 $ i586-mingw32msvc-gcc -shared -o example.dll example_wrap.c example.def example_rc.o -lole32 -luuid -ladvapi32 -loleaut32
 </pre></div>
 
 <p>
 On a Windows installation of MinGW the names of the executables will most probably simply be <tt>windres</tt> and
-<tt>gcc</tt>, and <tt>midl</tt> can be used in place of <tt>widl</tt>. Instructions for some other toolchains
+<tt>gcc</tt>, and <tt>midl</tt> can be used in place of <tt>widl</tt>. Note that the output of <tt>windres</tt>
+is an object file and may cause naming conflicts if you have a source file called <tt>example.c</tt> or
+<tt>example.cpp</tt>. A simple solution is to rename the object file as was done above (e.g. to <tt>example_rc.o</tt>).
+</p>
+
+<p>
+Build instructions for some other toolchains
 may be found on <a href="http://www.dabeaz.com/cgi-bin/wiki.pl?DeveloperInfo/COMTesting">this page</a> of the
 SWIG Wiki.
 </p>
 
 <p>
 <b>Warning</b> <br>
-A common source of mistakes is the omission of <tt>example_rc.[res|o]</tt> during compilation. This produces no
-errors or warnings but results in a non-working module.
+A common source of mistakes is the omission of <tt>example.res</tt> (or <tt>example_rc.o</tt>) during compilation.
+This produces no errors or warnings but results in a non-working module.
 </p>
 
 <p>
@@ -1201,13 +1207,13 @@ you can define a 'master' GUID which will serve as a seed value for automaticall
 
 <div class="code">
 <pre>
-%module(master_guid="12345678-1234-1234-1234-000000000005") example
+%module(masterguid="12345678-1234-1234-1234-000000000005") example
 </pre>
 </div>
 
 <p>
 When SWIG wraps a class for which no IID or CLSID has been specified it will concatenate the
-binary representation of master_guid, the module name, the class name and a suffix
+binary representation of the master GUID, the module name, the class name and a suffix
 specifying whether the GUID is generated for a class, interface or type library. Then it
 will compute the SHA-1 hash of this string and use the resulting bits for generating a GUID
 (this process has been described in RFC 4122 as variant 5 of the generation algorithm).

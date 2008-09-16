@@ -494,7 +494,7 @@ public:
     }
 
     if (rcfile_flag) {
-      String *filen = NewStringf("%s%s_rc.rc", SWIG_output_directory(), module_class_name);
+      String *filen = NewStringf("%s%s.rc", SWIG_output_directory(), module_class_name);
       f_rcfile = NewFile(filen, "w");
       if (!f_rcfile) {
 	FileErrorDisplay(filen);
