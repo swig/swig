@@ -41,7 +41,7 @@ int main() {
 
   CoInitialize(NULL);
 
-  CoCreateInstance(&CLSID_virtual_polyImpl, NULL, CLSCTX_INPROC_SERVER, &IID_Ivirtual_poly, (void **) &vp);
+  CoCreateInstance(&CLSID_virtual_poly, NULL, CLSCTX_INPROC_SERVER, &IID_Ivirtual_poly, (void **) &vp);
 
   /* Objects containing NDouble and NInt static methods (including constructors) */
   vp->lpVtbl->get_NDouble(vp, &nds);

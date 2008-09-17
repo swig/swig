@@ -40,7 +40,7 @@ int main() {
 
   CoInitialize(NULL);
 
-  CoCreateInstance(&CLSID_throw_exceptionImpl, NULL, CLSCTX_INPROC_SERVER, &IID_Ithrow_exception, (void **) &te);
+  CoCreateInstance(&CLSID_throw_exception, NULL, CLSCTX_INPROC_SERVER, &IID_Ithrow_exception, (void **) &te);
 
   /* Construct Foo object */
   te->lpVtbl->get_Foo(te, &fs);
