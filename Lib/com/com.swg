@@ -414,7 +414,7 @@ void SWIG_SetErrorInfo(const wchar_t *msg, const wchar_t *source, const GUID *gu
   ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, LPCOLESTR)) icei->vtable[5])(icei, msg);
 
   /* Use QueryInterface to convert ICreateErrorInfo to IErrorInfo */
-  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, REFGUID, LPVOID *)) icei->vtable[0])(icei, IID_IErrorInfo, (void **) &iei);
+  ((HRESULT (SWIGSTDCALL *)(SWIGIUnknown *, const GUID *, LPVOID *)) icei->vtable[0])(icei, &IID_IErrorInfo, (void **) &iei);
 
   SetErrorInfo(0, iei);
 
