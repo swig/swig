@@ -529,7 +529,8 @@ public:
 
       Printf(f_module, "[\n  uuid(");
       formatGUID(f_module, &typelib_guid, false);
-      Printf(f_module, ")\n]\nlibrary %sTLB {\n\n", module_class_name);
+      Printf(f_module, "),\n  version(1.0)\n]\nlibrary %sTLB {\n\n",
+          module_class_name);
 
       // Import IDispatch declaration, part 2
       Printf(f_module, "  importlib(\"stdole2.tlb\");\n\n");
@@ -548,7 +549,7 @@ public:
 
       Printv(f_module, "  [\n    uuid(", NIL);
       formatGUID(f_module, &module_clsid, false);
-      Printv(f_module, ")\n  ]\n  coclass ", module_class_name, "Impl {\n"
+      Printv(f_module, ")\n  ]\n  coclass ", module_class_name, " {\n"
           "    interface I", module_class_name, ";\n  };\n\n", NIL);
 
       // Add the proxy code
@@ -1165,7 +1166,7 @@ public:
     if (!Getattr(n, "abstract") && default_ctor_wname != NULL) {
       Printv(proxy_class_def, "  [\n    aggregatable,\n    uuid(", NIL);
       formatGUID(proxy_class_def, proxy_clsid, false);
-      Printv(proxy_class_def, ")\n  ]\n  coclass $comclassnameImpl {\n"
+      Printv(proxy_class_def, ")\n  ]\n  coclass $comclassname {\n"
           "    interface I$comclassname;\n  };\n\n", NIL);
     }
 
