@@ -34,6 +34,8 @@ static bool CWrap = true;	// generate wrapper file for C code by default. most c
 static bool Generate_Wrapper = false;
 static bool unique_swig_package = false;
 
+static SwigType *fwdref_ffi_type = NewString("__SWIGACL_FwdReference");
+
 static String *current_namespace = NewString("");
 static String *current_package = NewString("");
 static Hash *defined_namespace_packages = NewHash();
@@ -725,7 +727,7 @@ String *internal_compose_foreign_type(SwigType *ty) {
 	  } else {
 	    Printf(stderr, "Unable to compose foreign type of: '%s'\n", tok);
 	  }
-	  Printf(ffiType, "(* :void)");
+	  Printf(ffiType, "%s", get_ffi_type(fwdref_ffi_type, ""));
 	}
       }
     }
@@ -735,22 +737,33 @@ String *internal_compose_foreign_type(SwigType *ty) {
 
 String *compose_foreign_type(SwigType *ty, String *id = 0) {
 
-  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
+/*  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0); */
+
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty);
-  String *id_ref = SwigType_str(ty, id);
+  Printf(stderr, "compose_foreign_type: ENTER (%s)(%s)...\n ", ty, (id ? id : 0));
+  /* String *id_ref = SwigType_str(ty, id);
   Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
 	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
+  if (lookup_res) Swig_print_node(lookup_res);
+  */
 #endif
+
   /* should we allow named lookups in the typemap here? YES! */
   /* unnamed lookups should be found in get_ffi_type, called
      by internal_compose_foreign_type(), below. */
+
+  /* I'm reverting to 'no' for the question above. I can no longer
+     remember why I needed it. If a user needed it, I'll find out
+     as soon as they upgrade. Sigh. -mutandiz 9/16/2008. */
+
+/*
   if(id && lookup_res) {
 #ifdef ALLEGROCL_TYPE_DEBUG
     Printf(stderr, "compose_foreign_type: EXIT-1 (%s)\n ", Getattr(lookup_res, "code"));
 #endif
     return NewString(Getattr(lookup_res, "code"));
   }
+*/
 
   SwigType *temp = SwigType_strip_qualifiers(ty);
   String *res = internal_compose_foreign_type(temp);
@@ -1516,7 +1529,10 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 	      "\tcalled to convert identifiers to symbols.\n"
 	      "\n"
 	      "   -[no]cwrap\n"
-	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n");
+	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n"
+	      "   -isolate\n"
+	      "Define all SWIG helper functions in a package unique to this module. Avoids redefinition warnings when loading multiple SWIGged modules\n"
+	      "into the same running Allegro CL image.\n");
 
     }
 
@@ -1571,7 +1587,7 @@ int ALLEGROCL::top(Node *n) {
 	 "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
 	 "           #:*void* #:*swig-export-list*))\n"
 	 "(in-package :%s)\n\n"
-	 "(eval-when (compile load eval)\n"
+	 "(eval-when (:compile-toplevel :load-toplevel :execute)\n"
 	 "  (defparameter *swig-identifier-converter* '%s)\n"
 	 "  (defparameter *swig-module-name* :%s))\n\n", swig_package, swig_package, identifier_converter, module_name);
   Printf(f_cl, "(defpackage :%s\n" "  (:use :common-lisp :%s :ff :excl))\n\n", module_name, swig_package);
@@ -2632,13 +2648,18 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
   if (!is_void_return && tm) {
-    Replaceall(tm, "$result", "lresult");
-    Printf(f->code, "%s\n", tm);
-    Printf(f->code, "    return lresult;\n");
-    Delete(tm);
-  } else {
-    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), name);
+    if (tm) { 
+      Replaceall(tm, "$result", "lresult");
+      Printf(f->code, "%s\n", tm);
+      Printf(f->code, "    return lresult;\n");
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		   "Unable to use return type %s in function %s.\n",
+		   SwigType_str(t, 0), name);
+    }
   }
+
   emit_return_variable(n, t, f);
 
   if (CPlusPlus) {
@@ -2901,9 +2922,7 @@ int ALLEGROCL::typedefHandler(Node *n) {
     Printf(stderr, "  typedef in class '%s'(%x)\n", Getattr(in_class, "sym:name"), in_class);
 #endif
     Setattr(n, "allegrocl:typedef:in-class", in_class);
-  }
 
-  if (in_class) {
     String *class_name = Getattr(in_class, "name");
     name = NewStringf("%s__%s", class_name, sym_name);
     type_ref = NewStringf("%s::%s", class_name, sym_name);
@@ -2917,9 +2936,11 @@ int ALLEGROCL::typedefHandler(Node *n) {
 
   String *lookup = lookup_defined_foreign_type(typedef_type);
 
-  // Printf(stderr, "** lookup='%s'(%x), ff_type='%s', strstr = '%d'\n", lookup, lookup, ff_type, !Strstr(ff_type,"void"));
+#ifdef ALLEGROCL_TYPE_DEBUG
+  Printf(stderr, "** lookup='%s'(%x), ff_type='%s', !strstr = '%d'\n", lookup, lookup, ff_type, !Strstr(ff_type,"void"));
+#endif
 
-  if(lookup || (!lookup && !Strstr(ff_type,"void")))
+  if(lookup || (!lookup && !Strstr(ff_type,"__SWIGACL_FwdReference")))
 	  add_defined_foreign_type(n, 0, type_ref, name);
   else add_forward_referenced_type(n);
 

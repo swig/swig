@@ -248,7 +248,7 @@ $body)"
 %insert("lisphead") %{
 ;; $Id$
 
-(eval-when (compile load eval)
+(eval-when (:compile-toplevel :load-toplevel :execute)
 
   ;; avoid compiling ef-templates at runtime
   (excl:find-external-format :fat)
@@ -375,7 +375,7 @@ $body)"
 
 (defswig2 swig-defconstant (string value)
   (cl::let ((symbol (id-convert-and-export string :type :constant)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (cl::defconstant ,symbol ,value))))
 
 (cl::defun maybe-reorder-args (funcname arglist)
@@ -421,7 +421,7 @@ $body)"
 	 )
     (cl::when (swig-anyvarargs-p ffargs)
       (cl::setq ffargs '()))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
        (cl::macrolet ((swig-ff-call (&rest args)
@@ -447,7 +447,7 @@ $body)"
                      ffargs
                      (cl::loop for (nil name nil . ffi) in ffargs
                            collect `(,name ,@ffi)))))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
        (cl::macrolet ((swig-ff-call (&rest args)
@@ -459,7 +459,7 @@ $body)"
 (defswig1 swig-dispatcher ((name &key (type :operator) class arities))
   (cl::let ((symbol (id-convert-and-export name
                          :type type :class class)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (cl::defun ,symbol (&rest args)
          (cl::case (cl::length args)
            ,@(cl::loop for arity in arities
@@ -472,14 +472,14 @@ $body)"
 (defswig2 swig-def-foreign-stub (name)
   (cl::let ((lsymbol (id-convert-and-export name :type :class))
 	    (symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
 	(ff:def-foreign-type ,symbol (:class ))
 	(cl::defclass ,lsymbol (ff:foreign-pointer) ()))))
 
 (defswig2 swig-def-foreign-class (name supers &rest rest)
   (cl::let ((lsymbol (id-convert-and-export name :type :class))
 	    (symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (ff:def-foreign-type ,symbol ,@rest)
        (cl::defclass ,lsymbol ,supers
 	 ((foreign-type :initform ',symbol :initarg :foreign-type
@@ -487,11 +487,11 @@ $body)"
 
 (defswig2 swig-def-foreign-type (name &rest rest)
   (cl::let ((symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (ff:def-foreign-type ,symbol ,@rest))))
 
 (defswig2 swig-def-synonym-type (synonym of ff-synonym)
-  `(cl::eval-when (compile load eval)
+  `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
      (cl::setf (cl::find-class ',synonym) (cl::find-class ',of))
      (ff:def-foreign-type ,ff-synonym (:struct ))))
 
@@ -511,24 +511,24 @@ $body)"
              (parent-strings (cl::mapcar #'package-name-for-namespace
                                  parent-namespaces))
              (string (package-name-for-namespace namespace)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
       (cl::defpackage ,string
         (:use :swig :ff #+ignore '(:common-lisp :ff :excl)
               ,@parent-strings ,*swig-module-name*)
 	(:import-from :cl :* :nil :t)))))
 
 (cl::defmacro swig-in-package (namespace)
-  `(cl::eval-when (compile load eval)
+  `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
     (cl::in-package ,(package-name-for-namespace namespace))))
 
 (defswig2 swig-defvar (name mangled-name &key type (ftype :unsigned-natural))
   (cl::let ((symbol (id-convert-and-export name :type type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
       (ff:def-foreign-variable (,symbol ,mangled-name) :type ,ftype))))
 
 ) ;; eval-when
 
-(cl::eval-when (compile eval)
+(cl::eval-when (:compile-toplevel :execute)
   (cl::flet ((starts-with-p (str prefix)
               (cl::and (cl::>= (cl::length str) (cl::length prefix))
                 (cl::string= str prefix :end1 (cl::length prefix)))))
@@ -539,7 +539,7 @@ $body)"
 
 %}
 
-
+typedef void *__SWIGACL_FwdReference;
 
 %{
 
@@ -550,6 +550,8 @@ $body)"
 #endif
 
 #define EXPORT   EXTERN SWIGEXPORT
+
+typedef void *__SWIGACL_FwdReference;
 
 #include <string.h>
 #include <stdlib.h>
