@@ -2,6 +2,21 @@ Version 1.3.37 (in progress)
 =============================
 
 2008-09-18: olly
+	    [PHP5] Change the default input typemap for char * to turn PHP
+	    Null into C NULL (previously it was converted to an empty string).
+	    The new behaviour is consistent with how the corresponding output
+	    typemap works.
+
+	    If you want to keep the old behaviour, add the following typemap
+	    to your interface file (PHP's convert_to_string_ex() function does
+	    the converting from PHP Null to an empty string):
+
+	    %typemap(in) char * {
+		convert_to_string_ex($input);
+		$1 = Z_STRVAL_PP($input);
+	    }
+
+2008-09-18: olly
 	    [PHP5] Fix extra code added to proxy class constructors in the case
 	    where the only constructor takes no arguments.
 
