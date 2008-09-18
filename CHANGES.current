@@ -1,7 +1,7 @@
 Version 1.3.37 (in progress)
 =============================
 
-2008-09-17: wsfulton
+2008-09-18: wsfulton
             [C#] Added C# array typemaps provided by Antti Karanta.
             The arrays provide a way to use MarshalAs(UnmanagedType.LPArray)
             and pinning the array using 'fixed'. See arrays_csharp.i library file
@@ -109,10 +109,6 @@ Version 1.3.37 (in progress)
 2008-09-01: wsfulton
             [CFFI] Commit patch #2079381 submitted by Boris Smilga - constant exprs put into 
             no-eval context in DEFCENUM
-
-2008-09-01: wsfulton
-            [C#] Correct array bounds checking in std::vector typemaps - Insert and InsertRange
-            methods.
 
 2008-08-02: wuzzeb
             [Chicken,Allegro] Commit Patch 2019314
