@@ -114,8 +114,8 @@ protected:
 
 class Language:public Dispatcher {
 public:
-  Language ();
-   virtual ~ Language ();
+  Language();
+  virtual ~Language();
   virtual int emit_one(Node *n);
 
   /* Parse command line options */
