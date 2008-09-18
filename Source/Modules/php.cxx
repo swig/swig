@@ -2007,7 +2007,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    wrapping_member_constant = Getattr(n, "name");
+    wrapping_member_constant = Getattr(n, "sym:name");
     Language::memberconstantHandler(n);
     wrapping_member_constant = NULL;
     return SWIG_OK;
