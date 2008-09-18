@@ -2,6 +2,10 @@ Version 1.3.37 (in progress)
 =============================
 
 2008-09-18: olly
+	    [PHP5] Fix extra code added to proxy class constructors in the case
+	    where the only constructor takes no arguments.
+
+2008-09-18: olly
 	    [PHP5] Fix wrapping of a renamed enumerated value of an enum class
 	    member (SF#2095273).
 

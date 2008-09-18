@@ -1358,16 +1358,26 @@ public:
       Printf(output, "\n");
       // If it's a member function or a class constructor...
       if (wrapperType == memberfn || (newobject && current_class)) {
-	Printf(output, "\tfunction %s(%s) {\n", methodname, args);
 	// We don't need this code if the wrapped class has a copy ctor
 	// since the flat function new_CLASSNAME will handle it for us.
 	if (newobject && !Getattr(current_class, "allocate:copy_constructor")) {
+	  const char * arg0;
+	  if (max_num_of_arguments > 0) {
+	    arg0 = Char(arg_names[0]);
+	  } else {
+	    arg0 = "res";
+	    Delete(args);
+	    args = NewString("$res=null");
+	  }
 	  SwigType *t = Getattr(current_class, "classtype");
 	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
-	  Printf(s_oowrappers, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg_names[0], arg_names[0], mangled_type);
-	  Printf(s_oowrappers, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg_names[0]);
-	  Printf(s_oowrappers, "\t\t\treturn;\n");
-	  Printf(s_oowrappers, "\t\t}\n");
+	  Printf(output, "\tfunction %s(%s) {\n", methodname, args);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	  Printf(output, "\t\t\treturn;\n");
+	  Printf(output, "\t\t}\n");
+	} else {
+	  Printf(output, "\tfunction %s(%s) {\n", methodname, args);
 	}
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
