@@ -384,7 +384,7 @@ PySwigObject_repr(PySwigObject *v, PyObject *args)
 {
   const char *name = SWIG_TypePrettyName(v->ty);
   PyObject *hex = PySwigObject_hex(v);    
-  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at 0x%U>", name, hex);
+  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, hex);
   Py_DECREF(hex);
   if (v->next) {
 #ifdef METH_NOARGS
