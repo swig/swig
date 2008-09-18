@@ -1,4 +1,4 @@
-/* Impelementing buffer protocol typemaps */
+/* Implementing buffer protocol typemaps */
 
 /* %pybuffer_mutable_binary(TYPEMAP, SIZE)
  *
