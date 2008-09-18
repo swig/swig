@@ -1,6 +1,12 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-17: wsfulton
+            [C#] Added C# array typemaps provided by Antti Karanta.
+            The arrays provide a way to use MarshalAs(UnmanagedType.LPArray)
+            and pinning the array using 'fixed'. See arrays_csharp.i library file
+            for details.
+
 2008-09-18: wsfulton
 	    Document the optional module attribute in the %import directive,
             see Modules.html. Add a warning for Python wrappers when the
@@ -49,10 +55,10 @@ Version 1.3.37 (in progress)
 	    - some minor aesthetic changes.
 
 2008-09-12: bhy
-            [Python] Python 3.0 support branch merged into SWIG trunk. Thanks
-            Google Summer of Code 2008 for support this project! By default
+            [Python] Python 3.0 support branch merged into SWIG trunk. Thanks to
+            Google Summer of Code 2008 for supporting this project! By default
             SWIG will generate interface files compatible with both Python 2.x
-            and 3.0. And there's also some Python 3 new features could be
+            and 3.0. And there's also some Python 3 new features that can be
             enabled by passing a "-py3" command line option to SWIG. These
             features are:
 
@@ -64,7 +70,7 @@ Version 1.3.37 (in progress)
               - Abstract base class support
 
             For details of Python 3 support and these features, please see the
-            "Python 3 Support" section in the "SWIG and Python" chapter of SWIG
+            "Python 3 Support" section in the "SWIG and Python" chapter of the SWIG
             documentation.
 
             The "-apply" command line option and support of generating codes

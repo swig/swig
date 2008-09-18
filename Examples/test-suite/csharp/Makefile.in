@@ -21,12 +21,16 @@ CPP_TEST_CASES = \
 	enum_thorough_typesafe \
 	exception_partial_info
 
-CUSTOM_TEST_CASES = intermediary_classname
+CUSTOM_TEST_CASES = \
+	csharp_lib_arrays \
+	intermediary_classname
 
 include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
+
+CSHARPFLAGSSPECIAL =
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -47,6 +51,8 @@ SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
 # Rules for custom tests
 intermediary_classname.customtest: 
 	$(MAKE) intermediary_classname.cpptest SWIGOPTSPECIAL="-dllimport intermediary_classname"
+csharp_lib_arrays.customtest: 
+	$(MAKE) csharp_lib_arrays.cpptest CSHARPFLAGSSPECIAL="-unsafe"
 
 # Makes a directory for the testcase if it does not exist
 setup = \
@@ -65,14 +71,14 @@ setup = \
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
-	  CSHARPFLAGS='-nologo -out:$*_runme.exe' \
+	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
 	  $*$(CSHARPPATHSEPARATOR)*.cs' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(RUNTOOL) $(INTERPRETER) $*_runme.exe; ) \
 	else ( \
 	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  CSHARPFLAGS='-nologo -t:module -out:$*.netmodule' \
+	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
 	  CSHARPSRCS='*.cs' csharp_compile; ); \
 	fi;
 
