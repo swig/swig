@@ -1,6 +1,14 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-18: wsfulton
+	    Document the optional module attribute in the %import directive,
+            see Modules.html. Add a warning for Python wrappers when the
+            module name for an imported base class is missing, requiring the
+            module attribute to be added to %import, eg 
+
+              %import(module="FooModule") foo.h
+
 2008-09-18: olly
 	    [PHP5] Change the default input typemap for char * to turn PHP
 	    Null into C NULL (previously it was converted to an empty string).

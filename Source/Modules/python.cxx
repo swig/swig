@@ -2864,7 +2864,12 @@ public:
 	b = First(baselist);
 	while (b.item) {
 	  String *bname = Getattr(b.item, "python:proxy");
-	  if (!bname || GetFlag(b.item, "feature:ignore")) {
+          bool ignore = GetFlag(b.item, "feature:ignore") ? true : false;
+	  if (!bname || ignore) {
+            if (!bname && !ignore) {
+              Swig_warning(WARN_TYPE_UNDEFINED_CLASS, input_file, line_number,
+                  "Base class '%s' ignored - unknown module name for base. Either import the appropriate module interface file or specify the name of the module in the %%import directive.\n", SwigType_namestr(Getattr(b.item, "name")));
+            }
 	    b = Next(b);
 	    continue;
 	  }

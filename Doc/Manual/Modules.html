@@ -50,41 +50,90 @@ scripting language runtime as you would do for the single module case.
 
 <p>
 A bit more complex is the case in which modules need to share information.
-For example, when one module extends the class of the another by deriving from
+For example, when one module extends the class of another by deriving from
 it:
 </p>
 
 <div class="code"><pre>
-%module base
-
-%inline %{
+// File: base.h
 class base {
 public:
-       int foo(void);
+  int foo();
 };
-%}
 </pre></div>
 &nbsp;
-<div class="code"><pre>
-%module derived
 
-%import "base.i"
+<div class="code"><pre>
+// File: base_module.i
+%module base_module
+
+%{
+#include "base.h"
+%}
+%include "base.h"
+</pre></div>
+&nbsp;
+
+<div class="code"><pre>
+// File: derived_module.i
+%module derived_module
+
+%import "base_module.i"
 
 %inline %{
 class derived : public base {
 public:
-       int bar(void);
+  int bar();
 };
 %}
 </pre></div>
 
-<p>To create the wrapper properly, module <tt>derived</tt> needs to know the
-<tt>base</tt> class and that it's interface is covered in another module. The
-line <tt>%import "base.i"</tt> lets SWIG know exactly that. The common mistake here is
-to <tt>%import</tt> the <tt>.h</tt> file instead of the <tt>.i</tt>, which sadly won't do the trick. Another issue
-to take care of is that multiple dependent wrappers should not be linked/loaded
+<p>To create the wrapper properly, module <tt>derived_module</tt> needs to know about the
+<tt>base</tt> class and that its interface is covered in another module. The
+line <tt>%import "base_module.i"</tt> lets SWIG know exactly that. Oftentimes
+the <tt>.h</tt> file is passed to <tt>%import</tt> instead of the <tt>.i</tt>, 
+which unfortunately doesn't work for all language modules. For example, Python requires the
+name of module that the base class exists in so that the proxy classes can fully inherit the
+base class's methods. Typically you will get a warning when the module name is missing, eg:
+</p>
+
+<div class="shell"> <pre>
+derived_module.i:8: Warning(401): Base class 'base' ignored - unknown module name for base. Either import 
+the appropriate module interface file or specify the name of the module in the %import directive.
+</pre></div>
+
+<p>
+It is sometimes desirable to import the header file rather than the interface file and overcome
+the above warning. 
+For example in the case of the imported interface being quite large, it may be desirable to
+simplify matters and just import a small header file of dependent types.
+This can be done by specifying the optional <tt>module</tt> attribute in the <tt>%import</tt> directive.
+The <tt>derived_module.i</tt> file shown above could be replaced with the following:
+
+<div class="code"><pre>
+// File: derived_module.i
+%module derived_module
+
+%import(module="base_module") "base.h"
+
+%inline %{
+class derived : public base {
+public:
+  int bar();
+};
+</pre></div>
+
+<p>
+Note that "base_module" is the module name and is the same as that specified in <tt>%module</tt>
+in <tt>base_module.i</tt> as well as the <tt>%import</tt> in <tt>derived_module.i</tt>.
+</p>
+
+<p>
+Another issue
+to beware of is that multiple dependent wrappers should not be linked/loaded
 in parallel from multiple threads as SWIG provides no locking - for more on that
 issue, read on.</p>
+</p>
 
 <H2><a name="Modules_nn2"></a>15.2 The SWIG runtime code</H2>
 
