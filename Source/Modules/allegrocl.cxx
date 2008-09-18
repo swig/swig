@@ -735,12 +735,12 @@ String *internal_compose_foreign_type(SwigType *ty) {
   return ffiType;
 }
 
-String *compose_foreign_type(SwigType *ty, String *id = 0) {
+String *compose_foreign_type(SwigType *ty, String * /*id*/ = 0) {
 
 /*  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0); */
 
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "compose_foreign_type: ENTER (%s)(%s)...\n ", ty, (id ? id : 0));
+  Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty, (id ? id : 0));
   /* String *id_ref = SwigType_str(ty, id);
   Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
 	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
