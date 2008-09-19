@@ -2,9 +2,9 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * php4.cxx
+ * php.cxx
  *
- * Php language module for SWIG.
+ * PHP language module for SWIG.
  * -----------------------------------------------------------------------------
  */
 
@@ -40,7 +40,7 @@
  * (may need to add more WARN_PHP_xxx codes...)
  */
 
-char cvsroot_php4_cxx[] = "$Id$";
+char cvsroot_php_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
@@ -54,7 +54,7 @@ PHP Options (available with -php5)\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP5 wrappers\n\
 \n";
 
-/* The original class wrappers for PHP4 store the pointer to the C++ class in
+/* The original class wrappers for PHP4 stored the pointer to the C++ class in
  * the object property _cPtr.  If we use the same name for the member variable
  * which we put the pointer to the C++ class in, then the flat function
  * wrappers will automatically pull it out without any changes being required.
@@ -141,7 +141,7 @@ void SwigPHP_emit_resource_registrations() {
     Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
 
     // write out body
-    if ((class_node != NOTCLASS)) {
+    if (class_node != NOTCLASS) {
       String *destructor = Getattr(class_node, "destructor");
       human_name = Getattr(class_node, "sym:name");
       if (!human_name)
@@ -172,12 +172,9 @@ void SwigPHP_emit_resource_registrations() {
   }
 }
 
-class PHP:public Language {
-  int php_version;
-
+class PHP : public Language {
 public:
-   PHP(int php_version_):php_version(php_version_) {
-  }
+  PHP() { }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class. */
   
@@ -710,7 +707,7 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
 
-    /* Now convert from php to C variables */
+    /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
     // It means error messages may be out by argbase with error
@@ -861,7 +858,7 @@ public:
     Delete(wname);
     wname = NULL;
 
-    if (!(shadow && php_version == 5)) {
+    if (!shadow) {
       DelWrapper(f);
       return SWIG_OK;
     }
@@ -1535,7 +1532,7 @@ public:
       Printf(s_cinit, "%s\n", tm);
     }
 
-    if (shadow && php_version == 5) {
+    if (shadow) {
       String *enumvalue = GetChar(n, "enumvalue");
       String *set_to = iname;
 
@@ -1825,7 +1822,7 @@ public:
     String *iname = Getattr(n, "sym:name");
 
     /* A temporary(!) hack for static member variables.
-     * Php currently supports class functions, but not class variables.
+     * PHP currently supports class functions, but not class variables.
      * Until it does, we convert a class variable to a class function
      * that returns the current value of the variable. E.g.
      *
@@ -1834,7 +1831,7 @@ public:
      *          static int ncount;
      * };
      *
-     * would be available in php as Example::ncount() 
+     * would be available in PHP as Example::ncount() 
      */
 
     // If the variable is const, then it's wrapped as a constant with set/get
@@ -2009,7 +2006,6 @@ public:
     Wrapper_print(f, s_wrappers);
 
     return SWIG_OK;
-
   }
 
   /* ------------------------------------------------------------
@@ -2024,10 +2020,6 @@ public:
   }
 
 };				/* class PHP */
-
-/* -----------------------------------------------------------------------------
- * swig_php()    - Instantiate module
- * ----------------------------------------------------------------------------- */
 
 static PHP *maininstance = 0;
 
@@ -2055,8 +2047,12 @@ extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
     (*r_prevtracefunc) (ty, mangled, (String *) clientdata);
 }
 
-static Language *new_swig_php(int php_version) {
-  maininstance = new PHP(php_version);
+/* -----------------------------------------------------------------------------
+ * new_swig_php()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+static Language *new_swig_php() {
+  maininstance = new PHP;
   if (!r_prevtracefunc) {
     r_prevtracefunc = SwigType_remember_trace(typetrace);
   } else {
@@ -2074,5 +2070,5 @@ extern "C" Language *swig_php4(void) {
 }
 
 extern "C" Language *swig_php5(void) {
-  return new_swig_php(5);
+  return new_swig_php();
 }
