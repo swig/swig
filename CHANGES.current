@@ -1,6 +1,9 @@
 Version 1.3.37 (in progress)
 =============================
 
+2008-09-19: olly
+	    [PHP5] Add typemaps for long long and unsigned long long.
+
 2008-09-18: wsfulton
             [C#] Added C# array typemaps provided by Antti Karanta.
             The arrays provide a way to use MarshalAs(UnmanagedType.LPArray)
