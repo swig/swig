@@ -55,7 +55,7 @@
                 int, signed int, unsigned int,
                 long, signed long, unsigned long,
                 float, double, long double, char *, void *, void,
-                enum SWIGTYPE, SWIGTYPE *,
+                enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
                 SWIGTYPE[ANY], SWIGTYPE &  "$1_ltype";
 %typemap(ctype) SWIGTYPE                   "$&1_type";
 
@@ -65,7 +65,7 @@
              int, signed int, unsigned int,
              long, signed long, unsigned long,
              float, double, long double, char *, void *, void,
-             enum SWIGTYPE, SWIGTYPE *,
+             enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
              SWIGTYPE[ANY], SWIGTYPE &     "$1 = $input;";
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
 

@@ -1,5 +1,16 @@
+2008-09-22  Mikel Bancroft  <mikel@franz.com>
+
 Version 1.3.37 (in progress)
 =============================
+
+2008-09-22: mutandiz (Mikel Bancroft)
+	    [allegrocl]
+	    - Support wrapping of types whose definitions are not seen by
+	    SWIG. They are treated as forward-referenced classes and if a
+	    definition is not seen are treated as (* :void).
+	    - Don't wrap the contents of unnamed namespaces.
+	    - More code cleanup. Removed some extraneous warnings.
+	    - start work on having the allegrocl mod pass the cpp test-suite.
 
 2008-09-19: olly
 	    [PHP5] Add typemaps for long long and unsigned long long.

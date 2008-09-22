@@ -9,21 +9,40 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+
+# these cpp tests generate warnings/errors when compiling
+# the wrapper .cxx file.
+CPP_TEST_BROKEN_CXX = \
+# might be a problem in our cxx wrapping. not sure. \
+	class_scope_weird \
+# works as expected. must muffle warnings if you want none. \
+# 'struct A' is not seen by SWIG, so it's type cannot be \
+# derived \
+# Look into cxx problems, though.
+	constant_pointers
+
+
 # these cpp tests aren't working. Fix 'em
 # need to further separate these into tests requiring
 # std libraries, or the $ldestructor problem.
 CPP_TEST_BROKEN_ACL = \
 	array_member \
+# seems like a problem with the .i file. not enough includes. \
 	char_strings \
+# not sure what this one is supposed to do. needs investigation. \
 	class_ignore \
-	constant_pointers \
 	contract \
+# 'throws' typemap entries. \
 	cplusplus_throw \
+# not sure. \
 	cpp_basic \
+# redefinition of enum_members. Looks like a namespace problem. \
 	cpp_enum \
+# works as expected. Bar is not seen by swig. muffle warning. \
 	cpp_typedef \
-	default_constructor \
+# 'throws' typemap entries. \
 	default_args \
+	default_constructor \
 	dynamic_cast \
 	enum_thorough \
 	extend_variable \
@@ -91,7 +110,13 @@ CPP_TEST_BROKEN_LONGLONG = \
 
 # These are currently unsupported.
 CPP_TEST_CASES_ACL_UNSUPPORTED = \
+# contract support \
 	aggregate \
+# directors and allprotected support \
+	allprotected \
+# directors support \
+	apply_signed_char \
+# contract support \
 	contract \
 	director_abstract \
 	director_basic \
@@ -130,7 +155,7 @@ SKIP_CPP_STD_CASES = Yes
 
 C_TEST_CASES =
 
-CPP_TEST_CASES =
+CPP_TEST_CASES = 
 
 include $(srcdir)/../common.mk
 
