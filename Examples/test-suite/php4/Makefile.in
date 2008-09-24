@@ -58,7 +58,7 @@ missingtests: missingcpptests missingctests
 # a file is found which has _runme.php4 appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL=$(RUNTOOL) php4_run;) \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP4SCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL=$(RUNTOOL) php4_run;) \
 	fi;
 
 # Clean: remove the generated .php file

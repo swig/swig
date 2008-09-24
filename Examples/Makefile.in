@@ -294,15 +294,15 @@ python_static_cpp: $(SRCS)
 # ----------------------------------------------------------------- 
 
 ifeq (,$(PY3))
-  SCRIPT = runme.py
+  PYSCRIPT = runme.py
 else
-  SCRIPT = runme3.py
+  PYSCRIPT = runme3.py
 endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run: $(SCRIPT)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(SCRIPT) >/dev/null
+python_run: $(PYSCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(PYSCRIPT) >/dev/null
 
 runme3.py: runme.py
 	cp $< $@
@@ -769,10 +769,10 @@ php4_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 PHP4=@PHP4@
-SCRIPT ?= runme.php4
+PHP4SCRIPT ?= runme.php4
 
 php4_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP4) -n -q -d extension_dir=. $(SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP4) -n -q -d extension_dir=. $(PHP4SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the PHP4 examples
