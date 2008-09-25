@@ -1,5 +1,8 @@
 Version 1.3.37 (in progress)
-=============================
+============================
+
+2008-09-25: olly
+	    [PHP5] Fill in typemaps for SWIGTYPE and void * (SF#2095186).
 
 2008-09-22: mutandiz (Mikel Bancroft)
 	    [allegrocl]

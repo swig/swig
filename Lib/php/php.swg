@@ -110,6 +110,7 @@
     SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
   }
 }
+
 %typemap(argout) SWIGTYPE *,
                  SWIGTYPE [],
                  SWIGTYPE&;
@@ -264,19 +265,24 @@
 %php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
- " /* typecheck SWIGTYPE */ "
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
+}
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *,
              SWIGTYPE [],
              SWIGTYPE &
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
- " /* typecheck void * */ "
-
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, 0, 0) >= 0);
+}
 
 /* Exception handling */
 
