@@ -7,7 +7,7 @@
  * This file contains a two approaches to marshaling arrays. The first uses
  * default p/invoke marshaling and the second uses pinning of the arrays.
  *
- * Default marshalling approach
+ * Default marshaling approach
  * ----------------------------
  * Array typemaps using default p/invoke marshaling. The data is copied to a separately
  * allocated buffer when passing over the managed-native boundary.
@@ -32,13 +32,13 @@
  * ----------------
  * Array typemaps using pinning. These typemaps pin the managed array given
  * as parameter and pass a pointer to it to the c/c++ side. This is very
- * efficient as no copying is done (unlike in the default array marshalling),
+ * efficient as no copying is done (unlike in the default array marshaling),
  * but it makes garbage collection more difficult. When considering using
  * these typemaps, think carefully whether you have callbacks that may cause
  * the control to re-enter the managed side from within the call (and produce
  * garbage for the gc) or whether other threads may produce enough garbage to 
  * trigger gc while the call is being executed. In those cases it may be
- * wiser to use.
+ * wiser to use the default marshaling typemaps.
  * 
  * Please note that when using fixed arrays, you have to mark your corresponding 
  * module class method unsafe using 
