@@ -1971,6 +1971,10 @@ public:
       Delete(proxy_iid_ident);
     }
 
+    Printf(f_vtable_defs, "GUID IID_I%s = ", classname);
+    formatGUID(f_vtable_defs, proxy_iid, true);
+    Printf(f_vtable_defs, ";\n\n");
+
     Printv(proxy_class_forward_def, "  interface I$comclassname;\n", NIL);
 
     Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
@@ -1982,7 +1986,9 @@ public:
     Replaceall(proxy_class_forward_def, "$module", module_class_name);
     Replaceall(proxy_class_def, "$module", module_class_name);
 
-    Printf(f_vtable_defs, "void * (SWIGSTDCALL * SWIG_wrap%s)(void *, int) = SWIG_wrap_opaque;\n", classname);
+    Printf(f_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *ptr, int cMemOwn) {\n"
+        "  return SWIG_wrap_opaque(ptr, cMemOwn, &IID_I%s);\n"
+        "};\n\n", classname, classname);
 
     Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
     Printv(f_proxy, proxy_class_def, NIL);
