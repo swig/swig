@@ -704,6 +704,7 @@ HRESULT SWIGSTDCALL _wrap_staticclass_QueryInterface(void *that, GUID *iid, void
 }
 
 HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** ppvObject) {
+  SWIGWrappedObject *obj = (SWIGWrappedObject *) that;
   if (SWIGIsEqual(iid, &IID_ISWIGWrappedObject)) {
     /* FIXME: This could be more elegant */
     SWIGAddRef1(that); 
@@ -711,7 +712,8 @@ HRESULT SWIGSTDCALL _wrap_opaque_QueryInterface1(void *that, GUID *iid, void ** 
     return S_OK;
   }
   
-  if (SWIGIsEqual(iid, &IID_IUnknown)) {
+  if (SWIGIsEqual(iid, &IID_IUnknown) ||
+      (obj->additionalIID != NULL && SWIGIsEqual(iid, obj->additionalIID))) {
     /* FIXME: This could be more elegant */
     SWIGAddRef1(that);
     *ppvObject = that;
@@ -738,7 +740,7 @@ SWIG_funcptr _wrap_opaque_vtable[] = {
   (SWIG_funcptr) SWIGRelease1,
 };
 
-void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn) {
+void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn, GUID *iid) {
 #ifdef __cplusplus
   SWIGWrappedObject *res = new SWIGWrappedObject;
 #else
@@ -751,6 +753,9 @@ void * SWIGSTDCALL SWIG_wrap_opaque(void *arg, int cMemOwn) {
   res->cMemOwn = cMemOwn;
   InterlockedIncrement(&globalRefCount);
   res->refCount = 1;
+  res->deleteInstance = NULL;
+  res->outer = NULL;
+  res->additionalIID = iid;
   return (void *) res;
 }
 
