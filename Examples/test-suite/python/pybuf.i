@@ -1,6 +1,7 @@
 %module pybuf
 %include<pybuffer.i>
-
+%include<cstring.i>
+/*functions for the test case*/
 %pybuffer_mutable_binary(char *buf1, int len);
 %pybuffer_mutable_string(char *buf2);
 %pybuffer_binary(const char *buf3, int len);
@@ -31,4 +32,33 @@
   {
     return strlen(buf4);
   }  
+%}
+
+/*functions for the benchmark*/
+%pybuffer_mutable_string(char *str1);
+%cstring_mutable(char *str2);
+
+%inline %{
+void title(char *str) {
+    int outword = 1;
+    while(*str) {
+        if (isalnum(*str)) {
+            if (outword) {
+                outword = 0;
+                *str = toupper(*str);
+            }            
+        }
+        else {
+            outword = 0;
+        }
+        str++;
+    }
+}
+
+void title1(char *str1) {
+    title(str1);
+}
+void title2(char *str2) {
+    title(str2);
+}
 %}
