@@ -1,6 +1,18 @@
+2008-09-26  Mikel Bancroft  <mikel@franz.com>
+
 Version 1.3.37 (in progress)
 ============================
 
+2008-09-26: mutandiz
+	    [allegrocl]
+	    Lots of test-suite work.
+	    - Fix ordering of wrapper output and %{ %} header output.
+	    - Fix declarations of local vars in C wrappers.
+	    - Fix declaration of defined constants in C wrappers.
+	    - Fix declaration of EnumValues in C wrappers.
+	    - add some const typemaps to allegrocl.swg
+	    - add rename for operator bool() overloads.
+	
 2008-09-25: olly
 	    [PHP5] Fill in typemaps for SWIGTYPE and void * (SF#2095186).
 

@@ -26,37 +26,76 @@
 
 %typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
 
-%typemap(lisptype) bool "cl:boolean";
-%typemap(lisptype) char "cl:character";
-%typemap(lisptype) unsigned char "cl:integer";
-%typemap(lisptype) signed char "cl:integer";
+%typemap(lisptype) bool, const bool "cl:boolean";
+%typemap(lisptype) char, const char "cl:character";
+%typemap(lisptype) unsigned char, const unsigned char "cl:integer";
+%typemap(lisptype) signed char, const signed char "cl:integer";
 
-%typemap(ffitype) bool ":int";
-%typemap(ffitype) char ":char";
-%typemap(ffitype) unsigned char ":unsigned-char";
-%typemap(ffitype) signed char ":char";
-%typemap(ffitype) short, signed short ":short";
-%typemap(ffitype) unsigned short ":unsigned-short";
-%typemap(ffitype) int, signed int ":int";
-%typemap(ffitype) unsigned int ":unsigned-int";
-%typemap(ffitype) long, signed long ":long";
-%typemap(ffitype) unsigned long ":unsigned-long";
-%typemap(ffitype) float ":float";
-%typemap(ffitype) double ":double";
-%typemap(ffitype) char * "(* :char)";
+%typemap(ffitype) bool, const bool ":int";
+%typemap(ffitype) char, const char,
+		  signed char, const signed char ":char";
+%typemap(ffitype) unsigned char, const unsigned char ":unsigned-char";
+%typemap(ffitype) short, const short,
+		  signed short, const signed short ":short";
+%typemap(ffitype) unsigned short, const unsigned short ":unsigned-short";
+%typemap(ffitype) int, const int, signed int, const signed int ":int";
+%typemap(ffitype) unsigned int, const unsigned int ":unsigned-int";
+%typemap(ffitype) long, const long, signed long, const signed long ":long";
+%typemap(ffitype) unsigned long, const unsigned long ":unsigned-long";
+%typemap(ffitype) float, const float ":float";
+%typemap(ffitype) double, const double ":double";
+%typemap(ffitype) char *, const char *, signed char *,
+		  const signed char *, signed char &,
+		  const signed char &			 "(* :char)";
+%typemap(ffitype) unsigned char *, const unsigned char *,
+		  unsigned char &, const unsigned char & "(* :unsigned-char)";
+%typemap(ffitype) short *, const short *, short &,
+		  const short &				"(* :short)";
+%typemap(ffitype) unsigned short *, const unsigned short *,
+		  unsigned short &, const unsigned short & "(* :unsigned-short)";
+%typemap(ffitype) int *, const int *, int &, const int & "(* :int)";
+%typemap(ffitype) unsigned int *, const unsigned int *,
+		  unsigned int &, const unsigned int &	"(* :unsigned-int)";
 %typemap(ffitype) void * "(* :void)";
 %typemap(ffitype) void ":void";
 %typemap(ffitype) enum SWIGTYPE ":int";
 %typemap(ffitype) SWIGTYPE & "(* :void)";
 
-%typemap(ctype) bool                       "int";
+/* const typemaps
+idea: marshall all primitive c types to their respective lisp types
+to maintain const corretness. For pointers/references, all bets
+are off if you try to modify them.
+
+idea: add a constant-p slot to the base foreign-pointer class. For
+constant pointer/references check this value when setting (around method?)
+and error if a setf operation is performed on the address of this object.
+
+*/
+
+/* 
+%exception %{
+   try {
+      $action
+   } catch (...) {
+      return $null;
+   }
+%}
+
+*/
+
+// %typemap(throws) SWIGTYPE {
+//   (void)$1;
+//   SWIG_fail;
+// }
+
+%typemap(ctype) bool, const bool		"int";
 %typemap(ctype) char, unsigned char, signed char,
                 short, signed short, unsigned short,
                 int, signed int, unsigned int,
                 long, signed long, unsigned long,
                 float, double, long double, char *, void *, void,
                 enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
-                SWIGTYPE[ANY], SWIGTYPE &  "$1_ltype";
+                SWIGTYPE[ANY], SWIGTYPE &, const SWIGTYPE  "$1_ltype";
 %typemap(ctype) SWIGTYPE                   "$&1_type";
 
 %typemap(in) bool                          "$1 = (bool)$input;";
@@ -122,7 +161,8 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
                     long, signed long, unsigned long,
                     enum SWIGTYPE { $1 = 1; };
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &,
-                                   SWIGTYPE[ANY], SWIGTYPE { $1 = 1; };
+				   SWIGTYPE[], SWIGTYPE[ANY],
+				   SWIGTYPE { $1 = 1; };
 
 /* This maps C/C++ types to Lisp classes for overload dispatch */
 
@@ -147,7 +187,7 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
               enum SWIGTYPE, SWIGTYPE *,
               SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
 #ifdef __cplusplus
-%typemap(out) SWIGTYPE                     "$result = new $1_type($1);";
+%typemap(out) SWIGTYPE                     "$result = new $1_ltype($1);";
 #else
 %typemap(out) SWIGTYPE {
   $result = ($&1_ltype) malloc(sizeof($1_type));
@@ -243,6 +283,9 @@ $body)"
 
 %rename(__funcall__)	     *::operator();
 %rename(__aref__)	     *::operator[];
+
+%rename(__bool__)	     *::operator bool();
+%rename(__bool__)	     *::operator bool() const;
 #endif
 
 %insert("lisphead") %{

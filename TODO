@@ -339,6 +339,14 @@ Common Lisp
        typemaps would be written as Lisp programs that generate Lisp
        code.
 
+ALLEGROCL
+-----
+These first three will remove most of the warnings from most of the
+remaining checkpartial tests that are failing.
+****  Throws typemap support
+****  const typemaps
+****  long long typemaps
+
 Ocaml
 -----
 **     I've been working with my camlp4 module and type information
