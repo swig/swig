@@ -299,7 +299,7 @@
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   if($1) 
-  	SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
+    SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
 }
 
 %typemap(varout) char [ANY]
