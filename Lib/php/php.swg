@@ -205,15 +205,15 @@
 %typemap(out) SWIGTYPE *,
               SWIGTYPE [],
               SWIGTYPE &
-{
-	SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
-}
+%{
+  SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
+%}
 
 %typemap(out) SWIGTYPE *DYNAMIC,
               SWIGTYPE &DYNAMIC
 {
-        swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
-	SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
 }
 
 %typemap(out) SWIGTYPE
@@ -225,7 +225,7 @@
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
-  memmove(resultobj, &$1, sizeof($1_type));
+  memcpy(resultobj, &$1, sizeof($1_type));
   SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
 }
 #endif
@@ -233,9 +233,9 @@
 %typemap(out) void "";
 
 %typemap(out) char [ANY]
-{
+%{
   RETVAL_STRINGL($1,$1_dim0,1);
-}
+%}
 
 // This typecheck does hard checking for proper argument type.  If you want
 // an argument to be converted from a different PHP type, you must convert
